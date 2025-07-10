@@ -24,7 +24,7 @@ These stats directly affect Card Effects when played by a Musician.
   - If Stress reaches its max, the musician suffers a **Breakdown**.
   - Breakdowns apply semi-permanent debuffs (e.g., *Stage Fright*, *Insecurity*).
 
-> Rehearsal **Talk** can reduce Stress **only if** there are no unresolved conflicts.
+> Rehearsal **Band Talk** can reduce Stress as well as resolve conflicts.
 
 ---
 
@@ -41,8 +41,8 @@ These stats directly affect Card Effects when played by a Musician.
 
 | Stat         | Code | Description |
 |--------------|------|-------------|
-| Creativity   | CRT  | Rate of generating new song ideas during Create |
-| Leadership   | LDR  | Governs team coordination, Talk effectiveness, and Leadership Style |
+| Creativity   | CRT  | Rate of generating new song ideas during **Compose** Rehearsal Action |
+| Leadership   | LDR  | Governs team coordination, **Band Talk** effectiveness, and Leadership Style |
 | Talent       | TLT  | *(Hidden)* Modifier for XP gain, event triggers, and potential arcs |
 
 ---
@@ -59,17 +59,7 @@ Conflicts occur between musicians and come in levels:
 | Blood Feud          | Major penalties, chance of walkouts, locks cards                 |
 
 Each Musician can track a `ConflictLevel` with other bandmates.
-
----
-
-## 🧘 Rehearsal Actions
-
-| Action   | Effect |
-|----------|--------|
-| Create   | Uses CRT to generate new song ideas or cards |
-| Practice | Boosts effectiveness of selected song in upcoming gig |
-| Talk     | Resolves conflicts (if present), or reduces Stress (if none) |
-| Chill (optional) | Pure Stress recovery action, only at special nodes |
+Conflict can also affect the Musician's performance during gigs (e.g. refusing to play, skipping turns or misfiring cards).
 
 ---
 

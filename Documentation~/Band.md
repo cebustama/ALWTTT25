@@ -15,13 +15,7 @@
 ## 🎼 Songs
 - `Songs`: List of `Song` objects available for gigs.
   - Songs are required to perform.
-  - Obtained via composing, events, or rehearsals.
-
-Each `Song` could include:
-- `Title`
-- `Sections`: Number of phases in performance
-- `Mood`
-- `Difficulty`
+  - Obtained via composing, resolving conflicts, or events.
 
 ---
 
@@ -39,7 +33,7 @@ Rewards during the run are pulled from genre-specific pools.
 
 ## 📈 Fans and Level
 - `Fans`: EXP equivalent, increases as gigs are completed and reputation grows.
-- `BandLevel`: Derived from `Fans`, used to unlock:
+- `BandLevel`: Derived from `Fans`, used for **Progression* including:
   - New cards
   - Perks
   - Relics
@@ -51,11 +45,11 @@ Rewards during the run are pulled from genre-specific pools.
 ## 💔 Cohesion
 - `Cohesion`: Acts as Band-wide HP.
   - Dropped by stress, conflict, bad gigs, or event outcomes.
-  - If it reaches 0, the band breaks up and the run ends.
+  - **If it reaches 0, the band breaks up and the run ends.**
 
 Replenished by:
 - Positive events
-- Gig synergies
+- Gig synergies and final results
 - Rehearsal actions
 
 ---
@@ -63,16 +57,17 @@ Replenished by:
 ## 🗺️ World State & Travel
 - `CurrentLocation`: Current planet or node on the map.
 - `UpcomingGig`: Data for the next planned performance.
-- `ShipState` (optional): Could hold facilities (deck view, rest lounge, upgrades, etc.)
+- `ShipState` (idea): Could hold facilities (deck view, rest lounge, upgrades, etc.)
+- `EmpireAlignmentScore`: Tracks the Band's history and reputation with the empire. Narrative consequences (i.e. events, cards, upgrades, rewards and punishments)
 
 ---
 
 ## 🧩 Optional Features
 | Feature         | Use Case |
 |-----------------|----------|
-| `Relics`        | Passive boosts and traits for the band |
-| `Inventory`     | Setlists, consumables, instruments (if added) |
-| `BandTraits`    | E.g., “Tight-knit”, “Unpredictable”, “Trendsetters” |
+| `Equipment`     | Music equipment, Instruments, Amplifiers, Pedals, etc. Tour-wide (playthrough) *persistent* upgrades |
+| `Consumables`   | *Temporary* upgrades, for example for a single Gig or single Song Performance |
+| `BandTraits` or `BandReputation`  | E.g., “Tight-knit”, “Unpredictable”, “Trendsetters” |
 | `RunHistory`    | High scores, endings, performances |
 
 ---
@@ -91,9 +86,8 @@ class Band {
     float Cohesion;
     Location CurrentLocation;
     Gig UpcomingGig;
-    List<Relic> Relics;         // optional
-    List<StatusEffect> Status;  // optional
+    int EmpireAlignmentScore;
+    List<Equipment> Equipments;
+    List<BandTraits> Reputation;
 }
 ```
-
-The Band is the beating heart of the run: it holds your strategy, your story, and your soul.

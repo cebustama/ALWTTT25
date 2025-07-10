@@ -18,6 +18,28 @@
 | `Conditions`     | List<Condition>  | Usage requirements, e.g., “If current song is Pop” or “Played by CHR > 8” |
 | `Effects`        | List<Effect>     | Card actions: Apply Hype, boost Song Score, reduce Stress, apply StatusEffect, etc. |
 
+## Card Types
+
+- Card Types can also be referenced by Enemies and used to fulfill Requests. Understanding card types is central to understanding Enemy behavior and designing strategies.
+
+| Type name | Musician Synergies | Song Themes |
+|-----------|--------------------|----------------|
+| Funny | CHR | - |
+| Virtuous | TCH | - |
+| Touching | EMT | - |
+| TODO | CHR, TCH | - |
+| TODO | CHR, EMT | - |
+| TODO | TCH, EMT | - |
+| Raw | EMT, High Stress | - |
+
+- Card Types could use a unique color for fast identification, also highlighted in Enemy Preferences with the same color.
+
+## Card Keywords
+
+| Keyword | Description |
+|-|-|
+| Improvise | Discard and choose from pool of cards with low-cost or no cost. Reduces frustration from bad hands or unmet enemy Requests. |
+
 ---
 
 ## 🔗 Synergies
