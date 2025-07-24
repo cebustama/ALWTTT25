@@ -9,17 +9,17 @@ The **Star Map** in *A Long Way to the Top* defines the journey of your Band thr
 
 ## Node Types
 
-### 🎸 Gig (Planet, Asteroid, etc)
+### Gig (Planet, Asteroid, etc)
 - **Combat node** where the Band performs some of their Songs.
 - Each Gig affects **Fan growth**, **Musician Stress**, and **Card Rewards**.
 - Each Gig has an associated difficulty level, possible modifiers, and crowd archetypes.
 
-### 💿 Boss Gig
+### Boss Gig
 - A multi-phase elite Gig with intense audience expectations and higher complexity.
 - Ends a **Sector** or marks a major story milestone.
 - Provides legendary rewards (rare cards, unique Song upgrades, special traits).
 
-### 🛸 Rehearsal Day (Spaceship Node)
+### Rehearsal Day (Spaceship Node)
 - Occurs between Gigs.
 - The Band spends the day aboard their spaceship, choosing **one** of the following actions:
   - **Compose** a new song (via the Modular Composition Minigame).
@@ -29,7 +29,7 @@ The **Star Map** in *A Long Way to the Top* defines the journey of your Band thr
 
 **Conflicts left unresolved will lower Cohesion after each node**, similar to a poison effect. If **Band Cohesion** drops to 0 → the Band breaks up, **Game Over**.
 
-### 📜 Story Event
+### Story Event
 - Optional, narrative-rich encounters with decisions and consequences.
 - Can trigger new Songs, Bandmate insights, random rewards, fan loss/gain, or Empire choices.
 

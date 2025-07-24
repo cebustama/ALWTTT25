@@ -1,11 +1,11 @@
-# 🎼 Song Class - ALWTTT
+# Song Class - ALWTTT
 
-## 🪪 Base Identity
+## Base Identity
 - `Title`: *string* – Name of the song (generated or chosen)
 
 ---
 
-## 🎶 Musical Attributes
+## Musical Attributes
 
 | Attribute        | Type        | Description |
 |------------------|-------------|-------------|
@@ -18,17 +18,17 @@
 
 ---
 
-## 🧠 Song Creation – Modular Composition Minigame
+## Song Creation – Modular Composition Minigame
 // TODO: Maybe move this to Rehearsal.md
 
 Songs are most often created during **Rehearsal Days** via the **Compose** action, using a roguelike-style minigame. The process includes:
 
-### 🎵 **Song Idea Generation**
+### **Song Idea Generation**
 - At the start of a Rehearsal, some Musicians may gain a **Song Idea** (visualized with a lightbulb or other icon).
 - You may choose to pursue an idea or skip it.
 - You can **consider up to 3 ideas per Rehearsal** before losing the opportunity.
 
-### 🧩 **Composition Flow**
+### **Composition Flow**
 If an idea is selected:
 1. **Choose a Theme** (from available pools or a hybrid, e.g., Hope, Breakup, Rebellion)
 2. **Choose a Genre** (from available pools or a hybrid)
@@ -40,7 +40,7 @@ If an idea is selected:
 
 ---
 
-## 🎭 Other Sources of Songs
+## Other Sources of Songs
 
 | Source           | Result |
 |------------------|--------|
@@ -50,7 +50,7 @@ If an idea is selected:
 
 ---
 
-## ✨ Optional Song Traits (Advanced Layer)
+## Optional Song Traits (Advanced Layer)
 Add uniqueness and passive effects to songs. Can be referenced in events or used in Request (i.e asking for a Fan Favourite Song)
 
 | Trait            | Effect |
@@ -70,7 +70,7 @@ Could also be implemented as a Trait instead (i.e. either Pro Empire or Anti Emp
 
 ---
 
-## ✅ Example Fields Summary
+## Example Fields Summary
 
 ```csharp
 class Song {

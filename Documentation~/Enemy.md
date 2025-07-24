@@ -1,7 +1,7 @@
 
-# 👥 Enemy Class - A Long Way to the Top
+# Enemy Class - A Long Way to the Top
 
-## 🪪 Base Identity
+## Base Identity
 
 | Field       | Type        | Description |
 |-------------|-------------|-------------|
@@ -19,7 +19,7 @@
 - Enemy preferences align with existing card types (Funny, Raw, Touching, etc.), which relate to Musician stats (CHT, TCH, EMT)
 - Enemies can also respond to Song Popularity, Themes or the Band's Empire Alignment
 
-## 🎭 Personality Tags & Synergies
+## Personality Tags & Synergies
 
 Enemies now **react** to the same **Card Types** that players use:
 
@@ -35,7 +35,7 @@ Enemies now **react** to the same **Card Types** that players use:
 
 ---
 
-## 📣 Concertgoer Reactions (Keywords)
+## Concertgoer Reactions (Keywords)
 
 Enemies can trigger **concert-style reactions**:
 
@@ -52,7 +52,7 @@ These reactions are triggered via card type matches, unmet Requests, high Combo 
 
 ---
 
-## 🎭 Triggers
+## Triggers
 
 Each enemy has a set of **Triggers**, which respond to specific in-game events:
 
@@ -65,7 +65,7 @@ Each enemy has a set of **Triggers**, which respond to specific in-game events:
 
 ---
 
-## 🌀 Enemy Actions
+## Enemy Actions
 
 Enemies act during the **Audience Phase** in each Gig Turn:
 
@@ -85,7 +85,7 @@ Enemies act during the **Audience Phase** in each Gig Turn:
 
 ---
 
-## ✅ Example Enemy Summary
+## Example Enemy Summary
 
 ```csharp
 class Enemy {
@@ -100,7 +100,7 @@ class Enemy {
 
 ---
 
-## 🧠 Design Philosophy
+## Design Philosophy
 
 - **Shared vocabulary** (CardTypes, StatusEffects) reinforces player understanding across systems.
 - **Concertgoer reactions** (Cheer, Boo, Chant) add emotional texture to Gigs.
@@ -109,7 +109,7 @@ class Enemy {
 
 ---
 
-## 📚 Guidelines for Designing Enemies
+## Guidelines for Designing Enemies
 
 - Tie each Enemy's **Vibe preferences** to one or more **CardTypes** the player is already familiar with.
 - Use **contrasting enemy types** to create friction (e.g., Hater + Fanboy in same gig).

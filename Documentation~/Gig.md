@@ -1,12 +1,12 @@
-# 🎤 Gig Class - A Long Way to the Top
+# Gig Class - A Long Way to the Top
 
-## 🎪 Overview
+## Overview
 
 A **Gig** is a key encounter in *A Long Way to the Top*, where the Band performs songs in front of distinct audience groups (enemies) with the goal of winning them over through Vibe. Each Gig challenges the player's strategic use of songs, cards, and musician abilities across a limited number of turns.
 
 ---
 
-## 🪪 Base Identity
+## Base Identity
 
 | Field          | Type    | Description |
 |----------------|---------|-------------|
@@ -18,11 +18,11 @@ A **Gig** is a key encounter in *A Long Way to the Top*, where the Band performs
 
 ---
 
-## 📆 Gig Turn Phases
+## Gig Turn Phases
 
 Each song turn within a Gig follows three clear phases:
 
-### 🎸 1. Player Phase
+### 1. Player Phase
 
 - Select the Song to be Performed this turn. Song tooltips display projected Vibe output and eny other effects such as Stress impact.
 
@@ -33,16 +33,16 @@ Each song turn within a Gig follows three clear phases:
 - **UX: Cards show a preview of expected outcome if played.**
 - **UX: Show “Preferred” or “Disliked” tags on cards when hovering over enemies. Enemies pulse when a card they like is being hovered/played.**
 
-- **)IDEA) One card per musician per turn**. This would force the player to make important choices regarding the use of certain cards with higher synergies with specific musicians.
+- **(IDEA) One card per musician per turn**. This would force the player to make important choices regarding the use of certain cards with higher synergies with specific musicians.
 
-### 🎼 2. Song Performance Phase
+### 2. Song Performance Phase
 - The selected song is performed.
 - Card Modifiers are resolved.
 - Audience Enemies receive **Vibe** based on total performance.
 - Band Score increases.
 - Stress is applied depending on musician exertion and difficulty.
 
-### 😠 3. Audience (Enemy) Phase
+### 3. Audience (Enemy) Phase
 - Each enemy activates its behavior from its **Action Pool**:
   - Apply **Stress** to musicians.
   - Inflict **Debuffs** or Status Effects.
@@ -51,7 +51,7 @@ Each song turn within a Gig follows three clear phases:
 
 ---
 
-## 💥 Failure Conditions
+## Failure Conditions
 
 - You **do not need to defeat all enemies** to succeed, but defeated enemies add bonus Score and rewards.
 - Songs **must** be performed each turn; failure to prepare yields poor results.
@@ -59,7 +59,7 @@ Each song turn within a Gig follows three clear phases:
 
 ---
 
-## 🧠 Player Responsibilities During a Gig
+## Player Responsibilities During a Gig
 
 1. Select and modify a Song for each turn.
 2. Distribute Action cards among Musicians.
@@ -73,7 +73,7 @@ Each song turn within a Gig follows three clear phases:
 
 ---
 
-## 💰 Resource Economy
+## Resource Economy
 
 | Resource       | Source                     | Usage |
 |----------------|----------------------------|-------|
@@ -85,7 +85,7 @@ Each song turn within a Gig follows three clear phases:
 
 ---
 
-## 📚 Gig Design Guidelines
+## Gig Design Guidelines
 
 - Use **Song Count** to control battle duration.
 - Combine Enemies with complementary actions to create tension.
@@ -98,23 +98,23 @@ Each song turn within a Gig follows three clear phases:
 
 ---
 
-## 🧭 Player Onboarding & Strategic Clarity
+## Player Onboarding & Strategic Clarity
 
 Gigs in A Long Way to the Top require mastering both performance and persuasion. To reduce early cognitive load and promote learning through play, the following guidelines shape player introduction:
 
-# 🎯 Core Gig Objectives
+# Core Gig Objectives
 * Perform a set number of songs, choosing one per turn.
 * Convince all visible Enemies by filling their individual Vibe bars.
 * Manage Stress, Groove, and Cohesion.
 
-# 🧠 Key Concepts to Introduce Early
+# Key Concepts to Introduce Early
 * Groove: Resource used to play cards.
 * Card Types: Funny, Raw, Technical, etc. These define both stat synergy and enemy preferences.
 * Vibe Bars: Each enemy has their own. Filling it “defeats” them.
 * Stress: Increases with conflict or enemy actions. Breakdown is a real threat.
 * Gig Score: Cumulative performance score; contributes to rewards but not always victory.
 
-# 🗂️ Suggested Complexity Curve
+# Suggested Complexity Curve
 
 |Phase  |Introduce|
 |-------|---------|
@@ -124,13 +124,13 @@ Gigs in A Long Way to the Top require mastering both performance and persuasion.
 |Midgame  | Empire-aligned enemies, Bosses with multi-stage mechanics |
 |Late game | Song Traits in Requests, Strategic enemy targeting, multi-turn synergies |
 
-# 💡 Communicating Systems Clearly
+# Communicating Systems Clearly
 
 * Icons or hover-tooltips for card type affinities (e.g. 🎭 = Funny)
 * Color-coded Enemy Preferences
 * Clear status readouts for Groove, Stress, Vibe, Score
 
-# 📚 What the Player Has to Keep Track Of
+# What the Player Has to Keep Track Of
 
 |Element  | Why It Matters  |
 |---------|-----------------|

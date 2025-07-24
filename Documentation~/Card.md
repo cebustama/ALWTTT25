@@ -1,13 +1,13 @@
-# 🃏 Card Class - ALWTTT
+# Card Class - ALWTTT
 
-## 🪪 Base Identity
+## Base Identity
 - `Name`: *string* – The card's title
 - `Phase`: *enum* – Indicates when the card is used: `ActionPhase` (before song) or `ModifierPhase` (on song)
 - `Rarity`: *enum* – `Common`, `Rare`, `Epic`, `Legendary`
 
 ---
 
-## 🎶 Core Mechanics
+## Core Mechanics
 
 | Attribute        | Type            | Description |
 |------------------|------------------|-------------|
@@ -42,19 +42,19 @@
 
 ---
 
-## 🔗 Synergies
+## Synergies
 
-### 🎸 Musician Stats
+### Musician Stats
 - `CHR` strengthens `Funny`, `Callout` type cards (audience focus)
 - `TCH` improves `Technical`, `Solo` cards (precision and power)
 - `EMT` enhances `Touching`, `Emotional`, `Raw` cards (impact and buff duration)
 
-### 🎼 Song Stats
+### Song Stats
 - **Genre**: Some cards are stronger when matching the song’s Genre
 - **Theme**: Certain cards may unlock bonus effects or evolve if aligned
 - **Complexity**: High-Complexity songs may increase risk/reward of some Modifier cards
 
-### 🧠 Status & Combo System
+### Status & Combo System
 - Stackable effects like:
   - `Calm`: Absorbs next X Stress
   - `Inspired`: Boosts Groove gain next turn
@@ -64,7 +64,7 @@
 
 ---
 
-## ✅ Example Fields Summary
+## Example Fields Summary
 
 ```csharp
 class Card {

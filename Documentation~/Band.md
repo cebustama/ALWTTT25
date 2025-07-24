@@ -1,25 +1,25 @@
-# 🛰️ Band Class - ALWTTT
+# Band Class - ALWTTT
 
-## 🪪 Base Identity
+## Base Identity
 - `BandName`: *string* – The name of the band, chosen or generated.
 - `StartingGenre`: *enum* – Determines starting deck and available cards (e.g., Rock, Jazz, Pop).
 
 ---
 
-## 🎸 Members
+## Members
 - `Members`: List of `Musician` objects.
   - Each with stats: Charm (CHR), Technique (TCH), Emotion (EMT), Creativity (CRT), Leadership (LDR), Stress (STS), and more.
 
 ---
 
-## 🎼 Songs
+## Songs
 - `Songs`: List of `Song` objects available for gigs.
   - Songs are required to perform.
   - Obtained via composing, resolving conflicts, or events.
 
 ---
 
-## 🎴 Deck of Cards
+## Deck of Cards
 - `Deck`: Main gameplay mechanic during Gigs.
   - **Action Cards** – Played between songs (support, tactics). Generate **Groove**.
   - **Song Modifier Cards** – Played during songs (tempo, solos, etc). Costs **Groove**.
@@ -31,7 +31,7 @@ Rewards during the run are pulled from genre-specific pools.
 
 ---
 
-## 📈 Fans and Level
+## Fans and Level
 - `Fans`: EXP equivalent, increases as gigs are completed and reputation grows.
 - `BandLevel`: Derived from `Fans`, used for **Progression* including:
   - New cards
@@ -42,7 +42,7 @@ Rewards during the run are pulled from genre-specific pools.
 
 ---
 
-## 💔 Cohesion
+## Cohesion
 - `Cohesion`: Acts as Band-wide HP.
   - Dropped by stress, conflict, bad gigs, or event outcomes.
   - **If it reaches 0, the band breaks up and the run ends.**
@@ -54,7 +54,7 @@ Replenished by:
 
 ---
 
-## 🗺️ World State & Travel
+## World State & Travel
 - `CurrentLocation`: Current planet or node on the map.
 - `UpcomingGig`: Data for the next planned performance.
 - `ShipState` (idea): Could hold facilities (deck view, rest lounge, upgrades, etc.)
@@ -62,7 +62,7 @@ Replenished by:
 
 ---
 
-## 🧩 Optional Features
+## Optional Features
 | Feature         | Use Case |
 |-----------------|----------|
 | `Equipment`     | Music equipment, Instruments, Amplifiers, Pedals, etc. Tour-wide (playthrough) *persistent* upgrades |
@@ -72,7 +72,7 @@ Replenished by:
 
 ---
 
-## ✅ Example Fields Summary
+## Example Fields Summary
 
 ```csharp
 class Band {

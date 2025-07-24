@@ -1,12 +1,12 @@
-# 🎸 Musician Class - ALWTTT
+# Musician Class - ALWTTT
 
-## 🪪 Base Identity
+## Base Identity
 - `ArtistName`: *string*
 - `InstrumentType`: *enum or string* (optional)
 
 ---
 
-## 📊 Core Gig Stats
+## Core Gig Stats
 Stats that directly influence gig combat performance:
 
 | Stat         | Code | Description                                     |
@@ -19,7 +19,7 @@ These stats directly affect Card Effects when played by a Musician.
 
 ---
 
-## 💥 Mental Durability: Stress
+## Mental Durability: Stress
 - `Stress` (`STS`): Builds during gigs, conflicts, or negative events.
   - If Stress reaches its max, the musician suffers a **Breakdown**.
   - Breakdowns apply semi-permanent debuffs (e.g., *Stage Fright*, *Insecurity*).
@@ -28,7 +28,7 @@ These stats directly affect Card Effects when played by a Musician.
 
 ---
 
-## 💬 Status Effects
+## Status Effects
 - `StatusEffects`: List of **stackable, turn-based effects**.
 - Inspired by *Slay the Spire* / *Monster Train* mechanics.
   - Some decay at End of Turn (EOT)
@@ -37,7 +37,7 @@ These stats directly affect Card Effects when played by a Musician.
 
 ---
 
-## 🎼 Meta Stats
+## Meta Stats
 
 | Stat         | Code | Description |
 |--------------|------|-------------|
@@ -47,7 +47,7 @@ These stats directly affect Card Effects when played by a Musician.
 
 ---
 
-## 🔁 Conflict System
+## Conflict System
 
 Conflicts occur between musicians and come in levels:
 
@@ -63,7 +63,7 @@ Conflict can also affect the Musician's performance during gigs (e.g. refusing t
 
 ---
 
-## 🧠 Design Summary
+## Design Summary
 
 - **CHR/TCH/EMT** define gig performance identity.
 - **Stress** + **Breakdown** introduce emotional tension.
