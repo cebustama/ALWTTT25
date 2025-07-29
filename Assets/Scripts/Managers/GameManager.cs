@@ -1,4 +1,5 @@
 using ALWTTT.Extentions;
+using ALWTTT.Data;
 using UnityEngine;
 
 namespace ALWTTT.Managers
@@ -9,9 +10,12 @@ namespace ALWTTT.Managers
 
         public static GameManager Instance;
 
+        [Header("Settings")]
         [SerializeField] private GameplayData gameplayData;
+        [SerializeField] private EncounterData encounterData;
 
         public GameplayData GameplayData => gameplayData;
+        public EncounterData EncounterData => encounterData;
         public PersistentGameplayData PersistentGameplayData { get; private set; }
         
 

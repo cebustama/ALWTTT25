@@ -1,29 +1,45 @@
-using ALWTTT.Enums;
+using ALWTTT.Encounters;
+using ALWTTT.Extentions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-namespace ALWTTT
+namespace ALWTTT.Data
 {
     [CreateAssetMenu(fileName = "New EncounterData", menuName = "ALWTTT/EncounterData")]
     public class EncounterData : ScriptableObject
     {
+        [SerializeField] private List<GigEncounterSector> encounterSectorsList;
+        [SerializeField] private bool randomGigs;
 
+        public List<GigEncounterSector> EncounterSectorsList => encounterSectorsList;
+
+        public GigEncounter GetGigEncounter(int sectorId = 0, int encounterId = 0, bool isFinal = false)
+        {
+            var selectedSector = EncounterSectorsList.First(x => x.SectorId == sectorId);
+            if (isFinal) return selectedSector.BossGigEncounterList.RandomItem();
+
+            return randomGigs ?
+                selectedSector.GigEncounterList.RandomItem() :
+                selectedSector.GigEncounterList[encounterId] ?? // If it exists
+                    selectedSector.GigEncounterList.RandomItem(); // Else random
+        }
     }
 
     [Serializable]
-    public class EnemyEncounter : EncounterBase 
+    public class GigEncounterSector
     {
-        [SerializeField] private List<EnemyCharacterData> enemyList;
+        [SerializeField] private string sectorName;
+        [SerializeField] private int sectorId;
+        [SerializeField] private List<GigEncounter> gigEncountersList;
+        [SerializeField] private List<GigEncounter> bossGigEncounterList;
 
-        public List<EnemyCharacterData> EnemyList => enemyList;
-    }
-
-    [Serializable]
-    public abstract class EncounterBase
-    {
-        [SerializeField] private VenueType targetVenueType;
-
-        public VenueType TargetVenueType => targetVenueType;
+        #region Encapsulation
+        public string SectorName => sectorName;
+        public int SectorId => sectorId;
+        public List<GigEncounter> GigEncounterList => gigEncountersList;
+        public List<GigEncounter> BossGigEncounterList => bossGigEncounterList;
+        #endregion
     }
 }

@@ -9,12 +9,19 @@ namespace ALWTTT
     {
         private readonly GameplayData gameplayData;
 
+        // Deckbuilding / Gig Encounters
         [SerializeField] private List<CardData> currentCardsList;
         [SerializeField] private int drawCount;
         [SerializeField] private int maxGroove;
         [SerializeField] private int currentGroove;
         [SerializeField] private int turnStartingGroove;
         [SerializeField] private bool isRandomDeck;
+        [SerializeField] private bool canSelectCards;
+
+        // Sector Info
+        [SerializeField] private int currentSectorId;
+        [SerializeField] private int currentEncounterId;
+        [SerializeField] private bool isFinalEncounter;
 
         public PersistentGameplayData(GameplayData gameplayData)
         {
@@ -29,9 +36,13 @@ namespace ALWTTT
             maxGroove = gameplayData.MaxGroove;
             turnStartingGroove = 0;
             currentGroove = turnStartingGroove;
-
+            CanSelectCards = true;
             isRandomDeck = gameplayData.IsRandomDeck;
             CurrentCardsList = new List<CardData>();
+
+            CurrentSectorId = 0;
+            CurrentEncounterId = 0;
+            IsFinalEncounter = false;
         }
 
         #region Encapsulation
@@ -66,6 +77,30 @@ namespace ALWTTT
         }
 
         public bool IsRandomDeck => isRandomDeck;
+
+        public bool CanSelectCards
+        {
+            get => canSelectCards;
+            set => canSelectCards = value;
+        }
+
+        public int CurrentSectorId
+        {
+            get => currentSectorId;
+            set => currentSectorId = value;
+        }
+
+        public int CurrentEncounterId
+        {
+            get => currentEncounterId;
+            set => currentEncounterId = value;
+        }
+
+        public bool IsFinalEncounter
+        {
+            get => isFinalEncounter;
+            set => isFinalEncounter = value;
+        }
         #endregion
     }
 

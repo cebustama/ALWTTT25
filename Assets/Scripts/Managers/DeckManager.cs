@@ -76,6 +76,8 @@ namespace ALWTTT.Managers
                 }
 
                 var randomCard = DrawPile[Random.Range(0, DrawPile.Count)];
+
+                // Instantiate card as child of HandController.DrawTransform
                 var card = GameManager.BuildAndGetCard(
                     randomCard, HandController.DrawTransform);
 

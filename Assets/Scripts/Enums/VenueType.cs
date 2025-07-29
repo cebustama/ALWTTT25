@@ -4,8 +4,8 @@ namespace ALWTTT.Enums
 {
     public enum VenueType
     {
-        Small,
-        Medium,
-        Big
+        Venue1,
+        Venue2,
+        Venue3
     }
 }

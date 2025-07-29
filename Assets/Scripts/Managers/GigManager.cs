@@ -1,4 +1,6 @@
+using ALWTTT.Backgrounds;
 using ALWTTT.Enums;
+using ALWTTT.Encounters;
 using System;
 using UnityEngine;
 
@@ -10,10 +12,15 @@ namespace ALWTTT.Managers
 
         public static GigManager Instance;
 
+        public bool debug = true;
+
+        [Header("References")]
+        [SerializeField] private BackgroundContainer backgroundContainer;
+
         private GigPhase currentGigPhase;
 
         #region Cache
-        public EnemyEncounter CurrentEncounter { get; private set; }
+        public GigEncounter CurrentGigEncounter { get; private set; }
 
         private GameManager GameManager => GameManager.Instance;
         private DeckManager DeckManager => DeckManager.Instance;
@@ -59,10 +66,12 @@ namespace ALWTTT.Managers
 
         private void StartGig()
         {
-            Debug.Log($"{DebugTag} Starting gig...");
+            if (debug) Debug.Log($"{DebugTag} Starting gig...");
 
-            BuildEnemies();
-            BuildAllies();
+            SetupEncounter();
+            BuildBackground();
+            BuildBand();
+            BuildAudience();
 
             DeckManager.SetGameDeck();
 
@@ -71,19 +80,37 @@ namespace ALWTTT.Managers
             CurrentGigPhase = GigPhase.PlayerTurn;
         }
 
-        private void BuildEnemies()
+        private void SetupEncounter()
+        {
+            if (debug) Debug.Log($"{DebugTag} Setting up gig encounter...");
+
+            CurrentGigEncounter = GameManager.EncounterData.GetGigEncounter(
+                GameManager.PersistentGameplayData.CurrentSectorId,
+                GameManager.PersistentGameplayData.CurrentEncounterId,
+                GameManager.PersistentGameplayData.IsFinalEncounter
+            );
+        }
+
+        private void BuildBackground()
+        {
+            if (debug) Debug.Log($"{DebugTag} Building background...");
+            backgroundContainer.OpenSelectedBackground();
+        }
+
+        private void BuildBand()
         {
 
         }
 
-        private void BuildAllies()
+        private void BuildAudience()
         {
-
+            if (debug) Debug.Log($"{DebugTag} Building audience...");
         }
 
         private void ExecuteGigPhase(GigPhase targetGigPhase)
         {
-            Debug.Log($"{DebugTag} Executing gig phase: {targetGigPhase}");
+            if (debug) 
+                Debug.Log($"{DebugTag} Executing gig phase: {targetGigPhase}");
 
             switch (targetGigPhase)
             {
@@ -113,7 +140,7 @@ namespace ALWTTT.Managers
 
         public void EndTurn()
         {
-            Debug.Log($"{DebugTag} Ending turn...");
+            if (debug) Debug.Log($"{DebugTag} Ending turn...");
 
             currentGigPhase = GigPhase.SongPerformance;
         }

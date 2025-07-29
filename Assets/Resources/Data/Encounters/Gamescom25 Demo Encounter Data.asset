@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc83eedb27dff954bb6ed6d1e31eee14, type: 3}
+  m_Name: Gamescom25 Demo Encounter Data
+  m_EditorClassIdentifier: 
+  encounterSectorsList:
+  - sectorName: Antares System
+    sectorId: 0
+    gigEncountersList:
+    - targetVenueType: 0
+      audienceMemberList:
+      - {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
+      - {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
+      - {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
+    - targetVenueType: 1
+      audienceMemberList:
+      - {fileID: 11400000, guid: 085e95c05f8793249aa6399eaccb2d6d, type: 2}
+    bossGigEncounterList:
+    - targetVenueType: 2
+      audienceMemberList:
+      - {fileID: 11400000, guid: cb1b04a36b38c4945b46b038fe43a055, type: 2}
+  randomGigs: 1
