@@ -1,3 +1,4 @@
+using ALWTTT.Characters.Band;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ namespace ALWTTT
     public class GameplayData : ScriptableObject
     {
         [Header("Musicians")]
-        [SerializeField] private List<AllyBase> initialAllyList;
+        [SerializeField] private List<MusicianBase> initialMusicianList;
 
         [Header("Deck")]
         [SerializeField] private DeckData initialDeck;
@@ -26,6 +27,7 @@ namespace ALWTTT
         [SerializeField] private int randomCardCount;
 
         #region Encapsulation
+        public List<MusicianBase> InitialMusicianList => initialMusicianList;
         public int DrawCount => drawCount;
         public int MaxCardsOnHand => maxCardsOnHand;
         public int MaxGroove => maxGroove;

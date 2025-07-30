@@ -1,13 +1,17 @@
+using ALWTTT.Characters.Band;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ALWTTT
+namespace ALWTTT.Data
 {
     [Serializable]
     public class PersistentGameplayData
     {
         private readonly GameplayData gameplayData;
+
+        // Band
+        [SerializeField] private List<MusicianBase> musicianList;
 
         // Deckbuilding / Gig Encounters
         [SerializeField] private List<CardData> currentCardsList;
@@ -32,6 +36,8 @@ namespace ALWTTT
 
         private void InitData()
         {
+            MusicianList = new List<MusicianBase>(gameplayData.InitialMusicianList);
+
             drawCount = gameplayData.DrawCount;
             maxGroove = gameplayData.MaxGroove;
             turnStartingGroove = 0;
@@ -46,6 +52,13 @@ namespace ALWTTT
         }
 
         #region Encapsulation
+
+        public List<MusicianBase> MusicianList
+        {
+            get => musicianList;
+            set => musicianList = value;
+        }
+
         public int DrawCount
         {
             get => drawCount;

@@ -7,7 +7,7 @@ namespace ALWTTT.Data
         menuName = "ALWTTT/Characters/AudienceCharacterData")]
     public class AudienceCharacterData : ScriptableObject
     {
-        [SerializeField] private string characterID;
+        [SerializeField] private string characterId;
         [SerializeField] private string characterName;
         [SerializeField][TextArea] private string characterDescription;
         [SerializeField] private int maxVibe;

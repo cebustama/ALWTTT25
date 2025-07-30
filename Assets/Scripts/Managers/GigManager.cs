@@ -5,6 +5,7 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using ALWTTT.Characters.Audience;
+using ALWTTT.Characters.Band;
 
 namespace ALWTTT.Managers
 {
@@ -18,12 +19,20 @@ namespace ALWTTT.Managers
 
         [Header("References")]
         [SerializeField] private BackgroundContainer backgroundContainer;
+        [SerializeField] private List<Transform> musicianPosList;
         [SerializeField] private List<Transform> audienceMemberPosList;
 
         private GigPhase currentGigPhase;
 
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
+
+        public List<MusicianBase> CurrentMusicianCharacterList
+        {
+            get;
+            private set;
+        } = new List<MusicianBase>();
+
         public List<AudienceCharacterBase> CurrentAudienceCharacterList
         {
             get;
@@ -34,6 +43,7 @@ namespace ALWTTT.Managers
         private DeckManager DeckManager => DeckManager.Instance;
         private UIManager UIManager => UIManager.Instance;
 
+        public List<Transform> MusicianPosList => musicianPosList;
         public List<Transform> AudienceMemberPosList => audienceMemberPosList;
 
         public GigPhase CurrentGigPhase
@@ -109,7 +119,20 @@ namespace ALWTTT.Managers
 
         private void BuildBand()
         {
-            
+            if (debug) Debug.Log($"{DebugTag} Building band and musicians...");
+            for (var i = 0; 
+                i < GameManager.PersistentGameplayData.MusicianList.Count; i++)
+            {
+                var clone = Instantiate(
+                    GameManager.PersistentGameplayData.MusicianList[i],
+                    MusicianPosList.Count >= i ?
+                        MusicianPosList[i] :
+                        MusicianPosList[0]
+                );
+
+                clone.BuildCharacter();
+                CurrentMusicianCharacterList.Add(clone);
+            }
         }
 
         private void BuildAudience()
