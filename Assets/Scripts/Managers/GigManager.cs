@@ -3,6 +3,8 @@ using ALWTTT.Enums;
 using ALWTTT.Encounters;
 using System;
 using UnityEngine;
+using System.Collections.Generic;
+using ALWTTT.Characters.Audience;
 
 namespace ALWTTT.Managers
 {
@@ -16,15 +18,23 @@ namespace ALWTTT.Managers
 
         [Header("References")]
         [SerializeField] private BackgroundContainer backgroundContainer;
+        [SerializeField] private List<Transform> audienceMemberPosList;
 
         private GigPhase currentGigPhase;
 
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
+        public List<AudienceCharacterBase> CurrentAudienceCharacterList
+        {
+            get;
+            private set;
+        } = new List<AudienceCharacterBase>();
 
         private GameManager GameManager => GameManager.Instance;
         private DeckManager DeckManager => DeckManager.Instance;
         private UIManager UIManager => UIManager.Instance;
+
+        public List<Transform> AudienceMemberPosList => audienceMemberPosList;
 
         public GigPhase CurrentGigPhase
         {
@@ -99,12 +109,25 @@ namespace ALWTTT.Managers
 
         private void BuildBand()
         {
-
+            
         }
 
         private void BuildAudience()
         {
             if (debug) Debug.Log($"{DebugTag} Building audience...");
+            var audienceMemberList = CurrentGigEncounter.AudienceMemberList;
+            for (var i = 0; i < audienceMemberList.Count; i++)
+            {
+                var clone = Instantiate(
+                    audienceMemberList[i].CharacterPrefab,
+                    AudienceMemberPosList.Count >= i ? 
+                        AudienceMemberPosList[i] : 
+                        AudienceMemberPosList[0]
+                );
+
+                clone.BuildCharacter();
+                CurrentAudienceCharacterList.Add(clone);
+            }
         }
 
         private void ExecuteGigPhase(GigPhase targetGigPhase)

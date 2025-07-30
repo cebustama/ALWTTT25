@@ -1,6 +1,7 @@
+using ALWTTT.Characters.Audience;
 using UnityEngine;
 
-namespace ALWTTT.Audience
+namespace ALWTTT.Data
 {
     [CreateAssetMenu(fileName = " New AudienceCharacterData", 
         menuName = "ALWTTT/Characters/AudienceCharacterData")]
@@ -11,5 +12,9 @@ namespace ALWTTT.Audience
         [SerializeField][TextArea] private string characterDescription;
         [SerializeField] private int maxVibe;
         [SerializeField] private AudienceCharacterBase characterPrefab;
+
+        #region Encapsulation
+        public AudienceCharacterBase CharacterPrefab => characterPrefab;
+        #endregion
     }
 }

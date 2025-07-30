@@ -15,5 +15,5 @@ MonoBehaviour:
   characterID: influencer
   characterName: Influencer
   characterDescription: 
-  maxVibe: 0
-  characterPrefab: {fileID: 0}
+  maxVibe: 10
+  characterPrefab: {fileID: 3334726058178949679, guid: 445fb133873bee74b8b61544f899761b, type: 3}
