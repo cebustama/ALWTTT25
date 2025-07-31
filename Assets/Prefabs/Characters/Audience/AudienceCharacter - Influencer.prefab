@@ -161,7 +161,7 @@ GameObject:
   - component: {fileID: 6960569277827411799}
   - component: {fileID: 3334726058178949679}
   m_Layer: 0
-  m_Name: AudienceMember - Influencer
+  m_Name: AudienceCharacter - Influencer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
