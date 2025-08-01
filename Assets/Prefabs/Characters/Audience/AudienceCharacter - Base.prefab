@@ -161,7 +161,7 @@ GameObject:
   - component: {fileID: 6960569277827411799}
   - component: {fileID: 3334726058178949679}
   m_Layer: 0
-  m_Name: AudienceCharacter- Kid
+  m_Name: AudienceCharacter - Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -200,6 +200,7 @@ MonoBehaviour:
   characterType: 1
   textSpawnRoot: {fileID: 5592515904517901560}
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
+  characterCanvas: {fileID: 9060181179430792495}
 --- !u!1001 &3068298771487534351
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -302,3 +303,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1678724535845008322, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
   m_PrefabInstance: {fileID: 3068298771487534351}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9060181179430792495 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6280537678877212704, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
+  m_PrefabInstance: {fileID: 3068298771487534351}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df444ab9a58b5f64c82318ee768b4057, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

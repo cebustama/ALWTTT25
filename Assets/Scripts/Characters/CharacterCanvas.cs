@@ -10,31 +10,45 @@ namespace ALWTTT.Characters
     {
         [Header("References")]
         [SerializeField] protected TextMeshProUGUI currentHealthText;
+        [SerializeField] protected TextMeshProUGUI characterNameText;
 
-        public void UpdateHealthText(int currentHealth, int maxHealth) => 
+        #region Setup
+        public void InitCanvas()
+        {
+            // TODO
+            // Highlight
+            // Status Dict
+        }
+        #endregion
+
+        #region Public Methods
+
+        public void UpdateHealthText(int currentHealth, int maxHealth) =>
             currentHealthText.text = $"{currentHealth}/{maxHealth}";
+
+        #endregion
 
         #region Pointer Events
         public void OnPointerEnter(PointerEventData eventData)
         {
-            throw new System.NotImplementedException();
+            ShowTooltipInfo();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            throw new System.NotImplementedException();
+            HideTooltipInfo();
         }
         #endregion
 
         #region Tooltips
         public void HideTooltipInfo()
         {
-            throw new System.NotImplementedException();
+            // TODO
         }
 
         public void ShowTooltipInfo()
         {
-            throw new System.NotImplementedException();
+            // TODO
         }
         #endregion
     }

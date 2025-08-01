@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb66ef735feb1d245a5494a78feb5fd5, type: 3}
   m_Name: Influencer
   m_EditorClassIdentifier: 
-  characterID: influencer
+  characterId: influencer
   characterName: Influencer
   characterDescription: 
-  maxVibe: 10
-  characterPrefab: {fileID: 3334726058178949679, guid: 445fb133873bee74b8b61544f899761b, type: 3}
+  maxVibe: 25
+  characterPrefab: {fileID: 8137859568071339047, guid: 35d49b40d76e63b4e9baea14dcdc329c, type: 3}

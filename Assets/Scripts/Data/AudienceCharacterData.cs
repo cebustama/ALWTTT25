@@ -15,6 +15,7 @@ namespace ALWTTT.Data
 
         #region Encapsulation
         public AudienceCharacterBase CharacterPrefab => characterPrefab;
+        public int MaxVibe => maxVibe;
         #endregion
     }
 }

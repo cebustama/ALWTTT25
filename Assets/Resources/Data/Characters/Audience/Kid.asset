@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb66ef735feb1d245a5494a78feb5fd5, type: 3}
   m_Name: Kid
   m_EditorClassIdentifier: 
-  characterID: kid
+  characterId: kid
   characterName: Kid
   characterDescription: 
-  maxVibe: 5
-  characterPrefab: {fileID: 3334726058178949679, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+  maxVibe: 10
+  characterPrefab: {fileID: 8137859568071339047, guid: 323a8ebb063c9b94e8a73bc3ac51c634, type: 3}

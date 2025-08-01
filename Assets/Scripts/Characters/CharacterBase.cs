@@ -1,5 +1,6 @@
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
+using ALWTTT.Managers;
 using UnityEngine;
 
 namespace ALWTTT.Characters
@@ -13,6 +14,7 @@ namespace ALWTTT.Characters
         #region Cache
         public CharacterType CharacterType => characterType;
         public Transform TextSpawnRoot => textSpawnRoot;
+        protected GigManager GigManager => GigManager.Instance;
         #endregion
 
         public virtual void BuildCharacter()

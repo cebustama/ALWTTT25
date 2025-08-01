@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb66ef735feb1d245a5494a78feb5fd5, type: 3}
   m_Name: Big Guy
   m_EditorClassIdentifier: 
-  characterID: bigguy
+  characterId: big_guy
   characterName: Big Guy
   characterDescription: 
-  maxVibe: 20
-  characterPrefab: {fileID: 3334726058178949679, guid: 950a01a6d6d04cd4a9453b7925c98bab, type: 3}
+  maxVibe: 50
+  characterPrefab: {fileID: 8137859568071339047, guid: 730d609a7ff00034f9beb9863123dda4, type: 3}
