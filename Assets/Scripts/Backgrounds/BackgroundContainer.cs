@@ -27,5 +27,13 @@ namespace ALWTTT.Backgrounds
                     " No encounter found in GigManager.");
             }
         }
+
+        public void SetBPM(int bpm)
+        {
+            foreach (var root in backgroundRootList)
+            {
+                root.SetBPM(bpm);
+            }
+        }
     }
 }

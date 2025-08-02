@@ -14,6 +14,9 @@ namespace ALWTTT.Data
         [SerializeField] private MusicianBase characterPrefab;
 
         #region Encapsulation
+        public string CharacterId => characterId;
+        public string CharacterName => characterName;
+        public string CharacterDescription => characterDescription;
         public MusicianBase CharacterPrefab => characterPrefab;
         #endregion
     }

@@ -115,6 +115,7 @@ namespace ALWTTT.Managers
         {
             if (debug) Debug.Log($"{DebugTag} Building background...");
             backgroundContainer.OpenSelectedBackground();
+            backgroundContainer.SetBPM(60); // TODO: OnSongPerfomance
         }
 
         private void BuildBand()

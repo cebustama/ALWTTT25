@@ -6,7 +6,7 @@ namespace ALWTTT.Characters.Audience
     public class AudienceCharacterStats
     {
         public int MaxVibe { get; set; } // "HP"
-        public int CurrentVibe { get; set; }
+        public int CurrentVibe { get; private set; }
         public bool IsConvinced { get; private set; } // "Death"
 
         public Action OnConvinced;

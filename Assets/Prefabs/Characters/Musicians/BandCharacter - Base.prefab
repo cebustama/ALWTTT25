@@ -49,6 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterType: 0
   textSpawnRoot: {fileID: 4764939820373229341}
+  bandCharacterCanvas: {fileID: 4399159240658199444}
   musicianCharacterData: {fileID: 11400000, guid: 162ca2d9fe6886742aa04e892ddd5edf, type: 2}
 --- !u!1 &2247961388524572634
 GameObject:
@@ -155,11 +156,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1574733499
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 2f2a7f5f7ee73cb47906c2a0ac63204e, type: 3}
-  m_Color: {r: 0.039443493, g: 0, b: 1, a: 1}
+  m_Color: {r: 0.9811321, g: 0.5218442, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -297,6 +298,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ea83b79aa3b5098429b6191719edb35c, type: 3}
+--- !u!114 &4399159240658199444 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3066151260464935951, guid: ea83b79aa3b5098429b6191719edb35c, type: 3}
+  m_PrefabInstance: {fileID: 1693877196968417179}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bf55a1f02fe60f4fbb62cb4761cd99f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &7634960685477919336 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9112198340117016051, guid: ea83b79aa3b5098429b6191719edb35c, type: 3}

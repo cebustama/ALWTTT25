@@ -16,6 +16,8 @@ namespace ALWTTT.Characters.Band
 
         public override void BuildCharacter()
         {
+            Debug.Log("BUILDING CHARACTER #" + musicianCharacterData.CharacterId);
+
             base.BuildCharacter();
             bandCharacterCanvas.InitCanvas();
             
