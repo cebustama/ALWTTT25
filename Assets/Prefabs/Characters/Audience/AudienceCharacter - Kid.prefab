@@ -8,6 +8,38 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1905500249657851898, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 35.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3095199483181524453, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3388567507048481361, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_Icon
+      value: 
+      objectReference: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
+    - target: {fileID: 3404911247422000304, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4456538793755680461, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.66
+      objectReference: {fileID: 0}
+    - target: {fileID: 5592515904517901560, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6214814892290893219, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 245a7efd94313cc47adb91781c9955c9, type: 3}
+    - target: {fileID: 6717338976217120406, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -16.6
+      objectReference: {fileID: 0}
     - target: {fileID: 6960569277827411799, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -50,7 +82,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7812822335308069666, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_Name
-      value: AudienceCharacter - Base
+      value: AudienceCharacter - Kid
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

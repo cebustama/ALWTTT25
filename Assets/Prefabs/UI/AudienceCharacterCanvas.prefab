@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3523357628628341493}
   - component: {fileID: 3752289497790904417}
   - component: {fileID: 7631314978631438073}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: IntentionImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -35,7 +35,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 10}
+  m_AnchoredPosition: {x: 0, y: 34.8}
   m_SizeDelta: {x: 15, y: 15}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3752289497790904417
@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 1912080181257593410}
   - component: {fileID: 6584964307712599335}
   - component: {fileID: 6996543080683022031}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Stack Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -220,6 +220,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 145429391676546225, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1148871925352845176, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1203212831948014572, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -16.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6782718730743812275, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 8093722712510604215, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -304,6 +320,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AudienceCharacterCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 8766201086974039525, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -333,6 +353,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentHealthText: {fileID: 5001414918412660812}
+  characterNameText: {fileID: 0}
   intentImage: {fileID: 7631314978631438073}
   nextActionValueText: {fileID: 6996543080683022031}
 --- !u!114 &5001414918412660812 stripped
