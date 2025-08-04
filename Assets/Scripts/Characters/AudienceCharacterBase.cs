@@ -17,7 +17,7 @@ namespace ALWTTT.Characters.Audience
         public override void BuildCharacter()
         {
             base.BuildCharacter();
-            CharacterCanvas.InitCanvas();
+            CharacterCanvas.InitCanvas(AudienceCharacterData.CharacterName);
 
             // Stats
             CharacterStats = new AudienceCharacterStats(

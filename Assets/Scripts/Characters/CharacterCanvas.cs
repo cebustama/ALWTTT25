@@ -13,8 +13,10 @@ namespace ALWTTT.Characters
         [SerializeField] protected TextMeshProUGUI characterNameText;
 
         #region Setup
-        public void InitCanvas()
+        public void InitCanvas(string characterName)
         {
+            characterNameText.text = characterName;
+
             // TODO
             // Highlight
             // Status Dict

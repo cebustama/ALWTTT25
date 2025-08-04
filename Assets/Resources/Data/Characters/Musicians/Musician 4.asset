@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d621a2a1323e5064f852ce38ed2399ec, type: 3}
-  m_Name: Musician 2
+  m_Name: Musician 4
   m_EditorClassIdentifier: 
-  characterId: 2
-  characterName: Gusano
+  characterId: 4
+  characterName: Robotcio
   characterDescription: 
   characterPrefab: {fileID: 6746610026762189175, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}

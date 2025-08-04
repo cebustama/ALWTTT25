@@ -71,3 +71,38 @@ Conflict can also affect the Musician's performance during gigs (e.g. refusing t
 - **Leadership** governs social and strategic dimensions.
 - **Creativity** + **Talent** support growth and synergy.
 - **ConflictLevel** drives interpersonal story arcs.
+---
+
+## Instrument Progression System
+
+Each Musician has a **primary instrument**, which can be upgraded and customized via a **skill tree** system. These upgrades define each character’s mechanical role, progression, and synergy within the band.
+
+### Goals:
+- Deepen personalization of each Musician.
+- Add long-term progression tied to instruments.
+- Reinforce synergy between Band composition, Card decks, and Songs.
+
+### Implementation:
+
+Each `InstrumentType` (e.g., Guitar, Bass, Drums, Voice, Keyboard) has a unique `SkillTree` with several branches. These upgrades grant:
+
+- **Stat boosts**: +Max Stress, +Charm, +Technique, etc.
+- **Unlocks**: Special Cards or status effects unique to the instrument.
+- **Synergies**: Conditional bonuses with Song types, Gig SFX, or Audience archetypes.
+- **Resilience**: Perks like faster Stress recovery or Conflict mitigation.
+
+### Example Branches by Instrument:
+
+| Instrument | Specializations |
+|------------|------------------|
+| Guitar     | Distortion (damage), Melody (EMT buffs), Riff Control (crowd manipulation) |
+| Bass       | Groove (persistent effects), Harmonics (supportive buffs), Stress Management |
+| Drums      | Stun (enemy control), Tempo (initiative), Breakdown (burst effects) |
+| Keyboard   | Harmony (team buffs), Illusion (enemy debuffs), Soundweaving (genre blending) |
+| Voice      | Anthem (team-wide hype), Scream (status infliction), Empathy (emotional synergy) |
+
+### Narrative Hook:
+
+In the world of ALWTTT, the **Empire promotes standardized instruments and styles** as part of its hegemonic control. Upgrading instruments with non-standard mods or experimental techniques is considered rebellious, but powerful.
+
+Some cities or gigs offer unique `Luthiers`, `Workshops`, or `Mentors` that unlock exclusive upgrades.

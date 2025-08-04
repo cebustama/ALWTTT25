@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Musician 1
   m_EditorClassIdentifier: 
   characterId: 1
-  characterName: 
+  characterName: Conito
   characterDescription: 
   characterPrefab: {fileID: 6746610026762189175, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}

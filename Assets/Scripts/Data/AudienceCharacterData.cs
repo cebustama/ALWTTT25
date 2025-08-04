@@ -14,6 +14,7 @@ namespace ALWTTT.Data
         [SerializeField] private AudienceCharacterBase characterPrefab;
 
         #region Encapsulation
+        public string CharacterName => characterName;
         public AudienceCharacterBase CharacterPrefab => characterPrefab;
         public int MaxVibe => maxVibe;
         #endregion

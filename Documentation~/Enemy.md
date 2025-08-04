@@ -33,6 +33,19 @@ Enemies now **react** to the same **Card Types** that players use:
 | **Critic**     | Likes complex songs and *Technical* cards, punishes poor execution |
 | **Mosher**     | Boosts Vibe when *High-Tempo* or *Energetic* performances are played |
 
+### Ontology Ideas
+| Archetype   | ALWTTT Version         | Behavior                                               | Card Preferences                |
+| ----------- | ---------------------- | ------------------------------------------------------ | ------------------------------- |
+| **Fighter** | **Stage-Crasher**      | Aggressive booer, direct stress                        | Likes Loud, hates Emotional     |
+| **Wizard**  | **Theory-Elitist**     | Punishes bad timing, boosts self on Technical          | Loves Technical                 |
+| **Archer**  | **Trend Sniper**       | Targets high-Popularity songs                          | Loves Popularity, hates Repeats |
+| **Rogue**   | **Underground Purist** | Debuffs if you play mainstream                         | Loves Raw or Unpolished         |
+| **Cleric**  | **Soul Seeker**        | Heals other enemies if you fail to connect emotionally | Loves Touching                  |
+| **Slime**   | **Vibe Leech**         | Absorbs Groove of performance has mistakes                     | Hates Funny                     |
+| **Flying**  | **Drone Fan**          | Immune to some types, reacts to Sound Layers or SFX    | Triggers off SFX cards          |
+| **Tank**    | **Jaded Critic**       | High Vibe bar, resists all but perfect performances          | Rejects low-impact turns        |
+
+
 ---
 
 ## Concertgoer Reactions (Keywords)
