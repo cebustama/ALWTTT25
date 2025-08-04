@@ -177,7 +177,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
+  m_LocalScale: {x: 0.55, y: 0.55, z: 0.55}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3404911247422000304}
@@ -292,6 +292,14 @@ PrefabInstance:
     - target: {fileID: 2213914559965136272, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
       propertyPath: m_Name
       value: AudienceCharacterCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 3010150280399116158, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -827049649
+      objectReference: {fileID: 0}
+    - target: {fileID: 9107924684417946822, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

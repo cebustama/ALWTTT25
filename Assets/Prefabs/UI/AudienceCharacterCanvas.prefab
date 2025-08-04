@@ -232,6 +232,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -16.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1836188541970597043, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6782718730743812275, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_Layer
       value: 7
@@ -353,9 +357,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentHealthText: {fileID: 5001414918412660812}
-  characterNameText: {fileID: 0}
+  characterNameText: {fileID: 4033435451783531182}
   intentImage: {fileID: 7631314978631438073}
   nextActionValueText: {fileID: 6996543080683022031}
+--- !u!114 &4033435451783531182 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+  m_PrefabInstance: {fileID: 7430564445378744437}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &5001414918412660812 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2483227907940540473, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
