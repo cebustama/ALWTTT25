@@ -21,6 +21,8 @@ namespace ALWTTT
         [SerializeField] private List<CardType> typesList;
 
         [Header("Effects")]
+        [SerializeField] private bool usableWithoutTarget;
+        [SerializeField] private bool exhaustAfterPlay;
         [SerializeField] private List<CardConditionData> cardConditionDataList;
         [SerializeField] private List<CardActionData> cardActionDataList;
 
@@ -30,15 +32,22 @@ namespace ALWTTT
         [Header("Fx")]
         [SerializeField] private AudioActionType audioType;
 
-        #region Cache
+        #region Encapsulation
 
         public string Id => id;
+        public bool UsableWithoutTarget => usableWithoutTarget;
         public string CardName => cardName;
         public CardPhase Phase => phase;
         public RarityType Rarity => rarity;
         public int GrooveCost => grooveCost;
         public Sprite CardSprite => cardSprite;
         public int GrooveGenerated => grooveGenerated;
+        public bool ExhaustAfterPlay => exhaustAfterPlay;
+
+        public List<CardType> TypesList => typesList;
+
+        public List<CardConditionData> CardConditionDataList => cardConditionDataList;
+        public List<CardActionData> CardActionDataList => cardActionDataList;
 
         #endregion
     }
@@ -57,5 +66,7 @@ namespace ALWTTT
         [SerializeField] private ActionTargetType actionTargetType;
         [SerializeField] private float actionValue;
         [SerializeField] private float actionDelay;
+
+        public ActionTargetType ActionTargetType => actionTargetType;
     }
 }

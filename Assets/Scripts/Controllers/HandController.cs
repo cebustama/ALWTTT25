@@ -1,6 +1,8 @@
+using ALWTTT.Characters;
+using ALWTTT.Enums;
+using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace ALWTTT
@@ -12,6 +14,7 @@ namespace ALWTTT
         [Header("Card Settings")]
         [SerializeField] private bool cardUprightWhenSelected = true;
         [SerializeField] private bool cardTilt = true;
+        [SerializeField] private float discardDuration = 0.2f;
 
         [Header("Hand Settings")]
         [SerializeField][Range(0, 5)] private float selectionSpacing = 1;
@@ -25,6 +28,7 @@ namespace ALWTTT
         [SerializeField] private Transform discardTransform;
         [SerializeField] private Transform exhaustTransform;
         [SerializeField] private Camera cam;
+        [SerializeField] private LayerMask targetLayer;
 
         [Header("Debug")]
         [SerializeField] private List<CardBase> hand; // cards currently in hand
@@ -58,7 +62,10 @@ namespace ALWTTT
 
         #region Encapsulation
 
+        public float DiscardDuration => discardDuration;
         public Transform DrawTransform => drawTransform;
+        public Transform DiscardTransform => discardTransform;
+        public Transform ExhaustTransform => exhaustTransform;
         public Camera Cam => cam;
         public List<CardBase> Hand => hand;
 
@@ -104,6 +111,9 @@ namespace ALWTTT
             HandleDraggedCardOutsideHand(mouseButton, mousePos);
         }
 
+        public void EnableDragging() => IsDraggingActive = true;
+        public void DisableDragging() => IsDraggingActive = false;
+        
         /// <summary>
         /// Visually adds a card to the hand. Optional param to insert it at a given index.
         /// </summary>
@@ -155,7 +165,9 @@ namespace ALWTTT
 
                 // If not enough groove, set inactive visual
                 card.SetInactiveMaterialState(
-                    GameManager.PersistentGameplayData.CurrentGroove < card.CardData.GrooveCost);
+                    GameManager.PersistentGameplayData.CurrentGroove < 
+                    card.CardData.GrooveCost
+                );
 
                 var noCardHeld = heldCard == null; // Whether a card is "held" (outside of hand)
                 var onSelectedCard = noCardHeld && selected == i;
@@ -178,12 +190,14 @@ namespace ALWTTT
                 // Mouse interaction
                 var d = (p - mouseWorldPos).sqrMagnitude;
                 var mouseCloseToCard = d < 0.5f;
-                var mouseHoveringOnSelected = onSelectedCard && mouseCloseToCard && mouseInsideHand;
+                var mouseHoveringOnSelected = 
+                    onSelectedCard && mouseCloseToCard && mouseInsideHand;
 
                 // Card Position & Rotation
                 var cardUp = GetCurveNormal(a, b, c, t);
                 // If hovered, the card slightly “pops up”
-                var cardPos = p + (mouseHoveringOnSelected ? cardTransform.up * 0.3f : Vector3.zero);
+                var cardPos = 
+                    p + (mouseHoveringOnSelected ? cardTransform.up * 0.3f : Vector3.zero);
                 var cardForward = Vector3.forward;
 
                 // Sorting Order (z-position closer to camera).
@@ -318,9 +332,9 @@ namespace ALWTTT
                     Quaternion.LookRotation(cardForward, cardUp), 80f * Time.deltaTime);
                 cardTransform.position = cardPos;
 
-                // TODO: Contextual highlights based on actions and target types
-                /*GigManager.HighlightCardTarget(
-                    heldCard.CardData.CardActionDataList[0].ActionTargetType);*/
+                // Contextual highlights based on actions and target types
+                GigManager.HighlightCardTarget(
+                    heldCard.CardData.CardActionDataList[0].ActionTargetType);
 
                 if (!GameManager.PersistentGameplayData.CanSelectCards || mouseInsideHand)
                 {
@@ -331,7 +345,8 @@ namespace ALWTTT
                     selected = -1;
                     heldCard = null;
 
-                    //GigManager.DeactivateCardHighlights();
+                    // Contextual highlights
+                    GigManager.DeactivateCardHighlights();
 
                     return;
                 }
@@ -341,10 +356,83 @@ namespace ALWTTT
             }
         }
 
-        // TODO
         private void PlayCard(Vector2 mousePos)
         {
             Debug.Log($"{DebugTag} Playing card...");
+
+            GigManager.DeactivateCardHighlights();
+
+            bool backToHand = true;
+
+            // If enough groove
+            if (GameManager.PersistentGameplayData.CanUseCards && 
+                GameManager.PersistentGameplayData.CurrentGroove >=
+                    heldCard.CardData.GrooveCost)
+            {
+                RaycastHit hit;
+                var mainRay = mainCam.ScreenPointToRay(mousePos);
+                var canUse = false;
+
+                CharacterBase bandCharacter = GigManager.SelectedMusician;
+                CharacterBase targetCharacter = null;
+
+                canUse = heldCard.CardData.UsableWithoutTarget ||
+                    CheckPlayOnCharacter(mainRay, canUse,
+                        ref bandCharacter, ref targetCharacter);
+
+                if (canUse)
+                {
+                    backToHand = false;
+                    heldCard.Use(bandCharacter, targetCharacter,
+                        GigManager.CurrentAudienceCharacterList,
+                        GigManager.CurrentMusicianCharacterList);
+                }
+            }
+
+            if (backToHand)
+            {
+                Debug.Log($"{DebugTag} <color=red>Card couldn't be played.</color>");
+                AddCardToHand(heldCard, selected);
+            }
+
+            heldCard = null;
+        }
+
+        private bool CheckPlayOnCharacter(Ray mainRay, bool canUse, 
+            ref CharacterBase bandCharacter, ref CharacterBase audienceCharacter)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(mainRay, out hit, 1000, targetLayer))
+            {
+                var character = hit.collider.gameObject.GetComponent<ICharacter>();
+
+                if (character != null)
+                {
+                    var checkEnemy =
+                        (heldCard.CardData.CardActionDataList[0].ActionTargetType ==
+                        ActionTargetType.AudienceCharacter &&
+                        character.GetCharacterType() == CharacterType.Audience);
+
+                    var checkAlly =
+                        (heldCard.CardData.CardActionDataList[0].ActionTargetType ==
+                        ActionTargetType.Ally &&
+                        character.GetCharacterType() == CharacterType.Musician);
+
+                    // TODO: Modify this part
+                    if (checkEnemy || checkAlly)
+                    {
+                        canUse = true;
+                        bandCharacter = GigManager.SelectedMusician;
+                        audienceCharacter = character.GetCharacterBase();
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log($"<color=red>No character hit by raycast.</color>");
+            }
+
+            return canUse;
         }
 
         private void GetDistanceToCurrentSelectedCard(out int count, out float sqrDistance)

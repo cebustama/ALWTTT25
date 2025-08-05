@@ -2,11 +2,11 @@ namespace ALWTTT.Enums
 {
     public enum ActionTargetType
     {
-        Enemy,
+        AudienceCharacter,
         Ally,
-        AllEnemies,
+        AllAudienceCharacters,
         AllAllies,
-        RandomEnemy,
+        RandomAudienceCharacter,
         RandomAlly
     }
 }

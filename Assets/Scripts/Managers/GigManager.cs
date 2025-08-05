@@ -6,12 +6,13 @@ using UnityEngine;
 using System.Collections.Generic;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
+using System.Collections;
 
 namespace ALWTTT.Managers
 {
     public class GigManager : MonoBehaviour
     {
-        private const string DebugTag = "<color=cyan>GigManager:</color>";
+        private const string DebugTag = "<color=magenta>GigManager:</color>";
 
         public static GigManager Instance;
 
@@ -46,6 +47,11 @@ namespace ALWTTT.Managers
         public List<Transform> MusicianPosList => musicianPosList;
         public List<Transform> AudienceMemberPosList => audienceMemberPosList;
 
+        // TODO: Implement dual target cards Musician -> Audience Character
+        public MusicianBase SelectedMusician => 
+            CurrentMusicianCharacterList.Count > 0 ?
+            CurrentMusicianCharacterList[0] : null;
+
         public GigPhase CurrentGigPhase
         {
             get => currentGigPhase;
@@ -65,6 +71,7 @@ namespace ALWTTT.Managers
 
         #endregion
 
+        #region Setup
         private void Awake()
         {
             if (Instance)
@@ -153,10 +160,51 @@ namespace ALWTTT.Managers
                 CurrentAudienceCharacterList.Add(clone);
             }
         }
+        #endregion
+
+        public void EndTurn()
+        {
+            if (debug) Debug.Log($"{DebugTag} Ending turn...");
+
+            CurrentGigPhase = GigPhase.SongPerformance;
+        }
+
+        public void HighlightCardTarget(ActionTargetType targetType)
+        {
+            // TODO
+            switch (targetType)
+            {
+                case ActionTargetType.AudienceCharacter:
+
+                    break;
+                case ActionTargetType.Ally:
+
+                    break;
+                case ActionTargetType.AllAudienceCharacters:
+
+                    break;
+                case ActionTargetType.AllAllies:
+
+                    break;
+                case ActionTargetType.RandomAudienceCharacter:
+
+                    break;
+                case ActionTargetType.RandomAlly:
+
+                    break;
+            }
+        }
+
+        public void DeactivateCardHighlights()
+        {
+            // TODO
+            // Foreach enemy canvas SetHighlight(false)
+            // Foreach ally canvas SetHighlight(false)
+        }
 
         private void ExecuteGigPhase(GigPhase targetGigPhase)
         {
-            if (debug) 
+            if (debug)
                 Debug.Log($"{DebugTag} Executing gig phase: {targetGigPhase}");
 
             switch (targetGigPhase)
@@ -172,24 +220,61 @@ namespace ALWTTT.Managers
                     // Initial groove per turn
                     GameManager.PersistentGameplayData.CurrentGroove =
                         GameManager.PersistentGameplayData.TurnStartingGroove;
-                    // TODO: Special case for first turn
+                    // TODO: Special case for first turn (e.g. Deployment Phase in Monster Train 2)
 
                     DeckManager.DrawCards(GameManager.PersistentGameplayData.DrawCount);
 
-
+                    GameManager.PersistentGameplayData.CanSelectCards = true;
                     break;
                 case GigPhase.SongPerformance:
+
+                    OnSongPerformanceStarted?.Invoke();
+
+                    if (GameManager.PersistentGameplayData.DiscardHandBetweenTurns)
+                    {
+                        DeckManager.DiscardHand();
+                    }
+
+                    StartCoroutine(SongPerformanceRoutine());
+
+                    GameManager.PersistentGameplayData.CanSelectCards = false;
                     break;
                 case GigPhase.AudienceTurn:
+
+                    OnEnemyTurnStarted?.Invoke();
+
+                    StartCoroutine(AudienceTurnRoutine());
+
+                    GameManager.PersistentGameplayData.CanSelectCards = false;
+                    break;
+                case GigPhase.EndGig:
+
+                    GameManager.PersistentGameplayData.CanSelectCards = false;
                     break;
             }
         }
 
-        public void EndTurn()
+        private IEnumerator SongPerformanceRoutine()
         {
-            if (debug) Debug.Log($"{DebugTag} Ending turn...");
+            // TODO: Play song using MidiGenPlay
 
-            currentGigPhase = GigPhase.SongPerformance;
+            yield return new WaitForSeconds(3f);
+
+            if (CurrentGigPhase != GigPhase.EndGig)
+            {
+                CurrentGigPhase = GigPhase.AudienceTurn;
+            }
+        }
+
+        private IEnumerator AudienceTurnRoutine()
+        {
+            // TODO: Audience actions
+            yield return new WaitForSeconds(3f);
+
+            if (CurrentGigPhase != GigPhase.EndGig)
+            {
+                CurrentGigPhase = GigPhase.PlayerTurn;
+            }
         }
     }
 }

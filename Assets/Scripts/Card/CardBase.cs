@@ -1,11 +1,16 @@
+using ALWTTT.Characters;
+using ALWTTT.Characters.Audience;
+using ALWTTT.Characters.Band;
 using ALWTTT.Managers;
 using ALWTTT.Tooltips;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace ALWTTT
+namespace ALWTTT // TODO .Cards
 {
     public class CardBase : MonoBehaviour, 
         I2DTooltipTarget, IPointerDownHandler, IPointerUpHandler
@@ -20,6 +25,7 @@ namespace ALWTTT
         public CardData CardData { get; private set; }
         public bool IsInactive { get; protected set; }
         public bool IsPlayable { get; protected set; } = true;
+        public bool IsExhausted { get; protected set; }
 
         #region Encapsulation
         protected Transform CachedTransform { get; set; }
@@ -28,6 +34,7 @@ namespace ALWTTT
 
         #region Cache
         protected DeckManager DeckManager => DeckManager.Instance;
+        protected GameManager GameManager => GameManager.Instance;
         #endregion
 
         #region Setup
@@ -49,6 +56,74 @@ namespace ALWTTT
             grooveCostTextField.text = CardData.GrooveCost.ToString();
             grooveGenTextField.text = CardData.GrooveGenerated.ToString();
         }
+        #endregion
+
+        public virtual void Use(CharacterBase bandCharacter, CharacterBase audienceCharacter,
+            List<AudienceCharacterBase> allAudienceCharacters,
+            List<MusicianBase> allBandCharacters)
+        {
+            if (!IsPlayable) return;
+
+            StartCoroutine(CardUseRoutine(bandCharacter, audienceCharacter, 
+                allAudienceCharacters, allBandCharacters));
+        }
+
+        #region Routines
+        private IEnumerator CardUseRoutine(
+            CharacterBase bandCharacter, CharacterBase audienceCharacter,
+            List<AudienceCharacterBase> allAudienceCharacters,
+            List<MusicianBase> allBandCharacters)
+        {
+            Debug.Log($"<color=cyan> Playing card (coroutine)...</color>");
+
+            SpendGroove(CardData.GrooveCost);
+
+            foreach (var playerAction in CardData.CardActionDataList)
+            {
+                // TODO: DetermineTargets
+                // TODO: CardActionProcessor
+                yield return null;
+            }
+
+            DeckManager.OnCardPlayed(this);
+        }
+
+        protected virtual IEnumerator DiscardRoutine(bool destroy = true)
+        {
+            var timer = 0f;
+            transform.SetParent(DeckManager.HandController.DiscardTransform);
+
+            var startPos = CachedTransform.localPosition;
+            var endPos = Vector3.zero;
+
+            var startScale = CachedTransform.localScale;
+            var endScale = Vector3.zero;
+
+            var startRot = CachedTransform.localRotation;
+            var endRot = Quaternion.Euler(
+                Random.value * 360, 
+                Random.value * 360, 
+                Random.value * 360
+            );
+
+            float discardDuration = DeckManager.HandController.DiscardDuration;
+
+            while (timer < discardDuration)
+            {
+                timer += Time.deltaTime;
+                float t = Mathf.Clamp01(timer / discardDuration);
+
+                CachedTransform.localPosition = Vector3.Lerp(startPos, endPos, t);
+                CachedTransform.localRotation = Quaternion.Lerp(startRot, endRot, t);
+                CachedTransform.localScale = Vector3.Lerp(startScale, endScale, t);
+
+                yield return CachedWaitFrame;
+            }
+
+            if (destroy)
+                Destroy(gameObject);
+        }
+        #endregion
 
         public virtual void SetInactiveMaterialState(bool isInactive)
         {
@@ -59,7 +134,26 @@ namespace ALWTTT
             passiveImage.gameObject.SetActive(isInactive);
         }
 
-        #endregion
+        protected virtual void SpendGroove(int value)
+        {
+            GameManager.PersistentGameplayData.CurrentGroove -= value;
+        }
+
+        public virtual void Discard()
+        {
+            // TODO: Necessary?
+            if (IsExhausted) return;
+            if (!IsPlayable) return;
+            DeckManager.OnCardDiscarded(this);
+            StartCoroutine(DiscardRoutine());
+        }
+
+        public virtual void Exhaust(bool destroy = true)
+        {
+            // TODO: Necessary?
+            if (IsExhausted) return;
+            if (!IsPlayable) return;
+        }
 
         #region Pointer Events
 

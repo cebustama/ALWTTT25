@@ -20,36 +20,15 @@ namespace ALWTTT.Data
         [SerializeField] private int currentGroove;
         [SerializeField] private int turnStartingGroove;
         [SerializeField] private bool isRandomDeck;
+        [SerializeField] private bool canUseCards;
         [SerializeField] private bool canSelectCards;
+        [SerializeField] private bool discardHandBetweenTurns;
+        [SerializeField] private bool keepGrooveBetweenTurns;
 
         // Sector Info
         [SerializeField] private int currentSectorId;
         [SerializeField] private int currentEncounterId;
         [SerializeField] private bool isFinalEncounter;
-
-        public PersistentGameplayData(GameplayData gameplayData)
-        {
-            this.gameplayData = gameplayData;
-
-            InitData();
-        }
-
-        private void InitData()
-        {
-            MusicianList = new List<MusicianBase>(gameplayData.InitialMusicianList);
-
-            drawCount = gameplayData.DrawCount;
-            maxGroove = gameplayData.MaxGroove;
-            turnStartingGroove = 0;
-            currentGroove = turnStartingGroove;
-            CanSelectCards = true;
-            isRandomDeck = gameplayData.IsRandomDeck;
-            CurrentCardsList = new List<CardData>();
-
-            CurrentSectorId = 0;
-            CurrentEncounterId = 0;
-            IsFinalEncounter = false;
-        }
 
         #region Encapsulation
 
@@ -91,10 +70,28 @@ namespace ALWTTT.Data
 
         public bool IsRandomDeck => isRandomDeck;
 
+        public bool CanUseCards
+        {
+            get => canUseCards;
+            set => canUseCards = value;
+        }
+
         public bool CanSelectCards
         {
             get => canSelectCards;
             set => canSelectCards = value;
+        }
+
+        public bool DiscardHandBetweenTurns
+        {
+            get => discardHandBetweenTurns;
+            set => discardHandBetweenTurns = value;
+        }
+
+        public bool KeepGrooveBetweenTurns
+        {
+            get => keepGrooveBetweenTurns;
+            set => keepGrooveBetweenTurns = value;
         }
 
         public int CurrentSectorId
@@ -115,6 +112,35 @@ namespace ALWTTT.Data
             set => isFinalEncounter = value;
         }
         #endregion
+
+        public PersistentGameplayData(GameplayData gameplayData)
+        {
+            this.gameplayData = gameplayData;
+
+            InitData();
+        }
+
+        private void InitData()
+        {
+            MusicianList = new List<MusicianBase>(gameplayData.InitialMusicianList);
+
+            drawCount = gameplayData.DrawCount;
+            maxGroove = gameplayData.MaxGroove;
+            turnStartingGroove = 0;
+            currentGroove = turnStartingGroove;
+
+            CanUseCards = true;
+            CanSelectCards = true;
+            DiscardHandBetweenTurns = gameplayData.DiscardHandBetweenTurns;
+            KeepGrooveBetweenTurns = gameplayData.KeepGrooveBetweenTurns;
+
+            isRandomDeck = gameplayData.IsRandomDeck;
+            CurrentCardsList = new List<CardData>();
+
+            CurrentSectorId = 0;
+            CurrentEncounterId = 0;
+            IsFinalEncounter = false;
+        }
     }
 
     // TODO: Band Data, Song Data, Musician Data, etc

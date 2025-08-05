@@ -11,6 +11,7 @@ namespace ALWTTT.Characters
         [Header("References")]
         [SerializeField] protected TextMeshProUGUI currentHealthText;
         [SerializeField] protected TextMeshProUGUI characterNameText;
+        [SerializeField] protected Transform highlightRoot;
 
         #region Setup
         public void InitCanvas(string characterName)
@@ -27,6 +28,7 @@ namespace ALWTTT.Characters
 
         public void UpdateHealthText(int currentHealth, int maxHealth) =>
             currentHealthText.text = $"{currentHealth}/{maxHealth}";
+        public void SetHighlight(bool open) => highlightRoot.gameObject.SetActive(open);
 
         #endregion
 

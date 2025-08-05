@@ -5,6 +5,7 @@ namespace ALWTTT.Enums
         PrepareGig,
         PlayerTurn,
         SongPerformance,
-        AudienceTurn
+        AudienceTurn,
+        EndGig
     }
 }

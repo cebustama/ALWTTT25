@@ -90,6 +90,9 @@ MonoBehaviour:
   discardTransform: {fileID: 4544187747066707413}
   exhaustTransform: {fileID: 7993131052864597770}
   cam: {fileID: 5505187037360151920}
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
   hand: []
 --- !u!1 &3691117325287741422
 GameObject:

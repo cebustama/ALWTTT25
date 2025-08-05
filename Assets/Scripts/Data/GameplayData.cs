@@ -17,6 +17,8 @@ namespace ALWTTT
         [SerializeField] private int drawCount = 3;
         [SerializeField] private int maxCardsOnHand = 8;
         [SerializeField] private int maxGroove = 3;
+        [SerializeField] private bool discardHandBetweenTurns = true;
+        [SerializeField] private bool keepGrooveBetweenTurns = true;
 
         [Header("Cards")]
         [SerializeField] private List<CardData> allCardsList;
@@ -31,6 +33,9 @@ namespace ALWTTT
         public int DrawCount => drawCount;
         public int MaxCardsOnHand => maxCardsOnHand;
         public int MaxGroove => maxGroove;
+        public bool DiscardHandBetweenTurns => discardHandBetweenTurns;
+        public bool KeepGrooveBetweenTurns => keepGrooveBetweenTurns;
+
         public CardBase CardPrefab => cardPrefab;
         public List<CardData> AllCardsList => allCardsList;
         public DeckData InitialDeck => initialDeck;

@@ -17,10 +17,11 @@ namespace ALWTTT.Managers
         public List<CardData> DiscardPile { get; private set; } = new List<CardData>();
         public List<CardData> ExhaustPile { get; private set; } = new List<CardData>();
 
+        #region Cache
         public HandController HandController => handController;
-
         private GameManager GameManager => GameManager.Instance;
         private UIManager UIManager => UIManager.Instance;
+        #endregion
 
         private void Awake()
         {
@@ -83,7 +84,7 @@ namespace ALWTTT.Managers
 
                 HandController.AddCardToHand(card);
                 HandPile.Add(randomCard);
-                DrawPile.Add(randomCard);
+                DrawPile.Remove(randomCard);
                 currentDrawCount++;
 
                 UIManager.GigCanvas.SetPileTexts();
@@ -103,6 +104,40 @@ namespace ALWTTT.Managers
             HandPile.Clear();
             ExhaustPile.Clear();
             HandController.Hand.Clear();
+        }
+
+        public void OnCardPlayed(CardBase targetCard)
+        {
+            Debug.Log($"{DebugTag} On Card Played...");
+
+            if (targetCard.CardData.ExhaustAfterPlay)
+            {
+                targetCard.Exhaust();
+            }
+            else
+            {
+                targetCard.Discard();
+            }
+                
+            // TODO: UpdateCardText for all other cards
+            // Ex. when +STR increase DMG for all cards
+        }
+
+        public void DiscardHand()
+        {
+            foreach (var cardBase in HandController.Hand)
+            {
+                cardBase.Discard();
+            }
+
+            HandController.Hand.Clear();
+        }
+
+        public void OnCardDiscarded(CardBase targetCard)
+        {
+            HandPile.Remove(targetCard.CardData);
+            DiscardPile.Add(targetCard.CardData);
+            UIManager.GigCanvas.SetPileTexts();
         }
 
         private void ReshuffleDiscardPile()
