@@ -10,9 +10,12 @@ namespace ALWTTT.Characters.Audience
         [SerializeField] protected AudienceCharacterCanvas characterCanvas;
         // TODO Sound profile
 
+        private AudienceCharacterStats stats;
+
+        public override IAudienceStats AudienceStats => stats;
+
         public AudienceCharacterData AudienceCharacterData => audienceCharacterData;
         public AudienceCharacterCanvas CharacterCanvas => characterCanvas;
-        public AudienceCharacterStats CharacterStats { get; protected set; }
 
         public override void BuildCharacter()
         {
@@ -20,15 +23,17 @@ namespace ALWTTT.Characters.Audience
             CharacterCanvas.InitCanvas(AudienceCharacterData.CharacterName);
 
             // Stats
-            CharacterStats = new AudienceCharacterStats(
+            stats = new AudienceCharacterStats(
                 AudienceCharacterData.MaxVibe,
                 CharacterCanvas
             );
-            CharacterStats.OnConvinced += OnConvinced;
-            CharacterStats.SetCurrentVibe(CharacterStats.CurrentVibe);
+            stats.OnConvinced += OnConvinced;
+            stats.SetCurrentVibe(stats.CurrentVibe);
+
+            Debug.Log("{AudienceCharacterBase} Stats: " + stats.ToString());
 
             GigManager.OnPlayerTurnStarted += ShowNextIntent;
-            GigManager.OnEnemyTurnStarted += CharacterStats.TriggerAllStatus;
+            GigManager.OnEnemyTurnStarted += stats.TriggerAllStatus;
         }
 
         protected void OnConvinced()
@@ -38,9 +43,9 @@ namespace ALWTTT.Characters.Audience
 
         public void Dispose()
         {
-            if (CharacterStats != null)
+            if (stats != null)
             {
-                CharacterStats.OnConvinced -= OnConvinced;
+                stats.OnConvinced -= OnConvinced;
             }
 
             if (GigManager != null)
@@ -48,12 +53,12 @@ namespace ALWTTT.Characters.Audience
                 GigManager.OnPlayerTurnStarted -= ShowNextIntent;
             }
 
-            if (GigManager != null && CharacterStats != null)
+            if (GigManager != null && stats != null)
             {
-                GigManager.OnEnemyTurnStarted -= CharacterStats.TriggerAllStatus;
+                GigManager.OnEnemyTurnStarted -= stats.TriggerAllStatus;
             }
 
-            CharacterStats.Dispose();
+            stats.Dispose();
         }
 
         private void ShowNextIntent()

@@ -1,9 +1,10 @@
+using ALWTTT.Interfaces;
 using System;
 using UnityEngine;
 
 namespace ALWTTT.Characters.Audience
 {
-    public class AudienceCharacterStats
+    public class AudienceCharacterStats : IAudienceStats
     {
         public int MaxVibe { get; set; } // "HP"
         public int CurrentVibe { get; private set; }
@@ -14,6 +15,12 @@ namespace ALWTTT.Characters.Audience
         // TODO: Statuses
 
         private CharacterCanvas characterCanvas;
+
+        public override string ToString()
+        {
+            return $"[Audience Stats] Vibe: {CurrentVibe}/{MaxVibe}, " +
+                $"IsConvinced: {IsConvinced}";
+        }
 
         #region Setup
         public AudienceCharacterStats(int maxVibe, CharacterCanvas characterCanvas)
@@ -58,6 +65,16 @@ namespace ALWTTT.Characters.Audience
                         targetCurrentVibe;
 
             OnVibeChanged?.Invoke(CurrentVibe, MaxVibe);
+        }
+
+        public void AddVibe(int amount)
+        {
+            SetCurrentVibe(CurrentVibe + amount);
+            if (CurrentVibe >= MaxVibe && !IsConvinced)
+            {
+                IsConvinced = true;
+                OnConvinced?.Invoke();
+            }
         }
         #endregion
     }

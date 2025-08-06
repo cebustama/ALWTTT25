@@ -8,6 +8,8 @@ namespace ALWTTT.Characters.Band
     {
         [SerializeField] private BandCharacterCanvas bandCharacterCanvas;
         [SerializeField] private MusicianCharacterData musicianCharacterData;
+        [SerializeField] private BandCharacterStats stats;
+        public override IMusicianStats MusicianStats => stats;
 
         #region Encapsulate
         public BandCharacterCanvas BandCharacterCanvas => bandCharacterCanvas;

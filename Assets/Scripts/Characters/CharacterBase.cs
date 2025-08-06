@@ -5,14 +5,16 @@ using UnityEngine;
 
 namespace ALWTTT.Characters
 {
-    public class CharacterBase : MonoBehaviour, ICharacter
+    public abstract class CharacterBase : MonoBehaviour, ICharacter
     {
+        public virtual IMusicianStats MusicianStats => null;
+        public virtual IAudienceStats AudienceStats => null;
+
         [Header("Base settings")]
         [SerializeField] private CharacterType characterType;
         [SerializeField] private Transform textSpawnRoot;
 
         #region Cache
-        public CharacterStats CharacterStats { get; protected set; }
         public CharacterType CharacterType => characterType;
         public Transform TextSpawnRoot => textSpawnRoot;
         protected GigManager GigManager => GigManager.Instance;

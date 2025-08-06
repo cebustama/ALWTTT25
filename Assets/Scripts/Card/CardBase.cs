@@ -90,9 +90,15 @@ namespace ALWTTT
                     target, allAudienceCharacters, allBandCharacters, playerAction);
 
                 foreach (var t in targetList)
+                {
+                    Debug.Log($"[CardBase] {t.AudienceStats.ToString()}");
                     CardActionProcessor.GetAction(playerAction.CardActionType)
-                        .DoAction(new CardActionParameters(playerAction.ActionValue,
-                            t, performer, CardData, this));
+                        .DoAction(new CardActionParameters(
+                            playerAction.ActionValue,
+                            performer, t,
+                            CardData, this)
+                        );
+                }
             }
 
             DeckManager.OnCardPlayed(this);
