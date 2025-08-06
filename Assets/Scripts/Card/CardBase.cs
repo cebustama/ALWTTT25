@@ -1,16 +1,21 @@
+using ALWTTT.Cards;
 using ALWTTT.Characters;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
+using ALWTTT.Enums;
+using ALWTTT.Extentions;
 using ALWTTT.Managers;
 using ALWTTT.Tooltips;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
-namespace ALWTTT // TODO .Cards
+namespace ALWTTT
 {
     public class CardBase : MonoBehaviour, 
         I2DTooltipTarget, IPointerDownHandler, IPointerUpHandler
@@ -38,7 +43,6 @@ namespace ALWTTT // TODO .Cards
         #endregion
 
         #region Setup
-
         protected virtual void Awake()
         {
             CachedTransform = transform;
@@ -70,7 +74,7 @@ namespace ALWTTT // TODO .Cards
 
         #region Routines
         private IEnumerator CardUseRoutine(
-            CharacterBase bandCharacter, CharacterBase audienceCharacter,
+            CharacterBase performer, CharacterBase target,
             List<AudienceCharacterBase> allAudienceCharacters,
             List<MusicianBase> allBandCharacters)
         {
@@ -80,9 +84,15 @@ namespace ALWTTT // TODO .Cards
 
             foreach (var playerAction in CardData.CardActionDataList)
             {
-                // TODO: DetermineTargets
-                // TODO: CardActionProcessor
-                yield return null;
+                yield return new WaitForSeconds(playerAction.ActionDelay);
+                
+                var targetList = DetermineTargets(
+                    target, allAudienceCharacters, allBandCharacters, playerAction);
+
+                foreach (var t in targetList)
+                    CardActionProcessor.GetAction(playerAction.CardActionType)
+                        .DoAction(new CardActionParameters(playerAction.ActionValue,
+                            t, performer, CardData, this));
             }
 
             DeckManager.OnCardPlayed(this);
@@ -134,11 +144,6 @@ namespace ALWTTT // TODO .Cards
             passiveImage.gameObject.SetActive(isInactive);
         }
 
-        protected virtual void SpendGroove(int value)
-        {
-            GameManager.PersistentGameplayData.CurrentGroove -= value;
-        }
-
         public virtual void Discard()
         {
             // TODO: Necessary?
@@ -153,6 +158,51 @@ namespace ALWTTT // TODO .Cards
             // TODO: Necessary?
             if (IsExhausted) return;
             if (!IsPlayable) return;
+        }
+
+        protected virtual void SpendGroove(int value)
+        {
+            GameManager.PersistentGameplayData.CurrentGroove -= value;
+        }
+
+        private static List<CharacterBase> DetermineTargets(
+            CharacterBase targetCharacter,
+            List<AudienceCharacterBase> allAudienceCharacters,
+            List<MusicianBase> allBandCharacters,
+            CardActionData playerAction)
+        {
+            List<CharacterBase> targetList = new List<CharacterBase>();
+
+            switch (playerAction.ActionTargetType)
+            {
+                case ActionTargetType.AudienceCharacter:
+                    targetList.Add(targetCharacter);
+                    break;
+                case ActionTargetType.Ally:
+                    targetList.Add(targetCharacter);
+                    break;
+                case ActionTargetType.AllAudienceCharacters:
+                    foreach (var enemyBase in allAudienceCharacters)
+                        targetList.Add(enemyBase);
+                    break;
+                case ActionTargetType.AllAllies:
+                    foreach (var allyBase in allBandCharacters)
+                        targetList.Add(allyBase);
+                    break;
+                case ActionTargetType.RandomAudienceCharacter:
+                    if (allAudienceCharacters.Count > 0)
+                        targetList.Add(allAudienceCharacters.RandomItem());
+
+                    break;
+                case ActionTargetType.RandomAlly:
+                    if (allBandCharacters.Count > 0)
+                        targetList.Add(allBandCharacters.RandomItem());
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return targetList;
         }
 
         #region Pointer Events

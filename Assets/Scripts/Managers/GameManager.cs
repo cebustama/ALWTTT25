@@ -1,6 +1,7 @@
 using ALWTTT.Extentions;
 using ALWTTT.Data;
 using UnityEngine;
+using ALWTTT.Cards;
 
 namespace ALWTTT.Managers
 {
@@ -18,7 +19,6 @@ namespace ALWTTT.Managers
         public EncounterData EncounterData => encounterData;
         public PersistentGameplayData PersistentGameplayData { get; private set; }
         
-
         private void Awake()
         {
             if (Instance)
@@ -34,7 +34,7 @@ namespace ALWTTT.Managers
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
 
-                // CardActionProcessor.Initialize();
+                CardActionProcessor.Initialize();
                 // EnemyActionProcessor.Initialize();
 
                 InitGameplayData();

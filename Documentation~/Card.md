@@ -119,4 +119,84 @@ class Card {
 }
 ```
 
-Cards are the tactical expression of the band’s musical and emotional abilities. Their careful use determines whether a gig turns into legend or disaster.
+## Card Targeting Flow
+
+In *A Long Way to the Top*, card targeting is a two-step process that reflects the performative nature of a concert. Each card represents a musical or performative action that must be assigned to a **Musician**, and then—depending on the card's targeting logic—either to specific **Audience Members** (Enemies) or automatically applied.
+
+---
+
+### Step 1: Select the Performer (Musician)
+
+- Every card must be assigned to a **Musician** in the Band.
+- The **Musician's stats** (Charm, Technique, Emotion) directly influence the **effectiveness** of the card based on its type (e.g., *Funny*, *Touching*).
+- Some cards can only be played by certain Musicians due to conditions or instrument synergy.
+- This step always occurs **before** target resolution.
+
+**Example:**
+> The player selects the highly Charismatic vocalist to perform a *Funny* card that targets a cynical audience member.
+
+---
+
+### Step 2: Resolve Targeting (Manual or Automatic)
+
+Targeting behavior is defined by the card's `TargetingMode` or `ActionTargetType`. Once a **Performer** is selected, the game proceeds to resolve the effect:
+
+#### **Manual Targeting**
+- The player is prompted to select a valid target.
+- Used for cards targeting **specific audience members**.
+- Targets are highlighted based on card synergies (e.g., enemies who are weak to `Funny` will glow).
+
+#### **Automatic Targeting**
+- No manual input needed after Performer selection.
+- Effects are resolved on:
+  - All enemies (`AllAudience`)
+  - A random enemy (`RandomAudience`)
+  - The Performer or Band itself (`Self`, `Band`)
+
+---
+
+### Targeting Modes
+
+| Mode               | Description                                                   |
+|--------------------|---------------------------------------------------------------|
+| `ManualAudience`   | Player selects an audience member to receive the effect       |
+| `AutoAllAudience`  | All audience members receive the effect                       |
+| `AutoRandomAudience` | One random enemy is affected                                |
+| `Self`             | The effect is applied to the selected Musician                |
+| `Band`             | The entire Band is affected (e.g., buffs, Groove gain)        |
+| `NoTarget`         | Card has an immediate effect, such as drawing cards or SFX    |
+
+> Cards may include Conditions that restrict targeting. For instance, a card may only be playable if the current Song is a Ballad, or if the performer's EMT is 8+.
+
+---
+
+### Design Goals
+
+- Reinforce the *gig-as-combat* metaphor with clear performative flow.
+- Allow players to make meaningful choices by assigning the *right card to the right Musician*.
+- Enable enemy synergies, reactions, and resistances based on **who** played the card and **who** was targeted.
+
+---
+
+### Example Turn Flow with Targeting
+
+1. Player drags a *Touching* card from their hand.
+2. UI prompts: “Select a Musician to perform this card.”
+3. Player selects the keyboardist with high Emotion (EMT).
+4. Game highlights audience members who are susceptible to *Touching*.
+5. Player clicks a *Wallflower*-type enemy.
+6. Card is played. The effect is resolved based on EMT and synergies.
+7. Enemy reacts based on Tags (e.g., *Cheer* if liked, *Boo* if disliked).
+
+---
+
+### Implementation Notes (Technical)
+
+- Targeting logic should be defined in a `TargetResolver` system, decoupled from card display logic.
+- Cards can specify their `TargetingMode` as a field.
+- Manual targeting can be skipped entirely if `TargetingMode` is automatic.
+- Effects should always resolve *after* performer selection.
+
+---
+
+Cards in ALWTTT are not just spells or actions — they are **performances**. The Targeting Flow ensures that each card becomes a dynamic interaction between **Musician**, **Audience**, and **Stage**.

@@ -369,7 +369,7 @@ namespace ALWTTT
                 GameManager.PersistentGameplayData.CurrentGroove >=
                     heldCard.CardData.GrooveCost)
             {
-                RaycastHit hit;
+                //RaycastHit hit;
                 var mainRay = mainCam.ScreenPointToRay(mousePos);
                 var canUse = false;
 
@@ -408,14 +408,21 @@ namespace ALWTTT
 
                 if (character != null)
                 {
+                    var firstActionTargetType =
+                        heldCard.CardData.CardActionDataList[0].ActionTargetType;
+
                     var checkEnemy =
-                        (heldCard.CardData.CardActionDataList[0].ActionTargetType ==
-                        ActionTargetType.AudienceCharacter &&
+                        ((firstActionTargetType == ActionTargetType.AudienceCharacter ||
+                        firstActionTargetType == ActionTargetType.AllAudienceCharacters ||
+                        firstActionTargetType == ActionTargetType.RandomAudienceCharacter) 
+                        &&
                         character.GetCharacterType() == CharacterType.Audience);
 
                     var checkAlly =
-                        (heldCard.CardData.CardActionDataList[0].ActionTargetType ==
-                        ActionTargetType.Ally &&
+                        ((firstActionTargetType == ActionTargetType.Ally ||
+                        firstActionTargetType == ActionTargetType.AllAllies ||
+                        firstActionTargetType == ActionTargetType.RandomAlly) 
+                        &&
                         character.GetCharacterType() == CharacterType.Musician);
 
                     // TODO: Modify this part

@@ -12,6 +12,7 @@ namespace ALWTTT.Characters
         [SerializeField] private Transform textSpawnRoot;
 
         #region Cache
+        public CharacterStats CharacterStats { get; protected set; }
         public CharacterType CharacterType => characterType;
         public Transform TextSpawnRoot => textSpawnRoot;
         protected GigManager GigManager => GigManager.Instance;

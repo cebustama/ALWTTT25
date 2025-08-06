@@ -67,6 +67,9 @@ namespace ALWTTT
         [SerializeField] private float actionValue;
         [SerializeField] private float actionDelay;
 
+        public CardActionType CardActionType => cardConditionType;
         public ActionTargetType ActionTargetType => actionTargetType;
+        public float ActionValue => actionValue;
+        public float ActionDelay => actionDelay;
     }
 }
