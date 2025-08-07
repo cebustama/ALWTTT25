@@ -17,3 +17,13 @@ MonoBehaviour:
   characterDescription: 
   maxVibe: 10
   characterPrefab: {fileID: 8137859568071339047, guid: 323a8ebb063c9b94e8a73bc3ac51c634, type: 3}
+  abilityList:
+  - abilityName: Tantrum
+    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
+    hideActionValue: 0
+    actionList:
+    - cardActionType: 3
+      actionTargetType: 1
+      actionValue: 10
+      actionDelay: 0
+  followAbilityPattern: 0

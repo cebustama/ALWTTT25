@@ -59,15 +59,16 @@ namespace ALWTTT
         [SerializeField] private float conditionValue;
     }
 
+    // TODO: Change name to CharacterActionData, move to separate file
     [Serializable]
     public class CardActionData
     {
-        [SerializeField] private CardActionType cardConditionType;
+        [SerializeField] private CardActionType cardActionType;
         [SerializeField] private ActionTargetType actionTargetType;
         [SerializeField] private float actionValue;
         [SerializeField] private float actionDelay;
 
-        public CardActionType CardActionType => cardConditionType;
+        public CardActionType CardActionType => cardActionType;
         public ActionTargetType ActionTargetType => actionTargetType;
         public float ActionValue => actionValue;
         public float ActionDelay => actionDelay;

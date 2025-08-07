@@ -1,12 +1,13 @@
 namespace ALWTTT.Enums
 {
+    // TODO: Rename to CharacterActionType
     public enum CardActionType
     {
-        // Audience
+        // Tagets Audience
         AddVibe,
         BlockVibe,
         RemoveVibe,
-        // Band
+        // Targets Band
         AddStress,
         BlockStress,
         HealStress

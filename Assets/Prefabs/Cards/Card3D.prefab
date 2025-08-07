@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardImage: {fileID: 2932716357299140837}
+  passiveImage: {fileID: 0}
   nameTextField: {fileID: 2253420769599146968}
   descTextField: {fileID: 8486886504165462760}
   grooveCostTextField: {fileID: 722027446639653306}
