@@ -41,7 +41,6 @@ namespace ALWTTT.Characters.Audience
         #endregion
 
         #region Public Methods
-        // TODO: Move to CharacterStats base class as virtual
         public void Dispose()
         {
             if (characterCanvas != null)
@@ -50,7 +49,6 @@ namespace ALWTTT.Characters.Audience
             }
         }
 
-        // TODO: Move to CharacterStats base class
         public void TriggerAllStatus()
         {
 
@@ -75,6 +73,11 @@ namespace ALWTTT.Characters.Audience
                 IsConvinced = true;
                 OnConvinced?.Invoke();
             }
+        }
+
+        public void RemoveVibe(int amount)
+        {
+            SetCurrentVibe(CurrentVibe - amount);
         }
         #endregion
     }

@@ -6,6 +6,8 @@ namespace ALWTTT.Interfaces
     {
         int CurrentStress { get; }
         int MaxStress { get; }
+        void SetCurrentStress(int targetCurrentStress);
+        void AddStress(int amount);
         void HealStress(int amount);
         void ApplyBlock(int amount);
         int Charm { get; }

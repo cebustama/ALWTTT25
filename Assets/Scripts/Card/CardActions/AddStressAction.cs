@@ -1,13 +1,13 @@
 using ALWTTT.Enums;
 using UnityEngine;
 
-namespace ALWTTT.Cards.Actions
+namespace ALWTTT.Cards.Actions 
 {
-    public class HealStressAction : CardActionBase
+    public class AddStressAction : CardActionBase
     {
-        public override CardActionType ActionType => CardActionType.HealStress;
+        public override CardActionType ActionType => CardActionType.AddStress;
 
-        public override string ActionName => "Heal Stress";
+        public override string ActionName => "Add Stress";
 
         public override void DoAction(CardActionParameters actionParameters)
         {
@@ -20,8 +20,8 @@ namespace ALWTTT.Cards.Actions
 
             if (targetCharacter.MusicianStats is { } musicianStats)
             {
-                int stressToHeal = Mathf.RoundToInt(actionParameters.Value);
-                musicianStats.HealStress(stressToHeal);
+                int stressToAdd = Mathf.RoundToInt(actionParameters.Value);
+                musicianStats.AddStress(stressToAdd);
             }
             else
             {

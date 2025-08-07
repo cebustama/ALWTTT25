@@ -12,6 +12,7 @@ namespace ALWTTT.Data
 
         // Band
         [SerializeField] private List<MusicianBase> musicianList;
+        [SerializeField] private List<MusicianHealthData> musicianHealthDataList;
 
         // Deckbuilding / Gig Encounters
         [SerializeField] private List<CardData> currentCardsList;
@@ -111,6 +112,12 @@ namespace ALWTTT.Data
             get => isFinalEncounter;
             set => isFinalEncounter = value;
         }
+
+        public List<MusicianHealthData> MusicianHealthDataList
+        {
+            get => musicianHealthDataList;
+            set => musicianHealthDataList = value;
+        }
         #endregion
 
         public PersistentGameplayData(GameplayData gameplayData)
@@ -140,6 +147,28 @@ namespace ALWTTT.Data
             CurrentSectorId = 0;
             CurrentEncounterId = 0;
             IsFinalEncounter = false;
+
+            musicianHealthDataList = new List<MusicianHealthData>();
+        }
+
+        public void SetMusicianHealthData(string id, int newCurrentStress, int newMaxStress)
+        {
+            var newData = new MusicianHealthData();
+            newData.CharacterId = id;
+            newData.CurrentStress = newCurrentStress;
+            newData.MaxStress = newMaxStress;
+
+            // Replace old data with new one
+            var data = musicianHealthDataList.Find(x => x.CharacterId == id);
+            if (data != null)
+            {
+                musicianHealthDataList.Remove(data);
+                musicianHealthDataList.Add(newData);
+            }
+            else
+            {
+                musicianHealthDataList.Add(newData);
+            }
         }
     }
 

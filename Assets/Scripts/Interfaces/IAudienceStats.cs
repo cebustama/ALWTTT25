@@ -7,6 +7,7 @@ namespace ALWTTT.Interfaces
         int CurrentVibe { get; }
         int MaxVibe { get; }
         void AddVibe(int amount);
+        void RemoveVibe(int amount);
         void SetCurrentVibe(int vibe);
     }
 

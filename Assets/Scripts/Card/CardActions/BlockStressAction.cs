@@ -7,6 +7,8 @@ namespace ALWTTT.Cards.Actions
     {
         public override CardActionType ActionType => CardActionType.BlockStress;
 
+        public override string ActionName => "Block Stress";
+
         public override void DoAction(CardActionParameters actionParameters)
         {
             throw new System.NotImplementedException();

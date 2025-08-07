@@ -212,6 +212,41 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2509326286657756562
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6382956573452152061}
+  m_Layer: 7
+  m_Name: HighlightRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6382956573452152061
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2509326286657756562}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6182751036517066986}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &6485040841467516962
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -333,6 +368,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
   m_PrefabInstance: {fileID: 6485040841467516962}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6962160583308176060 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4134848032893907614, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+  m_PrefabInstance: {fileID: 6485040841467516962}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7430564445378744437
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -363,7 +409,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1836188541970597043, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_PresetInfoIsWorld
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_text
@@ -475,6 +521,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3662307969920776351, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3523357628628341493}
+    - targetCorrespondingSourceObject: {fileID: 3662307969920776351, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6382956573452152061}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 8766201086974039525, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       insertIndex: -1
@@ -498,7 +547,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentHealthText: {fileID: 1489967832596637540}
+  currentHealthBar: {fileID: 6962160583308176060}
   characterNameText: {fileID: 4033435451783531182}
+  highlightRoot: {fileID: 6382956573452152061}
   intentImage: {fileID: 7631314978631438073}
   nextActionValueText: {fileID: 6996543080683022031}
 --- !u!114 &4033435451783531182 stripped

@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace ALWTTT.Cards.Actions
 {
-    public class AddVibeAction : CardActionBase
+    public class RemoveVibeAction : CardActionBase
     {
-        public override CardActionType ActionType => CardActionType.AddVibe;
+        public override CardActionType ActionType => CardActionType.RemoveVibe;
 
-        public override string ActionName => "Add Vibe";
+        public override string ActionName => "Remove Vibe";
 
         public override void DoAction(CardActionParameters actionParameters)
         {
@@ -18,20 +18,15 @@ namespace ALWTTT.Cards.Actions
             Debug.Log($"[{ActionName}] Target: " + targetCharacter);
             Debug.Log($"[{ActionName}] Stats: {targetCharacter.AudienceStats.ToString()}");
 
-            if (targetCharacter.AudienceStats is { } audienceStats)
+            if (targetCharacter.AudienceStats is { } audienceStats) 
             {
-                int vibeToAdd = Mathf.RoundToInt(actionParameters.Value);
-                audienceStats.AddVibe(vibeToAdd);
-
-                /*
-                FxManager?.PlayFx(target.transform, FxType.Buff);
-                AudioManager?.PlayOneShot(actionParameters.CardData.AudioType);
-                */
+                int vibeToRemove = Mathf.RoundToInt(actionParameters.Value);
+                audienceStats.RemoveVibe(vibeToRemove);
             }
             else
             {
                 Debug.LogWarning("Target does not have AudienceStats — " +
-                    $"{ActionName} skipped.");
+                    $"[{ActionName}] skipped.");
             }
         }
     }

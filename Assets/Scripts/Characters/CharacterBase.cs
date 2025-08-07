@@ -18,6 +18,7 @@ namespace ALWTTT.Characters
         public CharacterType CharacterType => characterType;
         public Transform TextSpawnRoot => textSpawnRoot;
         protected GigManager GigManager => GigManager.Instance;
+        protected GameManager GameManager => GameManager.Instance;
         #endregion
 
         public virtual void BuildCharacter()

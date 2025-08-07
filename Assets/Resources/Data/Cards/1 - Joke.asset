@@ -17,12 +17,16 @@ MonoBehaviour:
   phase: 0
   rarity: 0
   grooveCost: 0
+  cardSprite: {fileID: 0}
   grooveGenerated: 2
   typesList: 00000000
+  usableWithoutTarget: 0
+  exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList:
   - cardConditionType: 0
     actionTargetType: 0
-    actionValue: 1
+    actionValue: 5
     actionDelay: 0
   keywordsList: 
+  audioType: 0

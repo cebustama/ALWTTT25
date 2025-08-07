@@ -11,6 +11,8 @@
 | `PersonaTags` | list<CardType> | Preferred Card Types: *Funny*, *Touching*, *Technical*, *Raw*, etc. |
 | `Triggers`  | list<Trigger> | Reactions to CardTypes, Song stats, or Player Actions |
 | `Actions`   | list<EnemyAction> | Behaviors executed each Audience Phase |
+| `IsTall` | bool | Marks enemy as physically tall, capable of blocking others behind |
+| `BlockScalingType` | enum (EnemyBlockScalingType) | Determines how the Tall enemy affects Vibe received by enemies behind |
 
 ---
 
@@ -97,6 +99,25 @@ Enemies act during the **Audience Phase** in each Gig Turn:
    - Can inject event-style choices, offering a bonus card with unique effect or decision-driven outcome
 
 ---
+
+### Positional Traits: Tall and Blocking
+
+Some enemies possess the `Tall` trait. These enemies occupy a front-row space and obstruct the Band’s line of performance.
+
+- **Blocking Logic**:
+  - Enemies directly behind a Tall enemy receive reduced **Vibe**.
+  - The extent of this reduction is determined by the enemy's `BlockScalingType`.
+
+#### Example Types:
+| Scaling Type | Description |
+|--------------|-------------|
+| FlatReduction | Always reduces Vibe by a fixed amount (e.g. -2) |
+| PercentageReduction | Reduces all Vibe received by a % (default 50%) |
+| RangeLimited | Blocks only X rows behind |
+| CustomFormula | Enemy implements custom behavior |
+| StatusBased | Reduction scales with enemy Stress, Buffs, etc. |
+
+> This system adds tactical counterplay: enemies that move forward (like Moshers or Snipers) may block others, forcing the player to reposition or use bypassing card effects.
 
 ## Example Enemy Summary
 

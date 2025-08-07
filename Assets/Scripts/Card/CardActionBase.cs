@@ -28,6 +28,7 @@ namespace ALWTTT.Cards
     {
         protected CardActionBase() { }
         public abstract CardActionType ActionType { get; }
+        public abstract string ActionName { get; }
         public abstract void DoAction(CardActionParameters actionParameters);
 
         protected GameManager GameManager => GameManager.Instance;

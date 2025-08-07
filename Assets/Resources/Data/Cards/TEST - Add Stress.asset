@@ -10,23 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: 2 - Sob Story
+  m_Name: TEST - Add Stress
   m_EditorClassIdentifier: 
-  id: 2
-  cardName: Sob Story
+  id: 1000
+  cardName: Add Stress
   phase: 0
   rarity: 0
   grooveCost: 0
   cardSprite: {fileID: 0}
   grooveGenerated: 1
-  typesList: 02000000
+  typesList: 00000000
   usableWithoutTarget: 0
   exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList:
-  - cardConditionType: 0
-    actionTargetType: 0
-    actionValue: 10
+  - cardConditionType: 3
+    actionTargetType: 1
+    actionValue: 5
     actionDelay: 0
   keywordsList: 
   audioType: 0
