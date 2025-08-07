@@ -131,7 +131,7 @@ namespace ALWTTT.Managers
             for (var i = 0; 
                 i < GameManager.PersistentGameplayData.MusicianList.Count; i++)
             {
-                var clone = Instantiate(
+                MusicianBase clone = Instantiate(
                     GameManager.PersistentGameplayData.MusicianList[i],
                     MusicianPosList.Count >= i ?
                         MusicianPosList[i] :
@@ -139,6 +139,11 @@ namespace ALWTTT.Managers
                 );
 
                 clone.BuildCharacter();
+
+                // Front or Back of the Stage
+                if (i < 2) clone.SetSpriteLayerOrder(1);
+                else clone.SetSpriteLayerOrder(0);
+
                 CurrentMusicianCharacterList.Add(clone);
             }
         }

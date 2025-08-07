@@ -49,6 +49,11 @@ namespace ALWTTT.Characters.Band
             Debug.Log("{MusicianBase} Stats: " + stats.ToString());
         }
 
+        public void SetSpriteLayerOrder(int targetOrder)
+        {
+            SpriteRenderer.sortingOrder = targetOrder;
+        }
+
         protected void OnBreakdown()
         {
             // TODO: "Stunned", cannot perform for one turn

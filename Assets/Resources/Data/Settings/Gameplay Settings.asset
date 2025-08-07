@@ -13,13 +13,16 @@ MonoBehaviour:
   m_Name: Gameplay Settings
   m_EditorClassIdentifier: 
   initialMusicianList:
-  - {fileID: 6746610026762189175, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
-  - {fileID: 6746610026762189175, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
-  - {fileID: 6746610026762189175, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+  - {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
+  - {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
+  - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
+  - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
   initialDeck: {fileID: 11400000, guid: 8872ba9a6df46294cbf20d6fce124ce7, type: 2}
   drawCount: 4
   maxCardsOnHand: 10
   maxGroove: 3
+  discardHandBetweenTurns: 1
+  keepGrooveBetweenTurns: 1
   allCardsList: []
   cardPrefab: {fileID: 5965618076488326275, guid: 15bfb561cbf35f04b9148c67d30ade30, type: 3}
   isRandomDeck: 0

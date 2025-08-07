@@ -13,10 +13,15 @@ namespace ALWTTT.Characters
         [Header("Base settings")]
         [SerializeField] private CharacterType characterType;
         [SerializeField] private Transform textSpawnRoot;
+        [SerializeField] private SpriteRenderer spriteRenderer;
 
-        #region Cache
+        #region Encapsulation
         public CharacterType CharacterType => characterType;
         public Transform TextSpawnRoot => textSpawnRoot;
+        public SpriteRenderer SpriteRenderer => spriteRenderer;
+        #endregion
+
+        #region Cache
         protected GigManager GigManager => GigManager.Instance;
         protected GameManager GameManager => GameManager.Instance;
         #endregion

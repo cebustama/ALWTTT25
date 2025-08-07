@@ -143,7 +143,12 @@ namespace ALWTTT.Managers
         private void ReshuffleDiscardPile()
         {
             Debug.Log($"{DebugTag} Reshuffling discard pile...");
-            Debug.LogError("IMPLEMENT");
+            foreach (var i in DiscardPile)
+            {
+                DrawPile.Add(i);
+            }
+
+            DiscardPile.Clear();
         }
     }
 }

@@ -20,6 +20,10 @@ PrefabInstance:
       propertyPath: m_LocalScale.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3334726058178949679, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: audienceCharacterData
+      value: 
+      objectReference: {fileID: 11400000, guid: 51e873db939343349b45067a98817990, type: 2}
     - target: {fileID: 3404911247422000304, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0

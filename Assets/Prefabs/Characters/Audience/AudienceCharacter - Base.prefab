@@ -202,6 +202,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterType: 1
   textSpawnRoot: {fileID: 5592515904517901560}
+  spriteRenderer: {fileID: 6214814892290893219}
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
   characterCanvas: {fileID: 9060181179430792495}
 --- !u!95 &2751757183088544825
