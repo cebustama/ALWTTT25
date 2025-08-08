@@ -1,8 +1,7 @@
 using ALWTTT.Extentions;
 using ALWTTT.Data;
-using ALWTTT.Cards;
-using ALWTTT.Characters.Audience.Actions;
 using UnityEngine;
+using ALWTTT.Actions;
 
 
 namespace ALWTTT.Managers
@@ -36,8 +35,7 @@ namespace ALWTTT.Managers
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
 
-                CardActionProcessor.Initialize();
-                AudienceActionProcessor.Initialize();
+                CharacterActionProcessor.Initialize();
 
                 InitGameplayData();
                 SetInitialDeck();

@@ -1,3 +1,4 @@
+using ALWTTT.Actions;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Extentions;
 using System;
@@ -61,11 +62,11 @@ namespace ALWTTT.Data
         [SerializeField] private string abilityName;
         [SerializeField] private AudienceIntentionData intention;
         [SerializeField] private bool hideActionValue;
-        [SerializeField] private List<CardActionData> actionList;
+        [SerializeField] private List<CharacterActionData> actionList;
 
         public string AbilityName => abilityName;
         public AudienceIntentionData Intention => intention;
         public bool HideActionValue => hideActionValue;
-        public List<CardActionData> ActionList => actionList;
+        public List<CharacterActionData> ActionList => actionList;
     }
 }

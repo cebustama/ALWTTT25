@@ -1,15 +1,16 @@
+using ALWTTT.Actions;
 using ALWTTT.Enums;
 using UnityEngine;
 
 namespace ALWTTT.Cards.Actions
 {
-    public class AddVibeAction : CardActionBase
+    public class AddVibeAction : CharacterActionBase
     {
-        public override CardActionType ActionType => CardActionType.AddVibe;
+        public override CharacterActionType ActionType => CharacterActionType.AddVibe;
 
         public override string ActionName => "Add Vibe";
 
-        public override void DoAction(CardActionParameters actionParameters)
+        public override void DoAction(CharacterActionParameters actionParameters)
         {
             if (!actionParameters.TargetCharacter) return;
 

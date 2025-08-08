@@ -1,3 +1,4 @@
+using ALWTTT.Actions;
 using ALWTTT.Cards;
 using ALWTTT.Characters;
 using ALWTTT.Characters.Audience;
@@ -91,12 +92,14 @@ namespace ALWTTT
 
                 foreach (var t in targetList)
                 {
-                    CardActionProcessor.GetAction(playerAction.CardActionType)
-                        .DoAction(new CardActionParameters(
-                            playerAction.ActionValue,
-                            performer, t,
-                            CardData, this)
-                        );
+                    var ctx = new CardActionContext(CardData, this);
+                    var p = new CharacterActionParameters(
+                        playerAction.ActionValue,
+                        performer, t,
+                        ctx
+                    );
+
+                    CharacterActionProcessor.GetAction(playerAction.CardActionType).DoAction(p);
                 }
             }
 
@@ -174,7 +177,7 @@ namespace ALWTTT
             CharacterBase targetCharacter,
             List<AudienceCharacterBase> allAudienceCharacters,
             List<MusicianBase> allBandCharacters,
-            CardActionData playerAction)
+            CharacterActionData playerAction)
         {
             List<CharacterBase> targetList = new List<CharacterBase>();
 

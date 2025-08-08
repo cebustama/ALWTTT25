@@ -1,4 +1,4 @@
-using ALWTTT.Characters.Audience.Actions;
+using ALWTTT.Actions;
 using ALWTTT.Data;
 using ALWTTT.Extentions;
 using ALWTTT.Interfaces;
@@ -134,12 +134,17 @@ namespace ALWTTT.Characters.Audience
                 waitFrame, speechBubble,
                 startPos, endPos,
                 startRot, endRot,
-                2.5f
+                1f
             ));
+            
+            foreach (var action in targetAbility.ActionList)
+            {
+                var ctx = new AudienceActionContext();
+                var p = new CharacterActionParameters(
+                    action.ActionValue, this, target, ctx);
 
-            targetAbility.ActionList.ForEach(
-                x => AudienceActionProcessor.GetAction(x.CardActionType).
-                DoAction(new AudienceActionParameters(x.ActionValue, target, this)));
+                CharacterActionProcessor.GetAction(action.CardActionType).DoAction(p);
+            }
         }
 
         protected virtual IEnumerator BuffRoutine(AudienceAbilityData targetAbility)
@@ -165,6 +170,7 @@ namespace ALWTTT.Characters.Audience
 
                 if (timer >= 1f)
                 {
+                    Destroy(objectTransform.gameObject);
                     break;
                 }
 

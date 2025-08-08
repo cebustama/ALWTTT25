@@ -1,7 +1,7 @@
 namespace ALWTTT.Enums
 {
     // TODO: Rename to CharacterActionType
-    public enum CardActionType
+    public enum CharacterActionType
     {
         // Tagets Audience
         AddVibe,

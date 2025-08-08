@@ -1,3 +1,4 @@
+using ALWTTT.Actions;
 using ALWTTT.Enums;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace ALWTTT
         [SerializeField] private bool usableWithoutTarget;
         [SerializeField] private bool exhaustAfterPlay;
         [SerializeField] private List<CardConditionData> cardConditionDataList;
-        [SerializeField] private List<CardActionData> cardActionDataList;
+        [SerializeField] private List<CharacterActionData> cardActionDataList;
 
         [Header("Description")]
         [SerializeField] private List<SpecialKeywords> keywordsList;
@@ -47,7 +48,7 @@ namespace ALWTTT
         public List<CardType> TypesList => typesList;
 
         public List<CardConditionData> CardConditionDataList => cardConditionDataList;
-        public List<CardActionData> CardActionDataList => cardActionDataList;
+        public List<CharacterActionData> CardActionDataList => cardActionDataList;
 
         #endregion
     }
@@ -57,23 +58,5 @@ namespace ALWTTT
     {
         [SerializeField] private CardConditionType cardConditionType;
         [SerializeField] private float conditionValue;
-    }
-
-    // TODO: Change name to CharacterActionData, move to separate file
-    [Serializable]
-    public class CardActionData
-    {
-        [SerializeField] private CardActionType cardActionType;
-        [SerializeField] private ActionTargetType actionTargetType;
-
-        // TODO Target Conditions (First Enemy, Most Stressed Musician, etc)
-
-        [SerializeField] private float actionValue;
-        [SerializeField] private float actionDelay;
-
-        public CardActionType CardActionType => cardActionType;
-        public ActionTargetType ActionTargetType => actionTargetType;
-        public float ActionValue => actionValue;
-        public float ActionDelay => actionDelay;
     }
 }

@@ -1,15 +1,16 @@
+using ALWTTT.Actions;
 using ALWTTT.Enums;
 using UnityEngine;
 
 namespace ALWTTT.Cards.Actions 
 {
-    public class AddStressAction : CardActionBase
+    public class AddStressAction : CharacterActionBase
     {
-        public override CardActionType ActionType => CardActionType.AddStress;
+        public override CharacterActionType ActionType => CharacterActionType.AddStress;
 
         public override string ActionName => "Add Stress";
 
-        public override void DoAction(CardActionParameters actionParameters)
+        public override void DoAction(CharacterActionParameters actionParameters)
         {
             if (!actionParameters.TargetCharacter) return;
 
