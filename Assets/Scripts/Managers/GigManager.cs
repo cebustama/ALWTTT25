@@ -141,7 +141,8 @@ namespace ALWTTT.Managers
                 clone.BuildCharacter();
 
                 // Front or Back of the Stage
-                if (i < 2) clone.SetSpriteLayerOrder(1);
+                // TODO: Use a single layer per musician
+                if (i < 2) clone.SetSpriteLayerOrder(10);
                 else clone.SetSpriteLayerOrder(0);
 
                 CurrentMusicianCharacterList.Add(clone);
@@ -273,8 +274,14 @@ namespace ALWTTT.Managers
 
         private IEnumerator AudienceTurnRoutine()
         {
-            // TODO: Audience actions
-            yield return new WaitForSeconds(3f);
+            var waitDelay = new WaitForSeconds(0.1f);
+
+            foreach (var currentCharacter in CurrentAudienceCharacterList)
+            {
+                yield return currentCharacter.StartCoroutine(
+                    nameof(AudienceCharacterSimple.ActionRoutine));
+                yield return waitDelay;
+            }
 
             if (CurrentGigPhase != GigPhase.EndGig)
             {

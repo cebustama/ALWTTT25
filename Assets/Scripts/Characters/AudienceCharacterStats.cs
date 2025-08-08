@@ -9,6 +9,7 @@ namespace ALWTTT.Characters.Audience
         public int MaxVibe { get; set; } // "HP"
         public int CurrentVibe { get; private set; }
         public bool IsConvinced { get; private set; } // "Death"
+        public bool IsStunned { get; private set; }
 
         public Action OnConvinced;
         public Action<int, int> OnVibeChanged;

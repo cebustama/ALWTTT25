@@ -33,6 +33,12 @@ namespace ALWTTT.Data
 
         public AudienceAbilityData GetAbility()
         {
+            if (abilityList == null || abilityList.Count == 0)
+            {
+                Debug.LogError($"Enemy [{characterName}] has no abilities.");
+                return null;
+            }
+
             return abilityList.RandomItem();
         }
 

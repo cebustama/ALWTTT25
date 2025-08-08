@@ -1,5 +1,8 @@
+using ALWTTT.Characters.Audience.Actions;
 using ALWTTT.Data;
+using ALWTTT.Extentions;
 using ALWTTT.Interfaces;
+using System.Collections;
 using UnityEngine;
 
 namespace ALWTTT.Characters.Audience
@@ -11,11 +14,15 @@ namespace ALWTTT.Characters.Audience
         // TODO Sound profile
 
         private AudienceCharacterStats stats;
-
         public override IAudienceStats AudienceStats => stats;
+
+        protected AudienceAbilityData NextAbility;
 
         public AudienceCharacterData AudienceCharacterData => audienceCharacterData;
         public AudienceCharacterCanvas CharacterCanvas => characterCanvas;
+
+        public string CharacterId =>
+            AudienceCharacterData.CharacterName + "-" + gameObject.GetInstanceID();
 
         public override void BuildCharacter()
         {
@@ -32,7 +39,7 @@ namespace ALWTTT.Characters.Audience
 
             Debug.Log("{AudienceCharacterBase} Stats: " + stats.ToString());
 
-            GigManager.OnPlayerTurnStarted += ShowNextIntent;
+            GigManager.OnPlayerTurnStarted += ShowNextAbility;
             GigManager.OnEnemyTurnStarted += stats.TriggerAllStatus;
         }
 
@@ -50,7 +57,7 @@ namespace ALWTTT.Characters.Audience
 
             if (GigManager != null)
             {
-                GigManager.OnPlayerTurnStarted -= ShowNextIntent;
+                GigManager.OnPlayerTurnStarted -= ShowNextAbility;
             }
 
             if (GigManager != null && stats != null)
@@ -61,9 +68,108 @@ namespace ALWTTT.Characters.Audience
             stats.Dispose();
         }
 
-        private void ShowNextIntent()
+        private int usedAbilityCount;
+        private void ShowNextAbility()
         {
-            // TODO
+            NextAbility = AudienceCharacterData.GetAbility(usedAbilityCount);
+            CharacterCanvas.IntentImage.sprite = NextAbility.Intention.IntentionSprite;
+
+            if (NextAbility.HideActionValue)
+            {
+                CharacterCanvas.NextActionValueText.gameObject.SetActive(false);
+            }
+            else
+            {
+                CharacterCanvas.NextActionValueText.gameObject.SetActive(true);
+                CharacterCanvas.NextActionValueText.text =
+                    NextAbility.ActionList[0].ActionValue.ToString();
+            }
+
+            usedAbilityCount++;
+            CharacterCanvas.IntentImage.gameObject.SetActive(true);
+        }
+
+        #region Action Routines
+        public virtual IEnumerator ActionRoutine()
+        {
+            Debug.Log($"{CharacterId} Action Routine...");
+
+            if (stats.IsStunned)
+            {
+                yield break;
+            }
+
+            CharacterCanvas.IntentImage.gameObject.SetActive(false);
+            if (NextAbility.Intention.IntentionType == 
+                Enums.AudienceIntentionType.DealStress)
+            {
+                yield return StartCoroutine(AttackRoutine(NextAbility));
+            }
+            else
+            {
+                yield return StartCoroutine(BuffRoutine(NextAbility));
+            }
+
+            yield return null;
+        }
+
+        protected virtual IEnumerator AttackRoutine(AudienceAbilityData targetAbility)
+        {
+            var waitFrame = new WaitForEndOfFrame();
+
+            // TODO: Depending on the ActionData TargetType and TargetConditions
+            var target = GigManager.CurrentMusicianCharacterList.RandomItem();
+
+            var startPos = transform.position + Vector3.up * 2;
+            var endPos = target.transform.position + Vector3.up * 2;
+
+            var startRot = transform.localRotation;
+            var endRot = transform.localRotation;
+
+            // TODO: Instantiate a SpeechBubble with garabatos, hurl towards musician
+            var speechBubble = Instantiate(
+                speechBubblePrefab, startPos, Quaternion.identity);
+
+            yield return StartCoroutine(MoveObjectToTargetRoutine(
+                waitFrame, speechBubble,
+                startPos, endPos,
+                startRot, endRot,
+                2.5f
+            ));
+
+            targetAbility.ActionList.ForEach(
+                x => AudienceActionProcessor.GetAction(x.CardActionType).
+                DoAction(new AudienceActionParameters(x.ActionValue, target, this)));
+        }
+
+        protected virtual IEnumerator BuffRoutine(AudienceAbilityData targetAbility)
+        {
+            var waitFrame = new WaitForEndOfFrame();
+            yield return waitFrame;
+        }
+        #endregion
+
+        private IEnumerator MoveObjectToTargetRoutine(
+            WaitForEndOfFrame waitFrame,
+            Transform objectTransform,
+            Vector3 startPos, Vector3 endPos, 
+            Quaternion startRot, Quaternion endRot, 
+            float speed)
+        {
+            var timer = 0f;
+            while (true)
+            {
+                timer += Time.deltaTime * speed;
+                objectTransform.position = Vector3.Lerp(startPos, endPos, timer);
+                objectTransform.localRotation = Quaternion.Lerp(startRot, endRot, timer);
+
+                if (timer >= 1f)
+                {
+                    break;
+                }
+
+                yield return waitFrame;
+            }
         }
     }
 }

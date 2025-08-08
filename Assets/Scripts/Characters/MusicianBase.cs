@@ -52,6 +52,7 @@ namespace ALWTTT.Characters.Band
         public void SetSpriteLayerOrder(int targetOrder)
         {
             SpriteRenderer.sortingOrder = targetOrder;
+            // TODO: Adjust other sprites in the corresponding order
         }
 
         protected void OnBreakdown()

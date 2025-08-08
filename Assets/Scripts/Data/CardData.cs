@@ -65,6 +65,9 @@ namespace ALWTTT
     {
         [SerializeField] private CardActionType cardActionType;
         [SerializeField] private ActionTargetType actionTargetType;
+
+        // TODO Target Conditions (First Enemy, Most Stressed Musician, etc)
+
         [SerializeField] private float actionValue;
         [SerializeField] private float actionDelay;
 

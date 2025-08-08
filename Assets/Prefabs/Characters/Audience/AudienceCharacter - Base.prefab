@@ -180,7 +180,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.55, y: 0.55, z: 0.55}
+  m_LocalScale: {x: 0.525, y: 0.525, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3404911247422000304}
@@ -203,6 +203,7 @@ MonoBehaviour:
   characterType: 1
   textSpawnRoot: {fileID: 5592515904517901560}
   spriteRenderer: {fileID: 6214814892290893219}
+  speechBubblePrefab: {fileID: 4837711926867269552, guid: 3e067e2f4964d5249a1fa30f4f464bb4, type: 3}
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
   characterCanvas: {fileID: 9060181179430792495}
 --- !u!95 &2751757183088544825

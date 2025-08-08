@@ -17,3 +17,13 @@ MonoBehaviour:
   characterDescription: 
   maxVibe: 35
   characterPrefab: {fileID: 997261290205271328, guid: c8efa2c5aa6223e49b98b39362316d37, type: 3}
+  abilityList:
+  - abilityName: Sarcastic Insult
+    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
+    hideActionValue: 0
+    actionList:
+    - cardActionType: 3
+      actionTargetType: 5
+      actionValue: 5
+      actionDelay: 0
+  followAbilityPattern: 0

@@ -23,7 +23,7 @@ MonoBehaviour:
     hideActionValue: 0
     actionList:
     - cardActionType: 3
-      actionTargetType: 1
-      actionValue: 10
+      actionTargetType: 5
+      actionValue: 5
       actionDelay: 0
   followAbilityPattern: 0
