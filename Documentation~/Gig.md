@@ -142,3 +142,36 @@ Gigs in A Long Way to the Top require mastering both performance and persuasion.
 |Card synergy | Powerful combos can shift the battle |
 |Song Modifier Slots  | Decide which bonuses to bring |
 |Remaining Songs  | Total turns available |
+
+---
+
+## Stage Positioning & Movement (Inspired by Monster Train 2)
+
+We are introducing a spatial mechanic inspired by *Monster Train 2*, where both Band Members and Audience Enemies can occupy different **rows** (or **lanes**) on stage and in the crowd.
+
+This adds a new layer of tactical depth and emphasizes the performative aspect of a concert setting.
+
+### Band Positioning
+
+- Band Members can stand in **Front** or **Back** positions on the stage.
+- Some cards — such as **Solos**, **Charisma-based actions**, or emotionally powerful performances — are more effective from the **Front Row**.
+- Movement cards will allow band members to **Advance** (move forward) or **Retreat** (move back).
+- Positioning will influence card effectiveness and synergies:
+  - `CHR`-based cards gain bonuses in the **front**.
+  - Other stats (like `TCH` or `EMT`) may favor different positions.
+
+### Audience Movement
+
+- Some enemy types — such as those with the `TOD Tall` modifier — will move **forward in the crowd** to **block the view** of enemies behind them.
+- This mechanic simulates real concert dynamics where tall or disruptive audience members can obstruct others.
+- Strategic card targeting and crowd control will allow players to manipulate audience rows (e.g., push enemies back, stun frontliners, etc.).
+
+> This system adds a positional puzzle to every performance, making it essential to think about *where* a musician is performing from and *which enemies* are being reached.
+
+### Integration with Other Systems (Planned)
+
+- Position will be shown visually during gigs via a simple stage lane layout.
+- Cards may include **position-based Conditions**, such as:
+  - "Play only from Back Row"
+  - "If Performer is in Front: Apply double Vibe"
+- Status Effects or SFX (Stage Effects) may also alter movement, such as "Wind Tunnel" pushing enemies back or "Magnetic Boots" anchoring a musician in place.

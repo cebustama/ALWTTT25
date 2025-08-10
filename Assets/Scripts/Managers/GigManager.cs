@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
 using System.Collections;
+using ALWTTT.Data;
 
 namespace ALWTTT.Managers
 {
@@ -24,6 +25,7 @@ namespace ALWTTT.Managers
         [SerializeField] private List<Transform> audienceMemberPosList;
 
         private GigPhase currentGigPhase;
+        private List<SongData> playedSongs = new List<SongData>();
 
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
@@ -122,7 +124,7 @@ namespace ALWTTT.Managers
         {
             if (debug) Debug.Log($"{DebugTag} Building background...");
             backgroundContainer.OpenSelectedBackground();
-            backgroundContainer.SetBPM(60); // TODO: OnSongPerfomance
+            backgroundContainer.SetBPM(0);
         }
 
         private void BuildBand()
@@ -263,8 +265,19 @@ namespace ALWTTT.Managers
         private IEnumerator SongPerformanceRoutine()
         {
             // TODO: Play song using MidiGenPlay
+            var song = GameManager.PersistentGameplayData.CurrentSong;
 
-            yield return new WaitForSeconds(3f);
+            playedSongs.Add(song);
+            UIManager.GigCanvas.FillSongDropdown(playedSongs);
+            backgroundContainer.SetBPM(song.BPM);
+
+            var songDuration = song.Duration;
+
+            Debug.Log($"Playing {song.SongTitle} for {songDuration}[s]");
+
+            yield return new WaitForSeconds(songDuration);
+
+            backgroundContainer.SetBPM(0);
 
             if (CurrentGigPhase != GigPhase.EndGig)
             {

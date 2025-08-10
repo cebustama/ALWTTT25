@@ -13,6 +13,7 @@ namespace ALWTTT.Data
         // Band
         [SerializeField] private List<MusicianBase> musicianList;
         [SerializeField] private List<MusicianHealthData> musicianHealthDataList;
+        [SerializeField] private List<SongData> currentSongList;
 
         // Deckbuilding / Gig Encounters
         [SerializeField] private List<CardData> currentCardsList;
@@ -25,6 +26,7 @@ namespace ALWTTT.Data
         [SerializeField] private bool canSelectCards;
         [SerializeField] private bool discardHandBetweenTurns;
         [SerializeField] private bool keepGrooveBetweenTurns;
+        [SerializeField] private SongData currentSong;
 
         // Sector Info
         [SerializeField] private int currentSectorId;
@@ -67,6 +69,12 @@ namespace ALWTTT.Data
         {
             get => currentCardsList;
             set => currentCardsList = value;
+        }
+
+        public List<SongData> CurrentSongList
+        {
+            get => currentSongList;
+            set => currentSongList = value;
         }
 
         public bool IsRandomDeck => isRandomDeck;
@@ -118,6 +126,12 @@ namespace ALWTTT.Data
             get => musicianHealthDataList;
             set => musicianHealthDataList = value;
         }
+
+        public SongData CurrentSong
+        {
+            get => currentSong;
+            set => currentSong = value;
+        }
         #endregion
 
         public PersistentGameplayData(GameplayData gameplayData)
@@ -143,6 +157,7 @@ namespace ALWTTT.Data
 
             isRandomDeck = gameplayData.IsRandomDeck;
             CurrentCardsList = new List<CardData>();
+            CurrentSongList = gameplayData.InitialSongList;
 
             CurrentSectorId = 0;
             CurrentEncounterId = 0;
@@ -171,7 +186,4 @@ namespace ALWTTT.Data
             }
         }
     }
-
-    // TODO: Band Data, Song Data, Musician Data, etc
-
 }

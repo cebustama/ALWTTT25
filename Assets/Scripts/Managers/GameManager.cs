@@ -19,6 +19,8 @@ namespace ALWTTT.Managers
         public GameplayData GameplayData => gameplayData;
         public EncounterData EncounterData => encounterData;
         public PersistentGameplayData PersistentGameplayData { get; private set; }
+
+        public UIManager UIManager => UIManager.Instance;
         
         private void Awake()
         {
@@ -80,7 +82,6 @@ namespace ALWTTT.Managers
         private void InitGameplayData()
         {
             PersistentGameplayData = new PersistentGameplayData(gameplayData);
-            
             // TODO: UIManager.InformationCanvas.ResetCanvas();
         }
         #endregion

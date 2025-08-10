@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71018ac0ba675054e966e324f41bcf7d, type: 3}
+  m_Name: Song 3
+  m_EditorClassIdentifier: 
+  id: 3
+  songTitle: Party Like It's 2999
+  genre: 0
+  theme: 2
+  complexity: 0
+  popularity: 2
+  status: 0

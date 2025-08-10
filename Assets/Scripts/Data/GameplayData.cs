@@ -1,4 +1,5 @@
 using ALWTTT.Characters.Band;
+using ALWTTT.Data;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace ALWTTT
     {
         [Header("Musicians")]
         [SerializeField] private List<MusicianBase> initialMusicianList;
+        [SerializeField] private List<SongData> initialSongList;
 
         [Header("Deck")]
         [SerializeField] private DeckData initialDeck;
@@ -30,6 +32,7 @@ namespace ALWTTT
 
         #region Encapsulation
         public List<MusicianBase> InitialMusicianList => initialMusicianList;
+        public List<SongData> InitialSongList => initialSongList;
         public int DrawCount => drawCount;
         public int MaxCardsOnHand => maxCardsOnHand;
         public int MaxGroove => maxGroove;
@@ -39,7 +42,7 @@ namespace ALWTTT
         public CardBase CardPrefab => cardPrefab;
         public List<CardData> AllCardsList => allCardsList;
         public DeckData InitialDeck => initialDeck;
-
+        
         public bool IsRandomDeck => isRandomDeck;
         public int RandomCardCount => randomCardCount;
         #endregion

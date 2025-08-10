@@ -28,5 +28,10 @@ namespace ALWTTT.Managers
                 Destroy(gameObject);
             }
         }
+
+        private void Start()
+        {
+            GigCanvas.FillSongDropdown();
+        }
     }
 }

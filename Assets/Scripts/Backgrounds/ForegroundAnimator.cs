@@ -70,7 +70,7 @@ namespace ALWTTT.Backgrounds
 
         public void SetBPM(float newBpm)
         {
-            bpm = newBpm;
+            bpm = Mathf.Max(1f, newBpm);
             CalculateBeatInterval();
         }
 

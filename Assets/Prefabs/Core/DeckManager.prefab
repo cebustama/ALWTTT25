@@ -90,13 +90,37 @@ PrefabInstance:
       propertyPath: m_Name
       value: HandController
       objectReference: {fileID: 0}
+    - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
+      propertyPath: curveEnd.x
+      value: -2.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
+      propertyPath: curveEnd.y
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
+      propertyPath: curveStart.x
+      value: 2.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
+      propertyPath: curveStart.y
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
+      propertyPath: handOffset.y
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
+      propertyPath: selectionSpacing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7130071430049943209, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7130071430049943209, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7130071430049943209, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
       propertyPath: m_LocalPosition.z
