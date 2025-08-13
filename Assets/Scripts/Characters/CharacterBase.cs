@@ -14,6 +14,7 @@ namespace ALWTTT.Characters
         [SerializeField] private CharacterType characterType;
         [SerializeField] private Transform textSpawnRoot;
         [SerializeField] private SpriteRenderer spriteRenderer;
+        // TODO: Connect with Abilities instead
         [SerializeField] protected Transform speechBubblePrefab;
 
         #region Encapsulation

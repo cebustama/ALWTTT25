@@ -36,6 +36,8 @@ MonoBehaviour:
     - targetVenueType: 0
       audienceMemberList:
       - {fileID: 11400000, guid: 085e95c05f8793249aa6399eaccb2d6d, type: 2}
+      - {fileID: 11400000, guid: 085e95c05f8793249aa6399eaccb2d6d, type: 2}
+      - {fileID: 11400000, guid: 085e95c05f8793249aa6399eaccb2d6d, type: 2}
     bossGigEncounterList:
     - targetVenueType: 0
       audienceMemberList:

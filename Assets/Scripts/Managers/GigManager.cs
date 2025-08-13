@@ -279,6 +279,17 @@ namespace ALWTTT.Managers
 
             backgroundContainer.SetBPM(0);
 
+            var reactionDuration = 5f;
+
+            Debug.Log("Audience Reaction");
+            foreach (var ac in CurrentAudienceCharacterList)
+            {
+                ac.AudienceStats.ApplySongVibe(song, reactionDuration);
+            }
+
+            // TODO: Apply Vibe to enemies
+            yield return new WaitForSeconds(reactionDuration);
+
             if (CurrentGigPhase != GigPhase.EndGig)
             {
                 CurrentGigPhase = GigPhase.AudienceTurn;

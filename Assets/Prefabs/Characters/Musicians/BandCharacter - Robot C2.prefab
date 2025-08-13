@@ -8,6 +8,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 138673961274262317, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 138673961274262317, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.88
+      objectReference: {fileID: 0}
     - target: {fileID: 821282841742446069, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_Name
       value: BandCharacter - Robot C2

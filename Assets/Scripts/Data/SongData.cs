@@ -29,6 +29,28 @@ namespace ALWTTT.Data
             return $"{songTitle} ({GetThemeColorText()})";
         }
 
+        public int GetSongBaseVibe()
+        {
+            // TODO: Other factors
+            return GetPopularityVibe();
+        }
+
+        // TODO: Think this through
+        public int GetPopularityVibe()
+        {
+            switch (popularity)
+            {
+                case SongPopularity.Unknown:
+                    return 1;
+                case SongPopularity.Familiar:
+                    return 5;
+                case SongPopularity.Famous:
+                    return 15;
+                default:
+                    return 0;
+            }
+        }
+
         private string GetThemeColorText()
         {
             switch (theme)

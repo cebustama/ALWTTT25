@@ -1,3 +1,4 @@
+using ALWTTT.Data;
 using ALWTTT.Interfaces;
 using System;
 using UnityEngine;
@@ -55,7 +56,7 @@ namespace ALWTTT.Characters.Audience
 
         }
 
-        public void SetCurrentVibe(int targetCurrentVibe)
+        public void SetCurrentVibe(int targetCurrentVibe, float duration = 2f)
         {
             CurrentVibe =
                 targetCurrentVibe < 0 ? 0 :
@@ -63,12 +64,14 @@ namespace ALWTTT.Characters.Audience
                         MaxVibe :
                         targetCurrentVibe;
 
+            characterCanvas.SetCurrentVibe(targetCurrentVibe, MaxVibe, duration);
+
             OnVibeChanged?.Invoke(CurrentVibe, MaxVibe);
         }
 
-        public void AddVibe(int amount)
+        public void AddVibe(int amount, float duration = 2f)
         {
-            SetCurrentVibe(CurrentVibe + amount);
+            SetCurrentVibe(CurrentVibe + amount, duration);
             if (CurrentVibe >= MaxVibe && !IsConvinced)
             {
                 IsConvinced = true;
@@ -76,9 +79,16 @@ namespace ALWTTT.Characters.Audience
             }
         }
 
-        public void RemoveVibe(int amount)
+        public void RemoveVibe(int amount, float duration = 2f)
         {
-            SetCurrentVibe(CurrentVibe - amount);
+            SetCurrentVibe(CurrentVibe - amount, duration);
+        }
+
+        public void ApplySongVibe(SongData song, float duration = 2f)
+        {
+            // TODO: Take into account Audience Member preferences/stats
+            var vibeToAdd = song.GetSongBaseVibe();
+            AddVibe(vibeToAdd, duration);
         }
         #endregion
     }

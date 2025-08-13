@@ -1,4 +1,5 @@
 using ALWTTT.Tooltips;
+using ALWTTT.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -14,6 +15,7 @@ namespace ALWTTT.Characters
         [SerializeField] protected Slider currentHealthBar;
         [SerializeField] protected TextMeshProUGUI characterNameText;
         [SerializeField] protected Transform highlightRoot;
+        [SerializeField] protected HealthBarController healthBar;
 
         #region Setup
         public void InitCanvas(string characterName)
@@ -33,6 +35,11 @@ namespace ALWTTT.Characters
             float fill = (float)currentHealth / maxHealth;
             currentHealthBar.value = fill;
             currentHealthText.text = $"{currentHealth}/{maxHealth}";
+        }
+
+        public void SetCurrentVibe(int current, int max, float duration)
+        {
+            healthBar?.SetCurrentVibe(current, max, duration);
         }
             
         public void SetHighlight(bool open) => highlightRoot.gameObject.SetActive(open);

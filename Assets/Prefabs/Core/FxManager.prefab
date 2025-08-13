@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2118376838333122421}
+  - component: {fileID: 4970282489121238279}
   m_Layer: 0
   m_Name: FxManager
   m_TagString: Untagged
@@ -31,3 +32,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4970282489121238279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6272921455348738657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 571b9d767e1c8664f80dc7dfaa14fc64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fxList:
+  - fxType: 0
+    fxPrefab: {fileID: 0}
+  - fxType: 1
+    fxPrefab: {fileID: 0}
+  floatingTextPrefab: {fileID: 6944130828753565899, guid: 5f646551faf5f4c4d825ffa9b219af1b, type: 3}
