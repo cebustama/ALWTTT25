@@ -15,6 +15,8 @@ namespace ALWTTT.Actions
         protected GameManager GameManager => GameManager.Instance;
         protected GigManager GigManager => GigManager.Instance;
         protected DeckManager DeckManager => DeckManager.Instance;
+        protected FxManager FxManager => FxManager.Instance;
+        protected AudioManager AudioManager => AudioManager.Instance;
         #endregion
     }
 }

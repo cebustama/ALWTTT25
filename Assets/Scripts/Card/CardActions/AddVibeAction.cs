@@ -24,10 +24,9 @@ namespace ALWTTT.Cards.Actions
                 int vibeToAdd = Mathf.RoundToInt(actionParameters.Value);
                 audienceStats.AddVibe(vibeToAdd);
 
-                /*
-                FxManager?.PlayFx(target.transform, FxType.Buff);
-                AudioManager?.PlayOneShot(actionParameters.CardData.AudioType);
-                */
+                FxManager.PlayFx(targetCharacter.HeadRoot, FxType.ReceiveVibe);
+
+                //AudioManager?.PlayOneShot(actionParameters.CardData.AudioType);
             }
             else
             {

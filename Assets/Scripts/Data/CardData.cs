@@ -44,12 +44,10 @@ namespace ALWTTT
         public Sprite CardSprite => cardSprite;
         public int GrooveGenerated => grooveGenerated;
         public bool ExhaustAfterPlay => exhaustAfterPlay;
-
         public List<CardType> TypesList => typesList;
-
         public List<CardConditionData> CardConditionDataList => cardConditionDataList;
         public List<CharacterActionData> CardActionDataList => cardActionDataList;
-
+        public AudioActionType AudioType => audioType;
         #endregion
     }
 

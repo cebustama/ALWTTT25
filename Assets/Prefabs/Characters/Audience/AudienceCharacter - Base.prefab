@@ -63,6 +63,37 @@ Transform:
   - {fileID: 3095199483181524453}
   m_Father: {fileID: 6960569277827411799}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4119159463623862730
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3046897531401015989}
+  m_Layer: 0
+  m_Name: HeadRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3046897531401015989
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4119159463623862730}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6960569277827411799}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5273422551840406113
 GameObject:
   m_ObjectHideFlags: 0
@@ -186,6 +217,7 @@ Transform:
   - {fileID: 3404911247422000304}
   - {fileID: 5592515904517901560}
   - {fileID: 4456538793755680461}
+  - {fileID: 3046897531401015989}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3334726058178949679
@@ -202,6 +234,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterType: 1
   textSpawnRoot: {fileID: 5592515904517901560}
+  headRoot: {fileID: 3046897531401015989}
   spriteRenderer: {fileID: 6214814892290893219}
   speechBubblePrefab: {fileID: 4837711926867269552, guid: 3e067e2f4964d5249a1fa30f4f464bb4, type: 3}
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}

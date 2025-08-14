@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ALWTTT
 {
-    [CreateAssetMenu(fileName = "New GameplayData", menuName = "ALWTTT/GameplayData")]
+    [CreateAssetMenu(fileName = "New GameplayData", menuName = "ALWTTT/Containers/GameplayData")]
     public class GameplayData : ScriptableObject
     {
         [Header("Musicians")]

@@ -4,8 +4,9 @@ namespace ALWTTT.Enums
 {
     public enum AudioActionType
     {
-        Joke,
-        Tuning,
-        Speech
+        AddStress,
+        AddVibe,
+        HealStress,
+        HealVibe
     }
 }

@@ -53,6 +53,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterType: 0
   textSpawnRoot: {fileID: 4764939820373229341}
+  headRoot: {fileID: 138673961274262317}
   spriteRenderer: {fileID: 2094732631458172625}
   speechBubblePrefab: {fileID: 4837711926867269552, guid: 3e067e2f4964d5249a1fa30f4f464bb4, type: 3}
   bandCharacterCanvas: {fileID: 4399159240658199444}

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ALWTTT.Data
 {
-    [CreateAssetMenu(fileName = "New EncounterData", menuName = "ALWTTT/EncounterData")]
+    [CreateAssetMenu(fileName = "New EncounterData", menuName = "ALWTTT/Containers/EncounterData")]
     public class EncounterData : ScriptableObject
     {
         [SerializeField] private List<GigEncounterSector> encounterSectorsList;

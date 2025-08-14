@@ -81,7 +81,7 @@ namespace ALWTTT.Characters.Audience
             else
             {
                 CharacterCanvas.NextActionValueText.gameObject.SetActive(true);
-                CharacterCanvas.NextActionValueText.text =
+                CharacterCanvas.NextActionValueText.text = "x" +
                     NextAbility.ActionList[0].ActionValue.ToString();
             }
 

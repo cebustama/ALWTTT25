@@ -1,5 +1,6 @@
 using ALWTTT.Actions;
 using ALWTTT.Enums;
+using ALWTTT.Managers;
 using UnityEngine;
 
 namespace ALWTTT.Cards.Actions 
@@ -23,6 +24,17 @@ namespace ALWTTT.Cards.Actions
             {
                 int stressToAdd = Mathf.RoundToInt(actionParameters.Value);
                 musicianStats.AddStress(stressToAdd);
+
+                FxManager.PlayFx(targetCharacter.HeadRoot, FxType.ReceiveStress);
+
+                if (actionParameters.Context is CardActionContext cardCtx)
+                {
+                    AudioManager.PlayOneShot(cardCtx.CardData.AudioType);
+                }
+                else if (actionParameters.Context is AudienceActionContext audienceCtx)
+                {
+                    // TODO: 
+                }
             }
             else
             {
