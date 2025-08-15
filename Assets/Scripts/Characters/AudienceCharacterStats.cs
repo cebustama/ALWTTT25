@@ -1,11 +1,13 @@
 using ALWTTT.Data;
+using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ALWTTT.Characters.Audience
 {
-    public class AudienceCharacterStats : IAudienceStats
+    public class AudienceCharacterStats : CharacterStats, IAudienceStats
     {
         public int MaxVibe { get; set; } // "HP"
         public int CurrentVibe { get; private set; }
@@ -17,6 +19,8 @@ namespace ALWTTT.Characters.Audience
         // TODO: Statuses
 
         private CharacterCanvas characterCanvas;
+
+        public Dictionary<StatusType, StatusStats> StatusDict { get; private set; }
 
         public override string ToString()
         {
@@ -34,11 +38,6 @@ namespace ALWTTT.Characters.Audience
 
             this.characterCanvas = characterCanvas;
             OnVibeChanged += this.characterCanvas.UpdateHealthText;
-        }
-
-        private void SetAllStatus()
-        {
-            // TODO
         }
         #endregion
 
@@ -90,6 +89,52 @@ namespace ALWTTT.Characters.Audience
             var vibeToAdd = song.GetSongBaseVibe();
             AddVibe(vibeToAdd, duration);
         }
+
+        protected override void SetAllStatus()
+        {
+            StatusDict = new Dictionary<StatusType, StatusStats>();
+
+            for (int i = 0; i < Enum.GetNames(typeof(StatusType)).Length; i++)
+            {
+                StatusDict.Add((StatusType)i, new StatusStats((StatusType)i, 0));
+            }
+
+            StatusDict[StatusType.Poison].DecreaseOverTurn = true;
+            StatusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
+
+            StatusDict[StatusType.BlockVibe].ClearAtNextTurn = true;
+
+            StatusDict[StatusType.Strength].CanNegativeStack = true;
+
+            StatusDict[StatusType.Stun].DecreaseOverTurn = true;
+            StatusDict[StatusType.Stun].OnTriggerAction += CheckStunStatus;
+        }
+        
+        public void ApplyStatus(StatusType targetStatus, int value)
+        {
+            if (StatusDict[targetStatus].IsActive)
+            {
+                StatusDict[targetStatus].StatusValue += value;
+                OnStatusChanged?.Invoke(targetStatus, StatusDict[targetStatus].StatusValue);
+            }
+            else
+            {
+                StatusDict[targetStatus].StatusValue = value;
+                StatusDict[targetStatus].IsActive = true;
+                OnStatusApplied?.Invoke(targetStatus, StatusDict[targetStatus].StatusValue);
+            }
+        }
+
+        protected override void DamagePoison()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void CheckStunStatus()
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }

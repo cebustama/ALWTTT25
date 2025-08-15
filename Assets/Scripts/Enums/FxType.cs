@@ -5,6 +5,8 @@ namespace ALWTTT.Enums
     public enum FxType
     {
         ReceiveStress,
-        ReceiveVibe
+        ReceiveVibe,
+        BlockStress,
+        BlockVibe
     }
 }

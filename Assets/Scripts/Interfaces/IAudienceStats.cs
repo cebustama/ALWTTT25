@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ALWTTT.Interfaces
 {
-    public interface IAudienceStats
+    public interface IAudienceStats : ICharacterStats
     {
         int CurrentVibe { get; }
         int MaxVibe { get; }
@@ -11,6 +11,8 @@ namespace ALWTTT.Interfaces
         void RemoveVibe(int amount, float duration = 2f);
         void SetCurrentVibe(int vibe, float duration = 2f);
         void ApplySongVibe(SongData song, float duration = 2f);
+
+        // Preferences
     }
 
 }

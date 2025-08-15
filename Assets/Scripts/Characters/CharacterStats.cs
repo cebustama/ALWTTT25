@@ -1,11 +1,19 @@
+using ALWTTT.Enums;
+using System;
 using UnityEngine;
 
 namespace ALWTTT.Characters
 {
-    public class CharacterStats
+    public abstract class CharacterStats
     {
-        public int MaxHealth { get; set; } // Stress/Vibe
-        public int CurrentHealth { get; set; }
-        public bool IsStunned { get; set; }
+        protected readonly Action<StatusType, int> OnStatusChanged;
+        protected readonly Action<StatusType, int> OnStatusApplied;
+        protected readonly Action<StatusType> OnStatusCleared;
+
+        // TODO: How to make virtual but access to Dict?
+        protected abstract void SetAllStatus();
+
+        protected abstract void DamagePoison();
+        protected abstract void CheckStunStatus();
     }
 }

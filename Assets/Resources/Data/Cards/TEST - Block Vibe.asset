@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: TEST - Remove Vibe
+  m_Name: TEST - Block Vibe
   m_EditorClassIdentifier: 
   id: 1000
-  cardName: Remove Vibe
+  cardName: Block Vibe
   phase: 0
   rarity: 0
   grooveCost: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList:
-  - cardActionType: 2
+  - cardActionType: 1
     actionTargetType: 0
     actionValue: 5
     actionDelay: 0

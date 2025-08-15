@@ -11,6 +11,8 @@ namespace ALWTTT.Actions
         public abstract string ActionName { get; }
         public abstract void DoAction(CharacterActionParameters p);
 
+        // TODO: Maybe add the PlaySFX method here
+
         #region Cache
         protected GameManager GameManager => GameManager.Instance;
         protected GigManager GigManager => GigManager.Instance;

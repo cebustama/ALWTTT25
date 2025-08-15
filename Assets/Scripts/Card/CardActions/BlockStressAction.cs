@@ -12,7 +12,33 @@ namespace ALWTTT.Cards.Actions
 
         public override void DoAction(CharacterActionParameters actionParameters)
         {
-            throw new System.NotImplementedException();
+            if (!actionParameters.TargetCharacter) return;
+
+            var performerCharacter = actionParameters.PerformerCharacter;
+            var targetCharacter = actionParameters.TargetCharacter;
+
+            if (targetCharacter.MusicianStats is { } musicianStats)
+            {
+                // Base Value
+                int stressBlockToAdd = Mathf.RoundToInt(actionParameters.Value
+                    // Add Dexterity
+                    + musicianStats.StatusDict[StatusType.Dexterity].StatusValue);
+
+                // Apply
+                musicianStats.ApplyStatus(StatusType.BlockStress, stressBlockToAdd);
+
+                FxManager.PlayFx(targetCharacter.HeadRoot, FxType.BlockStress);
+
+                if (actionParameters.Context is CardActionContext cardCtx)
+                {
+                    AudioManager.PlayOneShot(cardCtx.CardData.AudioType);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Target does not have MusicianStats — " +
+                    $"{ActionName} skipped.");
+            }
         }
     }
 }

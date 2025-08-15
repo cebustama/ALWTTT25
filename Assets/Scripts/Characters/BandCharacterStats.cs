@@ -1,10 +1,12 @@
+using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ALWTTT.Characters.Band
 {
-    public class BandCharacterStats : IMusicianStats
+    public class BandCharacterStats : CharacterStats, IMusicianStats
     {
         public int CurrentStress { get; set; }
         public int MaxStress { get; set; }
@@ -14,6 +16,8 @@ namespace ALWTTT.Characters.Band
         public int Emotion { get; set; }
 
         public bool IsBreakdown { get; private set; }
+
+        public Dictionary<StatusType, StatusStats> StatusDict { get; private set; }
 
         public Action OnBreakdown;
         public Action<int, int> OnStressChanged;
@@ -36,11 +40,6 @@ namespace ALWTTT.Characters.Band
 
             bandCharacterCanvas = characterCanvas;
             OnStressChanged += bandCharacterCanvas.UpdateHealthText;
-        }
-
-        private void SetAllStatus()
-        {
-            // TODO
         }
         #endregion
 
@@ -78,9 +77,49 @@ namespace ALWTTT.Characters.Band
             SetCurrentStress(Mathf.Max(0, CurrentStress - amount));
         }
 
-        public void ApplyBlock(int amount)
+        protected override void SetAllStatus()
         {
-            // Add block to a status system here
+            StatusDict = new Dictionary<StatusType, StatusStats>();
+
+            for (int i = 0; i < Enum.GetNames(typeof(StatusType)).Length; i++)
+            {
+                StatusDict.Add((StatusType)i, new StatusStats((StatusType)i, 0));
+            }
+
+            StatusDict[StatusType.Poison].DecreaseOverTurn = true;
+            StatusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
+
+            StatusDict[StatusType.BlockStress].ClearAtNextTurn = true;
+
+            StatusDict[StatusType.Strength].CanNegativeStack = true;
+
+            StatusDict[StatusType.Stun].DecreaseOverTurn = true;
+            StatusDict[StatusType.Stun].OnTriggerAction += CheckStunStatus;
+        }
+
+        public void ApplyStatus(StatusType targetStatus, int value)
+        {
+            if (StatusDict[targetStatus].IsActive)
+            {
+                StatusDict[targetStatus].StatusValue += value;
+                OnStatusChanged?.Invoke(targetStatus, StatusDict[targetStatus].StatusValue);
+            }
+            else
+            {
+                StatusDict[targetStatus].StatusValue = value;
+                StatusDict[targetStatus].IsActive = true;
+                OnStatusApplied?.Invoke(targetStatus, StatusDict[targetStatus].StatusValue);
+            }
+        }
+
+        protected override void DamagePoison()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void CheckStunStatus()
+        {
+            throw new NotImplementedException();
         }
     }
 }

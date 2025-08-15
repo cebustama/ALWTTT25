@@ -1,6 +1,7 @@
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ALWTTT.Characters
@@ -43,6 +44,11 @@ namespace ALWTTT.Characters
         public CharacterType GetCharacterType()
         {
             return CharacterType;
+        }
+
+        public void ApplyStatus(StatusType targetStatus, int value)
+        {
+
         }
     }
 }
