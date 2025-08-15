@@ -1,4 +1,7 @@
 using ALWTTT.Characters.Band;
+using MidiGenPlay;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ALWTTT.Data
@@ -7,12 +10,15 @@ namespace ALWTTT.Data
     menuName = "ALWTTT/Characters/MusicianCharacterData")]
     public class MusicianCharacterData : ScriptableObject
     {
+        [Header("Profile")]
         [SerializeField] private string characterId;
         [SerializeField] private string characterName;
         [SerializeField] private string characterDescription;
         [SerializeField] private int initialMaxStress; // TODO: PersistantGameData
-
         [SerializeField] private MusicianBase characterPrefab;
+
+        [Header("Audio")]
+        [SerializeField] private MusicianProfileData profile;
 
         #region Encapsulation
         public string CharacterId => characterId;
@@ -20,6 +26,15 @@ namespace ALWTTT.Data
         public string CharacterDescription => characterDescription;
         public int InitialMaxStress => initialMaxStress;
         public MusicianBase CharacterPrefab => characterPrefab;
+        public MusicianProfileData Profile => profile;
         #endregion
+
+        [Serializable]
+        public class MusicianProfileData
+        {
+            public List<InstrumentType> backingInstruments;
+            public List<InstrumentType> leadInstruments;
+            // TODO percussion
+        }
     }
 }

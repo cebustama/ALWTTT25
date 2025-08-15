@@ -61,6 +61,7 @@ namespace ALWTTT.Characters.Band
         }
     }
 
+    // TODO: Persistant stats
     [Serializable]
     public class MusicianHealthData
     {

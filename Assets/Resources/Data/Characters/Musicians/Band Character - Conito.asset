@@ -17,3 +17,6 @@ MonoBehaviour:
   characterDescription: 
   initialMaxStress: 10
   characterPrefab: {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
+  profile:
+    backingInstruments: 000000000100000005000000
+    leadInstruments: 000000000100000005000000

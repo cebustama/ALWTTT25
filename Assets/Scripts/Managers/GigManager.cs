@@ -45,6 +45,7 @@ namespace ALWTTT.Managers
         private GameManager GameManager => GameManager.Instance;
         private DeckManager DeckManager => DeckManager.Instance;
         private UIManager UIManager => UIManager.Instance;
+        private MidiMusicManager MidiMusicManager => MidiMusicManager.Instance;
 
         public List<Transform> MusicianPosList => musicianPosList;
         public List<Transform> AudienceMemberPosList => audienceMemberPosList;
@@ -90,6 +91,7 @@ namespace ALWTTT.Managers
 
         private void Start()
         {
+            MidiMusicManager.GenerateSongs(GameManager.PersistentGameplayData.CurrentSongList);
             StartGig();
         }
 
@@ -271,7 +273,7 @@ namespace ALWTTT.Managers
             UIManager.GigCanvas.FillSongDropdown(playedSongs);
             backgroundContainer.SetBPM(song.BPM);
 
-            var songDuration = song.Duration;
+            var songDuration = MidiMusicManager.Play(song);
 
             Debug.Log($"Playing {song.SongTitle} for {songDuration}[s]");
 
