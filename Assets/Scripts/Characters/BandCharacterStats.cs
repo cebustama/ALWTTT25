@@ -89,7 +89,7 @@ namespace ALWTTT.Characters.Band
             StatusDict[StatusType.Poison].DecreaseOverTurn = true;
             StatusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
 
-            StatusDict[StatusType.BlockStress].ClearAtNextTurn = true;
+            StatusDict[StatusType.Chill].ClearAtNextTurn = true;
 
             StatusDict[StatusType.Strength].CanNegativeStack = true;
 

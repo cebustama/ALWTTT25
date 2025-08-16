@@ -50,7 +50,11 @@ MonoBehaviour:
   musicSource: {fileID: 7606634761290104317}
   sfxSource: {fileID: 4541751291259746101}
   buttonSource: {fileID: 5997302713375620102}
-  soundProfileDataList: []
+  soundProfileDataList:
+  - {fileID: 11400000, guid: 7ecd79b0a9ef3e44089744a2c174b277, type: 2}
+  - {fileID: 11400000, guid: a28c5f38972597c4f9b146bcc616dbeb, type: 2}
+  - {fileID: 11400000, guid: 2ad372bc2596b2e4f85c4357662401e7, type: 2}
+  - {fileID: 11400000, guid: 8216f445b45291d47a4a3168df25c286, type: 2}
 --- !u!82 &7606634761290104317
 AudioSource:
   m_ObjectHideFlags: 0

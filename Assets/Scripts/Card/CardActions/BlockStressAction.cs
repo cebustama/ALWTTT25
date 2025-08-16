@@ -25,7 +25,7 @@ namespace ALWTTT.Cards.Actions
                     + musicianStats.StatusDict[StatusType.Dexterity].StatusValue);
 
                 // Apply
-                musicianStats.ApplyStatus(StatusType.BlockStress, stressBlockToAdd);
+                musicianStats.ApplyStatus(StatusType.Chill, stressBlockToAdd);
 
                 FxManager.PlayFx(targetCharacter.HeadRoot, FxType.BlockStress);
 

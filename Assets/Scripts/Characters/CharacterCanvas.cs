@@ -1,3 +1,4 @@
+using ALWTTT.Enums;
 using ALWTTT.Tooltips;
 using ALWTTT.UI;
 using TMPro;
@@ -42,7 +43,13 @@ namespace ALWTTT.Characters
             healthBar?.SetCurrentVibe(current, max, duration);
         }
             
-        public void SetHighlight(bool open) => highlightRoot.gameObject.SetActive(open);
+        public void SetHighlight(bool open) => 
+            highlightRoot.gameObject.SetActive(open);
+
+        public void ApplyStatus(StatusType targetStatus, int value)
+        {
+
+        }
 
         #endregion
 

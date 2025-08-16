@@ -2,6 +2,8 @@ namespace ALWTTT.Enums
 {
     public enum SpecialKeywords
     {
-        Exhaust
+        Consume,
+        Exhaust,
+        Ethereal
     }
 }

@@ -102,7 +102,7 @@ namespace ALWTTT.Characters.Audience
             StatusDict[StatusType.Poison].DecreaseOverTurn = true;
             StatusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
 
-            StatusDict[StatusType.BlockVibe].ClearAtNextTurn = true;
+            StatusDict[StatusType.Skeptical].ClearAtNextTurn = true;
 
             StatusDict[StatusType.Strength].CanNegativeStack = true;
 

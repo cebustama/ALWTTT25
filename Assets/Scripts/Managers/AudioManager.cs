@@ -53,6 +53,11 @@ namespace ALWTTT.Managers
 
         public void PlayOneShot(AudioActionType type)
         {
+            if (audioDict == null || audioDict.Count == 0 || audioDict[type] == null)
+            {
+                Debug.LogError($"Audio Dictionary not correctly initialized.");
+            }
+
             var clip = audioDict[type].GetRandomClip();
             if (clip)
                 PlayOneShot(clip);

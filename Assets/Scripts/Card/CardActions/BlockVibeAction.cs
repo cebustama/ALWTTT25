@@ -24,7 +24,7 @@ namespace ALWTTT.Cards.Actions
                     // Add Dexterity
                     + audienceStats.StatusDict[StatusType.Dexterity].StatusValue);
 
-                audienceStats.ApplyStatus(StatusType.BlockVibe, vibeBlockToAdd);
+                audienceStats.ApplyStatus(StatusType.Skeptical, vibeBlockToAdd);
 
                 FxManager.PlayFx(targetCharacter.HeadRoot, FxType.BlockVibe);
 

@@ -347,6 +347,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: HealthBar Test
       objectReference: {fileID: 0}
+    - target: {fileID: 7870854053469598226, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7870854053469598226, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7870854053469598226, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
