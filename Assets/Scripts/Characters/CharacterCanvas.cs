@@ -1,6 +1,10 @@
+using ALWTTT.Data;
 using ALWTTT.Enums;
 using ALWTTT.Tooltips;
 using ALWTTT.UI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,15 +21,19 @@ namespace ALWTTT.Characters
         [SerializeField] protected TextMeshProUGUI characterNameText;
         [SerializeField] protected Transform highlightRoot;
         [SerializeField] protected HealthBarController healthBar;
+        [SerializeField] protected StatusIconsData statusIconsData;
+        [SerializeField] protected Transform statusIconRoot;
+
+        protected Dictionary<StatusType, StatusIconBase> StatusDict = 
+            new Dictionary<StatusType, StatusIconBase>();
 
         #region Setup
         public void InitCanvas(string characterName)
         {
             characterNameText.text = characterName;
 
-            // TODO
-            // Highlight
-            // Status Dict
+            for (int i = 0; i < Enum.GetNames(typeof(StatusType)).Length; i++)
+                StatusDict.Add((StatusType)i, null);
         }
         #endregion
 
@@ -48,7 +56,36 @@ namespace ALWTTT.Characters
 
         public void ApplyStatus(StatusType targetStatus, int value)
         {
+            if (StatusDict[targetStatus] == null)
+            {
+                var targetData = statusIconsData.
+                    StatusIconList.FirstOrDefault(x => x.IconStatus == targetStatus);
 
+                if (targetData == null) return;
+
+                var clone = Instantiate(statusIconsData.StatusIconBasePrefab, statusIconRoot);
+                clone.SetStatus(targetData);
+                StatusDict[targetStatus] = clone;
+            }
+
+            StatusDict[targetStatus].SetStatusValue(value);
+        }
+
+        public void UpdateStatusText(StatusType targetStatus, int value)
+        {
+            if (StatusDict[targetStatus] == null) return;
+
+            StatusDict[targetStatus].StatusValueText.text = $"{value}";
+        }
+
+        public void ClearStatus(StatusType targetStatus)
+        {
+            if (StatusDict[targetStatus])
+            {
+                Destroy(StatusDict[targetStatus].gameObject);
+            }
+
+            StatusDict[targetStatus] = null;
         }
 
         #endregion

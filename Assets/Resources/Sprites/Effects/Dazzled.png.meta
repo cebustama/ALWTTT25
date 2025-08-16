@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 01ff16a57300e084aae1c70f9c1e34ea
+guid: db1ec61fe0320284d8f6d7a5379e49ad
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4985982967594681100
-    second: closed eye_0
+      213: 7158552271065111866
+    second: Dazzled_0
+  - first:
+      213: -5601364555382830627
+    second: Dazzled_1
+  - first:
+      213: 699226589222065169
+    second: Dazzled_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +52,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,23 +106,67 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: closed eye_0
+      name: Dazzled_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 0
-        width: 1019
-        height: 1019
+        x: 72
+        y: 623
+        width: 350
+        height: 396
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c0301a79715c13540800000000000000
-      internalID: 4985982967594681100
+      spriteID: a3dd6e6ec59485360800000000000000
+      internalID: 7158552271065111866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dazzled_1
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 88
+        width: 743
+        height: 923
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd941fa3d94f342b0800000000000000
+      internalID: -5601364555382830627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dazzled_2
+      rect:
+        serializedVersion: 2
+        x: 751
+        y: 167
+        width: 205
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 114d614d0e624b900800000000000000
+      internalID: 699226589222065169
       vertices: []
       indices: 
       edges: []
@@ -125,8 +175,8 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    spriteID: 
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -134,8 +184,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      closed eye_0: 4985982967594681100
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

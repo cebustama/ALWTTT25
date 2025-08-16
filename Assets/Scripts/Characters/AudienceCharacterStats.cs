@@ -16,11 +16,8 @@ namespace ALWTTT.Characters.Audience
 
         public Action OnConvinced;
         public Action<int, int> OnVibeChanged;
-        // TODO: Statuses
 
-        private CharacterCanvas characterCanvas;
-
-        public Dictionary<StatusType, StatusStats> StatusDict { get; private set; }
+        public Dictionary<StatusType, StatusStats> StatusDict => statusDict;
 
         public override string ToString()
         {
@@ -29,30 +26,31 @@ namespace ALWTTT.Characters.Audience
         }
 
         #region Setup
-        public AudienceCharacterStats(int maxVibe, CharacterCanvas characterCanvas)
+        public AudienceCharacterStats(int maxVibe, CharacterCanvas canvas)
         {
-            MaxVibe = maxVibe;
+            Setup(canvas, maxVibe);
+        }
+
+        protected override void Setup(CharacterCanvas canvas, int maxHp)
+        {
+            base.Setup(canvas, maxHp);
+
+            MaxVibe = maxHp;
             CurrentVibe = 0;
 
-            SetAllStatus();
-
-            this.characterCanvas = characterCanvas;
-            OnVibeChanged += this.characterCanvas.UpdateHealthText;
+            OnVibeChanged += characterCanvas.UpdateHealthText;
         }
         #endregion
 
         #region Public Methods
-        public void Dispose()
+        public override void Dispose()
         {
+            base.Dispose();
+
             if (characterCanvas != null)
             {
                 OnVibeChanged -= characterCanvas.UpdateHealthText;
             }
-        }
-
-        public void TriggerAllStatus()
-        {
-
         }
 
         public void SetCurrentVibe(int targetCurrentVibe, float duration = 2f)
@@ -89,26 +87,6 @@ namespace ALWTTT.Characters.Audience
             var vibeToAdd = song.GetSongBaseVibe();
             AddVibe(vibeToAdd, duration);
         }
-
-        protected override void SetAllStatus()
-        {
-            StatusDict = new Dictionary<StatusType, StatusStats>();
-
-            for (int i = 0; i < Enum.GetNames(typeof(StatusType)).Length; i++)
-            {
-                StatusDict.Add((StatusType)i, new StatusStats((StatusType)i, 0));
-            }
-
-            StatusDict[StatusType.Poison].DecreaseOverTurn = true;
-            StatusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
-
-            StatusDict[StatusType.Skeptical].ClearAtNextTurn = true;
-
-            StatusDict[StatusType.Strength].CanNegativeStack = true;
-
-            StatusDict[StatusType.Stun].DecreaseOverTurn = true;
-            StatusDict[StatusType.Stun].OnTriggerAction += CheckStunStatus;
-        }
         
         public void ApplyStatus(StatusType targetStatus, int value)
         {
@@ -133,6 +111,11 @@ namespace ALWTTT.Characters.Audience
         protected override void CheckStunStatus()
         {
             throw new NotImplementedException();
+        }
+
+        protected override void TriggerStatus(StatusType targetStatus)
+        {
+            
         }
 
         #endregion

@@ -104,6 +104,10 @@ PrefabInstance:
       propertyPath: musicianCharacterData
       value: 
       objectReference: {fileID: 11400000, guid: c7778c9c7853ba247820dcea24c8cb2c, type: 2}
+    - target: {fileID: 7337960616938972982, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 36.3
+      objectReference: {fileID: 0}
     - target: {fileID: 7634960685477919336, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -0.13

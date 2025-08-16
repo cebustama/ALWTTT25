@@ -20,12 +20,12 @@ namespace ALWTTT.Cards.Actions
             if (targetCharacter.MusicianStats is { } musicianStats)
             {
                 // Base Value
-                int stressBlockToAdd = Mathf.RoundToInt(actionParameters.Value
+                int chillToAdd = Mathf.RoundToInt(actionParameters.Value
                     // Add Dexterity
                     + musicianStats.StatusDict[StatusType.Dexterity].StatusValue);
 
                 // Apply
-                musicianStats.ApplyStatus(StatusType.Chill, stressBlockToAdd);
+                musicianStats.ApplyStatus(StatusType.Chill, chillToAdd);
 
                 FxManager.PlayFx(targetCharacter.HeadRoot, FxType.BlockStress);
 

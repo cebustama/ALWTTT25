@@ -436,7 +436,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1836188541970597043, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_PresetInfoIsWorld
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_text
@@ -556,6 +556,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 6280537678877212704}
   m_SourcePrefab: {fileID: 100100000, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+--- !u!224 &1976375540013723292 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8967746490772193001, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+  m_PrefabInstance: {fileID: 7430564445378744437}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2213914559965136272 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8766201086974039525, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
@@ -578,6 +583,8 @@ MonoBehaviour:
   characterNameText: {fileID: 4033435451783531182}
   highlightRoot: {fileID: 6382956573452152061}
   healthBar: {fileID: 8436283020789504068}
+  statusIconsData: {fileID: 11400000, guid: 40b6ede681aa9b7438008b98e9a9bc98, type: 2}
+  statusIconRoot: {fileID: 1976375540013723292}
   intentImage: {fileID: 7631314978631438073}
   nextActionValueText: {fileID: 6996543080683022031}
 --- !u!114 &4033435451783531182 stripped

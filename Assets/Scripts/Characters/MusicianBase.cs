@@ -47,6 +47,8 @@ namespace ALWTTT.Characters.Band
             stats.SetCurrentStress(stats.CurrentStress);
 
             Debug.Log("{MusicianBase} Stats: " + stats.ToString());
+
+            GigManager.OnPlayerTurnStarted += stats.TriggerAllStatus;
         }
 
         public void SetSpriteLayerOrder(int targetOrder)

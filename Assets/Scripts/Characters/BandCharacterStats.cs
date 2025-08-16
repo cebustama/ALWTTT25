@@ -33,18 +33,24 @@ namespace ALWTTT.Characters.Band
         #region Setup
         public BandCharacterStats(int maxStress, BandCharacterCanvas characterCanvas)
         {
-            MaxStress = maxStress;
+            bandCharacterCanvas = characterCanvas;
+            Setup(characterCanvas, maxStress);
+        }
+
+        protected override void Setup(CharacterCanvas canvas, int maxHp)
+        {
+            base.Setup(canvas, maxHp);
+
+            MaxStress = maxHp;
             CurrentStress = 0;
 
-            SetAllStatus();
-
-            bandCharacterCanvas = characterCanvas;
             OnStressChanged += bandCharacterCanvas.UpdateHealthText;
         }
         #endregion
 
-        public void Dispose()
+        public override void Dispose()
         {
+            base.Dispose();
             if (bandCharacterCanvas != null)
             {
                 OnStressChanged -= bandCharacterCanvas.UpdateHealthText;
@@ -77,26 +83,6 @@ namespace ALWTTT.Characters.Band
             SetCurrentStress(Mathf.Max(0, CurrentStress - amount));
         }
 
-        protected override void SetAllStatus()
-        {
-            StatusDict = new Dictionary<StatusType, StatusStats>();
-
-            for (int i = 0; i < Enum.GetNames(typeof(StatusType)).Length; i++)
-            {
-                StatusDict.Add((StatusType)i, new StatusStats((StatusType)i, 0));
-            }
-
-            StatusDict[StatusType.Poison].DecreaseOverTurn = true;
-            StatusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
-
-            StatusDict[StatusType.Chill].ClearAtNextTurn = true;
-
-            StatusDict[StatusType.Strength].CanNegativeStack = true;
-
-            StatusDict[StatusType.Stun].DecreaseOverTurn = true;
-            StatusDict[StatusType.Stun].OnTriggerAction += CheckStunStatus;
-        }
-
         public void ApplyStatus(StatusType targetStatus, int value)
         {
             if (StatusDict[targetStatus].IsActive)
@@ -120,6 +106,11 @@ namespace ALWTTT.Characters.Band
         protected override void CheckStunStatus()
         {
             throw new NotImplementedException();
+        }
+
+        protected override void TriggerStatus(StatusType targetStatus)
+        {
+            
         }
     }
 }

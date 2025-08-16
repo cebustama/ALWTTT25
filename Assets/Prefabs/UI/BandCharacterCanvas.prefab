@@ -190,6 +190,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &8238332881883885741 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8967746490772193001, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+  m_PrefabInstance: {fileID: 1019966291171118660}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &8610997392648149921 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8766201086974039525, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
@@ -212,6 +217,8 @@ MonoBehaviour:
   characterNameText: {fileID: 6827645201693299871}
   highlightRoot: {fileID: 4456513632549153075}
   healthBar: {fileID: 3660572006910981536}
+  statusIconsData: {fileID: 11400000, guid: 40b6ede681aa9b7438008b98e9a9bc98, type: 2}
+  statusIconRoot: {fileID: 8238332881883885741}
 --- !u!1001 &2170798948731188678
 PrefabInstance:
   m_ObjectHideFlags: 0
