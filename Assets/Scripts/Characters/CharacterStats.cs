@@ -97,6 +97,12 @@ namespace ALWTTT.Characters
             OnStatusChanged?.Invoke(targetStatus, statusDict[targetStatus].StatusValue);
         }
 
+        public void ClearAllStatus()
+        {
+            foreach (var status in statusDict)
+                ClearStatus(status.Key);
+        }
+
         public virtual void ClearStatus(StatusType targetStatus)
         {
             statusDict[targetStatus].IsActive = false;

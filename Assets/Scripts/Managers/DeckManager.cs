@@ -99,6 +99,7 @@ namespace ALWTTT.Managers
 
         public void ClearPiles()
         {
+            DiscardHand();
             DiscardPile.Clear();
             DrawPile.Clear();
             HandPile.Clear();

@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: 3
   characterName: Ziggy
   characterDescription: 
-  initialMaxStress: 5
+  initialMaxStress: 10
   characterPrefab: {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
   profile:
     backingInstruments: 06000000

@@ -9,10 +9,12 @@ namespace ALWTTT.Managers
 
         [Header("Canvases")]
         [SerializeField] private GigCanvas gigCanvas;
+        [SerializeField] private RewardCanvas rewardCanvas;
 
         #region Encapsulation
 
         public GigCanvas GigCanvas => gigCanvas;
+        public RewardCanvas RewardCanvas => rewardCanvas;
         #endregion
 
         private void Awake()

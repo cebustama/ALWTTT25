@@ -10,5 +10,6 @@ namespace ALWTTT.Interfaces
         Dictionary<StatusType, StatusStats> StatusDict { get; }
 
         void ApplyStatus(StatusType targetStatus, int value);
+        void ClearAllStatus();
     }
 }

@@ -19,6 +19,11 @@ namespace ALWTTT.UI
         {
             gameObject.SetActive(false);
         }
+
+        public virtual void ResetCanvas()
+        {
+
+        }
     }
 
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: 4
   characterName: Robot C2
   characterDescription: 
-  initialMaxStress: 50
+  initialMaxStress: 25
   characterPrefab: {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
   profile:
     backingInstruments: 02000000

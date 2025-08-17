@@ -314,6 +314,53 @@ namespace ALWTTT.Managers
                 CurrentGigPhase = GigPhase.PlayerTurn;
             }
         }
+
+        private void LoseGig()
+        {
+            if (CurrentGigPhase == GigPhase.EndGig) return;
+            CurrentGigPhase = GigPhase.EndGig;
+
+            DeckManager.ClearPiles();
+
+            UIManager.GigCanvas.gameObject.SetActive(true);
+            UIManager.GigCanvas.LosePanel.SetActive(true);
+        }
+
+        private void WinGig()
+        {
+            if (CurrentGigPhase == GigPhase.EndGig) return;
+            CurrentGigPhase = GigPhase.EndGig;
+
+            // Keep current stress
+            foreach (var musicianBase in CurrentMusicianCharacterList)
+            {
+                GameManager.PersistentGameplayData.SetMusicianHealthData(
+                    musicianBase.MusicianCharacterData.CharacterId,
+                    musicianBase.MusicianStats.CurrentStress,
+                    musicianBase.MusicianStats.MaxStress);
+            }
+
+            DeckManager.ClearPiles();
+
+            if (GameManager.PersistentGameplayData.IsFinalEncounter)
+            {
+                UIManager.GigCanvas.WinPanel.SetActive(true);
+            }
+            else
+            {
+                foreach (var musicianBase in CurrentMusicianCharacterList)
+                {
+                    musicianBase.MusicianStats.ClearAllStatus();
+                }
+
+                GameManager.PersistentGameplayData.CurrentEncounterId++;
+                UIManager.GigCanvas.gameObject.SetActive(false);
+
+                UIManager.RewardCanvas.gameObject.SetActive(true);
+                UIManager.RewardCanvas.PrepareCanvas();
+                UIManager.RewardCanvas.BuildReward(RewardType.Card);
+            }
+        }
     }
 }
 

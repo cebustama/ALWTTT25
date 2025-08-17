@@ -27,7 +27,14 @@ namespace ALWTTT.UI
         [SerializeField] private GameObject bandTurnUI;
         [SerializeField] private GameObject songPerfomanceUI;
 
+        [Header("Panels")]
+        [SerializeField] private GameObject winPanel;
+        [SerializeField] private GameObject losePanel;
+
         private readonly List<SongData> filteredSongs = new List<SongData>();
+
+        public GameObject WinPanel => winPanel;
+        public GameObject LosePanel => losePanel;
 
         private void OnEnable()
         {

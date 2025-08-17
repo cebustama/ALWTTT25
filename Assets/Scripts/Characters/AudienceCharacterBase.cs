@@ -151,6 +151,11 @@ namespace ALWTTT.Characters.Audience
         protected virtual IEnumerator BuffRoutine(AudienceAbilityData targetAbility)
         {
             var waitFrame = new WaitForEndOfFrame();
+
+            // Get target
+            //var targetType = targetAbility.
+
+
             yield return waitFrame;
         }
         #endregion

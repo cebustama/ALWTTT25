@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0b4bb684816390142ad7aed5fa96cb95, type: 3}
-  m_Name: Deal Stress
+  m_Name: Deal Stress 1
   m_EditorClassIdentifier: 
-  intentionType: 0
-  intentionSprite: {fileID: 21300000, guid: 7fe79f68d7c4ddd45ae52707d136a817, type: 3}
-  contentText: This Character intends to inflict Stress.
+  intentionType: 1
+  intentionSprite: {fileID: -5023445413321877241, guid: 58b4eca4978234c45a5e998fa0638282, type: 3}
+  contentText: 'This Character intends to apply '
