@@ -281,11 +281,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 100
+      value: 45
       objectReference: {fileID: 0}
     - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_LocalPosition.x
@@ -321,7 +321,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 43.7
+      value: 39.3
       objectReference: {fileID: 0}
     - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -343,9 +343,17 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3710401767815225147, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4438441184472882901, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_Name
       value: HealthBar Test
+      objectReference: {fileID: 0}
+    - target: {fileID: 7469092287805325040, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7870854053469598226, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_AnchorMax.x
@@ -436,7 +444,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1836188541970597043, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_PresetInfoIsWorld
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_text
@@ -538,6 +546,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 8967746490772193001, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 29.2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 145429391676546225, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
@@ -578,13 +590,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df444ab9a58b5f64c82318ee768b4057, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentHealthText: {fileID: 1489967832596637540}
   currentHealthBar: {fileID: 6962160583308176060}
+  currentHealthText: {fileID: 1489967832596637540}
   characterNameText: {fileID: 4033435451783531182}
   highlightRoot: {fileID: 6382956573452152061}
+  statusIconRoot: {fileID: 1976375540013723292}
+  descriptionRoot: {fileID: 7867957825905675796}
   healthBar: {fileID: 8436283020789504068}
   statusIconsData: {fileID: 11400000, guid: 40b6ede681aa9b7438008b98e9a9bc98, type: 2}
-  statusIconRoot: {fileID: 1976375540013723292}
   intentImage: {fileID: 7631314978631438073}
   nextActionValueText: {fileID: 6996543080683022031}
 --- !u!114 &4033435451783531182 stripped
@@ -601,5 +614,10 @@ MonoBehaviour:
 --- !u!224 &6182751036517066986 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3662307969920776351, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
+  m_PrefabInstance: {fileID: 7430564445378744437}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &7867957825905675796 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 733579908955922017, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
   m_PrefabInstance: {fileID: 7430564445378744437}
   m_PrefabAsset: {fileID: 0}

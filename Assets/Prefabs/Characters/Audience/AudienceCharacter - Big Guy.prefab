@@ -40,6 +40,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 88.9
       objectReference: {fileID: 0}
+    - target: {fileID: 4119159463623862730, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_Icon
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 4799586292305011142, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_Size.x
       value: 5

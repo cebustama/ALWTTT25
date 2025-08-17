@@ -19,7 +19,7 @@ namespace ALWTTT.Characters.Audience
         protected AudienceAbilityData NextAbility;
 
         public AudienceCharacterData AudienceCharacterData => audienceCharacterData;
-        public AudienceCharacterCanvas CharacterCanvas => characterCanvas;
+        public AudienceCharacterCanvas AudienceCharacterCanvas => characterCanvas;
 
         public string CharacterId =>
             AudienceCharacterData.CharacterName + "-" + gameObject.GetInstanceID();
@@ -27,12 +27,12 @@ namespace ALWTTT.Characters.Audience
         public override void BuildCharacter()
         {
             base.BuildCharacter();
-            CharacterCanvas.InitCanvas(AudienceCharacterData.CharacterName);
+            AudienceCharacterCanvas.InitCanvas(AudienceCharacterData.CharacterName);
 
             // Stats
             stats = new AudienceCharacterStats(
                 AudienceCharacterData.MaxVibe,
-                CharacterCanvas
+                AudienceCharacterCanvas
             );
             stats.OnConvinced += OnConvinced;
             stats.SetCurrentVibe(stats.CurrentVibe);
@@ -72,21 +72,22 @@ namespace ALWTTT.Characters.Audience
         private void ShowNextAbility()
         {
             NextAbility = AudienceCharacterData.GetAbility(usedAbilityCount);
-            CharacterCanvas.IntentImage.sprite = NextAbility.Intention.IntentionSprite;
+            AudienceCharacterCanvas.IntentImage.sprite = NextAbility.Intention.IntentionSprite;
+            AudienceCharacterCanvas.NextAbility = NextAbility;
 
             if (NextAbility.HideActionValue)
             {
-                CharacterCanvas.NextActionValueText.gameObject.SetActive(false);
+                AudienceCharacterCanvas.NextActionValueText.gameObject.SetActive(false);
             }
             else
             {
-                CharacterCanvas.NextActionValueText.gameObject.SetActive(true);
-                CharacterCanvas.NextActionValueText.text = "x" +
+                AudienceCharacterCanvas.NextActionValueText.gameObject.SetActive(true);
+                AudienceCharacterCanvas.NextActionValueText.text = "x" +
                     NextAbility.ActionList[0].ActionValue.ToString();
             }
 
             usedAbilityCount++;
-            CharacterCanvas.IntentImage.gameObject.SetActive(true);
+            AudienceCharacterCanvas.IntentImage.gameObject.SetActive(true);
         }
 
         #region Action Routines
@@ -99,7 +100,7 @@ namespace ALWTTT.Characters.Audience
                 yield break;
             }
 
-            CharacterCanvas.IntentImage.gameObject.SetActive(false);
+            AudienceCharacterCanvas.IntentImage.gameObject.SetActive(false);
             if (NextAbility.Intention.IntentionType == 
                 Enums.AudienceIntentionType.DealStress)
             {

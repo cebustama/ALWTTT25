@@ -244,8 +244,6 @@ namespace ALWTTT
             if (!descriptionRoot) return;
             if (CardData.KeywordsList.Count <= 0) return; // No keywords no tooltips
 
-            Debug.Log($"Showing tooltip...");
-
             var tooltipManager = TooltipManager.Instance;
             foreach (var cardDataSpecialKeyword in CardData.KeywordsList)
             {

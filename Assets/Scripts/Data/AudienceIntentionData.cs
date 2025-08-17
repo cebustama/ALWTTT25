@@ -9,8 +9,10 @@ namespace ALWTTT.Data
     {
         [SerializeField] private AudienceIntentionType intentionType;
         [SerializeField] private Sprite intentionSprite;
+        [SerializeField][TextArea] private string contentText;
 
         public AudienceIntentionType IntentionType => intentionType;
         public Sprite IntentionSprite => intentionSprite;
+        public string ContentText => contentText;
     }
 }

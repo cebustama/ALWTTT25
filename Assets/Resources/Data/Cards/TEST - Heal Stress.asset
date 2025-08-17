@@ -28,6 +28,5 @@ MonoBehaviour:
     actionTargetType: 1
     actionValue: 5
     actionDelay: 0
-  keywordsList: 00000000
+  keywordsList: 04000000
   audioType: 0
-  KeywordsList: 

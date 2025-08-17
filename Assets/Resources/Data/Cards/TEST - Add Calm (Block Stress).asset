@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: TEST - Block Stress
+  m_Name: TEST - Add Calm (Block Stress)
   m_EditorClassIdentifier: 
   id: 1000
-  cardName: Block Stress
+  cardName: Add Calm
   phase: 0
   rarity: 0
   grooveCost: 0
@@ -30,4 +30,3 @@ MonoBehaviour:
     actionDelay: 0
   keywordsList: 00000000
   audioType: 0
-  KeywordsList: 

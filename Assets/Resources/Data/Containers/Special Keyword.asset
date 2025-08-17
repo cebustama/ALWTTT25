@@ -13,11 +13,15 @@ MonoBehaviour:
   m_Name: Special Keyword
   m_EditorClassIdentifier: 
   specialKeywordBaseList:
+  - specialKeyword: 4
+    contentText: When full, causes a Breakdown.
+  - specialKeyword: 5
+    contentText: Fill to win over Audience Members.
   - specialKeyword: 0
-    contentText: Nullifies the next Stress damage.
+    contentText: Blocks the next Stress hit.
   - specialKeyword: 1
-    contentText: Nullifies the next Vibe damage.
+    contentText: Blocks the next Vibe hit.
   - specialKeyword: 2
-    contentText: Deals Stress each turn.
+    contentText: Adds Stress each turn.
   - specialKeyword: 3
-    contentText: Deals Vibe each turn.
+    contentText: Adds Vibe each turn.

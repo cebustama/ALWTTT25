@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   intentionType: 0
   intentionSprite: {fileID: 21300000, guid: 7fe79f68d7c4ddd45ae52707d136a817, type: 3}
+  contentText: This Character intends to inflict Stress to one Musician.

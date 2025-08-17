@@ -16,14 +16,15 @@ namespace ALWTTT.Characters
     public class CharacterCanvas : MonoBehaviour, I2DTooltipTarget
     {
         [Header("References")]
-        [SerializeField] protected TextMeshProUGUI currentHealthText;
         [SerializeField] protected Slider currentHealthBar;
+        [SerializeField] protected TextMeshProUGUI currentHealthText;
         [SerializeField] protected TextMeshProUGUI characterNameText;
         [SerializeField] protected Transform highlightRoot;
+        [SerializeField] protected Transform statusIconRoot;
+        [SerializeField] protected Transform descriptionRoot;
         [SerializeField] protected HealthBarController healthBar;
         [SerializeField] protected StatusIconsData statusIconsData;
-        [SerializeField] protected Transform statusIconRoot;
-
+        
         protected Dictionary<StatusType, StatusIconBase> StatusDict = 
             new Dictionary<StatusType, StatusIconBase>();
 
@@ -93,26 +94,58 @@ namespace ALWTTT.Characters
         #region Pointer Events
         public void OnPointerEnter(PointerEventData eventData)
         {
-            //ShowTooltipInfo();
+            ShowTooltipInfo();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            //HideTooltipInfo();
+            HideTooltipInfo(TooltipManager.Instance);
         }
         #endregion
 
         #region Tooltips
+        protected virtual void ShowTooltipInfo()
+        {
+            var tooltipManager = TooltipManager.Instance;
+            var specialKeywords = new List<SpecialKeywords>();
+
+            foreach (var statusIcon in StatusDict)
+            {
+                // Ignore inactive
+                if (statusIcon.Value == null) continue;
+
+                // Find keyword data
+                var statusData = statusIcon.Value.MyStatusIconData;
+                foreach (var statusDataSpecialKeyword in statusData.SpecialKeywords)
+                {
+                    if (specialKeywords.Contains(statusDataSpecialKeyword)) continue;
+                    specialKeywords.Add(statusDataSpecialKeyword);
+                }
+            }
+
+            foreach (var specialKeyword in specialKeywords)
+            {
+                var specialKeywordData = tooltipManager
+                    .SpecialKeywordData.SpecialKeywordBaseList
+                        .Find(x => x.SpecialKeyword == specialKeyword);
+
+                if (specialKeywordData != null)
+                    ShowTooltipInfo(tooltipManager, specialKeywordData.GetContent(), 
+                        specialKeywordData.GetHeader(), descriptionRoot);
+            }
+        }
+
         public void ShowTooltipInfo(TooltipManager tooltipManager, 
             string content, string header = "", 
             Transform tooltipStaticTransform = null, Camera cam = null, float delayShow = 0)
         {
-            throw new NotImplementedException();
+            tooltipManager.ShowTooltip(
+                content, header, tooltipStaticTransform, cam, delayShow);
         }
 
         public void HideTooltipInfo(TooltipManager tooltipManager)
         {
-            throw new NotImplementedException();
+            tooltipManager.HideTooltip();
         }
         #endregion
     }
