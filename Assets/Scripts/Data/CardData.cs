@@ -47,6 +47,7 @@ namespace ALWTTT
         public List<CardType> TypesList => typesList;
         public List<CardConditionData> CardConditionDataList => cardConditionDataList;
         public List<CharacterActionData> CardActionDataList => cardActionDataList;
+        public List<SpecialKeywords> KeywordsList => keywordsList;
         public AudioActionType AudioType => audioType;
         #endregion
     }

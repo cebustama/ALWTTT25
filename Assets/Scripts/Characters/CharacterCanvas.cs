@@ -93,24 +93,26 @@ namespace ALWTTT.Characters
         #region Pointer Events
         public void OnPointerEnter(PointerEventData eventData)
         {
-            ShowTooltipInfo();
+            //ShowTooltipInfo();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            HideTooltipInfo();
+            //HideTooltipInfo();
         }
         #endregion
 
         #region Tooltips
-        public void HideTooltipInfo()
+        public void ShowTooltipInfo(TooltipManager tooltipManager, 
+            string content, string header = "", 
+            Transform tooltipStaticTransform = null, Camera cam = null, float delayShow = 0)
         {
-            // TODO
+            throw new NotImplementedException();
         }
 
-        public void ShowTooltipInfo()
+        public void HideTooltipInfo(TooltipManager tooltipManager)
         {
-            // TODO
+            throw new NotImplementedException();
         }
         #endregion
     }

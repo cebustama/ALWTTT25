@@ -21,6 +21,8 @@ namespace ALWTTT
     public class CardBase : MonoBehaviour, 
         I2DTooltipTarget, IPointerDownHandler, IPointerUpHandler
     {
+        [Header("References")]
+        [SerializeField] protected Transform descriptionRoot;
         [SerializeField] protected Image cardImage;
         [SerializeField] protected Image passiveImage;
         [SerializeField] protected TextMeshProUGUI nameTextField;
@@ -217,36 +219,63 @@ namespace ALWTTT
 
         public virtual void OnPointerEnter(PointerEventData eventData)
         {
-            // Show
+            ShowTooltipInfo();
         }
 
         public virtual void OnPointerExit(PointerEventData eventData)
         {
-            // Hide
+            HideTooltipInfo();
         }
 
         public virtual void OnPointerDown(PointerEventData eventData)
         {
-            // Hide
+            HideTooltipInfo();
         }
 
         public virtual void OnPointerUp(PointerEventData eventData)
         {
-            // Show
+            ShowTooltipInfo();
         }
         #endregion
 
         #region Tooltip
-        
-
-        public virtual void ShowTooltipInfo()
+        protected virtual void ShowTooltipInfo()
         {
+            if (!descriptionRoot) return;
+            if (CardData.KeywordsList.Count <= 0) return; // No keywords no tooltips
 
+            Debug.Log($"Showing tooltip...");
+
+            var tooltipManager = TooltipManager.Instance;
+            foreach (var cardDataSpecialKeyword in CardData.KeywordsList)
+            {
+                var specialKeyword = tooltipManager
+                    .SpecialKeywordData.SpecialKeywordBaseList
+                        .Find(x => x.SpecialKeyword == cardDataSpecialKeyword);
+
+                if (specialKeyword != null)
+                    ShowTooltipInfo(tooltipManager, specialKeyword.GetContent(), 
+                        specialKeyword.GetHeader(), descriptionRoot, 
+                        DeckManager ? DeckManager.HandController.Cam : Camera.main);
+            }
         }
 
-        public virtual void HideTooltipInfo()
+        protected virtual void HideTooltipInfo()
         {
+            HideTooltipInfo(TooltipManager.Instance);
+        }
 
+        public void ShowTooltipInfo(TooltipManager tooltipManager, 
+            string content, string header = "", 
+            Transform tooltipStaticTransform = null, Camera cam = null, float delayShow = 0)
+        {
+            tooltipManager.ShowTooltip(
+                content, header, tooltipStaticTransform, cam, delayShow);
+        }
+
+        public void HideTooltipInfo(TooltipManager tooltipManager)
+        {
+            tooltipManager.HideTooltip();
         }
         #endregion
     }
