@@ -31,8 +31,13 @@ namespace ALWTTT.Characters.Band
         }
 
         #region Setup
-        public BandCharacterStats(int maxStress, BandCharacterCanvas characterCanvas)
+        public BandCharacterStats(int chr, int tch, int emt, 
+            int maxStress, BandCharacterCanvas characterCanvas)
         {
+            Charm = chr;
+            Technique = tch;
+            Emotion = emt;
+
             bandCharacterCanvas = characterCanvas;
             Setup(characterCanvas, maxStress);
         }

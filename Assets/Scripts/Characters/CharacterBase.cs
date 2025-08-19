@@ -3,6 +3,7 @@ using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace ALWTTT.Characters
 {

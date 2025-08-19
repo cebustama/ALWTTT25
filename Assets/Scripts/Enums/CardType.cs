@@ -2,9 +2,10 @@ namespace ALWTTT.Enums
 {
     public enum CardType
     {
-        Funny,
-        Virtuous,
-        Touching,
-        Raw
+        CHR,
+        TCH,
+        EMT,
+        SFX,
+        SongMod
     }
 }

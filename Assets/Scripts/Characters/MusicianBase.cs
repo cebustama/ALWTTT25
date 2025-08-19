@@ -11,6 +11,7 @@ namespace ALWTTT.Characters.Band
         [SerializeField] private BandCharacterCanvas bandCharacterCanvas;
         [SerializeField] private MusicianCharacterData musicianCharacterData;
         [SerializeField] private BandCharacterStats stats;
+        [SerializeField] private ParticleSystem musicianParticleSystem;
         public override IMusicianStats MusicianStats => stats;
 
         #region Encapsulate
@@ -24,8 +25,17 @@ namespace ALWTTT.Characters.Band
             bandCharacterCanvas.InitCanvas(MusicianCharacterData.CharacterName);
 
             stats = new BandCharacterStats(
+                musicianCharacterData.CHR,
+                musicianCharacterData.TCH,
+                musicianCharacterData.EMT,
                 MusicianCharacterData.InitialMaxStress,
                 BandCharacterCanvas
+            );
+
+            bandCharacterCanvas.UpdateStats(
+                stats.Charm,
+                stats.Technique,
+                stats.Emotion
             );
 
             var data = GameManager.PersistentGameplayData.MusicianHealthDataList.Find(

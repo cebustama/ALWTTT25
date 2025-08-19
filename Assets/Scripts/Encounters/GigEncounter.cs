@@ -9,7 +9,9 @@ namespace ALWTTT.Encounters
     public class GigEncounter : EncounterBase
     {
         [SerializeField] private List<AudienceCharacterData> audienceMemberList;
+        [SerializeField] private int numberOfSongs;
 
         public List<AudienceCharacterData> AudienceMemberList => audienceMemberList;
+        public int NumberOfSongs => numberOfSongs;
     }
 }
