@@ -1,4 +1,4 @@
-using ALWTTT.Enums;
+﻿using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using System.Collections.Generic;
@@ -19,6 +19,7 @@ namespace ALWTTT.Characters
         [SerializeField] private SpriteRenderer spriteRenderer;
         // TODO: Connect with Abilities instead
         [SerializeField] protected Transform speechBubblePrefab;
+        [SerializeField] protected LayerMask characterLayerMask;
 
         #region Encapsulation
         public CharacterType CharacterType => characterType;
@@ -31,6 +32,32 @@ namespace ALWTTT.Characters
         protected GigManager GigManager => GigManager.Instance;
         protected GameManager GameManager => GameManager.Instance;
         #endregion
+
+        private bool isPointerOver = false;
+
+        protected virtual void Update()
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out var hit, 100f, characterLayerMask))
+            {
+                var charHit = hit.collider.GetComponent<ICharacter>();
+                if (charHit != null && charHit.GetCharacterBase() == this)
+                {
+                    if (!isPointerOver)
+                    {
+                        isPointerOver = true;
+                        OnPointerEnter();
+                    }
+                    return;
+                }
+            }
+
+            if (isPointerOver)
+            {
+                isPointerOver = false;
+                OnPointerExit();
+            }
+        }
 
         public virtual void BuildCharacter()
         {
@@ -50,6 +77,16 @@ namespace ALWTTT.Characters
         public void ApplyStatus(StatusType targetStatus, int value)
         {
 
+        }
+
+        protected virtual void OnPointerEnter()
+        {
+            Debug.Log($"Pointer entered {name}");
+        }
+
+        protected virtual void OnPointerExit()
+        {
+            Debug.Log($"Pointer exited {name}");
         }
     }
 }

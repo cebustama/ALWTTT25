@@ -62,13 +62,16 @@ namespace ALWTTT.Characters.Band
             }
         }
 
-        public void SetCurrentStress(int targetCurrentStress)
+        public void SetCurrentStress(int targetCurrentStress, float duration = 1f)
         {
             CurrentStress = 
                 targetCurrentStress < 0 ? 0 :
                     targetCurrentStress > MaxStress ?
                         MaxStress :
                         targetCurrentStress;
+
+            bandCharacterCanvas.SetCurrentStress(CurrentStress, MaxStress, duration);
+            bandCharacterCanvas.UpdateVisibility();
 
             OnStressChanged?.Invoke(CurrentStress, MaxStress);
         }

@@ -182,6 +182,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6267139941687699417}
   - component: {fileID: 8621409207383293933}
+  - component: {fileID: 710542926140738864}
   m_Layer: 0
   m_Name: StatsRoot
   m_TagString: Untagged
@@ -237,6 +238,18 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!225 &710542926140738864
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3841721943826506333}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &4155036738263248712
 GameObject:
   m_ObjectHideFlags: 0
@@ -809,6 +822,7 @@ MonoBehaviour:
   descriptionRoot: {fileID: 290929652695748645}
   healthBar: {fileID: 3660572006910981536}
   statusIconsData: {fileID: 11400000, guid: 40b6ede681aa9b7438008b98e9a9bc98, type: 2}
+  statsCanvasGroup: {fileID: 710542926140738864}
   chrTextField: {fileID: 6395637852304292217}
   tchTextField: {fileID: 2075469088734367410}
   emtTextField: {fileID: 5592930360219614590}

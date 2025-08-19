@@ -57,6 +57,9 @@ MonoBehaviour:
   headRoot: {fileID: 138673961274262317}
   spriteRenderer: {fileID: 2094732631458172625}
   speechBubblePrefab: {fileID: 4837711926867269552, guid: 3e067e2f4964d5249a1fa30f4f464bb4, type: 3}
+  characterLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
   bandCharacterCanvas: {fileID: 4399159240658199444}
   musicianCharacterData: {fileID: 11400000, guid: 162ca2d9fe6886742aa04e892ddd5edf, type: 2}
   musicianParticleSystem: {fileID: 8908798543092447923}

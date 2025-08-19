@@ -7,13 +7,20 @@ namespace ALWTTT.UI
     public class HealthBarController : MonoBehaviour
     {
         [SerializeField] private Slider slider;
+        [SerializeField] private CanvasGroup canvasGroup;
         private Coroutine lerpRoutine;
 
-        public void SetCurrentVibe(int current, int max, float duration)
+        public CanvasGroup CanvasGroup => canvasGroup;
+
+        private int currentValue = 0;
+        public int CurrentValue { get { return currentValue; } }
+
+        public void SetCurrentValue(int current, int max, float duration)
         {
             slider.minValue = 0f;
             slider.maxValue = Mathf.Max(1, max);
 
+            currentValue = current;
             float target = Mathf.Clamp(current, 0, max);
 
             if (lerpRoutine != null) StopCoroutine(lerpRoutine);

@@ -49,7 +49,7 @@ namespace ALWTTT.Characters
 
         public void SetCurrentVibe(int current, int max, float duration)
         {
-            healthBar?.SetCurrentVibe(current, max, duration);
+            healthBar?.SetCurrentValue(current, max, duration);
         }
             
         public void SetHighlight(bool open) => 
@@ -89,6 +89,26 @@ namespace ALWTTT.Characters
             StatusDict[targetStatus] = null;
         }
 
+        public void UpdateVisibility()
+        {
+            ShowContextual();
+            HideContextual();
+        }
+
+        public virtual void HideContextual()
+        {
+            if (healthBar.CurrentValue == 0)
+            {
+                healthBar.CanvasGroup.alpha = 0;
+            }
+        }
+
+        public virtual void ShowContextual()
+        {
+            if (healthBar.CurrentValue > 0)
+                healthBar.CanvasGroup.alpha = 1;
+        }
+ 
         #endregion
 
         #region Pointer Events

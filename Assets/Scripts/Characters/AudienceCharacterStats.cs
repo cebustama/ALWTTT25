@@ -62,6 +62,7 @@ namespace ALWTTT.Characters.Audience
                         targetCurrentVibe;
 
             characterCanvas.SetCurrentVibe(targetCurrentVibe, MaxVibe, duration);
+            characterCanvas.UpdateVisibility();
 
             OnVibeChanged?.Invoke(CurrentVibe, MaxVibe);
         }

@@ -59,6 +59,8 @@ namespace ALWTTT.Characters.Band
             Debug.Log("{MusicianBase} Stats: " + stats.ToString());
 
             GigManager.OnPlayerTurnStarted += stats.TriggerAllStatus;
+
+            bandCharacterCanvas.HideContextual();
         }
 
         public void SetSpriteLayerOrder(int targetOrder)
@@ -70,6 +72,18 @@ namespace ALWTTT.Characters.Band
         protected void OnBreakdown()
         {
             // TODO: "Stunned", cannot perform for one turn
+        }
+
+        protected override void OnPointerEnter()
+        {
+            base.OnPointerEnter();
+            bandCharacterCanvas.ShowContextual();
+        }
+
+        protected override void OnPointerExit()
+        {
+            base.OnPointerExit();
+            bandCharacterCanvas.HideContextual();
         }
     }
 

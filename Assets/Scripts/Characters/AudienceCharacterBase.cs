@@ -41,6 +41,8 @@ namespace ALWTTT.Characters.Audience
 
             GigManager.OnPlayerTurnStarted += ShowNextAbility;
             GigManager.OnEnemyTurnStarted += stats.TriggerAllStatus;
+
+            AudienceCharacterCanvas.HideContextual();
         }
 
         protected void OnConvinced()
@@ -182,6 +184,18 @@ namespace ALWTTT.Characters.Audience
 
                 yield return waitFrame;
             }
+        }
+
+        protected override void OnPointerEnter()
+        {
+            base.OnPointerEnter();
+            AudienceCharacterCanvas.ShowContextual();
+        }
+
+        protected override void OnPointerExit()
+        {
+            base.OnPointerExit();
+            AudienceCharacterCanvas.HideContextual();
         }
     }
 }
