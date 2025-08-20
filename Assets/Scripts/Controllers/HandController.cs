@@ -1,9 +1,11 @@
 using ALWTTT.Characters;
+using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 namespace ALWTTT
 {
@@ -164,10 +166,10 @@ namespace ALWTTT
                 var cardTransform = card.transform;
 
                 // If not enough groove, set inactive visual
-                card.SetInactiveMaterialState(
+                /*card.SetInactiveMaterialState(
                     GameManager.PersistentGameplayData.CurrentGroove < 
                     card.CardData.GrooveCost
-                );
+                );*/
 
                 var noCardHeld = heldCard == null; // Whether a card is "held" (outside of hand)
                 var onSelectedCard = noCardHeld && selected == i;
@@ -336,8 +338,17 @@ namespace ALWTTT
                 GigManager.HighlightCardTarget(
                     heldCard.CardData.CardActionDataList[0].ActionTargetType);
 
+                var musician = IsOverMusician(mousePos);
+                if (musician != null)
+                {
+                    Debug.Log(musician.MusicianCharacterData.CharacterName);
+                }
+                
+                heldCard.UpdateDescription(musician);
+
                 if (!GameManager.PersistentGameplayData.CanSelectCards || mouseInsideHand)
                 {
+                    heldCard.UpdateDescription(null);
                     //  || sqrDistance <= 2
                     // Card has gone back into hand
                     AddCardToHand(heldCard, selected);
@@ -378,7 +389,8 @@ namespace ALWTTT
 
                 canUse = heldCard.CardData.UsableWithoutTarget ||
                     CheckPlayOnCharacter(mainRay, canUse,
-                        ref bandCharacter, ref targetCharacter);
+                        ref bandCharacter, ref targetCharacter) ||
+                        heldCard.CardData.CardType == CardType.SFX;
 
                 if (canUse)
                 {
@@ -396,6 +408,19 @@ namespace ALWTTT
             }
 
             heldCard = null;
+        }
+
+        private MusicianBase IsOverMusician(Vector2 mousePos)
+        {
+            var mainRay = mainCam.ScreenPointToRay(mousePos);
+            RaycastHit hit;
+            if (Physics.Raycast(mainRay, out hit, 1000, targetLayer))
+            {
+                var musician = hit.collider.gameObject.GetComponent<MusicianBase>();
+                return musician;
+            }
+
+            return null;
         }
 
         private bool CheckPlayOnCharacter(Ray mainRay, bool canUse, 
@@ -426,7 +451,8 @@ namespace ALWTTT
                         character.GetCharacterType() == CharacterType.Musician);
 
                     // TODO: Modify this part
-                    if (checkEnemy || checkAlly)
+                    //if (checkEnemy || checkAlly)
+                    if (character.GetCharacterType() == CharacterType.Musician)
                     {
                         canUse = true;
                         bandCharacter = GigManager.SelectedMusician;

@@ -20,9 +20,9 @@ namespace ALWTTT.Cards.Actions
 
             if (targetCharacter.AudienceStats is { } audienceStats)
             {
-                int vibeBlockToAdd = Mathf.RoundToInt(actionParameters.Value
+                int vibeBlockToAdd = Mathf.RoundToInt(actionParameters.Value);
                     // Add Dexterity
-                    + audienceStats.StatusDict[StatusType.Dexterity].StatusValue);
+                    //+ audienceStats.statusDict[StatusType.Dexterity].StatusValue);
 
                 audienceStats.ApplyStatus(StatusType.Skeptical, vibeBlockToAdd);
 

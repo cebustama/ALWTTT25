@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -23,11 +24,13 @@ namespace ALWTTT
         [Header("References")]
         [SerializeField] protected Transform descriptionRoot;
         [SerializeField] protected Image cardImage;
+        [SerializeField] protected Image backgroundImage;
         [SerializeField] protected Image passiveImage;
         [SerializeField] protected TextMeshProUGUI nameTextField;
         [SerializeField] protected TextMeshProUGUI descTextField;
         [SerializeField] protected TextMeshProUGUI grooveCostTextField;
         [SerializeField] protected TextMeshProUGUI grooveGenTextField;
+        [SerializeField] protected TextMeshProUGUI typeTextField;
 
         public CardData CardData { get; private set; }
         public bool IsInactive { get; protected set; }
@@ -56,9 +59,13 @@ namespace ALWTTT
             CardData = targetProfile;
             IsPlayable = isPlayable;
 
+            backgroundImage.color = 
+                GameManager.GameplayData.GetCardTypeColor(CardData.CardType);
+
             cardImage.sprite = CardData.CardSprite;
+            typeTextField.text = CardData.CardType.ToString();
             nameTextField.text = CardData.CardName;
-            // TODO: Description
+            descTextField.text = CardData.GetDescription();
             grooveCostTextField.text = CardData.GrooveCost.ToString();
             grooveGenTextField.text = CardData.GrooveGenerated.ToString();
         }
@@ -74,6 +81,18 @@ namespace ALWTTT
                 allAudienceCharacters, allBandCharacters));
         }
 
+        public virtual void UpdateDescription(MusicianBase musician)
+        {
+            if (musician != null)
+            {
+                descTextField.text = CardData.GetDescription(musician.Stats);
+            }
+            else
+            {
+                descTextField.text = CardData.GetDescription(null);
+            }
+        }
+
         #region Routines
         private IEnumerator CardUseRoutine(
             CharacterBase performer, CharacterBase target,
@@ -83,6 +102,7 @@ namespace ALWTTT
             Debug.Log($"<color=cyan> Playing card (coroutine)...</color>");
 
             SpendGroove(CardData.GrooveCost);
+            GenerateGroove(CardData.GrooveGenerated);
 
             foreach (var playerAction in CardData.CardActionDataList)
             {
@@ -172,6 +192,11 @@ namespace ALWTTT
         protected virtual void SpendGroove(int value)
         {
             GameManager.PersistentGameplayData.CurrentGroove -= value;
+        }
+
+        protected virtual void GenerateGroove(int value)
+        {
+            GameManager.PersistentGameplayData.CurrentGroove += value;
         }
 
         private static List<CharacterBase> DetermineTargets(

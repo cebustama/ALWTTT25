@@ -17,8 +17,6 @@ namespace ALWTTT.Characters.Band
 
         public bool IsBreakdown { get; private set; }
 
-        public Dictionary<StatusType, StatusStats> StatusDict { get; private set; }
-
         public Action OnBreakdown;
         public Action<int, int> OnStressChanged;
 
@@ -93,16 +91,16 @@ namespace ALWTTT.Characters.Band
 
         public void ApplyStatus(StatusType targetStatus, int value)
         {
-            if (StatusDict[targetStatus].IsActive)
+            if (statusDict[targetStatus].IsActive)
             {
-                StatusDict[targetStatus].StatusValue += value;
-                OnStatusChanged?.Invoke(targetStatus, StatusDict[targetStatus].StatusValue);
+                statusDict[targetStatus].StatusValue += value;
+                OnStatusChanged?.Invoke(targetStatus, statusDict[targetStatus].StatusValue);
             }
             else
             {
-                StatusDict[targetStatus].StatusValue = value;
-                StatusDict[targetStatus].IsActive = true;
-                OnStatusApplied?.Invoke(targetStatus, StatusDict[targetStatus].StatusValue);
+                statusDict[targetStatus].StatusValue = value;
+                statusDict[targetStatus].IsActive = true;
+                OnStatusApplied?.Invoke(targetStatus, statusDict[targetStatus].StatusValue);
             }
         }
 

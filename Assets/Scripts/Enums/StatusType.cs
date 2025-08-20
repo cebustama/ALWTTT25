@@ -9,9 +9,11 @@ namespace ALWTTT.Enums
         Chill = 1,
         Skeptical = 2,
         Strength = 3, // Added to damage (either Stress or Vibe)
-        Poison = 4,
+        Hooked = 4,
         Stun = 5,
-        Dexterity = 6, // Added to Block,
-
+        Heckled = 6, // Added to Block,,
+        Shaken = 7,
+        Dazzled = 8,
+        Dexterity = 9
     }
 }

@@ -20,9 +20,9 @@ namespace ALWTTT.Cards.Actions
             if (targetCharacter.MusicianStats is { } musicianStats)
             {
                 // Base Value
-                int chillToAdd = Mathf.RoundToInt(actionParameters.Value
+                int chillToAdd = Mathf.RoundToInt(actionParameters.Value);
                     // Add Dexterity
-                    + musicianStats.StatusDict[StatusType.Dexterity].StatusValue);
+                    //+ musicianStats.StatusDict[StatusType.Dexterity].StatusValue);
 
                 // Apply
                 musicianStats.ApplyStatus(StatusType.Chill, chillToAdd);

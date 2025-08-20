@@ -1,7 +1,9 @@
 using ALWTTT.Actions;
+using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace ALWTTT 
@@ -19,7 +21,7 @@ namespace ALWTTT
         [SerializeField] private int grooveGenerated;
 
         [Header("Synergies")]
-        [SerializeField] private List<CardType> typesList;
+        [SerializeField] private CardType cardType;
 
         [Header("Effects")]
         [SerializeField] private bool usableWithoutTarget;
@@ -44,12 +46,54 @@ namespace ALWTTT
         public Sprite CardSprite => cardSprite;
         public int GrooveGenerated => grooveGenerated;
         public bool ExhaustAfterPlay => exhaustAfterPlay;
-        public List<CardType> TypesList => typesList;
+        public CardType CardType => cardType;
         public List<CardConditionData> CardConditionDataList => cardConditionDataList;
         public List<CharacterActionData> CardActionDataList => cardActionDataList;
         public List<SpecialKeywords> KeywordsList => keywordsList;
         public AudioActionType AudioType => audioType;
         #endregion
+    
+        public string GetDescription(BandCharacterStats stats = null)
+        {
+            // TODO Multiple actions
+            var cardAction = cardActionDataList[0];
+            var value = cardAction.ActionValue;
+
+            string synergyText = "";
+            if (stats != null)
+            {
+                int finalValue;
+                switch (CardType)
+                {
+                    case CardType.CHR:
+                        finalValue = Mathf.RoundToInt(stats.Charm * value);
+                        break;
+                    case CardType.TCH:
+                        finalValue = Mathf.RoundToInt(stats.Technique * value);
+                        break;
+                    case CardType.EMT:
+                        finalValue = Mathf.RoundToInt(stats.Emotion * value);
+                        break;
+                    default:
+                        finalValue = Mathf.RoundToInt(value);
+                        break;
+                }
+                synergyText = finalValue.ToString();
+            }
+            else
+            {
+                synergyText = cardType.ToString();
+            }
+
+            string actionText = cardAction.GetActionTypeText();
+            string targetText = cardAction.ActionTargetType.ToString();
+
+            var descriptionText = $"Apply {synergyText} {actionText} to {targetText}";
+
+            return descriptionText;
+        }
+
+        // TODO: Color
     }
 
     [Serializable]

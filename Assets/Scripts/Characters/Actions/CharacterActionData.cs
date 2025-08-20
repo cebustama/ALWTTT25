@@ -19,5 +19,11 @@ namespace ALWTTT.Actions
         public ActionTargetType ActionTargetType => actionTargetType;
         public float ActionValue => actionValue;
         public float ActionDelay => actionDelay;
+
+        public string GetActionTypeText()
+        {
+            // TODO
+            return CardActionType.ToString();
+        }
     }
 }

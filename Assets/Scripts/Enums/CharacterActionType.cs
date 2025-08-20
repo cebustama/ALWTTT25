@@ -10,6 +10,11 @@ namespace ALWTTT.Enums
         // Targets Band
         AddStress,
         BlockStress,
-        HealStress
+        HealStress,
+        // Targets song
+        AddHooked,
+        AddHeckled,
+        AddStun,
+        AddDazzled
     }
 }

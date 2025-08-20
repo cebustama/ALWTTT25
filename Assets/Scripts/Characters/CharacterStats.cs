@@ -40,8 +40,8 @@ namespace ALWTTT.Characters
             }
 
             // TODO: This should be defined in a StatusTypeData asset List
-            statusDict[StatusType.Poison].DecreaseOverTurn = true;
-            statusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
+            //statusDict[StatusType.Poison].DecreaseOverTurn = true;
+            //statusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
 
             statusDict[StatusType.Skeptical].ClearAtNextTurn = true;
 

@@ -50,7 +50,7 @@ namespace ALWTTT.Tooltips
             Transform tooltipTargetTransform = null,
             Camera cam = null, float delayShow = 0)
         {
-            Debug.Log($"{DebugTag} Showing tooltip for '{headerText}");
+            //Debug.Log($"{DebugTag} Showing tooltip for '{headerText}");
 
             StartCoroutine(ShowRoutine(delayShow));
 

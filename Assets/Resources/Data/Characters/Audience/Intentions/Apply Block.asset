@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0b4bb684816390142ad7aed5fa96cb95, type: 3}
-  m_Name: Deal Stress 1
+  m_Name: Apply Block
   m_EditorClassIdentifier: 
   intentionType: 1
   intentionSprite: {fileID: -5023445413321877241, guid: 58b4eca4978234c45a5e998fa0638282, type: 3}
-  contentText: 'This Character intends to apply '
+  contentText: This Character intends to apply Block

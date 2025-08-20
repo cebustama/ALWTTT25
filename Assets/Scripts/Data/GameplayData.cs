@@ -1,5 +1,7 @@
 using ALWTTT.Characters.Band;
 using ALWTTT.Data;
+using ALWTTT.Enums;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -26,6 +28,14 @@ namespace ALWTTT
         [SerializeField] private List<CardData> allCardsList;
         [SerializeField] private CardBase cardPrefab;
 
+        [Serializable]
+        public class CardTypeEntry
+        {
+            public CardType CardType;
+            public Color TypeColor;
+        }
+        [SerializeField] private List<CardTypeEntry> cardTypeEntryList;
+
         [Header("Modifiers")]
         [SerializeField] private bool isRandomDeck = false;
         [SerializeField] private int randomCardCount;
@@ -46,5 +56,16 @@ namespace ALWTTT
         public bool IsRandomDeck => isRandomDeck;
         public int RandomCardCount => randomCardCount;
         #endregion
+    
+        public Color GetCardTypeColor(CardType type)
+        {
+            foreach (var entry in cardTypeEntryList)
+            {
+                if (entry.CardType == type)
+                    return entry.TypeColor;
+            }
+
+            return Color.white;
+        }
     }
 }

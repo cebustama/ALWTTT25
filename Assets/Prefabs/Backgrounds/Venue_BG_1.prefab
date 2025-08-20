@@ -669,6 +669,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   venueType: 0
+  stageLightsRoot: {fileID: 8119992983702085282}
   foregrounAnimation: {fileID: 7526134663701910900}
   stageLights:
   - {fileID: 7671711816557653695}
@@ -778,7 +779,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8119992983702085282
 Transform:
   m_ObjectHideFlags: 0

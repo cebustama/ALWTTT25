@@ -81,12 +81,12 @@ namespace ALWTTT.Characters
 
         protected virtual void OnPointerEnter()
         {
-            Debug.Log($"Pointer entered {name}");
+            
         }
 
         protected virtual void OnPointerExit()
         {
-            Debug.Log($"Pointer exited {name}");
+            
         }
     }
 }

@@ -48,11 +48,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   descriptionRoot: {fileID: 8018228615356958641}
   cardImage: {fileID: 2932716357299140837}
+  backgroundImage: {fileID: 187719596391401286}
   passiveImage: {fileID: 0}
   nameTextField: {fileID: 2253420769599146968}
   descTextField: {fileID: 8486886504165462760}
   grooveCostTextField: {fileID: 722027446639653306}
   grooveGenTextField: {fileID: 1062792592149586426}
+  typeTextField: {fileID: 5115853906357149707}
   canvas: {fileID: 428331095299981895}
 --- !u!1 &5414052691621968375
 GameObject:
@@ -93,6 +95,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3324415504335921189}
     m_Modifications:
+    - target: {fileID: 588846337623088783, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 777063758062377665, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
       value: 8
@@ -120,6 +126,10 @@ PrefabInstance:
     - target: {fileID: 3047643327912958978, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3047643327912958978, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3095203519535484092, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
@@ -233,6 +243,22 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 5948962936613864894, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5948962936613864894, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5948962936613864894, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5948962936613864894, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7325699717007187050, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
@@ -254,6 +280,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+--- !u!114 &187719596391401286 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5948962936613864894, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 5770271931771093752}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!223 &428331095299981895 stripped
 Canvas:
   m_CorrespondingSourceObject: {fileID: 6189532910417313983, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
@@ -306,6 +343,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5115853906357149707 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1651472762241934067, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 5770271931771093752}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &8486886504165462760 stripped
