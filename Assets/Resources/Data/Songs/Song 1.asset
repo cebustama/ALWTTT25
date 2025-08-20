@@ -25,15 +25,15 @@ MonoBehaviour:
     - name: A
       tonality: 0
       rootNote: 0
-      tempoRange: 3
+      tempoRange: 4
       timeSignature: 0
       measures: 2
     - name: B
       tonality: 1
       rootNote: 9
-      tempoRange: 3
+      tempoRange: 4
       timeSignature: 0
       measures: 2
-    structure: 010000000200000001000000
+    structure: 0100000002000000
   duration: 5
   bpm: 80

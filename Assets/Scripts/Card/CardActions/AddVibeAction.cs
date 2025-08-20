@@ -1,4 +1,5 @@
 using ALWTTT.Actions;
+using ALWTTT.Characters.Audience;
 using ALWTTT.Enums;
 using UnityEngine;
 
@@ -15,7 +16,16 @@ namespace ALWTTT.Actions
             if (!actionParameters.TargetCharacter) return;
 
             var performerCharacter = actionParameters.PerformerCharacter;
-            var targetCharacter = actionParameters.TargetCharacter;
+
+            var targetCharacter = 
+                actionParameters.PerformerCharacter as AudienceCharacterBase;
+
+            if (targetCharacter.IsBlocked)
+            {
+                Debug.Log("VIBE BLOCKED!");
+                return;
+            }
+
             Debug.Log($"[{ActionName}] Target: " + targetCharacter);
             Debug.Log($"[{ActionName}] Stats: {targetCharacter.AudienceStats.ToString()}");
 

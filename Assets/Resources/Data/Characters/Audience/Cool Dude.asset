@@ -17,13 +17,14 @@ MonoBehaviour:
   characterDescription: 
   maxVibe: 35
   characterPrefab: {fileID: 997261290205271328, guid: c8efa2c5aa6223e49b98b39362316d37, type: 3}
+  isTall: 1
   abilityList:
-  - abilityName: Sarcastic Insult
-    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
+  - abilityName: Block the View
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
     hideActionValue: 0
     actionList:
-    - cardActionType: 3
-      actionTargetType: 5
-      actionValue: 5
+    - cardActionType: 10
+      actionTargetType: 6
+      actionValue: 0
       actionDelay: 0
   followAbilityPattern: 0

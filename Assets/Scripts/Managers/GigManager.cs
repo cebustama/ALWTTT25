@@ -174,6 +174,8 @@ namespace ALWTTT.Managers
                 clone.ColumnIndex = Mathf.Min(i, AudienceMemberPosList.Count - 1);
                 CurrentAudienceCharacterList.Add(clone);
             }
+
+            RecalculateAudienceObstructions();
         }
         #endregion
 
@@ -351,12 +353,26 @@ namespace ALWTTT.Managers
         {
             var waitDelay = new WaitForSeconds(0.1f);
 
-            foreach (var currentCharacter in CurrentAudienceCharacterList)
+            // Snapshot so actions can reorder/destroy without breaking enumeration
+            var turnOrder = 
+                new List<AudienceCharacterBase>(CurrentAudienceCharacterList);
+
+            foreach (var currentCharacter in turnOrder)
             {
+                if (currentCharacter == null) 
+                    continue; // might have been destroyed
+
+                if (!currentCharacter.gameObject.activeInHierarchy) 
+                    continue; // or deactivated
+
                 yield return currentCharacter.StartCoroutine(
                     nameof(AudienceCharacterSimple.ActionRoutine));
+
                 yield return waitDelay;
             }
+
+            CurrentAudienceCharacterList.Sort((a, b) => 
+                a.ColumnIndex.CompareTo(b.ColumnIndex));
 
             if (CurrentGigPhase != GigPhase.EndGig)
             {
@@ -411,7 +427,6 @@ namespace ALWTTT.Managers
             }
         }
 
-        // TODO: Call
         public void RecalculateAudienceObstructions()
         {
             // Clear all

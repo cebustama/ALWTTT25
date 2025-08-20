@@ -17,6 +17,7 @@ MonoBehaviour:
   characterDescription: 
   maxVibe: 25
   characterPrefab: {fileID: 8137859568071339047, guid: 35d49b40d76e63b4e9baea14dcdc329c, type: 3}
+  isTall: 1
   abilityList:
   - abilityName: Scathing Review
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}

@@ -5,6 +5,7 @@ using ALWTTT.Enums;
 using ALWTTT.Extentions;
 using ALWTTT.Interfaces;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ALWTTT.Characters.Audience
@@ -108,9 +109,8 @@ namespace ALWTTT.Characters.Audience
             }
 
             AudienceCharacterCanvas.IntentImage.gameObject.SetActive(false);
-
-
             
+            /*
             if (NextAbility.Intention.IntentionType == 
                 Enums.AudienceIntentionType.DealStress)
             {
@@ -121,24 +121,27 @@ namespace ALWTTT.Characters.Audience
                 yield return StartCoroutine(BuffRoutine(NextAbility));
             }
 
-            yield return null;
+            yield return null;*/
 
-            /*
             foreach (var action in NextAbility.ActionList)
             {
-                var target = ResolveTargetFor(action);
+                var targets = ResolveTargetsFor(action);
                 var ctx = new AudienceActionContext(); // extend as needed
 
-                var p = new CharacterActionParameters(action.ActionValue, this, target, ctx);
-                CharacterActionProcessor.GetAction(action.CardActionType).DoAction(p);
+                foreach (var target in targets)
+                {
+                    var p = new CharacterActionParameters(
+                        action.ActionValue, this, target, ctx);
+                    CharacterActionProcessor.GetAction(action.CardActionType).DoAction(p);
+                }
 
                 // Optional short delay between chained actions:
                 yield return new WaitForSeconds(0.05f);
-            }*/
+            }
         }
 
         // TODO: Review
-        private CharacterBase ResolveTargetFor(CharacterActionData action)
+        private List<CharacterBase> ResolveTargetsFor(CharacterActionData action)
         {
             // Use the same targeting semantics as CardBase.DetermineTargets
             // and keep behavior deterministic where useful.
@@ -147,7 +150,7 @@ namespace ALWTTT.Characters.Audience
             switch (action.ActionTargetType)
             {
                 case ActionTargetType.Self:
-                    return this;
+                    return new List<CharacterBase>() { this };
 
                 case ActionTargetType.Musician:
                 // Target the “front-most” visible enemy musician by your rules? 
@@ -157,13 +160,14 @@ namespace ALWTTT.Characters.Audience
                     if (list.Count == 0) return null;
 
                     // Example heuristic: lowest current Stress (focus the least stressed)
+                    // TODO: Configurable heuristics
                     MusicianBase best = null;
                     foreach (var m in list)
                     {
                         if (best == null || m.MusicianStats.CurrentStress < best.MusicianStats.CurrentStress)
                             best = m;
                     }
-                    return best;
+                    return new List<CharacterBase>() { best };
                 }
 
                 case ActionTargetType.RandomMusician:
@@ -171,13 +175,13 @@ namespace ALWTTT.Characters.Audience
                     var list = gm.CurrentMusicianCharacterList;
                     if (list.Count == 0) return null;
                     var index = Random.Range(0, list.Count);
-                    return list[index];
+                    return new List<CharacterBase>() { list[index] };
                 }
 
                 case ActionTargetType.AllMusicians:
                     // For multi-target actions you’ll likely loop outside, but the action system
                     // expects a single CharacterBase. Return self (the processor can read ctx).
-                    return this;
+                    return new List<CharacterBase>(gm.CurrentMusicianCharacterList);
 
                 case ActionTargetType.AudienceCharacter:
                 // Pick lowest-Vibe ally (excluding self), fallback to self
@@ -189,20 +193,20 @@ namespace ALWTTT.Characters.Audience
                         if (best == null || a.AudienceStats.CurrentVibe < best.AudienceStats.CurrentVibe)
                             best = a;
                     }
-                    return best ?? this;
+                    return new List<CharacterBase>() { best };
                 }
 
                 case ActionTargetType.RandomAudienceCharacter:
                 {
                     var list = gm.CurrentAudienceCharacterList;
-                    if (list.Count == 0) return this;
+                    if (list.Count == 0) return new List<CharacterBase>() { this };
                     var index = Random.Range(0, list.Count);
-                    return list[index];
+                    return new List<CharacterBase>() { list[index] };
                 }
 
                 case ActionTargetType.AllAudienceCharacters:
                 // Same note as AllAllies: your action impl can fan out via context.
-                return null;
+                return new List<CharacterBase>(gm.CurrentAudienceCharacterList);
 
                 default:
                 // Safe fallback for unhandled cases
