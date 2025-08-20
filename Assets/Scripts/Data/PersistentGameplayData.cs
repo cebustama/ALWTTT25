@@ -29,6 +29,7 @@ namespace ALWTTT.Data
         [SerializeField] private bool keepGrooveBetweenTurns;
         [SerializeField] private SongData currentSong;
         [SerializeField] private int currentSongIndex;
+        [SerializeField] private List<CardData> songModifierCardsList;
 
         // Sector Info
         [SerializeField] private int currentSectorId;
@@ -147,6 +148,12 @@ namespace ALWTTT.Data
             get => currentSongIndex;
             set => currentSongIndex = value;
         }
+
+        public List<CardData> SongModifierCardsList
+        {
+            get => songModifierCardsList;
+            set => songModifierCardsList = value;
+        }
         #endregion
 
         public PersistentGameplayData(GameplayData gameplayData)
@@ -174,6 +181,7 @@ namespace ALWTTT.Data
             CurrentCardsList = new List<CardData>();
             CurrentSongList = gameplayData.InitialSongList;
             CurrentSongIndex = 0;
+            SongModifierCardsList = new List<CardData>();
 
             CurrentSectorId = 0;
             CurrentEncounterId = 0;

@@ -77,8 +77,18 @@ namespace ALWTTT
         {
             if (!IsPlayable) return;
 
-            StartCoroutine(CardUseRoutine(bandCharacter, audienceCharacter, 
-                allAudienceCharacters, allBandCharacters));
+            if (CardData.CardType == CardType.SFX)
+            {
+                GameManager.PersistentGameplayData.SongModifierCardsList.Add(CardData);
+                SpendGroove(CardData.GrooveCost);
+                GenerateGroove(CardData.GrooveGenerated);
+                DeckManager.OnCardPlayed(this);
+            }
+            else
+            {
+                StartCoroutine(CardUseRoutine(bandCharacter, audienceCharacter,
+                    allAudienceCharacters, allBandCharacters));
+            }
         }
 
         public virtual void UpdateDescription(MusicianBase musician)

@@ -228,6 +228,7 @@ namespace ALWTTT.Managers
                 case GigPhase.PlayerTurn:
 
                     OnPlayerTurnStarted?.Invoke();
+                    GameManager.PersistentGameplayData.SongModifierCardsList.Clear();
 
                     // TODO: Stunned
 
@@ -272,7 +273,17 @@ namespace ALWTTT.Managers
 
         private IEnumerator SongPerformanceRoutine()
         {
-            // TODO: Play song using MidiGenPlay
+            // Activate SFX cards
+            foreach (var smCard in 
+                GameManager.PersistentGameplayData.SongModifierCardsList)
+            {
+                if (smCard.CardType == CardType.SFX)
+                {
+                    // TODO: Generalize
+                    backgroundContainer.ActivateSFX("lights");
+                }
+            }
+
             var song = GameManager.PersistentGameplayData.CurrentSong;
 
             playedSongs.Add(song);
@@ -290,6 +301,14 @@ namespace ALWTTT.Managers
             var reactionDuration = 5f;
 
             Debug.Log("Audience Reaction");
+
+            // TODO: Apply equipped SongModifier Effects
+            foreach (var smCard in
+                GameManager.PersistentGameplayData.SongModifierCardsList)
+            { 
+                
+            }
+
             foreach (var ac in CurrentAudienceCharacterList)
             {
                 ac.AudienceStats.ApplySongVibe(song, reactionDuration);

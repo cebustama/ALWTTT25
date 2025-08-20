@@ -12,14 +12,21 @@ namespace ALWTTT.Backgrounds
 
         private GigManager GigManager => GigManager.Instance;
 
+        private BackgroundRoot CurrentBackground { get; set; }
+
         public void OpenSelectedBackground()
         {
             var encounter = GigManager.CurrentGigEncounter;
             if (encounter != null)
             {
                 foreach (var backgroundRoot in BackgroundRootList)
-                    backgroundRoot.gameObject.SetActive(
-                        encounter.TargetVenueType == backgroundRoot.VenueType);
+                {
+                    if (encounter.TargetVenueType == backgroundRoot.VenueType)
+                    {
+                        backgroundRoot.gameObject.SetActive(true);
+                        CurrentBackground = backgroundRoot;
+                    }
+                }
             }
             else
             {
@@ -34,6 +41,12 @@ namespace ALWTTT.Backgrounds
             {
                 root.SetBPM(bpm);
             }
+        }
+
+        public void ActivateSFX(string sfxTag)
+        {
+            // TODO get each SFX according to tag
+            CurrentBackground.SetLights(true);
         }
     }
 }
