@@ -1,9 +1,8 @@
-using ALWTTT.Actions;
 using ALWTTT.Enums;
 using ALWTTT.Managers;
 using UnityEngine;
 
-namespace ALWTTT.Cards.Actions 
+namespace ALWTTT.Actions 
 {
     public class AddStressAction : CharacterActionBase
     {

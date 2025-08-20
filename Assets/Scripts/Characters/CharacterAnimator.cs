@@ -42,6 +42,37 @@ namespace ALWTTT.Characters
         private int animBeatCounter = 0;
         private float nextAnimBeatTime;
 
+        // Public 
+        public int SkipEveryNBeats
+        {
+            get => skipEveryNBeats;
+            set => skipEveryNBeats = value;
+        }
+
+        public float BeatOffsetBeats
+        {
+            get => beatOffsetBeats;
+            set => beatOffsetBeats = value;
+        }
+
+        public bool JumpOnBeat
+        {
+            get => jumpOnBeat;
+            set => jumpOnBeat = value;
+        }
+
+        public bool RotateOnBeat
+        {
+            get => rotateOnBeat;
+            set => rotateOnBeat = value;
+        }
+
+        public bool EmitOnBeat
+        {
+            get => emitoOnBeat;
+            set => emitoOnBeat = value;
+        }
+
         private void Awake()
         {
             if (jumpRoot == null)

@@ -171,6 +171,7 @@ namespace ALWTTT.Managers
                 );
 
                 clone.BuildCharacter();
+                clone.ColumnIndex = Mathf.Min(i, AudienceMemberPosList.Count - 1);
                 CurrentAudienceCharacterList.Add(clone);
             }
         }
@@ -191,19 +192,19 @@ namespace ALWTTT.Managers
                 case ActionTargetType.AudienceCharacter:
 
                     break;
-                case ActionTargetType.Ally:
+                case ActionTargetType.Musician:
 
                     break;
                 case ActionTargetType.AllAudienceCharacters:
 
                     break;
-                case ActionTargetType.AllAllies:
+                case ActionTargetType.AllMusicians:
 
                     break;
                 case ActionTargetType.RandomAudienceCharacter:
 
                     break;
-                case ActionTargetType.RandomAlly:
+                case ActionTargetType.RandomMusician:
 
                     break;
             }
@@ -290,6 +291,18 @@ namespace ALWTTT.Managers
             UIManager.GigCanvas.FillSongDropdown(playedSongs);
             backgroundContainer.SetBPM(song.BPM);
 
+            // TODO: Playing Musician Animator Settings
+            foreach (var musician in CurrentMusicianCharacterList)
+            {
+                musician.CharacterAnimator.SetBPM(song.BPM);
+                musician.CharacterAnimator.SkipEveryNBeats = 1;
+                musician.CharacterAnimator.BeatOffsetBeats = 
+                    UnityEngine.Random.Range(0f, 0.15f);
+                musician.CharacterAnimator.JumpOnBeat = true;
+                musician.CharacterAnimator.RotateOnBeat = false;
+                musician.CharacterAnimator.EmitOnBeat = true;
+            }
+
             var songDuration = MidiMusicManager.Play(song);
 
             Debug.Log($"Playing {song.SongTitle} for {songDuration}[s]");
@@ -297,6 +310,16 @@ namespace ALWTTT.Managers
             yield return new WaitForSeconds(songDuration);
 
             backgroundContainer.SetBPM(0);
+            foreach (var musician in CurrentMusicianCharacterList)
+            {
+                musician.CharacterAnimator.SetBPM(120);
+                musician.CharacterAnimator.SkipEveryNBeats = 2;
+                musician.CharacterAnimator.BeatOffsetBeats = 
+                    UnityEngine.Random.Range(0.45f, 0.55f);
+                musician.CharacterAnimator.JumpOnBeat = false;
+                musician.CharacterAnimator.RotateOnBeat = true;
+                musician.CharacterAnimator.EmitOnBeat = false;
+            }
 
             var reactionDuration = 5f;
 
@@ -311,6 +334,7 @@ namespace ALWTTT.Managers
 
             foreach (var ac in CurrentAudienceCharacterList)
             {
+                if (ac.IsBlocked) continue; // No vibe for Blocked characters
                 ac.AudienceStats.ApplySongVibe(song, reactionDuration);
             }
 
@@ -384,6 +408,32 @@ namespace ALWTTT.Managers
                 UIManager.RewardCanvas.gameObject.SetActive(true);
                 UIManager.RewardCanvas.PrepareCanvas();
                 UIManager.RewardCanvas.BuildReward(RewardType.Card);
+            }
+        }
+
+        // TODO: Call
+        public void RecalculateAudienceObstructions()
+        {
+            // Clear all
+            foreach (var c in CurrentAudienceCharacterList) c.IsBlocked = false;
+
+            for (int i = 0; i < CurrentAudienceCharacterList.Count; i++)
+            {
+                var member = CurrentAudienceCharacterList[i];
+                if (member.IsTall)
+                {
+                    // Block all non-tall audience members behind tall one
+                    for (int j = i + 1; j < CurrentAudienceCharacterList.Count; j++)
+                    {
+                        var otherMember = CurrentAudienceCharacterList[j];
+                        if (!otherMember.IsTall)
+                        {
+                            otherMember.IsBlocked = true;
+                        }
+                    }
+
+                    break;
+                }
             }
         }
     }

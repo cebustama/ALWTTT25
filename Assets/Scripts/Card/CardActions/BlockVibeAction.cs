@@ -3,7 +3,7 @@ using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using UnityEngine;
 
-namespace ALWTTT.Cards.Actions
+namespace ALWTTT.Actions
 {
     public class BlockVibeAction : CharacterActionBase
     {

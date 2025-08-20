@@ -60,6 +60,7 @@ MonoBehaviour:
   characterLayerMask:
     serializedVersion: 2
     m_Bits: 128
+  characterAnimator: {fileID: 8876883093181404695}
   bandCharacterCanvas: {fileID: 4399159240658199444}
   musicianCharacterData: {fileID: 11400000, guid: 162ca2d9fe6886742aa04e892ddd5edf, type: 2}
   musicianParticleSystem: {fileID: 8908798543092447923}

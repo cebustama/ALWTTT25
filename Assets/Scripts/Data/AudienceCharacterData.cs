@@ -22,6 +22,7 @@ namespace ALWTTT.Data
         [SerializeField] private AudienceCharacterBase characterPrefab;
 
         [Header("Abilities")]
+        [SerializeField] private bool isTall; // TODO Generalize
         [SerializeField] private List<AudienceAbilityData> abilityList;
         [SerializeField] private bool followAbilityPattern;
 
@@ -30,6 +31,7 @@ namespace ALWTTT.Data
         public AudienceCharacterBase CharacterPrefab => characterPrefab;
         public int MaxVibe => maxVibe;
         public List<AudienceAbilityData> AbilityList => abilityList;
+        public bool IsTall => isTall;
         #endregion
 
         public AudienceAbilityData GetAbility()

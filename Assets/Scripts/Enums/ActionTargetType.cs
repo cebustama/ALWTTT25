@@ -3,10 +3,11 @@ namespace ALWTTT.Enums
     public enum ActionTargetType
     {
         AudienceCharacter,
-        Ally,
+        Musician,
         AllAudienceCharacters,
-        AllAllies,
+        AllMusicians,
         RandomAudienceCharacter,
-        RandomAlly
+        RandomMusician,
+        Self
     }
 }

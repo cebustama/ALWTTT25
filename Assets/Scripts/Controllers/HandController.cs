@@ -444,9 +444,9 @@ namespace ALWTTT
                         character.GetCharacterType() == CharacterType.Audience);
 
                     var checkAlly =
-                        ((firstActionTargetType == ActionTargetType.Ally ||
-                        firstActionTargetType == ActionTargetType.AllAllies ||
-                        firstActionTargetType == ActionTargetType.RandomAlly) 
+                        ((firstActionTargetType == ActionTargetType.Musician ||
+                        firstActionTargetType == ActionTargetType.AllMusicians ||
+                        firstActionTargetType == ActionTargetType.RandomMusician) 
                         &&
                         character.GetCharacterType() == CharacterType.Musician);
 

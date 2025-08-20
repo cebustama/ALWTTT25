@@ -20,12 +20,14 @@ namespace ALWTTT.Characters
         // TODO: Connect with Abilities instead
         [SerializeField] protected Transform speechBubblePrefab;
         [SerializeField] protected LayerMask characterLayerMask;
+        [SerializeField] protected CharacterAnimator characterAnimator;
 
         #region Encapsulation
         public CharacterType CharacterType => characterType;
         public Transform TextSpawnRoot => textSpawnRoot;
         public Transform HeadRoot => headRoot;
         public SpriteRenderer SpriteRenderer => spriteRenderer;
+        public CharacterAnimator CharacterAnimator => characterAnimator;
         #endregion
 
         #region Cache

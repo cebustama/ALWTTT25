@@ -222,14 +222,14 @@ namespace ALWTTT
                 case ActionTargetType.AudienceCharacter:
                     targetList.Add(targetCharacter);
                     break;
-                case ActionTargetType.Ally:
+                case ActionTargetType.Musician:
                     targetList.Add(targetCharacter);
                     break;
                 case ActionTargetType.AllAudienceCharacters:
                     foreach (var enemyBase in allAudienceCharacters)
                         targetList.Add(enemyBase);
                     break;
-                case ActionTargetType.AllAllies:
+                case ActionTargetType.AllMusicians:
                     foreach (var allyBase in allBandCharacters)
                         targetList.Add(allyBase);
                     break;
@@ -238,7 +238,7 @@ namespace ALWTTT
                         targetList.Add(allAudienceCharacters.RandomItem());
 
                     break;
-                case ActionTargetType.RandomAlly:
+                case ActionTargetType.RandomMusician:
                     if (allBandCharacters.Count > 0)
                         targetList.Add(allBandCharacters.RandomItem());
                     break;

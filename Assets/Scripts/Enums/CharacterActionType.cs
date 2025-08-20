@@ -15,6 +15,8 @@ namespace ALWTTT.Enums
         AddHooked,
         AddHeckled,
         AddStun,
-        AddDazzled
+        AddDazzled,
+        // Other (movement, etc)
+        MoveToFront
     }
 }
