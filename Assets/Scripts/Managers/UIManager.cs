@@ -1,3 +1,4 @@
+using ALWTTT.Encounters;
 using ALWTTT.UI;
 using UnityEngine;
 
@@ -15,6 +16,7 @@ namespace ALWTTT.Managers
 
         public GigCanvas GigCanvas => gigCanvas;
         public RewardCanvas RewardCanvas => rewardCanvas;
+        public GameManager GameManager => GameManager.Instance;
         #endregion
 
         private void Awake()
@@ -34,6 +36,13 @@ namespace ALWTTT.Managers
         private void Start()
         {
             GigCanvas.FillSongDropdown();
+        }
+
+        public void SetupEncounterUI(GigEncounter encounter)
+        {
+            Debug.Log($"<color=green>HERE {encounter.NumberOfSongs}</color>");
+            GigCanvas.SetupSongIcons(encounter.NumberOfSongs);
+            GigCanvas.SetCurrentSongIndex(0);
         }
     }
 }

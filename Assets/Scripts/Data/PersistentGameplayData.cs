@@ -1,4 +1,5 @@
 using ALWTTT.Characters.Band;
+using ALWTTT.Encounters;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,10 +28,12 @@ namespace ALWTTT.Data
         [SerializeField] private bool discardHandBetweenTurns;
         [SerializeField] private bool keepGrooveBetweenTurns;
         [SerializeField] private SongData currentSong;
+        [SerializeField] private int currentSongIndex;
 
         // Sector Info
         [SerializeField] private int currentSectorId;
         [SerializeField] private int currentEncounterId;
+        [SerializeField] private GigEncounter currentEncounter;
         [SerializeField] private bool isFinalEncounter;
 
         #region Encapsulation
@@ -132,6 +135,18 @@ namespace ALWTTT.Data
             get => currentSong;
             set => currentSong = value;
         }
+
+        public GigEncounter CurrentEncounter
+        {
+            get => currentEncounter;
+            set => currentEncounter = value;
+        }
+
+        public int CurrentSongIndex
+        {
+            get => currentSongIndex;
+            set => currentSongIndex = value;
+        }
         #endregion
 
         public PersistentGameplayData(GameplayData gameplayData)
@@ -158,6 +173,7 @@ namespace ALWTTT.Data
             isRandomDeck = gameplayData.IsRandomDeck;
             CurrentCardsList = new List<CardData>();
             CurrentSongList = gameplayData.InitialSongList;
+            CurrentSongIndex = 0;
 
             CurrentSectorId = 0;
             CurrentEncounterId = 0;

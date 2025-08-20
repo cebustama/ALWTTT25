@@ -31,6 +31,12 @@ namespace ALWTTT.UI
         [SerializeField] private GameObject winPanel;
         [SerializeField] private GameObject losePanel;
 
+        [Header("References")]
+        [SerializeField] private GameObject songIconPrefab;
+        [SerializeField] private Transform songIconRoot;
+
+        private List<Image> songIconImageList;
+
         private readonly List<SongData> filteredSongs = new List<SongData>();
 
         public GameObject WinPanel => winPanel;
@@ -54,6 +60,29 @@ namespace ALWTTT.UI
             GigManager.OnPlayerTurnStarted -= ShowBandTurnUI;
             GigManager.OnSongPerformanceStarted -= ShowSongPerformanceUI;
             GigManager.OnEnemyTurnStarted -= ShowAudienceTurnUI;
+        }
+
+        public void SetupSongIcons(int numSongs)
+        {
+            songIconImageList = new List<Image>();
+            for (int i = 0; i < numSongs; i++)
+            {
+                var icon = Instantiate(songIconPrefab, songIconRoot);
+                songIconImageList.Add(icon.GetComponent<Image>());
+            }
+        }
+
+        public void SetCurrentSongIndex(int index)
+        {
+            int i = 0;
+            foreach (var image in songIconImageList)
+            {
+                if (i < index) image.color = Color.red;
+                else if (i == index) image.color = Color.yellow;
+                else image.color = Color.white;
+
+                i++;
+            }
         }
 
         public void FillSongDropdown(List<SongData> playedSongs = null)
@@ -130,6 +159,8 @@ namespace ALWTTT.UI
 
         public void ShowBandTurnUI()
         {
+            SetCurrentSongIndex(GameManager.PersistentGameplayData.CurrentSongIndex);
+
             bandTurnUI.SetActive(true);
             songPerfomanceUI.SetActive(false);
         }

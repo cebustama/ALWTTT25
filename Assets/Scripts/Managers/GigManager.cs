@@ -120,6 +120,10 @@ namespace ALWTTT.Managers
                 GameManager.PersistentGameplayData.CurrentEncounterId,
                 GameManager.PersistentGameplayData.IsFinalEncounter
             );
+
+            GameManager.PersistentGameplayData.CurrentEncounter = CurrentGigEncounter;
+
+            UIManager.SetupEncounterUI(CurrentGigEncounter);
         }
 
         private void BuildBackground()
@@ -239,6 +243,8 @@ namespace ALWTTT.Managers
                 case GigPhase.SongPerformance:
 
                     OnSongPerformanceStarted?.Invoke();
+
+                    GameManager.PersistentGameplayData.CurrentSongIndex++;
 
                     if (GameManager.PersistentGameplayData.DiscardHandBetweenTurns)
                     {
