@@ -16,15 +16,7 @@ namespace ALWTTT.Actions
             if (!actionParameters.TargetCharacter) return;
 
             var performerCharacter = actionParameters.PerformerCharacter;
-
-            var targetCharacter = 
-                actionParameters.PerformerCharacter as AudienceCharacterBase;
-
-            if (targetCharacter.IsBlocked)
-            {
-                Debug.Log("VIBE BLOCKED!");
-                return;
-            }
+            var targetCharacter = actionParameters.TargetCharacter;
 
             Debug.Log($"[{ActionName}] Target: " + targetCharacter);
             Debug.Log($"[{ActionName}] Stats: {targetCharacter.AudienceStats.ToString()}");

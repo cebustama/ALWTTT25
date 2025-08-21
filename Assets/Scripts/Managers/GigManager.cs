@@ -172,6 +172,9 @@ namespace ALWTTT.Managers
 
                 clone.BuildCharacter();
                 clone.ColumnIndex = Mathf.Min(i, AudienceMemberPosList.Count - 1);
+
+                if (clone.IsTall) clone.AudienceStats.ApplyStatus(StatusType.Tall, 1);
+
                 CurrentAudienceCharacterList.Add(clone);
             }
 

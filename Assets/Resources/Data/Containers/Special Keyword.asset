@@ -25,3 +25,11 @@ MonoBehaviour:
     contentText: Adds Stress each turn.
   - specialKeyword: 3
     contentText: Adds Vibe each turn.
+  - specialKeyword: 6
+    contentText: Inmune to Vibe while active.
+  - specialKeyword: 7
+    contentText: Cannot act.
+  - specialKeyword: 8
+    contentText: Is vibing with the music. Doesn't act anymore.
+  - specialKeyword: 9
+    contentText: Blocks the view of all non-tall character behind them.

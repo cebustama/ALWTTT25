@@ -9,7 +9,10 @@ namespace ALWTTT.Enums
         Stress, // Musician HP
         Vibe, // Audience Member HP
 
-
+        Blocked, // Inmune to Vibe
+        Stunned, // Cannot act
+        Convinced, // "defeated"
+        Tall, // Blocks characters behind
 
         Consume,
         Exhaust,

@@ -227,7 +227,11 @@ namespace ALWTTT
                     break;
                 case ActionTargetType.AllAudienceCharacters:
                     foreach (var enemyBase in allAudienceCharacters)
-                        targetList.Add(enemyBase);
+                    {
+                        if (!enemyBase.IsBlocked)
+                            targetList.Add(enemyBase);
+                    }
+                        
                     break;
                 case ActionTargetType.AllMusicians:
                     foreach (var allyBase in allBandCharacters)

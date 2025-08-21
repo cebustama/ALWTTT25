@@ -24,7 +24,25 @@ namespace ALWTTT.Characters.Audience
         public AudienceCharacterData AudienceCharacterData => audienceCharacterData;
         public AudienceCharacterCanvas AudienceCharacterCanvas => characterCanvas;
         public bool IsTall => AudienceCharacterData.IsTall;
-        public bool IsBlocked { get; set; }
+
+        private bool isBlocked;
+
+        public bool IsBlocked 
+        {
+            get => isBlocked;
+            set
+            {
+                if (SpriteRenderer != null)
+                    SpriteRenderer.color = value ? obscuredColor : Color.white;
+
+                if (value)
+                    stats.ApplyStatus(StatusType.Blocked, 1);
+                else
+                    stats.ClearStatus(StatusType.Blocked);
+
+                isBlocked = value;
+            }
+        }
         public int ColumnIndex { get; set; }
 
         public string CharacterId =>
@@ -83,7 +101,7 @@ namespace ALWTTT.Characters.Audience
             AudienceCharacterCanvas.IntentImage.sprite = NextAbility.Intention.IntentionSprite;
             AudienceCharacterCanvas.NextAbility = NextAbility;
 
-            if (NextAbility.HideActionValue)
+            if (NextAbility.HideActionValue || NextAbility.ActionList[0].ActionValue == 0)
             {
                 AudienceCharacterCanvas.NextActionValueText.gameObject.SetActive(false);
             }

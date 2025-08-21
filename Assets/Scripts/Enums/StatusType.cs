@@ -14,6 +14,9 @@ namespace ALWTTT.Enums
         Heckled = 6, // Added to Block,,
         Shaken = 7,
         Dazzled = 8,
-        Dexterity = 9
+        Dexterity = 9,
+        Blocked = 10,
+        Convinced = 11,
+        Tall = 12
     }
 }

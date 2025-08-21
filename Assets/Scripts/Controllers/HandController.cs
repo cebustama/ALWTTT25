@@ -341,7 +341,7 @@ namespace ALWTTT
                 var musician = IsOverMusician(mousePos);
                 if (musician != null)
                 {
-                    Debug.Log(musician.MusicianCharacterData.CharacterName);
+                    //Debug.Log(musician.MusicianCharacterData.CharacterName);
                 }
                 
                 heldCard.UpdateDescription(musician);

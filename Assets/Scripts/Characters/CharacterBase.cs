@@ -17,6 +17,7 @@ namespace ALWTTT.Characters
         [SerializeField] private Transform textSpawnRoot;
         [SerializeField] private Transform headRoot;
         [SerializeField] private SpriteRenderer spriteRenderer;
+        [SerializeField] protected Color obscuredColor;
         // TODO: Connect with Abilities instead
         [SerializeField] protected Transform speechBubblePrefab;
         [SerializeField] protected LayerMask characterLayerMask;

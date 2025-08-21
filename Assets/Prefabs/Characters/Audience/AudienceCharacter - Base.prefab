@@ -236,6 +236,7 @@ MonoBehaviour:
   textSpawnRoot: {fileID: 5592515904517901560}
   headRoot: {fileID: 3046897531401015989}
   spriteRenderer: {fileID: 6214814892290893219}
+  obscuredColor: {r: 0.49411765, g: 0.49411765, b: 0.49411765, a: 1}
   speechBubblePrefab: {fileID: 4837711926867269552, guid: 3e067e2f4964d5249a1fa30f4f464bb4, type: 3}
   characterLayerMask:
     serializedVersion: 2

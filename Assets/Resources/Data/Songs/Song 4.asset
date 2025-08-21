@@ -19,3 +19,21 @@ MonoBehaviour:
   complexity: 1
   popularity: 1
   status: 0
+  genProfile:
+    seed: 0
+    parts:
+    - name: A
+      tonality: 1
+      rootNote: 8
+      tempoRange: 4
+      timeSignature: 6
+      measures: 2
+    - name: B
+      tonality: 0
+      rootNote: 7
+      tempoRange: 4
+      timeSignature: 6
+      measures: 2
+    structure: 0100000002000000
+  duration: 5
+  bpm: 80
