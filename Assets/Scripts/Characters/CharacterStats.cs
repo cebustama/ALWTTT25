@@ -47,13 +47,15 @@ namespace ALWTTT.Characters
 
             statusDict[StatusType.Strength].CanNegativeStack = true;
 
-            statusDict[StatusType.Stun].DecreaseOverTurn = true;
-            statusDict[StatusType.Stun].OnTriggerAction += CheckStunStatus;
+            statusDict[StatusType.Breakdown].ClearAtNextTurn = true;
+            statusDict[StatusType.Breakdown].OnTriggerAction += CheckStunStatus;
         }
 
         public virtual void TriggerAllStatus()
         {
             Debug.Log("Triggering All Status.");
+
+            var wasStunned = statusDict.ContainsKey(StatusType.Breakdown);
 
             for (int i = 0; i < Enum.GetNames(typeof(StatusType)).Length; i++)
                 TriggerStatus((StatusType)i);
@@ -105,6 +107,8 @@ namespace ALWTTT.Characters
 
         public virtual void ClearStatus(StatusType targetStatus)
         {
+            if (!statusDict.ContainsKey(targetStatus)) return;
+
             statusDict[targetStatus].IsActive = false;
             statusDict[targetStatus].StatusValue = 0;
             OnStatusCleared?.Invoke(targetStatus);

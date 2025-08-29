@@ -5,6 +5,7 @@ namespace ALWTTT.Interfaces
 {
     public interface IAudienceStats : ICharacterStats
     {
+        bool IsConvinced { get; }
         int CurrentVibe { get; }
         int MaxVibe { get; }
         void AddVibe(int amount, float duration = 2f);

@@ -1,7 +1,9 @@
 using ALWTTT.Actions;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Enums;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace ALWTTT.Actions
 {
@@ -24,6 +26,33 @@ namespace ALWTTT.Actions
             if (targetCharacter.AudienceStats is { } audienceStats)
             {
                 int vibeToAdd = Mathf.RoundToInt(actionParameters.Value);
+
+                if (actionParameters.Context is CardActionContext cardCtx
+                    && performerCharacter.MusicianStats is { } musicianStats)
+                {
+                    switch (cardCtx.CardData.CardType)
+                    {
+                        case CardType.CHR:
+                            vibeToAdd = 
+                                Mathf.RoundToInt(
+                                    musicianStats.Charm * actionParameters.Value);
+                            break;
+                        case CardType.TCH:
+                            vibeToAdd = 
+                                Mathf.RoundToInt(
+                                    musicianStats.Technique * actionParameters.Value);
+                            break;
+                        case CardType.EMT:
+                            vibeToAdd = 
+                                Mathf.RoundToInt(
+                                    musicianStats.Emotion * actionParameters.Value);
+                            break;
+                        default:
+                            vibeToAdd = Mathf.RoundToInt(actionParameters.Value);
+                            break;
+                    }
+                }
+
                 audienceStats.AddVibe(vibeToAdd);
 
                 FxManager.PlayFx(targetCharacter.HeadRoot, FxType.ReceiveVibe);

@@ -233,6 +233,31 @@ namespace ALWTTT.Managers
                     break;
                 case GigPhase.PlayerTurn:
 
+                    if (GameManager.PersistentGameplayData.CurrentSongIndex >=
+                        GameManager.PersistentGameplayData.CurrentEncounter.NumberOfSongs)
+                    {
+                        bool win = true;
+                        foreach (var audienceCharacter in CurrentAudienceCharacterList)
+                        {
+                            if (!audienceCharacter.Stats.IsConvinced)
+                            {
+                                win = false;
+                                break;
+                            }
+                        }
+
+                        if (win)
+                        {
+                            WinGig();
+                        }
+                        else
+                        {
+                            LoseGig();
+                        }
+
+                        return;
+                    }
+
                     OnPlayerTurnStarted?.Invoke();
                     GameManager.PersistentGameplayData.SongModifierCardsList.Clear();
 
@@ -354,7 +379,7 @@ namespace ALWTTT.Managers
 
         private IEnumerator AudienceTurnRoutine()
         {
-            var waitDelay = new WaitForSeconds(0.1f);
+            var waitDelay = new WaitForSeconds(1f);
 
             // Snapshot so actions can reorder/destroy without breaking enumeration
             var turnOrder = 
@@ -367,6 +392,9 @@ namespace ALWTTT.Managers
 
                 if (!currentCharacter.gameObject.activeInHierarchy) 
                     continue; // or deactivated
+
+                if (currentCharacter.AudienceStats.IsConvinced) 
+                    continue; // already convinced
 
                 yield return currentCharacter.StartCoroutine(
                     nameof(AudienceCharacterSimple.ActionRoutine));
@@ -433,12 +461,15 @@ namespace ALWTTT.Managers
         public void RecalculateAudienceObstructions()
         {
             // Clear all
-            foreach (var c in CurrentAudienceCharacterList) c.IsBlocked = false;
+            foreach (var c in CurrentAudienceCharacterList)
+            {
+                c.IsBlocked = false;
+            }
 
             for (int i = 0; i < CurrentAudienceCharacterList.Count; i++)
             {
                 var member = CurrentAudienceCharacterList[i];
-                if (member.IsTall)
+                if (member.IsTall && !member.Stats.IsConvinced)
                 {
                     // Block all non-tall audience members behind tall one
                     for (int j = i + 1; j < CurrentAudienceCharacterList.Count; j++)

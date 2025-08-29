@@ -1,6 +1,7 @@
 using ALWTTT.Data;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
+using ALWTTT.Enums;
 using System;
 using UnityEngine;
 
@@ -73,6 +74,8 @@ namespace ALWTTT.Characters.Band
         protected void OnBreakdown()
         {
             // TODO: "Stunned", cannot perform for one turn
+            stats.ApplyStatus(StatusType.Breakdown, 1);
+            IsStunned = true;
         }
 
         protected override void OnPointerEnter()

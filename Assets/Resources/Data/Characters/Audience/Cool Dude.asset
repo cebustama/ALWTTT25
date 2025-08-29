@@ -27,12 +27,4 @@ MonoBehaviour:
       actionTargetType: 6
       actionValue: 0
       actionDelay: 0
-  - abilityName: Insult
-    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
-    hideActionValue: 0
-    actionList:
-    - cardActionType: 3
-      actionTargetType: 5
-      actionValue: 5
-      actionDelay: 0
   followAbilityPattern: 0

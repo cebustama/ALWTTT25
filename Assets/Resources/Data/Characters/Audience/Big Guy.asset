@@ -17,6 +17,7 @@ MonoBehaviour:
   characterDescription: 
   maxVibe: 50
   characterPrefab: {fileID: 8137859568071339047, guid: 730d609a7ff00034f9beb9863123dda4, type: 3}
+  isTall: 0
   abilityList:
   - abilityName: Total Indiference
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
@@ -24,6 +25,6 @@ MonoBehaviour:
     actionList:
     - cardActionType: 3
       actionTargetType: 5
-      actionValue: 10
+      actionValue: 20
       actionDelay: 0
   followAbilityPattern: 0

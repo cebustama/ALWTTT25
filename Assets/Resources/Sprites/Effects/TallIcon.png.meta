@@ -1,13 +1,25 @@
 fileFormatVersion: 2
-guid: 8a30b141ae0bf0f4ba1b748f5aa2949b
+guid: 8173826f6f2812a4fa958f24682c6b8b
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5219159549644024381
-    second: convinced icon_0
+      213: -506581857594379576
+    second: TallIcon_0
   - first:
-      213: -5782331822327030148
-    second: convinced icon_1
+      213: 7289749522876120212
+    second: TallIcon_1
+  - first:
+      213: 2594583625591047716
+    second: TallIcon_2
+  - first:
+      213: -4777780482022033070
+    second: TallIcon_3
+  - first:
+      213: 8744177945151227311
+    second: TallIcon_4
+  - first:
+      213: 1712681368783149759
+    second: TallIcon_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -103,13 +115,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: convinced icon_0
+      name: TallIcon_1
       rect:
         serializedVersion: 2
-        x: 93
-        y: 145
-        width: 829
-        height: 752
+        x: 523
+        y: 787
+        width: 6
+        height: 6
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,8 +130,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d3aae9645fd2e6840800000000000000
-      internalID: 5219159549644024381
+      spriteID: 49cba9c71946a2560800000000000000
+      internalID: 7289749522876120212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TallIcon_3
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 75
+        width: 753
+        height: 868
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 259384227f9e1bdb0800000000000000
+      internalID: -4777780482022033070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TallIcon_4
+      rect:
+        serializedVersion: 2
+        x: 401
+        y: 634
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa54b81338f895970800000000000000
+      internalID: 8744177945151227311
       vertices: []
       indices: 
       edges: []
@@ -128,7 +184,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 2301ee5a3755e884a8247ae3b5e32377
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -138,7 +194,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      convinced icon_0: 5219159549644024381
+      TallIcon_0: -506581857594379576
+      TallIcon_1: 7289749522876120212
+      TallIcon_2: 2594583625591047716
+      TallIcon_3: -4777780482022033070
+      TallIcon_4: 8744177945151227311
+      TallIcon_5: 1712681368783149759
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

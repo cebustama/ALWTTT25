@@ -2,6 +2,7 @@
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -34,6 +35,8 @@ namespace ALWTTT.Characters
         #region Cache
         protected GigManager GigManager => GigManager.Instance;
         protected GameManager GameManager => GameManager.Instance;
+
+        public bool IsStunned { get; set; }
         #endregion
 
         private bool isPointerOver = false;
@@ -75,11 +78,6 @@ namespace ALWTTT.Characters
         public CharacterType GetCharacterType()
         {
             return CharacterType;
-        }
-
-        public void ApplyStatus(StatusType targetStatus, int value)
-        {
-
         }
 
         protected virtual void OnPointerEnter()

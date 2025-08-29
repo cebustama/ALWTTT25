@@ -430,6 +430,7 @@ namespace ALWTTT
             if (Physics.Raycast(mainRay, out hit, 1000, targetLayer))
             {
                 var character = hit.collider.gameObject.GetComponent<ICharacter>();
+                if (character.IsStunned) return false;
 
                 if (character != null)
                 {

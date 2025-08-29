@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: 3 - Warming Up (TCH)
+  m_Name: 5 - Singalong (SM)
   m_EditorClassIdentifier: 
-  id: 3
-  cardName: Warming Up
+  id: 5
+  cardName: Singalong
   phase: 0
   rarity: 0
   grooveCost: 0
   cardSprite: {fileID: 5529886436784579953, guid: ba71bde0a99fd3f4b8bdae50be6a733c, type: 3}
   grooveGenerated: 1
-  cardType: 1
+  cardType: 4
   usableWithoutTarget: 0
   exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList:
-  - cardActionType: 4
-    actionTargetType: 1
+  - cardActionType: 6
+    actionTargetType: 2
     actionValue: 2
     actionDelay: 0
   keywordsList: 05000000

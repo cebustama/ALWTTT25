@@ -73,6 +73,10 @@ namespace ALWTTT.Characters.Audience
             if (CurrentVibe >= MaxVibe && !IsConvinced)
             {
                 IsConvinced = true;
+
+                ApplyStatus(StatusType.Convinced, 1);
+                ClearStatus(StatusType.Tall);
+
                 OnConvinced?.Invoke();
             }
         }

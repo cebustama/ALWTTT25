@@ -18,6 +18,8 @@ namespace ALWTTT.Characters.Audience
 
         private AudienceCharacterStats stats;
         public override IAudienceStats AudienceStats => stats;
+        // TODO: Refactor
+        public AudienceCharacterStats Stats => stats;
 
         protected AudienceAbilityData NextAbility;
 
@@ -71,7 +73,13 @@ namespace ALWTTT.Characters.Audience
 
         protected void OnConvinced()
         {
+            GigManager.RecalculateAudienceObstructions();
+
             // TODO
+            characterAnimator.SetBPM(120);
+            characterAnimator.SkipEveryNBeats = 1;
+            characterAnimator.JumpOnBeat = true;
+            characterAnimator.RotateOnBeat = false;
         }
 
         public void Dispose()

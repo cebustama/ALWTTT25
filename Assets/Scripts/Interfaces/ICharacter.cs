@@ -8,6 +8,7 @@ namespace ALWTTT.Interfaces
     {
         public CharacterBase GetCharacterBase();
         public CharacterType GetCharacterType();
+        public bool IsStunned { get; }
     }
 }
 

@@ -25,6 +25,6 @@ MonoBehaviour:
     actionList:
     - cardActionType: 3
       actionTargetType: 5
-      actionValue: 5
+      actionValue: 10
       actionDelay: 0
   followAbilityPattern: 0
