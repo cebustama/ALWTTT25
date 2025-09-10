@@ -9,7 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 272d0fb2fa5f567479ce481e2e6b491c, type: 3}
-  m_Name: Reward Container
+  m_Script: {fileID: 11500000, guid: 932ec2bbb01fdea4f85ebbfa953af370, type: 3}
+  m_Name: Scene Data
   m_EditorClassIdentifier: 
-  cardRewardDataList: []
+  mainMenuSceneIndex: 0
+  sectorMapSceneIndex: 1
+  shipInteriorSceneIndex: 2
+  gigSceneIndex: 3

@@ -68,6 +68,12 @@ namespace ALWTTT.Managers
             if (clip)
                 sfxSource.PlayOneShot(clip);
         }
+
+        public void PlayOneShotButton(AudioClip clip)
+        {
+            if (clip)
+                buttonSource.PlayOneShot(clip);
+        }
         #endregion
     }
 }

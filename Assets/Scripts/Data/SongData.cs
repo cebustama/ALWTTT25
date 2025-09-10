@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static MidiGenPlay.MusicTheory;
+using static MidiGenPlay.MusicTheory.MusicTheory;
 
 namespace ALWTTT.Data
 {
@@ -330,7 +330,7 @@ namespace ALWTTT.Data
         {
             [Header("Musical Setup")]
             public string name = "Part A";
-            public Tonality tonality = Tonality.Major;
+            public Tonality tonality = Tonality.Ionian;
             public NoteName rootNote = NoteName.C;
             public TempoRange tempoRange = TempoRange.Fast;
             public TimeSignature timeSignature = TimeSignature.FourFour;

@@ -46,3 +46,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameplayData: {fileID: 11400000, guid: 99a47ad298ac6ff49bea86ff81cb4817, type: 2}
   encounterData: {fileID: 11400000, guid: 1098c793da6d377449797265d2baf045, type: 2}
+  sceneData: {fileID: 11400000, guid: 9766db104b4fa4f49b18f57893b1a001, type: 2}

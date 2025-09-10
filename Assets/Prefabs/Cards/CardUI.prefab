@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4638888607148807900}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: DescriptionRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -48,7 +48,7 @@ GameObject:
   - component: {fileID: 9198197029004949013}
   - component: {fileID: 4606184839413974192}
   - component: {fileID: 8946606932307944164}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: CardUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -71,10 +71,10 @@ RectTransform:
   - {fileID: 9069316942307147365}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.48739064, y: 0.475}
+  m_AnchorMax: {x: 0.526, y: 0.5713056}
+  m_AnchoredPosition: {x: 0, y: 0.5}
+  m_SizeDelta: {x: 0.0000019073486, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6327073093636879663
 CanvasRenderer:
@@ -98,11 +98,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   descriptionRoot: {fileID: 4638888607148807900}
   cardImage: {fileID: 5153641007469403891}
+  backgroundImage: {fileID: 0}
   passiveImage: {fileID: 0}
   nameTextField: {fileID: 8103016476528782798}
   descTextField: {fileID: 1941344470251713790}
   grooveCostTextField: {fileID: 7292270004405966764}
   grooveGenTextField: {fileID: 7028356461410207724}
+  typeTextField: {fileID: 0}
 --- !u!223 &4606184839413974192
 Canvas:
   m_ObjectHideFlags: 0
@@ -151,17 +153,57 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5661437344117720047}
     m_Modifications:
+    - target: {fileID: 777063758062377665, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1151020442647445675, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1599890761375743424, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 1651472762241934067, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 22.35
+      value: 6.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2167336853314628054, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2545762993214572675, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 2725634283359784976, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 27.35
+      value: 8.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 2839065570447896666, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3047643327912958978, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3095203519535484092, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3199168694923872801, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 3211857600033479564, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 2.1438599
+      objectReference: {fileID: 0}
+    - target: {fileID: 3632182856015839221, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4803746131701306207, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_LocalScale.x
@@ -255,25 +297,53 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4903610133464706835, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5031820201425035164, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 5174511590192790032, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_PresetInfoIsWorld
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5424354733780764083, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 5715593493086095648, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 34.9
+      value: 11.5
       objectReference: {fileID: 0}
     - target: {fileID: 5716483695520293257, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Name
       value: CardCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 5716483695520293257, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 6490029684621210434, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 49.2
+      value: 13.75
       objectReference: {fileID: 0}
     - target: {fileID: 6821778627196199682, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 24.55
+      value: 9.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 7430540641808822920, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8166581273373307091, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 9136210358182344601, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 5174511590192790032, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}

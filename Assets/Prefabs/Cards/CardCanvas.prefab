@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4110875956199999947}
   - component: {fileID: 1370008348004420262}
   - component: {fileID: 2725634283359784976}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8.95
+  m_fontSize: 8.75
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -147,7 +147,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4987935721891709266}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -172,7 +172,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0.0000023841858}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1599890761375743424
 GameObject:
@@ -186,7 +186,7 @@ GameObject:
   - component: {fileID: 2489395292941874978}
   - component: {fileID: 177641830416584567}
   - component: {fileID: 7551609639618137802}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mask
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -275,7 +275,7 @@ GameObject:
   - component: {fileID: 4310390678344351006}
   - component: {fileID: 587501749198574001}
   - component: {fileID: 6821778627196199682}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -356,7 +356,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 9.7
+  m_fontSize: 9.05
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -411,7 +411,7 @@ GameObject:
   - component: {fileID: 5643250098065003317}
   - component: {fileID: 1504566794627391609}
   - component: {fileID: 7190369425738459275}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Description
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -487,7 +487,7 @@ GameObject:
   - component: {fileID: 7879328984599855968}
   - component: {fileID: 1431874376920660258}
   - component: {fileID: 588846337623088783}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: BackImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -563,7 +563,7 @@ GameObject:
   - component: {fileID: 3106259814380924055}
   - component: {fileID: 559731525154098856}
   - component: {fileID: 8693924490248550941}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: CardImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -638,7 +638,7 @@ GameObject:
   - component: {fileID: 2588515273496934188}
   - component: {fileID: 4183658846920037516}
   - component: {fileID: 7831123478404381421}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Type
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -714,7 +714,7 @@ GameObject:
   - component: {fileID: 2631049225048012717}
   - component: {fileID: 5815936231745189604}
   - component: {fileID: 1446100947534590911}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GrooveCost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -790,7 +790,7 @@ GameObject:
   - component: {fileID: 4055601045325987347}
   - component: {fileID: 4294618420990682594}
   - component: {fileID: 5715593493086095648}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -871,7 +871,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 11.6
+  m_fontSize: 11.5
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -926,7 +926,7 @@ GameObject:
   - component: {fileID: 1119785016524583968}
   - component: {fileID: 727931607864345687}
   - component: {fileID: 1651472762241934067}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1007,7 +1007,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 7.3
+  m_fontSize: 6.25
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1060,7 +1060,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4803746131701306207}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1104,7 +1104,7 @@ GameObject:
   - component: {fileID: 3211857600033479564}
   - component: {fileID: 2700036076277429760}
   - component: {fileID: 4436750007464972954}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GrooveGenerated
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1181,7 +1181,7 @@ GameObject:
   - component: {fileID: 6189532910417313983}
   - component: {fileID: 5174511590192790032}
   - component: {fileID: 6562725121683492383}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: CardCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1282,7 +1282,7 @@ GameObject:
   - component: {fileID: 6057057012120939072}
   - component: {fileID: 6117598815995945427}
   - component: {fileID: 5948962936613864894}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Background Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1357,7 +1357,7 @@ GameObject:
   - component: {fileID: 8046460817482864467}
   - component: {fileID: 1770353525724395407}
   - component: {fileID: 6490029684621210434}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1438,7 +1438,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16.1
+  m_fontSize: 13.75
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1493,7 +1493,7 @@ GameObject:
   - component: {fileID: 7325699717007187050}
   - component: {fileID: 9202523003423146682}
   - component: {fileID: 1518338831343054875}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Name
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -15,13 +15,19 @@ namespace ALWTTT.Managers
         [Header("Settings")]
         [SerializeField] private GameplayData gameplayData;
         [SerializeField] private EncounterData encounterData;
+        [SerializeField] private SceneData sceneData;
 
+        #region Encapsultaion
         public GameplayData GameplayData => gameplayData;
         public EncounterData EncounterData => encounterData;
+        public SceneData SceneData => sceneData;
         public PersistentGameplayData PersistentGameplayData { get; private set; }
+        #endregion
 
+        #region Cache
         public UIManager UIManager => UIManager.Instance;
-        
+        #endregion
+
         private void Awake()
         {
             if (Instance)
@@ -45,6 +51,12 @@ namespace ALWTTT.Managers
         }
 
         #region Public Methods
+        public void InitGameplayData()
+        {
+            PersistentGameplayData = new PersistentGameplayData(gameplayData);
+            // TODO: UIManager.InformationCanvas.ResetCanvas();
+        }
+
         public void SetInitialDeck()
         {
             Debug.Log($"{DebugTag} Setting initial deck...");
@@ -76,13 +88,10 @@ namespace ALWTTT.Managers
             newCard.SetCard(targetData);
             return newCard;
         }
-        #endregion
 
-        #region Private Methods
-        private void InitGameplayData()
+        public void OnExitApp()
         {
-            PersistentGameplayData = new PersistentGameplayData(gameplayData);
-            // TODO: UIManager.InformationCanvas.ResetCanvas();
+
         }
         #endregion
     }
