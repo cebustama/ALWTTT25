@@ -14,6 +14,10 @@ namespace ALWTTT
         [SerializeField] private List<MusicianBase> initialMusicianList;
         [SerializeField] private List<SongData> initialSongList;
 
+        [Header("Map")]
+        [SerializeField] private int maxCohesion = 10;
+        [SerializeField] private int startingCohesion = 10; // Max by default
+
         [Header("Deck")]
         [SerializeField] private DeckData initialDeck;
 
@@ -43,6 +47,10 @@ namespace ALWTTT
         #region Encapsulation
         public List<MusicianBase> InitialMusicianList => initialMusicianList;
         public List<SongData> InitialSongList => initialSongList;
+
+        public int MaxCohesion => maxCohesion;
+        public int InitialCohesion => InitialCohesion;
+
         public int DrawCount => drawCount;
         public int MaxCardsOnHand => maxCardsOnHand;
         public int MaxGroove => maxGroove;

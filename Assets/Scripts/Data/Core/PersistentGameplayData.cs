@@ -37,6 +37,13 @@ namespace ALWTTT.Data
         [SerializeField] private GigEncounter currentEncounter;
         [SerializeField] private bool isFinalEncounter;
 
+        // --- Sector Map runtime state ---
+        [SerializeField] private SectorMapState currentSectorMapState;
+
+        // Global meta for SectorMap HUD (Fans/Level, Band Cohesion)
+        [SerializeField] private int fans;           // total Fans (XP equivalent)
+        [SerializeField] private int bandCohesion;   // if <= 0, Game Over
+
         #region Encapsulation
 
         public List<MusicianBase> MusicianList
@@ -154,6 +161,24 @@ namespace ALWTTT.Data
             get => songModifierCardsList;
             set => songModifierCardsList = value;
         }
+
+        public SectorMapState CurrentSectorMapState
+        {
+            get => currentSectorMapState;
+            set => currentSectorMapState = value;
+        }
+
+        public int Fans
+        {
+            get => fans;
+            set => fans = value;
+        }
+
+        public int BandCohesion
+        {
+            get => bandCohesion;
+            set => bandCohesion = value;
+        }
         #endregion
 
         public PersistentGameplayData(GameplayData gameplayData)
@@ -188,6 +213,10 @@ namespace ALWTTT.Data
             IsFinalEncounter = false;
 
             musicianHealthDataList = new List<MusicianHealthData>();
+
+            CurrentSectorMapState = null; // must be generated on first entry to SectorMap scene
+            Fans = 0;
+            BandCohesion = gameplayData.InitialCohesion;
         }
 
         public void SetMusicianHealthData(string id, int newCurrentStress, int newMaxStress)

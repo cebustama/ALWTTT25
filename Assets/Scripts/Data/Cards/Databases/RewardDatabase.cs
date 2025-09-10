@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ALWTTT.Data
 {
-    public class RewardDataBase : ScriptableObject
+    public class RewardDatabase : ScriptableObject
     {
         [SerializeField] private Sprite rewardSprite;
         [TextArea][SerializeField] private string rewardDescription;

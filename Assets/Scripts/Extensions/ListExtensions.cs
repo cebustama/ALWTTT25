@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ALWTTT.Extentions
 {
-    public static class ListExtentions
+    public static class ListExtensions
     {
         // TODO: Centralize random seed to all extensions? Use IRandomNumber interface?
         private static System.Random rng = new System.Random();

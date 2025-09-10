@@ -20,7 +20,7 @@ namespace ALWTTT.Data
             var selectedSector = EncounterSectorsList.First(x => x.SectorId == sectorId);
             if (isFinal) return selectedSector.BossGigEncounterList.RandomItem();
 
-            ListExtentions.SetSeed((int)(UnityEngine.Random.value * 1000));
+            ListExtensions.SetSeed((int)(UnityEngine.Random.value * 1000));
 
             return randomGigs ?
                 selectedSector.GigEncounterList.RandomItem() :
