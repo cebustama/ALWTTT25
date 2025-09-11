@@ -48,6 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sectorMapData: {fileID: 11400000, guid: c5df32823652850438fa534b4fe7be27, type: 2}
   mapVisual: {fileID: 9185249849059325743}
+  shipPrefab: {fileID: 6247200947144279854, guid: 1774cedad78664d40999545f4e673097, type: 3}
   fansText: {fileID: 2918207278421696635}
   cohesionText: {fileID: 6306499261879876656}
   stepMode: 0

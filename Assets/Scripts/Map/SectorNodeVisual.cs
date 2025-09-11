@@ -20,6 +20,8 @@ namespace ALWTTT.Map
         private string _tooltipDesc;
 
         public event Action<SectorNodeVisual> Clicked;
+        public event Action<SectorNodeVisual> HoverEnter;
+        public event Action<SectorNodeVisual> HoverExit;
 
         public void Bind(SectorNodeState node, Color color, 
             string title, string description, 
@@ -79,11 +81,13 @@ namespace ALWTTT.Map
                 cam: Camera.main,
                 delayShow: 0.15f
             );
+            HoverEnter?.Invoke(this);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             HideTooltipInfo(TooltipManager.Instance);
+            HoverExit?.Invoke(this);
         }
 
         public void OnPointerClick(PointerEventData eventData)

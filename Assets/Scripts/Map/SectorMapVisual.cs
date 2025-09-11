@@ -39,6 +39,8 @@ namespace ALWTTT.Map
         private SectorMapState _state;
         private readonly Dictionary<int, SectorNodeVisual> _nodeViews = new();
         private readonly List<SectorLinkVisual> _linkViews = new();
+        private readonly Dictionary<int, List<SectorLinkVisual>> _linksByNodeId = new();
+        private int? _previewNodeId = null;
 
         public System.Action<SectorNodeState> NodeClicked;
 
@@ -73,9 +75,13 @@ namespace ALWTTT.Map
                 view.Bind(node, GetColor(node.Type), title, desc, 0.5f);
                 view.SetVisited(node.Visited);
                 view.SetSelected(node.Id == _state.CurrentNodeId);
+
                 view.Clicked += OnNodeClicked;
+                view.HoverEnter += OnNodeHoverEnter;
+                view.HoverExit += OnNodeHoverExit;
 
                 _nodeViews[node.Id] = view;
+                _linksByNodeId[node.Id] = new List<SectorLinkVisual>();
             }
 
             // links
@@ -92,8 +98,15 @@ namespace ALWTTT.Map
                     var link = Instantiate(linkPrefab, linksRoot);
                     link.Bind(a, b, linkZ);
                     _linkViews.Add(link);
+
+                    _linksByNodeId[node.Id].Add(link);
+                    _linksByNodeId[otherId].Add(link);
                 }
             }
+
+            // Default view: only current node links visible
+            _previewNodeId = null;
+            ApplyLinkVisibility();
         }
 
         public void SyncNodeStates()
@@ -107,15 +120,23 @@ namespace ALWTTT.Map
                 view.SetVisited(node.Visited);
                 view.SetSelected(node.Id == _state.CurrentNodeId);
             }
+
+            // Keep link visibility consistent with the "current" selection
+            ApplyLinkVisibility();
         }
 
         public void Clear()
         {
             foreach (var v in _nodeViews.Values)
+            {
                 v.Clicked -= OnNodeClicked;
+                v.HoverEnter -= OnNodeHoverEnter;
+                v.HoverExit -= OnNodeHoverExit;
+            }
 
             _nodeViews.Clear();
             _linkViews.Clear();
+            _linksByNodeId.Clear();
 
             if (nodesRoot)
                 for (int i = nodesRoot.childCount - 1; i >= 0; i--)
@@ -124,6 +145,11 @@ namespace ALWTTT.Map
             if (linksRoot)
                 for (int i = linksRoot.childCount - 1; i >= 0; i--)
                     Destroy(linksRoot.GetChild(i).gameObject);
+        }
+
+        public Transform GetNodeTransform(int nodeId)
+        {
+            return _nodeViews.TryGetValue(nodeId, out var view) ? view.transform : null;
         }
         #endregion
 
@@ -138,6 +164,69 @@ namespace ALWTTT.Map
         {
             NodeClicked?.Invoke(visual.Node);
         }
+
+        private void OnNodeHoverEnter(SectorNodeVisual visual)
+        {
+            _previewNodeId = visual.Node.Id; // set preview
+            ApplyLinkVisibility();
+        }
+
+        private void OnNodeHoverExit(SectorNodeVisual visual)
+        {
+            _previewNodeId = null; // clear preview
+            ApplyLinkVisibility();
+        }
+
+        public void ShowLinksForCurrentOnly()
+        {
+            _previewNodeId = null;
+            ApplyLinkVisibility();
+        }
+
+        // --------- Link visibility control ---------
+
+        private void SetAllLinksVisible(bool visible, bool emphasize = false)
+        {
+            for (int i = 0; i < _linkViews.Count; i++)
+            {
+                _linkViews[i].SetVisible(visible);
+                _linkViews[i].SetEmphasis(emphasize && visible);
+            }
+        }
+
+        private void ApplyLinkVisibility()
+        {
+            // 1) hide all
+            for (int i = 0; i < _linkViews.Count; i++)
+            {
+                _linkViews[i].SetVisible(false);
+                _linkViews[i].SetEmphasis(false); // reset to base width when (re)shown
+            }
+
+            // 2) show preview (base width)
+            if (_previewNodeId.HasValue 
+                && _linksByNodeId.TryGetValue(_previewNodeId.Value, out var preview))
+            {
+                for (int i = 0; i < preview.Count; i++)
+                {
+                    preview[i].SetVisible(true);
+                    preview[i].SetEmphasis(false); // base width for hover preview
+                }
+            }
+
+            // 3) show current (emphasized) — always visible, even while hovering others
+            if (_state != null
+                && _linksByNodeId.TryGetValue(_state.CurrentNodeId, out var current))
+            {
+                for (int i = 0; i < current.Count; i++)
+                {
+                    current[i].SetVisible(true);
+                    current[i].SetEmphasis(true); // emphasized width for current
+                }
+            }
+        }
+
+        // ------ Helpers ------
 
         private Vector3 GridToWorld(Vector2 gridPos)
         {

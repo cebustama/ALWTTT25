@@ -19,17 +19,21 @@ namespace ALWTTT.Managers
         [Header("Visual Controller")]
         [SerializeField] private SectorMapVisual mapVisual;
 
+        [Header("Ship")]
+        [SerializeField] private ShipController shipPrefab;
+        private ShipController _ship;
+
         [Header("HUD (stats)")]
         [SerializeField] private TextMeshProUGUI fansText;
         [SerializeField] private TextMeshProUGUI cohesionText;
 
         [Header("HUD (debug / step-by-step)")]
-        [SerializeField] private bool stepMode = false;                     // toggle in Inspector
-        [SerializeField] private TextMeshProUGUI nodeCountText;             // "# Nodes = N"
-        [SerializeField] private TextMeshProUGUI linkCountText;             // "# Links = M"
-        [SerializeField] private TextMeshProUGUI stageNameText;             // "Stage: Name"
+        [SerializeField] private bool stepMode = false; // toggle in Inspector
+        [SerializeField] private TextMeshProUGUI nodeCountText; // "# Nodes = N"
+        [SerializeField] private TextMeshProUGUI linkCountText; // "# Links = M"
+        [SerializeField] private TextMeshProUGUI stageNameText; // "Stage: Name"
 
-        private SectorGraphStepper _stepper;                                // when stepMode is ON
+        private SectorGraphStepper _stepper;    // when stepMode is ON
         private GameManager GM => GameManager.Instance;
 
         private SectorMapState State
@@ -51,7 +55,7 @@ namespace ALWTTT.Managers
             {
                 // Normal “instant” generation
                 EnsureStateImmediate();
-                mapVisual.Render(State);
+                SafeRenderAndReattach();
                 mapVisual.NodeClicked += HandleNodeClicked;
                 RefreshHUD();
                 UpdateDebugOverlay("ready");
@@ -67,7 +71,7 @@ namespace ALWTTT.Managers
                 {
                     CreateStepper();
                     // Show initial (empty links) state right away
-                    mapVisual.Render(State);
+                    SafeRenderAndReattach();
                     mapVisual.NodeClicked += HandleNodeClicked;
                     UpdateDebugOverlay("ready");
                 }
@@ -84,7 +88,7 @@ namespace ALWTTT.Managers
                 {
                     var info = _stepper.Step();
                     // State object inside the stepper is the same reference we stored
-                    mapVisual.Render(State);
+                    SafeRenderAndReattach();
                     UpdateDebugOverlay(info.StageName);
                 }
                 else
@@ -99,7 +103,7 @@ namespace ALWTTT.Managers
                 if (!_stepper.IsDone)
                 {
                     _stepper.RunToEnd();
-                    mapVisual.Render(State);
+                    SafeRenderAndReattach();
                 }
                 UpdateDebugOverlay("(done)");
             }
@@ -109,14 +113,69 @@ namespace ALWTTT.Managers
             mapVisual.SyncNodeStates();
         }
 
+        private void SafeRenderAndReattach()
+        {
+            if (_ship) _ship.transform.SetParent(null, worldPositionStays: true);
+
+            mapVisual.Render(State);
+
+            EnsureShipAttachedToCurrentNode();
+
+            // Ensure link visibility reflects "current" after a render
+            mapVisual.ShowLinksForCurrentOnly();
+        }
+
+        private void EnsureShipAttachedToCurrentNode()
+        {
+            if (State == null) return;
+            var nodeT = mapVisual.GetNodeTransform(State.CurrentNodeId);
+            if (nodeT == null) return; // in early step stages nodes may not exist yet
+
+            if (_ship == null)
+            {
+                _ship = Instantiate(shipPrefab);
+            }
+
+            _ship.AttachTo(nodeT);
+        }
+
+        private void MoveShipToNode(int nodeId)
+        {
+            var nodeT = mapVisual.GetNodeTransform(nodeId);
+            if (nodeT && _ship) _ship.AttachTo(nodeT);
+        }
+
+
         private void HandleNodeClicked(SectorNodeState node)
         {
-            // Demo: select the clicked node and mark as visited
-            State.CurrentNodeId = node.Id;
-            node.Visited = true;
-            mapVisual.SyncNodeStates();
+            // Only allow moves to neighbors
+            if (!IsNeighbor(State.CurrentNodeId, node.Id))
+                return;
 
-            // Later: add rules (only allow traveling to neighbors, trigger scenes, etc.)
+            // Update state
+            var prev = State.GetNode(State.CurrentNodeId);
+            var next = node;
+
+            State.CurrentNodeId = next.Id;
+            next.Visited = true;
+
+            // Visual updates
+            mapVisual.SyncNodeStates();
+            mapVisual.ShowLinksForCurrentOnly();
+
+            // Move ship
+            MoveShipToNode(next.Id);
+
+            // TODO: trigger scene transitions based on node.Type if you want
+        }
+
+        private bool IsNeighbor(int fromId, int toId)
+        {
+            var n = State.GetNode(fromId);
+            if (n == null) return false;
+            for (int i = 0; i < n.Links.Count; i++)
+                if (n.Links[i] == toId) return true;
+            return false;
         }
 
         private void OnDestroy()
@@ -141,7 +200,7 @@ namespace ALWTTT.Managers
         {
             var gen = new SectorGraphGenerator();
             State = gen.Generate(GM.PersistentGameplayData.CurrentSectorId, sectorMapData, null);
-            mapVisual.Render(State);
+            SafeRenderAndReattach();
             RefreshHUD();
             UpdateDebugOverlay("done");
         }
@@ -155,7 +214,7 @@ namespace ALWTTT.Managers
 
             // IMPORTANT: Persist the new (empty) State reference so it’s visible across the app
             State = _stepper.Context.State;
-
+            SafeRenderAndReattach();
             RefreshHUD();
         }
 
