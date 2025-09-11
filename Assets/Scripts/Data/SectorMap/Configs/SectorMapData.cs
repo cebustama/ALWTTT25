@@ -1,4 +1,4 @@
-using ALWTTT.Enums;
+﻿using ALWTTT.Enums;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -49,6 +49,24 @@ namespace ALWTTT.Data
         [Tooltip("If true, the exit node is forced to be a Boss at a Star Relay.")]
         public bool forceBossOnExit = true;
 
+        [Header("Connectivity")]
+        [Tooltip("Guarantee the graph is a single connected component by bridging islands to the main component.")]
+        public bool enforceSingleComponent = true;
+
+        [Header("Smoothing (layout heuristics)")]
+        [Range(0f, 5f)]
+        [Tooltip("Bias to prefer small |ΔY| when building guaranteed forward paths. 0 = no bias, higher = smoother.")]
+        public float forwardVerticalBias = 1.25f;
+        [Range(0f, 5f)]
+        [Tooltip("Bias that reduces probability of random links with large |ΔY|. 0 = uniform, higher = penalize big jumps.")]
+        public float crossLinkVerticalBias = 1.0f;
+        [Range(0, 12)]
+        [Tooltip("Maximum degree (number of links) per node. 0 or lower disables the cap.")]
+        public int maxDegreePerNode = 4;
+        [Range(0f, 10f)]
+        [Tooltip("Hard limit: do not create random cross-links if |ΔY| exceeds this value. 0 disables.")]
+        public float maxCrossLinkDeltaY = 0f;
+
         [Header("Seed / reproducibility (optional)")]
         [Tooltip("If >= 0 this seed will be used; if -1 a random seed is used at runtime.")]
         public int fixedSeed = -1;
@@ -90,6 +108,11 @@ namespace ALWTTT.Data
                 r.max = Mathf.Max(r.min, r.max);
                 nodeCountRules[i] = r;
             }
+
+            forwardVerticalBias = Mathf.Max(0f, forwardVerticalBias);
+            crossLinkVerticalBias = Mathf.Max(0f, crossLinkVerticalBias);
+            maxDegreePerNode = Mathf.Max(0, maxDegreePerNode);
+            maxCrossLinkDeltaY = Mathf.Max(0f, maxCrossLinkDeltaY);
         }
 
         [Serializable]

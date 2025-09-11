@@ -12,6 +12,7 @@ namespace ALWTTT.Data
     public class SectorNodeState
     {
         [SerializeField] private int id;
+        [SerializeField] private int columnIndex;
         [SerializeField] private Vector2 position;  // UI-space position (logical grid + jitter)
         [SerializeField] private NodeType type;
         [SerializeField] private bool visited;
@@ -25,6 +26,7 @@ namespace ALWTTT.Data
 
         #region Encapsulation
         public int Id { get => id; set => id = value; }
+        public int ColumnIndex { get => columnIndex; set => columnIndex = value; }
         public Vector2 Position { get => position; set => position = value; }
         public NodeType Type { get => type; set => type = value; }
         public bool Visited { get => visited; set => visited = value; }
