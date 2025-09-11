@@ -32,7 +32,22 @@ namespace ALWTTT.Data
         [Tooltip("Target branching (heuristic, not a hard constraint).")]
         public Vector2Int branchesRange = new Vector2Int(2, 5);
 
-        [Header("Node-type counts")]
+        [Header("Node Type Data")]
+
+        // TODO: NodeTypeData ScriptableObject asset
+
+        [SerializeField]
+        private List<NodeTypeInfo> nodeTypeInfos = new()
+        {
+            new NodeTypeInfo(NodeType.Rehearsal,      "Rehearsal Day",   "Spend time composing, relaxing, or band talks."),
+            new NodeTypeInfo(NodeType.Gig,            "Gig",             "Play a show to earn cards and Fans."),
+            new NodeTypeInfo(NodeType.RandomEncounter,"Encounter",       "A story event with choices and distinct effects."),
+            new NodeTypeInfo(NodeType.Recruit,        "Recruit",         "Invite a new musician. Non-chosen may join rivals."),
+            new NodeTypeInfo(NodeType.Boss,           "Star Relay",      "Sector finale. Win to continue your journey.")
+        };
+
+        public IReadOnlyList<NodeTypeInfo> NodeTypeInfos => nodeTypeInfos;
+
         [SerializeField]
         private List<NodeCountRule> nodeCountRules = new()
         {
@@ -113,6 +128,27 @@ namespace ALWTTT.Data
             crossLinkVerticalBias = Mathf.Max(0f, crossLinkVerticalBias);
             maxDegreePerNode = Mathf.Max(0, maxDegreePerNode);
             maxCrossLinkDeltaY = Mathf.Max(0f, maxCrossLinkDeltaY);
+
+            // Ensure every enum value has an entry (safe editor UX)
+            foreach (NodeType t in Enum.GetValues(typeof(NodeType)))
+            {
+                if (nodeTypeInfos.FindIndex(n => n.type == t) < 0)
+                    nodeTypeInfos.Add(new NodeTypeInfo(t, t.ToString(), ""));
+            }
+        }
+
+        public string GetNodeTypeTitle(NodeType type)
+        {
+            var idx = nodeTypeInfos.FindIndex(i => i.type == type);
+            return idx >= 0 && !string.IsNullOrWhiteSpace(nodeTypeInfos[idx].title)
+                ? nodeTypeInfos[idx].title
+                : type.ToString();
+        }
+
+        public string GetNodeTypeDescription(NodeType type)
+        {
+            var idx = nodeTypeInfos.FindIndex(i => i.type == type);
+            return idx >= 0 ? nodeTypeInfos[idx].description ?? "" : "";
         }
 
         [Serializable]
@@ -130,6 +166,21 @@ namespace ALWTTT.Data
             }
 
             public bool IsValid => max >= min && min >= 0;
+        }
+
+        [System.Serializable]
+        public struct NodeTypeInfo
+        {
+            public NodeType type;
+            public string title;
+            [TextArea] public string description;
+
+            public NodeTypeInfo(NodeType type, string title, string description)
+            {
+                this.type = type;
+                this.title = title;
+                this.description = description;
+            }
         }
     }
 }

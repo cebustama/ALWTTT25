@@ -32,34 +32,53 @@ namespace ALWTTT.Map
         [SerializeField] private Color recruitColor = new(0.4f, 1f, 0.4f);
         [SerializeField] private Color bossColor = new(1f, 0.2f, 0.4f);
 
+        [Header("Data (for tooltips)")]
+        // TODO: Receive from SectorMapManager
+        [SerializeField] private SectorMapData sectorMapData;
+
         private SectorMapState _state;
         private readonly Dictionary<int, SectorNodeVisual> _nodeViews = new();
         private readonly List<SectorLinkVisual> _linkViews = new();
 
+        public System.Action<SectorNodeState> NodeClicked;
+
         #region Public API
+
         public void Render(SectorMapState state)
         {
             _state = state;
             Clear();
 
-            if (_state == null || nodePrefab == null || linkPrefab == null || nodesRoot == null || linksRoot == null)
+            if (_state == null || nodePrefab == null 
+                || linkPrefab == null || nodesRoot == null || linksRoot == null)
             {
                 Debug.LogWarning("SectorMapVisual: Missing references. Assign prefabs/roots.");
                 return;
             }
 
-            // 1) Nodes
+            // nodes
             foreach (var node in _state.Nodes)
             {
                 var pos = GridToWorld(node.Position);
                 var view = Instantiate(nodePrefab, pos, Quaternion.identity, nodesRoot);
-                view.Bind(node, GetColor(node.Type), 0.5f);
+
+                // Tooltip text
+                var title = sectorMapData ? 
+                        sectorMapData.GetNodeTypeTitle(node.Type) : 
+                        node.Type.ToString();
+
+                var desc = sectorMapData ? 
+                    sectorMapData.GetNodeTypeDescription(node.Type) : "";
+
+                view.Bind(node, GetColor(node.Type), title, desc, 0.5f);
                 view.SetVisited(node.Visited);
                 view.SetSelected(node.Id == _state.CurrentNodeId);
+                view.Clicked += OnNodeClicked;
+
                 _nodeViews[node.Id] = view;
             }
 
-            // 2) Links (unique: only a<b)
+            // links
             foreach (var node in _state.Nodes)
             {
                 for (int i = 0; i < node.Links.Count; i++)
@@ -92,6 +111,9 @@ namespace ALWTTT.Map
 
         public void Clear()
         {
+            foreach (var v in _nodeViews.Values)
+                v.Clicked -= OnNodeClicked;
+
             _nodeViews.Clear();
             _linkViews.Clear();
 
@@ -110,6 +132,11 @@ namespace ALWTTT.Map
             // Keep link visuals in sync each frame (cheap).
             for (int i = 0; i < _linkViews.Count; i++)
                 _linkViews[i].UpdatePositions(linkZ);
+        }
+
+        private void OnNodeClicked(SectorNodeVisual visual)
+        {
+            NodeClicked?.Invoke(visual.Node);
         }
 
         private Vector3 GridToWorld(Vector2 gridPos)
