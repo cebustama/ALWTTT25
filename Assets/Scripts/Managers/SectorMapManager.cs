@@ -3,6 +3,8 @@ using TMPro;
 using ALWTTT.Data;
 using ALWTTT.Generation;
 using ALWTTT.Map;
+using System.Collections;
+using ALWTTT.Utils;
 
 namespace ALWTTT.Managers
 {
@@ -27,6 +29,9 @@ namespace ALWTTT.Managers
         [SerializeField] private TextMeshProUGUI fansText;
         [SerializeField] private TextMeshProUGUI cohesionText;
 
+        [Header("References")]
+        [SerializeField] private SceneChanger sceneChanger;
+
         [Header("HUD (debug / step-by-step)")]
         [SerializeField] private bool stepMode = false; // toggle in Inspector
         [SerializeField] private TextMeshProUGUI nodeCountText; // "# Nodes = N"
@@ -42,8 +47,13 @@ namespace ALWTTT.Managers
             set => GM.PersistentGameplayData.CurrentSectorMapState = value;
         }
 
+        private bool _isResolving;
+
         private void Start()
         {
+            if (!NodeResolverProcessor.IsInitialized)
+                NodeResolverProcessor.Initialize();
+
             if (stepMode)
             {
                 // In step mode we start with no state until the user presses R.
@@ -54,7 +64,9 @@ namespace ALWTTT.Managers
             else
             {
                 // Normal “instant” generation
+                // TODO: MapDone method
                 EnsureStateImmediate();
+                AttachEncountersToNodes();
                 SafeRenderAndReattach();
                 mapVisual.NodeClicked += HandleNodeClicked;
                 RefreshHUD();
@@ -72,7 +84,6 @@ namespace ALWTTT.Managers
                     CreateStepper();
                     // Show initial (empty links) state right away
                     SafeRenderAndReattach();
-                    mapVisual.NodeClicked += HandleNodeClicked;
                     UpdateDebugOverlay("ready");
                 }
                 else
@@ -93,6 +104,9 @@ namespace ALWTTT.Managers
                 }
                 else
                 {
+                    // TODO: MapDone method
+                    mapVisual.NodeClicked += HandleNodeClicked;
+                    AttachEncountersToNodes();
                     UpdateDebugOverlay("(done)");
                 }
             }
@@ -103,7 +117,10 @@ namespace ALWTTT.Managers
                 if (!_stepper.IsDone)
                 {
                     _stepper.RunToEnd();
+                    // TODO: MapDone method
+                    AttachEncountersToNodes();
                     SafeRenderAndReattach();
+                    mapVisual.NodeClicked += HandleNodeClicked;
                 }
                 UpdateDebugOverlay("(done)");
             }
@@ -113,6 +130,36 @@ namespace ALWTTT.Managers
             mapVisual.SyncNodeStates();
         }
 
+        private void AttachEncountersToNodes()
+        {
+            var pd = GameManager.Instance.PersistentGameplayData;
+            var ed = GameManager.Instance.EncounterData;
+
+            // Ensure sector id is set (first entry to Map)
+            if (pd.CurrentSectorId < 0) pd.CurrentSectorId = 0;
+
+            var sector = ed.EncounterSectorsList.Find(s => s.SectorId == pd.CurrentSectorId);
+            if (sector == null) return;
+
+            // NORMAL gigs
+            var gigNodes = State.Nodes.FindAll(n => n.Type == Enums.NodeType.Gig);
+            var gigCount = sector.GigEncounterList?.Count ?? 0;
+            if (gigCount > 0)
+            {
+                // Simple distribution: assign indices round-robin (or shuffle first if desired)
+                for (int i = 0; i < gigNodes.Count; i++)
+                    gigNodes[i].GigEncounterIndex = i % gigCount;
+            }
+
+            // BOSS gigs (often 1, but support many)
+            var bossNodes = State.Nodes.FindAll(n => n.Type == Enums.NodeType.Boss);
+            var bossCount = sector.BossGigEncounterList?.Count ?? 0;
+            if (bossCount > 0)
+            {
+                for (int i = 0; i < bossNodes.Count; i++)
+                    bossNodes[i].GigEncounterIndex = i % bossCount;
+            }
+        }
         private void SafeRenderAndReattach()
         {
             if (_ship) _ship.transform.SetParent(null, worldPositionStays: true);
@@ -148,25 +195,60 @@ namespace ALWTTT.Managers
 
         private void HandleNodeClicked(SectorNodeState node)
         {
+            if (_isResolving) return;
             // Only allow moves to neighbors
             if (!IsNeighbor(State.CurrentNodeId, node.Id))
                 return;
 
-            // Update state
-            var prev = State.GetNode(State.CurrentNodeId);
-            var next = node;
+            // Prevent revisiting completed Gig nodes
+            if ((node.Type == Enums.NodeType.Gig 
+                || node.Type == Enums.NodeType.Boss) && node.Completed)
+                return;
 
-            State.CurrentNodeId = next.Id;
-            next.Visited = true;
-
-            // Visual updates
+            // Update state and visuals
+            State.CurrentNodeId = node.Id;
+            node.Visited = true;
             mapVisual.SyncNodeStates();
             mapVisual.ShowLinksForCurrentOnly();
+            MoveShipToNode(node.Id);
 
-            // Move ship
-            MoveShipToNode(next.Id);
+            // ---- Go to gig if needed ----
+            if (node.Type == Enums.NodeType.Gig || node.Type == Enums.NodeType.Boss)
+            {
+                var pd = GameManager.Instance.PersistentGameplayData;
+                pd.CurrentEncounterId = Mathf.Max(0, node.GigEncounterIndex);
+                pd.IsFinalEncounter = node.Type == Enums.NodeType.Boss;
+                pd.LastMapNodeId = node.Id;
 
-            // TODO: trigger scene transitions based on node.Type if you want
+                sceneChanger.OpenGigScene();
+                return;
+            }
+
+            // Resolve the node interaction
+            StartCoroutine(ResolveCurrentNode());
+        }
+
+        private IEnumerator ResolveCurrentNode()
+        {
+            _isResolving = true;
+
+            var node = State.GetNode(State.CurrentNodeId);
+            var resolver = NodeResolverProcessor.Get(node.Type);
+
+            var ctx = new NodeResolveContext(
+                manager: this,
+                mapData: sectorMapData,
+                persistent: GameManager.Instance.PersistentGameplayData,
+                mapState: State,
+                visual: mapVisual);
+
+            yield return resolver.Resolve(ctx, node);
+
+            _isResolving = false;
+
+            // After resolve, auto-update links/visited visuals again
+            mapVisual.SyncNodeStates();
+            mapVisual.ShowLinksForCurrentOnly();
         }
 
         private bool IsNeighbor(int fromId, int toId)
@@ -220,7 +302,7 @@ namespace ALWTTT.Managers
 
         // ---------------- HUD / overlay ----------------
 
-        private void RefreshHUD()
+        public void RefreshHUD()
         {
             var pd = GM.PersistentGameplayData;
             if (fansText) fansText.text = $"Fans: {pd.Fans}";

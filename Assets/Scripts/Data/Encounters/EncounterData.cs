@@ -27,6 +27,18 @@ namespace ALWTTT.Data
                 selectedSector.GigEncounterList[encounterId] ?? // If it exists
                     selectedSector.GigEncounterList.RandomItem(); // Else random
         }
+
+        public GigEncounter GetGigEncounterByIndex(int sectorId, int encounterId, bool isFinal)
+        {
+            var sector = EncounterSectorsList.First(x => x.SectorId == sectorId);
+            var list = isFinal ? sector.BossGigEncounterList : sector.GigEncounterList;
+
+            if (list == null || list.Count == 0) return null;
+            if (encounterId >= 0 && encounterId < list.Count) return list[encounterId];
+
+            // Fallback to random if index is out of range.
+            return list.RandomItem();
+        }
     }
 
     [Serializable]

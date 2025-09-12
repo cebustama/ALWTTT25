@@ -462,6 +462,10 @@ PrefabInstance:
       propertyPath: stepMode
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6679603502449135443, guid: 3938c5c02d4e57e499b62dfcccc8579e, type: 3}
+      propertyPath: sceneChanger
+      value: 
+      objectReference: {fileID: 2630106953156915099}
     - target: {fileID: 7664614619595821965, guid: 3938c5c02d4e57e499b62dfcccc8579e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -523,6 +527,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3938c5c02d4e57e499b62dfcccc8579e, type: 3}
+--- !u!114 &2630106953156915099 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7328351764899800239, guid: 3938c5c02d4e57e499b62dfcccc8579e, type: 3}
+  m_PrefabInstance: {fileID: 2630106953156915098}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b3407027a2a21744b6e4a0ca4cdef4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
 using ALWTTT.Data;
 using ALWTTT.Enums;
 using ALWTTT.Managers;
+using ALWTTT.Utils;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -22,6 +23,7 @@ namespace ALWTTT.UI
 
         [Header("Buttons")]
         [SerializeField] private Button endTurnButton;
+        [SerializeField] private Button lossConfirmButton;
 
         [Header("UI Sections")]
         [SerializeField] private GameObject bandTurnUI;
@@ -29,22 +31,28 @@ namespace ALWTTT.UI
 
         [Header("Panels")]
         [SerializeField] private GameObject winPanel;
-        [SerializeField] private GameObject losePanel;
+        [SerializeField] private GameObject lossPanelRoot;
+        [SerializeField] private TextMeshProUGUI lossTitle;
+        [SerializeField] private TextMeshProUGUI lossBody;
+
+        public System.Action OnLossConfirm; // set by GigManager
 
         [Header("References")]
         [SerializeField] private GameObject songIconPrefab;
         [SerializeField] private Transform songIconRoot;
+        [SerializeField] private SceneChanger sceneChanger;
 
         private List<Image> songIconImageList;
 
         private readonly List<SongData> filteredSongs = new List<SongData>();
 
         public GameObject WinPanel => winPanel;
-        public GameObject LosePanel => losePanel;
+        public GameObject LosePanel => lossPanelRoot;
 
         private void OnEnable()
         {
             endTurnButton.onClick.AddListener(EndTurn);
+            lossConfirmButton.onClick.AddListener(OnClick_LossConfirm);
             songDropdown.onValueChanged.AddListener(OnSongSelected);
 
             GigManager.OnPlayerTurnStarted += ShowBandTurnUI;
@@ -138,6 +146,19 @@ namespace ALWTTT.UI
             exhaustPileTextField.text = $"{DeckManager.ExhaustPile.Count.ToString()}";
             grooveTextField.text = $"{GameManager.PersistentGameplayData.CurrentGroove.ToString()}" +
                 $"/{GameManager.PersistentGameplayData.MaxGroove.ToString()}";
+        }
+
+        public void ShowLoss(string title, string body)
+        {
+            lossTitle.text = title;
+            lossBody.text = body;
+            lossPanelRoot.SetActive(true);
+        }
+
+        public void OnClick_LossConfirm()
+        {
+            lossPanelRoot.SetActive(false);
+            OnLossConfirm?.Invoke();
         }
 
         private void OnSongSelected(int index)

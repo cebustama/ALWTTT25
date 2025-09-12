@@ -230,6 +230,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7599465004760547297}
   - component: {fileID: 6668721086470585719}
+  - component: {fileID: 4351043292945767278}
   m_Layer: 0
   m_Name: Gig Manager
   m_TagString: Untagged
@@ -278,6 +279,21 @@ MonoBehaviour:
   - {fileID: 1363485291533599143}
   - {fileID: 1003275971134533894}
   - {fileID: 4603410894606943367}
+  sceneChanger: {fileID: 4351043292945767278}
+  fansOnWin: 100
+  cohesionPenaltyOnLoss: 10
+--- !u!114 &4351043292945767278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7897446990003983845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b3407027a2a21744b6e4a0ca4cdef4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8762869074475404006
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,9 +17,9 @@ namespace ALWTTT.Data
         [SerializeField] private NodeType type;
         [SerializeField] private bool visited;
         [SerializeField] private bool locked;
+        [SerializeField] private bool completed; // true once resolved (for gigs: after win OR loss)
         [SerializeField] private List<int> links = new(); // Adjacent node ids
 
-        // Payloads by type (use sentinels for Unity serialization friendliness)
         [SerializeField] private int gigEncounterIndex = -1;    // -1 = use random
         [SerializeField] private List<string> recruitIds = new();   // candidates shown here
         [SerializeField] private string randomEventId;  // id to replay the same event
@@ -31,6 +31,7 @@ namespace ALWTTT.Data
         public NodeType Type { get => type; set => type = value; }
         public bool Visited { get => visited; set => visited = value; }
         public bool Locked { get => locked; set => locked = value; }
+        public bool Completed { get => completed; set => completed = value; }
         public List<int> Links { get => links; set => links = value; }
 
         public int GigEncounterIndex { get => gigEncounterIndex; set => gigEncounterIndex = value; }

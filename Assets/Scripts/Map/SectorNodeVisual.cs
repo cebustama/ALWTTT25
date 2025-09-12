@@ -25,6 +25,7 @@ namespace ALWTTT.Map
 
         public void Bind(SectorNodeState node, Color color, 
             string title, string description, 
+            Sprite sprite,
             float scale = 0.5f)
         {
             Node = node;
@@ -33,6 +34,7 @@ namespace ALWTTT.Map
 
             if (!spriteRenderer) spriteRenderer = GetComponent<SpriteRenderer>();
             spriteRenderer.color = color;
+            if (sprite) spriteRenderer.sprite = sprite;
 
             transform.localScale = Vector3.one * scale;
             name = $"Node_{node.Id}_{node.Type}";
@@ -48,6 +50,14 @@ namespace ALWTTT.Map
         public void SetSelected(bool selected)
         {
             transform.localScale = selected ? Vector3.one * 0.65f : Vector3.one * 0.5f;
+        }
+
+        public void SetCompleted(bool completed)
+        {
+            if (!spriteRenderer) return;
+            var c = spriteRenderer.color;
+            c.a = completed ? 0.25f : 1f;
+            spriteRenderer.color = c;
         }
 
         public void ShowTooltipInfo(

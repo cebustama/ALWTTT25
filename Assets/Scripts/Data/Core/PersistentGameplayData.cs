@@ -36,6 +36,7 @@ namespace ALWTTT.Data
         [SerializeField] private int currentEncounterId;
         [SerializeField] private GigEncounter currentEncounter;
         [SerializeField] private bool isFinalEncounter;
+        [SerializeField] private int lastMapNodeId;
 
         // --- Sector Map runtime state ---
         [SerializeField] private SectorMapState currentSectorMapState;
@@ -132,6 +133,12 @@ namespace ALWTTT.Data
             set => isFinalEncounter = value;
         }
 
+        public int LastMapNodeId
+        {
+            get => lastMapNodeId;
+            set => lastMapNodeId = value;
+        }
+
         public List<MusicianHealthData> MusicianHealthDataList
         {
             get => musicianHealthDataList;
@@ -190,6 +197,8 @@ namespace ALWTTT.Data
 
         private void InitData()
         {
+            Debug.Log("<color=white>Initializing PersistentGameplayData...</color>");
+
             MusicianList = new List<MusicianBase>(gameplayData.InitialMusicianList);
 
             drawCount = gameplayData.DrawCount;

@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7664614619595821965}
   - component: {fileID: 6679603502449135443}
+  - component: {fileID: 7328351764899800239}
   m_Layer: 0
   m_Name: SectorMapManager
   m_TagString: Untagged
@@ -51,10 +52,23 @@ MonoBehaviour:
   shipPrefab: {fileID: 6247200947144279854, guid: 1774cedad78664d40999545f4e673097, type: 3}
   fansText: {fileID: 2918207278421696635}
   cohesionText: {fileID: 6306499261879876656}
+  sceneChanger: {fileID: 7328351764899800239}
   stepMode: 0
   nodeCountText: {fileID: 3226211995356954744}
   linkCountText: {fileID: 5619407143480597272}
   stageNameText: {fileID: 8393890093434556441}
+--- !u!114 &7328351764899800239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5036324202879656266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b3407027a2a21744b6e4a0ca4cdef4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1477267389861097357
 PrefabInstance:
   m_ObjectHideFlags: 0

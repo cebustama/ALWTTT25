@@ -19,6 +19,7 @@ MonoBehaviour:
   positionJitter: {x: 0.35, y: 0.25}
   ensureTwoPaths: 1
   branchesRange: {x: 2, y: 5}
+  nodeTypeDatabase: {fileID: 11400000, guid: 916c4136fbb930243985aed2e9914976, type: 2}
   nodeCountRules:
   - type: 0
     min: 4
@@ -42,10 +43,3 @@ MonoBehaviour:
   maxDegreePerNode: 4
   maxCrossLinkDeltaY: 0
   fixedSeed: -1
-  backgroundSprite: {fileID: 0}
-  ambientMusic: {fileID: 0}
-  gigIcon: {fileID: 0}
-  rehearsalIcon: {fileID: 0}
-  randomEncounterIcon: {fileID: 0}
-  recruitIcon: {fileID: 0}
-  bossIcon: {fileID: 0}

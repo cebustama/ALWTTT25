@@ -25,13 +25,6 @@ namespace ALWTTT.Map
         [SerializeField] private float nodeZ = 0f;
         [SerializeField] private float linkZ = 0f;
 
-        [Header("Colors")]
-        [SerializeField] private Color rehearsalColor = new(0.2f, 0.8f, 1f);
-        [SerializeField] private Color gigColor = new(1f, 0.6f, 0.2f);
-        [SerializeField] private Color randomColor = new(0.9f, 0.9f, 0.2f);
-        [SerializeField] private Color recruitColor = new(0.4f, 1f, 0.4f);
-        [SerializeField] private Color bossColor = new(1f, 0.2f, 0.4f);
-
         [Header("Data (for tooltips)")]
         // TODO: Receive from SectorMapManager
         [SerializeField] private SectorMapData sectorMapData;
@@ -65,14 +58,14 @@ namespace ALWTTT.Map
                 var view = Instantiate(nodePrefab, pos, Quaternion.identity, nodesRoot);
 
                 // Tooltip text
-                var title = sectorMapData ? 
-                        sectorMapData.GetNodeTypeTitle(node.Type) : 
-                        node.Type.ToString();
+                var typeData = sectorMapData ? 
+                    sectorMapData.GetNodeTypeData(node.Type) : null;
+                var title = typeData?.Title ?? node.Type.ToString();
+                var desc = typeData?.Description ?? "";
+                var color = typeData ? typeData.Color : Color.white;
+                var sprite = typeData ? typeData.Sprite : null;
 
-                var desc = sectorMapData ? 
-                    sectorMapData.GetNodeTypeDescription(node.Type) : "";
-
-                view.Bind(node, GetColor(node.Type), title, desc, 0.5f);
+                view.Bind(node, color, title, desc, sprite, 0.5f);
                 view.SetVisited(node.Visited);
                 view.SetSelected(node.Id == _state.CurrentNodeId);
 
@@ -112,16 +105,14 @@ namespace ALWTTT.Map
         public void SyncNodeStates()
         {
             if (_state == null) return;
-
             foreach (var kv in _nodeViews)
             {
-                var view = kv.Value;
-                var node = view.Node;
-                view.SetVisited(node.Visited);
-                view.SetSelected(node.Id == _state.CurrentNodeId);
+                var v = kv.Value;
+                var n = v.Node;
+                v.SetVisited(n.Visited);
+                v.SetSelected(n.Id == _state.CurrentNodeId);
+                v.SetCompleted(n.Completed);   // NEW
             }
-
-            // Keep link visibility consistent with the "current" selection
             ApplyLinkVisibility();
         }
 
@@ -236,15 +227,5 @@ namespace ALWTTT.Map
                 nodeZ
             );
         }
-
-        private Color GetColor(NodeType t) => t switch
-        {
-            NodeType.Rehearsal => rehearsalColor,
-            NodeType.Gig => gigColor,
-            NodeType.RandomEncounter => randomColor,
-            NodeType.Recruit => recruitColor,
-            NodeType.Boss => bossColor,
-            _ => Color.white
-        };
     }
 }

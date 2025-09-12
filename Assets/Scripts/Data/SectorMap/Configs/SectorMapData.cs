@@ -7,7 +7,7 @@ namespace ALWTTT.Data
 {
     [CreateAssetMenu(
         fileName = "SectorMapData",
-        menuName = "ALWTTT/Data/Sector Map Data",
+        menuName = "ALWTTT/Map/Sector Map Data",
         order = 1000)]
     public class SectorMapData : ScriptableObject
     {
@@ -33,21 +33,11 @@ namespace ALWTTT.Data
         public Vector2Int branchesRange = new Vector2Int(2, 5);
 
         [Header("Node Type Data")]
+        [Tooltip("Lookup of per-type metadata (title, description, color, sprite).")]
+        [SerializeField] private NodeTypeDatabase nodeTypeDatabase;
+        public NodeTypeDatabase NodeTypes => nodeTypeDatabase;
 
-        // TODO: NodeTypeData ScriptableObject asset
-
-        [SerializeField]
-        private List<NodeTypeInfo> nodeTypeInfos = new()
-        {
-            new NodeTypeInfo(NodeType.Rehearsal,      "Rehearsal Day",   "Spend time composing, relaxing, or band talks."),
-            new NodeTypeInfo(NodeType.Gig,            "Gig",             "Play a show to earn cards and Fans."),
-            new NodeTypeInfo(NodeType.RandomEncounter,"Encounter",       "A story event with choices and distinct effects."),
-            new NodeTypeInfo(NodeType.Recruit,        "Recruit",         "Invite a new musician. Non-chosen may join rivals."),
-            new NodeTypeInfo(NodeType.Boss,           "Star Relay",      "Sector finale. Win to continue your journey.")
-        };
-
-        public IReadOnlyList<NodeTypeInfo> NodeTypeInfos => nodeTypeInfos;
-
+        [Header("Node Type Data")]
         [SerializeField]
         private List<NodeCountRule> nodeCountRules = new()
         {
@@ -86,16 +76,6 @@ namespace ALWTTT.Data
         [Tooltip("If >= 0 this seed will be used; if -1 a random seed is used at runtime.")]
         public int fixedSeed = -1;
 
-        [Header("Visual theme (optional)")]
-        // TODO: Store this as SectorMapVisualData assets
-        public Sprite backgroundSprite;
-        public AudioClip ambientMusic;
-        public Sprite gigIcon;
-        public Sprite rehearsalIcon;
-        public Sprite randomEncounterIcon;
-        public Sprite recruitIcon;
-        public Sprite bossIcon;
-
         // ---------- Helper accessors ----------
 
         /// <summary>
@@ -128,28 +108,16 @@ namespace ALWTTT.Data
             crossLinkVerticalBias = Mathf.Max(0f, crossLinkVerticalBias);
             maxDegreePerNode = Mathf.Max(0, maxDegreePerNode);
             maxCrossLinkDeltaY = Mathf.Max(0f, maxCrossLinkDeltaY);
-
-            // Ensure every enum value has an entry (safe editor UX)
-            foreach (NodeType t in Enum.GetValues(typeof(NodeType)))
-            {
-                if (nodeTypeInfos.FindIndex(n => n.type == t) < 0)
-                    nodeTypeInfos.Add(new NodeTypeInfo(t, t.ToString(), ""));
-            }
         }
+
+        public NodeTypeData GetNodeTypeData(NodeType type)
+            => nodeTypeDatabase ? nodeTypeDatabase.Get(type) : null;
 
         public string GetNodeTypeTitle(NodeType type)
-        {
-            var idx = nodeTypeInfos.FindIndex(i => i.type == type);
-            return idx >= 0 && !string.IsNullOrWhiteSpace(nodeTypeInfos[idx].title)
-                ? nodeTypeInfos[idx].title
-                : type.ToString();
-        }
+            => GetNodeTypeData(type)?.Title ?? type.ToString();
 
         public string GetNodeTypeDescription(NodeType type)
-        {
-            var idx = nodeTypeInfos.FindIndex(i => i.type == type);
-            return idx >= 0 ? nodeTypeInfos[idx].description ?? "" : "";
-        }
+            => GetNodeTypeData(type)?.Description ?? string.Empty;
 
         [Serializable]
         public struct NodeCountRule
@@ -166,21 +134,6 @@ namespace ALWTTT.Data
             }
 
             public bool IsValid => max >= min && min >= 0;
-        }
-
-        [System.Serializable]
-        public struct NodeTypeInfo
-        {
-            public NodeType type;
-            public string title;
-            [TextArea] public string description;
-
-            public NodeTypeInfo(NodeType type, string title, string description)
-            {
-                this.type = type;
-                this.title = title;
-                this.description = description;
-            }
         }
     }
 }

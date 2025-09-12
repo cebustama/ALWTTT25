@@ -1,13 +1,15 @@
 using ALWTTT.Backgrounds;
-using ALWTTT.Enums;
-using ALWTTT.Encounters;
-using System;
-using UnityEngine;
-using System.Collections.Generic;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
-using System.Collections;
 using ALWTTT.Data;
+using ALWTTT.Encounters;
+using ALWTTT.Enums;
+using ALWTTT.UI;
+using ALWTTT.Utils;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace ALWTTT.Managers
 {
@@ -23,6 +25,11 @@ namespace ALWTTT.Managers
         [SerializeField] private BackgroundContainer backgroundContainer;
         [SerializeField] private List<Transform> musicianPosList;
         [SerializeField] private List<Transform> audienceMemberPosList;
+        [SerializeField] private SceneChanger sceneChanger;
+
+        [Header("DEBUG: Gig Results")] // TODO take from CurrentGigEncounter
+        [SerializeField] private int fansOnWin = 3;        
+        [SerializeField] private int cohesionPenaltyOnLoss = 1;
 
         private GigPhase currentGigPhase;
         private List<SongData> playedSongs = new List<SongData>();
@@ -115,13 +122,13 @@ namespace ALWTTT.Managers
         {
             if (debug) Debug.Log($"{DebugTag} Setting up gig encounter...");
 
-            CurrentGigEncounter = GameManager.EncounterData.GetGigEncounter(
-                GameManager.PersistentGameplayData.CurrentSectorId,
-                GameManager.PersistentGameplayData.CurrentEncounterId,
-                GameManager.PersistentGameplayData.IsFinalEncounter
-            );
+            var pd = GameManager.PersistentGameplayData;
 
-            GameManager.PersistentGameplayData.CurrentEncounter = CurrentGigEncounter;
+            CurrentGigEncounter = GameManager.EncounterData
+                .GetGigEncounterByIndex(
+                    pd.CurrentSectorId, pd.CurrentEncounterId, pd.IsFinalEncounter);
+
+            pd.CurrentEncounter = CurrentGigEncounter;
 
             UIManager.SetupEncounterUI(CurrentGigEncounter);
         }
@@ -413,13 +420,12 @@ namespace ALWTTT.Managers
 
         private void LoseGig()
         {
-            if (CurrentGigPhase == GigPhase.EndGig) return;
-            CurrentGigPhase = GigPhase.EndGig;
-
-            DeckManager.ClearPiles();
-
-            UIManager.GigCanvas.gameObject.SetActive(true);
-            UIManager.GigCanvas.LosePanel.SetActive(true);
+            UIManager.GigCanvas.OnLossConfirm = () => ReturnToMap(false);
+            UIManager.GigCanvas.ShowLoss(
+                title: "Gig Lost",
+                body: "You didn’t convince the crowd this time, but the journey continues.\n" +
+                       $"Cohesion decreased by {cohesionPenaltyOnLoss}."
+            );
         }
 
         private void WinGig()
@@ -455,6 +461,7 @@ namespace ALWTTT.Managers
                 UIManager.RewardCanvas.gameObject.SetActive(true);
                 UIManager.RewardCanvas.PrepareCanvas();
                 UIManager.RewardCanvas.BuildReward(RewardType.Card);
+                UIManager.RewardCanvas.OnRewardFinished = () => ReturnToMap(true);
             }
         }
 
@@ -484,6 +491,38 @@ namespace ALWTTT.Managers
                     break;
                 }
             }
+        }
+
+        private void ReturnToMap(bool won)
+        {
+            var pd = GameManager.PersistentGameplayData;
+            var state = pd.CurrentSectorMapState;
+            if (state != null)
+            {
+                var node = state.GetNode(state.CurrentNodeId);
+                if (node != null && node.Type == Enums.NodeType.Gig)
+                {
+                    node.Completed = true; // cannot replay regular gigs
+                }
+            }
+
+            if (won)
+            {
+                // Reward fans (or use CurrentGigEncounter.FansReward if present)
+                pd.Fans += fansOnWin;
+            }
+            else
+            {
+                // Reduce cohesion (clamp >= 0)
+                pd.BandCohesion = Mathf.Max(0, pd.BandCohesion - cohesionPenaltyOnLoss);
+            }
+
+            // Clear encounter pointer
+            pd.CurrentEncounter = null;
+
+            // Back to Map
+            if (sceneChanger) sceneChanger.OpenMapScene();
+            else UnityEngine.SceneManagement.SceneManager.LoadScene("Map"); // fallback
         }
     }
 }

@@ -20,7 +20,7 @@ MonoBehaviour:
       audienceMemberList:
       - {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
       - {fileID: 11400000, guid: 51e873db939343349b45067a98817990, type: 2}
-      numberOfSongs: 3
+      numberOfSongs: 1
     - targetVenueType: 0
       audienceMemberList:
       - {fileID: 11400000, guid: 51e873db939343349b45067a98817990, type: 2}
@@ -47,5 +47,5 @@ MonoBehaviour:
     - targetVenueType: 0
       audienceMemberList:
       - {fileID: 11400000, guid: 085e95c05f8793249aa6399eaccb2d6d, type: 2}
-      numberOfSongs: 0
+      numberOfSongs: 3
   randomGigs: 0

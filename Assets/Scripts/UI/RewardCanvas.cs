@@ -30,6 +30,8 @@ namespace ALWTTT.UI
 
         public ChoicePanel ChoicePanel => choicePanel;
 
+        public System.Action OnRewardFinished; // set by GigManager
+
         public void PrepareCanvas()
         {
             rewardPanelRoot.gameObject.SetActive(true);
@@ -109,6 +111,12 @@ namespace ALWTTT.UI
             }
 
             Destroy(rewardContainer.gameObject);
+        }
+
+        private void FinishReward()
+        {
+            gameObject.SetActive(false);
+            OnRewardFinished?.Invoke();
         }
     }
 }
