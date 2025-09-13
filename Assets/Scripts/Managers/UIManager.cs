@@ -1,6 +1,7 @@
 using ALWTTT.Encounters;
 using ALWTTT.UI;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -67,6 +68,13 @@ namespace ALWTTT.Managers
         public void ChangeScene(int index)
         {
             StartCoroutine(ChangeSceneRoutine(index));
+        }
+
+        public void OpenInventory(List<CardData> cardList, string title)
+        {
+            SetCanvas(InventoryCanvas, true, true);
+            InventoryCanvas.ChangeTitle(title);
+            InventoryCanvas.SetCards(cardList);
         }
 
         private IEnumerator ChangeSceneRoutine(int index)
