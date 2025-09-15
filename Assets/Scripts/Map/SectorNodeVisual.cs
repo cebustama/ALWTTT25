@@ -1,4 +1,5 @@
 using ALWTTT.Data;
+using ALWTTT.Managers;
 using ALWTTT.Tooltips;
 using System;
 using UnityEngine;
@@ -22,6 +23,8 @@ namespace ALWTTT.Map
         public event Action<SectorNodeVisual> Clicked;
         public event Action<SectorNodeVisual> HoverEnter;
         public event Action<SectorNodeVisual> HoverExit;
+
+        private GameManager GameManager => GameManager.Instance;
 
         public void Bind(SectorNodeState node, Color color, 
             string title, string description, 
@@ -91,7 +94,41 @@ namespace ALWTTT.Map
                 cam: Camera.main,
                 delayShow: 0.15f
             );
-            HoverEnter?.Invoke(this);
+
+            if (Node.Type == Enums.NodeType.Gig)
+            {
+                var encounterId = Node.GigEncounterIndex;
+                var pd = GameManager.PersistentGameplayData;
+                var encounter = GameManager.EncounterData.GetGigEncounterByIndex(
+                    pd.CurrentSectorId, encounterId, false);
+
+                ShowTooltipInfo(
+                    TooltipManager.Instance,
+                    content: encounter.NumberOfSongs.ToString() + " Songs",
+                    header: encounter.TargetVenueType.ToString(),
+                    tooltipStaticTransform: transform,
+                    cam: Camera.main,
+                    delayShow: 0.15f
+                );
+            }
+            else if (Node.Type == Enums.NodeType.Boss)
+            {
+                var encounterId = Node.GigEncounterIndex;
+                var pd = GameManager.PersistentGameplayData;
+                var encounter = GameManager.EncounterData.GetGigEncounterByIndex(
+                    pd.CurrentSectorId, encounterId, true);
+
+                ShowTooltipInfo(
+                    TooltipManager.Instance,
+                    content: encounter.NumberOfSongs.ToString() + " Songs",
+                    header: encounter.TargetVenueType.ToString(),
+                    tooltipStaticTransform: transform,
+                    cam: Camera.main,
+                    delayShow: 0.15f
+                );
+            }
+
+                HoverEnter?.Invoke(this);
         }
 
         public void OnPointerExit(PointerEventData eventData)

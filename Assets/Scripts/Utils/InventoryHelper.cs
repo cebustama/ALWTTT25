@@ -19,17 +19,21 @@ namespace ALWTTT.Utils
             switch (inventoryType)
             {
                 case InventoryType.CurrentDeck:
-                    UIManager.OpenInventory(
+                    UIManager.OpenCardsInventory(
                         GameManager.PersistentGameplayData.CurrentCardsList, "Deck");
                     break;
                 case InventoryType.DrawPile:
-                    UIManager.OpenInventory(DeckManager.DrawPile, "Draw Pile");
+                    UIManager.OpenCardsInventory(DeckManager.DrawPile, "Draw Pile");
                     break;
                 case InventoryType.DiscardPile:
-                    UIManager.OpenInventory(DeckManager.DiscardPile, "Discard Pile");
+                    UIManager.OpenCardsInventory(DeckManager.DiscardPile, "Discard Pile");
                     break;
                 case InventoryType.ExhaustPile:
-                    UIManager.OpenInventory(DeckManager.ExhaustPile, "Exhaust Pile");
+                    UIManager.OpenCardsInventory(DeckManager.ExhaustPile, "Exhaust Pile");
+                    break;
+                case InventoryType.BandSongs:
+                    UIManager.OpenSongsInventory(
+                        GameManager.PersistentGameplayData.CurrentSongList, "Song List");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

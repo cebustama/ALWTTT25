@@ -1249,6 +1249,7 @@ MonoBehaviour:
   rewardRoot: {fileID: 3208940105936450401}
   rewardContainerPrefab: {fileID: 6164616445021269728, guid: 82e347f4b24aca243946f1a5b1ba50e7, type: 3}
   rewardPanelRoot: {fileID: 4475135484403972251}
+  rewardButton: {fileID: 587965243485542566}
   choiceCardSpawnRoot: {fileID: 7951798079273412615}
   choiceCardUIPrefab: {fileID: 4663323039088460357, guid: 66d6c86cde42e404da5417fc44649955, type: 3}
   choicePanel: {fileID: 4475245517922288184}
@@ -1268,7 +1269,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4383830435902309413
 RectTransform:
   m_ObjectHideFlags: 0

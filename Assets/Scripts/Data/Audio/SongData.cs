@@ -31,6 +31,9 @@ namespace ALWTTT.Data
         #region Encapsulation
         public string Id => id;
         public string SongTitle => songTitle;
+        public string SongGenre => genre.ToString();
+        public string SongTheme => theme.ToString();
+        public string Complexity => complexity.ToString();
         public float Duration => duration;
         public int BPM => bpm;
         public SongTemplate GenProfile => genProfile;

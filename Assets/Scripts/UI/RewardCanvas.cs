@@ -5,6 +5,7 @@ using AWLTTT.Cards;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ALWTTT.UI
 {
@@ -15,6 +16,7 @@ namespace ALWTTT.UI
         [SerializeField] private Transform rewardRoot;
         [SerializeField] private RewardContainer rewardContainerPrefab;
         [SerializeField] private Transform rewardPanelRoot;
+        [SerializeField] private Button rewardButton;
 
         [Header("Choice")]
         [SerializeField] private Transform choiceCardSpawnRoot;
@@ -34,11 +36,14 @@ namespace ALWTTT.UI
 
         public void PrepareCanvas()
         {
+            rewardButton.onClick.AddListener(FinishReward);
             rewardPanelRoot.gameObject.SetActive(true);
         }
 
         public void BuildReward(RewardType rewardType)
         {
+            Debug.Log("Building Reward...");
+
             var rewardClone = Instantiate(rewardContainerPrefab, rewardRoot);
             currentRewardsList.Add(rewardClone);
 
@@ -89,6 +94,11 @@ namespace ALWTTT.UI
 
             spawnedChoiceList?.Clear();
             ChoicePanel.DisablePanel();
+        }
+
+        private void GetFansReward(int amount)
+        {
+
         }
 
         private void GetCardReward(RewardContainer rewardContainer, int amount = 3)

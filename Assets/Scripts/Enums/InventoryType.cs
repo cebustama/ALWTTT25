@@ -7,7 +7,8 @@ namespace ALWTTT.Enums
         CurrentDeck,
         DrawPile,
         DiscardPile,
-        ExhaustPile
+        ExhaustPile,
+        BandSongs
     }
 }
 

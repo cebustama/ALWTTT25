@@ -27,10 +27,6 @@ namespace ALWTTT.Managers
         [SerializeField] private List<Transform> audienceMemberPosList;
         [SerializeField] private SceneChanger sceneChanger;
 
-        [Header("DEBUG: Gig Results")] // TODO take from CurrentGigEncounter
-        [SerializeField] private int fansOnWin = 3;        
-        [SerializeField] private int cohesionPenaltyOnLoss = 1;
-
         private GigPhase currentGigPhase;
         private List<SongData> playedSongs = new List<SongData>();
 
@@ -420,11 +416,12 @@ namespace ALWTTT.Managers
 
         private void LoseGig()
         {
+            var pd = GameManager.PersistentGameplayData;
             UIManager.GigCanvas.OnLossConfirm = () => ReturnToMap(false);
             UIManager.GigCanvas.ShowLoss(
                 title: "Gig Lost",
                 body: "You didn’t convince the crowd this time, but the journey continues.\n" +
-                       $"Cohesion decreased by {cohesionPenaltyOnLoss}."
+                       $"Cohesion decreased by {pd.CurrentEncounter.CohesionPenaltyOnLoss}."
             );
         }
 
@@ -509,12 +506,13 @@ namespace ALWTTT.Managers
             if (won)
             {
                 // Reward fans (or use CurrentGigEncounter.FansReward if present)
-                pd.Fans += fansOnWin;
+                pd.Fans += pd.CurrentEncounter.FansOnWin;
             }
             else
             {
                 // Reduce cohesion (clamp >= 0)
-                pd.BandCohesion = Mathf.Max(0, pd.BandCohesion - cohesionPenaltyOnLoss);
+                pd.BandCohesion = Mathf.Max(
+                    0, pd.BandCohesion - pd.CurrentEncounter.CohesionPenaltyOnLoss);
             }
 
             // Clear encounter pointer

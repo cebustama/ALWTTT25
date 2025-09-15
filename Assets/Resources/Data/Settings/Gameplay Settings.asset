@@ -14,15 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initialMusicianList:
   - {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
-  - {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
-  - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
-  - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
   initialSongList:
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   - {fileID: 11400000, guid: a8b300b67912fa94691fff53fa35d742, type: 2}
   - {fileID: 11400000, guid: 79c51e9474c58fd4fbc932f6133f1de2, type: 2}
   - {fileID: 11400000, guid: ca0b116a7d5ff7d4ea1cf4df91abb966, type: 2}
   - {fileID: 11400000, guid: 59f12f810d1e2ef4cb1d5a34ab60496b, type: 2}
+  maxCohesion: 10
+  initialCohesion: 10
   initialDeck: {fileID: 11400000, guid: 204c90b7635ebd64d8dfd0c046a1dd57, type: 2}
   drawCount: 4
   maxCardsOnHand: 10

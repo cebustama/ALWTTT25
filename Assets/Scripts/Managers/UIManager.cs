@@ -1,3 +1,4 @@
+using ALWTTT.Data;
 using ALWTTT.Encounters;
 using ALWTTT.UI;
 using System.Collections;
@@ -70,11 +71,18 @@ namespace ALWTTT.Managers
             StartCoroutine(ChangeSceneRoutine(index));
         }
 
-        public void OpenInventory(List<CardData> cardList, string title)
+        public void OpenCardsInventory(List<CardData> cardList, string title)
         {
             SetCanvas(InventoryCanvas, true, true);
             InventoryCanvas.ChangeTitle(title);
             InventoryCanvas.SetCards(cardList);
+        }
+
+        public void OpenSongsInventory(List<SongData> songList, string title)
+        {
+            SetCanvas(InventoryCanvas, true, true);
+            InventoryCanvas.ChangeTitle(title);
+            InventoryCanvas.SetSongs(songList);
         }
 
         private IEnumerator ChangeSceneRoutine(int index)

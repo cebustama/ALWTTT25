@@ -14,6 +14,7 @@ namespace ALWTTT.Utils
         private enum SceneType
         {
             MainMenu,
+            BandSetup,
             SectorMap,
             Ship,
             Gig

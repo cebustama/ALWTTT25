@@ -26,7 +26,7 @@ MonoBehaviour:
   cardActionDataList:
   - cardActionType: 0
     actionTargetType: 2
-    actionValue: 1
+    actionValue: 100
     actionDelay: 0
   keywordsList: 05000000
   audioType: 1
