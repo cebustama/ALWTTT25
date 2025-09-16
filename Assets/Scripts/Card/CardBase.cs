@@ -59,8 +59,9 @@ namespace ALWTTT
             CardData = targetProfile;
             IsPlayable = isPlayable;
 
+            /*
             backgroundImage.color = 
-                GameManager.GameplayData.GetCardTypeColor(CardData.CardType);
+                GameManager.GameplayData.GetCardTypeColor(CardData.CardType);*/
 
             cardImage.sprite = CardData.CardSprite;
             typeTextField.text = CardData.CardType.ToString();

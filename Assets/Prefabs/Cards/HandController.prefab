@@ -81,11 +81,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardUprightWhenSelected: 1
   cardTilt: 1
+  discardDuration: 0.2
   selectionSpacing: 1
-  curveStart: {x: 2, y: -0.7, z: 0}
-  curveEnd: {x: -2, y: -0.7, z: 0}
-  handOffset: {x: 0, y: -0.3}
-  handSize: {x: 9, y: 1.7}
+  curveStart: {x: 2.3, y: -0.4, z: 0}
+  curveEnd: {x: -2.3, y: -0.4, z: 0}
+  handOffset: {x: 0, y: 0}
+  handSize: {x: 9, y: 1.8}
   drawTransform: {fileID: 7729329124941193329}
   discardTransform: {fileID: 4544187747066707413}
   exhaustTransform: {fileID: 7993131052864597770}
