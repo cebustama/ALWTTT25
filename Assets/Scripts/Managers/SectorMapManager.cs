@@ -5,6 +5,10 @@ using ALWTTT.Generation;
 using ALWTTT.Map;
 using System.Collections;
 using ALWTTT.Utils;
+using ALWTTT.UI;
+using System.Collections.Generic;
+using ALWTTT.Characters.Band;
+using System;
 
 namespace ALWTTT.Managers
 {
@@ -26,11 +30,18 @@ namespace ALWTTT.Managers
         private ShipController _ship;
 
         [Header("HUD (stats)")]
+        // TODO Move to UIManager
         [SerializeField] private TextMeshProUGUI fansText;
         [SerializeField] private TextMeshProUGUI cohesionText;
+        [SerializeField] private MusicianMapStatusUI musicianStatusPrefab;
+        [SerializeField] private Transform musicianStatusRoot;
+
+        private Dictionary<string, MusicianMapStatusUI> musicianStatusDict;
 
         [Header("References")]
         [SerializeField] private SceneChanger sceneChanger;
+        [SerializeField] private RecruitCanvas recruitCanvas; // TODO move to UIManager
+        [SerializeField] private Transform modalParent;
 
         [Header("HUD (debug / step-by-step)")]
         [SerializeField] private bool stepMode = false; // toggle in Inspector
@@ -39,12 +50,12 @@ namespace ALWTTT.Managers
         [SerializeField] private TextMeshProUGUI stageNameText; // "Stage: Name"
 
         private SectorGraphStepper _stepper;    // when stepMode is ON
-        private GameManager GM => GameManager.Instance;
+        private GameManager GameManager => GameManager.Instance;
 
         private SectorMapState State
         {
-            get => GM.PersistentGameplayData.CurrentSectorMapState;
-            set => GM.PersistentGameplayData.CurrentSectorMapState = value;
+            get => GameManager.PersistentGameplayData.CurrentSectorMapState;
+            set => GameManager.PersistentGameplayData.CurrentSectorMapState = value;
         }
 
         private bool _isResolving;
@@ -269,7 +280,7 @@ namespace ALWTTT.Managers
 
         private void EnsureStateImmediate()
         {
-            int sectorId = GM.PersistentGameplayData.CurrentSectorId;
+            int sectorId = GameManager.PersistentGameplayData.CurrentSectorId;
             if (State == null || State.SectorId != sectorId)
             {
                 var gen = new SectorGraphGenerator();
@@ -281,7 +292,7 @@ namespace ALWTTT.Managers
         public void RegenerateImmediate()
         {
             var gen = new SectorGraphGenerator();
-            State = gen.Generate(GM.PersistentGameplayData.CurrentSectorId, sectorMapData, null);
+            State = gen.Generate(GameManager.PersistentGameplayData.CurrentSectorId, sectorMapData, null);
             SafeRenderAndReattach();
             RefreshHUD();
             UpdateDebugOverlay("done");
@@ -292,7 +303,7 @@ namespace ALWTTT.Managers
         private void CreateStepper()
         {
             var gen = new SectorGraphGenerator();
-            _stepper = gen.CreateStepper(GM.PersistentGameplayData.CurrentSectorId, sectorMapData, null);
+            _stepper = gen.CreateStepper(GameManager.PersistentGameplayData.CurrentSectorId, sectorMapData, null);
 
             // IMPORTANT: Persist the new (empty) State reference so it’s visible across the app
             State = _stepper.Context.State;
@@ -304,9 +315,42 @@ namespace ALWTTT.Managers
 
         public void RefreshHUD()
         {
-            var pd = GM.PersistentGameplayData;
+            var pd = GameManager.PersistentGameplayData;
             if (fansText) fansText.text = $"Fans: {pd.Fans}";
             if (cohesionText) cohesionText.text = $"Cohesion: {pd.BandCohesion}";
+
+            RefreshMusicianStatusInfo();
+        }
+
+        private void RefreshMusicianStatusInfo()
+        {
+            if (musicianStatusDict == null)
+                musicianStatusDict = new Dictionary<string, MusicianMapStatusUI>();
+
+            var pd = GameManager.PersistentGameplayData;
+
+            foreach (var mus in pd.MusicianList)
+            {
+                var id = mus.MusicianCharacterData.CharacterId;
+                var health = pd.GetMusicianHealthData(id);
+
+                if (health == null) 
+                    health = pd.SetMusicianHealthData(
+                        id, 0, mus.MusicianCharacterData.InitialMaxStress);
+
+                if (musicianStatusDict.ContainsKey(id))
+                {
+                    var status = musicianStatusDict[id];
+                    status.SetStress(health.CurrentStress, health.MaxStress);
+                }
+                else
+                {
+                    var status = Instantiate(musicianStatusPrefab, musicianStatusRoot);
+                    status.SetName(mus.MusicianCharacterData.CharacterName);
+                    status.SetStress(health.CurrentStress, health.MaxStress);
+                    musicianStatusDict.Add(id, status);
+                }
+            }
         }
 
         private void UpdateDebugOverlay(string stageName)
@@ -352,6 +396,52 @@ namespace ALWTTT.Managers
                 }
             }
             return count;
+        }
+
+        private T EnsureModal<T>(T prefab) where T : Component
+        {
+            // Try to find an existing instance in scene first
+            var existing = FindObjectOfType<T>(includeInactive: true);
+            if (existing) return existing;
+
+            // Otherwise instantiate
+            return Instantiate(prefab, modalParent ? modalParent : transform);
+        }
+
+        private IEnumerator OpenModalAndWait<TCanvas, TResult>(
+            TCanvas canvas,
+            Action<TCanvas, Action<TResult>> showWithComplete,
+            Action<TResult> onDone)
+            where TCanvas : Component
+        {
+            bool finished = false;
+            TResult result = default;
+
+            showWithComplete?.Invoke(
+                canvas, 
+                r => 
+                { 
+                    result = r; 
+                    finished = true; 
+                }
+            );
+
+            yield return new WaitUntil(() => finished);
+
+            onDone?.Invoke(result);
+        }
+
+        public IEnumerator ShowRecruit(Action<MusicianCharacterData> onChosen)
+        {
+            List<MusicianBase> candidates = 
+                GameManager.PersistentGameplayData.AvailableMusiciansList;
+
+            RecruitCanvas canvas = EnsureModal(recruitCanvas);
+
+            yield return OpenModalAndWait<RecruitCanvas, MusicianCharacterData>(
+                canvas,
+                (c, complete) => c.Show(candidates, complete),
+                chosen => onChosen?.Invoke(chosen));
         }
     }
 }

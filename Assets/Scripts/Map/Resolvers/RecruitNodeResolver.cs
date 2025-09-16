@@ -11,13 +11,15 @@ namespace ALWTTT.Map
 
         public override IEnumerator Resolve(NodeResolveContext ctx, SectorNodeState node)
         {
-            bool accepted = false;
-            yield return ctx.ShowRecruit(a => accepted = a);
+            MusicianCharacterData chosen = null;
+            yield return ctx.ShowRecruit(m => chosen = m);
 
-            if (accepted)
+            if (chosen != null)
             {
-                // TODO: add musician to band roster; log the non-chosen to rival list if applicable
-                UnityEngine.Debug.Log("[Recruit] Musician joined (stub).");
+                ctx.Persistent.AddMusicianToBand(chosen);
+                node.Completed = true;
+
+                ctx.RefreshHUD();
             }
         }
     }

@@ -11,6 +11,7 @@ namespace ALWTTT
     public class GameplayData : ScriptableObject
     {
         [Header("Musicians")]
+        [SerializeField] private List<MusicianBase> allMusiciansList;
         [SerializeField] private List<MusicianBase> initialMusicianList;
         [SerializeField] private List<SongData> initialSongList;
 
@@ -45,6 +46,7 @@ namespace ALWTTT
         [SerializeField] private int randomCardCount;
 
         #region Encapsulation
+        public List<MusicianBase> AllMusiciansList => allMusiciansList;
         public List<MusicianBase> InitialMusicianList => initialMusicianList;
         public List<SongData> InitialSongList => initialSongList;
 

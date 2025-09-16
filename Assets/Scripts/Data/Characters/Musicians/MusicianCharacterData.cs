@@ -14,8 +14,12 @@ namespace ALWTTT.Data
         [SerializeField] private string characterId;
         [SerializeField] private string characterName;
         [SerializeField] private string characterDescription;
-        [SerializeField] private int initialMaxStress; // TODO: PersistantGameData
+        [SerializeField] private int initialMaxStress;
         [SerializeField] private MusicianBase characterPrefab;
+        [SerializeField] private Sprite characterSprite; // TEMP
+
+        [Header("Cards")]
+        [SerializeField] private List<CardData> baseCards;
 
         [Header("Stats")]
         [SerializeField] private int chr;
@@ -31,6 +35,10 @@ namespace ALWTTT.Data
         public string CharacterDescription => characterDescription;
         public int InitialMaxStress => initialMaxStress;
         public MusicianBase CharacterPrefab => characterPrefab;
+        public Sprite CharacterSprite => characterSprite;
+
+        public List<CardData> BaseCards => baseCards;
+
         public MusicianProfileData Profile => profile;
 
         public int CHR => chr;

@@ -16,6 +16,9 @@ namespace ALWTTT.Data
         [SerializeField] private List<MusicianHealthData> musicianHealthDataList;
         [SerializeField] private List<SongData> currentSongList;
 
+        // World
+        [SerializeField] private List<MusicianBase> availableMusiciansList;
+
         // Deckbuilding / Gig Encounters
         [SerializeField] private List<CardData> currentCardsList;
         [SerializeField] private int drawCount;
@@ -38,7 +41,7 @@ namespace ALWTTT.Data
         [SerializeField] private bool isFinalEncounter;
         [SerializeField] private int lastMapNodeId;
 
-        // --- Sector Map runtime state ---
+        // Sector Map runtime state
         [SerializeField] private SectorMapState currentSectorMapState;
 
         // Global meta for SectorMap HUD (Fans/Level, Band Cohesion)
@@ -51,6 +54,24 @@ namespace ALWTTT.Data
         {
             get => musicianList;
             set => musicianList = value;
+        }
+
+        public List<MusicianHealthData> MusicianHealthDataList
+        {
+            get => musicianHealthDataList;
+            set => musicianHealthDataList = value;
+        }
+
+        public List<SongData> CurrentSongList
+        {
+            get => currentSongList;
+            set => currentSongList = value;
+        }
+
+        public List<MusicianBase> AvailableMusiciansList
+        {
+            get => availableMusiciansList;
+            set => availableMusiciansList = value;
         }
 
         public int DrawCount
@@ -81,12 +102,6 @@ namespace ALWTTT.Data
         {
             get => currentCardsList;
             set => currentCardsList = value;
-        }
-
-        public List<SongData> CurrentSongList
-        {
-            get => currentSongList;
-            set => currentSongList = value;
         }
 
         public bool IsRandomDeck => isRandomDeck;
@@ -139,11 +154,7 @@ namespace ALWTTT.Data
             set => lastMapNodeId = value;
         }
 
-        public List<MusicianHealthData> MusicianHealthDataList
-        {
-            get => musicianHealthDataList;
-            set => musicianHealthDataList = value;
-        }
+        
 
         public SongData CurrentSong
         {
@@ -200,6 +211,12 @@ namespace ALWTTT.Data
             Debug.Log("<color=white>Initializing PersistentGameplayData...</color>");
 
             MusicianList = new List<MusicianBase>(gameplayData.InitialMusicianList);
+            AvailableMusiciansList = new List<MusicianBase>();
+            foreach (var mus in gameplayData.AllMusiciansList)
+            {
+                if (MusicianList.Contains(mus)) continue;
+                AvailableMusiciansList.Add(mus);
+            }
 
             drawCount = gameplayData.DrawCount;
             maxGroove = gameplayData.MaxGroove;
@@ -228,7 +245,8 @@ namespace ALWTTT.Data
             BandCohesion = gameplayData.InitialCohesion;
         }
 
-        public void SetMusicianHealthData(string id, int newCurrentStress, int newMaxStress)
+        public MusicianHealthData SetMusicianHealthData(
+            string id, int newCurrentStress, int newMaxStress)
         {
             var newData = new MusicianHealthData();
             newData.CharacterId = id;
@@ -246,6 +264,32 @@ namespace ALWTTT.Data
             {
                 musicianHealthDataList.Add(newData);
             }
+
+            return newData;
+        }
+
+        public MusicianHealthData GetMusicianHealthData(string id)
+        {
+            foreach (var data in musicianHealthDataList)
+            {
+                if (data.CharacterId == id)
+                    return data;
+            }
+
+            return null;
+        }
+
+        public void AddMusicianToBand(MusicianCharacterData newMusician)
+        {
+            var musicianPrefab = newMusician.CharacterPrefab;
+            MusicianList.Add(musicianPrefab);
+            foreach (var card in newMusician.BaseCards)
+            {
+                CurrentCardsList.Add(card);
+            }
+            AvailableMusiciansList.Remove(musicianPrefab);
+
+            SetMusicianHealthData(newMusician.CharacterId, 0, newMusician.InitialMaxStress);
         }
     }
 }

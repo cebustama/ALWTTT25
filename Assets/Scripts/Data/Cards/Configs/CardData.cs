@@ -20,6 +20,10 @@ namespace ALWTTT
         [SerializeField] private Sprite cardSprite;
         [SerializeField] private int grooveGenerated;
 
+        [Header("Character")]
+        [SerializeField] private MusicianCharacterType musicianCharacterType = 
+            MusicianCharacterType.None;
+
         [Header("Synergies")]
         [SerializeField] private CardType cardType;
 
@@ -45,6 +49,7 @@ namespace ALWTTT
         public int GrooveCost => grooveCost;
         public Sprite CardSprite => cardSprite;
         public int GrooveGenerated => grooveGenerated;
+        public MusicianCharacterType MusicianCharacterType => musicianCharacterType;
         public bool ExhaustAfterPlay => exhaustAfterPlay;
         public CardType CardType => cardType;
         public List<CardConditionData> CardConditionDataList => cardConditionDataList;

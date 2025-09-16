@@ -52,12 +52,14 @@ namespace ALWTTT.Map
             onFinished?.Invoke(true);
         }
 
-        public IEnumerator ShowRecruit(Action<bool> onAccepted)
+        public IEnumerator ShowRecruit(Action<MusicianCharacterData> onChosen)
         {
-            // TODO show recruit UI, list cards, etc.
-            Debug.Log("[Resolve] Recruit UI opened.");
-            yield return new WaitForSeconds(0.1f);
-            onAccepted?.Invoke(true);
+            yield return Manager.ShowRecruit(onChosen);
+        }
+
+        public void RefreshHUD()
+        {
+            Manager.RefreshHUD();
         }
 
         public IEnumerator RunGig(bool isBoss, Action<bool, int> onFinished)
