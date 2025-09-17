@@ -15,6 +15,7 @@ namespace ALWTTT
         [SerializeField] private List<MusicianBase> allMusiciansList;
         [SerializeField] private List<MusicianBase> initialMusicianList;
         [SerializeField] private List<SongData> initialSongList;
+        [SerializeField] private List<SongData> possibleSongList;
 
         [Header("Map")]
         [SerializeField] private int maxCohesion = 10;
@@ -57,6 +58,7 @@ namespace ALWTTT
         public List<MusicianBase> AllMusiciansList => allMusiciansList;
         public List<MusicianBase> InitialMusicianList => initialMusicianList;
         public List<SongData> InitialSongList => initialSongList;
+        public List<SongData> PossibleSongList => possibleSongList;
 
         public int MaxCohesion => maxCohesion;
         public int InitialCohesion => initialCohesion;

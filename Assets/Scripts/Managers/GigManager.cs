@@ -478,10 +478,13 @@ namespace ALWTTT.Managers
                 UIManager.RewardCanvas.OnRewardFinished = () => ReturnToMap(true);
             }
 
+            // Musicians unsubscribe to gig events
             foreach (var m in _spawned)
             {
                 if (m != null) m.UnbindFromGigContext();
             }
+
+            GameManager.PersistentGameplayData.GigsWon++;
         }
 
         public void RecalculateAudienceObstructions()

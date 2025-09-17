@@ -68,6 +68,10 @@ namespace ALWTTT.Data
         // Story / Unlock meta
         [SerializeField] private List<string> storyTags = new List<string>();
 
+
+        // Records
+        [SerializeField] private int gigsWon;
+
         #region Encapsulation
 
         public List<MusicianBase> MusicianList
@@ -221,6 +225,12 @@ namespace ALWTTT.Data
         }
 
         public IReadOnlyList<string> StoryTags => storyTags;
+
+        public int GigsWon
+        {
+            get => gigsWon;
+            set => gigsWon = value;
+        }
         #endregion
 
         public PersistentGameplayData(GameplayData gameplayData)
@@ -267,40 +277,9 @@ namespace ALWTTT.Data
             CurrentSectorMapState = null; // must be generated on first entry to SectorMap scene
             Fans = 0;
             BandCohesion = gameplayData.InitialCohesion;
-        }
 
-        public MusicianHealthData SetMusicianHealthData(
-            string id, int newCurrentStress, int newMaxStress)
-        {
-            var newData = new MusicianHealthData();
-            newData.CharacterId = id;
-            newData.CurrentStress = newCurrentStress;
-            newData.MaxStress = newMaxStress;
-
-            // Replace old data with new one
-            var data = musicianHealthDataList.Find(x => x.CharacterId == id);
-            if (data != null)
-            {
-                musicianHealthDataList.Remove(data);
-                musicianHealthDataList.Add(newData);
-            }
-            else
-            {
-                musicianHealthDataList.Add(newData);
-            }
-
-            return newData;
-        }
-
-        public MusicianHealthData GetMusicianHealthData(string id)
-        {
-            foreach (var data in musicianHealthDataList)
-            {
-                if (data.CharacterId == id)
-                    return data;
-            }
-
-            return null;
+            // Records
+            GigsWon = 0;
         }
 
         #region Story / Events
@@ -374,6 +353,40 @@ namespace ALWTTT.Data
         #endregion
 
         #region Band
+
+        public MusicianHealthData SetMusicianHealthData(
+            string id, int newCurrentStress, int newMaxStress)
+        {
+            var newData = new MusicianHealthData();
+            newData.CharacterId = id;
+            newData.CurrentStress = newCurrentStress;
+            newData.MaxStress = newMaxStress;
+
+            // Replace old data with new one
+            var data = musicianHealthDataList.Find(x => x.CharacterId == id);
+            if (data != null)
+            {
+                musicianHealthDataList.Remove(data);
+                musicianHealthDataList.Add(newData);
+            }
+            else
+            {
+                musicianHealthDataList.Add(newData);
+            }
+
+            return newData;
+        }
+
+        public MusicianHealthData GetMusicianHealthData(string id)
+        {
+            foreach (var data in musicianHealthDataList)
+            {
+                if (data.CharacterId == id)
+                    return data;
+            }
+
+            return null;
+        }
         public void AddMusicianToBand(MusicianCharacterData newMusician)
         {
             var musicianPrefab = newMusician.CharacterPrefab;
@@ -431,6 +444,36 @@ namespace ALWTTT.Data
             }
 
             return true;
+        }
+
+        public bool HasActiveConflictBetween(string musicianAId, string musicianBId)
+        {
+            bool wantInternal = string.IsNullOrEmpty(musicianBId);
+
+            for (int i = 0; i < bandConflicts.Count; i++)
+            {
+                var c = bandConflicts[i];
+                var ca = c.musicianAId;
+                var cb = string.IsNullOrEmpty(c.musicianBId) ? null : c.musicianBId;
+
+                if (wantInternal)
+                {
+                    // Internal conflict: match (A, null)
+                    if (cb == null && ca == musicianAId) return true;
+                }
+                else
+                {
+                    // Pair conflict: unordered match (A,B) or (B,A)
+                    if (cb != null)
+                    {
+                        if ((ca == musicianAId && cb == musicianBId) ||
+                            (ca == musicianBId && cb == musicianAId))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion

@@ -584,39 +584,54 @@ namespace ALWTTT.Managers
 
             int chance = Mathf.Clamp(gd.BaseConflictChance, 0, 100);
             int roll = UnityEngine.Random.Range(0, 100);
-            if (roll >= chance) return null; // no conflict
+            if (roll >= chance) return null; // no conflict this time
 
             // Need at least one musician
             if (pd.MusicianList == null || pd.MusicianList.Count == 0) return null;
 
-            // Pick participants
-            string a = pd.MusicianList[UnityEngine.Random.Range(0, pd.MusicianList.Count)]
-                            .MusicianCharacterData.CharacterId;
-
-            string b = null;
-            if (pd.MusicianList.Count >= 2 && UnityEngine.Random.value < 0.6f)
+            // Try several times to find a pair that doesn't already have a conflict
+            const int maxTries = 12;
+            for (int t = 0; t < maxTries; t++)
             {
-                // pick a different one
-                for (int tries = 0; tries < 8; tries++)
-                {
-                    var m = pd.MusicianList[UnityEngine.Random.Range(0, pd.MusicianList.Count)]
+                // Pick A
+                string a = pd.MusicianList[UnityEngine.Random.Range(0, pd.MusicianList.Count)]
                                 .MusicianCharacterData.CharacterId;
-                    if (m != a) { b = m; break; }
+
+                // Decide if this is internal or pair; keep your ~60% external preference
+                bool external = pd.MusicianList.Count >= 2 && UnityEngine.Random.value < 0.6f;
+
+                string b = null;
+                if (external)
+                {
+                    // Pick a different B
+                    for (int tries = 0; tries < 8; tries++)
+                    {
+                        var m = pd.MusicianList[UnityEngine.Random.Range(0, pd.MusicianList.Count)]
+                                    .MusicianCharacterData.CharacterId;
+                        if (m != a) { b = m; break; }
+                    }
+
+                    // If we failed to find a distinct B, fallback to internal this round
+                    if (b == null) external = false;
                 }
+
+                // Skip if that conflict key already exists (unordered for pairs)
+                if (pd.HasActiveConflictBetween(a, b)) continue;
+
+                // Build conflict payload
+                var types = new[] { "Creative differences", "Ego clash", "Scheduling", "Stage spotlight", "Money split" };
+                return new PersistentGameplayData.BandConflict
+                {
+                    id = System.Guid.NewGuid().ToString("N"),
+                    musicianAId = a,
+                    musicianBId = b, // null => internal
+                    severity = UnityEngine.Random.Range(1, 4),
+                    type = types[UnityEngine.Random.Range(0, types.Length)]
+                };
             }
 
-            // Simple random details; you can replace with weighted types later
-            var types = new[] { "Creative differences", "Ego clash", "Scheduling", "Stage spotlight", "Money split" };
-            var conflict = new PersistentGameplayData.BandConflict
-            {
-                id = System.Guid.NewGuid().ToString("N"),
-                musicianAId = a,
-                musicianBId = b,                 // null/empty => internal conflict
-                severity = UnityEngine.Random.Range(1, 4), // 1..3 for now
-                type = types[UnityEngine.Random.Range(0, types.Length)]
-            };
-
-            return conflict;
+            // Could not find a new unique pair/internal this move
+            return null;
         }
 
         private void CheckGameOver()
