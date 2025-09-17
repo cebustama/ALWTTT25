@@ -9,5 +9,7 @@ namespace ALWTTT.Data
         public int sectorMapSceneIndex = 1;
         public int shipInteriorSceneIndex = 2;
         public int gigSceneIndex = 3;
+        public int gameOverSceneIndex = 4;
+        public int bandSetupSceneIndex = 5;
     }
 }

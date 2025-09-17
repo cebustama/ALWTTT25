@@ -27,6 +27,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 59f12f810d1e2ef4cb1d5a34ab60496b, type: 2}
   maxCohesion: 10
   initialCohesion: 10
+  baseConflictChance: 100
+  perConflictCohesionPenalty: 100
+  cohesionRestoredByBandTalk: 2
   initialDeck: {fileID: 11400000, guid: 204c90b7635ebd64d8dfd0c046a1dd57, type: 2}
   drawCount: 4
   maxCardsOnHand: 10

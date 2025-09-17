@@ -64,7 +64,22 @@ namespace ALWTTT.Managers
 
         private void OnBandTalk()
         {
-            // TODO: resolve conflicts OR restore cohesion if no conflicts
+            var pd = GM.PersistentGameplayData;
+            var gd = GM.GameplayData;
+
+            if (pd.BandConflicts != null && pd.BandConflicts.Count > 0)
+            {
+                // Remove all current conflicts
+                pd.BandConflicts.Clear();
+            }
+            else
+            {
+                // Restore cohesion (clamped)
+                pd.BandCohesion = Mathf.Clamp(
+                    pd.BandCohesion + gd.CohesionRestoredByBandTalk,
+                    0, gd.MaxCohesion);
+            }
+
             ReturnToMap();
         }
 

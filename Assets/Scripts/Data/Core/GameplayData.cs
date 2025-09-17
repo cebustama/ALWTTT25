@@ -19,6 +19,9 @@ namespace ALWTTT
         [Header("Map")]
         [SerializeField] private int maxCohesion = 10;
         [SerializeField] private int initialCohesion = 10; // Max by default
+        [SerializeField] private int baseConflictChance = 25; // Each jump between nodes
+        [SerializeField] private int perConflictCohesionPenalty = 1;
+        [SerializeField] private int cohesionRestoredByBandTalk = 2;
 
         [Header("Deck")]
         [SerializeField] private DeckData initialDeck;
@@ -57,6 +60,9 @@ namespace ALWTTT
 
         public int MaxCohesion => maxCohesion;
         public int InitialCohesion => initialCohesion;
+        public int BaseConflictChance => baseConflictChance;
+        public int PerConflictCohesionPenalty => perConflictCohesionPenalty;
+        public int CohesionRestoredByBandTalk => cohesionRestoredByBandTalk;
 
         public int DrawCount => drawCount;
         public int MaxCardsOnHand => maxCardsOnHand;

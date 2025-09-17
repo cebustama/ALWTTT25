@@ -18,6 +18,12 @@ EditorBuildSettings:
     path: Assets/Scenes/3 - Gig Scene.unity
     guid: e9473afd531296b409f0f3e84154cfa0
   - enabled: 1
+    path: Assets/Scenes/Game Over.unity
+    guid: 79a22eb323864bc4199133da8efd387d
+  - enabled: 1
+    path: Assets/Scenes/Band Setup.unity
+    guid: c838a9dcd60ae4341a2681841487acaa
+  - enabled: 1
     path: Assets/Scenes/ALWTTTCore.unity
     guid: 14b0682341bae5a43815853466f02f90
   m_configObjects:

@@ -34,6 +34,7 @@ namespace ALWTTT.Managers
         // TODO Move to UIManager
         [SerializeField] private TextMeshProUGUI fansText;
         [SerializeField] private TextMeshProUGUI cohesionText;
+        [SerializeField] private TextMeshProUGUI conflictsText;
         [SerializeField] private MusicianMapStatusUI musicianStatusPrefab;
         [SerializeField] private Transform musicianStatusRoot;
 
@@ -41,6 +42,9 @@ namespace ALWTTT.Managers
 
         [Header("Events Canvas")]
         [SerializeField] private RandomEventCanvas randomEventCanvas;
+
+        [Header("Conflicts Canvas")]
+        [SerializeField] private ConflictPanelUI conflictPanelPrefab;
 
         [Header("References")]
         [SerializeField] private SceneChanger sceneChanger;
@@ -63,6 +67,7 @@ namespace ALWTTT.Managers
         }
 
         private bool _isResolving;
+        private bool _isGameOver;
 
         private void Start()
         {
@@ -211,45 +216,78 @@ namespace ALWTTT.Managers
         private void HandleNodeClicked(SectorNodeState node)
         {
             if (_isResolving) return;
-            // Only allow moves to neighbors
-            if (!IsNeighbor(State.CurrentNodeId, node.Id))
-                return;
+            if (!IsNeighbor(State.CurrentNodeId, node.Id)) return;
+            if ((node.Type == Enums.NodeType.Gig || node.Type == Enums.NodeType.Boss) && node.Completed) return;
 
-            // Prevent revisiting completed Gig nodes
-            if ((node.Type == Enums.NodeType.Gig 
-                || node.Type == Enums.NodeType.Boss) && node.Completed)
-                return;
+            StartCoroutine(HandleMoveWithConflictThenResolve(node));
+        }
 
-            var pd = GameManager.Instance.PersistentGameplayData;
+        private IEnumerator HandleMoveWithConflictThenResolve(SectorNodeState node)
+        {
+            _isResolving = true;
 
-            // Update state and visuals
+            // ---- Update state/visuals for the move ----
             State.CurrentNodeId = node.Id;
             node.Visited = true;
             mapVisual.SyncNodeStates();
             mapVisual.ShowLinksForCurrentOnly();
             MoveShipToNode(node.Id);
 
-            // ---- Go to gig if needed ----
+            // ---- Apply cohesion penalty from existing conflicts ----
+            ApplyConflictCohesionPenalty();
+            if (GameManager.PersistentGameplayData.BandCohesion <= 0)
+            {
+                _isResolving = false;
+                yield break; // GameOver has been triggered
+            }
+
+            // ---- Roll for a new conflict and show modal if it happens ----
+            var newConflict = TryCreateRandomConflict();
+            if (newConflict != null)
+            {
+                // add to persistent list
+                GameManager.PersistentGameplayData.BandConflicts.Add(newConflict);
+                RefreshHUD();
+
+                // Block anything else until the player confirms the panel
+                var canvas = EnsureModal(conflictPanelPrefab);
+                bool dummy = false;
+                yield return OpenModalAndWait<ConflictPanelUI, bool>(
+                    canvas,
+                    (c, done) => c.Show(newConflict, done),
+                    r => dummy = r
+                );
+            }
+
+            // ---- Now proceed with node’s normal behavior ----
+            var pd = GameManager.Instance.PersistentGameplayData;
+
             if (node.Type == Enums.NodeType.Gig || node.Type == Enums.NodeType.Boss)
             {
                 pd.CurrentEncounterId = Mathf.Max(0, node.GigEncounterIndex);
                 pd.IsFinalEncounter = node.Type == Enums.NodeType.Boss;
                 pd.LastMapNodeId = node.Id;
-
                 sceneChanger.OpenGigScene();
-                return;
+                _isResolving = false;
+                yield break;
             }
 
             if (node.Type == Enums.NodeType.Rehearsal)
             {
                 pd.LastMapNodeId = node.Id;
-
                 sceneChanger.OpenShipScene();
-                return;
+                _isResolving = false;
+                yield break;
             }
 
-            // Resolve the node interaction
-            StartCoroutine(ResolveCurrentNode());
+            // Node resolvers (Recruit, Random Event, etc.)
+            yield return ResolveCurrentNode();
+
+            _isResolving = false;
+
+            // Keep visuals synced after resolve
+            mapVisual.SyncNodeStates();
+            mapVisual.ShowLinksForCurrentOnly();
         }
 
         private IEnumerator ResolveCurrentNode()
@@ -329,8 +367,12 @@ namespace ALWTTT.Managers
         public void RefreshHUD()
         {
             var pd = GameManager.PersistentGameplayData;
+            var gd = GameManager.GameplayData;
             if (fansText) fansText.text = $"Fans: {pd.Fans}";
             if (cohesionText) cohesionText.text = $"Cohesion: {pd.BandCohesion}";
+            if (conflictsText) conflictsText.text = $"Conflicts = {pd.BandConflicts.Count} " +
+                    $"({gd.BaseConflictChance}%, " +
+                    $"{gd.PerConflictCohesionPenalty} Cohesion/Conflict)";
 
             RefreshMusicianStatusInfo();
         }
@@ -521,5 +563,75 @@ namespace ALWTTT.Managers
             return eligible[0].data;
         }
 
+        private void ApplyConflictCohesionPenalty()
+        {
+            var pd = GameManager.PersistentGameplayData;
+            var gd = GameManager.GameplayData;
+
+            int penalty = (pd.BandConflicts?.Count ?? 0) * gd.PerConflictCohesionPenalty;
+            if (penalty > 0)
+            {
+                pd.BandCohesion = Mathf.Clamp(pd.BandCohesion - penalty, 0, gd.MaxCohesion);
+                RefreshHUD();
+                CheckGameOver();
+            }
+        }
+
+        private PersistentGameplayData.BandConflict TryCreateRandomConflict()
+        {
+            var gd = GameManager.GameplayData;
+            var pd = GameManager.PersistentGameplayData;
+
+            int chance = Mathf.Clamp(gd.BaseConflictChance, 0, 100);
+            int roll = UnityEngine.Random.Range(0, 100);
+            if (roll >= chance) return null; // no conflict
+
+            // Need at least one musician
+            if (pd.MusicianList == null || pd.MusicianList.Count == 0) return null;
+
+            // Pick participants
+            string a = pd.MusicianList[UnityEngine.Random.Range(0, pd.MusicianList.Count)]
+                            .MusicianCharacterData.CharacterId;
+
+            string b = null;
+            if (pd.MusicianList.Count >= 2 && UnityEngine.Random.value < 0.6f)
+            {
+                // pick a different one
+                for (int tries = 0; tries < 8; tries++)
+                {
+                    var m = pd.MusicianList[UnityEngine.Random.Range(0, pd.MusicianList.Count)]
+                                .MusicianCharacterData.CharacterId;
+                    if (m != a) { b = m; break; }
+                }
+            }
+
+            // Simple random details; you can replace with weighted types later
+            var types = new[] { "Creative differences", "Ego clash", "Scheduling", "Stage spotlight", "Money split" };
+            var conflict = new PersistentGameplayData.BandConflict
+            {
+                id = System.Guid.NewGuid().ToString("N"),
+                musicianAId = a,
+                musicianBId = b,                 // null/empty => internal conflict
+                severity = UnityEngine.Random.Range(1, 4), // 1..3 for now
+                type = types[UnityEngine.Random.Range(0, types.Length)]
+            };
+
+            return conflict;
+        }
+
+        private void CheckGameOver()
+        {
+            var pd = GameManager.PersistentGameplayData;
+            if (!_isGameOver && pd.BandCohesion <= 0)
+            {
+                _isGameOver = true;
+                GameOver();
+            }
+        }
+
+        private void GameOver()
+        {
+            sceneChanger.OpenGameOverScene();
+        }
     }
 }

@@ -17,7 +17,8 @@ namespace ALWTTT.Utils
             BandSetup,
             SectorMap,
             Ship,
-            Gig
+            Gig,
+            GameOver
         }
 
         public void OpenMainMenuScene()
@@ -40,6 +41,17 @@ namespace ALWTTT.Utils
             StartCoroutine(DelaySceneChange(SceneType.Gig));
         }
 
+        public void OpenGameOverScene()
+        {
+            StartCoroutine(DelaySceneChange(SceneType.GameOver));
+        }
+
+        public void OpenBandSetupScene()
+        {
+            StartCoroutine(DelaySceneChange(SceneType.BandSetup));
+        }
+
+        // TODO: Refactor
         private IEnumerator DelaySceneChange(SceneType type)
         {
             // Close inventory canvas in case it's open
@@ -56,6 +68,13 @@ namespace ALWTTT.Utils
 
                     GameManager.InitGameplayData();
                     GameManager.SetInitialDeck();
+                    break;
+
+                case SceneType.BandSetup:
+                    UIManager.ChangeScene(GameManager.SceneData.bandSetupSceneIndex);
+                    UIManager.SetCanvas(UIManager.GigCanvas, false, true);
+                    UIManager.SetCanvas(UIManager.RewardCanvas, false, true);
+
                     break;
 
                 case SceneType.SectorMap:
@@ -77,6 +96,12 @@ namespace ALWTTT.Utils
                     UIManager.SetCanvas(UIManager.GigCanvas, false, true);
                     UIManager.SetCanvas(UIManager.RewardCanvas, false, true);
                     // TODO: InformationCanvas, true
+                    break;
+                case SceneType.GameOver:
+                    UIManager.ChangeScene(GameManager.SceneData.gameOverSceneIndex);
+                    UIManager.SetCanvas(UIManager.GigCanvas, false, true);
+                    UIManager.SetCanvas(UIManager.RewardCanvas, false, true);
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
