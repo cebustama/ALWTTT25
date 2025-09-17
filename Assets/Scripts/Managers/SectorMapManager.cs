@@ -220,6 +220,8 @@ namespace ALWTTT.Managers
                 || node.Type == Enums.NodeType.Boss) && node.Completed)
                 return;
 
+            var pd = GameManager.Instance.PersistentGameplayData;
+
             // Update state and visuals
             State.CurrentNodeId = node.Id;
             node.Visited = true;
@@ -230,12 +232,19 @@ namespace ALWTTT.Managers
             // ---- Go to gig if needed ----
             if (node.Type == Enums.NodeType.Gig || node.Type == Enums.NodeType.Boss)
             {
-                var pd = GameManager.Instance.PersistentGameplayData;
                 pd.CurrentEncounterId = Mathf.Max(0, node.GigEncounterIndex);
                 pd.IsFinalEncounter = node.Type == Enums.NodeType.Boss;
                 pd.LastMapNodeId = node.Id;
 
                 sceneChanger.OpenGigScene();
+                return;
+            }
+
+            if (node.Type == Enums.NodeType.Rehearsal)
+            {
+                pd.LastMapNodeId = node.Id;
+
+                sceneChanger.OpenShipScene();
                 return;
             }
 

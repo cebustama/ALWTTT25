@@ -16,6 +16,18 @@ namespace ALWTTT.Data
         [SerializeField] private List<MusicianHealthData> musicianHealthDataList;
         [SerializeField] private List<SongData> currentSongList;
 
+        [Serializable]
+        public class BandConflict
+        {
+            public string id;   // guid
+            public string musicianAId;  // required
+            public string musicianBId;  // optional (null/empty => internal conflict)
+            public int severity;    // 1..5?
+            public string type; // enum string or code (creative differences, jealousy, etc.)
+        }
+
+        [SerializeField] private List<BandConflict> bandConflicts = new();
+
         // World
         [SerializeField] private List<MusicianBase> availableMusiciansList;
         [SerializeField] private List<string> usedRandomEventIds;
@@ -105,6 +117,8 @@ namespace ALWTTT.Data
             get => turnStartingGroove;
             set => turnStartingGroove = value;
         }
+
+        public List<BandConflict> BandConflicts => bandConflicts;
 
         public List<CardData> CurrentCardsList
         {

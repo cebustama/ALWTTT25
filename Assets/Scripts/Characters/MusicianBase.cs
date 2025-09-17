@@ -22,6 +22,8 @@ namespace ALWTTT.Characters.Band
         public string CharacterId => musicianCharacterData.CharacterId;
         #endregion
 
+        private bool _boundToGig;
+
         public override void BuildCharacter()
         {
             base.BuildCharacter();
@@ -61,9 +63,27 @@ namespace ALWTTT.Characters.Band
 
             Debug.Log("{MusicianBase} Stats: " + stats.ToString());
 
-            GigManager.OnPlayerTurnStarted += stats.TriggerAllStatus;
-
             bandCharacterCanvas.HideContextual();
+        }
+
+        public void BindToGigContext()
+        {
+            if (_boundToGig) return;
+            GigManager.OnPlayerTurnStarted += stats.TriggerAllStatus;
+            _boundToGig = true;
+        }
+
+        public void UnbindFromGigContext()
+        {
+            if (!_boundToGig) return;
+            GigManager.OnPlayerTurnStarted -= stats.TriggerAllStatus;
+            _boundToGig = false;
+        }
+
+        private void OnDestroy()
+        {
+            // Safety: if this musician was ever bound, unbind to avoid static event leaks.
+            if (_boundToGig) UnbindFromGigContext();
         }
 
         public void SetSpriteLayerOrder(int targetOrder)

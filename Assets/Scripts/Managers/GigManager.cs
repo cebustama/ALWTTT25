@@ -30,6 +30,8 @@ namespace ALWTTT.Managers
         private GigPhase currentGigPhase;
         private List<SongData> playedSongs = new List<SongData>();
 
+        private readonly List<MusicianBase> _spawned = new();
+
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
 
@@ -98,6 +100,14 @@ namespace ALWTTT.Managers
             StartGig();
         }
 
+        private void OnDestroy()
+        {
+            foreach (var m in _spawned)
+            {
+                if (m != null) m.UnbindFromGigContext();
+            }
+        }
+
         private void StartGig()
         {
             if (debug) Debug.Log($"{DebugTag} Starting gig...");
@@ -150,6 +160,8 @@ namespace ALWTTT.Managers
                 );
 
                 clone.BuildCharacter();
+                clone.BindToGigContext();
+                _spawned.Add(clone);
 
                 // Front or Back of the Stage
                 // TODO: Use a single layer per musician
@@ -423,6 +435,11 @@ namespace ALWTTT.Managers
                 body: "You didn’t convince the crowd this time, but the journey continues.\n" +
                        $"Cohesion decreased by {pd.CurrentEncounter.CohesionPenaltyOnLoss}."
             );
+
+            foreach (var m in _spawned)
+            {
+                if (m != null) m.UnbindFromGigContext();
+            }
         }
 
         private void WinGig()
@@ -459,6 +476,11 @@ namespace ALWTTT.Managers
                 UIManager.RewardCanvas.PrepareCanvas();
                 UIManager.RewardCanvas.BuildReward(RewardType.Card);
                 UIManager.RewardCanvas.OnRewardFinished = () => ReturnToMap(true);
+            }
+
+            foreach (var m in _spawned)
+            {
+                if (m != null) m.UnbindFromGigContext();
             }
         }
 
