@@ -1,14 +1,15 @@
-﻿using UnityEngine;
-using TMPro;
+﻿using ALWTTT.Characters.Band;
 using ALWTTT.Data;
+using ALWTTT.Events;
 using ALWTTT.Generation;
 using ALWTTT.Map;
-using System.Collections;
-using ALWTTT.Utils;
 using ALWTTT.UI;
-using System.Collections.Generic;
-using ALWTTT.Characters.Band;
+using ALWTTT.Utils;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
 
 namespace ALWTTT.Managers
 {
@@ -37,6 +38,9 @@ namespace ALWTTT.Managers
         [SerializeField] private Transform musicianStatusRoot;
 
         private Dictionary<string, MusicianMapStatusUI> musicianStatusDict;
+
+        [Header("Events Canvas")]
+        [SerializeField] private RandomEventCanvas randomEventCanvas;
 
         [Header("References")]
         [SerializeField] private SceneChanger sceneChanger;
@@ -443,5 +447,70 @@ namespace ALWTTT.Managers
                 (c, complete) => c.Show(candidates, complete),
                 chosen => onChosen?.Invoke(chosen));
         }
+
+        public IEnumerator ShowRandomEvent(Action<RandomEventOption> onChosen)
+        {
+            var data = PickEventForSector(GameManager.PersistentGameplayData.CurrentSectorId);
+            Debug.Log($"<color=white>{data} picked...</color>");
+
+            var canvas = EnsureModal(randomEventCanvas);
+            yield return OpenModalAndWait<RandomEventCanvas, RandomEventOption>(
+                canvas,
+                (c, complete) => c.Show(data, complete),
+                chosen => onChosen?.Invoke(chosen));
+        }
+
+        RandomEventData PickEventForSector(int sectorId)
+        {
+            var gameplayData = GameManager.GameplayData;
+            var persistent = GameManager.PersistentGameplayData;
+            var table = gameplayData.EventTables.Find(t => t.tableId == $"Sector_{sectorId}");
+            if (table == null) table = gameplayData.EventTables.Find(t => t.tableId == "Common");
+            if (table == null) return null;
+
+            var eligible = new List<(RandomEventData data, int weight)>();
+
+            // Find eligible events
+            foreach (var e in table.entries)
+            {
+                if (e.data == null) continue;
+
+                // sector gate
+                if (sectorId < e.minSector || sectorId > e.maxSector) continue;
+
+                // once-per-run gate
+                if (e.oncePerRun && persistent.HasUsedRandomEvent(e.data.EventId)) continue;
+
+                // tags gate
+                if (e.requiredTags != null)
+                    foreach (var tag in e.requiredTags)
+                        if (!persistent.HasStoryTag(tag)) goto skip;
+
+                if (e.forbiddenTags != null)
+                    foreach (var tag in e.forbiddenTags)
+                        if (persistent.HasStoryTag(tag)) goto skip;
+
+                // cooldown example (optional)
+                // int last = persistent.GetEventLastSeenSector(e.data.EventId);
+                // if (last >= 0 && (sectorId - last) < 2) continue;
+
+                eligible.Add((e.data, Mathf.Max(1, e.weight)));
+                continue;
+                skip:;
+            }
+
+            if (eligible.Count == 0) return null;
+
+            // weighted roll
+            int total = 0; foreach (var it in eligible) total += it.weight;
+            int r = UnityEngine.Random.Range(0, total);
+            foreach (var it in eligible)
+            {
+                if (r < it.weight) return it.data;
+                r -= it.weight;
+            }
+            return eligible[0].data;
+        }
+
     }
 }

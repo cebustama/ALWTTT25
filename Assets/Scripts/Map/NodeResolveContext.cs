@@ -44,12 +44,9 @@ namespace ALWTTT.Map
             onChoice?.Invoke("Compose"); // default stub choice
         }
 
-        public IEnumerator ShowRandomEvent(Action<bool> onFinished)
+        public IEnumerator ShowRandomEvent(Action<Events.RandomEventOption> onChosen)
         {
-            // TODO pick event, populate RandomEventCanvas, await selection, apply effects
-            Debug.Log("[Resolve] Random Event canvas opened.");
-            yield return new WaitForSeconds(0.1f);
-            onFinished?.Invoke(true);
+            yield return Manager.ShowRandomEvent(onChosen);
         }
 
         public IEnumerator ShowRecruit(Action<MusicianCharacterData> onChosen)

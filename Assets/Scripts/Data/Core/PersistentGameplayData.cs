@@ -18,6 +18,9 @@ namespace ALWTTT.Data
 
         // World
         [SerializeField] private List<MusicianBase> availableMusiciansList;
+        [SerializeField] private List<string> usedRandomEventIds;
+        // eventId -> sector
+        [SerializeField] private SerializableStringIntDictionary eventLastSeenSector; 
 
         // Deckbuilding / Gig Encounters
         [SerializeField] private List<CardData> currentCardsList;
@@ -33,6 +36,8 @@ namespace ALWTTT.Data
         [SerializeField] private SongData currentSong;
         [SerializeField] private int currentSongIndex;
         [SerializeField] private List<CardData> songModifierCardsList;
+        [SerializeField] private SerializableCardInventory musicianGrantedCards = 
+            new SerializableCardInventory();
 
         // Sector Info
         [SerializeField] private int currentSectorId;
@@ -47,6 +52,9 @@ namespace ALWTTT.Data
         // Global meta for SectorMap HUD (Fans/Level, Band Cohesion)
         [SerializeField] private int fans;           // total Fans (XP equivalent)
         [SerializeField] private int bandCohesion;   // if <= 0, Game Over
+
+        // Story / Unlock meta
+        [SerializeField] private List<string> storyTags = new List<string>();
 
         #region Encapsulation
 
@@ -197,6 +205,8 @@ namespace ALWTTT.Data
             get => bandCohesion;
             set => bandCohesion = value;
         }
+
+        public IReadOnlyList<string> StoryTags => storyTags;
         #endregion
 
         public PersistentGameplayData(GameplayData gameplayData)
@@ -279,17 +289,136 @@ namespace ALWTTT.Data
             return null;
         }
 
+        #region Story / Events
+        public bool HasStoryTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+            return storyTags.Contains(tag);
+        }
+
+        public void AddStoryTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return;
+            if (storyTags == null) storyTags = new List<string>();
+            if (!storyTags.Contains(tag)) storyTags.Add(tag);
+        }
+
+        public bool RemoveStoryTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag) || storyTags == null) return false;
+            return storyTags.Remove(tag);
+        }
+
+        public bool HasUsedRandomEvent(string eventId) => usedRandomEventIds.Contains(eventId);
+
+        public void MarkRandomEventUsed(string eventId, int currentSectorId)
+        {
+            if (string.IsNullOrEmpty(eventId)) return;
+            if (!usedRandomEventIds.Contains(eventId)) usedRandomEventIds.Add(eventId);
+            eventLastSeenSector[eventId] = currentSectorId;
+        }
+
+        public int GetEventLastSeenSector(string eventId)
+        {
+            return eventLastSeenSector.TryGetValue(eventId, out var s) ? s : -1;
+        }
+        #endregion
+
+        #region Deck
+        public void AddCardToDeck(CardData card)
+        {
+            if (card == null) return;
+            if (CurrentCardsList == null) CurrentCardsList = new List<CardData>();
+            CurrentCardsList.Add(card);
+            // NOTE: if duplicates should be prevented, guard with:
+            // if (!CurrentCardsList.Contains(card)) CurrentCardsList.Add(card);
+        }
+
+        // Grants cards to the deck AND records they came from musicianId
+        public void GrantCardsToMusician(string musicianId, IEnumerable<CardData> cards)
+        {
+            if (string.IsNullOrEmpty(musicianId) || cards == null) return;
+            if (CurrentCardsList == null) CurrentCardsList = new List<CardData>();
+
+            foreach (var c in cards)
+            {
+                if (c == null) continue;
+                CurrentCardsList.Add(c);
+                musicianGrantedCards.AddCard(musicianId, c);
+            }
+        }
+
+        // Overload convenience for single card
+        public void GrantCardToMusician(string musicianId, CardData card)
+        {
+            if (string.IsNullOrEmpty(musicianId) || card == null) return;
+            if (CurrentCardsList == null) CurrentCardsList = new List<CardData>();
+
+            CurrentCardsList.Add(card);
+            musicianGrantedCards.AddCard(musicianId, card);
+        }
+        #endregion
+
+        #region Band
         public void AddMusicianToBand(MusicianCharacterData newMusician)
         {
             var musicianPrefab = newMusician.CharacterPrefab;
             MusicianList.Add(musicianPrefab);
-            foreach (var card in newMusician.BaseCards)
-            {
-                CurrentCardsList.Add(card);
-            }
-            AvailableMusiciansList.Remove(musicianPrefab);
 
+            // Record base cards as coming from this musician
+            GrantCardsToMusician(newMusician.CharacterId, newMusician.BaseCards);
+
+            AvailableMusiciansList.Remove(musicianPrefab);
             SetMusicianHealthData(newMusician.CharacterId, 0, newMusician.InitialMaxStress);
         }
+
+        public bool RemoveMusicianFromBand(string musicianId)
+        {
+            if (string.IsNullOrEmpty(musicianId)) return false;
+
+            // Find the musician prefab in the current band by id
+            MusicianBase toRemove = null;
+            foreach (var mus in MusicianList)
+            {
+                if (mus != null && mus.CharacterId == musicianId)
+                {
+                    toRemove = mus;
+                    break;
+                }
+            }
+
+            if (toRemove == null)
+            {
+                Debug.LogWarning($"[Persistent] RemoveMusicianFromBand: musician id '{musicianId}' not found in band.");
+                return false;
+            }
+
+            // 1) Remove musician
+            MusicianList.Remove(toRemove);
+            if (AvailableMusiciansList != null && !AvailableMusiciansList.Contains(toRemove))
+                AvailableMusiciansList.Add(toRemove);
+
+            // 2) Remove health entry
+            var health = musicianHealthDataList?.Find(h => h.CharacterId == musicianId);
+            if (health != null) musicianHealthDataList.Remove(health);
+
+            // 3) Remove their granted cards from the deck
+            if (musicianGrantedCards.TryRemoveAll(musicianId, out var granted))
+            {
+                if (CurrentCardsList == null) CurrentCardsList = new List<CardData>();
+
+                // We remove ONE instance per recorded grant (deck is a multiset)
+                foreach (var card in granted)
+                {
+                    if (card == null) continue;
+                    // Remove only one copy for each grant record
+                    CurrentCardsList.Remove(card);
+                }
+            }
+
+            return true;
+        }
+
+        #endregion
     }
 }

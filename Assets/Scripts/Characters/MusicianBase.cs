@@ -19,6 +19,7 @@ namespace ALWTTT.Characters.Band
         public BandCharacterCanvas BandCharacterCanvas => bandCharacterCanvas;
         public MusicianCharacterData MusicianCharacterData => musicianCharacterData;
         public BandCharacterStats Stats => stats;
+        public string CharacterId => musicianCharacterData.CharacterId;
         #endregion
 
         public override void BuildCharacter()

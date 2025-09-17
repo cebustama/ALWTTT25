@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 666740f163a762e45b7823f6adaf8702, type: 3}
+  m_Name: Event - Reporter Interview
+  m_EditorClassIdentifier: 
+  eventId: mono3
+  title: Interview
+  description: 'There''s a reporter for Star Strings magazing wanting to ask a question.
+
+    "What
+    is music to you?"'
+  backgroundSprite: {fileID: 7482667652216324306, guid: 2f2a7f5f7ee73cb47906c2a0ac63204e, type: 3}
+  eventSprite: {fileID: 8842967954101353170, guid: 2e10b539ed02a244897565eed8334d13, type: 3}
+  options:
+  - optionId: 1
+    text: Everything...
+    effects:
+    - type: 0
+      amount: 0
+      card: {fileID: 0}
+      cards: []
+      musician: {fileID: 0}
+      musicianId: 
+      storyTag: music_good
+  - optionId: 2
+    text: Nothing.
+    effects:
+    - type: 1
+      amount: -10
+      card: {fileID: 0}
+      cards: []
+      musician: {fileID: 0}
+      musicianId: 
+      storyTag: music_bad

@@ -44,5 +44,33 @@ MonoBehaviour:
     TypeColor: {r: 0.3137255, g: 0.7882353, b: 0.80784315, a: 1}
   - CardType: 3
     TypeColor: {r: 1, g: 0.74509805, b: 0.043137256, a: 1}
+  allRandomEvents:
+  - {fileID: 11400000, guid: 8f003a9db9c710641a1e8768078aa40b, type: 2}
+  - {fileID: 11400000, guid: cfb1d0368ee376445a7a07729c498f47, type: 2}
+  - {fileID: 11400000, guid: 5b9acd28258e335418487cc80c1b1053, type: 2}
+  eventTables:
+  - tableId: Sector_0
+    entries:
+    - data: {fileID: 11400000, guid: 8f003a9db9c710641a1e8768078aa40b, type: 2}
+      weight: 3
+      requiredTags: []
+      forbiddenTags: []
+      oncePerRun: 0
+      minSector: 0
+      maxSector: 1
+    - data: {fileID: 11400000, guid: cfb1d0368ee376445a7a07729c498f47, type: 2}
+      weight: 1
+      requiredTags: []
+      forbiddenTags: []
+      oncePerRun: 0
+      minSector: 0
+      maxSector: 1
+    - data: {fileID: 11400000, guid: 5b9acd28258e335418487cc80c1b1053, type: 2}
+      weight: 2
+      requiredTags: []
+      forbiddenTags: []
+      oncePerRun: 0
+      minSector: 0
+      maxSector: 1
   isRandomDeck: 0
   randomCardCount: 0

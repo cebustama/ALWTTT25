@@ -43,7 +43,7 @@ namespace ALWTTT.Data
         {
             new NodeCountRule(NodeType.Rehearsal,        4,  8),
             new NodeCountRule(NodeType.Gig,              6, 10),
-            new NodeCountRule(NodeType.RandomEncounter,  3,  6),
+            new NodeCountRule(NodeType.RandomEvent,  3,  6),
             new NodeCountRule(NodeType.Recruit,          1,  3),
             new NodeCountRule(NodeType.Boss,             1,  1),
         };

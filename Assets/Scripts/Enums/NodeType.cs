@@ -9,7 +9,7 @@ namespace ALWTTT.Enums
     {
         Rehearsal = 0,
         Gig = 1,
-        RandomEncounter = 2,
+        RandomEvent = 2,
         Recruit = 3,
         Boss = 4
     }

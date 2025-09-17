@@ -1,6 +1,7 @@
 using ALWTTT.Characters.Band;
 using ALWTTT.Data;
 using ALWTTT.Enums;
+using ALWTTT.Events;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -41,6 +42,10 @@ namespace ALWTTT
         }
         [SerializeField] private List<CardTypeEntry> cardTypeEntryList;
 
+        [Header("Random Events")]
+        [SerializeField] private List<RandomEventData> allRandomEvents;
+        [SerializeField] private List<EventTable> eventTables;
+
         [Header("Modifiers")]
         [SerializeField] private bool isRandomDeck = false;
         [SerializeField] private int randomCardCount;
@@ -65,8 +70,11 @@ namespace ALWTTT
         
         public bool IsRandomDeck => isRandomDeck;
         public int RandomCardCount => randomCardCount;
+
+        public List<RandomEventData> AllRandomEvents => allRandomEvents;
+        public List<EventTable> EventTables => eventTables;
         #endregion
-    
+
         public Color GetCardTypeColor(CardType type)
         {
             foreach (var entry in cardTypeEntryList)
@@ -77,5 +85,27 @@ namespace ALWTTT
 
             return Color.white;
         }
+    }
+
+    // Curated tables/pools (by sector, biome, chapter, etc.)
+    [Serializable]
+    public class EventTableEntry
+    {
+        public RandomEventData data;
+        public int weight = 1;
+
+        // Simple gates (extend as needed)
+        public List<string> requiredTags;   // must all be present in Persistent.StoryTags
+        public List<string> forbiddenTags;  // none of these may be present
+        public bool oncePerRun = false;
+        public int minSector = 0;
+        public int maxSector = 9999;
+    }
+
+    [Serializable]
+    public class EventTable
+    {
+        public string tableId;                // e.g. "Sector_0", "Common", "DerelictShip"
+        public List<EventTableEntry> entries; // weighted list
     }
 }
