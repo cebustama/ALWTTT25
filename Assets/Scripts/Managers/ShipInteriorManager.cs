@@ -52,7 +52,18 @@ namespace ALWTTT.Managers
         // --- Button callbacks (stub actions for now) ---
         private void OnCompose()
         {
-            // TODO: create & add song to pd.CurrentSongList
+            var pd = GM.PersistentGameplayData;
+
+            // Make a new song for this run (random from PossibleSongList)
+            var newSong = pd.GenerateSong();
+
+            // Pre-generate/cache the MIDI for the *current band roster*
+            if (newSong != null && MidiMusicManager.Instance != null)
+            {
+                MidiMusicManager.Instance.GenerateSongs(new[] { newSong });
+            }
+
+            // Back to map
             ReturnToMap();
         }
 

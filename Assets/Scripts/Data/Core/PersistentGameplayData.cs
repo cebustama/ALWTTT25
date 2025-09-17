@@ -477,5 +477,18 @@ namespace ALWTTT.Data
         }
 
         #endregion
+
+        #region Songs
+        public SongData GenerateSong()
+        {
+            var pool = gameplayData.PossibleSongList;
+            if (pool == null || pool.Count == 0) return null;
+
+            var pick = pool[UnityEngine.Random.Range(0, pool.Count)];
+            if (currentSongList == null) currentSongList = new List<SongData>();
+            currentSongList.Add(pick);
+            return pick;
+        }
+        #endregion
     }
 }

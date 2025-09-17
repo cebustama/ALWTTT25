@@ -120,17 +120,19 @@ namespace ALWTTT.Managers
             if (logDebug)
                 Debug.Log($"{DebugTag} Generating songs...");
 
+            var band = GameManager.PersistentGameplayData.MusicianList;
+
             foreach (var s in songs)
             {
-                var key = s.Id;
+                var key = CacheKey(s, band);
                 if (cache.ContainsKey(key)) continue;
 
-                var entry = GenerateSongEntry(s);
+                var entry = GenerateSongEntry(s);   // uses current band internally (PD.MusicianList)
                 if (entry != null)
                     cache[key] = entry;
             }
 
-            if (logDebug) 
+            if (logDebug)
                 Debug.Log($"{DebugTag} Pre-generated {cache.Count} songs in cache.");
         }
 
@@ -142,8 +144,9 @@ namespace ALWTTT.Managers
         {
             EnsureRegistriesLoaded();
 
-            // Generate if not in cache
-            var key = song.Id;
+            var band = GameManager.PersistentGameplayData.MusicianList;
+            var key = CacheKey(song, band);
+
             if (!cache.TryGetValue(key, out var entry))
             {
                 entry = GenerateSongEntry(song);
@@ -154,9 +157,8 @@ namespace ALWTTT.Managers
             player.Stop();
             player.Play(entry.data);
 
-            if (logDebug) 
-                Debug.Log($"{DebugTag} " +
-                    $"Playing '{song.SongTitle}' ({entry.seconds:0.00}s)");
+            if (logDebug)
+                Debug.Log($"{DebugTag} Playing '{song.SongTitle}' ({entry.seconds:0.00}s)");
 
             return entry.seconds;
         }
@@ -203,6 +205,24 @@ namespace ALWTTT.Managers
 
             var metric = TimeConverter.ConvertTo<MetricTimeSpan>(last, tempoMap);
             return (float)metric.TotalSeconds;
+        }
+
+        private string ComputeBandSignature(IList<Characters.Band.MusicianBase> band)
+        {
+            if (band == null) return "";
+            var ids = band
+                .Select(m => m?.MusicianCharacterData?.CharacterId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .OrderBy(id => id);
+            return string.Join("+", ids);
+        }
+
+        private string CacheKey(
+            SongData song, IList<Characters.Band.MusicianBase> band = null)
+        {
+            var b = band ?? GameManager.PersistentGameplayData.MusicianList;
+            var sig = ComputeBandSignature(b);
+            return string.IsNullOrEmpty(sig) ? song.Id : $"{song.Id}::{sig}";
         }
     }
 }
