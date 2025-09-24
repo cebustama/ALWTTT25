@@ -1,7 +1,8 @@
 using ALWTTT.Characters.Band;
-using ALWTTT.UI;
 using ALWTTT.Utils;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ALWTTT.Managers
@@ -15,8 +16,14 @@ namespace ALWTTT.Managers
         [SerializeField] private ShipInteriorCanvas shipCanvas;
         [SerializeField] private SceneChanger sceneChanger;
 
+        private bool isPlaying;
+
         private readonly List<MusicianBase> _spawned = new();
-        private GameManager GM => GameManager.Instance;
+
+        #region Cache
+        private GameManager GameManager => GameManager.Instance;
+        private MidiMusicManager MidiMusicManager => MidiMusicManager.Instance;
+        #endregion
 
         private void Start()
         {
@@ -33,7 +40,7 @@ namespace ALWTTT.Managers
 
         private void BuildBand()
         {
-            var pd = GM.PersistentGameplayData;
+            var pd = GameManager.PersistentGameplayData;
             _spawned.Clear();
 
             for (int i = 0; i < pd.MusicianList.Count; i++)
@@ -49,22 +56,50 @@ namespace ALWTTT.Managers
             }
         }
 
-        // --- Button callbacks (stub actions for now) ---
         private void OnCompose()
         {
-            var pd = GM.PersistentGameplayData;
+            if (isPlaying) return;
+            StartCoroutine(ComposeAndPreviewRoutine());
+        }
 
-            // Make a new song for this run (random from PossibleSongList)
+        private IEnumerator ComposeAndPreviewRoutine()
+        {
+            isPlaying = true;
+
+            var pd = GameManager.PersistentGameplayData;
+            var mm = MidiMusicManager;
+
+            // 1) Create the song for this run
             var newSong = pd.GenerateSong();
+            if (newSong == null || mm == null) { isPlaying = false; yield break; }
 
-            // Pre-generate/cache the MIDI for the *current band roster*
-            if (newSong != null && MidiMusicManager.Instance != null)
+            // Ensure full-band is generated once (cached)
+            mm.GenerateSongs(new[] { newSong }); // full band only
+
+            // 2) Layered preview: same arrangement, more channels each loop
+            var bandOrder = _spawned.Where(m => m != null).ToList();
+            if (bandOrder.Count == 0) { isPlaying = false; yield break; }
+
+            float lastDuration = 0f;
+            for (int k = 1; k <= bandOrder.Count; k++)
             {
-                MidiMusicManager.Instance.GenerateSongs(new[] { newSong });
+                // Optional: visual cue when a new musician "joins"
+                var justJoined = bandOrder[k - 1];
+                if (justJoined?.CharacterAnimator != null)
+                    justJoined.CharacterAnimator.JumpOnBeat = true;
+
+                lastDuration = mm.PlaySameArrangementSubset(newSong, k);
+                yield return new WaitForSeconds(lastDuration);
             }
 
-            // Back to map
-            ReturnToMap();
+            // 3) Show New Song panel; on Confirm => back to map
+            var names = bandOrder.Select(b => b.MusicianCharacterData.CharacterName).ToArray();
+            shipCanvas.NewSongPanel?.Show(newSong, names, lastDuration, onClose: () =>
+            {
+                ReturnToMap(); // <-- per “one activity per Rehearsal”
+            });
+
+            isPlaying = false;
         }
 
         private void OnRelax()
@@ -75,8 +110,8 @@ namespace ALWTTT.Managers
 
         private void OnBandTalk()
         {
-            var pd = GM.PersistentGameplayData;
-            var gd = GM.GameplayData;
+            var pd = GameManager.PersistentGameplayData;
+            var gd = GameManager.GameplayData;
 
             if (pd.BandConflicts != null && pd.BandConflicts.Count > 0)
             {
@@ -97,7 +132,7 @@ namespace ALWTTT.Managers
         private void ReturnToMap()
         {
             // Mark node completed (consume the Rehearsal) – adjust if you want revisits
-            var pd = GM.PersistentGameplayData;
+            var pd = GameManager.PersistentGameplayData;
             var state = pd.CurrentSectorMapState;
             if (state != null)
             {

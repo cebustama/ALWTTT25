@@ -5,6 +5,7 @@ using MidiGenPlay;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -136,6 +137,21 @@ namespace ALWTTT.Managers
                 Debug.Log($"{DebugTag} Pre-generated {cache.Count} songs in cache.");
         }
 
+        public void GenerateSongs(IEnumerable<SongData> songs, IList<ALWTTT.Characters.Band.MusicianBase> bandOverride)
+        {
+            EnsureRegistriesLoaded();
+            var band = bandOverride ?? GameManager.PersistentGameplayData.MusicianList;
+
+            foreach (var s in songs)
+            {
+                var key = CacheKey(s, band);
+                if (cache.ContainsKey(key)) continue;
+
+                var entry = GenerateSongEntry(s, band);
+                if (entry != null) cache[key] = entry;
+            }
+        }
+
         /// <summary>
         /// Play the given song. Returns the real duration (seconds) measured from the MIDI.
         /// If missing from cache, it will be generated on-demand.
@@ -163,6 +179,71 @@ namespace ALWTTT.Managers
             return entry.seconds;
         }
 
+        public float Play(SongData song, IList<Characters.Band.MusicianBase> bandOverride)
+        {
+            EnsureRegistriesLoaded();
+
+            var band = bandOverride ?? GameManager.PersistentGameplayData.MusicianList;
+            var key = CacheKey(song, band);
+
+            if (!cache.TryGetValue(key, out var entry))
+            {
+                entry = GenerateSongEntry(song, band);
+                if (entry == null) return 0f;
+                cache[key] = entry;
+            }
+
+            player.Stop();
+            player.Play(entry.data);
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} Playing '{song.SongTitle}' for band[{band.Count}] ({entry.seconds:0.00}s)");
+
+            return entry.seconds;
+        }
+
+        /// <summary>
+        /// Play the same full-band arrangement but only keep the first 'channelsToKeep'
+        /// MIDI channels (by ascending channel index). Returns duration seconds.
+        /// </summary>
+        public float PlaySameArrangementSubset(SongData song, int channelsToKeep)
+        {
+            EnsureRegistriesLoaded();
+
+            // Ensure full-band is in cache
+            var fullBand = GameManager.PersistentGameplayData.MusicianList;
+            var fullKey = CacheKey(song, fullBand);
+
+            if (!cache.TryGetValue(fullKey, out var full))
+            {
+                full = GenerateSongEntry(song, fullBand);
+                if (full == null) return 0f;
+                cache[fullKey] = full;
+            }
+
+            // Discover which channels exist in this generated performance
+            MidiFile midiFull;
+            using (var ms = new MemoryStream(full.data))
+                midiFull = MidiFile.Read(ms);
+
+            var used = GetUsedChannels(midiFull);
+            if (used.Count == 0) return Play(song);   // fallback
+
+            channelsToKeep = Mathf.Clamp(channelsToKeep, 1, used.Count);
+            var allowed = new HashSet<int>(used.Take(channelsToKeep));
+
+            // Build a masked variant deterministically from the same full bytes
+            var maskedData = BuildChannelMaskedData(full.data, allowed);
+
+            player.Stop();
+            player.Play(maskedData);
+
+            // Same duration as the full file
+            if (logDebug)
+                Debug.Log($"{DebugTag} PlaySameArrangementSubset '{song.SongTitle}' channels={channelsToKeep}/{used.Count} ({full.seconds:0.00}s)");
+            return full.seconds;
+        }
+
         public void Stop()
         {
             player?.Stop();
@@ -171,13 +252,18 @@ namespace ALWTTT.Managers
         #endregion
 
         private SongCacheEntry GenerateSongEntry(SongData song)
+            => GenerateSongEntry(song, GameManager.PersistentGameplayData.MusicianList);
+
+        private SongCacheEntry GenerateSongEntry(SongData song, IList<ALWTTT.Characters.Band.MusicianBase> band)
         {
             EnsureRegistriesLoaded();
 
-            var config = song.GenerateConfig(GameManager.PersistentGameplayData.MusicianList);
-            var midi = generator.GenerateSong(config);
+            // Convert to the concrete type GenerateConfig expects
+            var bandList = band as List<ALWTTT.Characters.Band.MusicianBase>
+                           ?? band?.ToList();
 
-            if (logDebug) Debug.Log($"{DebugTag} Finished generating song {song.SongTitle}");
+            var config = song.GenerateConfig(bandList); // OK now
+            var midi = generator.GenerateSong(config);
 
             byte[] data;
             using (var ms = new System.IO.MemoryStream())
@@ -223,6 +309,47 @@ namespace ALWTTT.Managers
             var b = band ?? GameManager.PersistentGameplayData.MusicianList;
             var sig = ComputeBandSignature(b);
             return string.IsNullOrEmpty(sig) ? song.Id : $"{song.Id}::{sig}";
+        }
+
+        private List<int> GetUsedChannels(MidiFile midi)
+        {
+            var set = new HashSet<int>();
+            foreach (var chunk in midi.GetTrackChunks())
+            {
+                foreach (var ev in chunk.Events)
+                {
+                    if (ev is Melanchall.DryWetMidi.Core.ChannelEvent ce)
+                        set.Add((int)ce.Channel);
+                }
+            }
+            var list = set.ToList();
+            list.Sort();
+            return list;
+        }
+
+        // Build a new midi that only keeps events on the allowed channels.
+        private byte[] BuildChannelMaskedData(byte[] fullData, HashSet<int> allowed)
+        {
+            using var msIn = new MemoryStream(fullData);
+            var midi = MidiFile.Read(msIn);
+
+            foreach (var chunk in midi.GetTrackChunks())
+            {
+                var toRemove = new List<MidiEvent>();
+                foreach (var ev in chunk.Events)
+                {
+                    if (ev is ChannelEvent ce)
+                    {
+                        var ch = (int)ce.Channel;
+                        if (!allowed.Contains(ch)) toRemove.Add(ev);
+                    }
+                }
+                foreach (var ev in toRemove) chunk.Events.Remove(ev);
+            }
+
+            using var msOut = new MemoryStream();
+            midi.Write(msOut);
+            return msOut.ToArray();
         }
     }
 }

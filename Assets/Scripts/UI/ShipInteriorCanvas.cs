@@ -1,3 +1,4 @@
+using ALWTTT.UI;
 using System;
 using TMPro;
 using UnityEngine;
@@ -7,10 +8,15 @@ namespace ALWTTT.Managers
 {
     public class ShipInteriorCanvas : MonoBehaviour
     {
-        [Header("UI")]
+        [Header("Buttons")]
         [SerializeField] private Button composeButton;
         [SerializeField] private Button relaxButton;
         [SerializeField] private Button bandTalkButton;
+
+        [Header("Panels")]
+        [SerializeField] private NewSongPanelUI newSongPanel;
+
+        public NewSongPanelUI NewSongPanel => newSongPanel;
 
         public void Setup(Action onCompose, Action onRelax, Action onBandTalk)
         {
