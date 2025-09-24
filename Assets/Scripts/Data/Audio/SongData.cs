@@ -26,7 +26,6 @@ namespace ALWTTT.Data
 
         [Header("Audio")]
         [SerializeField] private SongTemplate genProfile;
-        [SerializeField] private float duration = 5f;
         [SerializeField] private int bpm = 80;
 
         #region Encapsulation
@@ -35,7 +34,6 @@ namespace ALWTTT.Data
         public string SongGenre => genre.ToString();
         public string SongTheme => theme.ToString();
         public string Complexity => complexity.ToString();
-        public float Duration => duration;
         public int BPM => bpm;
         public SongTemplate GenProfile => genProfile;
         #endregion
@@ -107,6 +105,12 @@ namespace ALWTTT.Data
             // Use interface type throughout
             IReadOnlyList<MusicianBase> band = musicians ?? (IReadOnlyList<MusicianBase>)new List<MusicianBase>();
             var resolvedRoles = ResolveRoles(band, rnd); // (m, role)
+
+            config.ChannelMusicianOrder = resolvedRoles
+                .Select(rr => rr.m?.MusicianCharacterData?.CharacterId ?? "")
+                .ToList();
+
+            config.ChannelRoles = resolvedRoles.Select(rr => rr.role).ToList();
 
             // Helper to pick a melodic instrument by type
             MIDIInstrumentSO PickInstrumentByType(List<InstrumentType> wanted, System.Random r)

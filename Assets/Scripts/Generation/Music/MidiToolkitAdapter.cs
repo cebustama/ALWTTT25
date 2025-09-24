@@ -1,6 +1,7 @@
 using UnityEngine;
 using MidiPlayerTK;
 using MidiGenPlay;
+using System.Collections;
 
 public class MidiToolkitAdapter : MonoBehaviour, IPlayMidi
 {
@@ -32,4 +33,12 @@ public class MidiToolkitAdapter : MonoBehaviour, IPlayMidi
 
     public void Stop() => _player?.MPTK_Stop();
     public void Play(byte[] data) => _player?.MPTK_Play(data);
+
+    public bool IsPlaying => _player != null && _player.MPTK_IsPlaying;
+
+    public IEnumerator WaitForEnd()
+    {
+        while (_player != null && _player.MPTK_IsPlaying)
+            yield return null; // next frame
+    }
 }

@@ -24,7 +24,7 @@ namespace ALWTTT.Characters.Band
 
         public override string ToString()
         {
-            return $"[Musician Stats] Vibe: {CurrentStress}/{MaxStress}, " +
+            return $"[Musician Stats] Stress: {CurrentStress}/{MaxStress}, " +
                $"CHR: {Charm}, THC: {Technique}, EMT: {Emotion}";
         }
 

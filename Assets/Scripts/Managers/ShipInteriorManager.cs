@@ -66,34 +66,46 @@ namespace ALWTTT.Managers
         {
             isPlaying = true;
 
+            var mm = MidiMusicManager.Instance;
             var pd = GameManager.PersistentGameplayData;
-            var mm = MidiMusicManager;
 
-            // 1) Create the song for this run
             var newSong = pd.GenerateSong();
             if (newSong == null || mm == null) { isPlaying = false; yield break; }
 
-            // Ensure full-band is generated once (cached)
-            mm.GenerateSongs(new[] { newSong }); // full band only
+            // Compute entrance order by the channel -> musician map (so rhythm joins first, etc.)
+            var fullKey = typeof(MidiMusicManager)
+                            .GetMethod("CacheKey", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                            .Invoke(mm, new object[] { newSong, pd.MusicianList }) as string; // or expose a public getter if you prefer
 
-            // 2) Layered preview: same arrangement, more channels each loop
-            var bandOrder = _spawned.Where(m => m != null).ToList();
-            if (bandOrder.Count == 0) { isPlaying = false; yield break; }
+            // Better: add a public helper on MidiMusicManager
+            var entranceOrderIds = mm.GetChannelOwnerIdsFor(newSong); // see helper below
+
+            // Build entrance order from channel owners (so rhythm/lead/backing join in the right order)
+            var entranceIds = mm.GetChannelOwnerIdsFor(newSong);
+            var byId = _spawned.ToDictionary(m => m.MusicianCharacterData.CharacterId, m => m);
+            var orderedMusicians = entranceIds.Select(id => byId.TryGetValue(id, out var m) ? m : null)
+                                              .Where(m => m != null)
+                                              .ToList();
 
             float lastDuration = 0f;
-            for (int k = 1; k <= bandOrder.Count; k++)
+            for (int k = 1; k <= orderedMusicians.Count; k++)
             {
-                // Optional: visual cue when a new musician "joins"
-                var justJoined = bandOrder[k - 1];
-                if (justJoined?.CharacterAnimator != null)
-                    justJoined.CharacterAnimator.JumpOnBeat = true;
+                var newcomer = orderedMusicians[k - 1];
+                //newcomer?.CharacterAnimator?.SetTrigger("Join");
 
-                lastDuration = mm.PlaySameArrangementSubset(newSong, k);
-                yield return new WaitForSeconds(lastDuration);
+                // Play subset by those musicians (not by channel index!)
+                lastDuration = mm.PlaySameArrangementSubsetByMusicians(newSong, entranceIds, k);
+
+                // Live overlay texts for this loop (optional, powerful)
+                StartCoroutine(mm.DebugOverlayNotesForLoop(
+                    newSong, entranceIds, k,
+                    anchorById: _spawned.ToDictionary(m => m.MusicianCharacterData.CharacterId, m => m.transform)));
+
+                yield return MidiMusicManager.WaitForEnd();
             }
 
             // 3) Show New Song panel; on Confirm => back to map
-            var names = bandOrder.Select(b => b.MusicianCharacterData.CharacterName).ToArray();
+            var names = orderedMusicians.Select(b => b.MusicianCharacterData.CharacterName).ToArray();
             shipCanvas.NewSongPanel?.Show(newSong, names, lastDuration, onClose: () =>
             {
                 ReturnToMap(); // <-- per “one activity per Rehearsal”

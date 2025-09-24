@@ -3,6 +3,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using MidiGenPlay;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -63,6 +64,9 @@ namespace ALWTTT.Managers
         public IReadOnlyList<MelodyPatternData> MelodyPatterns => 
             new ReadOnlyCollection<MelodyPatternData>(allMelodyPatterns);
 
+        private readonly Dictionary<string, List<string>> channelOwnersByKey = new(); // channel idx -> musicianId
+        private readonly Dictionary<string, List<TrackRole>> channelRolesByKey = new();
+
         private void EnsureRegistriesLoaded()
         {
             if (registriesLoaded) return;
@@ -92,7 +96,7 @@ namespace ALWTTT.Managers
         }
         #endregion
 
-                #region Setup
+        #region Setup
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -137,7 +141,8 @@ namespace ALWTTT.Managers
                 Debug.Log($"{DebugTag} Pre-generated {cache.Count} songs in cache.");
         }
 
-        public void GenerateSongs(IEnumerable<SongData> songs, IList<ALWTTT.Characters.Band.MusicianBase> bandOverride)
+        public void GenerateSongs(
+            IEnumerable<SongData> songs, IList<Characters.Band.MusicianBase> bandOverride)
         {
             EnsureRegistriesLoaded();
             var band = bandOverride ?? GameManager.PersistentGameplayData.MusicianList;
@@ -197,50 +202,51 @@ namespace ALWTTT.Managers
             player.Play(entry.data);
 
             if (logDebug)
-                Debug.Log($"{DebugTag} Playing '{song.SongTitle}' for band[{band.Count}] ({entry.seconds:0.00}s)");
+                Debug.Log($"{DebugTag} Playing " +
+                    $"'{song.SongTitle}' for band[{band.Count}] ({entry.seconds:0.00}s)");
 
             return entry.seconds;
         }
 
-        /// <summary>
-        /// Play the same full-band arrangement but only keep the first 'channelsToKeep'
-        /// MIDI channels (by ascending channel index). Returns duration seconds.
-        /// </summary>
-        public float PlaySameArrangementSubset(SongData song, int channelsToKeep)
+        public float PlaySameArrangementSubsetByMusicians(
+            SongData song,
+            IReadOnlyList<string> entranceOrderIds,
+            int takeCount)
         {
             EnsureRegistriesLoaded();
 
-            // Ensure full-band is in cache
             var fullBand = GameManager.PersistentGameplayData.MusicianList;
-            var fullKey = CacheKey(song, fullBand);
+            var key = CacheKey(song, fullBand);
 
-            if (!cache.TryGetValue(fullKey, out var full))
+            if (!cache.TryGetValue(key, out var full))
             {
                 full = GenerateSongEntry(song, fullBand);
                 if (full == null) return 0f;
-                cache[fullKey] = full;
+                cache[key] = full;
             }
 
-            // Discover which channels exist in this generated performance
-            MidiFile midiFull;
-            using (var ms = new MemoryStream(full.data))
-                midiFull = MidiFile.Read(ms);
+            if (!channelOwnersByKey.TryGetValue(key, out var channelOwners) 
+                || channelOwners == null)
+                return Play(song); // fallback
 
-            var used = GetUsedChannels(midiFull);
-            if (used.Count == 0) return Play(song);   // fallback
+            var allowed = new HashSet<int>();
+            for (int i = 0; i < takeCount && i < entranceOrderIds.Count; i++)
+            {
+                var id = entranceOrderIds[i];
+                int ch = channelOwners.IndexOf(id);
+                if (ch >= 0) allowed.Add(ch);
+            }
+            if (allowed.Count == 0) return Play(song);
 
-            channelsToKeep = Mathf.Clamp(channelsToKeep, 1, used.Count);
-            var allowed = new HashSet<int>(used.Take(channelsToKeep));
-
-            // Build a masked variant deterministically from the same full bytes
             var maskedData = BuildChannelMaskedData(full.data, allowed);
 
             player.Stop();
             player.Play(maskedData);
 
-            // Same duration as the full file
             if (logDebug)
-                Debug.Log($"{DebugTag} PlaySameArrangementSubset '{song.SongTitle}' channels={channelsToKeep}/{used.Count} ({full.seconds:0.00}s)");
+                Debug.Log($"{DebugTag} PlaySubsetByMusicians " +
+                    $"'{song.SongTitle}' -> {allowed.Count} ch");
+
             return full.seconds;
         }
 
@@ -249,20 +255,137 @@ namespace ALWTTT.Managers
             player?.Stop();
             if (logDebug) Debug.Log($"{DebugTag} Stop");
         }
+
+        public IReadOnlyList<string> GetChannelOwnerIdsFor(SongData song)
+        {
+            var key = CacheKey(song, GameManager.PersistentGameplayData.MusicianList);
+            if (channelOwnersByKey.TryGetValue(key, out var list)) return list;
+            // force-generate if missing (shouldn't happen if GenerateSongs/Play called first)
+            var entry = 
+                GenerateSongEntry(song, GameManager.PersistentGameplayData.MusicianList);
+            cache[key] = entry;
+            return channelOwnersByKey[key];
+        }
+
+        public IEnumerator DebugOverlayNotesForLoop(
+            SongData song,
+            IReadOnlyList<string> entranceOrderIds,
+            int takeCount,
+            Dictionary<string, Transform> anchorById)
+        {
+            EnsureRegistriesLoaded();
+
+            var fullBand = GameManager.PersistentGameplayData.MusicianList;
+            var key = CacheKey(song, fullBand);
+
+            if (!cache.TryGetValue(key, out var full))
+            {
+                full = GenerateSongEntry(song, fullBand);
+                if (full == null) yield break;
+                cache[key] = full;
+            }
+
+            // Allowed channel set for this loop
+            if (!channelOwnersByKey.TryGetValue(key, out var owners)) yield break;
+            var allowed = new HashSet<int>();
+            for (int i = 0; i < takeCount && i < entranceOrderIds.Count; i++)
+            {
+                var id = entranceOrderIds[i];
+                int ch = owners.IndexOf(id);
+                if (ch >= 0) allowed.Add(ch);
+            }
+            if (allowed.Count == 0) yield break;
+
+            // Parse MIDI into time-sorted NoteOn events
+            var events = new List<(double t, int ch, int note, int vel)>();
+            MidiFile midi;
+            using (var ms = new MemoryStream(full.data)) midi = MidiFile.Read(ms);
+            var tempoMap = midi.GetTempoMap();
+
+            foreach (var chunk in midi.GetTrackChunks())
+            {
+                foreach (var e in chunk.Events)
+                {
+                    if (e is ChannelEvent ce && ce is NoteOnEvent on && on.Velocity > 0)
+                    {
+                        var metric = TimeConverter.ConvertTo<MetricTimeSpan>(e.DeltaTime, tempoMap);
+                        // IMPORTANT: e.DeltaTime is relative to previous event in the chunk.
+                        // Better: use TimedEvents to get absolute times:
+                    }
+                }
+            }
+
+            // Proper absolute times:
+            events.Clear();
+            foreach (var chunk in midi.GetTrackChunks())
+            {
+                var timed = chunk.GetTimedEvents();
+                foreach (var te in timed)
+                {
+                    if (te.Event is NoteOnEvent on && on.Velocity > 0)
+                    {
+                        var sec = TimeConverter.ConvertTo<MetricTimeSpan>(te.Time, tempoMap).TotalSeconds;
+                        int ch = (int)((ChannelEvent)te.Event).Channel;
+                        int note = on.NoteNumber;
+                        int vel = on.Velocity;
+                        if (allowed.Contains(ch))
+                            events.Add((sec, ch, note, vel));
+                    }
+                }
+            }
+            events.Sort((a, b) => a.t.CompareTo(b.t));
+
+            // Fire texts at the right musician (channel -> musicianId -> Transform)
+            foreach (var ev in events)
+            {
+                // Find musician id for this channel
+                string id = (owners != null && ev.ch < owners.Count) ? owners[ev.ch] : null;
+                if (id != null && anchorById.TryGetValue(id, out var t))
+                {
+                    string label = MidiNoteToName(ev.note); // "C4", etc.
+                    FxManager.Instance?.SpawnFloatingText(t, label, 0, 1);
+                }
+                yield return new WaitForSeconds((float)(ev.t - (events.Count > 0 ? events[0].t : 0)));
+            }
+        }
+
+        public IEnumerator WaitForEnd()
+        {
+            // Prefer the adapter if available
+            if (midiPlayerAdapter is MidiToolkitAdapter ad)
+                yield return ad.WaitForEnd();
+            else
+                yield break; // fallback: nothing we can do
+        }
+
         #endregion
+
+        private string MidiNoteToName(int note)
+        {
+            int octave = (note / 12) - 1;
+            string[] names = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+            return $"{names[note % 12]}{octave}";
+        }
 
         private SongCacheEntry GenerateSongEntry(SongData song)
             => GenerateSongEntry(song, GameManager.PersistentGameplayData.MusicianList);
 
-        private SongCacheEntry GenerateSongEntry(SongData song, IList<ALWTTT.Characters.Band.MusicianBase> band)
+        private SongCacheEntry GenerateSongEntry(
+            SongData song, IList<ALWTTT.Characters.Band.MusicianBase> band)
         {
             EnsureRegistriesLoaded();
 
             // Convert to the concrete type GenerateConfig expects
-            var bandList = band as List<ALWTTT.Characters.Band.MusicianBase>
+            var bandList = band as List<Characters.Band.MusicianBase>
                            ?? band?.ToList();
 
-            var config = song.GenerateConfig(bandList); // OK now
+            var config = song.GenerateConfig(bandList);
+
+            var key = CacheKey(song, bandList);
+            channelOwnersByKey[key] = 
+                config.ChannelMusicianOrder?.ToList() ?? new List<string>();
+            channelRolesByKey[key] = config.ChannelRoles?.ToList() ?? new List<TrackRole>();
+
             var midi = generator.GenerateSong(config);
 
             byte[] data;
