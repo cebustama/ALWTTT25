@@ -149,13 +149,6 @@ namespace ALWTTT.Managers
                 Debug.Log($"{DebugTag} PlaySubset returned duration={lastDuration:0.00}s, " +
                     $"player.IsPlaying={mm != null}");
 
-                // Optional note overlay
-                StartCoroutine(mm.DebugOverlayNotesForLoop(
-                    newSong, entranceIdsOrdered, k,
-                    anchorById: _spawned.ToDictionary(
-                        m => m.MusicianCharacterData.CharacterId, m => m.transform))
-                );
-
                 // Wait for actual end
                 yield return MidiMusicManager.WaitForEnd();
                 Debug.Log($"{DebugTag} Loop {k} ended.");

@@ -51,8 +51,6 @@ namespace ALWTTT.Managers
         public void SpawnFloatingText(
             Transform targetTransform, string text, int xDir = 0, int yDir = -1)
         {
-            Debug.Log("SPAWN!");
-
             var cloneText = Instantiate(
                 floatingTextPrefab, targetTransform.position, Quaternion.identity);
 
