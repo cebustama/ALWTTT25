@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5623568110873374987}
   - component: {fileID: 6511795936892951621}
   - component: {fileID: 8876883093181404695}
+  - component: {fileID: 5299901056022696988}
   m_Layer: 7
   m_Name: BandCharacter - Base
   m_TagString: Untagged
@@ -56,6 +57,7 @@ MonoBehaviour:
   textSpawnRoot: {fileID: 4764939820373229341}
   headRoot: {fileID: 138673961274262317}
   spriteRenderer: {fileID: 2094732631458172625}
+  obscuredColor: {r: 0, g: 0, b: 0, a: 0}
   speechBubblePrefab: {fileID: 4837711926867269552, guid: 3e067e2f4964d5249a1fa30f4f464bb4, type: 3}
   characterLayerMask:
     serializedVersion: 2
@@ -185,6 +187,22 @@ MonoBehaviour:
   particlesPerBurst: 10
   emitEveryNBeats: 1
   particleBeatOffsetBeats: 0
+--- !u!114 &5299901056022696988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821282841742446069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 458701ff70630b048b6d432ec781807c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  musician: {fileID: 6746610026762189175}
+  reactToNotes: 1
+  reactToChords: 1
+  reactToBeats: 1
 --- !u!1 &2247961388524572634
 GameObject:
   m_ObjectHideFlags: 0

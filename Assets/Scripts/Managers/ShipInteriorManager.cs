@@ -1,4 +1,5 @@
-using ALWTTT.Characters.Band;
+ï»¿using ALWTTT.Characters.Band;
+using ALWTTT.Music;
 using ALWTTT.Utils;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,6 +10,8 @@ namespace ALWTTT.Managers
 {
     public class ShipInteriorManager : MonoBehaviour
     {
+        private const string DebugTag = "<color=green>[Rehearsal]</color>";
+
         [Header("Spawn Points")]
         [SerializeField] private List<Transform> musicianPosList;
 
@@ -52,7 +55,16 @@ namespace ALWTTT.Managers
 
                 var clone = Instantiate(prefab, parent);
                 clone.BuildCharacter(); // same pattern as GigManager  :contentReference[oaicite:2]{index=2}
+
+                var responder = clone.gameObject.GetComponent<MusicianMidiResponder>();
+                if (responder == null) responder = 
+                        clone.gameObject.AddComponent<MusicianMidiResponder>();
+                responder.Init(clone);
+
                 _spawned.Add(clone);
+
+                MidiMusicManager?.RegisterMusicianAnchor(
+                    clone.MusicianCharacterData.CharacterId, clone.transform);
             }
         }
 
@@ -69,49 +81,98 @@ namespace ALWTTT.Managers
             var mm = MidiMusicManager.Instance;
             var pd = GameManager.PersistentGameplayData;
 
+            Debug.Log($"{DebugTag} ComposeAndPreview: begin");
+
+            if (mm == null)
+            {
+                Debug.LogError($"{DebugTag} MidiMusicManager is null");
+                isPlaying = false; yield break;
+            }
+
+            // 1) Generate song
             var newSong = pd.GenerateSong();
-            if (newSong == null || mm == null) { isPlaying = false; yield break; }
+            if (newSong == null)
+            {
+                Debug.LogError($"{DebugTag} GenerateSong returned null");
+                isPlaying = false; yield break;
+            }
+            Debug.Log($"{DebugTag} Generated song '{newSong.SongTitle}'");
 
-            // Compute entrance order by the channel -> musician map (so rhythm joins first, etc.)
-            var fullKey = typeof(MidiMusicManager)
-                            .GetMethod("CacheKey", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                            .Invoke(mm, new object[] { newSong, pd.MusicianList }) as string; // or expose a public getter if you prefer
+            // 2) Channel owners for this arrangement (index=channel â†’ musicianId)
+            var owners = mm.GetChannelOwnerIdsFor(newSong);
+            if (owners == null || owners.Count == 0)
+            {
+                Debug.LogError($"{DebugTag} GetChannelOwnerIdsFor returned empty.");
+                isPlaying = false; yield break;
+            }
 
-            // Better: add a public helper on MidiMusicManager
-            var entranceOrderIds = mm.GetChannelOwnerIdsFor(newSong); // see helper below
+            Debug.Log($"{DebugTag} Channel owners (ch->id): " +
+                string.Join(", ", owners.Select((id, i) => $"{i}:{id}")));
 
-            // Build entrance order from channel owners (so rhythm/lead/backing join in the right order)
-            var entranceIds = mm.GetChannelOwnerIdsFor(newSong);
+
+            // 3) Wire live routing (so realtime events reach the right musician)
+            mm.SetChannelOwners(owners?.ToList());
+            Debug.Log($"{DebugTag} SetChannelOwners OK");
+
+            // 4) Build visual entrance order => band objects by id
             var byId = _spawned.ToDictionary(m => m.MusicianCharacterData.CharacterId, m => m);
-            var orderedMusicians = entranceIds.Select(id => byId.TryGetValue(id, out var m) ? m : null)
-                                              .Where(m => m != null)
-                                              .ToList();
+            var orderedMusicians = owners
+                .Select(id => byId.TryGetValue(id, out var m) ? m : null)
+                .Where(m => m != null)
+                .ToList();
 
+            if (orderedMusicians.Count == 0)
+            {
+                Debug.LogError($"{DebugTag} No spawned musician matched channel owners.");
+                isPlaying = false; yield break;
+            }
+
+            var entranceIdsOrdered = orderedMusicians
+                .Select(m => m.MusicianCharacterData.CharacterId)
+                .ToList();
+
+            var names = string.Join(", ",
+                orderedMusicians.Select(m => m.MusicianCharacterData.CharacterName));
+            Debug.Log($"{DebugTag} Ordered musicians: {names}");
+
+            // 5) Layered preview
             float lastDuration = 0f;
             for (int k = 1; k <= orderedMusicians.Count; k++)
             {
                 var newcomer = orderedMusicians[k - 1];
-                //newcomer?.CharacterAnimator?.SetTrigger("Join");
+                Debug.Log($"{DebugTag} Loop {k}/{orderedMusicians.Count} " +
+                    $"newcomer='{newcomer.MusicianCharacterData.CharacterName}'");
 
-                // Play subset by those musicians (not by channel index!)
-                lastDuration = mm.PlaySameArrangementSubsetByMusicians(newSong, entranceIds, k);
+                // Play subset by first k musicians in 'owners'
+                lastDuration = 
+                    mm.PlaySameArrangementSubsetByMusicians(newSong, entranceIdsOrdered, k);
+                Debug.Log($"{DebugTag} PlaySubset returned duration={lastDuration:0.00}s, " +
+                    $"player.IsPlaying={mm != null}");
 
-                // Live overlay texts for this loop (optional, powerful)
+                // Optional note overlay
                 StartCoroutine(mm.DebugOverlayNotesForLoop(
-                    newSong, entranceIds, k,
-                    anchorById: _spawned.ToDictionary(m => m.MusicianCharacterData.CharacterId, m => m.transform)));
+                    newSong, entranceIdsOrdered, k,
+                    anchorById: _spawned.ToDictionary(
+                        m => m.MusicianCharacterData.CharacterId, m => m.transform))
+                );
 
+                // Wait for actual end
                 yield return MidiMusicManager.WaitForEnd();
+                Debug.Log($"{DebugTag} Loop {k} ended.");
             }
 
-            // 3) Show New Song panel; on Confirm => back to map
-            var names = orderedMusicians.Select(b => b.MusicianCharacterData.CharacterName).ToArray();
-            shipCanvas.NewSongPanel?.Show(newSong, names, lastDuration, onClose: () =>
+            // 6) New Song panel
+            var newNames = orderedMusicians.Select(b => b.MusicianCharacterData.CharacterName)
+                .ToArray();
+            Debug.Log($"{DebugTag} Showing NewSongPanel for '{newSong.SongTitle}'");
+            shipCanvas.NewSongPanel?.Show(newSong, newNames, lastDuration, onClose: () =>
             {
-                ReturnToMap(); // <-- per “one activity per Rehearsal”
+                Debug.Log($"{DebugTag} NewSongPanel closed, returning to map.");
+                ReturnToMap();
             });
 
             isPlaying = false;
+            Debug.Log($"{DebugTag} ComposeAndPreview: end");
         }
 
         private void OnRelax()
@@ -143,7 +204,7 @@ namespace ALWTTT.Managers
 
         private void ReturnToMap()
         {
-            // Mark node completed (consume the Rehearsal) – adjust if you want revisits
+            // Mark node completed (consume the Rehearsal) â€“ adjust if you want revisits
             var pd = GameManager.PersistentGameplayData;
             var state = pd.CurrentSectorMapState;
             if (state != null)

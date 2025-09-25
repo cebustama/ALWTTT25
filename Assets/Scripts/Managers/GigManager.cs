@@ -4,11 +4,13 @@ using ALWTTT.Characters.Band;
 using ALWTTT.Data;
 using ALWTTT.Encounters;
 using ALWTTT.Enums;
+using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ALWTTT.Managers
@@ -160,8 +162,17 @@ namespace ALWTTT.Managers
                 );
 
                 clone.BuildCharacter();
+
+                var responder = clone.gameObject.GetComponent<MusicianMidiResponder>();
+                if (responder == null) responder =
+                        clone.gameObject.AddComponent<MusicianMidiResponder>();
+                responder.Init(clone);
+
                 clone.BindToGigContext();
                 _spawned.Add(clone);
+
+                MidiMusicManager?.RegisterMusicianAnchor(
+                    clone.MusicianCharacterData.CharacterId, clone.transform);
 
                 // Front or Back of the Stage
                 // TODO: Use a single layer per musician
@@ -186,6 +197,7 @@ namespace ALWTTT.Managers
                 );
 
                 clone.BuildCharacter();
+
                 clone.ColumnIndex = Mathf.Min(i, AudienceMemberPosList.Count - 1);
 
                 if (clone.IsTall) clone.AudienceStats.ApplyStatus(StatusType.Tall, 1);
@@ -348,11 +360,15 @@ namespace ALWTTT.Managers
                 musician.CharacterAnimator.EmitOnBeat = true;
             }
 
+            // Set mapping so live MIDI events can be routed to the right musician
+            var owners = MidiMusicManager.GetChannelOwnerIdsFor(song);
+            MidiMusicManager.SetChannelOwners(owners?.ToList());
+
             var songDuration = MidiMusicManager.Play(song);
 
             Debug.Log($"Playing {song.SongTitle} for {songDuration}[s]");
 
-            yield return new WaitForSeconds(songDuration);
+            yield return MidiMusicManager.WaitForEnd();
 
             backgroundContainer.SetBPM(0);
             foreach (var musician in CurrentMusicianCharacterList)

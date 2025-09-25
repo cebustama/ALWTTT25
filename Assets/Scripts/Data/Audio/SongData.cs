@@ -150,6 +150,7 @@ namespace ALWTTT.Data
                 foreach (var (m, role) in resolvedRoles)
                 {
                     var prof = m?.MusicianCharacterData?.Profile;
+                    var musicianId = m?.MusicianCharacterData?.CharacterId ?? "";
 
                     if (role == TrackRole.Rhythm)
                     {
@@ -161,7 +162,8 @@ namespace ALWTTT.Data
                             Role = TrackRole.Rhythm,
                             PercussionInstrument = drumKit,
                             Instrument = null,
-                            Parameters = new TrackParameters { Pattern = drumPat }
+                            Parameters = new TrackParameters { Pattern = drumPat },
+                            MusicianId = musicianId,
                         });
                     }
                     else
@@ -190,7 +192,8 @@ namespace ALWTTT.Data
                             Role = role,
                             Instrument = pickedInstrument,
                             PercussionInstrument = null,
-                            Parameters = new TrackParameters { Pattern = pickedPattern }
+                            Parameters = new TrackParameters { Pattern = pickedPattern },
+                            MusicianId = musicianId,
                         });
                     }
                 }

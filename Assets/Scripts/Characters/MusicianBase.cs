@@ -110,6 +110,32 @@ namespace ALWTTT.Characters.Band
             base.OnPointerExit();
             bandCharacterCanvas.HideContextual();
         }
+
+        public void TriggerNoteVFX(int note, int velocity)
+        {
+            if (musicianParticleSystem)
+            {
+                // Simple pulse
+                var main = musicianParticleSystem.main;
+                main.startSpeed = Mathf.Lerp(0.5f, 3f, velocity / 127f);
+                
+                musicianParticleSystem.Play();
+            }
+            // CharacterAnimator?.SetTrigger("Note"); // if you have one
+        }
+
+        public void TriggerChordVFX(System.Collections.Generic.IList<int> notes)
+        {
+            //musicianParticleSystem?.Play();
+            // CharacterAnimator?.SetTrigger("Chord");
+        }
+
+        public void TriggerBeatVFX(int beatIndex)
+        {
+            //musicianParticleSystem?.Play();
+            // CharacterAnimator?.SetTrigger("Beat");
+        }
+
     }
 
     // TODO: Persistant stats
