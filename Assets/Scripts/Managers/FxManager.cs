@@ -51,12 +51,24 @@ namespace ALWTTT.Managers
         public void SpawnFloatingText(
             Transform targetTransform, string text, int xDir = 0, int yDir = -1)
         {
+            SpawnFloatingText(targetTransform, text, xDir, yDir, Color.white);
+        }
+
+        public void SpawnFloatingText(
+            Transform targetTransform, string text, int xDir, int yDir, Color color)
+        {
             var cloneText = Instantiate(
                 floatingTextPrefab, targetTransform.position, Quaternion.identity);
 
             if (xDir == 0) xDir = Random.value >= 0.5f ? 1 : -1;
 
-            cloneText.PlayText(text, xDir, yDir);
+            cloneText.PlayText(text, xDir, yDir, color);
+        }
+
+        public void SpawnFloatingText(Transform tr, string text, Vector2 dir, Color color)
+        {
+            var ft = Instantiate(floatingTextPrefab, tr.position, Quaternion.identity);
+            ft.PlayText(text, dir, color);
         }
 
         public void PlayFx(Transform targetTransform, FxType targetFx)

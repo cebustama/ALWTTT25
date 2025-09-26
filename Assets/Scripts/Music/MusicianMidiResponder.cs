@@ -4,7 +4,13 @@ using UnityEngine;
 namespace ALWTTT.Music
 {
     [RequireComponent(typeof(Characters.Band.MusicianBase))]
-    public class MusicianMidiResponder : MonoBehaviour, IMidiNoteListener, IChordListener, IBeatSyncVFX
+    public class MusicianMidiResponder : 
+        MonoBehaviour, 
+        IMidiNoteListener, 
+        IChordListener,
+        IBeatGridListener,
+        IDrumKickListener,
+        ITempoSignatureListener
     {
         [SerializeField] private Characters.Band.MusicianBase musician;
         [Header("React To")]
@@ -25,7 +31,6 @@ namespace ALWTTT.Music
             if (!mm) return;
             mm.Register((IMidiNoteListener)this);
             mm.Register((IChordListener)this);
-            mm.Register((IBeatSyncVFX)this);
         }
 
         void OnDisable()
@@ -34,7 +39,6 @@ namespace ALWTTT.Music
             if (!mm) return;
             mm.Unregister((IMidiNoteListener)this);
             mm.Unregister((IChordListener)this);
-            mm.Unregister((IBeatSyncVFX)this);
         }
 
         bool IsMine(string id) =>
@@ -57,6 +61,31 @@ namespace ALWTTT.Music
         {
             if (!reactToBeats || !IsMine(e.sourceMusicianId)) return;
             musician.TriggerBeatVFX(e.beatIndex);
+        }
+
+        public void OnBeat(BeatGridEvent e)
+        {
+            
+        }
+
+        public void OnDownbeat(BeatGridEvent e)
+        {
+            
+        }
+
+        public void OnDrumKick(MidiTaggedEvent e)
+        {
+            
+        }
+
+        public void OnTempoChanged(double bpm)
+        {
+            
+        }
+
+        public void OnTimeSignatureChanged(int numerator, int denominator)
+        {
+            
         }
     }
 }

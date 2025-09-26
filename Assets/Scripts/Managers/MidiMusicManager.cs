@@ -103,10 +103,12 @@ namespace ALWTTT.Managers
         private readonly List<string> _channelOwners = new();
         private readonly Dictionary<string, Transform> _musicianAnchors = new();
 
-        // Simple subscriber lists (scene systems register/unregister)
+        // Subscriber lists (scene systems register/unregister)
         private readonly List<IMidiNoteListener> _noteSubs = new();
         private readonly List<IChordListener> _chordSubs = new();
-        private readonly List<IBeatSyncVFX> _beatSubs = new();
+        private readonly List<IBeatGridListener> _gridSubs = new();
+        private readonly List<IDrumKickListener> _kickSubs = new();
+        private readonly List<ITempoSignatureListener> _tempoSigSubs = new();
 
         // Beat detection (very simple: kick = beat)
         [SerializeField] private int drumChannel = 9; // MIDI ch 10 (0-based = 9)
@@ -115,49 +117,45 @@ namespace ALWTTT.Managers
 
         public void Register(IMidiNoteListener l) 
         { 
-            if (l != null && !_noteSubs.Contains(l)) 
-                _noteSubs.Add(l); 
+            if (l != null && !_noteSubs.Contains(l)) _noteSubs.Add(l); 
         }
-
         public void Unregister(IMidiNoteListener l) 
         { 
             _noteSubs.Remove(l); 
         }
-
         public void Register(IChordListener l) 
         { 
-            if (l != null && !_chordSubs.Contains(l)) 
-                _chordSubs.Add(l); 
+            if (l != null && !_chordSubs.Contains(l)) _chordSubs.Add(l); 
         }
-
         public void Unregister(IChordListener l) 
         { 
             _chordSubs.Remove(l); 
         }
+        public void Register(IBeatGridListener l) 
+        { if (l != null && !_gridSubs.Contains(l)) _gridSubs.Add(l); }
+        public void Unregister(IBeatGridListener l) { _gridSubs.Remove(l); }
 
-        public void Register(IBeatSyncVFX l) 
-        { 
-            if (l != null && !_beatSubs.Contains(l)) 
-                _beatSubs.Add(l); 
-        }
+        public void Register(IDrumKickListener l) 
+        { if (l != null && !_kickSubs.Contains(l)) _kickSubs.Add(l); }
+        public void Unregister(IDrumKickListener l) { _kickSubs.Remove(l); }
+        public void Register(ITempoSignatureListener l) { if (l != null && !_tempoSigSubs.Contains(l)) _tempoSigSubs.Add(l); }
+        public void Unregister(ITempoSignatureListener l) { _tempoSigSubs.Remove(l); }
 
-        public void Unregister(IBeatSyncVFX l) { _beatSubs.Remove(l); }
+        private readonly Dictionary<string, Dictionary<int, string>> trackOwnersByKey = 
+            new(); // cacheKey -> (trackIndex -> musicianId)
+        private string _currentKey;
 
-        public void SetChannelOwners(List<string> owners)  // index = channel, value = musicianId
+        // index = channel, value = musicianId
+        public void SetChannelOwners(List<string> owners)
         {
             _channelOwners.Clear();
             if (owners != null) _channelOwners.AddRange(owners);
         }
-
         public void RegisterMusicianAnchor(string musicianId, Transform anchor)
         {
             if (string.IsNullOrEmpty(musicianId) || anchor == null) return;
             _musicianAnchors[musicianId] = anchor;
         }
-
-        private readonly Dictionary<string, Dictionary<int, string>> trackOwnersByKey = 
-            new(); // cacheKey -> (trackIndex -> musicianId)
-        private string _currentKey;
 
         #endregion
 
@@ -183,7 +181,13 @@ namespace ALWTTT.Managers
             }
 
             player.OnMidiEvents += HandleMidiEvents;
-            player.OnSongStarted += () => _beatIndex = 0;
+            player.OnSongStarted += () =>
+            {
+                _beatIndex = 0;
+                if (!string.IsNullOrEmpty(_currentKey) 
+                && cache.TryGetValue(_currentKey, out var entry))
+                    StartCoroutine(RunBeatGrid(_currentKey, entry.seconds));
+            };
             player.OnSongEnded += () => { /* optional reset */ };
 
             generator = new MidiGenerator();
@@ -308,6 +312,104 @@ namespace ALWTTT.Managers
         }
 
         #endregion
+
+        private IEnumerator RunBeatGrid(string key, float duration)
+        {
+            if (!cache.TryGetValue(key, out var entry)) yield break;
+
+            using var ms = new MemoryStream(entry.data);
+            var midi = MidiFile.Read(ms);
+            var tempoMap = midi.GetTempoMap();
+
+            // Collect all change times (ticks)
+            var boundaries = new SortedSet<long> { 0 };
+
+            foreach (var c in tempoMap.GetTempoChanges())          // ValueChange<Tempo>
+                boundaries.Add(c.Time);
+            foreach (var c in tempoMap.GetTimeSignatureChanges())  // ValueChange<TimeSignature>
+                boundaries.Add(c.Time);
+
+            // Find last tick in the song to know where to stop
+            long lastTick = 0;
+            foreach (var chunk in midi.GetTrackChunks())
+            {
+                var evts = chunk.GetTimedEvents();
+                if (evts.Count > 0) lastTick = Math.Max(lastTick, evts.Last().Time);
+            }
+            boundaries.Add(lastTick);
+
+            // Convert boundaries to a list for [i .. i+1) segments
+            var pts = boundaries.ToList();
+
+            // State we’ll advance while walking the grid
+            int totalBeats = 0;
+            double songTimeSec = 0.0;
+
+            // Previous values for change notifications
+            double prevBpm = -1;
+            int prevNum = -1, prevDen = -1;
+
+            for (int i = 0; i < pts.Count - 1; i++)
+            {
+                long startTick = pts[i];
+                long endTick = pts[i + 1];
+
+                // Tempo & Time Signature at the start of this segment
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(startTick));
+                var ts = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(startTick));
+
+                double bpm = 60000000.0 / tempo.MicrosecondsPerQuarterNote;
+                int numerator = ts.Numerator;
+                int denominator = ts.Denominator;
+
+                // Notify changes
+                if (!Mathf.Approximately((float)bpm, (float)prevBpm))
+                {
+                    foreach (var s in _tempoSigSubs) s?.OnTempoChanged(bpm);
+                    prevBpm = bpm;
+                }
+                if (numerator != prevNum || denominator != prevDen)
+                {
+                    foreach (var s in _tempoSigSubs) 
+                        s?.OnTimeSignatureChanged(numerator, denominator);
+                    prevNum = numerator; prevDen = denominator;
+                }
+
+                // Segment duration in seconds
+                var segStart = 
+                    TimeConverter.ConvertTo<MetricTimeSpan>(startTick, tempoMap).TotalSeconds;
+                var segEnd = 
+                    TimeConverter.ConvertTo<MetricTimeSpan>(endTick, tempoMap).TotalSeconds;
+                double segSeconds = Math.Max(0, segEnd - segStart);
+
+                // Seconds per beat (quarter * 4/denominator)
+                double spq = 60.0 / bpm;
+                double spb = spq * (4.0 / denominator);
+
+                // Emit beats that fall in this segment
+                double t = 0.0;
+                while (t + 1e-6 < segSeconds && player != null && player.IsPlaying)
+                {
+                    var ev = new BeatGridEvent
+                    {
+                        barIndex = totalBeats / numerator,
+                        beatInBar = totalBeats % numerator,
+                        time = (float)(songTimeSec + t)
+                    };
+
+                    foreach (var s in _gridSubs) s?.OnBeat(ev);
+                    if (ev.beatInBar == 0)
+                        foreach (var s in _gridSubs) s?.OnDownbeat(ev);
+
+                    yield return new WaitForSeconds((float)spb);
+                    t += spb;
+                    totalBeats++;
+                }
+
+                songTimeSec += segSeconds;
+                if (songTimeSec >= duration) break;
+            }
+        }
 
         private string MidiNoteToName(int note)
         {
@@ -543,7 +645,6 @@ namespace ALWTTT.Managers
                     };
                     foreach (var s in _noteSubs) s?.OnMidiNote(tagged);
 
-                    // Per-drummer BEAT: kick notes become beat events for that drummer
                     if (ch == drumChannel && kickNotes.Contains(n.Value))
                     {
                         var beat = new BeatEvent
@@ -553,7 +654,7 @@ namespace ALWTTT.Managers
                             sourceMusicianId = musId,
                             anchor = anchor
                         };
-                        foreach (var b in _beatSubs) b?.OnBeat(beat);
+                        foreach (var k in _kickSubs) k?.OnDrumKick(tagged); // new specific
                     }
                 }
             }

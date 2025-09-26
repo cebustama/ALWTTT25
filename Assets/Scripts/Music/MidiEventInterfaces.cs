@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace ALWTTT.Music
 {
+    #region Structs
     // Minimal, convenient payloads to broadcast around the game.
     public struct MidiTaggedEvent
     {
@@ -31,7 +32,31 @@ namespace ALWTTT.Music
         public Transform anchor;
     }
 
+    public struct BeatGridEvent
+    {
+        public int barIndex;     // 0-based bar
+        public int beatInBar;    // 0..(numerator-1)
+        public float time;       // sec since song start
+    }
+    #endregion
+
+    #region Interfaces
     public interface IMidiNoteListener { void OnMidiNote(MidiTaggedEvent e); }
     public interface IChordListener { void OnChord(ChordEvent e); }
-    public interface IBeatSyncVFX { void OnBeat(BeatEvent e); }
+    public interface IBeatGridListener
+    {
+        void OnBeat(BeatGridEvent e);       // fires every beat
+        void OnDownbeat(BeatGridEvent e);   // fires on beatInBar == 0
+    }
+    // Specific drum elements — start with kick; easy to extend
+    public interface IDrumKickListener
+    {
+        void OnDrumKick(MidiTaggedEvent e);
+    }
+    public interface ITempoSignatureListener
+    {
+        void OnTempoChanged(double bpm);
+        void OnTimeSignatureChanged(int numerator, int denominator);
+    }
+    #endregion
 }

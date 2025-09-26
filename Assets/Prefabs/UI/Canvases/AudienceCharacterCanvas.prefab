@@ -444,7 +444,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1836188541970597043, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_PresetInfoIsWorld
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_text
@@ -600,6 +600,11 @@ MonoBehaviour:
   statusIconsData: {fileID: 11400000, guid: 40b6ede681aa9b7438008b98e9a9bc98, type: 2}
   intentImage: {fileID: 7631314978631438073}
   nextActionValueText: {fileID: 6996543080683022031}
+  NextAbility:
+    abilityName: 
+    intention: {fileID: 0}
+    hideActionValue: 0
+    actionList: []
 --- !u!114 &4033435451783531182 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
