@@ -134,14 +134,14 @@ public class FloatingTextMidiListener :
     public void OnBeat(BeatGridEvent e)
     {
         if (!showBeats) return;
-        FxManager.Instance?.SpawnFloatingText(transform, "Beat", downbeatDir, beatColor);
+        //FxManager.Instance?.SpawnFloatingText(transform, "Beat", downbeatDir, beatColor);
     }
 
     public void OnDownbeat(BeatGridEvent e)
     {
         if (!showBeats) return;
         // Example: emphasize downbeat somewhere (e.g., bigger dot).
-        FxManager.Instance?.SpawnFloatingText(transform, "Downbeat", downbeatDir, beatColor);
+        //FxManager.Instance?.SpawnFloatingText(transform, "Downbeat", downbeatDir, beatColor);
     }
 
     // Specific drum kick hook

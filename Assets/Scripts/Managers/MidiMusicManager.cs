@@ -3,6 +3,7 @@ using ALWTTT.Music;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using MidiGenPlay;
+using MidiGenPlay.MusicTheory;
 using MidiPlayerTK;
 using System;
 using System.Collections;
@@ -108,6 +109,8 @@ namespace ALWTTT.Managers
         private readonly List<IChordListener> _chordSubs = new();
         private readonly List<IBeatGridListener> _gridSubs = new();
         private readonly List<IDrumKickListener> _kickSubs = new();
+
+        private Coroutine _beatGridCo;
         private readonly List<ITempoSignatureListener> _tempoSigSubs = new();
 
         // Beat detection (very simple: kick = beat)
@@ -183,10 +186,20 @@ namespace ALWTTT.Managers
             player.OnMidiEvents += HandleMidiEvents;
             player.OnSongStarted += () =>
             {
+                if (logDebug) Debug.Log($"{DebugTag} OnSongStarted key={_currentKey}");
+
                 _beatIndex = 0;
-                if (!string.IsNullOrEmpty(_currentKey) 
-                && cache.TryGetValue(_currentKey, out var entry))
-                    StartCoroutine(RunBeatGrid(_currentKey, entry.seconds));
+
+                // stop previous grid if any
+                if (_beatGridCo != null) { StopCoroutine(_beatGridCo); _beatGridCo = null; }
+
+                if (!string.IsNullOrEmpty(_currentKey) && cache.TryGetValue(_currentKey, out var entry))
+                {
+                    NotifyTempoSignatureAtStart(_currentKey); // push BPM/TS immediately
+                    _beatGridCo = StartCoroutine(RunBeatGrid(_currentKey, entry.seconds)); 
+                }
+                else if (logDebug) 
+                    Debug.LogWarning($"{DebugTag} OnSongStarted but key/cache missing.");
             };
             player.OnSongEnded += () => { /* optional reset */ };
 
@@ -321,15 +334,22 @@ namespace ALWTTT.Managers
             var midi = MidiFile.Read(ms);
             var tempoMap = midi.GetTempoMap();
 
-            // Collect all change times (ticks)
+            // Collect change times
+            var tsChanges = tempoMap.GetTimeSignatureChanges().ToList(); // ValueChange<TimeSignature>
+            if (logDebug)
+            {
+                Debug.Log($"{DebugTag} TS changes: " +
+                          string.Join(", ", tsChanges.Select(c =>
+                            $"{c.Value.Numerator}/{c.Value.Denominator}@{c.Time}")));
+            }
+
+            var tempoChanges = tempoMap.GetTempoChanges().ToList();         // ValueChange<Tempo>
+
             var boundaries = new SortedSet<long> { 0 };
+            foreach (var c in tsChanges) boundaries.Add(c.Time);
+            foreach (var c in tempoChanges) boundaries.Add(c.Time);
 
-            foreach (var c in tempoMap.GetTempoChanges())          // ValueChange<Tempo>
-                boundaries.Add(c.Time);
-            foreach (var c in tempoMap.GetTimeSignatureChanges())  // ValueChange<TimeSignature>
-                boundaries.Add(c.Time);
-
-            // Find last tick in the song to know where to stop
+            // last tick in the song
             long lastTick = 0;
             foreach (var chunk in midi.GetTrackChunks())
             {
@@ -338,23 +358,23 @@ namespace ALWTTT.Managers
             }
             boundaries.Add(lastTick);
 
-            // Convert boundaries to a list for [i .. i+1) segments
             var pts = boundaries.ToList();
+            var tsSet = new HashSet<long>(tsChanges.Select(c => c.Time)); // fast "is this a TS change?" check
 
-            // State we’ll advance while walking the grid
-            int totalBeats = 0;
+            // state
+            int barIndex = 0;
+            int beatInBar = 0;
             double songTimeSec = 0.0;
 
-            // Previous values for change notifications
+            // previous values for change notifications (BPM/TS)
             double prevBpm = -1;
-            int prevNum = -1, prevDen = -1;
+            int prevNum = -1, prevDen = -1;       
 
             for (int i = 0; i < pts.Count - 1; i++)
             {
                 long startTick = pts[i];
                 long endTick = pts[i + 1];
 
-                // Tempo & Time Signature at the start of this segment
                 var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(startTick));
                 var ts = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(startTick));
 
@@ -362,7 +382,7 @@ namespace ALWTTT.Managers
                 int numerator = ts.Numerator;
                 int denominator = ts.Denominator;
 
-                // Notify changes
+                // Notify BPM/TS changes
                 if (!Mathf.Approximately((float)bpm, (float)prevBpm))
                 {
                     foreach (var s in _tempoSigSubs) s?.OnTempoChanged(bpm);
@@ -370,40 +390,48 @@ namespace ALWTTT.Managers
                 }
                 if (numerator != prevNum || denominator != prevDen)
                 {
-                    foreach (var s in _tempoSigSubs) 
-                        s?.OnTimeSignatureChanged(numerator, denominator);
+                    foreach (var s in _tempoSigSubs) s?.OnTimeSignatureChanged(numerator, denominator);
                     prevNum = numerator; prevDen = denominator;
                 }
 
-                // Segment duration in seconds
-                var segStart = 
-                    TimeConverter.ConvertTo<MetricTimeSpan>(startTick, tempoMap).TotalSeconds;
-                var segEnd = 
-                    TimeConverter.ConvertTo<MetricTimeSpan>(endTick, tempoMap).TotalSeconds;
+                // If this segment starts at a TS change (or song start), align to a new bar
+                bool tsStartsHere = (startTick == 0) || tsSet.Contains(startTick);
+                if (tsStartsHere) beatInBar = 0;
+
+                // segment duration in seconds and seconds-per-beat
+                var segStart = TimeConverter.ConvertTo<MetricTimeSpan>(startTick, tempoMap).TotalSeconds;
+                var segEnd = TimeConverter.ConvertTo<MetricTimeSpan>(endTick, tempoMap).TotalSeconds;
                 double segSeconds = Math.Max(0, segEnd - segStart);
 
-                // Seconds per beat (quarter * 4/denominator)
                 double spq = 60.0 / bpm;
                 double spb = spq * (4.0 / denominator);
 
-                // Emit beats that fall in this segment
-                double t = 0.0;
-                while (t + 1e-6 < segSeconds && player != null && player.IsPlaying)
+                // Emit beats within this segment
+                double tLocal = 0.0;
+                while (tLocal + 1e-6 < segSeconds && player != null && player.IsPlaying)
                 {
+                    // Beat event at (songTimeSec + tLocal)
                     var ev = new BeatGridEvent
                     {
-                        barIndex = totalBeats / numerator,
-                        beatInBar = totalBeats % numerator,
-                        time = (float)(songTimeSec + t)
+                        barIndex = barIndex,
+                        beatInBar = beatInBar,
+                        time = (float)(songTimeSec + tLocal)
                     };
 
-                    foreach (var s in _gridSubs) s?.OnBeat(ev);
-                    if (ev.beatInBar == 0)
-                        foreach (var s in _gridSubs) s?.OnDownbeat(ev);
+                    foreach (var g in _gridSubs) g?.OnBeat(ev);
+                    if (beatInBar == 0)
+                        foreach (var g in _gridSubs) g?.OnDownbeat(ev);
 
+                    // wait one beat, then advance counters
                     yield return new WaitForSeconds((float)spb);
-                    t += spb;
-                    totalBeats++;
+                    tLocal += spb;
+
+                    beatInBar++;
+                    if (beatInBar >= numerator)
+                    {
+                        beatInBar = 0;
+                        barIndex++;
+                    }
                 }
 
                 songTimeSec += segSeconds;
@@ -452,6 +480,12 @@ namespace ALWTTT.Managers
 
             // Midi Generation
             var midi = generator.GenerateSong(config);
+
+            // Ensure Part 1 Time Signature
+            var part1Ts = config.Parts[0].TimeSignature;
+            int tsNum = MusicTheory.TimeSignatureProperties[part1Ts].BeatsPerMeasure;
+            int tsDen = MusicTheory.TimeSignatureProperties[part1Ts].BeatUnit;
+            EnsureTimeSignatureAtZero(midi, tsNum, tsDen);
 
             var owners = new Dictionary<int, string>();
             int ti = 0;
@@ -683,8 +717,8 @@ namespace ALWTTT.Managers
             if (player == null) { Debug.LogError($"{DebugTag} No IPlayMidi."); return 0f; }
 
             player.Stop();
-            player.Play(data);
             _currentKey = key;
+            player.Play(data);
 
             if (logDebug)
                 Debug.Log($"{DebugTag} Play {label} key:{key} " +
@@ -692,6 +726,49 @@ namespace ALWTTT.Managers
                     $"IsPlaying:{player.IsPlaying}");
 
             return seconds;
+        }
+
+        private void NotifyTempoSignatureAtStart(string key)
+        {
+            if (!cache.TryGetValue(key, out var entry)) return;
+
+            using var ms = new MemoryStream(entry.data);
+            var midi = MidiFile.Read(ms);
+            var tempoMap = midi.GetTempoMap();
+
+            var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(0));
+            var ts = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(0));
+
+            double bpm = 60000000.0 / tempo.MicrosecondsPerQuarterNote;
+            int numerator = ts.Numerator;
+            int denominator = ts.Denominator;
+
+            foreach (var s in _tempoSigSubs) 
+                s?.OnTempoChanged(bpm);
+
+            foreach (var s in _tempoSigSubs) 
+                s?.OnTimeSignatureChanged(numerator, denominator);
+        }
+
+        private static void EnsureTimeSignatureAtZero(MidiFile midi, int numerator, int denominator)
+        {
+            var track0 = midi.GetTrackChunks().FirstOrDefault();
+            if (track0 == null)
+            {
+                track0 = new TrackChunk();
+                midi.Chunks.Add(track0);
+            }
+
+            // Work in absolute time; don't touch existing TS changes.
+            using var mgr = track0.ManageTimedEvents();
+            bool hasAtZero = mgr.Objects.OfType<TimedEvent>()
+                .Any(te => te.Event is TimeSignatureEvent && te.Time == 0);
+
+            if (!hasAtZero)
+            {
+                mgr.Objects.Add(new TimedEvent(
+                    new TimeSignatureEvent((byte)numerator, (byte)denominator, 24, 8), 0));
+            }
         }
         #endregion
     }
