@@ -30,6 +30,9 @@ namespace ALWTTT.Managers
         private IPlayMidi player;
         private MidiGenerator generator;
 
+        public bool MetronomeEnabled { get; private set; }
+        private const string CacheEpoch = "v2-metro";
+
         // Cache (song key -> data + duration)
         private readonly Dictionary<string, SongCacheEntry> cache = new();
 
@@ -186,9 +189,14 @@ namespace ALWTTT.Managers
             player.OnMidiEvents += HandleMidiEvents;
             player.OnSongStarted += () =>
             {
-                if (logDebug) Debug.Log($"{DebugTag} OnSongStarted key={_currentKey}");
+                if (logDebug) Debug.Log($"{DebugTag} OnSongStarted key={_currentKey} " +
+                    $"metronome={MetronomeEnabled}");
 
                 _beatIndex = 0;
+
+                // re-apply metronome volume for this playback
+                player.SetChannelVolume(MidiGenerator.MetronomeChannel,
+                    MetronomeEnabled ? 110 : 0);
 
                 // stop previous grid if any
                 if (_beatGridCo != null) { StopCoroutine(_beatGridCo); _beatGridCo = null; }
@@ -242,37 +250,13 @@ namespace ALWTTT.Managers
                 Debug.Log($"{DebugTag} Pre-generated {cache.Count} songs in cache.");
         }
 
-        public void GenerateSongs(
-            IEnumerable<SongData> songs, IList<Characters.Band.MusicianBase> bandOverride)
-        {
-            EnsureRegistriesLoaded();
-            var band = bandOverride ?? GameManager.PersistentGameplayData.MusicianList;
-
-            foreach (var s in songs)
-            {
-                var key = CacheKey(s, band);
-                if (cache.ContainsKey(key)) continue;
-
-                var entry = GenerateSongEntry(s, band);
-                if (entry != null) cache[key] = entry;
-            }
-        }
-
         public float Play(SongData song)
         {
             var (key, entry) = EnsureInCache(song, null);
             if (entry == null) return 0f;
-            return PlayBytes(key, entry.data, entry.seconds, $"'{song.SongTitle}'");
-        }
 
-        public float Play(SongData song, IList<Characters.Band.MusicianBase> bandOverride)
-        {
-            var (key, entry) = EnsureInCache(song, bandOverride);
-            if (entry == null) return 0f;
-
-            var label = $"'{song.SongTitle}' " +
-                $"band[{(bandOverride?.Count ?? GameManager.PersistentGameplayData.MusicianList.Count)}]";
-            return PlayBytes(key, entry.data, entry.seconds, label);
+            var bytes = ApplyMetronomeVolumeToBytes(entry.data, MetronomeEnabled);
+            return PlayBytes(key, bytes, entry.seconds, $"'{song.SongTitle}'");
         }
 
         public float PlaySameArrangementSubsetByMusicians(
@@ -297,6 +281,17 @@ namespace ALWTTT.Managers
                     $"'{song.SongTitle}' (fallback full)");
 
             var maskedData = BuildChannelMaskedData(full.data, allowed);
+            maskedData = ApplyMetronomeVolumeToBytes(maskedData, MetronomeEnabled);
+
+            // DEBUG: confirm metro channel is still present
+            using (var ms = new MemoryStream(maskedData))
+            {
+                var mf = MidiFile.Read(ms);
+                var kept = string.Join(",", GetUsedChannels(mf));
+                Debug.Log($"{DebugTag} subset kept channels [{kept}] " +
+                    $"(must include {MidiGenerator.MetronomeChannel})");
+            }
+
             return PlayBytes(key, maskedData, full.seconds, 
                 $"subset[{allowed.Count}] '{song.SongTitle}'");
         }
@@ -324,8 +319,16 @@ namespace ALWTTT.Managers
             yield return player.WaitForEnd();
         }
 
+        public void SetMetronomeEnabled(bool enabled)
+        {
+            MetronomeEnabled = enabled;
+            // Apply immediately if a song is playing
+            player?.SetChannelVolume(MidiGenerator.MetronomeChannel, enabled ? 110 : 0);
+        }
+
         #endregion
 
+        #region Private Methods
         private IEnumerator RunBeatGrid(string key, float duration)
         {
             if (!cache.TryGetValue(key, out var entry)) yield break;
@@ -543,13 +546,15 @@ namespace ALWTTT.Managers
             return string.Join("+", ids);
         }
 
-        private string CacheKey(
-            SongData song, IList<Characters.Band.MusicianBase> band = null)
+        private string CacheKey(SongData song, IList<Characters.Band.MusicianBase> band = null)
         {
             var b = band ?? GameManager.PersistentGameplayData.MusicianList;
             var sig = ComputeBandSignature(b);
-            return string.IsNullOrEmpty(sig) ? song.Id : $"{song.Id}::{sig}";
+            var baseKey = string.IsNullOrEmpty(sig) ? song.Id : $"{song.Id}::{sig}";
+            return $"{baseKey}::{CacheEpoch}";
         }
+
+        public void ClearCache() { cache.Clear(); }
 
         private List<int> GetUsedChannels(MidiFile midi)
         {
@@ -580,7 +585,11 @@ namespace ALWTTT.Managers
                 {
                     if (ev is ChannelEvent ce)
                     {
-                        var ch = (int)ce.Channel;
+                        int ch = (int)ce.Channel;
+
+                        // never remove the metronome channel
+                        if (ch == MidiGenerator.MetronomeChannel) continue;
+
                         if (!allowed.Contains(ch)) toRemove.Add(ev);
                     }
                 }
@@ -610,6 +619,7 @@ namespace ALWTTT.Managers
             }
             return (key, entry);
         }
+        #endregion
 
         #region Midi Handling
         void HandleMidiEvents(List<MPTKEvent> evts)
@@ -769,6 +779,16 @@ namespace ALWTTT.Managers
                 mgr.Objects.Add(new TimedEvent(
                     new TimeSignatureEvent((byte)numerator, (byte)denominator, 24, 8), 0));
             }
+        }
+
+        private byte[] ApplyMetronomeVolumeToBytes(byte[] data, bool enable)
+        {
+            using var ms = new MemoryStream(data);
+            var midi = MidiFile.Read(ms);
+            MidiGenerator.ApplyChannelVolume(midi, MidiGenerator.MetronomeChannel, enable ? 110 : 0);
+            using var ms2 = new MemoryStream();
+            midi.Write(ms2);
+            return ms2.ToArray();
         }
         #endregion
     }

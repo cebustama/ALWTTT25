@@ -62,11 +62,24 @@ namespace ALWTTT.Music
         public void Stop() => _player?.MPTK_Stop();
         public void Play(byte[] data)
         {
-            Debug.Log("[MidiToolkitAdapter] Playing?");
             _player?.MPTK_Play(data);
         }
 
         public bool IsPlaying => _player != null && _player.MPTK_IsPlaying;
+
+        public void SetChannelVolume(int channel, int volume01_127)
+        {
+            if (_player == null) return;
+
+            // Clamp channel and convert 0–127 -> 0–1
+            channel = Mathf.Clamp(channel, 0, 15);
+            float vol01 = Mathf.Clamp01(volume01_127 / 127f);
+
+            // MidiFilePlayer exposes the channel controller via MPTK_Channels
+            // (Volume, Mute/Enable, Pitch bend, …)
+            var channels = _player.MPTK_Channels;                 // MidiFilePlayer.cs comment shows this is the way to control per-channel settings
+            channels[channel].Volume = vol01;                     // or channels.SetVolume(channel, vol01) if your wrapper exposes a setter
+        }
 
         public IEnumerator WaitForEnd()
         {

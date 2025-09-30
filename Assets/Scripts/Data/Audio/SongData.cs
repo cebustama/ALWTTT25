@@ -103,7 +103,7 @@ namespace ALWTTT.Data
             var allMelodyPatterns = midi.MelodyPatterns;
 
             // Use interface type throughout
-            IReadOnlyList<MusicianBase> band = musicians ?? (IReadOnlyList<MusicianBase>)new List<MusicianBase>();
+            IReadOnlyList<MusicianBase> band = musicians ?? new List<MusicianBase>();
             var resolvedRoles = ResolveRoles(band, rnd); // (m, role)
 
             config.ChannelMusicianOrder = resolvedRoles
@@ -132,9 +132,12 @@ namespace ALWTTT.Data
             {
                 var pt = genProfile.parts[i];
 
-                var drumPatterns = allDrumPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
-                var chordPatterns = allChordPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
-                var melodyPatterns = allMelodyPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
+                var drumPatterns = 
+                    allDrumPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
+                var chordPatterns = 
+                    allChordPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
+                var melodyPatterns = 
+                    allMelodyPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
 
                 var part = new SongConfig.PartConfig
                 {
@@ -154,8 +157,13 @@ namespace ALWTTT.Data
 
                     if (role == TrackRole.Rhythm)
                     {
-                        var drumKit = percInstruments.Count > 0 ? percInstruments[rnd.Next(percInstruments.Count)] : null;
-                        var drumPat = drumPatterns.Count > 0 ? (PatternDataSO)drumPatterns[rnd.Next(drumPatterns.Count)] : null;
+                        var drumKit = 
+                            percInstruments.Count > 0 ? 
+                            percInstruments[rnd.Next(percInstruments.Count)] : null;
+
+                        var drumPat = 
+                            drumPatterns.Count > 0 ? 
+                            (PatternDataSO)drumPatterns[rnd.Next(drumPatterns.Count)] : null;
 
                         part.Tracks.Add(new SongConfig.PartConfig.TrackConfig
                         {
@@ -175,16 +183,24 @@ namespace ALWTTT.Data
                         {
                             var leadTypes = prof?.leadInstruments ?? new List<InstrumentType>();
                             pickedInstrument = PickInstrumentByType(leadTypes, rnd);
-                            pickedPattern = melodyPatterns.Count > 0 ? (PatternDataSO)melodyPatterns[rnd.Next(melodyPatterns.Count)] : null;
+                            pickedPattern = melodyPatterns.Count > 0 ? 
+                                (PatternDataSO)melodyPatterns[rnd.Next(melodyPatterns.Count)] 
+                                : null;
                         }
                         else // Backing
                         {
-                            var backingTypes = prof?.backingInstruments ?? new List<InstrumentType>();
+                            var backingTypes = 
+                                prof?.backingInstruments ?? new List<InstrumentType>();
+                            
                             if (backingTypes == null || backingTypes.Count == 0)
-                                backingTypes = prof?.leadInstruments ?? new List<InstrumentType>();
+                                backingTypes = prof?.leadInstruments ?? 
+                                    new List<InstrumentType>();
 
                             pickedInstrument = PickInstrumentByType(backingTypes, rnd);
-                            pickedPattern = chordPatterns.Count > 0 ? (PatternDataSO)chordPatterns[rnd.Next(chordPatterns.Count)] : null;
+
+                            pickedPattern = chordPatterns.Count > 0 ? 
+                                (PatternDataSO)chordPatterns[rnd.Next(chordPatterns.Count)] 
+                                : null;
                         }
 
                         part.Tracks.Add(new SongConfig.PartConfig.TrackConfig

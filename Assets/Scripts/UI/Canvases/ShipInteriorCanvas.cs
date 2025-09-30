@@ -16,6 +16,9 @@ namespace ALWTTT.Managers
         [Header("Panels")]
         [SerializeField] private NewSongPanelUI newSongPanel;
 
+        [Header("Toggles")]
+        [SerializeField] private Toggle metronomeToggle;
+
         public NewSongPanelUI NewSongPanel => newSongPanel;
 
         public void Setup(Action onCompose, Action onRelax, Action onBandTalk)
@@ -29,6 +32,14 @@ namespace ALWTTT.Managers
             composeButton.onClick.AddListener(() => onCompose?.Invoke());
             relaxButton.onClick.AddListener(() => onRelax?.Invoke());
             bandTalkButton.onClick.AddListener(() => onBandTalk?.Invoke());
+        }
+
+        public void HookMetronomeToggle(Action<bool> onChanged, bool initialValue)
+        {
+            if (!metronomeToggle) return;
+            metronomeToggle.onValueChanged.RemoveAllListeners();
+            metronomeToggle.isOn = initialValue;
+            metronomeToggle.onValueChanged.AddListener(v => onChanged?.Invoke(v));
         }
     }
 }

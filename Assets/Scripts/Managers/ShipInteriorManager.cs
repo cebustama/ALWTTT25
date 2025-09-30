@@ -33,11 +33,11 @@ namespace ALWTTT.Managers
             BuildBand();
             if (shipCanvas)
             {
-                shipCanvas.Setup(
-                    onCompose: OnCompose,
-                    onRelax: OnRelax,
-                    onBandTalk: OnBandTalk
-                );
+                shipCanvas.Setup(onCompose: OnCompose, onRelax: OnRelax, onBandTalk: OnBandTalk);
+
+                shipCanvas.HookMetronomeToggle(
+                    OnMetronomeToggled, 
+                    MidiMusicManager != null && MidiMusicManager.MetronomeEnabled);
             }
         }
 
@@ -96,7 +96,7 @@ namespace ALWTTT.Managers
                 Debug.LogError($"{DebugTag} GenerateSong returned null");
                 isPlaying = false; yield break;
             }
-            Debug.Log($"{DebugTag} Generated song '{newSong.SongTitle}'");
+            Debug.Log($"{DebugTag} Obtained '{newSong.SongTitle}' song data from pool.");
 
             // 2) Channel owners for this arrangement (index=channel → musicianId)
             var owners = mm.GetChannelOwnerIdsFor(newSong);
@@ -207,6 +207,11 @@ namespace ALWTTT.Managers
             }
 
             sceneChanger.OpenMapScene();
+        }
+
+        private void OnMetronomeToggled(bool enabled)
+        {
+            MidiMusicManager?.SetMetronomeEnabled(enabled);
         }
     }
 }
