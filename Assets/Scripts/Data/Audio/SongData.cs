@@ -24,6 +24,28 @@ namespace ALWTTT.Data
         [SerializeField] private SongPopularity popularity;
         [SerializeField] private SongStatus status;
 
+        [Header("Lineups (roles by musician count)")]
+        [SerializeField]
+        private List<LineupPreset> lineups = new List<LineupPreset>
+        {
+            new LineupPreset { musicians = 1, 
+                roles = new List<TrackRole>{ TrackRole.Rhythm } },
+            new LineupPreset { musicians = 2, 
+                roles = new List<TrackRole>{ TrackRole.Rhythm, TrackRole.Backing } },
+            new LineupPreset { musicians = 3, 
+                roles = new List<TrackRole>{ TrackRole.Rhythm, TrackRole.Backing, TrackRole.Lead } },
+            new LineupPreset { musicians = 4, 
+                roles = new List<TrackRole>{ 
+                    TrackRole.Rhythm, TrackRole.Backing, TrackRole.Lead, TrackRole.Lead } },
+        };
+
+        [Serializable]
+        private class LineupPreset
+        {
+            [Min(1)] public int musicians = 1;
+            public List<TrackRole> roles = new List<TrackRole>();
+        }
+
         [Header("Audio")]
         [SerializeField] private SongTemplate genProfile;
         [SerializeField] private int bpm = 80;
@@ -234,52 +256,94 @@ namespace ALWTTT.Data
             return config;
         }
 
-        private List<(MusicianBase m, TrackRole role)> ResolveRoles(IReadOnlyList<MusicianBase> band, System.Random rnd)
+        private List<(MusicianBase m, TrackRole role)> ResolveRoles(
+            IReadOnlyList<MusicianBase> band, System.Random rnd)
         {
-            var roles = new List<(MusicianBase, TrackRole)>();
-            if (band == null || band.Count == 0) return roles;
+            var result = new List<(MusicianBase, TrackRole)>();
+            if (band == null || band.Count == 0) return result;
 
+            // Capability helpers
             bool IsPercType(InstrumentType t) => t == InstrumentType.Drums;
 
-            bool IsDrummer(MusicianBase m)
+            bool Can(MusicianBase m, TrackRole role)
             {
                 var prof = m?.MusicianCharacterData?.Profile;
                 if (prof == null) return false;
-                bool any(List<InstrumentType> list) => list != null && list.Any(IsPercType);
-                return any(prof.backingInstruments) || any(prof.leadInstruments);
-            }
 
-            var drummers = band.Where(IsDrummer).ToList();
+                bool canRhythm =
+                    (prof.backingInstruments != null && prof.backingInstruments.Any(IsPercType)) ||
+                    (prof.leadInstruments != null && prof.leadInstruments.Any(IsPercType));
 
-            var used = new HashSet<MusicianBase>();
-            if (drummers.Count > 0)
-            {
-                var d = drummers[rnd.Next(drummers.Count)];
-                roles.Add((d, TrackRole.Rhythm));
-                used.Add(d);
-                Debug.Log("Rhythm: " + d.MusicianCharacterData.CharacterName);
-            }
+                bool canLead = prof.leadInstruments != null && prof.leadInstruments.Count > 0;
+                bool canBacking = prof.backingInstruments != null && prof.backingInstruments.Count > 0
+                              || canLead; // backing can borrow lead instruments
 
-            var remaining = band.Where(b => !used.Contains(b)).ToList();
-            if (remaining.Count > 0)
-            {
-                var leadIdx = rnd.Next(remaining.Count);
-                var lead = remaining[leadIdx];
-                roles.Add((lead, TrackRole.Lead));
-                used.Add(lead);
-                Debug.Log("Lead: " + lead.MusicianCharacterData.CharacterName);
-
-                foreach (var m in remaining.Where(x => !ReferenceEquals(x, lead)))
+                return role switch
                 {
-                    roles.Add((m, TrackRole.Backing));
-                    Debug.Log("Backing: " + m.MusicianCharacterData.CharacterName);
+                    TrackRole.Rhythm => canRhythm,
+                    TrackRole.Lead => canLead,
+                    _ => canBacking, // Backing
+                };
+            }
+
+            // Desired roles for this band size
+            var desired = GetDesiredRolesForBandCount(band.Count);
+            var available = new List<MusicianBase>(band);
+
+            // Pick the best candidate for each desired role, with fallbacks
+            foreach (var wanted in desired)
+            {
+                TrackRole assignRole = wanted;
+
+                List<MusicianBase> Pick(TrackRole r)
+                    => available.Where(m => Can(m, r)).ToList();
+
+                var candidates = Pick(wanted);
+                if (candidates.Count == 0)
+                {
+                    // Fallback order per role
+                    TrackRole[] fb = wanted == TrackRole.Rhythm
+                        ? new[] { TrackRole.Backing, TrackRole.Lead }
+                        : (wanted == TrackRole.Lead
+                            ? new[] { TrackRole.Backing, TrackRole.Rhythm }
+                            : new[] { TrackRole.Lead, TrackRole.Rhythm });
+
+                    foreach (var alt in fb)
+                    {
+                        candidates = Pick(alt);
+                        if (candidates.Count > 0) { assignRole = alt; break; }
+                    }
+                }
+
+                if (candidates.Count == 0)
+                {
+                    // Last resort: any remaining musician as Backing
+                    if (available.Count == 0) break;
+                    var any = available[rnd.Next(available.Count)];
+                    result.Add((any, TrackRole.Backing));
+                    available.Remove(any);
+                }
+                else
+                {
+                    var pick = candidates[rnd.Next(candidates.Count)];
+                    result.Add((pick, assignRole));
+                    available.Remove(pick);
                 }
             }
 
-            return roles;
+            // Extra musicians beyond the lineup → add as Backing/Lead if possible
+            foreach (var m in available)
+            {
+                var role = Can(m, TrackRole.Backing) ? TrackRole.Backing
+                         : (Can(m, TrackRole.Lead) ? TrackRole.Lead : TrackRole.Rhythm);
+                result.Add((m, role));
+            }
+
+            return result;
         }
         #endregion
 
+        #region Private Methods
         private string GetThemeColorText()
         {
             switch (theme)
@@ -294,6 +358,26 @@ namespace ALWTTT.Data
 
             return "Theme Color Not Found.";
         }
+
+        // Pick roles for the current band size. Exact match if present,
+        // otherwise the largest preset <= band size, padded with Backing.
+        private List<TrackRole> GetDesiredRolesForBandCount(int n)
+        {
+            if (n <= 0) return new List<TrackRole>();
+
+            var ordered = lineups?.OrderBy(p => p.musicians).ToList();
+            var preset = ordered?.LastOrDefault(p => p.musicians <= n);
+
+            var roles = preset != null && preset.roles != null && preset.roles.Count > 0
+                ? new List<TrackRole>(preset.roles)
+                : new List<TrackRole> { TrackRole.Rhythm };
+
+            // Ensure we return exactly n roles: pad or trim.
+            while (roles.Count < n) roles.Add(TrackRole.Backing);
+            if (roles.Count > n) roles = roles.Take(n).ToList();
+            return roles;
+        }
+        #endregion
     }
 
     [Serializable]
