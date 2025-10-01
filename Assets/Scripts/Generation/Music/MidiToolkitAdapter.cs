@@ -66,6 +66,11 @@ namespace ALWTTT.Music
         }
 
         public bool IsPlaying => _player != null && _player.MPTK_IsPlaying;
+        public long CurrentTick => _player != null ? _player.MPTK_TickCurrent : 0L;
+        public double CurrentTimeSeconds => _player != null ? 
+            _player.MPTK_PlayTime.TotalSeconds : 0;
+        public int DeltaTicksPerQuarterNote =>
+            _player != null ? _player.MPTK_DeltaTicksPerQuarterNote : 96;
 
         public void SetChannelVolume(int channel, int volume01_127)
         {

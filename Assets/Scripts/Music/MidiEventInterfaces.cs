@@ -22,6 +22,10 @@ namespace ALWTTT.Music
         public List<int> notes; // chord notes at the same instant
         public float time;
         public Transform anchor;
+
+        // Optional: set by generator when known
+        public string symbol; // e.g., "Cm7"
+        public string roman;  // e.g., "iii" or "IV"
     }
 
     public struct BeatEvent
@@ -37,6 +41,14 @@ namespace ALWTTT.Music
         public int barIndex;     // 0-based bar
         public int beatInBar;    // 0..(numerator-1)
         public float time;       // sec since song start
+    }
+
+    public struct PartInfoEvent
+    {
+        public int partIndex;         // into SongConfig.Parts
+        public string partName;       // "Part A", "Verse", etc.
+        public MidiGenPlay.MusicTheory.MusicTheory.Tonality tonality;
+        public Melanchall.DryWetMidi.MusicTheory.NoteName rootNote;
     }
     #endregion
 
@@ -57,6 +69,10 @@ namespace ALWTTT.Music
     {
         void OnTempoChanged(double bpm);
         void OnTimeSignatureChanged(int numerator, int denominator);
+    }
+    public interface IPartInfoListener
+    {
+        void OnPartStarted(PartInfoEvent e);
     }
     #endregion
 }

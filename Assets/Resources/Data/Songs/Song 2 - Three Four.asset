@@ -10,23 +10,32 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71018ac0ba675054e966e324f41bcf7d, type: 3}
-  m_Name: Song 1
+  m_Name: Song 2 - Three Four
   m_EditorClassIdentifier: 
-  id: 1
-  songTitle: Orbiting You
+  id: 2
+  songTitle: Art Is Might
   genre: 0
-  theme: 0
-  complexity: 2
+  theme: 1
+  complexity: 1
   popularity: 1
   status: 0
+  lineups:
+  - musicians: 1
+    roles: 00000000
+  - musicians: 2
+    roles: 0000000001000000
+  - musicians: 3
+    roles: 000000000100000002000000
+  - musicians: 4
+    roles: 00000000010000000200000002000000
   genProfile:
     seed: 0
     parts:
     - name: A
       tonality: 0
-      rootNote: 0
-      tempoRange: 4
-      timeSignature: 0
+      rootNote: 7
+      tempoRange: 3
+      timeSignature: 1
       measures: 8
     structure: 01000000
   bpm: 80

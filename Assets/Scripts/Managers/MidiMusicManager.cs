@@ -3,7 +3,9 @@ using ALWTTT.Music;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using MidiGenPlay;
+using MidiGenPlay.Interfaces;
 using MidiGenPlay.MusicTheory;
+using MidiGenPlay.Services;
 using MidiPlayerTK;
 using System;
 using System.Collections;
@@ -48,6 +50,9 @@ namespace ALWTTT.Managers
 
         private GameManager GameManager => GameManager.Instance;
 
+        private IInstrumentRepository instrumentRepo;
+        private IPatternRepository patternRepo;
+
         #region Registries (loaded once)
         private bool registriesLoaded;
 
@@ -72,31 +77,6 @@ namespace ALWTTT.Managers
             new ReadOnlyCollection<ChordProgressionData>(allChordPatterns);
         public IReadOnlyList<MelodyPatternData> MelodyPatterns => 
             new ReadOnlyCollection<MelodyPatternData>(allMelodyPatterns);
-
-        private void EnsureRegistriesLoaded()
-        {
-            if (registriesLoaded) return;
-
-            // Instruments
-            allInstruments = Resources.LoadAll<MIDIInstrumentSO>(
-                settings.resourcesInstrumentsPath).ToList();
-
-            percussionInstruments = 
-                allInstruments.OfType<MIDIPercussionInstrumentSO>().ToList();
-            melodicInstruments = 
-                allInstruments.Where(i => !(i is MIDIPercussionInstrumentSO)).ToList();
-
-            // Patterns
-            allDrumPatterns = Resources.LoadAll<DrumPatternData>(
-                settings.ResourcesDrumsPath).ToList();
-            allChordPatterns = Resources.LoadAll<ChordProgressionData>(
-                settings.ResourcesChordsPath).ToList();
-            allMelodyPatterns = Resources.LoadAll<MelodyPatternData>(
-                settings.ResourcesMelodiesPath).ToList();
-
-            registriesLoaded = true;
-            if (logDebug) Debug.Log($"{DebugTag} Registries loaded.");
-        }
         #endregion
 
         #region Midi Events
@@ -112,6 +92,7 @@ namespace ALWTTT.Managers
         private readonly List<IChordListener> _chordSubs = new();
         private readonly List<IBeatGridListener> _gridSubs = new();
         private readonly List<IDrumKickListener> _kickSubs = new();
+        private readonly HashSet<IPartInfoListener> _partListeners = new();
 
         private Coroutine _beatGridCo;
         private readonly List<ITempoSignatureListener> _tempoSigSubs = new();
@@ -121,6 +102,14 @@ namespace ALWTTT.Managers
         [SerializeField] private int[] kickNotes = new[] { 35, 36 }; // Acoustic/Bass drum
         private int _beatIndex = 0;
 
+        private struct PartMarker
+        {
+            public long tick;
+            public PartInfoEvent info;
+            public bool fired;
+        }
+        private List<PartMarker> _partMarkers = new();
+
         public void Register(IMidiNoteListener l) 
         { 
             if (l != null && !_noteSubs.Contains(l)) _noteSubs.Add(l); 
@@ -129,6 +118,7 @@ namespace ALWTTT.Managers
         { 
             _noteSubs.Remove(l); 
         }
+
         public void Register(IChordListener l) 
         { 
             if (l != null && !_chordSubs.Contains(l)) _chordSubs.Add(l); 
@@ -137,6 +127,7 @@ namespace ALWTTT.Managers
         { 
             _chordSubs.Remove(l); 
         }
+
         public void Register(IBeatGridListener l) 
         { if (l != null && !_gridSubs.Contains(l)) _gridSubs.Add(l); }
         public void Unregister(IBeatGridListener l) { _gridSubs.Remove(l); }
@@ -144,8 +135,15 @@ namespace ALWTTT.Managers
         public void Register(IDrumKickListener l) 
         { if (l != null && !_kickSubs.Contains(l)) _kickSubs.Add(l); }
         public void Unregister(IDrumKickListener l) { _kickSubs.Remove(l); }
-        public void Register(ITempoSignatureListener l) { if (l != null && !_tempoSigSubs.Contains(l)) _tempoSigSubs.Add(l); }
+
+        public void Register(ITempoSignatureListener l) 
+        { 
+            if (l != null && !_tempoSigSubs.Contains(l)) _tempoSigSubs.Add(l); 
+        }
         public void Unregister(ITempoSignatureListener l) { _tempoSigSubs.Remove(l); }
+
+        public void Register(IPartInfoListener l) => _partListeners.Add(l);
+        public void Unregister(IPartInfoListener l) => _partListeners.Remove(l);
 
         private readonly Dictionary<string, Dictionary<int, string>> trackOwnersByKey = 
             new(); // cacheKey -> (trackIndex -> musicianId)
@@ -194,6 +192,9 @@ namespace ALWTTT.Managers
             }
             logDebug = settings != null && settings.logMidiMusicManager;
 
+            instrumentRepo = new InstrumentRepositoryResources(settings);
+            patternRepo = new PatternRepositoryResources(settings);
+
             player.OnMidiEvents += HandleMidiEvents;
             player.OnSongStarted += () =>
             {
@@ -204,7 +205,7 @@ namespace ALWTTT.Managers
 
                 // re-apply metronome volume for this playback
                 player.SetChannelVolume(MidiGenerator.MetronomeChannel,
-                    MetronomeEnabled ? 110 : 0);
+                    MetronomeEnabled ? settings.metronomeChannelVolume : 0);
 
                 // stop previous grid if any
                 if (_beatGridCo != null) { StopCoroutine(_beatGridCo); _beatGridCo = null; }
@@ -219,9 +220,7 @@ namespace ALWTTT.Managers
             };
             player.OnSongEnded += () => { /* optional reset */ };
 
-            generator = new MidiGenerator();
-
-
+            generator = new MidiGenerator(settings);
 
             EnsureRegistriesLoaded();
         }
@@ -235,7 +234,49 @@ namespace ALWTTT.Managers
                 player.OnSongEnded -= () => { };
             }
         }
+        private void EnsureRegistriesLoaded()
+        {
+            if (registriesLoaded) return;
+
+            instrumentRepo.Refresh();
+            patternRepo.Refresh();
+
+            var mel = instrumentRepo.GetMelodicInstruments().ToList();
+            var perc = instrumentRepo.GetPercussionInstruments().ToList();
+
+            melodicInstruments = mel;
+            percussionInstruments = perc;
+            allInstruments = mel.Cast<MIDIInstrumentSO>().Concat(perc).ToList();
+
+            allDrumPatterns = patternRepo.GetAllDrumPatterns().ToList();
+            allChordPatterns = patternRepo.GetAllChordProgressions().ToList();
+            allMelodyPatterns = patternRepo.GetAllMelodyPatterns().ToList();
+
+            registriesLoaded = true;
+            if (logDebug)
+                Debug.Log($"{DebugTag} Registries loaded. " +
+                          $"Instruments mel:{mel.Count} perc:{perc.Count} | " +
+                          $"Patterns chords:{allChordPatterns.Count} drums:{allDrumPatterns.Count} " +
+                          $"melodies:{allMelodyPatterns.Count}");
+        }
         #endregion
+
+        private void Update()
+        {
+            if (player == null || !player.IsPlaying || _partMarkers.Count == 0) return;
+
+            long curTick = player.CurrentTick; // via IPlayMidi
+            for (int i = 0; i < _partMarkers.Count; i++)
+            {
+                if (!_partMarkers[i].fired && curTick >= _partMarkers[i].tick)
+                {
+                    EmitPartStarted(_partMarkers[i].info);
+                    var pm = _partMarkers[i];
+                    pm.fired = true;
+                    _partMarkers[i] = pm;
+                }
+            }
+        }
 
         #region Public Methods
         public void GenerateSongs(IEnumerable<SongData> songs)
@@ -404,7 +445,9 @@ namespace ALWTTT.Managers
                 }
                 if (numerator != prevNum || denominator != prevDen)
                 {
-                    foreach (var s in _tempoSigSubs) s?.OnTimeSignatureChanged(numerator, denominator);
+                    foreach (var s in _tempoSigSubs) 
+                        s?.OnTimeSignatureChanged(numerator, denominator);
+
                     prevNum = numerator; prevDen = denominator;
                 }
 
@@ -501,6 +544,7 @@ namespace ALWTTT.Managers
             int tsDen = MusicTheory.TimeSignatureProperties[part1Ts].BeatUnit;
             EnsureTimeSignatureAtZero(midi, tsNum, tsDen);
 
+            // Musician channel owners
             var owners = new Dictionary<int, string>();
             int ti = 0;
             foreach (var chunk in midi.GetTrackChunks())
@@ -513,6 +557,9 @@ namespace ALWTTT.Managers
                 ti++;
             }
             trackOwnersByKey[key] = owners;
+
+            // Part markers
+            BuildPartMarkers(midi);
 
             byte[] data;
             using (var ms = new MemoryStream())
@@ -800,6 +847,61 @@ namespace ALWTTT.Managers
             using var ms2 = new MemoryStream();
             midi.Write(ms2);
             return ms2.ToArray();
+        }
+
+        private void BuildPartMarkers(Melanchall.DryWetMidi.Core.MidiFile file)
+        {
+            _partMarkers.Clear();
+
+            foreach (var chunk in file.GetTrackChunks())
+            {
+                foreach (var te in chunk.GetTimedEvents())
+                {
+                    if (te.Event is Melanchall.DryWetMidi.Core.TextEvent txt &&
+                        TryParsePartTag(txt.Text, out var info))
+                    {
+                        _partMarkers.Add(new PartMarker { tick = te.Time, info = info, fired = false });
+                    }
+                }
+            }
+            _partMarkers.Sort((a, b) => a.tick.CompareTo(b.tick));
+            if (settings != null && settings.logMidiMusicManager)
+                Debug.Log($"[MidiMusicManager] Built part markers: {_partMarkers.Count}");
+        }
+
+        private static bool TryParsePartTag(string tag, out PartInfoEvent info)
+        {
+            info = default;
+            if (string.IsNullOrEmpty(tag) || !tag.StartsWith("part:", System.StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            // part:<index>:<name>:<tonality>:<root>
+            var parts = tag.Split(new[] { ':' }, 5);
+            if (parts.Length < 5) return false;
+
+            if (!int.TryParse(parts[1], out var idx)) return false;
+
+            info.partIndex = idx;
+            info.partName = parts[2];
+
+            // Tonality / Root parse with safe fallbacks
+            if (!System.Enum.TryParse(parts[3], out MidiGenPlay.MusicTheory.MusicTheory.Tonality ton))
+                ton = MidiGenPlay.MusicTheory.MusicTheory.Tonality.Ionian;
+            info.tonality = ton;
+
+            if (!System.Enum.TryParse(parts[4], out Melanchall.DryWetMidi.MusicTheory.NoteName root))
+                root = Melanchall.DryWetMidi.MusicTheory.NoteName.C;
+            info.rootNote = root;
+            return true;
+        }
+
+
+        private void EmitPartStarted(PartInfoEvent e)
+        {
+            foreach (var l in _partListeners) l.OnPartStarted(e);
+            if (settings != null && settings.logMidiMusicManager)
+                Debug.Log($"[MidiMusicManager] PartStart idx={e.partIndex} '{e.partName}'  " +
+                    $"Tonality={e.tonality} Root={e.rootNote}");
         }
         #endregion
     }

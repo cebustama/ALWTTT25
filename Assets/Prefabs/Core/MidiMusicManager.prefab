@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69d2581ca7ce78944a41b68c0199e7d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 2a02a4f12bc6e504083042e7790ee803, type: 2}
   playerBehaviour: {fileID: 6744716752777685964}
   logDebug: 1
   drumChannel: 9
@@ -97,6 +98,45 @@ MonoBehaviour:
   showNotes: 1
   showChords: 1
   showBeats: 1
+  labelPercussionByName: 1
+  pitchClassColors:
+  - {r: 0.95, g: 0.3, b: 0.3, a: 1}
+  - {r: 1, g: 0.55, b: 0.25, a: 1}
+  - {r: 1, g: 0.8, b: 0.25, a: 1}
+  - {r: 0.9, g: 0.9, b: 0.3, a: 1}
+  - {r: 0.6, g: 0.95, b: 0.3, a: 1}
+  - {r: 0.25, g: 0.95, b: 0.5, a: 1}
+  - {r: 0.25, g: 0.85, b: 0.95, a: 1}
+  - {r: 0.3, g: 0.6, b: 0.95, a: 1}
+  - {r: 0.55, g: 0.35, b: 0.95, a: 1}
+  - {r: 0.85, g: 0.35, b: 0.95, a: 1}
+  - {r: 0.95, g: 0.35, b: 0.7, a: 1}
+  - {r: 0.95, g: 0.45, b: 0.45, a: 1}
+  chordColor: {r: 0.95, g: 0.25, b: 0.85, a: 1}
+  beatColor: {r: 1, g: 0.95, b: 0.25, a: 1}
+  kickColor: {r: 1, g: 0.55, b: 0.2, a: 1}
+  snareColor: {r: 1, g: 0.25, b: 0.25, a: 1}
+  hhClosedColor: {r: 0.75, g: 0.85, b: 0.9, a: 1}
+  hhOpenColor: {r: 0.55, g: 0.75, b: 0.9, a: 1}
+  tomColor: {r: 0.4, g: 0.7, b: 1, a: 1}
+  cymbalColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  otherPercColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
+  drumKickDir: {x: -1, y: 0.1}
+  snareDir: {x: 1, y: 0}
+  hhClosedDir: {x: 0, y: 1}
+  hhOpenDir: {x: 0, y: 1}
+  tomDir: {x: 0.5, y: 0.6}
+  cymbalDir: {x: 0, y: 0.8}
+  noteDir: {x: 0.2, y: 0.8}
+  chordDir: {x: 0, y: 1}
+  beatDir: {x: 0, y: 1}
+  downbeatDir: {x: 0, y: 1.2}
+  showTempoSignature: 1
+  hudAnchor: {fileID: 0}
+  tempoColor: {r: 0.25, g: 0.9, b: 0.95, a: 1}
+  tsColor: {r: 0.95, g: 0.95, b: 0.95, a: 1}
+  tempoDir: {x: 0, y: 1.2}
+  tsDir: {x: 0, y: 1}
 --- !u!1001 &823341564237546768
 PrefabInstance:
   m_ObjectHideFlags: 0

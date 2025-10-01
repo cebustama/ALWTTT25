@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71018ac0ba675054e966e324f41bcf7d, type: 3}
-  m_Name: Song 3
+  m_Name: Song 3 - A Three Four B Four Four
   m_EditorClassIdentifier: 
   id: 3
   songTitle: Party Like It's 2999
@@ -19,15 +19,29 @@ MonoBehaviour:
   complexity: 0
   popularity: 2
   status: 0
+  lineups:
+  - musicians: 1
+    roles: 00000000
+  - musicians: 2
+    roles: 0000000001000000
+  - musicians: 3
+    roles: 000000000100000002000000
+  - musicians: 4
+    roles: 00000000010000000200000002000000
   genProfile:
     seed: 0
     parts:
     - name: A
-      tonality: 1
-      rootNote: 3
+      tonality: 5
+      rootNote: 9
+      tempoRange: 3
+      timeSignature: 1
+      measures: 4
+    - name: B
+      tonality: 5
+      rootNote: 9
       tempoRange: 3
       timeSignature: 0
       measures: 4
-    structure: 01000000
-  duration: 5
+    structure: 0100000002000000
   bpm: 80
