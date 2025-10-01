@@ -21,6 +21,9 @@ namespace ALWTTT.Managers
 
         public static MidiMusicManager Instance { get; private set; }
 
+        [Header("Settings")]
+        [SerializeField] private MidiGenPlayConfig settings;
+
         [Header("Refs")]
         [SerializeField] private MonoBehaviour playerBehaviour; // IPlayMidi (MPTK)
 
@@ -75,24 +78,21 @@ namespace ALWTTT.Managers
             if (registriesLoaded) return;
 
             // Instruments
-            allInstruments = 
-                Resources.LoadAll<MIDIInstrumentSO>(
-                    "ScriptableObjects/MIDI Instruments").ToList();
+            allInstruments = Resources.LoadAll<MIDIInstrumentSO>(
+                settings.resourcesInstrumentsPath).ToList();
+
             percussionInstruments = 
                 allInstruments.OfType<MIDIPercussionInstrumentSO>().ToList();
             melodicInstruments = 
                 allInstruments.Where(i => !(i is MIDIPercussionInstrumentSO)).ToList();
 
             // Patterns
-            allDrumPatterns = 
-                Resources.LoadAll<DrumPatternData>(
-                    "ScriptableObjects/Patterns/Drums").ToList();
-            allChordPatterns = 
-                Resources.LoadAll<ChordProgressionData>(
-                    "ScriptableObjects/Patterns/Chords").ToList();
-            allMelodyPatterns = 
-                Resources.LoadAll<MelodyPatternData>(
-                    "ScriptableObjects/Patterns/Melodies").ToList();
+            allDrumPatterns = Resources.LoadAll<DrumPatternData>(
+                settings.ResourcesDrumsPath).ToList();
+            allChordPatterns = Resources.LoadAll<ChordProgressionData>(
+                settings.ResourcesChordsPath).ToList();
+            allMelodyPatterns = Resources.LoadAll<MelodyPatternData>(
+                settings.ResourcesMelodiesPath).ToList();
 
             registriesLoaded = true;
             if (logDebug) Debug.Log($"{DebugTag} Registries loaded.");
@@ -186,6 +186,14 @@ namespace ALWTTT.Managers
                 return;
             }
 
+            // Global MGP Settings
+            if (settings == null) settings = MidiGenPlayConfig.FindInResources();
+            if (settings == null) 
+            { 
+                settings = ScriptableObject.CreateInstance<MidiGenPlayConfig>(); 
+            }
+            logDebug = settings != null && settings.logMidiMusicManager;
+
             player.OnMidiEvents += HandleMidiEvents;
             player.OnSongStarted += () =>
             {
@@ -212,6 +220,9 @@ namespace ALWTTT.Managers
             player.OnSongEnded += () => { /* optional reset */ };
 
             generator = new MidiGenerator();
+
+
+
             EnsureRegistriesLoaded();
         }
 

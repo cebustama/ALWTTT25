@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 524e4bcd6833ab44d91f790e083401dc, type: 3}
+  m_Name: MidiGenPlayConfig
+  m_EditorClassIdentifier: 
+  resourcesPatternsRoot: ScriptableObjects/Patterns
+  resourcesInstrumentsPath: ScriptableObjects/MIDI Instruments
+  autoCreateFolders: 1
+  logUI: 1
+  logRepository: 0
+  logGenerator: 1
+  logMidiMusicManager: 1
+  defaultTonality: 0
+  defaultTimeSignature: 0
+  defaultMeasures: 4
+  defaultChordSubdivisions: 1
+  preferSeventhInUI: 0
