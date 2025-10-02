@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using static MidiGenPlay.MusicTheory.MusicTheory;
 
 namespace ALWTTT.Managers
 {
@@ -79,7 +80,7 @@ namespace ALWTTT.Managers
             new ReadOnlyCollection<MelodyPatternData>(allMelodyPatterns);
         #endregion
 
-        #region Midi Events
+        #region Midi
         private readonly Dictionary<string, List<string>> channelOwnersByKey = new(); // channel idx -> musicianId
         private readonly Dictionary<string, List<TrackRole>> channelRolesByKey = new();
 
@@ -101,6 +102,27 @@ namespace ALWTTT.Managers
         [SerializeField] private int drumChannel = 9; // MIDI ch 10 (0-based = 9)
         [SerializeField] private int[] kickNotes = new[] { 35, 36 }; // Acoustic/Bass drum
         private int _beatIndex = 0;
+
+        // Chord labels
+        private readonly Dictionary<int, Dictionary<long, ChordLabel>> 
+            _chordLabelsByTrack = new();
+        private readonly Dictionary<int, Dictionary<long, ChordLabel>> 
+            _chordLabelsByChannel = new();
+
+        // ordered timelines & cursors per channel
+        private TempoMap _tempoMapForCurrentSong;
+        private readonly Dictionary<int, List<(long tick, ChordLabel label)>> 
+            _chordTimelineByChannel = new();
+        private readonly Dictionary<int, int> _chordTimelineCursor = new();
+        private readonly Dictionary<int, ChordLabel> _currentChordByChannel = new();
+
+        private struct ChordLabel
+        {
+            public string sym;      // "Cm7"
+            public string roman;    // "ii" / "IV"
+            public int deg;         // 1..7 (0 si no aplica)
+            public ChordQuality? quality; // null si no aplica
+        }
 
         private struct PartMarker
         {
@@ -195,7 +217,9 @@ namespace ALWTTT.Managers
             instrumentRepo = new InstrumentRepositoryResources(settings);
             patternRepo = new PatternRepositoryResources(settings);
 
+            // MIDI EVENTS
             player.OnMidiEvents += HandleMidiEvents;
+
             player.OnSongStarted += () =>
             {
                 if (logDebug) Debug.Log($"{DebugTag} OnSongStarted key={_currentKey} " +
@@ -218,7 +242,11 @@ namespace ALWTTT.Managers
                 else if (logDebug) 
                     Debug.LogWarning($"{DebugTag} OnSongStarted but key/cache missing.");
             };
-            player.OnSongEnded += () => { /* optional reset */ };
+
+            player.OnSongEnded += () => 
+            {
+                ClearMarkers();
+            };
 
             generator = new MidiGenerator(settings);
 
@@ -340,8 +368,8 @@ namespace ALWTTT.Managers
             {
                 var mf = MidiFile.Read(ms);
                 var kept = string.Join(",", GetUsedChannels(mf));
-                Debug.Log($"{DebugTag} subset kept channels [{kept}] " +
-                    $"(must include {MidiGenerator.MetronomeChannel})");
+                /*Debug.Log($"{DebugTag} subset kept channels [{kept}] " +
+                    $"(must include {MidiGenerator.MetronomeChannel})");*/
             }
 
             return PlayBytes(key, maskedData, full.seconds, 
@@ -352,6 +380,7 @@ namespace ALWTTT.Managers
         {
             player?.Stop();
             if (logDebug) Debug.Log($"{DebugTag} Stop");
+            ClearMarkers();
         }
 
         public IReadOnlyList<string> GetChannelOwnerIdsFor(SongData song)
@@ -496,13 +525,6 @@ namespace ALWTTT.Managers
             }
         }
 
-        private string MidiNoteToName(int note)
-        {
-            int octave = (note / 12) - 1;
-            string[] names = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-            return $"{names[note % 12]}{octave}";
-        }
-
         private SongCacheEntry GenerateSongEntry(SongData song)
             => GenerateSongEntry(song, GameManager.PersistentGameplayData.MusicianList);
 
@@ -558,8 +580,10 @@ namespace ALWTTT.Managers
             }
             trackOwnersByKey[key] = owners;
 
-            // Part markers
+            // Markers
+            _tempoMapForCurrentSong = midi.GetTempoMap();
             BuildPartMarkers(midi);
+            BuildChordMarkers(midi);
 
             byte[] data;
             using (var ms = new MemoryStream())
@@ -712,13 +736,84 @@ namespace ALWTTT.Managers
 
                     _musicianAnchors.TryGetValue(musId ?? "", out var anchor);
 
+                    // try to label this chord from our index
+                    string labelSym = null, labelRoman = null;
+                    int degreeIndex = 0;
+                    ChordQuality? qual = null;
+
+                    // --- Primary: per-channel timeline (robust across repeats) ---
+                    if (_chordTimelineByChannel.TryGetValue(ch, out var timeline))
+                    {
+                        int cur = _chordTimelineCursor.TryGetValue(ch, out var c) ? c : 0;
+                        int tol = Mathf.Max(0, settings != null ? 
+                            settings.chordLabelTickTolerance : 2);
+                        long tickNow = n0.Tick;
+
+                        // advance cursor while next marker is at/before current tick + tolerance
+                        while (cur < timeline.Count && timeline[cur].tick <= tickNow + tol)
+                        {
+                            _currentChordByChannel[ch] = timeline[cur].Item2;
+                            cur++;
+                        }
+                        _chordTimelineCursor[ch] = cur;
+
+                        if (_currentChordByChannel.TryGetValue(ch, out var curLabel))
+                        {
+                            labelSym = curLabel.sym;
+                            labelRoman = curLabel.roman;
+                            degreeIndex = curLabel.deg;
+                            qual = curLabel.quality;
+                        }
+                    }
+
+                    if (labelSym == null && settings != null && settings.logMidiMusicManager)
+                    {
+                        int tol = Mathf.Max(0, settings.chordLabelTickTolerance);
+                        long tickNow = n0.Tick;
+                        string near = "(no timeline for channel)";
+                        if (_chordTimelineByChannel.TryGetValue(ch, out var tl) && tl.Count > 0)
+                        {
+                            int idx = tl.BinarySearch((tickNow, default(ChordLabel)),
+                                Comparer<(long, ChordLabel)>.Create((a, b) => a.Item1.CompareTo(b.Item1)));
+                            if (idx < 0) idx = ~idx;
+                            var prev = idx > 0 ? tl[idx - 1].Item1 : -1;
+                            var next = idx < tl.Count ? tl[idx].Item1 : -1;
+                            near = $"prev={FormatTick(prev)} next={FormatTick(next)}";
+                        }
+
+                        Debug.LogWarning($"[MidiMusicManager] LABEL MISS ch={ch} track={(int)n0.Track} tickNow={FormatTick(n0.Tick)} tol=±{tol} " +
+                                         $"timeline={(_chordTimelineByChannel.TryGetValue(ch, out var tl2) ? tl2.Count : 0)} | {near}");
+                    }
+
+                    // --- Optional fallback: legacy per-track map (unchanged) ---
+                    if (labelSym == null && 
+                        _chordLabelsByTrack.TryGetValue((int)n0.Track, out var perTickTrk))
+                    {
+                        long tick = n0.Tick;
+                        if (!perTickTrk.TryGetValue(tick, out var lab))
+                        {
+                            int tol = Mathf.Max(0, settings != null ? 
+                                settings.chordLabelTickTolerance : 2);
+                            for (long d = -tol; d <= tol; d++)
+                                if (perTickTrk.TryGetValue(tick + d, out lab)) break;
+                        }
+
+                        if (lab.sym != null) 
+                        { labelSym = lab.sym; labelRoman = lab.roman; 
+                            degreeIndex = lab.deg; qual = lab.quality; }
+                    }
+
                     var chord = new ChordEvent
                     {
                         musicianId = musId,
                         channel = ch,
                         notes = notes.Select(e => e.Value).ToList(),
                         time = n0.RealTime / 1000f,
-                        anchor = anchor
+                        anchor = anchor,
+                        symbol = labelSym,
+                        roman = labelRoman,
+                        degreeIndex = degreeIndex,
+                        quality = qual
                     };
                     foreach (var s in _chordSubs) s?.OnChord(chord);
                 }
@@ -784,14 +879,18 @@ namespace ALWTTT.Managers
         {
             if (player == null) { Debug.LogError($"{DebugTag} No IPlayMidi."); return 0f; }
 
-            player.Stop();
+            player.Stop();            // will trigger OnSongEnded → ClearMarkers()
             _currentKey = key;
+
+            // Rebuild markers/timelines from the exact bytes we are going to play
+            RebuildMarkersFromData(data);
+
             player.Play(data);
 
             if (logDebug)
                 Debug.Log($"{DebugTag} Play {label} key:{key} " +
-                    $"bytes:{data?.Length} dur:{seconds:0.00}s " +
-                    $"IsPlaying:{player.IsPlaying}");
+                          $"bytes:{data?.Length} dur:{seconds:0.00}s " +
+                          $"IsPlaying:{player.IsPlaying}");
 
             return seconds;
         }
@@ -849,7 +948,7 @@ namespace ALWTTT.Managers
             return ms2.ToArray();
         }
 
-        private void BuildPartMarkers(Melanchall.DryWetMidi.Core.MidiFile file)
+        private void BuildPartMarkers(MidiFile file)
         {
             _partMarkers.Clear();
 
@@ -867,6 +966,155 @@ namespace ALWTTT.Managers
             _partMarkers.Sort((a, b) => a.tick.CompareTo(b.tick));
             if (settings != null && settings.logMidiMusicManager)
                 Debug.Log($"[MidiMusicManager] Built part markers: {_partMarkers.Count}");
+        }
+
+        private string FormatTick(long tick)
+        {
+            if (_tempoMapForCurrentSong == null) return tick.ToString();
+            var m = TimeConverter.ConvertTo<MetricTimeSpan>(tick, _tempoMapForCurrentSong);
+            return $"{tick} ({m.Minutes:D2}:{m.Seconds:D2}.{m.Milliseconds:D3})";
+        }
+
+        private void RebuildMarkersFromData(byte[] data)
+        {
+            try
+            {
+                ClearMarkers(); // ensure clean state in case OnSongEnded isn’t synchronous yet
+                using var ms = new MemoryStream(data);
+                var midi = MidiFile.Read(ms);
+
+                _tempoMapForCurrentSong = midi.GetTempoMap();
+                BuildPartMarkers(midi);   // keeps _partMarkers in sync with this playback
+                BuildChordMarkers(midi);  // fills _chordLabelsByChannel + timelines
+
+                if (logDebug)
+                {
+                    int tl = _chordTimelineByChannel.Values.Sum(t => t?.Count ?? 0);
+                    Debug.Log($"{DebugTag} Rebuilt markers from bytes. " +
+                              $"parts={_partMarkers?.Count ?? 0}, chord-timeline-entries={tl}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"{DebugTag} RebuildMarkersFromData failed: {ex.Message}");
+            }
+        }
+
+        private void BuildChordMarkers(MidiFile file)
+        {
+            _chordLabelsByTrack.Clear();
+            _chordLabelsByChannel.Clear();
+
+            int trackIndex = 0;
+            foreach (var chunk in file.GetTrackChunks())
+            {
+                int countHere = 0;
+
+                foreach (var te in chunk.GetTimedEvents())
+                {
+                    if (te.Event is TextEvent txt)
+                    {
+                        if (TryParseChordTag(txt.Text, out var tagCh, out var label))
+                        {
+                            // Track map (fallback / debugging)
+                            if (!_chordLabelsByTrack.TryGetValue(trackIndex, out var byTickTrack))
+                                _chordLabelsByTrack[trackIndex] = byTickTrack = new Dictionary<long, ChordLabel>();
+                            byTickTrack[te.Time] = label;
+
+                            // Channel map (primary) — from tag
+                            if (tagCh >= 0)
+                            {
+                                if (!_chordLabelsByChannel.TryGetValue(tagCh, out var byTickCh))
+                                    _chordLabelsByChannel[tagCh] = byTickCh = new Dictionary<long, ChordLabel>();
+                                byTickCh[te.Time] = label;
+                            }
+
+                            countHere++;
+                        }
+                        else if (txt.Text.StartsWith("chd:", StringComparison.OrdinalIgnoreCase) &&
+                                 settings != null && settings.logMidiMusicManager)
+                        {
+                            Debug.LogWarning($"[MidiMusicManager] Found chd text but couldn't parse: '{txt.Text}'");
+                        }
+                    }
+                }
+
+                if (settings != null && settings.logMidiMusicManager && countHere > 0)
+                {
+                    var sample = _chordLabelsByTrack[trackIndex].Keys.OrderBy(t => t).Take(8)
+                                 .Select(FormatTick);
+                    Debug.Log($"[MidiMusicManager] chd tags in Track#{trackIndex} count={countHere} " +
+                              $"ticks: {string.Join(", ", sample)}{(_chordLabelsByTrack[trackIndex].Count > 8 ? ", ..." : "")}");
+                }
+
+                trackIndex++;
+            }
+
+            // Build ordered timelines & reset cursors (unchanged)
+            _chordTimelineByChannel.Clear();
+            _chordTimelineCursor.Clear();
+            _currentChordByChannel.Clear();
+
+            foreach (var kv in _chordLabelsByChannel)
+            {
+                var ordered = kv.Value.Select(p => (tick: p.Key, label: p.Value))
+                                      .OrderBy(p => p.tick).ToList();
+                _chordTimelineByChannel[kv.Key] = ordered;
+                _chordTimelineCursor[kv.Key] = 0;
+
+                if (settings != null && settings.logMidiMusicManager && ordered.Count > 0)
+                {
+                    var sample = ordered.Take(8).Select(p => $"{FormatTick(p.tick)}:{p.label.sym}({p.label.roman})");
+                    Debug.Log($"[MidiMusicManager] Timeline ch={kv.Key} count={ordered.Count} " +
+                              $"first: {string.Join(" | ", sample)}{(ordered.Count > 8 ? " | ..." : "")}");
+                }
+            }
+
+            if (settings != null && settings.logMidiMusicManager)
+                Debug.Log($"[MidiMusicManager] Built chord labels: tracks={_chordLabelsByTrack.Count} channels={_chordLabelsByChannel.Count}");
+        }
+
+        // Supports new and old formats:
+        //   new: chd:<channel>:<roman>:<symbol>:<deg>:<quality>
+        //   old: chd:<roman>:<symbol>:<deg>:<quality>
+        //   old: chd:<roman>:<symbol>
+        private bool TryParseChordTag(string s, out int ch, out ChordLabel label)
+        {
+            ch = -1; label = default;
+
+            if (string.IsNullOrEmpty(s) || !s.StartsWith("chd:", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var parts = s.Split(':'); // don’t limit; we want the real count
+
+            // New format with channel first
+            if (parts.Length >= 6 && int.TryParse(parts[1], out var chParsed))
+            {
+                ch = chParsed;
+                label.roman = parts[2];
+                label.sym = parts[3];
+                label.deg = (parts.Length >= 5 && int.TryParse(parts[4], out var d)) ? d : 0;
+                label.quality = (parts.Length >= 6 &&
+                                 Enum.TryParse<ChordQuality>(parts[5], true, out var q))
+                                ? q : (ChordQuality?)null;
+                return true;
+            }
+
+            // Back-compat (no channel)
+            if (parts.Length >= 3)
+            {
+                label.roman = parts[1];
+                label.sym = parts[2];
+                label.deg = (parts.Length >= 4 && int.TryParse(parts[3], out var d2)) ? d2 : 0;
+                label.quality = (parts.Length >= 5 &&
+                                 Enum.TryParse<ChordQuality>(parts[4], true, out var q2))
+                                ? q2 : (ChordQuality?)null;
+                return true;
+            }
+
+            if (settings != null && settings.logMidiMusicManager)
+                Debug.LogWarning($"[MidiMusicManager] chd tag parse failed: '{s}'");
+            return false;
         }
 
         private static bool TryParsePartTag(string tag, out PartInfoEvent info)
@@ -902,6 +1150,16 @@ namespace ALWTTT.Managers
             if (settings != null && settings.logMidiMusicManager)
                 Debug.Log($"[MidiMusicManager] PartStart idx={e.partIndex} '{e.partName}'  " +
                     $"Tonality={e.tonality} Root={e.rootNote}");
+        }
+
+        private void ClearMarkers()
+        {
+            _partMarkers?.Clear();
+            _chordLabelsByTrack?.Clear();
+            _chordLabelsByChannel?.Clear();
+            _chordTimelineByChannel?.Clear();
+            _chordTimelineCursor?.Clear();
+            _currentChordByChannel?.Clear();
         }
         #endregion
     }

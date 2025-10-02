@@ -9,7 +9,8 @@ public class FloatingTextMidiListener :
     IChordListener,
     IBeatGridListener, 
     IDrumKickListener,
-    ITempoSignatureListener
+    ITempoSignatureListener,
+    IPartInfoListener
 {
     [SerializeField] private bool showNotes = true;
     [SerializeField] private bool showChords = true;
@@ -79,6 +80,7 @@ public class FloatingTextMidiListener :
         mm.Register((IBeatGridListener)this);
         mm.Register((IDrumKickListener)this);
         mm.Register((ITempoSignatureListener)this);
+        mm.Register((IPartInfoListener)this);
     }
 
     void OnDisable()
@@ -90,6 +92,7 @@ public class FloatingTextMidiListener :
         mm.Unregister((IBeatGridListener)this);
         mm.Unregister((IDrumKickListener)this);
         mm.Unregister((ITempoSignatureListener)this);
+        mm.Unregister((IPartInfoListener)this);
     }
 
     #region Callbacks
@@ -121,14 +124,30 @@ public class FloatingTextMidiListener :
         }
 
         // Melodic
-        FxManager.Instance?.SpawnFloatingText(e.anchor, label, noteDir, color);
+        // TODO: Only if lead (melody or harmony)
+        //FxManager.Instance?.SpawnFloatingText(e.anchor, label, noteDir, color);
     }
 
     public void OnChord(ChordEvent e)
     {
+        // ignore if hidden, no anchor, or this is the drum channel
         if (!showChords || e.anchor == null || e.channel == DrumChannel) return;
-        FxManager.Instance?.SpawnFloatingText(
-            e.anchor, $"Chord ({string.Join(",", e.notes)})", chordDir, chordColor);
+
+        // Prefer generator/manager-provided chord labels (e.g., "Cm7 (ii)")
+        string label = null;
+        if (!string.IsNullOrEmpty(e.symbol) && !string.IsNullOrEmpty(e.roman))
+            label = $"{e.symbol} ({e.roman})";
+        else if (!string.IsNullOrEmpty(e.symbol))
+            label = e.symbol;
+        else if (!string.IsNullOrEmpty(e.roman))
+            label = $"({e.roman})";
+        else
+            label = $"Chord ({string.Join(",", e.notes)})"; // fallback
+
+        FxManager.Instance?.SpawnFloatingText(e.anchor, label, chordDir, chordColor);
+
+        // Helpful console trace while you’re tuning things:
+        Debug.Log($"[FT] {label}  ch={e.channel}  mus='{e.musicianId}'");
     }
 
     public void OnBeat(BeatGridEvent e)
@@ -163,6 +182,11 @@ public class FloatingTextMidiListener :
         if (!showTempoSignature) return;
         var tr = hudAnchor != null ? hudAnchor : transform;
         FxManager.Instance?.SpawnFloatingText(tr, $"{numerator}/{denominator}", tsDir, tsColor);
+    }
+
+    public void OnPartStarted(PartInfoEvent e)
+    {
+        
     }
     #endregion
 
@@ -259,6 +283,5 @@ public class FloatingTextMidiListener :
             default: return "Perc";
         }
     }
-
     #endregion
 }

@@ -75,8 +75,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   - {fileID: 11400000, guid: 79c51e9474c58fd4fbc932f6133f1de2, type: 2}
-  possibleSongList:
   - {fileID: 11400000, guid: 79c51e9474c58fd4fbc932f6133f1de2, type: 2}
+  - {fileID: 11400000, guid: 79c51e9474c58fd4fbc932f6133f1de2, type: 2}
+  - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
+  possibleSongList:
+  - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   maxCohesion: 10
   initialCohesion: 10
   baseConflictChance: 20

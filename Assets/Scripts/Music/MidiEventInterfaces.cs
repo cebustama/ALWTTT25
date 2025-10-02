@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static MidiGenPlay.MusicTheory.MusicTheory;
 
 namespace ALWTTT.Music
 {
@@ -26,6 +27,12 @@ namespace ALWTTT.Music
         // Optional: set by generator when known
         public string symbol; // e.g., "Cm7"
         public string roman;  // e.g., "iii" or "IV"
+
+        // 0 if unkonwn/doesnt apply
+        public int degreeIndex;
+        // Null if unknown
+        public ChordQuality? quality;
+
     }
 
     public struct BeatEvent

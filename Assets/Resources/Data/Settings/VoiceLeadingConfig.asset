@@ -15,9 +15,11 @@ MonoBehaviour:
   enableVoiceLeading: 1
   useInversions: 1
   useDrop2: 1
-  startRegisterMode: 0
+  startRegisterMode: 4
   fixedStartingOctave: 4
   registerBiasSemitones: 0
+  startRegisterRandomRangeSemitones: 12
+  startRegisterSpread01: 0.4
   weightMovement: 1
   weightCommonTone: 0.25
   weightSpacing: 0.1
