@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1177c0766ef85bd4d81a245e4ca01991, type: 3}
-  m_Name: VoiceLeadingConfig
+  m_Name: MGP_VoiceLeadingConfig
   m_EditorClassIdentifier: 
   enableVoiceLeading: 1
   useInversions: 1
@@ -19,9 +19,13 @@ MonoBehaviour:
   fixedStartingOctave: 4
   registerBiasSemitones: 0
   startRegisterRandomRangeSemitones: 12
-  startRegisterSpread01: 0.4
-  weightMovement: 1
-  weightCommonTone: 0.25
+  startRegisterSpread01: 1
+  weightMovement: 1.25
+  weightCommonTone: 0.3
   weightSpacing: 0.1
   minTopInterval: 3
-  maxTopInterval: 12
+  maxTopInterval: 9
+  maxOctaveShiftPerChord: 1
+  weightShiftExcess: 1.5
+  hardLimitOctaveShift: 0
+  debugScoring: 0

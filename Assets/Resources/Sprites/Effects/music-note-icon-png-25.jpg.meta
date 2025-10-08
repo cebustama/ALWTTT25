@@ -484,7 +484,22 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      music-note-icon-png-25_0: 2372042143106593582
+      music-note-icon-png-25_1: -7564170734801837831
+      music-note-icon-png-25_10: -96984609107056592
+      music-note-icon-png-25_11: -1903783927418867680
+      music-note-icon-png-25_12: 7387566266235819203
+      music-note-icon-png-25_13: 6984264201124408471
+      music-note-icon-png-25_14: -286121192966557400
+      music-note-icon-png-25_2: -5269081439225702356
+      music-note-icon-png-25_3: 48810037579952559
+      music-note-icon-png-25_4: 8159619849099162362
+      music-note-icon-png-25_5: 7111751873159375951
+      music-note-icon-png-25_6: -1194731270347461794
+      music-note-icon-png-25_7: -940583727269683749
+      music-note-icon-png-25_8: -1115116133331290052
+      music-note-icon-png-25_9: 4949092680176160939
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

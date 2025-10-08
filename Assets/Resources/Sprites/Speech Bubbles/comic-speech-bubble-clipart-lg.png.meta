@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      comic-speech-bubble-clipart-lg_0: 4588976420917116535
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

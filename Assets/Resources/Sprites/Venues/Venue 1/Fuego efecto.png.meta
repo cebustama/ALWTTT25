@@ -259,7 +259,13 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Fuego efecto_0: -3337678106790417252
+      Fuego efecto_1: 2414493750302154965
+      Fuego efecto_2: 753092937293199755
+      Fuego efecto_3: 516894767259927608
+      Fuego efecto_4: -578945459523951908
+      Fuego efecto_5: 7004308325626206281
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

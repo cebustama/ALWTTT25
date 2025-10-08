@@ -10,17 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 524e4bcd6833ab44d91f790e083401dc, type: 3}
-  m_Name: MidiGenPlayConfig
+  m_Name: MGP_Config
   m_EditorClassIdentifier: 
   resourcesPatternsRoot: ScriptableObjects/Patterns
   resourcesInstrumentsPath: ScriptableObjects/MIDI Instruments
   autoCreateFolders: 1
   logUI: 1
   logRepository: 0
-  logGenerator: 1
+  logGenerator: 0
   logMidiMusicManager: 1
   defaultTonality: 0
   defaultTimeSignature: 0
   defaultMeasures: 4
   defaultChordSubdivisions: 1
   preferSeventhInUI: 0
+  defaultSeed: 0
+  metronomeChannelVolume: 110
+  chordLabelTickTolerance: 2
+  voiceLeading: {fileID: 11400000, guid: 574064b73663389408f65972f800cbfe, type: 2}

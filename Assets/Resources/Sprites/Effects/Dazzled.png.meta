@@ -184,7 +184,10 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Dazzled_0: 7158552271065111866
+      Dazzled_1: -5601364555382830627
+      Dazzled_2: 699226589222065169
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

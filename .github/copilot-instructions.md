@@ -1,8 +1,8 @@
 <!-- UNITY CODE ASSIST INSTRUCTIONS START -->
 - Project name: ALWTTT25
-- Unity version: Unity 6000.0.31f1
+- Unity version: Unity 6000.2.6f2
 - Active game object:
-  - Name: VenueBackgroundContainer
+  - Name: GenerateMidiSongPanel
   - Tag: Untagged
-  - Layer: Default
+  - Layer: UI
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

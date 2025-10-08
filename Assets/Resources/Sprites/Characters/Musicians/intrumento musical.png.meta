@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      intrumento musical_0: 7704189906054360298
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

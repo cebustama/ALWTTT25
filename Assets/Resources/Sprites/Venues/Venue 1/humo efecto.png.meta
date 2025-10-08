@@ -409,7 +409,19 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      humo efecto_0: 2476929091366914985
+      humo efecto_1: -2459782832515771317
+      humo efecto_10: 7765437462822562832
+      humo efecto_11: -8399568383705785208
+      humo efecto_2: 2798156795207553720
+      humo efecto_3: 3351764353877462151
+      humo efecto_4: -7861292281560802991
+      humo efecto_5: -9105157648729137501
+      humo efecto_6: -3659047413228478467
+      humo efecto_7: 8147510471548964240
+      humo efecto_8: -3419962415943499165
+      humo efecto_9: 4513241138129962464
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -209,7 +209,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      icon - stress2_0: -540499095502334839
+      icon - stress2_1: 2335041303581159648
+      icon - stress2_2: 8002079646132647905
+      icon - stress2_3: 269522594646584146
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
