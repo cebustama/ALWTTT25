@@ -17,7 +17,7 @@ MonoBehaviour:
   autoCreateFolders: 1
   logUI: 1
   logRepository: 0
-  logGenerator: 0
+  logGenerator: 1
   logMidiMusicManager: 1
   defaultTonality: 0
   defaultTimeSignature: 0
@@ -28,3 +28,5 @@ MonoBehaviour:
   metronomeChannelVolume: 110
   chordLabelTickTolerance: 2
   voiceLeading: {fileID: 11400000, guid: 574064b73663389408f65972f800cbfe, type: 2}
+  melodicLeading: {fileID: 11400000, guid: b3b4d350335f0c249a9bebdfc85accf1, type: 2}
+  harmonicLeading: {fileID: 11400000, guid: f3444974767377b438523faf12dc30a7, type: 2}

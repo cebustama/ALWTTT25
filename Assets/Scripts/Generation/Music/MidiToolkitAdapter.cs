@@ -82,8 +82,8 @@ namespace ALWTTT.Music
 
             // MidiFilePlayer exposes the channel controller via MPTK_Channels
             // (Volume, Mute/Enable, Pitch bend, …)
-            var channels = _player.MPTK_Channels;                 // MidiFilePlayer.cs comment shows this is the way to control per-channel settings
-            channels[channel].Volume = vol01;                     // or channels.SetVolume(channel, vol01) if your wrapper exposes a setter
+            var channels = _player.MPTK_Channels;
+            channels[channel].Volume = vol01;
         }
 
         public IEnumerator WaitForEnd()

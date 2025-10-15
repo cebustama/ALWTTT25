@@ -8,11 +8,12 @@ namespace ALWTTT.Music
         MonoBehaviour, 
         IMidiNoteListener, 
         IChordListener,
-        IBeatGridListener,
-        IDrumKickListener,
-        ITempoSignatureListener
+        IBeatGridListener, // global beat grid (no per-musician ID)
+        IDrumKickListener, // kick-based beats (with musician routing)
+        ITempoSignatureListener // BPM & TS changes
     {
         [SerializeField] private Characters.Band.MusicianBase musician;
+
         [Header("React To")]
         public bool reactToNotes = true;
         public bool reactToChords = true;
@@ -31,6 +32,9 @@ namespace ALWTTT.Music
             if (!mm) return;
             mm.Register((IMidiNoteListener)this);
             mm.Register((IChordListener)this);
+            mm.Register((IBeatGridListener)this);
+            mm.Register((IDrumKickListener)this);
+            mm.Register((ITempoSignatureListener)this);
         }
 
         void OnDisable()
@@ -39,6 +43,9 @@ namespace ALWTTT.Music
             if (!mm) return;
             mm.Unregister((IMidiNoteListener)this);
             mm.Unregister((IChordListener)this);
+            mm.Unregister((IBeatGridListener)this);
+            mm.Unregister((IDrumKickListener)this);
+            mm.Unregister((ITempoSignatureListener)this);
         }
 
         bool IsMine(string id) =>
@@ -57,12 +64,6 @@ namespace ALWTTT.Music
             musician.TriggerChordVFX(e.notes);
         }
 
-        public void OnBeat(BeatEvent e)
-        {
-            if (!reactToBeats || !IsMine(e.sourceMusicianId)) return;
-            musician.TriggerBeatVFX(e.beatIndex);
-        }
-
         public void OnBeat(BeatGridEvent e)
         {
             
@@ -70,22 +71,27 @@ namespace ALWTTT.Music
 
         public void OnDownbeat(BeatGridEvent e)
         {
-            
+            if (!reactToBeats) return;
+            // Light “bar pulse” on every musician to show the global grid
+            musician.TriggerBeatVFX(0);
         }
 
         public void OnDrumKick(MidiTaggedEvent e)
         {
-            
+            if (!reactToBeats || !IsMine(e.musicianId)) return;
+            musician.TriggerBeatVFX(0);
         }
 
         public void OnTempoChanged(double bpm)
         {
-            
+            if (!reactToBeats) return;
+            Debug.Log($"<color=cyan>[Responder]</color> {musician.MusicianCharacterData.CharacterName} tempo={bpm:0.0} BPM");
         }
 
         public void OnTimeSignatureChanged(int numerator, int denominator)
         {
-            
+            if (!reactToBeats) return;
+            Debug.Log($"<color=cyan>[Responder]</color> {musician.MusicianCharacterData.CharacterName} TS={numerator}/{denominator}");
         }
     }
 }

@@ -225,14 +225,18 @@ namespace ALWTTT.Data
                                 : null;
                         }
 
-                        part.Tracks.Add(new SongConfig.PartConfig.TrackConfig
+                        var trackConfig = new SongConfig.PartConfig.TrackConfig
                         {
                             Role = role,
                             Instrument = pickedInstrument,
                             PercussionInstrument = null,
                             Parameters = new TrackParameters { Pattern = pickedPattern },
                             MusicianId = musicianId,
-                        });
+                        };
+
+                        Debug.Log($"<color=yellow>[SongData] {trackConfig}</color>");
+                            
+                        part.Tracks.Add(trackConfig);
                     }
                 }
 

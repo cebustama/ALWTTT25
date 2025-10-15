@@ -18,6 +18,8 @@ MonoBehaviour:
   - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
   - {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
   initialMusicianList:
+  - {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
+  - {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
   - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
   - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
   initialSongList:

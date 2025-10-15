@@ -19,6 +19,7 @@ MonoBehaviour:
   grooveCost: 0
   cardSprite: {fileID: 5529886436784579953, guid: ba71bde0a99fd3f4b8bdae50be6a733c, type: 3}
   grooveGenerated: 1
+  musicianCharacterType: 0
   cardType: 0
   usableWithoutTarget: 0
   exhaustAfterPlay: 0
@@ -26,7 +27,7 @@ MonoBehaviour:
   cardActionDataList:
   - cardActionType: 0
     actionTargetType: 2
-    actionValue: 100
+    actionValue: 2
     actionDelay: 0
   keywordsList: 05000000
   audioType: 1

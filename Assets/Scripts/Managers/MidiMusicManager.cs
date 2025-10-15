@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using static MidiGenPlay.MusicTheory.MusicTheory;
 
@@ -32,9 +33,8 @@ namespace ALWTTT.Managers
 
         [Header("Options")]
         [SerializeField] private bool logDebug = true;
-
-        private IPlayMidi player;
-        private MidiGenerator generator;
+        [SerializeField] private bool _postProcEnabled = false;
+        [SerializeField] private bool _personalityBiasEnabled = true;
 
         public bool MetronomeEnabled { get; private set; }
         private const string CacheEpoch = "v2-metro";
@@ -51,8 +51,22 @@ namespace ALWTTT.Managers
 
         private GameManager GameManager => GameManager.Instance;
 
+        private MidiGenerator generator;
+
+        private IPlayMidi player;
+        private IMixController mix;
         private IInstrumentRepository instrumentRepo;
         private IPatternRepository patternRepo;
+
+        private IReadOnlyDictionary<string, IMusicianPersonality> _personalities = 
+            Array.Empty<KeyValuePair<string, IMusicianPersonality>>()
+            .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+        private Action _onSongStartedHandler;
+        private Action _onSongEndedHandler;
+
+        public void SetPostProcessingEnabled(bool enabled) => _postProcEnabled = enabled;
+        public void SetPersonalityBiasEnabled(bool enabled) => _personalityBiasEnabled = enabled;
 
         #region Registries (loaded once)
         private bool registriesLoaded;
@@ -206,6 +220,8 @@ namespace ALWTTT.Managers
                 return;
             }
 
+            mix = new PassthroughMixController(player);
+
             // Global MGP Settings
             if (settings == null) settings = MidiGenPlayConfig.FindInResources();
             if (settings == null) 
@@ -220,33 +236,10 @@ namespace ALWTTT.Managers
             // MIDI EVENTS
             player.OnMidiEvents += HandleMidiEvents;
 
-            player.OnSongStarted += () =>
-            {
-                if (logDebug) Debug.Log($"{DebugTag} OnSongStarted key={_currentKey} " +
-                    $"metronome={MetronomeEnabled}");
-
-                _beatIndex = 0;
-
-                // re-apply metronome volume for this playback
-                player.SetChannelVolume(MidiGenerator.MetronomeChannel,
-                    MetronomeEnabled ? settings.metronomeChannelVolume : 0);
-
-                // stop previous grid if any
-                if (_beatGridCo != null) { StopCoroutine(_beatGridCo); _beatGridCo = null; }
-
-                if (!string.IsNullOrEmpty(_currentKey) && cache.TryGetValue(_currentKey, out var entry))
-                {
-                    NotifyTempoSignatureAtStart(_currentKey); // push BPM/TS immediately
-                    _beatGridCo = StartCoroutine(RunBeatGrid(_currentKey, entry.seconds)); 
-                }
-                else if (logDebug) 
-                    Debug.LogWarning($"{DebugTag} OnSongStarted but key/cache missing.");
-            };
-
-            player.OnSongEnded += () => 
-            {
-                ClearMarkers();
-            };
+            _onSongStartedHandler = OnSongStartedInternal;
+            _onSongEndedHandler = OnSongEndedInternal;
+            player.OnSongStarted += _onSongStartedHandler;
+            player.OnSongEnded += _onSongEndedHandler;
 
             generator = new MidiGenerator(settings);
 
@@ -258,8 +251,10 @@ namespace ALWTTT.Managers
             if (player != null)
             {
                 player.OnMidiEvents -= HandleMidiEvents;
-                player.OnSongStarted -= () => _beatIndex = 0;
-                player.OnSongEnded -= () => { };
+                if (_onSongStartedHandler != null) 
+                    player.OnSongStarted -= _onSongStartedHandler;
+                if (_onSongEndedHandler != null) 
+                    player.OnSongEnded -= _onSongEndedHandler;
             }
         }
         private void EnsureRegistriesLoaded()
@@ -286,6 +281,12 @@ namespace ALWTTT.Managers
                           $"Instruments mel:{mel.Count} perc:{perc.Count} | " +
                           $"Patterns chords:{allChordPatterns.Count} drums:{allDrumPatterns.Count} " +
                           $"melodies:{allMelodyPatterns.Count}");
+        }
+
+        public void SetMusicianPersonalities(
+            IReadOnlyDictionary<string, IMusicianPersonality> personalities)
+        {
+            _personalities = personalities ?? new Dictionary<string, IMusicianPersonality>();
         }
         #endregion
 
@@ -404,7 +405,8 @@ namespace ALWTTT.Managers
         {
             MetronomeEnabled = enabled;
             // Apply immediately if a song is playing
-            player?.SetChannelVolume(MidiGenerator.MetronomeChannel, enabled ? 110 : 0);
+            mix?.SetChannelVolume01(
+                MidiGenerator.MetronomeChannel, enabled ? (110f / 127f) : 0f);
         }
 
         #endregion
@@ -539,6 +541,10 @@ namespace ALWTTT.Managers
 
             // Obtain config and key
             var config = song.GenerateConfig(bandList);
+
+            // pre-generation (arrangement) mutations to adjust parts/tracks/tempo/etc.
+            config = ApplyArrangementMutations(config);
+
             var key = CacheKey(song, bandList);
 
             // Channel mapping
@@ -559,6 +565,9 @@ namespace ALWTTT.Managers
 
             // Midi Generation
             var midi = generator.GenerateSong(config);
+
+            // post-generation (MIDI) processors to modify events/tracks/velocities/etc.
+            midi = ApplyPostProcessing(midi);
 
             // Ensure Part 1 Time Signature
             var part1Ts = config.Parts[0].TimeSignature;
@@ -885,6 +894,9 @@ namespace ALWTTT.Managers
             // Rebuild markers/timelines from the exact bytes we are going to play
             RebuildMarkersFromData(data);
 
+            // dump the exact payload we’ll play (if enabled)
+            DevDumpMidi(key, data, label);
+
             player.Play(data);
 
             if (logDebug)
@@ -1160,6 +1172,119 @@ namespace ALWTTT.Managers
             _chordTimelineByChannel?.Clear();
             _chordTimelineCursor?.Clear();
             _currentChordByChannel?.Clear();
+        }
+
+        // Returns the same config by default. Future: run IArrangementMutator(s) here.
+        private SongConfig ApplyArrangementMutations(SongConfig cfg)
+        {
+            // 1) If no personalities yet, do nothing
+            if (!_personalityBiasEnabled || _personalities == null || _personalities.Count == 0)
+                return cfg;
+
+            // 2) Resolve which musician plays which track index across the song
+            //    You already have: cfg.ChannelMusicianOrder (index -> musicianId)
+            //    and cfg.ChannelRoles for roles. Use these to apply per-track hints.
+            var order = cfg.ChannelMusicianOrder; // index -> musicianId
+
+            for (int trackIdx = 0; trackIdx < order.Count; trackIdx++)
+            {
+                var musId = order[trackIdx];
+                if (string.IsNullOrEmpty(musId)) continue;
+
+                if (_personalities.TryGetValue(musId, out var p) && p != null)
+                {
+                    // Example, non-invasive adjustments (depends on your SongConfig/Track config shape):
+                    // - choose denser patterns if p.Density01 high
+                    // - clamp register or set octave bias from p.RangeLow/RangeHigh
+                    // - switch to ornamented variants if p.Ornamentation01 high
+                    // - store a "velocity bias" hint for post-proc to use later
+
+                    // Pseudocode (replace with your actual TrackConfig/Parameters):
+                    // foreach (var part in cfg.Parts)
+                    // {
+                    //     var track = part.Tracks[trackIdx];
+                    //     track.Parameters.Density01 = p.Density01;
+                    //     track.Parameters.RangeLow = p.RangeLow;
+                    //     track.Parameters.RangeHigh = p.RangeHigh;
+                    //     track.Parameters.ScaleBias = p.PreferredScaleId; // or map to your Tonality enum
+                    //     track.Parameters.Ornamentation01 = p.Ornamentation01;
+                    //     track.Parameters.VelocityBias01 = p.VelocityBias01;
+                    //
+                    //     // Optional: swap pattern id based on density (patternRepo is available on the manager if needed)
+                    //     // if (cfg.ChannelRoles[trackIdx] == TrackRole.Melody && p.Density01 > 0.7f)
+                    //     //     track.PatternId = PickDenserMelodyPattern(track.PatternId);
+                    // }
+                }
+            }
+
+            return cfg;
+        }
+
+        // Returns the same MIDI by default. Future: run IMidiPostProcessor(s) here.
+        private MidiFile ApplyPostProcessing(MidiFile midi)
+        {
+            if (!_postProcEnabled || midi == null) return midi;
+
+            // Intentionally no-op for Phase 0.
+            // Place post-processing passes here (e.g., Humanization, Mistakes, Audience duplication, Mix priming)
+            return midi;
+        }
+
+        private void OnSongStartedInternal()
+        {
+            if (logDebug) Debug.Log($"{DebugTag} OnSongStarted key={_currentKey} " +
+                    $"metronome={MetronomeEnabled}");
+
+            _beatIndex = 0;
+
+            // re-apply metronome volume for this playback
+            var metro01 = MetronomeEnabled ?
+                Mathf.Clamp01((settings?.metronomeChannelVolume ?? 110) / 127f) :
+                0f;
+            mix.SetChannelVolume01(MidiGenerator.MetronomeChannel, metro01);
+
+            // stop previous grid if any
+            if (_beatGridCo != null) { StopCoroutine(_beatGridCo); _beatGridCo = null; }
+
+            if (!string.IsNullOrEmpty(_currentKey) && cache.TryGetValue(_currentKey, out var entry))
+            {
+                NotifyTempoSignatureAtStart(_currentKey); // push BPM/TS immediately
+                _beatGridCo = StartCoroutine(RunBeatGrid(_currentKey, entry.seconds));
+            }
+            else if (logDebug)
+                Debug.LogWarning($"{DebugTag} OnSongStarted but key/cache missing.");
+        }
+
+        private void OnSongEndedInternal()
+        {
+            ClearMarkers();
+        }
+
+        private void DevDumpMidi(string key, byte[] data, string label)
+        {
+            if (settings == null || !settings.debugDumpMidi 
+                || data == null || data.Length == 0)
+                return;
+
+            try
+            {
+                var dir = Path.Combine(Application.persistentDataPath, "MidiDumps");
+                Directory.CreateDirectory(dir);
+
+                // Safe-ish filename
+                string safeLabel = Regex.Replace(label ?? "song", @"[^a-zA-Z0-9_\-]+", "_");
+                string safeKey = Regex.Replace(key ?? "key", @"[^a-zA-Z0-9_\-]+", "_");
+                string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{safeLabel}_{safeKey}.mid";
+
+                var path = Path.Combine(dir, fileName);
+                File.WriteAllBytes(path, data);
+
+                if (logDebug) Debug.Log($"{DebugTag} DevDumpMidi -> {path}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"{DebugTag} DevDumpMidi failed: {ex.Message}");
+            }
         }
         #endregion
     }

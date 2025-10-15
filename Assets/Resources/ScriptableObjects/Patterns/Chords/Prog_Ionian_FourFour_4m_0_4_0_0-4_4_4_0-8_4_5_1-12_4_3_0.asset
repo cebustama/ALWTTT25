@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78f8c0d78658c524fb6baa090014cb46, type: 3}
+  m_Name: Prog_Ionian_FourFour_4m_0_4_0_0-4_4_4_0-8_4_5_1-12_4_3_0
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.ChordProgressionData
+  displayName: Prog_Ionian_FourFour_4m_0_4_0_0-4_4_4_0-8_4_5_1-12_4_3_0
+  timeSignature: 0
+  measures: 4
+  tonalities: 00000000
+  subdivisions: 1
+  events:
+  - startStep: 0
+    lengthSteps: 4
+    degree: 0
+    quality: 0
+    velocity: 64
+  - startStep: 4
+    lengthSteps: 4
+    degree: 4
+    quality: 0
+    velocity: 64
+  - startStep: 8
+    lengthSteps: 4
+    degree: 5
+    quality: 1
+    velocity: 64
+  - startStep: 12
+    lengthSteps: 4
+    degree: 3
+    quality: 0
+    velocity: 64

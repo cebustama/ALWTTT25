@@ -19,6 +19,10 @@ namespace ALWTTT.Managers
         [SerializeField] private ShipInteriorCanvas shipCanvas;
         [SerializeField] private SceneChanger sceneChanger;
 
+        [Header("Compose (Dev)")]
+        [SerializeField] private bool composeEnablePostProcessing = true;
+        [SerializeField] private bool composeUsePersonalityBias = true;
+
         private bool isPlaying;
 
         private readonly List<MusicianBase> _spawned = new();
@@ -98,6 +102,15 @@ namespace ALWTTT.Managers
             }
             Debug.Log($"{DebugTag} Obtained '{newSong.SongTitle}' song data from pool.");
 
+            var personalityMap = new Dictionary<string, IMusicianPersonality>();
+            foreach (var m in _spawned)
+            {
+                var id = m.MusicianCharacterData.CharacterId;
+                // TODO: Different personality per musician
+                personalityMap[id] = new NeutralPersonality(id);
+            }
+            MidiMusicManager.SetMusicianPersonalities(personalityMap);
+
             // 2) Channel owners for this arrangement (index=channel → musicianId)
             var owners = mm.GetChannelOwnerIdsFor(newSong);
             if (owners == null || owners.Count == 0)
@@ -153,6 +166,15 @@ namespace ALWTTT.Managers
                 yield return MidiMusicManager.WaitForEnd();
                 Debug.Log($"{DebugTag} Loop {k} ended.");
             }
+
+            // Afinal full-band pass with seams flags ON
+            mm.SetPostProcessingEnabled(composeEnablePostProcessing);
+            mm.SetPersonalityBiasEnabled(composeUsePersonalityBias);
+
+            // Play the exact same SongData with NO subset (whole band)
+            lastDuration = mm.Play(newSong);
+            yield return MidiMusicManager.WaitForEnd();
+            Debug.Log($"{DebugTag} Full-band pass ended.");
 
             // 6) New Song panel
             var newNames = orderedMusicians.Select(b => b.MusicianCharacterData.CharacterName)

@@ -54,7 +54,7 @@ namespace ALWTTT.Music
     {
         public int partIndex;         // into SongConfig.Parts
         public string partName;       // "Part A", "Verse", etc.
-        public MidiGenPlay.MusicTheory.MusicTheory.Tonality tonality;
+        public Tonality tonality;
         public Melanchall.DryWetMidi.MusicTheory.NoteName rootNote;
     }
     #endregion
