@@ -21,8 +21,13 @@ namespace ALWTTT.Managers
         [SerializeField] private SceneChanger sceneChanger;
 
         [Header("Compose (Dev)")]
+        [SerializeField] private bool composeUseLayeredEntrances = true;
         [SerializeField] private bool composeEnablePostProcessing = true;
         [SerializeField] private bool composeUsePersonalityBias = true;
+
+        [SerializeField] private MidiMusicManager.HighlightMode defaultHighlightMode =
+            MidiMusicManager.HighlightMode.DuckOthers;
+        private string _nextHighlightMusicianId;
 
         private bool isPlaying;
 
@@ -43,6 +48,40 @@ namespace ALWTTT.Managers
                 shipCanvas.HookMetronomeToggle(
                     OnMetronomeToggled, 
                     MidiMusicManager != null && MidiMusicManager.MetronomeEnabled);
+
+                // populate dropdown with the spawned musicians
+                var items = _spawned
+                    .Select(m => (m.MusicianCharacterData.CharacterId,
+                              m.MusicianCharacterData.CharacterName))
+                    .ToList();
+                shipCanvas.PopulateHighlightDropdown(items, id => _nextHighlightMusicianId = id, true);
+
+                shipCanvas.HookLayeredEntranceToggle(
+                    v => composeUseLayeredEntrances = v,
+                    composeUseLayeredEntrances);
+
+                shipCanvas.HookEnablePPToggle(
+                    v => composeEnablePostProcessing = v,
+                    composeEnablePostProcessing);
+
+                shipCanvas.HookEnablePersonalityToggle(
+                    v => composeUsePersonalityBias = v,
+                    composeUsePersonalityBias);
+
+                // Tempo scale options for NEXT song (Phase 1: just queued, not applied yet)
+                var tempoOptions = new List<(string label, float factor)>
+                {
+                    ("0.75× (laid-back)", 0.75f),
+                    ("1.00× (default)",   1.00f),
+                    ("1.25×",             1.25f),
+                    ("1.50×",             1.50f),
+                    ("2.00×",             2.00f),
+                };
+
+                shipCanvas.PopulateTempoScaleDropdown(
+                    tempoOptions,
+                    factor => MidiMusicManager?.ScheduleNextSongTempoScale(factor),
+                    defaultIndex: 1); // 1.00×
             }
         }
 
@@ -151,22 +190,28 @@ namespace ALWTTT.Managers
 
             // 5) Layered preview
             float lastDuration = 0f;
-            for (int k = 1; k <= orderedMusicians.Count; k++)
+            if (composeUseLayeredEntrances)
             {
-                var newcomer = orderedMusicians[k - 1];
-                Debug.Log($"{DebugTag} Loop {k}/{orderedMusicians.Count} " +
-                    $"newcomer='{newcomer.MusicianCharacterData.CharacterName}'");
+                for (int k = 1; k <= orderedMusicians.Count; k++)
+                {
+                    var newcomer = orderedMusicians[k - 1];
+                    Debug.Log($"{DebugTag} Loop {k}/{orderedMusicians.Count} " +
+                        $"newcomer='{newcomer.MusicianCharacterData.CharacterName}'");
 
-                // Play subset by first k musicians in 'owners'
-                lastDuration = 
-                    mm.PlaySameArrangementSubsetByMusicians(newSong, entranceIdsOrdered, k);
-                Debug.Log($"{DebugTag} PlaySubset returned duration={lastDuration:0.00}s, " +
-                    $"player.IsPlaying={mm != null}");
+                    // Play subset by first k musicians in 'owners'
+                    lastDuration =
+                        mm.PlaySameArrangementSubsetByMusicians(
+                            newSong, entranceIdsOrdered, k);
 
-                // Wait for actual end
-                yield return MidiMusicManager.WaitForEnd();
-                Debug.Log($"{DebugTag} Loop {k} ended.");
+                    // Wait for actual end
+                    yield return MidiMusicManager.WaitForEnd();
+                    Debug.Log($"{DebugTag} Loop {k} ended.");
+                }
             }
+
+            // queue highlight if selected
+            if (!string.IsNullOrEmpty(_nextHighlightMusicianId))
+                mm.Highlight(_nextHighlightMusicianId, defaultHighlightMode);
 
             // Afinal full-band pass with seams flags ON
             mm.SetPostProcessingEnabled(composeEnablePostProcessing);

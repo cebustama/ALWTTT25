@@ -339,6 +339,8 @@ namespace ALWTTT.Managers
             if (entry == null) return 0f;
 
             var bytes = ApplyMetronomeVolumeToBytes(entry.data, MetronomeEnabled);
+            LogPlayTraceSummary(key, $"'{song.SongTitle}'", entry.seconds, bytes?.Length ?? 0);
+
             return PlayBytes(key, bytes, entry.seconds, $"'{song.SongTitle}'");
         }
 
@@ -1698,6 +1700,33 @@ namespace ALWTTT.Managers
 
             _pendingHighlightMusicianId = null;
             _pendingHighlightMode = HighlightMode.None;
+        }
+
+        private void LogPlayTraceSummary(string key, string label, float seconds, int byteLen)
+        {
+            // owners summary (if known)
+            string owners = "(unknown)";
+            if (channelOwnersByKey.TryGetValue(key, out var list) && list != null && list.Count > 0)
+                owners = string.Join(", ", list.Select((id, ch) => $"{ch}:{id}"));
+
+            // highlight status
+            string hiId = _pendingHighlightMusicianId ?? _highlightMusicianId ?? "(none)";
+
+            // pre-format the tricky values (avoid nested ternary + escapes inside the interpolation)
+            string tempoNext = _pendingTempoScaleNextSong.HasValue
+                ? _pendingTempoScaleNextSong.Value.ToString("0.###")
+                : "-";
+            int personalityCount = (_personalities != null) ? _personalities.Count : 0;
+
+            Debug.Log(
+                $"{DebugTag} TRACE " +
+                $"label={label} key={key} dur={seconds:0.00}s bytes={byteLen} | " +
+                $"mutators={_pendingArrangementMutators.Count} post={_pendingPostProcessors.Count} " +
+                $"intents.arr={_pendingArrangementIntents.Count} intents.post={_pendingPostProcIntents.Count} " +
+                $"cards={_pendingCards.Count} tempoNext={tempoNext} | " +
+                $"metronome={MetronomeEnabled} pers={personalityCount} | " +
+                $"highlight={hiId}:{_pendingHighlightMode} | owners[{owners}]"
+            );
         }
         #endregion
     }
