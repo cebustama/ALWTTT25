@@ -34,7 +34,7 @@ namespace ALWTTT.Managers
         [Header("Options")]
         [SerializeField] private bool logDebug = true;
         [SerializeField] private bool _postProcEnabled = false;
-        [SerializeField] private bool _personalityBiasEnabled = true;
+        [SerializeField] private bool _personalityBiasEnabled = false;
 
         public bool MetronomeEnabled { get; private set; }
         private const string CacheEpoch = "v2-metro";
@@ -221,6 +221,8 @@ namespace ALWTTT.Managers
             }
 
             mix = new PassthroughMixController(player);
+            for (int ch = 0; ch < 16; ch++) _lastKnownVol01[ch] = 1f;
+            _lastKnownVol01[MidiGenerator.MetronomeChannel] = 0f; // default: metronome off
 
             // Global MGP Settings
             if (settings == null) settings = MidiGenPlayConfig.FindInResources();
@@ -404,9 +406,9 @@ namespace ALWTTT.Managers
         public void SetMetronomeEnabled(bool enabled)
         {
             MetronomeEnabled = enabled;
-            // Apply immediately if a song is playing
-            mix?.SetChannelVolume01(
-                MidiGenerator.MetronomeChannel, enabled ? (110f / 127f) : 0f);
+            var metro01 = enabled ? Mathf.Clamp01((settings?.metronomeChannelVolume ?? 110) / 127f) : 0f;
+            _lastKnownVol01[MidiGenerator.MetronomeChannel] = metro01;
+            mix?.SetChannelVolume01(MidiGenerator.MetronomeChannel, metro01);
         }
 
         #endregion
@@ -1174,59 +1176,109 @@ namespace ALWTTT.Managers
             _currentChordByChannel?.Clear();
         }
 
-        // Returns the same config by default. Future: run IArrangementMutator(s) here.
+        // Tiny private context implementation
+        private sealed class ArrangementContext : IArrangementContext
+        {
+            public IReadOnlyDictionary<string, IMusicianPersonality> Personalities { get; }
+            public System.Random Rng { get; }
+
+            private readonly Action<string> _log;
+
+            public ArrangementContext(IReadOnlyDictionary<string, IMusicianPersonality> pers, System.Random rng, Action<string> log)
+            {
+                Personalities = pers ?? new Dictionary<string, IMusicianPersonality>();
+                Rng = rng ?? new System.Random();
+                _log = log ?? (_ => { });
+            }
+
+            public void Log(string message) => _log?.Invoke(message);
+        }
+
         private SongConfig ApplyArrangementMutations(SongConfig cfg)
         {
-            // 1) If no personalities yet, do nothing
-            if (!_personalityBiasEnabled || _personalities == null || _personalities.Count == 0)
-                return cfg;
+            if (cfg == null) return null;
 
-            // 2) Resolve which musician plays which track index across the song
-            //    You already have: cfg.ChannelMusicianOrder (index -> musicianId)
-            //    and cfg.ChannelRoles for roles. Use these to apply per-track hints.
-            var order = cfg.ChannelMusicianOrder; // index -> musicianId
+            // TODO (Phase 2+): seed from final cache key for cross-run determinism of arrangement mutations
+            var seed = (_currentKey ?? "song").GetHashCode();
+            var rng = new System.Random(seed);
 
-            for (int trackIdx = 0; trackIdx < order.Count; trackIdx++)
+            var persForPhase1 = _personalityBiasEnabled
+                ? _personalities
+                : new Dictionary<string, IMusicianPersonality>();
+            var ctx = new ArrangementContext(persForPhase1, rng, LogTrace);
+
+            // Sort and run
+            if (_pendingArrangementMutators.Count > 0 && logDebug)
+                Debug.Log($"{DebugTag} ArrangementMutators: {_pendingArrangementMutators.Count}");
+
+            foreach (var m in _pendingArrangementMutators.OrderBy(m => m.Order))
             {
-                var musId = order[trackIdx];
-                if (string.IsNullOrEmpty(musId)) continue;
-
-                if (_personalities.TryGetValue(musId, out var p) && p != null)
+                try
                 {
-                    // Example, non-invasive adjustments (depends on your SongConfig/Track config shape):
-                    // - choose denser patterns if p.Density01 high
-                    // - clamp register or set octave bias from p.RangeLow/RangeHigh
-                    // - switch to ornamented variants if p.Ornamentation01 high
-                    // - store a "velocity bias" hint for post-proc to use later
-
-                    // Pseudocode (replace with your actual TrackConfig/Parameters):
-                    // foreach (var part in cfg.Parts)
-                    // {
-                    //     var track = part.Tracks[trackIdx];
-                    //     track.Parameters.Density01 = p.Density01;
-                    //     track.Parameters.RangeLow = p.RangeLow;
-                    //     track.Parameters.RangeHigh = p.RangeHigh;
-                    //     track.Parameters.ScaleBias = p.PreferredScaleId; // or map to your Tonality enum
-                    //     track.Parameters.Ornamentation01 = p.Ornamentation01;
-                    //     track.Parameters.VelocityBias01 = p.VelocityBias01;
-                    //
-                    //     // Optional: swap pattern id based on density (patternRepo is available on the manager if needed)
-                    //     // if (cfg.ChannelRoles[trackIdx] == TrackRole.Melody && p.Density01 > 0.7f)
-                    //     //     track.PatternId = PickDenserMelodyPattern(track.PatternId);
-                    // }
+                    var before = cfg;
+                    cfg = m.Mutate(cfg, ctx) ?? cfg;
+                    if (logDebug) LogTrace($"[Arrange] {m.Name} {(ReferenceEquals(before, cfg) ? "(in-place)" : "(new cfg)")}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"{DebugTag} Mutator '{m.Name}' failed: {ex.Message}");
                 }
             }
 
             return cfg;
         }
 
-        // Returns the same MIDI by default. Future: run IMidiPostProcessor(s) here.
+        private sealed class PostProcessContext : IPostProcessContext
+        {
+            public TempoMap TempoMap { get; }
+            public IReadOnlyDictionary<string, IMusicianPersonality> Personalities { get; }
+            public System.Random Rng { get; }
+            private readonly Action<string> _log;
+
+            public PostProcessContext(TempoMap tempoMap,
+                                      IReadOnlyDictionary<string, IMusicianPersonality> pers,
+                                      System.Random rng,
+                                      Action<string> log)
+            {
+                TempoMap = tempoMap;
+                Personalities = pers ?? new Dictionary<string, IMusicianPersonality>();
+                Rng = rng ?? new System.Random();
+                _log = log ?? (_ => { });
+            }
+
+            public void Log(string message) => _log?.Invoke(message);
+        }
+
+        // Returns the same MIDI when there are no post-processors or _postProcEnabled is false.
         private MidiFile ApplyPostProcessing(MidiFile midi)
         {
-            if (!_postProcEnabled || midi == null) return midi;
+            if (midi == null || !_postProcEnabled) return midi;
 
-            // Intentionally no-op for Phase 0.
-            // Place post-processing passes here (e.g., Humanization, Mistakes, Audience duplication, Mix priming)
+            var tempoMap = midi.GetTempoMap();
+            var seed = ((_currentKey ?? "song") + "::post").GetHashCode();
+            var rng = new System.Random(seed);
+
+            var persForPhase1 = _personalityBiasEnabled
+                ? _personalities
+                : new Dictionary<string, IMusicianPersonality>();
+            var ctx = new PostProcessContext(tempoMap, persForPhase1, rng, LogTrace);
+
+            if (_pendingPostProcessors.Count > 0 && logDebug)
+                Debug.Log($"{DebugTag} PostProcessors: {_pendingPostProcessors.Count}");
+
+            foreach (var p in _pendingPostProcessors.OrderBy(p => p.Order))
+            {
+                try
+                {
+                    var before = midi;
+                    midi = p.Process(midi, ctx) ?? midi;
+                    if (logDebug) LogTrace($"[Post] {p.Name} {(ReferenceEquals(before, midi) ? "(in-place)" : "(new midi)")}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"{DebugTag} PostProcessor '{p.Name}' failed: {ex.Message}");
+                }
+            }
             return midi;
         }
 
@@ -1242,6 +1294,7 @@ namespace ALWTTT.Managers
                 Mathf.Clamp01((settings?.metronomeChannelVolume ?? 110) / 127f) :
                 0f;
             mix.SetChannelVolume01(MidiGenerator.MetronomeChannel, metro01);
+            _lastKnownVol01[MidiGenerator.MetronomeChannel] = metro01;
 
             // stop previous grid if any
             if (_beatGridCo != null) { StopCoroutine(_beatGridCo); _beatGridCo = null; }
@@ -1250,6 +1303,7 @@ namespace ALWTTT.Managers
             {
                 NotifyTempoSignatureAtStart(_currentKey); // push BPM/TS immediately
                 _beatGridCo = StartCoroutine(RunBeatGrid(_currentKey, entry.seconds));
+                ApplyDeferredHighlightIfAny(); // apply highlight that was queued before channels were known
             }
             else if (logDebug)
                 Debug.LogWarning($"{DebugTag} OnSongStarted but key/cache missing.");
@@ -1285,6 +1339,365 @@ namespace ALWTTT.Managers
             {
                 Debug.LogWarning($"{DebugTag} DevDumpMidi failed: {ex.Message}");
             }
+        }
+
+        // Small helper to unify debug logging for contexts
+        private void LogTrace(string msg)
+        {
+            if (logDebug && !string.IsNullOrEmpty(msg))
+                Debug.Log($"{DebugTag} {msg}");
+        }
+        #endregion
+
+        #region New API
+        public enum IntroStyle { CountIn, Riff, Pad }
+        public enum SoloStyle { Emotional, Virtuoso, Facemelter }
+        public enum HighlightMode { None, DuckOthers, Solo }
+
+        public struct HumanizeOptions
+        {
+            public int maxTickOffset;   // e.g., 0..10 ticks
+            public int velocityJitter;  // e.g., 0..12
+            public int lengthJitter;    // e.g., 0..8
+        }
+
+        public struct MistakeProfile
+        {
+            public float frequency01;   // 0..1 how often
+            public float severity01;    // 0..1 how noticeable
+            public bool affectRhythm;   // melodic-only vs. include drums
+        }
+
+        public enum Scope { CurrentSong, Global }
+
+        // Optional “strategy” override by string id until a stronger type exists.
+        public readonly struct StrategyOverride
+        {
+            public readonly string StrategyId;
+            public StrategyOverride(string id) { StrategyId = id; }
+            public override string ToString() => StrategyId ?? "(none)";
+        }
+
+        private class IntroIntent 
+        { 
+            public string musicianId; 
+            public int measures; 
+            public IntroStyle style; 
+        }
+
+        private class SoloIntent 
+        { 
+            public string musicianId; 
+            public int measures; 
+            public SoloStyle style; 
+        }
+
+        private class ReplaceTrackIntent 
+        { 
+            public int partIndexOrAll; 
+            public string musicianId; 
+            public string strategyId; 
+        }
+
+        private class HumanizeIntent { public HumanizeOptions options; }
+
+        private class MistakeIntent 
+        { 
+            public string target; 
+            public MistakeProfile profile; 
+            public Scope scope; 
+        }
+
+        private readonly List<object> _pendingArrangementIntents = new(); // IntroIntent, SoloIntent, ReplaceTrackIntent, etc.
+        private readonly List<object> _pendingPostProcIntents = new(); // HumanizeIntent, MistakeIntent, etc.
+        private readonly List<CardData> _pendingCards = new(); // CardData queue (mapping happens later)
+
+        private readonly List<IArrangementMutator> _pendingArrangementMutators = new();
+        private readonly List<IMidiPostProcessor> _pendingPostProcessors = new();
+
+        private float? _pendingTempoScaleNextSong = null;
+
+        private string _highlightMusicianId;
+        private HighlightMode _highlightMode = HighlightMode.None;
+        private readonly float[] _lastKnownVol01 = new float[16]; // tracks any mix writes we do
+        private readonly float[] _savedVol01 = new float[16]; // snapshot before highlight
+        private bool _hasSavedMix = false;                       // true if snapshot is valid
+        private string _pendingHighlightMusicianId; // apply at next OnSongStarted if needed
+        private HighlightMode _pendingHighlightMode = HighlightMode.None;
+
+        public bool HasPendingMutations =>
+            _pendingArrangementMutators.Count > 0 ||
+            _pendingPostProcessors.Count > 0 ||
+            _pendingArrangementIntents.Count > 0 ||
+            _pendingPostProcIntents.Count > 0 ||
+            _pendingCards.Count > 0 ||
+            _pendingTempoScaleNextSong.HasValue;
+
+        // ----- Public methods -----
+
+        // Cards will be translated to intents
+        public void ApplyCards(IEnumerable<CardData> cards)
+        {
+            _pendingCards.Clear();
+            if (cards != null) _pendingCards.AddRange(cards);
+            if (logDebug)
+                Debug.Log($"{DebugTag} ApplyCards queued count={_pendingCards.Count} (Phase 1: no structural effect yet).");
+        }
+
+        // Arrangement / structure
+        public void AddIntro(string musicianId, int measures, IntroStyle style = IntroStyle.CountIn)
+        {
+            _pendingArrangementIntents.Add(new IntroIntent
+            {
+                musicianId = musicianId,
+                measures = Mathf.Max(1, measures),
+                style = style
+            });
+            if (logDebug) Debug.Log($"{DebugTag} AddIntro queued for {musicianId} measures={measures} style={style}.");
+        }
+
+        public void AppendSoloPart(string musicianId, SoloStyle style, int measures)
+        {
+            _pendingArrangementIntents.Add(new SoloIntent
+            {
+                musicianId = musicianId,
+                measures = Mathf.Max(1, measures),
+                style = style
+            });
+            if (logDebug) Debug.Log($"{DebugTag} AppendSoloPart queued for {musicianId} measures={measures} style={style}.");
+        }
+
+        public void ReplaceTrack(int partIndexOrAll, string musicianId, StrategyOverride? newStrategy)
+        {
+            _pendingArrangementIntents.Add(new ReplaceTrackIntent
+            {
+                partIndexOrAll = partIndexOrAll, // use -1 for “all parts”
+                musicianId = musicianId,
+                strategyId = newStrategy?.StrategyId
+            });
+            if (logDebug) Debug.Log($"{DebugTag} ReplaceTrack queued for {musicianId} part={partIndexOrAll} strategy={newStrategy}.");
+        }
+
+        // Change BPM
+        public void ScheduleNextSongTempoScale(float factor)
+        {
+            _pendingTempoScaleNextSong = factor;
+            if (logDebug) Debug.Log($"{DebugTag} Scheduled next-song tempo scale x{factor:0.###} (Phase 1: not applied yet).");
+        }
+
+        // Post-processing
+        public void EnableHumanization(HumanizeOptions options)
+        {
+            _pendingPostProcIntents.Add(new HumanizeIntent { options = options });
+            if (logDebug) Debug.Log($"{DebugTag} EnableHumanization queued (Phase 1: post-proc disabled by default).");
+        }
+
+        public void EnableMistakes(
+            string musicianIdOrAll, MistakeProfile profile, Scope scope = Scope.CurrentSong)
+        {
+            _pendingPostProcIntents.Add(new MistakeIntent
+            {
+                target = musicianIdOrAll,
+                profile = profile,
+                scope = scope
+            });
+            if (logDebug) Debug.Log($"{DebugTag} EnableMistakes queued target='{musicianIdOrAll}' scope={scope}.");
+        }
+
+        // Live mix (runtime only; uses IMixController; no MIDI byte changes)
+        public void SetChannelVolume(int channel, float volume01)
+        {
+            volume01 = Mathf.Clamp01(volume01);
+            _lastKnownVol01[channel] = volume01;
+            mix?.SetChannelVolume01(channel, volume01); // runtime mix only
+            if (logDebug) Debug.Log($"{DebugTag} SetChannelVolume ch={channel} vol={volume01:0.##}");
+        }
+
+        // Highlight: apply now if possible, else remember & apply at next OnSongStarted.
+        public void Highlight(string musicianId, HighlightMode mode)
+        {
+            // Clear request or invalid id -> restore snapshot if any
+            if (mode == HighlightMode.None || string.IsNullOrEmpty(musicianId))
+            {
+                RestoreSavedMix();
+                _highlightMusicianId = null;
+                _highlightMode = HighlightMode.None;
+                _pendingHighlightMusicianId = null;
+                _pendingHighlightMode = HighlightMode.None;
+                if (logDebug) Debug.Log($"{DebugTag} Highlight cleared.");
+                return;
+            }
+
+            // Idempotency: if same state already active, avoid re-sending CCs
+            if (player != null && player.IsPlaying &&
+                string.Equals(_highlightMusicianId, musicianId, StringComparison.Ordinal) &&
+                _highlightMode == mode)
+            {
+                if (logDebug) Debug.Log($"{DebugTag} Highlight already active for {musicianId} mode={mode}. Skipping.");
+                return;
+            }
+
+            // Resolve channels now if possible
+            var channels = new HashSet<int>(ResolveChannelsForMusician(musicianId));
+            if (channels.Count == 0 || player == null || !player.IsPlaying)
+            {
+                _pendingHighlightMusicianId = musicianId;
+                _pendingHighlightMode = mode;
+                if (logDebug)
+                    Debug.Log($"{DebugTag} Highlight deferred for {musicianId} mode={mode} (no active channel map yet).");
+                return;
+            }
+
+            // Take a one-time snapshot of the mix before we modify it
+            if (!_hasSavedMix)
+                SaveCurrentMixSnapshot();
+
+            ApplyHighlightNow(channels, mode);
+            _highlightMusicianId = musicianId;
+            _highlightMode = mode;
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} Highlight applied for {musicianId} mode={mode} ch=[{string.Join(",", channels)}].");
+        }
+
+        // Optional: clear all queued intents (useful between songs/tests)
+        public void ClearPendingMutations()
+        {
+            _pendingArrangementIntents.Clear();
+            _pendingPostProcIntents.Clear();
+            _pendingTempoScaleNextSong = null;
+            _pendingCards.Clear();
+            _pendingArrangementMutators.Clear();
+            _pendingPostProcessors.Clear();
+            if (logDebug) 
+                Debug.Log($"{DebugTag} " +
+                    $"Cleared all pending intents and mutator/postproc registries.");
+        }
+
+        public void EnqueueArrangementMutator(IArrangementMutator mut)
+        {
+            if (mut != null) _pendingArrangementMutators.Add(mut);
+        }
+        public void EnqueuePostProcessor(IMidiPostProcessor pass)
+        {
+            if (pass != null) _pendingPostProcessors.Add(pass);
+        }
+
+        // ----- Internal -----
+        private IEnumerable<int> ResolveChannelsForMusician(string musicianId)
+        {
+            // Prefer current arrangement channel owners, else per-key cache if available.
+            // 1) Try current full-band owners list (SetChannelOwners was called post-gen)
+            if (!string.IsNullOrEmpty(musicianId) && _channelOwners != null && _channelOwners.Count > 0)
+            {
+                for (int ch = 0; ch < _channelOwners.Count; ch++)
+                    if (string.Equals(_channelOwners[ch], musicianId, StringComparison.Ordinal))
+                        yield return ch;
+            }
+
+            // 2) Fallback to per-key cache mapping if song key known
+            if (!string.IsNullOrEmpty(_currentKey) &&
+                channelOwnersByKey.TryGetValue(_currentKey, out var owners) &&
+                owners != null && owners.Count > 0)
+            {
+                for (int ch = 0; ch < owners.Count; ch++)
+                    if (string.Equals(owners[ch], musicianId, StringComparison.Ordinal))
+                        yield return ch;
+            }
+        }
+
+        private void ApplyHighlightNow(ISet<int> targetChannels, HighlightMode mode)
+        {
+            // Build the intended mix in one pass, excluding metronome channel.
+            for (int ch = 0; ch < 16; ch++)
+            {
+                if (ch == MidiGenerator.MetronomeChannel) continue;
+
+                bool isTarget = targetChannels.Contains(ch);
+                float vol = 1f;
+
+                switch (mode)
+                {
+                    case HighlightMode.DuckOthers:
+                        vol = isTarget ? 1f : 0.7f;
+                        break;
+                    case HighlightMode.Solo:
+                        vol = isTarget ? 1f : 0.2f;
+                        break;
+                }
+
+                _lastKnownVol01[ch] = vol;
+                mix?.SetChannelVolume01(ch, vol);
+            }
+        }
+
+        private void SaveCurrentMixSnapshot()
+        {
+            // Snapshot all non-metronome channels from our last-known tracker
+            for (int ch = 0; ch < 16; ch++)
+            {
+                if (ch == MidiGenerator.MetronomeChannel) continue;
+                _savedVol01[ch] = _lastKnownVol01[ch];
+            }
+            _hasSavedMix = true;
+        }
+
+        private void RestoreSavedMix()
+        {
+            if (_hasSavedMix)
+            {
+                for (int ch = 0; ch < 16; ch++)
+                {
+                    if (ch == MidiGenerator.MetronomeChannel) continue;
+                    var vol = Mathf.Clamp01(_savedVol01[ch]);
+                    _lastKnownVol01[ch] = vol;
+                    mix?.SetChannelVolume01(ch, vol);
+                }
+                _hasSavedMix = false; // snapshot consumed
+                if (logDebug) Debug.Log($"{DebugTag} Restored saved mix after highlight.");
+            }
+            else
+            {
+                // No snapshot—fallback to neutral (preserves metronome separately)
+                for (int ch = 0; ch < 16; ch++)
+                {
+                    if (ch == MidiGenerator.MetronomeChannel) continue;
+                    _lastKnownVol01[ch] = 1f;
+                    mix?.SetChannelVolume01(ch, 1f);
+                }
+                if (logDebug) Debug.Log($"{DebugTag} Restored neutral mix (no snapshot).");
+            }
+        }
+
+        // Hook this near the end of OnSongStartedInternal so deferred highlight applies seamlessly.
+        private void ApplyDeferredHighlightIfAny()
+        {
+            if (!string.IsNullOrEmpty(_highlightMusicianId) &&
+                _pendingHighlightMode == _highlightMode &&
+                string.Equals(_pendingHighlightMusicianId, _highlightMusicianId, 
+                StringComparison.Ordinal))
+            {
+                // Already applied; clear pending and return
+                _pendingHighlightMusicianId = null;
+                _pendingHighlightMode = HighlightMode.None;
+                return;
+            }
+
+            if (string.IsNullOrEmpty(_pendingHighlightMusicianId) 
+                || _pendingHighlightMode == HighlightMode.None)
+                return;
+
+            var channels = ResolveChannelsForMusician(_pendingHighlightMusicianId).ToList();
+            if (channels.Count > 0)
+            {
+                ApplyHighlightNow(new HashSet<int>(channels), _pendingHighlightMode);
+                _highlightMusicianId = _pendingHighlightMusicianId;
+                _highlightMode = _pendingHighlightMode;
+                if (logDebug) Debug.Log($"{DebugTag} Deferred highlight applied for {_pendingHighlightMusicianId} mode={_pendingHighlightMode}.");
+            }
+
+            _pendingHighlightMusicianId = null;
+            _pendingHighlightMode = HighlightMode.None;
         }
         #endregion
     }

@@ -1,6 +1,7 @@
 ﻿using ALWTTT.Characters.Band;
 using ALWTTT.Music;
 using ALWTTT.Utils;
+using MidiGenPlay;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
