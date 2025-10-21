@@ -353,6 +353,17 @@ namespace ALWTTT.Data
         #endregion
 
         #region Band
+        public void ResetBandForSetup(List<MusicianBase> all)
+        {
+            MusicianList = new List<MusicianBase>();
+            AvailableMusiciansList = new List<MusicianBase>(all);
+            musicianHealthDataList = new List<MusicianHealthData>();
+            CurrentCardsList = new List<CardData>();
+            musicianGrantedCards = new SerializableCardInventory();
+            CurrentSongList = new List<SongData>();
+            CurrentSongIndex = 0;
+            SongModifierCardsList = new List<CardData>();
+        }
 
         public MusicianHealthData SetMusicianHealthData(
             string id, int newCurrentStress, int newMaxStress)

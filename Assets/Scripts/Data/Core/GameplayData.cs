@@ -17,6 +17,11 @@ namespace ALWTTT
         [SerializeField] private List<SongData> initialSongList;
         [SerializeField] private List<SongData> possibleSongList;
 
+        [Header("Band Setup")]
+        [SerializeField] private bool useBandSetup = true;
+        [SerializeField, Min(1)] private int setupPickCount = 1;  // N
+        [SerializeField] private int setupPoolSize = -1;          // X (-1 => all)
+
         [Header("Map")]
         [SerializeField] private int maxCohesion = 10;
         [SerializeField] private int initialCohesion = 10; // Max by default
@@ -59,6 +64,10 @@ namespace ALWTTT
         public List<MusicianBase> InitialMusicianList => initialMusicianList;
         public List<SongData> InitialSongList => initialSongList;
         public List<SongData> PossibleSongList => possibleSongList;
+
+        public bool UseBandSetup => useBandSetup;
+        public int SetupPickCount => Mathf.Max(1, setupPickCount);
+        public int SetupPoolSize => setupPoolSize; // -1 means "all"
 
         public int MaxCohesion => maxCohesion;
         public int InitialCohesion => initialCohesion;

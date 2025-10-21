@@ -25,9 +25,9 @@ MonoBehaviour:
   - musicians: 2
     roles: 0000000001000000
   - musicians: 3
-    roles: 000000000100000002000000
+    roles: 000000000100000004000000
   - musicians: 4
-    roles: 00000000010000000200000002000000
+    roles: 00000000010000000400000005000000
   genProfile:
     seed: 0
     parts:

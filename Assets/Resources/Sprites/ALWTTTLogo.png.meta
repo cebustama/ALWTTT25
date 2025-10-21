@@ -1,0 +1,455 @@
+fileFormatVersion: 2
+guid: 22b8cb0fc7184dc41b2609728a4fccc3
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3661213212669862940
+    second: ALWTTTLogo_0
+  - first:
+      213: 2495017352600976070
+    second: ALWTTTLogo_1
+  - first:
+      213: -6292156338435477343
+    second: ALWTTTLogo_2
+  - first:
+      213: -3959034895148840886
+    second: ALWTTTLogo_3
+  - first:
+      213: 4195085682228689343
+    second: ALWTTTLogo_4
+  - first:
+      213: 714224262088097904
+    second: ALWTTTLogo_5
+  - first:
+      213: -6473408870538596873
+    second: ALWTTTLogo_6
+  - first:
+      213: 1317003956358084688
+    second: ALWTTTLogo_7
+  - first:
+      213: -7181310974081854984
+    second: ALWTTTLogo_8
+  - first:
+      213: 6973674575671113200
+    second: ALWTTTLogo_9
+  - first:
+      213: -2370175260209468455
+    second: ALWTTTLogo_10
+  - first:
+      213: -2770224423807412919
+    second: ALWTTTLogo_11
+  - first:
+      213: 2555124960818777730
+    second: ALWTTTLogo_12
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ALWTTTLogo_0
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 170
+        width: 40
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c14672cd40e3fc230800000000000000
+      internalID: 3661213212669862940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_1
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 164
+        width: 319
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ca7732201510a220800000000000000
+      internalID: 2495017352600976070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_2
+      rect:
+        serializedVersion: 2
+        x: 493
+        y: 178
+        width: 31
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a0b450c525cda8a0800000000000000
+      internalID: -6292156338435477343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_3
+      rect:
+        serializedVersion: 2
+        x: 521
+        y: 179
+        width: 41
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a48074d1dbeae09c0800000000000000
+      internalID: -3959034895148840886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_4
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 187
+        width: 92
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb971939330f73a30800000000000000
+      internalID: 4195085682228689343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_5
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 174
+        width: 92
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0700ab7ae2f69e900800000000000000
+      internalID: 714224262088097904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_6
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 47
+        width: 91
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fd2fa90ee4d926a0800000000000000
+      internalID: -6473408870538596873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_7
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 49
+        width: 100
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 058f18ade10f64210800000000000000
+      internalID: 1317003956358084688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_8
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 52
+        width: 88
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f19c30a7bbd65c90800000000000000
+      internalID: -7181310974081854984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_9
+      rect:
+        serializedVersion: 2
+        x: 376
+        y: 55
+        width: 91
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f5bc06141877c060800000000000000
+      internalID: 6973674575671113200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_10
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 57
+        width: 111
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dbabc798227b1fd0800000000000000
+      internalID: -2370175260209468455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_11
+      rect:
+        serializedVersion: 2
+        x: 580
+        y: 59
+        width: 89
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94519d6509f2e89d0800000000000000
+      internalID: -2770224423807412919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ALWTTTLogo_12
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 28
+        width: 622
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28e465e3d90a57320800000000000000
+      internalID: 2555124960818777730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ALWTTTLogo_0: 3661213212669862940
+      ALWTTTLogo_1: 2495017352600976070
+      ALWTTTLogo_10: -2370175260209468455
+      ALWTTTLogo_11: -2770224423807412919
+      ALWTTTLogo_12: 2555124960818777730
+      ALWTTTLogo_2: -6292156338435477343
+      ALWTTTLogo_3: -3959034895148840886
+      ALWTTTLogo_4: 4195085682228689343
+      ALWTTTLogo_5: 714224262088097904
+      ALWTTTLogo_6: -6473408870538596873
+      ALWTTTLogo_7: 1317003956358084688
+      ALWTTTLogo_8: -7181310974081854984
+      ALWTTTLogo_9: 6973674575671113200
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

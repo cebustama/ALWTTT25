@@ -187,14 +187,17 @@ namespace ALWTTT.Data
                             drumPatterns.Count > 0 ? 
                             (PatternDataSO)drumPatterns[rnd.Next(drumPatterns.Count)] : null;
 
-                        part.Tracks.Add(new SongConfig.PartConfig.TrackConfig
+                        var drumTrack = new SongConfig.PartConfig.TrackConfig
                         {
                             Role = TrackRole.Rhythm,
                             PercussionInstrument = drumKit,
                             Instrument = null,
                             Parameters = new TrackParameters { Pattern = drumPat },
-                            MusicianId = musicianId,
-                        });
+                            MusicianId = musicianId
+                        };
+
+                        Debug.Log($"<color=yellow>[SongData] {drumTrack}</color>");
+                        part.Tracks.Add(drumTrack);
                     }
                     else
                     {

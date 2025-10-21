@@ -364,6 +364,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MidiGenPlayPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 1932662506433140146, guid: 404e03ae0b8b61a4e949fed0f822289c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2029209217668668593, guid: 404e03ae0b8b61a4e949fed0f822289c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1214,6 +1218,10 @@ PrefabInstance:
     - target: {fileID: 193397461355193485, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
       propertyPath: m_Name
       value: MidiMusicManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 193397461355193485, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3105887504060889637, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
       propertyPath: m_LocalPosition.x

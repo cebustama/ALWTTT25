@@ -150,12 +150,12 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1843518570389361331}
   - {fileID: 902470000346735959}
   - {fileID: 6624260956503863590}
   - {fileID: 6247318484085894523}
   - {fileID: 1784874973291389529}
   - {fileID: 648727902202656183}
+  - {fileID: 1843518570389361331}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &904947388146445277
@@ -173,6 +173,7 @@ MonoBehaviour:
   gigCanvas: {fileID: 7960209463798130126}
   rewardCanvas: {fileID: 8143870509901426366}
   inventoryCanvas: {fileID: 7879070419968165406}
+  beatHUD: {fileID: 648727902202656183}
   fader: {fileID: 5824937219203522022}
   fadeSpeed: 1
 --- !u!1 &3559167661862294797
@@ -192,7 +193,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &648727902202656183
 RectTransform:
   m_ObjectHideFlags: 0

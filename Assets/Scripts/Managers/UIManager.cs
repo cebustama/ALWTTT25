@@ -16,6 +16,7 @@ namespace ALWTTT.Managers
         [SerializeField] private GigCanvas gigCanvas;
         [SerializeField] private RewardCanvas rewardCanvas;
         [SerializeField] private InventoryCanvas inventoryCanvas;
+        [SerializeField] private Transform beatHUD;
 
         [Header("Fader")]
         [SerializeField] private CanvasGroup fader;

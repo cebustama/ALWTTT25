@@ -15,7 +15,9 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using static MidiGenPlay.IntroMutator;
 using static MidiGenPlay.MusicTheory.MusicTheory;
+using static MidiGenPlay.SoloMutator;
 
 namespace ALWTTT.Managers
 {
@@ -64,6 +66,9 @@ namespace ALWTTT.Managers
 
         private Action _onSongStartedHandler;
         private Action _onSongEndedHandler;
+
+        private string _seedKeyForThisGeneration;
+        private bool _bypassCacheNext = false;
 
         public void SetPostProcessingEnabled(bool enabled) => _postProcEnabled = enabled;
         public void SetPersonalityBiasEnabled(bool enabled) => _personalityBiasEnabled = enabled;
@@ -290,6 +295,23 @@ namespace ALWTTT.Managers
         {
             _personalities = personalities ?? new Dictionary<string, IMusicianPersonality>();
         }
+
+        // stable 32-bit FNV-1a hash (deterministic across runs)
+        private static int StableHash32(string s)
+        {
+            unchecked
+            {
+                uint hash = 2166136261;
+                foreach (char c in s)
+                {
+                    hash ^= c;
+                    hash *= 16777619;
+                }
+                return (int)hash;
+            }
+        }
+
+        public void BypassCacheOnce() { _bypassCacheNext = true; }
         #endregion
 
         private void Update()
@@ -376,6 +398,9 @@ namespace ALWTTT.Managers
                 /*Debug.Log($"{DebugTag} subset kept channels [{kept}] " +
                     $"(must include {MidiGenerator.MetronomeChannel})");*/
             }
+
+            LogPlayTraceSummary(key, $"subset[{allowed.Count}] '{song.SongTitle}'", 
+                full.seconds, maskedData?.Length ?? 0);
 
             return PlayBytes(key, maskedData, full.seconds, 
                 $"subset[{allowed.Count}] '{song.SongTitle}'");
@@ -543,8 +568,13 @@ namespace ALWTTT.Managers
             var bandList = band as List<Characters.Band.MusicianBase>
                            ?? band?.ToList();
 
+            var seedBase = $"{song.Id}::{ComputeBandSignature(bandList)}";
+            _seedKeyForThisGeneration = seedBase;
+
             // Obtain config and key
             var config = song.GenerateConfig(bandList);
+
+            MaterializeArrangementIntents();
 
             // pre-generation (arrangement) mutations to adjust parts/tracks/tempo/etc.
             config = ApplyArrangementMutations(config);
@@ -553,6 +583,23 @@ namespace ALWTTT.Managers
 
             // Channel mapping
             var channelMap = BuildChannelMap(config.ChannelRoles);
+
+            // Build musicianId -> channel lookup using ChannelMusicianOrder + channelMap
+            var byMusician = new Dictionary<string, int>();
+            for (int i = 0; i < config.ChannelMusicianOrder.Count && i < channelMap.Count; i++)
+            {
+                var id = config.ChannelMusicianOrder[i] ?? "";
+                if (!string.IsNullOrEmpty(id)) byMusician[id] = channelMap[i];
+            }
+
+            // Stamp channels into tracks for debugging clarity
+            foreach (var part in config.Parts)
+                foreach (var tr in part.Tracks)
+                    if (!string.IsNullOrEmpty(tr.MusicianId) && 
+                        byMusician.TryGetValue(tr.MusicianId, out var ch))
+                        tr.Channel = ch;
+
+            // Owners map
             int maxCh = channelMap.Count > 0 ? channelMap.Max() : 0;
             var perChannel =
                 Enumerable.Repeat(string.Empty, Math.Max(16, maxCh + 1)).ToList();
@@ -567,10 +614,13 @@ namespace ALWTTT.Managers
             // Roles mapping
             channelRolesByKey[key] = config.ChannelRoles?.ToList() ?? new List<TrackRole>();
 
+            DumpConfigTrace(song, config, channelMap);
+
             // Midi Generation
             var midi = generator.GenerateSong(config);
 
             // post-generation (MIDI) processors to modify events/tracks/velocities/etc.
+            MaterializePostProcIntents();
             midi = ApplyPostProcessing(midi);
 
             // Ensure Part 1 Time Signature
@@ -609,8 +659,12 @@ namespace ALWTTT.Managers
             if (logDebug)
             {
                 var used = string.Join(",", GetUsedChannels(midi));
-                Debug.Log($"{DebugTag} Generated '{song.SongTitle}' tracks:{midi.GetTrackChunks().Count()} ch:[{used}] dur:{seconds:0.00}s");
+                Debug.Log($"{DebugTag} Generated '{song.SongTitle}' " +
+                    $"tracks:{midi.GetTrackChunks().Count()} ch:[{used}] dur:{seconds:0.00}s");
             }
+
+            _seedKeyForThisGeneration = null;
+
             return new SongCacheEntry { data = data, seconds = seconds };
         }
 
@@ -646,7 +700,10 @@ namespace ALWTTT.Managers
             var b = band ?? GameManager.PersistentGameplayData.MusicianList;
             var sig = ComputeBandSignature(b);
             var baseKey = string.IsNullOrEmpty(sig) ? song.Id : $"{song.Id}::{sig}";
-            return $"{baseKey}::{CacheEpoch}";
+            var mutSig = BuildPendingSignature();
+            return string.IsNullOrEmpty(mutSig)
+                ? $"{baseKey}::{CacheEpoch}"
+                : $"{baseKey}::{CacheEpoch}::mut={mutSig}";
         }
 
         public void ClearCache() { cache.Clear(); }
@@ -696,12 +753,20 @@ namespace ALWTTT.Managers
             return msOut.ToArray();
         }
 
-        private (string key, SongCacheEntry entry) EnsureInCache(SongData song, IList<Characters.Band.MusicianBase> band)
+        private (string key, SongCacheEntry entry) 
+            EnsureInCache(SongData song, IList<Characters.Band.MusicianBase> band)
         {
             EnsureRegistriesLoaded();
 
             var b = band ?? GameManager.PersistentGameplayData.MusicianList;
             var key = CacheKey(song, b);
+
+            if (_bypassCacheNext)
+            {
+                var fresh = GenerateSongEntry(song, b);
+                _bypassCacheNext = false;
+                return (key, fresh);
+            }
 
             if (!cache.TryGetValue(key, out var entry))
             {
@@ -1034,14 +1099,16 @@ namespace ALWTTT.Managers
                         {
                             // Track map (fallback / debugging)
                             if (!_chordLabelsByTrack.TryGetValue(trackIndex, out var byTickTrack))
-                                _chordLabelsByTrack[trackIndex] = byTickTrack = new Dictionary<long, ChordLabel>();
+                                _chordLabelsByTrack[trackIndex] = 
+                                    byTickTrack = new Dictionary<long, ChordLabel>();
                             byTickTrack[te.Time] = label;
 
                             // Channel map (primary) — from tag
                             if (tagCh >= 0)
                             {
                                 if (!_chordLabelsByChannel.TryGetValue(tagCh, out var byTickCh))
-                                    _chordLabelsByChannel[tagCh] = byTickCh = new Dictionary<long, ChordLabel>();
+                                    _chordLabelsByChannel[tagCh] = 
+                                        byTickCh = new Dictionary<long, ChordLabel>();
                                 byTickCh[te.Time] = label;
                             }
 
@@ -1050,7 +1117,8 @@ namespace ALWTTT.Managers
                         else if (txt.Text.StartsWith("chd:", StringComparison.OrdinalIgnoreCase) &&
                                  settings != null && settings.logMidiMusicManager)
                         {
-                            Debug.LogWarning($"[MidiMusicManager] Found chd text but couldn't parse: '{txt.Text}'");
+                            Debug.LogWarning($"[MidiMusicManager] Found chd text but couldn't " +
+                                $"parse: '{txt.Text}'");
                         }
                     }
                 }
@@ -1080,14 +1148,16 @@ namespace ALWTTT.Managers
 
                 if (settings != null && settings.logMidiMusicManager && ordered.Count > 0)
                 {
-                    var sample = ordered.Take(8).Select(p => $"{FormatTick(p.tick)}:{p.label.sym}({p.label.roman})");
+                    var sample = ordered.Take(8)
+                        .Select(p => $"{FormatTick(p.tick)}:{p.label.sym}({p.label.roman})");
                     Debug.Log($"[MidiMusicManager] Timeline ch={kv.Key} count={ordered.Count} " +
                               $"first: {string.Join(" | ", sample)}{(ordered.Count > 8 ? " | ..." : "")}");
                 }
             }
 
             if (settings != null && settings.logMidiMusicManager)
-                Debug.Log($"[MidiMusicManager] Built chord labels: tracks={_chordLabelsByTrack.Count} channels={_chordLabelsByChannel.Count}");
+                Debug.Log($"[MidiMusicManager] Built chord labels: " +
+                    $"tracks={_chordLabelsByTrack.Count} channels={_chordLabelsByChannel.Count}");
         }
 
         // Supports new and old formats:
@@ -1136,7 +1206,8 @@ namespace ALWTTT.Managers
         private static bool TryParsePartTag(string tag, out PartInfoEvent info)
         {
             info = default;
-            if (string.IsNullOrEmpty(tag) || !tag.StartsWith("part:", System.StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(tag) || !tag.StartsWith("part:", 
+                System.StringComparison.OrdinalIgnoreCase))
                 return false;
 
             // part:<index>:<name>:<tonality>:<root>
@@ -1186,7 +1257,8 @@ namespace ALWTTT.Managers
 
             private readonly Action<string> _log;
 
-            public ArrangementContext(IReadOnlyDictionary<string, IMusicianPersonality> pers, System.Random rng, Action<string> log)
+            public ArrangementContext(IReadOnlyDictionary<string, IMusicianPersonality> pers, 
+                System.Random rng, Action<string> log)
             {
                 Personalities = pers ?? new Dictionary<string, IMusicianPersonality>();
                 Rng = rng ?? new System.Random();
@@ -1200,8 +1272,8 @@ namespace ALWTTT.Managers
         {
             if (cfg == null) return null;
 
-            // TODO (Phase 2+): seed from final cache key for cross-run determinism of arrangement mutations
-            var seed = (_currentKey ?? "song").GetHashCode();
+            var seedKey = _seedKeyForThisGeneration ?? "song";
+            var seed = StableHash32(seedKey);
             var rng = new System.Random(seed);
 
             var persForPhase1 = _personalityBiasEnabled
@@ -1219,13 +1291,17 @@ namespace ALWTTT.Managers
                 {
                     var before = cfg;
                     cfg = m.Mutate(cfg, ctx) ?? cfg;
-                    if (logDebug) LogTrace($"[Arrange] {m.Name} {(ReferenceEquals(before, cfg) ? "(in-place)" : "(new cfg)")}");
+
+                    if (logDebug) 
+                        LogTrace($"[Arrange] {m.Name} {(ReferenceEquals(before, cfg) ? "(in-place)" : "(new cfg)")}");
                 }
                 catch (Exception ex)
                 {
                     Debug.LogWarning($"{DebugTag} Mutator '{m.Name}' failed: {ex.Message}");
                 }
             }
+
+            _pendingArrangementMutators.Clear();
 
             return cfg;
         }
@@ -1257,7 +1333,8 @@ namespace ALWTTT.Managers
             if (midi == null || !_postProcEnabled) return midi;
 
             var tempoMap = midi.GetTempoMap();
-            var seed = ((_currentKey ?? "song") + "::post").GetHashCode();
+            var seedKey = (_seedKeyForThisGeneration ?? "song") + "::post";
+            var seed = StableHash32(seedKey);
             var rng = new System.Random(seed);
 
             var persForPhase1 = _personalityBiasEnabled
@@ -1274,7 +1351,8 @@ namespace ALWTTT.Managers
                 {
                     var before = midi;
                     midi = p.Process(midi, ctx) ?? midi;
-                    if (logDebug) LogTrace($"[Post] {p.Name} {(ReferenceEquals(before, midi) ? "(in-place)" : "(new midi)")}");
+                    if (logDebug) 
+                        LogTrace($"[Post] {p.Name} {(ReferenceEquals(before, midi) ? "(in-place)" : "(new midi)")}");
                 }
                 catch (Exception ex)
                 {
@@ -1352,8 +1430,6 @@ namespace ALWTTT.Managers
         #endregion
 
         #region New API
-        public enum IntroStyle { CountIn, Riff, Pad }
-        public enum SoloStyle { Emotional, Virtuoso, Facemelter }
         public enum HighlightMode { None, DuckOthers, Solo }
 
         public struct HumanizeOptions
@@ -1385,6 +1461,13 @@ namespace ALWTTT.Managers
             public string musicianId; 
             public int measures; 
             public IntroStyle style; 
+        }
+
+        private class OutroIntent
+        {
+            public string musicianId;
+            public int measures;
+            public IntroStyle style; // TODO OutroStyle
         }
 
         private class SoloIntent 
@@ -1443,7 +1526,8 @@ namespace ALWTTT.Managers
             _pendingCards.Clear();
             if (cards != null) _pendingCards.AddRange(cards);
             if (logDebug)
-                Debug.Log($"{DebugTag} ApplyCards queued count={_pendingCards.Count} (Phase 1: no structural effect yet).");
+                Debug.Log($"{DebugTag} ApplyCards queued count={_pendingCards.Count} " +
+                    $"(Phase 1: no structural effect yet).");
         }
 
         // Arrangement / structure
@@ -1455,7 +1539,20 @@ namespace ALWTTT.Managers
                 measures = Mathf.Max(1, measures),
                 style = style
             });
-            if (logDebug) Debug.Log($"{DebugTag} AddIntro queued for {musicianId} measures={measures} style={style}.");
+            if (logDebug) Debug.Log($"{DebugTag} AddIntro queued for {musicianId} measures={measures} " +
+                $"style={style}.");
+        }
+
+        public void AddOutro(string musicianId, int measures, IntroStyle style = IntroStyle.Pad)
+        {
+            _pendingArrangementIntents.Add(new OutroIntent
+            {
+                musicianId = musicianId,
+                measures = Mathf.Max(1, measures),
+                style = style
+            });
+            if (logDebug) Debug.Log($"{DebugTag} AddOutro queued for {musicianId} measures={measures} " +
+                $"style={style}.");
         }
 
         public void AppendSoloPart(string musicianId, SoloStyle style, int measures)
@@ -1466,7 +1563,8 @@ namespace ALWTTT.Managers
                 measures = Mathf.Max(1, measures),
                 style = style
             });
-            if (logDebug) Debug.Log($"{DebugTag} AppendSoloPart queued for {musicianId} measures={measures} style={style}.");
+            if (logDebug) Debug.Log($"{DebugTag} AppendSoloPart queued for {musicianId} " +
+                $"measures={measures} style={style}.");
         }
 
         public void ReplaceTrack(int partIndexOrAll, string musicianId, StrategyOverride? newStrategy)
@@ -1477,21 +1575,24 @@ namespace ALWTTT.Managers
                 musicianId = musicianId,
                 strategyId = newStrategy?.StrategyId
             });
-            if (logDebug) Debug.Log($"{DebugTag} ReplaceTrack queued for {musicianId} part={partIndexOrAll} strategy={newStrategy}.");
+            if (logDebug) Debug.Log($"{DebugTag} ReplaceTrack queued for {musicianId} " +
+                $"part={partIndexOrAll} strategy={newStrategy}.");
         }
 
         // Change BPM
         public void ScheduleNextSongTempoScale(float factor)
         {
             _pendingTempoScaleNextSong = factor;
-            if (logDebug) Debug.Log($"{DebugTag} Scheduled next-song tempo scale x{factor:0.###} (Phase 1: not applied yet).");
+            if (logDebug) Debug.Log($"{DebugTag} Scheduled next-song tempo scale x{factor:0.###} " +
+                $"(Phase 1: not applied yet).");
         }
 
         // Post-processing
         public void EnableHumanization(HumanizeOptions options)
         {
             _pendingPostProcIntents.Add(new HumanizeIntent { options = options });
-            if (logDebug) Debug.Log($"{DebugTag} EnableHumanization queued (Phase 1: post-proc disabled by default).");
+            if (logDebug) Debug.Log($"{DebugTag} EnableHumanization queued " +
+                $"(Phase 1: post-proc disabled by default).");
         }
 
         public void EnableMistakes(
@@ -1503,7 +1604,8 @@ namespace ALWTTT.Managers
                 profile = profile,
                 scope = scope
             });
-            if (logDebug) Debug.Log($"{DebugTag} EnableMistakes queued target='{musicianIdOrAll}' scope={scope}.");
+            if (logDebug) Debug.Log($"{DebugTag} EnableMistakes queued target='{musicianIdOrAll}' " +
+                $"scope={scope}.");
         }
 
         // Live mix (runtime only; uses IMixController; no MIDI byte changes)
@@ -1535,7 +1637,8 @@ namespace ALWTTT.Managers
                 string.Equals(_highlightMusicianId, musicianId, StringComparison.Ordinal) &&
                 _highlightMode == mode)
             {
-                if (logDebug) Debug.Log($"{DebugTag} Highlight already active for {musicianId} mode={mode}. Skipping.");
+                if (logDebug) Debug.Log($"{DebugTag} Highlight already active for {musicianId} " +
+                    $"mode={mode}. Skipping.");
                 return;
             }
 
@@ -1546,7 +1649,8 @@ namespace ALWTTT.Managers
                 _pendingHighlightMusicianId = musicianId;
                 _pendingHighlightMode = mode;
                 if (logDebug)
-                    Debug.Log($"{DebugTag} Highlight deferred for {musicianId} mode={mode} (no active channel map yet).");
+                    Debug.Log($"{DebugTag} Highlight deferred for {musicianId} " +
+                        $"mode={mode} (no active channel map yet).");
                 return;
             }
 
@@ -1559,7 +1663,8 @@ namespace ALWTTT.Managers
             _highlightMode = mode;
 
             if (logDebug)
-                Debug.Log($"{DebugTag} Highlight applied for {musicianId} mode={mode} ch=[{string.Join(",", channels)}].");
+                Debug.Log($"{DebugTag} Highlight applied for {musicianId} mode={mode} " +
+                    $"ch=[{string.Join(",", channels)}].");
         }
 
         // Optional: clear all queued intents (useful between songs/tests)
@@ -1695,7 +1800,8 @@ namespace ALWTTT.Managers
                 ApplyHighlightNow(new HashSet<int>(channels), _pendingHighlightMode);
                 _highlightMusicianId = _pendingHighlightMusicianId;
                 _highlightMode = _pendingHighlightMode;
-                if (logDebug) Debug.Log($"{DebugTag} Deferred highlight applied for {_pendingHighlightMusicianId} mode={_pendingHighlightMode}.");
+                if (logDebug) Debug.Log($"{DebugTag} Deferred highlight applied for " +
+                    $"{_pendingHighlightMusicianId} mode={_pendingHighlightMode}.");
             }
 
             _pendingHighlightMusicianId = null;
@@ -1722,12 +1828,225 @@ namespace ALWTTT.Managers
                 $"{DebugTag} TRACE " +
                 $"label={label} key={key} dur={seconds:0.00}s bytes={byteLen} | " +
                 $"mutators={_pendingArrangementMutators.Count} post={_pendingPostProcessors.Count} " +
-                $"intents.arr={_pendingArrangementIntents.Count} intents.post={_pendingPostProcIntents.Count} " +
+                $"intents.arr={_pendingArrangementIntents.Count} " +
+                $"intents.post={_pendingPostProcIntents.Count} " +
                 $"cards={_pendingCards.Count} tempoNext={tempoNext} | " +
                 $"metronome={MetronomeEnabled} pers={personalityCount} | " +
                 $"highlight={hiId}:{_pendingHighlightMode} | owners[{owners}]"
             );
         }
+
+        // short stable hex for keys (FNV-1a over the entire signature text)
+        private static string ShortHash(string s)
+        {
+            unchecked
+            {
+                uint hash = 2166136261;
+                foreach (char c in s) { hash ^= c; hash *= 16777619; }
+                return hash.ToString("x8");
+            }
+        }
+
+        // serialize queued intents (keep it minimal & order-stable)
+        private string BuildPendingSignature()
+        {
+            var parts = new System.Text.StringBuilder();
+
+            // toggles
+            parts.Append($"post={_postProcEnabled};pers={_personalityBiasEnabled};");
+
+            // next-song tempo
+            if (_pendingTempoScaleNextSong.HasValue)
+                parts.Append($"tempo={_pendingTempoScaleNextSong.Value:0.###};");
+
+            // mutators (ordered by Order at execution time; we only care about identity here)
+            if (_pendingArrangementMutators.Count > 0)
+                parts.Append("arrm=")
+                     .Append(string.Join(",", _pendingArrangementMutators.Select(m => $"{m.Order}:{m.Name}")))
+                     .Append(';');
+
+            if (_pendingPostProcessors.Count > 0)
+                parts.Append("postm=")
+                     .Append(string.Join(",", _pendingPostProcessors.Select(p => $"{p.Order}:{p.Name}")))
+                     .Append(';');
+
+            // intents (type+key fields) – keep serialization concise
+            if (_pendingArrangementIntents.Count > 0)
+            {
+                var arr = _pendingArrangementIntents.Select(obj =>
+                {
+                    switch (obj)
+                    {
+                        case IntroIntent i: return $"intro:{i.musicianId}:{i.measures}:{i.style}";
+                        case OutroIntent o: return $"outro:{o.musicianId}:{o.measures}:{o.style}";
+                        case SoloIntent s: return $"solo:{s.musicianId}:{s.measures}:{s.style}";
+                        case ReplaceTrackIntent r: return $"repl:{r.partIndexOrAll}:{r.musicianId}:{r.strategyId}";
+                        default: return obj.GetType().Name;
+                    }
+                });
+                parts.Append("arri=").Append(string.Join(",", arr)).Append(';');
+            }
+
+            if (_pendingPostProcIntents.Count > 0)
+            {
+                var post = _pendingPostProcIntents.Select(obj =>
+                {
+                    switch (obj)
+                    {
+                        case HumanizeIntent h: return $"hum:{h.options.maxTickOffset}:{h.options.velocityJitter}:{h.options.lengthJitter}";
+                        case MistakeIntent m: return $"mis:{m.target}:{m.profile.frequency01:0.###}:{m.profile.severity01:0.###}:{m.profile.affectRhythm}:{m.scope}";
+                        default: return obj.GetType().Name;
+                    }
+                });
+                parts.Append("posti=").Append(string.Join(",", post)).Append(';');
+            }
+
+            if (_pendingCards.Count > 0)
+                parts.Append($"cards={_pendingCards.Count};");
+
+            var sig = parts.ToString();
+            return string.IsNullOrEmpty(sig) ? "" : ShortHash(sig);
+        }
+
+        // Turns queued post-proc intents into concrete post-processors (one-shot).
+        private void MaterializePostProcIntents()
+        {
+            // 1) Intents → processors (humanization, mistakes later)
+            if (_pendingPostProcIntents != null && _pendingPostProcIntents.Count > 0)
+            {
+                foreach (var intent in _pendingPostProcIntents)
+                {
+                    switch (intent)
+                    {
+                        case HumanizeIntent h:
+                            _pendingPostProcessors.Add(
+                                new HumanizationPostProcessor(
+                                    maxTickOffset: h.options.maxTickOffset,
+                                    maxVelocityJitter: h.options.velocityJitter,
+                                    maxLengthJitter: h.options.lengthJitter,
+                                    order: 0,
+                                    affectDrums: true // set to false if you want drums untouched
+                                )
+                            );
+                            break;
+
+                            // Future: add more intent → processor mappings here (e.g., mistakes)
+                    }
+                }
+
+                // Consume intents so they apply only to this next song.
+                _pendingPostProcIntents.Clear();
+            }
+
+            // 2) Independent queued settings → processors (tempo scale for NEXT song)
+            //    This must run even when there were no explicit post-proc intents.
+            if (_pendingTempoScaleNextSong.HasValue)
+            {
+                var factor = _pendingTempoScaleNextSong.Value;
+                if (Mathf.Abs(factor - 1f) > 0.0001f)
+                {
+                    // Negative order ensures it happens early, before other post-processors if needed.
+                    _pendingPostProcessors.Add(new TempoScalePostProcessor(factor, order: -100));
+                    if (logDebug) LogTrace($"[PostIntent] Queued TempoScale x{factor:0.###} for next song");
+                }
+
+                // One-shot: clear after materializing
+                _pendingTempoScaleNextSong = null;
+            }
+        }
+
+        private void MaterializeArrangementIntents()
+        {
+            if (_pendingArrangementIntents.Count == 0) return;
+
+            foreach (var obj in _pendingArrangementIntents)
+            {
+                if (obj is IntroIntent ii)
+                {
+                    _pendingArrangementMutators.Add(
+                        new IntroMutator(
+                            ii.musicianId,
+                            ii.measures,
+                            (IntroMutator.IntroStyle)(int)ii.style,
+                            order: -100));
+                }
+
+                if (obj is OutroIntent oi)
+                {
+                    _pendingArrangementMutators.Add(
+                        new OutroMutator(
+                            oi.musicianId,
+                            oi.measures,
+                            (IntroMutator.IntroStyle)(int)oi.style,
+                            order: 100)); // run late, after most edits
+                }
+
+                if (obj is SoloIntent si)
+                {
+                    _pendingArrangementMutators.Add(
+                        new SoloMutator(
+                            si.musicianId,
+                            si.measures,
+                            (SoloMutator.SoloStyle)(int)si.style, // same enum order -> safe cast
+                            order: 0
+                        )
+                    );
+                }
+
+                if (obj is ReplaceTrackIntent rt)
+                {
+                    _pendingArrangementMutators.Add(
+                        new AlternateTrackMutator(
+                            rt.musicianId, rt.partIndexOrAll, rt.strategyId, order: 0));
+                }
+            }
+
+            _pendingArrangementIntents.Clear();
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} Materialized arrangement intents → mutators: " +
+                    $"{_pendingArrangementMutators.Count}");
+        }
         #endregion
+
+        private static string TsToString(MidiGenPlay.MusicTheory.MusicTheory.TimeSignature ts)
+        {
+            var p = MidiGenPlay.MusicTheory.MusicTheory.TimeSignatureProperties[ts];
+            return $"{p.BeatsPerMeasure}/{p.BeatUnit}";
+        }
+
+        private void DumpConfigTrace(SongData song, SongConfig cfg, List<int> channelMap)
+        {
+            if (!logDebug || cfg == null) return;
+
+            // Channels summary
+            var roles = cfg.ChannelRoles ?? new List<TrackRole>();
+            var owners = cfg.ChannelMusicianOrder ?? new List<string>();
+            var chLines = new List<string>();
+            for (int i = 0; i < Mathf.Max(roles.Count, owners.Count); i++)
+            {
+                var role = i < roles.Count ? roles[i].ToString() : "-";
+                var own = i < owners.Count ? owners[i] : "-";
+                var ch = i < channelMap.Count ? channelMap[i] : -1;
+                chLines.Add($"{i}->{ch}:{role}/{own}");
+            }
+
+            Debug.Log($"{DebugTag} CONFIG '{song.SongTitle}' " +
+                      $"parts={cfg.Parts?.Count ?? 0} " +
+                      $"ch-map: {string.Join(" | ", chLines)}");
+
+            // Parts & tracks
+            for (int p = 0; p < (cfg.Parts?.Count ?? 0); p++)
+            {
+                var pc = cfg.Parts[p];
+                Debug.Log($"{DebugTag} [Part#{p}] '{pc.Name}' TS={TsToString(pc.TimeSignature)} " +
+                    $"rep={pc.Repetitions} Ton={pc.Tonality}/{pc.RootNote}");
+                for (int t = 0; t < (pc.Tracks?.Count ?? 0); t++)
+                {
+                    var tr = pc.Tracks[t];
+                    Debug.Log($"{DebugTag}    trk#{t} {tr}"); // uses TrackConfig.ToString()
+                }
+            }
+        }
     }
 }

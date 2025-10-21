@@ -6,6 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static MidiGenPlay.IntroMutator;
+using static MidiGenPlay.SoloMutator;
 
 namespace ALWTTT.Managers
 {
@@ -24,10 +26,22 @@ namespace ALWTTT.Managers
         [SerializeField] private bool composeUseLayeredEntrances = true;
         [SerializeField] private bool composeEnablePostProcessing = true;
         [SerializeField] private bool composeUsePersonalityBias = true;
+        [SerializeField] private bool composeAddIntro = false;
+        [SerializeField] private bool composeAddOutro = false;
 
         [SerializeField] private MidiMusicManager.HighlightMode defaultHighlightMode =
             MidiMusicManager.HighlightMode.DuckOthers;
         private string _nextHighlightMusicianId;
+
+        // TODO: Intro/Outro type
+        private string _nextIntroMusicianId;
+        private string _nextOutroMusicianId;
+
+        // TODO: Solo type
+        private string _nextSoloMusicianId;
+
+        private string _nextAltTrackMusicianId;
+        private string _nextAltStrategyId;
 
         private bool isPlaying;
 
@@ -41,6 +55,7 @@ namespace ALWTTT.Managers
         private void Start()
         {
             BuildBand();
+
             if (shipCanvas)
             {
                 shipCanvas.Setup(onCompose: OnCompose, onRelax: OnRelax, onBandTalk: OnBandTalk);
@@ -54,7 +69,35 @@ namespace ALWTTT.Managers
                     .Select(m => (m.MusicianCharacterData.CharacterId,
                               m.MusicianCharacterData.CharacterName))
                     .ToList();
+                
+                // DEBUGGING
                 shipCanvas.PopulateHighlightDropdown(items, id => _nextHighlightMusicianId = id, true);
+
+                shipCanvas.PopulateIntroDropdown(
+                    items,
+                    id =>
+                    {
+                        _nextIntroMusicianId = id;
+                        composeAddIntro = !string.IsNullOrEmpty(id); // NONE → false
+                    },
+                    includeNoneOption: true
+                );
+
+                shipCanvas.PopulateOutroDropdown(
+                    items,
+                    id =>
+                    {
+                        _nextOutroMusicianId = id;
+                        composeAddOutro = !string.IsNullOrEmpty(id); // NONE → false
+                    },
+                    includeNoneOption: true
+                );
+
+                shipCanvas.PopulateSoloDropdown(
+                    items,
+                    id => _nextSoloMusicianId = id, // null => NONE
+                    includeNoneOption: true
+                );
 
                 shipCanvas.HookLayeredEntranceToggle(
                     v => composeUseLayeredEntrances = v,
@@ -82,6 +125,27 @@ namespace ALWTTT.Managers
                     tempoOptions,
                     factor => MidiMusicManager?.ScheduleNextSongTempoScale(factor),
                     defaultIndex: 1); // 1.00×
+
+                // Alt Track musician dropdown (NONE → no alternate)
+                shipCanvas.PopulateAlternateTrackDropdown(
+                    items,
+                    id => _nextAltTrackMusicianId = id,
+                    includeNoneOption: true);
+
+                // Alt Strategy dropdown (NONE → no alternate)
+                var strategies = new List<(string id, string label)>
+                {
+                    ("busier",  "Busier"),
+                    ("sparser", "Sparser"),
+                    ("rotate1", "Rotate 1 beat"),
+                    ("rotate2", "Rotate 2 beats"),
+                    // add more later if you want (e.g., "rotate3")
+                };
+
+                shipCanvas.PopulateAlternateStrategyDropdown(
+                    strategies,
+                    id => _nextAltStrategyId = id,
+                    includeNoneOption: true);
             }
         }
 
@@ -151,6 +215,42 @@ namespace ALWTTT.Managers
             }
             MidiMusicManager.SetMusicianPersonalities(personalityMap);
 
+            if (composeAddIntro && !string.IsNullOrEmpty(_nextIntroMusicianId))
+            {
+                MidiMusicManager.AddIntro(
+                    musicianId: _nextIntroMusicianId,
+                    measures: 1,
+                    style: IntroStyle.CountIn);
+            }
+
+            if (composeAddOutro && !string.IsNullOrEmpty(_nextOutroMusicianId))
+            {
+                MidiMusicManager.AddOutro(
+                    musicianId: _nextOutroMusicianId,
+                    measures: 2,                 // tweak if desired
+                    style: IntroStyle.Pad);      // reuse styles; Pad is a good default for outro
+            }
+
+            // Optional SOLO part: only if a musician was picked (dropdown != NONE)
+            if (!string.IsNullOrEmpty(_nextSoloMusicianId))
+            {
+                MidiMusicManager.AppendSoloPart(
+                    musicianId: _nextSoloMusicianId,
+                    style: SoloStyle.Virtuoso, // default; adjust later if you add a style UI
+                    measures: 8); // default; tweak as you prefer (8/12/16)
+            }
+
+            if (!string.IsNullOrEmpty(_nextAltTrackMusicianId) &&
+                !string.IsNullOrEmpty(_nextAltStrategyId))
+            {
+                MidiMusicManager.ReplaceTrack(
+                    partIndexOrAll: -1, // apply to all parts for MVP; add a scope control later if desired
+                    musicianId: _nextAltTrackMusicianId,
+                    new MidiMusicManager.StrategyOverride(_nextAltStrategyId));
+
+                Debug.Log($"{DebugTag} AlternateTrack queued: musician={_nextAltTrackMusicianId}, strategy={_nextAltStrategyId}");
+            }
+
             // 2) Channel owners for this arrangement (index=channel → musicianId)
             var owners = mm.GetChannelOwnerIdsFor(newSong);
             if (owners == null || owners.Count == 0)
@@ -215,6 +315,18 @@ namespace ALWTTT.Managers
 
             // Afinal full-band pass with seams flags ON
             mm.SetPostProcessingEnabled(composeEnablePostProcessing);
+
+            // queue humanization for *this* song generation
+            if (composeEnablePostProcessing)
+            {
+                mm.EnableHumanization(new MidiMusicManager.HumanizeOptions
+                {
+                    maxTickOffset = 6,   // ≈ six ticks timing jitter
+                    velocityJitter = 12,  // ≈ ±12 velocity
+                    lengthJitter = 6    // ≈ six ticks note-length jitter
+                });
+            }
+
             mm.SetPersonalityBiasEnabled(composeUsePersonalityBias);
 
             // Play the exact same SongData with NO subset (whole band)

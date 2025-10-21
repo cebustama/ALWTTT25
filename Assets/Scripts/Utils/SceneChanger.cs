@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ALWTTT.Utils
 {
@@ -26,6 +27,11 @@ namespace ALWTTT.Utils
             StartCoroutine(DelaySceneChange(SceneType.MainMenu));
         }
 
+        public void OpenBandSetupScene()
+        {
+            StartCoroutine(DelaySceneChange(SceneType.BandSetup));
+        }
+
         public void OpenMapScene()
         {
             StartCoroutine(DelaySceneChange(SceneType.SectorMap));
@@ -44,11 +50,6 @@ namespace ALWTTT.Utils
         public void OpenGameOverScene()
         {
             StartCoroutine(DelaySceneChange(SceneType.GameOver));
-        }
-
-        public void OpenBandSetupScene()
-        {
-            StartCoroutine(DelaySceneChange(SceneType.BandSetup));
         }
 
         // TODO: Refactor
