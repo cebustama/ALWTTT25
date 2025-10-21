@@ -500,6 +500,11 @@ namespace ALWTTT.Data
             currentSongList.Add(pick);
             return pick;
         }
+
+        public void SetNextThemeTag(string theme)
+        {
+
+        }
         #endregion
     }
 }

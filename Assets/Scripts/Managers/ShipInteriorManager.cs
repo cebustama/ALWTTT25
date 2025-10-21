@@ -1,4 +1,5 @@
-﻿using ALWTTT.Characters.Band;
+﻿using ALWTTT.Characters;
+using ALWTTT.Characters.Band;
 using ALWTTT.Music;
 using ALWTTT.Utils;
 using MidiGenPlay;
@@ -6,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static ALWTTT.CardData;
 using static MidiGenPlay.IntroMutator;
 using static MidiGenPlay.SoloMutator;
 
@@ -17,6 +19,11 @@ namespace ALWTTT.Managers
 
         [Header("Spawn Points")]
         [SerializeField] private List<Transform> musicianPosList;
+
+        [Header("Cards / Hand")]
+        [SerializeField] private HandController shipHand;
+        [SerializeField] private Camera mainCamera;
+        [SerializeField] private Camera handCamera;
 
         [Header("Refs")]
         [SerializeField] private ShipInteriorCanvas shipCanvas;
@@ -54,6 +61,9 @@ namespace ALWTTT.Managers
 
         private void Start()
         {
+            if (DeckManager.Instance != null && shipHand != null)
+                DeckManager.Instance.SetHandController(shipHand);
+
             BuildBand();
 
             if (shipCanvas)
@@ -147,6 +157,21 @@ namespace ALWTTT.Managers
                     id => _nextAltStrategyId = id,
                     includeNoneOption: true);
             }
+
+            SetHandVisible(false);
+        }
+
+        private void PrepareRehearsalDeck()
+        {
+            var gd = GameManager.GameplayData;
+            var pool = gd.CompositionCardPool != null && gd.CompositionCardPool.Count > 0
+                ? gd.CompositionCardPool
+                : gd.AllCardsList.FindAll(c => c != null && c.IsComposition);
+
+            var deck = DeckManager.Instance;
+            deck.ClearAll();
+            deck.AddToDrawPile(pool);
+            deck.DrawCards(gd.DrawCount);
         }
 
         private void BuildBand()
@@ -179,6 +204,9 @@ namespace ALWTTT.Managers
         private void OnCompose()
         {
             if (isPlaying) return;
+
+            SetHandVisible(true);
+            PrepareRehearsalDeck();
             StartCoroutine(ComposeAndPreviewRoutine());
         }
 
@@ -341,6 +369,7 @@ namespace ALWTTT.Managers
             shipCanvas.NewSongPanel?.Show(newSong, newNames, lastDuration, onClose: () =>
             {
                 Debug.Log($"{DebugTag} NewSongPanel closed, returning to map.");
+                SetHandVisible(false);
                 ReturnToMap();
             });
 
@@ -350,12 +379,16 @@ namespace ALWTTT.Managers
 
         private void OnRelax()
         {
+            SetHandVisible(false);
+
             // TODO: restore stress to all band members
             ReturnToMap();
         }
 
         private void OnBandTalk()
         {
+            SetHandVisible(false);
+
             var pd = GameManager.PersistentGameplayData;
             var gd = GameManager.GameplayData;
 
@@ -392,6 +425,112 @@ namespace ALWTTT.Managers
         private void OnMetronomeToggled(bool enabled)
         {
             MidiMusicManager?.SetMetronomeEnabled(enabled);
+        }
+
+        public CharacterBase GetSelectedMusicianOrDefault()
+        {
+            // TODO: Use raycast or other method
+            if (!string.IsNullOrEmpty(_nextHighlightMusicianId))
+            {
+                var found = _spawned.FirstOrDefault(m =>
+                    m.MusicianCharacterData.CharacterId == _nextHighlightMusicianId);
+                if (found) return found;
+            }
+            return _spawned.Count > 0 ? _spawned[0] : null;
+        }
+
+        public bool TryPlayCompositionCard(CardBase card, MusicianBase target)
+        {
+            var mm = MidiMusicManager.Instance;
+            if (mm == null || card == null) return false;
+
+            var c = card.CardData;
+            var musicianId = target != null
+                ? target.MusicianCharacterData.CharacterId
+                : _nextHighlightMusicianId;
+
+            switch (c.CompositionType)
+            {
+                // TEMPO
+                case CompositionCardType.Tempo_Slow:
+                    mm.ScheduleNextSongTempoScale(0.75f); 
+                    return true;
+                case CompositionCardType.Tempo_Fast:
+                    mm.ScheduleNextSongTempoScale(1.25f); 
+                    return true;
+                case CompositionCardType.Tempo_VeryFast: 
+                    mm.ScheduleNextSongTempoScale(1.50f); 
+                    return true;
+
+                // THEME
+                case CompositionCardType.Theme_Love: 
+                    GameManager.PersistentGameplayData.SetNextThemeTag("Love"); 
+                    return true;
+                case CompositionCardType.Theme_Injustice: 
+                    GameManager.PersistentGameplayData.SetNextThemeTag("Injustice"); 
+                    return true;
+                case CompositionCardType.Theme_Party: 
+                    GameManager.PersistentGameplayData.SetNextThemeTag("Party"); 
+                    return true;
+
+                // PARTS
+                case CompositionCardType.Part_Intro:
+                    if (!string.IsNullOrEmpty(musicianId)) 
+                    { 
+                        mm.AddIntro(musicianId, 1, IntroMutator.IntroStyle.CountIn); 
+                        return true; 
+                    }
+                    return false;
+                case CompositionCardType.Part_Solo:
+                    if (!string.IsNullOrEmpty(musicianId)) 
+                    { 
+                        mm.AppendSoloPart(musicianId, SoloMutator.SoloStyle.Virtuoso, 8); 
+                        return true; 
+                    }
+                    return false;
+                case CompositionCardType.Part_Outro:
+                    if (!string.IsNullOrEmpty(musicianId)) 
+                    { 
+                        mm.AddOutro(musicianId, 2, IntroMutator.IntroStyle.Pad); 
+                        return true; 
+                    }
+                    return false;
+
+                // TRACKS
+                case CompositionCardType.Track_Rhythm:
+                case CompositionCardType.Track_Backing:
+                case CompositionCardType.Track_Bassline:
+                case CompositionCardType.Track_Melody:
+                case CompositionCardType.Track_Harmony:
+                    if (!string.IsNullOrEmpty(musicianId))
+                    {
+                        mm.ReplaceTrack(-1, musicianId, new MidiMusicManager.StrategyOverride("busier")); // o “sparser/rotate1/rotate2”
+                        return true;
+                    }
+                    return false;
+
+                // Time Signature
+                case CompositionCardType.TimeSignature_4_4:
+                case CompositionCardType.TimeSignature_3_4:
+                case CompositionCardType.TimeSignature_6_8:
+                case CompositionCardType.TimeSignature_5_4:
+                    // TODO next sprint: mm.SetPartTimeSignature(...)
+                    Debug.LogWarning("[Rehearsal] TimeSignature cards pending implementation.");
+                    return false;
+
+                default:
+                    return false;
+            }
+        }
+
+        private void SetHandVisible(bool visible)
+        {
+            if (shipHand != null)
+            {
+                shipHand.gameObject.SetActive(visible);
+                if (visible) shipHand.EnableDragging();
+                else shipHand.DisableDragging();
+            }
         }
     }
 }

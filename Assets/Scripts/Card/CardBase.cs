@@ -64,7 +64,8 @@ namespace ALWTTT
                 GameManager.GameplayData.GetCardTypeColor(CardData.CardType);*/
 
             cardImage.sprite = CardData.CardSprite;
-            typeTextField.text = CardData.CardType.ToString();
+            typeTextField.text = CardData.IsComposition ? 
+                "COMPOSITION" : CardData.CardType.ToString();
             nameTextField.text = CardData.CardName;
             descTextField.text = CardData.GetDescription();
             grooveCostTextField.text = CardData.GrooveCost.ToString();
@@ -306,6 +307,9 @@ namespace ALWTTT
             string content, string header = "", 
             Transform tooltipStaticTransform = null, Camera cam = null, float delayShow = 0)
         {
+            if (!descriptionRoot) return;
+            if (CardData.KeywordsList.Count == 0) return;
+
             tooltipManager.ShowTooltip(
                 content, header, tooltipStaticTransform, cam, delayShow);
         }

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
+  m_Name: Tempo_VeryFast
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.CardData
+  id: Tempo_VeryFast
+  cardName: Tempo_VeryFast
+  phase: 0
+  rarity: 0
+  grooveCost: 0
+  cardSprite: {fileID: 0}
+  grooveGenerated: 0
+  domain: 1
+  compositionType: 7
+  musicianCharacterType: 0
+  cardType: 0
+  usableWithoutTarget: 0
+  exhaustAfterPlay: 0
+  cardConditionDataList: []
+  cardActionDataList: []
+  keywordsList: 
+  audioType: 0

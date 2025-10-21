@@ -1,4 +1,4 @@
-using ALWTTT.Characters;
+ï»¿using ALWTTT.Characters;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
@@ -11,7 +11,7 @@ namespace ALWTTT
 {
     public class HandController : MonoBehaviour
     {
-        private const string DebugTag = "<color=green>GigManager:</color>";
+        private const string DebugTag = "<color=green>HandController:</color>";
 
         [Header("Card Settings")]
         [SerializeField] private bool cardUprightWhenSelected = true;
@@ -24,6 +24,10 @@ namespace ALWTTT
         [SerializeField] private Vector3 curveEnd = new Vector3(-2f, -0.7f, 0);
         [SerializeField] private Vector2 handOffset = new Vector2(0, -0.3f);
         [SerializeField] private Vector2 handSize = new Vector2(9, 1.7f);
+
+        [Header("Context")]
+        [SerializeField] private bool useGigContext = true;
+        [SerializeField] private ShipInteriorManager shipContext;
 
         [Header("References")]
         [SerializeField] private Transform drawTransform;
@@ -197,7 +201,7 @@ namespace ALWTTT
 
                 // Card Position & Rotation
                 var cardUp = GetCurveNormal(a, b, c, t);
-                // If hovered, the card slightly “pops up”
+                // If hovered, the card slightly â€œpops upâ€
                 var cardPos = 
                     p + (mouseHoveringOnSelected ? cardTransform.up * 0.3f : Vector3.zero);
                 var cardForward = Vector3.forward;
@@ -228,7 +232,7 @@ namespace ALWTTT
                     if (mouseButtonDown)
                     {
                         dragged = i;
-                        // keeps the relative position so the card doesn’t "jump" to the cursor.
+                        // keeps the relative position so the card doesnâ€™t "jump" to the cursor.
                         heldCardOffset = cardTransform.position - mouseWorldPos;
                         heldCardOffset.z = -0.1f;
                     }
@@ -335,8 +339,8 @@ namespace ALWTTT
                 cardTransform.position = cardPos;
 
                 // Contextual highlights based on actions and target types
-                GigManager.HighlightCardTarget(
-                    heldCard.CardData.CardActionDataList[0].ActionTargetType);
+                if (useGigContext && GigManager != null)
+                    GigManager.HighlightCardTarget(heldCard.CardData.CardActionDataList[0].ActionTargetType);
 
                 var musician = IsOverMusician(mousePos);
                 if (musician != null)
@@ -357,7 +361,7 @@ namespace ALWTTT
                     heldCard = null;
 
                     // Contextual highlights
-                    GigManager.DeactivateCardHighlights();
+                    if (useGigContext && GigManager != null) GigManager.DeactivateCardHighlights();
 
                     return;
                 }
@@ -371,34 +375,38 @@ namespace ALWTTT
         {
             Debug.Log($"{DebugTag} Playing card...");
 
-            GigManager.DeactivateCardHighlights();
+            // Turn off Gig highlights if they were active
+            if (useGigContext && GigManager != null)
+                GigManager.DeactivateCardHighlights();
 
             bool backToHand = true;
+            bool played = false;
 
-            // If enough groove
-            if (GameManager.PersistentGameplayData.CanUseCards && 
-                GameManager.PersistentGameplayData.CurrentGroove >=
-                    heldCard.CardData.GrooveCost)
+            // Global guard: if cards cannot be selected, just return to hand
+            if (!GameManager.PersistentGameplayData.CanSelectCards)
             {
-                //RaycastHit hit;
-                var mainRay = mainCam.ScreenPointToRay(mousePos);
-                var canUse = false;
+                ReturnHeldToHand();
+                return;
+            }
 
-                CharacterBase bandCharacter = GigManager.SelectedMusician;
-                CharacterBase targetCharacter = null;
+            // Route by context
+            if (useGigContext)
+            {
+                played = TryPlayInGig(mousePos);
+            }
+            else // Ship / Rehearsal context
+            {
+                played = TryPlayInShip(mousePos);
+            }
 
-                canUse = heldCard.CardData.UsableWithoutTarget ||
-                    CheckPlayOnCharacter(mainRay, canUse,
-                        ref bandCharacter, ref targetCharacter) ||
-                        heldCard.CardData.CardType == CardType.SFX;
+            // Handle piles / return to hand
+            if (played)
+            {
+                backToHand = false;
 
-                if (canUse)
-                {
-                    backToHand = false;
-                    heldCard.Use(bandCharacter, targetCharacter,
-                        GigManager.CurrentAudienceCharacterList,
-                        GigManager.CurrentMusicianCharacterList);
-                }
+                // Send the card to the appropriate pile (discard/exhaust) like in gig
+                if (DeckManager.Instance != null)
+                    DeckManager.Instance.OnCardPlayed(heldCard);
             }
 
             if (backToHand)
@@ -407,6 +415,68 @@ namespace ALWTTT
                 AddCardToHand(heldCard, selected);
             }
 
+            heldCard = null;
+        }
+
+        private bool TryPlayInGig(Vector2 mousePos)
+        {
+            if (GigManager == null) return false;
+
+            // Regular gig rules: must be allowed and have enough groove
+            if (!GameManager.PersistentGameplayData.CanUseCards) return false;
+            if (GameManager.PersistentGameplayData.CurrentGroove < heldCard.CardData.GrooveCost) return false;
+
+            // Resolve targets
+            var mainRay = mainCam.ScreenPointToRay(mousePos);
+            CharacterBase bandCharacter = GigManager.SelectedMusician;
+            CharacterBase targetCharacter = null;
+
+            bool canUse = false;
+
+            // No target or SFX â†’ can use directly
+            if (heldCard.CardData.UsableWithoutTarget || heldCard.CardData.CardType == CardType.SFX)
+            {
+                canUse = true;
+            }
+            else
+            {
+                // Do your usual raycast against target layers (musician/audience)
+                canUse = CheckPlayOnCharacter(mainRay, canUse, ref bandCharacter, ref targetCharacter);
+            }
+
+            if (!canUse) return false;
+
+            // Execute the card in gig context
+            heldCard.Use(
+                bandCharacter,
+                targetCharacter,
+                GigManager.CurrentAudienceCharacterList,
+                GigManager.CurrentMusicianCharacterList
+            );
+
+            return true;
+        }
+
+        private bool TryPlayInShip(Vector2 mousePos)
+        {
+            if (shipContext == null) return false;
+
+            // In rehearsal we only accept Composition cards
+            if (!heldCard.CardData.IsComposition) return false;
+
+            // Target musician (if card needs it): prefer hovered, fallback to Ship-selected
+            var hoveredMusician = IsOverMusician(mousePos);
+            if (hoveredMusician == null)
+                hoveredMusician = shipContext.GetSelectedMusicianOrDefault() as MusicianBase;
+
+            // Route to Ship: this enqueues intents into MidiMusicManager (Intro/Outro/Solo/Tempo/Track/Theme)
+            var ok = shipContext.TryPlayCompositionCard(heldCard, hoveredMusician);
+            return ok;
+        }
+
+        private void ReturnHeldToHand()
+        {
+            AddCardToHand(heldCard, selected);
             heldCard = null;
         }
 
@@ -524,7 +594,7 @@ namespace ALWTTT
         }
 
         /// <summary>
-        /// Obtains a point along a curve based on 3 points (quadratic Bézier curve). 
+        /// Obtains a point along a curve based on 3 points (quadratic BÃ©zier curve). 
         /// Equal to Lerp(Lerp(a, b, t), Lerp(b, c, t), t).
         /// </summary>
         public static Vector3 GetCurvePoint(Vector3 a, Vector3 b, Vector3 c, float t)

@@ -31,6 +31,7 @@ namespace ALWTTT
 
         [Header("Deck")]
         [SerializeField] private DeckData initialDeck;
+        [SerializeField] private List<CardData> compositionCardPool;
 
         [Header("Gig Gameplay Settings")]
         [SerializeField] private int drawCount = 3;
@@ -84,7 +85,8 @@ namespace ALWTTT
         public CardBase CardPrefab => cardPrefab;
         public List<CardData> AllCardsList => allCardsList;
         public DeckData InitialDeck => initialDeck;
-        
+        public List<CardData> CompositionCardPool => compositionCardPool;
+
         public bool IsRandomDeck => isRandomDeck;
         public int RandomCardCount => randomCardCount;
 

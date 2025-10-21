@@ -87,7 +87,8 @@ namespace ALWTTT.Managers
                 DrawPile.Remove(randomCard);
                 currentDrawCount++;
 
-                UIManager.GigCanvas.SetPileTexts();
+                if (UIManager != null && UIManager.GigCanvas != null)
+                    UIManager.GigCanvas.SetPileTexts();
             }
 
             // TODO: Update card texts based on status effects, etc
@@ -138,8 +139,52 @@ namespace ALWTTT.Managers
         {
             HandPile.Remove(targetCard.CardData);
             DiscardPile.Add(targetCard.CardData);
-            UIManager.GigCanvas.SetPileTexts();
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
         }
+
+        public void ClearAll()
+        {
+            DiscardHand();
+            DiscardPile.Clear();
+            DrawPile.Clear();
+            HandPile.Clear();
+            ExhaustPile.Clear();
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
+        }
+
+        public void AddToDrawPile(IEnumerable<CardData> cards, bool shuffle = true)
+        {
+            if (cards == null) return;
+
+            foreach (var c in cards)
+                if (c != null) DrawPile.Add(c);
+
+            if (shuffle && DrawPile.Count > 1)
+            {
+                // random swap shuffle
+                for (int i = 0; i < DrawPile.Count; i++)
+                {
+                    int j = Random.Range(0, DrawPile.Count);
+                    (DrawPile[i], DrawPile[j]) = (DrawPile[j], DrawPile[i]);
+                }
+            }
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
+        }
+
+        public void AddToDrawPile(CardData card)
+        {
+            if (card != null) DrawPile.Add(card);
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
+        }
+
 
         private void ReshuffleDiscardPile()
         {
@@ -150,6 +195,11 @@ namespace ALWTTT.Managers
             }
 
             DiscardPile.Clear();
+        }
+
+        public void SetHandController(HandController controller)
+        {
+            handController = controller;
         }
     }
 }
