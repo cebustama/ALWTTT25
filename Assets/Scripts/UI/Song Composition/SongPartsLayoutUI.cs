@@ -22,5 +22,11 @@ namespace ALWTTT.UI
             if (musicianIconTemplate != null)
                 musicianIconTemplate.gameObject.SetActive(false);
         }
+
+        public void ClearParts()
+        {
+            if (!partsRoot) return;
+            foreach (Transform c in partsRoot) Destroy(c.gameObject);
+        }
     }
 }

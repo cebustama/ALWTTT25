@@ -13,6 +13,7 @@ namespace ALWTTT.Managers
         [SerializeField] private Button composeButton;
         [SerializeField] private Button relaxButton;
         [SerializeField] private Button bandTalkButton;
+        [SerializeField] private Button playButton;
 
         [Header("Panels")]
         [SerializeField] private NewSongPanelUI newSongPanel;
@@ -57,6 +58,13 @@ namespace ALWTTT.Managers
             bandTalkButton.onClick.AddListener(() => onBandTalk?.Invoke());
 
             SetMainButtonsVisible(true);
+        }
+
+        public void HookPlayButton(Action onPlay)
+        {
+            if (playButton == null) return;
+            playButton.onClick.RemoveAllListeners();
+            if (onPlay != null) playButton.onClick.AddListener(() => onPlay());
         }
 
         public void HookMetronomeToggle(Action<bool> onChanged, bool initialValue)

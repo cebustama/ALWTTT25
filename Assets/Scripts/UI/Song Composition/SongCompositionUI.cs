@@ -45,7 +45,8 @@ namespace ALWTTT.UI
         {
             public string label = "Part";
             public string timeSignature = "4/4"; // TODO: Map enum
-            public string tempo = "1.00×"; // TODO: Map enum
+            public string tempo = "Moderate"; // TODO: Map enum
+            public int measures = 8;
             public List<TrackEntry> tracks = new();
         }
 
@@ -68,6 +69,12 @@ namespace ALWTTT.UI
         private List<string> rosterOrder = new();
         private readonly Dictionary<string, Image> iconById = new();
 
+        #region Encapsulation
+        public SongModel Model => model;
+        public event Action<SongModel> OnChanged; // any change
+        public event Action<PartEntry> OnPartChanged; // current part changes
+        #endregion
+
         #region Lifecycle
         private void Awake()
         {
@@ -85,12 +92,14 @@ namespace ALWTTT.UI
                 theme = defaultTheme
             };
             RedrawAll();
+            RaiseChanged();
         }
 
         public void SetTheme(string theme)
         {
             model.theme = string.IsNullOrWhiteSpace(theme) ? defaultTheme : theme;
             if (songThemeText) songThemeText.text = $"Theme: {model.theme}";
+            RaiseChanged();
         }
 
         /// <summary>
@@ -214,6 +223,7 @@ namespace ALWTTT.UI
             var part = model.CurrentPart;
             part.timeSignature = ts;
             partUIs[model.CurrentPartIndex].Bind(part);
+            RaisePartChanged();
             return true;
         }
 
@@ -225,6 +235,7 @@ namespace ALWTTT.UI
             var part = model.CurrentPart;
             part.tempo = label;
             partUIs[model.CurrentPartIndex].Bind(part);
+            RaisePartChanged();
             return true;
         }
 
@@ -254,6 +265,7 @@ namespace ALWTTT.UI
             partUIs[model.CurrentPartIndex].AddOrUpdateTrack(musicianId, role, info);
 
             UpdateIconsForCurrentPart();
+            RaisePartChanged();
             return true;
         }
 
@@ -286,6 +298,7 @@ namespace ALWTTT.UI
             model.parts.Insert(0, intro);
             RedrawAll();
             UpdateIconsForCurrentPart();
+            RaisePartChanged();
             return true;
         }
 
@@ -313,6 +326,7 @@ namespace ALWTTT.UI
             model.parts.Add(outro);
             AddPartUI(outro);
             UpdateIconsForCurrentPart();
+            RaisePartChanged();
             return true;
         }
 
@@ -360,6 +374,38 @@ namespace ALWTTT.UI
             model.parts.Insert(insertAt, solo);
             RedrawAll();
             UpdateIconsForCurrentPart();
+            RaisePartChanged();
+            return true;
+        }
+
+        public bool CanApply(CardBase card, MusicianBase target, out string reason)
+        {
+            reason = null;
+            if (card == null || card.CardData == null || !card.CardData.IsComposition)
+            { reason = "Not a composition card."; return false; }
+
+            var type = card.CardData.CompositionType;
+            bool isTrack = type == CompositionCardType.Track_Rhythm
+                        || type == CompositionCardType.Track_Backing
+                        || type == CompositionCardType.Track_Bassline
+                        || type == CompositionCardType.Track_Melody
+                        || type == CompositionCardType.Track_Harmony;
+
+            if (isTrack && target == null)
+            { reason = "Select a musician."; return false; }
+
+            // Enforce “one track per musician per part” MVP rule
+            if (isTrack && model.CurrentPart != null &&
+                model.CurrentPart.tracks.Any(t => t.musicianId == target.MusicianCharacterData.CharacterId))
+            { reason = "This musician already has a track in this part."; return false; }
+
+            // Part cards require an existing part
+            bool isPartCard = type == CompositionCardType.Part_Intro
+                           || type == CompositionCardType.Part_Solo
+                           || type == CompositionCardType.Part_Outro;
+            if (isPartCard && model.parts.Count == 0)
+            { reason = "Create a part first (play any Track/Tempo/TimeSig card)."; return false; }
+
             return true;
         }
         #endregion
@@ -415,6 +461,13 @@ namespace ALWTTT.UI
 
             foreach (var kv in iconById)
                 kv.Value.gameObject.SetActive(activeIds.Contains(kv.Key));
+        }
+
+        private void RaiseChanged() => OnChanged?.Invoke(model);
+        private void RaisePartChanged()
+        {
+            var p = model.CurrentPart;
+            if (p != null) OnPartChanged?.Invoke(p);
         }
         #endregion
 

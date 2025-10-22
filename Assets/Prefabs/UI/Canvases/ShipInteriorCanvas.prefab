@@ -7716,6 +7716,7 @@ MonoBehaviour:
   composeButton: {fileID: 6024339610241627511}
   relaxButton: {fileID: 2673145891328480003}
   bandTalkButton: {fileID: 3065641467429629716}
+  playButton: {fileID: 7398030766078769654}
   newSongPanel: {fileID: 6211491139724686398}
   devPanel: {fileID: 4565856003486217843}
   metronomeToggle: {fileID: 3651533544279532711}
@@ -11671,7 +11672,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3120489831432651415, guid: 9cb366757c86838499fd80e7aa6fc106, type: 3}
       propertyPath: m_Name
-      value: SongStructureUI
+      value: SongCompositionUI
       objectReference: {fileID: 0}
     - target: {fileID: 3972016340777693903, guid: 9cb366757c86838499fd80e7aa6fc106, type: 3}
       propertyPath: m_AnchorMax.y
@@ -11883,3 +11884,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6455820577279347465, guid: 9cb366757c86838499fd80e7aa6fc106, type: 3}
   m_PrefabInstance: {fileID: 7898071643507660159}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7398030766078769654 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 806289028202966153, guid: 9cb366757c86838499fd80e7aa6fc106, type: 3}
+  m_PrefabInstance: {fileID: 7898071643507660159}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button

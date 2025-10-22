@@ -26,6 +26,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
+  - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   possibleSongList:
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   useBandSetup: 1
@@ -42,7 +43,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e47009cf732aa73459fec2e55c35e316, type: 2}
   - {fileID: 11400000, guid: 47d84299c9530694d9e778281a705fd1, type: 2}
   - {fileID: 11400000, guid: 6cdaaa864c924bf499bdadbdd6132b09, type: 2}
-  drawCount: 4
+  - {fileID: 11400000, guid: 1c52e37554e0796429aeb3ae5f986955, type: 2}
+  - {fileID: 11400000, guid: 2a8e07ece209fec47840bfe051d455c2, type: 2}
+  - {fileID: 11400000, guid: 9c8065bb2a686d943af070508739fca1, type: 2}
+  drawCount: 7
   maxCardsOnHand: 10
   maxGroove: 3
   discardHandBetweenTurns: 1

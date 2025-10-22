@@ -14,19 +14,28 @@ namespace ALWTTT.UI
         [SerializeField] private Transform tracksRoot;  // layout group
         [SerializeField] private SongTrackElementUI trackPrefab;
 
+        [Header("Dev")]
+        [SerializeField] private bool useLogs = false;
+
         private readonly Dictionary<string, SongTrackElementUI> trackByMusician = new();
         private List<string> rosterOrder = new(); // musicianId visual order
 
         private SongCompositionUI.PartEntry boundModel;
 
+        private void Log(string log)
+        {
+            if (useLogs) Debug.Log($"{log}");
+        }
+
         public void SetRosterOrder(List<string> order)
         {
             rosterOrder = order != null ? new List<string>(order) : new List<string>();
+            if (boundModel != null) Bind(boundModel);
         }
 
         public void Bind(SongCompositionUI.PartEntry model)
         {
-            Debug.Log($"<color=red>Binding SongPartElement {model.label}</color>");
+            Log($"<color=red>Binding SongPartElement {model.label}</color>");
 
             boundModel = model;
 
@@ -63,7 +72,7 @@ namespace ALWTTT.UI
 
         public void AddOrUpdateTrack(string musicianId, string role, string info)
         {
-            Debug.Log($"<color=red>Add/Update Track {musicianId} {role} {info}</color>");
+            Log($"<color=red>Add/Update Track {musicianId} {role} {info}</color>");
 
             if (tracksRoot == null || trackPrefab == null) return;
             if (string.IsNullOrEmpty(musicianId)) return;

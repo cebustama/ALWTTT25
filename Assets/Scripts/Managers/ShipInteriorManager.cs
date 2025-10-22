@@ -4,12 +4,18 @@ using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
 using MidiGenPlay;
+using MidiGenPlay.Interfaces;
+using MidiGenPlay.MusicTheory;
+using MidiGenPlay.Services;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using static ALWTTT.CardData;
 using static MidiGenPlay.IntroMutator;
+using static MidiGenPlay.MusicTheory.MusicTheory;
 using static MidiGenPlay.SoloMutator;
 
 namespace ALWTTT.Managers
@@ -26,14 +32,16 @@ namespace ALWTTT.Managers
         [SerializeField] private Camera mainCamera;
         [SerializeField] private Camera handCamera;
 
-        [Header("Composition UI")]
+        [Header("Composition")]
         [SerializeField] private SongCompositionUI compositionUI;
+        [SerializeField] private MidiGenPlayConfig midiGenPlayConfig;
 
         [Header("Refs")]
         [SerializeField] private ShipInteriorCanvas shipCanvas;
         [SerializeField] private SceneChanger sceneChanger;
 
         [Header("Compose (Dev)")]
+        [SerializeField] private bool useLogs = false;
         [SerializeField] private bool composeUseLayeredEntrances = true;
         [SerializeField] private bool composeEnablePostProcessing = true;
         [SerializeField] private bool composeUsePersonalityBias = true;
@@ -58,11 +66,21 @@ namespace ALWTTT.Managers
         private bool inRehearsal = false;
 
         private readonly List<MusicianBase> _spawned = new();
+        public SongCompositionUI.SongModel GetCurrentComposition() => compositionUI?.Model;
 
         #region Cache
         private GameManager GameManager => GameManager.Instance;
         private MidiMusicManager MidiMusicManager => MidiMusicManager.Instance;
         #endregion
+
+        private IInstrumentRepository instrumentRepo;
+        private IPatternRepository patternRepo;
+        private System.Random rng = new System.Random();
+
+        private void Log(string log)
+        {
+            if (useLogs) Debug.Log($"{DebugTag} {log}");
+        }
 
         private void Start()
         {
@@ -72,6 +90,7 @@ namespace ALWTTT.Managers
             if (shipCanvas)
             {
                 shipCanvas.Setup(onCompose: OnCompose, onRelax: OnRelax, onBandTalk: OnBandTalk);
+                shipCanvas.HookPlayButton(OnPlayPressed);
 
                 shipCanvas.HookMetronomeToggle(
                     OnMetronomeToggled,
@@ -116,6 +135,19 @@ namespace ALWTTT.Managers
 
             SetHandVisible(false);
             SetCompositionVisible(false);
+
+            // Services
+            instrumentRepo = new InstrumentRepositoryResources(midiGenPlayConfig);
+            patternRepo = new PatternRepositoryResources(midiGenPlayConfig);
+            instrumentRepo.Refresh();
+            patternRepo.Refresh();
+
+            Log("[Jam] Repositories refreshed.");
+            Log($"[Jam] Melodic instruments: {instrumentRepo.GetMelodicInstruments().Count()}");
+            Log($"[Jam] Percussion instruments: {instrumentRepo.GetPercussionInstruments().Count()}");
+            Log($"[Jam] Drum patterns: {patternRepo.GetAllDrumPatterns().Count()}");
+            Log($"[Jam] Chord progressions: {patternRepo.GetAllChordProgressions().Count()}");
+            Log($"[Jam] Melody patterns: {patternRepo.GetAllMelodyPatterns().Count()}");
         }
 
         private void PrepareRehearsalDeck()
@@ -147,7 +179,7 @@ namespace ALWTTT.Managers
                 clone.BuildCharacter(); // same pattern as GigManager  :contentReference[oaicite:2]{index=2}
 
                 var responder = clone.gameObject.GetComponent<MusicianMidiResponder>();
-                if (responder == null) responder = 
+                if (responder == null) responder =
                         clone.gameObject.AddComponent<MusicianMidiResponder>();
                 responder.Init(clone);
 
@@ -164,6 +196,18 @@ namespace ALWTTT.Managers
 
             shipCanvas?.SetMainButtonsVisible(false);
             BeginRehearsalSession();
+        }
+
+        private void OnPlayPressed()
+        {
+            if (isPlaying) return;
+            if (!inRehearsal) return;
+
+            SetHandVisible(false);
+            SetCompositionVisible(false);
+
+            // Go play using the already-queued intents (Intro/Solo/Outro/Tempo/ReplaceTrack)
+            StartCoroutine(ComposeAndPreviewRoutine());
         }
 
         private void BeginRehearsalSession()
@@ -201,6 +245,59 @@ namespace ALWTTT.Managers
         {
             isPlaying = true;
 
+            var mm = MidiMusicManager.Instance;
+            if (mm == null) 
+            { 
+                Debug.LogError($"{DebugTag} MidiMusicManager is null"); 
+                isPlaying = false; 
+                yield break; 
+            }
+
+            // Build config from the UI
+            var cfg = BuildSongConfigFromCompositionUI();
+            if (cfg == null)
+            {
+                Debug.LogError($"{DebugTag} " +
+                    $"BuildSongConfigFromCompositionUI returned null (nothing to play).");
+                isPlaying = false; 
+                yield break;
+            }
+
+            // Personalities (MVP: Neutral per musician)
+            // TODO: Get based on each MusicianCharacterData (base) or persistant state
+            var personalityMap = new Dictionary<string, IMusicianPersonality>();
+            foreach (var m in _spawned)
+            {
+                var id = m.MusicianCharacterData.CharacterId;
+                personalityMap[id] = new NeutralPersonality(id);
+            }
+            MidiMusicManager.SetMusicianPersonalities(personalityMap);
+
+            // PLAY the config
+            var model = compositionUI.Model;
+            var seconds = mm.PlayFromConfig(cfg, model.title, _spawned);
+            if (seconds <= 0f) { isPlaying = false; yield break; }
+
+            // Live routing: retrieve the owners from the manager using the last key OR
+            // rebuild the ordered list from ChannelMusicianOrder.
+            var orderedMusicians = cfg.ChannelMusicianOrder
+                .Select(id => _spawned.FirstOrDefault(
+                    s => s.MusicianCharacterData.CharacterId == id))
+                .Where(s => s != null)
+                .ToList();
+
+            if (orderedMusicians.Count == 0)
+            {
+                Debug.LogError($"{DebugTag} No spawned musician matched channel order.");
+                isPlaying = false; yield break;
+            }
+
+            // Tell manager the same order so it can route realtime events to the right responder
+            mm.SetChannelOwners(cfg.ChannelMusicianOrder.ToList());
+
+            isPlaying = false;
+
+            /*
             var mm = MidiMusicManager.Instance;
             var pd = GameManager.PersistentGameplayData;
 
@@ -361,7 +458,7 @@ namespace ALWTTT.Managers
             });
 
             isPlaying = false;
-            Debug.Log($"{DebugTag} ComposeAndPreview: end");
+            Debug.Log($"{DebugTag} ComposeAndPreview: end");*/
         }
 
         private void OnRelax()
@@ -439,8 +536,7 @@ namespace ALWTTT.Managers
                 ? target.MusicianCharacterData.CharacterId
                 : _nextHighlightMusicianId;
 
-            // ---------- VALIDATION ----------
-            // We need a concrete musician for track/the-part cards
+            // ---------- QUICK PRE-FILTER (role/musician sanity) ----------
             bool isTrackCard =
                 c.CompositionType == CompositionCardType.Track_Rhythm ||
                 c.CompositionType == CompositionCardType.Track_Backing ||
@@ -449,23 +545,24 @@ namespace ALWTTT.Managers
                 c.CompositionType == CompositionCardType.Track_Harmony;
 
             if (isTrackCard && target == null)
-                return false; // must target someone
+                return false; // needs a concrete musician
 
-            // Drummer-only / drummer-excluded rules
             if (isTrackCard && target != null)
             {
                 bool isDrummer = IsDrummer(target);
-
-                if (c.CompositionType == CompositionCardType.Track_Rhythm && !isDrummer)
-                    return false; // rhythm only by drummer
-
-                if (c.CompositionType != CompositionCardType.Track_Rhythm && isDrummer)
-                    return false; // drummer cannot play non-rhythm tracks
+                if (c.CompositionType == CompositionCardType.Track_Rhythm && !isDrummer) return false;
+                if (c.CompositionType != CompositionCardType.Track_Rhythm && isDrummer) return false;
             }
 
-            bool midiApplied = false;
-            bool uiApplied = false;
+            // ---------- CAN APPLY? (UI/model is the source of truth for session rules) ----------
+            if (compositionUI != null && !compositionUI.CanApply(card, target, out var reason))
+            {
+                Debug.LogWarning($"[Rehearsal] Cannot play card: {reason}");
+                return false;
+            }
 
+            // ---------- QUEUE MIDI INTENTS ----------
+            bool midiApplied = false;
             switch (c.CompositionType)
             {
                 // TEMPO
@@ -473,23 +570,23 @@ namespace ALWTTT.Managers
                 case CompositionCardType.Tempo_Fast: mm.ScheduleNextSongTempoScale(1.25f); midiApplied = true; break;
                 case CompositionCardType.Tempo_VeryFast: mm.ScheduleNextSongTempoScale(1.50f); midiApplied = true; break;
 
-                // THEME
+                // THEME (persist tag only; generator can read it later)
                 case CompositionCardType.Theme_Love: GameManager.PersistentGameplayData.SetNextThemeTag("Love"); midiApplied = true; break;
                 case CompositionCardType.Theme_Injustice: GameManager.PersistentGameplayData.SetNextThemeTag("Injustice"); midiApplied = true; break;
                 case CompositionCardType.Theme_Party: GameManager.PersistentGameplayData.SetNextThemeTag("Party"); midiApplied = true; break;
 
                 // PARTS
                 case CompositionCardType.Part_Intro:
-                    if (!string.IsNullOrEmpty(musicianId)) { mm.AddIntro(musicianId, 1, MidiGenPlay.IntroMutator.IntroStyle.CountIn); midiApplied = true; }
+                    if (!string.IsNullOrEmpty(musicianId)) { mm.AddIntro(musicianId, 1, IntroMutator.IntroStyle.CountIn); midiApplied = true; }
                     break;
                 case CompositionCardType.Part_Solo:
-                    if (!string.IsNullOrEmpty(musicianId)) { mm.AppendSoloPart(musicianId, MidiGenPlay.SoloMutator.SoloStyle.Virtuoso, 8); midiApplied = true; }
+                    if (!string.IsNullOrEmpty(musicianId)) { mm.AppendSoloPart(musicianId, SoloMutator.SoloStyle.Virtuoso, 8); midiApplied = true; }
                     break;
                 case CompositionCardType.Part_Outro:
-                    if (!string.IsNullOrEmpty(musicianId)) { mm.AddOutro(musicianId, 2, MidiGenPlay.IntroMutator.IntroStyle.Pad); midiApplied = true; }
+                    if (!string.IsNullOrEmpty(musicianId)) { mm.AddOutro(musicianId, 2, IntroMutator.IntroStyle.Pad); midiApplied = true; }
                     break;
 
-                // TRACKS (MVP: strategy override as placeholder)
+                // TRACKS (MVP: strategy override placeholder for “pattern change”)
                 case CompositionCardType.Track_Rhythm:
                 case CompositionCardType.Track_Backing:
                 case CompositionCardType.Track_Bassline:
@@ -502,22 +599,24 @@ namespace ALWTTT.Managers
                     }
                     break;
 
-                // TIME SIGNATURE (UI handles visual for now)
+                // TIME SIGNATURE — UI reflects it today; MIDI intent arrives in next sprint
                 case CompositionCardType.TimeSignature_4_4:
                 case CompositionCardType.TimeSignature_3_4:
                 case CompositionCardType.TimeSignature_6_8:
                 case CompositionCardType.TimeSignature_5_4:
+                    // leave midiApplied=false for now; UI will still update
                     break;
 
                 default:
                     return false;
             }
 
-            // Update visual composition model (this also enforces per-part duplicate rule)
-            if (compositionUI != null)
-                uiApplied = compositionUI.ApplyCard(card, target);
+            // ---------- UPDATE UI / MODEL ----------
+            bool uiApplied = compositionUI == null || compositionUI.ApplyCard(card, target);
 
-            return uiApplied && (midiApplied || c.IsComposition);
+            // If UI accepted the card, consider it played.
+            // (midiApplied can be false for TimeSig until the generator hook exists)
+            return uiApplied;
         }
 
         // Helper: heuristic drummer detection based on profile instruments
@@ -554,6 +653,200 @@ namespace ALWTTT.Managers
         {
             if (compositionUI != null)
                 compositionUI.gameObject.SetActive(visible);
+        }
+
+        private SongConfig BuildSongConfigFromCompositionUI()
+        {
+            if (compositionUI == null)
+            {
+                Log("[Jam] compositionUI is null.");
+                return null;
+            }
+
+            var model = compositionUI.Model;
+            if (model == null || model.parts.Count == 0)
+            {
+                Log("[Jam] No parts in composition model.");
+                return null;
+            }
+
+            // Defensive refresh
+            instrumentRepo.Refresh();
+            patternRepo.Refresh();
+
+            // Band ordering = current spawned list (used for channel ownership)
+            var bandIds = _spawned.Select(m => m.MusicianCharacterData.CharacterId).ToList();
+            Log($"[Jam] Band order (channels): [{string.Join(", ", bandIds)}]");
+
+            var cfg = new SongConfig
+            {
+                ChannelMusicianOrder = bandIds,
+                ChannelRoles = new List<TrackRole>(),
+                Parts = new List<SongConfig.PartConfig>(),
+                Structure = new List<SongConfig.PartSequenceEntry>()
+            };
+
+            var firstPartRoles = new List<TrackRole>();
+            int partIndex = 0;
+
+            foreach (var p in model.parts)
+            {
+                var tr = GetTempoRangeFromLabel(p.tempo);
+                var ts = GetTimeSignatureFromLabel(p.timeSignature);
+
+                var part = new SongConfig.PartConfig
+                {
+                    Name = string.IsNullOrWhiteSpace(p.label) ? $"Part {partIndex + 1}" : p.label,
+                    Measures = p.measures <= 0 ? 8 : p.measures,
+                    TempoRange = tr,
+                    TimeSignature = ts,
+                    Tracks = new List<SongConfig.PartConfig.TrackConfig>(),
+                    Tonality = Tonality.Ionian,
+                    RootNote = Melanchall.DryWetMidi.MusicTheory.NoteName.C
+                };
+
+                Log($"[Jam] Building Part[{partIndex}] '{part.Name}'  " +
+                    $"TS={p.timeSignature}  Tempo={p.tempo}  Measures={part.Measures}");
+
+                // one track per musician that has a placed card in this part
+                foreach (var trModel in p.tracks)
+                {
+                    var role = GetRoleFromLabel(trModel.role);
+                    var musicianId = trModel.musicianId;
+                    if (string.IsNullOrEmpty(musicianId))
+                    {
+                        Log($"[Jam]   - Skipping track with empty musicianId (role {role}).");
+                        continue;
+                    }
+
+                    MIDIInstrumentSO melInst = null;
+                    MIDIPercussionInstrumentSO percInst = null;
+                    PatternDataSO pattern = null;
+
+                    switch (role)
+                    {
+                        case TrackRole.Rhythm:
+                            percInst = instrumentRepo.GetPercussionInstruments()
+                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            pattern = patternRepo.GetAllDrumPatterns()
+                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            break;
+
+                        case TrackRole.Backing:
+                            melInst = instrumentRepo.GetMelodicInstruments()
+                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            pattern = patternRepo.GetAllChordProgressions()
+                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            break;
+
+                        case TrackRole.Bassline:
+                            melInst = instrumentRepo.GetMelodicInstruments()
+                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            pattern = patternRepo.GetAllMelodyPatterns()
+                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            break;
+
+                        case TrackRole.Melody:
+                        case TrackRole.Harmony:
+                            melInst = instrumentRepo.GetMelodicInstruments()
+                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            pattern = patternRepo.GetAllMelodyPatterns()
+                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            break;
+                    }
+
+                    var instName = melInst != null ? melInst.InstrumentName :
+                                   percInst != null ? percInst.InstrumentName : "(none)";
+                    var pattName = pattern != null ? pattern.name : "(none)";
+
+                    Log($"[Jam] - Track role={role} mus={musicianId} " +
+                        $"inst='{instName}' patt='{pattName}'");
+
+                    var tcfg = new SongConfig.PartConfig.TrackConfig
+                    {
+                        Role = role,
+                        MusicianId = musicianId,
+                        Instrument = melInst,
+                        PercussionInstrument = percInst,
+                        Parameters = new TrackParameters { Pattern = pattern }
+                    };
+
+                    part.Tracks.Add(tcfg);
+
+                    // Remember roles present in Part 0 to seed ChannelRoles (layout)
+                    if (cfg.Parts.Count == 0)
+                        firstPartRoles.Add(role);
+                }
+
+                cfg.Parts.Add(part);
+
+                // Structure: by default add this part once
+                cfg.Structure.Add(new SongConfig.PartSequenceEntry
+                {
+                    PartIndex = partIndex,
+                    RepeatCount = 1
+                });
+
+                partIndex++;
+            }
+
+            // If ChannelRoles not provided yet, seed it from the first part’s roles
+            if (cfg.ChannelRoles.Count == 0)
+                cfg.ChannelRoles.AddRange(firstPartRoles);
+
+            // Final trace
+            Log($"[Jam] Built SongConfig: parts={cfg.Parts.Count} " +
+                $"structure={cfg.Structure.Count}");
+            for (int i = 0; i < cfg.Parts.Count; i++)
+            {
+                var p = cfg.Parts[i];
+                var tracks = p.Tracks?.Select(t =>
+                    $"{t.Role}/mus={t.MusicianId}" +
+                    $"/inst={(t.Instrument ? t.Instrument.InstrumentName : t.PercussionInstrument ? t.PercussionInstrument.InstrumentName : "-")}/pat={(t.Parameters?.Pattern ? t.Parameters.Pattern.name : "-")}");
+                
+                Log($"[Jam]   Part[{i}] '{p.Name}' TS={p.TimeSignature} " +
+                    $"meas={p.Measures} " +
+                    $"tracks=[{string.Join(" | ", tracks ?? Array.Empty<string>())}]");
+            }
+
+            return cfg;
+        }
+
+        // TODO: Standarize, move to correct class, etc
+        private TempoRange GetTempoRangeFromLabel(string label)
+        {
+            switch (label)
+            {
+                case "Slow": return TempoRange.Slow;
+                case "Fast": return TempoRange.Fast;
+                case "Very Fast": return TempoRange.VeryFast;
+                default: return TempoRange.Moderate;
+            }
+        }
+
+        private TimeSignature GetTimeSignatureFromLabel(string label)
+        {
+            switch (label)
+            {
+                case "4/4": return TimeSignature.FourFour;
+                case "3/4": return TimeSignature.ThreeFour;
+                case "6/8": return TimeSignature.SixEight;
+                case "5/4": return TimeSignature.FiveFour;
+                default: return TimeSignature.FourFour;
+            }
+        }
+
+        private TrackRole GetRoleFromLabel(string label)
+        {
+            switch (label)
+            {
+                case "Rhythm": return TrackRole.Rhythm;
+                case "Backing": return TrackRole.Backing;
+                case "Bassline": return TrackRole.Bassline;
+                case "Melody": return TrackRole.Melody;
+                case "Harmony": return TrackRole.Harmony;
+                default: return TrackRole.Melody;
+            }
         }
     }
 }

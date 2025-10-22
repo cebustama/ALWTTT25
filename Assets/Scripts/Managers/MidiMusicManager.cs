@@ -406,6 +406,70 @@ namespace ALWTTT.Managers
                 $"subset[{allowed.Count}] '{song.SongTitle}'");
         }
 
+        public float PlayFromConfig(
+            SongConfig config, string title, IList<Characters.Band.MusicianBase> band)
+        {
+            EnsureRegistriesLoaded();
+            if (config == null) 
+            { 
+                Debug.LogError($"{DebugTag} PlayFromConfig: null config"); 
+                return 0f; 
+            }
+
+            // Build channel map and ownership just like the cached path
+            var channelMap = BuildChannelMap(config.ChannelRoles ?? new List<TrackRole>());
+            var byMusician = new Dictionary<string, int>();
+            for (int i = 0; i < config.ChannelMusicianOrder.Count && i < channelMap.Count; i++)
+            {
+                var id = config.ChannelMusicianOrder[i] ?? "";
+                if (!string.IsNullOrEmpty(id)) byMusician[id] = channelMap[i];
+            }
+
+            foreach (var part in config.Parts)
+                foreach (var tr in part.Tracks)
+                    if (!string.IsNullOrEmpty(tr.MusicianId) 
+                        && byMusician.TryGetValue(tr.MusicianId, out var ch))
+                        tr.Channel = ch;
+
+            // Persist routing maps under a unique ephemeral key (so OnMidiEvents works)
+            var key = $"jam::{Guid.NewGuid():N}";
+            {
+                int maxCh = channelMap.Count > 0 ? channelMap.Max() : 0;
+                var perChannel = 
+                    Enumerable.Repeat(string.Empty, Math.Max(16, maxCh + 1)).ToList();
+                for (int i = 0; 
+                    i < config.ChannelMusicianOrder.Count && i < channelMap.Count; i++)
+                {
+                    int ch = channelMap[i];
+                    if (ch >= 0 && ch < perChannel.Count)
+                        perChannel[ch] = config.ChannelMusicianOrder[i];
+                }
+                channelOwnersByKey[key] = perChannel;
+                channelRolesByKey[key] = config.ChannelRoles?.ToList() ?? 
+                    new List<TrackRole>();
+            }
+
+            // Generate MIDI
+            var midi = generator.GenerateSong(config);
+
+            // Compute seconds and serialize to bytes
+            var tempoMap = midi.GetTempoMap();
+            var last = midi.GetTrackChunks()
+                           .SelectMany(c => c.GetTimedEvents())
+                           .Select(te => te.Time).DefaultIfEmpty(0).Max();
+            var seconds = 
+                (float)TimeConverter.ConvertTo<MetricTimeSpan>(last, tempoMap).TotalSeconds;
+
+            using var ms = new MemoryStream();
+            midi.Write(ms);
+            var data = ms.ToArray();
+
+            // Respect metronome toggle and play
+            var bytes = ApplyMetronomeVolumeToBytes(data, MetronomeEnabled);
+            LogPlayTraceSummary(key, $"'{title}'", seconds, bytes?.Length ?? 0);
+            return PlayBytes(key, bytes, seconds, $"'{title}'");
+        }
+
         public void Stop()
         {
             player?.Stop();

@@ -10,8 +10,8 @@ namespace ALWTTT.UI
 
         public void Bind(string role, string info)
         {
-            if (roleText) roleText.text = $"{role}";
-            if (infoText) infoText.text = $"{info}";
+            if (roleText) roleText.text = string.IsNullOrWhiteSpace(role) ? "—" : role.Trim();
+            if (infoText) infoText.text = string.IsNullOrWhiteSpace(info) ? "" : info.Trim();
         }
     }
 }
