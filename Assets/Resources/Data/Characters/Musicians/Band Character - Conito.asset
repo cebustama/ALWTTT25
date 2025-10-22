@@ -18,6 +18,7 @@ MonoBehaviour:
   initialMaxStress: 15
   characterPrefab: {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
   characterSprite: {fileID: 21300000, guid: 2bdc8ac6f4da69247aad7dc400f5471c, type: 3}
+  characterIcon: {fileID: -437172681316638183, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}
   baseCards:
   - {fileID: 11400000, guid: e403100f367b33647bd3b3c3cfb993ca, type: 2}
   - {fileID: 11400000, guid: 138c6e2c344bc464ca0a99191ca1fa4f, type: 2}

@@ -17,6 +17,7 @@ namespace ALWTTT.Data
         [SerializeField] private int initialMaxStress;
         [SerializeField] private MusicianBase characterPrefab;
         [SerializeField] private Sprite characterSprite; // TEMP
+        [SerializeField] private Sprite characterIcon;
 
         [Header("Cards")]
         [SerializeField] private List<CardData> baseCards;
@@ -36,6 +37,7 @@ namespace ALWTTT.Data
         public int InitialMaxStress => initialMaxStress;
         public MusicianBase CharacterPrefab => characterPrefab;
         public Sprite CharacterSprite => characterSprite;
+        public Sprite CharacterIcon => characterIcon;
 
         public List<CardData> BaseCards => baseCards;
 

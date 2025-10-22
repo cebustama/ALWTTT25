@@ -55,6 +55,8 @@ namespace ALWTTT.Managers
             composeButton.onClick.AddListener(() => onCompose?.Invoke());
             relaxButton.onClick.AddListener(() => onRelax?.Invoke());
             bandTalkButton.onClick.AddListener(() => onBandTalk?.Invoke());
+
+            SetMainButtonsVisible(true);
         }
 
         public void HookMetronomeToggle(Action<bool> onChanged, bool initialValue)
@@ -325,6 +327,16 @@ namespace ALWTTT.Managers
                 var chosenId = (idx >= 0 && idx < backingIds.Count) ? backingIds[idx] : null;
                 onSelected?.Invoke(chosenId); // null => NONE
             });
+        }
+
+        public void SetMainButtonsVisible(bool visible)
+        {
+            if (composeButton) composeButton.gameObject.SetActive(visible);
+            if (relaxButton) relaxButton.gameObject.SetActive(visible);
+            if (bandTalkButton) bandTalkButton.gameObject.SetActive(visible);
+
+            // Optional: also hide the dev panel when buttons are hidden
+            //if (devPanel) devPanel.SetActive(visible);
         }
     }
 }

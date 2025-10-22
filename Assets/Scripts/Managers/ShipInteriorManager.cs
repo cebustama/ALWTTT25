@@ -1,6 +1,7 @@
 ﻿using ALWTTT.Characters;
 using ALWTTT.Characters.Band;
 using ALWTTT.Music;
+using ALWTTT.UI;
 using ALWTTT.Utils;
 using MidiGenPlay;
 using System.Collections;
@@ -24,6 +25,9 @@ namespace ALWTTT.Managers
         [SerializeField] private HandController shipHand;
         [SerializeField] private Camera mainCamera;
         [SerializeField] private Camera handCamera;
+
+        [Header("Composition UI")]
+        [SerializeField] private SongCompositionUI compositionUI;
 
         [Header("Refs")]
         [SerializeField] private ShipInteriorCanvas shipCanvas;
@@ -51,6 +55,7 @@ namespace ALWTTT.Managers
         private string _nextAltStrategyId;
 
         private bool isPlaying;
+        private bool inRehearsal = false;
 
         private readonly List<MusicianBase> _spawned = new();
 
@@ -61,9 +66,7 @@ namespace ALWTTT.Managers
 
         private void Start()
         {
-            if (DeckManager.Instance != null && shipHand != null)
-                DeckManager.Instance.SetHandController(shipHand);
-
+            RebindDeckToShipHand();
             BuildBand();
 
             if (shipCanvas)
@@ -71,94 +74,48 @@ namespace ALWTTT.Managers
                 shipCanvas.Setup(onCompose: OnCompose, onRelax: OnRelax, onBandTalk: OnBandTalk);
 
                 shipCanvas.HookMetronomeToggle(
-                    OnMetronomeToggled, 
+                    OnMetronomeToggled,
                     MidiMusicManager != null && MidiMusicManager.MetronomeEnabled);
 
-                // populate dropdown with the spawned musicians
+                // Populate dropdowns with spawned musicians
                 var items = _spawned
                     .Select(m => (m.MusicianCharacterData.CharacterId,
-                              m.MusicianCharacterData.CharacterName))
+                                  m.MusicianCharacterData.CharacterName))
                     .ToList();
-                
-                // DEBUGGING
+
                 shipCanvas.PopulateHighlightDropdown(items, id => _nextHighlightMusicianId = id, true);
 
                 shipCanvas.PopulateIntroDropdown(
-                    items,
-                    id =>
-                    {
-                        _nextIntroMusicianId = id;
-                        composeAddIntro = !string.IsNullOrEmpty(id); // NONE → false
-                    },
-                    includeNoneOption: true
-                );
-
+                    items, id => { _nextIntroMusicianId = id; composeAddIntro = !string.IsNullOrEmpty(id); }, includeNoneOption: true);
                 shipCanvas.PopulateOutroDropdown(
-                    items,
-                    id =>
-                    {
-                        _nextOutroMusicianId = id;
-                        composeAddOutro = !string.IsNullOrEmpty(id); // NONE → false
-                    },
-                    includeNoneOption: true
-                );
-
+                    items, id => { _nextOutroMusicianId = id; composeAddOutro = !string.IsNullOrEmpty(id); }, includeNoneOption: true);
                 shipCanvas.PopulateSoloDropdown(
-                    items,
-                    id => _nextSoloMusicianId = id, // null => NONE
-                    includeNoneOption: true
-                );
+                    items, id => _nextSoloMusicianId = id, includeNoneOption: true);
 
-                shipCanvas.HookLayeredEntranceToggle(
-                    v => composeUseLayeredEntrances = v,
-                    composeUseLayeredEntrances);
+                shipCanvas.HookLayeredEntranceToggle(v => composeUseLayeredEntrances = v, composeUseLayeredEntrances);
+                shipCanvas.HookEnablePPToggle(v => composeEnablePostProcessing = v, composeEnablePostProcessing);
+                shipCanvas.HookEnablePersonalityToggle(v => composeUsePersonalityBias = v, composeUsePersonalityBias);
 
-                shipCanvas.HookEnablePPToggle(
-                    v => composeEnablePostProcessing = v,
-                    composeEnablePostProcessing);
-
-                shipCanvas.HookEnablePersonalityToggle(
-                    v => composeUsePersonalityBias = v,
-                    composeUsePersonalityBias);
-
-                // Tempo scale options for NEXT song (Phase 1: just queued, not applied yet)
+                // Tempo scale choices for the *next* song (they enqueue in MidiMusicManager)
                 var tempoOptions = new List<(string label, float factor)>
                 {
-                    ("0.75× (laid-back)", 0.75f),
-                    ("1.00× (default)",   1.00f),
-                    ("1.25×",             1.25f),
-                    ("1.50×",             1.50f),
-                    ("2.00×",             2.00f),
+                    ("0.75× (laid-back)", 0.75f), ("1.00× (default)", 1.00f),
+                    ("1.25×", 1.25f),             ("1.50×", 1.50f), ("2.00×", 2.00f)
                 };
+                shipCanvas.PopulateTempoScaleDropdown(tempoOptions,
+                    factor => MidiMusicManager?.ScheduleNextSongTempoScale(factor), defaultIndex: 1);
 
-                shipCanvas.PopulateTempoScaleDropdown(
-                    tempoOptions,
-                    factor => MidiMusicManager?.ScheduleNextSongTempoScale(factor),
-                    defaultIndex: 1); // 1.00×
-
-                // Alt Track musician dropdown (NONE → no alternate)
-                shipCanvas.PopulateAlternateTrackDropdown(
-                    items,
-                    id => _nextAltTrackMusicianId = id,
-                    includeNoneOption: true);
-
-                // Alt Strategy dropdown (NONE → no alternate)
+                // Alternate Track dropdowns (keep for legacy UI testing)
+                shipCanvas.PopulateAlternateTrackDropdown(items, id => _nextAltTrackMusicianId = id, includeNoneOption: true);
                 var strategies = new List<(string id, string label)>
                 {
-                    ("busier",  "Busier"),
-                    ("sparser", "Sparser"),
-                    ("rotate1", "Rotate 1 beat"),
-                    ("rotate2", "Rotate 2 beats"),
-                    // add more later if you want (e.g., "rotate3")
+                    ("busier", "Busier"), ("sparser", "Sparser"), ("rotate1", "Rotate 1 beat"), ("rotate2", "Rotate 2 beats"),
                 };
-
-                shipCanvas.PopulateAlternateStrategyDropdown(
-                    strategies,
-                    id => _nextAltStrategyId = id,
-                    includeNoneOption: true);
+                shipCanvas.PopulateAlternateStrategyDropdown(strategies, id => _nextAltStrategyId = id, includeNoneOption: true);
             }
 
             SetHandVisible(false);
+            SetCompositionVisible(false);
         }
 
         private void PrepareRehearsalDeck()
@@ -203,11 +160,41 @@ namespace ALWTTT.Managers
 
         private void OnCompose()
         {
-            if (isPlaying) return;
+            if (inRehearsal) return;
 
+            shipCanvas?.SetMainButtonsVisible(false);
+            BeginRehearsalSession();
+        }
+
+        private void BeginRehearsalSession()
+        {
+            inRehearsal = true;
             SetHandVisible(true);
+            SetCompositionVisible(true);
+
+            // Clean any pending music intents from a previous session
+            try
+            {
+                // TODO: implement in MidiMusicManager
+                //MidiMusicManager?.ClearQueuedIntents(); 
+            }
+            catch { /* safe no-op if method doesn't exist yet */ }
+
+            // Use composition pool from GameplayData and draw a fresh hand
             PrepareRehearsalDeck();
-            StartCoroutine(ComposeAndPreviewRoutine());
+
+            if (compositionUI) compositionUI.ResetSession();
+            compositionUI?.PopulateMusicianIcons(_spawned);
+        }
+
+        private void EndRehearsalSession()
+        {
+            inRehearsal = false;
+            SetHandVisible(false);
+            SetCompositionVisible(false);
+
+            // clear queued intents (fresh start next time)
+            //try { MidiMusicManager?.ClearQueuedIntents(); } catch { }
         }
 
         private IEnumerator ComposeAndPreviewRoutine()
@@ -379,15 +366,18 @@ namespace ALWTTT.Managers
 
         private void OnRelax()
         {
+            shipCanvas?.SetMainButtonsVisible(false);
             SetHandVisible(false);
-
+            SetCompositionVisible(false);
             // TODO: restore stress to all band members
             ReturnToMap();
         }
 
         private void OnBandTalk()
         {
+            shipCanvas?.SetMainButtonsVisible(false);
             SetHandVisible(false);
+            SetCompositionVisible(false);
 
             var pd = GameManager.PersistentGameplayData;
             var gd = GameManager.GameplayData;
@@ -449,54 +439,57 @@ namespace ALWTTT.Managers
                 ? target.MusicianCharacterData.CharacterId
                 : _nextHighlightMusicianId;
 
+            // ---------- VALIDATION ----------
+            // We need a concrete musician for track/the-part cards
+            bool isTrackCard =
+                c.CompositionType == CompositionCardType.Track_Rhythm ||
+                c.CompositionType == CompositionCardType.Track_Backing ||
+                c.CompositionType == CompositionCardType.Track_Bassline ||
+                c.CompositionType == CompositionCardType.Track_Melody ||
+                c.CompositionType == CompositionCardType.Track_Harmony;
+
+            if (isTrackCard && target == null)
+                return false; // must target someone
+
+            // Drummer-only / drummer-excluded rules
+            if (isTrackCard && target != null)
+            {
+                bool isDrummer = IsDrummer(target);
+
+                if (c.CompositionType == CompositionCardType.Track_Rhythm && !isDrummer)
+                    return false; // rhythm only by drummer
+
+                if (c.CompositionType != CompositionCardType.Track_Rhythm && isDrummer)
+                    return false; // drummer cannot play non-rhythm tracks
+            }
+
+            bool midiApplied = false;
+            bool uiApplied = false;
+
             switch (c.CompositionType)
             {
                 // TEMPO
-                case CompositionCardType.Tempo_Slow:
-                    mm.ScheduleNextSongTempoScale(0.75f); 
-                    return true;
-                case CompositionCardType.Tempo_Fast:
-                    mm.ScheduleNextSongTempoScale(1.25f); 
-                    return true;
-                case CompositionCardType.Tempo_VeryFast: 
-                    mm.ScheduleNextSongTempoScale(1.50f); 
-                    return true;
+                case CompositionCardType.Tempo_Slow: mm.ScheduleNextSongTempoScale(0.75f); midiApplied = true; break;
+                case CompositionCardType.Tempo_Fast: mm.ScheduleNextSongTempoScale(1.25f); midiApplied = true; break;
+                case CompositionCardType.Tempo_VeryFast: mm.ScheduleNextSongTempoScale(1.50f); midiApplied = true; break;
 
                 // THEME
-                case CompositionCardType.Theme_Love: 
-                    GameManager.PersistentGameplayData.SetNextThemeTag("Love"); 
-                    return true;
-                case CompositionCardType.Theme_Injustice: 
-                    GameManager.PersistentGameplayData.SetNextThemeTag("Injustice"); 
-                    return true;
-                case CompositionCardType.Theme_Party: 
-                    GameManager.PersistentGameplayData.SetNextThemeTag("Party"); 
-                    return true;
+                case CompositionCardType.Theme_Love: GameManager.PersistentGameplayData.SetNextThemeTag("Love"); midiApplied = true; break;
+                case CompositionCardType.Theme_Injustice: GameManager.PersistentGameplayData.SetNextThemeTag("Injustice"); midiApplied = true; break;
+                case CompositionCardType.Theme_Party: GameManager.PersistentGameplayData.SetNextThemeTag("Party"); midiApplied = true; break;
 
                 // PARTS
                 case CompositionCardType.Part_Intro:
-                    if (!string.IsNullOrEmpty(musicianId)) 
-                    { 
-                        mm.AddIntro(musicianId, 1, IntroMutator.IntroStyle.CountIn); 
-                        return true; 
-                    }
-                    return false;
+                    if (!string.IsNullOrEmpty(musicianId)) { mm.AddIntro(musicianId, 1, MidiGenPlay.IntroMutator.IntroStyle.CountIn); midiApplied = true; }
+                    break;
                 case CompositionCardType.Part_Solo:
-                    if (!string.IsNullOrEmpty(musicianId)) 
-                    { 
-                        mm.AppendSoloPart(musicianId, SoloMutator.SoloStyle.Virtuoso, 8); 
-                        return true; 
-                    }
-                    return false;
+                    if (!string.IsNullOrEmpty(musicianId)) { mm.AppendSoloPart(musicianId, MidiGenPlay.SoloMutator.SoloStyle.Virtuoso, 8); midiApplied = true; }
+                    break;
                 case CompositionCardType.Part_Outro:
-                    if (!string.IsNullOrEmpty(musicianId)) 
-                    { 
-                        mm.AddOutro(musicianId, 2, IntroMutator.IntroStyle.Pad); 
-                        return true; 
-                    }
-                    return false;
+                    if (!string.IsNullOrEmpty(musicianId)) { mm.AddOutro(musicianId, 2, MidiGenPlay.IntroMutator.IntroStyle.Pad); midiApplied = true; }
+                    break;
 
-                // TRACKS
+                // TRACKS (MVP: strategy override as placeholder)
                 case CompositionCardType.Track_Rhythm:
                 case CompositionCardType.Track_Backing:
                 case CompositionCardType.Track_Bassline:
@@ -504,23 +497,41 @@ namespace ALWTTT.Managers
                 case CompositionCardType.Track_Harmony:
                     if (!string.IsNullOrEmpty(musicianId))
                     {
-                        mm.ReplaceTrack(-1, musicianId, new MidiMusicManager.StrategyOverride("busier")); // o “sparser/rotate1/rotate2”
-                        return true;
+                        mm.ReplaceTrack(-1, musicianId, new MidiMusicManager.StrategyOverride("busier"));
+                        midiApplied = true;
                     }
-                    return false;
+                    break;
 
-                // Time Signature
+                // TIME SIGNATURE (UI handles visual for now)
                 case CompositionCardType.TimeSignature_4_4:
                 case CompositionCardType.TimeSignature_3_4:
                 case CompositionCardType.TimeSignature_6_8:
                 case CompositionCardType.TimeSignature_5_4:
-                    // TODO next sprint: mm.SetPartTimeSignature(...)
-                    Debug.LogWarning("[Rehearsal] TimeSignature cards pending implementation.");
-                    return false;
+                    break;
 
                 default:
                     return false;
             }
+
+            // Update visual composition model (this also enforces per-part duplicate rule)
+            if (compositionUI != null)
+                uiApplied = compositionUI.ApplyCard(card, target);
+
+            return uiApplied && (midiApplied || c.IsComposition);
+        }
+
+        // Helper: heuristic drummer detection based on profile instruments
+        private bool IsDrummer(MusicianBase m)
+        {
+            var prof = m?.MusicianCharacterData?.Profile;
+            if (prof == null) return false;
+
+            bool inBacking = prof.backingInstruments != null &&
+                             prof.backingInstruments.Exists(i => i.ToString().ToLower().Contains("drum"));
+            bool inLead = prof.leadInstruments != null &&
+                             prof.leadInstruments.Exists(i => i.ToString().ToLower().Contains("drum"));
+
+            return inBacking || inLead;
         }
 
         private void SetHandVisible(bool visible)
@@ -531,6 +542,18 @@ namespace ALWTTT.Managers
                 if (visible) shipHand.EnableDragging();
                 else shipHand.DisableDragging();
             }
+        }
+
+        private void RebindDeckToShipHand()
+        {
+            if (DeckManager.Instance != null && shipHand != null)
+                DeckManager.Instance.SetHandController(shipHand);
+        }
+
+        private void SetCompositionVisible(bool visible)
+        {
+            if (compositionUI != null)
+                compositionUI.gameObject.SetActive(visible);
         }
     }
 }
