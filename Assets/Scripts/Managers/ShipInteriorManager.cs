@@ -35,12 +35,14 @@ namespace ALWTTT.Managers
         [Header("Composition")]
         [SerializeField] private SongCompositionUI compositionUI;
         [SerializeField] private MidiGenPlayConfig midiGenPlayConfig;
+        [SerializeField] private bool useProceduralRhythm = true;
+        [SerializeField] private bool useProceduralBacking = true;
 
         [Header("Refs")]
         [SerializeField] private ShipInteriorCanvas shipCanvas;
         [SerializeField] private SceneChanger sceneChanger;
 
-        [Header("Compose (Dev)")]
+        [Header("Dev")]
         [SerializeField] private bool useLogs = false;
         [SerializeField] private bool composeUseLayeredEntrances = true;
         [SerializeField] private bool composeEnablePostProcessing = true;
@@ -77,9 +79,13 @@ namespace ALWTTT.Managers
         private IPatternRepository patternRepo;
         private System.Random rng = new System.Random();
 
-        private void Log(string log)
+        private void Log(string log, bool highlight = false)
         {
-            if (useLogs) Debug.Log($"{DebugTag} {log}");
+            if (useLogs)
+            {
+                if (highlight) Debug.Log($"{DebugTag} <color=yellow>{log}</color>");
+                else Debug.Log($"{DebugTag} {log}");
+            }
         }
 
         private void Start()
@@ -294,6 +300,10 @@ namespace ALWTTT.Managers
 
             // Tell manager the same order so it can route realtime events to the right responder
             mm.SetChannelOwners(cfg.ChannelMusicianOrder.ToList());
+
+            // Wait for playback to end, then auto-reset the Jam UI + hand
+            yield return MidiMusicManager.WaitForEnd();
+            ResetAfterPlayback();
 
             isPlaying = false;
 
@@ -708,6 +718,8 @@ namespace ALWTTT.Managers
                 Log($"[Jam] Building Part[{partIndex}] '{part.Name}'  " +
                     $"TS={p.timeSignature}  Tempo={p.tempo}  Measures={part.Measures}");
 
+                Log($"[Jam] Part tonality: {part.Tonality} over {part.RootNote}", true);
+
                 // one track per musician that has a placed card in this part
                 foreach (var trModel in p.tracks)
                 {
@@ -719,37 +731,92 @@ namespace ALWTTT.Managers
                         continue;
                     }
 
+                    var musician = _spawned.FirstOrDefault(m =>
+                        m.MusicianCharacterData.CharacterId == musicianId);
+
                     MIDIInstrumentSO melInst = null;
                     MIDIPercussionInstrumentSO percInst = null;
                     PatternDataSO pattern = null;
+                    IEnumerable<MIDIInstrumentSO> candidates = null;
+
+                    RhythmRecipe recipe = null;
+                    BackingRecipe backingRecipe = null;
 
                     switch (role)
                     {
                         case TrackRole.Rhythm:
                             percInst = instrumentRepo.GetPercussionInstruments()
                                 .OrderBy(_ => rng.Next()).FirstOrDefault();
-                            pattern = patternRepo.GetAllDrumPatterns()
-                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+
+                            if (useProceduralRhythm)
+                            {
+                                pattern = null; // null tells RhythmTrackComposer to go procedural
+
+                                recipe = new RhythmRecipe
+                                {
+                                    HatDensity = RhythmRecipe.HiHatDensity.From_Style,
+                                    HatMode = RhythmRecipe.HatDensityMode.Fixed
+                                };
+
+                                Log($"[Jam] Rhythm: PROCEDURAL for " +
+                                    $"mus={musicianId} " +
+                                    $"kit='{percInst?.InstrumentName ?? "-"}'");
+                            }
+                            else
+                            {
+                                pattern = patternRepo.GetDrumPatterns(ts)
+                                                     .OrderBy(_ => rng.Next()).FirstOrDefault();
+                                Log($"[Jam] Rhythm: PATTERN='{pattern?.name ?? "-"}' " +
+                                    $"for mus={musicianId} " +
+                                    $"kit='{percInst?.InstrumentName ?? "-"}'");
+                            }
                             break;
 
                         case TrackRole.Backing:
-                            melInst = instrumentRepo.GetMelodicInstruments()
-                                .OrderBy(_ => rng.Next()).FirstOrDefault();
-                            pattern = patternRepo.GetAllChordProgressions()
-                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+
+                            candidates = GetPermittedInstruments(musician, role).ToList();
+                            melInst = candidates.OrderBy(_ => rng.Next()).FirstOrDefault();
+
+                            if (useProceduralBacking)
+                            {
+                                pattern = null;
+
+                                backingRecipe = new BackingRecipe
+                                {
+
+                                };
+
+                                Log($"[Jam] Backing: PROCEDURAL for " +
+                                    $"mus={musicianId} " +
+                                    $"inst='{melInst?.InstrumentName ?? "-"}'", true);
+                            }
+                            else 
+                            {
+                                pattern = patternRepo.GetChordProgressions(ts)
+                                    .OrderBy(_ => rng.Next()).FirstOrDefault();
+
+                                Log($"[Jam] Backing: PATTERN='{pattern?.name ?? "-"}' " +
+                                    $"for mus={musicianId} " +
+                                    $"inst='{melInst?.InstrumentName ?? "-"}'");
+                            }
+                                
                             break;
 
                         case TrackRole.Bassline:
-                            melInst = instrumentRepo.GetMelodicInstruments()
-                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+
+                            candidates = GetPermittedInstruments(musician, role).ToList();
+                            melInst = candidates.OrderBy(_ => rng.Next()).FirstOrDefault();
+
                             pattern = patternRepo.GetAllMelodyPatterns()
                                 .OrderBy(_ => rng.Next()).FirstOrDefault();
                             break;
 
                         case TrackRole.Melody:
                         case TrackRole.Harmony:
-                            melInst = instrumentRepo.GetMelodicInstruments()
-                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+
+                            candidates = GetPermittedInstruments(musician, role).ToList();
+                            melInst = candidates.OrderBy(_ => rng.Next()).FirstOrDefault();
+
                             pattern = patternRepo.GetAllMelodyPatterns()
                                 .OrderBy(_ => rng.Next()).FirstOrDefault();
                             break;
@@ -759,7 +826,7 @@ namespace ALWTTT.Managers
                                    percInst != null ? percInst.InstrumentName : "(none)";
                     var pattName = pattern != null ? pattern.name : "(none)";
 
-                    Log($"[Jam] - Track role={role} mus={musicianId} " +
+                    Log($"[Jam] Track role={role} mus={musicianId} " +
                         $"inst='{instName}' patt='{pattName}'");
 
                     var tcfg = new SongConfig.PartConfig.TrackConfig
@@ -768,7 +835,11 @@ namespace ALWTTT.Managers
                         MusicianId = musicianId,
                         Instrument = melInst,
                         PercussionInstrument = percInst,
-                        Parameters = new TrackParameters { Pattern = pattern }
+                        Parameters = new TrackParameters 
+                        { 
+                            Pattern = pattern, 
+                            RhythmRecipe = recipe
+                        }
                     };
 
                     part.Tracks.Add(tcfg);
@@ -847,6 +918,79 @@ namespace ALWTTT.Managers
                 case "Harmony": return TrackRole.Harmony;
                 default: return TrackRole.Melody;
             }
+        }
+
+        private void ResetAfterPlayback()
+        {
+            BeginRehearsalSession();
+        }
+
+        // Returns all melodic instruments allowed by this musician
+        private IEnumerable<MIDIInstrumentSO> GetPermittedInstruments(MusicianBase musician)
+        {
+            // Defensive: if anything is missing, fall back to all melodic instruments.
+            var allMelodic = instrumentRepo.GetMelodicInstruments();
+            if (musician == null || musician.MusicianCharacterData == null)
+                return allMelodic;
+
+            var prof = musician.MusicianCharacterData.Profile; // MusicianProfileData
+            if (prof == null) return allMelodic;
+
+            var allowedTypes = new HashSet<InstrumentType>();
+            if (prof.backingInstruments != null)
+                foreach (var t in prof.backingInstruments) allowedTypes.Add(t);
+            if (prof.leadInstruments != null)
+                foreach (var t in prof.leadInstruments) allowedTypes.Add(t);
+
+            var filtered = allMelodic.Where(i => allowedTypes.Contains(i.InstrumentType)).ToList();
+
+            // If the profile was empty or yielded nothing, don't block the flow.
+            return filtered.Count > 0 ? filtered : allMelodic;
+        }
+
+        // Role-aware
+        private IEnumerable<MIDIInstrumentSO> GetPermittedInstruments(
+            MusicianBase musician, TrackRole role)
+        {
+            var allMelodic = instrumentRepo.GetMelodicInstruments();
+            if (musician == null || musician.MusicianCharacterData == null) return allMelodic;
+
+            var prof = musician.MusicianCharacterData.Profile;
+            if (prof == null) return allMelodic;
+
+            // Choose the primary list based on role, with a secondary fallback.
+            List<InstrumentType> primary = null;
+            List<InstrumentType> secondary = null;
+
+            switch (role)
+            {
+                case TrackRole.Backing:
+                case TrackRole.Bassline:   // many bands treat bass as part of the backline
+                    primary = prof.backingInstruments;
+                    secondary = prof.leadInstruments;
+                    break;
+
+                case TrackRole.Melody:
+                case TrackRole.Harmony:
+                    primary = prof.leadInstruments;
+                    secondary = prof.backingInstruments;
+                    break;
+
+                default:
+                    primary = prof.backingInstruments;
+                    secondary = prof.leadInstruments;
+                    break;
+            }
+
+            IEnumerable<MIDIInstrumentSO> FilterBy(List<InstrumentType> list) =>
+                (list == null || list.Count == 0)
+                    ? Enumerable.Empty<MIDIInstrumentSO>()
+                    : allMelodic.Where(i => list.Contains(i.InstrumentType));
+
+            var filtered = FilterBy(primary).ToList();
+            if (filtered.Count == 0) filtered = FilterBy(secondary).ToList();
+
+            return filtered.Count > 0 ? filtered : allMelodic;
         }
     }
 }

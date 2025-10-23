@@ -27,5 +27,5 @@ MonoBehaviour:
   tch: 2
   emt: 5
   profile:
-    backingInstruments: 040000000600000007000000
-    leadInstruments: 040000000600000007000000
+    backingInstruments: 0400000008000000
+    leadInstruments: 0400000008000000
