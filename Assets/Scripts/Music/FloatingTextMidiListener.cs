@@ -1,6 +1,7 @@
 ﻿using ALWTTT.Managers;
 using ALWTTT.Music;
 using Melanchall.DryWetMidi.Standards;
+using System.Linq;
 using UnityEngine;
 
 public class FloatingTextMidiListener :
@@ -146,8 +147,11 @@ public class FloatingTextMidiListener :
 
         FxManager.Instance?.SpawnFloatingText(e.anchor, label, chordDir, chordColor);
 
-        // Helpful console trace while you’re tuning things:
-        Debug.Log($"[FT] {label}  ch={e.channel}  mus='{e.musicianId}'");
+        var notesPretty = (e.notes != null && e.notes.Count > 0)
+            ? string.Join(" ", e.notes.Select(NoteName))
+            : "";
+        Debug.Log($"<color=white>[FT] {label}  " +
+            $"notes=[{notesPretty}]  ch={e.channel}  mus='{e.musicianId}'</color>");
     }
 
     public void OnBeat(BeatGridEvent e)

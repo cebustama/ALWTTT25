@@ -280,6 +280,8 @@ namespace ALWTTT.Managers
 
             // PLAY the config
             var model = compositionUI.Model;
+            // RANDOMIZE SEED, COMMENT IN BUILDS?
+            midiGenPlayConfig.defaultSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
             var seconds = mm.PlayFromConfig(cfg, model.title, _spawned);
             if (seconds <= 0f) { isPlaying = false; yield break; }
 

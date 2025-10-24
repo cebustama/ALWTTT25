@@ -449,6 +449,11 @@ namespace ALWTTT.Managers
                     new List<TrackRole>();
             }
 
+            // Build a deterministic seed key
+            //var bandSig = ComputeBandSignature(band);
+            //var seedKey = $"{title ?? "jam"}::{bandSig}";
+            //settings.defaultSeed = StableHash32(seedKey);
+
             // Generate MIDI
             var midi = generator.GenerateSong(config);
 
