@@ -188,9 +188,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SongPartElementUI
   partLabelText: {fileID: 1388330816379133662}
-  timeSigAndTempoText: {fileID: 6278774084626423439}
+  partInfoText: {fileID: 6278774084626423439}
   tracksRoot: {fileID: 8324245859856535603}
   trackPrefab: {fileID: 7204861147157799044, guid: 3b88af465bfce2e4f8bb39f51455a535, type: 3}
+  useLogs: 0
 --- !u!1 &7665631722428482677
 GameObject:
   m_ObjectHideFlags: 0
@@ -256,7 +257,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 4/4 Slow
+  m_text: 4/4 Slow Ionian
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

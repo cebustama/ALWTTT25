@@ -44,8 +44,9 @@ namespace ALWTTT.UI
         public class PartEntry
         {
             public string label = "Part";
-            public string timeSignature = "4/4"; // TODO: Map enum
-            public string tempo = "Moderate"; // TODO: Map enum
+            public string timeSignature = "4/4";
+            public string tempo = "Very Fast";
+            public string tonality = "Ionian";
             public int measures = 8;
             public List<TrackEntry> tracks = new();
         }
@@ -54,7 +55,7 @@ namespace ALWTTT.UI
         public class SongModel
         {
             public string title = "";
-            public string theme = ""; // TODO: Map enum
+            public string theme = "";
             public readonly List<PartEntry> parts = new();
 
             public int CurrentPartIndex => 
@@ -151,6 +152,15 @@ namespace ALWTTT.UI
                 case CompositionCardType.Part_Intro: return TryAddIntro(tgtId, tgtName);
                 case CompositionCardType.Part_Solo: return TryAddSolo(tgtId, tgtName);
                 case CompositionCardType.Part_Outro: return TryAddOutro(tgtId, tgtName);
+
+                // ---------- Tonality ----------
+                case CompositionCardType.Tonality_Ionian:       return SetTonality("Ionian");
+                case CompositionCardType.Tonality_Dorian:       return SetTonality("Dorian");
+                case CompositionCardType.Tonality_Phrygian:     return SetTonality("Phrygian");
+                case CompositionCardType.Tonality_Lydian:       return SetTonality("Lydian");
+                case CompositionCardType.Tonality_Mixolydian:   return SetTonality("Mixolydian");
+                case CompositionCardType.Tonality_Aeolian:      return SetTonality("Aeolian");
+                case CompositionCardType.Tonality_Locrian:      return SetTonality("Locrian");
             }
 
             return false;
@@ -208,7 +218,7 @@ namespace ALWTTT.UI
             {
                 label = defaultPartLabel,
                 timeSignature = "4/4",
-                tempo = "1.00×"
+                tempo = "Very Fast"
             };
             model.parts.Add(p);
             AddPartUI(p);
@@ -234,6 +244,18 @@ namespace ALWTTT.UI
             if (!EnsureFirstPart()) return false;
             var part = model.CurrentPart;
             part.tempo = label;
+            partUIs[model.CurrentPartIndex].Bind(part);
+            RaisePartChanged();
+            return true;
+        }
+
+        private bool SetTonality(string tonality)
+        {
+            Log($"Setting Tonality {tonality}");
+
+            if (!EnsureFirstPart()) return false;
+            var part = model.CurrentPart;
+            part.tonality = tonality;
             partUIs[model.CurrentPartIndex].Bind(part);
             RaisePartChanged();
             return true;

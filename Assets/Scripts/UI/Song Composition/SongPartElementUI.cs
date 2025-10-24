@@ -8,7 +8,7 @@ namespace ALWTTT.UI
     {
         [Header("Labels")]
         [SerializeField] private TextMeshProUGUI partLabelText;
-        [SerializeField] private TextMeshProUGUI timeSigAndTempoText;
+        [SerializeField] private TextMeshProUGUI partInfoText;
 
         [Header("Tracks")]
         [SerializeField] private Transform tracksRoot;  // layout group
@@ -40,8 +40,8 @@ namespace ALWTTT.UI
             boundModel = model;
 
             if (partLabelText) partLabelText.text = model.label;
-            if (timeSigAndTempoText) timeSigAndTempoText.text = 
-                    $"{model.timeSignature}   {model.tempo}";
+            if (partInfoText) partInfoText.text = 
+                    $"{model.timeSignature} - {model.tempo} - {model.tonality}";
 
             // Rebuild tracks
             foreach (Transform c in tracksRoot) Destroy(c.gameObject);

@@ -24,11 +24,19 @@ namespace ALWTTT
         public enum CompositionCardType
         {
             None,
+            // Meter
             TimeSignature_4_4, TimeSignature_3_4, TimeSignature_6_8, TimeSignature_5_4,
+            // Tempo
             Tempo_Slow, Tempo_Fast, Tempo_VeryFast,
+            // Themes
             Theme_Love, Theme_Injustice, Theme_Party,
+            // Track Roles
             Track_Rhythm, Track_Backing, Track_Bassline, Track_Melody, Track_Harmony,
-            Part_Intro, Part_Solo, Part_Outro
+            // Parts
+            Part_Intro, Part_Solo, Part_Outro,
+            // Tonality
+            Tonality_Ionian, Tonality_Dorian, Tonality_Phrygian, Tonality_Lydian,
+            Tonality_Mixolydian, Tonality_Aeolian, Tonality_Locrian,
         }
 
         [Header("Domain")]
@@ -115,6 +123,15 @@ namespace ALWTTT
             { CompositionCardType.Part_Intro,          "Add an Intro played by the target musician." },
             { CompositionCardType.Part_Solo,           "Insert a Solo section by the target musician." },
             { CompositionCardType.Part_Outro,          "Add an Outro played by the target musician." },
+
+            // Tonality
+            {CompositionCardType.Tonality_Ionian,       "Set the part's tonality to ionian mode."},
+            {CompositionCardType.Tonality_Dorian,       "Set the part's tonality to dorian mode."},
+            {CompositionCardType.Tonality_Phrygian,     "Set the part's tonality to phrygian mode."},
+            {CompositionCardType.Tonality_Lydian,       "Set the part's tonality to lydian mode."},
+            {CompositionCardType.Tonality_Mixolydian,   "Set the part's tonality to mixolydian mode."},
+            {CompositionCardType.Tonality_Aeolian,      "Set the part's tonality to aeolian mode."},
+            {CompositionCardType.Tonality_Locrian,      "Set the part's tonality to locrian mode."},
         };
         #endregion
 

@@ -3,20 +3,19 @@ using ALWTTT.Characters.Band;
 using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
+
 using MidiGenPlay;
 using MidiGenPlay.Interfaces;
-using MidiGenPlay.MusicTheory;
 using MidiGenPlay.Services;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
+
 using UnityEngine;
 using static ALWTTT.CardData;
-using static MidiGenPlay.IntroMutator;
 using static MidiGenPlay.MusicTheory.MusicTheory;
-using static MidiGenPlay.SoloMutator;
 
 namespace ALWTTT.Managers
 {
@@ -572,6 +571,7 @@ namespace ALWTTT.Managers
             }
 
             // ---------- QUEUE MIDI INTENTS ----------
+            /*
             bool midiApplied = false;
             switch (c.CompositionType)
             {
@@ -619,10 +619,11 @@ namespace ALWTTT.Managers
 
                 default:
                     return false;
-            }
+            }*/
 
             // ---------- UPDATE UI / MODEL ----------
-            bool uiApplied = compositionUI == null || compositionUI.ApplyCard(card, target);
+            bool uiApplied = compositionUI == null 
+                || compositionUI.ApplyCard(card, target);
 
             // If UI accepted the card, consider it played.
             // (midiApplied can be false for TimeSig until the generator hook exists)
@@ -703,6 +704,7 @@ namespace ALWTTT.Managers
             {
                 var tr = GetTempoRangeFromLabel(p.tempo);
                 var ts = GetTimeSignatureFromLabel(p.timeSignature);
+                var tonality = GetTonalityFromLabel(p.tonality);
 
                 var part = new SongConfig.PartConfig
                 {
@@ -711,7 +713,7 @@ namespace ALWTTT.Managers
                     TempoRange = tr,
                     TimeSignature = ts,
                     Tracks = new List<SongConfig.PartConfig.TrackConfig>(),
-                    Tonality = Tonality.Ionian,
+                    Tonality = tonality,
                     RootNote = Melanchall.DryWetMidi.MusicTheory.NoteName.C
                 };
 
@@ -904,6 +906,21 @@ namespace ALWTTT.Managers
                 case "6/8": return TimeSignature.SixEight;
                 case "5/4": return TimeSignature.FiveFour;
                 default: return TimeSignature.FourFour;
+            }
+        }
+
+        private Tonality GetTonalityFromLabel(string label)
+        {
+            switch (label)
+            {
+                case "Ionian":      return Tonality.Ionian;
+                case "Dorian":      return Tonality.Dorian;
+                case "Phrygian":    return Tonality.Phrygian;
+                case "Lydian":      return Tonality.Lydian;
+                case "Mixolydian":  return Tonality.Mixolydian;
+                case "Aeolian":     return Tonality.Aeolian;
+                case "Locrian":     return Tonality.Locrian;
+                default:            return Tonality.Ionian;
             }
         }
 

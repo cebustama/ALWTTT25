@@ -1970,7 +1970,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 2a02a4f12bc6e504083042e7790ee803, type: 2}
     - target: {fileID: 8167336864662766119, guid: 84bebd3e8c7f3ed4f8193b147b71acb0, type: 3}
       propertyPath: useProceduralBacking
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8177869808379639446, guid: 84bebd3e8c7f3ed4f8193b147b71acb0, type: 3}
       propertyPath: m_AnchorMax.y
