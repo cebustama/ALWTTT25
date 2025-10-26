@@ -15,7 +15,7 @@ MonoBehaviour:
   voicingPreset: {fileID: 11400000, guid: 574064b73663389408f65972f800cbfe, type: 2}
   noteDensityMode: 1
   notesPerChord: 2
-  minNotesPerChord: 1
+  minNotesPerChord: 2
   maxNotesPerChord: 4
   source: 0
   lengthMode: 0

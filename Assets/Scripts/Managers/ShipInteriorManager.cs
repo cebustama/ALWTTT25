@@ -5,6 +5,7 @@ using ALWTTT.UI;
 using ALWTTT.Utils;
 
 using MidiGenPlay;
+using MidiGenPlay.Composition;
 using MidiGenPlay.Interfaces;
 using MidiGenPlay.Services;
 
@@ -36,6 +37,10 @@ namespace ALWTTT.Managers
         [SerializeField] private MidiGenPlayConfig midiGenPlayConfig;
         [SerializeField] private bool useProceduralRhythm = true;
         [SerializeField] private bool useProceduralBacking = true;
+
+        [Header("Melody (Dev)")]
+        [SerializeField] private MelodicLeadingConfig melodicConfig;
+        [SerializeField] private MelodyStrategyId melodyStrategyId;
 
         [Header("Refs")]
         [SerializeField] private ShipInteriorCanvas shipCanvas;
@@ -839,10 +844,14 @@ namespace ALWTTT.Managers
                         MusicianId = musicianId,
                         Instrument = melInst,
                         PercussionInstrument = percInst,
-                        Parameters = new TrackParameters 
-                        { 
-                            Pattern = pattern, 
-                            RhythmRecipe = recipe
+                        Parameters = new TrackParameters
+                        {
+                            Pattern = pattern,
+                            RhythmRecipe = recipe,
+
+                            // TODO: Get from musician/card/other
+                            melodyStrategyId = melodyStrategyId,
+                            melodicLeadingOverride = melodicConfig
                         }
                     };
 
