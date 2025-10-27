@@ -1,5 +1,6 @@
 using ALWTTT.Characters.Band;
 using ALWTTT.Encounters;
+using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace ALWTTT.Data
         // Band
         [SerializeField] private List<MusicianBase> musicianList;
         [SerializeField] private List<MusicianHealthData> musicianHealthDataList;
+        [SerializeField] private List<MusicianGameplayData> musicianGameplayDataList;
         [SerializeField] private List<SongData> currentSongList;
 
         [Serializable]
@@ -84,6 +86,12 @@ namespace ALWTTT.Data
         {
             get => musicianHealthDataList;
             set => musicianHealthDataList = value;
+        }
+
+        public List<MusicianGameplayData> MusicianGameplayDataList
+        {
+            get => musicianGameplayDataList;
+            set => musicianGameplayDataList = value;
         }
 
         public List<SongData> CurrentSongList
@@ -273,6 +281,7 @@ namespace ALWTTT.Data
             IsFinalEncounter = false;
 
             musicianHealthDataList = new List<MusicianHealthData>();
+            musicianGameplayDataList = new List<MusicianGameplayData>();
 
             CurrentSectorMapState = null; // must be generated on first entry to SectorMap scene
             Fans = 0;
@@ -398,6 +407,44 @@ namespace ALWTTT.Data
 
             return null;
         }
+
+        public MusicianGameplayData SetMusicianGameplayData(
+            string id,
+            MelodicLeadingConfig startingMelodicLeading)
+        {
+            var newData = new MusicianGameplayData
+            {
+                CharacterId = id,
+                CurrentMelodicLeading = startingMelodicLeading,
+                UnlockedMelodicLeadings = new List<MelodicLeadingConfig>()
+            };
+
+            if (startingMelodicLeading != null)
+                newData.UnlockedMelodicLeadings.Add(startingMelodicLeading);
+
+            // Replace if exists
+            var existing = musicianGameplayDataList.Find(x => x.CharacterId == id);
+            if (existing != null)
+            {
+                musicianGameplayDataList.Remove(existing);
+                musicianGameplayDataList.Add(newData);
+            }
+            else
+            {
+                musicianGameplayDataList.Add(newData);
+            }
+
+            return newData;
+        }
+
+        public MusicianGameplayData GetMusicianGameplayData(string id)
+        {
+            foreach (var data in musicianGameplayDataList)
+                if (data.CharacterId == id)
+                    return data;
+            return null;
+        }
+
         public void AddMusicianToBand(MusicianCharacterData newMusician)
         {
             var musicianPrefab = newMusician.CharacterPrefab;
@@ -407,7 +454,14 @@ namespace ALWTTT.Data
             GrantCardsToMusician(newMusician.CharacterId, newMusician.BaseCards);
 
             AvailableMusiciansList.Remove(musicianPrefab);
+
             SetMusicianHealthData(newMusician.CharacterId, 0, newMusician.InitialMaxStress);
+
+            var startingMelodicLeading = newMusician.Profile != null
+                ? newMusician.Profile.defaultMelodicLeading
+                : null;
+
+            SetMusicianGameplayData(newMusician.CharacterId, startingMelodicLeading);
         }
 
         public bool RemoveMusicianFromBand(string musicianId)
@@ -506,5 +560,61 @@ namespace ALWTTT.Data
 
         }
         #endregion
+    }
+
+    [Serializable]
+    public class MusicianHealthData
+    {
+        [SerializeField] private string characterId;
+        [SerializeField] private int maxStress;
+        [SerializeField] private int currentStress;
+
+        public int MaxStress
+        {
+            get => maxStress;
+            set => maxStress = value;
+        }
+
+        public int CurrentStress
+        {
+            get => currentStress;
+            set => currentStress = value;
+        }
+
+        public string CharacterId
+        {
+            get => characterId;
+            set => characterId = value;
+        }
+    }
+
+    [Serializable]
+    public class MusicianGameplayData
+    {
+        [SerializeField] private string characterId;
+
+        // Current melodic leading profile this musician will use by default
+        [SerializeField] private MelodicLeadingConfig currentMelodicLeading;
+
+        // Future growth. The musician can unlock alternate melodic personas.
+        [SerializeField] private List<MelodicLeadingConfig> unlockedMelodicLeadings;
+
+        public string CharacterId
+        {
+            get => characterId;
+            set => characterId = value;
+        }
+
+        public MelodicLeadingConfig CurrentMelodicLeading
+        {
+            get => currentMelodicLeading;
+            set => currentMelodicLeading = value;
+        }
+
+        public List<MelodicLeadingConfig> UnlockedMelodicLeadings
+        {
+            get => unlockedMelodicLeadings;
+            set => unlockedMelodicLeadings = value;
+        }
     }
 }

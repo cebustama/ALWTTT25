@@ -1,4 +1,5 @@
 ﻿using ALWTTT.Characters.Band;
+using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static ALWTTT.CardData;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace ALWTTT.UI
 {
@@ -38,6 +40,12 @@ namespace ALWTTT.UI
             public string musicianId;
             public string role;        // Rhythm / Backing / Bassline / Melody / Harmony
             public string info;        // “Funk Groove”, “Pentatonic”, card name, etc
+
+            // per-track style overrides captured from the card or musician
+            public bool hasMelodyStrategyOverride;
+            public MelodyStrategyId melodyStrategyIdOverride;
+            public bool hasMelodicLeadingOverride;
+            public MelodicLeadingConfig melodicLeadingOverride;
         }
 
         [Serializable]
@@ -138,15 +146,15 @@ namespace ALWTTT.UI
 
                 // ---------- Tracks ----------
                 case CompositionCardType.Track_Rhythm: 
-                    return TryAddTrack(tgtId, tgtName, "Rhythm", data.CardName);
+                    return TryAddTrack(tgtId, tgtName, "Rhythm", data.CardName, data);
                 case CompositionCardType.Track_Backing: 
-                    return TryAddTrack(tgtId, tgtName, "Backing", data.CardName);
+                    return TryAddTrack(tgtId, tgtName, "Backing", data.CardName, data);
                 case CompositionCardType.Track_Bassline: 
-                    return TryAddTrack(tgtId, tgtName, "Bassline", data.CardName);
+                    return TryAddTrack(tgtId, tgtName, "Bassline", data.CardName, data);
                 case CompositionCardType.Track_Melody: 
-                    return TryAddTrack(tgtId, tgtName, "Melody", data.CardName);
+                    return TryAddTrack(tgtId, tgtName, "Melody", data.CardName, data);
                 case CompositionCardType.Track_Harmony: 
-                    return TryAddTrack(tgtId, tgtName, "Harmony", data.CardName);
+                    return TryAddTrack(tgtId, tgtName, "Harmony", data.CardName, data);
 
                 // ---------- Parts ----------
                 case CompositionCardType.Part_Intro: return TryAddIntro(tgtId, tgtName);
@@ -262,7 +270,8 @@ namespace ALWTTT.UI
         }
 
         private bool TryAddTrack(
-            string musicianId, string musicianName, string role, string info)
+            string musicianId, string musicianName, 
+            string role, string info, CardData sourceCard)
         {
             if (string.IsNullOrEmpty(musicianId)) return false;
 
@@ -276,12 +285,30 @@ namespace ALWTTT.UI
             if (part.tracks.Any(t => t.musicianId == musicianId))
                 return false;
 
-            part.tracks.Add(new TrackEntry
+            var entry = new TrackEntry
             {
                 musicianId = musicianId,
                 role = role,
-                info = info
-            });
+                info = info,
+
+                hasMelodyStrategyOverride = 
+                    sourceCard != null && sourceCard.OverrideMelodyStrategy,
+                hasMelodicLeadingOverride = 
+                    sourceCard != null && sourceCard.OverrideMelodicLeading
+            };
+
+            // Only copy specific fields if they were flagged
+            if (entry.hasMelodyStrategyOverride)
+            {
+                entry.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
+            }
+            if (entry.hasMelodicLeadingOverride)
+            {
+                entry.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
+            }
+
+            // Add new track entry
+            part.tracks.Add(entry);
 
             // Update UI
             partUIs[model.CurrentPartIndex].AddOrUpdateTrack(musicianId, role, info);

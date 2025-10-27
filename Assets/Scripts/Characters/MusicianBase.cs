@@ -58,6 +58,22 @@ namespace ALWTTT.Characters.Band
                     MusicianCharacterData.CharacterId, stats.CurrentStress, stats.MaxStress);
             }
 
+            // --- GameplayData sync (melodic personality etc.) ---
+            var pd = GameManager.PersistentGameplayData;
+            var gData = pd.GetMusicianGameplayData(MusicianCharacterData.CharacterId);
+            if (gData == null)
+            {
+                // Seed from character profile if not present
+                var startingMelodicLeading =
+                    MusicianCharacterData.Profile != null
+                        ? MusicianCharacterData.Profile.defaultMelodicLeading
+                        : null;
+
+                pd.SetMusicianGameplayData(
+                    MusicianCharacterData.CharacterId,
+                    startingMelodicLeading);
+            }
+
             stats.OnBreakdown += OnBreakdown;
             stats.SetCurrentStress(stats.CurrentStress);
 
@@ -136,32 +152,5 @@ namespace ALWTTT.Characters.Band
             // CharacterAnimator?.SetTrigger("Beat");
         }
 
-    }
-
-    // TODO: Persistant stats
-    [Serializable]
-    public class MusicianHealthData
-    {
-        [SerializeField] private string characterId;
-        [SerializeField] private int maxStress;
-        [SerializeField] private int currentStress;
-
-        public int MaxStress
-        {
-            get => maxStress;
-            set => maxStress = value;
-        }
-
-        public int CurrentStress
-        {
-            get => currentStress;
-            set => currentStress = value;
-        }
-
-        public string CharacterId
-        {
-            get => characterId;
-            set => characterId = value;
-        }
     }
 }

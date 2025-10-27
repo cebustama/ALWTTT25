@@ -1,5 +1,6 @@
 using ALWTTT.Characters.Band;
 using MidiGenPlay;
+using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,6 +43,8 @@ namespace ALWTTT.Data
         public List<CardData> BaseCards => baseCards;
 
         public MusicianProfileData Profile => profile;
+        public MelodicLeadingConfig DefaultMelodicLeading =>
+            profile != null ? profile.defaultMelodicLeading : null;
 
         public int CHR => chr;
         public int TCH => tch;
@@ -53,7 +56,15 @@ namespace ALWTTT.Data
         {
             public List<InstrumentType> backingInstruments;
             public List<InstrumentType> leadInstruments;
-            // TODO percussion
+
+            // Rhythm
+
+            // Backing
+
+            // Melodies
+            public MelodicLeadingConfig defaultMelodicLeading;
+        
+            // Harmonies
         }
     }
 }

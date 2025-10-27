@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Track_Melody
+  m_Name: Track_Melody-ScaleFlow
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.CardData
   id: Track_Melody
-  cardName: Track_Melody
+  cardName: Track_Melody (Scale)
   phase: 0
   rarity: 0
   grooveCost: 0
@@ -27,5 +27,9 @@ MonoBehaviour:
   exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList: []
+  overrideMelodyStrategy: 1
+  melodyStrategyIdOverride: 1
+  overrideMelodicLeading: 0
+  melodicLeadingOverride: {fileID: 0}
   keywordsList: 
   audioType: 0

@@ -1,6 +1,7 @@
 using ALWTTT.Actions;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
+using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -56,6 +57,12 @@ namespace ALWTTT
         [SerializeField] private List<CardConditionData> cardConditionDataList;
         [SerializeField] private List<CharacterActionData> cardActionDataList;
 
+        [Header("Composition Style")]
+        [SerializeField] private bool overrideMelodyStrategy = false;
+        [SerializeField] private MelodyStrategyId melodyStrategyIdOverride;
+        [SerializeField] private bool overrideMelodicLeading = false;
+        [SerializeField] private MelodicLeadingConfig melodicLeadingOverride;
+
         [Header("Description")]
         [SerializeField] private List<SpecialKeywords> keywordsList;
 
@@ -81,6 +88,12 @@ namespace ALWTTT
         public CardType CardType => cardType;
         public List<CardConditionData> CardConditionDataList => cardConditionDataList;
         public List<CharacterActionData> CardActionDataList => cardActionDataList ?? EmptyActions;
+
+        public bool OverrideMelodyStrategy => overrideMelodyStrategy;
+        public MelodyStrategyId MelodyStrategyIdOverride => melodyStrategyIdOverride;
+        public bool OverrideMelodicLeading => overrideMelodicLeading;
+        public MelodicLeadingConfig MelodicLeadingOverride => melodicLeadingOverride;
+
         public List<SpecialKeywords> KeywordsList => keywordsList ?? EmptyKeywords;
         public AudioActionType AudioType => audioType;
 

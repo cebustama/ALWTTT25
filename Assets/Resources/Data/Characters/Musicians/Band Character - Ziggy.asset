@@ -27,5 +27,6 @@ MonoBehaviour:
   tch: 1
   emt: 3
   profile:
-    backingInstruments: 06000000
-    leadInstruments: 06000000
+    backingInstruments: 08000000
+    leadInstruments: 08000000
+    defaultMelodicLeading: {fileID: 11400000, guid: 6c36507e80195e542aec50a3888ac33d, type: 2}

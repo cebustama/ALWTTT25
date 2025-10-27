@@ -29,3 +29,4 @@ MonoBehaviour:
   profile:
     backingInstruments: 0400000008000000
     leadInstruments: 0400000008000000
+    defaultMelodicLeading: {fileID: 11400000, guid: b4f7cddb4dba6a345bf8d03c365f5376, type: 2}

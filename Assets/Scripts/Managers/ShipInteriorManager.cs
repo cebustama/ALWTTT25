@@ -838,6 +838,39 @@ namespace ALWTTT.Managers
                     Log($"[Jam] Track role={role} mus={musicianId} " +
                         $"inst='{instName}' patt='{pattName}'");
 
+                    // Look up persistent per-musician gameplay state
+                    var pd = GameManager.PersistentGameplayData;
+                    var mgd = pd != null
+                        ? pd.GetMusicianGameplayData(musicianId)
+                        : null;
+
+                    // BASELINE melodic config for this track = musician's current profile
+                    // If the musician has no gameplay data yet (edge case), fall back to the
+                    // ShipInteriorManager's inspector default (melodicConfig).
+                    MelodicLeadingConfig baseMelodicCfg =
+                        (mgd != null && mgd.CurrentMelodicLeading != null)
+                            ? mgd.CurrentMelodicLeading
+                            : melodicConfig;
+
+                    // BASELINE strategyId comes from the ShipInteriorManager inspector for now.
+                    var baseStrategyId = melodyStrategyId;
+
+                    // CARD OVERRIDES from the composition UI model
+                    var finalMelodicCfg = baseMelodicCfg;
+                    var finalStrategyId = baseStrategyId;
+
+                    // Get from UI model
+                    if (trModel.hasMelodicLeadingOverride 
+                        && trModel.melodicLeadingOverride != null)
+                    {
+                        finalMelodicCfg = trModel.melodicLeadingOverride;
+                    }
+                    if (trModel.hasMelodyStrategyOverride)
+                    {
+                        finalStrategyId = trModel.melodyStrategyIdOverride;
+                    }
+
+                    // Build track config
                     var tcfg = new SongConfig.PartConfig.TrackConfig
                     {
                         Role = role,
@@ -849,9 +882,8 @@ namespace ALWTTT.Managers
                             Pattern = pattern,
                             RhythmRecipe = recipe,
 
-                            // TODO: Get from musician/card/other
-                            melodyStrategyId = melodyStrategyId,
-                            melodicLeadingOverride = melodicConfig
+                            melodyStrategyId = finalStrategyId,
+                            melodicLeadingOverride = finalMelodicCfg
                         }
                     };
 
