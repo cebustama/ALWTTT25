@@ -1,0 +1,209 @@
+fileFormatVersion: 2
+guid: 2e7b7d4ad13b36b499bc4d788250359d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2476929091366914985
+    second: humo efecto_0
+  - first:
+      213: -2459782832515771317
+    second: humo efecto_1
+  - first:
+      213: 2798156795207553720
+    second: humo efecto_2
+  - first:
+      213: 3351764353877462151
+    second: humo efecto_3
+  - first:
+      213: -7861292281560802991
+    second: humo efecto_4
+  - first:
+      213: -9105157648729137501
+    second: humo efecto_5
+  - first:
+      213: -3659047413228478467
+    second: humo efecto_6
+  - first:
+      213: 8147510471548964240
+    second: humo efecto_7
+  - first:
+      213: -3419962415943499165
+    second: humo efecto_8
+  - first:
+      213: 4513241138129962464
+    second: humo efecto_9
+  - first:
+      213: 7765437462822562832
+    second: humo efecto_10
+  - first:
+      213: -8399568383705785208
+    second: humo efecto_11
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: humo efecto_0
+      rect:
+        serializedVersion: 2
+        x: 1427
+        y: 646
+        width: 341
+        height: 1012
+      alignment: 9
+      pivot: {x: 0.3988542, y: 0.024857352}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ab81c0a2e1df5220800000000000000
+      internalID: 2476929091366914985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: humo efecto_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 522
+        height: 985
+      alignment: 9
+      pivot: {x: 0.6049422, y: 0.03655042}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1595c02225417e290800000000000000
+      internalID: -7861292281560802991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      humo efecto_0: 2476929091366914985
+      humo efecto_1: -2459782832515771317
+      humo efecto_10: 7765437462822562832
+      humo efecto_11: -8399568383705785208
+      humo efecto_2: 2798156795207553720
+      humo efecto_3: 3351764353877462151
+      humo efecto_4: -7861292281560802991
+      humo efecto_5: -9105157648729137501
+      humo efecto_6: -3659047413228478467
+      humo efecto_7: 8147510471548964240
+      humo efecto_8: -3419962415943499165
+      humo efecto_9: 4513241138129962464
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

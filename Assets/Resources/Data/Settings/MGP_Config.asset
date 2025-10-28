@@ -19,14 +19,23 @@ MonoBehaviour:
   logRepository: 0
   logGenerator: 1
   logMidiMusicManager: 1
+  debugDumpMidi: 0
   defaultTonality: 0
   defaultTimeSignature: 0
   defaultMeasures: 4
   defaultChordSubdivisions: 1
   preferSeventhInUI: 0
-  defaultSeed: 0
+  defaultSeed: 560283958
   metronomeChannelVolume: 110
   chordLabelTickTolerance: 2
   voiceLeading: {fileID: 11400000, guid: 574064b73663389408f65972f800cbfe, type: 2}
   melodicLeading: {fileID: 11400000, guid: b3b4d350335f0c249a9bebdfc85accf1, type: 2}
   harmonicLeading: {fileID: 11400000, guid: f3444974767377b438523faf12dc30a7, type: 2}
+  tonalityProfiles:
+  - {fileID: 11400000, guid: e64194e731e75b64aa62b2ea3c4efc76, type: 2}
+  - {fileID: 11400000, guid: 3ca0c8b0bce30874ab82f2e341d0c2c1, type: 2}
+  - {fileID: 11400000, guid: dffca635c0ca1d748aedaffc3c7d85c8, type: 2}
+  - {fileID: 11400000, guid: c01cc65eebc537842853649e2af6af6f, type: 2}
+  - {fileID: 11400000, guid: 4717a088c9a76784c9d4019e95e646ff, type: 2}
+  - {fileID: 11400000, guid: b648d79f40b7a144e9a9fb3199202226, type: 2}
+  - {fileID: 11400000, guid: db9019f5439b46e4f9bb3069831fa2d1, type: 2}

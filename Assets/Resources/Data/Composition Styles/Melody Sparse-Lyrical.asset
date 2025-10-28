@@ -16,9 +16,9 @@ MonoBehaviour:
   noteDensityMode: 1
   notesPerChord: 2
   minNotesPerChord: 1
-  maxNotesPerChord: 2
+  maxNotesPerChord: 3
   source: 1
-  lengthMode: 2
+  lengthMode: 0
   fixedSubdivisions: 1
   maxStepSemitones: 4
   chanceRepeatNote: 0.25

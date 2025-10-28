@@ -58,16 +58,6 @@ namespace ALWTTT.Managers
             MidiMusicManager.HighlightMode.DuckOthers;
         private string _nextHighlightMusicianId;
 
-        // TODO: Intro/Outro type
-        private string _nextIntroMusicianId;
-        private string _nextOutroMusicianId;
-
-        // TODO: Solo type
-        private string _nextSoloMusicianId;
-
-        private string _nextAltTrackMusicianId;
-        private string _nextAltStrategyId;
-
         private bool isPlaying;
         private bool inRehearsal = false;
 
@@ -114,12 +104,13 @@ namespace ALWTTT.Managers
 
                 shipCanvas.PopulateHighlightDropdown(items, id => _nextHighlightMusicianId = id, true);
 
+                /*
                 shipCanvas.PopulateIntroDropdown(
                     items, id => { _nextIntroMusicianId = id; composeAddIntro = !string.IsNullOrEmpty(id); }, includeNoneOption: true);
                 shipCanvas.PopulateOutroDropdown(
                     items, id => { _nextOutroMusicianId = id; composeAddOutro = !string.IsNullOrEmpty(id); }, includeNoneOption: true);
                 shipCanvas.PopulateSoloDropdown(
-                    items, id => _nextSoloMusicianId = id, includeNoneOption: true);
+                    items, id => _nextSoloMusicianId = id, includeNoneOption: true);*/
 
                 shipCanvas.HookLayeredEntranceToggle(v => composeUseLayeredEntrances = v, composeUseLayeredEntrances);
                 shipCanvas.HookEnablePPToggle(v => composeEnablePostProcessing = v, composeEnablePostProcessing);
@@ -134,13 +125,14 @@ namespace ALWTTT.Managers
                 shipCanvas.PopulateTempoScaleDropdown(tempoOptions,
                     factor => MidiMusicManager?.ScheduleNextSongTempoScale(factor), defaultIndex: 1);
 
+                /*
                 // Alternate Track dropdowns (keep for legacy UI testing)
                 shipCanvas.PopulateAlternateTrackDropdown(items, id => _nextAltTrackMusicianId = id, includeNoneOption: true);
                 var strategies = new List<(string id, string label)>
                 {
                     ("busier", "Busier"), ("sparser", "Sparser"), ("rotate1", "Rotate 1 beat"), ("rotate2", "Rotate 2 beats"),
                 };
-                shipCanvas.PopulateAlternateStrategyDropdown(strategies, id => _nextAltStrategyId = id, includeNoneOption: true);
+                shipCanvas.PopulateAlternateStrategyDropdown(strategies, id => _nextAltStrategyId = id, includeNoneOption: true);*/
             }
 
             SetHandVisible(false);

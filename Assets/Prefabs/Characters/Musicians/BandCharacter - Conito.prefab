@@ -91,10 +91,18 @@ PrefabInstance:
     - target: {fileID: 2094732631458172625, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 2bdc8ac6f4da69247aad7dc400f5471c, type: 3}
+      objectReference: {fileID: 21300000, guid: d78a26a29c83bb24f9edfa24f9d7fb55, type: 3}
     - target: {fileID: 2094732631458172625, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_WasSpriteAssigned
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2311108881714418578, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2311108881714418578, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2632035599939022728, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_LocalScale.x
