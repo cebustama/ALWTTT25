@@ -24,8 +24,36 @@ namespace ALWTTT.Managers
     {
         private const string DebugTag = "<color=green>[Rehearsal]</color>";
 
+        #region Jam
+        private enum JamState
+        {
+            Idle,                   // Not in a jam session
+            BuildingCurrentPart,    // Player is building the first (or current) part before any playback
+            PlayingCurrentPart,     // A confirmed part is currently playing in loop
+            BuildingNextPart,       // While the current part is looping, player is drafting the next part
+            Ended                   // Jam is over
+        }
+
+        [Serializable]
+        public class JamRules
+        {
+            // How many loops each part should play before we either transition or stop
+            public int loopsPerPart = 3;
+
+            // How many cards to draw at the start of each build phase
+            public int drawPerPart = 5;
+
+            // How much "energy" the player has to spend on cards each build phase
+            public int energyPerPart = 3;
+        }
+
+        #endregion
+
         [Header("Spawn Points")]
         [SerializeField] private List<Transform> musicianPosList;
+
+        [Header("Jam Rules / Runtime")]
+        [SerializeField] private JamRules jamRules = new JamRules();
 
         [Header("Cards / Hand")]
         [SerializeField] private HandController shipHand;
@@ -34,6 +62,8 @@ namespace ALWTTT.Managers
 
         [Header("Composition")]
         [SerializeField] private SongCompositionUI compositionUI;
+        // TODO: Access through SongCompositionUI? Or not?
+        [SerializeField] private LoopsTimerUI loopsTimerUI;
         [SerializeField] private MidiGenPlayConfig midiGenPlayConfig;
         [SerializeField] private bool useProceduralRhythm = true;
         [SerializeField] private bool useProceduralBacking = true;
@@ -62,6 +92,18 @@ namespace ALWTTT.Managers
 
         private bool isPlaying;
         private bool inRehearsal = false;
+
+        // Jamming
+        private JamState jamState = JamState.Idle;
+        private int currentEnergy = 0;
+        private int loopsRemainingForCurrentPart = 0;
+        private int loopsTotalForCurrentPart = 0;
+        private int currentPartIndex = -1;
+        private bool nextPartIsReady = false;
+
+        private float currentLoopStartTime = 0f;
+        private float currentLoopDurationSeconds = 0f;
+
 
         private readonly List<MusicianBase> _spawned = new();
         public SongCompositionUI.SongModel GetCurrentComposition() => compositionUI?.Model;
@@ -154,6 +196,127 @@ namespace ALWTTT.Managers
             Log($"[Jam] Melody patterns: {patternRepo.GetAllMelodyPatterns().Count()}");
         }
 
+        private void Update()
+        {
+            // Only care about jam looping logic if we are mid-jam
+            if (!inRehearsal) return;
+            if (jamState != JamState.BuildingNextPart &&
+                jamState != JamState.PlayingCurrentPart) return;
+
+            var mm = MidiMusicManager;
+            if (mm == null) return;
+
+            bool midiIsPlaying = mm.IsAnySongPlaying();
+
+            if (!midiIsPlaying && isPlaying)
+            {
+                HandleLoopFinished();
+            }
+
+            // Update loop progress UI in real time
+            if (midiIsPlaying && isPlaying && loopsTimerUI != null 
+                && currentLoopDurationSeconds > 0f)
+            {
+                // How much of the CURRENT loop run has elapsed?
+                float elapsed = Time.time - currentLoopStartTime;
+                float pct = Mathf.Clamp01(elapsed / currentLoopDurationSeconds);
+
+                // Which numbered loop are we in right now (0-based)?
+                int loopsCompleted = loopsTotalForCurrentPart - loopsRemainingForCurrentPart;
+                int currentLoopIdx0 = Mathf.Max(0, loopsCompleted);
+                loopsTimerUI.SetProgress(currentLoopIdx0, pct);
+            }
+        }
+
+        /// <summary>
+        /// Called when one pass of the currently playing part just ended.
+        /// Handles decrementing loopsRemainingForCurrentPart, deciding whether to replay,
+        /// or transition to the next part / end the jam.
+        /// </summary>
+        private void HandleLoopFinished()
+        {
+            isPlaying = false;
+
+            loopsRemainingForCurrentPart--;
+
+            Log("[Jam] Loop finished. loopsRemainingForCurrentPart=" 
+                + loopsRemainingForCurrentPart);
+
+            if (loopsRemainingForCurrentPart > 0)
+            {
+                // Replay the same part again
+                PlaySinglePartLoop(currentPartIndex);
+                return;
+            }
+
+            // No loops left for this part.
+            // If we already have a next part confirmed and ready (nextPartIsReady),
+            // we advance to that part and reset loop counters.
+            if (nextPartIsReady)
+            {
+                AdvanceToNextPart();
+                return;
+            }
+
+            // Otherwise, end the jam.
+            EndJam();
+        }
+
+        /// <summary>
+        /// Move from the old confirmed part (A) to the newly confirmed next part (B),
+        /// reset the loop counter, start looping B, and give the player cards/energy
+        /// to draft the following part (C).
+        /// </summary>
+        private void AdvanceToNextPart()
+        {
+            Log("[Jam] TODO: AdvanceToNextPart()");
+
+            // 1. currentPartIndex++
+            //    currentPartIndex = currentPartIndex + 1;
+
+            // 2. loopsRemainingForCurrentPart = jamRules.loopsPerPart;
+            //    loopsTotalForCurrentPart    = jamRules.loopsPerPart;
+
+            // 3. float secs = PlaySinglePartLoop(currentPartIndex);
+            //    currentLoopDurationSeconds = secs;
+            //    currentLoopStartTime = Time.time;
+
+            // 4. loopsTimerUI.BuildBars(loopsTotalForCurrentPart);
+            //    loopsTimerUI.SetProgress(0, 0f);
+
+            // 5. PrepareRehearsalDeck();
+            //    currentEnergy = jamRules.energyPerPart;
+            //    jamState = JamState.BuildingNextPart;
+
+            // NOTE: this depends on SongCompositionUI having a concept of
+            // "the next drafted part" being committed into Model.parts.
+        }
+
+        /// <summary>
+        /// Ends the jam session:
+        /// - Hide hand and composition UI
+        /// - Reset state machine
+        /// - Optionally go back to map or just idle in the ship
+        /// </summary>
+        private void EndJam()
+        {
+            Log("[Jam] Ending Jam.");
+
+            jamState = JamState.Ended;
+            inRehearsal = false;
+            isPlaying = false;
+
+            SetHandVisible(false);
+            SetCompositionVisible(false);
+
+            if (loopsTimerUI != null)
+            {
+                loopsTimerUI.ClearProgress();
+            }
+
+            // For MVP we just stop and leave you in the ship.
+        }
+
         private void PrepareRehearsalDeck()
         {
             var gd = GameManager.GameplayData;
@@ -196,14 +359,17 @@ namespace ALWTTT.Managers
 
         private void OnCompose()
         {
-            if (inRehearsal) return;
+            if (inRehearsal || jamState != JamState.Idle)
+                return;
 
             shipCanvas?.SetMainButtonsVisible(false);
-            BeginRehearsalSession();
+            //BeginRehearsalSession();
+            StartJam();
         }
 
         private void OnPlayPressed()
         {
+            /*
             if (isPlaying) return;
             if (!inRehearsal) return;
 
@@ -211,7 +377,200 @@ namespace ALWTTT.Managers
             SetCompositionVisible(false);
 
             // Go play using the already-queued intents (Intro/Solo/Outro/Tempo/ReplaceTrack)
-            StartCoroutine(ComposeAndPreviewRoutine());
+            StartCoroutine(ComposeAndPreviewRoutine());*/
+
+            if (!inRehearsal) return;
+
+            // Case 1: first time we press Play
+            if (jamState == JamState.BuildingCurrentPart)
+            {
+                // lock Part A and start looping it
+                ConfirmCurrentPartAndStartPlaying();
+                return;
+            }
+
+            // Case 2: later presses may confirm the drafted "next part"
+            // TODO: wire this in once SongCompositionUI supports draftPart.
+            if (jamState == JamState.BuildingNextPart)
+            {
+                // TODO: ConfirmNextDraftPartAndQueueForPlayback();
+                Log("[Jam] TODO: confirm next drafted part on Play press.");
+                return;
+            }
+
+            // Fallback / legacy behavior (non-jam preview path)
+            if (jamState == JamState.Idle)
+            {
+                if (isPlaying) return;
+
+                // Legacy path: hide hand & composition and preview the entire song in one go.
+                SetHandVisible(false);
+                SetCompositionVisible(false);
+                StartCoroutine(ComposeAndPreviewRoutine());
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Begins an interactive Jam session:
+        /// - Shows the composition panel and the hand
+        /// - Draws the initial hand
+        /// - Resets energy
+        /// - Prepares Part A as an editable part in SongCompositionUI
+        /// State after this call: BuildingCurrentPart
+        /// </summary>
+        private void StartJam()
+        {
+            Log("[Jam] StartJam()");
+
+            inRehearsal = true; // legacy flag
+            jamState = JamState.BuildingCurrentPart;
+
+            SetHandVisible(true);
+            SetCompositionVisible(true);
+
+            if (compositionUI) compositionUI.ResetSession();
+            compositionUI?.PopulateMusicianIcons(_spawned);
+
+            PrepareRehearsalDeck();
+
+            currentEnergy = jamRules.energyPerPart;
+
+            if (loopsTimerUI != null)
+            {
+                loopsTimerUI.ClearProgress();
+                loopsTimerUI.SetBarsVisible(false);
+            }
+
+            Log("[Jam] Now in BuildingCurrentPart. " +
+                "Player can play composition cards into the first part.");
+        }
+
+        /// <summary>
+        /// Player pressed Play for the first time:
+        /// Lock in the current built part as Part[0],
+        /// start looping it for jamRules.loopsPerPart,
+        /// and transition to PlayingCurrentPart / BuildingNextPart phase.
+        /// </summary>
+        private void ConfirmCurrentPartAndStartPlaying()
+        {
+            if (jamState != JamState.BuildingCurrentPart)
+            {
+                Log("[Jam] ConfirmCurrentPartAndStartPlaying() ignored: " +
+                    "not in BuildingCurrentPart");
+                return;
+            }
+
+            Log("[Jam] Confirming first part and starting loop playback.");
+
+            currentPartIndex = 0;
+            loopsTotalForCurrentPart = jamRules.loopsPerPart;
+            loopsRemainingForCurrentPart = jamRules.loopsPerPart;
+
+            // start playback of Part[0] and remember its duration
+            float loopSeconds = PlaySinglePartLoop(currentPartIndex);
+            if (loopSeconds <= 0f)
+            {
+                Log("[Jam] Failed to start first loop.");
+                return;
+            }
+
+            currentLoopDurationSeconds = loopSeconds;
+            currentLoopStartTime = Time.time;
+
+            // build and show the timeline
+            if (loopsTimerUI != null)
+            {
+                loopsTimerUI.BuildBars(loopsTotalForCurrentPart);
+                loopsTimerUI.SetProgress(loopIndex0: 0, loopProgress01: 0f);
+                loopsTimerUI.SetBarsVisible(true);
+            }
+
+            //  Part A is looping and the player is drafting Part B.
+            jamState = JamState.BuildingNextPart;
+
+            // Give the player new energy + new cards for drafting the NEXT part
+            currentEnergy = jamRules.energyPerPart;
+            PrepareRehearsalDeck();
+
+            // nextPartIsReady = false; // they haven't confirmed Part B yet
+            Log("[Jam] Now looping Part 0 and allowing the player to draft the next part.");
+        }
+
+        /// <summary>
+        /// Build a SongConfig that only contains the requested partIndex,
+        /// tell MidiMusicManager to play it once,
+        /// and return the duration (in seconds) of that generated part.
+        /// Also flips isPlaying = true so Update() can watch for loop end.
+        /// </summary>
+        private float PlaySinglePartLoop(int partIndex)
+        {
+            var mm = MidiMusicManager.Instance;
+            if (mm == null)
+            {
+                Debug.LogError($"{DebugTag} MidiMusicManager is null");
+                return 0f;
+            }
+
+            // Build a SongConfig that only includes the requested part.
+            // For now we reuse BuildSongConfigFromCompositionUI() and then
+            // strip it down to just the one part in code. Later we can make
+            // a cleaner BuildSongConfigForPart(partIndex) helper.
+            var fullCfg = BuildSongConfigFromCompositionUI();
+            if (fullCfg == null)
+            {
+                Debug.LogError($"{DebugTag} BuildSongConfigFromCompositionUI() " +
+                    $"returned null or empty.");
+                return 0f;
+            }
+
+            if (partIndex < 0 || partIndex >= fullCfg.Parts.Count)
+            {
+                Debug.LogError($"{DebugTag} Invalid partIndex " + partIndex);
+                return 0f;
+            }
+
+            // Create a shallow "single-part" cfg
+            var singleCfg = new SongConfig
+            {
+                ChannelMusicianOrder    = fullCfg.ChannelMusicianOrder.ToList(),
+                ChannelRoles            = fullCfg.ChannelRoles.ToList(),
+                Parts                   = new List<SongConfig.PartConfig>(),
+                Structure               = new List<SongConfig.PartSequenceEntry>()
+            };
+
+            // Copy ONLY the partIndex we want
+            singleCfg.Parts.Add(fullCfg.Parts[partIndex]);
+            singleCfg.Structure.Add(new SongConfig.PartSequenceEntry
+            {
+                PartIndex   = 0,
+                RepeatCount = 1
+            });
+
+            midiGenPlayConfig.defaultSeed = 
+                UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+
+            var partName = compositionUI.Model.parts[partIndex].label;
+            float seconds = mm.PlayFromConfig(singleCfg, partName, _spawned);
+            if (seconds <= 0f)
+            {
+                Debug.LogError($"{DebugTag} " +
+                    $"Failed to start playback for partIndex " + partIndex);
+                return 0f;
+            }
+
+            mm.SetChannelOwners(singleCfg.ChannelMusicianOrder.ToList());
+
+            isPlaying = true;
+
+            // Reset timing info for this new loop iteration
+            currentLoopStartTime = Time.time;
+            currentLoopDurationSeconds = seconds;
+
+            Log("[Jam] Playing single part '" + partName + "' " +
+                "(" + partIndex + ") once. Duration " + seconds + "s");
+
+            return seconds;
         }
 
         private void BeginRehearsalSession()
@@ -306,169 +665,6 @@ namespace ALWTTT.Managers
             ResetAfterPlayback();
 
             isPlaying = false;
-
-            /*
-            var mm = MidiMusicManager.Instance;
-            var pd = GameManager.PersistentGameplayData;
-
-            Debug.Log($"{DebugTag} ComposeAndPreview: begin");
-
-            if (mm == null)
-            {
-                Debug.LogError($"{DebugTag} MidiMusicManager is null");
-                isPlaying = false; yield break;
-            }
-
-            // 1) Generate song
-            var newSong = pd.GenerateSong();
-            if (newSong == null)
-            {
-                Debug.LogError($"{DebugTag} GenerateSong returned null");
-                isPlaying = false; yield break;
-            }
-            Debug.Log($"{DebugTag} Obtained '{newSong.SongTitle}' song data from pool.");
-
-            var personalityMap = new Dictionary<string, IMusicianPersonality>();
-            foreach (var m in _spawned)
-            {
-                var id = m.MusicianCharacterData.CharacterId;
-                // TODO: Different personality per musician
-                personalityMap[id] = new NeutralPersonality(id);
-            }
-            MidiMusicManager.SetMusicianPersonalities(personalityMap);
-
-            if (composeAddIntro && !string.IsNullOrEmpty(_nextIntroMusicianId))
-            {
-                MidiMusicManager.AddIntro(
-                    musicianId: _nextIntroMusicianId,
-                    measures: 1,
-                    style: IntroStyle.CountIn);
-            }
-
-            if (composeAddOutro && !string.IsNullOrEmpty(_nextOutroMusicianId))
-            {
-                MidiMusicManager.AddOutro(
-                    musicianId: _nextOutroMusicianId,
-                    measures: 2,                 // tweak if desired
-                    style: IntroStyle.Pad);      // reuse styles; Pad is a good default for outro
-            }
-
-            // Optional SOLO part: only if a musician was picked (dropdown != NONE)
-            if (!string.IsNullOrEmpty(_nextSoloMusicianId))
-            {
-                MidiMusicManager.AppendSoloPart(
-                    musicianId: _nextSoloMusicianId,
-                    style: SoloStyle.Virtuoso, // default; adjust later if you add a style UI
-                    measures: 8); // default; tweak as you prefer (8/12/16)
-            }
-
-            if (!string.IsNullOrEmpty(_nextAltTrackMusicianId) &&
-                !string.IsNullOrEmpty(_nextAltStrategyId))
-            {
-                MidiMusicManager.ReplaceTrack(
-                    partIndexOrAll: -1, // apply to all parts for MVP; add a scope control later if desired
-                    musicianId: _nextAltTrackMusicianId,
-                    new MidiMusicManager.StrategyOverride(_nextAltStrategyId));
-
-                Debug.Log($"{DebugTag} AlternateTrack queued: musician={_nextAltTrackMusicianId}, strategy={_nextAltStrategyId}");
-            }
-
-            // 2) Channel owners for this arrangement (index=channel → musicianId)
-            var owners = mm.GetChannelOwnerIdsFor(newSong);
-            if (owners == null || owners.Count == 0)
-            {
-                Debug.LogError($"{DebugTag} GetChannelOwnerIdsFor returned empty.");
-                isPlaying = false; yield break;
-            }
-
-            Debug.Log($"{DebugTag} Channel owners (ch->id): " +
-                string.Join(", ", owners.Select((id, i) => $"{i}:{id}")));
-
-
-            // 3) Wire live routing (so realtime events reach the right musician)
-            mm.SetChannelOwners(owners?.ToList());
-            Debug.Log($"{DebugTag} SetChannelOwners OK");
-
-            // 4) Build visual entrance order => band objects by id
-            var byId = _spawned.ToDictionary(m => m.MusicianCharacterData.CharacterId, m => m);
-            var orderedMusicians = owners
-                .Select(id => byId.TryGetValue(id, out var m) ? m : null)
-                .Where(m => m != null)
-                .ToList();
-
-            if (orderedMusicians.Count == 0)
-            {
-                Debug.LogError($"{DebugTag} No spawned musician matched channel owners.");
-                isPlaying = false; yield break;
-            }
-
-            var entranceIdsOrdered = orderedMusicians
-                .Select(m => m.MusicianCharacterData.CharacterId)
-                .ToList();
-
-            var names = string.Join(", ",
-                orderedMusicians.Select(m => m.MusicianCharacterData.CharacterName));
-            Debug.Log($"{DebugTag} Ordered musicians: {names}");
-
-            // 5) Layered preview
-            float lastDuration = 0f;
-            if (composeUseLayeredEntrances)
-            {
-                for (int k = 1; k <= orderedMusicians.Count; k++)
-                {
-                    var newcomer = orderedMusicians[k - 1];
-                    Debug.Log($"{DebugTag} Loop {k}/{orderedMusicians.Count} " +
-                        $"newcomer='{newcomer.MusicianCharacterData.CharacterName}'");
-
-                    // Play subset by first k musicians in 'owners'
-                    lastDuration =
-                        mm.PlaySameArrangementSubsetByMusicians(
-                            newSong, entranceIdsOrdered, k);
-
-                    // Wait for actual end
-                    yield return MidiMusicManager.WaitForEnd();
-                    Debug.Log($"{DebugTag} Loop {k} ended.");
-                }
-            }
-
-            // queue highlight if selected
-            if (!string.IsNullOrEmpty(_nextHighlightMusicianId))
-                mm.Highlight(_nextHighlightMusicianId, defaultHighlightMode);
-
-            // Afinal full-band pass with seams flags ON
-            mm.SetPostProcessingEnabled(composeEnablePostProcessing);
-
-            // queue humanization for *this* song generation
-            if (composeEnablePostProcessing)
-            {
-                mm.EnableHumanization(new MidiMusicManager.HumanizeOptions
-                {
-                    maxTickOffset = 6,   // ≈ six ticks timing jitter
-                    velocityJitter = 12,  // ≈ ±12 velocity
-                    lengthJitter = 6    // ≈ six ticks note-length jitter
-                });
-            }
-
-            mm.SetPersonalityBiasEnabled(composeUsePersonalityBias);
-
-            // Play the exact same SongData with NO subset (whole band)
-            lastDuration = mm.Play(newSong);
-            yield return MidiMusicManager.WaitForEnd();
-            Debug.Log($"{DebugTag} Full-band pass ended.");
-
-            // 6) New Song panel
-            var newNames = orderedMusicians.Select(b => b.MusicianCharacterData.CharacterName)
-                .ToArray();
-            Debug.Log($"{DebugTag} Showing NewSongPanel for '{newSong.SongTitle}'");
-            shipCanvas.NewSongPanel?.Show(newSong, newNames, lastDuration, onClose: () =>
-            {
-                Debug.Log($"{DebugTag} NewSongPanel closed, returning to map.");
-                SetHandVisible(false);
-                ReturnToMap();
-            });
-
-            isPlaying = false;
-            Debug.Log($"{DebugTag} ComposeAndPreview: end");*/
         }
 
         private void OnRelax()
@@ -945,29 +1141,6 @@ namespace ALWTTT.Managers
         private void ResetAfterPlayback()
         {
             BeginRehearsalSession();
-        }
-
-        // Returns all melodic instruments allowed by this musician
-        private IEnumerable<MIDIInstrumentSO> GetPermittedInstruments(MusicianBase musician)
-        {
-            // Defensive: if anything is missing, fall back to all melodic instruments.
-            var allMelodic = instrumentRepo.GetMelodicInstruments();
-            if (musician == null || musician.MusicianCharacterData == null)
-                return allMelodic;
-
-            var prof = musician.MusicianCharacterData.Profile; // MusicianProfileData
-            if (prof == null) return allMelodic;
-
-            var allowedTypes = new HashSet<InstrumentType>();
-            if (prof.backingInstruments != null)
-                foreach (var t in prof.backingInstruments) allowedTypes.Add(t);
-            if (prof.leadInstruments != null)
-                foreach (var t in prof.leadInstruments) allowedTypes.Add(t);
-
-            var filtered = allMelodic.Where(i => allowedTypes.Contains(i.InstrumentType)).ToList();
-
-            // If the profile was empty or yielded nothing, don't block the flow.
-            return filtered.Count > 0 ? filtered : allMelodic;
         }
 
         // Role-aware

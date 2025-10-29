@@ -507,6 +507,32 @@ namespace ALWTTT.Managers
             mix?.SetChannelVolume01(MidiGenerator.MetronomeChannel, metro01);
         }
 
+        /// <summary>
+        /// Returns true if the underlying MIDI player is currently playing any song/part.
+        /// Passthrough of IPlayMidi.IsPlaying.
+        /// Safe to call every frame.
+        /// </summary>
+        public bool IsAnySongPlaying()
+        {
+            return player != null && player.IsPlaying;
+        }
+
+        /// <summary>
+        /// Current MIDI tick position of the active playback, or 0 if nothing is playing.
+        /// </summary>
+        public long GetCurrentTick()
+        {
+            return player != null ? player.CurrentTick : 0L;
+        }
+
+        /// <summary>
+        /// Returns true if we have a valid MIDI player reference at all.
+        /// </summary>
+        public bool HasPlayer()
+        {
+            return player != null;
+        }
+
         #endregion
 
         #region Private Methods
