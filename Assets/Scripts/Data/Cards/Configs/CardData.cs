@@ -62,6 +62,10 @@ namespace ALWTTT
         [SerializeField] private MelodyStrategyId melodyStrategyIdOverride;
         [SerializeField] private bool overrideMelodicLeading = false;
         [SerializeField] private MelodicLeadingConfig melodicLeadingOverride;
+        [SerializeField] private bool overrideHarmonyStrategy = false;
+        [SerializeField] private HarmonyStrategyId harmonyStrategyIdOverride;
+        [SerializeField] private bool overrideHarmonicLeading = false;
+        [SerializeField] private HarmonicLeadingConfig harmonicLeadingOverride;
 
         [Header("Description")]
         [SerializeField] private List<SpecialKeywords> keywordsList;
@@ -93,6 +97,11 @@ namespace ALWTTT
         public MelodyStrategyId MelodyStrategyIdOverride => melodyStrategyIdOverride;
         public bool OverrideMelodicLeading => overrideMelodicLeading;
         public MelodicLeadingConfig MelodicLeadingOverride => melodicLeadingOverride;
+
+        public bool OverrideHarmonyStrategy => overrideHarmonyStrategy;
+        public HarmonyStrategyId HarmonyStrategyIdOverride => harmonyStrategyIdOverride;
+        public bool OverrideHarmonicLeading => overrideHarmonicLeading;
+        public HarmonicLeadingConfig HarmonicLeadingOverride => harmonicLeadingOverride;
 
         public List<SpecialKeywords> KeywordsList => keywordsList ?? EmptyKeywords;
         public AudioActionType AudioType => audioType;

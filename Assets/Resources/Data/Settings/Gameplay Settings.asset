@@ -43,6 +43,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e47009cf732aa73459fec2e55c35e316, type: 2}
   - {fileID: 11400000, guid: 6cdaaa864c924bf499bdadbdd6132b09, type: 2}
   - {fileID: 11400000, guid: e08d70c313b8f3c42b7a448088debb94, type: 2}
+  - {fileID: 11400000, guid: 47d84299c9530694d9e778281a705fd1, type: 2}
   drawCount: 8
   maxCardsOnHand: 10
   maxGroove: 3

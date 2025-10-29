@@ -41,6 +41,8 @@ namespace ALWTTT.Managers
         [Header("Melody (Dev)")]
         [SerializeField] private MelodicLeadingConfig melodicConfig;
         [SerializeField] private MelodyStrategyId melodyStrategyId;
+        [SerializeField] private HarmonicLeadingConfig harmonicConfig;
+        [SerializeField] private HarmonyStrategyId harmonyStrategyId;
 
         [Header("Refs")]
         [SerializeField] private ShipInteriorCanvas shipCanvas;
@@ -569,57 +571,6 @@ namespace ALWTTT.Managers
                 return false;
             }
 
-            // ---------- QUEUE MIDI INTENTS ----------
-            /*
-            bool midiApplied = false;
-            switch (c.CompositionType)
-            {
-                // TEMPO
-                case CompositionCardType.Tempo_Slow: mm.ScheduleNextSongTempoScale(0.75f); midiApplied = true; break;
-                case CompositionCardType.Tempo_Fast: mm.ScheduleNextSongTempoScale(1.25f); midiApplied = true; break;
-                case CompositionCardType.Tempo_VeryFast: mm.ScheduleNextSongTempoScale(1.50f); midiApplied = true; break;
-
-                // THEME (persist tag only; generator can read it later)
-                case CompositionCardType.Theme_Love: GameManager.PersistentGameplayData.SetNextThemeTag("Love"); midiApplied = true; break;
-                case CompositionCardType.Theme_Injustice: GameManager.PersistentGameplayData.SetNextThemeTag("Injustice"); midiApplied = true; break;
-                case CompositionCardType.Theme_Party: GameManager.PersistentGameplayData.SetNextThemeTag("Party"); midiApplied = true; break;
-
-                // PARTS
-                case CompositionCardType.Part_Intro:
-                    if (!string.IsNullOrEmpty(musicianId)) { mm.AddIntro(musicianId, 1, IntroMutator.IntroStyle.CountIn); midiApplied = true; }
-                    break;
-                case CompositionCardType.Part_Solo:
-                    if (!string.IsNullOrEmpty(musicianId)) { mm.AppendSoloPart(musicianId, SoloMutator.SoloStyle.Virtuoso, 8); midiApplied = true; }
-                    break;
-                case CompositionCardType.Part_Outro:
-                    if (!string.IsNullOrEmpty(musicianId)) { mm.AddOutro(musicianId, 2, IntroMutator.IntroStyle.Pad); midiApplied = true; }
-                    break;
-
-                // TRACKS (MVP: strategy override placeholder for “pattern change”)
-                case CompositionCardType.Track_Rhythm:
-                case CompositionCardType.Track_Backing:
-                case CompositionCardType.Track_Bassline:
-                case CompositionCardType.Track_Melody:
-                case CompositionCardType.Track_Harmony:
-                    if (!string.IsNullOrEmpty(musicianId))
-                    {
-                        mm.ReplaceTrack(-1, musicianId, new MidiMusicManager.StrategyOverride("busier"));
-                        midiApplied = true;
-                    }
-                    break;
-
-                // TIME SIGNATURE — UI reflects it today; MIDI intent arrives in next sprint
-                case CompositionCardType.TimeSignature_4_4:
-                case CompositionCardType.TimeSignature_3_4:
-                case CompositionCardType.TimeSignature_6_8:
-                case CompositionCardType.TimeSignature_5_4:
-                    // leave midiApplied=false for now; UI will still update
-                    break;
-
-                default:
-                    return false;
-            }*/
-
             // ---------- UPDATE UI / MODEL ----------
             bool uiApplied = compositionUI == null 
                 || compositionUI.ApplyCard(card, target);
@@ -836,22 +787,27 @@ namespace ALWTTT.Managers
                         ? pd.GetMusicianGameplayData(musicianId)
                         : null;
 
-                    // BASELINE melodic config for this track = musician's current profile
-                    // If the musician has no gameplay data yet (edge case), fall back to the
-                    // ShipInteriorManager's inspector default (melodicConfig).
+                    // BASELINE configs for this track = musician's current profile
                     MelodicLeadingConfig baseMelodicCfg =
                         (mgd != null && mgd.CurrentMelodicLeading != null)
                             ? mgd.CurrentMelodicLeading
                             : melodicConfig;
 
-                    // BASELINE strategyId comes from the ShipInteriorManager inspector for now.
-                    var baseStrategyId = melodyStrategyId;
+                    HarmonicLeadingConfig baseHarmonicCfg =
+                        (mgd != null && mgd.CurrentHarmonicLeading != null)
+                            ? mgd.CurrentHarmonicLeading
+                            : harmonicConfig;
+
+                    var baseMelodyId = melodyStrategyId;
+                    var baseHarmonyId = harmonyStrategyId;
 
                     // CARD OVERRIDES from the composition UI model
                     var finalMelodicCfg = baseMelodicCfg;
-                    var finalStrategyId = baseStrategyId;
+                    var finalMelStrategyId = baseMelodyId;
+                    var finalHarmonicCfg = baseHarmonicCfg;
+                    var finalHarStrategyId = baseHarmonyId;
 
-                    // Get from UI model
+                    // Melody
                     if (trModel.hasMelodicLeadingOverride 
                         && trModel.melodicLeadingOverride != null)
                     {
@@ -859,7 +815,18 @@ namespace ALWTTT.Managers
                     }
                     if (trModel.hasMelodyStrategyOverride)
                     {
-                        finalStrategyId = trModel.melodyStrategyIdOverride;
+                        finalMelStrategyId = trModel.melodyStrategyIdOverride;
+                    }
+
+                    // Harmony
+                    if (trModel.hasHarmonicLeadingOverride
+                        && trModel.harmonicLeadingOverride != null)
+                    {
+                        finalHarmonicCfg = trModel.harmonicLeadingOverride;
+                    }
+                    if (trModel.hasHarmonyStrategyOverride)
+                    {
+                        finalHarStrategyId = trModel.harmonyStrategyIdOverride;
                     }
 
                     // Build track config
@@ -874,8 +841,11 @@ namespace ALWTTT.Managers
                             Pattern = pattern,
                             RhythmRecipe = recipe,
 
-                            melodyStrategyId = finalStrategyId,
-                            melodicLeadingOverride = finalMelodicCfg
+                            melodyStrategyId = finalMelStrategyId,
+                            melodicLeadingOverride = finalMelodicCfg,
+
+                            harmonyStrategyId = finalHarStrategyId,
+                            harmonicLeadingOverride = finalHarmonicCfg,
                         }
                     };
 

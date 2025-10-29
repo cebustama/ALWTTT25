@@ -46,6 +46,11 @@ namespace ALWTTT.UI
             public MelodyStrategyId melodyStrategyIdOverride;
             public bool hasMelodicLeadingOverride;
             public MelodicLeadingConfig melodicLeadingOverride;
+
+            public bool hasHarmonyStrategyOverride;
+            public HarmonyStrategyId harmonyStrategyIdOverride;
+            public bool hasHarmonicLeadingOverride;
+            public HarmonicLeadingConfig harmonicLeadingOverride;
         }
 
         [Serializable]
@@ -291,13 +296,19 @@ namespace ALWTTT.UI
                 role = role,
                 info = info,
 
-                hasMelodyStrategyOverride = 
+                hasMelodyStrategyOverride =
                     sourceCard != null && sourceCard.OverrideMelodyStrategy,
-                hasMelodicLeadingOverride = 
-                    sourceCard != null && sourceCard.OverrideMelodicLeading
+                hasMelodicLeadingOverride =
+                    sourceCard != null && sourceCard.OverrideMelodicLeading,
+                hasHarmonyStrategyOverride =
+                    sourceCard != null && sourceCard.OverrideHarmonyStrategy,
+                hasHarmonicLeadingOverride =
+                    sourceCard != null && sourceCard.OverrideHarmonicLeading,
+
             };
 
             // Only copy specific fields if they were flagged
+            // TODO: Better way to handle these fields? Before adding more for each track role
             if (entry.hasMelodyStrategyOverride)
             {
                 entry.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
@@ -305,6 +316,14 @@ namespace ALWTTT.UI
             if (entry.hasMelodicLeadingOverride)
             {
                 entry.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
+            }
+            if (entry.hasHarmonyStrategyOverride)
+            {
+                entry.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
+            }
+            if (entry.hasHarmonicLeadingOverride)
+            {
+                entry.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
             }
 
             // Add new track entry

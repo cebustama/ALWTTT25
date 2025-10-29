@@ -593,11 +593,12 @@ namespace ALWTTT.Data
     {
         [SerializeField] private string characterId;
 
-        // Current melodic leading profile this musician will use by default
+        // Default
         [SerializeField] private MelodicLeadingConfig currentMelodicLeading;
-
-        // Future growth. The musician can unlock alternate melodic personas.
+        [SerializeField] private HarmonicLeadingConfig currentHarmonicLeading;
+        // Progression
         [SerializeField] private List<MelodicLeadingConfig> unlockedMelodicLeadings;
+        [SerializeField] private List<HarmonicLeadingConfig> unlockedHarmonicLeadings;
 
         public string CharacterId
         {
@@ -615,6 +616,18 @@ namespace ALWTTT.Data
         {
             get => unlockedMelodicLeadings;
             set => unlockedMelodicLeadings = value;
+        }
+
+        public HarmonicLeadingConfig CurrentHarmonicLeading
+        {
+            get => currentHarmonicLeading;
+            set => currentHarmonicLeading = value;
+        }
+
+        public List<HarmonicLeadingConfig> UnlockedHarmonicLeadings
+        {
+            get => unlockedHarmonicLeadings;
+            set => unlockedHarmonicLeadings = value;
         }
     }
 }
