@@ -528,6 +528,7 @@ namespace ALWTTT.Managers
             Log("[Jam] Now looping Part 0 and allowing the player to draft the next part.");
         }
 
+        /*
         /// <summary>
         /// Build a SongConfig that only contains the requested partIndex,
         /// tell MidiMusicManager to play it once,
@@ -599,6 +600,70 @@ namespace ALWTTT.Managers
 
             return seconds;
         }
+        */
+
+        /// <summary>
+        /// Play exactly one iteration of the given part index.
+        /// Uses a per-part cache (merged MIDI bytes + seconds). If the cache doesn't exist,
+        /// render the part once via MidiMusicManager and store it.
+        /// Returns the part duration in seconds (0 on failure).
+        /// </summary>
+        private float PlaySinglePartLoop(int partIndex)
+        {
+            var mm = MidiMusicManager.Instance;
+            if (mm == null)
+            {
+                Debug.LogError($"{DebugTag} MidiMusicManager is null");
+                return 0f;
+            }
+
+            // Build the full config from the current UI/model
+            var fullCfg = BuildSongConfigFromCompositionUI();
+            if (fullCfg == null)
+            {
+                Debug.LogError($"{DebugTag} BuildSongConfigFromCompositionUI() returned null or empty.");
+                return 0f;
+            }
+
+            if (partIndex < 0 || partIndex >= fullCfg.Parts.Count)
+            {
+                Debug.LogError($"{DebugTag} Invalid partIndex " + partIndex);
+                return 0f;
+            }
+
+            // Ensure we have a cached render for this part
+            if (!_partCache.TryGetValue(partIndex, out var cache) || cache == null || cache.mergedBytes == null || cache.mergedBytes.Length == 0)
+            {
+                // Render exactly one repetition of this part, using the session's channel layout
+                var (merged, stems, seconds) = mm.RenderSinglePart(fullCfg, partIndex);
+                if (merged == null || merged.Length == 0 || seconds <= 0f)
+                {
+                    Debug.LogError($"{DebugTag} RenderSinglePart failed for partIndex {partIndex}");
+                    return 0f;
+                }
+
+                cache = new PartCache
+                {
+                    mergedBytes = merged,
+                    seconds = seconds,
+                    stemsByMusician = stems ?? new Dictionary<string, byte[]>()
+                };
+                _partCache[partIndex] = cache;
+            }
+
+            // Replay the same bytes for this loop iteration
+            var partName = compositionUI.Model.parts[partIndex].label;
+            var duration = mm.PlayRaw(cache.mergedBytes, cache.seconds, $"Jam Part {partIndex} (cached:{partName})");
+            if (duration <= 0f) return 0f;
+
+            isPlaying = true;
+            currentLoopStartTime = Time.time;
+            currentLoopDurationSeconds = duration;
+
+            Log($"[Jam] Looping cached part '{partName}' ({partIndex}) once. Duration {duration:0.###}s");
+            return duration;
+        }
+
 
         private void BeginRehearsalSession()
         {
@@ -815,6 +880,43 @@ namespace ALWTTT.Managers
                 || compositionUI.ApplyCard(card, target);
             if (!uiApplied) return false;
 
+            // ---------- INVALIDATE CURRENT PART CACHE IF NEEDED ----------
+            // Playing a Track_* card while the current part is looping means
+            // the part's content has changed. Nuke the cache so the next loop
+            // will regenerate and include the new/updated track.
+            bool playedTrackCard =
+                c.CompositionType == CompositionCardType.Track_Rhythm ||
+                c.CompositionType == CompositionCardType.Track_Backing ||
+                c.CompositionType == CompositionCardType.Track_Bassline ||
+                c.CompositionType == CompositionCardType.Track_Melody ||
+                c.CompositionType == CompositionCardType.Track_Harmony;
+
+            if (playedTrackCard && jamState == JamState.PlayingCurrentPart)
+            {
+                InvalidatePartCache(currentPartIndex);
+            }
+
+            bool editedStructureCard =
+                c.CompositionType == CompositionCardType.TimeSignature_4_4 ||
+                c.CompositionType == CompositionCardType.TimeSignature_3_4 ||
+                c.CompositionType == CompositionCardType.TimeSignature_6_8 ||
+                c.CompositionType == CompositionCardType.TimeSignature_5_4 ||
+                c.CompositionType == CompositionCardType.Tempo_Slow ||
+                c.CompositionType == CompositionCardType.Tempo_Fast ||
+                c.CompositionType == CompositionCardType.Tempo_VeryFast ||
+                c.CompositionType == CompositionCardType.Tonality_Ionian ||
+                c.CompositionType == CompositionCardType.Tonality_Dorian ||
+                c.CompositionType == CompositionCardType.Tonality_Phrygian ||
+                c.CompositionType == CompositionCardType.Tonality_Lydian ||
+                c.CompositionType == CompositionCardType.Tonality_Mixolydian ||
+                c.CompositionType == CompositionCardType.Tonality_Aeolian ||
+                c.CompositionType == CompositionCardType.Tonality_Locrian;
+
+            if (editedStructureCard && jamState == JamState.PlayingCurrentPart)
+            {
+                InvalidatePartCache(currentPartIndex);
+            }
+
             // ---------- INSPIRATION: spend on success + update UI ----------
             if (c.IsComposition)
             {
@@ -832,15 +934,6 @@ namespace ALWTTT.Managers
                         $"+{buildingPartInspirationPerLoop} Inspiration per loop.");
                 }
             }
-
-            // If we just added/replaced a TRACK while the current part is looping,
-            // recompute the per-loop gain for the *current playing* part and update UI.
-            bool playedTrackCard =
-                c.CompositionType == CompositionCardType.Track_Rhythm ||
-                c.CompositionType == CompositionCardType.Track_Backing ||
-                c.CompositionType == CompositionCardType.Track_Bassline ||
-                c.CompositionType == CompositionCardType.Track_Melody ||
-                c.CompositionType == CompositionCardType.Track_Harmony;
 
             if (playedTrackCard 
                 && jamState != JamState.BuildingCurrentPart 
@@ -1281,6 +1374,17 @@ namespace ALWTTT.Managers
             foreach (var t in part.tracks)
                 sum += Mathf.Max(0, t.inspirationGenerated);
             return sum;
+        }
+
+        /// <summary>
+        /// Drop the cached render for a given part so the next loop regenerates it.
+        /// Safe to call even if nothing is cached.
+        /// </summary>
+        private void InvalidatePartCache(int partIndex)
+        {
+            if (_partCache == null) return;
+            if (_partCache.Remove(partIndex))
+                Debug.Log($"{DebugTag} Invalidated cached MIDI for part #{partIndex}.");
         }
     }
 }

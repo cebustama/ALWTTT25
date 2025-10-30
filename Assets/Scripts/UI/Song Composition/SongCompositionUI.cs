@@ -512,11 +512,6 @@ namespace ALWTTT.UI
             if (isTrack && target == null)
             { reason = "Select a musician."; return false; }
 
-            // “one track per musician per part” rule
-            /*if (isTrack && model.CurrentPart != null &&
-                model.CurrentPart.tracks.Any(t => t.musicianId == target.MusicianCharacterData.CharacterId))
-            { reason = "This musician already has a track in this part."; return false; }*/
-
             // Part cards require an existing part
             bool isPartCard = type == CompositionCardType.Part_Intro
                            || type == CompositionCardType.Part_Solo
