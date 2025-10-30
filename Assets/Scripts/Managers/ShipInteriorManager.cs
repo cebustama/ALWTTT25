@@ -44,7 +44,15 @@ namespace ALWTTT.Managers
             public int drawPerPart = 5;
 
             // How much "energy" the player has to spend on cards each build phase
-            public int energyPerPart = 3;
+            public int inspirationPerPart = 3;
+        }
+
+        [Serializable]
+        private sealed class PartCache
+        {
+            public byte[] mergedBytes;
+            public float seconds;
+            public Dictionary<string, byte[]> stemsByMusician = new(); // future: micro-variations / single-track replace
         }
 
         #endregion
@@ -95,7 +103,9 @@ namespace ALWTTT.Managers
 
         // Jamming
         private JamState jamState = JamState.Idle;
-        private int currentEnergy = 0;
+        private int currentInspiration = 0;
+        private int buildingPartInspirationPerLoop = 0; // sum of GrooveGenerated while drafting part
+        private int currentPartInspiration = 0;
         private int loopsRemainingForCurrentPart = 0;
         private int loopsTotalForCurrentPart = 0;
         private int currentPartIndex = -1;
@@ -107,6 +117,7 @@ namespace ALWTTT.Managers
 
         private readonly List<MusicianBase> _spawned = new();
         public SongCompositionUI.SongModel GetCurrentComposition() => compositionUI?.Model;
+        private readonly Dictionary<int, PartCache> _partCache = new();
 
         #region Cache
         private GameManager GameManager => GameManager.Instance;
@@ -238,6 +249,16 @@ namespace ALWTTT.Managers
             isPlaying = false;
 
             loopsRemainingForCurrentPart--;
+
+            // Grant per-loop Inspiration now
+            if (currentPartInspiration > 0)
+            {
+                currentInspiration += currentPartInspiration;
+                compositionUI?.SetInspiration(currentInspiration);
+                compositionUI?.SetPlusInspiration(currentPartInspiration);
+                Log($"[Jam] Awarded +{currentPartInspiration} " +
+                    $"Inspiration for loop completion. Total={currentInspiration}");
+            }
 
             Log("[Jam] Loop finished. loopsRemainingForCurrentPart=" 
                 + loopsRemainingForCurrentPart);
@@ -421,7 +442,7 @@ namespace ALWTTT.Managers
         /// </summary>
         private void StartJam()
         {
-            Log("[Jam] StartJam()");
+            Log("[Jam] StartJam()", true);
 
             inRehearsal = true; // legacy flag
             jamState = JamState.BuildingCurrentPart;
@@ -434,7 +455,11 @@ namespace ALWTTT.Managers
 
             PrepareRehearsalDeck();
 
-            currentEnergy = jamRules.energyPerPart;
+            currentInspiration = jamRules.inspirationPerPart;
+            compositionUI?.SetInspirationVisible(true);
+            compositionUI?.SetInspiration(currentInspiration);
+            buildingPartInspirationPerLoop = 0;
+            compositionUI?.SetPlusInspiration(0);
 
             if (loopsTimerUI != null)
             {
@@ -486,12 +511,18 @@ namespace ALWTTT.Managers
                 loopsTimerUI.SetBarsVisible(true);
             }
 
+            var playingPart = compositionUI.Model.parts[currentPartIndex];
+            currentPartInspiration = EvaluatePerLoopInspirationGain(playingPart);
+            compositionUI?.SetPlusInspiration(currentPartInspiration);
+            buildingPartInspirationPerLoop = 0; // reset for drafting next part
+
             //  Part A is looping and the player is drafting Part B.
             jamState = JamState.BuildingNextPart;
 
             // Give the player new energy + new cards for drafting the NEXT part
-            currentEnergy = jamRules.energyPerPart;
+            currentInspiration = jamRules.inspirationPerPart;
             PrepareRehearsalDeck();
+            compositionUI?.SetInspiration(currentInspiration);
 
             // nextPartIsReady = false; // they haven't confirmed Part B yet
             Log("[Jam] Now looping Part 0 and allowing the player to draft the next part.");
@@ -512,10 +543,6 @@ namespace ALWTTT.Managers
                 return 0f;
             }
 
-            // Build a SongConfig that only includes the requested part.
-            // For now we reuse BuildSongConfigFromCompositionUI() and then
-            // strip it down to just the one part in code. Later we can make
-            // a cleaner BuildSongConfigForPart(partIndex) helper.
             var fullCfg = BuildSongConfigFromCompositionUI();
             if (fullCfg == null)
             {
@@ -742,6 +769,20 @@ namespace ALWTTT.Managers
                 ? target.MusicianCharacterData.CharacterId
                 : _nextHighlightMusicianId;
 
+            // ---------- INSPIRATION: block if not enough ----------
+            // (Only for Composition cards; Action cards are Gig-only.)
+            if (c.IsComposition)
+            {
+                int cost = Mathf.Max(0, c.GrooveCost);   // stored cost field
+                if (cost > currentInspiration)
+                {
+                    Debug.LogWarning($"{DebugTag} Not enough Inspiration: " +
+                        $"need {cost}, have {currentInspiration}. " +
+                        $"Card '{c.CardName}' was not played.");
+                    return false;
+                }
+            }
+
             // ---------- QUICK PRE-FILTER (role/musician sanity) ----------
             bool isTrackCard =
                 c.CompositionType == CompositionCardType.Track_Rhythm ||
@@ -756,8 +797,10 @@ namespace ALWTTT.Managers
             if (isTrackCard && target != null)
             {
                 bool isDrummer = IsDrummer(target);
-                if (c.CompositionType == CompositionCardType.Track_Rhythm && !isDrummer) return false;
-                if (c.CompositionType != CompositionCardType.Track_Rhythm && isDrummer) return false;
+                if (c.CompositionType == CompositionCardType.Track_Rhythm && !isDrummer) 
+                    return false;
+                if (c.CompositionType != CompositionCardType.Track_Rhythm && isDrummer) 
+                    return false;
             }
 
             // ---------- CAN APPLY? (UI/model is the source of truth for session rules) ----------
@@ -770,10 +813,52 @@ namespace ALWTTT.Managers
             // ---------- UPDATE UI / MODEL ----------
             bool uiApplied = compositionUI == null 
                 || compositionUI.ApplyCard(card, target);
+            if (!uiApplied) return false;
 
-            // If UI accepted the card, consider it played.
-            // (midiApplied can be false for TimeSig until the generator hook exists)
-            return uiApplied;
+            // ---------- INSPIRATION: spend on success + update UI ----------
+            if (c.IsComposition)
+            {
+                int cost = Mathf.Max(0, c.GrooveCost);
+                currentInspiration = Mathf.Max(0, currentInspiration - cost);
+                compositionUI?.SetInspiration(currentInspiration);
+                Debug.Log($"{DebugTag} Played '{c.CardName}' for {cost} Inspiration. " +
+                    $"Remaining: {currentInspiration}.");
+
+                int gen = Mathf.Max(0, c.GrooveGenerated);
+                if (gen > 0)
+                {
+                    buildingPartInspirationPerLoop += gen;
+                    Debug.Log($"{DebugTag} This part now generates " +
+                        $"+{buildingPartInspirationPerLoop} Inspiration per loop.");
+                }
+            }
+
+            // If we just added/replaced a TRACK while the current part is looping,
+            // recompute the per-loop gain for the *current playing* part and update UI.
+            bool playedTrackCard =
+                c.CompositionType == CompositionCardType.Track_Rhythm ||
+                c.CompositionType == CompositionCardType.Track_Backing ||
+                c.CompositionType == CompositionCardType.Track_Bassline ||
+                c.CompositionType == CompositionCardType.Track_Melody ||
+                c.CompositionType == CompositionCardType.Track_Harmony;
+
+            if (playedTrackCard 
+                && jamState != JamState.BuildingCurrentPart 
+                && compositionUI != null)
+            {
+                if (currentPartIndex >= 0 // Safety: if no part is playing yet, do nothing 
+                    && currentPartIndex < compositionUI.Model.parts.Count)
+                {
+                    currentPartInspiration = EvaluatePerLoopInspirationGain(
+                        compositionUI.Model.parts[currentPartIndex]);
+
+                    compositionUI.SetPlusInspiration(currentPartInspiration);
+                    Log($"[Jam] Recalculated per-loop Inspiration = " +
+                        $"+{currentPartInspiration} after track update.");
+                }
+            }
+
+            return true;
         }
 
         // Helper: heuristic drummer detection based on profile instruments
@@ -1186,6 +1271,16 @@ namespace ALWTTT.Managers
             if (filtered.Count == 0) filtered = FilterBy(secondary).ToList();
 
             return filtered.Count > 0 ? filtered : allMelodic;
+        }
+
+        private int EvaluatePerLoopInspirationGain(SongCompositionUI.PartEntry part)
+        {
+            if (part == null || part.tracks == null) return 0;
+            // MVP rule: sum grooveGenerated for each active track in this part
+            int sum = 0;
+            foreach (var t in part.tracks)
+                sum += Mathf.Max(0, t.inspirationGenerated);
+            return sum;
         }
     }
 }

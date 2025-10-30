@@ -211,10 +211,15 @@ MonoBehaviour:
   - {fileID: 1589716193819244996}
   - {fileID: 8949863350977813783}
   - {fileID: 1724445172781464368}
+  jamRules:
+    loopsPerPart: 3
+    drawPerPart: 5
+    energyPerPart: 3
   shipHand: {fileID: 0}
   mainCamera: {fileID: 0}
   handCamera: {fileID: 0}
   compositionUI: {fileID: 7329470932951528742}
+  loopsTimerUI: {fileID: 0}
   midiGenPlayConfig: {fileID: 0}
   useProceduralRhythm: 1
   useProceduralBacking: 1
@@ -251,6 +256,46 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3450808639755350564}
     m_Modifications:
+    - target: {fileID: 235403184175046589, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 235403184175046589, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 235403184175046589, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 235403184175046589, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 235403184175046589, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 782954150893684005, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 782954150893684005, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 782954150893684005, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 782954150893684005, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 782954150893684005, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1314601001655451091, guid: 08daefff730a1ac48b1e61815cbbd512, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

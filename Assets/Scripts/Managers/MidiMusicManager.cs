@@ -366,6 +366,13 @@ namespace ALWTTT.Managers
             return PlayBytes(key, bytes, entry.seconds, $"'{song.SongTitle}'");
         }
 
+        public float PlayRaw(byte[] data, float seconds, string titleForLogs)
+        {
+            if (data == null || data.Length == 0) return 0f;
+            var bytes = ApplyMetronomeVolumeToBytes(data, MetronomeEnabled);
+            return PlayBytes($"jam-raw::{Guid.NewGuid():N}", bytes, seconds, titleForLogs);
+        }
+
         public float PlaySameArrangementSubsetByMusicians(
             SongData song, IReadOnlyList<string> entranceOrderIds, int takeCount)
         {
@@ -531,6 +538,57 @@ namespace ALWTTT.Managers
         public bool HasPlayer()
         {
             return player != null;
+        }
+
+        /// <summary>
+        /// Render exactly one part from a full SongConfig (using its channel ordering),
+        /// returning merged bytes, per-musician stems, and the duration in seconds.
+        /// </summary>
+        public (byte[] merged, Dictionary<string, byte[]> stemsByMusician, float seconds)
+            RenderSinglePart(SongConfig fullCfg, int partIndex)
+        {
+            EnsureRegistriesLoaded();
+            if (fullCfg == null || partIndex < 0 || partIndex >= fullCfg.Parts.Count)
+                return (null, null, 0f);
+
+            // Build channel map from the global ChannelRoles of this config
+            var channelMap = BuildChannelMap(fullCfg.ChannelRoles ?? new List<TrackRole>());
+
+            // Stamp channels into each track (like PlayFromConfig)
+            var byMusician = new Dictionary<string, int>();
+            for (int i = 0; i < fullCfg.ChannelMusicianOrder.Count && i < channelMap.Count; i++)
+            {
+                var id = fullCfg.ChannelMusicianOrder[i] ?? "";
+                if (!string.IsNullOrEmpty(id)) byMusician[id] = channelMap[i];
+            }
+
+            var part = fullCfg.Parts[partIndex];
+            foreach (var tr in part.Tracks)
+                if (!string.IsNullOrEmpty(tr.MusicianId) && byMusician.TryGetValue(tr.MusicianId, out var ch))
+                    tr.Channel = ch;
+
+            // Generate stems via orchestrator
+            var render = generator.Orchestrator.GenerateSinglePart(part, fullCfg.ChannelRoles);
+
+            // Serialize merged
+            byte[] mergedBytes;
+            using (var ms = new MemoryStream())
+            {
+                render.merged.Write(ms);
+                mergedBytes = ms.ToArray();
+            }
+
+            // Serialize stems
+            var stemsOut = new Dictionary<string, byte[]>();
+            foreach (var kv in render.stemsByMusician)
+            {
+                using var ms = new MemoryStream();
+                kv.Value.Write(ms);
+                stemsOut[kv.Key] = ms.ToArray();
+            }
+
+            var seconds = ComputeDurationSeconds(render.merged);
+            return (mergedBytes, stemsOut, seconds);
         }
 
         #endregion

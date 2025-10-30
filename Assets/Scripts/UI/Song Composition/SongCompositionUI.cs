@@ -31,6 +31,11 @@ namespace ALWTTT.UI
         [SerializeField] private string defaultTheme = "Instrumental";
         [SerializeField] private string defaultPartLabel = "Part A";
 
+        [Header("Inspiration")]
+        [SerializeField] private GameObject inspirationRoot;
+        [SerializeField] private TextMeshProUGUI inspirationText;
+        [SerializeField] private TextMeshProUGUI plusInspirationText;
+
         [Header("Dev")]
         [SerializeField] private bool useLogs = false;
 
@@ -38,8 +43,9 @@ namespace ALWTTT.UI
         public class TrackEntry
         {
             public string musicianId;
-            public string role;        // Rhythm / Backing / Bassline / Melody / Harmony
-            public string info;        // “Funk Groove”, “Pentatonic”, card name, etc
+            public string role;                 // Rhythm / Backing / Melody / Harmony
+            public string info;                 // “Funk Groove”, “Pentatonic”, card name, etc
+            public int inspirationGenerated;    // per-loop gain contributed by this track
 
             // per-track style overrides captured from the card or musician
             public bool hasMelodyStrategyOverride;
@@ -220,6 +226,18 @@ namespace ALWTTT.UI
             // Sync icons with the CURRENT part (likely empty → all hidden)
             UpdateIconsForCurrentPart();
         }
+
+        public void SetInspiration(int value)
+        {
+            if (inspirationText != null)
+                inspirationText.text = value.ToString();
+        }
+
+        public void SetPlusInspiration(int amount)
+        {
+            if (plusInspirationText == null) return;
+            plusInspirationText.text = amount > 0 ? $"+{amount}" : string.Empty;
+        }
         #endregion
 
         #region Rules
@@ -286,9 +304,41 @@ namespace ALWTTT.UI
             EnsureFirstPart();
             var part = model.CurrentPart;
 
-            // Rule: If musician already has a track in this part → deny (for now)
-            if (part.tracks.Any(t => t.musicianId == musicianId))
-                return false;
+            // Look for existing
+            var existing = part.tracks.FirstOrDefault(t => t.musicianId == musicianId);
+            if (existing != null)
+            {
+                // REPLACE (update metadata + overrides + per-loop gen)
+                existing.role = role;
+                existing.info = info;
+
+                existing.hasMelodyStrategyOverride = 
+                    sourceCard != null && sourceCard.OverrideMelodyStrategy;
+                existing.hasMelodicLeadingOverride = 
+                    sourceCard != null && sourceCard.OverrideMelodicLeading;
+                existing.hasHarmonyStrategyOverride = 
+                    sourceCard != null && sourceCard.OverrideHarmonyStrategy;
+                existing.hasHarmonicLeadingOverride = 
+                    sourceCard != null && sourceCard.OverrideHarmonicLeading;
+
+                if (existing.hasMelodyStrategyOverride) 
+                    existing.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
+                if (existing.hasMelodicLeadingOverride) 
+                    existing.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
+                if (existing.hasHarmonyStrategyOverride) 
+                    existing.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
+                if (existing.hasHarmonicLeadingOverride) 
+                    existing.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
+
+                existing.inspirationGenerated = 
+                    Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0);
+
+                // UI refresh
+                partUIs[model.CurrentPartIndex].AddOrUpdateTrack(musicianId, role, info);
+                UpdateIconsForCurrentPart();
+                RaisePartChanged();
+                return true;
+            }
 
             var entry = new TrackEntry
             {
@@ -462,10 +512,10 @@ namespace ALWTTT.UI
             if (isTrack && target == null)
             { reason = "Select a musician."; return false; }
 
-            // Enforce “one track per musician per part” MVP rule
-            if (isTrack && model.CurrentPart != null &&
+            // “one track per musician per part” rule
+            /*if (isTrack && model.CurrentPart != null &&
                 model.CurrentPart.tracks.Any(t => t.musicianId == target.MusicianCharacterData.CharacterId))
-            { reason = "This musician already has a track in this part."; return false; }
+            { reason = "This musician already has a track in this part."; return false; }*/
 
             // Part cards require an existing part
             bool isPartCard = type == CompositionCardType.Part_Intro
@@ -508,6 +558,12 @@ namespace ALWTTT.UI
             ui.SetRosterOrder(rosterOrder);  // << important
             ui.Bind(p);
             partUIs.Add(ui);
+        }
+
+        public void SetInspirationVisible(bool visible)
+        {
+            if (inspirationRoot != null)
+                inspirationRoot.SetActive(visible);
         }
         #endregion
 

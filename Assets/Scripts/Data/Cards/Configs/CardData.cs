@@ -17,9 +17,7 @@ namespace ALWTTT
         [SerializeField] private string cardName;
         [SerializeField] private CardPhase phase;
         [SerializeField] private RarityType rarity;
-        [SerializeField] private int grooveCost;
         [SerializeField] private Sprite cardSprite;
-        [SerializeField] private int grooveGenerated;
 
         public enum CardDomain { Action, Composition }
         public enum CompositionCardType
@@ -43,6 +41,10 @@ namespace ALWTTT
         [Header("Domain")]
         [SerializeField] private CardDomain domain = CardDomain.Action;
         [SerializeField] private CompositionCardType compositionType = CompositionCardType.None;
+
+        [Header("Inspiration")]
+        [SerializeField] private int inspirationCost;
+        [SerializeField] private int inspirationGenerated;
 
         [Header("Character")]
         [SerializeField] private MusicianCharacterType musicianCharacterType = 
@@ -84,9 +86,9 @@ namespace ALWTTT
         public string CardName => cardName;
         public CardPhase Phase => phase;
         public RarityType Rarity => rarity;
-        public int GrooveCost => grooveCost;
+        public int GrooveCost => inspirationCost;
         public Sprite CardSprite => cardSprite;
-        public int GrooveGenerated => grooveGenerated;
+        public int GrooveGenerated => inspirationGenerated;
         public MusicianCharacterType MusicianCharacterType => musicianCharacterType;
         public bool ExhaustAfterPlay => exhaustAfterPlay;
         public CardType CardType => cardType;
