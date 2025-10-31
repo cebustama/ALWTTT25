@@ -544,12 +544,18 @@ namespace ALWTTT.Managers
         /// Render exactly one part from a full SongConfig (using its channel ordering),
         /// returning merged bytes, per-musician stems, and the duration in seconds.
         /// </summary>
-        public (byte[] merged, Dictionary<string, byte[]> stemsByMusician, float seconds)
-            RenderSinglePart(SongConfig fullCfg, int partIndex)
+        public (byte[] merged, 
+            Dictionary<string, byte[]> stemsByMusician, 
+            float seconds, 
+            int bpmChosen)
+            RenderSinglePart(SongConfig fullCfg, 
+                int partIndex, 
+                int? bpmOverride = null,
+                Dictionary<string, MIDIInstrumentSO> instrumentOverrides = null)
         {
             EnsureRegistriesLoaded();
             if (fullCfg == null || partIndex < 0 || partIndex >= fullCfg.Parts.Count)
-                return (null, null, 0f);
+                return (null, null, 0f, 0);
 
             // Build channel map from the global ChannelRoles of this config
             var channelMap = BuildChannelMap(fullCfg.ChannelRoles ?? new List<TrackRole>());
@@ -567,8 +573,16 @@ namespace ALWTTT.Managers
                 if (!string.IsNullOrEmpty(tr.MusicianId) && byMusician.TryGetValue(tr.MusicianId, out var ch))
                     tr.Channel = ch;
 
+            if (logDebug)
+                Debug.Log($"{DebugTag} [BPM] RenderSinglePart part={partIndex} " +
+                          $"bpmOverride={(bpmOverride?.ToString() ?? "none")}");
+
             // Generate stems via orchestrator
-            var render = generator.Orchestrator.GenerateSinglePart(part, fullCfg.ChannelRoles);
+            var render = generator.Orchestrator.GenerateSinglePart(
+                part, fullCfg.ChannelRoles, partIndex, bpmOverride);
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} [BPM] Part={partIndex} resolved BPM={render.bpm}");
 
             // Serialize merged
             byte[] mergedBytes;
@@ -588,7 +602,7 @@ namespace ALWTTT.Managers
             }
 
             var seconds = ComputeDurationSeconds(render.merged);
-            return (mergedBytes, stemsOut, seconds);
+            return (mergedBytes, stemsOut, seconds, render.bpm);
         }
 
         #endregion

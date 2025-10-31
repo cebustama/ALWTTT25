@@ -52,7 +52,9 @@ namespace ALWTTT.Managers
         {
             public byte[] mergedBytes;
             public float seconds;
-            public Dictionary<string, byte[]> stemsByMusician = new(); // future: micro-variations / single-track replace
+            public int resolvedBpm;
+            public Dictionary<string, byte[]> stemsByMusician = new();
+            public Dictionary<string, MIDIInstrumentSO> resolvedInstrumentByMusician = new();
         }
 
         #endregion
@@ -632,23 +634,34 @@ namespace ALWTTT.Managers
             }
 
             // Ensure we have a cached render for this part
-            if (!_partCache.TryGetValue(partIndex, out var cache) || cache == null || cache.mergedBytes == null || cache.mergedBytes.Length == 0)
+            if (!_partCache.TryGetValue(partIndex, out var cache) 
+                || cache == null || cache.mergedBytes == null || cache.mergedBytes.Length == 0)
             {
+                int? bpmOverride = (cache != null && cache.resolvedBpm > 0) ? 
+                    cache.resolvedBpm : 
+                    (int?)null;
+
+                if (bpmOverride.HasValue)
+                    Log($"[BPM] Using cached BPM {bpmOverride.Value} for part {partIndex}.");
+
                 // Render exactly one repetition of this part, using the session's channel layout
-                var (merged, stems, seconds) = mm.RenderSinglePart(fullCfg, partIndex);
+                var (merged, stems, seconds, bpmChosen) =
+                    mm.RenderSinglePart(fullCfg, partIndex, bpmOverride);
                 if (merged == null || merged.Length == 0 || seconds <= 0f)
                 {
                     Debug.LogError($"{DebugTag} RenderSinglePart failed for partIndex {partIndex}");
                     return 0f;
                 }
 
-                cache = new PartCache
-                {
-                    mergedBytes = merged,
-                    seconds = seconds,
-                    stemsByMusician = stems ?? new Dictionary<string, byte[]>()
-                };
+                if (cache == null) cache = new PartCache();
+                cache.mergedBytes = merged;
+                cache.seconds = seconds;
+                cache.stemsByMusician = stems ?? new Dictionary<string, byte[]>();
+                cache.resolvedBpm = bpmChosen;
                 _partCache[partIndex] = cache;
+
+                Log($"[BPM] Stored resolved BPM {bpmChosen} for part {partIndex} in cache " +
+                    $"(override was {(bpmOverride.HasValue ? bpmOverride.Value.ToString() : "none")}).");
             }
 
             // Replay the same bytes for this loop iteration
@@ -875,46 +888,38 @@ namespace ALWTTT.Managers
                 return false;
             }
 
+            bool loopIsRunning = isPlaying 
+                && (jamState == JamState.BuildingNextPart 
+                    || jamState == JamState.PlayingCurrentPart);
+
+            // send the card to the PART THAT'S LOOPING when music is playing
+            int targetPartIndex = loopIsRunning
+                ? currentPartIndex
+                : compositionUI.Model.CurrentPartIndex;
+
             // ---------- UPDATE UI / MODEL ----------
-            bool uiApplied = compositionUI == null 
-                || compositionUI.ApplyCard(card, target);
+            bool uiApplied = compositionUI == null
+                || compositionUI.ApplyCardToPart(card, target, targetPartIndex);
             if (!uiApplied) return false;
 
+            Debug.Log($"{DebugTag} Card '{c.CardName}' applied to " +
+                $"partIndex={targetPartIndex} (jamState={jamState}).");
+
             // ---------- INVALIDATE CURRENT PART CACHE IF NEEDED ----------
-            // Playing a Track_* card while the current part is looping means
-            // the part's content has changed. Nuke the cache so the next loop
-            // will regenerate and include the new/updated track.
-            bool playedTrackCard =
-                c.CompositionType == CompositionCardType.Track_Rhythm ||
-                c.CompositionType == CompositionCardType.Track_Backing ||
-                c.CompositionType == CompositionCardType.Track_Bassline ||
-                c.CompositionType == CompositionCardType.Track_Melody ||
-                c.CompositionType == CompositionCardType.Track_Harmony;
-
-            if (playedTrackCard && jamState == JamState.PlayingCurrentPart)
+            if (loopIsRunning && c.AffectsSound)
             {
-                InvalidatePartCache(currentPartIndex);
-            }
+                bool keepTempo = ShouldKeepTempo(c);
 
-            bool editedStructureCard =
-                c.CompositionType == CompositionCardType.TimeSignature_4_4 ||
-                c.CompositionType == CompositionCardType.TimeSignature_3_4 ||
-                c.CompositionType == CompositionCardType.TimeSignature_6_8 ||
-                c.CompositionType == CompositionCardType.TimeSignature_5_4 ||
-                c.CompositionType == CompositionCardType.Tempo_Slow ||
-                c.CompositionType == CompositionCardType.Tempo_Fast ||
-                c.CompositionType == CompositionCardType.Tempo_VeryFast ||
-                c.CompositionType == CompositionCardType.Tonality_Ionian ||
-                c.CompositionType == CompositionCardType.Tonality_Dorian ||
-                c.CompositionType == CompositionCardType.Tonality_Phrygian ||
-                c.CompositionType == CompositionCardType.Tonality_Lydian ||
-                c.CompositionType == CompositionCardType.Tonality_Mixolydian ||
-                c.CompositionType == CompositionCardType.Tonality_Aeolian ||
-                c.CompositionType == CompositionCardType.Tonality_Locrian;
+                if (c.IsTrackCard)
+                    Debug.Log($"{DebugTag} [Cache] Track card -> invalidate MIDI (keep BPM={keepTempo}).");
+                else if (c.IsTempoCard)
+                    Debug.Log($"{DebugTag} [Cache] Tempo card -> invalidate MIDI+Tempo (keep BPM={keepTempo}).");
+                else if (c.IsTimeSignatureCard)
+                    Debug.Log($"{DebugTag} [Cache] Time Signature card -> invalidate MIDI (keep BPM={keepTempo}).");
+                else if (c.IsTonalityCard)
+                    Debug.Log($"{DebugTag} [Cache] Tonality card -> invalidate MIDI (keep BPM={keepTempo}).");
 
-            if (editedStructureCard && jamState == JamState.PlayingCurrentPart)
-            {
-                InvalidatePartCache(currentPartIndex);
+                InvalidatePartCache(currentPartIndex, keepTempo);
             }
 
             // ---------- INSPIRATION: spend on success + update UI ----------
@@ -935,7 +940,7 @@ namespace ALWTTT.Managers
                 }
             }
 
-            if (playedTrackCard 
+            if (c.IsTrackCard 
                 && jamState != JamState.BuildingCurrentPart 
                 && compositionUI != null)
             {
@@ -1376,15 +1381,36 @@ namespace ALWTTT.Managers
             return sum;
         }
 
-        /// <summary>
-        /// Drop the cached render for a given part so the next loop regenerates it.
-        /// Safe to call even if nothing is cached.
-        /// </summary>
-        private void InvalidatePartCache(int partIndex)
+        private void InvalidatePartCache(int partIndex, bool keepTempo = true)
         {
-            if (_partCache == null) return;
-            if (_partCache.Remove(partIndex))
-                Debug.Log($"{DebugTag} Invalidated cached MIDI for part #{partIndex}.");
+            if (!_partCache.TryGetValue(partIndex, out var cache) || cache == null)
+            {
+                cache = new PartCache();
+                _partCache[partIndex] = cache;
+            }
+
+            int preservedBpm = keepTempo ? cache.resolvedBpm : 0;
+
+            cache.mergedBytes = null;
+            cache.seconds = 0f;
+            cache.stemsByMusician?.Clear();
+            cache.resolvedBpm = preservedBpm;
+
+            Log(keepTempo
+                ? $"[Cache] Invalidated MIDI for part {partIndex} but kept BPM={preservedBpm}."
+                : $"[Cache] Invalidated MIDI+Tempo for part {partIndex} (BPM reset).");
+        }
+
+        private bool ShouldKeepTempo(CardData c)
+        {
+            if (c == null) return true;
+
+            if (c.IsTempoCard) return false;
+            if (c.IsTimeSignatureCard) return true;
+            if (c.IsTrackCard) return true;
+            if (c.IsTonalityCard) return true;
+
+            return true;
         }
     }
 }

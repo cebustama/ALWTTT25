@@ -1991,6 +1991,10 @@ PrefabInstance:
       propertyPath: useProceduralBacking
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8167336864662766119, guid: 84bebd3e8c7f3ed4f8193b147b71acb0, type: 3}
+      propertyPath: jamRules.inspirationPerPart
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 8177869808379639446, guid: 84bebd3e8c7f3ed4f8193b147b71acb0, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

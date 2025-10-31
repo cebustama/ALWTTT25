@@ -114,6 +114,45 @@ namespace ALWTTT
         public bool IsAction => domain == CardDomain.Action;
         #endregion
 
+        #region Type Helpers
+        public bool IsTrackCard =>
+            compositionType == CompositionCardType.Track_Rhythm ||
+            compositionType == CompositionCardType.Track_Backing ||
+            compositionType == CompositionCardType.Track_Bassline ||
+            compositionType == CompositionCardType.Track_Melody ||
+            compositionType == CompositionCardType.Track_Harmony;
+
+        public bool IsTempoCard =>
+            compositionType == CompositionCardType.Tempo_Slow ||
+            compositionType == CompositionCardType.Tempo_Fast ||
+            compositionType == CompositionCardType.Tempo_VeryFast;
+
+        public bool IsTimeSignatureCard =>
+            compositionType == CompositionCardType.TimeSignature_4_4 ||
+            compositionType == CompositionCardType.TimeSignature_3_4 ||
+            compositionType == CompositionCardType.TimeSignature_6_8 ||
+            compositionType == CompositionCardType.TimeSignature_5_4;
+
+        public bool IsTonalityCard =>
+            compositionType == CompositionCardType.Tonality_Ionian ||
+            compositionType == CompositionCardType.Tonality_Dorian ||
+            compositionType == CompositionCardType.Tonality_Phrygian ||
+            compositionType == CompositionCardType.Tonality_Lydian ||
+            compositionType == CompositionCardType.Tonality_Mixolydian ||
+            compositionType == CompositionCardType.Tonality_Aeolian ||
+            compositionType == CompositionCardType.Tonality_Locrian;
+
+        public bool IsThemeCard =>
+            compositionType == CompositionCardType.Theme_Love ||
+            compositionType == CompositionCardType.Theme_Injustice ||
+            compositionType == CompositionCardType.Theme_Party;
+
+        public bool RequiresMusicianTarget => IsTrackCard;
+
+        public bool AffectsSound =>
+            IsTrackCard || IsTempoCard || IsTimeSignatureCard || IsTonalityCard;
+        #endregion
+
         #region Descriptions
         // Human-friendly default descriptions for Composition cards
         // TODO: Read from SO
