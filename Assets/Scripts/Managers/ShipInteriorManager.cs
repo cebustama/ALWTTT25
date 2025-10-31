@@ -645,8 +645,10 @@ namespace ALWTTT.Managers
                     Log($"[BPM] Using cached BPM {bpmOverride.Value} for part {partIndex}.");
 
                 // Render exactly one repetition of this part, using the session's channel layout
-                var (merged, stems, seconds, bpmChosen) =
-                    mm.RenderSinglePart(fullCfg, partIndex, bpmOverride);
+                var (merged, stems, seconds, bpmChosen, instByMus) =
+                    mm.RenderSinglePart(
+                        fullCfg, partIndex, bpmOverride, cache?.resolvedInstrumentByMusician);
+
                 if (merged == null || merged.Length == 0 || seconds <= 0f)
                 {
                     Debug.LogError($"{DebugTag} RenderSinglePart failed for partIndex {partIndex}");
@@ -658,6 +660,13 @@ namespace ALWTTT.Managers
                 cache.seconds = seconds;
                 cache.stemsByMusician = stems ?? new Dictionary<string, byte[]>();
                 cache.resolvedBpm = bpmChosen;
+
+                if (instByMus != null)
+                {
+                    foreach (var kv in instByMus)
+                        cache.resolvedInstrumentByMusician[kv.Key] = kv.Value;
+                }
+
                 _partCache[partIndex] = cache;
 
                 Log($"[BPM] Stored resolved BPM {bpmChosen} for part {partIndex} in cache " +
@@ -1153,6 +1162,21 @@ namespace ALWTTT.Managers
                             break;
                     }
 
+                    // PINNED INSTRUMENT OVERRIDE
+                    if (role != TrackRole.Rhythm &&
+                        _partCache.TryGetValue(partIndex, out var partCache) &&
+                        partCache != null &&
+                        !string.IsNullOrEmpty(musicianId) &&
+                        partCache.resolvedInstrumentByMusician.TryGetValue(
+                            musicianId, out var pinned) &&
+                        pinned != null)
+                    {
+                        melInst = pinned; // make the cached one authoritative
+                        Log($"[Jam] [Pin] Using cached instrument for " +
+                            $"part={partIndex} " +
+                            $"mus='{musicianId}' -> '{pinned.InstrumentName}'");
+                    }
+
                     var instName = melInst != null ? melInst.InstrumentName :
                                    percInst != null ? percInst.InstrumentName : "(none)";
                     var pattName = pattern != null ? pattern.name : "(none)";
@@ -1381,8 +1405,10 @@ namespace ALWTTT.Managers
             return sum;
         }
 
-        private void InvalidatePartCache(int partIndex, bool keepTempo = true)
+        private void InvalidatePartCache(
+            int partIndex, bool keepTempo = true, string onlyForMusicianId = null)
         {
+            /*
             if (!_partCache.TryGetValue(partIndex, out var cache) || cache == null)
             {
                 cache = new PartCache();
@@ -1394,11 +1420,21 @@ namespace ALWTTT.Managers
             cache.mergedBytes = null;
             cache.seconds = 0f;
             cache.stemsByMusician?.Clear();
-            cache.resolvedBpm = preservedBpm;
+            cache.resolvedBpm = preservedBpm;*/
 
-            Log(keepTempo
-                ? $"[Cache] Invalidated MIDI for part {partIndex} but kept BPM={preservedBpm}."
-                : $"[Cache] Invalidated MIDI+Tempo for part {partIndex} (BPM reset).");
+            if (!_partCache.TryGetValue(partIndex, out var cache) || cache == null) return;
+
+            cache.mergedBytes = null;
+            cache.seconds = 0f;
+            cache.stemsByMusician?.Clear();
+            if (!keepTempo) cache.resolvedBpm = 0;
+
+            if (!string.IsNullOrEmpty(onlyForMusicianId))
+                cache.resolvedInstrumentByMusician.Remove(onlyForMusicianId);
+
+            Log($"[Cache] Invalidated part {partIndex} (keepTempo={keepTempo}) " +
+                (onlyForMusicianId != null ? 
+                $"only musician='{onlyForMusicianId}'" : "all-tracks"));
         }
 
         private bool ShouldKeepTempo(CardData c)

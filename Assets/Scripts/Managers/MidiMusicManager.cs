@@ -547,7 +547,8 @@ namespace ALWTTT.Managers
         public (byte[] merged, 
             Dictionary<string, byte[]> stemsByMusician, 
             float seconds, 
-            int bpmChosen)
+            int bpmChosen,
+            Dictionary<string, MIDIInstrumentSO> instrumentByMusician)
             RenderSinglePart(SongConfig fullCfg, 
                 int partIndex, 
                 int? bpmOverride = null,
@@ -555,7 +556,7 @@ namespace ALWTTT.Managers
         {
             EnsureRegistriesLoaded();
             if (fullCfg == null || partIndex < 0 || partIndex >= fullCfg.Parts.Count)
-                return (null, null, 0f, 0);
+                return (null, null, 0f, 0, null);
 
             // Build channel map from the global ChannelRoles of this config
             var channelMap = BuildChannelMap(fullCfg.ChannelRoles ?? new List<TrackRole>());
@@ -579,7 +580,7 @@ namespace ALWTTT.Managers
 
             // Generate stems via orchestrator
             var render = generator.Orchestrator.GenerateSinglePart(
-                part, fullCfg.ChannelRoles, partIndex, bpmOverride);
+                part, fullCfg.ChannelRoles, partIndex, bpmOverride, instrumentOverrides);
 
             if (logDebug)
                 Debug.Log($"{DebugTag} [BPM] Part={partIndex} resolved BPM={render.bpm}");
@@ -602,7 +603,11 @@ namespace ALWTTT.Managers
             }
 
             var seconds = ComputeDurationSeconds(render.merged);
-            return (mergedBytes, stemsOut, seconds, render.bpm);
+
+            var pinned = render.instrumentByMusician ?? 
+                new Dictionary<string, MIDIInstrumentSO>();
+
+            return (mergedBytes, stemsOut, seconds, render.bpm, pinned);
         }
 
         #endregion
