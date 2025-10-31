@@ -1,5 +1,6 @@
 ﻿using ALWTTT.Characters;
 using ALWTTT.Characters.Band;
+using ALWTTT.Enums;
 using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
@@ -54,7 +55,9 @@ namespace ALWTTT.Managers
             public float seconds;
             public int resolvedBpm;
             public Dictionary<string, byte[]> stemsByMusician = new();
-            public Dictionary<string, MIDIInstrumentSO> resolvedInstrumentByMusician = new();
+            public Dictionary<string, MIDIInstrumentSO> resolvedMelInstByMusician = new();
+            public Dictionary<string, 
+                MIDIPercussionInstrumentSO> resolvedPercInstByMusician = new();
         }
 
         #endregion
@@ -647,7 +650,7 @@ namespace ALWTTT.Managers
                 // Render exactly one repetition of this part, using the session's channel layout
                 var (merged, stems, seconds, bpmChosen, instByMus) =
                     mm.RenderSinglePart(
-                        fullCfg, partIndex, bpmOverride, cache?.resolvedInstrumentByMusician);
+                        fullCfg, partIndex, bpmOverride, cache?.resolvedMelInstByMusician);
 
                 if (merged == null || merged.Length == 0 || seconds <= 0f)
                 {
@@ -664,7 +667,7 @@ namespace ALWTTT.Managers
                 if (instByMus != null)
                 {
                     foreach (var kv in instByMus)
-                        cache.resolvedInstrumentByMusician[kv.Key] = kv.Value;
+                        cache.resolvedMelInstByMusician[kv.Key] = kv.Value;
                 }
 
                 _partCache[partIndex] = cache;
@@ -871,12 +874,12 @@ namespace ALWTTT.Managers
             }
 
             // ---------- QUICK PRE-FILTER (role/musician sanity) ----------
-            bool isTrackCard =
-                c.CompositionType == CompositionCardType.Track_Rhythm ||
-                c.CompositionType == CompositionCardType.Track_Backing ||
-                c.CompositionType == CompositionCardType.Track_Bassline ||
-                c.CompositionType == CompositionCardType.Track_Melody ||
-                c.CompositionType == CompositionCardType.Track_Harmony;
+            bool isTrackCard = c.IsTrackCard;
+
+            if (isTrackCard && target == null && c.HasFixedMusicianTarget)
+            {
+                target = ResolveMusicianByType(c.MusicianCharacterType);
+            }
 
             if (isTrackCard && target == null)
                 return false; // needs a concrete musician
@@ -995,7 +998,10 @@ namespace ALWTTT.Managers
         private void RebindDeckToShipHand()
         {
             if (DeckManager.Instance != null && shipHand != null)
+            {
                 DeckManager.Instance.SetHandController(shipHand);
+                shipHand.SetTargetResolver(ResolveMusicianByType);
+            }
         }
 
         private void SetCompositionVisible(bool visible)
@@ -1167,7 +1173,7 @@ namespace ALWTTT.Managers
                         _partCache.TryGetValue(partIndex, out var partCache) &&
                         partCache != null &&
                         !string.IsNullOrEmpty(musicianId) &&
-                        partCache.resolvedInstrumentByMusician.TryGetValue(
+                        partCache.resolvedMelInstByMusician.TryGetValue(
                             musicianId, out var pinned) &&
                         pinned != null)
                     {
@@ -1430,7 +1436,7 @@ namespace ALWTTT.Managers
             if (!keepTempo) cache.resolvedBpm = 0;
 
             if (!string.IsNullOrEmpty(onlyForMusicianId))
-                cache.resolvedInstrumentByMusician.Remove(onlyForMusicianId);
+                cache.resolvedMelInstByMusician.Remove(onlyForMusicianId);
 
             Log($"[Cache] Invalidated part {partIndex} (keepTempo={keepTempo}) " +
                 (onlyForMusicianId != null ? 
@@ -1447,6 +1453,15 @@ namespace ALWTTT.Managers
             if (c.IsTonalityCard) return true;
 
             return true;
+        }
+
+        private MusicianBase ResolveMusicianByType(MusicianCharacterType t)
+        {
+            if (t == MusicianCharacterType.None || _spawned == null) return null;
+
+            return _spawned.FirstOrDefault(m =>
+                m?.MusicianCharacterData != null &&
+                m.MusicianCharacterData.CharacterType == t);
         }
     }
 }

@@ -16,6 +16,7 @@ MonoBehaviour:
   characterName: Robot C2
   characterDescription: 
   initialMaxStress: 25
+  characterType: 2
   characterPrefab: {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
   characterSprite: {fileID: 4986537597448559443, guid: ca7b571ff02623a4b905f27079fbd285, type: 3}
   characterIcon: {fileID: 8242622823429068648, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}
@@ -29,3 +30,4 @@ MonoBehaviour:
   profile:
     backingInstruments: 02000000
     leadInstruments: 02000000
+    defaultMelodicLeading: {fileID: 0}

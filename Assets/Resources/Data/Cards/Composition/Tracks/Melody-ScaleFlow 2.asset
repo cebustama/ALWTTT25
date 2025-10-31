@@ -16,12 +16,12 @@ MonoBehaviour:
   cardName: Track_Melody (Scale)
   phase: 0
   rarity: 0
-  cardSprite: {fileID: 0}
+  cardSprite: {fileID: 21300000, guid: aa43d531ba2af354d8360bbdfa0e3f05, type: 3}
   domain: 1
   compositionType: 14
   inspirationCost: 2
   inspirationGenerated: 1
-  musicianCharacterType: 0
+  musicianCharacterType: 1
   cardType: 0
   usableWithoutTarget: 0
   exhaustAfterPlay: 0

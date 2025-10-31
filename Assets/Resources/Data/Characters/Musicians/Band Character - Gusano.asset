@@ -16,6 +16,7 @@ MonoBehaviour:
   characterName: Gusano
   characterDescription: 
   initialMaxStress: 20
+  characterType: 3
   characterPrefab: {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
   characterSprite: {fileID: 21300000, guid: ad1c1eacd633b844a9e141c673b7c5c8, type: 3}
   characterIcon: {fileID: -1465092255315395530, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}

@@ -1,4 +1,5 @@
 using ALWTTT.Characters.Band;
+using ALWTTT.Enums;
 using MidiGenPlay;
 using MidiGenPlay.Composition;
 using System;
@@ -16,6 +17,7 @@ namespace ALWTTT.Data
         [SerializeField] private string characterName;
         [SerializeField] private string characterDescription;
         [SerializeField] private int initialMaxStress;
+        [SerializeField] private MusicianCharacterType characterType;
         [SerializeField] private MusicianBase characterPrefab;
         [SerializeField] private Sprite characterSprite; // TEMP
         [SerializeField] private Sprite characterIcon;
@@ -36,6 +38,7 @@ namespace ALWTTT.Data
         public string CharacterName => characterName;
         public string CharacterDescription => characterDescription;
         public int InitialMaxStress => initialMaxStress;
+        public MusicianCharacterType CharacterType => characterType;
         public MusicianBase CharacterPrefab => characterPrefab;
         public Sprite CharacterSprite => characterSprite;
         public Sprite CharacterIcon => characterIcon;

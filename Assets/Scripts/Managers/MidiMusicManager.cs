@@ -604,7 +604,7 @@ namespace ALWTTT.Managers
 
             var seconds = ComputeDurationSeconds(render.merged);
 
-            var pinned = render.instrumentByMusician ?? 
+            var pinned = render.melInstByMusician ?? 
                 new Dictionary<string, MIDIInstrumentSO>();
 
             return (mergedBytes, stemsOut, seconds, render.bpm, pinned);

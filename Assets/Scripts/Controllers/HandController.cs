@@ -3,6 +3,7 @@ using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
@@ -58,6 +59,8 @@ namespace ALWTTT
 
         private Vector2 heldCardTilt;
         private Vector2 force;
+
+        private Func<MusicianCharacterType, MusicianBase> _resolveTargetByType;
 
         #region Cache
 
@@ -136,6 +139,11 @@ namespace ALWTTT
                 // Insert at index
                 hand.Insert(index, card);
             }
+        }
+
+        public void SetTargetResolver(Func<MusicianCharacterType, MusicianBase> resolver)
+        {
+            _resolveTargetByType = resolver;
         }
 
         private Vector2 HandleMouseInput(
@@ -457,6 +465,7 @@ namespace ALWTTT
             return true;
         }
 
+        /*
         private bool TryPlayInShip(Vector2 mousePos)
         {
             if (shipContext == null) return false;
@@ -471,6 +480,55 @@ namespace ALWTTT
 
             // Route to Ship: this enqueues intents into MidiMusicManager (Intro/Outro/Solo/Tempo/Track/Theme)
             var ok = shipContext.TryPlayCompositionCard(heldCard, hoveredMusician);
+            return ok;
+        }*/
+
+        private bool TryPlayInShip(Vector2 mousePos)
+        {
+            if (shipContext == null || heldCard == null) return false;
+
+            var data = heldCard.CardData;
+            if (data == null || !data.IsComposition) return false;
+
+            MusicianBase target = null;
+
+            // FIX: If the card has a fixed musician type, resolve that FIRST and ignore hover.
+            if (data.HasFixedMusicianTarget && _resolveTargetByType != null)
+            {
+                target = _resolveTargetByType(data.MusicianCharacterType);
+                if (target != null)
+                    Debug.Log($"{DebugTag} [Ship] Fixed-target card -> {target.MusicianCharacterData.CharacterName} ({data.MusicianCharacterType}).");
+                else
+                    Debug.Log($"{DebugTag} [Ship] Fixed-target card but resolver returned null for {data.MusicianCharacterType}.");
+            }
+
+            // Otherwise (or if fixed-target failed to resolve), use hover → selected fallback
+            if (target == null)
+            {
+                // Prefer hovered musician
+                var hovered = IsOverMusician(mousePos);
+                if (hovered != null)
+                {
+                    target = hovered;
+                    Debug.Log($"{DebugTag} [Ship] Hover-target -> {target.MusicianCharacterData.CharacterName}.");
+                }
+                else
+                {
+                    // Fallback to Ship-selected (may be the first musician if none highlighted)
+                    target = shipContext.GetSelectedMusicianOrDefault() as MusicianBase;
+                    Debug.Log($"{DebugTag} [Ship] Selected/Default target -> {(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
+                }
+            }
+
+            // If the card REQUIRES a musician and still none, abort.
+            if (data.RequiresMusicianTarget && target == null)
+            {
+                Debug.Log($"{DebugTag} [Ship] Card requires musician target but none resolved.");
+                return false;
+            }
+
+            // Route to Ship: enqueues intents (Intro/Outro/Solo/Tempo/Track/Theme)
+            var ok = shipContext.TryPlayCompositionCard(heldCard, target);
             return ok;
         }
 

@@ -653,7 +653,8 @@ namespace ALWTTT.UI
         {
             if (part == null || string.IsNullOrEmpty(musicianId)) return false;
 
-            Log($"[ApplyCardToPart] Track '{role}' for '{musicianName}' ({musicianId}) on partIndex={partIndex}");
+            Log($"[ApplyCardToPart] Track '{role}' for " +
+                $"'{musicianName}' ({musicianId}) on partIndex={partIndex}");
 
             var existing = part.tracks.FirstOrDefault(t => t.musicianId == musicianId);
             if (existing != null)

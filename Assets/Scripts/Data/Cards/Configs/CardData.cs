@@ -151,6 +151,12 @@ namespace ALWTTT
 
         public bool AffectsSound =>
             IsTrackCard || IsTempoCard || IsTimeSignatureCard || IsTonalityCard;
+
+        public bool HasFixedMusicianTarget =>
+            RequiresMusicianTarget && MusicianCharacterType != MusicianCharacterType.None;
+
+        public bool CanBePlayedWithoutHover =>
+            UsableWithoutTarget || HasFixedMusicianTarget;
         #endregion
 
         #region Descriptions
