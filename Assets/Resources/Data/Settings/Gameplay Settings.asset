@@ -41,8 +41,8 @@ MonoBehaviour:
   compositionCardPool:
   - {fileID: 11400000, guid: c3010329e89dd9848b69daec76290ac2, type: 2}
   - {fileID: 11400000, guid: eee8bef36f0cb3b41b6806e42f757693, type: 2}
+  - {fileID: 11400000, guid: bf537c218043687488921c3896ed53aa, type: 2}
   - {fileID: 11400000, guid: 6cdaaa864c924bf499bdadbdd6132b09, type: 2}
-  - {fileID: 11400000, guid: e08d70c313b8f3c42b7a448088debb94, type: 2}
   - {fileID: 11400000, guid: a762d58f24568d24e9067ec4dbb69fb1, type: 2}
   drawCount: 6
   maxCardsOnHand: 10

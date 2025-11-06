@@ -115,8 +115,16 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
+      propertyPath: nextZoneCenter.y
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
       propertyPath: selectionSpacing
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4895937273966746144, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
+      propertyPath: currentZoneCenter.y
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7130071430049943209, guid: cc8482e4cf842d9478df69d6209ac5b8, type: 3}
       propertyPath: m_LocalPosition.x

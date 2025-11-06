@@ -849,7 +849,8 @@ namespace ALWTTT.Managers
             return _spawned.Count > 0 ? _spawned[0] : null;
         }
 
-        public bool TryPlayCompositionCard(CardBase card, MusicianBase target)
+        public bool TryPlayCompositionCard(
+            CardBase card, MusicianBase target, CardDropZone zone)
         {
             var mm = MidiMusicManager.Instance;
             if (mm == null || card == null) return false;
@@ -900,22 +901,40 @@ namespace ALWTTT.Managers
                 return false;
             }
 
+            int targetPartIndex;
+            // If music is looping,
+            // CurrentPart zone == the looping part,
+            // NextPart == the draft part index
             bool loopIsRunning = isPlaying 
                 && (jamState == JamState.BuildingNextPart 
                     || jamState == JamState.PlayingCurrentPart);
 
-            // send the card to the PART THAT'S LOOPING when music is playing
-            int targetPartIndex = loopIsRunning
-                ? currentPartIndex
-                : compositionUI.Model.CurrentPartIndex;
+            if (loopIsRunning)
+            {
+                // directly affects the part that will play on next loop
+                if (zone == CardDropZone.CurrentPart)
+                    targetPartIndex = currentPartIndex;
+                // “drafting” part index, played after N iterations
+                else if (zone == CardDropZone.NextPart)
+                    targetPartIndex = compositionUI.Model.CurrentPartIndex;
+                // default
+                else
+                    targetPartIndex = currentPartIndex; 
+            }
+            else
+            {
+                // Not looping yet (BuildingCurrentPart)
+                // → everything goes to the UI's current editable part
+                targetPartIndex = compositionUI.Model.CurrentPartIndex;
+            }
 
             // ---------- UPDATE UI / MODEL ----------
             bool uiApplied = compositionUI == null
                 || compositionUI.ApplyCardToPart(card, target, targetPartIndex);
             if (!uiApplied) return false;
 
-            Debug.Log($"{DebugTag} Card '{c.CardName}' applied to " +
-                $"partIndex={targetPartIndex} (jamState={jamState}).");
+            Log($"Card '{c.CardName}' applied to " +
+                $"partIndex={targetPartIndex} (zone={zone}) (jamState={jamState}).", true);
 
             // ---------- INVALIDATE CURRENT PART CACHE IF NEEDED ----------
             if (loopIsRunning && c.AffectsSound)

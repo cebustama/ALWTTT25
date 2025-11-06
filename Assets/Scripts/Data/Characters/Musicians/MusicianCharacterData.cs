@@ -57,17 +57,20 @@ namespace ALWTTT.Data
         [Serializable]
         public class MusicianProfileData
         {
+            [Header("Instrument Types")]
             public List<InstrumentType> backingInstruments;
-            public List<InstrumentType> leadInstruments;
+            public List<InstrumentType> leadInstruments; 
 
-            // Rhythm
+            [Header("Melodic Instruments Whitelist")]
+            public List<MIDIInstrumentSO> backingMelodicInstruments;
+            public List<MIDIInstrumentSO> leadMelodicInstruments;
 
-            // Backing
+            [Header("Percussion Instruments Whitelist")]
+            public List<MIDIPercussionInstrumentSO> percussionInstruments;
 
-            // Melodies
+            [Header("Composition")]
             public MelodicLeadingConfig defaultMelodicLeading;
-        
-            // Harmonies
+            public HarmonicLeadingConfig defaultHarmonicLeading;
         }
     }
 }

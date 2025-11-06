@@ -10,6 +10,8 @@ using UnityEngine.TextCore.Text;
 
 namespace ALWTTT
 {
+    public enum CardDropZone { None, CurrentPart, NextPart }
+
     public class HandController : MonoBehaviour
     {
         private const string DebugTag = "<color=green>HandController:</color>";
@@ -29,6 +31,14 @@ namespace ALWTTT
         [Header("Context")]
         [SerializeField] private bool useGigContext = true;
         [SerializeField] private ShipInteriorManager shipContext;
+
+        [Header("Drop Zones (optional)")]
+        [SerializeField] private bool enableDropZones = true;
+        // Local-space rects (center + size) in the HandController transform space
+        [SerializeField] private Vector2 currentZoneCenter = new Vector2(-2.5f, 0.0f);
+        [SerializeField] private Vector2 currentZoneSize = new Vector2(5.0f, 3.0f);
+        [SerializeField] private Vector2 nextZoneCenter = new Vector2(2.5f, 0.0f);
+        [SerializeField] private Vector2 nextZoneSize = new Vector2(5.0f, 3.0f);
 
         [Header("References")]
         [SerializeField] private Transform drawTransform;
@@ -59,6 +69,14 @@ namespace ALWTTT
 
         private Vector2 heldCardTilt;
         private Vector2 force;
+
+        // Drop Zone logic
+        private Rect _currentZoneRectLocal;
+        private Rect _nextZoneRectLocal;
+        
+        private CardDropZone _hoverZone = CardDropZone.None;
+        private CardDropZone _prevHoverZone = CardDropZone.None;
+        private CardDropZone _pendingDropZone = CardDropZone.None;
 
         private Func<MusicianCharacterType, MusicianBase> _resolveTargetByType;
 
@@ -103,6 +121,12 @@ namespace ALWTTT
             handBounds = new Rect((handOffset - handSize / 2), handSize);
             plane = new Plane(-Vector3.forward, transform.position);
             prevMousePos = Input.mousePosition;
+
+            _currentZoneRectLocal = 
+                new Rect(currentZoneCenter - currentZoneSize * 0.5f, currentZoneSize);
+
+            _nextZoneRectLocal = 
+                new Rect(nextZoneCenter - nextZoneSize * 0.5f, nextZoneSize);
         }
         #endregion
 
@@ -374,14 +398,42 @@ namespace ALWTTT
                     return;
                 }
 
+                // Update zone hover state (when dragging outside hand)
+                var localPoint = transform.InverseTransformPoint(mouseWorldPos);
+                _hoverZone = GetDropZoneForLocalPoint(localPoint);
+                if (_hoverZone != _prevHoverZone)
+                {
+                    // ENTER / EXIT logs
+                    if (_prevHoverZone != CardDropZone.None)
+                        Debug.Log($"{DebugTag} Exited zone: {_prevHoverZone}");
+
+                    if (_hoverZone != CardDropZone.None)
+                        Debug.Log($"{DebugTag} Entered zone: {_hoverZone}");
+
+                    _prevHoverZone = _hoverZone;
+                }
+
                 var mouseButtonUp = Input.GetMouseButtonUp(0);
-                if (mouseButtonUp) PlayCard(mousePos);
+                if (mouseButtonUp)
+                {
+                    if (_hoverZone != CardDropZone.None)
+                    {
+                        // Defer the decision to PlayCard so rules stay identical.
+                        _pendingDropZone = _hoverZone;
+                        Debug.Log($"{DebugTag} DROPPED on zone: " +
+                            $"{_pendingDropZone} (card='{heldCard.CardData.CardName}')");
+                    }
+
+                    PlayCard(mousePos);
+                }
             }
         }
 
         private void PlayCard(Vector2 mousePos)
         {
             Debug.Log($"{DebugTag} Playing card...");
+
+            
 
             // Turn off Gig highlights if they were active
             if (useGigContext && GigManager != null)
@@ -398,13 +450,14 @@ namespace ALWTTT
             }
 
             // Route by context
+            var zoneUsed = _pendingDropZone;
             if (useGigContext)
             {
-                played = TryPlayInGig(mousePos);
+                played = TryPlayInGig(mousePos, zoneUsed);
             }
             else // Ship / Rehearsal context
             {
-                played = TryPlayInShip(mousePos);
+                played = TryPlayInShip(mousePos, zoneUsed);
             }
 
             // Handle piles / return to hand
@@ -426,7 +479,7 @@ namespace ALWTTT
             heldCard = null;
         }
 
-        private bool TryPlayInGig(Vector2 mousePos)
+        private bool TryPlayInGig(Vector2 mousePos, CardDropZone zoneUsed)
         {
             if (GigManager == null) return false;
 
@@ -453,6 +506,8 @@ namespace ALWTTT
             }
 
             if (!canUse) return false;
+
+            Debug.Log($"{DebugTag} [Gig] Zone hint = {zoneUsed}");
 
             // Execute the card in gig context
             heldCard.Use(
@@ -483,7 +538,7 @@ namespace ALWTTT
             return ok;
         }*/
 
-        private bool TryPlayInShip(Vector2 mousePos)
+        private bool TryPlayInShip(Vector2 mousePos, CardDropZone zoneUsed)
         {
             if (shipContext == null || heldCard == null) return false;
 
@@ -528,7 +583,7 @@ namespace ALWTTT
             }
 
             // Route to Ship: enqueues intents (Intro/Outro/Solo/Tempo/Track/Theme)
-            var ok = shipContext.TryPlayCompositionCard(heldCard, target);
+            var ok = shipContext.TryPlayCompositionCard(heldCard, target, zoneUsed);
             return ok;
         }
 
@@ -682,6 +737,23 @@ namespace ALWTTT
             return Vector3.Cross(tangent, Vector3.forward);
         }
 
+        private CardDropZone GetDropZoneForLocalPoint(Vector3 localPoint)
+        {
+            if (!enableDropZones) return CardDropZone.None;
+
+            bool inCurrent = 
+                _currentZoneRectLocal.Contains(new Vector2(localPoint.x, localPoint.y));
+
+            if (inCurrent) return CardDropZone.CurrentPart;
+
+            bool inNext = 
+                _nextZoneRectLocal.Contains(new Vector2(localPoint.x, localPoint.y));
+
+            if (inNext) return CardDropZone.NextPart;
+
+            return CardDropZone.None;
+        }
+
         /// <summary>
         /// Remove the card at the specified index from the hand.
         /// </summary>
@@ -740,6 +812,31 @@ namespace ALWTTT
             }
 
             Gizmos.DrawWireCube(handOffset, handSize);
+
+            if (enableDropZones)
+            {
+                Gizmos.matrix = transform.localToWorldMatrix;
+
+                // CURRENT zone (left) — cyan
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireCube(currentZoneCenter, currentZoneSize);
+
+                // NEXT zone (right) — yellow
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireCube(nextZoneCenter, nextZoneSize);
+
+#if UNITY_EDITOR
+                UnityEditor.Handles.color = Color.cyan;
+                UnityEditor.Handles.Label(
+                    transform.TransformPoint(currentZoneCenter 
+                    + new Vector2(0, currentZoneSize.y * 0.5f + 0.2f)), "CURRENT PART");
+
+                UnityEditor.Handles.color = Color.yellow;
+                UnityEditor.Handles.Label(
+                    transform.TransformPoint(nextZoneCenter 
+                    + new Vector2(0, nextZoneSize.y * 0.5f + 0.2f)), "NEXT PART");
+#endif
+            }
         }
 #endif
         #endregion
