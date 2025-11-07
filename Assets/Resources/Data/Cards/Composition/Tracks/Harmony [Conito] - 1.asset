@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Backing 2
+  m_Name: Harmony [Conito] - 1
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.CardData
-  id: Track_Backing
-  cardName: Track_Backing
+  id: Track_Harmony
+  cardName: Track_Harmony
   phase: 0
   rarity: 0
-  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
+  cardSprite: {fileID: 21300000, guid: aa43d531ba2af354d8360bbdfa0e3f05, type: 3}
   domain: 1
-  compositionType: 12
-  inspirationCost: 2
-  inspirationGenerated: 1
-  musicianCharacterType: 3
+  compositionType: 15
+  inspirationCost: 1
+  inspirationGenerated: 0
+  musicianCharacterType: 1
   cardType: 0
   usableWithoutTarget: 0
   exhaustAfterPlay: 0

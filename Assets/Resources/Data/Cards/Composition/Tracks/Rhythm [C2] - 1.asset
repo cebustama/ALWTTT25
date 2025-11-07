@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Harmony-NearestChordTone 1
+  m_Name: Rhythm [C2] - 1
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.CardData
-  id: Track_Harmony
-  cardName: Track_Harmony
+  id: Track_Rhythm
+  cardName: Track_Rhythm
   phase: 0
   rarity: 0
-  cardSprite: {fileID: 0}
+  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
   domain: 1
-  compositionType: 15
+  compositionType: 11
   inspirationCost: 1
   inspirationGenerated: 0
-  musicianCharacterType: 0
+  musicianCharacterType: 2
   cardType: 0
   usableWithoutTarget: 0
   exhaustAfterPlay: 0

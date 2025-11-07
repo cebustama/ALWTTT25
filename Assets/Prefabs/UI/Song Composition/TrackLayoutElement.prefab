@@ -284,6 +284,7 @@ GameObject:
   - component: {fileID: 5968402720927872297}
   - component: {fileID: 1409282284238963661}
   - component: {fileID: 7204861147157799044}
+  - component: {fileID: 3237569349275959519}
   m_Layer: 0
   m_Name: TrackLayoutElement
   m_TagString: Untagged
@@ -372,6 +373,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SongTrackElementUI
   roleText: {fileID: 3484219913603043690}
   infoText: {fileID: 5024253099650880320}
+  cg: {fileID: 3237569349275959519}
+--- !u!225 &3237569349275959519
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5032936219035264378}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &6932485627119445985
 GameObject:
   m_ObjectHideFlags: 0

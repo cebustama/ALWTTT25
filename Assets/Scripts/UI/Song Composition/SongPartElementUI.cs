@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -47,6 +47,7 @@ namespace ALWTTT.UI
             foreach (Transform c in tracksRoot) Destroy(c.gameObject);
             trackByMusician.Clear();
 
+            /*
             if (model.tracks == null) return;
 
             // Rebuild respecting roster order if available
@@ -67,6 +68,33 @@ namespace ALWTTT.UI
             {
                 foreach (var t in model.tracks)
                     AddOrUpdateTrack(t.musicianId, t.role, t.info);
+            }*/
+
+            // Build one row per musician in roster order (placeholder if no track)
+            if (rosterOrder != null && rosterOrder.Count > 0)
+            {
+                foreach (var id in rosterOrder)
+                {
+                    var t = model.tracks?.Find(x => x.musicianId == id);
+                    var ui = Instantiate(trackPrefab, tracksRoot);
+                    ui.gameObject.SetActive(true);
+                    trackByMusician[id] = ui;
+
+                    if (t != null) ui.Bind(t.role, t.info, placeholder: false);
+                    else ui.Bind("—", "", placeholder: true);
+                }
+            }
+            else
+            {
+                // fallback: no roster known → just add existing tracks
+                if (model.tracks != null)
+                    foreach (var t in model.tracks)
+                    {
+                        var ui = Instantiate(trackPrefab, tracksRoot);
+                        ui.gameObject.SetActive(true);
+                        trackByMusician[t.musicianId] = ui;
+                        ui.Bind(t.role, t.info, placeholder: false);
+                    }
             }
         }
 
@@ -74,6 +102,7 @@ namespace ALWTTT.UI
         {
             Log($"<color=red>Add/Update Track {musicianId} {role} {info}</color>");
 
+            /*
             if (tracksRoot == null || trackPrefab == null) return;
             if (string.IsNullOrEmpty(musicianId)) return;
 
@@ -92,7 +121,27 @@ namespace ALWTTT.UI
                 int idx = rosterOrder.IndexOf(musicianId);
                 if (idx >= 0 && idx < tracksRoot.childCount)
                     trackUI.transform.SetSiblingIndex(idx);
+            }*/
+
+            // If the row exists (placeholder or not) → update it in place
+            if (!trackByMusician.TryGetValue(musicianId, out var trackUI))
+            {
+                // No row yet (no roster or late-added musician) → create and place
+                trackUI = Instantiate(trackPrefab, tracksRoot);
+                trackUI.gameObject.SetActive(true);
+                trackByMusician[musicianId] = trackUI;
+
+                // place by roster if we have it
+                if (rosterOrder != null && rosterOrder.Count > 0)
+                {
+                    int idx = rosterOrder.IndexOf(musicianId);
+                    if (idx >= 0) 
+                        trackUI.transform.SetSiblingIndex(
+                            Mathf.Min(idx, tracksRoot.childCount - 1));
+                }
             }
+
+            trackUI.Bind(role, info, placeholder: false);
         }
     }
 }

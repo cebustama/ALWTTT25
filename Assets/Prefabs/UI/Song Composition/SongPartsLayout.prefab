@@ -194,6 +194,7 @@ GameObject:
   - component: {fileID: 4378349357402402255}
   - component: {fileID: 1211608172777748449}
   - component: {fileID: 8286722454666902422}
+  - component: {fileID: 8273036375070724283}
   m_Layer: 0
   m_Name: IconElement
   m_TagString: Untagged
@@ -258,3 +259,15 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &8273036375070724283
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6481856370916055179}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

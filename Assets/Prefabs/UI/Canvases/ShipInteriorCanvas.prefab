@@ -351,7 +351,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Compose
+  m_text: Jam
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11634,6 +11634,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2183952560200632536}
     m_Modifications:
+    - target: {fileID: 515826264825053961, guid: 9cb366757c86838499fd80e7aa6fc106, type: 3}
+      propertyPath: m_fontSize
+      value: 57.95
+      objectReference: {fileID: 0}
     - target: {fileID: 2130699043410930372, guid: 9cb366757c86838499fd80e7aa6fc106, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

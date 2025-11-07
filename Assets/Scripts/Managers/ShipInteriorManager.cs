@@ -307,6 +307,8 @@ namespace ALWTTT.Managers
             Log($"[Jam] Advancing to Part {currentPartIndex} " +
                 $"('{model.parts[currentPartIndex].label}').", true);
 
+            compositionUI?.SetIconReferencePartIndex(currentPartIndex);
+
             // Reset loop counters for the new part
             loopsTotalForCurrentPart = jamRules.loopsPerPart;
             loopsRemainingForCurrentPart = jamRules.loopsPerPart;
@@ -481,6 +483,7 @@ namespace ALWTTT.Managers
 
             if (compositionUI) compositionUI.ResetSession();
             compositionUI?.PopulateMusicianIcons(_spawned);
+            compositionUI?.SetIconReferencePartIndex(0);
 
             PrepareRehearsalDeck();
 
@@ -532,6 +535,8 @@ namespace ALWTTT.Managers
             currentLoopDurationSeconds = loopSeconds;
             currentLoopStartTime = Time.time;
 
+            compositionUI?.SetIconReferencePartIndex(currentPartIndex);
+
             // build and show the timeline
             if (loopsTimerUI != null)
             {
@@ -560,80 +565,6 @@ namespace ALWTTT.Managers
             // nextPartIsReady = false; // they haven't confirmed Part B yet
             Log("[Jam] Now looping Part 0 and allowing the player to draft the next part.");
         }
-
-        /*
-        /// <summary>
-        /// Build a SongConfig that only contains the requested partIndex,
-        /// tell MidiMusicManager to play it once,
-        /// and return the duration (in seconds) of that generated part.
-        /// Also flips isPlaying = true so Update() can watch for loop end.
-        /// </summary>
-        private float PlaySinglePartLoop(int partIndex)
-        {
-            var mm = MidiMusicManager.Instance;
-            if (mm == null)
-            {
-                Debug.LogError($"{DebugTag} MidiMusicManager is null");
-                return 0f;
-            }
-
-            var fullCfg = BuildSongConfigFromCompositionUI();
-            if (fullCfg == null)
-            {
-                Debug.LogError($"{DebugTag} BuildSongConfigFromCompositionUI() " +
-                    $"returned null or empty.");
-                return 0f;
-            }
-
-            if (partIndex < 0 || partIndex >= fullCfg.Parts.Count)
-            {
-                Debug.LogError($"{DebugTag} Invalid partIndex " + partIndex);
-                return 0f;
-            }
-
-            // Create a shallow "single-part" cfg
-            var singleCfg = new SongConfig
-            {
-                ChannelMusicianOrder    = fullCfg.ChannelMusicianOrder.ToList(),
-                ChannelRoles            = fullCfg.ChannelRoles.ToList(),
-                Parts                   = new List<SongConfig.PartConfig>(),
-                Structure               = new List<SongConfig.PartSequenceEntry>()
-            };
-
-            // Copy ONLY the partIndex we want
-            singleCfg.Parts.Add(fullCfg.Parts[partIndex]);
-            singleCfg.Structure.Add(new SongConfig.PartSequenceEntry
-            {
-                PartIndex   = 0,
-                RepeatCount = 1
-            });
-
-            midiGenPlayConfig.defaultSeed = 
-                UnityEngine.Random.Range(int.MinValue, int.MaxValue);
-
-            var partName = compositionUI.Model.parts[partIndex].label;
-            float seconds = mm.PlayFromConfig(singleCfg, partName, _spawned);
-            if (seconds <= 0f)
-            {
-                Debug.LogError($"{DebugTag} " +
-                    $"Failed to start playback for partIndex " + partIndex);
-                return 0f;
-            }
-
-            mm.SetChannelOwners(singleCfg.ChannelMusicianOrder.ToList());
-
-            isPlaying = true;
-
-            // Reset timing info for this new loop iteration
-            currentLoopStartTime = Time.time;
-            currentLoopDurationSeconds = seconds;
-
-            Log("[Jam] Playing single part '" + partName + "' " +
-                "(" + partIndex + ") once. Duration " + seconds + "s");
-
-            return seconds;
-        }
-        */
 
         /// <summary>
         /// Play exactly one iteration of the given part index.
@@ -738,80 +669,6 @@ namespace ALWTTT.Managers
             if (compositionUI) compositionUI.ResetSession();
             compositionUI?.PopulateMusicianIcons(_spawned);
         }
-
-        private void EndRehearsalSession()
-        {
-            inRehearsal = false;
-            SetHandVisible(false);
-            SetCompositionVisible(false);
-
-            // clear queued intents (fresh start next time)
-            //try { MidiMusicManager?.ClearQueuedIntents(); } catch { }
-        }
-
-        private IEnumerator ComposeAndPreviewRoutine()
-        {
-            isPlaying = true;
-
-            var mm = MidiMusicManager.Instance;
-            if (mm == null) 
-            { 
-                Debug.LogError($"{DebugTag} MidiMusicManager is null"); 
-                isPlaying = false; 
-                yield break; 
-            }
-
-            // Build config from the UI
-            var cfg = BuildSongConfigFromCompositionUI();
-            if (cfg == null)
-            {
-                Debug.LogError($"{DebugTag} " +
-                    $"BuildSongConfigFromCompositionUI returned null (nothing to play).");
-                isPlaying = false; 
-                yield break;
-            }
-
-            // Personalities (MVP: Neutral per musician)
-            // TODO: Get based on each MusicianCharacterData (base) or persistant state
-            var personalityMap = new Dictionary<string, IMusicianPersonality>();
-            foreach (var m in _spawned)
-            {
-                var id = m.MusicianCharacterData.CharacterId;
-                personalityMap[id] = new NeutralPersonality(id);
-            }
-            MidiMusicManager.SetMusicianPersonalities(personalityMap);
-
-            // PLAY the config
-            var model = compositionUI.Model;
-            // RANDOMIZE SEED, COMMENT IN BUILDS?
-            midiGenPlayConfig.defaultSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
-            var seconds = mm.PlayFromConfig(cfg, model.title, _spawned);
-            if (seconds <= 0f) { isPlaying = false; yield break; }
-
-            // Live routing: retrieve the owners from the manager using the last key OR
-            // rebuild the ordered list from ChannelMusicianOrder.
-            var orderedMusicians = cfg.ChannelMusicianOrder
-                .Select(id => _spawned.FirstOrDefault(
-                    s => s.MusicianCharacterData.CharacterId == id))
-                .Where(s => s != null)
-                .ToList();
-
-            if (orderedMusicians.Count == 0)
-            {
-                Debug.LogError($"{DebugTag} No spawned musician matched channel order.");
-                isPlaying = false; yield break;
-            }
-
-            // Tell manager the same order so it can route realtime events to the right responder
-            mm.SetChannelOwners(cfg.ChannelMusicianOrder.ToList());
-
-            // Wait for playback to end, then auto-reset the Jam UI + hand
-            yield return MidiMusicManager.WaitForEnd();
-            ResetAfterPlayback();
-
-            isPlaying = false;
-        }
-
         private void OnRelax()
         {
             shipCanvas?.SetMainButtonsVisible(false);

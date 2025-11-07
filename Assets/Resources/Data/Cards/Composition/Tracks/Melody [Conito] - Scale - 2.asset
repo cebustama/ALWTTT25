@@ -10,27 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Rhythm 2
+  m_Name: Melody [Conito] - Scale - 2
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.CardData
-  id: Track_Rhythm
-  cardName: Track_Rhythm
+  id: Ascending_Climb
+  cardName: '[Melody] Ascending Climb'
   phase: 0
   rarity: 0
-  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  cardSprite: {fileID: 21300000, guid: aa43d531ba2af354d8360bbdfa0e3f05, type: 3}
   domain: 1
-  compositionType: 11
+  compositionType: 14
   inspirationCost: 2
   inspirationGenerated: 1
-  musicianCharacterType: 2
+  musicianCharacterType: 1
   cardType: 0
   usableWithoutTarget: 0
   exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList: []
-  overrideMelodyStrategy: 0
-  melodyStrategyIdOverride: 0
+  overrideMelodyStrategy: 1
+  melodyStrategyIdOverride: 1
   overrideMelodicLeading: 0
-  melodicLeadingOverride: {fileID: 0}
+  melodicLeadingOverride: {fileID: 11400000, guid: 91e23e39892422b40a107dfada0cfe3d, type: 2}
   overrideHarmonyStrategy: 0
   harmonyStrategyIdOverride: 0
   overrideHarmonicLeading: 0

@@ -39,11 +39,17 @@ MonoBehaviour:
   cohesionRestoredByBandTalk: 2
   initialDeck: {fileID: 11400000, guid: 204c90b7635ebd64d8dfd0c046a1dd57, type: 2}
   compositionCardPool:
+  - {fileID: 11400000, guid: b78927e8ec79c3d4dafc68b1af135615, type: 2}
   - {fileID: 11400000, guid: c3010329e89dd9848b69daec76290ac2, type: 2}
+  - {fileID: 11400000, guid: 875c73d24fbf91a4cb0cbb79a7ac1edb, type: 2}
+  - {fileID: 11400000, guid: 53d75c08cc8e0a243a0c486462139480, type: 2}
   - {fileID: 11400000, guid: eee8bef36f0cb3b41b6806e42f757693, type: 2}
   - {fileID: 11400000, guid: bf537c218043687488921c3896ed53aa, type: 2}
-  - {fileID: 11400000, guid: 6cdaaa864c924bf499bdadbdd6132b09, type: 2}
-  - {fileID: 11400000, guid: a762d58f24568d24e9067ec4dbb69fb1, type: 2}
+  - {fileID: 11400000, guid: b51baabb123d7af4aa98f8a7dcc5643e, type: 2}
+  - {fileID: 11400000, guid: 6bde204afd563294bb1056bd81b26d71, type: 2}
+  - {fileID: 11400000, guid: 47d84299c9530694d9e778281a705fd1, type: 2}
+  - {fileID: 11400000, guid: c16a8a97b7ccf9e4f8ec5c83d9b48796, type: 2}
+  - {fileID: 11400000, guid: ec2b1d31e47ee3c4182874b56e7b1a76, type: 2}
   drawCount: 6
   maxCardsOnHand: 10
   maxGroove: 3

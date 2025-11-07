@@ -91,6 +91,7 @@ namespace ALWTTT.UI
         private readonly List<SongPartElementUI> partUIs = new();
         private List<string> rosterOrder = new();
         private readonly Dictionary<string, Image> iconById = new();
+        private int iconReferencePartIndex = 0;
 
         #region Encapsulation
         public SongModel Model => model;
@@ -305,6 +306,7 @@ namespace ALWTTT.UI
 
             model.parts.Add(p);
             AddPartUI(p);
+            SetPartVisible(newIndex, false);
             UpdateIconsForCurrentPart();
             RaisePartChanged();
 
@@ -339,154 +341,18 @@ namespace ALWTTT.UI
             model.parts[index].isFinal = value;
             Log($"Marked part[{index}] as Final={value}");
         }
+
+        public void SetIconReferencePartIndex(int partIndex)
+        {
+            iconReferencePartIndex = 
+                Mathf.Clamp(partIndex, 0, Mathf.Max(0, model.parts.Count - 1));
+            UpdateIconsForCurrentPart();
+        }
+
+
         #endregion
 
         #region Rules
-        private bool EnsureFirstPart()
-        {
-            if (model.parts.Count > 0) return true;
-
-            var p = new PartEntry
-            {
-                label = defaultPartLabel,
-                timeSignature = "4/4",
-                tempo = "Very Fast"
-            };
-            model.parts.Add(p);
-            AddPartUI(p);
-            return true;
-        }
-
-        private bool SetTimeSignature(string ts)
-        {
-            Log($"Setting Time Signature {ts}");
-
-            if (!EnsureFirstPart()) return false;
-            var part = model.CurrentPart;
-            part.timeSignature = ts;
-            partUIs[model.CurrentPartIndex].Bind(part);
-            RaisePartChanged();
-            return true;
-        }
-
-        private bool SetTempo(string label)
-        {
-            Log($"Setting Tempo {label}");
-
-            if (!EnsureFirstPart()) return false;
-            var part = model.CurrentPart;
-            part.tempo = label;
-            partUIs[model.CurrentPartIndex].Bind(part);
-            RaisePartChanged();
-            return true;
-        }
-
-        private bool SetTonality(string tonality)
-        {
-            Log($"Setting Tonality {tonality}");
-
-            if (!EnsureFirstPart()) return false;
-            var part = model.CurrentPart;
-            part.tonality = tonality;
-            partUIs[model.CurrentPartIndex].Bind(part);
-            RaisePartChanged();
-            return true;
-        }
-
-        private bool TryAddTrack(
-            string musicianId, string musicianName, 
-            string role, string info, CardData sourceCard)
-        {
-            if (string.IsNullOrEmpty(musicianId)) return false;
-
-            Log($"Adding Track id:{musicianId} role:{role} info:{info}");
-
-            // Rule: If no parts → create first part then add track
-            EnsureFirstPart();
-            var part = model.CurrentPart;
-
-            // Look for existing
-            var existing = part.tracks.FirstOrDefault(t => t.musicianId == musicianId);
-            if (existing != null)
-            {
-                // REPLACE (update metadata + overrides + per-loop gen)
-                existing.role = role;
-                existing.info = info;
-
-                existing.hasMelodyStrategyOverride = 
-                    sourceCard != null && sourceCard.OverrideMelodyStrategy;
-                existing.hasMelodicLeadingOverride = 
-                    sourceCard != null && sourceCard.OverrideMelodicLeading;
-                existing.hasHarmonyStrategyOverride = 
-                    sourceCard != null && sourceCard.OverrideHarmonyStrategy;
-                existing.hasHarmonicLeadingOverride = 
-                    sourceCard != null && sourceCard.OverrideHarmonicLeading;
-
-                if (existing.hasMelodyStrategyOverride) 
-                    existing.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
-                if (existing.hasMelodicLeadingOverride) 
-                    existing.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
-                if (existing.hasHarmonyStrategyOverride) 
-                    existing.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
-                if (existing.hasHarmonicLeadingOverride) 
-                    existing.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
-
-                existing.inspirationGenerated = 
-                    Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0);
-
-                // UI refresh
-                partUIs[model.CurrentPartIndex].AddOrUpdateTrack(musicianId, role, info);
-                UpdateIconsForCurrentPart();
-                RaisePartChanged();
-                return true;
-            }
-
-            var entry = new TrackEntry
-            {
-                musicianId = musicianId,
-                role = role,
-                info = info,
-
-                hasMelodyStrategyOverride =
-                    sourceCard != null && sourceCard.OverrideMelodyStrategy,
-                hasMelodicLeadingOverride =
-                    sourceCard != null && sourceCard.OverrideMelodicLeading,
-                hasHarmonyStrategyOverride =
-                    sourceCard != null && sourceCard.OverrideHarmonyStrategy,
-                hasHarmonicLeadingOverride =
-                    sourceCard != null && sourceCard.OverrideHarmonicLeading,
-
-            };
-
-            // Only copy specific fields if they were flagged
-            // TODO: Better way to handle these fields? Before adding more for each track role
-            if (entry.hasMelodyStrategyOverride)
-            {
-                entry.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
-            }
-            if (entry.hasMelodicLeadingOverride)
-            {
-                entry.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
-            }
-            if (entry.hasHarmonyStrategyOverride)
-            {
-                entry.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
-            }
-            if (entry.hasHarmonicLeadingOverride)
-            {
-                entry.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
-            }
-
-            // Add new track entry
-            part.tracks.Add(entry);
-
-            // Update UI
-            partUIs[model.CurrentPartIndex].AddOrUpdateTrack(musicianId, role, info);
-
-            UpdateIconsForCurrentPart();
-            RaisePartChanged();
-            return true;
-        }
 
         // Rule: Part cards (intro/solo/outro) require an existing part first
         private bool AnyPartExists() => model.parts.Count > 0;
@@ -661,49 +527,75 @@ namespace ALWTTT.UI
             if (part == null || string.IsNullOrEmpty(musicianId)) return false;
 
             Log($"[ApplyCardToPart] Track '{role}' for " +
-                $"'{musicianName}' ({musicianId}) on partIndex={partIndex}");
+                $"'{musicianName}' ({musicianId}) on partIndex={partIndex}", true);
+
+            int beforeCount = part.tracks != null ? part.tracks.Count : 0;
 
             var existing = part.tracks.FirstOrDefault(t => t.musicianId == musicianId);
             if (existing != null)
             {
-                // replace metadata / overrides
+                // REPLACE (update metadata + overrides)
                 existing.role = role;
                 existing.info = info;
 
-                existing.hasMelodyStrategyOverride = sourceCard != null && sourceCard.OverrideMelodyStrategy;
-                existing.hasMelodicLeadingOverride = sourceCard != null && sourceCard.OverrideMelodicLeading;
-                existing.hasHarmonyStrategyOverride = sourceCard != null && sourceCard.OverrideHarmonyStrategy;
-                existing.hasHarmonicLeadingOverride = sourceCard != null && sourceCard.OverrideHarmonicLeading;
+                // TODO: How to refactor this to avoid adding multiple variables
+                // we need rhythm strategies, bassline strategies, etc
+                existing.hasMelodyStrategyOverride = 
+                    sourceCard != null && sourceCard.OverrideMelodyStrategy;
+                existing.hasMelodicLeadingOverride = 
+                    sourceCard != null && sourceCard.OverrideMelodicLeading;
+                existing.hasHarmonyStrategyOverride = 
+                    sourceCard != null && sourceCard.OverrideHarmonyStrategy;
+                existing.hasHarmonicLeadingOverride = 
+                    sourceCard != null && sourceCard.OverrideHarmonicLeading;
 
-                if (existing.hasMelodyStrategyOverride) existing.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
-                if (existing.hasMelodicLeadingOverride) existing.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
-                if (existing.hasHarmonyStrategyOverride) existing.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
-                if (existing.hasHarmonicLeadingOverride) existing.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
+                if (existing.hasMelodyStrategyOverride) 
+                    existing.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
+                if (existing.hasMelodicLeadingOverride) 
+                    existing.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
+                if (existing.hasHarmonyStrategyOverride) 
+                    existing.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
+                if (existing.hasHarmonicLeadingOverride) 
+                    existing.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
 
-                existing.inspirationGenerated = Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0);
+                existing.inspirationGenerated = 
+                    Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0);
             }
             else
             {
+                // ADD (new entry)
                 var entry = new TrackEntry
                 {
                     musicianId = musicianId,
                     role = role,
                     info = info,
 
-                    hasMelodyStrategyOverride = sourceCard != null && sourceCard.OverrideMelodyStrategy,
-                    hasMelodicLeadingOverride = sourceCard != null && sourceCard.OverrideMelodicLeading,
-                    hasHarmonyStrategyOverride = sourceCard != null && sourceCard.OverrideHarmonyStrategy,
-                    hasHarmonicLeadingOverride = sourceCard != null && sourceCard.OverrideHarmonicLeading,
-                    inspirationGenerated = Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0),
+                    hasMelodyStrategyOverride = 
+                        sourceCard != null && sourceCard.OverrideMelodyStrategy,
+                    hasMelodicLeadingOverride = 
+                        sourceCard != null && sourceCard.OverrideMelodicLeading,
+                    hasHarmonyStrategyOverride = 
+                        sourceCard != null && sourceCard.OverrideHarmonyStrategy,
+                    hasHarmonicLeadingOverride = 
+                        sourceCard != null && sourceCard.OverrideHarmonicLeading,
+                    inspirationGenerated = 
+                    Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0),
                 };
 
-                if (entry.hasMelodyStrategyOverride) entry.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
-                if (entry.hasMelodicLeadingOverride) entry.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
-                if (entry.hasHarmonyStrategyOverride) entry.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
-                if (entry.hasHarmonicLeadingOverride) entry.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
+                if (entry.hasMelodyStrategyOverride) 
+                    entry.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
+                if (entry.hasMelodicLeadingOverride) 
+                    entry.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
+                if (entry.hasHarmonyStrategyOverride) 
+                    entry.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
+                if (entry.hasHarmonicLeadingOverride) 
+                    entry.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
 
                 part.tracks.Add(entry);
             }
+
+            if (beforeCount == 0)
+                SetPartVisible(partIndex, true);
 
             // UI + icons refresh for the *indexed* part
             partUIs[partIndex].AddOrUpdateTrack(musicianId, role, info);
@@ -756,21 +648,29 @@ namespace ALWTTT.UI
         #region Helpers
         private void UpdateIconsForCurrentPart()
         {
-            if (iconById.Count == 0) return;
+            if (iconById == null || iconById.Count == 0) return;
+            var part = (iconReferencePartIndex >= 0 && iconReferencePartIndex < model.parts.Count)
+                ? model.parts[iconReferencePartIndex]
+                : null;
 
-            var part = model.CurrentPart;
-            if (part == null)
-            {
-                // no parts -> hide all
-                foreach (var kv in iconById) kv.Value.gameObject.SetActive(false);
-                return;
-            }
-
-            // Which musicians have tracks in this part?
-            var activeIds = new HashSet<string>(part.tracks.Select(t => t.musicianId));
+            // Always keep icons active; dim/hide according to the referenced part’s tracks.
+            // If you really prefer hide/show, flip between SetActive(true/false) below.
+            HashSet<string> activeIds = new();
+            if (part != null && part.tracks != null)
+                foreach (var t in part.tracks) 
+                    if (!string.IsNullOrEmpty(t.musicianId)) activeIds.Add(t.musicianId);
 
             foreach (var kv in iconById)
-                kv.Value.gameObject.SetActive(activeIds.Contains(kv.Key));
+            {
+                var img = kv.Value;
+                if (!img) continue;
+
+                bool hasTrack = activeIds.Contains(kv.Key);
+                img.gameObject.SetActive(true);               // always visible
+                var cg = img.GetComponent<CanvasGroup>() ?? 
+                    img.gameObject.AddComponent<CanvasGroup>();
+                cg.alpha = hasTrack ? 1f : 0.35f;             // dim if not playing in this part
+            }
         }
 
         private void RaiseChanged() => OnChanged?.Invoke(model);
@@ -778,6 +678,13 @@ namespace ALWTTT.UI
         {
             var p = model.CurrentPart;
             if (p != null) OnPartChanged?.Invoke(p);
+        }
+
+        private void SetPartVisible(int partIndex, bool visible)
+        {
+            if (partIndex < 0 || partIndex >= partUIs.Count) return;
+            if (partUIs[partIndex] != null)
+                partUIs[partIndex].gameObject.SetActive(visible);
         }
         #endregion
 
