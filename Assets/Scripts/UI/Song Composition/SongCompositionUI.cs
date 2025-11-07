@@ -39,6 +39,7 @@ namespace ALWTTT.UI
         [Header("Dev")]
         [SerializeField] private bool useLogs = false;
 
+        #region Model Data
         [Serializable]
         public class TrackEntry
         {
@@ -68,6 +69,7 @@ namespace ALWTTT.UI
             public string tonality = "Ionian";
             public int measures = 8;
             public List<TrackEntry> tracks = new();
+            public bool isFinal = false;
         }
 
         [Serializable]
@@ -83,6 +85,7 @@ namespace ALWTTT.UI
             public PartEntry CurrentPart => 
                 parts.Count == 0 ? null : parts[CurrentPartIndex];
         }
+        #endregion
 
         private SongModel model = new();
         private readonly List<SongPartElementUI> partUIs = new();
@@ -128,62 +131,6 @@ namespace ALWTTT.UI
         /// </summary>
         public bool ApplyCard(CardBase card, MusicianBase target)
         {
-            /*
-            if (card == null || card.CardData == null) return false;
-            var data = card.CardData;
-            if (!data.IsComposition) return false;
-
-            string tgtId = target != null ? 
-                target.MusicianCharacterData.CharacterId : null;
-            string tgtName = target != null ? 
-                target.MusicianCharacterData.CharacterName : null;
-
-            switch (data.CompositionType)
-            {
-                // ---------- Theme ----------
-                case CompositionCardType.Theme_Love: SetTheme("Love"); return true;
-                case CompositionCardType.Theme_Injustice: SetTheme("Injustice"); return true;
-                case CompositionCardType.Theme_Party: SetTheme("Party"); return true;
-
-                // ---------- Time Signature ----------
-                case CompositionCardType.TimeSignature_4_4: return SetTimeSignature("4/4");
-                case CompositionCardType.TimeSignature_3_4: return SetTimeSignature("3/4");
-                case CompositionCardType.TimeSignature_6_8: return SetTimeSignature("6/8");
-                case CompositionCardType.TimeSignature_5_4: return SetTimeSignature("5/4");
-
-                // ---------- Tempo ----------
-                case CompositionCardType.Tempo_Slow: return SetTempo("Slow");
-                case CompositionCardType.Tempo_Fast: return SetTempo("Fast");
-                case CompositionCardType.Tempo_VeryFast: return SetTempo("Very Fast");
-
-                // ---------- Tracks ----------
-                case CompositionCardType.Track_Rhythm: 
-                    return TryAddTrack(tgtId, tgtName, "Rhythm", data.CardName, data);
-                case CompositionCardType.Track_Backing: 
-                    return TryAddTrack(tgtId, tgtName, "Backing", data.CardName, data);
-                case CompositionCardType.Track_Bassline: 
-                    return TryAddTrack(tgtId, tgtName, "Bassline", data.CardName, data);
-                case CompositionCardType.Track_Melody: 
-                    return TryAddTrack(tgtId, tgtName, "Melody", data.CardName, data);
-                case CompositionCardType.Track_Harmony: 
-                    return TryAddTrack(tgtId, tgtName, "Harmony", data.CardName, data);
-
-                // ---------- Parts ----------
-                case CompositionCardType.Part_Intro: return TryAddIntro(tgtId, tgtName);
-                case CompositionCardType.Part_Solo: return TryAddSolo(tgtId, tgtName);
-                case CompositionCardType.Part_Outro: return TryAddOutro(tgtId, tgtName);
-
-                // ---------- Tonality ----------
-                case CompositionCardType.Tonality_Ionian:       return SetTonality("Ionian");
-                case CompositionCardType.Tonality_Dorian:       return SetTonality("Dorian");
-                case CompositionCardType.Tonality_Phrygian:     return SetTonality("Phrygian");
-                case CompositionCardType.Tonality_Lydian:       return SetTonality("Lydian");
-                case CompositionCardType.Tonality_Mixolydian:   return SetTonality("Mixolydian");
-                case CompositionCardType.Tonality_Aeolian:      return SetTonality("Aeolian");
-                case CompositionCardType.Tonality_Locrian:      return SetTonality("Locrian");
-            }
-
-            return false;*/
             return ApplyCardToPart(card, target, model.CurrentPartIndex);
         }
 
@@ -331,6 +278,66 @@ namespace ALWTTT.UI
         {
             if (plusInspirationText == null) return;
             plusInspirationText.text = amount > 0 ? $"+{amount}" : string.Empty;
+        }
+
+        public int BeginDraftNextPart(string customLabel = null)
+        {
+            // The new part index is the current count (append to the end)
+            int newIndex = model.parts.Count;
+
+            // Inherit some aspects of the last part
+            // TODO: When solo, inherit all other tracks, reduce volume
+            var inherit = model.parts.Count > 0 ? model.parts[model.parts.Count - 1] : null;
+
+            var label = !string.IsNullOrWhiteSpace(customLabel)
+                ? customLabel
+                : (newIndex == 0 ? defaultPartLabel : $"Part {newIndex + 1}");
+
+            var p = new PartEntry
+            {
+                label = label,
+                timeSignature = inherit != null ? inherit.timeSignature : "4/4",
+                tempo = inherit != null ? inherit.tempo : "Very Fast",
+                tonality = inherit != null ? inherit.tonality : "Ionian",
+                measures = inherit != null ? inherit.measures : 8,
+                tracks = new List<TrackEntry>()
+            };
+
+            model.parts.Add(p);
+            AddPartUI(p);
+            UpdateIconsForCurrentPart();
+            RaisePartChanged();
+
+            Log($"[Draft] Created next draft part '{p.label}' at index={newIndex}", true);
+
+            return newIndex;
+        }
+
+        public bool PartHasAnyTrack(int index)
+        {
+            if (index < 0 || index >= model.parts.Count) return false;
+            return model.parts[index].tracks != null && model.parts[index].tracks.Count > 0;
+        }
+
+        public bool HasPlayableNextPart(int afterIndex)
+        {
+            int next = afterIndex + 1;
+            return next >= 0
+                && next < model.parts.Count
+                && PartHasAnyTrack(next);
+        }
+
+        public bool IsPartFinal(int index)
+        {
+            if (index < 0 || index >= model.parts.Count) return false;
+            return model.parts[index].isFinal;
+        }
+
+        public void SetPartFinal(int index, bool value)
+        {
+            if (index < 0 || index >= model.parts.Count) return;
+            model.parts[index].isFinal = value;
+            Log($"Marked part[{index}] as Final={value}");
         }
         #endregion
 
@@ -775,9 +782,13 @@ namespace ALWTTT.UI
         #endregion
 
         #region Debug
-        private void Log(string log)
+        private void Log(string log, bool highlight = false)
         {
-            if (useLogs) Debug.Log($"{DebugTag} {log}");
+            if (useLogs)
+            {
+                if (highlight) Debug.Log($"{DebugTag} <color=yellow>{log}</color>");
+                else Debug.Log($"{DebugTag} {log}");
+            }
         }
         #endregion
     }
