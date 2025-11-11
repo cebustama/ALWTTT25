@@ -1,4 +1,5 @@
 using ALWTTT.Actions;
+using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using MidiGenPlay.Composition;
@@ -69,6 +70,9 @@ namespace ALWTTT
         [SerializeField] private bool overrideHarmonicLeading = false;
         [SerializeField] private HarmonicLeadingConfig harmonicLeadingOverride;
 
+        [Header("Melody Authoring (optional)")]
+        [SerializeField] private MelodyCardConfigSO melodyCardConfig;
+
         [Header("Description")]
         [SerializeField] private List<SpecialKeywords> keywordsList;
 
@@ -112,6 +116,8 @@ namespace ALWTTT
         public CompositionCardType CompositionType => compositionType;
         public bool IsComposition => domain == CardDomain.Composition;
         public bool IsAction => domain == CardDomain.Action;
+
+        public MelodyCardConfigSO MelodyCardConfig => melodyCardConfig;
         #endregion
 
         #region Type Helpers

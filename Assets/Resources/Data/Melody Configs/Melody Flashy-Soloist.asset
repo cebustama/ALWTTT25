@@ -10,24 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ff6527daf3c6fa43868e0013bb3619d, type: 3}
-  m_Name: Ascending Climb - default
+  m_Name: Melody Flashy-Soloist
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MelodicLeadingConfig
   voicingPreset: {fileID: 11400000, guid: 574064b73663389408f65972f800cbfe, type: 2}
-  noteSource: 2
-  maxStepSemitones: 4
-  chanceRepeatNote: 0.05
-  chancePassingNote: 0
-  minSlotsPerPhrase: 3
-  maxSlotsPerPhrase: 5
-  burstPhraseChance: 0.25
-  sustainPhraseChance: 0.15
-  restProbabilityMidPhrase: 0.1
-  normalVelMin: 88
-  normalVelMax: 102
-  accentVelMin: 108
-  accentVelMax: 122
-  phraseEndVelMin: 96
-  phraseEndVelMax: 112
-  burstSubdivisionBeats: 0.25
-  burstNoteCountMin: 3
-  burstNoteCountMax: 6
+  noteSource: 0
+  maxStepSemitones: 14
+  chanceRepeatNote: 0.2
+  chancePassingNote: 0.75
+  phrasePalette: {fileID: 11400000, guid: 4685e44c6f5a82d4db3cdd644845ee0b, type: 2}
+  normalVelMin: 80
+  normalVelMax: 100
+  accentVelMin: 105
+  accentVelMax: 120
+  phraseEndVelMin: 95
+  phraseEndVelMax: 110
