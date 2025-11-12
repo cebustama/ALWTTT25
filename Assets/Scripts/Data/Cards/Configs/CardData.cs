@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace ALWTTT 
+namespace ALWTTT.Cards
 {
     [CreateAssetMenu(fileName = "New CardData", menuName = "ALWTTT/Cards/CardData")]
     public class CardData : ScriptableObject

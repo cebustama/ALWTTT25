@@ -1,3 +1,4 @@
+using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
 using ALWTTT.Data;
 using ALWTTT.Enums;
@@ -5,7 +6,7 @@ using ALWTTT.Events;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static ALWTTT.CardData;
+using static ALWTTT.Cards.CardData;
 
 namespace ALWTTT
 {

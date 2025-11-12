@@ -1,10 +1,9 @@
-using ALWTTT;
 using ALWTTT.Managers;
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace AWLTTT.Cards
+namespace ALWTTT.Cards
 {
     public class ChoiceCard : MonoBehaviour, 
         IPointerEnterHandler, IPointerDownHandler, IPointerExitHandler, IPointerUpHandler

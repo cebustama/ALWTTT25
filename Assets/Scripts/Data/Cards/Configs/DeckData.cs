@@ -1,7 +1,8 @@
+using ALWTTT.Cards;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static ALWTTT.CardData;
+using static ALWTTT.Cards.CardData;
 
 namespace ALWTTT
 {

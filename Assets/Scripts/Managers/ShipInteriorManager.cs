@@ -1,4 +1,5 @@
-﻿using ALWTTT.Characters;
+﻿using ALWTTT.Cards;
+using ALWTTT.Characters;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Music;
@@ -16,7 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
-using static ALWTTT.CardData;
+using static ALWTTT.Cards.CardData;
 using static MidiGenPlay.MusicTheory.MusicTheory;
 
 namespace ALWTTT.Managers

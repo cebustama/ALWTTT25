@@ -1,4 +1,5 @@
-﻿using ALWTTT.Characters.Band;
+﻿using ALWTTT.Cards;
+using ALWTTT.Characters.Band;
 using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static ALWTTT.CardData;
+using static ALWTTT.Cards.CardData;
 using static UnityEngine.EventSystems.EventTrigger;
 
 namespace ALWTTT.UI

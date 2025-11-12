@@ -2,6 +2,7 @@ using ALWTTT.Extentions;
 using ALWTTT.Data;
 using UnityEngine;
 using ALWTTT.Actions;
+using ALWTTT.Cards;
 
 
 namespace ALWTTT.Managers
