@@ -5,6 +5,7 @@ using ALWTTT.Events;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static ALWTTT.CardData;
 
 namespace ALWTTT
 {
@@ -29,8 +30,11 @@ namespace ALWTTT
         [SerializeField] private int perConflictCohesionPenalty = 1;
         [SerializeField] private int cohesionRestoredByBandTalk = 2;
 
-        [Header("Deck")]
-        [SerializeField] private DeckData initialDeck;
+        [Header("Decks")]
+        [SerializeField] private DeckData initialActionDeck;
+        [SerializeField] private DeckData initialCompositionDeck;
+        [Header("Card Pools")]
+        [SerializeField] private List<CardData> actionCardPool;
         [SerializeField] private List<CardData> compositionCardPool;
 
         [Header("Gig Gameplay Settings")]
@@ -84,7 +88,10 @@ namespace ALWTTT
 
         public CardBase CardPrefab => cardPrefab;
         public List<CardData> AllCardsList => allCardsList;
-        public DeckData InitialDeck => initialDeck;
+
+        public DeckData InitialActionDeck => initialActionDeck;
+        public DeckData InitialCompositionDeck => InitialCompositionDeck;
+        public List<CardData> ActionCardPool => actionCardPool;
         public List<CardData> CompositionCardPool => compositionCardPool;
 
         public bool IsRandomDeck => isRandomDeck;
@@ -104,6 +111,50 @@ namespace ALWTTT
 
             return Color.white;
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // 1) Validar dominio de los mazos iniciales
+            if (initialActionDeck != null && initialActionDeck.DeckDomain != CardDomain.Action)
+            {
+                Debug.LogWarning($"[GameplayData:{name}] InitialActionDeck " +
+                    $"'{initialActionDeck.name}' " +
+                    $"tiene DeckDomain={initialActionDeck.DeckDomain} " +
+                    $"pero debería ser Action.");
+            }
+            if (initialCompositionDeck != null 
+                && initialCompositionDeck.DeckDomain != CardDomain.Composition)
+            {
+                Debug.LogWarning($"[GameplayData:{name}] " +
+                    $"InitialCompositionDeck '{initialCompositionDeck.name}' " +
+                    $"tiene DeckDomain={initialCompositionDeck.DeckDomain} " +
+                    $"pero debería ser Composition.");
+            }
+
+            // 2) Sanear pools por dominio
+            FilterPoolByDomain(actionCardPool, CardDomain.Action, "actionCardPool");
+            FilterPoolByDomain(
+                compositionCardPool, CardDomain.Composition, "compositionCardPool");
+        }
+
+        private void FilterPoolByDomain(
+            List<CardData> pool, CardDomain mustBe, string fieldLabel)
+        {
+            if (pool == null) return;
+            for (int i = pool.Count - 1; i >= 0; --i)
+            {
+                var c = pool[i];
+                if (c == null) continue;
+                if (c.Domain != mustBe)
+                {
+                    Debug.LogWarning($"[GameplayData:{name}] {fieldLabel}: " +
+                        $"removiendo carta '{c.name}' (Domain={c.Domain}) != {mustBe}.");
+                    pool.RemoveAt(i);
+                }
+            }
+        }
+#endif
     }
 
     // Curated tables/pools (by sector, biome, chapter, etc.)

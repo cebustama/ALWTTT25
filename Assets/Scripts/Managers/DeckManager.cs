@@ -39,7 +39,7 @@ namespace ALWTTT.Managers
         public void SetGameDeck()
         {
             Debug.Log($"{DebugTag} Setting game deck...");
-            foreach (var i in GameManager.PersistentGameplayData.CurrentCardsList)
+            foreach (var i in GameManager.PersistentGameplayData.CurrentActionCards)
             {
                 DrawPile.Add(i);
             }

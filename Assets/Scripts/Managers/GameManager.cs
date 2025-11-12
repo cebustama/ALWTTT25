@@ -60,14 +60,14 @@ namespace ALWTTT.Managers
         public void SetInitialDeck()
         {
             Debug.Log($"{DebugTag} Setting initial deck...");
-            PersistentGameplayData.CurrentCardsList.Clear();
+            PersistentGameplayData.CurrentActionCards.Clear();
 
             // Randomized starting deck
             if (PersistentGameplayData.IsRandomDeck)
             {
                 for (int i = 0; i < GameplayData.RandomCardCount; i++)
                 {
-                    PersistentGameplayData.CurrentCardsList.Add(
+                    PersistentGameplayData.CurrentActionCards.Add(
                         GameplayData.AllCardsList.RandomItem()
                     );
                 }
@@ -75,9 +75,9 @@ namespace ALWTTT.Managers
             // Add from Deck Data
             else
             {
-                foreach (var cardData in GameplayData.InitialDeck.CardList)
+                foreach (var cardData in GameplayData.InitialActionDeck.CardList)
                 {
-                    PersistentGameplayData.CurrentCardsList.Add(cardData);
+                    PersistentGameplayData.CurrentActionCards.Add(cardData);
                 }
             }
         }

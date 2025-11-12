@@ -20,7 +20,7 @@ namespace ALWTTT.Utils
             {
                 case InventoryType.CurrentDeck:
                     UIManager.OpenCardsInventory(
-                        GameManager.PersistentGameplayData.CurrentCardsList, "Deck");
+                        GameManager.PersistentGameplayData.CurrentActionCards, "Deck");
                     break;
                 case InventoryType.DrawPile:
                     UIManager.OpenCardsInventory(DeckManager.DrawPile, "Draw Pile");

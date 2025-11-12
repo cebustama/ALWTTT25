@@ -109,7 +109,7 @@ public class BandSetupCanvas : MonoBehaviour
     private void BuildCardPreview(MusicianCharacterData musician)
     {
         ClearCards();
-        foreach (var cd in musician.BaseCards)
+        foreach (var cd in musician.BaseActionCards)
         {
             var cardUI = Instantiate(cardUIPrefab, cardSpawnRoot.transform);
             cardUI.SetCard(cd, false);

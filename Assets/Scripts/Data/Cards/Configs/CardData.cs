@@ -21,6 +21,9 @@ namespace ALWTTT
         [SerializeField] private Sprite cardSprite;
 
         public enum CardDomain { Action, Composition }
+
+
+
         public enum CompositionCardType
         {
             None,

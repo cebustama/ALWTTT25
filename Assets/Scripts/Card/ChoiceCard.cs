@@ -26,7 +26,7 @@ namespace AWLTTT.Cards
 
         private void OnChoice()
         {
-            GameManager.PersistentGameplayData.CurrentCardsList.Add(cardBase.CardData);
+            GameManager.PersistentGameplayData.CurrentActionCards.Add(cardBase.CardData);
             UIManager.RewardCanvas.ChoicePanel.DisablePanel();
 
             OnCardChose?.Invoke();

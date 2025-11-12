@@ -84,7 +84,7 @@ namespace ALWTTT.UI
         {
             ClearCards();
 
-            foreach (var cardData in musicianData.BaseCards)
+            foreach (var cardData in musicianData.BaseActionCards)
             {
                 var cardUI = Instantiate(cardUIPrefab, cardSpawnRoot.transform);
                 cardUI.SetCard(cardData, false);

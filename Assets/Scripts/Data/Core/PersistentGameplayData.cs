@@ -34,10 +34,20 @@ namespace ALWTTT.Data
         [SerializeField] private List<MusicianBase> availableMusiciansList;
         [SerializeField] private List<string> usedRandomEventIds;
         // eventId -> sector
-        [SerializeField] private SerializableStringIntDictionary eventLastSeenSector; 
+        [SerializeField] private SerializableStringIntDictionary eventLastSeenSector;
 
-        // Deckbuilding / Gig Encounters
-        [SerializeField] private List<CardData> currentCardsList;
+        // Deckbuilding
+        [SerializeField] private List<CardData> currentActionCards = new();
+        [SerializeField] private List<CardData> currentCompositionCards = new();
+
+        [SerializeField]
+        private SerializableCardInventory musicianGrantedActionCards =
+            new SerializableCardInventory();
+        [SerializeField]
+        private SerializableCardInventory musicianGrantedCompositionCards =
+            new SerializableCardInventory();
+
+        // Gig Gameplay
         [SerializeField] private int drawCount;
         [SerializeField] private int maxGroove;
         [SerializeField] private int currentGroove;
@@ -50,8 +60,7 @@ namespace ALWTTT.Data
         [SerializeField] private SongData currentSong;
         [SerializeField] private int currentSongIndex;
         [SerializeField] private List<CardData> songModifierCardsList;
-        [SerializeField] private SerializableCardInventory musicianGrantedCards = 
-            new SerializableCardInventory();
+        
 
         // Sector Info
         [SerializeField] private int currentSectorId;
@@ -132,10 +141,16 @@ namespace ALWTTT.Data
 
         public List<BandConflict> BandConflicts => bandConflicts;
 
-        public List<CardData> CurrentCardsList
+        public List<CardData> CurrentActionCards
         {
-            get => currentCardsList;
-            set => currentCardsList = value;
+            get => currentActionCards;
+            set => currentActionCards = value;
+        }
+
+        public List<CardData> CurrentCompositionCards
+        {
+            get => currentCompositionCards;
+            set => currentCompositionCards = value;
         }
 
         public bool IsRandomDeck => isRandomDeck;
@@ -271,7 +286,10 @@ namespace ALWTTT.Data
             KeepGrooveBetweenTurns = gameplayData.KeepGrooveBetweenTurns;
 
             isRandomDeck = gameplayData.IsRandomDeck;
-            CurrentCardsList = new List<CardData>();
+            
+            CurrentActionCards = new List<CardData>();
+            CurrentCompositionCards = new List<CardData>();
+
             CurrentSongList = gameplayData.InitialSongList;
             CurrentSongIndex = 0;
             SongModifierCardsList = new List<CardData>();
@@ -330,23 +348,28 @@ namespace ALWTTT.Data
         public void AddCardToDeck(CardData card)
         {
             if (card == null) return;
-            if (CurrentCardsList == null) CurrentCardsList = new List<CardData>();
-            CurrentCardsList.Add(card);
-            // NOTE: if duplicates should be prevented, guard with:
-            // if (!CurrentCardsList.Contains(card)) CurrentCardsList.Add(card);
+            if (card.IsAction) currentActionCards.Add(card);
+            else if (card.IsComposition) currentCompositionCards.Add(card);
         }
 
         // Grants cards to the deck AND records they came from musicianId
         public void GrantCardsToMusician(string musicianId, IEnumerable<CardData> cards)
         {
             if (string.IsNullOrEmpty(musicianId) || cards == null) return;
-            if (CurrentCardsList == null) CurrentCardsList = new List<CardData>();
 
             foreach (var c in cards)
             {
                 if (c == null) continue;
-                CurrentCardsList.Add(c);
-                musicianGrantedCards.AddCard(musicianId, c);
+                if (c.IsAction)
+                {
+                    currentActionCards.Add(c);
+                    musicianGrantedActionCards.AddCard(musicianId, c);
+                }
+                else if (c.IsComposition)
+                {
+                    currentCompositionCards.Add(c);
+                    musicianGrantedCompositionCards.AddCard(musicianId, c);
+                }
             }
         }
 
@@ -354,10 +377,16 @@ namespace ALWTTT.Data
         public void GrantCardToMusician(string musicianId, CardData card)
         {
             if (string.IsNullOrEmpty(musicianId) || card == null) return;
-            if (CurrentCardsList == null) CurrentCardsList = new List<CardData>();
-
-            CurrentCardsList.Add(card);
-            musicianGrantedCards.AddCard(musicianId, card);
+            if (card.IsAction)
+            {
+                currentActionCards.Add(card);
+                musicianGrantedActionCards.AddCard(musicianId, card);
+            }
+            else if (card.IsComposition)
+            {
+                currentCompositionCards.Add(card);
+                musicianGrantedCompositionCards.AddCard(musicianId, card);
+            }
         }
         #endregion
 
@@ -367,11 +396,15 @@ namespace ALWTTT.Data
             MusicianList = new List<MusicianBase>();
             AvailableMusiciansList = new List<MusicianBase>(all);
             musicianHealthDataList = new List<MusicianHealthData>();
-            CurrentCardsList = new List<CardData>();
-            musicianGrantedCards = new SerializableCardInventory();
+            
             CurrentSongList = new List<SongData>();
             CurrentSongIndex = 0;
             SongModifierCardsList = new List<CardData>();
+
+            CurrentActionCards = new List<CardData>();
+            CurrentCompositionCards = new List<CardData>();
+            musicianGrantedActionCards = new SerializableCardInventory();
+            musicianGrantedCompositionCards = new SerializableCardInventory();
         }
 
         public MusicianHealthData SetMusicianHealthData(
@@ -451,7 +484,8 @@ namespace ALWTTT.Data
             MusicianList.Add(musicianPrefab);
 
             // Record base cards as coming from this musician
-            GrantCardsToMusician(newMusician.CharacterId, newMusician.BaseCards);
+            GrantCardsToMusician(newMusician.CharacterId, newMusician.BaseActionCards);
+            GrantCardsToMusician(newMusician.CharacterId, newMusician.BaseCompositionCards);
 
             AvailableMusiciansList.Remove(musicianPrefab);
 
@@ -495,17 +529,13 @@ namespace ALWTTT.Data
             if (health != null) musicianHealthDataList.Remove(health);
 
             // 3) Remove their granted cards from the deck
-            if (musicianGrantedCards.TryRemoveAll(musicianId, out var granted))
+            if (musicianGrantedActionCards.TryRemoveAll(musicianId, out var grantedA))
             {
-                if (CurrentCardsList == null) CurrentCardsList = new List<CardData>();
-
-                // We remove ONE instance per recorded grant (deck is a multiset)
-                foreach (var card in granted)
-                {
-                    if (card == null) continue;
-                    // Remove only one copy for each grant record
-                    CurrentCardsList.Remove(card);
-                }
+                foreach (var card in grantedA) currentActionCards.Remove(card);
+            }
+            if (musicianGrantedCompositionCards.TryRemoveAll(musicianId, out var grantedC))
+            {
+                foreach (var card in grantedC) currentCompositionCards.Remove(card);
             }
 
             return true;
