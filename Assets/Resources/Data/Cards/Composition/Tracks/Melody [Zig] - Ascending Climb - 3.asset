@@ -35,5 +35,6 @@ MonoBehaviour:
   harmonyStrategyIdOverride: 0
   overrideHarmonicLeading: 0
   harmonicLeadingOverride: {fileID: 0}
+  melodyCardConfig: {fileID: 11400000, guid: 5972e214e6b27f14db16532ce917a187, type: 2}
   keywordsList: 
   audioType: 0

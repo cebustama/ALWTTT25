@@ -1172,9 +1172,11 @@ namespace ALWTTT.Managers
                             Pattern = pattern,
                             RhythmRecipe = recipe,
 
+                            Style = trModel.styleBundle,
+
+                            // Legacy fallbacks still populated
                             melodyStrategyId = finalMelStrategyId,
                             melodicLeadingOverride = finalMelodicCfg,
-
                             harmonyStrategyId = finalHarStrategyId,
                             harmonicLeadingOverride = finalHarmonicCfg,
                         }

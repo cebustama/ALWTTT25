@@ -48,6 +48,8 @@ namespace ALWTTT.UI
             public string info;                 // “Funk Groove”, “Pentatonic”, card name, etc
             public int inspirationGenerated;    // per-loop gain contributed by this track
 
+            public TrackStyleBundleSO styleBundle;
+
             // per-track style overrides captured from the card or musician
             public bool hasMelodyStrategyOverride;
             public MelodyStrategyId melodyStrategyIdOverride;
@@ -560,6 +562,13 @@ namespace ALWTTT.UI
 
                 existing.inspirationGenerated = 
                     Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0);
+
+                // Style budles
+                if (sourceCard != null && sourceCard.IsTrackCard)
+                {
+                    if (role == "Melody" && sourceCard.MelodyCardConfig != null)
+                        existing.styleBundle = sourceCard.MelodyCardConfig;
+                }
             }
             else
             {
@@ -590,6 +599,13 @@ namespace ALWTTT.UI
                     entry.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
                 if (entry.hasHarmonicLeadingOverride) 
                     entry.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
+
+                // Style budles
+                if (sourceCard != null && sourceCard.IsTrackCard)
+                {
+                    if (role == "Melody" && sourceCard.MelodyCardConfig != null)
+                        entry.styleBundle = sourceCard.MelodyCardConfig;
+                }
 
                 part.tracks.Add(entry);
             }

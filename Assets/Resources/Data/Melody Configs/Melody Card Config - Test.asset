@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa8b584cf7e717648b1d33dcf96ccf20, type: 3}
   m_Name: Melody Card Config - Test
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.MelodyCardConfigSO
-  leadingOverride: {fileID: 0}
-  phrasePaletteOverride: {fileID: 0}
-  style: {fileID: 0}
+  leadingOverride: {fileID: 11400000, guid: 91e23e39892422b40a107dfada0cfe3d, type: 2}
+  phrasePaletteOverride: {fileID: 11400000, guid: 4685e44c6f5a82d4db3cdd644845ee0b, type: 2}
+  style: {fileID: 11400000, guid: 097a4f287b33c2249b5a78fe209e9991, type: 2}
