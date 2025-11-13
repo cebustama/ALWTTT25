@@ -12,13 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b0352be5e8424c4a88a8e839715ed4c, type: 3}
   m_Name: TestCompositionDeck
   m_EditorClassIdentifier: 
-  deckID: deck_test_action
-  deckName: Test Action Deck
-  deckDomain: 0
+  deckID: deck_test_composition
+  deckName: Test Composition Deck
+  deckDomain: 1
   cardList:
-  - {fileID: 11400000, guid: e98941a84a6e0e84b934901dc8d7b9da, type: 2}
-  - {fileID: 11400000, guid: 3c325cdf46fb70c40878973db03bc792, type: 2}
-  - {fileID: 11400000, guid: fad3ff856d953be4eb613e90a4f3ff49, type: 2}
-  - {fileID: 11400000, guid: 7393a51a40771fa4aa861a1d57e3ade4, type: 2}
-  - {fileID: 11400000, guid: 7ca186e602b9a7f40b44613bab7607c4, type: 2}
-  - {fileID: 11400000, guid: 7fdbe375c07474b4297bd88078d62605, type: 2}
+  - {fileID: 11400000, guid: b78927e8ec79c3d4dafc68b1af135615, type: 2}
+  - {fileID: 11400000, guid: eee8bef36f0cb3b41b6806e42f757693, type: 2}
+  - {fileID: 11400000, guid: 6bde204afd563294bb1056bd81b26d71, type: 2}
+  - {fileID: 11400000, guid: 47d84299c9530694d9e778281a705fd1, type: 2}

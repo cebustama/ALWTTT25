@@ -1,7 +1,8 @@
-using ALWTTT.Actions;
+ï»¿using ALWTTT.Actions;
 using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
+using MidiGenPlay;
 using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
@@ -16,43 +17,54 @@ namespace ALWTTT.Cards
         [Header("Card Profile")]
         [SerializeField] private string id;
         [SerializeField] private string cardName;
-        [SerializeField] private CardPhase phase;
-        [SerializeField] private RarityType rarity;
-        [SerializeField] private Sprite cardSprite;
 
-        public enum CardDomain { Action, Composition }
-
-
-
-        public enum CompositionCardType
-        {
-            None,
-            // Meter
-            TimeSignature_4_4, TimeSignature_3_4, TimeSignature_6_8, TimeSignature_5_4,
-            // Tempo
-            Tempo_Slow, Tempo_Fast, Tempo_VeryFast,
-            // Themes
-            Theme_Love, Theme_Injustice, Theme_Party,
-            // Track Roles
-            Track_Rhythm, Track_Backing, Track_Bassline, Track_Melody, Track_Harmony,
-            // Parts
-            Part_Intro, Part_Solo, Part_Outro,
-            // Tonality
-            Tonality_Ionian, Tonality_Dorian, Tonality_Phrygian, Tonality_Lydian,
-            Tonality_Mixolydian, Tonality_Aeolian, Tonality_Locrian,
-        }
-
-        [Header("Domain")]
-        [SerializeField] private CardDomain domain = CardDomain.Action;
-        [SerializeField] private CompositionCardType compositionType = CompositionCardType.None;
+        [Header("Character")]
+        [SerializeField]
+        private MusicianCharacterType musicianCharacterType =
+            MusicianCharacterType.None;
+        [SerializeField] private Sprite cardSprite; // Fill according to musician
 
         [Header("Inspiration")]
         [SerializeField] private int inspirationCost;
         [SerializeField] private int inspirationGenerated;
 
-        [Header("Character")]
-        [SerializeField] private MusicianCharacterType musicianCharacterType = 
-            MusicianCharacterType.None;
+        public enum CardDomain { Action, Composition }
+        [Header("Domain")]
+        [SerializeField] private CardDomain domain = CardDomain.Action;
+
+        /// <summary>
+        /// High-level primary kind for a Composition card.
+        /// Track: create/replace/update a musician's track in a part.
+        /// Part: create/mark/structure a song part (intro/solo/outro/bridge/etc.).
+        /// </summary>
+        public enum CardPrimaryKind { None = 0, Track = 1, Part = 2 }
+
+        /// <summary>
+        /// Identifies which track role the card targets (Rhythm/Backing/Bassline/Melody/Harmony).
+        /// You already have these labels elsewhere; keep it string for soft-coupling (UI-friendly).
+        /// </summary>
+        [Serializable]
+        public class TrackActionDescriptor
+        {
+            public TrackRole role = TrackRole.Rhythm;
+
+            [Tooltip("Optional style bundle for this track (recipe/strategy/archetypes).")]
+            public TrackStyleBundleSO styleBundle;
+        }
+
+        [Header("Composition")]
+        [SerializeField] private CardPrimaryKind primaryKind = CardPrimaryKind.None;
+        [SerializeField] private TrackActionDescriptor trackAction;   // used when PrimaryKind=Track
+        [SerializeField] private PartActionDescriptor partAction;
+
+        [Tooltip("Zero or more modifier effects that will compose with the primary action.")]
+        [SerializeField] private List<PartEffect> modifierEffects = new();
+
+        [Header("Description")]
+        [SerializeField] private List<SpecialKeywords> keywordsList;
+
+        [Header("Fx")]
+        [SerializeField] private AudioActionType audioType;
 
         [Header("Synergies")]
         [SerializeField] private CardType cardType;
@@ -63,24 +75,13 @@ namespace ALWTTT.Cards
         [SerializeField] private List<CardConditionData> cardConditionDataList;
         [SerializeField] private List<CharacterActionData> cardActionDataList;
 
-        [Header("Composition Style")]
-        [SerializeField] private bool overrideMelodyStrategy = false;
-        [SerializeField] private MelodyStrategyId melodyStrategyIdOverride;
-        [SerializeField] private bool overrideMelodicLeading = false;
-        [SerializeField] private MelodicLeadingConfig melodicLeadingOverride;
-        [SerializeField] private bool overrideHarmonyStrategy = false;
-        [SerializeField] private HarmonyStrategyId harmonyStrategyIdOverride;
-        [SerializeField] private bool overrideHarmonicLeading = false;
-        [SerializeField] private HarmonicLeadingConfig harmonicLeadingOverride;
+        [SerializeField] private RarityType rarity; // Not used for now
 
-        [Header("Melody Authoring (optional)")]
-        [SerializeField] private MelodyCardConfigSO melodyCardConfig;
-
-        [Header("Description")]
-        [SerializeField] private List<SpecialKeywords> keywordsList;
-
-        [Header("Fx")]
-        [SerializeField] private AudioActionType audioType;
+        /// <summary>
+        /// (TEMP) Whether this card uses the new model (PrimaryKind != None).
+        /// </summary>
+        public bool UsesNewCompositionModel => IsComposition 
+            && primaryKind != CardPrimaryKind.None;
 
         // Fallback read-only empties to avoid null checks everywhere
         private static readonly List<CharacterActionData> EmptyActions = new();
@@ -91,7 +92,6 @@ namespace ALWTTT.Cards
         public string Id => id;
         public bool UsableWithoutTarget => usableWithoutTarget;
         public string CardName => cardName;
-        public CardPhase Phase => phase;
         public RarityType Rarity => rarity;
         public int GrooveCost => inspirationCost;
         public Sprite CardSprite => cardSprite;
@@ -100,117 +100,115 @@ namespace ALWTTT.Cards
         public bool ExhaustAfterPlay => exhaustAfterPlay;
         public CardType CardType => cardType;
         public List<CardConditionData> CardConditionDataList => cardConditionDataList;
-        public List<CharacterActionData> CardActionDataList => cardActionDataList ?? EmptyActions;
-
-        public bool OverrideMelodyStrategy => overrideMelodyStrategy;
-        public MelodyStrategyId MelodyStrategyIdOverride => melodyStrategyIdOverride;
-        public bool OverrideMelodicLeading => overrideMelodicLeading;
-        public MelodicLeadingConfig MelodicLeadingOverride => melodicLeadingOverride;
-
-        public bool OverrideHarmonyStrategy => overrideHarmonyStrategy;
-        public HarmonyStrategyId HarmonyStrategyIdOverride => harmonyStrategyIdOverride;
-        public bool OverrideHarmonicLeading => overrideHarmonicLeading;
-        public HarmonicLeadingConfig HarmonicLeadingOverride => harmonicLeadingOverride;
+        public List<CharacterActionData> CardActionDataList => 
+            cardActionDataList ?? EmptyActions;
 
         public List<SpecialKeywords> KeywordsList => keywordsList ?? EmptyKeywords;
         public AudioActionType AudioType => audioType;
 
         public CardDomain Domain => domain;
-        public CompositionCardType CompositionType => compositionType;
         public bool IsComposition => domain == CardDomain.Composition;
         public bool IsAction => domain == CardDomain.Action;
 
-        public MelodyCardConfigSO MelodyCardConfig => melodyCardConfig;
+        public CardPrimaryKind PrimaryKind => primaryKind;
+        public TrackActionDescriptor TrackAction => trackAction;
+        public PartActionDescriptor PartAction => partAction;
+        public IReadOnlyList<PartEffect> ModifierEffects => modifierEffects;
         #endregion
 
         #region Type Helpers
+        /// <summary>
+        /// True if this is a Composition card whose primary action is to
+        /// create/replace a musician track (Rhythm / Backing / Bassline / Melody / Harmony).
+        /// </summary>
         public bool IsTrackCard =>
-            compositionType == CompositionCardType.Track_Rhythm ||
-            compositionType == CompositionCardType.Track_Backing ||
-            compositionType == CompositionCardType.Track_Bassline ||
-            compositionType == CompositionCardType.Track_Melody ||
-            compositionType == CompositionCardType.Track_Harmony;
+            IsComposition && primaryKind == CardPrimaryKind.Track;
 
-        public bool IsTempoCard =>
-            compositionType == CompositionCardType.Tempo_Slow ||
-            compositionType == CompositionCardType.Tempo_Fast ||
-            compositionType == CompositionCardType.Tempo_VeryFast;
+        /// <summary>
+        /// True if this is a Composition card whose primary action is to
+        /// operate on Parts (create/mark Intro/Solo/Outro/Bridge/Final).
+        /// </summary>
+        public bool IsPartCard =>
+            IsComposition && primaryKind == CardPrimaryKind.Part;
 
-        public bool IsTimeSignatureCard =>
-            compositionType == CompositionCardType.TimeSignature_4_4 ||
-            compositionType == CompositionCardType.TimeSignature_3_4 ||
-            compositionType == CompositionCardType.TimeSignature_6_8 ||
-            compositionType == CompositionCardType.TimeSignature_5_4;
+        /// <summary>
+        /// Utility: does this card have at least one modifier effect of type T?
+        /// </summary>
+        private bool HasEffect<T>() where T : PartEffect =>
+            modifierEffects != null && modifierEffects.Exists(e => e is T);
 
-        public bool IsTonalityCard =>
-            compositionType == CompositionCardType.Tonality_Ionian ||
-            compositionType == CompositionCardType.Tonality_Dorian ||
-            compositionType == CompositionCardType.Tonality_Phrygian ||
-            compositionType == CompositionCardType.Tonality_Lydian ||
-            compositionType == CompositionCardType.Tonality_Mixolydian ||
-            compositionType == CompositionCardType.Tonality_Aeolian ||
-            compositionType == CompositionCardType.Tonality_Locrian;
+        /// <summary>
+        /// True if this card changes the tempo (via TempoEffect).
+        /// </summary>
+        public bool IsTempoCard => HasEffect<TempoEffect>();
 
-        public bool IsThemeCard =>
-            compositionType == CompositionCardType.Theme_Love ||
-            compositionType == CompositionCardType.Theme_Injustice ||
-            compositionType == CompositionCardType.Theme_Party;
+        /// <summary>
+        /// True if this card changes the time signature / meter (via MeterEffect).
+        /// </summary>
+        public bool IsTimeSignatureCard => HasEffect<MeterEffect>();
 
-        public bool RequiresMusicianTarget => IsTrackCard;
+        /// <summary>
+        /// True if this card changes the tonality / mode (via TonalityEffect).
+        /// </summary>
+        public bool IsTonalityCard => HasEffect<TonalityEffect>();
 
+        /// <summary>
+        /// Theme cards will probably become their own effect or keyword later.
+        /// For now we expose a simple hook that can be wired when you add a ThemeEffect
+        /// or a dedicated keyword.
+        /// </summary>
+        public bool IsThemeCard => false; // placeholder until Theme is modeled in the new system
+
+        /// <summary>
+        /// A card needs a musician target if it affects a specific track
+        /// (Track primary) or if any of its effects are scoped to TrackOnly.
+        /// </summary>
+        public bool RequiresMusicianTarget
+        {
+            get
+            {
+                if (!IsComposition) return false; // TODO: Action cards pipeline
+
+                if (IsTrackCard) return true;
+
+                if (modifierEffects != null)
+                {
+                    foreach (var fx in modifierEffects)
+                    {
+                        if (fx != null && fx.scope == EffectScope.TrackOnly)
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// True if this card changes how the song sounds in any way:
+        ///  - Track creation / replacement
+        ///  - Any PartEffect (tempo, meter, tonality, density, feel, etc.)
+        /// </summary>
         public bool AffectsSound =>
-            IsTrackCard || IsTempoCard || IsTimeSignatureCard || IsTonalityCard;
+            IsComposition &&
+            (IsTrackCard || (modifierEffects != null && modifierEffects.Count > 0));
 
+        /// <summary>
+        /// A card has a fixed musician target when it always applies to a given
+        /// character type (e.g. "Drummer") and doesn't require hover selection.
+        /// </summary>
         public bool HasFixedMusicianTarget =>
-            RequiresMusicianTarget && MusicianCharacterType != MusicianCharacterType.None;
+            RequiresMusicianTarget &&
+            MusicianCharacterType != MusicianCharacterType.None;
 
+        /// <summary>
+        /// Used by the hand/hover logic: a card can be played without hovering
+        /// a target if:
+        ///  - it's explicitly marked as usable without target, or
+        ///  - it has a fixed musician target.
+        /// </summary>
         public bool CanBePlayedWithoutHover =>
             UsableWithoutTarget || HasFixedMusicianTarget;
-        #endregion
-
-        #region Descriptions
-        // Human-friendly default descriptions for Composition cards
-        // TODO: Read from SO
-        private static readonly Dictionary<CompositionCardType, string> CompositionDescriptions =
-            new Dictionary<CompositionCardType, string>
-        {
-            // Time Signatures
-            { CompositionCardType.TimeSignature_4_4,   "Set the song (or next part) to 4/4 time." },
-            { CompositionCardType.TimeSignature_3_4,   "Set the song (or next part) to 3/4 (waltz) time." },
-            { CompositionCardType.TimeSignature_6_8,   "Set the song (or next part) to 6/8 (swing/ternary) time." },
-            { CompositionCardType.TimeSignature_5_4,   "Set the song (or next part) to 5/4 time." },
-
-            // Tempo
-            { CompositionCardType.Tempo_Slow,          "Slow down the next performance section." },
-            { CompositionCardType.Tempo_Fast,          "Speed up the next performance section." },
-            { CompositionCardType.Tempo_VeryFast,      "Play the next section much faster." },
-
-            // Themes
-            { CompositionCardType.Theme_Love,          "Set the song’s theme to Love." },
-            { CompositionCardType.Theme_Injustice,     "Set the song’s theme to Injustice." },
-            { CompositionCardType.Theme_Party,         "Set the song’s theme to Party." },
-
-            // Track roles (we use pattern replacement/intensification in the generator)
-            { CompositionCardType.Track_Rhythm,        "Change the rhythm track pattern for the target musician." },
-            { CompositionCardType.Track_Backing,       "Change the backing/chord pattern for the target musician." },
-            { CompositionCardType.Track_Bassline,      "Change the bassline pattern for the target musician." },
-            { CompositionCardType.Track_Melody,        "Change the melody pattern for the target musician." },
-            { CompositionCardType.Track_Harmony,       "Change the harmony/voicing pattern for the target musician." },
-
-            // Parts
-            { CompositionCardType.Part_Intro,          "Add an Intro played by the target musician." },
-            { CompositionCardType.Part_Solo,           "Insert a Solo section by the target musician." },
-            { CompositionCardType.Part_Outro,          "Add an Outro played by the target musician." },
-
-            // Tonality
-            {CompositionCardType.Tonality_Ionian,       "Set the part's tonality to ionian mode."},
-            {CompositionCardType.Tonality_Dorian,       "Set the part's tonality to dorian mode."},
-            {CompositionCardType.Tonality_Phrygian,     "Set the part's tonality to phrygian mode."},
-            {CompositionCardType.Tonality_Lydian,       "Set the part's tonality to lydian mode."},
-            {CompositionCardType.Tonality_Mixolydian,   "Set the part's tonality to mixolydian mode."},
-            {CompositionCardType.Tonality_Aeolian,      "Set the part's tonality to aeolian mode."},
-            {CompositionCardType.Tonality_Locrian,      "Set the part's tonality to locrian mode."},
-        };
         #endregion
 
         public string GetDescription(BandCharacterStats stats = null)
@@ -249,20 +247,218 @@ namespace ALWTTT.Cards
 
         private string GetCompositionDescription()
         {
-            if (compositionType == CompositionCardType.None)
-                return "Composition tool.";
+            if (!UsesNewCompositionModel)
+                return "Legacy composition card.";
 
-            if (CompositionDescriptions.TryGetValue(compositionType, out var text))
-                return text;
+            var sb = new StringBuilder("Composition: ");
 
-            // Generic fallback if a new enum value is added without a description
-            var label = compositionType.ToString()
-                .Replace("TimeSignature_", "Time Signature ")
-                .Replace('_', ' ');
-            return label;
+            // Primary
+            if (primaryKind == CardPrimaryKind.Track)
+            {
+                string role = trackAction != null
+                    ? trackAction.role.ToString()
+                    : "Track";
+                sb.Append($"Track [{role}]");
+            }
+            else if (primaryKind == CardPrimaryKind.Part)
+            {
+                string action = partAction != null ? partAction.action.ToString() : "Part";
+                sb.Append($"Part [{action}]");
+                if (partAction != null && !string.IsNullOrWhiteSpace(partAction.customLabel))
+                    sb.Append($" (â€œ{partAction.customLabel}â€)");
+            }
+            else
+            {
+                sb.Append("No primary action");
+            }
+
+            // Effects
+            if (modifierEffects != null && modifierEffects.Count > 0)
+            {
+                var effects = new List<string>();
+                foreach (var fx in modifierEffects)
+                {
+                    effects.Add(fx.GetLabel());
+                }
+                sb.Append(" | Effects: " + string.Join(", ", effects));
+            }
+
+            return sb.ToString();
         }
 
-        // TODO: Color
+        #region Refactor
+
+        // ---------- Primary Action Descriptors ----------
+
+        /// <summary>
+        /// Describes a structural action upon Parts (create, mark as Intro/Solo/Outro/Bridge, etc.).
+        /// </summary>
+        [Serializable]
+        public class PartActionDescriptor
+        {
+            public enum PartActionKind { CreatePart, MarkIntro, MarkSolo, MarkOutro, MarkBridge, MarkFinal, Custom }
+
+            public PartActionKind action = PartActionKind.CreatePart;
+
+            [Tooltip("Optional custom label for created/marked part (e.g., 'Part B', 'Bridge').")]
+            public string customLabel;
+
+            [Tooltip("If marking Solo, optionally tie to a musician (by id).")]
+            public string musicianId;
+        }
+
+        // ---------- Modifier Effects (composable) ----------
+
+        /// <summary>
+        /// When an effect should be applied relative to playback / drafting.
+        /// </summary>
+        public enum ApplyTiming { Immediate = 0, OnNextLoop = 1, OnNextPartStart = 2 }
+
+        /// <summary>
+        /// Scope of an effect. TrackOnly applies to a specific musician's track;
+        /// otherwise it affects the Part or the WholeSong (session-level default).
+        /// </summary>
+        public enum EffectScope { TrackOnly = 0, CurrentPart = 1, NextPart = 2, WholeSong = 3 }
+
+        /// <summary>
+        /// Base class for all composition effects. Extend to add new musical parameters
+        /// (swing, density, syncopation, humanization, tonality shifts, etc.).
+        /// </summary>
+        [Serializable]
+        public abstract class PartEffect
+        {
+            [Tooltip("Where this effect applies.")]
+            public EffectScope scope = EffectScope.CurrentPart;
+
+            [Tooltip("When to apply the effect.")]
+            public ApplyTiming timing = ApplyTiming.OnNextLoop;
+
+            [Tooltip("Optional: only apply to a specific musician (TrackOnly scope).")]
+            public string musicianIdFilter;
+
+            /// <summary>
+            /// Short UI label to show on the card and in the part inspector.
+            /// </summary>
+            public abstract string GetLabel();
+        }
+
+        [Serializable]
+        public sealed class TempoEffect : PartEffect
+        {
+            [Range(0.5f, 2.5f)]
+            public float tempoScale = 1.0f; // 0.75, 1.25, etc.
+
+            public override string GetLabel() => $"Tempo Ã—{tempoScale:0.##}";
+        }
+
+        [Serializable]
+        public sealed class MeterEffect : PartEffect
+        {
+            [Tooltip("UI label like '4/4', '3/4', '6/8', '5/4'")]
+            public string meterLabel = "4/4";
+            public override string GetLabel() => $"Meter {meterLabel}";
+        }
+
+        [Serializable]
+        public sealed class TonalityEffect : PartEffect
+        {
+            [Tooltip("Mode label like 'Ionian', 'Dorian', etc.")]
+            public string modeLabel = "Ionian";
+            public override string GetLabel() => $"Mode {modeLabel}";
+        }
+
+        [Serializable]
+        public sealed class DensityEffect : PartEffect
+        {
+            [Range(0f, 1f)] public float sparsity01 = 0.5f;
+            public override string GetLabel() => $"Density {(1f - sparsity01):0%}";
+        }
+
+        [Serializable]
+        public sealed class FeelEffect : PartEffect
+        {
+            public enum FeelKind { Straight, Shuffle, Swing8, Swing16, LaidBack, PushAhead }
+            public FeelKind feel = FeelKind.Straight;
+            public override string GetLabel() => $"Feel {feel}";
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // --- 0) Null-guard lists so new assets never NRE ---
+            if (modifierEffects == null) modifierEffects = new List<PartEffect>();
+            if (cardActionDataList == null) cardActionDataList = new List<CharacterActionData>();
+            if (keywordsList == null) keywordsList = new List<SpecialKeywords>();
+
+            // --- 1) Honor Domain (legacy bridge) ---
+            if (!IsComposition)                        // Action cards: keep composition fields clean
+            {
+                primaryKind = CardPrimaryKind.None;
+                trackAction = null;
+                partAction = null;
+                modifierEffects.Clear();
+                return;
+            }
+
+            // --- 2) If PrimaryKind is None, auto-pick when obvious ---
+            if (primaryKind == CardPrimaryKind.None)
+            {
+                if (trackAction != null) primaryKind = CardPrimaryKind.Track;
+                else if (partAction != null) primaryKind = CardPrimaryKind.Part;
+            }
+
+            // --- 3) Coherence: keep only the fields relevant to the chosen kind ---
+            if (primaryKind == CardPrimaryKind.Track)
+            {
+                if (trackAction == null) trackAction = new TrackActionDescriptor();
+                // keep partAction as null; effects remain valid
+                partAction = null;
+            }
+            else if (primaryKind == CardPrimaryKind.Part)
+            {
+                if (partAction == null) partAction = new PartActionDescriptor();
+                // keep trackAction as null; effects remain valid
+                trackAction = null;
+            }
+            else
+            {
+                // None â†’ keep both null and no dangling effects
+                trackAction = null;
+                partAction = null;
+                modifierEffects.Clear();
+            }
+        }
+#endif
+
+        // ========== LEGACY BRIDGE HELPERS ==========
+
+        /// <summary>
+        /// Minimal bridge: tells legacy systems whether this composition card behaves as a "Track" or "Part"
+        /// in the new model. Fallbacks to CompositionType heuristics when PrimaryKind is None.
+        /// </summary>
+        public bool IsPrimaryTrackLike =>
+            UsesNewCompositionModel
+                ? primaryKind == CardPrimaryKind.Track
+                : IsTrackCard; // legacy
+
+        /// <summary>
+        /// Minimal bridge: returns a human label of the primary intent for UI ribbons.
+        /// </summary>
+        public string GetPrimaryLabel()
+        {
+            if (UsesNewCompositionModel)
+            {
+                if (primaryKind == CardPrimaryKind.Track)
+                    return $"Track: " +
+                        $"{(trackAction != null ? trackAction.role : "Unknown")}";
+                if (primaryKind == CardPrimaryKind.Part)
+                    return $"Part: " +
+                        $"{(partAction != null ? partAction.action.ToString() : "Action")}";
+            }
+
+            return "Card";
+        }
+        #endregion
     }
 
     [Serializable]

@@ -735,6 +735,7 @@ namespace ALWTTT.Managers
             return _spawned.Count > 0 ? _spawned[0] : null;
         }
 
+        /*
         public bool TryPlayCompositionCard(
             CardBase card, MusicianBase target, CardDropZone zone)
         {
@@ -893,6 +894,181 @@ namespace ALWTTT.Managers
 
             return true;
         }
+        */
+
+        /// <summary>
+        /// Attempts to play a Composition card during Rehearsal (Jam).
+        /// - Verifies Inspiration cost.
+        /// - Validates target musician (esp. for Track cards / drummer restrictions).
+        /// - Routes to the correct part index depending on jam state and drop zone.
+        /// - Delegates application to SongCompositionUI (supports the new Primary+Effects model).
+        /// - Invalidates the per-part audio cache when sound-affecting changes occur,
+        ///   preserving the resolved tempo where appropriate.
+        /// - Updates Inspiration bookkeeping (spent, per-loop generation preview).
+        /// </summary>
+        /// <param name="card">The dragged card (must be Composition domain).</param>
+        /// <param name="target">Optional target musician (required for Track cards without fixed target).</param>
+        /// <param name="zone">Drop zone: CurrentPart or NextPart.</param>
+        /// <returns>True if the card was applied to the model/UI (and state updated); false otherwise.</returns>
+        public bool TryPlayCompositionCard(CardBase card, MusicianBase target, CardDropZone zone)
+        {
+            var mm = MidiMusicManager.Instance;
+            if (mm == null || card == null) return false;
+
+            var c = card.CardData;
+
+            // ---------- INSPIRATION: block if not enough ----------
+            // (Composition cards consume Inspiration in Rehearsal.)
+            if (c.IsComposition)
+            {
+                int cost = Mathf.Max(0, c.GrooveCost);
+                if (cost > currentInspiration)
+                {
+                    Debug.LogWarning($"{DebugTag} Not enough Inspiration: need {cost}, have {currentInspiration}. Card '{c.CardName}' was not played.");
+                    return false;
+                }
+            }
+
+            // ---------- QUICK PRE-FILTER (role/musician sanity) ----------
+            bool isTrackCard = c.IsTrackCard;
+
+            // If the card has a fixed musician target by type and no explicit target was provided, resolve one.
+            if (isTrackCard && target == null && c.HasFixedMusicianTarget)
+                target = ResolveMusicianByType(c.MusicianCharacterType);
+
+            // Track cards require a concrete musician.
+            if (isTrackCard && target == null)
+                return false;
+
+            // Simple drummer gating (avoid dropping Rhythm on non-drummer or vice versa).
+            if (isTrackCard && target != null)
+            {
+                bool isDrummer = IsDrummer(target);
+
+                bool isRhythmRole =
+                    c.TrackAction != null &&
+                    c.TrackAction.role == TrackRole.Rhythm;
+
+                if (isRhythmRole && !isDrummer) return false;
+                if (!isRhythmRole && isDrummer) return false;
+            }
+
+            // ---------- CAN APPLY? (UI/model is the source of truth for session rules) ----------
+            if (compositionUI != null && !compositionUI.CanApply(card, target, out var reason))
+            {
+                Debug.LogWarning($"[Rehearsal] Cannot play card: {reason}");
+                return false;
+            }
+
+            // If the current looping part is FINAL, redirect NextPart drops to CurrentPart
+            bool currentIsFinal = compositionUI != null && compositionUI.IsPartFinal(currentPartIndex);
+            if (currentIsFinal && zone == CardDropZone.NextPart)
+            {
+                Log("[Jam] Current part is FINAL; redirecting NextPart drop to CurrentPart.");
+                zone = CardDropZone.CurrentPart;
+            }
+
+            // ---------- PICK TARGET PART INDEX ----------
+            int targetPartIndex;
+            bool loopIsRunning =
+                isPlaying &&
+                (jamState == JamState.BuildingNextPart || jamState == JamState.PlayingCurrentPart);
+
+            if (loopIsRunning)
+            {
+                // When looping: CurrentPart -> active looping part, NextPart -> draft index
+                if (zone == CardDropZone.CurrentPart)
+                    targetPartIndex = currentPartIndex;
+                else if (zone == CardDropZone.NextPart)
+                    targetPartIndex = compositionUI.Model.CurrentPartIndex;
+                else
+                    targetPartIndex = currentPartIndex;
+            }
+            else
+            {
+                // Not looping yet (BuildingCurrentPart): all edits go to the current editable part
+                targetPartIndex = compositionUI.Model.CurrentPartIndex;
+            }
+
+            // ---------- UPDATE UI / MODEL ----------
+            bool uiApplied = compositionUI == null
+                || compositionUI.ApplyCardToPart(card, target, targetPartIndex);
+            if (!uiApplied) return false;
+
+            Log($"Card '{c.CardName}' applied to partIndex={targetPartIndex} (zone={zone}) (jamState={jamState}).", true);
+
+            // ---------- INVALIDATE AUDIO CACHE IF NEEDED ----------
+            // If music is looping and the change affects audio, invalidate the relevant part.
+            if (loopIsRunning && c.AffectsSound)
+            {
+                // If the card "should keep tempo", we preserve the resolved BPM stored in cache.
+                bool keepTempo = ShouldKeepTempo(c);
+
+                int invalidateIndex = (zone == CardDropZone.NextPart)
+                    ? targetPartIndex        // drafting next part
+                    : currentPartIndex;      // altering the looping part
+
+                if (_partCache.ContainsKey(invalidateIndex))
+                {
+                    // Preserve resolved BPM (so loops remain consistent), clear bytes/stems.
+                    var cache = _partCache[invalidateIndex];
+                    int preservedBpm = keepTempo ? cache.resolvedBpm : 0;
+
+                    _partCache[invalidateIndex] = new PartCache
+                    {
+                        mergedBytes = null,
+                        seconds = 0f,
+                        resolvedBpm = preservedBpm,
+                        stemsByMusician = new Dictionary<string, byte[]>(),
+                        resolvedMelInstByMusician = keepTempo ? cache.resolvedMelInstByMusician : new Dictionary<string, MIDIInstrumentSO>(),
+                        resolvedPercInstByMusician = new Dictionary<string, MIDIPercussionInstrumentSO>()
+                    };
+
+                    if (c.IsTrackCard)
+                        Log($"[Cache] Track card -> invalidate part {invalidateIndex} (keep BPM={keepTempo}).");
+                    else if (c.IsTempoCard)
+                        Log($"[Cache] Tempo card -> invalidate part {invalidateIndex} (keep BPM={keepTempo}).");
+                    else if (c.IsTimeSignatureCard)
+                        Log($"[Cache] Time Signature card -> invalidate part {invalidateIndex} (keep BPM={keepTempo}).");
+                    else if (c.IsTonalityCard)
+                        Log($"[Cache] Tonality card -> invalidate part {invalidateIndex} (keep BPM={keepTempo}).");
+                    else
+                        Log($"[Cache] Sound-affecting card -> invalidate part {invalidateIndex} (keep BPM={keepTempo}).");
+                }
+            }
+
+            // ---------- SPEND / PREVIEW INSPIRATION ----------
+            if (c.IsComposition)
+            {
+                // Spend cost immediately
+                int cost = Mathf.Max(0, c.GrooveCost);
+                currentInspiration = Mathf.Max(0, currentInspiration - cost);
+                compositionUI?.SetInspiration(currentInspiration);
+                Log($"[Jam] Spent {cost} Inspiration for '{c.CardName}'. Remaining: {currentInspiration}.");
+
+                // If the card generates per-loop Inspiration, add it to the "building part" tally
+                int gen = Mathf.Max(0, c.GrooveGenerated);
+                if (gen > 0)
+                {
+                    buildingPartInspirationPerLoop += gen;
+                    Debug.Log($"{DebugTag} This part now generates +{buildingPartInspirationPerLoop} Inspiration per loop.");
+                }
+            }
+
+            // If we just changed a track while looping, recompute per-loop preview for the current part
+            if (c.IsTrackCard && jamState != JamState.BuildingCurrentPart && compositionUI != null)
+            {
+                if (currentPartIndex >= 0 && currentPartIndex < compositionUI.Model.parts.Count)
+                {
+                    currentPartInspiration = EvaluatePerLoopInspirationGain(compositionUI.Model.parts[currentPartIndex]);
+                    compositionUI.SetPlusInspiration(currentPartInspiration);
+                    Log($"[Jam] Recalculated per-loop Inspiration = +{currentPartInspiration} after track update.");
+                }
+            }
+
+            return true;
+        }
+
 
         // Helper: heuristic drummer detection based on profile instruments
         private bool IsDrummer(MusicianBase m)
@@ -992,7 +1168,7 @@ namespace ALWTTT.Managers
                 // one track per musician that has a placed card in this part
                 foreach (var trModel in p.tracks)
                 {
-                    var role = GetRoleFromLabel(trModel.role);
+                    var role = GetRoleFromLabel(trModel.role.ToString());
                     var musicianId = trModel.musicianId;
                     if (string.IsNullOrEmpty(musicianId))
                     {
@@ -1130,37 +1306,6 @@ namespace ALWTTT.Managers
                             ? mgd.CurrentHarmonicLeading
                             : harmonicConfig;
 
-                    var baseMelodyId = melodyStrategyId;
-                    var baseHarmonyId = harmonyStrategyId;
-
-                    // CARD OVERRIDES from the composition UI model
-                    var finalMelodicCfg = baseMelodicCfg;
-                    var finalMelStrategyId = baseMelodyId;
-                    var finalHarmonicCfg = baseHarmonicCfg;
-                    var finalHarStrategyId = baseHarmonyId;
-
-                    // Melody
-                    if (trModel.hasMelodicLeadingOverride 
-                        && trModel.melodicLeadingOverride != null)
-                    {
-                        finalMelodicCfg = trModel.melodicLeadingOverride;
-                    }
-                    if (trModel.hasMelodyStrategyOverride)
-                    {
-                        finalMelStrategyId = trModel.melodyStrategyIdOverride;
-                    }
-
-                    // Harmony
-                    if (trModel.hasHarmonicLeadingOverride
-                        && trModel.harmonicLeadingOverride != null)
-                    {
-                        finalHarmonicCfg = trModel.harmonicLeadingOverride;
-                    }
-                    if (trModel.hasHarmonyStrategyOverride)
-                    {
-                        finalHarStrategyId = trModel.harmonyStrategyIdOverride;
-                    }
-
                     // Build track config
                     var tcfg = new SongConfig.PartConfig.TrackConfig
                     {
@@ -1176,10 +1321,10 @@ namespace ALWTTT.Managers
                             Style = trModel.styleBundle,
 
                             // Legacy fallbacks still populated
-                            melodyStrategyId = finalMelStrategyId,
-                            melodicLeadingOverride = finalMelodicCfg,
-                            harmonyStrategyId = finalHarStrategyId,
-                            harmonicLeadingOverride = finalHarmonicCfg,
+                            melodyStrategyId        = melodyStrategyId,
+                            melodicLeadingOverride  = baseMelodicCfg,
+                            harmonyStrategyId       = harmonyStrategyId,
+                            harmonicLeadingOverride = baseHarmonicCfg,
                         }
                     };
 

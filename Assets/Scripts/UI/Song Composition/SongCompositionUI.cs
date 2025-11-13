@@ -1,5 +1,6 @@
 ﻿using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
+using MidiGenPlay;
 using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static ALWTTT.Cards.CardData;
+using static ALWTTT.Cards.CardData.PartActionDescriptor;
 using static UnityEngine.EventSystems.EventTrigger;
 
 namespace ALWTTT.UI
@@ -45,22 +47,11 @@ namespace ALWTTT.UI
         public class TrackEntry
         {
             public string musicianId;
-            public string role;                 // Rhythm / Backing / Melody / Harmony
+            public TrackRole role;                 // Rhythm / Backing / Melody / Harmony
             public string info;                 // “Funk Groove”, “Pentatonic”, card name, etc
             public int inspirationGenerated;    // per-loop gain contributed by this track
 
             public TrackStyleBundleSO styleBundle;
-
-            // per-track style overrides captured from the card or musician
-            public bool hasMelodyStrategyOverride;
-            public MelodyStrategyId melodyStrategyIdOverride;
-            public bool hasMelodicLeadingOverride;
-            public MelodicLeadingConfig melodicLeadingOverride;
-
-            public bool hasHarmonyStrategyOverride;
-            public HarmonyStrategyId harmonyStrategyIdOverride;
-            public bool hasHarmonicLeadingOverride;
-            public HarmonicLeadingConfig harmonicLeadingOverride;
         }
 
         [Serializable]
@@ -139,6 +130,7 @@ namespace ALWTTT.UI
         }
 
 
+        /*
         public bool ApplyCardToPart(CardBase card, MusicianBase target, int partIndex)
         {
             if (card == null || card.CardData == null || !card.CardData.IsComposition)
@@ -153,50 +145,348 @@ namespace ALWTTT.UI
             }
 
             var data = card.CardData;
+            string tgtId = "";
+            string tgtName = "";
 
+
+            // --- New Model path: Primary + Effects ---
+            if (data.UsesNewCompositionModel)
+            {
+                // 2) Resolve target musician if the primary is track-like
+                tgtId = target != null ? target.MusicianCharacterData.CharacterId : null;
+                tgtName = target != null ? target.MusicianCharacterData.CharacterName : null;
+
+                if (data.PrimaryKind == CardPrimaryKind.Track)
+                {
+                    var desc = data.TrackAction;
+                    if (target == null)
+                    {
+                        Log("Track card requires a musician target (new model).");
+                        return false;
+                    }
+
+                    // Reuse your existing add/replace flow, but using the role label from the descriptor
+                    string role = string.IsNullOrWhiteSpace(desc?.roleLabel) ? "Rhythm" : desc.roleLabel;
+                    bool ok = TryAddOrReplaceTrackOnPart(
+                        part, partIndex, tgtId, tgtName, role, data.CardName, data);
+
+                    if (!ok) return false;
+
+                    // Apply per-track overrides from descriptor (mirrors your current fields)
+                    var last = part.tracks.FirstOrDefault(t => t.musicianId == tgtId);
+                    if (last != null && desc != null)
+                    {
+                        last.hasMelodyStrategyOverride = desc.hasMelodyStrategyOverride;
+                        last.melodyStrategyIdOverride = desc.melodyStrategyIdOverride;
+                        last.hasMelodicLeadingOverride = desc.hasMelodicLeadingOverride;
+                        last.melodicLeadingOverride = desc.melodicLeadingOverride;
+
+                        last.hasHarmonyStrategyOverride = desc.hasHarmonyStrategyOverride;
+                        last.harmonyStrategyIdOverride = desc.harmonyStrategyIdOverride;
+                        last.hasHarmonicLeadingOverride = desc.hasHarmonicLeadingOverride;
+                        last.harmonicLeadingOverride = desc.harmonicLeadingOverride;
+
+                        // Optional: store style bundle
+                        last.styleBundle = desc.styleBundle;
+                    }
+                }
+                else if (data.PrimaryKind == CardPrimaryKind.Part)
+                {
+                    var pa = data.PartAction;
+                    if (pa == null) return false;
+
+                    switch (pa.action)
+                    {
+                        case PartActionDescriptor.PartActionKind.CreatePart:
+                            // Creating "next" part by appending a draft
+                            BeginDraftNextPart(string.IsNullOrWhiteSpace(pa.customLabel) ? null : pa.customLabel);
+                            break;
+
+                        case PartActionDescriptor.PartActionKind.MarkIntro:
+                            if (!TryAddIntro(pa.musicianId, null)) return false;
+                            break;
+
+                        case PartActionDescriptor.PartActionKind.MarkSolo:
+                            if (!TryAddSolo(pa.musicianId, null)) return false;
+                            break;
+
+                        case PartActionDescriptor.PartActionKind.MarkOutro:
+                            if (!TryAddOutro(pa.musicianId, null)) return false;
+                            break;
+
+                        case PartActionDescriptor.PartActionKind.MarkBridge:
+                            // Minimal: create a part labeled "Bridge"
+                            BeginDraftNextPart(string.IsNullOrWhiteSpace(pa.customLabel) ? "Bridge" : pa.customLabel);
+                            break;
+
+                        case PartActionDescriptor.PartActionKind.MarkFinal:
+                            SetPartFinal(partIndex, true);
+                            break;
+                    }
+                }
+
+                // 3) Apply modifier effects (tempo/meter/tonality/feel/density...)
+                if (data.ModifierEffects != null)
+                {
+                    foreach (var fx in data.ModifierEffects)
+                    {
+                        ApplyEffectToModel(fx, partIndex, target);
+                    }
+                }
+
+                // 4) Rebind visuals
+                partUIs[partIndex].Bind(part);
+                RaisePartChanged();
+                return true;
+            }
+
+            tgtId = target != null ? target.MusicianCharacterData.CharacterId : null;
+            tgtName = target != null ? target.MusicianCharacterData.CharacterName : null;
+
+            // --- New Model (Primary + Effects) ---
+            if (data.UsesNewCompositionModel)
+            {
+                var primary = data.PrimaryKind;
+
+                // ----------------------------------------
+                // 1. PRIMARY: TRACK ACTION
+                // ----------------------------------------
+                if (primary == CardPrimaryKind.Track)
+                {
+                    var desc = data.TrackAction;
+
+                    // Target musician is required
+                    if (target == null)
+                    {
+                        Log("Track card requires a musician target.");
+                        return false;
+                    }
+
+                    string role = string.IsNullOrWhiteSpace(desc.roleLabel)
+                        ? "Rhythm"
+                        : desc.roleLabel;
+
+                    bool ok = TryAddOrReplaceTrackOnPart(
+                        part, partIndex,
+                        target.MusicianCharacterData.CharacterId,
+                        target.MusicianCharacterData.CharacterName,
+                        role,
+                        data.CardName,
+                        data);
+
+                    if (!ok) return false;
+                }
+
+                // ----------------------------------------
+                // 2. PRIMARY: PART ACTION
+                // ----------------------------------------
+                else if (primary == CardPrimaryKind.Part)
+                {
+                    var act = data.PartAction;
+
+                    switch (act.action)
+                    {
+                        case PartActionKind.CreatePart:
+                            // (Already ensured by EnsurePartAt)
+                            break;
+
+                        case PartActionKind.MarkFinal:
+                            part.isFinal = true;
+                            break;
+
+                        case PartActionKind.Custom:
+                            // Optional name override
+                            if (!string.IsNullOrWhiteSpace(act.customLabel))
+                                part.label = act.customLabel;
+                            break;
+                    }
+                }
+
+                // 3) Apply modifier effects (tempo/meter/tonality/feel/density)
+                if (data.ModifierEffects != null)
+                {
+                    foreach (var fx in data.ModifierEffects)
+                    {
+                        ApplyEffectToModel(fx, partIndex, target);
+                    }
+                }
+
+                RaiseChanged();
+                return true;
+            }
+
+
+            return false;
+        }*/
+
+        /// <summary>
+        /// Applies a Composition card to a specific part in the current song,
+        /// using the NEW data-driven model (PrimaryKind + TrackAction / PartAction + ModifierEffects).
+        ///
+        /// HOW THE METHOD WORKS:
+        /// ---------------------------------------------------------
+        /// 1. Validates the card and ensures a PartEntry exists at partIndex.
+        /// 2. Resolves the target musician (when required).
+        ///
+        /// 3. PRIMARY ACTION:
+        ///    - If PrimaryKind == Track:
+        ///         • Adds or replaces a TrackEntry for the given musician.
+        ///         • Copies all style overrides from the TrackActionDescriptor.
+        ///         • Stores the StyleBundle (MelodyCardConfigSO, RhythmConfigSO, etc.).
+        ///
+        ///    - If PrimaryKind == Part:
+        ///         • Executes structural actions (Create Part, Intro, Solo, Outro, Bridge, Final).
+        ///         • Uses existing helpers: BeginDraftNextPart, TryAddIntro, TryAddSolo, etc.
+        ///
+        /// 4. SECONDARY EFFECTS:
+        ///    - Applies all ModifierEffects (Tempo, Meter, Tonality, Feel, Density)
+        ///      via ApplyEffectToModel(fx, partIndex, target).
+        ///
+        /// 5. UI + EVENTS:
+        ///    - Rebinds the updated PartEntry to the UI widget.
+        ///    - Raises 'PartChanged' events so other systems (e.g. MIDI) refresh their state.
+        ///
+        /// Returns:
+        ///     true  -> card successfully applied
+        ///     false -> invalid card, missing target, invalid part, or failed helper action
+        /// </summary>
+        public bool ApplyCardToPart(CardBase card, MusicianBase target, int partIndex)
+        {
+            // ---------------------------------------------------------
+            // 0) BASIC VALIDATION
+            // ---------------------------------------------------------
+            if (card == null || card.CardData == null || !card.CardData.IsComposition)
+                return false;
+
+            var data = card.CardData;
+
+            // Only the new model is supported now
+            if (!data.UsesNewCompositionModel)
+            {
+                Log("ApplyCardToPart: legacy composition model is no longer supported.");
+                return false;
+            }
+
+            // ---------------------------------------------------------
+            // 1) ENSURE PART EXISTS
+            // ---------------------------------------------------------
+            var part = EnsurePartAt(partIndex);
+            if (part == null)
+            {
+                Log($"ApplyCardToPart: could not ensure part at index={partIndex}");
+                return false;
+            }
+
+            // ---------------------------------------------------------
+            // 2) RESOLVE TARGET MUSICIAN (IF REQUIRED)
+            // ---------------------------------------------------------
             string tgtId = target != null ? target.MusicianCharacterData.CharacterId : null;
             string tgtName = target != null ? target.MusicianCharacterData.CharacterName : null;
 
-            // Route by card type, but always operate on (partIndex, part)
-            switch (data.CompositionType)
+            // ---------------------------------------------------------
+            // 3) PRIMARY ACTION: TRACK
+            // ---------------------------------------------------------
+            if (data.PrimaryKind == CardPrimaryKind.Track)
             {
-                // Theme is global (unchanged)
-                case CompositionCardType.Theme_Love: SetTheme("Love"); return true;
-                case CompositionCardType.Theme_Injustice: SetTheme("Injustice"); return true;
-                case CompositionCardType.Theme_Party: SetTheme("Party"); return true;
+                var desc = data.TrackAction;
+                if (desc == null)
+                {
+                    Log("ApplyCardToPart: Track card has no TrackAction descriptor.");
+                    return false;
+                }
 
-                // Structure on a specific part
-                case CompositionCardType.TimeSignature_4_4: return SetTimeSignatureOnPart(part, partIndex, "4/4");
-                case CompositionCardType.TimeSignature_3_4: return SetTimeSignatureOnPart(part, partIndex, "3/4");
-                case CompositionCardType.TimeSignature_6_8: return SetTimeSignatureOnPart(part, partIndex, "6/8");
-                case CompositionCardType.TimeSignature_5_4: return SetTimeSignatureOnPart(part, partIndex, "5/4");
+                // Track cards always require a musician target
+                if (target == null)
+                {
+                    Log("Track card requires a musician target (new model).");
+                    return false;
+                }
 
-                case CompositionCardType.Tempo_Slow: return SetTempoOnPart(part, partIndex, "Slow");
-                case CompositionCardType.Tempo_Fast: return SetTempoOnPart(part, partIndex, "Fast");
-                case CompositionCardType.Tempo_VeryFast: return SetTempoOnPart(part, partIndex, "Very Fast");
+                TrackRole role = desc.role;
 
-                case CompositionCardType.Tonality_Ionian: return SetTonalityOnPart(part, partIndex, "Ionian");
-                case CompositionCardType.Tonality_Dorian: return SetTonalityOnPart(part, partIndex, "Dorian");
-                case CompositionCardType.Tonality_Phrygian: return SetTonalityOnPart(part, partIndex, "Phrygian");
-                case CompositionCardType.Tonality_Lydian: return SetTonalityOnPart(part, partIndex, "Lydian");
-                case CompositionCardType.Tonality_Mixolydian: return SetTonalityOnPart(part, partIndex, "Mixolydian");
-                case CompositionCardType.Tonality_Aeolian: return SetTonalityOnPart(part, partIndex, "Aeolian");
-                case CompositionCardType.Tonality_Locrian: return SetTonalityOnPart(part, partIndex, "Locrian");
+                bool ok = TryAddOrReplaceTrackOnPart(
+                    part,
+                    partIndex,
+                    tgtId,
+                    tgtName,
+                    role,
+                    data.CardName,
+                    data);
 
-                // Tracks on a specific part (add or replace)
-                case CompositionCardType.Track_Rhythm: return TryAddOrReplaceTrackOnPart(part, partIndex, tgtId, tgtName, "Rhythm", data.CardName, data);
-                case CompositionCardType.Track_Backing: return TryAddOrReplaceTrackOnPart(part, partIndex, tgtId, tgtName, "Backing", data.CardName, data);
-                case CompositionCardType.Track_Bassline: return TryAddOrReplaceTrackOnPart(part, partIndex, tgtId, tgtName, "Bassline", data.CardName, data);
-                case CompositionCardType.Track_Melody: return TryAddOrReplaceTrackOnPart(part, partIndex, tgtId, tgtName, "Melody", data.CardName, data);
-                case CompositionCardType.Track_Harmony: return TryAddOrReplaceTrackOnPart(part, partIndex, tgtId, tgtName, "Harmony", data.CardName, data);
+                if (!ok) return false;
 
-                // Part cards (Intro/Solo/Outro) keep current behavior for now
-                case CompositionCardType.Part_Intro: return TryAddIntro(tgtId, tgtName);
-                case CompositionCardType.Part_Solo: return TryAddSolo(tgtId, tgtName);
-                case CompositionCardType.Part_Outro: return TryAddOutro(tgtId, tgtName);
+                // Copy style overrides into the TrackEntry
+                var last = part.tracks.FirstOrDefault(t => t.musicianId == tgtId);
+                if (last != null)
+                {
+                    // Store the full style bundle for track-specific composition
+                    last.styleBundle = desc.styleBundle;
+                }
             }
 
-            return false;
+            // ---------------------------------------------------------
+            // 4) PRIMARY ACTION: PART
+            // ---------------------------------------------------------
+            else if (data.PrimaryKind == CardPrimaryKind.Part)
+            {
+                var pa = data.PartAction;
+                if (pa == null)
+                {
+                    Log("ApplyCardToPart: Part card has no PartAction descriptor.");
+                    return false;
+                }
+
+                switch (pa.action)
+                {
+                    case PartActionKind.CreatePart:
+                        // Create a blank part at the end (optional custom label)
+                        BeginDraftNextPart(
+                            string.IsNullOrWhiteSpace(pa.customLabel) ? null : pa.customLabel);
+                        break;
+
+                    case PartActionKind.MarkIntro:
+                        if (!TryAddIntro(pa.musicianId, null)) return false;
+                        break;
+
+                    case PartActionKind.MarkSolo:
+                        if (!TryAddSolo(pa.musicianId, null)) return false;
+                        break;
+
+                    case PartActionKind.MarkOutro:
+                        if (!TryAddOutro(pa.musicianId, null)) return false;
+                        break;
+
+                    case PartActionKind.MarkBridge:
+                        // Create a "Bridge" part (or custom label)
+                        BeginDraftNextPart(
+                            string.IsNullOrWhiteSpace(pa.customLabel) ? "Bridge" : pa.customLabel);
+                        break;
+
+                    case PartActionKind.MarkFinal:
+                        SetPartFinal(partIndex, true);
+                        break;
+                }
+            }
+
+            // ---------------------------------------------------------
+            // 5) SECONDARY MODIFIER EFFECTS
+            // ---------------------------------------------------------
+            if (data.ModifierEffects != null)
+            {
+                foreach (var fx in data.ModifierEffects)
+                {
+                    ApplyEffectToModel(fx, partIndex, target);
+                }
+            }
+
+            // ---------------------------------------------------------
+            // 6) REFRESH UI + TRIGGER EVENTS
+            // ---------------------------------------------------------
+            if (partIndex >= 0 && partIndex < partUIs.Count && partUIs[partIndex] != null)
+                partUIs[partIndex].Bind(model.parts[partIndex]);
+
+            RaisePartChanged();
+            return true;
         }
 
         /// <summary>
@@ -377,7 +667,6 @@ namespace ALWTTT.UI
                 intro.tracks.Add(new TrackEntry
                 {
                     musicianId = musicianId,
-                    role = "Intro",
                     info = "Lead-in"
                 });
             }
@@ -405,7 +694,6 @@ namespace ALWTTT.UI
                 outro.tracks.Add(new TrackEntry
                 {
                     musicianId = musicianId,
-                    role = "Outro",
                     info = "Finale"
                 });
             }
@@ -443,7 +731,6 @@ namespace ALWTTT.UI
                 var existing = solo.tracks.FirstOrDefault(t => t.musicianId == musicianId);
                 if (existing != null)
                 {
-                    existing.role = "Solo";
                     existing.info = "Improvisation";
                 }
                 else
@@ -451,7 +738,6 @@ namespace ALWTTT.UI
                     solo.tracks.Add(new TrackEntry
                     {
                         musicianId = musicianId,
-                        role = "Solo",
                         info = "Improvisation"
                     });
                 }
@@ -470,24 +756,34 @@ namespace ALWTTT.UI
         {
             reason = null;
             if (card == null || card.CardData == null || !card.CardData.IsComposition)
-            { reason = "Not a composition card."; return false; }
+            {
+                reason = "Not a composition card.";
+                return false;
+            }
 
-            var type = card.CardData.CompositionType;
-            bool isTrack = type == CompositionCardType.Track_Rhythm
-                        || type == CompositionCardType.Track_Backing
-                        || type == CompositionCardType.Track_Bassline
-                        || type == CompositionCardType.Track_Melody
-                        || type == CompositionCardType.Track_Harmony;
+            var data = card.CardData;
 
-            if (isTrack && target == null)
-            { reason = "Select a musician."; return false; }
+            // Track cards always need a musician (unless they auto-resuelven por tipo)
+            if (data.IsTrackCard && target == null)
+            {
+                reason = "Select a musician.";
+                return false;
+            }
 
-            // Part cards require an existing part
-            bool isPartCard = type == CompositionCardType.Part_Intro
-                           || type == CompositionCardType.Part_Solo
-                           || type == CompositionCardType.Part_Outro;
-            if (isPartCard && model.parts.Count == 0)
-            { reason = "Create a part first (play any Track/Tempo/TimeSig card)."; return false; }
+            // Part cards que NO crean parte sí necesitan que exista al menos una
+            if (data.IsPartCard && model.parts.Count == 0)
+            {
+                var pa = data.PartAction;
+                bool createsPart =
+                    pa != null &&
+                    pa.action == PartActionDescriptor.PartActionKind.CreatePart;
+
+                if (!createsPart)
+                {
+                    reason = "Create a part first (play any Track or Part-Create card).";
+                    return false;
+                }
+            }
 
             return true;
         }
@@ -525,7 +821,7 @@ namespace ALWTTT.UI
         private bool TryAddOrReplaceTrackOnPart(
             PartEntry part, int partIndex,
             string musicianId, string musicianName,
-            string role, string info, CardData sourceCard)
+            TrackRole role, string info, CardData sourceCard)
         {
             if (part == null || string.IsNullOrEmpty(musicianId)) return false;
 
@@ -540,35 +836,14 @@ namespace ALWTTT.UI
                 // REPLACE (update metadata + overrides)
                 existing.role = role;
                 existing.info = info;
-
-                // TODO: How to refactor this to avoid adding multiple variables
-                // we need rhythm strategies, bassline strategies, etc
-                existing.hasMelodyStrategyOverride = 
-                    sourceCard != null && sourceCard.OverrideMelodyStrategy;
-                existing.hasMelodicLeadingOverride = 
-                    sourceCard != null && sourceCard.OverrideMelodicLeading;
-                existing.hasHarmonyStrategyOverride = 
-                    sourceCard != null && sourceCard.OverrideHarmonyStrategy;
-                existing.hasHarmonicLeadingOverride = 
-                    sourceCard != null && sourceCard.OverrideHarmonicLeading;
-
-                if (existing.hasMelodyStrategyOverride) 
-                    existing.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
-                if (existing.hasMelodicLeadingOverride) 
-                    existing.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
-                if (existing.hasHarmonyStrategyOverride) 
-                    existing.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
-                if (existing.hasHarmonicLeadingOverride) 
-                    existing.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
-
                 existing.inspirationGenerated = 
                     Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0);
 
                 // Style budles
                 if (sourceCard != null && sourceCard.IsTrackCard)
                 {
-                    if (role == "Melody" && sourceCard.MelodyCardConfig != null)
-                        existing.styleBundle = sourceCard.MelodyCardConfig;
+                    if (sourceCard.TrackAction?.styleBundle != null)
+                        existing.styleBundle = sourceCard.TrackAction?.styleBundle;
                 }
             }
             else
@@ -579,33 +854,16 @@ namespace ALWTTT.UI
                     musicianId = musicianId,
                     role = role,
                     info = info,
-
-                    hasMelodyStrategyOverride = 
-                        sourceCard != null && sourceCard.OverrideMelodyStrategy,
-                    hasMelodicLeadingOverride = 
-                        sourceCard != null && sourceCard.OverrideMelodicLeading,
-                    hasHarmonyStrategyOverride = 
-                        sourceCard != null && sourceCard.OverrideHarmonyStrategy,
-                    hasHarmonicLeadingOverride = 
-                        sourceCard != null && sourceCard.OverrideHarmonicLeading,
                     inspirationGenerated = 
-                    Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0),
+                        Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0),
                 };
 
-                if (entry.hasMelodyStrategyOverride) 
-                    entry.melodyStrategyIdOverride = sourceCard.MelodyStrategyIdOverride;
-                if (entry.hasMelodicLeadingOverride) 
-                    entry.melodicLeadingOverride = sourceCard.MelodicLeadingOverride;
-                if (entry.hasHarmonyStrategyOverride) 
-                    entry.harmonyStrategyIdOverride = sourceCard.HarmonyStrategyIdOverride;
-                if (entry.hasHarmonicLeadingOverride) 
-                    entry.harmonicLeadingOverride = sourceCard.HarmonicLeadingOverride;
 
                 // Style budles
                 if (sourceCard != null && sourceCard.IsTrackCard)
                 {
-                    if (role == "Melody" && sourceCard.MelodyCardConfig != null)
-                        entry.styleBundle = sourceCard.MelodyCardConfig;
+                    if (sourceCard.TrackAction?.styleBundle != null)
+                        entry.styleBundle = sourceCard.TrackAction?.styleBundle;
                 }
 
                 part.tracks.Add(entry);
@@ -615,7 +873,7 @@ namespace ALWTTT.UI
                 SetPartVisible(partIndex, true);
 
             // UI + icons refresh for the *indexed* part
-            partUIs[partIndex].AddOrUpdateTrack(musicianId, role, info);
+            partUIs[partIndex].AddOrUpdateTrack(musicianId, role.ToString(), info);
             UpdateIconsForCurrentPart();  // (icons follow CurrentPart; OK for MVP)
             RaisePartChanged();
             return true;
@@ -702,6 +960,73 @@ namespace ALWTTT.UI
             if (partIndex < 0 || partIndex >= partUIs.Count) return;
             if (partUIs[partIndex] != null)
                 partUIs[partIndex].gameObject.SetActive(visible);
+        }
+
+        /// <summary>
+        /// Applies one effect to the composition model, honoring scope and timing.
+        /// For now, we resolve timing as:
+        /// - Immediate: apply to 'partIndex'
+        /// - OnNextLoop: apply to 'partIndex' (UI-side, loop engine decides when audible)
+        /// - OnNextPartStart: apply to 'partIndex+1' (auto-ensure)
+        /// In a later pass we can forward 'timing' into ShipInteriorManager's cache invalidation logic.
+        /// </summary>
+        private void ApplyEffectToModel(PartEffect fx, int partIndex, MusicianBase target)
+        {
+            if (fx == null) return;
+
+            // Resolve target index by timing
+            int idx = partIndex;
+            if (fx.timing == ApplyTiming.OnNextPartStart)
+                idx = partIndex + 1;
+
+            var part = EnsurePartAt(idx);
+            if (part == null) return;
+
+            // Track filter (if any) – for UI we keep the info as a label in TrackEntry
+            string trackMusicianId = fx.scope == EffectScope.TrackOnly
+                ? (!string.IsNullOrEmpty(fx.musicianIdFilter) ? fx.musicianIdFilter
+                   : (target != null ? target.MusicianCharacterData.CharacterId : null))
+                : null;
+
+            switch (fx)
+            {
+                case TempoEffect t:
+                    part.tempo = t.tempoScale < 1f ? "Slow" : (t.tempoScale > 1.4f ? "Very Fast" : "Fast");
+                    break;
+
+                case MeterEffect m:
+                    if (!string.IsNullOrWhiteSpace(m.meterLabel))
+                        part.timeSignature = m.meterLabel;
+                    break;
+
+                case TonalityEffect ton:
+                    if (!string.IsNullOrWhiteSpace(ton.modeLabel))
+                        part.tonality = ton.modeLabel;
+                    break;
+
+                case FeelEffect feel:
+                    // Minimal UI: annotate as info on all current tracks or create a dummy info row
+                    if (trackMusicianId != null)
+                    {
+                        var tr = part.tracks.FirstOrDefault(x => x.musicianId == trackMusicianId);
+                        if (tr != null) tr.info = $"{tr.info} • {feel.GetLabel()}";
+                    }
+                    else
+                    {
+                        // annotate the part via first track info, or no-op if empty
+                        if (part.tracks.Count > 0)
+                            part.tracks[0].info = $"{part.tracks[0].info} • {feel.GetLabel()}";
+                    }
+                    break;
+
+                case DensityEffect den:
+                    // Minimal UI: annotate density on target track (or first track)
+                    var tgt = trackMusicianId != null
+                        ? part.tracks.FirstOrDefault(x => x.musicianId == trackMusicianId)
+                        : (part.tracks.Count > 0 ? part.tracks[0] : null);
+                    if (tgt != null) tgt.info = $"{tgt.info} • {den.GetLabel()}";
+                    break;
+            }
         }
         #endregion
 

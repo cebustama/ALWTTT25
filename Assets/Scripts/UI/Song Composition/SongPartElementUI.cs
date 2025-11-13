@@ -80,7 +80,7 @@ namespace ALWTTT.UI
                     ui.gameObject.SetActive(true);
                     trackByMusician[id] = ui;
 
-                    if (t != null) ui.Bind(t.role, t.info, placeholder: false);
+                    if (t != null) ui.Bind(t.role.ToString(), t.info, placeholder: false);
                     else ui.Bind("—", "", placeholder: true);
                 }
             }
@@ -93,7 +93,7 @@ namespace ALWTTT.UI
                         var ui = Instantiate(trackPrefab, tracksRoot);
                         ui.gameObject.SetActive(true);
                         trackByMusician[t.musicianId] = ui;
-                        ui.Bind(t.role, t.info, placeholder: false);
+                        ui.Bind(t.role.ToString(), t.info, placeholder: false);
                     }
             }
         }
