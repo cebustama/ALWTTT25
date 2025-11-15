@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ff6527daf3c6fa43868e0013bb3619d, type: 3}
-  m_Name: OneNotePerPhrase_Leading
+  m_Name: ScaleOnly_Leading
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.MelodicLeadingConfig
   voicingPreset: {fileID: 0}
-  noteSource: 0
+  noteSource: 2
   maxStepSemitones: 7
   chanceRepeatNote: 0.15
   chancePassingNote: 0
@@ -24,3 +24,5 @@ MonoBehaviour:
   accentVelMax: 120
   phraseEndVelMin: 95
   phraseEndVelMax: 110
+  restrictToScaleDegrees: 1
+  allowedScaleDegrees: 00000000010000000200000003000000040000000500000006000000

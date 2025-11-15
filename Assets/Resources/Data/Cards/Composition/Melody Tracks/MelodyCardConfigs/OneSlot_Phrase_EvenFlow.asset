@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fb9b5f813e04b5f4f8975d18010f4af9, type: 3}
-  m_Name: OneNotePerPhrase_Phrase_EvenFlow
+  m_Name: OneSlot_Phrase_EvenFlow
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.Phrases.EvenFlowPhraseSO
   forcedContourDir: 0
   minSlots: 1
