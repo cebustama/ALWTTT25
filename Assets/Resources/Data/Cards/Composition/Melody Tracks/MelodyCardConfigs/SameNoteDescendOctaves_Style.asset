@@ -23,11 +23,19 @@ MonoBehaviour:
       transposeSemitones: 0
     intervalDirective:
       enabled: 1
-      semitonesPerPhrase: 12
+      pitchClassSource: 0
+      mode: 0
+      relativeMode: 1
       baseDirection: -1
       alternateDirection: 0
       clampToRange: 1
-      anchorStart: 0
-      lockPitchClassToAnchor: 1
+      anchorStart: 2
+      semitonesPerPhrase: 12
+      upSemitones: []
+      downSemitones: []
+      upScaleSteps: []
+      downScaleSteps: []
+      applyOnFirstNote: 0
+      firstNoteUsesAnchor: 1
   swingAmount: 0
   humanize: 0

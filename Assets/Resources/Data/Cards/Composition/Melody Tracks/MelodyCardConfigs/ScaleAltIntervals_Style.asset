@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 516e03f80d7c40841863fe482ed26e8e, type: 3}
   m_Name: ScaleAltIntervals_Style
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.MelodicStyleSO
-  baseStrategy: 0
+  baseStrategy: 1
   usePerPhraseOverrides: 1
   perPhraseDirectives:
   - weight: 1
@@ -23,11 +23,23 @@ MonoBehaviour:
       transposeSemitones: 0
     intervalDirective:
       enabled: 1
-      semitonesPerPhrase: 12
+      pitchClassSource: 2
+      mode: 2
+      relativeMode: 1
       baseDirection: 1
       alternateDirection: 1
       clampToRange: 1
       anchorStart: 3
-      lockPitchClassToAnchor: 0
+      semitonesPerPhrase: 12
+      upSemitones: []
+      downSemitones: []
+      upScaleSteps:
+      - value: 4
+        weight: 1
+      downScaleSteps:
+      - value: 2
+        weight: 1
+      applyOnFirstNote: 0
+      firstNoteUsesAnchor: 0
   swingAmount: 0
   humanize: 0

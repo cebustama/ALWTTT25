@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
+  m_Name: Melody - VaryNoteAscendOctaves
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
+  id: ASCEND_SCALE_NOTE
+  cardName: ASCEND SCALE NOTE
+  musicianCharacterType: 4
+  cardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
+  inspirationCost: 0
+  inspirationGenerated: 1
+  domain: 1
+  primaryKind: 1
+  trackAction:
+    role: 4
+    styleBundle: {fileID: 11400000, guid: 1f1932f93a9e29d40b56ec413e80275f, type: 2}
+  partAction:
+    action: 0
+    customLabel: 
+    musicianId: 
+  modifierEffects: []
+  keywordsList: 
+  audioType: 0
+  cardType: 0
+  usableWithoutTarget: 1
+  exhaustAfterPlay: 0
+  cardConditionDataList: []
+  cardActionDataList: []
+  rarity: 0

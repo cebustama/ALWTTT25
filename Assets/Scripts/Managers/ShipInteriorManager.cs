@@ -134,12 +134,16 @@ namespace ALWTTT.Managers
         private IPatternRepository patternRepo;
         private System.Random rng = new System.Random();
 
-        private void Log(string log, bool highlight = false)
+        private void Log(string log, bool highlight = false, string customColor = "")
         {
             if (useLogs)
             {
-                if (highlight) Debug.Log($"{DebugTag} <color=yellow>{log}</color>");
-                else Debug.Log($"{DebugTag} {log}");
+                if (highlight) 
+                    Debug.Log($"{DebugTag} <color=yellow>{log}</color>");
+                else if (!string.IsNullOrWhiteSpace(customColor))
+                    Debug.Log($"{DebugTag} <color={customColor}>{log}</color>");
+                else 
+                    Debug.Log($"{DebugTag} {log}");
             }
         }
 
@@ -205,12 +209,14 @@ namespace ALWTTT.Managers
             instrumentRepo.Refresh();
             patternRepo.Refresh();
 
+            /*
             Log("[Jam] Repositories refreshed.");
             Log($"[Jam] Melodic instruments: {instrumentRepo.GetMelodicInstruments().Count()}");
             Log($"[Jam] Percussion instruments: {instrumentRepo.GetPercussionInstruments().Count()}");
             Log($"[Jam] Drum patterns: {patternRepo.GetAllDrumPatterns().Count()}");
             Log($"[Jam] Chord progressions: {patternRepo.GetAllChordProgressions().Count()}");
             Log($"[Jam] Melody patterns: {patternRepo.GetAllMelodyPatterns().Count()}");
+            */
         }
 
         private void Update()
@@ -519,7 +525,7 @@ namespace ALWTTT.Managers
                 return;
             }
 
-            Log("[Jam] Confirming first part and starting loop playback.");
+            //Log("[Jam] Confirming first part and starting loop playback.");
 
             currentPartIndex = 0;
             loopsTotalForCurrentPart = jamRules.loopsPerPart;
@@ -1130,7 +1136,7 @@ namespace ALWTTT.Managers
 
             // Band ordering = current spawned list (used for channel ownership)
             var bandIds = _spawned.Select(m => m.MusicianCharacterData.CharacterId).ToList();
-            Log($"[Jam] Band order (channels): [{string.Join(", ", bandIds)}]");
+            //Log($"[Jam] Band order (channels): [{string.Join(", ", bandIds)}]");
 
             var cfg = new SongConfig
             {
@@ -1147,7 +1153,7 @@ namespace ALWTTT.Managers
             {
                 var tr = GetTempoRangeFromLabel(p.tempo);
                 var ts = GetTimeSignatureFromLabel(p.timeSignature);
-                var tonality = GetTonalityFromLabel(p.tonality);
+                var tonality = p.tonality;
 
                 var part = new SongConfig.PartConfig
                 {
@@ -1161,11 +1167,55 @@ namespace ALWTTT.Managers
                 };
 
                 Log($"[Jam] Building Part[{partIndex}] '{part.Name}'  " +
-                    $"TS={p.timeSignature}  Tempo={p.tempo}  Measures={part.Measures}");
+                    $"TS={p.timeSignature} " +
+                    $"Tempo={p.tempo} " +
+                    $"Measures={part.Measures} " +
+                    $"Tonality: {part.Tonality} over {part.RootNote}", true);
 
-                Log($"[Jam] Part tonality: {part.Tonality} over {part.RootNote}", true);
+                var scale = GetScaleFromTonality(part.Tonality, part.RootNote);
+                var scaleNotes = GetNotesFromScale(scale, part.RootNote, 4, 7)
+                                    .Select(n => n.NoteName)
+                                    .Distinct()
+                                    .ToArray();
+
+                var scaleStr = string.Join("  ", scaleNotes);
+                Log($"[Jam] Scale notes ({part.Tonality} " +
+                    $"over {part.RootNote}): {scaleStr}", customColor: "orange");
+
+                // LOG
+                // --- Diatonic triads for this mode / root -----------------------------
+                var diatonic = new List<string>();
+                for (int degIdx = 0; degIdx < 7; degIdx++)
+                {
+                    var degree = (ScaleDegree)degIdx;
+
+                    // Diatonic triad quality (Ionian template rotated by mode)
+                    var q = GetDiatonicTriadQuality(part.Tonality, degree);
+
+                    // Pitch-classes of the chord (R, 3, 5)
+                    var pcs = ChordPitchClasses(part.Tonality, part.RootNote, degree, q);
+                    if (pcs == null || pcs.Length == 0)
+                        continue;
+
+                    // Spell the root nicely relative to the key (C, D♭, F♯, etc.)
+                    var rootPc = pcs[0];
+                    var rootLabel = SpellNoteForDegree(rootPc, part.RootNote, degIdx);
+
+                    // Just show raw pitch-class names for the full chord (debug-oriented)
+                    var notesStr = string.Join(" ", pcs.Select(n => n.ToString()));
+
+                    // Roman numeral with quality (I, ii, V<sup>7</sup>, etc.)
+                    var rn = ToRomanRich(degree, q);
+
+                    diatonic.Add($"{rn} {rootLabel} [{notesStr}]");
+                }
+
+                Log($"[Jam] Diatonic triads: {string.Join("  ", diatonic)}", 
+                    customColor: "orange");
+                //
 
                 // one track per musician that has a placed card in this part
+                int trackId = 0;
                 foreach (var trModel in p.tracks)
                 {
                     var role = GetRoleFromLabel(trModel.role.ToString());
@@ -1286,8 +1336,10 @@ namespace ALWTTT.Managers
                                    percInst != null ? percInst.InstrumentName : "(none)";
                     var pattName = pattern != null ? pattern.name : "(none)";
 
-                    Log($"[Jam] Track role={role} mus={musicianId} " +
-                        $"inst='{instName}' patt='{pattName}'");
+                    Log($"[Jam] Track {trackId++} " +
+                        $"role={role} " +
+                        $"mus={musicianId} " +
+                        $"inst='{instName}'", true);
 
                     // Look up persistent per-musician gameplay state
                     var pd = GameManager.PersistentGameplayData;
@@ -1352,6 +1404,7 @@ namespace ALWTTT.Managers
                 cfg.ChannelRoles.AddRange(firstPartRoles);
 
             // Final trace
+            /*
             Log($"[Jam] Built SongConfig: parts={cfg.Parts.Count} " +
                 $"structure={cfg.Structure.Count}");
             for (int i = 0; i < cfg.Parts.Count; i++)
@@ -1364,7 +1417,7 @@ namespace ALWTTT.Managers
                 Log($"[Jam]   Part[{i}] '{p.Name}' TS={p.TimeSignature} " +
                     $"meas={p.Measures} " +
                     $"tracks=[{string.Join(" | ", tracks ?? Array.Empty<string>())}]");
-            }
+            }*/
 
             return cfg;
         }

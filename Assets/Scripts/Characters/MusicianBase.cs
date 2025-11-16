@@ -77,7 +77,7 @@ namespace ALWTTT.Characters.Band
             stats.OnBreakdown += OnBreakdown;
             stats.SetCurrentStress(stats.CurrentStress);
 
-            Debug.Log("{MusicianBase} Stats: " + stats.ToString());
+            //Debug.Log("{MusicianBase} Stats: " + stats.ToString());
 
             bandCharacterCanvas.HideContextual();
         }

@@ -403,12 +403,14 @@ namespace ALWTTT
                 _hoverZone = GetDropZoneForLocalPoint(localPoint);
                 if (_hoverZone != _prevHoverZone)
                 {
+                    /*
                     // ENTER / EXIT logs
                     if (_prevHoverZone != CardDropZone.None)
                         Debug.Log($"{DebugTag} Exited zone: {_prevHoverZone}");
 
                     if (_hoverZone != CardDropZone.None)
                         Debug.Log($"{DebugTag} Entered zone: {_hoverZone}");
+                    */
 
                     _prevHoverZone = _hoverZone;
                 }
@@ -418,10 +420,9 @@ namespace ALWTTT
                 {
                     if (_hoverZone != CardDropZone.None)
                     {
-                        // Defer the decision to PlayCard so rules stay identical.
                         _pendingDropZone = _hoverZone;
-                        Debug.Log($"{DebugTag} DROPPED on zone: " +
-                            $"{_pendingDropZone} (card='{heldCard.CardData.CardName}')");
+                        Debug.Log($"<color=yellow>{DebugTag} DROPPED on zone: " +
+                            $"{_pendingDropZone} (card='{heldCard.CardData.CardName}')</color>");
                     }
 
                     PlayCard(mousePos);
@@ -431,7 +432,7 @@ namespace ALWTTT
 
         private void PlayCard(Vector2 mousePos)
         {
-            Debug.Log($"{DebugTag} Playing card...");
+            //Debug.Log($"{DebugTag} Playing card...");
 
             
 
@@ -551,10 +552,12 @@ namespace ALWTTT
             if (data.HasFixedMusicianTarget && _resolveTargetByType != null)
             {
                 target = _resolveTargetByType(data.MusicianCharacterType);
+                /*
                 if (target != null)
                     Debug.Log($"{DebugTag} [Ship] Fixed-target card -> {target.MusicianCharacterData.CharacterName} ({data.MusicianCharacterType}).");
                 else
                     Debug.Log($"{DebugTag} [Ship] Fixed-target card but resolver returned null for {data.MusicianCharacterType}.");
+                */
             }
 
             // Otherwise (or if fixed-target failed to resolve), use hover → selected fallback

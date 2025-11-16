@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Melody - DiffNoteAscendOctaves
+  m_Name: Melody - Random Locrian
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: ASCEND_SCALE_NOTE
-  cardName: ASCEND SCALE NOTE
+  id: Random Locrian
+  cardName: Random Locrian
   musicianCharacterType: 4
   cardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
   inspirationCost: 0
@@ -27,6 +27,8 @@ MonoBehaviour:
     action: 0
     customLabel: 
     musicianId: 
+  modifierEffects:
+  - {fileID: 11400000, guid: e6f5db8f591b33641b4b259129c4cc1c, type: 2}
   keywordsList: 
   audioType: 0
   cardType: 0

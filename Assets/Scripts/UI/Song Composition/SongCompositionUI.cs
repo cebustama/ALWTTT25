@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using static ALWTTT.Cards.CardData;
 using static ALWTTT.Cards.CardData.PartActionDescriptor;
+using static MidiGenPlay.MusicTheory.MusicTheory;
 using static UnityEngine.EventSystems.EventTrigger;
 
 namespace ALWTTT.UI
@@ -60,7 +61,7 @@ namespace ALWTTT.UI
             public string label = "Part";
             public string timeSignature = "4/4";
             public string tempo = "Very Fast";
-            public string tonality = "Ionian";
+            public Tonality tonality = Tonality.Ionian;
             public int measures = 8;
             public List<TrackEntry> tracks = new();
             public bool isFinal = false;
@@ -128,196 +129,6 @@ namespace ALWTTT.UI
         {
             return ApplyCardToPart(card, target, model.CurrentPartIndex);
         }
-
-
-        /*
-        public bool ApplyCardToPart(CardBase card, MusicianBase target, int partIndex)
-        {
-            if (card == null || card.CardData == null || !card.CardData.IsComposition)
-                return false;
-
-            // create the part if needed (fixes parts=0 on first cards)
-            var part = EnsurePartAt(partIndex);
-            if (part == null)
-            {
-                Log($"ApplyCardToPart: could not ensure part at index={partIndex}");
-                return false;
-            }
-
-            var data = card.CardData;
-            string tgtId = "";
-            string tgtName = "";
-
-
-            // --- New Model path: Primary + Effects ---
-            if (data.UsesNewCompositionModel)
-            {
-                // 2) Resolve target musician if the primary is track-like
-                tgtId = target != null ? target.MusicianCharacterData.CharacterId : null;
-                tgtName = target != null ? target.MusicianCharacterData.CharacterName : null;
-
-                if (data.PrimaryKind == CardPrimaryKind.Track)
-                {
-                    var desc = data.TrackAction;
-                    if (target == null)
-                    {
-                        Log("Track card requires a musician target (new model).");
-                        return false;
-                    }
-
-                    // Reuse your existing add/replace flow, but using the role label from the descriptor
-                    string role = string.IsNullOrWhiteSpace(desc?.roleLabel) ? "Rhythm" : desc.roleLabel;
-                    bool ok = TryAddOrReplaceTrackOnPart(
-                        part, partIndex, tgtId, tgtName, role, data.CardName, data);
-
-                    if (!ok) return false;
-
-                    // Apply per-track overrides from descriptor (mirrors your current fields)
-                    var last = part.tracks.FirstOrDefault(t => t.musicianId == tgtId);
-                    if (last != null && desc != null)
-                    {
-                        last.hasMelodyStrategyOverride = desc.hasMelodyStrategyOverride;
-                        last.melodyStrategyIdOverride = desc.melodyStrategyIdOverride;
-                        last.hasMelodicLeadingOverride = desc.hasMelodicLeadingOverride;
-                        last.melodicLeadingOverride = desc.melodicLeadingOverride;
-
-                        last.hasHarmonyStrategyOverride = desc.hasHarmonyStrategyOverride;
-                        last.harmonyStrategyIdOverride = desc.harmonyStrategyIdOverride;
-                        last.hasHarmonicLeadingOverride = desc.hasHarmonicLeadingOverride;
-                        last.harmonicLeadingOverride = desc.harmonicLeadingOverride;
-
-                        // Optional: store style bundle
-                        last.styleBundle = desc.styleBundle;
-                    }
-                }
-                else if (data.PrimaryKind == CardPrimaryKind.Part)
-                {
-                    var pa = data.PartAction;
-                    if (pa == null) return false;
-
-                    switch (pa.action)
-                    {
-                        case PartActionDescriptor.PartActionKind.CreatePart:
-                            // Creating "next" part by appending a draft
-                            BeginDraftNextPart(string.IsNullOrWhiteSpace(pa.customLabel) ? null : pa.customLabel);
-                            break;
-
-                        case PartActionDescriptor.PartActionKind.MarkIntro:
-                            if (!TryAddIntro(pa.musicianId, null)) return false;
-                            break;
-
-                        case PartActionDescriptor.PartActionKind.MarkSolo:
-                            if (!TryAddSolo(pa.musicianId, null)) return false;
-                            break;
-
-                        case PartActionDescriptor.PartActionKind.MarkOutro:
-                            if (!TryAddOutro(pa.musicianId, null)) return false;
-                            break;
-
-                        case PartActionDescriptor.PartActionKind.MarkBridge:
-                            // Minimal: create a part labeled "Bridge"
-                            BeginDraftNextPart(string.IsNullOrWhiteSpace(pa.customLabel) ? "Bridge" : pa.customLabel);
-                            break;
-
-                        case PartActionDescriptor.PartActionKind.MarkFinal:
-                            SetPartFinal(partIndex, true);
-                            break;
-                    }
-                }
-
-                // 3) Apply modifier effects (tempo/meter/tonality/feel/density...)
-                if (data.ModifierEffects != null)
-                {
-                    foreach (var fx in data.ModifierEffects)
-                    {
-                        ApplyEffectToModel(fx, partIndex, target);
-                    }
-                }
-
-                // 4) Rebind visuals
-                partUIs[partIndex].Bind(part);
-                RaisePartChanged();
-                return true;
-            }
-
-            tgtId = target != null ? target.MusicianCharacterData.CharacterId : null;
-            tgtName = target != null ? target.MusicianCharacterData.CharacterName : null;
-
-            // --- New Model (Primary + Effects) ---
-            if (data.UsesNewCompositionModel)
-            {
-                var primary = data.PrimaryKind;
-
-                // ----------------------------------------
-                // 1. PRIMARY: TRACK ACTION
-                // ----------------------------------------
-                if (primary == CardPrimaryKind.Track)
-                {
-                    var desc = data.TrackAction;
-
-                    // Target musician is required
-                    if (target == null)
-                    {
-                        Log("Track card requires a musician target.");
-                        return false;
-                    }
-
-                    string role = string.IsNullOrWhiteSpace(desc.roleLabel)
-                        ? "Rhythm"
-                        : desc.roleLabel;
-
-                    bool ok = TryAddOrReplaceTrackOnPart(
-                        part, partIndex,
-                        target.MusicianCharacterData.CharacterId,
-                        target.MusicianCharacterData.CharacterName,
-                        role,
-                        data.CardName,
-                        data);
-
-                    if (!ok) return false;
-                }
-
-                // ----------------------------------------
-                // 2. PRIMARY: PART ACTION
-                // ----------------------------------------
-                else if (primary == CardPrimaryKind.Part)
-                {
-                    var act = data.PartAction;
-
-                    switch (act.action)
-                    {
-                        case PartActionKind.CreatePart:
-                            // (Already ensured by EnsurePartAt)
-                            break;
-
-                        case PartActionKind.MarkFinal:
-                            part.isFinal = true;
-                            break;
-
-                        case PartActionKind.Custom:
-                            // Optional name override
-                            if (!string.IsNullOrWhiteSpace(act.customLabel))
-                                part.label = act.customLabel;
-                            break;
-                    }
-                }
-
-                // 3) Apply modifier effects (tempo/meter/tonality/feel/density)
-                if (data.ModifierEffects != null)
-                {
-                    foreach (var fx in data.ModifierEffects)
-                    {
-                        ApplyEffectToModel(fx, partIndex, target);
-                    }
-                }
-
-                RaiseChanged();
-                return true;
-            }
-
-
-            return false;
-        }*/
 
         /// <summary>
         /// Applies a Composition card to a specific part in the current song,
@@ -507,7 +318,7 @@ namespace ALWTTT.UI
                     label = label,
                     timeSignature = "4/4",
                     tempo = "Very Fast",
-                    tonality = "Ionian",
+                    tonality = Tonality.Ionian,
                     measures = 8,
                     tracks = new List<TrackEntry>()
                 };
@@ -592,7 +403,7 @@ namespace ALWTTT.UI
                 label = label,
                 timeSignature = inherit != null ? inherit.timeSignature : "4/4",
                 tempo = inherit != null ? inherit.tempo : "Very Fast",
-                tonality = inherit != null ? inherit.tonality : "Ionian",
+                tonality = inherit != null ? inherit.tonality : Tonality.Ionian,
                 measures = inherit != null ? inherit.measures : 8,
                 tracks = new List<TrackEntry>()
             };
@@ -808,7 +619,7 @@ namespace ALWTTT.UI
             return true;
         }
 
-        private bool SetTonalityOnPart(PartEntry part, int partIndex, string tonality)
+        private bool SetTonalityOnPart(PartEntry part, int partIndex, Tonality tonality)
         {
             Log($"[ApplyCardToPart] Tonality={tonality} on partIndex={partIndex}");
             if (part == null) return false;
@@ -982,12 +793,6 @@ namespace ALWTTT.UI
             var part = EnsurePartAt(idx);
             if (part == null) return;
 
-            // Track filter (if any) – for UI we keep the info as a label in TrackEntry
-            string trackMusicianId = fx.scope == EffectScope.TrackOnly
-                ? (!string.IsNullOrEmpty(fx.musicianIdFilter) ? fx.musicianIdFilter
-                   : (target != null ? target.MusicianCharacterData.CharacterId : null))
-                : null;
-
             switch (fx)
             {
                 case TempoEffect t:
@@ -1000,31 +805,13 @@ namespace ALWTTT.UI
                     break;
 
                 case TonalityEffect ton:
-                    if (!string.IsNullOrWhiteSpace(ton.modeLabel))
-                        part.tonality = ton.modeLabel;
+                    part.tonality = ton.tonality;
                     break;
 
                 case FeelEffect feel:
-                    // Minimal UI: annotate as info on all current tracks or create a dummy info row
-                    if (trackMusicianId != null)
-                    {
-                        var tr = part.tracks.FirstOrDefault(x => x.musicianId == trackMusicianId);
-                        if (tr != null) tr.info = $"{tr.info} • {feel.GetLabel()}";
-                    }
-                    else
-                    {
-                        // annotate the part via first track info, or no-op if empty
-                        if (part.tracks.Count > 0)
-                            part.tracks[0].info = $"{part.tracks[0].info} • {feel.GetLabel()}";
-                    }
                     break;
 
                 case DensityEffect den:
-                    // Minimal UI: annotate density on target track (or first track)
-                    var tgt = trackMusicianId != null
-                        ? part.tracks.FirstOrDefault(x => x.musicianId == trackMusicianId)
-                        : (part.tracks.Count > 0 ? part.tracks[0] : null);
-                    if (tgt != null) tgt.info = $"{tgt.info} • {den.GetLabel()}";
                     break;
             }
         }

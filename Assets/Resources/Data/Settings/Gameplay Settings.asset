@@ -41,9 +41,6 @@ MonoBehaviour:
   initialCompositionDeck: {fileID: 11400000, guid: 37efae426d58b844a9e5be7229e9a6cd, type: 2}
   actionCardPool: []
   compositionCardPool:
-  - {fileID: 11400000, guid: b78927e8ec79c3d4dafc68b1af135615, type: 2}
-  - {fileID: 11400000, guid: a701cc9d49c194b45be1a55028868474, type: 2}
-  - {fileID: 11400000, guid: 3f7708dea95f72548ba863caca110da8, type: 2}
   - {fileID: 11400000, guid: 76a9ca5adccc0574ebbf87a0da9b8a95, type: 2}
   drawCount: 6
   maxCardsOnHand: 10

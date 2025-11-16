@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
+  m_Name: Melody - ScaleAltIntervals (Major)
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
+  id: ALT_SCALE_NOTE_MAJOR
+  cardName: ALT SCALE NOTE MAJOR
+  musicianCharacterType: 4
+  cardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
+  inspirationCost: 0
+  inspirationGenerated: 1
+  domain: 1
+  primaryKind: 1
+  trackAction:
+    role: 4
+    styleBundle: {fileID: 11400000, guid: 204477852cc6b7e4aa05d7e0f3d39d72, type: 2}
+  partAction:
+    action: 0
+    customLabel: 
+    musicianId: 
+  modifierEffects:
+  - {fileID: 11400000, guid: 67ae38b52a3319142977e6439e75fd99, type: 2}
+  keywordsList: 
+  audioType: 0
+  cardType: 0
+  usableWithoutTarget: 1
+  exhaustAfterPlay: 0
+  cardConditionDataList: []
+  cardActionDataList: []
+  rarity: 0

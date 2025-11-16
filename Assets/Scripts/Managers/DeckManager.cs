@@ -111,7 +111,7 @@ namespace ALWTTT.Managers
 
         public void OnCardPlayed(CardBase targetCard)
         {
-            Debug.Log($"{DebugTag} On Card Played...");
+            //Debug.Log($"{DebugTag} On Card Played...");
 
             if (targetCard.CardData.ExhaustAfterPlay)
             {
