@@ -2,6 +2,7 @@
 using ALWTTT.Characters;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
+using ALWTTT.Interfaces;
 using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
@@ -120,6 +121,7 @@ namespace ALWTTT.Managers
 
 
         private readonly List<MusicianBase> _spawned = new();
+        public List<MusicianBase> SpawnedBand => _spawned;
         public SongCompositionUI.SongModel GetCurrentComposition() => compositionUI?.Model;
         private readonly Dictionary<int, PartCache> _partCache = new();
 
@@ -144,6 +146,29 @@ namespace ALWTTT.Managers
                     Debug.Log($"{DebugTag} {log}");
             }
         }
+
+        #region Composition Refactor
+        private CompositionSession _session;
+
+        private class ShipContext : ICompositionContext
+        {
+            private readonly ShipInteriorManager _host;
+            public ShipContext(ShipInteriorManager host) { _host = host; }
+
+            public SongCompositionUI CompositionUI => _host.compositionUI;
+            public LoopsTimerUI LoopsTimerUI => _host.loopsTimerUI;
+            public DeckManager Deck => DeckManager.Instance;
+            public MidiMusicManager Music => MidiMusicManager.Instance;
+            public IReadOnlyList<MusicianBase> Band => _host.SpawnedBand;
+
+            public void ShowCompositionUI(bool v) => _host.compositionUI.gameObject.SetActive(v);
+            public void ShowHand(bool v) => _host.SetHandVisible(v);
+            public MusicianBase ResolveMusicianByType(MusicianCharacterType t) => _host.ResolveMusicianByType(t);
+            public void OnSessionStarted() { }
+            public void OnSessionEnded() { }
+            public void Log(string msg, bool hi = false) => _host.Log(msg, hi);
+        }
+        #endregion
 
         private void Start()
         {
