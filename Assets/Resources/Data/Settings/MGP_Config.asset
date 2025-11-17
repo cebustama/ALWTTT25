@@ -18,7 +18,7 @@ MonoBehaviour:
   logUI: 1
   logRepository: 0
   logGenerator: 1
-  logMidiMusicManager: 1
+  logMidiMusicManager: 0
   debugDumpMidi: 0
   defaultTonality: 0
   defaultTimeSignature: 0

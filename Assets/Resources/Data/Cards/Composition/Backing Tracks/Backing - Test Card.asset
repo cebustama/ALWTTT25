@@ -10,22 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Tonality_Ionian
-  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.CardData
-  id: Tonality_Ionian
-  cardName: Tonality_Ionian
-  phase: 0
-  rarity: 0
-  grooveCost: 0
-  cardSprite: {fileID: 0}
-  grooveGenerated: 0
-  domain: 1
-  compositionType: 19
+  m_Name: Backing - Test Card
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
+  id: 
+  cardName: 
   musicianCharacterType: 0
+  cardSprite: {fileID: 0}
+  inspirationCost: 0
+  inspirationGenerated: 0
+  domain: 0
+  primaryKind: 0
+  trackAction:
+    role: 0
+    styleBundle: {fileID: 0}
+  partAction:
+    action: 0
+    customLabel: 
+    musicianId: 
+  modifierEffects: []
+  keywordsList: 
+  audioType: 0
   cardType: 0
   usableWithoutTarget: 0
   exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList: []
-  keywordsList: 
-  audioType: 0
+  rarity: 0

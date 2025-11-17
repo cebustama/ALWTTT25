@@ -12,12 +12,10 @@ using MidiGenPlay.Interfaces;
 using MidiGenPlay.Services;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
-using static ALWTTT.Cards.CardData;
 using static MidiGenPlay.MusicTheory.MusicTheory;
 
 namespace ALWTTT.Managers
@@ -1151,7 +1149,10 @@ namespace ALWTTT.Managers
 
             foreach (var p in model.parts)
             {
-                var tr = GetTempoRangeFromLabel(p.tempo);
+                var tr = p.tempoRangeOverride.HasValue
+                    ? p.tempoRangeOverride.Value
+                    : GetTempoRangeFromLabel(p.tempo);
+
                 var ts = GetTimeSignatureFromLabel(p.timeSignature);
                 var tonality = p.tonality;
 
@@ -1159,11 +1160,14 @@ namespace ALWTTT.Managers
                 {
                     Name = string.IsNullOrWhiteSpace(p.label) ? $"Part {partIndex + 1}" : p.label,
                     Measures = p.measures <= 0 ? 8 : p.measures,
-                    TempoRange = tr,
                     TimeSignature = ts,
                     Tracks = new List<SongConfig.PartConfig.TrackConfig>(),
                     Tonality = tonality,
-                    RootNote = Melanchall.DryWetMidi.MusicTheory.NoteName.C
+                    RootNote = Melanchall.DryWetMidi.MusicTheory.NoteName.C,
+                    // Tempo
+                    TempoRange = tr,
+                    ExplicitBpm = p.absoluteBpmOverride,
+                    TempoScale = p.tempoScale
                 };
 
                 Log($"[Jam] Building Part[{partIndex}] '{part.Name}'  " +

@@ -14,4 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.TempoEffect
   scope: 1
   timing: 1
-  tempoScale: 2.5
+  mode: 0
+  tempoRange: 4
+  tempoRule: 0
+  absoluteBpm: 120
+  tempoScale: 1

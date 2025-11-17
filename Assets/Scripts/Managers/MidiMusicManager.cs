@@ -575,13 +575,58 @@ namespace ALWTTT.Managers
                 if (!string.IsNullOrEmpty(tr.MusicianId) && byMusician.TryGetValue(tr.MusicianId, out var ch))
                     tr.Channel = ch;
 
-            if (logDebug)
-                Debug.Log($"{DebugTag} [BPM] RenderSinglePart part={partIndex} " +
-                          $"bpmOverride={(bpmOverride?.ToString() ?? "none")}");
+            int? effectiveOverride = bpmOverride;
+            if (!effectiveOverride.HasValue)
+            {
+                string mode;
+                int baseBpm;
+
+                if (part.ExplicitBpm.HasValue)
+                {
+                    // Caso 1: BPM fijo
+                    baseBpm = part.ExplicitBpm.Value;
+                    mode = $"explicit({baseBpm})";
+                }
+                else
+                {
+                    // Caso 2: rango
+                    baseBpm = MusicTheory.GetBPMFromRange(part.TempoRange, TempoRule.MultiplesOfTen);
+                    mode = $"range({part.TempoRange})";
+                }
+
+                // Aplicar escala si procede
+                if (!Mathf.Approximately(part.TempoScale, 1f))
+                {
+                    baseBpm = Mathf.RoundToInt(baseBpm * part.TempoScale);
+                    baseBpm = Mathf.Max(40, baseBpm); // safety floor
+                    mode += $" * scale({part.TempoScale:0.##})";
+                }
+
+                effectiveOverride = baseBpm;
+
+                if (logDebug)
+                {
+                    Debug.Log(
+                        $"{DebugTag} [BPM] Resolve part {partIndex} '{part.Name}': " +
+                        $"mode={mode} -> BPM={baseBpm} | " +
+                        $"Explicit={part.ExplicitBpm?.ToString() ?? "null"}, " +
+                        $"TempoRange={part.TempoRange}, TempoScale={part.TempoScale:0.##}");
+                }
+            }
+            else if (logDebug)
+            {
+                Debug.Log(
+                    $"{DebugTag} [BPM] RenderSinglePart part={partIndex} '{part.Name}' " +
+                    $"using cached override BPM={effectiveOverride.Value}");
+            }
 
             // Generate stems via orchestrator
             var render = generator.Orchestrator.GenerateSinglePart(
-                part, fullCfg.ChannelRoles, partIndex, bpmOverride, instrumentOverrides);
+                part, 
+                fullCfg.ChannelRoles, 
+                partIndex,
+                effectiveOverride, 
+                instrumentOverrides);
 
             if (logDebug)
                 Debug.Log($"{DebugTag} [BPM] Part={partIndex} resolved BPM={render.bpm}");

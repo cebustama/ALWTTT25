@@ -61,10 +61,18 @@ namespace ALWTTT.UI
             public string label = "Part";
             public string timeSignature = "4/4";
             public string tempo = "Very Fast";
-            public Tonality tonality = Tonality.Ionian;
+
             public int measures = 8;
             public List<TrackEntry> tracks = new();
             public bool isFinal = false;
+
+            // Tonality
+            public Tonality tonality = Tonality.Ionian;
+
+            // Tempo
+            public TempoRange? tempoRangeOverride = null;
+            public int? absoluteBpmOverride = null;
+            public float tempoScale = 1f;
         }
 
         [Serializable]
@@ -796,8 +804,33 @@ namespace ALWTTT.UI
             switch (fx)
             {
                 case TempoEffect t:
-                    part.tempo = t.tempoScale < 1f ? "Slow" : (t.tempoScale > 1.4f ? "Very Fast" : "Fast");
+                {
+                    switch (t.mode)
+                    {
+                        case TempoEffect.TempoEffectMode.Range:
+                            part.tempoRangeOverride = t.tempoRange;
+                            part.absoluteBpmOverride = null;
+                            // label friendly
+                            part.tempo = t.tempoRange.ToString();
+                            break;
+
+                        case TempoEffect.TempoEffectMode.AbsoluteBpm:
+                            part.absoluteBpmOverride = t.absoluteBpm;
+                            part.tempoRangeOverride = null;
+                            part.tempo = $"{t.absoluteBpm} BPM";
+                            break;
+
+                        case TempoEffect.TempoEffectMode.ScaleFactor:
+                            // Componer factores si se juegan varias cartas
+                            part.tempoScale *= t.tempoScale;
+                            part.tempo = $"×{part.tempoScale:0.##}";
+                            break;
+                    }
+
+                    partUIs[partIndex].Bind(part);
+                    RaisePartChanged();
                     break;
+                }
 
                 case MeterEffect m:
                     if (!string.IsNullOrWhiteSpace(m.meterLabel))
