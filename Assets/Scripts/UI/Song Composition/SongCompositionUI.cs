@@ -59,7 +59,6 @@ namespace ALWTTT.UI
         public class PartEntry
         {
             public string label = "Part";
-            public string timeSignature = "4/4";
             public string tempo = "Very Fast";
 
             public int measures = 8;
@@ -69,8 +68,11 @@ namespace ALWTTT.UI
             // Tonality
             public Tonality tonality = Tonality.Ionian;
 
+            // Time Signature
+            public TimeSignature timeSignature;
+
             // Tempo
-            public TempoRange? tempoRangeOverride = null;
+            public TempoRange tempoRangeOverride = TempoRange.Fast;
             public int? absoluteBpmOverride = null;
             public float tempoScale = 1f;
         }
@@ -324,7 +326,7 @@ namespace ALWTTT.UI
                 var p = new PartEntry
                 {
                     label = label,
-                    timeSignature = "4/4",
+                    timeSignature = TimeSignature.FourFour,
                     tempo = "Very Fast",
                     tonality = Tonality.Ionian,
                     measures = 8,
@@ -409,7 +411,8 @@ namespace ALWTTT.UI
             var p = new PartEntry
             {
                 label = label,
-                timeSignature = inherit != null ? inherit.timeSignature : "4/4",
+                timeSignature = inherit != null 
+                    ? inherit.timeSignature : TimeSignature.FourFour,
                 tempo = inherit != null ? inherit.tempo : "Very Fast",
                 tonality = inherit != null ? inherit.tonality : Tonality.Ionian,
                 measures = inherit != null ? inherit.measures : 8,
@@ -607,36 +610,6 @@ namespace ALWTTT.UI
             return true;
         }
 
-        private bool SetTimeSignatureOnPart(PartEntry part, int partIndex, string ts)
-        {
-            Log($"[ApplyCardToPart] TS={ts} on partIndex={partIndex}");
-            if (part == null) return false;
-            part.timeSignature = ts;
-            partUIs[partIndex].Bind(part);
-            RaisePartChanged();
-            return true;
-        }
-
-        private bool SetTempoOnPart(PartEntry part, int partIndex, string label)
-        {
-            Log($"[ApplyCardToPart] Tempo={label} on partIndex={partIndex}");
-            if (part == null) return false;
-            part.tempo = label;
-            partUIs[partIndex].Bind(part);
-            RaisePartChanged();
-            return true;
-        }
-
-        private bool SetTonalityOnPart(PartEntry part, int partIndex, Tonality tonality)
-        {
-            Log($"[ApplyCardToPart] Tonality={tonality} on partIndex={partIndex}");
-            if (part == null) return false;
-            part.tonality = tonality;
-            partUIs[partIndex].Bind(part);
-            RaisePartChanged();
-            return true;
-        }
-
         private bool TryAddOrReplaceTrackOnPart(
             PartEntry part, int partIndex,
             string musicianId, string musicianName,
@@ -816,7 +789,7 @@ namespace ALWTTT.UI
 
                         case TempoEffect.TempoEffectMode.AbsoluteBpm:
                             part.absoluteBpmOverride = t.absoluteBpm;
-                            part.tempoRangeOverride = null;
+                            part.tempoRangeOverride = TempoRange.Fast;
                             part.tempo = $"{t.absoluteBpm} BPM";
                             break;
 
@@ -833,8 +806,7 @@ namespace ALWTTT.UI
                 }
 
                 case MeterEffect m:
-                    if (!string.IsNullOrWhiteSpace(m.meterLabel))
-                        part.timeSignature = m.meterLabel;
+                    part.timeSignature = m.timeSignature;
                     break;
 
                 case TonalityEffect ton:

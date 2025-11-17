@@ -4,6 +4,7 @@ using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using ALWTTT.UI;
 using MidiGenPlay;
+using MidiGenPlay.Services;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace ALWTTT.Music
 {
     public class CompositionSession
     {
-        private enum State 
+        public enum State 
         {
             Idle,                   // Not in a jam session
             BuildingCurrentPart,    // Player is building the first (or current) part before any playback
@@ -24,6 +25,8 @@ namespace ALWTTT.Music
 
         private ICompositionContext _ctx;
         private JamRules _rules;
+        private MidiGenPlayConfig _settings;
+        private System.Random _rng;
 
         private bool _isPlaying;
         private int _currentPartIndex = -1;
@@ -37,7 +40,7 @@ namespace ALWTTT.Music
         private float _loopStartTime;
         private float _loopDurationSeconds;
 
-        private sealed class PartCache
+        public class PartCache
         {
             public byte[] mergedBytes;
             public float seconds;
@@ -48,12 +51,21 @@ namespace ALWTTT.Music
                 resolvedPercInstByMusician = new();
         }
         private readonly Dictionary<int, PartCache> _partCache = new();
+        public bool TryGetPartCache(int partIndex, out PartCache cache) => 
+            _partCache.TryGetValue(partIndex, out cache);
+
+        public PartCache GetOrCreatePartCache(int partIndex)
+            => _partCache.TryGetValue(partIndex, out var c) 
+            ? c : (_partCache[partIndex] = new PartCache());
 
         // ----- Public API -----
-        public void Begin(ICompositionContext ctx, JamRules rules)
+        public void Begin(
+            ICompositionContext ctx, JamRules rules, MidiGenPlayConfig settings, System.Random rng)
         {
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _rules = rules ?? new JamRules();
+            _settings = settings ?? new MidiGenPlayConfig();
+            _rng = rng ?? new System.Random();
 
             _state = State.BuildingCurrentPart;
             _currentPartIndex = -1;
@@ -289,15 +301,23 @@ namespace ALWTTT.Music
         private SongConfig BuildSongConfigFromUI()
         {
             var ui = _ctx.CompositionUI; if (ui == null) return null;
-            var model = ui.Model; if (model == null || model.parts.Count == 0) return null;
 
-            // Repos/servicios deberían ser accesibles vía UI o Context; omito por brevedad:
-            // Usa el mismo código que ya tienes para poblar: ChannelMusicianOrder, Parts, Tracks,
-            // tempo/time signature, TrackParameters (Pattern/Style/Leading overrides), etc.
-            // Si quieres, extrae tu método actual a un helper estático y reúsalo aquí.
+            var instruments = new InstrumentRepositoryResources(_settings);
+            var patterns = new PatternRepositoryResources(_settings);
+            instruments.Refresh();
+            patterns.Refresh();
 
-            // TIP: puedes llamar directamente a tu método actual si lo extraes a una clase utilitaria.
-            return /* BuildSongConfigFromCompositionUI() portado */ null;
+            return SongConfigBuilder.FromUI(
+                ctx: _ctx,
+                instruments: instruments,
+                patterns: patterns,
+                getPermittedMelodic: (mus, role) =>
+                    InstrumentRules.GetPermittedMelodic(mus, role, instruments),
+                getPinnedMelOrNull: (partIdx, musId) =>
+                    TryGetPinnedMelInst(partIdx, musId, out var inst) ? inst : null,
+                getCachedBpm: GetCachedBpm,
+                _rng
+            );
         }
 
         private static int EvalPerLoopInsp(SongCompositionUI.PartEntry part)
@@ -405,6 +425,24 @@ namespace ALWTTT.Music
                 resolvedMelInstByMusician = keepTempo ? cache.resolvedMelInstByMusician : new(),
                 resolvedPercInstByMusician = new()
             };
+        }
+
+        private bool TryGetPinnedMelInst(
+            int partIndex, string musicianId, out MIDIInstrumentSO inst)
+        {
+            inst = null;
+            return _partCache.TryGetValue(partIndex, out var pc)
+                && pc != null
+                && pc.resolvedMelInstByMusician.TryGetValue(musicianId, out inst)
+                && inst != null;
+        }
+
+        private int? GetCachedBpm(int partIndex)
+        {
+            return _partCache
+                .TryGetValue(partIndex, out var pc) && pc != null && pc.resolvedBpm > 0
+                ? pc.resolvedBpm
+                : (int?)null;
         }
     }
 }

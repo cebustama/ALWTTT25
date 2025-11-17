@@ -1,7 +1,9 @@
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Managers;
+using ALWTTT.Music;
 using ALWTTT.UI;
+using MidiGenPlay;
 using System;
 using System.Collections.Generic;
 
@@ -19,6 +21,10 @@ namespace ALWTTT.Interfaces
         void ShowHand(bool visible);
 
         MusicianBase ResolveMusicianByType(MusicianCharacterType type);
+        MusicianBase ResolveMusicianById(string id);
+
+        bool TryGetPartCache(int partIndex, out CompositionSession.PartCache cache);
+        CompositionSession.PartCache GetOrCreatePartCache(int partIndex);
 
         void OnSessionStarted();
         void OnSessionEnded();

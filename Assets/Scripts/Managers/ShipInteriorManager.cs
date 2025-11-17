@@ -25,43 +25,6 @@ namespace ALWTTT.Managers
     {
         private const string DebugTag = "<color=green>[Rehearsal]</color>";
 
-        #region Jam
-        private enum JamState
-        {
-            Idle,                   // Not in a jam session
-            BuildingCurrentPart,    // Player is building the first (or current) part before any playback
-            PlayingCurrentPart,     // A confirmed part is currently playing in loop
-            BuildingNextPart,       // While the current part is looping, player is drafting the next part
-            Ended                   // Jam is over
-        }
-
-        [Serializable]
-        public class JamRules
-        {
-            // How many loops each part should play before we either transition or stop
-            public int loopsPerPart = 3;
-
-            // How many cards to draw at the start of each build phase
-            public int drawPerPart = 5;
-
-            // How much "energy" the player has to spend on cards each build phase
-            public int inspirationPerPart = 3;
-        }
-
-        [Serializable]
-        private sealed class PartCache
-        {
-            public byte[] mergedBytes;
-            public float seconds;
-            public int resolvedBpm;
-            public Dictionary<string, byte[]> stemsByMusician = new();
-            public Dictionary<string, MIDIInstrumentSO> resolvedMelInstByMusician = new();
-            public Dictionary<string, 
-                MIDIPercussionInstrumentSO> resolvedPercInstByMusician = new();
-        }
-
-        #endregion
-
         [Header("Spawn Points")]
         [SerializeField] private List<Transform> musicianPosList;
 
@@ -107,7 +70,7 @@ namespace ALWTTT.Managers
         private bool inRehearsal = false;
 
         // Jamming
-        private JamState jamState = JamState.Idle;
+        private CompositionSession.State jamState = CompositionSession.State.Idle;
         private int currentInspiration = 0;
         private int buildingPartInspirationPerLoop = 0; // sum of GrooveGenerated while drafting part
         private int currentPartInspiration = 0;
@@ -123,7 +86,9 @@ namespace ALWTTT.Managers
         private readonly List<MusicianBase> _spawned = new();
         public List<MusicianBase> SpawnedBand => _spawned;
         public SongCompositionUI.SongModel GetCurrentComposition() => compositionUI?.Model;
-        private readonly Dictionary<int, PartCache> _partCache = new();
+
+        private readonly Dictionary<int, CompositionSession.PartCache> _partCache = new();
+        public Dictionary<int, CompositionSession.PartCache> PartCacheRef => _partCache;
 
         #region Cache
         private GameManager GameManager => GameManager.Instance;
@@ -161,9 +126,34 @@ namespace ALWTTT.Managers
             public MidiMusicManager Music => MidiMusicManager.Instance;
             public IReadOnlyList<MusicianBase> Band => _host.SpawnedBand;
 
-            public void ShowCompositionUI(bool v) => _host.compositionUI.gameObject.SetActive(v);
+            public void ShowCompositionUI(bool v) => 
+                _host.compositionUI.gameObject.SetActive(v);
+
             public void ShowHand(bool v) => _host.SetHandVisible(v);
-            public MusicianBase ResolveMusicianByType(MusicianCharacterType t) => _host.ResolveMusicianByType(t);
+
+            public MusicianBase ResolveMusicianByType(MusicianCharacterType t) => 
+                _host.ResolveMusicianByType(t);
+
+            public MusicianBase ResolveMusicianById(string id) =>
+                _host.SpawnedBand.FirstOrDefault(m =>
+                    m && m.MusicianCharacterData.CharacterId == id);
+
+            public bool TryGetPartCache(int partIndex, out CompositionSession.PartCache cache)
+            {
+                cache = null;
+                if (_host._session == null) return false;
+                return _host._session.TryGetPartCache(partIndex, out cache);
+            }
+
+            public CompositionSession.PartCache GetOrCreatePartCache(int partIndex)
+            {
+                if (_host._session == null)
+                {
+                    return new CompositionSession.PartCache();
+                }
+                return _host._session.GetOrCreatePartCache(partIndex);
+            }
+
             public void OnSessionStarted() { }
             public void OnSessionEnded() { }
             public void Log(string msg, bool hi = false) => _host.Log(msg, hi);
@@ -246,8 +236,8 @@ namespace ALWTTT.Managers
         {
             // Only care about jam looping logic if we are mid-jam
             if (!inRehearsal) return;
-            if (jamState != JamState.BuildingNextPart &&
-                jamState != JamState.PlayingCurrentPart) return;
+            if (jamState != CompositionSession.State.BuildingNextPart &&
+                jamState != CompositionSession.State.PlayingCurrentPart) return;
 
             var mm = MidiMusicManager;
             if (mm == null) return;
@@ -374,7 +364,7 @@ namespace ALWTTT.Managers
             // If not final, enter drafting state for the *following* part
             if (!thisIsFinal)
             {
-                jamState = JamState.BuildingNextPart;
+                jamState = CompositionSession.State.BuildingNextPart;
                 nextPartIsReady = false; // must be confirmed again
 
                 // Give fresh energy + cards to draft the following part
@@ -391,7 +381,7 @@ namespace ALWTTT.Managers
             else
             {
                 // Don’t allow drafting; we’ll end when this part finishes its loops
-                jamState = JamState.PlayingCurrentPart;
+                jamState = CompositionSession.State.PlayingCurrentPart;
                 nextPartIsReady = false;
                 Log($"[Jam] Part {currentPartIndex} is marked FINAL; " +
                     $"song will end after its loops.");
@@ -408,7 +398,7 @@ namespace ALWTTT.Managers
         {
             Log("[Jam] Song ended. Returning to fresh Composition (empty) for quick testing.", true);
 
-            jamState = JamState.Ended;
+            jamState = CompositionSession.State.Ended;
             inRehearsal = false;
             isPlaying = false;
             nextPartIsReady = false;
@@ -466,7 +456,7 @@ namespace ALWTTT.Managers
 
         private void OnCompose()
         {
-            if (inRehearsal || jamState != JamState.Idle)
+            if (inRehearsal || jamState != CompositionSession.State.Idle)
                 return;
 
             shipCanvas?.SetMainButtonsVisible(false);
@@ -479,7 +469,7 @@ namespace ALWTTT.Managers
             if (!inRehearsal) return;
 
             // Case 1: first time we press Play
-            if (jamState == JamState.BuildingCurrentPart)
+            if (jamState == CompositionSession.State.BuildingCurrentPart)
             {
                 // lock Part A and start looping it
                 ConfirmCurrentPartAndStartPlaying();
@@ -487,7 +477,7 @@ namespace ALWTTT.Managers
             }
 
             // Case 2: Maybe use for fast-tracking to next part (skip remaining loops)
-            if (jamState == JamState.BuildingNextPart)
+            if (jamState == CompositionSession.State.BuildingNextPart)
             {
                 return;
             }
@@ -506,7 +496,7 @@ namespace ALWTTT.Managers
             Log("[Jam] StartJam()", true);
 
             inRehearsal = true; // legacy flag
-            jamState = JamState.BuildingCurrentPart;
+            jamState = CompositionSession.State.BuildingCurrentPart;
 
             SetHandVisible(true);
             SetCompositionVisible(true);
@@ -541,7 +531,7 @@ namespace ALWTTT.Managers
         /// </summary>
         private void ConfirmCurrentPartAndStartPlaying()
         {
-            if (jamState != JamState.BuildingCurrentPart)
+            if (jamState != CompositionSession.State.BuildingCurrentPart)
             {
                 Log("[Jam] ConfirmCurrentPartAndStartPlaying() ignored: " +
                     "not in BuildingCurrentPart");
@@ -581,7 +571,7 @@ namespace ALWTTT.Managers
             buildingPartInspirationPerLoop = 0; // reset for drafting next part
 
             //  Part A is looping and the player is drafting Part B.
-            jamState = JamState.BuildingNextPart;
+            jamState = CompositionSession.State.BuildingNextPart;
 
             // Give the player new energy + new cards for drafting the NEXT part
             currentInspiration = jamRules.inspirationPerPart;
@@ -647,7 +637,7 @@ namespace ALWTTT.Managers
                     return 0f;
                 }
 
-                if (cache == null) cache = new PartCache();
+                if (cache == null) cache = new CompositionSession.PartCache();
                 cache.mergedBytes = merged;
                 cache.seconds = seconds;
                 cache.stemsByMusician = stems ?? new Dictionary<string, byte[]>();
@@ -764,167 +754,6 @@ namespace ALWTTT.Managers
             return _spawned.Count > 0 ? _spawned[0] : null;
         }
 
-        /*
-        public bool TryPlayCompositionCard(
-            CardBase card, MusicianBase target, CardDropZone zone)
-        {
-            var mm = MidiMusicManager.Instance;
-            if (mm == null || card == null) return false;
-
-            var c = card.CardData;
-            var musicianId = target != null
-                ? target.MusicianCharacterData.CharacterId
-                : _nextHighlightMusicianId;
-
-            // ---------- INSPIRATION: block if not enough ----------
-            // (Only for Composition cards; Action cards are Gig-only.)
-            if (c.IsComposition)
-            {
-                int cost = Mathf.Max(0, c.GrooveCost);   // stored cost field
-                if (cost > currentInspiration)
-                {
-                    Debug.LogWarning($"{DebugTag} Not enough Inspiration: " +
-                        $"need {cost}, have {currentInspiration}. " +
-                        $"Card '{c.CardName}' was not played.");
-                    return false;
-                }
-            }
-
-            // ---------- QUICK PRE-FILTER (role/musician sanity) ----------
-            bool isTrackCard = c.IsTrackCard;
-
-            if (isTrackCard && target == null && c.HasFixedMusicianTarget)
-            {
-                target = ResolveMusicianByType(c.MusicianCharacterType);
-            }
-
-            if (isTrackCard && target == null)
-                return false; // needs a concrete musician
-
-            if (isTrackCard && target != null)
-            {
-                bool isDrummer = IsDrummer(target);
-                if (c.CompositionType == CompositionCardType.Track_Rhythm && !isDrummer) 
-                    return false;
-                if (c.CompositionType != CompositionCardType.Track_Rhythm && isDrummer) 
-                    return false;
-            }
-
-            // ---------- CAN APPLY? (UI/model is the source of truth for session rules) ----------
-            if (compositionUI != null && !compositionUI.CanApply(card, target, out var reason))
-            {
-                Debug.LogWarning($"[Rehearsal] Cannot play card: {reason}");
-                return false;
-            }
-
-            // If the current looping part is FINAL,
-            // ignore any attempt to drop on "NextPart":
-            bool currentIsFinal = 
-                compositionUI != null && compositionUI.IsPartFinal(currentPartIndex);
-            if (currentIsFinal && zone == CardDropZone.NextPart)
-            {
-                Log("[Jam] Current part is FINAL; redirecting NextPart drop to CurrentPart.");
-                zone = CardDropZone.CurrentPart;
-            }
-
-            int targetPartIndex;
-            // If music is looping,
-            // CurrentPart zone == the looping part,
-            // NextPart == the draft part index
-            bool loopIsRunning = isPlaying 
-                && (jamState == JamState.BuildingNextPart 
-                    || jamState == JamState.PlayingCurrentPart);
-
-            if (loopIsRunning)
-            {
-                // directly affects the part that will play on next loop
-                if (zone == CardDropZone.CurrentPart)
-                    targetPartIndex = currentPartIndex;
-                // “drafting” part index, played after N iterations
-                else if (zone == CardDropZone.NextPart)
-                    targetPartIndex = compositionUI.Model.CurrentPartIndex;
-                // default
-                else
-                    targetPartIndex = currentPartIndex; 
-            }
-            else
-            {
-                // Not looping yet (BuildingCurrentPart)
-                // → everything goes to the UI's current editable part
-                targetPartIndex = compositionUI.Model.CurrentPartIndex;
-            }
-
-            // ---------- UPDATE UI / MODEL ----------
-            bool uiApplied = compositionUI == null
-                || compositionUI.ApplyCardToPart(card, target, targetPartIndex);
-            if (!uiApplied) return false;
-
-            Log($"Card '{c.CardName}' applied to " +
-                $"partIndex={targetPartIndex} (zone={zone}) (jamState={jamState}).", true);
-
-            // ---------- INVALIDATE CURRENT PART CACHE IF NEEDED ----------
-            if (loopIsRunning && c.AffectsSound)
-            {
-                bool keepTempo = ShouldKeepTempo(c);
-
-                int invalidateIndex = (zone == CardDropZone.NextPart)
-                    ? targetPartIndex        // we’re drafting the next part
-                    : currentPartIndex;      // we’re altering the looping part
-
-                if (c.IsTrackCard)
-                    Log($"[Cache] Track card -> invalidate part {invalidateIndex} " +
-                        $"(keep BPM={keepTempo}).");
-                else if (c.IsTempoCard)
-                    Log($"[Cache] Tempo card -> invalidate part {invalidateIndex} " +
-                        $"(keep BPM={keepTempo}).");
-                else if (c.IsTimeSignatureCard)
-                    Log($"[Cache] Time Signature card -> invalidate part {invalidateIndex} " +
-                        $"(keep BPM={keepTempo}).");
-                else if (c.IsTonalityCard)
-                    Log($"[Cache] Tonality card -> invalidate part {invalidateIndex} " +
-                        $"(keep BPM={keepTempo}).");
-
-                InvalidatePartCache(invalidateIndex, keepTempo);
-            }
-
-            // ---------- INSPIRATION: spend on success + update UI ----------
-            if (c.IsComposition)
-            {
-                int cost = Mathf.Max(0, c.GrooveCost);
-                currentInspiration = Mathf.Max(0, currentInspiration - cost);
-                compositionUI?.SetInspiration(currentInspiration);
-                Debug.Log($"{DebugTag} Played '{c.CardName}' for {cost} Inspiration. " +
-                    $"Remaining: {currentInspiration}.");
-
-                int gen = Mathf.Max(0, c.GrooveGenerated);
-                if (gen > 0)
-                {
-                    buildingPartInspirationPerLoop += gen;
-                    Debug.Log($"{DebugTag} This part now generates " +
-                        $"+{buildingPartInspirationPerLoop} Inspiration per loop.");
-                }
-            }
-
-            if (c.IsTrackCard 
-                && jamState != JamState.BuildingCurrentPart 
-                && compositionUI != null)
-            {
-                if (currentPartIndex >= 0 // Safety: if no part is playing yet, do nothing 
-                    && currentPartIndex < compositionUI.Model.parts.Count)
-                {
-                    currentPartInspiration = EvaluatePerLoopInspirationGain(
-                        compositionUI.Model.parts[currentPartIndex]);
-
-                    compositionUI.SetPlusInspiration(currentPartInspiration);
-                    Log($"[Jam] Recalculated per-loop Inspiration = " +
-                        $"+{currentPartInspiration} after track update.");
-                }
-            }
-
-            return true;
-        }
-        */
-
         /// <summary>
         /// Attempts to play a Composition card during Rehearsal (Jam).
         /// - Verifies Inspiration cost.
@@ -1001,7 +830,7 @@ namespace ALWTTT.Managers
             int targetPartIndex;
             bool loopIsRunning =
                 isPlaying &&
-                (jamState == JamState.BuildingNextPart || jamState == JamState.PlayingCurrentPart);
+                (jamState == CompositionSession.State.BuildingNextPart || jamState == CompositionSession.State.PlayingCurrentPart);
 
             if (loopIsRunning)
             {
@@ -1043,7 +872,7 @@ namespace ALWTTT.Managers
                     var cache = _partCache[invalidateIndex];
                     int preservedBpm = keepTempo ? cache.resolvedBpm : 0;
 
-                    _partCache[invalidateIndex] = new PartCache
+                    _partCache[invalidateIndex] = new CompositionSession.PartCache
                     {
                         mergedBytes = null,
                         seconds = 0f,
@@ -1085,7 +914,7 @@ namespace ALWTTT.Managers
             }
 
             // If we just changed a track while looping, recompute per-loop preview for the current part
-            if (c.IsTrackCard && jamState != JamState.BuildingCurrentPart && compositionUI != null)
+            if (c.IsTrackCard && jamState != CompositionSession.State.BuildingCurrentPart && compositionUI != null)
             {
                 if (currentPartIndex >= 0 && currentPartIndex < compositionUI.Model.parts.Count)
                 {
@@ -1174,11 +1003,8 @@ namespace ALWTTT.Managers
 
             foreach (var p in model.parts)
             {
-                var tr = p.tempoRangeOverride.HasValue
-                    ? p.tempoRangeOverride.Value
-                    : GetTempoRangeFromLabel(p.tempo);
-
-                var ts = GetTimeSignatureFromLabel(p.timeSignature);
+                var tr = p.tempoRangeOverride;
+                var ts = p.timeSignature;
                 var tonality = p.tonality;
 
                 var part = new SongConfig.PartConfig
