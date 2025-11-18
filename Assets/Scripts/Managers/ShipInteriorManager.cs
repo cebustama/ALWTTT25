@@ -66,13 +66,6 @@ namespace ALWTTT.Managers
             MidiMusicManager.HighlightMode.DuckOthers;
         private string _nextHighlightMusicianId;
 
-
-        private int buildingPartInspirationPerLoop = 0; // sum of GrooveGenerated while drafting part
-        private int currentPartInspiration = 0;
-        private int currentPartIndex = -1;
-        private bool nextPartIsReady = false;
-
-
         private readonly List<MusicianBase> _spawned = new();
         public List<MusicianBase> SpawnedBand => _spawned;
         public SongCompositionUI.SongModel GetCurrentComposition() => compositionUI?.Model;
@@ -82,8 +75,6 @@ namespace ALWTTT.Managers
         private MidiMusicManager MidiMusicManager => MidiMusicManager.Instance;
         #endregion
 
-        private IInstrumentRepository instrumentRepo;
-        private IPatternRepository patternRepo;
         private System.Random rng = new System.Random();
 
         private void Log(string log, bool highlight = false, string customColor = "")
@@ -99,7 +90,7 @@ namespace ALWTTT.Managers
             }
         }
 
-        #region Composition Refactor
+        #region Composition
         private CompositionSession _session;
 
         private class ShipContext : ICompositionContext
@@ -153,7 +144,6 @@ namespace ALWTTT.Managers
             if (shipCanvas)
             {
                 shipCanvas.Setup(onCompose: OnCompose, onRelax: OnRelax, onBandTalk: OnBandTalk);
-                shipCanvas.HookPlayButton(OnPlayPressed);
 
                 shipCanvas.HookMetronomeToggle(
                     OnMetronomeToggled,
@@ -180,32 +170,16 @@ namespace ALWTTT.Managers
                     factor => MidiMusicManager?.ScheduleNextSongTempoScale(factor), defaultIndex: 1);
             }
 
+            if (compositionUI)
+                compositionUI.HookPlayButton(OnPlayPressed);
+
             SetHandVisible(false);
             SetCompositionVisible(false);
-
-            // Services
-            instrumentRepo = new InstrumentRepositoryResources(midiGenPlayConfig);
-            patternRepo = new PatternRepositoryResources(midiGenPlayConfig);
-            instrumentRepo.Refresh();
-            patternRepo.Refresh();
         }
 
         private void Update()
         {
             _session?.Tick(Time.deltaTime);
-        }
-
-        private void PrepareRehearsalDeck()
-        {
-            var gd = GameManager.GameplayData;
-            var pool = gd.CompositionCardPool != null && gd.CompositionCardPool.Count > 0
-                ? gd.CompositionCardPool
-                : gd.AllCardsList.FindAll(c => c != null && c.IsComposition);
-
-            var deck = DeckManager.Instance;
-            deck.ClearAll();
-            deck.AddToDrawPile(pool);
-            deck.DrawCards(gd.DrawCount);
         }
 
         private void BuildBand()
@@ -246,26 +220,6 @@ namespace ALWTTT.Managers
         private void OnPlayPressed()
         {
             _session?.ConfirmCurrentPartAndStart();
-        }
-
-        private void BeginRehearsalSession()
-        {
-            SetHandVisible(true);
-            SetCompositionVisible(true);
-
-            // Clean any pending music intents from a previous session
-            try
-            {
-                // TODO: implement in MidiMusicManager
-                //MidiMusicManager?.ClearQueuedIntents(); 
-            }
-            catch { /* safe no-op if method doesn't exist yet */ }
-
-            // Use composition pool from GameplayData and draw a fresh hand
-            PrepareRehearsalDeck();
-
-            if (compositionUI) compositionUI.ResetSession();
-            compositionUI?.PopulateMusicianIcons(_spawned);
         }
 
         private void OnRelax()
@@ -361,130 +315,6 @@ namespace ALWTTT.Managers
                 compositionUI.gameObject.SetActive(visible);
         }
 
-        // TODO: Standarize, move to correct class, etc
-        private TempoRange GetTempoRangeFromLabel(string label)
-        {
-            switch (label)
-            {
-                case "Slow": return TempoRange.Slow;
-                case "Fast": return TempoRange.Fast;
-                case "Very Fast": return TempoRange.VeryFast;
-                default: return TempoRange.Moderate;
-            }
-        }
-
-        private TimeSignature GetTimeSignatureFromLabel(string label)
-        {
-            switch (label)
-            {
-                case "4/4": return TimeSignature.FourFour;
-                case "3/4": return TimeSignature.ThreeFour;
-                case "6/8": return TimeSignature.SixEight;
-                case "5/4": return TimeSignature.FiveFour;
-                default: return TimeSignature.FourFour;
-            }
-        }
-
-        private Tonality GetTonalityFromLabel(string label)
-        {
-            switch (label)
-            {
-                case "Ionian":      return Tonality.Ionian;
-                case "Dorian":      return Tonality.Dorian;
-                case "Phrygian":    return Tonality.Phrygian;
-                case "Lydian":      return Tonality.Lydian;
-                case "Mixolydian":  return Tonality.Mixolydian;
-                case "Aeolian":     return Tonality.Aeolian;
-                case "Locrian":     return Tonality.Locrian;
-                default:            return Tonality.Ionian;
-            }
-        }
-
-        private TrackRole GetRoleFromLabel(string label)
-        {
-            switch (label)
-            {
-                case "Rhythm": return TrackRole.Rhythm;
-                case "Backing": return TrackRole.Backing;
-                case "Bassline": return TrackRole.Bassline;
-                case "Melody": return TrackRole.Melody;
-                case "Harmony": return TrackRole.Harmony;
-                default: return TrackRole.Melody;
-            }
-        }
-
-        private void ResetAfterPlayback()
-        {
-            BeginRehearsalSession();
-        }
-
-        // Role-aware
-        private IEnumerable<MIDIInstrumentSO> GetPermittedInstruments(
-            MusicianBase musician, TrackRole role)
-        {
-            var allMelodic = instrumentRepo.GetMelodicInstruments();
-            if (musician == null || musician.MusicianCharacterData == null) return allMelodic;
-
-            var prof = musician.MusicianCharacterData.Profile;
-            if (prof == null) return allMelodic;
-
-            // Choose the primary list based on role, with a secondary fallback.
-            List<InstrumentType> primary = null;
-            List<InstrumentType> secondary = null;
-
-            switch (role)
-            {
-                case TrackRole.Backing:
-                case TrackRole.Bassline:   // many bands treat bass as part of the backline
-                    primary = prof.backingInstruments;
-                    secondary = prof.leadInstruments;
-                    break;
-
-                case TrackRole.Melody:
-                case TrackRole.Harmony:
-                    primary = prof.leadInstruments;
-                    secondary = prof.backingInstruments;
-                    break;
-
-                default:
-                    primary = prof.backingInstruments;
-                    secondary = prof.leadInstruments;
-                    break;
-            }
-
-            IEnumerable<MIDIInstrumentSO> FilterBy(List<InstrumentType> list) =>
-                (list == null || list.Count == 0)
-                    ? Enumerable.Empty<MIDIInstrumentSO>()
-                    : allMelodic.Where(i => list.Contains(i.InstrumentType));
-
-            var filtered = FilterBy(primary).ToList();
-            if (filtered.Count == 0) filtered = FilterBy(secondary).ToList();
-
-            return filtered.Count > 0 ? filtered : allMelodic;
-        }
-
-        private int EvaluatePerLoopInspirationGain(SongCompositionUI.PartEntry part)
-        {
-            if (part == null || part.tracks == null) return 0;
-            // MVP rule: sum grooveGenerated for each active track in this part
-            int sum = 0;
-            foreach (var t in part.tracks)
-                sum += Mathf.Max(0, t.inspirationGenerated);
-            return sum;
-        }
-
-        private bool ShouldKeepTempo(CardData c)
-        {
-            if (c == null) return true;
-
-            if (c.IsTempoCard) return false;
-            if (c.IsTimeSignatureCard) return true;
-            if (c.IsTrackCard) return true;
-            if (c.IsTonalityCard) return true;
-
-            return true;
-        }
-
         private MusicianBase ResolveMusicianByType(MusicianCharacterType t)
         {
             if (t == MusicianCharacterType.None || _spawned == null) return null;
@@ -492,12 +322,6 @@ namespace ALWTTT.Managers
             return _spawned.FirstOrDefault(m =>
                 m?.MusicianCharacterData != null &&
                 m.MusicianCharacterData.CharacterType == t);
-        }
-
-        private bool ComputeNextPartIsReady()
-        {
-            return compositionUI != null
-                && compositionUI.HasPlayableNextPart(currentPartIndex);
         }
     }
 }

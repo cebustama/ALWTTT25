@@ -419,9 +419,6 @@ namespace ALWTTT.Music
                 patterns: patterns,
                 getPermittedMelodic: (mus, role) =>
                     InstrumentRules.GetPermittedMelodic(mus, role, instruments),
-                getPinnedMelOrNull: (partIdx, musId) =>
-                    TryGetPinnedMelInst(partIdx, musId, out var inst) ? inst : null,
-                getCachedBpm: GetCachedBpm,
                 _rng
             );
         }

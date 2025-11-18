@@ -33,8 +33,6 @@ namespace ALWTTT.Music
             IInstrumentRepository instruments,
             IPatternRepository patterns,
             Func<MusicianBase, TrackRole, IEnumerable<MIDIInstrumentSO>> getPermittedMelodic,
-            Func<int, string, MIDIInstrumentSO> getPinnedMelOrNull, 
-            Func<int, int?> getCachedBpm,
             System.Random rng)
         {
             var ui = ctx.CompositionUI;

@@ -371,8 +371,8 @@ namespace ALWTTT
                 cardTransform.position = cardPos;
 
                 // Contextual highlights based on actions and target types
-                if (useGigContext && GigManager != null)
-                    GigManager.HighlightCardTarget(heldCard.CardData.CardActionDataList[0].ActionTargetType);
+                //if (useGigContext && GigManager != null)
+                //    GigManager.HighlightCardTarget(heldCard.CardData.CardActionDataList[0].ActionTargetType);
 
                 var musician = IsOverMusician(mousePos);
                 if (musician != null)
@@ -480,8 +480,63 @@ namespace ALWTTT
 
         private bool TryPlayInGig(Vector2 mousePos, CardDropZone zoneUsed)
         {
-            if (GigManager == null) return false;
+            if (GigManager == null || heldCard == null) return false;
 
+            var data = heldCard.CardData;
+            if (data == null || !data.IsComposition)
+            {
+                // For now we only support composition cards in gigs
+                Debug.LogWarning($"{DebugTag} [Gig] Non-composition card ignored " +
+                    $"(legacy gig actions disabled for now).");
+                return false;
+            }
+
+            MusicianBase target = null;
+
+            // 1) If the card has a fixed musician type, resolve that FIRST and ignore hover.
+            if (data.HasFixedMusicianTarget && _resolveTargetByType != null)
+            {
+                target = _resolveTargetByType(data.MusicianCharacterType);
+
+                if (target != null)
+                    Debug.Log($"{DebugTag} [Gig] Fixed-target card -> " +
+                        $"{target.MusicianCharacterData.CharacterName} " +
+                        $"({data.MusicianCharacterType}).");
+                else
+                    Debug.Log($"{DebugTag} [Gig] Fixed-target card but resolver returned null " +
+                        $"for {data.MusicianCharacterType}.");
+            }
+
+            // 2) Otherwise (or if fixed-target failed), use hover → selected fallback
+            if (target == null)
+            {
+                var hovered = IsOverMusician(mousePos);
+                if (hovered != null)
+                {
+                    target = hovered;
+                    Debug.Log($"{DebugTag} [Gig] Hover-target -> " +
+                        $"{target.MusicianCharacterData.CharacterName}.");
+                }
+                else
+                {
+                    target = GigManager.SelectedMusician as MusicianBase;
+                    Debug.Log($"{DebugTag} [Gig] Selected/Default target -> " +
+                        $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
+                }
+            }
+
+            // 3) If the card REQUIRES a musician and still none, abort.
+            if (data.RequiresMusicianTarget && target == null)
+            {
+                Debug.Log($"{DebugTag} [Gig] Card requires musician target but none resolved.");
+                return false;
+            }
+
+            // 4) Route to Gig composition session (same as in ship)
+            var ok = GigManager.TryPlayCompositionCard(heldCard, target, zoneUsed);
+            return ok;
+
+            /*
             // Regular gig rules: must be allowed and have enough groove
             if (!GameManager.PersistentGameplayData.CanUseCards) return false;
             if (GameManager.PersistentGameplayData.CurrentGroove < heldCard.CardData.GrooveCost) return false;
@@ -501,7 +556,8 @@ namespace ALWTTT
             else
             {
                 // Do your usual raycast against target layers (musician/audience)
-                canUse = CheckPlayOnCharacter(mainRay, canUse, ref bandCharacter, ref targetCharacter);
+                canUse = 
+                    CheckPlayOnCharacter(mainRay, canUse, ref bandCharacter, ref targetCharacter);
             }
 
             if (!canUse) return false;
@@ -516,26 +572,8 @@ namespace ALWTTT
                 GigManager.CurrentMusicianCharacterList
             );
 
-            return true;
+            return true;*/
         }
-
-        /*
-        private bool TryPlayInShip(Vector2 mousePos)
-        {
-            if (shipContext == null) return false;
-
-            // In rehearsal we only accept Composition cards
-            if (!heldCard.CardData.IsComposition) return false;
-
-            // Target musician (if card needs it): prefer hovered, fallback to Ship-selected
-            var hoveredMusician = IsOverMusician(mousePos);
-            if (hoveredMusician == null)
-                hoveredMusician = shipContext.GetSelectedMusicianOrDefault() as MusicianBase;
-
-            // Route to Ship: this enqueues intents into MidiMusicManager (Intro/Outro/Solo/Tempo/Track/Theme)
-            var ok = shipContext.TryPlayCompositionCard(heldCard, hoveredMusician);
-            return ok;
-        }*/
 
         private bool TryPlayInShip(Vector2 mousePos, CardDropZone zoneUsed)
         {
@@ -613,35 +651,39 @@ namespace ALWTTT
             if (Physics.Raycast(mainRay, out hit, 1000, targetLayer))
             {
                 var character = hit.collider.gameObject.GetComponent<ICharacter>();
-                if (character.IsStunned) return false;
+                if (character == null || character.IsStunned) return false;
 
-                if (character != null)
+                var data = heldCard?.CardData;
+                if (data == null) return false;
+
+                var actions = data.CardActionDataList;
+                if (data.IsComposition || actions == null || actions.Count == 0)
                 {
-                    var firstActionTargetType =
-                        heldCard.CardData.CardActionDataList[0].ActionTargetType;
+                    Debug.Log($"{DebugTag} [Gig] CheckPlayOnCharacter: " +
+                        $"card '{data.CardName}' has no  actions; skipping old targeting.");
+                    return false;
+                }
 
-                    var checkEnemy =
-                        ((firstActionTargetType == ActionTargetType.AudienceCharacter ||
-                        firstActionTargetType == ActionTargetType.AllAudienceCharacters ||
-                        firstActionTargetType == ActionTargetType.RandomAudienceCharacter) 
-                        &&
-                        character.GetCharacterType() == CharacterType.Audience);
 
-                    var checkAlly =
-                        ((firstActionTargetType == ActionTargetType.Musician ||
-                        firstActionTargetType == ActionTargetType.AllMusicians ||
-                        firstActionTargetType == ActionTargetType.RandomMusician) 
-                        &&
-                        character.GetCharacterType() == CharacterType.Musician);
+                var firstActionTargetType = actions[0].ActionTargetType;
 
-                    // TODO: Modify this part
-                    //if (checkEnemy || checkAlly)
-                    if (character.GetCharacterType() == CharacterType.Musician)
-                    {
-                        canUse = true;
-                        bandCharacter = GigManager.SelectedMusician;
-                        audienceCharacter = character.GetCharacterBase();
-                    }
+                var checkEnemy =
+                    ((firstActionTargetType == ActionTargetType.AudienceCharacter ||
+                      firstActionTargetType == ActionTargetType.AllAudienceCharacters ||
+                      firstActionTargetType == ActionTargetType.RandomAudienceCharacter) &&
+                     character.GetCharacterType() == CharacterType.Audience);
+
+                var checkAlly =
+                    ((firstActionTargetType == ActionTargetType.Musician ||
+                      firstActionTargetType == ActionTargetType.AllMusicians ||
+                      firstActionTargetType == ActionTargetType.RandomMusician) &&
+                     character.GetCharacterType() == CharacterType.Musician);
+
+                if (checkEnemy || checkAlly)
+                {
+                    canUse = true;
+                    bandCharacter = GigManager.SelectedMusician;
+                    audienceCharacter = character.GetCharacterBase();
                 }
             }
             else

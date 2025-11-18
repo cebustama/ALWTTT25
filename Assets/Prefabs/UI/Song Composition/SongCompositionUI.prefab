@@ -562,6 +562,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SongCompositionUI
   songTitleText: {fileID: 3677504112887416288}
   songThemeText: {fileID: 1599455420439241164}
+  playButton: {fileID: 806289028202966153}
   partsLayout: {fileID: 6610820338164849875}
   partElementPrefab: {fileID: 4428995020587336389, guid: 57e435a81c6c4ca47af6f66b0cd38afc, type: 3}
   musicianIconTemplateFromScene: {fileID: 5912701739643709433}
@@ -965,7 +966,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
+  m_fontSize: 57.95
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1

@@ -23,6 +23,9 @@ namespace ALWTTT.UI
         [SerializeField] private TextMeshProUGUI songTitleText;
         [SerializeField] private TextMeshProUGUI songThemeText;
 
+        [Header("Controls")]
+        [SerializeField] private Button playButton;
+
         [Header("Layouts")]
         [SerializeField] private SongPartsLayoutUI partsLayout;
 
@@ -113,6 +116,16 @@ namespace ALWTTT.UI
         #endregion
 
         #region Public API
+
+        public void HookPlayButton(Action onPlay)
+        {
+            if (!playButton) return;
+
+            playButton.onClick.RemoveAllListeners();
+            if (onPlay != null)
+                playButton.onClick.AddListener(() => onPlay());
+        }
+
         public void ResetSession()
         {
             model = new SongModel

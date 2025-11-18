@@ -1,9 +1,11 @@
 using ALWTTT.Backgrounds;
+using ALWTTT.Cards;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
 using ALWTTT.Data;
 using ALWTTT.Encounters;
 using ALWTTT.Enums;
+using ALWTTT.Interfaces;
 using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
@@ -21,7 +23,18 @@ namespace ALWTTT.Managers
 
         public static GigManager Instance;
 
-        public bool debug = true;
+        [Header("Composition Rules")]
+        [SerializeField] private JamRules jamRules = new JamRules();
+
+        [Header("Cards / Hand")]
+        [SerializeField] private HandController gigHand;
+        [SerializeField] private Camera mainCamera;
+        [SerializeField] private Camera handCamera;
+
+        [Header("Composition UI")]
+        [SerializeField] private SongCompositionUI compositionUI;
+        [SerializeField] private LoopsTimerUI loopsTimerUI;
+        [SerializeField] private MidiGenPlayConfig midiGenPlayConfig;
 
         [Header("References")]
         [SerializeField] private BackgroundContainer backgroundContainer;
@@ -29,10 +42,16 @@ namespace ALWTTT.Managers
         [SerializeField] private List<Transform> audienceMemberPosList;
         [SerializeField] private SceneChanger sceneChanger;
 
+        [Header("Composition Dev")]
+        [SerializeField] private bool useLogs = true;
+        [SerializeField] private bool useCompositionLogs = true;
+
         private GigPhase currentGigPhase;
         private List<SongData> playedSongs = new List<SongData>();
 
         private readonly List<MusicianBase> _spawned = new();
+
+        private System.Random _rng = new System.Random();
 
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
@@ -81,6 +100,70 @@ namespace ALWTTT.Managers
 
         #endregion
 
+        #region Composition
+        private CompositionSession _session;
+
+        private class GigContext : ICompositionContext
+        {
+            private readonly GigManager _host;
+            public GigContext(GigManager host) { _host = host; }
+
+            public SongCompositionUI CompositionUI => _host?.compositionUI;
+            public LoopsTimerUI LoopsTimerUI => _host?.loopsTimerUI;
+            public DeckManager Deck => DeckManager.Instance;
+            public MidiMusicManager Music => MidiMusicManager.Instance;
+            public IReadOnlyList<MusicianBase> Band => _host.CurrentMusicianCharacterList;
+
+            public void ShowCompositionUI(bool visible) =>
+                _host?.compositionUI?.gameObject.SetActive(visible);
+
+            public void ShowHand(bool visible) => _host?.SetHandVisible(visible);
+
+            public MusicianBase ResolveMusicianByType(MusicianCharacterType type) =>
+                _host.ResolveMusicianByType(type);
+
+            public MusicianBase ResolveMusicianById(string id) =>
+                _host.CurrentMusicianCharacterList.FirstOrDefault(m =>
+                    m && m.MusicianCharacterData.CharacterId == id);
+
+            public bool TryGetPartCache(
+                int partIndex, out CompositionSession.PartCache cache)
+            {
+                cache = null;
+                if (_host._session == null) return false;
+                return _host._session.TryGetPartCache(partIndex, out cache);
+            }
+
+            public CompositionSession.PartCache GetOrCreatePartCache(int partIndex)
+            {
+                if (_host._session == null)
+                    return new CompositionSession.PartCache();
+
+                return _host._session.GetOrCreatePartCache(partIndex);
+            }
+
+            public void OnSessionStarted() { }
+            public void OnSessionEnded() { }
+
+            public void Log(string msg, bool highlight = false) =>
+                _host.Log(msg, highlight);
+        }
+
+        #endregion
+
+        private void Log(string log, bool highlight = false, string customColor = "")
+        {
+            if (useLogs)
+            {
+                if (highlight)
+                    Debug.Log($"{DebugTag} <color=yellow>{log}</color>");
+                else if (!string.IsNullOrWhiteSpace(customColor))
+                    Debug.Log($"{DebugTag} <color={customColor}>{log}</color>");
+                else
+                    Debug.Log($"{DebugTag} {log}");
+            }
+        }
+
         #region Setup
         private void Awake()
         {
@@ -98,7 +181,7 @@ namespace ALWTTT.Managers
 
         private void Start()
         {
-            MidiMusicManager.GenerateSongs(GameManager.PersistentGameplayData.CurrentSongList);
+            //MidiMusicManager.GenerateSongs(GameManager.PersistentGameplayData.CurrentSongList);
             StartGig();
         }
 
@@ -112,23 +195,33 @@ namespace ALWTTT.Managers
 
         private void StartGig()
         {
-            if (debug) Debug.Log($"{DebugTag} Starting gig...");
+            if (useLogs) Debug.Log($"{DebugTag} Starting gig...");
 
             SetupEncounter();
             BuildBackground();
             BuildBand();
             BuildAudience();
 
-            DeckManager.SetGameDeck();
+            // For now, ignore the dedicated gig deck / battle design
+            //DeckManager.SetGameDeck();
 
             UIManager.GigCanvas.gameObject.SetActive(true);
 
-            CurrentGigPhase = GigPhase.PlayerTurn;
+            // Bind deck to gig hand for composition
+            RebindDeckToGigHand();
+            // Start the composition pipeline
+            StartCompositionSession();
+
+            if (compositionUI)
+                compositionUI.HookPlayButton(OnPlayPressed);
+
+            // IMPORTANT: Do NOT set the gig phase for now
+            //CurrentGigPhase = GigPhase.PlayerTurn;
         }
 
         private void SetupEncounter()
         {
-            if (debug) Debug.Log($"{DebugTag} Setting up gig encounter...");
+            if (useLogs) Debug.Log($"{DebugTag} Setting up gig encounter...");
 
             var pd = GameManager.PersistentGameplayData;
 
@@ -143,14 +236,14 @@ namespace ALWTTT.Managers
 
         private void BuildBackground()
         {
-            if (debug) Debug.Log($"{DebugTag} Building background...");
+            if (useLogs) Debug.Log($"{DebugTag} Building background...");
             backgroundContainer.OpenSelectedBackground();
             backgroundContainer.SetBPM(0);
         }
 
         private void BuildBand()
         {
-            if (debug) Debug.Log($"{DebugTag} Building band and musicians...");
+            if (useLogs) Debug.Log($"{DebugTag} Building band and musicians...");
             for (var i = 0; 
                 i < GameManager.PersistentGameplayData.MusicianList.Count; i++)
             {
@@ -185,7 +278,7 @@ namespace ALWTTT.Managers
 
         private void BuildAudience()
         {
-            if (debug) Debug.Log($"{DebugTag} Building audience...");
+            if (useLogs) Debug.Log($"{DebugTag} Building audience...");
             var audienceMemberList = CurrentGigEncounter.AudienceMemberList;
             for (var i = 0; i < audienceMemberList.Count; i++)
             {
@@ -209,9 +302,19 @@ namespace ALWTTT.Managers
         }
         #endregion
 
+        private void Update()
+        {
+            _session?.Tick(Time.deltaTime);
+        }
+
+        private void OnPlayPressed()
+        {
+            _session?.ConfirmCurrentPartAndStart();
+        }
+
         public void EndTurn()
         {
-            if (debug) Debug.Log($"{DebugTag} Ending turn...");
+            if (useLogs) Debug.Log($"{DebugTag} Ending turn...");
 
             CurrentGigPhase = GigPhase.SongPerformance;
         }
@@ -251,7 +354,11 @@ namespace ALWTTT.Managers
 
         private void ExecuteGigPhase(GigPhase targetGigPhase)
         {
-            if (debug)
+            // TEMP: while porting composition, we ignore the gig state machine.
+            if (_session != null)
+                return;
+
+            if (useLogs)
                 Debug.Log($"{DebugTag} Executing gig phase: {targetGigPhase}");
 
             switch (targetGigPhase)
@@ -562,6 +669,56 @@ namespace ALWTTT.Managers
             // Back to Map
             if (sceneChanger) sceneChanger.OpenMapScene();
             else UnityEngine.SceneManagement.SceneManager.LoadScene("Map"); // fallback
+        }
+
+        private void SetHandVisible(bool visible)
+        {
+            if (gigHand != null)
+            {
+                gigHand.gameObject.SetActive(visible);
+                if (visible) gigHand.EnableDragging();
+                else gigHand.DisableDragging();
+            }
+        }
+
+        private void RebindDeckToGigHand()
+        {
+            if (DeckManager.Instance != null && gigHand != null)
+            {
+                DeckManager.Instance.SetHandController(gigHand);
+                // Same resolver pattern as ShipInteriorManager
+                gigHand.SetTargetResolver(ResolveMusicianByType);
+            }
+        }
+
+        private MusicianBase ResolveMusicianByType(MusicianCharacterType t)
+        {
+            if (t == MusicianCharacterType.None || CurrentMusicianCharacterList == null)
+                return null;
+
+            return CurrentMusicianCharacterList.FirstOrDefault(m =>
+                m?.MusicianCharacterData != null &&
+                m.MusicianCharacterData.CharacterType == t);
+        }
+
+        public bool TryPlayCompositionCard(
+            CardBase card, MusicianBase target, CardDropZone zone)
+        {
+            if (_session == null)
+            {
+                Log("No active CompositionSession; cannot play composition card.");
+                return false;
+            }
+
+            return _session?.TryPlayCompositionCard(card, target, zone) ?? false;
+        }
+
+        private void StartCompositionSession()
+        {
+            if (_session != null) _session.End();
+            _session = new CompositionSession();
+            var ctx = new GigContext(this);
+            _session.Begin(ctx, jamRules, midiGenPlayConfig, _rng);
         }
     }
 }
