@@ -2275,6 +2275,10 @@ PrefabInstance:
       propertyPath: shipContext
       value: 
       objectReference: {fileID: 7814658504442128445}
+    - target: {fileID: 5402633963904376954, guid: db9163f1319df404e8c5f057ba1b9a35, type: 3}
+      propertyPath: shipInteriorManager
+      value: 
+      objectReference: {fileID: 7814658504442128445}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

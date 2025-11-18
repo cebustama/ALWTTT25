@@ -30,7 +30,7 @@ namespace ALWTTT
 
         [Header("Context")]
         [SerializeField] private bool useGigContext = true;
-        [SerializeField] private ShipInteriorManager shipContext;
+        [SerializeField] private ShipInteriorManager shipInteriorManager;
 
         [Header("Drop Zones (optional)")]
         [SerializeField] private bool enableDropZones = true;
@@ -432,9 +432,7 @@ namespace ALWTTT
 
         private void PlayCard(Vector2 mousePos)
         {
-            //Debug.Log($"{DebugTag} Playing card...");
-
-            
+            Debug.Log($"{DebugTag} Playing card...");
 
             // Turn off Gig highlights if they were active
             if (useGigContext && GigManager != null)
@@ -541,7 +539,7 @@ namespace ALWTTT
 
         private bool TryPlayInShip(Vector2 mousePos, CardDropZone zoneUsed)
         {
-            if (shipContext == null || heldCard == null) return false;
+            if (shipInteriorManager == null || heldCard == null) return false;
 
             var data = heldCard.CardData;
             if (data == null || !data.IsComposition) return false;
@@ -552,12 +550,11 @@ namespace ALWTTT
             if (data.HasFixedMusicianTarget && _resolveTargetByType != null)
             {
                 target = _resolveTargetByType(data.MusicianCharacterType);
-                /*
+                
                 if (target != null)
                     Debug.Log($"{DebugTag} [Ship] Fixed-target card -> {target.MusicianCharacterData.CharacterName} ({data.MusicianCharacterType}).");
                 else
                     Debug.Log($"{DebugTag} [Ship] Fixed-target card but resolver returned null for {data.MusicianCharacterType}.");
-                */
             }
 
             // Otherwise (or if fixed-target failed to resolve), use hover → selected fallback
@@ -573,7 +570,7 @@ namespace ALWTTT
                 else
                 {
                     // Fallback to Ship-selected (may be the first musician if none highlighted)
-                    target = shipContext.GetSelectedMusicianOrDefault() as MusicianBase;
+                    target = shipInteriorManager.GetSelectedMusicianOrDefault() as MusicianBase;
                     Debug.Log($"{DebugTag} [Ship] Selected/Default target -> {(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
                 }
             }
@@ -586,7 +583,7 @@ namespace ALWTTT
             }
 
             // Route to Ship: enqueues intents (Intro/Outro/Solo/Tempo/Track/Theme)
-            var ok = shipContext.TryPlayCompositionCard(heldCard, target, zoneUsed);
+            var ok = shipInteriorManager.TryPlayCompositionCard(heldCard, target, zoneUsed);
             return ok;
         }
 

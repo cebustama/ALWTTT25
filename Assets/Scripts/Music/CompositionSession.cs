@@ -165,7 +165,7 @@ namespace ALWTTT.Music
                 _ctx.LoopsTimerUI?.SetProgress(loopIdx0, pct);
             }
         }
-
+        /*
         public bool TryPlayCompositionCard(
             CardBase card, MusicianBase target, CardDropZone zone)
         {
@@ -240,7 +240,113 @@ namespace ALWTTT.Music
             }
 
             return true;
+        }*/
+        public bool TryPlayCompositionCard(CardBase card, MusicianBase target, CardDropZone zone)
+        {
+            // ----- helpers -----
+            void Info(string msg) => _ctx?.Log($"[TryPlay] {msg}");
+            bool Fail(string msg) { _ctx?.Log($"[TryPlay][FAIL] {msg}", true); return false; }
+
+            var ui = _ctx?.CompositionUI;
+            if (ui == null) return Fail("UI is null");
+            if (card == null || card.CardData == null) return Fail("Card or CardData is null");
+
+            var c = card.CardData;
+
+            // Snapshot state for debugging
+            Info($"enter name='{c.CardName}' zone={zone} state={_state} " +
+                 $"isComp={c.IsComposition} isTrack={c.IsTrackCard} isTempo={c.IsTempoCard} " +
+                 $"isTimeSig={c.IsTimeSignatureCard} requiresTarget={c.RequiresMusicianTarget}");
+
+            // 1) Inspiration cost (only for composition cards)
+            if (c.IsComposition)
+            {
+                int cost = Math.Max(0, c.GrooveCost);
+                Info($"inspiration: have={_currentInspiration} cost={cost} gen={c.GrooveGenerated}");
+                if (cost > _currentInspiration)
+                    return Fail("Not enough inspiration");
+            }
+
+            // 2) Resolve target (only for track cards)
+            if (c.IsTrackCard)
+            {
+                if (target == null && c.HasFixedMusicianTarget)
+                {
+                    target = _ctx.ResolveMusicianByType(c.MusicianCharacterType);
+                    Info($"fixed target resolver → {(target != null ? target.MusicianCharacterData.CharacterName : "null")}");
+                }
+                if (c.RequiresMusicianTarget && target == null)
+                    return Fail("Track card requires musician target but none resolved");
+            }
+
+            // 3) Business rules (centralized in UI)
+            if (!ui.CanApply(card, target, out var reason))
+                return Fail($"UI.CanApply refused: {reason}");
+
+            // 4) Zone normalization (if current part is final, Next → Current)
+            bool currentIsFinal = ui.IsPartFinal(_currentPartIndex);
+            if (currentIsFinal && zone == CardDropZone.NextPart)
+            {
+                Info("current part is FINAL → redirecting zone NextPart → CurrentPart");
+                zone = CardDropZone.CurrentPart;
+            }
+
+            // 5) Compute part index based on zone + loop state
+            bool loopIsRunning =
+                _isPlaying && (_state == State.BuildingNextPart || _state == State.PlayingCurrentPart);
+
+            int partIdx;
+            if (loopIsRunning)
+                partIdx = (zone == CardDropZone.NextPart) ? ui.Model.CurrentPartIndex : _currentPartIndex;
+            else
+                partIdx = ui.Model.CurrentPartIndex;
+
+            Info($"routing: loopRunning={loopIsRunning} zone={zone} -> partIdx={partIdx} " +
+                 $"(ui.CurrentPartIndex={ui.Model.CurrentPartIndex} currentPartIndex={_currentPartIndex})");
+
+            // 6) Apply to model
+            if (!ui.ApplyCardToPart(card, target, partIdx))
+                return Fail("ui.ApplyCardToPart returned false");
+
+            // 7) Invalidate cache if the card affects sound
+            if (loopIsRunning && c.AffectsSound)
+            {
+                bool keepTempo = ShouldKeepTempo(c);
+                int invalidateIdx = (zone == CardDropZone.NextPart) ? partIdx : _currentPartIndex;
+                Info($"invalidating cache part={invalidateIdx} keepTempo={keepTempo} affectsSound={c.AffectsSound}");
+                InvalidatePartCache(invalidateIdx, keepTempo);
+            }
+
+            // 8) Spend / preview inspiration
+            if (c.IsComposition)
+            {
+                int cost = Math.Max(0, c.GrooveCost);
+                _currentInspiration = Math.Max(0, _currentInspiration - cost);
+                ui.SetInspiration(_currentInspiration);
+
+                int gen = Math.Max(0, c.GrooveGenerated);
+                if (gen > 0)
+                {
+                    _buildingPartInspirationPerLoop += gen;
+                    Info($"per-loop inspiration bonus updated: +={gen} (now {_buildingPartInspirationPerLoop})");
+                }
+            }
+
+            // 9) Refresh per-loop inspiration for the currently looping part if we changed tracks
+            if (c.IsTrackCard && _state != State.BuildingCurrentPart)
+            {
+                if (_currentPartIndex >= 0 && _currentPartIndex < ui.Model.parts.Count)
+                {
+                    _perLoopInspirationCurrentPart = EvalPerLoopInsp(ui.Model.parts[_currentPartIndex]);
+                    ui.SetPlusInspiration(_perLoopInspirationCurrentPart);
+                    Info($"recalc per-loop inspiration for currentPart={_currentPartIndex} → {_perLoopInspirationCurrentPart}");
+                }
+            }
+
+            Info("SUCCESS");
+            return true;
         }
+
 
         // ----- Private methods -----
         private void PrepareDeck()

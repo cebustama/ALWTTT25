@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
   m_Name: Backing - Test Card
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: 
-  cardName: 
-  musicianCharacterType: 0
-  cardSprite: {fileID: 0}
+  id: Backing - Test
+  cardName: Backing - Test
+  musicianCharacterType: 3
+  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
   inspirationCost: 0
-  inspirationGenerated: 0
-  domain: 0
-  primaryKind: 0
+  inspirationGenerated: 1
+  domain: 1
+  primaryKind: 1
   trackAction:
-    role: 0
-    styleBundle: {fileID: 0}
+    role: 1
+    styleBundle: {fileID: 11400000, guid: da71dee48cea0cf4a87fcb1cddfa02f5, type: 2}
   partAction:
     action: 0
     customLabel: 
