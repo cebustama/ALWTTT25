@@ -16,9 +16,10 @@ MonoBehaviour:
   cardName: Random Locrian
   musicianCharacterType: 4
   cardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
-  inspirationCost: 0
+  inspirationCost: 1
   inspirationGenerated: 1
   domain: 1
+  actionTiming: 0
   primaryKind: 1
   trackAction:
     role: 4

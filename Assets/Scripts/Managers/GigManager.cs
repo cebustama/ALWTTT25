@@ -1,4 +1,4 @@
-using ALWTTT.Backgrounds;
+﻿using ALWTTT.Backgrounds;
 using ALWTTT.Cards;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
@@ -19,7 +19,7 @@ namespace ALWTTT.Managers
 {
     public class GigManager : MonoBehaviour
     {
-        private const string DebugTag = "<color=magenta>GigManager:</color>";
+        public const string DebugTag = "<color=magenta>GigManager:</color>";
 
         public static GigManager Instance;
 
@@ -52,6 +52,9 @@ namespace ALWTTT.Managers
         private readonly List<MusicianBase> _spawned = new();
 
         private System.Random _rng = new System.Random();
+
+        private bool _isSongPlaying;
+        private bool _isBetweenSongs;
 
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
@@ -142,8 +145,15 @@ namespace ALWTTT.Managers
                 return _host._session.GetOrCreatePartCache(partIndex);
             }
 
-            public void OnSessionStarted() { }
-            public void OnSessionEnded() { }
+            public void OnSessionStarted()
+            {
+                _host.Log($"[GigContext] Session started.");
+            }
+
+            public void OnSessionEnded()
+            {
+                _host.OnCompositionSessionEnded();
+            }
 
             public void Log(string msg, bool highlight = false) =>
                 _host.Log(msg, highlight);
@@ -209,14 +219,12 @@ namespace ALWTTT.Managers
 
             // Bind deck to gig hand for composition
             RebindDeckToGigHand();
-            // Start the composition pipeline
-            StartCompositionSession();
-
-            if (compositionUI)
-                compositionUI.HookPlayButton(OnPlayPressed);
 
             // IMPORTANT: Do NOT set the gig phase for now
-            //CurrentGigPhase = GigPhase.PlayerTurn;
+            CurrentGigPhase = GigPhase.PlayerTurn;
+
+            //_isSongPlaying = false;
+            //_isBetweenSongs = _session != null;
         }
 
         private void SetupEncounter()
@@ -304,7 +312,35 @@ namespace ALWTTT.Managers
 
         private void Update()
         {
-            _session?.Tick(Time.deltaTime);
+            if (_session != null)
+            {
+                _session.Tick(Time.deltaTime);
+
+                // Session might have ended inside Tick()
+                if (_session == null)
+                {
+                    _isSongPlaying = false;
+                    _isBetweenSongs = false;
+                    return;
+                }
+
+                bool playingNow = _session.IsLoopPlaying;
+                bool betweenNow = _session.IsActive && !playingNow;
+
+                if (playingNow != _isSongPlaying || betweenNow != _isBetweenSongs)
+                {
+                    _isSongPlaying = playingNow;
+                    _isBetweenSongs = betweenNow;
+
+                    Log($"[Gig] isSongPlaying={_isSongPlaying}, " +
+                        $"isBetweenSongs={_isBetweenSongs}", customColor: "cyan");
+                }
+            }
+            else
+            {
+                _isSongPlaying = false;
+                _isBetweenSongs = false;
+            }
         }
 
         private void OnPlayPressed()
@@ -395,16 +431,30 @@ namespace ALWTTT.Managers
                     OnPlayerTurnStarted?.Invoke();
                     GameManager.PersistentGameplayData.SongModifierCardsList.Clear();
 
-                    // TODO: Stunned
-
-                    // Initial groove per turn
+                    // --- Groove + Draw Logic ---
                     GameManager.PersistentGameplayData.CurrentGroove =
                         GameManager.PersistentGameplayData.TurnStartingGroove;
                     // TODO: Special case for first turn (e.g. Deployment Phase in Monster Train 2)
-
                     DeckManager.DrawCards(GameManager.PersistentGameplayData.DrawCount);
-
                     GameManager.PersistentGameplayData.CanSelectCards = true;
+                    // ---
+
+                    if (_session == null)
+                    {
+                        Log($"{DebugTag} [Gig] Starting new live " +
+                            $"composition session for next song.");
+
+                        StartCompositionSession();
+
+                        if (compositionUI != null)
+                        {
+                            compositionUI.HookPlayButton(OnPlayPressed);
+                        }
+
+                        _isSongPlaying = false;
+                        _isBetweenSongs = _session != null; // true once session is created
+                    }
+
                     break;
                 case GigPhase.SongPerformance:
 
@@ -555,7 +605,7 @@ namespace ALWTTT.Managers
             UIManager.GigCanvas.OnLossConfirm = () => ReturnToMap(false);
             UIManager.GigCanvas.ShowLoss(
                 title: "Gig Lost",
-                body: "You didn�t convince the crowd this time, but the journey continues.\n" +
+                body: "You didn’t convince the crowd this time, but the journey continues.\n" +
                        $"Cohesion decreased by {pd.CurrentEncounter.CohesionPenaltyOnLoss}."
             );
 
@@ -715,10 +765,77 @@ namespace ALWTTT.Managers
 
         private void StartCompositionSession()
         {
-            if (_session != null) _session.End();
+            if (_session != null)
+            {
+                _session.LoopFinished -= OnCompositionLoopFinished;
+                _session.End();
+            }
+
             _session = new CompositionSession();
+            _session.LoopFinished += OnCompositionLoopFinished;
+
             var ctx = new GigContext(this);
             _session.Begin(ctx, jamRules, midiGenPlayConfig, _rng);
+
+            _isSongPlaying = false;
+            _isBetweenSongs = true;
+        }
+
+        private void OnCompositionLoopFinished()
+        {
+            TriggerAudienceMicroReactions();
+        }
+
+        public bool CanPlayActionCard(CardData card)
+        {
+            if (!card.IsAction) return false;
+
+            if (_isSongPlaying)
+                return card.actionTiming == CardData.ActionTiming.Always;
+
+            if (_isBetweenSongs)
+                return true; // both Always and BetweenSongsOnly
+
+            // No session / no gig context → no action cards
+            return false;
+        }
+
+        // Called whenever one full loop finishes (including the last loop of the song)
+        private void TriggerAudienceMicroReactions()
+        {
+            if (CurrentAudienceCharacterList == null 
+                || CurrentAudienceCharacterList.Count == 0)
+                return;
+
+            Debug.Log($"{DebugTag} [Gig] Loop finished → audience micro reactions.");
+
+            foreach (var audience in CurrentAudienceCharacterList)
+            {
+                if (audience == null) continue;
+
+                // For now just log; later we can turn this into a proper stat change.
+                Debug.Log($"<color=red>{DebugTag} [Gig]   - {audience.CharacterId} reacts to loop end.</color>");
+                // Future: audience.ReactToLoopEnd(partIndex, loopIndex, vibeDelta);
+            }
+        }
+
+        internal void OnCompositionSessionEnded()
+        {
+            if (_session != null)
+            {
+                _session.LoopFinished -= OnCompositionLoopFinished;
+            }
+
+            Log($"{DebugTag} [Gig] Composition session ended. Starting Audience phase.");
+
+            // Session is done; detach so the gig state machine can run again
+            _session = null;
+            _isSongPlaying = false;
+            _isBetweenSongs = false;
+
+            // Hand control to the existing gig phase system:
+            // this will call AudienceTurnRoutine() and run all audience actions.
+            CurrentGigPhase = GigPhase.AudienceTurn;
         }
     }
 }

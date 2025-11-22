@@ -16,9 +16,10 @@ MonoBehaviour:
   cardName: Backing - Test
   musicianCharacterType: 3
   cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
-  inspirationCost: 0
+  inspirationCost: 1
   inspirationGenerated: 1
   domain: 1
+  actionTiming: 0
   primaryKind: 1
   trackAction:
     role: 1

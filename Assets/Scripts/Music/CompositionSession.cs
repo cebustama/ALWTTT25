@@ -13,7 +13,7 @@ namespace ALWTTT.Music
 {
     public class CompositionSession
     {
-        public enum State 
+        public enum CompositionState 
         {
             Idle,                   // Not in a jam session
             BuildingCurrentPart,    // Player is building the first (or current) part before any playback
@@ -21,7 +21,8 @@ namespace ALWTTT.Music
             BuildingNextPart,       // While the current part is looping, player is drafting the next part
             Ended                   // Jam is over
         }
-        private State _state = State.Idle;
+        private CompositionState _state = CompositionState.Idle;
+        public CompositionState State => _state;
 
         private ICompositionContext _ctx;
         private JamRules _rules;
@@ -39,6 +40,8 @@ namespace ALWTTT.Music
 
         private float _loopStartTime;
         private float _loopDurationSeconds;
+
+        public event Action LoopFinished;
 
         public class PartCache
         {
@@ -58,6 +61,18 @@ namespace ALWTTT.Music
             => _partCache.TryGetValue(partIndex, out var c) 
             ? c : (_partCache[partIndex] = new PartCache());
 
+        /// <summary>
+        /// True while any part/loop is currently playing through MidiMusicManager.
+        /// </summary>
+        public bool IsLoopPlaying => _isPlaying;
+
+        /// <summary>
+        /// True while the session is active (after Begin and before End).
+        /// </summary>
+        public bool IsActive =>
+            _state != CompositionState.Idle &&
+            _state != CompositionState.Ended;
+
         // ----- Public API -----
         public void Begin(
             ICompositionContext ctx, JamRules rules, MidiGenPlayConfig settings, System.Random rng)
@@ -67,7 +82,7 @@ namespace ALWTTT.Music
             _settings = settings ?? new MidiGenPlayConfig();
             _rng = rng ?? new System.Random();
 
-            _state = State.BuildingCurrentPart;
+            _state = CompositionState.BuildingCurrentPart;
             _currentPartIndex = -1;
             _isPlaying = false;
             _partCache.Clear();
@@ -96,7 +111,7 @@ namespace ALWTTT.Music
 
         public void End()
         {
-            _state = State.Ended;
+            _state = CompositionState.Ended;
             _isPlaying = false;
             _partCache.Clear();
 
@@ -110,7 +125,7 @@ namespace ALWTTT.Music
 
         public void ConfirmCurrentPartAndStart()
         {
-            if (_state != State.BuildingCurrentPart) return;
+            if (_state != CompositionState.BuildingCurrentPart) return;
 
             _currentPartIndex = 0;
             _loopsTotalForPart = _rules.loopsPerPart;
@@ -135,7 +150,7 @@ namespace ALWTTT.Music
                 EvalPerLoopInsp(_ctx.CompositionUI.Model.parts[_currentPartIndex]);
             _ctx.CompositionUI?.SetPlusInspiration(_perLoopInspirationCurrentPart);
 
-            _state = State.BuildingNextPart;
+            _state = CompositionState.BuildingNextPart;
             _currentInspiration = _rules.inspirationPerPart;
             PrepareDeck();
             _ctx.CompositionUI?.SetInspiration(_currentInspiration);
@@ -147,7 +162,7 @@ namespace ALWTTT.Music
         // Llamar en Update del host (opcional) para barra de progreso + fin de loop
         public void Tick(float dt)
         {
-            if (_state != State.BuildingNextPart && _state != State.PlayingCurrentPart) return;
+            if (_state != CompositionState.BuildingNextPart && _state != CompositionState.PlayingCurrentPart) return;
             var mm = _ctx.Music; if (mm == null) return;
 
             bool midiIsPlaying = mm.IsAnySongPlaying();
@@ -165,82 +180,6 @@ namespace ALWTTT.Music
                 _ctx.LoopsTimerUI?.SetProgress(loopIdx0, pct);
             }
         }
-        /*
-        public bool TryPlayCompositionCard(
-            CardBase card, MusicianBase target, CardDropZone zone)
-        {
-            var ui = _ctx.CompositionUI; if (ui == null || card == null) return false;
-            var c = card.CardData;
-
-            // Coste inspiración (solo composición)
-            if (c.IsComposition)
-            {
-                int cost = Math.Max(0, c.GrooveCost);
-                if (cost > _currentInspiration) return false;
-            }
-
-            // Resolver target por tipo si hace falta
-            bool isTrackCard = c.IsTrackCard;
-            if (isTrackCard && target == null && c.HasFixedMusicianTarget)
-                target = _ctx.ResolveMusicianByType(c.MusicianCharacterType);
-            if (isTrackCard && target == null) return false;
-
-            if (!ui.CanApply(card, target, out var reason))
-            {
-                _ctx.Log($"[Session] Cannot play card: {reason}");
-                return false;
-            }
-
-            // Si la parte actual es FINAL, redirige NextPart → CurrentPart
-            bool currentIsFinal = ui.IsPartFinal(_currentPartIndex);
-            if (currentIsFinal && zone == CardDropZone.NextPart)
-                zone = CardDropZone.CurrentPart;
-
-            // Elegir índice de parte
-            bool loopIsRunning = 
-                _isPlaying 
-                && (_state == State.BuildingNextPart || _state == State.PlayingCurrentPart);
-            int partIdx;
-            if (loopIsRunning)
-                partIdx = (zone == CardDropZone.NextPart) ? ui.Model.CurrentPartIndex : _currentPartIndex;
-            else
-                partIdx = ui.Model.CurrentPartIndex;
-
-            // Aplicar al modelo/UI
-            if (!ui.ApplyCardToPart(card, target, partIdx)) return false;
-
-            // Invalidate cache si afecta sonido
-            if (loopIsRunning && c.AffectsSound)
-            {
-                bool keepTempo = ShouldKeepTempo(c);
-                int invalidateIdx = 
-                    (zone == CardDropZone.NextPart) ? partIdx : _currentPartIndex;
-                InvalidatePartCache(invalidateIdx, keepTempo);
-            }
-
-            // Gastar/preview inspiración
-            if (c.IsComposition)
-            {
-                int cost = Math.Max(0, c.GrooveCost);
-                _currentInspiration = Math.Max(0, _currentInspiration - cost);
-                ui.SetInspiration(_currentInspiration);
-
-                int gen = Math.Max(0, c.GrooveGenerated);
-                if (gen > 0) _buildingPartInspirationPerLoop += gen;
-            }
-
-            if (c.IsTrackCard && _state != State.BuildingCurrentPart)
-            {
-                if (_currentPartIndex >= 0 && _currentPartIndex < ui.Model.parts.Count)
-                {
-                    _perLoopInspirationCurrentPart = 
-                        EvalPerLoopInsp(ui.Model.parts[_currentPartIndex]);
-                    ui.SetPlusInspiration(_perLoopInspirationCurrentPart);
-                }
-            }
-
-            return true;
-        }*/
         public bool TryPlayCompositionCard(CardBase card, MusicianBase target, CardDropZone zone)
         {
             // ----- helpers -----
@@ -293,7 +232,7 @@ namespace ALWTTT.Music
 
             // 5) Compute part index based on zone + loop state
             bool loopIsRunning =
-                _isPlaying && (_state == State.BuildingNextPart || _state == State.PlayingCurrentPart);
+                _isPlaying && (_state == CompositionState.BuildingNextPart || _state == CompositionState.PlayingCurrentPart);
 
             int partIdx;
             if (loopIsRunning)
@@ -333,7 +272,7 @@ namespace ALWTTT.Music
             }
 
             // 9) Refresh per-loop inspiration for the currently looping part if we changed tracks
-            if (c.IsTrackCard && _state != State.BuildingCurrentPart)
+            if (c.IsTrackCard && _state != CompositionState.BuildingCurrentPart)
             {
                 if (_currentPartIndex >= 0 && _currentPartIndex < ui.Model.parts.Count)
                 {
@@ -444,13 +383,14 @@ namespace ALWTTT.Music
                 _ctx.CompositionUI?.SetPlusInspiration(_perLoopInspirationCurrentPart);
             }
 
+            LoopFinished?.Invoke();
+
             if (_loopsRemainingForPart > 0)
             {
                 PlaySinglePartLoop(_currentPartIndex);
                 return;
             }
 
-            // ¿Hay siguiente parte jugable?
             if (ComputeNextPartIsReady())
             {
                 AdvanceToNextPart();
@@ -492,7 +432,7 @@ namespace ALWTTT.Music
             bool final = ui.IsPartFinal(_currentPartIndex);
             if (!final)
             {
-                _state = State.BuildingNextPart;
+                _state = CompositionState.BuildingNextPart;
                 _currentInspiration = _rules.inspirationPerPart;
                 PrepareDeck();
                 ui.SetInspiration(_currentInspiration);
@@ -500,7 +440,7 @@ namespace ALWTTT.Music
             }
             else
             {
-                _state = State.PlayingCurrentPart; // solo reproduce y termina
+                _state = CompositionState.PlayingCurrentPart; // solo reproduce y termina
             }
         }
 
@@ -528,16 +468,6 @@ namespace ALWTTT.Music
                 resolvedMelInstByMusician = keepTempo ? cache.resolvedMelInstByMusician : new(),
                 resolvedPercInstByMusician = new()
             };
-        }
-
-        private bool TryGetPinnedMelInst(
-            int partIndex, string musicianId, out MIDIInstrumentSO inst)
-        {
-            inst = null;
-            return _partCache.TryGetValue(partIndex, out var pc)
-                && pc != null
-                && pc.resolvedMelInstByMusician.TryGetValue(musicianId, out inst)
-                && inst != null;
         }
 
         private int? GetCachedBpm(int partIndex)

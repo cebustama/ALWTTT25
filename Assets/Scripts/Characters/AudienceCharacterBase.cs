@@ -105,65 +105,145 @@ namespace ALWTTT.Characters.Audience
         private int usedAbilityCount;
         private void ShowNextAbility()
         {
-            NextAbility = AudienceCharacterData.GetAbility(usedAbilityCount);
-            AudienceCharacterCanvas.IntentImage.sprite = NextAbility.Intention.IntentionSprite;
+            var ability = AudienceCharacterData.GetAbility(usedAbilityCount);
+
+            if (ability == null)
+            {
+                Debug.LogWarning(
+                    $"[AudienceCharacterBase] {CharacterId} ShowNextAbility: " +
+                    "AudienceCharacterData.GetAbility returned NULL. " +
+                    "Check AbilityList on AudienceCharacterData.");
+
+                NextAbility = null;
+                AudienceCharacterCanvas.IntentImage.gameObject.SetActive(false);
+                AudienceCharacterCanvas.NextActionValueText.gameObject.SetActive(false);
+                return;
+            }
+
+            if (ability.ActionList == null || ability.ActionList.Count == 0)
+            {
+                Debug.LogWarning(
+                    $"[AudienceCharacterBase] {CharacterId} ShowNextAbility: " +
+                    $"Ability '{ability.AbilityName}' has no ActionList or no actions. " +
+                    "Audience will have nothing to do on its turn.");
+            }
+
+            NextAbility = ability;
+
+            if (NextAbility.Intention != null && NextAbility.Intention.IntentionSprite != null)
+            {
+                AudienceCharacterCanvas.IntentImage.sprite = 
+                    NextAbility.Intention.IntentionSprite;
+                AudienceCharacterCanvas.IntentImage.gameObject.SetActive(true);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"[AudienceCharacterBase] {CharacterId} ShowNextAbility: " +
+                    $"Ability '{NextAbility.AbilityName}' has no Intention sprite.");
+                AudienceCharacterCanvas.IntentImage.gameObject.SetActive(false);
+            }
+
             AudienceCharacterCanvas.NextAbility = NextAbility;
 
-            if (NextAbility.HideActionValue || NextAbility.ActionList[0].ActionValue == 0)
+            var showValue =
+                NextAbility.ActionList != null &&
+                NextAbility.ActionList.Count > 0 &&
+                !NextAbility.HideActionValue &&
+                NextAbility.ActionList[0] != null &&
+                NextAbility.ActionList[0].ActionValue != 0;
+
+            if (!showValue)
             {
                 AudienceCharacterCanvas.NextActionValueText.gameObject.SetActive(false);
             }
             else
             {
                 AudienceCharacterCanvas.NextActionValueText.gameObject.SetActive(true);
-                AudienceCharacterCanvas.NextActionValueText.text = "x" +
-                    NextAbility.ActionList[0].ActionValue.ToString();
+                AudienceCharacterCanvas.NextActionValueText.text =
+                    "x" + NextAbility.ActionList[0].ActionValue.ToString();
             }
 
             usedAbilityCount++;
-            AudienceCharacterCanvas.IntentImage.gameObject.SetActive(true);
         }
 
         #region Action Routines
         public virtual IEnumerator ActionRoutine()
         {
-            Debug.Log($"{CharacterId} Action Routine...");
+            Debug.Log($"{CharacterId} Action Routine started.");
 
-            if (stats.IsStunned)
+            if (stats != null && stats.IsStunned)
             {
+                Debug.Log($"{CharacterId} is stunned. Skipping action.");
                 yield break;
             }
 
+
             AudienceCharacterCanvas.IntentImage.gameObject.SetActive(false);
-            
-            /*
-            if (NextAbility.Intention.IntentionType == 
-                Enums.AudienceIntentionType.DealStress)
+
+            if (NextAbility == null)
             {
-                yield return StartCoroutine(AttackRoutine(NextAbility));
-            }
-            else
-            {
-                yield return StartCoroutine(BuffRoutine(NextAbility));
+                Debug.LogWarning(
+                    $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
+                    "NextAbility is NULL. This usually means ShowNextAbility " +
+                    "was not called before the audience turn.");
+                yield break;
             }
 
-            yield return null;*/
+            if (NextAbility.ActionList == null || NextAbility.ActionList.Count == 0)
+            {
+                Debug.LogWarning(
+                    $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
+                    $"Ability '{NextAbility.AbilityName}' has no actions. Skipping turn.");
+                yield break;
+            }
 
             foreach (var action in NextAbility.ActionList)
             {
+                if (action == null)
+                {
+                    Debug.LogWarning(
+                        $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
+                        $"Null CharacterActionData inside ability " +
+                        $"'{NextAbility.AbilityName}'. Skipping.");
+                    continue;
+                }
+
                 var targets = ResolveTargetsFor(action);
+                if (targets == null || targets.Count == 0)
+                {
+                    Debug.LogWarning(
+                        $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
+                        $"No targets resolved for action {action.CardActionType} " +
+                        $"in ability '{NextAbility.AbilityName}'.");
+                    continue;
+                }
+
                 var ctx = new AudienceActionContext(); // extend as needed
+                var executor = CharacterActionProcessor.GetAction(action.CardActionType);
+                if (executor == null)
+                {
+                    Debug.LogWarning(
+                        $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
+                        $"No CharacterActionProcessor registered for {action.CardActionType}.");
+                    continue;
+                }
 
                 foreach (var target in targets)
                 {
+                    if (target == null) continue;
+
                     var p = new CharacterActionParameters(
                         action.ActionValue, this, target, ctx);
-                    CharacterActionProcessor.GetAction(action.CardActionType).DoAction(p);
+
+                    executor.DoAction(p);
                 }
 
                 // Optional short delay between chained actions:
                 yield return new WaitForSeconds(0.05f);
             }
+
+            Debug.Log($"{CharacterId} Action Routine finished.");
         }
 
         // TODO: Review

@@ -16,9 +16,10 @@ MonoBehaviour:
   cardName: Very Fast FourFour
   musicianCharacterType: 2
   cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
-  inspirationCost: 0
+  inspirationCost: 1
   inspirationGenerated: 1
   domain: 1
+  actionTiming: 0
   primaryKind: 1
   trackAction:
     role: 0

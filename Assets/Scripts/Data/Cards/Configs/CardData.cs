@@ -32,6 +32,10 @@ namespace ALWTTT.Cards
         [Header("Domain")]
         [SerializeField] private CardDomain domain = CardDomain.Action;
 
+        public enum ActionTiming { Always, BetweenSongsOnly }
+        [Header("Action Card Timing")]
+        public ActionTiming actionTiming = ActionTiming.Always;
+
         /// <summary>
         /// High-level primary kind for a Composition card.
         /// Track: create/replace/update a musician's track in a part.

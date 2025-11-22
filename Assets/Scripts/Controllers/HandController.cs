@@ -480,99 +480,115 @@ namespace ALWTTT
 
         private bool TryPlayInGig(Vector2 mousePos, CardDropZone zoneUsed)
         {
-            if (GigManager == null || heldCard == null) return false;
-
             var data = heldCard.CardData;
-            if (data == null || !data.IsComposition)
+            if (data == null) return false;
+
+            // ─────────────────────────────────────────────
+            // 1) COMPOSITION CARDS → live composition pipeline
+            // ─────────────────────────────────────────────
+            if (data.IsComposition)
             {
-                // For now we only support composition cards in gigs
-                Debug.LogWarning($"{DebugTag} [Gig] Non-composition card ignored " +
-                    $"(legacy gig actions disabled for now).");
-                return false;
-            }
+                MusicianBase target = null;
 
-            MusicianBase target = null;
-
-            // 1) If the card has a fixed musician type, resolve that FIRST and ignore hover.
-            if (data.HasFixedMusicianTarget && _resolveTargetByType != null)
-            {
-                target = _resolveTargetByType(data.MusicianCharacterType);
-
-                if (target != null)
-                    Debug.Log($"{DebugTag} [Gig] Fixed-target card -> " +
-                        $"{target.MusicianCharacterData.CharacterName} " +
-                        $"({data.MusicianCharacterType}).");
-                else
-                    Debug.Log($"{DebugTag} [Gig] Fixed-target card but resolver returned null " +
-                        $"for {data.MusicianCharacterType}.");
-            }
-
-            // 2) Otherwise (or if fixed-target failed), use hover → selected fallback
-            if (target == null)
-            {
-                var hovered = IsOverMusician(mousePos);
-                if (hovered != null)
+                // 1a) If the card has a fixed musician type, resolve that FIRST and ignore hover.
+                if (data.HasFixedMusicianTarget && _resolveTargetByType != null)
                 {
-                    target = hovered;
-                    Debug.Log($"{DebugTag} [Gig] Hover-target -> " +
-                        $"{target.MusicianCharacterData.CharacterName}.");
+                    target = _resolveTargetByType(data.MusicianCharacterType);
+
+                    if (target != null)
+                        Debug.Log($"{DebugTag} [Gig] Fixed-target card -> " +
+                            $"{target.MusicianCharacterData.CharacterName} " +
+                            $"({data.MusicianCharacterType}).");
+                    else
+                        Debug.Log($"{DebugTag} [Gig] Fixed-target card but resolver returned null " +
+                            $"for {data.MusicianCharacterType}.");
+                }
+
+                // 1b) Otherwise (or if fixed-target failed), use hover → selected fallback
+                if (target == null)
+                {
+                    var hovered = IsOverMusician(mousePos);
+                    if (hovered != null)
+                    {
+                        target = hovered;
+                        Debug.Log($"{DebugTag} [Gig] Hover-target -> " +
+                            $"{target.MusicianCharacterData.CharacterName}.");
+                    }
+                    else
+                    {
+                        target = GigManager.SelectedMusician as MusicianBase;
+                        Debug.Log($"{DebugTag} [Gig] Selected/Default target -> " +
+                            $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
+                    }
+                }
+
+                // 1c) If the card REQUIRES a musician and still none, abort.
+                if (data.RequiresMusicianTarget && target == null)
+                {
+                    Debug.Log($"{DebugTag} [Gig] Card requires musician target but none resolved.");
+                    return false;
+                }
+
+                // 1d) Route to Gig composition session (same as in ship)
+                return GigManager.TryPlayCompositionCard(heldCard, target, zoneUsed);
+            }
+
+            // ─────────────────────────────────────────────
+            // 2) ACTION CARDS → timing + legacy gig Use()
+            // ─────────────────────────────────────────────
+            if (data.IsAction)
+            {
+                // 2a) Timing gate (song playing / between songs)
+                if (!GigManager.CanPlayActionCard(data))
+                {
+                    Debug.Log($"{DebugTag} [Gig] Cannot play action card " +
+                              $"'{data.CardName}' in current timing. Returning to hand.");
+                    return false;
+                }
+
+                // NOTE: for now we IGNORE the old groove checks so we don’t depend
+                // on the legacy gig state machine / groove economy.
+                // If you want them back later, re-enable:
+                //
+                // if (!GameManager.PersistentGameplayData.CanUseCards) return false;
+                // if (GameManager.PersistentGameplayData.CurrentGroove < data.GrooveCost) return false;
+
+                // 2b) Resolve targets
+                var mainRay = mainCam.ScreenPointToRay(mousePos);
+                CharacterBase bandCharacter = GigManager.SelectedMusician;
+                CharacterBase targetCharacter = null;
+
+                bool canUse = false;
+
+                // No target or SFX → can use directly
+                if (data.UsableWithoutTarget || data.CardType == CardType.SFX)
+                {
+                    canUse = true;
                 }
                 else
                 {
-                    target = GigManager.SelectedMusician as MusicianBase;
-                    Debug.Log($"{DebugTag} [Gig] Selected/Default target -> " +
-                        $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
+                    // Raycast against musicians / audience
+                    canUse = CheckPlayOnCharacter(mainRay, canUse, ref bandCharacter, ref targetCharacter);
                 }
+
+                if (!canUse) return false;
+
+                Debug.Log($"{DebugTag} [Gig] Zone hint = {zoneUsed}");
+
+                // 2c) Execute the card in gig context
+                heldCard.Use(
+                    bandCharacter,
+                    targetCharacter,
+                    GigManager.CurrentAudienceCharacterList,
+                    GigManager.CurrentMusicianCharacterList
+                );
+
+                return true;
             }
 
-            // 3) If the card REQUIRES a musician and still none, abort.
-            if (data.RequiresMusicianTarget && target == null)
-            {
-                Debug.Log($"{DebugTag} [Gig] Card requires musician target but none resolved.");
-                return false;
-            }
-
-            // 4) Route to Gig composition session (same as in ship)
-            var ok = GigManager.TryPlayCompositionCard(heldCard, target, zoneUsed);
-            return ok;
-
-            /*
-            // Regular gig rules: must be allowed and have enough groove
-            if (!GameManager.PersistentGameplayData.CanUseCards) return false;
-            if (GameManager.PersistentGameplayData.CurrentGroove < heldCard.CardData.GrooveCost) return false;
-
-            // Resolve targets
-            var mainRay = mainCam.ScreenPointToRay(mousePos);
-            CharacterBase bandCharacter = GigManager.SelectedMusician;
-            CharacterBase targetCharacter = null;
-
-            bool canUse = false;
-
-            // No target or SFX → can use directly
-            if (heldCard.CardData.UsableWithoutTarget || heldCard.CardData.CardType == CardType.SFX)
-            {
-                canUse = true;
-            }
-            else
-            {
-                // Do your usual raycast against target layers (musician/audience)
-                canUse = 
-                    CheckPlayOnCharacter(mainRay, canUse, ref bandCharacter, ref targetCharacter);
-            }
-
-            if (!canUse) return false;
-
-            Debug.Log($"{DebugTag} [Gig] Zone hint = {zoneUsed}");
-
-            // Execute the card in gig context
-            heldCard.Use(
-                bandCharacter,
-                targetCharacter,
-                GigManager.CurrentAudienceCharacterList,
-                GigManager.CurrentMusicianCharacterList
-            );
-
-            return true;*/
+            // Any other domains → not handled in gig
+            Debug.LogWarning($"{DebugTag} [Gig] Card '{data.CardName}' has unsupported domain '{data.Domain}'.");
+            return false;
         }
 
         private bool TryPlayInShip(Vector2 mousePos, CardDropZone zoneUsed)
