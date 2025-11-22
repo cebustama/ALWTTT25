@@ -56,6 +56,19 @@ namespace ALWTTT.Managers
         private bool _isSongPlaying;
         private bool _isBetweenSongs;
 
+        // PartIndex -> (AudienceIndex -> List of impressions per loop)
+        private readonly Dictionary<int, Dictionary<int, List<int>>>
+            _audienceLoopImpressionsByPart = new();
+
+        // Enriched part feedback (with audience data) for the current song
+        private readonly List<PartFeedbackContext> _gigPartsForCurrentSong =
+            new List<PartFeedbackContext>();
+
+        // Gig-level events that expose *enriched* contexts
+        public event Action<PartFeedbackContext> OnGigPartFeedbackReady;
+        public event Action<SongFeedbackContext> OnGigSongFeedbackReady;
+
+
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
 
@@ -773,6 +786,8 @@ namespace ALWTTT.Managers
 
             _session = new CompositionSession();
             _session.LoopFinished += OnCompositionLoopFinished;
+            _session.PartFinished += OnCompositionPartFinished;
+            _session.SongFinished += OnCompositionSongFinished;
 
             var ctx = new GigContext(this);
             _session.Begin(ctx, jamRules, midiGenPlayConfig, _rng);
@@ -781,9 +796,54 @@ namespace ALWTTT.Managers
             _isBetweenSongs = true;
         }
 
-        private void OnCompositionLoopFinished()
+        private void OnCompositionLoopFinished(LoopFeedbackContext loopCtx)
         {
-            TriggerAudienceMicroReactions();
+            TriggerAudienceMicroReactions(loopCtx);
+        }
+
+        private void OnCompositionPartFinished(PartFeedbackContext partCtx)
+        {
+            Log($"{DebugTag} [Gig] Part finished → {partCtx}", customColor: "orange");
+
+            // Retrieve aggregated impressions for this part (if we have any)
+            _audienceLoopImpressionsByPart
+                .TryGetValue(partCtx.PartIndex, out var perAudience);
+
+            // Build an enriched PartFeedbackContext that includes audience data
+            var enriched = new PartFeedbackContext(
+                partIndex: partCtx.PartIndex,
+                partLabel: partCtx.PartLabel,
+                loops: partCtx.Loops,
+                audienceLoopImpressions: perAudience
+            );
+
+            // Keep it for song-level aggregation
+            _gigPartsForCurrentSong.Add(enriched);
+
+            // No need to keep raw per-loop impressions for this part anymore
+            _audienceLoopImpressionsByPart.Remove(partCtx.PartIndex);
+
+            // Notify gig-level listeners with the *enriched* context
+            OnGigPartFeedbackReady?.Invoke(enriched);
+        }
+
+        private void OnCompositionSongFinished(SongFeedbackContext songCtx)
+        {
+            Log($"{DebugTag} [Gig] Song finished → {songCtx}", customColor: "yellow");
+
+            // Build an enriched SongFeedbackContext using the gig's part list
+            var enrichedSong = new SongFeedbackContext(_gigPartsForCurrentSong);
+
+            // Notify gig-level listeners
+            OnGigSongFeedbackReady?.Invoke(enrichedSong);
+
+            // Clear per-song state for the next song
+            _gigPartsForCurrentSong.Clear();
+            _audienceLoopImpressionsByPart.Clear();
+
+            // TODO later:
+            // - use this to drive a big, slow “macro” crowd reaction
+            // - award fans, cohesion, etc., based on overall song quality.
         }
 
         public bool CanPlayActionCard(CardData card)
@@ -801,21 +861,50 @@ namespace ALWTTT.Managers
         }
 
         // Called whenever one full loop finishes (including the last loop of the song)
-        private void TriggerAudienceMicroReactions()
+        private void TriggerAudienceMicroReactions(LoopFeedbackContext loopCtx)
         {
             if (CurrentAudienceCharacterList == null 
                 || CurrentAudienceCharacterList.Count == 0)
                 return;
 
-            Debug.Log($"{DebugTag} [Gig] Loop finished → audience micro reactions.");
+            Debug.Log(
+                $"{DebugTag} [Gig] Loop finished → audience micro reactions. {loopCtx}");
 
-            foreach (var audience in CurrentAudienceCharacterList)
+            // Part index from the loop context
+            int partIndex = loopCtx.PartIndex;
+
+            // Ensure per-part map exists
+            if (!_audienceLoopImpressionsByPart.TryGetValue(partIndex, out var perAudience))
             {
+                perAudience = new Dictionary<int, List<int>>();
+                _audienceLoopImpressionsByPart[partIndex] = perAudience;
+            }
+
+            for (int i = 0; i < CurrentAudienceCharacterList.Count; i++)
+            {
+                var audience = CurrentAudienceCharacterList[i];
                 if (audience == null) continue;
 
-                // For now just log; later we can turn this into a proper stat change.
-                Debug.Log($"<color=red>{DebugTag} [Gig]   - {audience.CharacterId} reacts to loop end.</color>");
-                // Future: audience.ReactToLoopEnd(partIndex, loopIndex, vibeDelta);
+                // Each audience member resolves the loop into an impression [-2..2]
+                int raw = audience.ResolveLoopEffect(loopCtx);
+                int clamped = Mathf.Clamp(raw, -2, 2);
+
+                Debug.Log(
+                    $"<color=red>{DebugTag} [Gig]   - {audience.CharacterId} " +
+                    $"impression={clamped} for {loopCtx}</color>");
+
+                // Aggregate impressions per audience, per loop
+                if (!perAudience.TryGetValue(i, out var impressions))
+                {
+                    impressions = new List<int>();
+                    perAudience[i] = impressions;
+                }
+
+                impressions.Add(clamped);
+
+                // TODO plug things like:
+                // audience.Stats.AddVibe(clamped);
+                // trigger VFX/SFX, etc.
             }
         }
 
@@ -824,6 +913,8 @@ namespace ALWTTT.Managers
             if (_session != null)
             {
                 _session.LoopFinished -= OnCompositionLoopFinished;
+                _session.PartFinished -= OnCompositionPartFinished;
+                _session.SongFinished -= OnCompositionSongFinished;
             }
 
             Log($"{DebugTag} [Gig] Composition session ended. Starting Audience phase.");

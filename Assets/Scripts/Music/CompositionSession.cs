@@ -41,7 +41,9 @@ namespace ALWTTT.Music
         private float _loopStartTime;
         private float _loopDurationSeconds;
 
-        public event Action LoopFinished;
+        public event Action<LoopFeedbackContext> LoopFinished;
+        public event Action<PartFeedbackContext> PartFinished;
+        public event Action<SongFeedbackContext> SongFinished;
 
         public class PartCache
         {
@@ -53,13 +55,40 @@ namespace ALWTTT.Music
             public Dictionary<string, MIDIPercussionInstrumentSO> 
                 resolvedPercInstByMusician = new();
         }
+
         private readonly Dictionary<int, PartCache> _partCache = new();
-        public bool TryGetPartCache(int partIndex, out PartCache cache) => 
+
+        public bool TryGetPartCache(int partIndex, out PartCache cache) =>
             _partCache.TryGetValue(partIndex, out cache);
 
         public PartCache GetOrCreatePartCache(int partIndex)
-            => _partCache.TryGetValue(partIndex, out var c) 
+            => _partCache.TryGetValue(partIndex, out var c)
             ? c : (_partCache[partIndex] = new PartCache());
+
+        private readonly Dictionary<int, List<LoopFeedbackContext>> _loopHistoryByPart
+            = new Dictionary<int, List<LoopFeedbackContext>>();
+        private readonly List<PartFeedbackContext> _finishedParts
+            = new List<PartFeedbackContext>();
+
+        private readonly Dictionary<int, bool> _keepInstrumentByPart = new();
+
+        /// <summary>
+        /// Sets whether instrument choices for a given part should be reused
+        /// when regenerating that part.
+        /// </summary>
+        public void SetKeepInstrumentForPart(int partIndex, bool keep)
+        {
+            _keepInstrumentByPart[partIndex] = keep;
+        }
+
+        /// <summary>
+        /// Returns whether the part should preserve its cached instrument choices.
+        /// Defaults to true when not explicitly set.
+        /// </summary>
+        private bool GetKeepInstrumentForPart(int partIndex)
+        {
+            return !_keepInstrumentByPart.TryGetValue(partIndex, out var keep) || keep;
+        }
 
         /// <summary>
         /// True while any part/loop is currently playing through MidiMusicManager.
@@ -86,7 +115,11 @@ namespace ALWTTT.Music
             _currentPartIndex = -1;
             _isPlaying = false;
             _partCache.Clear();
+            _loopHistoryByPart.Clear();
+            _finishedParts.Clear();
             _buildingPartInspirationPerLoop = 0;
+
+            _keepInstrumentByPart.Clear();
 
             _ctx.ShowCompositionUI(true);
             _ctx.ShowHand(true);
@@ -111,9 +144,15 @@ namespace ALWTTT.Music
 
         public void End()
         {
+            var songCtx = new SongFeedbackContext(_finishedParts);
+            SongFinished?.Invoke(songCtx);
+
             _state = CompositionState.Ended;
             _isPlaying = false;
             _partCache.Clear();
+            _loopHistoryByPart.Clear();
+            _finishedParts.Clear();
+            _keepInstrumentByPart.Clear();
 
             _ctx.LoopsTimerUI?.ClearProgress();
             _ctx.ShowHand(false);
@@ -180,7 +219,8 @@ namespace ALWTTT.Music
                 _ctx.LoopsTimerUI?.SetProgress(loopIdx0, pct);
             }
         }
-        public bool TryPlayCompositionCard(CardBase card, MusicianBase target, CardDropZone zone)
+        public bool TryPlayCompositionCard(
+            CardBase card, MusicianBase target, CardDropZone zone)
         {
             // ----- helpers -----
             void Info(string msg) => _ctx?.Log($"[TryPlay] {msg}");
@@ -201,7 +241,8 @@ namespace ALWTTT.Music
             if (c.IsComposition)
             {
                 int cost = Math.Max(0, c.GrooveCost);
-                Info($"inspiration: have={_currentInspiration} cost={cost} gen={c.GrooveGenerated}");
+                Info($"inspiration: have={_currentInspiration} " +
+                    $"cost={cost} gen={c.GrooveGenerated}");
                 if (cost > _currentInspiration)
                     return Fail("Not enough inspiration");
             }
@@ -212,7 +253,8 @@ namespace ALWTTT.Music
                 if (target == null && c.HasFixedMusicianTarget)
                 {
                     target = _ctx.ResolveMusicianByType(c.MusicianCharacterType);
-                    Info($"fixed target resolver → {(target != null ? target.MusicianCharacterData.CharacterName : "null")}");
+                    Info($"fixed target resolver → " +
+                        $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}");
                 }
                 if (c.RequiresMusicianTarget && target == null)
                     return Fail("Track card requires musician target but none resolved");
@@ -232,16 +274,20 @@ namespace ALWTTT.Music
 
             // 5) Compute part index based on zone + loop state
             bool loopIsRunning =
-                _isPlaying && (_state == CompositionState.BuildingNextPart || _state == CompositionState.PlayingCurrentPart);
+                _isPlaying && 
+                (_state == CompositionState.BuildingNextPart 
+                || _state == CompositionState.PlayingCurrentPart);
 
             int partIdx;
             if (loopIsRunning)
-                partIdx = (zone == CardDropZone.NextPart) ? ui.Model.CurrentPartIndex : _currentPartIndex;
+                partIdx = (zone == CardDropZone.NextPart) ? 
+                    ui.Model.CurrentPartIndex : _currentPartIndex;
             else
                 partIdx = ui.Model.CurrentPartIndex;
 
             Info($"routing: loopRunning={loopIsRunning} zone={zone} -> partIdx={partIdx} " +
-                 $"(ui.CurrentPartIndex={ui.Model.CurrentPartIndex} currentPartIndex={_currentPartIndex})");
+                 $"(ui.CurrentPartIndex={ui.Model.CurrentPartIndex} " +
+                 $"currentPartIndex={_currentPartIndex})");
 
             // 6) Apply to model
             if (!ui.ApplyCardToPart(card, target, partIdx))
@@ -251,9 +297,16 @@ namespace ALWTTT.Music
             if (loopIsRunning && c.AffectsSound)
             {
                 bool keepTempo = ShouldKeepTempo(c);
-                int invalidateIdx = (zone == CardDropZone.NextPart) ? partIdx : _currentPartIndex;
-                Info($"invalidating cache part={invalidateIdx} keepTempo={keepTempo} affectsSound={c.AffectsSound}");
-                InvalidatePartCache(invalidateIdx, keepTempo);
+
+                bool keepInstruments = ShouldKeepInstruments(c);
+
+                int invalidateIdx = (zone == CardDropZone.NextPart) ? 
+                    partIdx : _currentPartIndex;
+
+                Info($"invalidating cache part={invalidateIdx} keepTempo={keepTempo} " +
+                    $"keepInstruments={keepInstruments} affectsSound={c.AffectsSound}");
+
+                InvalidatePartCache(invalidateIdx, keepTempo, keepInstruments);
             }
 
             // 8) Spend / preview inspiration
@@ -267,7 +320,8 @@ namespace ALWTTT.Music
                 if (gen > 0)
                 {
                     _buildingPartInspirationPerLoop += gen;
-                    Info($"per-loop inspiration bonus updated: +={gen} (now {_buildingPartInspirationPerLoop})");
+                    Info($"per-loop inspiration bonus updated: +={gen} " +
+                        $"(now {_buildingPartInspirationPerLoop})");
                 }
             }
 
@@ -276,9 +330,12 @@ namespace ALWTTT.Music
             {
                 if (_currentPartIndex >= 0 && _currentPartIndex < ui.Model.parts.Count)
                 {
-                    _perLoopInspirationCurrentPart = EvalPerLoopInsp(ui.Model.parts[_currentPartIndex]);
+                    _perLoopInspirationCurrentPart = 
+                        EvalPerLoopInsp(ui.Model.parts[_currentPartIndex]);
+
                     ui.SetPlusInspiration(_perLoopInspirationCurrentPart);
-                    Info($"recalc per-loop inspiration for currentPart={_currentPartIndex} → {_perLoopInspirationCurrentPart}");
+                    Info($"recalc per-loop inspiration for " +
+                        $"currentPart={_currentPartIndex} → {_perLoopInspirationCurrentPart}");
                 }
             }
 
@@ -376,14 +433,58 @@ namespace ALWTTT.Music
             _isPlaying = false;
 
             _loopsRemainingForPart--;
+
+            int inspirationGainedThisLoop = 0;
+
             if (_perLoopInspirationCurrentPart > 0)
             {
+                inspirationGainedThisLoop = _perLoopInspirationCurrentPart;
                 _currentInspiration += _perLoopInspirationCurrentPart;
                 _ctx.CompositionUI?.SetInspiration(_currentInspiration);
                 _ctx.CompositionUI?.SetPlusInspiration(_perLoopInspirationCurrentPart);
             }
 
-            LoopFinished?.Invoke();
+            try
+            {
+                int loopsCompletedForPart =
+                    Math.Max(0, _loopsTotalForPart - _loopsRemainingForPart); // 1..N
+                int loopIndex0 = Math.Max(0, loopsCompletedForPart - 1);
+
+                string partLabel = null;
+                var ui = _ctx.CompositionUI;
+                if (ui != null &&
+                    ui.Model != null &&
+                    ui.Model.parts != null &&
+                    _currentPartIndex >= 0 &&
+                    _currentPartIndex < ui.Model.parts.Count)
+                {
+                    partLabel = ui.Model.parts[_currentPartIndex].label;
+                }
+
+                var ctx = new LoopFeedbackContext(
+                    partIndex: _currentPartIndex,
+                    loopIndexWithinPart: loopIndex0,
+                    loopsInPart: _loopsTotalForPart,
+                    partLabel: partLabel,
+                    inspirationGainedThisLoop: inspirationGainedThisLoop,
+                    inspirationAfterLoop: _currentInspiration
+                );
+
+                // Store in per-part history
+                if (!_loopHistoryByPart.TryGetValue(_currentPartIndex, out var loopList))
+                {
+                    loopList = new List<LoopFeedbackContext>();
+                    _loopHistoryByPart[_currentPartIndex] = loopList;
+                }
+                loopList.Add(ctx);
+
+                // Notify listeners about this loop
+                LoopFinished?.Invoke(ctx);
+            }
+            catch (Exception ex)
+            {
+                _ctx.Log($"[Session] Error building LoopFeedbackContext: {ex.Message}");
+            }
 
             if (_loopsRemainingForPart > 0)
             {
@@ -391,13 +492,51 @@ namespace ALWTTT.Music
                 return;
             }
 
+            // No loops left for this part → emit PartFeedbackContext
+            EmitPartFinishedForCurrentPart();
+
             if (ComputeNextPartIsReady())
             {
                 AdvanceToNextPart();
                 return;
             }
 
+            // No next part: ending session will emit SongFeedbackContext
             End();
+        }
+
+        private void EmitPartFinishedForCurrentPart()
+        {
+            int partIndex = _currentPartIndex;
+
+            _loopHistoryByPart.TryGetValue(partIndex, out var loops);
+            loops ??= new List<LoopFeedbackContext>();
+
+            string partLabel = null;
+            var ui = _ctx.CompositionUI;
+            if (ui != null &&
+                ui.Model != null &&
+                ui.Model.parts != null &&
+                partIndex >= 0 &&
+                partIndex < ui.Model.parts.Count)
+            {
+                partLabel = ui.Model.parts[partIndex].label;
+            }
+
+            var partCtx = new PartFeedbackContext(
+                partIndex: partIndex,
+                partLabel: partLabel,
+                loops: loops,
+                audienceLoopImpressions: null // to be filled later by GigManager
+            );
+
+            PartFinished?.Invoke(partCtx);
+            _finishedParts.Add(partCtx);
+
+            // we don't need to keep per-loop history for this part anymore
+            _loopHistoryByPart.Remove(partIndex);
+
+            _ctx.Log(partCtx.ToString());
         }
 
         private bool ComputeNextPartIsReady() => 
@@ -454,10 +593,28 @@ namespace ALWTTT.Music
             return true;
         }
 
-        private void InvalidatePartCache(int partIndex, bool keepTempo)
+        private bool ShouldKeepInstruments(CardData c)
+        {
+            if (c == null) return true;
+
+            // Only InstrumentEffect cards should force a re-roll of instruments.
+            // Everything else keeps the pinned instruments.
+            if (c.IsInstrumentCard) return false;
+
+            return true;
+        }
+
+        private void InvalidatePartCache(
+            int partIndex,
+            bool keepTempo,
+            bool? keepInstrumentsOverride = null)
         {
             if (!_partCache.TryGetValue(partIndex, out var cache) || cache == null) return;
+
             int preservedBpm = keepTempo ? cache.resolvedBpm : 0;
+
+            bool keepInstruments = keepInstrumentsOverride ?? 
+                GetKeepInstrumentForPart(partIndex);
 
             _partCache[partIndex] = new PartCache
             {
@@ -465,17 +622,11 @@ namespace ALWTTT.Music
                 seconds = 0f,
                 resolvedBpm = preservedBpm,
                 stemsByMusician = new Dictionary<string, byte[]>(),
-                resolvedMelInstByMusician = keepTempo ? cache.resolvedMelInstByMusician : new(),
+                resolvedMelInstByMusician = keepInstruments
+                    ? cache.resolvedMelInstByMusician
+                    : new Dictionary<string, MIDIInstrumentSO>(),
                 resolvedPercInstByMusician = new()
             };
-        }
-
-        private int? GetCachedBpm(int partIndex)
-        {
-            return _partCache
-                .TryGetValue(partIndex, out var pc) && pc != null && pc.resolvedBpm > 0
-                ? pc.resolvedBpm
-                : (int?)null;
         }
     }
 }

@@ -10,29 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Backing - Test Card
+  m_Name: Melody - Zig - VaryNoteAscendOctaves
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: Backing - Test
-  cardName: Backing - Test
-  musicianCharacterType: 3
-  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
+  id: ASCEND_SCALE_NOTE
+  cardName: ASCEND SCALE NOTE
+  musicianCharacterType: 4
+  cardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
   inspirationCost: 1
   inspirationGenerated: 1
   domain: 1
   actionTiming: 0
   primaryKind: 1
   trackAction:
-    role: 1
-    styleBundle: {fileID: 11400000, guid: da71dee48cea0cf4a87fcb1cddfa02f5, type: 2}
+    role: 4
+    styleBundle: {fileID: 11400000, guid: 1f1932f93a9e29d40b56ec413e80275f, type: 2}
   partAction:
     action: 0
     customLabel: 
     musicianId: 
-  modifierEffects: []
+  modifierEffects:
+  - {fileID: 11400000, guid: 67ae38b52a3319142977e6439e75fd99, type: 2}
   keywordsList: 
   audioType: 0
   cardType: 0
-  usableWithoutTarget: 0
+  usableWithoutTarget: 1
   exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList: []

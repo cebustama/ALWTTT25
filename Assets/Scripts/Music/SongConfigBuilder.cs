@@ -205,20 +205,34 @@ namespace ALWTTT.Music
                             break;
                     }
 
-                    // PINNED INSTRUMENT OVERRIDE
-                    /*if (role != TrackRole.Rhythm &&
-                        _partCache.TryGetValue(partIndex, out var partCache) &&
-                        partCache != null &&
-                        !string.IsNullOrEmpty(musicianId) &&
-                        partCache.resolvedMelInstByMusician.TryGetValue(
-                            musicianId, out var pinned) &&
-                        pinned != null)
+                    // 1) Explicit overrides from the composition UI (InstrumentEffect)
+                    if (trModel.overrideMelodicInstrument != null)
                     {
-                        melInst = pinned; // make the cached one authoritative
-                        Log($"[Jam] [Pin] Using cached instrument for " +
-                            $"part={partIndex} " +
-                            $"mus='{musicianId}' -> '{pinned.InstrumentName}'");
-                    }*/
+                        melInst = trModel.overrideMelodicInstrument;
+                        ctx.Log($"[InstrumentEffect] Using override melodic instrument " +
+                                $"for mus='{musicianId}': '{melInst.InstrumentName}'", true);
+                    }
+                    else if (trModel.overridePercussionInstrument != null)
+                    {
+                        percInst = trModel.overridePercussionInstrument;
+                        ctx.Log($"[InstrumentEffect] Using override percussion instrument " +
+                                $"for mus='{musicianId}': '{percInst.InstrumentName}'", true);
+                    }
+                    else if (trModel.hasOverrideInstrumentType)
+                    {
+                        // TODO: TAKE MUSICIAN ALLOWED INSTs INTO ACCOUNT
+                        var allMelodic = instruments.GetMelodicInstruments();
+                        var candidatesByType = allMelodic
+                            .Where(i => i.InstrumentType == trModel.overrideInstrumentType);
+
+                        melInst = candidatesByType.OrderBy(_ => rng.Next()).FirstOrDefault();
+
+                        ctx.Log($"[InstrumentEffect] Choosing random instrument of type " +
+                                $"{trModel.overrideInstrumentType} for mus='{musicianId}' " +
+                                $"-> '{melInst?.InstrumentName ?? "-"}'", true);
+                    }
+
+                    // PINNED INSTRUMENT OVERRIDE
                     if (ctx.TryGetPartCache(partIndex, out var partCache))
                     {
                         if (!string.IsNullOrEmpty(musicianId) &&

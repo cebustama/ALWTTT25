@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Rhythm - Slow FourFour
+  m_Name: Rhythm - C2 - Fast FourFour
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: Slow FourFour
-  cardName: Slow FourFour
+  id: Fast FourFour
+  cardName: Fast FourFour
   musicianCharacterType: 2
   cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
   inspirationCost: 1
@@ -29,7 +29,7 @@ MonoBehaviour:
     customLabel: 
     musicianId: 
   modifierEffects:
-  - {fileID: 11400000, guid: 12005ff9eb8f2e4438d5a728b17ad435, type: 2}
+  - {fileID: 11400000, guid: 6e461d6fadfb8f34ab15242e9959cf19, type: 2}
   keywordsList: 
   audioType: 0
   cardType: 0

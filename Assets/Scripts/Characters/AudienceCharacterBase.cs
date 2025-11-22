@@ -1,9 +1,10 @@
-using ALWTTT.Actions;
+Ôªøusing ALWTTT.Actions;
 using ALWTTT.Characters.Band;
 using ALWTTT.Data;
 using ALWTTT.Enums;
 using ALWTTT.Extentions;
 using ALWTTT.Interfaces;
+using ALWTTT.Music;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -100,6 +101,27 @@ namespace ALWTTT.Characters.Audience
             }
 
             stats.Dispose();
+        }
+
+        /// <summary>
+        /// Convert the information about a finished loop into a discrete impression
+        /// in the range [-2, 2]:
+        /// -2 = very negative, -1 = negative, 0 = neutral, 1 = positive, 2 = very positive.
+        /// Default implementation is neutral; override per archetype.
+        /// </summary>
+        public virtual int ResolveLoopEffect(LoopFeedbackContext ctx)
+        {
+            // For now we keep it simple and neutral; this is the extensible hook.
+            // Later you can use ctx.PartIndex, ctx.LoopIndexWithinPart, inspiration, etc,
+            // plus this character's preferences, to compute a meaningful value.
+            int impression = 0;
+
+            Debug.Log(
+                $"[AudienceCharacterBase] {CharacterId} ResolveLoopEffect " +
+                $"part={ctx.PartIndex}, loop={ctx.LoopIndexWithinPart}, " +
+                $"label={ctx.PartLabel} ‚Üí {impression}");
+
+            return impression;
         }
 
         private int usedAbilityCount;
@@ -259,7 +281,7 @@ namespace ALWTTT.Characters.Audience
                     return new List<CharacterBase>() { this };
 
                 case ActionTargetType.Musician:
-                // Target the ìfront-mostî visible enemy musician by your rules? 
+                // Target the ‚Äúfront-most‚Äù visible enemy musician by your rules? 
                 // Since this is an *audience* action (offense), choose a musician.
                 {
                     var list = gm.CurrentMusicianCharacterList;
@@ -285,7 +307,7 @@ namespace ALWTTT.Characters.Audience
                 }
 
                 case ActionTargetType.AllMusicians:
-                    // For multi-target actions youíll likely loop outside, but the action system
+                    // For multi-target actions you‚Äôll likely loop outside, but the action system
                     // expects a single CharacterBase. Return self (the processor can read ctx).
                     return new List<CharacterBase>(gm.CurrentMusicianCharacterList);
 

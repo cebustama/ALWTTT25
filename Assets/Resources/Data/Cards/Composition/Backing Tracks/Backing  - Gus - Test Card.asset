@@ -10,26 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Rhythm - Very Fast FourFour
+  m_Name: Backing  - Gus - Test Card
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: Very Fast FourFour
-  cardName: Very Fast FourFour
-  musicianCharacterType: 2
-  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  id: Backing - Test
+  cardName: Backing - Test
+  musicianCharacterType: 3
+  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
   inspirationCost: 1
   inspirationGenerated: 1
   domain: 1
   actionTiming: 0
   primaryKind: 1
   trackAction:
-    role: 0
-    styleBundle: {fileID: 11400000, guid: 802ef99365d044742bca9a76efbacd34, type: 2}
+    role: 1
+    styleBundle: {fileID: 11400000, guid: da71dee48cea0cf4a87fcb1cddfa02f5, type: 2}
   partAction:
     action: 0
     customLabel: 
     musicianId: 
-  modifierEffects:
-  - {fileID: 11400000, guid: 40d9ecfc0a7840a46bfe136389c82c43, type: 2}
+  modifierEffects: []
   keywordsList: 
   audioType: 0
   cardType: 0

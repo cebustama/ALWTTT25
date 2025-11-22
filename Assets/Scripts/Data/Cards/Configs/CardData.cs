@@ -157,6 +157,11 @@ namespace ALWTTT.Cards
         public bool IsTonalityCard => HasEffect<TonalityEffect>();
 
         /// <summary>
+        /// True if this card changes the Instrument of a Song Track
+        /// </summary>
+        public bool IsInstrumentCard => HasEffect<InstrumentEffect>();
+
+        /// <summary>
         /// Theme cards will probably become their own effect or keyword later.
         /// For now we expose a simple hook that can be wired when you add a ThemeEffect
         /// or a dedicated keyword.

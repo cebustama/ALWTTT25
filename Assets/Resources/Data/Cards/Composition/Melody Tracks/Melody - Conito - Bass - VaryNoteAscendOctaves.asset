@@ -10,30 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Rhythm - Fast FourFour
+  m_Name: Melody - Conito - Bass - VaryNoteAscendOctaves
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: Fast FourFour
-  cardName: Fast FourFour
-  musicianCharacterType: 2
-  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  id: ASCEND_SCALE_NOTE
+  cardName: ASCEND SCALE NOTE
+  musicianCharacterType: 4
+  cardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
   inspirationCost: 1
   inspirationGenerated: 1
   domain: 1
   actionTiming: 0
   primaryKind: 1
   trackAction:
-    role: 0
-    styleBundle: {fileID: 11400000, guid: 802ef99365d044742bca9a76efbacd34, type: 2}
+    role: 4
+    styleBundle: {fileID: 11400000, guid: 1f1932f93a9e29d40b56ec413e80275f, type: 2}
   partAction:
     action: 0
     customLabel: 
     musicianId: 
   modifierEffects:
-  - {fileID: 11400000, guid: 6e461d6fadfb8f34ab15242e9959cf19, type: 2}
+  - {fileID: 11400000, guid: 67ae38b52a3319142977e6439e75fd99, type: 2}
   keywordsList: 
   audioType: 0
   cardType: 0
-  usableWithoutTarget: 0
+  usableWithoutTarget: 1
   exhaustAfterPlay: 0
   cardConditionDataList: []
   cardActionDataList: []

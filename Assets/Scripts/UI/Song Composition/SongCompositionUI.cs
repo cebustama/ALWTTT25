@@ -56,6 +56,14 @@ namespace ALWTTT.UI
             public int inspirationGenerated;    // per-loop gain contributed by this track
 
             public TrackStyleBundleSO styleBundle;
+
+            // TODO: Maybe some sort of PartEffectBundle/Context?
+            // Instrument overrides written by InstrumentEffect
+            public MIDIInstrumentSO overrideMelodicInstrument;
+            public MIDIPercussionInstrumentSO overridePercussionInstrument;
+            // Type-level override (Bass / Guitar / etc.)
+            public bool hasOverrideInstrumentType;
+            public InstrumentType overrideInstrumentType;
         }
 
         [Serializable]
@@ -775,9 +783,9 @@ namespace ALWTTT.UI
         /// - OnNextPartStart: apply to 'partIndex+1' (auto-ensure)
         /// In a later pass we can forward 'timing' into ShipInteriorManager's cache invalidation logic.
         /// </summary>
-        private void ApplyEffectToModel(PartEffect fx, int partIndex, MusicianBase target)
+        private bool ApplyEffectToModel(PartEffect fx, int partIndex, MusicianBase target)
         {
-            if (fx == null) return;
+            if (fx == null) return false;
 
             // Resolve target index by timing
             int idx = partIndex;
@@ -785,7 +793,7 @@ namespace ALWTTT.UI
                 idx = partIndex + 1;
 
             var part = EnsurePartAt(idx);
-            if (part == null) return;
+            if (part == null) return false;
 
             switch (fx)
             {
@@ -826,11 +834,72 @@ namespace ALWTTT.UI
                     part.tonality = ton.tonality;
                     break;
 
-                case FeelEffect feel:
+                case InstrumentEffect instFx:
+                    ApplyInstrumentEffect(instFx, target, part, partIndex);
                     break;
+            }
 
-                case DensityEffect den:
-                    break;
+            return true;
+        }
+
+        private void ApplyInstrumentEffect(
+            InstrumentEffect fx,
+            MusicianBase target,
+            PartEntry part,
+            int partIndex)
+        {
+            if (fx == null) return;
+
+            // For now: we only support TrackOnly and require a target musician
+            if (fx.scope == EffectScope.TrackOnly && target != null)
+            {
+                var track = part.tracks.FirstOrDefault(t =>
+                    t.musicianId == target.MusicianCharacterData.CharacterId);
+
+                if (track == null)
+                {
+                    Log($"[InstrumentEffect] No track found for target " +
+                        $"'{target.name}' in part {partIndex}", false);
+                    return;
+                }
+
+                // Clear existing overrides
+                track.overrideMelodicInstrument = null;
+                track.overridePercussionInstrument = null;
+                track.hasOverrideInstrumentType = false;
+
+                switch (fx.mode)
+                {
+                    case InstrumentEffect.InstrumentTargetMode.SpecificMelodic:
+                        track.overrideMelodicInstrument = fx.melodicInstrument;
+                        break;
+
+                    case InstrumentEffect.InstrumentTargetMode.SpecificPercussion:
+                        track.overridePercussionInstrument = fx.percussionInstrument;
+                        break;
+
+                    case InstrumentEffect.InstrumentTargetMode.InstrumentType:
+                        track.hasOverrideInstrumentType = true;
+                        track.overrideInstrumentType = fx.instrumentType;
+                        break;
+                }
+
+                // Optional: reflect something in the info label
+                if (track.styleBundle != null && fx.melodicInstrument != null)
+                {
+                    track.info = $"{track.styleBundle.name} - " +
+                        $"{fx.melodicInstrument.InstrumentName}";
+                }
+
+                var ui = partUIs.ElementAtOrDefault(partIndex);
+                if (ui != null) ui.Bind(part);
+
+                RaisePartChanged();
+            }
+            else
+            {
+                // Later: handle broader scopes if you want
+                Log("[InstrumentEffect] Non-TrackOnly scopes not implemented yet.");
             }
         }
         #endregion
