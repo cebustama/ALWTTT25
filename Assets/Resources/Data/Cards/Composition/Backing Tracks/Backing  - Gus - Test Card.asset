@@ -28,7 +28,8 @@ MonoBehaviour:
     action: 0
     customLabel: 
     musicianId: 
-  modifierEffects: []
+  modifierEffects:
+  - {fileID: 0}
   keywordsList: 
   audioType: 0
   cardType: 0

@@ -71,6 +71,18 @@ namespace ALWTTT.Music
             {
                 var tonality = p.tonality;
 
+                // ensure we have a stable root for this part
+                if (!p.hasExplicitRootNote)
+                {
+                    var randomRoot = (Melanchall.DryWetMidi.MusicTheory.NoteName)
+                        rng.Next(0, 12);
+
+                    p.rootNote = randomRoot;
+                    p.hasExplicitRootNote = true;
+                }
+
+                var root = p.rootNote;
+
                 var part = new SongConfig.PartConfig
                 {
                     Name = string.IsNullOrWhiteSpace(p.label) 
@@ -79,7 +91,7 @@ namespace ALWTTT.Music
                     TimeSignature = p.timeSignature,
                     Tracks = new List<SongConfig.PartConfig.TrackConfig>(),
                     Tonality = tonality,
-                    RootNote = Melanchall.DryWetMidi.MusicTheory.NoteName.C,
+                    RootNote = root,
                     // Tempo
                     TempoRange = p.tempoRangeOverride,
                     ExplicitBpm = p.absoluteBpmOverride,

@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
   m_Name: Melody - Conito - Bass - VaryNoteAscendOctaves
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: ASCEND_SCALE_NOTE
-  cardName: ASCEND SCALE NOTE
-  musicianCharacterType: 4
-  cardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
+  id: BASS_MELODY
+  cardName: BASS MELODY
+  musicianCharacterType: 1
+  cardSprite: {fileID: 21300000, guid: aa43d531ba2af354d8360bbdfa0e3f05, type: 3}
   inspirationCost: 1
   inspirationGenerated: 1
   domain: 1
@@ -29,7 +29,7 @@ MonoBehaviour:
     customLabel: 
     musicianId: 
   modifierEffects:
-  - {fileID: 11400000, guid: 67ae38b52a3319142977e6439e75fd99, type: 2}
+  - {fileID: 11400000, guid: d99064025866ff442912875ebc617b6e, type: 2}
   keywordsList: 
   audioType: 0
   cardType: 0

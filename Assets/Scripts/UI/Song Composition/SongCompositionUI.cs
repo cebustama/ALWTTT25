@@ -1,5 +1,6 @@
 ﻿using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
+using Melanchall.DryWetMidi.MusicTheory;
 using MidiGenPlay;
 using MidiGenPlay.Composition;
 using System;
@@ -78,6 +79,10 @@ namespace ALWTTT.UI
 
             // Tonality
             public Tonality tonality = Tonality.Ionian;
+
+            // Key root
+            public NoteName rootNote = NoteName.C;
+            public bool hasExplicitRootNote = false;
 
             // Time Signature
             public TimeSignature timeSignature;
@@ -437,7 +442,9 @@ namespace ALWTTT.UI
                 tempo = inherit != null ? inherit.tempo : "Very Fast",
                 tonality = inherit != null ? inherit.tonality : Tonality.Ionian,
                 measures = inherit != null ? inherit.measures : 8,
-                tracks = new List<TrackEntry>()
+                tracks = new List<TrackEntry>(),
+                rootNote = inherit != null ? inherit.rootNote : NoteName.C,
+                hasExplicitRootNote = inherit != null && inherit.hasExplicitRootNote
             };
 
             model.parts.Add(p);
@@ -831,12 +838,101 @@ namespace ALWTTT.UI
                     break;
 
                 case TonalityEffect ton:
-                    part.tonality = ton.tonality;
+                {
+                    Tonality chosen = ton.tonality;
+
+                    switch (ton.mode)
+                    {
+                        case TonalityEffect.TonalityEffectMode.Explicit:
+                            chosen = ton.tonality;
+                            break;
+
+                        case TonalityEffect.TonalityEffectMode.RandomAny:
+                            chosen = GetRandomAnyTonality();
+                            break;
+
+                        case TonalityEffect.TonalityEffectMode.RandomMajorish:
+                            chosen = GetRandomMajorishTonality();
+                            break;
+
+                        case TonalityEffect.TonalityEffectMode.RandomMinorish:
+                            chosen = GetRandomMinorishTonality();
+                            break;
+                    }
+
+                    part.tonality = chosen;
+
+                    // If you eventually show tonality in UI, rebind:
+                    var ui = partUIs.ElementAtOrDefault(idx);
+                    if (ui != null) ui.Bind(part);
+
+                    RaisePartChanged();
                     break;
+                }
 
                 case InstrumentEffect instFx:
                     ApplyInstrumentEffect(instFx, target, part, partIndex);
                     break;
+
+                case ModulationEffect mod:
+                {
+                    // Current key context
+                    var currentMode = part.tonality;
+                    var currentRoot = part.rootNote;
+
+                    NoteName newRoot = currentRoot;
+
+                    switch (mod.mode)
+                    {
+                        case ModulationEffect.ModulationMode.AbsoluteKey:
+                            newRoot = mod.absoluteRoot;
+                            break;
+
+                        case ModulationEffect.ModulationMode.IntervalWithinScale:
+                            {
+                                var scale = GetScaleFromTonality(currentMode, currentRoot);
+                                if (GetNoteFromScale(
+                                    scale, mod.targetDegree, currentRoot, 4, out var note))
+                                    newRoot = note.NoteName;
+                                break;
+                            }
+
+                        case ModulationEffect.ModulationMode.RandomAny:
+                            newRoot = GetRandomNote();   // uses MusicTheory helper
+                            break;
+
+                        case ModulationEffect.ModulationMode.RandomWithinScale:
+                            {
+                                var scale = GetScaleFromTonality(currentMode, currentRoot);
+                                var notes = GetNotesFromScale(scale, currentRoot, 4, 7);
+                                if (notes != null && notes.Count > 0)
+                                {
+                                    int startIdx = 0;
+                                    int endIdx = notes.Count;
+
+                                    // Optionally avoid staying on tonic
+                                    if (mod.excludeTonicOnRandomWithinScale && notes.Count > 1)
+                                    {
+                                        startIdx = 1; // skip degree 1
+                                    }
+
+                                    int idxInScale = UnityEngine.Random.Range(startIdx, endIdx);
+                                    newRoot = notes[idxInScale].NoteName;
+                                }
+                                break;
+                            }
+                    }
+
+                    part.rootNote = newRoot;
+                    part.hasExplicitRootNote = true;
+
+                    // Re-bind UI for that part if you eventually display key info
+                    var ui = partUIs.ElementAtOrDefault(idx);
+                    if (ui != null) ui.Bind(part);
+
+                    RaisePartChanged();
+                    break;
+                }
             }
 
             return true;
