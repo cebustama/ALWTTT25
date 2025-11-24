@@ -268,7 +268,71 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658e6e9a61b2784698f9211ac35747d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debug: 1
+  jamRules:
+    loopsPerPart: 3
+    drawPerPart: 5
+    inspirationPerPart: 3
+  maxSongHype: 100
+  gigHand: {fileID: 0}
+  mainCamera: {fileID: 0}
+  handCamera: {fileID: 0}
+  maxVibeFromSongHype: 20
+  audienceJumpIntensityCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.45585638
+      value: 0.025831718
+      inSlope: 0.16325228
+      outSlope: 0.16325228
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.16132168
+    - serializedVersion: 3
+      time: 0.77998877
+      value: 0.22738391
+      inSlope: 1.4411355
+      outSlope: 1.4411355
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.94270366
+      value: 0.67120075
+      inSlope: 5.2382703
+      outSlope: 5.2382703
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.18757239
+      outWeight: 0.31884134
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  audienceJumpThreshold: 0.1
+  idleBpm: 120
+  compositionUI: {fileID: 0}
+  loopsTimerUI: {fileID: 0}
+  midiGenPlayConfig: {fileID: 0}
   backgroundContainer: {fileID: 8882859419072933814}
   musicianPosList:
   - {fileID: 6870591446642485967}
@@ -280,8 +344,8 @@ MonoBehaviour:
   - {fileID: 1003275971134533894}
   - {fileID: 4603410894606943367}
   sceneChanger: {fileID: 4351043292945767278}
-  fansOnWin: 100
-  cohesionPenaltyOnLoss: 10
+  useLogs: 1
+  useCompositionLogs: 1
 --- !u!114 &4351043292945767278
 MonoBehaviour:
   m_ObjectHideFlags: 0

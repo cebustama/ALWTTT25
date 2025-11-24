@@ -132,6 +132,11 @@ namespace ALWTTT.Managers
 
             public void OnSessionStarted() { }
             public void OnSessionEnded() { }
+
+            public void OnPartBpmResolved(int partIndex, int bpm)
+            {
+                // For now, nothing.
+            }
             public void Log(string msg, bool hi = false) => _host.Log(msg, hi);
         }
         #endregion

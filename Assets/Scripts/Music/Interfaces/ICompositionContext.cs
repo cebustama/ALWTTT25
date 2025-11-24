@@ -29,6 +29,8 @@ namespace ALWTTT.Interfaces
         void OnSessionStarted();
         void OnSessionEnded();
 
+        void OnPartBpmResolved(int partIndex, int bpm);
+
         void Log(string msg, bool highlight = false);
     }
 

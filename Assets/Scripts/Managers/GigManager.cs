@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ALWTTT.Managers
 {
@@ -35,6 +36,13 @@ namespace ALWTTT.Managers
 
         [Header("Vibe / Hype Balancing")]
         [SerializeField] private int maxVibeFromSongHype = 20;
+        [Header("Audience Beat Response")]
+        [SerializeField] private AnimationCurve audienceJumpIntensityCurve =
+            AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+        [SerializeField][Range(0f, 1f)] private float audienceJumpThreshold = 0.1f;
+
+        [Header("Animation and Effects")]
+        [SerializeField] private int idleBpm = 120;
 
         [Header("Composition UI")]
         [SerializeField] private SongCompositionUI compositionUI;
@@ -50,6 +58,8 @@ namespace ALWTTT.Managers
         [Header("Composition Dev")]
         [SerializeField] private bool useLogs = true;
         [SerializeField] private bool useCompositionLogs = true;
+        [SerializeField] private bool debugSongHype = false;
+        [SerializeField] private Slider songHypeDebugSlider;
 
         private GigPhase currentGigPhase;
         private List<SongData> playedSongs = new List<SongData>();
@@ -60,6 +70,8 @@ namespace ALWTTT.Managers
 
         private bool _isSongPlaying;
         private bool _isBetweenSongs;
+
+        private int _currentBpm;
 
         // PartIndex -> (AudienceIndex -> List of impressions per loop)
         private readonly Dictionary<int, Dictionary<int, List<int>>>
@@ -78,6 +90,7 @@ namespace ALWTTT.Managers
         public float SongHype01 => 
             maxSongHype <= 0f ? 0f : Mathf.Clamp01(_songHype / maxSongHype);
 
+        private SongFeedbackContext _lastSongFeedback;
 
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
@@ -180,6 +193,11 @@ namespace ALWTTT.Managers
 
             public void Log(string msg, bool highlight = false) =>
                 _host.Log(msg, highlight);
+
+            public void OnPartBpmResolved(int partIndex, int bpm)
+            {
+                _host.ApplyBpmToStage(partIndex, bpm);
+            }
         }
 
         #endregion
@@ -214,8 +232,8 @@ namespace ALWTTT.Managers
 
         private void Start()
         {
-            //MidiMusicManager.GenerateSongs(GameManager.PersistentGameplayData.CurrentSongList);
             StartGig();
+            SetupSongHypeDebugUI();
         }
 
         private void OnDestroy()
@@ -363,6 +381,16 @@ namespace ALWTTT.Managers
             {
                 _isSongPlaying = false;
                 _isBetweenSongs = false;
+            }
+
+            // Keep debug slider visibility in sync with the flag
+            if (songHypeDebugSlider != null &&
+                songHypeDebugSlider.gameObject.activeSelf != debugSongHype)
+            {
+                songHypeDebugSlider.gameObject.SetActive(debugSongHype);
+
+                if (debugSongHype)
+                    songHypeDebugSlider.SetValueWithoutNotify(_songHype);
             }
         }
 
@@ -789,6 +817,7 @@ namespace ALWTTT.Managers
 
             _songHype = 0f;
             UpdateSongHypeUI();
+            UpdateAudienceBeatIntensity();
 
             _session = new CompositionSession();
             _session.LoopFinished += OnCompositionLoopFinished;
@@ -849,6 +878,9 @@ namespace ALWTTT.Managers
             // Clear per-song state for the next song
             _gigPartsForCurrentSong.Clear();
             _audienceLoopImpressionsByPart.Clear();
+
+            // Reset BPM/Animation
+            ResetStageToIdle();
         }
 
         public bool CanPlayActionCard(CardData card)
@@ -941,11 +973,18 @@ namespace ALWTTT.Managers
             CurrentGigPhase = GigPhase.AudienceTurn;
         }
 
-        // TODO: Call aftear each LoopScore is obtained
         private void AddSongHype(float delta)
         {
+            if (debugSongHype)
+                return;
+
             _songHype = Mathf.Clamp(_songHype + delta, 0f, maxSongHype);
             UpdateSongHypeUI();
+            UpdateAudienceBeatIntensity();
+
+            // Keep the slider in sync (even if it's hidden)
+            if (songHypeDebugSlider != null)
+                songHypeDebugSlider.SetValueWithoutNotify(_songHype);
         }
 
         private void UpdateSongHypeUI()
@@ -1021,6 +1060,153 @@ namespace ALWTTT.Managers
                     $"avgImpression={avgImpression:F2}, ΔVibe={vibeDelta}",
                     customColor: "green");
             }
+        }
+
+        // TODO: Move all animation logic to its own class ie "BandAnimator" etc
+        public void ApplyBpmToStage(int partIndex, int bpm)
+        {
+            _currentBpm = bpm;
+
+            if (useLogs)
+                Debug.Log($"{DebugTag} [Gig] Part {partIndex} BPM resolved → {bpm}");
+
+            // 1) Background pulse
+            if (backgroundContainer != null)
+            {
+                backgroundContainer.SetBPM(bpm);
+            }
+
+            // 2) Band animators
+            foreach (var musician in CurrentMusicianCharacterList)
+            {
+                if (musician == null || musician.CharacterAnimator == null)
+                    continue;
+
+                var anim = musician.CharacterAnimator;
+
+                anim.SetBPM(bpm);
+                anim.SkipEveryNBeats = 1;
+                anim.BeatOffsetBeats = UnityEngine.Random.Range(0f, 0.15f);
+                anim.JumpOnBeat = true;
+                anim.RotateOnBeat = false; // or mix per musician if you want
+                anim.EmitOnBeat = true;
+            }
+
+            // 3) Audience animators – follow BPM, intensity handled by SongHype
+            foreach (var audience in CurrentAudienceCharacterList)
+            {
+                if (audience == null || audience.CharacterAnimator == null)
+                    continue;
+
+                var anim = audience.CharacterAnimator;
+
+                anim.SetBPM(bpm);
+                anim.SkipEveryNBeats = 1;
+                anim.BeatOffsetBeats = UnityEngine.Random.Range(0f, 0.15f);
+            }
+        }
+
+        private void ResetStageToIdle()
+        {
+            if (backgroundContainer != null)
+                backgroundContainer.SetBPM(0);
+
+            foreach (var musician in CurrentMusicianCharacterList)
+            {
+                if (musician == null || musician.CharacterAnimator == null)
+                    continue;
+
+                var anim = musician.CharacterAnimator;
+
+                anim.SetBPM(idleBpm);
+                anim.SkipEveryNBeats = 2;
+                anim.BeatOffsetBeats = UnityEngine.Random.Range(0.45f, 0.55f);
+                anim.JumpOnBeat = false;
+                anim.RotateOnBeat = true;
+                anim.EmitOnBeat = false;
+            }
+
+            // Audience back to their "idle" animation
+            foreach (var audience in CurrentAudienceCharacterList)
+            {
+                if (audience == null || audience.CharacterAnimator == null)
+                    continue;
+
+                var anim = audience.CharacterAnimator;
+
+                anim.SetBPM(idleBpm);
+                anim.SkipEveryNBeats = 2;
+                anim.BeatOffsetBeats = UnityEngine.Random.Range(0.45f, 0.55f);
+
+                anim.JumpOnBeat = false;   // hype jumping only during composition
+                anim.RotateOnBeat = true;    // gentle idle sway
+                anim.EmitOnBeat = false;
+
+                // Reset hype multiplier so next song starts from rest
+                anim.SetJumpIntensity01(0f);
+            }
+        }
+
+        private void UpdateAudienceBeatIntensity()
+        {
+            if (CurrentAudienceCharacterList == null ||
+                CurrentAudienceCharacterList.Count == 0)
+                return;
+
+            float t = SongHype01; // 0..1 based on current SongHype/maxSongHype
+            float intensity = audienceJumpIntensityCurve != null &&
+                              audienceJumpIntensityCurve.length > 0
+                ? Mathf.Clamp01(audienceJumpIntensityCurve.Evaluate(t))
+                : t * t; // fallback: simple ease-in quadratic
+
+            foreach (var audience in CurrentAudienceCharacterList)
+            {
+                if (audience == null || audience.CharacterAnimator == null)
+                    continue;
+
+                var anim = audience.CharacterAnimator;
+
+                // Scale their jump height
+                anim.SetJumpIntensity01(intensity);
+
+                // They only actually “jump” when hype passes a threshold
+                anim.JumpOnBeat = (intensity >= audienceJumpThreshold);
+
+                // Optionally: you could also turn on rotation/particles here
+                // anim.RotateOnBeat = false;
+                // anim.EmitOnBeat = false;
+            }
+        }
+
+        // DEBUGGING
+        private void SetupSongHypeDebugUI()
+        {
+            if (songHypeDebugSlider == null) return;
+
+            songHypeDebugSlider.minValue = 0f;
+            songHypeDebugSlider.maxValue = maxSongHype;
+            songHypeDebugSlider.wholeNumbers = false;
+
+            // Start synced to current hype
+            songHypeDebugSlider.SetValueWithoutNotify(_songHype);
+
+            // Avoid double-registering
+            songHypeDebugSlider.onValueChanged.RemoveListener(OnDebugSongHypeSliderChanged);
+            songHypeDebugSlider.onValueChanged.AddListener(OnDebugSongHypeSliderChanged);
+
+            // Only visible when debug mode is ON
+            songHypeDebugSlider.gameObject.SetActive(debugSongHype);
+        }
+
+        private void OnDebugSongHypeSliderChanged(float value)
+        {
+            // Only override the game when debug mode is enabled
+            if (!debugSongHype) return;
+
+            _songHype = Mathf.Clamp(value, 0f, maxSongHype);
+
+            UpdateSongHypeUI();
+            UpdateAudienceBeatIntensity();
         }
     }
 }

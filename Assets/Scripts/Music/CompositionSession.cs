@@ -389,6 +389,11 @@ namespace ALWTTT.Music
                 _partCache[partIndex] = cache;
             }
 
+            if (cache.resolvedBpm > 0)
+            {
+                _ctx?.OnPartBpmResolved(partIndex, cache.resolvedBpm);
+            }
+
             var partName = _ctx.CompositionUI.Model.parts[partIndex].label;
             var duration = 
                 mm.PlayRaw(cache.mergedBytes, cache.seconds, 

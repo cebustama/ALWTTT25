@@ -17,6 +17,9 @@ namespace ALWTTT.Characters
         [SerializeField] private float jumpHeight = 0.25f;
         [SerializeField] private AnimationCurve jumpCurve;
 
+        [Header("External Intensity")]
+        [SerializeField][Range(0f, 2f)] private float jumpIntensityMultiplier = 1f;
+
         [Header("Rotation")]
         [SerializeField] private bool rotateOnBeat = true;
         [SerializeField] private float rotationAmplitude = 6f;
@@ -39,10 +42,13 @@ namespace ALWTTT.Characters
         private float nextParticleTime; // absolute
         private int beatsSinceLastEmit;
 
+        private float baseJumpHeight;
+
         private int animBeatCounter = 0;
         private float nextAnimBeatTime;
 
         // Public 
+        #region Encapsulation
         public int SkipEveryNBeats
         {
             get => skipEveryNBeats;
@@ -72,6 +78,7 @@ namespace ALWTTT.Characters
             get => emitoOnBeat;
             set => emitoOnBeat = value;
         }
+        #endregion
 
         private void Awake()
         {
@@ -79,8 +86,9 @@ namespace ALWTTT.Characters
                 jumpRoot = transform;
 
             originalLocalPos = jumpRoot.localPosition;
-
             originalZ = jumpRoot.localEulerAngles.z;
+
+            baseJumpHeight = jumpHeight;
 
             RecalcBeatInterval();
             ScheduleNextParticle();
@@ -116,7 +124,11 @@ namespace ALWTTT.Characters
                 // Jumping
                 if (jumpOnBeat)
                 {
-                    float jump = jumpCurve.Evaluate(pingPong) * jumpHeight;
+                    float jump = 
+                        jumpCurve.Evaluate(pingPong) *
+                        baseJumpHeight *
+                        jumpIntensityMultiplier;
+
                     jumpRoot.localPosition = originalLocalPos + Vector3.up * jump;
                 }
 
@@ -166,6 +178,13 @@ namespace ALWTTT.Characters
         {
             particleBeatOffsetBeats = beats;
             ScheduleNextParticle(true);
+        }
+
+        public void SetJumpIntensity01(float t)
+        {
+            // 0 = no jump, 1 = full configured height
+            t = Mathf.Clamp01(t);
+            jumpIntensityMultiplier = t;
         }
 
         public void BurstParticles(int count)
