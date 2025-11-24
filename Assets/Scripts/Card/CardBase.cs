@@ -69,8 +69,8 @@ namespace ALWTTT
                 "COMPOSITION" : CardData.CardType.ToString();
             nameTextField.text = CardData.CardName;
             descTextField.text = CardData.GetDescription();
-            grooveCostTextField.text = CardData.GrooveCost.ToString();
-            grooveGenTextField.text = CardData.GrooveGenerated.ToString();
+            grooveCostTextField.text = CardData.InspirationCost.ToString();
+            grooveGenTextField.text = CardData.InspirationGenerated.ToString();
         }
         #endregion
 
@@ -83,8 +83,8 @@ namespace ALWTTT
             if (CardData.CardType == CardType.SFX)
             {
                 GameManager.PersistentGameplayData.SongModifierCardsList.Add(CardData);
-                SpendGroove(CardData.GrooveCost);
-                GenerateGroove(CardData.GrooveGenerated);
+                SpendGroove(CardData.InspirationCost);
+                GenerateGroove(CardData.InspirationGenerated);
                 DeckManager.OnCardPlayed(this);
             }
             else
@@ -114,8 +114,8 @@ namespace ALWTTT
         {
             Debug.Log($"<color=cyan> Playing card (coroutine)...</color>");
 
-            SpendGroove(CardData.GrooveCost);
-            GenerateGroove(CardData.GrooveGenerated);
+            SpendGroove(CardData.InspirationCost);
+            GenerateGroove(CardData.InspirationGenerated);
 
             foreach (var playerAction in CardData.CardActionDataList)
             {

@@ -13,6 +13,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace ALWTTT.Managers
@@ -25,11 +26,15 @@ namespace ALWTTT.Managers
 
         [Header("Composition Rules")]
         [SerializeField] private JamRules jamRules = new JamRules();
+        [SerializeField] private float maxSongHype = 100f;
 
         [Header("Cards / Hand")]
         [SerializeField] private HandController gigHand;
         [SerializeField] private Camera mainCamera;
         [SerializeField] private Camera handCamera;
+
+        [Header("Vibe / Hype Balancing")]
+        [SerializeField] private int maxVibeFromSongHype = 20;
 
         [Header("Composition UI")]
         [SerializeField] private SongCompositionUI compositionUI;
@@ -67,6 +72,11 @@ namespace ALWTTT.Managers
         // Gig-level events that expose *enriched* contexts
         public event Action<PartFeedbackContext> OnGigPartFeedbackReady;
         public event Action<SongFeedbackContext> OnGigSongFeedbackReady;
+
+        private float _songHype;
+        public float SongHype => _songHype;
+        public float SongHype01 => 
+            maxSongHype <= 0f ? 0f : Mathf.Clamp01(_songHype / maxSongHype);
 
 
         #region Cache
@@ -515,7 +525,6 @@ namespace ALWTTT.Managers
             var song = GameManager.PersistentGameplayData.CurrentSong;
 
             playedSongs.Add(song);
-            UIManager.GigCanvas.FillSongDropdown(playedSongs);
             backgroundContainer.SetBPM(song.BPM);
 
             // TODO: Playing Musician Animator Settings
@@ -561,12 +570,6 @@ namespace ALWTTT.Managers
                 GameManager.PersistentGameplayData.SongModifierCardsList)
             { 
                 
-            }
-
-            foreach (var ac in CurrentAudienceCharacterList)
-            {
-                if (ac.IsBlocked) continue; // No vibe for Blocked characters
-                ac.AudienceStats.ApplySongVibe(song, reactionDuration);
             }
 
             // TODO: Apply Vibe to enemies
@@ -784,6 +787,9 @@ namespace ALWTTT.Managers
                 _session.End();
             }
 
+            _songHype = 0f;
+            UpdateSongHypeUI();
+
             _session = new CompositionSession();
             _session.LoopFinished += OnCompositionLoopFinished;
             _session.PartFinished += OnCompositionPartFinished;
@@ -834,16 +840,15 @@ namespace ALWTTT.Managers
             // Build an enriched SongFeedbackContext using the gig's part list
             var enrichedSong = new SongFeedbackContext(_gigPartsForCurrentSong);
 
+            // Macro reaction – final SongHype +aggregated impressions → Vibe
+            ApplySongHypeToAudience(enrichedSong);
+
             // Notify gig-level listeners
             OnGigSongFeedbackReady?.Invoke(enrichedSong);
 
             // Clear per-song state for the next song
             _gigPartsForCurrentSong.Clear();
             _audienceLoopImpressionsByPart.Clear();
-
-            // TODO later:
-            // - use this to drive a big, slow “macro” crowd reaction
-            // - award fans, cohesion, etc., based on overall song quality.
         }
 
         public bool CanPlayActionCard(CardData card)
@@ -867,8 +872,15 @@ namespace ALWTTT.Managers
                 || CurrentAudienceCharacterList.Count == 0)
                 return;
 
-            Debug.Log(
-                $"{DebugTag} [Gig] Loop finished → audience micro reactions. {loopCtx}");
+            // Compute loop score and SongHype delta using the pure calculator
+            float loopScore = LoopScoreCalculator.ComputeLoopScore(loopCtx);
+            float hypeDelta = LoopScoreCalculator.ComputeHypeDelta(loopScore);
+
+            AddSongHype(hypeDelta);
+
+            Log($"{DebugTag} [Gig] Loop finished. " +
+                $"Score={loopScore:F1}, ΔHype={hypeDelta:F1}, " +
+                $"SongHype={SongHype:F1}");
 
             // Part index from the loop context
             int partIndex = loopCtx.PartIndex;
@@ -927,6 +939,88 @@ namespace ALWTTT.Managers
             // Hand control to the existing gig phase system:
             // this will call AudienceTurnRoutine() and run all audience actions.
             CurrentGigPhase = GigPhase.AudienceTurn;
+        }
+
+        // TODO: Call aftear each LoopScore is obtained
+        private void AddSongHype(float delta)
+        {
+            _songHype = Mathf.Clamp(_songHype + delta, 0f, maxSongHype);
+            UpdateSongHypeUI();
+        }
+
+        private void UpdateSongHypeUI()
+        {
+            var gigCanvas = UIManager != null ? UIManager.GigCanvas : null;
+            if (gigCanvas == null) return;
+
+            gigCanvas.SetSongHype(SongHype01);   // 0–1 normalized
+        }
+
+        private void ApplySongHypeToAudience(SongFeedbackContext enrichedSong)
+        {
+            if (CurrentAudienceCharacterList == null ||
+                CurrentAudienceCharacterList.Count == 0)
+                return;
+
+            int audienceCount = CurrentAudienceCharacterList.Count;
+
+            // Aggregate impressions per audience member across all parts/loops
+            var totalImpression = new float[audienceCount];
+            var sampleCounts = new int[audienceCount];
+
+            foreach (var part in enrichedSong.Parts)
+            {
+                var perAudience = part.AudienceLoopImpressions;
+                if (perAudience == null) continue;
+
+                foreach (var kv in perAudience)
+                {
+                    int index = kv.Key;
+                    if (index < 0 || index >= audienceCount) continue;
+
+                    var impressions = kv.Value;
+                    if (impressions == null || impressions.Count == 0) continue;
+
+                    foreach (var v in impressions)
+                    {
+                        totalImpression[index] += v;   // v is in [-2, 2]
+                        sampleCounts[index] += 1;
+                    }
+                }
+            }
+
+            // Base vibe from final SongHype (0..maxSongHype → 0..maxVibeFromSongHype)
+            float baseVibe = SongHype01 * maxVibeFromSongHype;
+
+            // 3) Apply per-audience modifiers and actually add Vibe
+            for (int i = 0; i < audienceCount; i++)
+            {
+                var audience = CurrentAudienceCharacterList[i];
+                if (audience == null) continue;
+                // blocked chars get no vibe
+                if (audience.IsBlocked) continue;
+
+                float avgImpression =
+                    sampleCounts[i] > 0 ? totalImpression[i] / sampleCounts[i] : 0f; // [-2, 2]
+
+                // Map avgImpression [-2,2] → multiplier [0.5, 1.5]
+                float impressionFactor = 1f + (avgImpression * 0.25f);
+
+                float vibeFloat = baseVibe * impressionFactor;
+                int vibeDelta = Mathf.RoundToInt(vibeFloat);
+
+                if (vibeDelta <= 0)
+                {
+                    // For MVP: no negative macro Vibe, just “no gain”.
+                    continue;
+                }
+
+                audience.AudienceStats.AddVibe(vibeDelta);
+
+                Log($"{DebugTag} [Gig] Final SongHype → Audience {audience.CharacterId} " +
+                    $"avgImpression={avgImpression:F2}, ΔVibe={vibeDelta}",
+                    customColor: "green");
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ MonoBehaviour:
     customLabel: 
     musicianId: 
   modifierEffects:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 63c52baa553fbe2498c35b5bce51efdc, type: 2}
   keywordsList: 
   audioType: 0
   cardType: 0

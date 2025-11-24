@@ -6,6 +6,7 @@ namespace ALWTTT.Enums
         TCH,
         EMT,
         SFX,
-        SongMod
+        SongMod,
+        None
     }
 }

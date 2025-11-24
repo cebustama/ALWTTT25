@@ -11,7 +11,6 @@ namespace ALWTTT.Interfaces
         void AddVibe(int amount, float duration = 2f);
         void RemoveVibe(int amount, float duration = 2f);
         void SetCurrentVibe(int vibe, float duration = 2f);
-        void ApplySongVibe(SongData song, float duration = 2f);
 
         // Preferences
     }

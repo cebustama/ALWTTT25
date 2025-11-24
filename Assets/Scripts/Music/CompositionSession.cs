@@ -1,4 +1,5 @@
 ﻿using ALWTTT.Cards;
+using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
@@ -240,9 +241,9 @@ namespace ALWTTT.Music
             // 1) Inspiration cost (only for composition cards)
             if (c.IsComposition)
             {
-                int cost = Math.Max(0, c.GrooveCost);
+                int cost = Math.Max(0, c.InspirationCost);
                 Info($"inspiration: have={_currentInspiration} " +
-                    $"cost={cost} gen={c.GrooveGenerated}");
+                    $"cost={cost} gen={c.InspirationGenerated}");
                 if (cost > _currentInspiration)
                     return Fail("Not enough inspiration");
             }
@@ -312,11 +313,11 @@ namespace ALWTTT.Music
             // 8) Spend / preview inspiration
             if (c.IsComposition)
             {
-                int cost = Math.Max(0, c.GrooveCost);
+                int cost = Math.Max(0, c.InspirationCost);
                 _currentInspiration = Math.Max(0, _currentInspiration - cost);
                 ui.SetInspiration(_currentInspiration);
 
-                int gen = Math.Max(0, c.GrooveGenerated);
+                int gen = Math.Max(0, c.InspirationGenerated);
                 if (gen > 0)
                 {
                     _buildingPartInspirationPerLoop += gen;
@@ -434,6 +435,82 @@ namespace ALWTTT.Music
 
             _loopsRemainingForPart--;
 
+            int inspirationGainedThisLoop = _perLoopInspirationCurrentPart;
+            if (inspirationGainedThisLoop > 0)
+            {
+                _currentInspiration += inspirationGainedThisLoop;
+                _ctx.CompositionUI?.SetInspiration(_currentInspiration);
+                _ctx.CompositionUI?.SetPlusInspiration(inspirationGainedThisLoop);
+            }
+
+            var model = _ctx.CompositionUI?.Model;
+            SongCompositionUI.PartEntry partEntry = null;
+
+            if (model != null &&
+                _currentPartIndex >= 0 &&
+                _currentPartIndex < model.parts.Count)
+            {
+                partEntry = model.parts[_currentPartIndex];
+            }
+
+            var trackSnapshots = new List<LoopTrackSnapshot>();
+            if (partEntry?.tracks != null)
+            {
+                foreach (var t in partEntry.tracks)
+                {
+                    var snap = new LoopTrackSnapshot(
+                        musicianId: t.musicianId,
+                        role: t.role,
+                        synergyType: t.synergyType,
+                        inspirationGenerated: t.inspirationGenerated,
+                        info: t.info
+                    );
+                    trackSnapshots.Add(snap);
+                }
+            }
+
+            int loopIndex0 = _loopsTotalForPart - _loopsRemainingForPart - 1;
+            string partLabel = _ctx.CompositionUI?.GetPartLabel(_currentPartIndex) ?? 
+                $"Part {_currentPartIndex}";
+
+            var ctx = new LoopFeedbackContext(
+                partIndex: _currentPartIndex,
+                loopIndexWithinPart: loopIndex0,
+                loopsInPart: _loopsTotalForPart,
+                partLabel: partLabel,
+                inspirationGainedThisLoop: inspirationGainedThisLoop,
+                inspirationAfterLoop: _currentInspiration,
+                tracks: trackSnapshots
+            );
+
+            // Store in per-part history
+            if (!_loopHistoryByPart.TryGetValue(_currentPartIndex, out var list))
+            {
+                list = new List<LoopFeedbackContext>();
+                _loopHistoryByPart[_currentPartIndex] = list;
+            }
+            list.Add(ctx);
+
+            LoopFinished?.Invoke(ctx);
+
+            if (_loopsRemainingForPart > 0)
+            {
+                PlaySinglePartLoop(_currentPartIndex);
+                return;
+            }
+
+            if (ComputeNextPartIsReady())
+            {
+                AdvanceToNextPart();
+                return;
+            }
+
+            End();
+            /*
+            _isPlaying = false;
+
+            _loopsRemainingForPart--;
+
             int inspirationGainedThisLoop = 0;
 
             if (_perLoopInspirationCurrentPart > 0)
@@ -503,6 +580,7 @@ namespace ALWTTT.Music
 
             // No next part: ending session will emit SongFeedbackContext
             End();
+            */
         }
 
         private void EmitPartFinishedForCurrentPart()

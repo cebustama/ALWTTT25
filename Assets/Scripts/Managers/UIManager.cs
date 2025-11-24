@@ -47,14 +47,12 @@ namespace ALWTTT.Managers
 
         private void Start()
         {
-            GigCanvas.FillSongDropdown();
+
         }
 
         public void SetupEncounterUI(GigEncounter encounter)
         {
-            Debug.Log($"<color=green>HERE {encounter.NumberOfSongs}</color>");
-            GigCanvas.SetupSongIcons(encounter.NumberOfSongs);
-            GigCanvas.SetCurrentSongIndex(0);
+
         }
 
         public void SetCanvas(CanvasBase targetCanvas, bool open, bool reset = false)

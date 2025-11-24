@@ -85,13 +85,6 @@ namespace ALWTTT.Characters.Audience
         {
             SetCurrentVibe(CurrentVibe - amount, duration);
         }
-
-        public void ApplySongVibe(SongData song, float duration = 2f)
-        {
-            // TODO: Take into account Audience Member preferences/stats
-            var vibeToAdd = song.GetSongBaseVibe();
-            AddVibe(vibeToAdd, duration);
-        }
         
         public void ApplyStatus(StatusType targetStatus, int value)
         {

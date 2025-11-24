@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.TonalityEffect
   scope: 1
   timing: 1
-  tonality: 2
+  mode: 1
+  tonality: 0

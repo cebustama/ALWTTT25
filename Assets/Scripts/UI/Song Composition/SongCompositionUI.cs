@@ -1,5 +1,6 @@
 ﻿using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
+using ALWTTT.Enums;
 using Melanchall.DryWetMidi.MusicTheory;
 using MidiGenPlay;
 using MidiGenPlay.Composition;
@@ -55,6 +56,8 @@ namespace ALWTTT.UI
             public TrackRole role;                 // Rhythm / Backing / Melody / Harmony
             public string info;                 // “Funk Groove”, “Pentatonic”, card name, etc
             public int inspirationGenerated;    // per-loop gain contributed by this track
+
+            public CardType synergyType;
 
             public TrackStyleBundleSO styleBundle;
 
@@ -464,6 +467,29 @@ namespace ALWTTT.UI
             return model.parts[index].tracks != null && model.parts[index].tracks.Count > 0;
         }
 
+        public string GetPartLabel(int partIndex)
+        {
+            // Defensive: no model or no parts → default label
+            if (model == null || model.parts == null || model.parts.Count == 0)
+                return defaultPartLabel;
+
+            // Clamp index into range so we never blow up on edges
+            int clampedIndex = Mathf.Clamp(partIndex, 0, model.parts.Count - 1);
+
+            var part = model.parts[clampedIndex];
+            var label = part != null ? part.label : null;
+
+            // Fallbacks if label is empty / null
+            if (string.IsNullOrWhiteSpace(label))
+            {
+                label = (clampedIndex == 0)
+                    ? defaultPartLabel
+                    : $"Part {clampedIndex + 1}";
+            }
+
+            return label;
+        }
+
         public bool HasPlayableNextPart(int afterIndex)
         {
             int next = afterIndex + 1;
@@ -651,19 +677,24 @@ namespace ALWTTT.UI
             int beforeCount = part.tracks != null ? part.tracks.Count : 0;
 
             var existing = part.tracks.FirstOrDefault(t => t.musicianId == musicianId);
+            int complexity = 
+                Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0);
+            var synergy = sourceCard != null ? sourceCard.CardType : CardType.None;
+
             if (existing != null)
             {
                 // REPLACE (update metadata + overrides)
                 existing.role = role;
                 existing.info = info;
                 existing.inspirationGenerated = 
-                    Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0);
+                    Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0);
+                existing.synergyType = synergy;
 
                 // Style budles
-                if (sourceCard != null && sourceCard.IsTrackCard)
+                if (sourceCard != null && sourceCard.IsTrackCard &&
+                    sourceCard.TrackAction?.styleBundle != null)
                 {
-                    if (sourceCard.TrackAction?.styleBundle != null)
-                        existing.styleBundle = sourceCard.TrackAction?.styleBundle;
+                    existing.styleBundle = sourceCard.TrackAction.styleBundle;
                 }
             }
             else
@@ -675,15 +706,16 @@ namespace ALWTTT.UI
                     role = role,
                     info = info,
                     inspirationGenerated = 
-                        Mathf.Max(0, sourceCard != null ? sourceCard.GrooveGenerated : 0),
+                        Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0),
+                    synergyType = synergy,
                 };
 
 
                 // Style budles
-                if (sourceCard != null && sourceCard.IsTrackCard)
+                if (sourceCard != null && sourceCard.IsTrackCard &&
+                    sourceCard.TrackAction?.styleBundle != null)
                 {
-                    if (sourceCard.TrackAction?.styleBundle != null)
-                        entry.styleBundle = sourceCard.TrackAction?.styleBundle;
+                    entry.styleBundle = sourceCard.TrackAction.styleBundle;
                 }
 
                 part.tracks.Add(entry);

@@ -97,9 +97,9 @@ namespace ALWTTT.Cards
         public bool UsableWithoutTarget => usableWithoutTarget;
         public string CardName => cardName;
         public RarityType Rarity => rarity;
-        public int GrooveCost => inspirationCost;
+        public int InspirationCost => inspirationCost;
         public Sprite CardSprite => cardSprite;
-        public int GrooveGenerated => inspirationGenerated;
+        public int InspirationGenerated => inspirationGenerated;
         public MusicianCharacterType MusicianCharacterType => musicianCharacterType;
         public bool ExhaustAfterPlay => exhaustAfterPlay;
         public CardType CardType => cardType;
