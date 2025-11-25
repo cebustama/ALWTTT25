@@ -9,6 +9,8 @@ using ALWTTT.Interfaces;
 using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
+using MidiGenPlay;
+using MidiGenPlay.Services;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -55,11 +57,14 @@ namespace ALWTTT.Managers
         [SerializeField] private List<Transform> audienceMemberPosList;
         [SerializeField] private SceneChanger sceneChanger;
 
-        [Header("Composition Dev")]
+        [Header("Dev / Composition")]
         [SerializeField] private bool useLogs = true;
         [SerializeField] private bool useCompositionLogs = true;
         [SerializeField] private bool debugSongHype = false;
         [SerializeField] private Slider songHypeDebugSlider;
+
+        [Header("Dev / Instruments")]
+        [SerializeField] private bool debugInstrumentPicker = false;
 
         private GigPhase currentGigPhase;
         private List<SongData> playedSongs = new List<SongData>();
@@ -91,6 +96,8 @@ namespace ALWTTT.Managers
             maxSongHype <= 0f ? 0f : Mathf.Clamp01(_songHype / maxSongHype);
 
         private SongFeedbackContext _lastSongFeedback;
+
+        private InstrumentRepositoryResources _instrumentRepo;
 
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
@@ -228,6 +235,12 @@ namespace ALWTTT.Managers
                 Instance = this;
                 currentGigPhase = GigPhase.PrepareGig;
             }
+
+            // Init repositories
+            if (midiGenPlayConfig != null)
+            {
+                _instrumentRepo = new InstrumentRepositoryResources(midiGenPlayConfig);
+            }
         }
 
         private void Start()
@@ -293,14 +306,13 @@ namespace ALWTTT.Managers
         private void BuildBand()
         {
             if (useLogs) Debug.Log($"{DebugTag} Building band and musicians...");
+
             for (var i = 0; 
                 i < GameManager.PersistentGameplayData.MusicianList.Count; i++)
             {
                 MusicianBase clone = Instantiate(
                     GameManager.PersistentGameplayData.MusicianList[i],
-                    MusicianPosList.Count >= i ?
-                        MusicianPosList[i] :
-                        MusicianPosList[0]
+                    MusicianPosList.Count >= i ? MusicianPosList[i] : MusicianPosList[0]
                 );
 
                 clone.BuildCharacter();
@@ -320,9 +332,11 @@ namespace ALWTTT.Managers
                 // TODO: Use a single layer per musician
                 if (i < 2) clone.SetSpriteLayerOrder(10);
                 else clone.SetSpriteLayerOrder(0);
-
-                CurrentMusicianCharacterList.Add(clone);
             }
+
+            CurrentMusicianCharacterList = _spawned;
+
+            SetupInstrumentDebugDropdowns();
         }
 
         private void BuildAudience()
@@ -396,6 +410,9 @@ namespace ALWTTT.Managers
 
         private void OnPlayPressed()
         {
+            // Inject dev overrides into the UI model before building the SongConfig
+            ApplyDebugInstrumentOverridesToCompositionModel();
+
             _session?.ConfirmCurrentPartAndStart();
         }
 
@@ -1207,6 +1224,146 @@ namespace ALWTTT.Managers
 
             UpdateSongHypeUI();
             UpdateAudienceBeatIntensity();
+        }
+
+        private void SetupInstrumentDebugDropdowns()
+        {
+            if (CurrentMusicianCharacterList == null ||
+                CurrentMusicianCharacterList.Count == 0)
+                return;
+
+            // If debug is off, hide dropdowns and clear overrides
+            if (!debugInstrumentPicker)
+            {
+                foreach (var m in CurrentMusicianCharacterList)
+                {
+                    var canvas = m?.BandCharacterCanvas;
+                    if (canvas == null) continue;
+
+                    // Hide & clear any previous options
+                    canvas.SetupInstrumentDebugDropdown(false, null, _ => { });
+                    canvas.SetupPercussionInstrumentDebugDropdown(false, null, _ => { });
+
+                    m.DebugOverrideInstrument = null;
+                    m.DebugOverridePercussionInstrument = null;
+                }
+
+                return;
+            }
+
+            _instrumentRepo.Refresh();
+            foreach (var m in CurrentMusicianCharacterList)
+            {
+                if (m == null) continue;
+
+                var canvas = m.BandCharacterCanvas;
+                var profile = m.MusicianCharacterData?.Profile;
+
+                if (canvas == null || profile == null || _instrumentRepo == null)
+                    continue;
+
+                if (profile.IsPercussionist())
+                {
+                    // This musician is considered a drummer → use percussion options
+                    var percOptions = profile.GetDebugPercussionInstrumentOptions(
+                        _instrumentRepo);
+
+                    canvas.SetupPercussionInstrumentDebugDropdown(
+                        true,
+                        percOptions,
+                        chosen =>
+                        {
+                            m.DebugOverridePercussionInstrument = chosen;
+                            m.DebugOverrideInstrument = null;
+
+                            if (useLogs)
+                            {
+                                var label = chosen != null
+                                    ? (!string.IsNullOrEmpty(chosen.InstrumentName)
+                                        ? chosen.InstrumentName
+                                        : chosen.name)
+                                    : "None (random drums)";
+
+                                Debug.Log($"{DebugTag} [Dev] {m.CharacterName} " +
+                                    $"debug percussion → {label}");
+                            }
+                        });
+                }
+                else
+                {
+                    // Normal melodic instrument picker
+                    var melOptions = profile.GetDebugMelodicInstrumentOptions(
+                        m, _instrumentRepo);
+
+                    canvas.SetupInstrumentDebugDropdown(
+                        true,
+                        melOptions,
+                        chosen =>
+                        {
+                            m.DebugOverrideInstrument = chosen;
+                            m.DebugOverridePercussionInstrument = null; // clear drums override
+
+                            if (useLogs)
+                            {
+                                var label = chosen != null
+                                    ? (!string.IsNullOrEmpty(chosen.InstrumentName)
+                                        ? chosen.InstrumentName
+                                        : chosen.name)
+                                    : "None (random melodic)";
+
+                                Debug.Log($"{DebugTag} [Dev] {m.CharacterName} " +
+                                    $"debug melodic → {label}");
+                            }
+                        });
+                }
+            }
+        }
+
+        private void ApplyDebugInstrumentOverridesToCompositionModel()
+        {
+            if (!debugInstrumentPicker) return;
+            if (compositionUI == null) return;
+
+            var model = compositionUI.Model;
+            if (model == null || model.parts == null) return;
+
+            foreach (var part in model.parts)
+            {
+                if (part == null || part.tracks == null) continue;
+
+                foreach (var track in part.tracks)
+                {
+                    if (track == null) continue;
+
+                    var musician = CurrentMusicianCharacterList
+                        .FirstOrDefault(m =>
+                            m.MusicianCharacterData != null &&
+                            m.MusicianCharacterData.CharacterId == track.musicianId);
+
+                    if (musician == null) continue;
+
+                    // Reset both first so we don't leak an old choice
+                    track.overrideMelodicInstrument = null;
+                    track.overridePercussionInstrument = null;
+
+                    bool isPercTrack =
+                        track.role == TrackRole.Rhythm
+                        // optionally more roles:
+                        // || track.role == TrackRole.Percussion
+                        ;
+
+                    if (isPercTrack && musician.DebugOverridePercussionInstrument != null)
+                    {
+                        track.overridePercussionInstrument =
+                            musician.DebugOverridePercussionInstrument;
+                    }
+                    else if (musician.DebugOverrideInstrument != null)
+                    {
+                        track.overrideMelodicInstrument =
+                            musician.DebugOverrideInstrument;
+                    }
+                }
+            }
         }
     }
 }

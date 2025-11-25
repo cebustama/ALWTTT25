@@ -1,6 +1,7 @@
 using ALWTTT.Characters.Band;
 using MidiGenPlay;
 using MidiGenPlay.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -47,5 +48,43 @@ public static class InstrumentRules
         if (filtered.Count == 0) filtered = FilterBy(secondary).ToList();
 
         return filtered.Count > 0 ? filtered : allMelodic;
+    }
+
+    /// <summary>
+    /// Debug/utility: returns the union of all melodic instruments this musician
+    /// is allowed to use across the main melodic roles (Backing, Bassline,
+    /// Melody, Harmony). Uses the same filtering rules as GetPermittedMelodic.
+    /// </summary>
+    public static IReadOnlyList<MIDIInstrumentSO> GetPermittedMelodicAllRoles(
+        MusicianBase musician,
+        IInstrumentRepository instrumentRepo)
+    {
+        if (instrumentRepo == null)
+            return Array.Empty<MIDIInstrumentSO>();
+
+        // Roles we consider when building a "global" picker for this musician
+        var roles = new[]
+        {
+            TrackRole.Backing,
+            TrackRole.Bassline,
+            TrackRole.Melody,
+            TrackRole.Harmony
+        };
+
+        var result = new HashSet<MIDIInstrumentSO>();
+
+        foreach (var role in roles)
+        {
+            var pool = GetPermittedMelodic(musician, role, instrumentRepo);
+            if (pool == null) continue;
+
+            foreach (var inst in pool)
+            {
+                if (inst != null)
+                    result.Add(inst);
+            }
+        }
+
+        return result.ToList();
     }
 }

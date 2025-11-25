@@ -221,14 +221,14 @@ namespace ALWTTT.Music
                     if (trModel.overrideMelodicInstrument != null)
                     {
                         melInst = trModel.overrideMelodicInstrument;
-                        ctx.Log($"[InstrumentEffect] Using override melodic instrument " +
-                                $"for mus='{musicianId}': '{melInst.InstrumentName}'", true);
+                        ctx.Log($"<color=blue>[Override] Using override melodic instrument " +
+                                $"for mus='{musicianId}': '{melInst.InstrumentName}'</color>");
                     }
                     else if (trModel.overridePercussionInstrument != null)
                     {
                         percInst = trModel.overridePercussionInstrument;
-                        ctx.Log($"[InstrumentEffect] Using override percussion instrument " +
-                                $"for mus='{musicianId}': '{percInst.InstrumentName}'", true);
+                        ctx.Log($"<color=blue>[Override] Using override percussion instrument " +
+                                $"for mus='{musicianId}': '{percInst.InstrumentName}'</color>");
                     }
                     else if (trModel.hasOverrideInstrumentType)
                     {

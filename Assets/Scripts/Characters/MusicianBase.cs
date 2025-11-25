@@ -1,7 +1,8 @@
 using ALWTTT.Data;
+using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
-using ALWTTT.Enums;
+using MidiGenPlay;
 using System;
 using UnityEngine;
 
@@ -13,6 +14,11 @@ namespace ALWTTT.Characters.Band
         [SerializeField] private MusicianCharacterData musicianCharacterData;
         [SerializeField] private BandCharacterStats stats;
         [SerializeField] private ParticleSystem musicianParticleSystem;
+
+        [NonSerialized] private MIDIInstrumentSO _debugOverrideInstrument;
+        [NonSerialized]
+        private MIDIPercussionInstrumentSO _debugOverridePercussionInstrument;
+
         public override IMusicianStats MusicianStats => stats;
 
         #region Encapsulate
@@ -20,6 +26,19 @@ namespace ALWTTT.Characters.Band
         public MusicianCharacterData MusicianCharacterData => musicianCharacterData;
         public BandCharacterStats Stats => stats;
         public string CharacterId => musicianCharacterData.CharacterId;
+        public string CharacterName => musicianCharacterData.CharacterName;
+
+        public MIDIInstrumentSO DebugOverrideInstrument
+        {
+            get => _debugOverrideInstrument;
+            set => _debugOverrideInstrument = value;
+        }
+
+        public MIDIPercussionInstrumentSO DebugOverridePercussionInstrument
+        {
+            get => _debugOverridePercussionInstrument;
+            set => _debugOverridePercussionInstrument = value;
+        }
         #endregion
 
         private bool _boundToGig;

@@ -1,3 +1,6 @@
+﻿using MidiGenPlay;
+using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -10,6 +13,9 @@ namespace ALWTTT.Characters.Band
         [SerializeField] private TextMeshProUGUI chrTextField;
         [SerializeField] private TextMeshProUGUI tchTextField;
         [SerializeField] private TextMeshProUGUI emtTextField;
+
+        [Header("Dev / Instruments")]
+        [SerializeField] private TMP_Dropdown instrumentDebugDropdown;
 
         public void UpdateStats(int chr, int tch, int emt)
         {
@@ -36,5 +42,105 @@ namespace ALWTTT.Characters.Band
         {
             healthBar?.SetCurrentValue(current, max, duration);
         }
+
+        #region Debug
+        public void SetupInstrumentDebugDropdown(
+            bool debugEnabled,
+            IReadOnlyList<MIDIInstrumentSO> options,
+            Action<MIDIInstrumentSO> onSelected)
+        {
+            if (!instrumentDebugDropdown) return;
+
+            instrumentDebugDropdown.onValueChanged.RemoveAllListeners();
+            instrumentDebugDropdown.gameObject.SetActive(debugEnabled);
+
+            // Backing list to map indices → instruments
+            var backing = new List<MIDIInstrumentSO>();
+
+            var uiOptions = new List<TMP_Dropdown.OptionData>();
+
+            // Index 0 = "None" → no override → use normal random system
+            uiOptions.Add(new TMP_Dropdown.OptionData("— None —"));
+            backing.Add(null);
+
+            if (options != null)
+            {
+                foreach (var inst in options)
+                {
+                    if (!inst) continue;
+
+                    string label = !string.IsNullOrEmpty(inst.InstrumentName)
+                        ? inst.InstrumentName
+                        : inst.name;
+
+                    uiOptions.Add(new TMP_Dropdown.OptionData(label));
+                    backing.Add(inst);
+                }
+            }
+
+            instrumentDebugDropdown.options = uiOptions;
+            instrumentDebugDropdown.value = 0;
+            instrumentDebugDropdown.RefreshShownValue();
+
+            if (!debugEnabled) return;
+
+            instrumentDebugDropdown.onValueChanged.AddListener(idx =>
+            {
+                MIDIInstrumentSO chosen = null;
+                if (idx >= 0 && idx < backing.Count)
+                    chosen = backing[idx];
+
+                onSelected?.Invoke(chosen);
+            });
+        }
+
+        public void SetupPercussionInstrumentDebugDropdown(
+            bool debugEnabled,
+            IReadOnlyList<MIDIPercussionInstrumentSO> options,
+            Action<MIDIPercussionInstrumentSO> onSelected)
+        {
+            if (!instrumentDebugDropdown) return;
+
+            instrumentDebugDropdown.onValueChanged.RemoveAllListeners();
+            instrumentDebugDropdown.gameObject.SetActive(debugEnabled);
+
+            var backing = new List<MIDIPercussionInstrumentSO>();
+            var uiOptions = new List<TMP_Dropdown.OptionData>();
+
+            // Index 0 = "None" → no override
+            uiOptions.Add(new TMP_Dropdown.OptionData("— Drums: None —"));
+            backing.Add(null);
+
+            if (options != null)
+            {
+                foreach (var inst in options)
+                {
+                    if (!inst) continue;
+
+                    string label = !string.IsNullOrEmpty(inst.InstrumentName)
+                        ? inst.InstrumentName
+                        : inst.name;
+
+                    uiOptions.Add(new TMP_Dropdown.OptionData(label));
+                    backing.Add(inst);
+                }
+            }
+
+            instrumentDebugDropdown.options = uiOptions;
+            instrumentDebugDropdown.value = 0;
+            instrumentDebugDropdown.RefreshShownValue();
+
+            if (!debugEnabled) return;
+
+            instrumentDebugDropdown.onValueChanged.AddListener(idx =>
+            {
+                MIDIPercussionInstrumentSO chosen = null;
+                if (idx >= 0 && idx < backing.Count)
+                    chosen = backing[idx];
+
+                onSelected?.Invoke(chosen);
+            });
+        }
+        #endregion
     }
 }

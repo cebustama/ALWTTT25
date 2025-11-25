@@ -10,10 +10,10 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
 using static ALWTTT.Cards.CardData;
 using static ALWTTT.Cards.CardData.PartActionDescriptor;
 using static MidiGenPlay.MusicTheory.MusicTheory;
-using static UnityEngine.EventSystems.EventTrigger;
 
 namespace ALWTTT.UI
 {

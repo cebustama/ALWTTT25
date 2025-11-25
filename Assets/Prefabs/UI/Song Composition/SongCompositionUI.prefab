@@ -1519,6 +1519,10 @@ PrefabInstance:
       propertyPath: m_Color.a
       value: 0.23529412
       objectReference: {fileID: 0}
+    - target: {fileID: 1582992674048213019, guid: 558dccc6a92794c4f9940319fda77702, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1590077552917589664, guid: 558dccc6a92794c4f9940319fda77702, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

@@ -1205,6 +1205,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2027330870}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: debugInstrumentPicker
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: jamRules.loopsPerPart
       value: 2
       objectReference: {fileID: 0}
