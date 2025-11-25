@@ -8,6 +8,7 @@ using MidiGenPlay;
 using MidiGenPlay.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ALWTTT.Music
@@ -203,7 +204,9 @@ namespace ALWTTT.Music
         public void Tick(float dt)
         {
             if (_state != CompositionState.BuildingNextPart && _state != CompositionState.PlayingCurrentPart) return;
-            var mm = _ctx.Music; if (mm == null) return;
+            
+            var mm = _ctx.Music; 
+            if (mm == null) return;
 
             bool midiIsPlaying = mm.IsAnySongPlaying();
 
@@ -361,9 +364,16 @@ namespace ALWTTT.Music
 
         private float PlaySinglePartLoop(int partIndex)
         {
-            var mm = _ctx.Music; if (mm == null) return 0f;
-            var cfg = BuildSongConfigFromUI(); if (cfg == null) return 0f;
+            var mm = _ctx.Music; 
+            if (mm == null) return 0f;
+
+            var cfg = BuildSongConfigFromUI(); 
+            if (cfg == null) return 0f;
+
             if (partIndex < 0 || partIndex >= cfg.Parts.Count) return 0f;
+
+            var ownerIds = mm.GetChannelOwnerIdsFor(cfg);
+            mm.SetChannelOwners(ownerIds?.ToList());
 
             if (!_partCache.TryGetValue(partIndex, out var cache) 
                 || cache?.mergedBytes == null || cache.mergedBytes.Length == 0)

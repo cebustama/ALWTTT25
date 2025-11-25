@@ -95,3 +95,4 @@ MonoBehaviour:
       maxSector: 1
   isRandomDeck: 0
   randomCardCount: 0
+  globalMusicVolume01: 0.75

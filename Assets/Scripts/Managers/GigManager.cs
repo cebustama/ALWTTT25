@@ -65,6 +65,7 @@ namespace ALWTTT.Managers
 
         [Header("Dev / Instruments")]
         [SerializeField] private bool debugInstrumentPicker = false;
+        [SerializeField] private bool debugMusicianVolume = false;
 
         private GigPhase currentGigPhase;
         private List<SongData> playedSongs = new List<SongData>();
@@ -98,6 +99,9 @@ namespace ALWTTT.Managers
         private SongFeedbackContext _lastSongFeedback;
 
         private InstrumentRepositoryResources _instrumentRepo;
+
+        private readonly Dictionary<string, float> _musicianVolume01
+            = new Dictionary<string, float>();
 
         #region Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
@@ -336,7 +340,7 @@ namespace ALWTTT.Managers
 
             CurrentMusicianCharacterList = _spawned;
 
-            SetupInstrumentDebugDropdowns();
+            SetupBandDebugElements();
         }
 
         private void BuildAudience()
@@ -1226,6 +1230,7 @@ namespace ALWTTT.Managers
             UpdateAudienceBeatIntensity();
         }
 
+        /*
         private void SetupInstrumentDebugDropdowns()
         {
             if (CurrentMusicianCharacterList == null ||
@@ -1317,7 +1322,121 @@ namespace ALWTTT.Managers
                         });
                 }
             }
+        }*/
+
+        private void SetupBandDebugElements()
+        {
+            if (CurrentMusicianCharacterList == null ||
+                CurrentMusicianCharacterList.Count == 0)
+                return;
+
+            // Refresh repo once if we’re going to use it
+            if (debugInstrumentPicker && _instrumentRepo != null)
+                _instrumentRepo.Refresh();
+
+            foreach (var m in CurrentMusicianCharacterList)
+            {
+                if (m == null) continue;
+
+                var canvas = m.BandCharacterCanvas;
+                var profile = m.MusicianCharacterData?.Profile;
+
+                if (canvas == null)
+                    continue;
+
+                // ------------------------------------------------------------------
+                // 1) INSTRUMENT DEV (dropdowns) – controlled by debugInstrumentPicker
+                // ------------------------------------------------------------------
+                if (debugInstrumentPicker && profile != null && _instrumentRepo != null)
+                {
+                    Debug.Log("<color=blue> I AM HERE </color>");
+
+                    if (profile.IsPercussionist())
+                    {
+                        // Drummer: use percussion options
+                        var percOptions = profile.GetDebugPercussionInstrumentOptions(_instrumentRepo);
+
+                        canvas.SetupPercussionInstrumentDebugDropdown(
+                            true,
+                            percOptions,
+                            chosen =>
+                            {
+                                m.DebugOverridePercussionInstrument = chosen;
+                                m.DebugOverrideInstrument = null;
+
+                                if (useLogs)
+                                {
+                                    var label = chosen != null
+                                        ? (!string.IsNullOrEmpty(chosen.InstrumentName)
+                                            ? chosen.InstrumentName
+                                            : chosen.name)
+                                        : "None (random drums)";
+
+                                    Debug.Log($"{DebugTag} [Dev] {m.CharacterName} debug percussion → {label}");
+                                }
+                            });
+                    }
+                    else
+                    {
+                        // Melodic musician: use melodic options
+                        var melOptions = profile.GetDebugMelodicInstrumentOptions(m, _instrumentRepo);
+
+                        canvas.SetupInstrumentDebugDropdown(
+                            true,
+                            melOptions,
+                            chosen =>
+                            {
+                                m.DebugOverrideInstrument = chosen;
+                                m.DebugOverridePercussionInstrument = null;
+
+                                if (useLogs)
+                                {
+                                    var label = chosen != null
+                                        ? (!string.IsNullOrEmpty(chosen.InstrumentName)
+                                            ? chosen.InstrumentName
+                                            : chosen.name)
+                                        : "None (random melodic)";
+
+                                    Debug.Log($"{DebugTag} [Dev] {m.CharacterName} debug melodic → {label}");
+                                }
+                            });
+                    }
+                }
+                else
+                {
+                    Debug.Log("<color=blue> WFT </color>");
+
+                    // Instrument debug OFF → hide dropdowns & clear overrides
+                    canvas.SetupInstrumentDebugDropdown(false, null, _ => { });
+                    canvas.SetupPercussionInstrumentDebugDropdown(false, null, _ => { });
+
+                    m.DebugOverrideInstrument = null;
+                    m.DebugOverridePercussionInstrument = null;
+                }
+
+                // ------------------------------------------------------------------
+                // 2) VOLUME DEV (slider) – independent flag debugMusicianVolume
+                // ------------------------------------------------------------------
+                if (debugMusicianVolume)
+                {
+                    float initial =
+                        _musicianVolume01.TryGetValue(m.CharacterId, out var stored)
+                            ? stored
+                            : 1f;
+
+                    canvas.SetupVolumeDebugSlider(
+                        true,
+                        v => OnMusicianVolumeSliderChanged(m, v),
+                        initial);
+                }
+                else
+                {
+                    // Hide slider and detach callbacks
+                    canvas.SetupVolumeDebugSlider(false, null, 1f);
+                }
+            }
         }
+
 
         private void ApplyDebugInstrumentOverridesToCompositionModel()
         {
@@ -1364,6 +1483,36 @@ namespace ALWTTT.Managers
                     }
                 }
             }
+        }
+
+        private float ComputeEffectiveMusicianVolume01(
+            MusicianBase musician, float musicianVolume01)
+        {
+            float global = GameManager.GameplayData != null
+                ? Mathf.Clamp01(GameManager.GameplayData.globalMusicVolume01)
+                : 1f;
+
+            float instrument = 1f; // TODO: Get instrumentSO volume
+
+            float final = global * musicianVolume01 * instrument;
+            return Mathf.Clamp01(final);
+        }
+
+        private void OnMusicianVolumeSliderChanged(
+            MusicianBase musician, float sliderValue)
+        {
+            if (musician == null || MidiMusicManager == null)
+                return;
+
+            sliderValue = Mathf.Clamp01(sliderValue);
+            _musicianVolume01[musician.CharacterId] = sliderValue;
+
+            float finalVol = ComputeEffectiveMusicianVolume01(musician, sliderValue);
+            MidiMusicManager.SetMusicianVolume01(musician.CharacterId, finalVol);
+
+            if (useLogs)
+                Debug.Log($"{DebugTag} [Dev] Volume slider for {musician.CharacterId} " +
+                    $"slider={sliderValue:0.00} final={finalVol:0.00}");
         }
     }
 }

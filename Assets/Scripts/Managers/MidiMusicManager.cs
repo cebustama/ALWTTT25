@@ -196,6 +196,8 @@ namespace ALWTTT.Managers
         {
             _channelOwners.Clear();
             if (owners != null) _channelOwners.AddRange(owners);
+
+            Debug.Log($"<color=red>CHANNEL OWNERS SET {string.Join(", ", owners)}</color>");
         }
         public void RegisterMusicianAnchor(string musicianId, Transform anchor)
         {
@@ -499,6 +501,53 @@ namespace ALWTTT.Managers
                 GenerateSongEntry(song, GameManager.PersistentGameplayData.MusicianList);
             cache[key] = entry;
             return channelOwnersByKey[key];
+        }
+
+        public IReadOnlyList<string> GetChannelOwnerIdsFor(SongConfig config)
+        {
+            if (config == null)
+            {
+                if (logDebug)
+                    Debug.Log($"{DebugTag} GetChannelOwnerIdsFor(SongConfig): " +
+                        $"config is NULL");
+                return Array.Empty<string>();
+            }
+
+            var channelRoles = config.ChannelRoles ?? new List<TrackRole>();
+            Debug.Log($"<color=red>Channel Roles {string.Join(", ", channelRoles)}</color>");
+
+            var channelMap = BuildChannelMap(channelRoles);
+            Debug.Log($"<color=red>Channel Map {string.Join(", ", channelMap)}</color>");
+
+            var musicianOrder = config.ChannelMusicianOrder ?? new List<string>();
+            Debug.Log($"<color=red>Musician Order {string.Join(", ", musicianOrder)}</color>");
+
+            int maxCh = channelMap.Count > 0 ? channelMap.Max() : 0;
+            var perChannel = Enumerable
+                .Repeat(string.Empty, Math.Max(16, maxCh + 1))
+                .ToList();
+
+            // For each logical channel index in the config, map it to the
+            // actual MIDI channel number and assign the corresponding musicianId.
+            for (int i = 0; i < musicianOrder.Count && i < channelMap.Count; i++)
+            {
+                int ch = channelMap[i];
+                if (ch < 0 || ch >= perChannel.Count)
+                    continue;
+
+                var id = musicianOrder[i] ?? string.Empty;
+                perChannel[ch] = id;
+            }
+
+            if (logDebug)
+            {
+                var summary = string.Join(
+                    ", ",
+                    perChannel.Select((id, ch) => $"{ch}:{(string.IsNullOrEmpty(id) ? "-" : id)}"));
+                Debug.Log($"{DebugTag} GetChannelOwnerIdsFor(SongConfig) -> [{summary}]");
+            }
+
+            return perChannel;
         }
 
         public IEnumerator WaitForEnd()
@@ -1833,6 +1882,29 @@ namespace ALWTTT.Managers
             _lastKnownVol01[channel] = volume01;
             mix?.SetChannelVolume01(channel, volume01); // runtime mix only
             if (logDebug) Debug.Log($"{DebugTag} SetChannelVolume ch={channel} vol={volume01:0.##}");
+        }
+
+        public void SetMusicianVolume01(string musicianId, float volume01)
+        {
+            if (string.IsNullOrEmpty(musicianId))
+                return;
+
+
+
+            volume01 = Mathf.Clamp01(volume01);
+
+            var channels = ResolveChannelsForMusician(musicianId);
+            foreach (var ch in channels)
+            {
+                if (ch == MidiGenerator.MetronomeChannel)
+                    continue;
+
+                _lastKnownVol01[ch] = volume01;
+                mix?.SetChannelVolume01(ch, volume01);
+                //if (logDebug)
+                    Debug.Log($"{DebugTag} SetMusicianVolume musician={musicianId} " +
+                        $"ch={ch} vol={volume01:0.##}");
+            }
         }
 
         // Highlight: apply now if possible, else remember & apply at next OnSongStarted.

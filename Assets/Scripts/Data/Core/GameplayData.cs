@@ -65,6 +65,10 @@ namespace ALWTTT
         [SerializeField] private bool isRandomDeck = false;
         [SerializeField] private int randomCardCount;
 
+        // TODO: AudioGameplayData
+        [Header("Audio")]
+        [Range(0f, 1f)] public float globalMusicVolume01 = 1f;
+
         #region Encapsulation
         public List<MusicianBase> AllMusiciansList => allMusiciansList;
         public List<MusicianBase> InitialMusicianList => initialMusicianList;

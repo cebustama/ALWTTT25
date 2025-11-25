@@ -20,14 +20,25 @@ MonoBehaviour:
   characterPrefab: {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
   characterSprite: {fileID: 4986537597448559443, guid: ca7b571ff02623a4b905f27079fbd285, type: 3}
   characterIcon: {fileID: 8242622823429068648, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}
-  baseCards:
-  - {fileID: 11400000, guid: e1bda36823704824588e579ff232b374, type: 2}
-  - {fileID: 11400000, guid: b7f993102266549408f013a3157140c8, type: 2}
-  - {fileID: 11400000, guid: 9c7bbdb02aa369b4ebf80d1e79df468f, type: 2}
+  baseActionCards: []
+  baseCompositionCards: []
   chr: 3
   tch: 5
   emt: 1
   profile:
     backingInstruments: 02000000
     leadInstruments: 02000000
+    backingMelodicInstruments: []
+    leadMelodicInstruments: []
+    percussionInstruments:
+    - {fileID: 11400000, guid: a85773e86ee3f7e48be0365c61ace840, type: 2}
+    - {fileID: 11400000, guid: 80486e651c5b8cd4aa7e2b9974abbd0a, type: 2}
+    - {fileID: 11400000, guid: 06b0763db4c68b64bbf72064349aefa3, type: 2}
+    - {fileID: 11400000, guid: 4d3c154b2c506094abf982c3efed6a8e, type: 2}
+    - {fileID: 11400000, guid: 8989df41ef0dc8544b23f003a6aeaf6b, type: 2}
+    - {fileID: 11400000, guid: 5650a528e907a3b4e8ff90c69f2bddd7, type: 2}
+    - {fileID: 11400000, guid: cb6eea6d346a6954385562d22c831717, type: 2}
+    - {fileID: 11400000, guid: 31173689665d34943b0ddafc5f935470, type: 2}
+    - {fileID: 11400000, guid: 847bd6523c5cdb2489f2fb8fd2ecf73f, type: 2}
     defaultMelodicLeading: {fileID: 0}
+    defaultHarmonicLeading: {fileID: 0}

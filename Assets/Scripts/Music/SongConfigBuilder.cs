@@ -53,18 +53,17 @@ namespace ALWTTT.Music
             instruments?.Refresh();
             patterns?.Refresh();
 
-            var band = ctx.Band;
-            var channels = band.Select(m => m.MusicianCharacterData.CharacterId).ToList();
-
             var cfg = new SongConfig
             {
-                ChannelMusicianOrder = channels ?? new List<string>(),
+                ChannelMusicianOrder = new List<string>(),
                 ChannelRoles = new List<TrackRole>(),
                 Parts = new List<SongConfig.PartConfig>(),
                 Structure = new List<SongConfig.PartSequenceEntry>()
             };
 
             var firstPartRoles = new List<TrackRole>();
+            var firstPartMusicians = new List<string>();
+
             int partIndex = 0;
 
             foreach (var p in model.parts)
@@ -295,7 +294,10 @@ namespace ALWTTT.Music
 
                     // Remember roles present in Part 0 to seed ChannelRoles (layout)
                     if (cfg.Parts.Count == 0)
+                    {
                         firstPartRoles.Add(role);
+                        firstPartMusicians.Add(musicianId);
+                    }
                 }
 
                 cfg.Parts.Add(part);
@@ -311,7 +313,10 @@ namespace ALWTTT.Music
 
             // If ChannelRoles not provided yet, seed it from the first part’s roles
             if (cfg.ChannelRoles.Count == 0)
+            {
                 cfg.ChannelRoles.AddRange(firstPartRoles);
+                cfg.ChannelMusicianOrder.AddRange(firstPartMusicians);
+            } 
 
             return cfg;
         }

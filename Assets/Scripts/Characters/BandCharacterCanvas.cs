@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ALWTTT.Characters.Band
 {
@@ -14,8 +15,9 @@ namespace ALWTTT.Characters.Band
         [SerializeField] private TextMeshProUGUI tchTextField;
         [SerializeField] private TextMeshProUGUI emtTextField;
 
-        [Header("Dev / Instruments")]
+        [Header("Dev")]
         [SerializeField] private TMP_Dropdown instrumentDebugDropdown;
+        [SerializeField] private Slider volumeDebugSlider;
 
         public void UpdateStats(int chr, int tch, int emt)
         {
@@ -139,6 +141,32 @@ namespace ALWTTT.Characters.Band
                     chosen = backing[idx];
 
                 onSelected?.Invoke(chosen);
+            });
+        }
+
+        public void SetupVolumeDebugSlider(
+            bool enabled,
+            Action<float> onValueChanged,
+            float initialValue = 1f)
+        {
+            if (!volumeDebugSlider) return;
+
+            volumeDebugSlider.onValueChanged.RemoveAllListeners();
+            volumeDebugSlider.minValue = 0f;
+            volumeDebugSlider.maxValue = 1f;
+            volumeDebugSlider.wholeNumbers = false;
+
+            volumeDebugSlider.gameObject.SetActive(enabled);
+
+            if (!enabled)
+                return;
+
+            // Avoid feedback-loop on first frame
+            volumeDebugSlider.SetValueWithoutNotify(initialValue);
+
+            volumeDebugSlider.onValueChanged.AddListener(v =>
+            {
+                onValueChanged?.Invoke(v);
             });
         }
         #endregion
