@@ -10,27 +10,27 @@ namespace ALWTTT.Actions
 
         public override string ActionName => "Add Stress";
 
-        public override void DoAction(CharacterActionParameters actionParameters)
+        public override void DoAction(CharacterActionParameters p)
         {
-            if (!actionParameters.TargetCharacter) return;
+            if (!p.TargetCharacter) return;
 
-            var performerCharacter = actionParameters.PerformerCharacter;
-            var targetCharacter = actionParameters.TargetCharacter;
+            var performerCharacter = p.PerformerCharacter;
+            var targetCharacter = p.TargetCharacter;
             Debug.Log($"[{ActionName}] Target: " + targetCharacter);
             Debug.Log($"[{ActionName}] Stats: {targetCharacter.MusicianStats.ToString()}");
 
             if (targetCharacter.MusicianStats is { } musicianStats)
             {
-                int stressToAdd = Mathf.RoundToInt(actionParameters.Value);
-                musicianStats.AddStress(stressToAdd);
+                int stressToAdd = Mathf.RoundToInt(p.Value);
+                musicianStats.AddStress(stressToAdd, p.Duration);
 
                 FxManager.PlayFx(targetCharacter.HeadRoot, FxType.ReceiveStress);
 
-                if (actionParameters.Context is CardActionContext cardCtx)
+                if (p.Context is CardActionContext cardCtx)
                 {
                     AudioManager.PlayOneShot(cardCtx.CardData.AudioType);
                 }
-                else if (actionParameters.Context is AudienceActionContext audienceCtx)
+                else if (p.Context is AudienceActionContext audienceCtx)
                 {
                     // TODO: 
                 }

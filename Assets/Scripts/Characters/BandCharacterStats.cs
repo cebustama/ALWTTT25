@@ -74,9 +74,9 @@ namespace ALWTTT.Characters.Band
             OnStressChanged?.Invoke(CurrentStress, MaxStress);
         }
 
-        public void AddStress(int amount)
+        public void AddStress(int amount, float duration = 1f)
         {
-            SetCurrentStress(CurrentStress + amount);
+            SetCurrentStress(CurrentStress + amount, duration);
             if (CurrentStress >= MaxStress && !IsBreakdown)
             {
                 IsBreakdown = true;
@@ -84,9 +84,9 @@ namespace ALWTTT.Characters.Band
             }
         }
 
-        public void HealStress(int amount)
+        public void HealStress(int amount, float duration = 1f)
         {
-            SetCurrentStress(Mathf.Max(0, CurrentStress - amount));
+            SetCurrentStress(Mathf.Max(0, CurrentStress - amount), duration);
         }
 
         public void ApplyStatus(StatusType targetStatus, int value)

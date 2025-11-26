@@ -46,6 +46,12 @@ namespace ALWTTT.Managers
         [Header("Animation and Effects")]
         [SerializeField] private int idleBpm = 120;
 
+        [Header("Timing")]
+        [SerializeField] private float songEndPause = 3f;
+        [SerializeField] private float perAudienceVibeDelay = 1f;
+        [SerializeField] private float perAudienceActionDelay = 1f;
+        [SerializeField] private float barFillDelay = 3f;
+
         [Header("Composition UI")]
         [SerializeField] private SongCompositionUI compositionUI;
         [SerializeField] private LoopsTimerUI loopsTimerUI;
@@ -96,7 +102,7 @@ namespace ALWTTT.Managers
         public float SongHype01 => 
             maxSongHype <= 0f ? 0f : Mathf.Clamp01(_songHype / maxSongHype);
 
-        private SongFeedbackContext _lastSongFeedback;
+        private SongFeedbackContext? _lastSongFeedback;
 
         private InstrumentRepositoryResources _instrumentRepo;
 
@@ -632,7 +638,13 @@ namespace ALWTTT.Managers
 
         private IEnumerator AudienceTurnRoutine()
         {
-            var waitDelay = new WaitForSeconds(1f);
+            var waitDelay = new WaitForSeconds(perAudienceActionDelay);
+
+            if (_lastSongFeedback.HasValue)
+            {
+                yield return RunSongVibeResolution(_lastSongFeedback.Value);
+                _lastSongFeedback = null;
+            }
 
             // Snapshot so actions can reorder/destroy without breaking enumeration
             var turnOrder = 
@@ -650,7 +662,7 @@ namespace ALWTTT.Managers
                     continue; // already convinced
 
                 yield return currentCharacter.StartCoroutine(
-                    nameof(AudienceCharacterSimple.ActionRoutine));
+                    nameof(AudienceCharacterSimple.AbilityRoutine));
 
                 yield return waitDelay;
             }
@@ -883,15 +895,22 @@ namespace ALWTTT.Managers
             OnGigPartFeedbackReady?.Invoke(enriched);
         }
 
+        /// <summary>
+        /// Song finished, store data
+        /// </summary>
+        /// <param name="songCtx"></param>
         private void OnCompositionSongFinished(SongFeedbackContext songCtx)
         {
             Log($"{DebugTag} [Gig] Song finished → {songCtx}", customColor: "yellow");
 
             // Build an enriched SongFeedbackContext using the gig's part list
-            var enrichedSong = new SongFeedbackContext(_gigPartsForCurrentSong);
+            var enrichedSong = new SongFeedbackContext(_gigPartsForCurrentSong.ToList());
+
+            // Save for AudienceTurn
+            _lastSongFeedback = enrichedSong;
 
             // Macro reaction – final SongHype +aggregated impressions → Vibe
-            ApplySongHypeToAudience(enrichedSong);
+            //ApplySongHypeToAudience(enrichedSong);
 
             // Notify gig-level listeners
             OnGigSongFeedbackReady?.Invoke(enrichedSong);
@@ -1016,11 +1035,19 @@ namespace ALWTTT.Managers
             gigCanvas.SetSongHype(SongHype01);   // 0–1 normalized
         }
 
-        private void ApplySongHypeToAudience(SongFeedbackContext enrichedSong)
+        private struct AudienceVibeDelta
         {
-            if (CurrentAudienceCharacterList == null ||
+            public int AudienceIndex;
+            public int Delta;
+        }
+
+        private List<AudienceVibeDelta> ComputeSongVibeDeltas(
+            SongFeedbackContext enrichedSong)
+        {
+            var result = new List<AudienceVibeDelta>();
+            if (CurrentAudienceCharacterList == null || 
                 CurrentAudienceCharacterList.Count == 0)
-                return;
+                return result;
 
             int audienceCount = CurrentAudienceCharacterList.Count;
 
@@ -1052,12 +1079,12 @@ namespace ALWTTT.Managers
             // Base vibe from final SongHype (0..maxSongHype → 0..maxVibeFromSongHype)
             float baseVibe = SongHype01 * maxVibeFromSongHype;
 
-            // 3) Apply per-audience modifiers and actually add Vibe
+            // 3) Convert to per-audience vibe deltas
             for (int i = 0; i < audienceCount; i++)
             {
                 var audience = CurrentAudienceCharacterList[i];
                 if (audience == null) continue;
-                // blocked chars get no vibe
+                // Blocked chars get no vibe
                 if (audience.IsBlocked) continue;
 
                 float avgImpression =
@@ -1075,12 +1102,14 @@ namespace ALWTTT.Managers
                     continue;
                 }
 
-                audience.AudienceStats.AddVibe(vibeDelta);
-
-                Log($"{DebugTag} [Gig] Final SongHype → Audience {audience.CharacterId} " +
-                    $"avgImpression={avgImpression:F2}, ΔVibe={vibeDelta}",
-                    customColor: "green");
+                result.Add(new AudienceVibeDelta
+                {
+                    AudienceIndex = i,
+                    Delta = vibeDelta
+                });
             }
+
+            return result;
         }
 
         // TODO: Move all animation logic to its own class ie "BandAnimator" etc
@@ -1513,6 +1542,38 @@ namespace ALWTTT.Managers
             if (useLogs)
                 Debug.Log($"{DebugTag} [Dev] Volume slider for {musician.CharacterId} " +
                     $"slider={sliderValue:0.00} final={finalVol:0.00}");
+        }
+
+        private IEnumerator RunSongVibeResolution(SongFeedbackContext songCtx)
+        {
+            if (songCtx.PartCount == 0)
+                yield break;
+            
+            yield return new WaitForSeconds(songEndPause);
+
+            var deltas = ComputeSongVibeDeltas(songCtx);
+
+            foreach (var entry in deltas)
+            {
+                var audience = CurrentAudienceCharacterList[entry.AudienceIndex];
+                if (audience == null) continue;
+
+                // Floating text
+                FxManager.Instance?.SpawnFloatingText(
+                    audience.TextSpawnRoot,
+                    $"+{entry.Delta} Vibe",
+                    0, 1, Color.cyan);
+
+                // 1) apply Vibe
+                audience.AudienceStats.AddVibe(entry.Delta, duration: barFillDelay);
+                //Debug.Log($"{audience.CharacterId} filling Vibe in {barFillDelay}[s]");
+                yield return new WaitForSeconds(barFillDelay);
+                //Debug.Log($"{audience.CharacterId} bar filled");
+
+                // TODO: Animate Vibe bar, emote, SFX, etc
+
+                yield return new WaitForSeconds(perAudienceVibeDelay);
+            }
         }
     }
 }

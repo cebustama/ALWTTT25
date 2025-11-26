@@ -197,7 +197,7 @@ namespace ALWTTT.Managers
             _channelOwners.Clear();
             if (owners != null) _channelOwners.AddRange(owners);
 
-            Debug.Log($"<color=red>CHANNEL OWNERS SET {string.Join(", ", owners)}</color>");
+            //Debug.Log($"<color=red>CHANNEL OWNERS SET {string.Join(", ", owners)}</color>");
         }
         public void RegisterMusicianAnchor(string musicianId, Transform anchor)
         {
@@ -514,13 +514,13 @@ namespace ALWTTT.Managers
             }
 
             var channelRoles = config.ChannelRoles ?? new List<TrackRole>();
-            Debug.Log($"<color=red>Channel Roles {string.Join(", ", channelRoles)}</color>");
+            //Debug.Log($"<color=red>Channel Roles {string.Join(", ", channelRoles)}</color>");
 
             var channelMap = BuildChannelMap(channelRoles);
-            Debug.Log($"<color=red>Channel Map {string.Join(", ", channelMap)}</color>");
+            //Debug.Log($"<color=red>Channel Map {string.Join(", ", channelMap)}</color>");
 
             var musicianOrder = config.ChannelMusicianOrder ?? new List<string>();
-            Debug.Log($"<color=red>Musician Order {string.Join(", ", musicianOrder)}</color>");
+            //Debug.Log($"<color=red>Musician Order {string.Join(", ", musicianOrder)}</color>");
 
             int maxCh = channelMap.Count > 0 ? channelMap.Max() : 0;
             var perChannel = Enumerable

@@ -10,17 +10,20 @@ namespace ALWTTT.Actions
         public readonly CharacterBase PerformerCharacter; // who triggers the action
         public readonly CharacterBase TargetCharacter;    // who is affected
         public readonly CharacterActionContext Context;   // optional, typed
+        public readonly float Duration;
 
         public CharacterActionParameters(
             float value,
             CharacterBase performer,
             CharacterBase target,
-            CharacterActionContext context = null)
+            CharacterActionContext context = null,
+            float duration = 2f)
         {
             Value = value;
             PerformerCharacter = performer;
             TargetCharacter = target;
             Context = context;
+            Duration = duration;
         }
     }
 

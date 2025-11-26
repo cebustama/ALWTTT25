@@ -1,10 +1,7 @@
 ﻿using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
-using System.Collections.Generic;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace ALWTTT.Characters
 {

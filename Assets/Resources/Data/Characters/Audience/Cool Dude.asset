@@ -22,9 +22,10 @@ MonoBehaviour:
   - abilityName: Block the View
     intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
     hideActionValue: 0
+    abilityDuration: 2
     actionList:
     - cardActionType: 10
       actionTargetType: 6
       actionValue: 0
-      actionDelay: 0
+      actionDelay: 1
   followAbilityPattern: 0

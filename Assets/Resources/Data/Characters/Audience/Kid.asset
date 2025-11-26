@@ -22,9 +22,10 @@ MonoBehaviour:
   - abilityName: Tantrum
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
     hideActionValue: 0
+    abilityDuration: 3
     actionList:
     - cardActionType: 3
       actionTargetType: 3
       actionValue: 5
-      actionDelay: 0
+      actionDelay: 1
   followAbilityPattern: 0

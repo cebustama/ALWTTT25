@@ -1189,9 +1189,17 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 519420031}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: barFillDelay
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: loopsTimerUI
       value: 
       objectReference: {fileID: 385988843}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: songEndPause
+      value: 1.5
+      objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: compositionUI
       value: 
@@ -1209,12 +1217,20 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2027330870}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: perAudienceVibeDelay
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: debugInstrumentPicker
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: jamRules.loopsPerPart
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: perAudienceActionDelay
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: audienceJumpIntensityCurve.m_Curve.Array.size

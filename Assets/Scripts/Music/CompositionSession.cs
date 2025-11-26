@@ -514,6 +514,8 @@ namespace ALWTTT.Music
                 return;
             }
 
+            EmitPartFinishedForCurrentPart();
+
             if (ComputeNextPartIsReady())
             {
                 AdvanceToNextPart();

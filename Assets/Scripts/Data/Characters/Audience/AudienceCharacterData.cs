@@ -64,11 +64,13 @@ namespace ALWTTT.Data
         [SerializeField] private string abilityName;
         [SerializeField] private AudienceIntentionData intention;
         [SerializeField] private bool hideActionValue;
+        [SerializeField] private float abilityDuration;
         [SerializeField] private List<CharacterActionData> actionList;
-
+        
         public string AbilityName => abilityName;
         public AudienceIntentionData Intention => intention;
         public bool HideActionValue => hideActionValue;
+        public float AbilityDuration => abilityDuration;
         public List<CharacterActionData> ActionList => actionList;
     }
 }

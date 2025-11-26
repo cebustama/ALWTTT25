@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
   m_Name: Rhythm - C2 - Moderate FourFour
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: Slow FourFour
-  cardName: Slow FourFour
+  id: Moderate FourFour
+  cardName: Moderate FourFour
   musicianCharacterType: 2
   cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
-  inspirationCost: 1
+  inspirationCost: 2
   inspirationGenerated: 1
   domain: 1
   actionTiming: 0

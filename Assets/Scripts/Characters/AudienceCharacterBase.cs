@@ -4,6 +4,7 @@ using ALWTTT.Data;
 using ALWTTT.Enums;
 using ALWTTT.Extentions;
 using ALWTTT.Interfaces;
+using ALWTTT.Managers;
 using ALWTTT.Music;
 using System.Collections;
 using System.Collections.Generic;
@@ -74,6 +75,8 @@ namespace ALWTTT.Characters.Audience
 
         protected void OnConvinced()
         {
+            Debug.Log($"<color=green>{CharacterId} CONVINCED!");
+
             GigManager.RecalculateAudienceObstructions();
 
             // TODO
@@ -190,23 +193,23 @@ namespace ALWTTT.Characters.Audience
         }
 
         #region Action Routines
-        public virtual IEnumerator ActionRoutine()
+        public virtual IEnumerator AbilityRoutine()
         {
-            Debug.Log($"{CharacterId} Action Routine started.");
+            Debug.Log($"{CharacterId} Ability Routine started.");
 
             if (stats != null && stats.IsStunned)
             {
-                Debug.Log($"{CharacterId} is stunned. Skipping action.");
+                Debug.Log($"{CharacterId} is stunned. Skipping Ability.");
                 yield break;
             }
 
-
+            // Hide intent icon
             AudienceCharacterCanvas.IntentImage.gameObject.SetActive(false);
 
             if (NextAbility == null)
             {
                 Debug.LogWarning(
-                    $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
+                    $"[AudienceCharacterBase] {CharacterId} AbilityRoutine: " +
                     "NextAbility is NULL. This usually means ShowNextAbility " +
                     "was not called before the audience turn.");
                 yield break;
@@ -215,57 +218,106 @@ namespace ALWTTT.Characters.Audience
             if (NextAbility.ActionList == null || NextAbility.ActionList.Count == 0)
             {
                 Debug.LogWarning(
-                    $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
+                    $"[AudienceCharacterBase] {CharacterId} AbilitynRoutine: " +
                     $"Ability '{NextAbility.AbilityName}' has no actions. Skipping turn.");
                 yield break;
             }
 
+            float abilityDelay = NextAbility.AbilityDuration;
+
+            // TODO: Animation, SFX, VFX
+            FxManager.Instance?.SpawnFloatingText(
+                    TextSpawnRoot,
+                    $"{NextAbility.AbilityName}",
+                    0, 1, Color.red);
+
+            yield return new WaitForSeconds(abilityDelay);
+
+
             foreach (var action in NextAbility.ActionList)
             {
-                if (action == null)
-                {
-                    Debug.LogWarning(
-                        $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
-                        $"Null CharacterActionData inside ability " +
-                        $"'{NextAbility.AbilityName}'. Skipping.");
-                    continue;
-                }
-
-                var targets = ResolveTargetsFor(action);
-                if (targets == null || targets.Count == 0)
-                {
-                    Debug.LogWarning(
-                        $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
-                        $"No targets resolved for action {action.CardActionType} " +
-                        $"in ability '{NextAbility.AbilityName}'.");
-                    continue;
-                }
-
-                var ctx = new AudienceActionContext(); // extend as needed
-                var executor = CharacterActionProcessor.GetAction(action.CardActionType);
-                if (executor == null)
-                {
-                    Debug.LogWarning(
-                        $"[AudienceCharacterBase] {CharacterId} ActionRoutine: " +
-                        $"No CharacterActionProcessor registered for {action.CardActionType}.");
-                    continue;
-                }
-
-                foreach (var target in targets)
-                {
-                    if (target == null) continue;
-
-                    var p = new CharacterActionParameters(
-                        action.ActionValue, this, target, ctx);
-
-                    executor.DoAction(p);
-                }
-
-                // Optional short delay between chained actions:
-                yield return new WaitForSeconds(0.05f);
+                yield return ExecuteActionWithTiming(action);
             }
 
-            Debug.Log($"{CharacterId} Action Routine finished.");
+            Debug.Log($"{CharacterId} Ability Routine finished.");
+        }
+
+        private IEnumerator ExecuteActionWithTiming(CharacterActionData action)
+        {
+            if (action == null)
+            {
+                Debug.LogWarning(
+                    $"[AudienceCharacterBase] {CharacterId} ExecuteActionWithTiming: " +
+                    $"Null CharacterActionData inside ability '{NextAbility.AbilityName}'.");
+                yield break;
+            }
+
+            var targets = ResolveTargetsFor(action);
+            if (targets == null || targets.Count == 0)
+            {
+                Debug.LogWarning(
+                    $"[AudienceCharacterBase] {CharacterId} ExecuteActionWithTiming: " +
+                    $"No targets resolved for action {action.CardActionType} " +
+                    $"in ability '{NextAbility.AbilityName}'.");
+                yield break;
+            }
+
+            var ctx = new AudienceActionContext();
+            var executor = CharacterActionProcessor.GetAction(action.CardActionType);
+            if (executor == null)
+            {
+                Debug.LogWarning(
+                    $"[AudienceCharacterBase] {CharacterId} ExecuteActionWithTiming: " +
+                    $"No CharacterActionProcessor registered for {action.CardActionType}.");
+                yield break;
+            }
+
+            // Delay between Actions inside same Ability
+            float actionDelay = (action.ActionDelay > 0f)
+                ? action.ActionDelay
+                : 0.1f; // default pequeño si no se setea nada
+
+            Debug.Log($"<color=red>{CharacterId} " +
+                $"action {action.CardActionType.ToString()} " +
+                $"delay {actionDelay}</color>");
+
+            FxManager.Instance?.SpawnFloatingText(
+                    TextSpawnRoot,
+                    $"{action.CardActionType.ToString()}",
+                    0, 1, Color.cyan);
+
+            if (actionDelay > 0f)
+                yield return new WaitForSeconds(actionDelay);
+
+            // Execute action per target, wait for reaction
+            foreach (var target in targets)
+            {
+                if (target == null) continue;
+
+                // Get reaction duration based on action and target
+                float reactionDuration = GetPerTargetReactionDuration(action, target);
+
+                var p = new CharacterActionParameters(
+                    action.ActionValue, this, target, ctx,
+                    duration: reactionDuration); // Send for reaction timing
+
+                // Apply effects
+                executor.DoAction(p);
+
+                if (reactionDuration > 0f)
+                    yield return new WaitForSeconds(reactionDuration);
+            }
+
+            Debug.Log($"<color=red>Finished delay.</color>");
+        }
+
+        private float GetPerTargetReactionDuration(
+            CharacterActionData action, CharacterBase target)
+        {
+            float actionDelay = action.ActionDelay;
+
+            // TODO: timing values in GameplayData
+            return 2f;
         }
 
         // TODO: Review
