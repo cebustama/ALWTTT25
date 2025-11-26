@@ -20,6 +20,7 @@ namespace ALWTTT.Characters
         [SerializeField] protected Transform speechBubblePrefab;
         [SerializeField] protected LayerMask characterLayerMask;
         [SerializeField] protected CharacterAnimator characterAnimator;
+        [SerializeField] protected Animator animator;
 
         #region Encapsulation
         public CharacterType CharacterType => characterType;

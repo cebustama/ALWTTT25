@@ -66,11 +66,34 @@ namespace ALWTTT.Data
         [SerializeField] private bool hideActionValue;
         [SerializeField] private float abilityDuration;
         [SerializeField] private List<CharacterActionData> actionList;
-        
+
+        [Header("Presentation")]
+        [SerializeField] private AbilityAnimationData animation;
+
+        #region Encapsulation
         public string AbilityName => abilityName;
         public AudienceIntentionData Intention => intention;
         public bool HideActionValue => hideActionValue;
         public float AbilityDuration => abilityDuration;
         public List<CharacterActionData> ActionList => actionList;
+        public AbilityAnimationData Animation => animation;
+        #endregion
+    }
+
+    [Serializable]
+    public class AbilityAnimationData
+    {
+        [Header("Animator")]
+        [SerializeField] private string animatorTrigger;
+
+        [Tooltip("If > 0, overrides AbilityDuration as the wait time for this animation.")]
+        [SerializeField] private float animationDuration = -1f;
+
+        [Tooltip("Disable beat-based CharacterAnimator while this ability plays.")]
+        [SerializeField] private bool disableBeatAnimator = true;
+
+        public string AnimatorTrigger => animatorTrigger;
+        public float AnimationDuration => animationDuration;
+        public bool DisableBeatAnimator => disableBeatAnimator;
     }
 }
