@@ -30,6 +30,8 @@ namespace ALWTTT.Managers
         [Header("Composition Rules")]
         [SerializeField] private JamRules jamRules = new JamRules();
         [SerializeField] private float maxSongHype = 100f;
+        [SerializeField, Tooltip("Raw starting SongHype points for each new song.")]
+        private float startingSongHype = 10f;
 
         [Header("Cards / Hand")]
         [SerializeField] private HandController gigHand;
@@ -38,6 +40,7 @@ namespace ALWTTT.Managers
 
         [Header("Vibe / Hype Balancing")]
         [SerializeField] private int maxVibeFromSongHype = 20;
+        [SerializeField] private float songHypeDeltaMultiplier = 1f;
         [Header("Audience Beat Response")]
         [SerializeField] private AnimationCurve audienceJumpIntensityCurve =
             AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
@@ -96,6 +99,7 @@ namespace ALWTTT.Managers
         // Gig-level events that expose *enriched* contexts
         public event Action<PartFeedbackContext> OnGigPartFeedbackReady;
         public event Action<SongFeedbackContext> OnGigSongFeedbackReady;
+        public event Action<float> OnSongHypeChanged01;
 
         private float _songHype;
         public float SongHype => _songHype;
@@ -416,6 +420,21 @@ namespace ALWTTT.Managers
                 if (debugSongHype)
                     songHypeDebugSlider.SetValueWithoutNotify(_songHype);
             }
+
+            // toggle instrument picker + volume debug with D
+            if (Input.GetKeyDown(KeyCode.D))
+            {
+                debugInstrumentPicker = !debugInstrumentPicker;
+                debugMusicianVolume = !debugMusicianVolume;
+
+                if (useLogs)
+                {
+                    Debug.Log($"{DebugTag} [Dev] Toggled debug UI → " +
+                              $"Instruments={debugInstrumentPicker}, Volume={debugMusicianVolume}");
+                }
+
+                SetupBandDebugElements();
+            }
         }
 
         private void OnPlayPressed()
@@ -424,6 +443,13 @@ namespace ALWTTT.Managers
             ApplyDebugInstrumentOverridesToCompositionModel();
 
             _session?.ConfirmCurrentPartAndStart();
+
+            // show the hype bar when music starts
+            if (UIManager != null && UIManager.GigCanvas != null)
+            {
+                UIManager.GigCanvas.SetSongHypeVisible(true);
+                UIManager.GigCanvas.SetSongHype(SongHype01);
+            }
         }
 
         public void EndTurn()
@@ -644,6 +670,13 @@ namespace ALWTTT.Managers
             {
                 yield return RunSongVibeResolution(_lastSongFeedback.Value);
                 _lastSongFeedback = null;
+
+                // --- reset & hide the hype bar ---
+                ResetSongHype();  // numeric reset + anim intensity reset
+                if (UIManager != null && UIManager.GigCanvas != null)
+                {
+                    UIManager.GigCanvas.ClearSongHype();
+                }
             }
 
             // Snapshot so actions can reorder/destroy without breaking enumeration
@@ -845,12 +878,13 @@ namespace ALWTTT.Managers
             if (_session != null)
             {
                 _session.LoopFinished -= OnCompositionLoopFinished;
+                _session.PartFinished -= OnCompositionPartFinished;
+                _session.SongFinished -= OnCompositionSongFinished;
                 _session.End();
             }
 
-            _songHype = 0f;
-            UpdateSongHypeUI();
-            UpdateAudienceBeatIntensity();
+            // Full reset before a new song
+            ResetSongHype();
 
             _session = new CompositionSession();
             _session.LoopFinished += OnCompositionLoopFinished;
@@ -860,8 +894,22 @@ namespace ALWTTT.Managers
             var ctx = new GigContext(this);
             _session.Begin(ctx, jamRules, midiGenPlayConfig, _rng);
 
+            // starting hype before the first loop finishes
+            // IDEAS
+            // PersistentGameplayData.Fans (more fans → higher baseline hype).
+            // Venue type / difficulty (small club vs arena).
+            if (startingSongHype > 0f)
+                AddSongHype(startingSongHype);
+
             _isSongPlaying = false;
             _isBetweenSongs = true;
+        }
+
+        private void ResetSongHype()
+        {
+            _songHype = 0f;
+            UpdateAudienceBeatIntensity();
+            OnSongHypeChanged01?.Invoke(SongHype01);
         }
 
         private void OnCompositionLoopFinished(LoopFeedbackContext loopCtx)
@@ -946,7 +994,10 @@ namespace ALWTTT.Managers
 
             // Compute loop score and SongHype delta using the pure calculator
             float loopScore = LoopScoreCalculator.ComputeLoopScore(loopCtx);
-            float hypeDelta = LoopScoreCalculator.ComputeHypeDelta(loopScore);
+            float baseHypeDelta = LoopScoreCalculator.ComputeHypeDelta(loopScore);
+
+            // Global scalar for testing
+            float hypeDelta = baseHypeDelta * songHypeDeltaMultiplier;
 
             AddSongHype(hypeDelta);
 
@@ -1019,20 +1070,13 @@ namespace ALWTTT.Managers
                 return;
 
             _songHype = Mathf.Clamp(_songHype + delta, 0f, maxSongHype);
-            UpdateSongHypeUI();
             UpdateAudienceBeatIntensity();
 
             // Keep the slider in sync (even if it's hidden)
             if (songHypeDebugSlider != null)
                 songHypeDebugSlider.SetValueWithoutNotify(_songHype);
-        }
 
-        private void UpdateSongHypeUI()
-        {
-            var gigCanvas = UIManager != null ? UIManager.GigCanvas : null;
-            if (gigCanvas == null) return;
-
-            gigCanvas.SetSongHype(SongHype01);   // 0–1 normalized
+            OnSongHypeChanged01?.Invoke(SongHype01);
         }
 
         private struct AudienceVibeDelta
@@ -1255,103 +1299,9 @@ namespace ALWTTT.Managers
 
             _songHype = Mathf.Clamp(value, 0f, maxSongHype);
 
-            UpdateSongHypeUI();
+            OnSongHypeChanged01?.Invoke(SongHype01);
             UpdateAudienceBeatIntensity();
         }
-
-        /*
-        private void SetupInstrumentDebugDropdowns()
-        {
-            if (CurrentMusicianCharacterList == null ||
-                CurrentMusicianCharacterList.Count == 0)
-                return;
-
-            // If debug is off, hide dropdowns and clear overrides
-            if (!debugInstrumentPicker)
-            {
-                foreach (var m in CurrentMusicianCharacterList)
-                {
-                    var canvas = m?.BandCharacterCanvas;
-                    if (canvas == null) continue;
-
-                    // Hide & clear any previous options
-                    canvas.SetupInstrumentDebugDropdown(false, null, _ => { });
-                    canvas.SetupPercussionInstrumentDebugDropdown(false, null, _ => { });
-
-                    m.DebugOverrideInstrument = null;
-                    m.DebugOverridePercussionInstrument = null;
-                }
-
-                return;
-            }
-
-            _instrumentRepo.Refresh();
-            foreach (var m in CurrentMusicianCharacterList)
-            {
-                if (m == null) continue;
-
-                var canvas = m.BandCharacterCanvas;
-                var profile = m.MusicianCharacterData?.Profile;
-
-                if (canvas == null || profile == null || _instrumentRepo == null)
-                    continue;
-
-                if (profile.IsPercussionist())
-                {
-                    // This musician is considered a drummer → use percussion options
-                    var percOptions = profile.GetDebugPercussionInstrumentOptions(
-                        _instrumentRepo);
-
-                    canvas.SetupPercussionInstrumentDebugDropdown(
-                        true,
-                        percOptions,
-                        chosen =>
-                        {
-                            m.DebugOverridePercussionInstrument = chosen;
-                            m.DebugOverrideInstrument = null;
-
-                            if (useLogs)
-                            {
-                                var label = chosen != null
-                                    ? (!string.IsNullOrEmpty(chosen.InstrumentName)
-                                        ? chosen.InstrumentName
-                                        : chosen.name)
-                                    : "None (random drums)";
-
-                                Debug.Log($"{DebugTag} [Dev] {m.CharacterName} " +
-                                    $"debug percussion → {label}");
-                            }
-                        });
-                }
-                else
-                {
-                    // Normal melodic instrument picker
-                    var melOptions = profile.GetDebugMelodicInstrumentOptions(
-                        m, _instrumentRepo);
-
-                    canvas.SetupInstrumentDebugDropdown(
-                        true,
-                        melOptions,
-                        chosen =>
-                        {
-                            m.DebugOverrideInstrument = chosen;
-                            m.DebugOverridePercussionInstrument = null; // clear drums override
-
-                            if (useLogs)
-                            {
-                                var label = chosen != null
-                                    ? (!string.IsNullOrEmpty(chosen.InstrumentName)
-                                        ? chosen.InstrumentName
-                                        : chosen.name)
-                                    : "None (random melodic)";
-
-                                Debug.Log($"{DebugTag} [Dev] {m.CharacterName} " +
-                                    $"debug melodic → {label}");
-                            }
-                        });
-                }
-            }
-        }*/
 
         private void SetupBandDebugElements()
         {
