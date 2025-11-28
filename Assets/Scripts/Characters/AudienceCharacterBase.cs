@@ -225,14 +225,41 @@ namespace ALWTTT.Characters.Audience
 
             float abilityDelay = NextAbility.AbilityDuration;
 
+            var animData = NextAbility.Animation;
+            if (animData != null)
+            {
+                // Override delay if animationDuration > 0
+                if (animData.AnimationDuration > 0f)
+                    abilityDelay = animData.AnimationDuration;
+
+                // Optionally disable beat animator
+                if (animData.DisableBeatAnimator && CharacterAnimator != null)
+                    CharacterAnimator.enabled = false;
+
+                // Fire animator trigger
+                if (Animator != null && !string.IsNullOrEmpty(animData.AnimatorTrigger))
+                {
+                    Debug.Log($"<color=red>{CharacterId} triggering " +
+                        $"anim id {animData.AnimatorTrigger}</color>");
+                    Animator.ResetTrigger(animData.AnimatorTrigger);
+                    Animator.SetTrigger(animData.AnimatorTrigger);
+                }
+            }
+
             // TODO: Animation, SFX, VFX
             FxManager.Instance?.SpawnFloatingText(
-                    TextSpawnRoot,
-                    $"{NextAbility.AbilityName}",
-                    0, 1, Color.red);
+                TextSpawnRoot,
+                $"{NextAbility.AbilityName}",
+                0, 1, Color.red);
 
-            yield return new WaitForSeconds(abilityDelay);
+            // Wait for animation to finish
+            if (abilityDelay > 0f)
+                yield return new WaitForSeconds(abilityDelay);
 
+            // Re-enable beat animator if needed
+            if (animData != null && animData.DisableBeatAnimator && 
+                CharacterAnimator != null)
+                CharacterAnimator.enabled = true;
 
             foreach (var action in NextAbility.ActionList)
             {

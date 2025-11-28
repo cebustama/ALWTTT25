@@ -28,6 +28,7 @@ namespace ALWTTT.Characters
         public Transform HeadRoot => headRoot;
         public SpriteRenderer SpriteRenderer => spriteRenderer;
         public CharacterAnimator CharacterAnimator => characterAnimator;
+        public Animator Animator => animator;
         #endregion
 
         #region Cache

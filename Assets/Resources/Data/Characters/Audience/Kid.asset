@@ -28,4 +28,8 @@ MonoBehaviour:
       actionTargetType: 3
       actionValue: 5
       actionDelay: 1
+    animation:
+      animatorTrigger: Tantrum
+      animationDuration: 2
+      disableBeatAnimator: 1
   followAbilityPattern: 0
