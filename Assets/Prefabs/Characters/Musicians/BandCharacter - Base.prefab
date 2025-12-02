@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6511795936892951621}
   - component: {fileID: 8876883093181404695}
   - component: {fileID: 5299901056022696988}
+  - component: {fileID: 7605783526218429665}
   m_Layer: 7
   m_Name: BandCharacter - Base
   m_TagString: Untagged
@@ -63,6 +64,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   characterAnimator: {fileID: 8876883093181404695}
+  animator: {fileID: 7605783526218429665}
   bandCharacterCanvas: {fileID: 4399159240658199444}
   musicianCharacterData: {fileID: 11400000, guid: 162ca2d9fe6886742aa04e892ddd5edf, type: 2}
   musicianParticleSystem: {fileID: 8908798543092447923}
@@ -156,6 +158,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  jumpIntensityMultiplier: 1
   rotateOnBeat: 1
   rotationAmplitude: 2
   rotationCurve:
@@ -203,6 +206,28 @@ MonoBehaviour:
   reactToNotes: 0
   reactToChords: 0
   reactToBeats: 0
+--- !u!95 &7605783526218429665
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821282841742446069}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2247961388524572634
 GameObject:
   m_ObjectHideFlags: 0

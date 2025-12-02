@@ -155,11 +155,11 @@ namespace ALWTTT.Data
                 var pt = genProfile.parts[i];
 
                 var drumPatterns = 
-                    allDrumPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
+                    allDrumPatterns.Where(p => p.TimeSignature == pt.timeSignature).ToList();
                 var chordPatterns = 
-                    allChordPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
+                    allChordPatterns.Where(p => p.TimeSignature == pt.timeSignature).ToList();
                 var melodyPatterns = 
-                    allMelodyPatterns.Where(p => p.timeSignature == pt.timeSignature).ToList();
+                    allMelodyPatterns.Where(p => p.TimeSignature == pt.timeSignature).ToList();
 
                 var part = new SongConfig.PartConfig
                 {

@@ -32,6 +32,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 140ac453518fa0a4db4820f9ca7b141f, type: 2}
   keywordsList: 
   audioType: 0
+  musicianAnimation:
+    animatorTrigger: Fly
+    animationDuration: 2
+    disableBeatAnimator: 1
   cardType: 0
   usableWithoutTarget: 1
   exhaustAfterPlay: 0

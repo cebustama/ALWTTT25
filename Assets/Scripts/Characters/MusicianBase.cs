@@ -1,9 +1,11 @@
+using ALWTTT.Cards;
 using ALWTTT.Data;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using MidiGenPlay;
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace ALWTTT.Characters.Band
@@ -171,5 +173,41 @@ namespace ALWTTT.Characters.Band
             // CharacterAnimator?.SetTrigger("Beat");
         }
 
+        public Coroutine PlayCardOneShotAnimation(CardData card)
+        {
+            if (card == null) return null;
+
+            var anim = card.MusicianAnimation;
+            if (anim == null) return null;
+
+            return StartCoroutine(PlayCardAnimationRoutine(anim));
+        }
+
+        private IEnumerator PlayCardAnimationRoutine(CardAnimationData anim)
+        {
+            if (anim == null) yield break;
+
+            float delay = anim.AnimationDuration;
+            if (delay <= 0f)
+            {
+                // Fallback: default duration
+                delay = 2f;
+            }
+
+            if (anim.DisableBeatAnimator && CharacterAnimator != null)
+                CharacterAnimator.enabled = false;
+
+            // Fire Animator trigger if configured
+            if (Animator != null && !string.IsNullOrEmpty(anim.AnimatorTrigger))
+            {
+                Animator.ResetTrigger(anim.AnimatorTrigger);
+                Animator.SetTrigger(anim.AnimatorTrigger);
+            }
+
+            yield return new WaitForSeconds(delay);
+
+            if (anim.DisableBeatAnimator && CharacterAnimator != null)
+                CharacterAnimator.enabled = true;
+        }
     }
 }

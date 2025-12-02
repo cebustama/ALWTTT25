@@ -575,6 +575,12 @@ namespace ALWTTT
 
                 Debug.Log($"{DebugTag} [Gig] Zone hint = {zoneUsed}");
 
+                // musician one-shot animation if the caster is a musician
+                if (bandCharacter is MusicianBase bandMusician)
+                {
+                    bandMusician.PlayCardOneShotAnimation(data);
+                }
+
                 // 2c) Execute the card in gig context
                 heldCard.Use(
                     bandCharacter,

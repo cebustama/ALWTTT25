@@ -42,9 +42,10 @@ MonoBehaviour:
   actionCardPool: []
   compositionCardPool:
   - {fileID: 11400000, guid: 76a9ca5adccc0574ebbf87a0da9b8a95, type: 2}
+  - {fileID: 11400000, guid: 7089378e58830b74ba208d7a067ddb6f, type: 2}
+  - {fileID: 11400000, guid: e51fcdcc7b178d649b6e6a999e0af640, type: 2}
   - {fileID: 11400000, guid: 6585792a4f9fc6c4083bf2137d827580, type: 2}
   - {fileID: 11400000, guid: 77bf8cb9bf778a944b7b68f686ccd84b, type: 2}
-  - {fileID: 11400000, guid: fc5558cd7ce8fee4f82c5e5035f3489b, type: 2}
   - {fileID: 11400000, guid: 66d3183d796ecfb4d8ba50751e907b6d, type: 2}
   - {fileID: 11400000, guid: c82a02b8b7ae4ae438aa1d38d9faf37f, type: 2}
   - {fileID: 11400000, guid: a9365066f4df0ec4db7f98bcdcc02ac5, type: 2}

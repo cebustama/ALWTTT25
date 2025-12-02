@@ -870,6 +870,12 @@ namespace ALWTTT.Managers
                 return false;
             }
 
+            // One-shot composition card animation
+            if (target != null && card != null && card.CardData != null)
+            {
+                target.PlayCardOneShotAnimation(card.CardData);
+            }
+
             return _session?.TryPlayCompositionCard(card, target, zone) ?? false;
         }
 
