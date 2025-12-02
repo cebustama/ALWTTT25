@@ -10,7 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 86b4372c93bcd2e41a823d76a33cb60f, type: 3}
-  m_Name: New Backing Card Config SO
+  m_Name: "Backing Card Config [I \u2013 IV \u2013 V \u2013 I]"
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.BackingCardConfigSO
   appliesTo: 1
   voiceLeadingOverride: {fileID: 11400000, guid: 574064b73663389408f65972f800cbfe, type: 2}
+  progressionOverride: {fileID: 11400000, guid: a70f9c6df6c718b49bd9cf40fd436ea5, type: 2}
+  progressionPool: []

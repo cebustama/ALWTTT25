@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Backing  - Gus - Test Card
+  m_Name: "Backing  - Gus - [I \u2013 vi \u2013 IV \u2013 V]"
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
   id: Backing - Test
   cardName: Backing - Test
@@ -23,15 +23,20 @@ MonoBehaviour:
   primaryKind: 1
   trackAction:
     role: 1
-    styleBundle: {fileID: 11400000, guid: da71dee48cea0cf4a87fcb1cddfa02f5, type: 2}
+    styleBundle: {fileID: 11400000, guid: bdc23e2fbcf0eeb448c3bcb749d7c817, type: 2}
   partAction:
     action: 0
     customLabel: 
     musicianId: 
-  modifierEffects:
-  - {fileID: 11400000, guid: 63c52baa553fbe2498c35b5bce51efdc, type: 2}
+  modifierEffects: []
   keywordsList: 
   audioType: 0
+  musicianAnimation:
+    kind: 0
+    animatorTrigger: 
+    animationDuration: -1
+    disableBeatAnimator: 1
+    loopBoolParameter: 
   cardType: 0
   usableWithoutTarget: 0
   exhaustAfterPlay: 0

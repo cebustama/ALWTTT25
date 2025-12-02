@@ -251,7 +251,9 @@ namespace ALWTTT.Managers
             player.OnSongStarted += _onSongStartedHandler;
             player.OnSongEnded += _onSongEndedHandler;
 
-            generator = new MidiGenerator(settings);
+            var actualVoicer = new MidiGenPlay.Composition.BasicVoiceLeadingVoicer();
+
+            generator = new MidiGenerator(settings, actualVoicer);
 
             EnsureRegistriesLoaded();
         }

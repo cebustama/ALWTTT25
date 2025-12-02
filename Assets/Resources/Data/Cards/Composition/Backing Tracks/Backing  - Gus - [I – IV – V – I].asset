@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
+  m_Name: "Backing  - Gus - [I \u2013 IV \u2013 V \u2013 I]"
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
+  id: Backing - Test
+  cardName: Backing - Test
+  musicianCharacterType: 3
+  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
+  inspirationCost: 1
+  inspirationGenerated: 1
+  domain: 1
+  actionTiming: 0
+  primaryKind: 1
+  trackAction:
+    role: 1
+    styleBundle: {fileID: 11400000, guid: da71dee48cea0cf4a87fcb1cddfa02f5, type: 2}
+  partAction:
+    action: 0
+    customLabel: 
+    musicianId: 
+  modifierEffects: []
+  keywordsList: 
+  audioType: 0
+  musicianAnimation:
+    kind: 0
+    animatorTrigger: 
+    animationDuration: -1
+    disableBeatAnimator: 1
+    loopBoolParameter: 
+  cardType: 0
+  usableWithoutTarget: 0
+  exhaustAfterPlay: 0
+  cardConditionDataList: []
+  cardActionDataList: []
+  rarity: 0
