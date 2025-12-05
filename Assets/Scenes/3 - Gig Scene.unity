@@ -1190,7 +1190,7 @@ PrefabInstance:
       objectReference: {fileID: 519420031}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: barFillDelay
-      value: 2
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: loopsTimerUI
@@ -1198,7 +1198,7 @@ PrefabInstance:
       objectReference: {fileID: 385988843}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: songEndPause
-      value: 1.5
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: compositionUI
@@ -1218,7 +1218,7 @@ PrefabInstance:
       objectReference: {fileID: 2027330870}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: perAudienceVibeDelay
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: debugInstrumentPicker
@@ -1230,7 +1230,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: perAudienceActionDelay
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: songHypeDeltaMultiplier

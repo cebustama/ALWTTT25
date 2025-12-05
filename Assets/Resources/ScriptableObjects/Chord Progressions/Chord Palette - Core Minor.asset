@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cec8f3e816c9304f8b305a3e3d13898, type: 3}
+  m_Name: Chord Palette - Core Minor
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.ChordProgressionPaletteSO
+  paletteDisplayName: 
+  paletteNotes: 
+  entries:
+  - progression: {fileID: 11400000, guid: a7056ff2febfc5344afc43fc535192e7, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 5f5dc2866f41f8346aed2ac77126ca70, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 362e6bce17c3aa642840fe5279078e76, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: ed1bdb508ee70f74396f5e9657343dc2, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 268ae87895161d84a94a778370d4c160, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: f082a76f6fea36346b09c5e5d826acc9, type: 2}
+    weight: 0
