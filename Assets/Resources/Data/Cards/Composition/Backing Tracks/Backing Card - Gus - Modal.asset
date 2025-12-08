@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
-  m_Name: Backing Card - Gus - Core Minor
+  m_Name: Backing Card - Gus - Modal
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: minor
-  cardName: CORE MINOR
+  id: modal
+  cardName: MODAL
   musicianCharacterType: 3
   cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
   inspirationCost: 1
@@ -23,7 +23,7 @@ MonoBehaviour:
   primaryKind: 1
   trackAction:
     role: 1
-    styleBundle: {fileID: 11400000, guid: 7244dc0e35c74164b9ce4258adbf549b, type: 2}
+    styleBundle: {fileID: 11400000, guid: ce06808247c55f1409dee53ad8997537, type: 2}
   partAction:
     action: 0
     customLabel: 

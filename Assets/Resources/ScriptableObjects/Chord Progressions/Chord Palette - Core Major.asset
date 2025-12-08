@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7cec8f3e816c9304f8b305a3e3d13898, type: 3}
   m_Name: Chord Palette - Core Major
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.ChordProgressionPaletteSO
-  paletteDisplayName: 
+  paletteDisplayName: Major
   paletteNotes: 
   entries:
   - progression: {fileID: 11400000, guid: 8c04ae43b2a0b6240a2ad0f7b0b037ac, type: 2}

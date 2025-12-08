@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38d5450ddc55204d870f8aecdce3e5a, type: 3}
   m_Name: Backing Card - Gus - Core Major
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardData
-  id: Backing - Test
+  id: major
   cardName: CORE MAJOR
   musicianCharacterType: 3
   cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
