@@ -11,5 +11,6 @@ namespace ALWTTT.Data
         public int gigSceneIndex = 3;
         public int gameOverSceneIndex = 4;
         public int bandSetupSceneIndex = 5;
+        public int gigSetupSceneIndex = 6;
     }
 }

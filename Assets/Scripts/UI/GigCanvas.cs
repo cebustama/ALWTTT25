@@ -1,9 +1,6 @@
-﻿using ALWTTT.Data;
-using ALWTTT.Enums;
-using ALWTTT.Managers;
+﻿using ALWTTT.Managers;
 using ALWTTT.Utils;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,6 +13,7 @@ namespace ALWTTT.UI
         [SerializeField] private TextMeshProUGUI drawPileTextField;
         [SerializeField] private TextMeshProUGUI discardPileTextField;
         [SerializeField] private TextMeshProUGUI exhaustPileTextField;
+        [SerializeField] private TextMeshProUGUI songsLeftTextField;
 
         [Header("Buttons")]
         [SerializeField] private Button lossConfirmButton;
@@ -64,6 +62,9 @@ namespace ALWTTT.UI
             GigManager.OnSongPerformanceStarted += ShowSongPerformanceUI;
             GigManager.OnEnemyTurnStarted += ShowAudienceTurnUI;
             GigManager.OnSongHypeChanged01 += SetSongHype;
+            GigManager.OnSongsLeftChanged += SetSongsLeft;
+
+            SetSongsLeft(GigManager.SongsLeft, GigManager.RequiredSongCount);
 
             if (songHypeRoot != null)
                 songHypeRoot.SetActive(false);
@@ -78,6 +79,7 @@ namespace ALWTTT.UI
             GigManager.OnSongPerformanceStarted -= ShowSongPerformanceUI;
             GigManager.OnEnemyTurnStarted -= ShowAudienceTurnUI;
             GigManager.OnSongHypeChanged01 -= SetSongHype;
+            GigManager.OnSongsLeftChanged -= SetSongsLeft;
         }
 
         private void Update()
@@ -242,6 +244,12 @@ namespace ALWTTT.UI
 
             if (!visible && songHypeLabel != null)
                 songHypeLabel.text = string.Empty;
+        }
+
+        public void SetSongsLeft(int songsLeft, int requiredSongCount)
+        {
+            if (songsLeftTextField == null) return;
+            songsLeftTextField.text = $"Songs left: {songsLeft}";
         }
     }
 }

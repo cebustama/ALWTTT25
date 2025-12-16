@@ -9,15 +9,19 @@ using ALWTTT.Interfaces;
 using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
+
 using MidiGenPlay;
 using MidiGenPlay.Services;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
+
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static ALWTTT.Managers.GigRunContext;
 
 namespace ALWTTT.Managers
 {
@@ -41,6 +45,10 @@ namespace ALWTTT.Managers
         [Header("Vibe / Hype Balancing")]
         [SerializeField] private int maxVibeFromSongHype = 20;
         [SerializeField] private float songHypeDeltaMultiplier = 1f;
+
+        [Header("Gig End Behavior")]
+        [SerializeField] private bool skipAudienceActionsAfterFinalSong = true;
+
         [Header("Audience Beat Response")]
         [SerializeField] private AnimationCurve audienceJumpIntensityCurve =
             AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
@@ -85,6 +93,7 @@ namespace ALWTTT.Managers
 
         private bool _isSongPlaying;
         private bool _isBetweenSongs;
+        private bool _returningToMap = false;
 
         private int _currentBpm;
 
@@ -96,15 +105,9 @@ namespace ALWTTT.Managers
         private readonly List<PartFeedbackContext> _gigPartsForCurrentSong =
             new List<PartFeedbackContext>();
 
-        // Gig-level events that expose *enriched* contexts
-        public event Action<PartFeedbackContext> OnGigPartFeedbackReady;
-        public event Action<SongFeedbackContext> OnGigSongFeedbackReady;
-        public event Action<float> OnSongHypeChanged01;
+        private int _requiredSongCount = 1;
 
         private float _songHype;
-        public float SongHype => _songHype;
-        public float SongHype01 => 
-            maxSongHype <= 0f ? 0f : Mathf.Clamp01(_songHype / maxSongHype);
 
         private SongFeedbackContext? _lastSongFeedback;
 
@@ -113,7 +116,7 @@ namespace ALWTTT.Managers
         private readonly Dictionary<string, float> _musicianVolume01
             = new Dictionary<string, float>();
 
-        #region Cache
+        #region Encapsulation / Cache
         public GigEncounter CurrentGigEncounter { get; private set; }
 
         public List<MusicianBase> CurrentMusicianCharacterList
@@ -133,6 +136,9 @@ namespace ALWTTT.Managers
         private UIManager UIManager => UIManager.Instance;
         private MidiMusicManager MidiMusicManager => MidiMusicManager.Instance;
 
+        private bool IsGigComplete => 
+            GameManager.PersistentGameplayData.CurrentSongIndex >= _requiredSongCount;
+
         public List<Transform> MusicianPosList => musicianPosList;
         public List<Transform> AudienceMemberPosList => audienceMemberPosList;
 
@@ -150,6 +156,20 @@ namespace ALWTTT.Managers
                 currentGigPhase = value;
             }
         }
+
+        public float SongHype => _songHype;
+        public float SongHype01 =>
+            maxSongHype <= 0f ? 0f : Mathf.Clamp01(_songHype / maxSongHype);
+        public int RequiredSongCount => _requiredSongCount;
+
+        public int SongsLeft
+        {
+            get
+            {
+                var pd = GameManager.PersistentGameplayData;
+                return Mathf.Max(0, _requiredSongCount - pd.CurrentSongIndex);
+            }
+        }
         #endregion
 
         #region Callbacks
@@ -157,6 +177,13 @@ namespace ALWTTT.Managers
         public Action OnPlayerTurnStarted;
         public Action OnSongPerformanceStarted;
         public Action OnEnemyTurnStarted;
+
+        public event Action<float> OnSongHypeChanged01;
+        public event Action<int, int> OnSongsLeftChanged; // (songsLeft, requiredSongCount)
+
+        // Gig-level events that expose *enriched* contexts
+        public event Action<PartFeedbackContext> OnGigPartFeedbackReady;
+        public event Action<SongFeedbackContext> OnGigSongFeedbackReady;
 
         #endregion
 
@@ -276,6 +303,24 @@ namespace ALWTTT.Managers
             if (useLogs) Debug.Log($"{DebugTag} Starting gig...");
 
             SetupEncounter();
+
+            _requiredSongCount = ResolveRequiredSongCount();
+
+            var pd = GameManager.PersistentGameplayData;
+            pd.CurrentInspiration = pd.InitialGigInspiration;
+
+            Debug.Log($"{DebugTag} StartGig Inspiration init → " +
+                $"TurnStartingInspiration={pd.TurnStartingInspiration}, " +
+                $"CurrentInspiration={pd.CurrentInspiration}, " +
+                $"KeepBetweenTurns={pd.KeepInspirationBetweenTurns}");
+
+            Debug.Log($"{DebugTag} RequiredSongCount resolved = {_requiredSongCount} " +
+                $"(PD.CurrentEncounter.NumberOfSongs=" +
+                $"{GameManager.PersistentGameplayData.CurrentEncounter?.NumberOfSongs ?? -1}, " +
+                $"PD.CurrentSongIndex={GameManager.PersistentGameplayData.CurrentSongIndex})");
+
+            OnSongsLeftChanged?.Invoke(SongsLeft, _requiredSongCount);
+
             BuildBackground();
             BuildBand();
             BuildAudience();
@@ -301,9 +346,27 @@ namespace ALWTTT.Managers
 
             var pd = GameManager.PersistentGameplayData;
 
-            CurrentGigEncounter = GameManager.EncounterData
-                .GetGigEncounterByIndex(
-                    pd.CurrentSectorId, pd.CurrentEncounterId, pd.IsFinalEncounter);
+            // 1) GigSetupScene / dev run
+            if (GigRunContext.Instance != null &&
+                GigRunContext.Instance.TryGetEncounter(out var ctxEncounter))
+            {
+                CurrentGigEncounter = ctxEncounter;
+            }
+            // 2) PersistentGameplayData
+            else if (pd.CurrentEncounter != null)
+            {
+                CurrentGigEncounter = pd.CurrentEncounter;
+            }
+            // 3) Mapa/sector (normal flow)
+            else
+            {
+                CurrentGigEncounter = GameManager.EncounterData
+                    .GetGigEncounterByIndex(
+                        pd.CurrentSectorId, 
+                        pd.CurrentEncounterId, 
+                        pd.IsFinalEncounter
+                    );
+            }
 
             pd.CurrentEncounter = CurrentGigEncounter;
 
@@ -507,8 +570,8 @@ namespace ALWTTT.Managers
                     break;
                 case GigPhase.PlayerTurn:
 
-                    if (GameManager.PersistentGameplayData.CurrentSongIndex >=
-                        GameManager.PersistentGameplayData.CurrentEncounter.NumberOfSongs)
+                    if (GameManager.PersistentGameplayData.CurrentSongIndex >= 
+                        _requiredSongCount)
                     {
                         bool win = true;
                         foreach (var audienceCharacter in CurrentAudienceCharacterList)
@@ -535,9 +598,12 @@ namespace ALWTTT.Managers
                     OnPlayerTurnStarted?.Invoke();
                     GameManager.PersistentGameplayData.SongModifierCardsList.Clear();
 
-                    // --- Groove + Draw Logic ---
-                    GameManager.PersistentGameplayData.CurrentGroove =
-                        GameManager.PersistentGameplayData.TurnStartingGroove;
+                    // --- Inspiration + Draw Logic ---
+                    var pd = GameManager.PersistentGameplayData;
+
+                    if (!pd.KeepInspirationBetweenTurns)
+                        pd.CurrentInspiration = pd.TurnStartingInspiration;
+
                     // TODO: Special case for first turn (e.g. Deployment Phase in Monster Train 2)
                     DeckManager.DrawCards(GameManager.PersistentGameplayData.DrawCount);
                     GameManager.PersistentGameplayData.CanSelectCards = true;
@@ -565,6 +631,7 @@ namespace ALWTTT.Managers
                     OnSongPerformanceStarted?.Invoke();
 
                     GameManager.PersistentGameplayData.CurrentSongIndex++;
+                    OnSongsLeftChanged?.Invoke(SongsLeft, _requiredSongCount);
 
                     if (GameManager.PersistentGameplayData.DiscardHandBetweenTurns)
                     {
@@ -588,6 +655,19 @@ namespace ALWTTT.Managers
                     GameManager.PersistentGameplayData.CanSelectCards = false;
                     break;
             }
+        }
+
+        private int ResolveRequiredSongCount()
+        {
+            int fallback = GameManager.PersistentGameplayData.CurrentEncounter != null
+                ? GameManager.PersistentGameplayData.CurrentEncounter.NumberOfSongs
+                : 1;
+
+            var ctx = GigRunContext.Instance;
+            if (ctx != null && ctx.HasActiveRun)
+                return ctx.ResolveRequiredSongCount(fallback);
+
+            return fallback;
         }
 
         private IEnumerator SongPerformanceRoutine()
@@ -656,10 +736,17 @@ namespace ALWTTT.Managers
             // TODO: Apply Vibe to enemies
             yield return new WaitForSeconds(reactionDuration);
 
-            if (CurrentGigPhase != GigPhase.EndGig)
+            if (CurrentGigPhase == GigPhase.EndGig)
+                yield break;
+
+            if (IsGigComplete && skipAudienceActionsAfterFinalSong)
             {
-                CurrentGigPhase = GigPhase.AudienceTurn;
+                // Reaction already happened. Now end without Audience actions.
+                ResolveGigOutcomeAndEnd();
+                yield break;
             }
+
+            CurrentGigPhase = GigPhase.AudienceTurn;
         }
 
         private IEnumerator AudienceTurnRoutine()
@@ -712,18 +799,21 @@ namespace ALWTTT.Managers
         private void LoseGig()
         {
             var pd = GameManager.PersistentGameplayData;
+
+            var encounter = pd.CurrentEncounter ?? CurrentGigEncounter; // CurrentGigEncounter = your runtime one
+            int penalty = encounter != null ? encounter.CohesionPenaltyOnLoss : 0;
+
             UIManager.GigCanvas.OnLossConfirm = () => ReturnToMap(false);
             UIManager.GigCanvas.ShowLoss(
                 title: "Gig Lost",
                 body: "You didn’t convince the crowd this time, but the journey continues.\n" +
-                       $"Cohesion decreased by {pd.CurrentEncounter.CohesionPenaltyOnLoss}."
+                      $"Cohesion decreased by {penalty}."
             );
 
             foreach (var m in _spawned)
-            {
                 if (m != null) m.UnbindFromGigContext();
-            }
         }
+
 
         private void WinGig()
         {
@@ -800,36 +890,79 @@ namespace ALWTTT.Managers
 
         private void ReturnToMap(bool won)
         {
+            if (_returningToMap)
+            {
+                Debug.LogWarning($"{DebugTag} ReturnToMap called more than once. Ignoring.");
+                return;
+            }
+            _returningToMap = true;
+
             var pd = GameManager.PersistentGameplayData;
+
+            // Decide where to return BEFORE clearing context
+            var returnDest = GigRunContext.GigReturnDestination.Map;
+
+            var ctx = GigRunContext.Instance;
+
+            Debug.Log(
+                $"[GigManager] ReturnToMap | " +
+                $"ctxNull={ctx == null} | " +
+                $"ctxId={(ctx != null ? ctx.GetInstanceID() : -1)} | " +
+                $"HasActiveRun={(ctx != null && ctx.HasActiveRun)} | " +
+                $"CurrentNull={(ctx != null ? ctx.Current == null : true)} | " +
+                $"ReturnDest={(ctx != null && ctx.Current != null ? ctx.Current.returnDestination.ToString() : "N/A")}"
+            );
+
+            if (ctx != null && ctx.HasActiveRun && ctx.Current != null)
+            {
+                returnDest = ctx.Current.returnDestination;
+            }
+
+            // If we're in the real map flow, mark the node completed
             var state = pd.CurrentSectorMapState;
             if (state != null)
             {
                 var node = state.GetNode(state.CurrentNodeId);
                 if (node != null && node.Type == Enums.NodeType.Gig)
-                {
-                    node.Completed = true; // cannot replay regular gigs
-                }
+                    node.Completed = true;
             }
 
-            if (won)
+            // Use whichever encounter we actually have
+            var encounter = pd.CurrentEncounter ?? CurrentGigEncounter;
+
+            if (encounter != null)
             {
-                // Reward fans (or use CurrentGigEncounter.FansReward if present)
-                pd.Fans += pd.CurrentEncounter.FansOnWin;
+                if (won)
+                {
+                    pd.Fans += encounter.FansOnWin;
+                }
+                else
+                {
+                    pd.BandCohesion = Mathf.Max(0, pd.BandCohesion - encounter.CohesionPenaltyOnLoss);
+                }
             }
             else
             {
-                // Reduce cohesion (clamp >= 0)
-                pd.BandCohesion = Mathf.Max(
-                    0, pd.BandCohesion - pd.CurrentEncounter.CohesionPenaltyOnLoss);
+                Debug.LogWarning($"{DebugTag} ReturnToMap: Encounter is null, skipping fans/cohesion adjustments.");
             }
 
-            // Clear encounter pointer
+            // Clear pointers
             pd.CurrentEncounter = null;
+            if (ctx != null) ctx.Clear();
 
-            // Back to Map
-            if (sceneChanger) sceneChanger.OpenMapScene();
-            else UnityEngine.SceneManagement.SceneManager.LoadScene("Map"); // fallback
+            // Route back
+            if (sceneChanger != null)
+            {
+                if (returnDest == GigRunContext.GigReturnDestination.GigSetup) sceneChanger.OpenGigSetupScene();
+                else sceneChanger.OpenMapScene();
+            }
+            else
+            {
+                SceneManager.LoadScene(returnDest == GigRunContext.GigReturnDestination.GigSetup ? "GigSetup" : "Map");
+            }
         }
+
+
 
         private void SetHandVisible(bool visible)
         {
@@ -973,6 +1106,16 @@ namespace ALWTTT.Managers
             _gigPartsForCurrentSong.Clear();
             _audienceLoopImpressionsByPart.Clear();
 
+            // === END OF SONG: count it ===
+            GameManager.PersistentGameplayData.CurrentSongIndex++;
+            OnSongsLeftChanged?.Invoke(SongsLeft, _requiredSongCount);
+
+            // === END OF SONG: discard hand between songs (if enabled) ===
+            if (GameManager.PersistentGameplayData.DiscardHandBetweenTurns)
+            {
+                DeckManager.DiscardHand();
+            }
+
             // Reset BPM/Animation
             ResetStageToIdle();
         }
@@ -1064,6 +1207,12 @@ namespace ALWTTT.Managers
             _session = null;
             _isSongPlaying = false;
             _isBetweenSongs = false;
+
+            if (IsGigComplete && skipAudienceActionsAfterFinalSong)
+            {
+                ResolveGigOutcomeAndEnd();
+                return;
+            }
 
             // Hand control to the existing gig phase system:
             // this will call AudienceTurnRoutine() and run all audience actions.
@@ -1389,8 +1538,6 @@ namespace ALWTTT.Managers
                 }
                 else
                 {
-                    Debug.Log("<color=blue> WFT </color>");
-
                     // Instrument debug OFF → hide dropdowns & clear overrides
                     canvas.SetupInstrumentDebugDropdown(false, null, _ => { });
                     canvas.SetupPercussionInstrumentDebugDropdown(false, null, _ => { });
@@ -1531,6 +1678,50 @@ namespace ALWTTT.Managers
                 yield return new WaitForSeconds(perAudienceVibeDelay);
             }
         }
+
+        private void ResolveGigOutcomeAndEnd()
+        {
+            bool win = true;
+            foreach (var audienceCharacter in CurrentAudienceCharacterList)
+            {
+                if (!audienceCharacter.Stats.IsConvinced)
+                {
+                    win = false;
+                    break;
+                }
+            }
+
+            if (win) WinGig();
+            else LoseGig();
+        }
+
+        #region Context Menus
+
+        [ContextMenu("Debug/Force Win (Return Immediately)")]
+        private void DebugForceWin_ReturnImmediately()
+        {
+            ReturnToMap(true);
+        }
+
+        [ContextMenu("Debug/Force Lose (Return Immediately)")]
+        private void DebugForceLose_ReturnImmediately()
+        {
+            ReturnToMap(false);
+        }
+
+        [ContextMenu("Debug/Win (Normal Flow)")]
+        private void DebugWin_NormalFlow()
+        {
+            WinGig();
+        }
+
+        [ContextMenu("Debug/Lose (Normal Flow)")]
+        private void DebugLose_NormalFlow()
+        {
+            LoseGig();
+        }
+
+        #endregion
     }
 }
 

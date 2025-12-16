@@ -1,6 +1,7 @@
 using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
 using ALWTTT.Encounters;
+using ALWTTT.Managers;
 using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
@@ -50,14 +51,21 @@ namespace ALWTTT.Data
 
         // Gig Gameplay
         [SerializeField] private int drawCount;
-        [SerializeField] private int maxGroove;
-        [SerializeField] private int currentGroove;
-        [SerializeField] private int turnStartingGroove;
+        [SerializeField] private bool discardHandBetweenTurns;
+
+        // Inspiration
+        [SerializeField] private int maxInspiration;
+        [SerializeField] private int currentInspiration;
+        [SerializeField] private int turnStartingInspiration;
+        [SerializeField] private bool keepInspirationBetweenTurns;
+
+        [SerializeField] private int initialGigInspiration;
+        [SerializeField] private int inspirationPerLoop;
+
         [SerializeField] private bool isRandomDeck;
         [SerializeField] private bool canUseCards;
         [SerializeField] private bool canSelectCards;
-        [SerializeField] private bool discardHandBetweenTurns;
-        [SerializeField] private bool keepGrooveBetweenTurns;
+        
         [SerializeField] private SongData currentSong;
         [SerializeField] private int currentSongIndex;
         [SerializeField] private List<CardData> songModifierCardsList;
@@ -122,22 +130,34 @@ namespace ALWTTT.Data
             set => drawCount = value;
         }
 
-        public int MaxGroove
+        public int MaxInspiration
         {
-            get => maxGroove;
-            set => maxGroove = value;
+            get => maxInspiration;
+            set => maxInspiration = value;
         }
 
-        public int CurrentGroove
+        public int CurrentInspiration
         {
-            get => currentGroove;
-            set => currentGroove = value;
+            get => currentInspiration;
+            set => currentInspiration = value;
         }
 
-        public int TurnStartingGroove
+        public int TurnStartingInspiration
         {
-            get => turnStartingGroove;
-            set => turnStartingGroove = value;
+            get => turnStartingInspiration;
+            set => turnStartingInspiration = value;
+        }
+
+        public int InitialGigInspiration
+        {
+            get => initialGigInspiration;
+            set => initialGigInspiration = value;
+        }
+
+        public int InspirationPerLoop
+        {
+            get => inspirationPerLoop;
+            set => inspirationPerLoop = value;
         }
 
         public List<BandConflict> BandConflicts => bandConflicts;
@@ -174,10 +194,10 @@ namespace ALWTTT.Data
             set => discardHandBetweenTurns = value;
         }
 
-        public bool KeepGrooveBetweenTurns
+        public bool KeepInspirationBetweenTurns
         {
-            get => keepGrooveBetweenTurns;
-            set => keepGrooveBetweenTurns = value;
+            get => keepInspirationBetweenTurns;
+            set => keepInspirationBetweenTurns = value;
         }
 
         public int CurrentSectorId
@@ -277,14 +297,14 @@ namespace ALWTTT.Data
             }
 
             drawCount = gameplayData.DrawCount;
-            maxGroove = gameplayData.MaxGroove;
-            turnStartingGroove = 0;
-            currentGroove = turnStartingGroove;
+            maxInspiration = gameplayData.MaxInspiration;
+            turnStartingInspiration = 0;
+            currentInspiration = turnStartingInspiration;
 
             CanUseCards = true;
             CanSelectCards = true;
             DiscardHandBetweenTurns = gameplayData.DiscardHandBetweenTurns;
-            KeepGrooveBetweenTurns = gameplayData.KeepGrooveBetweenTurns;
+            KeepInspirationBetweenTurns = gameplayData.KeepInspirationBetweenTurns;
 
             isRandomDeck = gameplayData.IsRandomDeck;
             
@@ -392,6 +412,63 @@ namespace ALWTTT.Data
         #endregion
 
         #region Band
+
+        public void SetBandDeck(BandDeckData bandDeck)
+        {
+            // Clear runtime decks
+            if (currentActionCards == null) currentActionCards = new List<CardData>();
+            if (currentCompositionCards == null) currentCompositionCards = new List<CardData>();
+
+            currentActionCards.Clear();
+            currentCompositionCards.Clear();
+
+            // Reset provenance of granted cards, because this is a full deck replace
+            musicianGrantedActionCards = new SerializableCardInventory();
+            musicianGrantedCompositionCards = new SerializableCardInventory();
+
+            isRandomDeck = false;
+
+            if (bandDeck == null)
+            {
+                Debug.LogWarning("[PersistentGameplayData] SetBandDeck called with null deck.");
+                return;
+            }
+
+            var cards = bandDeck.Cards;
+            if (cards == null)
+            {
+                Debug.LogWarning($"[PersistentGameplayData] BandDeck '{bandDeck.name}' has null Cards list.");
+                return;
+            }
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                var card = cards[i];
+                if (card == null) continue;
+
+                // Optional: skip duplicates by reference
+                if (card.IsAction)
+                {
+                    if (!currentActionCards.Contains(card))
+                        currentActionCards.Add(card);
+                }
+                else if (card.IsComposition)
+                {
+                    if (!currentCompositionCards.Contains(card))
+                        currentCompositionCards.Add(card);
+                }
+                else
+                {
+                    Debug.LogWarning($"[PersistentGameplayData] Card '{card.name}' is neither Action nor Composition.");
+                }
+            }
+
+            Debug.Log($"[PersistentGameplayData] SetBandDeck -> " +
+                      $"Action={currentActionCards.Count}, Composition={currentCompositionCards.Count} " +
+                      $"(Deck='{bandDeck.name}')");
+        }
+
+
         public void ResetBandForSetup(List<MusicianBase> all)
         {
             MusicianList = new List<MusicianBase>();
@@ -591,6 +668,95 @@ namespace ALWTTT.Data
 
         }
         #endregion
+
+        public void ApplyRunConfig(
+            GigRunContext.RunConfig config,
+            GigSetupConfigData defaults)
+        {
+            if (config == null)
+            {
+                Debug.LogWarning("[PersistentGameplayData] ApplyRunConfig called with null config.");
+                return;
+            }
+
+            // --- Reset gig state ---
+            CurrentSongIndex = 0;
+
+            SongModifierCardsList ??= new List<CardData>();
+            SongModifierCardsList.Clear();
+
+            // --- Deck ---
+            SetBandDeck(config.bandDeck);
+
+            // --- Encounter ---
+            CurrentEncounter = config.encounter;
+
+            // Prevent sector-based re-derivation
+            CurrentSectorId = 0;
+            CurrentEncounterId = 0;
+            IsFinalEncounter = false;
+
+            // --- Inspiration ---
+
+            // 1) Initial Gig Inspiration (applied once at gig start)
+            int fallbackInitialGigInspiration =
+                defaults != null
+                    ? defaults.DefaultInitialGigInspiration
+                    : InitialGigInspiration;
+
+            InitialGigInspiration =
+                config.overrideInitialGigInspiration
+                    ? Mathf.Max(0, config.initialGigInspiration)
+                    : fallbackInitialGigInspiration;
+
+            // Note: do NOT set CurrentInspiration from TurnStartingInspiration anymore.
+            // GigManager.StartGig should do: CurrentInspiration = InitialGigInspiration;
+
+            // 2) Turn Starting Inspiration (only used when KeepInspirationBetweenTurns == false)
+            int fallbackTurnStartingInspiration =
+                defaults != null
+                    ? defaults.DefaultStartingInspiration
+                    : TurnStartingInspiration;
+
+            // TODO: Remove this field completely, replaced by InspirationPerLoop
+            TurnStartingInspiration = fallbackTurnStartingInspiration;
+
+            // 3) Inspiration Per Loop
+            int fallbackInspirationPerLoop =
+                defaults != null
+                    ? defaults.DefaultInspirationPerLoop
+                    : InspirationPerLoop;
+
+            InspirationPerLoop =
+                config.overrideInspirationPerLoop
+                    ? Mathf.Max(0, config.inspirationPerLoop)
+                    : fallbackInspirationPerLoop;
+
+            // --- Policies ---
+            DiscardHandBetweenTurns =
+                config.overrideDiscardHandBetweenTurns
+                    ? config.discardHandBetweenTurns
+                    : (defaults != null
+                        ? defaults.DefaultDiscardHandBetweenTurns
+                        : DiscardHandBetweenTurns);
+
+            KeepInspirationBetweenTurns =
+                config.overrideKeepInspirationBetweenTurns
+                    ? config.keepInspirationBetweenTurns
+                    : (defaults != null
+                        ? defaults.DefaultKeepInspirationBetweenTurns
+                        : KeepInspirationBetweenTurns);
+
+            Debug.Log(
+                $"[PersistentGameplayData] ApplyRunConfig -> " +
+                $"Deck={config.bandDeck?.name}, " +
+                $"Encounter={config.encounter?.GetLabel()}, " +
+                $"StartInspiration={TurnStartingInspiration}, " +
+                $"DiscardBetweenTurns={DiscardHandBetweenTurns}, " +
+                $"KeepInspiration={KeepInspirationBetweenTurns}"
+            );
+        }
+
     }
 
     [Serializable]

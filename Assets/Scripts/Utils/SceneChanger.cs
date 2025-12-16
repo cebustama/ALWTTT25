@@ -19,7 +19,8 @@ namespace ALWTTT.Utils
             SectorMap,
             Ship,
             Gig,
-            GameOver
+            GameOver,
+            GigSetup
         }
 
         public void OpenMainMenuScene()
@@ -30,6 +31,11 @@ namespace ALWTTT.Utils
         public void OpenBandSetupScene()
         {
             StartCoroutine(DelaySceneChange(SceneType.BandSetup));
+        }
+
+        public void OpenGigSetupScene()
+        {
+            StartCoroutine(DelaySceneChange(SceneType.GigSetup));
         }
 
         public void OpenMapScene()
@@ -76,6 +82,12 @@ namespace ALWTTT.Utils
                     UIManager.SetCanvas(UIManager.GigCanvas, false, true);
                     UIManager.SetCanvas(UIManager.RewardCanvas, false, true);
 
+                    break;
+
+                case SceneType.GigSetup:
+                    UIManager.ChangeScene(GameManager.SceneData.gigSetupSceneIndex);
+                    UIManager.SetCanvas(UIManager.GigCanvas, false, true);
+                    UIManager.SetCanvas(UIManager.RewardCanvas, false, true);
                     break;
 
                 case SceneType.SectorMap:

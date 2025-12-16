@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de38fe8a2e4a8a94fbe8a3f5b23a1661, type: 3}
+  m_Name: GigEncounter 1
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Encounters.GigEncounterSO
+  targetVenueType: 0
+  displayName: Big Guy
+  audienceMemberList:
+  - {fileID: 11400000, guid: 085e95c05f8793249aa6399eaccb2d6d, type: 2}
+  numberOfSongs: 2
+  fansOnWin: 0
+  cohesionPenaltyOnLoss: 0

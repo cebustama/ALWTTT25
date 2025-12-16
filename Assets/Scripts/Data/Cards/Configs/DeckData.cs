@@ -1,10 +1,9 @@
-using ALWTTT.Cards;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static ALWTTT.Cards.CardData;
 
-namespace ALWTTT
+namespace ALWTTT.Cards
 {
     [CreateAssetMenu(fileName = "New DeckData", menuName = "ALWTTT/Cards/DeckData")]
     public class DeckData : ScriptableObject

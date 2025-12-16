@@ -52,8 +52,8 @@ MonoBehaviour:
   passiveImage: {fileID: 0}
   nameTextField: {fileID: 2253420769599146968}
   descTextField: {fileID: 8486886504165462760}
-  grooveCostTextField: {fileID: 722027446639653306}
-  grooveGenTextField: {fileID: 1062792592149586426}
+  inspirationCostTextField: {fileID: 722027446639653306}
+  inspirationGenTextField: {fileID: 1062792592149586426}
   typeTextField: {fileID: 5115853906357149707}
   canvas: {fileID: 428331095299981895}
 --- !u!1 &5414052691621968375
@@ -99,9 +99,17 @@ PrefabInstance:
       propertyPath: m_fontSize
       value: 7.95
       objectReference: {fileID: 0}
+    - target: {fileID: 2167336853314628054, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Name
+      value: InspirationGeneratedText
+      objectReference: {fileID: 0}
     - target: {fileID: 2725634283359784976, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
       value: 10.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3199168694923872801, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Name
+      value: InspirationCost
       objectReference: {fileID: 0}
     - target: {fileID: 3211857600033479564, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -203,9 +211,13 @@ PrefabInstance:
       propertyPath: m_PresetInfoIsWorld
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5424354733780764083, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Name
+      value: InspirationGenerated
+      objectReference: {fileID: 0}
     - target: {fileID: 5715593493086095648, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 14.5
+      value: 12.5
       objectReference: {fileID: 0}
     - target: {fileID: 5716483695520293257, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Name
@@ -217,7 +229,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6821778627196199682, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 11.05
+      value: 9.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8166581273373307091, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+      propertyPath: m_Name
+      value: InspirationCostText
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

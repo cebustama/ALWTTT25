@@ -29,8 +29,8 @@ namespace ALWTTT
         [SerializeField] protected Image passiveImage;
         [SerializeField] protected TextMeshProUGUI nameTextField;
         [SerializeField] protected TextMeshProUGUI descTextField;
-        [SerializeField] protected TextMeshProUGUI grooveCostTextField;
-        [SerializeField] protected TextMeshProUGUI grooveGenTextField;
+        [SerializeField] protected TextMeshProUGUI inspirationCostTextField;
+        [SerializeField] protected TextMeshProUGUI inspirationGenTextField;
         [SerializeField] protected TextMeshProUGUI typeTextField;
 
         public CardData CardData { get; private set; }
@@ -69,8 +69,8 @@ namespace ALWTTT
                 "COMPOSITION" : CardData.CardType.ToString();
             nameTextField.text = CardData.CardName;
             descTextField.text = CardData.GetDescription();
-            grooveCostTextField.text = CardData.InspirationCost.ToString();
-            grooveGenTextField.text = CardData.InspirationGenerated.ToString();
+            inspirationCostTextField.text = CardData.InspirationCost.ToString();
+            inspirationGenTextField.text = CardData.InspirationGenerated.ToString();
         }
         #endregion
 
@@ -83,8 +83,8 @@ namespace ALWTTT
             if (CardData.CardType == CardType.SFX)
             {
                 GameManager.PersistentGameplayData.SongModifierCardsList.Add(CardData);
-                SpendGroove(CardData.InspirationCost);
-                GenerateGroove(CardData.InspirationGenerated);
+                SpendInspiration(CardData.InspirationCost);
+                GenerateInspiration(CardData.InspirationGenerated);
                 DeckManager.OnCardPlayed(this);
             }
             else
@@ -114,8 +114,8 @@ namespace ALWTTT
         {
             Debug.Log($"<color=cyan> Playing card (coroutine)...</color>");
 
-            SpendGroove(CardData.InspirationCost);
-            GenerateGroove(CardData.InspirationGenerated);
+            SpendInspiration(CardData.InspirationCost);
+            GenerateInspiration(CardData.InspirationGenerated);
 
             foreach (var playerAction in CardData.CardActionDataList)
             {
@@ -202,14 +202,14 @@ namespace ALWTTT
             if (!IsPlayable) return;
         }
 
-        protected virtual void SpendGroove(int value)
+        protected virtual void SpendInspiration(int value)
         {
-            GameManager.PersistentGameplayData.CurrentGroove -= value;
+            GameManager.PersistentGameplayData.CurrentInspiration -= value;
         }
 
-        protected virtual void GenerateGroove(int value)
+        protected virtual void GenerateInspiration(int value)
         {
-            GameManager.PersistentGameplayData.CurrentGroove += value;
+            GameManager.PersistentGameplayData.CurrentInspiration += value;
         }
 
         private static List<CharacterBase> DetermineTargets(

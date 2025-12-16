@@ -22,7 +22,7 @@ namespace ALWTTT
         [Header("Band Setup")]
         [SerializeField] private bool useBandSetup = true;
         [SerializeField, Min(1)] private int setupPickCount = 1;  // N
-        [SerializeField] private int setupPoolSize = -1;          // X (-1 => all)
+        [SerializeField] private int setupPoolSize = -1; // X (-1 => all)
 
         [Header("Map")]
         [SerializeField] private int maxCohesion = 10;
@@ -41,9 +41,9 @@ namespace ALWTTT
         [Header("Gig Gameplay Settings")]
         [SerializeField] private int drawCount = 3;
         [SerializeField] private int maxCardsOnHand = 8;
-        [SerializeField] private int maxGroove = 3;
+        [SerializeField] private int maxInspiration = 5;
         [SerializeField] private bool discardHandBetweenTurns = true;
-        [SerializeField] private bool keepGrooveBetweenTurns = true;
+        [SerializeField] private bool keepInspirationBetweenTurns = true;
 
         [Header("Cards")]
         [SerializeField] private List<CardData> allCardsList;
@@ -87,15 +87,15 @@ namespace ALWTTT
 
         public int DrawCount => drawCount;
         public int MaxCardsOnHand => maxCardsOnHand;
-        public int MaxGroove => maxGroove;
+        public int MaxInspiration => maxInspiration;
         public bool DiscardHandBetweenTurns => discardHandBetweenTurns;
-        public bool KeepGrooveBetweenTurns => keepGrooveBetweenTurns;
+        public bool KeepInspirationBetweenTurns => keepInspirationBetweenTurns;
 
         public CardBase CardPrefab => cardPrefab;
         public List<CardData> AllCardsList => allCardsList;
 
         public DeckData InitialActionDeck => initialActionDeck;
-        public DeckData InitialCompositionDeck => InitialCompositionDeck;
+        public DeckData InitialCompositionDeck => initialCompositionDeck;
         public List<CardData> ActionCardPool => actionCardPool;
         public List<CardData> CompositionCardPool => compositionCardPool;
 

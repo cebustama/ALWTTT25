@@ -24,6 +24,9 @@ EditorBuildSettings:
     path: Assets/Scenes/0.5 - Band Setup.unity
     guid: c838a9dcd60ae4341a2681841487acaa
   - enabled: 1
+    path: Assets/Scenes/0.x - GigSetupScene.unity
+    guid: c489c9c9dd9781045999e2a4525a84e5
+  - enabled: 1
     path: Assets/Scenes/ALWTTTCore.unity
     guid: 14b0682341bae5a43815853466f02f90
   m_configObjects:
