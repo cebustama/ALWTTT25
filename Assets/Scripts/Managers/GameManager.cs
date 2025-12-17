@@ -83,7 +83,7 @@ namespace ALWTTT.Managers
             }
         }
 
-        public CardBase BuildAndGetCard(CardData targetData, Transform parent)
+        public CardBase BuildAndGetCard(CardDefinition targetData, Transform parent)
         {
             var newCard = Instantiate(GameplayData.CardPrefab, parent);
             newCard.SetCard(targetData);

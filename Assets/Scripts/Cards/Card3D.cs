@@ -8,7 +8,7 @@ namespace ALWTTT
         [Header("3D Settings")]
         [SerializeField] private Canvas canvas;
 
-        public override void SetCard(CardData targetProfile, bool isPlayable = true)
+        public override void SetCard(CardDefinition targetProfile, bool isPlayable = true)
         {
             base.SetCard(targetProfile, isPlayable);
 

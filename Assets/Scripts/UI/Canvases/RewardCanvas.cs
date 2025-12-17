@@ -27,8 +27,8 @@ namespace ALWTTT.UI
             new List<RewardContainer>();
         private readonly List<ChoiceCard> spawnedChoiceList = 
             new List<ChoiceCard>();
-        private readonly List<CardData> cardRewardList = 
-            new List<CardData>();
+        private readonly List<CardDefinition> cardRewardList = 
+            new List<CardDefinition>();
 
         public ChoicePanel ChoicePanel => choicePanel;
 

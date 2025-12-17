@@ -232,36 +232,45 @@ namespace ALWTTT.Music
 
             var ui = _ctx?.CompositionUI;
             if (ui == null) return Fail("UI is null");
-            if (card == null || card.CardData == null) return Fail("Card or CardData is null");
+            if (card == null || card.CardDefinition == null) return Fail("Card or CardData is null");
 
-            var c = card.CardData;
+            var def = card.CardDefinition;
+            var comp = def?.CompositionPayload;
 
-            // Snapshot state for debugging
-            Info($"enter name='{c.CardName}' zone={zone} state={_state} " +
-                 $"isComp={c.IsComposition} isTrack={c.IsTrackCard} isTempo={c.IsTempoCard} " +
-                 $"isTimeSig={c.IsTimeSignatureCard} requiresTarget={c.RequiresMusicianTarget}");
+            bool isComp = comp != null;
+            bool isTrack = comp != null && comp.PrimaryKind == CardPrimaryKind.Track;
+            bool isTempo = comp != null && 
+                CompositionCardClassifier.IsTempoCard(comp);
+            bool isTimeSig = comp != null && 
+                CompositionCardClassifier.IsTimeSignatureCard(comp);
+            bool requiresTarget = comp != null && comp.RequiresMusicianTarget;
+            bool affectsSound = comp != null && CompositionCardClassifier.AffectsSound(comp);
+
+            Info($"enter name='{def?.DisplayName}' zone={zone} state={_state} " +
+                 $"isComp={isComp} isTrack={isTrack} isTempo={isTempo} " +
+                 $"isTimeSig={isTimeSig} requiresTarget={requiresTarget}");
 
             // 1) Inspiration cost (only for composition cards)
-            if (c.IsComposition)
+            if (def.IsComposition)
             {
-                int cost = Math.Max(0, c.InspirationCost);
+                int cost = Math.Max(0, def.InspirationCost);
                 Info($"inspiration: have={_currentInspiration} " +
-                    $"cost={cost} gen={c.InspirationGenerated}");
+                    $"cost={cost} gen={def.InspirationGenerated}");
                 if (cost > _currentInspiration)
                     return Fail("Not enough inspiration");
             }
 
             // 2) Resolve target (only for track cards)
-            if (c.IsTrackCard)
+            if (requiresTarget)
             {
-                if (target == null && c.HasFixedMusicianTarget)
+                if (target == null && def.RequiresFixedPerformer)
                 {
-                    target = _ctx.ResolveMusicianByType(c.MusicianCharacterType);
+                    target = _ctx.ResolveMusicianByType(def.FixedPerformerType);
                     Info($"fixed target resolver → " +
                         $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}");
                 }
-                if (c.RequiresMusicianTarget && target == null)
-                    return Fail("Track card requires musician target but none resolved");
+                if (def.RequiresMusicianTarget && target == null)
+                    return Fail("Card requires musician target but none resolved");
             }
 
             // 3) Business rules (centralized in UI)
@@ -298,29 +307,29 @@ namespace ALWTTT.Music
                 return Fail("ui.ApplyCardToPart returned false");
 
             // 7) Invalidate cache if the card affects sound
-            if (loopIsRunning && c.AffectsSound)
+            if (loopIsRunning && affectsSound)
             {
-                bool keepTempo = ShouldKeepTempo(c);
+                bool keepTempo = ShouldKeepTempo(def);
 
-                bool keepInstruments = ShouldKeepInstruments(c);
+                bool keepInstruments = ShouldKeepInstruments(def);
 
                 int invalidateIdx = (zone == CardDropZone.NextPart) ? 
                     partIdx : _currentPartIndex;
 
                 Info($"invalidating cache part={invalidateIdx} keepTempo={keepTempo} " +
-                    $"keepInstruments={keepInstruments} affectsSound={c.AffectsSound}");
+                    $"keepInstruments={keepInstruments} affectsSound={affectsSound}");
 
                 InvalidatePartCache(invalidateIdx, keepTempo, keepInstruments);
             }
 
             // 8) Spend / preview inspiration
-            if (c.IsComposition)
+            if (def.IsComposition)
             {
-                int cost = Math.Max(0, c.InspirationCost);
+                int cost = Math.Max(0, def.InspirationCost);
                 _currentInspiration = Math.Max(0, _currentInspiration - cost);
                 ui.SetInspiration(_currentInspiration);
 
-                int gen = Math.Max(0, c.InspirationGenerated);
+                int gen = Math.Max(0, def.InspirationGenerated);
                 if (gen > 0)
                 {
                     _buildingPartInspirationPerLoop += gen;
@@ -330,7 +339,7 @@ namespace ALWTTT.Music
             }
 
             // 9) Refresh per-loop inspiration for the currently looping part if we changed tracks
-            if (c.IsTrackCard && _state != CompositionState.BuildingCurrentPart)
+            if (isTrack && _state != CompositionState.BuildingCurrentPart)
             {
                 if (_currentPartIndex >= 0 && _currentPartIndex < ui.Model.parts.Count)
                 {
@@ -603,23 +612,39 @@ namespace ALWTTT.Music
             }
         }
 
-        private bool ShouldKeepTempo(CardData c)
+        private bool ShouldKeepTempo(CardDefinition c)
         {
+            // Keep current tempo unless the played card explicitly changes tempo/time signature.
             if (c == null) return true;
-            if (c.IsTempoCard) return false;
-            if (c.IsTimeSignatureCard) return true;
-            if (c.IsTrackCard) return true;
-            if (c.IsTonalityCard) return true;
+
+            var comp = c.CompositionPayload;
+            if (comp == null) return true;
+
+            // Tempo cards force a tempo re-resolve.
+            if (CompositionCardClassifier.IsTempoCard(comp))
+                return false;
+
+            // Time signature cards: keep tempo (tempo stays, grid changes).
+            if (CompositionCardClassifier.IsTimeSignatureCard(comp))
+                return true;
+
+            // Track cards / tonality cards: keep tempo.
+            // (We don't have a Tonality classifier yet; default keep.)
             return true;
         }
 
-        private bool ShouldKeepInstruments(CardData c)
+        private bool ShouldKeepInstruments(CardDefinition c)
         {
             if (c == null) return true;
 
-            // Only InstrumentEffect cards should force a re-roll of instruments.
-            // Everything else keeps the pinned instruments.
-            if (c.IsInstrumentCard) return false;
+            var comp = c.CompositionPayload;
+            if (comp == null) return true;
+
+            // Only cards that are clearly "instrument changing"
+            // should force a re-roll of instruments.
+            // Everything else keeps pinned instruments.
+            if (CompositionCardClassifier.IsInstrumentCard(comp))
+                return false;
 
             return true;
         }

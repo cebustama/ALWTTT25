@@ -13,11 +13,11 @@ namespace ALWTTT.Data
 
         public List<CardRewardData> CardRewardDataList => cardRewardDataList;
 
-        public List<CardData> GetRandomCardRewardList(out CardRewardData rewardData)
+        public List<CardDefinition> GetRandomCardRewardList(out CardRewardData rewardData)
         {
             rewardData = CardRewardDataList.RandomItem();
 
-            List<CardData> cardList = new List<CardData>();
+            List<CardDefinition> cardList = new List<CardDefinition>();
 
             foreach (var cardData in rewardData.RewardCardList)
                 cardList.Add(cardData);

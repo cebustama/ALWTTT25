@@ -15,7 +15,7 @@ namespace ALWTTT.Cards
         public GameManager GameManager => GameManager.Instance;
         public UIManager UIManager => UIManager.Instance;
 
-        public void BuildReward(CardData cardData)
+        public void BuildReward(CardDefinition cardData)
         {
             cardBase = GetComponent<CardBase>();
             initalScale = transform.localScale;
@@ -25,7 +25,7 @@ namespace ALWTTT.Cards
 
         private void OnChoice()
         {
-            GameManager.PersistentGameplayData.CurrentActionCards.Add(cardBase.CardData);
+            GameManager.PersistentGameplayData.CurrentActionCards.Add(cardBase.CardDefinition);
             UIManager.RewardCanvas.ChoicePanel.DisablePanel();
 
             OnCardChose?.Invoke();

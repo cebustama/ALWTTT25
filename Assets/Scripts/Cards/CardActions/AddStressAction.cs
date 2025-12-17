@@ -28,7 +28,7 @@ namespace ALWTTT.Actions
 
                 if (p.Context is CardActionContext cardCtx)
                 {
-                    AudioManager.PlayOneShot(cardCtx.CardData.AudioType);
+                    AudioManager.PlayOneShot(cardCtx.CardDefinition.AudioType);
                 }
                 else if (p.Context is AudienceActionContext audienceCtx)
                 {

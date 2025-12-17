@@ -422,7 +422,8 @@ namespace ALWTTT
                     {
                         _pendingDropZone = _hoverZone;
                         Debug.Log($"<color=yellow>{DebugTag} DROPPED on zone: " +
-                            $"{_pendingDropZone} (card='{heldCard.CardData.CardName}')</color>");
+                            $"{_pendingDropZone} " +
+                            $"(card='{heldCard.CardDefinition.DisplayName}')</color>");
                     }
 
                     PlayCard(mousePos);
@@ -480,7 +481,7 @@ namespace ALWTTT
 
         private bool TryPlayInGig(Vector2 mousePos, CardDropZone zoneUsed)
         {
-            var data = heldCard.CardData;
+            var data = heldCard.CardDefinition;
             if (data == null) return false;
 
             // ─────────────────────────────────────────────
@@ -491,17 +492,17 @@ namespace ALWTTT
                 MusicianBase target = null;
 
                 // 1a) If the card has a fixed musician type, resolve that FIRST and ignore hover.
-                if (data.HasFixedMusicianTarget && _resolveTargetByType != null)
+                if (data.RequiresFixedPerformer && _resolveTargetByType != null)
                 {
-                    target = _resolveTargetByType(data.MusicianCharacterType);
+                    target = _resolveTargetByType(data.FixedPerformerType);
 
                     if (target != null)
                         Debug.Log($"{DebugTag} [Gig] Fixed-target card -> " +
                             $"{target.MusicianCharacterData.CharacterName} " +
-                            $"({data.MusicianCharacterType}).");
+                            $"({data.FixedPerformerType}).");
                     else
                         Debug.Log($"{DebugTag} [Gig] Fixed-target card but resolver returned null " +
-                            $"for {data.MusicianCharacterType}.");
+                            $"for {data.FixedPerformerType}.");
                 }
 
                 // 1b) Otherwise (or if fixed-target failed), use hover → selected fallback
@@ -525,7 +526,8 @@ namespace ALWTTT
                 // 1c) If the card REQUIRES a musician and still none, abort.
                 if (data.RequiresMusicianTarget && target == null)
                 {
-                    Debug.Log($"{DebugTag} [Gig] Card requires musician target but none resolved.");
+                    Debug.Log($"{DebugTag} [Gig] " +
+                        $"Card requires musician target but none resolved.");
                     return false;
                 }
 
@@ -542,7 +544,7 @@ namespace ALWTTT
                 if (!GigManager.CanPlayActionCard(data))
                 {
                     Debug.Log($"{DebugTag} [Gig] Cannot play action card " +
-                              $"'{data.CardName}' in current timing. Returning to hand.");
+                              $"'{data.DisplayName}' in current timing. Returning to hand.");
                     return false;
                 }
 
@@ -561,7 +563,7 @@ namespace ALWTTT
                 bool canUse = false;
 
                 // No target or SFX → can use directly
-                if (data.UsableWithoutTarget || data.CardType == CardType.SFX)
+                if (data.RequiresTargetSelection || data.CardType == CardType.SFX)
                 {
                     canUse = true;
                 }
@@ -593,7 +595,8 @@ namespace ALWTTT
             }
 
             // Any other domains → not handled in gig
-            Debug.LogWarning($"{DebugTag} [Gig] Card '{data.CardName}' has unsupported domain '{data.Domain}'.");
+            Debug.LogWarning($"{DebugTag} [Gig] " +
+                $"Card '{data.DisplayName}' has unsupported domain '{data.Domain}'.");
             return false;
         }
 
@@ -601,23 +604,28 @@ namespace ALWTTT
         {
             if (shipInteriorManager == null || heldCard == null) return false;
 
-            var data = heldCard.CardData;
+            var data = heldCard.CardDefinition;
             if (data == null || !data.IsComposition) return false;
 
             MusicianBase target = null;
 
             // FIX: If the card has a fixed musician type, resolve that FIRST and ignore hover.
-            if (data.HasFixedMusicianTarget && _resolveTargetByType != null)
+            if (data.RequiresFixedPerformer && _resolveTargetByType != null)
             {
-                target = _resolveTargetByType(data.MusicianCharacterType);
+                target = _resolveTargetByType(data.FixedPerformerType);
                 
                 if (target != null)
-                    Debug.Log($"{DebugTag} [Ship] Fixed-target card -> {target.MusicianCharacterData.CharacterName} ({data.MusicianCharacterType}).");
+                    Debug.Log($"{DebugTag} [Ship] " +
+                        $"Fixed-target card -> {target.MusicianCharacterData.CharacterName} " +
+                        $"({data.FixedPerformerType}).");
                 else
-                    Debug.Log($"{DebugTag} [Ship] Fixed-target card but resolver returned null for {data.MusicianCharacterType}.");
+                    Debug.Log($"{DebugTag} [Ship] " +
+                        $"Fixed-target card but resolver returned null for " +
+                        $"{data.FixedPerformerType}.");
             }
 
-            // Otherwise (or if fixed-target failed to resolve), use hover → selected fallback
+            // Otherwise (or if fixed-target failed to resolve),
+            // use hover → selected fallback
             if (target == null)
             {
                 // Prefer hovered musician
@@ -625,20 +633,25 @@ namespace ALWTTT
                 if (hovered != null)
                 {
                     target = hovered;
-                    Debug.Log($"{DebugTag} [Ship] Hover-target -> {target.MusicianCharacterData.CharacterName}.");
+                    Debug.Log($"{DebugTag} [Ship] Hover-target -> " +
+                        $"{target.MusicianCharacterData.CharacterName}.");
                 }
                 else
                 {
-                    // Fallback to Ship-selected (may be the first musician if none highlighted)
-                    target = shipInteriorManager.GetSelectedMusicianOrDefault() as MusicianBase;
-                    Debug.Log($"{DebugTag} [Ship] Selected/Default target -> {(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
+                    // Fallback to Ship-selected
+                    // (may be the first musician if none highlighted)
+                    target = 
+                        shipInteriorManager.GetSelectedMusicianOrDefault() as MusicianBase;
+                    Debug.Log($"{DebugTag} [Ship] Selected/Default target -> " +
+                        $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
                 }
             }
 
             // If the card REQUIRES a musician and still none, abort.
             if (data.RequiresMusicianTarget && target == null)
             {
-                Debug.Log($"{DebugTag} [Ship] Card requires musician target but none resolved.");
+                Debug.Log($"{DebugTag} [Ship] " +
+                    $"Card requires musician target but none resolved.");
                 return false;
             }
 
@@ -675,14 +688,14 @@ namespace ALWTTT
                 var character = hit.collider.gameObject.GetComponent<ICharacter>();
                 if (character == null || character.IsStunned) return false;
 
-                var data = heldCard?.CardData;
+                var data = heldCard?.CardDefinition;
                 if (data == null) return false;
 
                 var actions = data.CardActionDataList;
                 if (data.IsComposition || actions == null || actions.Count == 0)
                 {
                     Debug.Log($"{DebugTag} [Gig] CheckPlayOnCharacter: " +
-                        $"card '{data.CardName}' has no  actions; skipping old targeting.");
+                        $"card '{data.DisplayName}' has no  actions; skipping old targeting.");
                     return false;
                 }
 

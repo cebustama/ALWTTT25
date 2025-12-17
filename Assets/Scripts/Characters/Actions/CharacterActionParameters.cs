@@ -32,12 +32,12 @@ namespace ALWTTT.Actions
 
     public sealed class CardActionContext : CharacterActionContext
     {
-        public readonly CardData CardData;
+        public readonly CardDefinition CardDefinition;
         public readonly CardBase CardBase;
 
-        public CardActionContext(CardData cardData, CardBase cardBase)
+        public CardActionContext(CardDefinition cardData, CardBase cardBase)
         {
-            CardData = cardData;
+            CardDefinition = cardData;
             CardBase = cardBase;
         }
     }

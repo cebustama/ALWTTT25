@@ -71,7 +71,7 @@ namespace ALWTTT.Managers
             StartCoroutine(ChangeSceneRoutine(index));
         }
 
-        public void OpenCardsInventory(List<CardData> cardList, string title)
+        public void OpenCardsInventory(List<CardDefinition> cardList, string title)
         {
             SetCanvas(InventoryCanvas, true, true);
             InventoryCanvas.ChangeTitle(title);

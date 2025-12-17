@@ -26,8 +26,8 @@ namespace ALWTTT.Data
         [SerializeField] private Sprite characterIcon;
 
         [Header("Cards")]
-        [SerializeField] private List<CardData> baseActionCards;
-        [SerializeField] private List<CardData> baseCompositionCards;
+        [SerializeField] private List<CardDefinition> baseActionCards;
+        [SerializeField] private List<CardDefinition> baseCompositionCards;
 
         [Header("Stats")]
         [SerializeField] private int chr;
@@ -47,8 +47,8 @@ namespace ALWTTT.Data
         public Sprite CharacterSprite => characterSprite;
         public Sprite CharacterIcon => characterIcon;
 
-        public List<CardData> BaseActionCards => baseActionCards;
-        public List<CardData> BaseCompositionCards => baseCompositionCards;
+        public List<CardDefinition> BaseActionCards => baseActionCards;
+        public List<CardDefinition> BaseCompositionCards => baseCompositionCards;
 
         public MusicianProfileData Profile => profile;
         public MelodicLeadingConfig DefaultMelodicLeading =>

@@ -33,7 +33,7 @@ namespace ALWTTT
         [SerializeField] protected TextMeshProUGUI inspirationGenTextField;
         [SerializeField] protected TextMeshProUGUI typeTextField;
 
-        public CardData CardData { get; private set; }
+        public CardDefinition CardDefinition { get; private set; }
         public bool IsInactive { get; protected set; }
         public bool IsPlayable { get; protected set; } = true;
         public bool IsExhausted { get; protected set; }
@@ -55,22 +55,22 @@ namespace ALWTTT
             CachedWaitFrame = new WaitForEndOfFrame();
         }
 
-        public virtual void SetCard(CardData targetProfile, bool isPlayable = true)
+        public virtual void SetCard(CardDefinition targetProfile, bool isPlayable = true)
         {
-            CardData = targetProfile;
+            CardDefinition = targetProfile;
             IsPlayable = isPlayable;
 
             /*
             backgroundImage.color = 
                 GameManager.GameplayData.GetCardTypeColor(CardData.CardType);*/
 
-            cardImage.sprite = CardData.CardSprite;
-            typeTextField.text = CardData.IsComposition ? 
-                "COMPOSITION" : CardData.CardType.ToString();
-            nameTextField.text = CardData.CardName;
-            descTextField.text = CardData.GetDescription();
-            inspirationCostTextField.text = CardData.InspirationCost.ToString();
-            inspirationGenTextField.text = CardData.InspirationGenerated.ToString();
+            cardImage.sprite = CardDefinition.CardSprite;
+            typeTextField.text = CardDefinition.IsComposition ? 
+                "COMPOSITION" : CardDefinition.CardType.ToString();
+            nameTextField.text = CardDefinition.DisplayName;
+            descTextField.text = CardDefinition.GetDescription();
+            inspirationCostTextField.text = CardDefinition.InspirationCost.ToString();
+            inspirationGenTextField.text = CardDefinition.InspirationGenerated.ToString();
         }
         #endregion
 
@@ -80,11 +80,11 @@ namespace ALWTTT
         {
             if (!IsPlayable) return;
 
-            if (CardData.CardType == CardType.SFX)
+            if (CardDefinition.CardType == CardType.SFX)
             {
-                GameManager.PersistentGameplayData.SongModifierCardsList.Add(CardData);
-                SpendInspiration(CardData.InspirationCost);
-                GenerateInspiration(CardData.InspirationGenerated);
+                GameManager.PersistentGameplayData.SongModifierCardsList.Add(CardDefinition);
+                SpendInspiration(CardDefinition.InspirationCost);
+                GenerateInspiration(CardDefinition.InspirationGenerated);
                 DeckManager.OnCardPlayed(this);
             }
             else
@@ -98,11 +98,11 @@ namespace ALWTTT
         {
             if (musician != null)
             {
-                descTextField.text = CardData.GetDescription(musician.Stats);
+                descTextField.text = CardDefinition.GetDescription(musician.Stats);
             }
             else
             {
-                descTextField.text = CardData.GetDescription(null);
+                descTextField.text = CardDefinition.GetDescription(null);
             }
         }
 
@@ -114,26 +114,38 @@ namespace ALWTTT
         {
             Debug.Log($"<color=cyan> Playing card (coroutine)...</color>");
 
-            SpendInspiration(CardData.InspirationCost);
-            GenerateInspiration(CardData.InspirationGenerated);
+            SpendInspiration(CardDefinition.InspirationCost);
+            GenerateInspiration(CardDefinition.InspirationGenerated);
 
-            foreach (var playerAction in CardData.CardActionDataList)
+            var actions = CardDefinition.CardActionDataList;
+
+            // If this is a Composition card (or an Action card missing actions),
+            // we still "play" it for now, but it performs no CharacterActionData.
+            if (actions == null || actions.Count == 0)
+            {
+                DeckManager.OnCardPlayed(this);
+                yield break;
+            }
+
+            foreach (var playerAction in actions)
             {
                 yield return new WaitForSeconds(playerAction.ActionDelay);
-                
+
                 var targetList = DetermineTargets(
                     target, allAudienceCharacters, allBandCharacters, playerAction);
 
                 foreach (var t in targetList)
                 {
-                    var ctx = new CardActionContext(CardData, this);
+                    var ctx = new CardActionContext(CardDefinition, this);
                     var p = new CharacterActionParameters(
                         playerAction.ActionValue,
                         performer, t,
                         ctx
                     );
 
-                    CharacterActionProcessor.GetAction(playerAction.CardActionType).DoAction(p);
+                    CharacterActionProcessor
+                        .GetAction(playerAction.CardActionType)
+                        .DoAction(p);
                 }
             }
 
@@ -283,10 +295,10 @@ namespace ALWTTT
         protected virtual void ShowTooltipInfo()
         {
             if (!descriptionRoot) return;
-            if (CardData.KeywordsList.Count <= 0) return; // No keywords no tooltips
+            if (CardDefinition.Keywords.Count <= 0) return; // No keywords no tooltips
 
             var tooltipManager = TooltipManager.Instance;
-            foreach (var cardDataSpecialKeyword in CardData.KeywordsList)
+            foreach (var cardDataSpecialKeyword in CardDefinition.Keywords)
             {
                 var specialKeyword = tooltipManager
                     .SpecialKeywordData.SpecialKeywordBaseList
@@ -309,7 +321,7 @@ namespace ALWTTT
             Transform tooltipStaticTransform = null, Camera cam = null, float delayShow = 0)
         {
             if (!descriptionRoot) return;
-            if (CardData.KeywordsList.Count == 0) return;
+            if (CardDefinition.Keywords.Count == 0) return;
 
             tooltipManager.ShowTooltip(
                 content, header, tooltipStaticTransform, cam, delayShow);

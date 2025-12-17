@@ -2968,6 +2968,8 @@ MonoBehaviour:
   songsToWinInput: {fileID: 1833834017}
   overrideStartingInspirationToggle: {fileID: 942499808}
   startingInspirationInput: {fileID: 1451666622}
+  overrideInspirationPerLoopToggle: {fileID: 0}
+  inspirationPerLoopInput: {fileID: 0}
   overrideDiscardHandBetweenTurnsToggle: {fileID: 1599154198}
   discardHandBetweenTurnsToggle: {fileID: 1675967656}
   overrideKeepInspirationBetweenTurnsToggle: {fileID: 162227028}

@@ -6,7 +6,6 @@ using ALWTTT.Events;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static ALWTTT.Cards.CardData;
 
 namespace ALWTTT
 {
@@ -35,8 +34,8 @@ namespace ALWTTT
         [SerializeField] private DeckData initialActionDeck;
         [SerializeField] private DeckData initialCompositionDeck;
         [Header("Card Pools")]
-        [SerializeField] private List<CardData> actionCardPool;
-        [SerializeField] private List<CardData> compositionCardPool;
+        [SerializeField] private List<CardDefinition> actionCardPool;
+        [SerializeField] private List<CardDefinition> compositionCardPool;
 
         [Header("Gig Gameplay Settings")]
         [SerializeField] private int drawCount = 3;
@@ -46,7 +45,7 @@ namespace ALWTTT
         [SerializeField] private bool keepInspirationBetweenTurns = true;
 
         [Header("Cards")]
-        [SerializeField] private List<CardData> allCardsList;
+        [SerializeField] private List<CardDefinition> allCardsList;
         [SerializeField] private CardBase cardPrefab;
 
         [Serializable]
@@ -92,12 +91,12 @@ namespace ALWTTT
         public bool KeepInspirationBetweenTurns => keepInspirationBetweenTurns;
 
         public CardBase CardPrefab => cardPrefab;
-        public List<CardData> AllCardsList => allCardsList;
+        public List<CardDefinition> AllCardsList => allCardsList;
 
         public DeckData InitialActionDeck => initialActionDeck;
         public DeckData InitialCompositionDeck => initialCompositionDeck;
-        public List<CardData> ActionCardPool => actionCardPool;
-        public List<CardData> CompositionCardPool => compositionCardPool;
+        public List<CardDefinition> ActionCardPool => actionCardPool;
+        public List<CardDefinition> CompositionCardPool => compositionCardPool;
 
         public bool IsRandomDeck => isRandomDeck;
         public int RandomCardCount => randomCardCount;
@@ -144,7 +143,7 @@ namespace ALWTTT
         }
 
         private void FilterPoolByDomain(
-            List<CardData> pool, CardDomain mustBe, string fieldLabel)
+            List<CardDefinition> pool, CardDomain mustBe, string fieldLabel)
         {
             if (pool == null) return;
             for (int i = pool.Count - 1; i >= 0; --i)

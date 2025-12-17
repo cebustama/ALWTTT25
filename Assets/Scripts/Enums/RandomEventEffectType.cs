@@ -26,8 +26,8 @@ namespace ALWTTT.Events
         public int amount;             // Fans gained, cohesion delta, etc.
 
         [Header("Card(s)")]
-        public CardData card;
-        public List<CardData> cards;
+        public CardDefinition card;
+        public List<CardDefinition> cards;
 
         [Header("Musician")]
         public MusicianCharacterData musician; // for AddMusician

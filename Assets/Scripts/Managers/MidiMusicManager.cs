@@ -1764,7 +1764,7 @@ namespace ALWTTT.Managers
 
         private readonly List<object> _pendingArrangementIntents = new(); // IntroIntent, SoloIntent, ReplaceTrackIntent, etc.
         private readonly List<object> _pendingPostProcIntents = new(); // HumanizeIntent, MistakeIntent, etc.
-        private readonly List<CardData> _pendingCards = new(); // CardData queue (mapping happens later)
+        private readonly List<CardDefinition> _pendingCards = new(); // CardData queue (mapping happens later)
 
         private readonly List<IArrangementMutator> _pendingArrangementMutators = new();
         private readonly List<IMidiPostProcessor> _pendingPostProcessors = new();
@@ -1790,7 +1790,7 @@ namespace ALWTTT.Managers
         // ----- Public methods -----
 
         // Cards will be translated to intents
-        public void ApplyCards(IEnumerable<CardData> cards)
+        public void ApplyCards(IEnumerable<CardDefinition> cards)
         {
             _pendingCards.Clear();
             if (cards != null) _pendingCards.AddRange(cards);

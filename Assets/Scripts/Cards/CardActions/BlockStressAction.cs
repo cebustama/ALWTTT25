@@ -26,7 +26,7 @@ namespace ALWTTT.Actions
                 
                 if (actionParameters.Context is CardActionContext cardCtx)
                 {
-                    switch (cardCtx.CardData.CardType)
+                    switch (cardCtx.CardDefinition.CardType)
                     {
                         case CardType.CHR:
                             chillToAdd =
@@ -56,7 +56,7 @@ namespace ALWTTT.Actions
 
                 if (actionParameters.Context is CardActionContext cardCtx2)
                 {
-                    AudioManager.PlayOneShot(cardCtx2.CardData.AudioType);
+                    AudioManager.PlayOneShot(cardCtx2.CardDefinition.AudioType);
                 }
             }
             else

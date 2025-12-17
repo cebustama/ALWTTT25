@@ -173,7 +173,7 @@ namespace ALWTTT.Characters.Band
             // CharacterAnimator?.SetTrigger("Beat");
         }
 
-        public Coroutine PlayCardOneShotAnimation(CardData card)
+        public Coroutine PlayCardOneShotAnimation(CardDefinition card)
         {
             if (card == null) return null;
 

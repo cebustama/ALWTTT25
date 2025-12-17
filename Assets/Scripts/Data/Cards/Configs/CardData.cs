@@ -1,9 +1,6 @@
 ﻿using ALWTTT.Actions;
-using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
-using MidiGenPlay;
-using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,7 +8,7 @@ using UnityEngine;
 
 namespace ALWTTT.Cards
 {
-    [CreateAssetMenu(fileName = "New CardData", menuName = "ALWTTT/Cards/CardData")]
+    [System.Obsolete("Legacy: migrated to CardDefinition + CardPayload. Do not use.")]
     public class CardData : ScriptableObject
     {
         [Header("Card Profile")]
@@ -19,8 +16,9 @@ namespace ALWTTT.Cards
         [SerializeField] private string cardName;
 
         [Header("Character")]
-        [SerializeField]
-        private MusicianCharacterType musicianCharacterType =
+        [SerializeField] private CardPerformerRule performerRule = 
+            CardPerformerRule.FixedMusicianType;
+        [SerializeField] private MusicianCharacterType musicianCharacterType = 
             MusicianCharacterType.None;
         [SerializeField] private Sprite cardSprite; // Fill according to musician
 
@@ -28,33 +26,11 @@ namespace ALWTTT.Cards
         [SerializeField] private int inspirationCost;
         [SerializeField] private int inspirationGenerated;
 
-        public enum CardDomain { Action, Composition }
         [Header("Domain")]
         [SerializeField] private CardDomain domain = CardDomain.Action;
 
-        public enum ActionTiming { Always, BetweenSongsOnly }
         [Header("Action Card Timing")]
-        public ActionTiming actionTiming = ActionTiming.Always;
-
-        /// <summary>
-        /// High-level primary kind for a Composition card.
-        /// Track: create/replace/update a musician's track in a part.
-        /// Part: create/mark/structure a song part (intro/solo/outro/bridge/etc.).
-        /// </summary>
-        public enum CardPrimaryKind { None = 0, Track = 1, Part = 2 }
-
-        /// <summary>
-        /// Identifies which track role the card targets (Rhythm/Backing/Bassline/Melody/Harmony).
-        /// You already have these labels elsewhere; keep it string for soft-coupling (UI-friendly).
-        /// </summary>
-        [Serializable]
-        public class TrackActionDescriptor
-        {
-            public TrackRole role = TrackRole.Rhythm;
-
-            [Tooltip("Optional style bundle for this track (recipe/strategy/archetypes).")]
-            public TrackStyleBundleSO styleBundle;
-        }
+        public CardActionTiming actionTiming = CardActionTiming.Always;
 
         [Header("Composition")]
         [SerializeField] private CardPrimaryKind primaryKind = CardPrimaryKind.None;
@@ -103,7 +79,9 @@ namespace ALWTTT.Cards
         public int InspirationCost => inspirationCost;
         public Sprite CardSprite => cardSprite;
         public int InspirationGenerated => inspirationGenerated;
-        public MusicianCharacterType MusicianCharacterType => musicianCharacterType;
+
+        public CardPerformerRule PerformerRule => performerRule;
+        public MusicianCharacterType FixedPerformerType  => musicianCharacterType;
         public bool ExhaustAfterPlay => exhaustAfterPlay;
         public CardType CardType => cardType;
         public List<CardConditionData> CardConditionDataList => cardConditionDataList;
@@ -211,7 +189,7 @@ namespace ALWTTT.Cards
         /// </summary>
         public bool HasFixedMusicianTarget =>
             RequiresMusicianTarget &&
-            MusicianCharacterType != MusicianCharacterType.None;
+            FixedPerformerType  != MusicianCharacterType.None;
 
         /// <summary>
         /// Used by the hand/hover logic: a card can be played without hovering
@@ -299,27 +277,6 @@ namespace ALWTTT.Cards
         }
 
         #region Refactor
-
-        // ---------- Primary Action Descriptors ----------
-
-        /// <summary>
-        /// Describes a structural action upon Parts (create, mark as Intro/Solo/Outro/Bridge, etc.).
-        /// </summary>
-        [Serializable]
-        public class PartActionDescriptor
-        {
-            public enum PartActionKind { CreatePart, MarkIntro, MarkSolo, MarkOutro, MarkBridge, MarkFinal, Custom }
-
-            public PartActionKind action = PartActionKind.CreatePart;
-
-            [Tooltip("Optional custom label for created/marked part (e.g., 'Part B', 'Bridge').")]
-            public string customLabel;
-
-            [Tooltip("If marking Solo, optionally tie to a musician (by id).")]
-            public string musicianId;
-        }
-
-        
 
 #if UNITY_EDITOR
         private void OnValidate()

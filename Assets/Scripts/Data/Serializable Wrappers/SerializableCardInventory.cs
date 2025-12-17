@@ -14,7 +14,7 @@ namespace ALWTTT.Data
         [Serializable]
         public class CardList
         {
-            public List<CardData> cards = new List<CardData>();
+            public List<CardDefinition> cards = new List<CardDefinition>();
         }
 
         // Serialized backing
@@ -22,7 +22,8 @@ namespace ALWTTT.Data
         [SerializeField] private List<CardList> values = new List<CardList>();
 
         // Runtime map
-        private readonly Dictionary<string, List<CardData>> dict = new Dictionary<string, List<CardData>>();
+        private readonly Dictionary<string, List<CardDefinition>> dict = 
+            new Dictionary<string, List<CardDefinition>>();
 
         public void OnBeforeSerialize()
         {
@@ -31,7 +32,7 @@ namespace ALWTTT.Data
             foreach (var kvp in dict)
             {
                 keys.Add(kvp.Key);
-                values.Add(new CardList { cards = new List<CardData>(kvp.Value) });
+                values.Add(new CardList { cards = new List<CardDefinition>(kvp.Value) });
             }
         }
 
@@ -42,41 +43,42 @@ namespace ALWTTT.Data
             for (int i = 0; i < count; i++)
             {
                 var id = keys[i];
-                var list = values[i]?.cards ?? new List<CardData>();
+                var list = values[i]?.cards ?? new List<CardDefinition>();
                 dict[id] = list;
             }
         }
 
-        private List<CardData> Ensure(string musicianId)
+        private List<CardDefinition> Ensure(string musicianId)
         {
             if (!dict.TryGetValue(musicianId, out var list))
             {
-                list = new List<CardData>();
+                list = new List<CardDefinition>();
                 dict[musicianId] = list;
             }
             return list;
         }
 
-        public void AddCard(string musicianId, CardData card)
+        public void AddCard(string musicianId, CardDefinition card)
         {
             if (string.IsNullOrEmpty(musicianId) || card == null) return;
             Ensure(musicianId).Add(card);
         }
 
-        public void AddCards(string musicianId, IEnumerable<CardData> cards)
+        public void AddCards(string musicianId, IEnumerable<CardDefinition> cards)
         {
             if (string.IsNullOrEmpty(musicianId) || cards == null) return;
             Ensure(musicianId).AddRange(cards);
         }
 
-        public List<CardData> Get(string musicianId)
+        public List<CardDefinition> Get(string musicianId)
         {
-            return !string.IsNullOrEmpty(musicianId) && dict.TryGetValue(musicianId, out var list)
+            return !string.IsNullOrEmpty(musicianId) && 
+                dict.TryGetValue(musicianId, out var list)
                 ? list
                 : null;
         }
 
-        public bool TryRemoveAll(string musicianId, out List<CardData> removed)
+        public bool TryRemoveAll(string musicianId, out List<CardDefinition> removed)
         {
             removed = null;
             if (string.IsNullOrEmpty(musicianId)) return false;

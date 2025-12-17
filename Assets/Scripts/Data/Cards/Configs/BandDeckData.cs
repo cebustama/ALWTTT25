@@ -12,9 +12,9 @@ namespace ALWTTT.Cards
         [TextArea]
         [SerializeField] private string description;
 
-        [SerializeField] private List<CardData> cards;
+        [SerializeField] private List<CardDefinition> cards;
 
-        public IReadOnlyList<CardData> Cards => cards;
+        public IReadOnlyList<CardDefinition> Cards => cards;
     }
 }
 

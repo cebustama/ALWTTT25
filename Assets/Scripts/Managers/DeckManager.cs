@@ -13,10 +13,14 @@ namespace ALWTTT.Managers
         [Header("Controllers")]
         [SerializeField] private HandController handController;
 
-        public List<CardData> DrawPile { get; private set; } = new List<CardData>();
-        public List<CardData> HandPile { get; private set; } = new List<CardData>();
-        public List<CardData> DiscardPile { get; private set; } = new List<CardData>();
-        public List<CardData> ExhaustPile { get; private set; } = new List<CardData>();
+        public List<CardDefinition> DrawPile { get; private set; } = 
+            new List<CardDefinition>();
+        public List<CardDefinition> HandPile { get; private set; } = 
+            new List<CardDefinition>();
+        public List<CardDefinition> DiscardPile { get; private set; } = 
+            new List<CardDefinition>();
+        public List<CardDefinition> ExhaustPile { get; private set; } = 
+            new List<CardDefinition>();
 
         #region Cache
         public HandController HandController => handController;
@@ -113,7 +117,7 @@ namespace ALWTTT.Managers
         {
             //Debug.Log($"{DebugTag} On Card Played...");
 
-            if (targetCard.CardData.ExhaustAfterPlay)
+            if (targetCard.CardDefinition.ExhaustAfterPlay)
             {
                 targetCard.Exhaust();
             }
@@ -138,8 +142,8 @@ namespace ALWTTT.Managers
 
         public void OnCardDiscarded(CardBase targetCard)
         {
-            HandPile.Remove(targetCard.CardData);
-            DiscardPile.Add(targetCard.CardData);
+            HandPile.Remove(targetCard.CardDefinition);
+            DiscardPile.Add(targetCard.CardDefinition);
 
             if (UIManager != null && UIManager.GigCanvas != null)
                 UIManager.GigCanvas.SetPileTexts();
@@ -157,7 +161,7 @@ namespace ALWTTT.Managers
                 UIManager.GigCanvas.SetPileTexts();
         }
 
-        public void AddToDrawPile(IEnumerable<CardData> cards, bool shuffle = true)
+        public void AddToDrawPile(IEnumerable<CardDefinition> cards, bool shuffle = true)
         {
             if (cards == null) return;
 
@@ -178,7 +182,7 @@ namespace ALWTTT.Managers
                 UIManager.GigCanvas.SetPileTexts();
         }
 
-        public void AddToDrawPile(CardData card)
+        public void AddToDrawPile(CardDefinition card)
         {
             if (card != null) DrawPile.Add(card);
 

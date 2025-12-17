@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static ALWTTT.Cards.CardData;
 
 namespace ALWTTT.Cards
 {
@@ -13,18 +12,18 @@ namespace ALWTTT.Cards
 
         [SerializeField] private CardDomain deckDomain = CardDomain.Action;
 
-        [SerializeField] private List<CardData> cardList;
+        [SerializeField] private List<CardDefinition> cardList;
 
-        public List<CardData> CardList => cardList;
+        public List<CardDefinition> CardList => cardList;
 
         public string DeckID => deckID;
         public string DeckName => deckName;
         public CardDomain DeckDomain => deckDomain;
 
-        public IReadOnlyList<CardData> GetValidCards()
+        public IReadOnlyList<CardDefinition> GetValidCards()
         {
-            if (cardList == null) return Array.Empty<CardData>();
-            List<CardData> filtered = new();
+            if (cardList == null) return Array.Empty<CardDefinition>();
+            List<CardDefinition> filtered = new();
             foreach (var c in cardList)
                 if (c != null && c.Domain == deckDomain) filtered.Add(c);
             return filtered;

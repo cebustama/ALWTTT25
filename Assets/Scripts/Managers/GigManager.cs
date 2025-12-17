@@ -1004,9 +1004,9 @@ namespace ALWTTT.Managers
             }
 
             // One-shot composition card animation
-            if (target != null && card != null && card.CardData != null)
+            if (target != null && card != null && card.CardDefinition != null)
             {
-                target.PlayCardOneShotAnimation(card.CardData);
+                target.PlayCardOneShotAnimation(card.CardDefinition);
             }
 
             return _session?.TryPlayCompositionCard(card, target, zone) ?? false;
@@ -1120,17 +1120,22 @@ namespace ALWTTT.Managers
             ResetStageToIdle();
         }
 
-        public bool CanPlayActionCard(CardData card)
+        public bool CanPlayActionCard(CardDefinition card)
         {
+            if (card == null) return false;
             if (!card.IsAction) return false;
 
+            var actionPayload = card.ActionPayload;
+            if (actionPayload == null) return false;
+            var actionTiming = actionPayload.ActionTiming;
+
             if (_isSongPlaying)
-                return card.actionTiming == CardData.ActionTiming.Always;
+                return actionTiming == CardActionTiming.Always;
 
             if (_isBetweenSongs)
-                return true; // both Always and BetweenSongsOnly
+                return true; // (keep your existing logic)
 
-            // No session / no gig context → no action cards
+            // No session / no gig context -> no action cards
             return false;
         }
 

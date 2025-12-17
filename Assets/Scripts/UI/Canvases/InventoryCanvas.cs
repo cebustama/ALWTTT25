@@ -26,7 +26,7 @@ namespace ALWTTT.UI
 
         public void ChangeTitle(string newTitle) => TitleTextField.text = newTitle;
 
-        public void SetCards(List<CardData> cardDataList)
+        public void SetCards(List<CardDefinition> cardDataList)
         {
             cardSpawnRoot.gameObject.SetActive(true);
             songSpawnRoot.gameObject.SetActive(false);

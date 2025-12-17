@@ -11,8 +11,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-using static ALWTTT.Cards.CardData;
-using static ALWTTT.Cards.CardData.PartActionDescriptor;
 using static MidiGenPlay.MusicTheory.MusicTheory;
 
 namespace ALWTTT.UI
@@ -205,15 +203,15 @@ namespace ALWTTT.UI
             // ---------------------------------------------------------
             // 0) BASIC VALIDATION
             // ---------------------------------------------------------
-            if (card == null || card.CardData == null || !card.CardData.IsComposition)
+            if (card == null || card.CardDefinition == null || !card.CardDefinition.IsComposition)
                 return false;
 
-            var data = card.CardData;
+            var data = card.CardDefinition;
+            var comp = data.CompositionPayload;
 
-            // Only the new model is supported now
-            if (!data.UsesNewCompositionModel)
+            if (comp == null)
             {
-                Log("ApplyCardToPart: legacy composition model is no longer supported.");
+                Log("ApplyCardToPart: card is marked Composition but has no CompositionPayload.");
                 return false;
             }
 
@@ -233,19 +231,26 @@ namespace ALWTTT.UI
             string tgtId = target != null ? target.MusicianCharacterData.CharacterId : null;
             string tgtName = target != null ? target.MusicianCharacterData.CharacterName : null;
 
+            // If this composition card requires a musician (track targeting / TrackOnly fx), enforce it here.
+            if (comp.RequiresMusicianTarget && target == null)
+            {
+                Log("ApplyCardToPart: composition card requires a musician target, but none was provided.");
+                return false;
+            }
+
             // ---------------------------------------------------------
             // 3) PRIMARY ACTION: TRACK
             // ---------------------------------------------------------
-            if (data.PrimaryKind == CardPrimaryKind.Track)
+            if (comp.PrimaryKind == CardPrimaryKind.Track)
             {
-                var desc = data.TrackAction;
+                var desc = comp.TrackAction;
                 if (desc == null)
                 {
                     Log("ApplyCardToPart: Track card has no TrackAction descriptor.");
                     return false;
                 }
 
-                // Track cards always require a musician target
+                // Track primary always requires a musician target (redundant with RequiresMusicianTarget, but clearer)
                 if (target == null)
                 {
                     Log("Track card requires a musician target (new model).");
@@ -260,26 +265,19 @@ namespace ALWTTT.UI
                     tgtId,
                     tgtName,
                     role,
-                    data.CardName,
-                    data);
+                    data.DisplayName,
+                    data,
+                    desc.styleBundle);
 
                 if (!ok) return false;
-
-                // Copy style overrides into the TrackEntry
-                var last = part.tracks.FirstOrDefault(t => t.musicianId == tgtId);
-                if (last != null)
-                {
-                    // Store the full style bundle for track-specific composition
-                    last.styleBundle = desc.styleBundle;
-                }
             }
 
             // ---------------------------------------------------------
             // 4) PRIMARY ACTION: PART
             // ---------------------------------------------------------
-            else if (data.PrimaryKind == CardPrimaryKind.Part)
+            else if (comp.PrimaryKind == CardPrimaryKind.Part)
             {
-                var pa = data.PartAction;
+                var pa = comp.PartAction;
                 if (pa == null)
                 {
                     Log("ApplyCardToPart: Part card has no PartAction descriptor.");
@@ -289,7 +287,6 @@ namespace ALWTTT.UI
                 switch (pa.action)
                 {
                     case PartActionKind.CreatePart:
-                        // Create a blank part at the end (optional custom label)
                         BeginDraftNextPart(
                             string.IsNullOrWhiteSpace(pa.customLabel) ? null : pa.customLabel);
                         break;
@@ -307,7 +304,6 @@ namespace ALWTTT.UI
                         break;
 
                     case PartActionKind.MarkBridge:
-                        // Create a "Bridge" part (or custom label)
                         BeginDraftNextPart(
                             string.IsNullOrWhiteSpace(pa.customLabel) ? "Bridge" : pa.customLabel);
                         break;
@@ -317,16 +313,20 @@ namespace ALWTTT.UI
                         break;
                 }
             }
+            else
+            {
+                Log($"ApplyCardToPart: unsupported PrimaryKind '{comp.PrimaryKind}'");
+                return false;
+            }
 
             // ---------------------------------------------------------
             // 5) SECONDARY MODIFIER EFFECTS
             // ---------------------------------------------------------
-            if (data.ModifierEffects != null)
+            var effects = comp.ModifierEffects;
+            if (effects != null)
             {
-                foreach (var fx in data.ModifierEffects)
-                {
+                foreach (var fx in effects)
                     ApplyEffectToModel(fx, partIndex, target);
-                }
             }
 
             // ---------------------------------------------------------
@@ -338,6 +338,7 @@ namespace ALWTTT.UI
             RaisePartChanged();
             return true;
         }
+
 
         /// <summary>
         /// Ensure there is a part at 'partIndex'. Creates missing parts up to that index,
@@ -631,28 +632,33 @@ namespace ALWTTT.UI
         public bool CanApply(CardBase card, MusicianBase target, out string reason)
         {
             reason = null;
-            if (card == null || card.CardData == null || !card.CardData.IsComposition)
+
+            if (card == null || card.CardDefinition == null || !card.CardDefinition.IsComposition)
             {
                 reason = "Not a composition card.";
                 return false;
             }
 
-            var data = card.CardData;
+            var data = card.CardDefinition;
+            var comp = data.CompositionPayload;
+            if (comp == null)
+            {
+                reason = "Missing composition payload.";
+                return false;
+            }
 
-            // Track cards always need a musician (unless they auto-resuelven por tipo)
-            if (data.IsTrackCard && target == null)
+            // Track cards always need a musician (unless you later auto-resolve by type)
+            if (comp.PrimaryKind == CardPrimaryKind.Track && target == null)
             {
                 reason = "Select a musician.";
                 return false;
             }
 
-            // Part cards que NO crean parte sí necesitan que exista al menos una
-            if (data.IsPartCard && model.parts.Count == 0)
+            // Part cards that do NOT create a part require that at least one part exists
+            if (comp.PrimaryKind == CardPrimaryKind.Part && model.parts.Count == 0)
             {
-                var pa = data.PartAction;
-                bool createsPart =
-                    pa != null &&
-                    pa.action == PartActionDescriptor.PartActionKind.CreatePart;
+                var pa = comp.PartAction;
+                bool createsPart = pa != null && pa.action == PartActionKind.CreatePart;
 
                 if (!createsPart)
                 {
@@ -664,10 +670,13 @@ namespace ALWTTT.UI
             return true;
         }
 
+
         private bool TryAddOrReplaceTrackOnPart(
-            PartEntry part, int partIndex,
-            string musicianId, string musicianName,
-            TrackRole role, string info, CardData sourceCard)
+    PartEntry part, int partIndex,
+    string musicianId, string musicianName,
+    TrackRole role, string info,
+    CardDefinition sourceCard,
+    TrackStyleBundleSO styleBundle)
         {
             if (part == null || string.IsNullOrEmpty(musicianId)) return false;
 
@@ -676,47 +685,30 @@ namespace ALWTTT.UI
 
             int beforeCount = part.tracks != null ? part.tracks.Count : 0;
 
-            var existing = part.tracks.FirstOrDefault(t => t.musicianId == musicianId);
-            int complexity = 
-                Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0);
+            int complexity = Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0);
             var synergy = sourceCard != null ? sourceCard.CardType : CardType.None;
+
+            var existing = part.tracks.FirstOrDefault(t => t.musicianId == musicianId);
 
             if (existing != null)
             {
-                // REPLACE (update metadata + overrides)
                 existing.role = role;
                 existing.info = info;
-                existing.inspirationGenerated = 
-                    Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0);
+                existing.inspirationGenerated = complexity;
                 existing.synergyType = synergy;
-
-                // Style budles
-                if (sourceCard != null && sourceCard.IsTrackCard &&
-                    sourceCard.TrackAction?.styleBundle != null)
-                {
-                    existing.styleBundle = sourceCard.TrackAction.styleBundle;
-                }
+                existing.styleBundle = styleBundle;
             }
             else
             {
-                // ADD (new entry)
                 var entry = new TrackEntry
                 {
                     musicianId = musicianId,
                     role = role,
                     info = info,
-                    inspirationGenerated = 
-                        Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0),
+                    inspirationGenerated = complexity,
                     synergyType = synergy,
+                    styleBundle = styleBundle
                 };
-
-
-                // Style budles
-                if (sourceCard != null && sourceCard.IsTrackCard &&
-                    sourceCard.TrackAction?.styleBundle != null)
-                {
-                    entry.styleBundle = sourceCard.TrackAction.styleBundle;
-                }
 
                 part.tracks.Add(entry);
             }
@@ -724,12 +716,12 @@ namespace ALWTTT.UI
             if (beforeCount == 0)
                 SetPartVisible(partIndex, true);
 
-            // UI + icons refresh for the *indexed* part
             partUIs[partIndex].AddOrUpdateTrack(musicianId, role.ToString(), info);
-            UpdateIconsForCurrentPart();  // (icons follow CurrentPart; OK for MVP)
+            UpdateIconsForCurrentPart();
             RaisePartChanged();
             return true;
         }
+
 
         #endregion
 

@@ -39,8 +39,8 @@ namespace ALWTTT.Data
         [SerializeField] private SerializableStringIntDictionary eventLastSeenSector;
 
         // Deckbuilding
-        [SerializeField] private List<CardData> currentActionCards = new();
-        [SerializeField] private List<CardData> currentCompositionCards = new();
+        [SerializeField] private List<CardDefinition> currentActionCards = new();
+        [SerializeField] private List<CardDefinition> currentCompositionCards = new();
 
         [SerializeField]
         private SerializableCardInventory musicianGrantedActionCards =
@@ -68,7 +68,7 @@ namespace ALWTTT.Data
         
         [SerializeField] private SongData currentSong;
         [SerializeField] private int currentSongIndex;
-        [SerializeField] private List<CardData> songModifierCardsList;
+        [SerializeField] private List<CardDefinition> songModifierCardsList;
         
 
         // Sector Info
@@ -162,13 +162,13 @@ namespace ALWTTT.Data
 
         public List<BandConflict> BandConflicts => bandConflicts;
 
-        public List<CardData> CurrentActionCards
+        public List<CardDefinition> CurrentActionCards
         {
             get => currentActionCards;
             set => currentActionCards = value;
         }
 
-        public List<CardData> CurrentCompositionCards
+        public List<CardDefinition> CurrentCompositionCards
         {
             get => currentCompositionCards;
             set => currentCompositionCards = value;
@@ -244,7 +244,7 @@ namespace ALWTTT.Data
             set => currentSongIndex = value;
         }
 
-        public List<CardData> SongModifierCardsList
+        public List<CardDefinition> SongModifierCardsList
         {
             get => songModifierCardsList;
             set => songModifierCardsList = value;
@@ -308,12 +308,12 @@ namespace ALWTTT.Data
 
             isRandomDeck = gameplayData.IsRandomDeck;
             
-            CurrentActionCards = new List<CardData>();
-            CurrentCompositionCards = new List<CardData>();
+            CurrentActionCards = new List<CardDefinition>();
+            CurrentCompositionCards = new List<CardDefinition>();
 
             CurrentSongList = gameplayData.InitialSongList;
             CurrentSongIndex = 0;
-            SongModifierCardsList = new List<CardData>();
+            SongModifierCardsList = new List<CardDefinition>();
 
             CurrentSectorId = 0;
             CurrentEncounterId = 0;
@@ -366,7 +366,7 @@ namespace ALWTTT.Data
         #endregion
 
         #region Deck
-        public void AddCardToDeck(CardData card)
+        public void AddCardToDeck(CardDefinition card)
         {
             if (card == null) return;
             if (card.IsAction) currentActionCards.Add(card);
@@ -374,7 +374,7 @@ namespace ALWTTT.Data
         }
 
         // Grants cards to the deck AND records they came from musicianId
-        public void GrantCardsToMusician(string musicianId, IEnumerable<CardData> cards)
+        public void GrantCardsToMusician(string musicianId, IEnumerable<CardDefinition> cards)
         {
             if (string.IsNullOrEmpty(musicianId) || cards == null) return;
 
@@ -395,7 +395,7 @@ namespace ALWTTT.Data
         }
 
         // Overload convenience for single card
-        public void GrantCardToMusician(string musicianId, CardData card)
+        public void GrantCardToMusician(string musicianId, CardDefinition card)
         {
             if (string.IsNullOrEmpty(musicianId) || card == null) return;
             if (card.IsAction)
@@ -416,8 +416,11 @@ namespace ALWTTT.Data
         public void SetBandDeck(BandDeckData bandDeck)
         {
             // Clear runtime decks
-            if (currentActionCards == null) currentActionCards = new List<CardData>();
-            if (currentCompositionCards == null) currentCompositionCards = new List<CardData>();
+            if (currentActionCards == null) 
+                currentActionCards = new List<CardDefinition>();
+
+            if (currentCompositionCards == null) 
+                currentCompositionCards = new List<CardDefinition>();
 
             currentActionCards.Clear();
             currentCompositionCards.Clear();
@@ -437,7 +440,8 @@ namespace ALWTTT.Data
             var cards = bandDeck.Cards;
             if (cards == null)
             {
-                Debug.LogWarning($"[PersistentGameplayData] BandDeck '{bandDeck.name}' has null Cards list.");
+                Debug.LogWarning($"[PersistentGameplayData] " +
+                    $"BandDeck '{bandDeck.name}' has null Cards list.");
                 return;
             }
 
@@ -459,12 +463,14 @@ namespace ALWTTT.Data
                 }
                 else
                 {
-                    Debug.LogWarning($"[PersistentGameplayData] Card '{card.name}' is neither Action nor Composition.");
+                    Debug.LogWarning($"[PersistentGameplayData] " +
+                        $"Card '{card.name}' is neither Action nor Composition.");
                 }
             }
 
             Debug.Log($"[PersistentGameplayData] SetBandDeck -> " +
-                      $"Action={currentActionCards.Count}, Composition={currentCompositionCards.Count} " +
+                      $"Action={currentActionCards.Count}, " +
+                      $"Composition={currentCompositionCards.Count} " +
                       $"(Deck='{bandDeck.name}')");
         }
 
@@ -477,10 +483,10 @@ namespace ALWTTT.Data
             
             CurrentSongList = new List<SongData>();
             CurrentSongIndex = 0;
-            SongModifierCardsList = new List<CardData>();
+            SongModifierCardsList = new List<CardDefinition>();
 
-            CurrentActionCards = new List<CardData>();
-            CurrentCompositionCards = new List<CardData>();
+            CurrentActionCards = new List<CardDefinition>();
+            CurrentCompositionCards = new List<CardDefinition>();
             musicianGrantedActionCards = new SerializableCardInventory();
             musicianGrantedCompositionCards = new SerializableCardInventory();
         }
@@ -682,7 +688,7 @@ namespace ALWTTT.Data
             // --- Reset gig state ---
             CurrentSongIndex = 0;
 
-            SongModifierCardsList ??= new List<CardData>();
+            SongModifierCardsList ??= new List<CardDefinition>();
             SongModifierCardsList.Clear();
 
             // --- Deck ---

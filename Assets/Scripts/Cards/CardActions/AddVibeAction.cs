@@ -30,7 +30,7 @@ namespace ALWTTT.Actions
                 if (actionParameters.Context is CardActionContext cardCtx
                     && performerCharacter.MusicianStats is { } musicianStats)
                 {
-                    switch (cardCtx.CardData.CardType)
+                    switch (cardCtx.CardDefinition.CardType)
                     {
                         case CardType.CHR:
                             vibeToAdd = 
