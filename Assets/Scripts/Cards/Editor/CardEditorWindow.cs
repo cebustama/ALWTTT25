@@ -49,6 +49,11 @@ namespace ALWTTT.Cards.Editor
         [SerializeField, Range(0.2f, 0.8f)]
         private float _splitRatio = 0.42f; // left panel % of window width
 
+        [SerializeField] private bool _showCardDefinitionCommonFields = true;
+        [SerializeField] private bool _showPayloadFields = true;
+        [SerializeField] private bool _showActionPayloadFields = true;
+        [SerializeField] private bool _showCompositionPayloadFields = true;
+
         private const float SplitterWidth = 4f;
         private bool _draggingSplitter;
 
@@ -240,8 +245,21 @@ namespace ALWTTT.Cards.Editor
                 }
 
                 EditorGUILayout.Space(4);
-                EditorGUILayout.LabelField("Loaded Musician", _loadedMusicianData != null ? _loadedMusicianData.name : "None");
-                EditorGUILayout.LabelField("Loaded Catalog", _loadedCatalog != null ? _loadedCatalog.name : "None");
+
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUILayout.ObjectField(
+                        new GUIContent("Loaded Musician"),
+                        _loadedMusicianData,
+                        typeof(MusicianCharacterData),
+                        false);
+
+                    EditorGUILayout.ObjectField(
+                        new GUIContent("Loaded Catalog"),
+                        _loadedCatalog,
+                        typeof(MusicianCardCatalogData),
+                        false);
+                }
             }
         }
 
@@ -272,6 +290,12 @@ namespace ALWTTT.Cards.Editor
             {
                 GUILayout.Label($"Entries: {entries.Count}", EditorStyles.miniBoldLabel);
                 GUILayout.FlexibleSpace();
+
+                using (new EditorGUI.DisabledScope(_loadedCatalog == null || _loadedMusicianData == null))
+                {
+                    if (GUILayout.Button("Sync From Assets", GUILayout.Width(130)))
+                        SyncFromAssets();
+                }
             }
 
             EditorGUILayout.Space(6);
@@ -556,19 +580,87 @@ namespace ALWTTT.Cards.Editor
             {
                 GUILayout.Label("Entry Editor", EditorStyles.boldLabel);
 
-                if (!TryGetSelectedEntry(out var entry))
+                if (_loadedCatalog == null)
                 {
-                    EditorGUILayout.HelpBox("Select an entry from the left list.", MessageType.Info);
+                    EditorGUILayout.HelpBox("No catalog loaded.", MessageType.Info);
                     return;
                 }
 
-                EditorGUILayout.LabelField("Starter", entry.IsStarter ? "Yes" : "No");
-                EditorGUILayout.LabelField("Rewards", entry.IsReward ? "Yes" : "No");
-                EditorGUILayout.LabelField("Unlocked By Default", entry.UnlockedByDefault ? "Yes" : "No");
-                EditorGUILayout.LabelField("Starter Copies", entry.starterCopies.ToString());
-                EditorGUILayout.LabelField("Unlock Id", string.IsNullOrEmpty(entry.unlockId) ? "—" : entry.unlockId);
+                if (_selectedEntryIndex < 0)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Select an entry from the left list.", MessageType.Info);
+                    return;
+                }
 
-                EditorGUILayout.HelpBox("Next step: make these editable via SerializedObject + Undo.", MessageType.None);
+                // Serialized editing (Undo-friendly for nested serializable entries)
+                var so = new SerializedObject(_loadedCatalog);
+                var entriesProp = so.FindProperty("entries");
+                if (entriesProp == null || !entriesProp.isArray)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Could not find serialized 'entries' array on catalog.", 
+                        MessageType.Error);
+                    return;
+                }
+
+                if (_selectedEntryIndex >= entriesProp.arraySize)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Selected entry index is out of range.", MessageType.Error);
+                    return;
+                }
+
+                var entryProp = entriesProp.GetArrayElementAtIndex(_selectedEntryIndex);
+                var cardProp = entryProp.FindPropertyRelative("card");
+                var flagsProp = entryProp.FindPropertyRelative("flags");
+                var copiesProp = entryProp.FindPropertyRelative("starterCopies");
+                var unlockIdProp = entryProp.FindPropertyRelative("unlockId");
+
+                // Draw the fields
+                EditorGUILayout.PropertyField(cardProp);
+
+                EditorGUI.BeginChangeCheck();
+
+                EditorGUILayout.PropertyField(flagsProp); // flags enum (supports [Flags] via EnumFlagsField internally)
+                var flags = (CardAcquisitionFlags)flagsProp.intValue;
+
+                using (new EditorGUI.DisabledScope((flags & CardAcquisitionFlags.StarterDeck) == 0))
+                {
+                    EditorGUILayout.PropertyField(
+                        copiesProp, new GUIContent("Starter Copies"));
+
+                    if (copiesProp.intValue < 1) copiesProp.intValue = 1;
+                }
+
+                using (new EditorGUI.DisabledScope(
+                    (flags & CardAcquisitionFlags.UnlockedByDefault) != 0))
+                {
+                    EditorGUILayout.PropertyField(unlockIdProp, new GUIContent("Unlock Id"));
+                }
+
+                // Validation hints
+                bool isLockedByDefault = 
+                    (flags & CardAcquisitionFlags.UnlockedByDefault) == 0;
+                if (isLockedByDefault && string.IsNullOrWhiteSpace(unlockIdProp.stringValue))
+                {
+                    EditorGUILayout.HelpBox(
+                        "This entry is NOT UnlockedByDefault, but Unlock Id is empty.\n" +
+                        "Add an Unlock Id or enable UnlockedByDefault.",
+                        MessageType.Warning);
+                }
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    so.ApplyModifiedProperties();          // applies + registers Undo properly
+                    EditorUtility.SetDirty(_loadedCatalog);
+                    // Optional: Save immediately (safe, but can be noisy). You can remove if you prefer manual saves.
+                    AssetDatabase.SaveAssets();
+                }
+                else
+                {
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
             }
         }
 
@@ -580,22 +672,71 @@ namespace ALWTTT.Cards.Editor
 
                 if (!TryGetSelectedEntry(out var entry) || entry.card == null)
                 {
-                    EditorGUILayout.HelpBox("Select an entry to preview its CardDefinition.", MessageType.Info);
+                    EditorGUILayout.HelpBox(
+                        "Select an entry to preview its CardDefinition.", MessageType.Info);
                     return;
                 }
 
                 var card = entry.card;
 
+                // 1) SUMMARY FIRST (read-only)
                 using (new EditorGUI.DisabledScope(true))
                 {
-                    EditorGUILayout.ObjectField("Card", card, typeof(CardDefinition), false);
-                    EditorGUILayout.TextField("Domain", card.Domain.ToString());
-                    EditorGUILayout.ObjectField("Payload", card.Payload, typeof(CardPayload), false);
-                    EditorGUILayout.ObjectField("Sprite", card.CardSprite, typeof(Sprite), false);
+                    EditorGUILayout.ObjectField(
+                        "Card", card, typeof(CardDefinition), false);
+                    EditorGUILayout.TextField(
+                        "Domain", card.Domain.ToString());
+                    EditorGUILayout.ObjectField(
+                        "Payload", card.Payload, typeof(CardPayload), false);
+                    EditorGUILayout.ObjectField(
+                        "Sprite", card.CardSprite, typeof(Sprite), false);
+                }
+
+                EditorGUILayout.Space(8);
+
+                // 2) COLLAPSIBLE COMMON FIELDS (editable)
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    _showCardDefinitionCommonFields =
+                        EditorGUILayout.BeginFoldoutHeaderGroup(
+                            _showCardDefinitionCommonFields,
+                            "CardDefinition (Common Fields)");
+
+                    EditorGUILayout.EndFoldoutHeaderGroup();
+
+                    // IMPORTANT: draw contents AFTER the header group is closed
+                    // (prevents nesting errors)
+                    if (_showCardDefinitionCommonFields)
+                    {
+                        EditorGUI.indentLevel++;
+                        DrawCardDefinitionCommonFields(card);
+                        EditorGUI.indentLevel--;
+                    }
+                }
+
+                EditorGUILayout.Space(8);
+
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    _showPayloadFields =
+                        EditorGUILayout.BeginFoldoutHeaderGroup(
+                            _showPayloadFields, "Payload");
+                    
+                    EditorGUILayout.EndFoldoutHeaderGroup();
+
+                    // IMPORTANT: draw contents AFTER the header group is closed
+                    // (prevents nesting errors)
+                    if (_showPayloadFields)
+                    {
+                        EditorGUI.indentLevel++;
+                        DrawPayloadEditors(card);
+                        EditorGUI.indentLevel--;
+                    }
                 }
 
                 EditorGUILayout.Space(6);
 
+                // Actions
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     if (GUILayout.Button("Select"))
@@ -610,6 +751,7 @@ namespace ALWTTT.Cards.Editor
                 }
             }
         }
+
 
         private static void SelectAndPing(Object obj)
         {
@@ -698,6 +840,217 @@ namespace ALWTTT.Cards.Editor
 
             _selectedEntryIndex = -1;
             Repaint();
+        }
+
+        private void DrawCardDefinitionCommonFields(CardDefinition card)
+        {
+            if (card == null) return;
+
+            var so = new SerializedObject(card);
+            so.Update();
+
+            // These names must match CardDefinition's private fields.
+            var idProp = so.FindProperty("id");
+            var displayNameProp = so.FindProperty("displayName");
+
+            var performerRuleProp = so.FindProperty("performerRule");
+            var musicianTypeProp = so.FindProperty("musicianCharacterType");
+
+            var spriteProp = so.FindProperty("cardSprite");
+
+            var inspirationCostProp = so.FindProperty("inspirationCost");
+            var inspirationGeneratedProp = so.FindProperty("inspirationGenerated");
+
+            var cardTypeProp = so.FindProperty("cardType");
+            var rarityProp = so.FindProperty("rarity");
+            var keywordsProp = so.FindProperty("keywords");
+
+            var audioTypeProp = so.FindProperty("audioType");
+            var musicianAnimProp = so.FindProperty("musicianAnimation"); // nested CardAnimationData
+
+            var exhaustAfterPlayProp = so.FindProperty("exhaustAfterPlay");
+            var overrideReqTargetProp = so.FindProperty("overrideRequiresTargetSelection");
+            var reqTargetOverrideValueProp = so.FindProperty("requiresTargetSelectionOverrideValue");
+
+            EditorGUI.BeginChangeCheck();
+
+            // Card profile
+            EditorGUILayout.PropertyField(idProp);
+            EditorGUILayout.PropertyField(displayNameProp);
+
+            EditorGUILayout.Space(6);
+
+            // Character
+            EditorGUILayout.PropertyField(performerRuleProp);
+
+            // Only show fixed performer enum when rule is FixedMusicianType.
+            if (performerRuleProp != null &&
+                performerRuleProp.enumValueIndex == (int)CardPerformerRule.FixedMusicianType)
+            {
+                EditorGUILayout.PropertyField(musicianTypeProp, new GUIContent("Fixed Musician"));
+            }
+
+            EditorGUILayout.Space(6);
+
+            // Visuals / Economy
+            EditorGUILayout.PropertyField(spriteProp);
+            EditorGUILayout.PropertyField(inspirationCostProp);
+            EditorGUILayout.PropertyField(inspirationGeneratedProp);
+
+            // clamps
+            if (inspirationCostProp != null && inspirationCostProp.intValue < 0) inspirationCostProp.intValue = 0;
+            if (inspirationGeneratedProp != null && inspirationGeneratedProp.intValue < 0) inspirationGeneratedProp.intValue = 0;
+
+            EditorGUILayout.Space(6);
+
+            // Meta / Synergies
+            EditorGUILayout.PropertyField(cardTypeProp);
+            EditorGUILayout.PropertyField(rarityProp);
+            EditorGUILayout.PropertyField(keywordsProp, includeChildren: true);
+
+            EditorGUILayout.Space(6);
+
+            // FX / Animation
+            EditorGUILayout.PropertyField(audioTypeProp);
+            EditorGUILayout.PropertyField(musicianAnimProp, includeChildren: true);
+
+            EditorGUILayout.Space(6);
+
+            // Play rules
+            EditorGUILayout.PropertyField(exhaustAfterPlayProp);
+
+            EditorGUILayout.PropertyField(overrideReqTargetProp, new GUIContent("Override Requires Target?"));
+            if (overrideReqTargetProp != null && overrideReqTargetProp.boolValue)
+                EditorGUILayout.PropertyField(reqTargetOverrideValueProp, new GUIContent("Requires Target"));
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(card, "Edit CardDefinition");
+                so.ApplyModifiedProperties();
+                EditorUtility.SetDirty(card);
+                AssetDatabase.SaveAssets();
+            }
+            else
+            {
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+
+        private void DrawPayloadEditors(CardDefinition card)
+        {
+            if (card == null) return;
+
+            if (!card.HasPayload || card.Payload == null)
+            {
+                EditorGUILayout.HelpBox("This card has no payload assigned.", MessageType.Warning);
+                return;
+            }
+
+            // Action payload
+            if (card.ActionPayload != null)
+            {
+                _showActionPayloadFields = EditorGUILayout.Foldout(
+                    _showActionPayloadFields,
+                    "ActionCardPayload",
+                    toggleOnLabelClick: true);
+
+                if (_showActionPayloadFields)
+                {
+                    EditorGUI.indentLevel++;
+                    DrawActionPayloadEditor(card.ActionPayload);
+                    EditorGUI.indentLevel--;
+                }
+
+                return;
+            }
+
+            // Composition payload
+            if (card.CompositionPayload != null)
+            {
+                _showCompositionPayloadFields = EditorGUILayout.Foldout(
+                    _showCompositionPayloadFields,
+                    "CompositionCardPayload",
+                    toggleOnLabelClick: true);
+
+                if (_showCompositionPayloadFields)
+                {
+                    EditorGUI.indentLevel++;
+                    DrawCompositionPayloadEditor(card.CompositionPayload);
+                    EditorGUI.indentLevel--;
+                }
+
+                return;
+            }
+
+            EditorGUILayout.HelpBox(
+                $"Unknown payload type: {card.Payload.GetType().Name}",
+                MessageType.Info);
+        }
+
+
+        private void DrawActionPayloadEditor(ActionCardPayload payload)
+        {
+            if (payload == null) return;
+
+            var so = new SerializedObject(payload);
+            so.Update();
+
+            // names must match ActionCardPayload private fields
+            var timingProp = so.FindProperty("actionTiming");
+            var conditionsProp = so.FindProperty("conditions");
+            var actionsProp = so.FindProperty("actions");
+
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUILayout.PropertyField(timingProp);
+            EditorGUILayout.PropertyField(conditionsProp, includeChildren: true);
+            EditorGUILayout.PropertyField(actionsProp, includeChildren: true);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(payload, "Edit ActionCardPayload");
+                so.ApplyModifiedProperties();
+                EditorUtility.SetDirty(payload);
+                AssetDatabase.SaveAssets();
+            }
+            else
+            {
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        private void DrawCompositionPayloadEditor(CompositionCardPayload payload)
+        {
+            if (payload == null) return;
+
+            var so = new SerializedObject(payload);
+            so.Update();
+
+            // names must match CompositionCardPayload private fields
+            var primaryKindProp = so.FindProperty("primaryKind");
+            var trackActionProp = so.FindProperty("trackAction");
+            var partActionProp = so.FindProperty("partAction");
+            var modifierEffectsProp = so.FindProperty("modifierEffects");
+
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUILayout.PropertyField(primaryKindProp);
+            EditorGUILayout.PropertyField(trackActionProp, includeChildren: true);
+            EditorGUILayout.PropertyField(partActionProp, includeChildren: true);
+            EditorGUILayout.PropertyField(modifierEffectsProp, includeChildren: true);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(payload, "Edit CompositionCardPayload");
+                so.ApplyModifiedProperties();
+                EditorUtility.SetDirty(payload);
+                AssetDatabase.SaveAssets();
+            }
+            else
+            {
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
 
@@ -841,6 +1194,100 @@ namespace ALWTTT.Cards.Editor
             return prefix + next.ToString("D3");
         }
 
+        private void SyncFromAssets()
+        {
+            if (_loadedCatalog == null || _loadedMusicianData == null)
+                return;
+
+            // Keep selection stable by tracking the selected card asset (not the index).
+            CardDefinition previouslySelected = null;
+            if (TryGetSelectedEntry(out var selectedEntry) && selectedEntry?.card != null)
+                previouslySelected = selectedEntry.card;
+
+            // Build a set of existing cards to prevent duplicates.
+            var existing = new HashSet<CardDefinition>();
+            var entries = _loadedCatalog.Entries;
+            if (entries != null)
+            {
+                foreach (var e in entries)
+                    if (e?.card != null)
+                        existing.Add(e.card);
+            }
+
+            // Find all CardDefinition assets in the project.
+            string[] guids = AssetDatabase.FindAssets("t:CardDefinition");
+
+            int added = 0;
+            int skippedDuplicates = 0;
+            int skippedNotForMusician = 0;
+
+            Undo.RecordObject(_loadedCatalog, "Sync Musician Card Catalog");
+
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var card = AssetDatabase.LoadAssetAtPath<CardDefinition>(path);
+                if (card == null)
+                    continue;
+
+                // Only sync cards explicitly tied to a fixed performer of this musician.
+                if (!card.RequiresFixedPerformer || card.FixedPerformerType != _selectedMusician)
+                {
+                    skippedNotForMusician++;
+                    continue;
+                }
+
+                if (existing.Contains(card))
+                {
+                    skippedDuplicates++;
+                    continue;
+                }
+
+                // Append new entry (does NOT reorder existing entries -> selection index remains valid)
+                entries.Add(new MusicianCardEntry
+                {
+                    card = card,
+                    flags = CardAcquisitionFlags.UnlockedByDefault,
+                    starterCopies = 1,
+                    unlockId = null
+                });
+
+                existing.Add(card);
+                added++;
+            }
+
+            EditorUtility.SetDirty(_loadedCatalog);
+            AssetDatabase.SaveAssets();
+
+            // Restore selection by card reference (stable even if list changes).
+            if (previouslySelected != null)
+                _selectedEntryIndex = FindEntryIndexByCard(previouslySelected);
+
+            Repaint();
+
+            EditorUtility.DisplayDialog(
+                "Sync From Assets",
+                $"Added: {added}\n" +
+                $"Skipped (duplicates): {skippedDuplicates}\n" +
+                $"Skipped (not for this musician): {skippedNotForMusician}",
+                "OK");
+        }
+
+        private int FindEntryIndexByCard(CardDefinition card)
+        {
+            if (_loadedCatalog == null || card == null)
+                return -1;
+
+            var entries = _loadedCatalog.Entries;
+            if (entries == null)
+                return -1;
+
+            for (int i = 0; i < entries.Count; i++)
+                if (entries[i]?.card == card)
+                    return i;
+
+            return -1;
+        }
     }
 }
 #endif

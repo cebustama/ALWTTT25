@@ -13,4 +13,12 @@ MonoBehaviour:
   m_Name: Cantante_CardCatalogData
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.MusicianCardCatalogData
   musicianType: 4
-  entries: []
+  entries:
+  - card: {fileID: 11400000, guid: e0d109e01c51ffa4a9a09d4156fb32ed, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 5
+  - card: {fileID: 11400000, guid: dea785021f7324b4f80efdf161b7cc32, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 1
