@@ -1,7 +1,5 @@
-// BandSetupManager.cs
-using ALWTTT;
-using ALWTTT.Data;
 using ALWTTT.Managers;
+using ALWTTT.Musicians;
 using ALWTTT.Utils;
 using System.Collections.Generic;
 using System.Linq;

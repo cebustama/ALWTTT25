@@ -3,6 +3,7 @@ using ALWTTT.Data;
 using ALWTTT.Events;
 using ALWTTT.Generation;
 using ALWTTT.Map;
+using ALWTTT.Musicians;
 using ALWTTT.UI;
 using ALWTTT.Utils;
 using System;

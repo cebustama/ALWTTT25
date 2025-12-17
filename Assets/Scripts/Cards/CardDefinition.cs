@@ -127,5 +127,30 @@ namespace ALWTTT.Cards
         public IReadOnlyList<CharacterActionData> CardActionDataList => ActionPayload?.Actions;
 
         public CardDomain Domain => payload != null ? payload.Domain : CardDomain.Unknown;
+
+#if UNITY_EDITOR
+        [System.NonSerialized] private string _cachedEditorLabel;
+
+        public string EditorLabel
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_cachedEditorLabel))
+                    _cachedEditorLabel = BuildEditorLabel();
+                return _cachedEditorLabel;
+            }
+        }
+
+        private string BuildEditorLabel()
+        {
+            var domain = IsAction ? "Action" : (IsComposition ? "Composition" : "Unknown");
+            return $"{Id} — {DisplayName} ({domain})";
+        }
+
+        private void OnValidate()
+        {
+            _cachedEditorLabel = null;
+        }
+#endif
     }
 }

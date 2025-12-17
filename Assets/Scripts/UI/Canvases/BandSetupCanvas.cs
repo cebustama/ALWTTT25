@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using ALWTTT.Data;
-using ALWTTT.UI; // for MusicianUI
+using ALWTTT.UI;
 using ALWTTT;
-using TMPro;    // for CardData/CardBase
+using TMPro;
+using ALWTTT.Musicians;
 
 public class BandSetupCanvas : MonoBehaviour
 {

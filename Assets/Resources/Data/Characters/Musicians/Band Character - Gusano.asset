@@ -20,10 +20,8 @@ MonoBehaviour:
   characterPrefab: {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
   characterSprite: {fileID: 21300000, guid: ad1c1eacd633b844a9e141c673b7c5c8, type: 3}
   characterIcon: {fileID: -1465092255315395530, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}
-  baseCards:
-  - {fileID: 11400000, guid: 9a06835037ab8d94e970e71e0052d7d1, type: 2}
-  - {fileID: 11400000, guid: ddb74b5b93033914a80cf25e99d88c17, type: 2}
-  - {fileID: 11400000, guid: 148cfa6b16022854cb7b8242c55a6add, type: 2}
+  cardCatalog: {fileID: 11400000, guid: 0c1c6ebb8988d7d4e841a25ed1ed49bb, type: 2}
+  defaultCardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
   chr: 2
   tch: 2
   emt: 5

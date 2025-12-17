@@ -2,6 +2,7 @@ using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
 using ALWTTT.Encounters;
 using ALWTTT.Managers;
+using ALWTTT.Musicians;
 using MidiGenPlay.Composition;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,5 @@
 using ALWTTT.Cards;
-using ALWTTT.Data;
+using ALWTTT.Musicians;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,15 +23,15 @@ namespace ALWTTT.Events
         public RandomEventEffectType type;
 
         [Header("Numeric")]
-        public int amount;             // Fans gained, cohesion delta, etc.
+        public int amount; // Fans gained, cohesion delta, etc.
 
         [Header("Card(s)")]
         public CardDefinition card;
         public List<CardDefinition> cards;
 
         [Header("Musician")]
-        public MusicianCharacterData musician; // for AddMusician
-        public string musicianId;              // for RemoveMusician
+        public MusicianCharacterData musician;
+        public string musicianId;
 
         [Header("Story")]
         public string storyTag;

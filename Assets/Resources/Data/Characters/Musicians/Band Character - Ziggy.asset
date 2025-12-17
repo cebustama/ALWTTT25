@@ -20,14 +20,16 @@ MonoBehaviour:
   characterPrefab: {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
   characterSprite: {fileID: 21300000, guid: 4b9c65348baa1594dbaf1fad72d1090e, type: 3}
   characterIcon: {fileID: 7798098219687104577, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}
-  baseCards:
-  - {fileID: 11400000, guid: fbc4b4f43ee1c5c4989a8c2083aa217c, type: 2}
-  - {fileID: 11400000, guid: 68968943a02d8c741993b5642d83310b, type: 2}
-  - {fileID: 11400000, guid: 3d1a3016224dce24d9e841995be95cb9, type: 2}
+  cardCatalog: {fileID: 11400000, guid: 2064dc6d3e718c74aad9ddf27684439d, type: 2}
+  defaultCardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
   chr: 5
   tch: 1
   emt: 3
   profile:
     backingInstruments: 08000000
     leadInstruments: 08000000
+    backingMelodicInstruments: []
+    leadMelodicInstruments: []
+    percussionInstruments: []
     defaultMelodicLeading: {fileID: 11400000, guid: 6c36507e80195e542aec50a3888ac33d, type: 2}
+    defaultHarmonicLeading: {fileID: 0}
