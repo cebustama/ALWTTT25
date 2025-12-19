@@ -4,19 +4,22 @@ namespace ALWTTT.Enums
     public enum CharacterActionType
     {
         // Tagets Audience
-        AddVibe,
-        BlockVibe,
-        RemoveVibe,
+        AddVibe = 0,
+        BlockVibe = 1,
+        RemoveVibe = 2,
         // Targets Band
-        AddStress,
-        BlockStress,
-        HealStress,
+        AddStress = 3,
+        BlockStress = 4,
+        HealStress = 5,
         // Targets song
-        AddHooked,
-        AddHeckled,
-        AddStun,
-        AddDazzled,
+        AddHooked = 6,
+        AddHeckled = 7,
+        AddStun = 8,
+        AddDazzled = 9,
         // Other (movement, etc)
-        MoveToFront
+        MoveToFront = 10,
+
+        GainInspiration = 100,
+        LoseInspiration = 101
     }
 }

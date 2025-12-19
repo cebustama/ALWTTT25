@@ -2,6 +2,7 @@ namespace ALWTTT.Cards
 {
     public enum PartActionKind
     {
+        None = -1,
         CreatePart = 0,
         MarkIntro = 1,
         MarkSolo = 2,

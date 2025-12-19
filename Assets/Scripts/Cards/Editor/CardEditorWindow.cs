@@ -9,7 +9,7 @@ using ALWTTT.Musicians;
 
 namespace ALWTTT.Cards.Editor
 {
-    public sealed class CardEditorWindow : EditorWindow
+    public sealed partial class CardEditorWindow : EditorWindow
     {
         private const float LeftPanelMinWidth = 340f;
         private const float RightPanelMinWidth = 380f;
@@ -334,6 +334,10 @@ namespace ALWTTT.Cards.Editor
 
             EditorGUILayout.Space(4);
 
+            EditorGUILayout.Space(6);
+            DrawJsonImportBlock();
+            EditorGUILayout.Space(6);
+
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button(_createWizardOpen ? "Hide Create Card" : "Create Card...", GUILayout.Height(22)))
@@ -355,17 +359,17 @@ namespace ALWTTT.Cards.Editor
 
             for (int i = 0; i < entries.Count; i++)
             {
+                if (PassesFilters(entries[i])) shown++;
+            }
+
+            GUILayout.Label($"Entries (filtered): {shown} / {entries.Count}", EditorStyles.miniBoldLabel);
+            EditorGUILayout.Space(4);
+
+            // Entry list
+            for (int i = 0; i < entries.Count; i++)
+            {
                 var e = entries[i];
-                if (e == null || e.card == null) continue;
-
-                if (!_filterShowAction && e.card.IsAction) continue;
-                if (!_filterShowComposition && e.card.IsComposition) continue;
-
-                if (_filterStarterOnly && !e.IsStarter) continue;
-                if (_filterRewardOnly && !e.IsReward) continue;
-                if (_filterLockedOnly && e.UnlockedByDefault) continue;
-
-                shown++;
+                if (!PassesFilters(e)) continue;
 
                 bool isSelected = i == _selectedEntryIndex;
 
@@ -373,10 +377,12 @@ namespace ALWTTT.Cards.Editor
                 if (e.IsStarter) flags += "S";
                 if (e.IsReward) flags += "R";
                 if (!e.UnlockedByDefault) flags += "L";
-                if (string.IsNullOrEmpty(flags)) flags = "—";
 
                 string domain = e.card.IsAction ? "A" : (e.card.IsComposition ? "C" : "?");
-                string label = $"{domain} [{flags}] {e.card.DisplayName}";
+
+                string label = string.IsNullOrEmpty(flags)
+                    ? $"{domain} {e.card.DisplayName}"
+                    : $"{domain} [{flags}] {e.card.DisplayName}";
 
                 if (GUILayout.Toggle(isSelected, label, "Button"))
                 {
@@ -392,6 +398,21 @@ namespace ALWTTT.Cards.Editor
             if (shown == 0)
                 EditorGUILayout.HelpBox("No entries match the current filters.", MessageType.Info);
         }
+
+        private bool PassesFilters(MusicianCardEntry e)
+        {
+            if (e == null || e.card == null) return false;
+
+            if (!_filterShowAction && e.card.IsAction) return false;
+            if (!_filterShowComposition && e.card.IsComposition) return false;
+
+            if (_filterStarterOnly && !e.IsStarter) return false;
+            if (_filterRewardOnly && !e.IsReward) return false;
+            if (_filterLockedOnly && e.UnlockedByDefault) return false;
+
+            return true;
+        }
+
 
         private void DrawCreateWizard()
         {
@@ -1053,7 +1074,6 @@ namespace ALWTTT.Cards.Editor
             }
         }
 
-
         // --- Loading ----------------------------------------------------------
 
         private void RefreshMusicianCache()
@@ -1288,6 +1308,50 @@ namespace ALWTTT.Cards.Editor
 
             return -1;
         }
+
+        #region Helpers
+        private static bool TryParseEnum<T>(string s, out T value) where T : struct
+        {
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                value = default;
+                return false;
+            }
+            return System.Enum.TryParse(s.Trim(), true, out value);
+        }
+
+        private static void SetString(SerializedObject so, string propName, string v)
+        {
+            var p = so.FindProperty(propName);
+            if (p != null) p.stringValue = v;
+        }
+
+        private static void SetInt(SerializedObject so, string propName, int v)
+        {
+            var p = so.FindProperty(propName);
+            if (p != null) p.intValue = v;
+        }
+
+        private static void SetBool(SerializedObject so, string propName, bool v)
+        {
+            var p = so.FindProperty(propName);
+            if (p != null) p.boolValue = v;
+        }
+
+        private static void SetEnum<T>(
+            SerializedObject so, string propName, T enumValue) where T : struct
+        {
+            var p = so.FindProperty(propName);
+            if (p != null) p.enumValueIndex = (int)(object)enumValue;
+        }
+
+        private static void SetObject(SerializedObject so, string propName, Object obj)
+        {
+            var p = so.FindProperty(propName);
+            if (p != null) p.objectReferenceValue = obj;
+        }
+
+        #endregion
     }
 }
 #endif
