@@ -64,22 +64,26 @@ namespace ALWTTT.Cards
                 if (overrideRequiresTargetSelection)
                     return requiresTargetSelectionOverrideValue;
 
-                var actions = CardActionDataList;
-                if (actions == null || actions.Count == 0) return false;
-
-                foreach (var a in actions)
+                // CSO status targeting (stored in CardPayload)
+                var statusActions = payload != null ? payload.StatusActions : null;
+                if (statusActions != null)
                 {
-                    switch (a.ActionTargetType)
+                    for (int i = 0; i < statusActions.Count; i++)
                     {
-                        case ActionTargetType.Musician:
-                        case ActionTargetType.AudienceCharacter:
-                            return true;
+                        var s = statusActions[i];
+                        switch (s.TargetType)
+                        {
+                            case ActionTargetType.Musician:
+                            case ActionTargetType.AudienceCharacter:
+                                return true;
+                        }
                     }
                 }
 
                 return false;
             }
         }
+
         public bool CanBePlayedByAnyMusician => performerRule == CardPerformerRule.AnyMusician;
 
         public bool CanBePlayedWithoutHover
@@ -118,13 +122,6 @@ namespace ALWTTT.Cards
 
         public ActionCardPayload ActionPayload => payload as ActionCardPayload;
         public CompositionCardPayload CompositionPayload => payload as CompositionCardPayload;
-        
-
-        /// <summary>
-        /// Legacy-style access to action list (now stored in ActionPayload).
-        /// Returns null for non-action cards.
-        /// </summary>
-        public IReadOnlyList<CharacterActionData> CardActionDataList => ActionPayload?.Actions;
 
         public CardDomain Domain => payload != null ? payload.Domain : CardDomain.Unknown;
 

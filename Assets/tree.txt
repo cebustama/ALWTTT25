@@ -1,0 +1,2665 @@
+Folder PATH listing for volume SSD 2
+Volume serial number is 54D1-92B7
+D:.
+|   DefaultVolumeProfile.asset
+|   files.txt
+|   InputSystem_Actions.inputactions
+|   make-tree.bat
+|   Project_Folder_Hierarchy_Heuristic.md
+|   tree.txt
+|   UniversalRenderPipelineGlobalSettings.asset
+|   
++---MidiPlayer
+|   |   MaestroSkin - backup.guiskin
+|   |   MaestroSkin.guiskin
+|   |   MPTK-API-V2.chm
+|   |   MPTK-API-V2.pdf
+|   |   Quick Start.pdf
+|   |   Readme.asset
+|   |   Third-Party Notices.txt
+|   |   Version changes full.txt
+|   |   Version changes.txt
+|   |   
+|   +---Demo
+|   |   |   MidiPlayer.Demo.asmdef
+|   |   |   udg_setting.json
+|   |   |   
+|   |   +---Builder
+|   |   |   |   Demonstrator.cs
+|   |   |   |   IMPORTANT  NOTICE.txt
+|   |   |   |   ScenesDemonstration.unity
+|   |   |   |   ScenesDemonstrationEditor.cs
+|   |   |   |   ScenesDemonstrationMono.cs
+|   |   |   |   ScenesDemonstrationPanelSettings.asset
+|   |   |   |   
+|   |   |   \---Resources
+|   |   |           DemosListCommon.csv
+|   |   |           MaestroStyle.uss
+|   |   |           OneRowDemo.uxml
+|   |   |           SandBox.uxml
+|   |   |           ScenesDemonstration.uxml
+|   |   |           ScenesDemonstrationDefaultRuntimeTheme.tss
+|   |   |           
+|   |   +---FreeDemos
+|   |   |   |   CatchMusic.unity
+|   |   |   |   PrefabWithLineRenderer.prefab
+|   |   |   |   TestMidiFileLoad.unity
+|   |   |   |   TestMidiFilePlayer.unity
+|   |   |   |   TestMidiFilePlayerMulti.unity
+|   |   |   |   TestMidiFilePlayerScripting.unity
+|   |   |   |   TestMidiSpatialization.unity
+|   |   |   |   TestMidiStream.unity
+|   |   |   |   
+|   |   |   +---CatchMusic
+|   |   |   |       LightingData.asset
+|   |   |   |       ReflectionProbe-0.exr
+|   |   |   |       
+|   |   |   +---Material
+|   |   |   |   |   Crosshair.png
+|   |   |   |   |   Floor.mat
+|   |   |   |   |   GridX10.mat
+|   |   |   |   |   GridX50.mat
+|   |   |   |   |   MidiPlayerBlue.mat
+|   |   |   |   |   MidiPlayerGreen.mat
+|   |   |   |   |   MidiPlayerRed.mat
+|   |   |   |   |   MidiPlayerYellow.mat
+|   |   |   |   |   MouseCrosshair.png
+|   |   |   |   |   
+|   |   |   |   +---Cold Night
+|   |   |   |   |       Cold Night.mat
+|   |   |   |   |       Cold Night__Cam_0_Front+Z.png
+|   |   |   |   |       Cold Night__Cam_1_Back-Z.png
+|   |   |   |   |       Cold Night__Cam_2_Left+X.png
+|   |   |   |   |       Cold Night__Cam_3_Right-X.png
+|   |   |   |   |       Cold Night__Cam_4_Up+Y.png
+|   |   |   |   |       Cold Night__Cam_5_Down-Y.png
+|   |   |   |   |       Extract From AllSkyFree_Readme.txt
+|   |   |   |   |       
+|   |   |   |   \---Textures
+|   |   |   |           grid.png
+|   |   |   |           
+|   |   |   +---Script
+|   |   |   |   |   CreateSample.cs
+|   |   |   |   |   ExtendedFlycam.cs
+|   |   |   |   |   FlyCamera.cs
+|   |   |   |   |   FlyOrMoveController.cs
+|   |   |   |   |   GUISelectSoundFont.cs
+|   |   |   |   |   HelperDemo.cs
+|   |   |   |   |   MainMenu.cs
+|   |   |   |   |   MoveObject.cs
+|   |   |   |   |   RotateObject.cs
+|   |   |   |   |   SceneHandler.cs
+|   |   |   |   |   TestMidiFileLoad.cs
+|   |   |   |   |   TestMidiFilePlayerScripting.cs
+|   |   |   |   |   TestMidiFileViewers.cs
+|   |   |   |   |   TestMidiSpatialization.cs
+|   |   |   |   |   TestMidiStream.cs
+|   |   |   |   |   
+|   |   |   |   +---ExternalComponents
+|   |   |   |   |       FlyingCamera.cs
+|   |   |   |   |       iTween.cs
+|   |   |   |   |       
+|   |   |   |   \---TestMidiFilePlayerMulti
+|   |   |   |           LookPoint.cs
+|   |   |   |           LookTarget.cs
+|   |   |   |           MovePoint.cs
+|   |   |   |           SavWav.cs
+|   |   |   |           
+|   |   |   +---SourceCatchMusic
+|   |   |   |   |   
+|   |   |   |   +---Material
+|   |   |   |   |       Collider.mat
+|   |   |   |   |       MatPlan.mat
+|   |   |   |   |       NewController.mat
+|   |   |   |   |       NewNote.mat
+|   |   |   |   |       Played.mat
+|   |   |   |   |       
+|   |   |   |   +---PhysicsMaterial
+|   |   |   |   |       PhysicalMatNote.physicMaterial
+|   |   |   |   |       PhysicalMatPlan.physicMaterial
+|   |   |   |   |       
+|   |   |   |   +---Script
+|   |   |   |   |       Collide.cs
+|   |   |   |   |       ControlView.cs
+|   |   |   |   |       MusicView.cs
+|   |   |   |   |       NoteView.cs
+|   |   |   |   |       
+|   |   |   |   +---Template
+|   |   |   |   |       NoteView.prefab
+|   |   |   |   |       
+|   |   |   |   \---Texture
+|   |   |   |       |   incantation.jpg
+|   |   |   |       |   MoonlightShadow.jpg
+|   |   |   |       |   ommadawn.jpg
+|   |   |   |       |   TexturePlan.png
+|   |   |   |       |   TubularBells.jpg
+|   |   |   |       |   
+|   |   |   |       \---Materials
+|   |   |   |               IconImage_128x128.mat
+|   |   |   |               incantation.mat
+|   |   |   |               MoonlightShadow.mat
+|   |   |   |               ommadawn.mat
+|   |   |   |               TexturePlan.mat
+|   |   |   |               TubularBells.mat
+|   |   |   |               
+|   |   |   +---TestMidiFilePlayerMulti
+|   |   |   |       LightingData.asset
+|   |   |   |       ReflectionProbe-0.exr
+|   |   |   |       
+|   |   |   \---TestMidiSpatialization
+|   |   |           LightingData.asset
+|   |   |           ReflectionProbe-0.exr
+|   |   |           
+|   |   +---FreeMVP
+|   |   |   |   LoadMidiAndPlay.cs
+|   |   |   |   LoadMidiAndPlay.unity
+|   |   |   |   MatBlue.mat
+|   |   |   |   MatRed.mat
+|   |   |   |   MatShadowAndTransparency.mat
+|   |   |   |   MidiChannel.unity
+|   |   |   |   MidiChannelByScript.cs
+|   |   |   |   MidiChannelDisplay.cs
+|   |   |   |   MidiChannelWithExtraNotes.cs
+|   |   |   |   MidiChannelWithHanging.cs
+|   |   |   |   MidiLoop.cs
+|   |   |   |   MidiLoop.unity
+|   |   |   |   SimpleSpatialStream.cs
+|   |   |   |   SimpleSpatialStream.unity
+|   |   |   |   SimplestMidiGenerator.unity
+|   |   |   |   TheSimplestMidiGenerator.cs
+|   |   |   |   TheSimplestMidiLoader.cs
+|   |   |   |   TheSimplestMidiPlayer.cs
+|   |   |   |   TheSimplestNotesPlayer.cs
+|   |   |   |   TheSimplestRandomPlayer.cs
+|   |   |   |   _MimimimViableProduct.txt
+|   |   |   |   
+|   |   |   \---SwitchScene
+|   |   |           LoadMidiFilePlayer.cs
+|   |   |           NextMidiFile.cs
+|   |   |           SwitchScene.unity
+|   |   |           SwitchSceneChild.unity
+|   |   |           SwitchSceneController.cs
+|   |   |           
+|   |   +---ProDemos
+|   |   |   |   EuclideanRhythm.unity
+|   |   |   |   EuclideanRhythmSettings.lighting
+|   |   |   |   SpatializerFly.unity
+|   |   |   |   TestExternalMidiPlay.unity
+|   |   |   |   TestInnerLoop.unity
+|   |   |   |   TestLoadingExternalSoundFont.unity
+|   |   |   |   TestMidiGenerator.unity
+|   |   |   |   TestMidiInReader.unity
+|   |   |   |   TestMidiJoin.unity
+|   |   |   |   TestMidiKeyboard.unity
+|   |   |   |   TestMidiKeyboardSettings.lighting
+|   |   |   |   TestMidiPlayList.unity
+|   |   |   |   TestMidiPlayListSettings.lighting
+|   |   |   |   TestMidiPlugin.unity
+|   |   |   |   TestOboe.unity
+|   |   |   |   TestPopupList.unity
+|   |   |   |   TinyMidiSequencer DEPRECATED.unity
+|   |   |   |   
+|   |   |   +---Material
+|   |   |   |       6-4-European-Roulette.png
+|   |   |   |       Euclidean.png
+|   |   |   |       EuclidianController.mat
+|   |   |   |       
+|   |   |   +---Prefabs
+|   |   |   |       InputInt.cs
+|   |   |   |       InputInt.prefab
+|   |   |   |       TextSlider.prefab
+|   |   |   |       
+|   |   |   +---Script
+|   |   |   |   |   HandleLog.cs
+|   |   |   |   |   MidiJoinAndImport.cs
+|   |   |   |   |   TestInnerLoop.cs
+|   |   |   |   |   TestLoadSF.cs
+|   |   |   |   |   TestMidiExternalPlayer.cs
+|   |   |   |   |   TestMidiGenerator.cs
+|   |   |   |   |   TestMidiInputScripting.cs
+|   |   |   |   |   TestMidiKaoruShoji.cs
+|   |   |   |   |   TestMidiKeyboard.cs
+|   |   |   |   |   TestMidiListPlayer.cs
+|   |   |   |   |   TestOboeMaestro.cs
+|   |   |   |   |   TestPopup.cs
+|   |   |   |   |   TestTapMidi.cs
+|   |   |   |   |   TinyMidiSequencer.cs
+|   |   |   |   |   
+|   |   |   |   \---EuclideSeq
+|   |   |   |       |   BjorklundAlgo.cs
+|   |   |   |       |   BtItem.cs
+|   |   |   |       |   HitView.cs
+|   |   |   |       |   LightSlider.cs
+|   |   |   |       |   PanelController.cs
+|   |   |   |       |   PopupListBox.cs
+|   |   |   |       |   RenderImage.cs
+|   |   |   |       |   ScreenSizing.cs
+|   |   |   |       |   TapEffect.cs
+|   |   |   |       |   TapInstrument.cs
+|   |   |   |       |   TapPad.cs
+|   |   |   |       |   TapSwitch.cs
+|   |   |   |       |   TestEuclideanRhythme.cs
+|   |   |   |       |   TextSlider.cs
+|   |   |   |       |   TextureDrawingExtension.cs
+|   |   |   |       |   
+|   |   |   |       +---Material
+|   |   |   |       |       HitCurrent.mat
+|   |   |   |       |       HitDisabled.mat
+|   |   |   |       |       HitEnabled.mat
+|   |   |   |       |       
+|   |   |   |       \---Texture
+|   |   |   |               008-up-arrow.png
+|   |   |   |               037-down-arrow.png
+|   |   |   |               ArrowGreen.png
+|   |   |   |               delete.png
+|   |   |   |               Duplicate.png
+|   |   |   |               Minus.png
+|   |   |   |               Plus.png
+|   |   |   |               shuffle.png
+|   |   |   |               
+|   |   |   +---SourceSpatializerFly
+|   |   |   |   |   Licence.txt
+|   |   |   |   |   
+|   |   |   |   +---Demo
+|   |   |   |   |   |   
+|   |   |   |   |   +---Materials
+|   |   |   |   |   |   |   GridX10.mat
+|   |   |   |   |   |   |   GridX50Ceil.mat
+|   |   |   |   |   |   |   GridX50floor.mat
+|   |   |   |   |   |   |   GridX50wall.mat
+|   |   |   |   |   |   |   MatPlane.physicMaterial
+|   |   |   |   |   |   |   SphereMat.mat
+|   |   |   |   |   |   |   
+|   |   |   |   |   |   \---Textures
+|   |   |   |   |   |           grid.png
+|   |   |   |   |   |           
+|   |   |   |   |   +---Prefabs
+|   |   |   |   |   |       MouseFlightHud.prefab
+|   |   |   |   |   |       Plane.prefab
+|   |   |   |   |   |       
+|   |   |   |   |   +---Scenes
+|   |   |   |   |   |       DemoFlight.unity
+|   |   |   |   |   |       
+|   |   |   |   |   +---Scripts
+|   |   |   |   |   |       Hud.cs
+|   |   |   |   |   |       Plane.cs
+|   |   |   |   |   |       TestSpatializerFly.cs
+|   |   |   |   |   |       
+|   |   |   |   |   \---UI
+|   |   |   |   |           Crosshair.png
+|   |   |   |   |           MouseCrosshair.png
+|   |   |   |   |           
+|   |   |   |   +---Prefabs
+|   |   |   |   |       MouseFlightRig.prefab
+|   |   |   |   |       
+|   |   |   |   \---Scripts
+|   |   |   |           MouseFlightController.cs
+|   |   |   |           
+|   |   |   \---SpatializerFly
+|   |   |           LightingData.asset
+|   |   |           ReflectionProbe-0.exr
+|   |   |           
+|   |   +---ProMVP
+|   |   |       HackYourMidiPlayer.cs
+|   |   |       HackYourMidiPlayer.unity
+|   |   |       MidiKeyboardInput.cs
+|   |   |       MidiKeyboardInput.unity
+|   |   |       MidiKeyboardThread.cs
+|   |   |       MidiKeyboardThread.unity
+|   |   |       MidiPlayAndPause.cs
+|   |   |       MidiPlayAndPause.unity
+|   |   |       SimplestMidiReWriter.cs
+|   |   |       SimplestMidiReWriter.unity
+|   |   |       SimplestMidiWriter.cs
+|   |   |       SimplestMidiWriter.unity
+|   |   |       Spatializer3D.cs
+|   |   |       Spatializer3D.unity
+|   |   |       TheSimplestScalePlayer.cs
+|   |   |       _MimimimViableProduct.txt
+|   |   |       
+|   |   +---Resources
+|   |   |   |   BuildSettingScenes.png
+|   |   |   |   Courier.ttf
+|   |   |   |   leoferre.png
+|   |   |   |   
+|   |   |   +---Materials
+|   |   |   |       leoferre.mat
+|   |   |   |       Metal.mat
+|   |   |   |       
+|   |   |   \---Textures
+|   |   |           008-up-arrow.png
+|   |   |           037-down-arrow.png
+|   |   |           038-delete.png
+|   |   |           040-confirm.png
+|   |   |           black.png
+|   |   |           Button.png
+|   |   |           computer.png
+|   |   |           Delete_32x32.png
+|   |   |           Delete_32x32_gray.png
+|   |   |           Eye.png
+|   |   |           gray.png
+|   |   |           graydark.png
+|   |   |           graymedium.png
+|   |   |           green.png
+|   |   |           greendark.png
+|   |   |           greenlight.png
+|   |   |           help-icon.png
+|   |   |           home.png
+|   |   |           Plus.png
+|   |   |           question-mark.png
+|   |   |           quit.png
+|   |   |           Save_24x24.png
+|   |   |           white.png
+|   |   |           window.png
+|   |   |           
+|   |   \---Water
+|   |       |   
+|   |       +---Water
+|   |       |   |   
+|   |       |   +---Materials
+|   |       |   |       WaterPlaneMaterial.mat
+|   |       |   |       WaterProDaytime.mat
+|   |       |   |       WaterProNighttime.mat
+|   |       |   |       
+|   |       |   +---Models
+|   |       |   |       WaterPlane.fbx
+|   |       |   |       
+|   |       |   +---Prefabs
+|   |       |   |       WaterProDaytime.prefab
+|   |       |   |       WaterProNighttime.prefab
+|   |       |   |       
+|   |       |   +---Scripts
+|   |       |   |       Displace.cs
+|   |       |   |       GerstnerDisplace.cs
+|   |       |   |       MeshContainer.cs
+|   |       |   |       PlanarReflection.cs
+|   |       |   |       SpecularLighting.cs
+|   |       |   |       Water.cs
+|   |       |   |       WaterBase.cs
+|   |       |   |       WaterTile.cs
+|   |       |   |       
+|   |       |   +---Shaders
+|   |       |   |       FXWaterPro.shader
+|   |       |   |       
+|   |       |   \---Textures
+|   |       |           WaterBump.jpg
+|   |       |           WaterFresnel.psd
+|   |       |           WaterProDaytimeGradient.psd
+|   |       |           WaterProNighttimeGradient.psd
+|   |       |           
+|   |       \---Water4
+|   |           |   
+|   |           +---Materials
+|   |           |       OceanPlaneMaterial.mat
+|   |           |       Water4Advanced.mat
+|   |           |       Water4Simple.mat
+|   |           |       
+|   |           +---Models
+|   |           |       OceanPlane.FBX
+|   |           |       
+|   |           +---Prefabs
+|   |           |       Water4Advanced.prefab
+|   |           |       Water4Simple.prefab
+|   |           |       
+|   |           +---Shaders
+|   |           |       FXWater4Advanced.shader
+|   |           |       FXWater4Simple.shader
+|   |           |       WaterInclude.cginc
+|   |           |       
+|   |           \---Textures
+|   |                   SimpleFoam.png
+|   |                   SmallWaves.png
+|   |                   
+|   +---Prefab
+|   |   |   MidiFileLoader.prefab
+|   |   |   MidiFilePlayer.prefab
+|   |   |   MidiStreamPlayer.prefab
+|   |   |   
+|   |   \---Pro
+|   |           MidiExternalPlay.prefab
+|   |           MidiInReader.prefab
+|   |           MidiListPlayer.prefab
+|   |           MidiSpatializer.prefab
+|   |           
+|   +---Resources
+|   |   |   Logo_MPTK.png
+|   |   |   MidiSet.txt
+|   |   |   
+|   |   +---GeneratorTemplate
+|   |   |       ChordLib.csv
+|   |   |       GammeDefinition.csv
+|   |   |       
+|   |   +---Materials
+|   |   |       gray.mat
+|   |   |       greenback.mat
+|   |   |       greenlight.mat
+|   |   |       Logo_MPTK.mat
+|   |   |       ui_gray_list.png
+|   |   |       ui_green_list.png
+|   |   |       ui_red_list.png
+|   |   |       
+|   |   +---MidiDB
+|   |   +---SoundfontsDB
+|   |   |   |   
+|   |   |   +---8MBGMSFX
+|   |   |   |   |   8MBGMSFX.txt
+|   |   |   |   |   8MBGMSFX_data.bytes
+|   |   |   |   |   
+|   |   |   |   \---wave
+|   |   |   |           808Click.wav
+|   |   |   |           808Hat.wav
+|   |   |   |           808Snare.wav
+|   |   |   |           Aahs-A3.wav
+|   |   |   |           Aahs-Ab2.wav
+|   |   |   |           Aahs-C4.wav
+|   |   |   |           Aahs-C6.wav
+|   |   |   |           Aahs-Db3.wav
+|   |   |   |           Aahs-F3.wav
+|   |   |   |           Aahs-F4.wav
+|   |   |   |           Accordion-Bb2.wav
+|   |   |   |           Accordion-Bb3.wav
+|   |   |   |           Accordion-Bb4.wav
+|   |   |   |           Accordion-D4.wav
+|   |   |   |           Accordion-D5.wav
+|   |   |   |           Accordion-D6.wav
+|   |   |   |           Accordion-Gb2.wav
+|   |   |   |           Accordion-Gb3.wav
+|   |   |   |           Accordion-Gb4.wav
+|   |   |   |           Acoustic-Bass-A0.wav
+|   |   |   |           Acoustic-Bass-A1.wav
+|   |   |   |           Acoustic-Bass-A3.wav
+|   |   |   |           Acoustic-Bass-C6.wav
+|   |   |   |           Acoustic-Tom.wav
+|   |   |   |           Agogo-Bell.wav
+|   |   |   |           Applause.wav
+|   |   |   |           Arco-Cello-Ad1.wav
+|   |   |   |           Arco-Cello-C6.wav
+|   |   |   |           Arco-Cello-D2.wav
+|   |   |   |           Arco-Cello-D4.wav
+|   |   |   |           Arco-Cello-Fd1.wav
+|   |   |   |           B3LoDistSlow-A1.wav
+|   |   |   |           B3LoDistSlow-A4.wav
+|   |   |   |           B3LoDistSlow-C4.wav
+|   |   |   |           B3LoDistSlow-Dd3.wav
+|   |   |   |           B3LoDistSlow-Fd2.wav
+|   |   |   |           B3LoDistSlow-Fd5.wav
+|   |   |   |           Bag-Drone-A1.wav
+|   |   |   |           BagDroneWave-A1.wav
+|   |   |   |           Bagpipe-Bb3.wav
+|   |   |   |           Bagpipe-Bb5.wav
+|   |   |   |           Bagpipe-Wave-Bb3.wav
+|   |   |   |           Bagpipe-Wave-Bb5.wav
+|   |   |   |           Banjo-B2.wav
+|   |   |   |           Banjo-F3.wav
+|   |   |   |           Banjo-F5.wav
+|   |   |   |           Banjo-F6.wav
+|   |   |   |           Bassoon-C2.wav
+|   |   |   |           Bassoon-C3.wav
+|   |   |   |           Bassoon-E2.wav
+|   |   |   |           Bassoon-E3.wav
+|   |   |   |           Bassoon-E5.wav
+|   |   |   |           Bassoon-F6.wav
+|   |   |   |           Bassoon-Gd1.wav
+|   |   |   |           Bassoon-Gd2.wav
+|   |   |   |           Bb-ff-Clar-B3.wav
+|   |   |   |           Bb-ff-Clar-B4.wav
+|   |   |   |           Bb-ff-Clar-D3.wav
+|   |   |   |           BB-ff-Clar-D4.wav
+|   |   |   |           Bb-ff-Clar-F3.wav
+|   |   |   |           Bb-ff-Clar-F4.wav
+|   |   |   |           Bb-ff-Clar-Gb6.wav
+|   |   |   |           Bb-ff-Clar-Gd2.wav
+|   |   |   |           Bell-Tree.wav
+|   |   |   |           Bird---Sparrow.wav
+|   |   |   |           Bottle-Blow-1.wav
+|   |   |   |           Bottle-Blow-2.wav
+|   |   |   |           Brass-C3.wav
+|   |   |   |           Brass-C4.wav
+|   |   |   |           Brass-C5.wav
+|   |   |   |           Brass-C6.wav
+|   |   |   |           Brass-Gb4.wav
+|   |   |   |           Brass-Tambourine.wav
+|   |   |   |           Brook.wav
+|   |   |   |           Brush-Snare.wav
+|   |   |   |           Bubbles.wav
+|   |   |   |           Cabasa.wav
+|   |   |   |           Car-Skid.wav
+|   |   |   |           Car-Start.wav
+|   |   |   |           CarCrash.wav
+|   |   |   |           Carillon-C6.wav
+|   |   |   |           Castanets.wav
+|   |   |   |           Celesta-C5.wav
+|   |   |   |           Celesta-C7.wav
+|   |   |   |           Chimes.wav
+|   |   |   |           ChinaCrashCymbal.wav
+|   |   |   |           Church-Org-C2.wav
+|   |   |   |           Church-Org-C3.wav
+|   |   |   |           Church-Org-C4.wav
+|   |   |   |           Church-Org-C6.wav
+|   |   |   |           Church-Org-F6.wav
+|   |   |   |           Claps-808ish.wav
+|   |   |   |           Clavinet-A0.wav
+|   |   |   |           Clavinet-A1.wav
+|   |   |   |           Clavinet-A2.wav
+|   |   |   |           Clavinet-C2.wav
+|   |   |   |           Clavinet-C4.wav
+|   |   |   |           Clavinet-C6.wav
+|   |   |   |           Clavinet-Dd1.wav
+|   |   |   |           Clavinet-Dd2.wav
+|   |   |   |           Clavinet-Dd3.wav
+|   |   |   |           Clavinet-Fd2.wav
+|   |   |   |           Contra-Bass-D2.wav
+|   |   |   |           Contra-Bass-Fd2.wav
+|   |   |   |           Contra-Bass-Fd4.wav
+|   |   |   |           Cowbell.wav
+|   |   |   |           Cowbell808.wav
+|   |   |   |           CP70-A4.wav
+|   |   |   |           CP70-C3.wav
+|   |   |   |           CP70-C4.wav
+|   |   |   |           CP70-Dd2.wav
+|   |   |   |           CP70-Dd5.wav
+|   |   |   |           CP70-Dd6.wav
+|   |   |   |           Dist-Gtr-A1.wav
+|   |   |   |           Dist-Gtr-A3.wav
+|   |   |   |           Dist-Gtr-B2.wav
+|   |   |   |           Dist-Gtr-C6.wav
+|   |   |   |           Dist-Gtr-D2.wav
+|   |   |   |           Dist-Gtr-E1.wav
+|   |   |   |           Dist-Gtr-E3.wav
+|   |   |   |           Dist-Gtr-E4.wav
+|   |   |   |           Dist-Gtr-G2.wav
+|   |   |   |           Dog.wav
+|   |   |   |           Doo-B2.wav
+|   |   |   |           Doo-B4.wav
+|   |   |   |           Doo-C6.wav
+|   |   |   |           Doo-Eb3.wav
+|   |   |   |           Doo-Eb4.wav
+|   |   |   |           Doo-G3.wav
+|   |   |   |           Door-Creak.wav
+|   |   |   |           Door-Slam.wav
+|   |   |   |           DrawBar-Organ-C3.wav
+|   |   |   |           DrawBar-Organ-C5.wav
+|   |   |   |           DrawBar-Organ-C6.wav
+|   |   |   |           Drum-Stick.wav
+|   |   |   |           Dulcimer-C4.wav
+|   |   |   |           Dulcimer-C6.wav
+|   |   |   |           DX-EP-A2.wav
+|   |   |   |           DX-EP-C2.wav
+|   |   |   |           DX-EP-C4.wav
+|   |   |   |           DX-EP-C6.wav
+|   |   |   |           DX-EP-Gb3.wav
+|   |   |   |           E-Snare.wav
+|   |   |   |           English-Horn-A2.wav
+|   |   |   |           English-Horn-A3.wav
+|   |   |   |           English-Horn-B2.wav
+|   |   |   |           English-Horn-Cd3.wav
+|   |   |   |           English-Horn-Cd4.wav
+|   |   |   |           English-Horn-Dd3.wav
+|   |   |   |           English-Horn-F2.wav
+|   |   |   |           English-Horn-F4.wav
+|   |   |   |           English-Horn-F6.wav
+|   |   |   |           English-Horn-G3.wav
+|   |   |   |           EP1-2-C1.wav
+|   |   |   |           EP1-2-C2.wav
+|   |   |   |           EP1-2-C3.wav
+|   |   |   |           EP1-2-C4.wav
+|   |   |   |           EP1-2-C6.wav
+|   |   |   |           EP1-2-Gb3.wav
+|   |   |   |           EP1-Ab2.wav
+|   |   |   |           EP1-C3.wav
+|   |   |   |           EP1-C4.wav
+|   |   |   |           EP1-C6.wav
+|   |   |   |           EP1-E3.wav
+|   |   |   |           EP1-G3.wav
+|   |   |   |           Filter-Snap.wav
+|   |   |   |           Fingered-Bass-A0.wav
+|   |   |   |           Fingered-Bass-C1.wav
+|   |   |   |           Fingered-Bass-C6.wav
+|   |   |   |           Fingered-Bass-G3.wav
+|   |   |   |           Flute-Ad4.wav
+|   |   |   |           Flute-C4.wav
+|   |   |   |           Flute-Dd5.wav
+|   |   |   |           Flute-F4.wav
+|   |   |   |           Flute-G3.wav
+|   |   |   |           Flute-Gd5.wav
+|   |   |   |           Foot-Step.wav
+|   |   |   |           Formula-Car-Pass.wav
+|   |   |   |           French-Horns-B2.wav
+|   |   |   |           French-Horns-B3.wav
+|   |   |   |           French-Horns-C6.wav
+|   |   |   |           French-Horns-Eb2.wav
+|   |   |   |           French-Horns-Eb3.wav
+|   |   |   |           French-Horns-G2.wav
+|   |   |   |           FretlessBass-C1.wav
+|   |   |   |           FretlessBass-C6.wav
+|   |   |   |           FretlessBass-Db4.wav
+|   |   |   |           FretlessBass-Gb1.wav
+|   |   |   |           FretNoise.wav
+|   |   |   |           Glockenspiel-D5.wav
+|   |   |   |           Glockenspiel-D6.wav
+|   |   |   |           Gtr-Click.wav
+|   |   |   |           Gtr-Cut-Down.wav
+|   |   |   |           Gtr-Cut-Up.wav
+|   |   |   |           Gtr-Mute-B2.wav
+|   |   |   |           Gtr-Mute-C4.wav
+|   |   |   |           Gtr-Mute-D2.wav
+|   |   |   |           Gtr-Mute-G1.wav
+|   |   |   |           Gtr-Mute-G2.wav
+|   |   |   |           Gtr-Slap.wav
+|   |   |   |           GtrHarmonics--B2.wav
+|   |   |   |           GtrHarmonics-Ab3.wav
+|   |   |   |           GtrHarmonics-C5.wav
+|   |   |   |           GtrHarmonics-C6.wav
+|   |   |   |           GtrHarmonics-Eb3.wav
+|   |   |   |           GtrHarmonics-Gb2.wav
+|   |   |   |           Guiro-Down.wav
+|   |   |   |           Guiro-Up.wav
+|   |   |   |           Gun-Shot.wav
+|   |   |   |           H-Bongo-Rim.wav
+|   |   |   |           Hard-Alto-Ad2.wav
+|   |   |   |           Hard-Alto-Ad3.wav
+|   |   |   |           Hard-Alto-Ad4.wav
+|   |   |   |           Hard-Alto-D3.wav
+|   |   |   |           Hard-Alto-D4.wav
+|   |   |   |           Hard-Alto-Fd2.wav
+|   |   |   |           Hard-Alto-Fd3.wav
+|   |   |   |           Hard-Alto-Fd4.wav
+|   |   |   |           Hard-Alto-Sax-D2.wav
+|   |   |   |           HardBaritone-Ad1.wav
+|   |   |   |           HardBaritone-Ad2.wav
+|   |   |   |           HardBaritone-D1.wav
+|   |   |   |           HardBaritone-D2.wav
+|   |   |   |           HardBaritone-D3.wav
+|   |   |   |           HardBaritone-Fd1.wav
+|   |   |   |           HardBaritone-Fd2.wav
+|   |   |   |           HardBaritone-Fd3.wav
+|   |   |   |           Harmon-Mute-Ad4.wav
+|   |   |   |           Harmon-Mute-C3.wav
+|   |   |   |           Harmon-Mute-C4.wav
+|   |   |   |           Harmon-Mute-E3.wav
+|   |   |   |           Harmon-Mute-Gd3.wav
+|   |   |   |           Harmonica-A2.wav
+|   |   |   |           Harmonica-A3.wav
+|   |   |   |           Harmonica-C4.wav
+|   |   |   |           Harmonica-C6.wav
+|   |   |   |           Harmonica-Dd3.wav
+|   |   |   |           Harmonica-Dd4.wav
+|   |   |   |           Harpsichord-A3.wav
+|   |   |   |           Harpsichord-Ab1.wav
+|   |   |   |           Harpsichord-Bb4.wav
+|   |   |   |           Harpsichord-C3.wav
+|   |   |   |           Harpsichord-D6.wav
+|   |   |   |           Harpsichord-E2.wav
+|   |   |   |           Harpsichord-Eb1.wav
+|   |   |   |           Helicopter.wav
+|   |   |   |           High-Hat-Closed.wav
+|   |   |   |           High-Hat-Foot.wav
+|   |   |   |           Horse-Loop.wav
+|   |   |   |           Jazz-Guitar-B4.wav
+|   |   |   |           Jazz-Guitar-Bb2.wav
+|   |   |   |           Jazz-Guitar-C2.wav
+|   |   |   |           Jazz-Guitar-E2.wav
+|   |   |   |           Jazz-Guitar-E4.wav
+|   |   |   |           Jazz-Guitar-E6.wav
+|   |   |   |           Jazz-Guitar-Eb3.wav
+|   |   |   |           Jazz-Guitar-Gb3.wav
+|   |   |   |           Jet.wav
+|   |   |   |           Kalimba-C3.wav
+|   |   |   |           Kalimba-C6.wav
+|   |   |   |           KickVerb.wav
+|   |   |   |           Koto-D3.wav
+|   |   |   |           Koto-G2.wav
+|   |   |   |           Koto-G3.wav
+|   |   |   |           Koto-G5.wav
+|   |   |   |           Koto-G6.wav
+|   |   |   |           Laughter.wav
+|   |   |   |           Lazer-Beam.wav
+|   |   |   |           Low-Tumba-Tone.wav
+|   |   |   |           M-Bongo-Tone.wav
+|   |   |   |           Machine-Gun.wav
+|   |   |   |           Maracas.wav
+|   |   |   |           Marimba-C2.wav
+|   |   |   |           Marimba-C3.wav
+|   |   |   |           Marimba-C6.wav
+|   |   |   |           Med-Crash-Cymbal.wav
+|   |   |   |           Met-Click.wav
+|   |   |   |           Music-Box-C5.wav
+|   |   |   |           Mute-Triangle.wav
+|   |   |   |           N-Guitar-Ab3.wav
+|   |   |   |           N-Guitar-B3.wav
+|   |   |   |           N-Guitar-C4.wav
+|   |   |   |           N-Guitar-D2.wav
+|   |   |   |           N-Guitar-E3.wav
+|   |   |   |           N-Guitar-E4.wav
+|   |   |   |           N-Guitar-Gb2.wav
+|   |   |   |           Noise-Slap.wav
+|   |   |   |           Oboe-A4.wav
+|   |   |   |           Oboe-C4.wav
+|   |   |   |           Oboe-C5.wav
+|   |   |   |           Oboe-D4.wav
+|   |   |   |           Oboe-Dd3.wav
+|   |   |   |           Oboe-E4.wav
+|   |   |   |           Oboe-Fd3.wav
+|   |   |   |           Oboe-Fd4.wav
+|   |   |   |           Ocarina-Fd4.wav
+|   |   |   |           Ocarina-Fd6.wav
+|   |   |   |           Ocean-Wave.wav
+|   |   |   |           Octave-Wave-C6.wav
+|   |   |   |           Octave-Wave-E4.wav
+|   |   |   |           OD-Gtr-A1.wav
+|   |   |   |           OD-Gtr-A3.wav
+|   |   |   |           OD-Gtr-B2.wav
+|   |   |   |           OD-Gtr-C6.wav
+|   |   |   |           OD-Gtr-D2.wav
+|   |   |   |           OD-Gtr-E1.wav
+|   |   |   |           OD-Gtr-E3.wav
+|   |   |   |           OD-Gtr-E4.wav
+|   |   |   |           OD-Gtr-G2.wav
+|   |   |   |           Open-High-Hat.wav
+|   |   |   |           Orch-Hit-C4.wav
+|   |   |   |           OrchSnare.wav
+|   |   |   |           Perc-Organ-C4.wav
+|   |   |   |           Perc-Organ-C5.wav
+|   |   |   |           Perc-Organ-G6.wav
+|   |   |   |           Piano-A0-------R.wav
+|   |   |   |           Piano-Ab2------R.wav
+|   |   |   |           Piano-Ab3------R.wav
+|   |   |   |           Piano-Ab5------R.wav
+|   |   |   |           Piano-C5-------R.wav
+|   |   |   |           Piano-C6-------R.wav
+|   |   |   |           Piano-Cd2------R.wav
+|   |   |   |           Piano-D1-------R.wav
+|   |   |   |           Piano-Db3------R.wav
+|   |   |   |           Piano-Db4------R.wav
+|   |   |   |           Piano-E0-------R.wav
+|   |   |   |           Piano-Gb1------R.wav
+|   |   |   |           Piano-Gb4------R.wav
+|   |   |   |           Piano-Gb5------R.wav
+|   |   |   |           Piccolo-Ad4.wav
+|   |   |   |           Piccolo-Ad5.wav
+|   |   |   |           Piccolo-D5.wav
+|   |   |   |           Piccolo-D6.wav
+|   |   |   |           Piccolo-Fd5.wav
+|   |   |   |           Pick-Bass-C6.wav
+|   |   |   |           Pick-Bass-D1.wav
+|   |   |   |           Pick-Bass-D3.wav
+|   |   |   |           Pizz-Violin-C4.wav
+|   |   |   |           Pizz-Violin-C6.wav
+|   |   |   |           Pizz-Violin-E3.wav
+|   |   |   |           Pizz-Violin-E4.wav
+|   |   |   |           Punch.wav
+|   |   |   |           Quica-Downstroke.wav
+|   |   |   |           Quica-Hi-Tone.wav
+|   |   |   |           Quinto-Tone.wav
+|   |   |   |           QuintoClosedSlap.wav
+|   |   |   |           Rain.wav
+|   |   |   |           Recorder-C4.wav
+|   |   |   |           Recorder-C6.wav
+|   |   |   |           Reed-Wave-C2.wav
+|   |   |   |           Reed-Wave-C3.wav
+|   |   |   |           Reed-Wave-C4.wav
+|   |   |   |           Reed-Wave-C5.wav
+|   |   |   |           Reed-Wave-Gb3.wav
+|   |   |   |           Reed-Wave-Gb4.wav
+|   |   |   |           Ride-Bell.wav
+|   |   |   |           Ride-Ping.wav
+|   |   |   |           Rim-Shot.wav
+|   |   |   |           Room-Tom-Low.wav
+|   |   |   |           Rosewood-Claves.wav
+|   |   |   |           Samba-Whistle.wav
+|   |   |   |           Saw-Wave-C1.wav
+|   |   |   |           Saw-Wave-C2.wav
+|   |   |   |           Saw-Wave-C3.wav
+|   |   |   |           Saw-Wave-C4.wav
+|   |   |   |           Saw-Wave-C5.wav
+|   |   |   |           Saw-Wave-C6.wav
+|   |   |   |           SawBassWave-Bb3.wav
+|   |   |   |           SawBassWave-C1.wav
+|   |   |   |           SawBassWave-C2.wav
+|   |   |   |           SawBassWave-C3.wav
+|   |   |   |           SawBassWave-F5.wav
+|   |   |   |           SawBassWave-F6.wav
+|   |   |   |           Sax-C2.wav
+|   |   |   |           Sax-C4.wav
+|   |   |   |           Sax-C6.wav
+|   |   |   |           Sax-D3.wav
+|   |   |   |           Sax-D6.wav
+|   |   |   |           Sax-Dd4.wav
+|   |   |   |           Sax-E2.wav
+|   |   |   |           Sax-F3.wav
+|   |   |   |           Sax-G2.wav
+|   |   |   |           Scratch.wav
+|   |   |   |           Scream.wav
+|   |   |   |           Sft-Soprano-A2.wav
+|   |   |   |           Sft-Soprano-C4.wav
+|   |   |   |           Sft-Soprano-C5.wav
+|   |   |   |           Sft-Soprano-C6.wav
+|   |   |   |           Sft-Soprano-E3.wav
+|   |   |   |           Sft-Soprano-E4.wav
+|   |   |   |           Sft-Soprano-Gd3.wav
+|   |   |   |           Sft-Soprano-Gd4.wav
+|   |   |   |           Shakuhachi-C6.wav
+|   |   |   |           Shakuhachi-G4.wav
+|   |   |   |           Shamison-A3.wav
+|   |   |   |           Shamison-Bb2.wav
+|   |   |   |           Shamison-Eb3.wav
+|   |   |   |           Shamison-F2.wav
+|   |   |   |           Shenai-Ad3.wav
+|   |   |   |           Shenai-C3.wav
+|   |   |   |           Shenai-D3.wav
+|   |   |   |           Shenai-D4.wav
+|   |   |   |           Shenai-D6.wav
+|   |   |   |           Shenai-Fd3.wav
+|   |   |   |           Siku-C6.wav
+|   |   |   |           Siku-Db5.wav
+|   |   |   |           Siku-Gb3.wav
+|   |   |   |           Sinetick.wav
+|   |   |   |           SineWave.wav
+|   |   |   |           Siren.wav
+|   |   |   |           Sitar-Eb3.wav
+|   |   |   |           Sitar-Eb4.wav
+|   |   |   |           Sitar-Eb6.wav
+|   |   |   |           Slap-Bass-1-A0.wav
+|   |   |   |           Slap-Bass-1-C6.wav
+|   |   |   |           Slap-Bass-1-D2.wav
+|   |   |   |           Slap-Bass-1-D4.wav
+|   |   |   |           Slap-Bass-2-A0.wav
+|   |   |   |           Slap-Bass-2-C4.wav
+|   |   |   |           Slap-Bass-2-C6.wav
+|   |   |   |           Slap-Bass-2-F1.wav
+|   |   |   |           Sleigh-Bells.wav
+|   |   |   |           Snare-1.wav
+|   |   |   |           Snare-2.wav
+|   |   |   |           SnareVerb.wav
+|   |   |   |           Soft-Trumpet-A2.wav
+|   |   |   |           Soft-Trumpet-Ad4.wav
+|   |   |   |           Soft-Trumpet-C4.wav
+|   |   |   |           Soft-Trumpet-C6.wav
+|   |   |   |           Soft-Trumpet-D3.wav
+|   |   |   |           Soft-Trumpet-F4.wav
+|   |   |   |           Soft-Trumpet-G3.wav
+|   |   |   |           Solo-Vox-C3.wav
+|   |   |   |           Solo-Vox-C4.wav
+|   |   |   |           Solo-Vox-C5.wav
+|   |   |   |           Solo-Vox-C7.wav
+|   |   |   |           Solo-Vox-G3.wav
+|   |   |   |           Spectrum-Dd4.wav
+|   |   |   |           Spectrum-Dd6.wav
+|   |   |   |           Springy-Splash.wav
+|   |   |   |           Square-Wave-C1.wav
+|   |   |   |           Square-Wave-C2.wav
+|   |   |   |           Square-Wave-C3.wav
+|   |   |   |           Square-Wave-C4.wav
+|   |   |   |           Square-Wave-C5.wav
+|   |   |   |           Square-Wave-C6.wav
+|   |   |   |           Square-Wave-C7.wav
+|   |   |   |           Steel-AcGtr-A1.wav
+|   |   |   |           Steel-AcGtr-A3.wav
+|   |   |   |           Steel-AcGtr-B2.wav
+|   |   |   |           Steel-AcGtr-C6.wav
+|   |   |   |           Steel-AcGtr-D2.wav
+|   |   |   |           Steel-AcGtr-E1.wav
+|   |   |   |           Steel-AcGtr-E3.wav
+|   |   |   |           Steel-AcGtr-G2.wav
+|   |   |   |           SteelDrum-D1.wav
+|   |   |   |           SteelDrum-D5.wav
+|   |   |   |           Strat-C4.wav
+|   |   |   |           Strat-Cd3.wav
+|   |   |   |           Strat-F2.wav
+|   |   |   |           Strat-Fd3.wav
+|   |   |   |           Strat-Gd1.wav
+|   |   |   |           Strings-B1.wav
+|   |   |   |           Strings-C2.wav
+|   |   |   |           Strings-C3.wav
+|   |   |   |           Strings-C5.wav
+|   |   |   |           Strings-G2.wav
+|   |   |   |           Strings-G3.wav
+|   |   |   |           Strings-G4.wav
+|   |   |   |           Syn-Brass-C4.wav
+|   |   |   |           Syn-Brass-G2.wav
+|   |   |   |           Syn-Drum-Wave.wav
+|   |   |   |           Syn-Vox-C3.wav
+|   |   |   |           Syn-Vox-C4.wav
+|   |   |   |           Syn-Vox-Fd3.wav
+|   |   |   |           Synth-Strings-D6.wav
+|   |   |   |           Synth-Strings-G2.wav
+|   |   |   |           Synth-Strings-G3.wav
+|   |   |   |           Synth-Strings-G4.wav
+|   |   |   |           Taiko-Drum.wav
+|   |   |   |           Telephone.wav
+|   |   |   |           Thunder.wav
+|   |   |   |           Tight-Kick-Drum.wav
+|   |   |   |           Timbale-Rimshot.wav
+|   |   |   |           Timbale-Strike.wav
+|   |   |   |           Timp-Drum-A1.wav
+|   |   |   |           Train.wav
+|   |   |   |           TriangleWaveDb5.wav
+|   |   |   |           Trombone-A2.wav
+|   |   |   |           Trombone-B1.wav
+|   |   |   |           Trombone-C4.wav
+|   |   |   |           Trombone-D3.wav
+|   |   |   |           Trombone-E2.wav
+|   |   |   |           Trombone-G3.wav
+|   |   |   |           Troub-Harp-Ad3.wav
+|   |   |   |           Troub-Harp-Ad5.wav
+|   |   |   |           Troub-Harp-C3.wav
+|   |   |   |           Troub-Harp-E2.wav
+|   |   |   |           Troub-Harp-F3.wav
+|   |   |   |           Tuba-Ad1.wav
+|   |   |   |           Tuba-C4.wav
+|   |   |   |           Tuba-D1.wav
+|   |   |   |           Tuba-Fd0.wav
+|   |   |   |           Tuba-Fd1.wav
+|   |   |   |           Tubular-Bell-C7.wav
+|   |   |   |           Tubular-Bell-D4.wav
+|   |   |   |           UFO.wav
+|   |   |   |           Vibes-D4.wav
+|   |   |   |           Vibes-D6.wav
+|   |   |   |           Vibes-E3.wav
+|   |   |   |           Vibra-Loop.wav
+|   |   |   |           Violin-A4.wav
+|   |   |   |           Violin-Bb2.wav
+|   |   |   |           Violin-C4.wav
+|   |   |   |           Violin-C5.wav
+|   |   |   |           Violin-D3.wav
+|   |   |   |           Violin-Eb5.wav
+|   |   |   |           Violin-Eb6.wav
+|   |   |   |           Violin-G3.wav
+|   |   |   |           Violin-Gb4.wav
+|   |   |   |           White-Noise.wav
+|   |   |   |           Wood-Block.wav
+|   |   |   |           Xylo-Looped-E4.wav
+|   |   |   |           Xylophone-C4.wav
+|   |   |   |           Xylophone-C6.wav
+|   |   |   |           Zipper-Noise.wav
+|   |   |   |           
+|   |   |   \---ALWTTT
+|   |   |       |   ALWTTT.txt
+|   |   |       |   ALWTTT_data.bytes
+|   |   |       |   
+|   |   |       \---wave
+|   |   |               808Click.wav
+|   |   |               808Hat.wav
+|   |   |               808Snare.wav
+|   |   |               Aahs-A3.wav
+|   |   |               Aahs-Ab2.wav
+|   |   |               Aahs-C4.wav
+|   |   |               Aahs-C6.wav
+|   |   |               Aahs-Db3.wav
+|   |   |               Aahs-F3.wav
+|   |   |               Aahs-F4.wav
+|   |   |               Accordion-Bb2.wav
+|   |   |               Accordion-Bb3.wav
+|   |   |               Accordion-Bb4.wav
+|   |   |               Accordion-D4.wav
+|   |   |               Accordion-D5.wav
+|   |   |               Accordion-D6.wav
+|   |   |               Accordion-Gb2.wav
+|   |   |               Accordion-Gb3.wav
+|   |   |               Accordion-Gb4.wav
+|   |   |               Acoustic-Bass-A0.wav
+|   |   |               Acoustic-Bass-A1.wav
+|   |   |               Acoustic-Bass-A3.wav
+|   |   |               Acoustic-Bass-C6.wav
+|   |   |               Acoustic-Tom.wav
+|   |   |               Agogo-Bell.wav
+|   |   |               Applause.wav
+|   |   |               Arco-Cello-Ad1.wav
+|   |   |               Arco-Cello-C6.wav
+|   |   |               Arco-Cello-D2.wav
+|   |   |               Arco-Cello-D4.wav
+|   |   |               Arco-Cello-Fd1.wav
+|   |   |               B3LoDistSlow-A1.wav
+|   |   |               B3LoDistSlow-A4.wav
+|   |   |               B3LoDistSlow-C4.wav
+|   |   |               B3LoDistSlow-Dd3.wav
+|   |   |               B3LoDistSlow-Fd2.wav
+|   |   |               B3LoDistSlow-Fd5.wav
+|   |   |               Bag-Drone-A1.wav
+|   |   |               BagDroneWave-A1.wav
+|   |   |               Bagpipe-Bb3.wav
+|   |   |               Bagpipe-Bb5.wav
+|   |   |               Bagpipe-Wave-Bb3.wav
+|   |   |               Bagpipe-Wave-Bb5.wav
+|   |   |               Banjo-B2.wav
+|   |   |               Banjo-F3.wav
+|   |   |               Banjo-F5.wav
+|   |   |               Banjo-F6.wav
+|   |   |               Bassoon-C2.wav
+|   |   |               Bassoon-C3.wav
+|   |   |               Bassoon-E2.wav
+|   |   |               Bassoon-E3.wav
+|   |   |               Bassoon-E5.wav
+|   |   |               Bassoon-F6.wav
+|   |   |               Bassoon-Gd1.wav
+|   |   |               Bassoon-Gd2.wav
+|   |   |               Bb-ff-Clar-B3.wav
+|   |   |               Bb-ff-Clar-B4.wav
+|   |   |               Bb-ff-Clar-D3.wav
+|   |   |               BB-ff-Clar-D4.wav
+|   |   |               Bb-ff-Clar-F3.wav
+|   |   |               Bb-ff-Clar-F4.wav
+|   |   |               Bb-ff-Clar-Gb6.wav
+|   |   |               Bb-ff-Clar-Gd2.wav
+|   |   |               Bell-Tree.wav
+|   |   |               Bird---Sparrow.wav
+|   |   |               Bottle-Blow-1.wav
+|   |   |               Bottle-Blow-2.wav
+|   |   |               Brass-C3.wav
+|   |   |               Brass-C4.wav
+|   |   |               Brass-C5.wav
+|   |   |               Brass-C6.wav
+|   |   |               Brass-Gb4.wav
+|   |   |               Brass-Tambourine.wav
+|   |   |               Brook.wav
+|   |   |               Brush-Snare.wav
+|   |   |               Bubbles.wav
+|   |   |               Cabasa.wav
+|   |   |               Car-Skid.wav
+|   |   |               Car-Start.wav
+|   |   |               CarCrash.wav
+|   |   |               Carillon-C6.wav
+|   |   |               Castanets.wav
+|   |   |               Celesta-C5.wav
+|   |   |               Celesta-C7.wav
+|   |   |               Chimes.wav
+|   |   |               ChinaCrashCymbal.wav
+|   |   |               Church-Org-C2.wav
+|   |   |               Church-Org-C3.wav
+|   |   |               Church-Org-C4.wav
+|   |   |               Church-Org-C6.wav
+|   |   |               Church-Org-F6.wav
+|   |   |               Claps-808ish.wav
+|   |   |               Clavinet-A0.wav
+|   |   |               Clavinet-A1.wav
+|   |   |               Clavinet-A2.wav
+|   |   |               Clavinet-C2.wav
+|   |   |               Clavinet-C4.wav
+|   |   |               Clavinet-C6.wav
+|   |   |               Clavinet-Dd1.wav
+|   |   |               Clavinet-Dd2.wav
+|   |   |               Clavinet-Dd3.wav
+|   |   |               Clavinet-Fd2.wav
+|   |   |               Contra-Bass-D2.wav
+|   |   |               Contra-Bass-Fd2.wav
+|   |   |               Contra-Bass-Fd4.wav
+|   |   |               Cowbell.wav
+|   |   |               Cowbell808.wav
+|   |   |               CP70-A4.wav
+|   |   |               CP70-C3.wav
+|   |   |               CP70-C4.wav
+|   |   |               CP70-Dd2.wav
+|   |   |               CP70-Dd5.wav
+|   |   |               CP70-Dd6.wav
+|   |   |               Dist-Gtr-A1.wav
+|   |   |               Dist-Gtr-A3.wav
+|   |   |               Dist-Gtr-B2.wav
+|   |   |               Dist-Gtr-C6.wav
+|   |   |               Dist-Gtr-D2.wav
+|   |   |               Dist-Gtr-E1.wav
+|   |   |               Dist-Gtr-E3.wav
+|   |   |               Dist-Gtr-E4.wav
+|   |   |               Dist-Gtr-G2.wav
+|   |   |               Dog.wav
+|   |   |               Doo-B2.wav
+|   |   |               Doo-B4.wav
+|   |   |               Doo-C6.wav
+|   |   |               Doo-Eb3.wav
+|   |   |               Doo-Eb4.wav
+|   |   |               Doo-G3.wav
+|   |   |               Door-Creak.wav
+|   |   |               Door-Slam.wav
+|   |   |               DrawBar-Organ-C3.wav
+|   |   |               DrawBar-Organ-C5.wav
+|   |   |               DrawBar-Organ-C6.wav
+|   |   |               Drum-Stick.wav
+|   |   |               Dulcimer-C4.wav
+|   |   |               Dulcimer-C6.wav
+|   |   |               DX-EP-A2.wav
+|   |   |               DX-EP-C2.wav
+|   |   |               DX-EP-C4.wav
+|   |   |               DX-EP-C6.wav
+|   |   |               DX-EP-Gb3.wav
+|   |   |               E-Snare.wav
+|   |   |               English-Horn-A2.wav
+|   |   |               English-Horn-A3.wav
+|   |   |               English-Horn-B2.wav
+|   |   |               English-Horn-Cd3.wav
+|   |   |               English-Horn-Cd4.wav
+|   |   |               English-Horn-Dd3.wav
+|   |   |               English-Horn-F2.wav
+|   |   |               English-Horn-F4.wav
+|   |   |               English-Horn-F6.wav
+|   |   |               English-Horn-G3.wav
+|   |   |               EP1-2-C1.wav
+|   |   |               EP1-2-C2.wav
+|   |   |               EP1-2-C3.wav
+|   |   |               EP1-2-C4.wav
+|   |   |               EP1-2-C6.wav
+|   |   |               EP1-2-Gb3.wav
+|   |   |               EP1-Ab2.wav
+|   |   |               EP1-C3.wav
+|   |   |               EP1-C4.wav
+|   |   |               EP1-C6.wav
+|   |   |               EP1-E3.wav
+|   |   |               EP1-G3.wav
+|   |   |               Filter-Snap.wav
+|   |   |               Fingered-Bass-A0.wav
+|   |   |               Fingered-Bass-C1.wav
+|   |   |               Fingered-Bass-C6.wav
+|   |   |               Fingered-Bass-G3.wav
+|   |   |               Flute-Ad4.wav
+|   |   |               Flute-C4.wav
+|   |   |               Flute-Dd5.wav
+|   |   |               Flute-F4.wav
+|   |   |               Flute-G3.wav
+|   |   |               Flute-Gd5.wav
+|   |   |               Foot-Step.wav
+|   |   |               Formula-Car-Pass.wav
+|   |   |               French-Horns-B2.wav
+|   |   |               French-Horns-B3.wav
+|   |   |               French-Horns-C6.wav
+|   |   |               French-Horns-Eb2.wav
+|   |   |               French-Horns-Eb3.wav
+|   |   |               French-Horns-G2.wav
+|   |   |               FretlessBass-C1.wav
+|   |   |               FretlessBass-C6.wav
+|   |   |               FretlessBass-Db4.wav
+|   |   |               FretlessBass-Gb1.wav
+|   |   |               FretNoise.wav
+|   |   |               Glockenspiel-D5.wav
+|   |   |               Glockenspiel-D6.wav
+|   |   |               Gtr-Click.wav
+|   |   |               Gtr-Cut-Down.wav
+|   |   |               Gtr-Cut-Up.wav
+|   |   |               Gtr-Mute-B2.wav
+|   |   |               Gtr-Mute-C4.wav
+|   |   |               Gtr-Mute-D2.wav
+|   |   |               Gtr-Mute-G1.wav
+|   |   |               Gtr-Mute-G2.wav
+|   |   |               Gtr-Slap.wav
+|   |   |               GtrHarmonics--B2.wav
+|   |   |               GtrHarmonics-Ab3.wav
+|   |   |               GtrHarmonics-C5.wav
+|   |   |               GtrHarmonics-C6.wav
+|   |   |               GtrHarmonics-Eb3.wav
+|   |   |               GtrHarmonics-Gb2.wav
+|   |   |               Guiro-Down.wav
+|   |   |               Guiro-Up.wav
+|   |   |               Gun-Shot.wav
+|   |   |               H-Bongo-Rim.wav
+|   |   |               Hard-Alto-Ad2.wav
+|   |   |               Hard-Alto-Ad3.wav
+|   |   |               Hard-Alto-Ad4.wav
+|   |   |               Hard-Alto-D3.wav
+|   |   |               Hard-Alto-D4.wav
+|   |   |               Hard-Alto-Fd2.wav
+|   |   |               Hard-Alto-Fd3.wav
+|   |   |               Hard-Alto-Fd4.wav
+|   |   |               Hard-Alto-Sax-D2.wav
+|   |   |               HardBaritone-Ad1.wav
+|   |   |               HardBaritone-Ad2.wav
+|   |   |               HardBaritone-D1.wav
+|   |   |               HardBaritone-D2.wav
+|   |   |               HardBaritone-D3.wav
+|   |   |               HardBaritone-Fd1.wav
+|   |   |               HardBaritone-Fd2.wav
+|   |   |               HardBaritone-Fd3.wav
+|   |   |               Harmon-Mute-Ad4.wav
+|   |   |               Harmon-Mute-C3.wav
+|   |   |               Harmon-Mute-C4.wav
+|   |   |               Harmon-Mute-E3.wav
+|   |   |               Harmon-Mute-Gd3.wav
+|   |   |               Harmonica-A2.wav
+|   |   |               Harmonica-A3.wav
+|   |   |               Harmonica-C4.wav
+|   |   |               Harmonica-C6.wav
+|   |   |               Harmonica-Dd3.wav
+|   |   |               Harmonica-Dd4.wav
+|   |   |               Harpsichord-A3.wav
+|   |   |               Harpsichord-Ab1.wav
+|   |   |               Harpsichord-Bb4.wav
+|   |   |               Harpsichord-C3.wav
+|   |   |               Harpsichord-D6.wav
+|   |   |               Harpsichord-E2.wav
+|   |   |               Harpsichord-Eb1.wav
+|   |   |               Helicopter.wav
+|   |   |               High-Hat-Closed.wav
+|   |   |               High-Hat-Foot.wav
+|   |   |               Horse-Loop.wav
+|   |   |               Jazz-Guitar-B4.wav
+|   |   |               Jazz-Guitar-Bb2.wav
+|   |   |               Jazz-Guitar-C2.wav
+|   |   |               Jazz-Guitar-E2.wav
+|   |   |               Jazz-Guitar-E4.wav
+|   |   |               Jazz-Guitar-E6.wav
+|   |   |               Jazz-Guitar-Eb3.wav
+|   |   |               Jazz-Guitar-Gb3.wav
+|   |   |               Jet.wav
+|   |   |               Kalimba-C3.wav
+|   |   |               Kalimba-C6.wav
+|   |   |               KickVerb.wav
+|   |   |               Koto-D3.wav
+|   |   |               Koto-G2.wav
+|   |   |               Koto-G3.wav
+|   |   |               Koto-G5.wav
+|   |   |               Koto-G6.wav
+|   |   |               Laughter.wav
+|   |   |               Lazer-Beam.wav
+|   |   |               Low-Tumba-Tone.wav
+|   |   |               M-Bongo-Tone.wav
+|   |   |               Machine-Gun.wav
+|   |   |               Maracas.wav
+|   |   |               Marimba-C2.wav
+|   |   |               Marimba-C3.wav
+|   |   |               Marimba-C6.wav
+|   |   |               Med-Crash-Cymbal.wav
+|   |   |               Met-Click.wav
+|   |   |               Music-Box-C5.wav
+|   |   |               Mute-Triangle.wav
+|   |   |               N-Guitar-Ab3.wav
+|   |   |               N-Guitar-B3.wav
+|   |   |               N-Guitar-C4.wav
+|   |   |               N-Guitar-D2.wav
+|   |   |               N-Guitar-E3.wav
+|   |   |               N-Guitar-E4.wav
+|   |   |               N-Guitar-Gb2.wav
+|   |   |               Noise-Slap.wav
+|   |   |               Oboe-A4.wav
+|   |   |               Oboe-C4.wav
+|   |   |               Oboe-C5.wav
+|   |   |               Oboe-D4.wav
+|   |   |               Oboe-Dd3.wav
+|   |   |               Oboe-E4.wav
+|   |   |               Oboe-Fd3.wav
+|   |   |               Oboe-Fd4.wav
+|   |   |               Ocarina-Fd4.wav
+|   |   |               Ocarina-Fd6.wav
+|   |   |               Ocean-Wave.wav
+|   |   |               Octave-Wave-C6.wav
+|   |   |               Octave-Wave-E4.wav
+|   |   |               OD-Gtr-A1.wav
+|   |   |               OD-Gtr-A3.wav
+|   |   |               OD-Gtr-B2.wav
+|   |   |               OD-Gtr-C6.wav
+|   |   |               OD-Gtr-D2.wav
+|   |   |               OD-Gtr-E1.wav
+|   |   |               OD-Gtr-E3.wav
+|   |   |               OD-Gtr-E4.wav
+|   |   |               OD-Gtr-G2.wav
+|   |   |               Open-High-Hat.wav
+|   |   |               Orch-Hit-C4.wav
+|   |   |               OrchSnare.wav
+|   |   |               Perc-Organ-C4.wav
+|   |   |               Perc-Organ-C5.wav
+|   |   |               Perc-Organ-G6.wav
+|   |   |               Piano-A0-------R.wav
+|   |   |               Piano-Ab2------R.wav
+|   |   |               Piano-Ab3------R.wav
+|   |   |               Piano-Ab5------R.wav
+|   |   |               Piano-C5-------R.wav
+|   |   |               Piano-C6-------R.wav
+|   |   |               Piano-Cd2------R.wav
+|   |   |               Piano-D1-------R.wav
+|   |   |               Piano-Db3------R.wav
+|   |   |               Piano-Db4------R.wav
+|   |   |               Piano-E0-------R.wav
+|   |   |               Piano-Gb1------R.wav
+|   |   |               Piano-Gb4------R.wav
+|   |   |               Piano-Gb5------R.wav
+|   |   |               Piccolo-Ad4.wav
+|   |   |               Piccolo-Ad5.wav
+|   |   |               Piccolo-D5.wav
+|   |   |               Piccolo-D6.wav
+|   |   |               Piccolo-Fd5.wav
+|   |   |               Pick-Bass-C6.wav
+|   |   |               Pick-Bass-D1.wav
+|   |   |               Pick-Bass-D3.wav
+|   |   |               Pizz-Violin-C4.wav
+|   |   |               Pizz-Violin-C6.wav
+|   |   |               Pizz-Violin-E3.wav
+|   |   |               Pizz-Violin-E4.wav
+|   |   |               Punch.wav
+|   |   |               Quica-Downstroke.wav
+|   |   |               Quica-Hi-Tone.wav
+|   |   |               Quinto-Tone.wav
+|   |   |               QuintoClosedSlap.wav
+|   |   |               Rain.wav
+|   |   |               Recorder-C4.wav
+|   |   |               Recorder-C6.wav
+|   |   |               Reed-Wave-C2.wav
+|   |   |               Reed-Wave-C3.wav
+|   |   |               Reed-Wave-C4.wav
+|   |   |               Reed-Wave-C5.wav
+|   |   |               Reed-Wave-Gb3.wav
+|   |   |               Reed-Wave-Gb4.wav
+|   |   |               Ride-Bell.wav
+|   |   |               Ride-Ping.wav
+|   |   |               Rim-Shot.wav
+|   |   |               Room-Tom-Low.wav
+|   |   |               Rosewood-Claves.wav
+|   |   |               Samba-Whistle.wav
+|   |   |               Saw-Wave-C1.wav
+|   |   |               Saw-Wave-C2.wav
+|   |   |               Saw-Wave-C3.wav
+|   |   |               Saw-Wave-C4.wav
+|   |   |               Saw-Wave-C5.wav
+|   |   |               Saw-Wave-C6.wav
+|   |   |               SawBassWave-Bb3.wav
+|   |   |               SawBassWave-C1.wav
+|   |   |               SawBassWave-C2.wav
+|   |   |               SawBassWave-C3.wav
+|   |   |               SawBassWave-F5.wav
+|   |   |               SawBassWave-F6.wav
+|   |   |               Sax-C2.wav
+|   |   |               Sax-C4.wav
+|   |   |               Sax-C6.wav
+|   |   |               Sax-D3.wav
+|   |   |               Sax-D6.wav
+|   |   |               Sax-Dd4.wav
+|   |   |               Sax-E2.wav
+|   |   |               Sax-F3.wav
+|   |   |               Sax-G2.wav
+|   |   |               Scratch.wav
+|   |   |               Scream.wav
+|   |   |               Sft-Soprano-A2.wav
+|   |   |               Sft-Soprano-C4.wav
+|   |   |               Sft-Soprano-C5.wav
+|   |   |               Sft-Soprano-C6.wav
+|   |   |               Sft-Soprano-E3.wav
+|   |   |               Sft-Soprano-E4.wav
+|   |   |               Sft-Soprano-Gd3.wav
+|   |   |               Sft-Soprano-Gd4.wav
+|   |   |               Shakuhachi-C6.wav
+|   |   |               Shakuhachi-G4.wav
+|   |   |               Shamison-A3.wav
+|   |   |               Shamison-Bb2.wav
+|   |   |               Shamison-Eb3.wav
+|   |   |               Shamison-F2.wav
+|   |   |               Shenai-Ad3.wav
+|   |   |               Shenai-C3.wav
+|   |   |               Shenai-D3.wav
+|   |   |               Shenai-D4.wav
+|   |   |               Shenai-D6.wav
+|   |   |               Shenai-Fd3.wav
+|   |   |               Siku-C6.wav
+|   |   |               Siku-Db5.wav
+|   |   |               Siku-Gb3.wav
+|   |   |               Sinetick.wav
+|   |   |               SineWave.wav
+|   |   |               Siren.wav
+|   |   |               Sitar-Eb3.wav
+|   |   |               Sitar-Eb4.wav
+|   |   |               Sitar-Eb6.wav
+|   |   |               Slap-Bass-1-A0.wav
+|   |   |               Slap-Bass-1-C6.wav
+|   |   |               Slap-Bass-1-D2.wav
+|   |   |               Slap-Bass-1-D4.wav
+|   |   |               Slap-Bass-2-A0.wav
+|   |   |               Slap-Bass-2-C4.wav
+|   |   |               Slap-Bass-2-C6.wav
+|   |   |               Slap-Bass-2-F1.wav
+|   |   |               Sleigh-Bells.wav
+|   |   |               Snare-1.wav
+|   |   |               Snare-2.wav
+|   |   |               SnareVerb.wav
+|   |   |               Soft-Trumpet-A2.wav
+|   |   |               Soft-Trumpet-Ad4.wav
+|   |   |               Soft-Trumpet-C4.wav
+|   |   |               Soft-Trumpet-C6.wav
+|   |   |               Soft-Trumpet-D3.wav
+|   |   |               Soft-Trumpet-F4.wav
+|   |   |               Soft-Trumpet-G3.wav
+|   |   |               Solo-Vox-C3.wav
+|   |   |               Solo-Vox-C4.wav
+|   |   |               Solo-Vox-C5.wav
+|   |   |               Solo-Vox-C7.wav
+|   |   |               Solo-Vox-G3.wav
+|   |   |               Spectrum-Dd4.wav
+|   |   |               Spectrum-Dd6.wav
+|   |   |               Springy-Splash.wav
+|   |   |               Square-Wave-C1.wav
+|   |   |               Square-Wave-C2.wav
+|   |   |               Square-Wave-C3.wav
+|   |   |               Square-Wave-C4.wav
+|   |   |               Square-Wave-C5.wav
+|   |   |               Square-Wave-C6.wav
+|   |   |               Square-Wave-C7.wav
+|   |   |               Steel-AcGtr-A1.wav
+|   |   |               Steel-AcGtr-A3.wav
+|   |   |               Steel-AcGtr-B2.wav
+|   |   |               Steel-AcGtr-C6.wav
+|   |   |               Steel-AcGtr-D2.wav
+|   |   |               Steel-AcGtr-E1.wav
+|   |   |               Steel-AcGtr-E3.wav
+|   |   |               Steel-AcGtr-G2.wav
+|   |   |               SteelDrum-D1.wav
+|   |   |               SteelDrum-D5.wav
+|   |   |               Strat-C4.wav
+|   |   |               Strat-Cd3.wav
+|   |   |               Strat-F2.wav
+|   |   |               Strat-Fd3.wav
+|   |   |               Strat-Gd1.wav
+|   |   |               Strings-B1.wav
+|   |   |               Strings-C2.wav
+|   |   |               Strings-C3.wav
+|   |   |               Strings-C5.wav
+|   |   |               Strings-G2.wav
+|   |   |               Strings-G3.wav
+|   |   |               Strings-G4.wav
+|   |   |               Syn-Brass-C4.wav
+|   |   |               Syn-Brass-G2.wav
+|   |   |               Syn-Drum-Wave.wav
+|   |   |               Syn-Vox-C3.wav
+|   |   |               Syn-Vox-C4.wav
+|   |   |               Syn-Vox-Fd3.wav
+|   |   |               Synth-Strings-D6.wav
+|   |   |               Synth-Strings-G2.wav
+|   |   |               Synth-Strings-G3.wav
+|   |   |               Synth-Strings-G4.wav
+|   |   |               Taiko-Drum.wav
+|   |   |               Telephone.wav
+|   |   |               Thunder.wav
+|   |   |               Tight-Kick-Drum.wav
+|   |   |               Timbale-Rimshot.wav
+|   |   |               Timbale-Strike.wav
+|   |   |               Timp-Drum-A1.wav
+|   |   |               Train.wav
+|   |   |               TriangleWaveDb5.wav
+|   |   |               Trombone-A2.wav
+|   |   |               Trombone-B1.wav
+|   |   |               Trombone-C4.wav
+|   |   |               Trombone-D3.wav
+|   |   |               Trombone-E2.wav
+|   |   |               Trombone-G3.wav
+|   |   |               Troub-Harp-Ad3.wav
+|   |   |               Troub-Harp-Ad5.wav
+|   |   |               Troub-Harp-C3.wav
+|   |   |               Troub-Harp-E2.wav
+|   |   |               Troub-Harp-F3.wav
+|   |   |               Tuba-Ad1.wav
+|   |   |               Tuba-C4.wav
+|   |   |               Tuba-D1.wav
+|   |   |               Tuba-Fd0.wav
+|   |   |               Tuba-Fd1.wav
+|   |   |               Tubular-Bell-C7.wav
+|   |   |               Tubular-Bell-D4.wav
+|   |   |               UFO.wav
+|   |   |               Vibes-D4.wav
+|   |   |               Vibes-D6.wav
+|   |   |               Vibes-E3.wav
+|   |   |               Vibra-Loop.wav
+|   |   |               Violin-A4.wav
+|   |   |               Violin-Bb2.wav
+|   |   |               Violin-C4.wav
+|   |   |               Violin-C5.wav
+|   |   |               Violin-D3.wav
+|   |   |               Violin-Eb5.wav
+|   |   |               Violin-Eb6.wav
+|   |   |               Violin-G3.wav
+|   |   |               Violin-Gb4.wav
+|   |   |               White-Noise.wav
+|   |   |               Wood-Block.wav
+|   |   |               Xylo-Looped-E4.wav
+|   |   |               Xylophone-C4.wav
+|   |   |               Xylophone-C6.wav
+|   |   |               Zipper-Noise.wav
+|   |   |               
+|   |   \---Textures
+|   |       |   icons8.txt
+|   |       |   question.png
+|   |       |   questionBlack.png
+|   |       |   
+|   |       \---MidiEditor
+|   |               gotoBegin.png
+|   |               gotoCurrent.png
+|   |               gotoEnd.png
+|   |               gotoNextBar.png
+|   |               gotoPrevBar.png
+|   |               icons8-arrow-50.png
+|   |               logDisabled.png
+|   |               logEnabled.png
+|   |               loopMode.png
+|   |               loopRepeat.png
+|   |               loopRepeating.png
+|   |               loopReset.png
+|   |               loopStart.png
+|   |               loopStartSet.png
+|   |               loopStop.png
+|   |               loopStopSet.png
+|   |               playingMidi.png
+|   |               playMidi.png
+|   |               playPause.png
+|   |               playPauseSet.png
+|   |               playStop.png
+|   |               sectionClose.png
+|   |               sectionMute.png
+|   |               sectionOpen.png
+|   |               sectionSolo.png
+|   |               sectionUnmute.png
+|   |               tipDisabled.png
+|   |               tipEnabled.png
+|   |               
+|   +---Scripts
+|   |   |   MidiPlayer.Run.asmdef
+|   |   |   
+|   |   +---Editor
+|   |   |   |   AboutMPTK.cs
+|   |   |   |   DemoLoaderWindow.cs
+|   |   |   |   GetFullVersion.cs
+|   |   |   |   MenuShortcut.cs
+|   |   |   |   MessagesEditor.cs
+|   |   |   |   MidiCommonEditor.cs
+|   |   |   |   MidiEditorLib.cs
+|   |   |   |   MidiEditorWindow.cs
+|   |   |   |   MidiFileLoaderEditor.cs
+|   |   |   |   MidiFilePlayerEditor.cs
+|   |   |   |   MidiFileSetupAnalyse.cs
+|   |   |   |   MidiFileSetupPlayer.cs
+|   |   |   |   MidiFileSetupStat.cs
+|   |   |   |   MidiFileSetupWindow.cs
+|   |   |   |   MidiPlayer.Editor.asmdef
+|   |   |   |   MidiPrefabWindow.cs
+|   |   |   |   MidiStreamPlayerEditor.cs
+|   |   |   |   MPTKGui.cs
+|   |   |   |   NoErrorValidation.cs
+|   |   |   |   PopupInfoSynth.cs
+|   |   |   |   PopupListPatchs.cs
+|   |   |   |   SelectMidiWindow.cs
+|   |   |   |   SoundFontSetupWindow.cs
+|   |   |   |   StopPlayingOnRecompile.cs
+|   |   |   |   TestMidiEditorWindow.cs
+|   |   |   |   TextArea.cs
+|   |   |   |   ToolsEditor.cs
+|   |   |   |   
+|   |   |   +---Pro
+|   |   |   |   |   CommonProEditor.cs
+|   |   |   |   |   CustomAssetImporter.cs
+|   |   |   |   |   ExtensionPro.cs
+|   |   |   |   |   MakeWave.cs
+|   |   |   |   |   MidiExternalPlayerEditor.cs
+|   |   |   |   |   MidiInReaderEditor.cs
+|   |   |   |   |   MidiListPlayerEditor.cs
+|   |   |   |   |   MidiOptim.cs
+|   |   |   |   |   MidiPlayerGlobalEditor.cs
+|   |   |   |   |   MidiSpatializerEditor.cs
+|   |   |   |   |   SoundFontOptim.cs
+|   |   |   |   |   
+|   |   |   |   +---MidiEditor
+|   |   |   |   |       MidiEditorClasses.cs
+|   |   |   |   |       MidiEditorDeclaration.cs
+|   |   |   |   |       MidiEditorProWindow.cs
+|   |   |   |   |       
+|   |   |   |   \---UITest
+|   |   |   |           EditorIcons.cs
+|   |   |   |           TestGUI.cs
+|   |   |   |           TestListView.cs
+|   |   |   |           TestMouseCursor.cs
+|   |   |   |           
+|   |   |   \---ScreenLoggerEditor
+|   |   |           ScreenLoggerEditor.cs
+|   |   |           
+|   |   +---FluidSynth
+|   |   |       fluid_channel.cs
+|   |   |       fluid_chorus.cs
+|   |   |       fluid_conv.cs
+|   |   |       fluid_defsfont.cs
+|   |   |       fluid_dsp_64.cs
+|   |   |       fluid_dsp_float.cs
+|   |   |       fluid_env_data.cs
+|   |   |       fluid_gen_info.cs
+|   |   |       fluid_global.cs
+|   |   |       fluid_iir_filter.cs
+|   |   |       fluid_iir_filter_32.cs
+|   |   |       fluid_iir_filter_64.cs
+|   |   |       fluid_midi.cs
+|   |   |       fluid_rev_v1.cs
+|   |   |       fluid_rev_v2.cs
+|   |   |       fluid_tuning.cs
+|   |   |       fluid_voice.cs
+|   |   |       _fluidsynth_LICENSE.txt
+|   |   |       _fluisynth_AUTHORS.txt
+|   |   |       
+|   |   +---MPTKGameObject
+|   |   |   |   MidiFileEditorPlayer.cs
+|   |   |   |   MidiFileLoader.cs
+|   |   |   |   MidiFilePlayer.cs
+|   |   |   |   MidiPlayerGlobal.cs
+|   |   |   |   MidiStreamPlayer.cs
+|   |   |   |   MidiSynth.cs
+|   |   |   |   MPTKChannels.cs
+|   |   |   |   MPTKEffectSoundFont.cs
+|   |   |   |   MPTKEffectUnity.cs
+|   |   |   |   MPTKEnum.cs
+|   |   |   |   MPTKEvent.cs
+|   |   |   |   MPTKListItem.cs
+|   |   |   |   MPTKMidiAnalyse.cs
+|   |   |   |   MPTKSoundFont.cs
+|   |   |   |   SynthInfo.cs
+|   |   |   |   ToolsUnityEvent.cs
+|   |   |   |   
+|   |   |   \---Pro
+|   |   |           ExtFilePlayerPro.cs
+|   |   |           ExtMidiFileLoader.cs
+|   |   |           ExtStreamPlayerPro.cs
+|   |   |           MidiPlayerGlobalPro.cs
+|   |   |           MidiSynthPro.cs
+|   |   |           MPTKChordBuilder.cs
+|   |   |           MPTKChordLib.cs
+|   |   |           MPTKChordName.cs
+|   |   |           MPTKEffectSoundFontPro.cs
+|   |   |           MPTKEffectUnityPro.cs
+|   |   |           MPTKEventPro.cs
+|   |   |           MPTKInnerLoop.cs
+|   |   |           MPTKScaleLib.cs
+|   |   |           MPTKSoundFontPro.cs
+|   |   |           MPTKWriter.cs
+|   |   |           
+|   |   +---MPTKMidi
+|   |   |   |   MidiLoad.cs
+|   |   |   |   MidiScan.cs
+|   |   |   |   MidiSet.cs
+|   |   |   |   SoundFontInfo.cs
+|   |   |   |   
+|   |   |   \---Pro
+|   |   |           MidiFootPrint.cs
+|   |   |           MidiLoadPro.cs
+|   |   |           
+|   |   +---MPTKSoundFont
+|   |   |   |   HiGen.cs
+|   |   |   |   HiInstrument.cs
+|   |   |   |   HiMod.cs
+|   |   |   |   HiPreset.cs
+|   |   |   |   HiSample.cs
+|   |   |   |   HiZone.cs
+|   |   |   |   ImBank.cs
+|   |   |   |   ImSoundFont.cs
+|   |   |   |   SFFile.cs
+|   |   |   |   SFLoad.cs
+|   |   |   |   VoiceAudioSource.cs
+|   |   |   |   
+|   |   |   \---Pro
+|   |   |           ImSoundFontPro.cs
+|   |   |           ProVoice .cs
+|   |   |           SFSave.cs
+|   |   |           
+|   |   +---MPTKUtil
+|   |   |       AudioVisualizer.cs
+|   |   |       BuilderInfo.cs
+|   |   |       Constant.cs
+|   |   |       CustomStyle.cs
+|   |   |       DicAudioClip.cs
+|   |   |       DicAudioWave.cs
+|   |   |       HelperNote.cs
+|   |   |       MaestroException.cs
+|   |   |       MathUtil.cs
+|   |   |       ObjectUtilities.cs
+|   |   |       PopupListItem.cs
+|   |   |       Routine.cs
+|   |   |       
+|   |   +---NAudio
+|   |   |       ByteEncoding.cs
+|   |   |       ChannelAfterTouchEvent.cs
+|   |   |       ControlChangeEvent.cs
+|   |   |       KeySignatureEvent.cs
+|   |   |       MergeSort.cs
+|   |   |       MetaEvent.cs
+|   |   |       MetaEventType.cs
+|   |   |       MidiCommandCode.cs
+|   |   |       MidiController.cs
+|   |   |       MidiEvent.cs
+|   |   |       MidiEventCollection.cs
+|   |   |       MidiEventComparer.cs
+|   |   |       MidiFile.cs
+|   |   |       MidiInMessageEventArgs.cs
+|   |   |       MidiMessage.cs
+|   |   |       NoteEvent.cs
+|   |   |       NoteOnEvent.cs
+|   |   |       PatchChangeEvent.cs
+|   |   |       PitchWheelChangeEvent.cs
+|   |   |       RawMetaEvent.cs
+|   |   |       SequencerSpecificEvent.cs
+|   |   |       SmpteOffsetEvent.cs
+|   |   |       SysexEvent.cs
+|   |   |       TempoEvent.cs
+|   |   |       TextEvent.cs
+|   |   |       TimeSignatureEvent.cs
+|   |   |       TrackSequenceNumberEvent.cs
+|   |   |       _NAudio_License.txt
+|   |   |       
+|   |   +---Pro
+|   |   |       MidiExternalPlayer.cs
+|   |   |       MidiFileWriter2.cs
+|   |   |       MidiInReader.cs
+|   |   |       MidiKeyboard.cs
+|   |   |       MidiListPlayer.cs
+|   |   |       MidiSpatializer.cs
+|   |   |       
+|   |   \---ScreenLogger
+|   |           Readme.txt
+|   |           ScreenLogger.cs
+|   |           _ScreenLogger_License.txt
+|   |           
+|   \---TutorialInfo
+|       |   
+|       +---Icons
+|       |       MPTK-Icon.png
+|       |       
+|       \---Scripts
+|           |   Readme.cs
+|           |   
+|           \---Editor
+|                   ReadmeEditor.cs
+|                   
++---Prefabs
+|   |   
+|   +---Backgrounds
+|   |       VenueBackgroundContainer.prefab
+|   |       Venue_BG_1.prefab
+|   |       Venue_BG_2.prefab
+|   |       Venue_BG_3.prefab
+|   |       
+|   +---Cards
+|   |       Card3D.prefab
+|   |       CardCanvas.prefab
+|   |       CardUI.prefab
+|   |       CardUI_Choice.prefab
+|   |       HandController.prefab
+|   |       
+|   +---Characters
+|   |   |   
+|   |   +---Audience
+|   |   |       AudienceCharacter - Base.prefab
+|   |   |       AudienceCharacter - Big Guy.prefab
+|   |   |       AudienceCharacter - Cool Dude.prefab
+|   |   |       AudienceCharacter - Influencer.prefab
+|   |   |       AudienceCharacter - Kid.prefab
+|   |   |       
+|   |   \---Musicians
+|   |           BandCharacter - Base.prefab
+|   |           BandCharacter - Conito.prefab
+|   |           BandCharacter - Gusano.prefab
+|   |           BandCharacter - Robot C2.prefab
+|   |           BandCharacter - Ziggy.prefab
+|   |           
+|   +---Core
+|   |       AudioManager.prefab
+|   |       DeckManager.prefab
+|   |       DeckManager_Ship.prefab
+|   |       FxManager.prefab
+|   |       GameManager.prefab
+|   |       Gig Manager.prefab
+|   |       MidiMusicManager.prefab
+|   |       SectorMapManager.prefab
+|   |       ShipInteriorManager.prefab
+|   |       UIManager.prefab
+|   |       
+|   +---FX
+|   |   |   CalmFx.prefab
+|   |   |   SkepticalFx.prefab
+|   |   |   StressFx.prefab
+|   |   |   VibeFx.prefab
+|   |   |   
+|   |   \---Materials
+|   |           CalmFxMaterial.mat
+|   |           Note1FxMaterial.mat
+|   |           Note2FxMaterial.mat
+|   |           SkepticalFxMaterial.mat
+|   |           StressFxMaterial.mat
+|   |           VibeFxMaterial.mat
+|   |           
+|   +---Map
+|   |       LinkPrefab.prefab
+|   |       NodePrefab.prefab
+|   |       SectorMapVisual.prefab
+|   |       ShipPrefab.prefab
+|   |       
+|   +---Music Generation
+|   |       MidiGenPlayPanel.prefab
+|   |       MidiPlayerAdapter.prefab
+|   |       
+|   +---UI
+|   |   |   Band Test.prefab
+|   |   |   EventOptionButton.prefab
+|   |   |   FloatingText.prefab
+|   |   |   HealthBar.prefab
+|   |   |   MusicianStatusUI.prefab
+|   |   |   MusicianUI.prefab
+|   |   |   RewardContainerPrefab.prefab
+|   |   |   SongIconPrefab.prefab
+|   |   |   SongUI.prefab
+|   |   |   SpeechBubblePrefab.prefab
+|   |   |   StatusIconPrefab.prefab
+|   |   |   TooltipManager.prefab
+|   |   |   TooltipText.prefab
+|   |   |   
+|   |   +---Canvases
+|   |   |       AudienceCharacterCanvas.prefab
+|   |   |       BandCharacterCanvas.prefab
+|   |   |       CharacterCanvas.prefab
+|   |   |       FaderCanvas.prefab
+|   |   |       GigCanvas.prefab
+|   |   |       InventoryCanvas.prefab
+|   |   |       MainMenuCanvas.prefab
+|   |   |       RandomEventCanvas.prefab
+|   |   |       RecruitCanvas.prefab
+|   |   |       RewardCanvas.prefab
+|   |   |       SectorMapCanvas.prefab
+|   |   |       ShipInteriorCanvas.prefab
+|   |   |       
+|   |   \---Song Composition
+|   |           PartElement.prefab
+|   |           PartTracksLayout.prefab
+|   |           SongCompositionUI.prefab
+|   |           SongPartsLayout.prefab
+|   |           TrackLayoutElement.prefab
+|   |           
+|   \---Utils
+|           CoreLoader.prefab
+|           
++---Resources
+|   |   
+|   +---Animations
+|   |   |   Audience Character Idle.anim
+|   |   |   AudienceCharacter - Base.controller
+|   |   |   Band Test Animator.controller
+|   |   |   BandCharacter - Gusano.controller
+|   |   |   Gusanito Idle.anim
+|   |   |   New Animation.anim
+|   |   |   
+|   |   +---Audience Characters
+|   |   |       Cool Dude - Base.controller
+|   |   |       Cool Dude - Idle.anim
+|   |   |       Kid - Base.controller
+|   |   |       Kid - Idle.anim
+|   |   |       Kid - Tantrum.anim
+|   |   |       
+|   |   \---Musicians
+|   |           Conito - Base.controller
+|   |           Conito - Fly.anim
+|   |           Conito - Idle.anim
+|   |           
+|   +---Data
+|   |   |   
+|   |   +---Audio
+|   |   |       Add Stress SFX.asset
+|   |   |       Add Vibe SFX.asset
+|   |   |       Heal Stress SFX.asset
+|   |   |       Heal Vibe SFX.asset
+|   |   |       
+|   |   +---Cards
+|   |   |   |   1 - Strike a Pose (CHR).asset
+|   |   |   |   2 - Heartfelt Story (EMT).asset
+|   |   |   |   3 - Warming Up (TCH).asset
+|   |   |   |   4 - Light Show (SFX).asset
+|   |   |   |   5 - Singalong (SM).asset
+|   |   |   |   TEST - Add Calm (Block Stress).asset
+|   |   |   |   TEST - Add Skeptic (Block Vibe).asset
+|   |   |   |   TEST - Add Stress.asset
+|   |   |   |   TEST - Add Vibe.asset
+|   |   |   |   TEST - Heal Stress.asset
+|   |   |   |   TEST - Remove Vibe.asset
+|   |   |   |   
+|   |   |   +---Cantante
+|   |   |   |       Cantante - 1.asset
+|   |   |   |       Cantante - 2.asset
+|   |   |   |       Cantante - 3.asset
+|   |   |   |       
+|   |   |   +---Composition
+|   |   |   |   |   
+|   |   |   |   +---Backing Tracks
+|   |   |   |   |   |   Backing  - Gus - [I – IV – V – I].asset
+|   |   |   |   |   |   Backing  - Gus - [I – vi – IV – V].asset
+|   |   |   |   |   |   Backing Card - Conito - Core Major [Bass].asset
+|   |   |   |   |   |   Backing Card - Conito - Core Major [Guitar].asset
+|   |   |   |   |   |   Backing Card - Gus - Core Major.asset
+|   |   |   |   |   |   Backing Card - Gus - Core Minor.asset
+|   |   |   |   |   |   Backing Card - Gus - Modal.asset
+|   |   |   |   |   |   
+|   |   |   |   |   \---BackingCardConfigs
+|   |   |   |   |           Backing Card Config - Core Major.asset
+|   |   |   |   |           Backing Card Config - Core Minor.asset
+|   |   |   |   |           Backing Card Config - Modal.asset
+|   |   |   |   |           Backing Card Config [I – IV – V – I].asset
+|   |   |   |   |           Backing Card Config [I – vi – IV – V].asset
+|   |   |   |   |           
+|   |   |   |   +---Melody Tracks
+|   |   |   |   |   |   Melody - Conito - Bass - VaryNoteAscendOctaves.asset
+|   |   |   |   |   |   Melody - Conito - Guitar - VaryNoteAscendOctaves.asset
+|   |   |   |   |   |   Melody - Random Aeolian.asset
+|   |   |   |   |   |   Melody - Random Dorian.asset
+|   |   |   |   |   |   Melody - Random Ionian.asset
+|   |   |   |   |   |   Melody - Random Locrian.asset
+|   |   |   |   |   |   Melody - Random Lydian.asset
+|   |   |   |   |   |   Melody - Random Mixolydian.asset
+|   |   |   |   |   |   Melody - Random Phrygian.asset
+|   |   |   |   |   |   Melody - SameNoteAscendOctaves.asset
+|   |   |   |   |   |   Melody - SameNoteDescendOctaves.asset
+|   |   |   |   |   |   Melody - ScaleAltIntervals (Major).asset
+|   |   |   |   |   |   Melody - ScaleAltIntervals (Minor).asset
+|   |   |   |   |   |   Melody - Zig - VaryNoteAscendOctaves.asset
+|   |   |   |   |   |   
+|   |   |   |   |   \---MelodyCardConfigs
+|   |   |   |   |           DiffNoteAscendOctaves_CardConfig.asset
+|   |   |   |   |           DiffNoteAscendOctaves_Style.asset
+|   |   |   |   |           OneSlot_Phrase_EvenFlow.asset
+|   |   |   |   |           OnlyEvenFlow_Palette.asset
+|   |   |   |   |           SameNoteAscendOctaves_CardConfig.asset
+|   |   |   |   |           SameNoteAscendOctaves_Style.asset
+|   |   |   |   |           SameNoteDescendOctaves_CardConfig.asset
+|   |   |   |   |           SameNoteDescendOctaves_Style.asset
+|   |   |   |   |           ScaleAltIntervals_CardConfig.asset
+|   |   |   |   |           ScaleAltIntervals_Style.asset
+|   |   |   |   |           ScaleOnly_Leading.asset
+|   |   |   |   |           
+|   |   |   |   +---Rhythm Tracks
+|   |   |   |   |   |   Rhythm - C2 - Fast FourFour.asset
+|   |   |   |   |   |   Rhythm - C2 - Moderate FourFour.asset
+|   |   |   |   |   |   Rhythm - C2 - Slow FourFour.asset
+|   |   |   |   |   |   Rhythm - C2 - Very Fast FourFour.asset
+|   |   |   |   |   |   
+|   |   |   |   |   \---RhythmCardConfigs
+|   |   |   |   |           Rhythm - Card Config SO.asset
+|   |   |   |   |           
+|   |   |   |   +---Tracks
+|   |   |   |   |       Backing 1.asset
+|   |   |   |   |       Backing 3.asset
+|   |   |   |   |       Backing [Conito] - 1.asset
+|   |   |   |   |       Backing [Wormy] - 2.asset
+|   |   |   |   |       Bassline.asset
+|   |   |   |   |       Harmony [Conito] - 1.asset
+|   |   |   |   |       Harmony [Wormy] - 3.asset
+|   |   |   |   |       Harmony [Ziggy] - 2.asset
+|   |   |   |   |       Harmony-NearestChordTone 2.asset
+|   |   |   |   |       Melody [Conito] - Scale - 2.asset
+|   |   |   |   |       Melody [Wormy] - Chord Tones - 1.asset
+|   |   |   |   |       Melody [Zig] - Ascending Climb - 3.asset
+|   |   |   |   |       Melody-NearestChordTone 1.asset
+|   |   |   |   |       Melody-ScaleFlow 2.asset
+|   |   |   |   |       Rhythm [C2] - 1.asset
+|   |   |   |   |       Rhythm [C2] - 2.asset
+|   |   |   |   |       Rhythm [C2] - 3.asset
+|   |   |   |   |       
+|   |   |   |   \---_PartEffects
+|   |   |   |           InstrumentEffect_Bass.asset
+|   |   |   |           InstrumentEffect_Guitar.asset
+|   |   |   |           InstrumentEffect_Synth.asset
+|   |   |   |           TempoEffect_Fast.asset
+|   |   |   |           TempoEffect_Moderate.asset
+|   |   |   |           TempoEffect_Slow.asset
+|   |   |   |           TempoEffect_Very_Fast.asset
+|   |   |   |           TonalityEffect_Aeolian.asset
+|   |   |   |           TonalityEffect_Dorian.asset
+|   |   |   |           TonalityEffect_Ionian.asset
+|   |   |   |           TonalityEffect_Locrian.asset
+|   |   |   |           TonalityEffect_Lydian.asset
+|   |   |   |           TonalityEffect_Mixolydian.asset
+|   |   |   |           TonalityEffect_Phrygian.asset
+|   |   |   |           TonalityEffect_Random.asset
+|   |   |   |           
+|   |   |   +---Conito
+|   |   |   |       Conito - 1.asset
+|   |   |   |       Conito - 2.asset
+|   |   |   |       Conito - 3.asset
+|   |   |   |       
+|   |   |   +---Gusano
+|   |   |   |       Gusano - 1.asset
+|   |   |   |       Gusano - 2.asset
+|   |   |   |       Gusano - 3.asset
+|   |   |   |       
+|   |   |   \---Robot C2
+|   |   |           Robot C2 - 1.asset
+|   |   |           Robot C2 - 2.asset
+|   |   |           Robot C2 - 3.asset
+|   |   |           
+|   |   +---CardTypes
+|   |   |       CardType - Funny.asset
+|   |   |       CardType - Touching.asset
+|   |   |       CardType - Virtuous.asset
+|   |   |       
+|   |   +---Characters
+|   |   |   |   
+|   |   |   +---Audience
+|   |   |   |   |   Big Guy.asset
+|   |   |   |   |   Cool Dude.asset
+|   |   |   |   |   Influencer.asset
+|   |   |   |   |   Kid.asset
+|   |   |   |   |   
+|   |   |   |   \---Intentions
+|   |   |   |           Apply Block.asset
+|   |   |   |           Deal Stress.asset
+|   |   |   |           Special Ability.asset
+|   |   |   |           
+|   |   |   \---Musicians
+|   |   |       |   Band Character - Conito.asset
+|   |   |       |   Band Character - Gusano.asset
+|   |   |       |   Band Character - Robot C2.asset
+|   |   |       |   Band Character - Ziggy.asset
+|   |   |       |   Cantante_CardCatalogData.asset
+|   |   |       |   Cantante_Composition_002.asset
+|   |   |       |   Cantante_Composition_002_Payload.asset
+|   |   |       |   Conito_CardCatalogData.asset
+|   |   |       |   Gusano_CardCatalogData.asset
+|   |   |       |   Robot_CardCatalogData.asset
+|   |   |       |   
+|   |   |       \---Cantante_Cards
+|   |   |           |   
+|   |   |           \---Payloads
+|   |   +---Containers
+|   |   |       Reward Container.asset
+|   |   |       Special Keyword.asset
+|   |   |       Status Icons.asset
+|   |   |       
+|   |   +---Decks
+|   |   |       BandDeck - Test 1.asset
+|   |   |       InitialDeck.asset
+|   |   |       TestActionDeck.asset
+|   |   |       TestCompositionDeck.asset
+|   |   |       
+|   |   +---Encounters
+|   |   |       Gamescom25 Demo Encounter Data.asset
+|   |   |       GigEncounter 1.asset
+|   |   |       GigEncounter 2.asset
+|   |   |       GigEncounter 3.asset
+|   |   |       GigEncounter 4.asset
+|   |   |       
+|   |   +---Events
+|   |   |       Event - Frog Song.asset
+|   |   |       Event - Reporter Interview.asset
+|   |   |       Event - Wailing Tree.asset
+|   |   |       
+|   |   +---Maps
+|   |   |   |   SectorMapData.asset
+|   |   |   |   
+|   |   |   \---NodeTypes
+|   |   |           Boss.asset
+|   |   |           Gig.asset
+|   |   |           Random.asset
+|   |   |           Recruit.asset
+|   |   |           Rehearsal.asset
+|   |   |           _NodeTypeDatabase.asset
+|   |   |           
+|   |   +---Melody Configs
+|   |   |       Ascending Climb - default.asset
+|   |   |       Melody Card Config - Test.asset
+|   |   |       Melody Flashy-Soloist.asset
+|   |   |       Melody Groove-Pocket.asset
+|   |   |       Melody Sparse-Lyrical.asset
+|   |   |       
+|   |   +---Rewards
+|   |   |       Card Reward Data.asset
+|   |   |       
+|   |   +---Settings
+|   |   |       Gameplay Settings.asset
+|   |   |       GigSetupConfig.asset
+|   |   |       MGP_Config.asset
+|   |   |       MGP_HarmonicLeadingConfig.asset
+|   |   |       MGP_MelodicLeadingConfig.asset
+|   |   |       MGP_VoiceLeadingConfig.asset
+|   |   |       Scene Data.asset
+|   |   |       
+|   |   +---Songs
+|   |   |       Song 1 - Four Four.asset
+|   |   |       Song 2 - Three Four.asset
+|   |   |       Song 3 - A Three Four B Four Four.asset
+|   |   |       Song 4.asset
+|   |   |       Song 5.asset
+|   |   |       
+|   |   \---Sound
+|   |           ButtonSoundProfile.asset
+|   |           
+|   +---ScriptableObjects
+|   |   |   
+|   |   +---Chord Progressions
+|   |   |   |   Chord Palette - Core Major.asset
+|   |   |   |   Chord Palette - Core Minor.asset
+|   |   |   |   Chord Palette - Modal.asset
+|   |   |   |   
+|   |   |   +---Major
+|   |   |   |       As.asset
+|   |   |   |       I (1) – IV (1) – V (1) – I (1).asset
+|   |   |   |       I (1) – V (1) – vi (1) – iii (1) – IV (1) – I (1) – IV (1) – V (1).asset
+|   |   |   |       I (1) – V (1) – vi (1) – IV (1).asset
+|   |   |   |       I (1) – vi (1) – ii (1) – V (1).asset
+|   |   |   |       I (1) – vi (1) – IV (1) – V (1).asset
+|   |   |   |       ii (0.5) – V (0.5) – I (1).asset
+|   |   |   |       IV (1) – I (1) – V (1) – vi (1).asset
+|   |   |   |       
+|   |   |   +---Minor
+|   |   |   |       i (1) – iv (1) – V (1) – i (1) Aeolian 34.asset
+|   |   |   |       i (1) – iv (1) – V (1) – i (1) Aeolian.asset
+|   |   |   |       i (1) – VI (1) – III (1) – VII (1) Aeolian.asset
+|   |   |   |       i (1) – VII (1) – VI (1) – VII (1) Aeolian.asset
+|   |   |   |       i (2) – VI (2) – III (2) – VII (2) Aeolian.asset
+|   |   |   |       V (1) – VI (1) Aeolian.asset
+|   |   |   |       
+|   |   |   \---Modal
+|   |   |           bVII (1) – IV (1) – I (2) Modal.asset
+|   |   |           I (1) – #IVdim7 (1) – V7 (1) – I (1) Modal.asset
+|   |   |           i (1) – bII (1) – V (1) – i (1) Modal.asset
+|   |   |           I (1) – bIII (1) – IV (1) – I (1) Modal.asset
+|   |   |           I (1) – bVI (1) – IV (1) – I (1) Modal.asset
+|   |   |           i (1) – bVI (1) – iv (1) – V (1) – i (1) Modal.asset
+|   |   |           I (1) – bVII (1) – bVI (1) – V (1) Modal.asset
+|   |   |           I (1) – bVII (1) – IV (1) – I (1) Modal.asset
+|   |   |           I (1) – II (1) – V (1) – I (1) Modal.asset
+|   |   |           I (2) – bVII (2) – S (2) Modal.asset
+|   |   |           
+|   |   +---MIDI Instruments
+|   |   \---Patterns
+|   |       |   
+|   |       +---Chords
+|   |       |       Prog_Ionian_FourFour_4m_0_4_0_0-4_4_4_0-8_4_5_1-12_4_3_0.asset
+|   |       |       Prog_Ionian_FourFour_4m_0_4_5_1-4_4_3_0-8_4_0_0-12_4_4_0.asset
+|   |       |       Prog_Ionian_ThreeFour_4m_0_3_3_0-3_3_1_1-6_3_4_0-9_3_0_0.asset
+|   |       |       Untitled 1.asset
+|   |       |       Untitled.asset
+|   |       |       
+|   |       +---Drums
+|   |       \---Melodies
+|   \---Sprites
+|       |   3portada.png
+|       |   ALWTTTLogo.png
+|       |   star-white-icon.png
+|       |   star.png
+|       |   
+|       +---Backgrounds
+|       |   |   1.png
+|       |   |   2.png
+|       |   |   3.png
+|       |   |   4.png
+|       |   |   5.png
+|       |   |   BGClaudio.png
+|       |   |   BGClaudio2.png
+|       |   |   BGClaudio3.png
+|       |   |   FONDO.png
+|       |   |   FONDO2.png
+|       |   |   FONDO3.png
+|       |   |   Publico .png
+|       |   |   
+|       |   \---Venue 1
+|       |           fondo4.png
+|       |           Fuego efecto.png
+|       |           humo efecto.png
+|       |           
+|       +---Cards
+|       |   |   Card1.png
+|       |   |   CardSegmented.png
+|       |   |   
+|       |   \---Images
+|       |           carta fuego.png
+|       |           carta3.png
+|       |           conito.png
+|       |           fuego verde.png
+|       |           gusano - telekinesis.png
+|       |           luces.png
+|       |           robot.png
+|       |           ziggy.png
+|       |           
+|       +---Characters
+|       |   |   
+|       |   +---Audience
+|       |   |       Circle.png
+|       |   |       jefe.png
+|       |   |       secuas 1.png
+|       |   |       secuas 2.png
+|       |   |       secuas 3.png
+|       |   |       Square.png
+|       |   |       Triangle.png
+|       |   |       
+|       |   +---icons
+|       |   |       bicho icono.png
+|       |   |       icons1.png
+|       |   |       marciano icono.png
+|       |   |       robot icono.png
+|       |   |       Triangulo R. icono.png
+|       |   |       
+|       |   +---Musicians
+|       |   |       2.png
+|       |   |       3.png
+|       |   |       5.png
+|       |   |       banda.png
+|       |   |       Conito Sprite.png
+|       |   |       intrumento musical.png
+|       |   |       rayo .png
+|       |   |       robotcito.png
+|       |   |       verde.png
+|       |   |       wormy.png
+|       |   |       
+|       |   \---Random
+|       |           mono 2.png
+|       |           mono1.png
+|       |           mono3.png
+|       |           mono4.png
+|       |           mono5.png
+|       |           
+|       +---Effects
+|       |       43922.png
+|       |       55431-200.png
+|       |       black hole.png
+|       |       BlockedViewIcon.png
+|       |       breakdown icon.png
+|       |       card icon.png
+|       |       circle ripple.png
+|       |       closed eye.png
+|       |       constellation 2.png
+|       |       constellation.png
+|       |       convinced icon.png
+|       |       Dazzled.png
+|       |       icon - stress1.png
+|       |       icon - stress2.png
+|       |       music-note-icon-png-25.jpg
+|       |       particle - bolt.png
+|       |       particle - heart.png
+|       |       question mark.png
+|       |       saturn.png
+|       |       Shield Heart.png
+|       |       shooting star.png
+|       |       TallIcon.png
+|       |       wave.png
+|       |       
+|       +---Ship
+|       |       ship-bg-test.png
+|       |       ship_interior_reference.jpeg
+|       |       
+|       +---Speech Bubbles
+|       |       352390.png
+|       |       Basic.png
+|       |       comic-speech-bubble-clipart-lg.png
+|       |       pngtree-comic-speech-bubble-with-swear-words-symbols-png-image_5082510.png
+|       |       
+|       \---Venues
+|           |   
+|           \---Venue 1
+|                   fondo4.png
+|                   Fuego efecto.png
+|                   humo efecto.png
+|                   publico2.png
+|                   
++---Scenes
+|       0 - Main Menu.unity
+|       0.5 - Band Setup.unity
+|       0.x - GigSetupScene.unity
+|       1 - Sector Map.unity
+|       2 - Ship Interior.unity
+|       3 - Gig Scene.unity
+|       ALWTTTCore.unity
+|       Game Over.unity
+|       MidiGenPlay Panel Sample.unity
+|       
++---Scripts
+|   |   file_tree.txt
+|   |   
+|   +---Backgrounds
+|   |       BackgroundContainer.cs
+|   |       BackgroundRoot.cs
+|   |       ForegroundAnimator.cs
+|   |       StageLightAnimator.cs
+|   |       
+|   +---Cards
+|   |   |   Card3D.cs
+|   |   |   CardAnimationData.cs
+|   |   |   CardBase.cs
+|   |   |   CardConditionData.cs
+|   |   |   CardDefinition.cs
+|   |   |   CardTypeDB.cs
+|   |   |   ChoiceCard.cs
+|   |   |   MusicianCardCatalogData.cs
+|   |   |   MusicianCardEntry.cs
+|   |   |   
+|   |   +---CardActions
+|   |   |       AddStressAction.cs
+|   |   |       AddVibeAction.cs
+|   |   |       AudienceMoveToFrontAction.cs
+|   |   |       BlockStressAction.cs
+|   |   |       BlockVibeAction.cs
+|   |   |       HealStressAction.cs
+|   |   |       RemoveVibeAction.cs
+|   |   |       
+|   |   +---Composition
+|   |   |       CompositionCardClassifier.cs
+|   |   |       PartActionDescriptor.cs
+|   |   |       TrackActionDescriptor.cs
+|   |   |       
+|   |   +---Editor
+|   |   |       CardAssetFactory.cs
+|   |   |       CardEditorWindow.cs
+|   |   |       CardEditorWindow.JsonImport.cs
+|   |   |       MusicianCatalogService.cs
+|   |   |       
+|   |   +---Enums
+|   |   |       CardAcquisitionFlags.cs
+|   |   |       CardActionTiming.cs
+|   |   |       CardDomain.cs
+|   |   |       CardPerformerRule.cs
+|   |   |       CardPrimaryKind.cs
+|   |   |       PartActionKind.cs
+|   |   |       
+|   |   +---Extensions
+|   |   |       CardDefinitionDescriptionExtensions.cs
+|   |   |       
+|   |   \---Payloads
+|   |           ActionCardPayload.cs
+|   |           CardPayload.cs
+|   |           CompositionCardPayload.cs
+|   |           
+|   +---Characters
+|   |   |   AudienceCharacterBase.cs
+|   |   |   AudienceCharacterCanvas.cs
+|   |   |   AudienceCharacterStats.cs
+|   |   |   BandCharacterCanvas.cs
+|   |   |   BandCharacterStats.cs
+|   |   |   CharacterAnimator.cs
+|   |   |   CharacterBase.cs
+|   |   |   CharacterCanvas.cs
+|   |   |   CharacterStats.cs
+|   |   |   MusicianBase.cs
+|   |   |   StatusStats.cs
+|   |   |   
+|   |   +---Actions
+|   |   |       CharacterActionBase.cs
+|   |   |       CharacterActionData.cs
+|   |   |       CharacterActionParameters.cs
+|   |   |       CharacterActionProcessor.cs
+|   |   |       
+|   |   +---Audience
+|   |   |       AudienceCharacterSimple.cs
+|   |   |       
+|   |   \---Musicians
+|   |           MusicianCharacterSimple.cs
+|   |           
+|   +---Controllers
+|   |       HandController.cs
+|   |       MidiGenPlayPanelController.cs
+|   |       
+|   +---Data
+|   |   |   
+|   |   +---Audio
+|   |   |       SongData.cs
+|   |   |       SoundProfileData.cs
+|   |   |       
+|   |   +---Cards
+|   |   |   |   
+|   |   |   +---Configs
+|   |   |   |       BandDeckData.cs
+|   |   |   |       CardData.cs
+|   |   |   |       CardRewardData.cs
+|   |   |   |       CardTypeData.cs
+|   |   |   |       DeckData.cs
+|   |   |   |       RewardContainerData.cs
+|   |   |   |       
+|   |   |   +---Databases
+|   |   |   |       RewardDatabase.cs
+|   |   |   |       
+|   |   |   \---Part Effects
+|   |   |           InstrumentEffect.cs
+|   |   |           MeterEffect.cs
+|   |   |           ModulationEffect.cs
+|   |   |           PartEffect.cs
+|   |   |           TempoEffect.cs
+|   |   |           TonalityEffect.cs
+|   |   |           
+|   |   +---Characters
+|   |   |   |   
+|   |   |   +---Audience
+|   |   |   |       AudienceCharacterData.cs
+|   |   |   |       AudienceIntentionData.cs
+|   |   |   |       
+|   |   |   \---Musicians
+|   |   |           MusicianCharacterData.cs
+|   |   |           MusicianProfileData.cs
+|   |   |           
+|   |   +---Core
+|   |   |       GameplayData.cs
+|   |   |       PersistentGameplayData.cs
+|   |   |       SceneData.cs
+|   |   |       SpecialKeywordData.cs
+|   |   |       
+|   |   +---Encounters
+|   |   |       EncounterData.cs
+|   |   |       GigEncounterSO.cs
+|   |   |       
+|   |   +---Events
+|   |   |       RandomEventData.cs
+|   |   |       
+|   |   +---Gig
+|   |   |       GigSetupConfigData.cs
+|   |   |       
+|   |   +---SectorMap
+|   |   |   |   
+|   |   |   +---Configs
+|   |   |   |       NodeTypeData.cs
+|   |   |   |       NodeTypeDatabase.cs
+|   |   |   |       SectorMapData.cs
+|   |   |   |       
+|   |   |   \---State
+|   |   |           SectorMapState.cs
+|   |   |           SectorNodeState.cs
+|   |   |           
+|   |   +---Serializable Wrappers
+|   |   |       SerializableCardInventory.cs
+|   |   |       SerializableStringIntDictionary.cs
+|   |   |       
+|   |   \---UI
+|   |           StatusIconsData.cs
+|   |           
+|   +---Encounters
+|   |       EncounterBase.cs
+|   |       GigEncounter.cs
+|   |       
+|   +---Enums
+|   |       ActionTargetType.cs
+|   |       AudienceIntentionType.cs
+|   |       AudioActionType.cs
+|   |       CardConditionType.cs
+|   |       CardType.cs
+|   |       CharacterActionType.cs
+|   |       CharacterType.cs
+|   |       FxType.cs
+|   |       GigPhase.cs
+|   |       InventoryType.cs
+|   |       MusicianCharacterType.cs
+|   |       MusicianStat.cs
+|   |       NodeType.cs
+|   |       RandomEventEffectType.cs
+|   |       RarityType.cs
+|   |       RewardType.cs
+|   |       SpecialKeywords.cs
+|   |       StatusType.cs
+|   |       VenueType.cs
+|   |       
+|   +---Extensions
+|   |       ListExtensions.cs
+|   |       
+|   +---Generation
+|   |   |   
+|   |   +---Map
+|   |   |   |   ISectorGenStage.cs
+|   |   |   |   SectorGenUtils.cs
+|   |   |   |   SectorGraphGenerator.cs
+|   |   |   |   SectorGraphStepper.cs
+|   |   |   |   
+|   |   |   \---Stages
+|   |   |           AssignTypesStage.cs
+|   |   |           BuildSpinesStage.cs
+|   |   |           ConnectivityStage.cs
+|   |   |           CrossLinksStage.cs
+|   |   |           EnforceSemanticsStage.cs
+|   |   |           LayoutAndCreateNodesStage.cs
+|   |   |           PickStartExitStage.cs
+|   |   |           RepairGapsStage.cs
+|   |   |           
+|   |   \---Music
+|   |           MidiToolkitAdapter.cs
+|   |           
+|   +---Interfaces
+|   |       IAudienceMember.cs
+|   |       IAudienceStats.cs
+|   |       ICharacter.cs
+|   |       ICharacterStats.cs
+|   |       IMusician.cs
+|   |       IMusicianStats.cs
+|   |       INodeResolver.cs
+|   |       
+|   +---Managers
+|   |       AudioManager.cs
+|   |       BandSetupManager.cs
+|   |       DeckManager.cs
+|   |       FxManager.cs
+|   |       GameManager.cs
+|   |       GigManager.cs
+|   |       GigRunContext.cs
+|   |       GigSetupSceneManager.cs
+|   |       MidiMusicManager.cs
+|   |       SectorMapManager.cs
+|   |       ShipInteriorManager.cs
+|   |       UIManager.cs
+|   |       
+|   +---Map
+|   |   |   NodeResolveContext.cs
+|   |   |   NodeResolverProcessor.cs
+|   |   |   SectorLinkVisual.cs
+|   |   |   SectorMapVisual.cs
+|   |   |   SectorNodeVisual.cs
+|   |   |   ShipController.cs
+|   |   |   
+|   |   \---Resolvers
+|   |           BossNodeResolver.cs
+|   |           GigNodeResolver.cs
+|   |           RandomEventNodeResolver.cs
+|   |           RecruitNodeResolver.cs
+|   |           RehearsalNodeResolver.cs
+|   |           
+|   +---Music
+|   |   |   CompositionSession.cs
+|   |   |   FloatingTextMidiListener.cs
+|   |   |   InstrumentRules.cs
+|   |   |   LoopScoreCalculator.cs
+|   |   |   MidiEventInterfaces.cs
+|   |   |   MusicianMidiResponder.cs
+|   |   |   SongConfigBuilder.cs
+|   |   |   
+|   |   +---Context Data
+|   |   |       LoopFeedbackContext.cs
+|   |   |       PartFeedbackContext.cs
+|   |   |       SongFeedbackContext.cs
+|   |   |       
+|   |   +---Interfaces
+|   |   |       ICompositionContext.cs
+|   |   |       
+|   |   \---Musician Personalities
+|   +---UI
+|   |   |   BeatPulseIndicator.cs
+|   |   |   CardUI.cs
+|   |   |   ChoicePanel.cs
+|   |   |   ConflictPanelUI.cs
+|   |   |   FloatingText.cs
+|   |   |   GigCanvas.cs
+|   |   |   GigSetupController.cs
+|   |   |   HealthBarController.cs
+|   |   |   MusicianMapStatusUI.cs
+|   |   |   MusicianUI.cs
+|   |   |   NewSongPanelUI.cs
+|   |   |   RewardContainer.cs
+|   |   |   StatusIconBase.cs
+|   |   |   TempoTextIndicator.cs
+|   |   |   
+|   |   +---Canvases
+|   |   |       BandSetupCanvas.cs
+|   |   |       CanvasBase.cs
+|   |   |       GameOverCanvas.cs
+|   |   |       InventoryCanvas.cs
+|   |   |       MidiListenerCanvasBase.cs
+|   |   |       RandomEventCanvas.cs
+|   |   |       RecruitCanvas.cs
+|   |   |       RewardCanvas.cs
+|   |   |       ShipInteriorCanvas.cs
+|   |   |       
+|   |   +---Song Composition
+|   |   |       LoopsTimerUI.cs
+|   |   |       SongCompositionUI.cs
+|   |   |       SongPartElementUI.cs
+|   |   |       SongPartsLayoutUI.cs
+|   |   |       SongTrackElementUI.cs
+|   |   |       
+|   |   \---Tooltips
+|   |           I2DTooltipTarget.cs
+|   |           ITooltipTargetBase.cs
+|   |           TooltipController.cs
+|   |           TooltipManager.cs
+|   |           TooltipText.cs
+|   |           
+|   \---Utils
+|           ButtonSoundPlayer.cs
+|           CoreLoader.cs
+|           HighscoreStore.cs
+|           InventoryHelper.cs
+|           SceneChanger.cs
+|           
++---Settings
+|   |   Lit2DSceneTemplate.scenetemplate
+|   |   Renderer2D.asset
+|   |   UniversalRP.asset
+|   |   
+|   +---Build Profiles
+|   |       New Windows Profile.asset
+|   |       
+|   \---Scenes
+|           URP2DSceneTemplate.unity
+|           
++---TextMesh Pro
+|   |   
+|   +---Fonts
+|   |       LiberationSans - OFL.txt
+|   |       LiberationSans.ttf
+|   |       
+|   +---Resources
+|   |   |   LineBreaking Following Characters.txt
+|   |   |   LineBreaking Leading Characters.txt
+|   |   |   TMP Settings.asset
+|   |   |   
+|   |   +---Fonts & Materials
+|   |   |       LiberationSans SDF - Drop Shadow.mat
+|   |   |       LiberationSans SDF - Fallback.asset
+|   |   |       LiberationSans SDF - Outline.mat
+|   |   |       LiberationSans SDF.asset
+|   |   |       
+|   |   +---Sprite Assets
+|   |   |       EmojiOne.asset
+|   |   |       
+|   |   \---Style Sheets
+|   |           Default Style Sheet.asset
+|   |           
+|   +---Shaders
+|   |       SDFFunctions.hlsl
+|   |       TMPro.cginc
+|   |       TMPro_Mobile.cginc
+|   |       TMPro_Properties.cginc
+|   |       TMPro_Surface.cginc
+|   |       TMP_Bitmap-Custom-Atlas.shader
+|   |       TMP_Bitmap-Mobile.shader
+|   |       TMP_Bitmap.shader
+|   |       TMP_SDF Overlay.shader
+|   |       TMP_SDF SSD.shader
+|   |       TMP_SDF-HDRP LIT.shadergraph
+|   |       TMP_SDF-HDRP UNLIT.shadergraph
+|   |       TMP_SDF-Mobile Masking.shader
+|   |       TMP_SDF-Mobile Overlay.shader
+|   |       TMP_SDF-Mobile SSD.shader
+|   |       TMP_SDF-Mobile-2-Pass.shader
+|   |       TMP_SDF-Mobile.shader
+|   |       TMP_SDF-Surface-Mobile.shader
+|   |       TMP_SDF-Surface.shader
+|   |       TMP_SDF-URP Lit.shadergraph
+|   |       TMP_SDF-URP Unlit.shadergraph
+|   |       TMP_SDF.shader
+|   |       TMP_Sprite.shader
+|   |       
+|   \---Sprites
+|           EmojiOne Attribution.txt
+|           EmojiOne.json
+|           EmojiOne.png
+|           
+\---_Recovery
+        0.unity
+        

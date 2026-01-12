@@ -4,5 +4,6 @@ namespace ALWTTT.Cards
     {
         Always = 0,
         BetweenSongsOnly = 1,
+        DuringSongsOnly = 2,
     }
 }

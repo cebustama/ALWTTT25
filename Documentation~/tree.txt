@@ -1,0 +1,28 @@
+Folder PATH listing for volume SSD 2
+Volume serial number is 54D1-92B7
+D:.
+|   ALWTTT_Design_Guidelines.md
+|   make-tree.bat
+|   Map.md
+|   Narrative.md
+|   tree.txt
+|   _Band.md
+|   _Card.md
+|   _Enemy.md
+|   _Gig.md
+|   _GigCombat.md
+|   _Musician.md
+|   _Song.md
+|   
++---Characters
+|       Tall.png
+|       
+\---Ideas
+        alwtttt_gig_combat_design_resumen.md
+        ALWTTT_Audience_Composition_Summary.md
+        ALWTTT_Song_SFX_Evolution_Flow.png
+        audience_system_summary.md
+        gig_pipeline_summary.md
+        loopscore_songhype_vibe.md
+        Song_Infusions_SFX_Evolution.md
+        

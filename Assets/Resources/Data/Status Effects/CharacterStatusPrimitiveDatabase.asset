@@ -1,0 +1,153 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b8bfbaea41f6f44db66407b41f85728, type: 3}
+  m_Name: CharacterStatusPrimitiveDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.CharacterStatusPrimitiveDatabaseSO
+  _entries:
+  - effectId: 100
+    category: Offensive
+    abstractFunction: +X damage per hit / action
+    slayTheSpireReference: Strength
+    monsterTrainReference: Rage
+    griftlandsReference: Power
+  - effectId: 101
+    category: Offensive
+    abstractFunction: Multiplies outgoing damage
+    slayTheSpireReference: Strength scaling relics
+    monsterTrainReference: Rage scaling variants
+    griftlandsReference: Power variants
+  - effectId: 200
+    category: Offensive Control
+    abstractFunction: -X damage from attacker
+    slayTheSpireReference: Weak (approx)
+    monsterTrainReference: Sap
+    griftlandsReference: Impair
+  - effectId: 201
+    category: Offensive Control
+    abstractFunction: -% damage from attacker
+    slayTheSpireReference: Weak
+    monsterTrainReference: Sap (indirect)
+    griftlandsReference: Impair
+  - effectId: 300
+    category: Burst
+    abstractFunction: Target receives +X extra damage
+    slayTheSpireReference: Vulnerable (approx)
+    monsterTrainReference: "\u2014"
+    griftlandsReference: Wound
+  - effectId: 301
+    category: Burst
+    abstractFunction: Target receives +% extra damage
+    slayTheSpireReference: Vulnerable
+    monsterTrainReference: "\u2014"
+    griftlandsReference: Vulnerability (Negotiation)
+  - effectId: 400
+    category: Defense
+    abstractFunction: Temporary shield, resets per turn
+    slayTheSpireReference: Block
+    monsterTrainReference: "\u2014"
+    griftlandsReference: Defense
+  - effectId: 401
+    category: Defense
+    abstractFunction: Shield persists until depleted
+    slayTheSpireReference: Plated Armor
+    monsterTrainReference: Armor
+    griftlandsReference: "\u2014"
+  - effectId: 402
+    category: Defense
+    abstractFunction: Negates next damage instance
+    slayTheSpireReference: Intangible (partial)
+    monsterTrainReference: Damage Shield
+    griftlandsReference: Evasion
+  - effectId: 403
+    category: Defense
+    abstractFunction: Negates N damage instances
+    slayTheSpireReference: Artifact (analog)
+    monsterTrainReference: Damage Shield (stacks)
+    griftlandsReference: Evasion (stacks)
+  - effectId: 500
+    category: Control
+    abstractFunction: Reduces shield generation
+    slayTheSpireReference: Frail
+    monsterTrainReference: "\u2014"
+    griftlandsReference: Exposed
+  - effectId: 501
+    category: Control
+    abstractFunction: Reflects damage back
+    slayTheSpireReference: Thorns
+    monsterTrainReference: Spikes
+    griftlandsReference: Counter
+  - effectId: 502
+    category: Control
+    abstractFunction: Prevents movement / state changes
+    slayTheSpireReference: "\u2014"
+    monsterTrainReference: Rooted
+    griftlandsReference: "\u2014"
+  - effectId: 600
+    category: Pressure
+    abstractFunction: Automatic periodic damage
+    slayTheSpireReference: Poison
+    monsterTrainReference: Frostbite
+    griftlandsReference: Bleed / Heated
+  - effectId: 700
+    category: Tempo Control
+    abstractFunction: Target cannot act
+    slayTheSpireReference: Entangle / stun-like
+    monsterTrainReference: Dazed
+    griftlandsReference: Stun
+  - effectId: 800
+    category: Tempo
+    abstractFunction: Acts earlier
+    slayTheSpireReference: "\u2014"
+    monsterTrainReference: Quick
+    griftlandsReference: "\u2014"
+  - effectId: 900
+    category: Scaling
+    abstractFunction: Grants additional hits
+    slayTheSpireReference: Multi-hit cards
+    monsterTrainReference: Multistrike
+    griftlandsReference: "\u2014"
+  - effectId: 950
+    category: Penetration
+    abstractFunction: Ignores shields / mitigation
+    slayTheSpireReference: Penetrating attacks
+    monsterTrainReference: Piercing
+    griftlandsReference: Piercing
+  - effectId: 980
+    category: Resistance
+    abstractFunction: Blocks debuff application
+    slayTheSpireReference: Artifact
+    monsterTrainReference: "\u2014"
+    griftlandsReference: "\u2014"
+  - effectId: 981
+    category: Recovery
+    abstractFunction: Removes debuffs
+    slayTheSpireReference: Cleanse effects
+    monsterTrainReference: Purify
+    griftlandsReference: Cleanse cards
+  - effectId: 990
+    category: Meta
+    abstractFunction: Boosts card archetypes
+    slayTheSpireReference: Form powers / relic synergies
+    monsterTrainReference: Clan mechanics
+    griftlandsReference: Influence / Dominance
+  - effectId: 991
+    category: Meta
+    abstractFunction: Faster loops / turns
+    slayTheSpireReference: Energy relics / draw engines
+    monsterTrainReference: Floor scaling engines
+    griftlandsReference: Momentum cards
+  - effectId: 992
+    category: Meta
+    abstractFunction: Modifies resource generation
+    slayTheSpireReference: Energy / draw scaling
+    monsterTrainReference: Ember / draw scaling
+    griftlandsReference: Action / draw engines

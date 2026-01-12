@@ -1,8 +1,10 @@
 ﻿using ALWTTT.Cards;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
+using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
+using ALWTTT.Status;
 using ALWTTT.UI;
 using MidiGenPlay;
 using MidiGenPlay.Services;
@@ -306,6 +308,9 @@ namespace ALWTTT.Music
             if (!ui.ApplyCardToPart(card, target, partIdx))
                 return Fail("ui.ApplyCardToPart returned false");
 
+            // Apply CSO StatusActions immediately
+            ApplyStatusActionsFromCard(def, target);
+
             // 7) Invalidate cache if the card affects sound
             if (loopIsRunning && affectsSound)
             {
@@ -358,6 +363,104 @@ namespace ALWTTT.Music
 
 
         // ----- Private methods -----
+
+        private void ApplyStatusActionsFromCard(CardDefinition def, MusicianBase target)
+        {
+            var payload = def != null ? def.Payload : null;
+            var statusActions = payload != null ? payload.StatusActions : null;
+            if (statusActions == null || statusActions.Count == 0) return;
+
+            // Resolve catalogue: prefer target, fallback to any band member.
+            StatusEffectCatalogueSO catalogue =
+                (target != null ? target.StatusCatalogue : null);
+
+            if (catalogue == null && _ctx?.Band != null)
+            {
+                for (int i = 0; i < _ctx.Band.Count; i++)
+                {
+                    var m = _ctx.Band[i];
+                    if (m != null && m.StatusCatalogue != null)
+                    {
+                        catalogue = m.StatusCatalogue;
+                        break;
+                    }
+                }
+            }
+
+            if (catalogue == null)
+            {
+                _ctx?.Log($"[StatusActions][WARN] Card '{def?.DisplayName}' has StatusActions but no StatusEffectCatalogueSO found on target or band.", true);
+                return;
+            }
+
+            for (int i = 0; i < statusActions.Count; i++)
+            {
+                var sa = statusActions[i];
+                if (sa == null) continue;
+                if (sa.StacksDelta == 0) continue;
+
+                // Composition session is not coroutine-based here; ignore Delay for now (or log).
+                // If you want delay later, we can queue them and execute in Tick().
+                var effectId = sa.EffectId;
+
+                StatusEffectSO statusDef;
+                try { statusDef = catalogue.GetOrThrow(effectId); }
+                catch (Exception e)
+                {
+                    _ctx?.Log($"[StatusActions][ERROR] Missing StatusEffectSO for id '{effectId}' in catalogue '{catalogue.name}'. Card='{def?.DisplayName}'. {e.Message}", true);
+                    continue;
+                }
+
+                switch (sa.TargetType)
+                {
+                    case ActionTargetType.Musician:
+                        if (target == null)
+                        {
+                            _ctx?.Log($"[StatusActions][WARN] '{def?.DisplayName}' targets Musician but target is null.", true);
+                            break;
+                        }
+                        if (target.Statuses == null)
+                        {
+                            _ctx?.Log($"[StatusActions][WARN] Target '{target.name}' has no Statuses container.", true);
+                            break;
+                        }
+                        target.Statuses.Apply(statusDef, sa.StacksDelta);
+                        break;
+
+                    case ActionTargetType.AllMusicians:
+                        if (_ctx?.Band == null) break;
+                        for (int m = 0; m < _ctx.Band.Count; m++)
+                        {
+                            var mus = _ctx.Band[m];
+                            if (mus == null || mus.Statuses == null) continue;
+                            mus.Statuses.Apply(statusDef, sa.StacksDelta);
+                        }
+                        break;
+
+                    // Not supported in CompositionSession MVP:
+                    case ActionTargetType.AudienceCharacter:
+                    case ActionTargetType.AllAudienceCharacters:
+                    case ActionTargetType.RandomAudienceCharacter:
+                        _ctx?.Log($"[StatusActions][INFO] Ignoring audience-targeted StatusAction '{effectId}' in CompositionSession (MVP).", false);
+                        break;
+
+                    // RandomMusician etc could be supported if you want:
+                    case ActionTargetType.RandomMusician:
+                        if (_ctx?.Band == null || _ctx.Band.Count == 0) break;
+                        var idx = _rng.Next(0, _ctx.Band.Count);
+                        var rand = _ctx.Band[idx];
+                        if (rand != null && rand.Statuses != null)
+                            rand.Statuses.Apply(statusDef, sa.StacksDelta);
+                        break;
+
+                    default:
+                        _ctx?.Log($"[StatusActions][WARN] Unhandled ActionTargetType '{sa.TargetType}' in CompositionSession.", true);
+                        break;
+                }
+            }
+        }
+
+
         private void PrepareDeck()
         {
             var gd = GameManager.Instance.GameplayData;

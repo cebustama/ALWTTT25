@@ -197,7 +197,7 @@ namespace ALWTTT.Characters.Audience
         {
             Debug.Log($"{CharacterId} Ability Routine started.");
 
-            if (stats != null && stats.IsStunned)
+            if (stats != null && stats.ConsumeStun())
             {
                 Debug.Log($"{CharacterId} is stunned. Skipping Ability.");
                 yield break;

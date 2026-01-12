@@ -35,37 +35,27 @@ namespace ALWTTT.Cards
             ActionCardPayload payload,
             BandCharacterStats stats)
         {
-            if (payload?.Actions == null || payload.Actions.Count == 0)
-                return "No actions.";
+            var statusActions = payload != null ? payload.StatusActions : null;
+            if (statusActions == null || statusActions.Count == 0)
+                return "No effects.";
 
-            // Keep parity with legacy CardData: describe the first action only (for now).
-            // TODO: Describe all actions
-            var cardAction = payload.Actions[0];
-            var value = cardAction.ActionValue;
+            // Parity with previous behavior: describe the first effect only (for now).
+            // TODO: Describe all status actions (and consider line breaks).
+            var sa = statusActions[0];
 
-            string synergyText;
-            if (stats != null)
-            {
-                int finalValue = card.CardType switch
-                {
-                    CardType.CHR => Mathf.RoundToInt(stats.Charm * value),
-                    CardType.TCH => Mathf.RoundToInt(stats.Technique * value),
-                    CardType.EMT => Mathf.RoundToInt(stats.Emotion * value),
-                    _ => Mathf.RoundToInt(value),
-                };
-                synergyText = finalValue.ToString();
-            }
-            else
-            {
-                // With no stats, show the card type (same as legacy)
-                synergyText = card.CardType.ToString();
-            }
+            // “SynergyText” concept no longer applies unless you want to scale stacks by stats.
+            // For now: show stacks delta as the primary magnitude.
+            var magnitudeText = sa.StacksDelta.ToString();
 
-            string actionText = cardAction.GetActionTypeText();
-            string targetText = cardAction.ActionTargetType.ToString();
+            // EffectId is generic (ontology). DisplayName is thematic but lives on StatusEffectSO.
+            // Here we only have ids, so show EffectId.
+            // TODO: Access DisplayName
+            var effectText = sa.EffectId.ToString();
+            var targetText = sa.TargetType.ToString();
 
-            return $"Apply {synergyText} {actionText} to {targetText}";
+            return $"Apply {magnitudeText} {effectText} to {targetText}";
         }
+
 
         private static string GetCompositionDescription(CompositionCardPayload payload)
         {

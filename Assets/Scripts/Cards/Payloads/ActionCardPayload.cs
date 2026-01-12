@@ -16,10 +16,8 @@ namespace ALWTTT.Cards
 
         [Header("Conditions / Actions")]
         [SerializeField] private List<CardConditionData> conditions = new();
-        [SerializeField] private List<CharacterActionData> actions = new();
 
         public CardActionTiming ActionTiming => actionTiming;
         public IReadOnlyList<CardConditionData> Conditions => conditions;
-        public IReadOnlyList<CharacterActionData> Actions => actions;
     }
 }

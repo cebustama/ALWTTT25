@@ -1,11 +1,11 @@
-using ALWTTT.Actions;
-using ALWTTT.Cards;
+﻿using ALWTTT.Cards;
 using ALWTTT.Characters;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Extentions;
 using ALWTTT.Managers;
+using ALWTTT.Status;
 using ALWTTT.Tooltips;
 
 using System;
@@ -117,39 +117,139 @@ namespace ALWTTT
             SpendInspiration(CardDefinition.InspirationCost);
             GenerateInspiration(CardDefinition.InspirationGenerated);
 
-            var actions = CardDefinition.CardActionDataList;
+            // Status actions pipeline (StatusEffectActionData)
+            yield return ExecuteStatusActions(
+                performer, target,
+                allAudienceCharacters, allBandCharacters
+            );
 
-            // If this is a Composition card (or an Action card missing actions),
-            // we still "play" it for now, but it performs no CharacterActionData.
-            if (actions == null || actions.Count == 0)
+            DeckManager.OnCardPlayed(this);
+        }
+
+        private IEnumerator ExecuteStatusActions(
+            CharacterBase performer,
+            CharacterBase primaryTarget,
+            List<AudienceCharacterBase> allAudienceCharacters,
+            List<MusicianBase> allBandCharacters)
+        {
+            var payload = CardDefinition != null ? CardDefinition.Payload : null;
+            var statusActions = payload != null ? payload.StatusActions : null;
+
+            if (statusActions == null || statusActions.Count == 0)
+                yield break;
+
+            // Prefer performer catalogue (authoritative “owner”), fallback to target.
+            var catalogue = (performer != null ? performer.StatusCatalogue : null)
+                            ?? (primaryTarget != null ? primaryTarget.StatusCatalogue : null);
+
+            if (catalogue == null)
             {
-                DeckManager.OnCardPlayed(this);
+                Debug.LogWarning(
+                    $"[CardBase] Card '{CardDefinition?.name}' has StatusActions but no StatusEffectCatalogueSO found. " +
+                    $"Assign it on the performer/target CharacterBase (StatusCatalogue field).");
                 yield break;
             }
 
-            foreach (var playerAction in actions)
+            for (int i = 0; i < statusActions.Count; i++)
             {
-                yield return new WaitForSeconds(playerAction.ActionDelay);
+                var sa = statusActions[i];
+                if (sa == null) continue;
+                if (sa.StacksDelta == 0) continue;
 
-                var targetList = DetermineTargets(
-                    target, allAudienceCharacters, allBandCharacters, playerAction);
+                if (sa.Delay > 0f)
+                    yield return new WaitForSeconds(sa.Delay);
 
-                foreach (var t in targetList)
+                // Resolve targets using same ActionTargetType rules.
+                var targets = DetermineTargets(
+                    primaryTarget,
+                    allAudienceCharacters,
+                    allBandCharacters,
+                    sa.TargetType);
+
+                // Resolve definition from catalogue (source of truth).
+                StatusEffectSO def;
+                try
                 {
-                    var ctx = new CardActionContext(CardDefinition, this);
-                    var p = new CharacterActionParameters(
-                        playerAction.ActionValue,
-                        performer, t,
-                        ctx
-                    );
+                    def = catalogue.GetOrThrow(sa.EffectId);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(
+                        $"[CardBase] Missing StatusEffectSO for id '{sa.EffectId}' in catalogue '{catalogue.name}'. " +
+                        $"Card='{CardDefinition?.name}'. Exception: {e.Message}");
+                    continue;
+                }
 
-                    CharacterActionProcessor
-                        .GetAction(playerAction.CardActionType)
-                        .DoAction(p);
+                for (int t = 0; t < targets.Count; t++)
+                {
+                    var trg = targets[t];
+                    if (trg == null) continue;
+
+                    if (trg.Statuses == null)
+                    {
+                        Debug.LogWarning(
+                            $"[CardBase] Target '{trg.name}' has no Statuses container. " +
+                            $"Did Step 3 (CharacterBase.Statuses) run?");
+                        continue;
+                    }
+
+                    trg.Statuses.Apply(def, sa.StacksDelta);
+
+#if UNITY_EDITOR
+                    Debug.Log(
+                        $"[StatusActions] {performer?.name} applied {sa.StacksDelta}x '{def.EffectId}' to {trg.name} " +
+                        $"via card '{CardDefinition?.DisplayName}'.");
+#endif
                 }
             }
+        }
 
-            DeckManager.OnCardPlayed(this);
+        // Overload target resolution for status actions (ActionTargetType only)
+        private List<CharacterBase> DetermineTargets(
+            CharacterBase targetCharacter,
+            List<AudienceCharacterBase> allAudienceCharacters,
+            List<MusicianBase> allBandCharacters,
+            ActionTargetType targetType)
+        {
+            var targetList = new List<CharacterBase>();
+
+            switch (targetType)
+            {
+                case ActionTargetType.AudienceCharacter:
+                case ActionTargetType.Musician:
+                    if (targetCharacter != null)
+                        targetList.Add(targetCharacter);
+                    break;
+
+                case ActionTargetType.AllAudienceCharacters:
+                    foreach (var enemyBase in allAudienceCharacters)
+                        if (enemyBase != null && !enemyBase.IsBlocked)
+                            targetList.Add(enemyBase);
+                    break;
+
+                case ActionTargetType.AllMusicians:
+                    foreach (var allyBase in allBandCharacters)
+                        if (allyBase != null)
+                            targetList.Add(allyBase);
+                    break;
+
+                case ActionTargetType.RandomAudienceCharacter:
+                    if (allAudienceCharacters != null && allAudienceCharacters.Count > 0)
+                        targetList.Add(allAudienceCharacters.RandomItem());
+                    break;
+
+                case ActionTargetType.RandomMusician:
+                    if (allBandCharacters != null && allBandCharacters.Count > 0)
+                        targetList.Add(allBandCharacters.RandomItem());
+                    break;
+
+                default:
+                    // If you later add more ActionTargetType values, this will force you to decide behavior.
+                    Debug.LogWarning($"[CardBase] Unhandled ActionTargetType for StatusActions: {targetType}");
+                    break;
+            }
+
+            return targetList;
         }
 
         protected virtual IEnumerator DiscardRoutine(bool destroy = true)
@@ -222,50 +322,6 @@ namespace ALWTTT
         protected virtual void GenerateInspiration(int value)
         {
             GameManager.PersistentGameplayData.CurrentInspiration += value;
-        }
-
-        private static List<CharacterBase> DetermineTargets(
-            CharacterBase targetCharacter,
-            List<AudienceCharacterBase> allAudienceCharacters,
-            List<MusicianBase> allBandCharacters,
-            CharacterActionData playerAction)
-        {
-            List<CharacterBase> targetList = new List<CharacterBase>();
-
-            switch (playerAction.ActionTargetType)
-            {
-                case ActionTargetType.AudienceCharacter:
-                    targetList.Add(targetCharacter);
-                    break;
-                case ActionTargetType.Musician:
-                    targetList.Add(targetCharacter);
-                    break;
-                case ActionTargetType.AllAudienceCharacters:
-                    foreach (var enemyBase in allAudienceCharacters)
-                    {
-                        if (!enemyBase.IsBlocked)
-                            targetList.Add(enemyBase);
-                    }
-                        
-                    break;
-                case ActionTargetType.AllMusicians:
-                    foreach (var allyBase in allBandCharacters)
-                        targetList.Add(allyBase);
-                    break;
-                case ActionTargetType.RandomAudienceCharacter:
-                    if (allAudienceCharacters.Count > 0)
-                        targetList.Add(allAudienceCharacters.RandomItem());
-
-                    break;
-                case ActionTargetType.RandomMusician:
-                    if (allBandCharacters.Count > 0)
-                        targetList.Add(allBandCharacters.RandomItem());
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return targetList;
         }
 
         #region Pointer Events

@@ -1,4 +1,5 @@
-﻿using ALWTTT.Characters;
+﻿using ALWTTT.Cards;
+using ALWTTT.Characters;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
@@ -560,20 +561,28 @@ namespace ALWTTT
                 CharacterBase bandCharacter = GigManager.SelectedMusician;
                 CharacterBase targetCharacter = null;
 
-                bool canUse = false;
+                // Caster is always the currently selected musician.
+                bandCharacter = GigManager.SelectedMusician;
 
-                // No target or SFX → can use directly
-                if (data.RequiresTargetSelection || data.CardType == CardType.SFX)
+                // If card requires a target, we must raycast and validate it.
+                // If it does NOT require a target, we pass null targetCharacter.
+                if (data.RequiresTargetSelection)
                 {
-                    canUse = true;
+                    if (!TryResolveCardTarget(mainRay, data, out targetCharacter))
+                        return false;
                 }
                 else
                 {
-                    // Raycast against musicians / audience
-                    canUse = CheckPlayOnCharacter(mainRay, canUse, ref bandCharacter, ref targetCharacter);
+                    targetCharacter = null;
                 }
 
-                if (!canUse) return false;
+                // SFX is still allowed without a target (and CardBase will handle it).
+                // (If you want SFX to require a target in the future, remove this.)
+                if (data.CardType == CardType.SFX)
+                {
+                    targetCharacter = null;
+                }
+
 
                 Debug.Log($"{DebugTag} [Gig] Zone hint = {zoneUsed}");
 
@@ -679,54 +688,86 @@ namespace ALWTTT
             return null;
         }
 
-        private bool CheckPlayOnCharacter(Ray mainRay, bool canUse, 
-            ref CharacterBase bandCharacter, ref CharacterBase audienceCharacter)
+        private bool TryResolveCardTarget(Ray ray, CardDefinition data, out CharacterBase targetCharacter)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(mainRay, out hit, 1000, targetLayer))
+            targetCharacter = null;
+
+            if (!Physics.Raycast(ray, out var hit, 1000, targetLayer))
             {
-                var character = hit.collider.gameObject.GetComponent<ICharacter>();
-                if (character == null || character.IsStunned) return false;
+                Debug.Log($"{DebugTag} [Gig] No character hit by raycast.");
+                return false;
+            }
 
-                var data = heldCard?.CardDefinition;
-                if (data == null) return false;
+            var character = hit.collider.gameObject.GetComponent<ICharacter>();
+            if (character == null)
+            {
+                Debug.Log($"{DebugTag} [Gig] Raycast hit but no ICharacter component.");
+                return false;
+            }
 
-                var actions = data.CardActionDataList;
-                if (data.IsComposition || actions == null || actions.Count == 0)
+            if (character.IsStunned)
+            {
+                Debug.Log($"{DebugTag} [Gig] Target is stunned; cannot target.");
+                return false;
+            }
+
+            var baseTarget = character.GetCharacterBase();
+            if (baseTarget == null)
+            {
+                Debug.Log($"{DebugTag} [Gig] ICharacter.GetCharacterBase returned null.");
+                return false;
+            }
+
+            // CSO-based validation:
+            // If the card only has single-target status actions for musicians, require musician.
+            // If only for audience, require audience.
+            // If both (or neither), accept either.
+            var expectsMusicianSingle = false;
+            var expectsAudienceSingle = false;
+
+            var payload = data.Payload;
+            var statusActions = payload != null ? payload.StatusActions : null;
+
+            if (statusActions != null)
+            {
+                for (int i = 0; i < statusActions.Count; i++)
                 {
-                    Debug.Log($"{DebugTag} [Gig] CheckPlayOnCharacter: " +
-                        $"card '{data.DisplayName}' has no  actions; skipping old targeting.");
+                    var sa = statusActions[i];
+                    if (sa == null) continue;
+
+                    // Only enforce type for SINGLE-target modes.
+                    switch (sa.TargetType)
+                    {
+                        case ActionTargetType.Musician:
+                            expectsMusicianSingle = true;
+                            break;
+
+                        case ActionTargetType.AudienceCharacter:
+                            expectsAudienceSingle = true;
+                            break;
+                    }
+                }
+            }
+
+            if (expectsMusicianSingle && !expectsAudienceSingle)
+            {
+                if (baseTarget.GetCharacterType() != CharacterType.Musician)
+                {
+                    Debug.Log($"{DebugTag} [Gig] Card expects a musician target.");
                     return false;
                 }
-
-
-                var firstActionTargetType = actions[0].ActionTargetType;
-
-                var checkEnemy =
-                    ((firstActionTargetType == ActionTargetType.AudienceCharacter ||
-                      firstActionTargetType == ActionTargetType.AllAudienceCharacters ||
-                      firstActionTargetType == ActionTargetType.RandomAudienceCharacter) &&
-                     character.GetCharacterType() == CharacterType.Audience);
-
-                var checkAlly =
-                    ((firstActionTargetType == ActionTargetType.Musician ||
-                      firstActionTargetType == ActionTargetType.AllMusicians ||
-                      firstActionTargetType == ActionTargetType.RandomMusician) &&
-                     character.GetCharacterType() == CharacterType.Musician);
-
-                if (checkEnemy || checkAlly)
+            }
+            else if (expectsAudienceSingle && !expectsMusicianSingle)
+            {
+                if (baseTarget.GetCharacterType() != CharacterType.Audience)
                 {
-                    canUse = true;
-                    bandCharacter = GigManager.SelectedMusician;
-                    audienceCharacter = character.GetCharacterBase();
+                    Debug.Log($"{DebugTag} [Gig] Card expects an audience target.");
+                    return false;
                 }
             }
-            else
-            {
-                Debug.Log($"<color=red>No character hit by raycast.</color>");
-            }
 
-            return canUse;
+            targetCharacter = baseTarget;
+            return true;
         }
 
         private void GetDistanceToCurrentSelectedCard(out int count, out float sqrDistance)

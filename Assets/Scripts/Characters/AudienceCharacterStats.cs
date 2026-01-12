@@ -108,12 +108,22 @@ namespace ALWTTT.Characters.Audience
 
         protected override void CheckStunStatus()
         {
-            throw new NotImplementedException();
+            var s = statusDict[StatusType.Breakdown]; // TODO: Audience specific name?
+            if (!s.IsActive || s.StatusValue <= 0) return;
+
+            IsStunned = true;
+        }
+
+        public bool ConsumeStun()
+        {
+            if (!IsStunned) return false;
+            IsStunned = false;
+            return true;
         }
 
         protected override void TriggerStatus(StatusType targetStatus)
         {
-            
+            base.TriggerStatus(targetStatus);
         }
 
         #endregion
