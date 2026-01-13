@@ -1,11 +1,11 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
+using ALWTTT.Enums;
+using ALWTTT.Musicians;
+using ALWTTT.Status;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-
-using ALWTTT.Enums;
-using ALWTTT.Musicians;
 
 namespace ALWTTT.Cards.Editor
 {
@@ -23,6 +23,9 @@ namespace ALWTTT.Cards.Editor
         [SerializeField] private bool _filterStarterOnly;
         [SerializeField] private bool _filterRewardOnly;
         [SerializeField] private bool _filterLockedOnly;
+
+        [SerializeField] private bool _filterByStatusId;
+        [SerializeField] private CharacterStatusId _filterStatusId = CharacterStatusId.DamageUpFlat;
 
         // Selection
         [SerializeField] private MusicianCharacterData _loadedMusicianData;
@@ -59,6 +62,8 @@ namespace ALWTTT.Cards.Editor
 
         private Vector2 _leftScroll;
         private Vector2 _rightScroll;
+
+
 
         // Cache musician assets by enum
         private readonly Dictionary<MusicianCharacterType, MusicianCharacterData> _musicianCache = new();
@@ -214,6 +219,15 @@ namespace ALWTTT.Cards.Editor
                     _filterStarterOnly = GUILayout.Toggle(_filterStarterOnly, "Starter", "Button");
                     _filterRewardOnly = GUILayout.Toggle(_filterRewardOnly, "Rewards", "Button");
                     _filterLockedOnly = GUILayout.Toggle(_filterLockedOnly, "Locked", "Button");
+                }
+
+                EditorGUILayout.Space(4);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    _filterByStatusId = EditorGUILayout.ToggleLeft("StatusId", _filterByStatusId, GUILayout.Width(80));
+                    using (new EditorGUI.DisabledScope(!_filterByStatusId))
+                        _filterStatusId = (CharacterStatusId)EditorGUILayout.EnumPopup(_filterStatusId);
                 }
 
                 EditorGUILayout.Space(4);
@@ -409,6 +423,30 @@ namespace ALWTTT.Cards.Editor
             if (_filterStarterOnly && !e.IsStarter) return false;
             if (_filterRewardOnly && !e.IsReward) return false;
             if (_filterLockedOnly && e.UnlockedByDefault) return false;
+
+            if (_filterByStatusId)
+            {
+                var payload = e.card.Payload;
+                if (payload == null) return false;
+
+                var actions = payload.StatusActions;
+                bool found = false;
+
+                if (actions != null)
+                {
+                    for (int i = 0; i < actions.Count; i++)
+                    {
+                        var a = actions[i];
+                        if (a != null && a.EffectId == _filterStatusId)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!found) return false;
+            }
 
             return true;
         }
@@ -800,8 +838,8 @@ namespace ALWTTT.Cards.Editor
                 "This will:\n" +
                 $"- Remove the entry from catalog '{_loadedCatalog.name}'\n" +
                 "- Optionally delete these assets:\n" +
-                $"  � {cardPath}\n" +
-                (string.IsNullOrEmpty(payloadPath) ? "" : $"  � {payloadPath}\n") +
+                $"  • {cardPath}\n" +
+                (string.IsNullOrEmpty(payloadPath) ? "" : $"  • {payloadPath}\n") +
                 "\n\nContinue?";
 
             int choice = EditorUtility.DisplayDialogComplex(
@@ -1017,16 +1055,19 @@ namespace ALWTTT.Cards.Editor
             var so = new SerializedObject(payload);
             so.Update();
 
-            // names must match ActionCardPayload private fields
             var timingProp = so.FindProperty("actionTiming");
             var conditionsProp = so.FindProperty("conditions");
-            var actionsProp = so.FindProperty("actions");
+
+            // ✅ CSO: base payload status actions
+            var statusActionsProp = so.FindProperty("statusActions");
 
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.PropertyField(timingProp);
             EditorGUILayout.PropertyField(conditionsProp, includeChildren: true);
-            EditorGUILayout.PropertyField(actionsProp, includeChildren: true);
+
+            EditorGUILayout.Space(8);
+            DrawStatusActionsBlock(statusActionsProp); // new helper below
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -1040,7 +1081,6 @@ namespace ALWTTT.Cards.Editor
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
         }
-
         private void DrawCompositionPayloadEditor(CompositionCardPayload payload)
         {
             if (payload == null) return;
@@ -1048,11 +1088,13 @@ namespace ALWTTT.Cards.Editor
             var so = new SerializedObject(payload);
             so.Update();
 
-            // names must match CompositionCardPayload private fields
             var primaryKindProp = so.FindProperty("primaryKind");
             var trackActionProp = so.FindProperty("trackAction");
             var partActionProp = so.FindProperty("partAction");
             var modifierEffectsProp = so.FindProperty("modifierEffects");
+
+            // ✅ CSO: base payload status actions
+            var statusActionsProp = so.FindProperty("statusActions");
 
             EditorGUI.BeginChangeCheck();
 
@@ -1060,6 +1102,9 @@ namespace ALWTTT.Cards.Editor
             EditorGUILayout.PropertyField(trackActionProp, includeChildren: true);
             EditorGUILayout.PropertyField(partActionProp, includeChildren: true);
             EditorGUILayout.PropertyField(modifierEffectsProp, includeChildren: true);
+
+            EditorGUILayout.Space(8);
+            DrawStatusActionsBlock(statusActionsProp);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -1071,6 +1116,36 @@ namespace ALWTTT.Cards.Editor
             else
             {
                 so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        private static void DrawStatusActionsBlock(SerializedProperty statusActionsProp)
+        {
+            if (statusActionsProp == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "StatusActions list not found (expected private field 'statusActions' on CardPayload).",
+                    MessageType.Error);
+                return;
+            }
+
+            EditorGUILayout.LabelField("Status Actions (CSO)", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(statusActionsProp, includeChildren: true);
+
+            // Optional tiny validation: catch invalid enum backing values (like 0).
+            for (int i = 0; i < statusActionsProp.arraySize; i++)
+            {
+                var el = statusActionsProp.GetArrayElementAtIndex(i);
+                var effectIdProp = el?.FindPropertyRelative("effectId");
+                if (effectIdProp == null) continue;
+
+                int raw = effectIdProp.intValue;
+                if (!System.Enum.IsDefined(typeof(CharacterStatusId), raw))
+                {
+                    EditorGUILayout.HelpBox(
+                        $"Row {i}: EffectId has invalid value '{raw}'. Pick a valid CharacterStatusId.",
+                        MessageType.Warning);
+                }
             }
         }
 

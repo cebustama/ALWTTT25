@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bfb378d84595bd47b8057a55797bc41, type: 3}
+  m_Name: 3_Action_001_ActionPayload
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.ActionCardPayload
+  statusActions:
+  - effectId: 100
+    targetType: 0
+    stacksDelta: 0
+    delay: 0
+  actionTiming: 0
+  conditions: []
