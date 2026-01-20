@@ -1,6 +1,8 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using ALWTTT.Enums;
+using ALWTTT.Status;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -46,12 +48,25 @@ namespace ALWTTT.Cards.Editor
 
             public string cardSpritePath;    // optional AssetDatabase path to a Sprite
 
+            public StatusActionJson[] statusActions;
+
             public ActionJson action;
             public CompositionJson composition;
 
             public EntryJson entry;          // optional defaults when adding to catalog
         }
 
+        [System.Serializable]
+        private class StatusActionJson
+        {
+            public string statusKey;
+            public int effectId = -1;        // legacy fallback
+            public string targetType;        // ActionTargetType enum name
+            public int stacksDelta = 1;
+            public float delay = 0f;
+        }
+
+        // Deprecated
         [System.Serializable]
         private class ActionJson
         {
@@ -253,6 +268,22 @@ namespace ALWTTT.Cards.Editor
                 return;
             }
 
+            // ---------------------------------------------------------------------
+            // Step 2A: Reject legacy action.actions usage (only if statusActions missing/empty)
+            // ---------------------------------------------------------------------
+            bool hasStatusActions = dto.statusActions != null && dto.statusActions.Length > 0;
+            bool hasLegacyActions = dto.action != null &&
+                                    dto.action.actions != null &&
+                                    dto.action.actions.Length > 0;
+
+            if (!hasStatusActions && hasLegacyActions)
+            {
+                _jsonImportError =
+                    "Legacy JSON detected: dto.action.actions is no longer supported.\n" +
+                    "Use root-level \"statusActions\" (CSO) instead.";
+                return;
+            }
+
             // Create staged instances (NOT assets)
             _stagedJsonCard = CreateInstance<CardDefinition>();
             _stagedJsonCard.hideFlags = HideFlags.DontSaveInEditor | HideFlags.HideInHierarchy;
@@ -326,8 +357,7 @@ namespace ALWTTT.Cards.Editor
             cardSO.ApplyModifiedPropertiesWithoutUndo();
 
             // ---------------------------------------------------------------------
-            // NEW: Apply payload fields using the extended schema helpers
-            // (replaces the old "Apply minimal payload fields" block)
+            // Apply payload fields
             // ---------------------------------------------------------------------
             var pso = new SerializedObject(_stagedJsonPayload);
 
@@ -338,6 +368,14 @@ namespace ALWTTT.Cards.Editor
             else if (_stagedJsonPayload is CompositionCardPayload)
             {
                 ApplyCompositionJson(pso, dto.composition);
+            }
+
+            if (!ApplyStatusActionsJson(
+                pso, dto.statusActions, _registries?.StatusCatalogue, out var statusErr))
+            {
+                _jsonImportError = statusErr;
+                DiscardStagedJson();
+                return;
             }
 
             pso.ApplyModifiedPropertiesWithoutUndo();
@@ -380,9 +418,150 @@ namespace ALWTTT.Cards.Editor
             Repaint();
         }
 
+        private static bool ApplyStatusActionsJson(
+            SerializedObject pso,
+            StatusActionJson[] actions,
+            StatusEffectCatalogueSO catalogue,
+            out string error)
+        {
+            error = null;
+
+            if (actions == null || actions.Length == 0)
+                return true;
+
+            var listProp = pso.FindProperty("statusActions");
+            if (listProp == null)
+            {
+                error = "Payload missing 'statusActions' field (expected private field on CardPayload).";
+                return false;
+            }
+
+            listProp.arraySize = actions.Length;
+
+            for (int i = 0; i < actions.Length; i++)
+            {
+                var row = actions[i];
+                var el = listProp.GetArrayElementAtIndex(i);
+
+                var effectIdProp = el.FindPropertyRelative("effectId");
+                var targetTypeProp = el.FindPropertyRelative("targetType");
+                var stacksDeltaProp = el.FindPropertyRelative("stacksDelta");
+                var delayProp = el.FindPropertyRelative("delay");
+
+                if (effectIdProp == null || targetTypeProp == null || stacksDeltaProp == null || delayProp == null)
+                {
+                    error = $"statusActions[{i}] structure mismatch (expected fields effectId/targetType/stacksDelta/delay).";
+                    return false;
+                }
+
+                // --- resolve effect id ---
+                int resolvedEffectId = row.effectId;
+
+                if (!string.IsNullOrWhiteSpace(row.statusKey))
+                {
+                    if (catalogue == null)
+                    {
+                        error = $"statusActions[{i}]: statusKey provided but StatusCatalogue is not loaded in registries.";
+                        return false;
+                    }
+
+                    if (!TryResolveEffectIdFromKey(catalogue, row.statusKey, out resolvedEffectId, out var keyErr))
+                    {
+                        error = $"statusActions[{i}]: {keyErr}";
+                        return false;
+                    }
+
+                    // if both provided, enforce consistency
+                    if (row.effectId >= 0 && row.effectId != resolvedEffectId)
+                    {
+                        error =
+                            $"statusActions[{i}]: effectId ({row.effectId}) does not match statusKey '{row.statusKey}' (resolves to {resolvedEffectId}).";
+                        return false;
+                    }
+                }
+
+                if (!System.Enum.IsDefined(typeof(CharacterStatusId), resolvedEffectId))
+                {
+                    error = $"statusActions[{i}]: invalid effectId '{resolvedEffectId}' for CharacterStatusId.";
+                    return false;
+                }
+
+                // targetType parse (string strategy)
+                if (!System.Enum.TryParse<ActionTargetType>(row.targetType, true, out var parsedTarget))
+                {
+                    error = $"statusActions[{i}]: invalid targetType '{row.targetType}' (must match ActionTargetType enum name).";
+                    return false;
+                }
+
+                // write serialized
+                effectIdProp.intValue = resolvedEffectId;
+                targetTypeProp.intValue = (int)parsedTarget; // enum stored as int
+                stacksDeltaProp.intValue = row.stacksDelta;
+                delayProp.floatValue = row.delay;
+            }
+
+            pso.ApplyModifiedPropertiesWithoutUndo();
+            return true;
+        }
+
+        private static bool TryResolveEffectIdFromKey(
+            StatusEffectCatalogueSO catalogue,
+            string key,
+            out int effectId,
+            out string err)
+        {
+            effectId = -1;
+            err = null;
+
+            key = key.Trim();
+
+            // Scan catalogue.Effects
+            foreach (var se in catalogue.Effects)
+            {
+                if (se == null) continue;
+
+                // 1) If StatusEffectSO has a StatusKey/statusKey, use it
+                var maybeKey = ReadStatusKeyViaReflection(se);
+                if (!string.IsNullOrEmpty(maybeKey) &&
+                    string.Equals(maybeKey.Trim(), key, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    effectId = (int)se.EffectId;
+                    return true;
+                }
+
+                // 2) Fallbacks (optional, but super practical)
+                if (string.Equals(se.DisplayName, key, System.StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(se.name, key, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    effectId = (int)se.EffectId;
+                    return true;
+                }
+            }
+
+            err = $"No StatusEffectSO found in catalogue for statusKey '{key}'.";
+            return false;
+        }
+
+        private static string ReadStatusKeyViaReflection(StatusEffectSO se)
+        {
+            var t = se.GetType();
+
+            // Property: StatusKey
+            var p = t.GetProperty("StatusKey", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (p != null && p.PropertyType == typeof(string))
+                return p.GetValue(se) as string;
+
+            // Field: statusKey
+            var f = t.GetField("statusKey", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (f != null && f.FieldType == typeof(string))
+                return f.GetValue(se) as string;
+
+            return null;
+        }
+
         private void ApplyActionJson(SerializedObject pso, ActionJson aj)
         {
-            if (aj == null) return;
+            if (pso == null || aj == null) return;
 
             // actionTiming (enum by name)
             SetEnumByName(pso, "actionTiming", aj.actionTiming);
@@ -391,7 +570,6 @@ namespace ALWTTT.Cards.Editor
             var conditionsProp = pso.FindProperty("conditions");
             if (conditionsProp != null)
             {
-                //conditionsProp.arrayEnsureCapacity = 0; // harmless if unsupported; can remove if your Unity version complains
                 conditionsProp.arraySize = 0;
 
                 if (aj.conditions != null)
@@ -399,6 +577,7 @@ namespace ALWTTT.Cards.Editor
                     for (int i = 0; i < aj.conditions.Length; i++)
                     {
                         var c = aj.conditions[i];
+
                         conditionsProp.InsertArrayElementAtIndex(i);
                         var el = conditionsProp.GetArrayElementAtIndex(i);
 
@@ -406,46 +585,112 @@ namespace ALWTTT.Cards.Editor
                         if (typeProp != null)
                         {
                             if (!string.IsNullOrWhiteSpace(c?.type))
+                            {
                                 SetEnumByName(typeProp, c.type);
+                            }
                             else if (c != null && c.typeIndex >= 0)
-                                typeProp.enumValueIndex = Mathf.Clamp(c.typeIndex, 0, typeProp.enumNames.Length - 1);
+                            {
+                                typeProp.enumValueIndex =
+                                    Mathf.Clamp(c.typeIndex, 0, typeProp.enumNames.Length - 1);
+                            }
                         }
 
                         var valueProp = el.FindPropertyRelative("conditionValue");
-                        if (valueProp != null && c != null)
-                            valueProp.floatValue = c.value;
+                        if (valueProp != null)
+                            valueProp.floatValue = c != null ? c.value : 0f;
                     }
                 }
             }
 
-            // actions
-            var actionsProp = pso.FindProperty("actions");
-            if (actionsProp != null)
+            // Legacy field: ActionJson.actions is deprecated and intentionally ignored.
+            // (ActionCardPayload no longer has an "actions" list; CSO uses root-level "statusActions" instead.)
+            if (aj.actions != null && aj.actions.Length > 0)
             {
-                actionsProp.arraySize = 0;
+                Debug.LogWarning(
+                    "[CardEditorWindow] JSON import: 'action.actions' is deprecated and ignored. " +
+                    "Use root 'statusActions' (CSO) instead.");
+            }
+        }
 
-                if (ensureNonNull(aj.actions) != null)
-                {
-                    for (int i = 0; i < aj.actions.Length; i++)
-                    {
-                        var a = aj.actions[i];
-                        actionsProp.InsertArrayElementAtIndex(i);
-                        var el = actionsProp.GetArrayElementAtIndex(i);
+        private bool ApplyStatusActionsJson(SerializedObject pso, StatusActionJson[] actions, out string error)
+        {
+            error = null;
 
-                        SetEnumByName(el.FindPropertyRelative("cardActionType"), a?.actionType);
-                        SetEnumByName(el.FindPropertyRelative("actionTargetType"), a?.targetType);
-
-                        var vProp = el.FindPropertyRelative("actionValue");
-                        if (vProp != null && a != null) vProp.floatValue = a.value;
-
-                        var dProp = el.FindPropertyRelative("actionDelay");
-                        if (dProp != null && a != null) dProp.floatValue = a.delay;
-                    }
-                }
+            var statusActionsProp = pso.FindProperty("statusActions");
+            if (statusActionsProp == null)
+            {
+                error = "Payload missing 'statusActions' (expected private field 'statusActions' on CardPayload).";
+                return false;
             }
 
-            static CharacterActionJson[] ensureNonNull(CharacterActionJson[] arr) => arr;
+            if (actions == null || actions.Length == 0)
+            {
+                statusActionsProp.arraySize = 0;
+                return true;
+            }
+
+            statusActionsProp.arraySize = actions.Length;
+
+            for (int i = 0; i < actions.Length; i++)
+            {
+                var row = actions[i];
+                if (row == null)
+                {
+                    error = $"statusActions[{i}] is null.";
+                    return false;
+                }
+
+                // Validate + normalize
+                if (row.effectId < 0)
+                {
+                    error = $"statusActions[{i}].effectId must be a valid CharacterStatusId backing int (>= 0).";
+                    return false;
+                }
+
+                if (!System.Enum.IsDefined(typeof(CharacterStatusId), row.effectId))
+                {
+                    error = $"statusActions[{i}].effectId '{row.effectId}' is not a defined CharacterStatusId backing value.";
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(row.targetType))
+                {
+                    error = $"statusActions[{i}].targetType is required (ActionTargetType enum name).";
+                    return false;
+                }
+
+                if (!System.Enum.TryParse<ActionTargetType>(row.targetType, true, out _))
+                {
+                    error = $"statusActions[{i}].targetType '{row.targetType}' is invalid. " +
+                            $"Valid: {string.Join(", ", System.Enum.GetNames(typeof(ActionTargetType)))}";
+                    return false;
+                }
+
+                if (row.delay < 0f)
+                {
+                    error = $"statusActions[{i}].delay must be >= 0.";
+                    return false;
+                }
+
+                // Write serialized fields on StatusEffectActionData: effectId, targetType, stacksDelta, delay
+                var el = statusActionsProp.GetArrayElementAtIndex(i);
+
+                var effectProp = el.FindPropertyRelative("effectId");
+                if (effectProp != null) effectProp.intValue = row.effectId; // ✅ stable CSO ints
+
+                var targetProp = el.FindPropertyRelative("targetType");
+                if (targetProp != null) SetEnumByName(targetProp, row.targetType); // ✅ case-insensitive
+
+                var stacksProp = el.FindPropertyRelative("stacksDelta");
+                if (stacksProp != null) stacksProp.intValue = row.stacksDelta;
+
+                var delayProp = el.FindPropertyRelative("delay");
+                if (delayProp != null) delayProp.floatValue = row.delay;
+            }
+
+            return true;
         }
+
 
         private void ApplyCompositionJson(SerializedObject pso, CompositionJson cj)
         {

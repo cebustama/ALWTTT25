@@ -12,13 +12,16 @@ It contains:
 
 # A Long Way to the Top (ALWTTT)
 
-# Gig Combat Economy Contract --- v0.2.2
+# Gig Combat Economy Contract --- v0.2.3
+
+> **Update note (v0.2.3):** clarified that WIP variants (Loop→Vibe, Audience Fan meter) are **not** part of the authoritative contract; added an explicit **Stress → Breakdown** MVP placeholder; kept canonical naming as **Audience**.
+
 
 **Status:** Draft (Authoritative Design Baseline)\
 **Scope:** Live Gig Combat, Inspiration-only Economy\
 **Audience:** Systems Design, Card Design, Class / Archetype Design
 
-**Changelog (v0.2.2):**
+**Changelog (v0.2.3):**
 - Added MVP baseline Status Effects: Flow (Song/Band) and Composure (Musician).
 - Added band-wide targeting simplification for MVP (apply-to-all-musicians helper).
 - Updated conversion rule (Loop → SongHype) to include Flow.
@@ -99,7 +102,7 @@ The system operates across five nested time scales.
 
 ### 3.5 Run (Meta)
 
--   Long-term progression (Fans, upgrades, unlocks).
+-   Long-term progression (reputation/fans, upgrades, unlocks).
 -   Out of scope for this contract.
 
 ------------------------------------------------------------------------
@@ -138,6 +141,8 @@ The system operates across five nested time scales.
   TCH             Technical
   EMT             Emotional
   Stress          Pressure meter
+  StressMax       Threshold for Breakdown (tunable)
+  BreakdownState  None | Shaken (MVP placeholder)
   StatusEffects   Stackable effects
 
 ### 4.4 Audience-Level
@@ -201,20 +206,41 @@ impressions across loops
 
 ### 5.4 Stress (Pressure Resource)
 
-**Owner:** Each musician\
-**Sources:**\
-- Audience abilities
-- Risky play
-- Overextension
+**Owner:** Each musician  
+**Range:** `0 … StressMax` (per musician)  
+**Default StressMax (MVP):** 10 *(tunable; content/balance-driven)*
 
-**Sinks:**\
+**Sources:**  
+- Audience abilities (main pressure channel)
+- Risky play / “overextension” (card costs, optional)
+- Encounter modifiers (future)
+
+**Sinks:**  
 - Recovery cards
-- **Composure** (absorbs incoming Stress before it is applied)
+- **Composure** *(absorbs incoming Stress before it is applied)*
 - Other defensive statuses (future)
 
-**Failure Pressure:**\
-- High Stress risks Breakdowns and persistent penalties.
+**Breakdown (MVP placeholder; explicit + telegraphed)**  
+Stress is not only a loss condition; it creates **threshold pressure**.
 
+**Trigger:** when `Stress >= StressMax` for any musician *(after Composure absorption)*.
+
+**Immediate effects (MVP):**  
+1) **Cohesion -1** (band-wide durability hit)  
+2) Set that musician’s `BreakdownState = Shaken` *(see below)*  
+3) Set that musician’s `Stress = ceil(StressMax / 2)` *(gives headroom; prevents instant re-trigger loops)*
+
+**Shaken (MVP):** lasts **until the end of the next Song**  
+- The musician **cannot play Action cards** in the Between-Songs window.  
+- Any Composure granted to that musician is **reduced by 50% (round down)**.
+
+> **Design intent:** Breakdown should feel like a **visible cliff** the player can plan around (telegraph + buffer via Composure), not a surprise punishment.
+
+**Future (Darkest Dungeon-style expansion):**  
+- Multiple Breakdown outcomes (virtue/affliction), barks, relationship effects, and persistent traits.
+
+
+------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
 
@@ -283,7 +309,7 @@ When applying incoming Stress `S` to a musician:
 - Sum or aggregate of SongHype results across all songs.
 
 **Usage:**\
-- Drives Fans, unlocks, rewards.
+- Drives meta rewards (reputation/fans, unlocks, upgrades).
 
 ------------------------------------------------------------------------
 
@@ -515,8 +541,11 @@ manipulation - Audience reactions - Stress pressure
 -   UI polish.
 -   Multiplayer concerns.
 -   Content scale.
+-   **Audience “Fan meter” / second health bar (Fan/Anti-Fan):** reserved for **special Audience Members** (mini-bosses, critics, VIPs), not part of the baseline contract.
+-   **Loop → Vibe conversion + Hype as spendable/gating resource:** remains a WIP variant (design-notes), not adopted into this authoritative contract yet.
 
 ------------------------------------------------------------------------
+
 
 ## 13. Glossary
 
@@ -531,6 +560,16 @@ manipulation - Audience reactions - Stress pressure
 -   **Flow:** Song/Band-scoped stackable that amplifies Loop → SongHype conversion for the active Song.
 -   **Composure:** Musician-scoped stackable that absorbs incoming Stress before it is applied.
 -   **Band-wide targeting helper (MVP):** Authoring/runtime shortcut that applies a Musician-scoped status to all musicians to simplify early balance.
+
+
+-   **StressMax:** Per-musician threshold that triggers a Breakdown.
+-   **Breakdown:** Stress threshold event that applies an immediate penalty (MVP: Cohesion -1 + Shaken) and resets Stress to half.
+-   **Shaken:** Post-Breakdown temporary state (MVP: can’t play Action cards; Composure gains halved) lasting until end of next Song.
+-   **Naming pass (STS analogs; optional vocabulary):**
+    - **Entranced (Audience):** “Vulnerable”-like audience state (future content; increases Vibe gained).
+    - **Exposed (Band):** “Vulnerable”-like band state (future content; increases Stress taken).
+    - **Hooked (Audience):** “Poison”-like audience state (future content; Vibe over time).
+    - **Insecure (Band):** “Weak”-like band state (future content; reduces Vibe dealt / performance impact).
 
 ------------------------------------------------------------------------
 
@@ -627,4 +666,3 @@ Cards may include advanced condition/targeting concepts such as:
 
 - **Groove** is deprecated. The only energy currency is **Inspiration** (Part A).
 - Legacy status lists (Inspired/Weakened/etc.) are removed from the baseline; MVP uses **Flow** and **Composure** only.
-

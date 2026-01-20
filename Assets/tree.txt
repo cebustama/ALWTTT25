@@ -2043,8 +2043,11 @@ D:.
 |   |   |       |   Robot_CardCatalogData.asset
 |   |   |       |   
 |   |   |       \---Cantante_Cards
+|   |   |           |   3_Action_001_Card.asset
 |   |   |           |   
 |   |   |           \---Payloads
+|   |   |                   3_Action_001_ActionPayload.asset
+|   |   |                   
 |   |   +---Containers
 |   |   |       Reward Container.asset
 |   |   |       Special Keyword.asset
@@ -2090,6 +2093,7 @@ D:.
 |   |   |       Card Reward Data.asset
 |   |   |       
 |   |   +---Settings
+|   |   |       ALWTTTProjectRegistries.asset
 |   |   |       Gameplay Settings.asset
 |   |   |       GigSetupConfig.asset
 |   |   |       MGP_Config.asset
@@ -2105,9 +2109,20 @@ D:.
 |   |   |       Song 4.asset
 |   |   |       Song 5.asset
 |   |   |       
-|   |   \---Sound
-|   |           ButtonSoundProfile.asset
-|   |           
+|   |   +---Sound
+|   |   |       ButtonSoundProfile.asset
+|   |   |       
+|   |   \---Status Effects
+|   |       |   CharacterStatusPrimitiveDatabase.asset
+|   |       |   StatusEffectCatalogue.asset
+|   |       |   
+|   |       \---Effects
+|   |               StatusEffect_DamageOverTime.asset
+|   |               StatusEffect_DamageTakenUpFlat.asset
+|   |               StatusEffect_DamageUpFlat.asset
+|   |               StatusEffect_DisableActions.asset
+|   |               StatusEffect_TempShieldTurn.asset
+|   |               
 |   +---ScriptableObjects
 |   |   |   
 |   |   +---Chord Progressions
@@ -2373,6 +2388,7 @@ D:.
 |   |       MidiGenPlayPanelController.cs
 |   |       
 |   +---Data
+|   |   |   ALWTTTProjectRegistriesSO.cs
 |   |   |   
 |   |   +---Audio
 |   |   |       SongData.cs
@@ -2465,7 +2481,6 @@ D:.
 |   |       RarityType.cs
 |   |       RewardType.cs
 |   |       SpecialKeywords.cs
-|   |       StatusType.cs
 |   |       VenueType.cs
 |   |       
 |   +---Extensions
@@ -2548,6 +2563,21 @@ D:.
 |   |   |       ICompositionContext.cs
 |   |   |       
 |   |   \---Musician Personalities
+|   +---Status
+|   |   |   CharacterStatusId.cs
+|   |   |   CharacterStatusPrimitiveDatabaseSO.cs
+|   |   |   StatusEffectActionData.cs
+|   |   |   StatusEffectCatalogueSO.cs
+|   |   |   StatusEffectSO.cs
+|   |   |   StatusType.cs
+|   |   |   
+|   |   +---Editor
+|   |   |       StatusEffectWizardWindow.cs
+|   |   |       
+|   |   \---Runtime
+|   |           StatusEffectContainer.cs
+|   |           StatusEffectInstance.cs
+|   |           
 |   +---UI
 |   |   |   BeatPulseIndicator.cs
 |   |   |   CardUI.cs

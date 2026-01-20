@@ -1,4 +1,5 @@
 using ALWTTT.Actions;
+using ALWTTT.Cards.Effects;
 using ALWTTT.Enums;
 using System.Collections.Generic;
 using UnityEngine;
@@ -64,18 +65,21 @@ namespace ALWTTT.Cards
                 if (overrideRequiresTargetSelection)
                     return requiresTargetSelectionOverrideValue;
 
-                // CSO status targeting (stored in CardPayload)
-                var statusActions = payload != null ? payload.StatusActions : null;
-                if (statusActions != null)
+                var effects = payload != null ? payload.Effects : null;
+                if (effects != null)
                 {
-                    for (int i = 0; i < statusActions.Count; i++)
+                    for (int i = 0; i < effects.Count; i++)
                     {
-                        var s = statusActions[i];
-                        switch (s.TargetType)
+                        var e = effects[i];
+
+                        if (e is ApplyStatusEffectSpec ase)
                         {
-                            case ActionTargetType.Musician:
-                            case ActionTargetType.AudienceCharacter:
-                                return true;
+                            switch (ase.targetType)
+                            {
+                                case ActionTargetType.Musician:
+                                case ActionTargetType.AudienceCharacter:
+                                    return true;
+                            }
                         }
                     }
                 }

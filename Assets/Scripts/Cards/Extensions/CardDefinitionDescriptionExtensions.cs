@@ -1,3 +1,4 @@
+using ALWTTT.Cards.Effects;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using System.Collections.Generic;
@@ -35,23 +36,33 @@ namespace ALWTTT.Cards
             ActionCardPayload payload,
             BandCharacterStats stats)
         {
-            var statusActions = payload != null ? payload.StatusActions : null;
-            if (statusActions == null || statusActions.Count == 0)
+            var effects = payload != null ? payload.Effects : null;
+            if (effects == null || effects.Count == 0)
                 return "No effects.";
 
-            // Parity with previous behavior: describe the first effect only (for now).
-            // TODO: Describe all status actions (and consider line breaks).
-            var sa = statusActions[0];
+            // Mantener parity: describir solo el primer efecto "relevante".
+            // Prioridad: ApplyStatusEffectSpec.
+            ApplyStatusEffectSpec ase = null;
 
-            // “SynergyText” concept no longer applies unless you want to scale stacks by stats.
-            // For now: show stacks delta as the primary magnitude.
-            var magnitudeText = sa.StacksDelta.ToString();
+            for (int i = 0; i < effects.Count; i++)
+            {
+                ase = effects[i] as ApplyStatusEffectSpec;
+                if (ase != null) break;
+            }
 
-            // EffectId is generic (ontology). DisplayName is thematic but lives on StatusEffectSO.
-            // Here we only have ids, so show EffectId.
-            // TODO: Access DisplayName
-            var effectText = sa.EffectId.ToString();
-            var targetText = sa.TargetType.ToString();
+            if (ase == null)
+                return $"Effects: {effects[0].GetType().Name}";
+
+            // stacksDelta
+            var magnitudeText = ase.stacksDelta.ToString();
+
+            // nombre/identidad del status
+            var effectText =
+                ase.status != null
+                    ? ase.status.EffectId.ToString()   // o DisplayName si quieres UX
+                    : "MissingStatus";
+
+            var targetText = ase.targetType.ToString();
 
             return $"Apply {magnitudeText} {effectText} to {targetText}";
         }

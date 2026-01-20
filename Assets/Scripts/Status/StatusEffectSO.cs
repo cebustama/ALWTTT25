@@ -12,8 +12,9 @@ namespace ALWTTT.Status
     /// A concrete ALWTTT status definition that references the CSO primitive via CharacterStatusId
     /// and adds gameplay-facing tuning parameters (stacking, decay, timing, etc.).
     ///
-    /// This asset should NOT duplicate ontology fields (Category / Abstract Function).
-    /// Instead, it cross-references the CharacterStatusPrimitiveDatabaseSO via EffectId.
+    /// NEW:
+    /// - statusKey: human-readable stable identifier used by JSON/tooling to reference a specific variant.
+    /// - isDefaultVariant: allows selecting a "default" variant when resolving by primitive id.
     /// </summary>
     [CreateAssetMenu(
         fileName = "StatusEffect",
@@ -21,6 +22,13 @@ namespace ALWTTT.Status
         order = 20)]
     public sealed class StatusEffectSO : ScriptableObject
     {
+        [Header("Identity (ALWTTT)")]
+        [Tooltip("Stable human-readable key for this specific status variant (e.g. 'strength', 'super_strength'). Used for JSON/tooling.")]
+        [SerializeField] private string statusKey;
+
+        [Tooltip("If multiple variants share the same EffectId, this marks the default one when resolving by primitive id.")]
+        [SerializeField] private bool isDefaultVariant = false;
+
         [Header("Identity (CSO)")]
         [SerializeField] private CharacterStatusId effectId;
 
@@ -49,6 +57,9 @@ namespace ALWTTT.Status
         // ─────────────────────────────────────────────────────────────────────────────
         // Public API (read-only)
         // ─────────────────────────────────────────────────────────────────────────────
+        public string StatusKey => statusKey;
+        public bool IsDefaultVariant => isDefaultVariant;
+
         public CharacterStatusId EffectId => effectId;
         public string DisplayName => displayName;
 
@@ -79,6 +90,13 @@ namespace ALWTTT.Status
             // Keep displayName sane
             if (string.IsNullOrWhiteSpace(displayName))
                 displayName = effectId.ToString();
+
+            // Ensure stable key exists (generate only if empty).
+            if (string.IsNullOrWhiteSpace(statusKey))
+                statusKey = GenerateSuggestedKey(displayName);
+
+            // Basic hygiene: normalize key to slug-ish format (do not change if user intentionally set it).
+            statusKey = NormalizeKey(statusKey);
 
             if (maxStacks < 1) maxStacks = 1;
 
@@ -113,6 +131,56 @@ namespace ALWTTT.Status
 
             var path = AssetDatabase.GUIDToAssetPath(guids[0]);
             return AssetDatabase.LoadAssetAtPath<CharacterStatusPrimitiveDatabaseSO>(path);
+        }
+
+        private static string GenerateSuggestedKey(string input)
+        {
+            // Prefer displayName, fallback to something stable-ish.
+            if (string.IsNullOrWhiteSpace(input)) input = "status";
+            return NormalizeKey(input);
+        }
+
+        private static string NormalizeKey(string key)
+        {
+            // Lowercase + keep [a-z0-9_] + convert spaces/dashes to underscore.
+            key = key.Trim().ToLowerInvariant();
+
+            char[] buf = new char[key.Length];
+            int j = 0;
+            bool lastWasUnderscore = false;
+
+            for (int i = 0; i < key.Length; i++)
+            {
+                char c = key[i];
+
+                bool isAlpha = (c >= 'a' && c <= 'z');
+                bool isNum = (c >= '0' && c <= '9');
+
+                if (isAlpha || isNum)
+                {
+                    buf[j++] = c;
+                    lastWasUnderscore = false;
+                    continue;
+                }
+
+                // treat spaces/dashes/slashes as underscore
+                if (c == ' ' || c == '-' || c == '/' || c == '\\')
+                {
+                    if (!lastWasUnderscore && j > 0)
+                    {
+                        buf[j++] = '_';
+                        lastWasUnderscore = true;
+                    }
+                    continue;
+                }
+
+                // ignore everything else (punctuation, accents, etc.)
+            }
+
+            // Trim trailing underscore
+            while (j > 0 && buf[j - 1] == '_') j--;
+
+            return j == 0 ? "status" : new string(buf, 0, j);
         }
 #endif
     }

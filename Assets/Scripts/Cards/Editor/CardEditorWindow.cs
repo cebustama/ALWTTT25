@@ -1,4 +1,5 @@
 ﻿#if UNITY_EDITOR
+using ALWTTT.Cards.Effects;
 using ALWTTT.Enums;
 using ALWTTT.Musicians;
 using ALWTTT.Status;
@@ -13,6 +14,8 @@ namespace ALWTTT.Cards.Editor
     {
         private const float LeftPanelMinWidth = 340f;
         private const float RightPanelMinWidth = 380f;
+
+        [SerializeField] private ALWTTTProjectRegistriesSO _registries;
 
         [SerializeField] private MusicianCharacterType _selectedMusician = MusicianCharacterType.None;
 
@@ -79,11 +82,14 @@ namespace ALWTTT.Cards.Editor
 
         private void OnEnable()
         {
+            ResolveRegistries();
             RefreshMusicianCache();
         }
 
+
         private void OnProjectChange()
         {
+            ResolveRegistries();
             RefreshMusicianCache();
             Repaint();
         }
@@ -110,40 +116,116 @@ namespace ALWTTT.Cards.Editor
             }
         }
 
+        private void ResolveRegistries(bool force = false)
+        {
+            if (!force && _registries != null) return;
+
+            // 1) Preferred: Resources (runtime-safe pattern)
+            _registries = ALWTTTProjectRegistriesSO.FindInResources();
+
+            if (_registries != null) return;
+
+            // 2) Editor fallback: locate it once via AssetDatabase (avoids manual wiring)
+            string[] guids = AssetDatabase.FindAssets("t:ALWTTTProjectRegistriesSO");
+
+            if (guids != null && guids.Length > 1)
+                Debug.LogWarning($"[CardEditorWindow] " +
+                    $"Multiple ALWTTTProjectRegistriesSO found ({guids.Length}). " +
+                    $"Using the first one.", this);
+
+            if (guids != null && guids.Length > 0)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                _registries = AssetDatabase.LoadAssetAtPath<ALWTTTProjectRegistriesSO>(path);
+            }
+        }
 
         private void DrawToolbar()
         {
-            using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
+            // Wrap the toolbar row + the warning under it.
+            using (new EditorGUILayout.VerticalScope())
             {
-                GUILayout.Label("Musician:", GUILayout.Width(62));
-
-                var newMusician = (MusicianCharacterType)EditorGUILayout.EnumPopup(
-                    _selectedMusician,
-                    EditorStyles.toolbarPopup,
-                    GUILayout.Width(180));
-
-                if (newMusician != _selectedMusician)
+                using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
                 {
-                    _selectedMusician = newMusician;
-                    _loadedMusicianData = null;
-                    _loadedCatalog = null;
-                    _selectedEntryIndex = -1;
-                    _cardToAdd = null;
-                    Repaint();
+                    // ─────────────────────────────────────────────────────────────
+                    // Musician selection
+                    // ─────────────────────────────────────────────────────────────
+                    GUILayout.Label("Musician:", GUILayout.Width(62));
+
+                    var newMusician = (MusicianCharacterType)EditorGUILayout.EnumPopup(
+                        _selectedMusician,
+                        EditorStyles.toolbarPopup,
+                        GUILayout.Width(180));
+
+                    if (newMusician != _selectedMusician)
+                    {
+                        _selectedMusician = newMusician;
+                        _loadedMusicianData = null;
+                        _loadedCatalog = null;
+                        _selectedEntryIndex = -1;
+                        _cardToAdd = null;
+                        Repaint();
+                    }
+
+                    GUILayout.FlexibleSpace();
+
+                    // ─────────────────────────────────────────────────────────────
+                    // Actions
+                    // ─────────────────────────────────────────────────────────────
+                    using (new EditorGUI.DisabledScope(_selectedMusician == 
+                        MusicianCharacterType.None))
+                    {
+                        if (GUILayout.Button("Load", 
+                            EditorStyles.toolbarButton, GUILayout.Width(60)))
+                            TryLoadSelectedMusicianAndCatalog();
+                    }
+
+                    if (GUILayout.Button("Refresh", 
+                        EditorStyles.toolbarButton, GUILayout.Width(70)))
+                        RefreshMusicianCache();
+
+                    // ─────────────────────────────────────────────────────────────
+                    // Project Registries (Option 2)
+                    // ─────────────────────────────────────────────────────────────
+                    GUILayout.Space(10);
+                    GUILayout.Label("Registries:", GUILayout.Width(68));
+
+                    _registries = (ALWTTTProjectRegistriesSO)EditorGUILayout.ObjectField(
+                        _registries,
+                        typeof(ALWTTTProjectRegistriesSO),
+                        false,
+                        GUILayout.Width(240));
+
+                    using (new EditorGUI.DisabledScope(_registries != null))
+                    {
+                        if (GUILayout.Button("Find", 
+                            EditorStyles.toolbarButton, GUILayout.Width(45)))
+                        {
+                            ResolveRegistries(force: true);
+                            Repaint();
+                        }
+                    }
+
+                    using (new EditorGUI.DisabledScope(_registries == null))
+                    {
+                        if (GUILayout.Button("Ping", 
+                            EditorStyles.toolbarButton, GUILayout.Width(45)))
+                            EditorGUIUtility.PingObject(_registries);
+                    }
                 }
 
-                GUILayout.FlexibleSpace();
-
-                using (new EditorGUI.DisabledScope(_selectedMusician == MusicianCharacterType.None))
+                if (_registries != null && (_registries.StatusCatalogue == null || _registries.CSO == null))
                 {
-                    if (GUILayout.Button("Load", EditorStyles.toolbarButton, GUILayout.Width(60)))
-                        TryLoadSelectedMusicianAndCatalog();
+                    EditorGUILayout.HelpBox(
+                        "ALWTTTProjectRegistriesSO is assigned but missing " +
+                        "CSO and/or StatusCatalogue references.\n" +
+                        "Open the registries asset and assign the missing fields.",
+                        MessageType.Warning);
                 }
-
-                if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(70)))
-                    RefreshMusicianCache();
             }
         }
+
+
 
         private void DrawLeftPanel(float width)
         {
@@ -241,6 +323,10 @@ namespace ALWTTT.Cards.Editor
                         _filterStarterOnly = false;
                         _filterRewardOnly = false;
                         _filterLockedOnly = false;
+
+                        _filterByStatusId = false;
+                        _filterStatusId = CharacterStatusId.DamageUpFlat;
+
                         Repaint();
                     }
 
@@ -251,6 +337,10 @@ namespace ALWTTT.Cards.Editor
                         _filterStarterOnly = false;
                         _filterRewardOnly = false;
                         _filterLockedOnly = false;
+
+                        _filterByStatusId = false;
+                        _filterStatusId = CharacterStatusId.DamageUpFlat;
+
                         _selectedEntryIndex = -1;
                         Repaint();
                     }
@@ -276,6 +366,7 @@ namespace ALWTTT.Cards.Editor
                 }
             }
         }
+
 
         private void DrawNoCatalogLoaded()
         {
@@ -429,15 +520,16 @@ namespace ALWTTT.Cards.Editor
                 var payload = e.card.Payload;
                 if (payload == null) return false;
 
-                var actions = payload.StatusActions;
+                var effects = payload.Effects;
                 bool found = false;
 
-                if (actions != null)
+                if (effects != null)
                 {
-                    for (int i = 0; i < actions.Count; i++)
+                    for (int i = 0; i < effects.Count; i++)
                     {
-                        var a = actions[i];
-                        if (a != null && a.EffectId == _filterStatusId)
+                        if (effects[i] is ApplyStatusEffectSpec ase &&
+                            ase.status != null &&
+                            ase.status.EffectId == _filterStatusId)
                         {
                             found = true;
                             break;
@@ -1058,8 +1150,8 @@ namespace ALWTTT.Cards.Editor
             var timingProp = so.FindProperty("actionTiming");
             var conditionsProp = so.FindProperty("conditions");
 
-            // ✅ CSO: base payload status actions
-            var statusActionsProp = so.FindProperty("statusActions");
+            // ✅ NEW: polymorphic card effects (SerializeReference list on CardPayload base)
+            var effectsProp = so.FindProperty("effects");
 
             EditorGUI.BeginChangeCheck();
 
@@ -1067,7 +1159,7 @@ namespace ALWTTT.Cards.Editor
             EditorGUILayout.PropertyField(conditionsProp, includeChildren: true);
 
             EditorGUILayout.Space(8);
-            DrawStatusActionsBlock(statusActionsProp); // new helper below
+            DrawEffectsBlock(effectsProp, _registries?.StatusCatalogue);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -1081,6 +1173,7 @@ namespace ALWTTT.Cards.Editor
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
         }
+
         private void DrawCompositionPayloadEditor(CompositionCardPayload payload)
         {
             if (payload == null) return;
@@ -1093,8 +1186,8 @@ namespace ALWTTT.Cards.Editor
             var partActionProp = so.FindProperty("partAction");
             var modifierEffectsProp = so.FindProperty("modifierEffects");
 
-            // ✅ CSO: base payload status actions
-            var statusActionsProp = so.FindProperty("statusActions");
+            // ✅ NEW: polymorphic card effects (SerializeReference list on CardPayload base)
+            var effectsProp = so.FindProperty("effects");
 
             EditorGUI.BeginChangeCheck();
 
@@ -1104,7 +1197,7 @@ namespace ALWTTT.Cards.Editor
             EditorGUILayout.PropertyField(modifierEffectsProp, includeChildren: true);
 
             EditorGUILayout.Space(8);
-            DrawStatusActionsBlock(statusActionsProp);
+            DrawEffectsBlock(effectsProp, _registries?.StatusCatalogue);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -1119,35 +1212,37 @@ namespace ALWTTT.Cards.Editor
             }
         }
 
-        private static void DrawStatusActionsBlock(SerializedProperty statusActionsProp)
+
+        private static void DrawEffectsBlock(SerializedProperty effectsProp, StatusEffectCatalogueSO catalogue)
         {
-            if (statusActionsProp == null)
+            if (effectsProp == null)
             {
                 EditorGUILayout.HelpBox(
-                    "StatusActions list not found (expected private field 'statusActions' on CardPayload).",
+                    "Effects list not found (expected private field 'effects' on CardPayload).",
                     MessageType.Error);
                 return;
             }
 
-            EditorGUILayout.LabelField("Status Actions (CSO)", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(statusActionsProp, includeChildren: true);
+            // No header here → avoids repeating [Header(...)] in CardPayload
+            EditorGUILayout.PropertyField(effectsProp, includeChildren: true);
 
-            // Optional tiny validation: catch invalid enum backing values (like 0).
-            for (int i = 0; i < statusActionsProp.arraySize; i++)
+            // Minimal validation: if an effect has a 'status' field (ApplyStatusEffectSpec), require non-null.
+            for (int i = 0; i < effectsProp.arraySize; i++)
             {
-                var el = statusActionsProp.GetArrayElementAtIndex(i);
-                var effectIdProp = el?.FindPropertyRelative("effectId");
-                if (effectIdProp == null) continue;
+                var el = effectsProp.GetArrayElementAtIndex(i);
+                if (el == null) continue;
 
-                int raw = effectIdProp.intValue;
-                if (!System.Enum.IsDefined(typeof(CharacterStatusId), raw))
+                var statusProp = el.FindPropertyRelative("status");
+                if (statusProp != null && statusProp.objectReferenceValue == null)
                 {
                     EditorGUILayout.HelpBox(
-                        $"Row {i}: EffectId has invalid value '{raw}'. Pick a valid CharacterStatusId.",
+                        $"Row {i}: ApplyStatusEffectSpec has null 'status' reference.",
                         MessageType.Warning);
                 }
             }
         }
+
+
 
         // --- Loading ----------------------------------------------------------
 

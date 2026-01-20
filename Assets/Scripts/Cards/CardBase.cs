@@ -1,4 +1,5 @@
 ﻿using ALWTTT.Cards;
+using ALWTTT.Cards.Effects;
 using ALWTTT.Characters;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
@@ -117,8 +118,8 @@ namespace ALWTTT
             SpendInspiration(CardDefinition.InspirationCost);
             GenerateInspiration(CardDefinition.InspirationGenerated);
 
-            // Status actions pipeline (StatusEffectActionData)
-            yield return ExecuteStatusActions(
+            // Effects pipeline (CardEffectSpec via [SerializeReference])
+            yield return ExecuteEffects(
                 performer, target,
                 allAudienceCharacters, allBandCharacters
             );
@@ -126,95 +127,98 @@ namespace ALWTTT
             DeckManager.OnCardPlayed(this);
         }
 
-        private IEnumerator ExecuteStatusActions(
-            CharacterBase performer,
-            CharacterBase primaryTarget,
-            List<AudienceCharacterBase> allAudienceCharacters,
-            List<MusicianBase> allBandCharacters)
+        private IEnumerator ExecuteEffects(
+    CharacterBase performer,
+    CharacterBase primaryTarget,
+    List<AudienceCharacterBase> allAudienceCharacters,
+    List<MusicianBase> allBandCharacters)
         {
             var payload = CardDefinition != null ? CardDefinition.Payload : null;
-            var statusActions = payload != null ? payload.StatusActions : null;
+            var effects = payload != null ? payload.Effects : null;
 
-            if (statusActions == null || statusActions.Count == 0)
+            if (effects == null || effects.Count == 0)
                 yield break;
 
-            // Prefer performer catalogue (authoritative “owner”), fallback to target.
-            var catalogue = (performer != null ? performer.StatusCatalogue : null)
-                            ?? (primaryTarget != null ? primaryTarget.StatusCatalogue : null);
-
-            if (catalogue == null)
+            for (int i = 0; i < effects.Count; i++)
             {
-                Debug.LogWarning(
-                    $"[CardBase] Card '{CardDefinition?.name}' has StatusActions but no StatusEffectCatalogueSO found. " +
-                    $"Assign it on the performer/target CharacterBase (StatusCatalogue field).");
-                yield break;
-            }
+                var effect = effects[i];
+                if (effect == null) continue;
 
-            for (int i = 0; i < statusActions.Count; i++)
-            {
-                var sa = statusActions[i];
-                if (sa == null) continue;
-                if (sa.StacksDelta == 0) continue;
-
-                if (sa.Delay > 0f)
-                    yield return new WaitForSeconds(sa.Delay);
-
-                // Resolve targets using same ActionTargetType rules.
-                var targets = DetermineTargets(
-                    primaryTarget,
-                    allAudienceCharacters,
-                    allBandCharacters,
-                    sa.TargetType);
-
-                // Resolve definition from catalogue (source of truth).
-                StatusEffectSO def;
-                try
+                if (effect is ApplyStatusEffectSpec ase)
                 {
-                    def = catalogue.GetOrThrow(sa.EffectId);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(
-                        $"[CardBase] Missing StatusEffectSO for id '{sa.EffectId}' in catalogue '{catalogue.name}'. " +
-                        $"Card='{CardDefinition?.name}'. Exception: {e.Message}");
-                    continue;
-                }
+                    if (ase.stacksDelta == 0) continue;
 
-                for (int t = 0; t < targets.Count; t++)
-                {
-                    var trg = targets[t];
-                    if (trg == null) continue;
+                    if (ase.delay > 0f)
+                        yield return new WaitForSeconds(ase.delay);
 
-                    if (trg.Statuses == null)
+                    if (ase.status == null)
                     {
-                        Debug.LogWarning(
-                            $"[CardBase] Target '{trg.name}' has no Statuses container. " +
-                            $"Did Step 3 (CharacterBase.Statuses) run?");
+                        Debug.LogError(
+                            $"[CardBase] ApplyStatusEffectSpec has null StatusEffectSO. Card='{CardDefinition?.name}'.");
                         continue;
                     }
 
-                    trg.Statuses.Apply(def, sa.StacksDelta);
+                    var targets = DetermineTargets(
+                        performer,
+                        primaryTarget,
+                        allAudienceCharacters,
+                        allBandCharacters,
+                        ase.targetType);
+
+                    for (int t = 0; t < targets.Count; t++)
+                    {
+                        var trg = targets[t];
+                        if (trg == null) continue;
+
+                        if (trg.Statuses == null)
+                        {
+                            Debug.LogWarning(
+                                $"[CardBase] Target '{trg.name}' has no Statuses container. Card='{CardDefinition?.name}'.");
+                            continue;
+                        }
+
+                        trg.Statuses.Apply(ase.status, ase.stacksDelta);
 
 #if UNITY_EDITOR
-                    Debug.Log(
-                        $"[StatusActions] {performer?.name} applied {sa.StacksDelta}x '{def.EffectId}' to {trg.name} " +
-                        $"via card '{CardDefinition?.DisplayName}'.");
+                        Debug.Log(
+                            $"[Effects] {performer?.name} applied {ase.stacksDelta}x '{ase.status.EffectId}' to {trg.name} " +
+                            $"via card '{CardDefinition?.DisplayName}'.");
 #endif
+                    }
+
+                    continue;
                 }
+
+                if (effect is DrawCardsSpec draw)
+                {
+                    // No invento API de DeckManager aquí. Deja stub + log.
+                    Debug.LogWarning(
+                        $"[CardBase] DrawCardsSpec present (count={draw.count}) but runtime execution not implemented yet. " +
+                        $"Card='{CardDefinition?.name}'.");
+                    continue;
+                }
+
+                Debug.LogWarning(
+                    $"[CardBase] Unhandled CardEffectSpec type '{effect.GetType().Name}'. Card='{CardDefinition?.name}'.");
             }
         }
 
-        // Overload target resolution for status actions (ActionTargetType only)
         private List<CharacterBase> DetermineTargets(
-            CharacterBase targetCharacter,
-            List<AudienceCharacterBase> allAudienceCharacters,
-            List<MusicianBase> allBandCharacters,
-            ActionTargetType targetType)
+    CharacterBase performer,
+    CharacterBase targetCharacter,
+    List<AudienceCharacterBase> allAudienceCharacters,
+    List<MusicianBase> allBandCharacters,
+    ActionTargetType targetType)
         {
             var targetList = new List<CharacterBase>();
 
             switch (targetType)
             {
+                case ActionTargetType.Self:
+                    if (performer != null)
+                        targetList.Add(performer);
+                    break;
+
                 case ActionTargetType.AudienceCharacter:
                 case ActionTargetType.Musician:
                     if (targetCharacter != null)
@@ -244,13 +248,13 @@ namespace ALWTTT
                     break;
 
                 default:
-                    // If you later add more ActionTargetType values, this will force you to decide behavior.
-                    Debug.LogWarning($"[CardBase] Unhandled ActionTargetType for StatusActions: {targetType}");
+                    Debug.LogWarning($"[CardBase] Unhandled ActionTargetType for Effects: {targetType}");
                     break;
             }
 
             return targetList;
         }
+
 
         protected virtual IEnumerator DiscardRoutine(bool destroy = true)
         {

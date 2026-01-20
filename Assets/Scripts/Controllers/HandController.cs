@@ -1,4 +1,5 @@
 ﻿using ALWTTT.Cards;
+using ALWTTT.Cards.Effects;
 using ALWTTT.Characters;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
@@ -688,7 +689,8 @@ namespace ALWTTT
             return null;
         }
 
-        private bool TryResolveCardTarget(Ray ray, CardDefinition data, out CharacterBase targetCharacter)
+        private bool TryResolveCardTarget(
+            Ray ray, CardDefinition data, out CharacterBase targetCharacter)
         {
             targetCharacter = null;
 
@@ -719,24 +721,26 @@ namespace ALWTTT
             }
 
             // CSO-based validation:
-            // If the card only has single-target status actions for musicians, require musician.
+            // If the card only has single-target status actions for musicians,
+            // require musician.
             // If only for audience, require audience.
             // If both (or neither), accept either.
             var expectsMusicianSingle = false;
             var expectsAudienceSingle = false;
 
             var payload = data.Payload;
-            var statusActions = payload != null ? payload.StatusActions : null;
+            var effects = payload != null ? payload.Effects : null;
 
-            if (statusActions != null)
+            if (effects != null)
             {
-                for (int i = 0; i < statusActions.Count; i++)
+                for (int i = 0; i < effects.Count; i++)
                 {
-                    var sa = statusActions[i];
-                    if (sa == null) continue;
+                    if (effects[i] is not ApplyStatusEffectSpec ase)
+                        continue;
 
-                    // Only enforce type for SINGLE-target modes.
-                    switch (sa.TargetType)
+                    // si no tiene status asignado, igual “cuenta” para targeting
+                    // (porque el diseñador intenta targetear algo)
+                    switch (ase.targetType)
                     {
                         case ActionTargetType.Musician:
                             expectsMusicianSingle = true;
