@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.bcs.llm-core": "file:D:/Projects/LLM Interaction Core/Packages/com.BCS.llm-core",
     "com.claudiobustamante.midigenplay": "file:D:/Projects/MidiGenPlay/MidiGenPlay",
     "com.unity.collab-proxy": "2.10.2",
     "com.unity.feature.2d": "2.0.2",

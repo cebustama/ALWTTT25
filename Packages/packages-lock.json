@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.bcs.llm-core": {
+      "version": "file:D:/Projects/LLM Interaction Core/Packages/com.BCS.llm-core",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      }
+    },
     "com.claudiobustamante.midigenplay": {
       "version": "file:D:/Projects/MidiGenPlay/MidiGenPlay",
       "depth": 0,
@@ -217,6 +225,13 @@
     "com.unity.nuget.mono-cecil": {
       "version": "1.11.6",
       "depth": 3,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.2.2",
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"

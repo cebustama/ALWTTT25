@@ -1212,6 +1212,7 @@ namespace ALWTTT.Cards.Editor
             }
         }
 
+        private static bool _effectsFoldout = true;
 
         private static void DrawEffectsBlock(SerializedProperty effectsProp, StatusEffectCatalogueSO catalogue)
         {
@@ -1223,25 +1224,204 @@ namespace ALWTTT.Cards.Editor
                 return;
             }
 
-            // No header here → avoids repeating [Header(...)] in CardPayload
-            EditorGUILayout.PropertyField(effectsProp, includeChildren: true);
-
-            // Minimal validation: if an effect has a 'status' field (ApplyStatusEffectSpec), require non-null.
-            for (int i = 0; i < effectsProp.arraySize; i++)
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                var el = effectsProp.GetArrayElementAtIndex(i);
-                if (el == null) continue;
+                _effectsFoldout = EditorGUILayout.Foldout(
+                    _effectsFoldout,
+                    $"Effects (New) ({effectsProp.arraySize})",
+                    toggleOnLabelClick: true);
 
-                var statusProp = el.FindPropertyRelative("status");
-                if (statusProp != null && statusProp.objectReferenceValue == null)
+                if (!_effectsFoldout)
+                    return;
+
+                EditorGUI.indentLevel++;
+
+                // Render elements with small helper controls.
+                for (int i = 0; i < effectsProp.arraySize; i++)
                 {
-                    EditorGUILayout.HelpBox(
-                        $"Row {i}: ApplyStatusEffectSpec has null 'status' reference.",
-                        MessageType.Warning);
+                    var el = effectsProp.GetArrayElementAtIndex(i);
+                    if (el == null) continue;
+
+                    using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                    {
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            GUILayout.Label(BuildEffectLabel(el, i), EditorStyles.boldLabel);
+
+                            GUILayout.FlexibleSpace();
+
+                            using (new EditorGUI.DisabledScope(i == 0))
+                            {
+                                if (GUILayout.Button("↑", GUILayout.Width(26)))
+                                {
+                                    effectsProp.MoveArrayElement(i, i - 1);
+                                    GUI.changed = true;
+                                }
+                            }
+
+                            using (new EditorGUI.DisabledScope(i == effectsProp.arraySize - 1))
+                            {
+                                if (GUILayout.Button("↓", GUILayout.Width(26)))
+                                {
+                                    effectsProp.MoveArrayElement(i, i + 1);
+                                    GUI.changed = true;
+                                }
+                            }
+
+                            if (GUILayout.Button("Remove", GUILayout.Width(70)))
+                            {
+                                effectsProp.DeleteArrayElementAtIndex(i);
+                                GUI.changed = true;
+                                break; // stop rendering (array changed)
+                            }
+                        }
+
+                        DrawEffectFields(el, catalogue, i);
+                    }
                 }
+
+                EditorGUILayout.Space(4);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUILayout.FlexibleSpace();
+
+                    if (GUILayout.Button("Add Effect…", GUILayout.Width(120)))
+                    {
+                        var menu = new GenericMenu();
+                        menu.AddItem(new GUIContent("Apply Status Effect"), false,
+                            () => AddEffect(effectsProp, new ApplyStatusEffectSpec()));
+                        menu.AddItem(new GUIContent("Draw Cards"), false,
+                            () => AddEffect(effectsProp, new DrawCardsSpec()));
+                        menu.ShowAsContext();
+                    }
+                }
+
+                EditorGUI.indentLevel--;
             }
         }
 
+        private static void AddEffect(SerializedProperty effectsProp, CardEffectSpec instance)
+        {
+            if (effectsProp == null || instance == null) return;
+
+            int idx = effectsProp.arraySize;
+            effectsProp.InsertArrayElementAtIndex(idx);
+            var el = effectsProp.GetArrayElementAtIndex(idx);
+            el.managedReferenceValue = instance;
+
+            // Important: buttons don't always trigger EndChangeCheck unless we mark GUI.changed.
+            GUI.changed = true;
+        }
+
+        private static string BuildEffectLabel(SerializedProperty el, int index)
+        {
+            // managedReferenceFullTypename: "AssemblyName TypeName"
+            var full = el.managedReferenceFullTypename ?? string.Empty;
+            var typeName = full;
+            int space = full.IndexOf(' ');
+            if (space >= 0 && space < full.Length - 1)
+                typeName = full.Substring(space + 1);
+
+            // strip namespace for readability
+            int lastDot = typeName.LastIndexOf('.');
+            if (lastDot >= 0 && lastDot < typeName.Length - 1)
+                typeName = typeName.Substring(lastDot + 1);
+
+            // Special labels when possible
+            if (typeName == nameof(DrawCardsSpec))
+            {
+                var countProp = el.FindPropertyRelative("count");
+                int c = countProp != null ? countProp.intValue : 0;
+                return $"[{index}] DrawCards x{c}";
+            }
+
+            if (typeName == nameof(ApplyStatusEffectSpec))
+            {
+                var statusProp = el.FindPropertyRelative("status");
+                var so = statusProp != null ? statusProp.objectReferenceValue as StatusEffectSO : null;
+                string name = so != null ? (string.IsNullOrWhiteSpace(so.DisplayName) ? so.name : so.DisplayName) : "<null>";
+                return $"[{index}] ApplyStatus: {name}";
+            }
+
+            return $"[{index}] {typeName}";
+        }
+
+        private static void DrawEffectFields(SerializedProperty el, StatusEffectCatalogueSO catalogue, int row)
+        {
+            // ApplyStatusEffectSpec: show a catalogue-backed picker (DisplayName), and validate.
+            var statusProp = el.FindPropertyRelative("status");
+            if (statusProp != null)
+            {
+                DrawStatusEffectPicker(statusProp, catalogue);
+
+                if (statusProp.objectReferenceValue == null)
+                {
+                    EditorGUILayout.HelpBox(
+                        $"Row {row}: ApplyStatusEffectSpec requires a non-null StatusEffectSO reference.",
+                        MessageType.Warning);
+                }
+
+                // Show remaining fields
+                var targetProp = el.FindPropertyRelative("targetType");
+                var stacksProp = el.FindPropertyRelative("stacksDelta");
+                var delayProp = el.FindPropertyRelative("delay");
+
+                if (targetProp != null) EditorGUILayout.PropertyField(targetProp);
+                if (stacksProp != null) EditorGUILayout.PropertyField(stacksProp);
+                if (delayProp != null) EditorGUILayout.PropertyField(delayProp);
+
+                return;
+            }
+
+            // Default fallback: just draw children (works for simple specs like DrawCardsSpec)
+            EditorGUILayout.PropertyField(el, includeChildren: true);
+        }
+
+        private static void DrawStatusEffectPicker(SerializedProperty statusProp, StatusEffectCatalogueSO catalogue)
+        {
+            // If no catalogue, fall back to a plain object field.
+            if (catalogue == null || catalogue.Effects == null || catalogue.Effects.Count == 0)
+            {
+                EditorGUILayout.PropertyField(statusProp);
+                return;
+            }
+
+            // Filter nulls for a cleaner UX
+            var raw = catalogue.Effects;
+            var list = new System.Collections.Generic.List<StatusEffectSO>(raw.Count);
+            for (int i = 0; i < raw.Count; i++)
+                if (raw[i] != null) list.Add(raw[i]);
+
+            if (list.Count == 0)
+            {
+                EditorGUILayout.PropertyField(statusProp);
+                return;
+            }
+
+            var options = new string[list.Count + 1];
+            options[0] = "<None>";
+
+            int current = 0;
+            var currentObj = statusProp.objectReferenceValue as StatusEffectSO;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var e = list[i];
+                string name = string.IsNullOrWhiteSpace(e.DisplayName) ? e.name : e.DisplayName;
+                options[i + 1] = name;
+
+                if (currentObj == e)
+                    current = i + 1;
+            }
+
+            int next = EditorGUILayout.Popup("Status", current, options);
+            if (next != current)
+            {
+                statusProp.objectReferenceValue = next <= 0 ? null : list[next - 1];
+                GUI.changed = true;
+            }
+        }
 
 
         // --- Loading ----------------------------------------------------------
