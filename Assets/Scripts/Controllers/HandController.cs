@@ -154,6 +154,8 @@ namespace ALWTTT
         /// </summary>
         public void AddCardToHand(CardBase card, int index = -1)
         {
+            Debug.Log($"{DebugTag} Adding card {card.CardDefinition.DisplayName} to hand");
+
             if (index < 0)
             {
                 // Add to end

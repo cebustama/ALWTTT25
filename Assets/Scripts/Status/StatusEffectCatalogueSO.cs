@@ -36,19 +36,27 @@ namespace ALWTTT.Status
 
         public IReadOnlyList<StatusEffectSO> Effects => _effects;
 
+        private static string NormalizeKey(string s)
+        {
+            return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        }
+
         // ─────────────────────────────────────────────────────────────────────────────
         // Key-based API (new)
         // ─────────────────────────────────────────────────────────────────────────────
         public bool ContainsKey(string statusKey)
         {
             EnsureCache();
-            return !string.IsNullOrWhiteSpace(statusKey) && _byKey.ContainsKey(statusKey);
+            statusKey = NormalizeKey(statusKey);
+            return statusKey != null && _byKey.ContainsKey(statusKey);
         }
 
         public bool TryGetByKey(string statusKey, out StatusEffectSO effect)
         {
             EnsureCache();
-            if (string.IsNullOrWhiteSpace(statusKey))
+
+            statusKey = NormalizeKey(statusKey);
+            if (statusKey == null)
             {
                 effect = null;
                 return false;
@@ -125,7 +133,8 @@ namespace ALWTTT.Status
         {
             if (_cacheBuilt) return;
 
-            _byKey = new Dictionary<string, StatusEffectSO>(StringComparer.Ordinal);
+            // IMPORTANT: keys are treated as case-insensitive + trimmed.
+            _byKey = new Dictionary<string, StatusEffectSO>(StringComparer.OrdinalIgnoreCase);
             _byPrimitive = new Dictionary<CharacterStatusId, List<StatusEffectSO>>(capacity: Mathf.Max(16, _effects.Count));
             _defaultByPrimitive = new Dictionary<CharacterStatusId, StatusEffectSO>(capacity: Mathf.Max(16, _effects.Count));
 
@@ -138,11 +147,12 @@ namespace ALWTTT.Status
                 if (e == null) continue;
 
                 // Index by key (unique)
-                if (!string.IsNullOrWhiteSpace(e.StatusKey))
+                var key = NormalizeKey(e.StatusKey);
+                if (key != null)
                 {
                     // First one wins; duplicates are flagged in OnValidate.
-                    if (!_byKey.ContainsKey(e.StatusKey))
-                        _byKey.Add(e.StatusKey, e);
+                    if (!_byKey.ContainsKey(key))
+                        _byKey.Add(key, e);
                 }
 
                 // Index by primitive (variants)
@@ -179,8 +189,10 @@ namespace ALWTTT.Status
             // - Duplicate StatusKey is NOT allowed (hard error).
             // - Multiple variants per primitive (EffectId) are allowed.
             // - Multiple defaults for the same primitive: warning.
+            //
+            // NOTE: StatusKey uniqueness is enforced case-insensitively and after trimming.
 
-            var seenKeys = new Dictionary<string, StatusEffectSO>(StringComparer.Ordinal);
+            var seenKeys = new Dictionary<string, StatusEffectSO>(StringComparer.OrdinalIgnoreCase);
             var defaultCount = new Dictionary<CharacterStatusId, int>();
             var seenAssets = new HashSet<StatusEffectSO>();
 
@@ -196,7 +208,8 @@ namespace ALWTTT.Status
                         this);
                 }
 
-                if (string.IsNullOrWhiteSpace(e.StatusKey))
+                var key = NormalizeKey(e.StatusKey);
+                if (key == null)
                 {
                     Debug.LogError(
                         $"[StatusEffectCatalogue] StatusEffectSO '{e.name}' has an empty StatusKey. " +
@@ -205,16 +218,16 @@ namespace ALWTTT.Status
                 }
                 else
                 {
-                    if (seenKeys.TryGetValue(e.StatusKey, out var existing) && existing != e)
+                    if (seenKeys.TryGetValue(key, out var existing) && existing != e)
                     {
                         Debug.LogError(
-                            $"[StatusEffectCatalogue] Duplicate StatusKey '{e.StatusKey}' in catalogue '{name}'. " +
-                            $"Conflicts: '{existing.name}' and '{e.name}'. StatusKey must be unique.",
+                            $"[StatusEffectCatalogue] Duplicate StatusKey '{key}' in catalogue '{name}'. " +
+                            $"Conflicts: '{existing.name}' and '{e.name}'. StatusKey must be unique (case-insensitive, trimmed).",
                             this);
                     }
                     else
                     {
-                        seenKeys[e.StatusKey] = e;
+                        seenKeys[key] = e;
                     }
                 }
 
@@ -255,12 +268,24 @@ namespace ALWTTT.Status
             if (effect == null) return false;
             if (_effects.Contains(effect)) return false;
 
-            // Prevent duplicate keys:
+            // Prevent duplicate keys (case-insensitive, trimmed)
+            var newKey = NormalizeKey(effect.StatusKey);
+            if (newKey == null)
+            {
+                Debug.LogError(
+                    $"[StatusEffectCatalogue] Cannot add StatusEffectSO '{effect.name}' because StatusKey is empty.",
+                    this);
+                return false;
+            }
+
             foreach (var e in _effects)
             {
                 if (e == null) continue;
-                if (!string.IsNullOrWhiteSpace(e.StatusKey) &&
-                    e.StatusKey == effect.StatusKey)
+
+                var existingKey = NormalizeKey(e.StatusKey);
+                if (existingKey == null) continue;
+
+                if (string.Equals(existingKey, newKey, StringComparison.OrdinalIgnoreCase))
                     return false;
             }
 

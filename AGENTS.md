@@ -1,4 +1,4 @@
 <!-- UNITY CODE ASSIST INSTRUCTIONS START -->
 - Project name: ALWTTT25
-- Unity version: Unity 6000.3.0f1
+- Unity version: Unity 6000.0.66f1
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

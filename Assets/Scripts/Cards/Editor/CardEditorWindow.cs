@@ -172,15 +172,15 @@ namespace ALWTTT.Cards.Editor
                     // ─────────────────────────────────────────────────────────────
                     // Actions
                     // ─────────────────────────────────────────────────────────────
-                    using (new EditorGUI.DisabledScope(_selectedMusician == 
+                    using (new EditorGUI.DisabledScope(_selectedMusician ==
                         MusicianCharacterType.None))
                     {
-                        if (GUILayout.Button("Load", 
+                        if (GUILayout.Button("Load",
                             EditorStyles.toolbarButton, GUILayout.Width(60)))
                             TryLoadSelectedMusicianAndCatalog();
                     }
 
-                    if (GUILayout.Button("Refresh", 
+                    if (GUILayout.Button("Refresh",
                         EditorStyles.toolbarButton, GUILayout.Width(70)))
                         RefreshMusicianCache();
 
@@ -198,7 +198,7 @@ namespace ALWTTT.Cards.Editor
 
                     using (new EditorGUI.DisabledScope(_registries != null))
                     {
-                        if (GUILayout.Button("Find", 
+                        if (GUILayout.Button("Find",
                             EditorStyles.toolbarButton, GUILayout.Width(45)))
                         {
                             ResolveRegistries(force: true);
@@ -208,7 +208,7 @@ namespace ALWTTT.Cards.Editor
 
                     using (new EditorGUI.DisabledScope(_registries == null))
                     {
-                        if (GUILayout.Button("Ping", 
+                        if (GUILayout.Button("Ping",
                             EditorStyles.toolbarButton, GUILayout.Width(45)))
                             EditorGUIUtility.PingObject(_registries);
                     }
@@ -258,7 +258,7 @@ namespace ALWTTT.Cards.Editor
 
         private void DrawSplitter(float totalW, float leftW)
         {
-            var rect = 
+            var rect =
                 GUILayoutUtility.GetRect(
                     SplitterWidth, SplitterWidth, GUILayout.ExpandHeight(true));
             EditorGUIUtility.AddCursorRect(rect, MouseCursor.ResizeHorizontal);
@@ -750,7 +750,7 @@ namespace ALWTTT.Cards.Editor
                 if (entriesProp == null || !entriesProp.isArray)
                 {
                     EditorGUILayout.HelpBox(
-                        "Could not find serialized 'entries' array on catalog.", 
+                        "Could not find serialized 'entries' array on catalog.",
                         MessageType.Error);
                     return;
                 }
@@ -791,7 +791,7 @@ namespace ALWTTT.Cards.Editor
                 }
 
                 // Validation hints
-                bool isLockedByDefault = 
+                bool isLockedByDefault =
                     (flags & CardAcquisitionFlags.UnlockedByDefault) == 0;
                 if (isLockedByDefault && string.IsNullOrWhiteSpace(unlockIdProp.stringValue))
                 {
@@ -872,7 +872,7 @@ namespace ALWTTT.Cards.Editor
                     _showPayloadFields =
                         EditorGUILayout.BeginFoldoutHeaderGroup(
                             _showPayloadFields, "Payload");
-                    
+
                     EditorGUILayout.EndFoldoutHeaderGroup();
 
                     // IMPORTANT: draw contents AFTER the header group is closed
@@ -893,7 +893,7 @@ namespace ALWTTT.Cards.Editor
                     if (GUILayout.Button("Select"))
                         SelectAndPing(card);
 
-                    using (new EditorGUI.DisabledScope(_loadedCatalog == null || 
+                    using (new EditorGUI.DisabledScope(_loadedCatalog == null ||
                         _selectedEntryIndex < 0))
                     {
                         if (GUILayout.Button("Delete"))
@@ -923,7 +923,7 @@ namespace ALWTTT.Cards.Editor
             var payload = card.Payload;
 
             string cardPath = AssetDatabase.GetAssetPath(card);
-            string payloadPath = payload != null ? 
+            string payloadPath = payload != null ?
                 AssetDatabase.GetAssetPath(payload) : null;
 
             string msg =
@@ -1291,6 +1291,10 @@ namespace ALWTTT.Cards.Editor
                         var menu = new GenericMenu();
                         menu.AddItem(new GUIContent("Apply Status Effect"), false,
                             () => AddEffect(effectsProp, new ApplyStatusEffectSpec()));
+                        menu.AddItem(new GUIContent("Modify Vibe"), false,
+                            () => AddEffect(effectsProp, new ModifyVibeSpec()));
+                        menu.AddItem(new GUIContent("Modify Stress"), false,
+                            () => AddEffect(effectsProp, new ModifyStressSpec()));
                         menu.AddItem(new GUIContent("Draw Cards"), false,
                             () => AddEffect(effectsProp, new DrawCardsSpec()));
                         menu.ShowAsContext();
@@ -1342,6 +1346,26 @@ namespace ALWTTT.Cards.Editor
                 var so = statusProp != null ? statusProp.objectReferenceValue as StatusEffectSO : null;
                 string name = so != null ? (string.IsNullOrWhiteSpace(so.DisplayName) ? so.name : so.DisplayName) : "<null>";
                 return $"[{index}] ApplyStatus: {name}";
+            }
+
+            if (typeName == nameof(ModifyVibeSpec))
+            {
+                var amountProp = el.FindPropertyRelative("amount");
+                var targetProp = el.FindPropertyRelative("targetType");
+                int a = amountProp != null ? amountProp.intValue : 0;
+                string tgt = targetProp != null ? targetProp.enumDisplayNames[targetProp.enumValueIndex] : "?";
+                string sign = a >= 0 ? "+" : string.Empty;
+                return $"[{index}] ModifyVibe {sign}{a} ({tgt})";
+            }
+
+            if (typeName == nameof(ModifyStressSpec))
+            {
+                var amountProp = el.FindPropertyRelative("amount");
+                var targetProp = el.FindPropertyRelative("targetType");
+                int a = amountProp != null ? amountProp.intValue : 0;
+                string tgt = targetProp != null ? targetProp.enumDisplayNames[targetProp.enumValueIndex] : "?";
+                string sign = a >= 0 ? "+" : string.Empty;
+                return $"[{index}] ModifyStress {sign}{a} ({tgt})";
             }
 
             return $"[{index}] {typeName}";

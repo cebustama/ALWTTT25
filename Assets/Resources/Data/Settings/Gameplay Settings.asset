@@ -40,17 +40,12 @@ MonoBehaviour:
   initialActionDeck: {fileID: 11400000, guid: 8872ba9a6df46294cbf20d6fce124ce7, type: 2}
   initialCompositionDeck: {fileID: 11400000, guid: 37efae426d58b844a9e5be7229e9a6cd, type: 2}
   actionCardPool: []
-  compositionCardPool:
-  - {fileID: 11400000, guid: 8390fc9515a4a7f4da3f622521dbc89d, type: 2}
-  - {fileID: 11400000, guid: e615d231b14857745bec194d2e8ade6a, type: 2}
-  - {fileID: 11400000, guid: fc5558cd7ce8fee4f82c5e5035f3489b, type: 2}
-  - {fileID: 11400000, guid: 66d3183d796ecfb4d8ba50751e907b6d, type: 2}
-  - {fileID: 11400000, guid: 5c8f02be5ca53724b9a3e9e108c1648d, type: 2}
-  drawCount: 6
+  compositionCardPool: []
+  drawCount: 5
   maxCardsOnHand: 10
-  maxGroove: 3
+  maxInspiration: 5
   discardHandBetweenTurns: 1
-  keepGrooveBetweenTurns: 1
+  keepInspirationBetweenTurns: 1
   allCardsList: []
   cardPrefab: {fileID: 5965618076488326275, guid: 15bfb561cbf35f04b9148c67d30ade30, type: 3}
   cardTypeEntryList:

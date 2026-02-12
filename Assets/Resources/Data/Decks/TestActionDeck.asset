@@ -16,9 +16,8 @@ MonoBehaviour:
   deckName: Test Action Deck
   deckDomain: 0
   cardList:
-  - {fileID: 11400000, guid: e98941a84a6e0e84b934901dc8d7b9da, type: 2}
-  - {fileID: 11400000, guid: 3c325cdf46fb70c40878973db03bc792, type: 2}
-  - {fileID: 11400000, guid: fad3ff856d953be4eb613e90a4f3ff49, type: 2}
-  - {fileID: 11400000, guid: 7393a51a40771fa4aa861a1d57e3ade4, type: 2}
-  - {fileID: 11400000, guid: 7ca186e602b9a7f40b44613bab7607c4, type: 2}
-  - {fileID: 11400000, guid: 7fdbe375c07474b4297bd88078d62605, type: 2}
+  - {fileID: 11400000, guid: 60b0b7497c12e1f428d5d4a9f3ab1c4c, type: 2}
+  - {fileID: 11400000, guid: 74702991a395ae34f8c9a0bca0e75f5d, type: 2}
+  - {fileID: 11400000, guid: a5b53b03cad341a42b759e2e2b6b8694, type: 2}
+  - {fileID: 11400000, guid: 13d15b11ace9a0645acf40cd14e02be8, type: 2}
+  - {fileID: 11400000, guid: 6635e41cd29cd7346963b47163ea12be, type: 2}

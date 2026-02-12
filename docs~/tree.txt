@@ -1,0 +1,51 @@
+Folder PATH listing for volume SSD 2
+Volume serial number is 54D1-92B7
+D:.
+|   make-tree.bat
+|   tree.txt
+|   
++---archive
+|   |   ALWTTT_CardEffects_and_CardEditorWindow_SSoT_v0.2_2026-01-23.md
+|   |   ALWTTT_CombatPipeline_Roadmap_v0.1_2026-02-12.md
+|   |   ALWTTT_GigCombat_CardEffects_Pipeline_SSoT_v0.1_2026-02-12.md
+|   |   
+|   \---2026-01_legacy
+|           ALWTTT_CardEffects_and_CardEditorWindow_Roadmap_Live_v0.3_2026-01-23.md
+|           ALWTTT_CardEffects_TechnicalSummary_Roadmap.md
+|           ALWTTT_Design_Guidelines.md
+|           ALWTTT_ProgressReport_StatusKeyImportFix_2026-02-10_UPDATED.md
+|           Map.md
+|           Narrative.md
+|           _Band.md
+|           _Musician.md
+|           _Song.md
+|           
++---backlog
+|   |   CardEffects_Extensions_Backlog_and_TriggeredMechanics.md
+|   |   
+|   \---ideas
+|           alwtttt_gig_combat_design_resumen.md
+|           ALWTTT_Audience_Composition_Summary.md
+|           audience_system_summary.md
+|           gig_pipeline_summary.md
+|           loopscore_songhype_vibe.md
+|           Musical_Affinity_Audience_Reaction_System.md
+|           Song_Infusions_SFX_Evolution.md
+|           
++---canon
+|       Appendix_Authoring_DataContracts.md
+|       Roadmap_Combat.md
+|       SSoT_Combat.md
+|       
+\---reference
+    |   AudienceMember.md
+    |   Card.md
+    |   Gig.md
+    |   Gig_Combat.md
+    |   StatusEffects.md
+    |   StatusEffects_Primitives_with_References.md
+    |   
+    \---subsystems
+        \---MidiGenPlay
+                MIDI_Jamplay_Runtime_Composition_Design-1.md
+                

@@ -9,6 +9,7 @@ using ALWTTT.Interfaces;
 using ALWTTT.Music;
 using ALWTTT.UI;
 using ALWTTT.Utils;
+using ALWTTT.Status;
 
 using MidiGenPlay;
 using MidiGenPlay.Services;
@@ -46,11 +47,17 @@ namespace ALWTTT.Managers
         [SerializeField] private int maxVibeFromSongHype = 20;
         [SerializeField] private float songHypeDeltaMultiplier = 1f;
 
+        [Header("Flow / Composure (MVP)")]
+        [SerializeField, Tooltip("Each Flow stack increases loop→SongHype delta by (1 + stacks * this).")]
+        private float flowSongHypeMultiplierPerStack = 0.10f;
+        [SerializeField] private bool debugFlowSongHype = false;
+
         [Header("Gig End Behavior")]
         [SerializeField] private bool skipAudienceActionsAfterFinalSong = true;
 
         [Header("Audience Beat Response")]
-        [SerializeField] private AnimationCurve audienceJumpIntensityCurve =
+        [SerializeField]
+        private AnimationCurve audienceJumpIntensityCurve =
             AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
         [SerializeField][Range(0f, 1f)] private float audienceJumpThreshold = 0.1f;
 
@@ -136,14 +143,14 @@ namespace ALWTTT.Managers
         private UIManager UIManager => UIManager.Instance;
         private MidiMusicManager MidiMusicManager => MidiMusicManager.Instance;
 
-        private bool IsGigComplete => 
+        private bool IsGigComplete =>
             GameManager.PersistentGameplayData.CurrentSongIndex >= _requiredSongCount;
 
         public List<Transform> MusicianPosList => musicianPosList;
         public List<Transform> AudienceMemberPosList => audienceMemberPosList;
 
         // TODO: Implement dual target cards Musician -> Audience Character
-        public MusicianBase SelectedMusician => 
+        public MusicianBase SelectedMusician =>
             CurrentMusicianCharacterList.Count > 0 ?
             CurrentMusicianCharacterList[0] : null;
 
@@ -325,19 +332,132 @@ namespace ALWTTT.Managers
             BuildBand();
             BuildAudience();
 
-            // For now, ignore the dedicated gig deck / battle design
-            //DeckManager.SetGameDeck();
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.gameObject.SetActive(true);
 
-            UIManager.GigCanvas.gameObject.SetActive(true);
-
-            // Bind deck to gig hand for composition
-            RebindDeckToGigHand();
+            // Deck + hand binding
+            SetupDeck();
 
             // IMPORTANT: Do NOT set the gig phase for now
             CurrentGigPhase = GigPhase.PlayerTurn;
 
             //_isSongPlaying = false;
             //_isBetweenSongs = _session != null;
+        }
+
+        private enum DeckSetupSource
+        {
+            Auto = 0,
+            PersistentGameplayData = 1,
+            GameplayDataInitialDeck = 2,
+            RunContextBandDeck = 3,
+            OverrideList = 4
+        }
+
+        /// <summary>
+        /// Centralizes all deck setup logic in one place.
+        /// This makes it easy to swap deck sources (GameplayData, GigRunContext, etc.)
+        /// without spreading the logic across StartGig / GigSetup scene.
+        /// </summary>
+        private void SetupDeck(
+            DeckSetupSource source = DeckSetupSource.Auto,
+            IReadOnlyList<CardDefinition> overrideActionCards = null)
+        {
+            if (GameManager == null || DeckManager == null)
+            {
+                Debug.LogError($"{DebugTag} SetupDeck failed: missing GameManager or DeckManager.");
+                return;
+            }
+
+            var pd = GameManager.PersistentGameplayData;
+            if (pd == null)
+            {
+                Debug.LogError($"{DebugTag} SetupDeck failed: PersistentGameplayData is null.");
+                return;
+            }
+
+            // Ensure the hand is enabled BEFORE any card objects are instantiated by DrawCards.
+            SetHandVisible(true);
+            RebindDeckToGigHand();
+
+            var resolved = new List<CardDefinition>(16);
+
+            void AddIfAction(IEnumerable<CardDefinition> src)
+            {
+                if (src == null) return;
+                foreach (var c in src)
+                    if (c != null && c.IsAction) resolved.Add(c);
+            }
+
+            switch (source)
+            {
+                case DeckSetupSource.OverrideList:
+                    AddIfAction(overrideActionCards);
+                    break;
+
+                case DeckSetupSource.RunContextBandDeck:
+                    if (GigRunContext.Instance != null &&
+                        GigRunContext.Instance.TryGetBandDeck(out var runDeck) &&
+                        runDeck != null)
+                    {
+                        AddIfAction(runDeck.Cards);
+                    }
+                    break;
+
+                case DeckSetupSource.GameplayDataInitialDeck:
+                    {
+                        var deckData = GameManager.GameplayData?.InitialActionDeck;
+                        if (deckData != null)
+                            AddIfAction(deckData.GetValidCards());
+                    }
+                    break;
+
+                case DeckSetupSource.PersistentGameplayData:
+                    AddIfAction(pd.CurrentActionCards);
+                    break;
+
+                default:
+                    // Auto: prefer PD (already populated by GameManager.SetInitialDeck() or GigSetup)
+                    AddIfAction(pd.CurrentActionCards);
+
+                    // Fallback: GigSetupScene run deck
+                    if (resolved.Count == 0 && GigRunContext.Instance != null &&
+                        GigRunContext.Instance.TryGetBandDeck(out var ctxDeck) &&
+                        ctxDeck != null)
+                    {
+                        AddIfAction(ctxDeck.Cards);
+                    }
+
+                    // Fallback: GameplayData.InitialActionDeck
+                    if (resolved.Count == 0)
+                    {
+                        var deckData = GameManager.GameplayData?.InitialActionDeck;
+                        if (deckData != null)
+                            AddIfAction(deckData.GetValidCards());
+                    }
+                    break;
+            }
+
+            if (resolved.Count == 0)
+            {
+                Debug.LogError(
+                    $"{DebugTag} SetupDeck failed: resolved action deck is empty. Source={source}");
+                return;
+            }
+
+            // Keep PersistentGameplayData as the single source of truth for runtime decks.
+            if (pd.CurrentActionCards == null)
+                pd.CurrentActionCards = new List<CardDefinition>();
+
+            pd.CurrentActionCards.Clear();
+            pd.CurrentActionCards.AddRange(resolved);
+
+            Debug.Log(
+                $"{DebugTag} SetupDeck resolved Action={pd.CurrentActionCards.Count} " +
+                $"(Source={source}, InitialActionDeck='{GameManager.GameplayData?.InitialActionDeck?.name}')");
+
+            DeckManager.ClearAll();
+            DeckManager.SetGameDeck();
         }
 
         private void SetupEncounter()
@@ -362,8 +482,8 @@ namespace ALWTTT.Managers
             {
                 CurrentGigEncounter = GameManager.EncounterData
                     .GetGigEncounterByIndex(
-                        pd.CurrentSectorId, 
-                        pd.CurrentEncounterId, 
+                        pd.CurrentSectorId,
+                        pd.CurrentEncounterId,
                         pd.IsFinalEncounter
                     );
             }
@@ -384,7 +504,7 @@ namespace ALWTTT.Managers
         {
             if (useLogs) Debug.Log($"{DebugTag} Building band and musicians...");
 
-            for (var i = 0; 
+            for (var i = 0;
                 i < GameManager.PersistentGameplayData.MusicianList.Count; i++)
             {
                 MusicianBase clone = Instantiate(
@@ -424,8 +544,8 @@ namespace ALWTTT.Managers
             {
                 var clone = Instantiate(
                     audienceMemberList[i].CharacterPrefab,
-                    AudienceMemberPosList.Count >= i ? 
-                        AudienceMemberPosList[i] : 
+                    AudienceMemberPosList.Count >= i ?
+                        AudienceMemberPosList[i] :
                         AudienceMemberPosList[0]
                 );
 
@@ -570,7 +690,7 @@ namespace ALWTTT.Managers
                     break;
                 case GigPhase.PlayerTurn:
 
-                    if (GameManager.PersistentGameplayData.CurrentSongIndex >= 
+                    if (GameManager.PersistentGameplayData.CurrentSongIndex >=
                         _requiredSongCount)
                     {
                         bool win = true;
@@ -673,7 +793,7 @@ namespace ALWTTT.Managers
         private IEnumerator SongPerformanceRoutine()
         {
             // Activate SFX cards
-            foreach (var smCard in 
+            foreach (var smCard in
                 GameManager.PersistentGameplayData.SongModifierCardsList)
             {
                 if (smCard.CardType == CardType.SFX)
@@ -693,7 +813,7 @@ namespace ALWTTT.Managers
             {
                 musician.CharacterAnimator.SetBPM(song.BPM);
                 musician.CharacterAnimator.SkipEveryNBeats = 1;
-                musician.CharacterAnimator.BeatOffsetBeats = 
+                musician.CharacterAnimator.BeatOffsetBeats =
                     UnityEngine.Random.Range(0f, 0.15f);
                 musician.CharacterAnimator.JumpOnBeat = true;
                 musician.CharacterAnimator.RotateOnBeat = false;
@@ -715,7 +835,7 @@ namespace ALWTTT.Managers
             {
                 musician.CharacterAnimator.SetBPM(120);
                 musician.CharacterAnimator.SkipEveryNBeats = 2;
-                musician.CharacterAnimator.BeatOffsetBeats = 
+                musician.CharacterAnimator.BeatOffsetBeats =
                     UnityEngine.Random.Range(0.45f, 0.55f);
                 musician.CharacterAnimator.JumpOnBeat = false;
                 musician.CharacterAnimator.RotateOnBeat = true;
@@ -729,8 +849,8 @@ namespace ALWTTT.Managers
             // TODO: Apply equipped SongModifier Effects
             foreach (var smCard in
                 GameManager.PersistentGameplayData.SongModifierCardsList)
-            { 
-                
+            {
+
             }
 
             // TODO: Apply Vibe to enemies
@@ -767,18 +887,18 @@ namespace ALWTTT.Managers
             }
 
             // Snapshot so actions can reorder/destroy without breaking enumeration
-            var turnOrder = 
+            var turnOrder =
                 new List<AudienceCharacterBase>(CurrentAudienceCharacterList);
 
             foreach (var currentCharacter in turnOrder)
             {
-                if (currentCharacter == null) 
+                if (currentCharacter == null)
                     continue; // might have been destroyed
 
-                if (!currentCharacter.gameObject.activeInHierarchy) 
+                if (!currentCharacter.gameObject.activeInHierarchy)
                     continue; // or deactivated
 
-                if (currentCharacter.AudienceStats.IsConvinced) 
+                if (currentCharacter.AudienceStats.IsConvinced)
                     continue; // already convinced
 
                 yield return currentCharacter.StartCoroutine(
@@ -787,7 +907,7 @@ namespace ALWTTT.Managers
                 yield return waitDelay;
             }
 
-            CurrentAudienceCharacterList.Sort((a, b) => 
+            CurrentAudienceCharacterList.Sort((a, b) =>
                 a.ColumnIndex.CompareTo(b.ColumnIndex));
 
             if (CurrentGigPhase != GigPhase.EndGig)
@@ -1024,6 +1144,7 @@ namespace ALWTTT.Managers
 
             // Full reset before a new song
             ResetSongHype();
+            ResetSongScopedStatuses();
 
             _session = new CompositionSession();
             _session.LoopFinished += OnCompositionLoopFinished;
@@ -1139,10 +1260,46 @@ namespace ALWTTT.Managers
             return false;
         }
 
+        private int GetTotalFlowStacks()
+        {
+            int total = 0;
+
+            if (CurrentMusicianCharacterList == null)
+                return 0;
+
+            for (int i = 0; i < CurrentMusicianCharacterList.Count; i++)
+            {
+                var m = CurrentMusicianCharacterList[i];
+                if (m == null || m.Statuses == null) continue;
+
+                total += Mathf.Max(0, m.Statuses.GetStacks(CharacterStatusId.DamageUpFlat));
+            }
+
+            return total;
+        }
+
+        private void ResetSongScopedStatuses()
+        {
+            // MVP: we treat these as song-scoped.
+            // Flow == CharacterStatusId.DamageUpFlat
+            // Composure == CharacterStatusId.TempShieldTurn
+            if (CurrentMusicianCharacterList == null)
+                return;
+
+            for (int i = 0; i < CurrentMusicianCharacterList.Count; i++)
+            {
+                var m = CurrentMusicianCharacterList[i];
+                if (m == null || m.Statuses == null) continue;
+
+                m.Statuses.Clear(CharacterStatusId.DamageUpFlat);
+                m.Statuses.Clear(CharacterStatusId.TempShieldTurn);
+            }
+        }
+
         // Called whenever one full loop finishes (including the last loop of the song)
         private void TriggerAudienceMicroReactions(LoopFeedbackContext loopCtx)
         {
-            if (CurrentAudienceCharacterList == null 
+            if (CurrentAudienceCharacterList == null
                 || CurrentAudienceCharacterList.Count == 0)
                 return;
 
@@ -1152,6 +1309,20 @@ namespace ALWTTT.Managers
 
             // Global scalar for testing
             float hypeDelta = baseHypeDelta * songHypeDeltaMultiplier;
+
+            // FLOW (MVP): Flow stacks increase loop→SongHype conversion.
+            int flowStacks = GetTotalFlowStacks();
+            if (flowStacks > 0)
+            {
+                float mult = 1f + (flowStacks * flowSongHypeMultiplierPerStack);
+                hypeDelta *= mult;
+
+                if (debugFlowSongHype)
+                {
+                    Debug.Log($"{DebugTag} Flow active: stacks={flowStacks} mult={mult:0.00} baseΔ={baseHypeDelta:0.00} finalΔ={hypeDelta:0.00}");
+                }
+            }
+
 
             AddSongHype(hypeDelta);
 
@@ -1249,7 +1420,7 @@ namespace ALWTTT.Managers
             SongFeedbackContext enrichedSong)
         {
             var result = new List<AudienceVibeDelta>();
-            if (CurrentAudienceCharacterList == null || 
+            if (CurrentAudienceCharacterList == null ||
                 CurrentAudienceCharacterList.Count == 0)
                 return result;
 
@@ -1656,7 +1827,7 @@ namespace ALWTTT.Managers
         {
             if (songCtx.PartCount == 0)
                 yield break;
-            
+
             yield return new WaitForSeconds(songEndPause);
 
             var deltas = ComputeSongVibeDeltas(songCtx);

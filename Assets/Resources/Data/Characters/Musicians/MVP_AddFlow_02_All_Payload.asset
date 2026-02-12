@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bfb378d84595bd47b8057a55797bc41, type: 3}
+  m_Name: MVP_AddFlow_02_All_Payload
+  m_EditorClassIdentifier: 
+  effects:
+  - rid: 8965973348940775508
+  actionTiming: 0
+  conditions: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 8965973348940775508
+      type: {class: ApplyStatusEffectSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
+      data:
+        status: {fileID: 11400000, guid: 33f95758aa1ffbf46ad5076c4f21d206, type: 2}
+        targetType: 3
+        stacksDelta: 2
+        delay: 0

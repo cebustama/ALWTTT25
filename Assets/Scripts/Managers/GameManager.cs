@@ -85,6 +85,7 @@ namespace ALWTTT.Managers
 
         public CardBase BuildAndGetCard(CardDefinition targetData, Transform parent)
         {
+            Debug.Log($"{DebugTag} Building Card {targetData.DisplayName} with parent {parent.name}");
             var newCard = Instantiate(GameplayData.CardPrefab, parent);
             newCard.SetCard(targetData);
             return newCard;

@@ -20,7 +20,7 @@ using Random = UnityEngine.Random;
 
 namespace ALWTTT
 {
-    public class CardBase : MonoBehaviour, 
+    public class CardBase : MonoBehaviour,
         I2DTooltipTarget, IPointerDownHandler, IPointerUpHandler
     {
         [Header("References")]
@@ -66,7 +66,7 @@ namespace ALWTTT
                 GameManager.GameplayData.GetCardTypeColor(CardData.CardType);*/
 
             cardImage.sprite = CardDefinition.CardSprite;
-            typeTextField.text = CardDefinition.IsComposition ? 
+            typeTextField.text = CardDefinition.IsComposition ?
                 "COMPOSITION" : CardDefinition.CardType.ToString();
             nameTextField.text = CardDefinition.DisplayName;
             descTextField.text = CardDefinition.GetDescription();
@@ -189,6 +189,138 @@ namespace ALWTTT
                     continue;
                 }
 
+
+                if (effect is ModifyVibeSpec vibe)
+                {
+                    var targets = DetermineTargets(
+                        performer,
+                        primaryTarget,
+                        allAudienceCharacters,
+                        allBandCharacters,
+                        vibe.targetType);
+
+                    if (targets == null || targets.Count == 0)
+                    {
+                        Debug.LogWarning(
+                            $"[CardBase] ModifyVibeSpec resolved 0 targets. Card='{CardDefinition?.name}', targetType={vibe.targetType}.");
+                        continue;
+                    }
+
+                    for (int t = 0; t < targets.Count; t++)
+                    {
+                        var trg = targets[t];
+                        if (trg == null) continue;
+
+                        var audience = trg as AudienceCharacterBase;
+                        if (audience == null || audience.Stats == null)
+                        {
+                            Debug.LogError(
+                                $"[CardBase] ModifyVibeSpec target must be AudienceCharacterBase. Got='{trg.GetType().Name}' ('{trg.name}'). Card='{CardDefinition?.name}'.");
+                            continue;
+                        }
+
+                        int before = audience.Stats.CurrentVibe;
+                        audience.Stats.SetCurrentVibe(before + vibe.amount);
+
+#if UNITY_EDITOR
+                        Debug.Log(
+                            $"[Effects] {performer?.name} modified Vibe on {audience.name}: {before} -> {audience.Stats.CurrentVibe} (Δ{vibe.amount}) via card '{CardDefinition?.DisplayName}'.");
+#endif
+                    }
+
+                    continue;
+                }
+
+                if (effect is ModifyStressSpec stress)
+                {
+                    var targets = DetermineTargets(
+                        performer,
+                        primaryTarget,
+                        allAudienceCharacters,
+                        allBandCharacters,
+                        stress.targetType);
+
+                    if (targets == null || targets.Count == 0)
+                    {
+                        Debug.LogWarning(
+                            $"[CardBase] ModifyStressSpec resolved 0 targets. Card='{CardDefinition?.name}', targetType={stress.targetType}.");
+                        continue;
+                    }
+
+                    for (int t = 0; t < targets.Count; t++)
+                    {
+                        var trg = targets[t];
+                        if (trg == null) continue;
+
+                        var musician = trg as MusicianBase;
+                        if (musician == null || musician.Stats == null)
+                        {
+                            Debug.LogError(
+                                $"[CardBase] ModifyStressSpec target must be MusicianBase. Got='{trg.GetType().Name}' ('{trg.name}'). Card='{CardDefinition?.name}'.");
+                            continue;
+                        }
+
+                        int delta = stress.amount;
+                        if (delta == 0) continue;
+
+                        // Positive stress is mitigated by Composure (CharacterStatusId.TempShieldTurn) first.
+                        if (delta > 0)
+                        {
+                            int remaining = delta;
+                            int absorbed = 0;
+
+                            if (musician.Statuses != null &&
+                                musician.Statuses.TryGet(CharacterStatusId.TempShieldTurn, out var compInst) &&
+                                compInst != null)
+                            {
+                                int compStacks = compInst.Stacks;
+                                absorbed = Mathf.Min(compStacks, remaining);
+
+                                if (absorbed > 0)
+                                {
+                                    // Consume stacks directly.
+                                    musician.Statuses.Apply(compInst.Definition, -absorbed);
+                                    remaining -= absorbed;
+                                }
+                            }
+
+#if UNITY_EDITOR
+                            if (absorbed > 0)
+                            {
+                                Debug.Log(
+                                    $"[Effects] {performer?.name} stress mitigated by Composure on {musician.name}: absorbed {absorbed}/{delta}. Remaining={remaining}. Card='{CardDefinition?.DisplayName}'.");
+                            }
+#endif
+
+                            if (remaining > 0)
+                            {
+                                int before = musician.Stats.CurrentStress;
+                                musician.Stats.SetCurrentStress(before + remaining);
+
+#if UNITY_EDITOR
+                                Debug.Log(
+                                    $"[Effects] {performer?.name} modified Stress on {musician.name}: {before} -> {musician.Stats.CurrentStress} (Δ+{remaining}) via card '{CardDefinition?.DisplayName}'.");
+#endif
+                            }
+
+                            continue;
+                        }
+
+                        // Negative stress removes stress directly.
+                        {
+                            int before = musician.Stats.CurrentStress;
+                            musician.Stats.SetCurrentStress(before + delta);
+
+#if UNITY_EDITOR
+                            Debug.Log(
+                                $"[Effects] {performer?.name} modified Stress on {musician.name}: {before} -> {musician.Stats.CurrentStress} (Δ{delta}) via card '{CardDefinition?.DisplayName}'.");
+#endif
+                        }
+                    }
+
+                    continue;
+                }
+
                 if (effect is DrawCardsSpec draw)
                 {
                     // No invento API de DeckManager aquí. Deja stub + log.
@@ -269,8 +401,8 @@ namespace ALWTTT
 
             var startRot = CachedTransform.localRotation;
             var endRot = Quaternion.Euler(
-                Random.value * 360, 
-                Random.value * 360, 
+                Random.value * 360,
+                Random.value * 360,
                 Random.value * 360
             );
 
@@ -365,8 +497,8 @@ namespace ALWTTT
                         .Find(x => x.SpecialKeyword == cardDataSpecialKeyword);
 
                 if (specialKeyword != null)
-                    ShowTooltipInfo(tooltipManager, specialKeyword.GetContent(), 
-                        specialKeyword.GetHeader(), descriptionRoot, 
+                    ShowTooltipInfo(tooltipManager, specialKeyword.GetContent(),
+                        specialKeyword.GetHeader(), descriptionRoot,
                         DeckManager ? DeckManager.HandController.Cam : Camera.main);
             }
         }
@@ -376,8 +508,8 @@ namespace ALWTTT
             HideTooltipInfo(TooltipManager.Instance);
         }
 
-        public void ShowTooltipInfo(TooltipManager tooltipManager, 
-            string content, string header = "", 
+        public void ShowTooltipInfo(TooltipManager tooltipManager,
+            string content, string header = "",
             Transform tooltipStaticTransform = null, Camera cam = null, float delayShow = 0)
         {
             if (!descriptionRoot) return;

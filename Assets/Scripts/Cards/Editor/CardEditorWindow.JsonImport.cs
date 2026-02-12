@@ -60,18 +60,34 @@ namespace ALWTTT.Cards.Editor
             public EntryJson entry;          // optional defaults when adding to catalog
         }
 
+
+        [System.Serializable]
+        private class CardBatchJsonImport
+        {
+            // Batch wrapper: { "cards": [ { ...CardJsonImport... }, ... ] }
+            public CardJsonImport[] cards;
+        }
+
+
         [System.Serializable]
         private class EffectJson
         {
-            // Discriminator. Supported: "ApplyStatusEffect", "DrawCards"
+            // Discriminator. Supported:
+            // - "ApplyStatusEffect"
+            // - "DrawCards"
+            // - "ModifyVibe"
+            // - "ModifyStress"
             public string type;
 
             // ─ ApplyStatusEffect ─
-            public string statusKey;         // resolves to a StatusEffectSO (by DisplayName or asset name)
+            public string statusKey;         // resolves to a StatusEffectSO (by StatusKey, DisplayName, or asset name)
             public int effectId = -1;        // optional fallback: CharacterStatusId backing int
             public string targetType;        // ActionTargetType enum name
             public int stacksDelta = 1;
             public float delay = 0f;
+
+            // ─ ModifyVibe / ModifyStress ─
+            public int amount = 1;           // vibe/stress delta
 
             // ─ DrawCards ─
             public int count = 1;
@@ -257,36 +273,183 @@ namespace ALWTTT.Cards.Editor
                 }
             }
         }
-
         private void TryStageCardFromJson(string json)
         {
             _jsonImportError = null;
 
             DiscardStagedJson(); // clear previous
 
-            CardJsonImport dto;
-            try
+            if (string.IsNullOrWhiteSpace(json))
             {
-                dto = JsonUtility.FromJson<CardJsonImport>(json);
-            }
-            catch (System.Exception ex)
-            {
-                _jsonImportError = "Invalid JSON: " + ex.Message;
+                _jsonImportError = "Invalid JSON: input is empty.";
                 return;
             }
 
+            if (!TryParseJsonToCardDtos(json, out var dtos, out var parseErr))
+            {
+                _jsonImportError = parseErr;
+                return;
+            }
+
+            if (dtos == null || dtos.Length == 0)
+            {
+                _jsonImportError = "Invalid JSON: no card entries found.";
+                return;
+            }
+
+            // Batch import: immediately create assets for all cards.
+            if (dtos.Length > 1)
+            {
+                TryImportBatchFromDtos(dtos);
+                return;
+            }
+
+            // Single card: stage in-memory so user can review/edit before saving.
+            if (!TryStageCardFromDto(dtos[0], out var stageErr))
+            {
+                _jsonImportError = stageErr;
+                DiscardStagedJson();
+                return;
+            }
+
+            Repaint();
+        }
+
+        private static bool TryParseJsonToCardDtos(string json, out CardJsonImport[] dtos, out string error)
+        {
+            dtos = null;
+            error = null;
+
+            var trimmed = json.TrimStart();
+            if (trimmed.StartsWith("["))
+            {
+                error =
+                    "This importer does not accept a raw JSON array at the root.\n\n" +
+                    "Use either:\n" +
+                    "1) Single card object: { \"kind\": \"Action|Composition\", \"id\": \"...\", ... }\n" +
+                    "2) Batch wrapper: { \"cards\": [ { ... }, { ... } ] }";
+                return false;
+            }
+
+            // Try batch wrapper first: { "cards": [ ... ] }
+            try
+            {
+                var batch = JsonUtility.FromJson<CardBatchJsonImport>(json);
+                if (batch != null && batch.cards != null && batch.cards.Length > 0)
+                {
+                    dtos = batch.cards;
+                    return true;
+                }
+            }
+            catch
+            {
+                // ignored; will try single-card parse next
+            }
+
+            // Fallback: single card object
+            try
+            {
+                var one = JsonUtility.FromJson<CardJsonImport>(json);
+                if (one == null)
+                {
+                    error = "Invalid JSON: could not parse payload.";
+                    return false;
+                }
+
+                dtos = new[] { one };
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                error = "Invalid JSON: " + ex.Message;
+                return false;
+            }
+        }
+
+        private void TryImportBatchFromDtos(CardJsonImport[] dtos)
+        {
+            if (dtos == null || dtos.Length == 0)
+                return;
+
+            // Preserve user's text; SaveStagedJsonToAssetsAndAddToCatalog clears it.
+            var originalJsonText = _jsonImportText;
+
+            int ok = 0;
+            var failLines = new System.Collections.Generic.List<string>();
+
+            for (int i = 0; i < dtos.Length; i++)
+            {
+                var dto = dtos[i];
+                var label = dto != null && !string.IsNullOrWhiteSpace(dto.id) ? dto.id : $"cards[{i}]";
+
+                if (!TryStageCardFromDto(dto, out var stageErr))
+                {
+                    failLines.Add($"{label}: {stageErr}");
+                    continue;
+                }
+
+                SaveStagedJsonToAssetsAndAddToCatalog();
+
+                // SaveStagedJsonToAssetsAndAddToCatalog clears staged objects on success.
+                if (_stagedJsonCard != null || _stagedJsonPayload != null)
+                {
+                    // Treat as failure (save canceled/failed), then clear staged and keep going.
+                    failLines.Add($"{label}: save was canceled or failed (staged card not cleared).");
+                    DiscardStagedJson();
+                    continue;
+                }
+
+                ok++;
+                _jsonImportText = originalJsonText;
+            }
+
+            _jsonImportText = originalJsonText;
+
+            if (failLines.Count == 0)
+            {
+                _jsonImportError = null;
+                EditorUtility.DisplayDialog(
+                    "JSON Batch Import",
+                    $"Imported {ok} card(s) successfully.",
+                    "OK");
+            }
+            else
+            {
+                var previewCount = Mathf.Min(8, failLines.Count);
+                var preview = string.Join("\n", failLines.GetRange(0, previewCount));
+                var suffix = failLines.Count > previewCount ? $"\n... (+{failLines.Count - previewCount} more)" : "";
+
+                _jsonImportError =
+                    $"Batch import finished with errors. Success: {ok}, Failed: {failLines.Count}\n\n" +
+                    preview + suffix;
+
+                EditorUtility.DisplayDialog(
+                    "JSON Batch Import (errors)",
+                    _jsonImportError,
+                    "OK");
+            }
+
+            Repaint();
+        }
+
+        private bool TryStageCardFromDto(CardJsonImport dto, out string error)
+        {
+            error = null;
+
+            DiscardStagedJson(); // clear previous staged card
+
             if (dto == null)
             {
-                _jsonImportError = "Invalid JSON: could not parse payload.";
-                return;
+                error = "Invalid JSON: could not parse payload.";
+                return false;
             }
 
             if (string.IsNullOrWhiteSpace(dto.kind) || string.IsNullOrWhiteSpace(dto.id))
             {
-                _jsonImportError =
+                error =
                     "JSON must include at least: " +
                     "{ \"kind\": \"Action|Composition\", \"id\": \"...\" }";
-                return;
+                return false;
             }
 
             // ---------------------------------------------------------------------
@@ -300,18 +463,18 @@ namespace ALWTTT.Cards.Editor
 
             if (hasLegacyStatusActions)
             {
-                _jsonImportError =
+                error =
                     "Legacy JSON detected: root-level \"statusActions\" is no longer supported.\n" +
                     "Use root-level \"effects\" (CardEffects) instead.";
-                return;
+                return false;
             }
 
             if (!hasEffects && hasLegacyActions)
             {
-                _jsonImportError =
+                error =
                     "Legacy JSON detected: dto.action.actions is no longer supported.\n" +
                     "Use root-level \"effects\" (CardEffects) instead.";
-                return;
+                return false;
             }
 
             // Create staged instances (NOT assets)
@@ -321,9 +484,9 @@ namespace ALWTTT.Cards.Editor
             _stagedJsonPayload = CreatePayloadInstance(dto.kind);
             if (_stagedJsonPayload == null)
             {
-                _jsonImportError = $"Unknown kind '{dto.kind}'. Use 'Action' or 'Composition'.";
+                error = $"Unknown kind '{dto.kind}'. Use 'Action' or 'Composition'.";
                 DiscardStagedJson();
-                return;
+                return false;
             }
 
             _stagedJsonPayload.hideFlags = HideFlags.DontSaveInEditor | HideFlags.HideInHierarchy;
@@ -402,9 +565,9 @@ namespace ALWTTT.Cards.Editor
 
             if (!ApplyEffectsJson(pso, dto.effects, _registries?.StatusCatalogue, out var effectsErr))
             {
-                _jsonImportError = effectsErr;
+                error = effectsErr;
                 DiscardStagedJson();
-                return;
+                return false;
             }
 
             pso.ApplyModifiedPropertiesWithoutUndo();
@@ -421,10 +584,9 @@ namespace ALWTTT.Cards.Editor
                 {
                     if (!TryParseAcquisitionFlags(dto.entry.flags, out entryFlags))
                     {
-                        _jsonImportError = $"Invalid entry.flags value: '{dto.entry.flags}'. " +
-                                          $"Example: \"UnlockedByDefault,StarterDeck\"";
+                        error = $"Invalid entry.flags value: '{dto.entry.flags}'. Example: \"UnlockedByDefault,StarterDeck\"";
                         DiscardStagedJson();
-                        return;
+                        return false;
                     }
                 }
 
@@ -444,8 +606,9 @@ namespace ALWTTT.Cards.Editor
             _stagedJsonStarterCopies = entryStarterCopies;
             _stagedJsonUnlockId = entryUnlockId;
 
-            Repaint();
+            return true;
         }
+
 
         private static bool ApplyEffectsJson(
             SerializedObject pso,
@@ -479,7 +642,7 @@ namespace ALWTTT.Cards.Editor
 
                 if (string.IsNullOrWhiteSpace(row.type))
                 {
-                    error = $"effects[{i}].type is required. Supported: ApplyStatusEffect, DrawCards.";
+                    error = $"effects[{i}].type is required. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards.";
                     return false;
                 }
 
@@ -548,6 +711,44 @@ namespace ALWTTT.Cards.Editor
 
                     AddManagedEffect(listProp, spec);
                 }
+                else if (type.Equals("ModifyVibe", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    // targetType (string strategy; defaults to AllAudienceCharacters)
+                    var target = ActionTargetType.AllAudienceCharacters;
+                    if (!string.IsNullOrWhiteSpace(row.targetType) &&
+                        !System.Enum.TryParse<ActionTargetType>(row.targetType, true, out target))
+                    {
+                        error = $"effects[{i}]: invalid targetType '{row.targetType}'. Valid: {string.Join(", ", System.Enum.GetNames(typeof(ActionTargetType)))}";
+                        return false;
+                    }
+
+                    var spec = new ModifyVibeSpec
+                    {
+                        targetType = target,
+                        amount = row.amount
+                    };
+
+                    AddManagedEffect(listProp, spec);
+                }
+                else if (type.Equals("ModifyStress", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    // targetType (string strategy; defaults to Self)
+                    var target = ActionTargetType.Self;
+                    if (!string.IsNullOrWhiteSpace(row.targetType) &&
+                        !System.Enum.TryParse<ActionTargetType>(row.targetType, true, out target))
+                    {
+                        error = $"effects[{i}]: invalid targetType '{row.targetType}'. Valid: {string.Join(", ", System.Enum.GetNames(typeof(ActionTargetType)))}";
+                        return false;
+                    }
+
+                    var spec = new ModifyStressSpec
+                    {
+                        targetType = target,
+                        amount = row.amount
+                    };
+
+                    AddManagedEffect(listProp, spec);
+                }
                 else if (type.Equals("DrawCards", System.StringComparison.OrdinalIgnoreCase))
                 {
                     if (row.count < 0)
@@ -561,7 +762,7 @@ namespace ALWTTT.Cards.Editor
                 }
                 else
                 {
-                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, DrawCards.";
+                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards.";
                     return false;
                 }
             }
@@ -579,10 +780,10 @@ namespace ALWTTT.Cards.Editor
         }
 
         private static bool TryResolveStatusEffectFromKey(
-            StatusEffectCatalogueSO catalogue,
-            string key,
-            out StatusEffectSO status,
-            out string err)
+    StatusEffectCatalogueSO catalogue,
+    string key,
+    out StatusEffectSO status,
+    out string err)
         {
             status = null;
             err = null;
@@ -593,14 +794,19 @@ namespace ALWTTT.Cards.Editor
                 return false;
             }
 
+            key = NormalizeStatusLookupKey(key);
             if (string.IsNullOrWhiteSpace(key))
             {
                 err = "statusKey is empty.";
                 return false;
             }
 
-            key = key.Trim();
+            // 1) NEW: canonical path — resolve by StatusKey via catalogue index
+            // (Esto requiere que StatusEffectCatalogueSO.TryGetByKey sea robusto/case-insensitive; lo veremos en el siguiente paso.)
+            if (catalogue.TryGetByKey(key, out status) && status != null)
+                return true;
 
+            // 2) LEGACY FALLBACK: DisplayName / asset.name
             StatusEffectSO firstMatch = null;
             int matchCount = 0;
 
@@ -618,19 +824,31 @@ namespace ALWTTT.Cards.Editor
 
             if (firstMatch == null)
             {
-                err = $"No StatusEffectSO found in catalogue for statusKey '{key}'.";
+                err = $"No StatusEffectSO found in catalogue for statusKey '{key}'. " +
+                      $"Tried StatusKey first, then DisplayName/asset.name fallback.";
                 return false;
             }
+
+            // Warning: se resolvió por ruta legacy (frágil)
+            Debug.LogWarning(
+                $"[CardEditorWindow] JSON import: '{key}' resolved via legacy name match (DisplayName/asset.name). " +
+                $"Prefer using StatusKey='{firstMatch.StatusKey}' in JSON.");
 
             if (matchCount > 1)
             {
                 Debug.LogWarning(
-                    $"[CardEditorWindow] statusKey '{key}' matched {matchCount} StatusEffectSO assets. " +
-                    "Using the first match. Consider making DisplayName unique or adding a dedicated key field.");
+                    $"[CardEditorWindow] Legacy name '{key}' matched {matchCount} StatusEffectSO assets. " +
+                    "Using the first match. Prefer StatusKey to avoid ambiguity.");
             }
 
             status = firstMatch;
             return true;
+        }
+
+
+        private static string NormalizeStatusLookupKey(string s)
+        {
+            return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
         }
 
         private void ApplyActionJson(SerializedObject pso, ActionJson aj)

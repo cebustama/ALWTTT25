@@ -13,13 +13,13 @@ namespace ALWTTT.Managers
         [Header("Controllers")]
         [SerializeField] private HandController handController;
 
-        public List<CardDefinition> DrawPile { get; private set; } = 
+        public List<CardDefinition> DrawPile { get; private set; } =
             new List<CardDefinition>();
-        public List<CardDefinition> HandPile { get; private set; } = 
+        public List<CardDefinition> HandPile { get; private set; } =
             new List<CardDefinition>();
-        public List<CardDefinition> DiscardPile { get; private set; } = 
+        public List<CardDefinition> DiscardPile { get; private set; } =
             new List<CardDefinition>();
-        public List<CardDefinition> ExhaustPile { get; private set; } = 
+        public List<CardDefinition> ExhaustPile { get; private set; } =
             new List<CardDefinition>();
 
         #region Cache
@@ -52,45 +52,95 @@ namespace ALWTTT.Managers
 
         public void DrawCards(int targetDrawCount)
         {
-            Debug.Log($"{DebugTag} Drawing {targetDrawCount} cards...");
+            if (targetDrawCount <= 0)
+            {
+                Debug.Log($"{DebugTag} Drawing 0 cards... (requested={targetDrawCount})");
+                return;
+            }
 
-            int currentDrawCount = 0;
+            if (HandController == null)
+            {
+                Debug.LogError($"{DebugTag} Cannot draw: HandController is null.");
+                return;
+            }
 
-            for (int i = 0; i < targetDrawCount; i++)
+            if (HandController.DrawTransform == null)
+            {
+                Debug.LogError($"{DebugTag} Cannot draw: HandController.DrawTransform is null.");
+                return;
+            }
+
+            int available = DrawPile.Count + DiscardPile.Count;
+            int drawCount = Mathf.Min(targetDrawCount, available);
+
+            Debug.Log(
+                $"{DebugTag} Drawing {drawCount} cards... " +
+                $"(requested={targetDrawCount}, draw={DrawPile.Count}, discard={DiscardPile.Count})"
+            );
+
+            for (int i = 0; i < drawCount; i++)
             {
                 // Cards on hand limit
                 if (GameManager.GameplayData.MaxCardsOnHand <= HandPile.Count)
                 {
                     Debug.Log($"{DebugTag} Max number of cards on hand reached.");
-                    return;
+                    break;
                 }
 
                 // Reshuffle if no more cards in Draw Pile
                 if (DrawPile.Count <= 0)
                 {
-                    var nDrawCount = targetDrawCount - currentDrawCount;
-
-                    // If not enough cards left in deck, draw max possible
-                    if (nDrawCount >= DiscardPile.Count)
+                    if (DiscardPile.Count <= 0)
                     {
-                        nDrawCount = DiscardPile.Count;
+                        Debug.LogWarning(
+                            $"{DebugTag} Cannot continue draw: DrawPile empty and DiscardPile empty.");
+                        break;
                     }
 
                     ReshuffleDiscardPile();
-                    DrawCards(nDrawCount);
-                    break;
+
+                    if (DrawPile.Count <= 0)
+                    {
+                        Debug.LogError(
+                            $"{DebugTag} Reshuffle produced empty DrawPile. Aborting draw.");
+                        break;
+                    }
                 }
 
                 var randomCard = DrawPile[Random.Range(0, DrawPile.Count)];
+
+                if (randomCard == null)
+                {
+                    Debug.LogWarning($"{DebugTag} Encountered null CardDefinition in DrawPile. Removing.");
+                    DrawPile.Remove(randomCard);
+                    i--;
+                    continue;
+                }
 
                 // Instantiate card as child of HandController.DrawTransform
                 var card = GameManager.BuildAndGetCard(
                     randomCard, HandController.DrawTransform);
 
-                HandController.AddCardToHand(card);
+                if (card == null)
+                {
+                    Debug.LogError(
+                        $"{DebugTag} BuildAndGetCard returned null for '{randomCard.name}'.");
+                }
+                else
+                {
+                    if (!card.gameObject.activeInHierarchy)
+                    {
+                        Debug.LogWarning(
+                            $"{DebugTag} Drew '{randomCard.name}' but card GameObject is inactive. " +
+                            $"(ParentActive={HandController.DrawTransform.gameObject.activeInHierarchy})"
+                        );
+                    }
+
+                    HandController.AddCardToHand(card);
+                }
+
                 HandPile.Add(randomCard);
                 DrawPile.Remove(randomCard);
-                currentDrawCount++;
 
                 if (UIManager != null && UIManager.GigCanvas != null)
                     UIManager.GigCanvas.SetPileTexts();
@@ -125,7 +175,7 @@ namespace ALWTTT.Managers
             {
                 targetCard.Discard();
             }
-                
+
             // TODO: UpdateCardText for all other cards
             // Ex. when +STR increase DMG for all cards
         }
