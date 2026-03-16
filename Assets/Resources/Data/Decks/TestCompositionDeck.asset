@@ -16,7 +16,8 @@ MonoBehaviour:
   deckName: Test Composition Deck
   deckDomain: 1
   cardList:
-  - {fileID: 11400000, guid: b78927e8ec79c3d4dafc68b1af135615, type: 2}
-  - {fileID: 11400000, guid: eee8bef36f0cb3b41b6806e42f757693, type: 2}
-  - {fileID: 11400000, guid: 6bde204afd563294bb1056bd81b26d71, type: 2}
-  - {fileID: 11400000, guid: 47d84299c9530694d9e778281a705fd1, type: 2}
+  - {fileID: 11400000, guid: 5a4e802a97511b34ea6895bc315946e4, type: 2}
+  - {fileID: 11400000, guid: 33e76460a97c6ef4493b45a1e3b74eb9, type: 2}
+  - {fileID: 11400000, guid: 7ef3a095c79667945802ac9fb83d6c9f, type: 2}
+  - {fileID: 11400000, guid: 3a0711973588746409e6fd29d1d6e2df, type: 2}
+  - {fileID: 11400000, guid: a9de9c494fdc6ff4886d623442c1a3fd, type: 2}

@@ -1,4 +1,5 @@
 using ALWTTT.Cards;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -44,10 +45,38 @@ namespace ALWTTT.Managers
         public void SetGameDeck()
         {
             Debug.Log($"{DebugTag} Setting game deck...");
-            foreach (var i in GameManager.PersistentGameplayData.CurrentActionCards)
+
+            var gm = GameManager;
+            var pd = gm != null ? gm.PersistentGameplayData : null;
+            if (pd == null)
             {
-                DrawPile.Add(i);
+                Debug.LogError($"{DebugTag} Cannot set deck: PersistentGameplayData is null.");
+                return;
             }
+
+            void Add(IEnumerable<CardDefinition> src, string label)
+            {
+                if (src == null) return;
+                foreach (var c in src)
+                {
+                    if (c == null) continue;
+
+                    // Solo metemos cartas válidas para el deck mixto
+                    if (!c.IsAction && !c.IsComposition)
+                    {
+                        Debug.LogWarning($"{DebugTag} Skipping non Action/Composition card '{c.name}' from {label}.");
+                        continue;
+                    }
+
+                    DrawPile.Add(c);
+                }
+            }
+
+            Add(pd.CurrentActionCards, "Action");
+            Add(pd.CurrentCompositionCards, "Composition");
+
+            Debug.Log($"{DebugTag} Deck built: total={DrawPile.Count} " +
+                      $"(Action={pd.CurrentActionCards?.Count ?? 0}, Composition={pd.CurrentCompositionCards?.Count ?? 0})");
         }
 
         public void DrawCards(int targetDrawCount)
@@ -107,7 +136,7 @@ namespace ALWTTT.Managers
                     }
                 }
 
-                var randomCard = DrawPile[Random.Range(0, DrawPile.Count)];
+                var randomCard = DrawPile[UnityEngine.Random.Range(0, DrawPile.Count)];
 
                 if (randomCard == null)
                 {
@@ -190,6 +219,38 @@ namespace ALWTTT.Managers
             HandController.Hand.Clear();
         }
 
+        /// <summary>
+        /// Discard only the cards in hand that satisfy the predicate.
+        /// Useful for MVP rules like: when Play is pressed, discard Action cards.
+        /// </summary>
+        public void DiscardHandWhere(Func<CardBase, bool> predicate)
+        {
+            if (HandController == null || HandController.Hand == null)
+                return;
+
+            if (predicate == null)
+                return;
+
+            for (int i = HandController.Hand.Count - 1; i >= 0; i--)
+            {
+                var card = HandController.Hand[i];
+                if (card == null)
+                {
+                    HandController.Hand.RemoveAt(i);
+                    continue;
+                }
+
+                if (!predicate(card))
+                    continue;
+
+                card.Discard();
+                HandController.Hand.RemoveAt(i);
+            }
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
+        }
+
         public void OnCardDiscarded(CardBase targetCard)
         {
             HandPile.Remove(targetCard.CardDefinition);
@@ -223,7 +284,7 @@ namespace ALWTTT.Managers
                 // random swap shuffle
                 for (int i = 0; i < DrawPile.Count; i++)
                 {
-                    int j = Random.Range(0, DrawPile.Count);
+                    int j = UnityEngine.Random.Range(0, DrawPile.Count);
                     (DrawPile[i], DrawPile[j]) = (DrawPile[j], DrawPile[i]);
                 }
             }

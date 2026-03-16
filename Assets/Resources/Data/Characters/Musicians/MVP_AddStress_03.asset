@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: White-Knuckle Push
   performerRule: 1
   musicianCharacterType: 4
-  cardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
+  cardSprite: {fileID: 121403226278347257, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
   inspirationCost: 1
   inspirationGenerated: 0
   cardType: 0

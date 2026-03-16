@@ -3,6 +3,7 @@ using ALWTTT.Enums;
 using ALWTTT.Managers;
 using ALWTTT.Music;
 using ALWTTT.UI;
+using MidiGenPlay;
 using System;
 using System.Collections.Generic;
 
@@ -12,6 +13,8 @@ namespace ALWTTT.Interfaces
     {
         SongCompositionUI CompositionUI { get; }
         LoopsTimerUI LoopsTimerUI { get; }
+        [Obsolete("CompositionSession should not mutate deck/hand. Use GigManager as host.")]
+
         DeckManager Deck { get; }
         MidiMusicManager Music { get; }
         IReadOnlyList<MusicianBase> Band { get; } // channel order

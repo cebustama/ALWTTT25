@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b987196233c610489faff2eb050697c, type: 3}
+  m_Name: 2CBacking001TestProg_Payload
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CompositionCardPayload
+  effects: []
+  primaryKind: 1
+  trackAction:
+    role: 1
+    styleBundle: {fileID: 11400000, guid: d514d5b40c9118c4ea771677729b5715, type: 2}
+  partAction:
+    action: 0
+    customLabel: 
+    musicianId: 
+  modifierEffects: []
+  references:
+    version: 2
+    RefIds: []

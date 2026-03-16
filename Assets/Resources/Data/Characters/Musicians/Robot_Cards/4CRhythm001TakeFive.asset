@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09c7763474057584b96a4d0a44be87e3, type: 3}
+  m_Name: 4CRhythm001TakeFive
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardDefinition
+  id: 4_C_Rhythm_001_TakeFive
+  displayName: Take Five
+  performerRule: 1
+  musicianCharacterType: 2
+  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  inspirationCost: 1
+  inspirationGenerated: 0
+  cardType: 0
+  rarity: 0
+  keywords: 
+  audioType: 0
+  musicianAnimation:
+    kind: 0
+    animatorTrigger: 
+    animationDuration: -1
+    disableBeatAnimator: 1
+    loopBoolParameter: 
+  exhaustAfterPlay: 0
+  overrideRequiresTargetSelection: 0
+  requiresTargetSelectionOverrideValue: 0
+  payload: {fileID: 11400000, guid: 304d4b03620ec394d81e44da3bbfe1ad, type: 2}

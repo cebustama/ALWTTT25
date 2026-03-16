@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8831ba32adf7a2c4db4083d5aedf3478, type: 3}
   m_Name: Rhythm - Card Config SO
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.RhythmCardConfigSO
-  appliesTo: 4
+  appliesTo: 0
   patternOverride: {fileID: 0}
   recipeOverride:
     RhythmStyleId: 
     HatDensity: 0
     HatMode: 0
+  styleIdOverride: 
   fillEveryNMeasures: 0
   lastMeasuresAsFill: 0
   kickDensity: 0.5

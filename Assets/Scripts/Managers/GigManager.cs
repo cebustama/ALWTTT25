@@ -43,14 +43,35 @@ namespace ALWTTT.Managers
         [SerializeField] private Camera mainCamera;
         [SerializeField] private Camera handCamera;
 
+        [Header("MVP / Action Card Gating")]
+        [SerializeField, Tooltip("MVP: when Play is pressed, discard remaining Action cards from the hand.")]
+        private bool discardActionCardsOnPlay = true;
+
+        [SerializeField, Tooltip("Allow Action cards with timing=Always to be playable during performance.")]
+        private bool allowActionCardsDuringPerformance = false;
+
         [Header("Vibe / Hype Balancing")]
         [SerializeField] private int maxVibeFromSongHype = 20;
         [SerializeField] private float songHypeDeltaMultiplier = 1f;
 
         [Header("Flow / Composure (MVP)")]
-        [SerializeField, Tooltip("Each Flow stack increases loop→SongHype delta by (1 + stacks * this).")]
+        [SerializeField, Tooltip("(Legacy) Each Flow stack increases loop→SongHype delta by (1 + stacks * this).")]
         private float flowSongHypeMultiplierPerStack = 0.10f;
+
+        [SerializeField, Tooltip("(Legacy) If enabled, Flow stacks multiply loop→SongHype delta. Disable if using Strength-like Flow→Vibe.")]
+        private bool flowAffectsSongHype = false;
+
         [SerializeField] private bool debugFlowSongHype = false;
+
+        [Header("Flow → Vibe (Strength-like MVP)")]
+        [SerializeField, Tooltip("If enabled, each Flow stack adds a flat Vibe bonus to *any* positive Vibe gain (cards + song resolution).")]
+        private bool flowAddsFlatVibeBonus = true;
+
+        [SerializeField, Tooltip("Flat Vibe bonus per Flow stack (applied when flowAddsFlatVibeBonus is enabled).")]
+        private int flowVibeFlatBonusPerStack = 1;
+
+        public bool FlowAddsFlatVibeBonus => flowAddsFlatVibeBonus;
+        public int FlowVibeFlatBonusPerStack => flowVibeFlatBonusPerStack;
 
         [Header("Gig End Behavior")]
         [SerializeField] private bool skipAudienceActionsAfterFinalSong = true;
@@ -100,6 +121,7 @@ namespace ALWTTT.Managers
 
         private bool _isSongPlaying;
         private bool _isBetweenSongs;
+        private bool _actionWindowOpen = true;
         private bool _returningToMap = false;
 
         private int _currentBpm;
@@ -338,6 +360,11 @@ namespace ALWTTT.Managers
             // Deck + hand binding
             SetupDeck();
 
+            // MVP: initial planning window is open.
+            _actionWindowOpen = true;
+            _isSongPlaying = false;
+            _isBetweenSongs = true;
+
             // IMPORTANT: Do NOT set the gig phase for now
             CurrentGigPhase = GigPhase.PlayerTurn;
 
@@ -354,14 +381,10 @@ namespace ALWTTT.Managers
             OverrideList = 4
         }
 
-        /// <summary>
-        /// Centralizes all deck setup logic in one place.
-        /// This makes it easy to swap deck sources (GameplayData, GigRunContext, etc.)
-        /// without spreading the logic across StartGig / GigSetup scene.
-        /// </summary>
         private void SetupDeck(
-            DeckSetupSource source = DeckSetupSource.Auto,
-            IReadOnlyList<CardDefinition> overrideActionCards = null)
+    DeckSetupSource source = DeckSetupSource.Auto,
+    IReadOnlyList<CardDefinition> overrideActionCards = null,
+    IReadOnlyList<CardDefinition> overrideCompositionCards = null)
         {
             if (GameManager == null || DeckManager == null)
             {
@@ -380,19 +403,27 @@ namespace ALWTTT.Managers
             SetHandVisible(true);
             RebindDeckToGigHand();
 
-            var resolved = new List<CardDefinition>(16);
+            var resolvedActions = new List<CardDefinition>(16);
+            var resolvedCompositions = new List<CardDefinition>(16);
 
-            void AddIfAction(IEnumerable<CardDefinition> src)
+            void AddValid(IEnumerable<CardDefinition> src)
             {
                 if (src == null) return;
+
                 foreach (var c in src)
-                    if (c != null && c.IsAction) resolved.Add(c);
+                {
+                    if (c == null) continue;
+
+                    if (c.IsAction) resolvedActions.Add(c);
+                    else if (c.IsComposition) resolvedCompositions.Add(c);
+                }
             }
 
             switch (source)
             {
                 case DeckSetupSource.OverrideList:
-                    AddIfAction(overrideActionCards);
+                    AddValid(overrideActionCards);
+                    AddValid(overrideCompositionCards);
                     break;
 
                 case DeckSetupSource.RunContextBandDeck:
@@ -400,61 +431,73 @@ namespace ALWTTT.Managers
                         GigRunContext.Instance.TryGetBandDeck(out var runDeck) &&
                         runDeck != null)
                     {
-                        AddIfAction(runDeck.Cards);
+                        AddValid(runDeck.Cards);
                     }
                     break;
 
                 case DeckSetupSource.GameplayDataInitialDeck:
                     {
-                        var deckData = GameManager.GameplayData?.InitialActionDeck;
-                        if (deckData != null)
-                            AddIfAction(deckData.GetValidCards());
+                        var a = GameManager.GameplayData?.InitialActionDeck;
+                        var c = GameManager.GameplayData?.InitialCompositionDeck;
+
+                        if (a != null) AddValid(a.GetValidCards());
+                        if (c != null) AddValid(c.GetValidCards());
                     }
                     break;
 
                 case DeckSetupSource.PersistentGameplayData:
-                    AddIfAction(pd.CurrentActionCards);
+                    AddValid(pd.CurrentActionCards);
+                    AddValid(pd.CurrentCompositionCards);
                     break;
 
                 default:
                     // Auto: prefer PD (already populated by GameManager.SetInitialDeck() or GigSetup)
-                    AddIfAction(pd.CurrentActionCards);
+                    AddValid(pd.CurrentActionCards);
+                    AddValid(pd.CurrentCompositionCards);
 
                     // Fallback: GigSetupScene run deck
-                    if (resolved.Count == 0 && GigRunContext.Instance != null &&
+                    if (resolvedActions.Count == 0 && resolvedCompositions.Count == 0 &&
+                        GigRunContext.Instance != null &&
                         GigRunContext.Instance.TryGetBandDeck(out var ctxDeck) &&
                         ctxDeck != null)
                     {
-                        AddIfAction(ctxDeck.Cards);
+                        AddValid(ctxDeck.Cards);
                     }
 
-                    // Fallback: GameplayData.InitialActionDeck
-                    if (resolved.Count == 0)
+                    // Fallback: GameplayData initial decks
+                    if (resolvedActions.Count == 0 && resolvedCompositions.Count == 0)
                     {
-                        var deckData = GameManager.GameplayData?.InitialActionDeck;
-                        if (deckData != null)
-                            AddIfAction(deckData.GetValidCards());
+                        var a = GameManager.GameplayData?.InitialActionDeck;
+                        var c = GameManager.GameplayData?.InitialCompositionDeck;
+
+                        if (a != null) AddValid(a.GetValidCards());
+                        if (c != null) AddValid(c.GetValidCards());
                     }
                     break;
             }
 
-            if (resolved.Count == 0)
+            int total = resolvedActions.Count + resolvedCompositions.Count;
+            if (total == 0)
             {
-                Debug.LogError(
-                    $"{DebugTag} SetupDeck failed: resolved action deck is empty. Source={source}");
+                Debug.LogError($"{DebugTag} SetupDeck failed: resolved deck is empty. Source={source}");
                 return;
             }
 
             // Keep PersistentGameplayData as the single source of truth for runtime decks.
-            if (pd.CurrentActionCards == null)
-                pd.CurrentActionCards = new List<CardDefinition>();
+            pd.CurrentActionCards ??= new List<CardDefinition>();
+            pd.CurrentCompositionCards ??= new List<CardDefinition>();
 
             pd.CurrentActionCards.Clear();
-            pd.CurrentActionCards.AddRange(resolved);
+            pd.CurrentActionCards.AddRange(resolvedActions);
+
+            pd.CurrentCompositionCards.Clear();
+            pd.CurrentCompositionCards.AddRange(resolvedCompositions);
 
             Debug.Log(
-                $"{DebugTag} SetupDeck resolved Action={pd.CurrentActionCards.Count} " +
-                $"(Source={source}, InitialActionDeck='{GameManager.GameplayData?.InitialActionDeck?.name}')");
+                $"{DebugTag} SetupDeck resolved Action={pd.CurrentActionCards.Count}, " +
+                $"Composition={pd.CurrentCompositionCards.Count}, Total={total} " +
+                $"(Source={source}, InitialActionDeck='{GameManager.GameplayData?.InitialActionDeck?.name}', " +
+                $"InitialCompositionDeck='{GameManager.GameplayData?.InitialCompositionDeck?.name}')");
 
             DeckManager.ClearAll();
             DeckManager.SetGameDeck();
@@ -622,6 +665,18 @@ namespace ALWTTT.Managers
 
         private void OnPlayPressed()
         {
+            // MVP: once Play is pressed, action cards are no longer usable.
+            _actionWindowOpen = false;
+
+            // MVP: optionally discard Action cards from hand when starting performance.
+            if (discardActionCardsOnPlay && DeckManager != null)
+            {
+                DeckManager.DiscardHandWhere(card =>
+                    card != null &&
+                    card.CardDefinition != null &&
+                    card.CardDefinition.IsAction);
+            }
+
             // Inject dev overrides into the UI model before building the SongConfig
             ApplyDebugInstrumentOverridesToCompositionModel();
 
@@ -1250,8 +1305,14 @@ namespace ALWTTT.Managers
             if (actionPayload == null) return false;
             var actionTiming = actionPayload.ActionTiming;
 
+            // During performance we default to disabling action cards in the MVP,
+            // except those explicitly marked as Always (and only if enabled).
             if (_isSongPlaying)
-                return actionTiming == CardActionTiming.Always;
+                return allowActionCardsDuringPerformance && actionTiming == CardActionTiming.Always;
+
+            // If the player already pressed Play, action cards are locked.
+            if (!_actionWindowOpen)
+                return false;
 
             if (_isBetweenSongs)
                 return true; // (keep your existing logic)
@@ -1310,16 +1371,17 @@ namespace ALWTTT.Managers
             // Global scalar for testing
             float hypeDelta = baseHypeDelta * songHypeDeltaMultiplier;
 
-            // FLOW (MVP): Flow stacks increase loop→SongHype conversion.
+            // FLOW (Legacy): optionally allow Flow stacks to multiply loop→SongHype conversion.
+            // Default is OFF when using Strength-like Flow→Vibe.
             int flowStacks = GetTotalFlowStacks();
-            if (flowStacks > 0)
+            if (flowAffectsSongHype && flowStacks > 0)
             {
                 float mult = 1f + (flowStacks * flowSongHypeMultiplierPerStack);
                 hypeDelta *= mult;
 
                 if (debugFlowSongHype)
                 {
-                    Debug.Log($"{DebugTag} Flow active: stacks={flowStacks} mult={mult:0.00} baseΔ={baseHypeDelta:0.00} finalΔ={hypeDelta:0.00}");
+                    Debug.Log($"{DebugTag} [Flow→SongHype] stacks={flowStacks} mult={mult:0.00} baseΔ={baseHypeDelta:0.00} finalΔ={hypeDelta:0.00}");
                 }
             }
 
@@ -1837,14 +1899,30 @@ namespace ALWTTT.Managers
                 var audience = CurrentAudienceCharacterList[entry.AudienceIndex];
                 if (audience == null) continue;
 
+                int baseDelta = entry.Delta;
+                int flowStacks = 0;
+                int flowBonus = 0;
+                if (flowAddsFlatVibeBonus && baseDelta > 0)
+                {
+                    flowStacks = GetTotalFlowStacks();
+                    flowBonus = flowStacks * flowVibeFlatBonusPerStack;
+                }
+
+                int finalDelta = baseDelta + flowBonus;
+
                 // Floating text
                 FxManager.Instance?.SpawnFloatingText(
                     audience.TextSpawnRoot,
-                    $"+{entry.Delta} Vibe",
+                    flowBonus > 0
+                        ? $"+{finalDelta} Vibe (Flow +{flowBonus})"
+                        : $"+{finalDelta} Vibe",
                     0, 1, Color.cyan);
 
                 // 1) apply Vibe
-                audience.AudienceStats.AddVibe(entry.Delta, duration: barFillDelay);
+                audience.AudienceStats.AddVibe(finalDelta, duration: barFillDelay);
+
+                if (useLogs && flowBonus > 0)
+                    Debug.Log($"{DebugTag} [Flow→Vibe] {audience.CharacterId} base=+{baseDelta} flowStacks={flowStacks} perStack={flowVibeFlatBonusPerStack} bonus=+{flowBonus} final=+{finalDelta}");
                 //Debug.Log($"{audience.CharacterId} filling Vibe in {barFillDelay}[s]");
                 yield return new WaitForSeconds(barFillDelay);
                 //Debug.Log($"{audience.CharacterId} bar filled");
@@ -1900,4 +1978,3 @@ namespace ALWTTT.Managers
         #endregion
     }
 }
-

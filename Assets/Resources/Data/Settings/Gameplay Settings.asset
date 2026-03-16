@@ -37,11 +37,11 @@ MonoBehaviour:
   baseConflictChance: 20
   perConflictCohesionPenalty: 2
   cohesionRestoredByBandTalk: 2
-  initialActionDeck: {fileID: 11400000, guid: 8872ba9a6df46294cbf20d6fce124ce7, type: 2}
+  initialActionDeck: {fileID: 11400000, guid: c7f4a3d52d7cbcd46ae243fc92d47fe8, type: 2}
   initialCompositionDeck: {fileID: 11400000, guid: 37efae426d58b844a9e5be7229e9a6cd, type: 2}
   actionCardPool: []
   compositionCardPool: []
-  drawCount: 5
+  drawCount: 10
   maxCardsOnHand: 10
   maxInspiration: 5
   discardHandBetweenTurns: 1

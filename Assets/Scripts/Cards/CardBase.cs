@@ -219,12 +219,36 @@ namespace ALWTTT
                             continue;
                         }
 
-                        int before = audience.Stats.CurrentVibe;
-                        audience.Stats.SetCurrentVibe(before + vibe.amount);
+                        int baseDelta = vibe.amount;
+                        int flowStacks = 0;
+                        int flowBonus = 0;
+
+                        // Strength-like MVP: Flow adds a flat bonus to *any* positive Vibe gain.
+                        var gm = GigManager.Instance;
+                        if (baseDelta > 0 && gm != null && gm.FlowAddsFlatVibeBonus)
+                        {
+                            flowStacks = ComputeBandFlowStacks(allBandCharacters);
+                            flowBonus = flowStacks * gm.FlowVibeFlatBonusPerStack;
+                        }
+
+                        int finalDelta = baseDelta + flowBonus;
+
+                        // Prefer the newer AudienceStats pathway when available.
+                        if (audience.AudienceStats != null)
+                        {
+                            audience.AudienceStats.AddVibe(finalDelta);
+                        }
+                        else
+                        {
+                            int before = audience.Stats.CurrentVibe;
+                            audience.Stats.SetCurrentVibe(before + finalDelta);
+                        }
 
 #if UNITY_EDITOR
                         Debug.Log(
-                            $"[Effects] {performer?.name} modified Vibe on {audience.name}: {before} -> {audience.Stats.CurrentVibe} (Δ{vibe.amount}) via card '{CardDefinition?.DisplayName}'.");
+                            flowBonus > 0
+                                ? $"[Effects][Flow→Vibe] {performer?.name} Vibe on {audience.name}: baseΔ={baseDelta} flowStacks={flowStacks} bonus=+{flowBonus} finalΔ={finalDelta} via card '{CardDefinition?.DisplayName}'."
+                                : $"[Effects] {performer?.name} modified Vibe on {audience.name}: Δ{finalDelta} via card '{CardDefinition?.DisplayName}'.");
 #endif
                     }
 
@@ -333,6 +357,23 @@ namespace ALWTTT
                 Debug.LogWarning(
                     $"[CardBase] Unhandled CardEffectSpec type '{effect.GetType().Name}'. Card='{CardDefinition?.name}'.");
             }
+        }
+
+        private static int ComputeBandFlowStacks(List<MusicianBase> allBandCharacters)
+        {
+            if (allBandCharacters == null || allBandCharacters.Count == 0)
+                return 0;
+
+            int total = 0;
+            for (int i = 0; i < allBandCharacters.Count; i++)
+            {
+                var m = allBandCharacters[i];
+                if (m == null || m.Statuses == null) continue;
+
+                // MVP mapping: Flow == DamageUpFlat.
+                total += Mathf.Max(0, m.Statuses.GetStacks(CharacterStatusId.DamageUpFlat));
+            }
+            return total;
         }
 
         private List<CharacterBase> DetermineTargets(

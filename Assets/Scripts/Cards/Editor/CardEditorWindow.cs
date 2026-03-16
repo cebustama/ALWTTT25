@@ -3,8 +3,12 @@ using ALWTTT.Cards.Effects;
 using ALWTTT.Enums;
 using ALWTTT.Musicians;
 using ALWTTT.Status;
+using MidiGenPlay;
+using MidiGenPlay.Composition;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -43,6 +47,8 @@ namespace ALWTTT.Cards.Editor
         [SerializeField] private CardAssetFactory.CreateCardKind _newKind = CardAssetFactory.CreateCardKind.Action;
         [SerializeField] private string _newId;
         [SerializeField] private string _newDisplayName;
+        [SerializeField] private string _newNameTag = "";
+        [SerializeField] private bool _useCompactKindTokens = true;
         [SerializeField] private bool _newIdEditedByUser;
         [SerializeField] private string _lastAutoId;
         [SerializeField] private int _newInspirationCost = 1;
@@ -552,15 +558,30 @@ namespace ALWTTT.Cards.Editor
 
                 using (new EditorGUI.DisabledScope(_loadedCatalog == null || _loadedMusicianData == null))
                 {
+                    EditorGUI.BeginChangeCheck();
+
                     _newKind = (CardAssetFactory.CreateCardKind)EditorGUILayout.EnumPopup("Kind", _newKind);
 
-                    // Auto-suggest ID if user hasn't overridden it.
+                    string tagLabel = _newKind == CardAssetFactory.CreateCardKind.Composition
+                        ? "Role / Tag"
+                        : "Tag";
+
+                    _newNameTag = EditorGUILayout.TextField(tagLabel, _newNameTag);
+                    _newDisplayName = EditorGUILayout.TextField("Display Name", _newDisplayName);
+                    _useCompactKindTokens = EditorGUILayout.ToggleLeft("Use compact kind tokens (A / C)", _useCompactKindTokens);
+
+                    bool namingInputsChanged = EditorGUI.EndChangeCheck();
+
+                    EditorGUILayout.HelpBox(
+                        _newKind == CardAssetFactory.CreateCardKind.Composition
+                            ? "Naming only. Examples: Rhythm, Backing, Melody, Bass, Harmony, Rth, Bck, Mel."
+                            : "Naming only. Examples: Status, Buff, Draw, Utility.",
+                        MessageType.None);
+
                     string suggested = BuildSuggestedId();
                     if (!_newIdEditedByUser)
                     {
-                        // Keep updating while it's auto-controlled
-                        // (initial fill + kind changes).
-                        if (string.IsNullOrWhiteSpace(_newId) || _newId == _lastAutoId)
+                        if (namingInputsChanged || string.IsNullOrWhiteSpace(_newId) || _newId == _lastAutoId)
                         {
                             _newId = suggested ?? _newId;
                             _lastAutoId = _newId;
@@ -585,8 +606,6 @@ namespace ALWTTT.Cards.Editor
                             }
                         }
                     }
-
-                    _newDisplayName = EditorGUILayout.TextField("Display Name", _newDisplayName);
 
                     _newInspirationCost = EditorGUILayout.IntField("Inspiration Cost", _newInspirationCost);
                     _newInspirationGenerated = EditorGUILayout.IntField("Inspiration Generated", _newInspirationGenerated);
@@ -680,6 +699,8 @@ namespace ALWTTT.Cards.Editor
                 return;
             }
 
+            RenameCreatedAssetsToMatchId(created.cardDefinition);
+
             if (!MusicianCatalogService.TryAddEntry(
                     _loadedCatalog,
                     created.cardDefinition,
@@ -702,6 +723,7 @@ namespace ALWTTT.Cards.Editor
             _newIdEditedByUser = false;
             _lastAutoId = null;
             _newDisplayName = "";
+            _newNameTag = "";
             _newUnlockId = "";
             _newStarterCopies = 1;
             _newEntryFlags = CardAcquisitionFlags.UnlockedByDefault;
@@ -893,6 +915,9 @@ namespace ALWTTT.Cards.Editor
                     if (GUILayout.Button("Select"))
                         SelectAndPing(card);
 
+                    if (GUILayout.Button("Rename Assets From Current Id"))
+                        RenameCreatedAssetsToMatchId(card);
+
                     using (new EditorGUI.DisabledScope(_loadedCatalog == null ||
                         _selectedEntryIndex < 0))
                     {
@@ -904,7 +929,7 @@ namespace ALWTTT.Cards.Editor
         }
 
 
-        private static void SelectAndPing(Object obj)
+        private static void SelectAndPing(UnityEngine.Object obj)
         {
             if (obj == null) return;
             Selection.activeObject = obj;
@@ -1192,7 +1217,7 @@ namespace ALWTTT.Cards.Editor
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.PropertyField(primaryKindProp);
-            EditorGUILayout.PropertyField(trackActionProp, includeChildren: true);
+            DrawTrackActionEditor(trackActionProp, payload);
             EditorGUILayout.PropertyField(partActionProp, includeChildren: true);
             EditorGUILayout.PropertyField(modifierEffectsProp, includeChildren: true);
 
@@ -1209,6 +1234,191 @@ namespace ALWTTT.Cards.Editor
             else
             {
                 so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // Composition payload QoL: TrackAction style-bundle creator
+        // ---------------------------------------------------------------------
+
+        private void DrawTrackActionEditor(SerializedProperty trackActionProp, CompositionCardPayload payload)
+        {
+            if (trackActionProp == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "CompositionCardPayload is missing expected property 'trackAction'.",
+                    MessageType.Error);
+                return;
+            }
+
+            var roleProp = trackActionProp.FindPropertyRelative("role");
+            var styleBundleProp = trackActionProp.FindPropertyRelative("styleBundle");
+
+            // If the descriptor shape changes, fall back to default drawing.
+            if (roleProp == null || styleBundleProp == null)
+            {
+                EditorGUILayout.PropertyField(trackActionProp, includeChildren: true);
+                return;
+            }
+
+            trackActionProp.isExpanded = EditorGUILayout.Foldout(
+                trackActionProp.isExpanded,
+                trackActionProp.displayName,
+                toggleOnLabelClick: true);
+
+            if (!trackActionProp.isExpanded)
+                return;
+
+            EditorGUI.indentLevel++;
+
+            EditorGUILayout.PropertyField(roleProp);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PropertyField(styleBundleProp);
+
+                using (new EditorGUI.DisabledScope(styleBundleProp.objectReferenceValue != null))
+                {
+                    if (GUILayout.Button("Create", GUILayout.Width(60)))
+                        CreateAndAssignStyleBundle(roleProp, styleBundleProp, payload);
+                }
+
+                using (new EditorGUI.DisabledScope(styleBundleProp.objectReferenceValue == null))
+                {
+                    if (GUILayout.Button("Ping", GUILayout.Width(44)))
+                        EditorGUIUtility.PingObject(styleBundleProp.objectReferenceValue);
+                }
+            }
+
+            // Future-proofing: if TrackActionDescriptor gains more fields later,
+            // render them automatically (excluding role/styleBundle which we already drew).
+            var iter = trackActionProp.Copy();
+            var end = iter.GetEndProperty();
+            bool enterChildren = true;
+
+            while (iter.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iter, end))
+            {
+                enterChildren = false;
+
+                if (SerializedProperty.EqualContents(iter, roleProp) ||
+                    SerializedProperty.EqualContents(iter, styleBundleProp))
+                    continue;
+
+                EditorGUILayout.PropertyField(iter, includeChildren: true);
+            }
+
+            EditorGUI.indentLevel--;
+        }
+
+        private void CreateAndAssignStyleBundle(
+            SerializedProperty roleProp,
+            SerializedProperty styleBundleProp,
+            CompositionCardPayload payload)
+        {
+            string roleName = GetEnumNameSafe(roleProp);
+            var bundleType = ResolveBundleTypeForRole(roleName);
+
+            // Decide folder based on where the payload asset lives (keeps things tidy per musician/card set).
+            string folder = GetDefaultStyleBundleFolder(payload, roleName);
+            EnsureFolderExists(folder);
+
+            string fileName = $"{payload.name}_{roleName}_StyleBundle.asset";
+            string assetPath = AssetDatabase.GenerateUniqueAssetPath($"{folder}/{fileName}");
+
+            var bundle = ScriptableObject.CreateInstance(bundleType) as TrackStyleBundleSO;
+            if (bundle == null)
+            {
+                Debug.LogError($"[CardEditorWindow] Failed to create style bundle of type '{bundleType?.Name}'.");
+                return;
+            }
+
+            // Best-effort: tag the bundle with the role (if enum parsing matches).
+            try
+            {
+                bundle.appliesTo = (TrackRole)Enum.Parse(typeof(TrackRole), roleName);
+            }
+            catch { /* ignore */ }
+
+            AssetDatabase.CreateAsset(bundle, assetPath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Assign back into the payload
+            Undo.RecordObject(payload, "Assign Track Style Bundle");
+            styleBundleProp.objectReferenceValue = bundle;
+            styleBundleProp.serializedObject.ApplyModifiedProperties();
+
+            EditorUtility.SetDirty(payload);
+
+            Selection.activeObject = bundle;
+            EditorGUIUtility.PingObject(bundle);
+        }
+
+        private static Type ResolveBundleTypeForRole(string roleName)
+        {
+            // Use literal strings to avoid compile-time coupling to enum members.
+            return roleName switch
+            {
+                "Backing" => typeof(BackingCardConfigSO),
+                "Melody" => typeof(MelodyCardConfigSO),
+                "Harmony" => typeof(HarmonyCardConfigSO),
+                "Rhythm" => typeof(RhythmCardConfigSO),
+                _ => typeof(TrackStyleBundleSO),
+            };
+        }
+
+        private static string GetEnumNameSafe(SerializedProperty enumProp)
+        {
+            if (enumProp == null || enumProp.propertyType != SerializedPropertyType.Enum)
+                return string.Empty;
+
+            int idx = Mathf.Clamp(enumProp.enumValueIndex, 0, enumProp.enumNames.Length - 1);
+            return enumProp.enumNames[idx];
+        }
+
+        private static string GetDefaultStyleBundleFolder(CompositionCardPayload payload, string roleName)
+        {
+            // Fallback if payload isn't an asset (should be rare in this tool).
+            const string fallbackRoot = "Assets/Resources/Data/Cards/StyleBundles";
+
+            string payloadPath = payload != null ? AssetDatabase.GetAssetPath(payload) : null;
+            if (string.IsNullOrWhiteSpace(payloadPath))
+                return $"{fallbackRoot}/{roleName}";
+
+            payloadPath = payloadPath.Replace("\\", "/");
+            string payloadFolder = Path.GetDirectoryName(payloadPath)?.Replace("\\", "/");
+            if (string.IsNullOrWhiteSpace(payloadFolder))
+                return $"{fallbackRoot}/{roleName}";
+
+            // Expected: .../<Musician>_Cards/Payloads
+            // Target:   .../<Musician>_Cards/StyleBundles/<Role>
+            string musicianRoot = Path.GetDirectoryName(payloadFolder)?.Replace("\\", "/");
+            if (string.IsNullOrWhiteSpace(musicianRoot))
+                return $"{fallbackRoot}/{roleName}";
+
+            return $"{musicianRoot}/StyleBundles/{roleName}";
+        }
+
+        private static void EnsureFolderExists(string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath))
+                return;
+
+            folderPath = folderPath.Replace("\\", "/");
+            if (AssetDatabase.IsValidFolder(folderPath))
+                return;
+
+            // Create recursively: Assets/.../A/B/C
+            var parts = folderPath.Split('/');
+            if (parts.Length == 0) return;
+
+            string cur = parts[0]; // "Assets"
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = $"{cur}/{parts[i]}";
+                if (!AssetDatabase.IsValidFolder(next))
+                    AssetDatabase.CreateFolder(cur, parts[i]);
+                cur = next;
             }
         }
 
@@ -1553,12 +1763,25 @@ namespace ALWTTT.Cards.Editor
             if (_loadedMusicianData == null || _loadedCatalog == null)
                 return null;
 
-            string musicianId = _loadedMusicianData.CharacterId;
-            if (string.IsNullOrWhiteSpace(musicianId))
-                musicianId = _selectedMusician.ToString();
+            string musicianToken = ToSafeToken(
+                string.IsNullOrWhiteSpace(_loadedMusicianData.CharacterId)
+                    ? _selectedMusician.ToString()
+                    : _loadedMusicianData.CharacterId,
+                "Musician");
 
-            string kind = _newKind.ToString(); // "Action" / "Composition"
-            string prefix = $"{musicianId}_{kind}_";
+            string kindToken = GetKindToken(_newKind);
+
+            string tagToken = ToSafeToken(
+                string.IsNullOrWhiteSpace(_newNameTag)
+                    ? GetDefaultTagForKind(_newKind)
+                    : _newNameTag,
+                "Card");
+
+            string displayToken = ToSafeToken(
+                string.IsNullOrWhiteSpace(_newDisplayName) ? "Card" : _newDisplayName,
+                "Card");
+
+            string prefix = $"{musicianToken}_{kindToken}_{tagToken}_";
 
             int max = 0;
             var entries = _loadedCatalog.Entries;
@@ -1570,22 +1793,114 @@ namespace ALWTTT.Cards.Editor
                     if (c == null) continue;
 
                     string id = c.Id;
-                    if (string.IsNullOrEmpty(id)) continue;
-                    if (!id.StartsWith(prefix)) continue;
+                    if (string.IsNullOrWhiteSpace(id)) continue;
+                    if (!id.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
 
-                    string tail = id.Substring(prefix.Length);
-                    if (tail.Length < 3) continue;
-
-                    // parse first 3 digits after prefix
-                    if (int.TryParse(tail.Substring(0, 3), out int n))
-                        if (n > max) max = n;
+                    if (TryParseSequenceAfterPrefix(id, prefix, out int seq))
+                        max = Mathf.Max(max, seq);
                 }
             }
 
             int next = max + 1;
-            // "D3" keeps 001..999; if you ever exceed 999
-            // it becomes 1000 (4 digits) which is acceptable.
-            return prefix + next.ToString("D3");
+            return $"{prefix}{next:D3}_{displayToken}";
+        }
+
+        private string GetKindToken(CardAssetFactory.CreateCardKind kind)
+        {
+            if (_useCompactKindTokens)
+            {
+                return kind switch
+                {
+                    CardAssetFactory.CreateCardKind.Action => "A",
+                    CardAssetFactory.CreateCardKind.Composition => "C",
+                    _ => kind.ToString()
+                };
+            }
+
+            return kind.ToString();
+        }
+
+        private static string GetDefaultTagForKind(CardAssetFactory.CreateCardKind kind)
+        {
+            return kind switch
+            {
+                CardAssetFactory.CreateCardKind.Action => "Action",
+                CardAssetFactory.CreateCardKind.Composition => "Composition",
+                _ => "Card"
+            };
+        }
+
+        private static bool TryParseSequenceAfterPrefix(string id, string prefix, out int seq)
+        {
+            seq = 0;
+
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(prefix))
+                return false;
+
+            if (!id.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            string tail = id.Substring(prefix.Length);
+            if (tail.Length < 3)
+                return false;
+
+            return int.TryParse(tail.Substring(0, 3), out seq);
+        }
+
+        private static string ToSafeToken(string raw, string fallback)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return fallback;
+
+            var sb = new StringBuilder(raw.Length);
+            bool upperNext = true;
+
+            foreach (char ch in raw.Trim())
+            {
+                if (char.IsLetterOrDigit(ch))
+                {
+                    sb.Append(upperNext ? char.ToUpperInvariant(ch) : ch);
+                    upperNext = false;
+                }
+                else
+                {
+                    upperNext = true;
+                }
+            }
+
+            return sb.Length > 0 ? sb.ToString() : fallback;
+        }
+
+        private static void RenameCreatedAssetsToMatchId(CardDefinition card)
+        {
+            if (card == null) return;
+
+            string baseName = ToSafeToken(card.Id, "Card");
+            RenameAssetIfNeeded(card, baseName);
+
+            if (card.Payload != null)
+                RenameAssetIfNeeded(card.Payload, $"{baseName}_Payload");
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        private static void RenameAssetIfNeeded(UnityEngine.Object obj, string desiredName)
+        {
+            if (obj == null || string.IsNullOrWhiteSpace(desiredName))
+                return;
+
+            string path = AssetDatabase.GetAssetPath(obj);
+            if (string.IsNullOrWhiteSpace(path))
+                return;
+
+            string currentName = Path.GetFileNameWithoutExtension(path);
+            if (string.Equals(currentName, desiredName, StringComparison.Ordinal))
+                return;
+
+            string err = AssetDatabase.RenameAsset(path, desiredName);
+            if (!string.IsNullOrEmpty(err))
+                Debug.LogWarning($"[CardEditorWindow] Could not rename asset '{path}' -> '{desiredName}': {err}");
         }
 
         private void SyncFromAssets()
@@ -1719,7 +2034,7 @@ namespace ALWTTT.Cards.Editor
             if (p != null) p.enumValueIndex = (int)(object)enumValue;
         }
 
-        private static void SetObject(SerializedObject so, string propName, Object obj)
+        private static void SetObject(SerializedObject so, string propName, UnityEngine.Object obj)
         {
             var p = so.FindProperty(propName);
             if (p != null) p.objectReferenceValue = obj;
