@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Rhythm - Card Config SO
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.RhythmCardConfigSO
   appliesTo: 0
-  patternOverride: {fileID: 0}
+  patternOverride: {fileID: 11400000, guid: 0dc2b40c977fe8445978d3358abd0787, type: 2}
   recipeOverride:
     RhythmStyleId: 
     HatDensity: 0

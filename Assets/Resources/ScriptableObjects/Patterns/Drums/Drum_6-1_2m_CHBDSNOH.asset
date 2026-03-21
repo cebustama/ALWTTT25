@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbe172d1a7f543146b0be301460cb6c2, type: 3}
+  m_Name: Drum_6-1_2m_CHBDSNOH
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.DrumPatternData
+  DisplayName: Drum_6-1_2m_CHBDSNOH
+  TimeSignature: 3
+  Measures: 2
+  beatsPerMeasure: 6
+  subdivisions: 1
+  lanes:
+  - instrument: 42
+    defaultVelocity: 120
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 36
+    defaultVelocity: 100
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 38
+    defaultVelocity: 100
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 46
+    defaultVelocity: 100
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  velocity: 80
+  drumMappings: []
+  pianoRollPattern: 
