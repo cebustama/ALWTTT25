@@ -361,6 +361,15 @@ namespace ALWTTT.Status
                         "Ember / draw scaling",
                         "Action / draw engines");
                     return true;
+
+                case CharacterStatusId.ShakenRestriction:
+                    data = new CanonicalPrimitiveData(
+                        "Control",
+                        "Restricts card actions after Breakdown",
+                        "Weakness (partial analog)",
+                        "—",
+                        "—");
+                    return true;
             }
 
             data = default;

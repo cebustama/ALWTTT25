@@ -58,7 +58,7 @@ It is responsible for:
 - presentation metadata
 - economy metadata such as cost / generation fields
 - synergies (type / keywords / rarity)
-- performer rule
+- performer rule (`FixedPerformerType`)
 - play rules such as exhaust and targeting overrides
 - reference to exactly one `CardPayload`
 
@@ -139,23 +139,21 @@ Rules:
 - new mechanics are added by creating new spec subclasses plus authoring/runtime support
 
 ### 6.2 Built-in effect specs currently in active vocabulary
-The active effect vocabulary currently includes at least the following concepts:
-- status application
-- vibe modification
-- stress modification
-- card draw
 
-Representative built-ins:
-- `ApplyStatusEffectSpec`
-- `ModifyVibeSpec`
-- `ModifyStressSpec`
-- `DrawCardsSpec`
+All four effect types below are implemented and runtime-validated.
+
+| Spec class | JSON `type` | Status | Notes |
+|---|---|---|---|
+| `ApplyStatusEffectSpec` | `"ApplyStatusEffect"` | ✅ Implemented + validated | Applies a direct `StatusEffectSO` reference |
+| `ModifyVibeSpec` | `"ModifyVibe"` | ✅ Implemented + validated | Targets audience characters |
+| `ModifyStressSpec` | `"ModifyStress"` | ✅ Implemented + validated | Routes through `ApplyIncomingStressWithComposure` for positive values |
+| `DrawCardsSpec` | `"DrawCards"` | ✅ Implemented + validated | Calls `DeckManager.DrawCards(count)` at effect execution time |
 
 ### 6.3 ApplyStatusEffectSpec
 This effect applies a concrete authored `StatusEffectSO` variant.
 
 Canonical fields:
-- `status`
+- `status` — direct SO reference (resolved at design time in the Inspector / JSON import)
 - `targetType`
 - `stacksDelta`
 - `delay`
@@ -163,6 +161,7 @@ Canonical fields:
 Rule:
 - a card applies a concrete status asset, not just a primitive enum id
 - this allows multiple tuned variants of the same abstract status primitive
+- contrast with runtime code paths (e.g. `OnBreakdown`) that must resolve by string key via the catalogue
 
 ---
 
@@ -173,7 +172,7 @@ That means status application is not a separate parallel card-mechanics system.
 
 Rule:
 - status application is just another `CardEffectSpec`
-- status runtime semantics themselves belong to the status SSoT when promoted
+- status runtime semantics themselves belong to `SSoT_Status_Effects.md`
 - card-side meaning stays here
 
 ---
@@ -182,18 +181,20 @@ Rule:
 
 ### 8.1 Performer rule
 A card may be:
-- playable by any musician
-- restricted to a fixed performer type
+- playable by any musician (no restriction)
+- restricted to a fixed performer type (`FixedPerformerType` field on `CardDefinition`)
 
-This belongs to the gameplay identity of the card and therefore lives in ALWTTT card truth.
+**Current implementation:** performer is resolved at play time via `FixedPerformerType` — the musician who owns or plays the card is the performer. In effect targeting, `Self` = card owner/performer. This was validated in Fix 3.7a.
 
 ### 8.2 Effect-driven targeting
 Targeting is derived primarily from authored effects.
 
 MVP-facing rule set:
-- single-target effect types require explicit target selection
+- single-target effect types require explicit target selection (`Musician`, `AudienceCharacter`)
 - self / all / random group target types do not require player selection
 - card-level overrides may exist when the card definition explicitly forces targeting behavior
+
+**Valid `targetType` values:** `Self`, `Musician`, `AudienceCharacter`, `AllAudienceCharacters`, `AllMusicians`, `RandomAudienceCharacter`, `RandomMusician`
 
 ### 8.3 Composition targeting
 Composition cards may require a musician target independently of their effects if the composition semantics require it.
@@ -205,10 +206,10 @@ Composition cards may require a musician target independently of their effects i
 ### 9.1 Action cards
 Canonical sequence:
 1. player selects a card from hand
-2. runtime resolves performer and target(s)
-3. the card executes its `Effects` list
-4. each effect is interpreted by runtime systems
-5. the card moves to the appropriate post-play state
+2. runtime resolves performer (`FixedPerformerType`) and target(s)
+3. the card executes its `Effects` list via `CardBase.ExecuteEffects()`
+4. each effect is interpreted by the runtime branch in `ExecuteEffects`
+5. the card moves to the appropriate post-play state (discard/exhaust)
 
 ### 9.2 Composition cards
 Canonical MVP sequence:

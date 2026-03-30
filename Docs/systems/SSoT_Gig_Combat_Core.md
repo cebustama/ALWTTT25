@@ -162,7 +162,7 @@ This document defines **combat meaning**, not the full status ontology.
 
 ### 6.1 Flow
 **Scope:** Song/Band  
-**Reset:** resets each Song  
+**Reset:** resets each Song (via explicit GigManager song-end reset, not tick decay)  
 **Combat meaning:** amplifies Loop → SongHype conversion.
 
 Conceptually:
@@ -178,7 +178,7 @@ Rules:
 
 ### 6.2 Composure
 **Scope:** Musician  
-**Reset:** resets each Song  
+**Reset:** clears at the start of each Player Turn (`PlayerTurnStart` tick in `GigManager.OnPlayerTurnStarted`)  
 **Combat meaning:** absorbs incoming positive Stress before Stress is applied.
 
 Conceptually:
@@ -189,23 +189,49 @@ incomingStress -> consume Composure first -> apply remainder to Stress
 
 Rules:
 - Composure is a defensive buffer, not permanent healing
-- when a musician is in `Shaken`, new Composure granted to that musician is reduced by 50% (round down)
+- Composure clears every Player Turn, not every Song — this is more frequent than song-scoped reset
+- when a musician is in `Shaken`, new Composure granted to that musician is reduced by 50% (round down) — **design intent; not yet enforced in runtime**
 
 ### 6.3 Breakdown / Shaken
+
 Breakdown is not just flavor; it is a combat-visible threshold event.
 
-Trigger:
+**Trigger:**
 - when `Stress >= StressMax` after Composure absorption
 
-Immediate MVP consequences:
-1. `Cohesion -1`
-2. set `BreakdownState = Shaken`
-3. set `Stress = ceil(StressMax / 2)`
+**Immediate MVP consequences (in order):**
+1. `Cohesion − 1`
+2. If `Cohesion <= 0` after step 1: call `GigManager.LoseGig()` immediately — **steps 3–4 are skipped**
+3. Apply `Shaken` status (1 stack via `StatusEffectCatalogueSO` key `"shaken"`)
+4. Reset `Stress = floor(StressMax * breakdownStressResetFraction)` — default fraction is `0.5`, configurable on `GigManager`
 
-`Shaken` MVP rules:
-- lasts until the end of the next Song
-- the affected musician cannot play **Action cards** in the Between-Songs window
+**Shaken MVP runtime behavior:**
+- SO config: Replace, MaxStacks=1, LinearStacks, `AudienceTurnStart` tick
+- Duration: applied at Audience Turn of Song N → expires at the **start** of the Audience Turn of Song N+1
+- Active through: rest of Audience Turn N, Player Turn N+1 (action window), Composition N+1, Performance N+1, Song End N+1
+- This is one complete song cycle from the musician's next action window through the following song's end
+
+**Shaken gameplay restrictions (design intent — not yet enforced in runtime):**
+- the affected musician cannot play **Action cards** in the Between-Songs window while Shaken
 - Composure granted to that musician is reduced by 50% (round down)
+- these restrictions are pending a follow-up design/implementation pass
+
+### 6.4 Exposed
+**Scope:** Musician  
+**Combat meaning:** amplifies incoming Stress. Each Exposed stack adds `0.25` to the stress multiplier in `ApplyIncomingStressWithComposure` (`_exposedMultiplierPerStack = 0.25f` on `BandCharacterStats`).
+
+Rules:
+- Exposed applies to musicians only
+- there is no Stress path on `AudienceCharacterBase`; Exposed has no audience equivalent in MVP
+
+### 6.5 Feedback DoT
+**Scope:** Musician (MVP); Audience deferred  
+**Combat meaning:** per-turn stress damage applied during `AudienceTurnRoutine` in `GigManager`.
+
+Rules:
+- each Feedback stack applies 1 incoming stress per tick, routed through `m.Stats.ApplyIncomingStressWithComposure`
+- applies to musicians only in current implementation
+- audience Feedback DoT requires a Stress path on `AudienceCharacterBase`, which does not exist — explicitly deferred
 
 ---
 
@@ -293,10 +319,18 @@ These can exist as planning/reference material without overriding this SSoT.
 
 ---
 
-## 11. Implementation note
+## 11. Implementation status (Phase 4 complete — 2026-03-23)
 
-Known validation gaps such as:
-- Composure absorption not yet confirmed in play mode
-- Flow not yet visibly validated through loop-end runtime
-
-belong in `CURRENT_STATE.md`, not as competing rules here.
+| Feature | Status |
+|---|---|
+| Composure absorption (positive Stress) | ✅ Validated (B1/B2) |
+| Composure clear at PlayerTurnStart | ✅ Validated (B6) |
+| Flow stacks boost Vibe per card play | ✅ Validated (B3) |
+| Song-end Flow + Composure reset | ✅ Validated (B7) |
+| Breakdown → Cohesion−1 + Stress reset + Shaken application | ✅ Implemented (Decision C) |
+| LoseGig on Cohesion ≤ 0 | ✅ Implemented (Decision D) |
+| Exposed stress multiplier on musicians | ✅ Implemented (Decision E) |
+| Feedback DoT on musicians (AudienceTurnRoutine) | ✅ Implemented (Decision E) |
+| Audience Feedback DoT | ⛔ Deferred — no Stress path on audience |
+| Shaken gameplay restrictions enforcement | ⬜ Pending design decision |
+| Composure penalty during Shaken | ⬜ Pending — design intent only |

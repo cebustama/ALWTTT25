@@ -14,11 +14,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.MusicianCardCatalogData
   musicianType: 1
   entries:
-  - card: {fileID: 11400000, guid: afb929f1e26b83748bf0f88c44730d42, type: 2}
+  - card: {fileID: 11400000, guid: e537885a5b065d044a811548be47e740, type: 2}
     flags: 4
     unlockId: 
     starterCopies: 1
-  - card: {fileID: 11400000, guid: 7e2a2cf0b8d53fb458269ff661deeebf, type: 2}
+  - card: {fileID: 11400000, guid: 6be2e4aaf66f8034392200fadd1c8e7e, type: 2}
+    flags: 4
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: 2149bdfea6ff6154d94ee1b80810a3bc, type: 2}
+    flags: 4
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: e4cfbc4c80ba0a7408ceb52d3211c277, type: 2}
+    flags: 4
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: e4a5a965f9292194ba9b13e5301aa337, type: 2}
+    flags: 4
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: 3ee9b8ee5a630784ea7faadcfac28102, type: 2}
+    flags: 4
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: dd204a8057aa08f469039a05c9441883, type: 2}
+    flags: 4
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: 92ed8de9caee56a4d93deb7e560dabaa, type: 2}
+    flags: 4
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: ce297dbb0cf7cad42a31fc158719d789, type: 2}
     flags: 4
     unlockId: 
     starterCopies: 1

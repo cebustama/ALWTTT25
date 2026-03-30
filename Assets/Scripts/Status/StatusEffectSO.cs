@@ -222,13 +222,15 @@ namespace ALWTTT.Status
     public enum TickTiming
     {
         None = 0,
-        StartOfTurn = 1,
-        EndOfTurn = 2,
+        StartOfTurn = 1,    // kept — back-compat for existing SOs
+        EndOfTurn = 2,      // kept
         StartOfLoop = 3,
         EndOfLoop = 4,
         OnAction = 5,
         OnHit = 6,
         OnTakeDamage = 7,
+        PlayerTurnStart = 8,      // ADD: musician statuses that tick at player turn
+        AudienceTurnStart = 9,    // ADD: audience/enemy statuses that tick at their turn
     }
 
     public enum ValueType

@@ -169,8 +169,13 @@ The baseline governed failure condition is:
 Cohesion <= 0
 ```
 
-Combat/status docs may specify **how** this pressure is applied.  
+Combat/status docs specify **how** this pressure is applied.  
 This document owns the fact that Cohesion is the encounter-level durability gate.
+
+**Implementation:** failure is triggered by calling `GigManager.LoseGig()` (public method).  
+This is invoked from `MusicianBase.OnBreakdown()` immediately after `PersistentGameplayData.BandCohesion` is decremented to `<= 0`.
+
+**Note:** There is no method named `TriggerGigLoss`. The correct runtime call is `LoseGig()`.
 
 ---
 

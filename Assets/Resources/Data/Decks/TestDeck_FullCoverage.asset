@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ed09dc450cd3c54899c38c179471bcc, type: 3}
+  m_Name: TestDeck_FullCoverage
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.BandDeckData
+  deckId: TestDeck_FullCoverage
+  displayName: Full Coverage Test Deck
+  description: Tests all major card effect types. Action cards cover every effect
+    and target combination across all valid musician types. Composition cards cover
+    rhythm, backing, and melody categories.
+  cards:
+  - {fileID: 11400000, guid: ce297dbb0cf7cad42a31fc158719d789, type: 2}
+  - {fileID: 11400000, guid: 3ee9b8ee5a630784ea7faadcfac28102, type: 2}
+  - {fileID: 11400000, guid: dd204a8057aa08f469039a05c9441883, type: 2}
+  - {fileID: 11400000, guid: 92ed8de9caee56a4d93deb7e560dabaa, type: 2}
+  - {fileID: 11400000, guid: e4a5a965f9292194ba9b13e5301aa337, type: 2}
+  - {fileID: 11400000, guid: e537885a5b065d044a811548be47e740, type: 2}
+  - {fileID: 11400000, guid: 2149bdfea6ff6154d94ee1b80810a3bc, type: 2}
+  - {fileID: 11400000, guid: e4cfbc4c80ba0a7408ceb52d3211c277, type: 2}
+  - {fileID: 11400000, guid: 6be2e4aaf66f8034392200fadd1c8e7e, type: 2}
+  - {fileID: 11400000, guid: 6cfdfc1593e5fb347976355809f8846d, type: 2}
+  - {fileID: 11400000, guid: 12cb456fe0274f945bc29d64ec33b432, type: 2}
+  - {fileID: 11400000, guid: 9c9c0cf235a5bfa469feef007a245cb8, type: 2}
+  - {fileID: 11400000, guid: 568ee963b8fcf5d498b16dd3d5466caf, type: 2}
+  - {fileID: 11400000, guid: d2f81603dbe5bfd42b43214131a3f8fe, type: 2}
+  - {fileID: 11400000, guid: 7ea46b9a1030a214f8d15582bf979af8, type: 2}
+  - {fileID: 11400000, guid: d81c5119f8d6876408696918f1224444, type: 2}
+  - {fileID: 11400000, guid: 3cdd4e110e0b75a43afd32d122cdf4e3, type: 2}
+  - {fileID: 11400000, guid: 7ef3a095c79667945802ac9fb83d6c9f, type: 2}
+  - {fileID: 11400000, guid: 3a0711973588746409e6fd29d1d6e2df, type: 2}
+  - {fileID: 11400000, guid: a9de9c494fdc6ff4886d623442c1a3fd, type: 2}
+  - {fileID: 11400000, guid: e6959291718ff8044b05ce9c895c24c6, type: 2}
+  - {fileID: 11400000, guid: cf42d211cf647444ba22202e1e3cdbab, type: 2}

@@ -1,7 +1,8 @@
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
+using ALWTTT.Status;
+using ALWTTT.Status.Runtime;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace ALWTTT.Characters.Band
@@ -21,6 +22,13 @@ namespace ALWTTT.Characters.Band
         public Action<int, int> OnStressChanged;
 
         private BandCharacterCanvas bandCharacterCanvas;
+
+        private float _exposedMultiplierPerStack = 0.25f;
+        public float ExposedStressMultiplierPerStack
+        {
+            get => _exposedMultiplierPerStack;
+            set => _exposedMultiplierPerStack = value;
+        }
 
         public override string ToString()
         {
@@ -117,6 +125,58 @@ namespace ALWTTT.Characters.Band
         protected override void TriggerStatus(StatusType targetStatus)
         {
             
+        }
+
+        /// <summary>
+        /// Single canonical entry point for incoming positive Stress.
+        /// 1. Absorbs Composure (TempShieldTurn) from the SO-based StatusEffectContainer.
+        /// 2. Applies remainder via AddStress (which triggers Breakdown check).
+        /// Call from card effects AND audience actions.
+        /// </summary>
+        /// <param name="statuses">The character's StatusEffectContainer (CharacterBase.Statuses)</param>
+        /// <param name="incomingStress">Raw positive stress amount before mitigation</param>
+        /// <param name="duration">UI animation duration</param>
+        /// <returns>Tuple: (absorbed, applied) for logging/FX</returns>
+        public (int absorbed, int applied) ApplyIncomingStressWithComposure(
+            StatusEffectContainer statuses,
+            int incomingStress,
+            float duration = 1f)
+        {
+            if (incomingStress <= 0)
+                return (0, 0);
+
+            int remaining = incomingStress;
+            int absorbed = 0;
+
+            // Step 1: Composure absorption (SO-based container)
+            if (statuses != null &&
+                statuses.TryGet(CharacterStatusId.TempShieldTurn, out var compInst) &&
+                compInst != null && compInst.Stacks > 0)
+            {
+                absorbed = Mathf.Min(compInst.Stacks, remaining);
+                if (absorbed > 0)
+                {
+                    statuses.Apply(compInst.Definition, -absorbed);
+                    remaining -= absorbed;
+                }
+            }
+
+            // Decision E: Exposed amplifies remaining stress
+            if (statuses != null &&
+                statuses.TryGet(CharacterStatusId.DamageTakenUpFlat, out var exposedInst) &&
+                exposedInst != null && exposedInst.Stacks > 0)
+            {
+                float mult = 1f + (exposedInst.Stacks * _exposedMultiplierPerStack);
+                remaining = Mathf.CeilToInt(remaining * mult);
+            }
+
+            // Step 2: Apply remainder (triggers Breakdown check via AddStress)
+            if (remaining > 0)
+            {
+                AddStress(remaining, duration);
+            }
+
+            return (absorbed, remaining);
         }
     }
 }

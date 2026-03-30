@@ -1,4 +1,4 @@
-using ALWTTT.Cards;
+﻿using ALWTTT.Cards;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
@@ -131,9 +131,44 @@ namespace ALWTTT.Characters.Band
 
         protected void OnBreakdown()
         {
-            // TODO: "Stunned", cannot perform for one turn
+            // Legacy status for UI
             stats.ApplyStatus(StatusType.Breakdown, 1);
             IsStunned = true;
+
+            // Decision C: Cohesion−1
+            var pd = GameManager.PersistentGameplayData;
+            if (pd != null)
+            {
+                pd.BandCohesion = Mathf.Max(0, pd.BandCohesion - 1);
+
+                // Decision D: gig loss on Cohesion ≤ 0
+                if (pd.BandCohesion <= 0)
+                {
+                    GigManager.Instance?.LoseGig();
+                    return;
+                }
+            }
+
+            // Decision C: Stress reset to configurable fraction
+            float resetFraction = GigManager.Instance != null
+                ? GigManager.Instance.BreakdownStressResetFraction
+                : 0.5f;
+            int resetTarget = Mathf.FloorToInt(stats.MaxStress * resetFraction);
+            stats.SetCurrentStress(resetTarget);
+
+            // Decision C: Apply Shaken via catalogue key lookup
+            if (StatusCatalogue != null &&
+                StatusCatalogue.TryGetByKey("shaken", out var shakenSO))
+            {
+                Statuses?.Apply(shakenSO, 1);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"[MusicianBase] Shaken SO not found. " +
+                    $"Add 'shaken' to StatusEffectCatalogueSO and assign the catalogue to this musician prefab. " +
+                    $"Musician='{name}'");
+            }
         }
 
         protected override void OnPointerEnter()

@@ -133,6 +133,13 @@ Purpose:
 Purpose:
 - either initialize the next song-scoped runtime session or terminate the gig encounter
 
+### Phase machine bypass during CompositionSession
+`GigManager.ExecuteGigPhase()` returns early when `_session != null` (a `CompositionSession` is active).
+
+This means the normal phase machine logic does not execute while the composition session is running. The phase machine resumes when the session completes and `_session` is cleared.
+
+This is a deliberate architectural separation, not a bug — it keeps the composition/session lifecycle cleanly decoupled from the phase state machine. Any runtime feature that needs to interact during an active session must hook into the session lifecycle directly, not through the phase machine.
+
 ---
 
 ## 5. Card entry points into runtime
@@ -209,6 +216,7 @@ This is the canonical runtime handoff used to drive:
 4. `SongConfigBuilder` converts ALWTTT model state into music playback build input.
 5. `MidiMusicManager` is part of the ALWTTT runtime surface and must be documented here/on the integration side, not as package truth.
 6. Loop/part/song feedback belongs to the ALWTTT runtime contract even when downstream systems use MidiGenPlay for playback/generation.
+7. `ExecuteGigPhase()` is bypassed while a `CompositionSession` is active. Phase machine and session lifecycle are explicitly decoupled.
 
 ---
 

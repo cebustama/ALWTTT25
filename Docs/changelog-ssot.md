@@ -5,159 +5,54 @@ Cosmetic edits should not be logged here.
 
 ---
 
-## 2026-03-18 — Governance migration Batch 01 initialized
+## 2026-03-23 — Combat MVP Phase 4 closure
 
-### Added
-- root governed docs spine:
-  - `README.md`
-  - `SSoT_INDEX.md`
-  - `SSoT_CONTRACTS.md`
-  - `CURRENT_STATE.md`
-  - `coverage-matrix.md`
-  - `changelog-ssot.md`
+### Semantic changes
 
-### Established documentary rules
-- one major concept must have one primary home
-- planning/reference/archive cannot silently override SSoTs
-- `CURRENT_STATE.md` is a live state layer, not a replacement for subsystem SSoTs
+**SSoT_Gig_Combat_Core:**
+- Composure reset timing corrected: clears at each `PlayerTurnStart` tick, not per-song. These are not equivalent.
+- Breakdown consequences corrected and expanded: Cohesion−1 → LoseGig if Cohesion≤0 → Shaken application → Stress reset. Ordering and short-circuit now documented.
+- Stress reset formula corrected: `floor(StressMax * breakdownStressResetFraction)` (default 0.5, configurable). Previous doc said `ceil(StressMax / 2)`.
+- Shaken duration corrected: expires at start of Audience Turn N+1 (AudienceTurnStart tick), not "until end of next Song" as previously stated. Active through one full song cycle from application.
+- Shaken restrictions (Action card block, Composure penalty) reclassified as design intent — not enforced in runtime. Explicitly noted.
+- Added §6.4 Exposed: each stack adds 0.25 to incoming stress multiplier on musicians. No audience path.
+- Added §6.5 Feedback DoT: musician-only in AudienceTurnRoutine. Audience version explicitly deferred.
+- §11 replaced: stale validation gaps removed, implementation status table added.
 
-### Established cross-project boundary rule
-- ALWTTT owns gameplay/runtime/integration truth
-- MidiGenPlay owns package internals
-- shared concepts must be split into boundary contracts rather than duplicated authority
+**SSoT_Status_Effects:**
+- §3 expanded with tick timing system documentation: PlayerTurnStart=8, AudienceTurnStart=9, StartOfTurn=1 (legacy).
+- §3.2 added: dual status system documented. Legacy StatusType path and current SO+container path both exist. New work goes through SO+container only.
+- §5 rewritten: abstract placeholders replaced with concrete canonical MVP set. All six statuses now specified with primitives, keys, SO config, tick timing, combat meaning, and validation status.
+- Shaken (§5.4) added as new canonical status. AudienceTurnStart tick. Restrictions pending.
+- Exposed (§5.5) added as new canonical status.
+- Feedback (§5.6) added as new canonical status. Musician-only, audience deferred.
 
-### Key classification decision
-- `MidiMusicManager` is to be documented as **ALWTTT runtime/integration truth**, not as MidiGenPlay package truth
+**SSoT_Card_System:**
+- DrawCardsSpec confirmed implemented and validated (Phase 2). Added to built-ins table.
+- Performer rule (§8.1) clarified: performer = card owner via FixedPerformerType; Self = card owner. Validated in Fix 3.7a.
+- Built-ins section (§6.2) restructured as a table with implementation/validation status.
 
-### Migration impact
-- future subsystem batches now have a stable governed target
-- current previous docs remain source material until subsystem SSoTs are promoted
+**SSoT_Gig_Encounter:**
+- §7.3 Failure rule: added implementation note. Method is `GigManager.LoseGig()` (public). Called from `MusicianBase.OnBreakdown`. No method named `TriggerGigLoss` exists.
 
-## 2026-03-18 — Governance migration Batch 02 promoted first subsystem SSoTs
+**SSoT_Runtime_Flow:**
+- §4 expanded with CompositionSession bypass: `ExecuteGigPhase()` returns early when `_session != null`. Documented as deliberate decoupling, not a bug. Added as runtime invariant #7.
 
-### Added
-- `systems/README.md`
-- `systems/SSoT_Gig_Combat_Core.md`
-- `systems/SSoT_Card_System.md`
-- `systems/SSoT_Card_Authoring_Contracts.md`
-- `planning/README.md`
-- `planning/combat/Combat_MVP_Roadmap.md`
+**CURRENT_STATE:**
+- §1 updated to reflect Combat MVP closed.
+- §2 replaced with Phase 4 completion record (all decisions A–H).
+- §3 replaced with post-MVP work ordered by value. Composition session testing listed as highest priority.
+- §4 updated with current non-blocking open items.
 
-### Promoted / reclassified
-- previous combat truth was consolidated into `systems/SSoT_Gig_Combat_Core.md`
-- previous card truth was consolidated into `systems/SSoT_Card_System.md`
-- previous appendix/data-contract truth was promoted into `systems/SSoT_Card_Authoring_Contracts.md`
-- previous combat roadmap was reclassified as planning-only
+### Authority changes
+None. All existing authority assignments are unchanged.
 
-### Key documentary decisions
-- combat economy/phase/resource truth now has a single governed home
-- card gameplay semantics now has a single governed home
-- authoring/import contracts were split cleanly from gameplay/runtime semantics
-- the effect-first card model is treated as the current primary card model
-- legacy `CardData`-style material remains a documented risk, not silent authority
+### Lifecycle decisions
+- Audience Feedback DoT: explicitly deferred. Requires Stress path on AudienceCharacterBase.
+- Shaken restrictions: design decision deferred. Status applies and expires correctly; restrictions are a follow-up pass.
+- Shaken SO Tick Timing changed from PlayerTurnStart → AudienceTurnStart. Duration is now one full song cycle, not one player turn.
 
-### Migration impact
-- ALWTTT now has its first real subsystem SSoTs instead of only root governance docs
-- the next migration can focus on runtime/music integration without reopening combat/card authority
-
-## 2026-03-19 — Governance migration Batch 03 promoted runtime and music-integration authority
-
-### Added
-- `runtime/README.md`
-- `runtime/SSoT_Runtime_Flow.md`
-- `runtime/SSoT_Runtime_CompositionSession_Integration.md`
-- `integrations/README.md`
-- `integrations/midigenplay/README.md`
-- `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md`
-- `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md`
-
-### Promoted / reclassified
-- previous gig/runtime-flow truth was consolidated into `runtime/SSoT_Runtime_Flow.md`
-- previous ALWTTT-owned runtime bridge truth was consolidated into `runtime/SSoT_Runtime_CompositionSession_Integration.md`
-- previous mixed composition-pipeline docs were formally split into:
-  - ALWTTT runtime truth
-  - ALWTTT ↔ MidiGenPlay boundary truth
-  - package-owned material that must be referenced rather than duplicated
-
-### Key documentary decisions
-- `GigManager`, `CompositionSession`, `SongConfigBuilder`, and loop/part/song feedback were promoted as ALWTTT runtime authority surface
-- `MidiMusicManager` now has an explicit governed home as ALWTTT runtime/integration truth
-- composition-card runtime meaning was separated from package-internal composer/generation details
-- the ALWTTT ↔ MidiGenPlay ownership split is now explicit rather than implied by mixed docs
-
-### Migration impact
-- ALWTTT no longer depends on mixed composition pipeline docs as silent primary authority
-- the next migration can focus on audience/status/scoring without reopening the ALWTTT vs MidiGenPlay boundary question
-
-## 2026-03-19 — Hardening micro-pass for ALWTTT ↔ MidiGenPlay boundary
-
-### Modified
-- `runtime/SSoT_Runtime_CompositionSession_Integration.md`
-- `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md`
-- `integrations/midigenplay/README.md`
-
-### Added
-- `integrations/midigenplay/ALWTTT_Uses_MidiGenPlay_Quick_Path.md`
-
-### Key hardening decisions
-- made the **source-of-truth split** explicit:
-  - ALWTTT owns editable/session truth before handoff
-  - MidiGenPlay owns package-side runtime song truth after handoff
-- clarified that these are complementary layers rather than competing authorities
-- added a one-page quick-path guide so a developer can understand the end-to-end integration flow without reading multiple long docs first
-
-## 2026-03-19 — Governance migration Batch 04 promoted audience, status, and scoring authority
-
-### Added
-- `systems/SSoT_Audience_and_Reactions.md`
-- `systems/SSoT_Status_Effects.md`
-- `systems/SSoT_Scoring_and_Meters.md`
-- `reference/README.md`
-- `reference/CSO_Primitives_Catalog.md`
-
-### Promoted / reclassified
-- previous audience truth from `reference/AudienceMember.md` was promoted into `systems/SSoT_Audience_and_Reactions.md`
-- previous status-runtime truth from `reference/StatusEffects.md` was promoted into `systems/SSoT_Status_Effects.md`
-- previous scoring semantics from `backlog/ideas/loopscore_songhype_vibe.md` were promoted into `systems/SSoT_Scoring_and_Meters.md`
-- the broader CSO primitive catalog was retained as reference rather than as primary runtime authority
-
-### Key documentary decisions
-- audience, status, and scoring now have separate primary homes
-- persuasion progress was kept distinct from song momentum
-- status ontology/reference material was separated from live runtime status truth
-- the reference catalog was allowed to stay broad without competing with the live status SSoT
-
-### Migration impact
-- ALWTTT no longer needed reference/backlog docs as silent authority for audience/status/scoring
-- the governed tree gained complete gameplay-facing subsystem coverage
-
-## 2026-03-19 — Governance migration Batch 05 promoted encounter structure and cleanup traceability
-
-### Added
-- `systems/SSoT_Gig_Encounter.md`
-- `archive/README.md`
-- `archive/absorbed/README.md`
-- `archive/absorbed/Source_Docs_Supersession_Map.md`
-
-### Promoted / reclassified
-- previous encounter-level truth from `reference/Gig.md` was promoted into `systems/SSoT_Gig_Encounter.md`
-- the old source-doc set is now explicitly treated as snapshot/trace material rather than a silent second docs tree
-- a durable supersession map now records where pre-governance doc names point in the governed system
-
-### Key documentary decisions
-- encounter structure is now separated from both combat economy and runtime execution
-- `Gig` now has a governed home for:
-  - roster framing
-  - song-count structure
-  - gig-scoped state
-  - victory/failure conditions
-  - encounter modifiers
-- cleanup/redirect handling was moved into `archive/absorbed/` instead of leaving old names implied only through chat history
-- the current governed docs tree can now answer “where did this old doc go?” without re-opening the snapshot manually
-
-### Migration impact
-- ALWTTT no longer has a missing primary home for encounter-level truth
-- the remaining migration work became normalization/final replacement rather than creation of major new subsystem authorities
+---
 
 ## 2026-03-19 — Governance migration Batch 06 normalized the final tree and closed the snapshot migration
 
@@ -194,3 +89,157 @@ Cosmetic edits should not be logged here.
 ### Migration impact
 - ALWTTT now has a coherent governed docs tree that can replace routine use of the snapshot
 - remaining work after this batch is ordinary documentation maintenance, not migration
+
+## 2026-03-19 — Governance migration Batch 05 promoted encounter structure and cleanup traceability
+
+### Added
+- `systems/SSoT_Gig_Encounter.md`
+- `archive/README.md`
+- `archive/absorbed/README.md`
+- `archive/absorbed/Source_Docs_Supersession_Map.md`
+
+### Promoted / reclassified
+- previous encounter-level truth from `reference/Gig.md` was promoted into `systems/SSoT_Gig_Encounter.md`
+- the old source-doc set is now explicitly treated as snapshot/trace material rather than a silent second docs tree
+- a durable supersession map now records where pre-governance doc names point in the governed system
+
+### Key documentary decisions
+- encounter structure is now separated from both combat economy and runtime execution
+- `Gig` now has a governed home for:
+  - roster framing
+  - song-count structure
+  - gig-scoped state
+  - victory/failure conditions
+  - encounter modifiers
+- cleanup/redirect handling was moved into `archive/absorbed/` instead of leaving old names implied only through chat history
+- the current governed docs tree can now answer "where did this old doc go?" without re-opening the snapshot manually
+
+### Migration impact
+- ALWTTT no longer has a missing primary home for encounter-level truth
+- the remaining migration work became normalization/final replacement rather than creation of major new subsystem authorities
+
+## 2026-03-19 — Governance migration Batch 04 promoted audience, status, and scoring authority
+
+### Added
+- `systems/SSoT_Audience_and_Reactions.md`
+- `systems/SSoT_Status_Effects.md`
+- `systems/SSoT_Scoring_and_Meters.md`
+- `reference/README.md`
+- `reference/CSO_Primitives_Catalog.md`
+
+### Promoted / reclassified
+- previous audience truth from `reference/AudienceMember.md` was promoted into `systems/SSoT_Audience_and_Reactions.md`
+- previous status-runtime truth from `reference/StatusEffects.md` was promoted into `systems/SSoT_Status_Effects.md`
+- previous scoring semantics from `backlog/ideas/loopscore_songhype_vibe.md` were promoted into `systems/SSoT_Scoring_and_Meters.md`
+- the broader CSO primitive catalog was retained as reference rather than as primary runtime authority
+
+### Key documentary decisions
+- audience, status, and scoring now have separate primary homes
+- persuasion progress was kept distinct from song momentum
+- status ontology/reference material was separated from live runtime status truth
+- the reference catalog was allowed to stay broad without competing with the live status SSoT
+
+### Migration impact
+- ALWTTT no longer needed reference/backlog docs as silent authority for audience/status/scoring
+- the governed tree gained complete gameplay-facing subsystem coverage
+
+## 2026-03-19 — Hardening micro-pass for ALWTTT ↔ MidiGenPlay boundary
+
+### Modified
+- `runtime/SSoT_Runtime_CompositionSession_Integration.md`
+- `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md`
+- `integrations/midigenplay/README.md`
+
+### Added
+- `integrations/midigenplay/ALWTTT_Uses_MidiGenPlay_Quick_Path.md`
+
+### Key hardening decisions
+- made the **source-of-truth split** explicit:
+  - ALWTTT owns editable/session truth before handoff
+  - MidiGenPlay owns package-side runtime song truth after handoff
+- clarified that these are complementary layers rather than competing authorities
+- added a one-page quick-path guide so a developer can understand the end-to-end integration flow without reading multiple long docs first
+
+## 2026-03-19 — Governance migration Batch 03 promoted runtime and music-integration authority
+
+### Added
+- `runtime/README.md`
+- `runtime/SSoT_Runtime_Flow.md`
+- `runtime/SSoT_Runtime_CompositionSession_Integration.md`
+- `integrations/README.md`
+- `integrations/midigenplay/README.md`
+- `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md`
+- `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md`
+
+### Promoted / reclassified
+- previous gig/runtime-flow truth was consolidated into `runtime/SSoT_Runtime_Flow.md`
+- previous ALWTTT-owned runtime bridge truth was consolidated into `runtime/SSoT_Runtime_CompositionSession_Integration.md`
+- previous mixed composition-pipeline docs were formally split into:
+  - ALWTTT runtime truth
+  - ALWTTT ↔ MidiGenPlay boundary truth
+  - package-owned material that must be referenced rather than duplicated
+
+### Key documentary decisions
+- `GigManager`, `CompositionSession`, `SongConfigBuilder`, and loop/part/song feedback were promoted as ALWTTT runtime authority surface
+- `MidiMusicManager` now has an explicit governed home as ALWTTT runtime/integration truth
+- composition-card runtime meaning was separated from package-internal composer/generation details
+- the ALWTTT ↔ MidiGenPlay ownership split is now explicit rather than implied by mixed docs
+
+### Migration impact
+- ALWTTT no longer depends on mixed composition pipeline docs as silent primary authority
+- the next migration can focus on audience/status/scoring without reopening the ALWTTT vs MidiGenPlay boundary question
+
+## 2026-03-18 — Governance migration Batch 02 promoted first subsystem SSoTs
+
+### Added
+- `systems/README.md`
+- `systems/SSoT_Gig_Combat_Core.md`
+- `systems/SSoT_Card_System.md`
+- `systems/SSoT_Card_Authoring_Contracts.md`
+- `planning/README.md`
+- `planning/combat/Combat_MVP_Roadmap.md`
+
+### Promoted / reclassified
+- previous combat truth was consolidated into `systems/SSoT_Gig_Combat_Core.md`
+- previous card truth was consolidated into `systems/SSoT_Card_System.md`
+- previous appendix/data-contract truth was promoted into `systems/SSoT_Card_Authoring_Contracts.md`
+- previous combat roadmap was reclassified as planning-only
+
+### Key documentary decisions
+- combat economy/phase/resource truth now has a single governed home
+- card gameplay semantics now has a single governed home
+- authoring/import contracts were split cleanly from gameplay/runtime semantics
+- the effect-first card model is treated as the current primary card model
+- legacy `CardData`-style material remains a documented risk, not silent authority
+
+### Migration impact
+- ALWTTT now has its first real subsystem SSoTs instead of only root governance docs
+- the next migration can focus on runtime/music integration without reopening combat/card authority
+
+## 2026-03-18 — Governance migration Batch 01 initialized
+
+### Added
+- root governed docs spine:
+  - `README.md`
+  - `SSoT_INDEX.md`
+  - `SSoT_CONTRACTS.md`
+  - `CURRENT_STATE.md`
+  - `coverage-matrix.md`
+  - `changelog-ssot.md`
+
+### Established documentary rules
+- one major concept must have one primary home
+- planning/reference/archive cannot silently override SSoTs
+- `CURRENT_STATE.md` is a live state layer, not a replacement for subsystem SSoTs
+
+### Established cross-project boundary rule
+- ALWTTT owns gameplay/runtime/integration truth
+- MidiGenPlay owns package internals
+- shared concepts must be split into boundary contracts rather than duplicated authority
+
+### Key classification decision
+- `MidiMusicManager` is to be documented as **ALWTTT runtime/integration truth**, not as MidiGenPlay package truth
+
+### Migration impact
+- future subsystem batches now have a stable governed target
+- current previous docs remain source material until subsystem SSoTs are promoted

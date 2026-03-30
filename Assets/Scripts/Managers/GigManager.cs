@@ -73,6 +73,10 @@ namespace ALWTTT.Managers
         public bool FlowAddsFlatVibeBonus => flowAddsFlatVibeBonus;
         public int FlowVibeFlatBonusPerStack => flowVibeFlatBonusPerStack;
 
+        [Header("Breakdown")]
+        [SerializeField, Range(0f, 1f)] private float breakdownStressResetFraction = 0.5f;
+        public float BreakdownStressResetFraction => breakdownStressResetFraction;
+
         [Header("Gig End Behavior")]
         [SerializeField] private bool skipAudienceActionsAfterFinalSong = true;
 
@@ -770,6 +774,18 @@ namespace ALWTTT.Managers
                         return;
                     }
 
+                    // Decision B: tick musician statuses at PlayerTurn start
+                    foreach (var m in CurrentMusicianCharacterList)
+                    {
+                        m?.Statuses?.Tick(TickTiming.PlayerTurnStart);
+                    }
+
+                    // Decision A: Composure is turn-scoped — clear at each PlayerTurn start
+                    foreach (var m in CurrentMusicianCharacterList)
+                    {
+                        m?.Statuses?.Clear(CharacterStatusId.TempShieldTurn);
+                    }
+
                     OnPlayerTurnStarted?.Invoke();
                     GameManager.PersistentGameplayData.SongModifierCardsList.Clear();
 
@@ -941,6 +957,21 @@ namespace ALWTTT.Managers
                 }
             }
 
+            // Decision B: tick audience statuses at AudienceTurn start
+            foreach (var a in CurrentAudienceCharacterList)
+            {
+                a?.Statuses?.Tick(TickTiming.AudienceTurnStart);
+            }
+
+            // Decision E: Feedback DoT — applies to musicians only (audience Stress not yet implemented)
+            foreach (var m in CurrentMusicianCharacterList)
+            {
+                if (m?.Statuses == null) continue;
+                int feedbackStacks = m.Statuses.GetStacks(CharacterStatusId.DamageOverTime);
+                if (feedbackStacks > 0)
+                    m.Stats?.ApplyIncomingStressWithComposure(m.Statuses, feedbackStacks);
+            }
+
             // Snapshot so actions can reorder/destroy without breaking enumeration
             var turnOrder =
                 new List<AudienceCharacterBase>(CurrentAudienceCharacterList);
@@ -971,7 +1002,7 @@ namespace ALWTTT.Managers
             }
         }
 
-        private void LoseGig()
+        public void LoseGig()
         {
             var pd = GameManager.PersistentGameplayData;
 

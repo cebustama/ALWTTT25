@@ -34,6 +34,7 @@
         AntiShieldGain = 500,
         DamageReflection = 501,
         DisableMovement = 502,
+        ShakenRestriction = 503,
 
         // ───────────── Pressure (600–699)
         DamageOverTime = 600,

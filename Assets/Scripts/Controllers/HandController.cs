@@ -561,11 +561,21 @@ namespace ALWTTT
 
                 // 2b) Resolve targets
                 var mainRay = mainCam.ScreenPointToRay(mousePos);
-                CharacterBase bandCharacter = GigManager.SelectedMusician;
                 CharacterBase targetCharacter = null;
 
-                // Caster is always the currently selected musician.
-                bandCharacter = GigManager.SelectedMusician;
+                // Caster: prefer card's FixedPerformerType. Fall back to list[0] if not set.
+                CharacterBase bandCharacter = null;
+                if (data.RequiresFixedPerformer && _resolveTargetByType != null)
+                {
+                    bandCharacter = _resolveTargetByType(data.FixedPerformerType);
+                    if (bandCharacter != null)
+                        Debug.Log($"{DebugTag} [Gig] Action performer resolved by FixedPerformerType ({data.FixedPerformerType}).");
+                }
+                if (bandCharacter == null)
+                {
+                    bandCharacter = GigManager.SelectedMusician;
+                    Debug.Log($"{DebugTag} [Gig] Action performer fallback to SelectedMusician.");
+                }
 
                 // If card requires a target, we must raycast and validate it.
                 // If it does NOT require a target, we pass null targetCharacter.

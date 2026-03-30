@@ -287,46 +287,17 @@ namespace ALWTTT
                         int delta = stress.amount;
                         if (delta == 0) continue;
 
-                        // Positive stress is mitigated by Composure (CharacterStatusId.TempShieldTurn) first.
                         if (delta > 0)
                         {
-                            int remaining = delta;
-                            int absorbed = 0;
-
-                            if (musician.Statuses != null &&
-                                musician.Statuses.TryGet(CharacterStatusId.TempShieldTurn, out var compInst) &&
-                                compInst != null)
-                            {
-                                int compStacks = compInst.Stacks;
-                                absorbed = Mathf.Min(compStacks, remaining);
-
-                                if (absorbed > 0)
-                                {
-                                    // Consume stacks directly.
-                                    musician.Statuses.Apply(compInst.Definition, -absorbed);
-                                    remaining -= absorbed;
-                                }
-                            }
+                            var (absorbed, applied) = musician.Stats.ApplyIncomingStressWithComposure(
+                                musician.Statuses, delta);
 
 #if UNITY_EDITOR
-                            if (absorbed > 0)
-                            {
-                                Debug.Log(
-                                    $"[Effects] {performer?.name} stress mitigated by Composure on {musician.name}: absorbed {absorbed}/{delta}. Remaining={remaining}. Card='{CardDefinition?.DisplayName}'.");
-                            }
+                            Debug.Log(
+                                $"[Effects] {performer?.name} stress on {musician.name}: " +
+                                $"incoming={delta} absorbed={absorbed} applied={applied} " +
+                                $"via card '{CardDefinition?.DisplayName}'.");
 #endif
-
-                            if (remaining > 0)
-                            {
-                                int before = musician.Stats.CurrentStress;
-                                musician.Stats.SetCurrentStress(before + remaining);
-
-#if UNITY_EDITOR
-                                Debug.Log(
-                                    $"[Effects] {performer?.name} modified Stress on {musician.name}: {before} -> {musician.Stats.CurrentStress} (Δ+{remaining}) via card '{CardDefinition?.DisplayName}'.");
-#endif
-                            }
-
                             continue;
                         }
 
@@ -347,10 +318,15 @@ namespace ALWTTT
 
                 if (effect is DrawCardsSpec draw)
                 {
-                    // No invento API de DeckManager aquí. Deja stub + log.
-                    Debug.LogWarning(
-                        $"[CardBase] DrawCardsSpec present (count={draw.count}) but runtime execution not implemented yet. " +
-                        $"Card='{CardDefinition?.name}'.");
+                    if (draw.count > 0)
+                    {
+                        DeckManager.DrawCards(draw.count);
+
+#if UNITY_EDITOR
+                        Debug.Log(
+                            $"[Effects] {performer?.name} drew {draw.count} card(s) via card '{CardDefinition?.DisplayName}'.");
+#endif
+                    }
                     continue;
                 }
 

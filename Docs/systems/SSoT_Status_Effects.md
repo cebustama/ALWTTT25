@@ -2,7 +2,7 @@
 
 **Status:** Active governed SSoT  
 **Scope:** Runtime status semantics, catalogue boundary, and canonical MVP status meaning  
-**Owns:** what a status is in ALWTTT, how status identity/theme are split, runtime container semantics, and the current canonical status set  
+**Owns:** what a status is in ALWTTT, how status identity/theme are split, runtime container semantics, tick timing system, and the current canonical status set  
 **Does not own:** full card-import/editor workflow (`systems/SSoT_Card_Authoring_Contracts.md`), encounter structure (`systems/SSoT_Gig_Encounter.md`), raw primitive catalog reference (`reference/CSO_Primitives_Catalog.md`)
 
 ---
@@ -47,14 +47,39 @@ Rule:
 
 ## 3. Runtime ownership
 
-The runtime status surface includes concepts such as:
+The runtime status surface includes:
 - `StatusEffectSO`
 - `StatusEffectCatalogueSO`
-- runtime containers / instances
+- runtime containers / instances (`StatusEffectContainer` on `CharacterBase.Statuses`)
 - catalogue lookup and variant selection by key
 - stack application / decay / refresh according to the authored contract
 
 This SSoT owns the gameplay/runtime meaning of that surface.
+
+### 3.1 Tick timing system
+
+Status decay/expiry is driven by a `TickTiming` enum on `StatusEffectSO`. The canonical values in current use:
+
+| Value | Enum name | Meaning |
+|---|---|---|
+| 1 | `StartOfTurn` | Legacy value — retained for back-compatibility only. Do not use for new statuses. |
+| 8 | `PlayerTurnStart` | Ticks at the start of the Player Turn (`GigManager.OnPlayerTurnStarted`) |
+| 9 | `AudienceTurnStart` | Ticks at the start of the Audience Turn (`GigManager.AudienceTurnRoutine`) |
+
+**Wiring:**
+- Musicians: `TriggerAllStatus` is bound to `GigManager.OnPlayerTurnStarted` via `MusicianBase.BindToGigContext()`. Called at Player Turn start for each musician.
+- Audience: `TriggerAllStatus` is called from `GigManager.AudienceTurnRoutine` at audience turn start.
+
+Use `PlayerTurnStart` or `AudienceTurnStart` for all new statuses.
+
+### 3.2 Dual status system (migration note)
+
+The codebase currently has two coexisting status surfaces:
+
+1. **Legacy:** `StatusType` enum + `BandCharacterStats.ApplyStatus(StatusType, int)` — used in some legacy display/state paths (e.g. `OnBreakdown` calls `ApplyStatus(StatusType.Breakdown, 1)` for UI). Not the primary authority.
+2. **Current:** `StatusEffectSO` + `StatusEffectContainer` (`CharacterBase.Statuses`) + `StatusEffectCatalogueSO` (`CharacterBase.StatusCatalogue`).
+
+The current runtime model (2) is the governed model. All new statuses must go through the SO + container route. Legacy calls that remain are migration coexistence, not the primary path.
 
 ---
 
@@ -63,47 +88,71 @@ This SSoT owns the gameplay/runtime meaning of that surface.
 The catalogue-facing contract exists so cards and effects can apply statuses without hardcoding one-off logic.
 
 Canonical rule:
-- cards and effects reference a **status key / variant-capable identifier**
-- runtime resolves that into the authored status asset/configuration
+- cards reference a direct `StatusEffectSO` asset in `ApplyStatusEffectSpec.status` (resolved at design time)
+- runtime code (e.g. `OnBreakdown`) resolves by string key at runtime via `StatusEffectCatalogueSO.TryGetByKey(key, out so)`
 - variants may share a primitive but differ in authored tuning or presentation
 
-This is why the primitive catalog and the live status system must stay separate:
-- primitive catalog = reference/support
-- status runtime semantics = active authority here
+`StatusEffectCatalogueSO` keys are case-insensitive and trimmed. Duplicate keys within one catalogue are a hard error (flagged in `OnValidate`).
+
+The `StatusCatalogue` field on `CharacterBase` is Inspector-assigned and optional for card play, but **required** for any runtime code that resolves statuses by key (e.g. `MusicianBase.OnBreakdown` applying Shaken). Musician prefabs must have the catalogue assigned for Shaken application to function.
 
 ---
 
-## 5. Canonical MVP status meanings
-
-The governed docs currently rely on a compact canonical MVP set.
+## 5. Canonical MVP status set
 
 ### 5.1 Flow
-**Typical scope:** Song / Band  
-**Meaning:** amplifies positive loop-to-song momentum conversion.
-
-Flow is covered here as a status concept and in scoring/combat docs as a gameplay participant.
-If wording conflicts:
-- status identity/stack behavior lives here
-- scoring relationship lives in `SSoT_Scoring_and_Meters.md`
-- combat role lives in `SSoT_Gig_Combat_Core.md`
+**Primitive:** `DamageUpFlat` (`CharacterStatusId = 100`)  
+**Key:** `"flow"`  
+**Scope:** Song / Band  
+**Tick timing:** Not tick-decayed per turn. Resets at song end via explicit `GigManager` song-end reset.  
+**Combat meaning:** amplifies positive Loop → SongHype conversion multiplicatively. Each stack adds `FlowMultiplier` to the multiplier.  
+**Applies to:** musicians  
+**Validated:** ✅ B3 (Flow stacks boost Vibe per card play), B7 (song-end reset)
 
 ### 5.2 Composure
-**Typical scope:** Musician  
-**Meaning:** absorbs incoming positive Stress before Stress is applied.
+**Primitive:** `TempShieldTurn` (`CharacterStatusId = 400`)  
+**Key:** `"composure"`  
+**Scope:** Musician  
+**Tick timing:** `PlayerTurnStart` — clears at the start of each Player Turn  
+**Combat meaning:** absorbs incoming positive Stress before Stress is applied. Consumed first; remainder becomes Stress.  
+**Applies to:** musicians  
+**Validated:** ✅ B1 (absorbs Stress), B6 (clears at turn start)
 
-Again:
-- status semantics live here
-- combat role and Breakdown interaction are reinforced in combat/core docs
+### 5.3 Choke
+**Primitive:** `DisableActions` (`CharacterStatusId = 700`)  
+**Key:** `"choke"`  
+**Scope:** Musician  
+**Tick timing:** `PlayerTurnStart` — decays each Player Turn start  
+**Combat meaning:** stuns the musician (disables actions). `CharacterBase.IsStunned` derives from `DisableActions` stacks when the runtime container is present.  
+**Applies to:** musicians only. No audience crowd-control status exists in MVP.  
+**Validated:** ✅ B5 (stacks decay after turn)
 
-### 5.3 Stress-adjacent negative states
-Negative performer states such as Breakdown-following `Shaken` are gameplay-significant and may be represented either as explicit state or status-like state.
+### 5.4 Shaken
+**Primitive:** `ShakenRestriction` (`CharacterStatusId = 503`)  
+**Key:** `"shaken"`  
+**Scope:** Musician  
+**SO config:** Replace, MaxStacks=1, LinearStacks, `AudienceTurnStart` tick, IsBuff=true  
+**Tick timing:** `AudienceTurnStart` — expires at the start of the Audience Turn of the following song  
+**Duration:** Applied at Audience Turn of Song N → active through Player Turn N+1, Composition N+1, Performance N+1, Song End N+1 → expires at start of Audience Turn N+1. One complete song cycle from application.  
+**Combat meaning:** marks a musician as shaken post-Breakdown  
+**Applied by:** `MusicianBase.OnBreakdown()` via `StatusCatalogue.TryGetByKey("shaken")`  
+**Gameplay restrictions:** open design decision — **not yet enforced in runtime**. Intended restrictions (cannot play Action cards during action window while Shaken; Composure granted is reduced by 50%) are a pending follow-up pass.
 
-Rule:
-- if represented through the status runtime surface, this doc owns its systemic identity
-- if represented as special state, combat/runtime docs own the surrounding event flow
+### 5.5 Exposed
+**Primitive:** `DamageTakenUpFlat` (`CharacterStatusId = 300`)  
+**Key:** `"exposed"`  
+**Scope:** Musician  
+**Tick timing:** not specified — decays per configured SO  
+**Combat meaning:** each Exposed stack adds `0.25` to the incoming stress multiplier in `BandCharacterStats.ApplyIncomingStressWithComposure` (`_exposedMultiplierPerStack = 0.25f`).  
+**Applies to:** musicians only. No Stress path exists on `AudienceCharacterBase`.
 
-### 5.4 Future statuses
-The system is allowed to grow, but new statuses must be added without reintroducing duplicated authority or theme-as-identity coupling.
+### 5.6 Feedback
+**Primitive:** `DamageOverTime` (`CharacterStatusId = 600`)  
+**Key:** `"feedback"`  
+**Scope:** Musician (MVP); Audience deferred  
+**Tick timing:** evaluated during `GigManager.AudienceTurnRoutine`  
+**Combat meaning:** each Feedback stack applies 1 incoming stress per audience turn, routed through `m.Stats.ApplyIncomingStressWithComposure`. This means Feedback-triggered Stress respects Composure and can trigger Breakdown.  
+**Applies to:** musicians only in current implementation. Audience Feedback DoT requires a Stress path on `AudienceCharacterBase`, which does not exist. Explicitly deferred.
 
 ---
 
@@ -160,5 +209,6 @@ Update this document when a change affects:
 - status identity rules
 - catalogue/variant semantics
 - runtime container semantics
+- tick timing system
 - canonical status meanings
 - system-wide stack/duration/expiry behavior
