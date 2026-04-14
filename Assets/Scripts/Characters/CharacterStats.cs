@@ -1,4 +1,4 @@
-using ALWTTT.Enums;
+﻿using ALWTTT.Enums;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,11 +9,12 @@ namespace ALWTTT.Characters
     {
         protected CharacterCanvas characterCanvas;
 
+        // Legacy status delegates — retained for non-icon legacy callers.
+        // Icon display is now driven by StatusEffectContainer events → CharacterCanvas directly.
         protected Action<StatusType, int> OnStatusChanged;
         protected Action<StatusType, int> OnStatusApplied;
         protected Action<StatusType> OnStatusCleared;
 
-        // TODO: How to make virtual but access to Dict?
         protected Dictionary<StatusType, StatusStats> statusDict;
 
         protected abstract void DamagePoison();
@@ -22,10 +23,10 @@ namespace ALWTTT.Characters
         protected virtual void Setup(CharacterCanvas canvas, int maxHp)
         {
             characterCanvas = canvas;
-            
-            OnStatusChanged += characterCanvas.UpdateStatusText;
-            OnStatusApplied += characterCanvas.ApplyStatus;
-            OnStatusCleared += characterCanvas.ClearStatus;
+
+            // M1.2: Icon wiring removed. CharacterCanvas now subscribes to
+            // StatusEffectContainer events directly via BindStatusContainer().
+            // Legacy delegates remain available for any non-icon consumer.
 
             SetAllStatus();
         }
@@ -39,14 +40,8 @@ namespace ALWTTT.Characters
                 statusDict.Add((StatusType)i, new StatusStats((StatusType)i, 0));
             }
 
-            // TODO: This should be defined in a StatusTypeData asset List
-            //statusDict[StatusType.Poison].DecreaseOverTurn = true;
-            //statusDict[StatusType.Poison].OnTriggerAction += DamagePoison;
-
             statusDict[StatusType.Skeptical].ClearAtNextTurn = true;
-
             statusDict[StatusType.Strength].CanNegativeStack = true;
-
             statusDict[StatusType.Breakdown].ClearAtNextTurn = true;
             statusDict[StatusType.Breakdown].OnTriggerAction += CheckStunStatus;
         }
@@ -65,7 +60,6 @@ namespace ALWTTT.Characters
         {
             statusDict[targetStatus].OnTriggerAction?.Invoke();
 
-            //One turn only statuses
             if (statusDict[targetStatus].ClearAtNextTurn)
             {
                 ClearStatus(targetStatus);
@@ -73,12 +67,11 @@ namespace ALWTTT.Characters
                 return;
             }
 
-            //Check status
             if (statusDict[targetStatus].StatusValue <= 0)
             {
                 if (statusDict[targetStatus].CanNegativeStack)
                 {
-                    if (statusDict[targetStatus].StatusValue == 0 
+                    if (statusDict[targetStatus].StatusValue == 0
                         && !statusDict[targetStatus].IsPermanent)
                         ClearStatus(targetStatus);
                 }
@@ -116,12 +109,8 @@ namespace ALWTTT.Characters
 
         public virtual void Dispose()
         {
-            if (characterCanvas != null)
-            {
-                OnStatusChanged -= characterCanvas.UpdateStatusText;
-                OnStatusApplied -= characterCanvas.ApplyStatus;
-                OnStatusCleared -= characterCanvas.ClearStatus;
-            }
+            // M1.2: No icon delegates to unsubscribe.
+            // Legacy delegates are cleared implicitly when the stats object is GC'd.
         }
     }
 }

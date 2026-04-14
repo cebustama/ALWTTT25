@@ -13,12 +13,13 @@ This matrix maps each major concept to its authoritative home.
 | Audience member / reactions | `systems/SSoT_Audience_and_Reactions.md` | `systems/SSoT_Audience_and_Reactions.md` | active | persuasion progress, preferences, intentions, reaction contracts |
 | Status system | `systems/SSoT_Status_Effects.md` | `systems/SSoT_Status_Effects.md` | active | runtime status truth, catalogue boundary, canonical MVP statuses |
 | LoopScore / SongHype / Vibe | `systems/SSoT_Scoring_and_Meters.md` | `systems/SSoT_Scoring_and_Meters.md` | active | scoring pipeline semantics and conversion relationships |
+| Editor authoring tools | `systems/SSoT_Editor_Authoring_Tools.md` | `systems/SSoT_Editor_Authoring_Tools.md` | active | Card Editor, Deck Editor, Status Effect Wizard, Chord Progression Catalogue, supporting services |
 | CSO primitive catalog | `reference/CSO_Primitives_Catalog.md` | `reference/CSO_Primitives_Catalog.md` | reference | supporting catalog, not primary runtime authority |
 | Runtime phase flow | `runtime/SSoT_Runtime_Flow.md` | `runtime/SSoT_Runtime_Flow.md` | active | gig runtime orchestration and phase flow |
 | Composition session runtime bridge | `runtime/SSoT_Runtime_CompositionSession_Integration.md` | `runtime/SSoT_Runtime_CompositionSession_Integration.md` | active | ALWTTT-owned live composition runtime contract |
 | ALWTTT ↔ MidiGenPlay authority split | `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md` | `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md` | active | explicit ownership split now governed |
 | `MidiMusicManager` integration behavior | `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md` | `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md` | active | ALWTTT runtime truth, not package truth |
-| Live roadmap / next sequencing | `planning/active/Roadmap_Combat_MVP.md` | `planning/active/Roadmap_Combat_MVP.md` | planning-only | active planning home normalized |
+| Live roadmap / next sequencing | `planning/active/Roadmap_ALWTTT.md` | `planning/active/Roadmap_ALWTTT.md` | planning-only | replaces Combat MVP roadmap; project-wide milestone sequencing |
 | Pre-governance source-doc redirects | `archive/absorbed/Source_Docs_Supersession_Map.md` | `archive/absorbed/Source_Docs_Supersession_Map.md` | archive support | durable old→new map, not subsystem authority |
 | Snapshot retention policy | `archive/SNAPSHOT_RETENTION_POLICY.md` | `archive/SNAPSHOT_RETENTION_POLICY.md` | archive policy | governs how the snapshot is kept without restoring authority |
 | MidiGenPlay package internals | MidiGenPlay docs | MidiGenPlay docs | external authority | ALWTTT must reference, not duplicate |

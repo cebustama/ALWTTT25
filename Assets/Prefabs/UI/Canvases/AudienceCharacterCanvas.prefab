@@ -179,6 +179,7 @@ MonoBehaviour:
   m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -444,7 +445,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1836188541970597043, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_PresetInfoIsWorld
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_text
@@ -597,14 +598,19 @@ MonoBehaviour:
   statusIconRoot: {fileID: 1976375540013723292}
   descriptionRoot: {fileID: 7867957825905675796}
   healthBar: {fileID: 8436283020789504068}
-  statusIconsData: {fileID: 11400000, guid: 40b6ede681aa9b7438008b98e9a9bc98, type: 2}
+  statusIconBasePrefab: {fileID: 4475603588219489589, guid: c037f2700a4966540895805b11a68e15, type: 3}
   intentImage: {fileID: 7631314978631438073}
   nextActionValueText: {fileID: 6996543080683022031}
   NextAbility:
     abilityName: 
     intention: {fileID: 0}
     hideActionValue: 0
+    abilityDuration: 0
     actionList: []
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
 --- !u!114 &4033435451783531182 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}

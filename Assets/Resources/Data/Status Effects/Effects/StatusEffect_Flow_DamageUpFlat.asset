@@ -10,17 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16c425e2848e0024897e2764a0660ebf, type: 3}
-  m_Name: StatusEffect_DisableActions_Choke
+  m_Name: StatusEffect_Flow_DamageUpFlat
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectSO
-  statusKey: choke
-  isDefaultVariant: 0
-  effectId: 700
-  displayName: Choke
+  statusKey: flow
+  isDefaultVariant: 1
+  effectId: 100
+  displayName: Flow
   primitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
-  stackMode: 1
-  maxStacks: 1
-  decayMode: 1
-  durationTurns: 1
-  tickTiming: 8
+  stackMode: 0
+  maxStacks: 999
+  decayMode: 0
+  durationTurns: 0
+  tickTiming: 0
   valueType: 0
-  isBuff: 0
+  isBuff: 1
+  iconSprite: {fileID: 9145781523215611674, guid: 3b11b07699d17cc46a40ac95a2ee6a85, type: 3}

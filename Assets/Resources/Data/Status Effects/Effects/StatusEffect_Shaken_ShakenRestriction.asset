@@ -10,17 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16c425e2848e0024897e2764a0660ebf, type: 3}
-  m_Name: StatusEffect_TempShieldTurn_Composure
+  m_Name: StatusEffect_Shaken_ShakenRestriction
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectSO
-  statusKey: composure
-  isDefaultVariant: 1
-  effectId: 400
-  displayName: Composure
+  statusKey: shaken
+  isDefaultVariant: 0
+  effectId: 503
+  displayName: Shaken
   primitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
-  stackMode: 0
-  maxStacks: 999
-  decayMode: 2
+  stackMode: 1
+  maxStacks: 1
+  decayMode: 1
   durationTurns: 1
-  tickTiming: 2
+  tickTiming: 8
   valueType: 0
   isBuff: 1
+  iconSprite: {fileID: 5351205735612954793, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}

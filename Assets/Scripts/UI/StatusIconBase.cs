@@ -1,4 +1,3 @@
-using ALWTTT.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,21 +9,26 @@ namespace ALWTTT.UI
         [SerializeField] private Image statusImage;
         [SerializeField] private TextMeshProUGUI statusValueText;
 
-        public StatusIconData MyStatusIconData { get; private set; } = null;
+        public Sprite CurrentSprite { get; private set; }
 
         public Image StatusImage => statusImage;
         public TextMeshProUGUI StatusValueText => statusValueText;
 
-        public void SetStatus(StatusIconData statusIconData)
+        /// <summary>
+        /// Assign the icon sprite for this status.
+        /// Sprite is sourced from StatusEffectSO.IconSprite by CharacterCanvas.
+        /// </summary>
+        public void SetStatus(Sprite sprite)
         {
-            MyStatusIconData = statusIconData;
-            StatusImage.sprite = statusIconData.IconSprite;
-
+            CurrentSprite = sprite;
+            if (statusImage != null)
+                statusImage.sprite = sprite;
         }
 
         public void SetStatusValue(int statusValue)
         {
-            StatusValueText.text = statusValue.ToString();
+            if (statusValueText != null)
+                statusValueText.text = statusValue.ToString();
         }
     }
 }

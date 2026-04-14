@@ -2,7 +2,7 @@
 
 **Status:** Active governed SSoT  
 **Scope:** Runtime status semantics, catalogue boundary, and canonical MVP status meaning  
-**Owns:** what a status is in ALWTTT, how status identity/theme are split, runtime container semantics, tick timing system, and the current canonical status set  
+**Owns:** what a status is in ALWTTT, how status identity/theme are split, runtime container semantics, tick timing system, icon presentation authority, and the current canonical status set  
 **Does not own:** full card-import/editor workflow (`systems/SSoT_Card_Authoring_Contracts.md`), encounter structure (`systems/SSoT_Gig_Encounter.md`), raw primitive catalog reference (`reference/CSO_Primitives_Catalog.md`)
 
 ---
@@ -35,7 +35,7 @@ The themed, display-facing, balance-facing representation of a status lives in a
 
 This layer may control:
 - display name
-- presentation
+- presentation (including icon sprite — see §3.3)
 - tuning/default values
 - duration/stacking metadata
 - variant-specific authoring choices
@@ -53,6 +53,7 @@ The runtime status surface includes:
 - runtime containers / instances (`StatusEffectContainer` on `CharacterBase.Statuses`)
 - catalogue lookup and variant selection by key
 - stack application / decay / refresh according to the authored contract
+- icon presentation (sprite authority on `StatusEffectSO`, event-driven rendering on `CharacterCanvas`)
 
 This SSoT owns the gameplay/runtime meaning of that surface.
 
@@ -76,10 +77,39 @@ Use `PlayerTurnStart` or `AudienceTurnStart` for all new statuses.
 
 The codebase currently has two coexisting status surfaces:
 
-1. **Legacy:** `StatusType` enum + `BandCharacterStats.ApplyStatus(StatusType, int)` — used in some legacy display/state paths (e.g. `OnBreakdown` calls `ApplyStatus(StatusType.Breakdown, 1)` for UI). Not the primary authority.
+1. **Legacy:** `StatusType` enum + `BandCharacterStats.ApplyStatus(StatusType, int)` — retained as `[Obsolete]` coexistence for any remaining non-icon legacy callers. Not the primary authority. The icon path no longer touches this layer as of M1.2.
 2. **Current:** `StatusEffectSO` + `StatusEffectContainer` (`CharacterBase.Statuses`) + `StatusEffectCatalogueSO` (`CharacterBase.StatusCatalogue`).
 
 The current runtime model (2) is the governed model. All new statuses must go through the SO + container route. Legacy calls that remain are migration coexistence, not the primary path.
+
+**M1.2 (2026-04-14) completed the icon pipeline migration.** Legacy icon calls removed from `MusicianBase.OnBreakdown` (previously called `ApplyStatus(StatusType.Breakdown, 1)` for UI purposes) and from `AudienceCharacterBase.IsBlocked` setter (previously called `ApplyStatus(StatusType.Blocked, 1)`). The blocked visual is now sprite tint only; see M1.2 closure notes for Decision E3.
+
+### 3.3 Icon presentation authority
+
+Icon sprite authority lives on `StatusEffectSO.IconSprite`. Each StatusEffectSO carries its own icon directly.
+
+**Rendering path:**
+1. A status is applied via `CharacterBase.Statuses.Apply(StatusEffectSO, stacks)`.
+2. `StatusEffectContainer` fires `OnStatusApplied(CharacterStatusId, deltaStacks)` / `OnStatusChanged(CharacterStatusId, newStacks)` / `OnStatusCleared(CharacterStatusId)`.
+3. `CharacterCanvas` (subscribed via `BindStatusContainer`) resolves the active `StatusEffectInstance.Definition` from the container and reads `Definition.IconSprite`.
+4. `CharacterCanvas` instantiates a `StatusIconBase` prefab under `statusIconRoot`, assigns the sprite, and updates stack count text on every change.
+
+**Key design decisions (M1.2):**
+- No lookup table asset. The former `StatusIconsData` / `StatusIconData` layer was removed; it added indirection without value once the SO owned the sprite.
+- `StatusIconBase` prefab is assigned directly on the `CharacterCanvas` component (`statusIconBasePrefab` field). Not configured via a separate container asset.
+- Icon display is lazy: icons are created on the first status application and destroyed on status clear. No pre-population of a fixed icon set.
+- Missing sprite → warning log in `CharacterCanvas.TryCreateIcon`. No silent failure.
+- Missing prefab reference on the canvas → warning log. No silent failure.
+
+**Boundary with `CharacterStats`:**
+`CharacterStats` no longer wires delegates to `CharacterCanvas.ApplyStatus/UpdateStatusText/ClearStatus`. Those methods have been removed from `CharacterCanvas`. Icon display is end-to-end event-driven from the SO container, not from the legacy `StatusType` path.
+
+**Wiring points:**
+- `MusicianBase.BuildCharacter()` calls `bandCharacterCanvas.BindStatusContainer(Statuses)` after stats construction.
+- `AudienceCharacterBase.BuildCharacter()` calls `AudienceCharacterCanvas.BindStatusContainer(Statuses)` after stats construction.
+- Both bind to `CharacterBase.Statuses`, which is created in `CharacterBase.Awake()`.
+
+**Tooltip content for statuses is not wired in M1.2.** `CharacterCanvas.ShowTooltipInfo()` is a stub pending M1.3 (Tooltip pipeline extension). Status tooltip content will be sourced from `StatusEffectSO.DisplayName` and a description field to be added in that batch.
 
 ---
 
@@ -93,6 +123,10 @@ Canonical rule:
 - variants may share a primitive but differ in authored tuning or presentation
 
 `StatusEffectCatalogueSO` keys are case-insensitive and trimmed. Duplicate keys within one catalogue are a hard error (flagged in `OnValidate`).
+
+**M1.2 catalogue validation fix:** `StatusEffectCatalogueSO.OnValidate` now defers deep validation via `EditorApplication.delayCall` and skips entirely during import-worker runs (`AssetDatabase.IsAssetImportWorkerProcess`). This eliminates spurious "empty StatusKey" errors that previously fired when selecting prefabs that reference the catalogue, caused by a serialization-order race during asset import.
+
+**M1.2 asset hygiene:** `StatusEffectSO` auto-renames its asset file to `StatusEffect_{DisplayName}_{EffectId}` whenever `DisplayName` or `EffectId` changes. The rename is deferred to `EditorApplication.delayCall` since `AssetDatabase.RenameAsset` is illegal inside `OnValidate`. Collisions and import-worker runs are handled defensively.
 
 The `StatusCatalogue` field on `CharacterBase` is Inspector-assigned and optional for card play, but **required** for any runtime code that resolves statuses by key (e.g. `MusicianBase.OnBreakdown` applying Shaken). Musician prefabs must have the catalogue assigned for Shaken application to function.
 
@@ -212,3 +246,4 @@ Update this document when a change affects:
 - tick timing system
 - canonical status meanings
 - system-wide stack/duration/expiry behavior
+- icon presentation authority or rendering path

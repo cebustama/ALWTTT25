@@ -1903,16 +1903,24 @@
 |   |   |   |   \---Musicians
 |   |   |   |       +---Cantante_Cards
 |   |   |   |       |   +---Payloads
-|   |   |   |       |   |   \---3_Action_001_ActionPayload.asset
-|   |   |   |       |   \---3_Action_001_Card.asset
+|   |   |   |       |   |   +---3_Action_001_ActionPayload.asset
+|   |   |   |       |   |   +---new_cantante_stress_heal_Payload.asset
+|   |   |   |       |   |   \---new_cantante_vibe_all_Payload.asset
+|   |   |   |       |   +---3_Action_001_Card.asset
+|   |   |   |       |   +---new_cantante_stress_heal.asset
+|   |   |   |       |   \---new_cantante_vibe_all.asset
 |   |   |   |       +---Conito_Cards
 |   |   |   |       |   +---Payloads
-|   |   |   |       |   |   \---1_Action_001_ActionPayload.asset
-|   |   |   |       |   \---1_Action_001_Card.asset
+|   |   |   |       |   |   +---new_conito_draw_Payload.asset
+|   |   |   |       |   |   \---new_conito_vibe_single_Payload.asset
+|   |   |   |       |   +---new_conito_draw.asset
+|   |   |   |       |   \---new_conito_vibe_single.asset
 |   |   |   |       +---Gusano_Cards
 |   |   |   |       |   +---Payloads
 |   |   |   |       |   |   +---2CBacking001TestProg_Payload.asset
 |   |   |   |       |   |   +---2Composition001_Payload.asset
+|   |   |   |       |   |   +---new_gusano_heal_all_Payload.asset
+|   |   |   |       |   |   +---new_gusano_stress_add_Payload.asset
 |   |   |   |       |   |   \---SibiMajorChords_Payload.asset
 |   |   |   |       |   +---StyleBundles
 |   |   |   |       |   |   \---Backing
@@ -1921,11 +1929,14 @@
 |   |   |   |       |   |       \---2CBacking001TestProg_Payload_Backing_StyleBundle.asset
 |   |   |   |       |   +---2CBacking001TestProg.asset
 |   |   |   |       |   +---2Composition001.asset
+|   |   |   |       |   +---new_gusano_heal_all.asset
+|   |   |   |       |   +---new_gusano_stress_add.asset
 |   |   |   |       |   \---SibiMajorChords.asset
 |   |   |   |       +---Robot_Cards
 |   |   |   |       |   +---Payloads
 |   |   |   |       |   |   +---4CRhythm001TakeFive_Payload.asset
 |   |   |   |       |   |   +---4CRhythm002Waltz_Payload.asset
+|   |   |   |       |   |   +---new_robot_vibe_draw_Payload.asset
 |   |   |   |       |   |   +---TestDrums44_Payload.asset
 |   |   |   |       |   |   \---TestDrums68_Payload.asset
 |   |   |   |       |   +---StyleBundles
@@ -1933,6 +1944,7 @@
 |   |   |   |       |   |       \---4_Composition_002_CompositionPayload_Rhythm_StyleBundle.asset
 |   |   |   |       |   +---4CRhythm001TakeFive.asset
 |   |   |   |       |   +---4CRhythm002Waltz.asset
+|   |   |   |       |   +---new_robot_vibe_draw.asset
 |   |   |   |       |   +---TestDrums44.asset
 |   |   |   |       |   \---TestDrums68.asset
 |   |   |   |       +---Band Character - Conito.asset
@@ -1955,18 +1967,39 @@
 |   |   |   |       +---MVP_RemoveStress_02.asset
 |   |   |   |       +---MVP_RemoveStress_02_Payload.asset
 |   |   |   |       +---Robot_CardCatalogData.asset
-|   |   |   |       +---TEST_EFFECTS_01.asset
-|   |   |   |       \---TEST_EFFECTS_01_Payload.asset
+|   |   |   |       +---test_apply_choke.asset
+|   |   |   |       +---test_apply_choke_Payload.asset
+|   |   |   |       +---test_apply_composure.asset
+|   |   |   |       +---test_apply_composure_Payload.asset
+|   |   |   |       +---test_apply_exposed.asset
+|   |   |   |       +---test_apply_exposed_Payload.asset
+|   |   |   |       +---test_apply_feedback.asset
+|   |   |   |       +---test_apply_feedback_Payload.asset
+|   |   |   |       +---test_apply_flow.asset
+|   |   |   |       +---test_apply_flow_Payload.asset
+|   |   |   |       +---test_draw_cards.asset
+|   |   |   |       +---test_draw_cards_Payload.asset
+|   |   |   |       +---test_modify_stress_add.asset
+|   |   |   |       +---test_modify_stress_add_Payload.asset
+|   |   |   |       +---test_modify_stress_heal.asset
+|   |   |   |       +---test_modify_stress_heal_Payload.asset
+|   |   |   |       +---test_modify_vibe.asset
+|   |   |   |       \---test_modify_vibe_Payload.asset
 |   |   |   +---Containers
 |   |   |   |   +---Reward Container.asset
 |   |   |   |   +---Special Keyword.asset
 |   |   |   |   \---Status Icons.asset
 |   |   |   +---Decks
+|   |   |   |   +---Payloads
+|   |   |   |   |   \---new_any_group_heal_Payload.asset
 |   |   |   |   +---BandDeck - Test 1.asset
 |   |   |   |   +---EmptyActionDeck.asset
 |   |   |   |   +---InitialDeck.asset
+|   |   |   |   +---new_any_group_heal.asset
 |   |   |   |   +---TestActionDeck.asset
-|   |   |   |   \---TestCompositionDeck.asset
+|   |   |   |   +---TestCompositionDeck.asset
+|   |   |   |   +---TestDeck_FullCoverage.asset
+|   |   |   |   \---TestingDeck_CombatMVP.asset
 |   |   |   +---Encounters
 |   |   |   |   +---Gamescom25 Demo Encounter Data.asset
 |   |   |   |   +---GigEncounter 1.asset
@@ -2014,10 +2047,11 @@
 |   |   |   \---Status Effects
 |   |   |       +---Effects
 |   |   |       |   +---StatusEffect_DamageOverTime.asset
-|   |   |       |   +---StatusEffect_DamageTakenUpFlat.asset
-|   |   |       |   +---StatusEffect_DamageUpFlat.asset
-|   |   |       |   +---StatusEffect_DisableActions.asset
-|   |   |       |   \---StatusEffect_TempShieldTurn.asset
+|   |   |       |   +---StatusEffect_DamageTakenUpFlat_Exposed.asset
+|   |   |       |   +---StatusEffect_DamageUpFlat_Flow.asset
+|   |   |       |   +---StatusEffect_DisableActions_Choke.asset
+|   |   |       |   +---StatusEffect_Shaken.asset
+|   |   |       |   \---StatusEffect_TempShieldTurn_Composure.asset
 |   |   |       +---CharacterStatusPrimitiveDatabase.asset
 |   |   |       \---StatusEffectCatalogue.asset
 |   |   +---ScriptableObjects
@@ -2211,6 +2245,12 @@
 |   |   |   |   +---CardEditorWindow.cs
 |   |   |   |   +---CardEditorWindow.JsonImport.cs
 |   |   |   |   +---ChordProgressionCatalogueWizard.cs
+|   |   |   |   +---DeckAssetSaveService.cs
+|   |   |   |   +---DeckCardCreationService.cs
+|   |   |   |   +---DeckEditorDtos.cs
+|   |   |   |   +---DeckEditorWindow.cs
+|   |   |   |   +---DeckJsonImportService.cs
+|   |   |   |   +---DeckValidationService.cs
 |   |   |   |   \---MusicianCatalogService.cs
 |   |   |   +---Effects
 |   |   |   |   +---ApplyStatusEffectSpec.cs
@@ -2544,12 +2584,15 @@
 |   +---planning
 |   |   +---active
 |   |   |   +---README.md
-|   |   |   \---Roadmap_Combat_MVP.md
+|   |   |   \---Roadmap_ALWTTT.md
 |   |   +---archive
-|   |   |   \---README.md
-|   |   +---combat
+|   |   |   +---ALWTTT_DeckEditorWindow_Roadmap_Proposal.md
 |   |   |   +---Combat_MVP_Roadmap.md
-|   |   |   \---README.md
+|   |   |   +---README.md
+|   |   |   +---Roadmap_Combat_MVP.md
+|   |   |   \---Roadmap_Combat_MVP_Closure_Actionable.md
+|   |   +---music
+|   |   |   \---ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md
 |   |   \---README.md
 |   +---reference
 |   |   +---CSO_Primitives_Catalog.md
@@ -2563,6 +2606,7 @@
 |   |   +---SSoT_Audience_and_Reactions.md
 |   |   +---SSoT_Card_Authoring_Contracts.md
 |   |   +---SSoT_Card_System.md
+|   |   +---SSoT_Editor_Authoring_Tools.md
 |   |   +---SSoT_Gig_Combat_Core.md
 |   |   +---SSoT_Gig_Encounter.md
 |   |   +---SSoT_Scoring_and_Meters.md
@@ -2679,7 +2723,4 @@
 +---.vsconfig
 +---AGENTS.md
 +---Docs.zip
-+---Docs_snapshot_pre_governance.zip
-+---make-tree.bat
-+---make-tree-unity.bat
-\---make-tree-unity-fixed.bat
+\---make-tree-unity.bat

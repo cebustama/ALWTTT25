@@ -1,103 +1,105 @@
 # CURRENT_STATE — ALWTTT
 
-This file tracks the currently validated slice and immediate documentary obligations.
+This file tracks the currently validated project baseline, active work, and immediate next steps.
 
 ---
 
-## 1. Active project slice now
+## 1. Project foundation
 
-### Gameplay / combat slice — Combat MVP closed (2026-03-23)
-- deck/hand pipeline operating in play mode
-- all four card effect types working end-to-end: `ModifyVibe`, `ModifyStress`, `ApplyStatusEffect`, `DrawCards`
-- Composure absorption validated — positive Stress routes through `ApplyIncomingStressWithComposure`
-- Breakdown validated — triggers at Stress ≥ MaxStress after Composure absorption
-- Breakdown consequences implemented: Cohesion−1, Stress reset (configurable fraction), Shaken application
-- LoseGig() triggered at Cohesion ≤ 0
-- Exposed stress multiplier wired on musicians
-- Feedback DoT wired on musicians (AudienceTurnRoutine)
-- Tick timing wired: PlayerTurnStart (musicians) + AudienceTurnStart (audience)
-- Choke decay validated (B5), Composure clear validated (B6), song-end reset validated (B7)
-- All Phase 4 decisions (A–H) resolved and implemented
+### Combat MVP — complete (2026-03-23)
+- Deck/hand pipeline operating in play mode.
+- All four card effect types working end-to-end: `ModifyVibe`, `ModifyStress`, `ApplyStatusEffect`, `DrawCards`.
+- Composure absorption via `ApplyIncomingStressWithComposure`.
+- Breakdown → Cohesion−1 + Stress reset + Shaken application. LoseGig at Cohesion ≤ 0.
+- Exposed stress multiplier and Feedback DoT (musician-only) wired.
+- Tick timing: PlayerTurnStart (musicians) + AudienceTurnStart (audience).
+- Six SO status entries in catalogue: `flow`, `composure`, `exposed`, `feedback`, `choke`, `shaken`.
+- All Phase 4 decisions (A–H) resolved and implemented.
 
-### Status effects — canonical MVP set active
-Six SO entries confirmed in catalogue: `flow`, `composure`, `exposed`, `feedback`, `choke`, `shaken`
+### Composition / music surface — exists, not yet validated end-to-end
+- `GigManager`, `MidiMusicManager`, `CompositionSession`, `SongConfigBuilder`, `LoopScoreCalculator`.
+- `test_pass_turn` composition card functional — routes through session pipeline and advances turn.
+- CompositionSession bypass of phase machine documented (see `SSoT_Runtime_Flow`).
+- Not yet tested: composition cards with real gameplay effects producing audible song changes.
 
-### Composition / music slice
-The project contains a working ALWTTT-side runtime surface:
-- `GigManager`, `MidiMusicManager`, `CompositionSession`, `SongConfigBuilder`, `LoopScoreCalculator`
-- `test_pass_turn` composition card functional — routes through session pipeline and advances turn
-- CompositionSession bypass of phase machine documented (see `SSoT_Runtime_Flow`)
+### Status icon pipeline — SO-based (M1.2, complete 2026-04-14)
+- Sprite authority on `StatusEffectSO.IconSprite`. Lookup asset (`StatusIconsData`) removed.
+- `CharacterCanvas` subscribes to `StatusEffectContainer` events and renders icons directly from the container's definition.
+- Lazy icon lifecycle: created on first application, destroyed on clear. Stack count text updates on every change.
+- `BindStatusContainer` wiring on `MusicianBase.BuildCharacter` and `AudienceCharacterBase.BuildCharacter`.
+- `StatusEffectSO` auto-renames its asset file to `StatusEffect_{DisplayName}_{EffectId}` on change.
+- `StatusEffectCatalogueSO` validation deferred via `delayCall` — eliminated spurious "empty StatusKey" errors from import-worker serialization-order races.
+- See `SSoT_Status_Effects.md` §3.3 for the authoritative specification.
 
-### Docs tree
-Governance migration is complete. All subsystem SSoTs are active and replacement-ready.
-Phase 4 doc sync complete as of 2026-03-23.
+### Editor authoring tools
+- **Card Editor** (`CardEditorWindow`) — single card authoring, JSON batch import. Menu: ALWTTT → Cards → Card Editor.
+- **Deck Editor** (`DeckEditorWindow`) — deck authoring with JSON import (reference existing + create new cards), catalogue browser, save/save-as, GigSetup registration, JSON export. Core functional; polish items remain (see §2).
+- **Status Effect Wizard** (`StatusEffectWizardWindow`) — status SO authoring against the catalogue.
+- Supporting services: `DeckJsonImportService`, `DeckCardCreationService`, `DeckValidationService`, `DeckAssetSaveService`.
+- The `ALWTTT_DeckEditorWindow_Roadmap_Proposal.md` phases 0–6 are substantially complete. Remaining items captured in `Roadmap_ALWTTT.md` M1.
+
+### Documentation
+Governance migration complete. All subsystem SSoTs active and replacement-ready, including `SSoT_Editor_Authoring_Tools.md` (activated 2026-04-08).
 
 ---
 
-## 2. What was just completed
+## 2. Active work
 
-### Combat MVP — Phase 4 (complete 2026-03-23)
+### QA-readiness gap — not yet addressable without Dev Mode
+The Combat MVP is technically complete but not yet testable in a playtesting sense. Normal turns complete and the baseline loop runs, but the following cannot be iterated without tooling:
 
-| Decision | Change | Validation |
-|---|---|---|
-| A | Composure clears at PlayerTurn start in GigManager | ✅ B6 |
-| B | Tick(PlayerTurnStart) for musicians, Tick(AudienceTurnStart) for audience. TickTiming enum extended (8=PlayerTurnStart, 9=AudienceTurnStart). | ✅ B5, B6 |
-| B-asset | Choke SO Tick Timing → PlayerTurnStart | ✅ |
-| C | OnBreakdown: Cohesion−1 + Stress reset to configurable fraction (default 0.5) + Shaken applied via catalogue key `"shaken"` | ✅ implemented |
-| C-asset | ShakenRestriction=503 in CharacterStatusId, case in CharacterStatusPrimitiveDatabaseSO, DB repopulated, Shaken SO created (AudienceTurnStart tick, MaxStacks=1, LinearStacks) | ✅ |
-| D | LoseGig() called when BandCohesion≤0 inside OnBreakdown. LoseGig() made public. | ✅ |
-| E | Exposed: stress multiplier _exposedMultiplierPerStack=0.25f on BandCharacterStats | ✅ |
-| E | Feedback DoT: musician-only in AudienceTurnRoutine | ✅ / audience version deferred |
+- Composition card asset authoring and audible verification during live loops.
+- Audience reaction and ability transparency (what did the audience just do and why).
+- Card Inspiration value balancing.
+- Card effect balance tuning.
+- Composition card music generation tuning for real-time song-loop gameplay.
+- Multi-turn status states (Choke decay, Shaken expiry across a song cycle, Feedback DoT accumulation).
 
-### Phases 0–3 (completed 2026-03-21 through 2026-03-23)
-- Phase 0: StatusEffectSO catalogue verified (six SO entries)
-- Phase 1: Unified Stress path via `ApplyIncomingStressWithComposure`
-- Phase 2: `DrawCardsSpec` stub replaced with `DeckManager.DrawCards(count)`
-- Phase 3: Testing deck (9 action cards) imported and validated; all B/C/S checks passed
+**Dev Mode (M1.5) is the unblocker.** Without infinite turns, runtime stat editing, and card spawning, playtest iteration has no practical loop. This is now the critical path for moving the project from "technically works" to "QA-ready."
 
-### Documentation governance — Batches 01–06
-Completed in prior sessions. Governed docs tree is replacement-ready.
+### Deck Editor — polish pass (non-blocking)
+Core functionality is implemented. Remaining items:
+- Better catalogue filters (by musician, by kind, by effect type — currently only action/composition + text search).
+- Card preview info in staged card list (effect summary, cost, kind badge — currently shows card name only).
+- Cross-tool integration: Open in Card Editor, Ping Card in Project.
+
+### Card effect description text — known bug
+Card tooltips generated for `ApplyStatusEffect` effects currently show `CharacterStatusId` enum names (e.g. `DamageUpFlat`) instead of `StatusEffectSO.DisplayName` (e.g. `Flow`). Pending fix in a small follow-up batch; needs `ApplyStatusEffectSpec.cs` or the card description builder attached.
+
+### Editor tooling documentation — complete
+`SSoT_Editor_Authoring_Tools.md` created and registered. Covers Card Editor, Deck Editor, Status Effect Wizard, Chord Progression Catalogue Wizard, all supporting services, file locations, and known gaps mapped to M1 tasks.
 
 ---
 
 ## 3. What is next
 
-### Post-MVP work (not blocking closure, ordered by value)
+1. **M1.5 Dev Mode gig scene** — the critical path for QA-readiness. Sandbox for card and composition testing. Infinite turns, spawn cards into hand, edit gameplay variables (Inspiration, Score, musician/audience stats), toggle encounter modifiers, transparent audience reaction display. Primary testing bed for card balance, composition card generation, and audience tuning.
 
-1. **Composition session testing — highest priority**
-   - Test Composition cards end-to-end in a real play session with music playing
-   - Validate that card effects fire during composition and that the song actually sounds different
-   - Focus on deck speed: add `DrawCards` effects to ensure players can cycle through composition cards efficiently
-   - Design and test a first real testing deck (not just a stub deck) with varied composition card sets
-   - This is the next major unknown — timing (card plays during a live loop) and deck speed are open design questions
+2. **M1.7 Character hover highlight** (new, code-only, small) — sprite outline or color tint on pointer enter/exit via `CharacterBase.OnPointerEnter/Exit`. Game-feel prerequisite for general audience testing.
 
-2. **Shaken restrictions enforcement**
-   - Design decision still open: what Shaken actually prevents (intended: cannot play Action cards during action window)
-   - Composure penalty during Shaken (intended: 50% reduction) also not yet enforced
-   - Status applies and expires correctly; restrictions are the follow-up
+3. **M1.8 Status icon animations** (new, code-only, small) — appear/change/expire animations on `StatusIconBase` via coroutines. Game-feel prerequisite for general audience testing.
 
-3. **Status effect icons + stack display on character UI**
-   - Distinct icons per status, stack count on character canvas (musician + audience)
-   - `SSoT_Status_Effects` should define icon/display contract before implementation
+4. **M1.3 Tooltip pipeline extension** — SO-derived status tooltip content, card effect descriptions, composition card musical modifier summary.
 
-4. **Audience Feedback DoT**
-   - Requires a Stress path on `AudienceCharacterBase` — does not exist
-   - Explicitly deferred until audience pressure model expands
+5. **M1.1 Deck Editor polish** — deferred to lower priority than game-feel and dev tooling.
+
+6. **M2 Composition session validation** — unblocked by M1.5. First real composition testing deck, end-to-end composition card testing with audible song changes, timing and deck speed design questions.
 
 ---
 
-## 4. Current blockers / residual risks
+## 4. Open items and risks
 
 ### Open items (non-blocking)
-- **Shaken restrictions:** unenforced. Status applies and expires; no gameplay gate checks it yet.
-- **Audience Feedback DoT:** no Stress path on audience. Deferred explicitly.
+- **Shaken restrictions:** status applies and expires correctly; no gameplay gate checks it yet. Design decision still open (intended: cannot play Action cards during action window, 50% Composure penalty).
+- **Audience Feedback DoT:** no Stress path on `AudienceCharacterBase`. Deferred until audience pressure model expands.
 - **Composure penalty during Shaken:** design intent only; not code-enforced.
+- **True card copies in decks:** current runtime deduplicates by reference. `BandDeckData` stores a flat card list. If deckbuilding needs multiple copies of a card, the deck contract must evolve (see `Roadmap_ALWTTT.md` future milestones).
+- **Card effect text displays enum names:** `ApplyStatusEffect` card text shows `CharacterStatusId` values instead of `StatusEffectSO.DisplayName`. Cosmetic but surfaces in every test. Small follow-up batch.
 
-### Residual risk B (retained)
-Legacy `StatusType` enum coexists with the SO container. Both are active in places. New work goes through SO container only. Legacy calls (`ApplyStatus(StatusType.Breakdown, 1)` in `OnBreakdown`) are migration coexistence.
-
-### Residual risk C (retained)
-Phase machine bypass during `CompositionSession` is documented but not yet tested with a real composition card that has gameplay effects. This is the core of the composition testing work in §3.
+### Residual risks
+- **Legacy `StatusType` coexistence (retained):** legacy enum coexists with the SO container for any non-icon callers. New work goes through SO container only. `BandCharacterStats.ApplyStatus(StatusType)` is marked `[Obsolete]`.
+- **CompositionSession bypass untested (retained):** phase machine bypass during composition is documented but not yet tested with a real composition card that has gameplay effects. M2 scope.
+- **Multi-turn status validation pending:** Choke decay (T5), Shaken expiry across a song cycle (T7), and Feedback DoT accumulation (T8) could not be reliably validated in M1.2 without Dev Mode. Icons and wiring are code-verified; full runtime validation deferred to M1.5 closure.
 
 ---
 
@@ -109,15 +111,18 @@ After the next meaningful technical change, edit:
 - `changelog-ssot.md` if meaning/authority changed
 - `coverage-matrix.md` only if the primary home changed
 
+Pending new documentation:
+- Dev Mode design SSoT — to be created at the start of M1.5 planning. Recommended path: `systems/SSoT_Dev_Mode.md` (active, project-scope).
+
 ---
 
 ## 6. Working rule
 
 `CURRENT_STATE.md` answers:
+- what is the project foundation
 - what is active now
-- what was just completed
 - what comes next
-- what is blocked
+- what is blocked or at risk
 - which docs need editing next
 
 It does **not** replace subsystem SSoTs.

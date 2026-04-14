@@ -16,11 +16,9 @@ namespace ALWTTT.Characters.Audience
     {
         [SerializeField] protected AudienceCharacterData audienceCharacterData;
         [SerializeField] protected AudienceCharacterCanvas characterCanvas;
-        // TODO Sound profile
 
         private AudienceCharacterStats stats;
         public override IAudienceStats AudienceStats => stats;
-        // TODO: Refactor
         public AudienceCharacterStats Stats => stats;
 
         protected AudienceAbilityData NextAbility;
@@ -31,7 +29,7 @@ namespace ALWTTT.Characters.Audience
 
         private bool isBlocked;
 
-        public bool IsBlocked 
+        public bool IsBlocked
         {
             get => isBlocked;
             set
@@ -39,10 +37,9 @@ namespace ALWTTT.Characters.Audience
                 if (SpriteRenderer != null)
                     SpriteRenderer.color = value ? obscuredColor : Color.white;
 
-                if (value)
-                    stats.ApplyStatus(StatusType.Blocked, 1);
-                else
-                    stats.ClearStatus(StatusType.Blocked);
+                // M1.2 (Decision E3): Blocked is a visual indicator only (sprite tint).
+                // Legacy stats.ApplyStatus/ClearStatus(StatusType.Blocked) removed.
+                // If Blocked needs a status icon in the future, create a Blocked SO.
 
                 isBlocked = value;
             }
@@ -57,7 +54,6 @@ namespace ALWTTT.Characters.Audience
             base.BuildCharacter();
             AudienceCharacterCanvas.InitCanvas(AudienceCharacterData.CharacterName);
 
-            // Stats
             stats = new AudienceCharacterStats(
                 AudienceCharacterData.MaxVibe,
                 AudienceCharacterCanvas
@@ -70,6 +66,9 @@ namespace ALWTTT.Characters.Audience
             GigManager.OnPlayerTurnStarted += ShowNextAbility;
             GigManager.OnEnemyTurnStarted += stats.TriggerAllStatus;
 
+            // M1.2: Wire canvas to SO-based StatusEffectContainer for icon display.
+            AudienceCharacterCanvas.BindStatusContainer(Statuses);
+
             AudienceCharacterCanvas.HideContextual();
         }
 
@@ -79,7 +78,6 @@ namespace ALWTTT.Characters.Audience
 
             GigManager.RecalculateAudienceObstructions();
 
-            // TODO
             characterAnimator.SetBPM(120);
             characterAnimator.SkipEveryNBeats = 1;
             characterAnimator.JumpOnBeat = true;
@@ -106,17 +104,8 @@ namespace ALWTTT.Characters.Audience
             stats.Dispose();
         }
 
-        /// <summary>
-        /// Convert the information about a finished loop into a discrete impression
-        /// in the range [-2, 2]:
-        /// -2 = very negative, -1 = negative, 0 = neutral, 1 = positive, 2 = very positive.
-        /// Default implementation is neutral; override per archetype.
-        /// </summary>
         public virtual int ResolveLoopEffect(LoopFeedbackContext ctx)
         {
-            // For now we keep it simple and neutral; this is the extensible hook.
-            // Later you can use ctx.PartIndex, ctx.LoopIndexWithinPart, inspiration, etc,
-            // plus this character's preferences, to compute a meaningful value.
             int impression = 0;
 
             Debug.Log(
@@ -157,7 +146,7 @@ namespace ALWTTT.Characters.Audience
 
             if (NextAbility.Intention != null && NextAbility.Intention.IntentionSprite != null)
             {
-                AudienceCharacterCanvas.IntentImage.sprite = 
+                AudienceCharacterCanvas.IntentImage.sprite =
                     NextAbility.Intention.IntentionSprite;
                 AudienceCharacterCanvas.IntentImage.gameObject.SetActive(true);
             }
@@ -203,93 +192,43 @@ namespace ALWTTT.Characters.Audience
                 yield break;
             }
 
-            // Hide intent icon
             AudienceCharacterCanvas.IntentImage.gameObject.SetActive(false);
 
             if (NextAbility == null)
             {
                 Debug.LogWarning(
                     $"[AudienceCharacterBase] {CharacterId} AbilityRoutine: " +
-                    "NextAbility is NULL. This usually means ShowNextAbility " +
-                    "was not called before the audience turn.");
+                    "NextAbility is null. Skipping turn.");
                 yield break;
             }
 
             if (NextAbility.ActionList == null || NextAbility.ActionList.Count == 0)
             {
                 Debug.LogWarning(
-                    $"[AudienceCharacterBase] {CharacterId} AbilitynRoutine: " +
-                    $"Ability '{NextAbility.AbilityName}' has no actions. Skipping turn.");
-                yield break;
-            }
-
-            float abilityDelay = NextAbility.AbilityDuration;
-
-            var animData = NextAbility.Animation;
-            if (animData != null)
-            {
-                // Override delay if animationDuration > 0
-                if (animData.AnimationDuration > 0f)
-                    abilityDelay = animData.AnimationDuration;
-
-                // Optionally disable beat animator
-                if (animData.DisableBeatAnimator && CharacterAnimator != null)
-                    CharacterAnimator.enabled = false;
-
-                // Fire animator trigger
-                if (Animator != null && !string.IsNullOrEmpty(animData.AnimatorTrigger))
-                {
-                    Debug.Log($"<color=red>{CharacterId} triggering " +
-                        $"anim id {animData.AnimatorTrigger}</color>");
-                    Animator.ResetTrigger(animData.AnimatorTrigger);
-                    Animator.SetTrigger(animData.AnimatorTrigger);
-                }
-            }
-
-            // TODO: Animation, SFX, VFX
-            FxManager.Instance?.SpawnFloatingText(
-                TextSpawnRoot,
-                $"{NextAbility.AbilityName}",
-                0, 1, Color.red);
-
-            // Wait for animation to finish
-            if (abilityDelay > 0f)
-                yield return new WaitForSeconds(abilityDelay);
-
-            // Re-enable beat animator if needed
-            if (animData != null && animData.DisableBeatAnimator && 
-                CharacterAnimator != null)
-                CharacterAnimator.enabled = true;
-
-            foreach (var action in NextAbility.ActionList)
-            {
-                yield return ExecuteActionWithTiming(action);
-            }
-
-            Debug.Log($"{CharacterId} Ability Routine finished.");
-        }
-
-        private IEnumerator ExecuteActionWithTiming(CharacterActionData action)
-        {
-            if (action == null)
-            {
-                Debug.LogWarning(
-                    $"[AudienceCharacterBase] {CharacterId} ExecuteActionWithTiming: " +
-                    $"Null CharacterActionData inside ability '{NextAbility.AbilityName}'.");
-                yield break;
-            }
-
-            var targets = ResolveTargetsFor(action);
-            if (targets == null || targets.Count == 0)
-            {
-                Debug.LogWarning(
-                    $"[AudienceCharacterBase] {CharacterId} ExecuteActionWithTiming: " +
-                    $"No targets resolved for action {action.CardActionType} " +
-                    $"in ability '{NextAbility.AbilityName}'.");
+                    $"[AudienceCharacterBase] {CharacterId} AbilityRoutine: " +
+                    $"Ability '{NextAbility.AbilityName}' has no actions. Nothing to execute.");
                 yield break;
             }
 
             var ctx = new AudienceActionContext();
+
+            foreach (var action in NextAbility.ActionList)
+            {
+                if (action == null) continue;
+
+                var targets = ResolveTargetsFor(action);
+                if (targets == null || targets.Count == 0) continue;
+
+                yield return StartCoroutine(
+                    ExecuteActionWithTiming(action, targets, ctx));
+            }
+        }
+
+        protected virtual IEnumerator ExecuteActionWithTiming(
+            CharacterActionData action,
+            List<CharacterBase> targets,
+            AudienceActionContext ctx)
+        {
             var executor = CharacterActionProcessor.GetAction(action.CardActionType);
             if (executor == null)
             {
@@ -299,10 +238,9 @@ namespace ALWTTT.Characters.Audience
                 yield break;
             }
 
-            // Delay between Actions inside same Ability
             float actionDelay = (action.ActionDelay > 0f)
                 ? action.ActionDelay
-                : 0.1f; // default pequeño si no se setea nada
+                : 0.1f;
 
             Debug.Log($"<color=red>{CharacterId} " +
                 $"action {action.CardActionType.ToString()} " +
@@ -316,19 +254,16 @@ namespace ALWTTT.Characters.Audience
             if (actionDelay > 0f)
                 yield return new WaitForSeconds(actionDelay);
 
-            // Execute action per target, wait for reaction
             foreach (var target in targets)
             {
                 if (target == null) continue;
 
-                // Get reaction duration based on action and target
                 float reactionDuration = GetPerTargetReactionDuration(action, target);
 
                 var p = new CharacterActionParameters(
                     action.ActionValue, this, target, ctx,
-                    duration: reactionDuration); // Send for reaction timing
+                    duration: reactionDuration);
 
-                // Apply effects
                 executor.DoAction(p);
 
                 if (reactionDuration > 0f)
@@ -342,16 +277,11 @@ namespace ALWTTT.Characters.Audience
             CharacterActionData action, CharacterBase target)
         {
             float actionDelay = action.ActionDelay;
-
-            // TODO: timing values in GameplayData
             return 2f;
         }
 
-        // TODO: Review
         private List<CharacterBase> ResolveTargetsFor(CharacterActionData action)
         {
-            // Use the same targeting semantics as CardBase.DetermineTargets
-            // and keep behavior deterministic where useful.
             var gm = GigManager;
 
             switch (action.ActionTargetType)
@@ -360,64 +290,55 @@ namespace ALWTTT.Characters.Audience
                     return new List<CharacterBase>() { this };
 
                 case ActionTargetType.Musician:
-                // Target the “front-most” visible enemy musician by your rules? 
-                // Since this is an *audience* action (offense), choose a musician.
-                {
-                    var list = gm.CurrentMusicianCharacterList;
-                    if (list.Count == 0) return null;
-
-                    // Example heuristic: lowest current Stress (focus the least stressed)
-                    // TODO: Configurable heuristics
-                    MusicianBase best = null;
-                    foreach (var m in list)
                     {
-                        if (best == null || m.MusicianStats.CurrentStress < best.MusicianStats.CurrentStress)
-                            best = m;
+                        var list = gm.CurrentMusicianCharacterList;
+                        if (list.Count == 0) return null;
+
+                        MusicianBase best = null;
+                        foreach (var m in list)
+                        {
+                            if (best == null || m.MusicianStats.CurrentStress < best.MusicianStats.CurrentStress)
+                                best = m;
+                        }
+                        return new List<CharacterBase>() { best };
                     }
-                    return new List<CharacterBase>() { best };
-                }
 
                 case ActionTargetType.RandomMusician:
-                {
-                    var list = gm.CurrentMusicianCharacterList;
-                    if (list.Count == 0) return null;
-                    var index = Random.Range(0, list.Count);
-                    return new List<CharacterBase>() { list[index] };
-                }
+                    {
+                        var list = gm.CurrentMusicianCharacterList;
+                        if (list.Count == 0) return null;
+                        var index = Random.Range(0, list.Count);
+                        return new List<CharacterBase>() { list[index] };
+                    }
 
                 case ActionTargetType.AllMusicians:
-                    // For multi-target actions you’ll likely loop outside, but the action system
-                    // expects a single CharacterBase. Return self (the processor can read ctx).
                     return new List<CharacterBase>(gm.CurrentMusicianCharacterList);
 
                 case ActionTargetType.AudienceCharacter:
-                // Pick lowest-Vibe ally (excluding self), fallback to self
-                {
-                    AudienceCharacterBase best = null;
-                    foreach (var a in gm.CurrentAudienceCharacterList)
                     {
-                        if (a == this) continue;
-                        if (best == null || a.AudienceStats.CurrentVibe < best.AudienceStats.CurrentVibe)
-                            best = a;
+                        AudienceCharacterBase best = null;
+                        foreach (var a in gm.CurrentAudienceCharacterList)
+                        {
+                            if (a == this) continue;
+                            if (best == null || a.AudienceStats.CurrentVibe < best.AudienceStats.CurrentVibe)
+                                best = a;
+                        }
+                        return new List<CharacterBase>() { best };
                     }
-                    return new List<CharacterBase>() { best };
-                }
 
                 case ActionTargetType.RandomAudienceCharacter:
-                {
-                    var list = gm.CurrentAudienceCharacterList;
-                    if (list.Count == 0) return new List<CharacterBase>() { this };
-                    var index = Random.Range(0, list.Count);
-                    return new List<CharacterBase>() { list[index] };
-                }
+                    {
+                        var list = gm.CurrentAudienceCharacterList;
+                        if (list.Count == 0) return new List<CharacterBase>() { this };
+                        var index = Random.Range(0, list.Count);
+                        return new List<CharacterBase>() { list[index] };
+                    }
 
                 case ActionTargetType.AllAudienceCharacters:
-                // Same note as AllAllies: your action impl can fan out via context.
-                return new List<CharacterBase>(gm.CurrentAudienceCharacterList);
+                    return new List<CharacterBase>(gm.CurrentAudienceCharacterList);
 
                 default:
-                // Safe fallback for unhandled cases
-                return null;
+                    return null;
             }
         }
 
@@ -425,7 +346,6 @@ namespace ALWTTT.Characters.Audience
         {
             var waitFrame = new WaitForEndOfFrame();
 
-            // TODO: Depending on the ActionData TargetType and TargetConditions
             var target = GigManager.CurrentMusicianCharacterList.RandomItem();
 
             var startPos = transform.position + Vector3.up * 2;
@@ -434,7 +354,6 @@ namespace ALWTTT.Characters.Audience
             var startRot = transform.localRotation;
             var endRot = transform.localRotation;
 
-            // TODO: Instantiate a SpeechBubble with garabatos, hurl towards musician
             var speechBubble = Instantiate(
                 speechBubblePrefab, startPos, Quaternion.identity);
 
@@ -444,7 +363,7 @@ namespace ALWTTT.Characters.Audience
                 startRot, endRot,
                 1f
             ));
-            
+
             foreach (var action in targetAbility.ActionList)
             {
                 var ctx = new AudienceActionContext();
@@ -458,11 +377,6 @@ namespace ALWTTT.Characters.Audience
         protected virtual IEnumerator BuffRoutine(AudienceAbilityData targetAbility)
         {
             var waitFrame = new WaitForEndOfFrame();
-
-            // Get target
-            //var targetType = targetAbility.
-
-
             yield return waitFrame;
         }
         #endregion
@@ -470,8 +384,8 @@ namespace ALWTTT.Characters.Audience
         private IEnumerator MoveObjectToTargetRoutine(
             WaitForEndOfFrame waitFrame,
             Transform objectTransform,
-            Vector3 startPos, Vector3 endPos, 
-            Quaternion startRot, Quaternion endRot, 
+            Vector3 startPos, Vector3 endPos,
+            Quaternion startRot, Quaternion endRot,
             float speed)
         {
             var timer = 0f;

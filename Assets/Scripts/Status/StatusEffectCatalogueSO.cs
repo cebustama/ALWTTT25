@@ -42,7 +42,7 @@ namespace ALWTTT.Status
         }
 
         // ─────────────────────────────────────────────────────────────────────────────
-        // Key-based API (new)
+        // Key-based API
         // ─────────────────────────────────────────────────────────────────────────────
         public bool ContainsKey(string statusKey)
         {
@@ -75,7 +75,7 @@ namespace ALWTTT.Status
         }
 
         // ─────────────────────────────────────────────────────────────────────────────
-        // Primitive-based API (kept, now supports variants)
+        // Primitive-based API
         // ─────────────────────────────────────────────────────────────────────────────
         public bool Contains(CharacterStatusId id)
         {
@@ -83,9 +83,6 @@ namespace ALWTTT.Status
             return _byPrimitive.ContainsKey(id);
         }
 
-        /// <summary>
-        /// Backwards compatible: returns the default variant for this primitive id.
-        /// </summary>
         public bool TryGet(CharacterStatusId id, out StatusEffectSO effect)
         {
             EnsureCache();
@@ -133,12 +130,10 @@ namespace ALWTTT.Status
         {
             if (_cacheBuilt) return;
 
-            // IMPORTANT: keys are treated as case-insensitive + trimmed.
             _byKey = new Dictionary<string, StatusEffectSO>(StringComparer.OrdinalIgnoreCase);
             _byPrimitive = new Dictionary<CharacterStatusId, List<StatusEffectSO>>(capacity: Mathf.Max(16, _effects.Count));
             _defaultByPrimitive = new Dictionary<CharacterStatusId, StatusEffectSO>(capacity: Mathf.Max(16, _effects.Count));
 
-            // Track if we've already assigned a default and whether it was explicit.
             var defaultIsExplicit = new Dictionary<CharacterStatusId, bool>();
 
             for (int i = 0; i < _effects.Count; i++)
@@ -146,28 +141,23 @@ namespace ALWTTT.Status
                 var e = _effects[i];
                 if (e == null) continue;
 
-                // Index by key (unique)
                 var key = NormalizeKey(e.StatusKey);
                 if (key != null)
                 {
-                    // First one wins; duplicates are flagged in OnValidate.
                     if (!_byKey.ContainsKey(key))
                         _byKey.Add(key, e);
                 }
 
-                // Index by primitive (variants)
                 if (!_byPrimitive.TryGetValue(e.EffectId, out var list))
                 {
                     list = new List<StatusEffectSO>();
                     _byPrimitive.Add(e.EffectId, list);
 
-                    // First encountered default unless an explicit default arrives later.
                     _defaultByPrimitive.Add(e.EffectId, e);
                     defaultIsExplicit[e.EffectId] = e.IsDefaultVariant;
                 }
                 list.Add(e);
 
-                // Prefer explicit default variant (if set)
                 if (e.IsDefaultVariant)
                 {
                     bool alreadyExplicit = defaultIsExplicit.TryGetValue(e.EffectId, out var ex) && ex;
@@ -185,12 +175,38 @@ namespace ALWTTT.Status
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            // Validation policy:
+            // Invalidate cache immediately so runtime rebuilds on next access.
+            _cacheBuilt = false;
+            _byKey = null;
+            _byPrimitive = null;
+            _defaultByPrimitive = null;
+
+            // Skip all validation reporting during import worker runs.
+            // During import, referenced StatusEffectSO fields may not be fully deserialized yet,
+            // producing spurious "empty StatusKey" errors. The Worker0 process hits this path
+            // when a prefab referencing this catalogue is selected in the Inspector.
+            if (AssetDatabase.IsAssetImportWorkerProcess()) return;
+
+            // Defer validation to next editor frame, after Unity is quiescent.
+            // Capture 'this' by local to avoid issues if the asset is destroyed before the callback runs.
+            var target = this;
+            EditorApplication.delayCall += () =>
+            {
+                if (target == null) return;
+                target.ValidateCatalogueContents();
+            };
+        }
+
+        /// <summary>
+        /// Editor-only deep validation. Runs deferred via delayCall so that referenced
+        /// StatusEffectSO assets are fully deserialized before their fields are read.
+        /// </summary>
+        private void ValidateCatalogueContents()
+        {
+            // Policy:
             // - Duplicate StatusKey is NOT allowed (hard error).
             // - Multiple variants per primitive (EffectId) are allowed.
             // - Multiple defaults for the same primitive: warning.
-            //
-            // NOTE: StatusKey uniqueness is enforced case-insensitively and after trimming.
 
             var seenKeys = new Dictionary<string, StatusEffectSO>(StringComparer.OrdinalIgnoreCase);
             var defaultCount = new Dictionary<CharacterStatusId, int>();
@@ -248,14 +264,6 @@ namespace ALWTTT.Status
                         this);
                 }
             }
-
-            _cacheBuilt = false;
-            _byKey = null;
-            _byPrimitive = null;
-            _defaultByPrimitive = null;
-
-            // Optional: force rebuild so editor tools immediately see it.
-            // EnsureCache();
         }
 
         /// <summary>
@@ -268,7 +276,6 @@ namespace ALWTTT.Status
             if (effect == null) return false;
             if (_effects.Contains(effect)) return false;
 
-            // Prevent duplicate keys (case-insensitive, trimmed)
             var newKey = NormalizeKey(effect.StatusKey);
             if (newKey == null)
             {

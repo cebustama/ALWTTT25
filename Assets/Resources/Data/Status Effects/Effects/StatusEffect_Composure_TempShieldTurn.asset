@@ -10,17 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16c425e2848e0024897e2764a0660ebf, type: 3}
-  m_Name: StatusEffect_DamageUpFlat_Flow
+  m_Name: StatusEffect_Composure_TempShieldTurn
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectSO
-  statusKey: flow
+  statusKey: composure
   isDefaultVariant: 1
-  effectId: 100
-  displayName: Flow
+  effectId: 400
+  displayName: Composure
   primitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
   stackMode: 0
   maxStacks: 999
-  decayMode: 0
-  durationTurns: 0
-  tickTiming: 0
+  decayMode: 2
+  durationTurns: 1
+  tickTiming: 2
   valueType: 0
   isBuff: 1
+  iconSprite: {fileID: 5219159549644024381, guid: 8a30b141ae0bf0f4ba1b748f5aa2949b, type: 3}

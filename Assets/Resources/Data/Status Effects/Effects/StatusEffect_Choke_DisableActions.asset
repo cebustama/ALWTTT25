@@ -10,15 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16c425e2848e0024897e2764a0660ebf, type: 3}
-  m_Name: StatusEffect_DamageTakenUpFlat_Exposed
+  m_Name: StatusEffect_Choke_DisableActions
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectSO
-  effectId: 300
-  displayName: Exposed
+  statusKey: choke
+  isDefaultVariant: 0
+  effectId: 700
+  displayName: Choke
   primitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
-  stackMode: 2
-  maxStacks: 999
-  decayMode: 2
+  stackMode: 1
+  maxStacks: 1
+  decayMode: 1
   durationTurns: 1
-  tickTiming: 2
+  tickTiming: 8
   valueType: 0
   isBuff: 0
+  iconSprite: {fileID: -2191323962567512819, guid: cf8897765e2df8f41bad89ad61b9cb3d, type: 3}

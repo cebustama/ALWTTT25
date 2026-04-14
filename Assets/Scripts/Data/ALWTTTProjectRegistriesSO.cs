@@ -18,7 +18,6 @@ namespace ALWTTT
         [SerializeField] private GameplayData gameplayData;
         [SerializeField] private GigSetupConfigData gigSetupConfig;
         [SerializeField] private SpecialKeywordData specialKeywordData;
-        [SerializeField] private StatusIconsData statusIconsData;
         [SerializeField] private RewardContainerData rewardContainer;
 
         public CharacterStatusPrimitiveDatabaseSO CSO => csoPrimitiveDatabase;
@@ -27,7 +26,6 @@ namespace ALWTTT
         public GameplayData Gameplay => gameplayData;
         public GigSetupConfigData GigSetup => gigSetupConfig;
         public SpecialKeywordData SpecialKeywords => specialKeywordData;
-        public StatusIconsData StatusIcons => statusIconsData;
         public RewardContainerData Rewards => rewardContainer;
 
         public static ALWTTTProjectRegistriesSO FindInResources(

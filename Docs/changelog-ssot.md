@@ -5,6 +5,143 @@ Cosmetic edits should not be logged here.
 
 ---
 
+## 2026-04-14 — M1.2 closure: Status icon pipeline SO migration + refactor
+
+### Semantic changes
+
+**SSoT_Status_Effects:**
+- §2.2 updated: "authored/theme layer" now explicitly includes icon sprite presentation.
+- §3 runtime ownership expanded to include icon presentation (sprite authority on StatusEffectSO, event-driven rendering on CharacterCanvas).
+- §3.2 migration note updated: M1.2 icon pipeline closure recorded. Legacy icon calls removed from `MusicianBase.OnBreakdown` and `AudienceCharacterBase.IsBlocked` setter (Decision E3: blocked is sprite-tint only).
+- §3.3 added: icon presentation authority specification. Sprite authority on `StatusEffectSO.IconSprite`. Rendering path documented end-to-end. Design decisions enumerated (no lookup table asset, direct prefab on canvas, lazy lifecycle, warning on missing sprite/prefab, tooltip content deferred to M1.3).
+- §4 catalogue section: M1.2 catalogue validation fix documented (`delayCall` deferral + import-worker skip). M1.2 asset hygiene documented (auto-rename).
+- §10 update rule: icon presentation authority added to the list of changes that require updating this SSoT.
+
+**CURRENT_STATE:**
+- §1 Project foundation: new "Status icon pipeline — SO-based" block added with M1.2 closure summary.
+- §2 Active work: "Status Icons + Tooltip pipeline — audit needed" block removed (M1.2 closed). New "QA-readiness gap" block added describing the actual blocker (Dev Mode, not icons). New "Card effect description text — known bug" item captured.
+- §3 What is next: reframed around critical path to QA-readiness. M1.5 Dev Mode, M1.7 hover highlight, M1.8 icon animations, M1.3 tooltips, M1.1 deck editor polish, M2 composition validation.
+- §4 Residual risks: "StatusIconsData uses legacy enum" removed (fixed). "Multi-turn status validation pending" added (deferred to M1.5).
+- §5 Pending docs: "Archive headers" removed (M1.6 already closed per prior changelog). "Dev Mode design SSoT" added as the next expected doc.
+
+**Roadmap_ALWTTT:**
+- Milestone 1 introduction revised: goal and demo pitch reframed around "testable by general-audience testers."
+- New "Priority order" block added at top of M1 establishing critical-path reordering: M1.5 → M1.7 → M1.8 → M1.3 → M1.1. Reasoning recorded.
+- M1.2 marked complete with outcome-beyond-scope notes (StatusIconsData removed, auto-rename, catalogue validation fix, Obsolete marker on legacy ApplyStatus).
+- M1.3 scope expanded to explicitly include the card effect description text bug fix.
+- M1.5 scope expanded: transparent audience reaction/ability display. Design questions added for session start. Proposal to start M1.5 with a detailed sub-roadmap session.
+- M1.7 Character hover highlight added as new task (code-only, game feel).
+- M1.8 Status icon animations added as new task (code-only, game feel).
+- M1.6 marked complete (closed 2026-04-08; was already done but not marked).
+- Definition of Done updated: M1.2 items checked. New items added for M1.7, M1.8, M1.3 text-fix, and M1.5 audience-reaction transparency.
+- M2 demo pitch: added explicit "Unblocked by: M1.5 Dev Mode" note.
+
+### Authority changes
+
+**Icon pipeline authority clarified:**
+- Sprite authority: `StatusEffectSO.IconSprite` (owned by SSoT_Status_Effects §3.3).
+- Rendering path authority: `CharacterCanvas` event subscription to `StatusEffectContainer` (owned by SSoT_Status_Effects §3.3).
+- The former `StatusIconsData` lookup asset is deleted. No longer an authority-bearing file.
+
+### Structural changes
+
+**Removed files:**
+- `Assets/Scripts/Data/UI/StatusIconsData.cs` — the lookup table class is deleted. `StatusIconsData` and `StatusIconData` types no longer exist.
+- `StatusIconsData` asset instance in the project — removed from musician/audience prefab references.
+
+**Modified files (code):**
+- `StatusEffectSO.cs` — added `iconSprite` field + `IconSprite` property under new `[Header("Presentation")]`. Added editor-only auto-rename via `EditorApplication.delayCall`. Rename format: `StatusEffect_{DisplayName}_{EffectId}`.
+- `StatusEffectCatalogueSO.cs` — `OnValidate` now defers real validation to `delayCall` and skips entirely during `AssetDatabase.IsAssetImportWorkerProcess()`. Fixes spurious "empty StatusKey" errors on prefab selection.
+- `StatusIconBase.cs` — `SetStatus` signature changed from `(StatusIconData)` to `(Sprite)`. `MyStatusIconData` property removed, replaced with `CurrentSprite`.
+- `CharacterCanvas.cs` — `statusIconsData` field removed. `statusIconBasePrefab` direct field added under new `[Header("Status Icons")]`. `TryCreateIcon` reads sprite from `_boundContainer.TryGet(id).Definition.IconSprite`. Keyword-based tooltip iteration stripped; `ShowTooltipInfo()` is a stub pending M1.3. Public `ShowTooltipInfo`/`HideTooltipInfo` methods preserved for `ITooltipTargetBase` compliance, corrected to call `TooltipManager.ShowTooltip`/`HideTooltip` (the real API). `BindStatusContainer` subscribes to `OnStatusApplied`/`OnStatusChanged`/`OnStatusCleared`.
+- `CharacterStats.cs` — icon delegate subscriptions in `Setup()` and `Dispose()` removed. Legacy status dict and turn triggers retained (they drive non-icon legacy behavior only).
+- `MusicianBase.cs` — `OnBreakdown` no longer calls `stats.ApplyStatus(StatusType.Breakdown, 1)`. `BuildCharacter` calls `bandCharacterCanvas.BindStatusContainer(Statuses)`.
+- `AudienceCharacterBase.cs` — `IsBlocked` setter no longer calls `stats.ApplyStatus/ClearStatus(StatusType.Blocked)`. Sprite tint is the only visual indicator (Decision E3). `BuildCharacter` calls `AudienceCharacterCanvas.BindStatusContainer(Statuses)`.
+- `BandCharacterStats.cs` — `ApplyStatus(StatusType, int)` marked `[Obsolete]`. No behavior change.
+
+### Lifecycle
+
+- M1.2 (Status Icons pipeline migration) closed.
+- M1.6 (Archive superseded planning docs) retroactively marked closed in the roadmap (was already done but unmarked).
+- Multi-turn status smoke tests (T4, T5, T7, T8, T9 from the M1.2 test plan) deferred to M1.5 closure — they require infinite-turn tooling that does not yet exist.
+- M1.5 elevated to critical-path priority. The build is technically complete but not QA-ready without it.
+- Card effect description text bug (`CharacterStatusId` enum names showing instead of `StatusEffectSO.DisplayName`) added to M1.3 scope.
+
+### Operational changes
+
+- Project instructions gain a new "Smoke test requirement for gameplay changes" section (operational classification). Any batch that affects gameplay, runtime behavior, or visible player-facing state must include a bounded set of visual/gameplay smoke tests before closing. Each test specifies setup, action, expected observable result, and fail criterion. Regression tests required for any intentionally removed behavior. Tests that cannot be run through normal gameplay must be explicitly deferred with a named target (typically Dev Mode / M1.5).
+
+---
+
+## 2026-04-08 — SSoT_Editor_Authoring_Tools.md created and activated (M1.4)
+
+### Authority changes
+
+**New governed SSoT activated:**
+- `systems/SSoT_Editor_Authoring_Tools.md` — promoted from **planned** to **active**.
+- Covers four editor tools: Card Editor, Deck Editor, Status Effect Wizard, Chord Progression Catalogue Wizard.
+- Documents supporting services: `CardAssetFactory`, `MusicianCatalogService`, `DeckJsonImportService`, `DeckCardCreationService`, `DeckValidationService`, `DeckAssetSaveService`.
+- Documents composition classifier (`CompositionCardClassifier`) and descriptors (`PartActionDescriptor`, `TrackActionDescriptor`) as editor-relevant runtime utilities.
+- Known gaps section maps to M1 roadmap tasks (M1.1–M1.3, M1.5).
+
+**SSoT_INDEX updated:** Editor tools row changed from `**planned**` to `active`.
+
+**coverage-matrix updated:** Editor authoring tools row changed from `(no governed doc yet)` / `**planned**` to `systems/SSoT_Editor_Authoring_Tools.md` / `active`.
+
+**CURRENT_STATE updated:** §1 documentation line updated. §2 editor tooling documentation marked complete. §5 pending docs list updated.
+
+### Scope boundary established
+- `SSoT_Editor_Authoring_Tools.md` owns tool capabilities, workflows, and known gaps.
+- `SSoT_Card_Authoring_Contracts.md` retains authority over data contracts, JSON schema, and effect-list representation.
+- No overlap or duplication between the two documents.
+
+### Lifecycle
+- M1.4 (Editor tooling documentation) can be marked complete in `Roadmap_ALWTTT.md`.
+
+---
+
+## 2026-04-08 — Project scope broadened from Combat MVP to full ALWTTT game project
+
+### Authority changes
+
+**Roadmap authority replaced:**
+- `planning/active/Roadmap_Combat_MVP.md` → archived to `planning/archive/`. Superseded by `planning/active/Roadmap_ALWTTT.md`.
+- `Roadmap_Combat_MVP_Closure_Actionable.md` → archived to `planning/archive/`. All phases complete; historical record only.
+- `ALWTTT_DeckEditorWindow_Roadmap_Proposal.md` → archived to `planning/archive/`. Phases 0–6 substantially complete; remaining polish items captured in `Roadmap_ALWTTT.md` M1.1.
+- New active roadmap: `planning/active/Roadmap_ALWTTT.md` — project-wide milestone-based roadmap with DoD checklists and demo-readiness checks.
+
+**Coverage matrix updated:**
+- Roadmap row now points to `Roadmap_ALWTTT.md`.
+- New row added: "Editor authoring tools" — planned primary home `systems/SSoT_Editor_Authoring_Tools.md`.
+
+**SSoT_INDEX updated:**
+- Planning docs section restructured into "Active planning docs" and "Archived planning docs" with supersession pointers.
+- Transitional compatibility path for `planning/combat/` removed (no longer needed).
+- `SSoT_Editor_Authoring_Tools.md` registered as planned.
+
+### Operational changes
+
+**CURRENT_STATE reframed:**
+- §1 changed from "Combat MVP closed" single-slice framing to "Project foundation" covering combat baseline, composition surface, editor tools, and documentation state.
+- §2 changed from Phase 4 completion record to active work: Deck Editor polish, Status Icons/Tooltips audit, editor tooling documentation.
+- §3 changed from "Post-MVP work (not blocking closure)" to forward-looking "What is next": Dev Mode scene, composition validation.
+- §4 updated with new risk: StatusIconsData uses legacy StatusType enum, disconnected from all Combat MVP statuses.
+- New open item added: true card copies in decks (current runtime deduplicates by reference).
+
+### New findings recorded
+
+- `StatusIconsData` and `StatusIconData` are keyed on legacy `StatusType` enum. None of the six Combat MVP statuses exist in that enum. Icon pipeline is disconnected from working status effects.
+- Card tooltip system is keyword-based only (`CardDefinition.Keywords` → `TooltipManager`). No connection to card effects or status effects.
+- Deck Editor phases 0–6 from the original roadmap proposal are substantially implemented. Remaining work: better filters, card preview info, cross-tool integration.
+
+### Lifecycle decisions
+- Combat MVP roadmaps archived as completed historical records.
+- DeckEditorWindow Roadmap Proposal archived as substantially complete; remaining items absorbed into new roadmap M1.
+- Claude Project scope broadened from Combat MVP focus to full ALWTTT game project.
+- Project instructions, name, and description updated to reflect full game scope.
+
+---
+
 ## 2026-03-23 — Combat MVP Phase 4 closure
 
 ### Semantic changes
@@ -83,12 +220,8 @@ None. All existing authority assignments are unchanged.
 - the actual tree was brought back into alignment with the root governance docs
 - the active roadmap home is now explicitly `planning/active/`
 - the previous combat-roadmap path is now only a compatibility pointer
-- the pre-governance snapshot is kept as historical backup, not as active authority
-- the migration is now functionally complete and replacement-ready
 
-### Migration impact
-- ALWTTT now has a coherent governed docs tree that can replace routine use of the snapshot
-- remaining work after this batch is ordinary documentation maintenance, not migration
+---
 
 ## 2026-03-19 — Governance migration Batch 05 promoted encounter structure and cleanup traceability
 

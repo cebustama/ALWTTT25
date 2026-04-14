@@ -37,7 +37,7 @@ namespace ALWTTT.Characters.Band
         }
 
         #region Setup
-        public BandCharacterStats(int chr, int tch, int emt, 
+        public BandCharacterStats(int chr, int tch, int emt,
             int maxStress, BandCharacterCanvas characterCanvas)
         {
             Charm = chr;
@@ -70,7 +70,7 @@ namespace ALWTTT.Characters.Band
 
         public void SetCurrentStress(int targetCurrentStress, float duration = 1f)
         {
-            CurrentStress = 
+            CurrentStress =
                 targetCurrentStress < 0 ? 0 :
                     targetCurrentStress > MaxStress ?
                         MaxStress :
@@ -97,6 +97,14 @@ namespace ALWTTT.Characters.Band
             SetCurrentStress(Mathf.Max(0, CurrentStress - amount), duration);
         }
 
+        /// <summary>
+        /// Legacy status application via StatusType enum.
+        /// M1.2: No longer drives icon display. Icons are now event-driven from
+        /// StatusEffectContainer. This method is retained for any remaining legacy
+        /// callers but should be phased out. New code should use
+        /// CharacterBase.Statuses.Apply(StatusEffectSO, stacks) instead.
+        /// </summary>
+        [Obsolete("Use CharacterBase.Statuses.Apply(StatusEffectSO, stacks) instead. Legacy StatusType path.")]
         public void ApplyStatus(StatusType targetStatus, int value)
         {
             if (statusDict[targetStatus].IsActive)
@@ -124,7 +132,7 @@ namespace ALWTTT.Characters.Band
 
         protected override void TriggerStatus(StatusType targetStatus)
         {
-            
+
         }
 
         /// <summary>
@@ -133,10 +141,6 @@ namespace ALWTTT.Characters.Band
         /// 2. Applies remainder via AddStress (which triggers Breakdown check).
         /// Call from card effects AND audience actions.
         /// </summary>
-        /// <param name="statuses">The character's StatusEffectContainer (CharacterBase.Statuses)</param>
-        /// <param name="incomingStress">Raw positive stress amount before mitigation</param>
-        /// <param name="duration">UI animation duration</param>
-        /// <returns>Tuple: (absorbed, applied) for logging/FX</returns>
         public (int absorbed, int applied) ApplyIncomingStressWithComposure(
             StatusEffectContainer statuses,
             int incomingStress,

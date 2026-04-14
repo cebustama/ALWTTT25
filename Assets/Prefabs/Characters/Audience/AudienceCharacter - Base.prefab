@@ -128,6 +128,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6214814892290893219
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -173,6 +174,7 @@ SpriteRenderer:
   m_SortingLayerID: -1388152733
   m_SortingLayer: 3
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 245a7efd94313cc47adb91781c9955c9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -182,7 +184,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &7812822335308069666
 GameObject:
@@ -247,6 +248,8 @@ MonoBehaviour:
     m_Bits: 128
   characterAnimator: {fileID: 6981906805491641733}
   animator: {fileID: 7639766325466097293}
+  statusCatalogue: {fileID: 11400000, guid: 3c12538606a42a944b49754c65c1758c, type: 2}
+  legacyIsStunned: 0
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
   characterCanvas: {fileID: 9060181179430792495}
 --- !u!54 &8334716001203842415

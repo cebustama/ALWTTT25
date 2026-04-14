@@ -171,8 +171,7 @@ namespace ALWTTT.Managers
                     ("0.75× (laid-back)", 0.75f), ("1.00× (default)", 1.00f),
                     ("1.25×", 1.25f),             ("1.50×", 1.50f), ("2.00×", 2.00f)
                 };
-                shipCanvas.PopulateTempoScaleDropdown(tempoOptions,
-                    factor => MidiMusicManager?.ScheduleNextSongTempoScale(factor), defaultIndex: 1);
+                
             }
 
             if (compositionUI)

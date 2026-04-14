@@ -10,15 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16c425e2848e0024897e2764a0660ebf, type: 3}
-  m_Name: StatusEffect_DamageOverTime
+  m_Name: StatusEffect_Exposed_DamageTakenUpFlat
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectSO
-  effectId: 600
-  displayName: Feedback
+  statusKey: exposed
+  isDefaultVariant: 0
+  effectId: 300
+  displayName: Exposed
   primitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
-  stackMode: 0
+  stackMode: 2
   maxStacks: 999
-  decayMode: 1
-  durationTurns: 0
+  decayMode: 2
+  durationTurns: 1
   tickTiming: 2
   valueType: 0
   isBuff: 0
+  iconSprite: {fileID: 21300000, guid: 945d56c41e0949a4b88f25bdb8229bb0, type: 3}

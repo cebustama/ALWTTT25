@@ -16,7 +16,7 @@ It defines:
 |---|---|---|
 | `README.md` | root entry + authority order | active |
 | `SSoT_CONTRACTS.md` | documentary governance rules | active |
-| `CURRENT_STATE.md` | validated current slice + next step | active |
+| `CURRENT_STATE.md` | validated project baseline + active work + next steps | active |
 | `coverage-matrix.md` | authority lookup | active |
 | `changelog-ssot.md` | semantic/documentary change history | active |
 | `SSoT_INDEX.md` | authority map / index | active |
@@ -36,6 +36,7 @@ It defines:
 | `systems/SSoT_Status_Effects.md` | runtime status truth and catalogue-facing gameplay semantics | active |
 | `systems/SSoT_Scoring_and_Meters.md` | loop score, song hype, vibe, and meter-relationship semantics | active |
 | `systems/SSoT_Gig_Encounter.md` | encounter-level gig structure, victory/failure, rosters, modifiers, resolution envelope | active |
+| `systems/SSoT_Editor_Authoring_Tools.md` | editor tools inventory, capabilities, supporting services, known gaps | active |
 
 ### Runtime
 
@@ -53,6 +54,24 @@ It defines:
 
 ---
 
+## Active planning docs
+
+| Document | Scope | Status |
+|---|---|---|
+| `planning/active/Roadmap_ALWTTT.md` | project-wide milestone roadmap | active |
+
+---
+
+## Archived planning docs
+
+| Document | Original scope | Status | Superseded by |
+|---|---|---|---|
+| `planning/archive/Roadmap_Combat_MVP.md` | combat MVP short roadmap | complete / archived | `Roadmap_ALWTTT.md` (Combat MVP recorded as completed milestone) |
+| `planning/archive/Roadmap_Combat_MVP_Closure_Actionable.md` | combat MVP closure phases (5 phases, all complete) | complete / archived | `Roadmap_ALWTTT.md` + `CURRENT_STATE.md` §1 |
+| `planning/archive/ALWTTT_DeckEditorWindow_Roadmap_Proposal.md` | Deck Editor design, requirements, phased roadmap (phases 0–6 complete) | substantially complete / archived | `Roadmap_ALWTTT.md` M1.1 (remaining polish items) |
+
+---
+
 ## Supporting governed folders
 
 | Folder / doc | Role | Status |
@@ -66,15 +85,6 @@ It defines:
 
 ---
 
-## Transitional / compatibility paths
-
-| Path | Current role | Rule |
-|---|---|---|
-| `planning/combat/` | compatibility shim | use `planning/active/Roadmap_Combat_MVP.md` as the primary roadmap |
-| external pre-governance snapshot | historical backup only | do not treat it as an active docs tree |
-
----
-
 ## Transitional source docs from the previous set
 
 These are important source inputs, but they are **not** the governed structure.
@@ -82,7 +92,7 @@ These are important source inputs, but they are **not** the governed structure.
 | Previous doc | Current role in migration | Governed home now |
 |---|---|---|
 | `canon/SSoT_Combat.md` | delta snapshot only | `CURRENT_STATE.md` + `systems/SSoT_Gig_Combat_Core.md` |
-| `canon/Roadmap_Combat.md` | planning-only source | `planning/active/Roadmap_Combat_MVP.md` |
+| `canon/Roadmap_Combat.md` | planning-only source | `planning/archive/Roadmap_Combat_MVP.md` (archived) |
 | `canon/Appendix_Authoring_DataContracts.md` | source promoted in Batch 02 | `systems/SSoT_Card_Authoring_Contracts.md` |
 | `reference/Gig_Combat.md` | source absorbed in Batch 02 | `systems/SSoT_Gig_Combat_Core.md` |
 | `reference/Card.md` | source absorbed in Batch 02 | `systems/SSoT_Card_System.md` |
@@ -127,7 +137,7 @@ After every meaningful technical change:
 4. Then apply the follow-up rules:
    - update `CURRENT_STATE.md` if operational reality or active focus changed
    - update `changelog-ssot.md` if meaning, contract, authority, or interpretation changed
-   - update `coverage-matrix.md` only if the concept’s primary home changed
+   - update `coverage-matrix.md` only if the concept's primary home changed
    - update reference docs only if support/navigation material changed
 
 A technical change is not complete until the required documentation updates are done.

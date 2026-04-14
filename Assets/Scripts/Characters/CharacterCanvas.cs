@@ -1,10 +1,8 @@
-using ALWTTT.Data;
-using ALWTTT.Enums;
+using ALWTTT.Status;
+using ALWTTT.Status.Runtime;
 using ALWTTT.Tooltips;
 using ALWTTT.UI;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -23,19 +21,130 @@ namespace ALWTTT.Characters
         [SerializeField] protected Transform statusIconRoot;
         [SerializeField] protected Transform descriptionRoot;
         [SerializeField] protected HealthBarController healthBar;
-        [SerializeField] protected StatusIconsData statusIconsData;
-        
-        protected Dictionary<StatusType, StatusIconBase> StatusDict = 
-            new Dictionary<StatusType, StatusIconBase>();
+
+        [Header("Status Icons")]
+        [Tooltip("Prefab instantiated for each active status. Sprite and stack count " +
+                 "are assigned at runtime from the character's StatusEffectContainer.")]
+        [SerializeField] protected StatusIconBase statusIconBasePrefab;
+
+        // M1.2: lazy dictionary — entries created on first status application, removed on clear.
+        private readonly Dictionary<CharacterStatusId, StatusIconBase> _activeIcons = new();
+
+        private StatusEffectContainer _boundContainer;
 
         #region Setup
+
         public void InitCanvas(string characterName)
         {
             characterNameText.text = characterName;
-
-            for (int i = 0; i < Enum.GetNames(typeof(StatusType)).Length; i++)
-                StatusDict.Add((StatusType)i, null);
+            // No pre-population — icons are created lazily via container events.
         }
+
+        /// <summary>
+        /// Wire this canvas to a character's StatusEffectContainer.
+        /// Call once after the container exists (e.g. in BuildCharacter, after base.BuildCharacter).
+        /// </summary>
+        public void BindStatusContainer(StatusEffectContainer container)
+        {
+            // Unbind previous if any
+            if (_boundContainer != null)
+            {
+                _boundContainer.OnStatusChanged -= HandleStatusChanged;
+                _boundContainer.OnStatusCleared -= HandleStatusCleared;
+                _boundContainer.OnStatusApplied -= HandleStatusApplied;
+            }
+
+            _boundContainer = container;
+
+            if (_boundContainer != null)
+            {
+                _boundContainer.OnStatusChanged += HandleStatusChanged;
+                _boundContainer.OnStatusCleared += HandleStatusCleared;
+                _boundContainer.OnStatusApplied += HandleStatusApplied;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Safety: unsubscribe to avoid leaks if canvas is destroyed before unbind.
+            BindStatusContainer(null);
+        }
+
+        #endregion
+
+        #region Status Icon Event Handlers
+
+        private void HandleStatusApplied(CharacterStatusId id, int deltaStacks)
+        {
+            // If icon doesn't exist yet, create it.
+            if (!_activeIcons.ContainsKey(id))
+                TryCreateIcon(id);
+
+            // Update stack count (container fires OnStatusApplied with delta,
+            // but we want total stacks — read from container).
+            if (_activeIcons.TryGetValue(id, out var icon) && _boundContainer != null)
+            {
+                int totalStacks = _boundContainer.GetStacks(id);
+                icon.SetStatusValue(totalStacks);
+            }
+        }
+
+        private void HandleStatusChanged(CharacterStatusId id, int newStacks)
+        {
+            if (!_activeIcons.TryGetValue(id, out var icon))
+            {
+                // Status changed but no icon yet — try to create.
+                TryCreateIcon(id);
+                if (!_activeIcons.TryGetValue(id, out icon)) return;
+            }
+
+            icon.SetStatusValue(newStacks);
+        }
+
+        private void HandleStatusCleared(CharacterStatusId id)
+        {
+            if (_activeIcons.TryGetValue(id, out var icon))
+            {
+                if (icon != null)
+                    Destroy(icon.gameObject);
+                _activeIcons.Remove(id);
+            }
+        }
+
+        private void TryCreateIcon(CharacterStatusId id)
+        {
+            if (_activeIcons.ContainsKey(id)) return;
+
+            if (statusIconBasePrefab == null)
+            {
+                Debug.LogWarning(
+                    $"[CharacterCanvas] '{name}' has no StatusIconBase prefab assigned. " +
+                    $"Cannot display status icon for '{id}'. " +
+                    $"Assign 'statusIconBasePrefab' on the canvas component.",
+                    this);
+                return;
+            }
+
+            if (_boundContainer == null) return;
+            if (!_boundContainer.TryGet(id, out var instance) || instance == null) return;
+
+            var def = instance.Definition;
+            if (def == null) return;
+
+            if (def.IconSprite == null)
+            {
+                Debug.LogWarning(
+                    $"[CharacterCanvas] StatusEffectSO '{def.name}' (key='{def.StatusKey}') " +
+                    $"has no IconSprite assigned. Status will apply but no icon will display.",
+                    def);
+                return;
+            }
+
+            var clone = Instantiate(statusIconBasePrefab, statusIconRoot);
+            clone.SetStatus(def.IconSprite);
+            _activeIcons[id] = clone;
+        }
+
         #endregion
 
         #region Public Methods
@@ -51,43 +160,9 @@ namespace ALWTTT.Characters
         {
             healthBar?.SetCurrentValue(current, max, duration);
         }
-            
-        public void SetHighlight(bool open) => 
+
+        public void SetHighlight(bool open) =>
             highlightRoot.gameObject.SetActive(open);
-
-        public void ApplyStatus(StatusType targetStatus, int value)
-        {
-            if (StatusDict[targetStatus] == null)
-            {
-                var targetData = statusIconsData.
-                    StatusIconList.FirstOrDefault(x => x.IconStatus == targetStatus);
-
-                if (targetData == null) return;
-
-                var clone = Instantiate(statusIconsData.StatusIconBasePrefab, statusIconRoot);
-                clone.SetStatus(targetData);
-                StatusDict[targetStatus] = clone;
-            }
-
-            StatusDict[targetStatus].SetStatusValue(value);
-        }
-
-        public void UpdateStatusText(StatusType targetStatus, int value)
-        {
-            if (StatusDict[targetStatus] == null) return;
-
-            StatusDict[targetStatus].StatusValueText.text = $"{value}";
-        }
-
-        public void ClearStatus(StatusType targetStatus)
-        {
-            if (StatusDict[targetStatus])
-            {
-                Destroy(StatusDict[targetStatus].gameObject);
-            }
-
-            StatusDict[targetStatus] = null;
-        }
 
         public void UpdateVisibility()
         {
@@ -108,7 +183,7 @@ namespace ALWTTT.Characters
             if (healthBar.CurrentValue > 0)
                 healthBar.CanvasGroup.alpha = 1;
         }
- 
+
         #endregion
 
         #region Pointer Events
@@ -124,47 +199,29 @@ namespace ALWTTT.Characters
         #endregion
 
         #region Tooltips
+        /// <summary>
+        /// Status tooltip content is intentionally not displayed in M1.2.
+        /// M1.3 (Tooltip pipeline extension) will source tooltip content from
+        /// StatusEffectSO directly (DisplayName + description field to be added).
+        /// Subclasses may override to show their own tooltips (e.g. audience ability).
+        /// </summary>
         protected virtual void ShowTooltipInfo()
         {
-            var tooltipManager = TooltipManager.Instance;
-            var specialKeywords = new List<SpecialKeywords>();
-
-            foreach (var statusIcon in StatusDict)
-            {
-                // Ignore inactive
-                if (statusIcon.Value == null) continue;
-
-                // Find keyword data
-                var statusData = statusIcon.Value.MyStatusIconData;
-                foreach (var statusDataSpecialKeyword in statusData.SpecialKeywords)
-                {
-                    if (specialKeywords.Contains(statusDataSpecialKeyword)) continue;
-                    specialKeywords.Add(statusDataSpecialKeyword);
-                }
-            }
-
-            foreach (var specialKeyword in specialKeywords)
-            {
-                var specialKeywordData = tooltipManager
-                    .SpecialKeywordData.SpecialKeywordBaseList
-                        .Find(x => x.SpecialKeyword == specialKeyword);
-
-                if (specialKeywordData != null)
-                    ShowTooltipInfo(tooltipManager, specialKeywordData.GetContent(), 
-                        specialKeywordData.GetHeader(), descriptionRoot);
-            }
+            // M1.3 will populate this from SO-derived data.
         }
 
-        public void ShowTooltipInfo(TooltipManager tooltipManager, 
-            string content, string header = "", 
+        public void ShowTooltipInfo(TooltipManager tooltipManager,
+            string content, string header = "",
             Transform tooltipStaticTransform = null, Camera cam = null, float delayShow = 0)
         {
+            if (tooltipManager == null) return;
             tooltipManager.ShowTooltip(
                 content, header, tooltipStaticTransform, cam, delayShow);
         }
 
         public void HideTooltipInfo(TooltipManager tooltipManager)
         {
+            if (tooltipManager == null) return;
             tooltipManager.HideTooltip();
         }
         #endregion

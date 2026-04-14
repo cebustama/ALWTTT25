@@ -67,7 +67,6 @@ namespace ALWTTT.Characters.Band
             var data = GameManager.PersistentGameplayData.MusicianHealthDataList.Find(
                 x => x.CharacterId == MusicianCharacterData.CharacterId);
 
-            // Replace or create MusicianHealthData in PersistentGameplayData structure
             if (data != null)
             {
                 stats.CurrentStress = data.CurrentStress;
@@ -84,7 +83,6 @@ namespace ALWTTT.Characters.Band
             var gData = pd.GetMusicianGameplayData(MusicianCharacterData.CharacterId);
             if (gData == null)
             {
-                // Seed from character profile if not present
                 var startingMelodicLeading =
                     MusicianCharacterData.Profile != null
                         ? MusicianCharacterData.Profile.defaultMelodicLeading
@@ -98,7 +96,9 @@ namespace ALWTTT.Characters.Band
             stats.OnBreakdown += OnBreakdown;
             stats.SetCurrentStress(stats.CurrentStress);
 
-            //Debug.Log("{MusicianBase} Stats: " + stats.ToString());
+            // M1.2: Wire canvas to SO-based StatusEffectContainer for icon display.
+            // Statuses is created in CharacterBase.Awake(), which runs before BuildCharacter.
+            bandCharacterCanvas.BindStatusContainer(Statuses);
 
             bandCharacterCanvas.HideContextual();
         }
@@ -119,20 +119,20 @@ namespace ALWTTT.Characters.Band
 
         private void OnDestroy()
         {
-            // Safety: if this musician was ever bound, unbind to avoid static event leaks.
             if (_boundToGig) UnbindFromGigContext();
         }
 
         public void SetSpriteLayerOrder(int targetOrder)
         {
             SpriteRenderer.sortingOrder = targetOrder;
-            // TODO: Adjust other sprites in the corresponding order
         }
 
         protected void OnBreakdown()
         {
-            // Legacy status for UI
-            stats.ApplyStatus(StatusType.Breakdown, 1);
+            // M1.2: Removed legacy stats.ApplyStatus(StatusType.Breakdown, 1).
+            // Breakdown visual is now driven by the SO-based Shaken status applied below,
+            // which fires StatusEffectContainer events → CharacterCanvas icon display.
+
             IsStunned = true;
 
             // Decision C: Cohesion−1
@@ -187,25 +187,18 @@ namespace ALWTTT.Characters.Band
         {
             if (musicianParticleSystem)
             {
-                // Simple pulse
                 var main = musicianParticleSystem.main;
                 main.startSpeed = Mathf.Lerp(0.5f, 3f, velocity / 127f);
-                
                 musicianParticleSystem.Play();
             }
-            // CharacterAnimator?.SetTrigger("Note"); // if you have one
         }
 
         public void TriggerChordVFX(System.Collections.Generic.IList<int> notes)
         {
-            //musicianParticleSystem?.Play();
-            // CharacterAnimator?.SetTrigger("Chord");
         }
 
         public void TriggerBeatVFX(int beatIndex)
         {
-            //musicianParticleSystem?.Play();
-            // CharacterAnimator?.SetTrigger("Beat");
         }
 
         public Coroutine PlayCardOneShotAnimation(CardDefinition card)
@@ -225,14 +218,12 @@ namespace ALWTTT.Characters.Band
             float delay = anim.AnimationDuration;
             if (delay <= 0f)
             {
-                // Fallback: default duration
                 delay = 2f;
             }
 
             if (anim.DisableBeatAnimator && CharacterAnimator != null)
                 CharacterAnimator.enabled = false;
 
-            // Fire Animator trigger if configured
             if (Animator != null && !string.IsNullOrEmpty(anim.AnimatorTrigger))
             {
                 Animator.ResetTrigger(anim.AnimatorTrigger);

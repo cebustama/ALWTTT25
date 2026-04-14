@@ -10,17 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16c425e2848e0024897e2764a0660ebf, type: 3}
-  m_Name: StatusEffect_Shaken
+  m_Name: StatusEffect_Feedback_DamageOverTime
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectSO
-  statusKey: shaken
+  statusKey: feedback
   isDefaultVariant: 0
-  effectId: 503
-  displayName: Shaken
+  effectId: 600
+  displayName: Feedback
   primitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
-  stackMode: 1
-  maxStacks: 1
+  stackMode: 0
+  maxStacks: 999
   decayMode: 1
-  durationTurns: 1
-  tickTiming: 8
+  durationTurns: 0
+  tickTiming: 2
   valueType: 0
-  isBuff: 1
+  isBuff: 0
+  iconSprite: {fileID: 21300000, guid: 3f4062f7ce2e18f4883ca692ba0433d2, type: 3}
