@@ -63,6 +63,13 @@ namespace ALWTTT.Status
                  "Read directly by CharacterCanvas via the StatusEffectContainer.")]
         [SerializeField] private Sprite iconSprite;
 
+        [Tooltip("Short player-facing description shown in status tooltips. " +
+         "1–2 sentences, rich-text friendly. Example: 'Adds flat bonus to outgoing Vibe gains.'")]
+        [TextArea(2, 4)]
+        [SerializeField] private string description;
+
+        public string Description => description;
+
         // ─────────────────────────────────────────────────────────────────────────────
         // Public API (read-only)
         // ─────────────────────────────────────────────────────────────────────────────

@@ -23,10 +23,32 @@ namespace ALWTTT
         [SerializeField] private bool cardTilt = true;
         [SerializeField] private float discardDuration = 0.2f;
 
+        [Header("Card Sizing")]
+        [SerializeField] private float cardBaseScale = 1.0f;
+        [Tooltip("Multiplier on cardBaseScale when hovered/dragged. 1.25 = 25% bigger.")]
+        [SerializeField] private float cardHoverScaleMultiplier = 1.25f;
+        [SerializeField] private float scaleLerpSpeed = 12f;
+        [Tooltip("How far the card pops up on hover (relative mode). Scaled by cardBaseScale.")]
+        [SerializeField] private float hoverLiftY = 0.3f;
+        [Tooltip("When enabled, hovered cards rise to a fixed Y height instead of a relative offset.")]
+        [SerializeField] private bool useFixedHoverHeight = false;
+        [Tooltip("Fixed local-space Y (relative to handPosition) that hovered cards arrive at.")]
+        [SerializeField] private float fixedHoverHeight = 0.5f;
+
+        /// <summary>
+        /// Derived from cardBaseScale. Multiplied into curve width and hand bounds
+        /// so that larger cards don't overlap.
+        /// </summary>
+        private float HandScaleFactor => cardBaseScale;
+
         [Header("Hand Settings")]
         [SerializeField][Range(0, 5)] private float selectionSpacing = 1;
         [SerializeField] private Vector3 curveStart = new Vector3(2f, -0.7f, 0);
         [SerializeField] private Vector3 curveEnd = new Vector3(-2f, -0.7f, 0);
+        [Tooltip("Local-space offset for the entire hand. Use this instead of moving the GameObject.")]
+        [SerializeField] private Vector3 handPosition = Vector3.zero;
+        [Tooltip("Extra arc height for the Bézier midpoint. Positive = more curvature upward.")]
+        [SerializeField] private float curveHeight = 0f;
         [SerializeField] private Vector2 handOffset = new Vector2(0, -0.3f);
         [SerializeField] private Vector2 handSize = new Vector2(9, 1.7f);
 
@@ -56,10 +78,11 @@ namespace ALWTTT
 
         private Plane plane; // world XY plane, used for mouse position raycasts
         private Vector3 a, b, c; // Used for shaping hand into curve
+        private Vector3 _handBasePos; // World-space hand origin (transform + handPosition)
         private int selected = -1; // Card index that is nearest to mouse
         private int dragged = -1; // Card index that is held by mouse (inside of hand)
         // Card that is held by mouse (when outside of hand), ready to be used.
-        private CardBase heldCard; 
+        private CardBase heldCard;
         private Vector3 heldCardOffset;
 
         private Rect handBounds;
@@ -75,7 +98,7 @@ namespace ALWTTT
         // Drop Zone logic
         private Rect _currentZoneRectLocal;
         private Rect _nextZoneRectLocal;
-        
+
         private CardDropZone _hoverZone = CardDropZone.None;
         private CardDropZone _prevHoverZone = CardDropZone.None;
         private CardDropZone _pendingDropZone = CardDropZone.None;
@@ -103,6 +126,7 @@ namespace ALWTTT
         public bool IsDraggingActive { get; private set; } = true;
         private bool showDebugGizmos = true;
         private bool updateHierarchyOrder = false;
+        private bool _hasLoggedScaleInit = false; // M1.9 temp log flag
 
         #region Setup
         private void Awake()
@@ -117,18 +141,50 @@ namespace ALWTTT
 
         private void InitHand()
         {
-            a = transform.TransformPoint(curveStart);
-            b = transform.position;
-            c = transform.TransformPoint(curveEnd);
-            handBounds = new Rect((handOffset - handSize / 2), handSize);
-            plane = new Plane(-Vector3.forward, transform.position);
+            var sf = HandScaleFactor;
+
+            var scaledHandSize = new Vector2(handSize.x * sf, handSize.y);
+            // Shift handBounds by handPosition so mouse-inside-hand detection follows the offset
+            var boundsCenter = handOffset + new Vector2(handPosition.x, handPosition.y);
+            handBounds = new Rect((boundsCenter - scaledHandSize / 2), scaledHandSize);
+
             prevMousePos = Input.mousePosition;
 
-            _currentZoneRectLocal = 
+            _currentZoneRectLocal =
                 new Rect(currentZoneCenter - currentZoneSize * 0.5f, currentZoneSize);
 
-            _nextZoneRectLocal = 
+            _nextZoneRectLocal =
                 new Rect(nextZoneCenter - nextZoneSize * 0.5f, nextZoneSize);
+
+            // Compute initial curve points
+            UpdateCurvePoints();
+
+            // M1.9 temp log
+            Debug.Log($"{DebugTag} [M1.9] InitHand — cardBaseScale={cardBaseScale} " +
+                $"hoverMult={cardHoverScaleMultiplier} scaleFactor={sf} " +
+                $"scaledHandSize={scaledHandSize}");
+        }
+
+        /// <summary>
+        /// Recomputes Bézier control points and raycast plane from current transform position.
+        /// Called every frame so the curve follows the GameObject if moved.
+        /// handPosition shifts the entire hand in local space.
+        /// curveHeight raises the Bézier midpoint for more/less arc curvature.
+        /// </summary>
+        private void UpdateCurvePoints()
+        {
+            var sf = HandScaleFactor;
+            var scaledStart = new Vector3(curveStart.x * sf, curveStart.y, curveStart.z);
+            var scaledEnd = new Vector3(curveEnd.x * sf, curveEnd.y, curveEnd.z);
+
+            // Base position = transform origin + local handPosition offset
+            _handBasePos = transform.TransformPoint(handPosition);
+
+            a = _handBasePos + transform.TransformDirection(scaledStart);
+            b = _handBasePos + transform.up * curveHeight;
+            c = _handBasePos + transform.TransformDirection(scaledEnd);
+
+            plane = new Plane(-Vector3.forward, _handBasePos);
         }
         #endregion
 
@@ -136,7 +192,10 @@ namespace ALWTTT
         {
             if (!IsDraggingActive) return;
 
-            var mousePos = 
+            // Recompute curve every frame so it follows the GameObject if moved (M1.9)
+            UpdateCurvePoints();
+
+            var mousePos =
                 HandleMouseInput(out var count, out var sqrDistance, out var mouseButton);
 
             HandleCardsInHand(count, mouseButton, sqrDistance);
@@ -148,13 +207,16 @@ namespace ALWTTT
 
         public void EnableDragging() => IsDraggingActive = true;
         public void DisableDragging() => IsDraggingActive = false;
-        
+
         /// <summary>
         /// Visually adds a card to the hand. Optional param to insert it at a given index.
         /// </summary>
         public void AddCardToHand(CardBase card, int index = -1)
         {
             Debug.Log($"{DebugTag} Adding card {card.CardDefinition.DisplayName} to hand");
+
+            // Set initial scale immediately so cards don't pop in at prefab size (M1.9)
+            card.transform.localScale = Vector3.one * cardBaseScale;
 
             if (index < 0)
             {
@@ -176,7 +238,8 @@ namespace ALWTTT
 
         private Vector2 HandleMouseInput(
             out int count, out float sqrDistance, out bool mouseButton
-        ) {
+        )
+        {
             Vector2 mousePos = Input.mousePosition;
 
             // Allows mouse to go outside game window but keeps cards within window
@@ -219,7 +282,7 @@ namespace ALWTTT
                 float selectOffset = 0;
                 if (noCardHeld)
                 {
-                    selectOffset = 0.02f * // TODO: serialize as fanning factor
+                    selectOffset = 0.02f * HandScaleFactor * // scaled fanning factor (M1.9)
                         Mathf.Clamp01(
                             1 - Mathf.Abs(Mathf.Abs(i - selected) - 1) / (float)count * 3) *
                         Mathf.Sign(i - selected);
@@ -231,15 +294,32 @@ namespace ALWTTT
 
                 // Mouse interaction
                 var d = (p - mouseWorldPos).sqrMagnitude;
-                var mouseCloseToCard = d < 0.5f;
-                var mouseHoveringOnSelected = 
+                var mouseCloseToCard = d < 0.5f * cardBaseScale * cardBaseScale; // M1.9: scaled threshold
+                var mouseHoveringOnSelected =
                     onSelectedCard && mouseCloseToCard && mouseInsideHand;
 
                 // Card Position & Rotation
                 var cardUp = GetCurveNormal(a, b, c, t);
-                // If hovered, the card slightly “pops up”
-                var cardPos = 
-                    p + (mouseHoveringOnSelected ? cardTransform.up * 0.3f : Vector3.zero);
+                // Hover lift: either relative offset or fixed Y target
+                Vector3 cardPos;
+                if (mouseHoveringOnSelected)
+                {
+                    if (useFixedHoverHeight)
+                    {
+                        // Fixed mode: card arrives at handBase.y + fixedHoverHeight
+                        cardPos = p;
+                        cardPos.y = _handBasePos.y + fixedHoverHeight;
+                    }
+                    else
+                    {
+                        // Relative mode: pop up along world Y by hoverLiftY * cardBaseScale
+                        cardPos = p + Vector3.up * (hoverLiftY * cardBaseScale);
+                    }
+                }
+                else
+                {
+                    cardPos = p;
+                }
                 var cardForward = Vector3.forward;
 
                 // Sorting Order (z-position closer to camera).
@@ -284,9 +364,30 @@ namespace ALWTTT
                 else
                 {
                     // animates back to its curve position
-                    cardPos = 
+                    cardPos =
                         Vector3.MoveTowards(cardTransform.position, cardPos, 16f * Time.deltaTime);
                     cardTransform.position = cardPos;
+                }
+
+                // Card Scale Lerp (M1.9)
+                {
+                    var isHighlighted = mouseHoveringOnSelected || onDraggedCard;
+                    var targetScale = isHighlighted
+                        ? cardBaseScale * cardHoverScaleMultiplier
+                        : cardBaseScale;
+                    var targetVec = Vector3.one * targetScale;
+                    cardTransform.localScale = Vector3.MoveTowards(
+                        cardTransform.localScale, targetVec,
+                        scaleLerpSpeed * Time.deltaTime);
+
+                    // M1.9 temp log — fires once per session on first hover
+                    if (isHighlighted && !_hasLoggedScaleInit)
+                    {
+                        _hasLoggedScaleInit = true;
+                        Debug.Log($"{DebugTag} [M1.9] First hover scale: " +
+                            $"card={card.CardDefinition.DisplayName} " +
+                            $"target={targetScale:F3} current={cardTransform.localScale.x:F3}");
+                    }
                 }
 
                 // Get Selected Card
@@ -342,9 +443,9 @@ namespace ALWTTT
                 }
             }
 
-            if (heldCard == null && 
-                mouseButton && dragged != -1 && 
-                selected != -1 && 
+            if (heldCard == null &&
+                mouseButton && dragged != -1 &&
+                selected != -1 &&
                 dragged != selected)
             {
                 // Move dragged card
@@ -374,6 +475,12 @@ namespace ALWTTT
                     Quaternion.LookRotation(cardForward, cardUp), 80f * Time.deltaTime);
                 cardTransform.position = cardPos;
 
+                // Held card stays at hover scale (M1.9)
+                var heldTargetScale = Vector3.one * (cardBaseScale * cardHoverScaleMultiplier);
+                cardTransform.localScale = Vector3.MoveTowards(
+                    cardTransform.localScale, heldTargetScale,
+                    scaleLerpSpeed * Time.deltaTime);
+
                 // Contextual highlights based on actions and target types
                 //if (useGigContext && GigManager != null)
                 //    GigManager.HighlightCardTarget(heldCard.CardData.CardActionDataList[0].ActionTargetType);
@@ -383,7 +490,7 @@ namespace ALWTTT
                 {
                     //Debug.Log(musician.MusicianCharacterData.CharacterName);
                 }
-                
+
                 heldCard.UpdateDescription(musician);
 
                 if (!GameManager.PersistentGameplayData.CanSelectCards || mouseInsideHand)
@@ -635,7 +742,7 @@ namespace ALWTTT
             if (data.RequiresFixedPerformer && _resolveTargetByType != null)
             {
                 target = _resolveTargetByType(data.FixedPerformerType);
-                
+
                 if (target != null)
                     Debug.Log($"{DebugTag} [Ship] " +
                         $"Fixed-target card -> {target.MusicianCharacterData.CharacterName} " +
@@ -662,7 +769,7 @@ namespace ALWTTT
                 {
                     // Fallback to Ship-selected
                     // (may be the first musician if none highlighted)
-                    target = 
+                    target =
                         shipInteriorManager.GetSelectedMusicianOrDefault() as MusicianBase;
                     Debug.Log($"{DebugTag} [Ship] Selected/Default target -> " +
                         $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
@@ -875,12 +982,12 @@ namespace ALWTTT
         {
             if (!enableDropZones) return CardDropZone.None;
 
-            bool inCurrent = 
+            bool inCurrent =
                 _currentZoneRectLocal.Contains(new Vector2(localPoint.x, localPoint.y));
 
             if (inCurrent) return CardDropZone.CurrentPart;
 
-            bool inNext = 
+            bool inNext =
                 _nextZoneRectLocal.Contains(new Vector2(localPoint.x, localPoint.y));
 
             if (inNext) return CardDropZone.NextPart;
@@ -920,6 +1027,27 @@ namespace ALWTTT
             }
         }
 
+        /// <summary>
+        /// Recalculates curve endpoints and hand bounds using current cardBaseScale.
+        /// Call after changing sizing fields at runtime.
+        /// </summary>
+        public void RecalculateCurve()
+        {
+            InitHand();
+            Debug.Log($"{DebugTag} [M1.9] RecalculateCurve — curve recomputed with cardBaseScale={cardBaseScale}");
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // Live-tuning support: recalculate curve when sizing fields change in Inspector
+            if (Application.isPlaying)
+            {
+                RecalculateCurve();
+            }
+        }
+#endif
+
         #region Editor
 #if UNITY_EDITOR
         private void OnDrawGizmos()
@@ -927,15 +1055,19 @@ namespace ALWTTT
             Gizmos.matrix = transform.localToWorldMatrix;
             Gizmos.color = Color.blue;
 
-            Gizmos.DrawSphere(curveStart, 0.03f);
-            //Gizmos.DrawSphere(Vector3.zero, 0.03f);
-            Gizmos.DrawSphere(curveEnd, 0.03f);
+            var sf = HandScaleFactor;
+            var gizmoStart = handPosition + new Vector3(curveStart.x * sf, curveStart.y, curveStart.z);
+            var gizmoMid = handPosition + new Vector3(0, curveHeight, 0);
+            var gizmoEnd = handPosition + new Vector3(curveEnd.x * sf, curveEnd.y, curveEnd.z);
 
-            Vector3 p1 = curveStart;
+            Gizmos.DrawSphere(gizmoStart, 0.03f);
+            Gizmos.DrawSphere(gizmoEnd, 0.03f);
+
+            Vector3 p1 = gizmoStart;
             for (int i = 0; i < 20; i++)
             {
                 float t = (i + 1) / 20f;
-                Vector3 p2 = GetCurvePoint(curveStart, Vector3.zero, curveEnd, t);
+                Vector3 p2 = GetCurvePoint(gizmoStart, gizmoMid, gizmoEnd, t);
                 Gizmos.DrawLine(p1, p2);
                 p1 = p2;
             }
@@ -945,7 +1077,8 @@ namespace ALWTTT
                 Gizmos.color = Color.red;
             }
 
-            Gizmos.DrawWireCube(handOffset, handSize);
+            var boundsCenter = handOffset + new Vector2(handPosition.x, handPosition.y);
+            Gizmos.DrawWireCube(boundsCenter, handSize);
 
             if (enableDropZones)
             {
@@ -962,12 +1095,12 @@ namespace ALWTTT
 #if UNITY_EDITOR
                 UnityEditor.Handles.color = Color.cyan;
                 UnityEditor.Handles.Label(
-                    transform.TransformPoint(currentZoneCenter 
+                    transform.TransformPoint(currentZoneCenter
                     + new Vector2(0, currentZoneSize.y * 0.5f + 0.2f)), "CURRENT PART");
 
                 UnityEditor.Handles.color = Color.yellow;
                 UnityEditor.Handles.Label(
-                    transform.TransformPoint(nextZoneCenter 
+                    transform.TransformPoint(nextZoneCenter
                     + new Vector2(0, nextZoneSize.y * 0.5f + 0.2f)), "NEXT PART");
 #endif
             }

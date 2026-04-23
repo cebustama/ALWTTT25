@@ -452,7 +452,11 @@ namespace ALWTTT.Cards.Editor
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button(_createWizardOpen ? "Hide Create Card" : "Create Card...", GUILayout.Height(22)))
+                {
                     _createWizardOpen = !_createWizardOpen;
+                    if (_createWizardOpen)
+                        _newKind = CardAssetFactory.CreateCardKind.Action;
+                }
 
                 GUILayout.FlexibleSpace();
             }
@@ -1524,7 +1528,12 @@ namespace ALWTTT.Cards.Editor
             var el = effectsProp.GetArrayElementAtIndex(idx);
             el.managedReferenceValue = instance;
 
-            // Important: buttons don't always trigger EndChangeCheck unless we mark GUI.changed.
+            // GenericMenu callbacks run outside the OnGUI pass that created
+            // the SerializedObject, so EndChangeCheck never fires.
+            // Commit immediately.
+            effectsProp.serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(effectsProp.serializedObject.targetObject);
+
             GUI.changed = true;
         }
 

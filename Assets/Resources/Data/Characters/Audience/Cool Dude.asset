@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: cooldude
   characterName: Cool Dude
   characterDescription: 
-  maxVibe: 35
+  maxVibe: 1
   characterPrefab: {fileID: 997261290205271328, guid: c8efa2c5aa6223e49b98b39362316d37, type: 3}
   isTall: 1
   abilityList:
@@ -28,4 +28,8 @@ MonoBehaviour:
       actionTargetType: 6
       actionValue: 0
       actionDelay: 1
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
   followAbilityPattern: 0

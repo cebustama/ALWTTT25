@@ -11,6 +11,13 @@ namespace ALWTTT.Characters.Band
     {
         [Header("Character")]
         [SerializeField] private CanvasGroup statsCanvasGroup;
+
+        [Tooltip("Optional: the StatsRoot GameObject that hosts the stat text fields. " +
+                 "If assigned, its active state is toggled alongside the CanvasGroup alpha " +
+                 "in ShowContextual/HideContextual. Useful when stat text fields may not " +
+                 "all sit under the same CanvasGroup.")]
+        [SerializeField] private GameObject statsRoot;
+
         [SerializeField] private TextMeshProUGUI chrTextField;
         [SerializeField] private TextMeshProUGUI tchTextField;
         [SerializeField] private TextMeshProUGUI emtTextField;
@@ -19,25 +26,46 @@ namespace ALWTTT.Characters.Band
         [SerializeField] private TMP_Dropdown instrumentDebugDropdown;
         [SerializeField] private Slider volumeDebugSlider;
 
+        /// <summary>
+        /// Defensive initialization: force stats to hidden before BuildCharacter runs
+        /// (which also calls HideContextual). Prevents a single-frame flicker where
+        /// stats are visible at scene load before the character is built.
+        /// </summary>
+        private void Awake()
+        {
+            ApplyStatsVisibility(visible: false);
+        }
+
         public void UpdateStats(int chr, int tch, int emt)
         {
-            chrTextField.text = $"CHR: {chr}";
-            tchTextField.text = $"TCH: {tch}";
-            emtTextField.text = $"EMT: {emt}";
+            if (chrTextField != null) chrTextField.text = $"CHR: {chr}";
+            if (tchTextField != null) tchTextField.text = $"TCH: {tch}";
+            if (emtTextField != null) emtTextField.text = $"EMT: {emt}";
         }
 
         public override void ShowContextual()
         {
             base.ShowContextual();
-
-            statsCanvasGroup.alpha = 1;
+            ApplyStatsVisibility(visible: true);
         }
 
         public override void HideContextual()
         {
             base.HideContextual();
+            ApplyStatsVisibility(visible: false);
+        }
 
-            statsCanvasGroup.alpha = 0;
+        /// <summary>
+        /// Single code path for stats visibility. Toggles CanvasGroup alpha and,
+        /// if assigned, the statsRoot GameObject active state.
+        /// </summary>
+        private void ApplyStatsVisibility(bool visible)
+        {
+            if (statsCanvasGroup != null)
+                statsCanvasGroup.alpha = visible ? 1f : 0f;
+
+            if (statsRoot != null)
+                statsRoot.SetActive(visible);
         }
 
         public void SetCurrentStress(int current, int max, float duration)

@@ -34,6 +34,10 @@ namespace ALWTTT.Characters
         /// </summary>
         public StatusEffectContainer Statuses { get; private set; }
 
+        [Header("Hover Highlight (M1.7)")]
+        [Tooltip("Optional: assign the SpriteOutlineController component on this character's sprite child. If null, hover highlight is a no-op (prefab migration-safe).")]
+        [SerializeField] private SpriteOutlineController outlineController;
+
         #region Encapsulation
         public CharacterType CharacterType => characterType;
         public Transform TextSpawnRoot => textSpawnRoot;
@@ -121,7 +125,14 @@ namespace ALWTTT.Characters
         public CharacterBase GetCharacterBase() => this;
         public CharacterType GetCharacterType() => CharacterType;
 
-        protected virtual void OnPointerEnter() { }
-        protected virtual void OnPointerExit() { }
+        protected virtual void OnPointerEnter()
+        {
+            if (outlineController != null) outlineController.SetOutline(true);
+        }
+
+        protected virtual void OnPointerExit()
+        {
+            if (outlineController != null) outlineController.SetOutline(false);
+        }
     }
 }

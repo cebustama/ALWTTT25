@@ -23,6 +23,6 @@ MonoBehaviour:
       type: {class: ApplyStatusEffectSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
       data:
         status: {fileID: 11400000, guid: 497f9ababea98744b91e05e9e914eb3a, type: 2}
-        targetType: 0
+        targetType: 1
         stacksDelta: 2
         delay: 0

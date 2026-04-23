@@ -1,4 +1,4 @@
-﻿using ALWTTT.Backgrounds;
+using ALWTTT.Backgrounds;
 using ALWTTT.Cards;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Characters.Band;
@@ -23,6 +23,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static ALWTTT.Managers.GigRunContext;
+
+#if ALWTTT_DEV
+using ALWTTT.DevMode;
+#endif
 
 namespace ALWTTT.Managers
 {
@@ -169,8 +173,16 @@ namespace ALWTTT.Managers
         private UIManager UIManager => UIManager.Instance;
         private MidiMusicManager MidiMusicManager => MidiMusicManager.Instance;
 
-        private bool IsGigComplete =>
-            GameManager.PersistentGameplayData.CurrentSongIndex >= _requiredSongCount;
+        private bool IsGigComplete
+        {
+            get
+            {
+#if ALWTTT_DEV
+                if (DevModeController.InfiniteTurnsEnabled) return false;
+#endif
+                return GameManager.PersistentGameplayData.CurrentSongIndex >= _requiredSongCount;
+            }
+        }
 
         public List<Transform> MusicianPosList => musicianPosList;
         public List<Transform> AudienceMemberPosList => audienceMemberPosList;
@@ -747,10 +759,25 @@ namespace ALWTTT.Managers
             {
                 case GigPhase.PrepareGig:
                     break;
+
                 case GigPhase.PlayerTurn:
 
+#if ALWTTT_DEV
+                    Debug.Log($"{DebugTag} <color=lime>[DevMode] Entering PlayerTurn. " +
+                              $"CurrentSongIndex={GameManager.PersistentGameplayData.CurrentSongIndex} " +
+                              $"RequiredSongCount={_requiredSongCount} " +
+                              $"InfiniteTurnsEnabled={DevModeController.InfiniteTurnsEnabled} " +
+                              $"_session null? {_session == null} " +
+                              $"_isSongPlaying={_isSongPlaying} " +
+                              $"_isBetweenSongs={_isBetweenSongs}</color>");
+#endif
+
                     if (GameManager.PersistentGameplayData.CurrentSongIndex >=
-                        _requiredSongCount)
+                        _requiredSongCount
+#if ALWTTT_DEV
+                        && !DevModeController.InfiniteTurnsEnabled
+#endif
+                        )
                     {
                         bool win = true;
                         foreach (var audienceCharacter in CurrentAudienceCharacterList)
@@ -774,7 +801,27 @@ namespace ALWTTT.Managers
                         return;
                     }
 
+#if ALWTTT_DEV
+                    Debug.Log($"{DebugTag} <color=lime>[DevMode] PlayerTurn completion check passed (not ending). Continuing to turn init.</color>");
+#endif
+
+                    // Reset per-turn flags for this PlayerTurn. Without these resets,
+                    // _actionWindowOpen stays false after the first OnPlayPressed in a
+                    // multi-song gig, blocking ALL action cards for song 2+. Pre-existing
+                    // latent bug; surfaced 2026-04-20 by M1.5 Phase 2 Feedback smoke test.
+                    _actionWindowOpen = true;
+                    _isBetweenSongs = true;
+
                     // Decision B: tick musician statuses at PlayerTurn start
+#if ALWTTT_DEV
+                    // Dev Mode: reset convinced audience so they keep acting in infinite mode
+                    if (DevModeController.InfiniteTurnsEnabled &&
+                        DevModeController.Instance != null)
+                    {
+                        DevModeController.Instance.OnPlayerTurnStartInfiniteMode();
+                    }
+#endif
+
                     foreach (var m in CurrentMusicianCharacterList)
                     {
                         m?.Statuses?.Tick(TickTiming.PlayerTurnStart);
@@ -852,7 +899,7 @@ namespace ALWTTT.Managers
         {
             int fallback = GameManager.PersistentGameplayData.CurrentEncounter != null
                 ? GameManager.PersistentGameplayData.CurrentEncounter.NumberOfSongs
-                : 1;
+                : 2;
 
             var ctx = GigRunContext.Instance;
             if (ctx != null && ctx.HasActiveRun)
@@ -1004,6 +1051,14 @@ namespace ALWTTT.Managers
 
         public void LoseGig()
         {
+#if ALWTTT_DEV
+            if (DevModeController.InfiniteTurnsEnabled)
+            {
+                Debug.Log($"{DebugTag} <color=lime>[DevMode] LoseGig suppressed (infinite turns).</color>");
+                return;
+            }
+#endif
+
             var pd = GameManager.PersistentGameplayData;
 
             var encounter = pd.CurrentEncounter ?? CurrentGigEncounter; // CurrentGigEncounter = your runtime one
@@ -1023,6 +1078,13 @@ namespace ALWTTT.Managers
 
         private void WinGig()
         {
+#if ALWTTT_DEV
+            if (DevModeController.InfiniteTurnsEnabled)
+            {
+                Debug.Log($"{DebugTag} <color=lime>[DevMode] WinGig suppressed (infinite turns).</color>");
+                return;
+            }
+#endif
             if (CurrentGigPhase == GigPhase.EndGig) return;
             CurrentGigPhase = GigPhase.EndGig;
 
@@ -1476,6 +1538,38 @@ namespace ALWTTT.Managers
             _session = null;
             _isSongPlaying = false;
             _isBetweenSongs = false;
+
+#if ALWTTT_DEV
+            Debug.Log($"{DebugTag} <color=lime>[DevMode] OnCompositionSessionEnded reached. " +
+                      $"InfiniteTurnsEnabled={DevModeController.InfiniteTurnsEnabled}, " +
+                      $"DeckManager.Instance null? {DeckManager.Instance == null}, " +
+                      $"IsGigComplete={IsGigComplete}, " +
+                      $"skipAudienceActionsAfterFinalSong={skipAudienceActionsAfterFinalSong}, " +
+                      $"gigHand.activeSelf={(gigHand != null ? gigHand.gameObject.activeSelf.ToString() : "n/a")}</color>");
+
+            if (DevModeController.InfiniteTurnsEnabled && DeckManager.Instance != null)
+            {
+                int destroyed = DeckManager.Instance.DevForceHandResetToDiscard();
+                Debug.Log($"{DebugTag} <color=lime>[DevMode] Forced hand reset between song cycles: {destroyed} card(s).</color>");
+            }
+            else if (DevModeController.InfiniteTurnsEnabled)
+            {
+                Debug.LogWarning($"{DebugTag} <color=lime>[DevMode] Infinite turns ON but DeckManager.Instance is null — hand NOT reset.</color>");
+            }
+
+            // Re-show the hand before the next PlayerTurn draws. The composition session
+            // hid it via ShowHand(false); nothing else turns it back on during the gap
+            // between song end and the next composition session's Begin(). In normal
+            // single-song gigs this gap doesn't exist because the gig ends. Infinite-turns
+            // exposes it: cards drawn under an inactive DrawTransform are inactive and
+            // produce ghost/untappable cards.
+            if (DevModeController.InfiniteTurnsEnabled)
+            {
+                SetHandVisible(true);
+                Debug.Log($"{DebugTag} <color=lime>[DevMode] Re-enabled hand visibility between song cycles. " +
+                          $"gigHand.activeSelf now={(gigHand != null ? gigHand.gameObject.activeSelf.ToString() : "n/a")}</color>");
+            }
+#endif
 
             if (IsGigComplete && skipAudienceActionsAfterFinalSong)
             {

@@ -25,3 +25,4 @@ MonoBehaviour:
   valueType: 0
   isBuff: 0
   iconSprite: {fileID: -2191323962567512819, guid: cf8897765e2df8f41bad89ad61b9cb3d, type: 3}
+  description: Forces additional card discards at turn start. Loses 1 stack per turn.

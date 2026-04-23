@@ -21,7 +21,8 @@ MonoBehaviour:
   maxStacks: 999
   decayMode: 1
   durationTurns: 0
-  tickTiming: 2
+  tickTiming: 8
   valueType: 0
   isBuff: 0
   iconSprite: {fileID: 21300000, guid: 3f4062f7ce2e18f4883ca692ba0433d2, type: 3}
+  description: Damage over time at the start of each Player Turn. Lasts until cleared.

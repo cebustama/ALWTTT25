@@ -13,23 +13,19 @@ MonoBehaviour:
   m_Name: Special Keyword
   m_EditorClassIdentifier: 
   specialKeywordBaseList:
-  - specialKeyword: 4
-    contentText: When full, causes a Breakdown.
-  - specialKeyword: 5
-    contentText: Fill to win over Audience Members.
   - specialKeyword: 0
-    contentText: Blocks the next Stress hit.
+    contentText: When full, causes a Breakdown.
   - specialKeyword: 1
-    contentText: Blocks the next Vibe hit.
+    contentText: Fill to win over Audience Members.
   - specialKeyword: 2
-    contentText: Adds Stress each turn.
-  - specialKeyword: 3
-    contentText: Adds Vibe each turn.
-  - specialKeyword: 6
-    contentText: Inmune to Vibe while active.
-  - specialKeyword: 7
-    contentText: Cannot act.
-  - specialKeyword: 8
     contentText: Is vibing with the music. Doesn't act anymore.
-  - specialKeyword: 9
+  - specialKeyword: 3
     contentText: Blocks the view of all non-tall character behind them.
+  - specialKeyword: 4
+    contentText: Removed from your deck after playing. Gone for the rest of this
+      gig.
+  - specialKeyword: 6
+    contentText: If not played this turn, removed from deck.
+  - specialKeyword: 5
+    contentText: Can only be played once per encounter. Moves to exhaust pile after
+      use.

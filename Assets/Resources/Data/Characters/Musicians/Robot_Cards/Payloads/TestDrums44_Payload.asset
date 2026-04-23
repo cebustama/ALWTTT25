@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b987196233c610489faff2eb050697c, type: 3}
   m_Name: TestDrums44_Payload
   m_EditorClassIdentifier: 
-  effects: []
+  effects:
+  - rid: 4083946254630125656
   primaryKind: 1
   trackAction:
     role: 0
@@ -26,4 +27,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 12005ff9eb8f2e4438d5a728b17ad435, type: 2}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 4083946254630125656
+      type: {class: ApplyStatusEffectSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
+      data:
+        status: {fileID: 11400000, guid: 33f95758aa1ffbf46ad5076c4f21d206, type: 2}
+        targetType: 3
+        stacksDelta: 1
+        delay: 0

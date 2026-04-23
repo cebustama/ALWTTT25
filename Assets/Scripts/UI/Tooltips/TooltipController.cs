@@ -58,6 +58,31 @@ namespace ALWTTT.Tooltips
             SetPosition();
         }
 
+        /*private void SetPosition()
+        {
+            if (isFollowEnabled)
+            {
+                followPos = Input.mousePosition;
+            }
+            else
+            {
+                if (followCamera && lastStaticTarget)
+                {
+                    followPos = followCamera.WorldToScreenPoint(lastStaticTarget.position);
+                }
+            }
+
+            var anchoredPos = followPos / canvasRectTransform.localScale.x;
+
+            if (anchoredPos.x + rectTransform.rect.width > canvasRectTransform.rect.width)
+                anchoredPos.x = canvasRectTransform.rect.width - rectTransform.rect.width;
+
+            if (anchoredPos.y + rectTransform.rect.height > canvasRectTransform.rect.height)
+                anchoredPos.y = canvasRectTransform.rect.height - rectTransform.rect.height;
+
+            rectTransform.anchoredPosition = anchoredPos;
+        }*/
+
         private void SetPosition()
         {
             if (isFollowEnabled)

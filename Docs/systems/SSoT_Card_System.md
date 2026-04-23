@@ -70,6 +70,35 @@ Core contract:
 - domain is derived from `payload.Domain`
 - both Action and Composition cards share the same effect-first base model
 
+### 3.3 SpecialKeywords
+
+`CardDefinition.Keywords` is a serialized `List<SpecialKeywords>` that tags a card with player-facing trait and mechanic keywords. Keywords serve two purposes: they generate tooltip entries on card hover (via `SpecialKeywordData` lookup in `CardBase.ShowTooltipInfo`), and they will eventually drive runtime behavior (see §3.3.2).
+
+#### 3.3.1 Canonical keyword inventory
+
+The `SpecialKeywords` enum contains exactly 7 values, divided into two categories:
+
+**Card-trait keywords** — describe play rules or lifecycle behavior of the card itself:
+- `Consume` — card is permanently removed from the deck after playing. Does not return.
+- `Exhaust` — card moves to the exhaust pile after playing. Returns to the deck for the next gig.
+- `Ethereal` — card is discarded at end of turn if not played.
+
+**Resource / mechanic / audience keywords** — describe concepts that are not status effects and have no `StatusEffectSO` equivalent:
+- `Stress` — musician resource (HP).
+- `Vibe` — audience member resource (HP).
+- `Convinced` — audience win-state (defeated).
+- `Tall` — audience layout trait (blocks characters behind).
+
+#### 3.3.2 Keyword modeling rule
+
+Keywords are NOT status effects. Any game concept that has a `StatusEffectSO` representation (e.g. Flow, Composure, Choke, Shaken, Exposed, Feedback) is surfaced through the status-effect tooltip pipeline (`CardEffectDescriptionBuilder` + `StatusIconBase`), not through `SpecialKeywords`. Legacy keyword entries that duplicated status concepts (`Chill`, `Skeptical`, `Heckled`, `Hooked`, `Blocked`, `Stunned`) were removed in M1.3b (2026-04-23).
+
+#### 3.3.3 Runtime coupling gap (known, not yet resolved)
+
+`ExhaustAfterPlay` (a bool on `CardDefinition`) and the `Exhaust` keyword are currently independent. A card can have the bool without the keyword (silent exhaust, no tooltip) or the keyword without the bool (tooltip says Exhaust but card does not exhaust). The JSON importer emits a coherence warning when these diverge.
+
+The planned resolution is to retire per-keyword bools in favor of runtime checks against `Keywords.Contains(...)`, making the keywords list the single source of both tooltip and behavior. This has not been implemented yet; it touches the card-play pipeline and belongs in a dedicated batch.
+
 ---
 
 ## 4. The current canonical model is effects-first
@@ -225,13 +254,39 @@ Important boundary rule:
 
 ## 10. UI / description behavior
 
-UI wording and description rendering are secondary to the card contract itself.
+UI wording and description rendering are secondary to the card contract itself. If description logic changes, it should reflect this SSoT rather than become a competing source of truth.
 
-Current practical rule:
-- description generation may lag behind full multi-effect expressiveness
-- poor or partial description rendering does not redefine the card contract
+### 10.1 Card-face text rendering (M1.3a)
 
-If description logic changes, it should reflect this SSoT rather than become a competing source of truth.
+`CardEffectDescriptionBuilder` (static class, `ALWTTT.Cards.Effects`) is the single owner of card-effect text formatting. `CardEffectSpec` remains data-only (§6.1) — no virtual `Describe()` method.
+
+`CardDefinitionDescriptionExtensions.GetDescription` delegates the action-card branch to `CardEffectDescriptionBuilder.BuildList(action.Effects, stats)`. The builder handles `ApplyStatusEffectSpec`, `ModifyVibeSpec`, `ModifyStressSpec`, and `DrawCardsSpec`. TMP rich-text tokens: buff `#8FD694`, debuff `#D6858F`, numbers `#FFD084`. Zero-delta effects render as empty strings and are filtered out. Target-type phrasing is centralized.
+
+Composition card faces use a separate path: role/part + modifier count badge. `CardPayload.Effects` on composition cards are not surfaced on the card face (intentional density reduction, 2026-04-21). They are discoverable via card-hover tooltips (§10.2).
+
+### 10.2 Card-hover tooltips (M1.3c)
+
+`CardBase.ShowTooltipInfo()` aggregates tooltips from two sources on pointer enter:
+
+1. `CardDefinition.Keywords` — each keyword resolved against `TooltipManager.SpecialKeywordData`. One tooltip per matched keyword.
+2. `CardDefinition.Payload.Effects` — unique `StatusEffectSO` references extracted from `ApplyStatusEffectSpec.status` entries. Dedupe via `HashSet<StatusEffectSO>`. One tooltip per unique SO, showing `DisplayName` as header and `StatusEffectSO.Description` as body.
+
+Display order: keywords first, statuses second. Tooltips follow the mouse cursor. `TooltipController` prefab uses `VerticalLayoutGroup` (Upper Left, spacing 5, ControlChildSize Width+Height) + `ContentSizeFitter` (Preferred Size on both axes) for stacking.
+
+`CardBase` is the assembly point but does not own the data. `StatusEffectSO` owns description text (`SSoT_Status_Effects.md` §3.3). `SpecialKeywordData` owns keyword text.
+
+### 10.3 Card detail modal (M1.10)
+
+`CardDetailViewController` (singleton, `ALWTTT.UI`) manages a dedicated Screen Space – Overlay canvas triggered by right-click (`PointerEventData.InputButton.Right`) on any `CardBase` in hand. The canvas sits at a sort order above the tooltip canvas and is disabled by default.
+
+`CardDefinitionDescriptionExtensions.GetDetailDescription()` owns the detail text:
+
+- **Action cards:** delegates to `CardEffectDescriptionBuilder.BuildList` — identical content to the card face, rendered at modal scale.
+- **Composition cards:** multi-line block comprising primary kind + role/action label, style-bundle asset name (Track only), part custom label + musician id (Part only), full modifier list (one line per `PartEffect` via `GetLabel()`, with scope and timing tags), and `CardPayload.Effects` via `CardEffectDescriptionBuilder.BuildList`.
+
+`CardBase.OnPointerDown` discriminates button: right-click calls `CardDetailViewController.Toggle(CardDefinition)`, left-click retains existing behavior. `HandController.DisableDragging()` while modal is open; `EnableDragging()` on dismiss. Dismiss paths: background click (Button on DimBackground Image), Esc key, or right-click toggle on the same card.
+
+The detail modal is the third card-information surface, after card-face text (§10.1) and card-hover tooltips (§10.2). It is the designated home for any composition detail cut from the card face.
 
 ---
 

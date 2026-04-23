@@ -182,5 +182,16 @@ namespace ALWTTT.Characters.Band
 
             return (absorbed, remaining);
         }
+
+#if ALWTTT_DEV
+        /// <summary>
+        /// Resets IsBreakdown so a subsequent AddStress reaching MaxStress
+        /// re-triggers the full Breakdown path. Dev Mode only.
+        /// </summary>
+        public void DevResetBreakdown()
+        {
+            IsBreakdown = false;
+        }
+#endif
     }
 }

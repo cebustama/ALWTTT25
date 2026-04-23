@@ -78,6 +78,17 @@ Rule:
 - cards reference a **concrete `StatusEffectSO` asset**
 - they do not reference only an abstract primitive id when authored/imported
 
+### 3.4 Action timing and testability
+
+Action cards declare an `actionTiming` field (`CardActionTiming` enum) that gates when the card is legal to play. The default value **excludes `PlayerTurn`**, which means action cards authored without an explicit `actionTiming` are not playable during the standard player turn.
+
+This default is intentional for most authored combat content — action timing is typically declared deliberately per card — but it creates a sharp edge for **testing/debug cards intended to be spawned into the hand via Dev Mode**: without `actionTiming: Always`, the spawned card sits unplayable in the hand regardless of other conditions.
+
+**Convention for testing/debug cards:**  
+Any action card authored primarily to exercise runtime behavior (effect validation, status application tests, meter manipulation) via the Dev Mode card spawner must declare `actionTiming: Always` explicitly. This makes the card playable during any phase that permits action-card play.
+
+Cross-reference: Dev Mode gating around card spawn is governed in `SSoT_Dev_Mode.md` §8.4 and §11.4.
+
 ---
 
 ## 4. Status variant identity contract
@@ -116,17 +127,23 @@ Use stable string names for enums by default.
 Case-insensitive parsing is acceptable if applied consistently.
 
 ### 5.3 Minimal top-level card schema
+
 Required:
-- `kind`
+- `kind` — `"Action"` or `"Composition"`
 - `id`
 - `displayName`
 - `effects`
 
 Optional:
-- `description`
-- `audioType`
-- `rarity`
-- catalog-entry defaults and other authoring metadata
+- `performerRule`, `fixedMusician`
+- `cardType`, `rarity`, `audioType`
+- `inspirationCost`, `inspirationGenerated`
+- `exhaustAfterPlay`
+- `keywords` — string array of `SpecialKeywords` enum names (e.g. `["Exhaust", "Consume"]`). Case-insensitive parsing. Unknown values emit a warning and are skipped. See §5.8 for coherence rules.
+- `overrideRequiresTargetSelection`, `requiresTargetSelectionOverrideValue`
+- `cardSpritePath`
+- `action`, `composition` — domain-specific payload blocks
+- `entry` — catalog-entry defaults (see §5.6)
 
 ### 5.4 Effect object rule
 Each effect entry must contain:
@@ -156,6 +173,39 @@ Resolution contract:
   "count": 2
 }
 ```
+
+### 5.7 Batch wrapper schema
+
+Multiple cards can be imported in a single JSON payload using a batch wrapper:
+
+```json
+{
+  "defaultEntry": { "flags": "StarterDeck,UnlockedByDefault", "starterCopies": 2 },
+  "cards": [
+    { "kind": "Action", "id": "card_a", "displayName": "Card A", ... },
+    { "kind": "Action", "id": "card_b", "displayName": "Card B",
+      "entry": { "flags": "UnlockedByDefault", "starterCopies": 1 } }
+  ]
+}
+```
+
+**`defaultEntry`** (optional): An `EntryJson` object applied to any card in the batch whose own `entry` block is absent or has empty/null `flags`. Per-card `entry` blocks override the default entirely (not merged field-by-field).
+
+**`EntryJson` fields:**
+- `flags` — comma-separated `CardAcquisitionFlags` names (e.g. `"StarterDeck,UnlockedByDefault"`). Synonyms: `"Reward"` / `"Rewards"` → `"RewardPool"`.
+- `starterCopies` — integer, default 1. Only meaningful when `StarterDeck` flag is set.
+- `unlockId` — string. Required when `UnlockedByDefault` is not set.
+
+**Merge rule:** Unity's `JsonUtility` default-constructs class fields even when absent from JSON. The importer uses `flags` as the discriminator: if a card's `entry.flags` is null or whitespace, the entry is treated as absent and the batch `defaultEntry` is used instead.
+
+### 5.8 Keyword coherence rules
+
+The JSON importer emits non-blocking `Debug.LogWarning` messages when `exhaustAfterPlay` and the `Exhaust` keyword diverge:
+
+- `exhaustAfterPlay: true` without `"Exhaust"` in `keywords` → warning: players won't see an Exhaust tooltip.
+- `"Exhaust"` in `keywords` without `exhaustAfterPlay: true` → warning: tooltip says Exhaust but card won't exhaust.
+
+These warnings do not block import. They flag an authoring gap that will be resolved when keywords drive runtime behavior directly (see `SSoT_Card_System.md` §3.3.3).
 
 ---
 
@@ -197,6 +247,10 @@ Capabilities expected:
 - add/remove/reorder effect specs
 - show type-appropriate UI per spec
 - allow human-friendly status picking while storing the asset reference
+
+### 7.4 Create wizard defaults
+
+The manual "Create Card + Payload" wizard resets `Kind` to `Action` each time it is opened. This prevents stale serialized state from defaulting to Composition after previous use. The user can switch to Composition during the session.
 
 ---
 

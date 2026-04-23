@@ -46,6 +46,8 @@ namespace ALWTTT.Cards.Editor
             public bool overrideRequiresTargetSelection;
             public bool requiresTargetSelectionOverrideValue;
 
+            public string[] keywords;        // e.g. ["Exhaust", "Consume"]
+
             public string cardSpritePath;    // optional AssetDatabase path to a Sprite
 
             // New pipeline: polymorphic card effects (SerializeReference list on CardPayload)
@@ -66,6 +68,9 @@ namespace ALWTTT.Cards.Editor
         {
             // Batch wrapper: { "cards": [ { ...CardJsonImport... }, ... ] }
             public CardJsonImport[] cards;
+
+            // Optional: shared entry defaults applied to any card whose own "entry" is null.
+            public EntryJson defaultEntry;
         }
 
 
@@ -337,6 +342,20 @@ namespace ALWTTT.Cards.Editor
                 var batch = JsonUtility.FromJson<CardBatchJsonImport>(json);
                 if (batch != null && batch.cards != null && batch.cards.Length > 0)
                 {
+                    // Merge batch-level defaultEntry into any card without its own entry.
+                    if (batch.defaultEntry != null)
+                    {
+                        foreach (var card in batch.cards)
+                        {
+                            if (card != null &&
+                                (card.entry == null ||
+                                 string.IsNullOrWhiteSpace(card.entry.flags)))
+                            {
+                                card.entry = batch.defaultEntry;
+                            }
+                        }
+                    }
+
                     dtos = batch.cards;
                     return true;
                 }
@@ -542,6 +561,48 @@ namespace ALWTTT.Cards.Editor
             SetBool(cardSO, "exhaustAfterPlay", dto.exhaustAfterPlay);
             SetBool(cardSO, "overrideRequiresTargetSelection", dto.overrideRequiresTargetSelection);
             SetBool(cardSO, "requiresTargetSelectionOverrideValue", dto.requiresTargetSelectionOverrideValue);
+
+            // Keywords
+            if (dto.keywords != null && dto.keywords.Length > 0)
+            {
+                var kwProp = cardSO.FindProperty("keywords");
+                if (kwProp != null)
+                {
+                    kwProp.ClearArray();
+                    foreach (var kwStr in dto.keywords)
+                    {
+                        if (TryParseEnum(kwStr, out SpecialKeywords kw))
+                        {
+                            kwProp.InsertArrayElementAtIndex(kwProp.arraySize);
+                            kwProp.GetArrayElementAtIndex(kwProp.arraySize - 1)
+                                .enumValueIndex = (int)kw;
+                        }
+                        else
+                        {
+                            Debug.LogWarning(
+                                $"[CardEditorWindow] Unknown keyword '{kwStr}' on card '{dto.id}' — skipped.");
+                        }
+                    }
+                }
+            }
+
+            // Coherence warning: exhaustAfterPlay bool vs Exhaust keyword
+            if (dto.exhaustAfterPlay && (dto.keywords == null ||
+                !System.Array.Exists(dto.keywords, k =>
+                    string.Equals(k, "Exhaust", System.StringComparison.OrdinalIgnoreCase))))
+            {
+                Debug.LogWarning(
+                    $"[CardEditorWindow] Card '{dto.id}' has exhaustAfterPlay=true " +
+                    "but no 'Exhaust' keyword. Players won't see an Exhaust tooltip.");
+            }
+            else if (!dto.exhaustAfterPlay && dto.keywords != null &&
+                System.Array.Exists(dto.keywords, k =>
+                    string.Equals(k, "Exhaust", System.StringComparison.OrdinalIgnoreCase)))
+            {
+                Debug.LogWarning(
+                    $"[CardEditorWindow] Card '{dto.id}' has 'Exhaust' keyword " +
+                    "but exhaustAfterPlay=false. Tooltip will say Exhaust but card won't exhaust.");
+            }
 
             // Assign payload reference
             SetObject(cardSO, "payload", _stagedJsonPayload);

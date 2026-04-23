@@ -25,3 +25,5 @@ MonoBehaviour:
   valueType: 0
   isBuff: 1
   iconSprite: {fileID: 5219159549644024381, guid: 8a30b141ae0bf0f4ba1b748f5aa2949b, type: 3}
+  description: Absorbs incoming Stress before it lands. Clears at the start of each
+    Player Turn.

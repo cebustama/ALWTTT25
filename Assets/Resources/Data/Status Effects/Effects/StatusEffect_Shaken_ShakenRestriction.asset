@@ -25,3 +25,4 @@ MonoBehaviour:
   valueType: 0
   isBuff: 1
   iconSprite: {fileID: 5351205735612954793, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
+  description: Applied when a musician breaks down. Lasts one full song cycle.

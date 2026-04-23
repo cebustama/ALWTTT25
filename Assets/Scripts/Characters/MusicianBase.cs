@@ -171,6 +171,22 @@ namespace ALWTTT.Characters.Band
             }
         }
 
+#if ALWTTT_DEV
+        /// <summary>
+        /// Forces a Breakdown on this musician via the natural stress path.
+        /// Resets IsBreakdown first so the Breakdown check fires even if already triggered.
+        /// Downstream: Cohesion-1, Stress reset to fraction, Shaken applied, IsStunned set.
+        /// Re-triggerable. With Infinite Turns on, LoseGig from Cohesion≤0 is suppressed.
+        /// </summary>
+        public void DevForceBreakdown()
+        {
+            Debug.Log($"<color=lime>[DevMode]</color> DevForceBreakdown → {CharacterName} " +
+                      $"(Stress={stats.CurrentStress}/{stats.MaxStress}, IsBreakdown={stats.IsBreakdown})");
+            stats.DevResetBreakdown();
+            stats.AddStress(stats.MaxStress);
+        }
+#endif
+
         protected override void OnPointerEnter()
         {
             base.OnPointerEnter();

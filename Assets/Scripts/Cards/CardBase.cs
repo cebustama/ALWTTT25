@@ -9,7 +9,6 @@ using ALWTTT.Managers;
 using ALWTTT.Status;
 using ALWTTT.Tooltips;
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -25,6 +24,11 @@ namespace ALWTTT
     {
         [Header("References")]
         [SerializeField] protected Transform descriptionRoot;
+
+        [Tooltip("Anchor Transform for card hover tooltips (keyword + status). " +
+         "If unset, falls back to descriptionRoot for backward compatibility.")]
+        [SerializeField] protected Transform tooltipAnchor;
+
         [SerializeField] protected Image cardImage;
         [SerializeField] protected Image backgroundImage;
         [SerializeField] protected Image passiveImage;
@@ -491,6 +495,19 @@ namespace ALWTTT
 
         public virtual void OnPointerDown(PointerEventData eventData)
         {
+            Debug.Log($"[CardBase] OnPointerDown fired. Button={eventData.button}, Card={CardDefinition?.DisplayName}");
+
+            if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                Debug.Log($"[CardBase] Right-click detected. DetailController.Instance={UI.CardDetailViewController.Instance != null}");
+                HideTooltipInfo();
+                var ctrl = UI.CardDetailViewController.Instance;
+                if (ctrl != null)
+                    ctrl.Toggle(CardDefinition);
+                return;
+            }
+
+            // Left-click: existing behavior.
             HideTooltipInfo();
         }
 
@@ -504,19 +521,41 @@ namespace ALWTTT
         protected virtual void ShowTooltipInfo()
         {
             if (!descriptionRoot) return;
-            if (CardDefinition.Keywords.Count <= 0) return; // No keywords no tooltips
-
             var tooltipManager = TooltipManager.Instance;
-            foreach (var cardDataSpecialKeyword in CardDefinition.Keywords)
-            {
-                var specialKeyword = tooltipManager
-                    .SpecialKeywordData.SpecialKeywordBaseList
-                        .Find(x => x.SpecialKeyword == cardDataSpecialKeyword);
+            if (tooltipManager == null) return;
 
-                if (specialKeyword != null)
-                    ShowTooltipInfo(tooltipManager, specialKeyword.GetContent(),
-                        specialKeyword.GetHeader(), descriptionRoot,
-                        DeckManager ? DeckManager.HandController.Cam : Camera.main);
+            // 1) SpecialKeywords (existing behavior, now non-early-returning).
+            if (CardDefinition.Keywords != null && tooltipManager.SpecialKeywordData != null)
+            {
+                foreach (var kw in CardDefinition.Keywords)
+                {
+                    var sk = tooltipManager.SpecialKeywordData.SpecialKeywordBaseList
+                        .Find(x => x.SpecialKeyword == kw);
+                    if (sk == null) continue;
+                    tooltipManager.ShowTooltip(sk.GetContent(), sk.GetHeader());
+                }
+            }
+
+            // 2) Status-effect tooltips — unique StatusEffectSOs from payload.Effects.
+            if (CardDefinition.HasPayload && CardDefinition.Payload != null)
+            {
+                var effects = CardDefinition.Payload.Effects;
+                if (effects != null)
+                {
+                    var seen = new HashSet<StatusEffectSO>();
+                    for (int i = 0; i < effects.Count; i++)
+                    {
+                        if (effects[i] is ApplyStatusEffectSpec ase
+                            && ase.status != null
+                            && seen.Add(ase.status))
+                        {
+                            var header = string.IsNullOrWhiteSpace(ase.status.DisplayName)
+                                ? ase.status.name : ase.status.DisplayName;
+                            var body = ase.status.Description ?? string.Empty;
+                            tooltipManager.ShowTooltip(body, header);
+                        }
+                    }
+                }
             }
         }
 

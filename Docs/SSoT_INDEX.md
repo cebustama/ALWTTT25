@@ -37,6 +37,7 @@ It defines:
 | `systems/SSoT_Scoring_and_Meters.md` | loop score, song hype, vibe, and meter-relationship semantics | active |
 | `systems/SSoT_Gig_Encounter.md` | encounter-level gig structure, victory/failure, rosters, modifiers, resolution envelope | active |
 | `systems/SSoT_Editor_Authoring_Tools.md` | editor tools inventory, capabilities, supporting services, known gaps | active |
+| `systems/SSoT_Dev_Mode.md` | Dev Mode tooling: compile-time gating, overlay, infinite turns, hand-visibility bridge | active |
 
 ### Runtime
 

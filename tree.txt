@@ -5,6 +5,8 @@
 |   +---_Recovery
 |   |   +---0 (1).unity
 |   |   \---0.unity
+|   +---Materials
+|   |   \---Mat_SpriteOutline.mat
 |   +---MidiPlayer
 |   |   +---Demo
 |   |   |   +---Builder
@@ -1955,6 +1957,8 @@
 |   |   |   |       +---Cantante_Composition_002.asset
 |   |   |   |       +---Cantante_Composition_002_Payload.asset
 |   |   |   |       +---Conito_CardCatalogData.asset
+|   |   |   |       +---debug_apply_shaken_to_musician.asset
+|   |   |   |       +---debug_apply_shaken_to_musician_Payload.asset
 |   |   |   |       +---Gusano_CardCatalogData.asset
 |   |   |   |       +---MVP_AddComposure_03.asset
 |   |   |   |       +---MVP_AddComposure_03_Payload.asset
@@ -1977,6 +1981,10 @@
 |   |   |   |       +---test_apply_feedback_Payload.asset
 |   |   |   |       +---test_apply_flow.asset
 |   |   |   |       +---test_apply_flow_Payload.asset
+|   |   |   |       +---test_dev_flow_and_composure.asset
+|   |   |   |       +---test_dev_flow_and_composure_Payload.asset
+|   |   |   |       +---test_dev_flow_and_draw.asset
+|   |   |   |       +---test_dev_flow_and_draw_Payload.asset
 |   |   |   |       +---test_draw_cards.asset
 |   |   |   |       +---test_draw_cards_Payload.asset
 |   |   |   |       +---test_modify_stress_add.asset
@@ -1987,8 +1995,7 @@
 |   |   |   |       \---test_modify_vibe_Payload.asset
 |   |   |   +---Containers
 |   |   |   |   +---Reward Container.asset
-|   |   |   |   +---Special Keyword.asset
-|   |   |   |   \---Status Icons.asset
+|   |   |   |   \---Special Keyword.asset
 |   |   |   +---Decks
 |   |   |   |   +---Payloads
 |   |   |   |   |   \---new_any_group_heal_Payload.asset
@@ -2046,12 +2053,12 @@
 |   |   |   |   \---ButtonSoundProfile.asset
 |   |   |   \---Status Effects
 |   |   |       +---Effects
-|   |   |       |   +---StatusEffect_DamageOverTime.asset
-|   |   |       |   +---StatusEffect_DamageTakenUpFlat_Exposed.asset
-|   |   |       |   +---StatusEffect_DamageUpFlat_Flow.asset
-|   |   |       |   +---StatusEffect_DisableActions_Choke.asset
-|   |   |       |   +---StatusEffect_Shaken.asset
-|   |   |       |   \---StatusEffect_TempShieldTurn_Composure.asset
+|   |   |       |   +---StatusEffect_Choke_DisableActions.asset
+|   |   |       |   +---StatusEffect_Composure_TempShieldTurn.asset
+|   |   |       |   +---StatusEffect_Exposed_DamageTakenUpFlat.asset
+|   |   |       |   +---StatusEffect_Feedback_DamageOverTime.asset
+|   |   |       |   +---StatusEffect_Flow_DamageUpFlat.asset
+|   |   |       |   \---StatusEffect_Shaken_ShakenRestriction.asset
 |   |   |       +---CharacterStatusPrimitiveDatabase.asset
 |   |   |       \---StatusEffectCatalogue.asset
 |   |   +---ScriptableObjects
@@ -2254,6 +2261,7 @@
 |   |   |   |   \---MusicianCatalogService.cs
 |   |   |   +---Effects
 |   |   |   |   +---ApplyStatusEffectSpec.cs
+|   |   |   |   +---CardEffectDescriptionBuilder.cs
 |   |   |   |   +---CardEffectSpec.cs
 |   |   |   |   +---DrawCardsSpec.cs
 |   |   |   |   +---ModifyStressSpec.cs
@@ -2300,6 +2308,7 @@
 |   |   |   +---CharacterCanvas.cs
 |   |   |   +---CharacterStats.cs
 |   |   |   +---MusicianBase.cs
+|   |   |   +---SpriteOutlineController.cs
 |   |   |   \---StatusStats.cs
 |   |   +---Controllers
 |   |   |   +---HandController.cs
@@ -2356,8 +2365,10 @@
 |   |   |   |   +---SerializableCardInventory.cs
 |   |   |   |   \---SerializableStringIntDictionary.cs
 |   |   |   +---UI
-|   |   |   |   \---StatusIconsData.cs
 |   |   |   \---ALWTTTProjectRegistriesSO.cs
+|   |   +---DevMode
+|   |   |   +---DevCardCatalogueTab.cs
+|   |   |   \---DevModeController.cs
 |   |   +---Encounters
 |   |   |   +---EncounterBase.cs
 |   |   |   \---GigEncounter.cs
@@ -2514,6 +2525,8 @@
 |   |   +---Lit2DSceneTemplate.scenetemplate
 |   |   +---Renderer2D.asset
 |   |   \---UniversalRP.asset
+|   +---Shaders
+|   |   \---SpriteOutlineURP.shader
 |   +---TextMesh Pro
 |   |   +---Fonts
 |   |   |   +---LiberationSans - OFL.txt
@@ -2583,6 +2596,9 @@
 |   |   \---README.md
 |   +---planning
 |   |   +---active
+|   |   |   +---Design_Audience_Status_v1.md
+|   |   |   +---Design_Starter_Deck_v1.md
+|   |   |   +---M1_5_Dev_Mode_Sub_Roadmap.md
 |   |   |   +---README.md
 |   |   |   \---Roadmap_ALWTTT.md
 |   |   +---archive
@@ -2606,6 +2622,7 @@
 |   |   +---SSoT_Audience_and_Reactions.md
 |   |   +---SSoT_Card_Authoring_Contracts.md
 |   |   +---SSoT_Card_System.md
+|   |   +---SSoT_Dev_Mode.md
 |   |   +---SSoT_Editor_Authoring_Tools.md
 |   |   +---SSoT_Gig_Combat_Core.md
 |   |   +---SSoT_Gig_Encounter.md

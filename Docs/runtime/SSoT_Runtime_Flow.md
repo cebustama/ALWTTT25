@@ -92,6 +92,9 @@ Runtime responsibilities:
 - wire deck/hand/runtime UI references
 - prepare the runtime services needed for composition and playback
 
+Flag initialization:
+- `_actionWindowOpen = true`, `_isSongPlaying = false`, `_isBetweenSongs = true` are all set once in `SetupGig()`. Their per-turn lifecycle is governed by §4 Phase 1 below.
+
 ### Phase 1 — Between-songs action window
 Purpose:
 - allow non-composition card play in the song transition window when the current rules permit it
@@ -100,6 +103,19 @@ Purpose:
 Contract:
 - this is where **Action cards** belong in the baseline governed flow
 - if the current implementation slice only partially exposes this window, `CURRENT_STATE.md` records the gap; this SSoT still owns the intended runtime home
+
+#### 4.1 Action window flag lifecycle (2026-04-20)
+`GigManager.CanPlayActionCard` gates action-card play through three flags:
+
+| Flag | Meaning |
+|---|---|
+| `_isSongPlaying` | True while a song's performance loop is running. When true, action cards are disabled except those explicitly marked `CardActionTiming.Always` AND only if `allowActionCardsDuringPerformance`. |
+| `_actionWindowOpen` | True during the player's composition/action window for the current song. Closes when the player presses Play (`OnPlayPressed`). |
+| `_isBetweenSongs` | True while the gig is in a between-songs state, outside any active song performance. |
+
+**Per-turn lifecycle rule:** `_actionWindowOpen = true` and `_isBetweenSongs = true` are re-asserted at the top of `ExecuteGigPhase(PlayerTurn)` (after the gig-completion early-exit check, before status tick and draw logic). This ensures every PlayerTurn opens a fresh action window, regardless of how many songs have preceded it in the gig.
+
+**Historical note:** prior to 2026-04-20 these flags were set exactly once in `SetupGig()` and `_actionWindowOpen` flipped to false on the first `OnPlayPressed`, never to be reopened. The result was a latent bug: action cards became unplayable in the second and all subsequent songs of any multi-song gig (Dev Mode or production). Fixed in GigManager 2026-04-20 and validated by ST-FIX-1 (normal multi-song) and ST-FIX-2 (Dev Mode infinite turns).
 
 ### Phase 2 — Composition phase
 Purpose:
@@ -147,7 +163,7 @@ This is a deliberate architectural separation, not a bug — it keeps the compos
 ### 5.1 Action cards
 Canonical runtime sequence:
 1. player selects an action card from hand
-2. runtime validates timing/targeting
+2. runtime validates timing/targeting (`GigManager.CanPlayActionCard`, see §4.1 for flag lifecycle)
 3. runtime interprets the card's gameplay effect list
 4. post-play state is applied (discard/exhaust/etc. according to card rules)
 
@@ -217,6 +233,7 @@ This is the canonical runtime handoff used to drive:
 5. `MidiMusicManager` is part of the ALWTTT runtime surface and must be documented here/on the integration side, not as package truth.
 6. Loop/part/song feedback belongs to the ALWTTT runtime contract even when downstream systems use MidiGenPlay for playback/generation.
 7. `ExecuteGigPhase()` is bypassed while a `CompositionSession` is active. Phase machine and session lifecycle are explicitly decoupled.
+8. **Action window flags (`_actionWindowOpen`, `_isBetweenSongs`) are per-PlayerTurn, not per-gig.** They are re-asserted to `true` at the top of `ExecuteGigPhase(PlayerTurn)` after the completion check. Any future gig-flow code that adds new single-use-per-gig flags must document its lifecycle explicitly here (see §4.1).
 
 ---
 

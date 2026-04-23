@@ -104,6 +104,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3095199483181524453}
   - component: {fileID: 6214814892290893219}
+  - component: {fileID: 4506841092420466041}
   m_Layer: 7
   m_Name: Sprite
   m_TagString: Untagged
@@ -152,7 +153,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 8726bb7b92b04e049b976a3d9c73c02b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -185,6 +186,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &4506841092420466041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5273422551840406113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbe49cd7bb060ad4a941026953474547, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Characters.SpriteOutlineController
+  outlineWidth: 4
+  outlineColor: {r: 1, g: 0.85, b: 0.2, a: 1}
 --- !u!1 &7812822335308069666
 GameObject:
   m_ObjectHideFlags: 0
@@ -249,6 +264,7 @@ MonoBehaviour:
   characterAnimator: {fileID: 6981906805491641733}
   animator: {fileID: 7639766325466097293}
   statusCatalogue: {fileID: 11400000, guid: 3c12538606a42a944b49754c65c1758c, type: 2}
+  outlineController: {fileID: 4506841092420466041}
   legacyIsStunned: 0
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
   characterCanvas: {fileID: 9060181179430792495}

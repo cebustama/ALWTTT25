@@ -25,3 +25,4 @@ MonoBehaviour:
   valueType: 0
   isBuff: 1
   iconSprite: {fileID: 9145781523215611674, guid: 3b11b07699d17cc46a40ac95a2ee6a85, type: 3}
+  description: Each stack adds +1 to any positive Vibe gain from cards and song resolution.

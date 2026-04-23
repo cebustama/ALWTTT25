@@ -109,7 +109,17 @@ Icon sprite authority lives on `StatusEffectSO.IconSprite`. Each StatusEffectSO 
 - `AudienceCharacterBase.BuildCharacter()` calls `AudienceCharacterCanvas.BindStatusContainer(Statuses)` after stats construction.
 - Both bind to `CharacterBase.Statuses`, which is created in `CharacterBase.Awake()`.
 
-**Tooltip content for statuses is not wired in M1.2.** `CharacterCanvas.ShowTooltipInfo()` is a stub pending M1.3 (Tooltip pipeline extension). Status tooltip content will be sourced from `StatusEffectSO.DisplayName` and a description field to be added in that batch.
+**Status tooltip content (M1.3a + M1.3c, 2026-04-23):**
+
+`StatusEffectSO` carries a `description` field (`[TextArea(2, 4)]`, public getter `Description`) authored per status. Description text is the single source for tooltip body text. `DisplayName` is the single source for tooltip header text.
+
+Two runtime hosts surface status tooltips:
+
+1. **Per-icon hover (M1.3a):** `StatusIconBase` implements `IPointerEnter/ExitHandler`. `CharacterCanvas.TryCreateIcon` calls `BindTooltipSource(StatusEffectSO, StatusEffectContainer, CharacterStatusId)` immediately after `SetStatus`. Hovering a status icon shows `{DisplayName}` (or `{DisplayName} ×N` when stacks > 1) as header and `Description` as body, via `TooltipManager.ShowTooltip`.
+
+2. **Card-hover extraction (M1.3c):** `CardBase.ShowTooltipInfo()` iterates `CardDefinition.Keywords` (resolved against `TooltipManager.SpecialKeywordData`) then extracts unique `StatusEffectSO` references from `CardDefinition.Payload.Effects` filtered to `ApplyStatusEffectSpec.status`. Dedupe via `HashSet<StatusEffectSO>`. Display order: keywords first, statuses second. Each unique SO produces one `ShowTooltip` call with `DisplayName` header + `Description` body. Tooltip follows the mouse cursor (no static anchor).
+
+`CardBase` is the assembly point for card-hover tooltips but does not own the data — `StatusEffectSO` owns description text, `SpecialKeywordData` owns keyword text.
 
 ---
 
@@ -161,6 +171,11 @@ The `StatusCatalogue` field on `CharacterBase` is Inspector-assigned and optiona
 **Applies to:** musicians only. No audience crowd-control status exists in MVP.  
 **Validated:** ✅ B5 (stacks decay after turn)
 
+**Design decision — Choke on stunned target (2026-04-20):**  
+`HandController.TryResolveCardTarget` refuses to target a stunned musician, so Choke cannot be re-applied while the target is already stunned (`DisableActions` active). This is intentional for MVP: stun is binary (the status is either present or not), and Choke stacks represent decay duration, not additive stun strength. Re-applying Choke to an already-stunned musician is redundant under current encounter pacing.
+
+If future encounter design requires extending stun via additional Choke stacks, one of the following must change: (a) `TryResolveCardTarget` relaxes the stunned-target refusal for Choke specifically, or (b) Choke's stacking semantics are reinterpreted so that additional stacks add duration beyond the initial trigger. Neither is in MVP scope. Revisit when audience pressure or encounter-length tuning makes prolonged stun valuable.
+
 ### 5.4 Shaken
 **Primitive:** `ShakenRestriction` (`CharacterStatusId = 503`)  
 **Key:** `"shaken"`  
@@ -184,9 +199,12 @@ The `StatusCatalogue` field on `CharacterBase` is Inspector-assigned and optiona
 **Primitive:** `DamageOverTime` (`CharacterStatusId = 600`)  
 **Key:** `"feedback"`  
 **Scope:** Musician (MVP); Audience deferred  
-**Tick timing:** evaluated during `GigManager.AudienceTurnRoutine`  
-**Combat meaning:** each Feedback stack applies 1 incoming stress per audience turn, routed through `m.Stats.ApplyIncomingStressWithComposure`. This means Feedback-triggered Stress respects Composure and can trigger Breakdown.  
-**Applies to:** musicians only in current implementation. Audience Feedback DoT requires a Stress path on `AudienceCharacterBase`, which does not exist. Explicitly deferred.
+**SO config:** `DecayMode = LinearStacks`, `TickTiming = PlayerTurnStart`, `StackMode = Additive`, `MaxStacks = 999`  
+**Decay timing:** stacks decay by 1 at the start of each Player Turn, via `StatusEffectContainer.Tick(PlayerTurnStart)` invoked by `GigManager.OnPlayerTurnStarted` → `TriggerAllStatus` on musicians.  
+**Damage resolution:** each active Feedback stack applies 1 incoming stress during `GigManager.AudienceTurnRoutine`, routed through `BandCharacterStats.ApplyIncomingStressWithComposure`. Damage respects Composure and can trigger Breakdown.  
+**Poison-like semantics:** damage is applied during the audience turn using the current stack count; decay occurs at the start of the following player turn, so the first audience turn after application deals full-stack damage before any decay. Total damage over the full decay of N initial stacks is `N(N+1)/2` — e.g. 3 stacks → 3 + 2 + 1 = **6 total damage** over 3 audience turns.  
+**Applies to:** musicians only in current implementation. Audience Feedback DoT requires a Stress path on `AudienceCharacterBase`, which does not exist. Explicitly deferred.  
+**Validation history:** Phase 2 test T8 (2026-04-17) observed stacks persisting turn-to-turn with no decay. Root cause identified 2026-04-20: the Feedback SO had `TickTiming = EndOfTurn` configured, which is declared in the enum but not invoked by the runtime phase machine (only `PlayerTurnStart` and `AudienceTurnStart` are wired — see §3.1). Fixed by changing Tick Timing to `PlayerTurnStart`. Post-fix smoke test validated the `N(N+1)/2` damage curve and icon clear-on-zero.
 
 ---
 

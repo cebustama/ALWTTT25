@@ -105,9 +105,14 @@ namespace ALWTTT.Characters
         {
             if (_activeIcons.TryGetValue(id, out var icon))
             {
-                if (icon != null)
-                    Destroy(icon.gameObject);
+                // M1.8: detach from dictionary BEFORE playing disappear.
+                // If the status is re-applied while this icon is still animating out,
+                // HandleStatusApplied will create a fresh icon rather than collide.
+                // The detached icon self-destroys when its disappear coroutine finishes.
                 _activeIcons.Remove(id);
+
+                if (icon != null)
+                    icon.PlayDisappear();
             }
         }
 
@@ -142,7 +147,11 @@ namespace ALWTTT.Characters
 
             var clone = Instantiate(statusIconBasePrefab, statusIconRoot);
             clone.SetStatus(def.IconSprite);
+            clone.BindTooltipSource(def, _boundContainer, id);
             _activeIcons[id] = clone;
+
+            // M1.8: trigger appear popup animation.
+            clone.PlayAppear();
         }
 
         #endregion

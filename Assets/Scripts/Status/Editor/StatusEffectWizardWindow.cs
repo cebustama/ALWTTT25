@@ -247,7 +247,7 @@ namespace ALWTTT.Status.Editor
 
                 if (_tickTiming == TickTiming.None && (_decayMode == DecayMode.LinearStacks || _decayMode == DecayMode.DurationTurns))
                 {
-                    EditorGUILayout.HelpBox("If the status decays, you usually want a TickTiming (e.g., EndOfTurn).", MessageType.Info);
+                    EditorGUILayout.HelpBox("If the status decays, you usually want a TickTiming wired to the runtime phase machine: PlayerTurnStart or AudienceTurnStart. Other values (EndOfTurn, StartOfLoop, EndOfLoop, OnAction, OnHit, OnTakeDamage) are declared in the enum but NOT invoked by the runtime and will silently fail to decay.", MessageType.Info);
                 }
             }
         }

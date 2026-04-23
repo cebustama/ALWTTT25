@@ -14,6 +14,7 @@ This matrix maps each major concept to its authoritative home.
 | Status system | `systems/SSoT_Status_Effects.md` | `systems/SSoT_Status_Effects.md` | active | runtime status truth, catalogue boundary, canonical MVP statuses |
 | LoopScore / SongHype / Vibe | `systems/SSoT_Scoring_and_Meters.md` | `systems/SSoT_Scoring_and_Meters.md` | active | scoring pipeline semantics and conversion relationships |
 | Editor authoring tools | `systems/SSoT_Editor_Authoring_Tools.md` | `systems/SSoT_Editor_Authoring_Tools.md` | active | Card Editor, Deck Editor, Status Effect Wizard, Chord Progression Catalogue, supporting services |
+| Dev Mode tooling | `systems/SSoT_Dev_Mode.md` | `systems/SSoT_Dev_Mode.md` | active | `ALWTTT_DEV` gating, F12 overlay, infinite turns, convinced reset, between-song hand reset, hand-visibility bridge |
 | CSO primitive catalog | `reference/CSO_Primitives_Catalog.md` | `reference/CSO_Primitives_Catalog.md` | reference | supporting catalog, not primary runtime authority |
 | Runtime phase flow | `runtime/SSoT_Runtime_Flow.md` | `runtime/SSoT_Runtime_Flow.md` | active | gig runtime orchestration and phase flow |
 | Composition session runtime bridge | `runtime/SSoT_Runtime_CompositionSession_Integration.md` | `runtime/SSoT_Runtime_CompositionSession_Integration.md` | active | ALWTTT-owned live composition runtime contract |

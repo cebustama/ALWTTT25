@@ -1,17 +1,11 @@
+using System.Collections.Generic;
+using System.Text;
 using ALWTTT.Cards.Effects;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
 
 namespace ALWTTT.Cards
 {
-    /// <summary>
-    /// UI-facing text helpers for CardDefinition.
-    /// Keeps CardDefinition SRP-clean ("what a card is"),
-    /// while still allowing CardDefinition.GetDescription(...) in UI code.
-    /// </summary>
     public static class CardDefinitionDescriptionExtensions
     {
         public static string GetDescription(
@@ -20,101 +14,149 @@ namespace ALWTTT.Cards
             if (card == null) return string.Empty;
             if (!card.HasPayload) return "Missing payload.";
 
-            // Composition cards use composition description
             if (card.Payload is CompositionCardPayload comp)
-                return GetCompositionDescription(comp);
+                return BuildCompositionDescription(comp);
 
-            // Action cards (or anything else with actions) use action description
             if (card.Payload is ActionCardPayload action)
-                return GetActionDescription(card, action, stats);
+            {
+                // Action cards: all effects, one per line, via central builder.
+                return CardEffectDescriptionBuilder.BuildList(action.Effects, stats);
+            }
 
             return $"Unsupported payload: {card.Payload.GetType().Name}";
         }
 
-        private static string GetActionDescription(
-            CardDefinition card,
-            ActionCardPayload payload,
-            BandCharacterStats stats)
+        /// <summary>
+        /// Full detail description for the right-click card detail modal (M1.10).
+        /// Action cards: same as card face (effects via builder).
+        /// Composition cards: primary kind, style bundle, part info,
+        /// full modifier list with GetLabel(), and CardPayload.Effects.
+        /// </summary>
+        public static string GetDetailDescription(
+            this CardDefinition card, BandCharacterStats stats = null)
         {
-            var effects = payload != null ? payload.Effects : null;
-            if (effects == null || effects.Count == 0)
-                return "No effects.";
+            if (card == null) return string.Empty;
+            if (!card.HasPayload) return "Missing payload.";
 
-            // Mantener parity: describir solo el primer efecto "relevante".
-            // Prioridad: ApplyStatusEffectSpec.
-            ApplyStatusEffectSpec ase = null;
+            if (card.Payload is CompositionCardPayload comp)
+                return BuildCompositionDetailDescription(comp, stats);
 
-            for (int i = 0; i < effects.Count; i++)
-            {
-                ase = effects[i] as ApplyStatusEffectSpec;
-                if (ase != null) break;
-            }
+            if (card.Payload is ActionCardPayload action)
+                return CardEffectDescriptionBuilder.BuildList(action.Effects, stats);
 
-            if (ase == null)
-                return $"Effects: {effects[0].GetType().Name}";
-
-            // stacksDelta
-            var magnitudeText = ase.stacksDelta.ToString();
-
-            // nombre/identidad del status
-            var effectText =
-                ase.status != null
-                    ? ase.status.EffectId.ToString()   // o DisplayName si quieres UX
-                    : "MissingStatus";
-
-            var targetText = ase.targetType.ToString();
-
-            return $"Apply {magnitudeText} {effectText} to {targetText}";
+            return $"Unsupported payload: {card.Payload.GetType().Name}";
         }
 
+        #region Card-face description (existing)
 
-        private static string GetCompositionDescription(CompositionCardPayload payload)
+        private static string BuildCompositionDescription(CompositionCardPayload p)
         {
-            var sb = new StringBuilder("Composition: ");
-
-            if (payload.PrimaryKind == CardPrimaryKind.Track)
+            var sb = new StringBuilder();
+            switch (p.PrimaryKind)
             {
-                string role = payload.TrackAction != null
-                    ? payload.TrackAction.role.ToString()
-                    : "Track";
-
-                sb.Append($"Track [{role}]");
+                case CardPrimaryKind.Track:
+                    sb.Append(p.TrackAction != null ? p.TrackAction.role.ToString() : "Track");
+                    break;
+                case CardPrimaryKind.Part:
+                    sb.Append(p.PartAction != null ? FormatPartAction(p.PartAction) : "Part");
+                    break;
+                default:
+                    sb.Append("Composition");
+                    break;
             }
-            else if (payload.PrimaryKind == CardPrimaryKind.Part)
+
+            int modifierCount = 0;
+            if (p.ModifierEffects != null)
+                foreach (var fx in p.ModifierEffects) if (fx != null) modifierCount++;
+
+            if (modifierCount > 0)
+                sb.Append($"\n<size=70%>{modifierCount} modifier{(modifierCount == 1 ? "" : "s")}</size>");
+
+            return sb.ToString();
+        }
+
+        #endregion
+
+        #region Detail-view description (M1.10)
+
+        private static string BuildCompositionDetailDescription(
+            CompositionCardPayload p, BandCharacterStats stats)
+        {
+            var sb = new StringBuilder();
+
+            // --- Primary kind header ---
+            switch (p.PrimaryKind)
             {
-                string action = payload.PartAction != null
-                    ? payload.PartAction.action.ToString()
-                    : "Part";
+                case CardPrimaryKind.Track:
+                    sb.Append("<b>Track</b>");
+                    if (p.TrackAction != null)
+                    {
+                        sb.Append($" — {p.TrackAction.role}");
 
-                sb.Append($"Part [{action}]");
+                        // Style bundle reference
+                        string bundleName = p.TrackAction.styleBundle != null
+                            ? p.TrackAction.styleBundle.name
+                            : null;
+                        if (!string.IsNullOrEmpty(bundleName))
+                            sb.Append($"\nStyle: {bundleName}");
+                    }
+                    break;
 
-                if (payload.PartAction != null &&
-                    !string.IsNullOrWhiteSpace(payload.PartAction.customLabel))
+                case CardPrimaryKind.Part:
+                    sb.Append("<b>Part</b>");
+                    if (p.PartAction != null)
+                    {
+                        sb.Append($" — {FormatPartAction(p.PartAction)}");
+
+                        if (!string.IsNullOrEmpty(p.PartAction.musicianId))
+                            sb.Append($"\nMusician: {p.PartAction.musicianId}");
+                    }
+                    break;
+
+                default:
+                    sb.Append("<b>Composition</b>");
+                    break;
+            }
+
+            // --- Modifier list ---
+            if (p.ModifierEffects != null)
+            {
+                int modCount = 0;
+                foreach (var fx in p.ModifierEffects)
+                    if (fx != null) modCount++;
+
+                if (modCount > 0)
                 {
-                    sb.Append($" (“{payload.PartAction.customLabel}”)");
+                    sb.Append("\n\n<b>Modifiers</b>");
+                    foreach (var fx in p.ModifierEffects)
+                    {
+                        if (fx == null) continue;
+                        sb.Append($"\n  • {fx.GetLabel()}");
+                        sb.Append($"  <size=80%>({fx.scope}, {fx.timing})</size>");
+                    }
                 }
             }
-            else
-            {
-                sb.Append("No primary action");
-            }
 
-            // Effects
-            if (payload.ModifierEffects != null && payload.ModifierEffects.Count > 0)
+            // --- CardPayload.Effects (shared effect pipeline) ---
+            var effects = p.Effects;
+            if (effects != null && effects.Count > 0)
             {
-                var effects = new List<string>();
-                foreach (var fx in payload.ModifierEffects)
+                string effectsBlock = CardEffectDescriptionBuilder.BuildList(effects, stats);
+                if (!string.IsNullOrEmpty(effectsBlock) && effectsBlock != "No effects.")
                 {
-                    if (fx == null) continue;
-                    effects.Add(fx.GetLabel());
+                    sb.Append("\n\n<b>Effects</b>\n");
+                    sb.Append(effectsBlock);
                 }
-
-                if (effects.Count > 0)
-                    sb.Append(" | Effects: " + string.Join(", ", effects));
             }
 
             return sb.ToString();
         }
+
+        #endregion
+
+        private static string FormatPartAction(PartActionDescriptor pa) =>
+            string.IsNullOrWhiteSpace(pa.customLabel)
+                ? pa.action.ToString()
+                : pa.customLabel;
     }
 }
-

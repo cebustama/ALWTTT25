@@ -126,6 +126,19 @@ namespace ALWTTT.Characters.Audience
             base.TriggerStatus(targetStatus);
         }
 
+#if ALWTTT_DEV
+        /// <summary>
+        /// Dev Mode only. Resets this audience member from Convinced state:
+        /// Vibe → 0, IsConvinced → false, clears Convinced legacy status.
+        /// </summary>
+        public void DevResetConvinced()
+        {
+            IsConvinced = false;
+            SetCurrentVibe(0);
+            ClearStatus(StatusType.Convinced);
+        }
+#endif
+
         #endregion
     }
 }
