@@ -15,22 +15,22 @@ MonoBehaviour:
   musicianType: 2
   entries:
   - card: {fileID: 11400000, guid: 5a4e802a97511b34ea6895bc315946e4, type: 2}
-    flags: 4
+    flags: 5
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: 33e76460a97c6ef4493b45a1e3b74eb9, type: 2}
-    flags: 4
+    flags: 5
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: 7ef3a095c79667945802ac9fb83d6c9f, type: 2}
-    flags: 4
+    flags: 5
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: 3a0711973588746409e6fd29d1d6e2df, type: 2}
-    flags: 4
+    flags: 5
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: 722c1a5874f249f469beecd214d67063, type: 2}
-    flags: 4
+    flags: 5
     unlockId: 
     starterCopies: 1

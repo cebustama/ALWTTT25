@@ -69,6 +69,7 @@ namespace ALWTTT.Music
         public bool HasBass => HasRole(TrackRole.Bassline);
         public bool HasMelody => HasRole(TrackRole.Melody);
         public bool HasHarmony => HasRole(TrackRole.Harmony);
+        public bool HasBacking => HasRole(TrackRole.Backing);
 
         public bool IsLastLoopOfPart => LoopIndexWithinPart == LoopsInPart - 1;
         // ======

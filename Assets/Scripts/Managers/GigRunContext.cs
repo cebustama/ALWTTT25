@@ -1,5 +1,7 @@
-using ALWTTT.Cards;
+﻿using ALWTTT.Cards;
+using ALWTTT.Data;
 using ALWTTT.Encounters;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ALWTTT.Managers
@@ -43,6 +45,25 @@ namespace ALWTTT.Managers
 
             // Where to go after gig
             public GigReturnDestination returnDestination = GigReturnDestination.Map;
+
+            // M4.6-prep batch (2): per-musician auto-assembly toggle.
+            // When true, ApplyRunConfig ignores `bandDeck` and assembles the
+            // deck from each musician's CardCatalog plus the optional
+            // GigSetupConfigData.GenericStarterCatalog. When false, the
+            // legacy `bandDeck` path runs (BandDeckData asset → SetBandDeck).
+            public bool useMusicianStarters;
+
+            // M4.6-prep batch (2): human-readable label for logs. Set by
+            // GigSetupController to either bandDeck.name (legacy path) or
+            // "<auto:idA+idB>" style (auto-assembly path). Falls back to
+            // bandDeck.name if unset to preserve pre-batch log shape.
+            public string deckLabel;
+
+            // M4.6-prep merged (1)/(4): audience override list. When non-null and
+            // non-empty, the GigSetupController used the audience picker to override
+            // the encounter SO's baked audienceMemberList. When null/empty, the SO's
+            // baked list is used (regression-safe).
+            public List<AudienceCharacterData> audienceOverride;
         }
 
         public bool HasActiveRun => _hasActiveRun;
@@ -75,13 +96,11 @@ namespace ALWTTT.Managers
             _hasActiveRun = config != null;
 
             Debug.Log(
-                $"[GigRunContext] BeginRun | " +
-                $"InstanceId={GetInstanceID()} | " +
-                $"HasActiveRun={_hasActiveRun} | " +
-                $"ReturnDest={_current?.returnDestination} | " +
-                $"Deck={_current?.bandDeck?.name} | " +
-                $"Encounter={_current?.encounter?.GetLabel()}"
-            );
+                $"[GigRunContext] BeginRun -> " +
+                $"Deck={_current?.deckLabel ?? _current?.bandDeck?.name ?? "<unset>"}, " +
+                $"AutoAssembly={_current?.useMusicianStarters}, " +
+                $"AudienceOverride={(_current?.audienceOverride != null ? _current.audienceOverride.Count : 0)}, " +
+                $"Encounter={_current?.encounter?.GetLabel()}");
         }
 
         public void Clear()

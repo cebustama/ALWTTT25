@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using ALWTTT.Status;
@@ -22,7 +22,7 @@ namespace ALWTTT.Cards.Editor
         // Import
         // ------------------------------------------------------------------
 
-        public static ImportResult Import(string json, StatusEffectCatalogueSO catalogue)
+        public static ImportResult Import(string json, ALWTTTProjectRegistriesSO registries)
         {
             var result = new ImportResult();
 
@@ -56,10 +56,14 @@ namespace ALWTTT.Cards.Editor
 
             if (result.Errors.Count > 0) { result.Status = ImportResultStatus.Failed; return result; }
 
-            var catalogue_ = catalogue; // capture
-            var cardIndex  = BuildCardCatalogue();
-            var entries    = new List<StagedCardEntry>();
-            var seenCards  = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // by id, dedup check
+            var registries_ = registries; // capture
+            var cardIndex = BuildCardCatalogue();
+            var entries = new List<StagedCardEntry>();
+            // M4.4: tracks staged entries by id so we can combine duplicate
+            // "reference existing" entries into a single entry with summed
+            // count. Duplicate "create new" entries (kind != null) remain a
+            // hard error � those are conflicting definitions, not copies.
+            var byId = new Dictionary<string, StagedCardEntry>(StringComparer.OrdinalIgnoreCase);
             bool anyFailed = false;
 
             foreach (var entry in dto.cards)
@@ -67,11 +71,12 @@ namespace ALWTTT.Cards.Editor
                 if (entry == null) continue;
 
                 bool isCreateMode = !string.IsNullOrWhiteSpace(entry.kind);
+                int incomingCount = Math.Max(1, entry.count);
 
                 if (isCreateMode)
                 {
                     // --- Create new card ---
-                    if (!DeckCardCreationService.TryStageNewCard(entry, catalogue_, out var staged, out var err))
+                    if (!DeckCardCreationService.TryStageNewCard(entry, registries_, out var staged, out var err))
                     {
                         result.Errors.Add($"New card '{entry.id ?? "<no id>"}': {err}");
                         anyFailed = true;
@@ -79,21 +84,26 @@ namespace ALWTTT.Cards.Editor
                     }
 
                     string newId = staged.ResolvedCard?.Id ?? "";
-                    if (!string.IsNullOrEmpty(newId) && !seenCards.Add(newId))
+                    if (!string.IsNullOrEmpty(newId) && byId.ContainsKey(newId))
                     {
-                        result.Warnings.Add($"Duplicate card id '{newId}' in JSON was skipped.");
-                        // Destroy the staged objects to avoid leaks
-                        if (staged.pendingCard    != null) UnityEngine.Object.DestroyImmediate(staged.pendingCard);
+                        // Hard error: same id appearing as a fresh definition twice.
+                        result.Errors.Add(
+                            $"Duplicate card id '{newId}' as a new card definition. " +
+                            $"To request multiple copies, use 'count' on a single entry.");
+                        anyFailed = true;
+                        if (staged.pendingCard != null) UnityEngine.Object.DestroyImmediate(staged.pendingCard);
                         if (staged.pendingPayload != null) UnityEngine.Object.DestroyImmediate(staged.pendingPayload);
                         continue;
                     }
 
+                    staged.count = incomingCount;
                     entries.Add(staged);
+                    if (!string.IsNullOrEmpty(newId)) byId[newId] = staged;
                 }
                 else
                 {
                     // --- Reference existing card ---
-                    string cardId    = entry.cardId?.Trim()    ?? "";
+                    string cardId = entry.cardId?.Trim() ?? "";
                     string assetPath = entry.assetPath?.Trim() ?? "";
 
                     if (string.IsNullOrEmpty(cardId) && string.IsNullOrEmpty(assetPath))
@@ -110,16 +120,23 @@ namespace ALWTTT.Cards.Editor
                     }
 
                     string resolvedId = card.Id ?? "";
-                    if (!string.IsNullOrEmpty(resolvedId) && !seenCards.Add(resolvedId))
+                    if (!string.IsNullOrEmpty(resolvedId) && byId.TryGetValue(resolvedId, out var existing))
                     {
-                        result.Warnings.Add($"Duplicate card reference '{resolvedId}' was normalized to one entry (runtime would deduplicate anyway).");
+                        // M4.4: combine duplicate cardId entries additively.
+                        existing.count += incomingCount;
+                        result.Warnings.Add(
+                            $"Duplicate cardId '{resolvedId}' was combined into a single entry " +
+                            $"(now �{existing.count}). Consider authoring 'count' explicitly.");
                         continue;
                     }
 
                     if (!card.IsAction && !card.IsComposition)
                         result.Warnings.Add($"Card '{card.Id}' is neither Action nor Composition. SetBandDeck will silently drop it at runtime.");
 
-                    entries.Add(StagedCardEntry.FromExisting(card));
+                    var newEntry = StagedCardEntry.FromExisting(card);
+                    newEntry.count = incomingCount;
+                    entries.Add(newEntry);
+                    if (!string.IsNullOrEmpty(resolvedId)) byId[resolvedId] = newEntry;
                 }
             }
 
@@ -127,11 +144,11 @@ namespace ALWTTT.Cards.Editor
 
             var staged_ = new StagedDeck
             {
-                deckId      = dto.deckId?.Trim()      ?? "",
+                deckId = dto.deckId?.Trim() ?? "",
                 displayName = dto.displayName?.Trim() ?? "",
                 description = dto.description?.Trim() ?? "",
-                cards       = entries,
-                isDirty     = true
+                cards = entries,
+                isDirty = true
             };
 
             result.StagedDeck = staged_;
@@ -153,31 +170,36 @@ namespace ALWTTT.Cards.Editor
                 var e = staged.cards[i];
                 if (e == null) { entries[i] = new DeckCardEntryJson(); continue; }
 
+                int copyCount = Math.Max(1, e.count);
+
                 if (e.IsNew && e.pendingDto != null)
                 {
-                    // Round-trip the original creation DTO
-                    entries[i] = e.pendingDto;
+                    // Round-trip the original creation DTO, with count synced to staged.
+                    var dto = e.pendingDto;
+                    dto.count = copyCount;
+                    entries[i] = dto;
                 }
                 else
                 {
                     var card = e.ResolvedCard;
                     entries[i] = new DeckCardEntryJson
                     {
-                        cardId    = card?.Id ?? "",
-                        assetPath = card != null ? AssetDatabase.GetAssetPath(card) : ""
+                        cardId = card?.Id ?? "",
+                        assetPath = card != null ? AssetDatabase.GetAssetPath(card) : "",
+                        count = copyCount,
                     };
                 }
             }
 
-            var dto = new DeckJsonDto
+            var dto_ = new DeckJsonDto
             {
-                deckId      = staged.deckId,
+                deckId = staged.deckId,
                 displayName = staged.displayName,
                 description = staged.description,
-                cards       = entries
+                cards = entries
             };
 
-            return JsonUtility.ToJson(dto, prettyPrint: true);
+            return JsonUtility.ToJson(dto_, prettyPrint: true);
         }
 
         // ------------------------------------------------------------------
@@ -190,7 +212,7 @@ namespace ALWTTT.Cards.Editor
             out CardDefinition card, out string error)
         {
             error = null;
-            card  = null;
+            card = null;
 
             if (!string.IsNullOrEmpty(cardId))
             {

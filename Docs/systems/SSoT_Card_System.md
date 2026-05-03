@@ -313,6 +313,7 @@ Legacy material must never silently overrule this SSoT.
 - how cards express mechanics via effects
 - performer and targeting semantics
 - the ALWTTT-side meaning of composition-related card choices
+- deck-level multiplicity (multiset shape, runtime expansion, pile-lifecycle invariance under play and reshuffle)
 
 ### This SSoT does not own
 - JSON/editor pipeline details
@@ -321,3 +322,19 @@ Legacy material must never silently overrule this SSoT.
 - lower-level MidiGenPlay algorithm details
 
 Those belong elsewhere even if the same card touches them indirectly.
+
+---
+
+## 13. Deck multiplicity (M4.4)
+
+A band's deck is a multiset of cards, not a set. The data layer authority lives in `BandDeckData`, expressed as `List<BandDeckEntry> entries`, where each entry pairs a `CardDefinition` with an integer `count` ≥ 1. Two entries pointing to the same `CardDefinition` is not the intended shape — the Deck Editor and the JSON importer combine them on save.
+
+**Runtime materialization.** `PersistentGameplayData.SetBandDeck` expands counts into independent references: a count-3 entry contributes three references to `CurrentActionCards` (or `CurrentCompositionCards` for a Composition card). The pre-M4.4 dedup-by-reference rule in `SetBandDeck` is gone; multiplicity is the contract.
+
+**Pile lifecycle preserves identity.** `DeckManager` operates on `List<CardDefinition>` for `DrawPile`, `HandPile`, `DiscardPile`, `ExhaustPile`. `List.Remove(cardDef)` removes the *first* matching reference. Drawing one of three Steady Beat copies into the hand and playing it removes one reference — the other two remain accessible across draw, discard, and reshuffle. Total references across all piles is invariant under play and reshuffle.
+
+**Legacy migration is lazy.** Pre-M4.4 assets serialized a flat `List<CardDefinition> cards` field. That field is preserved as `legacyCards` via `[FormerlySerializedAs("cards")]`. `BandDeckData.Entries` returns the new `entries` list when populated, otherwise materializes a count-1 view from `legacyCards` on access. The Deck Editor's save path writes `entries` and clears `legacyCards`, so an asset upgrades the first time it is saved through the editor. No batch migration script.
+
+**Helper for flat consumers.** `BandDeckData.EnumerateCards()` yields a flat `IEnumerable<CardDefinition>` with multiplicity expanded — used by `GigManager`'s deck-source resolution paths (`RunContextBandDeck`, `Auto` fallback). `SetBandDeck` operates directly on `Entries` because it computes per-domain totals for logging.
+
+**Runtime guarantee cross-reference (M4.5).** The PlayerTurn-entry hand draw guarantees at least one Action and one Composition card in hand when `DrawPile ∪ DiscardPile` allow, without exceeding `DrawCount`. Multiplicity (this section) makes "piles allow" near-universal in practice for the v1 starter, since multiple copies of the same domain card spread across piles after a few turns. The guarantee mechanism itself is owned by `SSoT_Runtime_Flow.md §4.2`.

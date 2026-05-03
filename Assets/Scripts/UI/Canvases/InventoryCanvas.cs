@@ -18,6 +18,9 @@ namespace ALWTTT.UI
         [SerializeField] private LayoutGroup songSpawnRoot;
         [SerializeField] private GameObject songUIPrefab;
 
+        [Header("Scroll")]
+        [SerializeField] private ScrollRect scrollRect;
+
         public TextMeshProUGUI TitleTextField => titleTextField;
         public LayoutGroup CardSpawnRoot => cardSpawnRoot;
 
@@ -57,6 +60,13 @@ namespace ALWTTT.UI
                     cardBase.SetCard(cardData, false);
                     spawnedCardList.Add(cardBase);
                 }
+            }
+
+            if (scrollRect != null)
+            {
+                Canvas.ForceUpdateCanvases();
+                LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
+                scrollRect.verticalNormalizedPosition = 1f;
             }
         }
 
@@ -102,6 +112,13 @@ namespace ALWTTT.UI
                         + songData.Complexity;
                     spawnedSongList.Add(songUI);
                 }
+            }
+
+            if (scrollRect != null)
+            {
+                Canvas.ForceUpdateCanvases();
+                LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
+                scrollRect.verticalNormalizedPosition = 1f;
             }
         }
 

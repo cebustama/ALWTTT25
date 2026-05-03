@@ -86,6 +86,74 @@ namespace ALWTTT.Cards.Editor
             w.Show();
         }
 
+        /// <summary>
+        /// Opens the Card Editor and navigates to the given card's musician catalogue entry.
+        /// Called from the Deck Editor's Edit button (M1.1b cross-tool integration).
+        /// </summary>
+        public static void OpenAndSelect(CardDefinition card)
+        {
+            if (card == null) return;
+
+            var w = GetWindow<CardEditorWindow>();
+            w.titleContent = new GUIContent("Card Editor");
+            w.minSize = new Vector2(LeftPanelMinWidth + RightPanelMinWidth, 520f);
+            w.Show();
+            w.NavigateToCard(card);
+        }
+
+        private void NavigateToCard(CardDefinition card)
+        {
+            if (card == null) return;
+
+            RefreshMusicianCache();
+
+            // 1. Try the card's fixed performer type first.
+            var targetMusician = card.RequiresFixedPerformer
+                ? card.FixedPerformerType
+                : MusicianCharacterType.None;
+
+            // 2. If no fixed performer (AnyMusician rule), scan all catalogues.
+            if (targetMusician == MusicianCharacterType.None)
+            {
+                foreach (var kvp in _musicianCache)
+                {
+                    var data = kvp.Value;
+                    if (data?.CardCatalog == null) continue;
+                    if (MusicianCatalogService.ContainsCard(data.CardCatalog, card))
+                    {
+                        targetMusician = kvp.Key;
+                        break;
+                    }
+                }
+            }
+
+            // 3. If still not found in any catalogue, just ping the asset.
+            if (targetMusician == MusicianCharacterType.None)
+            {
+                EditorGUIUtility.PingObject(card);
+                return;
+            }
+
+            // 4. Load the musician's catalogue and find the entry index.
+            _selectedMusician = targetMusician;
+            TryLoadSelectedMusicianAndCatalog();
+
+            if (_loadedCatalog?.Entries != null)
+            {
+                for (int i = 0; i < _loadedCatalog.Entries.Count; i++)
+                {
+                    var entry = _loadedCatalog.Entries[i];
+                    if (entry?.card == card)
+                    {
+                        _selectedEntryIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            Repaint();
+        }
+
         private void OnEnable()
         {
             ResolveRegistries();
@@ -218,15 +286,31 @@ namespace ALWTTT.Cards.Editor
                             EditorStyles.toolbarButton, GUILayout.Width(45)))
                             EditorGUIUtility.PingObject(_registries);
                     }
+
+                    GUILayout.Space(10);
+                    using (new EditorGUI.DisabledScope(_loadedCatalog == null))
+                    {
+                        if (GUILayout.Button("Print",
+                            EditorStyles.toolbarButton, GUILayout.Width(56)))
+                            PrintLoadedCatalog();
+                    }
                 }
 
-                if (_registries != null && (_registries.StatusCatalogue == null || _registries.CSO == null))
+                if (_registries != null)
                 {
-                    EditorGUILayout.HelpBox(
-                        "ALWTTTProjectRegistriesSO is assigned but missing " +
-                        "CSO and/or StatusCatalogue references.\n" +
-                        "Open the registries asset and assign the missing fields.",
-                        MessageType.Warning);
+                    var missing = new System.Collections.Generic.List<string>();
+                    if (_registries.CSO == null) missing.Add("CSO Primitive Database");
+                    if (_registries.StatusCatalogueMusicians == null) missing.Add("StatusEffectCatalogue (Musicians)");
+                    if (_registries.StatusCatalogueAudience == null) missing.Add("StatusEffectCatalogue (Audience)");
+
+                    if (missing.Count > 0)
+                    {
+                        EditorGUILayout.HelpBox(
+                            "ALWTTTProjectRegistriesSO is assigned but missing: " +
+                            string.Join(", ", missing) + ".\n" +
+                            "Open the registries asset and assign the missing fields.",
+                            MessageType.Warning);
+                    }
                 }
             }
         }
@@ -480,38 +564,137 @@ namespace ALWTTT.Cards.Editor
             GUILayout.Label($"Entries (filtered): {shown} / {entries.Count}", EditorStyles.miniBoldLabel);
             EditorGUILayout.Space(4);
 
-            // Entry list
+            // ─── Entry list (per-row Starter + Copies columns, batch (3.A)) ───
+            SerializedObject catSo = null;
+            SerializedProperty entriesArrSp = null;
+            if (_loadedCatalog != null)
+            {
+                catSo = new SerializedObject(_loadedCatalog);
+                entriesArrSp = catSo.FindProperty("entries");
+                catSo.Update();
+            }
+
             for (int i = 0; i < entries.Count; i++)
             {
                 var e = entries[i];
                 if (!PassesFilters(e)) continue;
 
-                bool isSelected = i == _selectedEntryIndex;
-
-                string flags = "";
-                if (e.IsStarter) flags += "S";
-                if (e.IsReward) flags += "R";
-                if (!e.UnlockedByDefault) flags += "L";
-
-                string domain = e.card.IsAction ? "A" : (e.card.IsComposition ? "C" : "?");
-
-                string label = string.IsNullOrEmpty(flags)
-                    ? $"{domain} {e.card.DisplayName}"
-                    : $"{domain} [{flags}] {e.card.DisplayName}";
-
-                if (GUILayout.Toggle(isSelected, label, "Button"))
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (!isSelected)
+                    // Starter checkbox column (~38px) — commits via SerializedProperty for Undo + SetDirty
+                    bool isStarter = e.IsStarter;
+                    if (catSo != null && entriesArrSp != null && i < entriesArrSp.arraySize)
                     {
-                        _selectedEntryIndex = i;
-                        GUI.FocusControl(null);
-                        Repaint();
+                        var entryProp = entriesArrSp.GetArrayElementAtIndex(i);
+                        var flagsProp = entryProp.FindPropertyRelative("flags");
+                        var copiesProp = entryProp.FindPropertyRelative("starterCopies");
+
+                        EditorGUI.BeginChangeCheck();
+                        bool newStarter = EditorGUILayout.ToggleLeft(
+                            "S", isStarter, GUILayout.Width(38));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            int v = flagsProp.intValue;
+                            if (newStarter) v |= (int)CardAcquisitionFlags.StarterDeck;
+                            else v &= ~(int)CardAcquisitionFlags.StarterDeck;
+                            flagsProp.intValue = v;
+                            isStarter = newStarter;
+                        }
+
+                        // Copies column (~40px), greyed when not starter
+                        using (new EditorGUI.DisabledScope(!isStarter))
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            int newCopies = EditorGUILayout.IntField(
+                                copiesProp.intValue, GUILayout.Width(40));
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                if (newCopies < 1) newCopies = 1;
+                                copiesProp.intValue = newCopies;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Defensive: no SerializedObject available — show disabled placeholders
+                        using (new EditorGUI.DisabledScope(true))
+                        {
+                            EditorGUILayout.ToggleLeft("S", false, GUILayout.Width(38));
+                            EditorGUILayout.IntField(1, GUILayout.Width(40));
+                        }
+                    }
+
+                    // Selection row button (existing behavior; label rebuilt without [S])
+                    bool isSelected = i == _selectedEntryIndex;
+
+                    string flagsStr = "";
+                    if (e.IsReward) flagsStr += "R";
+                    if (!e.UnlockedByDefault) flagsStr += "L";
+
+                    string domain = (e.card != null && e.card.IsAction) ? "A"
+                                  : (e.card != null && e.card.IsComposition) ? "C"
+                                  : "?";
+
+                    string nameTxt = e.card != null ? e.card.DisplayName : "<null card>";
+                    string label = string.IsNullOrEmpty(flagsStr)
+                        ? $"{domain} {nameTxt}"
+                        : $"{domain} [{flagsStr}] {nameTxt}";
+
+                    if (GUILayout.Toggle(isSelected, label, "Button"))
+                    {
+                        if (!isSelected)
+                        {
+                            _selectedEntryIndex = i;
+                            GUI.FocusControl(null);
+                            Repaint();
+                        }
                     }
                 }
             }
 
+            if (catSo != null) catSo.ApplyModifiedProperties();
+
             if (shown == 0)
                 EditorGUILayout.HelpBox("No entries match the current filters.", MessageType.Info);
+        }
+
+        private void PrintLoadedCatalog()
+        {
+            if (_loadedCatalog == null) { Debug.Log("[CardEditor] No catalog loaded."); return; }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("=== CARD EDITOR — CATALOG DUMP ===");
+            sb.AppendLine($"Musician: {_loadedCatalog.MusicianType}");
+            sb.AppendLine($"Catalog: {_loadedCatalog.name} ({AssetDatabase.GetAssetPath(_loadedCatalog)})");
+
+            var es = _loadedCatalog.Entries;
+            int entryCount = es?.Count ?? 0;
+            int starterCount = 0, starterCopiesTotal = 0;
+            if (es != null)
+            {
+                foreach (var e in es)
+                {
+                    if (e == null) continue;
+                    if (e.IsStarter) { starterCount++; starterCopiesTotal += Mathf.Max(1, e.starterCopies); }
+                }
+            }
+            sb.AppendLine($"Entries: {entryCount} (starter entries: {starterCount}, total starter copies: {starterCopiesTotal})");
+            sb.AppendLine();
+
+            if (es != null)
+            {
+                for (int i = 0; i < es.Count; i++)
+                {
+                    var e = es[i];
+                    if (e == null) { sb.AppendLine($"[{i + 1}] <null entry>"); continue; }
+
+                    string id = e.card != null ? e.card.Id : "<null card>";
+                    string kind = e.card == null ? "?" : (e.card.IsAction ? "Action" : (e.card.IsComposition ? "Composition" : "?"));
+                    sb.AppendLine($"[{i + 1}] {id} — {kind}, flags=[{e.flags}], copies={e.starterCopies}, unlockId={(string.IsNullOrEmpty(e.unlockId) ? "<none>" : e.unlockId)}");
+                }
+            }
+
+            Debug.Log(sb.ToString());
         }
 
         private bool PassesFilters(MusicianCardEntry e)

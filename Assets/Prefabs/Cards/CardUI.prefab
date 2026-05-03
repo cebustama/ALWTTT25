@@ -35,6 +35,41 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 1, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &6477550613000967196
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4759268082142480627}
+  m_Layer: 8
+  m_Name: TooltipAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &4759268082142480627
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6477550613000967196}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5661437344117720047}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 1, y: 1}
 --- !u!1 &6732153104509134494
 GameObject:
   m_ObjectHideFlags: 0
@@ -67,6 +102,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 4759268082142480627}
   - {fileID: 4638888607148807900}
   - {fileID: 9069316942307147365}
   m_Father: {fileID: 0}
@@ -97,13 +133,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   descriptionRoot: {fileID: 4638888607148807900}
+  tooltipAnchor: {fileID: 4759268082142480627}
   cardImage: {fileID: 5153641007469403891}
   backgroundImage: {fileID: 7902859909872050512}
   passiveImage: {fileID: 0}
   nameTextField: {fileID: 8103016476528782798}
   descTextField: {fileID: 1941344470251713790}
-  grooveCostTextField: {fileID: 7292270004405966764}
-  grooveGenTextField: {fileID: 7028356461410207724}
+  inspirationCostTextField: {fileID: 7292270004405966764}
+  inspirationGenTextField: {fileID: 7028356461410207724}
   typeTextField: {fileID: 3011037641633498653}
 --- !u!223 &4606184839413974192
 Canvas:
@@ -167,7 +204,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1651472762241934067, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 5.05
+      value: 5.3
       objectReference: {fileID: 0}
     - target: {fileID: 2167336853314628054, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
@@ -179,7 +216,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2725634283359784976, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 7.4
+      value: 8.2
       objectReference: {fileID: 0}
     - target: {fileID: 2839065570447896666, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
@@ -315,7 +352,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5715593493086095648, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 9.6
+      value: 10.05
       objectReference: {fileID: 0}
     - target: {fileID: 5716483695520293257, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Name
@@ -327,11 +364,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6490029684621210434, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 11.95
+      value: 10.35
       objectReference: {fileID: 0}
     - target: {fileID: 6821778627196199682, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_fontSize
-      value: 8.6
+      value: 7.45
       objectReference: {fileID: 0}
     - target: {fileID: 7430540641808822920, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer

@@ -117,6 +117,28 @@ Contract:
 
 **Historical note:** prior to 2026-04-20 these flags were set exactly once in `SetupGig()` and `_actionWindowOpen` flipped to false on the first `OnPlayPressed`, never to be reopened. The result was a latent bug: action cards became unplayable in the second and all subsequent songs of any multi-song gig (Dev Mode or production). Fixed in GigManager 2026-04-20 and validated by ST-FIX-1 (normal multi-song) and ST-FIX-2 (Dev Mode infinite turns).
 
+#### 4.2 Bidirectional guaranteed draws (M4.5, 2026-04-30)
+
+`ExecuteGigPhase(PlayerTurn)` calls `DeckManager.DrawCardsForPlayerTurn(DrawCount)` instead of the bare `DrawCards(DrawCount)`. The wrapper guarantees that the hand starts the turn with at least one Action card and at least one Composition card, when the piles allow it, without exceeding `DrawCount` or `MaxCardsOnHand`.
+
+**Subtractive rule.** Total cards drawn at PlayerTurn entry never exceeds `min(DrawCount, MaxCardsOnHand - HandPile.Count, DrawPile.Count + DiscardPile.Count)`. Guarantees consume normal slots; they do not extend the hand size.
+
+**Three-phase algorithm.**
+1. Compute `needComp = !HandHas(IsComposition) && PilesHave(IsComposition)`. Symmetric for `needAction`. Reserve one slot per need.
+2. Phase 1: draw `effectiveBudget - reserved` cards through the normal random path.
+3. Phase 2: re-evaluate each need against the current hand. If a Phase 1 random draw already satisfied the need, the reserved slot is freed. Otherwise call `DrawCardFiltered(predicate, reasonTag)` to draw exactly one matching card.
+4. Phase 3: any reserved slots freed by re-evaluation are filled with normal random draws.
+
+**Filtered draw.** `DeckManager.DrawCardFiltered(Func<CardDefinition,bool>, string)` scans `DrawPile` for matches, picks one uniformly at random, removes it, and adds it to the hand through the same `BuildAndGetCard` → `AddCardToHand` → `HandPile` path used by `DrawCards`. If `DrawPile` has no match but `DiscardPile` does, `ReshuffleDiscardPile()` triggers once and the scan retries. Returns `false` when no match exists in either pile, when prerequisites block the draw, or when the hand is at `MaxCardsOnHand`.
+
+**Tie-break.** When `effectiveBudget < reserved` (e.g. budget = 1 and both guarantees needed), Composition wins. Action guarantee is skipped that turn. Rationale: an action-less turn is recoverable through composition play; a composition-less turn stalls the song.
+
+**Hook collapse.** The roadmap's "two symmetric hooks" framing (composition phase entry + action window entry) collapses to a single site in current implementation because both windows open simultaneously at PlayerTurn entry. There is no separate composition-phase-entry callable in `GigManager`. If a future redesign separates the action window from the composition window into distinct phase transitions, the hook split happens then.
+
+**Observability.** Each PlayerTurn emits one summary log line via `DeckManager._lastTurnGuaranteeSummary` (format: `needs=[CA] reserved=N fired=[CA] drawn=K/B`) and one `[M4.5 GuaranteeComp]` / `[M4.5 GuaranteeAction]` line per fire. The summary is exposed to the Dev Mode overlay via `DeckManager.LastTurnGuaranteeSummary` and rendered as `M4.5 last draw: …` always-on (independent of `_verboseLogs`).
+
+**Exhaustion case.** If a domain has zero references in `DrawPile ∪ DiscardPile` (all references in `HandPile` or `ExhaustPile`, or none authored in the deck), the corresponding guarantee skips silently with a log line. Cannot violate the guarantee contract because the contract is conditional on "piles allow." With the v1 starter (no `ExhaustAfterPlay` cards), this case is not reachable in normal play.
+
 ### Phase 2 — Composition phase
 Purpose:
 - player edits the current song/part state through composition cards and composition UI
@@ -234,6 +256,7 @@ This is the canonical runtime handoff used to drive:
 6. Loop/part/song feedback belongs to the ALWTTT runtime contract even when downstream systems use MidiGenPlay for playback/generation.
 7. `ExecuteGigPhase()` is bypassed while a `CompositionSession` is active. Phase machine and session lifecycle are explicitly decoupled.
 8. **Action window flags (`_actionWindowOpen`, `_isBetweenSongs`) are per-PlayerTurn, not per-gig.** They are re-asserted to `true` at the top of `ExecuteGigPhase(PlayerTurn)` after the completion check. Any future gig-flow code that adds new single-use-per-gig flags must document its lifecycle explicitly here (see §4.1).
+9. **Hand draw at PlayerTurn entry guarantees ≥1 Action and ≥1 Composition card in hand when `DrawPile ∪ DiscardPile` allow, without exceeding `DrawCount` or `MaxCardsOnHand` (M4.5, see §4.2).** The guarantee is subtractive — it consumes normal draw slots. Composition wins when budget cannot fit both. Implemented via `DeckManager.DrawCardsForPlayerTurn` + `DrawCardFiltered`.
 
 ---
 

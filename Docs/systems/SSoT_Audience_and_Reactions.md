@@ -157,6 +157,8 @@ MVP categories:
 4. **Special encounter actions**  
    Rare, encounter-specific exceptions.
 
+Audience members may also carry player-applied statuses that shape their state during the audience turn — Earworm (M4.3) is the first. These statuses are not abilities; they are persistent effects whose runtime contract is owned by `systems/SSoT_Status_Effects.md` and whose tick hooks live in `GigManager.AudienceTurnRoutine`. The audience-side status surface is data-extensible through `StatusEffectCatalogue_Audience.asset`.
+
 This SSoT owns the audience-facing gameplay meaning of those categories.
 Detailed execution timing belongs to runtime.
 Any status semantics used by those abilities belong to the status SSoT.
@@ -186,7 +188,7 @@ For the baseline MVP, keep these rules true:
 - audience preferences are simple and readable
 - audience pressure is primarily expressed through Stress-oriented abilities
 - intention telegraphing is favored over hidden surprise logic
-- audience-side statuses are optional and not required for the MVP baseline
+- audience-side statuses are part of the MVP baseline; Earworm (M4.3) is the first active audience-side status. Future audience-side statuses extend this set through `StatusEffectCatalogue_Audience`.
 
 ---
 

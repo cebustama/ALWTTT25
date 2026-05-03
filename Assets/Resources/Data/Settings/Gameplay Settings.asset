@@ -20,8 +20,8 @@ MonoBehaviour:
   initialMusicianList:
   - {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
   - {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
-  - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
   - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
+  - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
   initialSongList:
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
   - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
@@ -41,7 +41,7 @@ MonoBehaviour:
   initialCompositionDeck: {fileID: 11400000, guid: 37efae426d58b844a9e5be7229e9a6cd, type: 2}
   actionCardPool: []
   compositionCardPool: []
-  drawCount: 10
+  drawCount: 2
   maxCardsOnHand: 10
   maxInspiration: 5
   discardHandBetweenTurns: 1
@@ -70,6 +70,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e6959291718ff8044b05ce9c895c24c6, type: 2}
   - {fileID: 11400000, guid: cf42d211cf647444ba22202e1e3cdbab, type: 2}
   - {fileID: 11400000, guid: 995af23134ab0144aaed4050765eccdc, type: 2}
+  - {fileID: 11400000, guid: e4f27706ddaa2434684a899373365d45, type: 2}
   cardPrefab: {fileID: 5965618076488326275, guid: 15bfb561cbf35f04b9148c67d30ade30, type: 3}
   cardTypeEntryList:
   - CardType: 0

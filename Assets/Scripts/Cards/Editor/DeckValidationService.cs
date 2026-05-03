@@ -25,6 +25,8 @@ namespace ALWTTT.Cards.Editor
             if (staged.cards != null)
             {
                 var seenCards = new HashSet<CardDefinition>();
+                int actionCount = 0;
+                int compositionCount = 0;
 
                 for (int i = 0; i < staged.cards.Count; i++)
                 {
@@ -46,9 +48,18 @@ namespace ALWTTT.Cards.Editor
                     if (!seenCards.Add(card))
                         result.Warnings.Add($"Card '{card.Id}' appears more than once. The runtime will deduplicate it.");
 
-                    if (!card.IsAction && !card.IsComposition)
+                    if (card.IsAction) actionCount++;
+                    else if (card.IsComposition) compositionCount++;
+                    else
                         result.Warnings.Add($"Card '{card.Id}' ({card.DisplayName}) is neither Action nor Composition. SetBandDeck will drop it at runtime.");
                 }
+
+                // M1.1c — composition / action ratio warnings
+                if (staged.cards.Count > 0 && compositionCount == 0)
+                    result.Warnings.Add("Deck has no Composition cards. The band will not be able to build songs.");
+
+                if (staged.cards.Count > 0 && actionCount == 0)
+                    result.Warnings.Add("Deck has no Action cards. The band will have no combat tools.");
             }
 
             if (string.IsNullOrWhiteSpace(staged.displayName))

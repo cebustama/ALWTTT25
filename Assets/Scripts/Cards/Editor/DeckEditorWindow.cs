@@ -1,7 +1,12 @@
 #if UNITY_EDITOR
+using ALWTTT.Cards.Effects;
 using ALWTTT.Data;
+using ALWTTT.Enums;
+using ALWTTT.Musicians;
+using ALWTTT.Status;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -37,6 +42,18 @@ namespace ALWTTT.Cards.Editor
         private const float CatalogueMinHeight = 80f;
         private const float CatalogueMaxHeight = 600f;
 
+        private const string PrefKeyLastSaveFolder = "ALWTTT_DeckEditor_LastSaveFolder";
+
+        // --- M1.1a: catalogue effect-type filter ---
+        private enum CatalogueEffectFilter
+        {
+            All,
+            HasStress,
+            HasVibe,
+            HasStatus,
+            HasDraw
+        }
+
         // Serialized (survive domain reload)
         [SerializeField] private BandDeckData _targetDeckAsset;
         [SerializeField] private GigSetupConfigData _gigSetupConfig;
@@ -47,6 +64,8 @@ namespace ALWTTT.Cards.Editor
         [SerializeField] private bool _filterAction = true;
         [SerializeField] private bool _filterComposition = true;
         [SerializeField] private string _catalogueSearch = "";
+        [SerializeField] private MusicianCharacterType _filterMusician = MusicianCharacterType.None;
+        [SerializeField] private CatalogueEffectFilter _filterEffect = CatalogueEffectFilter.All;
         [SerializeField] private float _catalogueHeight = 220f;
         [SerializeField] private Vector2 _catalogueScroll;
         [SerializeField] private float _splitRatio = 0.42f;
@@ -173,6 +192,8 @@ namespace ALWTTT.Cards.Editor
                     using (new EditorGUI.DisabledScope((_staged?.cards?.Count ?? 0) == 0))
                         if (GUILayout.Button("Export JSON", GUILayout.Width(88))) { DoExportJson(); GUIUtility.ExitGUI(); }
 
+                    if (GUILayout.Button("Print", GUILayout.Width(56))) { PrintStagedDeck(); GUIUtility.ExitGUI(); }
+
                     // Clear All
                     if (GUILayout.Button("Clear All", GUILayout.Width(68))) { DoClearAll(); GUIUtility.ExitGUI(); }
                 }
@@ -225,13 +246,21 @@ namespace ALWTTT.Cards.Editor
             GUI.Box(rect, GUIContent.none, EditorStyles.helpBox);
             Rect inner = Inset(rect, PanePadding);
 
-            int total = _staged?.cards?.Count ?? 0;
-            string label = total > 0 ? $"Staged Deck  ({total} cards)" : "Staged Deck  (empty)";
+            // M4.4: total reflects expanded count, not unique entries.
+            int unique = _staged?.cards?.Count ?? 0;
+            int total = 0;
+            if (_staged?.cards != null)
+                for (int i = 0; i < _staged.cards.Count; i++)
+                    total += Mathf.Max(0, _staged.cards[i]?.count ?? 0);
+
+            string label = unique > 0
+                ? $"Staged Deck  ({total} cards, {unique} unique)"
+                : "Staged Deck  (empty)";
             EditorGUI.LabelField(new Rect(inner.x, inner.y, inner.width, RowHeight), label, EditorStyles.boldLabel);
 
             float y = inner.y + RowHeight + 4f;
 
-            if (total == 0)
+            if (unique == 0)
             {
                 EditorGUI.HelpBox(new Rect(inner.x, y, inner.width, 40f),
                     "No cards staged. Import JSON or load an existing deck.", MessageType.Info);
@@ -239,7 +268,7 @@ namespace ALWTTT.Cards.Editor
             }
 
             Rect sr = new Rect(inner.x, y, inner.width, Mathf.Max(40f, inner.yMax - y - 2f));
-            float ch = total * (RowHeight + 2f);
+            float ch = unique * (RowHeight + 2f);
             Rect vr = new Rect(0, 0, sr.width - 16f, Mathf.Max(ch, sr.height));
 
             _leftScroll = GUI.BeginScrollView(sr, _leftScroll, vr);
@@ -257,15 +286,30 @@ namespace ALWTTT.Cards.Editor
             if (index % 2 == 0)
                 EditorGUI.DrawRect(new Rect(x, y, width, RowHeight), new Color(0f, 0f, 0f, 0.05f));
 
-            float removeW = 55f, pingW = 40f;
+            // M4.4 layout additions: ×N badge + minus/plus buttons sit between
+            // the label and the existing Edit/Ping/Remove buttons.
+            float removeW = 55f;
+            float pingW = 40f;
+            float editW = 35f;
+            float minusW = 22f;
+            float plusW = 22f;
+            float countW = 32f;
             bool isNew = entry?.IsNew ?? false;
-            float badgeW = isNew ? 40f : 0f;
-            float labelW = Mathf.Max(10f, width - removeW - pingW - badgeW - 10f);
+            float newBadge = isNew ? 40f : 0f;
+            // Total width consumed by the right-side controls
+            float rightSideW = newBadge + countW + minusW + plusW + editW + pingW + removeW + 14f;
+            float labelW = Mathf.Max(10f, width - rightSideW);
 
             Rect lR = new Rect(x + 4f, y + 1f, labelW, RowHeight - 2f);
-            Rect bR = new Rect(lR.xMax + 2f, y + 1f, badgeW, RowHeight - 2f);
-            Rect pR = new Rect(bR.xMax + 2f, y + 1f, pingW, RowHeight - 2f);
+            Rect bR = new Rect(lR.xMax + 2f, y + 1f, newBadge, RowHeight - 2f);
+            Rect cR = new Rect(bR.xMax + 2f, y + 1f, countW, RowHeight - 2f);
+            Rect mR = new Rect(cR.xMax + 2f, y + 1f, minusW, RowHeight - 2f);
+            Rect plR = new Rect(mR.xMax + 2f, y + 1f, plusW, RowHeight - 2f);
+            Rect eR = new Rect(plR.xMax + 2f, y + 1f, editW, RowHeight - 2f);
+            Rect pR = new Rect(eR.xMax + 2f, y + 1f, pingW, RowHeight - 2f);
             Rect rR = new Rect(pR.xMax + 2f, y + 1f, removeW, RowHeight - 2f);
+
+            int currentCount = Mathf.Max(1, entry?.count ?? 1);
 
             var card = entry?.ResolvedCard;
             if (card == null)
@@ -275,17 +319,67 @@ namespace ALWTTT.Cards.Editor
             else
             {
                 string domain = card.IsAction ? "A" : card.IsComposition ? "C" : "?";
-                EditorGUI.LabelField(lR, $"[{domain}] {card.Id}  —  {card.DisplayName}", EditorStyles.miniLabel);
+                int cost = card.InspirationCost;
+                string summary = GetPlainEffectSummary(card);
+                string text = string.IsNullOrEmpty(summary)
+                    ? $"[{domain} \u2605{cost}] {card.Id}  \u2014  {card.DisplayName}"
+                    : $"[{domain} \u2605{cost}] {card.Id}  \u2014  {card.DisplayName}  \u25b8 {summary}";
+
+                EditorGUI.LabelField(lR, text, EditorStyles.miniLabel);
 
                 if (isNew)
                 {
-                    // Highlight the [NEW] badge
                     EditorGUI.DrawRect(bR, new Color(0.2f, 0.6f, 0.2f, 0.25f));
                     EditorGUI.LabelField(bR, "[NEW]", EditorStyles.centeredGreyMiniLabel);
                 }
 
+                // M4.4: count badge ×N
+                EditorGUI.LabelField(cR, $"×{currentCount}", EditorStyles.centeredGreyMiniLabel);
+
+                // M1.1b — Open in Card Editor
+                if (GUI.Button(eR, "Edit", EditorStyles.miniButton))
+                    CardEditorWindow.OpenAndSelect(card);
+
                 if (GUI.Button(pR, "Ping", EditorStyles.miniButton))
                     EditorGUIUtility.PingObject(card);
+            }
+
+            // M4.4: minus button. At count==1 this collapses to "remove the entry"
+            // (same as clicking Remove). Disabled when entry is invalid.
+            using (new EditorGUI.DisabledScope(entry == null))
+            {
+                if (GUI.Button(mR, "-", EditorStyles.miniButton))
+                {
+                    if (currentCount > 1)
+                    {
+                        entry.count = currentCount - 1;
+                        _staged.isDirty = true;
+                        RefreshValidation();
+                        Repaint();
+                    }
+                    else
+                    {
+                        // count==1 → remove the entry entirely
+                        if (entry.IsNew)
+                        {
+                            if (entry.pendingCard != null) UnityEngine.Object.DestroyImmediate(entry.pendingCard);
+                            if (entry.pendingPayload != null) UnityEngine.Object.DestroyImmediate(entry.pendingPayload);
+                        }
+                        _staged.cards.RemoveAt(index);
+                        _staged.isDirty = true;
+                        RefreshValidation();
+                        Repaint();
+                        return;
+                    }
+                }
+
+                if (GUI.Button(plR, "+", EditorStyles.miniButton))
+                {
+                    entry.count = currentCount + 1;
+                    _staged.isDirty = true;
+                    RefreshValidation();
+                    Repaint();
+                }
             }
 
             if (GUI.Button(rR, "Remove", EditorStyles.miniButton))
@@ -393,13 +487,26 @@ namespace ALWTTT.Cards.Editor
 
             float y = inner.y + RowHeight + 2f;
 
+            // --- Filter row 1: search + kind toggles + refresh ---
             Rect fr = new Rect(inner.x, y, inner.width, RowHeight);
-            float sw = fr.width * 0.45f;
+            float sw = fr.width * 0.30f;
 
             EditorGUI.BeginChangeCheck();
             _catalogueSearch = _searchField.OnGUI(new Rect(fr.x, fr.y, sw, fr.height), _catalogueSearch);
             _filterAction = EditorGUI.ToggleLeft(new Rect(fr.x + sw + 6f, fr.y, 60f, fr.height), "Action", _filterAction);
             _filterComposition = EditorGUI.ToggleLeft(new Rect(fr.x + sw + 72f, fr.y, 90f, fr.height), "Composition", _filterComposition);
+
+            // --- M1.1a: musician + effect type filters inline ---
+            float mLabelX = fr.x + sw + 168f;
+            EditorGUI.LabelField(new Rect(mLabelX, fr.y, 55f, fr.height), "Musician:", EditorStyles.miniLabel);
+            _filterMusician = (MusicianCharacterType)EditorGUI.EnumPopup(
+                new Rect(mLabelX + 55f, fr.y, 100f, fr.height), _filterMusician);
+
+            float eLabelX = mLabelX + 162f;
+            EditorGUI.LabelField(new Rect(eLabelX, fr.y, 42f, fr.height), "Effect:", EditorStyles.miniLabel);
+            _filterEffect = (CatalogueEffectFilter)EditorGUI.EnumPopup(
+                new Rect(eLabelX + 42f, fr.y, 85f, fr.height), _filterEffect);
+
             if (EditorGUI.EndChangeCheck() || _catalogueDirty) { ApplyCatalogueFilter(); _catalogueDirty = false; }
 
             if (GUI.Button(new Rect(fr.xMax - 65f, fr.y, 65f, fr.height - 2f), "Refresh", EditorStyles.miniButton))
@@ -407,6 +514,7 @@ namespace ALWTTT.Cards.Editor
 
             y = fr.yMax + 2f;
 
+            // --- Card rows ---
             Rect lr = new Rect(inner.x, y, inner.width, Mathf.Max(30f, inner.yMax - y - 2f));
             float rh = _filteredCatalogueCards.Count * (RowHeight + 2f);
             Rect vr = new Rect(0, 0, lr.width - 16f, Mathf.Max(rh, lr.height));
@@ -424,32 +532,54 @@ namespace ALWTTT.Cards.Editor
                 bool alreadyIn = _staged?.cards != null &&
                                  _staged.cards.Exists(e => e?.ResolvedCard == card);
 
-                float addW = 40f, pingW = 40f;
-                float lw = Mathf.Max(10f, vr.width - addW - pingW - 10f);
+                float addW = 40f, pingW = 40f, editW = 35f;
+                float lw = Mathf.Max(10f, vr.width - addW - pingW - editW - 14f);
 
                 Rect lR = new Rect(4f, ry + 1f, lw, RowHeight - 2f);
-                Rect pR = new Rect(lR.xMax + 2f, ry + 1f, pingW, RowHeight - 2f);
+                Rect eR = new Rect(lR.xMax + 2f, ry + 1f, editW, RowHeight - 2f);
+                Rect pR = new Rect(eR.xMax + 2f, ry + 1f, pingW, RowHeight - 2f);
                 Rect aR = new Rect(pR.xMax + 2f, ry + 1f, addW, RowHeight - 2f);
 
+                // M1.1a — enhanced label: domain, cost, musician, display name, effect summary
                 string domain = card.IsAction ? "A" : card.IsComposition ? "C" : "?";
-                EditorGUI.LabelField(lR, $"[{domain}]  {card.Id}  —  {card.DisplayName}", EditorStyles.miniLabel);
+                int cost = card.InspirationCost;
+                string musicianTag = card.RequiresFixedPerformer
+                    ? $"({card.FixedPerformerType})"
+                    : "";
+                string summary = GetPlainEffectSummary(card);
+                var labelSb = new StringBuilder();
+                labelSb.Append($"[{domain} \u2605{cost}]  {card.Id}  \u2014  {card.DisplayName}");
+                if (!string.IsNullOrEmpty(musicianTag)) labelSb.Append($"  {musicianTag}");
+                if (!string.IsNullOrEmpty(summary)) labelSb.Append($"  \u25b8 {summary}");
+
+                EditorGUI.LabelField(lR, labelSb.ToString(), EditorStyles.miniLabel);
+
+                // M1.1b — Open in Card Editor
+                if (GUI.Button(eR, "Edit", EditorStyles.miniButton))
+                    CardEditorWindow.OpenAndSelect(card);
 
                 if (GUI.Button(pR, "Ping", EditorStyles.miniButton)) EditorGUIUtility.PingObject(card);
 
-                using (new EditorGUI.DisabledScope(alreadyIn))
+                // M4.4: Add becomes "+1" when the card is already staged.
+                // Always enabled. Clicking on an already-staged card increments
+                // its count instead of being a no-op.
+                if (GUI.Button(aR, alreadyIn ? "+1" : "Add", EditorStyles.miniButton))
                 {
-                    if (GUI.Button(aR, alreadyIn ? "✓" : "Add", EditorStyles.miniButton))
+                    if (_staged == null) _staged = new StagedDeck();
+                    if (_staged.cards == null) _staged.cards = new List<StagedCardEntry>();
+
+                    var existing = _staged.cards.Find(e => e?.ResolvedCard == card);
+                    if (existing != null)
                     {
-                        if (_staged == null) _staged = new StagedDeck();
-                        if (_staged.cards == null) _staged.cards = new List<StagedCardEntry>();
-                        if (!_staged.cards.Exists(e => e?.ResolvedCard == card))
-                        {
-                            _staged.cards.Add(StagedCardEntry.FromExisting(card));
-                            _staged.isDirty = true;
-                            RefreshValidation();
-                            Repaint();
-                        }
+                        existing.count = Mathf.Max(1, existing.count) + 1;
                     }
+                    else
+                    {
+                        _staged.cards.Add(StagedCardEntry.FromExisting(card));
+                    }
+                    _staged.isDirty = true;
+                    RefreshValidation();
+                    Repaint();
                 }
 
                 ry += RowHeight + 2f;
@@ -570,9 +700,21 @@ namespace ALWTTT.Cards.Editor
             _staged.description = so.FindProperty("description")?.stringValue ?? "";
             _staged.isDirty = false;
 
-            if (_targetDeckAsset.Cards != null)
-                foreach (var c in _targetDeckAsset.Cards)
-                    if (c != null) _staged.cards.Add(StagedCardEntry.FromExisting(c));
+            // M4.4: read multiset entries with count. Pre-M4.4 assets are
+            // read via the legacy fallback path inside BandDeckData.Entries,
+            // which materializes count-1 entries from the legacy 'cards' field.
+            // The first save through this editor upgrades the asset to the
+            // new 'entries' shape and clears the legacy field.
+            if (_targetDeckAsset.Entries != null)
+            {
+                foreach (var be in _targetDeckAsset.Entries)
+                {
+                    if (be?.card == null) continue;
+                    var staged = StagedCardEntry.FromExisting(be.card);
+                    staged.count = Mathf.Max(1, be.count);
+                    _staged.cards.Add(staged);
+                }
+            }
 
             _importErrors = _importWarnings = "";
             RefreshValidation();
@@ -612,9 +754,9 @@ namespace ALWTTT.Cards.Editor
             }
 
             ResolveRegistries();
-            var catalogue = _registries?.StatusCatalogue;
+            ResolveRegistries();
 
-            var result = DeckJsonImportService.Import(_jsonText, catalogue);
+            var result = DeckJsonImportService.Import(_jsonText, _registries);
 
             if (result.HasErrors) _importErrors = string.Join("\n", result.Errors);
             if (result.HasWarnings) _importWarnings = string.Join("\n", result.Warnings);
@@ -661,14 +803,34 @@ namespace ALWTTT.Cards.Editor
                 if (!ok) return;
             }
 
-            // Pass the source asset's folder if known; otherwise null so the service
-            // auto-discovers the deck folder via AssetDatabase.FindAssets("t:BandDeckData").
+            // M1.1c — prefer source asset folder, then last-used folder, then fallback
             string folder = _staged?.sourceAsset != null
                 ? System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(_staged.sourceAsset))?.Replace('\\', '/')
                 : null;
 
+            if (string.IsNullOrEmpty(folder))
+                folder = EditorPrefs.GetString(PrefKeyLastSaveFolder, null);
+
+            if (string.IsNullOrEmpty(folder))
+            {
+                // Auto-discover deck folder from existing BandDeckData assets
+                var deckGuids = AssetDatabase.FindAssets("t:BandDeckData");
+                if (deckGuids != null && deckGuids.Length > 0)
+                    folder = System.IO.Path.GetDirectoryName(
+                        AssetDatabase.GUIDToAssetPath(deckGuids[0]))?.Replace('\\', '/');
+            }
+
             var result = DeckAssetSaveService.SaveAs(_staged, folder ?? "Assets");
             if (result == null) { SetStatus("Save As cancelled."); return; }
+
+            // Remember the folder for next time
+            if (result.Succeeded && result.SavedAsset != null)
+            {
+                string savedPath = AssetDatabase.GetAssetPath(result.SavedAsset);
+                if (!string.IsNullOrEmpty(savedPath))
+                    EditorPrefs.SetString(PrefKeyLastSaveFolder,
+                        System.IO.Path.GetDirectoryName(savedPath)?.Replace('\\', '/') ?? "Assets");
+            }
 
             HandleSaveResult(result);
             if (result.Succeeded) _targetDeckAsset = result.SavedAsset;
@@ -691,6 +853,53 @@ namespace ALWTTT.Cards.Editor
             _jsonText = json;
             GUIUtility.systemCopyBuffer = json;
             SetStatus("JSON exported to import field and copied to clipboard.");
+        }
+
+        private void PrintStagedDeck()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("=== DECK EDITOR — STAGED DECK DUMP ===");
+
+            if (_staged?.sourceAsset != null)
+                sb.AppendLine($"Asset: {_staged.sourceAsset.name} ({AssetDatabase.GetAssetPath(_staged.sourceAsset)})");
+            else
+                sb.AppendLine("Asset: <unsaved>");
+
+            sb.AppendLine($"deckId: {(_staged != null ? _staged.deckId : "<null>")}");
+            sb.AppendLine($"displayName: {(_staged != null ? _staged.displayName : "<null>")}");
+            sb.AppendLine($"description: {(_staged != null ? _staged.description : "<null>")}");
+
+            int n = _staged?.cards?.Count ?? 0;
+            int totalCopies = 0;
+            int newCount = 0;
+            if (_staged?.cards != null)
+            {
+                foreach (var ent in _staged.cards)
+                {
+                    if (ent == null) continue;
+                    totalCopies += Mathf.Max(1, ent.count);
+                    if (ent.IsNew) newCount++;
+                }
+            }
+            sb.AppendLine($"Entries: {n} (total copies: {totalCopies}{(newCount > 0 ? $", {newCount} pending NEW" : "")})");
+            sb.AppendLine();
+
+            if (_staged?.cards != null)
+            {
+                for (int i = 0; i < _staged.cards.Count; i++)
+                {
+                    var ent = _staged.cards[i];
+                    if (ent == null) { sb.AppendLine($"[{i + 1}] <null entry>"); continue; }
+
+                    var cd = ent.ResolvedCard;
+                    string id = cd != null ? cd.Id : (ent.IsNew ? "<NEW pending>" : "<unresolved>");
+                    string kind = cd == null ? "?" : (cd.IsAction ? "Action" : (cd.IsComposition ? "Composition" : "?"));
+                    string suffix = ent.IsNew ? "  [NEW]" : "";
+                    sb.AppendLine($"[{i + 1}] {id} ×{ent.count} — {kind}{suffix}");
+                }
+            }
+
+            Debug.Log(sb.ToString());
         }
 
         private void DoAddToGigSetup()
@@ -749,12 +958,133 @@ namespace ALWTTT.Cards.Editor
                 if (c == null) continue;
                 if (!_filterAction && c.IsAction) continue;
                 if (!_filterComposition && c.IsComposition) continue;
+
+                // M1.1a — musician filter
+                if (_filterMusician != MusicianCharacterType.None &&
+                    (!c.RequiresFixedPerformer || c.FixedPerformerType != _filterMusician))
+                    continue;
+
+                // M1.1a — effect type filter
+                if (!CardMatchesEffectFilter(c, _filterEffect))
+                    continue;
+
                 if (!string.IsNullOrEmpty(s) &&
                     c.Id?.ToLowerInvariant().Contains(s) != true &&
                     c.DisplayName?.ToLowerInvariant().Contains(s) != true)
                     continue;
+
                 _filteredCatalogueCards.Add(c);
             }
+        }
+
+        // ------------------------------------------------------------------
+        // M1.1a — Effect summary helpers (plain text, no TMP tags)
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Returns a compact plain-text summary of a card's effects for IMGUI display.
+        /// Action cards: list of effect one-liners. Composition cards: primary kind + modifier count.
+        /// </summary>
+        private static string GetPlainEffectSummary(CardDefinition card)
+        {
+            if (card == null || !card.HasPayload) return "";
+
+            if (card.IsComposition)
+            {
+                var comp = card.CompositionPayload;
+                if (comp == null) return "Composition";
+
+                string kindLabel;
+                switch (comp.PrimaryKind)
+                {
+                    case CardPrimaryKind.Track:
+                        kindLabel = comp.TrackAction != null ? $"Track: {comp.TrackAction.role}" : "Track";
+                        break;
+                    case CardPrimaryKind.Part:
+                        kindLabel = comp.PartAction != null
+                            ? $"Part: {(string.IsNullOrWhiteSpace(comp.PartAction.customLabel) ? comp.PartAction.action.ToString() : comp.PartAction.customLabel)}"
+                            : "Part";
+                        break;
+                    default:
+                        kindLabel = "Composition";
+                        break;
+                }
+
+                int modCount = 0;
+                if (comp.ModifierEffects != null)
+                    foreach (var fx in comp.ModifierEffects)
+                        if (fx != null) modCount++;
+                if (modCount > 0)
+                    kindLabel += $", {modCount} mod{(modCount != 1 ? "s" : "")}";
+
+                return kindLabel;
+            }
+
+            // Action cards — summarize CardPayload.Effects
+            var effects = card.Payload.Effects;
+            if (effects == null || effects.Count == 0) return "";
+
+            var sb = new StringBuilder();
+            int shown = 0;
+            for (int i = 0; i < effects.Count; i++)
+            {
+                string line = GetPlainEffectLine(effects[i]);
+                if (string.IsNullOrEmpty(line)) continue;
+                if (shown > 0) sb.Append(", ");
+                sb.Append(line);
+                shown++;
+                if (shown >= 3) break; // cap visible effects
+            }
+            if (effects.Count > 3 && shown >= 3)
+                sb.Append($", +{effects.Count - 3}");
+
+            return sb.ToString();
+        }
+
+        private static string GetPlainEffectLine(CardEffectSpec spec)
+        {
+            if (spec == null) return null;
+
+            if (spec is ApplyStatusEffectSpec ase)
+            {
+                string name = ase.status != null
+                    ? (string.IsNullOrWhiteSpace(ase.status.DisplayName) ? ase.status.name : ase.status.DisplayName)
+                    : "?";
+                return $"{name} {(ase.stacksDelta >= 0 ? "+" : "")}{ase.stacksDelta}";
+            }
+            if (spec is ModifyVibeSpec vibe)
+                return $"Vibe {(vibe.amount >= 0 ? "+" : "")}{vibe.amount}";
+            if (spec is ModifyStressSpec stress)
+                return $"Stress {(stress.amount >= 0 ? "+" : "")}{stress.amount}";
+            if (spec is DrawCardsSpec draw)
+                return $"Draw {draw.count}";
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns true if the card has at least one effect matching the filter category.
+        /// </summary>
+        private static bool CardMatchesEffectFilter(CardDefinition card, CatalogueEffectFilter filter)
+        {
+            if (filter == CatalogueEffectFilter.All) return true;
+            if (card == null || !card.HasPayload) return false;
+
+            var effects = card.Payload.Effects;
+            if (effects == null || effects.Count == 0) return false;
+
+            for (int i = 0; i < effects.Count; i++)
+            {
+                var e = effects[i];
+                switch (filter)
+                {
+                    case CatalogueEffectFilter.HasStress when e is ModifyStressSpec: return true;
+                    case CatalogueEffectFilter.HasVibe when e is ModifyVibeSpec: return true;
+                    case CatalogueEffectFilter.HasStatus when e is ApplyStatusEffectSpec: return true;
+                    case CatalogueEffectFilter.HasDraw when e is DrawCardsSpec: return true;
+                }
+            }
+            return false;
         }
 
         // ------------------------------------------------------------------

@@ -212,12 +212,14 @@ namespace ALWTTT.Cards.Editor
             SetString(so, "displayName", staged.displayName ?? "");
             SetString(so, "description", staged.description ?? "");
 
-            var cardsProp = so.FindProperty("cards");
-            if (cardsProp == null)
+            // M4.4: write the new 'entries' multiset (List<BandDeckEntry>).
+            // Each element has 'card' (object reference) and 'count' (int).
+            var entriesProp = so.FindProperty("entries");
+            if (entriesProp == null)
                 throw new InvalidOperationException(
-                    "Could not find 'cards' on BandDeckData. Has the field been renamed?");
+                    "Could not find 'entries' on BandDeckData. Has the field been renamed?");
 
-            cardsProp.ClearArray();
+            entriesProp.ClearArray();
             if (staged.cards != null)
             {
                 int writeIdx = 0;
@@ -226,11 +228,29 @@ namespace ALWTTT.Cards.Editor
                     var entry = staged.cards[i];
                     if (entry?.existingCard == null) continue;
 
-                    cardsProp.InsertArrayElementAtIndex(writeIdx);
-                    cardsProp.GetArrayElementAtIndex(writeIdx).objectReferenceValue = entry.existingCard;
+                    int copies = Mathf.Max(1, entry.count);
+
+                    entriesProp.InsertArrayElementAtIndex(writeIdx);
+                    var elem = entriesProp.GetArrayElementAtIndex(writeIdx);
+
+                    var cardProp = elem.FindPropertyRelative("card");
+                    var countProp = elem.FindPropertyRelative("count");
+                    if (cardProp == null || countProp == null)
+                        throw new InvalidOperationException(
+                            "BandDeckEntry serialized layout missing 'card' or 'count'. " +
+                            "Has BandDeckEntry been changed?");
+
+                    cardProp.objectReferenceValue = entry.existingCard;
+                    countProp.intValue = copies;
                     writeIdx++;
                 }
             }
+
+            // M4.4: clear the pre-M4.4 legacy field. Once 'entries' is
+            // populated, 'legacyCards' is dead weight; clearing it here is
+            // the upgrade step for previously-loaded assets.
+            var legacyProp = so.FindProperty("legacyCards");
+            if (legacyProp != null) legacyProp.ClearArray();
 
             so.ApplyModifiedProperties();
         }

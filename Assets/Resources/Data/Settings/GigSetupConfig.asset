@@ -13,14 +13,15 @@ MonoBehaviour:
   m_Name: GigSetupConfig
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigSetupConfigData
   availableBandDecks:
-  - {fileID: 11400000, guid: cf17233c5d7bb734dacf283fddc7fa03, type: 2}
   - {fileID: 11400000, guid: c9872fd33247ee2458c51ff65f3fe49d, type: 2}
+  - {fileID: 11400000, guid: cf17233c5d7bb734dacf283fddc7fa03, type: 2}
   - {fileID: 11400000, guid: 25a5e6b65ca6344438ea8944bf243b73, type: 2}
   availableEncounters:
   - {fileID: 11400000, guid: 96de81cb1d089a24e8c08b3786190666, type: 2}
   - {fileID: 11400000, guid: 5fc6b5d1950cd734da7e44f81c2cbaf5, type: 2}
   - {fileID: 11400000, guid: 187e3121cd4a06241bef79c5df9a5dcb, type: 2}
   - {fileID: 11400000, guid: f57f05465e75f5a40a7b590ce463e7d5, type: 2}
+  genericStarterCatalog: {fileID: 11400000, guid: e152b9ee7ff79fc418933f9f65283777, type: 2}
   defaultInitialGigInspiration: 0
   defaultInspirationPerLoop: 0
   defaultDiscardHandBetweenTurns: 0

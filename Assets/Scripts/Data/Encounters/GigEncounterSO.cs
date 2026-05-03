@@ -30,15 +30,28 @@ namespace ALWTTT.Encounters
         public int CohesionPenaltyOnLoss => cohesionPenaltyOnLoss;
 
         /// <summary>
-        /// Builds a runtime GigEncounter instance from this authoring asset.
+        /// Builds a runtime GigEncounter instance from this authoring asset
+        /// using the SO's baked audienceMemberList.
         /// </summary>
-        public GigEncounter BuildRuntime()
+        public GigEncounter BuildRuntime() => BuildRuntime(null);
+
+        /// <summary>
+        /// M4.6-prep merged (1)/(4): builds a runtime GigEncounter using an
+        /// audience override when the audience picker has deviated from the
+        /// SO's baked list. When <paramref name="audienceOverride"/> is null
+        /// or empty, falls back to the SO's audienceMemberList (regression-safe).
+        /// </summary>
+        public GigEncounter BuildRuntime(IList<AudienceCharacterData> audienceOverride)
         {
+            var audienceList = (audienceOverride != null && audienceOverride.Count > 0)
+                ? new List<AudienceCharacterData>(audienceOverride)
+                : new List<AudienceCharacterData>(
+                    audienceMemberList ?? new List<AudienceCharacterData>());
+
             return new GigEncounter(
                 targetVenueType,
                 displayName,
-                new List<AudienceCharacterData>(audienceMemberList ?? 
-                    new List<AudienceCharacterData>()),
+                audienceList,
                 numberOfSongs,
                 fansOnWin,
                 cohesionPenaltyOnLoss
@@ -50,7 +63,6 @@ namespace ALWTTT.Encounters
             if (!string.IsNullOrWhiteSpace(displayName))
                 return displayName;
 
-            // Lightweight label for UI (no allocation-heavy list formatting)
             return $"{targetVenueType} | " +
                 $"Songs:{numberOfSongs} | " +
                 $"FansWin:{fansOnWin} | " +

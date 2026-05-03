@@ -59,19 +59,32 @@ Meaning:
 
 `LoopScore` is the primary loop-level performance score.
 
-Typical influences may include:
-- musical completeness/coherence
-- synergy bonuses
-- error penalties
-- repetition penalties
-- relevant gameplay/status modifiers
-
-This SSoT does **not** freeze one exact numeric formula for all time.
-What it freezes is the meaning:
+### 3.1 Semantic meaning (frozen)
 
 - LoopScore is the loop-level input to song momentum
 - it is allowed to be positive, neutral, or negative
 - it is not itself the audience persuasion meter
+
+### 3.2 Current formula (M4.2, 2026-04-28)
+
+`LoopScoreCalculator.ComputeLoopScore` computes:
+
+```text
+score = (ActiveTracks × densityBonusPerTrack)
+      + (roleBudget × fillRatio)
+      + (IsLastLoop ? lastLoopBonus : 0)
+      + (complexityMultiplier × TotalComplexity)
+```
+
+Where `fillRatio` depends on `LoopScoringMode`:
+- **RoleNormalization** (default): `distinctRolesFilled / possibleRoleCount`
+- **MusicianParticipation**: `distinctMusiciansPlaying / totalMusicians`
+
+`possibleRoleCount` and `totalMusicians` are auto-detected at gig start from the band's composition cards and roster. This makes the scorer adaptive to any band size and role configuration.
+
+### 3.3 HypeDelta conversion
+
+`ComputeHypeDelta` maps LoopScore to a SongHype delta via a piecewise threshold table (`HypeThresholds` struct). Both thresholds and deltas are Inspector-tuneable on GigManager. Defaults: Amazing ≥25 → +15, VeryGood ≥15 → +8, Decent ≥5 → +3, Neutral >−5 → 0, Meh >−15 → −5, Bad else → −12.
 
 ---
 
@@ -126,11 +139,15 @@ Additional audience-specific modifiers may influence the last step:
 ## 7. Flow, Composure, and related meters
 
 ### 7.1 Flow
-Flow interacts primarily with the **LoopScore -> SongHype** layer.
+Flow interacts with the **Vibe layer** — not the LoopScore or SongHype layers. Bifurcated by card domain (M4.2, 2026-04-28):
+
+- **Action cards:** flat per-performer Flow bonus on positive `ModifyVibe` effects
+- **Composition cards:** multiplier using band-wide Flow stacks on positive `ModifyVibe` effects
+- **Song End:** multiplier using band-wide Flow stacks on per-audience VibeDelta
 
 Canonical meaning:
-- Flow strengthens momentum conversion
-- Flow is not itself SongHype
+- Flow amplifies Vibe gains, differentiated by card domain
+- Flow is not itself SongHype (the Flow → SongHype path was retired and removed in M4.2)
 - Flow is not Inspiration
 
 ### 7.2 Composure

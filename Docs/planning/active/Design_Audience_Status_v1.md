@@ -1,9 +1,9 @@
 # Design_Audience_Status_v1 — ALWTTT
 
-**Status:** Active design proposal — planning only  
-**Scope:** Audience-side status effects for ALWTTT. Covers Earworm (implementing in M4.3), Captivated (deferred design intent), and the `ApplyIncomingVibe` helper (deferred).  
-**Classification:** `reference (planning)` — **not a SSoT**. When M4.3 closes, the Earworm portion migrates to `SSoT_Status_Effects.md` §5.7 as the authoritative source; this document retains historical rationale. Deferred portions (Captivated, `ApplyIncomingVibe`) remain here until they enter roster expansion scope.  
-**Last updated:** 2026-04-21
+**Status:** Partially superseded — §3 (Earworm) authority migrated. §4 / §5 remain active design intent.  
+**Scope:** Audience-side status effects for ALWTTT. Covers Earworm (closed M4.3, see §6), Captivated (deferred design intent), and the `ApplyIncomingVibe` helper (deferred).  
+**Classification:** `reference (planning)` — **not a SSoT**. §3 Earworm authority migrated to `SSoT_Status_Effects.md` §5.7 on 2026-04-28 (M4.3 closure); §3 here is retained as historical rationale only. §4 (Captivated) and §5 (`ApplyIncomingVibe`) remain authoritative design intent until roster expansion entry.  
+**Last updated:** 2026-04-28
 
 ---
 
@@ -32,6 +32,8 @@ Several facts had to be aligned before this design made sense:
 ---
 
 ## 3. Earworm — implementing in M4.3
+
+> **⚠️ Superseded 2026-04-28.** Authoritative spec is `SSoT_Status_Effects.md` §5.7. The text below is retained as historical design rationale. If this section conflicts with §5.7 in any detail, §5.7 wins.
 
 ### 3.1 Identity
 

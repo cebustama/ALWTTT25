@@ -60,6 +60,8 @@ It defines:
 | Document | Scope | Status |
 |---|---|---|
 | `planning/active/Roadmap_ALWTTT.md` | project-wide milestone roadmap | active |
+| `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` | observable musical expressive surface for composition cards across the MidiGenPlay boundary; 26-axis matrix + 5 documented gaps | active |
+| `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` | observable musical expressive surface for composition cards across the MidiGenPlay boundary; 26-axis matrix + 5 documented gaps | active |
 
 ---
 

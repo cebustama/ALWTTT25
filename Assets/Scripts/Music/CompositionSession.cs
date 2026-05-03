@@ -163,6 +163,21 @@ namespace ALWTTT.Music
             _ctx.Log("[Session] End", true);
         }
 
+#if ALWTTT_DEV
+        /// <summary>Dev Mode: current live inspiration budget for this session.</summary>
+        public int CurrentInspiration => _currentInspiration;
+
+        /// <summary>
+        /// Dev Mode: set live session inspiration and refresh the composition UI.
+        /// Does NOT write back to PersistentGameplayData — caller is responsible.
+        /// </summary>
+        public void DevSetCurrentInspiration(int value)
+        {
+            _currentInspiration = Math.Max(0, value);
+            _ctx?.CompositionUI?.SetInspiration(_currentInspiration);
+        }
+#endif
+
         public void ConfirmCurrentPartAndStart()
         {
             if (_state != CompositionState.BuildingCurrentPart) return;

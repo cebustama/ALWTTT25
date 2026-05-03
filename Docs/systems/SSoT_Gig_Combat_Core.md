@@ -146,6 +146,8 @@ Rules:
 - positive Stress is absorbed by **Composure** before being applied
 - Breakdown triggers when `Stress >= StressMax` **after** Composure absorption
 
+**Implementation (unified 2026-04-26):** all positive incoming Stress — whether from card effects (`ModifyStressSpec`), audience actions (`AddStressAction`), or DoT ticks (`Feedback`) — routes through `BandCharacterStats.ApplyIncomingStressWithComposure(StatusEffectContainer, int, float)`. This single entry point handles: Composure absorption → Exposed amplification → `AddStress` remainder → Breakdown threshold check.
+
 ### 5.5 GigScore
 **Owner:** Gig.
 
@@ -163,17 +165,29 @@ This document defines **combat meaning**, not the full status ontology.
 ### 6.1 Flow
 **Scope:** Song/Band  
 **Reset:** resets each Song (via explicit GigManager song-end reset, not tick decay)  
-**Combat meaning:** amplifies Loop → SongHype conversion.
+**Combat meaning:** amplifies positive Vibe gains. Bifurcated by card domain (M4.2, 2026-04-28).
 
-Conceptually:
-
+**Action cards** — flat bonus using the **performer's individual** Flow stacks:
 ```text
-LoopScore -> BaseDeltaSongHype
-DeltaSongHype = BaseDeltaSongHype * (1 + FlowStacks * FlowMultiplier)
+finalVibeΔ = baseΔ + performerFlowStacks × flowActionVibeBonusPerStack
 ```
 
+**Composition cards** — multiplier using the **band-wide** Flow stacks:
+```text
+finalVibeΔ = round(baseΔ × (1 + bandFlowStacks × flowVibeMultiplier))
+```
+
+**Song End conversion** — multiplier using band-wide Flow stacks (read before song-end reset):
+```text
+VibeDelta_i = round(baseVibe × impressionFactor × (1 + bandFlowStacks × flowVibeMultiplier))
+```
+
+Initial tuning: `flowActionVibeBonusPerStack = 1`, `flowVibeMultiplier = 0.08f`.
+
 Rules:
-- Flow affects SongHype growth, not Inspiration directly
+- Flow interacts with the **Vibe layer**, not the SongHype layer
+- the Flow → SongHype multiplicative path (documented pre-M4.2, never active in runtime) has been **retired and removed from code** as of M4.2
+- Action-card path uses per-performer stacks; Composition-card and Song End paths use band-wide aggregate stacks
 - future penalties for mistakes may interact with Flow, but that is not part of the baseline MVP contract
 
 ### 6.2 Composure
@@ -190,6 +204,7 @@ incomingStress -> consume Composure first -> apply remainder to Stress
 Rules:
 - Composure is a defensive buffer, not permanent healing
 - Composure clears every Player Turn, not every Song — this is more frequent than song-scoped reset
+- Composure absorbs audience pressure (via `AddStressAction`) as of M4.1 (2026-04-26) — previously only card-path stress was absorbed
 - when a musician is in `Shaken`, new Composure granted to that musician is reduced by 50% (round down) — **design intent; not yet enforced in runtime**
 
 ### 6.3 Breakdown / Shaken
@@ -275,8 +290,10 @@ This SSoT owns the structural hook points.
 Detailed tuning can move into a future scoring SSoT without changing combat authority.
 
 ### 8.1 Loop -> SongHype
-- LoopScore is converted into a base SongHype delta
-- Flow modifies that delta multiplicatively in the baseline contract
+- LoopScore is converted into a base SongHype delta via `LoopScoreCalculator.ComputeHypeDelta` using Inspector-tuneable `HypeThresholds`
+- LoopScore uses adaptive role-budget scoring: the 12-point role budget is distributed proportionally based on either distinct roles filled (RoleNormalization mode) or musicians actively playing (MusicianParticipation mode), selectable via `LoopScoringConfig.mode`
+- `possibleRoleCount` and `totalMusicians` are auto-detected at gig start from the band's deck composition cards and roster
+- Flow no longer modifies this delta (retired M4.2). Flow interacts with the Vibe layer instead (see §6.1)
 
 ### 8.2 Song End -> Vibe
 - SongHype01 + audience impression aggregate produce VibeDelta
@@ -334,3 +351,7 @@ These can exist as planning/reference material without overriding this SSoT.
 | Audience Feedback DoT | ⛔ Deferred — no Stress path on audience |
 | Shaken gameplay restrictions enforcement | ⬜ Pending design decision |
 | Composure penalty during Shaken | ⬜ Pending — design intent only |
+| Flow bifurcation (flat Action / mult Composition+SongEnd) | ✅ Implemented (M4.2) |
+| Per-performer Flow on Action cards | ✅ Implemented (M4.2) |
+| Adaptive LoopScore (role-budget normalization) | ✅ Implemented (M4.2) |
+| Flow → SongHype path | ❌ Retired and removed (M4.2) |

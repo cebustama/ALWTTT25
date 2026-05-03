@@ -3,6 +3,1063 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-03 — M4.6-prep batch (3) closure: Authoring tooling QoL
+Editor-only batch promoting authoring ergonomics surfaced during M4.6-prep batch (2) smoke tests. Three deliverables shipped: per-row Starter / Copies columns on CardEditorWindow's catalog entry list; new CardInventoryWindow (read-only viewer for CardDefinition / MusicianCardCatalogData / GenericCardCatalogSO assets, with Print + Export per view); toolbar Print buttons on CardEditorWindow and DeckEditorWindow. All #if UNITY_EDITOR guarded. Zero runtime touch.
+Semantic changes
+SSoT_Editor_Authoring_Tools:
+
+§3 tool inventory table — new row for Card Inventory (CardInventoryWindow, menu path ALWTTT → Cards → Card Inventory, primary purpose: read-only browser for card-related assets with Print + Export per view). Header sentence updated from "All four are #if UNITY_EDITOR gated" to "All five are #if UNITY_EDITOR gated".
+§4 Card Editor — new §4.6 "Per-row Starter / Copies columns (batch (3), 2026-05-03)" documenting the inline checkbox + IntField columns, the SerializedObject + ApplyModifiedProperties commit path, the Mathf.Max(1, …) clamp, the IMGUI input-isolation property that prevents inline controls from stealing row selection, the silent-disappearance behavior under the Starter filter, and the single-step Undo guarantee. New §4.7 "Print button (batch (3), 2026-05-03)" documenting the toolbar Print button, its disabled-when-no-catalog-loaded behavior, and the === CARD EDITOR — CATALOG DUMP === output shape. Existing Registries surface section renumbered to §4.8 (no content change).
+§5 Deck Editor — §5.2 layout block updated to mention the toolbar Print button. §5.4 deck contract updated to reflect M4.4 multiplicity (was previously phrased as "unique card lists (Option A)"; now correctly notes multiset shape with per-entry count). §5.6 DTOs section updated to document StagedCardEntry's existingCard / pendingCard / count / ResolvedCard shape. New §5.7 "Print button (batch (3), 2026-05-03)" documenting the toolbar Print button and the === DECK EDITOR — STAGED DECK DUMP === output shape, including the use of ResolvedCard to handle both existing and pending entries uniformly and the [NEW] suffix + ×{count} per-row format.
+New §8 "Card Inventory Window (CardInventoryWindow) — batch (3), 2026-05-03" inserted between Chord Progression Catalogue Wizard and Card asset factory. Documents what the tool does (read-only viewer; does not mutate assets), the four-view layout (All CardDefinitions / All Musician Catalogs / One Musician / All Generic Catalogs), Print to Console output shapes per view, Export JSON schemas per view (informational, not designed for round-trip through DeckJsonImportService), asset discovery via AssetDatabase.FindAssets("t:{TypeName}"), and the boundary note that this is a viewer only — Card Editor and Deck Editor remain the authority for editing.
+Sections previously numbered §6 / §7 / §8 / §9 / §10 / §11 / §12 / §13 / §14 renumbered to §6 / §7 / §9 / §10 / §11 / §12 / §13 / §14 / §15 to accommodate the new §8 insertion. (§6 Status Effect Wizard, §7 Chord Progression Catalogue Wizard unchanged; §9 Card asset factory was §8; §10 Musician catalog service was §9, content unchanged but a sentence appended noting that the per-row UX from §4.6 does not call into this service because it mutates existing entries via SerializedObject directly; §11–§15 renumbered without content change beyond the cross-reference within.)
+§13 File location summary — CardInventoryWindow.cs added to the Assets/Scripts/Cards/Editor/ listing with a (batch (3), 2026-05-03) annotation.
+§14.1, §14.2 Known gaps — pre-existing items annotated as RESOLVED with closure dates (M1.2 / M1.3a/b/c respectively); no semantic change, just clarity.
+§14.5 Known gaps — new entry "Inventory viewer two-prefab arrangement (logged 2026-05-02 from UI-fix-A; appendix to batch (3) deferred 2026-05-03)" inserted to record the explicit D3 deferral of the prefab-variant validator appendix and to log it as a candidate authoring-tool addition for a future QoL pass. References the CURRENT_STATE.md §4 CardUI : CardBase {} empty-subclass two-prefab vector and the (α) collapse / (β) Prefab Variant cleanup options.
+§14.7 Known gaps — pre-existing "True card copies in decks" item annotated as RESOLVED (M4.4); no semantic change.
+
+CURRENT_STATE:
+
+§1 new closure block "M4.6-prep batch (3) — Authoring tooling QoL — complete (2026-05-03)" inserted after the M4.6-prep UI-fix-B block. Documents all three deliverables (3.A per-row UI / 3.B CardInventoryWindow / 3.C Print buttons), the decision matrix resolutions D1–D6, the smoke-test results (ST-AT3-1..8 all PASS with per-test outcome lines), and the critical scope honesty note distinguishing tooling resolved from content cleanup pending.
+§1 Editor authoring tools list updated: Card Editor and Deck Editor entries gain "per-row Starter / Copies columns + toolbar Print button (batch (3), 2026-05-03)" and "toolbar Print button (batch (3), 2026-05-03)" annotations respectively; new bullet for Card Inventory added.
+§3 What is next, line 1 (the M4.6 entry): updated to record batch (3) closure in the parenthetical chain, and to rewrite the "Pre-demo blocker" sentence to note that the per-row Starter UI and CardInventoryWindow > All Musician Catalogs > Export JSON make the cleanup tractable while explicitly flagging that the cleanup itself still needs execution and re-verification against Design_Starter_Deck_v1.md §4. Pre-batch-(3) inv2.json snapshot referenced as the before-state baseline.
+§4 Open items: "Card Editor per-row starter UX (queued as batch (3), surfaced 2026-05-02)" bullet flipped to RESOLVED with closure pointer to §1; "all-starter-flagged catalog content currently in test data" bullet rewritten to distinguish tooling resolved 2026-05-03 via batch (3) from content cleanup pending with explicit pre-batch state captured (Cantante 7/7, Conito 10/10, Gusano 6/6, Robot 5/5 — 28 starter entries total per inv2.json snapshot) and a verification path noted (re-export → diff against Design_Starter_Deck_v1.md §4); "CardUI : CardBase {} empty subclass" bullet updated to record the explicit D3 deferral of the prefab-variant validator appendix (logged in SSoT_Editor_Authoring_Tools.md §14.5).
+§5 pending doc edits: new entry "M4.6-prep batch (3) closure (applied 2026-05-03)" added with the full file-change inventory and reasoning for files left unchanged.
+
+Roadmap_ALWTTT:
+
+Header Last updated line bumped to 2026-05-03 (M4.6-prep batch (3) Authoring tooling QoL closed).
+Future Milestones: existing Authoring tooling QoL (batch (3) — queued post-M4.6-prep batch (2), pre-merged-(1)/(4)) entry rewritten as Authoring tooling QoL (batch (3)) ✅ (closed 2026-05-03) with full closure block: shipped scope (3.A/3.B/3.C), decision matrix resolutions (D1–D6 including the explicit D3 deferral), smoke-test summary table (ST-AT3-1..8 all PASS), critical scope honesty paragraph, and docs-at-closure inventory.
+
+Authority changes
+None. No SSoT promoted, retired, or moved. CardInventoryWindow is operational tooling, not a contract owner. SSoT_Editor_Authoring_Tools.md remains the single authority for editor-tool inventory and capabilities; the new §8 is a normal additive section under that authority.
+Operational changes
+New runtime code files:
+
+Assets/Scripts/Cards/Editor/CardInventoryWindow.cs — single-file editor window, #if UNITY_EDITOR guarded, ALWTTT.Cards.Editor namespace. ~220 lines including JSON wrap structs and the four view-rendering methods. Asset discovery via AssetDatabase.FindAssets("t:{TypeName}") per render frame (no caching; acceptable for editor-only tool with low-tens-of-assets project scale). Export uses JsonUtility.ToJson(_, prettyPrint: true) + EditorUtility.RevealInFinder. The BuildFullCatalog helper is shared between Single Musician and All Generic Catalogs export paths (both consume List<MusicianCardEntry>).
+
+Modified runtime code files:
+
+Assets/Scripts/Cards/Editor/CardEditorWindow.cs — three changes:
+
+Entry-list rendering loop (formerly lines 559–587) replaced with a horizontal-scope per-row layout containing the Starter checkbox + Copies IntField + selection button. Uses SerializedObject(_loadedCatalog) constructed once per OnGUI pass with entriesArrSp = catSo.FindProperty("entries"); per-row writes via entriesArrSp.GetArrayElementAtIndex(i).FindPropertyRelative("flags" / "starterCopies"); single catSo.ApplyModifiedProperties() after the loop. Defensive fallback (disabled placeholder controls) when the catalog is null.
+Toolbar Print button inserted in DrawToolbar after the Registries Ping button, with GUILayout.Space(10) separator and EditorGUI.DisabledScope(_loadedCatalog == null) gating.
+PrintLoadedCatalog() private method added between the entry-list render block and PassesFilters. Uses System.Text.StringBuilder (already in usings).
+
+
+Assets/Scripts/Cards/Editor/DeckEditorWindow.cs — two changes:
+
+Toolbar Print button inserted between Export JSON (line 193) and Clear All (line 196). Unguarded (Print is useful even on empty staged decks for "why is my deck empty" diagnostics).
+PrintStagedDeck() private method added between DoExportJson (ends line 854) and DoAddToGigSetup (starts line 856). Uses StagedCardEntry.ResolvedCard to handle both existing and pending entries; reports per-row count for M4.4 multiplicity; emits [NEW] suffix on pending entries.
+
+
+
+No prefab edits. No [SerializeField] field additions. No data-asset edits.
+Smoke test results
+IDDescriptionResultST-AT3-1Per-row Starter toggle commits to asset, persists across reloadPASSST-AT3-2Copies field disable + clamp to 1 on commitPASSST-AT3-3Filter interaction silent disappearancePASSST-AT3-4Undo reverts both flag and copies as one stepPASSST-AT3-5CardInventoryWindow all four views populate, Print + Export succeedPASS (inv1.json/inv2.json/inv3.json/inv4.json exports verified)ST-AT3-6Print buttons on both windows produce formatted multi-line outputPASSST-AT3-7Regression: per-row controls do not steal selectionPASSST-AT3-8Dogfood acceptance: cleanup workflow materially faster than right-side inspectorPASS ("very good cleanup process")
+Side-findings
+
+D3 prefab-variant validator deferral (logged for future QoL pass). A "Validate CardBase prefab variants" Card Editor action was considered as a candidate appendix to batch (3) and explicitly deferred. Such an action would reflect over [SerializeField] fields on CardBase and report unwired refs across all prefabs that carry a CardBase (or subclass) MonoBehaviour, catching the UI-fix-A NRE class of bug at authoring time. Logged in SSoT_Editor_Authoring_Tools.md §14.5 and CURRENT_STATE.md §4 (under the CardUI : CardBase {} empty-subclass bullet).
+Pre-batch-(3) inventory snapshot captured. CardInventoryWindow > All Musician Catalogs > Export JSON ran during ST-AT3-5 produced inv2.json as a clean before-state baseline for the all-starter-flagged content. Confirmed values: Cantante 7/7 starter, Conito 10/10 starter, Gusano 6/6 starter, Robot 5/5 starter — 28 entries total. This baseline is the diff anchor for verifying the actual content cleanup against Design_Starter_Deck_v1.md §4 once it is executed.
+Critical scope honesty. Batch (3) closure ships the tooling. The content cleanup itself (pruning the four catalogues to the design spec) is a separate task that may have been partially executed during ST-AT3-8 dogfood but is not asserted by the smoke test set. The pre-demo blocker tracked in CURRENT_STATE.md §4 is now structurally tractable but content-status undetermined.
+
+Files unchanged (with reasoning)
+
+All systems SSoTs (SSoT_Card_System.md, SSoT_Card_Authoring_Contracts.md, SSoT_Status_Effects.md, SSoT_Gig_Combat_Core.md, SSoT_Audience_and_Reactions.md, SSoT_Scoring_and_Meters.md, SSoT_Gig_Encounter.md, SSoT_Runtime_Flow.md, SSoT_Runtime_Song_Model_and_Config.md, SSoT_Runtime_Generation_Orchestration.md, SSoT_Runtime_CompositionSession_Integration.md, SSoT_ALWTTT_MidiGenPlay_Boundary.md, SSoT_Composer_Backing_Track.md, SSoT_Composer_Rhythm_Track.md, SSoT_Composer_Melody_Track.md, SSoT_Dev_Mode.md) — batch (3) is operational tooling only. No card semantics, scoring contracts, status semantics, runtime gameplay invariants, audience contracts, composer contracts, or boundary contracts changed. Asset semantics for MusicianCardCatalogData, GenericCardCatalogSO, CardDefinition, and BandDeckData are unchanged; only the editor surfaces operating on them.
+coverage-matrix.md — no new authority concept; CardInventoryWindow is operational tooling under the existing SSoT_Editor_Authoring_Tools.md authority. No coverage matrix update needed.
+SSoT_INDEX.md — no structural or authority change.
+ssot_manifest.yaml — no new invariants. The existing manifest entries on SSoT_Editor_Authoring_Tools.md remain accurate; the batch added new sections under that authority but did not add new contract-shaped invariants.
+SSoT_CONTRACTS.md — no contract change.
+
+Lifecycle
+M4.6-prep open queue updated:
+
+Inventory viewer NRE [✅ closed 2026-05-02, UI-fix-A]
+Inventory scrollbar fix [✅ closed 2026-05-02, UI-fix-B]
+Batch (3) Authoring tooling QoL [✅ closed 2026-05-03]
+Merged (1)/(4) Gig Setup roster pickers [next]
+Batch (5) Runtime tuning [queued, awaiting tuning values]
+M4.6 demo gate
+
+Critical-path next step on M4.6: merged (1)/(4) Gig Setup roster pickers (band + audience multi-select) is now the front of the queue, with batch (5) Runtime tuning blocked on values from user (maxVibeFromSongHype, MaxCardsOnHand, draw-per-turn). Pre-demo content cleanup of the four catalogues to Design_Starter_Deck_v1.md §4 spec is independently tractable now that batch (3) tooling exists; recommended to execute and re-verify before the demo gate.
+
+2026-05-02 — M4.6-prep UI-fix-A + UI-fix-B joint closure: Inventory viewer NRE + Inventory scrollbar functional
+Two UI-fix batches closed jointly the same day, both surfaced during M4.6-prep batch (2) smoke tests (2026-05-02). Both pre-existing bugs, both player-facing, both demo-relevant for M4.6. Combined entry because they share a closure pass and overlapping doc updates.
+Semantic changes
+None. Neither batch touched governed SSoTs, contracts, or authority. UI-fix-A is asset-wiring on CardUI.prefab; UI-fix-B is asset-wiring on InventoryCanvas.prefab plus a localized helper edit on InventoryCanvas.cs (population-time ScrollRect reset). No card semantics, scoring contracts, status semantics, or runtime gameplay invariants changed.
+CURRENT_STATE:
+
+§1 two new closure blocks inserted after the M4.6-prep batch (2) block: "M4.6-prep UI-fix-A — Inventory viewer prefab NRE — complete (2026-05-02)" and "M4.6-prep UI-fix-B — Inventory scrollbar functional — complete (2026-05-02)". UI-fix-A documents the two unwired TMP refs (inspirationCostTextField, inspirationGenTextField) on CardUI.prefab (where CardUI : CardBase {} is an empty subclass), the asset-only fix, the strict-SetCard decision, ST-INV-1..6 PASS, and the structural risk parking pointer. UI-fix-B documents the layered root cause (Content has ContentSizeFitter but no LayoutGroup → preferred height 0; Viewport has Mask + disabled Image → broken masking), the full asset-edit set (VerticalLayoutGroup on Content; LayoutElement on FilterPanel/CardSpawnRoot/SongSpawnRoot; RectMask2D replaces Mask+disabled Image; CardSpawnRoot padding trim), the code-edit shape (scrollRect field + Canvas.ForceUpdateCanvases() + LayoutRebuilder.ForceRebuildLayoutImmediate + verticalNormalizedPosition=1f reset block in SetCards and SetSongs), the rationale for LayoutElement.preferredHeight over auto-sizing (GridLayoutGroup on stretch-anchored RectTransform inside ContentSizeFitter doesn't propagate preferred height reliably), and the smoke-test results (ST-SCR-1/3/4/6/7 PASS, ST-SCR-2 FAIL ACCEPTED, ST-SCR-5 DEFERRED).
+§4 Open items: inventory NRE bullet flipped from open → RESOLVED with closure pointer to §1 UI-fix-A block. Three new park-lot bullets added: (a) CardUI : CardBase {} empty-subclass two-prefab arrangement is the recurrence vector for unwired-[SerializeField] bugs; cleanup options (α) collapse to one prefab with view-only mode and (β) CardUI.prefab as Prefab Variant logged; candidate appendix to batch (3) for a "Validate CardBase prefab variants" Card Editor action; (b) inventory scrollbar appears even with near-empty piles (ST-SCR-2 FAIL ACCEPTED) due to fixed LayoutElement.preferredHeight = 2050; cosmetic paper cut, follow-up via dynamic height computation in InventoryCanvas.SetCards (~10 lines from grid.cellSize.y, grid.spacing.y, grid.padding, grid.constraintCount × active card count); not blocking M4.6 demo; (c) FilterPanel scrolls with content (decision D-A from UI-fix-B planning, deferred); FilterPanel currently only contains TitleText so harmless; revisit when filters become functional by moving FilterPanel out of Content.
+§5 pending doc edits: new entry "M4.6-prep UI-fix-A + UI-fix-B joint closure (applied 2026-05-02)" added with full file-change inventory and reasoning for files left unchanged.
+
+Roadmap_ALWTTT:
+
+Header Last updated line bumped to 2026-05-02 (M4.6-prep UI-fix-A + UI-fix-B closed).
+Future Milestones section: existing Inventory viewer prefab fix (UI-fix batch — queued, pre-M4.6 demo) entry replaced by Inventory viewer fixes (UI-fix-A + UI-fix-B) ✅ (closed 2026-05-02) — combines both batches with their root causes, fix shapes, and smoke-test outcomes. The Authoring tooling QoL (batch (3)) entry is unchanged.
+
+Authority changes
+None. No SSoT promoted, retired, or moved. UI-asset wiring and InventoryCanvas.cs helper additions do not constitute contract changes.
+Operational changes
+Modified runtime code files:
+
+InventoryCanvas.cs — added using UnityEngine.UI; (already present is enough; this batch adds the LayoutRebuilder consumer). Added [Header("Scroll")] + [SerializeField] private ScrollRect scrollRect; field. Both SetCards and SetSongs append a null-guarded reset block at the end (after the existing population loops):
+
+csharp  if (scrollRect != null)
+  {
+      Canvas.ForceUpdateCanvases();
+      LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
+      scrollRect.verticalNormalizedPosition = 1f;
+  }
+The ForceUpdateCanvases + ForceRebuildLayoutImmediate pair guards against the timing race where verticalNormalizedPosition samples stale Content bounds before the layout pass runs.
+Modified prefab assets:
+
+CardUI.prefab (UI-fix-A) — wired the previously-unassigned inspirationCostTextField and inspirationGenTextField [SerializeField] refs on the Card UI (Script) component to the corresponding TMP_Text children. No structural change.
+InventoryCanvas.prefab (UI-fix-B) — multiple component additions/replacements:
+
+Content: added VerticalLayoutGroup (Padding 0/Spacing 0/Child Alignment Upper Center/Control Child Size Width=ON Height=OFF/Force Expand Width=ON Height=OFF). Existing ContentSizeFitter (Vertical Fit = Preferred Size) retained.
+FilterPanel: added LayoutElement (Min Height=100, Preferred Height=100). Declares its height to the layout system so VerticalLayoutGroup respects it correctly.
+CardSpawnRoot: added LayoutElement (Preferred Height=2050). Required because GridLayoutGroup on a stretch-anchored RectTransform inside ContentSizeFitter does not reliably propagate preferred height to its parent layout system. Grid Layout Group Padding Top reduced 150→50 (cosmetic, removes dead space above row 1 now that FilterPanel sits above CardSpawnRoot via VerticalLayoutGroup).
+SongSpawnRoot: added LayoutElement (Preferred Height=800). Defensive parity with CardSpawnRoot for when songs become reachable.
+Viewport: removed disabled Image and Mask components (Mask required an enabled Graphic which it didn't have, producing the editor warning "Masking disabled due to Graphic component being disabled"). Added RectMask2D — masks rectangularly without requiring a Graphic, lower per-frame cost, canonical Unity ScrollView pattern.
+Scroll View: ScrollRect's new Vertical Scrollbar slot wired to existing Scrollbar Vertical GameObject. Visibility set to AutoHideAndExpandViewport (already correctly configured before batch). The new scrollRect field on InventoryCanvas (Script) component is wired to this Scroll View GameObject.
+
+
+
+Smoke test results
+UI-fix-A — ST-INV-1..6:
+IDDescriptionResultST-INV-1Hand pile inventory open — sprite/name/desc/type/cost/gen all render correctly, no NREPASSST-INV-2Draw pile inventory open — samePASS (verified with 16-card draw pile)ST-INV-3Discard pile inventory open — samePASS (verified with mixed Action+Composition discard pile)ST-INV-4Close + reopen — cards re-render cleanly, no NRE on second open, no duplicatesPASSST-INV-5Mixed Action + Composition display — Action shows CardType enum string, Composition shows literal COMPOSITIONPASS (Discard Pile screenshot showed "Test: Flow +2" cards with CHR tag and "Waltz" card with COMPOSITION tag)ST-INV-6Regression: gameplay card display unchangedPASS (gameplay hand renders identically to pre-batch)
+UI-fix-B — ST-SCR-1..7:
+IDDescriptionResultST-SCR-1Overflow Draw Pile shows scrollbar, content scrolls smoothly without snap-backPASSST-SCR-2Underflow Discard Pile (1–3 cards) hides scrollbarFAIL ACCEPTED — vacuous overflow due to fixed CardSpawnRoot.LayoutElement.preferredHeight = 2050. Cosmetic. Follow-up via dynamic-height computation logged in CURRENT_STATE.md §4ST-SCR-3Mouse wheel scrolls vertical contentPASSST-SCR-4Reset to top on reopen — close inventory after scrolling, reopen → top of gridPASSST-SCR-5Songs inventory scrolls similarlyDEFERRED-by-construction — no Songs inventory content reachable in current buildST-SCR-6Regression: gameplay hand layout unchangedPASSST-SCR-7Masking holds during scroll — cards clip cleanly at Viewport edges (regression guard for RectMask2D fix)PASS
+Side-findings
+
+CardUI : CardBase {} empty subclass formalizes a two-prefab arrangement. Inventory canvas's cardUIPrefab field is typed CardBase but the assigned prefab carries a CardUI MonoBehaviour. The subclass adds zero behavior; its only role is to let inventory and gameplay use separate prefabs. Every [SerializeField] field added to CardBase going forward must be wired on both prefabs or the inventory side will NRE. Logged in CURRENT_STATE.md §4 with cleanup options (α) collapse and (β) Prefab Variant. Candidate appendix to batch (3): "Validate CardBase prefab variants" Card Editor action that reflects over [SerializeField] fields and reports unwired refs.
+Vacuous-overflow paper cut. CardSpawnRoot.LayoutElement.preferredHeight = 2050 is a hard-coded value chosen to overflow Viewport for any reasonable deck size (12–20 cards). Under-fills the design intent for empty/near-empty piles where the scrollbar appears unnecessarily. Logged in CURRENT_STATE.md §4. Follow-up: replace fixed value with InventoryCanvas.SetCards runtime computation from grid params × active card count (~10 lines).
+FilterPanel scrolls with content (decision D-A deferred). During UI-fix-B planning, the choice between sticky-header behavior (FilterPanel always visible) vs. scroll-with-content behavior (FilterPanel scrolls along with cards) was deferred because FilterPanel currently only contains TitleText (no functional filter chips). Logged in CURRENT_STATE.md §4. Revisit when filters become functional: move FilterPanel out of Content and make it a sibling of Scroll View under Midground for sticky behavior.
+
+Files unchanged (with reasoning)
+
+All systems SSoTs (SSoT_Card_System.md, SSoT_Card_Authoring_Contracts.md, SSoT_Editor_Authoring_Tools.md, SSoT_Status_Effects.md, SSoT_Gig_Combat_Core.md, SSoT_Audience_and_Reactions.md, SSoT_Scoring_and_Meters.md, SSoT_Gig_Encounter.md, SSoT_Runtime_Flow.md, SSoT_Runtime_Song_Model_and_Config.md, SSoT_Runtime_Generation_Orchestration.md, SSoT_Runtime_CompositionSession_Integration.md, SSoT_ALWTTT_MidiGenPlay_Boundary.md, SSoT_Composer_Backing_Track.md, SSoT_Composer_Rhythm_Track.md, SSoT_Composer_Melody_Track.md, SSoT_Dev_Mode.md) — neither batch touched any system contract, runtime invariant, or authoring contract. UI-asset wiring + a localized population-time helper edit on InventoryCanvas.cs. No subsystem semantics changed.
+coverage-matrix.md — no new subsystem; no authority change.
+SSoT_INDEX.md — no structural or authority change.
+ssot_manifest.yaml — no new invariants. The existing manifest entries remain accurate.
+SSoT_CONTRACTS.md — no contract change.
+
+Lifecycle
+Two M4.6-prep UI-fix batches closed jointly. M4.6-prep open queue updated: Inventory viewer NRE [✅] · Inventory scrollbar fix [✅] · Batch (3) Authoring tooling QoL [next] · Merged (1)/(4) Gig Setup roster pickers · Batch (5) Runtime tuning · M4.6 demo gate.
+
+## 2026-05-02 — M4.6-prep batch (2) closure: Per-musician starter deck auto-assembly
+
+### Semantic changes
+
+**SSoT_Card_Authoring_Contracts:**
+- New §5.11 "Per-musician starter deck auto-assembly (M4.6-prep batch (2))" added. Documents the runtime selection rule for both per-musician (`MusicianCardCatalogData` → `IsStarter` filter × `starterCopies` expansion) and generic (`GenericCardCatalogSO`) contributions; `starterCopies` semantics including editor-time clamps and runtime defensive warn-skip; the provenance contract (per-musician populates `musicianGrantedActionCards`/`musicianGrantedCompositionCards`, generic does not); the subtle case where the same `CardDefinition` lives in both catalog types and behaves correctly under `RemoveMusicianFromBand`; deck reset semantics; the relationship between `MusicianCharacterData.BaseActionCards`/`BaseCompositionCards` (transitional helpers, both paths read `CardCatalog` as single source of truth); the `useMusicianStartersToggle` selection mechanism between auto-assembly and the legacy `BandDeckData` path; and the `RunConfig.deckLabel` logging convention. The §5.10 (M4.4 deck multiplicity) section is unchanged; §5.11 is additive.
+
+**CURRENT_STATE:**
+- §1 new closure block "M4.6-prep batch (2) — Per-musician starter deck auto-assembly — complete (2026-05-02)" inserted after the M4.6-prep-A block. Documents the six decisions D1–D6 with the resolutions chosen, the provenance contract, the smoke-test results table (six PASS, one DEFERRED-by-construction), the queued batch (3) (Card Editor per-row starter UX), and the queued separate UI-fix batch (Draw Pile NRE).
+- §3 line 183: M4.6 entry updated. The dependency phrase "+ per-musician starter decks" replaced with parenthetical closure marker referencing M4.6-prep batch (2). M4.6 dependencies now read "remaining §9 open questions + merged Gig Setup pickers (musicians + audience)" only. New explicit pre-demo blocker added: test catalogs currently have all entries flagged `StarterDeck` for tooling validation; must be cleaned up to the designed 12-card composition before demo.
+- §4 Open items: per-musician starter decks bullet swapped from open → RESOLVED with closure pointer to §1 batch (2) block. Gig Setup roster pickers bullet retained but annotated 2026-05-02 with note that auto-assembly will pick up the picker batch's `MusicianList` mutation for free. Four new bullets added: (a) all-starter-flagged catalog content as M4.6 demo blocker; (b) `UnlockedByDefault` flag is editor-authoring-only with no runtime consumption today (defensive note for future readers); (c) inventory viewer NRE on Draw/Discard/Hand pile open (`CardBase.SetCard:77`, pre-existing prefab-wiring bug surfaced during smoke tests, promoted to roadmap as a fix batch); (d) Card Editor per-row starter UX queued as batch (3), promoted to roadmap as Future Milestone — Authoring tooling QoL.
+- §5 pending doc edits: M4.6-prep batch (2) closure line added with the full file-change inventory and reasoning for files left unchanged.
+
+**Roadmap_ALWTTT:**
+- §4.4 line 371: `CardAcquisitionFlags.starterCopies` runtime consumption marked shipped as M4.6-prep batch (2). The pre-2026-05-02 wording "deferred to M4.6 when catalogue → starter-deck auto-assembly is implemented" replaced with a closure marker pointing to `PersistentGameplayData.SetBandDeckFromMusicians` and clarifying that `BandDeckEntry.count` remains the multiplicity carrier on the legacy `BandDeckData` asset path.
+- §4.6 line 412: catalogue → starter-deck auto-assembly bullet marked shipped 2026-05-02. Now states that `CardAcquisitionFlags.starterCopies` is the per-card copy count for auto-assembled decks; the legacy `BandDeckData` path remains via the `useMusicianStartersToggle`; M4.6 demo will use the auto-assembly path.
+- Future milestones: two new entries appended after Production & Polish. **Authoring tooling QoL (batch (3))** — editor-only, ~200 lines, scoped to per-row starter toggle column on `MusicianCardCatalogData` entries, new `CardInventoryWindow` for cross-asset listing, and "Print to console" toolbar buttons on Card Editor + Deck Editor. Slots after batch (2), before merged (1)/(4). **Inventory viewer prefab fix (UI-fix batch)** — pre-existing `CardBase.SetCard` NRE on inventory viewer open, surfaced during batch (2) smoke tests, must be fixed before next demo per Demo-readiness check; ~5-minute prefab fix once the wiring gap is identified.
+
+**ssot_manifest:**
+- `Docs/systems/SSoT_Card_Authoring_Contracts.md` entry: one new hard invariant added covering per-musician starter deck auto-assembly. Documents the `SetBandDeckFromMusicians` selection rule for both catalogue types, the provenance partition (per-musician populates `musicianGrantedActionCards`/`musicianGrantedCompositionCards`; generic does not), the runtime consumption of `CardAcquisitionFlags.starterCopies`, and the legacy/auto-assembly toggle via `RunConfig.useMusicianStarters`. The pre-existing M4.4 invariant on `BandDeckEntry.count` and additive duplicate combining is unchanged; the new invariant is additive.
+
+### Authority changes
+
+None. No SSoT promoted or retired. The auto-assembly contract finds its authoritative home in the existing `SSoT_Card_Authoring_Contracts.md` because it governs the data shape of how starter decks are derived from authored catalogs (consistent with §5.10's deck-multiplicity contract). Runtime mechanics of pile lifecycle remain in `SSoT_Card_System.md §13` (no changes there). `MusicianCardCatalogData` and `GenericCardCatalogSO` remain governed under `Assets/Scripts/Cards/`, already covered by the existing manifest entry's `governs` glob. No new SSoT created; new section is additive within an existing one.
+
+### Operational changes
+
+**New runtime code file:**
+- `GenericCardCatalogSO.cs` (`Assets/Scripts/Cards/GenericCardCatalogSO.cs`). New `ScriptableObject` type for "Owner: Any" generic starter cards. Reuses `MusicianCardEntry` as the entry type (no schema duplication). `[CreateAssetMenu]` registered under "ALWTTT/Cards/Generic Card Catalog".
+
+**Modified runtime code files:**
+- `PersistentGameplayData.cs` — new method `SetBandDeckFromMusicians(IList<MusicianCharacterData>, GenericCardCatalogSO)` (~165 lines). Branches in `ApplyRunConfig` on the new `config.useMusicianStarters` flag: when ON, builds roster from `MusicianList` and calls the new method; when OFF, calls the existing `SetBandDeck(BandDeckData)`. The closing `ApplyRunConfig` log line updated to use `config.deckLabel ?? config.bandDeck?.name ?? "<unset>"` instead of just `config.bandDeck?.name`. No changes to `SetBandDeck(BandDeckData)`'s implementation.
+- `GigRunContext.cs` — `RunConfig` gains `useMusicianStarters : bool` and `deckLabel : string` fields. `BeginRun` log line updated to use `_current?.deckLabel ?? _current?.bandDeck?.name`.
+- `GigSetupConfigData.cs` — new `genericStarterCatalog : GenericCardCatalogSO` serialized field + `GenericStarterCatalog` accessor. `availableBandDecks` and `AvailableEncounters` retained unchanged as the dev-fallback path's source.
+- `GigSetupController.cs` — new `useMusicianStartersToggle : Toggle` UI ref. `OnStartPressed` reworked: branches at the top on `useMusicianStartersToggle.isOn` (default ON in scene). Auto-assembly path skips the dropdown lookup, runs an empty-roster pre-flight guard (errors and refuses to start if `MusicianList` is empty), builds `deckLabel` as `<auto:idA+idB+...>`. Legacy path resolves `selectedDeck` from the dropdown as before, builds `deckLabel` as the asset name. Both paths populate `RunConfig.useMusicianStarters` and `RunConfig.deckLabel` accordingly. Closing `[GigSetup] Starting gig` log line updated with `Deck=<deckLabel>, AutoAssembly=<bool>`.
+
+**Smoke test results table (ST-M46p2-1 through -8):**
+
+| ID | Description | Result |
+|---|---|---|
+| ST-M46p2-1 | Auto-assembly basic — toggle ON, populated catalogs, gig starts with correct totals | PASS — `Action=20 (per-musician=20, generic=0), Composition=8 (per-musician=8, generic=0), musicians=4`, all three log sites show `Deck=<auto:3+1+4+2>` |
+| ST-M46p2-2 | Legacy regression — toggle OFF, `BandDeckData` selected from dropdown, identical to pre-batch behavior | PASS — `[PersistentGameplayData] SetBandDeck -> Action=17, Composition=5 (Deck='TestDeck_FullCoverage', uniqueEntries=22)`, auto-assembly log line absent, `AutoAssembly=False` |
+| ST-M46p2-3 | Null catalog graceful — clear one musician's `CardCatalog`, auto-assembly continues with warning | PASS — warning fires (`musician 'Conito' (id=1) has no CardCatalog. Skipping contribution.`), `skippedNoCatalog=1`, Action drops 20→10, no NRE |
+| ST-M46p2-4 | `starterCopies = 0 + StarterDeck` warn-skip | DEFERRED-by-construction. Editor-time clamps (`MusicianCatalogService.TryAddEntry` applies `Max(1,…)`, `[Min(1)]` on `MusicianCardEntry.starterCopies`) make the state unreachable from tooling. Defensive code path is structurally identical to ST-M46p2-3's PASSED `skippedNoCatalog` branch. |
+| ST-M46p2-5 | Generic catalog contribution — non-null `GenericStarterCatalog`, generic counts visible in summary | PASS — generic count visible in summary, per-musician counts unchanged, gig started, generic card present in deck |
+| ST-M46p2-6 | Provenance on `RemoveMusicianFromBand` — verify per-musician cards stripped, generic cards survive | PASS — Action 22→12 (drop=10 = Conito's per-musician contribution), Composition unchanged, generic card (`new_conito_vibe_single ×2`) still present after removal, `RemoveMusicianFromBand('1')` returned `True`. Verified via temporary `[ContextMenu]` scaffold on `GigManager` (removed at closure). |
+| ST-M46p2-7 | Empty roster guard — toggle ON, `MusicianList` cleared, gig refuses to start | PASS — error fires verbatim (`Auto-assembly enabled but PersistentGameplayData.MusicianList is empty. Cannot start gig. ...`), `BeginRun` and `SetBandDeckFromMusicians` did not fire, scene did not navigate |
+| ST-M46p2-8 | Deck label consistency across `[GigRunContext] BeginRun`, `[PersistentGameplayData] ApplyRunConfig`, `[GigSetup] Starting gig` log lines | PASS — all three lines consistently render `Deck=<auto:3+1+2+4>` (auto path) or `Deck=TestDeck_FullCoverage` (legacy path) |
+
+### Side-findings (non-blocking)
+
+- **Pre-existing inventory viewer NRE.** `CardBase.SetCard:77` throws `NullReferenceException` when the inventory canvas instantiates cards on Draw/Discard/Hand pile open. Stack ends at `inspirationCostTextField.text = ...`. Likely unassigned UI text reference on the inventory's card display prefab, introduced when inspiration cost/gen fields were added to `CardBase`. Not caused by batch (2) — surfaced during ST-M46p2-2 click-through. Promoted to roadmap as a separate UI-fix batch.
+- **Card Editor per-row starter UX.** Flagging entries one-at-a-time via the right-side inspector's `EnumFlagsField` dropdown is tedious for multi-card catalog setup. Per-row `Starter` toggle column on the entries list proposed and accepted as the cleaner shape (vs. the originally-proposed bulk toolbar). Promoted to roadmap as Future Milestone — Authoring tooling QoL (batch (3)).
+- **All-starter-flagged catalog content.** Smoke tests required all entries flagged starter to verify the auto-assembly path; the resulting ~28-card test deck is much larger than the designed 12-card M4.6 starter. Marked as M4.6 pre-demo blocker in `CURRENT_STATE.md §3` and §4.
+
+### Files unchanged (with reasoning)
+
+- `coverage-matrix.md` — no new subsystem; auto-assembly is a new code path within the existing `Cards`/`Data` subsystems already governed.
+- `SSoT_Editor_Authoring_Tools.md` — no new editor tool. Batch (2) is runtime-only (the `useMusicianStartersToggle` is a single Toggle UI element wired to existing `GigSetupController`, not a new authoring tool). Batch (3), when it lands, will introduce `CardInventoryWindow` and toolbar buttons; that closure will update this doc.
+- `SSoT_INDEX.md` — no authority change. The auto-assembly contract finds its home in the existing `SSoT_Card_Authoring_Contracts.md`.
+- `SSoT_Card_System.md` — runtime pile lifecycle (DrawPile/HandPile/DiscardPile) is unchanged; auto-assembly produces the same flat `CardDefinition` references the legacy path produces. No section in `SSoT_Card_System.md` is contradicted or extended by batch (2).
+
+### Smoke tests
+
+ST-M46p2-1 through -8 results table above. Verification approach: console log inspection for -1 through -5 and -7 and -8; temporary `[ContextMenu]` scaffold on `GigManager` for -6 (provenance check, removed at closure); editor-time defensive structure check by inspection for -4.
+
+---
+
+## 2026-05-01 — M4.6-prep-A closure: DeckCardCreationService MB2 catalogue migration
+
+### Semantic changes
+
+**SSoT_Card_Authoring_Contracts:**
+- §5.9 "Audience-side status authoring (M4.3)": stale footnote removed (`Note: the parallel DeckCardCreationService path still consults a single catalogue field — fix tracked in CURRENT_STATE.md §4, scheduled for M4.6 prep.`). Replaced with a closing paragraph stating that the Card Editor and Deck Editor JSON import paths apply the contract uniformly via the registries helpers. The section now describes a single, unified MB2-aware editor toolchain with no remaining single-catalogue holdouts.
+
+**CURRENT_STATE:**
+- §1 new closure block "M4.6-prep-A — DeckCardCreationService MB2 catalogue migration — complete (2026-05-01)" inserted after the M4.5 block. Documents shipped scope (3 editor-only files: `DeckCardCreationService.cs`, `DeckJsonImportService.cs`, `DeckEditorWindow.cs:754-757`), the strict-resolution policy decision (local `TryResolveStatusByKey` name-fallback removed for parity with Card Editor), and EV-1..EV-5 verification outcomes (EV-1/2/3/5 PASS via Deck Editor UI; EV-4 PASS by code inspection because `DeckEditorWindow.ResolveRegistries` makes the null-path UI-unreachable; EV-3 is the explicit regression case for audience-side `earworm` resolution from deck JSON).
+- §3 line 180: M4.6 entry updated. The dependency phrase "+ `DeckCardCreationService` parallel registries fix" replaced with parenthetical closure marker referencing M4.6-prep-A.
+- §4 Open items: `DeckCardCreationService` parallel registries fix bullet removed (closed). New bullet added: Card Editor inline effects-block UI on legacy catalogue alias — surfaced during M4.6-prep-A audit. `CardEditorWindow.cs:1267, 1305` still call `DrawEffectsBlock(effectsProp, _registries?.StatusCatalogue)`, exposing only the musicians catalogue to the inline effect-row picker. Same MB2 friction shape, smaller surface, authoring-UX only (not import resolution). Logged, not scheduled.
+- §5 pending doc edits: `SSoT_Card_Authoring_Contracts.md` §5.9 + this changelog + the §1/§3/§4 edits marked applied for M4.6-prep-A.
+
+### Authority changes
+
+None. No SSoT promoted or retired. The MB2 catalogue split's authoritative home remains `SSoT_Card_Authoring_Contracts.md §5.9`. M4.6-prep-A closes a code-side migration gap that the existing §5.9 contract had been silently overstating since M4.3.
+
+### Operational changes
+
+**Modified code files (editor-only, `#if UNITY_EDITOR` guarded):**
+- `DeckCardCreationService.cs` — `TryStageNewCard(DeckCardEntryJson, ALWTTTProjectRegistriesSO, out StagedCardEntry, out string)` (was `StatusEffectCatalogueSO`). Internal `ApplyEffectsJson` signature migrated identically. `ApplyStatusEffect` branch ports `registries.TryGetStatusEffectByKey` / `TryGetStatusEffectByPrimitive` from `CardEditorWindow_JsonImport.ApplyEffectsJson`. Error wording aligned ("ApplyStatusEffect requires ALWTTTProjectRegistriesSO loaded in the Registries field"). Local `TryResolveStatusByKey` (name + filename fuzzy fallback against a single catalogue) deleted.
+- `DeckJsonImportService.cs` — `Import(string, ALWTTTProjectRegistriesSO)` signature + local capture rename + pass-through to `TryStageNewCard`. `using ALWTTT.Status;` left in (now technically unused; harmless hint, no warning).
+- `DeckEditorWindow.cs:754-757` — `var catalogue = _registries?.StatusCatalogue;` line dropped. `DeckJsonImportService.Import(_jsonText, _registries)` called directly. The legacy alias `_registries?.StatusCatalogue` still exists on `ALWTTTProjectRegistriesSO` for non-editor callers and the Card Editor's inline effects-block UI (see open-items note in `CURRENT_STATE.md §4`).
+
+**Editor verification log (EV-1 through EV-5):**
+- EV-1 PASS — Deck JSON with reference-only entries imports identically to pre-patch behavior (Sibi Major Chords ×2 staged correctly).
+- EV-2 PASS — Deck JSON with new card creating `ApplyStatusEffect(statusKey: "flow")` resolves the musicians-side Flow SO; staged row reads `▸ Flow +1`.
+- EV-3 PASS — Deck JSON with new card creating `ApplyStatusEffect(statusKey: "earworm", targetType: "AllAudienceCharacters")` resolves the audience-side Earworm SO; staged row reads `▸ Earworm +1`. **Regression case for the bug being fixed.** Pre-patch, this exact JSON would have errored with "No StatusEffectSO found for statusKey 'earworm'".
+- EV-4 PASS by code inspection — patched error string `"effects[i]: ApplyStatusEffect requires ALWTTTProjectRegistriesSO loaded in the Registries field."` is correct and present in the patched file. Cannot be triggered via the Deck Editor UI in any project containing at least one `ALWTTTProjectRegistriesSO` asset because `DeckEditorWindow.ResolveRegistries` (called immediately before `DeckJsonImportService.Import`) auto-finds any such asset via Resources or `AssetDatabase.FindAssets`. The null-check is retained for non-UI callers and parity with Card Editor.
+- EV-5 PASS — Deck JSON with new card creating `ApplyStatusEffect(effectId: 100)` (`DamageUpFlat`) resolves to the same Flow SO that EV-2's `statusKey: "flow"` resolved to (because Flow's `IsDefaultVariant: true` and its primitive is `DamageUpFlat`). Confirms `TryGetStatusEffectByPrimitive` is on the integer path.
+
+### Smoke tests
+
+Editor verification (EV-1..EV-5) only. No runtime gameplay change; no smoke tests required per the project's smoke-test scope rule. EV-3 stands as the regression test.
+
+### Files unchanged
+
+`ssot_manifest.yaml`, `coverage-matrix.md`, `Roadmap_ALWTTT.md`, `SSoT_Editor_Authoring_Tools.md`. Manifest invariant on the MB2 catalogue split (`ssot_manifest.yaml:222`) already covers the policy generally; no new invariant introduced. Coverage matrix unaffected (no new subsystem). Roadmap §4.6 has no explicit `DeckCardCreationService` checkbox to tick (the prep was a `CURRENT_STATE.md`-tracked open item, not a roadmap milestone). `SSoT_Editor_Authoring_Tools.md` describes `DeckCardCreationService` only by responsibility (line 154); no wording was specific to single-catalogue handling.
+
+---
+
+## 2026-04-30 — M4.5 closure: Bidirectional guaranteed draws
+
+### Semantic changes
+
+**SSoT_Runtime_Flow:**
+- New §4.2 "Bidirectional guaranteed draws (M4.5, 2026-04-30)" inserted under Phase 1, after §4.1. Documents: subtractive rule (total drawn ≤ `min(DrawCount, MaxCardsOnHand - HandPile.Count, DrawPile.Count + DiscardPile.Count)`); three-phase algorithm (normal draws holding back reserved slots → re-evaluate → fill leftover slots); filtered draw mechanism (`DrawCardFiltered` with reshuffle-on-empty fallback); composition-wins tie-break when `effectiveBudget < reserved`; hook-collapse rationale (action and composition windows open simultaneously today); per-fire and per-turn observability; exhaustion case behavior.
+- §8 Runtime invariants: new invariant 9 — "Hand draw at PlayerTurn entry guarantees ≥1 Action and ≥1 Composition card in hand when `DrawPile ∪ DiscardPile` allow, without exceeding `DrawCount` or `MaxCardsOnHand`." Carries forward the subtractive contract and the composition-first tie-break.
+
+**SSoT_Card_System:**
+- §13 "Deck multiplicity (M4.4)": new closing paragraph cross-references the M4.5 runtime guarantee. Notes that multiplicity (M4.4) makes the "piles allow" precondition near-universal in practice for the v1 starter. Mechanism authority remains `SSoT_Runtime_Flow.md §4.2`.
+
+**CURRENT_STATE:**
+- §1 new closure block "M4.5 — Bidirectional guaranteed draws — complete (2026-04-30)" inserted after the M4.4 block. Documents shipped scope: 3 code files touched (`DeckManager.cs`, `GigManager.cs`, `DevModeController.cs`); algorithm summary; tie-break rule; hook-collapse note; observability surface (per-fire log lines + per-turn summary + Dev Mode overlay readout); test results (ST-M45-1/2/4/8 PASS, -3 inferred via Path B, -5/-6 dropped, -7 deferred).
+- §3 "What is next": M4.5 line removed (closed); M4.6 promoted to top as the demo gate.
+- §4 Open items: M4.5 architectural decision moved from open to RESOLVED with chosen mechanism (Option 1 + subtractive) and tie-break.
+- §5 pending doc edits: `SSoT_Runtime_Flow.md`, `SSoT_Card_System.md` §13 cross-reference, and `ssot_manifest.yaml` entries marked applied for M4.5.
+
+**Roadmap_ALWTTT:**
+- §4.5 reworded as closure block. Chosen mechanism documented (Option 1 + subtractive, composition-wins tie-break). Hook-collapse rationale added. Smoke-test outcomes recorded inline.
+- §DoD: M4.5 checkbox ticked.
+
+**ssot_manifest.yaml:**
+- New invariant on `Docs/systems/SSoT_Runtime_Flow.md`: bidirectional guaranteed-draw subtractive rule.
+
+**coverage-matrix.md:** no change. The "Runtime phase flow" row already points to `SSoT_Runtime_Flow.md` as authority; M4.5 does not introduce a new subsystem or change a primary home. (Note: an earlier batch plan listed a coverage-matrix row addition; that was an error in interpretation of the matrix's format and is corrected here.)
+
+### Authority changes
+
+None. No SSoT promoted or retired. The M4.5 milestone's authoritative home is `SSoT_Runtime_Flow.md §4.2`. `SSoT_Card_System.md §13` carries a cross-reference paragraph only — multiplicity remains the authority of `SSoT_Card_System.md`, the guarantee mechanism remains the authority of `SSoT_Runtime_Flow.md`. The roadmap's "two symmetric hooks" framing is intentionally collapsed to one site in current implementation; a future hook split is reserved for if/when the action window and composition window separate into distinct phase transitions.
+
+### Operational changes
+
+**Modified code files:**
+- `DeckManager.cs` — new public surface: `DrawCardsForPlayerTurn(int)`, `DrawCardFiltered(Func<CardDefinition,bool>, string)`, `HandHas(Func<CardDefinition,bool>)`, `PilesHave(Func<CardDefinition,bool>)`, `LastTurnGuaranteeSummary` accessor. New private members: `_lastTurnGuaranteeSummary` field, static `FindRandomMatchIndex(List<CardDefinition>, Func<CardDefinition,bool>)`. New methods sit between `DiscardHand()` and the existing `#if ALWTTT_DEV` block. No existing methods modified.
+- `GigManager.cs` — one-line replacement inside `ExecuteGigPhase(PlayerTurn)`: `DeckManager.DrawCards(pd.DrawCount)` → `DeckManager.DrawCardsForPlayerTurn(pd.DrawCount)`. Three SSoT-authority comment lines added above the call.
+- `DevModeController.cs` — 11-line readout block added inside the existing `gm != null` guard, immediately after the verbose pile-counts block. Reads `DeckManager.Instance.LastTurnGuaranteeSummary` and renders `M4.5 last draw: …`. Always visible (independent of `_verboseLogs`).
+
+### Findings
+
+- The roadmap's "two symmetric hooks" framing was based on a model where the composition phase entry and the action window entry are distinct phase transitions. Current implementation does not separate them — `ExecuteGigPhase(PlayerTurn)` opens both windows simultaneously. The closure preserves the bidirectional guarantee while collapsing the hook to one site. If a future redesign separates the windows, the hook split is a future refactor; the SSoT documents the collapse explicitly so the divergence is not silent.
+- The reservoir-style `FindRandomMatchIndex` is `O(n)` per filtered draw call, where `n` is `DrawPile.Count`. At hand-scale piles (12-card starter), this is trivial. Documented as the chosen complexity profile because it keeps the predicate side fully generic for future filtered-draw use cases (musician-tagged, status-gated, etc.).
+- Observability surface (per-fire `[M4.5 GuaranteeComp]`/`[GuaranteeAction]` + per-turn summary line + always-on Dev Mode overlay readout) is the primary evidence path for ST-M45-3 (both guarantees same turn). Path B was chosen — direct rigging of `DrawPile` to a specific composition is not in current Dev Mode tooling and was not added in this batch. Any turn where the live overlay shows `needs=[CA] fired=[CA]` is direct evidence of the both-fire case.
+
+### Smoke tests
+
+- ST-M45-1 (composition guarantee fires when needed) ✅
+- ST-M45-2 (action guarantee fires when needed) ✅
+- ST-M45-3 (both guarantees same turn) — covered by inference from ST-M45-1 + ST-M45-2 (Path B).
+- ST-M45-4 (subtractive: total drawn = budget across 10 turns infinite Dev Mode; implicit no-fire baseline) ✅
+- ST-M45-5 (re-evaluation: unused reserved slot becomes normal draw) — dropped as redundant with ST-M45-4 invariant.
+- ST-M45-6 (no-fire baseline on leftover-hand turn) — dropped as redundant with ST-M45-4 implicit no-fire observations.
+- ST-M45-7 (empty-domain in piles is silent) — deferred. No starter card has `ExhaustAfterPlay = true`; case unreachable in normal play.
+- ST-M45-8 (reshuffle during filtered draw) ✅
+
+### Lifecycle
+
+M4.5 batch closed. Next milestone is M4.6 (Starter Deck v1 authoring) — the demo gate. Carried-over open items unchanged: `DeckCardCreationService` parallel registries fix (M4.6 prep), `TryResolveStatusEffectFromKey` dead-code cleanup, Gig Setup roster pickers, Pending Effects (post-MVP), Tempo-coupled card identity (post-MVP, unscheduled).
+
+---
+
+## 2026-04-29 — M4.4 closure: Deck Contract Evolution (card copies)
+
+### Semantic changes
+
+**SSoT_Card_System:**
+- New §13 "Deck multiplicity (M4.4)". Documents: multiset shape (`BandDeckData` as `List<BandDeckEntry>`), runtime expansion in `PersistentGameplayData.SetBandDeck`, pile-lifecycle identity preservation per reference, lazy legacy migration via `[FormerlySerializedAs("cards")]` + `legacyCards` fallback path, `EnumerateCards()` helper for flat consumers.
+- §12 "This SSoT owns" list extended with "deck-level multiplicity (multiset shape, runtime expansion, pile-lifecycle invariance under play and reshuffle)".
+
+**SSoT_Card_Authoring_Contracts:**
+- §5.7 `EntryJson.starterCopies` bullet clarified: authoring-only at M4.4; runtime consumption scheduled for M4.6 when catalogue → starter-deck auto-assembly lands.
+- New §5.10 "Deck-level multiplicity (M4.4)". Documents: per-entry `count` field default 1; duplicate `cardId` references combine additively with non-blocking warning; duplicate `kind`-bearing ids remain a hard error with pendingCard cleanup; full round-trip through Export/Import.
+- §7.1 stage invariants: bullet added — staged card slots carry a per-entry `count` editable inline via `−`/`+` controls.
+
+**CURRENT_STATE:**
+- §1 M4.4 closure block added.
+- §3 "What is next": M4.4 line removed (closed); M4.5 promoted to top with architectural decision flagged; M4.6 preconditions updated to include `DeckCardCreationService` parallel registries fix.
+- §4: "True card copies in decks" item moved from open to RESOLVED with cross-references.
+- §5 pending doc edits: M4.4-related entries (`SSoT_Card_Authoring_Contracts.md`, `SSoT_Card_System.md`, `ssot_manifest.yaml`) marked applied.
+
+**Roadmap_ALWTTT:**
+- §4.4: `starterCopies` runtime-consumption sentence reworded — deferred to M4.6.
+- §4.6 scope: bullet added for `starterCopies` becoming source of `BandDeckEntry.count` if catalogue → starter-deck auto-assembly is built in M4.6.
+- §DoD: M4.4 checkbox ticked.
+
+### Authority changes
+
+None. No SSoT promoted or retired. The line at `changelog-ssot.md` 2026-03-21 design pass that read `BandDeckData.Cards : List<CardDefinition>` is deduplicated by reference in `PersistentGameplayData.SetBandDeck`. True copies are not a runtime concept today. M4.4 closes this. — is now satisfied; left in place as historical record.
+
+### Operational changes
+
+**New code files:**
+- `Assets/Scripts/Data/Cards/Configs/BandDeckEntry.cs` — `[Serializable]` type pairing a `CardDefinition` with `[Min(1)] int count = 1`.
+
+**Modified code files:**
+- `BandDeckData.cs` — multiset shape: new `List<BandDeckEntry> entries` field; legacy `cards` field renamed to `legacyCards` with `[FormerlySerializedAs("cards")]`; new `Entries` accessor with lazy legacy fallback; new `EnumerateCards()` helper. Pre-M4.4 `Cards` property removed; consumers migrated to `Entries` / `EnumerateCards()`.
+- `PersistentGameplayData.cs` — `SetBandDeck` rewritten to iterate `bandDeck.Entries` and expand counts into independent references on `currentActionCards` / `currentCompositionCards`. Pre-M4.4 dedup-by-reference (`if (!currentActionCards.Contains(card))`) removed. Log line updated to report per-domain totals + uniqueEntries.
+- `GigManager.cs` — two consumer sites in deck-source resolution (`RunContextBandDeck` and `Auto` fallback) now call `bandDeck.EnumerateCards()` instead of `bandDeck.Cards`.
+- `DeckEditorDtos.cs` — `DeckCardEntryJson.count` field added (default 1). `StagedCardEntry.count` field added with `[SerializeField]`. `FromExisting` defaults count=1; `FromPending` reads `dto.count`.
+- `DeckJsonImportService.cs` — `seenCards: HashSet<string>` replaced with `byId: Dictionary<string, StagedCardEntry>`. Reference-existing duplicate cardId → combine additively + warning. Create-new duplicate id → hard error with pendingCard/Payload cleanup. `Export` emits `count` per entry.
+- `DeckAssetSaveService.cs` — `WriteFields` rewritten to write the new `entries` SerializedProperty (`card` + `count` sub-properties per element). Legacy `legacyCards` array cleared on every save (asset upgrade path).
+- `DeckEditorWindow.cs` — `DoLoadDeck` reads `Entries` and copies count to staged entries. Staged-list header reads `"N cards, K unique"`. `DrawStagedCardRow` adds `×N` badge + `−` / `+` mini-buttons (`−` at count==1 removes the entry, equivalent to Remove). Catalogue Add button is no longer disabled when card is already staged; label changes to `+1` and click increments count.
+
+### Structural changes
+
+- One new code file (`BandDeckEntry.cs`).
+- No file deletions, renames, or moves.
+- `BandDeckData` field rename `cards` → `legacyCards` is `[FormerlySerializedAs]`-safe; existing `BandDeck - Test 1.asset` (and any other pre-M4.4 deck assets) read correctly without re-authoring.
+
+### Findings / residual
+
+- Mid-batch compile-error fix: initial Batch 1 missed two `.Cards` consumers in `GigManager.cs` (RunContextBandDeck, Auto fallback) and two in `DeckEditorWindow.DoLoadDeck`. Fixed in same session before Batch 2 by introducing `BandDeckData.EnumerateCards()` helper and patching `DoLoadDeck` to iterate `Entries`. Lesson: greps for `bandDeck.Cards` should have been `\.Cards\b` to catch arbitrary local variable names.
+- ST-M44-9 deferred (duplicate `kind`-id error path). The branch is preserved in code (`byId.ContainsKey` check + cleanup) but not exercised in the test deck. Validation remains the M4.3 baseline + reasoning from code review.
+- ST-M44-10 N/A. TestEarworm card not present in `TestingDeck_CombatMVP`; M4.3 audience-status authoring path is unchanged structurally by M4.4 (the `ApplyStatusEffect` resolution path lives in card creation, not deck shape).
+- `legacyCards` is cleared on every Save through Deck Editor. Loading without saving leaves the asset's legacy field intact — intentional (zero-touch on existing assets) but worth noting if anyone manually inspects an asset post-M4.4 and is surprised to see both `entries` empty and `legacyCards` populated. They saw a Load, not a Save.
+
+### Lifecycle
+
+- M4.4 closed 2026-04-29. Critical path advances: **M4.5 (next) → M4.6 (demo target).**
+- Open items unchanged from M4.3 closure: `DeckCardCreationService` parallel registries fix (M4.6 prep), `TryResolveStatusEffectFromKey` dead code cleanup, Gig Setup roster pickers (pre-M4.6 or rolled-in), Pending Effects (post-MVP first), Tempo-coupled card identity (post-MVP, unscheduled).
+
+## 2026-04-28 — Post-MVP planning: Pending Effects + Tempo-coupled card identity
+
+### Authority changes
+
+- Two new planning docs added under `planning/` (per project planning-track convention; precedent: `Design_Audience_Status_v1.md`, `Design_Starter_Deck_v1.md`):
+  - `Design_Pending_Effects_v1.md` — proposes a song-scoped accumulator layer where cards add to a pending bucket during a song and resolve at song end. First user: deferred Earworm. Scheduled as the **first post-MVP gameplay system batch** immediately following M4.6 demo closure.
+  - `Design_Tempo_Identity_v1.md` — captures a long-term design direction making tempo a gameplay input axis (fast/slow card preferences, deck archetype identities). **No implementation slot.** Influences starter deck and per-musician catalog design choices now via flavor / naming / archetype lean.
+
+### Semantic changes
+
+None to existing systems. Both new docs are planning-track additions and do not modify implemented behavior or any current SSoT.
+
+**Roadmap_ALWTTT:**
+- New post-MVP sections appended: "Post-MVP — Pending Effects system (planned, first post-MVP batch)" and "Post-MVP — Tempo-coupled card identity (design direction, no implementation slot)". Both reference the new planning docs.
+
+**Design_Starter_Deck_v1:**
+- New subsection added on "Tempo-lean as design intent (not runtime)" — flags that starter card naming, flavor, and per-musician catalog shape should soft-reflect tempo identity now even though tempo coupling is not implemented. Includes a placeholder for per-musician tempo-lean sketches to be authored during the M4.6 starter design pass.
+
+**CURRENT_STATE §4:**
+- Two open items appended: Pending Effects system (post-MVP, scheduled first) and Tempo-coupled card identity (post-MVP, long-term, no implementation slot). Both reference the new planning docs.
+
+### Operational changes
+
+None. No code change. No SSoT semantic change. Mind Tap (M4.6) remains an immediate Earworm applier; Earworm itself remains unchanged from the M4.3 spec in `SSoT_Status_Effects.md §5.7`.
+
+### Structural changes
+
+- Two new files in `planning/`. No file deletions, renames, or moves.
+
+### Findings / residual
+
+- Per-musician tempo-lean sketches in `Design_Starter_Deck_v1.md` are flagged as a placeholder, to be filled in during M4.6 starter design authoring. Not a blocker — starter cards can be authored without it; the placeholder ensures the question gets asked during that pass.
+- The new planning docs follow the same supersession pattern as `Design_Audience_Status_v1.md`: when implementation eventually happens, the relevant sections get a "superseded by SSoT_X.md §Y" banner and the SSoT becomes authoritative.
+
+### Lifecycle
+
+- Post-MVP planning track is now non-empty. The next post-MVP batch (after M4.6 closure) is provisionally **Pending Effects implementation** per `Design_Pending_Effects_v1.md`. Tempo-coupled card identity remains explicitly unscheduled; it influences current design choices but does not block any milestone.
+- Critical path unchanged: **M4.4 → M4.5 → M4.6 (demo).** This batch does not touch implementation work.
+
+## 2026-04-28 — M4.3 closure: Earworm — first audience-side status
+
+### Semantic changes
+
+**SSoT_Status_Effects:**
+- New §5.7 Earworm. Full spec: primitive `DamageOverTime`, key `"earworm"`, audience-only, `AudienceTurnStart` tick timing, `Additive`/`LinearStacks`, `MaxStacks=99`, `IsBuff=false`. Documents read-then-decay ordering in `GigManager.AudienceTurnRoutine`, `N(N+1)/2` Vibe-curve semantics, Flow non-amplification, `IsBlocked` skip, harmless tick on `IsConvinced`, and variant relationship with Feedback (shared `DamageOverTime` primitive, separate catalogues post-MB2).
+- Validation history records ST-M43-1a..8 PASS plus the duplicate-Tick block fix iteration.
+- §5.7 supersedes `planning/Design_Audience_Status_v1.md` §3.
+
+**SSoT_Audience_and_Reactions:**
+- §8: paragraph added — audience members may carry player-applied statuses that shape their audience-turn state; runtime owned by Status SSoT; surface extends through `StatusEffectCatalogue_Audience`.
+- §10: MVP rules bullet replaced — audience-side statuses are now part of MVP baseline (Earworm is the first), not optional.
+
+**SSoT_Card_Authoring_Contracts:**
+- Note added that JSON `ApplyStatusEffect` resolution probes both `StatusCatalogueMusicians` and `StatusCatalogueAudience` on `ALWTTTProjectRegistriesSO`. Audience-side card authoring requires both catalogue fields populated on the registries asset.
+
+**SSoT_Editor_Authoring_Tools:**
+- Note added that `ALWTTTProjectRegistriesSO` exposes `StatusCatalogueMusicians` / `StatusCatalogueAudience` post-MB2. Legacy `StatusCatalogue` alias retained (returns musicians catalogue) for source compatibility with pre-split callers.
+
+### Authority changes
+
+- `planning/Design_Audience_Status_v1.md` §3 (Earworm) marked **superseded by `SSoT_Status_Effects.md` §5.7** with closure date 2026-04-28. §4 (Captivated) and §5 (`ApplyIncomingVibe`) retain authority — both remain in roster-expansion scope.
+
+### Operational changes
+
+- New SO asset: `Assets/Resources/Data/Status/StatusEffect_Earworm_DamageOverTime.asset` (`statusKey: "earworm"`, primitive: `DamageOverTime`, default variant of audience catalogue).
+- New icon sprite asset (`bicho icono_0` per asset reference).
+- `StatusEffectCatalogue_Audience.asset` populated with the Earworm SO (was empty post-MB2).
+- New dev-only test card: `TestEarworm.asset` in Gusano's musician card folder (`actionTiming: Always`, `inspirationCost: 0`, `[TEST]` prefix on DisplayName). Retained as a regression harness for future audience-status work; out of starter deck.
+- `GigManager.cs`: new Earworm read-and-apply block inserted at the top of `AudienceTurnRoutine`, before the existing `Tick(AudienceTurnStart)` loop. Reads `Statuses.TryGet(CharacterStatusId.DamageOverTime)`, disambiguates by `StatusKey == "earworm"`, calls `AddVibe(stacks)`, emits `[Earworm]` tick log with before/after Vibe.
+- `CardBase.cs`: apply-time `[Effects]` log expanded — now logs `StatusKey` + `DisplayName` alongside primitive `EffectId`, disambiguating shared-primitive variants in console output.
+- `ALWTTTProjectRegistriesSO.cs`: refactored — `statusEffectCatalogue` field renamed to `statusEffectCatalogueMusicians` (with `[FormerlySerializedAs]` preserving existing reference), new `statusEffectCatalogueAudience` field added. New properties `StatusCatalogueMusicians` / `StatusCatalogueAudience`. New helpers `TryGetStatusEffectByKey` / `TryGetStatusEffectByPrimitive` probe both catalogues musicians-first. Legacy `StatusCatalogue` alias retained (returns musicians catalogue) for source compatibility.
+- `CardEditorWindow.cs`: toolbar warning helpbox expanded — enumerates which specific registries field is missing (CSO Primitive Database / Musicians catalogue / Audience catalogue) instead of a generic "missing references" message.
+- `CardEditorWindow_JsonImport.cs`: `ApplyEffectsJson` signature changed to take `ALWTTTProjectRegistriesSO` instead of `StatusEffectCatalogueSO`. `ApplyStatusEffect` branch resolves status via `registries.TryGetStatusEffectByKey` / `…ByPrimitive` (probes both catalogues). Stale private helper `TryResolveStatusEffectFromKey` left in place — unused after this batch, deferred for later cleanup.
+
+### Structural changes
+
+- Two new asset files (Earworm SO, Earworm icon).
+- One new audience-side catalogue entry.
+- One new dev-only test card asset.
+- No new code files.
+
+### Findings / residual
+
+- M4.3 patch initially shipped with a copy-paste duplicate `Tick(AudienceTurnStart)` block in `AudienceTurnRoutine`, producing -2/turn decay (stacks halved each audience turn instead of decrementing by 1). Caught by ST-M43-2/3 stack-count observation; resolved by deletion of the duplicate block. Logged here as artefact for traceability — not an SSoT semantic change.
+- Side issue surfaced (deferred): `DeckCardCreationService` / Deck Editor still uses single-catalogue lookup. Same MB2-shaped friction Card Editor had. Will block any audience-status reference in Deck Editor JSON. Tracked in `CURRENT_STATE.md §4`; recommended fix at M4.6 prep as a tooling-readiness step.
+- Side issue surfaced (deferred): Gig Setup Scene supports only single-character roster paths for both band and audience. Bidirectional multi-select picker requested. Tracked in `CURRENT_STATE.md §4`; recommended slot is a standalone batch ahead of M4.6, or rolled into M4.6.
+- Stale dead code: `TryResolveStatusEffectFromKey(StatusEffectCatalogueSO, ...)` in `CardEditorWindow_JsonImport.cs` no longer has callers after the registries refactor. Not removed in this batch — separate cleanup.
+
+### Lifecycle
+
+- M4.3 closed 2026-04-28. Earworm validated end-to-end.
+- Next batch on critical path: **M4.4 — Deck Contract Evolution (card copies)**.
+- Roster Expansion (post-MVP track) remains unchanged in scope: Captivated + `ApplyIncomingVibe` still deferred to roster expansion; design intent retained in `planning/Design_Audience_Status_v1.md` §4 / §5.
+
+## 2026-04-28 — M4.2 Flow bifurcation + adaptive LoopScoreCalculator
+
+### Semantic changes
+
+**SSoT_Gig_Combat_Core:**
+- §6.1 Flow: rewritten. Combat meaning changed from "amplifies Loop → SongHype conversion" to bifurcated Vibe interaction (flat per-performer on Action, multiplier band-wide on Composition + Song End). Flow → SongHype path explicitly retired and removed.
+- §8.1 Loop → SongHype: updated. Flow no longer modifies this delta. Adaptive role-budget scoring with `LoopScoringMode` enum and auto-detected `possibleRoleCount` / `totalMusicians` documented.
+- §11 Implementation status: 4 new rows (Flow bifurcation, per-performer Flow, adaptive LoopScore, Flow→SongHype retired).
+
+**SSoT_Scoring_and_Meters:**
+- §3 LoopScore: expanded with current formula (§3.2) and HypeDelta conversion (§3.3). Adaptive scoring documented with RoleNormalization and MusicianParticipation modes.
+- §7.1 Flow: rewritten from "interacts with LoopScore → SongHype layer" to "interacts with the Vibe layer, bifurcated by card domain."
+
+**SSoT_Status_Effects:**
+- §5.1 Flow: combat meaning rewritten to match bifurcated model. Validation references updated with M4.2 smoke tests.
+
+**CURRENT_STATE:**
+- §1: M4.2 closure block added.
+- §3: next-up rewritten — M4.3 Earworm is the new top item.
+- §4: LoopScoreCalculator tuning risk removed (resolved). Flow path split risk removed (resolved). Runtime tuning values bullet updated (Flow values landed). Two new items added: musician picker in Gig Setup, per-musician starter decks.
+- §5: M4.2 pending doc edits removed (applied).
+
+### Authority changes
+
+None. No SSoT promoted or retired.
+
+### Structural changes
+
+**Modified code files:**
+- `LoopScoreCalculator.cs` — full replacement. `LoopScoringMode` enum, `LoopScoringConfig` struct, `HypeThresholds` struct, adaptive `ComputeRoleBudgetScore` (RoleNormalization + MusicianParticipation), `CountDistinctRoles` (bitfield), `CountDistinctMusicians` (HashSet). Both `ComputeLoopScore` and `ComputeHypeDelta` now take config parameters.
+- `LoopFeedbackContext.cs` — added `HasBacking` convenience property.
+- `GigManager.cs` — retired 3 legacy Flow→SongHype fields + dead code block. Renamed Flow fields with `[FormerlySerializedAs]`. Added `flowVibeMultiplier`, `LoopScoringConfig`, `HypeThresholds` serialized fields. Added `InitLoopScoringConfig()` (auto-detects possibleRoleCount + totalMusicians at gig start). Song-end Flow path changed from flat bonus to multiplier.
+- `CardBase.cs` — `ModifyVibeSpec` handler bifurcated: Action cards use per-performer Flow (new `GetPerformerFlowStacks` helper), Composition cards use band-wide Flow multiplier. Debug logs tagged `[Flow→Vibe:Flat]` / `[Flow→Vibe:Mult]`.
+
+### Lifecycle
+
+M4.2 closed. M4 critical path advances to M4.3 (Earworm).
+
+## 2026-04-26 — M1.1 closure + M1 milestone closure + M4.1 Fix C1 closure
+
+### Semantic changes
+
+**Roadmap_ALWTTT:**
+- `Last updated` bumped to `2026-04-26 (M1 closed, M4.1 closed)`.
+- M1.1 marked complete. Closure detail added with deliverables and smoke test references.
+- M1 moved to Completed milestones section with summary.
+- M1 DoD: M1.1 and CURRENT_STATE items checked.
+- M4.1 marked complete. Closure detail added with deliverables and smoke test references.
+- M4.1 DoD item checked.
+
+**CURRENT_STATE:**
+- §1: M1.1 closure block, M1 milestone closure block, M4.1 closure block added.
+- §2: Deck Editor polish marked complete.
+- §3: next-up rewritten — M4.2 Flow bifurcation is the new top item. M1.1 and M4.1 removed.
+- §4: C1 open item resolved.
+
+**SSoT_Gig_Combat_Core:**
+- §5.4 Stress: implementation note added documenting the unified path via `ApplyIncomingStressWithComposure`. All positive Stress callers (card effects, audience actions, DoT ticks) now route through this single entry point.
+- §6.2 Composure: rule added noting audience-path absorption is now active (M4.1).
+
+### Authority changes
+
+None. No SSoT promoted, no SSoT retired, no primary home moved.
+
+### Structural changes
+
+**Modified code files:**
+- `DeckEditorWindow.cs` — full replacement. Catalogue filters (musician + effect type), card preview in rows (cost + effect summary), Edit button, last-used save folder via EditorPrefs, enhanced validation.
+- `DeckValidationService.cs` — added composition/action ratio warnings.
+- `CardEditorWindow.cs` — `OpenAndSelect(CardDefinition)` + `NavigateToCard(CardDefinition)` added for cross-tool integration.
+- `AddStressAction.cs` — `AddStress(amount, duration)` replaced with `ApplyIncomingStressWithComposure(statuses, amount, duration)`. Pattern match narrowed to `BandCharacterStats`. Debug log shows Incoming/Absorbed/Applied.
+
+### Lifecycle
+
+- M1 milestone closed. All DoD items checked.
+- M4.1 closed. C1 audit finding (2026-03-20) fully resolved.
+- Next on critical path: M4.2 (Flow bifurcation + LoopScoreCalculator retune).
+- M4.2 and M4.3 are parallelizable; M4.4 and M4.5 are parallelizable after M4.1.
+- M4.6 depends on all previous M4 batches.
+
+---
+
+## 2026-04-26 — Starter deck axis resolution: per-card axis assignments locked, design pivot from repetition to variety
+
+### Semantic changes
+
+**`Design_Starter_Deck_v1.md` — substantial revision.** The TBDs in §5.5–§5.8 are resolved into seven new card subsections (§5.5–§5.13). The v0 design (Steady Beat ×3 / Four on the Floor ×2 / Synth Pad ×2 / Hook Theme ×1) is replaced by a per-axis card set that operationalizes the *mínimas cartas, máxima expresividad* principle captured 2026-04-24:
+
+- **C2 four meter cards on axis 7** (Meter / time signature, ✅ via `MeterEffect` PartEffect → `PartConfig.TimeSignature`):
+  - Default Mode *(working name)* — 4/4, ×2 copies, with `ApplyStatusEffect(flow, +1, Self)` co-effect on play (sole Flow source in the deck).
+  - Waltz Protocol *(working name)* — 3/4, ×1.
+  - Pentameter *(working name)* — 5/4, ×1.
+  - Compound Cycle *(working name)* — 6/8, ×1.
+- **Sibi two backing cards on axis 13** (Chord progression palette, ✅ via `BackingCardConfigSO.progressionPalette` with `tonalities`-restricted entries that override `part.Tonality` per matrix §6.2):
+  - Wormus Minor — minor-mode palette (Aeolian/Dorian/Phrygian-leaning), ×1.
+  - Wormus Major — major-mode palette (Ionian/Mixolydian/Lydian-leaning), ×1.
+- **Sibi one melody card on axis 23** (Phrase palette, ✅ via `MelodyCardConfigSO.phrasePaletteOverride`; inherits Wormus's progression via shared-progression mechanic, matrix §6.1):
+  - Singing Field *(working name)* — ×1.
+
+**Aggregate counts preserved from v0:** 12 cards / 8 composition + 4 action / 5 C2 composition copies / 3 Sibi composition copies. Internal distribution restructured. Uniqueness ratio shifts from 12/7 to 12/10 — heavier on variety, lighter on duplication, by design.
+
+**Identity reframes:**
+- C2: "engine, more copies, repeats the same card" → **"picks the song's clock"** (meter-axis controller). Character-sketch lore integrated (cyborg-armored math-jazz scholar, "música genuina con fallos," immortal to play music forever).
+- Sibi: "Earworm applicator" → **"mode-keeper + Earworm applicator"** (mode controller via Wormus cards, plus existing single-target audience manipulator). Lore integrated (hive-mind worm from the Asteroid Singing Fields). Identity coherence noted: her Action card plants Earworm on audience, her Composition melody card plants memorable phrase shape on song — both register *make this stick* at different scales.
+
+**TrackRole correction captured.** v0 design intent had Sibi targeting `TrackRole.Harmony`. Per the matrix §5.2 finding from 2026-04-24, `BackingCardConfigSO` is the canonical chord-progression home; `HarmonyCardConfigSO` is "how to harmonize an existing line," not "what progression to play." Wormus cards now target `TrackRole.Backing` correctly.
+
+**Open-questions reorganization:**
+- §9 #1 (`CompositionCardPayload.effects` support) — **CLOSED retroactively**, citing ST-M13c-6 verification 2026-04-23. Was originally a gating risk for Four on the Floor's Flow co-effect; now confirmed working end-to-end. Default Mode inherits the verified mechanism.
+- §9 #5 (Hook Theme classification) — **CLOSED.** Hook Theme retired; replaced by Singing Field which targets `TrackRole.Melody` unambiguously.
+- §9 #7 (Singing Field phrase palette content) — **NEW.** Specific `PhrasePaletteSO` asset deferred to authoring.
+- §9 #8 (Wormus palette content) — **NEW.** Specific `ChordProgressionData` entries deferred to authoring.
+- §9 #9 (card naming pass) — **NEW.** Five working-name placeholders to lock at authoring time.
+
+**Smoke tests revised (§10):**
+- ST-SD-4 retargeted from Four on the Floor to Default Mode (same expected behavior, different carrier card).
+- ST-SD-5 rewritten as listener test: 4 songs with 4 different meters must be metrically distinguishable to an untrained observer.
+- ST-SD-6 new: listener test for Wormus Minor vs Major mode contrast.
+- ST-SD-7 new: progression-inheritance test (Wormus + Singing Field combo, melody must follow established progression).
+- ST-SD-8 = old ST-SD-6 (full gig), unchanged.
+
+**Cross-card emergents documented (§6.5, new):** Wormus + Singing Field synergy (automatic via shared-progression mechanic), Wormus tonality-override dominance (uncontested in starter), C2 meter axis × Sibi mode axis independence (4 × 2 = 8 distinct song-shape combinations from 7 composition cards).
+
+### Structural changes
+
+**Modified doc files:**
+- `planning/Design_Starter_Deck_v1.md` — substantial revision (header date, §1, §2.3, §3.1, §4 table + counts + asymmetry prose + uniqueness-ratio note, §5.5–§5.13 replacing old §5.5–§5.8, §6.2, §6.3, §6.5 new, §8, §9 reorganization, §10 smoke tests, §11 sources).
+
+**No code changes. No asset changes. No SSoT changes. No new docs created.**
+
+**No PK additions.** All evidence-base files (`MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md`, `Design_Starter_Deck_v1.md`, the 14 MidiGenPlay sources, the 5 MidiGenPlay SSoTs) were already in PK from the 2026-04-24 closure.
+
+### Authority changes
+
+**No authority changes.** `Design_Starter_Deck_v1.md` remains the primary home for starter-deck design intent. The *mínimas cartas, máxima expresividad* principle still lives there. The expressive-surface doc still references but does not own the principle.
+
+No SSoT promoted, no SSoT retired, no primary home moved.
+
+### Doc edits applied (this closure)
+
+- `Design_Starter_Deck_v1.md` — substantial revision (this closure).
+- `CURRENT_STATE.md` §4 — minor refinement of the LoopScoreCalculator residual-risk note (Melody role coverage now in design, conditional on Singing Field draw).
+- `CURRENT_STATE.md` §5 — "Planning docs added for M4 this session" gains a 2026-04-26 amendment line.
+- `changelog-ssot.md` — this entry.
+
+**Deliberately not applied:**
+- `SSoT_INDEX.md` — `Design_Starter_Deck_v1.md` row unchanged (still listed as active planning).
+- `Roadmap_ALWTTT.md` — M4.6 still gated on M4.1–M4.5 and on the remaining §9 questions; no milestone scope or sequence change.
+- `coverage-matrix.md` — planning-class docs aren't indexed there per observed conventions.
+- `ssot_manifest.yaml` — planning-class amendments aren't tracked there per observed conventions.
+- `MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` — its §10 update triggers don't fire (no gap closed, no new field, no precedence shift, no `MusicalIdentityPackSO` promotion).
+
+### Lifecycle
+
+- M4.6 design layer is now resolved. Starter deck has concrete per-card axis assignments, carrier types, and effect specs.
+- M4.6 authoring is still gated on: M4.1 (Fix C1), M4.2 (Flow bifurcation + LoopScoreCalculator retune), M4.3 (Earworm), M4.4 (Deck Contract Evolution), M4.5 (Bidirectional guaranteed draws), and on the remaining §9 questions: #2 (composition pipeline vocabulary confirmation), #3 (post-retune values), #4 (runtime tuning values from user), #6 (Mind Tap target enforcement), #7 (Singing Field phrase palette content), #8 (Wormus palette content), #9 (final card naming pass).
+- No milestone opened, closed, or re-scoped.
+- No new batch tracked. The session functioned as a design pre-resolution for M4.6, removing in-conversation ambiguity from the starter-deck design.
+
+### Known continuity gaps (items not promoted to any doc)
+
+- **Tentative card names** — Default Mode, Waltz Protocol, Pentameter, Compound Cycle, Singing Field. Captured in `Design_Starter_Deck_v1.md` §9 #9 as an authoring-time question. Wormus Minor / Wormus Major are locked.
+- **Phrase palette characterization** — what exactly makes a `PhraseArchetypeSO` set "hook-shaped" (motif repetition? inter-phrase intervals? contour constraints?) is not specified. Captured in §9 #7 as authoring-time question.
+- **Progression palette specifics** — which `ChordProgressionData` entries belong in each Wormus palette is not specified. Captured in §9 #8 as authoring-time question.
+- **Inspiration generation tuning** — current uniform gen 3 across C2 rhythm cards may overweight Default Mode (Flow + gen 3 is strictly best). Captured in §8 as a tuning knob with explicit re-tuning hint (drop Default Mode to gen 2 if it dominates pick rate). Not a doc change pending.
+
+## 2026-04-24 — New planning/reference doc + design maxim capture: MidiGenPlay expressive surface for ALWTTT cards
+
+### Semantic changes
+
+**New planning/reference doc:**
+- `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` — first single-source reference mapping the observable musical expressive surface available to ALWTTT composition cards against MidiGenPlay package contracts.
+- Status: planning/reference — **not** a governed SSoT. References but does not redefine authority held by `SSoT_ALWTTT_MidiGenPlay_Boundary`, `SSoT_Runtime_CompositionSession_Integration`, `SSoT_Card_System`, `SSoT_Card_Authoring_Contracts`, and the 5 MidiGenPlay-side runtime/composer SSoTs.
+- Primary contents: matrix of 26 expressive axes with ALWTTT carrier (PartEffect or styleBundle), SongConfig field reached, package SO consumed, and per-card controllability status (✅/⚠/❌); observed precedences from composer code; per-role bundle contracts; cross-track emergent mechanics; identity pack composition routes; 5 documented contractual gaps.
+- §1 Purpose includes an explicit pointer to the design maxim (see below) as the principle the matrix operationalizes.
+
+**New design principle captured:**
+- `planning/Design_Starter_Deck_v1.md` gains a new section "Design principle: mínimas cartas, máxima expresividad" stating the composition-card authoring principle that motivated this session. Declares one-axis-per-card, maximum-contrast-between-cards-of-same-musician, and the blind-listener acceptance test as binding for the starter deck and recommended default going forward. References the new expressive-surface doc §3 as evidence base for applying the principle.
+- Primary home for the principle: `Design_Starter_Deck_v1.md`. The new expressive-surface doc's §1 Purpose carries a pointer to it but does not duplicate authority.
+
+**Key observations captured (previously implicit, now explicit):**
+- `BackingCardConfigSO` is the canonical home for chord-progression selection. `HarmonyCardConfigSO` is thin by design, not a gap (it carries leading + strategy for armonizing existing lines, not progression selection).
+- `TrackActionDescriptor.styleBundle` and `List<PartEffect> modifierEffects` are parallel complementary channels on a composition card — one does not substitute the other.
+- A chosen progression is shared across tracks of the same Part via `GenContext.SetProgressionForPart`, enabling one Backing card to coordinate harmony across Backing + Melody + Bass simultaneously.
+- A progression with a restricted `tonalities` list can override `PartConfig.Tonality` at generation time (composer mutates `part.Tonality` in place).
+- `TonalityProfileSO` is resolved package-side via `GenContext.GetTonalityProfileForPart`. Only `PartConfig.Tonality` (enum) crosses the handoff; the rich profile does not. **No per-card injection channel exists today** — gap §8.1 in the new doc.
+- `EmotionMusicalData` functions as an existing prototype of a complete identity pack (emotion-keyed rather than mode/genre-keyed).
+
+**Gaps documented (all decisions explicitly deferred — no roadmap promotion):**
+- §8.1 `TonalityProfileSO` not injectable per card — deferred; default profiles already produce distinct enough sonic results via characteristic degrees + vamp candidates + cadence rules for most identity-design cases.
+- §8.2 No `ProgressionEffect` / `PaletteEffect` as `PartEffect` — deferred; `TrackActionDescriptor.styleBundle` via `BackingCardConfigSO` covers main design cases.
+- §8.3 `RhythmCardConfigSO.styleIdOverride` semantically ambiguous (source has `// How would this work?` literal comment) — recommend not authoring cards against this field until closed.
+- §8.4 `DensityEffect` / `FeelEffect` present in `PartEffect.cs` (inline sealed subclasses) but audible wiring not observed in composer code — UI-truth only (card face label via `GetLabel()` works, audible effect not verified).
+- §8.5 `RhythmCardConfigSO` feel/density fields (`kickDensity`, `snareGhostNoteChance`, `hatSubdivisionBias`, `fillEveryNMeasures`, `lastMeasuresAsFill`) not semantically closed — tracked in MidiGenPlay roadmap Phase 9.
+
+### Structural changes
+
+**New doc file:**
+- `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` — created.
+
+**Modified doc file:**
+- `planning/Design_Starter_Deck_v1.md` — gains new "Design principle" section (see §1 of the session closure bundle for exact text).
+
+**No code changes. No asset changes. No other existing doc semantic changes.**
+
+**PK additions (project knowledge attachments for cross-project analysis):**
+
+14 MidiGenPlay source files (ScriptableObjects that define the expressive surface + the handoff payload):
+- `TrackStyleBundleSO.cs`, `RhythmCardConfigSO.cs`, `BackingCardConfigSO.cs`, `HarmonyCardConfigSO.cs`, `MelodyCardConfigSO.cs`
+- `TonalityProfileSO.cs`, `ChordProgressionData.cs`, `ChordProgressionPaletteSO.cs`, `ChordProgressionLibrarySO.cs`
+- `MelodicStyleSO.cs`, `PhrasePaletteSO.cs`, `PhraseArchetypeSO.cs`
+- `EmotionMusicalData.cs`
+- `SongConfig.cs`
+
+5 MidiGenPlay SSoTs (observable contracts, not implementations):
+- `SSoT_Runtime_Song_Model_and_Config.md`
+- `SSoT_Composer_Backing_Track.md`
+- `SSoT_Composer_Rhythm_Track.md`
+- `SSoT_Composer_Melody_Track.md`
+- `SSoT_Runtime_Generation_Orchestration.md`
+
+Not uploaded (deliberately excluded for context discipline): composer `.cs` files, strategies, music theory utilities, editor windows, soundfonts, authoring docs beyond the two consulted (Chord Progressions, Rhythm Patterns).
+
+### Authority changes
+
+**One new design principle gains authoritative home.**
+
+- Primary home for "mínimas cartas, máxima expresividad" is `Design_Starter_Deck_v1.md`. The principle is binding for starter deck authoring and recommended default for future composition-card authoring.
+- The new expressive-surface doc references the principle but does not claim authority over it (one concept, one authority).
+
+No other primary homes changed. Primary homes for every other concept touched remain unchanged:
+- Card structure → `SSoT_Card_System`
+- Card authoring contracts → `SSoT_Card_Authoring_Contracts`
+- ALWTTT ↔ MidiGenPlay ownership → `SSoT_ALWTTT_MidiGenPlay_Boundary`
+- Composition session bridge → `SSoT_Runtime_CompositionSession_Integration`
+- Package runtime song model → `SSoT_Runtime_Song_Model_and_Config` (MidiGenPlay)
+- Per-role composer contracts → `SSoT_Composer_{Rhythm,Backing,Melody}_Track` (MidiGenPlay)
+
+### Doc edits applied (this closure)
+
+- `SSoT_INDEX.md` — "Active planning docs" table gains one row for the new doc.
+- `CURRENT_STATE.md` §5 — "Planning docs added" list gains one line for the new doc.
+- `Design_Starter_Deck_v1.md` — gains new "Design principle" section.
+
+**Deliberately not applied:**
+- `coverage-matrix.md` — the design maxim lives in a planning doc, not a subsystem SSoT; planning-class authorities are not indexed in the coverage matrix per observed conventions.
+- `Roadmap_ALWTTT.md` — no milestone scope or sequence change.
+- `ssot_manifest.yaml` — no governed doc added; planning-class additions are not tracked there per observed conventions.
+- `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §5 — new doc is not a legacy mixed doc; no classification needed.
+
+### Lifecycle
+
+- No milestone opened, closed, or re-scoped.
+- No new batch tracked.
+- M4.6 authoring status is unchanged (still gated on M4.1–M4.5 + runtime tuning values). The new doc and the captured design principle will inform the TBDs inside `Design_Starter_Deck_v1.md` §5.5–§5.8 when those batches unlock — and the next session (opt-2 design resolution) will begin that work preemptively.
+
+### Known continuity gaps (items not promoted to any doc)
+
+Session discussion outputs held in conversation only. Flagged here so future sessions can ask whether to capture:
+
+- **Proposed axis choices for C2 and Sibi starter cards** — mid-session proposals (e.g., Synth Pad → minor-focused progression palette, Hook Theme → major-focused, Steady Beat on base 4/4, Four on the Floor as groove variant). Not accepted; live discussion only. Next session (opt-2 design resolution) will reconsider these from scratch against the now-captured maxim and the new matrix.
+
+## 2026-04-24 — New planning/reference doc: MidiGenPlay expressive surface for ALWTTT cards
+
+### Semantic changes
+
+**New planning/reference doc:**
+- `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` — first single-source reference mapping the observable musical expressive surface available to ALWTTT composition cards against MidiGenPlay package contracts.
+- Status: planning/reference — **not** a governed SSoT. References but does not redefine authority held by `SSoT_ALWTTT_MidiGenPlay_Boundary`, `SSoT_Runtime_CompositionSession_Integration`, `SSoT_Card_System`, `SSoT_Card_Authoring_Contracts`, and the 5 MidiGenPlay-side runtime/composer SSoTs.
+- Primary contents: matrix of 26 expressive axes with ALWTTT carrier (PartEffect or styleBundle), SongConfig field reached, package SO consumed, and per-card controllability status (✅/⚠/❌); observed precedences from composer code; per-role bundle contracts; cross-track emergent mechanics; identity pack composition routes; 5 documented contractual gaps.
+
+**Key observations captured (previously implicit, now explicit):**
+- `BackingCardConfigSO` is the canonical home for chord-progression selection. `HarmonyCardConfigSO` is thin by design, not a gap (it carries leading + strategy for armonizing existing lines, not progression selection).
+- `TrackActionDescriptor.styleBundle` and `List<PartEffect> modifierEffects` are parallel complementary channels on a composition card — one does not substitute the other.
+- A chosen progression is shared across tracks of the same Part via `GenContext.SetProgressionForPart`, enabling one Backing card to coordinate harmony across Backing + Melody + Bass simultaneously.
+- A progression with a restricted `tonalities` list can override `PartConfig.Tonality` at generation time (composer mutates `part.Tonality` in place).
+- `TonalityProfileSO` is resolved package-side via `GenContext.GetTonalityProfileForPart`. Only `PartConfig.Tonality` (enum) crosses the handoff; the rich profile does not. **No per-card injection channel exists today** — gap §8.1 in the new doc.
+- `EmotionMusicalData` functions as an existing prototype of a complete identity pack (emotion-keyed rather than mode/genre-keyed).
+
+**Gaps documented (all decisions explicitly deferred — no roadmap promotion):**
+- §8.1 `TonalityProfileSO` not injectable per card — deferred; default profiles already produce distinct enough sonic results via characteristic degrees + vamp candidates + cadence rules for most identity-design cases.
+- §8.2 No `ProgressionEffect` / `PaletteEffect` as `PartEffect` — deferred; `TrackActionDescriptor.styleBundle` via `BackingCardConfigSO` covers main design cases.
+- §8.3 `RhythmCardConfigSO.styleIdOverride` semantically ambiguous (source has `// How would this work?` literal comment) — recommend not authoring cards against this field until closed.
+- §8.4 `DensityEffect` / `FeelEffect` present in `PartEffect.cs` (inline sealed subclasses) but audible wiring not observed in composer code — UI-truth only (card face label via `GetLabel()` works, audible effect not verified).
+- §8.5 `RhythmCardConfigSO` feel/density fields (`kickDensity`, `snareGhostNoteChance`, `hatSubdivisionBias`, `fillEveryNMeasures`, `lastMeasuresAsFill`) not semantically closed — tracked in MidiGenPlay roadmap Phase 9.
+
+### Structural changes
+
+**New doc file:**
+- `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` — created.
+
+**No code changes. No asset changes. No existing doc semantic changes.**
+
+**PK additions (project knowledge attachments for cross-project analysis):**
+
+14 MidiGenPlay source files (ScriptableObjects that define the expressive surface + the handoff payload):
+- `TrackStyleBundleSO.cs`, `RhythmCardConfigSO.cs`, `BackingCardConfigSO.cs`, `HarmonyCardConfigSO.cs`, `MelodyCardConfigSO.cs`
+- `TonalityProfileSO.cs`, `ChordProgressionData.cs`, `ChordProgressionPaletteSO.cs`, `ChordProgressionLibrarySO.cs`
+- `MelodicStyleSO.cs`, `PhrasePaletteSO.cs`, `PhraseArchetypeSO.cs`
+- `EmotionMusicalData.cs`
+- `SongConfig.cs`
+
+5 MidiGenPlay SSoTs (observable contracts, not implementations):
+- `SSoT_Runtime_Song_Model_and_Config.md`
+- `SSoT_Composer_Backing_Track.md`
+- `SSoT_Composer_Rhythm_Track.md`
+- `SSoT_Composer_Melody_Track.md`
+- `SSoT_Runtime_Generation_Orchestration.md`
+
+Not uploaded (deliberately excluded for context discipline): composer `.cs` files, strategies, music theory utilities, editor windows, soundfonts, authoring docs beyond the two consulted (Chord Progressions, Rhythm Patterns).
+
+### Authority changes
+
+**None.**
+
+The new doc is planning/reference, not SSoT. It does not claim primary authority over any concept; it consolidates cross-references to already-governed homes. Primary homes for every concept touched remain unchanged:
+- Card structure → `SSoT_Card_System`
+- Card authoring contracts → `SSoT_Card_Authoring_Contracts`
+- ALWTTT ↔ MidiGenPlay ownership → `SSoT_ALWTTT_MidiGenPlay_Boundary`
+- Composition session bridge → `SSoT_Runtime_CompositionSession_Integration`
+- Package runtime song model → `SSoT_Runtime_Song_Model_and_Config` (MidiGenPlay)
+- Per-role composer contracts → `SSoT_Composer_{Rhythm,Backing,Melody}_Track` (MidiGenPlay)
+
+### Doc edits applied (this closure)
+
+- `SSoT_INDEX.md` — "Active planning docs" table gains one row for the new doc.
+- `CURRENT_STATE.md` §5 — "Planning docs added" list gains one line for the new doc.
+
+**Deliberately not applied:**
+- `coverage-matrix.md` — no primary home changed.
+- `Roadmap_ALWTTT.md` — no milestone scope or sequence change.
+- `ssot_manifest.yaml` — no governed doc added; planning-class additions are not tracked there per observed conventions.
+- `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §5 — new doc is not a legacy mixed doc; no classification needed.
+
+### Lifecycle
+
+- No milestone opened, closed, or re-scoped.
+- No new batch tracked.
+- M4.6 authoring status is unchanged (still gated on M4.1–M4.5 + runtime tuning values). The new doc is a design reference that will inform the TBDs inside `planning/Design_Starter_Deck_v1.md` §5.5–§5.8 when those batches unlock.
+
+### Known continuity gaps (items not promoted to any doc)
+
+Session discussion outputs held in conversation only. Flagged here so future sessions can ask whether to capture:
+
+- **Proposed axis choices for C2 and Sibi starter cards** — mid-session proposals (e.g., Synth Pad → minor-focused progression palette, Hook Theme → major-focused, Steady Beat on base 4/4, Four on the Floor as groove variant). Not accepted; live discussion only. Natural home if locked: `planning/Design_Starter_Deck_v1.md` §5.5–§5.8.
+- **Design maxim "mínimas cartas, máxima expresividad"** — the design principle that motivated this session. Captured implicitly in the new doc's framing. Natural home if promoted to explicit principle: `planning/Design_Starter_Deck_v1.md` intro or `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` §1.
+
+## 2026-04-24 — MB1 + MB2 joint closure: DevSetBandCohesion dispatch alignment + catalogue split
+
+### Semantic changes
+
+**SSoT_Dev_Mode:**
+- §9.5 (P3.2 smoke-test table): ST-P32-4 and ST-P32-5 marked retroactively invalidated with pointer to §9.8. The 2026-04-23 PASS records were not honest observations — `GigManager.DevSetBandCohesion` never contained the `LoseGig()` dispatch described in §13.2/§13.3 until MB1 added it.
+- §9.8 new: MB1 re-validation table (ST-MB1-1..4, all PASS 2026-04-24). Dispatch ON/OFF Infinite Turns, non-zero regression, production-build compile.
+- §9.9 new: MB2 catalogue-split validation table (ST-MB2-1..6, all PASS 2026-04-24). Picker contents per character type, three status-key regressions (Shaken, Flow, Feedback), scene-reload reference integrity.
+- §15.4 Catalogue scope finding: **Recommended resolution** replaced with **Resolved 2026-04-24 (MB2)** block specifying the two new catalogue assets, their contents, the empty-catalogue fallback-text UX note, and the deferred polish (distinguish null vs empty).
+
+**CURRENT_STATE:**
+- §1 Phase 3.2 block: amended to flag the code-vs-SSoT drift discovered and corrected 2026-04-24 via MB1. Historical claim about `DevSetBandCohesion(0)` dispatching `LoseGig()` annotated with MB1 pointer.
+- §1 new block after P3.3b: "MB1 + MB2 — closed (2026-04-24)" summarizing both closures and pointing to `SSoT_Dev_Mode.md` §9.8, §9.9, §15.4. Declares the open-micro-batches list empty.
+- §3: open-micro-batches item removed. M1.1 promoted to top of what-is-next. M1.1 decomposition (a/b/c) called out inline.
+- §5: opening paragraph extended to log MB1+MB2 doc-edit application.
+
+**Roadmap_ALWTTT:**
+- §1.5 Open micro-batches block: replaced with "(none — both closed 2026-04-24)" and a two-paragraph joint-closure summary covering MB1 and MB2 outcomes + smoke-test references.
+- `Last updated` bumped to `2026-04-24 (MB1+MB2 closure)`.
+
+### Findings recorded (honesty correction)
+
+- **ST-P32-4 and ST-P32-5 were never honest passes.** Recorded as PASS on 2026-04-23 (P3.2 closure), but the `LoseGig()` dispatch they claim to validate was never in code until MB1 landed 2026-04-24. Root cause: test observation error at P3.2 closure, or test recorded as aspirational/expected rather than observed. The symmetric-consequences principle (§13.3) was formulated correctly at P3.2; only the code and the test record were wrong. No feature depended on the dispatch during the interim (no user-facing bug). Retroactively invalidated; re-validated via ST-MB1-1..4.
+- **Picker empty-catalogue fallback text is slightly misleading post-MB2.** `DrawStatusPicker` (line 388) treats `catalogue == null` and `catalogue.Effects.Count == 0` the same way — both show `(no catalogue — assign on prefab)`. After MB2, audience characters have a non-null but empty catalogue, so the fallback text lies about the prefab state. Harmless, but recorded as deferred UX polish in `SSoT_Dev_Mode.md` §15.4.
+
+### Structural changes
+
+**Modified files (code):**
+- `Assets/Scripts/Managers/GigManager.cs` — `DevSetBandCohesion(int)` body gains `if (pd.BandCohesion == 0) LoseGig();` at the end. XML doc comment rewritten to match §13.2/§13.3 (symmetric-consequences principle, Infinite-Turns suppression branch explicit). Two-line net change. Still inside `#if ALWTTT_DEV`.
+
+**New asset files:**
+- `StatusEffectCatalogue_Musicians.asset` — 6 canonical SO references (flow, composure, choke, shaken, exposed, feedback).
+- `StatusEffectCatalogue_Audience.asset` — empty `Effects` list at MVP. Earworm will be added at M4.3.
+
+**Reassigned prefab references:**
+- Every musician prefab: `CharacterBase.statusCatalogue` → `StatusEffectCatalogue_Musicians`.
+- Every audience prefab: `CharacterBase.statusCatalogue` → `StatusEffectCatalogue_Audience`.
+- Original `StatusEffectCatalogue.asset` retained in project (not deleted) pending confirmation no other references exist.
+
+### Authority changes
+
+None. §13.2/§13.3 (symmetric-consequences principle) was correctly documented since P3.2. MB1 brought the code into alignment with existing authority. MB2 is asset configuration only.
+
+### Lifecycle
+
+- MB1 closed.
+- MB2 closed.
+- Open-micro-batches list empty.
+- M1 has one remaining item: M1.1 Deck Editor polish (decomposed into M1.1a/b/c per prior session decision).
+- After M1 closure: M4 Starter Deck Foundations, first batch M4.1 Fix C1.
+
+## 2026-04-24 — M1.5 Phase 3.3b closure: Dev Mode status apply/remove picker
+
+### Semantic changes
+
+**SSoT_Dev_Mode:**
+- §3 Stats tab: block retitled "Stats tab (Phase 3.1–3.3b)". Per-Character section extended with status picker: active-status readout (`[−1]`/`[Clear]` per row) + catalogue-backed `[◄][►]` picker with `[+1]` apply.
+- §6 Entry points: `DevStatsTab.cs` row reworded for P3.1+P3.2+P3.3a+P3.3b. `DrawStatusPicker(CharacterBase, ref int)` added. `using ALWTTT.Characters` directive noted. No new production-class entry points — phase uses existing `StatusEffectContainer` public API.
+- §9.7 new: Phase 3.3b smoke-test results ST-P33b-1..10 (all PASS 2026-04-24).
+- §15 new: Phase 3.3b — status apply/remove picker. Capability, no-production-patch rationale, gameplay-flag asymmetry (§15.3), catalogue scope finding (§15.4), smoke-test pointer, unblocks.
+
+**CURRENT_STATE:**
+- §1: new "Dev Mode Phase 3.3b — complete" block with closure summary and pointer to `SSoT_Dev_Mode.md` §15.
+- §2: Phase 3 line updated — all phases closed; P3.4 deferred.
+- §3: next-up list updated — top item is open micro-batches (comment drift + catalogue split), then M1.1.
+- §5: doc-edit tracking paragraph updated to reflect P3.3b closure.
+
+**Roadmap_ALWTTT:**
+- §1.5: Phase 3.3b closure block added. Remaining list restructured to Deferred + Open micro-batches. Priority order item 6 marked complete.
+- DoD: P3.3b item checked (ST-P33b-1..10 passed 2026-04-24).
+- `Last updated` bumped to `2026-04-24 (P3.3b closure)`.
+
+### Findings recorded
+
+- **Shared catalogue on musician/audience prefabs:** the status picker shows all catalogue entries regardless of character type (musician-only statuses like Flow appear on audience members). Applying cross-type statuses is harmless but confusing. Recommended resolution: split into separate catalogue SOs — asset/prefab config only, no code change. Tracked as open micro-batch in `Roadmap_ALWTTT.md` §1.5.
+
+### Structural changes
+
+**Modified files (code):**
+- `Assets/Scripts/DevMode/DevStatsTab.cs` — `DrawStatusPicker(CharacterBase, ref int)` method added. Static fields `_musicianStatusPickerIndex`, `_audienceStatusPickerIndex`. Call sites in `DrawMusicianEditor` (after Composure stepper) and `DrawAudienceEditor` (after MaxVibe stepper). `using ALWTTT.Characters` directive added.
+
+### Authority changes
+
+None. P3.3b does not introduce new authority — the `StatusEffectContainer` API and `CharacterBase.StatusCatalogue` property pre-existed. The picker is a UI surface only.
+
+### Lifecycle
+
+- M1.5 Phase 3.3b closed.
+- M1.5 Phase 3 complete (P3.4 deferred).
+- Open micro-batches: `DevSetBandCohesion` comment drift; catalogue split for musician/audience prefabs.
+- Next M1 item: M1.1 Deck Editor polish.
+- After M1 closure: M4 Starter Deck Foundations (first batch: M4.1 Fix C1).
+
+## 2026-04-23 — M1.5 Phase 3.3a closure: Dev Mode per-character stat editing + Flow gig-wide
+
+### Semantic changes
+
+**SSoT_Dev_Mode:**
+- §3 Stats tab: block retitled "Stats tab (Phase 3.1–3.3a)". Gig-Wide bullet extended with Flow stepper (uniform ± applied to every musician's `DamageUpFlat` stacks; aggregate via `GigManager.TotalFlowStacks`). New Per-Character bullet: musician (Stress slider, MaxStress stepper, Composure stepper via `TempShieldTurn` stacks) + audience (Vibe slider, MaxVibe stepper). Placeholder slot text removed.
+- §6 Entry points: GigManager patches count 6 → 7. New seventh patch bullet for Phase 3.3a additions (`TotalFlowStacks`, `DevAddFlowToAllMusicians`). `DevStatsTab.cs` row reworded for P3.1+P3.2+P3.3a. `BandCharacterStats.cs` row expanded with Phase 3.3a surface (`CheckBreakdownThreshold`, `DevSetCurrentStress`, `DevSetMaxStress`). `AudienceCharacterStats.cs` row expanded with Phase 3.3a surface (`CheckConvincedThreshold`, `DevSetCurrentVibe`, `DevSetMaxVibe`) and folder-path corrected (`Characters/Audience/...`); Phase 3.1 `DevResetConvinced` annotated as implementation-landed-in-P3.3a.
+- §9.6 new: Phase 3.3a smoke-test results ST-P33a-1..10 (all PASS 2026-04-23).
+- §10 Update rule: new bullet for the Dev-setter animation-duration convention (`0.1f` as HealthBarController workaround).
+- §13.1 small amendment: notes Flow row added in P3.3a (pointer to §14.4).
+- §14 new: Phase 3.3a — per-character stat editing + Flow gig-wide. Capability, entry points, Composure-as-status-stack explanation, Flow gig-wide semantics, animation-duration workaround, smoke-test pointer, `DevResetConvinced` side-resolution, unblocks.
+
+**CURRENT_STATE:**
+- §1: new "Dev Mode Phase 3.3a — complete" block with closure summary, DevSet surface list, HealthBarController workaround note, and pointer to `SSoT_Dev_Mode.md` §14.
+- §2: Phase 3 active-work line updated — P3.1, P3.2, and P3.3a closed; P3.3b remaining.
+- §3: next-up list updated — top item is M1.5 Phase 3.3b.
+
+**Roadmap_ALWTTT:**
+- §1 priority order: Phase 3 line reads "P3.1, P3.2, and P3.3a closed; P3.3b remaining".
+- §1.5: Phase 3.3a closure block added after Phase 3.2. "Remaining" list restructured — P3.3 replaced by P3.3b; micro-batch entry added for the `DevSetBandCohesion` comment drift.
+- DoD: P3.3 line split — P3.3a item checked (ST-P33a-1..10 passed 2026-04-23); new P3.3b unchecked item.
+- `Last updated` bumped to `2026-04-23 (P3.3a closure)`.
+
+### Authority changes
+
+**Threshold-check single source of truth (new):**
+- `BandCharacterStats.CheckBreakdownThreshold()` and `AudienceCharacterStats.CheckConvincedThreshold()` are the single authoritative triggers for their respective sticky state transitions. `AddStress`, `AddVibe`, and all P3.3a `DevSet…` methods route through these helpers. This closes a previously-latent drift risk: Dev-path threshold logic could have silently diverged from play-path threshold logic. Governed in `SSoT_Dev_Mode.md` §14.2.
+
+**Dev-setter animation-duration convention (new):**
+- All P3.3a DevSet methods pass `duration: 0.1f` to the underlying clamp-setters. This is a documented workaround for `HealthBarController.SetCurrentValue(duration=0f)` not propagating the final value to the visual fill. Governed in `SSoT_Dev_Mode.md` §14.5 and §10. Revertable to `0f` when the underlying component is fixed.
+
+### Doc-vs-code drift resolved
+
+**`DevResetConvinced` implementation landed:**
+- `SSoT_Dev_Mode.md` §6 and §7 have declared `AudienceCharacterStats.DevResetConvinced` as an existing Dev entry point since P3.1 closure. The method was never implemented. `DevModeController.ResetConvincedAudience` called it — compile-failed silently under `ALWTTT_DEV`. P3.3a added the implementation (sets `IsConvinced = false`, `ClearStatus(StatusType.Convinced)`) matching the §7 contract. Authority unchanged; code now matches.
+
+### Structural changes
+
+**Modified files (code):**
+- `Assets/Scripts/Characters/Band/BandCharacterStats.cs` — `CheckBreakdownThreshold()` private helper extracted. `AddStress` refactored to call it. `#if ALWTTT_DEV` block extended with `DevSetCurrentStress(int)` and `DevSetMaxStress(int)`.
+- `Assets/Scripts/Characters/Audience/AudienceCharacterStats.cs` — `CheckConvincedThreshold()` private helper extracted. `AddVibe` refactored to call it. New `#if ALWTTT_DEV` block with `DevResetConvinced()`, `DevSetCurrentVibe(int)`, `DevSetMaxVibe(int)`.
+- `Assets/Scripts/Managers/GigManager.cs` — Phase 3.2 `#if ALWTTT_DEV` block extended: `TotalFlowStacks` getter + `DevAddFlowToAllMusicians(int delta)` method. Pre-guards `Apply(-N)` on zero-stack containers.
+- `Assets/Scripts/DevMode/DevStatsTab.cs` — `DrawPerCharacterSection` method added (with `DrawMusicianEditor`, `DrawAudienceEditor`, `ApplyComposureDelta` helpers). Flow row added to `DrawGigWideSection`. Using directives extended (`ALWTTT.Characters.Audience`, `ALWTTT.Status`). Audience name display uses `AudienceCharacterData.CharacterName` (asymmetric with musician's `CharacterName` property).
+
+### Findings recorded (not yet promoted to gameplay SSoT)
+
+- **`HealthBarController.SetCurrentValue(duration=0f)` doesn't propagate the final value.** Latent bug in the UI component. No gameplay path uses `duration=0f`, so previously invisible. Exposed by P3.3a's Dev-driven jump-cut paths. Workaround (`0.1f` duration) used in P3.3a Dev setters. Recommend standalone ticket; pick up when HealthBarController is touched for another reason. Not a dedicated batch.
+- **`GigManager.DevSetBandCohesion` code comment drift.** Inline comment says "intentionally does NOT dispatch LoseGig" while method body does dispatch `LoseGig()` on 0, consistent with `SSoT_Dev_Mode.md` §13.3 (symmetric-consequences principle). Comment is stale post-P3.2 reversal. Proposed as a separate micro-batch post-P3.3a — one-line comment fix, no behavior change.
+
+### Lifecycle
+
+- M1.5 Phase 3.3a closed.
+- M1.5 Phase 3 remaining: P3.3b status apply/remove picker. P3.4 deferred.
+- Post-P3.3a micro-batch: `DevSetBandCohesion` comment reconciliation.
+- Next milestone after M1.5 closure: M1.1 Deck Editor polish.
+
+## 2026-04-23 — M1.5 Phase 3.2 closure: Dev Mode gig-wide stat editing
+
+### Semantic changes
+
+**SSoT_Dev_Mode:**
+- §3 Stats tab: block retitled "Stats tab (Phase 3.1–3.2)". New Gig-Wide Stats bullet added: SongHype slider `[0, MaxSongHype]`, Inspiration slider bound to `LiveInspiration`, BandCohesion stepper (floor 0, no upper cap). Idle-epsilon note for the SongHype slider.
+- §6 Entry points: GigManager patches count changed 5 → 6. New patch bullet for the Phase 3.2 block (`MaxSongHype`, `LiveInspiration`, `DevSetSongHype`, `DevSetInspiration`, `DevSetBandCohesion`). `DevStatsTab.cs` row reworded for P3.1+P3.2. New `CompositionSession.cs` row under Modified Production Files: `CurrentInspiration` + `DevSetCurrentInspiration`.
+- §10 Update rule: `CompositionSession` added to the gameplay-class list. New bullet for the `LiveInspiration` routing contract.
+- §9.5 new: Phase 3.2 smoke-test results ST-P32-1..7 (all PASS 2026-04-23).
+- §13 new: Phase 3.2 — gig-wide stat editing. Capability, entry points, the Dev Mode symmetric-consequences principle, the Inspiration dual-siting architectural finding, smoke-test pointer, unblocks.
+
+**CURRENT_STATE:**
+- §1: new "Dev Mode Phase 3.2 — complete" block with closure summary and pointer to `SSoT_Dev_Mode.md` §13.
+- §2: Phase 3 active-work line updated — P3.1 and P3.2 closed; P3.3 remaining.
+- §3: next-up list updated — top item is M1.5 Phase 3.3.
+
+**Roadmap_ALWTTT:**
+- §1.5: Phase 3.2 closure block added next to Phase 3.1; "Remaining" list shortened (P3.2 removed).
+- §1 priority order: Phase 3 line reads "P3.1 and P3.2 closed; P3.3 remaining".
+- DoD: P3.2 item checked (ST-P32-1..7 passed 2026-04-23); new P3.3 unchecked item.
+- `Last updated` bumped to `2026-04-23 (P3.2 closure)`.
+
+### Authority changes
+
+**Dev Mode principle codified — symmetric consequences (new):**
+- Governed in `SSoT_Dev_Mode.md` §13.3. Dev Mode mutations reproduce the natural gameplay consequences of the same state change. `DevSetBandCohesion(0)` dispatches `LoseGig()` the same way the natural Breakdown path does. Infinite-Turns suppression in `LoseGig`/`WinGig` is the correct escape hatch for scrubbing without gig-ending. This reverses the pre-implementation draft rule (which had specified no LoseGig dispatch from the Dev setter); the reversal is documented here as the first application of the principle.
+
+**`LiveInspiration` routing contract established:**
+- `SSoT_Dev_Mode.md` §13.2 + §13.4. During an active `CompositionSession`, the live Inspiration budget is `_session._currentInspiration`, not `pd.CurrentInspiration`. Dev reads/writes route to the session-active copy when one exists, and to PD otherwise, and write to both on set. This is the first governed statement of the Inspiration dual-siting reality in the code.
+
+### Structural changes
+
+**Modified files (code):**
+- `Assets/Scripts/Managers/GigManager.cs` — new `#if ALWTTT_DEV` block after `AddSongHype`: `MaxSongHype` getter, `LiveInspiration` getter, `DevSetSongHype(float)`, `DevSetInspiration(int)` (routes to session when active), `DevSetBandCohesion(int)` (dispatches `LoseGig()` on 0).
+- `Assets/Scripts/Runtime/CompositionSession.cs` — new `#if ALWTTT_DEV` block: `CurrentInspiration` getter + `DevSetCurrentInspiration(int)` method (sets `_currentInspiration`, calls `_ctx?.CompositionUI?.SetInspiration`).
+- `Assets/Scripts/DevMode/DevStatsTab.cs` — `DrawGigWideSection` method added. Reads `gm.LiveInspiration` for the Inspiration slider (not `pd.CurrentInspiration`). Idle-epsilon on SongHype slider.
+
+### Findings recorded (not yet promoted to gameplay SSoT)
+
+- **Inspiration dual-siting.** `pd.CurrentInspiration` and `CompositionSession._currentInspiration` are not continuously synchronized. The session's field is reset at `Begin()` / `ConfirmCurrentPartAndStart()` to `_rules.inspirationPerPart` and is the value the composition cost gate and UI actually read. The PD field is persistent between sessions but invisible to gameplay during composition. `SSoT_Gig_Combat_Core` §4.2 may want a one-line note surfacing this implementation reality — not done in this batch. Deferred as a future doc pass.
+
+### Lifecycle
+
+- M1.5 Phase 3.2 closed.
+- M1.5 Phase 3 remaining: P3.3 per-character stat editing. P3.4 deferred.
+- M1 remaining after Phase 3: M1.1 Deck Editor polish.
+- After M1: M4.1 Fix C1.
+
+## 2026-04-23 — M1.5 Phase 3.1 closure: Dev Mode Breakdown entry point + T7 Shaken validation
+
+### Semantic changes
+
+**SSoT_Dev_Mode:**
+- §3 Overlay: Stats tab added to tab toolbar (Infinite / Catalogue / Stats). Stats tab content documented: Breakdown section with musician selector grid, stress/status readout, Force Breakdown button.
+- §6 Entry points: new file row `DevStatsTab.cs`. New method rows `BandCharacterStats.DevResetBreakdown()`, `MusicianBase.DevForceBreakdown()`.
+- §9.3: T7 Shaken expiry moved from DEFERRED to ✅ PASSED (2026-04-23).
+- §10 Update rule: Phase 3.1 triggers added.
+- New §12 Phase 3.1 — Breakdown entry point: capability summary, entry points, unblocks, smoke tests.
+
+**CURRENT_STATE:**
+- §1: new "Dev Mode Phase 3.1 — complete" block. M1.2 multi-turn validation gap annotation updated to fully closed (T5/T8/T7 all passed).
+- §2: Dev Mode Phase 3+ block updated to "Phase 3 — in progress", P3.1 closed, P3.2/P3.3 remaining.
+- §3: M1.5 Phase 3 "what is next" entry updated.
+- §4: T7 deferred risk replaced with "fully closed" note.
+
+**Roadmap_ALWTTT:**
+- §1.2: T7 outcome updated to PASSED.
+- §1.5: Phase 3.1 closure line added.
+- DoD: Breakdown entry point item checked.
+- Last updated bumped.
+
+### Structural changes
+
+**New files:**
+- `Assets/Scripts/DevMode/DevStatsTab.cs` — Phase 3.1 IMGUI helper. File-level `#if ALWTTT_DEV`. Static class; renders Stats tab body with Breakdown section. Musician selector grid, status readout from `StatusEffectContainer.Active`, Force Breakdown button dispatching to `MusicianBase.DevForceBreakdown()`.
+
+**Modified files (code):**
+- `Assets/Scripts/DevMode/DevModeController.cs` — `TabNames` array extended with "Stats". `DrawWindow` switch extended with `case 2: DevStatsTab.Draw()`.
+- `Assets/Scripts/Characters/Band/BandCharacterStats.cs` — `DevResetBreakdown()` added inside `#if ALWTTT_DEV` block. Sets `IsBreakdown = false`.
+- `Assets/Scripts/Characters/Band/MusicianBase.cs` — `DevForceBreakdown()` added inside `#if ALWTTT_DEV` block. Calls `DevResetBreakdown()` then `AddStress(MaxStress)`.
+
+### Authority changes
+
+- T7 Shaken expiry validated. M1.2 multi-turn validation gap fully closed — no remaining deferred tests from M1.2.
+- Stats tab registered as Phase 3.1 overlay surface. P3.2/P3.3 sections will extend the same tab.
+
+### Lifecycle
+
+- M1.5 Phase 3.1 closed.
+- M1.5 Phase 3 remaining: P3.2 gig-wide stat editing, P3.3 per-character stat editing. P3.4 deferred.
+- M1 remaining after Phase 3: M1.1 Deck Editor polish.
+- After M1: M4.1 Fix C1.
+
 ## 2026-04-23f — M1.9 closure: card sizing refactor
 
 ### Operational changes

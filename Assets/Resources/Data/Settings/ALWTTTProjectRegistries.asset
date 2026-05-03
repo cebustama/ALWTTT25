@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: ALWTTTProjectRegistries
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.ALWTTTProjectRegistriesSO
   csoPrimitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
-  statusEffectCatalogue: {fileID: 11400000, guid: 3c12538606a42a944b49754c65c1758c, type: 2}
+  statusEffectCatalogueMusicians: {fileID: 11400000, guid: 3c12538606a42a944b49754c65c1758c, type: 2}
+  statusEffectCatalogueAudience: {fileID: 11400000, guid: a0d5c957c23a58945851931838536de4, type: 2}
   gameplayData: {fileID: 11400000, guid: 99a47ad298ac6ff49bea86ff81cb4817, type: 2}
   gigSetupConfig: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
   specialKeywordData: {fileID: 11400000, guid: 7c2c5ec16404787409c82288bfbef62e, type: 2}
-  statusIconsData: {fileID: 11400000, guid: 40b6ede681aa9b7438008b98e9a9bc98, type: 2}
   rewardContainer: {fileID: 11400000, guid: 8d5f18905eecd4146abac442d90a0799, type: 2}

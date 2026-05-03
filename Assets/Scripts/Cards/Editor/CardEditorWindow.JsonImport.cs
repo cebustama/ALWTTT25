@@ -624,7 +624,7 @@ namespace ALWTTT.Cards.Editor
                 ApplyCompositionJson(pso, dto.composition);
             }
 
-            if (!ApplyEffectsJson(pso, dto.effects, _registries?.StatusCatalogue, out var effectsErr))
+            if (!ApplyEffectsJson(pso, dto.effects, _registries, out var effectsErr))
             {
                 error = effectsErr;
                 DiscardStagedJson();
@@ -674,7 +674,7 @@ namespace ALWTTT.Cards.Editor
         private static bool ApplyEffectsJson(
             SerializedObject pso,
             EffectJson[] effects,
-            StatusEffectCatalogueSO catalogue,
+            ALWTTTProjectRegistriesSO registries,
             out string error)
         {
             error = null;
@@ -711,19 +711,22 @@ namespace ALWTTT.Cards.Editor
 
                 if (type.Equals("ApplyStatusEffect", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    if (catalogue == null)
+                    if (registries == null)
                     {
-                        error = $"effects[{i}]: ApplyStatusEffect requires StatusCatalogue loaded in registries.";
+                        error = $"effects[{i}]: ApplyStatusEffect requires ALWTTTProjectRegistriesSO loaded in the Registries field.";
                         return false;
                     }
 
-                    // Resolve StatusEffectSO
+                    // Resolve StatusEffectSO. Probes both catalogues (musicians + audience)
+                    // via the registries helpers — necessary post-MB2 catalogue split so
+                    // audience-side statuses (e.g. earworm) resolve from card-editor JSON.
                     StatusEffectSO status = null;
                     if (!string.IsNullOrWhiteSpace(row.statusKey))
                     {
-                        if (!TryResolveStatusEffectFromKey(catalogue, row.statusKey, out status, out var resolveErr))
+                        if (!registries.TryGetStatusEffectByKey(row.statusKey, out status) || status == null)
                         {
-                            error = $"effects[{i}]: {resolveErr}";
+                            error = $"effects[{i}]: No StatusEffectSO found for statusKey '{row.statusKey}' " +
+                                    $"in either musicians or audience catalogue.";
                             return false;
                         }
                     }
@@ -735,9 +738,10 @@ namespace ALWTTT.Cards.Editor
                             return false;
                         }
 
-                        if (!catalogue.TryGet((CharacterStatusId)row.effectId, out status) || status == null)
+                        if (!registries.TryGetStatusEffectByPrimitive((CharacterStatusId)row.effectId, out status) || status == null)
                         {
-                            error = $"effects[{i}]: No StatusEffectSO found in catalogue for effectId {(CharacterStatusId)row.effectId}.";
+                            error = $"effects[{i}]: No StatusEffectSO found in either catalogue " +
+                                    $"for effectId {(CharacterStatusId)row.effectId}.";
                             return false;
                         }
                     }

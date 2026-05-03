@@ -31,7 +31,7 @@ namespace ALWTTT.Cards.Editor
 
         public static bool TryStageNewCard(
             DeckCardEntryJson dto,
-            StatusEffectCatalogueSO catalogue,
+            ALWTTTProjectRegistriesSO registries,
             out StagedCardEntry entry,
             out string error)
         {
@@ -97,7 +97,7 @@ namespace ALWTTT.Cards.Editor
             if (stagedPayload is CompositionCardPayload && dto.composition != null)
                 ApplyCompositionJson(pso, dto.composition);
 
-            if (!ApplyEffectsJson(pso, dto.effects, catalogue, out var effectsErr))
+            if (!ApplyEffectsJson(pso, dto.effects, registries, out var effectsErr))
             {
                 UnityEngine.Object.DestroyImmediate(stagedCard);
                 UnityEngine.Object.DestroyImmediate(stagedPayload);
@@ -276,7 +276,7 @@ namespace ALWTTT.Cards.Editor
         private static bool ApplyEffectsJson(
             SerializedObject pso,
             DeckEffectJson[] effects,
-            StatusEffectCatalogueSO catalogue,
+            ALWTTTProjectRegistriesSO registries,
             out string error)
         {
             error = null;
@@ -301,17 +301,29 @@ namespace ALWTTT.Cards.Editor
 
                 if (type.Equals("ApplyStatusEffect", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (catalogue == null) { error = $"effects[{i}]: ApplyStatusEffect requires a StatusCatalogue. Assign ALWTTTProjectRegistriesSO in the Registries field."; return false; }
+                    if (registries == null) { error = $"effects[{i}]: ApplyStatusEffect requires ALWTTTProjectRegistriesSO loaded in the Registries field."; return false; }
 
-                    StatusEffectSO status;
+                    // Resolve StatusEffectSO. Probes both catalogues (musicians + audience)
+                    // via the registries helpers — necessary post-MB2 catalogue split so
+                    // audience-side statuses (e.g. earworm) resolve from deck-editor JSON.
+                    StatusEffectSO status = null;
                     if (!string.IsNullOrWhiteSpace(row.statusKey))
                     {
-                        if (!TryResolveStatusByKey(catalogue, row.statusKey, out status, out var re)) { error = $"effects[{i}]: {re}"; return false; }
+                        if (!registries.TryGetStatusEffectByKey(row.statusKey, out status) || status == null)
+                        {
+                            error = $"effects[{i}]: No StatusEffectSO found for statusKey '{row.statusKey}' " +
+                                    $"in either musicians or audience catalogue.";
+                            return false;
+                        }
                     }
                     else if (row.effectId >= 0)
                     {
                         if (!Enum.IsDefined(typeof(CharacterStatusId), row.effectId)) { error = $"effects[{i}]: effectId {row.effectId} is not a valid CharacterStatusId."; return false; }
-                        if (!catalogue.TryGet((CharacterStatusId)row.effectId, out status) || status == null) { error = $"effects[{i}]: No StatusEffectSO for effectId {(CharacterStatusId)row.effectId}."; return false; }
+                        if (!registries.TryGetStatusEffectByPrimitive((CharacterStatusId)row.effectId, out status) || status == null)
+                        {
+                            error = $"effects[{i}]: No StatusEffectSO found in either catalogue for effectId {(CharacterStatusId)row.effectId}.";
+                            return false;
+                        }
                     }
                     else { error = $"effects[{i}]: ApplyStatusEffect requires 'statusKey' or 'effectId'."; return false; }
 
@@ -360,27 +372,6 @@ namespace ALWTTT.Cards.Editor
             int i = p.arraySize;
             p.InsertArrayElementAtIndex(i);
             p.GetArrayElementAtIndex(i).managedReferenceValue = spec;
-        }
-
-        private static bool TryResolveStatusByKey(StatusEffectCatalogueSO cat, string key, out StatusEffectSO status, out string error)
-        {
-            status = null; error = null;
-            key = key?.Trim();
-            if (string.IsNullOrEmpty(key)) { error = "statusKey is empty."; return false; }
-            if (cat.TryGetByKey(key, out status) && status != null) return true;
-
-            StatusEffectSO first = null; int count = 0;
-            foreach (var se in cat.Effects)
-            {
-                if (se == null) continue;
-                if (string.Equals(se.DisplayName, key, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(se.name, key, StringComparison.OrdinalIgnoreCase))
-                { count++; if (first == null) first = se; }
-            }
-            if (first == null) { error = $"No StatusEffectSO found for statusKey '{key}'."; return false; }
-            if (count > 1) Debug.LogWarning($"[DeckCardCreationService] statusKey '{key}' matched {count} effects via name fallback. Using first.");
-            status = first;
-            return true;
         }
 
         // ------------------------------------------------------------------

@@ -1,4 +1,4 @@
-using ALWTTT.Cards;
+﻿using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
 using ALWTTT.Encounters;
 using ALWTTT.Managers;
@@ -66,11 +66,11 @@ namespace ALWTTT.Data
         [SerializeField] private bool isRandomDeck;
         [SerializeField] private bool canUseCards;
         [SerializeField] private bool canSelectCards;
-        
+
         [SerializeField] private SongData currentSong;
         [SerializeField] private int currentSongIndex;
         [SerializeField] private List<CardDefinition> songModifierCardsList;
-        
+
 
         // Sector Info
         [SerializeField] private int currentSectorId;
@@ -225,7 +225,7 @@ namespace ALWTTT.Data
             set => lastMapNodeId = value;
         }
 
-        
+
 
         public SongData CurrentSong
         {
@@ -308,7 +308,7 @@ namespace ALWTTT.Data
             KeepInspirationBetweenTurns = gameplayData.KeepInspirationBetweenTurns;
 
             isRandomDeck = gameplayData.IsRandomDeck;
-            
+
             CurrentActionCards = new List<CardDefinition>();
             CurrentCompositionCards = new List<CardDefinition>();
 
@@ -417,10 +417,10 @@ namespace ALWTTT.Data
         public void SetBandDeck(BandDeckData bandDeck)
         {
             // Clear runtime decks
-            if (currentActionCards == null) 
+            if (currentActionCards == null)
                 currentActionCards = new List<CardDefinition>();
 
-            if (currentCompositionCards == null) 
+            if (currentCompositionCards == null)
                 currentCompositionCards = new List<CardDefinition>();
 
             currentActionCards.Clear();
@@ -438,41 +438,248 @@ namespace ALWTTT.Data
                 return;
             }
 
-            var cards = bandDeck.Cards;
-            if (cards == null)
+            // M4.4 Deck Contract Evolution: deck is a multiset of
+            // (card, count) entries. Each entry contributes `count` independent
+            // references to the action / composition pile lists. The pre-M4.4
+            // dedup-by-reference is gone � multiplicity is now the contract.
+            var entries = bandDeck.Entries;
+            if (entries == null)
             {
                 Debug.LogWarning($"[PersistentGameplayData] " +
-                    $"BandDeck '{bandDeck.name}' has null Cards list.");
+                    $"BandDeck '{bandDeck.name}' has null Entries.");
                 return;
             }
 
-            for (int i = 0; i < cards.Count; i++)
+            int totalAction = 0;
+            int totalComposition = 0;
+
+            for (int i = 0; i < entries.Count; i++)
             {
-                var card = cards[i];
+                var entry = entries[i];
+                if (entry == null) continue;
+
+                var card = entry.card;
                 if (card == null) continue;
 
-                // Optional: skip duplicates by reference
+                int copies = Mathf.Max(1, entry.count);
+
                 if (card.IsAction)
                 {
-                    if (!currentActionCards.Contains(card))
-                        currentActionCards.Add(card);
+                    for (int k = 0; k < copies; k++) currentActionCards.Add(card);
+                    totalAction += copies;
                 }
                 else if (card.IsComposition)
                 {
-                    if (!currentCompositionCards.Contains(card))
-                        currentCompositionCards.Add(card);
+                    for (int k = 0; k < copies; k++) currentCompositionCards.Add(card);
+                    totalComposition += copies;
                 }
                 else
                 {
                     Debug.LogWarning($"[PersistentGameplayData] " +
-                        $"Card '{card.name}' is neither Action nor Composition.");
+                        $"Card '{card.name}' is neither Action nor Composition. Skipped (�{copies}).");
                 }
             }
 
             Debug.Log($"[PersistentGameplayData] SetBandDeck -> " +
-                      $"Action={currentActionCards.Count}, " +
-                      $"Composition={currentCompositionCards.Count} " +
-                      $"(Deck='{bandDeck.name}')");
+                      $"Action={totalAction}, " +
+                      $"Composition={totalComposition} " +
+                      $"(Deck='{bandDeck.name}', uniqueEntries={entries.Count})");
+        }
+
+        /// <summary>
+        /// M4.6-prep batch (2): per-musician auto-assembly path. Builds the
+        /// runtime deck by reading each musician's <c>CardCatalog</c>
+        /// (starter-flagged entries, expanded by <c>starterCopies</c>) and
+        /// merging an optional generic catalogue.
+        ///
+        /// Mirrors <see cref="SetBandDeck"/>'s reset semantics: clears piles,
+        /// resets per-musician granted-card inventories, sets
+        /// <c>isRandomDeck = false</c>.
+        ///
+        /// Per-musician contributions populate
+        /// <c>musicianGrantedActionCards</c> /
+        /// <c>musicianGrantedCompositionCards</c> so
+        /// <see cref="RemoveMusicianFromBand"/> can clean up correctly when a
+        /// musician departs mid-run. Generic-catalogue contributions are NOT
+        /// provenance-tracked — they are not "from" any specific musician,
+        /// so they correctly survive a musician removal.
+        ///
+        /// D2b: an entry with <c>StarterDeck</c> flag and
+        /// <c>starterCopies &lt;= 0</c> is an author error. The runtime
+        /// warns and skips rather than silently coercing to 1, so
+        /// authoring bugs surface in the logs.
+        /// </summary>
+        public void SetBandDeckFromMusicians(
+            IList<MusicianCharacterData> musicians,
+            GenericCardCatalogSO genericCatalog)
+        {
+            // Clear runtime piles
+            if (currentActionCards == null)
+                currentActionCards = new List<CardDefinition>();
+            if (currentCompositionCards == null)
+                currentCompositionCards = new List<CardDefinition>();
+
+            currentActionCards.Clear();
+            currentCompositionCards.Clear();
+
+            // Reset provenance (full deck replace, mirrors SetBandDeck)
+            musicianGrantedActionCards = new SerializableCardInventory();
+            musicianGrantedCompositionCards = new SerializableCardInventory();
+
+            isRandomDeck = false;
+
+            if (musicians == null || musicians.Count == 0)
+            {
+                Debug.LogWarning(
+                    "[PersistentGameplayData] SetBandDeckFromMusicians: " +
+                    "empty roster. No cards added.");
+                return;
+            }
+
+            int totalAction = 0;
+            int totalComposition = 0;
+            int skippedNoCatalog = 0;
+            int skippedZeroCopies = 0;
+            int skippedNoDomain = 0;
+
+            // --- Per-musician contributions ---
+            for (int mi = 0; mi < musicians.Count; mi++)
+            {
+                var m = musicians[mi];
+                if (m == null) continue;
+
+                var catalog = m.CardCatalog;
+                if (catalog == null)
+                {
+                    Debug.LogWarning(
+                        $"[PersistentGameplayData] SetBandDeckFromMusicians: " +
+                        $"musician '{m.CharacterName}' (id={m.CharacterId}) " +
+                        $"has no CardCatalog. Skipping contribution.");
+                    skippedNoCatalog++;
+                    continue;
+                }
+
+                var entries = catalog.Entries;
+                if (entries == null) continue;
+
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    var entry = entries[i];
+                    if (entry?.card == null) continue;
+                    if (!entry.IsStarter) continue;
+
+                    // D2b: starterCopies <= 0 with StarterDeck flag set is
+                    // an author error. Warn + skip rather than silently
+                    // coercing to 1 — the editor service clamps at write
+                    // time, so this only happens via direct asset edit.
+                    if (entry.starterCopies <= 0)
+                    {
+                        Debug.LogWarning(
+                            $"[PersistentGameplayData] SetBandDeckFromMusicians: " +
+                            $"entry '{entry.card.name}' on '{m.CharacterName}' " +
+                            $"has StarterDeck flag but " +
+                            $"starterCopies={entry.starterCopies}. Skipping.");
+                        skippedZeroCopies++;
+                        continue;
+                    }
+
+                    int copies = entry.starterCopies;
+                    var card = entry.card;
+
+                    if (card.IsAction)
+                    {
+                        for (int k = 0; k < copies; k++)
+                        {
+                            currentActionCards.Add(card);
+                            musicianGrantedActionCards.AddCard(m.CharacterId, card);
+                        }
+                        totalAction += copies;
+                    }
+                    else if (card.IsComposition)
+                    {
+                        for (int k = 0; k < copies; k++)
+                        {
+                            currentCompositionCards.Add(card);
+                            musicianGrantedCompositionCards.AddCard(m.CharacterId, card);
+                        }
+                        totalComposition += copies;
+                    }
+                    else
+                    {
+                        Debug.LogWarning(
+                            $"[PersistentGameplayData] SetBandDeckFromMusicians: " +
+                            $"card '{card.name}' on '{m.CharacterName}' is " +
+                            $"neither Action nor Composition. " +
+                            $"Skipping (×{copies}).");
+                        skippedNoDomain++;
+                    }
+                }
+            }
+
+            // --- Generic catalogue contributions (no provenance) ---
+            int genericAction = 0;
+            int genericComposition = 0;
+            if (genericCatalog != null && genericCatalog.Entries != null)
+            {
+                var gEntries = genericCatalog.Entries;
+                for (int i = 0; i < gEntries.Count; i++)
+                {
+                    var entry = gEntries[i];
+                    if (entry?.card == null) continue;
+                    if (!entry.IsStarter) continue;
+
+                    if (entry.starterCopies <= 0)
+                    {
+                        Debug.LogWarning(
+                            $"[PersistentGameplayData] SetBandDeckFromMusicians: " +
+                            $"generic entry '{entry.card.name}' has StarterDeck " +
+                            $"flag but starterCopies={entry.starterCopies}. " +
+                            $"Skipping.");
+                        skippedZeroCopies++;
+                        continue;
+                    }
+
+                    int copies = entry.starterCopies;
+                    var card = entry.card;
+
+                    if (card.IsAction)
+                    {
+                        for (int k = 0; k < copies; k++)
+                            currentActionCards.Add(card);
+                        genericAction += copies;
+                    }
+                    else if (card.IsComposition)
+                    {
+                        for (int k = 0; k < copies; k++)
+                            currentCompositionCards.Add(card);
+                        genericComposition += copies;
+                    }
+                    else
+                    {
+                        Debug.LogWarning(
+                            $"[PersistentGameplayData] SetBandDeckFromMusicians: " +
+                            $"generic card '{card.name}' is neither Action nor " +
+                            $"Composition. Skipping (×{copies}).");
+                        skippedNoDomain++;
+                    }
+                }
+
+                totalAction += genericAction;
+                totalComposition += genericComposition;
+            }
+
+            Debug.Log(
+                $"[PersistentGameplayData] SetBandDeckFromMusicians -> " +
+                $"Action={totalAction} " +
+                $"(per-musician={totalAction - genericAction}, " +
+                $"generic={genericAction}), " +
+                $"Composition={totalComposition} " +
+                $"(per-musician={totalComposition - genericComposition}, " +
+                $"generic={genericComposition}), " +
+                $"musicians={musicians.Count}, " +
+                $"skippedNoCatalog={skippedNoCatalog}, " +
+                $"skippedZeroCopies={skippedZeroCopies}, " +
+                $"skippedNoDomain={skippedNoDomain}");
         }
 
 
@@ -481,7 +688,7 @@ namespace ALWTTT.Data
             MusicianList = new List<MusicianBase>();
             AvailableMusiciansList = new List<MusicianBase>(all);
             musicianHealthDataList = new List<MusicianHealthData>();
-            
+
             CurrentSongList = new List<SongData>();
             CurrentSongIndex = 0;
             SongModifierCardsList = new List<CardDefinition>();
@@ -490,6 +697,89 @@ namespace ALWTTT.Data
             CurrentCompositionCards = new List<CardDefinition>();
             musicianGrantedActionCards = new SerializableCardInventory();
             musicianGrantedCompositionCards = new SerializableCardInventory();
+        }
+
+        /// <summary>
+        /// M4.6-prep merged (1)/(4): replace the band roster with the picked subset.
+        /// Distinct from <see cref="AddMusicianToBand"/> (which also grants base cards
+        /// for the recruit/meta path). This method handles roster identity only:
+        /// MusicianList, AvailableMusiciansList, MusicianHealthData, MusicianGameplayData.
+        /// Cards are owned entirely by the deck path (auto-assembly via
+        /// <see cref="SetBandDeckFromMusicians"/>, or legacy via <see cref="SetBandDeck"/>).
+        /// Health/gameplay-data entries are preserved if they already exist for a picked
+        /// musician (idempotent across re-entries to GigSetupScene).
+        /// </summary>
+        public void SetBandRoster(IList<MusicianBase> picked)
+        {
+            if (picked == null)
+            {
+                Debug.LogWarning(
+                    "[PersistentGameplayData] SetBandRoster called with null list. " +
+                    "Treating as empty.");
+                picked = new List<MusicianBase>();
+            }
+
+            // 1) Replace MusicianList (dedupe by reference; skip nulls)
+            MusicianList = new List<MusicianBase>(picked.Count);
+            for (int i = 0; i < picked.Count; i++)
+            {
+                var m = picked[i];
+                if (m == null) continue;
+                if (MusicianList.Contains(m)) continue;
+                MusicianList.Add(m);
+            }
+
+            // 2) Rebuild AvailableMusiciansList = AllMusiciansList \ MusicianList
+            AvailableMusiciansList = new List<MusicianBase>();
+            if (gameplayData != null && gameplayData.AllMusiciansList != null)
+            {
+                foreach (var m in gameplayData.AllMusiciansList)
+                {
+                    if (m == null) continue;
+                    if (MusicianList.Contains(m)) continue;
+                    AvailableMusiciansList.Add(m);
+                }
+            }
+
+            // 3) Ensure health and gameplay data exist for picked musicians (idempotent)
+            if (musicianHealthDataList == null)
+                musicianHealthDataList = new List<MusicianHealthData>();
+            if (musicianGameplayDataList == null)
+                musicianGameplayDataList = new List<MusicianGameplayData>();
+
+            for (int i = 0; i < MusicianList.Count; i++)
+            {
+                var m = MusicianList[i];
+                var data = m != null ? m.MusicianCharacterData : null;
+                if (data == null) continue;
+
+                if (musicianHealthDataList.Find(h => h.CharacterId == data.CharacterId) == null)
+                {
+                    SetMusicianHealthData(data.CharacterId, 0, data.InitialMaxStress);
+                }
+
+                if (musicianGameplayDataList.Find(g => g.CharacterId == data.CharacterId) == null)
+                {
+                    var startingMelodicLeading = data.Profile != null
+                        ? data.Profile.defaultMelodicLeading
+                        : null;
+                    SetMusicianGameplayData(data.CharacterId, startingMelodicLeading);
+                }
+            }
+
+            // 4) Log
+            var ids = new List<string>(MusicianList.Count);
+            for (int i = 0; i < MusicianList.Count; i++)
+            {
+                var d = MusicianList[i] != null ? MusicianList[i].MusicianCharacterData : null;
+                ids.Add(d != null ? d.CharacterId : "<null>");
+            }
+
+            Debug.Log(
+                $"[PersistentGameplayData] SetBandRoster -> " +
+                $"musicians={MusicianList.Count} " +
+                $"(ids=[{string.Join(",", ids)}]), " +
+                $"available={AvailableMusiciansList.Count}");
         }
 
         public MusicianHealthData SetMusicianHealthData(
@@ -693,7 +983,29 @@ namespace ALWTTT.Data
             SongModifierCardsList.Clear();
 
             // --- Deck ---
-            SetBandDeck(config.bandDeck);
+            // M4.6-prep batch (2): branch on useMusicianStarters. When ON,
+            // assemble from each musician's CardCatalog + optional generic
+            // catalogue. When OFF, legacy BandDeckData asset path runs.
+            if (config.useMusicianStarters)
+            {
+                var roster = new List<MusicianCharacterData>(MusicianList?.Count ?? 0);
+                if (MusicianList != null)
+                {
+                    for (int i = 0; i < MusicianList.Count; i++)
+                    {
+                        var m = MusicianList[i];
+                        if (m == null) continue;
+                        var data = m.MusicianCharacterData;
+                        if (data == null) continue;
+                        roster.Add(data);
+                    }
+                }
+                SetBandDeckFromMusicians(roster, defaults?.GenericStarterCatalog);
+            }
+            else
+            {
+                SetBandDeck(config.bandDeck);
+            }
 
             // --- Encounter ---
             CurrentEncounter = config.encounter;
@@ -756,7 +1068,7 @@ namespace ALWTTT.Data
 
             Debug.Log(
                 $"[PersistentGameplayData] ApplyRunConfig -> " +
-                $"Deck={config.bandDeck?.name}, " +
+                $"Deck={config.deckLabel ?? config.bandDeck?.name ?? "<unset>"}, " +
                 $"Encounter={config.encounter?.GetLabel()}, " +
                 $"StartInspiration={TurnStartingInspiration}, " +
                 $"DiscardBetweenTurns={DiscardHandBetweenTurns}, " +

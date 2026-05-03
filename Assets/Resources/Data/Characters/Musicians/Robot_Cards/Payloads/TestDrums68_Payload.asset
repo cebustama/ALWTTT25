@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b987196233c610489faff2eb050697c, type: 3}
   m_Name: TestDrums68_Payload
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CompositionCardPayload
-  effects: []
+  effects:
+  - rid: 4083946344618131530
   primaryKind: 1
   trackAction:
     role: 0
@@ -26,4 +27,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 12005ff9eb8f2e4438d5a728b17ad435, type: 2}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 4083946344618131530
+      type: {class: ModifyVibeSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
+      data:
+        targetType: 2
+        amount: 5

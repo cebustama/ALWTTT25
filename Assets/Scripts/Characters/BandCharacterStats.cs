@@ -1,4 +1,4 @@
-using ALWTTT.Enums;
+﻿using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Status;
 using ALWTTT.Status.Runtime;
@@ -85,6 +85,16 @@ namespace ALWTTT.Characters.Band
         public void AddStress(int amount, float duration = 1f)
         {
             SetCurrentStress(CurrentStress + amount, duration);
+            CheckBreakdownThreshold();
+        }
+
+        /// <summary>
+        /// Shared Breakdown-threshold check. Called from every path that sets
+        /// CurrentStress (play: AddStress; dev: DevSetCurrentStress/DevSetMaxStress).
+        /// Preserves the !IsBreakdown guard — Breakdown is a sticky state transition.
+        /// </summary>
+        private void CheckBreakdownThreshold()
+        {
             if (CurrentStress >= MaxStress && !IsBreakdown)
             {
                 IsBreakdown = true;
@@ -191,6 +201,32 @@ namespace ALWTTT.Characters.Band
         public void DevResetBreakdown()
         {
             IsBreakdown = false;
+        }
+
+        /// <summary>
+        /// Dev Mode: Set Stress directly to a clamped target value. Fires Breakdown
+        /// if the target reaches MaxStress and musician is not yet broken. Skips
+        /// animation (duration=0f) for instant dev-UI feedback.
+        /// Symmetric-consequences per SSoT_Dev_Mode §13.3.
+        /// </summary>
+        public void DevSetCurrentStress(int target)
+        {
+            SetCurrentStress(target, duration: 0.1f);
+            CheckBreakdownThreshold();
+        }
+
+        /// <summary>
+        /// Dev Mode: Set MaxStress to a new value (floor 1). If CurrentStress
+        /// exceeds the new max, Current is clamped down. Re-checks Breakdown
+        /// threshold — reducing MaxStress to current's value triggers Breakdown.
+        /// </summary>
+        public void DevSetMaxStress(int newMax)
+        {
+            MaxStress = Mathf.Max(1, newMax);
+            // SetCurrentStress clamps internally AND refreshes canvas.
+            // Passing current value when already ≤ MaxStress is a harmless refresh.
+            SetCurrentStress(CurrentStress, duration: 0.1f);
+            CheckBreakdownThreshold();
         }
 #endif
     }

@@ -185,8 +185,9 @@ namespace ALWTTT
 
 #if UNITY_EDITOR
                         Debug.Log(
-                            $"[Effects] {performer?.name} applied {ase.stacksDelta}x '{ase.status.EffectId}' to {trg.name} " +
-                            $"via card '{CardDefinition?.DisplayName}'.");
+                            $"[Effects] {performer?.name} applied {ase.stacksDelta}x " +
+                            $"'{ase.status.StatusKey}' ({ase.status.DisplayName}, primitive={ase.status.EffectId}) " +
+                            $"to {trg.name} via card '{CardDefinition?.DisplayName}'.");
 #endif
                     }
 
@@ -224,18 +225,38 @@ namespace ALWTTT
                         }
 
                         int baseDelta = vibe.amount;
+                        int finalDelta = baseDelta;
                         int flowStacks = 0;
-                        int flowBonus = 0;
 
-                        // Strength-like MVP: Flow adds a flat bonus to *any* positive Vibe gain.
+                        // M4.2 bifurcated Flow → Vibe:
+                        // Action cards: flat bonus per stack.
+                        // Composition cards: multiplier per stack.
                         var gm = GigManager.Instance;
-                        if (baseDelta > 0 && gm != null && gm.FlowAddsFlatVibeBonus)
+                        if (baseDelta > 0 && gm != null)
                         {
-                            flowStacks = ComputeBandFlowStacks(allBandCharacters);
-                            flowBonus = flowStacks * gm.FlowVibeFlatBonusPerStack;
+                            bool isAction = CardDefinition != null && CardDefinition.IsAction;
+                            if (isAction && gm.FlowActionFlatBonus)
+                            {
+                                // Action path: only the performer's Flow stacks.
+                                int performerFlow = GetPerformerFlowStacks(performer);
+                                if (performerFlow > 0)
+                                {
+                                    int flowBonus = performerFlow * gm.FlowActionVibeBonusPerStack;
+                                    finalDelta = baseDelta + flowBonus;
+                                    flowStacks = performerFlow; // for debug log
+                                }
+                            }
+                            else if (!isAction)
+                            {
+                                // Composition path: whole band's Flow.
+                                flowStacks = ComputeBandFlowStacks(allBandCharacters);
+                                if (flowStacks > 0)
+                                {
+                                    float mult = 1f + flowStacks * gm.FlowVibeMultiplier;
+                                    finalDelta = Mathf.RoundToInt(baseDelta * mult);
+                                }
+                            }
                         }
-
-                        int finalDelta = baseDelta + flowBonus;
 
                         // Prefer the newer AudienceStats pathway when available.
                         if (audience.AudienceStats != null)
@@ -249,10 +270,24 @@ namespace ALWTTT
                         }
 
 #if UNITY_EDITOR
-                        Debug.Log(
-                            flowBonus > 0
-                                ? $"[Effects][Flow→Vibe] {performer?.name} Vibe on {audience.name}: baseΔ={baseDelta} flowStacks={flowStacks} bonus=+{flowBonus} finalΔ={finalDelta} via card '{CardDefinition?.DisplayName}'."
-                                : $"[Effects] {performer?.name} modified Vibe on {audience.name}: Δ{finalDelta} via card '{CardDefinition?.DisplayName}'.");
+                        if (flowStacks > 0)
+                        {
+                            bool isActionLog = CardDefinition != null && CardDefinition.IsAction;
+                            Debug.Log(isActionLog
+                                ? $"[Effects][Flow→Vibe:Flat] {performer?.name} Vibe on {audience.name}: " +
+                                  $"baseΔ={baseDelta} flowStacks={flowStacks} finalΔ={finalDelta} " +
+                                  $"via card '{CardDefinition?.DisplayName}'."
+                                : $"[Effects][Flow→Vibe:Mult] {performer?.name} Vibe on {audience.name}: " +
+                                  $"baseΔ={baseDelta} flowStacks={flowStacks} " +
+                                  $"mult={1f + flowStacks * (gm?.FlowVibeMultiplier ?? 0f):F2} " +
+                                  $"finalΔ={finalDelta} via card '{CardDefinition?.DisplayName}'.");
+                        }
+                        else
+                        {
+                            Debug.Log(
+                                $"[Effects] {performer?.name} modified Vibe on {audience.name}: " +
+                                $"Δ{finalDelta} via card '{CardDefinition?.DisplayName}'.");
+                        }
 #endif
                     }
 
@@ -339,6 +374,14 @@ namespace ALWTTT
             }
         }
 
+        private int GetPerformerFlowStacks(CharacterBase performer)
+        {
+            if (performer == null) return 0;
+            var musician = performer as MusicianBase;
+            if (musician?.Statuses == null) return 0;
+            return musician.Statuses.GetStacks(CharacterStatusId.DamageUpFlat);
+        }
+
         private static int ComputeBandFlowStacks(List<MusicianBase> allBandCharacters)
         {
             if (allBandCharacters == null || allBandCharacters.Count == 0)
@@ -357,11 +400,11 @@ namespace ALWTTT
         }
 
         private List<CharacterBase> DetermineTargets(
-    CharacterBase performer,
-    CharacterBase targetCharacter,
-    List<AudienceCharacterBase> allAudienceCharacters,
-    List<MusicianBase> allBandCharacters,
-    ActionTargetType targetType)
+            CharacterBase performer,
+            CharacterBase targetCharacter,
+            List<AudienceCharacterBase> allAudienceCharacters,
+            List<MusicianBase> allBandCharacters,
+            ActionTargetType targetType)
         {
             var targetList = new List<CharacterBase>();
 

@@ -263,7 +263,7 @@ MonoBehaviour:
     m_Bits: 128
   characterAnimator: {fileID: 6981906805491641733}
   animator: {fileID: 7639766325466097293}
-  statusCatalogue: {fileID: 11400000, guid: 3c12538606a42a944b49754c65c1758c, type: 2}
+  statusCatalogue: {fileID: 11400000, guid: a0d5c957c23a58945851931838536de4, type: 2}
   outlineController: {fileID: 4506841092420466041}
   legacyIsStunned: 0
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}

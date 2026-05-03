@@ -43,10 +43,11 @@ It does not duplicate the data representation rules in `SSoT_Card_Authoring_Cont
 |---|---|---|---|
 | Card Editor | `CardEditorWindow` | ALWTTT → Cards → Card Editor | Single-card authoring: create, inspect, edit cards within a musician catalog |
 | Deck Editor | `DeckEditorWindow` | ALWTTT → Cards → Deck Editor | Deck composition: create/load/edit BandDeckData assets, JSON import/export |
+| Card Inventory | `CardInventoryWindow` | ALWTTT → Cards → Card Inventory | Read-only browser for `CardDefinition`, `MusicianCardCatalogData`, and `GenericCardCatalogSO` assets, with Print to Console + Export JSON per view |
 | Status Effect Wizard | `StatusEffectWizardWindow` | ALWTTT → Status → Status Effect Wizard | Create and edit StatusEffectSO assets backed by the CSO primitive database |
 | Chord Progression Catalogue | `ChordProgressionCatalogueWizard` | MidiGenPlay → Chord Progression Catalogue Wizard... | Read-only browser for ChordProgressionData and ChordProgressionPaletteSO assets |
 
-All four are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds.
+All five are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds.
 
 ---
 
@@ -93,6 +94,49 @@ The partial class `CardEditorWindow.JsonImport.cs` provides batch card creation 
 - `ALWTTTProjectRegistriesSO` — auto-resolved singleton for musician/catalog lookup
 - `MusicianCharacterData`, `MusicianCardCatalogData` — musician-scoped data assets
 
+### 4.6 Per-row Starter / Copies columns (batch (3), 2026-05-03)
+
+Each row in the catalog entry list renders an inline `Starter` checkbox (~38 px wide) and a `Copies` IntField (~40 px wide) before the row's selectable name button. Both controls write through `SerializedObject(_loadedCatalog)` → `entries.GetArrayElementAtIndex(i)` → `FindPropertyRelative("flags")` / `FindPropertyRelative("starterCopies")`, with `ApplyModifiedProperties()` per frame. This gives Undo registration and asset-dirty propagation for free, identical to the right-side inspector path.
+
+Behavior:
+
+- The `Starter` checkbox toggles `CardAcquisitionFlags.StarterDeck` directly on the entry. The `[S]` flag indicator is no longer included in the row's text label because the checkbox column is the canonical indicator. `[R]` (reward) and `[L]` (locked) tokens remain in the label.
+- The `Copies` IntField is greyed out when `Starter` is off, editable when on. On commit, the field clamps to `Mathf.Max(1, value)` (mirrors `MusicianCatalogService.TryAddEntry` and the `[Min(1)]` attribute on `MusicianCardEntry.starterCopies`).
+- IMGUI controls consume their own input events, so clicking the checkbox or IntField on a non-selected row does not change `_selectedEntryIndex`. Selection still requires clicking the row's name-label button.
+- When the `Starter Only` filter is active and the user un-checks Starter on a visible row, the row disappears from the filtered view on the next Repaint. This is intentional silent behavior matching the right-side inspector workflow; no HelpBox is displayed.
+- Single-step Undo (`Ctrl+Z`) reverts both the flag and the copies value as one operation, because both writes happen inside the same `SerializedObject` transaction.
+
+The dogfood acceptance test (ST-AT3-8) confirmed this UI is materially faster for the M4.6 starter-deck cleanup workflow than the previous "open right-side inspector → click `EnumFlagsField` dropdown → uncheck Starter" path.
+
+### 4.7 Print button (batch (3), 2026-05-03)
+
+The Card Editor toolbar gains a `Print` button (after the Registries Ping button, separated by a `GUILayout.Space(10)`). When pressed with a catalog loaded, it produces a multi-line `Debug.Log` of the catalog contents:
+
+```
+=== CARD EDITOR — CATALOG DUMP ===
+Musician: Conito
+Catalog: Conito_CardCatalogData (Assets/Resources/Data/Characters/Musicians/Conito_CardCatalogData.asset)
+Entries: 10 (starter entries: 10, total starter copies: 10)
+
+[1] test_draw_cards — Action, flags=[StarterDeck, UnlockedByDefault], copies=1, unlockId=<none>
+[2] test_modify_vibe — Action, flags=[StarterDeck, UnlockedByDefault], copies=1, unlockId=<none>
+...
+```
+
+The button is disabled when no catalog is loaded. Symmetric to `DeckEditorWindow`'s `Print` button (§5.7).
+
+### 4.8 Registries surface (post-MB2)
+
+`ALWTTTProjectRegistriesSO` exposes both status catalogues separately:
+- `StatusCatalogueMusicians` — musician-side statuses (flow, composure, choke, shaken, exposed, feedback).
+- `StatusCatalogueAudience` — audience-side statuses (earworm; future audience-side statuses).
+
+Plus two cross-catalogue lookup helpers used by tooling:
+- `TryGetStatusEffectByKey(string, out StatusEffectSO)` — probes musicians first, then audience.
+- `TryGetStatusEffectByPrimitive(CharacterStatusId, out StatusEffectSO)` — same probe order. Note: when both catalogues hold a variant of the same primitive (e.g. Feedback / Earworm both use `DamageOverTime`), this returns the musicians variant. Prefer key-based lookup for unambiguous audience-side resolution.
+
+A legacy `StatusCatalogue` alias is retained for source compatibility with pre-MB2 callers; it returns the musicians catalogue. New tooling code should use the explicit `…Musicians` / `…Audience` properties or the `TryGet…` helpers.
+
 ---
 
 ## 5. Deck Editor (`DeckEditorWindow`)
@@ -108,7 +152,7 @@ The Deck Editor creates and edits `BandDeckData` assets — the deck containers 
 
 Three-zone vertical layout:
 
-- **Header/toolbar** — Target deck asset field, GigSetupConfigData field, Load/Save/Save As/New/Find/Ping buttons, Import JSON/Export JSON buttons.
+- **Header/toolbar** — Target deck asset field, GigSetupConfigData field, Load/Save/Save As/New/Find/Ping buttons, Import JSON/Export JSON buttons, Print button (batch (3), §5.7).
 - **Body (split)** — Left: staged card list with badges. Right: deck metadata fields (deckId, displayName, description) and JSON text area.
 - **Catalogue strip** — Toggleable full-width catalogue browser below the body, with action/composition filter toggles and text search.
 - **Status bar** — Validation messages and warnings.
@@ -132,7 +176,7 @@ Exports the current staged deck to JSON in the text area.
 
 ### 5.4 Current deck contract
 
-Decks are unique card lists (Option A from the original design proposal). Duplicate card references are normalized away. True copy semantics (Option B) are not implemented. See `SSoT_Card_Authoring_Contracts.md` §5 for the JSON schema contract.
+Decks are unique card lists with M4.4 multiplicity support: `BandDeckData` is now a multiset, with `BandDeckEntry { card, count }` as the per-entry shape. See `SSoT_Card_System.md §13` and `SSoT_Card_Authoring_Contracts.md §5.10` for the full multiplicity contract. The Deck Editor edits `count` via inline +/- controls per staged entry.
 
 ### 5.5 Supporting services
 
@@ -147,7 +191,26 @@ All services are in `Assets/Scripts/Cards/Editor/` and are `#if UNITY_EDITOR` ga
 
 ### 5.6 DTOs
 
-`DeckEditorDtos.cs` defines the serialization DTOs used by `DeckJsonImportService`: `DeckJsonDto`, `DeckCardEntryDto`, `CardEffectDto`. These are the intermediate representations between raw JSON and the staged deck model.
+`DeckEditorDtos.cs` defines the staged deck model used by the window: `StagedDeck` and `StagedCardEntry`. `StagedCardEntry` exposes `existingCard` (serialized `CardDefinition` reference), `pendingCard`/`pendingPayload` (in-memory only, lost on domain reload), and `count` (M4.4 multiplicity). Property `ResolvedCard` returns either the existing or the pending card, whichever is set. Properties `IsNew`, `IsExisting`, `IsValid` discriminate the two modes.
+
+### 5.7 Print button (batch (3), 2026-05-03)
+
+The Deck Editor toolbar gains a `Print` button immediately after the `Export JSON` button on row 1. When pressed it produces a multi-line `Debug.Log` of the staged deck:
+
+```
+=== DECK EDITOR — STAGED DECK DUMP ===
+Asset: MyDeck (Assets/Resources/Data/Decks/MyDeck.asset)
+deckId: my_deck
+displayName: My Deck
+description: ...
+Entries: 5 (total copies: 8)
+
+[1] card_id_1 ×2 — Action
+[2] card_id_2 ×1 — Composition
+...
+```
+
+The formatter uses `StagedCardEntry.ResolvedCard` (which transparently picks the right reference for both existing and pending entries) and reports `count` per row. Pending new cards display a trailing `[NEW]` suffix. Symmetric to `CardEditorWindow`'s `Print` button (§4.7).
 
 ---
 
@@ -208,7 +271,62 @@ This tool operates on MidiGenPlay-owned data types (`ChordProgressionData`, `Cho
 
 ---
 
-## 8. Card asset factory (`CardAssetFactory`)
+## 8. Card Inventory Window (`CardInventoryWindow`) — batch (3), 2026-05-03
+
+**File:** `Assets/Scripts/Cards/Editor/CardInventoryWindow.cs`
+**Namespace:** `ALWTTT.Cards.Editor`
+**Menu:** ALWTTT → Cards → Card Inventory (priority 12, immediately after Card Editor and Deck Editor)
+
+### 8.1 What it does
+
+Read-only inventory browser for the project's card-related ScriptableObject assets. Surfaces a quick visual overview without requiring the user to navigate the Project window or open individual catalogs in the Card Editor. Each view supports a `Print` action (multi-line `Debug.Log`) and an `Export JSON` action (file dialog → `JsonUtility.ToJson(_, prettyPrint: true)`).
+
+The window does not mutate any asset. All editing flows continue to live in the Card Editor and Deck Editor.
+
+### 8.2 Layout
+
+Single window with a top toolbar selecting one of four views:
+
+- **All CardDefinitions** — every `CardDefinition` asset in the project, listed with kind badge (`[A]`/`[C]`/`[?]`), id, display name, inspiration cost, and a Ping button per row.
+- **All Musician Catalogs** — every `MusicianCardCatalogData` asset, listed with musician type, asset name, total entry count, starter entry count, total starter copies (sum of `starterCopies` across starter-flagged entries), and a Ping button per row.
+- **One Musician** — full entry list of a single musician's catalog, selected via a dropdown in the toolbar that appears only on this view. Shows id, starter status (`S×{copies}` when flagged, `—` otherwise), reward marker, unlocked-by-default marker, and unlock id.
+- **All Generic Catalogs** — every `GenericCardCatalogSO` asset, each rendered as a heading row with entry count + Ping button followed by the same per-entry shape as the One Musician view. `GenericCardCatalogSO.Entries` reuses `MusicianCardEntry`, so the entry rendering is shared between the two views.
+
+The toolbar's right-aligned actions (`Print`, `Export JSON`) operate on whichever view is currently selected.
+
+### 8.3 Print to Console
+
+Produces a multi-line `=== CARD INVENTORY — {ViewName} ===` block in the Console:
+
+- View 1 (All CardDefinitions): one line per card with id, kind, cost, asset path.
+- View 2 (All Musician Catalogs): one line per catalog with musician type, asset name, entry count, starter count, starter copies total.
+- View 3 (One Musician): asset-name header followed by indented per-entry lines with id, flags, starter copies, unlock id.
+- View 4 (All Generic Catalogs): same per-catalog shape as View 3, repeated for each generic catalog.
+
+### 8.4 Export JSON
+
+`EditorUtility.SaveFilePanel` → writes a pretty-printed JSON file via `JsonUtility.ToJson(_, true)`. The export schema is **informational and human-readable; it is not designed to be re-imported through `DeckJsonImportService` or any catalog import path**. It exists for debugging, audit logging, and external review (e.g. paste into a sheet, diff between two snapshots, share with another developer).
+
+Per-view schemas:
+
+- View 1: `{ "cardDefinitions": [{ "id", "displayName", "kind", "inspirationCost", "assetPath" }, ...] }`
+- View 2: `{ "catalogs": [{ "musicianType", "assetName", "entryCount", "starterCount", "starterCopiesTotal" }, ...] }`
+- View 3: `{ "catalogs": [{ "assetName", "musicianType", "entries": [{ "cardId", "flags", "starterCopies", "unlockId" }, ...] }] }`
+- View 4: same shape as View 3, with `"musicianType": "<generic>"`.
+
+After save, the file is auto-revealed in the OS file browser via `EditorUtility.RevealInFinder`.
+
+### 8.5 Asset discovery
+
+Uses `AssetDatabase.FindAssets("t:{TypeName}")` for all four asset types, then `AssetDatabase.LoadAssetAtPath<T>` per result. No caching — discovery runs every render frame. This is acceptable because the tool is editor-only and the asset counts are small (low tens to low hundreds of assets project-wide).
+
+### 8.6 Boundary note
+
+This tool is a **viewer**, not an authoring surface. It does not own any asset semantics. The Card Editor (§4) remains the authority for `MusicianCardCatalogData` editing; the Deck Editor (§5) remains the authority for `BandDeckData` editing; standard Unity Inspector handles `GenericCardCatalogSO` editing (or future tooling promotes it).
+
+---
+
+## 9. Card asset factory (`CardAssetFactory`)
 
 **File:** `Assets/Scripts/Cards/Editor/CardAssetFactory.cs`
 **Namespace:** `ALWTTT.Cards.Editor`
@@ -229,7 +347,7 @@ Static utility class that separates card asset creation logic from the editor wi
 
 ---
 
-## 9. Musician catalog service (`MusicianCatalogService`)
+## 10. Musician catalog service (`MusicianCatalogService`)
 
 **File:** `Assets/Scripts/Cards/Editor/MusicianCatalogService.cs`
 **Namespace:** `ALWTTT.Cards.Editor`
@@ -241,9 +359,11 @@ Static editor-only helpers for safe catalog mutation.
 
 **Used by:** `CardEditorWindow` (add existing card, create wizard post-creation).
 
+The Card Editor's per-row Starter / Copies columns (§4.6) do not call into this service because they mutate existing entries rather than adding new ones; they go through `SerializedObject` + `ApplyModifiedProperties` directly, which provides equivalent Undo and dirty-flag guarantees.
+
 ---
 
-## 10. Composition card classifier (`CompositionCardClassifier`)
+## 11. Composition card classifier (`CompositionCardClassifier`)
 
 **File:** `Assets/Scripts/Cards/Composition/CompositionCardClassifier.cs`
 **Namespace:** `ALWTTT.Cards`
@@ -258,15 +378,15 @@ Checks are based on concrete effect subclass types (`TempoEffect`, `MeterEffect`
 
 ---
 
-## 11. Composition descriptors
+## 12. Composition descriptors
 
-### 11.1 `PartActionDescriptor`
+### 12.1 `PartActionDescriptor`
 
 **File:** `Assets/Scripts/Cards/Composition/PartActionDescriptor.cs`
 
 Serializable descriptor for structural part actions: `PartActionKind` (CreatePart, MarkIntro, MarkBridge, MarkSolo, MarkOutro, MarkFinal), optional custom label, optional musician id for solos.
 
-### 11.2 `TrackActionDescriptor`
+### 12.2 `TrackActionDescriptor`
 
 **File:** `Assets/Scripts/Cards/Composition/TrackActionDescriptor.cs`
 
@@ -276,7 +396,7 @@ Both are authored as fields on `CompositionCardPayload` and edited via the Card 
 
 ---
 
-## 12. File location summary
+## 13. File location summary
 
 All editor tool source files:
 
@@ -284,6 +404,7 @@ All editor tool source files:
 Assets/Scripts/Cards/Editor/
   CardEditorWindow.cs              (partial)
   CardEditorWindow.JsonImport.cs   (partial)
+  CardInventoryWindow.cs           (batch (3), 2026-05-03)
   CardAssetFactory.cs
   MusicianCatalogService.cs
   DeckEditorWindow.cs
@@ -305,37 +426,39 @@ Assets/Scripts/Status/Editor/
 
 ---
 
-## 13. Known gaps and limitations
+## 14. Known gaps and limitations
 
-### 13.1 Deck Editor polish (M1.1)
+### 14.1 Status Icons pipeline disconnected (M1.2 — RESOLVED 2026-04-14)
 
-- Catalogue filters are basic: action/composition toggle + text search only. No filtering by musician, effect type, rarity, or acquisition flags.
-- Staged card list shows card name only — no effect summary, cost, or kind badge.
-- No cross-tool integration: cannot Open in Card Editor or Ping Card in Project from the staged list.
+`StatusIconsData` legacy lookup retired; sprite authority now lives on `StatusEffectSO.IconSprite`. See `SSoT_Status_Effects.md §3.3`.
 
-### 13.2 Status Icons pipeline disconnected (M1.2)
+### 14.2 Tooltip pipeline limited (M1.3a/b/c — RESOLVED 2026-04-23)
 
-`StatusIconsData` and `StatusIconData` (in `Assets/Scripts/Data/UI/StatusIconsData.cs`) are keyed on the legacy `StatusType` enum. None of the six Combat MVP statuses (`flow`, `composure`, `exposed`, `feedback`, `choke`, `shaken`) exist in that enum. The icon pipeline is currently completely disconnected from all working status effects. Migration to SO-based keying is required.
+Card-effect text builder, hover tooltips with stacked keywords + statuses, right-click detail modal all shipped under M1.3 decomposition. Composition card face minimal display remains by design (covered by detail modal §10.3 in `SSoT_Card_System.md`).
 
-### 13.3 Tooltip pipeline limited (M1.3)
-
-Card tooltips use `CardDefinition.Keywords` → `TooltipManager.SpecialKeywordData` lookup only. No connection to card effects, status effect descriptions, or composition card modifiers.
-
-### 13.4 ChordProgressionCatalogueWizard namespace
+### 14.3 ChordProgressionCatalogueWizard namespace
 
 The class is in the global namespace. Should be moved to `ALWTTT.Cards.Editor` or a dedicated namespace for consistency.
 
-### 13.5 True card copies in decks
+### 14.4 No Dev Mode gig scene (M1.5)
 
-The current deck contract is unique-card-list only. True copy semantics (`BandDeckEntry { card, copies }`) are not implemented in either the editor or runtime. This is a known future evolution, not a current bug.
+No sandbox scene exists for runtime card/status/composition testing. M1.5 Phase 1–3 shipped Dev Mode overlay capabilities; the standalone sandbox scene remains a separate item.
 
-### 13.6 No Dev Mode gig scene (M1.5)
+### 14.5 Inventory viewer two-prefab arrangement (logged 2026-05-02 from UI-fix-A; appendix to batch (3) deferred 2026-05-03)
 
-No sandbox scene exists for runtime card/status/composition testing. All testing currently requires configuring a full gig encounter.
+`CardUI : CardBase {}` is an empty subclass formalizing a two-prefab arrangement (gameplay card prefab + `CardUI.prefab` for the inventory canvas). Every `[SerializeField]` field added to `CardBase` going forward must be wired on both prefabs or the inventory side will NRE on `CardBase.SetCard`. Cleanup options logged in `CURRENT_STATE.md §4`: (α) collapse to a single prefab with view-only mode, (β) `CardUI.prefab` as Prefab Variant. A "Validate `CardBase` prefab variants" Card Editor action — which would reflect over `[SerializeField]` fields and report unwired refs at authoring time — was considered as a candidate appendix to batch (3) and deferred. Logged here as a candidate authoring-tool addition for a future QoL pass.
+
+### 14.6 Card Editor inline effects-block UI on legacy catalogue alias (logged 2026-05-01)
+
+`CardEditorWindow.cs` `DrawEffectsBlock` calls receive `_registries?.StatusCatalogue` — the legacy alias that exposes only the musicians catalogue. Audience-side statuses (e.g. `earworm`) are not visible in the inline effect-row dropdown for direct card editing. Affects authoring UX, not import resolution. No timeline; track until it bites.
+
+### 14.7 True card copies in decks — RESOLVED (M4.4, 2026-04-29)
+
+`BandDeckData` is now a multiset; the Deck Editor edits `count` per staged entry. See `SSoT_Card_System.md §13` and `SSoT_Card_Authoring_Contracts.md §5.10`.
 
 ---
 
-## 14. Cross-references
+## 15. Cross-references
 
 | Topic | Governed home |
 |---|---|

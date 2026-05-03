@@ -49,6 +49,11 @@ namespace ALWTTT.Cards.Editor
         public string cardId;       // matches CardDefinition.Id
         public string assetPath;    // fallback: explicit AssetDatabase path
 
+        // --- Multiplicity (M4.4) ---
+        // Number of copies of this card in the deck. Default 1.
+        // Honored by both "reference existing" and "create new" modes.
+        public int count = 1;
+
         // --- Create new card (all fields below ignored if kind is empty) ---
         public string kind;         // "Action" or "Composition" — discriminator
         public string id;
@@ -58,16 +63,16 @@ namespace ALWTTT.Cards.Editor
         public string cardType;
         public string rarity;
         public string audioType;
-        public int    inspirationCost      = 1;
-        public int    inspirationGenerated = 0;
-        public bool   exhaustAfterPlay;
-        public bool   overrideRequiresTargetSelection;
-        public bool   requiresTargetSelectionOverrideValue;
+        public int inspirationCost = 1;
+        public int inspirationGenerated = 0;
+        public bool exhaustAfterPlay;
+        public bool overrideRequiresTargetSelection;
+        public bool requiresTargetSelectionOverrideValue;
         public string cardSpritePath;
 
-        public DeckEffectJson[]      effects;
-        public DeckActionJson        action;
-        public DeckCompositionJson   composition;
+        public DeckEffectJson[] effects;
+        public DeckActionJson action;
+        public DeckCompositionJson composition;
     }
 
     // -------------------------------------------------------------------------
@@ -84,10 +89,10 @@ namespace ALWTTT.Cards.Editor
 
         // ApplyStatusEffect
         public string statusKey;
-        public int    effectId   = -1;
+        public int effectId = -1;
         public string targetType;
-        public int    stacksDelta = 1;
-        public float  delay       = 0f;
+        public int stacksDelta = 1;
+        public float delay = 0f;
 
         // ModifyVibe / ModifyStress
         public int amount = 1;
@@ -105,10 +110,10 @@ namespace ALWTTT.Cards.Editor
     [Serializable]
     internal class DeckCompositionJson
     {
-        public string              primaryKind;
+        public string primaryKind;
         public DeckTrackActionJson trackAction;
-        public DeckPartActionJson  partAction;
-        public string[]            modifierEffects;
+        public DeckPartActionJson partAction;
+        public string[] modifierEffects;
     }
 
     [Serializable]
@@ -136,6 +141,11 @@ namespace ALWTTT.Cards.Editor
     ///   - Existing: <see cref="existingCard"/> is non-null (serialized, survives domain reload).
     ///   - New/Pending: <see cref="pendingCard"/> and <see cref="pendingPayload"/> are non-null
     ///     (in-memory ScriptableObjects, NOT serialized — lost on domain reload).
+    ///
+    /// M4.4: <see cref="count"/> represents how many copies of this card the
+    /// deck contains. The Deck Editor edits it via inline +/- controls.
+    /// On save, one BandDeckEntry is written per StagedCardEntry with this
+    /// count. Default 1.
     /// </summary>
     [Serializable]
     internal class StagedCardEntry
@@ -143,29 +153,33 @@ namespace ALWTTT.Cards.Editor
         // Survives domain reload (it is a project asset reference).
         [SerializeField] public CardDefinition existingCard;
 
+        // M4.4: copies of this card in the deck. Default 1.
+        [SerializeField] public int count = 1;
+
         // In-memory only. HideFlags.DontSaveInEditor on both objects.
         // Lost if Unity reloads scripts. The window warns about this.
-        [NonSerialized] public CardDefinition  pendingCard;
-        [NonSerialized] public CardPayload     pendingPayload;
+        [NonSerialized] public CardDefinition pendingCard;
+        [NonSerialized] public CardPayload pendingPayload;
         [NonSerialized] public DeckCardEntryJson pendingDto; // original dto for export roundtrip
 
-        public bool IsNew      => existingCard == null && pendingCard != null;
+        public bool IsNew => existingCard == null && pendingCard != null;
         public bool IsExisting => existingCard != null;
-        public bool IsValid    => IsNew || IsExisting;
+        public bool IsValid => IsNew || IsExisting;
 
         public CardDefinition ResolvedCard =>
             existingCard != null ? existingCard : pendingCard;
 
         public static StagedCardEntry FromExisting(CardDefinition card)
-            => new StagedCardEntry { existingCard = card };
+            => new StagedCardEntry { existingCard = card, count = 1 };
 
         public static StagedCardEntry FromPending(
             CardDefinition staged, CardPayload payload, DeckCardEntryJson dto)
             => new StagedCardEntry
             {
-                pendingCard    = staged,
+                pendingCard = staged,
                 pendingPayload = payload,
-                pendingDto     = dto
+                pendingDto = dto,
+                count = dto != null ? Math.Max(1, dto.count) : 1,
             };
     }
 
@@ -176,13 +190,13 @@ namespace ALWTTT.Cards.Editor
     [Serializable]
     internal class StagedDeck
     {
-        public string deckId       = "";
-        public string displayName  = "";
-        public string description  = "";
+        public string deckId = "";
+        public string displayName = "";
+        public string description = "";
         public List<StagedCardEntry> cards = new();
 
-        [NonSerialized] public bool          isDirty;
-        [NonSerialized] public BandDeckData  sourceAsset;
+        [NonSerialized] public bool isDirty;
+        [NonSerialized] public BandDeckData sourceAsset;
 
         public bool HasPendingNewCards
         {
@@ -204,11 +218,11 @@ namespace ALWTTT.Cards.Editor
     internal sealed class ImportResult
     {
         public ImportResultStatus Status;
-        public StagedDeck         StagedDeck;
-        public List<string>       Errors   = new();
-        public List<string>       Warnings = new();
+        public StagedDeck StagedDeck;
+        public List<string> Errors = new();
+        public List<string> Warnings = new();
 
-        public bool HasErrors   => Errors?.Count   > 0;
+        public bool HasErrors => Errors?.Count > 0;
         public bool HasWarnings => Warnings?.Count > 0;
     }
 
@@ -217,11 +231,11 @@ namespace ALWTTT.Cards.Editor
     internal sealed class ValidationResult
     {
         public ValidationResultStatus Status;
-        public List<string> Errors   = new();
+        public List<string> Errors = new();
         public List<string> Warnings = new();
 
-        public bool IsValid     => Status == ValidationResultStatus.Valid;
-        public bool HasErrors   => Errors?.Count   > 0;
+        public bool IsValid => Status == ValidationResultStatus.Valid;
+        public bool HasErrors => Errors?.Count > 0;
         public bool HasWarnings => Warnings?.Count > 0;
     }
 
@@ -230,9 +244,9 @@ namespace ALWTTT.Cards.Editor
     internal sealed class SaveResult
     {
         public SaveResultStatus Status;
-        public BandDeckData     SavedAsset;
-        public string           Error;
-        public bool             Succeeded => Status == SaveResultStatus.Saved;
+        public BandDeckData SavedAsset;
+        public string Error;
+        public bool Succeeded => Status == SaveResultStatus.Saved;
     }
 }
 #endif

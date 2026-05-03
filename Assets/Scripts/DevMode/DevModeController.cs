@@ -181,6 +181,16 @@ namespace ALWTTT.DevMode
                     int handPile = DeckManager.Instance?.HandPile?.Count ?? -1;
                     GUILayout.Label($"Hand: {handCount}  HandPile: {handPile}  Draw: {drawPile}  Discard: {discardPile}");
                     GUILayout.Label($"Phase: {gm.CurrentGigPhase}");
+
+                    // M4.5 — last-turn guarantee summary. Always visible (cheap one-liner),
+                    // not gated by _verboseLogs since it is a single line.
+                    var dm = DeckManager.Instance;
+                    if (dm != null)
+                    {
+                        var m45 = dm.LastTurnGuaranteeSummary;
+                        if (!string.IsNullOrEmpty(m45))
+                            GUILayout.Label($"M4.5 last draw: {m45}");
+                    }
                 }
             }
         }

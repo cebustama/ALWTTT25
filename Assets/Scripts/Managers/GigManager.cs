@@ -23,6 +23,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static ALWTTT.Managers.GigRunContext;
+using UnityEngine.Serialization;
+
 
 #if ALWTTT_DEV
 using ALWTTT.DevMode;
@@ -59,23 +61,26 @@ namespace ALWTTT.Managers
         [SerializeField] private float songHypeDeltaMultiplier = 1f;
 
         [Header("Flow / Composure (MVP)")]
-        [SerializeField, Tooltip("(Legacy) Each Flow stack increases loop→SongHype delta by (1 + stacks * this).")]
-        private float flowSongHypeMultiplierPerStack = 0.10f;
+        [Header("Flow → Vibe (Bifurcated MVP)")]
+        [SerializeField, Tooltip("Action cards: each Flow stack adds this flat Vibe bonus to positive Vibe gains.")]
+        [FormerlySerializedAs("flowVibeFlatBonusPerStack")]
+        private int flowActionVibeBonusPerStack = 1;
 
-        [SerializeField, Tooltip("(Legacy) If enabled, Flow stacks multiply loop→SongHype delta. Disable if using Strength-like Flow→Vibe.")]
-        private bool flowAffectsSongHype = false;
+        [SerializeField, Tooltip("If enabled, Action cards get flat Flow→Vibe bonus (original MVP path).")]
+        [FormerlySerializedAs("flowAddsFlatVibeBonus")]
+        private bool flowActionFlatBonus = true;
 
-        [SerializeField] private bool debugFlowSongHype = false;
+        [SerializeField, Tooltip("Composition cards + Song End: Vibe multiplier per Flow stack. " +
+            "finalVibe = base × (1 + flowStacks × this).")]
+        private float flowVibeMultiplier = 0.08f;
 
-        [Header("Flow → Vibe (Strength-like MVP)")]
-        [SerializeField, Tooltip("If enabled, each Flow stack adds a flat Vibe bonus to *any* positive Vibe gain (cards + song resolution).")]
-        private bool flowAddsFlatVibeBonus = true;
+        public bool FlowActionFlatBonus => flowActionFlatBonus;
+        public int FlowActionVibeBonusPerStack => flowActionVibeBonusPerStack;
+        public float FlowVibeMultiplier => flowVibeMultiplier;
 
-        [SerializeField, Tooltip("Flat Vibe bonus per Flow stack (applied when flowAddsFlatVibeBonus is enabled).")]
-        private int flowVibeFlatBonusPerStack = 1;
-
-        public bool FlowAddsFlatVibeBonus => flowAddsFlatVibeBonus;
-        public int FlowVibeFlatBonusPerStack => flowVibeFlatBonusPerStack;
+        [Header("Loop Scoring")]
+        [SerializeField] private LoopScoringConfig loopScoringConfig = LoopScoringConfig.Default;
+        [SerializeField] private HypeThresholds hypeThresholds = HypeThresholds.Default;
 
         [Header("Breakdown")]
         [SerializeField, Range(0f, 1f)] private float breakdownStressResetFraction = 0.5f;
@@ -375,6 +380,7 @@ namespace ALWTTT.Managers
 
             // Deck + hand binding
             SetupDeck();
+            InitLoopScoringConfig();
 
             // MVP: initial planning window is open.
             _actionWindowOpen = true;
@@ -447,7 +453,7 @@ namespace ALWTTT.Managers
                         GigRunContext.Instance.TryGetBandDeck(out var runDeck) &&
                         runDeck != null)
                     {
-                        AddValid(runDeck.Cards);
+                        AddValid(runDeck.EnumerateCards());
                     }
                     break;
 
@@ -477,7 +483,7 @@ namespace ALWTTT.Managers
                         GigRunContext.Instance.TryGetBandDeck(out var ctxDeck) &&
                         ctxDeck != null)
                     {
-                        AddValid(ctxDeck.Cards);
+                        AddValid(ctxDeck.EnumerateCards());
                     }
 
                     // Fallback: GameplayData initial decks
@@ -842,8 +848,10 @@ namespace ALWTTT.Managers
                     if (!pd.KeepInspirationBetweenTurns)
                         pd.CurrentInspiration = pd.TurnStartingInspiration;
 
-                    // TODO: Special case for first turn (e.g. Deployment Phase in Monster Train 2)
-                    DeckManager.DrawCards(GameManager.PersistentGameplayData.DrawCount);
+                    // M4.5: bidirectional guaranteed draws (subtractive). Total drawn ≤ DrawCount.
+                    // Guarantees ≥1 Composition and ≥1 Action in hand when piles allow.
+                    // See SSoT_Runtime_Flow §4.2 and DeckManager.DrawCardsForPlayerTurn.
+                    DeckManager.DrawCardsForPlayerTurn(GameManager.PersistentGameplayData.DrawCount);
                     GameManager.PersistentGameplayData.CanSelectCards = true;
                     // ---
 
@@ -1002,6 +1010,34 @@ namespace ALWTTT.Managers
                 {
                     UIManager.GigCanvas.ClearSongHype();
                 }
+            }
+
+            // M4.3 (Earworm): apply per-stack Vibe gain to audience members holding Earworm,
+            // BEFORE the AudienceTurnStart tick decays the stacks. Order matters here:
+            // read stacks → apply Vibe → decay (handled by the existing Tick call below).
+            // IsBlocked audiences are skipped per Design_Audience_Status_v1 §3.8 (consistent
+            // with ComputeSongVibeDeltas). Convinced audiences tick harmlessly — AddVibe
+            // clamps at MaxVibe and CheckConvincedThreshold guards re-firing.
+            foreach (var a in CurrentAudienceCharacterList)
+            {
+                if (a == null || a.Stats == null || a.Statuses == null) continue;
+                if (a.IsBlocked) continue;
+
+                if (!a.Statuses.TryGet(CharacterStatusId.DamageOverTime, out var inst)) continue;
+                if (inst == null || inst.Stacks <= 0 || inst.Definition == null) continue;
+
+                // Disambiguate from any future DamageOverTime variant on audience.
+                if (!string.Equals(inst.Definition.StatusKey, "earworm",
+                        System.StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                int beforeVibe = a.Stats.CurrentVibe;
+                a.Stats.AddVibe(inst.Stacks);
+                int afterVibe = a.Stats.CurrentVibe;
+
+                Debug.Log(
+                    $"<color=lime>[Earworm] {a.CharacterId} stacks={inst.Stacks} " +
+                    $"→ +{inst.Stacks} Vibe (Vibe: {beforeVibe}→{afterVibe})</color>");
             }
 
             // Decision B: tick audience statuses at AudienceTurn start
@@ -1450,6 +1486,33 @@ namespace ALWTTT.Managers
             }
         }
 
+        private void InitLoopScoringConfig()
+        {
+            // Total musicians
+            loopScoringConfig.totalMusicians =
+                CurrentMusicianCharacterList?.Count ?? 2;
+
+            // Possible roles: scan composition cards in deck for distinct TrackRoles
+            var possibleRoles = new HashSet<TrackRole>();
+            var deck = GameManager.PersistentGameplayData?.CurrentCompositionCards;
+            if (deck != null)
+            {
+                foreach (var card in deck)
+                {
+                    var comp = card?.CompositionPayload;
+                    if (comp?.TrackAction != null)
+                        possibleRoles.Add(comp.TrackAction.role);
+                }
+            }
+
+            loopScoringConfig.possibleRoleCount =
+                Mathf.Max(1, possibleRoles.Count);
+
+            Debug.Log($"{DebugTag} [Scoring] Init: mode={loopScoringConfig.mode} " +
+                $"possibleRoles={loopScoringConfig.possibleRoleCount} " +
+                $"totalMusicians={loopScoringConfig.totalMusicians}");
+        }
+
         // Called whenever one full loop finishes (including the last loop of the song)
         private void TriggerAudienceMicroReactions(LoopFeedbackContext loopCtx)
         {
@@ -1457,27 +1520,11 @@ namespace ALWTTT.Managers
                 || CurrentAudienceCharacterList.Count == 0)
                 return;
 
-            // Compute loop score and SongHype delta using the pure calculator
-            float loopScore = LoopScoreCalculator.ComputeLoopScore(loopCtx);
-            float baseHypeDelta = LoopScoreCalculator.ComputeHypeDelta(loopScore);
-
-            // Global scalar for testing
+            float loopScore = LoopScoreCalculator.ComputeLoopScore(loopCtx, loopScoringConfig);
+            float baseHypeDelta = LoopScoreCalculator.ComputeHypeDelta(loopScore, hypeThresholds);
             float hypeDelta = baseHypeDelta * songHypeDeltaMultiplier;
 
-            // FLOW (Legacy): optionally allow Flow stacks to multiply loop→SongHype conversion.
-            // Default is OFF when using Strength-like Flow→Vibe.
-            int flowStacks = GetTotalFlowStacks();
-            if (flowAffectsSongHype && flowStacks > 0)
-            {
-                float mult = 1f + (flowStacks * flowSongHypeMultiplierPerStack);
-                hypeDelta *= mult;
-
-                if (debugFlowSongHype)
-                {
-                    Debug.Log($"{DebugTag} [Flow→SongHype] stacks={flowStacks} mult={mult:0.00} baseΔ={baseHypeDelta:0.00} finalΔ={hypeDelta:0.00}");
-                }
-            }
-
+            // Flow → SongHype path RETIRED (M4.2). Removed entirely.
 
             AddSongHype(hypeDelta);
 
@@ -1596,6 +1643,93 @@ namespace ALWTTT.Managers
 
             OnSongHypeChanged01?.Invoke(SongHype01);
         }
+
+#if ALWTTT_DEV
+        /// <summary>Dev Mode: expose max for UI slider bounds. Dev-only.</summary>
+        public float MaxSongHype => maxSongHype;
+
+        /// <summary>
+        /// Dev Mode: set SongHype directly. Bypasses debugSongHype guard (unlike AddSongHype).
+        /// Fires OnSongHypeChanged01 so subscribed UI (hype bar, audience beat intensity) repaints.
+        /// </summary>
+        public void DevSetSongHype(float value)
+        {
+            _songHype = Mathf.Clamp(value, 0f, maxSongHype);
+            UpdateAudienceBeatIntensity();
+            if (songHypeDebugSlider != null)
+                songHypeDebugSlider.SetValueWithoutNotify(_songHype);
+            OnSongHypeChanged01?.Invoke(SongHype01);
+        }
+
+        /// <summary>Dev Mode: set CurrentInspiration, clamped to [0, MaxInspiration].</summary>
+        public void DevSetInspiration(int value)
+        {
+            var pd = GameManager.PersistentGameplayData;
+            if (pd == null) return;
+            pd.CurrentInspiration = Mathf.Clamp(value, 0, pd.MaxInspiration);
+        }
+
+        /// <summary>
+        /// Dev Mode: set BandCohesion. No upper cap. Floor at 0.
+        /// On reaching 0, dispatches LoseGig() per the symmetric-consequences principle
+        /// (SSoT_Dev_Mode §13.2 / §13.3). LoseGig's Infinite-Turns suppression branch applies:
+        /// OFF → triggers the loss panel; ON → logs suppression and continues the gig.
+        /// Mirrors the natural Breakdown → Cohesion−1 → LoseGig path in MusicianBase.OnBreakdown.
+        /// </summary>
+        public void DevSetBandCohesion(int value)
+        {
+            var pd = GameManager.PersistentGameplayData;
+            if (pd == null) return;
+            pd.BandCohesion = Mathf.Max(0, value);
+            if (pd.BandCohesion == 0) LoseGig();
+        }
+
+        /// <summary>
+        /// Dev Mode: expose aggregate Flow stacks for UI readout.
+        /// Sum across all live musicians' DamageUpFlat stacks — identical to the
+        /// private GetTotalFlowStacks path used by scoring.
+        /// </summary>
+        public int TotalFlowStacks => GetTotalFlowStacks();
+
+        /// <summary>
+        /// Dev Mode: apply a Flow stack delta to every live musician's status container.
+        /// Flow is song/band-scoped in gameplay terms (aggregated via GetTotalFlowStacks,
+        /// reset via ResetSongScopedStatuses); editing it gig-wide means applying the
+        /// same delta uniformly to each musician. StatusEffectContainer clamps ≤0 by
+        /// auto-clearing, so negative deltas below 0 are safe.
+        /// Resolves the "flow" SO via the first available StatusCatalogue.
+        /// No-op if no musician has a catalogue assigned or the key is missing.
+        /// </summary>
+        public void DevAddFlowToAllMusicians(int delta)
+        {
+            if (delta == 0) return;
+            if (CurrentMusicianCharacterList == null) return;
+
+            StatusEffectSO flowSO = null;
+            for (int i = 0; i < CurrentMusicianCharacterList.Count; i++)
+            {
+                var m = CurrentMusicianCharacterList[i];
+                if (m == null || m.StatusCatalogue == null) continue;
+                if (m.StatusCatalogue.TryGetByKey("flow", out flowSO) && flowSO != null)
+                    break;
+            }
+            if (flowSO == null) return;
+
+            for (int i = 0; i < CurrentMusicianCharacterList.Count; i++)
+            {
+                var m = CurrentMusicianCharacterList[i];
+                if (m == null || m.Statuses == null) continue;
+
+                // Pre-guard: skip Apply(-N) when stacks==0 to avoid spurious transient
+                // instance creation + immediate clear (fires OnStatusCleared on an
+                // entry that never really existed).
+                if (delta < 0 && m.Statuses.GetStacks(CharacterStatusId.DamageUpFlat) <= 0)
+                    continue;
+
+                m.Statuses.Apply(flowSO, delta);
+            }
+        }
+#endif
 
         private struct AudienceVibeDelta
         {
@@ -2025,29 +2159,36 @@ namespace ALWTTT.Managers
                 if (audience == null) continue;
 
                 int baseDelta = entry.Delta;
+
                 int flowStacks = 0;
-                int flowBonus = 0;
-                if (flowAddsFlatVibeBonus && baseDelta > 0)
+                int finalDelta = baseDelta;
+                if (baseDelta > 0)
                 {
                     flowStacks = GetTotalFlowStacks();
-                    flowBonus = flowStacks * flowVibeFlatBonusPerStack;
+                    if (flowStacks > 0)
+                    {
+                        float mult = 1f + (flowStacks * flowVibeMultiplier);
+                        finalDelta = Mathf.RoundToInt(baseDelta * mult);
+                    }
                 }
 
-                int finalDelta = baseDelta + flowBonus;
-
                 // Floating text
+                float displayMult = flowStacks > 0 ? 1f + (flowStacks * flowVibeMultiplier) : 0f;
                 FxManager.Instance?.SpawnFloatingText(
                     audience.TextSpawnRoot,
-                    flowBonus > 0
-                        ? $"+{finalDelta} Vibe (Flow +{flowBonus})"
+                    flowStacks > 0
+                        ? $"+{finalDelta} Vibe (Flow ×{displayMult:F2})"
                         : $"+{finalDelta} Vibe",
                     0, 1, Color.cyan);
 
                 // 1) apply Vibe
                 audience.AudienceStats.AddVibe(finalDelta, duration: barFillDelay);
 
-                if (useLogs && flowBonus > 0)
-                    Debug.Log($"{DebugTag} [Flow→Vibe] {audience.CharacterId} base=+{baseDelta} flowStacks={flowStacks} perStack={flowVibeFlatBonusPerStack} bonus=+{flowBonus} final=+{finalDelta}");
+                if (useLogs && flowStacks > 0)
+                    Debug.Log($"{DebugTag} [Flow→Vibe:Mult] {audience.CharacterId} " +
+                        $"base=+{baseDelta} flowStacks={flowStacks} mult={displayMult:F2} " +
+                        $"final=+{finalDelta}");
+
                 //Debug.Log($"{audience.CharacterId} filling Vibe in {barFillDelay}[s]");
                 yield return new WaitForSeconds(barFillDelay);
                 //Debug.Log($"{audience.CharacterId} bar filled");

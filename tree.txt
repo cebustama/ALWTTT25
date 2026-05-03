@@ -1987,12 +1987,16 @@
 |   |   |   |       +---test_dev_flow_and_draw_Payload.asset
 |   |   |   |       +---test_draw_cards.asset
 |   |   |   |       +---test_draw_cards_Payload.asset
+|   |   |   |       +---test_kw_001.asset
+|   |   |   |       +---test_kw_001_Payload.asset
 |   |   |   |       +---test_modify_stress_add.asset
 |   |   |   |       +---test_modify_stress_add_Payload.asset
 |   |   |   |       +---test_modify_stress_heal.asset
 |   |   |   |       +---test_modify_stress_heal_Payload.asset
 |   |   |   |       +---test_modify_vibe.asset
-|   |   |   |       \---test_modify_vibe_Payload.asset
+|   |   |   |       +---test_modify_vibe_Payload.asset
+|   |   |   |       +---TestEarworm.asset
+|   |   |   |       \---TestEarworm_Payload.asset
 |   |   |   +---Containers
 |   |   |   |   +---Reward Container.asset
 |   |   |   |   \---Special Keyword.asset
@@ -2055,12 +2059,14 @@
 |   |   |       +---Effects
 |   |   |       |   +---StatusEffect_Choke_DisableActions.asset
 |   |   |       |   +---StatusEffect_Composure_TempShieldTurn.asset
+|   |   |       |   +---StatusEffect_Earworm_DamageOverTime.asset
 |   |   |       |   +---StatusEffect_Exposed_DamageTakenUpFlat.asset
 |   |   |       |   +---StatusEffect_Feedback_DamageOverTime.asset
 |   |   |       |   +---StatusEffect_Flow_DamageUpFlat.asset
 |   |   |       |   \---StatusEffect_Shaken_ShakenRestriction.asset
 |   |   |       +---CharacterStatusPrimitiveDatabase.asset
-|   |   |       \---StatusEffectCatalogue.asset
+|   |   |       +---StatusEffectCatalogue_Audience.asset
+|   |   |       \---StatusEffectCatalogue_Musicians.asset
 |   |   +---ScriptableObjects
 |   |   |   +---Chord Progressions
 |   |   |   |   +---Major
@@ -2320,6 +2326,7 @@
 |   |   |   +---Cards
 |   |   |   |   +---Configs
 |   |   |   |   |   +---BandDeckData.cs
+|   |   |   |   |   +---BandDeckEntry.cs
 |   |   |   |   |   +---CardData.cs
 |   |   |   |   |   +---CardRewardData.cs
 |   |   |   |   |   +---CardTypeData.cs
@@ -2368,7 +2375,8 @@
 |   |   |   \---ALWTTTProjectRegistriesSO.cs
 |   |   +---DevMode
 |   |   |   +---DevCardCatalogueTab.cs
-|   |   |   \---DevModeController.cs
+|   |   |   +---DevModeController.cs
+|   |   |   \---DevStatsTab.cs
 |   |   +---Encounters
 |   |   |   +---EncounterBase.cs
 |   |   |   \---GigEncounter.cs
@@ -2495,6 +2503,7 @@
 |   |   |   |   +---TooltipManager.cs
 |   |   |   |   \---TooltipText.cs
 |   |   |   +---BeatPulseIndicator.cs
+|   |   |   +---CardDetailViewController.cs
 |   |   |   +---CardUI.cs
 |   |   |   +---ChoicePanel.cs
 |   |   |   +---ConflictPanelUI.cs
@@ -2609,6 +2618,9 @@
 |   |   |   \---Roadmap_Combat_MVP_Closure_Actionable.md
 |   |   +---music
 |   |   |   \---ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md
+|   |   +---Design_Pending_Effects_v1.md
+|   |   +---Design_Tempo_Identity_v1.md
+|   |   +---MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md
 |   |   \---README.md
 |   +---reference
 |   |   +---CSO_Primitives_Catalog.md

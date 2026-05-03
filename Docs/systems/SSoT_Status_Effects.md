@@ -149,9 +149,9 @@ The `StatusCatalogue` field on `CharacterBase` is Inspector-assigned and optiona
 **Key:** `"flow"`  
 **Scope:** Song / Band  
 **Tick timing:** Not tick-decayed per turn. Resets at song end via explicit `GigManager` song-end reset.  
-**Combat meaning:** amplifies positive Loop → SongHype conversion multiplicatively. Each stack adds `FlowMultiplier` to the multiplier.  
+**Combat meaning (M4.2, 2026-04-28):** amplifies positive Vibe gains, bifurcated by card domain. Action cards: flat bonus using the performer's individual Flow stacks (`finalΔ = baseΔ + performerFlow × bonusPerStack`). Composition cards + Song End: multiplier using band-wide Flow stacks (`finalΔ = round(baseΔ × (1 + bandFlow × flowVibeMultiplier))`). The previously-documented Flow → SongHype multiplicative path has been retired and removed from code.  
 **Applies to:** musicians  
-**Validated:** ✅ B3 (Flow stacks boost Vibe per card play), B7 (song-end reset)
+**Validated:** ✅ B3 (Flow→Vibe per card play), B7 (song-end reset), ST-M42-1/1c (Action flat + per-performer), ST-M42-3 (Song End multiplier), ST-M42-10 (tuneable thresholds)
 
 ### 5.2 Composure
 **Primitive:** `TempShieldTurn` (`CharacterStatusId = 400`)  
@@ -205,6 +205,30 @@ If future encounter design requires extending stun via additional Choke stacks, 
 **Poison-like semantics:** damage is applied during the audience turn using the current stack count; decay occurs at the start of the following player turn, so the first audience turn after application deals full-stack damage before any decay. Total damage over the full decay of N initial stacks is `N(N+1)/2` — e.g. 3 stacks → 3 + 2 + 1 = **6 total damage** over 3 audience turns.  
 **Applies to:** musicians only in current implementation. Audience Feedback DoT requires a Stress path on `AudienceCharacterBase`, which does not exist. Explicitly deferred.  
 **Validation history:** Phase 2 test T8 (2026-04-17) observed stacks persisting turn-to-turn with no decay. Root cause identified 2026-04-20: the Feedback SO had `TickTiming = EndOfTurn` configured, which is declared in the enum but not invoked by the runtime phase machine (only `PlayerTurnStart` and `AudienceTurnStart` are wired — see §3.1). Fixed by changing Tick Timing to `PlayerTurnStart`. Post-fix smoke test validated the `N(N+1)/2` damage curve and icon clear-on-zero.
+
+### 5.7 Earworm
+**Primitive:** `DamageOverTime`  
+**Key:** `"earworm"`  
+**Scope:** single Audience member  
+**Tick timing:** `AudienceTurnStart`  
+**SO config:** `StackMode = Additive`, `DecayMode = LinearStacks`, `MaxStacks = 99`, `IsBuff = false`, `ValueType = Flat`  
+**Combat meaning:** at each `AudienceTurnStart`, the affected audience member gains `+N Vibe` where `N` is the current stack count, **then** the container's `Tick(AudienceTurnStart)` decays stacks by 1. The runtime ordering — read-then-decay within the same method — is enforced by `GigManager.AudienceTurnRoutine`: the Earworm read-and-apply loop runs *before* the audience `Tick(AudienceTurnStart)` loop. Inverting that ordering would undercount Vibe by 1 stack.
+
+**Poison-like semantics on the Vibe path:** Vibe is gained using the current stack count before decay. Total Vibe gain over the full decay of N initial stacks is `N(N+1)/2`. Example: Earworm `+3` → audience gains `+3`, `+2`, `+1` on three successive audience turns, total `+6` Vibe.
+
+**Applies to:** audience members only. `StatusEffectCatalogue_Musicians` does not contain Earworm; the runtime hook iterates `CurrentAudienceCharacterList` only. Authoring a card that targets musicians with Earworm is silently a no-op at runtime.
+
+**Interaction with Flow:** none. Earworm ticks call `AddVibe(stacks)` directly and do not pass through the `ModifyVibeSpec` Flow-bifurcation pipeline. This parallels the musician-side Feedback DoT, which also bypasses Stress modifiers on its tick path. Validated against ST-M43-7.
+
+**Interaction with `IsBlocked`:** Blocked audiences are skipped for Vibe gain (consistent with `ComputeSongVibeDeltas`). Stack decay continues normally on the same audience turn.
+
+**Interaction with `IsConvinced`:** ticks are harmless. `AddVibe` clamps at `MaxVibe`; `CheckConvincedThreshold`'s `!IsConvinced` guard prevents `OnConvinced` re-firing. The icon may linger on a Convinced audience until natural expiry — known cosmetic, deferred to UI polish.
+
+**Variant relationship with Feedback:** Earworm and Feedback share the `DamageOverTime` primitive but live in separate catalogues post-MB2. Both are marked `IsDefaultVariant = true` in their respective catalogues. The runtime hook in `GigManager.AudienceTurnRoutine` disambiguates by `StatusKey == "earworm"` for defensive isolation against future audience-side `DamageOverTime` variants.
+
+**Validation history:** ST-M43-1a/1b/2/3/4/5/6/7/8 all PASS 2026-04-28 (M4.3 closure). Initial implementation shipped with a copy-paste duplicate `Tick(AudienceTurnStart)` block in `AudienceTurnRoutine` producing -2/turn decay; caught by stack-count observation in ST-M43-2/3; resolved by deletion of the duplicate block before closure.
+
+**Applied by:** Mind Tap (M4.6 — pending). `Assets/Resources/Data/Characters/Musicians/{Musician}_Cards/TestEarworm.asset` retained as a dev-only regression card (`[TEST]` prefix on DisplayName, `inspirationCost: 0`, `actionTiming: Always`).
 
 ---
 

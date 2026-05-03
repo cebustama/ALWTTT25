@@ -70,6 +70,16 @@ namespace ALWTTT.Characters.Audience
         public void AddVibe(int amount, float duration = 2f)
         {
             SetCurrentVibe(CurrentVibe + amount, duration);
+            CheckConvincedThreshold();
+        }
+
+        /// <summary>
+        /// Shared Convinced-threshold check. Called from every path that sets
+        /// CurrentVibe (play: AddVibe; dev: DevSetCurrentVibe/DevSetMaxVibe).
+        /// Preserves the !IsConvinced guard — Convinced is a sticky state transition.
+        /// </summary>
+        private void CheckConvincedThreshold()
+        {
             if (CurrentVibe >= MaxVibe && !IsConvinced)
             {
                 IsConvinced = true;
@@ -85,7 +95,7 @@ namespace ALWTTT.Characters.Audience
         {
             SetCurrentVibe(CurrentVibe - amount, duration);
         }
-        
+
         public void ApplyStatus(StatusType targetStatus, int value)
         {
             if (statusDict[targetStatus].IsActive)
@@ -128,14 +138,41 @@ namespace ALWTTT.Characters.Audience
 
 #if ALWTTT_DEV
         /// <summary>
-        /// Dev Mode only. Resets this audience member from Convinced state:
-        /// Vibe → 0, IsConvinced → false, clears Convinced legacy status.
+        /// Resets IsConvinced and clears the Convinced status entry so a subsequent
+        /// AddVibe reaching MaxVibe re-triggers the full Convinced path. Used by
+        /// Infinite-Turns mode (DevModeController.ResetConvincedAudience).
+        /// Does NOT restore Tall — that state is not recoverable here; apply via
+        /// status picker if needed.
         /// </summary>
         public void DevResetConvinced()
         {
             IsConvinced = false;
-            SetCurrentVibe(0);
             ClearStatus(StatusType.Convinced);
+        }
+
+        /// <summary>
+        /// Dev Mode: Set Vibe directly to a clamped target value. Fires Convinced
+        /// if the target reaches MaxVibe and audience is not yet convinced.
+        /// Skips animation (duration=0f) for instant dev-UI feedback.
+        /// Symmetric-consequences per SSoT_Dev_Mode §13.3.
+        /// </summary>
+        public void DevSetCurrentVibe(int target)
+        {
+            SetCurrentVibe(target, duration: 0.1f);
+            CheckConvincedThreshold();
+        }
+
+        /// <summary>
+        /// Dev Mode: Set MaxVibe to a new value (floor 1). If CurrentVibe
+        /// exceeds the new max, Current is clamped down. Re-checks Convinced
+        /// threshold — reducing MaxVibe to current's value triggers Convinced.
+        /// </summary>
+        public void DevSetMaxVibe(int newMax)
+        {
+            MaxVibe = Mathf.Max(1, newMax);
+            // SetCurrentVibe clamps internally AND refreshes canvas.
+            SetCurrentVibe(CurrentVibe, duration: 0.1f);
+            CheckConvincedThreshold();
         }
 #endif
 

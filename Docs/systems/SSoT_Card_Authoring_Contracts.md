@@ -193,7 +193,7 @@ Multiple cards can be imported in a single JSON payload using a batch wrapper:
 
 **`EntryJson` fields:**
 - `flags` — comma-separated `CardAcquisitionFlags` names (e.g. `"StarterDeck,UnlockedByDefault"`). Synonyms: `"Reward"` / `"Rewards"` → `"RewardPool"`.
-- `starterCopies` — integer, default 1. Only meaningful when `StarterDeck` flag is set.
+- `starterCopies` — integer, default 1. Only meaningful when `StarterDeck` flag is set. Authoring-only metadata at M4.4; runtime consumption is scheduled for M4.6 when catalogue → starter-deck auto-assembly is implemented (at that point, `starterCopies` becomes the source of `BandDeckEntry.count` per card).
 - `unlockId` — string. Required when `UnlockedByDefault` is not set.
 
 **Merge rule:** Unity's `JsonUtility` default-constructs class fields even when absent from JSON. The importer uses `flags` as the discriminator: if a card's `entry.flags` is null or whitespace, the entry is treated as absent and the batch `defaultEntry` is used instead.
@@ -206,6 +206,47 @@ The JSON importer emits non-blocking `Debug.LogWarning` messages when `exhaustAf
 - `"Exhaust"` in `keywords` without `exhaustAfterPlay: true` → warning: tooltip says Exhaust but card won't exhaust.
 
 These warnings do not block import. They flag an authoring gap that will be resolved when keywords drive runtime behavior directly (see `SSoT_Card_System.md` §3.3.3).
+
+### 5.9 — Audience-side status authoring (M4.3)
+
+`ApplyStatusEffect` JSON resolution probes both catalogues on `ALWTTTProjectRegistriesSO` (musicians-first, then audience) via `TryGetStatusEffectByKey` / `TryGetStatusEffectByPrimitive`. Authoring a card that applies an audience-side status (e.g. `statusKey: "earworm"`) requires both `StatusCatalogueMusicians` and `StatusCatalogueAudience` fields populated on the registries asset. The Card Editor toolbar surfaces a warning enumerating any missing field. Single-catalogue setups will report a key-not-found error at import time.
+
+The Card Editor and Deck Editor JSON import paths apply this contract uniformly. Both `CardEditorWindow_JsonImport.ApplyEffectsJson` and `DeckCardCreationService.ApplyEffectsJson` consume `ALWTTTProjectRegistriesSO` directly and use the same registries-helper resolution (M4.6-prep-A, closed 2026-05-01).
+
+### 5.10 — Deck-level multiplicity (M4.4)
+
+Deck JSON entries support a per-entry `count` field, integer, default 1. The field applies to both "reference existing" entries (`{ "cardId": "...", "count": 3 }`) and "create new" entries (`{ "kind": "Action", "id": "...", "count": 2, ... }`).
+
+**Duplicate `cardId` references are combined additively** with a non-blocking warning: `"Duplicate cardId 'X' was combined into a single entry (now ×N). Consider authoring 'count' explicitly."` Two `{ "cardId": "x" }` entries (or one `count: 2` plus one bare entry) collapse into a single staged entry with summed count.
+
+**Duplicate `kind`-bearing ids remain a hard error.** Two `{ "kind": "Action", "id": "foo", ... }` entries in the same deck JSON are conflicting definitions, not copies, and import fails. The pendingCard / pendingPayload of the rejected duplicate is destroyed before the failure to avoid in-memory leaks.
+
+**Round-trip:** Export emits `count` on every entry. Import respects it. A deck authored as `×3 Steady Beat` round-trips through Deck Editor → asset → JSON export → JSON re-import → asset with the count preserved.
+
+Runtime semantics live in `SSoT_Card_System.md §13`.
+
+### 5.11 — Per-musician starter deck auto-assembly (M4.6-prep batch (2))
+
+Auto-assembly is the runtime path that builds the gig deck from each musician's `MusicianCardCatalogData` plus an optional `GenericCardCatalogSO`, as an alternative to the legacy `BandDeckData` asset path.
+
+**Selection rule (per-musician).** For each musician in `pd.MusicianList`, read `MusicianCharacterData.CardCatalog`. For each `MusicianCardEntry`: if `entry.IsStarter` (i.e. `flags & StarterDeck != 0`) AND `entry.card != null` AND `entry.starterCopies >= 1`, contribute `entry.starterCopies` independent references to the appropriate domain pile (Action vs Composition, derived from `entry.card.IsAction` / `entry.card.IsComposition`).
+
+**Selection rule (generic).** If `GigSetupConfigData.GenericStarterCatalog != null`, apply the same selection rule to each `MusicianCardEntry` in `GenericCardCatalogSO.Entries`. Entry shape is identical (`MusicianCardEntry` is reused, not duplicated).
+
+**`starterCopies` semantics.** Editor-time clamps: `MusicianCatalogService.TryAddEntry` applies `Mathf.Max(1, starterCopies)`; `MusicianCardEntry.starterCopies` carries `[Min(1)]`. Runtime defensive: `starterCopies <= 0` AND starter-flagged entries are warn-skipped (logged as `skippedZeroCopies`), not silently coerced. Authoring should always produce `starterCopies >= 1`.
+
+**Provenance contract.**
+- Per-musician contributions populate `PersistentGameplayData.musicianGrantedActionCards` / `musicianGrantedCompositionCards` keyed by `MusicianCharacterData.CharacterId`. `RemoveMusicianFromBand(id)` strips them when the musician departs.
+- Generic-catalogue contributions do NOT populate provenance. They are not "from" any specific musician, so they survive `RemoveMusicianFromBand` correctly.
+- **Subtle case:** when the same `CardDefinition` lives in both a per-musician catalog AND the generic catalog, removal strips the per-musician copy and leaves the generic copy. Provenance follows the contribution path, not card identity. This is the intended contract.
+
+**Deck reset semantics.** `SetBandDeckFromMusicians` mirrors `SetBandDeck(BandDeckData)`: clears `currentActionCards`/`currentCompositionCards`, resets both granted-cards inventories, sets `isRandomDeck = false`. Empty roster is warn-and-continue (logs an empty-roster warning, leaves piles empty).
+
+**`MusicianCharacterData.BaseActionCards` / `BaseCompositionCards`.** These remain on the type as transitional helpers; both flatten `CardCatalog` entries via the same `IsStarter` filter and `starterCopies` expansion. `CardCatalog` is the single source of truth — there is no parallel system. `AddMusicianToBand(MusicianCharacterData)` (sector-map flow, `GrantCardsToMusician`) consumes the helpers; `SetBandDeckFromMusicians` (Gig Setup flow) reads the catalogue directly. Both paths produce identical card sets.
+
+**Toggle and selection.** `GigSetupConfigData.AvailableBandDecks` (legacy `BandDeckData` asset list) is demoted to a dev/test fallback. `GigRunContext.RunConfig.useMusicianStarters` (set from `GigSetupController.useMusicianStartersToggle`, default ON) selects between auto-assembly and the legacy path inside `PersistentGameplayData.ApplyRunConfig`. Both paths must produce a well-formed deck; emptiness is checked separately via `GigSetupController.OnStartPressed`'s pre-flight roster guard (auto-assembly path only).
+
+Deck-label logging: `RunConfig.deckLabel` carries either `bandDeck.name` (legacy) or `<auto:idA+idB+...>` (auto). Used in `[GigRunContext] BeginRun`, `[PersistentGameplayData] ApplyRunConfig`, and `[GigSetup] Starting gig` log lines for traceability.
 
 ---
 
@@ -233,6 +274,7 @@ Parse -> Stage in memory -> Review/Edit -> Save -> Add to catalog
 - staged objects are temporary/in-memory
 - nothing writes to disk before Save
 - temporary objects should not persist as accidental assets
+- each staged card slot carries a per-entry `count` (M4.4); count is editable inline via the Deck Editor's `−` / `+` controls and round-trips through the JSON `count` field
 
 ### 7.2 Save invariants
 Save must:

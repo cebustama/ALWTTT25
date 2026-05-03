@@ -30,6 +30,10 @@ namespace ALWTTT.Managers
         private UIManager UIManager => UIManager.Instance;
         #endregion
 
+        // M4.5: last-turn summary surfaced to Dev Mode overlay.
+        private string _lastTurnGuaranteeSummary = "";
+        public string LastTurnGuaranteeSummary => _lastTurnGuaranteeSummary;
+
         private void Awake()
         {
             if (Instance)
@@ -521,6 +525,214 @@ namespace ALWTTT.Managers
         public void SetHandController(HandController controller)
         {
             handController = controller;
+        }
+
+        /// <summary>
+        /// M4.5 — Player-turn draw with bidirectional domain guarantees (subtractive).
+        /// Total drawn ≤ budget. Reserves up to 2 slots for ≥1 Composition and ≥1 Action
+        /// in hand when piles allow. Re-evaluates after Phase 1 normal draws so reserved
+        /// slots are not wasted. Tie-break when budget cannot fit both guarantees:
+        /// Composition wins.
+        /// </summary>
+        public void DrawCardsForPlayerTurn(int budget)
+        {
+            if (HandController == null)
+            {
+                Debug.LogError($"{DebugTag} [M4.5] HandController null; falling back to DrawCards.");
+                DrawCards(budget);
+                return;
+            }
+
+            int handPileBefore = HandPile.Count;
+            int maxHand = GameManager.GameplayData.MaxCardsOnHand;
+            int available = DrawPile.Count + DiscardPile.Count;
+            int effectiveBudget = Mathf.Min(budget, maxHand - HandPile.Count, available);
+
+            if (effectiveBudget <= 0)
+            {
+                _lastTurnGuaranteeSummary =
+                    $"needs=[--] reserved=0 fired=[--] drawn=0/{effectiveBudget} (budget=0)";
+                Debug.Log($"{DebugTag} [M4.5] {_lastTurnGuaranteeSummary}");
+                return;
+            }
+
+            bool needComp = !HandHas(c => c.IsComposition) && PilesHave(c => c.IsComposition);
+            bool needAction = !HandHas(c => c.IsAction) && PilesHave(c => c.IsAction);
+
+            // Composition-first tie-break when budget cannot fit both guarantees.
+            int reserved = (needComp ? 1 : 0) + (needAction ? 1 : 0);
+            if (reserved > effectiveBudget)
+            {
+                if (needComp && needAction) needAction = false;
+                reserved = (needComp ? 1 : 0) + (needAction ? 1 : 0);
+            }
+
+            int phase1 = Mathf.Max(0, effectiveBudget - reserved);
+
+            Debug.Log($"{DebugTag} [M4.5] Begin turn draw: budget={budget} effective={effectiveBudget} " +
+                      $"needComp={needComp} needAction={needAction} reserved={reserved} phase1={phase1}");
+
+            // Phase 1: normal draws holding back `reserved` slots.
+            if (phase1 > 0)
+                DrawCards(phase1);
+
+            // Phase 2: re-evaluate guarantees against current hand.
+            bool firedComp = false, firedAction = false;
+
+            if (needComp && !HandHas(c => c.IsComposition) && PilesHave(c => c.IsComposition) &&
+                HandPile.Count < maxHand)
+            {
+                firedComp = DrawCardFiltered(c => c.IsComposition, "M4.5 GuaranteeComp");
+            }
+
+            if (needAction && !HandHas(c => c.IsAction) && PilesHave(c => c.IsAction) &&
+                HandPile.Count < maxHand)
+            {
+                firedAction = DrawCardFiltered(c => c.IsAction, "M4.5 GuaranteeAction");
+            }
+
+            // Phase 3: any unused reserved slots become normal draws.
+            int drawnSoFar = HandPile.Count - handPileBefore;
+            int leftover = effectiveBudget - drawnSoFar;
+            if (leftover > 0)
+                DrawCards(leftover);
+
+            int drawnTotal = HandPile.Count - handPileBefore;
+
+            _lastTurnGuaranteeSummary =
+                $"needs=[{(needComp ? "C" : "-")}{(needAction ? "A" : "-")}] " +
+                $"reserved={reserved} " +
+                $"fired=[{(firedComp ? "C" : "-")}{(firedAction ? "A" : "-")}] " +
+                $"drawn={drawnTotal}/{effectiveBudget}";
+
+            Debug.Log($"{DebugTag} [M4.5] End turn draw: {_lastTurnGuaranteeSummary}");
+        }
+
+        /// <summary>
+        /// M4.5 — Draws exactly one card matching the predicate. Reshuffles
+        /// DiscardPile into DrawPile once if no match exists in DrawPile.
+        /// Returns false when no match exists in either pile, or when prerequisites
+        /// (HandController, MaxCardsOnHand) block the draw.
+        /// </summary>
+        public bool DrawCardFiltered(Func<CardDefinition, bool> predicate, string reasonTag = null)
+        {
+            if (predicate == null) return false;
+
+            string tag = string.IsNullOrEmpty(reasonTag) ? "[Filtered]" : $"[{reasonTag}]";
+
+            if (HandController == null || HandController.DrawTransform == null)
+            {
+                Debug.LogError($"{DebugTag} {tag} HandController/DrawTransform null. Aborting filtered draw.");
+                return false;
+            }
+
+            if (GameManager.GameplayData.MaxCardsOnHand <= HandPile.Count)
+            {
+                Debug.Log($"{DebugTag} {tag} Hand at MaxCardsOnHand. Skipping filtered draw.");
+                return false;
+            }
+
+            int matchIndex = FindRandomMatchIndex(DrawPile, predicate);
+
+            if (matchIndex < 0)
+            {
+                // DrawPile has no match. Reshuffle iff DiscardPile has at least one match.
+                bool discardHasMatch = false;
+                for (int i = 0; i < DiscardPile.Count; i++)
+                {
+                    if (DiscardPile[i] != null && predicate(DiscardPile[i])) { discardHasMatch = true; break; }
+                }
+
+                if (!discardHasMatch)
+                {
+                    Debug.Log($"{DebugTag} {tag} No matching card in DrawPile or DiscardPile. Skipping.");
+                    return false;
+                }
+
+                ReshuffleDiscardPile();
+                matchIndex = FindRandomMatchIndex(DrawPile, predicate);
+
+                if (matchIndex < 0)
+                {
+                    Debug.LogError($"{DebugTag} {tag} Reshuffle did not surface a match. Aborting.");
+                    return false;
+                }
+            }
+
+            var matchCard = DrawPile[matchIndex];
+
+            if (matchCard == null)
+            {
+                Debug.LogWarning($"{DebugTag} {tag} Null reference at match index {matchIndex}. Removing.");
+                DrawPile.RemoveAt(matchIndex);
+                return false;
+            }
+
+            var cardObj = GameManager.BuildAndGetCard(matchCard, HandController.DrawTransform);
+
+            if (cardObj == null)
+            {
+                Debug.LogError($"{DebugTag} {tag} BuildAndGetCard returned null for '{matchCard.name}'.");
+                return false;
+            }
+
+            HandController.AddCardToHand(cardObj);
+            HandPile.Add(matchCard);
+            DrawPile.RemoveAt(matchIndex);
+
+            Debug.Log($"{DebugTag} {tag} Drew filtered card '{matchCard.name}'. " +
+                      $"hand={HandController.Hand.Count} draw={DrawPile.Count} discard={DiscardPile.Count}");
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
+
+            return true;
+        }
+
+        /// <summary>
+        /// M4.5 — Returns true iff at least one card in the current hand matches the predicate.
+        /// </summary>
+        public bool HandHas(Func<CardDefinition, bool> predicate)
+        {
+            if (predicate == null || HandController == null || HandController.Hand == null) return false;
+            for (int i = 0; i < HandController.Hand.Count; i++)
+            {
+                var cb = HandController.Hand[i];
+                if (cb != null && cb.CardDefinition != null && predicate(cb.CardDefinition))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// M4.5 — Returns true iff at least one card in DrawPile or DiscardPile matches the predicate.
+        /// HandPile and ExhaustPile are intentionally excluded — guarantees check what is drawable now.
+        /// </summary>
+        public bool PilesHave(Func<CardDefinition, bool> predicate)
+        {
+            if (predicate == null) return false;
+            for (int i = 0; i < DrawPile.Count; i++)
+                if (DrawPile[i] != null && predicate(DrawPile[i])) return true;
+            for (int i = 0; i < DiscardPile.Count; i++)
+                if (DiscardPile[i] != null && predicate(DiscardPile[i])) return true;
+            return false;
+        }
+
+        private static int FindRandomMatchIndex(
+            List<CardDefinition> pile, Func<CardDefinition, bool> predicate)
+        {
+            if (pile == null || pile.Count == 0) return -1;
+
+            // Reservoir-style: collect indices, pick one uniformly. Cheap for hand-scale piles.
+            var matches = new List<int>(pile.Count);
+            for (int i = 0; i < pile.Count; i++)
+            {
+                if (pile[i] != null && predicate(pile[i]))
+                    matches.Add(i);
+            }
+
+            if (matches.Count == 0) return -1;
+            return matches[UnityEngine.Random.Range(0, matches.Count)];
         }
     }
 }

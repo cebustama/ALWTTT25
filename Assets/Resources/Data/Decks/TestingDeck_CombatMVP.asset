@@ -15,16 +15,29 @@ MonoBehaviour:
   deckId: TestingDeck_CombatMVP
   displayName: TestingDeck_CombatMVP
   description: 
-  cards:
-  - {fileID: 11400000, guid: ce297dbb0cf7cad42a31fc158719d789, type: 2}
-  - {fileID: 11400000, guid: 3ee9b8ee5a630784ea7faadcfac28102, type: 2}
-  - {fileID: 11400000, guid: dd204a8057aa08f469039a05c9441883, type: 2}
-  - {fileID: 11400000, guid: 92ed8de9caee56a4d93deb7e560dabaa, type: 2}
-  - {fileID: 11400000, guid: e4a5a965f9292194ba9b13e5301aa337, type: 2}
-  - {fileID: 11400000, guid: e537885a5b065d044a811548be47e740, type: 2}
-  - {fileID: 11400000, guid: 2149bdfea6ff6154d94ee1b80810a3bc, type: 2}
-  - {fileID: 11400000, guid: e4cfbc4c80ba0a7408ceb52d3211c277, type: 2}
-  - {fileID: 11400000, guid: 6be2e4aaf66f8034392200fadd1c8e7e, type: 2}
-  - {fileID: 11400000, guid: 33e76460a97c6ef4493b45a1e3b74eb9, type: 2}
-  - {fileID: 11400000, guid: 30de3e6040b933f459d56bb84943487c, type: 2}
-  - {fileID: 11400000, guid: 4b6262c5786db92489ce2108f7e4cead, type: 2}
+  entries:
+  - card: {fileID: 11400000, guid: ce297dbb0cf7cad42a31fc158719d789, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: 3ee9b8ee5a630784ea7faadcfac28102, type: 2}
+    count: 3
+  - card: {fileID: 11400000, guid: dd204a8057aa08f469039a05c9441883, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: 92ed8de9caee56a4d93deb7e560dabaa, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: e4a5a965f9292194ba9b13e5301aa337, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: e537885a5b065d044a811548be47e740, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: 2149bdfea6ff6154d94ee1b80810a3bc, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: e4cfbc4c80ba0a7408ceb52d3211c277, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: 6be2e4aaf66f8034392200fadd1c8e7e, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: 33e76460a97c6ef4493b45a1e3b74eb9, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: 30de3e6040b933f459d56bb84943487c, type: 2}
+    count: 1
+  - card: {fileID: 11400000, guid: 4b6262c5786db92489ce2108f7e4cead, type: 2}
+    count: 1
+  legacyCards: []
