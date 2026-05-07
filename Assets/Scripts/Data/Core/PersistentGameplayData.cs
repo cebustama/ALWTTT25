@@ -968,7 +968,8 @@ namespace ALWTTT.Data
 
         public void ApplyRunConfig(
             GigRunContext.RunConfig config,
-            GigSetupConfigData defaults)
+            GigSetupRosterSO roster,
+            GigFlowSettingsSO flow)
         {
             if (config == null)
             {
@@ -988,7 +989,7 @@ namespace ALWTTT.Data
             // catalogue. When OFF, legacy BandDeckData asset path runs.
             if (config.useMusicianStarters)
             {
-                var roster = new List<MusicianCharacterData>(MusicianList?.Count ?? 0);
+                var rosterList = new List<MusicianCharacterData>(MusicianList?.Count ?? 0);
                 if (MusicianList != null)
                 {
                     for (int i = 0; i < MusicianList.Count; i++)
@@ -997,10 +998,10 @@ namespace ALWTTT.Data
                         if (m == null) continue;
                         var data = m.MusicianCharacterData;
                         if (data == null) continue;
-                        roster.Add(data);
+                        rosterList.Add(data);
                     }
                 }
-                SetBandDeckFromMusicians(roster, defaults?.GenericStarterCatalog);
+                SetBandDeckFromMusicians(rosterList, roster?.GenericStarterCatalog);
             }
             else
             {
@@ -1019,8 +1020,8 @@ namespace ALWTTT.Data
 
             // 1) Initial Gig Inspiration (applied once at gig start)
             int fallbackInitialGigInspiration =
-                defaults != null
-                    ? defaults.DefaultInitialGigInspiration
+                flow != null
+                    ? flow.DefaultInitialGigInspiration
                     : InitialGigInspiration;
 
             InitialGigInspiration =
@@ -1033,8 +1034,8 @@ namespace ALWTTT.Data
 
             // 2) Turn Starting Inspiration (only used when KeepInspirationBetweenTurns == false)
             int fallbackTurnStartingInspiration =
-                defaults != null
-                    ? defaults.DefaultStartingInspiration
+                flow != null
+                    ? flow.DefaultStartingInspiration
                     : TurnStartingInspiration;
 
             // TODO: Remove this field completely, replaced by InspirationPerLoop
@@ -1042,8 +1043,8 @@ namespace ALWTTT.Data
 
             // 3) Inspiration Per Loop
             int fallbackInspirationPerLoop =
-                defaults != null
-                    ? defaults.DefaultInspirationPerLoop
+                flow != null
+                    ? flow.DefaultInspirationPerLoop
                     : InspirationPerLoop;
 
             InspirationPerLoop =
@@ -1055,15 +1056,15 @@ namespace ALWTTT.Data
             DiscardHandBetweenTurns =
                 config.overrideDiscardHandBetweenTurns
                     ? config.discardHandBetweenTurns
-                    : (defaults != null
-                        ? defaults.DefaultDiscardHandBetweenTurns
+                    : (flow != null
+                        ? flow.DefaultDiscardHandBetweenTurns
                         : DiscardHandBetweenTurns);
 
             KeepInspirationBetweenTurns =
                 config.overrideKeepInspirationBetweenTurns
                     ? config.keepInspirationBetweenTurns
-                    : (defaults != null
-                        ? defaults.DefaultKeepInspirationBetweenTurns
+                    : (flow != null
+                        ? flow.DefaultKeepInspirationBetweenTurns
                         : KeepInspirationBetweenTurns);
 
             Debug.Log(

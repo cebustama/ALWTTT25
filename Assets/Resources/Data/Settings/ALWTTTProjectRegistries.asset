@@ -16,6 +16,6 @@ MonoBehaviour:
   statusEffectCatalogueMusicians: {fileID: 11400000, guid: 3c12538606a42a944b49754c65c1758c, type: 2}
   statusEffectCatalogueAudience: {fileID: 11400000, guid: a0d5c957c23a58945851931838536de4, type: 2}
   gameplayData: {fileID: 11400000, guid: 99a47ad298ac6ff49bea86ff81cb4817, type: 2}
-  gigSetupConfig: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
+  gigSetupRoster: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
   specialKeywordData: {fileID: 11400000, guid: 7c2c5ec16404787409c82288bfbef62e, type: 2}
   rewardContainer: {fileID: 11400000, guid: 8d5f18905eecd4146abac442d90a0799, type: 2}

@@ -15,7 +15,15 @@ namespace ALWTTT.UI
     public class GigSetupController : MonoBehaviour
     {
         [Header("Config")]
-        [SerializeField] private GigSetupConfigData setupConfig;
+        [SerializeField, Tooltip("Selectable roster (decks, encounters, audience pool, " +
+            "generic starter catalog, max audience). M4.6F-2: split out from " +
+            "the former GigSetupConfigData.")]
+        private GigSetupRosterSO setupRoster;
+
+        [SerializeField, Tooltip("Setup-screen default values (required songs, " +
+            "starting inspiration, between-turns policies). M4.6F-2: split out " +
+            "from the former GigSetupConfigData defaults header.")]
+        private GigFlowSettingsSO flowSettings;
 
         [Tooltip("Direct reference to the GameplayData SO. Used as the primary " +
          "source for the band picker's musician roster. Avoids singleton " +
@@ -99,12 +107,12 @@ namespace ALWTTT.UI
 
         private void BuildBandDeckDropdown()
         {
-            if (bandDeckDropdown == null || setupConfig == null) return;
+            if (bandDeckDropdown == null || setupRoster == null) return;
 
             bandDeckDropdown.ClearOptions();
 
             var opts = new List<string>();
-            foreach (var d in setupConfig.AvailableBandDecks)
+            foreach (var d in setupRoster.AvailableBandDecks)
                 opts.Add(d != null ? d.name : "(null deck)");
 
             bandDeckDropdown.AddOptions(opts);
@@ -112,12 +120,12 @@ namespace ALWTTT.UI
 
         private void BuildEncounterDropdown()
         {
-            if (encounterDropdown == null || setupConfig == null) return;
+            if (encounterDropdown == null || setupRoster == null) return;
 
             encounterDropdown.ClearOptions();
 
             var opts = new List<string>();
-            foreach (var e in setupConfig.AvailableEncounters)
+            foreach (var e in setupRoster.AvailableEncounters)
                 opts.Add(e != null ? e.GetLabel() : "(null encounter)");
 
             encounterDropdown.AddOptions(opts);
@@ -125,20 +133,20 @@ namespace ALWTTT.UI
 
         private void SetupDefaultUIValues()
         {
-            if (setupConfig == null) return;
+            if (setupRoster == null) return;
 
             if (songsToWinInput != null)
-                songsToWinInput.text = setupConfig.DefaultRequiredSongCount.ToString();
+                songsToWinInput.text = flowSettings.DefaultRequiredSongCount.ToString();
 
             if (startingInspirationInput != null)
                 startingInspirationInput.text =
-                    setupConfig.DefaultStartingInspiration.ToString();
+                    flowSettings.DefaultStartingInspiration.ToString();
 
             if (overrideSongsToggle != null)
             {
                 overrideSongsToggle.isOn = false;
                 overrideSongsToggle.interactable =
-                    setupConfig.AllowOverrideRequiredSongCount;
+                    flowSettings.AllowOverrideRequiredSongCount;
             }
 
             if (overrideStartingInspirationToggle != null)
@@ -264,13 +272,13 @@ namespace ALWTTT.UI
                     if (a != null) defaultSelection.Add(a);
             }
 
-            // Pool = setupConfig.availableAudienceCharacters ∪ encounter.AudienceMemberList
+            // Pool = setupRoster.availableAudienceCharacters ∪ encounter.AudienceMemberList
             var pool = new List<AudienceCharacterData>();
             var seen = new HashSet<AudienceCharacterData>();
 
-            if (setupConfig != null && setupConfig.AvailableAudienceCharacters != null)
+            if (setupRoster != null && setupRoster.AvailableAudienceCharacters != null)
             {
-                foreach (var a in setupConfig.AvailableAudienceCharacters)
+                foreach (var a in setupRoster.AvailableAudienceCharacters)
                 {
                     if (a == null) continue;
                     if (seen.Add(a)) pool.Add(a);
@@ -353,7 +361,7 @@ namespace ALWTTT.UI
             for (int i = 0; i < _audienceRows.Count; i++)
                 if (_audienceRows[i] != null && _audienceRows[i].IsSelected) count++;
 
-            int max = setupConfig != null ? setupConfig.MaxAudienceCount : 4;
+            int max = setupRoster != null ? setupRoster.MaxAudienceCount : 4;
             if (audiencePickerCountLabel != null)
                 audiencePickerCountLabel.text = $"selected: {count} / 1-{max}";
 
@@ -401,9 +409,9 @@ namespace ALWTTT.UI
 
         private void OnStartPressed()
         {
-            if (setupConfig == null)
+            if (setupRoster == null)
             {
-                Debug.LogError("[GigSetup] Missing GigSetupConfigData.");
+                Debug.LogError("[GigSetup] Missing GigSetupRosterSO + GigFlowSettingsSO.");
                 return;
             }
 
@@ -477,7 +485,7 @@ namespace ALWTTT.UI
             // M4.6-prep merged (1)/(4): audience picker results + override decision.
             var pickedAudience = GetSelectedAudience();
             int audienceCount = pickedAudience.Count;
-            int audienceMax = setupConfig.MaxAudienceCount;
+            int audienceMax = setupRoster.MaxAudienceCount;
 
             if (audienceCount < 1)
             {
@@ -490,7 +498,7 @@ namespace ALWTTT.UI
             {
                 Debug.LogError(
                     $"[GigSetup] Audience picker selected {audienceCount} members; " +
-                    $"max ({audienceMax}, from GigSetupConfigData.MaxAudienceCount) " +
+                    $"max ({audienceMax}, from GigSetupRosterSO.MaxAudienceCount) " +
                     "exceeded. Cannot start gig. Either deselect members or " +
                     "increase MaxAudienceCount to match the GigScene's " +
                     "AudienceMemberPosList size.");
@@ -575,7 +583,7 @@ namespace ALWTTT.UI
                 requiredSongCount =
                     ParseIntSafe(
                         songsToWinInput,
-                        setupConfig.DefaultRequiredSongCount,
+                        flowSettings.DefaultRequiredSongCount,
                         min: 1),
 
                 overrideInitialGigInspiration =
@@ -585,7 +593,7 @@ namespace ALWTTT.UI
                 initialGigInspiration =
                     ParseIntSafe(
                         startingInspirationInput,
-                        setupConfig.DefaultStartingInspiration,
+                        flowSettings.DefaultStartingInspiration,
                         min: 0),
 
                 overrideInspirationPerLoop =
@@ -595,7 +603,7 @@ namespace ALWTTT.UI
                 inspirationPerLoop =
                     ParseIntSafe(
                         inspirationPerLoopInput,
-                        setupConfig.DefaultInspirationPerLoop,
+                        flowSettings.DefaultInspirationPerLoop,
                         min: 0),
 
                 overrideDiscardHandBetweenTurns =
@@ -627,7 +635,7 @@ namespace ALWTTT.UI
             );
 
             // --- Apply ALL gameplay state atomically ---
-            persistentData.ApplyRunConfig(runConfig, setupConfig);
+            persistentData.ApplyRunConfig(runConfig, setupRoster, flowSettings);
 
             Debug.Log(
                 $"[GigSetup] Starting gig | " +
@@ -689,7 +697,7 @@ namespace ALWTTT.UI
 
         private BandDeckData GetSelectedDeck()
         {
-            var list = setupConfig.AvailableBandDecks;
+            var list = setupRoster.AvailableBandDecks;
             if (list == null || list.Count == 0) return null;
             int i = Mathf.Clamp(
                 bandDeckDropdown != null ? bandDeckDropdown.value : 0, 0, list.Count - 1);
@@ -698,7 +706,7 @@ namespace ALWTTT.UI
 
         private GigEncounterSO GetSelectedEncounterSO()
         {
-            var list = setupConfig.AvailableEncounters;
+            var list = setupRoster.AvailableEncounters;
             if (list == null || list.Count == 0) return null;
             int i = Mathf.Clamp(
                 encounterDropdown != null ? encounterDropdown.value : 0, 0, list.Count - 1);

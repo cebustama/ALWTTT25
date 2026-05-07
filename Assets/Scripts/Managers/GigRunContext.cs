@@ -49,7 +49,7 @@ namespace ALWTTT.Managers
             // M4.6-prep batch (2): per-musician auto-assembly toggle.
             // When true, ApplyRunConfig ignores `bandDeck` and assembles the
             // deck from each musician's CardCatalog plus the optional
-            // GigSetupConfigData.GenericStarterCatalog. When false, the
+            // GigSetupRosterSO.GenericStarterCatalog. When false, the
             // legacy `bandDeck` path runs (BandDeckData asset → SetBandDeck).
             public bool useMusicianStarters;
 

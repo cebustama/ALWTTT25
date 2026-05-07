@@ -3590,7 +3590,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64bf6a5fad8e3d946a2080d88644715a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.UI.GigSetupController
-  setupConfig: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
+  setupRoster: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
+  flowSettings: {fileID: 11400000, guid: 02e51bab3b739bc498b5d2f0c97ae6e5, type: 2}
   gameplayData: {fileID: 11400000, guid: 99a47ad298ac6ff49bea86ff81cb4817, type: 2}
   bandDeckDropdown: {fileID: 1156047368}
   encounterDropdown: {fileID: 299349930}

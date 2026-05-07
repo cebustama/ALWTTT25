@@ -65,16 +65,16 @@ namespace ALWTTT.Cards.Editor
         // Gig Setup registration
         // ------------------------------------------------------------------
 
-        public static bool AddToGigSetupConfig(GigSetupConfigData config, BandDeckData deck)
+        public static bool AddToGigSetupRoster(GigSetupRosterSO roster, BandDeckData deck)
         {
-            if (config == null || deck == null) return false;
+            if (roster == null || deck == null) return false;
 
-            var so = new SerializedObject(config);
+            var so = new SerializedObject(roster);
             so.Update();
             var list = so.FindProperty("availableBandDecks");
             if (list == null)
             {
-                Debug.LogError("[DeckAssetSaveService] 'availableBandDecks' not found on GigSetupConfigData.");
+                Debug.LogError("[DeckAssetSaveService] 'availableBandDecks' not found on GigSetupRosterSO.");
                 return false;
             }
 
@@ -86,16 +86,16 @@ namespace ALWTTT.Cards.Editor
             list.InsertArrayElementAtIndex(idx);
             list.GetArrayElementAtIndex(idx).objectReferenceValue = deck;
             so.ApplyModifiedProperties();
-            EditorUtility.SetDirty(config);
-            AssetDatabase.SaveAssetIfDirty(config);
+            EditorUtility.SetDirty(roster);
+            AssetDatabase.SaveAssetIfDirty(roster);
             return true;
         }
 
-        public static bool RemoveFromGigSetupConfig(GigSetupConfigData config, BandDeckData deck)
+        public static bool RemoveFromGigSetupRoster(GigSetupRosterSO roster, BandDeckData deck)
         {
-            if (config == null || deck == null) return false;
+            if (roster == null || deck == null) return false;
 
-            var so = new SerializedObject(config);
+            var so = new SerializedObject(roster);
             so.Update();
             var list = so.FindProperty("availableBandDecks");
             if (list == null) return false;
@@ -107,8 +107,8 @@ namespace ALWTTT.Cards.Editor
                     list.GetArrayElementAtIndex(i).objectReferenceValue = null;
                     list.DeleteArrayElementAtIndex(i);
                     so.ApplyModifiedProperties();
-                    EditorUtility.SetDirty(config);
-                    AssetDatabase.SaveAssetIfDirty(config);
+                    EditorUtility.SetDirty(roster);
+                    AssetDatabase.SaveAssetIfDirty(roster);
                     return true;
                 }
             }

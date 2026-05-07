@@ -9,16 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e407010aeb9cfd45a2cc8e7959f1541, type: 3}
-  m_Name: GigSetupConfig
+  m_Script: {fileID: 11500000, guid: dd3e8cddec244e34699b4a9e8be39948, type: 3}
+  m_Name: GigSetupRoster
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigSetupConfigData
   availableBandDecks:
   - {fileID: 11400000, guid: c9872fd33247ee2458c51ff65f3fe49d, type: 2}
-  - {fileID: 11400000, guid: cf17233c5d7bb734dacf283fddc7fa03, type: 2}
-  - {fileID: 11400000, guid: 25a5e6b65ca6344438ea8944bf243b73, type: 2}
   availableEncounters:
-  - {fileID: 11400000, guid: 96de81cb1d089a24e8c08b3786190666, type: 2}
   - {fileID: 11400000, guid: 5fc6b5d1950cd734da7e44f81c2cbaf5, type: 2}
+  - {fileID: 11400000, guid: 96de81cb1d089a24e8c08b3786190666, type: 2}
   - {fileID: 11400000, guid: 187e3121cd4a06241bef79c5df9a5dcb, type: 2}
   - {fileID: 11400000, guid: f57f05465e75f5a40a7b590ce463e7d5, type: 2}
   genericStarterCatalog: {fileID: 11400000, guid: e07d090ba6b92294b81eee3aef6dfd71, type: 2}
@@ -28,9 +26,3 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cb1b04a36b38c4945b46b038fe43a055, type: 2}
   - {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
   maxAudienceCount: 4
-  defaultInitialGigInspiration: 0
-  defaultInspirationPerLoop: 0
-  defaultDiscardHandBetweenTurns: 0
-  defaultKeepInspirationBetweenTurns: 0
-  allowOverrideRequiredSongCount: 1
-  defaultRequiredSongCount: 1

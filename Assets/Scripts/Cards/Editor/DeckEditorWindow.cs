@@ -10,6 +10,7 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ALWTTT.Cards.Editor
 {
@@ -56,7 +57,8 @@ namespace ALWTTT.Cards.Editor
 
         // Serialized (survive domain reload)
         [SerializeField] private BandDeckData _targetDeckAsset;
-        [SerializeField] private GigSetupConfigData _gigSetupConfig;
+        [FormerlySerializedAs("_gigSetupConfig")]
+        [SerializeField] private GigSetupRosterSO _gigSetupRoster;
         [SerializeField] private ALWTTTProjectRegistriesSO _registries;
         [SerializeField] private StagedDeck _staged;
         [SerializeField, TextArea(5, 12)] private string _jsonText = "";
@@ -202,8 +204,8 @@ namespace ALWTTT.Cards.Editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField("Gig Setup Config", GUILayout.Width(110));
-                    _gigSetupConfig = (GigSetupConfigData)EditorGUILayout.ObjectField(_gigSetupConfig, typeof(GigSetupConfigData), false, GUILayout.ExpandWidth(true));
-                    bool canReg = _gigSetupConfig != null && _staged?.sourceAsset != null;
+                    _gigSetupRoster = (GigSetupRosterSO)EditorGUILayout.ObjectField(_gigSetupRoster, typeof(GigSetupRosterSO), false, GUILayout.ExpandWidth(true));
+                    bool canReg = _gigSetupRoster != null && _staged?.sourceAsset != null;
                     using (new EditorGUI.DisabledScope(!canReg))
                     {
                         if (GUILayout.Button("Add to Gig Setup", GUILayout.Width(120))) { DoAddToGigSetup(); GUIUtility.ExitGUI(); }
@@ -904,20 +906,20 @@ namespace ALWTTT.Cards.Editor
 
         private void DoAddToGigSetup()
         {
-            if (_gigSetupConfig == null || _staged?.sourceAsset == null) return;
-            bool added = DeckAssetSaveService.AddToGigSetupConfig(_gigSetupConfig, _staged.sourceAsset);
+            if (_gigSetupRoster == null || _staged?.sourceAsset == null) return;
+            bool added = DeckAssetSaveService.AddToGigSetupRoster(_gigSetupRoster, _staged.sourceAsset);
             SetStatus(added
-                ? $"'{_staged.sourceAsset.name}' added to '{_gigSetupConfig.name}'."
-                : $"'{_staged.sourceAsset.name}' is already in '{_gigSetupConfig.name}'.");
+                ? $"'{_staged.sourceAsset.name}' added to '{_gigSetupRoster.name}'."
+                : $"'{_staged.sourceAsset.name}' is already in '{_gigSetupRoster.name}'.");
         }
 
         private void DoRemoveFromGigSetup()
         {
-            if (_gigSetupConfig == null || _staged?.sourceAsset == null) return;
-            bool removed = DeckAssetSaveService.RemoveFromGigSetupConfig(_gigSetupConfig, _staged.sourceAsset);
+            if (_gigSetupRoster == null || _staged?.sourceAsset == null) return;
+            bool removed = DeckAssetSaveService.RemoveFromGigSetupRoster(_gigSetupRoster, _staged.sourceAsset);
             SetStatus(removed
-                ? $"'{_staged.sourceAsset.name}' removed from '{_gigSetupConfig.name}'."
-                : $"'{_staged.sourceAsset.name}' was not found in '{_gigSetupConfig.name}'.");
+                ? $"'{_staged.sourceAsset.name}' removed from '{_gigSetupRoster.name}'."
+                : $"'{_staged.sourceAsset.name}' was not found in '{_gigSetupRoster.name}'.");
         }
 
         // Destroy all in-memory staged card/payload objects to prevent Unity memory leaks

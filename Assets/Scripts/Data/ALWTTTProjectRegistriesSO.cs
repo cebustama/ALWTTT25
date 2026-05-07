@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Serialization;
 using ALWTTT.Status;
 using ALWTTT.Data;
@@ -25,7 +25,13 @@ namespace ALWTTT
 
         [Header("Optional (add only if you feel pain)")]
         [SerializeField] private GameplayData gameplayData;
-        [SerializeField] private GigSetupConfigData gigSetupConfig;
+
+        [Tooltip("Selectable roster surfaced on the Gig Setup screen. " +
+                 "M4.6F-2: renamed from GigSetupConfigData → GigSetupRosterSO; " +
+                 "the former 'Default Values' section moved to GigFlowSettingsSO.")]
+        [FormerlySerializedAs("gigSetupConfig")]
+        [SerializeField] private GigSetupRosterSO gigSetupRoster;
+
         [SerializeField] private SpecialKeywordData specialKeywordData;
         [SerializeField] private RewardContainerData rewardContainer;
 
@@ -44,7 +50,15 @@ namespace ALWTTT
         public StatusEffectCatalogueSO StatusCatalogue => statusEffectCatalogueMusicians;
 
         public GameplayData Gameplay => gameplayData;
-        public GigSetupConfigData GigSetup => gigSetupConfig;
+
+        /// <summary>
+        /// Roster content for the Gig Setup screen. Renamed from <c>GigSetup</c>
+        /// (M4.6F-2). The former GigSetupConfigData "Default Values" section
+        /// now lives on <see cref="ALWTTT.Data.GigFlowSettingsSO"/>; this
+        /// property covers only roster content.
+        /// </summary>
+        public GigSetupRosterSO GigSetupRoster => gigSetupRoster;
+
         public SpecialKeywordData SpecialKeywords => specialKeywordData;
         public RewardContainerData Rewards => rewardContainer;
 

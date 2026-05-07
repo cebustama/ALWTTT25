@@ -38,71 +38,41 @@ namespace ALWTTT.Managers
 
         public static GigManager Instance;
 
-        [Header("Composition Rules")]
-        [SerializeField] private JamRules jamRules = new JamRules();
-        [SerializeField] private float maxSongHype = 100f;
-        [SerializeField, Tooltip("Raw starting SongHype points for each new song.")]
-        private float startingSongHype = 10f;
+        // ─── Settings (M4.6F-2: split into 4 SOs) ─────────────────────────
+        // All gameplay-tuning, presentation, and dev toggles formerly authored
+        // as inline [SerializeField] fields now live on dedicated SOs. Each
+        // GigManager scene still serializes references to one asset per SO.
+        // Scene refs (cameras, hand, UI, scene changer, MidiGenPlayConfig,
+        // songHypeDebugSlider) remain inline below.
+
+        [Header("Settings (assets)")]
+        [SerializeField, Tooltip("Composition rules + Action card gating + " +
+            "Gig End behavior + setup-screen defaults.")]
+        private GigFlowSettingsSO flow;
+
+        [SerializeField, Tooltip("SongHype caps/seed, Vibe/Hype balance, " +
+            "Flow→Vibe bifurcation, Loop scoring, Breakdown reset.")]
+        private MeterTuningSO meters;
+
+        [SerializeField, Tooltip("Audience beat curve/threshold, idle BPM, " +
+            "sequence pacing values.")]
+        private GigPresentationSO presentation;
+
+        [SerializeField, Tooltip("Inspector-time dev toggles (logs + debug surfaces).")]
+        private GigDevSettingsSO dev;
+
+        // Public façade properties — preserved for callers written before F-2.
+        public bool FlowActionFlatBonus => meters != null && meters.FlowActionFlatBonus;
+        public int FlowActionVibeBonusPerStack => meters != null ? meters.FlowActionVibeBonusPerStack : 0;
+        public float FlowVibeMultiplier => meters != null ? meters.FlowVibeMultiplier : 0f;
+        public float BreakdownStressResetFraction => meters != null ? meters.BreakdownStressResetFraction : 0.5f;
+
+        // ─── Scene refs (kept inline) ─────────────────────────────────────
 
         [Header("Cards / Hand")]
         [SerializeField] private HandController gigHand;
         [SerializeField] private Camera mainCamera;
         [SerializeField] private Camera handCamera;
-
-        [Header("MVP / Action Card Gating")]
-        [SerializeField, Tooltip("MVP: when Play is pressed, discard remaining Action cards from the hand.")]
-        private bool discardActionCardsOnPlay = true;
-
-        [SerializeField, Tooltip("Allow Action cards with timing=Always to be playable during performance.")]
-        private bool allowActionCardsDuringPerformance = false;
-
-        [Header("Vibe / Hype Balancing")]
-        [SerializeField] private int maxVibeFromSongHype = 20;
-        [SerializeField] private float songHypeDeltaMultiplier = 1f;
-
-        [Header("Flow / Composure (MVP)")]
-        [Header("Flow → Vibe (Bifurcated MVP)")]
-        [SerializeField, Tooltip("Action cards: each Flow stack adds this flat Vibe bonus to positive Vibe gains.")]
-        [FormerlySerializedAs("flowVibeFlatBonusPerStack")]
-        private int flowActionVibeBonusPerStack = 1;
-
-        [SerializeField, Tooltip("If enabled, Action cards get flat Flow→Vibe bonus (original MVP path).")]
-        [FormerlySerializedAs("flowAddsFlatVibeBonus")]
-        private bool flowActionFlatBonus = true;
-
-        [SerializeField, Tooltip("Composition cards + Song End: Vibe multiplier per Flow stack. " +
-            "finalVibe = base × (1 + flowStacks × this).")]
-        private float flowVibeMultiplier = 0.08f;
-
-        public bool FlowActionFlatBonus => flowActionFlatBonus;
-        public int FlowActionVibeBonusPerStack => flowActionVibeBonusPerStack;
-        public float FlowVibeMultiplier => flowVibeMultiplier;
-
-        [Header("Loop Scoring")]
-        [SerializeField] private LoopScoringConfig loopScoringConfig = LoopScoringConfig.Default;
-        [SerializeField] private HypeThresholds hypeThresholds = HypeThresholds.Default;
-
-        [Header("Breakdown")]
-        [SerializeField, Range(0f, 1f)] private float breakdownStressResetFraction = 0.5f;
-        public float BreakdownStressResetFraction => breakdownStressResetFraction;
-
-        [Header("Gig End Behavior")]
-        [SerializeField] private bool skipAudienceActionsAfterFinalSong = true;
-
-        [Header("Audience Beat Response")]
-        [SerializeField]
-        private AnimationCurve audienceJumpIntensityCurve =
-            AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-        [SerializeField][Range(0f, 1f)] private float audienceJumpThreshold = 0.1f;
-
-        [Header("Animation and Effects")]
-        [SerializeField] private int idleBpm = 120;
-
-        [Header("Timing")]
-        [SerializeField] private float songEndPause = 3f;
-        [SerializeField] private float perAudienceVibeDelay = 1f;
-        [SerializeField] private float perAudienceActionDelay = 1f;
-        [SerializeField] private float barFillDelay = 3f;
 
         [Header("Composition UI")]
         [SerializeField] private SongCompositionUI compositionUI;
@@ -115,15 +85,8 @@ namespace ALWTTT.Managers
         [SerializeField] private List<Transform> audienceMemberPosList;
         [SerializeField] private SceneChanger sceneChanger;
 
-        [Header("Dev / Composition")]
-        [SerializeField] private bool useLogs = true;
-        [SerializeField] private bool useCompositionLogs = true;
-        [SerializeField] private bool debugSongHype = false;
+        [Header("Dev Slider (scene UI)")]
         [SerializeField] private Slider songHypeDebugSlider;
-
-        [Header("Dev / Instruments")]
-        [SerializeField] private bool debugInstrumentPicker = false;
-        [SerializeField] private bool debugMusicianVolume = false;
 
         private GigPhase currentGigPhase;
         private List<SongData> playedSongs = new List<SongData>();
@@ -208,8 +171,14 @@ namespace ALWTTT.Managers
         }
 
         public float SongHype => _songHype;
-        public float SongHype01 =>
-            maxSongHype <= 0f ? 0f : Mathf.Clamp01(_songHype / maxSongHype);
+        public float SongHype01
+        {
+            get
+            {
+                float max = meters != null ? meters.MaxSongHype : 0f;
+                return max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);
+            }
+        }
         public int RequiredSongCount => _requiredSongCount;
 
         public int SongsLeft
@@ -302,7 +271,7 @@ namespace ALWTTT.Managers
 
         private void Log(string log, bool highlight = false, string customColor = "")
         {
-            if (useLogs)
+            if (dev != null && dev.UseLogs)
             {
                 if (highlight)
                     Debug.Log($"{DebugTag} <color=yellow>{log}</color>");
@@ -312,6 +281,8 @@ namespace ALWTTT.Managers
                     Debug.Log($"{DebugTag} {log}");
             }
         }
+
+        private bool UseLogs => dev != null && dev.UseLogs;
 
         #region Setup
         private void Awake()
@@ -350,7 +321,7 @@ namespace ALWTTT.Managers
 
         private void StartGig()
         {
-            if (useLogs) Debug.Log($"{DebugTag} Starting gig...");
+            if (UseLogs) Debug.Log($"{DebugTag} Starting gig...");
 
             SetupEncounter();
 
@@ -527,7 +498,7 @@ namespace ALWTTT.Managers
 
         private void SetupEncounter()
         {
-            if (useLogs) Debug.Log($"{DebugTag} Setting up gig encounter...");
+            if (UseLogs) Debug.Log($"{DebugTag} Setting up gig encounter...");
 
             var pd = GameManager.PersistentGameplayData;
 
@@ -560,14 +531,14 @@ namespace ALWTTT.Managers
 
         private void BuildBackground()
         {
-            if (useLogs) Debug.Log($"{DebugTag} Building background...");
+            if (UseLogs) Debug.Log($"{DebugTag} Building background...");
             backgroundContainer.OpenSelectedBackground();
             backgroundContainer.SetBPM(0);
         }
 
         private void BuildBand()
         {
-            if (useLogs) Debug.Log($"{DebugTag} Building band and musicians...");
+            if (UseLogs) Debug.Log($"{DebugTag} Building band and musicians...");
 
             for (var i = 0;
                 i < GameManager.PersistentGameplayData.MusicianList.Count; i++)
@@ -603,7 +574,7 @@ namespace ALWTTT.Managers
 
         private void BuildAudience()
         {
-            if (useLogs) Debug.Log($"{DebugTag} Building audience...");
+            if (UseLogs) Debug.Log($"{DebugTag} Building audience...");
             var audienceMemberList = CurrentGigEncounter.AudienceMemberList;
             for (var i = 0; i < audienceMemberList.Count; i++)
             {
@@ -660,25 +631,27 @@ namespace ALWTTT.Managers
             }
 
             // Keep debug slider visibility in sync with the flag
+            bool debugHypeOn = dev != null && dev.DebugSongHype;
             if (songHypeDebugSlider != null &&
-                songHypeDebugSlider.gameObject.activeSelf != debugSongHype)
+                songHypeDebugSlider.gameObject.activeSelf != debugHypeOn)
             {
-                songHypeDebugSlider.gameObject.SetActive(debugSongHype);
+                songHypeDebugSlider.gameObject.SetActive(debugHypeOn);
 
-                if (debugSongHype)
+                if (debugHypeOn)
                     songHypeDebugSlider.SetValueWithoutNotify(_songHype);
             }
 
             // toggle instrument picker + volume debug with D
-            if (Input.GetKeyDown(KeyCode.D))
+            if (Input.GetKeyDown(KeyCode.D) && dev != null)
             {
-                debugInstrumentPicker = !debugInstrumentPicker;
-                debugMusicianVolume = !debugMusicianVolume;
+                dev.DebugInstrumentPicker = !dev.DebugInstrumentPicker;
+                dev.DebugMusicianVolume = !dev.DebugMusicianVolume;
 
-                if (useLogs)
+                if (UseLogs)
                 {
                     Debug.Log($"{DebugTag} [Dev] Toggled debug UI → " +
-                              $"Instruments={debugInstrumentPicker}, Volume={debugMusicianVolume}");
+                              $"Instruments={dev.DebugInstrumentPicker}, " +
+                              $"Volume={dev.DebugMusicianVolume}");
                 }
 
                 SetupBandDebugElements();
@@ -691,7 +664,8 @@ namespace ALWTTT.Managers
             _actionWindowOpen = false;
 
             // MVP: optionally discard Action cards from hand when starting performance.
-            if (discardActionCardsOnPlay && DeckManager != null)
+            bool shouldDiscardActions = flow != null && flow.DiscardActionCardsOnPlay;
+            if (shouldDiscardActions && DeckManager != null)
             {
                 DeckManager.DiscardHandWhere(card =>
                     card != null &&
@@ -714,7 +688,7 @@ namespace ALWTTT.Managers
 
         public void EndTurn()
         {
-            if (useLogs) Debug.Log($"{DebugTag} Ending turn...");
+            if (UseLogs) Debug.Log($"{DebugTag} Ending turn...");
 
             CurrentGigPhase = GigPhase.SongPerformance;
         }
@@ -758,7 +732,7 @@ namespace ALWTTT.Managers
             if (_session != null)
                 return;
 
-            if (useLogs)
+            if (UseLogs)
                 Debug.Log($"{DebugTag} Executing gig phase: {targetGigPhase}");
 
             switch (targetGigPhase)
@@ -985,7 +959,7 @@ namespace ALWTTT.Managers
             if (CurrentGigPhase == GigPhase.EndGig)
                 yield break;
 
-            if (IsGigComplete && skipAudienceActionsAfterFinalSong)
+            if (IsGigComplete && flow != null && flow.SkipAudienceActionsAfterFinalSong)
             {
                 // Reaction already happened. Now end without Audience actions.
                 ResolveGigOutcomeAndEnd();
@@ -997,7 +971,8 @@ namespace ALWTTT.Managers
 
         private IEnumerator AudienceTurnRoutine()
         {
-            var waitDelay = new WaitForSeconds(perAudienceActionDelay);
+            var waitDelay = new WaitForSeconds(
+                presentation != null ? presentation.PerAudienceActionDelay : 1f);
 
             if (_lastSongFeedback.HasValue)
             {
@@ -1336,14 +1311,16 @@ namespace ALWTTT.Managers
             _session.SongFinished += OnCompositionSongFinished;
 
             var ctx = new GigContext(this);
-            _session.Begin(ctx, jamRules, midiGenPlayConfig, _rng);
+            _session.Begin(ctx, flow != null ? flow.JamRules : new JamRules(),
+                midiGenPlayConfig, _rng);
 
             // starting hype before the first loop finishes
             // IDEAS
             // PersistentGameplayData.Fans (more fans → higher baseline hype).
             // Venue type / difficulty (small club vs arena).
-            if (startingSongHype > 0f)
-                AddSongHype(startingSongHype);
+            float startHype = meters != null ? meters.StartingSongHype : 0f;
+            if (startHype > 0f)
+                AddSongHype(startHype);
 
             _isSongPlaying = false;
             _isBetweenSongs = true;
@@ -1437,7 +1414,10 @@ namespace ALWTTT.Managers
             // During performance we default to disabling action cards in the MVP,
             // except those explicitly marked as Always (and only if enabled).
             if (_isSongPlaying)
-                return allowActionCardsDuringPerformance && actionTiming == CardActionTiming.Always;
+            {
+                bool allowDuringPerformance = flow != null && flow.AllowActionCardsDuringPerformance;
+                return allowDuringPerformance && actionTiming == CardActionTiming.Always;
+            }
 
             // If the player already pressed Play, action cards are locked.
             if (!_actionWindowOpen)
@@ -1488,8 +1468,15 @@ namespace ALWTTT.Managers
 
         private void InitLoopScoringConfig()
         {
+            if (meters == null)
+            {
+                Debug.LogError($"{DebugTag} InitLoopScoringConfig: MeterTuningSO " +
+                    "is unwired; loop scoring will use struct defaults.");
+                return;
+            }
+
             // Total musicians
-            loopScoringConfig.totalMusicians =
+            meters.LoopScoringConfigRef.totalMusicians =
                 CurrentMusicianCharacterList?.Count ?? 2;
 
             // Possible roles: scan composition cards in deck for distinct TrackRoles
@@ -1505,12 +1492,13 @@ namespace ALWTTT.Managers
                 }
             }
 
-            loopScoringConfig.possibleRoleCount =
+            meters.LoopScoringConfigRef.possibleRoleCount =
                 Mathf.Max(1, possibleRoles.Count);
 
-            Debug.Log($"{DebugTag} [Scoring] Init: mode={loopScoringConfig.mode} " +
-                $"possibleRoles={loopScoringConfig.possibleRoleCount} " +
-                $"totalMusicians={loopScoringConfig.totalMusicians}");
+            Debug.Log($"{DebugTag} [Scoring] Init: " +
+                $"mode={meters.LoopScoringConfig.mode} " +
+                $"possibleRoles={meters.LoopScoringConfig.possibleRoleCount} " +
+                $"totalMusicians={meters.LoopScoringConfig.totalMusicians}");
         }
 
         // Called whenever one full loop finishes (including the last loop of the song)
@@ -1520,9 +1508,11 @@ namespace ALWTTT.Managers
                 || CurrentAudienceCharacterList.Count == 0)
                 return;
 
-            float loopScore = LoopScoreCalculator.ComputeLoopScore(loopCtx, loopScoringConfig);
-            float baseHypeDelta = LoopScoreCalculator.ComputeHypeDelta(loopScore, hypeThresholds);
-            float hypeDelta = baseHypeDelta * songHypeDeltaMultiplier;
+            float loopScore = LoopScoreCalculator.ComputeLoopScore(
+                loopCtx, meters != null ? meters.LoopScoringConfig : LoopScoringConfig.Default);
+            float baseHypeDelta = LoopScoreCalculator.ComputeHypeDelta(
+                loopScore, meters != null ? meters.HypeThresholds : HypeThresholds.Default);
+            float hypeDelta = baseHypeDelta * (meters != null ? meters.SongHypeDeltaMultiplier : 1f);
 
             // Flow → SongHype path RETIRED (M4.2). Removed entirely.
 
@@ -1591,7 +1581,7 @@ namespace ALWTTT.Managers
                       $"InfiniteTurnsEnabled={DevModeController.InfiniteTurnsEnabled}, " +
                       $"DeckManager.Instance null? {DeckManager.Instance == null}, " +
                       $"IsGigComplete={IsGigComplete}, " +
-                      $"skipAudienceActionsAfterFinalSong={skipAudienceActionsAfterFinalSong}, " +
+                      $"skipAudienceActionsAfterFinalSong={(flow != null && flow.SkipAudienceActionsAfterFinalSong)}, " +
                       $"gigHand.activeSelf={(gigHand != null ? gigHand.gameObject.activeSelf.ToString() : "n/a")}</color>");
 
             if (DevModeController.InfiniteTurnsEnabled && DeckManager.Instance != null)
@@ -1618,7 +1608,7 @@ namespace ALWTTT.Managers
             }
 #endif
 
-            if (IsGigComplete && skipAudienceActionsAfterFinalSong)
+            if (IsGigComplete && flow != null && flow.SkipAudienceActionsAfterFinalSong)
             {
                 ResolveGigOutcomeAndEnd();
                 return;
@@ -1631,10 +1621,11 @@ namespace ALWTTT.Managers
 
         private void AddSongHype(float delta)
         {
-            if (debugSongHype)
+            if (dev != null && dev.DebugSongHype)
                 return;
 
-            _songHype = Mathf.Clamp(_songHype + delta, 0f, maxSongHype);
+            float max = meters != null ? meters.MaxSongHype : 0f;
+            _songHype = Mathf.Clamp(_songHype + delta, 0f, max);
             UpdateAudienceBeatIntensity();
 
             // Keep the slider in sync (even if it's hidden)
@@ -1646,7 +1637,7 @@ namespace ALWTTT.Managers
 
 #if ALWTTT_DEV
         /// <summary>Dev Mode: expose max for UI slider bounds. Dev-only.</summary>
-        public float MaxSongHype => maxSongHype;
+        public float MaxSongHype => meters != null ? meters.MaxSongHype : 0f;
 
         /// <summary>
         /// Dev Mode: set SongHype directly. Bypasses debugSongHype guard (unlike AddSongHype).
@@ -1654,7 +1645,8 @@ namespace ALWTTT.Managers
         /// </summary>
         public void DevSetSongHype(float value)
         {
-            _songHype = Mathf.Clamp(value, 0f, maxSongHype);
+            float max = meters != null ? meters.MaxSongHype : 0f;
+            _songHype = Mathf.Clamp(value, 0f, max);
             UpdateAudienceBeatIntensity();
             if (songHypeDebugSlider != null)
                 songHypeDebugSlider.SetValueWithoutNotify(_songHype);
@@ -1773,7 +1765,8 @@ namespace ALWTTT.Managers
             }
 
             // Base vibe from final SongHype (0..maxSongHype → 0..maxVibeFromSongHype)
-            float baseVibe = SongHype01 * maxVibeFromSongHype;
+            int maxVibeFromHype = meters != null ? meters.MaxVibeFromSongHype : 0;
+            float baseVibe = SongHype01 * maxVibeFromHype;
 
             // 3) Convert to per-audience vibe deltas
             for (int i = 0; i < audienceCount; i++)
@@ -1813,7 +1806,7 @@ namespace ALWTTT.Managers
         {
             _currentBpm = bpm;
 
-            if (useLogs)
+            if (UseLogs)
                 Debug.Log($"{DebugTag} [Gig] Part {partIndex} BPM resolved → {bpm}");
 
             // 1) Background pulse
@@ -1857,6 +1850,8 @@ namespace ALWTTT.Managers
             if (backgroundContainer != null)
                 backgroundContainer.SetBPM(0);
 
+            int idleBpmLocal = presentation != null ? presentation.IdleBpm : 120;
+
             foreach (var musician in CurrentMusicianCharacterList)
             {
                 if (musician == null || musician.CharacterAnimator == null)
@@ -1864,7 +1859,7 @@ namespace ALWTTT.Managers
 
                 var anim = musician.CharacterAnimator;
 
-                anim.SetBPM(idleBpm);
+                anim.SetBPM(idleBpmLocal);
                 anim.SkipEveryNBeats = 2;
                 anim.BeatOffsetBeats = UnityEngine.Random.Range(0.45f, 0.55f);
                 anim.JumpOnBeat = false;
@@ -1880,7 +1875,7 @@ namespace ALWTTT.Managers
 
                 var anim = audience.CharacterAnimator;
 
-                anim.SetBPM(idleBpm);
+                anim.SetBPM(idleBpmLocal);
                 anim.SkipEveryNBeats = 2;
                 anim.BeatOffsetBeats = UnityEngine.Random.Range(0.45f, 0.55f);
 
@@ -1900,9 +1895,11 @@ namespace ALWTTT.Managers
                 return;
 
             float t = SongHype01; // 0..1 based on current SongHype/maxSongHype
-            float intensity = audienceJumpIntensityCurve != null &&
-                              audienceJumpIntensityCurve.length > 0
-                ? Mathf.Clamp01(audienceJumpIntensityCurve.Evaluate(t))
+            var curve = presentation != null ? presentation.AudienceJumpIntensityCurve : null;
+            float threshold = presentation != null ? presentation.AudienceJumpThreshold : 0.1f;
+
+            float intensity = curve != null && curve.length > 0
+                ? Mathf.Clamp01(curve.Evaluate(t))
                 : t * t; // fallback: simple ease-in quadratic
 
             foreach (var audience in CurrentAudienceCharacterList)
@@ -1916,7 +1913,7 @@ namespace ALWTTT.Managers
                 anim.SetJumpIntensity01(intensity);
 
                 // They only actually “jump” when hype passes a threshold
-                anim.JumpOnBeat = (intensity >= audienceJumpThreshold);
+                anim.JumpOnBeat = (intensity >= threshold);
 
                 // Optionally: you could also turn on rotation/particles here
                 // anim.RotateOnBeat = false;
@@ -1930,7 +1927,7 @@ namespace ALWTTT.Managers
             if (songHypeDebugSlider == null) return;
 
             songHypeDebugSlider.minValue = 0f;
-            songHypeDebugSlider.maxValue = maxSongHype;
+            songHypeDebugSlider.maxValue = meters != null ? meters.MaxSongHype : 0f;
             songHypeDebugSlider.wholeNumbers = false;
 
             // Start synced to current hype
@@ -1941,15 +1938,16 @@ namespace ALWTTT.Managers
             songHypeDebugSlider.onValueChanged.AddListener(OnDebugSongHypeSliderChanged);
 
             // Only visible when debug mode is ON
-            songHypeDebugSlider.gameObject.SetActive(debugSongHype);
+            songHypeDebugSlider.gameObject.SetActive(dev != null && dev.DebugSongHype);
         }
 
         private void OnDebugSongHypeSliderChanged(float value)
         {
             // Only override the game when debug mode is enabled
-            if (!debugSongHype) return;
+            if (dev == null || !dev.DebugSongHype) return;
 
-            _songHype = Mathf.Clamp(value, 0f, maxSongHype);
+            float max = meters != null ? meters.MaxSongHype : 0f;
+            _songHype = Mathf.Clamp(value, 0f, max);
 
             OnSongHypeChanged01?.Invoke(SongHype01);
             UpdateAudienceBeatIntensity();
@@ -1962,7 +1960,7 @@ namespace ALWTTT.Managers
                 return;
 
             // Refresh repo once if we’re going to use it
-            if (debugInstrumentPicker && _instrumentRepo != null)
+            if ((dev != null && dev.DebugInstrumentPicker) && _instrumentRepo != null)
                 _instrumentRepo.Refresh();
 
             foreach (var m in CurrentMusicianCharacterList)
@@ -1978,7 +1976,7 @@ namespace ALWTTT.Managers
                 // ------------------------------------------------------------------
                 // 1) INSTRUMENT DEV (dropdowns) – controlled by debugInstrumentPicker
                 // ------------------------------------------------------------------
-                if (debugInstrumentPicker && profile != null && _instrumentRepo != null)
+                if ((dev != null && dev.DebugInstrumentPicker) && profile != null && _instrumentRepo != null)
                 {
                     Debug.Log("<color=blue> I AM HERE </color>");
 
@@ -1995,7 +1993,7 @@ namespace ALWTTT.Managers
                                 m.DebugOverridePercussionInstrument = chosen;
                                 m.DebugOverrideInstrument = null;
 
-                                if (useLogs)
+                                if (UseLogs)
                                 {
                                     var label = chosen != null
                                         ? (!string.IsNullOrEmpty(chosen.InstrumentName)
@@ -2020,7 +2018,7 @@ namespace ALWTTT.Managers
                                 m.DebugOverrideInstrument = chosen;
                                 m.DebugOverridePercussionInstrument = null;
 
-                                if (useLogs)
+                                if (UseLogs)
                                 {
                                     var label = chosen != null
                                         ? (!string.IsNullOrEmpty(chosen.InstrumentName)
@@ -2046,7 +2044,7 @@ namespace ALWTTT.Managers
                 // ------------------------------------------------------------------
                 // 2) VOLUME DEV (slider) – independent flag debugMusicianVolume
                 // ------------------------------------------------------------------
-                if (debugMusicianVolume)
+                if (dev != null && dev.DebugMusicianVolume)
                 {
                     float initial =
                         _musicianVolume01.TryGetValue(m.CharacterId, out var stored)
@@ -2069,7 +2067,7 @@ namespace ALWTTT.Managers
 
         private void ApplyDebugInstrumentOverridesToCompositionModel()
         {
-            if (!debugInstrumentPicker) return;
+            if (dev == null || !dev.DebugInstrumentPicker) return;
             if (compositionUI == null) return;
 
             var model = compositionUI.Model;
@@ -2139,7 +2137,7 @@ namespace ALWTTT.Managers
             float finalVol = ComputeEffectiveMusicianVolume01(musician, sliderValue);
             MidiMusicManager.SetMusicianVolume01(musician.CharacterId, finalVol);
 
-            if (useLogs)
+            if (UseLogs)
                 Debug.Log($"{DebugTag} [Dev] Volume slider for {musician.CharacterId} " +
                     $"slider={sliderValue:0.00} final={finalVol:0.00}");
         }
@@ -2149,7 +2147,12 @@ namespace ALWTTT.Managers
             if (songCtx.PartCount == 0)
                 yield break;
 
-            yield return new WaitForSeconds(songEndPause);
+            float songEndPauseLocal = presentation != null ? presentation.SongEndPause : 3f;
+            float barFillDelayLocal = presentation != null ? presentation.BarFillDelay : 3f;
+            float perAudVibeDelayLocal = presentation != null ? presentation.PerAudienceVibeDelay : 1f;
+            float flowMult = meters != null ? meters.FlowVibeMultiplier : 0f;
+
+            yield return new WaitForSeconds(songEndPauseLocal);
 
             var deltas = ComputeSongVibeDeltas(songCtx);
 
@@ -2167,13 +2170,13 @@ namespace ALWTTT.Managers
                     flowStacks = GetTotalFlowStacks();
                     if (flowStacks > 0)
                     {
-                        float mult = 1f + (flowStacks * flowVibeMultiplier);
+                        float mult = 1f + (flowStacks * flowMult);
                         finalDelta = Mathf.RoundToInt(baseDelta * mult);
                     }
                 }
 
                 // Floating text
-                float displayMult = flowStacks > 0 ? 1f + (flowStacks * flowVibeMultiplier) : 0f;
+                float displayMult = flowStacks > 0 ? 1f + (flowStacks * flowMult) : 0f;
                 FxManager.Instance?.SpawnFloatingText(
                     audience.TextSpawnRoot,
                     flowStacks > 0
@@ -2182,20 +2185,20 @@ namespace ALWTTT.Managers
                     0, 1, Color.cyan);
 
                 // 1) apply Vibe
-                audience.AudienceStats.AddVibe(finalDelta, duration: barFillDelay);
+                audience.AudienceStats.AddVibe(finalDelta, duration: barFillDelayLocal);
 
-                if (useLogs && flowStacks > 0)
+                if (UseLogs && flowStacks > 0)
                     Debug.Log($"{DebugTag} [Flow→Vibe:Mult] {audience.CharacterId} " +
                         $"base=+{baseDelta} flowStacks={flowStacks} mult={displayMult:F2} " +
                         $"final=+{finalDelta}");
 
-                //Debug.Log($"{audience.CharacterId} filling Vibe in {barFillDelay}[s]");
-                yield return new WaitForSeconds(barFillDelay);
+                //Debug.Log($"{audience.CharacterId} filling Vibe in {barFillDelayLocal}[s]");
+                yield return new WaitForSeconds(barFillDelayLocal);
                 //Debug.Log($"{audience.CharacterId} bar filled");
 
                 // TODO: Animate Vibe bar, emote, SFX, etc
 
-                yield return new WaitForSeconds(perAudienceVibeDelay);
+                yield return new WaitForSeconds(perAudVibeDelayLocal);
             }
         }
 

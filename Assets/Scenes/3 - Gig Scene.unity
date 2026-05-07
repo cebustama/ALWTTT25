@@ -2502,6 +2502,18 @@ PrefabInstance:
       value: -2.92
       objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: dev
+      value: 
+      objectReference: {fileID: 11400000, guid: 767ebbe00f02bb44eb7b39a77f8778c4, type: 2}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: flow
+      value: 
+      objectReference: {fileID: 11400000, guid: 02e51bab3b739bc498b5d2f0c97ae6e5, type: 2}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: meters
+      value: 
+      objectReference: {fileID: 11400000, guid: 1a64ac923b140f64fad95f2e8b3b5676, type: 2}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: gigHand
       value: 
       objectReference: {fileID: 1219041269}
@@ -2521,6 +2533,10 @@ PrefabInstance:
       propertyPath: loopsTimerUI
       value: 
       objectReference: {fileID: 385988843}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: presentation
+      value: 
+      objectReference: {fileID: 11400000, guid: fd745730ede44ff49a393c711ec07df6, type: 2}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: songEndPause
       value: 0.5

@@ -2,11 +2,27 @@ using ALWTTT.Cards;
 using ALWTTT.Encounters;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace ALWTTT.Data
 {
-    [CreateAssetMenu(fileName = "GigSetupConfig", menuName = "ALWTTT/Gig/GigSetupConfig")]
-    public class GigSetupConfigData : ScriptableObject
+    /// <summary>
+    /// Selectable roster content surfaced on the Gig Setup screen. Renamed
+    /// from <c>GigSetupConfigData</c> (M4.6F-2). The former "Default Values"
+    /// section moved to <see cref="GigFlowSettingsSO"/>; this SO now carries
+    /// only roster content (decks, encounters, audience pool, generic
+    /// starter catalog, and audience-count cap).
+    ///
+    /// Authority: SSoT_Gig_Encounter.
+    /// </summary>
+    [MovedFrom(autoUpdateAPI: true,
+               sourceClassName: "GigSetupConfigData",
+               sourceNamespace: "ALWTTT.Data")]
+    [CreateAssetMenu(
+        fileName = "GigSetupRoster",
+        menuName = "ALWTTT/Gig/GigSetupRoster",
+        order = 14)]
+    public class GigSetupRosterSO : ScriptableObject
     {
         [Header("Selectable Content")]
         [SerializeField] private List<BandDeckData> availableBandDecks = new();
@@ -32,16 +48,6 @@ namespace ALWTTT.Data
                  "Set to match the actual scene's position-list size.")]
         [SerializeField, Min(1)] private int maxAudienceCount = 4;
 
-        [Header("Default Values (Setup Only)")]
-        [SerializeField] private int defaultInitialGigInspiration = 0;
-        [SerializeField] private int defaultInspirationPerLoop = 0;
-
-        [SerializeField] private bool defaultDiscardHandBetweenTurns = false;
-        [SerializeField] private bool defaultKeepInspirationBetweenTurns = false;
-
-        [SerializeField] private bool allowOverrideRequiredSongCount = true;
-        [SerializeField, Min(1)] private int defaultRequiredSongCount = 1;
-
         public IReadOnlyList<BandDeckData> AvailableBandDecks => availableBandDecks;
         public IReadOnlyList<GigEncounterSO> AvailableEncounters => availableEncounters;
 
@@ -51,15 +57,5 @@ namespace ALWTTT.Data
             => availableAudienceCharacters;
 
         public int MaxAudienceCount => Mathf.Max(1, maxAudienceCount);
-
-        public int DefaultStartingInspiration => defaultInitialGigInspiration;
-        public int DefaultInspirationPerLoop => defaultInspirationPerLoop;
-        public int DefaultInitialGigInspiration => defaultInitialGigInspiration;
-
-        public bool DefaultDiscardHandBetweenTurns => defaultDiscardHandBetweenTurns;
-        public bool DefaultKeepInspirationBetweenTurns => defaultKeepInspirationBetweenTurns;
-
-        public bool AllowOverrideRequiredSongCount => allowOverrideRequiredSongCount;
-        public int DefaultRequiredSongCount => Mathf.Max(1, defaultRequiredSongCount);
     }
 }
