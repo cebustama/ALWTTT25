@@ -576,8 +576,29 @@ namespace ALWTTT
             {
                 backToHand = false;
 
-                // Send the card to the appropriate pile (discard/exhaust) like in gig
-                if (DeckManager.Instance != null)
+                // Send the card to the appropriate pile (discard/exhaust).
+                //
+                // Only Composition cards rely on HandController for the discard
+                // transition. Composition cards bypass CardBase.Use() entirely
+                // (they route through GigManager.TryPlayCompositionCard).
+                //
+                // Action cards (SFX or otherwise) handle their own discard inside
+                // CardBase.Use():
+                //   - SFX type: synchronous OnCardPlayed at CardBase.Use line 93.
+                //   - Non-SFX: deferred OnCardPlayed at CardUseRoutine line 131,
+                //     called AFTER ExecuteEffects yields so effects resolve before
+                //     the card is destroyed by DiscardRoutine.
+                //
+                // Calling OnCardPlayed here for action cards produced a double-
+                // discard (each played card added two entries to DiscardPile and
+                // removed two entries from HandPile, surfacing as "card duplication"
+                // post-reshuffle). Bug fix: M4.6F-1, 2026-05-07.
+                bool isComposition =
+                    heldCard != null
+                    && heldCard.CardDefinition != null
+                    && heldCard.CardDefinition.IsComposition;
+
+                if (DeckManager.Instance != null && isComposition)
                     DeckManager.Instance.OnCardPlayed(heldCard);
             }
 

@@ -1,7 +1,7 @@
 # Roadmap — ALWTTT
 
 **Status:** Planning only — does not define implementation truth  
-**Last updated:** 2026-05-03 (M4.6-prep batch (3) Authoring tooling QoL closed)
+**Last updated:** 2026-05-07 (M4.6F-1 action card double-discard closed)
 **Rule:** This document tracks recommended work sequencing. It does not override subsystem SSoTs or CURRENT_STATE.
 
 ---
@@ -412,6 +412,18 @@ Scope:
 - Catalogue → starter-deck auto-assembly shipped 2026-05-02 (M4.6-prep batch (2)). `CardAcquisitionFlags.starterCopies` is the per-card copy count for auto-assembled decks via `PersistentGameplayData.SetBandDeckFromMusicians`. Authoring `StarterDeck_v1.asset` (this M4.6 batch) is the alternative legacy path via `BandDeckData` asset; the gig setup toggle (`useMusicianStartersToggle`, default ON) selects between them. M4.6 demo will use the auto-assembly path.
 - Smoke tests ST-SD-1..6 per `Design_Starter_Deck_v1.md` (deck loads with correct multiplicities, reshuffle preserves counts, Mind Tap applies Earworm with correct stacks, Four on the Floor applies Flow on play, composition cards repeat across songs without runtime warnings, full gig plays end-to-end).
 
+### 4.6-followup — Mini-milestone (opened 2026-05-06)
+
+Five batches surfaced during M4.6 starter deck cleanup smoke testing (`Design_Starter_Deck_v1.md §10` ST-SD-1..8). Gate the M4.6 demo. Ordered by dependency + quick-win:
+
+1. **M4.6F-1 — Action card double-discard ✅ (closed 2026-05-07).** Bug class misdiagnosed at intake as reshuffle/pile lifecycle. Root cause was upstream: action cards triggered `OnCardPlayed` from both `HandController.PlayCard` and `CardBase.Use`/`CardUseRoutine`, doubling discard. Fix: gate `HandController.PlayCard`'s `OnCardPlayed` call to `IsComposition` only. Smoke ST-DOUBLE-1/2/3 + ST-RESHUFFLE-1/2/3 all PASS. New invariant in `SSoT_Card_System.md §9.3` + manifest. See §1 closure block in `CURRENT_STATE.md`.
+2. **M4.6F-2 — GigSettings multi-SO refactor.** Five competing settings homes today (`GameplayData`, `GigSetupConfigData`, `GigManager`, `JamRules` struct, `PersistentGameplayData`) with several duplicated values. Proposal: split into `GigFlowSettingsSO` + `MeterTuningSO` + `GigPresentationSO` + `GigDevSettingsSO`; scene-instance refs stay on `GigManager`. Pure refactor, low risk. Pre-req for F-3. Scope 3-5h.
+3. **M4.6F-3 — Per-loop draw hook.** Likely existed and was removed/disabled; restore or fresh-implement. Hook in `CompositionSession.HandleLoopFinished` before the `_loopsRemainingForPart > 0` branch; read count from `GigFlowSettingsSO.drawPerLoop`. Reuses F-2. Scope 1-2h.
+4. **M4.6F-4 — SongOrchestrator IndexOutOfRange + ALWTTT-side defense.** IOOR inside MidiGenPlay's `GenerateSinglePart`; sublist mismatch hypothesis. Boundary-aware: ALWTTT-side fix is in scope (instrument `MidiMusicManager.RenderSinglePart` args, identify mismatch); MidiGenPlay-internal fix forwards to package owner with minimal repro. Add ALWTTT-side try-catch defense regardless. Scope 1-3h diag + 30 min defense.
+5. **M4.6F-5 — Composition per-loop pending workflow (Lectura A confirmed).** Per-loop pending granularity is a model change, not a bug fix. Rewrite `CompositionSession.HandleLoopFinished` for rotation within a part. UI semantics shift "Part A / Part B" → "Current loop / Next loop." Terminology decision: rename code's `Part` → `Loop` (reserving "Part" / "SongPart" for the future Song Parts Library design — see `planning/Design_Song_Parts_Library_v0_1.md`). Scope 4-8h + UI rework.
+
+After F-1..F-5: M4.6 demo gate. After demo gate: ST-M42-6/7/8/9 + batch (5) Runtime tuning original (parked).
+
 ## Post-MVP — Pending Effects system (planned, first post-MVP batch)
 
 Scope: ship the song-scoped accumulator layer described in `planning/Design_Pending_Effects_v1.md`. First user is deferred Earworm; multiplier cards introduced as content. Bucket lives on `CompositionSession`, resolves on `OnCompositionSongFinished` after `RunSongVibeResolution` and before audience-turn `Tick(AudienceTurnStart)`. Conditional resolution slot present in the data structure but hardcoded to always-resolve in MVP+1.
@@ -437,6 +449,7 @@ Long-term design pillar, deferred. Captured in `planning/Design_Tempo_Identity_v
 - [x] M4.4 Deck Contract Evolution — card copies honored at runtime and in Deck Editor (closed 2026-04-29, ST-M44-1..8 PASS, ST-M44-9 deferred, ST-M44-10 N/A)
 - [x] M4.5 Bidirectional guaranteed draws
 - [ ] M4.6 Starter deck v1 authored, registered, and validated end-to-end
+- [ ] M4.6-followup mini-milestone (F-1..F-5) — opened 2026-05-06, gates the M4.6 demo
 - [x] `CompositionCardPayload.effects` support verified (2026-04-23, ST-M13c-6)
 - [ ] Runtime tuning values received and applied (blocks M4.6 tuning pass only, not earlier batches)
 - [ ] Relevant SSoTs updated at each batch closure (full map in `CURRENT_STATE.md` §5 and this milestone)
@@ -514,3 +527,53 @@ Combined closure of two UI-fix batches surfaced during M4.6-prep batch (2) smoke
 **UI-fix-B — Inventory scrollbar functional.** ScrollRect snap-back / no visible scrollbar despite content overflow. Root cause: `Content` had `ContentSizeFitter` but no `LayoutGroup` to feed it preferred height; `Viewport` had `Mask` + a disabled `Image` (broken masking). Fix is asset-only on `InventoryCanvas.prefab` plus a small code edit on `InventoryCanvas.cs`. Asset edits: `VerticalLayoutGroup` on `Content`; `LayoutElement` on `FilterPanel` (PreferredHeight=100), `CardSpawnRoot` (PreferredHeight=2050), `SongSpawnRoot` (PreferredHeight=800); `RectMask2D` replaces `Mask`+disabled `Image` on `Viewport`; `CardSpawnRoot` Grid padding Top trim. Code edits: `[SerializeField] ScrollRect scrollRect`; at end of `SetCards`/`SetSongs`, `Canvas.ForceUpdateCanvases() + LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content) + verticalNormalizedPosition=1f`. Smoke tests ST-SCR-1/3/4/6/7 PASS, ST-SCR-2 FAIL ACCEPTED as paper cut (vacuous overflow with fixed `LayoutElement` height — follow-up via dynamic height computation logged in `CURRENT_STATE.md §4`), ST-SCR-5 DEFERRED-by-construction (no Songs inventory content reachable).
 
 Docs at closure: `CURRENT_STATE.md` §1 two new closure blocks + §4 open-item closures and three park-lot additions; this entry; `changelog-ssot.md` combined top entry. No SSoT change. No `ssot_manifest.yaml` change. No authority change.
+### Gig Setup roster pickers (merged (1)/(4)) ✅ (closed 2026-05-04)
+
+Bidirectional band + audience multi-select pickers shipped in the Gig Setup scene. Closes the open items *"Musician picker in Gig Setup"* (surfaced M4.2, 2026-04-28) and *"Gig Setup roster pickers"* (deferred from M4.3 surfacing). `pd.MusicianList` is now mutated by the picker before auto-assembly runs; `GigEncounterSO.audienceMemberList` becomes the *default* audience composition with a per-run override path via `GigEncounterSO.BuildRuntime(audienceOverride)` and `RunConfig.audienceOverride`.
+
+**Shipped scope:**
+- Two new files (`MusicianPickerRow.cs`, `AudiencePickerRow.cs`) + matching prefabs.
+- Five modified: `PersistentGameplayData.cs` (new `SetBandRoster(IList<MusicianBase>)`), `GigSetupConfigData.cs` (new `availableAudienceCharacters`, `maxAudienceCount`), `GigEncounterSO.cs` (new `BuildRuntime(IList<AudienceCharacterData>)` overload, regression-safe null fallback), `GigRunContext.cs` (new `RunConfig.audienceOverride`), `GigSetupController.cs` (picker fields, build/handler logic, validation, override decision; new serialized `gameplayData` field defensive against `Awake`-order singleton issues).
+- GigSetupScene prefab + GigSetupConfig SO populated.
+
+**Decision matrix:** D1=B (new `pd.SetBandRoster` method); D2=A (audience pool field on `GigSetupConfigData`); D3=B (toggle-list UI for both pickers); D4=remember-last + reset-on-encounter-swap; D5=band 1-4 / audience 1-`MaxAudienceCount` (band warns at 1, blocks at 0 or >4); D6=B+C combined (`BuildRuntime(audienceOverride)` overload + `RunConfig.audienceOverride` field); D7=A (single merged batch).
+
+**Audience-override decision rule** is multiset-blind on baked duplicates (post-batch fix): the picker UI dedups `AudienceCharacterData` by reference, so a no-customization run produces `pickedCount == bakedSet.Count` (unique-count). `DiffersFromEncounterAudience` builds `bakedSet` first, then compares against `pickedCount`. Encounters with duplicate baked entries (e.g., `[A, A, B]`) preserve duplicates at runtime when user does not customize; override stays null and `BuildRuntime` falls back to baked. When user customizes, multiplicity is lost for that run (picker UI is single-row-per-unique-SO). Multiplicity-aware picker UI (per-row count input + multiset-aware comparator) is tracked as a future batch (6).
+
+**Smoke tests** ST-M46p4-1..10 all PASS (10/10):
+- ST-M46p4-1 band picker basic — PASS
+- ST-M46p4-2 auto-assembly content respects picker — PASS (with spec addendum: generic catalog contributions are expected on top of per-musician)
+- ST-M46p4-3 empty band guard — PASS
+- ST-M46p4-4 single-musician warning (non-blocking) — PASS
+- ST-M46p4-5 audience picker basic + override (`override=True` path) — PASS
+- ST-M46p4-6 audience override null path regression (`override=False`) — PASS
+- ST-M46p4-7 audience max-count enforcement — PASS
+- ST-M46p4-8 encounter-swap audience reset — PASS
+- ST-M46p4-9 legacy regression (band picker + `BandDeckData` dropdown) — PASS
+- ST-M46p4-10 multiset-blind override preserves baked duplicates (added during validation) — PASS
+
+**Side-findings:**
+- `GameplayData` null at `Awake` time → reworked to prefer serialized field, `GameManager.Instance.GameplayData` as defensive fallback. Note: `GameplayData` on `GameManager` is an instance property, not static.
+- `RectTransform`-parenting warning → `Instantiate` + `SetParent(content, worldPositionStays: false)` pattern applied to both pickers.
+- Multiset-blind comparator (option-B fix, ~5 LoC) applied during validation. ST-M46p4-10 added to validate.
+- Audience picker multiplicity follow-up → tracked as batch (6) Audience picker multiplicity. Not blocking M4.6 demo gate. Touches `AudiencePickerRow` (per-row count input UI), `GigSetupController.BuildAudiencePicker` (compute baked counts), `GigSetupController.GetSelectedAudience` (multiset materialization), `DiffersFromEncounterAudience` (multiset comparison replaces multiset-blind workaround), and adds 3+ smoke tests.
+
+**ST-M42-6/7/8/9** (deferred from M4.2 closure 2026-04-28 because they required a 2-musician band selection mechanism) are now **unblocked** but not yet executed. They may run in parallel with M4.6 demo prep or post-demo.
+
+Docs at closure: `SSoT_Gig_Encounter.md` §7 new "Roster picker boundary" section + §§7-11 → §§8-12 renumber; `SSoT_Editor_Authoring_Tools.md` new §16 "Configurable runtime SO surfaces (Inspector-only)" with §16.1 `GigSetupConfigData`; `Design_Starter_Deck_v1.md` new §3.3 "Selection mechanism"; `CURRENT_STATE.md` §1 closure block + §3 M4.6 line update + §4 two open items flipped to RESOLVED; this Roadmap entry; `changelog-ssot.md` new top entry; `ssot_manifest.yaml` new entries under `SSoT_Gig_Encounter`.
+
+### M4.6-prep cleanup — Starter deck authoring + Card Editor tooling ✅ (closed 2026-05-06)
+
+Closes the pre-demo blocker that was tracked since M4.6-prep batch (2). 10 cards authored from scratch via JSON Import targeting Robot (4 cards) + Gusano (4 cards) + Generic (2 cards), final composition: Robot 4/4/5, Gusano 4/4/4, Generic 2/2/3 — matching `Design_Starter_Deck_v1.md §4`. Existing test/scaffold cards in Robot/Gusano subfolders deleted by user. Cantante (7/7) and Conito (10/10) catalogs intentionally untouched but inert (not in M4 demo roster).
+
+**Two Card Editor tooling patches shipped alongside:**
+- Patch 1 — Status dropdown classified (`DrawStatusEffectPicker` reads both `StatusCatalogueMusicians` + `StatusCatalogueAudience`, hierarchical `Musicians/...` / `Audience/...` paths via `DropdownButton + GenericMenu`). Closes the `Card Editor inline effects-block UI on legacy catalogue alias` open item from `CURRENT_STATE.md §4`.
+- Patch 2 — Catalog Source toggle (`CatalogSource { Musician, Generic }`; in Generic mode auto-loads `GenericCardCatalogSO` via name-heuristic; entry list rendered with batch (3.A) per-row Starter UI; write paths NOT Generic-aware in this iteration).
+
+**Smoke tests** ST-SD-1..8: 7/8 PASS, 1 reclassified DEFERRED-by-design. ST-SD-7 (Singing Field inherits progression) failed because Wormus Minor (Backing) and Singing Field (Melody) both have `FixedPerformerType: Sibi` and the runtime model enforces "one musician = one track active at a time" — second card replaces first. Model invariant, not cleanup defect. Test re-formulation deferred to roster expansion.
+
+**Post-closure verification:** Patch 2's flagged latent-bug concern (toggle-to-Generic not clearing loaded musician state) was verified resolved in code at apply time — `CardEditorWindow.cs:244-249` correctly clears `_loadedCatalog` and `_loadedMusicianData` on switch-to-Generic; no fix required.
+
+**Findings during smoke testing opened a new mini-milestone**, M4.6-followup (5 batches F-1..F-5). See §4.6-followup above. The M4.6 demo gate is now blocked on F-1..F-5 closing rather than on starter deck cleanup itself.
+
+Docs at closure: `CURRENT_STATE.md` §1 new closure block + §3 M4.6 line update + §4 two items flipped to RESOLVED + 8 new bullets added + §5 entry; this Roadmap entry; `changelog-ssot.md` new top entry; `SSoT_Editor_Authoring_Tools.md` new §4.9 (Catalog Source toggle + classified status dropdown). New planning doc `planning/Design_Song_Parts_Library_v0_1.md` (status: planning-only, future design intent for Song Parts Library — Intro/Verse/Chorus/Outro stored & repeatable). No SSoT contract change. No `ssot_manifest.yaml`, `coverage-matrix.md`, `SSoT_INDEX.md`, `SSoT_CONTRACTS.md` change.

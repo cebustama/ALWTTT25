@@ -250,6 +250,18 @@ Important boundary rule:
 - ALWTTT owns the gameplay/runtime meaning of playing the composition card
 - MidiGenPlay owns package-side implementation details for internal music generation behavior
 
+### 9.3 OnCardPlayed pile transition contract (M4.6F-1, 2026-05-07)
+
+Each successful card play results in **exactly one** `DeckManager.OnCardPlayed(CardBase)` call. The single call site varies by card type:
+
+- **Composition cards.** `HandController.PlayCard` calls `OnCardPlayed` after `TryPlayCompositionCard` (via `GigManager`) returns true. Composition cards do **not** enter `CardBase.Use`.
+- **SFX action cards** (`CardType.SFX`). `CardBase.Use` (line 93 of `CardBase.cs`) calls `OnCardPlayed` synchronously inside its SFX branch.
+- **Non-SFX action cards.** `CardBase.CardUseRoutine` (line 131) calls `OnCardPlayed` after `ExecuteEffects` yields, so effects resolve before `DiscardRoutine` destroys the GameObject.
+
+Calling `OnCardPlayed` redundantly across these sites doubles the discard: `HandPile.Remove` and `DiscardPile.Add` fire twice on the same `CardBase` instance, removing two distinct entries from `HandPile` because pile multiplicity tracks `CardDefinition` references (asset references) rather than `CardBase` instances. The `IsExhausted`/`IsPlayable` guards in `CardBase.Discard` do not catch the second call because `DiscardRoutine` animates over `discardDuration` before `Destroy(gameObject)`, leaving the GameObject playable during the animation window.
+
+This invariant was implicit in the original architecture and was violated for action cards prior to M4.6F-1 (`HandController.PlayCard:580-581` called `OnCardPlayed` unconditionally on `played == true`, in addition to the per-card-type internal call). Fix: `HandController.PlayCard` gates its `OnCardPlayed` call on `heldCard.CardDefinition.IsComposition`. See `CURRENT_STATE.md` M4.6F-1 closure block.
+
 ---
 
 ## 10. UI / description behavior

@@ -108,7 +108,7 @@ namespace ALWTTT.UI
                     var songData = songDataList[count + i];
                     var songUI = Instantiate(songUIPrefab, songSpawnRoot.transform);
                     songUI.GetComponentInChildren<TextMeshProUGUI>().text =
-                        songData.SongTitle + " - " + songData.SongTheme + " - " 
+                        songData.SongTitle + " - " + songData.SongTheme + " - "
                         + songData.Complexity;
                     spawnedSongList.Add(songUI);
                 }

@@ -39,6 +39,11 @@ namespace ALWTTT.Cards.Editor
         [SerializeField] private MusicianCardCatalogData _loadedCatalog;
         [SerializeField] private int _selectedEntryIndex = -1;
 
+        // Catalog source — Musician (default) or Generic.
+        private enum CatalogSource { Musician, Generic }
+        [SerializeField] private CatalogSource _catalogSource = CatalogSource.Musician;
+        [SerializeField] private GenericCardCatalogSO _loadedGenericCatalog;
+
         // Add existing
         [SerializeField] private CardDefinition _cardToAdd;
 
@@ -222,23 +227,56 @@ namespace ALWTTT.Cards.Editor
                 using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
                 {
                     // ─────────────────────────────────────────────────────────────
-                    // Musician selection
+                    // Catalog source toggle
                     // ─────────────────────────────────────────────────────────────
-                    GUILayout.Label("Musician:", GUILayout.Width(62));
+                    GUILayout.Label("Source:", GUILayout.Width(50));
 
-                    var newMusician = (MusicianCharacterType)EditorGUILayout.EnumPopup(
-                        _selectedMusician,
+                    var newSource = (CatalogSource)EditorGUILayout.EnumPopup(
+                        _catalogSource,
                         EditorStyles.toolbarPopup,
-                        GUILayout.Width(180));
+                        GUILayout.Width(90));
 
-                    if (newMusician != _selectedMusician)
+                    if (newSource != _catalogSource)
                     {
-                        _selectedMusician = newMusician;
-                        _loadedMusicianData = null;
-                        _loadedCatalog = null;
+                        _catalogSource = newSource;
                         _selectedEntryIndex = -1;
-                        _cardToAdd = null;
+
+                        if (_catalogSource == CatalogSource.Generic)
+                        {
+                            _loadedCatalog = null;
+                            _loadedMusicianData = null;
+                            EnsureGenericCatalogLoaded();
+                        }
+                        else
+                        {
+                            _loadedGenericCatalog = null;
+                        }
                         Repaint();
+                    }
+
+                    GUILayout.Space(8);
+
+                    // ─────────────────────────────────────────────────────────────
+                    // Musician selection (only when Source = Musician)
+                    // ─────────────────────────────────────────────────────────────
+                    using (new EditorGUI.DisabledScope(_catalogSource == CatalogSource.Generic))
+                    {
+                        GUILayout.Label("Musician:", GUILayout.Width(62));
+
+                        var newMusician = (MusicianCharacterType)EditorGUILayout.EnumPopup(
+                            _selectedMusician,
+                            EditorStyles.toolbarPopup,
+                            GUILayout.Width(180));
+
+                        if (newMusician != _selectedMusician)
+                        {
+                            _selectedMusician = newMusician;
+                            _loadedMusicianData = null;
+                            _loadedCatalog = null;
+                            _selectedEntryIndex = -1;
+                            _cardToAdd = null;
+                            Repaint();
+                        }
                     }
 
                     GUILayout.FlexibleSpace();
@@ -473,12 +511,28 @@ namespace ALWTTT.Cards.Editor
 
         private void DrawEntryList()
         {
-            var entries = _loadedCatalog.Entries;
-            if (entries == null)
+            IList<MusicianCardEntry> entries = null;
+            ScriptableObject activeCatalog = null;
+
+            if (_catalogSource == CatalogSource.Generic)
             {
-                EditorGUILayout.HelpBox("Catalog entries list is null.", MessageType.Error);
-                return;
+                if (_loadedGenericCatalog == null) EnsureGenericCatalogLoaded();
+                if (_loadedGenericCatalog != null)
+                {
+                    entries = _loadedGenericCatalog.Entries;
+                    activeCatalog = _loadedGenericCatalog;
+                }
             }
+            else
+            {
+                if (_loadedCatalog != null)
+                {
+                    entries = _loadedCatalog.Entries;
+                    activeCatalog = _loadedCatalog;
+                }
+            }
+
+            if (entries == null) { /* show empty-state helpbox */ return; }
 
             // Header
             using (new EditorGUILayout.HorizontalScope())
@@ -486,7 +540,9 @@ namespace ALWTTT.Cards.Editor
                 GUILayout.Label($"Entries: {entries.Count}", EditorStyles.miniBoldLabel);
                 GUILayout.FlexibleSpace();
 
-                using (new EditorGUI.DisabledScope(_loadedCatalog == null || _loadedMusicianData == null))
+                using (new EditorGUI.DisabledScope(
+    (_catalogSource == CatalogSource.Musician && (_loadedCatalog == null || _loadedMusicianData == null)) ||
+    _catalogSource == CatalogSource.Generic))
                 {
                     if (GUILayout.Button("Sync From Assets", GUILayout.Width(130)))
                         SyncFromAssets();
@@ -569,7 +625,7 @@ namespace ALWTTT.Cards.Editor
             SerializedProperty entriesArrSp = null;
             if (_loadedCatalog != null)
             {
-                catSo = new SerializedObject(_loadedCatalog);
+                catSo = new SerializedObject(activeCatalog);
                 entriesArrSp = catSo.FindProperty("entries");
                 catSo.Update();
             }
@@ -743,7 +799,9 @@ namespace ALWTTT.Cards.Editor
             {
                 GUILayout.Label("Create Card + Payload", EditorStyles.boldLabel);
 
-                using (new EditorGUI.DisabledScope(_loadedCatalog == null || _loadedMusicianData == null))
+                using (new EditorGUI.DisabledScope(
+    (_catalogSource == CatalogSource.Musician && (_loadedCatalog == null || _loadedMusicianData == null)) ||
+    _catalogSource == CatalogSource.Generic))
                 {
                     EditorGUI.BeginChangeCheck();
 
@@ -1371,7 +1429,7 @@ namespace ALWTTT.Cards.Editor
             EditorGUILayout.PropertyField(conditionsProp, includeChildren: true);
 
             EditorGUILayout.Space(8);
-            DrawEffectsBlock(effectsProp, _registries?.StatusCatalogue);
+            DrawEffectsBlock(effectsProp, _registries);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -1409,7 +1467,7 @@ namespace ALWTTT.Cards.Editor
             EditorGUILayout.PropertyField(modifierEffectsProp, includeChildren: true);
 
             EditorGUILayout.Space(8);
-            DrawEffectsBlock(effectsProp, _registries?.StatusCatalogue);
+            DrawEffectsBlock(effectsProp, _registries);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -1611,7 +1669,7 @@ namespace ALWTTT.Cards.Editor
 
         private static bool _effectsFoldout = true;
 
-        private static void DrawEffectsBlock(SerializedProperty effectsProp, StatusEffectCatalogueSO catalogue)
+        private static void DrawEffectsBlock(SerializedProperty effectsProp, ALWTTTProjectRegistriesSO registries)
         {
             if (effectsProp == null)
             {
@@ -1633,7 +1691,6 @@ namespace ALWTTT.Cards.Editor
 
                 EditorGUI.indentLevel++;
 
-                // Render elements with small helper controls.
                 for (int i = 0; i < effectsProp.arraySize; i++)
                 {
                     var el = effectsProp.GetArrayElementAtIndex(i);
@@ -1644,7 +1701,6 @@ namespace ALWTTT.Cards.Editor
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             GUILayout.Label(BuildEffectLabel(el, i), EditorStyles.boldLabel);
-
                             GUILayout.FlexibleSpace();
 
                             using (new EditorGUI.DisabledScope(i == 0))
@@ -1669,11 +1725,11 @@ namespace ALWTTT.Cards.Editor
                             {
                                 effectsProp.DeleteArrayElementAtIndex(i);
                                 GUI.changed = true;
-                                break; // stop rendering (array changed)
+                                break;
                             }
                         }
 
-                        DrawEffectFields(el, catalogue, i);
+                        DrawEffectFields(el, registries, i);
                     }
                 }
 
@@ -1773,13 +1829,12 @@ namespace ALWTTT.Cards.Editor
             return $"[{index}] {typeName}";
         }
 
-        private static void DrawEffectFields(SerializedProperty el, StatusEffectCatalogueSO catalogue, int row)
+        private static void DrawEffectFields(SerializedProperty el, ALWTTTProjectRegistriesSO registries, int row)
         {
-            // ApplyStatusEffectSpec: show a catalogue-backed picker (DisplayName), and validate.
             var statusProp = el.FindPropertyRelative("status");
             if (statusProp != null)
             {
-                DrawStatusEffectPicker(statusProp, catalogue);
+                DrawStatusEffectPicker(statusProp, registries);
 
                 if (statusProp.objectReferenceValue == null)
                 {
@@ -1788,7 +1843,6 @@ namespace ALWTTT.Cards.Editor
                         MessageType.Warning);
                 }
 
-                // Show remaining fields
                 var targetProp = el.FindPropertyRelative("targetType");
                 var stacksProp = el.FindPropertyRelative("stacksDelta");
                 var delayProp = el.FindPropertyRelative("delay");
@@ -1800,57 +1854,121 @@ namespace ALWTTT.Cards.Editor
                 return;
             }
 
-            // Default fallback: just draw children (works for simple specs like DrawCardsSpec)
             EditorGUILayout.PropertyField(el, includeChildren: true);
         }
 
-        private static void DrawStatusEffectPicker(SerializedProperty statusProp, StatusEffectCatalogueSO catalogue)
+        private static void DrawStatusEffectPicker(SerializedProperty statusProp, ALWTTTProjectRegistriesSO registries)
         {
-            // If no catalogue, fall back to a plain object field.
-            if (catalogue == null || catalogue.Effects == null || catalogue.Effects.Count == 0)
+            // Build combined list across both catalogues post-MB2 split.
+            var musiciansCat = registries != null ? registries.StatusCatalogueMusicians : null;
+            var audienceCat = registries != null ? registries.StatusCatalogueAudience : null;
+
+            var musicianList = new List<StatusEffectSO>();
+            var audienceList = new List<StatusEffectSO>();
+
+            if (musiciansCat?.Effects != null)
+            {
+                for (int i = 0; i < musiciansCat.Effects.Count; i++)
+                    if (musiciansCat.Effects[i] != null) musicianList.Add(musiciansCat.Effects[i]);
+            }
+            if (audienceCat?.Effects != null)
+            {
+                for (int i = 0; i < audienceCat.Effects.Count; i++)
+                    if (audienceCat.Effects[i] != null) audienceList.Add(audienceCat.Effects[i]);
+            }
+
+            // Fallback: no catalogues at all → plain object field (legacy behaviour).
+            if (musicianList.Count == 0 && audienceList.Count == 0)
             {
                 EditorGUILayout.PropertyField(statusProp);
                 return;
             }
 
-            // Filter nulls for a cleaner UX
-            var raw = catalogue.Effects;
-            var list = new System.Collections.Generic.List<StatusEffectSO>(raw.Count);
-            for (int i = 0; i < raw.Count; i++)
-                if (raw[i] != null) list.Add(raw[i]);
-
-            if (list.Count == 0)
-            {
-                EditorGUILayout.PropertyField(statusProp);
-                return;
-            }
-
-            var options = new string[list.Count + 1];
-            options[0] = "<None>";
-
-            int current = 0;
             var currentObj = statusProp.objectReferenceValue as StatusEffectSO;
+            string currentLabel = currentObj != null
+                ? (string.IsNullOrWhiteSpace(currentObj.DisplayName) ? currentObj.name : currentObj.DisplayName)
+                : "<None>";
 
-            for (int i = 0; i < list.Count; i++)
+            using (new EditorGUILayout.HorizontalScope())
             {
-                var e = list[i];
-                string name = string.IsNullOrWhiteSpace(e.DisplayName) ? e.name : e.DisplayName;
-                options[i + 1] = name;
+                EditorGUILayout.PrefixLabel("Status");
 
-                if (currentObj == e)
-                    current = i + 1;
-            }
+                if (EditorGUILayout.DropdownButton(
+                    new GUIContent(currentLabel),
+                    FocusType.Keyboard,
+                    EditorStyles.popup))
+                {
+                    var menu = new GenericMenu();
 
-            int next = EditorGUILayout.Popup("Status", current, options);
-            if (next != current)
-            {
-                statusProp.objectReferenceValue = next <= 0 ? null : list[next - 1];
-                GUI.changed = true;
+                    menu.AddItem(new GUIContent("<None>"), currentObj == null, () =>
+                    {
+                        statusProp.objectReferenceValue = null;
+                        statusProp.serializedObject.ApplyModifiedProperties();
+                        EditorUtility.SetDirty(statusProp.serializedObject.targetObject);
+                    });
+
+                    menu.AddSeparator("");
+
+                    for (int i = 0; i < musicianList.Count; i++)
+                    {
+                        var captured = musicianList[i];
+                        string name = string.IsNullOrWhiteSpace(captured.DisplayName) ? captured.name : captured.DisplayName;
+                        menu.AddItem(new GUIContent($"Musicians/{name}"), captured == currentObj, () =>
+                        {
+                            statusProp.objectReferenceValue = captured;
+                            statusProp.serializedObject.ApplyModifiedProperties();
+                            EditorUtility.SetDirty(statusProp.serializedObject.targetObject);
+                        });
+                    }
+
+                    for (int i = 0; i < audienceList.Count; i++)
+                    {
+                        var captured = audienceList[i];
+                        string name = string.IsNullOrWhiteSpace(captured.DisplayName) ? captured.name : captured.DisplayName;
+                        menu.AddItem(new GUIContent($"Audience/{name}"), captured == currentObj, () =>
+                        {
+                            statusProp.objectReferenceValue = captured;
+                            statusProp.serializedObject.ApplyModifiedProperties();
+                            EditorUtility.SetDirty(statusProp.serializedObject.targetObject);
+                        });
+                    }
+
+                    menu.ShowAsContext();
+                }
             }
         }
 
-
         // --- Loading ----------------------------------------------------------
+
+        private void EnsureGenericCatalogLoaded()
+        {
+            if (_loadedGenericCatalog != null) return;
+
+            string[] guids = AssetDatabase.FindAssets("t:GenericCardCatalogSO");
+            if (guids == null || guids.Length == 0)
+            {
+                Debug.LogWarning("[CardEditorWindow] No GenericCardCatalogSO assets found in project.");
+                return;
+            }
+
+            // Prefer assets whose name does NOT contain "Test".
+            GenericCardCatalogSO best = null;
+            foreach (var guid in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var asset = AssetDatabase.LoadAssetAtPath<GenericCardCatalogSO>(path);
+                if (asset == null) continue;
+
+                if (best == null) best = asset;
+                if (!asset.name.Contains("Test", StringComparison.OrdinalIgnoreCase))
+                {
+                    best = asset;
+                    break;
+                }
+            }
+
+            _loadedGenericCatalog = best;
+        }
 
         private void RefreshMusicianCache()
         {

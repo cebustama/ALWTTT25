@@ -41,7 +41,7 @@ MonoBehaviour:
   initialCompositionDeck: {fileID: 11400000, guid: 37efae426d58b844a9e5be7229e9a6cd, type: 2}
   actionCardPool: []
   compositionCardPool: []
-  drawCount: 2
+  drawCount: 3
   maxCardsOnHand: 10
   maxInspiration: 5
   discardHandBetweenTurns: 1
@@ -60,17 +60,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 12cb456fe0274f945bc29d64ec33b432, type: 2}
   - {fileID: 11400000, guid: 9c9c0cf235a5bfa469feef007a245cb8, type: 2}
   - {fileID: 11400000, guid: 568ee963b8fcf5d498b16dd3d5466caf, type: 2}
-  - {fileID: 11400000, guid: d2f81603dbe5bfd42b43214131a3f8fe, type: 2}
-  - {fileID: 11400000, guid: 7ea46b9a1030a214f8d15582bf979af8, type: 2}
-  - {fileID: 11400000, guid: d81c5119f8d6876408696918f1224444, type: 2}
   - {fileID: 11400000, guid: 3cdd4e110e0b75a43afd32d122cdf4e3, type: 2}
-  - {fileID: 11400000, guid: 7ef3a095c79667945802ac9fb83d6c9f, type: 2}
-  - {fileID: 11400000, guid: 3a0711973588746409e6fd29d1d6e2df, type: 2}
-  - {fileID: 11400000, guid: a9de9c494fdc6ff4886d623442c1a3fd, type: 2}
-  - {fileID: 11400000, guid: e6959291718ff8044b05ce9c895c24c6, type: 2}
   - {fileID: 11400000, guid: cf42d211cf647444ba22202e1e3cdbab, type: 2}
   - {fileID: 11400000, guid: 995af23134ab0144aaed4050765eccdc, type: 2}
-  - {fileID: 11400000, guid: e4f27706ddaa2434684a899373365d45, type: 2}
+  - {fileID: 11400000, guid: a098a43d82afe7d4ab2a2a0b62989f42, type: 2}
   cardPrefab: {fileID: 5965618076488326275, guid: 15bfb561cbf35f04b9148c67d30ade30, type: 3}
   cardTypeEntryList:
   - CardType: 0

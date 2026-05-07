@@ -135,9 +135,33 @@ This document owns the encounter-level structure that runtime is expected to exe
 
 ---
 
-## 7. Victory and failure
+## 7. Roster picker boundary (M4.6-prep merged (1)/(4))
 
-### 7.1 Audience-member victory rule
+The Gig Setup scene's band and audience pickers are the canonical mechanism for runtime roster composition.
+
+### 7.1 Band roster
+- `pd.MusicianList` is set by `GigSetupController` via the band picker, calling `pd.SetBandRoster(picked)`. This is distinct from `pd.AddMusicianToBand(MusicianCharacterData)`, which is the meta/recruit path and additionally grants base cards to provenance.
+- The band picker reads `gameplayData.AllMusiciansList` for available musicians. First-visit selection defaults to `gameplayData.InitialMusicianList`; later visits remember `pd.MusicianList`.
+- Validation: min 1, max 4 musicians (max enforced in code; matches `BuildBand` sprite-layer assumption that splits at i<2). Single-musician selection produces a warning, not a block.
+
+### 7.2 Audience roster
+- `GigEncounterSO.audienceMemberList` is the **default** audience composition for an encounter, not a hard binding. The audience picker can override per-run.
+- When the picker selection differs from the encounter's baked list, `GigSetupController` produces an `audienceOverride` list and passes it to `GigEncounterSO.BuildRuntime(audienceOverride)`. When the selection matches (or the user did not interact), the override is null and the encounter's baked list is used (regression-safe path).
+- **Override-decision rule is multiset-blind on baked duplicates.** The picker UI collapses duplicate `AudienceCharacterData` entries to a single row (HashSet dedup in `BuildAudiencePicker`), so a no-customization run produces a picker selection of size = unique-count of baked, not raw baked count. `DiffersFromEncounterAudience` compares picker count against `bakedSet.Count` (unique-count), not raw `bakedCount`. Consequence: encounters with duplicate audience entries (e.g., `[A, A, B]`) preserve duplicates at runtime when the user does not customize, because the override stays null and `BuildRuntime` falls back to the baked list. When the user customizes, the override list cannot represent multiplicity (single picker rows) and duplicates are lost for that run. Multiplicity-aware picker UI is a future concern (tracked: M4.6-prep batch (6)).
+- The audience pool shown by the picker is the union of `setupConfig.AvailableAudienceCharacters` and the currently-selected encounter's `AudienceMemberList`. Encounter-defined audiences therefore always appear, even when absent from the configured pool.
+- Validation: min 1, max = `setupConfig.MaxAudienceCount` (mirror of `GigScene.AudienceMemberPosList.Count`).
+
+### 7.3 Encounter swap behavior
+Changing the encounter dropdown rebuilds the audience picker with the new encounter's baked list as default. If the user had customized audience selection, a warning logs and the customization is discarded.
+
+### 7.4 What this section does not own
+The `BandDeckData` asset path (dev/test deck override) is owned by `SSoT_Card_Authoring_Contracts.md`; the legacy and auto-assembly deck paths are owned by `SSoT_Card_System.md`. This section governs **roster identity**, not deck content.
+
+---
+
+## 8. Victory and failure
+
+### 8.1 Audience-member victory rule
 Each audience member has:
 - current `Vibe`
 - a target `VibeGoal`
@@ -148,7 +172,7 @@ An audience member is **Convinced** when:
 Vibe >= VibeGoal
 ```
 
-### 7.2 Gig-level victory rule
+### 8.2 Gig-level victory rule
 **Baseline governed rule:** the Gig is cleared when all required audience members are convinced by the end of the encounter.
 
 This keeps encounter success tied to persuasion rather than destruction.
@@ -160,7 +184,7 @@ Optional future encounter modes may include:
 
 Those remain encounter variants until explicitly promoted.
 
-### 7.3 Gig-level failure rule
+### 8.3 Gig-level failure rule
 The Gig fails when the band can no longer sustain the encounter.
 
 The baseline governed failure condition is:
@@ -179,9 +203,9 @@ This is invoked from `MusicianBase.OnBreakdown()` immediately after `PersistentG
 
 ---
 
-## 8. Encounter modifiers and special room rules
+## 9. Encounter modifiers and special room rules
 
-### 8.1 Gig modifiers
+### 9.1 Gig modifiers
 Gig modifiers are encounter-wide mutators that alter how the room behaves.
 
 Examples:
@@ -192,7 +216,7 @@ Examples:
 
 This SSoT owns the concept that such modifiers belong at encounter scope.
 
-### 8.2 Special audience members / mini-bosses
+### 9.2 Special audience members / mini-bosses
 Baseline MVP assumes ordinary audience members use the normal persuasion model:
 - `Vibe`
 - `VibeGoal`
@@ -214,29 +238,29 @@ They are valid encounter-level extensions, but not required for the baseline gov
 
 ---
 
-## 9. What belongs to adjacent docs
+## 10. What belongs to adjacent docs
 
-### 9.1 `systems/SSoT_Gig_Combat_Core.md`
+### 10.1 `systems/SSoT_Gig_Combat_Core.md`
 Owns:
 - time scales such as loop/part/song/gig in combat terms
 - combat phases
 - combat-facing resources and failure pressure
 - Breakdown/Stress/Flow/Composure meaning
 
-### 9.2 `runtime/SSoT_Runtime_Flow.md`
+### 10.2 `runtime/SSoT_Runtime_Flow.md`
 Owns:
 - which runtime actors execute the Gig
 - phase transitions
 - session creation/destruction
 - feedback emission timing
 
-### 9.3 `systems/SSoT_Audience_and_Reactions.md`
+### 10.3 `systems/SSoT_Audience_and_Reactions.md`
 Owns:
 - what an audience member is
 - how audience members interpret loops/songs
 - ability archetypes and audience-side reaction semantics
 
-### 9.4 `systems/SSoT_Scoring_and_Meters.md`
+### 10.4 `systems/SSoT_Scoring_and_Meters.md`
 Owns:
 - LoopScore / SongHype / VibeDelta relationships
 - song-end persuasion conversion semantics
@@ -245,7 +269,7 @@ This split prevents Gig docs from becoming another giant mixed authority documen
 
 ---
 
-## 10. Invariants
+## 11. Invariants
 
 1. A Gig is always the encounter unit, not the song unit.
 2. Audience persuasion persists across Songs inside a Gig.
@@ -256,7 +280,7 @@ This split prevents Gig docs from becoming another giant mixed authority documen
 
 ---
 
-## 11. Migration note
+## 12. Migration note
 
 This SSoT absorbs the encounter-structure truth of `reference/Gig.md` into the governed system.
 

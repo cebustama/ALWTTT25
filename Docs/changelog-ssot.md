@@ -3,6 +3,169 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-07 — M4.6F-1 closure: action card double-discard
+First M4.6-followup batch closes. Bug class misdiagnosed at intake as a reshuffle/pile lifecycle defect; the `[F-1]` instrumentation in `DeckManager.cs` (5 sites), `CardBase.cs` (1 site), `InventoryCanvas.cs` (1 site) routed correctly to root cause. Reshuffle data path was always correct (AFTER CLEAR shows `discard=0` and `DM_id` invariant across all logs). The actual bug was upstream in the play pipeline.
+
+Root cause: two independent paths called `DeckManager.OnCardPlayed` for the same played `CardBase` instance. `HandController.PlayCard:580-581` fired unconditionally on `played == true`. `CardBase.Use:93` (SFX synchronous branch) or `CardBase.CardUseRoutine:131` (non-SFX deferred branch) also fired. For action cards (Warm Up, Take Five, Mind Tap), both call sites executed; `IsExhausted`/`IsPlayable` guards in `CardBase.Discard` did not catch the second call because `DiscardRoutine` animates over `discardDuration` before `Destroy(gameObject)`. Each play removed two `CardDefinition` references from `HandPile` and added two to `DiscardPile`, surfacing as "duplicates in DiscardPile" and "clones appearing in DrawPile after reshuffle" (the symptom the user reported at intake). Composition cards bypass `CardBase.Use` entirely (route via `GigManager.TryPlayCompositionCard`), so they had only the HandController call and were not affected.
+
+Fix: `HandController.PlayCard:580-602` — gate the `OnCardPlayed` call to `IsComposition` only. Action cards keep their internal Use-pipeline discard timing. Same gate fixes a latent SFX action card double-discard (no SFX cards in current deck, so user-invisible).
+
+Suspicion audit at closure: S-A (missing `SetPileTexts` at reshuffle) is not the cause but the underlying observation is real and cosmetic — tracked as a future follow-up. S-B (duplicate `DeckManager` instance) ruled out by `DM_id` invariance across all logs.
+
+Semantic changes
+SSoT_Card_System:
+
+New §9.3 "OnCardPlayed pile transition contract" appended after §9.2. Documents the exactly-once invariant on `DeckManager.OnCardPlayed` per card play, with the per-card-type single-call-site mapping (Composition → `HandController.PlayCard` after `TryPlayCompositionCard` returns true; SFX action → `CardBase.Use:93` synchronous; non-SFX action → `CardBase.CardUseRoutine:131` after `ExecuteEffects` yields). Notes that the `IsExhausted`/`IsPlayable` guards in `CardBase.Discard` do not protect against double calls because `DiscardRoutine` animates before destroy. Cross-references the M4.6F-1 fix.
+
+CURRENT_STATE:
+
+§1 new closure block "M4.6F-1 — Action card double-discard — complete (2026-05-07)" inserted before the M4.6-prep cleanup block. Documents misdiagnosis at intake, root cause, fix, side fix (latent SFX), suspicion audit (S-A not cause; S-B ruled out), six smoke tests all PASS, files changed (`HandController.cs` only; instrumentation reverted from three other files).
+§3 M4.6 dependency line updated: "Demo gate dependencies: **M4.6-followup mini-milestone batches F-2 through F-5**" (was F-1 through F-5). F-1 closure date noted.
+§4 Open items: M4.6F-1 bullet flipped to RESOLVED with full root-cause/fix/audit summary.
+§5 new entry "M4.6F-1 closure (applied 2026-05-07)" with full file-change inventory.
+
+Roadmap_ALWTTT:
+
+`**Last updated:**` bumped to 2026-05-07.
+§4.6-followup F-1 entry retitled to "Action card double-discard" and marked ✅ (closed 2026-05-07) with closure summary.
+
+ssot_manifest:
+
+SSoT_Card_System hard_invariants gains one entry: "Each successful card play fires exactly one DeckManager.OnCardPlayed call. The call site is HandController.PlayCard for Composition cards, CardBase.Use for SFX action cards, and CardBase.CardUseRoutine for non-SFX action cards. Doubling the call doubles HandPile.Remove + DiscardPile.Add and is a defect."
+
+Authority changes
+
+None. No SSoT promoted or retired. The Card_System SSoT gains one section + one manifest invariant under existing authority.
+
+Operational changes
+
+Code changes (runtime):
+- `Assets/Scripts/Controllers/HandController.cs` — `PlayCard` method modified at lines 580-602: added `IsComposition` gate around the `DeckManager.OnCardPlayed(heldCard)` call. Net +21 lines (includes inline rationale comment).
+
+Code changes (diagnostic, reverted at closure):
+- `Assets/Scripts/Managers/DeckManager.cs` — five `[F-1]`-tagged log sites added during diagnostic (Awake, OnCardDiscarded, ReshuffleDiscardPile, DevForceHandResetToDiscard, F1Tag constant), all reverted.
+- `Assets/Scripts/Cards/CardBase.cs` — one `[F-1]`-tagged log site added in `Discard`, reverted.
+- `Assets/Scripts/UI/Canvases/InventoryCanvas.cs` — one `[F-1]`-tagged log site added in `SetCards`, reverted.
+
+Smoke test results
+
+ST-DOUBLE-1 (action card single-discard) PASS; ST-DOUBLE-2 (composition card single-discard regression) PASS; ST-DOUBLE-3 (multiplicity preservation across gig) PASS; ST-RESHUFFLE-1 (full deck cycle) PASS; ST-RESHUFFLE-2 (filtered draw reshuffle) PASS; ST-RESHUFFLE-3 (clone regression) PASS. All six PASS.
+
+Closes
+
+M4.6F-1 mini-milestone batch. M4.6 demo gate now depends on F-2 through F-5 only.
+
+Files unchanged
+
+`coverage-matrix.md`, `SSoT_INDEX.md`, `SSoT_CONTRACTS.md`. No authority, governance, or contract change beyond the new invariant under existing Card_System authority.
+
+2026-05-06 — M4.6-prep cleanup closure: starter deck authoring + Card Editor tooling
+Closes the pre-demo blocker (test catalogs all-starter-flagged for tooling validation since M4.6-prep batch (2)). 10 cards authored from scratch via JSON Import (Robot 4 + Gusano 4 + Generic 2). Final composition: Robot 4/4/5, Gusano 4/4/4, Generic 2/2/3 — matching `Design_Starter_Deck_v1.md §4`. Cantante and Conito catalogs untouched but inert (not in M4 demo roster). Two Card Editor tooling patches shipped alongside.
+
+Semantic changes
+Design_Starter_Deck_v1 (planning, non-SSoT):
+
+§3.3 (or §10 — pick canonical site) — note added: in code, the Sibi character is the asset `Gusano_CardCatalogData`. Asset name retained from earlier development. Naming origin: Sibi's species speaks via music; her "sound" is a B note, sometimes notated incorrectly as Cb (C bemol).
+§9 #7 (Singing Field phrase palette content) — CLOSED. `Melody Card Config - Test` reused as placeholder for the demo. Future palette authoring tracked in roster expansion.
+§9 #8 (Wormus palette content) — CLOSED. Existing `Chord Palette - Core Minor` and `Core Major` palettes (cabled to `Backing Card Config - Core Minor` and `Core Major` style bundles) reused unchanged.
+§10 — ST-SD-7 marked DEFERRED-by-design. Reason: `FixedPerformerType: Sibi` on both Wormus Minor (Backing) and Singing Field (Melody); runtime model enforces one-track-per-musician-per-loop. Test re-formulation deferred to roster expansion.
+
+CURRENT_STATE:
+
+§1 new closure block "M4.6-prep cleanup — Starter deck authoring + Card Editor tooling — complete (2026-05-06)" inserted before the M4.6-prep merged (1)/(4) block. Documents the 10-card authoring (Robot 4 / Gusano 4 / Generic 2), pre/post inventory snapshot reference (`inv2.json` pre, `inv4.json` post), Patch 1 (classified status dropdown) and Patch 2 (Catalog Source toggle, read-only Generic) shipping, ST-SD-1..8 smoke summary (7/8 PASS, ST-SD-7 DEFERRED-by-design with model-invariant rationale), Patch 2 latent-bug verification finding (already-fixed at apply time, lines 244-249), asset-path cosmetic side-finding.
+§3 M4.6 dependency parenthetical updated to reflect cleanup closure 2026-05-06; demo gate now depends on M4.6-followup batches F-1..F-5.
+§4 Open items: two existing items flipped to RESOLVED — "Card Editor inline effects-block UI on legacy catalogue alias" (resolved by Patch 1) and "All-starter-flagged catalog content" (resolved for demo roster Robot+Gusano; Cantante/Conito intentionally inert). Eight new bullets added: M4.6F-1 reshuffle, M4.6F-2 GigSettings multi-SO, M4.6F-3 per-loop draw, M4.6F-4 SongOrchestrator IOOR, M4.6F-5 per-loop pending Lectura A, Card Editor Generic write-side deferred, asset path cosmetic, Cantante/Conito out-of-spec.
+§5 new entry "M4.6-prep cleanup closure (applied 2026-05-07)" with full file-change inventory.
+
+Roadmap_ALWTTT:
+
+`**Last updated:**` bumped to 2026-05-06 (M4.6-prep cleanup + M4.6-followup mini-milestone opened).
+New `### 4.6-followup — Mini-milestone (opened 2026-05-06)` subsection inserted before `## Post-MVP — Pending Effects system`. Ordered list F-1..F-5 with priorities, dependencies, scope estimates, and the gating relationship to the M4.6 demo.
+New `### M4.6-prep cleanup ✅ (closed 2026-05-06)` closure section appended in Future milestones (after Gig Setup roster pickers). Mirrors prior closure-section format. Documents 10-card authoring composition, both tooling patches, smoke summary, Patch 2 latent-bug verification, M4.6-followup spawn.
+DoD section: new unchecked bullet "M4.6-followup mini-milestone (F-1..F-5) — opened 2026-05-06, gates the M4.6 demo".
+
+SSoT_Editor_Authoring_Tools:
+
+§4 (Card Editor) — new §4.9 "Catalog Source toggle and classified status dropdown (M4.6-prep cleanup, 2026-05-06)" appended after §4.8 Registries surface. Documents the `CatalogSource { Musician, Generic }` enum toggle in the toolbar; Generic-mode auto-load via `AssetDatabase.FindAssets("t:GenericCardCatalogSO")` with a name-heuristic preference for assets without "Test"; per-row Starter UI in Generic mode reusing batch (3.A); write-paths NOT Generic-aware deferred (touches `CardAssetFactory.CreateCardKindParams` + `MusicianCatalogService` contracts, both currently typed to `MusicianCardCatalogData`); classified status dropdown reading both `StatusCatalogueMusicians` and `StatusCatalogueAudience` via `DropdownButton + GenericMenu` with hierarchical paths.
+
+Authority changes
+
+None. No SSoT promoted or retired. The Card Editor authoring contract (`SSoT_Card_Authoring_Contracts.md §5.11`) is unchanged. The MB2 catalogue split contract is unchanged.
+
+Operational changes
+
+Asset changes: 10 new card definitions + 10 payloads under `Assets/Resources/Data/Characters/Musicians/starter_*.asset`. Robot, Gusano, and Generic catalog entries lists updated. 10 test cards deleted by user (5 Robot + 5 Gusano).
+Code changes (editor-only): `CardEditorWindow.cs` modified — Patches 1 + 2.
+
+Smoke test results
+
+ST-SD-1/2/3/4/5/6/8 PASS. ST-SD-7 DEFERRED-by-design (model invariant: one-musician-one-active-track-per-loop). 5 critical findings during testing surfaced as M4.6-followup batches F-1..F-5.
+
+Closes
+
+Open items (now RESOLVED): "Card Editor inline effects-block UI on legacy catalogue alias", "All-starter-flagged catalog content" (for demo roster).
+Side-finding verified at apply: Patch 2 latent bug concern (toggle-to-Generic not clearing loaded musician state) was already addressed in code (`CardEditorWindow.cs:244-249`); not added to open items.
+
+New planning doc
+
+planning/Design_Song_Parts_Library_v0_1.md — status: planning-only, future-design intent for stored/repeatable Song Parts (Intro / Verse / Chorus / Outro / Bridge), surfaced via the M4.6F-5 Lectura A discussion. Captures the "Store current part" card-effect mechanic concept, open design questions (storage representation, modify-after-store semantics, deck/UI integration), and explicit non-commitment to current-sprint scope.
+
+Files unchanged
+
+`ssot_manifest.yaml`, `coverage-matrix.md`, `SSoT_INDEX.md`, `SSoT_CONTRACTS.md`. No new manifest invariants. No SSoT promoted.
+
+2026-05-04 — M4.6-prep merged (1)/(4) closure: Gig Setup roster pickers
+Bidirectional band + audience multi-select pickers shipped in the Gig Setup scene. Two new files (`MusicianPickerRow.cs`, `AudiencePickerRow.cs`) plus matching prefabs; five modified (`PersistentGameplayData.cs` new `SetBandRoster(IList<MusicianBase>)`, `GigSetupConfigData.cs` new `availableAudienceCharacters` + `maxAudienceCount` fields, `GigEncounterSO.cs` new `BuildRuntime(IList<AudienceCharacterData> audienceOverride)` overload with regression-safe null fallback, `GigRunContext.cs` new `RunConfig.audienceOverride`, `GigSetupController.cs` picker fields and build/handler logic). Closes open items "Musician picker in Gig Setup" (surfaced M4.2, 2026-04-28) and "Gig Setup roster pickers" (deferred from M4.3 surfacing).
+Semantic changes
+SSoT_Gig_Encounter:
+
+New §7 "Roster picker boundary (M4.6-prep merged (1)/(4))" inserted between §6 Encounter lifecycle and the previous §7 Victory and failure. Subsections 7.1 Band roster, 7.2 Audience roster, 7.3 Encounter swap behavior, 7.4 What this section does not own. Establishes that `pd.MusicianList` is set by the Gig Setup band picker via `pd.SetBandRoster(picked)` (roster identity only; distinct from `pd.AddMusicianToBand` which is the meta/recruit path with card grants); that `GigEncounterSO.audienceMemberList` is the *default* audience composition, not a hard binding, and may be replaced per-run via `RunConfig.audienceOverride` passed to `GigEncounterSO.BuildRuntime(audienceOverride)`; that the audience picker pool is the union of `setupConfig.AvailableAudienceCharacters` and the encounter's `AudienceMemberList`; that the override-decision rule is multiset-blind on baked duplicates (the picker UI dedups by reference, so a no-customization run produces `pickedCount == bakedSet.Count` and the comparator must compare against unique-count, not raw count, to keep override null when user did not customize — encounters with `[A, A, B]` baked therefore preserve duplicates at runtime). Multiplicity-aware picker UI deferred to a future batch (6).
+§§7-11 renumbered to §§8-12 (Victory and failure → §8, Encounter modifiers and special room rules → §9, What belongs to adjacent docs → §10, Invariants → §11, Migration note → §12). Sub-sections within renumbered sections shifted accordingly (7.x → 8.x, 8.x → 9.x, 9.x → 10.x). No body content modified in renumbered sections beyond the section numbers themselves.
+
+SSoT_Editor_Authoring_Tools:
+
+New §16 "Configurable runtime SO surfaces (Inspector-only)" appended after §15 Cross-references. Documents data ScriptableObjects driving runtime behavior that are authored exclusively through Unity's standard Inspector (no dedicated editor window). New §16.1 "GigSetupConfigData — picker configuration (M4.6-prep merged (1)/(4))" lists the full field surface (11 fields) including the new `availableAudienceCharacters` and `maxAudienceCount` plus existing `availableBandDecks`, `availableEncounters`, `genericStarterCatalog`, default values for inspiration / discard / keep-inspiration / required-song-count, and the `allowOverrideRequiredSongCount` flag. Notes paragraph cross-references SSoT_Gig_Encounter §7 for picker semantics (override decision, validation rules, multiset-blind comparator); flags `maxAudienceCount` as a manual mirror of `GigScene.AudienceMemberPosList.Count`. Boundary note distinguishes runtime data SOs from editor tools and provides a lifecycle pointer for future tooling promotion (in which case the entry becomes a cross-reference to the new tool section).
+
+Design_Starter_Deck_v1 (planning, non-SSoT):
+
+New §3.3 "Selection mechanism (M4.6-prep merged (1)/(4))" inserted between §3.2 and §4. Frames the C2 + Sibi roster as the *default* starter band, not hardcoded. Documents that runtime users compose the band per-run via the Gig Setup picker; `gameplayData.AllMusiciansList` provides the available pool; `gameplayData.InitialMusicianList` is consulted only as the first-visit default (subsequent visits remember `pd.MusicianList`). Adds "for shipping" guidance — editing `InitialMusicianList` is the appropriate knob for the fresh-install starter default. Cross-references SSoT_Gig_Encounter §7 and SSoT_Editor_Authoring_Tools §16.1 for picker semantics.
+
+CURRENT_STATE:
+
+§1 Project foundation — new sub-block "M4.6-prep merged (1)/(4) — Gig Setup roster pickers — complete (2026-05-04)" appended after the batch (3) closure block. Mirrors the long-form prose of batches (2)/(3): file manifest, decision matrix D1–D7, roster vs deck contract, audience-override decision rule with multiset-blind explanation, all 10 smoke tests with brief outcome summaries, four side-findings (`GameplayData` null at Awake, `RectTransform`-parenting warning, multiset-blind option-B fix, batch (6) tracking).
+§3 What is next — M4.6 item 1 dependency parenthetical updated. Dropped "+ merged Gig Setup pickers (musicians + audience)" from the dependency list; appended "Gig Setup roster pickers — band + audience multi-select — closed 2026-05-04 as M4.6-prep merged (1)/(4); see §1 closure block for picker contracts and the multiset-blind audience override rule."
+§4 Open items — two bullets flipped to RESOLVED. "Musician picker in Gig Setup (surfaced M4.2)" → "RESOLVED (2026-05-04, M4.6-prep merged (1)/(4))" with summary of `pd.SetBandRoster`, validation rules, ST-M42-6/7/8/9 unblocked-but-unexecuted note. "Gig Setup roster pickers (deferred from M4.3 surfacing)" → "RESOLVED" with summary of `BuildRuntime(audienceOverride)`, multiset-blind comparator, encounter-swap rebuild, batch (6) follow-up.
+
+Roadmap_ALWTTT:
+
+`**Last updated:**` bumped to 2026-05-04 (M4.6-prep merged (1)/(4) Gig Setup roster pickers closed).
+New "### Gig Setup roster pickers (merged (1)/(4)) ✅ (closed 2026-05-04)" closure section appended after Inventory viewer fixes. Mirrors existing closure-section format (M4.2, batch (3), UI-fix). Includes shipped scope, decision matrix D1–D7, audience-override decision rule with multiset-blind explanation, all 10 smoke test outcomes, four side-findings with batch (6) tracking, ST-M42-6/7/8/9 unblocked note, and docs-at-closure list.
+
+ssot_manifest:
+
+`SSoT_Gig_Encounter` `governs:` block extended with `Assets/Scripts/UI/MusicianPickerRow.cs` and `Assets/Scripts/UI/AudiencePickerRow.cs`. Two new `hard_invariants` entries under `SSoT_Gig_Encounter`: (1) `pd.MusicianList` is set by the Gig Setup band picker via `pd.SetBandRoster` (roster identity only; no card grants); `pd.AddMusicianToBand` is the separate meta/recruit path that additionally grants base cards; deck paths (auto-assembly via `SetBandDeckFromMusicians`, legacy via `SetBandDeck`) are independent of roster mutation; (2) `GigEncounterSO.audienceMemberList` is the default audience composition, not a hard binding; `RunConfig.audienceOverride` may replace it per-run via `GigEncounterSO.BuildRuntime(audienceOverride)`; null override means SO's baked list is used (regression-safe); override-decision rule is multiset-blind on baked duplicates so encounters with duplicate baked entries preserve duplicates at runtime when user does not customize.
+
+Decisions (D1–D7)
+
+D1=B (new `pd.SetBandRoster` method, distinct from `pd.AddMusicianToBand` meta/recruit path); D2=A (audience pool via new `GigSetupConfigData.availableAudienceCharacters` field); D3=B (toggle-list UI for both pickers); D4=remember-last + reset-on-encounter-swap (band picker remembers `pd.MusicianList` across visits; audience picker resets to encounter's baked default on encounter swap, with warning if user had customized); D5=band 1-4 / audience 1-`MaxAudienceCount` (band warns at 1, blocks at 0 or >4; audience blocks below 1 or above `MaxAudienceCount`); D6=B+C combined (`BuildRuntime(audienceOverride)` overload + `RunConfig.audienceOverride` field); D7=A (single merged batch).
+
+Smoke results
+
+ST-M46p4-1 through ST-M46p4-10 all PASS (10/10). ST-M46p4-10 added during validation after the multiset-blind side-finding surfaced: validates that encounters with `[A, A, B]` baked audience preserve duplicates at runtime when user does not customize (`override=False`, `BuildRuntime` falls back to baked list). ST-M46p4-2 carries a wording addendum: generic catalog contributions from `GenericCardCatalogSO` are expected on top of per-musician catalog contributions in the auto-assembly path — the original "only" clause referred to per-musician origins, not deck-content totals.
+
+Side-findings
+
+`GameplayData` null at `Awake` time on `GigSetupController.BuildMusicianPicker`. Reworked to prefer a serialized `gameplayData` field (wired in inspector) with `GameManager.Instance.GameplayData` as defensive fallback. `GameplayData` on `GameManager` is an instance property, not static; the static-looking access pattern in some other classes (e.g. `GigManager`) works because those classes shadow the type name with a `private GameManager GameManager => GameManager.Instance;` property.
+`RectTransform`-parenting warning. Initial `Instantiate(prefab, parent)` produced Unity's RectTransform-parenting warning. Pattern fixed via `Instantiate` + `SetParent(content, worldPositionStays: false)`. Same pattern applied to musician picker for consistency.
+Multiset-blind override comparator (option-B fix). Surfaced mid-validation: original `DiffersFromEncounterAudience` compared raw `bakedCount` to `pickedCount` first, which made encounters with duplicate baked audiences always trigger override (silent multiplicity loss + misleading `override=True` log on no-customization runs). Fix: build `bakedSet` first, then compare `bakedSet.Count` (unique-count) against `pickedCount`. ~5 LoC change. ST-M46p4-10 added to validate. The picker UI itself remains single-row-per-unique-SO; multiplicity-aware UI deferred.
+Audience picker multiplicity follow-up tracked as M4.6-prep batch (6) Audience picker multiplicity. Touches `AudiencePickerRow` (per-row count input UI), `GigSetupController.BuildAudiencePicker` (compute baked counts), `GigSetupController.GetSelectedAudience` (multiset materialization), `DiffersFromEncounterAudience` (multiset comparison replaces multiset-blind workaround), validation arithmetic (sum-of-counts vs row-count), and adds 3+ smoke tests. Not blocking M4.6 demo gate.
+
+Closes
+
+ST-M42-6/7/8/9 are unblocked by this batch (deferred 2026-04-28 because they required a 2-musician band selection mechanism). Tests are not yet executed; they may run in parallel with M4.6 demo prep or post-demo.
+
+Critical-path next step on M4.6: pre-demo content cleanup of the four musician catalogues to Design_Starter_Deck_v1.md §4 spec (12-card / 7-unique / Cantante+Sibi composition) is independently tractable now that batches (3) tooling and merged (1)/(4) pickers are both in place. Batch (5) Runtime tuning remains blocked on values from user (`maxVibeFromSongHype`, `MaxCardsOnHand`, draw-per-turn). Batch (6) Audience picker multiplicity is logged but not blocking.
+
 2026-05-03 — M4.6-prep batch (3) closure: Authoring tooling QoL
 Editor-only batch promoting authoring ergonomics surfaced during M4.6-prep batch (2) smoke tests. Three deliverables shipped: per-row Starter / Copies columns on CardEditorWindow's catalog entry list; new CardInventoryWindow (read-only viewer for CardDefinition / MusicianCardCatalogData / GenericCardCatalogSO assets, with Print + Export per view); toolbar Print buttons on CardEditorWindow and DeckEditorWindow. All #if UNITY_EDITOR guarded. Zero runtime touch.
 Semantic changes

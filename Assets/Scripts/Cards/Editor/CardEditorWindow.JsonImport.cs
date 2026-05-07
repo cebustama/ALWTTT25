@@ -182,7 +182,9 @@ namespace ALWTTT.Cards.Editor
                     EditorGUILayout.Foldout(_showJsonImport, "Create from JSON", true);
                 if (!_showJsonImport) return;
 
-                using (new EditorGUI.DisabledScope(_loadedCatalog == null || _loadedMusicianData == null))
+                using (new EditorGUI.DisabledScope(
+                    (_catalogSource == CatalogSource.Musician && (_loadedCatalog == null || _loadedMusicianData == null)) ||
+                    _catalogSource == CatalogSource.Generic))
                 {
                     _jsonImportText =
                         EditorGUILayout.TextArea(_jsonImportText, GUILayout.MinHeight(70));

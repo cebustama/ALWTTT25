@@ -97,6 +97,14 @@ It is a planning document. Numbers, card names, and effect magnitudes are first-
 
 Both are documented in `Roadmap_ALWTTT.md` → Future Milestones → Roster Expansion.
 
+### 3.3 Selection mechanism (M4.6-prep merged (1)/(4))
+
+The C2 + Sibi roster above is the **default** starter band, not a hardcoded one. At runtime the band is composed per-run through the Gig Setup band picker (`GigSetupController`); the picker reads `gameplayData.AllMusiciansList` for available musicians and uses `gameplayData.InitialMusicianList` only as the first-visit default selection. Subsequent visits remember the previous run's roster via `pd.MusicianList`.
+
+**For shipping this design as the fresh-install starter:** edit `gameplayData.InitialMusicianList` to contain C2 + Sibi. This sets the default selection on the first GigSetupScene load. It is not a per-run knob — runtime users compose the band via the picker.
+
+Picker semantics (override decision, validation rules, multiset-blind audience comparator) are governed by `SSoT_Gig_Encounter.md §7` and `SSoT_Editor_Authoring_Tools.md §16.1`.
+
 ---
 
 ## 4. Deck composition — the 12 cards

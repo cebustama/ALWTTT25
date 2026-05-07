@@ -12,4 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7aa1ec52dc4cc414287f8755dd364036, type: 3}
   m_Name: GenericCardCatalog
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.GenericCardCatalogSO
-  entries: []
+  entries:
+  - card: {fileID: 11400000, guid: 6a528c33615924b47a9ac7197ef1828e, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 2
+  - card: {fileID: 11400000, guid: 399600d2849d87c4dbbd7e07fbc4246b, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 1

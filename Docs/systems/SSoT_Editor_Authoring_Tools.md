@@ -137,6 +137,16 @@ Plus two cross-catalogue lookup helpers used by tooling:
 
 A legacy `StatusCatalogue` alias is retained for source compatibility with pre-MB2 callers; it returns the musicians catalogue. New tooling code should use the explicit `…Musicians` / `…Audience` properties or the `TryGet…` helpers.
 
+### 4.9 Catalog Source toggle and classified status dropdown (M4.6-prep cleanup, 2026-05-06)
+
+**Catalog Source toggle.** A `CatalogSource { Musician, Generic }` enum toggle at the top of the toolbar selects which catalog the editor reads. `Musician` mode preserves prior behavior (musician dropdown loads the corresponding `MusicianCardCatalogData` via `MusicianCharacterData.CardCatalog`). `Generic` mode auto-loads a `GenericCardCatalogSO` asset via `AssetDatabase.FindAssets("t:GenericCardCatalogSO")` with a name-heuristic preference for assets whose filename does not contain "Test".
+
+The toggle handler at the source-change site clears `_loadedCatalog` and `_loadedMusicianData` when switching to Generic, and clears `_loadedGenericCatalog` when switching back to Musician, so the loaded-state cache cannot mis-route writes between modes. Combined with the write-disable guards (writes are blocked while `_catalogSource == Generic` for all of Create Card / JSON Import / Add Existing / Sync From Assets), the toggle is safe in its current shape.
+
+Generic mode renders the entry list with the per-row `Starter` checkbox + `Copies` IntField from batch (3.A). Read-side parity with Musician mode is full. Write paths (Create Card, JSON Import, Add Existing, Sync From Assets) are **NOT** Generic-aware in this iteration — they remain disabled in Generic mode, and Generic write-side support is deferred as a future tooling QoL batch (touches `CardAssetFactory.CreateCardKindParams` and `MusicianCatalogService` signatures, both currently typed to `MusicianCardCatalogData`).
+
+**Classified status dropdown.** `DrawStatusEffectPicker` (the inline status picker used inside `ApplyStatusEffectSpec` effect rows on a card payload) now consumes an `ALWTTTProjectRegistriesSO` (instead of the legacy single `StatusEffectCatalogueSO` alias) and reads from both `StatusCatalogueMusicians` and `StatusCatalogueAudience`. UI is rendered via `EditorGUILayout.DropdownButton` + `GenericMenu` with hierarchical paths `Musicians/<DisplayName>` and `Audience/<DisplayName>`, plus a `<None>` entry at the top of the menu. Closes the post-MB2 friction documented in `CURRENT_STATE.md §4` ("Card Editor inline effects-block UI on legacy catalogue alias"): the inline effects-block UI now matches the JSON-import path's two-catalogue probing.
+
 ---
 
 ## 5. Deck Editor (`DeckEditorWindow`)
@@ -469,3 +479,34 @@ No sandbox scene exists for runtime card/status/composition testing. M1.5 Phase 
 | ALWTTT ↔ MidiGenPlay boundary | `SSoT_ALWTTT_MidiGenPlay_Boundary.md` |
 | Runtime phase flow, deck/hand pipeline | `SSoT_Runtime_Flow.md` |
 | Active roadmap (M1 tasks referencing these tools) | `Roadmap_ALWTTT.md` |
+---
+
+## 16. Configurable runtime SO surfaces (Inspector-only)
+
+This section documents data ScriptableObjects that drive runtime behavior but are authored exclusively through Unity's standard Inspector (no dedicated editor window). They are listed here so the field surface and intent are governed alongside the editor tooling, even though no tool owns them.
+
+### 16.1 `GigSetupConfigData` — picker configuration (M4.6-prep merged (1)/(4))
+
+The asset wired into `GigSetupController.setupConfig` that drives the Gig Setup scene's selectable content.
+
+| Field | Type | Purpose |
+|---|---|---|
+| `availableBandDecks` | `List<BandDeckData>` | Dev/QA fallback decks for the legacy path (`useMusicianStartersToggle = OFF`). |
+| `availableEncounters` | `List<GigEncounterSO>` | Encounter dropdown contents. |
+| `genericStarterCatalog` | `GenericCardCatalogSO` | Optional generic ("Owner: Any") starter cards added on top of per-musician catalogs in the auto-assembly path (M4.6-prep batch (2)). Null is valid. |
+| `availableAudienceCharacters` | `List<AudienceCharacterData>` | Selectable audience pool for the audience picker. Runtime unions with the selected encounter's `AudienceMemberList`. |
+| `maxAudienceCount` | `int` (min 1) | Mirror of GigScene's `AudienceMemberPosList.Count`. Audience picker validates against this on Start; selecting more blocks gig start with a clear error. |
+| `defaultInitialGigInspiration` | `int` | Default starting Inspiration for new runs. |
+| `defaultInspirationPerLoop` | `int` | Default Inspiration generated per loop. |
+| `defaultDiscardHandBetweenTurns` | `bool` | Default per-turn discard policy. |
+| `defaultKeepInspirationBetweenTurns` | `bool` | Default Inspiration carry-over policy. |
+| `allowOverrideRequiredSongCount` | `bool` | Whether the setup scene exposes an override for required song count. |
+| `defaultRequiredSongCount` | `int` (min 1) | Default required song count when not overridden. |
+
+**Notes:**
+- `availableBandDecks` continues to serve as the dev/QA fallback when `useMusicianStartersToggle = OFF`.
+- `genericStarterCatalog` is unchanged from batch (2). Its provenance rule (generics are not recorded in `musicianGrantedActionCards` / `musicianGrantedCompositionCards`) lives in `GenericCardCatalogSO` doc-comments.
+- `maxAudienceCount` is a manual mirror; if the GigScene's position list grows or shrinks, this field must be updated to match. Editor-time validator deferred to a future tooling batch.
+- The picker boundary semantics (band/audience override decision rules, multiset-blind comparator, encounter-swap reset) are governed by `SSoT_Gig_Encounter.md §7`. This section only catalogues the field surface.
+
+**Boundary note:** This is a runtime data SO, not an editor tool. It has no dedicated editor window; all fields are authored via Unity's standard Inspector. If a future authoring batch promotes a custom Inspector or wizard for this SO, that tooling gets a tool-section above (§4–§12 style), and this entry becomes a cross-reference to it.

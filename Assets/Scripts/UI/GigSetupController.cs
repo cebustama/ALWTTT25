@@ -17,6 +17,12 @@ namespace ALWTTT.UI
         [Header("Config")]
         [SerializeField] private GigSetupConfigData setupConfig;
 
+        [Tooltip("Direct reference to the GameplayData SO. Used as the primary " +
+         "source for the band picker's musician roster. Avoids singleton " +
+         "Awake-order issues with GameManager. Falls back to " +
+         "GameManager.GameplayData if unset.")]
+        [SerializeField] private GameplayData gameplayData;
+
         [Header("UI")]
         [SerializeField] private TMP_Dropdown bandDeckDropdown;
         [SerializeField] private TMP_Dropdown encounterDropdown;
@@ -170,38 +176,49 @@ namespace ALWTTT.UI
             }
             _musicianRows.Clear();
 
-            // Resolve roster source
-            var gameplayData = GameManager.Instance != null
-                ? GameManager.Instance.GameplayData
-                : null;
-            if (gameplayData == null || gameplayData.AllMusiciansList == null)
+            // Resolve roster source. Prefer the serialized field (set in inspector);
+            // fall back to GameManager static accessor if available. Avoids
+            // Awake-order issues where GameManager.Instance.GameplayData may be
+            // unset when GigSetupController.Awake runs.
+            var gd = gameplayData;
+            if (gd == null && GameManager.Instance != null)
+                gd = GameManager.Instance.GameplayData;
+
+            if (gd == null || gd.AllMusiciansList == null)
             {
-                Debug.LogError("[GigSetup] GameplayData.AllMusiciansList unavailable.");
+                Debug.LogError(
+                    "[GigSetup] GameplayData unavailable. Wire the 'Gameplay Data' " +
+                    "field on GigSetupController in the inspector, or ensure " +
+                    "GameManager.GameplayData is populated before this scene loads.");
                 UpdateMusicianCountLabel();
                 return;
             }
 
             // Resolve current selection: prefer pd.MusicianList if non-empty
             // (returning visitors), else fall back to InitialMusicianList.
-            var pd = GameManager.Instance.PersistentGameplayData;
+            var pd = GameManager.Instance != null
+                ? GameManager.Instance.PersistentGameplayData
+                : null;
             HashSet<MusicianBase> initialSelection = new();
             if (pd != null && pd.MusicianList != null && pd.MusicianList.Count > 0)
             {
                 foreach (var m in pd.MusicianList)
                     if (m != null) initialSelection.Add(m);
             }
-            else if (gameplayData.InitialMusicianList != null)
+            else if (gd.InitialMusicianList != null)
             {
-                foreach (var m in gameplayData.InitialMusicianList)
+                foreach (var m in gd.InitialMusicianList)
                     if (m != null) initialSelection.Add(m);
             }
 
             // Build rows
-            foreach (var musician in gameplayData.AllMusiciansList)
+            foreach (var musician in gd.AllMusiciansList)
             {
                 if (musician == null) continue;
 
-                var rowGo = Instantiate(musicianPickerRowPrefab, musicianPickerContent);
+                var rowGo = Instantiate(musicianPickerRowPrefab);
+                rowGo.transform.SetParent(musicianPickerContent, worldPositionStays: false);
+
                 var row = rowGo.GetComponent<MusicianPickerRow>();
                 if (row == null)
                 {
@@ -644,13 +661,23 @@ namespace ALWTTT.UI
             int bakedCount = baked != null ? baked.Count : 0;
             int pickedCount = picked != null ? picked.Count : 0;
 
-            if (bakedCount != pickedCount) return true;
-            if (pickedCount == 0) return false;
-
-            // Set comparison (order-independent, by reference)
+            // Multiset-blind comparison: the picker UI collapses duplicate
+            // AudienceCharacterData entries to a single row (HashSet dedup in
+            // BuildAudiencePicker), so a no-customization run yields
+            // pickedCount == unique-count of baked, not raw bakedCount.
+            // Comparing pickedCount against bakedSet.Count (not bakedCount)
+            // keeps override null when the user didn't customize, and
+            // GigEncounterSO.BuildRuntime falls back to the baked list with
+            // duplicates intact. Encounter authors retain control over
+            // audience multiplicity. Multiplicity-aware picker UI (count
+            // spinner per row) is a future concern; deviating from baked via
+            // the picker still loses duplicate information for that run.
             var bakedSet = new HashSet<AudienceCharacterData>();
             for (int i = 0; i < bakedCount; i++)
                 if (baked[i] != null) bakedSet.Add(baked[i]);
+
+            if (bakedSet.Count != pickedCount) return true;
+            if (pickedCount == 0) return false;
 
             for (int i = 0; i < pickedCount; i++)
             {

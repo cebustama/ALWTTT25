@@ -1446,6 +1446,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1121864300}
   m_CullTransparentMesh: 1
+--- !u!1 &1197160556
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1197160557}
+  m_Layer: 0
+  m_Name: Audience Position 4
+  m_TagString: Untagged
+  m_Icon: {fileID: -1412012063857583412, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1197160557
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1197160556}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 6.83, y: -3.8200002, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1820283395528320220}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1219041269 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3733981112626754920, guid: 6b6b632738429c74598185c7201a9e07, type: 3}
@@ -2446,6 +2477,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1003275971134533894, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 5.2899995
+      objectReference: {fileID: 0}
+    - target: {fileID: 1003275971134533894, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -3.43
+      objectReference: {fileID: 0}
+    - target: {fileID: 1363485291533599143, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 3.4999995
+      objectReference: {fileID: 0}
+    - target: {fileID: 1363485291533599143, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -3.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 4603410894606943367, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4603410894606943367, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2.92
+      objectReference: {fileID: 0}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: gigHand
       value: 
@@ -2506,6 +2561,14 @@ PrefabInstance:
       propertyPath: songHypeDeltaMultiplier
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: audienceMemberPosList.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      propertyPath: 'audienceMemberPosList.Array.data[3]'
+      value: 
+      objectReference: {fileID: 1197160557}
     - target: {fileID: 6668721086470585719, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
       propertyPath: audienceJumpIntensityCurve.m_Curve.Array.size
       value: 2
@@ -2588,9 +2651,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6333965140380651407, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1197160557}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+--- !u!4 &1820283395528320220 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6333965140380651407, guid: 186e5d979472c4f4c9b1eba944d99b8a, type: 3}
+  m_PrefabInstance: {fileID: 1820283395528320219}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2314410049636868739
 PrefabInstance:
   m_ObjectHideFlags: 0
