@@ -1336,6 +1336,44 @@ namespace ALWTTT.Managers
         private void OnCompositionLoopFinished(LoopFeedbackContext loopCtx)
         {
             TriggerAudienceMicroReactions(loopCtx);
+
+            // M4.6F-3: per-loop draw + per-loop inspiration consumption.
+            // Hook lives here (host-owned subscriber) to respect the
+            // CompositionSession deck-mutation invariant ([Obsolete] guards
+            // on CompositionSession.PrepareDeck and ICompositionContext.Deck).
+            int drawN = flow != null ? flow.DrawPerLoop : 0;
+            var pd = GameManager != null ? GameManager.PersistentGameplayData : null;
+            int inspN = pd != null ? pd.InspirationPerLoop : 0;
+
+            // Skip silently when F-3 is fully disabled.
+            if (drawN <= 0 && inspN <= 0) return;
+
+            if (drawN > 0 && DeckManager.Instance != null)
+            {
+                // DeckManager.DrawCards clamps to MaxCardsOnHand internally.
+                DeckManager.Instance.DrawCards(drawN);
+            }
+
+            int inspirationDelta = 0;
+            if (inspN > 0 && _session != null)
+            {
+                // Canonical path: AddCurrentInspiration clamps to MaxInspiration,
+                // mirrors to pd.CurrentInspiration, returns the actual delta.
+                inspirationDelta = _session.AddCurrentInspiration(inspN);
+            }
+
+            if (dev != null && dev.UseLogs && dev.UseCompositionLogs)
+            {
+                int handAfter = DeckManager.Instance != null
+                    ? DeckManager.Instance.HandPile.Count
+                    : -1;
+                int currentInsp = pd != null ? pd.CurrentInspiration : -1;
+                Debug.Log($"{DebugTag} <color=cyan>[F-3]</color> LoopFinished hook: " +
+                    $"drawRequested={drawN}, " +
+                    $"inspirationDelta={inspirationDelta}, " +
+                    $"hand={handAfter}, " +
+                    $"inspiration={currentInsp}");
+            }
         }
 
         private void OnCompositionPartFinished(PartFeedbackContext partCtx)
@@ -1635,9 +1673,57 @@ namespace ALWTTT.Managers
             OnSongHypeChanged01?.Invoke(SongHype01);
         }
 
+        /// <summary>
+        /// Production-path inspiration mutator. Routes through
+        /// CompositionSession.AddCurrentInspiration when a session is active so
+        /// pd.CurrentInspiration, _session._currentInspiration, and the composition
+        /// UI all stay in sync. Falls back to a direct pd write when no session is
+        /// active (between gigs / pre-StartGig).
+        ///
+        /// Returns the actual delta applied (post-clamp). Clamps to
+        /// [0, pd.MaxInspiration]. Pass a negative delta to spend, positive to
+        /// generate.
+        ///
+        /// MB4 (2026-05-08) — closes the action-card dual-siting symmetric to F-3's
+        /// closure of the comp-card / per-loop-gain dual-siting. See
+        /// SSoT_Dev_Mode §13.4.
+        /// </summary>
+        public int AdjustInspiration(int delta)
+        {
+            if (delta == 0) return 0;
+
+            if (_session != null && _session.IsActive)
+                return _session.AddCurrentInspiration(delta);
+
+            var pd = GameManager.PersistentGameplayData;
+            if (pd == null) return 0;
+
+            int before = pd.CurrentInspiration;
+            int after = Mathf.Clamp(before + delta, 0, pd.MaxInspiration);
+            pd.CurrentInspiration = after;
+            return after - before;
+        }
+
 #if ALWTTT_DEV
         /// <summary>Dev Mode: expose max for UI slider bounds. Dev-only.</summary>
         public float MaxSongHype => meters != null ? meters.MaxSongHype : 0f;
+
+        /// <summary>
+        /// Dev Mode: current authoritative inspiration value for the Stats-tab slider.
+        /// Returns the live session budget when a CompositionSession is active,
+        /// otherwise the persistent PD value. See SSoT_Dev_Mode §13.2 / §13.4.
+        /// </summary>
+        public int LiveInspiration =>
+            (_session != null && _session.IsActive)
+                ? _session.CurrentInspiration
+                : (GameManager.PersistentGameplayData?.CurrentInspiration ?? 0);
+
+        /// <summary>
+        /// Dev Mode: true when a CompositionSession exists and is between
+        /// Begin() and End(). Used by the Stats-tab raw [PD/Session] readout
+        /// to decide whether to show a session value at all.
+        /// </summary>
+        public bool IsCompositionSessionActive => _session != null && _session.IsActive;
 
         /// <summary>
         /// Dev Mode: set SongHype directly. Bypasses debugSongHype guard (unlike AddSongHype).
@@ -1653,12 +1739,28 @@ namespace ALWTTT.Managers
             OnSongHypeChanged01?.Invoke(SongHype01);
         }
 
-        /// <summary>Dev Mode: set CurrentInspiration, clamped to [0, MaxInspiration].</summary>
+        /// <summary>
+        /// Dev Mode: set CurrentInspiration, clamped to [0, MaxInspiration].
+        /// Always writes to pd.CurrentInspiration. When a CompositionSession is active,
+        /// also routes to CompositionSession.DevSetCurrentInspiration so the live
+        /// composition budget (read by the card-cost gate and composition UI) reflects
+        /// the slider write. See SSoT_Dev_Mode §13.2.
+        /// </summary>
         public void DevSetInspiration(int value)
         {
             var pd = GameManager.PersistentGameplayData;
             if (pd == null) return;
-            pd.CurrentInspiration = Mathf.Clamp(value, 0, pd.MaxInspiration);
+
+            int clamped = Mathf.Clamp(value, 0, pd.MaxInspiration);
+            int before = pd.CurrentInspiration;
+            pd.CurrentInspiration = clamped;
+
+            bool sessionRouted = _session != null && _session.IsActive;
+            if (sessionRouted)
+                _session.DevSetCurrentInspiration(clamped);
+
+            Debug.Log($"{DebugTag} <color=lime>[DevMode] DevSetInspiration " +
+                $"before={before} → after={clamped} sessionRouted={(sessionRouted ? "Y" : "N")}</color>");
         }
 
         /// <summary>

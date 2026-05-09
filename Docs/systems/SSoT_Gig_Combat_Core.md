@@ -120,6 +120,8 @@ Design role:
 - governs tempo and budget of composition decisions
 - lets musical structure feed back into tactical capacity
 
+Per-loop inspiration gain is wired post-M4.6F-3 via `pd.InspirationPerLoop` (default-sourced from `GigFlowSettingsSO.DefaultInspirationPerLoop` at `ApplyRunConfig`). Consumed by the `LoopFinished` subscriber in `GigManager.OnCompositionLoopFinished`, which calls `_session.AddCurrentInspiration(inspN)`. The canonical mutator clamps to `pd.MaxInspiration` and mirrors to `pd.CurrentInspiration`, so PD and `CompositionSession._currentInspiration` stay in sync after every gain. Per-loop card draw is wired in the same hook via `flow.DrawPerLoop` (new field on `GigFlowSettingsSO`); `DeckManager.DrawCards` clamps to `MaxCardsOnHand` internally.
+
 ### 5.2 SongHype
 **Owner:** Song.
 
@@ -218,7 +220,7 @@ Breakdown is not just flavor; it is a combat-visible threshold event.
 1. `Cohesion − 1`
 2. If `Cohesion <= 0` after step 1: call `GigManager.LoseGig()` immediately — **steps 3–4 are skipped**
 3. Apply `Shaken` status (1 stack via `StatusEffectCatalogueSO` key `"shaken"`)
-4. Reset `Stress = floor(StressMax * breakdownStressResetFraction)` — default fraction is `0.5`, configurable on `GigManager`
+4. Reset `Stress = floor(StressMax * breakdownStressResetFraction)` — default fraction is `0.5`, configured on `MeterTuningSO.breakdownStressResetFraction` (M4.6F-2; previously authored on `GigManager` directly).
 
 **Shaken MVP runtime behavior:**
 - SO config: Replace, MaxStacks=1, LinearStacks, `AudienceTurnStart` tick
@@ -355,3 +357,22 @@ These can exist as planning/reference material without overriding this SSoT.
 | Per-performer Flow on Action cards | ✅ Implemented (M4.2) |
 | Adaptive LoopScore (role-budget normalization) | ✅ Implemented (M4.2) |
 | Flow → SongHype path | ❌ Retired and removed (M4.2) |
+
+---
+
+## 12. Configuration architecture (M4.6F-2)
+
+`GigManager` is the runtime orchestrator for combat; it does not own gameplay tuning, presentation pacing, or dev toggles as inline-serialized fields. As of M4.6F-2 those values live on four ScriptableObject assets that GigManager references:
+
+| SO | Concerns |
+|---|---|
+| `GigFlowSettingsSO` | JamRules, Action card gating, Gig End behavior, setup-screen defaults |
+| `MeterTuningSO` | SongHype caps/seed, Vibe/Hype balance, Flow→Vibe (bifurcated MVP), `LoopScoringConfig`, `HypeThresholds`, `breakdownStressResetFraction` |
+| `GigPresentationSO` | Audience beat curve/threshold, idle BPM, sequence pacing values |
+| `GigDevSettingsSO` | Inspector-time toggles only: `useLogs`, `useCompositionLogs`, `debugSongHype`, `debugInstrumentPicker`, `debugMusicianVolume` |
+
+Scene-instance references (cameras, hand, composition UI, position lists, scene changer, MidiGenPlayConfig boundary, songHypeDebugSlider, background container) remain inline-serialized on `GigManager` — they cannot be assets.
+
+Façade properties on `GigManager` (`FlowActionFlatBonus`, `FlowActionVibeBonusPerStack`, `FlowVibeMultiplier`, `BreakdownStressResetFraction`) are preserved for callers written before F-2 and now delegate to `MeterTuningSO`.
+
+`SSoT_Scoring_and_Meters` retains semantic authority for the meter-stack contract; this section governs only where the values are authored.

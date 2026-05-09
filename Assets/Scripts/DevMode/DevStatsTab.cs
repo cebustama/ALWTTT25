@@ -141,7 +141,10 @@ namespace ALWTTT.DevMode
                 gm.DevSetSongHype(newHype);
 
             // --- Inspiration slider (int) ---
-            int currentInsp = pd.CurrentInspiration;
+            // Reads gm.LiveInspiration (MB3): returns _session.CurrentInspiration when
+            // composing, otherwise pd.CurrentInspiration. The dual-siting routing
+            // contract is documented in SSoT_Dev_Mode §13.2 / §13.4.
+            int currentInsp = gm.LiveInspiration;
             int maxInsp = pd.MaxInspiration;
             GUILayout.BeginHorizontal();
             GUILayout.Label("Inspiration:", GUILayout.Width(100));
@@ -152,6 +155,21 @@ namespace ALWTTT.DevMode
             GUILayout.EndHorizontal();
             if (newInsp != currentInsp)
                 gm.DevSetInspiration(newInsp);
+
+            // --- MB4 diagnostic: raw PD vs Session readout ---
+            // LiveInspiration returns the session value when active and pd otherwise,
+            // hiding the dual-siting split. This raw readout surfaces both fields
+            // side-by-side. Divergence is meaningful: see SSoT_Dev_Mode §13.4.
+            // Comp-card spend during build phase will show PD ≠ Session (caveat).
+            // F-3 per-loop gain and MB4 action-card spend keep them in sync.
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("  raw [PD/Session]:", GUILayout.Width(140));
+            string sessionStr = gm.IsCompositionSessionActive
+                ? gm.LiveInspiration.ToString()
+                : "—";
+            GUILayout.Label($"PD={pd.CurrentInspiration}  Session={sessionStr}",
+                GUILayout.ExpandWidth(true));
+            GUILayout.EndHorizontal();
 
             // --- BandCohesion stepper (int, no upper cap) ---
             int cohesion = pd.BandCohesion;

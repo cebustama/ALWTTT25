@@ -653,40 +653,98 @@ namespace ALWTTT.Managers
                     $"using cached override BPM={effectiveOverride.Value}");
             }
 
-            // Generate stems via orchestrator
-            var render = generator.Orchestrator.GenerateSinglePart(
-                part,
-                fullCfg.ChannelRoles,
-                partIndex,
-                effectiveOverride,
-                instrumentOverrides);
+            // [F-4] diagnostic — boundary-call shape dump immediately before
+            // SongOrchestrator.GenerateSinglePart. Tracks the IndexOutOfRange
+            // crash inside MidiGenPlay at >=4 loops/part. The [F-4] log lines
+            // are tagged for revert at F-4 closure; the surrounding try-catch
+            // (D2-A defense) is production-quality and stays.
+            int channelRolesCount = fullCfg.ChannelRoles?.Count ?? -1;
+            int channelOwnersCount = fullCfg.ChannelMusicianOrder?.Count ?? -1;
+            int tracksAtPart = part.Tracks?.Count ?? -1;
+            Debug.Log(
+                $"<color=lime>[F-4][MMM]</color> RenderSinglePart entry: " +
+                $"partIndex={partIndex} parts={fullCfg.Parts.Count} " +
+                $"channelRoles={channelRolesCount} channelOwners={channelOwnersCount} " +
+                $"channelMap={channelMap.Count} tracksAtPart={tracksAtPart} " +
+                $"bpm={effectiveOverride?.ToString() ?? "null"} " +
+                $"instOverrides={instrumentOverrides?.Count ?? 0}");
 
-            if (logDebug)
-                Debug.Log($"{DebugTag} [BPM] Part={partIndex} resolved BPM={render.bpm}");
-
-            // Serialize merged
+            // F-4 D2-A defense: try-catch around the package-internal orchestrator
+            // call and its serialization. On catch, dump the failing args + stack
+            // trace and return the failure tuple — the caller (PlaySinglePartLoop)
+            // already routes a (null, null, 0f, ...) result through the existing
+            // graceful-fail branch (merged==null || seconds<=0f). PRODUCTION-QUALITY:
+            // the try-catch is permanent. Only the [F-4]-tagged log lines are
+            // stripped at F-4 closure.
             byte[] mergedBytes;
-            using (var ms = new MemoryStream())
+            Dictionary<string, byte[]> stemsOut;
+            float seconds;
+            int bpmChosen;
+            Dictionary<string, MIDIInstrumentSO> pinned;
+            try
             {
-                render.merged.Write(ms);
-                mergedBytes = ms.ToArray();
+                // Generate stems via orchestrator
+                var render = generator.Orchestrator.GenerateSinglePart(
+                    part,
+                    fullCfg.ChannelRoles,
+                    partIndex,
+                    effectiveOverride,
+                    instrumentOverrides);
+
+                if (logDebug)
+                    Debug.Log($"{DebugTag} [BPM] Part={partIndex} resolved BPM={render.bpm}");
+
+                // Serialize merged
+                using (var ms = new MemoryStream())
+                {
+                    render.merged.Write(ms);
+                    mergedBytes = ms.ToArray();
+                }
+
+                // Serialize stems
+                stemsOut = new Dictionary<string, byte[]>();
+                foreach (var kv in render.stemsByMusician)
+                {
+                    using var ms = new MemoryStream();
+                    kv.Value.Write(ms);
+                    stemsOut[kv.Key] = ms.ToArray();
+                }
+
+                seconds = ComputeDurationSeconds(render.merged);
+                bpmChosen = render.bpm;
+                pinned = render.melInstByMusician ??
+                    new Dictionary<string, MIDIInstrumentSO>();
+            }
+            catch (Exception ex)
+            {
+                // [F-4] diagnostic dump on catch — full per-track detail so the
+                // package owner has a clean repro spec if root cause is package-
+                // internal. Removed at F-4 closure (the try-catch stays).
+                var perTrack = part.Tracks != null
+                    ? string.Join(", ", part.Tracks.Select((t, i) =>
+                        $"[{i}: ch={t.Channel} role={t.Role} mus={(string.IsNullOrEmpty(t.MusicianId) ? "-" : t.MusicianId)}]"))
+                    : "(null)";
+                var rolesDump = fullCfg.ChannelRoles != null
+                    ? string.Join(",", fullCfg.ChannelRoles)
+                    : "(null)";
+                var ownersDump = fullCfg.ChannelMusicianOrder != null
+                    ? string.Join(",", fullCfg.ChannelMusicianOrder.Select(s => string.IsNullOrEmpty(s) ? "-" : s))
+                    : "(null)";
+                Debug.LogError(
+                    $"<color=lime>[F-4][MMM]</color> SongOrchestrator.GenerateSinglePart caught " +
+                    $"{ex.GetType().Name}: {ex.Message}\n" +
+                    $"  partIndex={partIndex} parts={fullCfg.Parts.Count}\n" +
+                    $"  channelRoles[{channelRolesCount}]={rolesDump}\n" +
+                    $"  channelOwners[{channelOwnersCount}]={ownersDump}\n" +
+                    $"  channelMap[{channelMap.Count}]\n" +
+                    $"  tracksAtPart[{tracksAtPart}]={perTrack}\n" +
+                    $"  bpm={effectiveOverride?.ToString() ?? "null"} " +
+                    $"instOverrides={instrumentOverrides?.Count ?? 0}\n" +
+                    $"{ex.StackTrace}");
+                return (null, null, 0f, 0, null);
             }
 
-            // Serialize stems
-            var stemsOut = new Dictionary<string, byte[]>();
-            foreach (var kv in render.stemsByMusician)
-            {
-                using var ms = new MemoryStream();
-                kv.Value.Write(ms);
-                stemsOut[kv.Key] = ms.ToArray();
-            }
-
-            var seconds = ComputeDurationSeconds(render.merged);
-
-            var pinned = render.melInstByMusician ??
-                new Dictionary<string, MIDIInstrumentSO>();
-
-            return (mergedBytes, stemsOut, seconds, render.bpm, pinned);
+            return (mergedBytes, stemsOut, seconds, bpmChosen, pinned);
         }
 
         #endregion

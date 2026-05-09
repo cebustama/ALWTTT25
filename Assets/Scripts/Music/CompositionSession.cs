@@ -3,6 +3,7 @@ using ALWTTT.Cards.Effects;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
+using ALWTTT.Managers;
 using ALWTTT.UI;
 using MidiGenPlay;
 using MidiGenPlay.Services;
@@ -131,7 +132,7 @@ namespace ALWTTT.Music
             ui?.PopulateMusicianIcons(_ctx.Band);
             ui?.SetIconReferencePartIndex(0);
 
-            _currentInspiration = _rules.inspirationPerPart;
+            _currentInspiration = ResolveSessionStartInspiration();
             ui?.SetInspirationVisible(true);
             ui?.SetInspiration(_currentInspiration);
             ui?.SetPlusInspiration(0);
@@ -169,12 +170,16 @@ namespace ALWTTT.Music
 
         /// <summary>
         /// Dev Mode: set live session inspiration and refresh the composition UI.
-        /// Does NOT write back to PersistentGameplayData — caller is responsible.
+        /// Does NOT write back to PersistentGameplayData — caller is responsible
+        /// (GigManager.DevSetInspiration). See SSoT_Dev_Mode §13.2.
         /// </summary>
         public void DevSetCurrentInspiration(int value)
         {
+            int before = _currentInspiration;
             _currentInspiration = Math.Max(0, value);
             _ctx?.CompositionUI?.SetInspiration(_currentInspiration);
+            Debug.Log($"<color=lime>[DevMode] CompositionSession.DevSetCurrentInspiration " +
+                $"before={before} → after={_currentInspiration}</color>");
         }
 #endif
 
@@ -206,7 +211,7 @@ namespace ALWTTT.Music
             _ctx.CompositionUI?.SetPlusInspiration(_perLoopInspirationCurrentPart);
 
             _state = CompositionState.BuildingNextPart;
-            _currentInspiration = _rules.inspirationPerPart;
+            _currentInspiration = ResolveSessionStartInspiration();
             _ctx.CompositionUI?.SetInspiration(_currentInspiration);
 
             _ctx.CompositionUI?.BeginDraftNextPart("Part B");
@@ -475,6 +480,25 @@ namespace ALWTTT.Music
                 int? bpmOverride = (cache != null && cache.resolvedBpm > 0)
                     ? cache.resolvedBpm : (int?)null;
 
+                // [F-4] diagnostic — boundary-call shape dump immediately before
+                // MidiMusicManager.RenderSinglePart. Tracks the IndexOutOfRange
+                // crash inside MidiGenPlay.SongOrchestrator at >=4 loops/part.
+                // Removed at F-4 closure.
+                int loopIndex0 = _loopsTotalForPart - _loopsRemainingForPart;
+                int tracksAtPart = (partIndex >= 0 && partIndex < cfg.Parts.Count
+                    && cfg.Parts[partIndex]?.Tracks != null)
+                    ? cfg.Parts[partIndex].Tracks.Count : -1;
+                Debug.Log(
+                    $"<color=lime>[F-4][CompSession]</color> RenderSinglePart call: " +
+                    $"partIndex={partIndex} loop={loopIndex0 + 1}/{_loopsTotalForPart} " +
+                    $"parts={cfg.Parts?.Count ?? -1} " +
+                    $"channelOwners={cfg.ChannelMusicianOrder?.Count ?? -1} " +
+                    $"channelRoles={cfg.ChannelRoles?.Count ?? -1} " +
+                    $"tracksAtPart={tracksAtPart} " +
+                    $"bpmOverride={bpmOverride?.ToString() ?? "null"} " +
+                    $"cacheState={(cache == null ? "null" : "stale-or-empty")} " +
+                    $"melCacheCount={cache?.resolvedMelInstByMusician?.Count ?? 0}");
+
                 var (merged, stems, seconds, bpmChosen, instByMus) =
                     mm.RenderSinglePart(cfg, partIndex, bpmOverride,
                     cache?.resolvedMelInstByMusician);
@@ -538,6 +562,41 @@ namespace ALWTTT.Music
             return sum;
         }
 
+        /// <summary>
+        /// Canonical session-budget inspiration mutator. Clamps to
+        /// PersistentGameplayData.MaxInspiration, refreshes the composition UI,
+        /// and mirrors the result to PersistentGameplayData.CurrentInspiration
+        /// so in-session and persistent fields stay in sync.
+        ///
+        /// Returns the actual delta applied (post-clamp). Returns 0 when
+        /// already at cap or when delta=0.
+        ///
+        /// Used by:
+        /// - track-derived per-loop gain (HandleLoopFinished)
+        /// - host hooks via _session.AddCurrentInspiration (M4.6F-3
+        ///   OnCompositionLoopFinished)
+        /// </summary>
+        public int AddCurrentInspiration(int delta)
+        {
+            if (delta == 0) return 0;
+
+            var pd = GameManager.Instance != null
+                ? GameManager.Instance.PersistentGameplayData
+                : null;
+            int max = pd != null ? pd.MaxInspiration : int.MaxValue;
+
+            int before = _currentInspiration;
+            int after = Mathf.Clamp(before + delta, 0, max);
+            if (after == before) return 0;
+
+            _currentInspiration = after;
+            _ctx?.CompositionUI?.SetInspiration(_currentInspiration);
+
+            if (pd != null) pd.CurrentInspiration = after;
+
+            return after - before;
+        }
+
         private void HandleLoopFinished()
         {
             _isPlaying = false;
@@ -547,8 +606,9 @@ namespace ALWTTT.Music
             int inspirationGainedThisLoop = _perLoopInspirationCurrentPart;
             if (inspirationGainedThisLoop > 0)
             {
-                _currentInspiration += inspirationGainedThisLoop;
-                _ctx.CompositionUI?.SetInspiration(_currentInspiration);
+                AddCurrentInspiration(inspirationGainedThisLoop);
+                // Badge shows un-clamped per-loop track contribution: the
+                // player's signal of next-loop potential, independent of cap.
                 _ctx.CompositionUI?.SetPlusInspiration(inspirationGainedThisLoop);
             }
 
@@ -604,7 +664,16 @@ namespace ALWTTT.Music
 
             if (_loopsRemainingForPart > 0)
             {
-                PlaySinglePartLoop(_currentPartIndex);
+                // F-4 D3-B (Stage A, production-quality): mirror AdvanceToNextPart's
+                // graceful-end pattern when PlaySinglePartLoop returns 0f. Without
+                // this guard, a render failure mid-part leaves _loopStartTime /
+                // _loopDurationSeconds stale (PlaySinglePartLoop only updates them
+                // on success at lines 532-533) and the Update tick spins re-firing
+                // HandleLoopFinished. End the session cleanly instead. NOT [F-4]-
+                // tagged for revert — the underlying invariant (capture-and-gate
+                // PlaySinglePartLoop's return) is permanent.
+                float secs = PlaySinglePartLoop(_currentPartIndex);
+                if (secs <= 0f) { End(); return; }
                 return;
             }
 
@@ -686,7 +755,7 @@ namespace ALWTTT.Music
             if (!final)
             {
                 _state = CompositionState.BuildingNextPart;
-                _currentInspiration = _rules.inspirationPerPart;
+                _currentInspiration = ResolveSessionStartInspiration();
                 ui.SetInspiration(_currentInspiration);
                 ui.BeginDraftNextPart($"Part {_currentPartIndex + 2}");
             }
@@ -694,6 +763,23 @@ namespace ALWTTT.Music
             {
                 _state = CompositionState.PlayingCurrentPart; // solo reproduce y termina
             }
+        }
+
+        /// <summary>
+        /// MB3 D3: session-start inspiration semantic.
+        /// inspirationPerPart == 0 → carry-over from PersistentGameplayData.CurrentInspiration.
+        /// inspirationPerPart != 0 → reset to rules value (existing behavior).
+        /// Applied symmetrically by Begin, ConfirmCurrentPartAndStart, AdvanceToNextPart.
+        /// </summary>
+        private int ResolveSessionStartInspiration()
+        {
+            if (_rules.inspirationPerPart != 0)
+                return _rules.inspirationPerPart;
+
+            var pd = GameManager.Instance != null
+                ? GameManager.Instance.PersistentGameplayData
+                : null;
+            return pd != null ? pd.CurrentInspiration : 0;
         }
 
         private bool ShouldKeepTempo(CardDefinition c)

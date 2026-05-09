@@ -1,0 +1,16 @@
+# B1 — Composition UI files (current/next zone wiring)
+*CompositionUI*.cs
+*SongCompositionUI*.cs
+PartEntry.cs
+TrackEntry.cs
+*CompositionDisplay*.cs
+*PartDisplay*.cs
+*TrackDisplay*.cs
+*CompositionPanel*.cs
+
+# Anything that handles card drop / placement targeting current vs next
+*CardDropZone*.cs
+*CompositionDropTarget*.cs
+
+# Composition UI prefab (won't appear in files.txt fetch but useful to confirm in Unity)
+# CompositionUI.prefab — please confirm wiring in Unity manually

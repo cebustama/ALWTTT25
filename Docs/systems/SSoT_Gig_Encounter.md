@@ -148,14 +148,23 @@ The Gig Setup scene's band and audience pickers are the canonical mechanism for 
 - `GigEncounterSO.audienceMemberList` is the **default** audience composition for an encounter, not a hard binding. The audience picker can override per-run.
 - When the picker selection differs from the encounter's baked list, `GigSetupController` produces an `audienceOverride` list and passes it to `GigEncounterSO.BuildRuntime(audienceOverride)`. When the selection matches (or the user did not interact), the override is null and the encounter's baked list is used (regression-safe path).
 - **Override-decision rule is multiset-blind on baked duplicates.** The picker UI collapses duplicate `AudienceCharacterData` entries to a single row (HashSet dedup in `BuildAudiencePicker`), so a no-customization run produces a picker selection of size = unique-count of baked, not raw baked count. `DiffersFromEncounterAudience` compares picker count against `bakedSet.Count` (unique-count), not raw `bakedCount`. Consequence: encounters with duplicate audience entries (e.g., `[A, A, B]`) preserve duplicates at runtime when the user does not customize, because the override stays null and `BuildRuntime` falls back to the baked list. When the user customizes, the override list cannot represent multiplicity (single picker rows) and duplicates are lost for that run. Multiplicity-aware picker UI is a future concern (tracked: M4.6-prep batch (6)).
-- The audience pool shown by the picker is the union of `setupConfig.AvailableAudienceCharacters` and the currently-selected encounter's `AudienceMemberList`. Encounter-defined audiences therefore always appear, even when absent from the configured pool.
-- Validation: min 1, max = `setupConfig.MaxAudienceCount` (mirror of `GigScene.AudienceMemberPosList.Count`).
+- The audience pool shown by the picker is the union of `GigSetupRosterSO.AvailableAudienceCharacters` and the currently-selected encounter's `AudienceMemberList`. Encounter-defined audiences therefore always appear, even when absent from the configured pool.
+- Validation: min 1, max = `GigSetupRosterSO.MaxAudienceCount` (mirror of `GigScene.AudienceMemberPosList.Count`).
 
 ### 7.3 Encounter swap behavior
 Changing the encounter dropdown rebuilds the audience picker with the new encounter's baked list as default. If the user had customized audience selection, a warning logs and the customization is discarded.
 
 ### 7.4 What this section does not own
 The `BandDeckData` asset path (dev/test deck override) is owned by `SSoT_Card_Authoring_Contracts.md`; the legacy and auto-assembly deck paths are owned by `SSoT_Card_System.md`. This section governs **roster identity**, not deck content.
+
+### 7.5 Gig Setup data sources (M4.6F-2)
+
+The Gig Setup scene reads from two SOs:
+
+- **`GigSetupRosterSO`** — selectable roster content: `AvailableBandDecks`, `AvailableEncounters`, `AvailableAudienceCharacters`, `GenericStarterCatalog`, `MaxAudienceCount`. Renamed from `GigSetupConfigData` in M4.6F-2.
+- **`GigFlowSettingsSO`** — gameplay-flow defaults consumed by the setup screen as fallbacks (`DefaultRequiredSongCount`, `DefaultStartingInspiration`, `DefaultInspirationPerLoop`, `DefaultDiscardHandBetweenTurns`, `DefaultKeepInspirationBetweenTurns`, `AllowOverrideRequiredSongCount`). Authority for these defaults is `SSoT_Gig_Combat_Core` (the same SO carries the gameplay-side rules used at runtime); this section governs their consumption surface inside Gig Setup only.
+
+`PersistentGameplayData.ApplyRunConfig(RunConfig, GigSetupRosterSO, GigFlowSettingsSO)` reads the generic-starter catalogue from the roster SO and all default values from the flow SO. RunConfig override flags continue to take precedence; the SOs supply fallbacks.
 
 ---
 

@@ -10,6 +10,8 @@ This matrix maps each major concept to its authoritative home.
 | Card authoring/import contracts | `systems/SSoT_Card_Authoring_Contracts.md` | `systems/SSoT_Card_Authoring_Contracts.md` | active | promoted from prior appendix |
 | Gig/combat core rules | `systems/SSoT_Gig_Combat_Core.md` | `systems/SSoT_Gig_Combat_Core.md` | active | replaces split authority between reference + canon delta |
 | Gig encounter structure | `systems/SSoT_Gig_Encounter.md` | `systems/SSoT_Gig_Encounter.md` | active | encounter-level structure has its own governed home |
+| Gig setup roster (decks/encounters/audience pool/generic catalog/max count) | `systems/SSoT_Gig_Encounter.md` | `systems/SSoT_Gig_Encounter.md` | active | M4.6F-2: hosted on `GigSetupRosterSO` (renamed from `GigSetupConfigData`) |
+| Gig flow settings + setup defaults (JamRules, Action card gating, Gig End behavior, setup-screen defaults, MeterTuning, GigPresentation, GigDevSettings) | `systems/SSoT_Gig_Combat_Core.md` | `systems/SSoT_Gig_Combat_Core.md` | active | M4.6F-2: split across `GigFlowSettingsSO` + `MeterTuningSO` + `GigPresentationSO` + `GigDevSettingsSO`; setup-screen consumption surface in `SSoT_Gig_Encounter.md` §7.5 |
 | Audience member / reactions | `systems/SSoT_Audience_and_Reactions.md` | `systems/SSoT_Audience_and_Reactions.md` | active | persuasion progress, preferences, intentions, reaction contracts |
 | Status system | `systems/SSoT_Status_Effects.md` | `systems/SSoT_Status_Effects.md` | active | runtime status truth, catalogue boundary, canonical MVP statuses |
 | LoopScore / SongHype / Vibe | `systems/SSoT_Scoring_and_Meters.md` | `systems/SSoT_Scoring_and_Meters.md` | active | scoring pipeline semantics and conversion relationships |

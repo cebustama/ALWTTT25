@@ -46,6 +46,8 @@ Musical modifier effects and gameplay effects must not be silently conflated.
 ### 3.1 CompositionSession
 Owns the song-scoped runtime state machine for composition and playback progression.
 
+CompositionSession exposes `AddCurrentInspiration(int delta) → int` as the canonical session-budget mutator. It clamps to `PersistentGameplayData.MaxInspiration`, refreshes the composition UI, mirrors the result to `PersistentGameplayData.CurrentInspiration` (closing the dual-siting drift documented in `SSoT_Dev_Mode §13.4` at the production-path level), and returns the actual delta applied post-clamp. Track-derived per-loop gain (`HandleLoopFinished`) and host-driven per-loop gain (M4.6F-3 `OnCompositionLoopFinished`) both route through this method.
+
 ### 3.2 SongCompositionUI
 Owns the editable song/part/track model that composition cards mutate.
 
@@ -174,6 +176,8 @@ Those details belong to MidiGenPlay.
 4. Playback-affecting composition cards must trigger the correct ALWTTT rebuild/invalidation path.
 5. `MidiMusicManager` is documented as a game runtime integration component, not package-owned truth.
 6. Loop/part/song feedback emitted after playback belongs to the ALWTTT runtime contract.
+7. Per-loop card draw and per-loop inspiration consumption are host-owned (`GigManager.OnCompositionLoopFinished`), not inside `CompositionSession.HandleLoopFinished`. `CompositionSession` remains the deck-non-mutating invariant holder per the `[Obsolete]` guards on `CompositionSession.PrepareDeck` and `ICompositionContext.Deck`. The host hook fires synchronously from `CompositionSession.HandleLoopFinished`'s `LoopFinished?.Invoke(ctx)`, before the `_loopsRemainingForPart > 0` branch.
+8. `CompositionSession.AddCurrentInspiration` is the canonical session-budget mutator. All production-path inspiration deltas during an active session route through it. It clamps to `pd.MaxInspiration` and mirrors to `pd.CurrentInspiration`. Dev-path mutation (`GigManager.DevSetInspiration` → `CompositionSession.DevSetCurrentInspiration`) is a parallel surface tracked separately in `SSoT_Dev_Mode §13`.
 
 ---
 

@@ -42,7 +42,7 @@ MonoBehaviour:
   actionCardPool: []
   compositionCardPool: []
   drawCount: 3
-  maxCardsOnHand: 10
+  maxCardsOnHand: 8
   maxInspiration: 5
   discardHandBetweenTurns: 1
   keepInspirationBetweenTurns: 1

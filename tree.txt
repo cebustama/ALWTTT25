@@ -4,6 +4,7 @@
 +---Assets
 |   +---_Recovery
 |   |   +---0 (1).unity
+|   |   +---0 (2).unity
 |   |   \---0.unity
 |   +---Materials
 |   |   \---Mat_SpriteOutline.mat
@@ -1733,10 +1734,12 @@
 |   |   |   |   +---SongCompositionUI.prefab
 |   |   |   |   +---SongPartsLayout.prefab
 |   |   |   |   \---TrackLayoutElement.prefab
+|   |   |   +---AudiencePickerRow.prefab
 |   |   |   +---Band Test.prefab
 |   |   |   +---EventOptionButton.prefab
 |   |   |   +---FloatingText.prefab
 |   |   |   +---HealthBar.prefab
+|   |   |   +---MusicianPickerRow.prefab
 |   |   |   +---MusicianStatusUI.prefab
 |   |   |   +---MusicianUI.prefab
 |   |   |   +---RewardContainerPrefab.prefab
@@ -1882,6 +1885,8 @@
 |   |   |   |   +---3 - Warming Up (TCH).asset
 |   |   |   |   +---4 - Light Show (SFX).asset
 |   |   |   |   +---5 - Singalong (SM).asset
+|   |   |   |   +---GenericCardCatalog.asset
+|   |   |   |   +---GenericCardCatalog_Test.asset
 |   |   |   |   +---TEST - Add Calm (Block Stress).asset
 |   |   |   |   +---TEST - Add Skeptic (Block Vibe).asset
 |   |   |   |   +---TEST - Add Stress.asset
@@ -1919,36 +1924,16 @@
 |   |   |   |       |   \---new_conito_vibe_single.asset
 |   |   |   |       +---Gusano_Cards
 |   |   |   |       |   +---Payloads
-|   |   |   |       |   |   +---2CBacking001TestProg_Payload.asset
-|   |   |   |       |   |   +---2Composition001_Payload.asset
-|   |   |   |       |   |   +---new_gusano_heal_all_Payload.asset
-|   |   |   |       |   |   +---new_gusano_stress_add_Payload.asset
-|   |   |   |       |   |   \---SibiMajorChords_Payload.asset
-|   |   |   |       |   +---StyleBundles
-|   |   |   |       |   |   \---Backing
-|   |   |   |       |   |       +---2_Composition_001_CompositionPayload 1_Backing_StyleBundle.asset
-|   |   |   |       |   |       +---2_Composition_001_CompositionPayload_Backing_StyleBundle.asset
-|   |   |   |       |   |       \---2CBacking001TestProg_Payload_Backing_StyleBundle.asset
-|   |   |   |       |   +---2CBacking001TestProg.asset
-|   |   |   |       |   +---2Composition001.asset
-|   |   |   |       |   +---new_gusano_heal_all.asset
-|   |   |   |       |   +---new_gusano_stress_add.asset
-|   |   |   |       |   \---SibiMajorChords.asset
+|   |   |   |       |   \---StyleBundles
+|   |   |   |       |       \---Backing
+|   |   |   |       |           +---2_Composition_001_CompositionPayload 1_Backing_StyleBundle.asset
+|   |   |   |       |           +---2_Composition_001_CompositionPayload_Backing_StyleBundle.asset
+|   |   |   |       |           \---2CBacking001TestProg_Payload_Backing_StyleBundle.asset
 |   |   |   |       +---Robot_Cards
 |   |   |   |       |   +---Payloads
-|   |   |   |       |   |   +---4CRhythm001TakeFive_Payload.asset
-|   |   |   |       |   |   +---4CRhythm002Waltz_Payload.asset
-|   |   |   |       |   |   +---new_robot_vibe_draw_Payload.asset
-|   |   |   |       |   |   +---TestDrums44_Payload.asset
-|   |   |   |       |   |   \---TestDrums68_Payload.asset
-|   |   |   |       |   +---StyleBundles
-|   |   |   |       |   |   \---Rhythm
-|   |   |   |       |   |       \---4_Composition_002_CompositionPayload_Rhythm_StyleBundle.asset
-|   |   |   |       |   +---4CRhythm001TakeFive.asset
-|   |   |   |       |   +---4CRhythm002Waltz.asset
-|   |   |   |       |   +---new_robot_vibe_draw.asset
-|   |   |   |       |   +---TestDrums44.asset
-|   |   |   |       |   \---TestDrums68.asset
+|   |   |   |       |   \---StyleBundles
+|   |   |   |       |       \---Rhythm
+|   |   |   |       |           \---4_Composition_002_CompositionPayload_Rhythm_StyleBundle.asset
 |   |   |   |       +---Band Character - Conito.asset
 |   |   |   |       +---Band Character - Gusano.asset
 |   |   |   |       +---Band Character - Robot C2.asset
@@ -1971,6 +1956,26 @@
 |   |   |   |       +---MVP_RemoveStress_02.asset
 |   |   |   |       +---MVP_RemoveStress_02_Payload.asset
 |   |   |   |       +---Robot_CardCatalogData.asset
+|   |   |   |       +---starter_compound_cycle.asset
+|   |   |   |       +---starter_compound_cycle_Payload.asset
+|   |   |   |       +---starter_default_mode.asset
+|   |   |   |       +---starter_default_mode_Payload.asset
+|   |   |   |       +---starter_mind_tap.asset
+|   |   |   |       +---starter_mind_tap_Payload.asset
+|   |   |   |       +---starter_pentameter.asset
+|   |   |   |       +---starter_pentameter_Payload.asset
+|   |   |   |       +---starter_singing_field.asset
+|   |   |   |       +---starter_singing_field_Payload.asset
+|   |   |   |       +---starter_take_five.asset
+|   |   |   |       +---starter_take_five_Payload.asset
+|   |   |   |       +---starter_waltz_protocol.asset
+|   |   |   |       +---starter_waltz_protocol_Payload.asset
+|   |   |   |       +---starter_warm_up.asset
+|   |   |   |       +---starter_warm_up_Payload.asset
+|   |   |   |       +---starter_wormus_major.asset
+|   |   |   |       +---starter_wormus_major_Payload.asset
+|   |   |   |       +---starter_wormus_minor.asset
+|   |   |   |       +---starter_wormus_minor_Payload.asset
 |   |   |   |       +---test_apply_choke.asset
 |   |   |   |       +---test_apply_choke_Payload.asset
 |   |   |   |       +---test_apply_composure.asset
@@ -1981,22 +1986,14 @@
 |   |   |   |       +---test_apply_feedback_Payload.asset
 |   |   |   |       +---test_apply_flow.asset
 |   |   |   |       +---test_apply_flow_Payload.asset
-|   |   |   |       +---test_dev_flow_and_composure.asset
-|   |   |   |       +---test_dev_flow_and_composure_Payload.asset
-|   |   |   |       +---test_dev_flow_and_draw.asset
-|   |   |   |       +---test_dev_flow_and_draw_Payload.asset
 |   |   |   |       +---test_draw_cards.asset
 |   |   |   |       +---test_draw_cards_Payload.asset
-|   |   |   |       +---test_kw_001.asset
-|   |   |   |       +---test_kw_001_Payload.asset
 |   |   |   |       +---test_modify_stress_add.asset
 |   |   |   |       +---test_modify_stress_add_Payload.asset
 |   |   |   |       +---test_modify_stress_heal.asset
 |   |   |   |       +---test_modify_stress_heal_Payload.asset
 |   |   |   |       +---test_modify_vibe.asset
-|   |   |   |       +---test_modify_vibe_Payload.asset
-|   |   |   |       +---TestEarworm.asset
-|   |   |   |       \---TestEarworm_Payload.asset
+|   |   |   |       \---test_modify_vibe_Payload.asset
 |   |   |   +---Containers
 |   |   |   |   +---Reward Container.asset
 |   |   |   |   \---Special Keyword.asset
@@ -2041,7 +2038,7 @@
 |   |   |   +---Settings
 |   |   |   |   +---ALWTTTProjectRegistries.asset
 |   |   |   |   +---Gameplay Settings.asset
-|   |   |   |   +---GigSetupConfig.asset
+|   |   |   |   +---GigSetupRoster.asset
 |   |   |   |   +---MGP_Config.asset
 |   |   |   |   +---MGP_HarmonicLeadingConfig.asset
 |   |   |   |   +---MGP_MelodicLeadingConfig.asset
@@ -2257,6 +2254,7 @@
 |   |   |   |   +---CardAssetFactory.cs
 |   |   |   |   +---CardEditorWindow.cs
 |   |   |   |   +---CardEditorWindow.JsonImport.cs
+|   |   |   |   +---CardInventoryWindow.cs
 |   |   |   |   +---ChordProgressionCatalogueWizard.cs
 |   |   |   |   +---DeckAssetSaveService.cs
 |   |   |   |   +---DeckCardCreationService.cs
@@ -2292,6 +2290,7 @@
 |   |   |   +---CardDefinition.cs
 |   |   |   +---CardTypeDB.cs
 |   |   |   +---ChoiceCard.cs
+|   |   |   +---GenericCardCatalogSO.cs
 |   |   |   +---MusicianCardCatalogData.cs
 |   |   |   \---MusicianCardEntry.cs
 |   |   +---Characters
@@ -2359,7 +2358,11 @@
 |   |   |   +---Events
 |   |   |   |   \---RandomEventData.cs
 |   |   |   +---Gig
-|   |   |   |   \---GigSetupConfigData.cs
+|   |   |   |   +---GigDevSettingsSO.cs
+|   |   |   |   +---GigFlowSettingsSO.cs
+|   |   |   |   +---GigPresentationSO.cs
+|   |   |   |   +---GigSetupRosterSO.cs
+|   |   |   |   \---MeterTuningSO.cs
 |   |   |   +---SectorMap
 |   |   |   |   +---Configs
 |   |   |   |   |   +---NodeTypeData.cs
@@ -2502,6 +2505,7 @@
 |   |   |   |   +---TooltipController.cs
 |   |   |   |   +---TooltipManager.cs
 |   |   |   |   \---TooltipText.cs
+|   |   |   +---AudiencePickerRow.cs
 |   |   |   +---BeatPulseIndicator.cs
 |   |   |   +---CardDetailViewController.cs
 |   |   |   +---CardUI.cs
@@ -2512,6 +2516,7 @@
 |   |   |   +---GigSetupController.cs
 |   |   |   +---HealthBarController.cs
 |   |   |   +---MusicianMapStatusUI.cs
+|   |   |   +---MusicianPickerRow.cs
 |   |   |   +---MusicianUI.cs
 |   |   |   +---NewSongPanelUI.cs
 |   |   |   +---RewardContainer.cs
@@ -2525,10 +2530,16 @@
 |   |   |   \---SceneChanger.cs
 |   |   +---Code_Extended.zip
 |   |   +---Code_Min.zip
-|   |   \---file_tree.txt
+|   |   +---file_tree.txt
+|   |   \---make-tree-unity.bat
 |   +---Settings
 |   |   +---Build Profiles
 |   |   |   \---New Windows Profile.asset
+|   |   +---Gig
+|   |   |   +---GigDevSettings.asset
+|   |   |   +---GigFlowSettings.asset
+|   |   |   +---GigMeterTuning.asset
+|   |   |   \---GigPresentation.asset
 |   |   +---Scenes
 |   |   |   \---URP2DSceneTemplate.unity
 |   |   +---Lit2DSceneTemplate.scenetemplate
@@ -2584,6 +2595,7 @@
 |   +---DefaultVolumeProfile.asset
 |   +---InputSystem_Actions.inputactions
 |   +---make-tree.bat
+|   +---make-tree-unity.bat
 |   +---Project_Folder_Hierarchy_Heuristic.md
 |   \---UniversalRenderPipelineGlobalSettings.asset
 +---Docs
@@ -2606,6 +2618,7 @@
 |   +---planning
 |   |   +---active
 |   |   |   +---Design_Audience_Status_v1.md
+|   |   |   +---Design_Song_Parts_Library_v0_1.md
 |   |   |   +---Design_Starter_Deck_v1.md
 |   |   |   +---M1_5_Dev_Mode_Sub_Roadmap.md
 |   |   |   +---README.md

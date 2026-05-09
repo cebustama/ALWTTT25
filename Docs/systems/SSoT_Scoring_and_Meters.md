@@ -84,7 +84,7 @@ Where `fillRatio` depends on `LoopScoringMode`:
 
 ### 3.3 HypeDelta conversion
 
-`ComputeHypeDelta` maps LoopScore to a SongHype delta via a piecewise threshold table (`HypeThresholds` struct). Both thresholds and deltas are Inspector-tuneable on GigManager. Defaults: Amazing ≥25 → +15, VeryGood ≥15 → +8, Decent ≥5 → +3, Neutral >−5 → 0, Meh >−15 → −5, Bad else → −12.
+`ComputeHypeDelta` maps LoopScore to a SongHype delta via a piecewise threshold table (`HypeThresholds` struct). Both thresholds and deltas are Inspector-tuneable on `MeterTuningSO` (M4.6F-2; authored on `GigManager` pre-F-2). Defaults: Amazing ≥25 → +15, VeryGood ≥15 → +8, Decent ≥5 → +3, Neutral >−5 → 0, Meh >−15 → −5, Bad else → −12.
 
 ---
 
@@ -150,6 +150,8 @@ Canonical meaning:
 - Flow is not itself SongHype (the Flow → SongHype path was retired and removed in M4.2)
 - Flow is not Inspiration
 
+Flow tuning lives on `MeterTuningSO.flowActionFlatBonus`, `flowActionVibeBonusPerStack`, and `flowVibeMultiplier`. Initial tuning: `flowActionFlatBonus = true`, `flowActionVibeBonusPerStack = 1`, `flowVibeMultiplier = 0.08f` (M4.6F-2).
+
 ### 7.2 Composure
 Composure does **not** directly live in the musical scoring chain.
 It is a defensive meter/status that absorbs Stress before Stress application.
@@ -178,6 +180,7 @@ This doc does not own:
 - exact runtime manager orchestration
 - package-side composition/generation algorithms
 - deep balance tuning spreadsheets or temporary constants
+- the SO assets that host loop-scoring config / hype thresholds / Flow-Vibe values (those are governed for asset locality by `SSoT_Gig_Combat_Core` §12; this doc owns their semantic contract only)
 
 It owns the **semantic contract** of the meter stack.
 

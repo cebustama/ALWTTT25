@@ -39,6 +39,8 @@ It defines:
 | `systems/SSoT_Editor_Authoring_Tools.md` | editor tools inventory, capabilities, supporting services, known gaps | active |
 | `systems/SSoT_Dev_Mode.md` | Dev Mode tooling: compile-time gating, overlay, infinite turns, hand-visibility bridge | active |
 
+> **M4.6F-2 navigation note (2026-05-07):** the four Gig SOs (`GigFlowSettingsSO`, `MeterTuningSO`, `GigPresentationSO`, `GigDevSettingsSO`) are governed under `SSoT_Gig_Combat_Core` (config locality §12). The renamed `GigSetupRosterSO` is governed under `SSoT_Gig_Encounter` (§7.5). `MeterTuningSO` is also referenced by `SSoT_Scoring_and_Meters` for semantic conversion meaning.
+
 ### Runtime
 
 | Document | Primary scope | Status |

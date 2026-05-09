@@ -25,6 +25,11 @@ namespace ALWTTT.Data
         [SerializeField] private JamRules jamRules = new JamRules();
         public JamRules JamRules => jamRules;
 
+        [SerializeField, Tooltip("Cards drawn after each loop completion. " +
+            "0 = disabled. Hand-cap clamp is applied by DeckManager.DrawCards.")]
+        private int drawPerLoop = 0;
+        public int DrawPerLoop => drawPerLoop;
+
         // --- Action card gating ---
 
         [Header("Action Card Gating (MVP)")]

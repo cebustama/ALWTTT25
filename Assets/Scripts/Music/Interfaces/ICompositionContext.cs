@@ -1,4 +1,4 @@
-using ALWTTT.Characters.Band;
+﻿using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Managers;
 using ALWTTT.Music;
@@ -40,7 +40,14 @@ namespace ALWTTT.Interfaces
     public class JamRules
     {
         public int loopsPerPart = 3;
+
+        /// <remarks>
+        /// UNUSED as of M4.6F-3. Per-loop card draw moved to
+        /// <see cref="ALWTTT.Data.GigFlowSettingsSO.DrawPerLoop"/>. This field
+        /// is slated for review under F-5 Part→Loop renaming.
+        /// </remarks>
         public int drawPerPart = 5;
+
         public int inspirationPerPart = 3;
     }
 }

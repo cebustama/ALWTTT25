@@ -1,7 +1,7 @@
 # Roadmap — ALWTTT
 
 **Status:** Planning only — does not define implementation truth  
-**Last updated:** 2026-05-07 (M4.6F-1 action card double-discard closed)
+**Last updated:** 2026-05-09 (Phase A formally closed; Phase B — Gameplay loop polish — opened with B1/B2/B3 outline; M4.6F-5 absorbed into Phase B B1)
 **Rule:** This document tracks recommended work sequencing. It does not override subsystem SSoTs or CURRENT_STATE.
 
 ---
@@ -417,12 +417,122 @@ Scope:
 Five batches surfaced during M4.6 starter deck cleanup smoke testing (`Design_Starter_Deck_v1.md §10` ST-SD-1..8). Gate the M4.6 demo. Ordered by dependency + quick-win:
 
 1. **M4.6F-1 — Action card double-discard ✅ (closed 2026-05-07).** Bug class misdiagnosed at intake as reshuffle/pile lifecycle. Root cause was upstream: action cards triggered `OnCardPlayed` from both `HandController.PlayCard` and `CardBase.Use`/`CardUseRoutine`, doubling discard. Fix: gate `HandController.PlayCard`'s `OnCardPlayed` call to `IsComposition` only. Smoke ST-DOUBLE-1/2/3 + ST-RESHUFFLE-1/2/3 all PASS. New invariant in `SSoT_Card_System.md §9.3` + manifest. See §1 closure block in `CURRENT_STATE.md`.
-2. **M4.6F-2 — GigSettings multi-SO refactor.** Five competing settings homes today (`GameplayData`, `GigSetupConfigData`, `GigManager`, `JamRules` struct, `PersistentGameplayData`) with several duplicated values. Proposal: split into `GigFlowSettingsSO` + `MeterTuningSO` + `GigPresentationSO` + `GigDevSettingsSO`; scene-instance refs stay on `GigManager`. Pure refactor, low risk. Pre-req for F-3. Scope 3-5h.
-3. **M4.6F-3 — Per-loop draw hook.** Likely existed and was removed/disabled; restore or fresh-implement. Hook in `CompositionSession.HandleLoopFinished` before the `_loopsRemainingForPart > 0` branch; read count from `GigFlowSettingsSO.drawPerLoop`. Reuses F-2. Scope 1-2h.
-4. **M4.6F-4 — SongOrchestrator IndexOutOfRange + ALWTTT-side defense.** IOOR inside MidiGenPlay's `GenerateSinglePart`; sublist mismatch hypothesis. Boundary-aware: ALWTTT-side fix is in scope (instrument `MidiMusicManager.RenderSinglePart` args, identify mismatch); MidiGenPlay-internal fix forwards to package owner with minimal repro. Add ALWTTT-side try-catch defense regardless. Scope 1-3h diag + 30 min defense.
-5. **M4.6F-5 — Composition per-loop pending workflow (Lectura A confirmed).** Per-loop pending granularity is a model change, not a bug fix. Rewrite `CompositionSession.HandleLoopFinished` for rotation within a part. UI semantics shift "Part A / Part B" → "Current loop / Next loop." Terminology decision: rename code's `Part` → `Loop` (reserving "Part" / "SongPart" for the future Song Parts Library design — see `planning/Design_Song_Parts_Library_v0_1.md`). Scope 4-8h + UI rework.
+2. **M4.6F-2 — GigSettings multi-SO refactor ✅ (closed 2026-05-07).** Five competing settings homes (`GameplayData`, `GigSetupConfigData`, `GigManager`, `JamRules` struct, `PersistentGameplayData`) consolidated to four SOs on the GigManager side (`GigFlowSettingsSO` + `MeterTuningSO` + `GigPresentationSO` + `GigDevSettingsSO`) plus renamed `GigSetupRosterSO` (was `GigSetupConfigData`). Scene-instance refs stayed on `GigManager`. Façade properties preserved. `GameplayData↔PGD` duplication deferred (D4). Smoke ST-F2-S1/2/3/6/7/8 PASS, S4 PASS with pre-F-2 floating-text caveat, S5 expected FAIL (per-loop draw is F-3). See `M4_6_F2_Doc_Updates.md` and §1 closure block in `CURRENT_STATE.md`.
+3. **M4.6F-3 — Per-loop draw + per-loop inspiration hook + canonical AddCurrentInspiration ✅ (closed 2026-05-08).** New `GigFlowSettingsSO.DrawPerLoop` field. Per-loop draw + per-loop inspiration consumption fire from `GigManager.OnCompositionLoopFinished` (host-owned subscriber, respects `CompositionSession` deck-non-mutation invariant). `CompositionSession.AddCurrentInspiration(int) → int` promoted to canonical session-budget mutator (clamps to MaxInspiration, mirrors to PD). Track-derived per-loop gain refactored through it. `+N` badge displays un-clamped track contribution. `JamRules.drawPerPart` flagged UNUSED (F-5 cleanup). Smoke ST-F3-S1..S7 + S4b PASS, S4c FAIL DEFERRED → MB3. Side-findings: §13.4 Dev surface drift (→ MB3), session-start dual-siting (→ MB3), F-2 D4 follow-up (post-demo). See `M4_6_F3_Doc_Updates.md` and §1 closure block in `CURRENT_STATE.md`.
 
-After F-1..F-5: M4.6 demo gate. After demo gate: ST-M42-6/7/8/9 + batch (5) Runtime tuning original (parked).
+3.5. **MB3 — Dev surface drift correction + session-start dual-siting fix.** ✅ RESOLVED 2026-05-08. Implemented all four surfaces under `#if ALWTTT_DEV`. Carry-over reset semantic implemented via private `ResolveSessionStartInspiration` helper; symmetric across `Begin / ConfirmCurrentPartAndStart / AdvanceToNextPart`. ST-MB3-3 INVALID (lifecycle clarification surfaced); ST-MB3-5/6/7 deferred to loop-game-flow milestone (no current encounter exposes `inspirationPerPart=0`). ST-MB3-1/2/4/8 PASS. Closes ST-F3-S4c. See `SSoT_Dev_Mode.md` §13.4 / §9.10.
+
+3.6. **MB4 — Action-card inspiration session routing (+ MB4-diag).** ✅ RESOLVED 2026-05-08. Closed user-reported critical bug "action cards are NOT consuming Inspiration". `CardBase.SpendInspiration` and `GenerateInspiration` now route through new `GigManager.AdjustInspiration(int delta)` public wrapper, which delegates to `CompositionSession.AddCurrentInspiration` when a session is active. MB4-diag adds `GigManager.IsCompositionSessionActive` Dev-getter and Stats-tab raw `[PD/Session]` readout. Behavior tightening: clamp-at-0 on action-card spend. ST-MB4-1..5 PASS. **F-followup queue exhausted post-MB4.** Open MB5 candidate (action-card cost gate) and the comp-card build-phase mirror remain as parked items for the loop-game-flow milestone. See `SSoT_Dev_Mode.md` §13.4 / §9.11.
+
+4. **M4.6F-4 — SongOrchestrator IndexOutOfRange + ALWTTT-side defense ✅ STAGE A RESOLVED 2026-05-08.** Stage A shipped production-quality defense (try-catch around `generator.Orchestrator.GenerateSinglePart` in `MidiMusicManager.RenderSinglePart`; returns failure tuple integrating with `PlaySinglePartLoop`'s existing graceful-fail branch) + production-quality D3-B within-part recursion guard in `CompositionSession.HandleLoopFinished` (mirrors `AdvanceToNextPart`'s `if (secs <= 0f) End();` pattern) + `[F-4]`-tagged diagnostic logs at both boundary sides. ST-F4-S1/S6 PASS, S3 PASS-vacuous, S2 DEFERRED-non-repro (IOOR did not surface; defense correctly silent), S5 BLOCKED-OUT-OF-SCOPE (package-internal `MidiGenPlayConfig` build errors unrelated to F-4 — separate MidiGenPlay-project batch). Stage B parked-until-natural-repro: reopens automatically if `[F-4][MMM]` LogError fires during playtest; otherwise diag logs strip at M4.6 demo closure (retroactive D5-C). Defense + D3-B guard stay permanent. See `CURRENT_STATE.md` §1 closure block.
+5. **M4.6F-5 — Composition per-loop pending workflow ✅ ABSORBED into Phase B B1 (2026-05-09).** Originally framed as a model change (rewrite `CompositionSession.HandleLoopFinished` for within-part rotation; UI rename "Part A / Part B" → "Current loop / Next loop"). During Phase B planning the user clarified that per-loop card resolution **already works** in the current zone (cards in current → replace track → effect at next loop). The complex piece — *next zone* (planning a future part) — is being simplified out, not implemented. Phase B B1 disables next zone, agrandar current zone to full-screen, model collapses to per-loop-only. Code-name `Part` keeps current meaning; future Song Parts Library (`planning/Design_Song_Parts_Library_v0_1.md`) remains a long-term intent without forced rename pressure. Closure happens when B1 lands. See §5 Phase B and `CURRENT_STATE.md` §1 Phase A close block.
+
+After F-1..F-4 + F-5-absorbed: Phase A is closed. Phase B (Gameplay loop polish) opens — see §5 below. After Phase B exit: demo cut + ST-M42-6/7/8/9 + batch (5) Runtime tuning original (parked).
+
+## 5 — Phase B — Gameplay loop polish (opened 2026-05-09)
+
+**Status:** Active (B1 next).
+**Goal:** Take the working Phase A pre-demo build to a true demo with track persistence between loops, expanded UI feedback, content/balance polish, and animation polish.
+
+**Demo pitch:** "Start a run. Play a gig with your 2-musician band. Each card you play *changes* the music — and the parts you didn't change *stay the same*. Watch the song hype build, see the venue light up, hear the audience react. Convince the crowd, or break under their pressure."
+
+**Scope note.** Phase B reframes M4.6 as Phase A demo. The "M4.6 starter deck v1 authored end-to-end" original DoD item carries over — content is authored, runtime auto-assembles, gigs play. Phase B focuses on *how it feels to play*, not *whether it plays*.
+
+**Sequencing.** Strict left-to-right: B1 → B2 → B3 → demo readiness review. B1 is foundational and gates B2/B3. B2 and B3 could in principle run in parallel after B1 lands, but the team is one developer + agent, so sequential.
+
+### 5.1 — B1 — Loop model simplification + track persistence + UI rework
+
+Foundational. Estimated ~300-400 LoC ALWTTT-side. 1 long session or 2 shorter (split point: stem-cache foundation, then UI rework).
+
+**Decisions locked at open:**
+- D1=C: Phase A formally closed; Phase B opens with own identity.
+- D2=B: Per-track persistence simple. Tracks not touched persist verbatim across loops; structural changes (TS, key, measures) → full regen.
+- D3=A: B2 monolithic (UI feedback + animation in one batch); fallback split if pesado.
+- D4=B: Audience Member Wizard Editor deferred post-demo.
+- D5=run-complete: Spike confirmed feasibility ALWTTT-side without MidiGenPlay boundary violation. Stem cache mechanism + DryWetMidi merge + F-4 Stage A interaction designed.
+- D6=A: Per-track stem cache scope (each track invalidates independently; per-musician would re-introduce intra-musician regen surprises).
+- D7=B: Cache lifetime per-song. Resets on song boundary. Persists across loops + part transitions within a song.
+- α/β=β: Phase A close + Phase B open landed as a clean separate doc batch (already shipped).
+
+**Internal ordering (#7 → #0 → #1, #2 → #8):**
+1. **#7 Stem cache + merge.** New stem cache co-located with `MidiMusicManager` keyed on `(trackIdentity, trackInputsHash, partMeterHash)`. On render call: hash track inputs, check cache, decide which tracks need re-render. Tracks unchanged reuse cached MIDI bytes; tracks changed render via existing `RenderSinglePart` path (MidiGenPlay still renders all tracks, but we replace stems only for changed tracks). Final playable file built via DryWetMidi merge of stems. F-4 Stage A try-catch remains outermost; on catch all stems for the part invalidate. Stem cache resets per song (D7=B).
+2. **#0 Disable next zone + agrandar current zone.** UI removal. Next-zone GameObjects/scripts disabled or removed; current zone takes full screen. Card click handler: only one drop target.
+3. **#1 + #2 Composition session UI rework.** Show currently-playing track per musician with Inspiration-next badge to the right; when player plays composition card, "program" the next-loop track is visualized with pending state.
+4. **#8 No discard on play.** Single-condition change: don't discard hand cards when CompositionSession starts.
+
+**Files (likely):**
+- `MidiMusicManager.cs` — stem cache field + new helpers + DryWetMidi merge.
+- `CompositionSession.cs` — possibly minor adjustments (call site of RenderSinglePart unchanged in shape; stem cache is opaque to it).
+- Composition UI files (current/next zone controllers) — names TBD; user to provide via files.txt.
+- `GigManager.cs` or wherever the CompositionSession start is wired — for #8 discard behavior.
+
+**DoD:**
+- Per-track persistence demonstrably works in playtest: play a rhythm composition card, hear rhythm change, hear chord progression NOT change.
+- Structural-change invalidation works: play a meter card (TS shift), hear the whole loop regen.
+- Next zone UI removed; current zone full-screen.
+- Hand persists across CompositionSession start.
+- F-4 Stage A defense not regressed; stem cache invalidates on catch (safe regression to merged-file path).
+- Smoke tests ST-B1-S1..S8 (or similar bounded set) covering: persistence, structural invalidation, song-boundary cache reset, F-4 catch invalidation, F-1/F-3 regression clean.
+
+### 5.2 — B2 — Polish layer (feedback + animation)
+
+Aditivo, low risk, depends on B1 landed. Default monolithic; fallback split B2a (UI feedback) + B2b (animation) if pesado.
+
+**Items:**
+- **#3 Tooltip miniature on track labels.** Hover over current/next track label → minicard preview. Reuse `CardUI` + tooltip system.
+- **#4 Inspiration markers pop-up animation.** When `AdjustInspiration` mutates the value, marker briefly scales + flashes.
+- **#5 Expanded floating text.** Composition events ("MAJOR CHANGE", "MINOR CHANGE", "FUNKY VIBE"), audience exclamations ("WOW", "AMAZING", "YEAH", "WOOO"), multipliers with icons ("×2 EARWORM", "+5 FLOW"). Reuse existing FloatingText system.
+- **#6 SongHype thresholds → venue SFX.** 1/3 → lights, 2/3 → smoke machines, 3/3 → fire. SFX already implemented; just call from the right hook (likely `GigManager.AddSongHype` or a new threshold-detection helper).
+- **#14 Robot animation polish.** Pop-up on beats (sprite scale ease in/out instead of jump).
+- **#15 Worm animation polish.** Vertical stretch up + compress down on beats.
+- **#16 Worm instrument separate animator.** GameObject already separate; needs own Animator component.
+
+**DoD:**
+- All six feedback items observable in a normal playtest.
+- Animation feel review user-confirmed.
+- Smoke tests ST-B2-S1..S6 (one per item).
+
+### 5.3 — B3 — Content + design
+
+Aditivo, depends on B1. Authoring + design.
+
+**Items:**
+- **#9 Inspiration cost/gen balance pass.** Cover cost 0/1/2/3 and generated 0/1/2/3 across the deck. 4/4 cards most common; 3/4 next; 6/8 next; 5/4 rare and powerful. Major/minor chord progressions get simple distinguishing effects.
+- **#10 BPM cards.** Rhythm composition cards with effects: `+/- BPM`, `2× BPM`. Touches `RhythmCardConfigSO` or a new effect type that mutates `cfg.BeatsPerMinute`.
+- **#11 Modulation cards.** Chord progression cards with key-shift effect (modulation). Other tracks should persist via B1 stem cache; only the chord stem reflects the new key when played.
+- **#12 1 designed audience member with 3 abilities.** Authoring on existing infrastructure. Picks an audience archetype, designs 3 abilities, authors the SO.
+
+**Items deferred:**
+- **#13 Audience Member Wizard Editor** — D4=B, post-demo.
+
+**DoD:**
+- Deck balance feels intentional in playtest.
+- BPM cards demonstrate; modulation cards demonstrate (with persistence behind them).
+- New audience member playable in at least one encounter.
+- Smoke tests ST-B3-S1..S5.
+
+### 5.4 — Demo readiness review
+
+Post-B3. Confirms demo cut. Items checked:
+- Persistence between loops works as designed.
+- UI feedback polish lands.
+- Animation polish lands.
+- Content balance feels right.
+- New audience member produces interesting decisions.
+- F-1, F-3, F-4, MB1-MB4, M4.5 invariants all clean.
+
+If pass: Phase B closed; demo cut tagged; publishers/community can be shown.
+If gaps: targeted follow-up batches before cut.
+
+### 5.5 — Phase B Definition of Done
+
+- [ ] B1 (loop simplification + persistence + UI rework) closed
+- [ ] B2 (feedback + animation polish) closed
+- [ ] B3 (balance + new content) closed
+- [ ] Demo readiness review passed
+- [ ] No F-1/F-3/F-4 invariant regressions
+- [ ] CURRENT_STATE + Roadmap + changelog reflect closure
+- [ ] No SSoT promotions or authority changes (Phase B is operational, not governance — same as Phase A's runtime delivery)
 
 ## Post-MVP — Pending Effects system (planned, first post-MVP batch)
 

@@ -225,8 +225,8 @@ All three deferred M1.2 tests now closed. No remaining multi-turn validation gap
 | Test | Subject | Result |
 |---|---|---|
 | ST-P32-1 | SongHype slider affects `_songHype` and audience beat intensity live | ✅ PASS 2026-04-23 |
-| ST-P32-2 | Inspiration slider clamps to `MaxInspiration` and updates composition UI live | ✅ PASS 2026-04-23 |
-| ST-P32-3 | Scrubbing Inspiration unblocks a previously-uncastable cost-1 composition card | ✅ PASS 2026-04-23 |
+| ST-P32-2 | Inspiration slider clamps to `MaxInspiration` and updates composition UI live | ⚠️ Retroactively invalidated 2026-05-08 — see §9.10 ST-MB3-4 |
+| ST-P32-3 | Scrubbing Inspiration unblocks a previously-uncastable cost-1 composition card | ⚠️ Retroactively invalidated 2026-05-08 — see §9.10 ST-MB3-4 / ST-MB3-8 |
 | ST-P32-4 | BandCohesion stepper to 0 dispatches `LoseGig` (Infinite Turns OFF) | ⚠️ Retroactively invalidated 2026-04-24 — see §9.8 ST-MB1-1 |
 | ST-P32-5 | BandCohesion stepper to 0 is suppressed (Infinite Turns ON) | ⚠️ Retroactively invalidated 2026-04-24 — see §9.8 ST-MB1-2 |
 | ST-P32-6 | P3.1 Breakdown tests still pass (regression) | ✅ PASS 2026-04-23 |
@@ -285,6 +285,60 @@ Resolves §15.4 finding. Original `StatusEffectCatalogueSO.asset` split into `St
 | ST-MB2-4 | Regression — `DevAddFlowToAllMusicians` still resolves `flow` key from musician catalogue | ✅ PASS 2026-04-24 |
 | ST-MB2-5 | Regression — Feedback DoT applies and ticks (musician catalogue contains `feedback`) | ✅ PASS 2026-04-24 |
 | ST-MB2-6 | No missing-reference warnings after scene reload — all prefab catalogue fields bound | ✅ PASS 2026-04-24 |
+
+### 9.10 MB3 — Inspiration Dev surface drift correction + session-start carry-over (2026-05-08)
+
+Retroactive correction of §9.5 ST-P32-2 / ST-P32-3. On 2026-05-08 MB3
+discovered that `GigManager.LiveInspiration`, `GigManager.DevSetInspiration`
+session routing, `CompositionSession.CurrentInspiration`, and
+`CompositionSession.DevSetCurrentInspiration` had never been implemented
+in code, despite all four being documented in §13.2 since 2026-04-23.
+ST-P32-2 and ST-P32-3 could not have exercised the documented routing.
+MB3 implements all four surfaces and adds a session-start carry-over
+semantic for `JamRules.inspirationPerPart == 0` (D3). Tests run under
+the corrected code:
+
+| Test | Subject | Result |
+|---|---|---|
+| ST-MB3-1 | LiveInspiration returns PD value when no CompositionSession is active | ✅ PASS 2026-05-08 |
+| ST-MB3-2 | LiveInspiration returns session value (not PD) during active session with forced divergence | ✅ PASS 2026-05-08 |
+| ST-MB3-3 | DevSetInspiration with no active session writes pd only; sessionRouted=N | ⚠️ INVALID 2026-05-08 — test specified an unreachable precondition. CompositionSession is alive for the entire PlayerTurn (Begin to End), so "no active session at gig start" cannot occur during runtime. The Dev wrapper correctly reports `sessionRouted=Y` throughout the gig. Dev Mode is not exercised between gigs in current usage; no replacement test scheduled. See §13.4 lifecycle clarification. |
+| ST-MB3-4 | DevSetInspiration with active session writes both pd and session; comp UI repaints; cost-gate respects new value; sessionRouted=Y | ✅ PASS 2026-05-08 |
+| ST-MB3-5 | inspirationPerPart=0 + Begin → carry-over from pd.CurrentInspiration (D3) | ⏸ DEFERRED — depends on loop-game-flow milestone |
+| ST-MB3-6 | inspirationPerPart=3 + Begin → reset to rules value (regression) | ⏸ DEFERRED — same |
+| ST-MB3-7 | inspirationPerPart=0 + AdvanceToNextPart → carry-over preserved | ⏸ DEFERRED — same |
+| ST-MB3-8 | ST-F3-S4c regression — Dev slider responsiveness during active session is now PASS | ✅ PASS 2026-05-08 |
+
+### 9.11 MB4 — Action-card inspiration session routing (2026-05-08)
+
+Closes user-reported critical bug "action cards are NOT consuming
+Inspiration" (visible counter on composition UI did not move on action
+play). Root cause: `CardBase.SpendInspiration` and
+`CardBase.GenerateInspiration` wrote `pd.CurrentInspiration` directly,
+bypassing `_session._currentInspiration` and the comp UI. This is the
+symmetric dual-siting that F-3 closed for comp cards / per-loop gain
+but never extended to action cards.
+
+MB4 adds a public `GigManager.AdjustInspiration(int delta)` wrapper
+that delegates to `CompositionSession.AddCurrentInspiration` when a
+session is active and writes PD directly otherwise (clamped to
+`[0, pd.MaxInspiration]`). Both `CardBase.SpendInspiration` (now passing
+a negative delta) and `CardBase.GenerateInspiration` (passing positive)
+route through this wrapper. PD ↔ session ↔ comp UI now stay in sync
+across action, SFX, comp-card, per-loop-gain, and Dev paths.
+
+MB4-diag adds a `GigManager.IsCompositionSessionActive` getter
+(Dev-only) and a raw `[PD/Session]` readout below the Stats-tab
+Inspiration slider, so dual-siting divergence (or convergence) is
+always visible during diagnostic runs.
+
+| Test | Subject | Result |
+|---|---|---|
+| ST-MB4-1 | Action card spend mirrors pd and _session; comp UI updates | ✅ PASS 2026-05-08 |
+| ST-MB4-2 | Action / SFX card generate mirrors pd and _session; clamps at MaxInspiration | ✅ PASS 2026-05-08 |
+| ST-MB4-3 | Over-spend clamps at 0 instead of going negative | ✅ PASS 2026-05-08 |
+| ST-MB4-4 | Comp-card spend path unaffected — pd unchanged, session decrements (build-phase divergence preserved as §13.4 caveat); verified via raw readout | ✅ PASS 2026-05-08 |
+| ST-MB4-5 | F-3 per-loop gain regression — pd ↔ session mirror unchanged; verified via raw readout | ✅ PASS 2026-05-08 |
 
 ---
 
@@ -401,6 +455,10 @@ Stats tab gains a Gig-Wide Stats section. Three live controls at P3.2 close: Son
 - `GigManager.DevSetBandCohesion(int)` — floor at 0, no upper cap. Writes to `pd.BandCohesion`. If the new value is 0, calls `LoseGig()`. `LoseGig`'s existing Infinite-Turns suppression branch applies — OFF triggers the loss panel, ON logs suppression and continues the gig. This is the symmetric Dev counterpart to the natural Breakdown → Cohesion−1 → LoseGig path (see `MusicianBase.OnBreakdown`).
 - `CompositionSession.CurrentInspiration` (getter, Dev-only).
 - `CompositionSession.DevSetCurrentInspiration(int)` — sets `_currentInspiration`, calls `_ctx?.CompositionUI?.SetInspiration(value)`. Does not write to `PersistentGameplayData` — the caller (`GigManager.DevSetInspiration`) owns that.
+- `GigManager.AdjustInspiration(int delta)` (production, **not** Dev-only) — public wrapper. When `_session != null && _session.IsActive`, delegates to `CompositionSession.AddCurrentInspiration(delta)`. Otherwise writes `pd.CurrentInspiration` directly with `Mathf.Clamp(before + delta, 0, pd.MaxInspiration)`. Used by `CardBase.SpendInspiration` (negative delta) and `CardBase.GenerateInspiration` (positive delta). Returns the actual delta applied post-clamp. MB4 (2026-05-08).
+- `GigManager.IsCompositionSessionActive` (getter, Dev-only) — exposes `_session != null && _session.IsActive` for the Stats-tab raw `[PD/Session]` readout. Same predicate used internally by `LiveInspiration`, `DevSetInspiration`, and `AdjustInspiration` to decide session-routing. Surfaced as a Dev-only readable for diagnostic UI. MB4-diag (2026-05-08).
+
+**Stats-tab raw [PD/Session] readout (MB4-diag, 2026-05-08).** A single-line readout below the Inspiration slider shows `PD=N  Session=N` while a session is active and `Session=—` otherwise. The slider's primary value (`LiveInspiration`) collapses pd and session into one number for ergonomic editing; the raw readout below it surfaces the dual-siting split for diagnostic purposes. Useful for spotting comp-card build-phase divergence (§13.4 caveat) and for regression checks on `AddCurrentInspiration`'s mirror.
 
 ### 13.3 Dev Mode principle — symmetric consequences
 
@@ -415,13 +473,32 @@ Inspiration lives in two fields that are not continuously synchronized:
 - `PersistentGameplayData.CurrentInspiration` — the persistent / between-session field. Initialized by `GigManager.StartGig` from `InitialGigInspiration`; reset at PlayerTurn start from `TurnStartingInspiration` when `KeepInspirationBetweenTurns` is false.
 - `CompositionSession._currentInspiration` — the live session budget. Set at `Begin()` and `ConfirmCurrentPartAndStart()` to `_rules.inspirationPerPart`. This is the value the composition card cost gate reads (`TryPlayCompositionCard` step 1) and the value the composition UI displays (`ui.SetInspiration`).
 
-During an active composition, writes to `pd.CurrentInspiration` alone are invisible to gameplay. P3.2's `DevSetInspiration` therefore writes to both, and the Stats-tab slider reads `LiveInspiration` (which returns whichever is authoritative for the current moment).
+During an active composition, writes to `pd.CurrentInspiration` alone are invisible to gameplay. The Stats-tab slider reads `LiveInspiration` (which returns whichever is authoritative for the current moment); writes go through `DevSetInspiration` which routes to both. The same routing pattern applies to action-card spend via `AdjustInspiration` (MB4).
 
-This is a finding, not a contract change — the gameplay behavior is unchanged. If the dual-siting is ever reconciled into a single source of truth, this section and the `LiveInspiration` routing in §13.2 should be revisited. `SSoT_Gig_Combat_Core` §4.2 may want a one-line note surfacing this implementation reality; that's a separate doc pass.
+**Closure history.**
+- **M4.6F-3** closed the dual-siting on the **comp-card and per-loop-gain paths**. `CompositionSession.AddCurrentInspiration` mirrors PD ↔ session on every call. Track-derived per-loop gain (`HandleLoopFinished`) and host-driven F-3 gain (`OnCompositionLoopFinished`) both route through it.
+- **MB3** (2026-05-08) closed the **Dev path**. `LiveInspiration`, `DevSetInspiration` session routing, `CompositionSession.CurrentInspiration` getter, and `CompositionSession.DevSetCurrentInspiration` were documented in §13.2 since 2026-04-23 but never implemented. ST-P32-2 / ST-P32-3 retroactively invalidated; ST-MB3-1..8 in §9.10. The Stats-tab Inspiration slider reads `LiveInspiration` and writes through `GigManager.DevSetInspiration` with session routing.
+- **MB4** (2026-05-08) closed the **action-card path**. `CardBase.SpendInspiration` and `CardBase.GenerateInspiration` now route through `GigManager.AdjustInspiration`, which delegates to `CompositionSession.AddCurrentInspiration` when a session is active. PD, session, and the composition UI stay in sync on every action-card and SFX-card play. ST-MB4-1..5 in §9.11. **Behavior tightening:** over-spend now clamps at 0 instead of producing negative `pd.CurrentInspiration` (ST-MB4-3).
+
+**Lifecycle clarification (surfaced via ST-MB3-3 INVALID).** The `CompositionSession` is alive for the **entire PlayerTurn**, not just composition playback. `StartCompositionSession` is invoked at PlayerTurn entry (`GigManager.cs` `case GigPhase.PlayerTurn:` block) and `_session` is nulled only by `OnCompositionSessionEnded` after `End()` propagates from the final part of a song. Therefore `_session != null && _session.IsActive` is `true` for the entire action-card window during a gig, including the moment immediately after `StartGig`. The "no active session" branch of `LiveInspiration` / `DevSetInspiration` / `AdjustInspiration` only fires between gigs (main menu, post-WinGig/LoseGig, pre-StartGig).
+
+**Caveat — comp-card build-phase spend.** `TryPlayCompositionCard` step 8 (CompositionSession.cs lines 342–356 region) decrements `_session._currentInspiration` only and does not mirror to PD. This is the one remaining un-mirrored write path. ST-MB4-4 verifies that MB4 preserved this divergence (PD unchanged, session decrements) — it is intentional preservation, not a regression. A future consolidation could route this through `AddCurrentInspiration` too; deferred to the loop-game-flow milestone.
+
+**Open finding (parked, MB5 candidate).** `GigManager.CanPlayActionCard` does not check `def.InspirationCost <= pd.CurrentInspiration`. Action cards can be played with insufficient inspiration; MB4's clamp-at-0 prevents negative pd but does not gate the play itself. Compare comp cards: `TryPlayCompositionCard` step 1 does check and refuses. MB5 candidate batch — not scheduled.
+
+**Diagnostic surface (MB4-diag).** A Stats-tab raw `[PD/Session]` readout makes the dual-siting split (or convergence) directly visible. See §13.2.
+
+`SSoT_Gig_Combat_Core` §4.2 may want a one-line note surfacing this implementation reality; that remains a separate doc pass.
 
 ### 13.5 Smoke tests
 
-ST-P32-1 through ST-P32-7: all passed 2026-04-23. See §9.5.
+ST-P32-1 (SongHype slider) and ST-P32-4..7 remain valid; see §9.5.
+
+ST-P32-2 and ST-P32-3 were recorded as PASS 2026-04-23 but the four routing surfaces those tests purported to exercise (`LiveInspiration`, `DevSetInspiration` session routing, `CompositionSession.CurrentInspiration`, `CompositionSession.DevSetCurrentInspiration`) were never implemented in code on that date. Those entries were not honest observations of the documented routing. Retroactively invalidated 2026-05-08; replacements recorded as ST-MB3-1..8 in §9.10 (with ST-MB3-3 INVALID per its precondition reachability — see lifecycle clarification in §13.4).
+
+MB4 smoke tests (action-card path closure + raw readout) recorded as ST-MB4-1..5 in §9.11. All PASS 2026-05-08.
+
+ST-MB3-5 / ST-MB3-6 / ST-MB3-7 (the carry-over branch for `JamRules.inspirationPerPart == 0`) are deferred to the loop-game-flow milestone — no current encounter exposes this configuration, so empirical verification waits for that batch.
 
 ### 13.6 Unblocks
 

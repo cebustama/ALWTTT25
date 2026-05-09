@@ -516,12 +516,37 @@ namespace ALWTTT
 
         protected virtual void SpendInspiration(int value)
         {
-            GameManager.PersistentGameplayData.CurrentInspiration -= value;
+            if (value <= 0) return;
+
+            var gm = GigManager.Instance;
+            if (gm != null)
+            {
+                // MB4: session-aware routing. Negative delta = spend.
+                gm.AdjustInspiration(-value);
+                Debug.Log("<color=green> TEST TEST TEST " + GameManager.PersistentGameplayData.CurrentInspiration + "</color>");
+                return;
+            }
+
+            // Defense-in-depth fallback for code paths where no GigManager exists
+            // (shouldn't fire in normal gig play).
+            var pd = GameManager.PersistentGameplayData;
+            if (pd != null) pd.CurrentInspiration -= value;
         }
 
         protected virtual void GenerateInspiration(int value)
         {
-            GameManager.PersistentGameplayData.CurrentInspiration += value;
+            if (value <= 0) return;
+
+            var gm = GigManager.Instance;
+            if (gm != null)
+            {
+                // MB4: session-aware routing. Positive delta = generate.
+                gm.AdjustInspiration(+value);
+                return;
+            }
+
+            var pd = GameManager.PersistentGameplayData;
+            if (pd != null) pd.CurrentInspiration += value;
         }
 
         #region Pointer Events

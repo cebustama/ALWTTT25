@@ -3,6 +3,421 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-09 — Phase A formally closed; Phase B (Gameplay loop polish) opened
+
+Doc-only governance batch (β path: separate from B1 code work). Phase A
+spans Combat MVP (2026-03-23) through M4.6F-4 Stage A and MB4 (2026-05-08).
+The full Phase A inventory is in `CURRENT_STATE.md` §1 Phase A close block.
+
+Phase B is the post-pre-demo polish phase. Three batches planned:
+B1 (loop simplification + per-track persistence + UI rework — foundational),
+B2 (feedback + animation polish — aditivo), B3 (content + balance — aditivo).
+Sequencing strict left-to-right.
+
+M4.6F-5 reframe. Original F-5 scope was "implement per-loop pending workflow."
+User clarified during Phase B planning that per-loop card resolution
+**already works** in the current zone (cards in current → replace track →
+effect at next loop). The complex piece — *next zone* (planning a future
+part) — is being simplified out, not implemented. Phase B B1 disables the
+next zone, agrandar current zone to full-screen, model collapses to
+per-loop-only. F-5 retroactively absorbed into B1; closure happens when
+B1 lands. Code-name `Part` keeps current meaning. Future Song Parts Library
+(`planning/Design_Song_Parts_Library_v0_1.md`) remains a long-term intent
+without forced rename pressure.
+
+Decisions locked at this batch:
+- D1=C: Phase A formally closed; Phase B opens with own identity.
+- D2=B: Per-track persistence simple (D2-A transform mechanism explicitly
+  out of scope; possible post-Phase-B follow-up if persistence proves
+  valuable in playtest).
+- D3=A: B2 monolithic; fallback split if pesado.
+- D4=B: Audience Member Wizard Editor deferred post-demo.
+- D5=run-complete: Spike findings recorded.
+- D6=A: Per-track stem cache scope.
+- D7=B: Stem cache lifetime per-song.
+- α/β=β: Doc-closure ships separately from B1 code work.
+
+Spike findings (D5). Per-track persistence is feasible on the ALWTTT side
+without violating the MidiGenPlay boundary. Mechanism: stem cache co-located
+with `MidiMusicManager` keyed on `(trackIdentity, trackInputsHash,
+partMeterHash)`. On each render call, hash track inputs, check cache, decide
+which tracks need re-render. Tracks unchanged reuse cached MIDI bytes; tracks
+changed render via existing `RenderSinglePart` path (MidiGenPlay still
+renders all tracks, but ALWTTT replaces stems only for changed tracks).
+Final playable file built via DryWetMidi merge of cached + freshly-rendered
+stems. F-4 Stage A try-catch remains outermost; on catch all stems for the
+part invalidate (safe regression to merged-file path).
+
+Why this works without crossing the boundary: MidiGenPlay's orchestrator
+already produces per-stem MIDI files (`MidiMusicManager` writes them today
+as part of the F-4 Stage A code path). The stem cache simply reuses those
+artifacts. No package internals redefined. No `SongOrchestrator` /
+`GenContext` / composer contracts touched.
+
+Estimated B1 cost: ~200-300 LoC for stem cache + merge core; ~100 LoC for
+UI rework; total ~300-400 LoC ALWTTT-side. 1 long session or 2 shorter.
+
+Code: none in this batch. β path means doc-only.
+
+Docs:
+- `CURRENT_STATE.md` §1 new Phase A close block prepended; §2 active-work
+  paragraph rewritten from M4 framing to Phase B framing; §3 What is next
+  rewritten with B1/B2/B3 + post-demo follow-ups; §4 F-5 bullet flipped to
+  ABSORBED + three new Phase B B1/B2/B3 bullets added; §5 closure-log entry.
+- `Roadmap_ALWTTT.md` Last-updated bumped; §4.6-followup item 5 (M4.6F-5)
+  flipped to ✅ ABSORBED; transition line "After F-1..F-5: M4.6 demo gate"
+  updated to reflect Phase B framing; new §5 Phase B section inserted
+  before Post-MVP sections (full B1/B2/B3 outlines, scope, DoD).
+- `changelog-ssot.md` (this entry).
+
+Closes (governance): Phase A formally. M4.6F-5 absorbed.
+Opens (governance): Phase B. B1 next as code batch.
+
+Out of scope:
+- F-4 Stage B remains parked-until-natural-repro (reopens automatically
+  if `[F-4][MMM]` LogError fires during playtest).
+- MidiGenPlay package-internal Player-build errors
+  (`MidiGenPlayConfig.GetChordWriteFolder` / `GetProfileForTonality`)
+  remain a separate MidiGenPlay-project batch.
+
+No SSoT promotion or retirement. No authority change. No
+`coverage-matrix.md` change. No `ssot_manifest.yaml` change. No systems
+SSoT touched. No `SSoT_INDEX.md` change.
+
+2026-05-08 — M4.6F-4 Stage A: SongOrchestrator IOOR defense + diagnostic + D3-B recursion guard
+
+Closes M4.6F-4 on a Stage A scope. The IOOR open item targeted a crash
+inside MidiGenPlay's `SongOrchestrator.GenerateSinglePart → g__GeneratePass|0
+→ List<>.get_Item` at >=4 loops/part. Stage A delivers ALWTTT-side defense
++ diagnostic + a structurally-related recursion guard. Stage B (root-cause
+routing) is parked until a natural IOOR repro captures the failing arg dump.
+
+Code:
+- `Assets/Scripts/Managers/MidiMusicManager.cs` — production-quality
+  `try { ... } catch (Exception ex) { ... }` around the
+  `generator.Orchestrator.GenerateSinglePart` call plus its serialization
+  (merged.Write + per-stem Write). On catch returns `(null, null, 0f, 0, null)`
+  — the same failure-tuple shape as the existing partIndex-out-of-range
+  early-return at line 593 — so `PlaySinglePartLoop`'s pre-existing
+  `merged == null || seconds <= 0f` graceful-fail branch fires unchanged.
+  `[F-4]`-tagged entry log immediately before the call (after channelMap is
+  built) shows partIndex, parts, channelRoles, channelOwners, channelMap,
+  tracksAtPart, bpm, instOverrides counts. `[F-4]`-tagged catch-handler
+  LogError emits per-track dump (channel, role, musicianId), ChannelRoles
+  dump, ChannelMusicianOrder dump, exception type + message + stack trace.
+  Net +58 lines.
+- `Assets/Scripts/Music/CompositionSession.cs` — `[F-4]`-tagged entry log
+  in `PlaySinglePartLoop` immediately before `mm.RenderSinglePart(...)`
+  shows partIndex, loop iteration `(N+1)/total`, parts, channelOwners,
+  channelRoles, tracksAtPart, bpmOverride, cacheState, melCacheCount.
+  D3-B production-quality within-part recursion guard added in
+  `HandleLoopFinished`'s `if (_loopsRemainingForPart > 0)` branch — captures
+  `PlaySinglePartLoop`'s return value and calls `End()` on `secs <= 0f`,
+  mirroring AdvanceToNextPart's pattern at lines 732-733. Without this guard,
+  a mid-part render failure would leave `_loopStartTime` / `_loopDurationSeconds`
+  stale and the Update tick would spin re-firing HandleLoopFinished. Net +27
+  lines (+19 entry log, +8 D3-B guard).
+
+Defense + D3-B guard are permanent. `[F-4]`-tagged log lines strip at full
+F-4 closure (Stage B route) or at M4.6 demo closure if no natural recurrence
+happens (retroactive D5-C).
+
+Decisions locked at batch open: D1=A two-stage; D2=A defense in MMM around
+the orchestrator call (broadened pragmatically to cover serialization with
+the same graceful-fail consequence); D3=B within-part recursion guard added
+in Stage A (user override of recommendation); D4=A `[F-4]`-tagged logs
+always-on, strip at closure.
+
+Smoke test results:
+- ST-F4-S1 PASS — paired `[F-4][CompSession]` + `[F-4][MMM]` entry logs
+  fire once per cache-miss render; counts agree across the boundary (e.g.
+  `channelRoles=N` matches on both lines); no defense triggered; song
+  completes normally.
+- ST-F4-S2 DEFERRED-non-repro — IOOR did not surface in test session at
+  `loopsPerPart=4`. Defense correctly silent. No arg dump captured for
+  Stage B routing.
+- ST-F4-S3 PASS-vacuous — no catch fired, no spin to evaluate. End-of-session
+  editor errors (`SerializedProperty has been Disposed`) are the standard
+  Unity inspector pattern when stopping Play mode mid-session; unrelated.
+- ST-F4-S4 N/A — no LogError data to evaluate.
+- ST-F4-S5 BLOCKED-OUT-OF-SCOPE — Player build fails on three CS1061 errors
+  inside the MidiGenPlay package: `GetChordWriteFolder` and
+  `GetProfileForTonality` on `MidiGenPlayConfig` are referenced from
+  package-internal code (`PatternRepositoryResources.cs:87`,
+  `SongOrchestrator.cs:142,326`) but are not visible to the Player build
+  (likely `#if UNITY_EDITOR`-gated or in editor-only assembly). Editor
+  compile clean. F-4 edits do not reference either method. Tracked as
+  separate MidiGenPlay-project batch with full rehydration context.
+- ST-F4-S6 PASS — D3-B guard does not regress healthy multi-loop play.
+  Loop 1 of a part: paired `[F-4]` entry logs fire (cache-miss).
+  Loops 2+: no entry logs (cache-hit path skips RenderSinglePart entirely).
+  Cached duration returns > 0; D3-B guard observes `secs > 0f`, returns
+  without End(); part advances through all loops.
+
+Docs:
+- `CURRENT_STATE.md` §1 new closure block; §3 demo-gate-dependencies line
+  rewritten (drops MB3 + F-4, gate now F-5 only); §4 F-4 bullet flipped
+  to STAGE A RESOLVED with Stage B parked + S5 out-of-scope notes; §5
+  closure-log entry.
+- `Roadmap_ALWTTT.md` Last-updated bumped; §4.6-followup item 4 marked
+  ✅ STAGE A RESOLVED with Stage B parked notes.
+
+Closes (Stage A only): M4.6F-4 ALWTTT-side defense + diagnostic +
+recursion guard. Stage B (IOOR root-cause routing) parked.
+
+Out-of-scope concern logged: MidiGenPlay package build errors on
+`MidiGenPlayConfig.GetChordWriteFolder` / `GetProfileForTonality`. Package-
+internal per `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §2.2; ALWTTT does not
+redefine package internals. Separate batch in MidiGenPlay project.
+
+No SSoT promotion or retirement. No coverage-matrix change. No
+authority-order change. No ssot_manifest.yaml change.
+
+2026-05-08 — MB4: Action-card inspiration session routing (+ MB4-diag)
+
+Closes user-reported critical bug "action cards are NOT consuming
+Inspiration" (visible counter on composition UI did not move on
+action-card play). Root cause: `CardBase.SpendInspiration` and
+`CardBase.GenerateInspiration` wrote `pd.CurrentInspiration` directly,
+bypassing `_session._currentInspiration` — symmetric dual-siting that
+F-3 closed for comp cards / per-loop gain but never extended to action
+cards.
+
+Code:
+- `Assets/Scripts/Managers/GigManager.cs` — new public `AdjustInspiration(int delta)`
+  method (production, NOT Dev-gated). Routes to `_session.AddCurrentInspiration`
+  when session active; pd write with `Mathf.Clamp(before + delta, 0, pd.MaxInspiration)`
+  otherwise. Returns actual delta applied. Placed between `AddSongHype` and the
+  `#if ALWTTT_DEV` block.
+- `Assets/Scripts/Managers/GigManager.cs` (MB4-diag) — new `IsCompositionSessionActive`
+  Dev-only getter inside the existing `#if ALWTTT_DEV` block, immediately after
+  `LiveInspiration`.
+- `Assets/Scripts/Cards/CardBase.cs` — `SpendInspiration` and `GenerateInspiration`
+  bodies replaced. Both now route through `GigManager.Instance.AdjustInspiration(±value)`
+  with a defense-in-depth pd-write fallback when no GigManager exists. Early-exit
+  guard added: `if (value <= 0) return;`.
+- `Assets/Scripts/DevMode/DevStatsTab.cs` (MB4-diag) — raw `[PD/Session]`
+  readout line added below the Inspiration slider. Reads `pd.CurrentInspiration`
+  directly and `gm.LiveInspiration` when `gm.IsCompositionSessionActive`.
+
+Behavior changes:
+- Over-spend on action cards now clamps `pd.CurrentInspiration` at 0
+  instead of going negative. Pre-MB4 a 5-cost play with pd=2 produced
+  pd=-3; post-MB4 it produces pd=0. ST-MB4-3 documents.
+
+Docs:
+- `SSoT_Dev_Mode.md` §13.4 — closing-section content rewritten.
+  "Closure history" block (F-3 / MB3 / MB4). Lifecycle clarification
+  ("session lives entire PlayerTurn"). Caveat for comp-card build-phase
+  spend. Open MB5 finding logged. Diagnostic surface (MB4-diag) referenced.
+- `SSoT_Dev_Mode.md` §13.2 — two new bullets (`AdjustInspiration`,
+  `IsCompositionSessionActive`) + raw readout paragraph.
+- `SSoT_Dev_Mode.md` §13.5 — body rewritten to reference §9.10/§9.11.
+- `SSoT_Dev_Mode.md` §9.11 — new section, ST-MB4-1..5 with results.
+- `CURRENT_STATE.md` §1 / §4 / §5 / dual-siting bullet amendments.
+- `Roadmap_ALWTTT.md` §4.6-followup item 3.6 added; queue marked exhausted.
+
+Open follow-ups:
+- MB5 candidate: add inspiration-cost gate to `CanPlayActionCard`.
+- Deferred: comp-card build-phase spend mirror (`TryPlayCompositionCard`
+  step 8). Awaits loop-game-flow consolidation.
+
+No SSoT promotion or retirement. No coverage-matrix change. No
+authority-order change.
+
+2026-05-08 — MB3: Inspiration Dev-path drift correction + session-start carry-over
+
+Doc-vs-code drift closure. The four routing surfaces (`LiveInspiration`,
+`DevSetInspiration` session routing, `CompositionSession.CurrentInspiration`,
+`CompositionSession.DevSetCurrentInspiration`) were documented in
+`SSoT_Dev_Mode` §13.2 since 2026-04-23 but never implemented in code.
+MB3 implements all four under `#if ALWTTT_DEV`. Adds carry-over branch
+to CompositionSession session-start reset for `JamRules.inspirationPerPart=0`
+(D3) via private `ResolveSessionStartInspiration` helper.
+
+Code:
+- `Assets/Scripts/Music/CompositionSession.cs` — D6 lime log added to
+  `DevSetCurrentInspiration`. New private `ResolveSessionStartInspiration()`
+  helper. Three reset sites (`Begin`, `ConfirmCurrentPartAndStart`,
+  `AdvanceToNextPart`) routed through helper.
+- `Assets/Scripts/Managers/GigManager.cs` — legacy PD-only `DevSetInspiration`
+  body replaced inside the existing `#if ALWTTT_DEV` block. New
+  `LiveInspiration` getter inserted before `DevSetSongHype`. Upgraded
+  `DevSetInspiration` clamps + writes pd, conditionally routes to
+  `_session.DevSetCurrentInspiration`, emits lime `[DevMode]` log with
+  `before / after / sessionRouted=Y/N`.
+- `Assets/Scripts/DevMode/DevStatsTab.cs` — Inspiration slider readout
+  switched from `pd.CurrentInspiration` to `gm.LiveInspiration`.
+
+Docs:
+- `SSoT_Dev_Mode.md` §9.5 — ST-P32-2/3 marked retroactively invalidated.
+- `SSoT_Dev_Mode.md` §9.10 — new section, ST-MB3-1..8 with results
+  (ST-MB3-3 INVALID by reachability — see lifecycle clarification).
+- `SSoT_Dev_Mode.md` §13.2 — entry-points list amended.
+- `SSoT_Dev_Mode.md` §13.4 — closing-section rewrite (extended again
+  by MB4 in the same day).
+- `SSoT_Dev_Mode.md` §13.5 — body rewritten.
+- `CURRENT_STATE.md` §1 / §4 / §5 / dual-siting bullet amendments.
+- `Roadmap_ALWTTT.md` §4.6-followup item 3.5 marked ✅.
+
+Closes ST-F3-S4c (Dev slider responsiveness during active session).
+
+No SSoT promotion or retirement. No authority-order change.
+No coverage-matrix change.
+
+2026-05-08 — M4.6F-3 closure: Per-loop draw + per-loop inspiration hook + canonical AddCurrentInspiration
+
+Third M4.6-followup batch closes. Wires the previously-serialized-but-unconsumed per-loop story: new `GigFlowSettingsSO.DrawPerLoop` field consumed by `GigManager.OnCompositionLoopFinished` (host-owned `LoopFinished` subscriber). Same hook also wires `pd.InspirationPerLoop` consumption via the new canonical `CompositionSession.AddCurrentInspiration(int) → int` method, which clamps to `pd.MaxInspiration`, mirrors to `pd.CurrentInspiration`, and returns the actual delta applied. Track-derived per-loop inspiration gain (`HandleLoopFinished` lines 532–540 region) refactored to route through the canonical mutator, fixing a pre-F-3 cap-bypass bug surfaced during ST-F3-S4 setup. The `+N` badge shows un-clamped per-loop track contribution (player-facing signal of next-loop potential, independent of cap).
+
+Hook placement on `GigManager.OnCompositionLoopFinished` rather than inside `CompositionSession.HandleLoopFinished` respects the in-code invariant carried by the `[Obsolete]` guards on `CompositionSession.PrepareDeck` and `ICompositionContext.Deck` ("Deck/hand lifecycle is owned by GigManager/DeckManager. CompositionSession must not mutate piles."). Subscriber fires synchronously from `LoopFinished?.Invoke`, temporally identical to an in-method hook.
+
+Decisions locked at batch open: D1 new `drawPerLoop` field on `GigFlowSettingsSO` (not on JamRules); D2 single hook for both draw and inspiration; D3 raw `DrawCards(N)` with internal hand-cap clamp; D4 default `drawPerLoop = 0`. **Resolved during batch:** D5 hook placement → Option B (subscriber); D6 F4a → auto-resolved by D7 at loop-boundary level; D7 → Option A consolidation of `AddCurrentInspiration`.
+
+Semantic changes
+SSoT_Runtime_CompositionSession_Integration:
+§3.1 — append on `AddCurrentInspiration` as canonical mutator.
+§8 — new invariants 7 (per-loop hook host-owned) and 8 (`AddCurrentInspiration` is canonical).
+
+SSoT_Gig_Combat_Core:
+§5.1 — append note on per-loop inspiration wiring + per-loop card draw via `flow.DrawPerLoop`.
+
+SSoT_Dev_Mode:
+§13.4 — append closing paragraph: production-path drift closed; Dev path drift remains for MB3.
+§13.5 — add note: ST-P32-1..3 honesty flag for MB3 retroactive invalidation.
+
+CURRENT_STATE:
+§1 new closure block. §3 M4.6 dependency line updated (now F-4..F-5 + MB3). §4 F-3 RESOLVED + new MB3 bullet + new F-2 D4 follow-up bullet. §5 new closure entry.
+
+Roadmap_ALWTTT:
+Last-updated bumped. §4.6-followup F-3 marked ✅ with closure summary. New MB3 entry inserted between F-3 and F-4.
+
+ssot_manifest:
+`Docs/runtime/SSoT_Runtime_CompositionSession_Integration.md` `hard_invariants` gains two entries.
+
+Authority changes
+None. No SSoT promoted or retired.
+
+Operational changes
+Code changes (runtime):
+- `Assets/Scripts/Data/Gig/GigFlowSettingsSO.cs` — new `drawPerLoop` field + getter.
+- `Assets/Scripts/Music/CompositionSession.cs` — `using ALWTTT.Managers;` added; new canonical `AddCurrentInspiration(int) → int`; track-derived path refactored.
+- `Assets/Scripts/Managers/GigManager.cs` — `OnCompositionLoopFinished` extended.
+- `Assets/Scripts/Interfaces/ICompositionContext.cs` — XML `<remarks>` on `JamRules.drawPerPart`.
+
+Asset changes:
+- `GigFlowSettings.asset` — set `drawPerLoop` value as desired (default 0).
+
+Smoke test results
+ST-F3-S1 (baseline regression) PASS — early-return silences hook on idle loops.
+ST-F3-S2 (typical case) PASS* — gameplay correct; Dev slider drift caveat tracked under MB3.
+ST-F3-S3 (hand-cap clamp) PASS.
+ST-F3-S4 (F-3 inspiration cap clamp) PASS.
+ST-F3-S4b (track-derived clamp regression after consolidation, with badge revert) PASS.
+ST-F3-S4c (Dev slider responsiveness during active session) FAIL DEFERRED → MB3.
+ST-F3-S5 (multi-loop accumulation) PASS.
+ST-F3-S6 (log gating) PASS.
+ST-F3-S7 (F-1 single-discard regression) PASS.
+
+Closes
+M4.6F-3 mini-milestone batch. M4.6 demo gate now depends on MB3 + F-4 + F-5.
+
+Files unchanged
+`SSoT_Card_System.md`, `SSoT_Status_Effects.md`, `SSoT_Audience_and_Reactions.md`, `SSoT_Runtime_Flow.md`, `SSoT_ALWTTT_MidiGenPlay_Boundary.md`, `SSoT_CONTRACTS.md`, `coverage-matrix.md`, `SSoT_INDEX.md`. No card, status, audience, runtime-flow, integration-boundary, contract, or coverage-routing change.
+
+2026-05-07 — M4.6F-2 closure: GigSettings 4-SO refactor + GigSetupConfigData rename
+Second M4.6-followup batch closes. Pure refactor: no semantic gameplay change, no new mechanics. Five competing settings homes (`GameplayData`, `GigSetupConfigData`, `GigManager` 14 Header groups, `JamRules` struct, `PersistentGameplayData` runtime copies) collapsed to four dedicated SOs (`GigFlowSettingsSO`, `MeterTuningSO`, `GigPresentationSO`, `GigDevSettingsSO`) on the GigManager side, plus a renamed `GigSetupRosterSO` for selectable roster content. The former `GigSetupConfigData` "Default Values" section moved to `GigFlowSettingsSO` so setup defaults and runtime flow rules share one authoring surface. `GameplayData↔PersistentGameplayData` duplication of `drawCount`, `keepInspirationBetweenTurns`, etc. remains by design (D4 deferred out of F-2 scope).
+
+Decisions locked at batch open: D1 4-SO split; D2 GigSetupConfigData→roster + flow split; D3 JamRules kept as struct on GigFlowSettingsSO with `CompositionSession.Begin(JamRules, …)` signature untouched; D4 GameplayData↔PGD duplication deferred; D5 hand-author the four new SO assets; D6 GigDevSettingsSO scoped strictly to inspector-time toggles (`useLogs`, `useCompositionLogs`, `debugSongHype`, `debugInstrumentPicker`, `debugMusicianVolume`). Scene refs (cameras, hand, position lists, scene changer, composition UI, MidiGenPlayConfig boundary, songHypeDebugSlider, background container) remain inline on GigManager.
+
+Semantic changes
+SSoT_Gig_Encounter:
+
+§7.2 — `setupConfig.AvailableAudienceCharacters` and `setupConfig.MaxAudienceCount` references renamed to `GigSetupRosterSO.AvailableAudienceCharacters` / `GigSetupRosterSO.MaxAudienceCount`.
+New §7.5 "Gig Setup data sources (M4.6F-2)" appended before §8. Documents the two SOs the setup screen reads from and the `ApplyRunConfig(RunConfig, GigSetupRosterSO, GigFlowSettingsSO)` signature. Notes that authority for the flow defaults belongs to `SSoT_Gig_Combat_Core`; this section governs only their consumption surface inside Gig Setup.
+
+SSoT_Gig_Combat_Core:
+
+§6.3 step 4 — Stress-reset invariant text amended: configuration locality is now `MeterTuningSO.breakdownStressResetFraction` (was "configurable on GigManager").
+New §12 "Configuration architecture (M4.6F-2)". Documents the four-SO split, the scene-refs-stay-on-GigManager rule, and the preserved façade properties (`FlowActionFlatBonus`, `FlowActionVibeBonusPerStack`, `FlowVibeMultiplier`, `BreakdownStressResetFraction`).
+
+SSoT_Scoring_and_Meters:
+
+§3.3 — HypeThresholds locality clarified: `MeterTuningSO` (was "GigManager").
+§7.1 — append: Flow tuning lives on `MeterTuningSO.flowActionFlatBonus / flowActionVibeBonusPerStack / flowVibeMultiplier`.
+§9 — append non-ownership note pointing at `SSoT_Gig_Combat_Core §12` for asset locality.
+
+coverage-matrix:
+
+Two new rows added: "Gig setup roster" → `SSoT_Gig_Encounter` (hosted on `GigSetupRosterSO`); "Gig flow settings + setup defaults + meter tuning + presentation + dev settings" → `SSoT_Gig_Combat_Core` (split across the four new SOs).
+
+CURRENT_STATE:
+
+§1 new closure block "M4.6F-2 — GigSettings multi-SO refactor — complete (2026-05-07)" inserted before the M4.6F-1 closure block.
+§3 M4.6 dependency line updated: "Demo gate dependencies: M4.6-followup mini-milestone batches F-3 through F-5" (was F-2 through F-5).
+§4 Open items: M4.6F-2 bullet flipped to RESOLVED with full closure summary; new bullet added flagging F-3 design notes (`drawPerLoop` field needs adding to `GigFlowSettingsSO`; `PersistentGameplayData.InspirationPerLoop` is assigned but not consumed).
+§5 new entry "M4.6F-2 closure (applied 2026-05-07)" with full file-change inventory.
+
+Roadmap_ALWTTT:
+
+`**Last updated:**` bumped to 2026-05-07.
+§4.6-followup F-2 entry marked ✅ (closed 2026-05-07) with closure summary.
+
+ssot_manifest:
+
+`Docs/systems/SSoT_Gig_Combat_Core.md` governs list gains `GigFlowSettingsSO.cs`, `GigPresentationSO.cs`, `GigDevSettingsSO.cs`, plus a new hard_invariant on the scene-refs/SO split.
+`Docs/systems/SSoT_Scoring_and_Meters.md` governs list gains `MeterTuningSO.cs`.
+`Docs/systems/SSoT_Gig_Encounter.md` governs list `GigSetupConfigData.cs` → `GigSetupRosterSO.cs`.
+New `known_drift_signals` entry F6 documents the deliberate dispersion of gameplay defaults across `GigSetupRosterSO` + `GigFlowSettingsSO` and the deferred-by-design GameplayData↔PGD duplication.
+
+SSoT_INDEX:
+
+§Active governed subsystem SSoTs / Systems entries unchanged (no SSoT promoted or retired). One footnote line added under the table mentioning the F-2 SO split for navigation.
+
+Authority changes
+
+None. No SSoT promoted or retired. The `Docs/integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md` contract is unaffected — `JamRules` remained a struct (D3) and `CompositionSession.Begin(JamRules, …)` signature is unchanged.
+
+Operational changes
+
+Code changes (runtime):
+- `Assets/Scripts/Data/Gig/GigFlowSettingsSO.cs` — NEW.
+- `Assets/Scripts/Data/Gig/MeterTuningSO.cs` — NEW.
+- `Assets/Scripts/Data/Gig/GigPresentationSO.cs` — NEW.
+- `Assets/Scripts/Data/Gig/GigDevSettingsSO.cs` — NEW.
+- `Assets/Scripts/Data/Gig/GigSetupRosterSO.cs` — NEW (with `[MovedFrom(autoUpdateAPI: true, sourceClassName: "GigSetupConfigData", sourceNamespace: "ALWTTT.Data")]` to preserve the existing `.asset` reference across the class rename).
+- `Assets/Scripts/Data/Gig/GigSetupConfigData.cs` — DELETED at closure.
+- `Assets/Scripts/Managers/GigManager.cs` — 14 Header groups → 4 SO refs; ~30 field-read sites refactored; façade properties preserved.
+- `Assets/Scripts/UI/GigSetupController.cs` — `setupConfig` field split into `setupRoster` + `flowSettings`; 18 read sites updated.
+- `Assets/Scripts/PersistentGameplayData.cs` — `ApplyRunConfig` signature changed to `(RunConfig, GigSetupRosterSO, GigFlowSettingsSO)`. Breaking change.
+- `Assets/Scripts/ALWTTTProjectRegistriesSO.cs` — field rename `gigSetupConfig` → `gigSetupRoster` with `[FormerlySerializedAs("gigSetupConfig")]`. Property rename `GigSetup` → `GigSetupRoster`. Legacy `GigSetup` property dropped (no callers in project).
+- `Assets/Scripts/Editor/DeckAssetSaveService.cs` — methods `AddToGigSetupRoster` / `RemoveFromGigSetupRoster` (was `…Config`); parameter type swap. Body unchanged (the `availableBandDecks` field name is preserved on the renamed SO).
+- `Assets/Scripts/Editor/DeckEditorWindow.cs` — type/field/method rename with `[FormerlySerializedAs("_gigSetupConfig")]` on the editor-window field.
+- `Assets/Scripts/Managers/GigRunContext.cs` — comment update only.
+- `Assets/Scripts/Cards/GenericCardCatalogSO.cs` — xmldoc cref update only.
+
+Asset changes:
+- Existing `GigSetupConfig.asset` to be renamed in Unity to `GigSetupRoster.asset` (Unity tracks GUID → reference survives via `[MovedFrom]`).
+- Four new assets to be hand-authored (D5): `GigFlowSettings.asset`, `MeterTuning.asset`, `GigPresentation.asset`, `GigDevSettings.asset`. Initial values transcribed from pre-F-2 GigManager Inspector + the former GigSetupConfigData "Default Values" section.
+
+Smoke test results
+
+ST-F2-S1 (wiring smoke — gig opens normally with new SOs wired) PASS;
+ST-F2-S2 (F-1 regression — single-discard preserved with `discardActionCardsOnPlay = true`) PASS;
+ST-F2-S3 (Breakdown stress reset = floor(StressMax × 0.5) via MeterTuningSO) PASS;
+ST-F2-S4 (Flow→Vibe bifurcation: flat on Action, multiplier on Composition + Song End) PASS — with side-finding: the `(Flow ×N)` floating text on per-audience song-end vibe resolution did not appear visually. Code path is unchanged from pre-F-2 (GigManager `RunSongVibeResolution`), gated on `flowStacks > 0` and `FxManager.Instance != null`. Pre-F-2 issue surfaced during F-2 validation; not in F-2 scope. Tracked as a follow-up diagnostic.
+ST-F2-S5 (JamRules drives loop count + per-part draw + per-part inspiration) FAIL — expected; per-loop draw is the M4.6F-3 batch per `Roadmap_ALWTTT.md §4.6-followup`. JamRules.drawPerPart is serialized but unconsumed; `PersistentGameplayData.InspirationPerLoop` is assigned but unconsumed. Both flagged for F-3 design.
+ST-F2-S6 (`useLogs = false` silences GigManager logs) PASS;
+ST-F2-S7 (idle BPM drives idle animation tempo) PASS;
+ST-F2-S8 (`barFillDelay = 3.0s` drives vibe bar fill duration) PASS.
+
+Closes
+
+M4.6F-2 mini-milestone batch. M4.6 demo gate now depends on F-3 through F-5 only.
+
+Files unchanged
+
+`SSoT_Card_System.md`, `SSoT_Status_Effects.md`, `SSoT_Audience_and_Reactions.md`, `SSoT_Runtime_Flow.md`, `SSoT_Runtime_CompositionSession_Integration.md`, `SSoT_ALWTTT_MidiGenPlay_Boundary.md`, `SSoT_CONTRACTS.md`. No card, status, audience, runtime, composition-bridge, integration-boundary, or root-contract change.
+
 2026-05-07 — M4.6F-1 closure: action card double-discard
 First M4.6-followup batch closes. Bug class misdiagnosed at intake as a reshuffle/pile lifecycle defect; the `[F-1]` instrumentation in `DeckManager.cs` (5 sites), `CardBase.cs` (1 site), `InventoryCanvas.cs` (1 site) routed correctly to root cause. Reshuffle data path was always correct (AFTER CLEAR shows `discard=0` and `DM_id` invariant across all logs). The actual bug was upstream in the play pipeline.
 
