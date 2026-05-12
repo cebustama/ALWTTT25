@@ -1,16 +1,20 @@
-# B1 — Composition UI files (current/next zone wiring)
-*CompositionUI*.cs
-*SongCompositionUI*.cs
-PartEntry.cs
-TrackEntry.cs
-*CompositionDisplay*.cs
-*PartDisplay*.cs
-*TrackDisplay*.cs
-*CompositionPanel*.cs
+# B2 — Polish layer (feedback + animation)
+# Floating text system — #5 expanded floating text
+FloatingText.cs
+FloatingTextMidiListener.cs
 
-# Anything that handles card drop / placement targeting current vs next
-*CardDropZone*.cs
-*CompositionDropTarget*.cs
+# Character animation — #14 Robot pop / #15 #16 Worm stretch + instrument animator
+CharacterAnimator.cs
 
-# Composition UI prefab (won't appear in files.txt fetch but useful to confirm in Unity)
-# CompositionUI.prefab — please confirm wiring in Unity manually
+# SFX dispatch + venue visuals — #6 SongHype thresholds → venue SFX
+FxManager.cs
+GigCanvas.cs
+BackgroundContainer.cs
+StageLightAnimator.cs
+ForegroundAnimator.cs
+
+# Card miniature — #3 tooltip miniature on track labels
+CardUI.cs
+
+# Animation pattern reference — #4 Inspiration pop / #14 beat-pop
+BeatPulseIndicator.cs

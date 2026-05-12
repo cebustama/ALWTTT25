@@ -1,7 +1,7 @@
 # Roadmap — ALWTTT
 
 **Status:** Planning only — does not define implementation truth  
-**Last updated:** 2026-05-09 (Phase A formally closed; Phase B — Gameplay loop polish — opened with B1/B2/B3 outline; M4.6F-5 absorbed into Phase B B1)
+**Last updated:** 2026-05-12 (Phase B B1 closed; F-5 invariant promoted to CompositionSession integration SSoT §8; B2 next)
 **Rule:** This document tracks recommended work sequencing. It does not override subsystem SSoTs or CURRENT_STATE.
 
 ---
@@ -431,7 +431,7 @@ After F-1..F-4 + F-5-absorbed: Phase A is closed. Phase B (Gameplay loop polish)
 
 ## 5 — Phase B — Gameplay loop polish (opened 2026-05-09)
 
-**Status:** Active (B1 next).
+**Status:** Active (B1 closed 2026-05-12; B2 next).
 **Goal:** Take the working Phase A pre-demo build to a true demo with track persistence between loops, expanded UI feedback, content/balance polish, and animation polish.
 
 **Demo pitch:** "Start a run. Play a gig with your 2-musician band. Each card you play *changes* the music — and the parts you didn't change *stay the same*. Watch the song hype build, see the venue light up, hear the audience react. Convince the crowd, or break under their pressure."
@@ -440,7 +440,7 @@ After F-1..F-4 + F-5-absorbed: Phase A is closed. Phase B (Gameplay loop polish)
 
 **Sequencing.** Strict left-to-right: B1 → B2 → B3 → demo readiness review. B1 is foundational and gates B2/B3. B2 and B3 could in principle run in parallel after B1 lands, but the team is one developer + agent, so sequential.
 
-### 5.1 — B1 — Loop model simplification + track persistence + UI rework
+### 5.1 — B1 — Loop model simplification + track persistence + UI rework ✅ (closed 2026-05-12)
 
 Foundational. Estimated ~300-400 LoC ALWTTT-side. 1 long session or 2 shorter (split point: stem-cache foundation, then UI rework).
 
@@ -473,6 +473,8 @@ Foundational. Estimated ~300-400 LoC ALWTTT-side. 1 long session or 2 shorter (s
 - Hand persists across CompositionSession start.
 - F-4 Stage A defense not regressed; stem cache invalidates on catch (safe regression to merged-file path).
 - Smoke tests ST-B1-S1..S8 (or similar bounded set) covering: persistence, structural invalidation, song-boundary cache reset, F-4 catch invalidation, F-1/F-3 regression clean.
+
+**Closed 2026-05-12.** All internal items shipped: #7 stem cache + #0 next-zone disable + #1+#2 UI rework + #8 hand-discard configurability + #7.1 instrument pin + D-J draw-on-play. Boundary respected — no `SongConfig` field added; hash travels ALWTTT-side as a per-call parameter per D-E=α'. Smoke tests ST-B1-S1..S10 PASS (S4 DEFERRED-no-hook; reopens automatically if F-4 LogError fires during playtest). F-5 invariant promoted to `SSoT_Runtime_CompositionSession_Integration §8` per D-K=α. See `CURRENT_STATE.md` §1 closure block and `changelog-ssot.md` 2026-05-12 entry.
 
 ### 5.2 — B2 — Polish layer (feedback + animation)
 
@@ -526,7 +528,7 @@ If gaps: targeted follow-up batches before cut.
 
 ### 5.5 — Phase B Definition of Done
 
-- [ ] B1 (loop simplification + persistence + UI rework) closed
+- [x] B1 (loop simplification + persistence + UI rework) closed (2026-05-12)
 - [ ] B2 (feedback + animation polish) closed
 - [ ] B3 (balance + new content) closed
 - [ ] Demo readiness review passed

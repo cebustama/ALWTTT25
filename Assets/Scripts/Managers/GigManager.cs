@@ -663,7 +663,12 @@ namespace ALWTTT.Managers
             // MVP: once Play is pressed, action cards are no longer usable.
             _actionWindowOpen = false;
 
-            // MVP: optionally discard Action cards from hand when starting performance.
+            // [B1 / #8] Honor `flow.DiscardActionCardsOnPlay` from
+            // GigFlowSettingsSO. Configurability lives in the SO inspector
+            // ("Action Card Gating (MVP)" header). Default is true → Action
+            // cards discard at Play so they don't add noise during loop play.
+            // Set to false on the SO to keep them in hand (combined with
+            // flow.AllowActionCardsDuringPerformance for playability gating).
             bool shouldDiscardActions = flow != null && flow.DiscardActionCardsOnPlay;
             if (shouldDiscardActions && DeckManager != null)
             {
@@ -671,6 +676,15 @@ namespace ALWTTT.Managers
                     card != null &&
                     card.CardDefinition != null &&
                     card.CardDefinition.IsAction);
+            }
+
+            // [B1 / D-J] Draw N cards when Play is pressed. Mirrors the
+            // DrawPerLoop pattern. Configurable via GigFlowSettings SO
+            // ("Composition" header → "Draw Cards On Play").
+            int drawOnPlay = flow != null ? flow.DrawCardsOnPlay : 0;
+            if (drawOnPlay > 0 && DeckManager.Instance != null)
+            {
+                DeckManager.Instance.DrawCards(drawOnPlay);
             }
 
             // Inject dev overrides into the UI model before building the SongConfig

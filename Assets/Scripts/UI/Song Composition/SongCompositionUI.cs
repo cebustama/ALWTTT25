@@ -111,6 +111,13 @@ namespace ALWTTT.UI
 
         private SongModel model = new();
         private readonly List<SongPartElementUI> partUIs = new();
+
+        // [B1 / #1+#2 / D-H1+H4=α] Pending-track state per partIndex.
+        // Populated by MarkTrackPending / MarkAllTracksPending (called by
+        // CompositionSession when a sound-affecting card is played during
+        // an active loop). Cleared by OnRenderCompleted when a fresh render
+        // succeeds for that part.
+        private readonly Dictionary<int, HashSet<string>> _pendingByPart = new();
         private List<string> rosterOrder = new();
         private readonly Dictionary<string, Image> iconById = new();
         private int iconReferencePartIndex = 0;
@@ -332,8 +339,7 @@ namespace ALWTTT.UI
             // ---------------------------------------------------------
             // 6) REFRESH UI + TRIGGER EVENTS
             // ---------------------------------------------------------
-            if (partIndex >= 0 && partIndex < partUIs.Count && partUIs[partIndex] != null)
-                partUIs[partIndex].Bind(model.parts[partIndex]);
+            RefreshPartUI(partIndex);
 
             RaisePartChanged();
             return true;
@@ -744,6 +750,66 @@ namespace ALWTTT.UI
             UpdateIconsForCurrentPart();
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // [B1 / #1+#2 / D-H1+H4=α] Pending track visualization API.
+        // Called by CompositionSession.TryPlayCompositionCard (when a
+        // sound-affecting card is played during an active loop) and
+        // PlaySinglePartLoop (clears pending after a successful fresh
+        // render).
+        // ─────────────────────────────────────────────────────────────
+        public void MarkTrackPending(int partIndex, string musicianId)
+        {
+            if (partIndex < 0 || partIndex >= partUIs.Count) return;
+            if (string.IsNullOrEmpty(musicianId)) return;
+
+            if (!_pendingByPart.TryGetValue(partIndex, out var set))
+            {
+                set = new HashSet<string>();
+                _pendingByPart[partIndex] = set;
+            }
+            if (set.Add(musicianId))
+                RefreshPartUI(partIndex);
+        }
+
+        public void MarkAllTracksPending(int partIndex)
+        {
+            if (partIndex < 0 || partIndex >= partUIs.Count) return;
+            if (partIndex >= model.parts.Count) return;
+            var part = model.parts[partIndex];
+            if (part?.tracks == null || part.tracks.Count == 0) return;
+
+            if (!_pendingByPart.TryGetValue(partIndex, out var set))
+            {
+                set = new HashSet<string>();
+                _pendingByPart[partIndex] = set;
+            }
+            bool changed = false;
+            foreach (var t in part.tracks)
+            {
+                if (!string.IsNullOrEmpty(t?.musicianId))
+                    changed |= set.Add(t.musicianId);
+            }
+            Debug.Log($"[B1/Pending] MarkAllTracksPending partIndex={partIndex} " +
+                $"trackCount={part.tracks.Count} markedSetSize={set.Count} changed={changed}");
+
+            if (changed) RefreshPartUI(partIndex);
+        }
+
+        public void OnRenderCompleted(int partIndex)
+        {
+            if (_pendingByPart.Remove(partIndex))
+                RefreshPartUI(partIndex);
+        }
+
+        private void RefreshPartUI(int partIndex)
+        {
+            if (partIndex < 0 || partIndex >= partUIs.Count) return;
+            if (partUIs[partIndex] == null) return;
+            if (partIndex >= model.parts.Count) return;
+            _pendingByPart.TryGetValue(partIndex, out var pendingSet);
+            partUIs[partIndex].Bind(model.parts[partIndex], pendingSet);
+        }
+
         private void AddPartUI(PartEntry p)
         {
             if (partsLayout == null || partElementPrefab == null) return;
@@ -752,9 +818,9 @@ namespace ALWTTT.UI
             var ui = element.GetComponent<SongPartElementUI>();
             if (ui == null) return;
 
-            ui.SetRosterOrder(rosterOrder);  // << important
-            ui.Bind(p);
+            ui.SetRosterOrder(rosterOrder);
             partUIs.Add(ui);
+            RefreshPartUI(partUIs.Count - 1);
         }
 
         public void SetInspirationVisible(bool visible)
@@ -852,7 +918,7 @@ namespace ALWTTT.UI
                             break;
                     }
 
-                    partUIs[partIndex].Bind(part);
+                    RefreshPartUI(partIndex);
                     RaisePartChanged();
                     break;
                 }
@@ -886,9 +952,7 @@ namespace ALWTTT.UI
 
                     part.tonality = chosen;
 
-                    // If you eventually show tonality in UI, rebind:
-                    var ui = partUIs.ElementAtOrDefault(idx);
-                    if (ui != null) ui.Bind(part);
+                    RefreshPartUI(idx);
 
                     RaisePartChanged();
                     break;
@@ -950,9 +1014,7 @@ namespace ALWTTT.UI
                     part.rootNote = newRoot;
                     part.hasExplicitRootNote = true;
 
-                    // Re-bind UI for that part if you eventually display key info
-                    var ui = partUIs.ElementAtOrDefault(idx);
-                    if (ui != null) ui.Bind(part);
+                    RefreshPartUI(idx);
 
                     RaisePartChanged();
                     break;
@@ -1011,8 +1073,7 @@ namespace ALWTTT.UI
                         $"{fx.melodicInstrument.InstrumentName}";
                 }
 
-                var ui = partUIs.ElementAtOrDefault(partIndex);
-                if (ui != null) ui.Bind(part);
+                RefreshPartUI(partIndex);
 
                 RaisePartChanged();
             }

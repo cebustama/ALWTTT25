@@ -1008,10 +1008,15 @@ namespace ALWTTT
 
             if (inCurrent) return CardDropZone.CurrentPart;
 
+            // [B1 / D-D=β] NextPart drop gesture removed in Phase B. The
+            // _nextZoneRectLocal rect is preserved (the enum value + field
+            // exist for migration coexistence) but any drop in it is now
+            // treated as CurrentPart. The visual hint (NEXT PART gizmo)
+            // is also removed in OnDrawGizmos.
             bool inNext =
                 _nextZoneRectLocal.Contains(new Vector2(localPoint.x, localPoint.y));
 
-            if (inNext) return CardDropZone.NextPart;
+            if (inNext) return CardDropZone.CurrentPart;
 
             return CardDropZone.None;
         }
@@ -1105,24 +1110,19 @@ namespace ALWTTT
             {
                 Gizmos.matrix = transform.localToWorldMatrix;
 
-                // CURRENT zone (left) — cyan
+                // CURRENT zone — cyan
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawWireCube(currentZoneCenter, currentZoneSize);
 
-                // NEXT zone (right) — yellow
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawWireCube(nextZoneCenter, nextZoneSize);
+                // [B1 / D-D=β] NEXT zone gizmo + label removed.
+                // _nextZoneRectLocal still treated as CurrentPart in
+                // GetDropZoneForLocalPoint for migration coexistence.
 
 #if UNITY_EDITOR
                 UnityEditor.Handles.color = Color.cyan;
                 UnityEditor.Handles.Label(
                     transform.TransformPoint(currentZoneCenter
                     + new Vector2(0, currentZoneSize.y * 0.5f + 0.2f)), "CURRENT PART");
-
-                UnityEditor.Handles.color = Color.yellow;
-                UnityEditor.Handles.Label(
-                    transform.TransformPoint(nextZoneCenter
-                    + new Vector2(0, nextZoneSize.y * 0.5f + 0.2f)), "NEXT PART");
 #endif
             }
         }

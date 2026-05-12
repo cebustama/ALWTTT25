@@ -17,8 +17,9 @@ MonoBehaviour:
     drawPerPart: 0
     inspirationPerPart: 0
   drawPerLoop: 2
+  drawCardsOnPlay: 0
   discardActionCardsOnPlay: 1
-  allowActionCardsDuringPerformance: 1
+  allowActionCardsDuringPerformance: 0
   skipAudienceActionsAfterFinalSong: 1
   defaultInitialGigInspiration: 4
   defaultInspirationPerLoop: 0

@@ -47,6 +47,38 @@ namespace ALWTTT.Managers
             public float seconds;
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // [B1] Per-track stem cache + per-part bundle cache
+        // SSoT: SSoT_Runtime_CompositionSession_Integration.md
+        // Decisions: D2=B (per-track persistence), D6=A (per-track scope),
+        // D7=B (per-song lifetime), D-A1=A, D-A2=A, D-C=α (two-dict).
+        //
+        // _stemCache: verbatim per-musician stem bytes, keyed on
+        //   "{musicianId}|{trackInputsHash}|{partMeterHash}". Survives
+        //   PartCache invalidations within a song; reset at song boundary
+        //   via ResetStemCache().
+        //
+        // _partBundleCache: full RenderSinglePart output keyed on
+        //   "{partMeterHash}@@{sortedMusician#trackHash csv}". When every
+        //   track input is identical to a prior render in this song, we
+        //   skip GenerateSinglePart entirely and replay the cached bundle.
+        //
+        // Invalidation on F-4 Stage A catch is per-part: every entry that
+        // contains the affected partMeterHash drops. Other parts in the
+        // same song untouched.
+        // ─────────────────────────────────────────────────────────────
+        private readonly Dictionary<string, byte[]> _stemCache = new();
+        private readonly Dictionary<string, PartBundleCacheEntry> _partBundleCache = new();
+
+        private class PartBundleCacheEntry
+        {
+            public byte[] mergedBytes;
+            public Dictionary<string, byte[]> stemsByMusician;
+            public float seconds;
+            public int bpmChosen;
+            public Dictionary<string, MIDIInstrumentSO> pinned;
+        }
+
         private GameManager GameManager => GameManager.Instance;
 
         private MidiGenerator generator;
@@ -579,14 +611,16 @@ namespace ALWTTT.Managers
         /// returning merged bytes, per-musician stems, and the duration in seconds.
         /// </summary>
         public (byte[] merged,
-            Dictionary<string, byte[]> stemsByMusician,
-            float seconds,
-            int bpmChosen,
-            Dictionary<string, MIDIInstrumentSO> instrumentByMusician)
-            RenderSinglePart(SongConfig fullCfg,
+                Dictionary<string, byte[]> stemsByMusician,
+                float seconds,
+                int bpmChosen,
+                Dictionary<string, MIDIInstrumentSO> pinned)
+            RenderSinglePart(
+                SongConfig fullCfg,
                 int partIndex,
                 int? bpmOverride = null,
-                Dictionary<string, MIDIInstrumentSO> instrumentOverrides = null)
+                Dictionary<string, MIDIInstrumentSO> instrumentOverrides = null,
+                Dictionary<string, string> trackInputsHashByMusician = null)
         {
             EnsureRegistriesLoaded();
             if (fullCfg == null || partIndex < 0 || partIndex >= fullCfg.Parts.Count)
@@ -653,6 +687,104 @@ namespace ALWTTT.Managers
                     $"using cached override BPM={effectiveOverride.Value}");
             }
 
+            // ───────────────────────────────────────────────────────────
+            // [B1 / D-E=α'] Compute cache keys from caller-supplied
+            // track-inputs hash map. The map is computed by
+            // SongConfigBuilder.ComputeTrackInputsHashesForPart from
+            // UI-stable TrackEntry fields, so it survives the random
+            // instrument resolution that happens inside FromUI.
+            //
+            // If trackInputsHashByMusician is null (e.g. legacy caller),
+            // the cache is disabled for this call: nothing is read from
+            // or written to _stemCache / _partBundleCache, but the render
+            // still produces correct output.
+            // ───────────────────────────────────────────────────────────
+            string partMeterHash = ComputePartMeterHash(part);
+            var trackHashes = new Dictionary<string, string>();
+            var stemKeysByMusician = new Dictionary<string, string>();
+            var bundleEntries = new List<string>();
+            bool cacheEnabled =
+                trackInputsHashByMusician != null
+                && part.Tracks != null
+                && part.Tracks.Count > 0;
+
+            if (cacheEnabled)
+            {
+                foreach (var tr in part.Tracks)
+                {
+                    if (tr == null || string.IsNullOrEmpty(tr.MusicianId))
+                    {
+                        cacheEnabled = false;
+                        break;
+                    }
+                    if (!trackInputsHashByMusician.TryGetValue(tr.MusicianId, out var th)
+                        || string.IsNullOrEmpty(th))
+                    {
+                        cacheEnabled = false;
+                        break;
+                    }
+                    trackHashes[tr.MusicianId] = th;
+                    stemKeysByMusician[tr.MusicianId] = BuildStemKey(tr.MusicianId, th, partMeterHash);
+                    bundleEntries.Add($"{tr.MusicianId}#{th}");
+                }
+            }
+            string partBundleKey = cacheEnabled
+                ? BuildPartBundleKey(partMeterHash, bundleEntries)
+                : null;
+
+            // [B1] DIAG: dump full hash info for every render (so we can see WHY
+            // the bundle hits or misses). Per-track + part-level shape.
+            if (logDebug)
+            {
+                var partDiag =
+                    $"part={partIndex} '{part.Name}' " +
+                    $"TS={part.TimeSignature} Ton={part.Tonality} Root={part.RootNote} " +
+                    $"Measures={part.Measures} TR={part.TempoRange} " +
+                    $"ExplicitBpm={(part.ExplicitBpm.HasValue ? part.ExplicitBpm.Value.ToString() : "null")} " +
+                    $"Scale={part.TempoScale:0.##}";
+                var trackDiag = part.Tracks != null
+                    ? string.Join(" || ", part.Tracks.Select(t =>
+                    {
+                        var styleName = t.Parameters?.Style != null
+                            ? t.Parameters.Style.name : "_";
+                        var instName = t.Instrument != null
+                            ? t.Instrument.name : "_";
+                        var percName = t.PercussionInstrument != null
+                            ? t.PercussionInstrument.name : "_";
+                        var th = cacheEnabled && trackHashes.TryGetValue(t.MusicianId ?? "_", out var h)
+                            ? h : "(no-hash)";
+                        return $"mus={t.MusicianId} role={t.Role} " +
+                               $"style={styleName} inst={instName} perc={percName} " +
+                               $"trackHash={th}";
+                    }))
+                    : "(no tracks)";
+                Debug.Log(
+                    $"{DebugTag} <color=cyan>[B1][stemCache][DIAG]</color> {partDiag}\n" +
+                    $"  cacheEnabled={cacheEnabled}\n" +
+                    $"  partMeterHash='{partMeterHash}'\n" +
+                    $"  partBundleKey='{(partBundleKey ?? "(none)")}'\n" +
+                    $"  tracks: {trackDiag}\n" +
+                    $"  stemCache size={_stemCache.Count} bundleCache size={_partBundleCache.Count}");
+            }
+
+            // [B1 / D-E=α'] Fast path: only attempted if cache is enabled for this call.
+            if (cacheEnabled && _partBundleCache.TryGetValue(partBundleKey, out var bundleHit))
+            {
+                if (logDebug)
+                {
+                    Debug.Log(
+                        $"{DebugTag} <color=cyan>[B1][stemCache]</color> bundle HIT " +
+                        $"part={partIndex} key='{partBundleKey}' → fast-path replay " +
+                        $"(seconds={bundleHit.seconds:0.##}, bpm={bundleHit.bpmChosen})");
+                }
+                return (
+                    bundleHit.mergedBytes,
+                    new Dictionary<string, byte[]>(bundleHit.stemsByMusician),
+                    bundleHit.seconds,
+                    bundleHit.bpmChosen,
+                    new Dictionary<string, MIDIInstrumentSO>(bundleHit.pinned));
+            }
+
             // [F-4] diagnostic — boundary-call shape dump immediately before
             // SongOrchestrator.GenerateSinglePart. Tracks the IndexOutOfRange
             // crash inside MidiGenPlay at >=4 loops/part. The [F-4] log lines
@@ -671,16 +803,18 @@ namespace ALWTTT.Managers
 
             // F-4 D2-A defense: try-catch around the package-internal orchestrator
             // call and its serialization. On catch, dump the failing args + stack
-            // trace and return the failure tuple — the caller (PlaySinglePartLoop)
-            // already routes a (null, null, 0f, ...) result through the existing
-            // graceful-fail branch (merged==null || seconds<=0f). PRODUCTION-QUALITY:
-            // the try-catch is permanent. Only the [F-4]-tagged log lines are
+            // trace, INVALIDATE STEM CACHE FOR THIS PART [B1], and return the
+            // failure tuple — the caller (PlaySinglePartLoop) already routes a
+            // (null, null, 0f, ...) result through the existing graceful-fail
+            // branch (merged==null || seconds<=0f). PRODUCTION-QUALITY: the
+            // try-catch is permanent. Only the [F-4]-tagged log lines are
             // stripped at F-4 closure.
             byte[] mergedBytes;
             Dictionary<string, byte[]> stemsOut;
             float seconds;
             int bpmChosen;
             Dictionary<string, MIDIInstrumentSO> pinned;
+            int b1Hits = 0, b1Misses = 0;
             try
             {
                 // Generate stems via orchestrator
@@ -714,6 +848,94 @@ namespace ALWTTT.Managers
                 bpmChosen = render.bpm;
                 pinned = render.melInstByMusician ??
                     new Dictionary<string, MIDIInstrumentSO>();
+
+                // ───────────────────────────────────────────────────────
+                // [B1 / D-E=α'] Per-track persistence — only when cache
+                // is enabled. For each musician with a hash, swap fresh
+                // stem with cached one if hash matches; otherwise store
+                // fresh stem.
+                // ───────────────────────────────────────────────────────
+                if (cacheEnabled)
+                {
+                    var stemKeysSnapshot = stemsOut.Keys.ToList();
+                    foreach (var musId in stemKeysSnapshot)
+                    {
+                        if (!stemKeysByMusician.TryGetValue(musId, out var stemKey))
+                            continue;
+                        if (_stemCache.TryGetValue(stemKey, out var cachedStem))
+                        {
+                            stemsOut[musId] = cachedStem;
+                            b1Hits++;
+                        }
+                        else
+                        {
+                            _stemCache[stemKey] = stemsOut[musId];
+                            b1Misses++;
+                        }
+                    }
+                }
+
+                // ───────────────────────────────────────────────────────
+                // [B1] If we swapped any cached stems in, the merged bytes
+                // from the orchestrator no longer match the stem set. Rebuild
+                // merged from stemsOut. If no swaps happened (all misses or
+                // empty hash map), keep orchestrator's merged as-is.
+                // ───────────────────────────────────────────────────────
+                if (b1Hits > 0)
+                {
+                    var ordered = new List<byte[]>();
+                    var seen = new HashSet<string>(StringComparer.Ordinal);
+                    if (fullCfg.ChannelMusicianOrder != null)
+                    {
+                        foreach (var musId in fullCfg.ChannelMusicianOrder)
+                        {
+                            if (string.IsNullOrEmpty(musId)) continue;
+                            if (stemsOut.TryGetValue(musId, out var b) && seen.Add(musId))
+                                ordered.Add(b);
+                        }
+                    }
+                    foreach (var kv in stemsOut)
+                    {
+                        if (seen.Add(kv.Key)) ordered.Add(kv.Value);
+                    }
+
+                    var rebuiltMerged = MergeStems(ordered);
+                    if (rebuiltMerged != null && rebuiltMerged.Length > 0)
+                    {
+                        mergedBytes = rebuiltMerged;
+                        // Recompute duration from rebuilt midi.
+                        using var msReread = new MemoryStream(mergedBytes);
+                        var rereadMidi = MidiFile.Read(msReread);
+                        seconds = ComputeDurationSeconds(rereadMidi);
+                    }
+                    else
+                    {
+                        Debug.LogWarning(
+                            $"{DebugTag} <color=cyan>[B1][stemCache]</color> " +
+                            $"MergeStems returned null/empty for part={partIndex}; " +
+                            $"falling back to orchestrator merged (cached stems ignored).");
+                        // Restore orchestrator stems for ALL musicians (no verbatim persistence
+                        // this turn) so stems and merged stay consistent.
+                        stemsOut = new Dictionary<string, byte[]>();
+                        foreach (var kv in render.stemsByMusician)
+                        {
+                            using var ms = new MemoryStream();
+                            kv.Value.Write(ms);
+                            stemsOut[kv.Key] = ms.ToArray();
+                        }
+                    }
+                }
+
+                if (logDebug)
+                {
+                    Debug.Log(
+                        $"{DebugTag} <color=cyan>[B1][stemCache]</color> " +
+                        $"part={partIndex} cacheEnabled={cacheEnabled} " +
+                        $"stem hits={b1Hits} misses={b1Misses} " +
+                        $"rebuilt_merged={(b1Hits > 0)} " +
+                        $"stemCache_size_after={_stemCache.Count} " +
+                        $"bundleCache_size_after={_partBundleCache.Count}");
+                }
             }
             catch (Exception ex)
             {
@@ -741,7 +963,27 @@ namespace ALWTTT.Managers
                     $"  bpm={effectiveOverride?.ToString() ?? "null"} " +
                     $"instOverrides={instrumentOverrides?.Count ?? 0}\n" +
                     $"{ex.StackTrace}");
+
+                // [B1] D2 locked spec: on F-4 Stage A catch, all stems for the
+                // affected part invalidate. Other parts untouched.
+                InvalidateStemCacheForPart(partMeterHash);
+
                 return (null, null, 0f, 0, null);
+            }
+
+            // [B1 / D-E=α'] Cache the bundle only if cache is enabled.
+            if (cacheEnabled)
+            {
+                _partBundleCache[partBundleKey] = new PartBundleCacheEntry
+                {
+                    mergedBytes = mergedBytes,
+                    stemsByMusician = new Dictionary<string, byte[]>(stemsOut),
+                    seconds = seconds,
+                    bpmChosen = bpmChosen,
+                    pinned = pinned != null
+                        ? new Dictionary<string, MIDIInstrumentSO>(pinned)
+                        : new Dictionary<string, MIDIInstrumentSO>()
+                };
             }
 
             return (mergedBytes, stemsOut, seconds, bpmChosen, pinned);
@@ -1884,5 +2126,132 @@ namespace ALWTTT.Managers
                 }
             }
         }
+
+        #region [B1] Stem cache (per-track persistence + DryWetMidi merge)
+
+        /// <summary>
+        /// [B1 / D7=B] Reset the per-song stem and part-bundle caches.
+        /// Called from CompositionSession.Begin() and End() — entry/exit
+        /// of a song lifecycle. Does NOT clear the legacy `cache` (full
+        /// pre-rendered SongData), which has its own lifetime.
+        /// </summary>
+        public void ResetStemCache()
+        {
+            int s = _stemCache.Count;
+            int b = _partBundleCache.Count;
+            _stemCache.Clear();
+            _partBundleCache.Clear();
+            if (logDebug)
+            {
+                Debug.Log(
+                    $"{DebugTag} <color=cyan>[B1][stemCache]</color> Reset " +
+                    $"stems_cleared={s} bundles_cleared={b}");
+            }
+        }
+
+        /// <summary>
+        /// [B1 / D-A2=A] Hash of part-level structural inputs. A change
+        /// here invalidates every track stem for the part (full regen).
+        /// Excludes Repetitions (sequencing only, not generation).
+        /// </summary>
+        private static string ComputePartMeterHash(SongConfig.PartConfig part)
+        {
+            if (part == null) return "_";
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            return string.Join("|",
+                part.TimeSignature.ToString(),
+                part.Tonality.ToString(),
+                part.RootNote.ToString(),
+                part.Measures.ToString(inv),
+                part.TempoRange.ToString(),
+                part.ExplicitBpm.HasValue
+                    ? part.ExplicitBpm.Value.ToString(inv)
+                    : "_",
+                part.TempoScale.ToString("F4", inv));
+        }
+
+        private static string BuildStemKey(
+            string musicianId, string trackInputsHash, string partMeterHash)
+            => $"{musicianId ?? "_"}|{trackInputsHash}|{partMeterHash}";
+
+        private static string BuildPartBundleKey(
+            string partMeterHash, IEnumerable<string> musicianAndTrackHashEntries)
+        {
+            // Each entry: "musicianId#trackInputsHash". Sort for determinism;
+            // the bundle key must be invariant under track ordering.
+            var arr = musicianAndTrackHashEntries.ToArray();
+            System.Array.Sort(arr, System.StringComparer.Ordinal);
+            return $"{partMeterHash}@@{string.Join(",", arr)}";
+        }
+
+        /// <summary>
+        /// [B1] Drop every stem-cache and bundle-cache entry tied to the
+        /// given partMeterHash. Called from F-4 Stage A catch (locked spec)
+        /// and any future per-part invalidation needs. Other parts in the
+        /// same song are not touched.
+        /// </summary>
+        private void InvalidateStemCacheForPart(string partMeterHash)
+        {
+            if (string.IsNullOrEmpty(partMeterHash)) return;
+
+            var stemSuffix = "|" + partMeterHash;
+            var stemRemove = _stemCache.Keys
+                .Where(k => k != null && k.EndsWith(stemSuffix, StringComparison.Ordinal))
+                .ToList();
+            foreach (var k in stemRemove) _stemCache.Remove(k);
+
+            var bundlePrefix = partMeterHash + "@@";
+            var bundleRemove = _partBundleCache.Keys
+                .Where(k => k != null && k.StartsWith(bundlePrefix, StringComparison.Ordinal))
+                .ToList();
+            foreach (var k in bundleRemove) _partBundleCache.Remove(k);
+
+            if (logDebug)
+            {
+                Debug.Log(
+                    $"{DebugTag} <color=cyan>[B1][stemCache]</color> " +
+                    $"InvalidateStemCacheForPart partMeterHash='{partMeterHash}' " +
+                    $"stems_removed={stemRemove.Count} bundles_removed={bundleRemove.Count}");
+            }
+        }
+
+        /// <summary>
+        /// [B1] Combine multiple stem MidiFile byte arrays into one merged
+        /// MidiFile. Each stem is parsed, its TrackChunks are cloned and
+        /// appended to a single output file with the time-division of the
+        /// first non-empty stem. Tempo/TS events at time 0 may duplicate
+        /// across stems; DryWetMidi handles that gracefully (latest wins
+        /// at a given time, identical events collapse). Returns null on
+        /// empty input.
+        /// </summary>
+        private static byte[] MergeStems(IEnumerable<byte[]> stemBytesOrdered)
+        {
+            if (stemBytesOrdered == null) return null;
+
+            MidiFile output = null;
+            foreach (var bytes in stemBytesOrdered)
+            {
+                if (bytes == null || bytes.Length == 0) continue;
+                using var ms = new MemoryStream(bytes);
+                var midi = MidiFile.Read(ms);
+                if (output == null)
+                {
+                    output = new MidiFile { TimeDivision = midi.TimeDivision };
+                }
+                foreach (var chunk in midi.GetTrackChunks())
+                {
+                    var cloned = chunk.Clone();
+                    if (cloned is TrackChunk tc)
+                        output.Chunks.Add(tc);
+                }
+            }
+
+            if (output == null || output.Chunks.Count == 0) return null;
+            using var msOut = new MemoryStream();
+            output.Write(msOut);
+            return msOut.ToArray();
+        }
+
+        #endregion
     }
 }

@@ -3,6 +3,79 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-12 — Phase B B1 closed (loop simplification + track persistence + UI rework)
+
+First operational batch of Phase B closed. All internal items shipped:
+#7 per-track stem cache + #0 next-zone disable + #1+#2 composition UI rework
++ #8 hand-discard configurability + #7.1 session-level instrument pin +
+D-J draw-on-play mini-item (added during batch).
+
+Boundary outcome. SongConfig (MidiGenPlay-owned) untouched. The card-stable
+track inputs hash needed for the stem cache lives ALWTTT-side: computed in
+`SongConfigBuilder.ComputeTrackInputsHashesForPart` from UI `TrackEntry`
+fields (role + StyleBundle GUID + override-melodic/percussion GUIDs +
+override-instrument-type), passed as a 5th parameter to `MidiMusicManager.
+RenderSinglePart`. Decision codified as D-E=α' (alpha-prime) — same intent
+as the original D-E=α, refined to respect the package contract per
+`SSoT_ALWTTT_MidiGenPlay_Boundary §3`.
+
+Instrument continuity. D-F=γ session-level pin in `CompositionSession`
+solves the "instrument changes across style changes" problem (Major→Minor
+on same musician now keeps the same instrument). Pin key includes
+override state (D-F=γ.1 refinement) so cards with explicit SO override are
+honored deterministically and type-override cards pin the random pick
+within the type. Specific-SO overrides skip the pin entirely (the card IS
+deterministic; no pin needed).
+
+UI feedback. Composition session UI now shows pending visualization when
+a sound-affecting card is played during an active loop: tinted track rows
+until the next render completes, then revert to default. Pending trigger
+considers both track-targeted cards and part-meter cards (TS, tonality,
+root, tempo) — the latter mark ALL tracks because partMeterHash will
+change and every stem regenerates. Inspiration-next badge `+N` rendered
+to the right of each track row, suppressed for placeholders.
+
+Configurability. `GigFlowSettingsSO` gained `DrawCardsOnPlay` (int, default
+0) mirroring the existing `DrawPerLoop` pattern. `DiscardActionCardsOnPlay`
+(already existed) was honored unchanged after a brief experimental
+soft-disable in mid-batch (reverted after playtest confirmed the hand-noise
+cost outweighed the optionality benefit).
+
+Code delta. 9 files modified ALWTTT-side; ~600-700 LoC net.
+`TrackLayoutElement.prefab` updated user-side (InspirationNextText child).
+
+Smoke tests. ST-B1-S1/S2/S3 (stem cache persistence + structural
+invalidation + song-boundary reset) PASS. ST-B1-S4 (F-4 catch invalidation)
+DEFERRED — no Dev hook to force exception; reopens if `[F-4][MMM]`
+LogError fires during playtest. ST-B1-S5/S5.2 (#8/D-J configurability)
+PASS. ST-B1-S6/S7/S7.1/S7.2 (UI badges + pending tints) PASS — S7.1
+required a fix to the `affectsPartMeter` predicate to detect cards with
+combined track+meter effects (e.g. Pentameter is a Rhythm track card that
+also sets TS=5/4). ST-B1-S8 (next-zone disable) PASS. ST-B1-S9 (instrument
+pin across style change) PASS — initial perceived failure was registro-
+tonal change, not instrument; confirmed via identical-replay test. ST-B1-
+S10 (instrument pin honors type-override card) PASS after D-F=γ.1
+refinement.
+
+Invariants. F-1 (single OnCardPlayed per successful play), F-3 (canonical
+AddCurrentInspiration mutator), F-4 Stage A (try-catch + D3-B recursion
+guard) all clean. No regression.
+
+Watch-item opened. `_isSongPlaying` may not engage during active
+composition loop, possibly weakening the `AllowActionCardsDuringPerformance`
+gate. Side-stepped by `DiscardActionCardsOnPlay=true` default. Worth
+verifying if "Action cards during performance" design returns to scope.
+
+D-K=α (locked). F-5 invariant promoted to
+`SSoT_Runtime_CompositionSession_Integration §8` codifying per-track stem
+persistence + session-level instrument pin contract. Single combined
+invariant; rationale and key are documented in §8 item 9.
+
+Phase B B2 unblocked. See `Roadmap_ALWTTT.md §5.2` for scope.
+
+Code: 9 files (already shipped in earlier sessions; this changelog entry
+is doc-only β-pattern).
+
 2026-05-09 — Phase A formally closed; Phase B (Gameplay loop polish) opened
 
 Doc-only governance batch (β path: separate from B1 code work). Phase A

@@ -2764,5 +2764,8 @@
 +---.gitignore
 +---.vsconfig
 +---AGENTS.md
++---copy-files-from-list_with-mode.bat
 +---Docs.zip
++---file_copies.zip
++---files.txt
 \---make-tree-unity.bat

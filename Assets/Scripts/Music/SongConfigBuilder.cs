@@ -320,5 +320,65 @@ namespace ALWTTT.Music
 
             return cfg;
         }
+
+        // ─────────────────────────────────────────────────────────────
+        // [B1 / D-E=α'] Card-stable input hashes for MidiMusicManager._stemCache.
+        //
+        // Called by CompositionSession.PlaySinglePartLoop right before
+        // MidiMusicManager.RenderSinglePart. The returned map is passed
+        // through and lets the stem cache key on player-controlled inputs
+        // (StyleBundle, explicit instrument overrides, override-by-type)
+        // instead of the random instrument resolution that happens inside
+        // FromUI for the no-override path.
+        //
+        // Per the boundary contract (SSoT_ALWTTT_MidiGenPlay_Boundary §3):
+        // SongConfig is package-owned. We carry the hash ALWTTT-side as a
+        // per-call parameter rather than adding a field to TrackConfig.
+        // ─────────────────────────────────────────────────────────────
+        public static Dictionary<string, string> ComputeTrackInputsHashesForPart(
+            ICompositionContext ctx, int partIndex)
+        {
+            var result = new Dictionary<string, string>();
+            var ui = ctx?.CompositionUI;
+            if (ui?.Model?.parts == null) return result;
+            if (partIndex < 0 || partIndex >= ui.Model.parts.Count) return result;
+
+            var p = ui.Model.parts[partIndex];
+            if (p?.tracks == null) return result;
+
+            foreach (var tr in p.tracks)
+            {
+                if (tr == null || string.IsNullOrEmpty(tr.musicianId)) continue;
+                result[tr.musicianId] = ComputeHashFromTrackEntry(tr);
+            }
+            return result;
+        }
+
+        // Hash from UI-side TrackEntry. Stable across SongConfigBuilder.FromUI
+        // random instrument resolution; only changes when the player plays a
+        // card that mutates StyleBundle, role, an explicit override instrument
+        // SO, or the override instrument type.
+        private static string ComputeHashFromTrackEntry(SongCompositionUI.TrackEntry tr)
+        {
+            if (tr == null) return "_";
+            return string.Join("|",
+                tr.role.ToString(),
+                AssetKey(tr.styleBundle),
+                AssetKey(tr.overrideMelodicInstrument),
+                AssetKey(tr.overridePercussionInstrument),
+                tr.hasOverrideInstrumentType
+                    ? tr.overrideInstrumentType.ToString()
+                    : "_");
+        }
+
+        private static string AssetKey(UnityEngine.Object obj)
+        {
+            // GetInstanceID is stable for the loaded session. The per-song
+            // cache lifetime (D7=B) is well within that.
+            return obj != null
+                ? obj.GetInstanceID().ToString(
+                    System.Globalization.CultureInfo.InvariantCulture)
+                : "_";
+        }
     }
 }

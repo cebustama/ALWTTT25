@@ -61,6 +61,21 @@ namespace ALWTTT.Music
 
         private readonly Dictionary<int, PartCache> _partCache = new();
 
+        // [B1 / #7.1 / D-F=γ] Session-level instrument pin maps. Keyed on
+        // "musicianId|role". Populated after each successful render with the
+        // resolved Instrument / PercussionInstrument. Consumed before each
+        // render to keep the same musician's voice consistent across style
+        // changes (Major → Minor, Waltz → some other Rhythm style, etc.)
+        // within the same song. Per-song lifetime: reset in Begin() / End().
+        //
+        // Skipped when the UI TrackEntry has an explicit instrument override
+        // (overrideMelodicInstrument / overridePercussionInstrument != null);
+        // those cards honor the explicit SO. Type-override cards
+        // (hasOverrideInstrumentType=true) do pin the random pick within the
+        // type, so re-renders stay consistent.
+        private readonly Dictionary<string, MIDIInstrumentSO> _sessionMelodicPin = new();
+        private readonly Dictionary<string, MIDIPercussionInstrumentSO> _sessionPercussionPin = new();
+
         public bool TryGetPartCache(int partIndex, out PartCache cache) =>
             _partCache.TryGetValue(partIndex, out cache);
 
@@ -118,6 +133,9 @@ namespace ALWTTT.Music
             _currentPartIndex = -1;
             _isPlaying = false;
             _partCache.Clear();
+            _ctx.Music?.ResetStemCache(); // [B1 / D7=B] Per-song stem cache reset.
+            _sessionMelodicPin.Clear();   // [B1 / #7.1 / D-F=γ]
+            _sessionPercussionPin.Clear(); // [B1 / #7.1 / D-F=γ]
             _loopHistoryByPart.Clear();
             _finishedParts.Clear();
             _buildingPartInspirationPerLoop = 0;
@@ -152,6 +170,9 @@ namespace ALWTTT.Music
             _state = CompositionState.Ended;
             _isPlaying = false;
             _partCache.Clear();
+            _ctx.Music?.ResetStemCache(); // [B1 / D7=B] Per-song stem cache reset.
+            _sessionMelodicPin.Clear();   // [B1 / #7.1 / D-F=γ]
+            _sessionPercussionPin.Clear(); // [B1 / #7.1 / D-F=γ]
             _loopHistoryByPart.Clear();
             _finishedParts.Clear();
             _keepInstrumentByPart.Clear();
@@ -261,8 +282,21 @@ namespace ALWTTT.Music
                 CompositionCardClassifier.IsTempoCard(comp);
             bool isTimeSig = comp != null &&
                 CompositionCardClassifier.IsTimeSignatureCard(comp);
+            bool isTonality = comp != null &&
+                CompositionCardClassifier.IsTonalityCard(comp);
+            bool isModulation = comp != null &&
+                CompositionCardClassifier.IsModulationCard(comp);
             bool requiresTarget = comp != null && comp.RequiresMusicianTarget;
             bool affectsSound = comp != null && CompositionCardClassifier.AffectsSound(comp);
+
+            // [B1 / #1+#2 / D-H1=α] A card "affects part meter" when it
+            // mutates any field that goes into partMeterHash (TS, tonality,
+            // root note, tempo). Such cards force every stem in the part to
+            // regenerate next loop — even if the card ALSO replaces a single
+            // track (e.g. Pentameter is a Rhythm-track card that ALSO sets
+            // TS=5/4). Pending visualization must reflect that all tracks
+            // will change.
+            bool affectsPartMeter = isTempo || isTimeSig || isTonality || isModulation;
 
             Info($"enter name='{def?.DisplayName}' zone={zone} state={_state} " +
                  $"isComp={isComp} isTrack={isTrack} isTempo={isTempo} " +
@@ -295,11 +329,13 @@ namespace ALWTTT.Music
             if (!ui.CanApply(card, target, out var reason))
                 return Fail($"UI.CanApply refused: {reason}");
 
-            // 4) Zone normalization (if current part is final, Next → Current)
-            bool currentIsFinal = ui.IsPartFinal(_currentPartIndex);
-            if (currentIsFinal && zone == CardDropZone.NextPart)
+            // 4) [B1 / D-D=β] Zone normalization. NextPart gesture removed
+            // in Phase B; every drop is treated as CurrentPart. The
+            // CardDropZone.NextPart enum value + downstream branches are
+            // preserved dormant for migration coexistence.
+            if (zone == CardDropZone.NextPart)
             {
-                Info("current part is FINAL → redirecting zone NextPart → CurrentPart");
+                Info("[B1/D-D=β] redirecting NextPart → CurrentPart (dormant gesture)");
                 zone = CardDropZone.CurrentPart;
             }
 
@@ -327,11 +363,10 @@ namespace ALWTTT.Music
             // Apply Effects (status effects) immediately
             ApplyStatusActionsFromCard(def, target);
 
-            // 7) Invalidate cache if the card affects sound
+            // 7) Invalidate cache + mark pending UI if the card affects sound
             if (loopIsRunning && affectsSound)
             {
                 bool keepTempo = ShouldKeepTempo(def);
-
                 bool keepInstruments = ShouldKeepInstruments(def);
 
                 int invalidateIdx = (zone == CardDropZone.NextPart) ?
@@ -341,6 +376,43 @@ namespace ALWTTT.Music
                     $"keepInstruments={keepInstruments} affectsSound={affectsSound}");
 
                 InvalidatePartCache(invalidateIdx, keepTempo, keepInstruments);
+
+                // [B1 / #1+#2 / D-H1=α] Mark pending visualization on UI.
+                //
+                // Priority order:
+                // 1. If the card affects part-level meter (TS, tonality, root,
+                //    tempo) → mark ALL tracks pending. The partMeterHash will
+                //    change, so every stem regenerates next loop, even if the
+                //    card also has a track effect (e.g. Pentameter sets TS=5/4
+                //    AND replaces the Rhythm track).
+                // 2. Else if it's a pure track card with a resolved target →
+                //    mark only the target's track.
+                // 3. Else (catch-all for non-track sound-affecting cards
+                //    without explicit meter change) → mark all tracks.
+                if (affectsPartMeter)
+                {
+                    Info($"[Pending] part-meter card → MarkAllTracksPending " +
+                        $"partIdx={invalidateIdx} " +
+                        $"(isTempo={isTempo} isTimeSig={isTimeSig} " +
+                        $"isTonality={isTonality} isModulation={isModulation})");
+                    ui.MarkAllTracksPending(invalidateIdx);
+                }
+                else if (isTrack
+                    && target?.MusicianCharacterData != null
+                    && !string.IsNullOrEmpty(target.MusicianCharacterData.CharacterId))
+                {
+                    Info($"[Pending] track-card → MarkTrackPending " +
+                        $"partIdx={invalidateIdx} mus='{target.MusicianCharacterData.CharacterId}' " +
+                        $"name='{target.MusicianCharacterData.CharacterName}'");
+                    ui.MarkTrackPending(invalidateIdx, target.MusicianCharacterData.CharacterId);
+                }
+                else
+                {
+                    Info($"[Pending] other → MarkAllTracksPending " +
+                        $"partIdx={invalidateIdx} isTrack={isTrack} " +
+                        $"target='{(target?.MusicianCharacterData?.CharacterName ?? "null")}'");
+                    ui.MarkAllTracksPending(invalidateIdx);
+                }
             }
 
             // 8) Spend / preview inspiration
@@ -499,11 +571,36 @@ namespace ALWTTT.Music
                     $"cacheState={(cache == null ? "null" : "stale-or-empty")} " +
                     $"melCacheCount={cache?.resolvedMelInstByMusician?.Count ?? 0}");
 
+                // [B1 / D-E=α'] Compute UI-stable input hashes per musician
+                // for this part. Passed to RenderSinglePart so the stem cache
+                // keys on player-controlled inputs (not the random instrument
+                // resolution that happens inside FromUI).
+                var trackInputsHashes =
+                    Music.SongConfigBuilder.ComputeTrackInputsHashesForPart(
+                        _ctx, partIndex);
+
+                // [B1 / #7.1 / D-F=γ] Apply session-level instrument pins to
+                // cfg before the render. Keeps the same musician's voice
+                // consistent when only style/role-style changes. Respects
+                // explicit instrument overrides from cards (skipped per-track
+                // when UI TrackEntry has overrideMelodicInstrument /
+                // overridePercussionInstrument set).
+                ApplyInstrumentPins(cfg, partIndex);
+
                 var (merged, stems, seconds, bpmChosen, instByMus) =
                     mm.RenderSinglePart(cfg, partIndex, bpmOverride,
-                    cache?.resolvedMelInstByMusician);
+                        cache?.resolvedMelInstByMusician,
+                        trackInputsHashes);
 
                 if (merged == null || merged.Length == 0 || seconds <= 0f) return 0f;
+
+                // [B1 / #7.1 / D-F=γ] Record resolved instruments into the
+                // session-level pin map for future renders to reuse.
+                UpdateInstrumentPins(cfg, partIndex);
+
+                // [B1 / #1+#2 / D-H4=α] Fresh render succeeded for this part —
+                // clear pending visualization on its tracks.
+                _ctx?.CompositionUI?.OnRenderCompleted(partIndex);
 
                 if (cache == null) cache = new PartCache();
                 cache.mergedBytes = merged;
@@ -842,6 +939,99 @@ namespace ALWTTT.Music
                     : new Dictionary<string, MIDIInstrumentSO>(),
                 resolvedPercInstByMusician = new()
             };
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // [B1 / #7.1 / D-F=γ.1] Instrument pin helpers — refined to key
+        // by override state so the pin doesn't override a type-override card.
+        // ─────────────────────────────────────────────────────────────
+        private void ApplyInstrumentPins(SongConfig cfg, int partIndex)
+        {
+            if (cfg == null) return;
+            if (partIndex < 0 || partIndex >= cfg.Parts.Count) return;
+            var cfgPart = cfg.Parts[partIndex];
+            if (cfgPart?.Tracks == null) return;
+
+            var ui = _ctx?.CompositionUI;
+            if (ui?.Model?.parts == null) return;
+            if (partIndex >= ui.Model.parts.Count) return;
+            var uiPart = ui.Model.parts[partIndex];
+            if (uiPart?.tracks == null) return;
+
+            foreach (var tcfg in cfgPart.Tracks)
+            {
+                if (tcfg == null || string.IsNullOrEmpty(tcfg.MusicianId)) continue;
+                var trModel = uiPart.tracks.Find(t => t.musicianId == tcfg.MusicianId);
+                if (trModel == null) continue;
+
+                var melKey = BuildMelodicPinKey(tcfg, trModel);
+                if (melKey != null
+                    && _sessionMelodicPin.TryGetValue(melKey, out var melPin)
+                    && melPin != null)
+                {
+                    tcfg.Instrument = melPin;
+                }
+
+                var percKey = BuildPercussionPinKey(tcfg, trModel);
+                if (percKey != null
+                    && _sessionPercussionPin.TryGetValue(percKey, out var percPin)
+                    && percPin != null)
+                {
+                    tcfg.PercussionInstrument = percPin;
+                }
+            }
+        }
+
+        private void UpdateInstrumentPins(SongConfig cfg, int partIndex)
+        {
+            if (cfg == null) return;
+            if (partIndex < 0 || partIndex >= cfg.Parts.Count) return;
+            var cfgPart = cfg.Parts[partIndex];
+            if (cfgPart?.Tracks == null) return;
+
+            var ui = _ctx?.CompositionUI;
+            if (ui?.Model?.parts == null) return;
+            if (partIndex >= ui.Model.parts.Count) return;
+            var uiPart = ui.Model.parts[partIndex];
+            if (uiPart?.tracks == null) return;
+
+            foreach (var tcfg in cfgPart.Tracks)
+            {
+                if (tcfg == null || string.IsNullOrEmpty(tcfg.MusicianId)) continue;
+                var trModel = uiPart.tracks.Find(t => t.musicianId == tcfg.MusicianId);
+                if (trModel == null) continue;
+
+                var melKey = BuildMelodicPinKey(tcfg, trModel);
+                if (melKey != null && tcfg.Instrument != null)
+                    _sessionMelodicPin[melKey] = tcfg.Instrument;
+
+                var percKey = BuildPercussionPinKey(tcfg, trModel);
+                if (percKey != null && tcfg.PercussionInstrument != null)
+                    _sessionPercussionPin[percKey] = tcfg.PercussionInstrument;
+            }
+        }
+
+        // SO-specific override → pin skipped (deterministic; FromUI's pick IS the override).
+        // Type override → pin key includes TYPE:<value> so changing types refreshes the pick.
+        // No override → pin key uses |NONE so it persists across style changes.
+        private static string BuildMelodicPinKey(
+            SongConfig.PartConfig.TrackConfig tcfg,
+            SongCompositionUI.TrackEntry trModel)
+        {
+            if (trModel == null) return null;
+            if (trModel.overrideMelodicInstrument != null) return null;
+            if (trModel.hasOverrideInstrumentType)
+                return $"{tcfg.MusicianId}|{tcfg.Role}|TYPE:{trModel.overrideInstrumentType}";
+            return $"{tcfg.MusicianId}|{tcfg.Role}|NONE";
+        }
+
+        private static string BuildPercussionPinKey(
+            SongConfig.PartConfig.TrackConfig tcfg,
+            SongCompositionUI.TrackEntry trModel)
+        {
+            if (trModel == null) return null;
+            if (trModel.overridePercussionInstrument != null) return null;
+            return $"{tcfg.MusicianId}|{tcfg.Role}|NONE";
         }
     }
 }

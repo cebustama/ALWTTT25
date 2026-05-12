@@ -30,6 +30,13 @@ namespace ALWTTT.Data
         private int drawPerLoop = 0;
         public int DrawPerLoop => drawPerLoop;
 
+        [SerializeField, Tooltip("Cards drawn when Play is pressed (start of " +
+            "the jam, before the first loop renders). 0 = disabled. " +
+            "Independent of DrawPerLoop — set equal if you want them to match. " +
+            "Hand-cap clamp is applied by DeckManager.DrawCards.")]
+        private int drawCardsOnPlay = 0;
+        public int DrawCardsOnPlay => drawCardsOnPlay;
+
         // --- Action card gating ---
 
         [Header("Action Card Gating (MVP)")]
