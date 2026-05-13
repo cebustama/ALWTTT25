@@ -6,6 +6,50 @@ This file tracks the currently validated project baseline, active work, and imme
 
 ## 1. Project foundation
 
+### Phase B B2 — Polish layer (feedback + animation) — complete (2026-05-13)
+
+Closes the second batch of Phase B. Aditivo, low risk, monolithic per D3=A. Six items (#3, #4, #5, #6, #14, #15+#16) shipped end-to-end. Two mid-batch decisions (D-Inspiration-Pool=A, D-FxChangeDetect=A) added one cross-system bug fix and one design framework, both accepted.
+
+**Deliverables shipped:**
+- **#3 Tooltip miniature on track labels.** New `MinicardTooltipController` singleton, `SongTrackElementUI` pointer hover handlers, `TrackEntry.sourceCardDefinition` plumb through `TryAddOrReplaceTrackOnPart` → `SongPartElementUI.AddOrUpdateTrack` → row Bind. Placeholder rows never preview. Required two clamp/coordinate-space bug fixes during S1 testing; final patch lives in the file.
+- **#4 Inspiration markers pop-up animation.** Reusable `UIPulseAnimator` (scale + optional color flash). `SongCompositionUI.SetInspiration` / `SetPlusInspiration` track previous values and pulse on change (gain=green, loss=red, +N=cyan). First-set suppressed. Inspiration "denied" flash on insufficient-cost via D-Inspiration-Pool=A.
+- **D-Inspiration-Pool=A — action card cost gating.** Discovered mid-batch: action cards bypassed inspiration cost entirely (groove-economy check commented out at HandController.cs:687-688 and never replaced). Patched: `CompositionSession` exposes `CanAffordInspiration` / `FlashInspirationDenied`; `GigManager` exposes `CompositionSession` accessor; `HandController.TryPlayInGig` action-branch pre-checks cost, denies + flashes if short. Deduction itself stays in `CardBase.Use` (existing path); HandController only gates. Single-pool semantics: action + composition cards spend from the same pool.
+- **#5 Expanded floating text:**
+  - Composition events via diff-driven classifier (D-FxChangeDetect=A): `PartChangeSnapshot` captures pre-apply state, `SelectFxEntry` returns at most one `FxEntry` from `CompositionFxConfigSO` based on actual diff. Labels: TEMPO!, METER!, KEY!, MODIFIER!, INSTRUMENT!, RHYTHM!/BACKING!/MELODY!/HARMONY! for track replacement, MAJOR CHANGE for 2+ diffs. Initial-setup is silent (track first-add, tonality first-set).
+  - Audience exclamations in `TriggerAudienceMicroReactions`: WOW / YEAH / silent / MEH / BORING, sign-coded color. Spawn pipeline verified; real impression generation deferred to B3 content.
+  - Earworm-multiplier text: spawn block added at wrong tick site in GigManager (real Earworm tick lives elsewhere in StatusEffectSO). Mechanism verified; relocation deferred to B2.5.
+- **#6 SongHype thresholds → venue SFX.** `GigPresentationSO` gains 3 threshold floats (defaults 0.34/0.67/1.0) + 3 sfx tags. `GigManager._songHypeStage` (monotonic, reset per song). `AddSongHype` refactored into `AddSongHypeCore` (guard-free) + `AddSongHype` (guard-respecting). Public `DevAddSongHype` / `DevResetSongHype` for testing. `BackgroundContainer.ActivateSFX` tag-dispatches: stage 1 → SetLights; stage 2/3 → SetLights with log noting per-venue hook gap (parked B2.5). DevModeController has +10% / -10% / Reset buttons.
+- **#14 Robot beat-pop animation.** `CharacterAnimator.scaleOnBeat` mode. Wired on Robot prefab with `jumpOnBeat = false`.
+- **#15 Worm animation.** `CharacterAnimator.stretchOnBeat` mode. Wired on Gusano body. Required `Skip Every N Beats = 1` correction during S6.
+- **#16 Worm instrument sub-animator.** No code change — second `CharacterAnimator` on Gusano's instrument GO with own beat offset.
+
+**Scene wiring locked at closure** (inspector-only):
+- `MinicardTooltipController` GameObject under overlay canvas.
+- `UIPulseAnimator` components on inspiration value + +N badge.
+- `compositionFxAnchor` moved to world-space (S3 debug surfaced UI-vs-world coordinate mismatch).
+- `CompositionFxConfigSO` asset created and wired on `SongCompositionUI`.
+- `GigPresentation.asset` threshold + tag fields populated.
+- Robot prefab: `scaleOnBeat=true, jumpOnBeat=false`.
+- Gusano prefab: `stretchOnBeat=true, jumpOnBeat=false, skipEveryNBeats=1`.
+- Second `CharacterAnimator` on Gusano's instrument GO.
+- Two test `TempoEffect` assets authored (`Effect_Tempo_VeryFast`, `Effect_Tempo_VerySlow`).
+- Test composition cards with tempo modifiers attached to existing Rhythm cards.
+
+**Known limitations parked to B2.5:**
+- `BackgroundRoot.SetSmoke`/`SetFire` not wired — stage 2/3 SongHype crossings visually identical to stage 1.
+- Earworm-multiplier floating text spawned at wrong tick site.
+- Cross-animator BPM propagation — instrument animator stays at serialized BPM regardless of song tempo.
+- `CardBase.cs:526` stale TEST log + `OnPointerDown` log spam.
+- B2 debug logs in several files (diagnostic prints from S1-S5 testing).
+- Audience action floating text uses old int-based API.
+- `TimeSignature.ToString()` format consistency for meter diff — needs verification.
+- `DevAddSongHype` / `DevResetSongHype` not gated by `#if ALWTTT_DEV`.
+- Dead `Tonality` entry in `CompositionFxConfigSO` (never fires after first-set-silent refinement).
+
+**Smoke tests:** ST-B2-S1 PASS, S2 PASS, S3 PASS, S4 PASS-with-deferral (real impressions B3, Earworm-multiplier B2.5), S5 PASS-with-caveat (stages 2/3 await BackgroundRoot extension), S6 PASS.
+
+**Files changed:** 3 new + 10 modified (counts DevModeController and FxManager edits), ~700-900 LoC ALWTTT-side. No MidiGenPlay internals. No SSoT authority changes. F-1 / F-3 / F-4 Stage A / F-5 invariants not regressed.
+
 ### Phase A — closed (2026-05-09)
 
 Formal closure of the pre-demo construction phase. Phase A spans the entire project history from Combat MVP (2026-03-23) through M4.6F-4 Stage A and MB4 (2026-05-08). It establishes a working, showable build with a complete combat loop, composition session integration, status effect system, audience pressure system, deck/card authoring pipeline, Dev Mode tooling, and a 2-musician starter deck (Robot C2 + Sibi Gusano).
@@ -463,9 +507,9 @@ Catalogue filters (musician, effect type), card preview info, cross-tool Edit bu
 
 ## 3. What is next
 
-1. **Phase B B2 — Polish layer (feedback + animation).** Aditivo, low risk, B1 landed and unblocks it. Tooltip miniature on track labels, Inspiration markers pop-up animation, expanded floating text (composition events + audience exclamations + multipliers with icons), SongHype thresholds → venue SFX (lights/smoke/fire), Robot/Worm/instrument animation polish. D3=A monolithic by default; fallback split B2a (UI feedback) + B2b (animation) if pesado.
+1. **Phase B B2.5 — Polish refinements + cleanup.** Aditivo. 16 items parked from B2 (correctness gaps, content-dependent followups, cleanup, design gaps). See §4 for the full list.
 
-2. **Phase B B3 — Content + design.** Aditivo, depends on B1 landed. Inspiration cost/gen balance pass, BPM cards, Modulation cards, 1 designed audience member with 3 abilities.
+2. **Phase B B3 — Content + design.** Aditivo. Inspiration cost/gen balance pass, BPM cards, Modulation cards, 1 designed audience member with 3 abilities. Cross-listed dependency: B2.5 #6 (TempoScale diff) and #8 (PartActionKind.NoOp) may be needed before/during B3.
 
 3. **Demo readiness review (post-B3).** Confirms Phase B exit and sets the publisher/community demo cut.
 
@@ -504,7 +548,12 @@ Catalogue filters (musician, effect type), card preview info, cross-tool Edit bu
 - **M4.6F-5 Composition next-loop pending workflow — ABSORBED into Phase B B1 (2026-05-09).** Original framing assumed per-loop pending was new functionality; user clarified during Phase B planning that per-loop card resolution **already works** in the current zone (cards in current → replace track → effect at next loop). The complex piece — *next zone* (planning a future part) — is not closed but **simplified out**: B1 disables next zone, current zone becomes full-screen, model collapses to per-loop-only. F-5 retroactively re-scoped; closure happens when B1 lands. See §1 Phase A close block and `Roadmap_ALWTTT.md §5`.
 - **Phase B B1 — Loop model simplification + track persistence + UI rework — RESOLVED 2026-05-12.** See §1 closure block. All internal items (#7 stem cache, #0 next-zone disable, #1+#2 UI rework, #8 hand-discard configurability, #7.1 instrument pin, D-J draw-on-play mini-item) shipped. Smoke tests ST-B1-S1..S10 PASS or DEFERRED with reason. F-1, F-3, F-4 Stage A invariants clean. ~600-700 LoC ALWTTT-side across 9 files. The spike (D5) estimate of 300-400 LoC was conservative; the actual delta reflects D-E=α' (UI-stable hash), D-H pending visualization, and D-F=γ.1 instrument pin refinement, which were not in the original spike scope. F-5 invariant promoted to `SSoT_Runtime_CompositionSession_Integration §8` (D-K=α).
 - **Action-card playability during composition loop — watch-item (opened 2026-05-12).** `_isSongPlaying` may not engage during active composition loop; the gate at `GigManager:1454-1462` may not enforce `AllowActionCardsDuringPerformance` as intended. Side-stepped today by `DiscardActionCardsOnPlay=true` (default). Worth verifying post-B1 if any "Action cards during performance" design returns to scope.
-- **Phase B B2 — Polish layer (feedback + animation)** (opened 2026-05-09, depends on B1). Aditivo, low risk. Tooltip miniature on track labels (#3); Inspiration markers pop-up animation (#4); expanded floating text — composition events, audience exclamations, multipliers with icons (#5); SongHype thresholds → venue SFX, lights/smoke/fire (#6); Robot/Worm/instrument animation polish (#14, #15, #16). D3=A monolithic by default; fallback split B2a (UI feedback) + B2b (animation) if pesado.
+- **Phase B B2 — Polish layer (feedback + animation) — RESOLVED (2026-05-13).** Six items shipped monolithically per D3=A. Tooltip miniatures (#3), inspiration markers pulse (#4) + denied flash (D-Inspiration-Pool=A), expanded floating text (#5: composition events with diff-driven classifier D-FxChangeDetect=A + audience exclamations + Earworm multiplier-deferred), SongHype thresholds → venue SFX (#6), Robot beat-pop (#14), Worm stretch (#15), Worm instrument sub-animator (#16). See §1 closure block.
+- **Phase B B2.5 — Polish refinements + cleanup (opened 2026-05-13).** 16 items parked from B2 closure across four categories:
+  - **Correctness gaps (3):** relocate Earworm-multiplier spawn to real tick site; `BackgroundContainer.DeactivateAllSFX` on song boundary; multi-animator BPM propagation (body → child instrument animators).
+  - **Content-dependent followups (3):** per-venue smoke/fire VFX (`BackgroundRoot.SetSmoke`/`SetFire` + per-venue art); `CompositionFxConfigSO` default tuning post-playtest; animation feel tuning (Robot pop, Worm stretch, instrument).
+  - **Cleanup (5):** strip B2 debug logs across SongTrackElementUI / MinicardTooltipController / FxManager / SongCompositionUI / GigManager; `CardBase.cs:526` stale TEST log; `CardBase.OnPointerDown` log spam; normalize audience action floating text to Vector2 API; verify `TimeSignature.ToString()` format consistency.
+  - **Design gaps (5):** TempoScale diff in `SelectFxEntry`; tempo/meter `hasExplicit` flags; `PartActionKind.NoOp`; optionally `#if ALWTTT_DEV` gate on `DevAddSongHype`/`DevResetSongHype`; dead `Tonality` FxEntry — remove or repurpose.
 - **Phase B B3 — Content + design** (opened 2026-05-09, depends on B1). Aditivo. Inspiration cost/gen balance pass across deck — cover 0/1/2/3 for cost and generated (#9); rhythm composition cards with `+/-BPM` and `2×BPM` effects (#10); chord progression cards with key Modulation effect (#11); 1 designed audience member with 3 distinct abilities (#12). Audience Member Wizard Editor (#13) deferred post-demo per D4=B.
 - **F-2 D4 follow-up — `MaxInspiration` + `MaxCardsOnHand` to `GigFlowSettingsSO`** (opened 2026-05-08 per F-3 user feedback). Both fields currently live on `GameplayData` (separate SO) and `PersistentGameplayData`. Inconsistent with `DefaultInitialGigInspiration` and `DefaultInspirationPerLoop` which were consolidated to `GigFlowSettingsSO` in F-2. Post-demo priority — not gate-blocking.
 - **M4.6F-4 SongOrchestrator IndexOutOfRange — STAGE A RESOLVED 2026-05-08, Stage B parked-until-natural-repro.** Stage A delivered: production-quality try-catch defense around `generator.Orchestrator.GenerateSinglePart` in `MidiMusicManager.RenderSinglePart` (+58 lines net); production-quality D3-B within-part recursion guard in `CompositionSession.HandleLoopFinished` mirroring `AdvanceToNextPart`'s `if (secs <= 0f) End();` pattern (+8 lines net); `[F-4]`-tagged diagnostic logs at both boundary sides (entry-log on call, full per-track + arg + stack-trace dump on catch). ST-F4-S1/S6 PASS; ST-F4-S3 PASS-vacuous; ST-F4-S2 DEFERRED-non-repro — IOOR did not surface this session; defense correctly silent (no exception thrown); no arg dump captured to route Stage B; Stage B reopens automatically if `[F-4][MMM]` LogError fires during playtest. ST-F4-S5 BLOCKED-OUT-OF-SCOPE — Player build fails on package-internal `MidiGenPlayConfig.GetChordWriteFolder` and `MidiGenPlayConfig.GetProfileForTonality` references inside `D:\Projects\MidiGenPlay\MidiGenPlay\Runtime\CoreScripts\Services\PatternRepositoryResources.cs:87` and `\Composition\SongOrchestrator.cs:142,326`; F-4 edits do not reference these methods; ALWTTT-side editor compile clean; tracked as separate MidiGenPlay-project batch. Defense + D3-B stay permanent; `[F-4]` diag logs strip at M4.6 demo closure (retroactive D5-C path) if no natural recurrence happens. See §1 closure block.

@@ -34,6 +34,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2872575713284801255
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -79,6 +80,7 @@ SpriteRenderer:
   m_SortingLayerID: 1574733499
   m_SortingLayer: 2
   m_SortingOrder: 1
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 1091808966734582844, guid: 44d199461bd5fe34c8a70022b59a4dfe, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -88,7 +90,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &7578392969031390553
 GameObject:
@@ -100,6 +101,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5809529305839979743}
   - component: {fileID: 3255621051908114232}
+  - component: {fileID: 7951014380761555575}
   m_Layer: 7
   m_Name: InstrumentSprite
   m_TagString: Untagged
@@ -115,15 +117,16 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7578392969031390553}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.04257307, w: 0.9990934}
-  m_LocalPosition: {x: 4.26, y: 1.2, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0.04257307, w: 0.9990934}
+  m_LocalPosition: {x: 2.3430002, y: 0.6600001, z: 0}
+  m_LocalScale: {x: 0.54999995, y: 0.54999995, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 9099358830255829902}
+  m_Father: {fileID: 5652194379425205133}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -4.88}
 --- !u!212 &3255621051908114232
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -168,7 +171,8 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1574733499
   m_SortingLayer: 2
-  m_SortingOrder: 2
+  m_SortingOrder: 20
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 7704189906054360298, guid: 77d024311e0a1594e92937f5517b54e2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -178,8 +182,98 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &7951014380761555575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7578392969031390553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b241f309fbd30514696ce006254e6623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Characters.CharacterAnimator
+  bpm: 120
+  beatOffsetBeats: 0.5
+  skipEveryNBeats: 1
+  jumpOnBeat: 0
+  jumpRoot: {fileID: 0}
+  jumpHeight: 0.25
+  jumpCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  jumpIntensityMultiplier: 1
+  rotateOnBeat: 0
+  rotationAmplitude: 6
+  rotationCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  scaleOnBeat: 1
+  scaleAmplitude: 0.1
+  scaleCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  stretchOnBeat: 0
+  stretchYAmplitude: 0.25
+  stretchXAmplitude: 0.15
+  stretchCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  particleSystemRef: {fileID: 0}
+  emitoOnBeat: 0
+  particlesPerBurst: 10
+  emitEveryNBeats: 1
+  particleBeatOffsetBeats: 0
 --- !u!1001 &6539706920368495622
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -341,6 +435,10 @@ PrefabInstance:
       value: CharacterSprite
       objectReference: {fileID: 0}
     - target: {fileID: 6746610026762189175, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: characterAnimator
+      value: 
+      objectReference: {fileID: 1404453409908007171}
+    - target: {fileID: 6746610026762189175, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: musicianCharacterData
       value: 
       objectReference: {fileID: 11400000, guid: 9cdba663deb6cfb48b3f1514b8c667a2, type: 2}
@@ -401,20 +499,174 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8876883093181404695, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: rotateOnBeat
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8876883093181404695, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: stretchOnBeat
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8876883093181404695, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: beatOffsetBeats
       value: 0.538
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8876883093181404695, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1490995066299422603, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      insertIndex: 0
+      addedObject: {fileID: 5809529305839979743}
     - targetCorrespondingSourceObject: {fileID: 2632035599939022728, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3157298337771493179}
-    - targetCorrespondingSourceObject: {fileID: 2632035599939022728, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6328821630301641538, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5809529305839979743}
-    m_AddedComponents: []
+      addedObject: {fileID: 1404453409908007171}
   m_SourcePrefab: {fileID: 100100000, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+--- !u!1 &942881207044687684 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6328821630301641538, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+  m_PrefabInstance: {fileID: 6539706920368495622}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1404453409908007171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942881207044687684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b241f309fbd30514696ce006254e6623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bpm: 120
+  beatOffsetBeats: 0
+  skipEveryNBeats: 1
+  jumpOnBeat: 0
+  jumpRoot: {fileID: 9099358830255829902}
+  jumpHeight: 0.25
+  jumpCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  jumpIntensityMultiplier: 1
+  rotateOnBeat: 0
+  rotationAmplitude: 2
+  rotationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  scaleOnBeat: 0
+  scaleAmplitude: 0.15
+  scaleCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  stretchOnBeat: 1
+  stretchYAmplitude: 0.25
+  stretchXAmplitude: 0.15
+  stretchCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  particleSystemRef: {fileID: 2406010551821969077}
+  emitoOnBeat: 0
+  particlesPerBurst: 10
+  emitEveryNBeats: 1
+  particleBeatOffsetBeats: 0
+--- !u!198 &2406010551821969077 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 8908798543092447923, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+  m_PrefabInstance: {fileID: 6539706920368495622}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5652194379425205133 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1490995066299422603, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+  m_PrefabInstance: {fileID: 6539706920368495622}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &9099358830255829902 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2632035599939022728, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}

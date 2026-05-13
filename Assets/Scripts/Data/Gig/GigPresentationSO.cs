@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 namespace ALWTTT.Data
 {
@@ -39,7 +39,7 @@ namespace ALWTTT.Data
 
         // --- Sequence pacing ---
 
-        [Header("Timing — Sequence Pacing")]
+        [Header("Timing ï¿½ Sequence Pacing")]
         [SerializeField, Tooltip("Pause after a song ends before vibe resolution begins.")]
         private float songEndPause = 3f;
 
@@ -51,7 +51,7 @@ namespace ALWTTT.Data
             "executions during AudienceTurn.")]
         private float perAudienceActionDelay = 1f;
 
-        [SerializeField, Tooltip("Tween duration passed to AudienceStats.AddVibe — " +
+        [SerializeField, Tooltip("Tween duration passed to AudienceStats.AddVibe ï¿½ " +
             "drives the bar fill animation.")]
         private float barFillDelay = 3f;
 
@@ -59,5 +59,39 @@ namespace ALWTTT.Data
         public float PerAudienceVibeDelay => perAudienceVibeDelay;
         public float PerAudienceActionDelay => perAudienceActionDelay;
         public float BarFillDelay => barFillDelay;
+
+        // --- SongHype stage thresholds (B2 / #6) ---
+
+        [Header("SongHype Stage Thresholds [B2 / #6]")]
+        [SerializeField, Range(0f, 1f),
+         Tooltip("First stage threshold as fraction of MaxSongHype. " +
+            "Fires SFX tag once on upward crossing per song. Default â‰ˆ1/3.")]
+        private float songHypeStage1Threshold = 0.34f;
+
+        [SerializeField, Range(0f, 1f),
+         Tooltip("Second stage threshold as fraction of MaxSongHype. " +
+            "Fires SFX tag once on upward crossing per song. Default â‰ˆ2/3.")]
+        private float songHypeStage2Threshold = 0.67f;
+
+        [SerializeField, Range(0f, 1f),
+         Tooltip("Third stage threshold as fraction of MaxSongHype. " +
+            "Fires SFX tag once on upward crossing per song. Default = 1.0.")]
+        private float songHypeStage3Threshold = 1.0f;
+
+        [SerializeField, Tooltip("Tag passed to BackgroundContainer.ActivateSFX on stage 1.")]
+        private string songHypeStage1SfxTag = "lights";
+
+        [SerializeField, Tooltip("Tag passed to BackgroundContainer.ActivateSFX on stage 2.")]
+        private string songHypeStage2SfxTag = "smoke";
+
+        [SerializeField, Tooltip("Tag passed to BackgroundContainer.ActivateSFX on stage 3.")]
+        private string songHypeStage3SfxTag = "fire";
+
+        public float SongHypeStage1Threshold => songHypeStage1Threshold;
+        public float SongHypeStage2Threshold => songHypeStage2Threshold;
+        public float SongHypeStage3Threshold => songHypeStage3Threshold;
+        public string SongHypeStage1SfxTag => songHypeStage1SfxTag;
+        public string SongHypeStage2SfxTag => songHypeStage2SfxTag;
+        public string SongHypeStage3SfxTag => songHypeStage3SfxTag;
     }
 }

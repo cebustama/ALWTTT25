@@ -114,6 +114,11 @@ namespace ALWTTT.Managers
 
         private float _songHype;
 
+        // [B2 / #6] Monotonic SongHype stage tracker (0..3). Reset on each new song
+        // via ResetSongHype. Used by AddSongHype to fire venue SFX exactly once on
+        // upward threshold crossings.
+        private int _songHypeStage;
+
         private SongFeedbackContext? _lastSongFeedback;
 
         private InstrumentRepositoryResources _instrumentRepo;
@@ -208,6 +213,9 @@ namespace ALWTTT.Managers
 
         #region Composition
         private CompositionSession _session;
+        // [B2 / #4] Read-only accessor for HandController + dev tooling. Null between
+        // songs and before the first composition session of the gig.
+        public CompositionSession CompositionSession => _session;
 
         private class GigContext : ICompositionContext
         {
@@ -1024,6 +1032,18 @@ namespace ALWTTT.Managers
                 a.Stats.AddVibe(inst.Stacks);
                 int afterVibe = a.Stats.CurrentVibe;
 
+                // [B2 / #3] Multiplier-with-icon floating text. Magenta tint
+                // distinguishes Earworm-sourced Vibe gain from card-sourced
+                // Vibe (cyan) and Flow-amplified Vibe (cyan with ×mult).
+                if (FxManager.Instance != null && a.TextSpawnRoot != null)
+                {
+                    FxManager.Instance.SpawnFloatingText(
+                        a.TextSpawnRoot,
+                        $"+{inst.Stacks} VIBE (EARWORM)",
+                        new Vector2(-0.4f, 1.0f),
+                        new Color(0.85f, 0.35f, 1.0f));
+                }
+
                 Debug.Log(
                     $"<color=lime>[Earworm] {a.CharacterId} stacks={inst.Stacks} " +
                     $"→ +{inst.Stacks} Vibe (Vibe: {beforeVibe}→{afterVibe})</color>");
@@ -1343,6 +1363,7 @@ namespace ALWTTT.Managers
         private void ResetSongHype()
         {
             _songHype = 0f;
+            _songHypeStage = 0; // [B2 / #6] reset stage on song boundary
             UpdateAudienceBeatIntensity();
             OnSongHypeChanged01?.Invoke(SongHype01);
         }
@@ -1604,12 +1625,50 @@ namespace ALWTTT.Managers
                     perAudience[i] = impressions;
                 }
 
+                clamped = 2;
                 impressions.Add(clamped);
+
+                string exclamation = ImpressionToExclamation(clamped);
+
+                if (!string.IsNullOrEmpty(exclamation)
+                    && audience.TextSpawnRoot != null
+                    && FxManager.Instance != null)
+                {
+                    FxManager.Instance.SpawnFloatingText(
+                        audience.TextSpawnRoot, exclamation,
+                        new Vector2(0f, 1.0f),
+                        ImpressionToColor(clamped));
+                }
 
                 // TODO plug things like:
                 // audience.Stats.AddVibe(clamped);
                 // trigger VFX/SFX, etc.
             }
+        }
+
+        // [B2 / #3] Map clamped loop impression [-2..2] to a short crowd reaction.
+        // Returns null for neutral (0) so we don't spam silent feedback.
+        private static string ImpressionToExclamation(int impression)
+        {
+            switch (impression)
+            {
+                case 2: return "WOW!";
+                case 1: return "YEAH";
+                case 0: return null;
+                case -1: return "MEH";
+                case -2: return "BORING";
+            }
+            return null;
+        }
+
+        // [B2 / #3] Color sign-coded so impressions read at a glance.
+        private static Color ImpressionToColor(int impression)
+        {
+            if (impression >= 2) return new Color(1.0f, 0.85f, 0.20f); // gold
+            if (impression == 1) return new Color(0.40f, 1.0f, 0.40f); // green
+            if (impression == -1) return new Color(0.80f, 0.80f, 0.80f); // grey
+            if (impression <= -2) return new Color(1.0f, 0.30f, 0.30f); // red
+            return Color.white;
         }
 
         internal void OnCompositionSessionEnded()
@@ -1675,16 +1734,88 @@ namespace ALWTTT.Managers
         {
             if (dev != null && dev.DebugSongHype)
                 return;
+            AddSongHypeCore(delta);
+        }
 
+        /// <summary>
+        /// Core SongHype mutation: bounds-clamps, syncs UI, fires threshold
+        /// detection, raises change event. Bypasses the DebugSongHype guard.
+        /// Gameplay path uses <see cref="AddSongHype"/> (which respects the
+        /// guard); dev tools use <see cref="DevAddSongHype"/> /
+        /// <see cref="DevResetSongHype"/> (which bypass it).
+        /// </summary>
+        private void AddSongHypeCore(float delta)
+        {
             float max = meters != null ? meters.MaxSongHype : 0f;
+            float beforeNorm = max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);
             _songHype = Mathf.Clamp(_songHype + delta, 0f, max);
+            float afterNorm = max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);
+
             UpdateAudienceBeatIntensity();
 
             // Keep the slider in sync (even if it's hidden)
             if (songHypeDebugSlider != null)
                 songHypeDebugSlider.SetValueWithoutNotify(_songHype);
 
+            // [B2 / #6] Threshold crossings → venue SFX.
+            EvaluateSongHypeThresholds(beforeNorm, afterNorm);
+
             OnSongHypeChanged01?.Invoke(SongHype01);
+        }
+
+        /// <summary>
+        /// [B2 / #6] Dev tool: adjust SongHype by an absolute delta, bypassing
+        /// the DebugSongHype guard. Routes through threshold detection so
+        /// stage SFX fire correctly on upward crossings.
+        /// </summary>
+        public void DevAddSongHype(float delta) => AddSongHypeCore(delta);
+
+        /// <summary>
+        /// [B2 / #6] Dev tool: reset SongHype to 0 and reset the per-song stage
+        /// counter, simulating a new-song boundary. Lets devs re-test threshold
+        /// crossings without finishing a real song.
+        /// </summary>
+        public void DevResetSongHype() => ResetSongHype();
+
+        /// <summary>
+        /// [B2 / #6] Fires venue SFX exactly once per upward threshold crossing
+        /// (1/3 → lights, 2/3 → smoke, 3/3 → fire). Stage tracker resets per song
+        /// via ResetSongHype. Downward motion does not re-trigger.
+        /// </summary>
+        private void EvaluateSongHypeThresholds(float before, float after)
+        {
+            if (presentation == null) return;
+            if (after <= before) return; // upward only
+
+            float t1 = presentation.SongHypeStage1Threshold;
+            float t2 = presentation.SongHypeStage2Threshold;
+            float t3 = presentation.SongHypeStage3Threshold;
+
+            if (_songHypeStage < 1 && after >= t1 && before < t1)
+            {
+                _songHypeStage = 1;
+                FireSongHypeStage(1, presentation.SongHypeStage1SfxTag);
+            }
+            if (_songHypeStage < 2 && after >= t2 && before < t2)
+            {
+                _songHypeStage = 2;
+                FireSongHypeStage(2, presentation.SongHypeStage2SfxTag);
+            }
+            if (_songHypeStage < 3 && after >= t3 && before < t3)
+            {
+                _songHypeStage = 3;
+                FireSongHypeStage(3, presentation.SongHypeStage3SfxTag);
+            }
+        }
+
+        private void FireSongHypeStage(int stage, string sfxTag)
+        {
+            if (backgroundContainer != null && !string.IsNullOrEmpty(sfxTag))
+                backgroundContainer.ActivateSFX(sfxTag);
+
+            Debug.Log($"{DebugTag} <color=yellow>[B2 / #6] SongHype stage {stage} " +
+                $"reached (tag='{sfxTag}'). _songHype={_songHype:F2}, " +
+                $"max={(meters != null ? meters.MaxSongHype : 0f):F2}</color>");
         }
 
         /// <summary>

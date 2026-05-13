@@ -680,6 +680,22 @@ namespace ALWTTT
                     return false;
                 }
 
+                // [B2 / #4] 2a.5) Inspiration cost check. Action cards spend inspiration
+                // out of the same session pool as composition cards. Outside an active
+                // composition session, only free cards (cost==0) may play.
+                int actionCost = Math.Max(0, data.InspirationCost);
+                if (actionCost > 0)
+                {
+                    var session = GigManager.CompositionSession;
+                    if (session == null || !session.CanAffordInspiration(actionCost))
+                    {
+                        session?.FlashInspirationDenied();
+                        Debug.Log($"{DebugTag} [Gig] Action card '{data.DisplayName}' " +
+                            $"cost={actionCost} but session={(session == null ? "null" : "short")}. Denied.");
+                        return false;
+                    }
+                }
+
                 // NOTE: for now we IGNORE the old groove checks so we don’t depend
                 // on the legacy gig state machine / groove economy.
                 // If you want them back later, re-enable:

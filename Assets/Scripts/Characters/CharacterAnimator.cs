@@ -25,6 +25,26 @@ namespace ALWTTT.Characters
         [SerializeField] private float rotationAmplitude = 6f;
         [SerializeField] private AnimationCurve rotationCurve;
 
+        [Header("Scale Pop (Beat) [B2 / #14]")]
+        [Tooltip("Robot-style pop: ease-in/out scale on beat (no vertical jump). " +
+            "Independent of JumpOnBeat. For Robot C2 use this with JumpOnBeat = false.")]
+        [SerializeField] private bool scaleOnBeat = false;
+        [Tooltip("Peak amplitude as a fraction (0.15 = grows to 1.15× base scale).")]
+        [SerializeField][Range(0f, 1f)] private float scaleAmplitude = 0.15f;
+        [SerializeField] private AnimationCurve scaleCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+        [Header("Stretch & Squash (Beat) [B2 / #15]")]
+        [Tooltip("Worm-style vertical stretch + horizontal compress on beat. " +
+            "Asymmetric: Y grows, X shrinks (classic squash-and-stretch). " +
+            "Independent of JumpOnBeat and ScaleOnBeat — typically used with " +
+            "JumpOnBeat = false on Gusano. For instrument sub-animator (#16), " +
+            "attach a second CharacterAnimator to the instrument GO with its " +
+            "own settings.")]
+        [SerializeField] private bool stretchOnBeat = false;
+        [SerializeField][Range(0f, 1f)] private float stretchYAmplitude = 0.25f;
+        [SerializeField][Range(0f, 1f)] private float stretchXAmplitude = 0.15f;
+        [SerializeField] private AnimationCurve stretchCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
         [Header("Particles")]
         [SerializeField] private ParticleSystem particleSystemRef;
         [SerializeField] private bool emitoOnBeat = true;
@@ -38,6 +58,7 @@ namespace ALWTTT.Characters
         private int lastBpm = -1;
         private float timer; // seconds since start
         private Vector3 originalLocalPos;
+        private Vector3 originalLocalScale; // [B2 / #14, #15]
         private float originalZ;
         private float nextParticleTime; // absolute
         private int beatsSinceLastEmit;
@@ -78,6 +99,20 @@ namespace ALWTTT.Characters
             get => emitoOnBeat;
             set => emitoOnBeat = value;
         }
+
+        // [B2 / #14] Robot pop toggle. Runtime-tweakable.
+        public bool ScaleOnBeat
+        {
+            get => scaleOnBeat;
+            set => scaleOnBeat = value;
+        }
+
+        // [B2 / #15] Worm stretch toggle. Runtime-tweakable.
+        public bool StretchOnBeat
+        {
+            get => stretchOnBeat;
+            set => stretchOnBeat = value;
+        }
         #endregion
 
         private void Awake()
@@ -87,6 +122,7 @@ namespace ALWTTT.Characters
 
             originalLocalPos = jumpRoot.localPosition;
             originalZ = jumpRoot.localEulerAngles.z;
+            originalLocalScale = jumpRoot.localScale; // [B2 / #14, #15]
 
             baseJumpHeight = jumpHeight;
 
@@ -114,7 +150,7 @@ namespace ALWTTT.Characters
 
             timer += Time.deltaTime;
 
-            float tBeat = 
+            float tBeat =
                 Mathf.Repeat(timer + beatOffsetBeats * beatInterval, beatInterval)
                 / beatInterval;
             float pingPong = Mathf.PingPong(tBeat, .5f) * 2f;
@@ -124,7 +160,7 @@ namespace ALWTTT.Characters
                 // Jumping
                 if (jumpOnBeat)
                 {
-                    float jump = 
+                    float jump =
                         jumpCurve.Evaluate(pingPong) *
                         baseJumpHeight *
                         jumpIntensityMultiplier;
@@ -139,6 +175,30 @@ namespace ALWTTT.Characters
                     var e = jumpRoot.localEulerAngles;
                     e.z = originalZ + r;
                     jumpRoot.localEulerAngles = e;
+                }
+
+                // [B2 / #14] Scale Pop (Robot). Independent of stretch.
+                // If both ScaleOnBeat and StretchOnBeat are true, Stretch wins
+                // (last-write wins downstream below); designers should pick one.
+                if (scaleOnBeat)
+                {
+                    float k = scaleCurve != null ? scaleCurve.Evaluate(pingPong) : pingPong;
+                    float s = 1f + (scaleAmplitude * k * jumpIntensityMultiplier);
+                    jumpRoot.localScale = originalLocalScale * s;
+                }
+
+                // [B2 / #15] Stretch & Squash (Worm). Asymmetric, volume-preserving feel.
+                if (stretchOnBeat)
+                {
+                    float k = stretchCurve != null ? stretchCurve.Evaluate(pingPong) : pingPong;
+                    float intensity = jumpIntensityMultiplier;
+                    float sy = 1f + (stretchYAmplitude * k * intensity);
+                    float sx = 1f - (stretchXAmplitude * k * intensity);
+
+                    var s = originalLocalScale;
+                    s.x *= Mathf.Max(0.01f, sx);
+                    s.y *= sy;
+                    jumpRoot.localScale = s;
                 }
             }
 

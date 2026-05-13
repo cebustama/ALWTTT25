@@ -3,6 +3,49 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-13 — Phase B B2 (polish layer) closed; Phase B B2.5 opened
+
+Closes Phase B B2 monolithically per D3=A. Six items (#3 tooltip miniature, #4 inspiration markers pulse, #5 expanded floating text, #6 SongHype thresholds, #14 Robot beat-pop, #15+#16 Worm animation) shipped with two mid-batch decisions: D-Inspiration-Pool=A (action card cost gating) and D-FxChangeDetect=A (CompositionFxConfigSO + diff-driven classifier).
+
+Files: 3 new (MinicardTooltipController, UIPulseAnimator, CompositionFxConfigSO) + 10 modified (SongTrackElementUI, SongPartElementUI, SongCompositionUI, GigManager, GigPresentationSO, BackgroundContainer, CharacterAnimator, CompositionSession, HandController, FxManager, DevModeController). ~700-900 LoC ALWTTT-side. No MidiGenPlay internals. No SSoT authority changes.
+
+Smoke tests: S1-S3 PASS, S4 PASS-with-deferral (real audience impressions → B3; Earworm-multiplier → B2.5), S5 PASS-with-caveat (smoke/fire VFX → B2.5), S6 PASS.
+
+Opens Phase B B2.5 (polish refinements + cleanup). 16 items parked across four categories:
+
+Correctness gaps:
+1. Relocate Earworm-multiplier floating text spawn to real tick site (StatusEffectSO).
+2. BackgroundContainer.DeactivateAllSFX on song boundary.
+3. Multi-animator BPM propagation (body → child instrument animators).
+
+Content-dependent followups:
+4. Per-venue SFX extension (BackgroundRoot.SetSmoke/SetFire + per-venue VFX).
+5. CompositionFxConfigSO default tuning.
+6. Animation feel tuning (Robot pop, Worm stretch, instrument).
+
+Cleanup:
+7. CardBase.cs:526 stale TEST log.
+8. CardBase.OnPointerDown log spam.
+9. Strip B2 debug logs across SongTrackElementUI, MinicardTooltipController, FxManager, SongCompositionUI, GigManager.
+10. Normalize audience action floating text to Vector2 API in AudienceCharacterBase.ExecuteActionWithTiming.
+11. Verify TimeSignature.ToString() format consistency for meter diff.
+
+Design gaps:
+12. TempoScale diff in SelectFxEntry.
+13. Tempo/meter hasExplicit flags on PartEntry.
+14. PartActionKind.NoOp (cross-listed B3).
+15. Optionally #if ALWTTT_DEV gate on DevAddSongHype/DevResetSongHype.
+16. Dead Tonality FxEntry in CompositionFxConfigSO — remove or repurpose.
+
+Docs:
+- CURRENT_STATE.md §1 new B2 closure block prepended; §3 renumber (B2 drops out, B2.5 promotes to #1, B3 #2); §4 B2 bullet flipped to RESOLVED + new B2.5 bullet appended.
+- Roadmap_ALWTTT.md §5.2 marked ✅ with closure footer; §5.5 B2 checkbox flipped + B2.5 row inserted; Last-updated bumped to 2026-05-13.
+- changelog-ssot.md (this entry).
+
+ssot_manifest.yaml, coverage-matrix.md, SSoT_INDEX.md, all systems SSoTs intentionally unchanged (operational polish — no authority/governance/contract/coverage-routing change).
+
+Closes: Phase B B2. Opens: Phase B B2.5 next (correctness gaps + cleanup first; design gaps if time allows), then Phase B B3 (content + balance).
+
 2026-05-12 — Phase B B1 closed (loop simplification + track persistence + UI rework)
 
 First operational batch of Phase B closed. All internal items shipped:

@@ -523,7 +523,6 @@ namespace ALWTTT
             {
                 // MB4: session-aware routing. Negative delta = spend.
                 gm.AdjustInspiration(-value);
-                Debug.Log("<color=green> TEST TEST TEST " + GameManager.PersistentGameplayData.CurrentInspiration + "</color>");
                 return;
             }
 

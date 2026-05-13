@@ -204,6 +204,39 @@ namespace ALWTTT.Music
         }
 #endif
 
+        // -----------------------------------------------------------
+        // [B2 / #4] Inspiration cost API (shared by comp + action cards)
+        // -----------------------------------------------------------
+
+        /// <summary>True if the current session has at least <paramref name="cost"/> inspiration.</summary>
+        public bool CanAffordInspiration(int cost)
+        {
+            return Math.Max(0, cost) <= _currentInspiration;
+        }
+
+        /// <summary>
+        /// Deduct <paramref name="cost"/> from session inspiration and refresh the UI.
+        /// Caller must check <see cref="CanAffordInspiration"/> first; this method
+        /// clamps to zero on underflow but won't refuse.
+        /// </summary>
+        public void SpendInspiration(int cost)
+        {
+            cost = Math.Max(0, cost);
+            if (cost == 0) return;
+            _currentInspiration = Math.Max(0, _currentInspiration - cost);
+            _ctx?.CompositionUI?.SetInspiration(_currentInspiration);
+        }
+
+        /// <summary>
+        /// [B2 / #4] Flash the inspiration value text in the loss color without
+        /// changing the underlying value. Used as a "denied — not enough" signal.
+        /// Safe to call when no UI is wired.
+        /// </summary>
+        public void FlashInspirationDenied()
+        {
+            _ctx?.CompositionUI?.FlashInspirationDenied();
+        }
+
         public void ConfirmCurrentPartAndStart()
         {
             if (_state != CompositionState.BuildingCurrentPart) return;
@@ -309,7 +342,10 @@ namespace ALWTTT.Music
                 Info($"inspiration: have={_currentInspiration} " +
                     $"cost={cost} gen={def.InspirationGenerated}");
                 if (cost > _currentInspiration)
+                {
+                    _ctx?.CompositionUI?.FlashInspirationDenied(); // [B2 / #4]
                     return Fail("Not enough inspiration");
+                }
             }
 
             // 2) Resolve target (only for track cards)

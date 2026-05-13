@@ -68,6 +68,14 @@ namespace ALWTTT.Managers
         public void SpawnFloatingText(Transform tr, string text, Vector2 dir, Color color)
         {
             var ft = Instantiate(floatingTextPrefab, tr.position, Quaternion.identity);
+
+            Debug.Log($"<color=orange>[FxManager] FT spawned. " +
+                $"anchor='{tr.name}' anchor.position={tr.position} " +
+                $"prefabHasCanvas={(floatingTextPrefab.GetComponentInChildren<Canvas>() != null)} " +
+                $"ftPos={ft.transform.position} " +
+                $"ftIsUI={ft.GetComponent<RectTransform>() != null} " +
+                $"text='{text}'</color>");
+
             ft.PlayText(text, dir, color);
         }
 

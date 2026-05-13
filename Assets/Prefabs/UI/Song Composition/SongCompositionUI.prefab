@@ -103,6 +103,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -399,6 +400,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -541,6 +543,7 @@ RectTransform:
   - {fileID: 3238599844451390915}
   - {fileID: 1025082373692099014}
   - {fileID: 1496787298662419128}
+  - {fileID: 6569949226045640336}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -572,6 +575,14 @@ MonoBehaviour:
   inspirationRoot: {fileID: 1311070525941500419}
   inspirationText: {fileID: 7178724656682583374}
   plusInspirationText: {fileID: 3235815966889626433}
+  inspirationValuePulse: {fileID: 869245583633362548}
+  plusInspirationPulse: {fileID: 7895165053854076031}
+  inspirationGainColor: {r: 0.4, g: 1, b: 0.4, a: 1}
+  inspirationLossColor: {r: 1, g: 0.35, b: 0.35, a: 1}
+  plusInspirationFlashColor: {r: 0.55, g: 0.95, b: 1, a: 1}
+  compositionFxAnchor: {fileID: 6569949226045640336}
+  compositionFxDir: {x: 0, y: 1.2}
+  fxConfig: {fileID: 11400000, guid: 081226bfdcc5eaa4398070a850d15198, type: 2}
   useLogs: 0
 --- !u!1 &3570776515193599803
 GameObject:
@@ -966,7 +977,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 57.95
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -977,6 +988,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1096,6 +1108,7 @@ GameObject:
   - component: {fileID: 65698765690714988}
   - component: {fileID: 5486982287251230120}
   - component: {fileID: 7178724656682583374}
+  - component: {fileID: 869245583633362548}
   m_Layer: 0
   m_Name: InspirationText
   m_TagString: Untagged
@@ -1188,6 +1201,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1221,6 +1235,48 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &869245583633362548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5669084088040437805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9749d30d13e1bf142ae3296c72a81b0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.UI.UIPulseAnimator
+  target: {fileID: 0}
+  colorTarget: {fileID: 7178724656682583374}
+  popScale: 1.25
+  growDuration: 0.08
+  settleDuration: 0.18
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  useUnscaledTime: 1
 --- !u!1 &6350405115596003320
 GameObject:
   m_ObjectHideFlags: 0
@@ -1296,6 +1352,41 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &7402717250292859488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6569949226045640336}
+  m_Layer: 0
+  m_Name: FxTextSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6569949226045640336
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7402717250292859488}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6455820577279347465}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &8334255931169825347
 GameObject:
   m_ObjectHideFlags: 0
@@ -1382,6 +1473,7 @@ GameObject:
   - component: {fileID: 7778668958656421617}
   - component: {fileID: 888155459770762770}
   - component: {fileID: 3235815966889626433}
+  - component: {fileID: 7895165053854076031}
   m_Layer: 0
   m_Name: PlusInspirationText
   m_TagString: Untagged
@@ -1474,6 +1566,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1507,6 +1600,48 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7895165053854076031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8530390216418835802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9749d30d13e1bf142ae3296c72a81b0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.UI.UIPulseAnimator
+  target: {fileID: 0}
+  colorTarget: {fileID: 3235815966889626433}
+  popScale: 1.25
+  growDuration: 0.08
+  settleDuration: 0.18
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  useUnscaledTime: 1
 --- !u!1001 &2381974075340774511
 PrefabInstance:
   m_ObjectHideFlags: 0

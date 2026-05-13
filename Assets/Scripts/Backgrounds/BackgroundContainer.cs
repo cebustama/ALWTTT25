@@ -1,4 +1,4 @@
-using ALWTTT.Managers;
+﻿using ALWTTT.Managers;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -43,10 +43,53 @@ namespace ALWTTT.Backgrounds
             }
         }
 
+        /// <summary>
+        /// [B2 / #6] Activate a venue SFX by tag.
+        ///
+        /// Tag convention (used by GigManager.FireSongHypeStage):
+        ///   "lights" → stage 1 (1/3 SongHype): turn on stage lights.
+        ///   "smoke"  → stage 2 (2/3 SongHype): smoke machines (per-venue extension).
+        ///   "fire"   → stage 3 (3/3 SongHype): pyro (per-venue extension).
+        ///
+        /// Smoke/fire dispatch is venue-prefab-specific: BackgroundRoot may not
+        /// yet expose SetSmoke/SetFire on all venues. Unknown tags fall through to
+        /// SetLights(true) as a safe default and log so the gap is observable.
+        /// Per-venue extension hooks live on BackgroundRoot itself.
+        /// </summary>
         public void ActivateSFX(string sfxTag)
         {
-            // TODO get each SFX according to tag
-            CurrentBackground.SetLights(true);
+            if (CurrentBackground == null)
+            {
+                Debug.LogWarning($"[BackgroundContainer] ActivateSFX('{sfxTag}'): " +
+                    "no current background; ignoring.");
+                return;
+            }
+
+            switch (sfxTag)
+            {
+                case "lights":
+                case "hype_1":
+                    CurrentBackground.SetLights(true);
+                    break;
+
+                // Hooks for "smoke" / "fire" land per-venue on BackgroundRoot.
+                // Until those land, fall through to SetLights so stage 2/3 are
+                // still observable in playtest (just less differentiated).
+                case "smoke":
+                case "hype_2":
+                case "fire":
+                case "hype_3":
+                    CurrentBackground.SetLights(true);
+                    Debug.Log($"[BackgroundContainer] ActivateSFX('{sfxTag}'): " +
+                        "per-venue hook not wired; defaulted to SetLights(true). " +
+                        "Extend BackgroundRoot with SetSmoke/SetFire to differentiate.");
+                    break;
+
+                default:
+                    Debug.LogWarning($"[BackgroundContainer] ActivateSFX('{sfxTag}'): " +
+                        "unrecognized tag; ignoring.");
+                    break;
+            }
         }
     }
 }

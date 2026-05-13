@@ -1,7 +1,7 @@
 # Roadmap — ALWTTT
 
 **Status:** Planning only — does not define implementation truth  
-**Last updated:** 2026-05-12 (Phase B B1 closed; F-5 invariant promoted to CompositionSession integration SSoT §8; B2 next)
+**Last updated:** 2026-05-13 (Phase B B1 closed 2026-05-12 with F-5 invariant promoted to CompositionSession integration SSoT §8; Phase B B2 closed 2026-05-13; Phase B B2.5 opened with 16 parked items)
 **Rule:** This document tracks recommended work sequencing. It does not override subsystem SSoTs or CURRENT_STATE.
 
 ---
@@ -431,7 +431,7 @@ After F-1..F-4 + F-5-absorbed: Phase A is closed. Phase B (Gameplay loop polish)
 
 ## 5 — Phase B — Gameplay loop polish (opened 2026-05-09)
 
-**Status:** Active (B1 closed 2026-05-12; B2 next).
+**Status:** Active (B1 closed 2026-05-12; B2 closed 2026-05-13; B2.5 next).
 **Goal:** Take the working Phase A pre-demo build to a true demo with track persistence between loops, expanded UI feedback, content/balance polish, and animation polish.
 
 **Demo pitch:** "Start a run. Play a gig with your 2-musician band. Each card you play *changes* the music — and the parts you didn't change *stay the same*. Watch the song hype build, see the venue light up, hear the audience react. Convince the crowd, or break under their pressure."
@@ -476,7 +476,7 @@ Foundational. Estimated ~300-400 LoC ALWTTT-side. 1 long session or 2 shorter (s
 
 **Closed 2026-05-12.** All internal items shipped: #7 stem cache + #0 next-zone disable + #1+#2 UI rework + #8 hand-discard configurability + #7.1 instrument pin + D-J draw-on-play. Boundary respected — no `SongConfig` field added; hash travels ALWTTT-side as a per-call parameter per D-E=α'. Smoke tests ST-B1-S1..S10 PASS (S4 DEFERRED-no-hook; reopens automatically if F-4 LogError fires during playtest). F-5 invariant promoted to `SSoT_Runtime_CompositionSession_Integration §8` per D-K=α. See `CURRENT_STATE.md` §1 closure block and `changelog-ssot.md` 2026-05-12 entry.
 
-### 5.2 — B2 — Polish layer (feedback + animation)
+### 5.2 — B2 — Polish layer (feedback + animation) ✅ (closed 2026-05-13)
 
 Aditivo, low risk, depends on B1 landed. Default monolithic; fallback split B2a (UI feedback) + B2b (animation) if pesado.
 
@@ -493,6 +493,8 @@ Aditivo, low risk, depends on B1 landed. Default monolithic; fallback split B2a 
 - All six feedback items observable in a normal playtest.
 - Animation feel review user-confirmed.
 - Smoke tests ST-B2-S1..S6 (one per item).
+
+**Closure (2026-05-13):** Six items shipped monolithically per D3=A; fallback split not triggered. Two mid-batch decisions added: D-Inspiration-Pool=A (action card cost gating bug fix, single-pool semantics) and D-FxChangeDetect=A (`CompositionFxConfigSO` + diff-driven floating text classifier). 3 new + 10 modified files, ~700-900 LoC. Smoke tests S1-S3 PASS, S4 PASS-with-deferral, S5 PASS-with-caveat, S6 PASS. 16 items parked to new B2.5 batch (correctness, content, cleanup, design gaps). No SSoT authority changes. F-1 / F-3 / F-4 Stage A / F-5 invariants not regressed. See `CURRENT_STATE.md §1` B2 closure block, `changelog-ssot.md` 2026-05-13 entry, and the new B2.5 batch open.
 
 ### 5.3 — B3 — Content + design
 
@@ -529,7 +531,8 @@ If gaps: targeted follow-up batches before cut.
 ### 5.5 — Phase B Definition of Done
 
 - [x] B1 (loop simplification + persistence + UI rework) closed (2026-05-12)
-- [ ] B2 (feedback + animation polish) closed
+- [x] B2 (feedback + animation polish) closed
+- [ ] B2.5 (polish refinements + cleanup) — opened, 16 items
 - [ ] B3 (balance + new content) closed
 - [ ] Demo readiness review passed
 - [ ] No F-1/F-3/F-4 invariant regressions

@@ -193,6 +193,57 @@ namespace ALWTTT.DevMode
                     }
                 }
             }
+
+            // ---- SongHype controls [B2 / #6] ----
+            GUILayout.Space(12);
+            DrawSongHypeControls();
+        }
+
+        /// <summary>
+        /// [B2 / #6] Dev controls for SongHype: ±10% (relative to MaxSongHype)
+        /// + Reset. Routes through GigManager.DevAddSongHype / DevResetSongHype
+        /// so threshold-crossing venue SFX fire on upward steps and the per-song
+        /// stage counter resets on Reset.
+        /// </summary>
+        private void DrawSongHypeControls()
+        {
+            var gm = GigManager.Instance;
+            if (gm == null)
+            {
+                GUILayout.Label("SongHype controls: (no GigManager)");
+                return;
+            }
+
+            float maxHype = gm.MaxSongHype;
+            float pct = gm.SongHype01 * 100f;
+
+            GUILayout.Label("SongHype controls:");
+            GUILayout.Label($"  Current: {pct:0.0}%   ({gm.SongHype:0.0} / {maxHype:0.0})");
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("+10%"))
+            {
+                float delta = maxHype * 0.1f;
+                gm.DevAddSongHype(delta);
+                if (_verboseLogs)
+                    Debug.Log($"{Tag} DevAddSongHype(+{delta:0.0}). " +
+                        $"Now {gm.SongHype01 * 100f:0.0}%.");
+            }
+            if (GUILayout.Button("-10%"))
+            {
+                float delta = -maxHype * 0.1f;
+                gm.DevAddSongHype(delta);
+                if (_verboseLogs)
+                    Debug.Log($"{Tag} DevAddSongHype({delta:0.0}). " +
+                        $"Now {gm.SongHype01 * 100f:0.0}%.");
+            }
+            if (GUILayout.Button("Reset"))
+            {
+                gm.DevResetSongHype();
+                if (_verboseLogs)
+                    Debug.Log($"{Tag} DevResetSongHype. SongHype + stage counter reset.");
+            }
+            GUILayout.EndHorizontal();
         }
 
         // ---------------------------------------------------------------

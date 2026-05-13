@@ -1,6 +1,8 @@
 ﻿using ALWTTT.Cards;
 using ALWTTT.Characters.Band;
+using ALWTTT.Data;
 using ALWTTT.Enums;
+using ALWTTT.Managers;
 using Melanchall.DryWetMidi.MusicTheory;
 using MidiGenPlay;
 using MidiGenPlay.Composition;
@@ -43,6 +45,26 @@ namespace ALWTTT.UI
         [SerializeField] private TextMeshProUGUI inspirationText;
         [SerializeField] private TextMeshProUGUI plusInspirationText;
 
+        [Header("Inspiration Pulse [B2 / #4]")]
+        [SerializeField, Tooltip("Optional pulse animator attached to the Inspiration value text. " +
+            "Pops on every SetInspiration value change. Tint reflects sign of delta.")]
+        private UIPulseAnimator inspirationValuePulse;
+        [SerializeField, Tooltip("Optional pulse animator attached to the +N inspiration badge. " +
+            "Pops when transitioning into a non-empty value (i.e. a new positive +N appears).")]
+        private UIPulseAnimator plusInspirationPulse;
+        [SerializeField] private Color inspirationGainColor = new Color(0.4f, 1.0f, 0.4f);
+        [SerializeField] private Color inspirationLossColor = new Color(1.0f, 0.35f, 0.35f);
+        [SerializeField] private Color plusInspirationFlashColor = new Color(0.55f, 0.95f, 1.0f);
+
+        [Header("Composition Floating Text [B2 / #3]")]
+        [SerializeField, Tooltip("Optional anchor for floating-text spawned on successful card apply " +
+            "(TEMPO! / METER! / KEY! / RHYTHM! / etc). Leave null to skip composition floating text.")]
+        private Transform compositionFxAnchor;
+        [SerializeField] private Vector2 compositionFxDir = new Vector2(0f, 1.2f);
+        [SerializeField, Tooltip("Per-category enabled/label/color config. " +
+            "Leave null to skip composition floating text (same effect as null anchor).")]
+        private CompositionFxConfigSO fxConfig;
+
         [Header("Dev")]
         [SerializeField] private bool useLogs = false;
 
@@ -66,6 +88,11 @@ namespace ALWTTT.UI
             // Type-level override (Bass / Guitar / etc.)
             public bool hasOverrideInstrumentType;
             public InstrumentType overrideInstrumentType;
+
+            // [B2 / #3] Source card definition for hover-tooltip minicard preview.
+            // Non-serialized: TrackEntry is a runtime-only struct, never written to
+            // asset; we don't need Unity to persist this reference.
+            [NonSerialized] public CardDefinition sourceCardDefinition;
         }
 
         [Serializable]
@@ -101,10 +128,10 @@ namespace ALWTTT.UI
             public string theme = "";
             public readonly List<PartEntry> parts = new();
 
-            public int CurrentPartIndex => 
+            public int CurrentPartIndex =>
                 Mathf.Clamp(parts.Count - 1, 0, Mathf.Max(parts.Count - 1, 0));
 
-            public PartEntry CurrentPart => 
+            public PartEntry CurrentPart =>
                 parts.Count == 0 ? null : parts[CurrentPartIndex];
         }
         #endregion
@@ -232,6 +259,11 @@ namespace ALWTTT.UI
                 return false;
             }
 
+            // [B2 / #3] Capture pre-apply state for diff-driven fx classification.
+            // Must run BEFORE any mutation (sections 3-5 below). Cheap copy of
+            // ~10 value-typed fields; not a perf concern.
+            var snapshot = CaptureSnapshot(part, target);
+
             // ---------------------------------------------------------
             // 2) RESOLVE TARGET MUSICIAN (IF REQUIRED)
             // ---------------------------------------------------------
@@ -341,6 +373,11 @@ namespace ALWTTT.UI
             // ---------------------------------------------------------
             RefreshPartUI(partIndex);
 
+            // [B2 / #3] Composition floating text on successful apply.
+            // Diff-driven: spawns at most one label, based on what actually
+            // changed between snapshot and current part state.
+            SpawnCompositionFx(data, comp, snapshot, partIndex, target);
+
             RaisePartChanged();
             return true;
         }
@@ -356,8 +393,8 @@ namespace ALWTTT.UI
 
             while (model.parts.Count <= partIndex)
             {
-                var label = model.parts.Count == 0 ? 
-                    defaultPartLabel : 
+                var label = model.parts.Count == 0 ?
+                    defaultPartLabel :
                     $"Part {model.parts.Count + 1}";
                 var p = new PartEntry
                 {
@@ -419,16 +456,54 @@ namespace ALWTTT.UI
             UpdateIconsForCurrentPart();
         }
 
+        // [B2 / #4] Track previous values so we can detect mutations and pulse.
+        private int _lastInspirationValue = int.MinValue;
+        private string _lastPlusInspirationText;
+
         public void SetInspiration(int value)
         {
             if (inspirationText != null)
                 inspirationText.text = value.ToString();
+
+            // [B2 / #4] Pulse on change. Skip first-set (no prior baseline).
+            if (_lastInspirationValue != int.MinValue
+                && value != _lastInspirationValue
+                && inspirationValuePulse != null)
+            {
+                var c = value > _lastInspirationValue
+                    ? inspirationGainColor
+                    : inspirationLossColor;
+                inspirationValuePulse.Pulse(c);
+            }
+            _lastInspirationValue = value;
         }
 
         public void SetPlusInspiration(int amount)
         {
             if (plusInspirationText == null) return;
-            plusInspirationText.text = amount > 0 ? $"+{amount}" : string.Empty;
+
+            string newText = amount > 0 ? $"+{amount}" : string.Empty;
+            bool changed = !string.Equals(_lastPlusInspirationText, newText);
+            plusInspirationText.text = newText;
+
+            // [B2 / #4] Pulse only when the badge transitions into / changes a
+            // non-empty +N (e.g. a track is added, or inspirationGenerated changes).
+            // Suppressed when the badge clears (avoids a pop on hide).
+            if (changed && amount > 0 && plusInspirationPulse != null)
+                plusInspirationPulse.Pulse(plusInspirationFlashColor);
+
+            _lastPlusInspirationText = newText;
+        }
+
+        /// <summary>
+        /// [B2 / #4] Pop the inspiration value text in the loss color without
+        /// changing the underlying value. Used as a "denied — not enough" signal
+        /// when the player attempts to play a card they can't afford.
+        /// </summary>
+        public void FlashInspirationDenied()
+        {
+            if (inspirationValuePulse != null)
+                inspirationValuePulse.Pulse(inspirationLossColor);
         }
 
         public int BeginDraftNextPart(string customLabel = null)
@@ -447,7 +522,7 @@ namespace ALWTTT.UI
             var p = new PartEntry
             {
                 label = label,
-                timeSignature = inherit != null 
+                timeSignature = inherit != null
                     ? inherit.timeSignature : TimeSignature.FourFour,
                 tempo = inherit != null ? inherit.tempo : "Very Fast",
                 tonality = inherit != null ? inherit.tonality : Tonality.Ionian,
@@ -520,7 +595,7 @@ namespace ALWTTT.UI
 
         public void SetIconReferencePartIndex(int partIndex)
         {
-            iconReferencePartIndex = 
+            iconReferencePartIndex =
                 Mathf.Clamp(partIndex, 0, Mathf.Max(0, model.parts.Count - 1));
             UpdateIconsForCurrentPart();
         }
@@ -703,6 +778,7 @@ namespace ALWTTT.UI
                 existing.inspirationGenerated = complexity;
                 existing.synergyType = synergy;
                 existing.styleBundle = styleBundle;
+                existing.sourceCardDefinition = sourceCard; // [B2 / #3]
             }
             else
             {
@@ -713,7 +789,8 @@ namespace ALWTTT.UI
                     info = info,
                     inspirationGenerated = complexity,
                     synergyType = synergy,
-                    styleBundle = styleBundle
+                    styleBundle = styleBundle,
+                    sourceCardDefinition = sourceCard, // [B2 / #3]
                 };
 
                 part.tracks.Add(entry);
@@ -722,7 +799,10 @@ namespace ALWTTT.UI
             if (beforeCount == 0)
                 SetPartVisible(partIndex, true);
 
-            partUIs[partIndex].AddOrUpdateTrack(musicianId, role.ToString(), info);
+            partUIs[partIndex].AddOrUpdateTrack(
+                musicianId, role.ToString(), info,
+                inspirationNext: complexity,
+                sourceCard: sourceCard); // [B2 / #3]
             UpdateIconsForCurrentPart();
             RaisePartChanged();
             return true;
@@ -842,7 +922,7 @@ namespace ALWTTT.UI
             // If you really prefer hide/show, flip between SetActive(true/false) below.
             HashSet<string> activeIds = new();
             if (part != null && part.tracks != null)
-                foreach (var t in part.tracks) 
+                foreach (var t in part.tracks)
                     if (!string.IsNullOrEmpty(t.musicianId)) activeIds.Add(t.musicianId);
 
             foreach (var kv in iconById)
@@ -852,7 +932,7 @@ namespace ALWTTT.UI
 
                 bool hasTrack = activeIds.Contains(kv.Key);
                 img.gameObject.SetActive(true);               // always visible
-                var cg = img.GetComponent<CanvasGroup>() ?? 
+                var cg = img.GetComponent<CanvasGroup>() ??
                     img.gameObject.AddComponent<CanvasGroup>();
                 cg.alpha = hasTrack ? 1f : 0.35f;             // dim if not playing in this part
             }
@@ -895,130 +975,130 @@ namespace ALWTTT.UI
             switch (fx)
             {
                 case TempoEffect t:
-                {
-                    switch (t.mode)
                     {
-                        case TempoEffect.TempoEffectMode.Range:
-                            part.tempoRangeOverride = t.tempoRange;
-                            part.absoluteBpmOverride = null;
-                            // label friendly
-                            part.tempo = t.tempoRange.ToString();
-                            break;
+                        switch (t.mode)
+                        {
+                            case TempoEffect.TempoEffectMode.Range:
+                                part.tempoRangeOverride = t.tempoRange;
+                                part.absoluteBpmOverride = null;
+                                // label friendly
+                                part.tempo = t.tempoRange.ToString();
+                                break;
 
-                        case TempoEffect.TempoEffectMode.AbsoluteBpm:
-                            part.absoluteBpmOverride = t.absoluteBpm;
-                            part.tempoRangeOverride = TempoRange.Fast;
-                            part.tempo = $"{t.absoluteBpm} BPM";
-                            break;
+                            case TempoEffect.TempoEffectMode.AbsoluteBpm:
+                                part.absoluteBpmOverride = t.absoluteBpm;
+                                part.tempoRangeOverride = TempoRange.Fast;
+                                part.tempo = $"{t.absoluteBpm} BPM";
+                                break;
 
-                        case TempoEffect.TempoEffectMode.ScaleFactor:
-                            // Componer factores si se juegan varias cartas
-                            part.tempoScale *= t.tempoScale;
-                            part.tempo = $"×{part.tempoScale:0.##}";
-                            break;
+                            case TempoEffect.TempoEffectMode.ScaleFactor:
+                                // Componer factores si se juegan varias cartas
+                                part.tempoScale *= t.tempoScale;
+                                part.tempo = $"×{part.tempoScale:0.##}";
+                                break;
+                        }
+
+                        RefreshPartUI(partIndex);
+                        RaisePartChanged();
+                        break;
                     }
-
-                    RefreshPartUI(partIndex);
-                    RaisePartChanged();
-                    break;
-                }
 
                 case MeterEffect m:
                     part.timeSignature = m.timeSignature;
                     break;
 
                 case TonalityEffect ton:
-                {
-                    Tonality chosen = ton.tonality;
-
-                    switch (ton.mode)
                     {
-                        case TonalityEffect.TonalityEffectMode.Explicit:
-                            chosen = ton.tonality;
-                            break;
+                        Tonality chosen = ton.tonality;
 
-                        case TonalityEffect.TonalityEffectMode.RandomAny:
-                            chosen = GetRandomAnyTonality();
-                            break;
+                        switch (ton.mode)
+                        {
+                            case TonalityEffect.TonalityEffectMode.Explicit:
+                                chosen = ton.tonality;
+                                break;
 
-                        case TonalityEffect.TonalityEffectMode.RandomMajorish:
-                            chosen = GetRandomMajorishTonality();
-                            break;
+                            case TonalityEffect.TonalityEffectMode.RandomAny:
+                                chosen = GetRandomAnyTonality();
+                                break;
 
-                        case TonalityEffect.TonalityEffectMode.RandomMinorish:
-                            chosen = GetRandomMinorishTonality();
-                            break;
+                            case TonalityEffect.TonalityEffectMode.RandomMajorish:
+                                chosen = GetRandomMajorishTonality();
+                                break;
+
+                            case TonalityEffect.TonalityEffectMode.RandomMinorish:
+                                chosen = GetRandomMinorishTonality();
+                                break;
+                        }
+
+                        part.tonality = chosen;
+
+                        RefreshPartUI(idx);
+
+                        RaisePartChanged();
+                        break;
                     }
-
-                    part.tonality = chosen;
-
-                    RefreshPartUI(idx);
-
-                    RaisePartChanged();
-                    break;
-                }
 
                 case InstrumentEffect instFx:
                     ApplyInstrumentEffect(instFx, target, part, partIndex);
                     break;
 
                 case ModulationEffect mod:
-                {
-                    // Current key context
-                    var currentMode = part.tonality;
-                    var currentRoot = part.rootNote;
-
-                    NoteName newRoot = currentRoot;
-
-                    switch (mod.mode)
                     {
-                        case ModulationEffect.ModulationMode.AbsoluteKey:
-                            newRoot = mod.absoluteRoot;
-                            break;
+                        // Current key context
+                        var currentMode = part.tonality;
+                        var currentRoot = part.rootNote;
 
-                        case ModulationEffect.ModulationMode.IntervalWithinScale:
-                            {
-                                var scale = GetScaleFromTonality(currentMode, currentRoot);
-                                if (GetNoteFromScale(
-                                    scale, mod.targetDegree, currentRoot, 4, out var note))
-                                    newRoot = note.NoteName;
+                        NoteName newRoot = currentRoot;
+
+                        switch (mod.mode)
+                        {
+                            case ModulationEffect.ModulationMode.AbsoluteKey:
+                                newRoot = mod.absoluteRoot;
                                 break;
-                            }
 
-                        case ModulationEffect.ModulationMode.RandomAny:
-                            newRoot = GetRandomNote();   // uses MusicTheory helper
-                            break;
-
-                        case ModulationEffect.ModulationMode.RandomWithinScale:
-                            {
-                                var scale = GetScaleFromTonality(currentMode, currentRoot);
-                                var notes = GetNotesFromScale(scale, currentRoot, 4, 7);
-                                if (notes != null && notes.Count > 0)
+                            case ModulationEffect.ModulationMode.IntervalWithinScale:
                                 {
-                                    int startIdx = 0;
-                                    int endIdx = notes.Count;
-
-                                    // Optionally avoid staying on tonic
-                                    if (mod.excludeTonicOnRandomWithinScale && notes.Count > 1)
-                                    {
-                                        startIdx = 1; // skip degree 1
-                                    }
-
-                                    int idxInScale = UnityEngine.Random.Range(startIdx, endIdx);
-                                    newRoot = notes[idxInScale].NoteName;
+                                    var scale = GetScaleFromTonality(currentMode, currentRoot);
+                                    if (GetNoteFromScale(
+                                        scale, mod.targetDegree, currentRoot, 4, out var note))
+                                        newRoot = note.NoteName;
+                                    break;
                                 }
+
+                            case ModulationEffect.ModulationMode.RandomAny:
+                                newRoot = GetRandomNote();   // uses MusicTheory helper
                                 break;
-                            }
+
+                            case ModulationEffect.ModulationMode.RandomWithinScale:
+                                {
+                                    var scale = GetScaleFromTonality(currentMode, currentRoot);
+                                    var notes = GetNotesFromScale(scale, currentRoot, 4, 7);
+                                    if (notes != null && notes.Count > 0)
+                                    {
+                                        int startIdx = 0;
+                                        int endIdx = notes.Count;
+
+                                        // Optionally avoid staying on tonic
+                                        if (mod.excludeTonicOnRandomWithinScale && notes.Count > 1)
+                                        {
+                                            startIdx = 1; // skip degree 1
+                                        }
+
+                                        int idxInScale = UnityEngine.Random.Range(startIdx, endIdx);
+                                        newRoot = notes[idxInScale].NoteName;
+                                    }
+                                    break;
+                                }
+                        }
+
+                        part.rootNote = newRoot;
+                        part.hasExplicitRootNote = true;
+
+                        RefreshPartUI(idx);
+
+                        RaisePartChanged();
+                        break;
                     }
-
-                    part.rootNote = newRoot;
-                    part.hasExplicitRootNote = true;
-
-                    RefreshPartUI(idx);
-
-                    RaisePartChanged();
-                    break;
-                }
             }
 
             return true;
@@ -1083,6 +1163,221 @@ namespace ALWTTT.UI
                 Log("[InstrumentEffect] Non-TrackOnly scopes not implemented yet.");
             }
         }
+        #endregion
+
+        #region [B2 / #3] Composition Floating Text
+
+        /// <summary>
+        /// Pre-apply snapshot of the part fields the classifier diffs against.
+        /// Captured at the top of <see cref="ApplyCardToPart"/> before any mutation.
+        /// </summary>
+        private readonly struct PartChangeSnapshot
+        {
+            public readonly bool valid;
+
+            // Part-level
+            public readonly TempoRange prevTempoRange;
+            public readonly int? prevAbsoluteBpm;
+            public readonly string prevTimeSignatureStr;
+            public readonly Tonality prevTonality;
+            public readonly NoteName prevRootNote;
+            public readonly bool prevHadExplicitRoot;
+
+            // Track-level (for the target musician, when present)
+            public readonly bool prevTrackExisted;
+            public readonly CardDefinition prevTrackSourceCard;
+            public readonly MIDIInstrumentSO prevMelodicInstrument;
+            public readonly MIDIPercussionInstrumentSO prevPercussionInstrument;
+            public readonly bool prevHadInstrumentTypeOverride;
+            public readonly InstrumentType prevInstrumentType;
+
+            public PartChangeSnapshot(
+                TempoRange tempoRange, int? absBpm, string tsStr,
+                Tonality tonality, NoteName root, bool hadExplicitRoot,
+                bool trackExisted,
+                CardDefinition trackSource,
+                MIDIInstrumentSO melodic, MIDIPercussionInstrumentSO percussion,
+                bool hadInstType, InstrumentType instType)
+            {
+                valid = true;
+                prevTempoRange = tempoRange;
+                prevAbsoluteBpm = absBpm;
+                prevTimeSignatureStr = tsStr;
+                prevTonality = tonality;
+                prevRootNote = root;
+                prevHadExplicitRoot = hadExplicitRoot;
+                prevTrackExisted = trackExisted;
+                prevTrackSourceCard = trackSource;
+                prevMelodicInstrument = melodic;
+                prevPercussionInstrument = percussion;
+                prevHadInstrumentTypeOverride = hadInstType;
+                prevInstrumentType = instType;
+            }
+        }
+
+        /// <summary>
+        /// Capture the diff-relevant pre-apply state for a part + optional target.
+        /// Must be called BEFORE any mutation in <see cref="ApplyCardToPart"/>.
+        /// </summary>
+        private PartChangeSnapshot CaptureSnapshot(PartEntry part, MusicianBase target)
+        {
+            if (part == null) return default;
+
+            TrackEntry existing = null;
+            if (target != null)
+            {
+                string tgtId = target.MusicianCharacterData.CharacterId;
+                existing = part.tracks?.FirstOrDefault(t => t.musicianId == tgtId);
+            }
+
+            return new PartChangeSnapshot(
+                tempoRange: part.tempoRangeOverride,
+                absBpm: part.absoluteBpmOverride,
+                tsStr: part.timeSignature.ToString(),
+                tonality: part.tonality,
+                root: part.rootNote,
+                hadExplicitRoot: part.hasExplicitRootNote,
+                trackExisted: existing != null,
+                trackSource: existing?.sourceCardDefinition,
+                melodic: existing?.overrideMelodicInstrument,
+                percussion: existing?.overridePercussionInstrument,
+                hadInstType: existing != null && existing.hasOverrideInstrumentType,
+                instType: existing != null && existing.hasOverrideInstrumentType
+                    ? existing.overrideInstrumentType : default
+            );
+        }
+
+        /// <summary>
+        /// Spawn at most one floating text classifying the change carried by a
+        /// successfully-applied composition card. No-op if the anchor or config
+        /// is unset, the master toggle is off, or no real diff was detected.
+        /// </summary>
+        private void SpawnCompositionFx(
+            CardDefinition card, CompositionCardPayload comp,
+            PartChangeSnapshot before, int partIndex, MusicianBase target)
+        {
+            if (compositionFxAnchor == null) return;
+            if (fxConfig == null || !fxConfig.Enabled) return;
+            if (card == null || comp == null) return;
+            if (FxManager.Instance == null) return;
+            if (!before.valid) return;
+
+            var entry = SelectFxEntry(comp, before, partIndex, target);
+            if (entry == null || !entry.enabled || string.IsNullOrEmpty(entry.label))
+                return;
+
+            FxManager.Instance.SpawnFloatingText(
+                compositionFxAnchor, entry.label, compositionFxDir, entry.color);
+        }
+
+        /// <summary>
+        /// Diff-driven category selection. Counts how many post-apply fields
+        /// actually changed vs <paramref name="before"/>:
+        /// - 0 diffs → null (no fx)
+        /// - 1 diff  → that category's entry (TEMPO!, METER!, KEY!, RHYTHM!, etc)
+        /// - 2+ diffs → MajorChange entry
+        ///
+        /// Tonality distinguishes first-set ("TONALITY!") from mid-song
+        /// modulation ("KEY!") using the <c>prevHadExplicitRoot</c> flag.
+        /// </summary>
+        private CompositionFxConfigSO.FxEntry SelectFxEntry(
+            CompositionCardPayload comp, PartChangeSnapshot before,
+            int partIndex, MusicianBase target)
+        {
+            if (model?.parts == null
+                || partIndex < 0 || partIndex >= model.parts.Count)
+                return null;
+
+            var part = model.parts[partIndex];
+
+            int diffCount = 0;
+            CompositionFxConfigSO.FxEntry single = null;
+
+            // -- Tempo diff --
+            bool tempoChanged =
+                part.tempoRangeOverride != before.prevTempoRange
+                || part.absoluteBpmOverride != before.prevAbsoluteBpm;
+            if (tempoChanged)
+            {
+                diffCount++;
+                single = fxConfig.Tempo;
+            }
+
+            // -- Meter diff (string compare to avoid TimeSignature equality assumptions) --
+            string nowTs = part.timeSignature.ToString();
+            if (!string.Equals(nowTs, before.prevTimeSignatureStr,
+                StringComparison.Ordinal))
+            {
+                diffCount++;
+                single = fxConfig.Meter;
+            }
+
+            // -- Tonality / Modulation diff --
+            // [B2 / #3] Refinement: "highlight CHANGES" — a first-time tonality set
+            // (no explicit root before) is INITIAL SETUP, not a change. Silent.
+            // Only mid-song modulation (explicit → different explicit) reads as a change.
+            if (before.prevHadExplicitRoot)
+            {
+                bool tonalityChanged =
+                    part.tonality != before.prevTonality
+                    || part.rootNote != before.prevRootNote;
+                if (tonalityChanged)
+                {
+                    diffCount++;
+                    single = fxConfig.Modulation;
+                }
+            }
+            // else: first explicit set — silent. fxConfig.Tonality entry retained
+            // for future use if "first set" semantics are ever desired.
+
+            // -- Track diff (only when comp targets a musician via TrackAction) --
+            // [B2 / #3] Refinement: "highlight CHANGES" — a fresh track add to an
+            // empty slot is INITIAL SETUP, not a change. Silent. Only firing on
+            // REPLACEMENT (slot had a different card before) reads as a change.
+            if (target != null && comp.PrimaryKind == CardPrimaryKind.Track)
+            {
+                string tgtId = target.MusicianCharacterData.CharacterId;
+                var nowTrack = part.tracks?.FirstOrDefault(t => t.musicianId == tgtId);
+
+                bool isReplacedTrack =
+                    before.prevTrackExisted
+                    && nowTrack != null
+                    && before.prevTrackSourceCard != nowTrack.sourceCardDefinition;
+
+                if (isReplacedTrack)
+                {
+                    diffCount++;
+                    single = nowTrack.role switch
+                    {
+                        TrackRole.Rhythm => fxConfig.Rhythm,
+                        TrackRole.Backing => fxConfig.Backing,
+                        TrackRole.Melody => fxConfig.Melody,
+                        TrackRole.Harmony => fxConfig.Harmony,
+                        _ => fxConfig.Fallback,
+                    };
+                }
+                else if (before.prevTrackExisted && nowTrack != null)
+                {
+                    // Track unchanged at source-card level — check for instrument-only override change.
+                    bool instOverrideChanged =
+                        nowTrack.overrideMelodicInstrument != before.prevMelodicInstrument
+                        || nowTrack.overridePercussionInstrument != before.prevPercussionInstrument
+                        || nowTrack.hasOverrideInstrumentType != before.prevHadInstrumentTypeOverride
+                        || (nowTrack.hasOverrideInstrumentType
+                            && nowTrack.overrideInstrumentType != before.prevInstrumentType);
+                    if (instOverrideChanged)
+                    {
+                        diffCount++;
+                        single = fxConfig.Instrument;
+                    }
+                }
+            }
+
+            if (diffCount == 0) return null;       // no real change → silent
+            if (diffCount == 1) return single;     // one diff → its specific entry
+            return fxConfig.MajorChange;           // 2+ real diffs → MAJOR CHANGE
+        }
+
         #endregion
 
         #region Debug

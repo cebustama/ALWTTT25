@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ALWTTT.Cards;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -67,8 +68,10 @@ namespace ALWTTT.UI
                         && pendingMusicianIds.Contains(id);
 
                     if (t != null)
-                        ui.Bind(t.role.ToString(), t.info, placeholder: false,
-                            inspirationNext: t.inspirationGenerated, pending: isPending);
+                        ui.Bind(
+                            t.role.ToString(), t.info, placeholder: false,
+                            inspirationNext: t.inspirationGenerated, pending: isPending,
+                            sourceCard: t.sourceCardDefinition); // [B2 / #3]
                     else
                         ui.Bind("—", "", placeholder: true);
                 }
@@ -86,15 +89,18 @@ namespace ALWTTT.UI
                         bool isPending = pendingMusicianIds != null
                             && pendingMusicianIds.Contains(t.musicianId);
 
-                        ui.Bind(t.role.ToString(), t.info, placeholder: false,
-                            inspirationNext: t.inspirationGenerated, pending: isPending);
+                        ui.Bind(
+                            t.role.ToString(), t.info, placeholder: false,
+                            inspirationNext: t.inspirationGenerated, pending: isPending,
+                            sourceCard: t.sourceCardDefinition); // [B2 / #3]
                     }
             }
         }
 
         public void AddOrUpdateTrack(
             string musicianId, string role, string info,
-            int inspirationNext = 0, bool pending = false)
+            int inspirationNext = 0, bool pending = false,
+            CardDefinition sourceCard = null) // [B2 / #3]
         {
             Log($"<color=red>Add/Update Track {musicianId} {role} {info}</color>");
 
@@ -114,8 +120,10 @@ namespace ALWTTT.UI
                 }
             }
 
-            trackUI.Bind(role, info, placeholder: false,
-                inspirationNext: inspirationNext, pending: pending);
+            trackUI.Bind(
+                role, info, placeholder: false,
+                inspirationNext: inspirationNext, pending: pending,
+                sourceCard: sourceCard); // [B2 / #3]
         }
     }
 }
