@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Wormus Major
   performerRule: 1
   musicianCharacterType: 3
-  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
+  cardSprite: {fileID: 2788456226534158206, guid: 5a281f86c814d2343af0dfa48cd3a04d, type: 3}
   inspirationCost: 1
   inspirationGenerated: 2
   cardType: 2

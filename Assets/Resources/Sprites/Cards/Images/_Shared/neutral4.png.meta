@@ -1,0 +1,241 @@
+fileFormatVersion: 2
+guid: bad6b228df401764480778a887755224
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3226521274230153781
+    second: neutral4_0
+  - first:
+      213: -7875654088407248516
+    second: neutral4_1
+  - first:
+      213: 9055497344091964106
+    second: neutral4_2
+  - first:
+      213: 2109179540738259031
+    second: neutral4_3
+  - first:
+      213: 2928715669067205461
+    second: neutral4_4
+  - first:
+      213: -965045645494148241
+    second: neutral4_5
+  - first:
+      213: -5805494018338379227
+    second: neutral4_6
+  - first:
+      213: -8765686593892081974
+    second: neutral4_7
+  - first:
+      213: -3436367579784357405
+    second: neutral4_8
+  - first:
+      213: 1216724442262563193
+    second: neutral4_9
+  - first:
+      213: -4351683210193105971
+    second: neutral4_10
+  - first:
+      213: -6900777162190389644
+    second: neutral4_11
+  - first:
+      213: 3150112670619707027
+    second: neutral4_12
+  - first:
+      213: 3000434784403617456
+    second: neutral4_13
+  - first:
+      213: -2264217524578881514
+    second: neutral4_14
+  - first:
+      213: -3917920055281592911
+    second: neutral4_15
+  - first:
+      213: -6723546261712170411
+    second: neutral4_16
+  - first:
+      213: 7831602211155965269
+    second: neutral4_17
+  - first:
+      213: 1126922374535215867
+    second: neutral4_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: neutral4_5
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 562
+        width: 416
+        height: 369
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f63a84439187b92f0800000000000000
+      internalID: -965045645494148241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: bd4a1c390ac1ae94a858095337dee16a
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      neutral4_0: 3226521274230153781
+      neutral4_1: -7875654088407248516
+      neutral4_10: -4351683210193105971
+      neutral4_11: -6900777162190389644
+      neutral4_12: 3150112670619707027
+      neutral4_13: 3000434784403617456
+      neutral4_14: -2264217524578881514
+      neutral4_15: -3917920055281592911
+      neutral4_16: -6723546261712170411
+      neutral4_17: 7831602211155965269
+      neutral4_18: 1126922374535215867
+      neutral4_2: 9055497344091964106
+      neutral4_3: 2109179540738259031
+      neutral4_4: 2928715669067205461
+      neutral4_5: -965045645494148241
+      neutral4_6: -5805494018338379227
+      neutral4_7: -8765686593892081974
+      neutral4_8: -3436367579784357405
+      neutral4_9: 1216724442262563193
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -29,6 +29,11 @@
         TempShieldPersistent = 401,
         NegateNextHit = 402,
         NegateNextNInstances = 403,
+        NegateIncomingPositive = 404,  // B3: while stacks > 0, blocks 100% of an
+                                       // incoming positive value (audience Vibe in
+                                       // current scope; future musician analog possible).
+                                       // Decay via container Tick, NOT per-application.
+                                       // First user: Indifference (audience-side, B3).
 
         // ───────────── Control (500–599)
         AntiShieldGain = 500,

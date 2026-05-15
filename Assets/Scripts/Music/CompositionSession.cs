@@ -5,12 +5,14 @@ using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using ALWTTT.UI;
+using Melanchall.DryWetMidi.MusicTheory;
 using MidiGenPlay;
 using MidiGenPlay.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static MidiGenPlay.MusicTheory.MusicTheory;
 
 namespace ALWTTT.Music
 {
@@ -775,6 +777,16 @@ namespace ALWTTT.Music
             string partLabel = _ctx.CompositionUI?.GetPartLabel(_currentPartIndex) ??
                 $"Part {_currentPartIndex}";
 
+            // [B3] Read musical identity from the active PartEntry so audience
+            // taste preferences (B3-code-F) can react to what actually played.
+            // Defaults match "song-authored default" when no PartEntry data is
+            // available — TempoScale=1.0, and the enum defaults (typically 4/4,
+            // C, Ionian) — so the ctx is always sane.
+            float tempoScale = partEntry?.tempoScale ?? 1f;
+            TimeSignature timeSignature = partEntry?.timeSignature ?? default;
+            NoteName rootNote = partEntry?.rootNote ?? default;
+            Tonality tonality = partEntry?.tonality ?? default;
+
             var ctx = new LoopFeedbackContext(
                 partIndex: _currentPartIndex,
                 loopIndexWithinPart: loopIndex0,
@@ -782,8 +794,22 @@ namespace ALWTTT.Music
                 partLabel: partLabel,
                 inspirationGainedThisLoop: inspirationGainedThisLoop,
                 inspirationAfterLoop: _currentInspiration,
-                tracks: trackSnapshots
+                tracks: trackSnapshots,
+                tempoScale: tempoScale,
+                timeSignature: timeSignature,
+                rootNote: rootNote,
+                tonality: tonality
             );
+
+#if UNITY_EDITOR
+            // [B3 / ST-B3b-CTX1] Diagnostic — verify musical identity surfaces
+            // correctly. Strip at B3 closure if log noise becomes friction.
+            Debug.Log(
+                $"<color=cyan>[LoopCtx] Part={_currentPartIndex} " +
+                $"Loop={loopIndex0 + 1}/{_loopsTotalForPart} " +
+                $"TempoScale={tempoScale:0.##} TS={timeSignature} " +
+                $"Root={rootNote} Tonality={tonality}</color>");
+#endif
 
             // Store in per-part history
             if (!_loopHistoryByPart.TryGetValue(_currentPartIndex, out var list))

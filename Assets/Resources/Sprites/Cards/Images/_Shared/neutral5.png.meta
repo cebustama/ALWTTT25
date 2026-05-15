@@ -1,0 +1,261 @@
+fileFormatVersion: 2
+guid: 1f277451a81493045809082c130df66d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7565058581654672043
+    second: neutral5_0
+  - first:
+      213: -2938604893724800020
+    second: neutral5_1
+  - first:
+      213: 2331767662848234469
+    second: neutral5_2
+  - first:
+      213: -5497258725611157888
+    second: neutral5_3
+  - first:
+      213: 3537521269580284013
+    second: neutral5_4
+  - first:
+      213: -2509823805398768522
+    second: neutral5_5
+  - first:
+      213: 7169144733146149039
+    second: neutral5_6
+  - first:
+      213: 6924735602481977762
+    second: neutral5_7
+  - first:
+      213: -4667636343361850672
+    second: neutral5_8
+  - first:
+      213: 2433218873529628623
+    second: neutral5_9
+  - first:
+      213: 752605099527609575
+    second: neutral5_10
+  - first:
+      213: 1043064515908978358
+    second: neutral5_11
+  - first:
+      213: 893981384277168376
+    second: neutral5_12
+  - first:
+      213: -5183351823182047166
+    second: neutral5_13
+  - first:
+      213: -4748010372359755708
+    second: neutral5_14
+  - first:
+      213: 9106035924706827554
+    second: neutral5_15
+  - first:
+      213: -3902837516328817517
+    second: neutral5_16
+  - first:
+      213: 3709203928941270864
+    second: neutral5_17
+  - first:
+      213: 1630050717246408446
+    second: neutral5_18
+  - first:
+      213: 8783338047568029379
+    second: neutral5_19
+  - first:
+      213: -4811305789797307592
+    second: neutral5_20
+  - first:
+      213: 6080363515864714652
+    second: neutral5_21
+  - first:
+      213: -7852542196678538982
+    second: neutral5_22
+  - first:
+      213: -4618032176737526499
+    second: neutral5_23
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: neutral5_0
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 533
+        width: 433
+        height: 407
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55de3772d43830790800000000000000
+      internalID: -7565058581654672043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 8095e51d1e6228b4e8719aa7117e4172
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      neutral5_0: -7565058581654672043
+      neutral5_1: -2938604893724800020
+      neutral5_10: 752605099527609575
+      neutral5_11: 1043064515908978358
+      neutral5_12: 893981384277168376
+      neutral5_13: -5183351823182047166
+      neutral5_14: -4748010372359755708
+      neutral5_15: 9106035924706827554
+      neutral5_16: -3902837516328817517
+      neutral5_17: 3709203928941270864
+      neutral5_18: 1630050717246408446
+      neutral5_19: 8783338047568029379
+      neutral5_2: 2331767662848234469
+      neutral5_20: -4811305789797307592
+      neutral5_21: 6080363515864714652
+      neutral5_22: -7852542196678538982
+      neutral5_23: -4618032176737526499
+      neutral5_3: -5497258725611157888
+      neutral5_4: 3537521269580284013
+      neutral5_5: -2509823805398768522
+      neutral5_6: 7169144733146149039
+      neutral5_7: 6924735602481977762
+      neutral5_8: -4667636343361850672
+      neutral5_9: 2433218873529628623
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

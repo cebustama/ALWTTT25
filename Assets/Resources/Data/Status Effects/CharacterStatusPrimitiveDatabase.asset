@@ -73,6 +73,14 @@ MonoBehaviour:
     slayTheSpireReference: Artifact (analog)
     monsterTrainReference: Damage Shield (stacks)
     griftlandsReference: Evasion (stacks)
+  - effectId: 404
+    category: Defense
+    abstractFunction: 'While active (stacks > 0), blocks 100% of an incoming positive
+      value. Decay via container Tick, NOT per-application. First user: audience-side
+      Indifference (B3, blocks Vibe).'
+    slayTheSpireReference: Intangible (partial analog)
+    monsterTrainReference: "\u2014"
+    griftlandsReference: "\u2014"
   - effectId: 500
     category: Control
     abstractFunction: Reduces shield generation

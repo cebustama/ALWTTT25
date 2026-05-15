@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Default Mode
   performerRule: 1
   musicianCharacterType: 2
-  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  cardSprite: {fileID: 9164088382851978718, guid: 3de15cc01dd812c4dba03e1c5a083444, type: 3}
   inspirationCost: 1
   inspirationGenerated: 0
   cardType: 1

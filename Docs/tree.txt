@@ -1,0 +1,62 @@
+﻿Docs
++---archive
+|   +---absorbed
+|   |   +---README.md
+|   |   \---Source_Docs_Supersession_Map.md
+|   +---snapshots
+|   |   \---README.md
+|   +---README.md
+|   \---SNAPSHOT_RETENTION_POLICY.md
++---audits
+|   \---ALWTTT_Combat_MVP_Audit_Final.md
++---integrations
+|   +---midigenplay
+|   |   +---ALWTTT_Uses_MidiGenPlay_Quick_Path.md
+|   |   +---README.md
+|   |   \---SSoT_ALWTTT_MidiGenPlay_Boundary.md
+|   \---README.md
++---planning
+|   +---active
+|   |   +---Design_Audience_Status_v1.md
+|   |   +---Design_Song_Parts_Library_v0_1.md
+|   |   +---Design_Starter_Deck_v1.md
+|   |   +---M1_5_Dev_Mode_Sub_Roadmap.md
+|   |   +---README.md
+|   |   \---Roadmap_ALWTTT.md
+|   +---archive
+|   |   +---ALWTTT_DeckEditorWindow_Roadmap_Proposal.md
+|   |   +---Combat_MVP_Roadmap.md
+|   |   +---README.md
+|   |   +---Roadmap_Combat_MVP.md
+|   |   \---Roadmap_Combat_MVP_Closure_Actionable.md
+|   +---music
+|   |   \---ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md
+|   +---Design_Pending_Effects_v1.md
+|   +---Design_Tempo_Identity_v1.md
+|   +---MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md
+|   \---README.md
++---reference
+|   +---CSO_Primitives_Catalog.md
+|   \---README.md
++---runtime
+|   +---README.md
+|   +---SSoT_Runtime_CompositionSession_Integration.md
+|   \---SSoT_Runtime_Flow.md
++---systems
+|   +---README.md
+|   +---SSoT_Audience_and_Reactions.md
+|   +---SSoT_Card_Authoring_Contracts.md
+|   +---SSoT_Card_System.md
+|   +---SSoT_Dev_Mode.md
+|   +---SSoT_Editor_Authoring_Tools.md
+|   +---SSoT_Gig_Combat_Core.md
+|   +---SSoT_Gig_Encounter.md
+|   +---SSoT_Scoring_and_Meters.md
+|   \---SSoT_Status_Effects.md
++---changelog-ssot.md
++---coverage-matrix.md
++---CURRENT_STATE.md
++---make-tree-unity.bat
++---README.md
++---SSoT_CONTRACTS.md
+\---SSoT_INDEX.md

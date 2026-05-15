@@ -86,11 +86,6 @@ namespace ALWTTT.UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            Debug.Log($"<color=cyan>[B2/#3] ENTER row. " +
-                $"sourceCard={(_sourceCardDefinition != null ? _sourceCardDefinition.name : "NULL")}, " +
-                $"ctrl={(MinicardTooltipController.Instance != null ? "OK" : "NULL")}, " +
-                $"hitGO={eventData.pointerCurrentRaycast.gameObject?.name ?? "none"}</color>");
-
             if (_sourceCardDefinition == null) return;
             var ctrl = MinicardTooltipController.Instance;
             if (ctrl != null) ctrl.Show(_sourceCardDefinition);
@@ -98,7 +93,6 @@ namespace ALWTTT.UI
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            Debug.Log($"<color=cyan>[B2/#3] EXIT row.</color>");
             var ctrl = MinicardTooltipController.Instance;
             if (ctrl != null) ctrl.Hide();
         }

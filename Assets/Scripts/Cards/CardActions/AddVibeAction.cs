@@ -1,4 +1,4 @@
-using ALWTTT.Actions;
+﻿using ALWTTT.Actions;
 using ALWTTT.Characters.Audience;
 using ALWTTT.Enums;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
@@ -33,17 +33,17 @@ namespace ALWTTT.Actions
                     switch (cardCtx.CardDefinition.CardType)
                     {
                         case CardType.CHR:
-                            vibeToAdd = 
+                            vibeToAdd =
                                 Mathf.RoundToInt(
                                     musicianStats.Charm * actionParameters.Value);
                             break;
                         case CardType.TCH:
-                            vibeToAdd = 
+                            vibeToAdd =
                                 Mathf.RoundToInt(
                                     musicianStats.Technique * actionParameters.Value);
                             break;
                         case CardType.EMT:
-                            vibeToAdd = 
+                            vibeToAdd =
                                 Mathf.RoundToInt(
                                     musicianStats.Emotion * actionParameters.Value);
                             break;
@@ -53,15 +53,37 @@ namespace ALWTTT.Actions
                     }
                 }
 
-                audienceStats.AddVibe(vibeToAdd);
+                // [B3] Route through ApplyIncomingVibe canonical path. Suppress
+                // ReceiveVibe FX on blocked (Indifference) to match the absence of
+                // visible Vibe gain — no false positive feedback.
+                int applied = 0;
+                if (vibeToAdd > 0)
+                {
+                    applied = audienceStats.ApplyIncomingVibe(
+                        targetCharacter.Statuses, vibeToAdd);
+                }
+                else
+                {
+                    audienceStats.AddVibe(vibeToAdd);
+                    applied = vibeToAdd;
+                }
 
-                FxManager.PlayFx(targetCharacter.HeadRoot, FxType.ReceiveVibe);
+                if (applied > 0)
+                {
+                    FxManager.PlayFx(targetCharacter.HeadRoot, FxType.ReceiveVibe);
+                }
+                else if (vibeToAdd > 0)
+                {
+                    Debug.Log(
+                        $"<color=#888888>[{ActionName}] BLOCKED (Indifference) on " +
+                        $"{targetCharacter}: intended=+{vibeToAdd} applied=0</color>");
+                }
 
                 //AudioManager?.PlayOneShot(actionParameters.CardData.AudioType);
             }
             else
             {
-                Debug.LogWarning("Target does not have AudienceStats � " +
+                Debug.LogWarning("Target does not have AudienceStats � " +
                     $"{ActionName} skipped.");
             }
         }

@@ -1,10 +1,52 @@
 fileFormatVersion: 2
-guid: aa43d531ba2af354d8360bbdfa0e3f05
+guid: 2370c9f3d44dd9a43914b2f935ef50ea
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1027255474301560911
-    second: Capa 1_0
+      213: 4470852101022770097
+    second: gusano1_0
+  - first:
+      213: 8961188657792992907
+    second: gusano1_1
+  - first:
+      213: 9009955077780629078
+    second: gusano1_2
+  - first:
+      213: -5534737009462047645
+    second: gusano1_3
+  - first:
+      213: 6407810801725564645
+    second: gusano1_4
+  - first:
+      213: 8361519971873212626
+    second: gusano1_5
+  - first:
+      213: -8638446295351276288
+    second: gusano1_6
+  - first:
+      213: 8167672358307843241
+    second: gusano1_7
+  - first:
+      213: -3962730225197581100
+    second: gusano1_8
+  - first:
+      213: -3809174592302911138
+    second: gusano1_9
+  - first:
+      213: -6076581825348151033
+    second: gusano1_10
+  - first:
+      213: 3502417369145916983
+    second: gusano1_11
+  - first:
+      213: 7339538253504066894
+    second: gusano1_12
+  - first:
+      213: -5120120792737430521
+    second: gusano1_13
+  - first:
+      213: 2274557614831992944
+    second: gusano1_14
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,13 +88,13 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteBorder: {x: 65, y: 70, z: 29, w: 62}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -96,27 +138,53 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Capa 1_0
+      name: Card_Sibi_01
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 467
-        height: 411
+        x: 64
+        y: 69
+        width: 426
+        height: 388
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1b71ea8b6947eb1f0800000000000000
-      internalID: -1027255474301560911
+      spriteID: 5e663c069fd1de850800000000000000
+      internalID: 6407810801725564645
       vertices: []
       indices: 
       edges: []
@@ -126,7 +194,7 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 0
+    internalID: 1537655665
     vertices: []
     indices: 
     edges: []
@@ -135,7 +203,21 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Capa 1_0: -1027255474301560911
+      Card_Sibi_01: 6407810801725564645
+      gusano1_0: 4470852101022770097
+      gusano1_1: 8961188657792992907
+      gusano1_10: -6076581825348151033
+      gusano1_11: 3502417369145916983
+      gusano1_12: 7339538253504066894
+      gusano1_13: -5120120792737430521
+      gusano1_14: 2274557614831992944
+      gusano1_2: 9009955077780629078
+      gusano1_3: -5534737009462047645
+      gusano1_5: 8361519971873212626
+      gusano1_6: -8638446295351276288
+      gusano1_7: 8167672358307843241
+      gusano1_8: -3962730225197581100
+      gusano1_9: -3809174592302911138
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

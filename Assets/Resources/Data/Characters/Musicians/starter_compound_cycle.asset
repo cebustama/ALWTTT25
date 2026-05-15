@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Compound Cycle
   performerRule: 1
   musicianCharacterType: 2
-  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  cardSprite: {fileID: -1903456078274923400, guid: d6cdd93159513554a8cb5d7b066482d1, type: 3}
   inspirationCost: 1
   inspirationGenerated: 3
   cardType: 1

@@ -91,5 +91,26 @@ namespace ALWTTT.Backgrounds
                     break;
             }
         }
+
+        /// <summary>
+        /// [B2.5 / #2] Clear all venue SFX on a song boundary. Called from
+        /// <see cref="GigManager.ResetSongHype"/> so the next song starts visually fresh.
+        ///
+        /// Currently only stage lights are wired on every venue. Smoke/fire hooks
+        /// will land on <see cref="BackgroundRoot"/> per-venue; once <c>SetSmoke</c>
+        /// and <c>SetFire</c> exist there, mirror the SetLights(false) line here so
+        /// that all stage-N effects are zeroed together. No-op if no background is
+        /// currently open (e.g. between gigs).
+        /// </summary>
+        public void DeactivateAllSFX()
+        {
+            if (CurrentBackground == null) return;
+
+            CurrentBackground.SetLights(false);
+
+            // Per-venue extension hooks:
+            // CurrentBackground.SetSmoke(false);   // when SetSmoke lands on BackgroundRoot
+            // CurrentBackground.SetFire(false);    // when SetFire lands on BackgroundRoot
+        }
     }
 }

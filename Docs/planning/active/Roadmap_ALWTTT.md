@@ -1,7 +1,7 @@
 # Roadmap — ALWTTT
 
 **Status:** Planning only — does not define implementation truth  
-**Last updated:** 2026-05-13 (Phase B B1 closed 2026-05-12 with F-5 invariant promoted to CompositionSession integration SSoT §8; Phase B B2 closed 2026-05-13; Phase B B2.5 opened with 16 parked items)
+**Last updated:** 2026-05-15 (Phase B B2.5 closed; B3 expanded with 2-archetype audience pool + Indifference status; Demo cut prep batch added §5.3.5; Marketing stream / Pitch deck refresh added §6)
 **Rule:** This document tracks recommended work sequencing. It does not override subsystem SSoTs or CURRENT_STATE.
 
 ---
@@ -431,7 +431,7 @@ After F-1..F-4 + F-5-absorbed: Phase A is closed. Phase B (Gameplay loop polish)
 
 ## 5 — Phase B — Gameplay loop polish (opened 2026-05-09)
 
-**Status:** Active (B1 closed 2026-05-12; B2 closed 2026-05-13; B2.5 next).
+**Status:** Active (B1 closed 2026-05-12; B2 closed 2026-05-13; B2.5 closed 2026-05-15; B3 next).
 **Goal:** Take the working Phase A pre-demo build to a true demo with track persistence between loops, expanded UI feedback, content/balance polish, and animation polish.
 
 **Demo pitch:** "Start a run. Play a gig with your 2-musician band. Each card you play *changes* the music — and the parts you didn't change *stay the same*. Watch the song hype build, see the venue light up, hear the audience react. Convince the crowd, or break under their pressure."
@@ -496,24 +496,118 @@ Aditivo, low risk, depends on B1 landed. Default monolithic; fallback split B2a 
 
 **Closure (2026-05-13):** Six items shipped monolithically per D3=A; fallback split not triggered. Two mid-batch decisions added: D-Inspiration-Pool=A (action card cost gating bug fix, single-pool semantics) and D-FxChangeDetect=A (`CompositionFxConfigSO` + diff-driven floating text classifier). 3 new + 10 modified files, ~700-900 LoC. Smoke tests S1-S3 PASS, S4 PASS-with-deferral, S5 PASS-with-caveat, S6 PASS. 16 items parked to new B2.5 batch (correctness, content, cleanup, design gaps). No SSoT authority changes. F-1 / F-3 / F-4 Stage A / F-5 invariants not regressed. See `CURRENT_STATE.md §1` B2 closure block, `changelog-ssot.md` 2026-05-13 entry, and the new B2.5 batch open.
 
+### 5.2.5 — B2.5 — Polish refinements + cleanup ✅ (closed 2026-05-15)
+
+Aditivo, depends on B2. Closes the cleanup-and-correctness batch parked at B2 closure. 11 mandatory items + item 16 shipped; items #4, #5, #6 (content-dependent) and #12-15 (design gaps) explicitly deferred to playtest / B3.
+
+**Items shipped:**
+- **Correctness (3/3):** #1 Earworm per-holder stagger with `yield return waitDelay`; #2 `BackgroundContainer.DeactivateAllSFX` + hooks in `OnCompositionSongFinished` and `ResetSongHype`; #3 `CharacterBase.BroadcastBPM(int)` cascading to all sub-animators via `GetComponentsInChildren<CharacterAnimator>`.
+- **Cleanup (5/5):** #7 stale `TEST TEST TEST` log; #8 `CardBase.OnPointerDown` log spam; #9 B2 debug logs across `MinicardTooltipController`, `SongTrackElementUI`, `FxManager`, plus the `clamped = 2;` forced-clamp in `GigManager.TriggerAudienceMicroReactions` (audience exclamations now correctly placeholder-zero pending B3 `ResolveLoopEffect`); #10 audience action floating text normalized to Vector2/Color overload; #11 `TimeSignature.ToString()` consistency verified (no code change).
+- **Design gaps (1/5):** #16 Tonality FxEntry kept per D-3=B (cost of keeping is essentially nil; removing would create migration debt on existing assets). Inline comment tightened to document the design-hook intent.
+
+**Decisions locked:**
+- **D-1=A** Earworm staggered with `yield return waitDelay`; M4.3 invariants preserved.
+- **D-2=A** `BroadcastBPM(int)` helper on `CharacterBase` cascading to children; body-only animator settings stay author-controlled.
+- **D-3=B** Tonality FxEntry kept with tightened comment.
+- **D-4=keep** M4.3 `[Earworm]` feature log preserved (per-holder cost minimal, aids future debugging).
+- **D-5=A → refined by D-8=A.** D-5 initially moved `ResetSongHype()` to `OnCompositionSongFinished` for visual coherence; introduced macro-Vibe regression (caught by ST-S6 diagnostic — `_songHype` zeroed before `RunSongVibeResolution` could read it). D-8 surgically split: only `DeactivateAllSFX()` stays at song-end (lights-off-at-audio-end UX preserved); full `ResetSongHype()` moved back to `AudienceTurnRoutine` AFTER vibe consumption.
+- **D-6=A** Hand-discard default flipped to `true` (code + asset). Production behavior: hand discards between turns by default.
+- **D-7=A** `DiscardHand` ghost cards. Production path now synchronous + sweep strays + immediate destroy, mirroring `DevForceHandResetToDiscard`. Fixes ghost GameObjects from async `CardBase.Discard()` path with `IsPlayable`/`IsExhausted` gates.
+
+**Hypothesis correction (mandatory).** The B2 closure language asserted "real Earworm tick lives elsewhere in StatusEffectSO" as the reason for deferring item #1. Code inspection during B2.5 showed this was incorrect: `StatusEffectContainer.Tick` only decays stacks via `DecayMode`; no separate gameplay-payload tick site exists. `StatusEffectWizardWindow.cs:250` confirms this in its inspector helpbox. The bespoke vibe-gain block in `GigManager.AudienceTurnRoutine` IS the only Earworm tick site. Actual issue: synchronous spawn pile-up at audience-turn-start. Fix was visual pacing, not relocation. See `CURRENT_STATE.md §1` B2.5 closure block for full corrective note.
+
+**Files changed:** 10 modified (`GigManager.cs`, `CharacterBase.cs`, `BackgroundContainer.cs`, `AudienceCharacterBase.cs`, `CardBase.cs`, `MinicardTooltipController.cs`, `SongTrackElementUI.cs`, `FxManager.cs`, `SongCompositionUI.cs`, `DeckManager.cs`). 1 asset value change (`GigFlowSettings.asset`). 2 in-scene/asset corrections done as B3-cand-A/B during S1 playtest (Mind Tap payload target, AudienceMemberPosList reorder).
+
+**Smoke tests:** ST-B2.5-S1 PASS (Earworm stagger), S2 PASS (lights clear between songs), S2b PASS (lights off at exact audio-end), S3 PASS (BPM cascade to sub-animator), S4 PASS (hand discard toggle), S5 PASS (no ghost cards), S6 PASS (macro-Vibe applied visually).
+
+**Items deferred from B2.5:**
+- Content-dependent: #4 per-venue smoke/fire VFX (art-dependent), #5 CompositionFxConfigSO default tuning (playtest), #6 animation feel tuning (playtest).
+- Design gaps: #12 TempoScale diff in `SelectFxEntry`, #13 hasExplicit flags on PartEntry, #14 `PartActionKind.NoOp`, #15 `#if ALWTTT_DEV` gate on `DevAddSongHype`/`DevResetSongHype`.
+
+**B3 candidate slate accumulated:** A (Mind Tap — done), B (PosList — done), C (target-type validation), D (effect labels in default Inspector), E-lite (Blocked tooltip), F (real `ResolveLoopEffect`), G (filter draws during composition session, per D-B3-DrawFilter=B), H (Always-action discard semantics), I (ParentActive=False warning during draws), plus design gaps #12-15.
+
+No MidiGenPlay internals. No SSoT authority changes. B1 + B2 invariants preserved. Phase B remains operational (not governance).
+
 ### 5.3 — B3 — Content + design
 
 Aditivo, depends on B1. Authoring + design.
 
-**Items:**
+**Items (gameplay content):**
 - **#9 Inspiration cost/gen balance pass.** Cover cost 0/1/2/3 and generated 0/1/2/3 across the deck. 4/4 cards most common; 3/4 next; 6/8 next; 5/4 rare and powerful. Major/minor chord progressions get simple distinguishing effects.
 - **#10 BPM cards.** Rhythm composition cards with effects: `+/- BPM`, `2× BPM`. Touches `RhythmCardConfigSO` or a new effect type that mutates `cfg.BeatsPerMinute`.
 - **#11 Modulation cards.** Chord progression cards with key-shift effect (modulation). Other tracks should persist via B1 stem cache; only the chord stem reflects the new key when played.
-- **#12 1 designed audience member with 3 abilities.** Authoring on existing infrastructure. Picks an audience archetype, designs 3 abilities, authors the SO.
+- **#11.5 Sibi musical identity — `InstrumentEffect` on Singing Field (added 2026-05-15, D-DCP-5=β).** Sound-design priority: Singing Field card carries a per-card `InstrumentEffect` SO authored specifically for Sibi's voice (new asset, not one of the existing `Bass/Guitar/Synth`). Specific MIDI program selected at authoring time via audition. Establishes the precedent of *per-musician instrument identity*; C2's analogous identity left as TBD (not blocking demo).
+- **#12 Audience pool authoring — 2 archetypes shipped together (expanded 2026-05-15, DC-2=Custom).** Promotes the original "1 designed audience member with 3 abilities" to a 2-archetype encounter that the demo will use.
+  - **Cool Dude — 3 abilities total.** Spawns at the back of the audience (so positional movement is visible to viewers).
+    1. **Move One Step.** Parameterize `AudienceMoveToFrontAction` with `stepsPerTurn: int` (default 1). One position forward per turn. Replaces the existing jump-to-front behavior.
+    2. **Heckle.** Single-musician composed action: `ApplyStatusEffect(exposed, 1, MusicianCharacter)` + `AddStressAction(N, MusicianCharacter)`. Covers single-target Stress + adds Exposed coverage to the demo.
+    3. **Indifference (self).** New audience-side `StatusEffectSO` mirroring Composure's pattern but blocking *all* incoming Vibe (D-DCP-6=A semantic). Requires implementing the deferred `ApplyIncomingVibe` helper on `AudienceCharacterStats` (the hook documented in `CURRENT_STATE.md §4` open-items and `planning/Design_Audience_Status_v1.md`). Pattern mirrors M4.1's `ApplyIncomingStressWithComposure` fix.
+  - **Kid — 2 abilities total.**
+    1. **(Existing) band-wide Stress ability** preserved.
+    2. **New buff on Cool Dude's outgoing Stress.** Applies a new audience-side stacking status (tentatively `Egged On`) to Cool Dude that increases the Stress amount of Heckle per stack. Tuning (`+N stress per stack`) deferred to authoring time. The buff creates a targeting decision for the player: convince Kids first to disarm Cool Dude, but Cool Dude is physically harder to reach (Move One Step keeps him at the back).
+  - **Encounter authored:** 2× Kid + 1× Cool Dude as the demo encounter, saved as a `GigEncounterSO` asset registered in `GigSetupRoster.AvailableEncounters`. This is the encounter the Demo cut prep batch (§5.3.5) wires into `DemoLaunchConfigSO`.
 
 **Items deferred:**
 - **#13 Audience Member Wizard Editor** — D4=B, post-demo.
 
+**Decisions to lock at B3 open (audience pool sub-scope):**
+- **D-CoolDude-1** Move One Step via parameterization (`stepsPerTurn`), not a new action subclass.
+- **D-CoolDude-2** Heckle composed from `ApplyStatusEffectSpec(exposed)` + `AddStressAction`, not a single new spec.
+- **D-CoolDude-3** Indifference blocks *all* incoming Vibe (song-end conversion + Earworm tick + direct ModifyVibe). Per D-DCP-6=A.
+- **D-Kid-buff** New `Egged On` status on Cool Dude (audience-side outgoing-Stress modifier). `+N stress per stack`, N tunable.
+- **D-Sibi-instrument** β path: new `InstrumentEffect` SO for Singing Field. Specific MIDI program at authoring time.
+
 **DoD:**
 - Deck balance feels intentional in playtest.
 - BPM cards demonstrate; modulation cards demonstrate (with persistence behind them).
-- New audience member playable in at least one encounter.
-- Smoke tests ST-B3-S1..S5.
+- Sibi's voice instrument audibly distinct from C2's parts.
+- Both audience archetypes playable; the demo encounter (2×Kid + 1×CoolDude) produces interesting targeting decisions.
+- `ApplyIncomingVibe` is the single canonical path for ALL incoming Vibe on audience (no bypass).
+- Indifference + Earworm interaction visible in playtest (Earworm tick suppressed on Indifferent target).
+- Smoke tests ST-B3-S1..S7 (one per item: balance, BPM, modulation, Sibi instrument, Move One Step, Heckle + Exposed, Indifference + ApplyIncomingVibe + Earworm interaction, Egged On buff, encounter integration).
+
+### 5.3.5 — Demo cut prep (opened 2026-05-15)
+
+Mini-batch dedicated to wiring the demo build entry path and shipping demo-specific tuning + the SFX→FlatVibe mechanic. Depends on B3 close.
+
+**Goal:** Build de demo arranca sin interacción de setup. Encuentro de demo (2×Kid + 1×CoolDude, authored in B3) es ganable (~60-80% win rate) con el starter deck post-B3. SFX activations producen un bonus FlatVibe visible que recompensa al jugador por superar SongHype thresholds.
+
+**Decisions locked at open (DC-1 through DC-6):**
+- **DC-1=C** Quick-start flag on `GigDevSettingsSO` (D-DCP-1=A: dev-side flag locality).
+- **DC-2=Custom** Audience pool = 2× Kid + 1× Cool Dude (authored in B3 #12).
+- **DC-3=Custom** 4 songs × 1 part × 4 loops/part + SFX→FlatVibe new mechanic.
+- **DC-4=B (moderate)** Initial Inspiration=3, per-loop=1; refinable in playtest.
+- **DC-5=B** Batch placed between B3 close and §5.4 Demo readiness review.
+- **D-DCP-2=A** SFX bonus defaults: Stage1=+3, Stage2=+6, Stage3=+10 Vibe. Scaled / "encore" feeling. Tunable on `GigPresentationSO`.
+
+**Items:**
+1. **Quick-start path.** New flag `autoStartFromDefaults: bool` on `GigDevSettingsSO` + serialized reference to a `DemoLaunchConfigSO`. `GigSetupController.Start()` auto-invokes `OnStartPressed()` when both are set. Production builds keep flag off → normal Gig Setup interaction preserved.
+2. **`DemoLaunchConfigSO` new SO.** Baked: roster (C2 + Sibi), encounter reference (the B3 #12 encounter), `requiredSongCount=4`, `JamRules` overrides (1 part × 4 loops/part), `initialGigInspiration=3`, `inspirationPerLoop=1`.
+3. **SFX→FlatVibe mechanic.** Three new tunable floats on `GigPresentationSO` (`sfxBonusVibeStage1/2/3`, defaults 3/6/10). `GigManager.AddSongHype` applies the bonus on upward threshold crossing (hooks into the existing `_songHypeStage` tracker from B2 #6). Bonus is applied **post-Flow** — flat addition at end of resolution, not Flow-scalable. Floating text "+N Vibe!" on band canvas (not per-audience).
+4. **Tuning + validation.** 8-10 playthroughs **with the B3-authored audience pool (2×Kid + 1×CoolDude)**. Adjust Inspiration values and/or SFX bonus values until target win rate 60-80%.
+5. **Coverage matrix doc.** New planning doc `planning/Design_Demo_Cut_v1.md` listing implemented effects / modifiers / statuses and whether each is represented in the demo content, with rationale. Target cobertura: CardEffectSpec 4/4 (100%); StatusEffect 5/7 (71%, +3 over pre-batch via Cool Dude's Heckle + Indifference + Kid's Egged On); PartEffect families ~75% (Meter ✓, Tempo via B3 #10, Tonality via B3 #11, Instrument via B3 #11.5).
+
+**Out of scope:**
+- Authoring audience abilities (lives in B3 #12 expanded).
+- Deck balance pass (B3 #9).
+- Pitch deck refresh (separate stream §6).
+
+**DoD:**
+- Demo build entry: zero clicks from launch to action window of song 1.
+- 4-song gig completes end-to-end with starter deck + demo encounter.
+- SFX bonus fires audibly + visibly on each upward threshold crossing.
+- Win rate measured ≥60% across 8-10 playthroughs.
+- `Design_Demo_Cut_v1.md` shipped with coverage matrix.
+- Smoke tests ST-DCP-S1..S5 (entry path, encounter wiring, SFX bonus visibility, tuning win-rate validation, coverage matrix completeness).
+
+**Files (likely):**
+- `GigDevSettingsSO.cs` (new `autoStartFromDefaults` + `demoLaunchConfig` fields).
+- `DemoLaunchConfigSO.cs` (new SO type).
+- `GigSetupController.cs` (auto-start branch in `Start`).
+- `GigPresentationSO.cs` (3 new tunable floats).
+- `GigManager.cs` (SFX bonus integration in `AddSongHype` / `AddSongHypeCore`).
+- New SO assets: `DemoLaunchConfig.asset`, demo encounter `.asset`.
+- `planning/Design_Demo_Cut_v1.md` (new doc).
 
 ### 5.4 — Demo readiness review
 
@@ -531,13 +625,58 @@ If gaps: targeted follow-up batches before cut.
 ### 5.5 — Phase B Definition of Done
 
 - [x] B1 (loop simplification + persistence + UI rework) closed (2026-05-12)
-- [x] B2 (feedback + animation polish) closed
-- [ ] B2.5 (polish refinements + cleanup) — opened, 16 items
-- [ ] B3 (balance + new content) closed
-- [ ] Demo readiness review passed
+- [x] B2 (feedback + animation polish) closed (2026-05-13)
+- [x] B2.5 (polish refinements + cleanup) closed (2026-05-15)
+- [ ] B3 (balance + new content + 2-archetype audience pool + Indifference status) closed
+- [ ] Demo cut prep closed (§5.3.5)
+- [ ] Demo readiness review passed (§5.4)
 - [ ] No F-1/F-3/F-4 invariant regressions
 - [ ] CURRENT_STATE + Roadmap + changelog reflect closure
-- [ ] No SSoT promotions or authority changes (Phase B is operational, not governance — same as Phase A's runtime delivery)
+- [ ] No SSoT promotions or authority changes for §5.3.5 (operational); B3 requires `SSoT_Status_Effects.md` + `SSoT_Audience_and_Reactions.md` edits at closure (Indifference + `ApplyIncomingVibe` are real semantic additions)
+
+## 6 — Marketing stream — Pitch deck refresh (opened 2026-05-15)
+
+**Status:** Non-governance, non-code stream. Parallels Phase B. Does not affect SSoTs, manifests, coverage matrices, or contracts. Tracked here for visibility; primary artifacts live under `planning/marketing/`.
+
+**Goal:** Replace the August 2025 `GoblinzStudio.pdf` deck with a v2 reflecting the current state of the project (demo cut as "today's product", broader vision as "post-funding roadmap"), packaged with gameplay video + (target) playable build.
+
+**Decisions locked at open:**
+- **PD-1=C** Borrador antes del demo cut; versión final tras §5.4. Per interpretation α (confirmed): borrador es sesión informal sin slot de roadmap; el batch formal post-§5.4 produce versión final.
+- **PD-2=B** Demo cut como "today's product"; visión amplia separada explícitamente como "post-funding roadmap".
+- **PD-3=C target / B minimum** Apuntar a deck + video + playable build empaquetada; aceptar B (deck + video) si C resulta bloqueado por Player-build issues de MidiGenPlay.
+- **PD-5=B** Batch propio post-§5.4, en serie con el resto del roadmap.
+
+**Sub-batches:**
+- **A — Audit + outline + draft text (no media).** Puede ejecutarse como sesión informal pre-§5.4 (per PD-1=C interpretation α). Locks structure, positioning, and copy. Captures Cristian Pretty Soon Games meeting context if it lands before §5.4.
+- **B — Media capture from demo cut.** Screenshots, GIFs cortos, 60-90s gameplay video. Requires demo cut shipped (post-§5.4).
+- **C — Final assembly + packaging.** Deck PDF + video + (target) build packaged. Old deck archived to `planning/marketing/archive/GoblinzStudio.pdf`.
+
+**Deliverables:**
+- `planning/marketing/pitch_deck_v2.pdf` (replaces `GoblinzStudio.pdf`).
+- `planning/marketing/pitch_video_v2.mp4` (60-90s).
+- (Target) Build packaged (Steam key, itch.io, or local build).
+
+**Information already collected (PD-4):**
+- **Partners:** BCS Studios (art), Abstract Digital (architecture + QA + porting), CoverSolutions (composer — Sebastián Sanhueza), Bamer29 (additional composer).
+- **Core team:** Claudio (director + dev + game design + multi-role); Matías (artist). Composers as collaborators. Possible Sound Designer pending.
+- **Timeline:** EA target 2027, v1.0 target 2028.
+- **Funding ask:** ~€200k (research-based against current publisher offers; specific figure to refine at sub-batch A).
+- **Target audience:** Cristian (BCS Studios CEO) meeting with Pretty Soon Games (Jakub Radkowski, CEO) at Digital Dragons 2026 is the immediate test case. Goblinz Publishing as warm contact. Primary purpose: internal reference for any publisher opportunity.
+
+**Out of scope:**
+- Any code change.
+- Any SSoT, contract, or governance change.
+- Production timeline replanning (separate concern; this batch only reflects what timeline we set).
+- Funding strategy beyond pitch positioning.
+
+**Risks:**
+- **PD-3=C requires Player-build packaging.** MidiGenPlay package-internal `MidiGenPlayConfig.GetChordWriteFolder` / `GetProfileForTonality` Player-build errors are an open follow-up (see `CURRENT_STATE.md §3` post-demo follow-ups). If unresolved, fallback to PD-3=B (deck + video, no playable build).
+
+**DoD:**
+- v2 deck PDF complete, internally reviewed.
+- Video captures key demo gameplay beats (composition card → music change, audience targeting, SFX threshold bonus, win/lose resolution).
+- Old deck (`GoblinzStudio.pdf`) archived to `planning/marketing/archive/`.
+- Communication kit assembled (deck + video + optional build link) ready for outreach.
 
 ## Post-MVP — Pending Effects system (planned, first post-MVP batch)
 

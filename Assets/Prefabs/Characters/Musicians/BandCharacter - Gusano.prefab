@@ -398,6 +398,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3067390405926156022, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5574424002849824718, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5623568110873374987, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_Size.x
       value: 3.95
@@ -544,7 +552,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bpm: 120
   beatOffsetBeats: 0
-  skipEveryNBeats: 1
+  skipEveryNBeats: 2
   jumpOnBeat: 0
   jumpRoot: {fileID: 9099358830255829902}
   jumpHeight: 0.25
@@ -626,8 +634,8 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   stretchOnBeat: 1
-  stretchYAmplitude: 0.25
-  stretchXAmplitude: 0.15
+  stretchYAmplitude: 0.15
+  stretchXAmplitude: 0.1
   stretchCurve:
     serializedVersion: 2
     m_Curve:

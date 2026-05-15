@@ -78,7 +78,8 @@ namespace ALWTTT.Characters.Audience
 
             GigManager.RecalculateAudienceObstructions();
 
-            characterAnimator.SetBPM(120);
+            // [B2.5 / #3] BPM broadcasts to body + any sub-animators on the audience.
+            BroadcastBPM(120);
             characterAnimator.SkipEveryNBeats = 1;
             characterAnimator.JumpOnBeat = true;
             characterAnimator.RotateOnBeat = false;
@@ -106,14 +107,72 @@ namespace ALWTTT.Characters.Audience
 
         public virtual int ResolveLoopEffect(LoopFeedbackContext ctx)
         {
+            // [B3 D3=A] Discrete per-axis count algorithm.
+            // For each enabled axis on AudienceCharacterData.Taste:
+            //   +1 on match, -1 on mismatch, 0 if axis disabled.
+            // Sum across axes, clamp to [-2, +2].
+            //
+            // Axes (4 today):
+            //   1. TempoScale (fast/slow thresholds)
+            //   2. ActiveTracks count (arrangement density)
+            //   3. TimeSignature (preferred / disliked lists)
+            //   4. Tonality (preferred / disliked lists)
+            //
+            // Empty Taste → all axes contribute 0 → returns 0 (neutral archetype).
+            // This is the path for any audience asset authored pre-B3 — backward compat.
+
             int impression = 0;
 
-            Debug.Log(
-                $"[AudienceCharacterBase] {CharacterId} ResolveLoopEffect " +
-                $"part={ctx.PartIndex}, loop={ctx.LoopIndexWithinPart}, " +
-                $"label={ctx.PartLabel} → {impression}");
+            var taste = AudienceCharacterData != null
+                ? AudienceCharacterData.Taste
+                : null;
 
-            return impression;
+            if (taste != null)
+            {
+                // Axis 1: TempoScale
+                if (taste.tempoMatchOnFast && ctx.TempoScale > taste.preferAboveTempoScale)
+                    impression += 1;
+                if (taste.tempoMismatchOnSlow && ctx.TempoScale < taste.dislikeBelowTempoScale)
+                    impression -= 1;
+
+                // Axis 2: Role count (arrangement density)
+                if (taste.roleCountMatchOnRich && ctx.ActiveTracks >= taste.preferAtLeastRoles)
+                    impression += 1;
+
+                // Axis 3: TimeSignature
+                if (taste.preferredTimeSignatures != null &&
+                    taste.preferredTimeSignatures.Count > 0 &&
+                    taste.preferredTimeSignatures.Contains(ctx.TimeSignature))
+                    impression += 1;
+                if (taste.dislikedTimeSignatures != null &&
+                    taste.dislikedTimeSignatures.Count > 0 &&
+                    taste.dislikedTimeSignatures.Contains(ctx.TimeSignature))
+                    impression -= 1;
+
+                // Axis 4: Tonality
+                if (taste.preferredTonalities != null &&
+                    taste.preferredTonalities.Count > 0 &&
+                    taste.preferredTonalities.Contains(ctx.Tonality))
+                    impression += 1;
+                if (taste.dislikedTonalities != null &&
+                    taste.dislikedTonalities.Count > 0 &&
+                    taste.dislikedTonalities.Contains(ctx.Tonality))
+                    impression -= 1;
+            }
+
+            int clamped = Mathf.Clamp(impression, -2, 2);
+
+#if UNITY_EDITOR
+            // [B3 / ST-B3c-F1+] Diagnostic — surfaces per-axis breakdown for tuning.
+            // Strip at B3 closure when taste profiles stabilize.
+            Debug.Log(
+                $"<color=#88ddff>[ResolveLoopEffect] {CharacterId} " +
+                $"raw={impression} clamped={clamped} " +
+                $"(TempoScale={ctx.TempoScale:0.##} TS={ctx.TimeSignature} " +
+                $"Tonality={ctx.Tonality} Roles={ctx.ActiveTracks})</color>");
+#endif
+
+            return clamped;
         }
 
         private int usedAbilityCount;
@@ -249,7 +308,7 @@ namespace ALWTTT.Characters.Audience
             FxManager.Instance?.SpawnFloatingText(
                     TextSpawnRoot,
                     $"{action.CardActionType.ToString()}",
-                    0, 1, Color.cyan);
+                    new Vector2(0f, 1f), Color.cyan);
 
             if (actionDelay > 0f)
                 yield return new WaitForSeconds(actionDelay);

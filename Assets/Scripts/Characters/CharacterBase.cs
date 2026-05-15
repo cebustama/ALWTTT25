@@ -34,10 +34,6 @@ namespace ALWTTT.Characters
         /// </summary>
         public StatusEffectContainer Statuses { get; private set; }
 
-        [Header("Hover Highlight (M1.7)")]
-        [Tooltip("Optional: assign the SpriteOutlineController component on this character's sprite child. If null, hover highlight is a no-op (prefab migration-safe).")]
-        [SerializeField] private SpriteOutlineController outlineController;
-
         #region Encapsulation
         public CharacterType CharacterType => characterType;
         public Transform TextSpawnRoot => textSpawnRoot;
@@ -125,14 +121,28 @@ namespace ALWTTT.Characters
         public CharacterBase GetCharacterBase() => this;
         public CharacterType GetCharacterType() => CharacterType;
 
-        protected virtual void OnPointerEnter()
-        {
-            if (outlineController != null) outlineController.SetOutline(true);
-        }
+        protected virtual void OnPointerEnter() { }
+        protected virtual void OnPointerExit() { }
 
-        protected virtual void OnPointerExit()
+        /// <summary>
+        /// [B2.5 / #3] Broadcast the song BPM to every <see cref="CharacterAnimator"/>
+        /// under this character (body + any instrument / sub-part animators). Only
+        /// the BPM cascades — other animator settings (<c>SkipEveryNBeats</c>,
+        /// <c>BeatOffsetBeats</c>, <c>JumpOnBeat</c>, etc.) remain author-controlled
+        /// on the body animator referenced by <see cref="CharacterAnimator"/>.
+        ///
+        /// Iteration uses <c>GetComponentsInChildren&lt;CharacterAnimator&gt;</c> so
+        /// future sub-animators are picked up automatically without touching callers.
+        /// When a character has only the body animator (current default) this
+        /// degenerates to the previous single-component behavior.
+        /// </summary>
+        public void BroadcastBPM(int bpm)
         {
-            if (outlineController != null) outlineController.SetOutline(false);
+            var anims = GetComponentsInChildren<CharacterAnimator>(includeInactive: false);
+            for (int i = 0; i < anims.Length; i++)
+            {
+                if (anims[i] != null) anims[i].SetBPM(bpm);
+            }
         }
     }
 }

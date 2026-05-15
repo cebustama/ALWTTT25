@@ -15,8 +15,8 @@ MonoBehaviour:
   id: starter_take_five
   displayName: Take Five
   performerRule: 0
-  musicianCharacterType: 2
-  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  musicianCharacterType: 0
+  cardSprite: {fileID: 2140096924406482286, guid: 60fde544f378aa94984eb8861fcac97e, type: 3}
   inspirationCost: 3
   inspirationGenerated: 0
   cardType: 2

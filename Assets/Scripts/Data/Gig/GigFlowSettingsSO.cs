@@ -74,7 +74,7 @@ namespace ALWTTT.Data
         public int DefaultStartingInspiration => defaultInitialGigInspiration;
 
         [Header("Setup Defaults — Hand / Inspiration Policies")]
-        [SerializeField] private bool defaultDiscardHandBetweenTurns = false;
+        [SerializeField] private bool defaultDiscardHandBetweenTurns = true;
         [SerializeField] private bool defaultKeepInspirationBetweenTurns = false;
 
         public bool DefaultDiscardHandBetweenTurns => defaultDiscardHandBetweenTurns;

@@ -1,0 +1,1157 @@
+fileFormatVersion: 2
+guid: 3e87379691e80f945ac0cb473c30c67e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7314932791305918423
+    second: vocalista4_0
+  - first:
+      213: 8576404488927493068
+    second: vocalista4_1
+  - first:
+      213: 4416171353630852803
+    second: vocalista4_2
+  - first:
+      213: -7286800269146061099
+    second: vocalista4_3
+  - first:
+      213: -8769545415576012674
+    second: vocalista4_4
+  - first:
+      213: 7302527250126104543
+    second: vocalista4_5
+  - first:
+      213: -8698664941782891702
+    second: vocalista4_6
+  - first:
+      213: 9135193023365378643
+    second: vocalista4_7
+  - first:
+      213: -8685825239372158315
+    second: vocalista4_8
+  - first:
+      213: 3754716372897002776
+    second: vocalista4_9
+  - first:
+      213: -7272183444547630398
+    second: vocalista4_10
+  - first:
+      213: -7001263440554943141
+    second: vocalista4_11
+  - first:
+      213: 7580781851324727942
+    second: vocalista4_12
+  - first:
+      213: 4367877220637461744
+    second: vocalista4_13
+  - first:
+      213: 2705682158052047283
+    second: vocalista4_14
+  - first:
+      213: 774228265822926402
+    second: vocalista4_15
+  - first:
+      213: -9157188340626807158
+    second: vocalista4_16
+  - first:
+      213: 7562728747740666660
+    second: vocalista4_17
+  - first:
+      213: 9025899905027146482
+    second: vocalista4_18
+  - first:
+      213: -5009212434118182845
+    second: vocalista4_19
+  - first:
+      213: 7439069553684577418
+    second: vocalista4_20
+  - first:
+      213: -7694495000262313861
+    second: vocalista4_21
+  - first:
+      213: 2374332595571033518
+    second: vocalista4_22
+  - first:
+      213: 8121373284374686286
+    second: vocalista4_23
+  - first:
+      213: 1102061942386460806
+    second: vocalista4_24
+  - first:
+      213: -2739322469556016346
+    second: vocalista4_25
+  - first:
+      213: -5166242663307262143
+    second: vocalista4_26
+  - first:
+      213: -7846597721064072530
+    second: vocalista4_27
+  - first:
+      213: 537363653150693377
+    second: vocalista4_28
+  - first:
+      213: -6740708372283236065
+    second: vocalista4_29
+  - first:
+      213: -7481990060525562874
+    second: vocalista4_30
+  - first:
+      213: 2098540725582798310
+    second: vocalista4_31
+  - first:
+      213: -8342853747827419075
+    second: vocalista4_32
+  - first:
+      213: -3801644515843692602
+    second: vocalista4_33
+  - first:
+      213: -7222462611434292574
+    second: vocalista4_34
+  - first:
+      213: -4217719450856021461
+    second: vocalista4_35
+  - first:
+      213: 8640076991618059387
+    second: vocalista4_36
+  - first:
+      213: 4338364447571499861
+    second: vocalista4_37
+  - first:
+      213: -5117249087587187073
+    second: vocalista4_38
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: vocalista4_0
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 484
+        width: 533
+        height: 484
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 928aa5ae1632c7a90800000000000000
+      internalID: -7314932791305918423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_1
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 903
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccbb6946172850770800000000000000
+      internalID: 8576404488927493068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_2
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 899
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c64c60c274694d30800000000000000
+      internalID: 4416171353630852803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_3
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 885
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d6045823c510ea90800000000000000
+      internalID: -7286800269146061099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_4
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 879
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e78bfe658e05c4680800000000000000
+      internalID: -8769545415576012674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_5
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 873
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd76062f7d9c75560800000000000000
+      internalID: 7302527250126104543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_6
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 864
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4303eca252284780800000000000000
+      internalID: -8698664941782891702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_7
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 852
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 352f15887a9b6ce70800000000000000
+      internalID: 9135193023365378643
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_8
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 843
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59aa91ad6ffb57780800000000000000
+      internalID: -8685825239372158315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_9
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 829
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8157ed6d5ae6b1430800000000000000
+      internalID: 3754716372897002776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_10
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 761
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ca0346dfa3041b90800000000000000
+      internalID: -7272183444547630398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_11
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 727
+        width: 14
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5d1bcebef386de90800000000000000
+      internalID: -7001263440554943141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_12
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 735
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68240f7dde8543960800000000000000
+      internalID: 7580781851324727942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_13
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 729
+        width: 18
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0fccd9ea031dd9c30800000000000000
+      internalID: 4367877220637461744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_14
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 740
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b9fdc166938c8520800000000000000
+      internalID: 2705682158052047283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_15
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 716
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2463177718c9eba00800000000000000
+      internalID: 774228265822926402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_16
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 721
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a86279798b12be080800000000000000
+      internalID: -9157188340626807158
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_17
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 706
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42b97bd1ab534f860800000000000000
+      internalID: 7562728747740666660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_18
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 691
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f200617420724d70800000000000000
+      internalID: 9025899905027146482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_19
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 660
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3487ae3c4d3bb7ab0800000000000000
+      internalID: -5009212434118182845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_20
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 659
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8cface5852ec3760800000000000000
+      internalID: 7439069553684577418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_21
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 654
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b78785f7099a73590800000000000000
+      internalID: -7694495000262313861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_22
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 648
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea584a97ae253f020800000000000000
+      internalID: 2374332595571033518
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_23
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 646
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4a208729f9e4b070800000000000000
+      internalID: 8121373284374686286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_24
+      rect:
+        serializedVersion: 2
+        x: 209
+        y: 623
+        width: 14
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6880c646f7f4b4f00800000000000000
+      internalID: 1102061942386460806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_25
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 623
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62b2edc3ab8fbf9d0800000000000000
+      internalID: -2739322469556016346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_26
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 630
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1474a1e6ba1dd48b0800000000000000
+      internalID: -5166242663307262143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_27
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 610
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eaa169c12f84b1390800000000000000
+      internalID: -7846597721064072530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_28
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 612
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 108d04d3569157700800000000000000
+      internalID: 537363653150693377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_29
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 601
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f116e8ff2713472a0800000000000000
+      internalID: -6740708372283236065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_30
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 615
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 604de556ea1aa2890800000000000000
+      internalID: -7481990060525562874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_31
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 589
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ed9d0fdba38f1d10800000000000000
+      internalID: 2098540725582798310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_32
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 591
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d38d5bbf7ba383c80800000000000000
+      internalID: -8342853747827419075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_33
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 583
+        width: 19
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c723de6478dd3bc0800000000000000
+      internalID: -3801644515843692602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_34
+      rect:
+        serializedVersion: 2
+        x: 221
+        y: 579
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2aa3be96588a4cb90800000000000000
+      internalID: -7222462611434292574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_35
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 528
+        width: 29
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b22a8718186a775c0800000000000000
+      internalID: -4217719450856021461
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_36
+      rect:
+        serializedVersion: 2
+        x: 737
+        y: 508
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7c8b6d2f38b7e770800000000000000
+      internalID: 8640076991618059387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_37
+      rect:
+        serializedVersion: 2
+        x: 355
+        y: 483
+        width: 16
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55bdeabba77f43c30800000000000000
+      internalID: 4338364447571499861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocalista4_38
+      rect:
+        serializedVersion: 2
+        x: 616
+        y: 482
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f768c233111ebf8b0800000000000000
+      internalID: -5117249087587187073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      vocalista4_0: -7314932791305918423
+      vocalista4_1: 8576404488927493068
+      vocalista4_10: -7272183444547630398
+      vocalista4_11: -7001263440554943141
+      vocalista4_12: 7580781851324727942
+      vocalista4_13: 4367877220637461744
+      vocalista4_14: 2705682158052047283
+      vocalista4_15: 774228265822926402
+      vocalista4_16: -9157188340626807158
+      vocalista4_17: 7562728747740666660
+      vocalista4_18: 9025899905027146482
+      vocalista4_19: -5009212434118182845
+      vocalista4_2: 4416171353630852803
+      vocalista4_20: 7439069553684577418
+      vocalista4_21: -7694495000262313861
+      vocalista4_22: 2374332595571033518
+      vocalista4_23: 8121373284374686286
+      vocalista4_24: 1102061942386460806
+      vocalista4_25: -2739322469556016346
+      vocalista4_26: -5166242663307262143
+      vocalista4_27: -7846597721064072530
+      vocalista4_28: 537363653150693377
+      vocalista4_29: -6740708372283236065
+      vocalista4_3: -7286800269146061099
+      vocalista4_30: -7481990060525562874
+      vocalista4_31: 2098540725582798310
+      vocalista4_32: -8342853747827419075
+      vocalista4_33: -3801644515843692602
+      vocalista4_34: -7222462611434292574
+      vocalista4_35: -4217719450856021461
+      vocalista4_36: 8640076991618059387
+      vocalista4_37: 4338364447571499861
+      vocalista4_38: -5117249087587187073
+      vocalista4_4: -8769545415576012674
+      vocalista4_5: 7302527250126104543
+      vocalista4_6: -8698664941782891702
+      vocalista4_7: 9135193023365378643
+      vocalista4_8: -8685825239372158315
+      vocalista4_9: 3754716372897002776
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

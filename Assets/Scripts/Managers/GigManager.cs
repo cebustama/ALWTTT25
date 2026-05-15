@@ -829,6 +829,17 @@ namespace ALWTTT.Managers
                         m?.Statuses?.Tick(TickTiming.PlayerTurnStart);
                     }
 
+                    // [B3] Audience containers also tick on PlayerTurnStart. First user:
+                    // Indifference (NegateIncomingPositive), which decays here so its
+                    // gate weakens one stack per player turn. Pre-B3 the audience side
+                    // only ticked on AudienceTurnStart (Earworm decay site); this loop
+                    // closes the symmetry. Safe for existing audience statuses — Earworm
+                    // uses AudienceTurnStart tick timing, so its decay path is unchanged.
+                    foreach (var a in CurrentAudienceCharacterList)
+                    {
+                        a?.Statuses?.Tick(TickTiming.PlayerTurnStart);
+                    }
+
                     // Decision A: Composure is turn-scoped — clear at each PlayerTurn start
                     foreach (var m in CurrentMusicianCharacterList)
                     {
@@ -933,7 +944,8 @@ namespace ALWTTT.Managers
             // TODO: Playing Musician Animator Settings
             foreach (var musician in CurrentMusicianCharacterList)
             {
-                musician.CharacterAnimator.SetBPM(song.BPM);
+                // [B2.5 / #3] BPM broadcasts to body + any sub-animators (instrument, etc.).
+                musician.BroadcastBPM(song.BPM);
                 musician.CharacterAnimator.SkipEveryNBeats = 1;
                 musician.CharacterAnimator.BeatOffsetBeats =
                     UnityEngine.Random.Range(0f, 0.15f);
@@ -955,7 +967,8 @@ namespace ALWTTT.Managers
             backgroundContainer.SetBPM(0);
             foreach (var musician in CurrentMusicianCharacterList)
             {
-                musician.CharacterAnimator.SetBPM(120);
+                // [B2.5 / #3] BPM broadcasts to body + any sub-animators.
+                musician.BroadcastBPM(120);
                 musician.CharacterAnimator.SkipEveryNBeats = 2;
                 musician.CharacterAnimator.BeatOffsetBeats =
                     UnityEngine.Random.Range(0.45f, 0.55f);
@@ -1001,8 +1014,17 @@ namespace ALWTTT.Managers
                 yield return RunSongVibeResolution(_lastSongFeedback.Value);
                 _lastSongFeedback = null;
 
-                // --- reset & hide the hype bar ---
-                ResetSongHype();  // numeric reset + anim intensity reset
+                // [B2.5 / D-8] Numeric + UI + beat intensity reset runs AFTER
+                // RunSongVibeResolution has read SongHype01 to compute deltas.
+                // The DeactivateAllSFX inside ResetSongHype is idempotent —
+                // venue SFX were already cleared at audio-end via
+                // OnCompositionSongFinished. The cycle is:
+                //   Audio end → DeactivateAllSFX (D-5 intent: lights off now)
+                //   AudienceTurn entry → RunSongVibeResolution (reads SongHype)
+                //   AudienceTurn entry → ResetSongHype (zero everything else)
+                //   AudienceTurn entry → ClearSongHype (UI hide)
+                ResetSongHype();
+
                 if (UIManager != null && UIManager.GigCanvas != null)
                 {
                     UIManager.GigCanvas.ClearSongHype();
@@ -1015,6 +1037,14 @@ namespace ALWTTT.Managers
             // IsBlocked audiences are skipped per Design_Audience_Status_v1 §3.8 (consistent
             // with ComputeSongVibeDeltas). Convinced audiences tick harmlessly — AddVibe
             // clamps at MaxVibe and CheckConvincedThreshold guards re-firing.
+            //
+            // [B2.5 / #1] Staggered: a yield return waitDelay fires after each holder is
+            // processed, so floating texts pace on the same cadence as audience actions
+            // instead of piling up in one frame at the top of AudienceTurnRoutine.
+            // The deferral hypothesis from B2 closure ("real Earworm tick lives elsewhere
+            // in StatusEffectSO") was incorrect on inspection: StatusEffectContainer.Tick
+            // only decays stacks; the only Earworm vibe-gain site is this block. The fix
+            // was visual pacing, not relocation. See B2.5 D-B2.5-1 = A.
             foreach (var a in CurrentAudienceCharacterList)
             {
                 if (a == null || a.Stats == null || a.Statuses == null) continue;
@@ -1029,24 +1059,47 @@ namespace ALWTTT.Managers
                     continue;
 
                 int beforeVibe = a.Stats.CurrentVibe;
-                a.Stats.AddVibe(inst.Stacks);
+                // [B3] Route through ApplyIncomingVibe canonical path. Indifference
+                // (NegateIncomingPositive stacks > 0) blocks the Vibe gain entirely;
+                // Earworm stack decay still happens via the container Tick call below
+                // (independent of Vibe application — matches IsBlocked precedent per
+                // Design_Audience_Status_v1 §3.8).
+                int appliedEarworm = a.Stats.ApplyIncomingVibe(a.Statuses, inst.Stacks);
                 int afterVibe = a.Stats.CurrentVibe;
 
                 // [B2 / #3] Multiplier-with-icon floating text. Magenta tint
                 // distinguishes Earworm-sourced Vibe gain from card-sourced
                 // Vibe (cyan) and Flow-amplified Vibe (cyan with ×mult).
+                // [B3] Branch on applied: blocked → grey INDIFFERENT (EARWORM).
                 if (FxManager.Instance != null && a.TextSpawnRoot != null)
                 {
-                    FxManager.Instance.SpawnFloatingText(
-                        a.TextSpawnRoot,
-                        $"+{inst.Stacks} VIBE (EARWORM)",
-                        new Vector2(-0.4f, 1.0f),
-                        new Color(0.85f, 0.35f, 1.0f));
+                    if (appliedEarworm > 0)
+                    {
+                        FxManager.Instance.SpawnFloatingText(
+                            a.TextSpawnRoot,
+                            $"+{appliedEarworm} VIBE (EARWORM)",
+                            new Vector2(-0.4f, 1.0f),
+                            new Color(0.85f, 0.35f, 1.0f));
+                    }
+                    else
+                    {
+                        FxManager.Instance.SpawnFloatingText(
+                            a.TextSpawnRoot,
+                            "INDIFFERENT (EARWORM)",
+                            new Vector2(-0.4f, 1.0f),
+                            new Color(0.6f, 0.6f, 0.6f));
+                    }
                 }
 
                 Debug.Log(
                     $"<color=lime>[Earworm] {a.CharacterId} stacks={inst.Stacks} " +
-                    $"→ +{inst.Stacks} Vibe (Vibe: {beforeVibe}→{afterVibe})</color>");
+                    $"→ intended=+{inst.Stacks} applied=+{appliedEarworm} " +
+                    $"(Vibe: {beforeVibe}→{afterVibe})</color>");
+
+                // [B2.5 / #1] Pace per holder. Only yields when an Earworm holder was
+                // actually processed (continues above skip without delay), so non-holder
+                // audiences don't add latency to the turn.
+                yield return waitDelay;
             }
 
             // Decision B: tick audience statuses at AudienceTurn start
@@ -1366,6 +1419,11 @@ namespace ALWTTT.Managers
             _songHypeStage = 0; // [B2 / #6] reset stage on song boundary
             UpdateAudienceBeatIntensity();
             OnSongHypeChanged01?.Invoke(SongHype01);
+
+            // [B2.5 / #2] Clear any active venue SFX so the next song starts visually
+            // fresh. Lights/smoke/fire only re-fire on the next AddSongHype crossing.
+            if (backgroundContainer != null)
+                backgroundContainer.DeactivateAllSFX();
         }
 
         private void OnCompositionLoopFinished(LoopFeedbackContext loopCtx)
@@ -1470,6 +1528,18 @@ namespace ALWTTT.Managers
             {
                 DeckManager.DiscardHand();
             }
+
+            // [B2.5 / D-8] Surgical split of the original D-5 move. Only kill the
+            // venue SFX here — preserves the lights-off-at-audio-end UX that D-5
+            // was aiming for. The rest of ResetSongHype() (which zeroes _songHype
+            // numeric, fires OnSongHypeChanged01, updates audience beat intensity)
+            // CANNOT run here: RunSongVibeResolution reads SongHype01 downstream
+            // to compute baseVibe for ComputeSongVibeDeltas. Resetting numeric
+            // state before that read produced empty deltas (D-5 regression).
+            // Full ResetSongHype() now runs in AudienceTurnRoutine AFTER
+            // RunSongVibeResolution has consumed the value.
+            if (backgroundContainer != null)
+                backgroundContainer.DeactivateAllSFX();
 
             // Reset BPM/Animation
             ResetStageToIdle();
@@ -1625,7 +1695,6 @@ namespace ALWTTT.Managers
                     perAudience[i] = impressions;
                 }
 
-                clamped = 2;
                 impressions.Add(clamped);
 
                 string exclamation = ImpressionToExclamation(clamped);
@@ -2070,7 +2139,8 @@ namespace ALWTTT.Managers
 
                 var anim = musician.CharacterAnimator;
 
-                anim.SetBPM(bpm);
+                // [B2.5 / #3] BPM broadcasts to body + any sub-animators.
+                musician.BroadcastBPM(bpm);
                 anim.SkipEveryNBeats = 1;
                 anim.BeatOffsetBeats = UnityEngine.Random.Range(0f, 0.15f);
                 anim.JumpOnBeat = true;
@@ -2086,7 +2156,8 @@ namespace ALWTTT.Managers
 
                 var anim = audience.CharacterAnimator;
 
-                anim.SetBPM(bpm);
+                // [B2.5 / #3] BPM broadcasts to body + any sub-animators.
+                audience.BroadcastBPM(bpm);
                 anim.SkipEveryNBeats = 1;
                 anim.BeatOffsetBeats = UnityEngine.Random.Range(0f, 0.15f);
             }
@@ -2106,7 +2177,8 @@ namespace ALWTTT.Managers
 
                 var anim = musician.CharacterAnimator;
 
-                anim.SetBPM(idleBpmLocal);
+                // [B2.5 / #3] BPM broadcasts to body + any sub-animators.
+                musician.BroadcastBPM(idleBpmLocal);
                 anim.SkipEveryNBeats = 2;
                 anim.BeatOffsetBeats = UnityEngine.Random.Range(0.45f, 0.55f);
                 anim.JumpOnBeat = false;
@@ -2122,7 +2194,8 @@ namespace ALWTTT.Managers
 
                 var anim = audience.CharacterAnimator;
 
-                anim.SetBPM(idleBpmLocal);
+                // [B2.5 / #3] BPM broadcasts to body + any sub-animators.
+                audience.BroadcastBPM(idleBpmLocal);
                 anim.SkipEveryNBeats = 2;
                 anim.BeatOffsetBeats = UnityEngine.Random.Range(0.45f, 0.55f);
 
@@ -2422,22 +2495,36 @@ namespace ALWTTT.Managers
                     }
                 }
 
-                // Floating text
-                float displayMult = flowStacks > 0 ? 1f + (flowStacks * flowMult) : 0f;
-                FxManager.Instance?.SpawnFloatingText(
-                    audience.TextSpawnRoot,
-                    flowStacks > 0
-                        ? $"+{finalDelta} Vibe (Flow ×{displayMult:F2})"
-                        : $"+{finalDelta} Vibe",
-                    0, 1, Color.cyan);
+                // [B3] Route through ApplyIncomingVibe canonical path BEFORE spawning
+                // floating text — blocked audiences (Indifference stacks > 0) get a
+                // dedicated visual instead of a misleading "+N Vibe" that doesn't land.
+                int appliedDelta = audience.AudienceStats.ApplyIncomingVibe(
+                    audience.Statuses, finalDelta, duration: barFillDelayLocal);
 
-                // 1) apply Vibe
-                audience.AudienceStats.AddVibe(finalDelta, duration: barFillDelayLocal);
+                // Floating text — branches on (applied vs intended).
+                float displayMult = flowStacks > 0 ? 1f + (flowStacks * flowMult) : 0f;
+                if (appliedDelta > 0)
+                {
+                    FxManager.Instance?.SpawnFloatingText(
+                        audience.TextSpawnRoot,
+                        flowStacks > 0
+                            ? $"+{appliedDelta} Vibe (Flow ×{displayMult:F2})"
+                            : $"+{appliedDelta} Vibe",
+                        0, 1, Color.cyan);
+                }
+                else if (finalDelta > 0)
+                {
+                    // Blocked by Indifference.
+                    FxManager.Instance?.SpawnFloatingText(
+                        audience.TextSpawnRoot,
+                        "INDIFFERENT",
+                        0, 1, new Color(0.6f, 0.6f, 0.6f));
+                }
 
                 if (UseLogs && flowStacks > 0)
                     Debug.Log($"{DebugTag} [Flow→Vibe:Mult] {audience.CharacterId} " +
                         $"base=+{baseDelta} flowStacks={flowStacks} mult={displayMult:F2} " +
-                        $"final=+{finalDelta}");
+                        $"intended=+{finalDelta} applied=+{appliedDelta}");
 
                 //Debug.Log($"{audience.CharacterId} filling Vibe in {barFillDelayLocal}[s]");
                 yield return new WaitForSeconds(barFillDelayLocal);

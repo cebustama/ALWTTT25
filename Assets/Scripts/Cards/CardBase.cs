@@ -259,9 +259,25 @@ namespace ALWTTT
                         }
 
                         // Prefer the newer AudienceStats pathway when available.
+                        // [B3] Route positive Vibe through ApplyIncomingVibe canonical
+                        // path. Indifference (NegateIncomingPositive stacks > 0) gates
+                        // the result to 0 applied. Negative-Vibe deltas would go through
+                        // a different path; ModifyVibeSpec callers with negative amounts
+                        // currently rely on AddVibe accepting negatives (it does via
+                        // SetCurrentVibe clamping at 0). For B3, only positives route
+                        // through the helper; negatives stay on legacy AddVibe.
+                        int appliedVibe = finalDelta;
                         if (audience.AudienceStats != null)
                         {
-                            audience.AudienceStats.AddVibe(finalDelta);
+                            if (finalDelta > 0)
+                            {
+                                appliedVibe = audience.AudienceStats.ApplyIncomingVibe(
+                                    audience.Statuses, finalDelta);
+                            }
+                            else
+                            {
+                                audience.AudienceStats.AddVibe(finalDelta);
+                            }
                         }
                         else
                         {
@@ -270,7 +286,16 @@ namespace ALWTTT
                         }
 
 #if UNITY_EDITOR
-                        if (flowStacks > 0)
+                        bool blockedVibe = finalDelta > 0 && appliedVibe == 0;
+                        if (blockedVibe)
+                        {
+                            Debug.Log(
+                                $"<color=#888888>[Effects] {performer?.name} Vibe on " +
+                                $"{audience.name}: BLOCKED (Indifference) " +
+                                $"intended=+{finalDelta} applied=0 via card " +
+                                $"'{CardDefinition?.DisplayName}'.</color>");
+                        }
+                        else if (flowStacks > 0)
                         {
                             bool isActionLog = CardDefinition != null && CardDefinition.IsAction;
                             Debug.Log(isActionLog
@@ -562,11 +587,8 @@ namespace ALWTTT
 
         public virtual void OnPointerDown(PointerEventData eventData)
         {
-            Debug.Log($"[CardBase] OnPointerDown fired. Button={eventData.button}, Card={CardDefinition?.DisplayName}");
-
             if (eventData.button == PointerEventData.InputButton.Right)
             {
-                Debug.Log($"[CardBase] Right-click detected. DetailController.Instance={UI.CardDetailViewController.Instance != null}");
                 HideTooltipInfo();
                 var ctrl = UI.CardDetailViewController.Instance;
                 if (ctrl != null)

@@ -1,10 +1,12 @@
 ﻿using ALWTTT.Characters.Audience;
 using ALWTTT.Enums;
+using Melanchall.DryWetMidi.MusicTheory;
 using MidiGenPlay;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static MidiGenPlay.MusicTheory.MusicTheory;
 
 namespace ALWTTT.Music
 {
@@ -41,6 +43,15 @@ namespace ALWTTT.Music
     /// Snapshot of information about a loop that just finished playing.
     /// This is what gets broadcast to audience members so they can
     /// evaluate it and turn it into an impression (-2..2).
+    ///
+    /// [B3] Extended with musical-identity fields (TempoScale, TimeSignature,
+    /// RootNote, Tonality). These let audience taste preferences (see
+    /// AudienceCharacterData.TastePreferences in B3-code-F) read the actual
+    /// musical content of the played loop, not just the arrangement structure.
+    /// Values come from the active PartEntry on SongCompositionUI.Model at
+    /// loop-finished time. Effective BPM is package-side (MidiGenPlay resolves
+    /// TempoRange × TempoScale internally); ALWTTT exposes TempoScale as the
+    /// authoring-side multiplicative signal.
     /// </summary>
     public readonly struct LoopFeedbackContext
     {
@@ -55,7 +66,24 @@ namespace ALWTTT.Music
 
         /// <summary>Arrangement snapshot for this loop.</summary>
         public IReadOnlyList<LoopTrackSnapshot> Tracks { get; }
-        /// <summary>Per-audience impression values (-2..2).</summary>
+
+        // --- Musical identity (B3) ---
+
+        /// <summary>
+        /// Multiplicative tempo factor from cumulative TempoEffect ScaleFactor cards.
+        /// 1.0 = authored default; > 1.0 = faster; &lt; 1.0 = slower.
+        /// Primary signal for archetypes that prefer/dislike tempo intensity.
+        /// </summary>
+        public float TempoScale { get; }
+
+        /// <summary>Time signature of the part this loop played (4/4, 3/4, 5/4, 6/8, ...).</summary>
+        public TimeSignature TimeSignature { get; }
+
+        /// <summary>Root note of the part's key (C, D, F#, ...).</summary>
+        public NoteName RootNote { get; }
+
+        /// <summary>Mode/tonality of the part (Ionian, Aeolian, Dorian, ...).</summary>
+        public Tonality Tonality { get; }
 
         // --- Helpers ---
 
@@ -81,7 +109,11 @@ namespace ALWTTT.Music
             string partLabel,
             int inspirationGainedThisLoop,
             int inspirationAfterLoop,
-            IReadOnlyList<LoopTrackSnapshot> tracks)
+            IReadOnlyList<LoopTrackSnapshot> tracks,
+            float tempoScale,
+            TimeSignature timeSignature,
+            NoteName rootNote,
+            Tonality tonality)
         {
             PartIndex = partIndex;
             LoopIndexWithinPart = loopIndexWithinPart;
@@ -90,6 +122,10 @@ namespace ALWTTT.Music
             InspirationGainedThisLoop = inspirationGainedThisLoop;
             InspirationAfterLoop = inspirationAfterLoop;
             Tracks = tracks ?? Array.Empty<LoopTrackSnapshot>();
+            TempoScale = tempoScale;
+            TimeSignature = timeSignature;
+            RootNote = rootNote;
+            Tonality = tonality;
         }
 
         public override string ToString()
@@ -97,7 +133,9 @@ namespace ALWTTT.Music
             return $"[LoopFeedback] Part={PartIndex} ({PartLabel}) " +
                    $"Loop={LoopIndexWithinPart + 1}/{LoopsInPart} " +
                    $"Tracks={ActiveTracks} ΔInsp={InspirationGainedThisLoop} " +
-                   $"Total={InspirationAfterLoop}";
+                   $"Total={InspirationAfterLoop} " +
+                   $"TempoScale={TempoScale:0.##} TS={TimeSignature} " +
+                   $"Root={RootNote} Tonality={Tonality}";
         }
     }
 }

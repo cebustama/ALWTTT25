@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectCatalogueSO
   _effects:
   - {fileID: 11400000, guid: 309e959f0b2e1ee4dba82e4756cbd5b2, type: 2}
+  - {fileID: 11400000, guid: 5121e76141ccc3a44825214498e5846d, type: 2}

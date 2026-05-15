@@ -2375,7 +2375,8 @@
 |   |   |   |   +---SerializableCardInventory.cs
 |   |   |   |   \---SerializableStringIntDictionary.cs
 |   |   |   +---UI
-|   |   |   \---ALWTTTProjectRegistriesSO.cs
+|   |   |   +---ALWTTTProjectRegistriesSO.cs
+|   |   |   \---CompositionFxConfigSO.cs
 |   |   +---DevMode
 |   |   |   +---DevCardCatalogueTab.cs
 |   |   |   +---DevModeController.cs
@@ -2515,13 +2516,15 @@
 |   |   |   +---GigCanvas.cs
 |   |   |   +---GigSetupController.cs
 |   |   |   +---HealthBarController.cs
+|   |   |   +---MinicardTooltipController.cs
 |   |   |   +---MusicianMapStatusUI.cs
 |   |   |   +---MusicianPickerRow.cs
 |   |   |   +---MusicianUI.cs
 |   |   |   +---NewSongPanelUI.cs
 |   |   |   +---RewardContainer.cs
 |   |   |   +---StatusIconBase.cs
-|   |   |   \---TempoTextIndicator.cs
+|   |   |   +---TempoTextIndicator.cs
+|   |   |   \---UIPulseAnimator.cs
 |   |   +---Utils
 |   |   |   +---ButtonSoundPlayer.cs
 |   |   |   +---CoreLoader.cs
@@ -2536,6 +2539,7 @@
 |   |   +---Build Profiles
 |   |   |   \---New Windows Profile.asset
 |   |   +---Gig
+|   |   |   +---CompositionFxConfig.asset
 |   |   |   +---GigDevSettings.asset
 |   |   |   +---GigFlowSettings.asset
 |   |   |   +---GigMeterTuning.asset

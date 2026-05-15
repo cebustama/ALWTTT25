@@ -245,6 +245,15 @@ namespace ALWTTT.Status
                         "Evasion (stacks)");
                     return true;
 
+                case CharacterStatusId.NegateIncomingPositive:
+                    data = new CanonicalPrimitiveData(
+                        "Defense",
+                        "While active (stacks > 0), blocks 100% of an incoming positive value. Decay via container Tick, NOT per-application. First user: audience-side Indifference (B3, blocks Vibe).",
+                        "Intangible (partial analog)",
+                        "—",
+                        "—");
+                    return true;
+
                 case CharacterStatusId.AntiShieldGain:
                     data = new CanonicalPrimitiveData(
                         "Control",

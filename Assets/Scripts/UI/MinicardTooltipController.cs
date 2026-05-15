@@ -98,11 +98,6 @@ namespace ALWTTT.UI
         /// </summary>
         public void Show(CardDefinition card)
         {
-            Debug.Log($"<color=yellow>[B2/#3] Show() called. card={(card != null ? card.name : "NULL")}, " +
-                $"minicard ref={(minicard != null ? "OK" : "NULL")}, " +
-                $"canvasGroup={(canvasGroup != null ? "OK" : "NULL")}, " +
-                $"follower={(follower != null ? "OK" : "NULL")}</color>");
-
             if (card == null) { Hide(); return; }
             if (minicard == null) return;
 
@@ -166,13 +161,6 @@ namespace ALWTTT.UI
                 yield return null;
             }
             canvasGroup.alpha = 1f;
-
-            Debug.Log($"<color=lime>[B2/#3] Fade complete. " +
-                $"alpha={canvasGroup.alpha}, " +
-                $"minicard.active={minicard.gameObject.activeSelf}, " +
-                $"follower.pos={follower.anchoredPosition}, " +
-                $"mouse={Input.mousePosition}, " +
-                $"canvasScale={canvasRect.localScale.x}</color>");
 
             _fadeRoutine = null;
         }

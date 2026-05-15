@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Singing Field
   performerRule: 1
   musicianCharacterType: 3
-  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
+  cardSprite: {fileID: -709145312518046139, guid: 31846d6a11333074393141a3e228f3c6, type: 3}
   inspirationCost: 1
   inspirationGenerated: 3
   cardType: 0

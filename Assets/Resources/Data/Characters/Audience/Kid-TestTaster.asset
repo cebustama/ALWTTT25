@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb66ef735feb1d245a5494a78feb5fd5, type: 3}
+  m_Name: Kid-TestTaster
+  m_EditorClassIdentifier: 
+  characterId: kid-test
+  characterName: Kid Test
+  characterDescription: 
+  maxVibe: 10
+  characterPrefab: {fileID: 8137859568071339047, guid: 323a8ebb063c9b94e8a73bc3ac51c634, type: 3}
+  isTall: 0
+  abilityList:
+  - abilityName: Tantrum
+    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
+    hideActionValue: 0
+    abilityDuration: 3
+    actionList:
+    - cardActionType: 3
+      actionTargetType: 3
+      actionValue: 5
+      actionDelay: 1
+    animation:
+      animatorTrigger: Tantrum
+      animationDuration: 2
+      disableBeatAnimator: 1
+  followAbilityPattern: 0
+  taste:
+    tempoMatchOnFast: 1
+    preferAboveTempoScale: 1
+    tempoMismatchOnSlow: 1
+    dislikeBelowTempoScale: 1
+    roleCountMatchOnRich: 1
+    preferAtLeastRoles: 3
+    preferredTimeSignatures: 06000000
+    dislikedTimeSignatures: 00000000
+    preferredTonalities: 
+    dislikedTonalities: 

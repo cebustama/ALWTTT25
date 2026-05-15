@@ -205,8 +205,20 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8876883093181404695, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: scaleAmplitude
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8876883093181404695, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: beatOffsetBeats
       value: 0.482
+      objectReference: {fileID: 0}
+    - target: {fileID: 8876883093181404695, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: scaleCurve.m_Curve.Array.data[0].inSlope
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8876883093181404695, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: scaleCurve.m_Curve.Array.data[0].outSlope
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -1327,8 +1327,11 @@ namespace ALWTTT.UI
                     single = fxConfig.Modulation;
                 }
             }
-            // else: first explicit set — silent. fxConfig.Tonality entry retained
-            // for future use if "first set" semantics are ever desired.
+            // else: first explicit set — silent. fxConfig.Tonality entry is
+            // intentionally retained as a design hook for future "first-explicit-set"
+            // semantics (e.g. "TONALITY!" label on a never-before-set tonality field).
+            // Keep the field and accessor; do not remove the asset reference.
+            // See B2.5 D-B2.5-3 = B.
 
             // -- Track diff (only when comp targets a musician via TrackAction) --
             // [B2 / #3] Refinement: "highlight CHANGES" — a fresh track add to an

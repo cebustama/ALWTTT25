@@ -219,12 +219,72 @@ namespace ALWTTT.Managers
 
         public void DiscardHand()
         {
-            foreach (var cardBase in HandController.Hand)
+            // [B2.5 / D-7] Synchronous + sweep-strays + bypass CardBase.Discard()'s
+            // IsPlayable/IsExhausted gates. The previous implementation called
+            // cardBase.Discard() in a loop, which has two failure modes:
+            //   (a) Gated returns — non-playable cards (e.g. action cards during
+            //       composition session) skip OnCardDiscarded entirely, leaving
+            //       HandPile bookkeeping stale.
+            //   (b) Async DiscardRoutine — even for cards that pass the gates,
+            //       the destroy is deferred by discardDuration seconds. When the
+            //       phase machine advances faster than the animation (which is the
+            //       norm with DiscardHandBetweenTurns=true), the GameObjects survive
+            //       into the next turn's draw, accumulating as ghosts each cycle.
+            //
+            // Production discard must be unconditional and immediate. Mirrors the
+            // dev path in DevForceHandResetToDiscard (which documents the bug in
+            // its own XML comment). DevForceHandResetToDiscard is preserved for
+            // explicit dev use with verbose logs.
+            if (HandController == null) return;
+            if (HandController.Hand == null) return;
+
+            // (1) Sweep stray cards under DrawTransform that aren't tracked in Hand.
+            // These accumulate from prior turns where the async path failed to clean up.
+            int strayDestroyed = 0;
+            if (HandController.DrawTransform != null)
             {
-                cardBase.Discard();
+                var parent = HandController.DrawTransform;
+                for (int i = parent.childCount - 1; i >= 0; i--)
+                {
+                    var child = parent.GetChild(i);
+                    var cb = child != null ? child.GetComponent<CardBase>() : null;
+                    if (cb == null) continue;
+                    if (HandController.Hand.Contains(cb)) continue; // tracked, main loop will handle
+                    UnityEngine.Object.Destroy(child.gameObject);
+                    strayDestroyed++;
+                }
+            }
+
+            // (2) Discard every tracked card: book Hand → Discard inline, destroy immediately.
+            int destroyed = 0;
+            var snapshot = new List<CardBase>(HandController.Hand);
+            foreach (var card in snapshot)
+            {
+                if (card == null) continue;
+
+                if (card.CardDefinition != null)
+                {
+                    HandPile.Remove(card.CardDefinition);
+                    DiscardPile.Add(card.CardDefinition);
+                }
+
+                if (card.gameObject != null)
+                    UnityEngine.Object.Destroy(card.gameObject);
+
+                destroyed++;
             }
 
             HandController.Hand.Clear();
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
+
+            if (destroyed > 0 || strayDestroyed > 0)
+            {
+                Debug.Log($"{DebugTag} DiscardHand complete. " +
+                    $"destroyed={destroyed} strayDestroyed={strayDestroyed} " +
+                    $"handPile={HandPile.Count} discard={DiscardPile.Count}");
+            }
         }
 
 #if ALWTTT_DEV
