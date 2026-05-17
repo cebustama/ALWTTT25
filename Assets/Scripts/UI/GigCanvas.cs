@@ -16,7 +16,16 @@ namespace ALWTTT.UI
         [SerializeField] private TextMeshProUGUI songsLeftTextField;
 
         [Header("Buttons")]
-        [SerializeField] private Button lossConfirmButton;
+        // [B3-demo-polish / D-UX2] Win/Loss panels each get Retry + Exit buttons.
+        // Retry reloads the gig scene (preserving GigRunContext / PersistentGameplayData
+        // so the same encounter config replays from scratch). Exit returns to the
+        // main menu / gig setup. lossConfirmButton retained for backwards compatibility
+        // and treated as semantic equivalent of lossExitButton.
+        [SerializeField] private Button lossConfirmButton; // existing — kept; equivalent to lossExitButton
+        [SerializeField] private Button winRetryButton;
+        [SerializeField] private Button winExitButton;
+        [SerializeField] private Button lossRetryButton;
+        [SerializeField] private Button lossExitButton;
 
         [Header("UI Sections")]
         [SerializeField] private GameObject bandTurnUI;
@@ -46,7 +55,12 @@ namespace ALWTTT.UI
         private Coroutine _hypeLerpRoutine;
         private bool _songHypeVisible = false;
 
-        public System.Action OnLossConfirm; // set by GigManager
+        // [B3-demo-polish / D-UX2] Wired by GigManager.
+        public System.Action OnLossConfirm; // existing — kept for back-compat
+        public System.Action OnWinRetry;
+        public System.Action OnWinExit;
+        public System.Action OnLossRetry;
+        public System.Action OnLossExit;
 
         [Header("References")]
         [SerializeField] private SceneChanger sceneChanger;
@@ -56,7 +70,32 @@ namespace ALWTTT.UI
 
         private void OnEnable()
         {
-            lossConfirmButton.onClick.AddListener(OnClick_LossConfirm);
+            // [B3-demo-polish / F6] Skip lossConfirmButton subscription if it
+            // points to the same Button as the new explicit Retry/Exit refs.
+            // Prevents a single click on Retry/Exit from also firing the legacy
+            // Confirm path (which calls ReturnToMap → clears pd.CurrentEncounter,
+            // triggering wrong-encounter load on the immediately-following Retry).
+            // New explicit OnLossRetry/OnLossExit handlers supersede OnLossConfirm.
+            if (lossConfirmButton != null
+                && lossConfirmButton != lossRetryButton
+                && lossConfirmButton != lossExitButton)
+            {
+                lossConfirmButton.onClick.AddListener(OnClick_LossConfirm);
+            }
+            else if (lossConfirmButton != null)
+            {
+                Debug.Log("[GigCanvas / F6] lossConfirmButton points to the same " +
+                          "Button as lossRetryButton or lossExitButton — skipping " +
+                          "duplicate OnClick_LossConfirm subscription.");
+            }
+
+            // [B3-demo-polish / D-UX2] Subscribe new win/loss Retry & Exit buttons.
+            // Null-guarded so the canvas survives prefab states where some buttons
+            // haven't been authored yet.
+            if (winRetryButton != null) winRetryButton.onClick.AddListener(OnClick_WinRetry);
+            if (winExitButton != null) winExitButton.onClick.AddListener(OnClick_WinExit);
+            if (lossRetryButton != null) lossRetryButton.onClick.AddListener(OnClick_LossRetry);
+            if (lossExitButton != null) lossExitButton.onClick.AddListener(OnClick_LossExit);
 
             GigManager.OnPlayerTurnStarted += ShowBandTurnUI;
             GigManager.OnSongPerformanceStarted += ShowSongPerformanceUI;
@@ -73,7 +112,19 @@ namespace ALWTTT.UI
 
         private void OnDisable()
         {
-            lossConfirmButton.onClick.RemoveListener(OnClick_LossConfirm);
+            // [B3-demo-polish / F6] Mirror the conditional subscription.
+            if (lossConfirmButton != null
+                && lossConfirmButton != lossRetryButton
+                && lossConfirmButton != lossExitButton)
+            {
+                lossConfirmButton.onClick.RemoveListener(OnClick_LossConfirm);
+            }
+
+            // [B3-demo-polish / D-UX2]
+            if (winRetryButton != null) winRetryButton.onClick.RemoveListener(OnClick_WinRetry);
+            if (winExitButton != null) winExitButton.onClick.RemoveListener(OnClick_WinExit);
+            if (lossRetryButton != null) lossRetryButton.onClick.RemoveListener(OnClick_LossRetry);
+            if (lossExitButton != null) lossExitButton.onClick.RemoveListener(OnClick_LossExit);
 
             GigManager.OnPlayerTurnStarted -= ShowBandTurnUI;
             GigManager.OnSongPerformanceStarted -= ShowSongPerformanceUI;
@@ -120,6 +171,33 @@ namespace ALWTTT.UI
         {
             lossPanelRoot.SetActive(false);
             OnLossConfirm?.Invoke();
+        }
+
+        // [B3-demo-polish / D-UX2] New button handlers. Each closes its panel
+        // and fires its action; GigManager subscribes and routes Retry to
+        // scene reload, Exit to main menu scene change.
+        public void OnClick_WinRetry()
+        {
+            winPanel.SetActive(false);
+            OnWinRetry?.Invoke();
+        }
+
+        public void OnClick_WinExit()
+        {
+            winPanel.SetActive(false);
+            OnWinExit?.Invoke();
+        }
+
+        public void OnClick_LossRetry()
+        {
+            lossPanelRoot.SetActive(false);
+            OnLossRetry?.Invoke();
+        }
+
+        public void OnClick_LossExit()
+        {
+            lossPanelRoot.SetActive(false);
+            OnLossExit?.Invoke();
         }
 
         public void ShowBandTurnUI()

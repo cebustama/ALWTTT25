@@ -7,6 +7,11 @@ namespace ALWTTT.Data
     /// per slate D6: log gating, debug-mode flags, and per-feature debug
     /// pickers. Unrelated to DevModeController (runtime cheat menu).
     ///
+    /// [§5.3.5] Also hosts the demo-build auto-start switch + reference to
+    /// the baked DemoLaunchConfigSO. GigSetupController reads these in
+    /// Start() and bypasses the picker UI when the switch is on. Locality
+    /// per DC-1=C (dev settings, not flow settings).
+    ///
     /// Authority: SSoT_Gig_Combat_Core. Toggles can flip live during play
     /// (e.g. the D-key handler in GigManager.Update flips
     /// debugInstrumentPicker / debugMusicianVolume); ScriptableObject fields
@@ -64,5 +69,23 @@ namespace ALWTTT.Data
             get => debugMusicianVolume;
             set => debugMusicianVolume = value;
         }
+
+        // --- Demo-build auto-start [§5.3.5] ---
+
+        [Header("Demo Auto-start [§5.3.5]")]
+        [SerializeField, Tooltip("When true AND DemoLaunchConfig is non-null, " +
+            "GigSetupController.Start() bypasses the picker UI and immediately " +
+            "launches the gig using the baked values. Production builds keep " +
+            "this OFF — manual GigSetup interaction is preserved. DC-1=C locks " +
+            "locality on GigDevSettings (not GigFlowSettings).")]
+        private bool autoStartFromDefaults = false;
+
+        [SerializeField, Tooltip("Baked demo-launch values consumed when " +
+            "AutoStartFromDefaults is true. If null, auto-start is suppressed " +
+            "and a warning logs. Wire DemoLaunchConfig.asset here.")]
+        private DemoLaunchConfigSO demoLaunchConfig;
+
+        public bool AutoStartFromDefaults => autoStartFromDefaults;
+        public DemoLaunchConfigSO DemoLaunchConfig => demoLaunchConfig;
     }
 }

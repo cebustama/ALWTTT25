@@ -1,4 +1,4 @@
-using ALWTTT.Characters.Band;
+﻿using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Managers;
 using UnityEngine;
@@ -22,16 +22,28 @@ namespace ALWTTT.Actions
 
             if (targetCharacter.MusicianStats is BandCharacterStats musicianStats)
             {
-                int stressToAdd = Mathf.RoundToInt(p.Value);
+                int baseStress = Mathf.RoundToInt(p.Value);
 
-                // M4.1: Route through the unified Stress path so Composure absorbs
-                // and Exposed amplifies � same pipeline used by card effects.
+                // [B3-content-audience pass1] Apply attacker-side outgoing modifiers
+                // (Hyped today) BEFORE the receiver-side incoming pipeline.
+                // Pipeline order: outgoing-modify → Composure-absorb → Exposed-amplify
+                // → apply remainder. This ordering means Hyped raises the outgoing
+                // amount that Composure absorbs against, and Exposed amplifies what
+                // Composure couldn't absorb.
+                var attackerStatuses = performerCharacter != null
+                    ? performerCharacter.Statuses
+                    : null;
+                int modifiedStress = BandCharacterStats.ApplyOutgoingStressWithModifiers(
+                    attackerStatuses, baseStress);
+
+                // [M4.1] Canonical receiver-side helper preserved.
                 var (absorbed, applied) = musicianStats.ApplyIncomingStressWithComposure(
                     targetCharacter.Statuses,
-                    stressToAdd,
+                    modifiedStress,
                     p.Duration);
 
-                Debug.Log($"[{ActionName}] Incoming={stressToAdd}  Absorbed={absorbed}  Applied={applied}");
+                Debug.Log($"[{ActionName}] Base={baseStress}  Modified={modifiedStress}  " +
+                          $"Absorbed={absorbed}  Applied={applied}");
 
                 FxManager.PlayFx(targetCharacter.HeadRoot, FxType.ReceiveStress);
 
@@ -41,12 +53,12 @@ namespace ALWTTT.Actions
                 }
                 else if (p.Context is AudienceActionContext audienceCtx)
                 {
-                    // TODO: 
+                    // TODO: audience-side reaction audio
                 }
             }
             else
             {
-                Debug.LogWarning("Target does not have MusicianStats � " +
+                Debug.LogWarning("Target does not have MusicianStats - " +
                     $"{ActionName} skipped.");
             }
         }

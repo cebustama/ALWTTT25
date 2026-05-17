@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: GigEncounter 1
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Encounters.GigEncounterSO
   targetVenueType: 0
-  displayName: Test Encounter
+  displayName: Cool Dude & The Kids
   audienceMemberList:
   - {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
   - {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
   - {fileID: 11400000, guid: 51e873db939343349b45067a98817990, type: 2}
-  numberOfSongs: 4
-  fansOnWin: 0
-  cohesionPenaltyOnLoss: 0
+  numberOfSongs: 1
+  fansOnWin: 5
+  cohesionPenaltyOnLoss: 2

@@ -30,38 +30,50 @@ namespace ALWTTT.Actions
                 return;
             }
 
-            var fromIndex = Mathf.Clamp(performer.ColumnIndex, 0, positions.Count - 1);
-            if (fromIndex <= 0)
+            // [B3-content-audience pass1] Parameterized step count from
+            // CharacterActionData.ActionValue. 0 / unset → default 1 step per call.
+            // Replaces the prior "jump to front" semantics. Each call slides the
+            // performer forward by N positions; displaced members shift back by 1 each.
+            int requestedSteps = Mathf.RoundToInt(actionParameters.Value);
+            int stepsPerTurn = requestedSteps <= 0 ? 1 : requestedSteps;
+
+            int fromIndex = Mathf.Clamp(performer.ColumnIndex, 0, positions.Count - 1);
+            int toIndex = Mathf.Max(0, fromIndex - stepsPerTurn);
+
+            if (toIndex >= fromIndex)
             {
-                // Ensure we visually snap/slide into place anyway
-                ReparentAndLerpToZero(performer.transform, positions[0]);
+                // Already at (or beyond) the target slot — no-op except for a
+                // defensive snap in case of stray transform drift.
+                ReparentAndLerpToZero(performer.transform, positions[fromIndex]);
                 GigManager.RecalculateAudienceObstructions();
                 return;
             }
 
-            // Shift everyone in front of the performer back by one
-            // Example: [0][1][2][3] with performer at 3 -> 0→1, 1→2, 2→3, performer→0
-            for (int i = fromIndex - 1; i >= 0; i--)
+            // Members occupying slots [toIndex .. fromIndex - 1] each shift BACK
+            // by one slot. Performer takes toIndex.
+            for (int i = fromIndex - 1; i >= toIndex; i--)
             {
-                var member = audience[i];
-                var newIndex = Mathf.Min(i + 1, positions.Count - 1);
+                var displaced = audience[i];
+                int newIndex = i + 1;
 
-                member.ColumnIndex = newIndex;
-                member.transform.SetParent(positions[newIndex], true);
+                displaced.ColumnIndex = newIndex;
+                displaced.transform.SetParent(positions[newIndex], true);
             }
 
-            // Move performer to the very front (index 0)
-            performer.ColumnIndex = 0;
-            performer.transform.SetParent(positions[0], true);
+            performer.ColumnIndex = toIndex;
+            performer.transform.SetParent(positions[toIndex], true);
 
-            // Update logical order to match columns
-            audience.Remove(performer);
-            audience.Insert(0, performer);
+            // Reorder logical list to match new column layout.
+            audience.RemoveAt(fromIndex);
+            audience.Insert(toIndex, performer);
 
-            // Smoothly slide everyone into their slot root (local zero)
-            for (int i = 0; i < audience.Count && i < positions.Count; i++)
+            // Smooth-slide only the affected range into their slot root (local zero).
+            int lerpFrom = toIndex;
+            int lerpTo = Mathf.Min(fromIndex, audience.Count - 1);
+            for (int i = lerpFrom; i <= lerpTo; i++)
             {
                 var member = audience[i];
+                if (member == null) continue;
 
                 if (member.transform.parent != positions[i])
                     member.transform.SetParent(positions[i], true);

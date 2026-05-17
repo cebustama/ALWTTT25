@@ -17,3 +17,5 @@ MonoBehaviour:
   debugSongHype: 0
   debugInstrumentPicker: 0
   debugMusicianVolume: 0
+  autoStartFromDefaults: 1
+  demoLaunchConfig: {fileID: 11400000, guid: a33cb1838f0f85146ae11155225b79bb, type: 2}

@@ -39,7 +39,7 @@ namespace ALWTTT.Data
 
         // --- Sequence pacing ---
 
-        [Header("Timing � Sequence Pacing")]
+        [Header("Timing — Sequence Pacing")]
         [SerializeField, Tooltip("Pause after a song ends before vibe resolution begins.")]
         private float songEndPause = 3f;
 
@@ -51,7 +51,7 @@ namespace ALWTTT.Data
             "executions during AudienceTurn.")]
         private float perAudienceActionDelay = 1f;
 
-        [SerializeField, Tooltip("Tween duration passed to AudienceStats.AddVibe � " +
+        [SerializeField, Tooltip("Tween duration passed to AudienceStats.AddVibe — " +
             "drives the bar fill animation.")]
         private float barFillDelay = 3f;
 
@@ -93,5 +93,44 @@ namespace ALWTTT.Data
         public string SongHypeStage1SfxTag => songHypeStage1SfxTag;
         public string SongHypeStage2SfxTag => songHypeStage2SfxTag;
         public string SongHypeStage3SfxTag => songHypeStage3SfxTag;
+
+        // --- SFX → FlatVibe bonus [§5.3.5] ---
+
+        [Header("SFX → FlatVibe Bonus [§5.3.5]")]
+        [SerializeField, Min(0f),
+         Tooltip("Vibe granted to each audience member when stage 1 (lights) " +
+            "fires. DC-SFX-Route=A: routed through ApplyIncomingVibe per " +
+            "member so Indifference still blocks. One band-canvas '+N Vibe!' " +
+            "floater (not per-audience). D-DCP-2=A default: 3.")]
+        private float sfxBonusVibeStage1 = 3f;
+
+        [SerializeField, Min(0f),
+         Tooltip("Vibe granted to each audience member when stage 2 (smoke) " +
+            "fires. D-DCP-2=A default: 6.")]
+        private float sfxBonusVibeStage2 = 6f;
+
+        [SerializeField, Min(0f),
+         Tooltip("Vibe granted to each audience member when stage 3 (fire) " +
+            "fires. D-DCP-2=A default: 10. Scaled to reward 'encore' threshold.")]
+        private float sfxBonusVibeStage3 = 10f;
+
+        public float SfxBonusVibeStage1 => sfxBonusVibeStage1;
+        public float SfxBonusVibeStage2 => sfxBonusVibeStage2;
+        public float SfxBonusVibeStage3 => sfxBonusVibeStage3;
+
+        /// <summary>
+        /// [§5.3.5] Per-stage bonus lookup. Returns 0 for invalid stage indices.
+        /// Used by GigManager.ApplySfxBonusVibe (called from FireSongHypeStage).
+        /// </summary>
+        public float GetSfxBonusVibe(int stage)
+        {
+            switch (stage)
+            {
+                case 1: return sfxBonusVibeStage1;
+                case 2: return sfxBonusVibeStage2;
+                case 3: return sfxBonusVibeStage3;
+                default: return 0f;
+            }
+        }
     }
 }

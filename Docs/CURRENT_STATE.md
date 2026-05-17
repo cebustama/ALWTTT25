@@ -89,6 +89,42 @@ Design gaps (only #16 closed; 12-15 deferred to B3):
 
 **B3 candidates accumulated during B2.5:** A (Mind Tap asset fix — DONE in-batch), B (AudienceMemberPosList reorder — DONE in-batch), C (effect-target-type authoring validation), D (CustomEditor for default Inspector showing effect labels), E-lite (Blocked tooltip without icon — for the "oscurito" sprite tint legibility), F (real `AudienceCharacterBase.ResolveLoopEffect` impl — currently placeholder returning 0), G (filter draws during composition session, per D-B3-DrawFilter=B confirmed in B2.5), H (Always-action card discard semantics in SongPerformance start — if Always-cards become content), I (ParentActive=False warning during first draws — preexisting bug not blocking B2.5 but visible in logs).
 
+### Phase B B3 — sub-batch B3-content-audience — complete (2026-05-17)
+
+Audience-side content authoring batch. Two passes:
+- **Pass 1 (code).** `AudienceMoveToFrontAction` gained `stepsPerTurn` (ActionValue, default 1) replacing snap-to-front. `BandCharacterStats.ApplyOutgoingStressWithModifiers` static helper added (hardcoded Hyped check via `DamageUpFlat` + `statusKey=="hyped"`). `AddStressAction` routes attacker through outgoing helper before calling existing M4.1 `ApplyIncomingStressWithComposure`.
+- **Pass 2 (D10 dispatcher + content + targeting).** New `CharacterActionType.ApplyStatusEffect=11` + `ApplyStatusEffectAction` class + `StatusEffectSO` field on `CharacterActionData` + optional ctor param on `CharacterActionParameters`. New `ActionTargetType.AudienceTall=100` for first-tall-non-self targeting. SOs authored: Cool Dude (3 abilities: Move/Heckle/Indifference, FollowAbilityPattern ON, taste per D12, Vibe goal 25), Kid (Tantrum + Egg Him On targeting AudienceTall, Pattern ON, taste per D13, Vibe goal 10), Hyped (DamageUpFlat, Additive MaxStacks=3, LinearStacks decay PlayerTurnStart). Demo encounter SO: 2×Kid + 1×Cool Dude, configurable songs count.
+
+**Decisions locked:** D10=A (ApplyStatusEffect dispatcher path), D11=A (Cool Dude MaxVibe 25, Kid MaxVibe 10), D12=A (Cool Dude "Block the View" name preserved), D13=A (FollowAbilityPattern ON for both), D14=B (AudienceTall=100 enum value), D-Hyped-key (statusKey="hyped" reserved, no variants), D-DCP-6=A (Indifference blocks ALL incoming Vibe).
+
+**Smoke tests:** ST-B3d-CA-P1-1..4 PASS (Move stepsPerTurn parameterized, Hyped on AddStressAction). ST-B3d-CA-P2-1..8 PASS (D10 dispatcher, Cool Dude ability cycle, Heckle composed Base=2/Modified=3/Absorbed=0/Applied=4, Indifference blocks Vibe via 3 paths, Kid → Hyped on Cool Dude AudienceTall, Hyped=3 amplifies Heckle to Applied=7, full Composure×Hyped×Exposed pipeline composes, encounter outcomes fire).
+
+### Phase B B3 — sub-batch B3-demo-polish — complete (2026-05-17)
+
+Eight UX defects discovered through smoke testing the B3-content-audience demo path. All fixes shipped, F9 partial (replaced by §5.3.5 in next session).
+
+**F1.** `RewardCanvas.BuildReward` defensive guard against empty `cardRewardList` after population. Skips reward UI and immediately finishes if no cards available. `GetCardReward` also clamps `Mathf.Min(amount, pool.Count)`. Decision D-UX1=C.
+
+**F2.** Win/Loss panel Retry + Exit buttons. `GigCanvas` gained 4 SerializeField Button refs + 4 `System.Action` events + 4 `OnClick_*` handlers. `GigManager.LoseGig` and `WinGig` (IsFinalEncounter branch) assign Retry/Exit handlers per flow. Decision D-UX2 (Retry=scene-reload, Exit=main-menu).
+
+**F3+F8.** Escape key + UIManager scene routing. `UIManager` gained `mainMenuSceneIndex` SerializeField + public getter, `Update()` with `Input.GetKeyDown(KeyCode.Escape)` polling + 1Hz diagnostic tick, `HandleEscapeKey` (in-gig → main menu; on main menu → quit), `QuitGame` (Application.Quit + EditorApplication.isPlaying=false in Editor). Decision D-UX3=D (simple ESC; full pause menu deferred).
+
+**F4.** Final-song Vibe conversion. `OnCompositionSessionEnded`'s `SkipAudienceActionsAfterFinalSong` branch was bypassing `AudienceTurnRoutine` entirely, but Vibe conversion lives only there. Now routed through new helper coroutine `RunFinalSongVibeThenEnd` that runs `RunSongVibeResolution` before `ResolveGigOutcomeAndEnd`. Site 1 (legacy MIDI path) and site 2 (live composition) both patched. Decision D-F4=A.
+
+**F5.** `PersistentGameplayData.CurrentSongIndex` carries over scene reload (PD is DontDestroyOnLoad). `HandleRetry` now resets it to 0 before `SceneManager.LoadScene`. Fans/Cohesion/GigsWon preserved across retry (demo-scope decision). Decision D-F5.
+
+**F6.** GigCanvas defensive `lossConfirmButton == lossRetryButton/lossExitButton` same-reference guard in OnEnable/OnDisable. Decision D-F6=C (code defensive + authoring cleanup).
+
+**F7.** `OnClick_LossConfirm` deprecated to no-op + LogWarning. Inspector OnClick UnityEvent wirings bypass the C# AddListener subscription (which F6 already guards); F7 makes the method body itself harmless. Decision D-F7=C.
+
+**F9.** Auto-gig-setup precursor: `GigSetupController.autoStartOnLoad` SerializeField + `Start()` + `AutoStartRoutine()` coroutine that auto-invokes `OnStartPressed` after a 1-frame yield. `UIManager.SkipAutoGigStart` static flag set by `HandleEscapeKey` + `HandleExit` to suppress auto-start when user intentionally returns to main menu. **Note: F9 is an ad-hoc precursor — the proper §5.3.5 Demo cut prep batch replaces this with a `DemoLaunchConfigSO` + `GigDevSettingsSO.autoStartFromDefaults` flag. F9 patches stay in place as a working stopgap.**
+
+**Smoke tests:** ST-B3d-UX-1..13 all PASS (empty pool reward skip, Win/Loss Retry & Exit, ESC in-gig, ESC on main menu quits, Quit button, auto-start, Skip-auto on ESC/Exit return). ST-7/8 verified in Editor (Play Mode stops) and ready for build verification.
+
+**Demo readiness:** Showable. App launches → 1-second GigSetup pass-through → Gig with Sibi + C2 vs 2×Kid + Cool Dude. Full Combat MVP: Stress pipeline (Hyped × Composure × Exposed), 3 Vibe-block paths via Indifference, audience threats (Tantrum, Heckle, Hyped, positional Move), Win/Loss with Retry/Exit, ESC handling, Quit button.
+
+**Known bug-watch (deferred to polish sweep):** audience hover outline not rendering; Kid Tantrum AnimatorTrigger never fires (AbilityRoutine doesn't consume `NextAbility.Animation.AnimatorTrigger`); Indifference + Hyped icon sprites unassigned (statuses apply correctly, glyph missing).
+
 ### Phase A — closed (2026-05-09)
 
 Formal closure of the pre-demo construction phase. Phase A spans the entire project history from Combat MVP (2026-03-23) through M4.6F-4 Stage A and MB4 (2026-05-08). It establishes a working, showable build with a complete combat loop, composition session integration, status effect system, audience pressure system, deck/card authoring pipeline, Dev Mode tooling, and a 2-musician starter deck (Robot C2 + Sibi Gusano).

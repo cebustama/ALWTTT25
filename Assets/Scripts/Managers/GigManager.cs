@@ -85,6 +85,13 @@ namespace ALWTTT.Managers
         [SerializeField] private List<Transform> audienceMemberPosList;
         [SerializeField] private SceneChanger sceneChanger;
 
+        [SerializeField, Tooltip("[§5.3.5] Single spawn anchor for the " +
+            "'+N Vibe!' floating text shown when SFX→FlatVibe fires on a " +
+            "SongHype stage crossing. DC-SFX-Route=A: one band-canvas " +
+            "floater, not per-audience. If unset, falls back to the first " +
+            "band musician's TextSpawnRoot.")]
+        private Transform sfxBonusVibeTextSpawnRoot;
+
         [Header("Dev Slider (scene UI)")]
         [SerializeField] private Slider songHypeDebugSlider;
 
@@ -996,12 +1003,48 @@ namespace ALWTTT.Managers
 
             if (IsGigComplete && flow != null && flow.SkipAudienceActionsAfterFinalSong)
             {
-                // Reaction already happened. Now end without Audience actions.
+                // [B3-demo-polish / F4] Run final-song Vibe conversion before
+                // ending. The reaction wait above is the "audience reacts to song"
+                // animation; this is the actual Vibe delta application.
+                if (_lastSongFeedback.HasValue)
+                {
+                    Debug.Log($"{DebugTag} <color=lime>[F4] Running final-song Vibe " +
+                              $"conversion before gig outcome resolution (site 1).</color>");
+                    yield return RunSongVibeResolution(_lastSongFeedback.Value);
+                    _lastSongFeedback = null;
+                }
+
                 ResolveGigOutcomeAndEnd();
                 yield break;
             }
 
             CurrentGigPhase = GigPhase.AudienceTurn;
+        }
+
+        /// <summary>
+        /// [B3-demo-polish / F4] On the final song with SkipAudienceActionsAfterFinalSong,
+        /// run the song-end Vibe conversion FIRST (so the just-finished song's
+        /// SongHype reaches audience CurrentVibe), THEN resolve the gig outcome.
+        /// Without this, AudienceTurnRoutine is bypassed entirely and the final
+        /// song's Vibe is never applied — causing premature loss declarations
+        /// even when the player would have convinced the audience.
+        /// </summary>
+        private IEnumerator RunFinalSongVibeThenEnd()
+        {
+            if (_lastSongFeedback.HasValue)
+            {
+                Debug.Log($"{DebugTag} <color=lime>[F4] Running final-song Vibe " +
+                          $"conversion before gig outcome resolution.</color>");
+                yield return RunSongVibeResolution(_lastSongFeedback.Value);
+                _lastSongFeedback = null;
+            }
+            else
+            {
+                Debug.LogWarning($"{DebugTag} [F4] No _lastSongFeedback at " +
+                                 $"final-song outcome resolution — Vibe conversion skipped.");
+            }
+
+            ResolveGigOutcomeAndEnd();
         }
 
         private IEnumerator AudienceTurnRoutine()
@@ -1163,6 +1206,11 @@ namespace ALWTTT.Managers
             int penalty = encounter != null ? encounter.CohesionPenaltyOnLoss : 0;
 
             UIManager.GigCanvas.OnLossConfirm = () => ReturnToMap(false);
+
+            // [B3-demo-polish / D-UX2] Wire Retry/Exit buttons on loss panel.
+            UIManager.GigCanvas.OnLossRetry = HandleRetry;
+            UIManager.GigCanvas.OnLossExit = HandleExit;
+
             UIManager.GigCanvas.ShowLoss(
                 title: "Gig Lost",
                 body: "You didn’t convince the crowd this time, but the journey continues.\n" +
@@ -1199,6 +1247,10 @@ namespace ALWTTT.Managers
 
             if (GameManager.PersistentGameplayData.IsFinalEncounter)
             {
+                // [B3-demo-polish / D-UX2] Wire Retry/Exit buttons on win panel.
+                UIManager.GigCanvas.OnWinRetry = HandleRetry;
+                UIManager.GigCanvas.OnWinExit = HandleExit;
+
                 UIManager.GigCanvas.WinPanel.SetActive(true);
             }
             else
@@ -1224,6 +1276,43 @@ namespace ALWTTT.Managers
             }
 
             GameManager.PersistentGameplayData.GigsWon++;
+        }
+
+        // [B3-demo-polish / D-UX2] Routed from GigCanvas.OnWinRetry / OnLossRetry.
+        // Full scene reload. GigRunContext + PersistentGameplayData are
+        // DontDestroyOnLoad so the same encounter config replays from scratch.
+        // [F5] PD.CurrentSongIndex MUST be reset before reload — PD persists
+        // across scene reload, and if CurrentSongIndex carries over from the
+        // just-finished gig, the next gig instantly registers as IsGigComplete
+        // on player turn entry (line 777-803), triggering an auto-loss before
+        // the player can play a card. Resetting CurrentSongIndex=0 puts the
+        // gig back to "fresh start" state. Other PD fields (Fans, BandCohesion,
+        // GigsWon) intentionally NOT reset — Retry preserves earned progress.
+        // IsFinalEncounter stays true (set by GigSetupController A6 patch).
+        private void HandleRetry()
+        {
+            var pd = GameManager.PersistentGameplayData;
+            int previousSongIndex = pd != null ? pd.CurrentSongIndex : -1;
+
+            if (pd != null)
+            {
+                pd.CurrentSongIndex = 0;
+            }
+
+            Debug.Log($"{DebugTag} [B3-demo-polish / F5] HandleRetry → " +
+                      $"PD.CurrentSongIndex reset {previousSongIndex} → 0, " +
+                      $"IsFinalEncounter={pd?.IsFinalEncounter ?? false}. " +
+                      $"Reloading current scene.");
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        // [B3-demo-polish / D-UX2] Routed from GigCanvas.OnWinExit / OnLossExit.
+        // Returns to the main menu / gig setup scene.
+        private void HandleExit()
+        {
+            Debug.Log($"{DebugTag} [B3-demo-polish] HandleExit → returning to main menu.");
+            UIManager.ChangeScene(0); // TODO Use reference id
         }
 
         public void RecalculateAudienceObstructions()
@@ -1552,14 +1641,19 @@ namespace ALWTTT.Managers
 
             var actionPayload = card.ActionPayload;
             if (actionPayload == null) return false;
-            var actionTiming = actionPayload.ActionTiming;
 
-            // During performance we default to disabling action cards in the MVP,
-            // except those explicitly marked as Always (and only if enabled).
+            // During performance we default to disabling action cards in the MVP.
+            // [§5.3.5 demo unblock] When AllowActionCardsDuringPerformance is on,
+            // ALL action cards are playable during performance — the original
+            // Always-tag co-condition is dropped because per-loop-drawn action
+            // cards in the starter deck aren't all tagged Always, and the demo
+            // needs the broad path to keep DrawPerLoop draws useful. Flag-off
+            // semantic unchanged (returns false). Always-specific precision
+            // gating is deferred to a post-demo content batch if needed.
             if (_isSongPlaying)
             {
                 bool allowDuringPerformance = flow != null && flow.AllowActionCardsDuringPerformance;
-                return allowDuringPerformance && actionTiming == CardActionTiming.Always;
+                return allowDuringPerformance;
             }
 
             // If the player already pressed Play, action cards are locked.
@@ -1790,7 +1884,10 @@ namespace ALWTTT.Managers
 
             if (IsGigComplete && flow != null && flow.SkipAudienceActionsAfterFinalSong)
             {
-                ResolveGigOutcomeAndEnd();
+                // [B3-demo-polish / F4] Run Vibe conversion via coroutine before
+                // resolving outcome. Previously called ResolveGigOutcomeAndEnd
+                // directly, which bypassed RunSongVibeResolution entirely.
+                StartCoroutine(RunFinalSongVibeThenEnd());
                 return;
             }
 
@@ -1882,9 +1979,89 @@ namespace ALWTTT.Managers
             if (backgroundContainer != null && !string.IsNullOrEmpty(sfxTag))
                 backgroundContainer.ActivateSFX(sfxTag);
 
+            // [§5.3.5] SFX → FlatVibe bonus. Routes per-audience through
+            // ApplyIncomingVibe (DC-SFX-Route=A): Indifference still blocks
+            // per member, but the floater is a single band-canvas "+N Vibe!"
+            // (not per-audience). Bonus value is flat — bypasses Flow
+            // multiplier — and tuned on GigPresentationSO.
+            ApplySfxBonusVibe(stage);
+
             Debug.Log($"{DebugTag} <color=yellow>[B2 / #6] SongHype stage {stage} " +
                 $"reached (tag='{sfxTag}'). _songHype={_songHype:F2}, " +
                 $"max={(meters != null ? meters.MaxSongHype : 0f):F2}</color>");
+        }
+
+        /// <summary>
+        /// [§5.3.5] Applies the per-stage SFX bonus Vibe (D-DCP-2=A defaults
+        /// 3/6/10). Per DC-SFX-Route=A: each audience member receives +N
+        /// via the canonical <see cref="IAudienceStats.ApplyIncomingVibe"/>
+        /// path, so Indifference stacks still gate per member (D-DCP-6=A).
+        /// A single "+N Vibe!" floating text is spawned at the band-canvas
+        /// anchor (or the first valid musician's TextSpawnRoot as fallback)
+        /// — and only if at least one audience member accepted the bonus
+        /// (avoids a misleading floater when every audience is Indifferent).
+        /// </summary>
+        private void ApplySfxBonusVibe(int stage)
+        {
+            if (presentation == null) return;
+
+            float bonus = presentation.GetSfxBonusVibe(stage);
+            int bonusInt = Mathf.RoundToInt(bonus);
+            if (bonusInt <= 0) return;
+
+            float duration = presentation.BarFillDelay;
+            int membersHit = 0;
+            int membersBlocked = 0;
+
+            foreach (var aud in CurrentAudienceCharacterList)
+            {
+                if (aud == null || aud.AudienceStats == null) continue;
+
+                int applied = aud.AudienceStats.ApplyIncomingVibe(
+                    aud.Statuses, bonusInt, duration: duration);
+
+                if (applied > 0) membersHit++;
+                else membersBlocked++;
+            }
+
+            // One band-canvas floater (per DC-SFX-Route=A "not per-audience").
+            // Suppress when every audience blocked — no useful signal to show.
+            if (membersHit > 0)
+            {
+                Transform spawn = ResolveSfxBonusVibeSpawnRoot();
+                if (spawn != null && FxManager.Instance != null)
+                {
+                    FxManager.Instance.SpawnFloatingText(
+                        spawn,
+                        $"+{bonusInt} Vibe!",
+                        0, 1,
+                        new Color(1f, 0.85f, 0.25f)); // warm gold — distinct from per-audience cyan
+                }
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=yellow>[§5.3.5 / SFX→Vibe] " +
+                    $"Stage {stage}: bonus=+{bonusInt} per-audience; " +
+                    $"hit={membersHit}, blocked={membersBlocked}.</color>");
+        }
+
+        /// <summary>
+        /// [§5.3.5] Resolves the spawn root for the SFX→FlatVibe "+N Vibe!"
+        /// floater. Prefers the serialized inspector field; otherwise falls
+        /// back to the first band musician's <see cref="CharacterBase.TextSpawnRoot"/>.
+        /// Returns null if neither is available (caller suppresses the spawn).
+        /// </summary>
+        private Transform ResolveSfxBonusVibeSpawnRoot()
+        {
+            if (sfxBonusVibeTextSpawnRoot != null)
+                return sfxBonusVibeTextSpawnRoot;
+
+            foreach (var m in CurrentMusicianCharacterList)
+            {
+                if (m != null && m.TextSpawnRoot != null)
+                    return m.TextSpawnRoot;
+            }
+            return null;
         }
 
         /// <summary>

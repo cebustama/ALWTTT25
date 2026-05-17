@@ -1,7 +1,7 @@
 # Roadmap — ALWTTT
 
 **Status:** Planning only — does not define implementation truth  
-**Last updated:** 2026-05-15 (Phase B B2.5 closed; B3 expanded with 2-archetype audience pool + Indifference status; Demo cut prep batch added §5.3.5; Marketing stream / Pitch deck refresh added §6)
+**Last updated:** 2026-05-17 (B3-content-audience closed; B3-demo-polish closed; §5.3.5 Demo cut prep next active batch; B3-content-sibi + B3-content-cards + B3-slate + B3-balance + B3-validation queued)
 **Rule:** This document tracks recommended work sequencing. It does not override subsystem SSoTs or CURRENT_STATE.
 
 ---
@@ -566,7 +566,13 @@ Aditivo, depends on B1. Authoring + design.
 - Indifference + Earworm interaction visible in playtest (Earworm tick suppressed on Indifferent target).
 - Smoke tests ST-B3-S1..S7 (one per item: balance, BPM, modulation, Sibi instrument, Move One Step, Heckle + Exposed, Indifference + ApplyIncomingVibe + Earworm interaction, Egged On buff, encounter integration).
 
+**B3-content-audience CLOSED (2026-05-17).** Cool Dude + Kid + Hyped + demo encounter authored. D10/D14 dispatcher and targeting infrastructure shipped. All 13 smoke tests PASS. See CURRENT_STATE.md §1.
+
+**B3-demo-polish CLOSED (2026-05-17).** Eight UX defects (F1-F9) fixed. Demo flow Main Menu → Gig functional via F9 ad-hoc auto-start. Proper replacement is §5.3.5 (next active batch).
+
 ### 5.3.5 — Demo cut prep (opened 2026-05-15)
+
+**Status (2026-05-17):** Promoted from queued to **next active batch**. Replaces F9 ad-hoc auto-start from B3-demo-polish with proper `DemoLaunchConfigSO` + `GigDevSettingsSO.autoStartFromDefaults` design.
 
 Mini-batch dedicated to wiring the demo build entry path and shipping demo-specific tuning + the SFX→FlatVibe mechanic. Depends on B3 close.
 

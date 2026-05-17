@@ -193,6 +193,47 @@ namespace ALWTTT.Characters.Band
             return (absorbed, remaining);
         }
 
+        /// <summary>
+        /// Applies attacker-side outgoing-Stress modifiers to a base Stress amount
+        /// BEFORE it reaches the receiver-side incoming pipeline. Returns the
+        /// modified amount; no state mutation.
+        ///
+        /// Static because the receiver instance is irrelevant — modifiers come
+        /// from the attacker's container, which may be musician-side or
+        /// audience-side. Symmetric in name + location to
+        /// <see cref="ApplyIncomingStressWithComposure"/> (the receiver-side
+        /// counterpart) without forcing a misleading instance method.
+        ///
+        /// B3 scope: hardcoded Hyped check via DamageUpFlat + StatusKey == "hyped".
+        /// Each Hyped stack adds 1 flat to outgoing Stress. Other DamageUpFlat
+        /// statuses (notably musician-side Flow) are intentionally ignored — Flow's
+        /// outgoing semantics differ and live in the card pipeline.
+        ///
+        /// TODO (post-B3): generalize to an SO-driven outgoing-modifier list so
+        /// new outgoing-Stress modifiers can ship via authoring alone.
+        /// </summary>
+        public static int ApplyOutgoingStressWithModifiers(
+            StatusEffectContainer attackerStatuses,
+            int baseAmount)
+        {
+            if (baseAmount <= 0) return baseAmount;
+            if (attackerStatuses == null) return baseAmount;
+
+            int modified = baseAmount;
+
+            // Hyped (audience-side, B3): each stack adds +1 flat to outgoing Stress.
+            if (attackerStatuses.TryGet(CharacterStatusId.DamageUpFlat, out var hypedInst) &&
+                hypedInst != null && hypedInst.Stacks > 0 &&
+                hypedInst.Definition != null &&
+                string.Equals(hypedInst.Definition.StatusKey, "hyped",
+                    System.StringComparison.OrdinalIgnoreCase))
+            {
+                modified += hypedInst.Stacks;
+            }
+
+            return modified;
+        }
+
 #if ALWTTT_DEV
         /// <summary>
         /// Resets IsBreakdown so a subsequent AddStress reaching MaxStress

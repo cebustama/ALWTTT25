@@ -3,6 +3,43 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-17 — B3-content-audience closure + B3-demo-polish closure
+
+Two B3 sub-batches closed in one working session. Operational doc updates only; deeper SSoT additions (Status_Effects, Audience_and_Reactions, Gig_Combat_Core, Card_System, ssot_manifest invariants) accumulated for B3-validation closure batch later.
+
+B3-content-audience (CLOSED):
+- D10=A audience-ability ApplyStatusEffect dispatcher: new CharacterActionType.ApplyStatusEffect=11, new ApplyStatusEffectAction class, StatusEffectSO field on CharacterActionData + CharacterActionParameters.
+- D14=B ActionTargetType.AudienceTall=100 for first-tall-non-self targeting.
+- D11/D12/D13 Cool Dude (MaxVibe 25, "Block the View" preserved, Pattern ON Move→Heckle→Indifference) + Kid (MaxVibe 10, Pattern ON Tantrum→Egg Him On) authored.
+- Hyped SO authored: DamageUpFlat audience-side, Additive MaxStacks=3, LinearStacks decay PlayerTurnStart, IsBuff=true. D-Hyped-key reserves statusKey="hyped" (no variants).
+- D-DCP-6=A Indifference blocks ALL incoming Vibe (gate, not absorber).
+- BandCharacterStats.ApplyOutgoingStressWithModifiers helper for attacker-side modifiers (Hyped DamageUpFlat).
+- AudienceMoveToFrontAction.stepsPerTurn parameterized.
+- Demo encounter authored: 2×Kid + 1×Cool Dude.
+- 13 smoke tests PASS.
+
+B3-demo-polish (CLOSED):
+- F1: RewardCanvas empty-pool defensive guard (D-UX1=C).
+- F2: Win/Loss panel Retry + Exit buttons + GigManager per-flow handler assignments (D-UX2).
+- F3: ESC key handling via UIManager.Update + HandleEscapeKey (D-UX3=D).
+- F4: Final-song Vibe conversion runs before ResolveGigOutcomeAndEnd (D-F4=A; new RunFinalSongVibeThenEnd coroutine).
+- F5: HandleRetry resets PD.CurrentSongIndex=0 before scene reload (D-F5).
+- F6: GigCanvas lossConfirmButton same-reference defensive subscription guard (D-F6=C).
+- F7: OnClick_LossConfirm deprecated to no-op + LogWarning for Inspector OnClick wirings (D-F7=C).
+- F8: UIManager Update + HandleEscapeKey + QuitGame methods (originally specified in F3, formalized in F8).
+- F9: GigSetupController.autoStartOnLoad + AutoStartRoutine + UIManager.SkipAutoGigStart flag (ad-hoc precursor; superseded by §5.3.5 in next session).
+- 13 smoke tests PASS in Editor (ST-7/8 ready for build verification).
+
+Deferred to B3-validation closure batch:
+- SSoT_Status_Effects.md additions (Indifference NegateIncomingPositive=404, Hyped DamageUpFlat audience-side, CSO primitives list update, audience container tick symmetry).
+- SSoT_Audience_and_Reactions.md §6 taste model promotion, ApplyIncomingVibe canonical documentation.
+- SSoT_Gig_Combat_Core.md outgoing-Stress helper + Vibe routing notes.
+- SSoT_Card_System.md ApplyStatusEffectAction + audience-ability status path.
+- Design_Audience_Status_v1.md §5 supersession banner.
+- ssot_manifest.yaml invariants (ApplyIncomingVibe canonical, audience tick symmetry).
+
+Next active batch: §5.3.5 Demo cut prep (proper DemoLaunchConfigSO replacement of F9 ad-hoc auto-start; SFX→FlatVibe mechanic; tuning; Design_Demo_Cut_v1.md).
+
 2026-05-15 — Planning batches opened: B3 audience pool expansion + Demo cut prep + Pitch deck refresh + Sound design directive
 
 Doc-only batch. Opens two new gameplay-content sub-scopes and one non-governance marketing stream in the roadmap; declares one project-level standing directive. No code, no SSoTs, no contracts, no manifest, no coverage matrix touched.

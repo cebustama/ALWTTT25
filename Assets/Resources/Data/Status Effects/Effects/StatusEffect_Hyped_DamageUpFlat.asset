@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16c425e2848e0024897e2764a0660ebf, type: 3}
-  m_Name: StatusEffect_Indifference_NegateIncomingPositive
+  m_Name: StatusEffect_Hyped_DamageUpFlat
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectSO
-  statusKey: indifference
+  statusKey: hyped
   isDefaultVariant: 0
-  effectId: 404
-  displayName: Indifference
+  effectId: 100
+  displayName: Hyped
   primitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
   stackMode: 0
-  maxStacks: 5
+  maxStacks: 3
   decayMode: 1
   durationTurns: 0
   tickTiming: 8
   valueType: 0
   isBuff: 1
-  iconSprite: {fileID: 21300000, guid: 01ff16a57300e084aae1c70f9c1e34ea, type: 3}
+  iconSprite: {fileID: -4777780482022033070, guid: 8173826f6f2812a4fa958f24682c6b8b, type: 3}
   description: The crowd is riled up. Each stack adds +1 to Stress dealt by this
     audience member; loses 1 stack per Player Turn.

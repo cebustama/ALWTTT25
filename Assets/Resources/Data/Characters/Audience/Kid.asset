@@ -28,8 +28,34 @@ MonoBehaviour:
       actionTargetType: 3
       actionValue: 5
       actionDelay: 1
+      statusEffect: {fileID: 0}
     animation:
       animatorTrigger: Tantrum
       animationDuration: 2
       disableBeatAnimator: 1
-  followAbilityPattern: 0
+  - abilityName: Egg Him On
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 1
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 11
+      actionTargetType: 100
+      actionValue: 1
+      actionDelay: 0
+      statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
+    animation:
+      animatorTrigger: Tantrum
+      animationDuration: 2
+      disableBeatAnimator: 1
+  followAbilityPattern: 1
+  taste:
+    tempoMatchOnFast: 1
+    preferAboveTempoScale: 1
+    tempoMismatchOnSlow: 1
+    dislikeBelowTempoScale: 1
+    roleCountMatchOnRich: 1
+    preferAtLeastRoles: 2
+    preferredTimeSignatures: 
+    dislikedTimeSignatures: 
+    preferredTonalities: 
+    dislikedTonalities: 

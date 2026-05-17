@@ -1,5 +1,6 @@
 using ALWTTT.Cards;
 using ALWTTT.Characters;
+using ALWTTT.Status;
 using UnityEngine;
 
 namespace ALWTTT.Actions
@@ -12,18 +13,27 @@ namespace ALWTTT.Actions
         public readonly CharacterActionContext Context;   // optional, typed
         public readonly float Duration;
 
+        // [B3-content-audience pass2 / D10=A] Carries the SO to apply when
+        // the dispatched action is ApplyStatusEffect. Null for all other actions.
+        // Sourced from CharacterActionData.StatusEffect by AudienceCharacterBase
+        // ExecuteActionWithTiming. Convention: meaningful only when dispatching
+        // CharacterActionType.ApplyStatusEffect.
+        public readonly StatusEffectSO StatusEffect;
+
         public CharacterActionParameters(
             float value,
             CharacterBase performer,
             CharacterBase target,
             CharacterActionContext context = null,
-            float duration = 2f)
+            float duration = 2f,
+            StatusEffectSO statusEffect = null)
         {
             Value = value;
             PerformerCharacter = performer;
             TargetCharacter = target;
             Context = context;
             Duration = duration;
+            StatusEffect = statusEffect;
         }
     }
 

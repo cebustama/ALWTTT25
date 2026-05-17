@@ -321,7 +321,8 @@ namespace ALWTTT.Characters.Audience
 
                 var p = new CharacterActionParameters(
                     action.ActionValue, this, target, ctx,
-                    duration: reactionDuration);
+                    duration: reactionDuration,
+                    statusEffect: action.StatusEffect);
 
                 executor.DoAction(p);
 
@@ -396,6 +397,19 @@ namespace ALWTTT.Characters.Audience
                 case ActionTargetType.AllAudienceCharacters:
                     return new List<CharacterBase>(gm.CurrentAudienceCharacterList);
 
+                case ActionTargetType.AudienceTall:
+                    {
+                        // [D14=B] First non-self tall audience member. Used by
+                        // Kid's "Egg Him On" to target Cool Dude deterministically.
+                        foreach (var a in gm.CurrentAudienceCharacterList)
+                        {
+                            if (a == this) continue;
+                            if (a.IsTall)
+                                return new List<CharacterBase>() { a };
+                        }
+                        return null;
+                    }
+
                 default:
                     return null;
             }
@@ -427,7 +441,8 @@ namespace ALWTTT.Characters.Audience
             {
                 var ctx = new AudienceActionContext();
                 var p = new CharacterActionParameters(
-                    action.ActionValue, this, target, ctx);
+                    action.ActionValue, this, target, ctx,
+                    statusEffect: action.StatusEffect);
 
                 CharacterActionProcessor.GetAction(action.CardActionType).DoAction(p);
             }

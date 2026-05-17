@@ -19,6 +19,11 @@ namespace ALWTTT.Enums
         // Other (movement, etc)
         MoveToFront = 10,
 
+        // [B3-content-audience pass2] SO-based status application from audience abilities.
+        // Audience-side counterpart to the card pipeline's ApplyStatusEffectSpec.
+        // Reads StatusEffectSO from CharacterActionData.StatusEffect; uses ActionValue as stacksDelta.
+        ApplyStatusEffect = 11,
+
         GainInspiration = 100,
         LoseInspiration = 101
     }

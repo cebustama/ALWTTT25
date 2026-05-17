@@ -3593,6 +3593,7 @@ MonoBehaviour:
   setupRoster: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
   flowSettings: {fileID: 11400000, guid: 02e51bab3b739bc498b5d2f0c97ae6e5, type: 2}
   gameplayData: {fileID: 11400000, guid: 99a47ad298ac6ff49bea86ff81cb4817, type: 2}
+  devSettings: {fileID: 11400000, guid: 767ebbe00f02bb44eb7b39a77f8778c4, type: 2}
   bandDeckDropdown: {fileID: 1156047368}
   encounterDropdown: {fileID: 299349930}
   overrideSongsToggle: {fileID: 1184592957}
