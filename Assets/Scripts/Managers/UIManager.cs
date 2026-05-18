@@ -65,13 +65,11 @@ namespace ALWTTT.Managers
             // [F8 diagnostic] Confirm Update runs + ESC detection works.
             if (Time.unscaledTime - _lastUpdateLog > 1f)
             {
-                Debug.Log($"[UIManager] Update tick — listening for ESC.");
                 _lastUpdateLog = Time.unscaledTime;
             }
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                Debug.Log("[UIManager] ESC keydown detected.");
                 HandleEscapeKey();
             }
         }
@@ -149,6 +147,15 @@ namespace ALWTTT.Managers
 
         public IEnumerator Fade(bool isIn)
         {
+            // [§5.3.5] Fix: previous version's `if (timer >= 1f) break;` only
+            // exited on Fade(true). Fade(false) decremented timer from 1 toward
+            // 0 (and negative) without ever hitting the exit condition, so the
+            // coroutine never terminated — it kept writing fader.alpha every
+            // frame until the host MonoBehaviour was destroyed. CanvasGroup
+            // clamping to [0,1] masked the visual effect, but stale Fade(false)
+            // coroutines accumulated across scene transitions and fought live
+            // Fade(true) coroutines, contributing to the messy frame-by-frame
+            // behaviour seen during the auto-start path investigation.
             var waitFrame = new WaitForEndOfFrame();
             var timer = isIn ? 0f : 1f;
 
@@ -158,22 +165,14 @@ namespace ALWTTT.Managers
 
                 fader.alpha = timer;
 
-                if (timer >= 1f) break;
+                if (isIn ? timer >= 1f : timer <= 0f) break;
 
                 yield return waitFrame;
             }
-        }
 
-        /// <summary>
-        /// [§5.3.5 polish] Snap the scene-transition fader to fully opaque
-        /// without animating. Used by GigSetupController in Awake when
-        /// auto-starting from a DemoLaunchConfig, so the picker UI never
-        /// visibly renders during the SceneChanger's ~1s fade-in. The
-        /// scene-entry fade-out then reveals the destination scene normally.
-        /// </summary>
-        public void ShowFaderImmediate()
-        {
-            if (fader != null) fader.alpha = 1f;
+            // Snap to exact endpoint so the CanvasGroup doesn't sit at e.g.
+            // 1.003 / -0.002 indefinitely.
+            fader.alpha = isIn ? 1f : 0f;
         }
     }
 }

@@ -157,9 +157,32 @@ Changing the encounter dropdown rebuilds the audience picker with the new encoun
 ### 7.4 What this section does not own
 The `BandDeckData` asset path (dev/test deck override) is owned by `SSoT_Card_Authoring_Contracts.md`; the legacy and auto-assembly deck paths are owned by `SSoT_Card_System.md`. This section governs **roster identity**, not deck content.
 
-### 7.5 Gig Setup data sources (M4.6F-2)
+### 7.5 Gig launch data sources (M4.6F-2 / §5.3.5 / D-FAST-1=C)
 
-The Gig Setup scene reads from two SOs:
+A gig is launched through `GigLauncher.Launch` (see
+`SSoT_Gig_Combat_Core.md` §13). Three data sources feed it:
+
+1. **Manual picker UI** (`GigSetupController.OnStartPressed`). Reads
+   picker rows + dropdowns + override toggles. Used by dev / production
+   builds and any scenario where the player should configure a run.
+   Authority for picker semantics: `GigSetupRosterSO` (catalogues),
+   `GigFlowSettingsSO` (default values).
+2. **DemoLaunchConfigSO** (`MainMenuController.OnStartPressed` auto-
+   launch branch). Baked SO holding the values that vary per launch:
+   `bandRoster`, `encounter`, `requiredSongCount`, `initialGigInspiration`,
+   `inspirationPerLoop`. Song-shape values (loopsPerPart, partsPerSong)
+   remain content-baked on the canonical `GigFlowSettingsSO` and
+   encounter assets respectively. Used by the demo cut to skip GigSetup
+   entirely.
+3. **LadderRunner** (post-§5.3.5, not yet authored). Will queue per-
+   encounter launch configs and dispatch through GigLauncher with
+   `bandRoster: null` for band carry-over.
+
+All three converge on the same `RunConfig` shape (`GigRunContext.RunConfig`).
+`DemoLaunchConfigSO.ToRunConfig(returnDestination)` is the centralised
+conversion helper that the auto-launch and ladder paths share.
+
+The two SOs underlying the manual path remain unchanged:
 
 - **`GigSetupRosterSO`** — selectable roster content: `AvailableBandDecks`, `AvailableEncounters`, `AvailableAudienceCharacters`, `GenericStarterCatalog`, `MaxAudienceCount`. Renamed from `GigSetupConfigData` in M4.6F-2.
 - **`GigFlowSettingsSO`** — gameplay-flow defaults consumed by the setup screen as fallbacks (`DefaultRequiredSongCount`, `DefaultStartingInspiration`, `DefaultInspirationPerLoop`, `DefaultDiscardHandBetweenTurns`, `DefaultKeepInspirationBetweenTurns`, `AllowOverrideRequiredSongCount`). Authority for these defaults is `SSoT_Gig_Combat_Core` (the same SO carries the gameplay-side rules used at runtime); this section governs their consumption surface inside Gig Setup only.

@@ -3,6 +3,105 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-18 — §5.3.5 Demo cut prep closure (Phase B continued)
+
+Demo build now launches Main Menu → Gig with zero setup interaction.
+Structural refactor extracts a single launch contract (GigLauncher) and
+lays the foundation for ladder mode (post-demo). One mechanical
+addition (SFX→FlatVibe), one playtest-driven unblock (action-card
+performance gate), one latent-bug fix (Fade(false) loop termination),
+one dead-code deletion (GigSetupSceneManager).
+
+Decisions locked (14):
+- **DC-1=C** Quick-start flag locality on GigDevSettingsSO.
+- **DC-2=Custom** Audience pool = 2× Kid + 1× Cool Dude.
+- **DC-3=Custom** 4 songs × 1 part × 4 loops/part + SFX→FlatVibe mechanic.
+- **DC-4=B** Initial Inspiration=3, per-loop=1.
+- **DC-5=B** Batch placement between B3 close and §5.4.
+- **D-DCP-1=A** Dev-side flag locality.
+- **D-DCP-2=A** SFX bonus defaults Stage1=+3, Stage2=+6, Stage3=+10 Vibe.
+- **D-DCP-6=A** Indifference blocks ALL incoming Vibe (preserved invariant).
+- **DC-Scene-1=existing** Main Menu scene already authored.
+- **DC-Scene-2=A** Build order: 0=MainMenu, 1=GigSetup, 2=Gig.
+- **DC-F9-fate=A** Strip F9 entirely; replaced wholesale by GigLauncher.
+- **DC-SFX-Route=A** Per-audience via ApplyIncomingVibe; aggregate band-canvas floater.
+- **D-FAST-1=C** Extract GigLauncher; bypass GigSetup from Main Menu.
+- **D-PLACE-1=A** MainMenuController under `Scripts/UI/` with `ALWTTT.UI` namespace.
+
+Plus DC-Close-S5=(c) DEFERRED — ST-DCP-S5 win-rate validation deferred
+to §5.4 readiness review (folds into §5.4's full clean-run smoke pass).
+
+Code:
+- NEW `Assets/Scripts/Managers/GigLauncher.cs` (~165 lines): static
+  service `Launch(runConfig, bandRoster, setupRoster, flowSettings,
+  isFinalEncounter, sceneChanger, callerTag) → bool`. Atomic launch
+  contract: SetBandRoster (optional) → GigRunContext.BeginRun →
+  PD.ApplyRunConfig → IsFinalEncounter assign → sceneChanger.OpenGigScene.
+- NEW `Assets/Scripts/UI/MainMenuController.cs` (~120 lines): scene
+  controller. `OnStartPressed` branches between `TryAutoLaunch` (reads
+  GigDevSettings + DemoLaunchConfig, calls GigLauncher) and fallback to
+  `SceneChanger.OpenGigSetupScene`. `OnQuitPressed` → UIManager.QuitGame.
+- NEW `Assets/Scripts/Data/Gig/DemoLaunchConfigSO.cs` (~175 lines):
+  baked SO with bandRoster (List<MusicianBase>), encounter
+  (GigEncounterSO), requiredSongCount, initialGigInspiration,
+  inspirationPerLoop. Provides `ToRunConfig(returnDestination)`,
+  `ResolvedBandRoster`, `IsValid(out reason)`.
+- MODIFIED `GigDevSettingsSO.cs`: +`autoStartFromDefaults` bool,
+  +`demoLaunchConfig` SO reference.
+- MODIFIED `GigPresentationSO.cs`: +`sfxBonusVibeStage{1,2,3}` floats
+  (defaults 3/6/10), +`GetSfxBonusVibe(stage)`.
+- MODIFIED `GigManager.cs`: +`sfxBonusVibeTextSpawnRoot` SerializeField
+  (with first-musician-TextSpawnRoot fallback), +`ApplySfxBonusVibe(stage)`,
+  +`ResolveSfxBonusVibeSpawnRoot()`. `FireSongHypeStage` now invokes
+  `ApplySfxBonusVibe` after `backgroundContainer.ActivateSFX`.
+  `CanPlayActionCard` performance gate relaxed: returns
+  `flow.AllowActionCardsDuringPerformance` (dropped
+  `&& actionTiming == CardActionTiming.Always` co-condition).
+- MODIFIED `GigSetupController.cs`: −all auto-start scaffolding
+  (Awake-blackening, WillAutoStart, Start, AutoStartRoutine,
+  ApplyDemoLaunchConfigAndStart, devSettings SerializeField).
+  OnStartPressed launch tail (≈100 lines) extracted to GigLauncher.Launch.
+  Net −130 lines.
+- MODIFIED `UIManager.cs`: Fade(false) loop exit condition fixed
+  (`isIn ? timer >= 1f : timer <= 0f` + endpoint snap). Latent bug:
+  Fade(false) coroutine never terminated, accumulated across scene
+  transitions; visually masked by CanvasGroup clamping but contributed
+  to the auto-start path's messy frame-by-frame timing observed during
+  D-FAST-1 investigation. `ShowFaderImmediate` (briefly added then
+  reverted as D-FAST-1=C made it redundant) absent from final shape.
+- DELETED `Assets/Scripts/Managers/GigSetupSceneManager.cs`: empty
+  class, surfaced during file-tree review.
+
+Smoke tests (10 total):
+- ST-DCP-S1 (auto-entry zero-click): PASS.
+- ST-DCP-S2 (encounter wiring): PASS.
+- ST-DCP-S3 (SFX→FlatVibe stage crossings): PASS.
+- ST-DCP-S4 (Indifference gating): PASS.
+- ST-DCP-S5 (win-rate validation): DEFERRED to §5.4 readiness review per DC-Close-S5=(c).
+- ST-DCP-S6 (action-card unblock): PASS.
+- ST-DCP-S7 (Awake-blackening flicker): OBSOLETED — superseded by ST-DCP-S8 after D-FAST-1=C.
+- ST-DCP-S8 (auto-launch through GigLauncher): PASS.
+- ST-DCP-S9 (manual GigSetup regression): PASS.
+- ST-DCP-S10 (Fade(false) termination): PASS.
+
+Planning doc shipped: `Design_Demo_Cut_v1.md` (coverage matrix + scope +
+rationale). §1.2 entry-path diagram replaced with two-scene flow at
+applied closure. §3.2 replaced wholesale (Launch architecture —
+GigLauncher) + new §3.4 (Action-card mid-performance unblock). §2
+coverage cells preserved as `[verify]` pending §5.4 ST-DCP-S5
+absorption.
+
+Authority change: GigLauncher establishes a new single-entry-point
+contract for non-Gig→Gig scene transitions (recorded in
+`ssot_manifest.yaml` as a hard invariant on Gig_Combat_Core). SFX→FlatVibe
+routing through ApplyIncomingVibe recorded as a second hard invariant
+on the same entry.
+
+Next batch: §5.4 Demo readiness review. Ladder mode opens as the next
+architectural batch after §5.4 closes.
+
+---
+
 2026-05-17 — B3-content-audience closure + B3-demo-polish closure
 
 Two B3 sub-batches closed in one working session. Operational doc updates only; deeper SSoT additions (Status_Effects, Audience_and_Reactions, Gig_Combat_Core, Card_System, ssot_manifest invariants) accumulated for B3-validation closure batch later.

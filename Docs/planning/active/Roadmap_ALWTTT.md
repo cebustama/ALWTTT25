@@ -1,7 +1,7 @@
 # Roadmap — ALWTTT
 
 **Status:** Planning only — does not define implementation truth  
-**Last updated:** 2026-05-17 (B3-content-audience closed; B3-demo-polish closed; §5.3.5 Demo cut prep next active batch; B3-content-sibi + B3-content-cards + B3-slate + B3-balance + B3-validation queued)
+**Last updated:** 2026-05-18 (§5.3.5 Demo cut prep closed; §5.4 Demo readiness review next active batch; ladder mode foreshadowed in Future Milestones; B3-content-sibi + B3-content-cards + B3-slate + B3-balance + B3-validation queued)
 **Rule:** This document tracks recommended work sequencing. It does not override subsystem SSoTs or CURRENT_STATE.
 
 ---
@@ -570,7 +570,9 @@ Aditivo, depends on B1. Authoring + design.
 
 **B3-demo-polish CLOSED (2026-05-17).** Eight UX defects (F1-F9) fixed. Demo flow Main Menu → Gig functional via F9 ad-hoc auto-start. Proper replacement is §5.3.5 (next active batch).
 
-### 5.3.5 — Demo cut prep (opened 2026-05-15)
+### 5.3.5 — Demo cut prep (opened 2026-05-15) ✅ CLOSED (2026-05-18)
+
+**Closure notes (2026-05-18):** Shipped end-to-end with one architectural pivot: D-FAST-1=C replaced the original three-scene plan (Main Menu → invisible GigSetup pass-through → Gig) with a two-scene flow (Main Menu → Gig direct via new `GigLauncher` extraction). Demo build entry is now zero clicks from launch to action window of song 1, single fade cycle, no flicker. New code: `GigLauncher.cs` (static service, single non-Gig→Gig scene transition entry point), `MainMenuController.cs` (auto-launch branching), `DemoLaunchConfigSO.cs` (baked demo config). SFX→FlatVibe mechanic shipped per DC-SFX-Route=A (per-audience via `ApplyIncomingVibe`, Indifference still blocks; aggregate band-canvas floater). `CanPlayActionCard` performance gate relaxed (per-loop-drawn action cards now playable mid-composition regardless of `CardActionTiming` tag). `UIManager.Fade(false)` latent loop-termination bug fixed. F9 ad-hoc precursor (from B3-demo-polish) replaced wholesale. Empty `GigSetupSceneManager.cs` deleted. Smoke tests ST-DCP-S1/S2/S3/S4/S6/S8/S9/S10 PASS; ST-DCP-S7 OBSOLETED (superseded by ST-DCP-S8 after D-FAST-1=C); **ST-DCP-S5 win-rate validation DEFERRED to §5.4 readiness review** per DC-Close-S5=(c) — folds into §5.4's full clean-run smoke pass. Decisions locked (14): DC-1=C, DC-2=Custom, DC-3=Custom, DC-4=B, DC-5=B, D-DCP-1=A, D-DCP-2=A, D-DCP-6=A, DC-Scene-1=existing, DC-Scene-2=A, DC-F9-fate=A, DC-SFX-Route=A, D-FAST-1=C, D-PLACE-1=A. Authority change: `GigLauncher` establishes new single-entry-point contract recorded as hard invariant on `ssot_manifest.yaml` Gig_Combat_Core entry. `SSoT_Gig_Combat_Core.md` new §13 (Launch contract) + §5.2 SFX→FlatVibe paragraph; `SSoT_Gig_Encounter.md` §7.5 restructured (Gig launch data sources, three-source enumeration); `SSoT_Card_System.md` §9.1 performance-gate note. Foundation for ladder mode (post-§5.4 architectural batch) laid by `GigLauncher` extraction.
 
 **Status (2026-05-17):** Promoted from queued to **next active batch**. Replaces F9 ad-hoc auto-start from B3-demo-polish with proper `DemoLaunchConfigSO` + `GigDevSettingsSO.autoStartFromDefaults` design.
 
@@ -724,6 +726,10 @@ Long-term design pillar, deferred. Captured in `planning/Design_Tempo_Identity_v
 ---
 
 ## Future milestones (scope only, not yet sequenced)
+
+### Ladder mode (post-demo architectural batch)
+
+Multi-encounter run mode that queues encounters and dispatches them through `GigLauncher` (single non-Gig→Gig scene transition entry point established by §5.3.5). Introduces `LadderRunner` (DontDestroyOnLoad, encounter-queue holder, gig-won event subscriber) and an `EncounterLaunchConfigSO` family (`DemoLaunchConfigSO` sibling, per-encounter, designed for queuing). Band roster carries over between encounters via `bandRoster: null` to `GigLauncher.Launch` (signature already supports this path). Enables tuning of multi-gig mechanics: Cohesion, card rewards, deck modifications across encounters. Opens after §5.4 closes.
 
 ### Roster Expansion
 - Bring Conito (bassist — flight + electricity) into the band. Prerequisite: Bass pipeline validation (currently not on any critical path).

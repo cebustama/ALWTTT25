@@ -130,6 +130,17 @@ Rules:
 - is derived from LoopScore conversion
 - measures structural musical strength, not audience taste directly
 
+**SFX→FlatVibe hook (§5.3.5).** On each upward stage crossing,
+`FireSongHypeStage` invokes `ApplySfxBonusVibe(stage)` immediately after
+`BackgroundContainer.ActivateSFX`. The per-stage bonus value (configured
+on `GigPresentationSO.sfxBonusVibeStage{1,2,3}`, defaults 3/6/10) is
+applied per-audience-member through `AudienceCharacterStats.ApplyIncomingVibe`,
+so Indifference still blocks per-member (consistent with the Indifference
+invariant in §5.3). A single aggregate "+N Vibe!" floating text spawns at
+`GigManager.sfxBonusVibeTextSpawnRoot` (with first-musician-TextSpawnRoot
+fallback). The bonus is FLAT — it bypasses the Flow multiplier; "post-Flow"
+in the §5.3.5 spec refers to bonus magnitude not temporal ordering.
+
 ### 5.3 Vibe
 **Owner:** each audience member.
 
@@ -374,5 +385,39 @@ These can exist as planning/reference material without overriding this SSoT.
 Scene-instance references (cameras, hand, composition UI, position lists, scene changer, MidiGenPlayConfig boundary, songHypeDebugSlider, background container) remain inline-serialized on `GigManager` — they cannot be assets.
 
 Façade properties on `GigManager` (`FlowActionFlatBonus`, `FlowActionVibeBonusPerStack`, `FlowVibeMultiplier`, `BreakdownStressResetFraction`) are preserved for callers written before F-2 and now delegate to `MeterTuningSO`.
+
+---
+
+## 13. Launch contract (§5.3.5 / D-FAST-1=C)
+
+A gig is initiated by exactly one code path: `GigLauncher.Launch` (static
+service under `Assets/Scripts/Managers/GigLauncher.cs`). Three callers
+exist or are planned:
+
+1. **Manual GigSetup** — `GigSetupController.OnStartPressed` builds a
+   `RunConfig` from picker UI state and dispatches.
+2. **Main Menu auto-launch** — `MainMenuController.OnStartPressed` reads
+   `GigDevSettingsSO.AutoStartFromDefaults` and a wired
+   `DemoLaunchConfigSO`, converts the SO to a `RunConfig` via
+   `DemoLaunchConfigSO.ToRunConfig`, and dispatches. Bypasses GigSetup
+   entirely for the demo cut (single fade cycle MainMenu → Gig).
+3. **LadderRunner** (post-§5.3.5) — multi-encounter ladder mode that
+   dequeues per-encounter launch configs and dispatches one at a time,
+   passing `bandRoster: null` so the band carries over between
+   encounters.
+
+GigLauncher's responsibilities (atomic):
+- Apply `bandRoster` to `PersistentGameplayData.SetBandRoster` (skipped
+  if null/empty — supports inter-encounter band carry-over).
+- Ensure `GigRunContext` singleton; call `BeginRun(runConfig)`.
+- Call `PersistentGameplayData.ApplyRunConfig`.
+- Set `PersistentGameplayData.IsFinalEncounter = isFinalEncounter` (B3-
+  demo-polish A6 hack carrier; removed when meta-progression sectors land).
+- Navigate via `SceneChanger.OpenGigScene`.
+
+Failure mode: GigLauncher returns `bool`. Callers treat `false` as
+"launch did not happen" and decide whether to fall through (e.g.
+MainMenuController falls through to manual GigSetup on auto-launch
+failure).
 
 `SSoT_Scoring_and_Meters` retains semantic authority for the meter-stack contract; this section governs only where the values are authored.

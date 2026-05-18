@@ -240,6 +240,16 @@ Canonical sequence:
 4. each effect is interpreted by the runtime branch in `ExecuteEffects`
 5. the card moves to the appropriate post-play state (discard/exhaust)
 
+**Performance-time playability gate (§5.3.5 demo unblock).** Action cards
+played during composition performance are gated by
+`GigFlowSettingsSO.allowActionCardsDuringPerformance`. As of §5.3.5, when
+this flag is ON, **all** action cards in hand become playable during
+performance — the prior `CardActionTiming.Always`-only co-condition was
+relaxed because per-loop-drawn action cards in the starter deck aren't
+all tagged `Always`, and the demo cut needs the broad path. The `Always`
+enum value remains in `CardActionTiming` for future precision-gating
+needs but does not load-bear in the current gate logic.
+
 ### 9.2 Composition cards
 Canonical MVP sequence:
 1. player plays a composition card

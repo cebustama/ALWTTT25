@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16a29c44717574d43ac773320ce7ad84, type: 3}
   m_Name: GigDevSettings
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigDevSettingsSO
-  useLogs: 1
+  useLogs: 0
   useCompositionLogs: 0
   debugSongHype: 0
   debugInstrumentPicker: 0

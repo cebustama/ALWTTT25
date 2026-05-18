@@ -31,12 +31,6 @@ namespace ALWTTT.UI
          "GameManager.GameplayData if unset.")]
         [SerializeField] private GameplayData gameplayData;
 
-        [SerializeField, Tooltip("[§5.3.5] Dev settings asset. Read in Start() " +
-            "to decide whether to auto-launch with DemoLaunchConfig (demo " +
-            "build) or fall through to manual picker UI (dev / production). " +
-            "If null, auto-start is suppressed silently.")]
-        private GigDevSettingsSO devSettings;
-
         [Header("UI")]
         [SerializeField] private TMP_Dropdown bandDeckDropdown;
         [SerializeField] private TMP_Dropdown encounterDropdown;
@@ -90,16 +84,6 @@ namespace ALWTTT.UI
 
         private void Awake()
         {
-            // [§5.3.5 polish] If this scene-load will auto-start straight into
-            // the gig, pre-blacken the screen BEFORE pickers build + render.
-            // The SceneChanger.OpenGigScene fade-in (~1s on fadeSpeed=1) then
-            // runs invisible (alpha already 1), and the scene-entry fade-out
-            // reveals the Gig scene normally. UIManager survives via
-            // DontDestroyOnLoad from the Main Menu scene, so its singleton is
-            // guaranteed non-null here when running the demo build flow.
-            if (WillAutoStart())
-                UIManager.Instance?.ShowFaderImmediate();
-
             if (sceneChanger == null)
                 sceneChanger = FindFirstObjectByType<SceneChanger>();
 
@@ -117,202 +101,6 @@ namespace ALWTTT.UI
             if (backButton != null) backButton.onClick.AddListener(OnBackPressed);
         }
 
-        // ----------------------------------------------------------------------
-        // [§5.3.5] Demo auto-start
-        // ----------------------------------------------------------------------
-
-        /// <summary>
-        /// [§5.3.5 polish] Pre-Start predicate: will <see cref="Start"/> route
-        /// to the auto-start path? Called from <see cref="Awake"/> so the
-        /// fader can be pre-blackened before pickers visibly render. Mirrors
-        /// the gating in Start exactly — any divergence here would either
-        /// leave the screen stuck black (predicate true, Start fails) or let
-        /// pickers flicker (predicate false, Start succeeds).
-        /// </summary>
-        private bool WillAutoStart()
-        {
-            if (devSettings == null) return false;
-            if (!devSettings.AutoStartFromDefaults) return false;
-            var demo = devSettings.DemoLaunchConfig;
-            if (demo == null) return false;
-            return demo.IsValid(out _);
-        }
-
-        /// <summary>
-        /// [§5.3.5] After Awake builds the pickers, check whether the demo
-        /// auto-start switch is on. If both <see cref="GigDevSettingsSO.AutoStartFromDefaults"/>
-        /// is true AND a <see cref="DemoLaunchConfigSO"/> is wired on the dev
-        /// settings asset, bypass the picker UI and immediately route to the
-        /// gig with the baked DemoLaunchConfig values.
-        ///
-        /// Production builds keep AutoStartFromDefaults OFF — manual GigSetup
-        /// interaction is preserved through the normal startButton/OnStartPressed
-        /// path. Per DC-1=C.
-        /// </summary>
-        private void Start()
-        {
-            if (devSettings == null) return;
-            if (!devSettings.AutoStartFromDefaults) return;
-
-            var demo = devSettings.DemoLaunchConfig;
-            if (demo == null)
-            {
-                Debug.LogWarning(
-                    "[GigSetup §5.3.5] AutoStartFromDefaults is ON but " +
-                    "DemoLaunchConfig is unset on GigDevSettings. " +
-                    "Falling back to manual picker UI.");
-                return;
-            }
-
-            if (!demo.IsValid(out string reason))
-            {
-                Debug.LogError(
-                    $"[GigSetup §5.3.5] DemoLaunchConfig is invalid: {reason} " +
-                    "Falling back to manual picker UI.");
-                return;
-            }
-
-            // One-frame delay so any other Start()s in the scene complete first
-            // (GameManager wiring, etc). Mirrors the deferred-invoke pattern that
-            // F9 used as a stopgap; the new path replaces F9's local field with
-            // an SO-driven gate.
-            StartCoroutine(AutoStartRoutine(demo));
-        }
-
-        private System.Collections.IEnumerator AutoStartRoutine(DemoLaunchConfigSO demo)
-        {
-            yield return null; // wait one frame
-            ApplyDemoLaunchConfigAndStart(demo);
-        }
-
-        /// <summary>
-        /// [§5.3.5] Single-shot demo launch. Bypasses the picker UI entirely:
-        /// reads roster + encounter + tuning from <paramref name="demo"/>,
-        /// builds the RunConfig, applies to PersistentGameplayData, navigates
-        /// to GigScene.
-        ///
-        /// Intentionally duplicates the RunConfig-assembly tail of OnStartPressed
-        /// rather than refactoring a shared helper, to keep §5.3.5 a minimal
-        /// additive change. Consolidation to a shared LaunchGigWithConfig helper
-        /// is a post-demo refactor candidate.
-        /// </summary>
-        private void ApplyDemoLaunchConfigAndStart(DemoLaunchConfigSO demo)
-        {
-            Debug.Log($"[GigSetup §5.3.5] Auto-start engaged. " +
-                $"DemoConfig='{demo.name}', BandRoster={demo.BandRoster.Count}, " +
-                $"Encounter='{demo.Encounter.GetLabel()}', " +
-                $"RequiredSongs={demo.RequiredSongCount}, " +
-                $"InitialInspiration={demo.InitialGigInspiration}, " +
-                $"InspirationPerLoop={demo.InspirationPerLoop}");
-
-            if (setupRoster == null || flowSettings == null)
-            {
-                Debug.LogError(
-                    "[GigSetup §5.3.5] Missing GigSetupRoster or GigFlowSettings. " +
-                    "Auto-start aborted.");
-                return;
-            }
-
-            var gameManager = GameManager.Instance;
-            if (gameManager == null)
-            {
-                Debug.LogError("[GigSetup §5.3.5] GameManager.Instance is null.");
-                return;
-            }
-            var persistentData = gameManager.PersistentGameplayData;
-            if (persistentData == null)
-            {
-                Debug.LogError("[GigSetup §5.3.5] PersistentGameplayData is null.");
-                return;
-            }
-
-            // --- Band roster (auto-assembly path, mirrors the toggle=true branch
-            // of OnStartPressed). Bypasses the BandDeckData asset. ---
-            var roster = new List<MusicianBase>(demo.BandRoster.Count);
-            foreach (var m in demo.BandRoster)
-                if (m != null) roster.Add(m);
-
-            if (roster.Count == 0)
-            {
-                Debug.LogError("[GigSetup §5.3.5] DemoLaunchConfig.BandRoster " +
-                    "resolved to 0 valid musicians. Auto-start aborted.");
-                return;
-            }
-            persistentData.SetBandRoster(roster);
-
-            // --- Encounter (audience baked on the encounter asset; no override). ---
-            var selectedEncounter = demo.Encounter.BuildRuntime(audienceOverride: null);
-            if (selectedEncounter == null)
-            {
-                Debug.LogError(
-                    "[GigSetup §5.3.5] Failed to build runtime GigEncounter " +
-                    $"from '{demo.Encounter.name}'. Auto-start aborted.");
-                return;
-            }
-
-            // --- GigRunContext singleton (matches OnStartPressed pattern). ---
-            var runContext = GigRunContext.Instance;
-            if (runContext == null)
-            {
-                var go = new GameObject("GigRunContext");
-                runContext = go.AddComponent<GigRunContext>();
-            }
-
-            // --- Deck label (auto-assembly idParts format, matches OnStartPressed). ---
-            var idParts = new List<string>(roster.Count);
-            for (int i = 0; i < roster.Count; i++)
-            {
-                var m = roster[i];
-                if (m == null || m.MusicianCharacterData == null) continue;
-                idParts.Add(m.MusicianCharacterData.CharacterId);
-            }
-            string deckLabel = idParts.Count > 0
-                ? "<auto:" + string.Join("+", idParts) + ">"
-                : "<auto:<empty>>";
-
-            // --- Build RunConfig with demo overrides. ---
-            var runConfig = new GigRunContext.RunConfig
-            {
-                bandDeck = null,
-                useMusicianStarters = true,
-                deckLabel = deckLabel,
-                encounter = selectedEncounter,
-                audienceOverride = null,
-
-                overrideRequiredSongCount = true,
-                requiredSongCount = demo.RequiredSongCount,
-
-                overrideInitialGigInspiration = true,
-                initialGigInspiration = demo.InitialGigInspiration,
-
-                overrideInspirationPerLoop = true,
-                inspirationPerLoop = demo.InspirationPerLoop,
-
-                overrideDiscardHandBetweenTurns = false,
-                discardHandBetweenTurns = false,
-
-                overrideKeepInspirationBetweenTurns = false,
-                keepInspirationBetweenTurns = false,
-
-                returnDestination = GigReturnDestination.GigSetup
-            };
-
-            runContext.BeginRun(runConfig);
-            persistentData.ApplyRunConfig(runConfig, setupRoster, flowSettings);
-
-            // [B3-demo-polish / A6] Demo build is single-encounter — force the
-            // WinGig branch through the WinPanel (Retry/Exit) instead of the
-            // mid-run reward → ReturnToMap flow. Same hack as OnStartPressed.
-            persistentData.IsFinalEncounter = true;
-
-            // --- Navigate. ---
-            if (sceneChanger == null)
-            {
-                Debug.LogError("[GigSetup §5.3.5] SceneChanger reference missing.");
-                return;
-            }
-            sceneChanger.OpenGigScene();
-        }
 
         // ----------------------------------------------------------------------
         // Dropdowns (existing)
@@ -650,24 +438,10 @@ namespace ALWTTT.UI
                 return;
             }
 
-            var gameManager = GameManager.Instance;
-            if (gameManager == null)
-            {
-                Debug.LogError("[GigSetup] GameManager.Instance is null.");
-                return;
-            }
+            // [§5.3.5 / D-FAST-1=C] GameManager + PersistentGameplayData null-checks
+            // moved into GigLauncher.Launch (single launch site owns validation).
+            // OnStartPressed no longer reads from PD before dispatching.
 
-            var persistentData = gameManager.PersistentGameplayData;
-            if (persistentData == null)
-            {
-                Debug.LogError("[GigSetup] PersistentGameplayData is null.");
-                return;
-            }
-
-            // M4.6-prep merged (1)/(4): apply band picker selection to pd.MusicianList
-            // BEFORE the auto-assembly path runs. SetBandRoster handles roster
-            // identity (MusicianList, AvailableMusiciansList, health, gameplay data)
-            // without touching cards.
             var pickedMusicians = GetSelectedMusicians();
             int bandCount = pickedMusicians.Count;
 
@@ -693,7 +467,11 @@ namespace ALWTTT.UI
                     $"Continuing.");
             }
 
-            persistentData.SetBandRoster(pickedMusicians);
+            // [§5.3.5 / D-FAST-1=C] SetBandRoster moved into GigLauncher.Launch
+            // (single launch site). pickedMusicians flows there via the
+            // bandRoster parameter. No state change to pd.MusicianList happens
+            // here — the picker selection is captured in `pickedMusicians` and
+            // applied atomically inside GigLauncher.
 
             // M4.6-prep merged (1)/(4): audience picker results + override decision.
             var pickedAudience = GetSelectedAudience();
@@ -733,18 +511,18 @@ namespace ALWTTT.UI
                 return;
             }
 
-            // Auto-assembly empty-roster guard (kept for defense in depth even though
-            // SetBandRoster has already populated MusicianList).
+            // Auto-assembly empty-roster guard. References pickedMusicians directly
+            // since SetBandRoster has been moved into GigLauncher.Launch — this
+            // runs before the launch dispatch, so pd.MusicianList isn't yet
+            // populated for this run.
             if (useAutoAssembly)
             {
-                if (persistentData.MusicianList == null ||
-                    persistentData.MusicianList.Count == 0)
+                if (pickedMusicians == null || pickedMusicians.Count == 0)
                 {
                     Debug.LogError(
-                        "[GigSetup] Auto-assembly enabled but " +
-                        "PersistentGameplayData.MusicianList is empty " +
-                        "after SetBandRoster. This should not happen; " +
-                        "investigate picker pipeline.");
+                        "[GigSetup] Auto-assembly enabled but pickedMusicians " +
+                        "is empty. This should not happen given BandMinCount " +
+                        "validation above; investigate picker pipeline.");
                     return;
                 }
             }
@@ -753,11 +531,10 @@ namespace ALWTTT.UI
             string deckLabel;
             if (useAutoAssembly)
             {
-                var roster = persistentData.MusicianList;
-                var idParts = new List<string>(roster.Count);
-                for (int i = 0; i < roster.Count; i++)
+                var idParts = new List<string>(pickedMusicians.Count);
+                for (int i = 0; i < pickedMusicians.Count; i++)
                 {
-                    var m = roster[i];
+                    var m = pickedMusicians[i];
                     if (m == null || m.MusicianCharacterData == null) continue;
                     idParts.Add(m.MusicianCharacterData.CharacterId);
                 }
@@ -768,14 +545,6 @@ namespace ALWTTT.UI
             else
             {
                 deckLabel = selectedDeck != null ? selectedDeck.name : "<no-deck>";
-            }
-
-            // --- Ensure GigRunContext exists ---
-            var runContext = GigRunContext.Instance;
-            if (runContext == null)
-            {
-                var go = new GameObject("GigRunContext");
-                runContext = go.AddComponent<GigRunContext>();
             }
 
             // --- Build run configuration ---
@@ -838,26 +607,18 @@ namespace ALWTTT.UI
                 returnDestination = GigReturnDestination.GigSetup
             };
 
-            // --- Store run context (debug / resolution layer) ---
-            runContext.BeginRun(runConfig);
-
+            // [§5.3.5 / D-FAST-1=C] Single launch site. GigLauncher absorbs:
+            // - SetBandRoster(pickedMusicians)
+            // - GigRunContext.Instance creation + BeginRun(runConfig)
+            // - PersistentGameplayData.ApplyRunConfig(...)
+            // - IsFinalEncounter = true (B3-demo-polish A6 hack carrier)
+            // - sceneChanger.OpenGigScene()
+            //
+            // Manual GigSetup path is single-encounter for the same reason as
+            // the demo build (no meta-progression sectors yet), so passes
+            // isFinalEncounter: true. Refine when sectors land.
             Debug.Log(
-                $"[GigSetup] Stored RunConfig | " +
-                $"RunContextId={runContext.GetInstanceID()} | " +
-                $"ReturnDest={runConfig.returnDestination}"
-            );
-
-            // --- Apply ALL gameplay state atomically ---
-            persistentData.ApplyRunConfig(runConfig, setupRoster, flowSettings);
-
-            // [B3-demo-polish / A6] Demo build is single-encounter. Force IsFinalEncounter=true
-            // so WinGig routes to the WinPanel branch (which has Retry/Exit) instead of the
-            // mid-run RewardCanvas → ReturnToMap flow. Remove this when meta-progression
-            // sectors / multi-encounter runs are wired.
-            persistentData.IsFinalEncounter = true;
-
-            Debug.Log(
-                $"[GigSetup] Starting gig | " +
+                $"[GigSetup] Dispatching to GigLauncher | " +
                 $"Deck={runConfig.deckLabel}, " +
                 $"AutoAssembly={useAutoAssembly}, " +
                 $"Band={bandCount} musicians, " +
@@ -868,14 +629,14 @@ namespace ALWTTT.UI
                 $"KeepInspiration={runConfig.keepInspirationBetweenTurns}"
             );
 
-            // --- Navigate ---
-            if (sceneChanger == null)
-            {
-                Debug.LogError("[GigSetup] SceneChanger reference is missing.");
-                return;
-            }
-
-            sceneChanger.OpenGigScene();
+            GigLauncher.Launch(
+                runConfig: runConfig,
+                bandRoster: pickedMusicians,
+                setupRoster: setupRoster,
+                flowSettings: flowSettings,
+                isFinalEncounter: true,
+                sceneChanger: sceneChanger,
+                callerTag: "GigSetup");
         }
 
         private static bool DiffersFromEncounterAudience(

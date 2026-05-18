@@ -8,6 +8,7 @@
 |   +---CardActions
 |   |   +---AddStressAction.cs
 |   |   +---AddVibeAction.cs
+|   |   +---ApplyStatusEffectAction.cs
 |   |   +---AudienceMoveToFrontAction.cs
 |   |   +---BlockStressAction.cs
 |   |   +---BlockVibeAction.cs
@@ -125,7 +126,12 @@
 |   +---Events
 |   |   \---RandomEventData.cs
 |   +---Gig
-|   |   \---GigSetupConfigData.cs
+|   |   +---DemoLaunchConfigSO.cs
+|   |   +---GigDevSettingsSO.cs
+|   |   +---GigFlowSettingsSO.cs
+|   |   +---GigPresentationSO.cs
+|   |   +---GigSetupRosterSO.cs
+|   |   \---MeterTuningSO.cs
 |   +---SectorMap
 |   |   +---Configs
 |   |   |   +---NodeTypeData.cs
@@ -138,7 +144,8 @@
 |   |   +---SerializableCardInventory.cs
 |   |   \---SerializableStringIntDictionary.cs
 |   +---UI
-|   \---ALWTTTProjectRegistriesSO.cs
+|   +---ALWTTTProjectRegistriesSO.cs
+|   \---CompositionFxConfigSO.cs
 +---DevMode
 |   +---DevCardCatalogueTab.cs
 |   +---DevModeController.cs
@@ -278,13 +285,15 @@
 |   +---GigCanvas.cs
 |   +---GigSetupController.cs
 |   +---HealthBarController.cs
+|   +---MinicardTooltipController.cs
 |   +---MusicianMapStatusUI.cs
 |   +---MusicianPickerRow.cs
 |   +---MusicianUI.cs
 |   +---NewSongPanelUI.cs
 |   +---RewardContainer.cs
 |   +---StatusIconBase.cs
-|   \---TempoTextIndicator.cs
+|   +---TempoTextIndicator.cs
+|   \---UIPulseAnimator.cs
 +---Utils
 |   +---ButtonSoundPlayer.cs
 |   +---CoreLoader.cs
