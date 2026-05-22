@@ -3,6 +3,115 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-22 — B3-content-cards closure
+
+**Semantic changes.**
+- `Design_Demo_Cut_v1.md §2.3` — Tempo, Tonality, and Modal-contrast coverage cells flipped to ✓; "Known interim limitations" section gains MGP-ALWTTT-MOD-DIR-1 note on modulation direction.
+- `Roadmap_ALWTTT.md §5.3 #10` — closed; closure mark with rationale for `ScaleFactor`-only interpretation of original "+/-BPM" framing.
+- `Roadmap_ALWTTT.md §5.3 #11` — closed; **spec correction** removing the original per-track-persistence claim. Modulation is structural under B1's `partMeterHash` contract; per-track key-shift was a misunderstanding of the cache invalidation surface. Behavior accepted as correct per D-MOD-2=A.
+- `Design_Starter_Deck_v1.md` → v1.1. Deck size 12 → 15. Wormus pair multiplicity 1 → 2 each per D-STARTER-1=B. Compound Cycle + Pentameter removed from starter into reward pool per D-STARTER-2=B. Three new card entries documented (Push It, Half Time, Key Lift). §5.5 styleBundle convention extended with null-preservation semantics post-D-MOD-FIX=A.
+- `MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` — additive notes on axes 4–6 (Tempo) and 8 (Modulation) clarifying that card plays invalidate `partMeterHash` and trigger full part regen, per ALWTTT's B1 cache contract.
+
+**Operational changes.**
+- New runtime assets: 3 `CardDefinition` + payload pairs (`Starter_push_it`, `Starter_half_time`, `Starter_key_lift`).
+- New PartEffect SO assets: `TempoEffect_PushIt`, `TempoEffect_HalfTime`, `ModulationEffect_KeyLift_Degree5`.
+- 5 catalog edits across C2 and Sibi `MusicianCardCatalogData`: 3 new entries with `flags: UnlockedByDefault | StarterDeck`, `starterCopies: 1`; Wormus Minor + Wormus Major `starterCopies: 1 → 2`; Compound Cycle + Pentameter `flags: UnlockedByDefault | RewardPool` (StarterDeck flag cleared).
+- **Code change:** `SongCompositionUI.TryAddOrReplaceTrackOnPart` existing-track branch — 3-line guard preserving `existing.styleBundle` when incoming bundle is null. Per D-MOD-FIX=A. No SSoT-level contract change; behavior tightening of an existing helper that was conceptually under-specified in the null case. No regression against current content (existing meter cards already use null bundles; benefits all future `TrackAction`-as-`PartEffect`-carrier cards).
+
+**Authority changes.** None. No SSoT promoted or retired.
+
+**Cross-project.** `MGP-ALWTTT-MOD-DIR-1` filed in MidiGenPlay project tracker. Proposed surface: `ModulationOctaveHint { Auto, Up, Down }` field on `ModulationEffect`, consumed by `ChordTrackComposer.RenderFromProgression` as a one-shot directional bias for the first chord of the post-modulation render. Suggested implementation files: `ModulationEffect.cs`, `SongConfig.cs` (PartConfig transient fields), `ChordTrackComposer.cs`, `VoiceLeadingConfig.cs`. ALWTTT will adopt by setting `octaveHint` on `ModulationEffect_KeyLift_Degree5.asset` when shipped.
+
+**Smoke tests.** S1–S8 PASS. S4 initial fail (chord progression regenerated under modulation, root-caused to track-bundle wipe on null incoming) / re-pass after D-MOD-FIX patch. S4a (track-bundle preservation invariant) added and PASS. S8 (final starter composition: 4 Action + 4 C2 + 6 Sibi + 1 Cantante = 15 cards) PASS.
+
+**Files edited.**
+- `CURRENT_STATE.md` (§1 new closure block + §3 queue rotation + §4 cross-project bullet).
+- `Roadmap_ALWTTT.md` (§5.3 #10 + #11 closure marks; #11 includes spec correction).
+- `Design_Demo_Cut_v1.md` (§2.3 coverage cells + known limitations).
+- `Design_Starter_Deck_v1.md` (header v1.1 + §3 size + §4 multiplicity + §5.5 null-preservation + new card subsections).
+- `MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` (axes 4–6 + 8 additive notes).
+- `changelog-ssot.md` (this entry).
+
+**Intentionally unchanged.**
+- `ssot_manifest.yaml` — no new invariants.
+- `SSoT_INDEX.md` — no authority change.
+- `SSoT_CONTRACTS.md` — no contract change.
+- `SSoT_Card_System.md`, `SSoT_Runtime_CompositionSession_Integration.md`, `SSoT_ALWTTT_MidiGenPlay_Boundary.md` — no contract change. The track-bundle preserve-on-null behavior is a tightening of an existing helper's null-case semantics, not a new contract. The structural-invalidation behavior of modulation/BPM cards under `partMeterHash` is the existing B1 contract (D2=B / D6=A / D7=B), already documented.
+- `coverage-matrix.md` — verify only; no routing or authority change.
+
+**Closes.** B3-content-cards. **Opens.** B3-slate (next active, D-B3-SLATE-SPLIT pending at batch open).
+
+2026-05-20 — planning-reorg-2026-05-20 (doc-only)
+
+Structural reorganization of `planning/` and adjacent folders. Doc-only batch — no code changes, no SSoT contract changes, no governance changes. Same-day predecessor: 2026-05-20 B3-content-sibi(+followup) doc-closure (below).
+
+Closed. planning-reorg-2026-05-20 (six decisions resolved: D-Plan-1=C root-vs-active split; D-Plan-2=B MidiGenPlay_Expressive_Surface moves to integrations/midigenplay/; D-Plan-3=A M1_5_Dev_Mode_Sub_Roadmap archived after verification that Phases 4+5 were never closed; D-Plan-4=A Design_Audience_Status_v1 banner update for §5 supersession; D-Plan-5 accepted refresh worklist; D-Plan-6=A Captivated tracking strengthening via Roadmap line 365 fix + bidirectional cross-ref on §4 header).
+
+File moves.
+- `planning/Design_Demo_Cut_v1.md` → `planning/active/Design_Demo_Cut_v1.md` (near-term batched work).
+- `planning/active/Design_Song_Parts_Library_v0_1.md` → `planning/Design_Song_Parts_Library_v0_1.md` (long-term design pillar, no batch slot).
+- `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` → `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` (analytical reference, sibling to existing boundary SSoT and quick-path doc).
+- `planning/active/M1_5_Dev_Mode_Sub_Roadmap.md` → `planning/archive/M1_5_Dev_Mode_Sub_Roadmap.md` (Phases 1–3 closed via M1 closure 2026-04-26; Phases 4 + 5 effectively dropped at M1 closure — disposition paragraph added at top of file before archive).
+
+Folder-structure semantics formalized. `planning/` root now explicitly holds standing directives and long-term design pillars without near-term batch slots (Design_Project_Directives, Design_Pending_Effects, Design_Tempo_Identity, Design_Song_Parts_Library). `planning/active/` holds near-term batched work (Roadmap_ALWTTT, Design_Demo_Cut_v1, Design_Starter_Deck_v1, Design_Audience_Status_v1 while §4 Captivated remains active). The previous README normalization rule ("primary home is now planning/active") has been replaced with the kind-based split.
+
+Banner updates.
+- `planning/active/Design_Audience_Status_v1.md` — top-of-doc Status banner updated: §3 (Earworm) authority already migrated to SSoT_Status_Effects §5.7; §5 (`ApplyIncomingVibe` helper) now also superseded (helper shipped 2026-05-18 in §5.3.5 closure to support Indifference + SFX→FlatVibe routing, not Captivated as originally imagined); §4 (Captivated) is the sole remaining active design intent. §5 header gains an explicit ⚠️ Superseded banner mirroring §3's pattern. §4 header gains a bidirectional cross-reference pointer to `planning/active/Roadmap_ALWTTT.md` → Future Milestones → Roster Expansion.
+
+Roadmap fixes.
+- §4.3 "Out of scope (deferred)" item 2: the stale "ApplyIncomingVibe helper deferred alongside Captivated" line struck through and replaced with a 2026-05-18 update noting the helper shipped in §5.3.5 to support Indifference + SFX→FlatVibe. Only Captivated remains deferred. Roster Expansion entry unchanged — still lists Captivated as a prerequisite with the design pointer to `Design_Audience_Status_v1.md`.
+- §5.3 item 5 and §5.3 "Files" list updated: `planning/Design_Demo_Cut_v1.md` references now point to `planning/active/Design_Demo_Cut_v1.md`.
+- `Last updated` line bumped to 2026-05-20.
+
+Index updates.
+- `SSoT_INDEX.md` Active planning docs table rewritten to enumerate all 8 active planning docs by location (4 at root, 4 at active/) plus the moved MidiGenPlay_Expressive entry now under integrations/midigenplay/. Duplicate MidiGenPlay_Expressive row deduplicated. Archived planning table gains M1_5_Dev_Mode_Sub_Roadmap row.
+
+Cross-reference updates.
+- `planning/Design_Project_Directives_v0_1.md` Cross-references list: MidiGenPlay_Expressive path updated.
+- `planning/active/Design_Starter_Deck_v1.md`: two path-prefix references (lines 19 and 381) updated for MidiGenPlay_Expressive move. Last-updated bumped to 2026-05-20. No content change to design intent. Three other inline filename references (lines 41, 173, 221) left unchanged since they use bare filename rather than path.
+
+D-Plan-6 Captivated-tracking gap closed. Roadmap line 365 fix corrects the stale "ApplyIncomingVibe deferred" claim. Bidirectional cross-reference between `planning/active/Design_Audience_Status_v1.md §4` and `planning/active/Roadmap_ALWTTT.md` Future Milestones / Roster Expansion is now explicit on both sides. No new register or index doc created; existing Roadmap entry under Roster Expansion (lists Captivated as Ziggy prerequisite) is the canonical scheduling home.
+
+Residual gap. **CLOSED at apply-time:** `integrations/midigenplay/README.md` updated with a new "Docs in this folder" section listing all four files including the newly moved `MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md`. Apply-time access to the README content was provided by the user.
+
+Stale-reference cleanup at apply-time. User confirmed that `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md` was deleted (not currently present in the tree). The doc's content was redundant with `runtime/SSoT_Runtime_CompositionSession_Integration.md §3.4`, which is the actual home of `MidiMusicManager` truth (confirmed by code-side reference: `MidiMusicManager.cs` header comment says `SSoT: SSoT_Runtime_CompositionSession_Integration.md`). Initial cleanup applied:
+- `SSoT_INDEX.md` — stale row removed from the Integrations table.
+- `coverage-matrix.md` — `MidiMusicManager` integration behavior row repointed from the deleted standalone doc to `runtime/SSoT_Runtime_CompositionSession_Integration.md` (§3.4). No semantic change; reflects what was already true on the code + surviving SSoT side.
+
+D-Plan-8 = A — full F1 closure + §5 backfill. The above SSoT_INDEX + coverage-matrix cleanup addressed half of a tracked HIGH-severity drift finding (`ssot_manifest.yaml` F1, `deleted_authority_without_supersession`). The remaining half was closed in the same batch:
+- `integrations/midigenplay/ALWTTT_Uses_MidiGenPlay_Quick_Path.md §5` "Which docs to open next" — MidiMusicManager link repointed from the deleted file to `runtime/SSoT_Runtime_CompositionSession_Integration.md §3.4`.
+- `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md §9` — "Missing reference (flagged for future governance work)" subsection collapsed to a "Resolved reference (formerly F1, closed 2026-05-20)" closure narrative.
+- `ssot_manifest.yaml` F1 finding entry — severity changed `HIGH → RESOLVED`, status field added (`closed 2026-05-20`), description rewritten with full closure narrative naming Runtime CompositionSession Integration §3.4 as the absorbing home, affected_docs list expanded to include the two newly-cleaned files.
+- `ssot_manifest.yaml` Runtime_Flow.md SSoT entry — `notes:` paragraph updated: MidiMusicManager.cs governance is now claimed by `runtime/SSoT_Runtime_CompositionSession_Integration.md §3.4` (code-side comment is the existing precedent), former F1 finding noted as RESOLVED.
+
+§5 backfill (also part of D-Plan-8). The §5 "Docs that must be edited next" closure log in `CURRENT_STATE.md` was missing two same-day entries:
+- The B3-content-sibi + B3-content-sibi-followup doc-closure batch (2026-05-20) did not add a §5 entry at the time of its closure. Backfilled in this batch as a detailed paragraph listing all docs modified, decisions locked, and SSoTs intentionally unchanged.
+- This planning-reorg batch (2026-05-20, same day) added its own §5 entry covering file moves, README rewrites, banner updates, Roadmap fixes, SSoT_INDEX restructure, coverage-matrix repointing, cross-reference path updates, D-Plan-6 + D-Plan-7 + D-Plan-8 resolutions, and the §5 backfill itself (i.e., self-referential, as is convention for §5 entries).
+
+`planning/music/` disposition (D-Plan-7 = A). `planning/music/ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md` moved to the MidiGenPlay project entirely. The 478-line report proposed package-internal work (`BassEmulationProfileSO` abstraction on `TrackStyleBundleSO`/`TrackParameters.Style` carriers) — package-side concerns by every measure of the boundary contract. Authoring it in the ALWTTT project was a category error from inception. With the file removed, `planning/music/` is empty and should be deleted from the ALWTTT tree. No ALWTTT-side cross-references existed to break (the doc was never linked from any other ALWTTT doc).
+
+No code change. No SSoT contract change. No `ssot_manifest.yaml` change. `coverage-matrix.md` updated to repoint `MidiMusicManager` row (see Stale-reference cleanup below); no other authority routing changed.
+
+2026-05-20 — B3-content-sibi + B3-content-sibi-followup closed
+
+Closed. B3-content-sibi (carrier-level Sibi voice via `InstrumentEffect_Sibi_Voice` → `Fantasia`). B3-content-sibi-followup (per-musician SO whitelist activated in `InstrumentRules.GetPermittedMelodic`; Sibi lead pool populated; Singing Field carrier cleaned).
+
+Code change. `InstrumentRules.GetPermittedMelodic` extended with role-specific SO whitelist precedence (1 file, ~25 LOC net new). Backward-compatible: empty whitelists per role preserve current type-filter behavior. No cross-role contamination. New precedence top-down: explicit `InstrumentEffect` override > musician SO whitelist for role > musician `InstrumentType` filter > all melodic.
+
+Data-model finding. `MusicianProfileData.backingMelodicInstruments` / `leadMelodicInstruments` SO whitelist fields already existed as latent infrastructure. This batch activated them at runtime. No new SerializeField required.
+
+Asset state. Sibi's `leadMelodicInstruments` populated with [Fantasia, 5th Saw Wave, Soundtrack]; `backingMelodicInstruments` left empty (authoring deferred — empty-list discipline preserves existing `InstrumentType`-filter behavior on backing role).
+
+D-Sibi-3 retroactive correction. B3-content-sibi's new asset is the `InstrumentEffect` carrier (ALWTTT-side), not a new `MIDIInstrumentSO`. Package-side existing instruments reused via reference. Boundary preserved.
+
+Decisions locked. D-Sibi-Pool=A (pool on `MusicianCharacterData.Profile`). D-Sibi-Pool-Scope=γ (both lead and backing whitelists for Sibi, independent per role) — capability shipped; lead exercised, backing authoring deferred (content decision, not code-blocked).
+
+Smoke tests. ST-B3CS-1..6 all PASS (B3-content-sibi). ST-Pool-1..6 all PASS (B3-content-sibi-followup). ST-Pool-7 reclassified: cross-role isolation property proven by composition of ST-Pool-3 (lead bounded by populated whitelist) + ST-Pool-4 (backing role-routing correct via empty-list fallback to `InstrumentType` filter); simultaneous multi-track observation not testable in current codebase (one musician, one track per song).
+
+Directive D1 promoted. Count 2/2-3 satisfied at lower bound. User decision A (doc-apply session 2026-05-20). D1 promoted to standing project guidance. Project-level instructions panel update pending on user side (manual UI action). Canonical articulation retained in `planning/Design_Project_Directives_v0_1.md`.
+
+SSoT delta. One additive paragraph in `MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards §4.5` documenting the new precedence layer. No structural change. `SSoT_INDEX.md` and `coverage-matrix.md` unaffected (smoke-checked).
+
 2026-05-18 — §5.3.5 Demo cut prep closure (Phase B continued)
 
 Demo build now launches Main Menu → Gig with zero setup interaction.

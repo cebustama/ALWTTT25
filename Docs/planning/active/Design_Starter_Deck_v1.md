@@ -3,7 +3,9 @@
 **Status:** Active design proposal — planning only, subject to playtest revision  
 **Scope:** Composition, per-card effect spec, per-musician identity mapping, tuning rationale, and open questions for the first starter deck the player uses at the start of a run  
 **Classification:** `reference (planning)` — **not a SSoT**. This document expresses design intent. When M4.6 authoring closes, the authored `.asset` files become the runtime-authoritative version; this document is then retained as historical rationale.  
-**Last updated:** 2026-04-26
+**Last updated:** 2026-05-20 (cross-reference paths updated for MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md move to `integrations/midigenplay/`; no content change to design intent)
+
+**v1.1 (2026-05-22).** Three new cards added to starter (Push It, Half Time, Key Lift). Wormus pair multiplicity doubled (2 each) per D-STARTER-1=B. Compound Cycle + Pentameter moved out of starter into reward pool per D-STARTER-2=B. Starter size 12 → 15 cards. See `changelog-ssot.md` 2026-05-22 entry for context.
 
 ## Design principle: mínimas cartas, máxima expresividad
 
@@ -16,7 +18,7 @@ Operationally:
 
 The acceptance test for a composition card is: *would an untrained listener distinguish two songs that differ only in which of these two cards was played?* If not, the axis chosen is too weak or the contrast is too small.
 
-The catalogue of axes a card can actually affect — with the carrier (PartEffect or styleBundle), the `SongConfig` field reached, and the per-card controllability status — is in `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` §3. The starter cards' axis assignments (now resolved, see §5) used that matrix as evidence base.
+The catalogue of axes a card can actually affect — with the carrier (PartEffect or styleBundle), the `SongConfig` field reached, and the per-card controllability status — is in `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` §3. The starter cards' axis assignments (now resolved, see §5) used that matrix as evidence base.
 
 This principle is binding for the starter deck and recommended as default for any future composition-card authoring in ALWTTT.
 
@@ -107,9 +109,9 @@ Picker semantics (override decision, validation rules, multiset-blind audience c
 
 ---
 
-## 4. Deck composition — the 12 cards
+## 4. Deck composition — the 15 cards
 
-**Total:** 12 cards, 10 unique, ratio 8 Composition : 4 Action.
+**Starter deck size: 15 cards.** Composition: 4 Action + 4 C2 + 6 Sibi + 1 Cantante.
 
 | # | Card | Unique? | Copies | Domain | Owner | Effect (authoritative for MVP) | Inspiration cost / gen | Notes |
 |---|---|---|---|---|---|---|---|---|
@@ -118,17 +120,25 @@ Picker semantics (override decision, validation rules, multiset-blind audience c
 | 3 | Mind Tap | ✓ | 1 | Action | Sibi | `ModifyVibe(+5, AudienceCharacter)` + `ApplyStatusEffect(earworm, +2, AudienceCharacter)` | 1 / — | Sibi identity Action — plants Earworm |
 | 4 | Default Mode *(working name)* | ✓ | 2 | Composition | C2 | Rhythm. `MeterEffect(4/4)` PartEffect + `ApplyStatusEffect(flow, +1, Self)` co-effect on play | — / 3 | C2 default heartbeat + Flow source |
 | 5 | Waltz Protocol *(working name)* | ✓ | 1 | Composition | C2 | Rhythm. `MeterEffect(3/4)` PartEffect | — / 3 | C2 waltz mode |
-| 6 | Pentameter *(working name)* | ✓ | 1 | Composition | C2 | Rhythm. `MeterEffect(5/4)` PartEffect | — / 3 | C2 odd-meter mode (Take Five reference) |
-| 7 | Compound Cycle *(working name)* | ✓ | 1 | Composition | C2 | Rhythm. `MeterEffect(6/8)` PartEffect | — / 3 | C2 compound-meter mode |
-| 8 | Wormus Minor | ✓ | 1 | Composition | Sibi | Backing. `BackingCardConfigSO` with minor-mode `progressionPalette` (entries with `tonalities = [Aeolian/Dorian/Phrygian]`) | — / 2 | Sibi minor-mode anchor |
-| 9 | Wormus Major | ✓ | 1 | Composition | Sibi | Backing. `BackingCardConfigSO` with major-mode `progressionPalette` (entries with `tonalities = [Ionian/Mixolydian/Lydian]`) | — / 2 | Sibi major-mode anchor |
+| 6 | Push It *(new, v1.1)* | ✓ | 1 | Composition | C2 | Rhythm. `TempoEffect.ScaleFactor(×1.5)` PartEffect | 1 / 2 | C2 BPM card — speeds up the song |
+| 7 | Half Time *(new, v1.1)* | ✓ | 1 | Composition | C2 | Rhythm. `TempoEffect.ScaleFactor(×0.66)` PartEffect | 1 / 2 | C2 BPM card — slows the song |
+| 8 | Wormus Minor | ✓ | 2 | Composition | Sibi | Backing. `BackingCardConfigSO` with minor-mode `progressionPalette` (entries with `tonalities = [Aeolian/Dorian/Phrygian]`) | — / 2 | Sibi minor-mode anchor — multiplicity 2 per D-STARTER-1=B |
+| 9 | Wormus Major | ✓ | 2 | Composition | Sibi | Backing. `BackingCardConfigSO` with major-mode `progressionPalette` (entries with `tonalities = [Ionian/Mixolydian/Lydian]`) | — / 2 | Sibi major-mode anchor — multiplicity 2 per D-STARTER-1=B |
 | 10 | Singing Field *(working name)* | ✓ | 1 | Composition | Sibi | Melody. `MelodyCardConfigSO` with `phrasePaletteOverride` set to a hook-shaped `PhrasePaletteSO` (specific asset TBD at authoring) | — / 3 | Sibi melodic hook — inherits progression from Wormus card via shared-progression mechanic |
+| 11 | Key Lift *(new, v1.1)* | ✓ | 1 | Composition | Sibi | Backing. `ModulationEffect.IntervalWithinScale(degree=5)` PartEffect | 1 / 2 | Sibi Modulation card — shifts root up a fifth |
 
-**Derived counts:**
+**Derived counts (v1.1):**
 - 4 Action (total copies): 2 Warm Up + 1 Take Five + 1 Mind Tap.
-- 8 Composition (total copies): 2 Default Mode + 1 Waltz Protocol + 1 Pentameter + 1 Compound Cycle + 1 Wormus Minor + 1 Wormus Major + 1 Singing Field.
-- C2 composition coverage: 5 copies (2 + 1 + 1 + 1) — same total as v0 design.
-- Sibi composition coverage: 3 copies (1 + 1 + 1) — same total as v0 design.
+- 11 Composition (total copies): 2 Default Mode + 1 Waltz Protocol + 1 Push It + 1 Half Time + 2 Wormus Minor + 2 Wormus Major + 1 Singing Field + 1 Key Lift.
+- C2 composition coverage: 5 copies (2 + 1 + 1 + 1).
+- Sibi composition coverage: 6 copies (2 + 2 + 1 + 1).
+
+### Reward pool (cards not in starter)
+
+Cards held in the per-musician catalog with `flags: UnlockedByDefault | RewardPool` and `StarterDeck` flag cleared. Forward-looking authoring metadata — the current `RewardContainerData` reward sourcing does not yet consume the `RewardPool` flag, but tagging cards here makes intent explicit for when reward emission gets reworked.
+
+- **Compound Cycle (6/8)** — moved 2026-05-22 per D-STARTER-2=B. Compound meter reserved as a post-demo unlock to give the meter axis somewhere to go across runs.
+- **Pentameter (5/4)** — moved 2026-05-22 per D-STARTER-2=B. Asymmetric meter reserved as reward-pool card.
 
 **Ratio asymmetry is intentional:** C2 picks the song's clock (more copies, broader meter coverage, with 4/4 as soft default at ×2). Sibi picks the song's emotional world and its hook (fewer copies, each card a distinct expressive lever).
 
@@ -176,6 +186,8 @@ The four cards sit at four well-separated points on this axis: 4/4, 3/4, 5/4, 6/
 
 **Carrier:** each card carries a single `MeterEffect` in its `modifierEffects: List<PartEffect>`. The card's `TrackActionDescriptor.styleBundle` may be a shared-or-empty `RhythmCardConfigSO` (no per-card rhythm-pattern differentiation in v1 — that surface is reserved for later cards). This means six fewer SOs to author than originally projected.
 
+**Null-preservation semantics (post-2026-05-22, D-MOD-FIX=A).** An empty (null) `styleBundle` on a `TrackActionDescriptor` now **preserves** the prior track's bundle rather than wiping it. This makes "TrackAction-as-PartEffect-carrier" cards safe: Push It, Half Time, and Key Lift all use `TrackAction { role: <Rhythm|Backing>, styleBundle: null }` to sit in their respective per-musician pools while applying only a `PartEffect` (TempoEffect or ModulationEffect). The previous null-wipes-existing behavior caused Wormus Major's progression override to be dropped on the loop after a Key Lift play; the fix lands in `SongCompositionUI.TryAddOrReplaceTrackOnPart` existing-track branch. To explicitly clear a bundle, a dedicated sentinel would be needed (no such use case today).
+
 **Blind-listener test for any C2 pair:** an untrained listener can distinguish the songs immediately — meter is structural, not ornamental.
 
 ### 5.6 Default Mode (Composition, C2, ×2) *(working name)*
@@ -198,7 +210,7 @@ Rhythm part. `MeterEffect(TimeSignature.ThreeFour)` in `modifierEffects`. `inspi
 - Robot-fiction reading: a legacy protocol from C2's civilization's pre-machine-music era.
 - **FixedPerformerType: C2.**
 
-### 5.8 Pentameter (Composition, C2, ×1) *(working name)*
+### 5.8 Pentameter (Composition, C2, ×1) *(working name)* — **moved to reward pool, v1.1**
 
 Rhythm part. `MeterEffect(TimeSignature.FiveFour)` in `modifierEffects`. `inspirationGenerated = 3`.
 
@@ -207,7 +219,7 @@ Rhythm part. `MeterEffect(TimeSignature.FiveFour)` in `modifierEffects`. `inspir
 - Robot-fiction reading: anomalous mode, the kind of meter only a math-jazz scholar like C2 would deploy.
 - **FixedPerformerType: C2.**
 
-### 5.9 Compound Cycle (Composition, C2, ×1) *(working name)*
+### 5.9 Compound Cycle (Composition, C2, ×1) *(working name)* — **moved to reward pool, v1.1**
 
 Rhythm part. `MeterEffect(TimeSignature.SixEight)` in `modifierEffects`. `inspirationGenerated = 3`.
 
@@ -256,6 +268,37 @@ Melody part. `MelodyCardConfigSO` with `phrasePaletteOverride = PhrasePaletteSO_
 - Sibi-fiction coherence: her Action card (Mind Tap) plants Earworm on an audience member; her Composition melody card plants a memorable phrase shape on the song. Both register the same fantasy — *make this stick* — at different scales.
 - 1 copy — the rarity in Sibi's composition pool, deliberately.
 - **FixedPerformerType: Sibi.**
+
+### 5.14 Push It (Composition, C2, ×1) *(new, v1.1)*
+
+- **Asset:** `Starter_push_it.asset` + `Starter_push_it_Payload.asset`.
+- **Performer rule:** `FixedMusicianType` → C2.
+- **Card type:** TCH (math-jazz scholar; fits tempo-manipulation theme).
+- **Costs:** inspirationCost = 1, inspirationGenerated = 2.
+- **Carrier:** `PrimaryKind = Track`, `TrackAction { role: Rhythm, styleBundle: null }`.
+- **Effect:** `ModifierEffects: [TempoEffect_PushIt.asset]` — `mode: ScaleFactor`, `tempoScale: 1.5`, `timing: Immediate`.
+- **Audible effect:** the song speeds up. `part.tempoScale *= 1.5` compositionally; "TEMPO!" floater fires on play.
+
+### 5.15 Half Time (Composition, C2, ×1) *(new, v1.1)*
+
+- **Asset:** `Starter_half_time.asset` + payload.
+- **Performer rule:** `FixedMusicianType` → C2.
+- **Card type:** TCH.
+- **Costs:** inspirationCost = 1, inspirationGenerated = 2.
+- **Carrier:** `PrimaryKind = Track`, `TrackAction { role: Rhythm, styleBundle: null }`.
+- **Effect:** `ModifierEffects: [TempoEffect_HalfTime.asset]` — `mode: ScaleFactor`, `tempoScale: 0.66`, `timing: Immediate`.
+- **Audible effect:** the song slows down. Safety floor `Mathf.Max(40, baseBpm * tempoScale)` clamps extreme stacking.
+
+### 5.16 Key Lift (Composition, Sibi, ×1) *(new, v1.1)*
+
+- **Asset:** `Starter_key_lift.asset` + payload.
+- **Performer rule:** `FixedMusicianType` → Sibi.
+- **Card type:** EMT (emotional/expectation-shaping affinity; modulation is the canonical "lift" move).
+- **Costs:** inspirationCost = 1, inspirationGenerated = 2.
+- **Carrier:** `PrimaryKind = Track`, `TrackAction { role: Backing, styleBundle: null }`.
+- **Effect:** `ModifierEffects: [ModulationEffect_KeyLift_Degree5.asset]` — `mode: IntervalWithinScale`, `targetDegree: 5`, `timing: Immediate`.
+- **Audible effect:** the song's root pitch class shifts by a fifth. All stems for the part regenerate in the new key (per D-MOD-2=A); the styleBundle (e.g., Wormus Major's progression) is preserved through the play per D-MOD-FIX=A. "KEY!" floater fires on play when the previous render had an explicit root.
+- **Known limitation.** Octave of the new root is voice-leader-driven; the modulation may audibly ascend or descend depending on minimum voice-leading distance. Tracked as MGP-ALWTTT-MOD-DIR-1.
 
 ---
 
@@ -378,7 +421,7 @@ These must be resolved before the starter is authored. Ordered by priority. Clos
 - Session report: `Session_Report_Starter_Deck_Design.md` (2026-04-21).
 - Axis-resolution session: 2026-04-26 (no separate report; outcome captured in this document, §3.1, §4, §5.5–§5.13, §9 #5/#7/#8/#9).
 - Combat MVP audit (source of C1 and other findings): `planning/archive/ALWTTT_Combat_MVP_Audit_Final.md` (2026-03-20).
-- Expressive surface evidence base: `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` (2026-04-24) — §3 (axis matrix), §5 (per-role bundle contracts), §6 (cross-track emergents).
+- Expressive surface evidence base: `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` (2026-04-24; per-musician SO whitelist precedence added 2026-05-20) — §3 (axis matrix), §5 (per-role bundle contracts), §6 (cross-track emergents).
 - Composition-card-effect verification: M1.3c closure (2026-04-23), ST-M13c-6 — confirmed `CardPayload.Effects` execute on composition cards. Closes §9 #1.
 - Runtime contract references (at time of design):
   - `SSoT_Gig_Combat_Core.md` §6.1 (Flow), §5.4 (Stress), §7 (phase flow)

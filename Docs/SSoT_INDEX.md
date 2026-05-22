@@ -53,7 +53,6 @@ It defines:
 | Document | Primary scope | Status |
 |---|---|---|
 | `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md` | explicit ownership split and contract boundary | active |
-| `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md` | `MidiMusicManager` as ALWTTT runtime integration truth | active |
 
 ---
 
@@ -62,8 +61,14 @@ It defines:
 | Document | Scope | Status |
 |---|---|---|
 | `planning/active/Roadmap_ALWTTT.md` | project-wide milestone roadmap | active |
-| `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` | observable musical expressive surface for composition cards across the MidiGenPlay boundary; 26-axis matrix + 5 documented gaps | active |
-| `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` | observable musical expressive surface for composition cards across the MidiGenPlay boundary; 26-axis matrix + 5 documented gaps | active |
+| `planning/active/Design_Demo_Cut_v1.md` | demo-cut planning: run shape, coverage matrix, mechanics introduced, validation | active |
+| `planning/active/Design_Starter_Deck_v1.md` | first starter deck design: composition principle, per-card axis assignments, tuning rationale | active |
+| `planning/active/Design_Audience_Status_v1.md` | audience-side status design intent (§4 Captivated remains active; §3 + §5 superseded) | partial |
+| `planning/Design_Project_Directives_v0_1.md` | standing project-level design directives (D1 promoted 2026-05-20) | standing |
+| `planning/Design_Pending_Effects_v1.md` | post-MVP first-batch design pillar: song-scoped accumulator layer | long-term |
+| `planning/Design_Tempo_Identity_v1.md` | long-term post-MVP direction: tempo-coupled card identity | long-term |
+| `planning/Design_Song_Parts_Library_v0_1.md` | long-term post-MVP direction: stored & repeatable song Parts | long-term |
+| `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` | observable musical expressive surface for composition cards across the MidiGenPlay boundary; 26-axis matrix + 5 documented gaps + per-musician SO whitelist precedence (2026-05-20) | active |
 
 ---
 
@@ -74,6 +79,7 @@ It defines:
 | `planning/archive/Roadmap_Combat_MVP.md` | combat MVP short roadmap | complete / archived | `Roadmap_ALWTTT.md` (Combat MVP recorded as completed milestone) |
 | `planning/archive/Roadmap_Combat_MVP_Closure_Actionable.md` | combat MVP closure phases (5 phases, all complete) | complete / archived | `Roadmap_ALWTTT.md` + `CURRENT_STATE.md` §1 |
 | `planning/archive/ALWTTT_DeckEditorWindow_Roadmap_Proposal.md` | Deck Editor design, requirements, phased roadmap (phases 0–6 complete) | substantially complete / archived | `Roadmap_ALWTTT.md` M1.1 (remaining polish items) |
+| `planning/archive/M1_5_Dev_Mode_Sub_Roadmap.md` | Dev Mode milestone sub-roadmap; Phases 1–3 closed via M1 closure 2026-04-26; Phases 4 + 5 not implemented (effectively dropped at M1 closure) | complete (Phases 1–3) / dropped (Phases 4–5) / archived | `systems/SSoT_Dev_Mode.md` (Dev Mode implementation authority) |
 
 ---
 

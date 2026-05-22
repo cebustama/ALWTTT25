@@ -108,7 +108,7 @@ If you need more detail:
 - ALWTTT ↔ MidiGenPlay boundary:
   - `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md`
 - `MidiMusicManager` as game runtime surface:
-  - `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md`
+  - `runtime/SSoT_Runtime_CompositionSession_Integration.md` §3.4
 - MidiGenPlay package-side runtime truth:
   - `Documentation~/runtime/SSoT_Runtime_Song_Model_and_Config.md`
   - `Documentation~/runtime/SSoT_Runtime_Generation_Orchestration.md`

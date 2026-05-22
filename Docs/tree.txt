@@ -31,7 +31,9 @@
 |   |   \---Roadmap_Combat_MVP_Closure_Actionable.md
 |   +---music
 |   |   \---ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md
+|   +---Design_Demo_Cut_v1.md
 |   +---Design_Pending_Effects_v1.md
+|   +---Design_Project_Directives_v0_1.md
 |   +---Design_Tempo_Identity_v1.md
 |   +---MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md
 |   \---README.md

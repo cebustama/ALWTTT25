@@ -97,6 +97,41 @@ namespace ALWTTT.Music
                     TempoScale = p.tempoScale
                 };
 
+                // ALWTTT-MOD-DIR-2: copy staged one-shot modulation transients
+                // from PartEntry onto the freshly-built PartConfig, then clear
+                // staging so the next render without a new ModulationEffect
+                // application defaults to Auto + null (package no-op).
+                part.ModulationOctaveHint = p.pendingModulationOctaveHint;
+                part.PreviousRootNote = p.pendingPreviousRootNote;
+
+                // [TEMP DIAG — ALWTTT-MOD-DIR-2] Remove before close.
+                if (part.ModulationOctaveHint !=
+                        MidiGenPlay.Composition.ModulationOctaveHint.Auto
+                    || part.PreviousRootNote != null)
+                {
+                    Log(
+                        $"<color=magenta>[Mod-DIR/Build]</color> " +
+                        $"part='{part.Name}' rootNote={part.RootNote} " +
+                        $"prevRoot={part.PreviousRootNote} " +
+                        $"hint={part.ModulationOctaveHint} " +
+                        $"(staged on PartEntry, copied to PartConfig)",
+                        true,
+                        "Mod-DIR");
+                }
+                else
+                {
+                    Log(
+                        $"<color=#888888>[Mod-DIR/Build]</color> " +
+                        $"part='{part.Name}' rootNote={part.RootNote} " +
+                        $"(no modulation staging)",
+                        true,
+                        "Mod-DIR");
+                }
+
+                p.pendingModulationOctaveHint =
+                    MidiGenPlay.Composition.ModulationOctaveHint.Auto;
+                p.pendingPreviousRootNote = null;
+
                 Log($"Building Part[{partIndex}] '{part.Name}'  " +
                     $"TS={p.timeSignature.ToString()} " +
                     $"Tempo={p.tempo} " +

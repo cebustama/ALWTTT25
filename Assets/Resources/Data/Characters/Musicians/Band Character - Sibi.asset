@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d621a2a1323e5064f852ce38ed2399ec, type: 3}
-  m_Name: Band Character - Gusano
+  m_Name: Band Character - Sibi
   m_EditorClassIdentifier: 
   characterId: 2
-  characterName: Gusano
+  characterName: Sibi
   characterDescription: 
   initialMaxStress: 20
   characterType: 3
@@ -27,9 +27,12 @@ MonoBehaviour:
   emt: 5
   profile:
     backingInstruments: 0400000008000000
-    leadInstruments: 0400000008000000
+    leadInstruments: 08000000
     backingMelodicInstruments: []
-    leadMelodicInstruments: []
+    leadMelodicInstruments:
+    - {fileID: 11400000, guid: 4d53fbfada235e84cb11a76e47e73dc0, type: 2}
+    - {fileID: 11400000, guid: dcc3208fa1cdd654f9b8a121f594e5d1, type: 2}
+    - {fileID: 11400000, guid: a06f0d1fc543bbf478cb92033f4e8410, type: 2}
     percussionInstruments: []
     defaultMelodicLeading: {fileID: 11400000, guid: b4f7cddb4dba6a345bf8d03c365f5376, type: 2}
     defaultHarmonicLeading: {fileID: 0}

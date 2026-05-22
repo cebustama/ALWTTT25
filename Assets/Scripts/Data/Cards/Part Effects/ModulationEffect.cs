@@ -1,4 +1,5 @@
 ﻿using Melanchall.DryWetMidi.MusicTheory;
+using MidiGenPlay.Composition;
 using UnityEngine;
 using ScaleDegree = MidiGenPlay.MusicTheory.MusicTheory.ScaleDegree;
 
@@ -29,9 +30,30 @@ namespace ALWTTT.Cards
         [Tooltip("When RandomWithinScale is used, avoid staying on the tonic.")]
         public bool excludeTonicOnRandomWithinScale = true;
 
+        // ------------------------------------------------------------------
+        // Direction (ALWTTT-MOD-DIR-2, 2026-05-22)
+        // ------------------------------------------------------------------
+        // One-shot directional intent for the first chord of the post-modulation
+        // render. Consumed by MidiGenPlay's ChordTrackComposer via the transient
+        // PartConfig.ModulationOctaveHint + PartConfig.PreviousRootNote pair
+        // (see SSoT_Composer_Backing_Track.md §6).
+        //
+        // Default Auto preserves current voice-leading behavior bit-identically
+        // for existing assets (e.g. ModulationEffect_KeyLift_Degree5.asset).
+        // ------------------------------------------------------------------
+        [Header("Direction (post-modulation first chord)")]
+        [Tooltip(
+            "One-shot directional intent for the first chord of the post-" +
+            "modulation render. Auto preserves current voice-leading behavior " +
+            "(minimum-distance octave). Up/Down forces the first chord above/" +
+            "below the previous tonic anchor; subsequent chords voice-lead " +
+            "from there. With targetDegree=Tonic (no key change), Up/Down " +
+            "forces a one-octave register bump in the requested direction.")]
+        public ModulationOctaveHint octaveHint = ModulationOctaveHint.Auto;
+
         public override string GetLabel()
         {
-            return mode switch
+            string body = mode switch
             {
                 ModulationMode.AbsoluteKey =>
                     $"Key → {absoluteRoot}",
@@ -47,8 +69,17 @@ namespace ALWTTT.Cards
 
                 _ => "Modulation"
             };
+
+            // D-A6=B — surface direction with a glyph suffix when non-default.
+            // Auto keeps the legacy label byte-identical.
+            string dirSuffix = octaveHint switch
+            {
+                ModulationOctaveHint.Up => " ↑",
+                ModulationOctaveHint.Down => " ↓",
+                _ => string.Empty
+            };
+
+            return body + dirSuffix;
         }
     }
 }
-
-

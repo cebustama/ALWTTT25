@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e0b630f87fc4f4f41bf0bd9fbccda674, type: 3}
-  m_Name: Gusano_CardCatalogData
+  m_Name: Sibi_CardCatalogData
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.MusicianCardCatalogData
   musicianType: 3
   entries:
@@ -21,12 +21,16 @@ MonoBehaviour:
   - card: {fileID: 11400000, guid: 8e42ba274729ede499d33dce575780f8, type: 2}
     flags: 5
     unlockId: 
-    starterCopies: 1
+    starterCopies: 2
   - card: {fileID: 11400000, guid: 8736572d44827e74780a42a4e61cb857, type: 2}
     flags: 5
     unlockId: 
-    starterCopies: 1
+    starterCopies: 2
   - card: {fileID: 11400000, guid: 6d811f03888428f42a32be74b743bac6, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: 65c4508d6c724f34eb58ae2eec48bf7a, type: 2}
     flags: 5
     unlockId: 
     starterCopies: 1

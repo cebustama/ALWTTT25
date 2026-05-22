@@ -74,6 +74,12 @@ Legend for **"Per-card today?"**:
 | 25 | Harmony strategy | `HarmonyCardConfigSO.strategyIdOverride` via styleBundle | `TrackParameters.Style` | — | ✅ |
 | 26 | Harmonic leading | `HarmonyCardConfigSO.leadingOverride` | via Style | `HarmonicLeadingConfig` | ✅ |
 
+**Axes 4–6 (Tempo) — ALWTTT-side cache interaction.** Playing a card with `TempoEffect.ScaleFactor`, `.AbsoluteBpm`, or `.Range` modifies `PartConfig.TempoScale` / `.ExplicitBpm` / `.TempoRange`, all of which are part of ALWTTT's B1 `partMeterHash`. The play invalidates all cached stems for the part and triggers a full part regen on the next render. This is intended behavior — different BPMs typically warrant different drum patterns and note density anyway. See `SSoT_Runtime_CompositionSession_Integration §8` for the cache key composition.
+
+**Axis 8 (Modulation) — ALWTTT-side cache interaction.** Playing a card with `ModulationEffect` modifies `PartConfig.RootNote`, which is part of ALWTTT's B1 `partMeterHash`. The play invalidates all cached stems for the part. This is intended — a melody track playing in the old key over chords in the new key would be audibly broken.
+
+**Axis 8 — directional ask (`MGP-ALWTTT-MOD-DIR-1`).** Modulation direction is currently voice-leader-driven: `ModulationEffect` shifts the pitch class of `RootNote`, but the octave of the new root is chosen by `ChordTrackComposer`'s voice leader optimizing for minimum voice-leading distance. "Up a fifth" can audibly land below the previous tonic. ALWTTT-side authoring intent (e.g., "Key Lift" as a directional name) cannot currently be honored without a package-side surface. Proposed: `octaveHint: ModulationOctaveHint { Auto, Up, Down }` field on `ModulationEffect`, consumed as a one-shot directional bias for the first chord of the post-modulation render. Tracked in MidiGenPlay project tracker.
+
 ### 3.1 Reading the matrix
 
 - Rows 1, 4–11 are **`PartEffect`-driven** axes (atomic, one effect = one axis). These mutate `PartConfig` directly.
@@ -140,6 +146,8 @@ The melody composer reads `TrackParameters.Style as MelodyCardConfigSO` and then
 ### 4.5 Instrument resolution
 
 `TrackConfig.Instrument` / `.PercussionInstrument` are set at build time by `SongConfigBuilder` based on ALWTTT-side model state, which in turn is affected by `InstrumentEffect` on played cards. Package-side does not re-resolve instruments.
+
+**Per-musician SO whitelist (added 2026-05-20, B3-content-sibi-followup).** Before falling through to the random-pick path, `InstrumentRules.GetPermittedMelodic` consults the musician's `MusicianProfileData.{backingMelodicInstruments | leadMelodicInstruments}` SO whitelist (selected per `TrackRole`). When the role's whitelist is non-empty and at least one entry intersects the global melodic catalog, the candidate set is restricted to that intersection. Empty whitelist per role → existing `InstrumentType`-based filter chain runs unchanged. There is no cross-role whitelist fallback. The explicit per-card `InstrumentEffect` override (`SpecificMelodic` mode) still wins over the random pick when present, so the precedence top-down is: explicit `InstrumentEffect` override > musician SO whitelist for role > musician `InstrumentType` filter > all melodic.
 
 ---
 
@@ -338,8 +346,8 @@ This planning doc **references** and must stay consistent with:
 - `Documentation~/authoring/SSoT_Authoring_Chord_Progressions.md` — progression authoring.
 - `Documentation~/authoring/SSoT_Authoring_Rhythm_Patterns.md` — rhythm pattern authoring.
 
-**Missing reference (flagged for future governance work):**
-- `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md` — referenced by multiple SSoTs but not present in the repo. Tracked in `ssot_manifest.yaml` as finding F1.
+**Resolved reference (formerly F1, closed 2026-05-20):**
+- `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md` — was referenced by multiple SSoTs but never present on disk after Batch 03 promotion. `MidiMusicManager` truth is now formally homed under `runtime/SSoT_Runtime_CompositionSession_Integration.md §3.4` (already the actual home per code-side SSoT comment in `MidiMusicManager.cs`). Drift closed in planning-reorg-2026-05-20: `SSoT_INDEX.md` row removed, `coverage-matrix.md` row repointed, this note collapsed from "missing/flagged" to "resolved/absorbed", `ssot_manifest.yaml` F1 finding marked resolved.
 
 ---
 

@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using static MidiGenPlay.MusicTheory.MusicTheory;
+using static UnityEngine.Rendering.STP;
 
 namespace ALWTTT.Managers
 {
@@ -817,6 +818,19 @@ namespace ALWTTT.Managers
             int b1Hits = 0, b1Misses = 0;
             try
             {
+                // [TEMP DIAG — ALWTTT-MOD-DIR-2] Remove before close.
+                // Log PartConfig transients at the exact moment of handoff to the
+                // package. If these are non-default here, the package received them.
+                {
+                    var dbgPart = fullCfg.Parts[partIndex];
+                    Debug.Log(
+                        $"<color=orange>[Mod-DIR/Handoff]</color> " +
+                        $"part='{dbgPart.Name}' rootNote={dbgPart.RootNote} " +
+                        $"prevRoot={dbgPart.PreviousRootNote} " +
+                        $"hint={dbgPart.ModulationOctaveHint} " +
+                        $"→ SongOrchestrator");
+                }
+
                 // Generate stems via orchestrator
                 var render = generator.Orchestrator.GenerateSinglePart(
                     part,

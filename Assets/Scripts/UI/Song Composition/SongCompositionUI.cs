@@ -119,6 +119,21 @@ namespace ALWTTT.UI
             public TempoRange tempoRangeOverride = TempoRange.Fast;
             public int? absoluteBpmOverride = null;
             public float tempoScale = 1f;
+
+            // ---- One-shot modulation direction staging (ALWTTT-MOD-DIR-2) ----------
+            // Written by ApplyEffectToModel when a ModulationEffect is applied.
+            // Consumed and cleared by SongConfigBuilder.Build on the next render.
+            // Default Auto + null preserves current voice-leading behavior bit-identically.
+            //
+            // See: MidiGenPlay.Composition.ModulationOctaveHint and
+            //      SongConfig.PartConfig.{ModulationOctaveHint, PreviousRootNote}.
+            [NonSerialized]
+            public MidiGenPlay.Composition.ModulationOctaveHint pendingModulationOctaveHint
+                = MidiGenPlay.Composition.ModulationOctaveHint.Auto;
+
+            [NonSerialized]
+            public NoteName? pendingPreviousRootNote = null;
+            // ------------------------------------------------------------------------
         }
 
         [Serializable]
@@ -777,7 +792,17 @@ namespace ALWTTT.UI
                 existing.info = info;
                 existing.inspirationGenerated = complexity;
                 existing.synergyType = synergy;
-                existing.styleBundle = styleBundle;
+
+                // [B3-content-cards / D-MOD-FIX=A] Preserve previous styleBundle
+                // when the incoming card carries none. Cards with PrimaryKind=Track
+                // and styleBundle=null (e.g. Key Lift, Push It, Half Time) act as
+                // PartEffect carriers that should augment the existing track without
+                // wiping its authored progression / pattern / phrase palette.
+                // To explicitly clear a bundle, a dedicated sentinel would be needed
+                // (no such use case today).
+                if (styleBundle != null)
+                    existing.styleBundle = styleBundle;
+
                 existing.sourceCardDefinition = sourceCard; // [B2 / #3]
             }
             else
@@ -1093,6 +1118,22 @@ namespace ALWTTT.UI
 
                         part.rootNote = newRoot;
                         part.hasExplicitRootNote = true;
+
+                        // ALWTTT-MOD-DIR-2: stage one-shot directional intent for
+                        // the upcoming render. currentRoot is the PRE-mutation root
+                        // captured at the top of this branch — that is the
+                        // "previous root" the package contract requires.
+                        // SongConfigBuilder copies these onto PartConfig and clears.
+                        part.pendingPreviousRootNote = currentRoot;
+                        part.pendingModulationOctaveHint = mod.octaveHint;
+
+                        // [TEMP DIAG — ALWTTT-MOD-DIR-2] Remove before close.
+                        Debug.Log(
+                            $"<color=cyan>[Mod-DIR/Apply]</color> " +
+                            $"part[{idx}] prev={currentRoot} → new={newRoot} " +
+                            $"hint={mod.octaveHint} " +
+                            $"timing={fx.timing} mode={mod.mode} " +
+                            $"degree={mod.targetDegree}");
 
                         RefreshPartUI(idx);
 

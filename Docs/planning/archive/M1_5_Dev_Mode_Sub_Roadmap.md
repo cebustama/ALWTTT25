@@ -1,8 +1,33 @@
 # M1.5 Dev Mode — Sub-Roadmap
 
-**Status:** Active (2026-04-16)
+**Status:** ✅ Archived 2026-05-20 — Phases 1–3 closed via M1 closure 2026-04-26; Phases 4 + 5 not implemented (effectively dropped at M1 closure).
 **Parent:** Roadmap_ALWTTT.md §1.5
-**Authority:** This is a planning document. Implementation truth lives in `SSoT_Dev_Mode.md`.
+**Authority:** Implementation truth lives in `systems/SSoT_Dev_Mode.md`. This planning doc is retained as historical record of the originally-scoped Dev Mode plan.
+
+---
+
+## Disposition (added 2026-05-20 at archive)
+
+This sub-roadmap shipped Phases 1, 2, 3.1, 3.2, 3.3a, 3.3b (closure entries
+in `CURRENT_STATE.md` between 2026-04-17 and 2026-04-24). Phase 3.4 was
+explicitly deferred per Roadmap §1.5. Phase 4 (audience reaction
+transparency) and Phase 5 (composition card live injection — originally
+framed as an "M2 unblocker") were not implemented as part of M1 closure
+(2026-04-26). The M1 closure entry in `Roadmap_ALWTTT.md` describes the
+shipped scope as "Dev Mode infinite turns + card spawner + stat editing
+(M1.5 Phases 1–3)" — Phases 4 + 5 are not in that closure scope.
+
+The sub-roadmap moves to `planning/archive/` because:
+- the milestone (M1.5 as part of M1) is closed and recorded as complete;
+- Phases 4 + 5 are not currently planned and not blocking any active
+  batch;
+- live Dev Mode authority is now `systems/SSoT_Dev_Mode.md`, not this
+  sub-roadmap.
+
+If future Dev Mode work is opened, this archived sub-roadmap is available
+as historical context for the originally-scoped Phase 4 (audience
+reaction event log) and Phase 5 (composition card live injection, M2
+unblocker). It is not a binding plan from the archive.
 
 ---
 

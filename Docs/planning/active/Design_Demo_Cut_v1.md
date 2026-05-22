@@ -119,9 +119,10 @@ a buff-side variant of Egged On). Update this row when confirmed.
 | Family | Demo coverage | Path |
 | --- | --- | --- |
 | Meter (Stress/Vibe/etc.) | ✓ | Card effects + audience reactions |
-| Tempo | pending-B3 | Authored under B3 #10 (BPM cards). **Not in current build — lands in B3-content-cards.** |
-| Tonality | pending-B3 | Authored under B3 #11 (Modulation cards). **Not in current build — lands in B3-content-cards.** |
-| Instrument | pending-B3 | Authored under B3 #11.5 (Sibi `InstrumentEffect` on Singing Field). **Not in current build — lands in B3-content-sibi.** |
+| Tempo | ✓ | Push It (×1.5), Half Time (×0.66) via existing `TempoEffect.ScaleFactor`. |
+| Tonality (modulation) | ✓ | Key Lift via existing `ModulationEffect.IntervalWithinScale` degree=5. |
+| Modal contrast (Wormus pair) | ✓ | Wormus Minor + Wormus Major (×2 each per D-STARTER-1=B), ~71% draw on opening hand. |
+| Instrument | ✅ shipped | Sibi pool active via `MusicianProfileData` SO whitelist. Lead = [Fantasia, 5th Saw Wave, Soundtrack]; backing pool currently empty (authoring deferred — empty-list discipline preserves existing `InstrumentType`-filter behavior). Carrier `InstrumentEffect_Sibi_Voice.asset` retained as override exemplar at `Assets/Resources/Data/Cards/Composition/_PartEffects/`. |
 
 Target 3/4 at §5.4 entry assumes B3-content-cards lands BPM (#10) and
 Modulation (#11), making Tempo and Tonality reachable through the
@@ -134,6 +135,10 @@ flips to `✓` and the family ratio updates to 4/4).
 
 Validation owner: re-evaluate cells when each B3 sub-batch closes;
 final state captured by §5.4 ST-DCP-S5 playthroughs.
+
+**Known interim limitations.**
+
+**Modulation direction (MGP-ALWTTT-MOD-DIR-1).** Modulation cards in the current build land at a non-deterministic octave for the new root. `ModulationEffect` shifts the pitch class of `PartConfig.RootNote`; the octave is chosen by `ChordTrackComposer`'s voice leader, which minimizes voice-leading distance and routinely picks the descending neighbor for "up" modulations. A single Key Lift play may sound like an ascent, a settle, or a sidestep — interpreted as musical variety for the demo. Cross-project ask filed in MidiGenPlay tracker.
 
 ---
 

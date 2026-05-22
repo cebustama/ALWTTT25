@@ -1,7 +1,7 @@
 # Roadmap — ALWTTT
 
 **Status:** Planning only — does not define implementation truth  
-**Last updated:** 2026-05-18 (§5.3.5 Demo cut prep closed; §5.4 Demo readiness review next active batch; ladder mode foreshadowed in Future Milestones; B3-content-sibi + B3-content-cards + B3-slate + B3-balance + B3-validation queued)
+**Last updated:** 2026-05-20 (B3-content-sibi + B3-content-sibi-followup closed; #11.5 marked ✅; planning-reorg doc-only batch applied — planning/ root vs planning/active/ split formalized, MidiGenPlay_Expressive_Surface moved to integrations/midigenplay/, M1_5_Dev_Mode_Sub_Roadmap archived, ApplyIncomingVibe deferral note corrected on §4.3 since helper shipped in §5.3.5)
 **Rule:** This document tracks recommended work sequencing. It does not override subsystem SSoTs or CURRENT_STATE.
 
 ---
@@ -362,7 +362,7 @@ Implementation:
 
 **Out of scope (deferred):**
 - `Captivated` (CSO `DamageTakenUpMultiplier`, Ziggy's identity status) — deferred to roster expansion.
-- `ApplyIncomingVibe` helper — not needed for Earworm; deferred alongside Captivated. Hook point documented in `planning/Design_Audience_Status_v1.md`.
+- ~~`ApplyIncomingVibe` helper — not needed for Earworm; deferred alongside Captivated.~~ **Update 2026-05-18:** `ApplyIncomingVibe` shipped in §5.3.5 Demo cut prep closure to support Indifference (audience-side Vibe blocker) and the SFX→FlatVibe routing path. Only Captivated remains deferred. Helper exists in `AudienceCharacterStats.ApplyIncomingVibe`; Captivated's planned amplification layer will be additive on top at roster expansion. Hook point originally documented in `planning/active/Design_Audience_Status_v1.md §5`.
 
 Docs at closure: `SSoT_Status_Effects.md` new §5.7 (Earworm spec), `SSoT_Audience_and_Reactions.md` §8 and §10 (remove "audience statuses optional for MVP"; Earworm is the first active audience-side status).
 
@@ -534,9 +534,15 @@ Aditivo, depends on B1. Authoring + design.
 
 **Items (gameplay content):**
 - **#9 Inspiration cost/gen balance pass.** Cover cost 0/1/2/3 and generated 0/1/2/3 across the deck. 4/4 cards most common; 3/4 next; 6/8 next; 5/4 rare and powerful. Major/minor chord progressions get simple distinguishing effects.
-- **#10 BPM cards.** Rhythm composition cards with effects: `+/- BPM`, `2× BPM`. Touches `RhythmCardConfigSO` or a new effect type that mutates `cfg.BeatsPerMinute`.
-- **#11 Modulation cards.** Chord progression cards with key-shift effect (modulation). Other tracks should persist via B1 stem cache; only the chord stem reflects the new key when played.
-- **#11.5 Sibi musical identity — `InstrumentEffect` on Singing Field (added 2026-05-15, D-DCP-5=β).** Sound-design priority: Singing Field card carries a per-card `InstrumentEffect` SO authored specifically for Sibi's voice (new asset, not one of the existing `Bass/Guitar/Synth`). Specific MIDI program selected at authoring time via audition. Establishes the precedent of *per-musician instrument identity*; C2's analogous identity left as TBD (not blocking demo).
+- **#10 BPM cards.** ✅ (closed 2026-05-22) Shipped as 2 C2-side `ScaleFactor` cards: **Push It** (×1.5) and **Half Time** (×0.66) using existing `TempoEffect` (no new effect mechanism). Per D-BPM-1=A (existing TempoEffect), D-BPM-2=A (`ScaleFactor`-only; `AbsoluteBpm` and `Range` modes remain available for later cards). The original "+/-BPM" framing was reinterpreted as multiplicative for cleaner stacking semantics (×1.5 then ×0.8 = ×1.2, base-independent). Cards live in C2's `MusicianCardCatalogData` with `flags: UnlockedByDefault | StarterDeck`, `starterCopies: 1`.
+- **#11 Modulation cards.** ✅ (closed 2026-05-22) Shipped as 1 Sibi-side card: **Key Lift** (`IntervalWithinScale` degree=5) using existing `ModulationEffect`. Per D-MOD-1=A (existing ModulationEffect), D-MOD-3=A (single card; `degree=5` is the most universally compelling modulation — "up a fifth" of pop and rock).
+
+  **Correction to original spec (D-MOD-2=A, locked 2026-05-22).** The original §5.3 #11 text claimed *"Other tracks should persist via B1 stem cache; only the chord stem reflects the new key when played."* This is **false** against the shipped B1 cache contract: `RootNote` is part of `partMeterHash`, so a Modulation card invalidates all stems for the part. Per D-MOD-2=A, this is **accepted as correct behavior**: a melody track playing in the old key over chords in the new key would be audibly broken, not a feature. Rhythm track regens but produces audibly equivalent output (drums don't read `RootNote`) — listener experience matches "only the keyed tracks shifted."
+
+  **Track-bundle preservation patch (D-MOD-FIX=A).** During S4 implementation, a separate bug surfaced: `SongCompositionUI.TryAddOrReplaceTrackOnPart` was wiping the existing track's `styleBundle` when an incoming descriptor carried none, dropping Wormus Major's progression override on the loop after Key Lift played. Fixed by a 3-line guard in the existing-track branch: assign `existing.styleBundle = styleBundle` only when `styleBundle != null`. No regression against current content; cards using `TrackAction` as a `PartEffect` carrier now augment instead of replace.
+
+  **Known limitation (MGP-ALWTTT-MOD-DIR-1).** Modulation direction is voice-leader-driven and non-deterministic at the ALWTTT/MidiGenPlay boundary: `ModulationEffect` shifts the pitch class of `PartConfig.RootNote`, but the octave of the new root is chosen by `ChordTrackComposer`'s voice leader, which optimizes for minimum voice-leading distance. "Up a fifth" can audibly land below the previous tonic. Cross-project ask filed as `MGP-ALWTTT-MOD-DIR-1` proposing an `octaveHint: ModulationOctaveHint { Auto, Up, Down }` field on `ModulationEffect`. ALWTTT accepts current behavior for the demo per D-MOD-DIR=A; will adopt when MidiGenPlay ships.
+- **#11.5 Sibi musical identity ✅ (closed 2026-05-20).** Shipped in two passes: (B3-content-sibi) per-card `InstrumentEffect_Sibi_Voice` carrier on Singing Field referencing `Fantasia` MIDIInstrumentSO from the package Synth catalog; (B3-content-sibi-followup) per-musician SO whitelist activated in `InstrumentRules.GetPermittedMelodic` — Sibi's lead pool = [Fantasia, 5th Saw Wave, Soundtrack]; backing pool currently empty (authoring deferred — empty-list discipline preserves existing `InstrumentType`-filter behavior on backing role). `InstrumentEffect` carrier remains in the type system as explicit-override tool. C2's analogous identity left as TBD (not blocking demo). Per-musician instrument identity precedent established at the musician-pool level (lead role exercised; backing capability shipped, content deferred).
 - **#12 Audience pool authoring — 2 archetypes shipped together (expanded 2026-05-15, DC-2=Custom).** Promotes the original "1 designed audience member with 3 abilities" to a 2-archetype encounter that the demo will use.
   - **Cool Dude — 3 abilities total.** Spawns at the back of the audience (so positional movement is visible to viewers).
     1. **Move One Step.** Parameterize `AudienceMoveToFrontAction` with `stepsPerTurn: int` (default 1). One position forward per turn. Replaces the existing jump-to-front behavior.
@@ -593,7 +599,7 @@ Mini-batch dedicated to wiring the demo build entry path and shipping demo-speci
 2. **`DemoLaunchConfigSO` new SO.** Baked: roster (C2 + Sibi), encounter reference (the B3 #12 encounter), `requiredSongCount=4`, `JamRules` overrides (1 part × 4 loops/part), `initialGigInspiration=3`, `inspirationPerLoop=1`.
 3. **SFX→FlatVibe mechanic.** Three new tunable floats on `GigPresentationSO` (`sfxBonusVibeStage1/2/3`, defaults 3/6/10). `GigManager.AddSongHype` applies the bonus on upward threshold crossing (hooks into the existing `_songHypeStage` tracker from B2 #6). Bonus is applied **post-Flow** — flat addition at end of resolution, not Flow-scalable. Floating text "+N Vibe!" on band canvas (not per-audience).
 4. **Tuning + validation.** 8-10 playthroughs **with the B3-authored audience pool (2×Kid + 1×CoolDude)**. Adjust Inspiration values and/or SFX bonus values until target win rate 60-80%.
-5. **Coverage matrix doc.** New planning doc `planning/Design_Demo_Cut_v1.md` listing implemented effects / modifiers / statuses and whether each is represented in the demo content, with rationale. Target cobertura: CardEffectSpec 4/4 (100%); StatusEffect 5/7 (71%, +3 over pre-batch via Cool Dude's Heckle + Indifference + Kid's Egged On); PartEffect families ~75% (Meter ✓, Tempo via B3 #10, Tonality via B3 #11, Instrument via B3 #11.5).
+5. **Coverage matrix doc.** New planning doc `planning/active/Design_Demo_Cut_v1.md` listing implemented effects / modifiers / statuses and whether each is represented in the demo content, with rationale. Target cobertura: CardEffectSpec 4/4 (100%); StatusEffect 5/7 (71%, +3 over pre-batch via Cool Dude's Heckle + Indifference + Kid's Egged On); PartEffect families ~75% (Meter ✓, Tempo via B3 #10, Tonality via B3 #11, Instrument via B3 #11.5).
 
 **Out of scope:**
 - Authoring audience abilities (lives in B3 #12 expanded).
@@ -615,7 +621,7 @@ Mini-batch dedicated to wiring the demo build entry path and shipping demo-speci
 - `GigPresentationSO.cs` (3 new tunable floats).
 - `GigManager.cs` (SFX bonus integration in `AddSongHype` / `AddSongHypeCore`).
 - New SO assets: `DemoLaunchConfig.asset`, demo encounter `.asset`.
-- `planning/Design_Demo_Cut_v1.md` (new doc).
+- `planning/active/Design_Demo_Cut_v1.md` (new doc).
 
 ### 5.4 — Demo readiness review
 

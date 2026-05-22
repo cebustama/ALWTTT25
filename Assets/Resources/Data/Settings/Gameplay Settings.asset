@@ -55,6 +55,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 620a191401b102b46ba4df85e61a9097, type: 2}
   - {fileID: 11400000, guid: 84523d39d45aea9408eb557909c14147, type: 2}
   - {fileID: 11400000, guid: f27dd56c6b8469247832b83d58d10393, type: 2}
+  - {fileID: 11400000, guid: ff1da3ec6e10d0146b8437649f5f6178, type: 2}
+  - {fileID: 11400000, guid: 8745da5c0728eeb4ab1f51bb18965403, type: 2}
+  - {fileID: 11400000, guid: 65c4508d6c724f34eb58ae2eec48bf7a, type: 2}
   cardPrefab: {fileID: 5965618076488326275, guid: 15bfb561cbf35f04b9148c67d30ade30, type: 3}
   cardTypeEntryList:
   - CardType: 0

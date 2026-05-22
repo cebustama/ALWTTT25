@@ -51,14 +51,14 @@ Directives differ from invariants (which are hard constraints owned by SSoTs) an
 - This directive does NOT mean every batch must touch audio. It means audio is a first-class consideration when audio is a relevant axis.
 - This directive does NOT mean unlimited audio scope. Trade-offs still apply (e.g. demo timeline against audio polish), but the trade-off is documented, not invisible.
 
-**Promotion candidate.**
-This directive should be considered for promotion into project-level instructions once it has biased 2-3 batch decisions with positive outcomes. Until then it lives here as a tracked standing directive.
+**Promoted 2026-05-20.**
+Threshold "2-3 batches with positive outcomes" satisfied at lower bound (2/2-3): B3-content-sibi closed 2026-05-20 (β path of new `InstrumentEffect` carrier — audibly distinct Sibi voice shipped via `Fantasia` MIDIInstrumentSO); B3-content-sibi-followup closed 2026-05-20 (musician-pool path preserving per-musician identity — latent `MusicianProfileData` SO-whitelist infrastructure activated, no new SerializeField required). Promoted to standing project guidance via doc-apply session decision A on 2026-05-20. **Pending on user side:** add D1 to the project-level instructions panel (manual UI action). This document retains the canonical articulation; subsequent batches treat D1 as standing guidance, not as a candidate under evaluation.
 
 **Cross-references.**
 - `Roadmap_ALWTTT.md §5.3` (Sibi instrument identity item #11.5).
 - `Roadmap_ALWTTT.md §6` (Pitch deck PD-3 preference).
 - `CURRENT_STATE.md §4` (Sound design priority bullet).
-- `planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` (axis inventory; what audio surface is actually addressable).
+- `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` (axis inventory; what audio surface is actually addressable).
 - `planning/Design_Tempo_Identity_v1.md` (a related long-term design pillar that this directive supports).
 
 ---

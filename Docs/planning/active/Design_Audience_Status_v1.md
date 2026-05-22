@@ -1,9 +1,9 @@
 # Design_Audience_Status_v1 — ALWTTT
 
-**Status:** Partially superseded — §3 (Earworm) authority migrated. §4 / §5 remain active design intent.  
-**Scope:** Audience-side status effects for ALWTTT. Covers Earworm (closed M4.3, see §6), Captivated (deferred design intent), and the `ApplyIncomingVibe` helper (deferred).  
-**Classification:** `reference (planning)` — **not a SSoT**. §3 Earworm authority migrated to `SSoT_Status_Effects.md` §5.7 on 2026-04-28 (M4.3 closure); §3 here is retained as historical rationale only. §4 (Captivated) and §5 (`ApplyIncomingVibe`) remain authoritative design intent until roster expansion entry.  
-**Last updated:** 2026-04-28
+**Status:** Partially superseded — §3 (Earworm) and §5 (`ApplyIncomingVibe`) authority migrated. §4 (Captivated) remains the only active design intent.  
+**Scope:** Audience-side status effects for ALWTTT. Covers Earworm (closed M4.3, see §6), Captivated (deferred design intent), and the `ApplyIncomingVibe` helper (now shipped).  
+**Classification:** `reference (planning)` — **not a SSoT**. §3 Earworm authority migrated to `SSoT_Status_Effects.md` §5.7 on 2026-04-28 (M4.3 closure); §3 here is retained as historical rationale only. **§5 `ApplyIncomingVibe` helper shipped 2026-05-18** as part of §5.3.5 Demo cut prep closure — the helper was implemented to support Indifference (audience-side Vibe blocker) and the SFX→FlatVibe routing path, not Captivated. §5 here is retained as historical design rationale for the helper's shape; the live helper exists in `AudienceCharacterStats.ApplyIncomingVibe`. **§4 (Captivated) remains authoritative design intent until roster expansion entry** (tracked in `planning/active/Roadmap_ALWTTT.md` → Future Milestones → Roster Expansion as a prerequisite for bringing Ziggy into the band).  
+**Last updated:** 2026-05-20
 
 ---
 
@@ -106,6 +106,8 @@ If future playtest suggests the pairing is weaker than alternatives, reassignmen
 
 ## 4. Captivated — deferred design intent (for Roster Expansion)
 
+> **Scheduled under:** `planning/active/Roadmap_ALWTTT.md` → Future Milestones → Roster Expansion. Captivated is listed there as a prerequisite for bringing Ziggy (vocalist) into the band; this section is the design spec the Roadmap entry refers to.
+
 ### 4.1 Identity
 
 - **Key:** `"captivated"`
@@ -137,7 +139,9 @@ If playtest reveals that Sibi's identity is stronger as Captivated-holder than E
 
 ---
 
-## 5. `ApplyIncomingVibe` helper — deferred
+## 5. `ApplyIncomingVibe` helper — ~~deferred~~ shipped 2026-05-18
+
+> **⚠️ Superseded 2026-05-20.** The helper described below was implemented in `AudienceCharacterStats.ApplyIncomingVibe` as part of the §5.3.5 Demo cut prep closure (2026-05-18), to support **Indifference** (audience-side Vibe blocker) and the SFX→FlatVibe routing path — not Captivated, which was the originally-imagined first user. The live helper is the authoritative spec from that point onward. The text below is retained as historical design rationale for the helper's shape; if it conflicts with the implemented version in any detail, the implementation wins. The current routing rule (D-DCP-6=A invariant): Indifference blocks ALL incoming Vibe; Captivated's planned amplification layer is additive on top and will land at roster expansion.
 
 ### 5.1 Purpose
 
