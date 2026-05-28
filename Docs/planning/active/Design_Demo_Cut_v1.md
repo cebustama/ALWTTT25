@@ -1,6 +1,6 @@
 # Design — Demo Cut v1
 
-**Status:** planning, §5.3.5 closed 2026-05-18. **Not frozen** — coverage matrix in §2 reflects intended demo coverage at §5.4 entry; B3 remainder (B3-content-sibi / B3-content-cards / B3-slate / B3-balance / B3-validation) must land before §5.4 opens per D-B3-Remainder=A. Refreezes at §5.4 entry pending ST-DCP-S5 absorption (DC-Close-S5=(c) DEFERRED).
+**Status:** planning, §5.3.5 closed 2026-05-18. **Not frozen** — coverage matrix in §2 reflects intended demo coverage at §5.4 entry. B3 remainder (B3-content-sibi / B3-content-cards / B3-slate / B3-balance / B3-validation) is being decomposed across the S1-S5 demo-cut close sequence per the 2026-05-23 planning reframe — see `Roadmap_ALWTTT.md §5.3` sequencing addendum and `CURRENT_STATE.md §3` next-active. Refreezes at §5.4 entry pending ST-DCP-S5 absorption (DC-Close-S5=(c) DEFERRED) and S4 tutorial coverage authoring.
 **Scope:** ALWTTT demo build, shipped via §5.3.5 Demo cut prep.
 **Authority:** planning-only. Does not promote concepts into living
 governance. Implemented truth remains in `CURRENT_STATE.md` + system SSoTs.
@@ -136,6 +136,25 @@ flips to `✓` and the family ratio updates to 4/4).
 Validation owner: re-evaluate cells when each B3 sub-batch closes;
 final state captured by §5.4 ST-DCP-S5 playthroughs.
 
+### 2.4 Tutorial coverage — target 5-8/8 mechanic-rows (per Standing Directive #3, 2026-05-23 reframe)
+
+Per Standing Directive #3 (Tutorial-as-mandatory, `planning/Design_Project_Directives_v0_1.md §D3`), every demo-cut feature must have first-time-played tutorial coverage by S4 closure.
+
+| Mechanic | Tutorial trigger ID (reserved) | Owning session |
+| --- | --- | --- |
+| Action card play | `tut_first_action_card` | S4 |
+| Composition card play | `tut_first_composition_card` | S4 |
+| Inspiration spend | `tut_first_inspiration_spend` | S4 |
+| Audience reaction / Vibe meter | `tut_first_audience_action` | S4 |
+| Song-end vibe conversion | `tut_first_song_end` | S4 |
+| Status effect (musician or audience) | `tut_first_status_applied` | S4 |
+| Gig start orientation | `tut_welcome_to_gig` | S4 |
+| Win condition + run framing tease | `tut_first_gig_won` | S4 |
+
+8 trigger points drafted. Full design + draft text in `planning/active/Design_Tutorial_System_v0_1.md §6`. Final dialogue text is S4 work; this row tracks coverage existence, not coverage quality (quality validated via S4 playtest).
+
+Coverage target at §5.4 entry: 5-8/8 = 63-100%. S4 may merge / drop dialogues if playtest shows learn-by-doing is sufficient for a mechanic; the floor is "every mechanic has at least one entry-point dialogue available, even if some are skipped during authoring".
+
 **Known interim limitations.**
 
 **Modulation direction (MGP-ALWTTT-MOD-DIR-1).** Modulation cards in the current build land at a non-deterministic octave for the new root. `ModulationEffect` shifts the pitch class of `PartConfig.RootNote`; the octave is chosen by `ChordTrackComposer`'s voice leader, which minimizes voice-leading distance and routinely picks the descending neighbor for "up" modulations. A single Key Lift play may sound like an ascent, a settle, or a sidestep — interpreted as musical variety for the demo. Cross-project ask filed in MidiGenPlay tracker.
@@ -231,6 +250,14 @@ Tuning knobs available without touching code:
 Tuning knobs requiring code or balance batch:
 - Card effect magnitudes (would touch starter deck card definitions).
 - Audience archetype thresholds (would touch Kid / Cool Dude data).
+
+### 5.1 Standing Directive #3 — Tutorial coverage criterion (2026-05-23 reframe)
+
+Demo cut closes only when every coverage-matrix row in §2 has either:
+- An authored tutorial dialogue trigger (rows §2.4) producing a first-time-played explanation, OR
+- A documented "learn by doing" exemption with rationale (recorded inline in §2.4).
+
+S4 closure verifies this criterion. The §5.4 demo readiness review re-checks it.
 
 ---
 

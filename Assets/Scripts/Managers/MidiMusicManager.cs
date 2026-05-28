@@ -729,6 +729,34 @@ namespace ALWTTT.Managers
                     bundleEntries.Add($"{tr.MusicianId}#{th}");
                 }
             }
+
+            // [ALWTTT-MOD-DIR-3] Modulation transients are [NonSerialized]
+            // one-shot state and are NOT part of partMeterHash / partBundleKey.
+            // If the cache were consulted when transients are non-default, the
+            // cache would either replay pre-modulation bytes (dropping the
+            // directional intent — the SM-DIR-5 failure mode) or, once cached,
+            // replay modulated bytes on a subsequent Auto render with the same
+            // RootNote (wrong direction on the way back). Bypass the cache
+            // entirely whenever a transient is staged. The composer consumes
+            // and clears the transients in the same call, so the bypass is
+            // itself one-shot — a subsequent Auto render with the same inputs
+            // can cache and replay normally.
+            if (part.ModulationOctaveHint !=
+                    MidiGenPlay.Composition.ModulationOctaveHint.Auto
+                || part.PreviousRootNote.HasValue)
+            {
+                cacheEnabled = false;
+                if (logDebug)
+                {
+                    Debug.Log(
+                        $"{DebugTag} <color=#ff8844>[Mod-DIR/CacheBypass]</color> " +
+                        $"part={partIndex} '{part.Name}' " +
+                        $"hint={part.ModulationOctaveHint} " +
+                        $"prevRoot={(part.PreviousRootNote.HasValue ? part.PreviousRootNote.Value.ToString() : "null")} " +
+                        $"→ cache bypassed for this render");
+                }
+            }
+
             string partBundleKey = cacheEnabled
                 ? BuildPartBundleKey(partMeterHash, bundleEntries)
                 : null;
@@ -818,19 +846,6 @@ namespace ALWTTT.Managers
             int b1Hits = 0, b1Misses = 0;
             try
             {
-                // [TEMP DIAG — ALWTTT-MOD-DIR-2] Remove before close.
-                // Log PartConfig transients at the exact moment of handoff to the
-                // package. If these are non-default here, the package received them.
-                {
-                    var dbgPart = fullCfg.Parts[partIndex];
-                    Debug.Log(
-                        $"<color=orange>[Mod-DIR/Handoff]</color> " +
-                        $"part='{dbgPart.Name}' rootNote={dbgPart.RootNote} " +
-                        $"prevRoot={dbgPart.PreviousRootNote} " +
-                        $"hint={dbgPart.ModulationOctaveHint} " +
-                        $"→ SongOrchestrator");
-                }
-
                 // Generate stems via orchestrator
                 var render = generator.Orchestrator.GenerateSinglePart(
                     part,

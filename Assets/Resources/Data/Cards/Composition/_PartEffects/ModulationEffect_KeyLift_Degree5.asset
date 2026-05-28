@@ -18,4 +18,4 @@ MonoBehaviour:
   absoluteRoot: 0
   targetDegree: 4
   excludeTonicOnRandomWithinScale: 1
-  octaveHint: 0
+  octaveHint: 1

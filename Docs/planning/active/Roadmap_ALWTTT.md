@@ -576,6 +576,8 @@ Aditivo, depends on B1. Authoring + design.
 
 **B3-demo-polish CLOSED (2026-05-17).** Eight UX defects (F1-F9) fixed. Demo flow Main Menu → Gig functional via F9 ad-hoc auto-start. Proper replacement is §5.3.5 (next active batch).
 
+**Sequencing addendum (2026-05-23 planning reframe).** The B3 candidate slate (items A–I + design gaps #12–#15 from §5.2.5) is being decomposed across the new S1-S5 demo-cut session sequence. **S1 takes B3-slate-F (`AudienceCharacterSimple.ResolveLoopEffect` real implementation) as a standalone batch** — see `CURRENT_STATE.md §3` next-active and the B3-slate-F rehydration block in the 2026-05-23 planning session. Other B3-slate items (C target-type validation, D effect labels, E-lite Blocked tooltip, G filter draws, H Always-action discard semantics, I ParentActive warning, plus design gaps #12–#15) absorb into S5 (balance + validation + cleanup) or are explicitly deferred. **S1-S5 is the demo-cut close sequence, not a renaming of B3-slate** — only one B3-slate item (F) becomes a dedicated session; the rest are sequenced inside S5. Phase C (§7) opens after S5 closes / §5.4 passes.
+
 ### 5.3.5 — Demo cut prep (opened 2026-05-15) ✅ CLOSED (2026-05-18)
 
 **Closure notes (2026-05-18):** Shipped end-to-end with one architectural pivot: D-FAST-1=C replaced the original three-scene plan (Main Menu → invisible GigSetup pass-through → Gig) with a two-scene flow (Main Menu → Gig direct via new `GigLauncher` extraction). Demo build entry is now zero clicks from launch to action window of song 1, single fade cycle, no flicker. New code: `GigLauncher.cs` (static service, single non-Gig→Gig scene transition entry point), `MainMenuController.cs` (auto-launch branching), `DemoLaunchConfigSO.cs` (baked demo config). SFX→FlatVibe mechanic shipped per DC-SFX-Route=A (per-audience via `ApplyIncomingVibe`, Indifference still blocks; aggregate band-canvas floater). `CanPlayActionCard` performance gate relaxed (per-loop-drawn action cards now playable mid-composition regardless of `CardActionTiming` tag). `UIManager.Fade(false)` latent loop-termination bug fixed. F9 ad-hoc precursor (from B3-demo-polish) replaced wholesale. Empty `GigSetupSceneManager.cs` deleted. Smoke tests ST-DCP-S1/S2/S3/S4/S6/S8/S9/S10 PASS; ST-DCP-S7 OBSOLETED (superseded by ST-DCP-S8 after D-FAST-1=C); **ST-DCP-S5 win-rate validation DEFERRED to §5.4 readiness review** per DC-Close-S5=(c) — folds into §5.4's full clean-run smoke pass. Decisions locked (14): DC-1=C, DC-2=Custom, DC-3=Custom, DC-4=B, DC-5=B, D-DCP-1=A, D-DCP-2=A, D-DCP-6=A, DC-Scene-1=existing, DC-Scene-2=A, DC-F9-fate=A, DC-SFX-Route=A, D-FAST-1=C, D-PLACE-1=A. Authority change: `GigLauncher` establishes new single-entry-point contract recorded as hard invariant on `ssot_manifest.yaml` Gig_Combat_Core entry. `SSoT_Gig_Combat_Core.md` new §13 (Launch contract) + §5.2 SFX→FlatVibe paragraph; `SSoT_Gig_Encounter.md` §7.5 restructured (Gig launch data sources, three-source enumeration); `SSoT_Card_System.md` §9.1 performance-gate note. Foundation for ladder mode (post-§5.4 architectural batch) laid by `GigLauncher` extraction.
@@ -644,6 +646,7 @@ If gaps: targeted follow-up batches before cut.
 - [ ] B3 (balance + new content + 2-archetype audience pool + Indifference status) closed
 - [ ] Demo cut prep closed (§5.3.5)
 - [ ] Demo readiness review passed (§5.4)
+- [ ] Tutorial coverage authored per Standing Directive #3 (Tutorial-as-mandatory): every demo-cut feature has first-time-trigger dialogues registered by S4 closure. See `planning/active/Design_Tutorial_System_v0_1.md §8` for the per-dialogue DoD.
 - [ ] No F-1/F-3/F-4 invariant regressions
 - [ ] CURRENT_STATE + Roadmap + changelog reflect closure
 - [ ] No SSoT promotions or authority changes for §5.3.5 (operational); B3 requires `SSoT_Status_Effects.md` + `SSoT_Audience_and_Reactions.md` edits at closure (Indifference + `ApplyIncomingVibe` are real semantic additions)
@@ -704,6 +707,62 @@ Out of scope for this batch:
 Definition of done: at least one new pending-applier card and one multiplier card playable in a normal gig; bucket resolves correctly at song end; smoke tests cover bucket lifecycle (reset, accumulate, multiply, resolve, no leak across songs).
 
 Docs at closure: new SSoT `SSoT_Pending_Effects.md` (or equivalent location), `SSoT_Card_System.md` updated to recognize pending-effect specs as a category, `SSoT_Status_Effects.md §5.7` Earworm note that a pending-applier authoring path exists, `SSoT_Runtime_CompositionSession_Integration.md` updated for song-scoped bucket lifecycle, planning doc `Design_Pending_Effects_v1.md` partially superseded.
+
+## 7 — Phase C — Vertical slice (post-demo cut) (planned 2026-05-23)
+
+**Status:** Planned. Opens after S5 closes / §5.4 demo readiness review passes.
+**Goal:** Extend the demo cut into a publisher-showable multi-encounter run with venue / encounter variety, ship hub stub, boss encounter, and full tutorial coverage.
+
+**Demo pitch:** "A run through three venues. Three encounters with rotating audience archetypes, culminating in a boss. A ship hub between gigs. A pilot / manager character who guides the player through every new mechanic. Win the boss to complete the run."
+
+**Sequencing.** S6 → S7 → S8 (strict left-to-right; team is one developer + agent). Full per-session scope in `planning/active/Design_Vertical_Slice_v0_1.md`.
+
+**Decisions locked at reframe (2026-05-23):**
+- **D-RUN-1=A** Narrow demo cut now; vertical slice as Phase C.
+- **D-RUN-2=β** Ship-stub as dedicated S6, not folded into S5.
+- **D-RUN-3** 3 encounters + boss ideal; 2 encounters + boss minimum.
+- **D-RUN-4=α** Boss reuses `AudienceCharacterBase` (subclass with bespoke abilities + larger thresholds, no new character class hierarchy).
+- **D-RUN-5** Asset image 1 confirmed as ship pilot / band manager (no separate character-intro batch; folds into S4 + S6).
+- **D-RUN-6** Ship interior (bar / chill / rehearsal), space map, meta-progression, audio pass — all out of the 8-session plan.
+
+### 7.1 S6 — Run structure (ship hub stub + scene transitions)
+
+Builds on `GigLauncher` from §5.3.5. Introduces minimal ship hub scene + gig → reward → ship → next gig flow. Pilot portrait (image 1, D-RUN-5) integrated as ship-hub interlocutor. Tutorial dialogues for run-structure mechanics land here (`tut_ship_hub_intro`, `tut_first_reward_choice`) per Standing Directive #3. See `Design_Vertical_Slice_v0_1.md §3.1`.
+
+### 7.2 S7 — Run content I (2 venues + 2 encounters + audience state machine)
+
+Authors 2 new venues (asset images 7 + 10) and 2 new encounters using the 4 new audience archetype sprites + Cool Dude + Kid distribution. Audience state machine (idle / hostile / vibing) shipped as a Sensory Event Bus consumer per Standing Directive #2. Tutorial dialogue `tut_audience_state_machine` lands. See `Design_Vertical_Slice_v0_1.md §3.2`.
+
+### 7.3 S8 — Run content II (boss + closing sequence)
+
+Boss subclasses `AudienceCharacterBase` per D-RUN-4=α; 3-5 bespoke abilities authored. Closing-sequence (scene or modal) on win. Tutorial dialogues `tut_first_boss_encounter` + `tut_run_complete` land. See `Design_Vertical_Slice_v0_1.md §3.3`.
+
+### 7.4 Phase C Definition of Done
+
+- [ ] Ship hub stub functional; player returns to ship between gigs.
+- [ ] Gig → reward → ship → next gig flow plays end-to-end without crashes.
+- [ ] 2 new venues authored; existing venue preserved as third option (3-venue run ideal per D-RUN-3, 2-venue minimum).
+- [ ] 4 new audience archetypes authored; audience state machine shipped and Sensory-Contract compliant.
+- [ ] Boss authored per D-RUN-4=α (bigger numbers + bespoke abilities, no new character infrastructure).
+- [ ] Tutorial coverage extends across S6-S8 per D-TUT-5 (~5 dialogues, IDs reserved in `Design_Tutorial_System_v0_1.md §7`).
+- [ ] All Phase C features produce sensory artifacts per Standing Directive #2 (FT minimum; FT + SFX preferred; FT + SFX + animator/shader/particle ideal).
+- [ ] No regressions against demo-cut DoD (S5 closure remains valid through Phase C work).
+- [ ] CURRENT_STATE + Roadmap + changelog reflect Phase C closure.
+
+### 7.5 Out of scope for Phase C (D-RUN-6)
+
+- Ship interior batches (bar, chill, rehearsal) — post-vertical-slice.
+- Space map — post-vertical-slice.
+- Meta-progression (run-to-run persistence, deck evolution across runs) — post-vertical-slice.
+- Audio pass — post-vertical-slice.
+- Ladder mode formalization — `GigLauncher` foundation from §5.3.5 suffices for the vertical-slice run; full ladder mode is the "Future milestones / Ladder mode" entry below.
+
+### Demo-readiness check (Phase C)
+
+- **Demonstrable:** A full run through 3 venues with 3 encounters culminating in a boss fight. Tutorial guides the player. Ship hub provides between-gig breathing room.
+- **Viewer sees:** Multi-encounter run. Venue variety. Audience variety with state-machine-driven reactions (idle / hostile / vibing sprite swaps + animator triggers + audio cues). Boss encounter with bespoke abilities. Pilot / manager character providing tutorial context.
+- **Acceptable rough edges:** Ship hub is a stub (no interior rooms). No space map yet. Tutorial covers basics only, not every micro-interaction. Audio pass not yet done.
+- **Must fix before showing:** Run flow must complete end-to-end without crashes. Boss must be defeatable and produce satisfying closure. Tutorial dialogues must trigger correctly (no missed first-time hooks).
 
 ## Post-MVP — Tempo-coupled card identity (design direction, no implementation slot)
 

@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c82cd697557755e49b2d0f713005e2fb, type: 3}
-  m_Name: ModulationEffect_KeyLift_Degree7
+  m_Name: ModulationEffect_KeyLift_Octave
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.ModulationEffect
   scope: 1
   timing: 1
   mode: 1
   absoluteRoot: 0
-  targetDegree: 6
+  targetDegree: 0
   excludeTonicOnRandomWithinScale: 1
   octaveHint: 1

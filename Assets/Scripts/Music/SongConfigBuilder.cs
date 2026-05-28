@@ -84,7 +84,7 @@ namespace ALWTTT.Music
 
                 var part = new SongConfig.PartConfig
                 {
-                    Name = string.IsNullOrWhiteSpace(p.label) 
+                    Name = string.IsNullOrWhiteSpace(p.label)
                             ? $"Part {partIndex + 1}" : p.label,
                     Measures = p.measures <= 0 ? 8 : p.measures,
                     TimeSignature = p.timeSignature,
@@ -103,30 +103,6 @@ namespace ALWTTT.Music
                 // application defaults to Auto + null (package no-op).
                 part.ModulationOctaveHint = p.pendingModulationOctaveHint;
                 part.PreviousRootNote = p.pendingPreviousRootNote;
-
-                // [TEMP DIAG — ALWTTT-MOD-DIR-2] Remove before close.
-                if (part.ModulationOctaveHint !=
-                        MidiGenPlay.Composition.ModulationOctaveHint.Auto
-                    || part.PreviousRootNote != null)
-                {
-                    Log(
-                        $"<color=magenta>[Mod-DIR/Build]</color> " +
-                        $"part='{part.Name}' rootNote={part.RootNote} " +
-                        $"prevRoot={part.PreviousRootNote} " +
-                        $"hint={part.ModulationOctaveHint} " +
-                        $"(staged on PartEntry, copied to PartConfig)",
-                        true,
-                        "Mod-DIR");
-                }
-                else
-                {
-                    Log(
-                        $"<color=#888888>[Mod-DIR/Build]</color> " +
-                        $"part='{part.Name}' rootNote={part.RootNote} " +
-                        $"(no modulation staging)",
-                        true,
-                        "Mod-DIR");
-                }
 
                 p.pendingModulationOctaveHint =
                     MidiGenPlay.Composition.ModulationOctaveHint.Auto;
@@ -351,7 +327,7 @@ namespace ALWTTT.Music
             {
                 cfg.ChannelRoles.AddRange(firstPartRoles);
                 cfg.ChannelMusicianOrder.AddRange(firstPartMusicians);
-            } 
+            }
 
             return cfg;
         }

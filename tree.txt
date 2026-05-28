@@ -1676,12 +1676,13 @@
 |   |   |   |   +---AudienceCharacter - Big Guy.prefab
 |   |   |   |   +---AudienceCharacter - Cool Dude.prefab
 |   |   |   |   +---AudienceCharacter - Influencer.prefab
+|   |   |   |   +---AudienceCharacter - Kid TEST.prefab
 |   |   |   |   \---AudienceCharacter - Kid.prefab
 |   |   |   \---Musicians
 |   |   |       +---BandCharacter - Base.prefab
 |   |   |       +---BandCharacter - Conito.prefab
-|   |   |       +---BandCharacter - Gusano.prefab
 |   |   |       +---BandCharacter - Robot C2.prefab
+|   |   |       +---BandCharacter - Sibi.prefab
 |   |   |       \---BandCharacter - Ziggy.prefab
 |   |   +---Core
 |   |   |   +---AudioManager.prefab
@@ -1766,7 +1767,7 @@
 |   |   |   +---Audience Character Idle.anim
 |   |   |   +---AudienceCharacter - Base.controller
 |   |   |   +---Band Test Animator.controller
-|   |   |   +---BandCharacter - Gusano.controller
+|   |   |   +---BandCharacter - Sibi.controller
 |   |   |   +---Gusanito Idle.anim
 |   |   |   \---New Animation.anim
 |   |   +---Data
@@ -1784,13 +1785,20 @@
 |   |   |   |   |   +---_PartEffects
 |   |   |   |   |   |   +---InstrumentEffect_Bass.asset
 |   |   |   |   |   |   +---InstrumentEffect_Guitar.asset
+|   |   |   |   |   |   +---InstrumentEffect_Sibi_Voice.asset
 |   |   |   |   |   |   +---InstrumentEffect_Synth.asset
 |   |   |   |   |   |   +---MeterEffect_3_4.asset
 |   |   |   |   |   |   +---MeterEffect_4_4.asset
 |   |   |   |   |   |   +---MeterEffect_5_4.asset
 |   |   |   |   |   |   +---MeterEffect_6_8.asset
+|   |   |   |   |   |   +---ModulationEffect_KeyLift_Degree3.asset
+|   |   |   |   |   |   +---ModulationEffect_KeyLift_Degree5.asset
+|   |   |   |   |   |   +---ModulationEffect_KeyLift_Degree7.asset
+|   |   |   |   |   |   +---ModulationEffect_KeyLift_Octave.asset
 |   |   |   |   |   |   +---TempoEffect_Fast.asset
+|   |   |   |   |   |   +---TempoEffect_HalfTime.asset
 |   |   |   |   |   |   +---TempoEffect_Moderate.asset
+|   |   |   |   |   |   +---TempoEffect_PushIt.asset
 |   |   |   |   |   |   +---TempoEffect_Slow.asset
 |   |   |   |   |   |   +---TempoEffect_Very_Fast.asset
 |   |   |   |   |   |   +---TempoEffect_Very_Slow.asset
@@ -1852,16 +1860,16 @@
 |   |   |   |   |   |   \---Rhythm - C2 - Very Fast FourFour.asset
 |   |   |   |   |   \---Tracks
 |   |   |   |   |       +---Backing [Conito] - 1.asset
-|   |   |   |   |       +---Backing [Wormy] - 2.asset
+|   |   |   |   |       +---Backing [Sibi] - 2.asset
 |   |   |   |   |       +---Backing 1.asset
 |   |   |   |   |       +---Backing 3.asset
 |   |   |   |   |       +---Bassline.asset
 |   |   |   |   |       +---Harmony [Conito] - 1.asset
-|   |   |   |   |       +---Harmony [Wormy] - 3.asset
+|   |   |   |   |       +---Harmony [Sibi] - 3.asset
 |   |   |   |   |       +---Harmony [Ziggy] - 2.asset
 |   |   |   |   |       +---Harmony-NearestChordTone 2.asset
 |   |   |   |   |       +---Melody [Conito] - Scale - 2.asset
-|   |   |   |   |       +---Melody [Wormy] - Chord Tones - 1.asset
+|   |   |   |   |       +---Melody [Sibi] - Chord Tones - 1.asset
 |   |   |   |   |       +---Melody [Zig] - Ascending Climb - 3.asset
 |   |   |   |   |       +---Melody-NearestChordTone 1.asset
 |   |   |   |   |       +---Melody-ScaleFlow 2.asset
@@ -1872,14 +1880,14 @@
 |   |   |   |   |   +---Conito - 1.asset
 |   |   |   |   |   +---Conito - 2.asset
 |   |   |   |   |   \---Conito - 3.asset
-|   |   |   |   +---Gusano
-|   |   |   |   |   +---Gusano - 1.asset
-|   |   |   |   |   +---Gusano - 2.asset
-|   |   |   |   |   \---Gusano - 3.asset
 |   |   |   |   +---Robot C2
 |   |   |   |   |   +---Robot C2 - 1.asset
 |   |   |   |   |   +---Robot C2 - 2.asset
 |   |   |   |   |   \---Robot C2 - 3.asset
+|   |   |   |   +---Sibi
+|   |   |   |   |   +---Sibi - 1.asset
+|   |   |   |   |   +---Sibi - 2.asset
+|   |   |   |   |   \---Sibi - 3.asset
 |   |   |   |   +---1 - Strike a Pose (CHR).asset
 |   |   |   |   +---2 - Heartfelt Story (EMT).asset
 |   |   |   |   +---3 - Warming Up (TCH).asset
@@ -1906,7 +1914,8 @@
 |   |   |   |   |   +---Big Guy.asset
 |   |   |   |   |   +---Cool Dude.asset
 |   |   |   |   |   +---Influencer.asset
-|   |   |   |   |   \---Kid.asset
+|   |   |   |   |   +---Kid.asset
+|   |   |   |   |   \---Kid-TestTaster.asset
 |   |   |   |   \---Musicians
 |   |   |   |       +---Cantante_Cards
 |   |   |   |       |   +---Payloads
@@ -1922,21 +1931,21 @@
 |   |   |   |       |   |   \---new_conito_vibe_single_Payload.asset
 |   |   |   |       |   +---new_conito_draw.asset
 |   |   |   |       |   \---new_conito_vibe_single.asset
-|   |   |   |       +---Gusano_Cards
+|   |   |   |       +---Robot_Cards
+|   |   |   |       |   +---Payloads
+|   |   |   |       |   \---StyleBundles
+|   |   |   |       |       \---Rhythm
+|   |   |   |       |           \---4_Composition_002_CompositionPayload_Rhythm_StyleBundle.asset
+|   |   |   |       +---Sibi_Cards
 |   |   |   |       |   +---Payloads
 |   |   |   |       |   \---StyleBundles
 |   |   |   |       |       \---Backing
 |   |   |   |       |           +---2_Composition_001_CompositionPayload 1_Backing_StyleBundle.asset
 |   |   |   |       |           +---2_Composition_001_CompositionPayload_Backing_StyleBundle.asset
 |   |   |   |       |           \---2CBacking001TestProg_Payload_Backing_StyleBundle.asset
-|   |   |   |       +---Robot_Cards
-|   |   |   |       |   +---Payloads
-|   |   |   |       |   \---StyleBundles
-|   |   |   |       |       \---Rhythm
-|   |   |   |       |           \---4_Composition_002_CompositionPayload_Rhythm_StyleBundle.asset
 |   |   |   |       +---Band Character - Conito.asset
-|   |   |   |       +---Band Character - Gusano.asset
 |   |   |   |       +---Band Character - Robot C2.asset
+|   |   |   |       +---Band Character - Sibi.asset
 |   |   |   |       +---Band Character - Ziggy.asset
 |   |   |   |       +---Cantante_CardCatalogData.asset
 |   |   |   |       +---Cantante_Composition_002.asset
@@ -1944,7 +1953,6 @@
 |   |   |   |       +---Conito_CardCatalogData.asset
 |   |   |   |       +---debug_apply_shaken_to_musician.asset
 |   |   |   |       +---debug_apply_shaken_to_musician_Payload.asset
-|   |   |   |       +---Gusano_CardCatalogData.asset
 |   |   |   |       +---MVP_AddComposure_03.asset
 |   |   |   |       +---MVP_AddComposure_03_Payload.asset
 |   |   |   |       +---MVP_AddFlow_02_All.asset
@@ -1956,14 +1964,21 @@
 |   |   |   |       +---MVP_RemoveStress_02.asset
 |   |   |   |       +---MVP_RemoveStress_02_Payload.asset
 |   |   |   |       +---Robot_CardCatalogData.asset
+|   |   |   |       +---Sibi_CardCatalogData.asset
 |   |   |   |       +---starter_compound_cycle.asset
 |   |   |   |       +---starter_compound_cycle_Payload.asset
 |   |   |   |       +---starter_default_mode.asset
 |   |   |   |       +---starter_default_mode_Payload.asset
+|   |   |   |       +---Starter_half_time.asset
+|   |   |   |       +---Starter_half_time_Payload.asset
+|   |   |   |       +---Starter_key_lift.asset
+|   |   |   |       +---Starter_key_lift_Payload.asset
 |   |   |   |       +---starter_mind_tap.asset
 |   |   |   |       +---starter_mind_tap_Payload.asset
 |   |   |   |       +---starter_pentameter.asset
 |   |   |   |       +---starter_pentameter_Payload.asset
+|   |   |   |       +---Starter_push_it.asset
+|   |   |   |       +---Starter_push_it_Payload.asset
 |   |   |   |       +---starter_singing_field.asset
 |   |   |   |       +---starter_singing_field_Payload.asset
 |   |   |   |       +---starter_take_five.asset
@@ -2060,6 +2075,8 @@
 |   |   |       |   +---StatusEffect_Exposed_DamageTakenUpFlat.asset
 |   |   |       |   +---StatusEffect_Feedback_DamageOverTime.asset
 |   |   |       |   +---StatusEffect_Flow_DamageUpFlat.asset
+|   |   |       |   +---StatusEffect_Hyped_DamageUpFlat.asset
+|   |   |       |   +---StatusEffect_Indifference_NegateIncomingPositive.asset
 |   |   |       |   \---StatusEffect_Shaken_ShakenRestriction.asset
 |   |   |       +---CharacterStatusPrimitiveDatabase.asset
 |   |   |       +---StatusEffectCatalogue_Audience.asset
@@ -2115,7 +2132,9 @@
 |   |   |       +---Drums
 |   |   |       |   +---Drum_4-2_2m_ACSN.asset
 |   |   |       |   +---Drum_4-4_1m_BDSN.asset
-|   |   |       |   \---Drum_6-1_2m_CHBDSNOH.asset
+|   |   |       |   +---Drum_4-4_2m_CHBDSNOH.asset
+|   |   |       |   +---Drum_6-1_2m_CHBDSNOH.asset
+|   |   |       |   \---TestSmokeSMR7.asset
 |   |   |       \---Melodies
 |   |   \---Sprites
 |   |       +---Backgrounds
@@ -2137,14 +2156,56 @@
 |   |       |   \---Publico .png
 |   |       +---Cards
 |   |       |   +---Images
-|   |       |   |   +---carta fuego.png
+|   |       |   |   +---_Shared
+|   |       |   |   |   +---carta fuego.png
+|   |       |   |   |   +---fuego verde.png
+|   |       |   |   |   +---luces.png
+|   |       |   |   |   +---Neutral1.png
+|   |       |   |   |   +---Neutral2(cono).png
+|   |       |   |   |   +---neutral3.png
+|   |       |   |   |   +---neutral4.png
+|   |       |   |   |   \---neutral5.png
+|   |       |   |   +---Conito
+|   |       |   |   |   +---Card_Conito_01.png
+|   |       |   |   |   +---Card_Conito_02.png
+|   |       |   |   |   +---Card_Conito_03.png
+|   |       |   |   |   +---Card_Conito_04.png
+|   |       |   |   |   +---Card_Conito_05.png
+|   |       |   |   |   +---Card_Conito_06.png
+|   |       |   |   |   +---Card_Conito_07.png
+|   |       |   |   |   +---Card_Conito_08.png
+|   |       |   |   |   \---conito.png
+|   |       |   |   +---RobotC2
+|   |       |   |   |   +---Card_RobotC2_01.png
+|   |       |   |   |   +---Card_RobotC2_02.png
+|   |       |   |   |   +---Card_RobotC2_03.png
+|   |       |   |   |   +---Card_RobotC2_04.png
+|   |       |   |   |   \---robot.png
+|   |       |   |   +---Sibi
+|   |       |   |   |   +---Card_Sibi_01.png
+|   |       |   |   |   +---Card_Sibi_02.png
+|   |       |   |   |   +---Card_Sibi_03.png
+|   |       |   |   |   +---Card_Sibi_04.png
+|   |       |   |   |   +---Card_Sibi_05.png
+|   |       |   |   |   +---Card_Sibi_06.png
+|   |       |   |   |   +---Card_Sibi_07.png
+|   |       |   |   |   +---Sibi - telekinesis.png
+|   |       |   |   |   \---telequinesis.png
+|   |       |   |   +---Ziggy
+|   |       |   |   |   +---Card_Ziggy_01.png
+|   |       |   |   |   +---Card_Ziggy_02.png
+|   |       |   |   |   +---Card_Ziggy_03.png
+|   |       |   |   |   +---Card_Ziggy_04.png
+|   |       |   |   |   +---Card_Ziggy_05.png
+|   |       |   |   |   +---Card_Ziggy_06.png
+|   |       |   |   |   +---Card_Ziggy_07.png
+|   |       |   |   |   +---Card_Ziggy_08.png
+|   |       |   |   |   +---ilustracion.png
+|   |       |   |   |   \---ziggy.png
 |   |       |   |   +---carta3.png
-|   |       |   |   +---conito.png
-|   |       |   |   +---fuego verde.png
-|   |       |   |   +---gusano - telekinesis.png
-|   |       |   |   +---luces.png
-|   |       |   |   +---robot.png
-|   |       |   |   \---ziggy.png
+|   |       |   |   +---droide1.png
+|   |       |   |   +---droide2.png
+|   |       |   |   \---droide3.png
 |   |       |   +---Card1.png
 |   |       |   \---CardSegmented.png
 |   |       +---Characters
@@ -2241,6 +2302,7 @@
 |   |   |   +---CardActions
 |   |   |   |   +---AddStressAction.cs
 |   |   |   |   +---AddVibeAction.cs
+|   |   |   |   +---ApplyStatusEffectAction.cs
 |   |   |   |   +---AudienceMoveToFrontAction.cs
 |   |   |   |   +---BlockStressAction.cs
 |   |   |   |   +---BlockVibeAction.cs
@@ -2358,6 +2420,7 @@
 |   |   |   +---Events
 |   |   |   |   \---RandomEventData.cs
 |   |   |   +---Gig
+|   |   |   |   +---DemoLaunchConfigSO.cs
 |   |   |   |   +---GigDevSettingsSO.cs
 |   |   |   |   +---GigFlowSettingsSO.cs
 |   |   |   |   +---GigPresentationSO.cs
@@ -2436,9 +2499,9 @@
 |   |   |   +---DeckManager.cs
 |   |   |   +---FxManager.cs
 |   |   |   +---GameManager.cs
+|   |   |   +---GigLauncher.cs
 |   |   |   +---GigManager.cs
 |   |   |   +---GigRunContext.cs
-|   |   |   +---GigSetupSceneManager.cs
 |   |   |   +---MidiMusicManager.cs
 |   |   |   +---SectorMapManager.cs
 |   |   |   +---ShipInteriorManager.cs
@@ -2516,6 +2579,7 @@
 |   |   |   +---GigCanvas.cs
 |   |   |   +---GigSetupController.cs
 |   |   |   +---HealthBarController.cs
+|   |   |   +---MainMenuController.cs
 |   |   |   +---MinicardTooltipController.cs
 |   |   |   +---MusicianMapStatusUI.cs
 |   |   |   +---MusicianPickerRow.cs
@@ -2540,6 +2604,7 @@
 |   |   |   \---New Windows Profile.asset
 |   |   +---Gig
 |   |   |   +---CompositionFxConfig.asset
+|   |   |   +---DemoLaunchConfig.asset
 |   |   |   +---GigDevSettings.asset
 |   |   |   +---GigFlowSettings.asset
 |   |   |   +---GigMeterTuning.asset
@@ -2616,29 +2681,32 @@
 |   +---integrations
 |   |   +---midigenplay
 |   |   |   +---ALWTTT_Uses_MidiGenPlay_Quick_Path.md
-|   |   |   +---README.md
+|   |   |   +---integrations_midigenplay_README.md
+|   |   |   +---MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md
 |   |   |   \---SSoT_ALWTTT_MidiGenPlay_Boundary.md
 |   |   \---README.md
 |   +---planning
 |   |   +---active
 |   |   |   +---Design_Audience_Status_v1.md
-|   |   |   +---Design_Song_Parts_Library_v0_1.md
+|   |   |   +---Design_Demo_Cut_v1.md
+|   |   |   +---Design_Sensory_Contract_v0_1.md
 |   |   |   +---Design_Starter_Deck_v1.md
-|   |   |   +---M1_5_Dev_Mode_Sub_Roadmap.md
-|   |   |   +---README.md
+|   |   |   +---Design_Tutorial_System_v0_1.md
+|   |   |   +---Design_Vertical_Slice_v0_1.md
+|   |   |   +---planning_active_README.md
 |   |   |   \---Roadmap_ALWTTT.md
 |   |   +---archive
 |   |   |   +---ALWTTT_DeckEditorWindow_Roadmap_Proposal.md
 |   |   |   +---Combat_MVP_Roadmap.md
+|   |   |   +---M1_5_Dev_Mode_Sub_Roadmap.md
 |   |   |   +---README.md
 |   |   |   +---Roadmap_Combat_MVP.md
 |   |   |   \---Roadmap_Combat_MVP_Closure_Actionable.md
-|   |   +---music
-|   |   |   \---ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md
 |   |   +---Design_Pending_Effects_v1.md
+|   |   +---Design_Project_Directives_v0_1.md
+|   |   +---Design_Song_Parts_Library_v0_1.md
 |   |   +---Design_Tempo_Identity_v1.md
-|   |   +---MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md
-|   |   \---README.md
+|   |   \---planning_README.md
 |   +---reference
 |   |   +---CSO_Primitives_Catalog.md
 |   |   \---README.md
@@ -2660,6 +2728,7 @@
 |   +---changelog-ssot.md
 |   +---coverage-matrix.md
 |   +---CURRENT_STATE.md
+|   +---make-tree-unity.bat
 |   +---README.md
 |   +---SSoT_CONTRACTS.md
 |   \---SSoT_INDEX.md

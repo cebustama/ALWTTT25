@@ -1127,14 +1127,6 @@ namespace ALWTTT.UI
                         part.pendingPreviousRootNote = currentRoot;
                         part.pendingModulationOctaveHint = mod.octaveHint;
 
-                        // [TEMP DIAG — ALWTTT-MOD-DIR-2] Remove before close.
-                        Debug.Log(
-                            $"<color=cyan>[Mod-DIR/Apply]</color> " +
-                            $"part[{idx}] prev={currentRoot} → new={newRoot} " +
-                            $"hint={mod.octaveHint} " +
-                            $"timing={fx.timing} mode={mod.mode} " +
-                            $"degree={mod.targetDegree}");
-
                         RefreshPartUI(idx);
 
                         RaisePartChanged();

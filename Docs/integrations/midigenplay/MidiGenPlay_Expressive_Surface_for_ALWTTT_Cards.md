@@ -54,7 +54,7 @@ Legend for **"Per-card today?"**:
 | 5 | Tempo (absolute BPM) | `TempoEffect` AbsoluteBpm mode | `PartConfig.ExplicitBpm` | — | ✅ |
 | 6 | Tempo (multiplicative) | `TempoEffect` ScaleFactor mode | `PartConfig.TempoScale` | — | ✅ |
 | 7 | Meter / time signature | `MeterEffect` | `PartConfig.TimeSignature` | `TimeSignatureProperties` (package) | ✅ |
-| 8 | Modulation (key change) | `ModulationEffect` | `PartConfig.RootNote` / scale-relative | — | ✅ |
+| 8 | Modulation (key change) | `ModulationEffect` (incl. `octaveHint`) | `PartConfig.RootNote` + transient `ModulationOctaveHint` / `PreviousRootNote` | `ModulationOctaveHint` (enum) | ✅ |
 | 9 | Instrument (specific melodic) | `InstrumentEffect` SpecificMelodic | `TrackConfig.Instrument` | `MIDIInstrumentSO` | ✅ |
 | 10 | Instrument (specific percussion) | `InstrumentEffect` SpecificPercussion | `TrackConfig.PercussionInstrument` | `MIDIPercussionInstrumentSO` | ✅ |
 | 11 | Instrument (by type) | `InstrumentEffect` InstrumentType | `TrackConfig.Instrument` (resolved) | — | ✅ |
@@ -78,7 +78,7 @@ Legend for **"Per-card today?"**:
 
 **Axis 8 (Modulation) — ALWTTT-side cache interaction.** Playing a card with `ModulationEffect` modifies `PartConfig.RootNote`, which is part of ALWTTT's B1 `partMeterHash`. The play invalidates all cached stems for the part. This is intended — a melody track playing in the old key over chords in the new key would be audibly broken.
 
-**Axis 8 — directional ask (`MGP-ALWTTT-MOD-DIR-1`).** Modulation direction is currently voice-leader-driven: `ModulationEffect` shifts the pitch class of `RootNote`, but the octave of the new root is chosen by `ChordTrackComposer`'s voice leader optimizing for minimum voice-leading distance. "Up a fifth" can audibly land below the previous tonic. ALWTTT-side authoring intent (e.g., "Key Lift" as a directional name) cannot currently be honored without a package-side surface. Proposed: `octaveHint: ModulationOctaveHint { Auto, Up, Down }` field on `ModulationEffect`, consumed as a one-shot directional bias for the first chord of the post-modulation render. Tracked in MidiGenPlay project tracker.
+**Axis 8 — directional sub-axis (closed 2026-05-22, ALWTTT-MOD-DIR-2 + ALWTTT-MOD-DIR-3; MGP-ALWTTT-MOD-DIR-1, 1.1, 1.2).** `ModulationEffect.octaveHint` (`Auto` / `Up` / `Down`) is a one-shot directional intent for the first chord of the post-modulation render. ALWTTT writes the previous root + hint as `[NonSerialized]` transients on `PartConfig` at handoff (`SongConfigBuilder`); the composer reads-and-clears them on entry. `Auto` is the default and preserves prior voice-leading behavior bit-identically. With `targetDegree = Tonic` and a non-`Auto` hint, the composer bumps one octave in the requested direction (register-shift modulation without key change). Range-clamp fallback engages when the instrument cannot satisfy strict direction; the composer warns and clamps to the boundary octave on the requested side. The transients are NOT part of `MidiMusicManager._partBundleCache` keys; `RenderSinglePart` forces `cacheEnabled = false` when either transient is non-default, so directional renders never hit the cache and modulated bytes never get cached for later replay. See `SSoT_Composer_Backing_Track.md` §6.
 
 ### 3.1 Reading the matrix
 

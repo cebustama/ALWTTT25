@@ -3,6 +3,76 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-05-23 — PLANNING-REFRAME (DEMO CUT S1-S5 + VERTICAL SLICE S6-S8) (doc-only)
+
+Closed. Pure documentation reframe. No code changes, no SSoT contract changes, no governance changes (manifest + coverage matrix + SSoT_CONTRACTS unchanged).
+
+**What changed.** User-side planning session on 2026-05-23 surfaced (a) a new asset drop (4 audience sprites, 2 venue refs, pilot/manager character, smoke/fire VFX) and (b) tutorial coverage as a demo-cut blocker. Plan reframed from 4-session demo-cut polish to 8-session sequence: demo cut (S1-S5) + vertical slice (S6-S8 = Phase C).
+
+**11 decisions locked at reframe.** D-TUT-1..5 (tutorial scope / UX / trigger model / presentation / vertical-slice extension) and D-RUN-1..6 (vertical-slice scope / ship-stub timing / run shape / boss approach / pilot identity / out-of-scope items). All 11 locked in chat at reframe; this batch persists them into governed docs without re-deliberation.
+
+**Two new standing directives, promoted on declaration.**
+- **D2 Sensory Contract** — every player-visible state change MUST produce at minimum FT; FT + SFX preferred; FT + SFX + animator/shader/particle ideal.
+- **D3 Tutorial-as-mandatory** — every demo-cut feature has tutorial coverage by S4 closure; every Phase C feature by S8 closure.
+
+Pre-existing D1 (Sound Design Priority) remains as #1. Three standing directives active.
+
+**Authority changes.** None. All three new docs are planning-classification (not SSoT, not contract). All four updates to existing docs are additive (no replaced contracts, no retired authority).
+
+**Semantic changes.**
+- `Roadmap_ALWTTT.md` — new §7 Phase C section (vertical slice S6-S8 with DoD); §5.5 Phase B DoD adds Standing Directive #3 tutorial coverage criterion; §5.3 gains sequencing addendum decomposing B3-slate across S1-S5 (S1 = B3-slate-F as standalone batch; other B3-slate items absorb into S5 or are deferred).
+- `Design_Demo_Cut_v1.md` — status line refreshed for post-reframe state; new §2.4 Tutorial coverage row (8 trigger inventory); new §5.1 Standing Directive #3 criterion as DoD gate.
+- `Design_Project_Directives_v0_1.md` — D2 + D3 directives appended; placeholder section updated to reflect three active directives.
+- `CURRENT_STATE.md` — §1 reframe closure block + §3 next-active rewrite (S1-S8 table).
+
+**New docs.**
+- `planning/active/Design_Tutorial_System_v0_1.md`
+- `planning/active/Design_Vertical_Slice_v0_1.md`
+- `planning/active/Design_Sensory_Contract_v0_1.md`
+
+Indexed in `SSoT_INDEX.md` "Active planning docs" table.
+
+**Intentionally unchanged.**
+- `ssot_manifest.yaml` — no invariant change.
+- `coverage-matrix.md` — no authority change.
+- `SSoT_INDEX.md` root-governance / subsystem SSoT tables — no change.
+- `SSoT_CONTRACTS.md` — no contract change.
+- All subsystem SSoTs (`SSoT_Audience_and_Reactions.md`, `SSoT_Status_Effects.md`, `SSoT_Scoring_and_Meters.md`, etc.) — no change. Phase C work (audience state machine) will edit `SSoT_Audience_and_Reactions.md` at S7 closure with a semantic change entry. S1 (B3-slate-F) will edit `SSoT_Audience_and_Reactions.md` at S1 closure (`ResolveLoopEffect` becomes meaningful).
+
+**Closes.** PLANNING-REFRAME-2026-05-23. **Opens.** S1 (B3-slate-F audience reactions) as next active batch. Per the rehydration prompt, S1 has its own three open decisions (D-F-1, D-F-2, D-F-3) which surface at S1 batch open.
+
+2026-05-22 — ALWTTT-MOD-DIR-2 + ALWTTT-MOD-DIR-3 (directional modulation hint)
+
+Closed. Two cross-project batches landing together. ALWTTT-MOD-DIR-2 adopted the MidiGenPlay directional modulation surface (six decisions resolved: D-A1=A reuse package `MidiGenPlay.Composition.ModulationOctaveHint` directly; D-A2=A capture previous root locally in `ApplyEffectToModel` before mutation; D-A3=B stage on `PartEntry`, write+clear at `SongConfigBuilder`; D-A4=no `CompositionCardClassifier` change; D-A5=A expose `octaveHint` on SO inspector with default `Auto`; D-A6=B append glyph suffix in `GetLabel()` for non-`Auto` direction). ALWTTT-MOD-DIR-3 fixed a cache-layering bug discovered during SM-DIR-5 verification — `MidiMusicManager._partBundleCache` keys on `partMeterHash` + per-track input hashes, which does not include the `[NonSerialized]` `PartConfig.ModulationOctaveHint` / `PreviousRootNote` transients. Same-root modulations (degree=Tonic + non-Auto hint) hit the cache and replayed pre-modulation bytes verbatim, silently dropping the directional intent. Companion closures on the package side: MGP-ALWTTT-MOD-DIR-1, 1.1, and 1.2 (2026-05-22), authoring the directional surface, fixing the voice-leader override path, and ensuring the Tonic-degree composer path bumps register correctly.
+
+**Code changes.**
+- `ModulationEffect.cs` — `octaveHint : ModulationOctaveHint` field added (default `Auto`); `GetLabel()` appends ` ↑` / ` ↓` glyph suffix when non-`Auto`; `Auto` label byte-identical to pre-batch.
+- `SongCompositionUI.cs` — nested `PartEntry` gains two `[NonSerialized]` staging fields (`pendingModulationOctaveHint`, `pendingPreviousRootNote`). `ApplyEffectToModel` `ModulationEffect` branch extended with a 2-line stage step using the pre-mutation `currentRoot` local.
+- `SongConfigBuilder.cs` — `Build()` copies staged transients onto the freshly-built `PartConfig` and clears staging immediately after copy. Sole handoff site (grep-verified: only `new SongConfig.PartConfig` construction in the codebase).
+- `MidiMusicManager.cs` — `RenderSinglePart` cache layer extended: when `PartConfig.ModulationOctaveHint != Auto` OR `PartConfig.PreviousRootNote.HasValue`, `cacheEnabled` is forced false for this render. The three existing `if (cacheEnabled && ...)` guards at the bundle read, stem read, and bundle write naturally skip. Bypass is one-shot — composer consumes and clears the transients in the same call. New `[Mod-DIR/CacheBypass]` log (gated on `logDebug`) provides production observability for future cache investigations.
+
+**Asset changes.**
+- `ModulationEffect_KeyLift_Degree5.asset` re-authored with `octaveHint = Up`. Other modulation assets remain at `Auto` (unchanged audible behavior).
+
+**Doc changes.**
+- `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` §3 axis 8 row updated to reference `octaveHint` and the transient pair. The former "directional ask" proposal paragraph replaced with a closure paragraph documenting the shipped behavior and the cache-bypass invariant.
+
+**Smoke tests.**
+- SM-DIR-1 (strict Up Dominant): PASS.
+- SM-DIR-2 (strict Down Dominant): PASS.
+- SM-DIR-3 (Auto regression, bit-identical baseline): PASS.
+- SM-DIR-4 (chained Up modulations): PASS.
+- SM-DIR-5 (Tonic + Up register bump): PASS after ALWTTT-MOD-DIR-3 cache-bypass fix.
+- SM-DIR-6 (transients clear after consumption): PASS.
+- SM-DIR-7 (range-clamp fallback): deferred — requires narrow-range debug instrument authoring tooling not yet present.
+
+**Semantics worth recording for future readers.**
+- Chained modulations within a single part before render: the second modulation's stage step overwrites the first. Only the last-applied `octaveHint` and its captured previous root carry into the next render. Directional intent is anchored to the most recent modulation, not chained across queued mods.
+- Random-modulation modes (`RandomAny` / `RandomWithinScale`) combined with non-`Auto` hint can land on the previous root by chance; in that case the package's degree-1 path bumps one octave in the requested direction (register shift rather than key change). Authoring guidance: keep `octaveHint = Auto` on random-modulation assets unless register shift is intended.
+- Cache bypass invariant: `MidiMusicManager._partBundleCache` keys do NOT include `PartConfig` transients. Any future transient-style field added to `PartConfig` must either be incorporated into the cache key or trigger the same bypass logic. The package-side documentation in `SSoT_Composer_Backing_Track.md` §6 carries the matching "transients are not cacheable" invariant for consumers.
+
+No `ssot_manifest.yaml` change. No SSoT contract change on the ALWTTT side — the contract change for `PartConfig` transients was authored package-side under MGP-ALWTTT-MOD-DIR-1; this pair of batches consumes it. `CURRENT_STATE.md` not modified — no operational baseline shift, modulation cards remain a working composition axis with refined audible behavior.
+
 2026-05-22 — B3-content-cards closure
 
 **Semantic changes.**

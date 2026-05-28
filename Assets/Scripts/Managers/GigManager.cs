@@ -1809,27 +1809,30 @@ namespace ALWTTT.Managers
             }
         }
 
-        // [B2 / #3] Map clamped loop impression [-2..2] to a short crowd reaction.
-        // Returns null for neutral (0) so we don't spam silent feedback.
+        // [B2 / #3, S1 D-F-4=A] Map clamped loop impression [-2..2] to a short
+        // crowd reaction. Neutral (0) gets a muted ellipsis to satisfy the Sensory
+        // Contract (D2) — every player-visible state change emits at least an FT.
         private static string ImpressionToExclamation(int impression)
         {
             switch (impression)
             {
                 case 2: return "WOW!";
                 case 1: return "YEAH";
-                case 0: return null;
+                case 0: return "…";              // was null — Sensory Contract gap closer
                 case -1: return "MEH";
                 case -2: return "BORING";
             }
-            return null;
+            return "…";                          // defensive fallthrough — also neutral
         }
 
-        // [B2 / #3] Color sign-coded so impressions read at a glance.
+        // [B2 / #3, S1 D-F-4=A] Color sign-coded so impressions read at a glance.
+        // Neutral is darker than MEH so the two read as distinct at a quick scan.
         private static Color ImpressionToColor(int impression)
         {
             if (impression >= 2) return new Color(1.0f, 0.85f, 0.20f); // gold
             if (impression == 1) return new Color(0.40f, 1.0f, 0.40f); // green
-            if (impression == -1) return new Color(0.80f, 0.80f, 0.80f); // grey
+            if (impression == 0) return new Color(0.55f, 0.55f, 0.55f); // muted grey (neutral)
+            if (impression == -1) return new Color(0.80f, 0.80f, 0.80f); // light grey (mild dislike)
             if (impression <= -2) return new Color(1.0f, 0.30f, 0.30f); // red
             return Color.white;
         }

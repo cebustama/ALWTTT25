@@ -64,7 +64,10 @@ It defines:
 | `planning/active/Design_Demo_Cut_v1.md` | demo-cut planning: run shape, coverage matrix, mechanics introduced, validation | active |
 | `planning/active/Design_Starter_Deck_v1.md` | first starter deck design: composition principle, per-card axis assignments, tuning rationale | active |
 | `planning/active/Design_Audience_Status_v1.md` | audience-side status design intent (§4 Captivated remains active; §3 + §5 superseded) | partial |
-| `planning/Design_Project_Directives_v0_1.md` | standing project-level design directives (D1 promoted 2026-05-20) | standing |
+| `planning/active/Design_Tutorial_System_v0_1.md` | tutorial system: scope, trigger model, presentation, UX, demo-cut + Phase C dialogue inventory, DoD per Standing Directive #3 (2026-05-23) | active |
+| `planning/active/Design_Vertical_Slice_v0_1.md` | Phase C scope: ship hub, venues, audience archetypes + state machine, boss design, scene transitions (D-RUN-1..6 locked 2026-05-23) | active |
+| `planning/active/Design_Sensory_Contract_v0_1.md` | Sensory Contract operational expansion: bus design, audit-table placeholder, smoke/fire VFX integration plan for S3, consumer inventory (D2 expansion 2026-05-23) | active |
+| `planning/Design_Project_Directives_v0_1.md` | standing project-level design directives (D1 promoted 2026-05-20; D2 + D3 promoted on declaration 2026-05-23) | standing |
 | `planning/Design_Pending_Effects_v1.md` | post-MVP first-batch design pillar: song-scoped accumulator layer | long-term |
 | `planning/Design_Tempo_Identity_v1.md` | long-term post-MVP direction: tempo-coupled card identity | long-term |
 | `planning/Design_Song_Parts_Library_v0_1.md` | long-term post-MVP direction: stored & repeatable song Parts | long-term |

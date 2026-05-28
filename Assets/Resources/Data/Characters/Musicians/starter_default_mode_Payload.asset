@@ -17,13 +17,14 @@ MonoBehaviour:
   primaryKind: 1
   trackAction:
     role: 0
-    styleBundle: {fileID: 0}
+    styleBundle: {fileID: 11400000, guid: a66725700be1b1f4ab1e0bc02f4fe901, type: 2}
   partAction:
     action: 0
     customLabel: 
     musicianId: 
   modifierEffects:
-  - {fileID: 11400000, guid: 35a616ae6aaee8743a273e24ee3d361a, type: 2}
+  - {fileID: 11400000, guid: 9626756ce9c087f4a9ccb6a18ef96480, type: 2}
+  - {fileID: 11400000, guid: 12005ff9eb8f2e4438d5a728b17ad435, type: 2}
   references:
     version: 2
     RefIds:
