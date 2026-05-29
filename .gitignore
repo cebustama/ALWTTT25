@@ -97,3 +97,32 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+# ---------------------------------------------------------------------------
+# Secrets & credentials — never commit API keys, tokens, or local env config
+# ---------------------------------------------------------------------------
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Loose key/credential files (covers "ALWTTT Claude API.txt" and similar)
+*API*.txt
+*api*key*
+*API*KEY*
+*.key
+*.pem
+*secret*
+*Secret*
+*SECRET*
+*credentials*
+*Credentials*
+*.credentials
+*token*.txt
+*Token*.txt
+
+# Common provider config files
+.anthropic
+anthropic.json
+.openai
+openai.json
