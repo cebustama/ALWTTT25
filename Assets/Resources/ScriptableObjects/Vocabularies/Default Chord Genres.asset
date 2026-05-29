@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebf0532bf7e3ba74097cf6b3cee8f2c4, type: 3}
+  m_Name: Default Chord Genres
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.ChordGenreVocabularySO
+  genres:
+  - genreName: jazz
+    defaultMeter: 0
+    defaultMeasures: 4
+    defaultDurationMeasures: 1
+    characteristicProgressions:
+    - "ii7 \u2013 V7 \u2013 Imaj7 \u2013 vi7"
+    - "Imaj7 \u2013 vi7 \u2013 ii7 \u2013 V7"
+    - "ii\xF87 \u2013 V7 \u2013 i \u2013 i"
+    - "Imaj7 \u2013 V7 \u2013 vi7 \u2013 iii7"
+    - "bVII7 \u2013 Imaj7 \u2013 ii7 \u2013 V7"
+    subStyleCues:
+    - name: modal jazz
+      guidance: Static harmony; long dwell on a single modal centre. Use few chords,
+        each held for two or more measures.
+      measuresOverride: 0
+    - name: blues turnaround
+      guidance: 12-bar jazz-blues skeleton with dominant 7ths on I, IV, V.
+      measuresOverride: 12
+    voicingHints: "Favour 7th chords throughout. Tonic = Imaj7, supertonic = ii7,
+      dominant = V7. Use \xF87 for half-diminished ii in minor keys."
+    cadenceCues: End on an authentic V7 - Imaj7. A ii7 - V7 setup before the tonic
+      is idiomatic. Optional tritone-sub flavour via bII7 before I.
+    styleDescriptors: Extended seventh-chord harmony; strong ii-V-I motion; secondary
+      dominants and chromatic approach chords; frequent modal interchange.
+  - genreName: pop
+    defaultMeter: 0
+    defaultMeasures: 4
+    defaultDurationMeasures: 1
+    characteristicProgressions:
+    - "I \u2013 V \u2013 vi \u2013 IV"
+    - "vi \u2013 IV \u2013 I \u2013 V"
+    - "I \u2013 vi \u2013 IV \u2013 V"
+    - "IV \u2013 I \u2013 V \u2013 vi"
+    - "I \u2013 IV \u2013 vi \u2013 V"
+    subStyleCues:
+    - name: doo-wop
+      guidance: Lean on the I - vi - IV - V rotation; held, even durations.
+      measuresOverride: 0
+    - name: anthemic
+      guidance: Big IV - V - vi motion; suspended colour (Isus4 before I) welcome.
+      measuresOverride: 0
+    voicingHints: Mostly plain triads. Sevenths only as colour (e.g. a passing V7).
+      Major-key tonic feel; vi as the relative-minor anchor.
+    cadenceCues: Loops often resolve I at the top of the next cycle rather than with
+      a strong cadence. IV - V - I gives a lift when needed.
+    styleDescriptors: Diatonic triad harmony; strong tonic/subdominant/dominant pull;
+      loop-friendly four-chord cycles; sparing use of sevenths.
+  - genreName: blues
+    defaultMeter: 0
+    defaultMeasures: 12
+    defaultDurationMeasures: 1
+    characteristicProgressions:
+    - "I7 \u2013 I7 \u2013 I7 \u2013 I7 \u2013 IV7 \u2013 IV7 \u2013 I7 \u2013 I7
+      \u2013 V7 \u2013 IV7 \u2013 I7 \u2013 V7"
+    - "I7 \u2013 IV7 \u2013 I7 \u2013 I7 \u2013 IV7 \u2013 IV7 \u2013 I7 \u2013 I7
+      \u2013 V7 \u2013 IV7 \u2013 I7 \u2013 V7"
+    - "I7 \u2013 V7 \u2013 IV7 \u2013 IV7 \u2013 I7 \u2013 V7 \u2013 I7 \u2013 V7"
+    subStyleCues:
+    - name: quick change
+      guidance: Move to IV7 in bar 2, back to I7 in bar 3.
+      measuresOverride: 12
+    - name: 8-bar blues
+      guidance: Compressed 8-bar form instead of 12.
+      measuresOverride: 8
+    voicingHints: "I7, IV7, V7 throughout \u2014 dominant 7ths even on the tonic.
+      Optional #iv dim7 as a passing chord between IV7 and I7."
+    cadenceCues: 'Bars 9-12 are the turnaround: V7 - IV7 - I7 - V7 sends the form
+      back to the top.'
+    styleDescriptors: Dominant-7th harmony on I, IV and V (the blues makes all three
+      dominant). 12-bar form is the backbone; quick-change and turnaround variants
+      common.
+  - genreName: folk
+    defaultMeter: 0
+    defaultMeasures: 4
+    defaultDurationMeasures: 1
+    characteristicProgressions:
+    - "I \u2013 IV \u2013 V \u2013 I"
+    - "I \u2013 V \u2013 IV \u2013 I"
+    - "I \u2013 bVII \u2013 IV \u2013 I"
+    - "vi \u2013 IV \u2013 I \u2013 V"
+    - "I \u2013 IV \u2013 I \u2013 V"
+    subStyleCues:
+    - name: modal
+      guidance: Use the bVII borrowed chord; avoid the leading-tone V where a modal
+        resolution fits.
+      measuresOverride: 0
+    - name: waltz
+      guidance: Triple-meter feel; one chord per bar in 3/4. Set time signature to
+        ThreeFour.
+      measuresOverride: 0
+    voicingHints: Plain triads; sus2/sus4 colour suits strummed guitar. The bVII
+      borrowed chord gives a modal, traditional feel.
+    cadenceCues: Strong V - I or a plagal IV - I. Modal tunes may resolve bVII -
+      I instead of a dominant cadence.
+    styleDescriptors: Open diatonic triad harmony; I-IV-V backbone with vi and ii
+      for colour; modal flavours (Mixolydian bVII) in traditional material.
