@@ -1,0 +1,24 @@
+{
+    "name": "ALWTTT.Cards.LLMAuthoring.Tests",
+    "rootNamespace": "ALWTTT.Cards.LLMAuthoring.Tests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "ALWTTT.Cards.LLMAuthoring",
+        "MidiGenPlay.Runtime",
+        "BCS.LLM.Core.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

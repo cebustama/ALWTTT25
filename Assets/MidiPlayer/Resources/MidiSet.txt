@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<MidiSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SoundFonts>
+    <SoundFontInfo>
+      <Name>8MBGMSFX</Name>
+      <PatchCount>137</PatchCount>
+      <WaveCount>526</WaveCount>
+      <WaveSize>10193052</WaveSize>
+      <SF2Path>C:/Users/cebus/AppData/LocalLow/DefaultCompany/ALWTTT25\SoundFont\8MBGMSFX.sf2</SF2Path>
+    </SoundFontInfo>
+    <SoundFontInfo>
+      <Name>ALWTTT</Name>
+      <PatchCount>146</PatchCount>
+      <WaveCount>526</WaveCount>
+      <WaveSize>10193052</WaveSize>
+      <SF2Path>C:/Users/cebus/AppData/LocalLow/DefaultCompany/ALWTTT25\SoundFont\ALWTTT.sf2</SF2Path>
+    </SoundFontInfo>
+  </SoundFonts>
+  <IndexSelectedSF>1</IndexSelectedSF>
+  <MidiFiles />
+</MidiSet>

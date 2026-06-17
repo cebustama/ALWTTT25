@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ed09dc450cd3c54899c38c179471bcc, type: 3}
+  m_Name: BandDeck - Test 1
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.BandDeckData
+  deckId: test1
+  displayName: Test 1 Deck
+  description: This is a test deck
+  cards:
+  - {fileID: 11400000, guid: c82a02b8b7ae4ae438aa1d38d9faf37f, type: 2}
+  - {fileID: 11400000, guid: a9365066f4df0ec4db7f98bcdcc02ac5, type: 2}
+  - {fileID: 11400000, guid: 66d3183d796ecfb4d8ba50751e907b6d, type: 2}
+  - {fileID: 11400000, guid: 76a9ca5adccc0574ebbf87a0da9b8a95, type: 2}

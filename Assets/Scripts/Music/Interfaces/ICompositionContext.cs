@@ -1,0 +1,53 @@
+﻿using ALWTTT.Characters.Band;
+using ALWTTT.Enums;
+using ALWTTT.Managers;
+using ALWTTT.Music;
+using ALWTTT.UI;
+using MidiGenPlay;
+using System;
+using System.Collections.Generic;
+
+namespace ALWTTT.Interfaces
+{
+    public interface ICompositionContext
+    {
+        SongCompositionUI CompositionUI { get; }
+        LoopsTimerUI LoopsTimerUI { get; }
+        [Obsolete("CompositionSession should not mutate deck/hand. Use GigManager as host.")]
+
+        DeckManager Deck { get; }
+        MidiMusicManager Music { get; }
+        IReadOnlyList<MusicianBase> Band { get; } // channel order
+
+        void ShowCompositionUI(bool visible);
+        void ShowHand(bool visible);
+
+        MusicianBase ResolveMusicianByType(MusicianCharacterType type);
+        MusicianBase ResolveMusicianById(string id);
+
+        bool TryGetPartCache(int partIndex, out CompositionSession.PartCache cache);
+        CompositionSession.PartCache GetOrCreatePartCache(int partIndex);
+
+        void OnSessionStarted();
+        void OnSessionEnded();
+
+        void OnPartBpmResolved(int partIndex, int bpm);
+
+        void Log(string msg, bool highlight = false);
+    }
+
+    [Serializable]
+    public class JamRules
+    {
+        public int loopsPerPart = 3;
+
+        /// <remarks>
+        /// UNUSED as of M4.6F-3. Per-loop card draw moved to
+        /// <see cref="ALWTTT.Data.GigFlowSettingsSO.DrawPerLoop"/>. This field
+        /// is slated for review under F-5 Part→Loop renaming.
+        /// </remarks>
+        public int drawPerPart = 5;
+
+        public int inspirationPerPart = 3;
+    }
+}

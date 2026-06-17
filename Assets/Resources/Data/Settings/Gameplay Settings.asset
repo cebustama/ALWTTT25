@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2036460c49e947d419c96d86ccc9ba94, type: 3}
+  m_Name: Gameplay Settings
+  m_EditorClassIdentifier: 
+  allMusiciansList:
+  - {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
+  - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
+  - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
+  - {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
+  initialMusicianList:
+  - {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
+  - {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
+  - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
+  - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
+  initialSongList:
+  - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
+  - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
+  - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
+  - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
+  possibleSongList:
+  - {fileID: 11400000, guid: 647a135131b544148b8ad7304ee2303c, type: 2}
+  useBandSetup: 1
+  setupPickCount: 2
+  setupPoolSize: -1
+  maxCohesion: 10
+  initialCohesion: 10
+  baseConflictChance: 20
+  perConflictCohesionPenalty: 2
+  cohesionRestoredByBandTalk: 2
+  initialActionDeck: {fileID: 11400000, guid: c7f4a3d52d7cbcd46ae243fc92d47fe8, type: 2}
+  initialCompositionDeck: {fileID: 11400000, guid: 37efae426d58b844a9e5be7229e9a6cd, type: 2}
+  actionCardPool: []
+  compositionCardPool: []
+  drawCount: 3
+  maxCardsOnHand: 8
+  maxInspiration: 5
+  discardHandBetweenTurns: 1
+  keepInspirationBetweenTurns: 1
+  allCardsList:
+  - {fileID: 11400000, guid: df7bc506a9bbd3846b9069f516095629, type: 2}
+  - {fileID: 11400000, guid: 8e42ba274729ede499d33dce575780f8, type: 2}
+  - {fileID: 11400000, guid: 8736572d44827e74780a42a4e61cb857, type: 2}
+  - {fileID: 11400000, guid: 6d811f03888428f42a32be74b743bac6, type: 2}
+  - {fileID: 11400000, guid: a098a43d82afe7d4ab2a2a0b62989f42, type: 2}
+  - {fileID: 11400000, guid: 620a191401b102b46ba4df85e61a9097, type: 2}
+  - {fileID: 11400000, guid: 84523d39d45aea9408eb557909c14147, type: 2}
+  - {fileID: 11400000, guid: f27dd56c6b8469247832b83d58d10393, type: 2}
+  - {fileID: 11400000, guid: ff1da3ec6e10d0146b8437649f5f6178, type: 2}
+  - {fileID: 11400000, guid: 8745da5c0728eeb4ab1f51bb18965403, type: 2}
+  - {fileID: 11400000, guid: 65c4508d6c724f34eb58ae2eec48bf7a, type: 2}
+  cardPrefab: {fileID: 5965618076488326275, guid: 15bfb561cbf35f04b9148c67d30ade30, type: 3}
+  cardTypeEntryList:
+  - CardType: 0
+    TypeColor: {r: 0.4117647, g: 0.078431375, b: 0.05490196, a: 1}
+  - CardType: 1
+    TypeColor: {r: 0.41960785, g: 0.83137256, b: 0.14509805, a: 1}
+  - CardType: 2
+    TypeColor: {r: 0.3137255, g: 0.7882353, b: 0.80784315, a: 1}
+  - CardType: 3
+    TypeColor: {r: 1, g: 0.74509805, b: 0.043137256, a: 1}
+  allRandomEvents:
+  - {fileID: 11400000, guid: 8f003a9db9c710641a1e8768078aa40b, type: 2}
+  - {fileID: 11400000, guid: cfb1d0368ee376445a7a07729c498f47, type: 2}
+  - {fileID: 11400000, guid: 5b9acd28258e335418487cc80c1b1053, type: 2}
+  eventTables:
+  - tableId: Sector_0
+    entries:
+    - data: {fileID: 11400000, guid: 8f003a9db9c710641a1e8768078aa40b, type: 2}
+      weight: 3
+      requiredTags: []
+      forbiddenTags: []
+      oncePerRun: 0
+      minSector: 0
+      maxSector: 1
+    - data: {fileID: 11400000, guid: cfb1d0368ee376445a7a07729c498f47, type: 2}
+      weight: 1
+      requiredTags: []
+      forbiddenTags: []
+      oncePerRun: 0
+      minSector: 0
+      maxSector: 1
+    - data: {fileID: 11400000, guid: 5b9acd28258e335418487cc80c1b1053, type: 2}
+      weight: 2
+      requiredTags: []
+      forbiddenTags: []
+      oncePerRun: 0
+      minSector: 0
+      maxSector: 1
+  isRandomDeck: 0
+  randomCardCount: 0
+  globalMusicVolume01: 0.75

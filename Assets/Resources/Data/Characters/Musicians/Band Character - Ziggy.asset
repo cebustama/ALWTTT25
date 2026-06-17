@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d621a2a1323e5064f852ce38ed2399ec, type: 3}
+  m_Name: Band Character - Ziggy
+  m_EditorClassIdentifier: 
+  characterId: 3
+  characterName: Ziggy
+  characterDescription: 
+  initialMaxStress: 10
+  characterType: 4
+  characterPrefab: {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
+  characterSprite: {fileID: 21300000, guid: 4b9c65348baa1594dbaf1fad72d1090e, type: 3}
+  characterIcon: {fileID: 7798098219687104577, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}
+  cardCatalog: {fileID: 11400000, guid: 2064dc6d3e718c74aad9ddf27684439d, type: 2}
+  defaultCardSprite: {fileID: -6425903149362779780, guid: d688f4a033553ef44b64bcb65df38d38, type: 3}
+  chr: 5
+  tch: 1
+  emt: 3
+  profile:
+    backingInstruments: 08000000
+    leadInstruments: 08000000
+    backingMelodicInstruments: []
+    leadMelodicInstruments: []
+    percussionInstruments: []
+    defaultMelodicLeading: {fileID: 11400000, guid: 6c36507e80195e542aec50a3888ac33d, type: 2}
+    defaultHarmonicLeading: {fileID: 0}

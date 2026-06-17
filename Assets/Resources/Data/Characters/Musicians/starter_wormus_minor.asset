@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09c7763474057584b96a4d0a44be87e3, type: 3}
+  m_Name: starter_wormus_minor
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardDefinition
+  id: starter_wormus_minor
+  displayName: Wormus Minor
+  performerRule: 1
+  musicianCharacterType: 3
+  cardSprite: {fileID: -5489366909490485182, guid: 430a67ab3deb5e847b06d02ea1b746d7, type: 3}
+  inspirationCost: 2
+  inspirationGenerated: 2
+  cardType: 2
+  rarity: 0
+  keywords: 
+  audioType: 0
+  musicianAnimation:
+    kind: 0
+    animatorTrigger: 
+    animationDuration: -1
+    disableBeatAnimator: 1
+    loopBoolParameter: 
+  exhaustAfterPlay: 0
+  overrideRequiresTargetSelection: 0
+  requiresTargetSelectionOverrideValue: 0
+  payload: {fileID: 11400000, guid: 8a71059a4e59e80488a054351f9bd9c6, type: 2}

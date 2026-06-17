@@ -1,0 +1,703 @@
+﻿using ALWTTT.Cards;
+using ALWTTT.Data;
+using ALWTTT.Encounters;
+using ALWTTT.Characters.Band;
+using ALWTTT.Managers;
+using ALWTTT.Utils;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using static ALWTTT.Managers.GigRunContext;
+
+namespace ALWTTT.UI
+{
+    public class GigSetupController : MonoBehaviour
+    {
+        [Header("Config")]
+        [SerializeField, Tooltip("Selectable roster (decks, encounters, audience pool, " +
+            "generic starter catalog, max audience). M4.6F-2: split out from " +
+            "the former GigSetupConfigData.")]
+        private GigSetupRosterSO setupRoster;
+
+        [SerializeField, Tooltip("Setup-screen default values (required songs, " +
+            "starting inspiration, between-turns policies). M4.6F-2: split out " +
+            "from the former GigSetupConfigData defaults header.")]
+        private GigFlowSettingsSO flowSettings;
+
+        [Tooltip("Direct reference to the GameplayData SO. Used as the primary " +
+         "source for the band picker's musician roster. Avoids singleton " +
+         "Awake-order issues with GameManager. Falls back to " +
+         "GameManager.GameplayData if unset.")]
+        [SerializeField] private GameplayData gameplayData;
+
+        [Header("UI")]
+        [SerializeField] private TMP_Dropdown bandDeckDropdown;
+        [SerializeField] private TMP_Dropdown encounterDropdown;
+
+        [Header("Optional Overrides (Dev/Test)")]
+        [SerializeField] private Toggle overrideSongsToggle;
+        [SerializeField] private TMP_InputField songsToWinInput;
+
+        [Header("Auto-assembly (M4.6-prep batch 2)")]
+        [SerializeField] private Toggle useMusicianStartersToggle;
+
+        [SerializeField] private Toggle overrideStartingInspirationToggle;
+        [SerializeField] private TMP_InputField startingInspirationInput;
+
+        [SerializeField] private Toggle overrideInspirationPerLoopToggle;
+        [SerializeField] private TMP_InputField inspirationPerLoopInput;
+
+        [SerializeField] private Toggle overrideDiscardHandBetweenTurnsToggle;
+        [SerializeField] private Toggle discardHandBetweenTurnsToggle;
+
+        [SerializeField] private Toggle overrideKeepInspirationBetweenTurnsToggle;
+        [SerializeField] private Toggle keepInspirationBetweenTurnsToggle;
+
+        // M4.6-prep merged (1)/(4): roster pickers.
+        [Header("Band Roster Picker (M4.6-prep merged 1/4)")]
+        [SerializeField] private Transform musicianPickerContent;
+        [SerializeField] private GameObject musicianPickerRowPrefab;
+        [SerializeField] private TMP_Text musicianPickerCountLabel;
+
+        [Header("Audience Roster Picker (M4.6-prep merged 1/4)")]
+        [SerializeField] private Transform audiencePickerContent;
+        [SerializeField] private GameObject audiencePickerRowPrefab;
+        [SerializeField] private TMP_Text audiencePickerCountLabel;
+
+        [Header("Actions")]
+        [SerializeField] private Button startButton;
+        [SerializeField] private Button backButton;
+
+        [Header("Navigation")]
+        [SerializeField] private SceneChanger sceneChanger;
+
+        // Picker runtime state
+        private readonly List<MusicianPickerRow> _musicianRows = new();
+        private readonly List<AudiencePickerRow> _audienceRows = new();
+        private bool _audienceUserCustomized; // tracks if user touched audience picker since last encounter swap
+
+        // Soft caps
+        private const int BandMinCount = 1;
+        private const int BandMaxCount = 4;
+        private const int BandWarnIfBelow = 2; // warn (not block) on single-musician bands
+
+        private void Awake()
+        {
+            if (sceneChanger == null)
+                sceneChanger = FindFirstObjectByType<SceneChanger>();
+
+            BuildBandDeckDropdown();
+            BuildEncounterDropdown();
+            SetupDefaultUIValues();
+
+            BuildMusicianPicker();
+            BuildAudiencePicker();
+
+            if (encounterDropdown != null)
+                encounterDropdown.onValueChanged.AddListener(OnEncounterDropdownChanged);
+
+            if (startButton != null) startButton.onClick.AddListener(OnStartPressed);
+            if (backButton != null) backButton.onClick.AddListener(OnBackPressed);
+        }
+
+
+        // ----------------------------------------------------------------------
+        // Dropdowns (existing)
+        // ----------------------------------------------------------------------
+
+        private void BuildBandDeckDropdown()
+        {
+            if (bandDeckDropdown == null || setupRoster == null) return;
+
+            bandDeckDropdown.ClearOptions();
+
+            var opts = new List<string>();
+            foreach (var d in setupRoster.AvailableBandDecks)
+                opts.Add(d != null ? d.name : "(null deck)");
+
+            bandDeckDropdown.AddOptions(opts);
+        }
+
+        private void BuildEncounterDropdown()
+        {
+            if (encounterDropdown == null || setupRoster == null) return;
+
+            encounterDropdown.ClearOptions();
+
+            var opts = new List<string>();
+            foreach (var e in setupRoster.AvailableEncounters)
+                opts.Add(e != null ? e.GetLabel() : "(null encounter)");
+
+            encounterDropdown.AddOptions(opts);
+        }
+
+        private void SetupDefaultUIValues()
+        {
+            if (setupRoster == null) return;
+
+            if (songsToWinInput != null)
+                songsToWinInput.text = flowSettings.DefaultRequiredSongCount.ToString();
+
+            if (startingInspirationInput != null)
+                startingInspirationInput.text =
+                    flowSettings.DefaultStartingInspiration.ToString();
+
+            if (overrideSongsToggle != null)
+            {
+                overrideSongsToggle.isOn = false;
+                overrideSongsToggle.interactable =
+                    flowSettings.AllowOverrideRequiredSongCount;
+            }
+
+            if (overrideStartingInspirationToggle != null)
+                overrideStartingInspirationToggle.isOn = false;
+
+            if (overrideInspirationPerLoopToggle != null)
+                overrideInspirationPerLoopToggle.isOn = false;
+
+            if (overrideDiscardHandBetweenTurnsToggle != null)
+                overrideDiscardHandBetweenTurnsToggle.isOn = false;
+
+            if (overrideKeepInspirationBetweenTurnsToggle != null)
+                overrideKeepInspirationBetweenTurnsToggle.isOn = false;
+        }
+
+        // ----------------------------------------------------------------------
+        // Picker construction (M4.6-prep merged 1/4)
+        // ----------------------------------------------------------------------
+
+        private void BuildMusicianPicker()
+        {
+            if (musicianPickerContent == null || musicianPickerRowPrefab == null)
+            {
+                Debug.LogWarning(
+                    "[GigSetup] Musician picker content or row prefab unset. " +
+                    "Skipping band picker build.");
+                return;
+            }
+
+            // Clear existing rows
+            for (int i = _musicianRows.Count - 1; i >= 0; i--)
+            {
+                if (_musicianRows[i] != null)
+                    Destroy(_musicianRows[i].gameObject);
+            }
+            _musicianRows.Clear();
+
+            // Resolve roster source. Prefer the serialized field (set in inspector);
+            // fall back to GameManager static accessor if available. Avoids
+            // Awake-order issues where GameManager.Instance.GameplayData may be
+            // unset when GigSetupController.Awake runs.
+            var gd = gameplayData;
+            if (gd == null && GameManager.Instance != null)
+                gd = GameManager.Instance.GameplayData;
+
+            if (gd == null || gd.AllMusiciansList == null)
+            {
+                Debug.LogError(
+                    "[GigSetup] GameplayData unavailable. Wire the 'Gameplay Data' " +
+                    "field on GigSetupController in the inspector, or ensure " +
+                    "GameManager.GameplayData is populated before this scene loads.");
+                UpdateMusicianCountLabel();
+                return;
+            }
+
+            // Resolve current selection: prefer pd.MusicianList if non-empty
+            // (returning visitors), else fall back to InitialMusicianList.
+            var pd = GameManager.Instance != null
+                ? GameManager.Instance.PersistentGameplayData
+                : null;
+            HashSet<MusicianBase> initialSelection = new();
+            if (pd != null && pd.MusicianList != null && pd.MusicianList.Count > 0)
+            {
+                foreach (var m in pd.MusicianList)
+                    if (m != null) initialSelection.Add(m);
+            }
+            else if (gd.InitialMusicianList != null)
+            {
+                foreach (var m in gd.InitialMusicianList)
+                    if (m != null) initialSelection.Add(m);
+            }
+
+            // Build rows
+            foreach (var musician in gd.AllMusiciansList)
+            {
+                if (musician == null) continue;
+
+                var rowGo = Instantiate(musicianPickerRowPrefab);
+                rowGo.transform.SetParent(musicianPickerContent, worldPositionStays: false);
+
+                var row = rowGo.GetComponent<MusicianPickerRow>();
+                if (row == null)
+                {
+                    Debug.LogError(
+                        "[GigSetup] Musician picker row prefab is missing " +
+                        "MusicianPickerRow component.");
+                    Destroy(rowGo);
+                    continue;
+                }
+
+                row.Init(musician, initialSelection.Contains(musician));
+                row.OnSelectionChanged += OnMusicianRowChanged;
+                _musicianRows.Add(row);
+            }
+
+            UpdateMusicianCountLabel();
+        }
+
+        private void BuildAudiencePicker()
+        {
+            if (audiencePickerContent == null || audiencePickerRowPrefab == null)
+            {
+                Debug.LogWarning(
+                    "[GigSetup] Audience picker content or row prefab unset. " +
+                    "Skipping audience picker build.");
+                return;
+            }
+
+            // Clear existing rows
+            for (int i = _audienceRows.Count - 1; i >= 0; i--)
+            {
+                if (_audienceRows[i] != null)
+                    Destroy(_audienceRows[i].gameObject);
+            }
+            _audienceRows.Clear();
+
+            // Resolve current encounter for default selection
+            var selectedEncounterSO = GetSelectedEncounterSO();
+            HashSet<AudienceCharacterData> defaultSelection = new();
+            if (selectedEncounterSO != null && selectedEncounterSO.AudienceMemberList != null)
+            {
+                foreach (var a in selectedEncounterSO.AudienceMemberList)
+                    if (a != null) defaultSelection.Add(a);
+            }
+
+            // Pool = setupRoster.availableAudienceCharacters ∪ encounter.AudienceMemberList
+            var pool = new List<AudienceCharacterData>();
+            var seen = new HashSet<AudienceCharacterData>();
+
+            if (setupRoster != null && setupRoster.AvailableAudienceCharacters != null)
+            {
+                foreach (var a in setupRoster.AvailableAudienceCharacters)
+                {
+                    if (a == null) continue;
+                    if (seen.Add(a)) pool.Add(a);
+                }
+            }
+            if (selectedEncounterSO != null && selectedEncounterSO.AudienceMemberList != null)
+            {
+                foreach (var a in selectedEncounterSO.AudienceMemberList)
+                {
+                    if (a == null) continue;
+                    if (seen.Add(a)) pool.Add(a);
+                }
+            }
+
+            // Build rows
+            foreach (var audience in pool)
+            {
+                var rowGo = Instantiate(audiencePickerRowPrefab, audiencePickerContent);
+                var row = rowGo.GetComponent<AudiencePickerRow>();
+                if (row == null)
+                {
+                    Debug.LogError(
+                        "[GigSetup] Audience picker row prefab is missing " +
+                        "AudiencePickerRow component.");
+                    Destroy(rowGo);
+                    continue;
+                }
+
+                row.Init(audience, defaultSelection.Contains(audience));
+                row.OnSelectionChanged += OnAudienceRowChanged;
+                _audienceRows.Add(row);
+            }
+
+            _audienceUserCustomized = false;
+            UpdateAudienceCountLabel();
+        }
+
+        private void OnEncounterDropdownChanged(int _)
+        {
+            // If user customized audience selection since last encounter pick,
+            // warn that we're resetting to the new encounter's defaults.
+            if (_audienceUserCustomized)
+            {
+                Debug.LogWarning(
+                    "[GigSetup] Encounter changed; audience selection reset to " +
+                    "the new encounter's baked AudienceMemberList. " +
+                    "Previous audience customization discarded.");
+            }
+
+            BuildAudiencePicker();
+        }
+
+        private void OnMusicianRowChanged(MusicianPickerRow _)
+        {
+            UpdateMusicianCountLabel();
+        }
+
+        private void OnAudienceRowChanged(AudiencePickerRow _)
+        {
+            _audienceUserCustomized = true;
+            UpdateAudienceCountLabel();
+        }
+
+        private int UpdateMusicianCountLabel()
+        {
+            int count = 0;
+            for (int i = 0; i < _musicianRows.Count; i++)
+                if (_musicianRows[i] != null && _musicianRows[i].IsSelected) count++;
+
+            if (musicianPickerCountLabel != null)
+                musicianPickerCountLabel.text =
+                    $"selected: {count} / {BandMinCount}-{BandMaxCount}";
+
+            return count;
+        }
+
+        private int UpdateAudienceCountLabel()
+        {
+            int count = 0;
+            for (int i = 0; i < _audienceRows.Count; i++)
+                if (_audienceRows[i] != null && _audienceRows[i].IsSelected) count++;
+
+            int max = setupRoster != null ? setupRoster.MaxAudienceCount : 4;
+            if (audiencePickerCountLabel != null)
+                audiencePickerCountLabel.text = $"selected: {count} / 1-{max}";
+
+            return count;
+        }
+
+        private List<MusicianBase> GetSelectedMusicians()
+        {
+            var picked = new List<MusicianBase>();
+            for (int i = 0; i < _musicianRows.Count; i++)
+            {
+                var row = _musicianRows[i];
+                if (row != null && row.IsSelected && row.Musician != null)
+                    picked.Add(row.Musician);
+            }
+            return picked;
+        }
+
+        private List<AudienceCharacterData> GetSelectedAudience()
+        {
+            var picked = new List<AudienceCharacterData>();
+            for (int i = 0; i < _audienceRows.Count; i++)
+            {
+                var row = _audienceRows[i];
+                if (row != null && row.IsSelected && row.Audience != null)
+                    picked.Add(row.Audience);
+            }
+            return picked;
+        }
+
+        // ----------------------------------------------------------------------
+        // Existing flow
+        // ----------------------------------------------------------------------
+
+        private void OnBackPressed()
+        {
+            if (sceneChanger == null)
+            {
+                Debug.LogError("[GigSetup] Missing SceneChanger reference.");
+                return;
+            }
+
+            sceneChanger.OpenMainMenuScene();
+        }
+
+        private void OnStartPressed()
+        {
+            if (setupRoster == null)
+            {
+                Debug.LogError("[GigSetup] Missing GigSetupRosterSO + GigFlowSettingsSO.");
+                return;
+            }
+
+            // M4.6-prep batch (2): determine deck source based on toggle.
+            bool useAutoAssembly =
+                useMusicianStartersToggle != null && useMusicianStartersToggle.isOn;
+
+            BandDeckData selectedDeck = null;
+            if (!useAutoAssembly)
+            {
+                selectedDeck = GetSelectedDeck();
+                if (selectedDeck == null)
+                {
+                    Debug.LogError("[GigSetup] Selected BandDeckData is null.");
+                    return;
+                }
+            }
+
+            var selectedEncounterSO = GetSelectedEncounterSO();
+            if (selectedEncounterSO == null)
+            {
+                Debug.LogError("[GigSetup] Selected GigEncounter is null.");
+                return;
+            }
+
+            // [§5.3.5 / D-FAST-1=C] GameManager + PersistentGameplayData null-checks
+            // moved into GigLauncher.Launch (single launch site owns validation).
+            // OnStartPressed no longer reads from PD before dispatching.
+
+            var pickedMusicians = GetSelectedMusicians();
+            int bandCount = pickedMusicians.Count;
+
+            if (bandCount < BandMinCount)
+            {
+                Debug.LogError(
+                    $"[GigSetup] Band picker selected {bandCount} musicians; " +
+                    $"minimum is {BandMinCount}. Cannot start gig.");
+                return;
+            }
+            if (bandCount > BandMaxCount)
+            {
+                Debug.LogError(
+                    $"[GigSetup] Band picker selected {bandCount} musicians; " +
+                    $"maximum is {BandMaxCount}. Cannot start gig.");
+                return;
+            }
+            if (bandCount < BandWarnIfBelow)
+            {
+                Debug.LogWarning(
+                    $"[GigSetup] Band picker selected {bandCount} musician " +
+                    $"(below recommended minimum of {BandWarnIfBelow}). " +
+                    $"Continuing.");
+            }
+
+            // [§5.3.5 / D-FAST-1=C] SetBandRoster moved into GigLauncher.Launch
+            // (single launch site). pickedMusicians flows there via the
+            // bandRoster parameter. No state change to pd.MusicianList happens
+            // here — the picker selection is captured in `pickedMusicians` and
+            // applied atomically inside GigLauncher.
+
+            // M4.6-prep merged (1)/(4): audience picker results + override decision.
+            var pickedAudience = GetSelectedAudience();
+            int audienceCount = pickedAudience.Count;
+            int audienceMax = setupRoster.MaxAudienceCount;
+
+            if (audienceCount < 1)
+            {
+                Debug.LogError(
+                    "[GigSetup] Audience picker selected 0 members; " +
+                    "minimum is 1. Cannot start gig.");
+                return;
+            }
+            if (audienceCount > audienceMax)
+            {
+                Debug.LogError(
+                    $"[GigSetup] Audience picker selected {audienceCount} members; " +
+                    $"max ({audienceMax}, from GigSetupRosterSO.MaxAudienceCount) " +
+                    "exceeded. Cannot start gig. Either deselect members or " +
+                    "increase MaxAudienceCount to match the GigScene's " +
+                    "AudienceMemberPosList size.");
+                return;
+            }
+
+            // Decide whether to pass an override: only when picker selection
+            // differs from encounter's baked list (set-equal comparison).
+            List<AudienceCharacterData> audienceOverride = null;
+            if (DiffersFromEncounterAudience(pickedAudience, selectedEncounterSO))
+            {
+                audienceOverride = pickedAudience;
+            }
+
+            var selectedEncounter = selectedEncounterSO.BuildRuntime(audienceOverride);
+            if (selectedEncounter == null)
+            {
+                Debug.LogError("[GigSetup] Failed to build runtime GigEncounter from SO.");
+                return;
+            }
+
+            // Auto-assembly empty-roster guard. References pickedMusicians directly
+            // since SetBandRoster has been moved into GigLauncher.Launch — this
+            // runs before the launch dispatch, so pd.MusicianList isn't yet
+            // populated for this run.
+            if (useAutoAssembly)
+            {
+                if (pickedMusicians == null || pickedMusicians.Count == 0)
+                {
+                    Debug.LogError(
+                        "[GigSetup] Auto-assembly enabled but pickedMusicians " +
+                        "is empty. This should not happen given BandMinCount " +
+                        "validation above; investigate picker pipeline.");
+                    return;
+                }
+            }
+
+            // M4.6-prep batch (2): build a human-readable deck label for logs.
+            string deckLabel;
+            if (useAutoAssembly)
+            {
+                var idParts = new List<string>(pickedMusicians.Count);
+                for (int i = 0; i < pickedMusicians.Count; i++)
+                {
+                    var m = pickedMusicians[i];
+                    if (m == null || m.MusicianCharacterData == null) continue;
+                    idParts.Add(m.MusicianCharacterData.CharacterId);
+                }
+                deckLabel = idParts.Count > 0
+                    ? "<auto:" + string.Join("+", idParts) + ">"
+                    : "<auto:<empty>>";
+            }
+            else
+            {
+                deckLabel = selectedDeck != null ? selectedDeck.name : "<no-deck>";
+            }
+
+            // --- Build run configuration ---
+            var runConfig = new GigRunContext.RunConfig
+            {
+                bandDeck = selectedDeck,
+                useMusicianStarters = useAutoAssembly,
+                deckLabel = deckLabel,
+                encounter = selectedEncounter,
+
+                // M4.6-prep merged (1)/(4): audience override (null when
+                // picker matches encounter's baked list)
+                audienceOverride = audienceOverride,
+
+                overrideRequiredSongCount =
+                    overrideSongsToggle != null && overrideSongsToggle.isOn,
+
+                requiredSongCount =
+                    ParseIntSafe(
+                        songsToWinInput,
+                        flowSettings.DefaultRequiredSongCount,
+                        min: 1),
+
+                overrideInitialGigInspiration =
+                    overrideStartingInspirationToggle != null &&
+                    overrideStartingInspirationToggle.isOn,
+
+                initialGigInspiration =
+                    ParseIntSafe(
+                        startingInspirationInput,
+                        flowSettings.DefaultStartingInspiration,
+                        min: 0),
+
+                overrideInspirationPerLoop =
+                    overrideInspirationPerLoopToggle != null &&
+                    overrideInspirationPerLoopToggle.isOn,
+
+                inspirationPerLoop =
+                    ParseIntSafe(
+                        inspirationPerLoopInput,
+                        flowSettings.DefaultInspirationPerLoop,
+                        min: 0),
+
+                overrideDiscardHandBetweenTurns =
+                    overrideDiscardHandBetweenTurnsToggle != null &&
+                    overrideDiscardHandBetweenTurnsToggle.isOn,
+
+                discardHandBetweenTurns =
+                    discardHandBetweenTurnsToggle != null &&
+                    discardHandBetweenTurnsToggle.isOn,
+
+                overrideKeepInspirationBetweenTurns =
+                    overrideKeepInspirationBetweenTurnsToggle != null &&
+                    overrideKeepInspirationBetweenTurnsToggle.isOn,
+
+                keepInspirationBetweenTurns =
+                    keepInspirationBetweenTurnsToggle != null &&
+                    keepInspirationBetweenTurnsToggle.isOn,
+
+                returnDestination = GigReturnDestination.GigSetup
+            };
+
+            // [§5.3.5 / D-FAST-1=C] Single launch site. GigLauncher absorbs:
+            // - SetBandRoster(pickedMusicians)
+            // - GigRunContext.Instance creation + BeginRun(runConfig)
+            // - PersistentGameplayData.ApplyRunConfig(...)
+            // - IsFinalEncounter = true (B3-demo-polish A6 hack carrier)
+            // - sceneChanger.OpenGigScene()
+            //
+            // Manual GigSetup path is single-encounter for the same reason as
+            // the demo build (no meta-progression sectors yet), so passes
+            // isFinalEncounter: true. Refine when sectors land.
+            Debug.Log(
+                $"[GigSetup] Dispatching to GigLauncher | " +
+                $"Deck={runConfig.deckLabel}, " +
+                $"AutoAssembly={useAutoAssembly}, " +
+                $"Band={bandCount} musicians, " +
+                $"Audience={audienceCount} (override={audienceOverride != null}), " +
+                $"Encounter={selectedEncounterSO.GetLabel()}, " +
+                $"RequiredSongs={runConfig.requiredSongCount}, " +
+                $"DiscardBetweenTurns={runConfig.discardHandBetweenTurns}, " +
+                $"KeepInspiration={runConfig.keepInspirationBetweenTurns}"
+            );
+
+            GigLauncher.Launch(
+                runConfig: runConfig,
+                bandRoster: pickedMusicians,
+                setupRoster: setupRoster,
+                flowSettings: flowSettings,
+                isFinalEncounter: true,
+                sceneChanger: sceneChanger,
+                callerTag: "GigSetup");
+        }
+
+        private static bool DiffersFromEncounterAudience(
+            IList<AudienceCharacterData> picked,
+            GigEncounterSO encounter)
+        {
+            if (encounter == null) return picked != null && picked.Count > 0;
+
+            var baked = encounter.AudienceMemberList;
+            int bakedCount = baked != null ? baked.Count : 0;
+            int pickedCount = picked != null ? picked.Count : 0;
+
+            // Multiset-blind comparison: the picker UI collapses duplicate
+            // AudienceCharacterData entries to a single row (HashSet dedup in
+            // BuildAudiencePicker), so a no-customization run yields
+            // pickedCount == unique-count of baked, not raw bakedCount.
+            // Comparing pickedCount against bakedSet.Count (not bakedCount)
+            // keeps override null when the user didn't customize, and
+            // GigEncounterSO.BuildRuntime falls back to the baked list with
+            // duplicates intact. Encounter authors retain control over
+            // audience multiplicity. Multiplicity-aware picker UI (count
+            // spinner per row) is a future concern; deviating from baked via
+            // the picker still loses duplicate information for that run.
+            var bakedSet = new HashSet<AudienceCharacterData>();
+            for (int i = 0; i < bakedCount; i++)
+                if (baked[i] != null) bakedSet.Add(baked[i]);
+
+            if (bakedSet.Count != pickedCount) return true;
+            if (pickedCount == 0) return false;
+
+            for (int i = 0; i < pickedCount; i++)
+            {
+                if (picked[i] == null) return true;
+                if (!bakedSet.Contains(picked[i])) return true;
+            }
+            return false;
+        }
+
+        private BandDeckData GetSelectedDeck()
+        {
+            var list = setupRoster.AvailableBandDecks;
+            if (list == null || list.Count == 0) return null;
+            int i = Mathf.Clamp(
+                bandDeckDropdown != null ? bandDeckDropdown.value : 0, 0, list.Count - 1);
+            return list[i];
+        }
+
+        private GigEncounterSO GetSelectedEncounterSO()
+        {
+            var list = setupRoster.AvailableEncounters;
+            if (list == null || list.Count == 0) return null;
+            int i = Mathf.Clamp(
+                encounterDropdown != null ? encounterDropdown.value : 0, 0, list.Count - 1);
+            return list[i];
+        }
+
+        private int ParseIntSafe(TMP_InputField field, int fallback, int min)
+        {
+            if (field == null) return fallback;
+            if (!int.TryParse(field.text, out int v)) v = fallback;
+            return Mathf.Max(min, v);
+        }
+    }
+}

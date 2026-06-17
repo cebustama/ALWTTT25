@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb66ef735feb1d245a5494a78feb5fd5, type: 3}
+  m_Name: Cool Dude
+  m_EditorClassIdentifier: 
+  characterId: cooldude
+  characterName: Cool Dude
+  characterDescription: 
+  maxVibe: 25
+  characterPrefab: {fileID: 997261290205271328, guid: c8efa2c5aa6223e49b98b39362316d37, type: 3}
+  isTall: 1
+  abilityList:
+  - abilityName: Block the View
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 0
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 10
+      actionTargetType: 6
+      actionValue: 1
+      actionDelay: 1
+      statusEffect: {fileID: 0}
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+  - abilityName: Indifference
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 1
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 11
+      actionTargetType: 6
+      actionValue: 2
+      actionDelay: 0
+      statusEffect: {fileID: 11400000, guid: 5121e76141ccc3a44825214498e5846d, type: 2}
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+  - abilityName: Heckle
+    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
+    hideActionValue: 0
+    abilityDuration: 3
+    actionList:
+    - cardActionType: 11
+      actionTargetType: 1
+      actionValue: 1
+      actionDelay: 0
+      statusEffect: {fileID: 11400000, guid: f72249f3da2a75c4b9b98ec1305a1bd3, type: 2}
+    - cardActionType: 3
+      actionTargetType: 1
+      actionValue: 2
+      actionDelay: 1
+      statusEffect: {fileID: 0}
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+  followAbilityPattern: 1
+  taste:
+    tempoMatchOnFast: 0
+    preferAboveTempoScale: 1
+    tempoMismatchOnSlow: 0
+    dislikeBelowTempoScale: 1
+    roleCountMatchOnRich: 1
+    preferAtLeastRoles: 2
+    preferredTimeSignatures: 010000000300000007000000
+    dislikedTimeSignatures: 00000000
+    preferredTonalities: 
+    dislikedTonalities: 

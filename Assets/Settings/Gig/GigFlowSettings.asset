@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d5f1ac7c21903742a905a2bc04169bb, type: 3}
+  m_Name: GigFlowSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigFlowSettingsSO
+  jamRules:
+    loopsPerPart: 3
+    drawPerPart: 0
+    inspirationPerPart: 0
+  drawPerLoop: 2
+  drawCardsOnPlay: 2
+  discardActionCardsOnPlay: 0
+  allowActionCardsDuringPerformance: 1
+  skipAudienceActionsAfterFinalSong: 1
+  defaultInitialGigInspiration: 3
+  defaultInspirationPerLoop: 0
+  defaultDiscardHandBetweenTurns: 1
+  defaultKeepInspirationBetweenTurns: 0
+  allowOverrideRequiredSongCount: 1
+  defaultRequiredSongCount: 4

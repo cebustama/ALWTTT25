@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09c7763474057584b96a4d0a44be87e3, type: 3}
+  m_Name: new_conito_vibe_single
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardDefinition
+  id: new_conito_vibe_single
+  displayName: 'Conito: Pick A Fan'
+  performerRule: 1
+  musicianCharacterType: 1
+  cardSprite: {fileID: 0}
+  inspirationCost: 2
+  inspirationGenerated: 0
+  cardType: 0
+  rarity: 0
+  keywords: 
+  audioType: 0
+  musicianAnimation:
+    kind: 0
+    animatorTrigger: 
+    animationDuration: -1
+    disableBeatAnimator: 1
+    loopBoolParameter: 
+  exhaustAfterPlay: 0
+  overrideRequiresTargetSelection: 0
+  requiresTargetSelectionOverrideValue: 0
+  payload: {fileID: 11400000, guid: 844b2e94148c9574f8224444a40d131a, type: 2}

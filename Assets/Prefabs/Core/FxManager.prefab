@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6272921455348738657
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2118376838333122421}
+  - component: {fileID: 4970282489121238279}
+  - component: {fileID: 1003616515106870800}
+  m_Layer: 0
+  m_Name: FxManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2118376838333122421
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6272921455348738657}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4970282489121238279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6272921455348738657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 571b9d767e1c8664f80dc7dfaa14fc64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fxList:
+  - fxType: 0
+    fxPrefab: {fileID: 7088256810820187583, guid: eecf264edae7f5c46bcfdc2f015e1ce3, type: 3}
+  - fxType: 1
+    fxPrefab: {fileID: 7088256810820187583, guid: f1bd2f1d519c1e844b6b50ca46f6704a, type: 3}
+  - fxType: 2
+    fxPrefab: {fileID: 7088256810820187583, guid: f3898baf96ae8e147a46eb8f0da198e4, type: 3}
+  - fxType: 3
+    fxPrefab: {fileID: 7088256810820187583, guid: ed9df8e3697ad4143bc4e8f0ff5c2018, type: 3}
+  floatingTextPrefab: {fileID: 6944130828753565899, guid: 5f646551faf5f4c4d825ffa9b219af1b, type: 3}
+--- !u!114 &1003616515106870800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6272921455348738657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ed6e3e2c20f38f40bbc22a030e0681a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Sensory.SensoryEventBus
+  debugCounters: 1

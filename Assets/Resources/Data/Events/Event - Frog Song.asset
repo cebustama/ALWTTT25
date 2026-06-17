@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 666740f163a762e45b7823f6adaf8702, type: 3}
+  m_Name: Event - Frog Song
+  m_EditorClassIdentifier: 
+  eventId: frog
+  title: The Frog Song
+  description: You listen to the frog making interesting sounds. There seems to be
+    a hidden melody amidst the noises.
+  backgroundSprite: {fileID: 7482667652216324306, guid: 2f2a7f5f7ee73cb47906c2a0ac63204e, type: 3}
+  eventSprite: {fileID: 5188136040779509059, guid: 70666bc4ddce7b740bf7e21893ce16a0, type: 3}
+  options:
+  - optionId: 1
+    text: 'Listen closely... [50%]'
+    effects:
+    - type: 2
+      amount: 0
+      card: {fileID: 11400000, guid: 713e719275032aa4fbd27f3f0e05b213, type: 2}
+      cards: []
+      musician: {fileID: 0}
+      musicianId: 
+      storyTag: frog_song

@@ -1,0 +1,184 @@
+using ALWTTT.Cards;
+using ALWTTT.Characters.Band;
+using ALWTTT.Data;
+using ALWTTT.Enums;
+using ALWTTT.Events;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace ALWTTT
+{
+    [CreateAssetMenu(fileName = "New GameplayData", menuName = "ALWTTT/Containers/GameplayData")]
+    public class GameplayData : ScriptableObject
+    {
+        [Header("Musicians")]
+        [SerializeField] private List<MusicianBase> allMusiciansList;
+        [SerializeField] private List<MusicianBase> initialMusicianList;
+        [SerializeField] private List<SongData> initialSongList;
+        [SerializeField] private List<SongData> possibleSongList;
+
+        [Header("Band Setup")]
+        [SerializeField] private bool useBandSetup = true;
+        [SerializeField, Min(1)] private int setupPickCount = 1;  // N
+        [SerializeField] private int setupPoolSize = -1; // X (-1 => all)
+
+        [Header("Map")]
+        [SerializeField] private int maxCohesion = 10;
+        [SerializeField] private int initialCohesion = 10; // Max by default
+        [SerializeField] private int baseConflictChance = 25; // Each jump between nodes
+        [SerializeField] private int perConflictCohesionPenalty = 1;
+        [SerializeField] private int cohesionRestoredByBandTalk = 2;
+
+        [Header("Decks")]
+        [SerializeField] private DeckData initialActionDeck;
+        [SerializeField] private DeckData initialCompositionDeck;
+        [Header("Card Pools")]
+        [SerializeField] private List<CardDefinition> actionCardPool;
+        [SerializeField] private List<CardDefinition> compositionCardPool;
+
+        [Header("Gig Gameplay Settings")]
+        [SerializeField] private int drawCount = 3;
+        [SerializeField] private int maxCardsOnHand = 8;
+        [SerializeField] private int maxInspiration = 5;
+        [SerializeField] private bool discardHandBetweenTurns = true;
+        [SerializeField] private bool keepInspirationBetweenTurns = true;
+
+        [Header("Cards")]
+        [SerializeField] private List<CardDefinition> allCardsList;
+        [SerializeField] private CardBase cardPrefab;
+
+        [Serializable]
+        public class CardTypeEntry
+        {
+            public CardType CardType;
+            public Color TypeColor;
+        }
+        [SerializeField] private List<CardTypeEntry> cardTypeEntryList;
+
+        [Header("Random Events")]
+        [SerializeField] private List<RandomEventData> allRandomEvents;
+        [SerializeField] private List<EventTable> eventTables;
+
+        [Header("Modifiers")]
+        [SerializeField] private bool isRandomDeck = false;
+        [SerializeField] private int randomCardCount;
+
+        // [M-AUDIO-MIX] globalMusicVolume01 removed — global music level migrated to
+        // AudioMixSettingsSO (single home per audio concept). Authority: SSoT_Audio.md.
+
+        #region Encapsulation
+        public List<MusicianBase> AllMusiciansList => allMusiciansList;
+        public List<MusicianBase> InitialMusicianList => initialMusicianList;
+        public List<SongData> InitialSongList => initialSongList;
+        public List<SongData> PossibleSongList => possibleSongList;
+
+        public bool UseBandSetup => useBandSetup;
+        public int SetupPickCount => Mathf.Max(1, setupPickCount);
+        public int SetupPoolSize => setupPoolSize; // -1 means "all"
+
+        public int MaxCohesion => maxCohesion;
+        public int InitialCohesion => initialCohesion;
+        public int BaseConflictChance => baseConflictChance;
+        public int PerConflictCohesionPenalty => perConflictCohesionPenalty;
+        public int CohesionRestoredByBandTalk => cohesionRestoredByBandTalk;
+
+        public int DrawCount => drawCount;
+        public int MaxCardsOnHand => maxCardsOnHand;
+        public int MaxInspiration => maxInspiration;
+        public bool DiscardHandBetweenTurns => discardHandBetweenTurns;
+        public bool KeepInspirationBetweenTurns => keepInspirationBetweenTurns;
+
+        public CardBase CardPrefab => cardPrefab;
+        public List<CardDefinition> AllCardsList => allCardsList;
+
+        public DeckData InitialActionDeck => initialActionDeck;
+        public DeckData InitialCompositionDeck => initialCompositionDeck;
+        public List<CardDefinition> ActionCardPool => actionCardPool;
+        public List<CardDefinition> CompositionCardPool => compositionCardPool;
+
+        public bool IsRandomDeck => isRandomDeck;
+        public int RandomCardCount => randomCardCount;
+
+        public List<RandomEventData> AllRandomEvents => allRandomEvents;
+        public List<EventTable> EventTables => eventTables;
+        #endregion
+
+        public Color GetCardTypeColor(CardType type)
+        {
+            foreach (var entry in cardTypeEntryList)
+            {
+                if (entry.CardType == type)
+                    return entry.TypeColor;
+            }
+
+            return Color.white;
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // 1) Validar dominio de los mazos iniciales
+            if (initialActionDeck != null && initialActionDeck.DeckDomain != CardDomain.Action)
+            {
+                Debug.LogWarning($"[GameplayData:{name}] InitialActionDeck " +
+                    $"'{initialActionDeck.name}' " +
+                    $"tiene DeckDomain={initialActionDeck.DeckDomain} " +
+                    $"pero debería ser Action.");
+            }
+            if (initialCompositionDeck != null
+                && initialCompositionDeck.DeckDomain != CardDomain.Composition)
+            {
+                Debug.LogWarning($"[GameplayData:{name}] " +
+                    $"InitialCompositionDeck '{initialCompositionDeck.name}' " +
+                    $"tiene DeckDomain={initialCompositionDeck.DeckDomain} " +
+                    $"pero debería ser Composition.");
+            }
+
+            // 2) Sanear pools por dominio
+            FilterPoolByDomain(actionCardPool, CardDomain.Action, "actionCardPool");
+            FilterPoolByDomain(
+                compositionCardPool, CardDomain.Composition, "compositionCardPool");
+        }
+
+        private void FilterPoolByDomain(
+            List<CardDefinition> pool, CardDomain mustBe, string fieldLabel)
+        {
+            if (pool == null) return;
+            for (int i = pool.Count - 1; i >= 0; --i)
+            {
+                var c = pool[i];
+                if (c == null) continue;
+                if (c.Domain != mustBe)
+                {
+                    Debug.LogWarning($"[GameplayData:{name}] {fieldLabel}: " +
+                        $"removiendo carta '{c.name}' (Domain={c.Domain}) != {mustBe}.");
+                    pool.RemoveAt(i);
+                }
+            }
+        }
+#endif
+    }
+
+    // Curated tables/pools (by sector, biome, chapter, etc.)
+    [Serializable]
+    public class EventTableEntry
+    {
+        public RandomEventData data;
+        public int weight = 1;
+
+        // Simple gates (extend as needed)
+        public List<string> requiredTags;   // must all be present in Persistent.StoryTags
+        public List<string> forbiddenTags;  // none of these may be present
+        public bool oncePerRun = false;
+        public int minSector = 0;
+        public int maxSector = 9999;
+    }
+
+    [Serializable]
+    public class EventTable
+    {
+        public string tableId;                // e.g. "Sector_0", "Common", "DerelictShip"
+        public List<EventTableEntry> entries; // weighted list
+    }
+}

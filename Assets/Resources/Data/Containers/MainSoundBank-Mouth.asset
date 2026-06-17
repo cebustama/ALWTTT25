@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c1f7f3e686b0254d9e267586b55bcbf, type: 3}
+  m_Name: MainSoundBank-Mouth
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.SoundBankSO
+  cardProfiles:
+  - {fileID: 11400000, guid: 7ecd79b0a9ef3e44089744a2c174b277, type: 2}
+  - {fileID: 11400000, guid: a28c5f38972597c4f9b146bcc616dbeb, type: 2}
+  - {fileID: 11400000, guid: ae077637b2532cb4f99a917054d92f55, type: 2}
+  - {fileID: 11400000, guid: 2ad372bc2596b2e4f85c4357662401e7, type: 2}
+  - {fileID: 11400000, guid: 8216f445b45291d47a4a3168df25c286, type: 2}
+  sensoryProfiles:
+  - type: 0
+    randomClipList:
+    - {fileID: 8300000, guid: 1d65b287047193340845c62d5632af57, type: 3}
+  - type: 1
+    randomClipList:
+    - {fileID: 8300000, guid: 8b291fa2303019943a39aa70caa9e819, type: 3}
+  - type: 2
+    randomClipList:
+    - {fileID: 8300000, guid: ffe1530f0301c42429e90903d3aeef08, type: 3}
+  - type: 3
+    randomClipList:
+    - {fileID: 8300000, guid: d3ad4d3fd8485384aa57ab160ed0326e, type: 3}
+  - type: 4
+    randomClipList:
+    - {fileID: 8300000, guid: 35db371bd1c29f1468b314408451edec, type: 3}
+  - type: 5
+    randomClipList:
+    - {fileID: 8300000, guid: 4d7e36795d430524fbc05f38312ad8d7, type: 3}
+  - type: 6
+    randomClipList:
+    - {fileID: 8300000, guid: 38a8dcb7f0ab36141b4cc86a13d4647b, type: 3}

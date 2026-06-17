@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d621a2a1323e5064f852ce38ed2399ec, type: 3}
+  m_Name: Band Character - Robot C2
+  m_EditorClassIdentifier: 
+  characterId: 4
+  characterName: Robot C2
+  characterDescription: 
+  initialMaxStress: 25
+  characterType: 2
+  characterPrefab: {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
+  characterSprite: {fileID: 4986537597448559443, guid: ca7b571ff02623a4b905f27079fbd285, type: 3}
+  characterIcon: {fileID: 8242622823429068648, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}
+  cardCatalog: {fileID: 11400000, guid: e16e0224fd6885449a973cbef5950aec, type: 2}
+  defaultCardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  chr: 3
+  tch: 5
+  emt: 1
+  profile:
+    backingInstruments: 02000000
+    leadInstruments: 02000000
+    backingMelodicInstruments: []
+    leadMelodicInstruments: []
+    percussionInstruments:
+    - {fileID: 11400000, guid: a85773e86ee3f7e48be0365c61ace840, type: 2}
+    - {fileID: 11400000, guid: 80486e651c5b8cd4aa7e2b9974abbd0a, type: 2}
+    - {fileID: 11400000, guid: 06b0763db4c68b64bbf72064349aefa3, type: 2}
+    - {fileID: 11400000, guid: 4d3c154b2c506094abf982c3efed6a8e, type: 2}
+    - {fileID: 11400000, guid: 8989df41ef0dc8544b23f003a6aeaf6b, type: 2}
+    - {fileID: 11400000, guid: 5650a528e907a3b4e8ff90c69f2bddd7, type: 2}
+    - {fileID: 11400000, guid: cb6eea6d346a6954385562d22c831717, type: 2}
+    - {fileID: 11400000, guid: 31173689665d34943b0ddafc5f935470, type: 2}
+    - {fileID: 11400000, guid: 847bd6523c5cdb2489f2fb8fd2ecf73f, type: 2}
+    defaultMelodicLeading: {fileID: 0}
+    defaultHarmonicLeading: {fileID: 0}

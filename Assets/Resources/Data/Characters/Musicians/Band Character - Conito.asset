@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d621a2a1323e5064f852ce38ed2399ec, type: 3}
+  m_Name: Band Character - Conito
+  m_EditorClassIdentifier: 
+  characterId: 1
+  characterName: Conito
+  characterDescription: 
+  initialMaxStress: 15
+  characterType: 1
+  characterPrefab: {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
+  characterSprite: {fileID: 21300000, guid: 2bdc8ac6f4da69247aad7dc400f5471c, type: 3}
+  characterIcon: {fileID: -437172681316638183, guid: 6b2eb57063c7b6a46945efa4ac11b6f7, type: 3}
+  cardCatalog: {fileID: 11400000, guid: 5f6609c6ffdc2ea4693e17a345264caa, type: 2}
+  defaultCardSprite: {fileID: 21300000, guid: aa43d531ba2af354d8360bbdfa0e3f05, type: 3}
+  chr: 3
+  tch: 3
+  emt: 3
+  profile:
+    backingInstruments: 000000000100000005000000
+    leadInstruments: 000000000100000005000000
+    backingMelodicInstruments:
+    - {fileID: 11400000, guid: e09d9c72d09f8e9438f57fb63c9e8f4b, type: 2}
+    - {fileID: 11400000, guid: 1ba712923f0a11a45b77b4afdf8fb2de, type: 2}
+    - {fileID: 11400000, guid: 0e14ee7cb036b1e428000e747ba8b221, type: 2}
+    - {fileID: 11400000, guid: 24306ac96d5669549952484c181f6a76, type: 2}
+    - {fileID: 11400000, guid: 555820f6e31acd546a1ddb8f50f10abb, type: 2}
+    - {fileID: 11400000, guid: a9a1dc8309f61f8469f74e94ccd9ce5c, type: 2}
+    leadMelodicInstruments:
+    - {fileID: 11400000, guid: e09d9c72d09f8e9438f57fb63c9e8f4b, type: 2}
+    - {fileID: 11400000, guid: 1ba712923f0a11a45b77b4afdf8fb2de, type: 2}
+    - {fileID: 11400000, guid: 0e14ee7cb036b1e428000e747ba8b221, type: 2}
+    - {fileID: 11400000, guid: 24306ac96d5669549952484c181f6a76, type: 2}
+    - {fileID: 11400000, guid: 555820f6e31acd546a1ddb8f50f10abb, type: 2}
+    - {fileID: 11400000, guid: a9a1dc8309f61f8469f74e94ccd9ce5c, type: 2}
+    percussionInstruments: []
+    defaultMelodicLeading: {fileID: 11400000, guid: 91e23e39892422b40a107dfada0cfe3d, type: 2}
+    defaultHarmonicLeading: {fileID: 0}

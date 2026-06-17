@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f2e55543b2f2494e9a5a6afcbcdd9b6, type: 3}
+  m_Name: Special Keyword
+  m_EditorClassIdentifier: 
+  specialKeywordBaseList:
+  - specialKeyword: 0
+    contentText: When full, causes a Breakdown.
+  - specialKeyword: 1
+    contentText: Fill to win over Audience Members.
+  - specialKeyword: 2
+    contentText: Is vibing with the music. Doesn't act anymore.
+  - specialKeyword: 3
+    contentText: Blocks the view of all non-tall character behind them.
+  - specialKeyword: 4
+    contentText: Removed from your deck after playing. Gone for the rest of this
+      gig.
+  - specialKeyword: 6
+    contentText: If not played this turn, removed from deck.
+  - specialKeyword: 5
+    contentText: Can only be played once per encounter. Moves to exhaust pile after
+      use.

@@ -1,0 +1,306 @@
+﻿Scripts
++---Backgrounds
+|   +---BackgroundContainer.cs
+|   +---BackgroundRoot.cs
+|   +---ForegroundAnimator.cs
+|   \---StageLightAnimator.cs
++---Cards
+|   +---CardActions
+|   |   +---AddStressAction.cs
+|   |   +---AddVibeAction.cs
+|   |   +---ApplyStatusEffectAction.cs
+|   |   +---AudienceMoveToFrontAction.cs
+|   |   +---BlockStressAction.cs
+|   |   +---BlockVibeAction.cs
+|   |   +---HealStressAction.cs
+|   |   \---RemoveVibeAction.cs
+|   +---Composition
+|   |   +---CompositionCardClassifier.cs
+|   |   +---PartActionDescriptor.cs
+|   |   \---TrackActionDescriptor.cs
+|   +---Editor
+|   |   +---CardAssetFactory.cs
+|   |   +---CardEditorWindow.cs
+|   |   +---CardEditorWindow.JsonImport.cs
+|   |   +---CardInventoryWindow.cs
+|   |   +---ChordProgressionCatalogueWizard.cs
+|   |   +---DeckAssetSaveService.cs
+|   |   +---DeckCardCreationService.cs
+|   |   +---DeckEditorDtos.cs
+|   |   +---DeckEditorWindow.cs
+|   |   +---DeckJsonImportService.cs
+|   |   +---DeckValidationService.cs
+|   |   \---MusicianCatalogService.cs
+|   +---Effects
+|   |   +---ApplyStatusEffectSpec.cs
+|   |   +---CardEffectDescriptionBuilder.cs
+|   |   +---CardEffectSpec.cs
+|   |   +---DrawCardsSpec.cs
+|   |   +---ModifyStressSpec.cs
+|   |   \---ModifyVibeSpec.cs
+|   +---Enums
+|   |   +---CardAcquisitionFlags.cs
+|   |   +---CardActionTiming.cs
+|   |   +---CardDomain.cs
+|   |   +---CardPerformerRule.cs
+|   |   +---CardPrimaryKind.cs
+|   |   \---PartActionKind.cs
+|   +---Extensions
+|   |   \---CardDefinitionDescriptionExtensions.cs
+|   +---Payloads
+|   |   +---ActionCardPayload.cs
+|   |   +---CardPayload.cs
+|   |   \---CompositionCardPayload.cs
+|   +---Card3D.cs
+|   +---CardAnimationData.cs
+|   +---CardBase.cs
+|   +---CardConditionData.cs
+|   +---CardDefinition.cs
+|   +---CardTypeDB.cs
+|   +---ChoiceCard.cs
+|   +---GenericCardCatalogSO.cs
+|   +---MusicianCardCatalogData.cs
+|   \---MusicianCardEntry.cs
++---Characters
+|   +---Actions
+|   |   +---CharacterActionBase.cs
+|   |   +---CharacterActionData.cs
+|   |   +---CharacterActionParameters.cs
+|   |   \---CharacterActionProcessor.cs
+|   +---Audience
+|   |   \---AudienceCharacterSimple.cs
+|   +---Musicians
+|   |   \---MusicianCharacterSimple.cs
+|   +---AudienceCharacterBase.cs
+|   +---AudienceCharacterCanvas.cs
+|   +---AudienceCharacterStats.cs
+|   +---BandCharacterCanvas.cs
+|   +---BandCharacterStats.cs
+|   +---CharacterAnimator.cs
+|   +---CharacterBase.cs
+|   +---CharacterCanvas.cs
+|   +---CharacterStats.cs
+|   +---MusicianBase.cs
+|   +---SpriteOutlineController.cs
+|   \---StatusStats.cs
++---Controllers
+|   +---HandController.cs
+|   \---MidiGenPlayPanelController.cs
++---Data
+|   +---Audio
+|   |   +---SongData.cs
+|   |   \---SoundProfileData.cs
+|   +---Cards
+|   |   +---Configs
+|   |   |   +---BandDeckData.cs
+|   |   |   +---BandDeckEntry.cs
+|   |   |   +---CardData.cs
+|   |   |   +---CardRewardData.cs
+|   |   |   +---CardTypeData.cs
+|   |   |   +---DeckData.cs
+|   |   |   \---RewardContainerData.cs
+|   |   +---Databases
+|   |   |   \---RewardDatabase.cs
+|   |   \---Part Effects
+|   |       +---InstrumentEffect.cs
+|   |       +---MeterEffect.cs
+|   |       +---ModulationEffect.cs
+|   |       +---PartEffect.cs
+|   |       +---TempoEffect.cs
+|   |       \---TonalityEffect.cs
+|   +---Characters
+|   |   +---Audience
+|   |   |   +---AudienceCharacterData.cs
+|   |   |   \---AudienceIntentionData.cs
+|   |   \---Musicians
+|   |       +---MusicianCharacterData.cs
+|   |       \---MusicianProfileData.cs
+|   +---Core
+|   |   +---GameplayData.cs
+|   |   +---PersistentGameplayData.cs
+|   |   +---SceneData.cs
+|   |   \---SpecialKeywordData.cs
+|   +---Encounters
+|   |   +---EncounterData.cs
+|   |   \---GigEncounterSO.cs
+|   +---Events
+|   |   \---RandomEventData.cs
+|   +---Gig
+|   |   +---DemoLaunchConfigSO.cs
+|   |   +---GigDevSettingsSO.cs
+|   |   +---GigFlowSettingsSO.cs
+|   |   +---GigPresentationSO.cs
+|   |   +---GigSetupRosterSO.cs
+|   |   \---MeterTuningSO.cs
+|   +---SectorMap
+|   |   +---Configs
+|   |   |   +---NodeTypeData.cs
+|   |   |   +---NodeTypeDatabase.cs
+|   |   |   \---SectorMapData.cs
+|   |   \---State
+|   |       +---SectorMapState.cs
+|   |       \---SectorNodeState.cs
+|   +---Serializable Wrappers
+|   |   +---SerializableCardInventory.cs
+|   |   \---SerializableStringIntDictionary.cs
+|   +---UI
+|   +---ALWTTTProjectRegistriesSO.cs
+|   \---CompositionFxConfigSO.cs
++---DevMode
+|   +---DevCardCatalogueTab.cs
+|   +---DevModeController.cs
+|   \---DevStatsTab.cs
++---Encounters
+|   +---EncounterBase.cs
+|   \---GigEncounter.cs
++---Enums
+|   +---ActionTargetType.cs
+|   +---AudienceIntentionType.cs
+|   +---AudioActionType.cs
+|   +---CardConditionType.cs
+|   +---CardType.cs
+|   +---CharacterActionType.cs
+|   +---CharacterType.cs
+|   +---FxType.cs
+|   +---GigPhase.cs
+|   +---InventoryType.cs
+|   +---MusicianCharacterType.cs
+|   +---MusicianStat.cs
+|   +---NodeType.cs
+|   +---RandomEventEffectType.cs
+|   +---RarityType.cs
+|   +---RewardType.cs
+|   +---SpecialKeywords.cs
+|   \---VenueType.cs
++---Extensions
+|   \---ListExtensions.cs
++---Generation
+|   +---Map
+|   |   +---Stages
+|   |   |   +---AssignTypesStage.cs
+|   |   |   +---BuildSpinesStage.cs
+|   |   |   +---ConnectivityStage.cs
+|   |   |   +---CrossLinksStage.cs
+|   |   |   +---EnforceSemanticsStage.cs
+|   |   |   +---LayoutAndCreateNodesStage.cs
+|   |   |   +---PickStartExitStage.cs
+|   |   |   \---RepairGapsStage.cs
+|   |   +---ISectorGenStage.cs
+|   |   +---SectorGenUtils.cs
+|   |   +---SectorGraphGenerator.cs
+|   |   \---SectorGraphStepper.cs
+|   \---Music
+|       \---MidiToolkitAdapter.cs
++---Interfaces
+|   +---IAudienceMember.cs
+|   +---IAudienceStats.cs
+|   +---ICharacter.cs
+|   +---ICharacterStats.cs
+|   +---IMusician.cs
+|   +---IMusicianStats.cs
+|   \---INodeResolver.cs
++---Managers
+|   +---AudioManager.cs
+|   +---BandSetupManager.cs
+|   +---DeckManager.cs
+|   +---FxManager.cs
+|   +---GameManager.cs
+|   +---GigManager.cs
+|   +---GigRunContext.cs
+|   +---GigSetupSceneManager.cs
+|   +---MidiMusicManager.cs
+|   +---SectorMapManager.cs
+|   +---ShipInteriorManager.cs
+|   \---UIManager.cs
++---Map
+|   +---Resolvers
+|   |   +---BossNodeResolver.cs
+|   |   +---GigNodeResolver.cs
+|   |   +---RandomEventNodeResolver.cs
+|   |   +---RecruitNodeResolver.cs
+|   |   \---RehearsalNodeResolver.cs
+|   +---NodeResolveContext.cs
+|   +---NodeResolverProcessor.cs
+|   +---SectorLinkVisual.cs
+|   +---SectorMapVisual.cs
+|   +---SectorNodeVisual.cs
+|   \---ShipController.cs
++---Music
+|   +---Context Data
+|   |   +---LoopFeedbackContext.cs
+|   |   +---PartFeedbackContext.cs
+|   |   \---SongFeedbackContext.cs
+|   +---Interfaces
+|   |   \---ICompositionContext.cs
+|   +---Musician Personalities
+|   +---CompositionSession.cs
+|   +---FloatingTextMidiListener.cs
+|   +---InstrumentRules.cs
+|   +---LoopScoreCalculator.cs
+|   +---MidiEventInterfaces.cs
+|   +---MusicianMidiResponder.cs
+|   \---SongConfigBuilder.cs
++---Status
+|   +---Editor
+|   |   \---StatusEffectWizardWindow.cs
+|   +---Runtime
+|   |   +---StatusEffectContainer.cs
+|   |   \---StatusEffectInstance.cs
+|   +---CharacterStatusId.cs
+|   +---CharacterStatusPrimitiveDatabaseSO.cs
+|   +---StatusEffectActionData.cs
+|   +---StatusEffectCatalogueSO.cs
+|   +---StatusEffectSO.cs
+|   \---StatusType.cs
++---UI
+|   +---Canvases
+|   |   +---BandSetupCanvas.cs
+|   |   +---CanvasBase.cs
+|   |   +---GameOverCanvas.cs
+|   |   +---InventoryCanvas.cs
+|   |   +---MidiListenerCanvasBase.cs
+|   |   +---RandomEventCanvas.cs
+|   |   +---RecruitCanvas.cs
+|   |   +---RewardCanvas.cs
+|   |   \---ShipInteriorCanvas.cs
+|   +---Song Composition
+|   |   +---LoopsTimerUI.cs
+|   |   +---SongCompositionUI.cs
+|   |   +---SongPartElementUI.cs
+|   |   +---SongPartsLayoutUI.cs
+|   |   \---SongTrackElementUI.cs
+|   +---Tooltips
+|   |   +---I2DTooltipTarget.cs
+|   |   +---ITooltipTargetBase.cs
+|   |   +---TooltipController.cs
+|   |   +---TooltipManager.cs
+|   |   \---TooltipText.cs
+|   +---AudiencePickerRow.cs
+|   +---BeatPulseIndicator.cs
+|   +---CardDetailViewController.cs
+|   +---CardUI.cs
+|   +---ChoicePanel.cs
+|   +---ConflictPanelUI.cs
+|   +---FloatingText.cs
+|   +---GigCanvas.cs
+|   +---GigSetupController.cs
+|   +---HealthBarController.cs
+|   +---MinicardTooltipController.cs
+|   +---MusicianMapStatusUI.cs
+|   +---MusicianPickerRow.cs
+|   +---MusicianUI.cs
+|   +---NewSongPanelUI.cs
+|   +---RewardContainer.cs
+|   +---StatusIconBase.cs
+|   +---TempoTextIndicator.cs
+|   \---UIPulseAnimator.cs
++---Utils
+|   +---ButtonSoundPlayer.cs
+|   +---CoreLoader.cs
+|   +---HighscoreStore.cs
+|   +---InventoryHelper.cs
+|   \---SceneChanger.cs
++---Code_Extended.zip
++---Code_Min.zip
++---file_tree.txt
+\---make-tree-unity.bat

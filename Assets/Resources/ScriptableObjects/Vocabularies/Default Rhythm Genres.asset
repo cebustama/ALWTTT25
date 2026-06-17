@@ -1,0 +1,404 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8941b2c4e52c573418f0437a1d75f0ad, type: 3}
+  m_Name: Default Rhythm Genres
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.RhythmGenreVocabularySO
+  genres:
+  - genreName: funk
+    defaultMeter: 0
+    defaultMeasures: 2
+    defaultSubdivisions: 4
+    defaultLaneComposition:
+    - instrument: 36
+      defaultVelocity: 100
+    - instrument: 38
+      defaultVelocity: 110
+    - instrument: 42
+      defaultVelocity: 80
+    - instrument: 46
+      defaultVelocity: 90
+    characteristicCells:
+    - laneIndex: 0
+      variant: default
+      cell: x..x..x...x.....
+    - laneIndex: 1
+      variant: default
+      cell: ....x.......x...
+    - laneIndex: 2
+      variant: default
+      cell: xxxxxxxxxxxxxxxx
+    - laneIndex: 3
+      variant: default
+      cell: ....X.......X...
+    subStyleCues:
+    - name: shuffle
+      guidance: "Triplet feel \u2014 hat becomes a triplet pulse and snare ghosts
+        move to triplet positions."
+      subdivisionsOverride: 3
+    - name: JB-style
+      guidance: 'James Brown / Funky Drummer: dense ghost snares, 16th hat throughout,
+        kick on 1 + ''ah of 1'' + ''and of 2''. Aliases: James Brown, Funky Drummer.'
+      subdivisionsOverride: 0
+    - name: P-funk
+      guidance: 'Parliament / Bootsy: wider kick spacing (often a one-drop on beat
+        3 only), sparse hat opens, snare can sit just on 3. Aliases: Parliament,
+        Bootsy.'
+      subdivisionsOverride: 0
+    velocityConventions: "Snare backbeat at lane default (110); ghost notes use 'o'
+      (50) \u2014 the signature funk move. Kick stays at 'x'; accents rare. Hat steady
+      at 'x', 'X' only on a rare accented down."
+    styleDescriptors: "Pocket and syncopation. Ghost notes are the defining gesture
+      \u2014 the space between the backbeats is where funk lives. Don't fill every
+      16th by default; leave room. Two bars: the second carries variation (push,
+      pull, or fill)."
+  - genreName: rock
+    defaultMeter: 0
+    defaultMeasures: 2
+    defaultSubdivisions: 2
+    defaultLaneComposition:
+    - instrument: 36
+      defaultVelocity: 110
+    - instrument: 38
+      defaultVelocity: 115
+    - instrument: 42
+      defaultVelocity: 85
+    - instrument: 46
+      defaultVelocity: 95
+    characteristicCells:
+    - laneIndex: 0
+      variant: default
+      cell: x...x...
+    - laneIndex: 1
+      variant: default
+      cell: ..x...x.
+    - laneIndex: 2
+      variant: default
+      cell: xxxxxxxx
+    - laneIndex: 3
+      variant: default
+      cell: ........
+    subStyleCues:
+    - name: classic
+      guidance: 'AC/DC / straight rock: kick on 1 and 3, snare on 2 and 4, 8th hat.
+        No ornamentation. Aliases: AC/DC, straight rock.'
+      subdivisionsOverride: 0
+    - name: hard
+      guidance: 'Zeppelin / Bonham: kick syncopation in the back half of the bar;
+        occasional 16th flourishes; ghost-snare OK but rare. Aliases: Zeppelin, Bonham.'
+      subdivisionsOverride: 0
+    - name: half-time
+      guidance: Snare on 3 only; kick on 1; sparse. Heavy verses or stoner-rock feels.
+      subdivisionsOverride: 0
+    - name: punk
+      guidance: Kick on every 8th ('x.x.x.x.'); snare backbeat. Fast and stiff.
+      subdivisionsOverride: 0
+    velocityConventions: "Snare loud: 'x' at lane default (115); 'X' (120) reserved
+      for the fill or section-ending hit. Kick solid 'x', 'X' on big phrase-starting
+      kicks. Hat consistent \u2014 the point is steadiness, not dynamics."
+    styleDescriptors: "Backbeat-driven, square pocket by design. The point is the
+      thud \u2014 rock drums are less about syncopation than about hitting the right
+      beats hard at the right time."
+  - genreName: jazz
+    defaultMeter: 0
+    defaultMeasures: 2
+    defaultSubdivisions: 3
+    defaultLaneComposition:
+    - instrument: 36
+      defaultVelocity: 70
+    - instrument: 38
+      defaultVelocity: 80
+    - instrument: 51
+      defaultVelocity: 90
+    - instrument: 42
+      defaultVelocity: 75
+    - instrument: 46
+      defaultVelocity: 85
+    characteristicCells:
+    - laneIndex: 0
+      variant: default
+      cell: x..x..x..x..
+    - laneIndex: 1
+      variant: default
+      cell: ....o.....o.
+    - laneIndex: 2
+      variant: default
+      cell: x..x.xx.xx.x
+    - laneIndex: 3
+      variant: default
+      cell: ...x.....x..
+    - laneIndex: 4
+      variant: default
+      cell: ............
+    subStyleCues:
+    - name: swing
+      guidance: Standard ride pattern + 2-and-4 hat chick + ghost snare comp. The
+        default.
+      subdivisionsOverride: 0
+    - name: bebop
+      guidance: "Uptempo; same ride pattern; more snare/kick 'bombs' (sudden loud
+        accents, often on weak beats) \u2014 add 'X' strikes at unexpected positions."
+      subdivisionsOverride: 0
+    - name: ballad
+      guidance: Very sparse; mostly ride; brush-style snare comp; drop kick entirely.
+      subdivisionsOverride: 0
+    velocityConventions: 'Ride is the loudest lane: ''x'' at default (90), ''X''
+      for accents on phrase boundaries. Snare comp uses ''o'' (50) ghost-volume,
+      occasional ''x'' for emphasized comp hits. Hat chick on 2 and 4 is a solid
+      ''x''. Kick feathered at default (70); drop entirely for ballad feel.'
+    styleDescriptors: "Time on the ride, not the snare. Comp; don't hammer. The triplet
+      feel is the foundation \u2014 straight 8ths break the spell. Less is almost
+      always more."
+  - genreName: hip-hop
+    defaultMeter: 0
+    defaultMeasures: 2
+    defaultSubdivisions: 4
+    defaultLaneComposition:
+    - instrument: 36
+      defaultVelocity: 105
+    - instrument: 38
+      defaultVelocity: 110
+    - instrument: 42
+      defaultVelocity: 80
+    - instrument: 46
+      defaultVelocity: 90
+    characteristicCells:
+    - laneIndex: 0
+      variant: default
+      cell: x..........x....
+    - laneIndex: 1
+      variant: default
+      cell: ....x.......x...
+    - laneIndex: 2
+      variant: default
+      cell: x.x.x.x.x.x.x.x.
+    - laneIndex: 3
+      variant: default
+      cell: ..x...x...x...x.
+    subStyleCues:
+    - name: boom bap
+      guidance: Kick on 1 and 'ah of 3'; backbeat snare; ghost snares between; 8th
+        hat. Classic East Coast 90s.
+      subdivisionsOverride: 0
+    - name: trap
+      guidance: Double-time hats (16ths with bursts/rolls); syncopated skipping kick;
+        snare often on 3 only (half-time backbeat); consider substituting Hand Clap
+        alongside or instead of the snare and raising that lane's default velocity
+        to ~115.
+      subdivisionsOverride: 0
+    - name: lo-fi
+      guidance: Sparse; kick mainly on 1; frequent 'o' ghost-snare comping; quiet
+        hat (drop default velocity to ~65-70).
+      subdivisionsOverride: 0
+    velocityConventions: 'Boom bap is laid back: mostly ''x'', accents ''X'' sparingly.
+      Snare can be ''X'' for emphasis on phrase boundaries. Ghost snares ''o'' are
+      characteristic of J Dilla-influenced boom bap.'
+    styleDescriptors: "Pocket and backbeat. The 'ah of 3' kick is the gesture that
+      separates hip-hop from rock backbeat. The space between the kick and the backbeat
+      is where the rapper lives \u2014 leave room."
+  - genreName: latin
+    defaultMeter: 0
+    defaultMeasures: 2
+    defaultSubdivisions: 4
+    defaultLaneComposition:
+    - instrument: 36
+      defaultVelocity: 90
+    - instrument: 38
+      defaultVelocity: 100
+    - instrument: 42
+      defaultVelocity: 75
+    - instrument: 46
+      defaultVelocity: 85
+    - instrument: 37
+      defaultVelocity: 95
+    characteristicCells:
+    - laneIndex: 0
+      variant: default
+      cell: x......x......x.
+    - laneIndex: 1
+      variant: default
+      cell: ..x.......x.x...
+    - laneIndex: 2
+      variant: default
+      cell: x.x.xx.xx.x.xx.x
+    - laneIndex: 3
+      variant: default
+      cell: ................
+    - laneIndex: 4
+      variant: default
+      cell: x.....x.....x...
+    subStyleCues:
+    - name: son
+      guidance: 3-2 son clave (default).
+      subdivisionsOverride: 0
+    - name: tumbao
+      guidance: Emphasize the kick syncopation ('ah of 2' + 'and of 4'); clave in
+        the background; cascara on the hat.
+      subdivisionsOverride: 0
+    - name: samba
+      guidance: Partido alto feel; surdo (kick) on beats 2 and 4; drop the side-stick
+        lane and add a Surdo substitute (Low Tom or High Tom) if needed. 2/4 is more
+        idiomatic but 4/4 works for v1.
+      subdivisionsOverride: 0
+    - name: bossa
+      guidance: Softer than samba; kick on 1 + 'and of 2'; side stick plays a 3-2
+        bossa clave (slightly different from son).
+      subdivisionsOverride: 0
+    velocityConventions: "Side stick (clave) loud and present: 'x' at default (95),
+      'X' for accent on rumba/guaguanco variants. Kick at default (90) \u2014 tumbao
+      stays in the pocket. Snare softer than the kick; use 'o' liberally for shell
+      tones. Cascara on hat steady at default (75)."
+    styleDescriptors: "The clave is the spine. Every other lane carries tension and
+      release against the clave \u2014 don't write rhythms that disagree with it.
+      The son clave is fundamentally a TWO-BAR pattern (3-2 by default); the cells
+      here are per-bar anchors and should resolve over both bars."
+  - genreName: metal
+    defaultMeter: 0
+    defaultMeasures: 2
+    defaultSubdivisions: 4
+    defaultLaneComposition:
+    - instrument: 36
+      defaultVelocity: 115
+    - instrument: 38
+      defaultVelocity: 120
+    - instrument: 42
+      defaultVelocity: 90
+    - instrument: 46
+      defaultVelocity: 100
+    characteristicCells:
+    - laneIndex: 0
+      variant: default
+      cell: x.xx.x.xx.x.xx.x
+    - laneIndex: 1
+      variant: default
+      cell: ....X.......X...
+    - laneIndex: 2
+      variant: default
+      cell: xxxxxxxxxxxxxxxx
+    - laneIndex: 3
+      variant: default
+      cell: ................
+    subStyleCues:
+    - name: blast
+      guidance: 'Blast beat: snare on every off-16th; kick on every 16th; 16th hat.
+        Extreme density. Alias: blast beat.'
+      subdivisionsOverride: 0
+    - name: gallop
+      guidance: Iron Maiden 8th-16th-16th kick pattern; standard backbeat snare;
+        8th hat.
+      subdivisionsOverride: 0
+    - name: double-time
+      guidance: Straight 16th kick; backbeat snare on 2 and 4; 16th hat. Driving
+        and propulsive.
+      subdivisionsOverride: 0
+    - name: djent
+      guidance: 'Odd-meter override (7/8, 5/4); kick on the down + syncopated; snare
+        on every ''and'' position; 16th hat. Alias: polymeter.'
+      subdivisionsOverride: 0
+    velocityConventions: "Snare loud \u2014 but the lane default IS loud (120), so
+      'x' already hits hard; 'X' is the same value, reserved for chart consistency.
+      Kick at default (115); galloping figures don't accent further. Hat consistent."
+    styleDescriptors: "Aggression, density, precision. The kick pattern is the genre-defining
+      gesture; everything else follows the kick's lead. Metal grids are quantized
+      hard \u2014 don't express swing or shuffle here. Odd meters (7/8, 5/4, 9/8)
+      are common; respect a user meter override."
+  - genreName: drum'n'bass
+    defaultMeter: 0
+    defaultMeasures: 2
+    defaultSubdivisions: 4
+    defaultLaneComposition:
+    - instrument: 36
+      defaultVelocity: 105
+    - instrument: 38
+      defaultVelocity: 115
+    - instrument: 42
+      defaultVelocity: 85
+    - instrument: 46
+      defaultVelocity: 95
+    characteristicCells:
+    - laneIndex: 0
+      variant: default
+      cell: x.......x.......
+    - laneIndex: 1
+      variant: default
+      cell: ....x.......x.o.
+    - laneIndex: 2
+      variant: default
+      cell: xxxxxxxxxxxxxxxx
+    - laneIndex: 3
+      variant: default
+      cell: ....X.......X...
+    subStyleCues:
+    - name: amen
+      guidance: 'Classic chopped Amen: backbeat snare with displacements; busy ghost
+        snares; steady 16th hat. Densest.'
+      subdivisionsOverride: 0
+    - name: liquid
+      guidance: Softer; fewer Amen-chops; cleaner backbeat snare on 2 and 4 only;
+        hat can drop to 8ths in places.
+      subdivisionsOverride: 0
+    - name: neuro
+      guidance: Sparse; tight kick on 1 only per bar; snare on 2 and 4 with heavy
+        'X'; driving 16th hat.
+      subdivisionsOverride: 0
+    velocityConventions: "Snare LOUD \u2014 'X' (120) liberally on the backbeat;
+      it's the focal point. Ghost snares 'o' (50) for the chopped-Amen feel between
+      backbeats. Kick at default (105). Hat steady; 16ths are the genre's pulse."
+    styleDescriptors: "Resolution is 16ths. Snare displacement (snare landing slightly
+      late or early, especially the 'ah of 4' hit) is the signature gesture \u2014
+      when the snare lines up perfectly with the backbeat it stops sounding like
+      DnB. Canonically a TWO-BAR genre (Amen-derived); cells here are per-bar anchors
+      and the second bar should carry the displacement."
+  - genreName: country
+    defaultMeter: 0
+    defaultMeasures: 2
+    defaultSubdivisions: 2
+    defaultLaneComposition:
+    - instrument: 36
+      defaultVelocity: 100
+    - instrument: 38
+      defaultVelocity: 105
+    - instrument: 42
+      defaultVelocity: 80
+    - instrument: 46
+      defaultVelocity: 90
+    characteristicCells:
+    - laneIndex: 0
+      variant: default
+      cell: x...x...
+    - laneIndex: 1
+      variant: default
+      cell: ..x...x.
+    - laneIndex: 2
+      variant: default
+      cell: xxxxxxxx
+    - laneIndex: 3
+      variant: default
+      cell: ........
+    subStyleCues:
+    - name: train beat
+      guidance: 'Kick and snare alternate every 8th; hat steady. The most iconic
+        country figure: kick ''x.x.x.x.'', snare ''.x.x.x.x''.'
+      subdivisionsOverride: 0
+    - name: two-step
+      guidance: Standard backbeat (kick 'x...x...', snare '..x...x.'). Dancehall-friendly
+        tempo.
+      subdivisionsOverride: 0
+    - name: shuffle
+      guidance: 'Triplet feel (Western swing): kick on beat-quarter triplets, snare
+        on the ''trip-of-2'' and ''trip-of-4'' ghosts.'
+      subdivisionsOverride: 3
+    velocityConventions: "Even velocity profile \u2014 country is about steady time,
+      not dynamics. Most steps at 'x' (lane default). 'X' (120) only for phrase-boundary
+      emphasis, rare. 'o' ghost notes uncommon; country snare is open and clean."
+    styleDescriptors: "Steady. The drums serve the song. Country drumming values
+      consistency over personality \u2014 when in doubt, simpler wins. Waltz country
+      uses 3/4 (respect a user meter override)."

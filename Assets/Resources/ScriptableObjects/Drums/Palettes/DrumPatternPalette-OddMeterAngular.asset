@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68ce338ec50780f45835b16cda4b83d9, type: 3}
+  m_Name: DrumPatternPalette-OddMeterAngular
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.DrumPatternPaletteSO
+  paletteDisplayName: Odd-Meter Angular (5/4)
+  paletteNotes: 
+  preferExactTimeSignatureMatches: 0
+  entries:
+  - pattern: {fileID: 11400000, guid: ef3470c15d551a34e846c10c6bdbe80a, type: 2}
+    weight: 1
