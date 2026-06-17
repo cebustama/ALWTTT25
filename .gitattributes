@@ -1,0 +1,81 @@
+## ALWTTT — Git LFS + normalización de texto
+## Coloca este archivo en la RAÍZ del proyecto (junto a Assets/, Packages/, ProjectSettings/)
+## y debe existir ANTES de hacer `git add .`
+
+# Normaliza saltos de línea; auto-detecta texto
+* text=auto
+
+# Código y texto (forzado a texto)
+*.cs     text diff=csharp
+*.shader text
+*.cginc  text
+*.hlsl   text
+*.uss    text
+*.uxml   text
+*.json   text
+*.md     text
+*.txt    text
+*.csv    text
+*.asmdef text
+
+# YAML serializado de Unity: texto + fusión inteligente (UnityYAMLMerge).
+# Las líneas merge=unityyamlmerge SOLO importan al fusionar ramas más adelante.
+# No afectan a commit ni push. Puedes configurar la herramienta cuando llegues
+# a fusionar ramas, o borrar estas líneas por ahora.
+*.unity          merge=unityyamlmerge eol=lf
+*.prefab         merge=unityyamlmerge eol=lf
+*.asset          merge=unityyamlmerge eol=lf
+*.meta           merge=unityyamlmerge eol=lf
+*.controller     merge=unityyamlmerge eol=lf
+*.anim           merge=unityyamlmerge eol=lf
+*.mat            merge=unityyamlmerge eol=lf
+*.physicMaterial merge=unityyamlmerge eol=lf
+
+## ---- Git LFS: binarios ----
+## 'lockable' permite checkout exclusivo con `git lfs lock` cuando seáis equipo.
+## OJO: los patrones distinguen mayúsculas; añade variantes (.PNG, .FBX) si las usas.
+
+# Audio
+*.wav  filter=lfs diff=lfs merge=lfs -text lockable
+*.ogg  filter=lfs diff=lfs merge=lfs -text lockable
+*.mp3  filter=lfs diff=lfs merge=lfs -text lockable
+*.aif  filter=lfs diff=lfs merge=lfs -text lockable
+*.aiff filter=lfs diff=lfs merge=lfs -text lockable
+*.flac filter=lfs diff=lfs merge=lfs -text lockable
+
+# Imágenes / texturas
+*.png  filter=lfs diff=lfs merge=lfs -text lockable
+*.jpg  filter=lfs diff=lfs merge=lfs -text lockable
+*.jpeg filter=lfs diff=lfs merge=lfs -text lockable
+*.gif  filter=lfs diff=lfs merge=lfs -text lockable
+*.bmp  filter=lfs diff=lfs merge=lfs -text lockable
+*.tga  filter=lfs diff=lfs merge=lfs -text lockable
+*.tif  filter=lfs diff=lfs merge=lfs -text lockable
+*.tiff filter=lfs diff=lfs merge=lfs -text lockable
+*.psd  filter=lfs diff=lfs merge=lfs -text lockable
+*.exr  filter=lfs diff=lfs merge=lfs -text lockable
+*.hdr  filter=lfs diff=lfs merge=lfs -text lockable
+
+# 3D
+*.fbx   filter=lfs diff=lfs merge=lfs -text lockable
+*.FBX   filter=lfs diff=lfs merge=lfs -text lockable
+*.blend filter=lfs diff=lfs merge=lfs -text lockable
+*.obj   filter=lfs diff=lfs merge=lfs -text lockable
+
+# Vídeo
+*.mp4  filter=lfs diff=lfs merge=lfs -text lockable
+*.mov  filter=lfs diff=lfs merge=lfs -text lockable
+*.webm filter=lfs diff=lfs merge=lfs -text lockable
+
+# Fuentes
+*.ttf  filter=lfs diff=lfs merge=lfs -text
+*.otf  filter=lfs diff=lfs merge=lfs -text
+
+# Binarios varios
+*.bytes   filter=lfs diff=lfs merge=lfs -text
+*.cubemap filter=lfs diff=lfs merge=lfs -text
+*.dll     filter=lfs diff=lfs merge=lfs -text
+*.a       filter=lfs diff=lfs merge=lfs -text
+*.so      filter=lfs diff=lfs merge=lfs -text
+*.dylib   filter=lfs diff=lfs merge=lfs -text
+*.bundle  filter=lfs diff=lfs merge=lfs -text
