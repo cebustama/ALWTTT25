@@ -42,8 +42,8 @@ MonoBehaviour:
   perAudienceVibeDelay: 1
   perAudienceActionDelay: 1
   barFillDelay: 3
-  songHypeStage1Threshold: 0.15
-  songHypeStage2Threshold: 0.2
+  songHypeStage1Threshold: 0.2
+  songHypeStage2Threshold: 0.23
   songHypeStage3Threshold: 0.25
   songHypeStage1SfxTag: lights
   songHypeStage2SfxTag: smoke

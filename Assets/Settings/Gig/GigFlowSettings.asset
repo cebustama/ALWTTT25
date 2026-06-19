@@ -26,4 +26,4 @@ MonoBehaviour:
   defaultDiscardHandBetweenTurns: 1
   defaultKeepInspirationBetweenTurns: 0
   allowOverrideRequiredSongCount: 1
-  defaultRequiredSongCount: 4
+  defaultRequiredSongCount: 3

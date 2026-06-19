@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: kid
   characterName: Kid
   characterDescription: 
-  maxVibe: 100
+  maxVibe: 5
   characterPrefab: {fileID: 8137859568071339047, guid: 323a8ebb063c9b94e8a73bc3ac51c634, type: 3}
   isTall: 0
   abilityList:

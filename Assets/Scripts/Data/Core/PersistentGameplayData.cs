@@ -93,6 +93,11 @@ namespace ALWTTT.Data
         // Records
         [SerializeField] private int gigsWon;
 
+        // Tutorial (S4): persisted first-time-tutorial fired ids. List (not HashSet)
+        // for Unity serializability; consumed by TutorialController. In-memory across
+        // scene loads via the GameManager singleton (no disk save system today).
+        [SerializeField] private List<string> firedTutorialDialogs = new List<string>();
+
         #region Encapsulation
 
         public List<MusicianBase> MusicianList
@@ -964,6 +969,21 @@ namespace ALWTTT.Data
         {
 
         }
+        #endregion
+
+        #region Tutorial
+        public bool HasFiredTutorial(string id) =>
+            !string.IsNullOrEmpty(id) && firedTutorialDialogs.Contains(id);
+
+        public void MarkTutorialFired(string id)
+        {
+            if (string.IsNullOrEmpty(id) || firedTutorialDialogs.Contains(id)) return;
+            firedTutorialDialogs.Add(id);
+        }
+
+        public void ClearFiredTutorials() => firedTutorialDialogs.Clear();
+
+        public IReadOnlyList<string> FiredTutorialDialogs => firedTutorialDialogs;
         #endregion
 
         public void ApplyRunConfig(

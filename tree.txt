@@ -2169,6 +2169,9 @@
 |   |   |   |       +---DrumPatternPalette-OddMeterAngular.asset
 |   |   |   |       +---DrumPatternPalette-SyncopatedPocket.asset
 |   |   |   |       \---DrumPatternPalette-WaltzLilt.asset
+|   |   |   +---GenerationParams
+|   |   |   |   \---Melody
+|   |   |   |       \---MelodyGenParams_TEST.asset
 |   |   |   +---MIDI Instruments
 |   |   |   +---Patterns
 |   |   |   |   +---Chords
@@ -2191,7 +2194,9 @@
 |   |   |   |   |   +---Drum_6-1_2m_CHBDSNOH.asset
 |   |   |   |   |   +---LLMTest.asset
 |   |   |   |   |   \---TestSmokeSMR7.asset
-|   |   |   |   \---Melodies
+|   |   |   |   +---Melodies
+|   |   |   |   \---Melody
+|   |   |   |       \---Melody_6-4_2m_11n.asset
 |   |   |   \---Vocabularies
 |   |   |       +---Default Chord Genres.asset
 |   |   |       \---Default Rhythm Genres.asset
@@ -2792,6 +2797,7 @@
 |   |   |   \---Source_Docs_Supersession_Map.md
 |   |   +---snapshots
 |   |   |   \---README.md
+|   |   +---CURRENT_STATE_pre-prune_2026-06-16.md
 |   |   +---README.md
 |   |   \---SNAPSHOT_RETENTION_POLICY.md
 |   +---audits
@@ -2956,10 +2962,12 @@
 |   +---VFXManager.asset
 |   \---XRSettings.asset
 +---.env
++---.gitattributes
 +---.gitignore
 +---.vsconfig
 +---AGENTS.md
 +---ALWTTT Claude API.txt
++---CONTRIBUTING.md
 +---copy-files-from-list_with-mode.bat
 +---Docs.zip
 +---file_copies.zip

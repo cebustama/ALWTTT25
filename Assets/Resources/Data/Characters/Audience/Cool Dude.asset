@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: cooldude
   characterName: Cool Dude
   characterDescription: 
-  maxVibe: 25
+  maxVibe: 5
   characterPrefab: {fileID: 997261290205271328, guid: c8efa2c5aa6223e49b98b39362316d37, type: 3}
   isTall: 1
   abilityList:
@@ -33,6 +33,7 @@ MonoBehaviour:
       animatorTrigger: 
       animationDuration: -1
       disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
   - abilityName: Indifference
     intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
     hideActionValue: 1
@@ -47,6 +48,7 @@ MonoBehaviour:
       animatorTrigger: 
       animationDuration: -1
       disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
   - abilityName: Heckle
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
     hideActionValue: 0
@@ -66,6 +68,7 @@ MonoBehaviour:
       animatorTrigger: 
       animationDuration: -1
       disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
   followAbilityPattern: 1
   taste:
     tempoMatchOnFast: 0
@@ -78,3 +81,4 @@ MonoBehaviour:
     dislikedTimeSignatures: 00000000
     preferredTonalities: 
     dislikedTonalities: 
+  sfxProfile: {fileID: 0}

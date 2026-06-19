@@ -23,6 +23,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using ALWTTT.Tutorial;
+
 
 
 #if ALWTTT_DEV
@@ -349,6 +351,9 @@ namespace ALWTTT.Managers
 
             _requiredSongCount = ResolveRequiredSongCount();
 
+            // [S4 D-S4-SRC=A] Lifecycle moment on the bus (tutorial welcome).
+            StartCoroutine(PublishGigStartedDeferred());
+
             var pd = GameManager.PersistentGameplayData;
             pd.CurrentInspiration = pd.InitialGigInspiration;
 
@@ -390,6 +395,13 @@ namespace ALWTTT.Managers
             //_isBetweenSongs = _session != null;
         }
 
+        private System.Collections.IEnumerator PublishGigStartedDeferred()
+        {
+            // One-shot lifecycle event: defer a frame so late-activated UI
+            // (GigCanvas / TutorialController) is subscribed before it fires.
+            yield return null;
+            SensoryEventBus.Instance?.Publish(new GigStartedEvent(_requiredSongCount));
+        }
         private enum DeckSetupSource
         {
             Auto = 0,
@@ -919,9 +931,10 @@ namespace ALWTTT.Managers
 
                     OnEnemyTurnStarted?.Invoke();
 
-                    StartCoroutine(AudienceTurnRoutine());
+                    // [S4 D-S4-SRC=A] Bridge OnEnemyTurnStarted onto the bus.
+                    SensoryEventBus.Instance?.Publish(new AudienceTurnStartedEvent());
 
-                    GameManager.PersistentGameplayData.CanSelectCards = false;
+                    StartCoroutine(AudienceTurnRoutine());
                     break;
                 case GigPhase.EndGig:
 
@@ -1064,6 +1077,11 @@ namespace ALWTTT.Managers
 
         private IEnumerator AudienceTurnRoutine()
         {
+            // [S4 D-TUT-4] Cooperative suspend: hold the audience turn while a tutorial
+            // modal is on screen. Animations/MIDI keep running (no timeScale freeze);
+            // only this turn boundary waits.
+            yield return new WaitUntil(() => !TutorialModalGate.IsActive);
+
             var waitDelay = new WaitForSeconds(
                 presentation != null ? presentation.PerAudienceActionDelay : 1f);
 
@@ -1535,6 +1553,11 @@ namespace ALWTTT.Managers
         private void OnCompositionLoopFinished(LoopFeedbackContext loopCtx)
         {
             TriggerAudienceMicroReactions(loopCtx);
+
+            // [S4 D-S4-BUS=B] beat 3 bridge of CompositionSession.LoopFinished.
+            // Carries InspirationGainedThisLoop (track gain); fires before the F-3
+            // early-return below so beat 3 is independent of per-loop draw/insp config.
+            SensoryEventBus.Instance?.Publish(new LoopResolvedEvent(loopCtx));
 
             // M4.6F-3: per-loop draw + per-loop inspiration consumption.
             // Hook lives here (host-owned subscriber) to respect the
@@ -2860,6 +2883,9 @@ namespace ALWTTT.Managers
                     break;
                 }
             }
+
+            // [S4 D-S4-SRC=A] Normal-flow outcome (debug WinGig/LoseGig menus bypass this).
+            SensoryEventBus.Instance?.Publish(new GigOutcomeEvent(win));
 
             if (win) WinGig();
             else LoseGig();

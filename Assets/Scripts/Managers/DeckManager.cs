@@ -1,5 +1,6 @@
 ﻿using ALWTTT.Cards;
 using ALWTTT.Enums;
+using ALWTTT.Sensory;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -203,6 +204,19 @@ namespace ALWTTT.Managers
         public void OnCardPlayed(CardBase targetCard)
         {
             //Debug.Log($"{DebugTag} On Card Played...");
+
+            // [S4 D-S4-BUS=B] The one play site that observes BOTH action/SFX cards
+            // (via CardBase.Use) and composition cards (bypass-routed via
+            // GigManager.TryPlayCompositionCard, with HandController calling this for
+            // them). Publish BEFORE discard/exhaust; the CardDefinition SO ref stays
+            // valid afterward.
+            var playedDef = targetCard != null ? targetCard.CardDefinition : null;
+            if (playedDef != null)
+            {
+                SensoryEventBus.Instance?.Publish(new CardPlayedEvent(
+                    playedDef, playedDef.IsComposition, playedDef.IsAction,
+                    playedDef.InspirationCost));
+            }
 
             if (targetCard.CardDefinition.ExhaustAfterPlay)
             {

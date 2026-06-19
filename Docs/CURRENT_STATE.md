@@ -20,7 +20,7 @@ This file tracks the currently validated project baseline, active work, and imme
 - **Status effects** — SO-based catalogue + container (M1.2); icon pipeline + animations (M1.8); Earworm audience status (M4.3). Legacy `StatusType` enum is migration coexistence. Authority: `SSoT_Status_Effects.md`.
 - **Audience + reactions** — `ResolveLoopEffect` + 4-axis taste schema + macro-Vibe modifier ratified (S1); Cool Dude + Kid archetypes + Indifference (B3-content-audience). Authority: `SSoT_Audience_and_Reactions.md`.
 - **Audio** — mix model + persisted balance (M-AUDIO-MIX); opt-in card SFX + scoped jitter (AUDIO-SFX-FIX); OST playback (AUDIO-OST); crowd ambience (AUDIO-AMBIENCE); per-character + per-ability SFX (AUDIO-CHAR-PROFILES 1/2). Authority: `SSoT_Audio.md` (+ planning `Roadmap_Audio.md`).
-- **Sensory layer** — typed event bus (S2); visual sensory migration + smoke/fire VFX (S3a); audio SFX layer (S3-audio). Three shipped bus events: `AudienceReactionEvent`, `SongEndVibeEvent`, `SfxStageCrossedEvent`. Planning home: `Design_Sensory_Contract_v0_1.md`; audio home: `SSoT_Audio.md`.
+- **Sensory layer** — typed event bus (S2); visual sensory migration + smoke/fire VFX (S3a); audio SFX layer (S3-audio). Shipped bus events: S2/S3 `AudienceReactionEvent`, `SongEndVibeEvent`, `SfxStageCrossedEvent`; S4 added `CardPlayedEvent`, `LoopResolvedEvent`, `StatusAppliedEvent`, `GigStartedEvent`, `GigOutcomeEvent`, `AudienceTurnStartedEvent` (semantic; consumed by the tutorial, add no SFX key). Tutorial runtime: `Assets/Scripts/Tutorial/`. Planning home: `Design_Sensory_Contract_v0_1.md`; audio home: `SSoT_Audio.md`.
 - **Dev Mode** — Phases 1–3 (F12 tabs incl. Audio Mix). Authority: `SSoT_Dev_Mode.md`.
 - **Editor authoring tools** — Card / Deck / Status Effect editors; per-musician starter UX; LLM-assisted card authoring (CE-L1). Authority: `SSoT_Editor_Authoring_Tools.md`, `SSoT_Card_Authoring_Contracts.md`.
 - **Demo-cut prep** — auto-launch via `GigLauncher` + SFX→FlatVibe bonus (§5.3.5); polish layer feedback + animation (Phase B B2 / B2.5); B3 content (Sibi instrument identity, BPM / Modulation cards, audience pool); directional-modulation hint (ALWTTT-MOD-DIR-2/3). Planning home: `Design_Demo_Cut_v1.md`.
@@ -30,7 +30,8 @@ This file tracks the currently validated project baseline, active work, and imme
 
 | Batch | Closed | Outcome |
 | --- | --- | --- |
-| TUT-JAM-SEQ | 2026-06-16 | Jam taught as a 6-beat guided sequence over the 1st song (design + doc; D-TUT-6..11). Implementation inherited by S4. |
+| S4 | 2026-06-17 | First-time tutorial controller + 6-beat guided jam over the 1st song. Bus +6 semantic events (CardPlayed/LoopResolved/StatusApplied/GigStarted/GigOutcome/AudienceTurnStarted). Overlay = hand-written UI cutout shader spotlight + captain bubble. Single-modal priority queue + gameplay gate; persisted firedDialogs (in-memory across scene loads); revisit/reset API. Fixed a tutorial double-show (D-S4-DEDUP=B). Smoke suite complete. |
+| TUT-JAM-SEQ | 2026-06-16 | Jam taught as a 6-beat guided sequence over the 1st song (design + doc; D-TUT-6..11). Implementation realized by S4. |
 | AUDIO-CHAR-PROFILES-2 | 2026-06-16 | Per-ability audience SFX (inline on `AudienceAbilityData`). Also records phase-1 (per-character reaction SFX) closure. |
 | AUDIO-AMBIENCE | 2026-06-16 | Looping crowd ambience (SFX group); ducks under a performing song, returns at song end. |
 | AUDIO-OST | 2026-06-16 | OST music bus (`MusicDirector` + `OstCatalogSO`); Main Menu theme; never overlaps gig music. |
@@ -48,7 +49,7 @@ This file tracks the currently validated project baseline, active work, and imme
 
 ## 2. Active work
 
-The live active-work stream is the demo-cut sequence in §3 (strict left-to-right; one batch open at a time). **Next-active: S4** (tutorial implementation, including the TUT-JAM-SEQ jam sequence). The historical per-batch "active work" entries (M1.3, Phase B B1/B2/B3, M4.3, Dev Mode Phase 3, Deck Editor, editor-tooling docs) were removed in the 2026-06-16 hygiene prune — all closed; detail in `changelog-ssot.md`.
+The live active-work stream is the demo-cut sequence in §3 (strict left-to-right; one batch open at a time). **Next-active: S5** (balance + win-rate validation + cover refresh + reward UI + §5.4 closure). S4 (tutorial implementation, including the TUT-JAM-SEQ jam sequence) closed 2026-06-17. The historical per-batch "active work" entries (M1.3, Phase B B1/B2/B3, M4.3, Dev Mode Phase 3, Deck Editor, editor-tooling docs) were removed in the 2026-06-16 hygiene prune — all closed; detail in `changelog-ssot.md`.
 
 - **Contextual stats on hover — feature disabled (2026-04-20).** `BandCharacterCanvas` hover-to-show-stats path present in code but disabled at prefab level (`statsCanvasGroup` / `statsRoot` unassigned, `StatsRoot` GameObject off). Silent no-op. Revisit when visual density is tuned.
 
@@ -58,7 +59,7 @@ The live active-work stream is the demo-cut sequence in §3 (strict left-to-righ
 
 **Demo cut close sequence (S1-S5) + Vertical slice (S6-S8 = Phase C).** 8 sessions total per the 2026-05-23 planning reframe (see §1 entry). Strict left-to-right sequencing; no two open in parallel.
 
-> **Sequence status (2026-06-16):** S1, S2, S3a, S3-audio closed; the full audio work-stream (M-AUDIO-MIX, AUDIO-SFX-FIX, AUDIO-OST, AUDIO-AMBIENCE, AUDIO-CHAR-PROFILES 1/2) closed 2026-06-15/16; **TUT-JAM-SEQ** (the S4 jam-sequence design + doc) closed 2026-06-16. **Next-active: S4** (tutorial implementation) — which now inherits a closed design: the 6-beat jam sequence + bus-event extension + R1/R2 overlay primitives (see `Design_Tutorial_System §6A` and the TUT-JAM-SEQ S4 plan). The audio batches were not part of the S1-S5 numbering; they slotted around S4.
+> **Sequence status (2026-06-17):** S1, S2, S3a, S3-audio closed; the full audio work-stream (M-AUDIO-MIX, AUDIO-SFX-FIX, AUDIO-OST, AUDIO-AMBIENCE, AUDIO-CHAR-PROFILES 1/2) closed 2026-06-15/16; **TUT-JAM-SEQ** (the S4 jam-sequence design + doc) closed 2026-06-16; **S4** (tutorial implementation + guided jam) closed 2026-06-17 (smoke suite complete; D-S4-DEDUP double-show fix). **Next-active: S5** (balance + validation + cover refresh + reward UI + §5.4 closure). The audio batches were not part of the S1-S5 numbering; they slotted around S4. S5 closing unblocks Phase C (S6-S8).
 
 ### Demo cut (S1-S5)
 
@@ -68,8 +69,8 @@ The live active-work stream is the demo-cut sequence in §3 (strict left-to-righ
 | **S2** | Sensory Event Bus foundation: bus + 2 event types (`AudienceReactionEvent`, `SongEndVibeEvent`) + thin `SensoryFxAdapter` (VerifyOnly) + `GigManager` coexistence publish (direct calls retained). TutorialController deferred to S4 (D-S2-5); direct-call deletion + adapter Spawn flip deferred to S3 (D-S2-3=A coexistence). | `Design_Sensory_Contract §3` | **closed 2026-06-14** (ST-S2-1..7 + S2-9 PASS, S2-8 N/A; see §1) |
 | **S3a** | Sensory polish (visual): §4 full audit; `SensoryFxAdapter` Spawn flip + direct-call deletion; FT polish; Kid "Tantrum" animator; smoke / fire VFX on stage 2 / 3 (asset #4). Audio split out per D-S3-1=B. | `Design_Sensory_Contract §4 + §5` | **closed 2026-06-14** (ST-S3-1..13 + S3-4 PASS; see §1) |
 | **S3-audio** | Audio SFX layer: `AudioManager` flesh-out + `SoundBankSO` (central inventory + coverage) + `SensorySfxType` + `SensorySfxPresentation` + `SensoryAudioAdapter`; card-play + reaction + song-end + stage-crossing wired; `SfxStageCrossedEvent`. | `Design_Sensory_Contract §4 + §5A` | **closed 2026-06-14** (ST-SA-1..9 + A1..A4 PASS; placeholder clips; see §1) |
-| **S4** | Tutorial implementation: bus-event extension (`CardPlayedEvent` + Inspiration-delta + per-loop-gain) + R1/R2 overlay primitives (U1/U2 resolved at open) + `TutorialController` + single-modal queue + 11 authored triggers incl. the 6-beat jam sequence; pause-menu revisit (already-fired-only) + reset | `Design_Tutorial_System §6A + §6 + §8` | **next-active** (design closed by TUT-JAM-SEQ 2026-06-16; D-TUT-6..11 locked) |
-| **S5** | Balance + validation + cover refresh + reward UI + §5.4 closure (absorbs B3-slate remainder: C / D / E-lite / G / H / I + design gaps #12-#15 or explicit deferral) | `Roadmap §5.4 + §5.5` | queued |
+| **S4** | Tutorial implementation: bus-event extension (`CardPlayedEvent` + Inspiration-delta + per-loop-gain) + R1/R2 overlay primitives (U1/U2 resolved at open) + `TutorialController` + single-modal queue + 11 authored triggers incl. the 6-beat jam sequence; pause-menu revisit (already-fired-only) + reset | `Design_Tutorial_System §6A + §6 + §8` | **closed 2026-06-17** (ST-S4-1..11 + QUEUE/PERSIST/RESET/REVISIT/OPP/NODIR/GATE PASS; D-S4-DEDUP=B double-show fix; 9-negative code-verified per D1=A; see §1) |
+| **S5** | Balance + validation + cover refresh + reward UI + §5.4 closure (absorbs B3-slate remainder: C / D / E-lite / G / H / I + design gaps #12-#15 or explicit deferral). **Decomposed into S5a–S5d → `planning/active/S5_DemoCutClose_Sub_Roadmap.md`.** | `Roadmap §5.4 + §5.5` | **next-active** |
 
 ### Vertical slice (S6-S8 = Phase C)
 

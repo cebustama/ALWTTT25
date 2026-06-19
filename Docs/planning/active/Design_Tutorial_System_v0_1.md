@@ -1,6 +1,6 @@
 # Design_Tutorial_System_v0_1 — ALWTTT
 
-**Status:** Active design — **all implementation now lands in S4** (tutorial controller + overlay + bus-event extension + dialogue authoring). The 2026-05-23 reframe originally split this across S2 (event-bus consumer wiring) and S4 (authoring); S2 closed 2026-06-14 with `TutorialController` deferred to S4 (D-S2-5), so S4 is the single implementation home. *Updated 2026-06-16 (TUT-JAM-SEQ).*
+**Status:** **Implemented in S4 (2026-06-17).** Smoke suite complete (ST-S4-1..11 + QUEUE/PERSIST/RESET/REVISIT/OPP/NODIR/GATE; D-S4-DEDUP double-show fix). Originally active design — all implementation landed in S4 (tutorial controller + overlay + bus-event extension + dialogue authoring). The 2026-05-23 reframe originally split this across S2 (event-bus consumer wiring) and S4 (authoring); S2 closed 2026-06-14 with `TutorialController` deferred to S4 (D-S2-5), so S4 is the single implementation home. *Updated 2026-06-16 (TUT-JAM-SEQ); 2026-06-17 (S4 closure).*
 **Scope:** Tutorial system for ALWTTT, demo cut (S4) + vertical slice (S6-S8).
 **Classification:** `reference (planning)` — **not a SSoT**. Becomes runtime-authoritative when shipped; this doc is then retained as historical rationale.
 **Created:** 2026-05-23
@@ -151,14 +151,14 @@ The following is a trigger inventory and topic outline. **Final dialogue text is
 
 | # | Trigger ID | Bus event (status) | Theme | Tone | Text scope (one-page max) |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `tut_first_composition_card` *(reused)* | `CardPlayedEvent` where IsComposition — **NOT shipped; S4 must add** | Entering the jam: composition cards build the song live | brief, music-flavored | "This is the jam — you build the song as you play. Composition cards add to it (a track, an instrument). Play one and hear it join." Do **not** explain inspiration / tracks / feedback yet. |
-| 2 | `tut_first_inspiration_spend` *(reused)* | Inspiration-delta (spend) — **NOT shipped; S4 must add** | Inspiration is the play cost | brief | "Composition cards cost Inspiration (song-panel counter). You start with 3; spend it to shape the song." Gain side deferred to beat 3. |
-| 3 | `tut_first_loop_inspiration` *(NEW)* | per-loop inspiration **gain** at loop boundary — **NOT shipped; no inventory entry; S4 must add** | Tracks pay you back each loop | encouraging | "Every track you've added feeds Inspiration back each time the loop comes around — build the song and it funds itself." Grounded in `TrackEntry.inspirationGenerated` + `CompositionSession.HandleLoopFinished`. |
+| 1 | `tut_first_composition_card` *(reused)* | `CardPlayedEvent` where IsComposition — **shipped S4** (producer `DeckManager.OnCardPlayed`) | Entering the jam: composition cards build the song live | brief, music-flavored | "This is the jam — you build the song as you play. Composition cards add to it (a track, an instrument). Play one and hear it join." Do **not** explain inspiration / tracks / feedback yet. |
+| 2 | `tut_first_inspiration_spend` *(reused)* | `CardPlayedEvent` (InspirationCost > 0) — **shipped S4** (reuses CardPlayedEvent; no separate meter event, D-S4-BUS=B) | Inspiration is the play cost | brief | "Composition cards cost Inspiration (song-panel counter). You start with 3; spend it to shape the song." Gain side deferred to beat 3. |
+| 3 | `tut_first_loop_inspiration` *(NEW)* | `LoopResolvedEvent` (InspirationGainedThisLoop > 0) — **shipped S4** (bridges `CompositionSession.LoopFinished`) | Tracks pay you back each loop | encouraging | "Every track you've added feeds Inspiration back each time the loop comes around — build the song and it funds itself." Grounded in `TrackEntry.inspirationGenerated` + `CompositionSession.HandleLoopFinished`. |
 | 4 | `tut_first_sfx_stage` *(NEW)* | `SfxStageCrossedEvent` — **SHIPPED (S3-audio)** | The song's building → the stage reacts | hype | "The crowd's heating up — the stage lights as the song's hype climbs. Keep it going for bigger reactions." Do **not** teach the +Vibe math. Distinct from audience-turn pressure (`tut_first_audience_action`). |
-| 5 | `tut_first_sound_card` *(NEW, **OPPORTUNISTIC**)* | `CardPlayedEvent` filtered to tempo / modulation card — **NOT shipped; S4 must add; cards pending-B3** | "Sound cards" reshape the music, not the meters | brief, curious | "That card changed the song's speed / its key — sound cards reshape the music itself, not your meters." **Must not promise an audible direction** (per MGP-ALWTTT-MOD-DIR-1, Key Lift's octave is non-deterministic): say "changes the key," not "raises the key." May never fire (cards not guaranteed drawn / present) — revisit-only fallback. |
+| 5 | `tut_first_sound_card` *(NEW, **OPPORTUNISTIC**)* | `CardPlayedEvent` + `CompositionCardClassifier` (tempo / modulation) — **shipped S4**; cards in demo deck (Starter_Deck v1.1: Push It / Half Time / Key Lift; Default Mode stripped of tempo in S4, so it no longer triggers this) | "Sound cards" reshape the music, not the meters | brief, curious | "That card changed the song's speed / its key — sound cards reshape the music itself, not your meters." **Must not promise an audible direction** (per MGP-ALWTTT-MOD-DIR-1, Key Lift's octave is non-deterministic): say "changes the key," not "raises the key." May never fire (cards not guaranteed drawn / present) — revisit-only fallback. |
 | 6 | `tut_first_song_end` *(reused)* | `SongEndVibeEvent` — **SHIPPED (S2)** | The payoff: everything converts to Vibe | clarifying | "Song's done. The hype you built converts into Vibe on the crowd — Vibe is how you win them over." The jam→combat bridge. |
 
-**Event reality check.** Of the six beats, only **4** and **6** have shipped bus events. Beats 1 / 2 / 3 / 5 consume events that do **not** exist yet (`CardPlayedEvent`, an Inspiration-delta signal, and a per-loop-gain signal that has **no current inventory entry** in `Design_Sensory_Contract §3`). S4 is therefore **bus-extension + overlay + authoring**, not "authoring against existing events."
+**Event reality check — RESOLVED (S4, 2026-06-17).** All six beats now have shipped bus events. S4 added `CardPlayedEvent` (beats 1/2/5; producer `DeckManager.OnCardPlayed`; beats 2/5 keyed on InspirationCost / classifier) and `LoopResolvedEvent` (beat 3); beats 4/6 already had `SfxStageCrossedEvent` / `SongEndVibeEvent`. No generic Inspiration-delta `MeterChangedEvent` was added — beat 2 reuses CardPlayedEvent and beat 3 reuses LoopResolvedEvent (D-S4-BUS=B). S4 was bus-extension + overlay + authoring, as planned.
 
 ### 6A.1 Reconciliation with the §6 standalone triggers (D-TUT-9 / O1)
 
@@ -183,6 +183,19 @@ Result: **3 of 8** fold into the jam sequence (beats 1 / 2 / 6); **5** stay stan
 - **D-TUT-9 = A** (O1) — fold / standalone split above.
 - **D-TUT-10 = A** (O2) — independent first-time triggers in natural order (reuse the D-TUT-3 HashSet) + single-modal queue (§4); **no** ordered step-state.
 - **D-TUT-11 = A** (O3) — revisit menu stays **already-fired-only** (no read-ahead). A browse-everything reference remains the deferred D-TUT-7 rich codex.
+
+### 6A.2b S4 implementation decisions (2026-06-17)
+
+- **D-S4-BUS = B** — beats 1/2/5 ride `CardPlayedEvent`; beat 3 rides `LoopResolvedEvent` (bridge of `CompositionSession.LoopFinished`). No `MeterChangedEvent` in S4 (avoids over-/mis-fire on session-start + part-advance resets).
+- **D-S4-SRC = A** — pure-bus: `StatusAppliedEvent`, `GigStartedEvent`, `GigOutcomeEvent`, `AudienceTurnStartedEvent` added; one subscription surface (8 events) in `TutorialController`.
+- **D-S4-PRODUCER** — `CardPlayedEvent` producer is `DeckManager.OnCardPlayed` (the one site reached by both action and composition cards; corrects `Design_Sensory_Contract §3`).
+- **D-S4-DEDUP = B** — `TutorialController` tracks the on-screen trigger id (`_showingId`) and skips re-enqueue of the showing dialog, closing a double-show hole (a dialog is dequeued before it is marked fired). Found in S4 smoke testing; `SongEndVibeEvent` fires once per audience member by design, which exposed it.
+- **D3 = B** — spotlight is a hand-written UI cutout shader (`ALWTTT/UI/TutorialSpotlight`), a positionable inverted sprite-mask; chosen over four-quad / shadergraph for text-authorability + version portability.
+- **D4 = A** — bubble auto-placed opposite the highlight *(gated behind `autoPlaceBubbleBySide`, default OFF after the captain-flip fix; default is upright bottom-left per D7)*. **D5 = SO** (dialogue data). **D6** — portrait at the chosen path. **D7** — bottom-left portrait corner.
+- **Gate** — audience turn cooperatively suspended (`TutorialModalGate`, one `WaitUntil` in `AudienceTurnRoutine`) + `HandController` drag-lock. The composition loop / MIDI is **not** frozen under a modal (avoids desync); loop events queue.
+- **D-S4-PAUSE = A** — no jam-loop pause for the demo. Option C handed to MidiGenPlay as MGP-PAUSE (parallel, non-blocking); ALWTTT-side MGP-PAUSE-ALWTTT blocked on it.
+- **D-S4-HAND = A** — no curated/locked opening hand for tutorial pacing in S4; option B is OPTIONAL post-S5.
+- **D-S4-REVISIT-TEST = A** — RESET/REVISIT exercised via a throwaway `TutorialDevHook` (removed at close), since no in-game pause/settings menu exists yet to host `TutorialRevisitPanel`.
 
 ### 6A.3 Inherited opens — now S4 (migrated from §9; S2 closed without touching them)
 
@@ -209,6 +222,8 @@ Per Standing Directive #3, every Phase C feature gets tutorial coverage. Draft i
 ## 8. Acceptance / DoD per Standing Directive #3
 
 ### Demo cut (S4 closure)
+
+> **Status: all items below met — S4 closed 2026-06-17.** Smoke suite complete (ST-S4-1..11 + QUEUE/PERSIST/RESET/REVISIT/OPP/NODIR/GATE PASS; D-S4-DEDUP=B double-show fix; 9-negative code-verified per D1=A; 11 dialogues authored + seeded). Checklist retained for historical reference.
 
 - [ ] 5-8 demo-cut tutorial dialogues authored and registered against bus events — including the 6-beat jam sequence (§6A).
 - [ ] First-time-trigger fires on first encounter of each mechanic. Validated by smoke test per dialogue.

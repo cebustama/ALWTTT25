@@ -3,6 +3,75 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-06-17 — S4: FIRST-TIME TUTORIAL CONTROLLER + GUIDED JAM (CODE)
+
+Implements Design_Tutorial_System_v0_1.md (incl. §6A jam sequence) and closes the
+TUT-JAM-SEQ implementation inheritance. Additive feature; the only pre-existing
+behaviour changed is a fixed tutorial double-show (D-S4-DEDUP below). Smoke suite complete.
+
+New (Assets/Scripts/Sensory): CardPlayedEvent, LoopResolvedEvent, StatusAppliedEvent,
+GigStartedEvent, GigOutcomeEvent, AudienceTurnStartedEvent (readonly struct, ALWTTT.Sensory).
+New (Assets/Scripts/Tutorial): TutorialController (single-modal priority queue, 8-event
+subscription, gameplay gate, persistence, reset/revisit API), TutorialOverlayView (R1 spotlight
+via shader + R2 captain bubble, typed reveal, skip), TutorialModalGate, TutorialDialogSO
+(+ TutorialTriggerId, TutorialCategory), TutorialDialogCatalogSO (+ editor seeding of the 11
+demo-cut dialogs), TutorialRevisitPanel.
+New (Assets/Shaders): TutorialSpotlight.shader (ALWTTT/UI/TutorialSpotlight) — hand-written UI
+cutout, positionable inverted sprite-mask (D3=B; chosen over four-quad / shadergraph for
+text-authorability + version portability).
+
+Edits: DeckManager.OnCardPlayed (+CardPlayedEvent), StatusEffectContainer.Apply
+(+StatusAppliedEvent), GigManager (+GigStartedEvent / AudienceTurnStartedEvent / LoopResolvedEvent /
+GigOutcomeEvent and one cooperative gate-wait in AudienceTurnRoutine), PersistentGameplayData
+(+firedTutorialDialogs list + accessors).
+
+Fix (D-S4-DEDUP=B, found in S4 smoke testing): TutorialController.TryEnqueue had a
+"currently-showing" dedup hole — a dialog is dequeued before it is marked fired, so an event that
+republished while its own modal was up passed both HasFired and QueueContains and re-enqueued,
+showing the modal twice. SongEndVibeEvent is published once PER AUDIENCE MEMBER by design
+(GigManager.RunSongVibeResolution — producer confirmed correct, untouched), which triggered the
+beat-6 double-show. Closed by tracking the on-screen trigger id (_showingId, set at dequeue /
+cleared on complete) and skipping re-enqueue of the showing dialog ("skipped (already showing)").
+Robust to any legitimately multi-firing event (also SfxStageCrossedEvent).
+
+Post-wiring fixes folded in (7): (1) coalescing 2-frame pump so co-occurring triggers show in
+PRIORITY order not publish order (action-before-status); (2) GigStartedEvent deferred-publish
+(StartGig coroutine yield) so a late-subscribing GigCanvas still receives welcome — supersedes the
+earlier immediate-publish; (3) overlay visibility via CanvasGroup + ForceUpdateCanvases +
+SetAllDirty; (4) spotlight radius clamp (maxHoleRadiusFraction); (5) captain-flip fix (the D4
+mirror threw an off-pivot portrait off-screen — D4 auto-place gated behind autoPlaceBubbleBySide,
+default OFF; captain forced upright bottom-left per D7); (6) Spotlight struct refactor
+(HighlightBinding gains useManualCenter + manualCenter + manualRadius; manual sizes bypass the
+clamp); (7) verboseLogging on both components (defaults ON — unticked at S4 close before demo/ship).
+
+Decisions: D1=B, D2=A, D3=B, D4=A, D5=SO, D6 portrait path, D7 bottom-left; D-S4-BUS=B, D-S4-SRC=A,
+D-S4-PRODUCER (CardPlayedEvent ← DeckManager.OnCardPlayed, corrects Sensory Contract §3),
+D-S4-DEDUP=B, D-S4-PAUSE=A (no jam-loop pause for the demo; Option C handed to MidiGenPlay as
+MGP-PAUSE, parallel/non-blocking; ALWTTT-side MGP-PAUSE-ALWTTT blocked on it), D-S4-HAND=A (curated/
+locked opening hand = OPTIONAL post-S5), D-S4-REVISIT-TEST=A (RESET/REVISIT exercised via a
+throwaway TutorialDevHook, then removed — no in-game pause/settings host exists yet).
+
+Smoke suite (complete, per Sensory Contract §7): ST-S4-1..11, ST-S4-QUEUE, ST-S4-PERSIST,
+ST-S4-RESET, ST-S4-REVISIT, ST-S4-OPP, ST-S4-NODIR, ST-S4-GATE all PASS; SMK-DEDUP-1/3/4 PASS
+(DEDUP-2 covered by guard equivalence). ST-S4-9 negative (audience turn before any stage crossed
+must not fire) is code-verified + dynamic-deferred per D1=A (1-song gigs take no audience turn;
+positive path proven; guard is `if (_sfxStageSeen) TryEnqueue(...)`). Free-card guard confirmed
+(cost-0 composition card fires beat 1 + beat 5, not beat 2). Throwaway TutorialDevHook added for
+RESET/REVISIT verification and removed at close. verboseLogging unticked at close.
+
+Content: Default Mode stripped of its status + tempo effects (simpler baseline). Resolves the
+"Default Mode classifies as a sound card" finding — beat 5 now fires only on Push It / Half Time /
+Key Lift. Side effect: a from-scratch ST-S4-10 re-run needs a non-Default-Mode status source. See
+Design_Starter_Deck_v1.md.
+
+Doc: Design_Sensory_Contract §3 producer corrected (CardPlayedEvent ← DeckManager.OnCardPlayed) +
+6 event rows added + MeterChangedEvent marked forward-inventory (reference/planning).
+Design_Tutorial_System / Design_Demo_Cut status-flipped (design → implemented S4). coverage-matrix
+row added. CURRENT_STATE §1 closed-batches + Sensory line, §3 S-sequence (S4 → closed,
+S5 → next-active). No SSoT_Audio change (events are semantic, add no SFX key). No ssot_manifest
+change (doc-only manifest; the new .cs/.shader are not manifest entries). Classification: code +
+reference(planning) doc edits + lifecycle (S4 closed, S5 next). No governed-contract change.
+
 2026-06-16 — DOC-HYGIENE: CURRENT_STATE §1 prune (structural, doc-only)
 
 CURRENT_STATE.md reduced 1069 → ~200 lines to exit governance §18.8 ("CURRENT_STATE overgrowth")

@@ -140,6 +140,8 @@ final state captured by §5.4 ST-DCP-S5 playthroughs.
 
 Per Standing Directive #3 (Tutorial-as-mandatory, `planning/Design_Project_Directives_v0_1.md §D3`), every demo-cut feature must have first-time-played tutorial coverage by S4 closure.
 
+> **Status: LIVE (S4, 2026-06-17).** All 11 triggers below (incl. the 3 jam beats) are implemented and verified — every mechanic row has a firing first-time dialogue (smoke suite ST-S4-1..11 PASS). Standing Directive #3 satisfied for the demo cut. Beat 5 (`tut_first_sound_card`) is reachable (its cards ship in the demo deck — see the jam-sequence note) but remains opportunistic on draw/play.
+
 | Mechanic | Tutorial trigger ID (reserved) | Owning session |
 | --- | --- | --- |
 | Action card play | `tut_first_action_card` | S4 |
@@ -157,7 +159,7 @@ Per Standing Directive #3 (Tutorial-as-mandatory, `planning/Design_Project_Direc
 
 Coverage target at §5.4 entry: 5-8/8 = 63-100% of the original mechanic rows. S4 may merge / drop dialogues if playtest shows learn-by-doing is sufficient for a mechanic; the floor is "every mechanic has at least one entry-point dialogue available, even if some are skipped during authoring".
 
-> **Jam sequence note (2026-06-16, TUT-JAM-SEQ).** The composition mechanics are taught as a guided 6-beat sequence over the first song (`Design_Tutorial_System_v0_1.md §6A`, D-TUT-6). Three of the rows above (`tut_first_composition_card`, `tut_first_inspiration_spend`, `tut_first_song_end`) are beats 1 / 2 / 6 of that sequence; the two new rows are beats 4 / 5. A third new beat, `tut_first_loop_inspiration` (per-loop inspiration gain), is a beat-level trigger under the existing Inspiration mechanic family — this matrix tracks **feature** coverage, the beat list in §6A tracks beat-level triggers. Beat 5 (`tut_first_sound_card`) is **opportunistic**: the tempo (Push It) and modulation (Key Lift) cards are `pending-B3` (§2.3) and may not be drawn / present, so the beat may never fire in a given run — acceptable, with revisit-menu fallback.
+> **Jam sequence note (2026-06-16, TUT-JAM-SEQ).** The composition mechanics are taught as a guided 6-beat sequence over the first song (`Design_Tutorial_System_v0_1.md §6A`, D-TUT-6). Three of the rows above (`tut_first_composition_card`, `tut_first_inspiration_spend`, `tut_first_song_end`) are beats 1 / 2 / 6 of that sequence; the two new rows are beats 4 / 5. A third new beat, `tut_first_loop_inspiration` (per-loop inspiration gain), is a beat-level trigger under the existing Inspiration mechanic family — this matrix tracks **feature** coverage, the beat list in §6A tracks beat-level triggers. Beat 5 (`tut_first_sound_card`) is **opportunistic**: the tempo (Push It / Half Time) and modulation (Key Lift) cards **ship in the demo deck** (`Design_Starter_Deck_v1.md` v1.1) so the beat **is reachable** — but it fires only when such a card is actually drawn / played, so it may not fire in a given run (acceptable, revisit-menu fallback). Confirmed live in S4 (fired on Key Lift; ST-S4-OPP confirms a clean no-fire when no such card is played). *(Default Mode was stripped of its tempo effect in S4, so it no longer triggers this beat.)*
 
 **Known interim limitations.**
 

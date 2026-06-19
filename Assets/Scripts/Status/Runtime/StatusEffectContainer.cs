@@ -1,3 +1,4 @@
+using ALWTTT.Sensory;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -72,6 +73,10 @@ namespace ALWTTT.Status.Runtime
                 OnStatusChanged?.Invoke(id, inst.Stacks);
 
             OnStatusApplied?.Invoke(id, stacks);
+
+            // [S4 D-S4-SRC=A] Global bus mirror so the tutorial observes "first status
+            // applied to anyone" from one subscription instead of every container.
+            SensoryEventBus.Instance?.Publish(new StatusAppliedEvent(this, id, stacks));
         }
 
         /// <summary>

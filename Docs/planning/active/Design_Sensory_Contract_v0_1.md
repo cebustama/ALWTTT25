@@ -49,8 +49,9 @@ The directive itself is recorded at `planning/Design_Project_Directives_v0_1.md 
 
 ## 3. Event bus design (S2 — as-built)
 
-S2 shipped the bus. This section is now as-built for the two implemented event
-types; the remaining rows in the inventory below are still forward-looking.
+S2 shipped the bus. **S4 (2026-06-17)** added six more semantic event types
+(consumed by the tutorial controller). This section is as-built for the eight
+implemented event types (marked ✅); the remaining rows are still forward-looking.
 
 ### Concept (as-built)
 
@@ -80,9 +81,9 @@ SensoryEventBus : MonoBehaviour       // singleton, static accessor (D-S2-1=A)
 
 | Event type | Producer | Notes |
 | --- | --- | --- |
-| `CardPlayedEvent` | `CardBase.ExecuteEffects` / `CardUseRoutine` | carries card ref + result summary |
-| `MeterChangedEvent` | per-meter mutator paths (`ApplyIncomingStressWithComposure`, `AddCurrentInspiration`, `ApplyIncomingVibe`, etc.) | carries meter type + old / new / delta |
-| `StatusAppliedEvent` | `StatusEffectContainer.Apply` | carries target + status SO + initial stacks |
+| ✅ `CardPlayedEvent` | `DeckManager.OnCardPlayed` | **S4-shipped (producer corrected — see note below).** Carries card Definition + IsComposition / IsAction / InspirationCost. Drives jam beats 1/2/5 + the action-card trigger. |
+| `MeterChangedEvent` | per-meter mutator paths (`ApplyIncomingStressWithComposure`, `AddCurrentInspiration`, `ApplyIncomingVibe`, etc.) | **NOT shipped; forward inventory.** S4 deliberately did not add a generic Inspiration-delta meter event: beat 2 reuses `CardPlayedEvent` (InspirationCost > 0) and beat 3 reuses `LoopResolvedEvent` (loop-scoped gain), avoiding a meter event that would over-/mis-fire on session-start and part-advance resets. |
+| ✅ `StatusAppliedEvent` | `StatusEffectContainer.Apply` (after `OnStatusApplied`) | **S4-shipped.** Global mirror of the per-container event; carries status + delta stacks. |
 | `StatusTickEvent` | catalogue-specific tick paths (e.g. Earworm vibe-tick in `GigManager.AudienceTurnRoutine`) | carries target + status SO |
 | `StatusDecayedEvent` / `StatusExpiredEvent` | `StatusEffectContainer.Tick` decay branches | carries target + status SO + reason |
 | ✅ `AudienceReactionEvent` | `GigManager` loop-finished path → `ResolveLoopEffect` | **S2-shipped.** Carries audience ref/index/id, raw + clamped impression [-2..2], full `LoopFeedbackContext` |
@@ -90,12 +91,24 @@ SensoryEventBus : MonoBehaviour       // singleton, static accessor (D-S2-1=A)
 | ✅ `SongEndVibeEvent` (planned as `SongEndedEvent`) | `GigManager.RunSongVibeResolution` | **S2-shipped.** Renamed + richer than planned: carries audience ref/index/id, base/intended/applied delta, Flow stacks + multiplier, `BlockedByIndifference` flag |
 | ✅ `SfxStageCrossedEvent` | `GigManager.FireSongHypeStage` | **S3-audio-shipped.** Stage index + SFX tag; published after VFX + bonus (D-SA-5); consumed by `SensoryAudioAdapter`. VFX stays on the direct path (D-S3-6=A). |
 | `TurnPhaseChangedEvent` | turn / phase machine | carries old / new phase |
-| `GigOutcomeEvent` | `GigManager.WinGig` / `LoseGig` | carries outcome + summary |
+| ✅ `GigOutcomeEvent` | `GigManager.ResolveGigOutcomeAndEnd` | **S4-shipped.** Carries Won; normal-flow only (editor Debug Win/Lose menus bypass by design). |
+| ✅ `LoopResolvedEvent` | `GigManager.OnCompositionLoopFinished` | **S4-shipped.** Bridges `CompositionSession.LoopFinished`; carries `LoopFeedbackContext`. Beat 3 keys on `InspirationGainedThisLoop` (track-derived per-loop gain). |
+| ✅ `AudienceTurnStartedEvent` | `GigManager` phase transition (after `OnEnemyTurnStarted?.Invoke()`) | **S4-shipped.** Bridges the C# turn-start event; drives the audience-action beat (only after a SongHype stage has crossed). |
 
 **S2 as-built scope (D-S2-2=A).** Exactly two event types ship in S2:
 `AudienceReactionEvent` and `SongEndVibeEvent` (the S1 sites). The rest of this
 table is the forward inventory for S3 and Phase C; do not treat the unmarked
 rows as implemented. Both shipped events live in `Assets/Scripts/Sensory/Events/`.
+
+> **CardPlayedEvent producer (corrected S4).** The producer is **`DeckManager.OnCardPlayed`**
+> (`Assets/Scripts/Managers/DeckManager.cs`), NOT `CardBase.ExecuteEffects` / `CardUseRoutine`
+> as originally inventoried. That funnel never sees composition cards — they bypass `CardBase.Use`
+> (HandController.cs:582-583) and route via `GigManager.TryPlayCompositionCard`; HandController
+> calls `OnCardPlayed` after the composition play. `DeckManager.OnCardPlayed` is the one site
+> reached by both action/SFX cards (via `CardBase.Use → OnCardPlayed`) and composition cards, so
+> it observes every played card exactly once. The earlier attribution would have left jam beats
+> 1, 2 & 5 dead. (D-S4-PRODUCER.) The S4 events are additive *semantic* events — they add no
+> `SensorySfxType` key and do not touch the SFX sink.
 
 ### Consumers
 
