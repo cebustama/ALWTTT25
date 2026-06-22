@@ -8,11 +8,14 @@ namespace ALWTTT.Sensory
     /// after the canonical ApplyIncomingVibe routing. Coexists with the
     /// direct FT spawn at that site per D-S2-3=A.
     ///
-    /// Scope note (matches S1 visual scope exactly): audiences filtered out
-    /// inside ComputeSongVibeDeltas (zero/negative intended delta, or
-    /// IsBlocked) produce neither FT nor event. Every published event has
-    /// IntendedDelta &gt; 0 by construction, so event count == song-end FT
-    /// count (ST-S2-2 parity).
+    /// Scope note: IsBlocked audiences are dropped in ComputeSongVibeDeltas; the
+    /// remaining zero-total suppression (combined L+SFX &lt;= 0) moved to the apply
+    /// site in GigManager.RunSongVibeResolution as of S5a. Every published event
+    /// still has IntendedDelta &gt; 0 by construction, so event count == song-end FT
+    /// count (ST-S2-2 parity preserved).
+    ///
+    /// [S5a] IntendedDelta now = Flow(L-part) + flat banked SFX (D1=A: a single
+    /// combined cyan "+N Vibe"). BaseDelta remains the pre-Flow L-part only.
     /// </summary>
     public readonly struct SongEndVibeEvent : ISensoryEvent
     {

@@ -38,8 +38,25 @@ namespace ALWTTT.DevMode
             _scrollPos = GUILayout.BeginScrollView(_scrollPos);
             DrawBreakdownSection(gm);
             DrawGigWideSection(gm);
+            DrawOutcomeTallySection();   // [S5b / Item 5]
             DrawPerCharacterSection(gm);
             GUILayout.EndScrollView();
+        }
+
+        // [S5b / Item 5] Per-play-session W/L tally (normal-flow outcomes only).
+        private static void DrawOutcomeTallySection()
+        {
+            if (_sectionHeader == null)
+                _sectionHeader = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold };
+
+            GUILayout.Label("\u2500\u2500 Gig Outcomes (this session) \u2500\u2500", _sectionHeader);
+            string wr = DevGigOutcomeTracker.Total > 0
+                ? $"{DevGigOutcomeTracker.WinRate01 * 100f:0}%" : "\u2014";
+            GUILayout.Label(
+                $"W: {DevGigOutcomeTracker.Wins}   L: {DevGigOutcomeTracker.Losses}   " +
+                $"Win-rate: {wr}   (n={DevGigOutcomeTracker.Total})");
+            if (GUILayout.Button("Reset tally")) DevGigOutcomeTracker.Reset();
+            GUILayout.Space(8);
         }
 
         private static void DrawBreakdownSection(GigManager gm)

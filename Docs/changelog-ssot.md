@@ -3,6 +3,128 @@
 This changelog records **semantic/documentary changes**.
 Cosmetic edits should not be logged here.
 
+2026-06-22 — S5a: VIBE DELIVERY + TRANSPARENCY (CODE + DOC)
+
+Closes the S5a sub-batch of S5 (demo-cut close; see
+planning/active/S5_DemoCutClose_Sub_Roadmap.md §S5a). Additive feature + a
+delivery-timing change to the SFX→Vibe bonus; no change to Vibe totals. Makes the
+existing Vibe math legible (playtesters found it nebulous) and moves all Vibe to song end.
+
+Semantic change (SFX delivery): the SFX venue bonus (stage 1/2/3 = 3/6/10) is no longer
+applied mid-song. It banks into a song-scoped GigManager._pendingSfxVibe at each SongHype
+stage crossing and is paid ONCE at song end in RunSongVibeResolution, combined with the
+per-audience conversion. Flow multiplies the performance "L" part only; the flat SFX is
+added after (D-S5-SFX-SCALE=A). The banked total equals the pre-S5a sum of per-stage
+applications (regression-verified) — only WHEN it lands changed (D-S5-VIBE=B). Conversion
+already fired once per song (confirmed; no conversion bug). Indifference gates the combined
+delta at the single ApplyIncomingVibe site; IsBlocked members are excluded upstream — both
+read as "Immune". Semantic home: SSoT_Scoring_and_Meters §6.2 + §8.
+
+New: VibeEffectiveness enum (ALWTTT.Characters; Super/Normal/NotVery/Immune).
+Edits:
+- GigManager — _pendingSfxVibe field (reset in ResetSongHype, song boundary);
+  ApplySfxBonusVibe banks instead of applying (mid-song ApplyIncomingVibe removed);
+  RunSongVibeResolution adds flat SFX after Flow(L); ComputeSongVibeDeltas keeps all
+  non-blocked members (zero-suppression moved to the apply site); GetLiveAvgImpression,
+  ApplyFlowToLPart (shared L+Flow math), RefreshVibeProjection/HideVibeProjection;
+  RefreshVibeProjection wired at song-start + loop-boundary + stage-crossing; telegraph
+  hidden at song end. +using ALWTTT.Characters.
+- GigCanvas — vibeReadoutLabel + SetVibeReadout ("L + SFX = N"); cleared on hide.
+- AudienceCharacterCanvas — vibeTelegraphRoot + effectivenessLabel + projectedVibeText +
+  SetVibeTelegraph/HideVibeTelegraph (layout-robust hide) + IsVibeTelegraphWired.
+- SongEndVibeEvent — doc-comment only (D1=A: combined cyan number; no struct change).
+Prefab: vibeReadoutLabel under songHypeRoot (GigCanvas); vibeTelegraphRoot +
+effectivenessLabel + projectedVibeText on every audience prefab; null-guards active.
+
+Decisions: D1 (song-end floater)=A — single combined cyan "+N Vibe" (SFX folded into the
+applied total; no SongEndVibeEvent change). D2 (C3 time-box)=A — C3 shipped (C1+C2+C3).
+Inherited (sub-roadmap ledger): D-S5-VIBE=B refined, D-S5-VIBE-ARCH=A (pendingVibe bespoke,
+Pending-Effects-absorbable), D-S5-COUNTER=B, D-S5-TELEGRAPH-SCOPE=B, D-S5-SFX-SCALE=A,
+D-S5-TELEGRAPH-HOME=planning/Design_Vibe_Telegraph_v0_1.md.
+
+Verification: a greppable [S5a-SMOKE] log family (SONG-START / WIRING / BANK / PROJ /
+SONG-END phases) replaces eyeball smoke-testing. From a real full song: ST-S5a-1 (SFX total
+= banked sum), ST-S5a-2 (no mid-song application), ST-S5a-3 (readout L+SFX=N), ST-S5a-4
+(projection == applied), ST-S5a-9 (wiring/no-NRE) PASS. ST-S5a-5 (Indifferent→Immune),
+ST-S5a-6 (Blocked→Immune), ST-S5a-7 (SFX-only payout), and ST-S5a-8 (pendingVibe resets per
+song) PASS via Dev Mode: indifference applied to Cool Dude pre-song (intended>0 → applied=0,
+indiff=True); isTall on a front member blocked the rear Kid (SONG-END reason=IsBlocked,
+members excluded); the Stats-tab SongHype slider (DevSetSongHype, which preserves pendingVibe
+— unlike Reset) dropped hype to 0 with SFX banked, paying SFX-only at song end; song-2
+SONG-START pendingVibe=0 confirmed the per-song reset. All ST-S5a-1..9 PASS. A real-Flow run
+(flowStacks=2) additionally confirmed the Flow×L-only invariant — L Flow-boosted, flat SFX
+unscaled (validates D-S5-SFX-SCALE=A).
+
+Doc: SSoT_Scoring_and_Meters §6.1 (vibeDelta = L-part wording) + new §6.2 (SFX
+banking + song-end composition: Flow on L, flat SFX after) + §8 (payout timing).
+Design_Demo_Cut §3.1 (SFX delivery revised) + new §3.4 (transparency surfaces).
+Design_Vibe_Telegraph status → Implemented + §9 implementation note. coverage-matrix +
+SSoT_INDEX (Vibe-telegraph row / doc indexed). CURRENT_STATE §1 closed-batches (+S5a row),
+§2/§3 (S5a+S5b closed; S5c/S5d remain), §4 (telegraph presentation-home note).
+SSoT_Audience_and_Reactions NOT changed (gating unchanged; §5.2 already defers
+SFX/conversion timing to Scoring). Roadmap §5 NOT touched (deferred to S5d, D1=A).
+
+2026-06-20 — S5b: CARD CLARITY + ANIMATION (CODE + DOC)
+
+Closes the S5b sub-batch of S5 (demo-cut close; see
+planning/active/S5_DemoCutClose_Sub_Roadmap.md). Code shipped + smoke-complete in the
+prior chat; this entry records the batch and its doc-close. Additive feature; no
+governed-contract change. Removes the two readability blockers playtesters hit (card
+type, card owner), fixes the play-animation correctness, and instruments win-rate for S5c.
+
+New (Assets/Scripts/DevMode): DevGigOutcomeTracker (static per-play-session W/L tally;
+counts normal-flow GigOutcomeEvent only — the editor Debug Win/Lose context-menu paths
+bypass the event and are intentionally NOT counted; resets on domain reload = per play
+session, matching the S5c "win-rate this session" intent).
+
+Edits:
+- CardBase.SetCard — adds ApplyTypeBackground + ApplyOwnerIcon. Action/Composition
+  background (actionBackground / compositionBackground GameObjects) toggled by
+  def.IsAction / def.IsComposition; neither-domain card shows neither (base frame,
+  D-S5b-BG-NEITHER=A). Owner icon (ownerIconImage Image) resolved from
+  def.FixedPerformerType via GigManager.TryGetMusicianIcon; no fixed performer /
+  unresolved / out-of-gig -> hidden. 3 new SerializeFields, all null-guarded.
+- GigManager — new public TryGetMusicianIcon(MusicianCharacterType) (resolves via the
+  current band, returns MusicianCharacterData.CharacterIcon or null); ApplyBpmToStage
+  now gates the beat/"playing" animation to musicians with a track in the played part
+  (active set recomputed every loop); ResetStageToIdle re-enables the band's idle sway
+  between songs.
+- CompositionSession — new public GetMusicianIdsWithTrackInPart(int): read-through of
+  the SongCompositionUI model (that model stays the authority).
+- CharacterAnimator — master gate: SetBeatAnimationEnabled(bool) + ResetToRestPose() +
+  BeatAnimationEnabled; authored per-toggle style (jump/scale/stretch) preserved across
+  disable/enable; disable settles to the Awake-captured rest pose.
+- DevModeController — subscribes/unsubscribes GigOutcomeEvent (Awake/OnDestroy); handler
+  records into DevGigOutcomeTracker.
+- DevStatsTab — "Gig Outcomes (this session)" section (W / L / win-rate / n + Reset).
+Prefab: actionBackground / compositionBackground / ownerIconImage wired on the gameplay
+card prefab + CardUI.prefab; null-guards active.
+
+Decisions: D1 (D-S5b-QUERY-HOME)=A — read accessor on CompositionSession; authority =
+SongCompositionUI model. D2 (D-S5b-ICON-RESOLVER)=A — icon via the gig band (in-gig
+only); a global type->MusicianCharacterData registry (would cover the inventory) is
+follow-up B, NOT prioritized. D3 (D-S5b-BG-NEITHER)=A — neither-domain card: both
+backgrounds off. D-S5b-IDLE=resolved — in-loop non-performers stop (master gate off +
+rest pose, no sway); between songs ResetStageToIdle re-enables idle sway. Inherited:
+D-S5-ICON=A, D-S5-CLARITY-SPLIT=split.
+
+Smoke (per sub-roadmap S5b outline): ST-S5b-1..9 PASS; ST-3b DEFERRED — accepted gap:
+the demo deck has no neither-Action-nor-Composition card, so the "both backgrounds off"
+path can't be exercised in normal gameplay (verify via Dev -> Catalogue if such a card
+is ever added). SongPerformanceRoutine confirmed dead (EndTurn has no callers) — not touched.
+
+Doc: SSoT_Card_System new §10.4 (card-face visual identity: background-by-domain + owner
+icon + the 3-field prefab contract + the in-gig-only resolver boundary) + §12 owns-list
+line. CURRENT_STATE §1 closed-batches (+S5b row), §3 S5 row (active; S5b closed) + §2/§3
+prose, §4 (presentation/animation-home debt note — gating + master-gate live here until an
+SSoT exists; CharacterAnimator "move animation to its own class" TODO) + two-prefab
+recurrence-vector note refreshed + Card-system foundation line. Roadmap §5 NOT touched
+(D-DOC2 Roadmap-§5-at-sub-batch deferred to S5d — §5 tracks S5-whole, not sub-batches).
+No ssot_manifest change (the new .cs are not manifest entries; no new hard invariant —
+card-face presentation is not a governed contract). No coverage-matrix / SSoT_INDEX change
+(no authority move, no new doc). Classification: code + semantic (card presentation) +
+structural (new §10.4) + operational + lifecycle (S5b closed). No governed-contract change.
+
 2026-06-17 — S4: FIRST-TIME TUTORIAL CONTROLLER + GUIDED JAM (CODE)
 
 Implements Design_Tutorial_System_v0_1.md (incl. §6A jam sequence) and closes the

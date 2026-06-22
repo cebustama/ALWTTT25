@@ -1,6 +1,6 @@
 # Design — Vibe Telegraph v0.1
 
-**Status:** Design (planning). Target implementation: **S5a** (see `planning/active/S5_DemoCutClose_Sub_Roadmap.md`).
+**Status:** Implemented (S5a, 2026-06-22). This planning note is retained as the **presentation** home (shipped-doc precedent: cf. the Tutorial design note). See `planning/active/S5_DemoCutClose_Sub_Roadmap.md` §S5a.
 **Created:** 2026-06-18.
 **Authority boundary:** This note owns the **presentation** of the Vibe→audience causal chain. It does **not** define the scoring math — `SSoT_Scoring_and_Meters.md §6` is authoritative for the formula, `SSoT_Audience_and_Reactions.md` for impression, `Design_Sensory_Contract_v0_1.md` for floating-text / sensory output. If this note and any of those disagree, those win.
 
@@ -80,3 +80,20 @@ The impression signal already drives per-loop floating text (`AudienceReactionEv
 ## 8. Difficulty note (scope boundary)
 
 This telegraph changes **when/how Vibe is shown and delivered**, not the totals. Accumulating the SFX bonus does not reduce Vibe, so it does not make gigs harder. "Gigs too easy" is a **tuning** problem (magnitudes: `sfxBonusVibeStage1/2/3`, `MaxVibeFromSongHype`, the impression factor band) owned by the **S5c** win-rate loop, not by this note.
+
+---
+
+## 9. Implementation status (S5a — 2026-06-22)
+
+Shipped. All three surfaces (C1 global readout, C2 per-enemy effectiveness, C3 per-enemy
+projected number) landed per D-S5-TELEGRAPH-SCOPE=B; **D1=A** (single combined cyan
+song-end floater, no `SongEndVibeEvent` struct change). SFX delivery moved to a
+song-scoped `GigManager._pendingSfxVibe`, paid once at song end after the Flow multiply
+(L only), flat SFX added after (D-S5-SFX-SCALE=A); mid-song application removed (no
+double-apply). Surfaces: `GigCanvas.SetVibeReadout` (C1); `AudienceCharacterCanvas`
+`.SetVibeTelegraph` + the `VibeEffectiveness` enum (C2/C3); `GigManager`
+`.GetLiveAvgImpression` / `.ApplyFlowToLPart` / `.RefreshVibeProjection`. Verified via the
+`[S5a-SMOKE]` log family — core ST-S5a-1..4, 9 PASS; ST-S5a-5/6/7 Dev-Mode-deferred;
+ST-S5a-8 low-risk-confirmed. The C2 "Normal" band is literal (avgImpression == 0 within
+epsilon) — the epsilon-band option in §7 stays deferred. This note remains the
+presentation home; the math stays in `SSoT_Scoring_and_Meters.md` §6.

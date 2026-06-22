@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd40b3d0a91599e4088c9a5ed1f44ef1, type: 3}
   m_Name: AudioMixSettings
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.AudioMixSettingsSO
-  globalMusicVolume01: 0.75
-  masterSfxVolume01: 0.8
+  globalMusicVolume01: 0.4
+  masterSfxVolume01: 0.4
   musicianVolumes:
   - musicianId: 2
     volume01: 1

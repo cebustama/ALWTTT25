@@ -64,6 +64,7 @@ It defines:
 | `planning/active/Roadmap_ALWTTT.md` | project-wide milestone roadmap | active |
 | `planning/active/Roadmap_Audio.md` | audio work-stream sub-roadmap: bus model + batch sequence (SFX-FIX, OST, Ambience, per-character profiles) + decisions ledger | active |
 | `planning/active/Design_Demo_Cut_v1.md` | demo-cut planning: run shape, coverage matrix, mechanics introduced, validation | active |
+| `planning/Design_Vibe_Telegraph_v0_1.md` | Vibe transparency surfaces (C1 readout + C2/C3 per-enemy telegraph); presentation of the Scoring §6 chain | active (shipped S5a) |
 | `planning/active/Design_Starter_Deck_v1.md` | first starter deck design: composition principle, per-card axis assignments, tuning rationale | active |
 | `planning/active/Design_Audience_Status_v1.md` | audience-side status design intent (§4 Captivated remains active; §3 + §5 superseded) | partial |
 | `planning/active/Design_Tutorial_System_v0_1.md` | tutorial system: scope, trigger model, presentation, UX, demo-cut + Phase C dialogue inventory, DoD per Standing Directive #3 (2026-05-23) | active |

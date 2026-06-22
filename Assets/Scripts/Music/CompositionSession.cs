@@ -122,6 +122,34 @@ namespace ALWTTT.Music
             _state != CompositionState.Idle &&
             _state != CompositionState.Ended;
 
+        /// <summary>
+        /// [S5b / D-S5b-QUERY-HOME=A] Musician IDs (== MusicianCharacterData.CharacterId)
+        /// that own a track in <paramref name="partIndex"/> of the live UI model — i.e.
+        /// the musicians whose stems play in that part's current loop. Returns an empty
+        /// set when the part is out of range or the UI model is unavailable.
+        ///
+        /// Read-through accessor: the authority for "which musicians have a track" is the
+        /// SongCompositionUI model (PartEntry.tracks); this method only enumerates it.
+        /// Consumed by GigManager.ApplyBpmToStage to gate band beat-animation to
+        /// performing musicians. The set is recomputed every loop, so a track added
+        /// mid-loop animates on the same loop its stem is re-rendered.
+        /// </summary>
+        public HashSet<string> GetMusicianIdsWithTrackInPart(int partIndex)
+        {
+            var set = new HashSet<string>();
+            var parts = _ctx?.CompositionUI?.Model?.parts;
+            if (parts == null || partIndex < 0 || partIndex >= parts.Count) return set;
+
+            var tracks = parts[partIndex]?.tracks;
+            if (tracks == null) return set;
+
+            foreach (var t in tracks)
+                if (t != null && !string.IsNullOrEmpty(t.musicianId))
+                    set.Add(t.musicianId);
+
+            return set;
+        }
+
         // ----- Public API -----
         public void Begin(
             ICompositionContext ctx, JamRules rules, MidiGenPlayConfig settings, System.Random rng)

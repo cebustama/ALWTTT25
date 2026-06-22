@@ -147,9 +147,37 @@ audience layer skews it per-individual — preserving the §2 layer split.
 The 0.25 coefficient is tuning, not contract; it may move during balance
 passes without a semantic change entry.
 
-Other modifiers on the last step (unchanged): Flow song-end multiplier
-(§7.1), Indifference gate at `ApplyIncomingVibe`
+Other modifiers on the last step: Flow song-end multiplier (§7.1, applied to
+the impression-modified base above — the "L" part — only), the flat SFX venue
+bonus added after Flow (§6.2), Indifference gate at `ApplyIncomingVibe`
 (see `SSoT_Audience_and_Reactions.md` §5.3), encounter modifiers.
+
+### 6.2 SFX venue bonus + song-end delivery (S5a)
+
+The SongHype "venue energy" bonus (per-stage magnitudes on
+`GigPresentationSO.sfxBonusVibeStage{1,2,3}`; see `Design_Demo_Cut_v1.md` §3.1)
+is **flat** — it is not impression-scaled (D-S5-SFX-SCALE=A) and not Flow-scaled.
+
+Delivery (D-S5-VIBE=B, S5a): the bonus is **not** applied mid-song. Each upward
+stage crossing banks its flat amount into a song-scoped accumulator
+(`GigManager._pendingSfxVibe`, reset per song in `ResetSongHype`). The accumulated
+total is paid **once at Song End**, combined with the per-audience conversion in
+`GigManager.RunSongVibeResolution`. The full per-member song-end delta is:
+
+    perMemberDelta = round(lPart × flowSongEndMult) + pendingSfx
+
+where `lPart` is the §6.1 result (`round(baseVibe × impressionFactor)`, floored
+at 0), `flowSongEndMult` is the band-wide Flow multiplier (§7.1) applied to the L
+part only, and `pendingSfx` is the flat banked total added after Flow. The combined
+delta is gated once at `ApplyIncomingVibe` (Indifference → 0); `IsBlocked` members
+are excluded upstream. The banked total equals the pre-S5a sum of per-stage
+applications — S5a moved **when** the bonus lands (mid-song → song-end), not
+the amount.
+
+`_pendingSfxVibe` is bespoke/song-scoped, shaped so the planned Pending Effects layer
+(`Design_Pending_Effects_v1.md`) can absorb it (D-S5-VIBE-ARCH=A). The player-facing
+readout of `lPart` ("L") + `pendingSfx` ("SFX") is the Vibe telegraph
+(`planning/Design_Vibe_Telegraph_v0_1.md`).
 
 ---
 
@@ -185,6 +213,8 @@ It may indirectly affect loop quality or card/action availability, but it is not
 
 MVP-friendly rule:
 - the main persuasion payout occurs at **Song End**
+- the SFX venue bonus is banked during the song and paid at Song End with the
+  conversion (S5a, §6.2) — a single per-member payout, no mid-song Vibe application
 - loop-level scoring matters because it builds toward song-end conversion
 - encounter-specific modifiers may layer additional effects, but they must not break this core distinction silently
 

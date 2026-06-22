@@ -38,6 +38,17 @@ namespace ALWTTT
         [SerializeField] protected TextMeshProUGUI inspirationGenTextField;
         [SerializeField] protected TextMeshProUGUI typeTextField;
 
+        [Header("Type background [S5b / Item 1]")]
+        [Tooltip("Shown when CardDefinition.IsAction. Toggled in SetCard.")]
+        [SerializeField] private GameObject actionBackground;
+        [Tooltip("Shown when CardDefinition.IsComposition. Toggled in SetCard.")]
+        [SerializeField] private GameObject compositionBackground;
+
+        [Header("Owner icon [S5b / Item 4]")]
+        [Tooltip("Performer/owner icon (MusicianCharacterData.CharacterIcon). " +
+                 "Hidden when the card has no fixed performer or its musician isn't in the band.")]
+        [SerializeField] private Image ownerIconImage;
+
         public CardDefinition CardDefinition { get; private set; }
         public bool IsInactive { get; protected set; }
         public bool IsPlayable { get; protected set; } = true;
@@ -76,6 +87,41 @@ namespace ALWTTT
             descTextField.text = CardDefinition.GetDescription();
             inspirationCostTextField.text = CardDefinition.InspirationCost.ToString();
             inspirationGenTextField.text = CardDefinition.InspirationGenerated.ToString();
+
+            ApplyTypeBackground(CardDefinition);   // [S5b / Item 1]
+            ApplyOwnerIcon(CardDefinition);        // [S5b / Item 4]
+        }
+
+        // [S5b / Item 1] Unmistakable Action vs Composition frame. The text type label
+        // (typeTextField) is preserved; this adds the background distinction playtesters
+        // asked for. A card that is neither (no payload / non-card payload) shows neither
+        // background -- the base card frame stands in (D-S5b-BG-NEITHER=A). Null-guarded
+        // for the prefab rollout.
+        private void ApplyTypeBackground(CardDefinition def)
+        {
+            bool isAction = def != null && def.IsAction;
+            bool isComposition = def != null && def.IsComposition;
+            if (actionBackground != null) actionBackground.SetActive(isAction);
+            if (compositionBackground != null) compositionBackground.SetActive(isComposition);
+        }
+
+        // [S5b / Item 4 / D-S5b-ICON-RESOLVER=A] Resolve the owner icon from the current
+        // band via GigManager. None / AnyMusician / generic / out-of-gig -> no icon (Image
+        // hidden). Null-guarded for the prefab rollout.
+        private void ApplyOwnerIcon(CardDefinition def)
+        {
+            if (ownerIconImage == null) return;
+
+            Sprite icon = null;
+            if (def != null && def.FixedPerformerType != MusicianCharacterType.None)
+            {
+                var gm = GigManager.Instance;
+                if (gm != null) icon = gm.TryGetMusicianIcon(def.FixedPerformerType);
+            }
+
+            bool hasIcon = icon != null;
+            ownerIconImage.sprite = icon;
+            ownerIconImage.gameObject.SetActive(hasIcon);
         }
         #endregion
 

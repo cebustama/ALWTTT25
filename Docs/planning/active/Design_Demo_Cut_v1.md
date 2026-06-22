@@ -179,15 +179,23 @@ Three new tunable values on `GigPresentationSO`:
 Hook site: `GigManager.FireSongHypeStage(int stage, string sfxTag)`
 calls `ApplySfxBonusVibe(stage)` immediately after `backgroundContainer.ActivateSFX(sfxTag)`.
 
-Routing (per DC-SFX-Route=A):
-- Each audience member receives `+N` Vibe through `AudienceStats.ApplyIncomingVibe`.
-- Indifference stacks block per-member (consistent with D-DCP-6=A: Indifference blocks ALL incoming Vibe).
-- A single band-canvas "+N Vibe!" floater spawns at `sfxBonusVibeTextSpawnRoot` (with first-musician-TextSpawnRoot fallback), warm-gold colour (1, 0.85, 0.25) to visually distinguish from the per-audience cyan Vibe floaters.
-- Floater suppressed if every audience member blocks the bonus (avoids misleading "+N Vibe!" with zero applied).
+Routing (per DC-SFX-Route=A; **delivery revised S5a, D-S5-VIBE=B**):
+- **S5a:** the stage bonus is no longer applied mid-song. `ApplySfxBonusVibe(stage)`
+  banks `+N` into a song-scoped accumulator (`GigManager._pendingSfxVibe`); the banked
+  total is paid **once at song end**, combined with the per-audience conversion in
+  `RunSongVibeResolution` (semantic home: `SSoT_Scoring_and_Meters.md` §6.2 / §8).
+- The combined song-end delta routes through `AudienceStats.ApplyIncomingVibe`;
+  Indifference gates the whole delta there (D-DCP-6=A: Indifference blocks ALL incoming
+  Vibe), and `IsBlocked` members are excluded upstream — both surface as "Immune".
+- The band-canvas "+N Vibe!" floater (warm-gold (1, 0.85, 0.25), at
+  `sfxBonusVibeTextSpawnRoot` with first-musician fallback) is retained at each stage
+  crossing as a "banked" cue — it no longer implies application, and is shown whenever
+  the stage fires (no per-block suppression, since banking is global).
 
-Bonus value is FLAT — does not pass through the Flow multiplier. The
-"post-Flow" wording in the spec refers to bonus magnitude (no Flow scaling),
-not temporal ordering.
+Bonus value is FLAT — it does not pass through the Flow multiplier (D-S5-SFX-SCALE=A):
+at song end Flow multiplies the performance "L" part only, then the flat SFX is added.
+The total banked equals the pre-S5a sum of per-stage bonuses (regression-verified) — S5a
+changed **when** it lands, not how much.
 
 ### 3.2 Launch architecture — GigLauncher (D-FAST-1=C)
 
@@ -228,6 +236,18 @@ gate.
 
 `CardActionTiming.Always` enum value retained for future precision-
 gating needs; does not load-bear in the current gate logic.
+
+### 3.4 Vibe transparency surfaces (S5a, new)
+
+Presentation-only legibility for the existing Vibe math (no new mechanic). Home:
+`planning/Design_Vibe_Telegraph_v0_1.md` (presentation), `SSoT_Scoring_and_Meters.md` §6
+(math). Three surfaces, all at loop-boundary cadence:
+- **C1** — a global `L + SFX = N` readout under the SongHype bar (`GigCanvas.SetVibeReadout`).
+- **C2** — per-enemy effectiveness tag (Super!/Normal/Resists/Immune) from each member's
+  live `avgImpression` (`AudienceCharacterCanvas.SetVibeTelegraph`).
+- **C3** — per-enemy projected `+N` Vibe, mirroring the song-end math.
+Decisions: D-S5-COUNTER=B, D-S5-TELEGRAPH-SCOPE=B (C1+C2+C3 shipped), D1=A (single combined
+cyan song-end floater). Verified via the `[S5a-SMOKE]` log family (ST-S5a-1..9).
 
 ---
 

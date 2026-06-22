@@ -15,10 +15,10 @@ MonoBehaviour:
   leadingConfig: {fileID: 0}
   phrasePalette: {fileID: 0}
   melodicStyle: {fileID: 0}
-  density: 0.5
+  density: 1
   octaveRangeMin: -1
   octaveRangeMax: 1
   rhythmicStyle: 0
-  tonalityHint: 0
+  tonalityHint: 2
   instrumentHint: 80
   seed: 10

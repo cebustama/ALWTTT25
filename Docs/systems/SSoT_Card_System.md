@@ -310,6 +310,46 @@ Display order: keywords first, statuses second. Tooltips follow the mouse cursor
 
 The detail modal is the third card-information surface, after card-face text (§10.1) and card-hover tooltips (§10.2). It is the designated home for any composition detail cut from the card face.
 
+### 10.4 Card-face visual identity (S5b, 2026-06-20)
+
+Two card-face visual cues are toggled in `CardBase.SetCard`, alongside the existing
+text label (`typeTextField`):
+
+1. **Action / Composition background.** `CardBase` carries two SerializeField
+   `GameObject` references — `actionBackground` and `compositionBackground`.
+   `SetCard` → `ApplyTypeBackground(def)` activates exactly one by payload domain:
+   `actionBackground` when `def.IsAction`, `compositionBackground` when
+   `def.IsComposition`. A card that is **neither** (no payload / a non-card payload)
+   shows neither background and falls back to the base card frame
+   (**D-S5b-BG-NEITHER = A**). The text type label is preserved; this is an additive
+   readability cue, not a new source of domain truth.
+
+2. **Owner icon.** `CardBase` carries a SerializeField `Image` `ownerIconImage`.
+   `SetCard` → `ApplyOwnerIcon(def)` resolves it from the card's performer rule
+   (§8.1): when `def.FixedPerformerType != MusicianCharacterType.None`, the icon is
+   fetched via `GigManager.TryGetMusicianIcon(FixedPerformerType)`, which maps the
+   type to `MusicianCharacterData.CharacterIcon` through the **current gig band**
+   (`CurrentMusicianCharacterList`). No fixed performer, an unresolved type, or no
+   active gig → no icon (the `Image` is hidden). **D-S5b-ICON-RESOLVER = A.**
+
+**Resolver-scope boundary (known limit).** Icon resolution is **in-gig only** — it
+reads the live band, so cards shown outside a gig (e.g. the inventory viewer,
+`CardUI.prefab`) get no owner icon even when the card has a fixed performer. A global
+`MusicianCharacterType → MusicianCharacterData` registry that would cover the
+out-of-gig surfaces is **follow-up B**, not implemented (not prioritized).
+
+**Prefab contract.** `actionBackground`, `compositionBackground`, and `ownerIconImage`
+are part of the card prefab's wired contract. All three are null-guarded in `CardBase`
+and must be wired on **every** card prefab (gameplay prefab + `CardUI.prefab`) — the
+same two-prefab recurrence vector recorded for prior `[SerializeField]` additions (see
+`CURRENT_STATE.md` §4, "CardUI : CardBase {} two-prefab arrangement"). Wired on both at
+S5b close.
+
+The domain authority remains `payload.Domain` (§3.2); §10.4 is presentation only. The
+play-animation gating that shipped with S5b (only musicians with a track in the played
+part animate) is runtime/presentation behavior with **no SSoT home yet** — tracked
+operationally in `CURRENT_STATE.md` §4 until a presentation/animation SSoT exists.
+
 ---
 
 ## 11. Legacy model handling
@@ -336,6 +376,7 @@ Legacy material must never silently overrule this SSoT.
 - performer and targeting semantics
 - the ALWTTT-side meaning of composition-related card choices
 - deck-level multiplicity (multiset shape, runtime expansion, pile-lifecycle invariance under play and reshuffle)
+- card-face visual identity (type background + owner icon) and its prefab-wiring contract (§10.4); the owner-icon resolver is in-gig only — a global registry is follow-up B
 
 ### This SSoT does not own
 - JSON/editor pipeline details

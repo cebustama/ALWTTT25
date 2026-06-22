@@ -1,6 +1,7 @@
 #if ALWTTT_DEV
 using ALWTTT.Characters.Audience;
 using ALWTTT.Managers;
+using ALWTTT.Sensory;
 using UnityEngine;
 
 namespace ALWTTT.DevMode
@@ -58,6 +59,9 @@ namespace ALWTTT.DevMode
 
             Instance = this;
             Debug.Log($"{Tag} DevModeController initialized. Press F12 to toggle overlay.");
+
+            // [S5b / Item 5] Count normal-flow gig outcomes for the dev Stats tab.
+            SensoryEventBus.Instance?.Subscribe<GigOutcomeEvent>(OnGigOutcome);
         }
 
         private void OnDestroy()
@@ -67,7 +71,14 @@ namespace ALWTTT.DevMode
                 Instance = null;
                 InfiniteTurnsEnabled = false;
             }
+
+            // [S5b / Item 5]
+            SensoryEventBus.Instance?.Unsubscribe<GigOutcomeEvent>(OnGigOutcome);
         }
+
+        // [S5b / Item 5] Records normal-flow outcomes only; the editor Debug context-menu
+        // Win/Lose paths bypass GigOutcomeEvent and are intentionally not counted.
+        private void OnGigOutcome(GigOutcomeEvent e) => DevGigOutcomeTracker.Record(e.Won);
 
         private void Update()
         {

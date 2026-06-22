@@ -41,6 +41,7 @@ namespace ALWTTT.UI
         [SerializeField] private GameObject songHypeRoot;
         [SerializeField] private Image songHypeImage;
         [SerializeField] private TextMeshProUGUI songHypeLabel; // % text
+        [SerializeField] private TextMeshProUGUI vibeReadoutLabel; // [S5a] "L + SFX = N" under the SongHype bar
 
         [Header("Song Hype Visuals")]
         [SerializeField] private float hypeLerpDefaultDuration = 1f;
@@ -284,6 +285,16 @@ namespace ALWTTT.UI
             SetSongHypeVisible(false);
         }
 
+        // [S5a/T7] C1 global accumulator readout: "L + SFX = N" under the SongHype bar.
+        // L = SongHype-driven base Vibe (volatile), SFX = banked flat bonus (monotonic),
+        // N = total. Driven by GigManager.RefreshVibeProjection at loop boundaries.
+        // The label lives under songHypeRoot, so it shows/hides with the bar.
+        public void SetVibeReadout(int lPart, int sfxPart)
+        {
+            if (vibeReadoutLabel == null) return;
+            vibeReadoutLabel.text = $"{lPart} + {sfxPart} = {lPart + sfxPart}";
+        }
+
         private Color EvaluateHypeColor(float t)
         {
             t = Mathf.Clamp01(t);
@@ -322,6 +333,9 @@ namespace ALWTTT.UI
 
             if (!visible && songHypeLabel != null)
                 songHypeLabel.text = string.Empty;
+
+            if (!visible && vibeReadoutLabel != null)
+                vibeReadoutLabel.text = string.Empty;
         }
 
         public void SetSongsLeft(int songsLeft, int requiredSongCount)

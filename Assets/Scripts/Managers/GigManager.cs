@@ -11,6 +11,7 @@ using ALWTTT.UI;
 using ALWTTT.Utils;
 using ALWTTT.Status;
 using ALWTTT.Sensory;
+using ALWTTT.Characters; // [S5a] VibeEffectiveness + AudienceCharacterCanvas telegraph
 
 using MidiGenPlay;
 using MidiGenPlay.Services;
@@ -128,6 +129,12 @@ namespace ALWTTT.Managers
         // via ResetSongHype. Used by AddSongHype to fire venue SFX exactly once on
         // upward threshold crossings.
         private int _songHypeStage;
+
+        // [S5a/T1] Song-scoped SFX Vibe accumulator (D-S5-VIBE=B refined). Stage
+        // crossings bank their flat bonus here instead of applying mid-song; paid
+        // out once at song end in RunSongVibeResolution. Reset alongside
+        // _songHypeStage in ResetSongHype (covers song-start prep + post-payout).
+        private int _pendingSfxVibe;
 
         private SongFeedbackContext? _lastSongFeedback;
 
@@ -738,6 +745,21 @@ namespace ALWTTT.Managers
                 UIManager.GigCanvas.SetSongHypeVisible(true);
                 UIManager.GigCanvas.SetSongHype(SongHype01);
             }
+
+            // [S5a/T8+T11] Seed the projection (C1 readout + C2/C3 telegraph) now;
+            // refreshed thereafter at each loop boundary and SFX stage crossing.
+            if (UseLogs)
+            {
+                Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-START pendingVibe(SFX)={_pendingSfxVibe} " +
+                    $"(expect 0) SongHype01={SongHype01:F3}");
+                if (CurrentAudienceCharacterList != null)
+                    foreach (var a in CurrentAudienceCharacterList)
+                        if (a != null)
+                            Debug.Log($"{DebugTag} [S5a-SMOKE] WIRING '{a.CharacterId}' " +
+                                $"canvas={(a.AudienceCharacterCanvas != null)} telegraphWired=" +
+                                $"{(a.AudienceCharacterCanvas != null && a.AudienceCharacterCanvas.IsVibeTelegraphWired)}");
+            }
+            RefreshVibeProjection("song-start");
         }
 
         public void EndTurn()
@@ -1105,6 +1127,10 @@ namespace ALWTTT.Managers
                 {
                     UIManager.GigCanvas.ClearSongHype();
                 }
+
+                // [S5a] Hide the per-enemy telegraph too (the C1 readout hides with
+                // songHypeRoot via ClearSongHype). Payout already consumed pendingVibe.
+                HideVibeProjection();
             }
 
             // M4.3 (Earworm): apply per-stack Vibe gain to audience members holding Earworm,
@@ -1472,6 +1498,20 @@ namespace ALWTTT.Managers
             }
         }
 
+        /// <summary>
+        /// [S5b / Item 4 / D-S5b-ICON-RESOLVER=A] Owner icon for a card's fixed-performer
+        /// type, resolved from the *current band*. Returns null for None / AnyMusician /
+        /// any type not present in this gig's band -> the caller shows the no-icon fallback.
+        /// In-gig only; outside a gig (no band) this returns null by design. The
+        /// registry-backed variant that would also cover the inventory is the
+        /// D-S5b-ICON-RESOLVER=B follow-up.
+        /// </summary>
+        public Sprite TryGetMusicianIcon(MusicianCharacterType type)
+        {
+            var mus = ResolveMusicianByType(type);
+            return mus != null ? mus.MusicianCharacterData?.CharacterIcon : null;
+        }
+
         private MusicianBase ResolveMusicianByType(MusicianCharacterType t)
         {
             if (t == MusicianCharacterType.None || CurrentMusicianCharacterList == null)
@@ -1541,6 +1581,7 @@ namespace ALWTTT.Managers
         {
             _songHype = 0f;
             _songHypeStage = 0; // [B2 / #6] reset stage on song boundary
+            _pendingSfxVibe = 0; // [S5a/T1] banked SFX is song-scoped; clear with the stage
             UpdateAudienceBeatIntensity();
             OnSongHypeChanged01?.Invoke(SongHype01);
 
@@ -1553,6 +1594,10 @@ namespace ALWTTT.Managers
         private void OnCompositionLoopFinished(LoopFeedbackContext loopCtx)
         {
             TriggerAudienceMicroReactions(loopCtx);
+
+            // [S5a/T8+T11] Loop-boundary refresh of the Vibe projection (runs before
+            // the F-3 early-return below, so it is independent of per-loop draw config).
+            RefreshVibeProjection("loop");
 
             // [S4 D-S4-BUS=B] beat 3 bridge of CompositionSession.LoopFinished.
             // Carries InspirationGainedThisLoop (track gain); fires before the F-3
@@ -2035,6 +2080,10 @@ namespace ALWTTT.Managers
             // multiplier — and tuned on GigPresentationSO.
             ApplySfxBonusVibe(stage);
 
+            // [S5a/T8+T11] pendingVibe just grew -> refresh the readout/telegraph so
+            // the banked SFX shows immediately at the crossing.
+            RefreshVibeProjection("stage");
+
             // [S3-audio D-SA-5]
             SensoryEventBus.Instance?.Publish(new SfxStageCrossedEvent(stage, sfxTag));
 
@@ -2061,40 +2110,29 @@ namespace ALWTTT.Managers
             int bonusInt = Mathf.RoundToInt(bonus);
             if (bonusInt <= 0) return;
 
-            float duration = presentation.BarFillDelay;
-            int membersHit = 0;
-            int membersBlocked = 0;
+            // [S5a/T2] D-S5-VIBE=B refined: do NOT apply Vibe mid-song. Bank the flat
+            // per-stage bonus into the song-scoped accumulator and pay it out once at
+            // song end (RunSongVibeResolution), gated per-member there. Total is
+            // identical to the pre-refactor sum of per-stage applications (regression
+            // ST-S5a-1); the only change is WHEN it lands (and no double-application).
+            _pendingSfxVibe += bonusInt;
 
-            foreach (var aud in CurrentAudienceCharacterList)
+            // Gold "+N Vibe!" floater retained as a "banked" cue - it no longer implies
+            // application. Shown whenever the stage fired, regardless of per-member
+            // Indifference: banking is global; gating happens at song end.
+            Transform spawn = ResolveSfxBonusVibeSpawnRoot();
+            if (spawn != null && FxManager.Instance != null)
             {
-                if (aud == null || aud.AudienceStats == null) continue;
-
-                int applied = aud.AudienceStats.ApplyIncomingVibe(
-                    aud.Statuses, bonusInt, duration: duration);
-
-                if (applied > 0) membersHit++;
-                else membersBlocked++;
-            }
-
-            // One band-canvas floater (per DC-SFX-Route=A "not per-audience").
-            // Suppress when every audience blocked — no useful signal to show.
-            if (membersHit > 0)
-            {
-                Transform spawn = ResolveSfxBonusVibeSpawnRoot();
-                if (spawn != null && FxManager.Instance != null)
-                {
-                    FxManager.Instance.SpawnFloatingText(
-                        spawn,
-                        $"+{bonusInt} Vibe!",
-                        0, 1,
-                        new Color(1f, 0.85f, 0.25f)); // warm gold — distinct from per-audience cyan
-                }
+                FxManager.Instance.SpawnFloatingText(
+                    spawn,
+                    $"+{bonusInt} Vibe!",
+                    0, 1,
+                    new Color(1f, 0.85f, 0.25f)); // warm gold - banked SFX cue
             }
 
             if (UseLogs)
-                Debug.Log($"{DebugTag} <color=yellow>[§5.3.5 / SFX→Vibe] " +
-                    $"Stage {stage}: bonus=+{bonusInt} per-audience; " +
-                    $"hit={membersHit}, blocked={membersBlocked}.</color>");
+                Debug.Log($"{DebugTag} <color=yellow>[S5a-SMOKE] BANK stage={stage} +{bonusInt} " +
+                    $"pendingVibe={_pendingSfxVibe} (banked, NOT applied this turn)</color>");
         }
 
         /// <summary>
@@ -2383,7 +2421,13 @@ namespace ALWTTT.Managers
                 var audience = CurrentAudienceCharacterList[i];
                 if (audience == null) continue;
                 // Blocked chars get no vibe
-                if (audience.IsBlocked) continue;
+                if (audience.IsBlocked)
+                {
+                    if (UseLogs)
+                        Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END   i={i} " +
+                            $"'{audience.CharacterId}' reason=IsBlocked (Immune, 0 Vibe)");
+                    continue;
+                }
 
                 float avgImpression =
                     sampleCounts[i] > 0 ? totalImpression[i] / sampleCounts[i] : 0f; // [-2, 2]
@@ -2394,16 +2438,16 @@ namespace ALWTTT.Managers
                 float vibeFloat = baseVibe * impressionFactor;
                 int vibeDelta = Mathf.RoundToInt(vibeFloat);
 
-                if (vibeDelta <= 0)
-                {
-                    // For MVP: no negative macro Vibe, just “no gain”.
-                    continue;
-                }
+                // [S5a/T4] Floor the L-part at 0 (no negative macro Vibe) but KEEP every
+                // non-blocked member - even L==0 - so SFX-only members still pay out at
+                // song end. Zero-total suppression now lives at the apply site in
+                // RunSongVibeResolution (combined L+SFX <= 0 -> no event/FT).
+                int lPart = Mathf.Max(0, vibeDelta);
 
                 result.Add(new AudienceVibeDelta
                 {
                     AudienceIndex = i,
-                    Delta = vibeDelta
+                    Delta = lPart
                 });
             }
 
@@ -2424,21 +2468,48 @@ namespace ALWTTT.Managers
                 backgroundContainer.SetBPM(bpm);
             }
 
-            // 2) Band animators
+            // 2) Band animators — [S5b / Item 3 / D-S5b-QUERY-HOME=A] gate the "playing"
+            // animation to musicians who own a track in the part being played this loop.
+            // Non-performers get the idle treatment (gentle sway, no jump, no particles)
+            // so a silent musician doesn't read as "playing". The active set is recomputed
+            // every loop, so a track added mid-loop animates on the same loop its stem
+            // first re-renders.
+            var activeMusicianIds = _session != null
+                ? _session.GetMusicianIdsWithTrackInPart(partIndex)
+                : null;
+
             foreach (var musician in CurrentMusicianCharacterList)
             {
                 if (musician == null || musician.CharacterAnimator == null)
                     continue;
 
                 var anim = musician.CharacterAnimator;
+                var musicianId = musician.MusicianCharacterData != null
+                    ? musician.MusicianCharacterData.CharacterId : null;
 
-                // [B2.5 / #3] BPM broadcasts to body + any sub-animators.
+                bool performing = activeMusicianIds != null
+                    && !string.IsNullOrEmpty(musicianId)
+                    && activeMusicianIds.Contains(musicianId);
+
+                // [B2.5 / #3] BPM broadcasts to body + sub-animators (everyone stays on clock).
                 musician.BroadcastBPM(bpm);
-                anim.SkipEveryNBeats = 1;
-                anim.BeatOffsetBeats = UnityEngine.Random.Range(0f, 0.15f);
-                anim.JumpOnBeat = true;
-                anim.RotateOnBeat = false; // or mix per musician if you want
-                anim.EmitOnBeat = true;
+
+                if (performing)
+                {
+                    anim.SetBeatAnimationEnabled(true);   // [S5b / D-S5b-IDLE] resume if previously stopped
+                    anim.SkipEveryNBeats = 1;
+                    anim.BeatOffsetBeats = UnityEngine.Random.Range(0f, 0.15f);
+                    anim.JumpOnBeat = true;
+                    anim.RotateOnBeat = false;
+                    anim.EmitOnBeat = true;
+                }
+                else
+                {
+                    // [S5b / D-S5b-IDLE] Not performing this loop -> stop all beat motion
+                    // and settle to rest pose (no sway, no particles). The master gate
+                    // keeps the authored style intact for when this musician plays again.
+                    anim.SetBeatAnimationEnabled(false);
+                }
             }
 
             // 3) Audience animators – follow BPM, intensity handled by SongHype
@@ -2472,6 +2543,7 @@ namespace ALWTTT.Managers
 
                 // [B2.5 / #3] BPM broadcasts to body + any sub-animators.
                 musician.BroadcastBPM(idleBpmLocal);
+                anim.SetBeatAnimationEnabled(true);   // [S5b / D-S5b-IDLE] resume idle sway between songs
                 anim.SkipEveryNBeats = 2;
                 anim.BeatOffsetBeats = UnityEngine.Random.Range(0.45f, 0.55f);
                 anim.JumpOnBeat = false;
@@ -2817,59 +2889,180 @@ namespace ALWTTT.Managers
 
             var deltas = ComputeSongVibeDeltas(songCtx);
 
+            // [S5a/T3] Capture the banked SFX once; pay it flat per member, added AFTER
+            // the Flow multiply (D-S5-SFX-SCALE=A: SFX bypasses Flow).
+            int sfx = _pendingSfxVibe;
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END begin: bankedSFX={sfx} " +
+                    $"flowStacks={GetTotalFlowStacks()} SongHype01={SongHype01:F3} members={deltas.Count}");
+
             foreach (var entry in deltas)
             {
                 var audience = CurrentAudienceCharacterList[entry.AudienceIndex];
                 if (audience == null) continue;
 
-                int baseDelta = entry.Delta;
+                // L-part (SongHype x impressionFactor), pre-Flow, from ComputeSongVibeDeltas.
+                int lPart = entry.Delta;
 
-                int flowStacks = 0;
-                int finalDelta = baseDelta;
-                if (baseDelta > 0)
+                // Flow amplifies the L-part only; SFX is flat.
+                int flowStacks = lPart > 0 ? GetTotalFlowStacks() : 0;
+                int lAfterFlow = ApplyFlowToLPart(lPart);
+
+                // [S5a/T3] Single combined delta = Flow(L) + flat SFX (D1=A: one cyan number).
+                int finalDelta = lAfterFlow + sfx;
+
+                // [S5a/T4] Zero-total suppression (was inside ComputeSongVibeDeltas).
+                // Preserves event<->FT parity: no event/FT when nothing lands.
+                if (finalDelta <= 0)
                 {
-                    flowStacks = GetTotalFlowStacks();
-                    if (flowStacks > 0)
-                    {
-                        float mult = 1f + (flowStacks * flowMult);
-                        finalDelta = Mathf.RoundToInt(baseDelta * mult);
-                    }
+                    if (UseLogs)
+                        Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END   i={entry.AudienceIndex} " +
+                            $"'{audience.CharacterId}' L={lPart} +SFX{sfx} = 0 (no Vibe, skipped)");
+                    continue;
                 }
 
-                // [B3] Route through ApplyIncomingVibe canonical path BEFORE spawning
-                // floating text — blocked audiences (Indifference stacks > 0) get a
-                // dedicated visual instead of a misleading "+N Vibe" that doesn't land.
+                // [B3] Canonical ApplyIncomingVibe path. Indifference gates the WHOLE
+                // combined delta to 0 (single gate point; L and SFX blocked together).
                 int appliedDelta = audience.AudienceStats.ApplyIncomingVibe(
                     audience.Statuses, finalDelta, duration: barFillDelayLocal);
 
-                // [S2/S3] Build the semantic event; the bus-side adapter (Spawn)
-                // derives the FT payload from it via SensoryFtPresentation.
+                // FT (D1=A): cyan "+{applied} Vibe" - applied total already includes SFX.
+                // The "(Flow xM)" suffix (flowStacks>0) describes the L-part's boost; it
+                // slightly over-implies for the SFX portion - accepted for the demo (the
+                // readout/telegraph carry the precise L vs SFX split).
                 float displayMult = flowStacks > 0 ? 1f + (flowStacks * flowMult) : 0f;
                 var vibeEvt = new SongEndVibeEvent(
                     audience, entry.AudienceIndex, audience.CharacterId,
-                    baseDelta, finalDelta, appliedDelta,
+                    lPart, finalDelta, appliedDelta,
                     flowStacks,
                     flowStacks > 0 ? displayMult : 1f,
                     blockedByIndifference: appliedDelta <= 0 && finalDelta > 0);
 
-                // [S3 D-S3-4=A] Direct FT call deleted; SensoryFxAdapter (Spawn) is
-                // the sole FT source for this surface (D-S3-5=A int overload there
-                // reproduces the S1 random-diagonal drift).
                 SensoryEventBus.Instance?.Publish(vibeEvt);
 
-                if (UseLogs && flowStacks > 0)
-                    Debug.Log($"{DebugTag} [Flow→Vibe:Mult] {audience.CharacterId} " +
-                        $"base=+{baseDelta} flowStacks={flowStacks} mult={displayMult:F2} " +
-                        $"intended=+{finalDelta} applied=+{appliedDelta}");
+                if (UseLogs)
+                    Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END   i={entry.AudienceIndex} " +
+                        $"'{audience.CharacterId}' L={lPart} " +
+                        $"flowx{(flowStacks > 0 ? displayMult : 1f):F2}->{lAfterFlow} " +
+                        $"+SFX{sfx} intended={finalDelta} applied={appliedDelta} " +
+                        $"indiff={(appliedDelta <= 0 && finalDelta > 0)}");
 
-                //Debug.Log($"{audience.CharacterId} filling Vibe in {barFillDelayLocal}[s]");
                 yield return new WaitForSeconds(barFillDelayLocal);
-                //Debug.Log($"{audience.CharacterId} bar filled");
 
                 // TODO: Animate Vibe bar, emote, SFX, etc
 
                 yield return new WaitForSeconds(perAudVibeDelayLocal);
             }
+        }
+
+        // [S5a/T6] Live running average impression for one audience member across the
+        // current song: closed parts (_gigPartsForCurrentSong) + the open part
+        // (_audienceLoopImpressionsByPart). Mirrors the song-end aggregation in
+        // ComputeSongVibeDeltas but reads live state, so the telegraph converges to the
+        // song-end delta by the last loop boundary. Neutral (0) when no samples yet.
+        public float GetLiveAvgImpression(int audienceIndex)
+        {
+            float sum = 0f;
+            int count = 0;
+
+            foreach (var part in _gigPartsForCurrentSong)
+            {
+                if (part.AudienceLoopImpressions == null) continue;
+                if (part.AudienceLoopImpressions.TryGetValue(audienceIndex, out var list)
+                    && list != null)
+                {
+                    foreach (var v in list) { sum += v; count++; }
+                }
+            }
+
+            foreach (var kv in _audienceLoopImpressionsByPart)
+            {
+                if (kv.Value != null
+                    && kv.Value.TryGetValue(audienceIndex, out var list)
+                    && list != null)
+                {
+                    foreach (var v in list) { sum += v; count++; }
+                }
+            }
+
+            return count > 0 ? sum / count : 0f;
+        }
+
+        // [S5a/T3+T11] Flow amplifies the L-part only (SFX stays flat). Shared by the
+        // song-end payout and the C3 projection so the two cannot drift.
+        private int ApplyFlowToLPart(int lPart)
+        {
+            if (lPart <= 0) return lPart;
+            int flowStacks = GetTotalFlowStacks();
+            if (flowStacks <= 0) return lPart;
+            float flowMult = meters != null ? meters.FlowVibeMultiplier : 0f;
+            return Mathf.RoundToInt(lPart * (1f + flowStacks * flowMult));
+        }
+
+        // [S5a/T8+T11] Loop-boundary projection refresh: C1 global "L + SFX" readout +
+        // per-enemy C2 effectiveness / C3 projected number. Called at each loop
+        // resolution, at SFX stage crossings, and at song start. Not per-frame.
+        private void RefreshVibeProjection(string reason)
+        {
+            int maxVibeFromHype = meters != null ? meters.MaxVibeFromSongHype : 0;
+            float baseVibe = SongHype01 * maxVibeFromHype;   // volatile L (band-wide)
+            int lPart = Mathf.RoundToInt(baseVibe);
+            int sfxPart = _pendingSfxVibe;                   // banked SFX (monotonic)
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetVibeReadout(lPart, sfxPart);
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} [S5a-SMOKE] PROJ ({reason}) readout L={lPart} " +
+                    $"SFX={sfxPart} N={lPart + sfxPart} SongHype01={SongHype01:F3}");
+
+            if (CurrentAudienceCharacterList == null) return;
+
+            for (int i = 0; i < CurrentAudienceCharacterList.Count; i++)
+            {
+                var aud = CurrentAudienceCharacterList[i];
+                if (aud == null || aud.AudienceCharacterCanvas == null) continue;
+
+                bool indifferent = aud.Statuses != null
+                    && aud.Statuses.GetStacks(CharacterStatusId.NegateIncomingPositive) > 0;
+
+                float avg = Mathf.Clamp(GetLiveAvgImpression(i), -2f, 2f);
+
+                VibeEffectiveness tier;
+                int projected = 0;
+
+                if (aud.IsBlocked || indifferent)
+                {
+                    tier = VibeEffectiveness.Immune; // both gates -> no Vibe lands at song end
+                }
+                else
+                {
+                    float factor = 1f + (avg * 0.25f);
+                    int lDelta = Mathf.RoundToInt(baseVibe * factor);
+                    projected = ApplyFlowToLPart(lDelta) + sfxPart; // mirrors song-end math
+
+                    tier = avg > 0.0001f ? VibeEffectiveness.SuperEffective
+                         : avg < -0.0001f ? VibeEffectiveness.NotVeryEffective
+                         : VibeEffectiveness.Normal;
+                }
+
+                aud.AudienceCharacterCanvas.SetVibeTelegraph(tier, projected, showNumber: true);
+
+                if (UseLogs)
+                    Debug.Log($"{DebugTag} [S5a-SMOKE] PROJ ({reason})   i={i} " +
+                        $"'{aud.CharacterId}' tier={tier} projected={projected} " +
+                        $"avg={avg:F2} blocked={aud.IsBlocked} indiff={indifferent}");
+            }
+        }
+
+        // [S5a] Hide the per-enemy telegraph between songs / during the audience turn.
+        private void HideVibeProjection()
+        {
+            if (CurrentAudienceCharacterList == null) return;
+            foreach (var aud in CurrentAudienceCharacterList)
+                if (aud != null && aud.AudienceCharacterCanvas != null)
+                    aud.AudienceCharacterCanvas.HideVibeTelegraph();
         }
 
         private void ResolveGigOutcomeAndEnd()

@@ -1,4 +1,4 @@
-using DemoMPTK;
+ï»¿using DemoMPTK;
 using UnityEngine;
 
 namespace ALWTTT.Characters
@@ -29,14 +29,14 @@ namespace ALWTTT.Characters
         [Tooltip("Robot-style pop: ease-in/out scale on beat (no vertical jump). " +
             "Independent of JumpOnBeat. For Robot C2 use this with JumpOnBeat = false.")]
         [SerializeField] private bool scaleOnBeat = false;
-        [Tooltip("Peak amplitude as a fraction (0.15 = grows to 1.15× base scale).")]
+        [Tooltip("Peak amplitude as a fraction (0.15 = grows to 1.15ï¿½ base scale).")]
         [SerializeField][Range(0f, 1f)] private float scaleAmplitude = 0.15f;
         [SerializeField] private AnimationCurve scaleCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
         [Header("Stretch & Squash (Beat) [B2 / #15]")]
         [Tooltip("Worm-style vertical stretch + horizontal compress on beat. " +
             "Asymmetric: Y grows, X shrinks (classic squash-and-stretch). " +
-            "Independent of JumpOnBeat and ScaleOnBeat — typically used with " +
+            "Independent of JumpOnBeat and ScaleOnBeat ï¿½ typically used with " +
             "JumpOnBeat = false on Gusano. For instrument sub-animator (#16), " +
             "attach a second CharacterAnimator to the instrument GO with its " +
             "own settings.")]
@@ -67,6 +67,10 @@ namespace ALWTTT.Characters
 
         private int animBeatCounter = 0;
         private float nextAnimBeatTime;
+
+        // [S5b / D-S5b-IDLE] Master gate for all beat-driven motion + particle bursts.
+        // Authored per-toggle settings are preserved across disable/enable.
+        private bool beatAnimationEnabled = true;
 
         // Public 
         #region Encapsulation
@@ -113,6 +117,41 @@ namespace ALWTTT.Characters
             get => stretchOnBeat;
             set => stretchOnBeat = value;
         }
+
+        // [S5b / D-S5b-IDLE] Master gate for all beat-driven motion (jump, rotation,
+        // scale pop, stretch/squash) and particle bursts. Authored per-toggle settings
+        // (JumpOnBeat, ScaleOnBeat, etc.) are preserved, so re-enabling restores the
+        // musician's full animation style. Disabling settles the transform to its
+        // authored rest pose so the character doesn't freeze mid-animation.
+        public bool BeatAnimationEnabled => beatAnimationEnabled;
+
+        public void SetBeatAnimationEnabled(bool enabled)
+        {
+            if (beatAnimationEnabled == enabled) return;
+            beatAnimationEnabled = enabled;
+            if (!enabled)
+            {
+                ResetToRestPose();
+            }
+            else
+            {
+                // Resync schedules so re-enabling doesn't fire a catch-up jump/burst.
+                ScheduleNextAnimBeat(true);
+                ScheduleNextParticle(true);
+            }
+        }
+
+        // [S5b / D-S5b-IDLE] Restore the authored rest transform captured in Awake
+        // (local position, Z rotation, scale).
+        public void ResetToRestPose()
+        {
+            if (jumpRoot == null) return;
+            jumpRoot.localPosition = originalLocalPos;
+            var e = jumpRoot.localEulerAngles;
+            e.z = originalZ;
+            jumpRoot.localEulerAngles = e;
+            jumpRoot.localScale = originalLocalScale;
+        }
         #endregion
 
         private void Awake()
@@ -141,6 +180,9 @@ namespace ALWTTT.Characters
             }
 
             if (beatInterval <= 0f) return;
+
+            // [S5b / D-S5b-IDLE] When gated off, no beat motion or particles this frame.
+            if (!beatAnimationEnabled) return;
 
             while (Time.time >= nextAnimBeatTime)
             {
