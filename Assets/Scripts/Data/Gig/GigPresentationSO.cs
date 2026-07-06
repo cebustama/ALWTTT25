@@ -94,6 +94,18 @@ namespace ALWTTT.Data
         public string SongHypeStage2SfxTag => songHypeStage2SfxTag;
         public string SongHypeStage3SfxTag => songHypeStage3SfxTag;
 
+        // ------------------------------------------------------------------
+
+        [Header("SongHype Bar Visibility [S5f / #6a]")]
+        [SerializeField, Tooltip("Master switch for the SongHype bar UI " +
+            "(includes the 'L + SFX = N' readout under it). OFF = the bar " +
+            "never shows during performance — used for the simplified first " +
+            "gig. SongHype still accrues, stage SFX still fire, and song-end " +
+            "Vibe conversion is unchanged; only the readout is hidden.")]
+        private bool showSongHypeBar = true;
+
+        public bool ShowSongHypeBar => showSongHypeBar;
+
         // --- SFX → FlatVibe bonus [§5.3.5] ---
 
         [Header("SFX → FlatVibe Bonus [§5.3.5]")]

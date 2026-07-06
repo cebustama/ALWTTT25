@@ -16,7 +16,7 @@ MonoBehaviour:
   primaryKind: 1
   trackAction:
     role: 4
-    styleBundle: {fileID: 11400000, guid: 5972e214e6b27f14db16532ce917a187, type: 2}
+    styleBundle: {fileID: 11400000, guid: f3645a33f98da9841aff2612cb877218, type: 2}
   partAction:
     action: 0
     customLabel: 

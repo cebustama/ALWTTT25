@@ -621,7 +621,8 @@ namespace ALWTTT.Managers
                 int partIndex,
                 int? bpmOverride = null,
                 Dictionary<string, MIDIInstrumentSO> instrumentOverrides = null,
-                Dictionary<string, string> trackInputsHashByMusician = null)
+                Dictionary<string, string> trackInputsHashByMusician = null,
+                int? seedOverride = null)   // [S5g / MGP-ALWTTT-SEED-1] per-song seed, host policy
         {
             EnsureRegistriesLoaded();
             if (fullCfg == null || partIndex < 0 || partIndex >= fullCfg.Parts.Count)
@@ -852,7 +853,8 @@ namespace ALWTTT.Managers
                     fullCfg.ChannelRoles,
                     partIndex,
                     effectiveOverride,
-                    instrumentOverrides);
+                    instrumentOverrides,
+                    seedOverride: seedOverride);   // [S5g / MGP-ALWTTT-SEED-1]
 
                 if (logDebug)
                     Debug.Log($"{DebugTag} [BPM] Part={partIndex} resolved BPM={render.bpm}");

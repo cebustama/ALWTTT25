@@ -34,6 +34,18 @@ namespace ALWTTT.Music
         private MidiGenPlayConfig _settings;
         private System.Random _rng;
 
+        // [S5g / MGP-ALWTTT-SEED-1 / D-S5gb-2=B] Per-song render seed. Run-entropy:
+        // each song (Begin→End) gets one seed; every render within the song reuses
+        // it (same seed ⇒ same palette picks ⇒ mid-song re-renders stay harmonically
+        // stable, replacing the accidental stability the constant defaultSeed gave).
+        private int? _songSeed;
+
+#if ALWTTT_DEV
+        // Dev pin for reproducible songs / ST-S5gb-1 fixed-seed runs. Set before
+        // Begin(); null = normal run entropy. Dev-tab wiring deferred (SSoT_Dev_Mode).
+        public static int? DevPinnedSongSeed = null;
+#endif
+
         private bool _isPlaying;
         private int _currentPartIndex = -1;
         private int _loopsTotalForPart;
@@ -170,6 +182,15 @@ namespace ALWTTT.Music
             _finishedParts.Clear();
             _buildingPartInspirationPerLoop = 0;
 
+            // [S5g / D-S5gb-2=B] One seed per song, stable until End().
+#if ALWTTT_DEV
+            _songSeed = DevPinnedSongSeed
+                        ?? unchecked((int)System.DateTime.UtcNow.Ticks);
+#else
+            _songSeed = unchecked((int)System.DateTime.UtcNow.Ticks);
+#endif
+            _ctx.Log($"[Session] SongSeed={_songSeed}", true); // quote-able for repro
+
             _keepInstrumentByPart.Clear();
 
             _ctx.ShowCompositionUI(true);
@@ -206,6 +227,7 @@ namespace ALWTTT.Music
             _loopHistoryByPart.Clear();
             _finishedParts.Clear();
             _keepInstrumentByPart.Clear();
+            _songSeed = null; // [S5g] seed dies with the song
 
             _ctx.LoopsTimerUI?.ClearProgress();
             _ctx.ShowHand(false);
@@ -656,7 +678,8 @@ namespace ALWTTT.Music
                 var (merged, stems, seconds, bpmChosen, instByMus) =
                     mm.RenderSinglePart(cfg, partIndex, bpmOverride,
                         cache?.resolvedMelInstByMusician,
-                        trackInputsHashes);
+                        trackInputsHashes,
+                        seedOverride: _songSeed);   // [S5g / MGP-ALWTTT-SEED-1]
 
                 if (merged == null || merged.Length == 0 || seconds <= 0f) return 0f;
 

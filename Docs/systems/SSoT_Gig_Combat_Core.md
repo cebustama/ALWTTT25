@@ -379,7 +379,7 @@ These can exist as planning/reference material without overriding this SSoT.
 |---|---|
 | `GigFlowSettingsSO` | JamRules, Action card gating, Gig End behavior, setup-screen defaults |
 | `MeterTuningSO` | SongHype caps/seed, Vibe/Hype balance, Flow→Vibe (bifurcated MVP), `LoopScoringConfig`, `HypeThresholds`, `breakdownStressResetFraction` |
-| `GigPresentationSO` | Audience beat curve/threshold, idle BPM, sequence pacing values |
+| `GigPresentationSO` | Audience beat curve/threshold, idle BPM, sequence pacing values, SongHype bar visibility (`showSongHypeBar`, S5f/#6a — OFF hides the bar + the C1 "L + SFX = N" readout; SongHype accrual, stage SFX, and song-end Vibe conversion are unaffected) |
 | `GigDevSettingsSO` | Inspector-time toggles only: `useLogs`, `useCompositionLogs`, `debugSongHype`, `debugInstrumentPicker`, `debugMusicianVolume` |
 
 Scene-instance references (cameras, hand, composition UI, position lists, scene changer, MidiGenPlayConfig boundary, songHypeDebugSlider, background container) remain inline-serialized on `GigManager` — they cannot be assets.

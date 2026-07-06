@@ -18,3 +18,13 @@ MonoBehaviour:
   entries:
   - pattern: {fileID: 11400000, guid: ef3470c15d551a34e846c10c6bdbe80a, type: 2}
     weight: 1
+  - pattern: {fileID: 11400000, guid: 1b866c2340cc92d4aa58bdec31a677a3, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 655099d9cae3c934f966c48629407476, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: a0c4ca653f9cf334bb0bc9c76fc87076, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: f6fee88c0b2fbbc42b3abb0c00fb8681, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 0542e22ea57ddb346a963cbd9be84992, type: 2}
+    weight: 1

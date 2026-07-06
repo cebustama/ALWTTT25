@@ -36,6 +36,11 @@ namespace ALWTTT
         [SerializeField] protected TextMeshProUGUI descTextField;
         [SerializeField] protected TextMeshProUGUI inspirationCostTextField;
         [SerializeField] protected TextMeshProUGUI inspirationGenTextField;
+
+        [Tooltip("[S5e-ext] Optional root for the gen badge (background circle + " +
+                 "number). Hidden when the card generates 0 inspiration. If " +
+                 "unassigned, only inspirationGenTextField's GameObject is toggled.")]
+        [SerializeField] protected GameObject inspirationGenBadgeRoot;
         [SerializeField] protected TextMeshProUGUI typeTextField;
 
         [Header("Type background [S5b / Item 1]")]
@@ -86,7 +91,16 @@ namespace ALWTTT
             nameTextField.text = CardDefinition.DisplayName;
             descTextField.text = CardDefinition.GetDescription();
             inspirationCostTextField.text = CardDefinition.InspirationCost.ToString();
-            inspirationGenTextField.text = CardDefinition.InspirationGenerated.ToString();
+
+            // [S5e-ext] Post-D3 all content authors gen=0; hide the dead badge.
+            // Symmetric toggle so pooled/reused hand cards recover if gen>0 returns.
+            bool showGen = CardDefinition.InspirationGenerated > 0;
+            if (inspirationGenBadgeRoot != null)
+                inspirationGenBadgeRoot.SetActive(showGen);
+            else if (inspirationGenTextField != null)
+                inspirationGenTextField.gameObject.SetActive(showGen);
+            if (inspirationGenTextField != null && showGen)
+                inspirationGenTextField.text = CardDefinition.InspirationGenerated.ToString();
 
             ApplyTypeBackground(CardDefinition);   // [S5b / Item 1]
             ApplyOwnerIcon(CardDefinition);        // [S5b / Item 4]
@@ -334,8 +348,9 @@ namespace ALWTTT
                         }
                         else
                         {
+                            // [S5e] negative delta restores the enemy's resistance pool
                             int before = audience.Stats.CurrentVibe;
-                            audience.Stats.SetCurrentVibe(before + finalDelta);
+                            audience.Stats.SetCurrentVibe(before - finalDelta);
                         }
 
 #if UNITY_EDITOR
@@ -418,10 +433,11 @@ namespace ALWTTT
                             continue;
                         }
 
-                        // Negative stress removes stress directly.
+                        // [S5e] negative delta heals: route through the canonical heal path
+                        // Negative stress heals (restores fortitude).
                         {
                             int before = musician.Stats.CurrentStress;
-                            musician.Stats.SetCurrentStress(before + delta);
+                            musician.Stats.HealStress(-delta);
 
 #if UNITY_EDITOR
                             Debug.Log(

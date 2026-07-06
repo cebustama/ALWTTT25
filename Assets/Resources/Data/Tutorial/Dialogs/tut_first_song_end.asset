@@ -18,6 +18,6 @@ MonoBehaviour:
   revisitTitle: Song's payoff
   portrait: {fileID: -8592814519688813882, guid: e4ce0c89601e9a34497855d51bc2812f, type: 3}
   pages:
-  - "Song's done. The hype you built converts into Vibe on the crowd \u2014 and Vibe
-    is how you convince them."
+  - Song's done. All the hype you built hits the crowd's Vibe and wears their resistance
+    down. Vibe at zero, crowd convinced.
   highlightKey: song_hype

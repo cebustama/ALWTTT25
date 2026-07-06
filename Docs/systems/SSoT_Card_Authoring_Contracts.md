@@ -137,7 +137,17 @@ Required:
 Optional:
 - `performerRule`, `fixedMusician`
 - `cardType`, `rarity`, `audioType`
-- `inspirationCost`, `inspirationGenerated`
+- `inspirationCost` — unchanged; the inspiration economy is now
+  **fixed-income**: a flat per-loop grant (3 at S5e; re-tuned at S5i) plus
+  card costs. **[S5e]**
+- `inspirationGenerated` — **deprecated for content as of S5e (D3)**: parser
+  and DTOs still accept it (import coexistence), but all starter-deck
+  content is authored at 0 and new content must author 0. Basal
+  card-driven generation is removed; a possible future `+INS` CardEffect is
+  design-note only (explicitly deferred, not implemented). **[S5e-ext]** The
+  card UI (hand + detail view) hides the gen badge entirely when this field
+  is 0 — since all current content is at 0, the badge is presently never
+  shown; it will reappear automatically for any future card authored above 0.
 - `exhaustAfterPlay`
 - `keywords` — string array of `SpecialKeywords` enum names (e.g. `["Exhaust", "Consume"]`). Case-insensitive parsing. Unknown values emit a warning and are skipped. See §5.8 for coherence rules.
 - `overrideRequiresTargetSelection`, `requiresTargetSelectionOverrideValue`

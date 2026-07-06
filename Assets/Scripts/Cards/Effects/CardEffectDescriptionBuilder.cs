@@ -73,10 +73,10 @@ namespace ALWTTT.Cards.Effects
         private static string BuildModifyVibe(ModifyVibeSpec vibe)
         {
             if (vibe.amount == 0) return string.Empty;
-            var signed = vibe.amount > 0
-                ? $"{NumberColor}+{vibe.amount}{ColorEnd}"
-                : $"{NumberColor}{vibe.amount}{ColorEnd}";
-            return $"{signed} Vibe on {DescribeTarget(vibe.targetType)}";
+            // [S5e] damage-verb convention, parallel to BuildModifyStress
+            if (vibe.amount > 0)
+                return $"Deal {NumberColor}{vibe.amount}{ColorEnd} Vibe to {DescribeTarget(vibe.targetType)}";
+            return $"Restore {NumberColor}{-vibe.amount}{ColorEnd} Vibe on {DescribeTarget(vibe.targetType)}";
         }
 
         private static string BuildModifyStress(ModifyStressSpec stress)

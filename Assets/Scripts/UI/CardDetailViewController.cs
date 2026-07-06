@@ -31,6 +31,11 @@ namespace ALWTTT.UI
         [SerializeField] private TextMeshProUGUI costText;
         [SerializeField] private TextMeshProUGUI genText;
 
+        [Tooltip("[S5e-ext] Optional root for the gen badge/row (icon + label + " +
+                 "number). Hidden when the card generates 0 inspiration. If " +
+                 "unassigned, only genText's GameObject is toggled.")]
+        [SerializeField] private GameObject genBadgeRoot;
+
         [Header("Detail Content")]
         [SerializeField] private TextMeshProUGUI descriptionText;
         [SerializeField] private TextMeshProUGUI keywordsText;
@@ -148,7 +153,14 @@ namespace ALWTTT.UI
             if (costText != null)
                 costText.text = card.InspirationCost.ToString();
 
-            if (genText != null)
+            // [S5e-ext] Post-D3 all content authors gen=0; the badge is noise.
+            // Symmetric toggle so pooled/reused views recover if gen>0 returns.
+            bool showGen = card.InspirationGenerated > 0;
+            if (genBadgeRoot != null)
+                genBadgeRoot.SetActive(showGen);
+            else if (genText != null)
+                genText.gameObject.SetActive(showGen);
+            if (genText != null && showGen)
                 genText.text = card.InspirationGenerated.ToString();
 
             // Full detail description (composition cards get the expanded view).

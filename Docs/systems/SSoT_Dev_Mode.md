@@ -60,7 +60,7 @@ Tab content:
 **Stats tab (Phase 3.1–3.3b):**
 - Breakdown section (P3.1): musician selector grid (shows `{Name} [{Stress}/{MaxStress}]`, appends `(BD)` when `IsBreakdown` is true), stress/stun/status readout for selected musician, "Force Breakdown → {Name}" button.
 - Status readout iterates `StatusEffectContainer.Active` and displays `{DisplayName}×{Stacks}` for each active entry.
-- Gig-Wide Stats section (P3.2 + P3.3a): SongHype slider `[0, MaxSongHype]`, Inspiration slider `[0, MaxInspiration]` bound to `LiveInspiration` (session value when composing, PD value otherwise), BandCohesion stepper (`−`/`+`, floor 0, no upper cap), Flow stepper (`−`/`+`, uniform ±1 applied to every musician's `DamageUpFlat` stack; aggregate readout via `GigManager.TotalFlowStacks`). Sliders fire through `GigManager.DevSet…` wrappers. Slider idle-epsilon on SongHype (`0.01f`) avoids per-frame event spam.
+- Gig-Wide Stats section (P3.2 + P3.3a): SongHype slider `[0, MaxSongHype]`, Inspiration slider `[0, MaxInspiration]` bound to `LiveInspiration` (session value when composing, PD value otherwise), BandCohesion stepper (`−`/`+`, floor 0, no upper cap), Flow stepper (`−`/`+`, uniform ±1 applied to every musician's `DamageUpFlat` stack; aggregate readout via `GigManager.TotalFlowStacks`). Sliders fire through `GigManager.DevSet…` wrappers. Slider idle-epsilon on SongHype (`0.01f`) avoids per-frame event spam. **S5f note (#15):** the Gig-Wide Stats SongHype **slider** routes through `DevSetSongHypeAbsolute` (guarded by `GigDevSettingsSO.debugSongHype`) and is unchanged — it was already gated. The separate `GigManager.DevAddSongHype` / `DevResetSongHype` wrappers (not surfaced by this slider) are compile-gated under `ALWTTT_DEV` as of S5f and stripped from non-dev builds.
 - Per-Character section (P3.3a + P3.3b): musician selector grid (shares index with Breakdown section) + per-musician Stress slider, MaxStress stepper (floor 1), Composure stepper (backed by `TempShieldTurn` status stacks — see §14.3). Audience selector grid + per-audience Vibe slider, MaxVibe stepper (floor 1). All stat writes fire through `DevSet…` wrappers on the respective stats classes.
 - Per-Character status editing (P3.3b): each character's subsection (musician, audience) includes a status picker below the stat controls. **Active readout:** lists all active statuses on the selected character (`{DisplayName} ×{Stacks}`) with `[−1]` (decrements via `container.Apply(def, -1)`, auto-clears at 0) and `[Clear]` (immediate full removal via `container.Clear(id)`) buttons per row. **Catalogue picker:** `[◄][►]` buttons cycle through non-null entries in the character's `StatusCatalogue.Effects`; selected entry shown as `{DisplayName} ({EffectId})`; `[+1]` button calls `container.Apply(selectedSO, 1)` with a lime `[DevMode]` log. No `DevSet…` wrappers needed — the existing `StatusEffectContainer` public API is sufficient. Falls back gracefully: "(no catalogue — assign on prefab)" when `StatusCatalogue` is null on the character.
 
@@ -139,6 +139,7 @@ This is the load-bearing fact Phase 1 codified. If Infinite Turns is ever re-imp
 - `Assets/Scripts/Characters/Band/BandCharacterStats.cs` — Phase 3.1 surface: `DevResetBreakdown()` method. Sets `IsBreakdown = false` so `AddStress` can re-trigger the Breakdown path. Phase 3.3a surface: `CheckBreakdownThreshold()` private helper extracted from `AddStress`, `DevSetCurrentStress(int)`, `DevSetMaxStress(int)` (floor 1, clamps Current down, re-checks threshold). Dev Mode only; production code never un-breaks a musician.
 - `Assets/Scripts/Characters/Band/MusicianBase.cs` — `DevForceBreakdown()` method. Calls `DevResetBreakdown()` then `AddStress(MaxStress)`. Routes through the natural Breakdown path (Cohesion−1, Stress reset, Shaken apply, IsStunned). Re-triggerable.
 - `Assets/Scripts/Runtime/CompositionSession.cs` — Phase 3.2 block: `CurrentInspiration` getter + `DevSetCurrentInspiration(int)` method. Sets the session's live `_currentInspiration` field and calls `_ctx.CompositionUI?.SetInspiration(value)` to refresh the composition UI. Does not write back to `PersistentGameplayData` — caller (`GigManager.DevSetInspiration`) owns that side.
+- `Assets/Scripts/Runtime/CompositionSession.cs` — S5g seed-wiring addition (2026-07-05): `DevPinnedSongSeed` (`static int?`). When non-null, `Begin()` uses it in place of run entropy to seed `_songSeed`, producing a reproducible song render (see `SSoT_Runtime_CompositionSession_Integration.md §10`). Code/debugger-only today — no overlay control wires it; see §8.7.
 
 All Dev Mode hooks are `#if ALWTTT_DEV`-guarded. No production behavior change when the define is absent.
 
@@ -179,6 +180,9 @@ This is **accepted pollution**, decided 2026-04-20 in the Phase 2 sub-roadmap. T
 The asset was removed on 2026-04-20 during Phase 2 closure (see changelog-ssot). ST-P2-4 was re-validated using the `Waltz` composition card from `TestDeck_FullCoverage`, which produces the same runtime surface (composition card spawned via DevSpawn, dropped in a part zone, successfully queued).
 
 If a "no-op composition card" concept is ever needed again, it requires an explicit design decision to extend `ApplyCardToPart` to accept `PrimaryKind == None` with no modifier effects. Not scheduled.
+
+### 8.7 `DevPinnedSongSeed` has no overlay control (deferred, 2026-07-05)
+`CompositionSession.DevPinnedSongSeed` (see §6) is settable only via code or the debugger today; no Stats-tab or other overlay control wires it, so it cannot be toggled during a normal playtest session. Tracked as Dev Mode surface debt — see the tab-wiring item in the idea backlog, §16.
 
 ---
 
@@ -600,3 +604,15 @@ ST-P33b-1 through ST-P33b-10: all passed 2026-04-24. See §9.7.
 ### 15.6 Unblocks
 
 Arbitrary status application and removal on any character without card authoring or encounter changes. Closes the state-editing gap identified in §14.8. Full Dev Mode stat/state toolset now covers: infinite turns, card spawning, gig-wide meters, per-character stats, and per-character status stacks. Remaining deferred: P3.4 audience transparency panel, encounter modifier toggles.
+
+---
+
+## 16. Idea backlog (future Dev Mode surfaces, planning-only)
+
+**Status: planning-only — not scheduled, not implementation truth.** Small Dev Mode feature ideas surfaced incidentally during other batches, parked here until a batch picks one up. Listing an item here does not promote it to a committed phase or authorize implementation.
+
+1. **Runtime control of loops-per-song**, to make testing long/short songs faster without editing SO assets.
+2. **Runtime control of songs-left**, to skip to the end of a gig or extend it on demand.
+3. **Overlay tab wiring for `DevPinnedSongSeed`** (§8.7, §6) — currently code/debugger-only.
+
+> **Placement note (2026-07-05).** This backlog was originally specified to land in `M1_5_Dev_Mode_Sub_Roadmap.md`. That doc is archived (`SSoT_INDEX.md` lists it under Archived planning docs, superseded by this SSoT), so the backlog was placed here instead to avoid silently reviving a retired planning surface — see `changelog-ssot.md` (2026-07-05 entry) for the reasoning. Redirect back to a fresh live Dev Mode sub-roadmap instead if the backlog outgrows this section.

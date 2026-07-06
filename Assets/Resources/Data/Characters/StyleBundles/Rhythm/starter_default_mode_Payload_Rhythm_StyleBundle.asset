@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.RhythmCardConfigSO
   appliesTo: 0
   patternOverride: {fileID: 0}
-  patternPalette: {fileID: 11400000, guid: 73ed2ee46dcb7e543acf738b23a20897, type: 2}
+  patternPalette: {fileID: 11400000, guid: d4ddf8c4a48920d45ac07318a7de6550, type: 2}
   recipeOverride:
     RhythmStyleId: 
     HatDensity: 0

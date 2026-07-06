@@ -1,4 +1,4 @@
-using ALWTTT.Interfaces;
+ï»¿using ALWTTT.Interfaces;
 using UnityEngine;
 
 namespace ALWTTT.Data
@@ -32,7 +32,7 @@ namespace ALWTTT.Data
 
         [SerializeField, Tooltip("Cards drawn when Play is pressed (start of " +
             "the jam, before the first loop renders). 0 = disabled. " +
-            "Independent of DrawPerLoop — set equal if you want them to match. " +
+            "Independent of DrawPerLoop ï¿½ set equal if you want them to match. " +
             "Hand-cap clamp is applied by DeckManager.DrawCards.")]
         private int drawCardsOnPlay = 0;
         public int DrawCardsOnPlay => drawCardsOnPlay;
@@ -58,9 +58,9 @@ namespace ALWTTT.Data
 
         // --- Setup-screen defaults (formerly on GigSetupConfigData) ---
 
-        [Header("Setup Defaults — Inspiration")]
+        [Header("Setup Defaults ï¿½ Inspiration")]
         [SerializeField] private int defaultInitialGigInspiration = 0;
-        [SerializeField] private int defaultInspirationPerLoop = 0;
+        [SerializeField] private int defaultInspirationPerLoop = 3;   // [S5e / D2] was 0
 
         public int DefaultInitialGigInspiration => defaultInitialGigInspiration;
         public int DefaultInspirationPerLoop => defaultInspirationPerLoop;
@@ -73,14 +73,14 @@ namespace ALWTTT.Data
         /// </summary>
         public int DefaultStartingInspiration => defaultInitialGigInspiration;
 
-        [Header("Setup Defaults — Hand / Inspiration Policies")]
-        [SerializeField] private bool defaultDiscardHandBetweenTurns = true;
+        [Header("Setup Defaults ï¿½ Hand / Inspiration Policies")]
+        [SerializeField] private bool defaultDiscardHandBetweenTurns = false;
         [SerializeField] private bool defaultKeepInspirationBetweenTurns = false;
 
         public bool DefaultDiscardHandBetweenTurns => defaultDiscardHandBetweenTurns;
         public bool DefaultKeepInspirationBetweenTurns => defaultKeepInspirationBetweenTurns;
 
-        [Header("Setup Defaults — Required Songs")]
+        [Header("Setup Defaults ï¿½ Required Songs")]
         [SerializeField] private bool allowOverrideRequiredSongCount = true;
         [SerializeField, Min(1)] private int defaultRequiredSongCount = 1;
 

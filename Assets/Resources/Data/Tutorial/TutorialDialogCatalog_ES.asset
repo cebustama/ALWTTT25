@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1686f8524e587947b6b57e5b8f795a8, type: 3}
+  m_Name: TutorialDialogCatalog_ES
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogCatalogSO
+  dialogs:
+  - {fileID: 11400000, guid: 94bf4d88e37f65846b82458347dbf4f2, type: 2}
+  - {fileID: 11400000, guid: 193a1fef072d81243b04fae7d74d9913, type: 2}
+  - {fileID: 11400000, guid: ec2ab384f0a43fd4f88752883be25857, type: 2}
+  - {fileID: 11400000, guid: 3e906fde9631b444b8fd44ffc330c105, type: 2}
+  - {fileID: 11400000, guid: 94cc0e9974f8fae40a40e252cd1eba03, type: 2}
+  - {fileID: 11400000, guid: a2631217d2193bc47ab20576644b99ed, type: 2}
+  - {fileID: 11400000, guid: a827c1e10ec765f478398f3693d778c5, type: 2}
+  - {fileID: 11400000, guid: 575bcec081b519947af1354cc2ea5394, type: 2}
+  - {fileID: 11400000, guid: 9d0244324a8a06346a3ab86f6019a9f7, type: 2}
+  - {fileID: 11400000, guid: e46aa16eba54c15448a67919a5cd4a47, type: 2}
+  - {fileID: 11400000, guid: 6c1bad24a9dd4bb478a78ef2cc929a8f, type: 2}

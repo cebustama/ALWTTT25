@@ -48,6 +48,7 @@ MonoBehaviour:
   songHypeStage1SfxTag: lights
   songHypeStage2SfxTag: smoke
   songHypeStage3SfxTag: fire
+  showSongHypeBar: 0
   sfxBonusVibeStage1: 3
   sfxBonusVibeStage2: 6
   sfxBonusVibeStage3: 10

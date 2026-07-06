@@ -18,4 +18,4 @@ MonoBehaviour:
   encounter: {fileID: 11400000, guid: 5fc6b5d1950cd734da7e44f81c2cbaf5, type: 2}
   requiredSongCount: 2
   initialGigInspiration: 3
-  inspirationPerLoop: 0
+  inspirationPerLoop: 3

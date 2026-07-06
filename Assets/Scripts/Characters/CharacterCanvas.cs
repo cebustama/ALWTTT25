@@ -1,4 +1,4 @@
-using ALWTTT.Status;
+ï»¿using ALWTTT.Status;
 using ALWTTT.Status.Runtime;
 using ALWTTT.Tooltips;
 using ALWTTT.UI;
@@ -27,17 +27,36 @@ namespace ALWTTT.Characters
                  "are assigned at runtime from the character's StatusEffectContainer.")]
         [SerializeField] protected StatusIconBase statusIconBasePrefab;
 
-        // M1.2: lazy dictionary — entries created on first status application, removed on clear.
+        // M1.2: lazy dictionary ï¿½ entries created on first status application, removed on clear.
         private readonly Dictionary<CharacterStatusId, StatusIconBase> _activeIcons = new();
 
         private StatusEffectContainer _boundContainer;
+
+        // [S5e-ext] Last meter values pushed through SetCurrentVibe /
+        // BandCharacterCanvas.SetCurrentStress. Drives full-bar concealment.
+        private int _meterCurrent = -1;
+        private int _meterMax = -1;
+
+        /// <summary>[S5e-ext] True once a meter value has been cached and it sits at Max.</summary>
+        protected bool IsMeterFull => _meterMax > 0 && _meterCurrent >= _meterMax;
+
+        /// <summary>
+        /// [S5e-ext] Cache the latest meter state. Called by SetCurrentVibe here
+        /// and by BandCharacterCanvas.SetCurrentStress. Must run BEFORE
+        /// UpdateVisibility so the steady-state rule sees fresh values.
+        /// </summary>
+        protected void CacheMeterValue(int current, int max)
+        {
+            _meterCurrent = current;
+            _meterMax = max;
+        }
 
         #region Setup
 
         public void InitCanvas(string characterName)
         {
             characterNameText.text = characterName;
-            // No pre-population — icons are created lazily via container events.
+            // No pre-population ï¿½ icons are created lazily via container events.
         }
 
         /// <summary>
@@ -81,7 +100,7 @@ namespace ALWTTT.Characters
                 TryCreateIcon(id);
 
             // Update stack count (container fires OnStatusApplied with delta,
-            // but we want total stacks — read from container).
+            // but we want total stacks ï¿½ read from container).
             if (_activeIcons.TryGetValue(id, out var icon) && _boundContainer != null)
             {
                 int totalStacks = _boundContainer.GetStacks(id);
@@ -93,7 +112,7 @@ namespace ALWTTT.Characters
         {
             if (!_activeIcons.TryGetValue(id, out var icon))
             {
-                // Status changed but no icon yet — try to create.
+                // Status changed but no icon yet ï¿½ try to create.
                 TryCreateIcon(id);
                 if (!_activeIcons.TryGetValue(id, out icon)) return;
             }
@@ -167,30 +186,48 @@ namespace ALWTTT.Characters
 
         public void SetCurrentVibe(int current, int max, float duration)
         {
+            CacheMeterValue(current, max); // [S5e-ext]
             healthBar?.SetCurrentValue(current, max, duration);
         }
 
         public void SetHighlight(bool open) =>
             highlightRoot.gameObject.SetActive(open);
 
+        // [S5e-ext] Bar visibility policy (supersedes the pre-S5e "hidden until
+        // damaged" convention and the transitional post-S5e "always visible"):
+        //   - meter at Max  -> bar hidden (no information to convey)
+        //   - meter below Max -> bar persistently visible (including at 0:
+        //     an empty bar reads as collapsed/conquered)
+        //   - hover (pointer enter/exit via MusicianBase/AudienceCharacterBase)
+        //     -> reveal while hovered; on exit, re-conceal only if full.
+        // UpdateVisibility applies the steady-state rule directly on the bar and
+        // deliberately does NOT route through the Show/HideContextual virtuals,
+        // so meter changes no longer toggle hover-only chrome (e.g. the band
+        // stats panel) as a side effect.
+
+        private void SetBarVisible(bool visible)
+        {
+            if (healthBar != null && healthBar.CanvasGroup != null)
+                healthBar.CanvasGroup.alpha = visible ? 1f : 0f;
+        }
+
+        /// <summary>Steady-state rule; called on every meter change.</summary>
         public void UpdateVisibility()
         {
-            ShowContextual();
-            HideContextual();
+            SetBarVisible(!IsMeterFull);
         }
 
+        /// <summary>Hover-exit / build-time conceal: hides the bar only when full.</summary>
         public virtual void HideContextual()
         {
-            if (healthBar.CurrentValue == 0)
-            {
-                healthBar.CanvasGroup.alpha = 0;
-            }
+            if (IsMeterFull)
+                SetBarVisible(false);
         }
 
+        /// <summary>Hover-enter reveal: always shows the bar, full or not.</summary>
         public virtual void ShowContextual()
         {
-            if (healthBar.CurrentValue > 0)
-                healthBar.CanvasGroup.alpha = 1;
+            SetBarVisible(true);
         }
 
         #endregion

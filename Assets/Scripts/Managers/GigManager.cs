@@ -740,7 +740,12 @@ namespace ALWTTT.Managers
             AudioManager.Instance?.FadeOutAmbience();
 
             // show the hype bar when music starts
-            if (UIManager != null && UIManager.GigCanvas != null)
+            // [S5f / #6a] Gated by presentation.ShowSongHypeBar: the simplified
+            // first-gig shape hides the bar (and the C1 readout under it).
+            // SongHype accrual, stage SFX, and Vibe conversion are unaffected.
+            // Null presentation preserves legacy behavior (show).
+            if (UIManager != null && UIManager.GigCanvas != null &&
+                (presentation == null || presentation.ShowSongHypeBar))
             {
                 UIManager.GigCanvas.SetSongHypeVisible(true);
                 UIManager.GigCanvas.SetSongHype(SongHype01);
@@ -1138,7 +1143,7 @@ namespace ALWTTT.Managers
             // read stacks → apply Vibe → decay (handled by the existing Tick call below).
             // IsBlocked audiences are skipped per Design_Audience_Status_v1 §3.8 (consistent
             // with ComputeSongVibeDeltas). Convinced audiences tick harmlessly — AddVibe
-            // clamps at MaxVibe and CheckConvincedThreshold guards re-firing.
+            // [S5e] clamps at 0 and CheckConvincedThreshold guards re-firing.
             //
             // [B2.5 / #1] Staggered: a yield return waitDelay fires after each holder is
             // processed, so floating texts pace on the same cadence as audience actions
@@ -1179,7 +1184,7 @@ namespace ALWTTT.Managers
                     {
                         FxManager.Instance.SpawnFloatingText(
                             a.TextSpawnRoot,
-                            $"+{appliedEarworm} VIBE (EARWORM)",
+                            $"-{appliedEarworm} VIBE (EARWORM)", // [S5e] damage-number convention
                             new Vector2(-0.4f, 1.0f),
                             new Color(0.85f, 0.35f, 1.0f));
                     }
@@ -1968,8 +1973,8 @@ namespace ALWTTT.Managers
         /// Core SongHype mutation: bounds-clamps, syncs UI, fires threshold
         /// detection, raises change event. Bypasses the DebugSongHype guard.
         /// Gameplay path uses <see cref="AddSongHype"/> (which respects the
-        /// guard); dev tools use <see cref="DevAddSongHype"/> /
-        /// <see cref="DevResetSongHype"/> (which bypass it).
+        /// guard); dev tools use DevAddSongHype / DevResetSongHype
+        /// (which bypass it; compile-gated under ALWTTT_DEV per S5f/#15).
         /// </summary>
         private void AddSongHypeCore(float delta)
         {
@@ -1990,10 +1995,13 @@ namespace ALWTTT.Managers
             OnSongHypeChanged01?.Invoke(SongHype01);
         }
 
+#if ALWTTT_DEV
         /// <summary>
         /// [B2 / #6] Dev tool: adjust SongHype by an absolute delta, bypassing
         /// the DebugSongHype guard. Routes through threshold detection so
         /// stage SFX fire correctly on upward crossings.
+        /// [S5f / #15] Compile-gated: dev-only surface, stripped from
+        /// non-dev builds (only caller is DevModeController).
         /// </summary>
         public void DevAddSongHype(float delta) => AddSongHypeCore(delta);
 
@@ -2001,8 +2009,10 @@ namespace ALWTTT.Managers
         /// [B2 / #6] Dev tool: reset SongHype to 0 and reset the per-song stage
         /// counter, simulating a new-song boundary. Lets devs re-test threshold
         /// crossings without finishing a real song.
+        /// [S5f / #15] Compile-gated (see DevAddSongHype).
         /// </summary>
         public void DevResetSongHype() => ResetSongHype();
+#endif
 
         /// <summary>
         /// [S3 D-S3-7=A] Seeds the per-song starting hype WITHOUT firing stage

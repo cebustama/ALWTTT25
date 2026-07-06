@@ -55,6 +55,7 @@ MonoBehaviour:
   descTextField: {fileID: 8486886504165462760}
   inspirationCostTextField: {fileID: 1062792592149586426}
   inspirationGenTextField: {fileID: 722027446639653306}
+  inspirationGenBadgeRoot: {fileID: 8967130051189623001}
   typeTextField: {fileID: 5115853906357149707}
   actionBackground: {fileID: 3966135149724282992}
   compositionBackground: {fileID: 8974298631596425560}
@@ -296,6 +297,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &8967130051189623001 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3199168694923872801, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 5770271931771093752}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &8974298631596425560 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3215291619574793120, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}

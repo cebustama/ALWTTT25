@@ -18,6 +18,7 @@ MonoBehaviour:
   revisitTitle: The crowd pushes back
   portrait: {fileID: -8592814519688813882, guid: e4ce0c89601e9a34497855d51bc2812f, type: 3}
   pages:
-  - Now the crowd pushes back. Their pressure builds Stress; your Vibe is how you
-    win them over. Keep your Vibe climbing.
+  - "The crowd won't convince itself. Their pressure wears down your musicians' Stress
+    \u2014 if one hits zero, they break down."
+  - Grind the crowd's Vibe to zero before they take your band down.
   highlightKey: 

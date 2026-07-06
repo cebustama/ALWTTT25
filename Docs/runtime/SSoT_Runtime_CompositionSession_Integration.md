@@ -48,6 +48,8 @@ Owns the song-scoped runtime state machine for composition and playback progress
 
 CompositionSession exposes `AddCurrentInspiration(int delta) → int` as the canonical session-budget mutator. It clamps to `PersistentGameplayData.MaxInspiration`, refreshes the composition UI, mirrors the result to `PersistentGameplayData.CurrentInspiration` (closing the dual-siting drift documented in `SSoT_Dev_Mode §13.4` at the production-path level), and returns the actual delta applied post-clamp. Track-derived per-loop gain (`HandleLoopFinished`) and host-driven per-loop gain (M4.6F-3 `OnCompositionLoopFinished`) both route through this method.
 
+CompositionSession also derives and owns the per-song render seed (`_songSeed`) consumed by every `RenderSinglePart` call for that song; see §10.
+
 ### 3.2 SongCompositionUI
 Owns the editable song/part/track model that composition cards mutate.
 
@@ -189,5 +191,26 @@ The following are intentionally **not** governed here:
 - package repository loading rules
 - package authoring/editor internals
 - package-side TS normalization algorithms
+- how the package turns a given seed into a palette-entry pick (selection-mechanism internals)
 
-Those belong in MidiGenPlay docs.
+Those belong in MidiGenPlay docs. ALWTTT's per-song render-**seed policy** — when a new seed is drawn and what it must never depend on — is ALWTTT truth and is governed in §10, not here.
+
+---
+
+## 10. Per-song render seed
+
+`CompositionSession` derives a single per-song render seed (`_songSeed`) once per song, in `Begin()`, from run entropy (`unchecked((int)DateTime.UtcNow.Ticks)`). The value is logged as `[Session] SongSeed=<n>` (musical-bug repro path) and passed on every `mm.RenderSinglePart(..., seedOverride: _songSeed)` call for that song. `_songSeed` is cleared in `End()`.
+
+**Guaranteed properties.**
+- **Intra-song stability** — the same seed drives the same pick across re-renders caused by cache invalidation within the same song (smoke-tested `ST-S5gb-2`).
+- **Cross-song variety** — a fresh seed is drawn per song (smoke-tested `ST-S5gb-1`).
+
+This deliberately replaces the accidental stability previously produced by the package's constant `defaultSeed`.
+
+**Prohibition.** The seed must never be derived from anything that changes between re-renders of the same song (a per-render clock read, a per-render counter). Doing so would break intra-song stability.
+
+**Cache key unaffected (D-S5gb-1=A).** `trackInputsHash` (invariant 9, §8) keeps its existing meaning — player-controlled inputs only. Cross-song isolation is guaranteed by the stem-cache/pin clear in `Begin()`/`End()` already documented in invariant 9; that claim is now **verified at runtime** by `ST-S5gb-3` (2026-07-05), moving invariant 9 from documented truth to observed truth for the cross-song-isolation portion of its claim. Documented fallback if this isolation is ever found to fail: fold the seed into the cache key itself (pattern `MOD-DIR-3`).
+
+**Package contract consumed, not redefined.** `GenerateSinglePart(..., int? seedOverride = null)`; the package resolves `baseSeed = seedOverride ?? settings.defaultSeed` once per render. `seedOverride: null` is bit-identical to pre-adoption behavior. Authority for the package-side mechanism: MidiGenPlay orchestration SSoT §5.1 (cross-project reference, read-only — not redefined here, per `SSoT_ALWTTT_MidiGenPlay_Boundary.md`).
+
+**Dev override.** A dev-only pin surface (`CompositionSession.DevPinnedSongSeed`) exists for reproducible songs; see `SSoT_Dev_Mode.md §8.7`.

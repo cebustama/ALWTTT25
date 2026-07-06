@@ -586,7 +586,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.000038146, y: 0}
+  m_AnchoredPosition: {x: 0.000038146973, y: 0}
   m_SizeDelta: {x: 0.000030518, y: 99.2785}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &3965821669477139886
@@ -2568,7 +2568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a2133949f4c4bc47af916032a899864, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialController
-  catalog: {fileID: 11400000, guid: 3d10c988488357a49a2225275615c210, type: 2}
+  catalog: {fileID: 11400000, guid: dcd6854b54ea444408f605c727504429, type: 2}
   overlay: {fileID: 2437441653244914728}
   defaultPortrait: {fileID: -8592814519688813882, guid: e4ce0c89601e9a34497855d51bc2812f, type: 3}
   defaultHoleShape: {fileID: -2413806693520163455, guid: c3f4ce8d58a1c1b4fb8ad00ca6e4b71a, type: 3}

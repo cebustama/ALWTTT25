@@ -153,6 +153,7 @@ namespace ALWTTT.Characters.Band
             float resetFraction = GigManager.Instance != null
                 ? GigManager.Instance.BreakdownStressResetFraction
                 : 0.5f;
+            // [S5e] restore fortitude to `resetFraction` of Max after Breakdown
             int resetTarget = Mathf.FloorToInt(stats.MaxStress * resetFraction);
             stats.SetCurrentStress(resetTarget);
 
@@ -183,6 +184,7 @@ namespace ALWTTT.Characters.Band
             Debug.Log($"<color=lime>[DevMode]</color> DevForceBreakdown → {CharacterName} " +
                       $"(Stress={stats.CurrentStress}/{stats.MaxStress}, IsBreakdown={stats.IsBreakdown})");
             stats.DevResetBreakdown();
+            // [S5e] AddStress(Max) guarantees depletion to 0 regardless of Current
             stats.AddStress(stats.MaxStress);
         }
 #endif

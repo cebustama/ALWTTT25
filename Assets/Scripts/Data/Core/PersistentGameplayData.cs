@@ -760,7 +760,10 @@ namespace ALWTTT.Data
 
                 if (musicianHealthDataList.Find(h => h.CharacterId == data.CharacterId) == null)
                 {
-                    SetMusicianHealthData(data.CharacterId, 0, data.InitialMaxStress);
+                    // [S5e] Inverted meter: seed at FULL fortitude (Current = Max).
+                    // Pre-S5e this seeded 0 (empty-stress convention); under the
+                    // inversion 0 = collapsed, so a fresh musician must start at Max.
+                    SetMusicianHealthData(data.CharacterId, data.InitialMaxStress, data.InitialMaxStress);
                 }
 
                 if (musicianGameplayDataList.Find(g => g.CharacterId == data.CharacterId) == null)
@@ -869,7 +872,8 @@ namespace ALWTTT.Data
 
             AvailableMusiciansList.Remove(musicianPrefab);
 
-            SetMusicianHealthData(newMusician.CharacterId, 0, newMusician.InitialMaxStress);
+            // [S5e] Inverted meter: seed a newly added musician at FULL fortitude.
+            SetMusicianHealthData(newMusician.CharacterId, newMusician.InitialMaxStress, newMusician.InitialMaxStress);
 
             var startingMelodicLeading = newMusician.Profile != null
                 ? newMusician.Profile.defaultMelodicLeading

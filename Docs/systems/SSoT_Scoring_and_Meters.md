@@ -43,13 +43,13 @@ Meaning:
 - `SongHype01` is the normalized form used in later conversions
 
 ### 2.3 Audience persuasion layer
-This is the audience-facing progress layer.
+This is the audience-facing persuasion layer.
 
 Canonical meter:
 - `Vibe` (per audience member)
 
 Meaning:
-- cumulative persuasion/engagement progress across the Gig
+- each member's remaining persuasion resistance (enemy-HP pool), depleted across the Gig (see §5)
 - not reset every loop
 - not identical to SongHype
 
@@ -82,6 +82,13 @@ Where `fillRatio` depends on `LoopScoringMode`:
 
 `possibleRoleCount` and `totalMusicians` are auto-detected at gig start from the band's composition cards and roster. This makes the scorer adaptive to any band size and role configuration.
 
+**[S5e note]** The complexity term (`0.5 × TotalComplexity`, sourced from
+per-track `inspirationGenerated`) is **inert as of S5e** (D-S5e-1=A): the
+starter deck's `inspirationGenerated` was stripped to 0 project-wide (D3),
+so `TotalComplexity = 0` for all current content and the term contributes
+nothing to any LoopScore. Retained in code; S5i owns its replacement or
+removal when the inspiration economy is re-tuned.
+
 ### 3.3 HypeDelta conversion
 
 `ComputeHypeDelta` maps LoopScore to a SongHype delta via a piecewise threshold table (`HypeThresholds` struct). Both thresholds and deltas are Inspector-tuneable on `MeterTuningSO` (M4.6F-2; authored on `GigManager` pre-F-2). Defaults: Amazing ≥25 → +15, VeryGood ≥15 → +8, Decent ≥5 → +3, Neutral >−5 → 0, Meh >−15 → −5, Bad else → −12.
@@ -103,16 +110,23 @@ Rules:
 
 ## 5. Vibe
 
-`Vibe` is the persuasion result on each audience member.
+`Vibe` is each audience member's remaining **persuasion resistance** — an
+enemy-HP-style pool. **[S5e inversion, 2026-07-02]**
 
 Rules:
-- Vibe is applied per audience member
-- Vibe persists across songs within a Gig by default
+- tracked per audience member; starts at `MaxVibe` (full resistance)
+- **depleted** by incoming persuasion (song-end conversion, card effects,
+  Earworm ticks); reaching **0 = Convinced ("conquered")**
+- persists across songs within a Gig by default
 - Vibe is not a duplicate of SongHype:
-  - SongHype = current-song momentum
-  - Vibe = cumulative persuasion progress
+  - SongHype = current-song momentum (unchanged by S5e)
+  - Vibe = remaining resistance to cumulative persuasion
 
 This split is essential and must not be collapsed.
+
+Magnitude semantics of the conversion chain are direction-agnostic: a
+"VibeDelta of N" means "N persuasion damage" — the same N as before the
+inversion.
 
 ---
 
@@ -127,6 +141,9 @@ Loop performance
     -> Song-end persuasion conversion
     -> VibeDelta per audience member
 ```
+
+Since S5e, `VibeDelta per audience member` is applied as **depletion** of
+that member's Vibe pool (persuasion damage), not accumulation toward a goal.
 
 Additional audience-specific modifiers may influence the last step.
 
@@ -203,9 +220,13 @@ It is a defensive meter/status that absorbs Stress before Stress application.
 Its main home is combat/status semantics, not scoring.
 
 ### 7.3 Stress
-Stress is pressure against performers.
-It is not a positive scoring meter.
-It may indirectly affect loop quality or card/action availability, but it is not part of the positive conversion chain.
+**[S5e inversion]** The Stress meter stores the musician's remaining
+**mental fortitude** (HP-style pool): starts at `MaxStress`, depleted by
+incoming Stress, **0 = Breakdown (collapse)** — the same deplete-to-0-loses
+pattern as Band Cohesion. Incoming-Stress magnitudes, Composure absorption
+(shield semantics unchanged), and Exposed amplification are numerically
+identical to pre-S5e; only storage direction and the threshold boundary
+changed. Stress remains outside the positive scoring chain.
 
 ---
 

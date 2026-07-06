@@ -260,7 +260,7 @@ namespace ALWTTT.DevMode
             if (stats == null) { GUILayout.Label("  (no stats)"); return; }
 
             // --- CurrentStress slider ---
-            // DevSetCurrentStress fires Breakdown at >= MaxStress (sticky).
+            // [S5e] DevSetCurrentStress fires Breakdown at 0 (pool empty, sticky).
             int currentStress = stats.CurrentStress;
             int maxStress = Mathf.Max(1, stats.MaxStress);
             GUILayout.BeginHorizontal();
@@ -354,7 +354,7 @@ namespace ALWTTT.DevMode
             if (stats == null) { GUILayout.Label("  (no stats)"); return; }
 
             // --- CurrentVibe slider ---
-            // DevSetCurrentVibe fires Convinced at >= MaxVibe (sticky).
+            // [S5e] DevSetCurrentVibe fires Convinced at 0 (pool empty, sticky).
             int currentVibe = stats.CurrentVibe;
             int maxVibe = Mathf.Max(1, stats.MaxVibe);
             GUILayout.BeginHorizontal();

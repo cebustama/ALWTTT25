@@ -7,6 +7,20 @@ using UnityEngine;
 
 namespace ALWTTT.Characters.Band
 {
+    /// <summary>
+    /// [S5e / D1] INVERTED METER SEMANTICS.
+    /// CurrentStress is now the musician's remaining MENTAL FORTITUDE
+    /// (an HP-style pool): it starts at MaxStress and is DEPLETED by
+    /// incoming Stress. Breakdown fires at CurrentStress == 0
+    /// (mirror of the BandCohesion deplete-to-0 pattern in GigManager).
+    ///
+    /// API contract is magnitude-preserving and direction-agnostic for
+    /// callers: AddStress(n) still means "take n incoming Stress",
+    /// HealStress(n) still means "recover n". Only the internal storage
+    /// direction and the threshold boundary changed. Field names
+    /// (CurrentStress/MaxStress) are retained to avoid a rename cascade
+    /// across the API surface (D-S5e-2); a rename can be revisited at S5i+.
+    /// </summary>
     public class BandCharacterStats : CharacterStats, IMusicianStats
     {
         public int CurrentStress { get; set; }
@@ -32,7 +46,7 @@ namespace ALWTTT.Characters.Band
 
         public override string ToString()
         {
-            return $"[Musician Stats] Stress: {CurrentStress}/{MaxStress}, " +
+            return $"[Musician Stats] Fortitude(Stress): {CurrentStress}/{MaxStress}, " +
                $"CHR: {Charm}, THC: {Technique}, EMT: {Emotion}";
         }
 
@@ -53,7 +67,8 @@ namespace ALWTTT.Characters.Band
             base.Setup(canvas, maxHp);
 
             MaxStress = maxHp;
-            CurrentStress = 0;
+            // [S5e] Inverted meter: start at full fortitude, deplete toward 0.
+            CurrentStress = MaxStress;
 
             OnStressChanged += bandCharacterCanvas.UpdateHealthText;
         }
@@ -82,9 +97,13 @@ namespace ALWTTT.Characters.Band
             OnStressChanged?.Invoke(CurrentStress, MaxStress);
         }
 
+        /// <summary>
+        /// [S5e] Take <paramref name="amount"/> incoming Stress: DEPLETES the
+        /// fortitude pool. Magnitude semantics unchanged for callers.
+        /// </summary>
         public void AddStress(int amount, float duration = 1f)
         {
-            SetCurrentStress(CurrentStress + amount, duration);
+            SetCurrentStress(CurrentStress - amount, duration);
             CheckBreakdownThreshold();
         }
 
@@ -92,19 +111,25 @@ namespace ALWTTT.Characters.Band
         /// Shared Breakdown-threshold check. Called from every path that sets
         /// CurrentStress (play: AddStress; dev: DevSetCurrentStress/DevSetMaxStress).
         /// Preserves the !IsBreakdown guard — Breakdown is a sticky state transition.
+        /// [S5e] Fires when the fortitude pool is EMPTY (deplete-to-0-collapses,
+        /// mirror of the BandCohesion == 0 → LoseGig pattern in GigManager).
         /// </summary>
         private void CheckBreakdownThreshold()
         {
-            if (CurrentStress >= MaxStress && !IsBreakdown)
+            if (CurrentStress <= 0 && !IsBreakdown)
             {
                 IsBreakdown = true;
                 OnBreakdown?.Invoke();
             }
         }
 
+        /// <summary>
+        /// [S5e] Recover <paramref name="amount"/> fortitude (heal). Clamped to
+        /// MaxStress inside SetCurrentStress.
+        /// </summary>
         public void HealStress(int amount, float duration = 1f)
         {
-            SetCurrentStress(Mathf.Max(0, CurrentStress - amount), duration);
+            SetCurrentStress(CurrentStress + amount, duration);
         }
 
         /// <summary>
@@ -148,7 +173,8 @@ namespace ALWTTT.Characters.Band
         /// <summary>
         /// Single canonical entry point for incoming positive Stress.
         /// 1. Absorbs Composure (TempShieldTurn) from the SO-based StatusEffectContainer.
-        /// 2. Applies remainder via AddStress (which triggers Breakdown check).
+        /// 2. Applies remainder via AddStress (which depletes fortitude and
+        ///    triggers the Breakdown check at 0). [S5e]
         /// Call from card effects AND audience actions.
         /// </summary>
         public (int absorbed, int applied) ApplyIncomingStressWithComposure(
@@ -236,8 +262,8 @@ namespace ALWTTT.Characters.Band
 
 #if ALWTTT_DEV
         /// <summary>
-        /// Resets IsBreakdown so a subsequent AddStress reaching MaxStress
-        /// re-triggers the full Breakdown path. Dev Mode only.
+        /// Resets IsBreakdown so a subsequent AddStress depleting the pool to 0
+        /// re-triggers the full Breakdown path. Dev Mode only. [S5e]
         /// </summary>
         public void DevResetBreakdown()
         {
@@ -245,8 +271,9 @@ namespace ALWTTT.Characters.Band
         }
 
         /// <summary>
-        /// Dev Mode: Set Stress directly to a clamped target value. Fires Breakdown
-        /// if the target reaches MaxStress and musician is not yet broken. Skips
+        /// Dev Mode: Set Stress (fortitude) directly to a clamped target value.
+        /// [S5e] Fires Breakdown if the target reaches 0 and the musician is not
+        /// yet broken. Skips
         /// animation (duration=0f) for instant dev-UI feedback.
         /// Symmetric-consequences per SSoT_Dev_Mode §13.3.
         /// </summary>
@@ -258,8 +285,10 @@ namespace ALWTTT.Characters.Band
 
         /// <summary>
         /// Dev Mode: Set MaxStress to a new value (floor 1). If CurrentStress
-        /// exceeds the new max, Current is clamped down. Re-checks Breakdown
-        /// threshold — reducing MaxStress to current's value triggers Breakdown.
+        /// exceeds the new max, Current is clamped down. [S5e] Under inverted
+        /// semantics, changing MaxStress can no longer trigger Breakdown by
+        /// itself (the clamp floor keeps Current ≥ 1); the threshold re-check
+        /// is retained as a harmless invariant guard.
         /// </summary>
         public void DevSetMaxStress(int newMax)
         {

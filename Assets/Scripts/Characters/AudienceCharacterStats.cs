@@ -9,11 +9,25 @@ using UnityEngine;
 
 namespace ALWTTT.Characters.Audience
 {
+    /// <summary>
+    /// [S5e / D1] INVERTED METER SEMANTICS.
+    /// CurrentVibe is now the audience member's remaining PERSUASION
+    /// RESISTANCE (enemy-HP-style pool): it starts at MaxVibe and is
+    /// DEPLETED by incoming Vibe. Convinced ("conquered") fires at
+    /// CurrentVibe == 0 (deplete-to-0 pattern, mirror of BandCohesion).
+    ///
+    /// API contract is magnitude-preserving and direction-agnostic for
+    /// callers: AddVibe(n) still means "n persuasion lands on this member"
+    /// (now depletes), RemoveVibe(n) still means "this member regains n
+    /// resistance" (now restores). Negative amounts keep their prior
+    /// player-facing meaning through the sign flip (the ModifyVibeSpec
+    /// negative path relies on this). Field names retained per D-S5e-2.
+    /// </summary>
     public class AudienceCharacterStats : CharacterStats, IAudienceStats
     {
         public int MaxVibe { get; set; } // "HP"
         public int CurrentVibe { get; private set; }
-        public bool IsConvinced { get; private set; } // "Death"
+        public bool IsConvinced { get; private set; } // "Death" (pool empty)
         public bool IsStunned { get; private set; }
 
         public Action OnConvinced;
@@ -38,7 +52,8 @@ namespace ALWTTT.Characters.Audience
             base.Setup(canvas, maxHp);
 
             MaxVibe = maxHp;
-            CurrentVibe = 0;
+            // [S5e] Inverted meter: start at full resistance, deplete toward 0.
+            CurrentVibe = MaxVibe;
 
             OnVibeChanged += characterCanvas.UpdateHealthText;
         }
@@ -63,15 +78,24 @@ namespace ALWTTT.Characters.Audience
                         MaxVibe :
                         targetCurrentVibe;
 
-            characterCanvas.SetCurrentVibe(targetCurrentVibe, MaxVibe, duration);
+            // [S5e] Pass the CLAMPED value to the canvas. Under deplete-to-0
+            // semantics, overkill damage would otherwise push a negative raw
+            // target into the bar animation.
+            characterCanvas.SetCurrentVibe(CurrentVibe, MaxVibe, duration);
             characterCanvas.UpdateVisibility();
 
             OnVibeChanged?.Invoke(CurrentVibe, MaxVibe);
         }
 
+        /// <summary>
+        /// [S5e] Apply <paramref name="amount"/> incoming persuasion: DEPLETES
+        /// the resistance pool. Negative amounts restore resistance (legacy
+        /// negative-ModifyVibeSpec path) — sign meaning preserved through the
+        /// inversion. Magnitude semantics unchanged for callers.
+        /// </summary>
         public void AddVibe(int amount, float duration = 2f)
         {
-            SetCurrentVibe(CurrentVibe + amount, duration);
+            SetCurrentVibe(CurrentVibe - amount, duration);
             CheckConvincedThreshold();
         }
 
@@ -81,7 +105,7 @@ namespace ALWTTT.Characters.Audience
         ///
         /// Currently registered statuses:
         /// - Indifference (CharacterStatusId.NegateIncomingPositive): while stacks > 0,
-        ///   blocks 100% of incoming Vibe. Stack decay happens via the container's Tick
+        ///   blocks 100% of incoming Vibe damage. Stack decay happens via the container's Tick
         ///   per its DecayMode/TickTiming config, NOT per-application — a block doesn't
         ///   reduce future blocking.
         ///
@@ -127,9 +151,13 @@ namespace ALWTTT.Characters.Audience
             return incoming;
         }
 
+        /// <summary>
+        /// [S5e] The member regains <paramref name="amount"/> persuasion
+        /// resistance (anti-player effect, as before). RESTORES the pool.
+        /// </summary>
         public void RemoveVibe(int amount, float duration = 2f)
         {
-            SetCurrentVibe(CurrentVibe - amount, duration);
+            SetCurrentVibe(CurrentVibe + amount, duration);
         }
 
         public void ApplyStatus(StatusType targetStatus, int value)
@@ -149,15 +177,15 @@ namespace ALWTTT.Characters.Audience
 
         /// <summary>
         /// Shared Convinced-threshold check. Called from every path that sets
-        /// CurrentVibe and could push the audience over MaxVibe (play: AddVibe;
-        /// dev: DevSetCurrentVibe / DevSetMaxVibe).
+        /// CurrentVibe and could deplete it to 0 (play: AddVibe;
+        /// dev: DevSetCurrentVibe / DevSetMaxVibe). [S5e]
         /// Preserves the !IsConvinced guard — Convinced is a sticky state
         /// transition; the !IsConvinced gate prevents OnConvinced re-firing.
         /// Mirror of BandCharacterStats.CheckBreakdownThreshold (M4.1 pattern).
         /// </summary>
         private void CheckConvincedThreshold()
         {
-            if (CurrentVibe >= MaxVibe && !IsConvinced)
+            if (CurrentVibe <= 0 && !IsConvinced)
             {
                 IsConvinced = true;
 
@@ -207,8 +235,9 @@ namespace ALWTTT.Characters.Audience
         }
 
         /// <summary>
-        /// Dev Mode: Set Vibe directly to a clamped target value. Fires Convinced
-        /// if the target reaches MaxVibe and audience is not yet convinced.
+        /// Dev Mode: Set Vibe (resistance) directly to a clamped target value.
+        /// [S5e] Fires Convinced if the target reaches 0 and the audience is not
+        /// yet convinced.
         /// Skips animation (duration=0.1f) for instant dev-UI feedback.
         /// Symmetric-consequences per SSoT_Dev_Mode §13.3.
         ///
@@ -224,8 +253,9 @@ namespace ALWTTT.Characters.Audience
         /// <summary>
         /// Dev Mode: Set MaxVibe to a new value (floor 1). If CurrentVibe
         /// exceeds the new max, Current is clamped down via SetCurrentVibe.
-        /// Re-checks Convinced threshold — reducing MaxVibe to current's value
-        /// triggers Convinced.
+        /// [S5e] Under inverted semantics, changing MaxVibe can no longer
+        /// trigger Convinced by itself (clamp floor keeps Current ≥ 1); the
+        /// threshold re-check is retained as a harmless invariant guard.
         /// </summary>
         public void DevSetMaxVibe(int newMax)
         {

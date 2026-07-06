@@ -1750,7 +1750,8 @@
 |   |   |   +---SpeechBubblePrefab.prefab
 |   |   |   +---StatusIconPrefab.prefab
 |   |   |   +---TooltipManager.prefab
-|   |   |   \---TooltipText.prefab
+|   |   |   +---TooltipText.prefab
+|   |   |   \---TutorialOverlay.prefab
 |   |   \---Utils
 |   |       \---CoreLoader.prefab
 |   +---Resources
@@ -1851,6 +1852,13 @@
 |   |   |   |   |   |   \---Backing Card - Gus - Modal.asset
 |   |   |   |   |   +---Melody Tracks
 |   |   |   |   |   |   +---MelodyCardConfigs
+|   |   |   |   |   |   |   +---SingingField
+|   |   |   |   |   |   |   |   +---Phrase_Hook_BurstDense.asset
+|   |   |   |   |   |   |   |   +---Phrase_Hook_BurstShort.asset
+|   |   |   |   |   |   |   |   +---Phrase_Hook_FlowDense.asset
+|   |   |   |   |   |   |   |   +---Phrase_Hook_FlowSparse.asset
+|   |   |   |   |   |   |   |   +---Phrase_Hook_SustainPickup.asset
+|   |   |   |   |   |   |   |   \---PhrasePalette_SingingField.asset
 |   |   |   |   |   |   |   +---DiffNoteAscendOctaves_CardConfig.asset
 |   |   |   |   |   |   |   +---DiffNoteAscendOctaves_Style.asset
 |   |   |   |   |   |   |   +---OneSlot_Phrase_EvenFlow.asset
@@ -2086,6 +2094,7 @@
 |   |   |   |   +---Melody Card Config - Test.asset
 |   |   |   |   +---Melody Flashy-Soloist.asset
 |   |   |   |   +---Melody Groove-Pocket.asset
+|   |   |   |   +---Melody Singing Field - Hook.asset
 |   |   |   |   \---Melody Sparse-Lyrical.asset
 |   |   |   +---Rewards
 |   |   |   |   \---Card Reward Data.asset
@@ -2106,20 +2115,49 @@
 |   |   |   |   \---Song 5.asset
 |   |   |   +---Sound
 |   |   |   |   \---ButtonSoundProfile.asset
-|   |   |   \---Status Effects
-|   |   |       +---Effects
-|   |   |       |   +---StatusEffect_Choke_DisableActions.asset
-|   |   |       |   +---StatusEffect_Composure_TempShieldTurn.asset
-|   |   |       |   +---StatusEffect_Earworm_DamageOverTime.asset
-|   |   |       |   +---StatusEffect_Exposed_DamageTakenUpFlat.asset
-|   |   |       |   +---StatusEffect_Feedback_DamageOverTime.asset
-|   |   |       |   +---StatusEffect_Flow_DamageUpFlat.asset
-|   |   |       |   +---StatusEffect_Hyped_DamageUpFlat.asset
-|   |   |       |   +---StatusEffect_Indifference_NegateIncomingPositive.asset
-|   |   |       |   \---StatusEffect_Shaken_ShakenRestriction.asset
-|   |   |       +---CharacterStatusPrimitiveDatabase.asset
-|   |   |       +---StatusEffectCatalogue_Audience.asset
-|   |   |       \---StatusEffectCatalogue_Musicians.asset
+|   |   |   +---Status Effects
+|   |   |   |   +---Effects
+|   |   |   |   |   +---StatusEffect_Choke_DisableActions.asset
+|   |   |   |   |   +---StatusEffect_Composure_TempShieldTurn.asset
+|   |   |   |   |   +---StatusEffect_Earworm_DamageOverTime.asset
+|   |   |   |   |   +---StatusEffect_Exposed_DamageTakenUpFlat.asset
+|   |   |   |   |   +---StatusEffect_Feedback_DamageOverTime.asset
+|   |   |   |   |   +---StatusEffect_Flow_DamageUpFlat.asset
+|   |   |   |   |   +---StatusEffect_Hyped_DamageUpFlat.asset
+|   |   |   |   |   +---StatusEffect_Indifference_NegateIncomingPositive.asset
+|   |   |   |   |   \---StatusEffect_Shaken_ShakenRestriction.asset
+|   |   |   |   +---CharacterStatusPrimitiveDatabase.asset
+|   |   |   |   +---StatusEffectCatalogue_Audience.asset
+|   |   |   |   \---StatusEffectCatalogue_Musicians.asset
+|   |   |   \---Tutorial
+|   |   |       +---Dialogs
+|   |   |       |   +---ES
+|   |   |       |   |   +---tut_first_action_card.asset
+|   |   |       |   |   +---tut_first_audience_action.asset
+|   |   |       |   |   +---tut_first_composition_card.asset
+|   |   |       |   |   +---tut_first_gig_won.asset
+|   |   |       |   |   +---tut_first_inspiration_spend.asset
+|   |   |       |   |   +---tut_first_loop_inspiration.asset
+|   |   |       |   |   +---tut_first_sfx_stage.asset
+|   |   |       |   |   +---tut_first_song_end.asset
+|   |   |       |   |   +---tut_first_sound_card.asset
+|   |   |       |   |   +---tut_first_status_applied.asset
+|   |   |       |   |   \---tut_welcome_to_gig.asset
+|   |   |       |   +---tut_first_action_card.asset
+|   |   |       |   +---tut_first_audience_action.asset
+|   |   |       |   +---tut_first_composition_card.asset
+|   |   |       |   +---tut_first_gig_won.asset
+|   |   |       |   +---tut_first_inspiration_spend.asset
+|   |   |       |   +---tut_first_loop_inspiration.asset
+|   |   |       |   +---tut_first_sfx_stage.asset
+|   |   |       |   +---tut_first_song_end.asset
+|   |   |       |   +---tut_first_sound_card.asset
+|   |   |       |   +---tut_first_status_applied.asset
+|   |   |       |   \---tut_welcome_to_gig.asset
+|   |   |       +---Portraits
+|   |   |       |   \---capitan_mensaje.png
+|   |   |       +---TutorialDialogCatalog_EN.asset
+|   |   |       \---TutorialDialogCatalog_ES.asset
 |   |   +---LLM
 |   |   |   \---AnthropicClientData.asset
 |   |   +---ScriptableObjects
@@ -2181,6 +2219,30 @@
 |   |   |   |   |   +---Untitled 1.asset
 |   |   |   |   |   \---Untitled.asset
 |   |   |   |   +---Drums
+|   |   |   |   |   +---3_4
+|   |   |   |   |   |   +---WL_BalladSparse.asset
+|   |   |   |   |   |   +---WL_CountryWaltz.asset
+|   |   |   |   |   |   +---WL_FunkWaltz.asset
+|   |   |   |   |   |   +---WL_JazzWaltz.asset
+|   |   |   |   |   |   \---WL_RockWaltz.asset
+|   |   |   |   |   +---4_4
+|   |   |   |   |   |   +---FF_BreakbeatDense.asset
+|   |   |   |   |   |   +---FF_DiscoPulse.asset
+|   |   |   |   |   |   +---FF_HalfTimeHeavy.asset
+|   |   |   |   |   |   +---FF_LatinClaveEngine.asset
+|   |   |   |   |   |   \---FF_TrainBeat.asset
+|   |   |   |   |   +---5_4
+|   |   |   |   |   |   +---OM_DjentChug.asset
+|   |   |   |   |   |   +---OM_FunkFive.asset
+|   |   |   |   |   |   +---OM_HalfFeelSparse.asset
+|   |   |   |   |   |   +---OM_RockDrive54.asset
+|   |   |   |   |   |   \---OM_TakeFiveSwing.asset
+|   |   |   |   |   +---6_8
+|   |   |   |   |   |   +---CS_CountryLilt68.asset
+|   |   |   |   |   |   +---CS_FunkShuffle68.asset
+|   |   |   |   |   |   +---CS_JazzCompound.asset
+|   |   |   |   |   |   +---CS_MetalDrive68.asset
+|   |   |   |   |   |   \---CS_RockBallad68.asset
 |   |   |   |   |   +---New folder
 |   |   |   |   |   |   +---Compound Swing.asset
 |   |   |   |   |   |   +---Four-on-the-Floor Pulse.asset
@@ -2196,6 +2258,7 @@
 |   |   |   |   |   \---TestSmokeSMR7.asset
 |   |   |   |   +---Melodies
 |   |   |   |   \---Melody
+|   |   |   |       +---Melody_4-4_2m_8n.asset
 |   |   |   |       \---Melody_6-4_2m_11n.asset
 |   |   |   \---Vocabularies
 |   |   |       +---Default Chord Genres.asset
@@ -2355,7 +2418,6 @@
 |   |   |   |       \---publico2.png
 |   |   |   +---3portada.png
 |   |   |   +---ALWTTTLogo.png
-|   |   |   +---capitan mensaje.png
 |   |   |   +---portada.png
 |   |   |   +---premio.png
 |   |   |   +---star.png
@@ -2479,7 +2541,8 @@
 |   |   |   +---CharacterStats.cs
 |   |   |   +---MusicianBase.cs
 |   |   |   +---SpriteOutlineController.cs
-|   |   |   \---StatusStats.cs
+|   |   |   +---StatusStats.cs
+|   |   |   \---VibeEffectiveness.cs
 |   |   +---Controllers
 |   |   |   +---HandController.cs
 |   |   |   \---MidiGenPlayPanelController.cs
@@ -2550,8 +2613,11 @@
 |   |   +---DevMode
 |   |   |   +---DevAudioMixTab.cs
 |   |   |   +---DevCardCatalogueTab.cs
+|   |   |   +---DevGigOutcomeTracker.cs
 |   |   |   +---DevModeController.cs
 |   |   |   \---DevStatsTab.cs
+|   |   +---Editor
+|   |   |   \---S5e_InspirationEconomyTool.cs
 |   |   +---Encounters
 |   |   |   +---EncounterBase.cs
 |   |   |   \---GigEncounter.cs
@@ -2650,12 +2716,18 @@
 |   |   |   |   +---AudienceReactionEvent.cs
 |   |   |   |   +---SfxStageCrossedEvent.cs
 |   |   |   |   \---SongEndVibeEvent.cs
+|   |   |   +---AudienceTurnStartedEvent.cs
+|   |   |   +---CardPlayedEvent.cs
+|   |   |   +---GigOutcomeEvent.cs
+|   |   |   +---GigStartedEvent.cs
 |   |   |   +---ISensoryEvent.cs
+|   |   |   +---LoopResolvedEvent.cs
 |   |   |   +---SensoryAudioAdapter.cs
 |   |   |   +---SensoryEventBus.cs
 |   |   |   +---SensoryFtPresentation.cs
 |   |   |   +---SensoryFxAdapter.cs
-|   |   |   \---SensorySfxPresentation.cs
+|   |   |   +---SensorySfxPresentation.cs
+|   |   |   \---StatusAppliedEvent.cs
 |   |   +---Status
 |   |   |   +---Editor
 |   |   |   |   \---StatusEffectWizardWindow.cs
@@ -2668,6 +2740,13 @@
 |   |   |   +---StatusEffectCatalogueSO.cs
 |   |   |   +---StatusEffectSO.cs
 |   |   |   \---StatusType.cs
+|   |   +---Tutorial
+|   |   |   +---TutorialController.cs
+|   |   |   +---TutorialDialogCatalogSO.cs
+|   |   |   +---TutorialDialogSO.cs
+|   |   |   +---TutorialModalGate.cs
+|   |   |   +---TutorialOverlayView.cs
+|   |   |   \---TutorialRevisitPanel.cs
 |   |   +---UI
 |   |   |   +---Canvases
 |   |   |   |   +---BandSetupCanvas.cs
@@ -2738,7 +2817,9 @@
 |   |   +---Renderer2D.asset
 |   |   \---UniversalRP.asset
 |   +---Shaders
-|   |   \---SpriteOutlineURP.shader
+|   |   +---ALWTTT_UI_TutorialSpotlight.mat
+|   |   +---SpriteOutlineURP.shader
+|   |   \---TutorialSpotlight.shader
 |   +---TextMesh Pro
 |   |   +---Fonts
 |   |   |   +---LiberationSans - OFL.txt
@@ -2797,6 +2878,7 @@
 |   |   |   \---Source_Docs_Supersession_Map.md
 |   |   +---snapshots
 |   |   |   \---README.md
+|   |   +---changelog-ssot_2026-03-18_to_2026-06-22.md
 |   |   +---CURRENT_STATE_pre-prune_2026-06-16.md
 |   |   +---README.md
 |   |   \---SNAPSHOT_RETENTION_POLICY.md
@@ -2820,7 +2902,8 @@
 |   |   |   +---Design_Vertical_Slice_v0_1.md
 |   |   |   +---planning_active_README.md
 |   |   |   +---Roadmap_ALWTTT.md
-|   |   |   \---Roadmap_Audio.md
+|   |   |   +---Roadmap_Audio.md
+|   |   |   \---S5_DemoCutClose_Sub_Roadmap.md
 |   |   +---archive
 |   |   |   +---ALWTTT_DeckEditorWindow_Roadmap_Proposal.md
 |   |   |   +---Combat_MVP_Roadmap.md
@@ -2832,6 +2915,7 @@
 |   |   +---Design_Project_Directives_v0_1.md
 |   |   +---Design_Song_Parts_Library_v0_1.md
 |   |   +---Design_Tempo_Identity_v1.md
+|   |   +---Design_Vibe_Telegraph_v0_1.md
 |   |   \---planning_README.md
 |   +---reference
 |   |   +---CSO_Primitives_Catalog.md

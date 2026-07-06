@@ -1,7 +1,7 @@
 # SSoT_Audience_and_Reactions — ALWTTT
 
 **Status:** Active governed SSoT  
-**Scope:** Audience entities, persuasion-side progress, preferences, intentions, and reaction contracts for the MVP line  
+**Scope:** Audience entities, persuasion-side state, preferences, intentions, and reaction contracts for the MVP line  
 **Owns:** what an Audience Member is, how audience progress is tracked, when audience reacts, how preferences and intentions are interpreted at game level  
 **Does not own:** full gig phase execution (`runtime/SSoT_Runtime_Flow.md`), full scoring conversion math (`systems/SSoT_Scoring_and_Meters.md`), status ontology internals (`systems/SSoT_Status_Effects.md`)
 
@@ -24,7 +24,7 @@ This SSoT defines the audience as a **persuasion-side opponent/target**, not as 
 
 - The player is not killing enemies; the player is **winning over people in the room**.
 - Each Audience Member is an agent with:
-  - a persuasion progress track,
+  - a persuasion resistance track,
   - tastes/preferences,
   - a pressure pattern,
   - and a telegraphed next move.
@@ -38,8 +38,8 @@ Each Audience Member owns these gameplay-facing concepts:
 
 | Concept | Meaning |
 |---|---|
-| `Vibe` | current persuasion / engagement progress |
-| `VibeGoal` | threshold required to fully convince that audience member |
+| `Vibe` | remaining persuasion resistance (enemy-HP pool); `0` = Convinced (see §4.1) |
+| `MaxVibe` | total persuasion resistance (tuning knob — a tougher member = higher `MaxVibe`); replaces the retired `VibeGoal` (see §4.2) |
 | `Preferences` | bias toward or against certain performance/card styles |
 | `Abilities` | audience-turn action patterns |
 | `Intention` | telegraphed next action category/value |
@@ -51,28 +51,33 @@ Rule:
 
 ---
 
-## 4. Persuasion progress
+## 4. Persuasion (Vibe)
 
 ### 4.1 Vibe
-`Vibe` is the canonical persuasion-side progress meter.
+`Vibe` is the canonical persuasion meter, stored **inverted** since S5e:
+each member's remaining persuasion resistance (enemy HP).
 
 Rules:
-- tracked per audience member
-- increases mainly at **Song End**
-- persists across songs within a Gig unless an encounter-specific modifier says otherwise
+- tracked per audience member; initialized to `MaxVibe`
+- **decreases** mainly at **Song End** (persuasion damage)
+- persists across songs within a Gig unless an encounter-specific modifier
+  says otherwise
 
-### 4.2 VibeGoal
-`VibeGoal` is the threshold needed to convince that audience member.
+### 4.2 Convince condition
+The convince condition is **pool depletion**:
 
-When:
 ```text
-Vibe >= VibeGoal
+Vibe <= 0
 ```
-that member becomes **Convinced**.
+
+that member becomes **Convinced**. The former `VibeGoal` threshold concept
+is retired: `MaxVibe` itself is the member's total resistance and plays the
+old VibeGoal's tuning role (a tougher member = higher `MaxVibe`).
 
 ### 4.3 Convinced state
 Convinced means:
-- that audience member has reached its persuasion threshold
+- that audience member's persuasion resistance has been fully depleted
+  ("conquered")
 - it should no longer count as an unresolved persuasion target for encounter completion
 - any residual pressure behavior is encounter-specific and must be stated explicitly by the encounter rules
 
@@ -109,7 +114,7 @@ preserve the S1 random-diagonal drift (D-S3-5=A).
 
 ### 5.2 Song-end / audience-turn scale
 At Song End:
-- loop-level accumulated reaction context is converted into persuasion progress
+- loop-level accumulated reaction context is converted into persuasion damage (Vibe depletion)
 - then audience executes its pressure turn or equivalent encounter-side reaction step
 
 This timing must stay aligned with:
@@ -225,8 +230,8 @@ Split of authority:
 
 For the baseline MVP, keep these rules true:
 
-- each Audience Member has `Vibe` + `VibeGoal`
-- audience persuasion progress persists across songs within a Gig
+- each Audience Member has `Vibe` + `MaxVibe` (the retired `VibeGoal` folded into `MaxVibe`, see §4.2)
+- audience Vibe (persuasion resistance) persists across songs within a Gig
 - audience preferences are simple and readable
 - audience pressure is primarily expressed through Stress-oriented abilities
 - intention telegraphing is favored over hidden surprise logic
@@ -238,7 +243,7 @@ For the baseline MVP, keep these rules true:
 
 Update this document when a technical/design change affects:
 - what counts as an Audience Member
-- how persuasion progress is defined
+- how persuasion resistance (Vibe) is defined
 - how preferences or intentions are interpreted
 - what categories of audience pressure exist
 - what “Convinced” means at gameplay level

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d9e0b206e03e6141921e6beea255478, type: 3}
+  m_Name: PhrasePalette_SingingField
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.Phrases.PhrasePaletteSO
+  archetypes:
+  - archetype: {fileID: 11400000, guid: ccea7a2156fc249458fc7dee54533161, type: 2}
+    weight: 1
+  - archetype: {fileID: 11400000, guid: 1ada27018871a534fbed0f4af9554a66, type: 2}
+    weight: 1
+  - archetype: {fileID: 11400000, guid: 2aa54b510ece66446a7c19af42d61582, type: 2}
+    weight: 1
+  - archetype: {fileID: 11400000, guid: d92be593162660f4c9da169b061a9227, type: 2}
+    weight: 1
+  - archetype: {fileID: 11400000, guid: f00b80cddd8fc8e4eb9155d31909115f, type: 2}
+    weight: 1
+  defaultContourBias: 0
+  allowCrossChordPhrases: 0

@@ -68,7 +68,8 @@ namespace ALWTTT.Characters
                 bool show = showNumber && tier != VibeEffectiveness.Immune;
                 projectedVibeText.gameObject.SetActive(show);
                 if (show)
-                    projectedVibeText.text = $"+{projectedNumber}";
+                    // [S5e] projected persuasion DAMAGE this member will take at song end
+                    projectedVibeText.text = $"-{projectedNumber}";
             }
         }
 
@@ -85,13 +86,17 @@ namespace ALWTTT.Characters
                 projectedVibeText.gameObject.SetActive(false);
         }
 
+        // [S5f / D-S5f-8=A] ESP copy for the tester build (D-REPLAN-1:
+        // unassisted Spanish comprehension). ENG originals: "Super!" /
+        // "Resists" / "Immune" / "Normal". Hardcoded like the Blocked
+        // tooltip (D-S5f-7=A); migrates in the S5f-ext localization pass.
         private static string LabelFor(VibeEffectiveness tier)
         {
             switch (tier)
             {
-                case VibeEffectiveness.SuperEffective: return "Super!";
-                case VibeEffectiveness.NotVeryEffective: return "Resists";
-                case VibeEffectiveness.Immune: return "Immune";
+                case VibeEffectiveness.SuperEffective: return "¡Súper!";
+                case VibeEffectiveness.NotVeryEffective: return "Resiste";
+                case VibeEffectiveness.Immune: return "Inmune";
                 default: return "Normal";
             }
         }
@@ -107,6 +112,30 @@ namespace ALWTTT.Characters
                 case VibeEffectiveness.Immune: return new Color(0.50f, 0.50f, 0.50f);
                 default: return new Color(0.80f, 0.80f, 0.80f);
             }
+        }
+
+        // [S5f / E-lite] Blocked ("oscurito") legend. Blocked is sprite-tint
+        // only per M1.2 Decision E3 (no status icon), so this hover tooltip is
+        // the only textual surface explaining the tint. ESP copy (tester build
+        // default; D-S5f-7=A — hardcoded until the S5f-ext localization pass).
+        // ENG: "Blocked — someone tall is in the way. Immune to persuasion
+        // from this position."
+        private const string BlockedTooltipHeader = "Bloqueado";
+        private const string BlockedTooltipBody =
+            "Alguien alto le tapa el escenario. Es inmune a la persuasión " +
+            "mientras esté en esta posición.";
+
+        /// <summary>[S5f / E-lite] Show the Blocked-tint explanation tooltip.</summary>
+        public void ShowBlockedTooltip()
+        {
+            ShowTooltipInfo(TooltipManager.Instance,
+                BlockedTooltipBody, BlockedTooltipHeader, descriptionRoot);
+        }
+
+        /// <summary>[S5f / E-lite] Hide the Blocked tooltip (pointer exit).</summary>
+        public void HideBlockedTooltip()
+        {
+            HideTooltipInfo(TooltipManager.Instance);
         }
     }
 }

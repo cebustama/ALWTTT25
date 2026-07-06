@@ -58,6 +58,8 @@ Pure visualization of the `impressionFactor(i)` bucket — no new state:
 
 The four-state form (incl. blocked/indifferent) exists because the Vibe gate is real; the player should see "this one is unreachable right now," not a misleading low number.
 
+**S5f addendum (2026-07-04, D-S5f-8=A) — shipped strings are Spanish.** The on-screen C2/C3 telegraph strings for the Spanish tester build are ESP: `VibeEffectiveness.SuperEffective` → "¡Súper!", `NotVeryEffective` → "Resiste", `Immune` → "Inmune", `Normal` → "Normal". Source: `AudienceCharacterCanvas.LabelFor`. The ENG labels in the table above remain the semantic mapping; ENG originals return on-screen via the S5f-ext localization pass. (Shipped in the S5f riders batch; ST-S5f-R1..R9 PASS.)
+
 ## 5. Consistency with the existing sensory layer (one concept, one authority)
 
 The impression signal already drives per-loop floating text (`AudienceReactionEvent`). The telegraph is the **persistent readout** of that same signal — not a competing source. Impression state remains owned by `SSoT_Audience_and_Reactions.md`; this telegraph only presents it. Floater colour language must stay consistent: **cyan** = per-audience song-end Vibe, **gold** = SFX band bonus (per `Design_Demo_Cut §3.1`). The C1/C2/C3 surfaces should slot into that language rather than introduce a third palette.

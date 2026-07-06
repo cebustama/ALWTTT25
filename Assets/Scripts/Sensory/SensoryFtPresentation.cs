@@ -71,9 +71,10 @@ namespace ALWTTT.Sensory
         {
             if (e.AppliedDelta > 0)
             {
+                // [S5e] enemy loses persuasion HP -- damage-number convention
                 text = e.FlowStacks > 0
-                    ? $"+{e.AppliedDelta} Vibe (Flow ×{e.FlowMultiplier:F2})"
-                    : $"+{e.AppliedDelta} Vibe";
+                    ? $"-{e.AppliedDelta} Vibe (Flow ×{e.FlowMultiplier:F2})"
+                    : $"-{e.AppliedDelta} Vibe";
                 color = Color.cyan;
                 return true;
             }

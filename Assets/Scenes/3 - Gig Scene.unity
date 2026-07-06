@@ -2822,6 +2822,7 @@ MonoBehaviour:
   cardTypeText: {fileID: 1843051302}
   costText: {fileID: 1342395715}
   genText: {fileID: 1876018033}
+  genBadgeRoot: {fileID: 1876018031}
   descriptionText: {fileID: 107539390}
   keywordsText: {fileID: 102188607}
 --- !u!1001 &1820283395528320219

@@ -2466,6 +2466,18 @@ PrefabInstance:
       value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.9104
+      objectReference: {fileID: 0}
+    - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.9104
+      objectReference: {fileID: 0}
+    - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.9104
+      objectReference: {fileID: 0}
+    - target: {fileID: 1398976959008642750, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -2521,6 +2533,10 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4134848032893907614, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_Value
+      value: 0.236
+      objectReference: {fileID: 0}
     - target: {fileID: 4438441184472882901, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_Name
       value: HealthBar Test
@@ -2535,15 +2551,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5571537199301410630, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_fontColor.b
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5571537199301410630, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_fontColor.g
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5571537199301410630, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_fontColor.r
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5571537199301410630, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_fontSizeBase
@@ -2551,19 +2567,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5571537199301410630, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_fontColor32.rgba
-      value: 4294967295
+      value: 4278190080
       objectReference: {fileID: 0}
     - target: {fileID: 5575611632827200273, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_Color.b
-      value: 0.43529415
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5575611632827200273, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_Color.g
-      value: 0.9725491
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5575611632827200273, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_Color.r
-      value: 0.9725491
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7469092287805325040, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_SizeDelta.x

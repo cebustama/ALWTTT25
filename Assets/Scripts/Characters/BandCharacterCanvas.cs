@@ -70,6 +70,7 @@ namespace ALWTTT.Characters.Band
 
         public void SetCurrentStress(int current, int max, float duration)
         {
+            CacheMeterValue(current, max); // [S5e-ext]
             healthBar?.SetCurrentValue(current, max, duration);
         }
 

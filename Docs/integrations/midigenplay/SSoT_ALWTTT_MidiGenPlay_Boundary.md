@@ -165,3 +165,17 @@ New governed treatment:
 
 If a concept is primarily package truth, ALWTTT may reference it but must not silently redefine it.
 If a concept is primarily game/runtime truth, MidiGenPlay may mention it but ALWTTT remains authority for the game-owned side.
+
+---
+
+## 8. Cross-project contract elements (delivered/adopted log)
+
+Concrete, dated instances of the shared integration surface (§2.3) that were filed against MidiGenPlay's tracker and resolved. Each entry records the lifecycle (filed → delivered → adopted) and any ALWTTT-side decision about how the delivered element is consumed.
+
+### 8.1 MGP-ALWTTT-SEED-1 — per-render seed parameter
+
+**Cross-project. Filed → delivered → adopted 2026-07-05 (same day).**
+
+MidiGenPlay added an optional per-render seed parameter to `GenerateSong`/`GenerateSinglePart` (`int? seedOverride`; `null` = pre-adoption bit-identical behavior). Ownership split at this element: the **seed policy** (when a new seed is drawn, what it must not depend on) is ALWTTT truth, governed in `SSoT_Runtime_CompositionSession_Integration.md §10`; the **selection mechanism** that turns a seed into a palette pick stays MidiGenPlay truth.
+
+MidiGenPlay's own package-side **D4** (deterministic anti-repeat exclusion) was **declined** — clone-on-pick makes exclusion-by-reference infeasible package-side. ALWTTT accepted this and operates **probabilistically** instead: with palettes of ≥6 entries, consecutive repetition is ~1/N and is accepted for the demo (`D-S5g-7=C`). If deterministic non-repetition is ever required, it returns as a package-side batch with an explicit palette-entry-identity decision.

@@ -84,6 +84,8 @@ The current runtime model (2) is the governed model. All new statuses must go th
 
 **M1.2 (2026-04-14) completed the icon pipeline migration.** Legacy icon calls removed from `MusicianBase.OnBreakdown` (previously called `ApplyStatus(StatusType.Breakdown, 1)` for UI purposes) and from `AudienceCharacterBase.IsBlocked` setter (previously called `ApplyStatus(StatusType.Blocked, 1)`). The blocked visual is now sprite tint only; see M1.2 closure notes for Decision E3.
 
+**S5f addendum (2026-07-04):** the Blocked tint now carries a textual legend — hovering the tinted sprite shows a "Bloqueado" tooltip (`AudienceCharacterCanvas.ShowBlockedTooltip`/`HideBlockedTooltip`, wired from `AudienceCharacterBase.OnPointerEnter`/`OnPointerExit`). Still no status icon; Decision E3 intact. ESP copy hardcoded per D-S5f-7=A; migrates to the localization structure in S5f-ext. (ST-S5f-R1..R3 PASS.)
+
 ### 3.3 Icon presentation authority
 
 Icon sprite authority lives on `StatusEffectSO.IconSprite`. Each StatusEffectSO carries its own icon directly.

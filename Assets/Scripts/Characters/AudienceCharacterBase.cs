@@ -402,7 +402,8 @@ namespace ALWTTT.Characters.Audience
                         MusicianBase best = null;
                         foreach (var m in list)
                         {
-                            if (best == null || m.MusicianStats.CurrentStress < best.MusicianStats.CurrentStress)
+                            // [S5e] Inverted meter: higher remaining fortitude = least-stressed (semantic preserved)
+                            if (best == null || m.MusicianStats.CurrentStress > best.MusicianStats.CurrentStress)
                                 best = m;
                         }
                         return new List<CharacterBase>() { best };
@@ -425,7 +426,8 @@ namespace ALWTTT.Characters.Audience
                         foreach (var a in gm.CurrentAudienceCharacterList)
                         {
                             if (a == this) continue;
-                            if (best == null || a.AudienceStats.CurrentVibe < best.AudienceStats.CurrentVibe)
+                            // [S5e] Inverted meter: higher remaining resistance = least-persuaded (semantic preserved)
+                            if (best == null || a.AudienceStats.CurrentVibe > best.AudienceStats.CurrentVibe)
                                 best = a;
                         }
                         return new List<CharacterBase>() { best };
@@ -524,16 +526,35 @@ namespace ALWTTT.Characters.Audience
             }
         }
 
+        // [S5f / E-lite] Tracks whether THIS hover opened the Blocked tooltip,
+        // so exit only hides what enter showed (avoids clobbering the canvas
+        // ability tooltip, which lives on a separate hover surface).
+        private bool _blockedTooltipShown;
+
         protected override void OnPointerEnter()
         {
             base.OnPointerEnter();
             AudienceCharacterCanvas.ShowContextual();
+
+            // [S5f / E-lite] Explain the "oscurito" tint on sprite hover.
+            if (IsBlocked && AudienceCharacterCanvas != null)
+            {
+                AudienceCharacterCanvas.ShowBlockedTooltip();
+                _blockedTooltipShown = true;
+            }
         }
 
         protected override void OnPointerExit()
         {
             base.OnPointerExit();
             AudienceCharacterCanvas.HideContextual();
+
+            if (_blockedTooltipShown)
+            {
+                if (AudienceCharacterCanvas != null)
+                    AudienceCharacterCanvas.HideBlockedTooltip();
+                _blockedTooltipShown = false;
+            }
         }
     }
 }

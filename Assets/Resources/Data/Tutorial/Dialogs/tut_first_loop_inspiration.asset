@@ -15,9 +15,9 @@ MonoBehaviour:
   triggerId: tut_first_loop_inspiration
   priority: 30
   category: 2
-  revisitTitle: Tracks pay you back
+  revisitTitle: The loop pays you back
   portrait: {fileID: -8592814519688813882, guid: e4ce0c89601e9a34497855d51bc2812f, type: 3}
   pages:
-  - Every track you've added feeds Inspiration back each time the loop comes around.
-    Build the song and it funds itself.
+  - "Every time the loop comes around you get Inspiration back \u2014 a fixed amount,
+    no matter what. Manage it and the song never stops."
   highlightKey: inspiration_counter

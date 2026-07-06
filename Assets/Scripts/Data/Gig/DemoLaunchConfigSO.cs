@@ -31,7 +31,7 @@ namespace ALWTTT.Data
     /// Authority: §5.3.5 Demo cut prep. Decisions: DC-1=C (locality on
     /// GigDevSettingsSO via reference), DC-2=Custom (audience pool baked on
     /// encounter), DC-3=Custom (4 songs × 1 part × 4 loops/part), DC-4=B
-    /// (initialGigInspiration=3, inspirationPerLoop=1), D-FAST-1=C
+    /// (initialGigInspiration=3, inspirationPerLoop=3), D-FAST-1=C [S5e/D2]
     /// (GigLauncher extraction; auto-launch from Main Menu bypasses GigSetup).
     /// </summary>
     [CreateAssetMenu(
@@ -64,7 +64,7 @@ namespace ALWTTT.Data
 
         [SerializeField, Min(0), Tooltip("Inspiration granted at each loop " +
             "boundary during composition. DC-4=B: 1.")]
-        private int inspirationPerLoop = 1;
+        private int inspirationPerLoop = 3;   // [S5e / D2] was 1
 
         // --- Public accessors ---
 

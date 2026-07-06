@@ -120,6 +120,42 @@ Pause menu "Reset tutorials" button clears the `firedDialogs` set (with a confir
 
 ---
 
+## 5A. Localization & copy voice (S5f, 2026-07-04)
+
+### Dual-catalog localization (D-S5f-2 = B)
+
+One `TutorialDialogCatalogSO` asset per language; the active language is selected by assigning the corresponding catalog to `TutorialController.catalog` in the inspector. No runtime language mechanics exist (deliberate — demo cut).
+
+- EN assets: `Assets/Resources/Data/Tutorial/Dialogs/` (seeder: catalog context menu "Seed demo-cut dialogs EN (11)").
+- ES assets: `Assets/Resources/Data/Tutorial/Dialogs/ES/` (seeder: "Seed demo-cut dialogs ES (11)"). The demo ships with the **ES** catalog assigned.
+- Trigger ids, priorities, categories, and highlight keys are identical across languages; only `revisitTitle` and `pages` differ. The persisted `firedDialogs` set keys on trigger id, so swapping catalogs preserves tutorial progress.
+- Parity guard: editor menu `ALWTTT/Tutorial/Validate catalog language parity` compares every catalog asset against the `TutorialTriggerId` constant set and logs missing/extra ids. Run it whenever a dialog is added in any language.
+- A full multi-language authoring window and a `{$concept}` token-substitution system are deferred to S5f-ext (D-S5f-3 = B).
+
+### Copy voice — Spanish (D-S5f-1)
+
+Register: **tú**. The manager is slightly condescending toward the player but genuinely reverent toward the music — his disdain targets the rookie, never the craft. Authoring rule: mechanical beats (status effects, inspiration as a resource) stay dry and sharp; musical beats (jam, hype, song end) carry the poetic layer. Do not put poetry in every line (D-TUT-1 brevity holds).
+
+### Post-S5e copy corrections (both languages)
+
+Three dialogs were semantically stale after the S5e meter inversion and were rewritten in EN and ES:
+
+- `tut_first_audience_action` — Stress is a depleting fortitude pool (0 = breakdown); Vibe is the **crowd's** depleting resistance pool (0 = convinced). No "keep your Vibe climbing" language.
+- `tut_first_song_end` — song hype converts into Vibe **damage** on the crowd (reduces their resistance), not "Vibe gained on the crowd".
+- `tut_first_loop_inspiration` — inspiration gain is a **fixed amount per loop** (S5e economy); no per-track payback claim.
+
+MGP-ALWTTT-MOD-DIR-1 holds in all languages: `tut_first_sound_card` must not promise an audible key direction.
+
+### S5f decision ledger
+
+- **D-S5f-1** — ES register: tú; condescending-to-player / reverent-to-music manager voice.
+- **D-S5f-2** — B: dual catalog (EN + ES assets, inspector swap). No runtime localization mechanics in demo cut.
+- **D-S5f-3** — B: `{$concept}` token system + track-type dialogs (Rhythm/Backing/Melody) + "each character has their own cards" dialog + multi-language authoring window → **S5f-ext** (post-S5f batch).
+- **D-S5f-4** — B: guided/scripted tutorial (scripted hand, action-wait freeze) → **post-demo** (vertical slice). Demo ships with the reactive S4 trigger system.
+- **D-S5f-5** — B: dialog pages capped at 2 per trigger; cut for rhetorical completeness (each page a self-contained thought) rather than mid-sentence truncation; an auto-fit/scale mechanism is a fallback safety net for overflow, not the primary length control.
+
+---
+
 ## 6. Demo cut dialogue list (DRAFT — not authored)
 
 The following is a trigger inventory and topic outline. **Final dialogue text is S4 work** — this table is a scope-locking artifact, not a script.
