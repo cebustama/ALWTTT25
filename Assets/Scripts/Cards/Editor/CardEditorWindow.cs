@@ -1635,6 +1635,7 @@ namespace ALWTTT.Cards.Editor
                 "Melody" => typeof(MelodyCardConfigSO),
                 "Harmony" => typeof(HarmonyCardConfigSO),
                 "Rhythm" => typeof(RhythmCardConfigSO),
+                "Bassline" => typeof(BasslineCardConfigSO),
                 _ => typeof(TrackStyleBundleSO),
             };
         }
@@ -2586,6 +2587,9 @@ namespace ALWTTT.Cards.Editor
 
                     if (GUILayout.Button("Harmony"))
                         BeginCreatePreset(CardAssetFactory.CreateCardKind.Composition, "Harmony", "Harmony");
+
+                    if (GUILayout.Button("Bassline"))
+                        BeginCreatePreset(CardAssetFactory.CreateCardKind.Composition, "Bassline", "Bassline");
                 }
             }
         }

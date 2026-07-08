@@ -332,6 +332,9 @@ It owns only the card roles inside the combat loop.
 - primarily express musical structure and future loop shaping
 - may also carry immediate systemic card effects in the MVP contract
 
+Per-musician play frequency for both roles is governed by the per-turn play
+economy (§14): 1 Action + 1 Composition per musician per period.
+
 The canonical card model and payload semantics live in `SSoT_Card_System.md`.
 
 ---
@@ -423,3 +426,81 @@ MainMenuController falls through to manual GigSetup on auto-launch
 failure).
 
 `SSoT_Scoring_and_Meters` retains semantic authority for the meter-stack contract; this section governs only where the values are authored.
+
+---
+
+## 14. Per-turn play economy (ECON-1)
+
+Batch ECON-1 (2026-07-07). Decisions D-ECON-1..5 locked 2026-07-06.
+
+### 14.1 Rule
+Each musician may play at most **1 Action card and 1 Composition card per
+period**. The two pools are independent (consuming one never gates the other).
+
+### 14.2 Period definition
+A **period** is either:
+- the pre-song `PlayerTurn` action/composition window (counts as ONE period), or
+- each individual performance loop.
+
+D-ECON-4=A: the limit is a strict 1 in ALL periods — the pre-song window gets
+no larger allowance. Consequence: a musician cannot both anchor a song
+pre-song (e.g. Wormus) and add a second composition card (e.g. Singing Field)
+before Play; the second card enters as a mid-song add and is audible from the
+loop after its drop (≥2). Under playtest observation; the fallback
+(pre-song = 2 composition plays) is a one-line config change.
+
+### 14.3 Reset seams (code truth)
+Budgets refill for every live musician at three seams in `GigManager`:
+- **Seam A** — `GigPhase.PlayerTurn` case, immediately before
+  `OnPlayerTurnStarted` fires (gig start + every between-songs turn).
+- **Seam B** — `OnPlayPressed()` (opens the loop-1 performance period).
+  NOTE: the `GigPhase.SongPerformance` phase case is NOT a live seam — it is
+  bypassed while `_session != null` (ExecuteGigPhase TEMP guard); the plan's
+  original anchor was corrected during implementation.
+- **Seam C** — `OnCompositionLoopFinished`, placed BEFORE the F-3 draw/insp
+  early-return so the per-loop refill is config-independent.
+Resets are idempotent refills; overlapping seams are harmless.
+
+### 14.4 State and API homes
+- Pools: `BandCharacterStats` — `Max/Remaining ×2`, `InitTurnPlayBudget`,
+  `ResetTurnPlayBudget`, `TryConsumePlay`, `OnTurnPlayBudgetChanged`
+  (D-ECON-2=A).
+- Central gate: `GigManager.CanConsumePlay / TryConsumePlay(MusicianBase, bool)`.
+- Enforcement: Action path consumes in `HandController.TryPlayInGig` (branch 2,
+  after timing + inspiration + target resolution, before animation/Use);
+  Composition path checks in `GigManager.TryPlayCompositionCard` BEFORE
+  delegating and consumes ONLY when the session accepts the play.
+- Maxima seeded at gig setup from `GigFlowSettingsSO`
+  (`DefaultActionPlaysPerTurn` / `DefaultCompositionPlaysPerTurn`, both 1);
+  no per-musician authoring field yet (D-ECON-5=A).
+
+### 14.5 Attribution
+Cards with `AnyMusician` performer bill the musician the play pipeline
+resolves: fixed performer → hover (composition only) → `SelectedMusician`
+fallback (D-ECON-3=A). The pips are the player-facing feedback for this
+attribution.
+
+### 14.6 Relation to Inspiration
+Inspiration cost is an ORTHOGONAL gate (HandController 2a.5 / session step 1)
+and is untouched by ECON-1. Budget burns only on successful plays: a play
+denied for cost does not consume budget, and a composition drop the session
+rejects does not consume budget. Cards that keep a cost > 0 read as "finishers"
+(see `Design_Action_Economy_v1.md` and D-ECON-6). The finisher layer is
+designed but not yet populated: under D-ECON-6=DEFER (2026-07-07) every starter
+card is cost 0, and which cards become finishers (cost > 0) is deferred to a
+future design batch (finisher costs tuned in S5i).
+
+### 14.7 UI contract
+Two pips per musician on `BandCharacterCanvas` (Action / Composition), pushed
+via `OnTurnPlayBudgetChanged`. Lit = play available; dimmed = consumed;
+re-lit at every seam reset. Steady-state visible (not hover-gated, not under
+the full-bar concealment root).
+
+### 14.8 Scope notes
+- Dev Mode card spawner adds cards to hand; plays still route through
+  `TryPlayInGig`, so the budget applies to spawned cards (T0b audit,
+  2026-07-07). Ship/rehearsal context has no budget (out of gig scope).
+- Decision table: D-ECON-1=A (batch slot S5g→ECON-1→S5h), D-ECON-2=A (state
+  home), D-ECON-3=A (attribution), D-ECON-4=A (strict Y=1), D-ECON-5=A
+  (flow-default maxima), D-ECON-6=DEFER (2026-07-07: all starter costs → 0;
+  finisher card designation deferred to a future batch).

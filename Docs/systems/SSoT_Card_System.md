@@ -155,6 +155,26 @@ Rule:
 
 If a composition card references track/bundle/composer structures, ALWTTT owns the gameplay meaning of that choice, while package-internal generation details belong to MidiGenPlay.
 
+### 5.2.1 Card → palette bindings (authoritative table)
+
+Authoritative game-side table (MidiGenPlay mirrors; PCE-PROP D1=A). Closed at S5g
+(2026-07-06), ST-S5g-1..5 PASS.
+
+| Card | Role | Binding asset | Palette / override | Entries |
+|---|---|---|---|---|
+| Default Mode | Rhythm | `StyleBundles/Rhythm/starter_default_mode_Payload_Rhythm_StyleBundle` | `DrumPatternPalette-FourOnTheFloor` | 6 |
+| Waltz Protocol | Rhythm | `StyleBundles/Rhythm/starter_waltz_protocol_Payload_Rhythm_StyleBundle` | `DrumPatternPalette-WaltzLilt` | 6 |
+| Pentameter (reward pool) | Rhythm | `StyleBundles/Rhythm/starter_pentameter_Payload_Rhythm_StyleBundle` | `DrumPatternPalette-OddMeterAngular` | 6 |
+| Compound Cycle (reward pool) | Rhythm | `StyleBundles/Rhythm/starter_compound_cycle_Payload_Rhythm_StyleBundle` | `DrumPatternPalette-CompoundSwing` | 6 |
+| Push It / Half Time | Rhythm (tempo) | payload TrackAction, `styleBundle: null` | **no palette — D-TEMPO=null** (PCE §6 Option A confirmed) | — |
+| Wormus Minor | Backing | (unchanged at S5g) | Chord Palette - Core Minor | 6 |
+| Wormus Major | Backing | (unchanged at S5g) | Chord Palette - Core Major | 8 |
+| Singing Field | Melody | `Melody Configs/Melody Singing Field - Hook` (MelodyCardConfigSO) | `phrasePaletteOverride = PhrasePalette_SingingField` (5 parametric PhraseArchetypes, uniform weights 1.0) | 5 |
+| Singing Field (note) | — | — | D-AUTH-1=A: procedural route; MelodyPatternData ×N (route B) noted as a MidiGenPlay backlog candidate (authoring dossier §6.5) | — |
+
+`DrumPatternPalette-SyncopatedPocket` remains **unbound** (1 entry; reserved for
+the §5 experiment in `Palette_Card_Identity_Design.md`).
+
 ---
 
 ## 6. CardEffectSpec model

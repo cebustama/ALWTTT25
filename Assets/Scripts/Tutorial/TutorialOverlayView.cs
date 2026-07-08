@@ -149,7 +149,7 @@ namespace ALWTTT.Tutorial
                 ? new string[dialog.Pages.Count]
                 : new[] { string.Empty };
             for (int i = 0; i < _pages.Length && i < dialog.Pages.Count; i++)
-                _pages[i] = dialog.Pages[i];
+                _pages[i] = TutorialTokenResolver.Resolve(dialog.Pages[i]); // [TUT-R2 / D8]
 
             _pageIndex = 0;
             IsShowing = true;

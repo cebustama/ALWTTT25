@@ -22,6 +22,18 @@ namespace ALWTTT.Characters.Band
         [SerializeField] private TextMeshProUGUI tchTextField;
         [SerializeField] private TextMeshProUGUI emtTextField;
 
+        [Header("Per-Turn Play Budget (ECON-1)")]
+        [SerializeField, Tooltip("Pip lit while ≥1 ACTION play remains this period.")]
+        private Image actionPlayPip;
+
+        [SerializeField, Tooltip("Pip lit while ≥1 COMPOSITION play remains this period.")]
+        private Image compositionPlayPip;
+
+        [SerializeField, Range(0f, 1f), Tooltip("Alpha of a consumed (off) pip. " +
+            "Dim-not-hide: the slot stays legible so 'spent' reads differently " +
+            "from 'doesn't exist'.")]
+        private float consumedPipAlpha = 0.2f;
+
         [Header("Dev")]
         [SerializeField] private TMP_Dropdown instrumentDebugDropdown;
         [SerializeField] private Slider volumeDebugSlider;
@@ -41,6 +53,22 @@ namespace ALWTTT.Characters.Band
             if (chrTextField != null) chrTextField.text = $"CHR: {chr}";
             if (tchTextField != null) tchTextField.text = $"TCH: {tch}";
             if (emtTextField != null) emtTextField.text = $"EMT: {emt}";
+        }
+
+        /// <summary>[ECON-1] Push target for BandCharacterStats.
+        /// OnTurnPlayBudgetChanged. Lit = plays remaining; dimmed = consumed.</summary>
+        public void UpdateTurnPlayBudget(int actionRemaining, int compositionRemaining)
+        {
+            SetPipLit(actionPlayPip, actionRemaining > 0);
+            SetPipLit(compositionPlayPip, compositionRemaining > 0);
+        }
+
+        private void SetPipLit(Image pip, bool lit)
+        {
+            if (pip == null) return;
+            var c = pip.color;
+            c.a = lit ? 1f : consumedPipAlpha;
+            pip.color = c;
         }
 
         public override void ShowContextual()

@@ -40,3 +40,6 @@ MonoBehaviour:
   - type: 6
     randomClipList:
     - {fileID: 8300000, guid: 38a8dcb7f0ab36141b4cc86a13d4647b, type: 3}
+  - type: 7
+    randomClipList:
+    - {fileID: 8300000, guid: 5344bdc99e658d744a8d8e1c5715ce84, type: 3}

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_status_buff_musician
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_status_buff_musician
+  priority: 110
+  category: 1
+  revisitTitle: Status effects
+  portrait: {fileID: 0}
+  pages:
+  - "See that icon over the musician? That's a status effect \u2014 and this one's
+    working for you. Hover it and it tells you exactly what it does. Read them: the
+    band lives on them."
+  highlightKey: status_icon_musician

@@ -69,6 +69,33 @@ Navigation only — dates + labels. Full entries are in
 
 ---
 
+## 2026-07-07 — ECON-1 CLOSED: per-turn play economy (1 Action + 1 Composition per musician per period)
+
+**Type:** semantic + reference + lifecycle. Batch inserted between S5g and S5h by design decision 2026-07-06 with Matías, motivated by audience-test results. Code (T1–T6) applied and validated; `ST-ECON-1..7` PASS. This entry is the documentation close.
+
+- **Semantic.** New `SSoT_Gig_Combat_Core.md §14` (per-turn play economy) — primary home. Rule: each musician plays at most 1 Action + 1 Composition card per period (period = pre-song PlayerTurn window, or each performance loop); pools independent (D-ECON-4=A, strict Y=1). State on `BandCharacterStats` (`Max/Remaining ×2`, `TryConsumePlay`, `OnTurnPlayBudgetChanged`; D-ECON-2=A); central gate `GigManager.CanConsumePlay/TryConsumePlay`; maxima seeded from `GigFlowSettingsSO` defaults (both 1; D-ECON-5=A). Attribution for `AnyMusician` cards: fixed → hover → SelectedMusician (D-ECON-3=A). §9 gains a one-line pointer to §14.
+- **Reference.** New design-rationale doc `planning/active/Design_Action_Economy_v1.md` (subordinate to §14; SSoT wins on divergence). Registered in `SSoT_INDEX.md`, `ssot_manifest.yaml`, `coverage-matrix.md`.
+- **Semantic (starter).** `Design_Starter_Deck_v1.md` v1.2: all starter Inspiration costs set to 0 per **D-ECON-6=DEFER** — Warm Up, Mind Tap, Push It, Half Time, Key Lift cost 1→0 (gen unchanged). The "finisher" layer (cost > 0 cards) is designed but its card assignments are deferred to a future batch; finisher costs to be tuned in S5i.
+- **Code-truth correction.** The plan's original song-start reset anchor (`GigPhase.SongPerformance` case) was corrected during implementation to `OnPlayPressed()` — the `SongPerformance` phase case is bypassed while `_session != null` (ExecuteGigPhase TEMP guard). Recorded in §14.3. `MusicianBase` unchanged; pips live on `BandCharacterCanvas` (prefabs under `Prefabs/UI/Canvases/` and `Prefabs/Characters/Musicians/`).
+- **Decisions.** D-ECON-1=A (batch slot S5g→ECON-1→S5h), D-ECON-2=A, D-ECON-3=A, D-ECON-4=A, D-ECON-5=A, **D-ECON-6=DEFER** (all starter costs → 0; finisher designation deferred).
+- **Smokes.** `ST-ECON-1..7` PASS (pips lit/dim/reset across a loop boundary; budget denies a second play in a period; Inspiration gate orthogonal; Dev-spawned cards still budgeted — T0b audit). Documentation-only close — no gameplay change in this pass.
+
+---
+
+## 2026-07-06 — S5g CLOSED (music variety) + ECON-1 opened
+
+**Type:** lifecycle + semantic. Closes S5g (single close, D-S5gb-3=B); opens ECON-1 (per-turn play economy) as a batch inserted before S5h.
+
+- **S5g locks.** D-AUTH-1=A (melody procedural: 5 `PhraseArchetypeSO` parametric + `PhrasePalette_SingingField` via `MelodyCardConfigSO.phrasePaletteOverride`), D-AUTH-2=B (4 drum palettes).
+- **Authoring.** 20 new `DrumPatternData` (5 per palette; DSL zero-warnings) → FourOnTheFloor / WaltzLilt / OddMeterAngular / CompoundSwing at 6 entries each, under `ScriptableObjects/Patterns/Drums/<Palette>/`. Melody: 5 archetypes + palette in `.../Melody Tracks/MelodyCardConfigs/SingingField/`; the Singing Field card carrier is `Melody Configs/Melody Singing Field - Hook.asset` (MelodyCardConfigSO).
+- **Card → palette bindings.** Authoritative table now in `SSoT_Card_System.md §5.2.1` (game-side; MidiGenPlay mirrors). Default Mode → FourOnTheFloor (asset fix from SyncopatedPocket), Waltz Protocol → WaltzLilt, Pentameter/Compound Cycle (reward pool) → OddMeterAngular/CompoundSwing, Wormus Minor/Major → Core Minor (6)/Core Major (8), Singing Field → PhrasePalette_SingingField (5). SyncopatedPocket unbound. D-TEMPO=null (Push It / Half Time carry no palette; PCE §6 Option A).
+- **PCE-PROP resolved.** The `[GAP — UNVERIFIED] ALWTTT-PCE-PROP` stub in `CURRENT_STATE.md §1` is resolved (bindings final, Default Mode asset fixed, ST-1..5 subsumed by ST-S5g-1..5). **Reconciliation applied:** PCE-PROP's D3=A ("deterministic per build, package-threaded seed") is superseded in spirit by the seed-variety policy (Integration SSoT §10, MGP-ALWTTT-SEED-1) — the seed is for cross-song variety with intra-song stability, not per-build reproducibility.
+- **Reference-only drift fix.** Drum-pattern asset path corrected in `Palette_Card_Identity_Design.md §9` (`Patterns/Drums/` per-palette sub-folders created in S5g).
+- **Smokes.** `ST-S5g-1..5` **PASS** (cross-song variety audible in progression, 4/4 and 3/4 drums, hooks; intra-song B1 regression stable). Monotony #8 killed.
+- **ECON-1 opened** (inserted before S5h): per-musician play economy (1 Action + 1 Composition per period; Inspiration intact as a "finisher" layer). Design 2026-07-06 with Matías, motivated by audience-test results. Closed 2026-07-07 — see entry above.
+
+---
+
 ## 2026-07-05 — S5g (seed-wiring sub-batch): per-song render seed + MGP-ALWTTT-SEED-1 adopted
 
 **Type:** lifecycle. S5g remains **open** — this entry records a wiring sub-batch, not a closure. Authoring (drum patterns × TS, melody Singing Field) and closing smokes `ST-S5g-1..5` are still outstanding.

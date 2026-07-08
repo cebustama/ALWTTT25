@@ -7,8 +7,10 @@ This matrix maps each major concept to its authoritative home.
 | Root documentation rules | `SSoT_CONTRACTS.md` | `SSoT_CONTRACTS.md` | active | documentary governance is rooted here |
 | Current implementation slice | `CURRENT_STATE.md` | `CURRENT_STATE.md` | active | live status layer only |
 | Card gameplay semantics | `systems/SSoT_Card_System.md` | `systems/SSoT_Card_System.md` | active | action vs composition, payload semantics, targeting, runtime role |
+| Card → palette bindings (starter + reward pool) | `systems/SSoT_Card_System.md` (§5.2.1) | same | active | game-owned table, MidiGenPlay mirrors; closed S5g (2026-07-06); Push It/Half Time carry no palette (D-TEMPO=null) |
 | Card authoring/import contracts | `systems/SSoT_Card_Authoring_Contracts.md` | `systems/SSoT_Card_Authoring_Contracts.md` | active | promoted from prior appendix |
 | Gig/combat core rules | `systems/SSoT_Gig_Combat_Core.md` | `systems/SSoT_Gig_Combat_Core.md` | active | replaces split authority between reference + canon delta |
+| Per-turn play economy (1 Action + 1 Composition / musician / period) | `systems/SSoT_Gig_Combat_Core.md` (§14) | same | active | ECON-1 (2026-07-07); pips on BandCharacterCanvas; Inspiration orthogonal; rationale in `planning/active/Design_Action_Economy_v1.md` (subordinate) |
 | Gig encounter structure | `systems/SSoT_Gig_Encounter.md` | `systems/SSoT_Gig_Encounter.md` | active | encounter-level structure has its own governed home |
 | Gig setup roster (decks/encounters/audience pool/generic catalog/max count) | `systems/SSoT_Gig_Encounter.md` | `systems/SSoT_Gig_Encounter.md` | active | M4.6F-2: hosted on `GigSetupRosterSO` (renamed from `GigSetupConfigData`) |
 | Gig flow settings + setup defaults (JamRules, Action card gating, Gig End behavior, setup-screen defaults, MeterTuning, GigPresentation, GigDevSettings) | `systems/SSoT_Gig_Combat_Core.md` | `systems/SSoT_Gig_Combat_Core.md` | active | M4.6F-2: split across `GigFlowSettingsSO` + `MeterTuningSO` + `GigPresentationSO` + `GigDevSettingsSO`; setup-screen consumption surface in `SSoT_Gig_Encounter.md` §7.5 |

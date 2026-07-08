@@ -31,6 +31,7 @@ namespace ALWTTT.Tutorial
         public const string FirstAudienceAction = "tut_first_audience_action";
         public const string FirstStatusApplied = "tut_first_status_applied";
         public const string FirstGigWon     = "tut_first_gig_won";
+        public const string FirstRewardChoice = "tut_first_reward_choice"; // [S5h]
 
         // Jam sequence beats 1..6 (§6A)
         public const string FirstCompositionCard = "tut_first_composition_card"; // beat 1
@@ -39,6 +40,31 @@ namespace ALWTTT.Tutorial
         public const string FirstSfxStage   = "tut_first_sfx_stage";   // beat 4
         public const string FirstSoundCard  = "tut_first_sound_card";  // beat 5 (opportunistic)
         public const string FirstSongEnd    = "tut_first_song_end";    // beat 6
+
+        // ── [TUT-R2 / D3=B] Guided gig-1 curriculum (TUT-R1 §1) ──
+        public const string JamWelcome = "tut_jam_welcome";          // beat 1
+        public const string YourTurn = "tut_your_turn";            // beat 2
+        public const string PlayComposition = "tut_play_composition";     // beat 3 (gate: input)
+        public const string TracksThree = "tut_tracks_three";         // beat 4
+        public const string PressPlay = "tut_press_play";           // beat 5 (gate: input)
+        public const string LoopsStructure = "tut_loops_structure";      // beat 6
+        public const string InspirationEconomy = "tut_inspiration_economy";  // beat 7 (+ scripted draw)
+        public const string PlayFinisher = "tut_play_finisher";        // beat 8 (gate: holdLoop)
+        public const string SongEndVibe = "tut_song_end_vibe";        // beat 9
+        public const string AudienceTurn = "tut_audience_turn";        // beat 10
+
+        // ── [TUT-R2] Rewritten reactives (TUT-R1 §4) ──
+        public const string StatusBuffMusician = "tut_status_buff_musician";
+        public const string StatusDebuffAudience = "tut_status_debuff_audience";
+        public const string StatusBlockedFront = "tut_status_blocked_front";
+        public const string GigWon = "tut_gig_won";
+        public const string GigLost = "tut_gig_lost";
+        public const string MusicianBreakdown = "tut_musician_breakdown";
+        public const string Composure = "tut_composure";
+
+        // ── Reserved, no trigger wired (D6 / D-TUT-R1-4, Phase C pattern) ──
+        public const string AudiencePreferences = "tut_audience_preferences";
+        public const string Flow = "tut_flow";
     }
 
     /// <summary>

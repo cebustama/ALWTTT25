@@ -104,6 +104,17 @@ namespace ALWTTT.Data
             "Vibe conversion is unchanged; only the readout is hidden.")]
         private bool showSongHypeBar = true;
 
+        [SerializeField, Tooltip("Etiquetas de efectividad sobre el público " +
+            "(¡Súper!/Normal/Resiste/Inmune). Apagar para reducir ruido visual.")]
+        private bool showVibeEffectivenessLabels = true;
+
+        [SerializeField, Tooltip("Número proyectado de Vibe (-N) sobre cada " +
+            "miembro del público. Apagar para reducir ruido visual.")]
+        private bool showVibeProjectedNumbers = true;
+
+        public bool ShowVibeEffectivenessLabels => showVibeEffectivenessLabels;
+        public bool ShowVibeProjectedNumbers => showVibeProjectedNumbers;
+
         public bool ShowSongHypeBar => showSongHypeBar;
 
         // --- SFX → FlatVibe bonus [§5.3.5] ---

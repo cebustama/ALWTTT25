@@ -7,6 +7,8 @@
 
 **v1.1 (2026-05-22).** Three new cards added to starter (Push It, Half Time, Key Lift). Wormus pair multiplicity doubled (2 each) per D-STARTER-1=B. Compound Cycle + Pentameter moved out of starter into reward pool per D-STARTER-2=B. Starter size 12 → 15 cards. See `changelog-ssot.md` 2026-05-22 entry for context.
 
+**v1.2 (2026-07-07).** All starter Inspiration costs set to 0 per ECON-1 / D-ECON-6=DEFER (Warm Up, Mind Tap, Push It, Half Time, Key Lift: cost 1→0; gen unchanged). The "finisher" layer (cost ≥1 cards) is designed but its card assignments are deferred to a future batch; see the §4 note, §8, and `SSoT_Gig_Combat_Core.md` §14.6. Play-economy truth: `SSoT_Gig_Combat_Core.md` §14.
+
 ## Design principle: mínimas cartas, máxima expresividad
 
 The guiding principle for composition-card authoring in ALWTTT is: **minimal number of cards, maximal musical expressiveness per card**.
@@ -115,19 +117,21 @@ Picker semantics (override decision, validation rules, multiset-blind audience c
 
 | # | Card | Unique? | Copies | Domain | Owner | Effect (authoritative for MVP) | Inspiration cost / gen | Notes |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Warm Up | ✓ | 2 | Action | Any | `DrawCards(2)` | 1 / — | Didactic generic — the "Strike" analog |
+| 1 | Warm Up | ✓ | 2 | Action | Any | `DrawCards(2)` | 0 / — | Didactic generic — the "Strike" analog |
 | 2 | Take Five | ✓ | 1 | Action | Any | `ModifyStress(-3, Self)` | 0 / — | Defensive generic |
-| 3 | Mind Tap | ✓ | 1 | Action | Sibi | `ModifyVibe(+5, AudienceCharacter)` + `ApplyStatusEffect(earworm, +2, AudienceCharacter)` | 1 / — | Sibi identity Action — plants Earworm |
+| 3 | Mind Tap | ✓ | 1 | Action | Sibi | `ModifyVibe(+5, AudienceCharacter)` + `ApplyStatusEffect(earworm, +2, AudienceCharacter)` | 0 / — | Sibi identity Action — plants Earworm |
 | 4 | Default Mode *(working name)* | ✓ | 2 | Composition | C2 | Rhythm. `MeterEffect(4/4)` PartEffect + `ApplyStatusEffect(flow, +1, Self)` co-effect on play | — / 3 | C2 default heartbeat + Flow source |
 | 5 | Waltz Protocol *(working name)* | ✓ | 1 | Composition | C2 | Rhythm. `MeterEffect(3/4)` PartEffect | — / 3 | C2 waltz mode |
-| 6 | Push It *(new, v1.1)* | ✓ | 1 | Composition | C2 | Rhythm. `TempoEffect.ScaleFactor(×1.5)` PartEffect | 1 / 2 | C2 BPM card — speeds up the song |
-| 7 | Half Time *(new, v1.1)* | ✓ | 1 | Composition | C2 | Rhythm. `TempoEffect.ScaleFactor(×0.66)` PartEffect | 1 / 2 | C2 BPM card — slows the song |
+| 6 | Push It *(new, v1.1)* | ✓ | 1 | Composition | C2 | Rhythm. `TempoEffect.ScaleFactor(×1.5)` PartEffect | 0 / 2 | C2 BPM card — speeds up the song |
+| 7 | Half Time *(new, v1.1)* | ✓ | 1 | Composition | C2 | Rhythm. `TempoEffect.ScaleFactor(×0.66)` PartEffect | 0 / 2 | C2 BPM card — slows the song |
 | 8 | Wormus Minor | ✓ | 2 | Composition | Sibi | Backing. `BackingCardConfigSO` with minor-mode `progressionPalette` (entries with `tonalities = [Aeolian/Dorian/Phrygian]`) | — / 2 | Sibi minor-mode anchor — multiplicity 2 per D-STARTER-1=B |
 | 9 | Wormus Major | ✓ | 2 | Composition | Sibi | Backing. `BackingCardConfigSO` with major-mode `progressionPalette` (entries with `tonalities = [Ionian/Mixolydian/Lydian]`) | — / 2 | Sibi major-mode anchor — multiplicity 2 per D-STARTER-1=B |
 | 10 | Singing Field *(working name)* | ✓ | 1 | Composition | Sibi | Melody. `MelodyCardConfigSO` with `phrasePaletteOverride` set to a hook-shaped `PhrasePaletteSO` (specific asset TBD at authoring) | — / 3 | Sibi melodic hook — inherits progression from Wormus card via shared-progression mechanic |
-| 11 | Key Lift *(new, v1.1)* | ✓ | 1 | Composition | Sibi | Backing. `ModulationEffect.IntervalWithinScale(degree=5)` PartEffect | 1 / 2 | Sibi Modulation card — shifts root up a fifth |
+| 11 | Key Lift *(new, v1.1)* | ✓ | 1 | Composition | Sibi | Backing. `ModulationEffect.IntervalWithinScale(degree=5)` PartEffect | 0 / 2 | Sibi Modulation card — shifts root up a fifth |
 
 **Derived counts (v1.1):**
+**Cost semantics post-ECON-1 (D-ECON-6=DEFER, 2026-07-07):** all starter cards are cost 0 today. The "finisher" layer (cards with cost ≥1) is designed but its card assignments are deferred to a future batch — see `SSoT_Gig_Combat_Core.md` §14.6 and `planning/active/Design_Action_Economy_v1.md` §3/§7. Finisher costs will be tuned in S5i.
+
 - 4 Action (total copies): 2 Warm Up + 1 Take Five + 1 Mind Tap.
 - 11 Composition (total copies): 2 Default Mode + 1 Waltz Protocol + 1 Push It + 1 Half Time + 2 Wormus Minor + 2 Wormus Major + 1 Singing Field + 1 Key Lift.
 - C2 composition coverage: 5 copies (2 + 1 + 1 + 1).
@@ -150,7 +154,7 @@ Cards held in the per-musician catalog with `flags: UnlockedByDefault | RewardPo
 
 ### 5.1 Warm Up (Action, generic, ×2)
 
-`DrawCards(2)` at cost 1.
+`DrawCards(2)` at cost 0 (ECON-1 / D-ECON-6=DEFER; was 1).
 
 - Didactic: the first Action most players will play. Teaches the concept of hand management.
 - 2 copies so the deck always has card velocity.
@@ -170,7 +174,7 @@ Cards held in the per-musician catalog with `flags: UnlockedByDefault | RewardPo
 
 ### 5.4 Mind Tap (Action, Sibi, ×1)
 
-`ModifyVibe(+5, AudienceCharacter)` + `ApplyStatusEffect(earworm, +2, AudienceCharacter)` at cost 1.
+`ModifyVibe(+5, AudienceCharacter)` + `ApplyStatusEffect(earworm, +2, AudienceCharacter)` at cost 0 (ECON-1 / D-ECON-6=DEFER; was 1).
 
 - Sibi's only Action. Her main way of impacting the audience directly during action windows.
 - The +5 instant Vibe and 2 Earworm stacks are both audible, visible, immediate wins — a "signature spell" feel.
@@ -274,7 +278,7 @@ Melody part. `MelodyCardConfigSO` with `phrasePaletteOverride = PhrasePaletteSO_
 - **Asset:** `Starter_push_it.asset` + `Starter_push_it_Payload.asset`.
 - **Performer rule:** `FixedMusicianType` → C2.
 - **Card type:** TCH (math-jazz scholar; fits tempo-manipulation theme).
-- **Costs:** inspirationCost = 1, inspirationGenerated = 2.
+- **Costs:** inspirationCost = 0 (ECON-1 / D-ECON-6=DEFER; was 1), inspirationGenerated = 2.
 - **Carrier:** `PrimaryKind = Track`, `TrackAction { role: Rhythm, styleBundle: null }`.
 - **Effect:** `ModifierEffects: [TempoEffect_PushIt.asset]` — `mode: ScaleFactor`, `tempoScale: 1.5`, `timing: Immediate`.
 - **Audible effect:** the song speeds up. `part.tempoScale *= 1.5` compositionally; "TEMPO!" floater fires on play.
@@ -284,7 +288,7 @@ Melody part. `MelodyCardConfigSO` with `phrasePaletteOverride = PhrasePaletteSO_
 - **Asset:** `Starter_half_time.asset` + payload.
 - **Performer rule:** `FixedMusicianType` → C2.
 - **Card type:** TCH.
-- **Costs:** inspirationCost = 1, inspirationGenerated = 2.
+- **Costs:** inspirationCost = 0 (ECON-1 / D-ECON-6=DEFER; was 1), inspirationGenerated = 2.
 - **Carrier:** `PrimaryKind = Track`, `TrackAction { role: Rhythm, styleBundle: null }`.
 - **Effect:** `ModifierEffects: [TempoEffect_HalfTime.asset]` — `mode: ScaleFactor`, `tempoScale: 0.66`, `timing: Immediate`.
 - **Audible effect:** the song slows down. Safety floor `Mathf.Max(40, baseBpm * tempoScale)` clamps extreme stacking.
@@ -294,7 +298,7 @@ Melody part. `MelodyCardConfigSO` with `phrasePaletteOverride = PhrasePaletteSO_
 - **Asset:** `Starter_key_lift.asset` + payload.
 - **Performer rule:** `FixedMusicianType` → Sibi.
 - **Card type:** EMT (emotional/expectation-shaping affinity; modulation is the canonical "lift" move).
-- **Costs:** inspirationCost = 1, inspirationGenerated = 2.
+- **Costs:** inspirationCost = 0 (ECON-1 / D-ECON-6=DEFER; was 1), inspirationGenerated = 2.
 - **Carrier:** `PrimaryKind = Track`, `TrackAction { role: Backing, styleBundle: null }`.
 - **Effect:** `ModifierEffects: [ModulationEffect_KeyLift_Degree5.asset]` — `mode: IntervalWithinScale`, `targetDegree: 5`, `timing: Immediate`.
 - **Audible effect:** the song's root pitch class shifts by a fifth. All stems for the part regenerate in the new key (per D-MOD-2=A); the styleBundle (e.g., Wormus Major's progression) is preserved through the play per D-MOD-FIX=A. "KEY!" floater fires on play when the previous render had an explicit root.
@@ -361,6 +365,7 @@ To be set in Inspector during M4.6 tuning pass:
 - `flowVibeMultiplier` (from M4.2) — initial 0.08.
 - `flowBonusPerStackPerCard` (existing) — initial value kept; verified against runtime telemetry.
 - Per-card `inspirationCost` and `inspirationGenerated` — initial values in §4, revisable. Note: all four C2 rhythm cards currently set to gen 3 (uniform); if Default Mode dominates pick rate in playtest, drop its gen to 2 to rebalance against odd meters.
+- Per-card cost is now the finisher knob; all starter costs are currently 0 under D-ECON-6=DEFER (finisher designation deferred, costs tuned in S5i). Per-period play frequency is governed by `SSoT_Gig_Combat_Core.md` §14 and is NOT a per-card knob.
 - Encounter VibeGoals for Heckler/Critic — initial ranges in §7, final values after runtime values received.
 - Wormus Minor/Major palette contents (which `ChordProgressionData` entries are included in each `ChordProgressionPaletteSO`) — see §9 #7.
 - Singing Field phrase palette content (which `PhraseArchetypeSO` entries) — see §9 #6.

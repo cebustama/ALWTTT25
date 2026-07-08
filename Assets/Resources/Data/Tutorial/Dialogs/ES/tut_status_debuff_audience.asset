@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_status_debuff_audience
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_status_debuff_audience
+  priority: 112
+  category: 1
+  revisitTitle: "Efectos sobre el p\xFAblico"
+  portrait: {fileID: 0}
+  pages:
+  - "Le has colgado un efecto al p\xFAblico \u2014 el icono bajo su retrato. Los
+    efectos trabajan solos, turno a turno, sin pedir permiso. Pl\xE1ntalos y deja
+    que la m\xFAsica haga el resto."
+  highlightKey: status_icon_audience

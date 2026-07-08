@@ -16,6 +16,15 @@ namespace ALWTTT.Status.Runtime
 
         public IReadOnlyDictionary<CharacterStatusId, StatusEffectInstance> Active => _active;
 
+        /// <summary>[TUT-R2] The character that owns this container (set once by
+        /// CharacterBase at construction). Typed as object to keep this runtime
+        /// class free of a Characters dependency; consumers pattern-match
+        /// (MusicianBase / AudienceCharacterBase).</summary>
+        public object Owner { get; private set; }
+
+        /// <summary>Called only by CharacterBase immediately after construction.</summary>
+        public void SetOwner(object owner) => Owner = owner;
+
         public event Action<CharacterStatusId, int> OnStatusChanged; // (id, newStacks)
         public event Action<CharacterStatusId> OnStatusCleared;      // (id)
         public event Action<CharacterStatusId, int> OnStatusApplied; // (id, deltaStacks)

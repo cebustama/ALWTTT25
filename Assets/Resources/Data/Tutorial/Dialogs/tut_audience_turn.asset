@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_audience_turn
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_audience_turn
+  priority: 100
+  category: 3
+  revisitTitle: The crowd's turn
+  portrait: {fileID: 0}
+  pages:
+  - "Now it's their turn. Every character in the crowd has their own tricks: some
+    hit your musicians' Stress \u2014 their fortitude reserve; at zero, breakdown
+    \u2014 and others cover for each other. Watch them before your next turn."
+  highlightKey: audience_area

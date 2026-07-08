@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_musician_breakdown
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_musician_breakdown
+  priority: 116
+  category: 1
+  revisitTitle: Stress
+  portrait: {fileID: 0}
+  pages:
+  - "Golpe al Stress de tu m\xFAsico. Esa barra es su entereza, y se gasta: a cero,
+    colapsa y deja de tocar. Algunas cartas de acci\xF3n la recuperan \u2014 o la
+    protegen. Cuida a tu banda: sin banda no hay canci\xF3n."
+  highlightKey: musician_stress_bar

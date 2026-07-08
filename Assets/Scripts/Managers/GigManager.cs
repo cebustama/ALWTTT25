@@ -40,6 +40,13 @@ namespace ALWTTT.Managers
 
         public static GigManager Instance;
 
+        /// <summary>[TUT-R2] Read-only flow settings (token resolver, driver checks).</summary>
+        public GigFlowSettingsSO Flow => flow;
+        /// <summary>[TUT-R2 / D9] Read-only presentation (tutorial auto-gates).</summary>
+        public GigPresentationSO Presentation => presentation;
+        /// <summary>[TUT-R2] Beat-5 degrade check (Play availability proxy).</summary>
+        public bool IsSongPlayingNow => _isSongPlaying;
+
         // ─── Settings (M4.6F-2: split into 4 SOs) ─────────────────────────
         // All gameplay-tuning, presentation, and dev toggles formerly authored
         // as inline [SerializeField] fields now live on dedicated SOs. Each
@@ -600,6 +607,15 @@ namespace ALWTTT.Managers
                 responder.Init(clone);
 
                 clone.BindToGigContext();
+
+                // [ECON-1 / D-ECON-5=A] Seed per-turn play budget maxima from
+                // GigFlowSettingsSO defaults. Runs before the first PlayerTurn
+                // (StartGig: BuildBand @380 precedes phase set @399), so
+                // Seam A's first reset finds initialized pools.
+                clone.Stats.InitTurnPlayBudget(
+                    flow != null ? flow.DefaultActionPlaysPerTurn : 1,
+                    flow != null ? flow.DefaultCompositionPlaysPerTurn : 1);
+
                 _spawned.Add(clone);
 
                 MidiMusicManager?.RegisterMusicianAnchor(
@@ -704,8 +720,23 @@ namespace ALWTTT.Managers
 
         private void OnPlayPressed()
         {
+            // [TUT-R2 / D4] Directive input gate: beat 3 blocks Play; beat 5
+            // requires it. Notify AFTER the block check so subscribers only see
+            // real presses.
+            if (ALWTTT.Tutorial.TutorialInputGate.BlocksPlay) return;
+            ALWTTT.Tutorial.TutorialInputGate.NotifyPlayPressed();
+
             // MVP: once Play is pressed, action cards are no longer usable.
             _actionWindowOpen = false;
+
+            // [ECON-1] Seam B — pressing Play opens the loop-1 performance
+            // period; pre-song consumption must not eat loop 1's allowance
+            // (pre-song window and each loop are DISTINCT periods).
+            // CODE-TRUTH CORRECTION vs plan anchor (:774/:941): the
+            // GigPhase.SongPerformance case is bypassed while _session != null
+            // (ExecuteGigPhase TEMP guard at ~:813), so the live-path song-start
+            // reset lives HERE, not in the phase case.
+            ResetAllTurnPlayBudgets("song-start");
 
             // [B1 / #8] Honor `flow.DiscardActionCardsOnPlay` from
             // GigFlowSettingsSO. Configurability lives in the SO inspector
@@ -739,13 +770,15 @@ namespace ALWTTT.Managers
             // AUDIO-AMBIENCE: the band starts the song → duck the crowd bed under the music.
             AudioManager.Instance?.FadeOutAmbience();
 
-            // show the hype bar when music starts
-            // [S5f / #6a] Gated by presentation.ShowSongHypeBar: the simplified
-            // first-gig shape hides the bar (and the C1 readout under it).
-            // SongHype accrual, stage SFX, and Vibe conversion are unaffected.
-            // Null presentation preserves legacy behavior (show).
+            // [S5h] The bar also activates once any venue SFX is unlocked (#6b-lite):
+            // effective visibility = S5f presentation toggle OR AnySfxUnlocked. The
+            // demo asset keeps ShowSongHypeBar=false, so gig 1 stays bar-less and the
+            // first unlock turns the bar on from the next gig.
+            bool sfxEquipped = GameManager != null
+                && GameManager.PersistentGameplayData != null
+                && GameManager.PersistentGameplayData.AnySfxUnlocked;
             if (UIManager != null && UIManager.GigCanvas != null &&
-                (presentation == null || presentation.ShowSongHypeBar))
+                (presentation == null || presentation.ShowSongHypeBar || sfxEquipped))
             {
                 UIManager.GigCanvas.SetSongHypeVisible(true);
                 UIManager.GigCanvas.SetSongHype(SongHype01);
@@ -769,6 +802,8 @@ namespace ALWTTT.Managers
 
         public void EndTurn()
         {
+            if (ALWTTT.Tutorial.TutorialInputGate.BlocksEndTurn) return; // [TUT-R2 / D4]
+
             if (UseLogs) Debug.Log($"{DebugTag} Ending turn...");
 
             CurrentGigPhase = GigPhase.SongPerformance;
@@ -904,6 +939,11 @@ namespace ALWTTT.Managers
                     {
                         m?.Statuses?.Clear(CharacterStatusId.TempShieldTurn);
                     }
+
+                    // [ECON-1] Seam A — refill every musician's per-period
+                    // play budget at PlayerTurn open. Covers gig start and
+                    // every between-songs turn (ST-ECON-7).
+                    ResetAllTurnPlayBudgets("player-turn");
 
                     OnPlayerTurnStarted?.Invoke();
                     GameManager.PersistentGameplayData.SongModifierCardsList.Clear();
@@ -1154,6 +1194,10 @@ namespace ALWTTT.Managers
             // was visual pacing, not relocation. See B2.5 D-B2.5-1 = A.
             foreach (var a in CurrentAudienceCharacterList)
             {
+                // [TUT-R2b] Pausa cooperativa por-holder: si un diálogo saltó a
+                // mitad del turno, no seguir aplicando Earworm por detrás.
+                yield return new WaitUntil(() => !TutorialModalGate.IsActive);
+
                 if (a == null || a.Stats == null || a.Statuses == null) continue;
                 if (a.IsBlocked) continue;
 
@@ -1230,6 +1274,10 @@ namespace ALWTTT.Managers
 
             foreach (var currentCharacter in turnOrder)
             {
+                // [TUT-R2b] Pausa cooperativa por-personaje: cada habilidad del
+                // público espera a que el jugador cierre el diálogo en pantalla.
+                yield return new WaitUntil(() => !TutorialModalGate.IsActive);
+
                 if (currentCharacter == null)
                     continue; // might have been destroyed
 
@@ -1311,11 +1359,31 @@ namespace ALWTTT.Managers
 
             if (GameManager.PersistentGameplayData.IsFinalEncounter)
             {
-                // [B3-demo-polish / D-UX2] Wire Retry/Exit buttons on win panel.
-                UIManager.GigCanvas.OnWinRetry = HandleRetry;
-                UIManager.GigCanvas.OnWinExit = HandleExit;
+                // [S5h / D1=A] De-bypass of the A6 WinPanel-only hack: the final
+                // encounter now runs Win → RewardCanvas → WinPanel. Retry/Exit wiring
+                // moves into OnRewardFinished so the terminal panel appears after the
+                // reward step. Grants live in PD (DontDestroyOnLoad): Retry (scene
+                // reload, no ApplyRunConfig) carries them; a fresh launch rebuilds
+                // starters and resets SFX unlocks (D7).
+                UIManager.GigCanvas.gameObject.SetActive(false);
 
-                UIManager.GigCanvas.WinPanel.SetActive(true);
+                UIManager.RewardCanvas.gameObject.SetActive(true);
+                UIManager.RewardCanvas.PrepareCanvas();
+                UIManager.RewardCanvas.OnRewardFinished = () =>
+                {
+                    UIManager.GigCanvas.gameObject.SetActive(true);
+                    UIManager.GigCanvas.OnWinRetry = HandleRetry;
+                    UIManager.GigCanvas.OnWinExit = HandleExit;
+                    UIManager.GigCanvas.WinPanel.SetActive(true);
+                };
+
+                UIManager.RewardCanvas.BuildReward(RewardType.Card);
+                UIManager.RewardCanvas.BuildReward(RewardType.Sfx);   // [S5h / #6b-lite]
+                UIManager.RewardCanvas.FinishIfEmpty();
+
+                // [S5h] Sensory + tutorial hook — only if the screen actually opened.
+                if (UIManager.RewardCanvas.gameObject.activeSelf)
+                    SensoryEventBus.Instance?.Publish(new RewardChoiceOpenedEvent());
             }
             else
             {
@@ -1329,8 +1397,14 @@ namespace ALWTTT.Managers
 
                 UIManager.RewardCanvas.gameObject.SetActive(true);
                 UIManager.RewardCanvas.PrepareCanvas();
-                UIManager.RewardCanvas.BuildReward(RewardType.Card);
                 UIManager.RewardCanvas.OnRewardFinished = () => ReturnToMap(true);
+
+                UIManager.RewardCanvas.BuildReward(RewardType.Card);
+                UIManager.RewardCanvas.BuildReward(RewardType.Sfx);
+                UIManager.RewardCanvas.FinishIfEmpty();
+
+                if (UIManager.RewardCanvas.gameObject.activeSelf)
+                    SensoryEventBus.Instance?.Publish(new RewardChoiceOpenedEvent());
             }
 
             // Musicians unsubscribe to gig events
@@ -1536,13 +1610,39 @@ namespace ALWTTT.Managers
                 return false;
             }
 
+            // [ECON-1 / D-ECON-3=A] Budget payer = resolved target, falling
+            // back to SelectedMusician — same attribution chain HandController
+            // already applies (fixed → hover → SelectedMusician), so in
+            // practice `target` is non-null and this fallback is defensive.
+            var payer = target != null ? target : SelectedMusician;
+
+            // [ECON-1 / T5] Gate BEFORE the one-shot animation so a denied
+            // play neither animates nor reaches the session.
+            if (!CanConsumePlay(payer, isComposition: true))
+            {
+                Log($"[ECON-1] Composition play denied — " +
+                    $"{(payer != null ? payer.CharacterName : "?")} has no " +
+                    "composition plays left this period.");
+                return false;
+            }
+
             // One-shot composition card animation
             if (target != null && card != null && card.CardDefinition != null)
             {
                 target.PlayCardOneShotAnimation(card.CardDefinition);
             }
 
-            return _session?.TryPlayCompositionCard(card, target, zone) ?? false;
+            bool played = _session?.TryPlayCompositionCard(card, target, zone) ?? false;
+
+            // [ECON-1 / T5] Consume ONLY on session-accepted plays — budget
+            // must not burn on invalid drops, full parts, or the session's own
+            // inspiration denial (batch constraint: burn on success only).
+            if (played)
+            {
+                TryConsumePlay(payer, isComposition: true);
+            }
+
+            return played;
         }
 
         private void StartCompositionSession()
@@ -1608,6 +1708,13 @@ namespace ALWTTT.Managers
             // Carries InspirationGainedThisLoop (track gain); fires before the F-3
             // early-return below so beat 3 is independent of per-loop draw/insp config.
             SensoryEventBus.Instance?.Publish(new LoopResolvedEvent(loopCtx));
+
+            // [ECON-1] Seam C — each finished loop opens the next performance
+            // period. Placed BEFORE the F-3 early-return below so the per-loop
+            // refill is independent of draw/inspiration config (same rationale
+            // as the bus publish above). Firing on the song's LAST loop is
+            // inert: Seam A refills again at the next PlayerTurn.
+            ResetAllTurnPlayBudgets("loop-boundary");
 
             // M4.6F-3: per-loop draw + per-loop inspiration consumption.
             // Hook lives here (host-owned subscriber) to respect the
@@ -1755,6 +1862,56 @@ namespace ALWTTT.Managers
 
             // No session / no gig context -> no action cards
             return false;
+        }
+
+        // ─── [ECON-1 / D-ECON-2=A] Per-turn play economy API ─────────────
+        // Central gate used by HandController (Action path, T4) and
+        // TryPlayCompositionCard (Composition path, T5). Orthogonal to the
+        // Inspiration cost gate — never call in place of it.
+
+        /// <summary>Non-consuming check. Null musician/stats → true
+        /// (unattributable play; do not hard-block — logged by TryConsume).</summary>
+        public bool CanConsumePlay(MusicianBase musician, bool isComposition)
+        {
+            if (musician == null || musician.Stats == null) return true;
+            return musician.Stats.CanConsumePlay(isComposition);
+        }
+
+        /// <summary>Consume one play of the given kind from the musician's
+        /// budget. Returns false when exhausted. Null musician/stats → true
+        /// with a warning (play proceeds un-budgeted rather than soft-locking).</summary>
+        public bool TryConsumePlay(MusicianBase musician, bool isComposition)
+        {
+            if (musician == null || musician.Stats == null)
+            {
+                Debug.LogWarning($"{DebugTag} [ECON-1] TryConsumePlay with null " +
+                    "musician/stats — play not budgeted.");
+                return true;
+            }
+
+            bool ok = musician.Stats.TryConsumePlay(isComposition);
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} [ECON-1] {(ok ? "Consumed" : "DENIED")} " +
+                    $"{(isComposition ? "Composition" : "Action")} play — " +
+                    $"{musician.CharacterName} " +
+                    $"(A:{musician.Stats.ActionPlaysRemaining}/{musician.Stats.MaxActionPlays} " +
+                    $"C:{musician.Stats.CompositionPlaysRemaining}/{musician.Stats.MaxCompositionPlays})");
+
+            return ok;
+        }
+
+        /// <summary>Refill every live musician's budget. Idempotent; safe to
+        /// fire at overlapping seams (player-turn / song-start / loop-boundary).</summary>
+        private void ResetAllTurnPlayBudgets(string reason)
+        {
+            if (CurrentMusicianCharacterList == null) return;
+
+            for (int i = 0; i < CurrentMusicianCharacterList.Count; i++)
+                CurrentMusicianCharacterList[i]?.Stats?.ResetTurnPlayBudget();
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} [ECON-1] Play budgets reset ({reason}).");
         }
 
         private int GetTotalFlowStacks()
@@ -2080,6 +2237,21 @@ namespace ALWTTT.Managers
 
         private void FireSongHypeStage(int stage, string sfxTag)
         {
+            // [S5h / D8] Venue-SFX equipment gate (#6b-lite): a locked threshold
+            // produces nothing — no background VFX, no banked Vibe, no readout
+            // refresh, no SfxStageCrossedEvent (so tut_first_sfx_stage stays silent
+            // too). The stage tracker already advanced upstream, so a stage skipped
+            // while locked does not re-fire later in the same song. Gig 1 of a fresh
+            // run therefore has no SFX layer; unlocks arrive via gig rewards and
+            // apply from the next gig (Retry in the demo).
+            var pdSfx = GameManager != null ? GameManager.PersistentGameplayData : null;
+            if (pdSfx == null || !pdSfx.IsSfxStageUnlocked(stage))
+            {
+                Debug.Log($"{DebugTag} [S5h] SongHype stage {stage} crossed but " +
+                          "threshold is LOCKED — SFX suppressed (unlock via rewards).");
+                return;
+            }
+
             if (backgroundContainer != null && !string.IsNullOrEmpty(sfxTag))
                 backgroundContainer.ActivateSFX(sfxTag);
 
@@ -2909,6 +3081,10 @@ namespace ALWTTT.Managers
 
             foreach (var entry in deltas)
             {
+                // [TUT-R2b] El pago de Vibe por-miembro espera al cierre del
+                // diálogo en pantalla (beat 9 salta en el primer miembro).
+                yield return new WaitUntil(() => !TutorialModalGate.IsActive);
+
                 var audience = CurrentAudienceCharacterList[entry.AudienceIndex];
                 if (audience == null) continue;
 
@@ -3057,7 +3233,10 @@ namespace ALWTTT.Managers
                          : VibeEffectiveness.Normal;
                 }
 
-                aud.AudienceCharacterCanvas.SetVibeTelegraph(tier, projected, showNumber: true);
+                aud.AudienceCharacterCanvas.SetVibeTelegraph(
+                    tier, projected,
+                    showNumber: presentation == null || presentation.ShowVibeProjectedNumbers,
+                    showLabel: presentation == null || presentation.ShowVibeEffectivenessLabels);
 
                 if (UseLogs)
                     Debug.Log($"{DebugTag} [S5a-SMOKE] PROJ ({reason})   i={i} " +

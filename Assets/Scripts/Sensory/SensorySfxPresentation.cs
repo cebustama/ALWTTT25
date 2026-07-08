@@ -11,6 +11,9 @@ namespace ALWTTT.Sensory
     /// </summary>
     public static class SensorySfxPresentation
     {
+        /// <summary>[S5h] Reward-screen-open sting.</summary>
+        public static SensorySfxType? ForRewardOpened() => SensorySfxType.RewardOpened;
+
         /// <summary>Reaction sting by clamped impression [-2..2]. Neutral (0)
         /// returns null — the muted "…" FT carries it.</summary>
         public static SensorySfxType? ForReaction(int impression)

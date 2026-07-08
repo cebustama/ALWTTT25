@@ -360,6 +360,7 @@ MonoBehaviour:
   skipButton: {fileID: 8706189907630401270}
   bubbleLeftPos: {x: 40, y: 40}
   bubbleRightPos: {x: -40, y: 40}
+  autoPlaceBubbleBySide: 0
   typeSpeed: 45
   verboseLogging: 1
 --- !u!225 &8954020151580116404
@@ -446,8 +447,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 800, y: 600}
+  m_AnchoredPosition: {x: -40, y: 0}
+  m_SizeDelta: {x: 1135.987, y: 934.3354}
   m_Pivot: {x: 0, y: 0}
 --- !u!222 &3010468084406371697
 CanvasRenderer:
@@ -522,7 +523,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 108, y: 51}
-  m_SizeDelta: {x: 517.6525, y: 120.436}
+  m_SizeDelta: {x: 791.3416, y: 203.0591}
   m_Pivot: {x: 0, y: 0}
 --- !u!222 &7567427800251456631
 CanvasRenderer:
@@ -582,9 +583,9 @@ MonoBehaviour:
   m_fontSize: 30
   m_fontSizeBase: 30
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 26
+  m_fontSizeMax: 30
   m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256

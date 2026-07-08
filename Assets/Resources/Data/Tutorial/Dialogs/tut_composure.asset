@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_composure
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_composure
+  priority: 118
+  category: 1
+  revisitTitle: Composure
+  portrait: {fileID: 0}
+  pages:
+  - "That's COMPOSURE: it soaks Stress damage before it touches your musician's fortitude.
+    It lasts until your next turn, then it's gone \u2014 it's a guard, not armor.
+    Raise it when you see the hit coming."
+  highlightKey: status_icon_composure

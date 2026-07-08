@@ -1,0 +1,775 @@
+# ssot_manifest.yaml — ALWTTT (A Long Way To The Top)
+# First application of ssot-drift-auditor to this project.
+# Fourth case in the workshop series (after Eon Narrative System, Islands.PCG, MidiGenPlay).
+#
+# Skill is not modified in this session. This manifest is the input.
+
+project:
+  name: ALWTTT
+  long_name: "A Long Way To The Top"
+  kind: unity_csharp_game
+  docs_root: Docs
+  code_root: Assets/Scripts
+  governance_baseline: "MultiProject_Documentation_Governance_System v0.4"
+  manifest_date: "2026-04-14"
+  notes: >
+    Music-themed deckbuilder. Cross-project boundary with the MidiGenPlay package
+    is the first of its kind in the workshop series — ALWTTT owns the game-side
+    handoff; MidiGenPlay owns package internals. The auditor only audits ALWTTT.
+
+# Authority order lifted verbatim from Docs/README.md § "Authority order".
+# This is NOT invented. When docs disagree, follow this order.
+authority_order:
+  - "SSoT_CONTRACTS.md"
+  - "Relevant subsystem SSoT listed in SSoT_INDEX.md"
+  - "CURRENT_STATE.md for latest validated active slice / immediate next step"
+  - "coverage-matrix.md for authority lookup"
+  - "planning/active/ for future work only"
+  - "reference/ for explanatory/supporting material"
+  - "archive/ for legacy/historical context only"
+
+# Authority classes used in this manifest — matches the fixed enum used in the
+# three previous workshop cases. Not extended for this project.
+authority_classes:
+  - contracts
+  - current_state
+  - coverage_matrix
+  - subsystem_ssot
+  - roadmap
+  - reference
+  - archive
+  - excluded
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Entries
+# ─────────────────────────────────────────────────────────────────────────────
+entries:
+
+  # ── contracts ──────────────────────────────────────────────────────────────
+
+  - path: Docs/SSoT_CONTRACTS.md
+    class: contracts
+    governs: []
+    hard_invariants:
+      - "One concept = one primary home. Cross-links are allowed. Competing primary definitions are not."
+      - "CURRENT_STATE.md does not replace subsystem SSoTs. It is a live status layer."
+      - "Planning docs must never be treated as current implementation truth."
+      - "Reference material cannot overrule a governed SSoT."
+      - "Archive content is not authoritative."
+      - "ALWTTT owns gameplay truth, encounter/session/runtime truth, audience and scoring truth, card semantics as player-facing game mechanics, scene/runtime integration, MidiMusicManager as a game runtime integration component."
+      - "MidiGenPlay owns package internals for MIDI generation, composer internals, package normalization logic, package authoring internals not owned by ALWTTT gameplay."
+      - "ALWTTT docs may reference MidiGenPlay docs. ALWTTT docs must not silently redefine package truth."
+      - "A runtime integration component that lives in the ALWTTT game runtime is documented in ALWTTT, even if it depends on MidiGenPlay. This applies especially to MidiMusicManager, CompositionSession, game scene/runtime bridge behavior, ALWTTT-side playback/session orchestration."
+      - "If both legacy and current models exist in docs, the docs must explicitly say which one is current."
+    notes: >
+      Root cross-cutting contract for ALWTTT governance. Defines authority
+      boundaries between the project's own docs and MidiGenPlay package docs.
+
+  - path: Docs/integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md
+    class: contracts
+    governs: []
+    hard_invariants:
+      - "ALWTTT owns gig runtime orchestration, card gameplay semantics, composition card gameplay meaning, active song/session runtime lifecycle, audience/scoring/hype/vibe/stress behavior as game systems, ALWTTT-side composition model state, runtime rebuild/invalidation decisions observable from the game, MidiMusicManager as a game runtime integration component."
+      - "MidiGenPlay owns package-internal composer algorithms, bundle-field precedence inside package generation pipelines, repository loading/selection internals owned by the package, generic package-side music authoring tools, package-side TS normalization/adaptation algorithms, generic pattern/instrument generation internals that are not game-owned runtime behavior."
+      - "Before handoff/build: ALWTTT owns the active editable/session truth via SongCompositionUI + CompositionSession."
+      - "After handoff/build: MidiGenPlay owns the package-side runtime truth via SongConfig + SongConfigManager."
+      - "This is not duplicate authority. It is a deliberate split between game-owned editing/session truth and package-owned runtime song/generation truth. Neither side should silently redefine the other."
+      - "ALWTTT may document the observable contract and handoff. ALWTTT must not silently redefine package internals."
+      - "Non-negotiable rule: one concept must have one primary home. If a concept is primarily package truth, ALWTTT may reference it but must not silently redefine it. If a concept is primarily game/runtime truth, MidiGenPlay may mention it but ALWTTT remains authority for the game-owned side."
+    notes: >
+      Cross-project ownership contract. Classified as `contracts` (not
+      `subsystem_ssot`) because it defines ownership/authority rules, not
+      runtime behavior of a code tree. Any invariant whose verification
+      requires MidiGenPlay code is not verifiable from this side of the
+      boundary — the auditor must report such cases as unverifiable rather
+      than cross the boundary. First workshop project with a true
+      cross-project boundary contract.
+
+  # ── current_state ──────────────────────────────────────────────────────────
+
+  - path: Docs/CURRENT_STATE.md
+    class: current_state
+    governs: []
+    hard_invariants:
+      - "CURRENT_STATE answers: what is active now, what was just completed, what comes next, what is blocked, which docs need editing next."
+      - "CURRENT_STATE does not replace subsystem SSoTs."
+    notes: >
+      Live operational status layer. Should be short and not grow into a
+      design bible (anti-pattern 18.8 in the governance baseline).
+
+  # ── coverage_matrix ────────────────────────────────────────────────────────
+
+  - path: Docs/coverage-matrix.md
+    class: coverage_matrix
+    governs: []
+    hard_invariants:
+      - "Maps each major concept to its authoritative home. Primary authority lookup."
+    notes: >
+      Single concept→home lookup table. Divergences between this table and
+      SSoT_INDEX.md are drift signals.
+
+  # ── subsystem_ssot: systems/ ───────────────────────────────────────────────
+
+  - path: Docs/systems/SSoT_Gig_Combat_Core.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Managers/GigManager.cs
+      - Assets/Scripts/Managers/GigRunContext.cs
+      - Assets/Scripts/Characters/CharacterBase.cs
+      - Assets/Scripts/Characters/CharacterStats.cs
+      - Assets/Scripts/Characters/BandCharacterStats.cs
+      - Assets/Scripts/Characters/MusicianBase.cs
+      - Assets/Scripts/Characters/StatusStats.cs
+      - Assets/Scripts/Data/Gig/GigFlowSettingsSO.cs        # ← new (M4.6F-2)
+      - Assets/Scripts/Data/Gig/GigPresentationSO.cs        # ← new (M4.6F-2)
+      - Assets/Scripts/Data/Gig/GigDevSettingsSO.cs         # ← new (M4.6F-2)
+    hard_invariants:
+      - "Stress is the main incoming pressure channel. Positive Stress is absorbed by Composure before being applied. Breakdown triggers when Stress >= StressMax after Composure absorption."
+      - "Flow resets each Song (via explicit GigManager song-end reset, not tick decay). Combat meaning: amplifies Loop → SongHype conversion."
+      - "Inspiration resets at Song start to a base value, increases from loop-level musical structure and composition contributions, is spent primarily on Composition cards."
+      - "SongHype changes loop by loop, is derived from LoopScore conversion, measures structural musical strength, not audience taste directly."
+      - "Vibe gain happens at Song End. VibeDelta derives from SongHype01 and audience-specific impression data accumulated across loops. An audience member is Convinced when Vibe >= VibeGoal."
+      - "GigScore is an encounter-level aggregate derived from song outcomes. MVP-friendly default is the sum of song-level results such as final SongHype."
+      - "Composure resets at PlayerTurnStart tick (NOT per-song — these are not equivalent)."
+      - "Breakdown consequences (per changelog 2026-03-23): Cohesion−1 → LoseGig if Cohesion≤0 → Shaken application → Stress reset. Stress reset formula: floor(StressMax * breakdownStressResetFraction), default 0.5, configurable."
+      - "Shaken duration: expires at start of Audience Turn N+1 (AudienceTurnStart tick). Active through one full song cycle from application. Shaken gameplay restrictions are design intent, not enforced in runtime."
+      - "GigManager scene-instance refs (cameras, hand, composition UI, MidiGenPlayConfig, songHypeDebugSlider, position lists, scene changer, background container) remain inline-serialized on GigManager. All other gameplay/tuning/presentation/dev settings are externalized to the four Gig SOs (GigFlowSettingsSO, MeterTuningSO, GigPresentationSO, GigDevSettingsSO) — M4.6F-2."
+      - "GigLauncher.Launch is the single non-Gig→Gig scene transition entry point. No other code path calls PersistentGameplayData.ApplyRunConfig directly. Manual GigSetup, MainMenu auto-launch, and future LadderRunner all route through GigLauncher."
+      - "SFX→FlatVibe bonus on SongHype stage crossings is applied per-audience-member through AudienceCharacterStats.ApplyIncomingVibe (canonical incoming-Vibe path). Indifference blocks per-member. The band-canvas '+N Vibe!' floater is an aggregate UX presentation, not a parallel game-state channel."
+    notes: >
+      Combat economy, meters, loop/song/gig hooks, turn structure. Overlaps
+      GigManager.cs with SSoT_Scoring_and_Meters and SSoT_Runtime_Flow —
+      this is real shared code, not a bug of the manifest.
+
+  - path: Docs/systems/SSoT_Card_System.md
+    class: subsystem_ssot
+    governs:
+      - "Assets/Scripts/Cards/*.cs"
+      - Assets/Scripts/Cards/Payloads
+      - Assets/Scripts/Cards/Effects
+      - Assets/Scripts/Cards/Enums
+      - Assets/Scripts/Cards/Extensions
+      - Assets/Scripts/Cards/CardActions
+    hard_invariants:
+      - "A CardDefinition references exactly one payload asset. Domain is derived from payload.Domain. Both Action and Composition cards share the same effect-first base model."
+      - "All gameplay mechanics authored on a card live under CardPayload.Effects : IReadOnlyList<CardEffectSpec>. Cards are not defined by per-card procedural scripts. Mechanics are represented as declarative specs."
+      - "CardEffectSpec is the abstract base type for card effects. Specs are data-only. Runtime logic is handled by an executor/interpreter layer. New mechanics are added by creating new spec subclasses plus authoring/runtime support."
+      - "Status application is just another CardEffectSpec. Status application is authored as a card effect type, not as a separate parallel system."
+      - "A card applies a concrete status asset (StatusEffectSO reference), not just a primitive enum id. This contrasts with runtime code paths (e.g. OnBreakdown) that must resolve by string key via the catalogue."
+      - "Performer is resolved at play time via FixedPerformerType — the musician who owns or plays the card is the performer. In effect targeting, Self = card owner/performer."
+      - "Valid targetType values: Self, Musician, AudienceCharacter, AllAudienceCharacters, AllMusicians, RandomAudienceCharacter, RandomMusician."
+      - "Built-in effect specs currently in active vocabulary (all implemented + validated): ApplyStatusEffectSpec, ModifyVibeSpec, ModifyStressSpec, DrawCardsSpec."
+      - "ModifyStressSpec routes through ApplyIncomingStressWithComposure for positive values."
+      - "ALWTTT owns the gameplay/runtime meaning of playing a composition card. MidiGenPlay owns package-side implementation details for internal music generation behavior."
+      - "BandDeckData is a multiset of (card, count) entries (M4.4). PersistentGameplayData.SetBandDeck expands counts into independent references on the runtime piles. Pre-M4.4 dedup-by-reference is gone — multiplicity is the contract. Pile lifecycle (DrawPile, HandPile, DiscardPile, ExhaustPile) preserves identity per reference: removing one of N copies leaves N-1 references intact."
+      - "Each successful card play fires exactly one DeckManager.OnCardPlayed call. The call site is HandController.PlayCard for Composition cards, CardBase.Use for SFX action cards, and CardBase.CardUseRoutine for non-SFX action cards. Doubling the call doubles HandPile.Remove + DiscardPile.Add and is a defect (M4.6F-1, 2026-05-07)."
+    notes: >
+      Card gameplay semantics. Does not own authoring/import workflow (that
+      is SSoT_Card_Authoring_Contracts). Overlap with Card_Authoring_Contracts
+      on Cards/Effects/** is real — that subfolder carries both the data
+      definitions and the effect contract.
+
+  - path: Docs/systems/SSoT_Card_Authoring_Contracts.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Cards/CardDefinition.cs
+      - Assets/Scripts/Cards/Payloads/CardPayload.cs
+      - Assets/Scripts/Cards/Effects
+      - Assets/Scripts/Data/Cards
+    hard_invariants:
+      - "A CardDefinition holds identity/presentation/economy/catalog-facing metadata. A CardPayload holds mechanics. A CardDefinition references exactly one payload asset."
+      - "All authored card mechanics live under the effect-first contract: CardPayload.effects : List<CardEffectSpec>. Adding a new mechanic means adding a new CardEffectSpec subclass plus matching editor/import/runtime support."
+      - "Status application is authored as a card effect type, not as a separate parallel system. Cards reference a concrete StatusEffectSO asset. They do not reference only an abstract primitive id when authored/imported."
+      - "Each StatusEffectSO must support a stable unique variant identifier: statusKey : string. Duplicate statusKey is a hard authoring/import error. Multiple variants sharing the same primitive id are allowed."
+      - "JSON import must populate effects. Legacy shapes like separate actions / statusActions are not ongoing primary schema."
+      - "Required top-level card schema fields: kind, id, displayName, effects."
+      - "statusKey resolves via the status catalogue. Unresolved status references must fail import clearly."
+      - "Canonical editor workflow: Parse -> Stage in memory -> Review/Edit -> Save -> Add to catalog. Staged objects are temporary/in-memory. Nothing writes to disk before Save."
+      - "Save must create the .asset files, wire payload/effect references correctly, and insert the resulting card into the intended catalog or registry."
+      - "Minimum governed validations: duplicate card id detection, duplicate statusKey detection, unresolved status references are hard failures, required top-level fields must exist before Save/import succeeds, catalog insertion must not silently create conflicting entries."
+      - "Whenever a new CardEffectSpec subclass is added, update all four layers: data class, editor authoring support, JSON/import support, runtime execution support."
+      - "Deck JSON entries support a per-entry count field (default 1). Duplicate cardId references in the same deck JSON are combined additively with a non-blocking warning (M4.4). Duplicate kind-bearing ids remain a hard error with pendingCard cleanup."
+      - "Per-musician starter deck auto-assembly (M4.6-prep batch (2)): PersistentGameplayData.SetBandDeckFromMusicians materializes the gig deck from each MusicianCharacterData.CardCatalog (StarterDeck-flagged entries × starterCopies) plus an optional GenericCardCatalogSO. Per-musician contributions populate provenance (musicianGrantedActionCards/musicianGrantedCompositionCards); generic-catalogue contributions do NOT, so RemoveMusicianFromBand strips per-musician copies but leaves generic copies. CardAcquisitionFlags.starterCopies is runtime-consumed on this path. The legacy BandDeckData asset path coexists as a dev/test fallback selected by GigRunContext.RunConfig.useMusicianStarters."
+    notes: >
+      Authoring/serialization/import contracts for cards and statuses.
+      Owns the data-contract side only; runtime meaning is in SSoT_Card_System.
+
+  - path: Docs/systems/SSoT_Audience_and_Reactions.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Characters/AudienceCharacterBase.cs
+      - Assets/Scripts/Characters/AudienceCharacterStats.cs
+      - Assets/Scripts/Characters/AudienceCharacterCanvas.cs
+      - Assets/Scripts/Characters/Audience
+      - Assets/Scripts/Data/Characters/Audience
+      - Assets/Scripts/Cards/CardActions/AddStressAction.cs
+      - Assets/Scripts/Cards/CardActions/AudienceMoveToFrontAction.cs
+    hard_invariants:
+      - "Vibe is the canonical persuasion-side progress meter. Tracked per audience member. Increases mainly at Song End. Persists across songs within a Gig unless an encounter-specific modifier says otherwise."
+      - "When Vibe >= VibeGoal, that audience member becomes Convinced. Convinced audience members should no longer count as unresolved persuasion targets for encounter completion."
+      - "The audience is a reactive and pressuring system. It does not need a traditional HP/damage model to serve as combat structure."
+      - "Preferences influence reaction/impression. Preferences do not directly replace SongHype or LoopScore."
+      - "Intentions should be visible before the audience acts. Intention is presentation of the next meaningful audience action, not hidden simulation state."
+      - "MVP rules: each Audience Member has Vibe + VibeGoal; audience persuasion progress persists across songs within a Gig; audience preferences are simple and readable; audience pressure is primarily expressed through Stress-oriented abilities; intention telegraphing is favored over hidden surprise logic; audience-side statuses are part of the MVP baseline (Earworm is the first; extends via StatusEffectCatalogue_Audience)."
+    notes: >
+      Audience entities, persuasion, preferences, intentions, reaction
+      contracts. Does not own encounter envelope (that is SSoT_Gig_Encounter).
+
+  - path: Docs/systems/SSoT_Status_Effects.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Status
+    hard_invariants:
+      - "A status in ALWTTT has two layers: a primitive/stable identity layer (systemic identity, must not depend on theme text) and an authored/theme layer (display/balance/tuning via StatusEffectSO)."
+      - "Stable identity and themed presentation must not be conflated."
+      - "The runtime status surface includes: StatusEffectSO, StatusEffectCatalogueSO, runtime containers/instances (StatusEffectContainer on CharacterBase.Statuses), catalogue lookup and variant selection by key, stack application/decay/refresh according to the authored contract."
+      - "TickTiming canonical values: StartOfTurn=1 (legacy, retained for back-compat, do not use for new statuses), PlayerTurnStart=8, AudienceTurnStart=9. Use PlayerTurnStart or AudienceTurnStart for all new statuses."
+      - "Musicians: TriggerAllStatus is bound to GigManager.OnPlayerTurnStarted via MusicianBase.BindToGigContext(). Audience: TriggerAllStatus is called from GigManager.AudienceTurnRoutine at audience turn start."
+      - "Dual status system exists: legacy StatusType path and current SO+container path both live in code. New work goes through SO+container only."
+      - "A status application path must resolve through one canonical runtime route. Multiple variants must not become multiple silent meanings for the same gameplay concept."
+      - "Canonical MVP status set: flow, composure, choke, shaken, exposed, feedback, earworm. Feedback is musician-only; Earworm is audience-only (first audience-side status, M4.3). Audience Feedback DoT remains explicitly deferred (requires Stress path on AudienceCharacterBase, which does not exist). Earworm and Feedback share the DamageOverTime primitive but live in separate catalogues post-MB2 (StatusEffectCatalogue_Musicians / StatusEffectCatalogue_Audience). Flow combat meaning is bifurcated (M4.2): flat per-performer on Action cards, multiplier band-wide on Composition + Song End."
+    notes: >
+      Runtime status truth, catalogue boundary, canonical MVP status meaning.
+      Acknowledges the dual legacy/SO system as migration coexistence.
+
+  - path: Docs/systems/SSoT_Scoring_and_Meters.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Music/LoopScoreCalculator.cs
+      - Assets/Scripts/Data/Gig/MeterTuningSO.cs            # ← new (M4.6F-2)
+    hard_invariants:
+      - "Canonical layer split: Loop quality layer (LoopScore) → Song momentum layer (SongHype, SongHype01) → Audience persuasion layer (Vibe per audience member)."
+      - "LoopScore is the loop-level input to song momentum. It is allowed to be positive, neutral, or negative. It is not itself the audience persuasion meter."
+      - "SongHype measures momentum and quality inside the current song. It is not gig-persistent across all songs by default. It is the bridge between repeated loop success and song-end persuasion payout."
+      - "Vibe is applied per audience member. Vibe persists across songs within a Gig by default. Vibe is not a duplicate of SongHype: SongHype = current-song momentum, Vibe = cumulative persuasion progress. This split is essential and must not be collapsed."
+      - "Canonical conversion chain: Loop performance -> LoopScore -> SongHype/SongHype01 -> Song-end persuasion conversion -> VibeDelta per audience member."
+      - "Flow interacts with the Vibe layer, not the LoopScore or SongHype layers. Flow amplifies positive Vibe gains, bifurcated by card domain: flat per-performer bonus on Action cards, multiplier on Composition cards and Song End. Flow is not itself SongHype. Flow is not Inspiration."
+      - "Composure does not directly live in the musical scoring chain. It is a defensive meter/status that absorbs Stress before Stress application."
+      - "The main persuasion payout occurs at Song End. Loop-level scoring matters because it builds toward song-end conversion."
+    notes: >
+      Semantic contract of the meter stack. The `governs:` list is narrow by
+      design — conversion orchestration lives in GigManager.cs (which is
+      owned by Combat_Core and Runtime_Flow), and this SSoT intentionally
+      does NOT claim GigManager as governed code. It owns the semantic
+      meaning only, not the file-level implementation of conversion.
+
+  - path: Docs/systems/SSoT_Gig_Encounter.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Encounters
+      - Assets/Scripts/Data/Encounters
+      - Assets/Scripts/Data/Gig/GigSetupRosterSO.cs         # ← was GigSetupConfigData.cs
+      - Assets/Scripts/Managers/GigSetupSceneManager.cs
+      - Assets/Scripts/UI/GigSetupController.cs
+      - Assets/Scripts/UI/MusicianPickerRow.cs
+      - Assets/Scripts/UI/AudiencePickerRow.cs
+    hard_invariants:
+      - "A Gig is always the encounter unit, not the song unit."
+      - "Audience persuasion persists across Songs inside a Gig."
+      - "Cohesion is gig-scoped durability and the baseline fail gate."
+      - "Song results feed encounter progress; they do not replace encounter structure."
+      - "Encounter modifiers belong at Gig scope, not hidden inside subsystem docs."
+      - "Special audience/room mechanics must be expressed as explicit encounter variants, not silent defaults."
+      - "Failure rule implementation: GigManager.LoseGig() (public). Called from MusicianBase.OnBreakdown. No method named TriggerGigLoss exists."
+      - "pd.MusicianList is set by the Gig Setup band picker via pd.SetBandRoster (roster identity only; no card grants). pd.AddMusicianToBand is the separate meta/recruit path that additionally grants base cards. The deck paths (auto-assembly via SetBandDeckFromMusicians, legacy via SetBandDeck) are independent of roster mutation."
+      - "GigEncounterSO.audienceMemberList is the default audience composition for the encounter, not a hard binding. RunConfig.audienceOverride may replace it per-run via GigEncounterSO.BuildRuntime(audienceOverride). Null override means the SO's baked list is used (regression-safe). Override-decision rule is multiset-blind on baked duplicates: encounters with duplicate baked entries preserve duplicates at runtime when the user does not customize."
+    notes: >
+      Encounter structure, roster framing, song-count structure, victory/
+      failure conditions, encounter modifiers.
+
+  - path: Docs/systems/SSoT_Editor_Authoring_Tools.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Cards/Editor
+      - Assets/Scripts/Status/Editor
+    hard_invariants: []
+    notes: >
+      Editor tools inventory, capabilities, supporting services, known gaps.
+      Activated 2026-04-08 (recent). Hard invariants not lifted because the
+      SSoT was not searched deeply in this session — if a re-run extends
+      coverage, candidate invariants should be lifted then. Overlaps
+      Card_Authoring_Contracts on the Cards/Editor tree; owns the tool
+      capability surface, not the data contract.
+
+  # ── subsystem_ssot: runtime/ ───────────────────────────────────────────────
+
+  - path: Docs/runtime/SSoT_Runtime_Flow.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Managers/GigManager.cs
+      - Assets/Scripts/Managers/DeckManager.cs
+      - Assets/Scripts/Controllers/HandController.cs
+      - Assets/Scripts/Characters/Actions
+    hard_invariants:
+      - "GigManager owns gig-scene orchestration and phase transitions."
+      - "CompositionSession owns active song/session progression and feedback emission."
+      - "SongCompositionUI is the ALWTTT-side source of editable composition state."
+      - "SongConfigBuilder converts ALWTTT model state into music playback build input."
+      - "MidiMusicManager is part of the ALWTTT runtime surface and must be documented here/on the integration side, not as package truth."
+      - "Loop/part/song feedback belongs to the ALWTTT runtime contract even when downstream systems use MidiGenPlay for playback/generation."
+      - "ExecuteGigPhase() is bypassed while a CompositionSession is active. Phase machine and session lifecycle are explicitly decoupled."
+      - "There is at most one active composition session per active song."
+      - "MidiMusicManager is an ALWTTT runtime integration component. It is not the authority for package generation internals. Its job is to host/control the music playback surface used by the gig runtime."
+      - "Action window flags (_actionWindowOpen, _isBetweenSongs) are per-PlayerTurn, not per-gig. They are re-asserted to true at the top of ExecuteGigPhase(PlayerTurn) after the completion check."
+      - "Hand draw at PlayerTurn entry guarantees >=1 Action and >=1 Composition card in hand when DrawPile + DiscardPile allow, without exceeding DrawCount or MaxCardsOnHand (M4.5). The guarantee is subtractive — it consumes normal draw slots, never extends hand size. Composition wins when budget cannot fit both. Implemented via DeckManager.DrawCardsForPlayerTurn + DrawCardFiltered."
+    notes: >
+      Gig runtime orchestration and phase flow. Overlaps GigManager.cs with
+      Combat_Core and Scoring_and_Meters — all three legitimately touch
+      GigManager from different angles. Invariants 5 and the MidiMusicManager
+      rule imply governance of MidiMusicManager.cs, which is owned by
+      `runtime/SSoT_Runtime_CompositionSession_Integration.md §3.4` per the
+      code-side SSoT comment in MidiMusicManager.cs. Former drift finding F1
+      (deleted standalone doc `SSoT_ALWTTT_MidiMusicManager_Integration.md`
+      promoted but later removed without supersession trail) RESOLVED
+      2026-05-20 in planning-reorg-2026-05-20 by collapsing the concept into
+      the Runtime CompositionSession Integration SSoT, which was the actual
+      home all along.
+
+  - path: Docs/runtime/SSoT_Runtime_CompositionSession_Integration.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Music/CompositionSession.cs
+      - Assets/Scripts/Music/SongConfigBuilder.cs
+      - Assets/Scripts/Music/LoopScoreCalculator.cs
+      - "Assets/Scripts/Music/Context Data"
+      - Assets/Scripts/Cards/Composition
+      - "Assets/Scripts/UI/Song Composition"
+    hard_invariants:
+      - "CompositionSession is the ALWTTT runtime host for song-scoped live composition."
+      - "SongCompositionUI is the ALWTTT-side editable truth for composition model state."
+      - "SongConfigBuilder is the canonical ALWTTT-side transformation step into playback/build input."
+      - "Playback-affecting composition cards must trigger the correct ALWTTT rebuild/invalidation path."
+      - "MidiMusicManager is documented as a game runtime integration component, not package-owned truth."
+      - "Loop/part/song feedback emitted after playback belongs to the ALWTTT runtime contract."
+      - "Out of scope: composer-internal precedence chains, package repository loading rules, package authoring/editor internals, package-side TS normalization algorithms (those belong in MidiGenPlay docs)."
+      - "Per-loop card draw and per-loop inspiration consumption are host-owned (GigManager.OnCompositionLoopFinished), not inside CompositionSession.HandleLoopFinished. CompositionSession remains the deck-non-mutating invariant holder per the [Obsolete] guards on PrepareDeck and ICompositionContext.Deck."
+      - "CompositionSession.AddCurrentInspiration is the canonical session-budget mutator. It clamps to pd.MaxInspiration, mirrors to pd.CurrentInspiration, refreshes the composition UI, and returns the actual delta applied. All production-path inspiration deltas during an active session route through it."
+    notes: >
+      ALWTTT-side composition/session runtime bridge. Three-way overlap with
+      Runtime_Flow and Scoring_and_Meters on LoopScoreCalculator.cs and on
+      CompositionSession.cs — real shared surface.
+
+  - path: Docs/systems/SSoT_Audio.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Managers/AudioManager.cs
+      - Assets/Scripts/Data/Audio/AudioMixSettingsSO.cs
+      - Assets/Scripts/DevMode/DevAudioMixTab.cs
+      - Assets/Scripts/Managers/MusicDirector.cs
+      - Assets/Scripts/Data/Audio/OstCatalogSO.cs
+      - Assets/Scripts/Enums/OstTrackId.cs
+      - Assets/Scripts/Data/Audio/CharacterSfxProfileSO.cs   # M1-note: AUDIO-CHAR-PROFILES phase-1 backfill — verify Assets path
+    hard_invariants:
+      - "One SFX sink: all SFX (card-direct + bus-sensory) play through AudioManager; master SFX caps sfxSource + buttonSource."
+      - "Two SFX keys, one authority each: AudioActionType is card-only (SSoT_Card_Authoring_Contracts); SensorySfxType is bus-only (SSoT_Audio). Neither leaks into the other."
+      - "Missing audio is a content gap, not a crash (warn-once + no-op)."
+      - "ALWTTT owns only the per-musician music axis. MIDIInstrumentSO.volume01 is never wired ALWTTT-side; instrument01 == 1.0 in the effective-volume formula (double-attenuation guard)."
+      - "Effective music volume = global * perMusician * 1.0, composed in GigManager.ComputeEffectiveMusicianVolume01, applied via MidiMusicManager.SetMusicianVolume01."
+      - "The balance re-applies per song (ReapplyMusicianMix after Play + OnSongStartedInternal channel re-assert). A balance loaded at gig start is staged, not audible, until the first song."
+      - "Persistence is a design-time SO asset baked in-editor (no runtime save); Dev edits persist via SetDirty/SaveAssets under #if UNITY_EDITOR; baked values are the shipped default."
+      - "One home per audio concept: global music, master SFX, per-musician balance live in AudioMixSettingsSO. GameplayData.globalMusicVolume01 removed."
+      - "Card SFX is opt-in by type: Button (default/UI) and None play nothing on the card path; cards opt into a sound via a non-default clip-backed AudioActionType."
+      - "Jitter is caller-controlled (fan-out only): only SensoryAudioAdapter's reaction handler passes jitter=true; card + single-source SFX are immediate. sfxMaxJitterSeconds on AudioManager."
+      - "Master SFX applies app-wide at AudioManager.Awake and governs sfxSource + buttonSource (UI clicks under the SFX level)."
+      - "OST plays only through MusicDirector, one track audible at a time (two internal AudioSources overlap only during a crossfade)."
+      - "The Music level (AudioMixSettingsSO.GlobalMusicVolume01) scales gig music AND OST: gig per-channel via GigManager.ComputeEffectiveMusicianVolume01, OST via MusicDirector (AudioSource.volume). One level, two consumers."
+      - "Gig music and OST never play simultaneously: gig scenes are unlisted in the MusicDirector scene-to-track map, so they resolve to OstTrackId.None and stop OST."
+      - "Crowd ambience is an SFX-group loop on AudioManager: effective = masterSfx × ambienceLevel × fade; present while the crowd is idle, ducks under a performing song; duck/return are volume-only (no loop restart). Gig-scoped — started at gig open (StartGig), returned at song end (OnCompositionSessionEnded, which nulls _session synchronously so a polled flag would miss the edge), stopped on teardown (OnDestroy)."
+      - "Reaction clips resolve per-character first, then bank per polarity: a reacting character's CharacterSfxProfileSO (on AudienceCharacterData.sfxProfile) is consulted before SoundBankSO; an empty polarity falls back to the bank for that polarity, then warn-once/no-op. The per-character SO is a clip source for the existing ReactionPositive/Negative keys — no new SensorySfxType. Neutral stays FT-only; jitter (fan-out only) unchanged on both paths; per-character coverage unaudited. (AUDIO-CHAR-PROFILES phase 1; backfilled into the manifest at phase 2.)"
+      - "Ability SFX fires once at activation, single-source and immediate: an audience ability's inline abilitySfx clip (on AudienceAbilityData, beside its AbilityAnimationData trigger) plays once in AudienceCharacterBase.AbilityRoutine via AudioManager.PlayOneShot(AudioClip, jitter:false) — never jittered (jitter is fan-out only), after the stun/null/empty guards and before PlayAbilityAnimation (independent of the animation guard), no-op on null. Profile/data-sourced — no new SensorySfxType; AudioManager stays the dumb sink; CharacterSfxProfileSO unchanged (reaction-only). Status-apply fire (option B) deferred. (AUDIO-CHAR-PROFILES-2.)"
+    notes: >
+      ALWTTT-side audio home. Consolidates the as-built SFX subsystem (migrated
+      from Design_Sensory_Contract_v0_1.md §5A) and the M-AUDIO-MIX music-mix
+      model + audio boundary, plus AUDIO-SFX-FIX (opt-in-by-type card SFX,
+      caller-controlled jitter, app-wide SFX with UI bus). AudioManager.cs was
+      previously ungoverned. MidiMusicManager.cs is intentionally NOT listed here
+      (its mix-axis surface overlaps SSoT_Runtime_CompositionSession_Integration's
+      ownership of the component — see finding F8); SSoT_Audio governs the
+      music-mix concept, not the MidiMusicManager component.
+      AUDIO-OST (2026-06-16) added the OST playback bus (MusicDirector +
+      OstCatalogSO + OstTrackId); no AudioMixer in ALWTTT — OST volume is
+      AudioSource.volume = musicLevel01 * defaultLevel01; gig music and OST
+      never play simultaneously.
+
+  # ── roadmap ────────────────────────────────────────────────────────────────
+
+  - path: Docs/planning/active/Roadmap_ALWTTT.md
+    class: roadmap
+    governs: []
+    hard_invariants: []
+    notes: >
+      Project-wide active roadmap. Planning authority only — never treated
+      as current implemented truth.
+
+  - path: Docs/planning/active/Roadmap_Audio.md
+    class: roadmap
+    governs: []
+    hard_invariants: []
+    notes: >
+      Audio work-stream sub-roadmap (planning-only). Bus model + batch sequence
+      + decisions ledger. Implementation truth lives in SSoT_Audio.md; this doc
+      is not current-state.
+
+  # ── reference ──────────────────────────────────────────────────────────────
+
+  - path: Docs/reference/CSO_Primitives_Catalog.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Explicitly classified as `reference` in coverage-matrix. Supporting
+      catalog, not primary runtime authority. If it conflicts with
+      SSoT_Status_Effects, the SSoT wins.
+
+  - path: Docs/planning/active/Design_Action_Economy_v1.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Design rationale for the per-turn play economy (ECON-1, 2026-07-07).
+      Subordinate to SSoT_Gig_Combat_Core.md §14 — where this doc and the SSoT
+      diverge, the SSoT wins. planning/active placement; not current-state.
+
+  - path: Docs/integrations/midigenplay/ALWTTT_Uses_MidiGenPlay_Quick_Path.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      One-page quick-path guide explaining the end-to-end integration flow.
+      Support/explanatory only. Not authority.
+
+  - path: Docs/reference/Report_CardLLM_Pipeline.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Explanatory reference for the CE-L1 LLM card-generation pipeline
+      (2026-06-11). Not authority: tool truth lives in
+      systems/SSoT_Editor_Authoring_Tools.md §4.10, schema truth in
+      systems/SSoT_Card_Authoring_Contracts.md §5.12; cross-project pattern
+      authority is MidiGenPlay authoring/SSoT_Authoring_LLM_Generation.md §7.
+      If it conflicts with those, they win.
+
+  # ── archive ────────────────────────────────────────────────────────────────
+
+  - path: Docs/changelog-ssot.md
+    class: archive
+    governs: []
+    hard_invariants: []
+    notes: >
+      Semantic/documentary change history. Not authority for implementation
+      truth but contains useful signals about recent promotions and
+      supersessions. Consistent with Eon and Islands.PCG cases.
+
+  - path: Docs/archive/absorbed/Source_Docs_Supersession_Map.md
+    class: archive
+    governs: []
+    hard_invariants: []
+    notes: "Old→new path lookup table for pre-governance source docs."
+
+  - path: Docs/archive/SNAPSHOT_RETENTION_POLICY.md
+    class: archive
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/audits/ALWTTT_Combat_MVP_Audit_Final.md
+    class: archive
+    governs: []
+    hard_invariants: []
+    notes: >
+      Point-in-time audit report from 2026-03-20. Historical record of the
+      Combat MVP closure state. Not living authority.
+
+  - path: Docs/planning/archive/Roadmap_Combat_MVP.md
+    class: archive
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/planning/archive/Roadmap_Combat_MVP_Closure_Actionable.md
+    class: archive
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/planning/archive/ALWTTT_DeckEditorWindow_Roadmap_Proposal.md
+    class: archive
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/planning/archive/Combat_MVP_Roadmap.md
+    class: archive
+    governs: []
+    hard_invariants: []
+    notes: "Second Combat MVP roadmap in archive. Relationship to Roadmap_Combat_MVP.md unclear — possible legacy duplication."
+
+  - path: Docs/planning/music/ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md
+    class: archive
+    governs: []
+    hard_invariants: []
+    notes: >
+      Dated cross-project report. Not active roadmap. Lives under planning/
+      but is reference-style historical material.
+
+  # ── excluded ───────────────────────────────────────────────────────────────
+  # Folder READMEs, navigation indexes, and governance baseline docs.
+  # Excluded from the audit surface but listed for traceability.
+
+  - path: Docs/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+    notes: "Root entry + authority order. Authority order is lifted into this manifest's metadata — the doc itself is not an audit target."
+
+  - path: Docs/SSoT_INDEX.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+    notes: "Master map/index. The auditor consults it to locate SSoTs but does not treat it as an audit target."
+
+  - path: Docs/systems/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/runtime/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/integrations/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/integrations/midigenplay/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/reference/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/planning/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/planning/active/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/planning/archive/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/archive/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/archive/absorbed/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+  - path: Docs/archive/snapshots/README.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Known drift signals to pre-seed into the first run
+# These are facts the manifest author discovered while building it.
+# The auditor should still verify them independently.
+# ─────────────────────────────────────────────────────────────────────────────
+known_drift_signals:
+
+  - id: F1
+    severity: RESOLVED
+    kind: deleted_authority_without_supersession
+    status: closed 2026-05-20 (planning-reorg-2026-05-20)
+    concept: "MidiMusicManager runtime integration"
+    description: >
+      [RESOLVED 2026-05-20] Docs/SSoT_INDEX.md and Docs/coverage-matrix.md
+      previously listed
+      `integrations/midigenplay/SSoT_ALWTTT_MidiMusicManager_Integration.md`
+      as the `active` primary authority for "MidiMusicManager integration
+      behavior". The file does not exist on disk. changelog-ssot.md records
+      its creation in Batch 03 (2026-03-19); it was authored, promoted to
+      active authority, and later removed without a supersession trail in
+      SSoT_INDEX, coverage-matrix, or changelog-ssot.
+
+      Resolution: the deleted standalone doc's content is fully covered by
+      `runtime/SSoT_Runtime_CompositionSession_Integration.md §3.4`
+      ("MidiMusicManager"), step 7 of the runtime flow, and invariants 5
+      and 9. The code-side `MidiMusicManager.cs` header comment already
+      points at that doc as its SSoT, so the routing was correct on the
+      code side — only the index/matrix/manifest hadn't caught up.
+
+      Cleanup applied in planning-reorg-2026-05-20:
+      - SSoT_INDEX.md row removed from Integrations table.
+      - coverage-matrix.md row repointed to
+        runtime/SSoT_Runtime_CompositionSession_Integration.md §3.4.
+      - planning/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md (now at
+        integrations/midigenplay/) §9 "Missing reference" note collapsed to
+        a closure narrative.
+      - integrations/midigenplay/ALWTTT_Uses_MidiGenPlay_Quick_Path.md §5
+        "Which docs to open next" link repointed.
+      - This finding marked RESOLVED.
+
+      Concept "MidiMusicManager runtime integration" now has a single
+      unambiguous primary home; SSoT_Runtime_Flow.md invariant satisfied.
+    affected_docs:
+      - Docs/SSoT_INDEX.md
+      - Docs/coverage-matrix.md
+      - Docs/changelog-ssot.md
+      - Docs/integrations/midigenplay/ALWTTT_Uses_MidiGenPlay_Quick_Path.md
+      - Docs/integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md
+    affected_code:
+      - Assets/Scripts/Managers/MidiMusicManager.cs
+
+  - id: F2
+    severity: INFO
+    kind: expected_overlap
+    concept: "GigManager.cs claimed by multiple SSoTs"
+    description: >
+      Assets/Scripts/Managers/GigManager.cs is claimed by SSoT_Gig_Combat_Core
+      and SSoT_Runtime_Flow and is the real (but unclaimed) implementation
+      site for parts of SSoT_Scoring_and_Meters. This is deliberate: the
+      file genuinely carries combat economy, runtime orchestration, and
+      scoring conversion responsibilities simultaneously. Flagged here so
+      the auditor does not report it as a novel drift each run.
+    affected_code:
+      - Assets/Scripts/Managers/GigManager.cs
+
+  - id: F3
+    severity: INFO
+    kind: expected_overlap
+    concept: "LoopScoreCalculator.cs claimed by two SSoTs"
+    description: >
+      Assets/Scripts/Music/LoopScoreCalculator.cs is claimed by
+      SSoT_Scoring_and_Meters and SSoT_Runtime_CompositionSession_Integration.
+      Real shared surface.
+    affected_code:
+      - Assets/Scripts/Music/LoopScoreCalculator.cs
+
+  - id: F4
+    severity: INFO
+    kind: expected_overlap
+    concept: "Cards/Effects tree claimed by two SSoTs"
+    description: >
+      Assets/Scripts/Cards/Effects/** is the home of the CardEffectSpec data
+      types. SSoT_Card_System claims it for gameplay/runtime semantics;
+      SSoT_Card_Authoring_Contracts claims it for data representation and
+      serialization contracts. Different concerns, same files.
+
+  - id: F5
+    severity: INFO
+    kind: dual_system_coexistence
+    concept: "Legacy StatusType enum coexists with SO container"
+    description: >
+      SSoT_Status_Effects acknowledges a dual status system: legacy
+      StatusType + statusDict path and the current SO + StatusEffectContainer
+      path. Both live in the code simultaneously. The SSoT classifies this
+      as migration coexistence, not drift. Not a finding unless a new
+      non-migration authority makes the divergence worse.
+
+  - id: F6
+    severity: INFO
+    kind: deliberate_dispersion
+    concept: "Gameplay defaults intentionally split across two SOs"
+    description: >
+      M4.6F-2 split the former GigSetupConfigData into GigSetupRosterSO
+      (selectable content surfaced on Gig Setup) and GigFlowSettingsSO
+      (gameplay-flow defaults consumed by GigSetupController +
+      PersistentGameplayData.ApplyRunConfig). This is deliberate, not
+      drift: the auditor should expect both SOs to be referenced from
+      the GigSetup scene and from the registry. GameplayData↔PGD
+      duplication of `drawCount`, `keepInspirationBetweenTurns`, etc.
+      remains by design (D4 deferral), tracked separately.
+    affected_code:
+      - Assets/Scripts/Data/Gig/GigSetupRosterSO.cs
+      - Assets/Scripts/Data/Gig/GigFlowSettingsSO.cs
+      - Assets/Scripts/UI/GigSetupController.cs
+      - Assets/Scripts/PersistentGameplayData.cs
+
+  - id: F7
+    severity: MEDIUM
+    kind: authority_doc_gap_window
+    status: open — pending user confirmation of two batch closures
+    concept: "CURRENT_STATE.md overwrite + reconstructed gap window 2026-05-22 → 2026-06-12"
+    description: >
+      Docs/CURRENT_STATE.md (class current_state, the operational-reality
+      layer) was accidentally overwritten by an insert-fragment ("Addendum
+      para CURRENT_STATE.md §1") at some point after 2026-05-22 and was
+      absent from project knowledge by 2026-06-01. Recovered 2026-06-12:
+      pre-overwrite version restored, gap window replayed from chat-history
+      insert blocks. The planning-reframe (2026-05-23) §1 block and §3
+      S1-S8 rewrite were recovered verbatim; the MOD-DIR-2/3 (2026-05-22)
+      block was recovered verbatim from the overwriting fragment itself.
+
+      Two batches in the window carry UNVERIFIED closure status, marked
+      as [GAP — UNVERIFIED] stubs in CURRENT_STATE §1:
+      (a) S1 / B3-slate-F audience reactions (opened 2026-05-24) — code
+      work and smoke definitions (ST-S1-1..8) verified from chat history;
+      closure, D-F-1..3 resolutions, and the expected
+      SSoT_Audience_and_Reactions.md + changelog entries unconfirmed.
+      (b) ALWTTT-PCE-PROP drum-palette propagation (2026-06-04/05) — six
+      paste-ready doc blocks produced (incl. the authoritative Rhythm
+      card→palette table for SSoT_Card_System.md §5.2.1 and
+      SSoT_Runtime_CompositionSession_Integration.md §7.1 + invariant 10);
+      whether they were pasted is unconfirmed. If (b) was NOT applied,
+      SSoT_Card_System.md is missing an authoritative table and the
+      auditor should expect doc-behind-code drift on the rhythm-palette
+      concept.
+
+      Auditor guidance: until this signal is closed, treat
+      CURRENT_STATE §1 stub claims as unverified, and verify the presence
+      of SSoT_Card_System.md §5.2.1 and Integration §7.1/invariant 10
+      directly against the docs on disk rather than trusting either
+      CURRENT_STATE or the chat-derived stubs.
+    affected_docs:
+      - Docs/CURRENT_STATE.md
+      - Docs/systems/SSoT_Card_System.md
+      - Docs/runtime/SSoT_Runtime_CompositionSession_Integration.md
+      - Docs/systems/SSoT_Audience_and_Reactions.md
+      - Docs/planning/Design_Starter_Deck_v1.md
+      - Docs/changelog-ssot.md
+      - Docs/coverage-matrix.md
+    affected_code:
+      - Assets/Scripts/Characters/Audience/AudienceCharacterSimple.cs
+      - Assets/Scripts/Characters/Audience/AudienceCharacterBase.cs
+
+  - id: F8
+    severity: INFO
+    kind: expected_overlap
+    concept: "MidiMusicManager mix-axis surface shared by SSoT_Audio and the CompositionSession integration SSoT"
+    description: >
+      SSoT_Audio governs the music-mix concept (per-musician volume axis,
+      effective-volume composition, song-start re-assert). The MidiMusicManager
+      component is governed by SSoT_Runtime_CompositionSession_Integration (§3.4).
+      The SetMusicianVolume01 / OnSongStartedInternal channel-volume surface is
+      therefore touched by both concerns. This is deliberate: the mix axis is an
+      audio concept; the playback host is a runtime-integration concept. Flagged
+      so the auditor does not report it as novel drift.
+    affected_code:
+      - Assets/Scripts/Managers/MidiMusicManager.cs
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cross-project boundary: the auditor does not cross it.
+# ─────────────────────────────────────────────────────────────────────────────
+cross_project_boundary:
+  other_project: MidiGenPlay
+  rule: >
+    ALWTTT owns the game-side of the handoff. MidiGenPlay owns package
+    internals. The auditor only audits ALWTTT. Any invariant whose
+    verification would require reading or running MidiGenPlay code must
+    be reported as "not verifiable from this side of the boundary" rather
+    than cause a cross-project traversal.
+  governed_here:
+    - Docs/integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md
+  not_governed_here:
+    - "Package internals of MidiGenPlay (composer algorithms, bundle-field precedence, TS normalization, repository loading/selection, package-side authoring tools)."

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_inspiration_economy
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_inspiration_economy
+  priority: 70
+  category: 2
+  revisitTitle: Inspiration
+  portrait: {fileID: 0}
+  pages:
+  - "See that +{$inspiration_per_loop}? Every loop feeds you {$inspiration_per_loop}
+    Inspiration. Some cards demand it to be played \u2014 the good ones, naturally.
+    Save it: one just landed in your hand that's worth it."
+  highlightKey: inspiration_counter

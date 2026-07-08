@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_gig_won
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_gig_won
+  priority: 120
+  category: 4
+  revisitTitle: Concierto ganado
+  portrait: {fileID: 0}
+  pages:
+  - "Todos convencidos. \xBFOyes eso? El silencio de justo despu\xE9s \u2014 eso
+    es un p\xFAblico que ya es tuyo. No te lo creas demasiado, novato: fue UN concierto.
+    Pero fue m\xFAsica de verdad."
+  highlightKey: 

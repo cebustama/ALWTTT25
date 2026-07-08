@@ -292,7 +292,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 821282841742446069, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_Name
-      value: BandCharacter - Gusano
+      value: BandCharacter - Sibi
       objectReference: {fileID: 0}
     - target: {fileID: 856033533295376869, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_AnchorMax.y
@@ -372,11 +372,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2311108881714418578, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 0.236
       objectReference: {fileID: 0}
     - target: {fileID: 2311108881714418578, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2632035599939022728, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_LocalScale.x
@@ -400,11 +400,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3067390405926156022, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3763149807078505608, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5574424002849824718, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5623568110873374987, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_Size.x
@@ -421,6 +425,10 @@ PrefabInstance:
     - target: {fileID: 5623568110873374987, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_Center.y
       value: 2.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 5780561766458957522, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5951463598895947049, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_LocalRotation.w
@@ -450,6 +458,18 @@ PrefabInstance:
       propertyPath: musicianCharacterData
       value: 
       objectReference: {fileID: 11400000, guid: 9cdba663deb6cfb48b3f1514b8c667a2, type: 2}
+    - target: {fileID: 7249390761823277135, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.236
+      objectReference: {fileID: 0}
+    - target: {fileID: 7249390761823277135, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7249390761823277135, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.236
+      objectReference: {fileID: 0}
     - target: {fileID: 7337960616938972982, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 36.4
@@ -486,6 +506,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 12d5fe6e551053e4d94be76d355703e6, type: 2}
+    - target: {fileID: 8143119874255577957, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8530603002636582992, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

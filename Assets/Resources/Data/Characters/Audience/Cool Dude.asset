@@ -27,7 +27,7 @@ MonoBehaviour:
     - cardActionType: 10
       actionTargetType: 6
       actionValue: 1
-      actionDelay: 1
+      actionDelay: 0
       statusEffect: {fileID: 0}
     animation:
       animatorTrigger: 

@@ -38,10 +38,10 @@ MonoBehaviour:
     m_RotationOrder: 4
   audienceJumpThreshold: 0.1
   idleBpm: 100
-  songEndPause: 3
-  perAudienceVibeDelay: 1
-  perAudienceActionDelay: 1
-  barFillDelay: 3
+  songEndPause: 1
+  perAudienceVibeDelay: 0.25
+  perAudienceActionDelay: 0.25
+  barFillDelay: 1
   songHypeStage1Threshold: 0.2
   songHypeStage2Threshold: 0.23
   songHypeStage3Threshold: 0.25
@@ -49,6 +49,8 @@ MonoBehaviour:
   songHypeStage2SfxTag: smoke
   songHypeStage3SfxTag: fire
   showSongHypeBar: 0
+  showVibeEffectivenessLabels: 0
+  showVibeProjectedNumbers: 0
   sfxBonusVibeStage1: 3
   sfxBonusVibeStage2: 6
   sfxBonusVibeStage3: 10

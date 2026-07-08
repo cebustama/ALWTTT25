@@ -78,6 +78,8 @@ namespace ALWTTT.Characters
         {
             Statuses = new StatusEffectContainer();
 
+            Statuses.SetOwner(this); // [TUT-R2] owner identity for bus consumers
+
             // Optional: keep legacy field synced for debugging/temporary old UI.
             Statuses.OnStatusChanged += (_, __) => SyncLegacyStunFromStatuses();
             Statuses.OnStatusCleared += _ => SyncLegacyStunFromStatuses();

@@ -66,6 +66,7 @@ It defines:
 | `planning/active/Design_Demo_Cut_v1.md` | demo-cut planning: run shape, coverage matrix, mechanics introduced, validation | active |
 | `planning/Design_Vibe_Telegraph_v0_1.md` | Vibe transparency surfaces (C1 readout + C2/C3 per-enemy telegraph); presentation of the Scoring §6 chain | active (shipped S5a) |
 | `planning/active/Design_Starter_Deck_v1.md` | first starter deck design: composition principle, per-card axis assignments, tuning rationale | active |
+| `planning/active/Design_Action_Economy_v1.md` | per-turn play economy design rationale (1 Action + 1 Composition per musician per period); subordinate to `systems/SSoT_Gig_Combat_Core.md §14` | active |
 | `planning/active/Design_Audience_Status_v1.md` | audience-side status design intent (§4 Captivated remains active; §3 + §5 superseded) | partial |
 | `planning/active/Design_Tutorial_System_v0_1.md` | tutorial system: scope, trigger model, presentation, UX, demo-cut + Phase C dialogue inventory, DoD per Standing Directive #3 (2026-05-23) | active |
 | `planning/active/Design_Vertical_Slice_v0_1.md` | Phase C scope: ship hub, venues, audience archetypes + state machine, boss design, scene transitions (D-RUN-1..6 locked 2026-05-23) | active |

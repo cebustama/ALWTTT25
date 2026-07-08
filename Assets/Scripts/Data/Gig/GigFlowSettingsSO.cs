@@ -73,6 +73,21 @@ namespace ALWTTT.Data
         /// </summary>
         public int DefaultStartingInspiration => defaultInitialGigInspiration;
 
+        // ─── [ECON-1] Per-turn play economy defaults ─────────────────────
+        [Header("Setup Defaults — Per-Turn Play Economy (ECON-1)")]
+        [SerializeField, Min(0), Tooltip("Action-card plays each musician gets " +
+            "per PERIOD (pre-song action window, and each performance loop). " +
+            "D-ECON-4=A: strict 1 in all periods. 0 disables Action plays entirely.")]
+        private int defaultActionPlaysPerTurn = 1;
+
+        [SerializeField, Min(0), Tooltip("Composition-card plays each musician " +
+            "gets per PERIOD. D-ECON-4=A: strict 1 in all periods. " +
+            "0 disables Composition plays entirely.")]
+        private int defaultCompositionPlaysPerTurn = 1;
+
+        public int DefaultActionPlaysPerTurn => Mathf.Max(0, defaultActionPlaysPerTurn);
+        public int DefaultCompositionPlaysPerTurn => Mathf.Max(0, defaultCompositionPlaysPerTurn);
+
         [Header("Setup Defaults � Hand / Inspiration Policies")]
         [SerializeField] private bool defaultDiscardHandBetweenTurns = false;
         [SerializeField] private bool defaultKeepInspirationBetweenTurns = false;

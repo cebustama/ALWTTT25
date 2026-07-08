@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_play_finisher
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_play_finisher
+  priority: 80
+  category: 0
+  revisitTitle: El Gran Final
+  portrait: {fileID: 0}
+  pages:
+  - "\xDAltimo loop. Hora del Gran Final: una carta de ACCI\xD3N \u2014 no toca la
+    canci\xF3n, golpea al p\xFAblico. Cuesta Inspiraci\xF3n y pega a TODO el p\xFAblico
+    a la vez. Ju\xE9gala antes de que acabe el loop. El cierre lo es todo."
+  highlightKey: card_grand_finale

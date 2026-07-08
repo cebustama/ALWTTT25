@@ -630,6 +630,24 @@ namespace ALWTTT.Managers
                 return;
             }
 
+            // [TUT-R2 / D1=B] Scripted draws (guided tutorial forced hand)
+            // consume budget FIRST. A two-stage miss (primary id, then role/
+            // domain fallback) drops the entry: the slot returns to the normal
+            // draw budget and the M4.5 guarantees below remain the final
+            // fallback. needComp/needAction are evaluated AFTER this block, so
+            // guarantees never double-draw a domain a scripted entry covered.
+            int scriptedDrawn = 0;
+            while (effectiveBudget - scriptedDrawn > 0 &&
+                   ALWTTT.Tutorial.TutorialScriptedDrawQueue.TryDequeue(out var scripted))
+            {
+                bool ok = DrawCardFiltered(scripted.Primary, $"TUT Scripted:{scripted.Label}");
+                if (!ok && scripted.Fallback != null)
+                    ok = DrawCardFiltered(scripted.Fallback, $"TUT ScriptedFallback:{scripted.Label}");
+                if (ok) scriptedDrawn++;
+                else Debug.Log($"{DebugTag} [TUT-R2] Scripted entry '{scripted.Label}' " +
+                               "missed both stages — slot falls through to normal draw (D1).");
+            }
+
             bool needComp = !HandHas(c => c.IsComposition) && PilesHave(c => c.IsComposition);
             bool needAction = !HandHas(c => c.IsAction) && PilesHave(c => c.IsAction);
 

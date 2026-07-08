@@ -60,11 +60,11 @@ namespace ALWTTT.Data
 
         [SerializeField, Min(0), Tooltip("Inspiration granted at the start of " +
             "the gig (before the first action window). DC-4=B: 3.")]
-        private int initialGigInspiration = 3;
+        private int initialGigInspiration = 1;
 
         [SerializeField, Min(0), Tooltip("Inspiration granted at each loop " +
             "boundary during composition. DC-4=B: 1.")]
-        private int inspirationPerLoop = 3;   // [S5e / D2] was 1
+        private int inspirationPerLoop = 1;   // [S5e / D2] was 1
 
         // --- Public accessors ---
 

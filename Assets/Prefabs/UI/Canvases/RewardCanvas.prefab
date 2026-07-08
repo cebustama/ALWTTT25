@@ -277,6 +277,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -975,6 +976,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1245,7 +1247,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef9f863359a67e1468461a0eedf06584, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rewardContainerData: {fileID: 11400000, guid: 8d5f18905eecd4146abac442d90a0799, type: 2}
+  cardRewardPresentation: {fileID: 11400000, guid: 7b7145c1dd5f64f41980dc3fcbaa15d9, type: 2}
+  sfxRewardPresentation: {fileID: 11400000, guid: 5e43cde53f03bc541b167f509a0d78d3, type: 2}
   rewardRoot: {fileID: 3208940105936450401}
   rewardContainerPrefab: {fileID: 6164616445021269728, guid: 82e347f4b24aca243946f1a5b1ba50e7, type: 3}
   rewardPanelRoot: {fileID: 4475135484403972251}

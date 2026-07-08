@@ -36,6 +36,7 @@ namespace ALWTTT.Sensory
         public long ReactionEventsHandled { get; private set; }
         public long VibeEventsHandled { get; private set; }
         public long StageEventsHandled { get; private set; }
+        public long RewardChoicesOpened { get; private set; }
 
         private SensoryEventBus _bus;
 
@@ -53,6 +54,7 @@ namespace ALWTTT.Sensory
             _bus.Subscribe<AudienceReactionEvent>(OnAudienceReaction);
             _bus.Subscribe<SongEndVibeEvent>(OnSongEndVibe);
             _bus.Subscribe<SfxStageCrossedEvent>(OnStageCrossed);
+            _bus.Subscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
 
             Debug.Log(
                 "[SensoryAudioAdapter] Subscribed to bus " +
@@ -65,6 +67,7 @@ namespace ALWTTT.Sensory
             _bus.Unsubscribe<AudienceReactionEvent>(OnAudienceReaction);
             _bus.Unsubscribe<SongEndVibeEvent>(OnSongEndVibe);
             _bus.Unsubscribe<SfxStageCrossedEvent>(OnStageCrossed);
+            _bus.Unsubscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
             _bus = null;
         }
 
@@ -121,6 +124,14 @@ namespace ALWTTT.Sensory
             // Single source → immediate.
             Play(SensorySfxPresentation.ForStageCross(e.Stage),
                  $"stage={e.Stage} tag={e.SfxTag}");
+        }
+
+        private void OnRewardOpened(RewardChoiceOpenedEvent e)
+        {
+            RewardChoicesOpened++;
+            // Single source → immediate.
+            Play(SensorySfxPresentation.ForRewardOpened(),
+                 $"reward opened.");
         }
 
         private void Play(SensorySfxType? sfx, string context, bool jitter = false)

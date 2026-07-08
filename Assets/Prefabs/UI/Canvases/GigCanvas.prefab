@@ -2409,6 +2409,7 @@ GameObject:
   - component: {fileID: 6244772085538092451}
   - component: {fileID: 8202542622411629409}
   - component: {fileID: 1684065662936978987}
+  - component: {fileID: 3822468383165443389}
   m_Layer: 0
   m_Name: GigCanvas
   m_TagString: Untagged
@@ -2598,6 +2599,26 @@ MonoBehaviour:
     useManualCenter: 0
     manualCenter: {x: 0.5, y: 0.5}
     manualRadius: {x: 0, y: 0}
+--- !u!114 &3822468383165443389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6266254606890834829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27458c59ce0049846b3dac89139be002, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialGuidedDriver
+  controller: {fileID: 1684065662936978987}
+  finisherCard: {fileID: 11400000, guid: 09b0e888a886a3240ad4950bf85f7199, type: 2}
+  forcedInitialHand:
+  - {fileID: 11400000, guid: a098a43d82afe7d4ab2a2a0b62989f42, type: 2}
+  - {fileID: 11400000, guid: 8736572d44827e74780a42a4e61cb857, type: 2}
+  - {fileID: 11400000, guid: 6d811f03888428f42a32be74b743bac6, type: 2}
+  - {fileID: 11400000, guid: 6a528c33615924b47a9ac7197ef1828e, type: 2}
+  verboseLogging: 1
 --- !u!1 &6347795501922136914
 GameObject:
   m_ObjectHideFlags: 0

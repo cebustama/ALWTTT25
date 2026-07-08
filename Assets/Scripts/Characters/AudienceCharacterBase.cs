@@ -37,11 +37,12 @@ namespace ALWTTT.Characters.Audience
                 if (SpriteRenderer != null)
                     SpriteRenderer.color = value ? obscuredColor : Color.white;
 
-                // M1.2 (Decision E3): Blocked is a visual indicator only (sprite tint).
-                // Legacy stats.ApplyStatus/ClearStatus(StatusType.Blocked) removed.
-                // If Blocked needs a status icon in the future, create a Blocked SO.
-
+                // [TUT-R2] Publish on the false→true transition only.
+                bool wasBlocked = isBlocked;
                 isBlocked = value;
+                if (!wasBlocked && value)
+                    ALWTTT.Sensory.SensoryEventBus.Instance?.Publish(
+                        new ALWTTT.Sensory.AudienceBlockedEvent(this));
             }
         }
         public int ColumnIndex { get; set; }
@@ -382,7 +383,7 @@ namespace ALWTTT.Characters.Audience
             CharacterActionData action, CharacterBase target)
         {
             float actionDelay = action.ActionDelay;
-            return 2f;
+            return .5f;
         }
 
         private List<CharacterBase> ResolveTargetsFor(CharacterActionData action)

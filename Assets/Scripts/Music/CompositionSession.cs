@@ -215,6 +215,8 @@ namespace ALWTTT.Music
 
         public void End()
         {
+            ALWTTT.Tutorial.TutorialLoopHoldGate.Release(); // [TUT-R2] defensive
+
             var songCtx = new SongFeedbackContext(_finishedParts);
             SongFinished?.Invoke(songCtx);
 
@@ -786,6 +788,27 @@ namespace ALWTTT.Music
         private void HandleLoopFinished()
         {
             _isPlaying = false;
+
+            // [TUT-R2b / D-TUT-R2b-1=B] El loop repite en CUALQUIER frontera
+            // mientras haya un diálogo en pantalla (TutorialModalGate), no solo
+            // en el hold dirigido del beat 8. La música sigue sonando (sin
+            // freeze de timeScale, precedente S4 intacto); lo que se detiene es
+            // la PROGRESIÓN: sin decremento, sin inspiración, sin
+            // LoopResolvedEvent, sin snapshots. Al cerrar el diálogo, el
+            // siguiente fin de loop resuelve con normalidad.
+            if (ALWTTT.Tutorial.TutorialModalGate.IsActive ||
+                (_loopsRemainingForPart == 1 &&
+                 ALWTTT.Tutorial.TutorialLoopHoldGate.IsArmed))
+            {
+                float heldSecs = PlaySinglePartLoop(_currentPartIndex);
+                if (heldSecs <= 0f)
+                {
+                    ALWTTT.Tutorial.TutorialLoopHoldGate.Release();
+                    End();
+                    return;
+                }
+                return;
+            }
 
             _loopsRemainingForPart--;
 

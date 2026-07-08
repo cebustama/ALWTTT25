@@ -417,6 +417,114 @@ namespace ALWTTT.Data
         }
         #endregion
 
+        #region Venue SFX unlocks (S5h / #6b-lite)
+        // Per-threshold venue-SFX unlock state (1=lights, 2=smoke, 3=fire — mirrors
+        // GigManager stage indices). Run-scoped (D7): reset in ApplyRunConfig,
+        // preserved across Retry (scene reload only) — same lifecycle as reward
+        // cards. The future equipment system replaces the bools with per-slot
+        // equipment refs; the stage-indexed API below is the stable surface.
+        [SerializeField] private bool[] sfxStageUnlocked = new bool[3];
+
+        public bool IsSfxStageUnlocked(int stage) =>
+            sfxStageUnlocked != null && stage >= 1 &&
+            stage <= sfxStageUnlocked.Length && sfxStageUnlocked[stage - 1];
+
+        public bool AnySfxUnlocked =>
+            IsSfxStageUnlocked(1) || IsSfxStageUnlocked(2) || IsSfxStageUnlocked(3);
+
+        public bool AllSfxUnlocked =>
+            IsSfxStageUnlocked(1) && IsSfxStageUnlocked(2) && IsSfxStageUnlocked(3);
+
+        /// <summary>[S5h / D6] Sequential unlock: lights → smoke → fire.</summary>
+        public bool TryUnlockNextSfxStage(out int unlockedStage)
+        {
+            if (sfxStageUnlocked == null || sfxStageUnlocked.Length < 3)
+                sfxStageUnlocked = new bool[3];
+
+            for (int i = 0; i < sfxStageUnlocked.Length; i++)
+            {
+                if (sfxStageUnlocked[i]) continue;
+                sfxStageUnlocked[i] = true;
+                unlockedStage = i + 1;
+                return true;
+            }
+            unlockedStage = -1;
+            return false;
+        }
+
+        public void ResetSfxUnlocks() => sfxStageUnlocked = new bool[3];
+        #endregion
+
+        #region Rewards (S5h)
+        /// <summary>
+        /// [S5h / D2=B] Flag-sourced reward pool: entries on the current band's
+        /// per-musician catalogs with RewardPool + UnlockedByDefault, excluding
+        /// cards already in the run deck (D9 — reference identity suffices: deck
+        /// copies reference the same CardDefinition asset). Generic-catalog reward
+        /// sourcing is deferred to S6 (PD does not retain the GigSetupRosterSO
+        /// after launch; no generic reward entries exist today).
+        /// </summary>
+        public List<CardDefinition> BuildRewardCardPool()
+        {
+            var pool = new List<CardDefinition>();
+            if (MusicianList == null) return pool;
+
+            foreach (var m in MusicianList)
+            {
+                var data = m != null ? m.MusicianCharacterData : null;
+                var catalog = data != null ? data.CardCatalog : null;
+                if (catalog == null || catalog.Entries == null) continue;
+
+                foreach (var e in catalog.Entries)
+                {
+                    if (e?.card == null) continue;
+                    if (!e.IsReward || !e.UnlockedByDefault) continue;
+                    if (pool.Contains(e.card)) continue;
+                    if (CurrentActionCards != null &&
+                        CurrentActionCards.Contains(e.card)) continue;        // D9
+                    if (CurrentCompositionCards != null &&
+                        CurrentCompositionCards.Contains(e.card)) continue;   // D9
+                    pool.Add(e.card);
+                }
+            }
+            return pool;
+        }
+
+        /// <summary>
+        /// [S5h / D4] Type-correct, provenance-tracked reward grant. Resolves the
+        /// owning musician from the current band by the card's fixed performer
+        /// type; falls back to a plain deck add for AnyMusician / unresolvable
+        /// cards (mirrors the generic-catalogue provenance rule). Replaces
+        /// ChoiceCard's direct CurrentActionCards.Add, which mis-filed
+        /// composition cards into the action list.
+        /// </summary>
+        public void GrantRewardCard(CardDefinition card)
+        {
+            if (card == null) return;
+
+            string ownerId = null;
+            if (card.RequiresFixedPerformer && MusicianList != null)
+            {
+                foreach (var m in MusicianList)
+                {
+                    var data = m != null ? m.MusicianCharacterData : null;
+                    if (data == null) continue;
+                    if (data.CharacterType == card.FixedPerformerType)
+                    {
+                        ownerId = data.CharacterId;
+                        break;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(ownerId)) GrantCardToMusician(ownerId, card);
+            else AddCardToDeck(card);
+
+            Debug.Log("[PersistentGameplayData] [S5h] Reward card granted: " +
+                      $"'{card.name}' owner={(ownerId ?? "<generic>")}");
+        }
+        #endregion
+
         #region Band
 
         public void SetBandDeck(BandDeckData bandDeck)
@@ -1003,6 +1111,8 @@ namespace ALWTTT.Data
 
             // --- Reset gig state ---
             CurrentSongIndex = 0;
+
+            ResetSfxUnlocks(); // [S5h / D7] SFX unlocks are run-scoped, like the deck.
 
             SongModifierCardsList ??= new List<CardDefinition>();
             SongModifierCardsList.Clear();

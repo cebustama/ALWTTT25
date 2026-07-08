@@ -25,9 +25,10 @@ namespace ALWTTT.Cards
 
         private void OnChoice()
         {
-            GameManager.PersistentGameplayData.CurrentActionCards.Add(cardBase.CardDefinition);
+            // [S5h / D4] Route through the provenance-aware grant; the previous
+            // direct CurrentActionCards.Add mis-filed composition cards.
+            GameManager.PersistentGameplayData.GrantRewardCard(cardBase.CardDefinition);
             UIManager.RewardCanvas.ChoicePanel.DisablePanel();
-
             OnCardChose?.Invoke();
         }
 

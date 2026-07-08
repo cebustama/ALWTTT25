@@ -22,6 +22,8 @@ namespace ALWTTT.Enums
         // SongHype stage crossings (mirror the lights / smoke / fire VFX).
         StageCrossLights,   // stage 1
         StageCrossSmoke,    // stage 2
-        StageCrossFire      // stage 3
+        StageCrossFire,      // stage 3
+
+        RewardOpened,       // [S5h] reward screen opens — end-of-gig payoff sting
     }
 }

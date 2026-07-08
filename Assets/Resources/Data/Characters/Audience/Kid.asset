@@ -27,7 +27,7 @@ MonoBehaviour:
     - cardActionType: 3
       actionTargetType: 3
       actionValue: 5
-      actionDelay: 1
+      actionDelay: 0
       statusEffect: {fileID: 0}
     animation:
       animatorTrigger: Tantrum

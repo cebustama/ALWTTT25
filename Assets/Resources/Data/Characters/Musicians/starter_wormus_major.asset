@@ -17,7 +17,7 @@ MonoBehaviour:
   performerRule: 1
   musicianCharacterType: 3
   cardSprite: {fileID: 2788456226534158206, guid: 5a281f86c814d2343af0dfa48cd3a04d, type: 3}
-  inspirationCost: 2
+  inspirationCost: 0
   inspirationGenerated: 0
   cardType: 2
   rarity: 0

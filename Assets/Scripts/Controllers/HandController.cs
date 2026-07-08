@@ -345,7 +345,12 @@ namespace ALWTTT
                 if (mouseHoveringOnSelected)
                 {
                     var mouseButtonDown = Input.GetMouseButtonDown(0);
-                    if (mouseButtonDown)
+                    // [TUT-R2 / D4] Directive gate: beat 3 allows composition
+                    // drags only; beat 5 blocks all drags. Modal gate (global
+                    // IsDraggingActive) is unchanged and orthogonal.
+                    if (mouseButtonDown &&
+                        !ALWTTT.Tutorial.TutorialInputGate.BlocksCardDrag(
+                            hand[i] != null ? hand[i].CardDefinition : null))
                     {
                         dragged = i;
                         // keeps the relative position so the card doesn’t "jump" to the cursor.
@@ -740,6 +745,21 @@ namespace ALWTTT
                     targetCharacter = null;
                 }
 
+                // [ECON-1 / T4] Per-turn play budget — consumed LAST, once
+                // nothing else in this pipeline can fail (timing 2a,
+                // inspiration 2a.5, target resolution 2b all passed) and
+                // BEFORE the one-shot animation, so a denied play neither
+                // animates nor fires. D-ECON-3=A: AnyMusician cards bill the
+                // performer resolved above (fixed → SelectedMusician
+                // fallback). Denied → return false → card back to hand.
+                if (bandCharacter is MusicianBase budgetPayer &&
+                    !GigManager.TryConsumePlay(budgetPayer, isComposition: false))
+                {
+                    Debug.Log($"{DebugTag} [Gig][ECON-1] Action play denied — " +
+                        $"{budgetPayer.CharacterName} has no action plays left " +
+                        "this period. Returning to hand.");
+                    return false;
+                }
 
                 Debug.Log($"{DebugTag} [Gig] Zone hint = {zoneUsed}");
 

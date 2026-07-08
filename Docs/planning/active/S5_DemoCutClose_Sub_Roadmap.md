@@ -41,7 +41,7 @@ The demo cut is functionally built and got its first real tester round. S5c (win
 
 ```
 S5a (Vibe + transparency)  ─┐
-                            ├─→  S5e ─→ S5f ─→ S5g ─→ S5h ─→ S5i ─→ S5j
+                            ├─→  S5e ─→ S5f ─→ S5g ─→ ECON-1 ─→ S5h ─→ S5i ─→ S5j
 S5b (card clarity + anim)  ─┘      (semantics)(onboarding)(music)(rewards)(win-rate)(close)
 ```
 
@@ -126,7 +126,15 @@ Scripted-hand seeding + action-wait gameplay freeze for a fully guided first gig
 **DoD.** Each composition card yields ≥5 audibly distinct patterns across loops; no immediate repetition within a song; boundary held (ALWTTT authors palette content; MidiGenPlay owns selection — if selection needs a change it is filed cross-project, like MGP-ALWTTT-MOD-DIR-1). Backed by **D1 (Sound Design Priority)**.
 **Docs at close.** the palette-binding home (`SSoT_Card_System §5.2.1` or wherever the card→palette table lives) for the expanded content; any new #8 design doc indexed in this batch; boundary-doc note if a cross-project ask is filed; CURRENT_STATE + changelog.
 
-**Status (2026-07-05, IN PROGRESS — not closed).** Boundary-scoping step complete: confirmed MidiGenPlay's variety mechanism is a per-render seed parameter (`seedOverride`), not an internal selection change; filed and adopted same day as `MGP-ALWTTT-SEED-1` (`SSoT_ALWTTT_MidiGenPlay_Boundary.md §8.1`). Seed wiring implemented in `CompositionSession` + `MidiMusicManager.RenderSinglePart`; smoke-tested — `ST-S5gb-1..5` all PASS. Remaining before this batch can close: the authoring pass above (Sibi Minor/Major progressions, C2 rhythm patterns per time signature, Sibi melodic patterns) + closing smokes `ST-S5g-1..5`.
+**Status (2026-07-06, CLOSED).** Boundary-scoping + seed wiring closed in the 2026-07-05 sub-batch (`MGP-ALWTTT-SEED-1` adopted; `ST-S5gb-1..5` PASS). Authoring pass complete: Sibi Minor/Major progressions, C2 rhythm patterns per time signature (4 palettes × 6 entries), Sibi melodic hooks (`PhrasePalette_SingingField` ×5). Card→palette bindings in `SSoT_Card_System.md §5.2.1`; `ALWTTT-PCE-PROP` resolved (`CURRENT_STATE.md §1`). Closing smokes `ST-S5g-1..5` all PASS. DoD met (each composition card ≥5 audibly distinct patterns; boundary held). Next in sequence: **ECON-1** (per-turn play economy) — see below.
+
+## ECON-1 — Action Economy v1  *(inserted 2026-07-06, design with Matías; CLOSED 2026-07-07)*
+
+1 Action card + 1 Composition card per musician per period (pre-song PlayerTurn window counts as one period; reset per loop). Inspiration cost intact — cards with cost > 0 read as "finishers". Includes pip UI (2 circular sprites per musician on `BandCharacterCanvas`), budget checks on both card-play paths, resets at `PlayerTurn` / `OnPlayPressed` / loop-finished seams, and a starter cost audit (baseline → 0).
+
+**Status (2026-07-07, CLOSED).** Code (T1–T6) applied and validated; `ST-ECON-1..7` PASS. Decisions D-ECON-1..5=A; **D-ECON-6=DEFER** (all starter costs 0 today; finisher card designation deferred to a future batch). Primary home `SSoT_Gig_Combat_Core.md §14`; rationale `Design_Action_Economy_v1.md`. **S5i inherits the note:** tune finisher costs over the new economy (fewer total spends → current costs may be too cheap). Documentation closed in the 2026-07-07 DOCUMENTATION pass.
+
+Resulting sequence: S5g ✅ → **ECON-1** ✅ → S5h → S5i → S5j.
 
 ## S5h — Reward screen  *(IMPORTANT; pulled-forward presentation half of old S5d, per D-REPLAN-3)*
 

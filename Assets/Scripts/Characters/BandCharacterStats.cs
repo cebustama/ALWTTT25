@@ -44,6 +44,66 @@ namespace ALWTTT.Characters.Band
             set => _exposedMultiplierPerStack = value;
         }
 
+        // ─── [ECON-1 / D-ECON-2=A] Per-turn play budget ──────────────────
+        // One Action + one Composition play per musician per PERIOD
+        // (pre-song PlayerTurn window, and each performance loop).
+        // Maxima are runtime-only, seeded from GigFlowSettingsSO defaults at
+        // gig setup (D-ECON-5=A); no per-musician authoring field yet.
+        // Orthogonal to the Inspiration cost gate (2a.5) — this budget never
+        // replaces or masks it.
+
+        public int MaxActionPlays { get; private set; }
+        public int MaxCompositionPlays { get; private set; }
+        public int ActionPlaysRemaining { get; private set; }
+        public int CompositionPlaysRemaining { get; private set; }
+
+        /// <summary>(actionRemaining, compositionRemaining). Fired on
+        /// Init / Reset / successful consume — mirrors the OnStressChanged →
+        /// canvas push pattern.</summary>
+        public Action<int, int> OnTurnPlayBudgetChanged;
+
+        /// <summary>Seed runtime maxima and fill the pools. Call once at gig
+        /// setup (GigManager.BuildBand) with the GigFlowSettingsSO defaults.</summary>
+        public void InitTurnPlayBudget(int maxActionPlays, int maxCompositionPlays)
+        {
+            MaxActionPlays = Mathf.Max(0, maxActionPlays);
+            MaxCompositionPlays = Mathf.Max(0, maxCompositionPlays);
+            ResetTurnPlayBudget();
+        }
+
+        /// <summary>Refill both pools to their maxima. Idempotent — double
+        /// resets at overlapping seams are harmless by design.</summary>
+        public void ResetTurnPlayBudget()
+        {
+            ActionPlaysRemaining = MaxActionPlays;
+            CompositionPlaysRemaining = MaxCompositionPlays;
+            NotifyTurnPlayBudgetChanged();
+        }
+
+        public bool CanConsumePlay(bool isComposition) =>
+            isComposition ? CompositionPlaysRemaining > 0 : ActionPlaysRemaining > 0;
+
+        /// <summary>Consume one play of the given kind. Returns false (and
+        /// mutates nothing) when the pool is empty. Callers must invoke this
+        /// only once nothing else in the play pipeline can fail — budget burns
+        /// exclusively on successful plays (batch constraint).</summary>
+        public bool TryConsumePlay(bool isComposition)
+        {
+            if (!CanConsumePlay(isComposition)) return false;
+
+            if (isComposition) CompositionPlaysRemaining--;
+            else ActionPlaysRemaining--;
+
+            NotifyTurnPlayBudgetChanged();
+            return true;
+        }
+
+        private void NotifyTurnPlayBudgetChanged()
+        {
+            OnTurnPlayBudgetChanged?.Invoke(
+                ActionPlaysRemaining, CompositionPlaysRemaining);
+        }
+
         public override string ToString()
         {
             return $"[Musician Stats] Fortitude(Stress): {CurrentStress}/{MaxStress}, " +
@@ -71,6 +131,10 @@ namespace ALWTTT.Characters.Band
             CurrentStress = MaxStress;
 
             OnStressChanged += bandCharacterCanvas.UpdateHealthText;
+
+            // [ECON-1] Budget → pips push. Wired here (not in MusicianBase)
+            // to mirror the OnStressChanged subscription above exactly.
+            OnTurnPlayBudgetChanged += bandCharacterCanvas.UpdateTurnPlayBudget;
         }
         #endregion
 
@@ -80,6 +144,8 @@ namespace ALWTTT.Characters.Band
             if (bandCharacterCanvas != null)
             {
                 OnStressChanged -= bandCharacterCanvas.UpdateHealthText;
+
+                OnTurnPlayBudgetChanged -= bandCharacterCanvas.UpdateTurnPlayBudget;
             }
         }
 
@@ -215,6 +281,13 @@ namespace ALWTTT.Characters.Band
             {
                 AddStress(remaining, duration);
             }
+
+            // [TUT-R2] Single canonical publish for incoming musician stress —
+            // this method is the funnel for ALL producers (AddStressAction,
+            // CardBase co-effects, GigManager audience feedback), so one site
+            // covers everything (same rationale as StatusAppliedEvent).
+            ALWTTT.Sensory.SensoryEventBus.Instance?.Publish(
+                new ALWTTT.Sensory.MusicianStressHitEvent(this, absorbed, remaining));
 
             return (absorbed, remaining);
         }

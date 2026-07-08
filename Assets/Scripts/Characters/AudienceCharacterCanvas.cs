@@ -51,16 +51,23 @@ namespace ALWTTT.Characters
         /// "+N Vibe" this member will receive at song end (C3), hidden when Immune or
         /// when the caller opts out. Pure presentation - no state.
         /// </summary>
-        public void SetVibeTelegraph(VibeEffectiveness tier, int projectedNumber, bool showNumber)
+        public void SetVibeTelegraph(
+            VibeEffectiveness tier, int projectedNumber, bool showNumber,
+            bool showLabel = true)
         {
+            bool anyVisible = showLabel ||
+                (showNumber && tier != VibeEffectiveness.Immune);
             if (vibeTelegraphRoot != null)
-                vibeTelegraphRoot.SetActive(true);
+                vibeTelegraphRoot.SetActive(anyVisible);
 
             if (effectivenessLabel != null)
             {
-                effectivenessLabel.gameObject.SetActive(true);
-                effectivenessLabel.text = LabelFor(tier);
-                effectivenessLabel.color = ColorFor(tier);
+                effectivenessLabel.gameObject.SetActive(showLabel);
+                if (showLabel)
+                {
+                    effectivenessLabel.text = LabelFor(tier);
+                    effectivenessLabel.color = ColorFor(tier);
+                }
             }
 
             if (projectedVibeText != null)
@@ -68,7 +75,6 @@ namespace ALWTTT.Characters
                 bool show = showNumber && tier != VibeEffectiveness.Immune;
                 projectedVibeText.gameObject.SetActive(show);
                 if (show)
-                    // [S5e] projected persuasion DAMAGE this member will take at song end
                     projectedVibeText.text = $"-{projectedNumber}";
             }
         }

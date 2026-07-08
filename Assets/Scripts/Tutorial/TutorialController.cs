@@ -2,6 +2,7 @@ using ALWTTT.Cards;
 using ALWTTT.Data;
 using ALWTTT.Managers;
 using ALWTTT.Sensory;
+using ALWTTT.UI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -54,6 +55,12 @@ namespace ALWTTT.Tutorial
             [Tooltip("Centre + auto-size the spotlight from this RectTransform.")]
             public RectTransform target;
 
+            [Tooltip("Opcional: UIPulseAnimator a pulsar rítmicamente mientras " +
+                     "el diálogo de este highlight esté en pantalla (botón Play, " +
+                     "contador de Inspiración, icono de estado...). El componente " +
+                     "se añade al GameObject destino y se referencia aquí.")]
+            public UIPulseAnimator pulse;
+
             [Tooltip("Ignore the target; place the spotlight at the manual viewport centre below.")]
             public bool useManualCenter;
             [Tooltip("Viewport centre, 0..1, origin bottom-left. (0.5,0.5)=screen centre, " +
@@ -83,6 +90,38 @@ namespace ALWTTT.Tutorial
         // them all into the priority-sorted queue, then pump, so PRIORITY decides display
         // order rather than which event was published first.
         private Coroutine _pumpCo;
+        private Coroutine _pulseCo; // [TUT-R2b] pulso del highlight activo
+
+        // [TUT-R2 / D3=B] Trigger ids suppressed while the guided driver is
+        // active (superseded S4 reactives, TUT-R1 §6 ledger). Runtime
+        // retirement ahead of the TUT-R3 asset retirement.
+        private readonly HashSet<string> _suppressed = new();
+
+        /// <summary>[TUT-R2] Raised after a dialog completes and is marked
+        /// fired. The guided driver chains dismissal-triggered beats off this.</summary>
+        public event Action<string> DialogCompleted;
+
+        /// <summary>[TUT-R2] Driver-facing enqueue: same fired/dedup/priority
+        /// path as reactive triggers. Guided ids are never suppressed.</summary>
+        public void EnqueueGuided(string triggerId) => TryEnqueue(triggerId);
+
+        /// <summary>[TUT-R2] Mark a trigger consumed WITHOUT showing it (beat-8
+        /// degrade path (b): no hold, no popup, never re-fires).</summary>
+        public void MarkFiredWithoutShow(string triggerId)
+        {
+            if (string.IsNullOrEmpty(triggerId) || HasFired(triggerId)) return;
+            MarkFired(triggerId);
+            Log($"'{triggerId}' marked fired WITHOUT show (degrade path)");
+        }
+
+        /// <summary>[TUT-R2] Replace the suppressed-trigger set (guided driver).</summary>
+        public void SetSuppressedTriggers(IEnumerable<string> ids)
+        {
+            _suppressed.Clear();
+            if (ids == null) return;
+            foreach (var id in ids)
+                if (!string.IsNullOrEmpty(id)) _suppressed.Add(id);
+        }
 
         // ---------------- lifecycle ----------------
         private void OnEnable()
@@ -104,7 +143,10 @@ namespace ALWTTT.Tutorial
             bus.Subscribe<StatusAppliedEvent>(OnStatusApplied);
             bus.Subscribe<GigStartedEvent>(OnGigStarted);
             bus.Subscribe<GigOutcomeEvent>(OnGigOutcome);
-            Log($"OnEnable: subscribed to 8 events (frame {Time.frameCount}).");
+            bus.Subscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
+            bus.Subscribe<MusicianStressHitEvent>(OnMusicianStressHit);
+            bus.Subscribe<AudienceBlockedEvent>(OnAudienceBlocked);
+            Log($"OnEnable: subscribed to 11 events (frame {Time.frameCount}).");
         }
 
         private void OnDisable()
@@ -120,9 +162,17 @@ namespace ALWTTT.Tutorial
                 bus.Unsubscribe<StatusAppliedEvent>(OnStatusApplied);
                 bus.Unsubscribe<GigStartedEvent>(OnGigStarted);
                 bus.Unsubscribe<GigOutcomeEvent>(OnGigOutcome);
+                bus.Unsubscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
+                bus.Unsubscribe<MusicianStressHitEvent>(OnMusicianStressHit);
+                bus.Unsubscribe<AudienceBlockedEvent>(OnAudienceBlocked);
             }
             // Defensive: never leave gameplay gated if disabled mid-modal.
-            if (_pumpCo != null) { StopCoroutine(_pumpCo); _pumpCo = null; }
+            if (_pumpCo != null) 
+            { 
+                StopCoroutine(_pumpCo);
+                StopHighlightPulse();
+                _pumpCo = null; 
+            }
             ReleaseGate();
         }
 
@@ -160,7 +210,13 @@ namespace ALWTTT.Tutorial
         {
             Log("event SfxStageCrossedEvent (stage-seen flag set)");
             _sfxStageSeen = true;
-            TryEnqueue(TutorialTriggerId.FirstSfxStage);                     // beat 4
+            // [TUT-R2 / D9] Auto-gate: the dialog talks about the hype bar; when
+            // GigPresentationSO hides it, the dialog would point at nothing.
+            var pres = GigManager.Instance != null ? GigManager.Instance.Presentation : null;
+            if (pres == null || pres.ShowSongHypeBar)
+                TryEnqueue(TutorialTriggerId.FirstSfxStage);
+            else
+                Log("  ↳ 'tut_first_sfx_stage' auto-gated OFF (ShowSongHypeBar=false, D9)");
         }
 
         private void OnSongEnd(SongEndVibeEvent e)
@@ -180,13 +236,45 @@ namespace ALWTTT.Tutorial
         private void OnStatusApplied(StatusAppliedEvent e)
         {
             Log($"event StatusAppliedEvent (status={e.Status}, delta={e.DeltaStacks})");
+            // Legacy monolithic trigger retained for D3=B fallback; suppressed
+            // while the guided driver is active (superseded, TUT-R1 §6).
             TryEnqueue(TutorialTriggerId.FirstStatusApplied);
+
+            if (e.DeltaStacks <= 0 || e.Source == null) return;
+            var owner = e.Source.Owner; // [TUT-R2] set by CharacterBase
+
+            if (owner is ALWTTT.Characters.Band.MusicianBase)
+            {
+                // Composure has its own dedicated dialog (TUT-R1 §4.4).
+                if (e.Status == ALWTTT.Status.CharacterStatusId.TempShieldTurn)
+                {
+                    TryEnqueue(TutorialTriggerId.Composure);
+                    return;
+                }
+                // Buff/debuff polarity from the SO's semantic flag.
+                bool isBuff = e.Source.TryGet(e.Status, out var inst) &&
+                              inst?.Definition != null && inst.Definition.IsBuff;
+                if (isBuff)
+                    TryEnqueue(TutorialTriggerId.StatusBuffMusician);
+                // Musician debuffs: no dedicated dialog (breakdown beat covers
+                // the pressure narrative).
+            }
+            else if (owner is ALWTTT.Characters.Audience.AudienceCharacterBase)
+            {
+                // Player-origin proxy (documented limitation): the bus event
+                // carries no source actor; in the demo cut, container statuses
+                // on audience members originate from player cards (Earworm et
+                // al.). Blocked never reaches here — it is a bool, not a status
+                // (see AudienceBlockedEvent).
+                TryEnqueue(TutorialTriggerId.StatusDebuffAudience);
+            }
         }
 
         private void OnGigOutcome(GigOutcomeEvent e)
         {
             Log($"event GigOutcomeEvent (won={e.Won})");
-            if (e.Won) TryEnqueue(TutorialTriggerId.FirstGigWon);
+            if (e.Won) TryEnqueue(TutorialTriggerId.FirstGigWon); // superseded → suppressed
+            TryEnqueue(e.Won ? TutorialTriggerId.GigWon : TutorialTriggerId.GigLost);
         }
 
         private static bool IsSoundCard(ALWTTT.Cards.CardDefinition def)
@@ -226,6 +314,10 @@ namespace ALWTTT.Tutorial
         private void TryEnqueue(string triggerId)
         {
             if (string.IsNullOrEmpty(triggerId)) return;
+
+            if (_suppressed.Contains(triggerId))
+            { Log($"  ↳ '{triggerId}' skipped (superseded — suppressed by guided driver)"); return; }
+
             if (HasFired(triggerId)) { Log($"  ↳ '{triggerId}' skipped (already fired)"); return; }
             if (QueueContains(triggerId)) { Log($"  ↳ '{triggerId}' skipped (already queued)"); return; }
             if (_showing && _showingId == triggerId) { Log($"  ↳ '{triggerId}' skipped (already showing)"); return; }
@@ -274,12 +366,18 @@ namespace ALWTTT.Tutorial
                 $"spotlight={(spot.Enabled ? (spot.Target != null ? spot.Target.name : "manual") : "none")})");
             overlay.Show(next, spot, defaultPortrait,
                 onComplete: () => OnDialogComplete(next));
+            StartHighlightPulse(next); // [TUT-R2b]
         }
 
         private void OnDialogComplete(TutorialDialogSO dialog)
         {
+            StopHighlightPulse(); // [TUT-R2b]
+
             // Skip and normal completion both record the dialog as fired (D-TUT-2).
             MarkFired(dialog.TriggerId);
+
+            DialogCompleted?.Invoke(dialog.TriggerId);
+
             Log($"COMPLETE '{dialog.TriggerId}' → marked fired (remaining queue {_queue.Count})");
             _showing = false;
             _showingId = null;             // [D-S4-DEDUP]
@@ -293,6 +391,25 @@ namespace ALWTTT.Tutorial
                 overlay.Hide();
                 ReleaseGate();
             }
+        }
+
+        private void OnRewardOpened(RewardChoiceOpenedEvent e)
+        {
+            Log("event RewardChoiceOpenedEvent");
+            TryEnqueue(TutorialTriggerId.FirstRewardChoice);
+        }
+
+        private void OnMusicianStressHit(MusicianStressHitEvent e)
+        {
+            Log($"event MusicianStressHitEvent (absorbed={e.Absorbed}, applied={e.Applied})");
+            if (e.Applied > 0) // an actual fortitude loss (TUT-R1 §4.3)
+                TryEnqueue(TutorialTriggerId.MusicianBreakdown);
+        }
+
+        private void OnAudienceBlocked(AudienceBlockedEvent e)
+        {
+            Log("event AudienceBlockedEvent");
+            TryEnqueue(TutorialTriggerId.StatusBlockedFront);
         }
 
         private Spotlight ResolveHighlight(TutorialDialogSO dialog)
@@ -316,6 +433,39 @@ namespace ALWTTT.Tutorial
                 };
             }
             return Spotlight.None;
+        }
+
+        // [TUT-R2b] Pulsa el UIPulseAnimator del binding del diálogo activo
+        // cada ~0.9 s mientras ese diálogo siga en pantalla. Sin binding o sin
+        // pulse asignado → no-op (misma degradación que el spotlight).
+        private void StartHighlightPulse(TutorialDialogSO dialog)
+        {
+            StopHighlightPulse();
+            if (dialog == null || !dialog.HasHighlight) return;
+            for (int i = 0; i < highlightBindings.Count; i++)
+            {
+                var b = highlightBindings[i];
+                if (b == null || b.key != dialog.HighlightKey || b.pulse == null) continue;
+                _pulseCo = StartCoroutine(PulseWhileShowing(b.pulse, dialog.TriggerId));
+                return;
+            }
+        }
+
+        private void StopHighlightPulse()
+        {
+            if (_pulseCo != null) { StopCoroutine(_pulseCo); _pulseCo = null; }
+        }
+
+        private System.Collections.IEnumerator PulseWhileShowing(
+            UIPulseAnimator pulse, string dialogId)
+        {
+            var wait = new WaitForSeconds(0.9f);
+            while (_showing && _showingId == dialogId && pulse != null)
+            {
+                pulse.Pulse();
+                yield return wait;
+            }
+            _pulseCo = null;
         }
 
         // ---------------- gameplay gate ----------------

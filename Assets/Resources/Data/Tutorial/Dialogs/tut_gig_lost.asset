@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_gig_lost
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_gig_lost
+  priority: 121
+  category: 4
+  revisitTitle: Gig lost
+  portrait: {fileID: 0}
+  pages:
+  - "It's over and not all of them fell. Happens. Music doesn't forgive weak endings:
+    next time, bank Inspiration for the finish and close it out. Come on \u2014 from
+    the top."
+  highlightKey: 

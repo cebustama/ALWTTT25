@@ -190,6 +190,118 @@ namespace ALWTTT.Tutorial
             EndSeed(SeedDirES);
         }
 
+        // [TUT-R2] Idempotency for the APPEND seeders below: re-running must not
+        // duplicate list entries (the shared Add() always list-appends).
+        private void RemoveFromListByIds(params string[] ids)
+        {
+            var set = new HashSet<string>(ids);
+            dialogs.RemoveAll(d => d != null && set.Contains(d.TriggerId));
+        }
+
+        private static readonly string[] TutR2Ids =
+        {
+            TutorialTriggerId.JamWelcome, TutorialTriggerId.YourTurn,
+            TutorialTriggerId.PlayComposition, TutorialTriggerId.TracksThree,
+            TutorialTriggerId.PressPlay, TutorialTriggerId.LoopsStructure,
+            TutorialTriggerId.InspirationEconomy, TutorialTriggerId.PlayFinisher,
+            TutorialTriggerId.SongEndVibe, TutorialTriggerId.AudienceTurn,
+            TutorialTriggerId.StatusBuffMusician, TutorialTriggerId.StatusDebuffAudience,
+            TutorialTriggerId.StatusBlockedFront, TutorialTriggerId.MusicianBreakdown,
+            TutorialTriggerId.Composure, TutorialTriggerId.GigWon, TutorialTriggerId.GigLost,
+        };
+
+        [ContextMenu("Author/Seed TUT-R2 guided+reactive dialogs ES (17, provisional)")]
+        private void SeedGuidedDialogsES()
+        {
+            const string dir = SeedDirES;
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            RemoveFromListByIds(TutR2Ids); // NOTE: no BeginSeed — append, don't clear.
+
+            Add(dir, TutorialTriggerId.JamWelcome, 10, TutorialCategory.Run, "Bienvenido a la jam", "",
+                "Bienvenido al escenario, novato. Esto es una jam: la banda toca en vivo y el público decide si vales algo. Tu único trabajo es hacer que la música hable. Yo te voy diciendo cómo.");
+            Add(dir, TutorialTriggerId.YourTurn, 20, TutorialCategory.Cards, "Tu turno", "hand",
+                "Tu turno. En la mano hay dos tipos de carta: las de COMPOSICIÓN construyen la canción; las de ACCIÓN cuidan a la banda y empujan al público. La música primero. Siempre.");
+            Add(dir, TutorialTriggerId.PlayComposition, 30, TutorialCategory.Jam, "Juega una composición", "card_default_mode",
+                "Juega una carta de composición: arrástrala a la banda. Cada una añade algo real a la canción — no es decorado, es música. Empieza por el ritmo.");
+            Add(dir, TutorialTriggerId.TracksThree, 40, TutorialCategory.Jam, "Tres pistas", "song_panel_tracks",
+                "¿Ves el panel de la canción? Tres pistas: RITMO, BASE y MELODÍA. Cada carta de composición toca UNA de ellas. La batería marca el pulso, los acordes ponen el mundo, la melodía es lo que se queda en la cabeza.");
+            Add(dir, TutorialTriggerId.PressPlay, 50, TutorialCategory.Jam, "Presiona Play", "play_button",
+                "Ahora dale al Play. La canción sonará en bucle, y todo lo que juegues desde ahora entra en vivo. Sin ensayo. Así se toca de verdad.");
+            Add(dir, TutorialTriggerId.LoopsStructure, 60, TutorialCategory.Jam, "Loops", "loops_bar",
+                "Cada canción dura {$loops_per_part} loops, y cada loop es un turno. La barra de arriba te dice cuántos quedan. Cuando acaba el último loop, la canción se cierra — y se cobra.");
+            Add(dir, TutorialTriggerId.InspirationEconomy, 70, TutorialCategory.Jam, "Inspiración", "inspiration_counter",
+                "¿Ves ese +{$inspiration_per_loop}? Cada loop te da {$inspiration_per_loop} de Inspiración. Algunas cartas la exigen para jugarse — las buenas, claro. Guárdala: te acaba de llegar a la mano una que la vale.");
+            Add(dir, TutorialTriggerId.PlayFinisher, 80, TutorialCategory.Cards, "El Gran Final", "card_grand_finale",
+                "Último loop. Hora del Gran Final: una carta de ACCIÓN — no toca la canción, golpea al público. Cuesta Inspiración y pega a TODO el público a la vez. Juégala antes de que acabe el loop. El cierre lo es todo.");
+            Add(dir, TutorialTriggerId.SongEndVibe, 90, TutorialCategory.Jam, "El pago de la canción", "audience_vibe_bars",
+                "Fin de la canción: todo el hype que construiste se convierte en DAÑO de Vibe contra el público. Cada uno aguanta hasta {$audience_hp} — vacíasela y es tuyo: convencido. Así se gana un concierto, canción a canción.");
+            Add(dir, TutorialTriggerId.AudienceTurn, 100, TutorialCategory.Audience, "Turno del público", "audience_area",
+                "Ahora les toca a ellos. Cada personaje del público tiene sus propias mañas: unos golpean el Stress de tus músicos — su reserva de entereza; a cero, colapso — y otros se cubren entre sí. Míralos bien antes de tu siguiente turno.");
+
+            Add(dir, TutorialTriggerId.StatusBuffMusician, 110, TutorialCategory.Meters, "Efectos de estado", "status_icon_musician",
+                "¿Ves ese icono sobre el músico? Es un efecto de estado — y este juega a tu favor. Pasa el cursor por encima y te dice exactamente qué hace. Léelos: la banda vive de ellos.");
+            Add(dir, TutorialTriggerId.StatusDebuffAudience, 112, TutorialCategory.Meters, "Efectos sobre el público", "status_icon_audience",
+                "Le has colgado un efecto al público — el icono bajo su retrato. Los efectos trabajan solos, turno a turno, sin pedir permiso. Plántalos y deja que la música haga el resto.");
+            Add(dir, TutorialTriggerId.StatusBlockedFront, 114, TutorialCategory.Audience, "Bloqueado", "status_icon_blocked",
+                "El grandote se ha puesto delante y se ha BLOQUEADO: mientras le dure ese icono, tu Vibe no le entra. No malgastes música contra un muro — espera a que baje la guardia, o gasta la canción en los que sí escuchan.");
+            Add(dir, TutorialTriggerId.MusicianBreakdown, 116, TutorialCategory.Meters, "Stress", "musician_stress_bar",
+                "Golpe al Stress de tu músico. Esa barra es su entereza, y se gasta: a cero, colapsa y deja de tocar. Algunas cartas de acción la recuperan — o la protegen. Cuida a tu banda: sin banda no hay canción.");
+            Add(dir, TutorialTriggerId.Composure, 118, TutorialCategory.Meters, "Compostura", "status_icon_composure",
+                "Eso es COMPOSTURA: absorbe el daño al Stress antes de que toque la entereza de tu músico. Dura hasta tu próximo turno y luego se esfuma — es una guardia, no una armadura. Súbela cuando veas venir el golpe.");
+            Add(dir, TutorialTriggerId.GigWon, 120, TutorialCategory.Run, "Concierto ganado", "",
+                "Todos convencidos. ¿Oyes eso? El silencio de justo después — eso es un público que ya es tuyo. No te lo creas demasiado, novato: fue UN concierto. Pero fue música de verdad.");
+            Add(dir, TutorialTriggerId.GigLost, 121, TutorialCategory.Run, "Concierto perdido", "",
+                "Se acabó y no cayeron todos. Pasa. La música no perdona los cierres flojos: la próxima vez guarda Inspiración para el final y remata. Venga — otra vez desde arriba.");
+
+            EndSeed(dir);
+        }
+
+        [ContextMenu("Author/Seed TUT-R2 guided+reactive dialogs EN (17, provisional)")]
+        private void SeedGuidedDialogsEN()
+        {
+            const string dir = SeedDirEN;
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            RemoveFromListByIds(TutR2Ids);
+
+            Add(dir, TutorialTriggerId.JamWelcome, 10, TutorialCategory.Run, "Welcome to the jam", "",
+                "Welcome to the stage, rookie. This is a jam: the band plays live and the crowd decides if you're worth anything. Your only job is to make the music talk. I'll tell you how.");
+            Add(dir, TutorialTriggerId.YourTurn, 20, TutorialCategory.Cards, "Your turn", "hand",
+                "Your turn. Your hand holds two kinds of cards: COMPOSITION cards build the song; ACTION cards protect the band and push the crowd. Music first. Always.");
+            Add(dir, TutorialTriggerId.PlayComposition, 30, TutorialCategory.Jam, "Play a composition", "card_default_mode",
+                "Play a composition card: drag it onto the band. Each one adds something real to the song — it's not set dressing, it's music. Start with the rhythm.");
+            Add(dir, TutorialTriggerId.TracksThree, 40, TutorialCategory.Jam, "Three tracks", "song_panel_tracks",
+                "See the song panel? Three tracks: RHYTHM, BACKING and MELODY. Each composition card touches ONE of them. Drums set the pulse, chords build the world, melody is what sticks in your head.");
+            Add(dir, TutorialTriggerId.PressPlay, 50, TutorialCategory.Jam, "Hit Play", "play_button",
+                "Now hit Play. The song will run in a loop, and everything you play from here lands live. No rehearsal. That's how real music gets made.");
+            Add(dir, TutorialTriggerId.LoopsStructure, 60, TutorialCategory.Jam, "Loops", "loops_bar",
+                "Each song runs {$loops_per_part} loops, and every loop is a turn. The bar up top shows what's left. When the last loop ends, the song closes — and the bill comes due.");
+            Add(dir, TutorialTriggerId.InspirationEconomy, 70, TutorialCategory.Jam, "Inspiration", "inspiration_counter",
+                "See that +{$inspiration_per_loop}? Every loop feeds you {$inspiration_per_loop} Inspiration. Some cards demand it to be played — the good ones, naturally. Save it: one just landed in your hand that's worth it.");
+            Add(dir, TutorialTriggerId.PlayFinisher, 80, TutorialCategory.Cards, "The Grand Finale", "card_grand_finale",
+                "Last loop. Time for the Grand Finale: an ACTION card — it doesn't touch the song, it hits the crowd. It costs Inspiration and it hits the WHOLE crowd at once. Play it before the loop ends. The ending is everything.");
+            Add(dir, TutorialTriggerId.SongEndVibe, 90, TutorialCategory.Jam, "Song's payoff", "audience_vibe_bars",
+                "Song's over: all the hype you built converts into Vibe DAMAGE on the crowd. Each of them holds up to {$audience_hp} — drain it and they're yours: convinced. That's how you win a gig, song by song.");
+            Add(dir, TutorialTriggerId.AudienceTurn, 100, TutorialCategory.Audience, "The crowd's turn", "audience_area",
+                "Now it's their turn. Every character in the crowd has their own tricks: some hit your musicians' Stress — their fortitude reserve; at zero, breakdown — and others cover for each other. Watch them before your next turn.");
+
+            Add(dir, TutorialTriggerId.StatusBuffMusician, 110, TutorialCategory.Meters, "Status effects", "status_icon_musician",
+                "See that icon over the musician? That's a status effect — and this one's working for you. Hover it and it tells you exactly what it does. Read them: the band lives on them.");
+            Add(dir, TutorialTriggerId.StatusDebuffAudience, 112, TutorialCategory.Meters, "Effects on the crowd", "status_icon_audience",
+                "You've hung an effect on the crowd — the icon under their portrait. Effects work on their own, turn after turn, no permission needed. Plant them and let the music do the rest.");
+            Add(dir, TutorialTriggerId.StatusBlockedFront, 114, TutorialCategory.Audience, "Blocked", "status_icon_blocked",
+                "The big guy stepped up front and BLOCKED: while that icon lasts, your Vibe won't get through. Don't waste music on a wall — wait for the guard to drop, or spend the song on the ones actually listening.");
+            Add(dir, TutorialTriggerId.MusicianBreakdown, 116, TutorialCategory.Meters, "Stress", "musician_stress_bar",
+                "Your musician's Stress took a hit. That bar is their fortitude, and it runs out: at zero, they break down and stop playing. Some action cards restore it — or shield it. Take care of your band: no band, no song.");
+            Add(dir, TutorialTriggerId.Composure, 118, TutorialCategory.Meters, "Composure", "status_icon_composure",
+                "That's COMPOSURE: it soaks Stress damage before it touches your musician's fortitude. It lasts until your next turn, then it's gone — it's a guard, not armor. Raise it when you see the hit coming.");
+            Add(dir, TutorialTriggerId.GigWon, 120, TutorialCategory.Run, "Gig won", "",
+                "All of them convinced. Hear that? The silence right after — that's a crowd that belongs to you now. Don't let it go to your head, rookie: it was ONE gig. But it was real music.");
+            Add(dir, TutorialTriggerId.GigLost, 121, TutorialCategory.Run, "Gig lost", "",
+                "It's over and not all of them fell. Happens. Music doesn't forgive weak endings: next time, bank Inspiration for the finish and close it out. Come on — from the top.");
+
+            EndSeed(dir);
+        }
+
         private void BeginSeed(string dir)
         {
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
