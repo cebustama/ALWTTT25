@@ -56,6 +56,11 @@ namespace ALWTTT.DevMode
                 $"W: {DevGigOutcomeTracker.Wins}   L: {DevGigOutcomeTracker.Losses}   " +
                 $"Win-rate: {wr}   (n={DevGigOutcomeTracker.Total})");
             if (GUILayout.Button("Reset tally")) DevGigOutcomeTracker.Reset();
+
+            // [TLM-1] One-line pointer to the most recent telemetry record.
+            if (!string.IsNullOrEmpty(DevRunTelemetryLogger.LastWritePath))
+                GUILayout.Label($"Last gig written to: {DevRunTelemetryLogger.LastWritePath}");
+
             GUILayout.Space(8);
         }
 

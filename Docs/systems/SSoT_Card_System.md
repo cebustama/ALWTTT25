@@ -189,7 +189,7 @@ Rules:
 
 ### 6.2 Built-in effect specs currently in active vocabulary
 
-All four effect types below are implemented and runtime-validated.
+All five effect types below are implemented and runtime-validated.
 
 | Spec class | JSON `type` | Status | Notes |
 |---|---|---|---|
@@ -197,6 +197,7 @@ All four effect types below are implemented and runtime-validated.
 | `ModifyVibeSpec` | `"ModifyVibe"` | ✅ Implemented + validated | Targets audience characters |
 | `ModifyStressSpec` | `"ModifyStress"` | ✅ Implemented + validated | Routes through `ApplyIncomingStressWithComposure` for positive values |
 | `DrawCardsSpec` | `"DrawCards"` | ✅ Implemented + validated | Calls `DeckManager.DrawCards(count)` at effect execution time |
+| `AddInspirationPerLoopSpec` | `"AddInspirationPerLoop"` | ✅ Implemented + validated (DF-INSPLOOP) | **Not executed by the `CardBase` pipeline.** Consumed at track-binding time: `CompositionSession.EvalPerLoopInsp` reads it off `TrackEntry.sourceCardDefinition` via `AddInspirationPerLoopSpec.SumFor`. Grants `amount` Inspiration/loop while the card's track is active (track-scoped, D-INSP-1=D). Composition Track cards only; inert elsewhere. |
 
 ### 6.3 ApplyStatusEffectSpec
 This effect applies a concrete authored `StatusEffectSO` variant.
@@ -298,11 +299,13 @@ This invariant was implicit in the original architecture and was violated for ac
 
 UI wording and description rendering are secondary to the card contract itself. If description logic changes, it should reflect this SSoT rather than become a competing source of truth.
 
+Surfaces: card-face text (§10.1), hover tooltips (§10.2), detail modal (§10.3), card-face visual identity (§10.4), and **playability display** (§10.5 — the unplayable overlay and its single source of truth).
+
 ### 10.1 Card-face text rendering (M1.3a)
 
 `CardEffectDescriptionBuilder` (static class, `ALWTTT.Cards.Effects`) is the single owner of card-effect text formatting. `CardEffectSpec` remains data-only (§6.1) — no virtual `Describe()` method.
 
-`CardDefinitionDescriptionExtensions.GetDescription` delegates the action-card branch to `CardEffectDescriptionBuilder.BuildList(action.Effects, stats)`. The builder handles `ApplyStatusEffectSpec`, `ModifyVibeSpec`, `ModifyStressSpec`, and `DrawCardsSpec`. TMP rich-text tokens: buff `#8FD694`, debuff `#D6858F`, numbers `#FFD084`. Zero-delta effects render as empty strings and are filtered out. Target-type phrasing is centralized.
+`CardDefinitionDescriptionExtensions.GetDescription` delegates the action-card branch to `CardEffectDescriptionBuilder.BuildList(action.Effects, stats)`. The builder handles `ApplyStatusEffectSpec`, `ModifyVibeSpec`, `ModifyStressSpec`, `DrawCardsSpec`, and `AddInspirationPerLoopSpec` (DF-INSPLOOP: renders "Gain +N Inspiration each loop while this track plays"). Composition card faces still omit effect text by design (density reduction, 2026-04-21) — the `AddInspirationPerLoop` line is surfaced via the card-hover tooltip (§10.2) and the detail modal (§10.3), not the card face. TMP rich-text tokens: buff `#8FD694`, debuff `#D6858F`, numbers `#FFD084`. Zero-delta effects render as empty strings and are filtered out. Target-type phrasing is centralized.
 
 Composition card faces use a separate path: role/part + modifier count badge. `CardPayload.Effects` on composition cards are not surfaced on the card face (intentional density reduction, 2026-04-21). They are discoverable via card-hover tooltips (§10.2).
 
@@ -363,12 +366,60 @@ are part of the card prefab's wired contract. All three are null-guarded in `Car
 and must be wired on **every** card prefab (gameplay prefab + `CardUI.prefab`) — the
 same two-prefab recurrence vector recorded for prior `[SerializeField]` additions (see
 `CURRENT_STATE.md` §4, "CardUI : CardBase {} two-prefab arrangement"). Wired on both at
-S5b close.
+S5b close. **DEMO-FIXES-A (2026-07-15, D-DF-5=A)** adds `inspirationCostBadgeRoot` to the
+same two-prefab wired contract: an optional root for the Inspiration-**cost** badge, hidden
+in `CardBase.SetCard` when `InspirationCost == 0` (symmetric toggle; recovers on pooled reuse
+if a cost returns). This mirrors the S5e-ext gen-badge auto-hide (`inspirationGenBadgeRoot`,
+hidden at `InspirationGenerated == 0`). If unassigned, only `inspirationCostTextField`'s
+GameObject is toggled. Motivation: post-ECON-1 every starter is cost 0
+(`SSoT_Gig_Combat_Core.md` §14.6), so the badge was noise on every starter face. Wired on
+both prefabs at DEMO-FIXES-A close. ST-DF-10/11 PASS (gameplay + `CardUI` inventory, no NRE).
 
 The domain authority remains `payload.Domain` (§3.2); §10.4 is presentation only. The
 play-animation gating that shipped with S5b (only musicians with a track in the played
 part animate) is runtime/presentation behavior with **no SSoT home yet** — tracked
 operationally in `CURRENT_STATE.md` §4 until a presentation/animation SSoT exists.
+
+### 10.5 Playability display — single source of truth (CARD-UX-1, 2026-07-13)
+
+A card in hand that cannot be played is covered by a **red unplayable overlay**. The overlay
+is **advisory display only** — enforcement stays where it already was (the play paths). What
+CARD-UX-1 adds is that display and enforcement can no longer disagree, because the display
+reads one aggregator instead of re-deriving the rules.
+
+**Authority.** `GigManager.EvaluateCardPlayability(CardDefinition) → UnplayableReason` is the
+**only** playability computation for display. It *aggregates* the gates the play paths already
+consult; it does not duplicate their logic and it never consumes anything (`CanConsumePlay` /
+`CanAffordInspiration`, never `TryConsume` / spend), so per-frame polling is side-effect free.
+
+**Invariant.** No consumer computes playability locally. `HandController` polls the evaluator
+and pushes the boolean to `CardBase.SetUnplayableOverlay(bool)`; `CardBase` only renders.
+Adding a new reason means adding it to the enum and to the evaluator — never to a consumer.
+
+**Reasons, in evaluation order** (first match wins; the order is the precedence, and it is
+deliberate — a tutorial directive outranks a domain rule):
+
+| # | `UnplayableReason` | Gate consulted | Owner doc |
+| --- | --- | --- | --- |
+| 1 | `TutorialGate` | `TutorialInputGate.BlocksCardDrag` (beat-3 allow-list, beat-5 PlayOnly, beat-8 SingleCardOnly) | `Design_Tutorial_System_v0_2` §4 |
+| 2 | `ActionTiming` | `GigManager.CanPlayActionCard` | this SSoT §9.1 |
+| 3 | `FinalLoopLock` | `CompositionSession.IsFinalLoopRunning` | `SSoT_Runtime_CompositionSession_Integration` §5.4 |
+| 4 | `Inspiration` | `CompositionSession.CanAffordInspiration` | `SSoT_Gig_Combat_Core` §5.1 / §14.6 |
+| 5 | `Budget` | `GigManager.CanConsumePlay` (ECON-1) | `SSoT_Gig_Combat_Core` §14 |
+| — | `None` | playable | — |
+
+**`Budget` is scoped** to cards whose payer is statically resolvable (`FixedPerformerType !=
+None`). `AnyMusician` cards and hover-attributed compositions are **excluded** from the
+overlay's budget input until **D-ECON-GENERIC** resolves — a false red on a card that *is*
+playable against another musician is worse than a false green on an advisory overlay, and the
+`TryConsumePlay` drop-denial remains the enforcement. See `SSoT_Gig_Combat_Core.md` §14.5.
+
+**Presentation.** The overlay reuses the existing `passiveImage` / `SetInactiveMaterialState`
+mechanism (red restyle of the asset). **No new serialized field** — deliberate: a new `Image`
+field would have to be wired on both the gameplay card prefab *and* `CardUI.prefab` (the
+UI-fix-A recurrence vector, `CURRENT_STATE.md` §4, "CardUI : CardBase {} two-prefab
+arrangement"). The minicard/inventory `CardUI` (`IsPlayable = false`) is inert by the same
+guard that already protects `SetInactiveMaterialState`.
 
 ---
 
@@ -397,6 +448,7 @@ Legacy material must never silently overrule this SSoT.
 - the ALWTTT-side meaning of composition-related card choices
 - deck-level multiplicity (multiset shape, runtime expansion, pile-lifecycle invariance under play and reshuffle)
 - card-face visual identity (type background + owner icon) and its prefab-wiring contract (§10.4); the owner-icon resolver is in-gig only — a global registry is follow-up B
+- playability **display** — the unplayable overlay and its single source of truth (`GigManager.EvaluateCardPlayability` → `UnplayableReason`, §10.5); consumers render, they do not derive. The *rules* aggregated there remain owned by their own SSoTs (tutorial gate, action timing, inspiration, final-loop lock, ECON-1 budget)
 
 ### This SSoT does not own
 - JSON/editor pipeline details

@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Song's payoff
   portrait: {fileID: 0}
   pages:
-  - "Song's over: all the hype you built converts into Vibe DAMAGE on the crowd.
-    Each of them holds up to {$audience_hp} \u2014 drain it and they're yours: convinced.
-    That's how you win a gig, song by song."
+  - 'Song''s over: all the hype you built converts into Vibe DAMAGE on the crowd.
+    Each of them holds up to {$audience_hp}. Drain it and they''re yours: convinced.
+    That''s how you win a gig, song by song.'
   highlightKey: audience_vibe_bars

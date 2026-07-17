@@ -3,6 +3,10 @@ using ALWTTT.Cards.Effects;
 using ALWTTT.Cards.LLMAuthoring;
 using ALWTTT.Enums;
 using ALWTTT.Status;
+using MidiGenPlay.Composition;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -30,6 +34,13 @@ namespace ALWTTT.Cards.Editor
         // (exact case-insensitive name match) at staging. Serialized so the staged
         // state survives a domain reload, like the staged card itself.
         [SerializeField] private PartEffect[] _stagedResolvedModifierEffects;
+
+        // [BASS-CARD-1] Inline style-bundle creation requested by the staged JSON
+        // (composition.trackAction.styleBundleCreate). Consumed exactly once at
+        // Save, AFTER the payload asset exists on disk — same lifecycle as the LLM
+        // field plan, because CreateAndAssignStyleBundle writes the bundle into a
+        // folder derived from the payload's own asset path.
+        private StyleBundleCreateJson _stagedBundleCreate;
 
         // DTO classes (CardJsonImport et al.) hoisted to the
         // ALWTTT.Cards.LLMAuthoring assembly (CE-L1 B1) so the LLM generation
@@ -439,6 +450,37 @@ namespace ALWTTT.Cards.Editor
                 }
             }
 
+            // [BASS-CARD-1] Validate the inline bundle-create request BEFORE any
+            // mutation. Fails loudly rather than silently ignoring.
+            var bundleCreate = dto.composition?.trackAction?.styleBundleCreate;
+            if (HasBundleCreateIntent(bundleCreate))
+            {
+                if (!(_stagedJsonPayload is CompositionCardPayload))
+                {
+                    error = "composition.trackAction.styleBundleCreate is only valid on a " +
+                            "Composition card.";
+                    DiscardStagedJson();
+                    return false;
+                }
+
+                if (!string.IsNullOrWhiteSpace(dto.composition?.trackAction?.styleBundle))
+                {
+                    error = "composition.trackAction: 'styleBundle' (point at an existing asset) " +
+                            "and 'styleBundleCreate' (mint a new one) are mutually exclusive. " +
+                            "Provide exactly one.";
+                    DiscardStagedJson();
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.composition?.trackAction?.role))
+                {
+                    error = "composition.trackAction.styleBundleCreate requires 'role' — " +
+                            "the bundle TYPE is derived from the role.";
+                    DiscardStagedJson();
+                    return false;
+                }
+            }
+
             var pso = new SerializedObject(_stagedJsonPayload);
 
             if (_stagedJsonPayload is ActionCardPayload)
@@ -449,6 +491,9 @@ namespace ALWTTT.Cards.Editor
             {
                 ApplyCompositionJson(pso, dto.composition);
             }
+
+            // [BASS-CARD-1] Stage the create-spec; consumed at Save.
+            _stagedBundleCreate = HasBundleCreateIntent(bundleCreate) ? bundleCreate : null;
 
             if (!ApplyEffectsJson(pso, dto.effects, _registries, out var effectsErr))
             {
@@ -529,7 +574,7 @@ namespace ALWTTT.Cards.Editor
 
                 if (string.IsNullOrWhiteSpace(row.type))
                 {
-                    error = $"effects[{i}].type is required. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards.";
+                    error = $"effects[{i}].type is required. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop.";
                     return false;
                 }
 
@@ -651,9 +696,20 @@ namespace ALWTTT.Cards.Editor
                     var spec = new DrawCardsSpec { count = row.count };
                     AddManagedEffect(listProp, spec);
                 }
+                else if (type.Equals("AddInspirationPerLoop", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    if (row.amount < 1)
+                    {
+                        error = $"effects[{i}]: AddInspirationPerLoop.amount must be >= 1.";
+                        return false;
+                    }
+
+                    var spec = new AddInspirationPerLoopSpec { amountPerLoop = row.amount };
+                    AddManagedEffect(listProp, spec);
+                }
                 else
                 {
-                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards.";
+                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop.";
                     return false;
                 }
             }
@@ -811,7 +867,13 @@ namespace ALWTTT.Cards.Editor
                 var styleProp = trackProp.FindPropertyRelative("styleBundle");
                 if (styleProp != null)
                 {
-                    styleProp.objectReferenceValue = LoadAssetByPathOrGuid(cj.trackAction?.styleBundle);
+                    var raw = cj.trackAction?.styleBundle;
+                    var resolved = LoadAssetByPathOrGuid(raw);
+                    if (resolved == null && !string.IsNullOrWhiteSpace(raw))
+                        Debug.LogWarning($"[CardImport] trackAction.styleBundle '{raw}' did not resolve to an asset — " +
+                                         $"Track card will be bundle-less (augment-only, will not create a track). " +
+                                         $"Check the path/casing or assign the bundle manually.");
+                    styleProp.objectReferenceValue = resolved;
                 }
             }
 
@@ -1156,6 +1218,13 @@ namespace ALWTTT.Cards.Editor
                 // resolved palette. No-op for non-LLM saves.
                 ApplyLlmPlanOnSave(payloadAsset);
 
+                // [BASS-CARD-1] Consume the inline bundle-create request now that the
+                // payload asset exists on disk — mints the role-typed bundle
+                // (BasslineCardConfigSO for role=Bassline) through the SAME
+                // CreateAndAssignStyleBundle the wizard buttons use, then applies any
+                // requested field writes. No-op for JSON without the field.
+                ApplyJsonBundleCreateOnSave(payloadAsset);
+
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
@@ -1184,6 +1253,195 @@ namespace ALWTTT.Cards.Editor
             }
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // [BASS-CARD-1] Inline style-bundle creation from JSON.
+        //
+        // Before this, a Composition card imported from JSON could only POINT at an
+        // existing TrackStyleBundleSO (trackAction.styleBundle = path or guid); it
+        // could neither create one nor set any field on it. That made Bassline cards
+        // unauthorable from JSON: a BasslineCardConfigSO carries no palette — only
+        // articulation (chordExpression / arpeggioRate) — so there was nothing to
+        // point at until someone hand-made the asset. It matters more than it used
+        // to, because under BASS-1 D4=A a Track card with a NULL styleBundle no
+        // longer creates a track at all, so a bundle-less bass card is inert.
+        // ─────────────────────────────────────────────────────────────
+
+        private static bool HasBundleCreateIntent(StyleBundleCreateJson s)
+            => s != null && (s.requested || (s.fields != null && s.fields.Length > 0));
+
+        private void ApplyJsonBundleCreateOnSave(CardPayload payloadAsset)
+        {
+            var spec = _stagedBundleCreate;
+            _stagedBundleCreate = null; // consume exactly once
+
+            if (spec == null) return;
+
+            var comp = payloadAsset as CompositionCardPayload;
+            if (comp == null)
+            {
+                Debug.LogWarning(
+                    "[CardEditorWindow] styleBundleCreate: saved payload is not a Composition " +
+                    "payload; no bundle created.");
+                return;
+            }
+
+            var pso = new SerializedObject(comp);
+            var trackProp = pso.FindProperty("trackAction");
+            var roleProp = trackProp?.FindPropertyRelative("role");
+            var styleProp = trackProp?.FindPropertyRelative("styleBundle");
+
+            if (roleProp == null || styleProp == null)
+            {
+                Debug.LogWarning(
+                    "[CardEditorWindow] styleBundleCreate: trackAction properties not found; " +
+                    "no bundle created.");
+                return;
+            }
+
+            // Reuses the wizard's minting path: correct SO type per role
+            // (ResolveBundleTypeForRole), correct folder, appliesTo tagged.
+            if (styleProp.objectReferenceValue == null)
+                CreateAndAssignStyleBundle(roleProp, styleProp, comp);
+
+            pso.Update();
+            var bundle = styleProp.objectReferenceValue as TrackStyleBundleSO;
+            if (bundle == null)
+            {
+                Debug.LogError(
+                    "[CardEditorWindow] styleBundleCreate: bundle creation failed; " +
+                    "fields NOT applied.");
+                return;
+            }
+
+            ApplyBundleFields(bundle, spec.fields);
+        }
+
+        private static void ApplyBundleFields(TrackStyleBundleSO bundle, BundleFieldJson[] fields)
+        {
+            if (bundle == null || fields == null || fields.Length == 0) return;
+
+            var bso = new SerializedObject(bundle);
+            Undo.RecordObject(bundle, "Apply Style Bundle Fields (JSON)");
+
+            for (int i = 0; i < fields.Length; i++)
+            {
+                var fld = fields[i];
+                if (fld == null || string.IsNullOrWhiteSpace(fld.name)) continue;
+
+                var p = bso.FindProperty(fld.name.Trim());
+                if (p == null)
+                {
+                    // Loud and actionable: never silently ignore an unknown field.
+                    Debug.LogError(
+                        $"[CardEditorWindow] styleBundleCreate: '{bundle.GetType().Name}' has no " +
+                        $"serialized field '{fld.name}'. Valid fields: " +
+                        $"{string.Join(", ", ListSerializedFieldNames(bso))}");
+                    continue;
+                }
+
+                if (!TryWriteSerializedValue(p, fld.value, out var err))
+                    Debug.LogError(
+                        $"[CardEditorWindow] styleBundleCreate: field '{fld.name}' — {err}");
+            }
+
+            bso.ApplyModifiedProperties();
+            EditorUtility.SetDirty(bundle);
+        }
+
+        /// <summary>Coerce a string to the target property's type. Enums by NAME.</summary>
+        private static bool TryWriteSerializedValue(
+            SerializedProperty p, string raw, out string error)
+        {
+            error = null;
+            raw = raw?.Trim();
+
+            switch (p.propertyType)
+            {
+                case SerializedPropertyType.Enum:
+                    {
+                        var names = p.enumNames;
+                        if (names != null)
+                        {
+                            for (int i = 0; i < names.Length; i++)
+                            {
+                                if (string.Equals(names[i], raw, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    p.enumValueIndex = i;
+                                    return true;
+                                }
+                            }
+                        }
+
+                        error = $"'{raw}' is not a valid value. Valid: " +
+                                $"{string.Join(", ", names ?? Array.Empty<string>())}";
+                        return false;
+                    }
+
+                case SerializedPropertyType.Integer:
+                    if (int.TryParse(raw, NumberStyles.Integer,
+                            CultureInfo.InvariantCulture, out var i32))
+                    {
+                        p.intValue = i32;
+                        return true;
+                    }
+                    error = $"'{raw}' is not an integer.";
+                    return false;
+
+                case SerializedPropertyType.Float:
+                    if (float.TryParse(raw, NumberStyles.Float,
+                            CultureInfo.InvariantCulture, out var f32))
+                    {
+                        p.floatValue = f32;
+                        return true;
+                    }
+                    error = $"'{raw}' is not a number.";
+                    return false;
+
+                case SerializedPropertyType.Boolean:
+                    if (bool.TryParse(raw, out var b))
+                    {
+                        p.boolValue = b;
+                        return true;
+                    }
+                    error = $"'{raw}' is not true/false.";
+                    return false;
+
+                case SerializedPropertyType.String:
+                    p.stringValue = raw ?? string.Empty;
+                    return true;
+
+                case SerializedPropertyType.ObjectReference:
+                    {
+                        var obj = LoadAssetByPathOrGuid(raw);
+                        if (obj == null)
+                        {
+                            error = $"no asset found at path/guid '{raw}'.";
+                            return false;
+                        }
+                        p.objectReferenceValue = obj;
+                        return true;
+                    }
+
+                default:
+                    error = $"unsupported property type {p.propertyType}.";
+                    return false;
+            }
+        }
+
+        private static List<string> ListSerializedFieldNames(SerializedObject so)
+        {
+            var names = new List<string>();
+            var it = so.GetIterator();
+            bool enterChildren = true;
+            while (it.NextVisible(enterChildren))
+            {
+                enterChildren = false;
+                if (it.propertyPath == "m_Script") continue;
+                names.Add(it.propertyPath);
+            }
+            return names;
+        }
+
         private void DiscardStagedJson()
         {
             if (_stagedJsonCard != null) DestroyImmediate(_stagedJsonCard);
@@ -1197,6 +1455,7 @@ namespace ALWTTT.Cards.Editor
             _stagedJsonUnlockId = null;
 
             _stagedResolvedModifierEffects = null; // CE-L1 B3
+            _stagedBundleCreate = null;            // [BASS-CARD-1]
             ClearLlmPendingPlan();                 // CE-L1 B3 (defined in CardEditorWindow.LLM.cs)
         }
     }

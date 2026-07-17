@@ -89,6 +89,10 @@ so `TotalComplexity = 0` for all current content and the term contributes
 nothing to any LoopScore. Retained in code; S5i owns its replacement or
 removal when the inspiration economy is re-tuned.
 
+**[DF-INSPLOOP note, 2026-07-16]** DF-INSPLOOP reintroduces per-loop Inspiration generation as a **card-gated, track-scoped** bonus (`AddInspirationPerLoopSpec`, derived via `EvalPerLoopInsp`), NOT by re-activating `inspirationGenerated`. The bonus never enters `LoopTrackSnapshot`, so `TotalComplexity` remains 0 and this complexity term remains inert. The two are orthogonal: DF-INSPLOOP feeds the Inspiration economy (per-loop grant), the complexity term feeds LoopScore. A dead-state field, `CompositionSession._buildingPartInspirationPerLoop` (write-only since S5e), is left in place; its cleanup belongs to S5i.
+
+**Per-loop Inspiration sources (current runtime).** (1) Basal flat grant = **1/loop** (`GigFlowSettings.asset` `defaultInspirationPerLoop`; applied by `GigManager.OnCompositionLoopFinished`). (2) Card-gated track-scoped bonus (DF-INSPLOOP, +N per active carrying track, applied via `CompositionSession` on the same per-loop path the S5e basal generation used before it was zeroed). The composition UI's global `+INS` badge shows the **total** (basal + derived), un-clamped/nominal per S5e; the per-track badge shows that track's derived contribution.
+
 ### 3.3 HypeDelta conversion
 
 `ComputeHypeDelta` maps LoopScore to a SongHype delta via a piecewise threshold table (`HypeThresholds` struct). Both thresholds and deltas are Inspector-tuneable on `MeterTuningSO` (M4.6F-2; authored on `GigManager` pre-F-2). Defaults: Amazing ≥25 → +15, VeryGood ≥15 → +8, Decent ≥5 → +3, Neutral >−5 → 0, Meh >−15 → −5, Bad else → −12.
@@ -195,6 +199,17 @@ the amount.
 (`Design_Pending_Effects_v1.md`) can absorb it (D-S5-VIBE-ARCH=A). The player-facing
 readout of `lPart` ("L") + `pendingSfx` ("SFX") is the Vibe telegraph
 (`planning/Design_Vibe_Telegraph_v0_1.md`).
+
+**Venue-SFX unlock gate (S5h/D8, #6b-lite).** From S5h the flat SFX bonus is
+additionally gated by per-threshold **unlock state**
+(`PersistentGameplayData.IsSfxStageUnlocked(stage)`; run-scoped, reset in
+`ApplyRunConfig`, granted as a gig reward). A **locked** stage produces nothing
+at its crossing — no banked `pendingSfx`, no VFX, no `SfxStageCrossedEvent` —
+so a fresh run's first gig has **no SFX Vibe layer** and the "SFX" readout term
+stays 0 until a threshold is unlocked (demo: unlocks apply from the next gig /
+Retry). This changes *whether* the banked bonus exists per stage; it does not
+change the §6.1/§6.2 math when a stage is unlocked. The unlock is the demo slice
+of the future venue-SFX-equipment system (Phase C).
 
 ---
 

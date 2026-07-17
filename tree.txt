@@ -6,6 +6,21 @@
 |   |   +---0 (1).unity
 |   |   +---0 (2).unity
 |   |   \---0.unity
+|   +---CompositionSmoke
+|   |   +---smoke_rh-ba_194255.mid
+|   |   +---smoke_rh-ba_194329.mid
+|   |   +---smoke_rh-ba_194408.mid
+|   |   +---smoke_rh-ba_194838.mid
+|   |   +---smoke_rh-ba_195105.mid
+|   |   +---smoke_rh-ba_195148.mid
+|   |   +---smoke_rh-ba-ba_095653.mid
+|   |   +---smoke_rh-ba-ba_095751.mid
+|   |   +---smoke_rh-ba-ba_095832.mid
+|   |   +---smoke_rh-ba-ba_095928.mid
+|   |   +---smoke_rh-ba-ba_114336.mid
+|   |   +---smoke_rh-ba-ba_124742.mid
+|   |   +---smoke_rh-ba-ba_124936.mid
+|   |   \---smoke_rh-ba-ba_132612.mid
 |   +---Materials
 |   |   \---Mat_SpriteOutline.mat
 |   +---MidiPlayer
@@ -1983,6 +1998,7 @@
 |   |   |   |   |   +---Band Character - Robot C2.asset
 |   |   |   |   |   +---Band Character - Sibi.asset
 |   |   |   |   |   +---Band Character - Ziggy.asset
+|   |   |   |   |   +---C2_CardCatalogData.asset
 |   |   |   |   |   +---Cantante_CardCatalogData.asset
 |   |   |   |   |   +---Cantante_Composition_002.asset
 |   |   |   |   |   +---Cantante_Composition_002_Payload.asset
@@ -1991,6 +2007,10 @@
 |   |   |   |   |   +---Conito_CardCatalogData.asset
 |   |   |   |   |   +---debug_apply_shaken_to_musician.asset
 |   |   |   |   |   +---debug_apply_shaken_to_musician_Payload.asset
+|   |   |   |   |   +---Gusano_C_Bassline_001_WormWalk.asset
+|   |   |   |   |   +---Gusano_C_Bassline_001_WormWalk_Payload.asset
+|   |   |   |   |   +---Gusano_C_Bassline_002_WormPulse.asset
+|   |   |   |   |   +---Gusano_C_Bassline_002_WormPulse_Payload.asset
 |   |   |   |   |   +---MVP_AddComposure_03.asset
 |   |   |   |   |   +---MVP_AddComposure_03_Payload.asset
 |   |   |   |   |   +---MVP_AddFlow_02_All.asset
@@ -2001,7 +2021,6 @@
 |   |   |   |   |   +---MVP_AddVibe_05_Payload.asset
 |   |   |   |   |   +---MVP_RemoveStress_02.asset
 |   |   |   |   |   +---MVP_RemoveStress_02_Payload.asset
-|   |   |   |   |   +---Robot_CardCatalogData.asset
 |   |   |   |   |   +---Sibi_CardCatalogData.asset
 |   |   |   |   |   +---starter_compound_cycle.asset
 |   |   |   |   |   +---starter_compound_cycle_Payload.asset
@@ -2009,12 +2028,16 @@
 |   |   |   |   |   +---starter_default_mode_Payload.asset
 |   |   |   |   |   +---Starter_half_time.asset
 |   |   |   |   |   +---Starter_half_time_Payload.asset
+|   |   |   |   |   +---Starter_keep_cool.asset
+|   |   |   |   |   +---Starter_keep_cool_Payload.asset
 |   |   |   |   |   +---Starter_key_lift.asset
 |   |   |   |   |   +---Starter_key_lift_Payload.asset
 |   |   |   |   |   +---starter_mind_tap.asset
 |   |   |   |   |   +---starter_mind_tap_Payload.asset
 |   |   |   |   |   +---starter_pentameter.asset
 |   |   |   |   |   +---starter_pentameter_Payload.asset
+|   |   |   |   |   +---Starter_psychic_waves.asset
+|   |   |   |   |   +---Starter_psychic_waves_Payload.asset
 |   |   |   |   |   +---Starter_push_it.asset
 |   |   |   |   |   +---Starter_push_it_Payload.asset
 |   |   |   |   |   +---starter_singing_field.asset
@@ -2048,6 +2071,9 @@
 |   |   |   |   |   +---test_modify_vibe.asset
 |   |   |   |   |   \---test_modify_vibe_Payload.asset
 |   |   |   |   \---StyleBundles
+|   |   |   |       +---Bassline
+|   |   |   |       |   +---Gusano_C_Bassline_001_WormWalk_Payload_Bassline_StyleBundle.asset
+|   |   |   |       |   \---Gusano_C_Bassline_002_WormPulse_Payload_Bassline_StyleBundle.asset
 |   |   |   |       \---Rhythm
 |   |   |   |           +---cmp_flow_rhythm_Payload_Rhythm_StyleBundle.asset
 |   |   |   |           +---starter_compound_cycle_Payload_Rhythm_StyleBundle.asset
@@ -2095,9 +2121,11 @@
 |   |   |   |   +---Melody Flashy-Soloist.asset
 |   |   |   |   +---Melody Groove-Pocket.asset
 |   |   |   |   +---Melody Singing Field - Hook.asset
-|   |   |   |   \---Melody Sparse-Lyrical.asset
+|   |   |   |   +---Melody Sparse-Lyrical.asset
+|   |   |   |   \---TEST Bassline Card Config SO.asset
 |   |   |   +---Rewards
-|   |   |   |   \---Card Reward Data.asset
+|   |   |   |   +---Card Reward Data.asset
+|   |   |   |   \---SFX Reward Data.asset
 |   |   |   +---Settings
 |   |   |   |   +---ALWTTTProjectRegistries.asset
 |   |   |   |   +---Gameplay Settings.asset
@@ -2132,28 +2160,46 @@
 |   |   |   \---Tutorial
 |   |   |       +---Dialogs
 |   |   |       |   +---ES
-|   |   |       |   |   +---tut_first_action_card.asset
-|   |   |       |   |   +---tut_first_audience_action.asset
-|   |   |       |   |   +---tut_first_composition_card.asset
-|   |   |       |   |   +---tut_first_gig_won.asset
-|   |   |       |   |   +---tut_first_inspiration_spend.asset
-|   |   |       |   |   +---tut_first_loop_inspiration.asset
+|   |   |       |   |   +---tut_audience_turn.asset
+|   |   |       |   |   +---tut_composure.asset
 |   |   |       |   |   +---tut_first_sfx_stage.asset
-|   |   |       |   |   +---tut_first_song_end.asset
 |   |   |       |   |   +---tut_first_sound_card.asset
-|   |   |       |   |   +---tut_first_status_applied.asset
-|   |   |       |   |   \---tut_welcome_to_gig.asset
-|   |   |       |   +---tut_first_action_card.asset
-|   |   |       |   +---tut_first_audience_action.asset
-|   |   |       |   +---tut_first_composition_card.asset
-|   |   |       |   +---tut_first_gig_won.asset
-|   |   |       |   +---tut_first_inspiration_spend.asset
-|   |   |       |   +---tut_first_loop_inspiration.asset
+|   |   |       |   |   +---tut_gig_lost.asset
+|   |   |       |   |   +---tut_gig_won.asset
+|   |   |       |   |   +---tut_inspiration_economy.asset
+|   |   |       |   |   +---tut_jam_welcome.asset
+|   |   |       |   |   +---tut_loops_structure.asset
+|   |   |       |   |   +---tut_musician_breakdown.asset
+|   |   |       |   |   +---tut_play_composition.asset
+|   |   |       |   |   +---tut_play_finisher.asset
+|   |   |       |   |   +---tut_play_finisher_early.asset
+|   |   |       |   |   +---tut_press_play.asset
+|   |   |       |   |   +---tut_song_end_vibe.asset
+|   |   |       |   |   +---tut_status_blocked_front.asset
+|   |   |       |   |   +---tut_status_buff_musician.asset
+|   |   |       |   |   +---tut_status_debuff_audience.asset
+|   |   |       |   |   +---tut_tracks_three.asset
+|   |   |       |   |   \---tut_your_turn.asset
+|   |   |       |   +---tut_audience_turn.asset
+|   |   |       |   +---tut_composure.asset
 |   |   |       |   +---tut_first_sfx_stage.asset
-|   |   |       |   +---tut_first_song_end.asset
 |   |   |       |   +---tut_first_sound_card.asset
-|   |   |       |   +---tut_first_status_applied.asset
-|   |   |       |   \---tut_welcome_to_gig.asset
+|   |   |       |   +---tut_gig_lost.asset
+|   |   |       |   +---tut_gig_won.asset
+|   |   |       |   +---tut_inspiration_economy.asset
+|   |   |       |   +---tut_jam_welcome.asset
+|   |   |       |   +---tut_loops_structure.asset
+|   |   |       |   +---tut_musician_breakdown.asset
+|   |   |       |   +---tut_play_composition.asset
+|   |   |       |   +---tut_play_finisher.asset
+|   |   |       |   +---tut_play_finisher_early.asset
+|   |   |       |   +---tut_press_play.asset
+|   |   |       |   +---tut_song_end_vibe.asset
+|   |   |       |   +---tut_status_blocked_front.asset
+|   |   |       |   +---tut_status_buff_musician.asset
+|   |   |       |   +---tut_status_debuff_audience.asset
+|   |   |       |   +---tut_tracks_three.asset
+|   |   |       |   \---tut_your_turn.asset
 |   |   |       +---Portraits
 |   |   |       |   \---capitan_mensaje.png
 |   |   |       +---TutorialDialogCatalog_EN.asset
@@ -2190,6 +2236,7 @@
 |   |   |   |   |   +---I (1) – II (1) – V (1) – I (1) Modal.asset
 |   |   |   |   |   \---I (2) – bVII (2) – S (2) Modal.asset
 |   |   |   |   +---Tests
+|   |   |   |   |   +---1 chord 1 measure.asset
 |   |   |   |   |   +---34 Test 1.asset
 |   |   |   |   |   +---44 Test.asset
 |   |   |   |   |   +---54 Test 1.asset
@@ -2419,10 +2466,12 @@
 |   |   |   +---3portada.png
 |   |   |   +---ALWTTTLogo.png
 |   |   |   +---portada.png
+|   |   |   +---portada1_3.png
 |   |   |   +---premio.png
 |   |   |   +---star.png
 |   |   |   \---star-white-icon.png
-|   |   \---LLMEnvSettings.asset
+|   |   +---LLMEnvSettings.asset
+|   |   \---SmokeSetup_0.asset
 |   +---Scenes
 |   |   +---0 - Main Menu.unity
 |   |   +---0.5 - Band Setup.unity
@@ -2470,6 +2519,7 @@
 |   |   |   |   +---DeckValidationService.cs
 |   |   |   |   \---MusicianCatalogService.cs
 |   |   |   +---Effects
+|   |   |   |   +---AddInspirationPerLoopSpec.cs
 |   |   |   |   +---ApplyStatusEffectSpec.cs
 |   |   |   |   +---CardEffectDescriptionBuilder.cs
 |   |   |   |   +---CardEffectSpec.cs
@@ -2714,14 +2764,18 @@
 |   |   +---Sensory
 |   |   |   +---Events
 |   |   |   |   +---AudienceReactionEvent.cs
+|   |   |   |   +---AudienceVibeImpactEvent.cs
 |   |   |   |   +---SfxStageCrossedEvent.cs
 |   |   |   |   \---SongEndVibeEvent.cs
+|   |   |   +---AudienceBlockedEvent.cs
 |   |   |   +---AudienceTurnStartedEvent.cs
 |   |   |   +---CardPlayedEvent.cs
 |   |   |   +---GigOutcomeEvent.cs
 |   |   |   +---GigStartedEvent.cs
 |   |   |   +---ISensoryEvent.cs
 |   |   |   +---LoopResolvedEvent.cs
+|   |   |   +---MusicianStressHitEvent.cs
+|   |   |   +---RewardChoiceOpenedEvent.cs
 |   |   |   +---SensoryAudioAdapter.cs
 |   |   |   +---SensoryEventBus.cs
 |   |   |   +---SensoryFtPresentation.cs
@@ -2744,9 +2798,17 @@
 |   |   |   +---TutorialController.cs
 |   |   |   +---TutorialDialogCatalogSO.cs
 |   |   |   +---TutorialDialogSO.cs
+|   |   |   +---TutorialGuidedDriver.cs
+|   |   |   +---TutorialHighlightSpawnHook.cs
+|   |   |   +---TutorialHighlightTarget.cs
+|   |   |   +---TutorialInputGate.cs
+|   |   |   +---TutorialLoopHoldGate.cs
 |   |   |   +---TutorialModalGate.cs
+|   |   |   +---TutorialOptInPrompt.cs
 |   |   |   +---TutorialOverlayView.cs
-|   |   |   \---TutorialRevisitPanel.cs
+|   |   |   +---TutorialRevisitPanel.cs
+|   |   |   +---TutorialScriptedDrawQueue.cs
+|   |   |   \---TutorialTokenResolver.cs
 |   |   +---UI
 |   |   |   +---Canvases
 |   |   |   |   +---BandSetupCanvas.cs
@@ -2765,6 +2827,7 @@
 |   |   |   |   +---SongPartsLayoutUI.cs
 |   |   |   |   \---SongTrackElementUI.cs
 |   |   |   +---Tooltips
+|   |   |   |   +---EconPipTooltipTarget.cs
 |   |   |   |   +---I2DTooltipTarget.cs
 |   |   |   |   +---ITooltipTargetBase.cs
 |   |   |   |   +---TooltipController.cs
@@ -2889,6 +2952,7 @@
 |   |   |   +---ALWTTT_Uses_MidiGenPlay_Quick_Path.md
 |   |   |   +---integrations_midigenplay_README.md
 |   |   |   +---MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md
+|   |   |   +---Palette_Card_Identity_Design.md
 |   |   |   \---SSoT_ALWTTT_MidiGenPlay_Boundary.md
 |   |   +---card_llm_pipeline_seven_stages.svg
 |   |   \---README.md
@@ -2903,7 +2967,8 @@
 |   |   |   +---planning_active_README.md
 |   |   |   +---Roadmap_ALWTTT.md
 |   |   |   +---Roadmap_Audio.md
-|   |   |   \---S5_DemoCutClose_Sub_Roadmap.md
+|   |   |   +---S5_DemoCutClose_Sub_Roadmap.md
+|   |   |   \---TUT-REBUILD_Sub_Roadmap.md
 |   |   +---archive
 |   |   |   +---ALWTTT_DeckEditorWindow_Roadmap_Proposal.md
 |   |   |   +---Combat_MVP_Roadmap.md
@@ -2911,10 +2976,12 @@
 |   |   |   +---README.md
 |   |   |   +---Roadmap_Combat_MVP.md
 |   |   |   \---Roadmap_Combat_MVP_Closure_Actionable.md
+|   |   +---Design_Action_Economy_v1.md
 |   |   +---Design_Pending_Effects_v1.md
 |   |   +---Design_Project_Directives_v0_1.md
 |   |   +---Design_Song_Parts_Library_v0_1.md
 |   |   +---Design_Tempo_Identity_v1.md
+|   |   +---Design_Tutorial_System_v0_2.md
 |   |   +---Design_Vibe_Telegraph_v0_1.md
 |   |   \---planning_README.md
 |   +---reference
@@ -2942,7 +3009,8 @@
 |   +---make-tree-unity.bat
 |   +---README.md
 |   +---SSoT_CONTRACTS.md
-|   \---SSoT_INDEX.md
+|   +---SSoT_INDEX.md
+|   \---ssot_manifest.yaml
 +---Packages
 |   +---com.merry-yellow.code-assist
 |   |   +---Editor
@@ -2983,6 +3051,8 @@
 |   |   |   |   +---ELogger.cs
 |   |   |   |   +---LoggerExtensions.cs
 |   |   |   |   \---UnitySink.cs
+|   |   |   +---Monitors
+|   |   |   |   \---NavMeshAreasMonitor.cs
 |   |   |   +---Preferences
 |   |   |   |   +---PreferenceEntryHolder.cs
 |   |   |   |   +---PreferenceMonitor.cs

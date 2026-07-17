@@ -44,6 +44,25 @@ namespace ALWTTT.Sensory
         public long ReactionEventsHandled { get; private set; }
         public long VibeEventsHandled { get; private set; }
 
+        /// <summary>[JUICE-PW] Card-impact events handled (ST-PW parity).</summary>
+        public long VibeImpactEventsHandled { get; private set; }
+
+        [Header("JUICE-PW: card Vibe impact presentation")]
+        [Tooltip("One-shot kick intensity [0..1] for the impacted audience " +
+                 "member's CharacterAnimator (null-guarded per prefab).")]
+        [SerializeField][Range(0f, 1f)] private float impactKickIntensity = 0.8f;
+
+        [Tooltip("One-shot kick intensity [0..1] for the performer (Sibi). " +
+                 "Fires once per card play (FanoutIndex == 0).")]
+        [SerializeField][Range(0f, 1f)] private float performerKickIntensity = 1f;
+
+        [Tooltip("Extra particles burst on the performer at impact (0 = off).")]
+        [SerializeField][Min(0)] private int performerBurstParticles = 14;
+
+        [Tooltip("Particles burst on each impacted member (0 = off). Blocked " +
+                 "(INDIFFERENT) members get no burst — the grey FT carries it.")]
+        [SerializeField][Min(0)] private int targetBurstParticles = 6;
+
         private SensoryEventBus _bus;
 
         private void OnEnable()
@@ -61,10 +80,11 @@ namespace ALWTTT.Sensory
 
             _bus.Subscribe<AudienceReactionEvent>(OnAudienceReaction);
             _bus.Subscribe<SongEndVibeEvent>(OnSongEndVibe);
+            _bus.Subscribe<AudienceVibeImpactEvent>(OnVibeImpact);
 
             Debug.Log(
                 $"[SensoryFxAdapter] Subscribed to bus " +
-                $"(AudienceReaction + SongEndVibe). Mode={mode}, " +
+                $"(AudienceReaction + SongEndVibe + AudienceVibeImpact). Mode={mode}, " +
                 $"logVerification={logVerification}.");
         }
 
@@ -73,6 +93,7 @@ namespace ALWTTT.Sensory
             if (_bus == null) return;
             _bus.Unsubscribe<AudienceReactionEvent>(OnAudienceReaction);
             _bus.Unsubscribe<SongEndVibeEvent>(OnSongEndVibe);
+            _bus.Unsubscribe<AudienceVibeImpactEvent>(OnVibeImpact);
             _bus = null;
         }
 
@@ -135,6 +156,85 @@ namespace ALWTTT.Sensory
                     $"flowStacks={e.FlowStacks} " +
                     $"blocked={e.BlockedByIndifference} " +
                     $"-> \"{text}\" rgba=({color.r:F2},{color.g:F2},{color.b:F2})");
+            }
+        }
+
+        // ----- Card Vibe impact (JUICE-PW D1=A / D2=B / D3=A) --------------
+
+        /// <summary>
+        /// Per-target handler for the AoE fan-out. FT is staggered by
+        /// FanoutIndex (per-member floaters, D3=A); the performer's kick +
+        /// burst fires once on FanoutIndex 0 (D2=B: procedural one-shot, no
+        /// clip system). Audio is NOT handled here — SensoryAudioAdapter owns
+        /// the single CardVibeImpact sting (per-handler isolation, D-S3-3=A).
+        /// </summary>
+        private void OnVibeImpact(AudienceVibeImpactEvent e)
+        {
+            VibeImpactEventsHandled++;
+
+            if (!SensoryFtPresentation.TryBuildVibeImpactFt(
+                    in e, out string text, out Color color))
+                return;
+
+            if (mode == AdapterMode.Spawn)
+            {
+                float delay = e.FanoutIndex * SensoryFtPresentation.VibeImpactStaggerStep;
+                if (delay > 0f)
+                    StartCoroutine(SpawnVibeImpactDeferred(e, text, color, delay));
+                else
+                    SpawnVibeImpactNow(e, text, color);
+            }
+            else if (logVerification)
+            {
+                Debug.Log(
+                    $"[SensoryFxAdapter][Verify] VibeImpact {e.AudienceId} " +
+                    $"card='{e.Card?.DisplayName}' base={e.BaseDelta} " +
+                    $"final={e.FinalDelta} applied={e.AppliedDelta} " +
+                    $"blocked={e.BlockedByIndifference} " +
+                    $"fanout={e.FanoutIndex}/{e.TargetCount} " +
+                    $"-> \"{text}\" rgba=({color.r:F2},{color.g:F2},{color.b:F2})");
+            }
+        }
+
+        private System.Collections.IEnumerator SpawnVibeImpactDeferred(
+            AudienceVibeImpactEvent e, string text, Color color, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            SpawnVibeImpactNow(e, text, color);
+        }
+
+        private void SpawnVibeImpactNow(
+            AudienceVibeImpactEvent e, string text, Color color)
+        {
+            // FT on the impacted member (anchor may have been destroyed while
+            // the stagger delay elapsed — every ref is re-guarded here).
+            if (!string.IsNullOrEmpty(text)
+                && e.Audience != null
+                && e.Audience.TextSpawnRoot != null
+                && FxManager.Instance != null)
+            {
+                FxManager.Instance.SpawnFloatingText(
+                    e.Audience.TextSpawnRoot, text,
+                    SensoryFtPresentation.VibeImpactDrift, color);
+            }
+
+            // Target kick + burst — only when the vibe actually landed;
+            // blocked members stay visually inert under the grey FT.
+            if (e.AppliedDelta > 0 && e.Audience != null
+                && e.Audience.CharacterAnimator != null)
+            {
+                e.Audience.CharacterAnimator.PlayImpactKick(impactKickIntensity);
+                if (targetBurstParticles > 0)
+                    e.Audience.CharacterAnimator.BurstParticles(targetBurstParticles);
+            }
+
+            // Performer (Sibi) kick + burst, once per card play.
+            if (e.FanoutIndex == 0 && e.Performer != null
+                && e.Performer.CharacterAnimator != null)
+            {
+                e.Performer.CharacterAnimator.PlayImpactKick(performerKickIntensity);
+                if (performerBurstParticles > 0)
+                    e.Performer.CharacterAnimator.BurstParticles(performerBurstParticles);
             }
         }
     }

@@ -50,12 +50,13 @@ MonoBehaviour:
   tooltipAnchor: {fileID: 5042144485481194899}
   cardImage: {fileID: 2932716357299140837}
   backgroundImage: {fileID: 187719596391401286}
-  passiveImage: {fileID: 0}
+  passiveImage: {fileID: 2789209613581458732}
   nameTextField: {fileID: 2253420769599146968}
   descTextField: {fileID: 8486886504165462760}
   inspirationCostTextField: {fileID: 1062792592149586426}
   inspirationGenTextField: {fileID: 722027446639653306}
   inspirationGenBadgeRoot: {fileID: 8967130051189623001}
+  inspirationCostBadgeRoot: {fileID: 1968972832745031499}
   typeTextField: {fileID: 5115853906357149707}
   actionBackground: {fileID: 3966135149724282992}
   compositionBackground: {fileID: 8974298631596425560}
@@ -232,6 +233,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4827507812373027467, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
   m_PrefabInstance: {fileID: 5770271931771093752}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1968972832745031499 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5424354733780764083, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 5770271931771093752}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2253420769599146968 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5715593493086095648, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
@@ -243,6 +249,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2789209613581458732 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8548215695391793108, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 5770271931771093752}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!114 &2932716357299140837 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8693924490248550941, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}

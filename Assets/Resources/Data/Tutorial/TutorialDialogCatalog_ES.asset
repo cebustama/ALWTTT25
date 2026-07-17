@@ -13,17 +13,8 @@ MonoBehaviour:
   m_Name: TutorialDialogCatalog_ES
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogCatalogSO
   dialogs:
-  - {fileID: 11400000, guid: 94bf4d88e37f65846b82458347dbf4f2, type: 2}
-  - {fileID: 11400000, guid: 193a1fef072d81243b04fae7d74d9913, type: 2}
-  - {fileID: 11400000, guid: ec2ab384f0a43fd4f88752883be25857, type: 2}
-  - {fileID: 11400000, guid: 3e906fde9631b444b8fd44ffc330c105, type: 2}
-  - {fileID: 11400000, guid: 94cc0e9974f8fae40a40e252cd1eba03, type: 2}
   - {fileID: 11400000, guid: a2631217d2193bc47ab20576644b99ed, type: 2}
   - {fileID: 11400000, guid: a827c1e10ec765f478398f3693d778c5, type: 2}
-  - {fileID: 11400000, guid: 575bcec081b519947af1354cc2ea5394, type: 2}
-  - {fileID: 11400000, guid: 9d0244324a8a06346a3ab86f6019a9f7, type: 2}
-  - {fileID: 11400000, guid: e46aa16eba54c15448a67919a5cd4a47, type: 2}
-  - {fileID: 11400000, guid: 6c1bad24a9dd4bb478a78ef2cc929a8f, type: 2}
   - {fileID: 11400000, guid: f606e928731e3104db53cadfb98ecf80, type: 2}
   - {fileID: 11400000, guid: 8ffa1021ef9e4d64bb35b28a3e4ea1c5, type: 2}
   - {fileID: 11400000, guid: acc9ddee8d90f1744aa8900579253dee, type: 2}
@@ -32,6 +23,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8926118d30f444c47b3efeea4420419b, type: 2}
   - {fileID: 11400000, guid: 5253d418ead8c2a4a974aed29673b78b, type: 2}
   - {fileID: 11400000, guid: 5ed1a306088624b4b9d6d8ca6f5beed6, type: 2}
+  - {fileID: 11400000, guid: d3390c4955af286479c3c20e000517aa, type: 2}
   - {fileID: 11400000, guid: 398f47962b73eb5418b7b03cccaa901e, type: 2}
   - {fileID: 11400000, guid: 04605e9c1a521ea48b2fef57d7a8d07d, type: 2}
   - {fileID: 11400000, guid: 7b2217397e7e6dd4ba81e94fc14f8821, type: 2}

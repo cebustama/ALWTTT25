@@ -32,6 +32,17 @@ namespace ALWTTT.Sensory
             return null;
         }
 
+        /// <summary>[JUICE-PW] Card Vibe impact sting. ONE per card play: only
+        /// FanoutIndex 0 resolves to a key; the rest of the AoE fan-out is
+        /// intentionally silent (the per-member FT carries it). A fully
+        /// blocked first target still stings — the card was played and the
+        /// "INDIFFERENT" FT needs its audio floor (D2 baseline).</summary>
+        public static SensorySfxType? ForCardVibeImpact(in AudienceVibeImpactEvent e)
+        {
+            if (e.FanoutIndex != 0) return null;
+            return SensorySfxType.CardVibeImpact;
+        }
+
         /// <summary>Stage-crossing sting by stage (1=lights, 2=smoke, 3=fire).</summary>
         public static SensorySfxType? ForStageCross(int stage)
         {

@@ -62,6 +62,9 @@ namespace ALWTTT.DevMode
 
             // [S5b / Item 5] Count normal-flow gig outcomes for the dev Stats tab.
             SensoryEventBus.Instance?.Subscribe<GigOutcomeEvent>(OnGigOutcome);
+
+            // [TLM-1] Run telemetry logger (per-gig JSONL record; reads bus only).
+            DevRunTelemetryLogger.Initialize();
         }
 
         private void OnDestroy()
@@ -74,6 +77,9 @@ namespace ALWTTT.DevMode
 
             // [S5b / Item 5]
             SensoryEventBus.Instance?.Unsubscribe<GigOutcomeEvent>(OnGigOutcome);
+
+            // [TLM-1]
+            DevRunTelemetryLogger.Shutdown();
         }
 
         // [S5b / Item 5] Records normal-flow outcomes only; the editor Debug context-menu
@@ -212,6 +218,16 @@ namespace ALWTTT.DevMode
             // ---- SongHype controls [B2 / #6] ----
             GUILayout.Space(12);
             DrawSongHypeControls();
+
+            GUILayout.Space(6);
+            GUILayout.Label("Gig Outcome (dev)");
+            using (new GUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("WIN (rewards)"))
+                    GigManager.Instance?.DevWinNormalFlow();
+                if (GUILayout.Button("LOSE"))
+                    GigManager.Instance?.DevLoseNormalFlow();
+            }
         }
 
         /// <summary>

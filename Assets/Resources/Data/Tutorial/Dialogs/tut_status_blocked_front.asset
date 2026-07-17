@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Blocked
   portrait: {fileID: 0}
   pages:
-  - "The big guy stepped up front and BLOCKED: while that icon lasts, your Vibe won't
-    get through. Don't waste music on a wall \u2014 wait for the guard to drop, or
-    spend the song on the ones actually listening."
+  - 'The big guy stepped up front and BLOCKED: while it lasts, your Vibe won''t get
+    through. Don''t waste music on a wall. Wait for the guard to drop, or spend the
+    song on the ones actually listening.'
   highlightKey: status_icon_blocked

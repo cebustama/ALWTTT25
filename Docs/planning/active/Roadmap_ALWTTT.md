@@ -627,8 +627,6 @@ Mini-batch dedicated to wiring the demo build entry path and shipping demo-speci
 
 ### 5.4 — Demo readiness review
 
-**Re-sequenced 2026-07-01 (D-REPLAN).** This review is now the **S5j** batch and runs *after* the pre-tuning batches (S5e–S5h) and the S5i win-rate tuning — see `planning/active/S5_DemoCutClose_Sub_Roadmap.md`. Added to the checklist below: inverted-meter semantics correct (S5e); a Spanish-speaking tester completes the first gig unassisted (S5f); ≥5 musical patterns per composition card / no monotony (S5g); the reward screen renders at gig end (S5h); win-rate 60–80% on the final content (S5i).
-
 Post-B3. Confirms demo cut. Items checked:
 - Persistence between loops works as designed.
 - UI feedback polish lands.
@@ -645,19 +643,13 @@ If gaps: targeted follow-up batches before cut.
 - [x] B1 (loop simplification + persistence + UI rework) closed (2026-05-12)
 - [x] B2 (feedback + animation polish) closed (2026-05-13)
 - [x] B2.5 (polish refinements + cleanup) closed (2026-05-15)
-- [x] B3 (balance + new content + 2-archetype audience pool + Indifference status) closed (2026-05-17: B3-content-audience + B3-demo-polish)
-- [x] Demo cut prep closed (§5.3.5, 2026-05-18)
-- [x] S4 tutorial + guided jam closed (2026-06-17); S5a Vibe delivery + transparency closed (2026-06-22); S5b card clarity + animation closed (2026-06-20)
-- [ ] **S5e** (meter inversion + inspiration simplification) closed — *tester-driven 2026-07-01 replan; authority-class edits to Scoring + Audience + Card-Authoring at close*
-- [ ] **S5f** (Spanish onboarding + first-gig shape: per-language dialogues, track model, hidden SongHype bar) closed
-- [ ] **S5g** (≥5 musical patterns per composition card — no monotony) closed
-- [ ] **S5h** (end-of-gig reward screen) closed
-- [ ] **S5i** (win-rate 60–80% tuning; was S5c) closed
-- [ ] Demo readiness review passed (§5.4, now **S5j**)
-- [x] Tutorial coverage authored per Standing Directive #3 (Tutorial-as-mandatory) — baseline registered by S4 closure (2026-06-17). **Re-opened by S5e/S5f** for the inverted meter semantics + Spanish localization: every changed/added mechanic gets a first-time Spanish dialogue. See `planning/active/Design_Tutorial_System_v0_1.md §8`.
-- [ ] No F-1/F-3/F-4 invariant regressions (re-checked at S5j)
+- [ ] B3 (balance + new content + 2-archetype audience pool + Indifference status) closed
+- [ ] Demo cut prep closed (§5.3.5)
+- [ ] Demo readiness review passed (§5.4)
+- [ ] Tutorial coverage authored per Standing Directive #3 (Tutorial-as-mandatory): every demo-cut feature has first-time-trigger dialogues registered by S4 closure. See `planning/active/Design_Tutorial_System_v0_1.md §8` for the per-dialogue DoD.
+- [ ] No F-1/F-3/F-4 invariant regressions
 - [ ] CURRENT_STATE + Roadmap + changelog reflect closure
-- [ ] SSoT edits: §5.3.5 was operational (no authority change); B3 added `SSoT_Status_Effects.md` + `SSoT_Audience_and_Reactions.md` (Indifference + `ApplyIncomingVibe`); **S5e adds authority-class edits to `SSoT_Scoring_and_Meters.md` + `SSoT_Audience_and_Reactions.md` + `SSoT_Card_Authoring_Contracts.md` (meter inversion + inspiration economy are real semantic changes)**
+- [ ] No SSoT promotions or authority changes for §5.3.5 (operational); B3 requires `SSoT_Status_Effects.md` + `SSoT_Audience_and_Reactions.md` edits at closure (Indifference + `ApplyIncomingVibe` are real semantic additions)
 
 ## 6 — Marketing stream — Pitch deck refresh (opened 2026-05-15)
 
@@ -736,8 +728,6 @@ Docs at closure: new SSoT `SSoT_Pending_Effects.md` (or equivalent location), `S
 ### 7.1 S6 — Run structure (ship hub stub + scene transitions)
 
 Builds on `GigLauncher` from §5.3.5. Introduces minimal ship hub scene + gig → reward → ship → next gig flow. Pilot portrait (image 1, D-RUN-5) integrated as ship-hub interlocutor. Tutorial dialogues for run-structure mechanics land here (`tut_ship_hub_intro`, `tut_first_reward_choice`) per Standing Directive #3. See `Design_Vertical_Slice_v0_1.md §3.1`.
-
-**Scope note (2026-07-01 replan, D-REPLAN-5).** The end-of-gig **reward screen** is pulled forward into the demo cut as **S5h** (the graphic asset already existed; only the code was missing). S6's reward work therefore narrows to *reward-selection logic + multi-gig carry-over* — the screen itself is done. The **cross-gig SFX unlock** (#6b: SFX-as-reward, explained "from the second gig on") also lands here, since it needs the multi-gig flow. Phase C entry is otherwise unchanged — it still opens on demo-cut close / §5.4 (S5j) pass.
 
 ### 7.2 S7 — Run content I (2 venues + 2 encounters + audience state machine)
 
@@ -911,7 +901,7 @@ Closes the pre-demo blocker that was tracked since M4.6-prep batch (2). 10 cards
 - Patch 1 — Status dropdown classified (`DrawStatusEffectPicker` reads both `StatusCatalogueMusicians` + `StatusCatalogueAudience`, hierarchical `Musicians/...` / `Audience/...` paths via `DropdownButton + GenericMenu`). Closes the `Card Editor inline effects-block UI on legacy catalogue alias` open item from `CURRENT_STATE.md §4`.
 - Patch 2 — Catalog Source toggle (`CatalogSource { Musician, Generic }`; in Generic mode auto-loads `GenericCardCatalogSO` via name-heuristic; entry list rendered with batch (3.A) per-row Starter UI; write paths NOT Generic-aware in this iteration).
 
-**Smoke tests** ST-SD-1..8: 7/8 PASS, 1 reclassified DEFERRED-by-design. ST-SD-7 (Singing Field inherits progression) failed because Wormus Minor (Backing) and Singing Field (Melody) both have `FixedPerformerType: Sibi` and the runtime model enforces "one musician = one track active at a time" — second card replaces first. Model invariant, not cleanup defect. Test re-formulation deferred to roster expansion.
+**Smoke tests** ST-SD-1..8: 7/8 PASS, 1 reclassified DEFERRED-by-design. ST-SD-7 (Singing Field inherits progression) failed because Wormus Minor (Backing) and Singing Field (Melody) both have `FixedPerformerType: Sibi` and the runtime model enforces "one musician = one track active at a time" — second card replaces first. Model invariant, not cleanup defect. Test re-formulation deferred to roster expansion. **Superseded 2026-07-12 (BASS-1) — the diagnosis was wrong.** "One musician = one track active at a time" was a *defect*, not a model invariant: `SongCompositionUI` keyed a part's tracks by `musicianId` alone, so a second card played on the same musician retargeted the first. Tracks are now keyed `(musicianId, role)`; Sibi holds Backing + Melody simultaneously and Singing Field inherits the Wormus progression as designed. ST-SD-7's scenario is exactly **ST-BASS-9, which PASSES** (2026-07-12). Deferral closed; no re-formulation needed. Authority: `runtime/SSoT_Runtime_CompositionSession_Integration.md` §11.
 
 **Post-closure verification:** Patch 2's flagged latent-bug concern (toggle-to-Generic not clearing loaded musician state) was verified resolved in code at apply time — `CardEditorWindow.cs:244-249` correctly clears `_loadedCatalog` and `_loadedMusicianData` on switch-to-Generic; no fix required.
 

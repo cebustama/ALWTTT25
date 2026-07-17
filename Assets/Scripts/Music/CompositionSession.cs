@@ -128,6 +128,27 @@ namespace ALWTTT.Music
         public bool IsLoopPlaying => _isPlaying;
 
         /// <summary>
+        /// [CARD-UX-1 / D2=A] True while a performance loop is running AND it is the
+        /// part's final loop: a composition change applied now lands on the CURRENTLY
+        /// LOOPING part (D-D=β: every drop routes to _currentPartIndex) and renders on
+        /// the NEXT loop of that part — which does not exist. Pure waste ⇒ deny.
+        ///
+        /// EXEMPT while TutorialLoopHoldGate is armed: the held loop REPLAYS, so the
+        /// pending change would in fact render. (TutorialModalGate is NOT exempt —
+        /// modals suspend audience turns and dragging, they do NOT replay the loop.)
+        ///
+        /// Demo-cut note: parts-per-song=1, so "final loop" == the beat-8 held loop.
+        /// Inside the tutorial the composition gate at that moment is
+        /// TutorialInputGate.SingleCardOnly (finisher-only), not this lock.
+        /// </summary>
+        public bool IsFinalLoopRunning =>
+            _isPlaying &&
+            (_state == CompositionState.BuildingNextPart ||
+             _state == CompositionState.PlayingCurrentPart) &&
+            _loopsRemainingForPart == 1 &&
+            !ALWTTT.Tutorial.TutorialLoopHoldGate.IsArmed;
+
+        /// <summary>
         /// True while the session is active (after Begin and before End).
         /// </summary>
         public bool IsActive =>
@@ -181,6 +202,7 @@ namespace ALWTTT.Music
             _loopHistoryByPart.Clear();
             _finishedParts.Clear();
             _buildingPartInspirationPerLoop = 0;
+            _perLoopInspirationCurrentPart = 0; // [DF-INSPLOOP-badge/ST-2] limpia valor stale entre canciones
 
             // [S5g / D-S5gb-2=B] One seed per song, stable until End().
 #if ALWTTT_DEV
@@ -204,7 +226,7 @@ namespace ALWTTT.Music
             _currentInspiration = ResolveSessionStartInspiration();
             ui?.SetInspirationVisible(true);
             ui?.SetInspiration(_currentInspiration);
-            ui?.SetPlusInspiration(0);
+            ui?.SetPlusInspiration(GlobalPerLoopBadgeValue);
 
             _ctx.LoopsTimerUI?.ClearProgress();
             _ctx.LoopsTimerUI?.SetBarsVisible(false);
@@ -316,7 +338,7 @@ namespace ALWTTT.Music
 
             _perLoopInspirationCurrentPart =
                 EvalPerLoopInsp(_ctx.CompositionUI.Model.parts[_currentPartIndex]);
-            _ctx.CompositionUI?.SetPlusInspiration(_perLoopInspirationCurrentPart);
+            _ctx.CompositionUI?.SetPlusInspiration(GlobalPerLoopBadgeValue);
 
             _state = CompositionState.BuildingNextPart;
             _currentInspiration = ResolveSessionStartInspiration();
@@ -388,6 +410,13 @@ namespace ALWTTT.Music
             Info($"enter name='{def?.DisplayName}' zone={zone} state={_state} " +
                  $"isComp={isComp} isTrack={isTrack} isTempo={isTempo} " +
                  $"isTimeSig={isTimeSig} requiresTarget={requiresTarget}");
+
+
+            // 0b) [CARD-UX-1 / D2=A] Final-loop lock. Deny BEFORE any spend so
+            // neither inspiration (step 1/8) nor the ECON budget burns (budget
+            // burns only on played==true, upstream in GigManager).
+            if (def.IsComposition && IsFinalLoopRunning)
+                return Fail("Final-loop lock: no next loop would render this change");
 
             // 1) Inspiration cost (only for composition cards)
             if (def.IsComposition)
@@ -529,7 +558,7 @@ namespace ALWTTT.Music
                     _perLoopInspirationCurrentPart =
                         EvalPerLoopInsp(ui.Model.parts[_currentPartIndex]);
 
-                    ui.SetPlusInspiration(_perLoopInspirationCurrentPart);
+                    ui.SetPlusInspiration(GlobalPerLoopBadgeValue);
                     Info($"recalc per-loop inspiration for " +
                         $"currentPart={_currentPartIndex} → {_perLoopInspirationCurrentPart}");
                 }
@@ -677,9 +706,20 @@ namespace ALWTTT.Music
                 // overridePercussionInstrument set).
                 ApplyInstrumentPins(cfg, partIndex);
 
+                // [BASS-1 / D3=A] The instrumentOverrides parameter of the
+                // package render is keyed by musicianId only; for a musician
+                // holding >1 track in this part it would stomp BOTH tracks'
+                // instruments with one value. Strip such musicians before the
+                // call (their per-role voice consistency is carried by the
+                // mus|role session pins applied above via ApplyInstrumentPins,
+                // which set tcfg.Instrument per track).
+                var instOverridesForRender =
+                    FilterOutMultiTrackMusicians(
+                        cache?.resolvedMelInstByMusician, partIndex);
+
                 var (merged, stems, seconds, bpmChosen, instByMus) =
                     mm.RenderSinglePart(cfg, partIndex, bpmOverride,
-                        cache?.resolvedMelInstByMusician,
+                        instOverridesForRender,
                         trackInputsHashes,
                         seedOverride: _songSeed);   // [S5g / MGP-ALWTTT-SEED-1]
 
@@ -698,9 +738,18 @@ namespace ALWTTT.Music
                 cache.seconds = seconds;
                 cache.stemsByMusician = stems ?? new Dictionary<string, byte[]>();
                 cache.resolvedBpm = bpmChosen;
+                // [BASS-1 / D3=A] The package readback is musician-keyed
+                // (last role wins) — meaningless for multi-track musicians.
+                // Store entries only for single-track musicians; also evict a
+                // stale entry if a musician BECAME multi-track mid-song.
                 if (instByMus != null)
                     foreach (var kv in instByMus)
-                        cache.resolvedMelInstByMusician[kv.Key] = kv.Value;
+                    {
+                        if (CountTracksForMusician(partIndex, kv.Key) > 1)
+                            cache.resolvedMelInstByMusician.Remove(kv.Key);
+                        else
+                            cache.resolvedMelInstByMusician[kv.Key] = kv.Value;
+                    }
 
                 _partCache[partIndex] = cache;
             }
@@ -746,7 +795,15 @@ namespace ALWTTT.Music
             if (part == null || part.tracks == null) return 0;
             int sum = 0;
             foreach (var t in part.tracks)
+            {
                 sum += Math.Max(0, t.inspirationGenerated);
+                // [DF-INSPLOOP / D-INSP-1=D] Card-gated per-loop bonus, derived
+                // from the track's source card. Track replaced/removed → bonus
+                // gone with it. Never touches inspirationGenerated, so
+                // LoopTrackSnapshot / TotalComplexity stay inert (D-INSP-4).
+                sum += ALWTTT.Cards.Effects.AddInspirationPerLoopSpec.SumFor(
+                    t.sourceCardDefinition);
+            }
             return sum;
         }
 
@@ -785,6 +842,19 @@ namespace ALWTTT.Music
             return after - before;
         }
 
+        // [DF-INSPLOOP-badge/ST-2] El badge global +INS muestra el TOTAL por loop =
+        // grant plano (pd.InspirationPerLoop, lo aplica GigManager.OnCompositionLoopFinished)
+        // + derivado de pistas/carta (EvalPerLoopInsp, se aplica aquí). Nominal/un-clamped (S5e).
+        private int FlatPerLoopGrant
+        {
+            get
+            {
+                var pd = GameManager.Instance != null ? GameManager.Instance.PersistentGameplayData : null;
+                return pd != null ? Math.Max(0, pd.InspirationPerLoop) : 0;
+            }
+        }
+        private int GlobalPerLoopBadgeValue => FlatPerLoopGrant + _perLoopInspirationCurrentPart;
+
         private void HandleLoopFinished()
         {
             _isPlaying = false;
@@ -818,7 +888,7 @@ namespace ALWTTT.Music
                 AddCurrentInspiration(inspirationGainedThisLoop);
                 // Badge shows un-clamped per-loop track contribution: the
                 // player's signal of next-loop potential, independent of cap.
-                _ctx.CompositionUI?.SetPlusInspiration(inspirationGainedThisLoop);
+                _ctx.CompositionUI?.SetPlusInspiration(GlobalPerLoopBadgeValue);
             }
 
             var model = _ctx.CompositionUI?.Model;
@@ -982,7 +1052,7 @@ namespace ALWTTT.Music
             _ctx.LoopsTimerUI?.SetBarsVisible(true);
 
             _perLoopInspirationCurrentPart = EvalPerLoopInsp(ui.Model.parts[_currentPartIndex]);
-            ui.SetPlusInspiration(_perLoopInspirationCurrentPart);
+            ui.SetPlusInspiration(GlobalPerLoopBadgeValue);
 
             bool final = ui.IsPartFinal(_currentPartIndex);
             if (!final)
@@ -1081,6 +1151,39 @@ namespace ALWTTT.Music
         // [B1 / #7.1 / D-F=γ.1] Instrument pin helpers — refined to key
         // by override state so the pin doesn't override a type-override card.
         // ─────────────────────────────────────────────────────────────
+        // [BASS-1 / D3=A] Helpers for musician-keyed boundary surfaces that
+        // cannot represent a musician holding multiple role-tracks.
+        private int CountTracksForMusician(int partIndex, string musicianId)
+        {
+            var ui = _ctx?.CompositionUI;
+            if (ui?.Model?.parts == null) return 0;
+            if (partIndex < 0 || partIndex >= ui.Model.parts.Count) return 0;
+            var tracks = ui.Model.parts[partIndex]?.tracks;
+            if (tracks == null) return 0;
+
+            int n = 0;
+            foreach (var t in tracks)
+                if (t != null && t.musicianId == musicianId) n++;
+            return n;
+        }
+
+        private Dictionary<string, MIDIInstrumentSO> FilterOutMultiTrackMusicians(
+            Dictionary<string, MIDIInstrumentSO> source, int partIndex)
+        {
+            if (source == null || source.Count == 0) return source;
+
+            Dictionary<string, MIDIInstrumentSO> filtered = null;
+            foreach (var kv in source)
+            {
+                if (CountTracksForMusician(partIndex, kv.Key) > 1)
+                {
+                    filtered ??= new Dictionary<string, MIDIInstrumentSO>(source);
+                    filtered.Remove(kv.Key);
+                }
+            }
+            return filtered ?? source;
+        }
+
         private void ApplyInstrumentPins(SongConfig cfg, int partIndex)
         {
             if (cfg == null) return;
@@ -1097,7 +1200,12 @@ namespace ALWTTT.Music
             foreach (var tcfg in cfgPart.Tracks)
             {
                 if (tcfg == null || string.IsNullOrEmpty(tcfg.MusicianId)) continue;
-                var trModel = uiPart.tracks.Find(t => t.musicianId == tcfg.MusicianId);
+                // [BASS-1 / R11] Role-scoped: a musician may hold multiple
+                // role-tracks; a musician-only Find would match the wrong
+                // TrackEntry. The pin keys were ALREADY mus|role — only this
+                // lookup was musician-only.
+                var trModel = uiPart.tracks.Find(t =>
+                    t.musicianId == tcfg.MusicianId && t.role == tcfg.Role);
                 if (trModel == null) continue;
 
                 var melKey = BuildMelodicPinKey(tcfg, trModel);
@@ -1134,7 +1242,9 @@ namespace ALWTTT.Music
             foreach (var tcfg in cfgPart.Tracks)
             {
                 if (tcfg == null || string.IsNullOrEmpty(tcfg.MusicianId)) continue;
-                var trModel = uiPart.tracks.Find(t => t.musicianId == tcfg.MusicianId);
+                // [BASS-1 / R11] Role-scoped (see ApplyInstrumentPins).
+                var trModel = uiPart.tracks.Find(t =>
+                    t.musicianId == tcfg.MusicianId && t.role == tcfg.Role);
                 if (trModel == null) continue;
 
                 var melKey = BuildMelodicPinKey(tcfg, trModel);

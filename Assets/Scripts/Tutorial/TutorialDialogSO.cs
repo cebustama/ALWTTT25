@@ -26,20 +26,11 @@ namespace ALWTTT.Tutorial
     public static class TutorialTriggerId
     {
         // Standalone (combat / lifecycle)
-        public const string WelcomeToGig    = "tut_welcome_to_gig";
-        public const string FirstActionCard = "tut_first_action_card";
-        public const string FirstAudienceAction = "tut_first_audience_action";
-        public const string FirstStatusApplied = "tut_first_status_applied";
-        public const string FirstGigWon     = "tut_first_gig_won";
         public const string FirstRewardChoice = "tut_first_reward_choice"; // [S5h]
 
         // Jam sequence beats 1..6 (§6A)
-        public const string FirstCompositionCard = "tut_first_composition_card"; // beat 1
-        public const string FirstInspirationSpend = "tut_first_inspiration_spend"; // beat 2
-        public const string FirstLoopInspiration = "tut_first_loop_inspiration"; // beat 3
         public const string FirstSfxStage   = "tut_first_sfx_stage";   // beat 4
         public const string FirstSoundCard  = "tut_first_sound_card";  // beat 5 (opportunistic)
-        public const string FirstSongEnd    = "tut_first_song_end";    // beat 6
 
         // ── [TUT-R2 / D3=B] Guided gig-1 curriculum (TUT-R1 §1) ──
         public const string JamWelcome = "tut_jam_welcome";          // beat 1
@@ -50,6 +41,9 @@ namespace ALWTTT.Tutorial
         public const string LoopsStructure = "tut_loops_structure";      // beat 6
         public const string InspirationEconomy = "tut_inspiration_economy";  // beat 7 (+ scripted draw)
         public const string PlayFinisher = "tut_play_finisher";        // beat 8 (gate: holdLoop)
+        // [TUT-R2c] Variante del beat 8 cuando el jugador YA jugó el finisher
+        // antes del último loop (degrade (a) con guiño; RT5 feedback).
+        public const string PlayFinisherEarly = "tut_play_finisher_early";
         public const string SongEndVibe = "tut_song_end_vibe";        // beat 9
         public const string AudienceTurn = "tut_audience_turn";        // beat 10
 

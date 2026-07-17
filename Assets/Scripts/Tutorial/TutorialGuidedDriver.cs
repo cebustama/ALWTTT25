@@ -55,18 +55,7 @@ namespace ALWTTT.Tutorial
         private const string DebugTag = "<color=#ffd47f>[TutGuided]</color>";
         private void Log(string msg) { if (verboseLogging) Debug.Log($"{DebugTag} {msg}"); }
 
-        private static readonly string[] SupersededIds =
-        {
-            TutorialTriggerId.WelcomeToGig,
-            TutorialTriggerId.FirstCompositionCard,
-            TutorialTriggerId.FirstInspirationSpend,
-            TutorialTriggerId.FirstLoopInspiration,
-            TutorialTriggerId.FirstSongEnd,
-            TutorialTriggerId.FirstAudienceAction,
-            TutorialTriggerId.FirstActionCard,
-            TutorialTriggerId.FirstStatusApplied,
-            TutorialTriggerId.FirstGigWon,
-        };
+        private static readonly string[] SupersededIds = System.Array.Empty<string>();
 
         private bool _finisherPlayedThisSong;
         // [TUT-R2b FIX-2] Request flags: set when the driver ACTS on a beat,
@@ -75,12 +64,58 @@ namespace ALWTTT.Tutorial
         private bool _beat7Requested;
         private bool _beat8Requested;
 
+        // [DEMO-FIXES-A] Belt guard: the primary off-switch is the tutorial
+        // root's active state (OnDisable teardown), but per the single-flag
+        // rule the driver also consults PD.TutorialEnabled directly, so a
+        // mismatched scene state (root active, flag off) stays inert.
+        private static bool TutorialEnabledFlag
+        {
+            get
+            {
+                var pd = GameManager.Instance != null
+                    ? GameManager.Instance.PersistentGameplayData : null;
+                return pd == null || pd.TutorialEnabled;
+            }
+        }
+
         // ---------------- lifecycle ----------------
 
         private void Awake()
         {
-            if (!HasFired(TutorialTriggerId.YourTurn))
+            if (forcedInitialHand.Count > 0 && forcedInitialHand[0] != null)
+                TutorialHighlightSpawnHook.RegisterCardKey(
+                    forcedInitialHand[0].Id, "card_default_mode");
+            if (finisherCard != null)
+                TutorialHighlightSpawnHook.RegisterCardKey(
+                    finisherCard.Id, "card_psychic_waves");
+
+            // [DEMO-FIXES-A] Forced-hand fill MOVED to PrepareForGig (called by
+            // GigManager AFTER the opt-in answer). Awake ran at an unknown point
+            // relative to the answer (GigCanvas activation timing is core-owned),
+            // so filling here could read a stale flag / force the hand on "No".
+        }
+
+        /// <summary>[DEMO-FIXES-A / DEMO-TUT-TOGGLE] Called by GigManager right
+        /// after the opt-in answer, before StartGig's initial draw. Timing-immune
+        /// single fill point: clears any stale directive, and only queues the
+        /// forced hand when the tutorial is enabled AND its opening beat hasn't
+        /// already fired in a prior gig this launch.</summary>
+        public void PrepareForGig(bool tutorialEnabled)
+        {
+            TutorialInputGate.Clear();
+            TutorialLoopHoldGate.Release();
+            TutorialScriptedDrawQueue.Clear();
+
+            if (tutorialEnabled && !HasFired(TutorialTriggerId.YourTurn))
+            {
                 FillForcedInitialHand();
+                Log("PrepareForGig: tutorial ENABLED — forced hand queued.");
+            }
+            else
+            {
+                Log($"PrepareForGig: {(tutorialEnabled ? "already-fired" : "DISABLED")} " +
+                    "— no forced hand.");
+            }
         }
 
         private void OnEnable()
@@ -168,6 +203,8 @@ namespace ALWTTT.Tutorial
 
         private void OnDialogCompleted(string id)
         {
+            if (!TutorialEnabledFlag) return;
+
             switch (id)
             {
                 case TutorialTriggerId.YourTurn:
@@ -175,17 +212,44 @@ namespace ALWTTT.Tutorial
                     break;
 
                 case TutorialTriggerId.PlayComposition:
-                    if (DeckManager.Instance != null &&
-                        DeckManager.Instance.HandHas(c => c.IsComposition))
                     {
-                        TutorialInputGate.Set(TutorialInputGate.GateMode.CompositionOnly);
-                        Log("beat 3 gate ARMED (CompositionOnly)");
+                        // [TUT-R2c] Allow-list = las composiciones de la MANO
+                        // FORZADA (Default Mode / Wormus Major / Singing Field):
+                        // cartas que ESTABLECEN una pista. Modificadoras (Key Lift,
+                        // Push It, Half Time) quedan fuera de la primera lección
+                        // aunque caigan en el 5º robo. Degrade en dos niveles (D2):
+                        //   1) ninguna básica en mano → permitir CUALQUIER
+                        //      composición (enseñar > bloquear);
+                        //   2) ninguna composición → liberar gate (TUT-R2).
+                        var deck = DeckManager.Instance;
+                        var allowedIds = new List<string>();
+                        foreach (var def in forcedInitialHand)
+                            if (def != null && def.IsComposition) allowedIds.Add(def.Id);
+
+                        bool anyBasicInHand = deck != null && allowedIds.Count > 0 &&
+                            deck.HandHas(c => c.IsComposition &&
+                                allowedIds.Contains(c.Id));
+                        bool anyCompositionInHand = deck != null &&
+                            deck.HandHas(c => c.IsComposition);
+
+                        if (anyBasicInHand)
+                        {
+                            TutorialInputGate.Set(TutorialInputGate.GateMode.CompositionOnly);
+                            TutorialInputGate.SetCompositionAllowList(allowedIds);
+                            Log("beat 3 gate ARMED (CompositionOnly, allow-list básicas)");
+                        }
+                        else if (anyCompositionInHand)
+                        {
+                            TutorialInputGate.Set(TutorialInputGate.GateMode.CompositionOnly);
+                            TutorialInputGate.SetCompositionAllowList(null);
+                            Log("beat 3 gate ARMED degradado nivel 1 (cualquier composición)");
+                        }
+                        else
+                        {
+                            Log("beat 3 gate DEGRADED nivel 2 (sin composiciones) — released");
+                        }
+                        break;
                     }
-                    else
-                    {
-                        Log("beat 3 gate DEGRADED (no composition in hand) — released");
-                    }
-                    break;
 
                 case TutorialTriggerId.TracksThree:
                     TryBeat(TutorialTriggerId.PressPlay);
@@ -222,7 +286,12 @@ namespace ALWTTT.Tutorial
                 if (TutorialLoopHoldGate.IsArmed)
                 {
                     TutorialLoopHoldGate.Release();
-                    Log("beat 8 holdLoop RELEASED (finisher played)");
+                    // [CARD-UX-1] Release the finisher-only directive with the hold.
+                    if (TutorialInputGate.Mode == TutorialInputGate.GateMode.SingleCardOnly)
+                    {
+                        TutorialInputGate.Clear();
+                        Log("beat 8 finisher-only gate RELEASED (finisher played)");
+                    }
                 }
             }
         }
@@ -237,6 +306,8 @@ namespace ALWTTT.Tutorial
 
         private void OnLoopResolved(LoopResolvedEvent e)
         {
+            if (!TutorialEnabledFlag) return;
+
             var ctx = e.Context;
 
             // [TUT-R2b FIX-2] Non-exclusive branches, request-flag guarded.
@@ -283,8 +354,13 @@ namespace ALWTTT.Tutorial
         {
             if (_finisherPlayedThisSong)
             {
-                Log("beat 8 fire — degrade (a): finisher already played; popup, no hold");
-                TryBeat(TutorialTriggerId.PlayFinisher);
+                // [TUT-R2c / RT5] Guiño del manager: el jugador se adelantó.
+                // La variante sustituye al popup estándar; el beat 8 canónico
+                // se marca consumido para que no re-dispare en canciones
+                // posteriores (la lección ya ocurrió, solo que antes de tiempo).
+                Log("beat 8 fire — degrade (a): finisher ya jugado; variante 'early'");
+                TryBeat(TutorialTriggerId.PlayFinisherEarly);
+                controller?.MarkFiredWithoutShow(TutorialTriggerId.PlayFinisher);
                 return;
             }
 
@@ -292,8 +368,15 @@ namespace ALWTTT.Tutorial
             var pd = GameManager.Instance != null
                 ? GameManager.Instance.PersistentGameplayData : null;
 
+            // [DEMO-FIXES-A / R1 / D-DF-4=A] Hand-only availability. Held loops
+            // grant no draw (no LoopResolvedEvent), so a finisher sitting in a
+            // pile is hold-unreachable (§9.2). PilesHave dropped: if the beat-7
+            // scripted draw failed, this now degrades via path (b) instead of
+            // arming an unwinnable hold. The later HandHas guard on the
+            // SingleCardOnly gate is redundant post-R1 but kept as belt.
             bool available = finisherCard != null && deck != null &&
-                (deck.HandHas(IsFinisher) || deck.PilesHave(IsFinisher));
+                deck.HandHas(IsFinisher);
+
             bool affordable = pd != null && finisherCard != null &&
                 pd.CurrentInspiration >= finisherCard.InspirationCost;
 
@@ -309,6 +392,24 @@ namespace ALWTTT.Tutorial
 
             TutorialLoopHoldGate.Arm();
             Log("beat 8 holdLoop ARMED");
+
+            // [CARD-UX-1] Finisher-only directive: while the loop is held, the
+            // finisher is the ONLY playable card. Everything else gets the red
+            // unplayable overlay (UnplayableReason.TutorialGate) and is
+            // undraggable — this is also what gates compositions in the final
+            // loop of the tutorial run (the FinalLoopLock is exempt under a hold).
+            // GUARD: `available` above also accepts "in a pile"; arming the gate
+            // with the finisher NOT in hand would leave zero playable cards.
+            if (deck.HandHas(IsFinisher))
+            {
+                TutorialInputGate.SetSingleCard(finisherCard.Id);
+                Log("beat 8 finisher-only gate ARMED");
+            }
+            else
+            {
+                Log("beat 8 finisher-only gate NOT armed (finisher not in hand)");
+            }
+
             TryBeat(TutorialTriggerId.PlayFinisher);
         }
 
@@ -324,6 +425,10 @@ namespace ALWTTT.Tutorial
             {
                 TutorialLoopHoldGate.Release();
                 Log("holdLoop released defensively at song end");
+
+                // [CARD-UX-1] Never carry the finisher-only gate across a song boundary.
+                if (TutorialInputGate.Mode == TutorialInputGate.GateMode.SingleCardOnly)
+                    TutorialInputGate.Clear();
             }
         }
 
@@ -341,6 +446,8 @@ namespace ALWTTT.Tutorial
 
         private void TryBeat(string id)
         {
+            if (!TutorialEnabledFlag) return;
+
             if (HasFired(id)) return;
             controller?.EnqueueGuided(id);
         }

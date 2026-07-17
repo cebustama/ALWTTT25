@@ -16,6 +16,13 @@ namespace ALWTTT.Tutorial
     {
         public bool Enabled;
         public Sprite HoleShape;
+
+        // [TUT-R3] Fuente world-space (proyectada con WorldCamera). Precede a Target.
+        public Transform WorldTarget;
+        public Camera WorldCamera;
+        public Bounds WorldBounds;
+        public bool HasWorldBounds;
+
         /// <summary>Centre + auto-size source. Null = use <see cref="ManualCenterVp"/>.</summary>
         public RectTransform Target;
         /// <summary>Viewport centre, 0..1, origin bottom-left (used when Target is null).</summary>
@@ -274,10 +281,46 @@ namespace ALWTTT.Tutorial
             // ---- centre: from the target rect, or an explicit viewport point ----
             Vector2 centerVp;
             float autoHalfPxX = 0f, autoHalfPxY = 0f;
+            bool haveAuto = false;
             string srcDesc;
-            if (s.Target != null)
+            if (s.WorldTarget != null)
             {
-                // Screen-Space-Overlay → world corners are already screen px; null cam.
+                var cam = s.WorldCamera != null ? s.WorldCamera : Camera.main;
+                if (cam != null && s.HasWorldBounds)
+                {
+                    var b = s.WorldBounds; Vector3 c = b.center, e = b.extents;
+                    float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+                    bool any = false;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        var corner = c + new Vector3((i & 1) == 0 ? -e.x : e.x,
+                                                     (i & 2) == 0 ? -e.y : e.y,
+                                                     (i & 4) == 0 ? -e.z : e.z);
+                        var sp = cam.WorldToScreenPoint(corner);
+                        if (sp.z <= 0f) continue;                 // detrás de la cámara
+                        any = true;
+                        if (sp.x < minX) minX = sp.x; if (sp.x > maxX) maxX = sp.x;
+                        if (sp.y < minY) minY = sp.y; if (sp.y > maxY) maxY = sp.y;
+                    }
+                    if (any)
+                    {
+                        centerVp = new Vector2(((minX + maxX) * 0.5f) / w, ((minY + maxY) * 0.5f) / h);
+                        autoHalfPxX = Mathf.Abs(maxX - minX) * 0.5f;
+                        autoHalfPxY = Mathf.Abs(maxY - minY) * 0.5f;
+                        haveAuto = true;
+                    }
+                    else { var sp = cam.WorldToScreenPoint(s.WorldTarget.position); centerVp = new Vector2(sp.x / w, sp.y / h); }
+                }
+                else if (cam != null)
+                {
+                    var sp = cam.WorldToScreenPoint(s.WorldTarget.position);
+                    centerVp = new Vector2(sp.x / w, sp.y / h);
+                }
+                else { centerVp = s.ManualCenterVp; }             // sin cámara → degradar a manual
+                srcDesc = $"world='{s.WorldTarget.name}'";
+            }
+            else if (s.Target != null)
+            {
                 var corners = new Vector3[4];
                 s.Target.GetWorldCorners(corners);
                 Vector2 min = RectTransformUtility.WorldToScreenPoint(null, corners[0]);
@@ -285,13 +328,10 @@ namespace ALWTTT.Tutorial
                 centerVp = new Vector2(((min.x + max.x) * 0.5f) / w, ((min.y + max.y) * 0.5f) / h);
                 autoHalfPxX = Mathf.Abs(max.x - min.x) * 0.5f;
                 autoHalfPxY = Mathf.Abs(max.y - min.y) * 0.5f;
+                haveAuto = true;
                 srcDesc = $"target='{s.Target.name}'";
             }
-            else
-            {
-                centerVp = s.ManualCenterVp;
-                srcDesc = $"manual centre=({centerVp.x:F2},{centerVp.y:F2})";
-            }
+            else { centerVp = s.ManualCenterVp; srcDesc = $"manual centre=({centerVp.x:F2},{centerVp.y:F2})"; }
 
             // ---- size: explicit per-axis override, or auto from the target ----
             float halfPxX, halfPxY;
@@ -306,7 +346,7 @@ namespace ALWTTT.Tutorial
                 if (halfPxX <= 0f) halfPxX = halfPxY;
                 if (halfPxY <= 0f) halfPxY = halfPxX;
             }
-            else if (s.Target != null)
+            else if (haveAuto)
             {
                 if (keepHoleCircular)
                 {

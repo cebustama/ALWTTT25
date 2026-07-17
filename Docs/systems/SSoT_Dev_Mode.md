@@ -50,8 +50,10 @@ Tab content:
 - "Reset Convinced Audience Now" button for manual reset (the automatic reset still runs on PlayerTurn).
 - Auto-reset counter for the current gig.
 - Song / Required counter, Cohesion, and (verbose) Hand/DrawPile/DiscardPile/HandPile counts + current phase.
+- **Gig-outcome buttons (DEV-WINLOSE, 2026-07-16).** The Dev overlay's Infinite tab exposes **WIN** and **LOSE** buttons. They call `ALWTTT_DEV`-guarded wrappers on `GigManager`: `DevWinNormalFlow` → `WinGig` (opens `RewardCanvas` → `BuildReward(Card/Sfx)`), `DevLoseNormalFlow` → `LoseGig`, plus `DevForceWinImmediate`/`DevForceLoseImmediate` (`ReturnToMap`). These mirror the pre-existing `[ContextMenu]` debug outcome methods. **`DevGigOutcomeTracker` does NOT count these** — dev-forced outcomes bypass `GigOutcomeEvent` by design (win-rate stats reflect normal-flow gigs only). `WinGig` self-suppresses while Infinite Turns is enabled, so disable it before pressing WIN.
 
 **Catalogue tab (Phase 2):**
+- **Source (DEMO-FIXES-A, 2026-07-15, D-DF-7=A):** the list is the **runtime union of the current band's per-musician catalogs** — `PersistentGameplayData.BuildBandCardCatalog` walks `PD.MusicianList`, taking every distinct `CardDefinition` across each musician's `MusicianCharacterData.CardCatalog` (all acquisition flags; runtime read, no asset mutation). Adding a musician to the band needs no hand-wiring; out-of-roster musicians (e.g. Conito pre-onboarding) are excluded by construction, so out-of-spec catalogs never reach runtime through this path. Generic-catalog entries are not included (PD does not retain the `GigSetupRosterSO` after launch — same limit as `BuildRewardCardPool`). The header shows `Source: band union (N musicians)`, with a `↻` manual refresh (the union is cached by band count). **`GameplayData.AllCardsList` is now FALLBACK ONLY** (dev scenes with no band) and is deprecated as a hand-maintained catalogue. ST-DF-13 PASS.
 - Text search + Action/Composition kind toggles (Deck-Editor parity filter set).
 - Gate status line: "Ready. Hand: N/MAX (shown/total)" when spawn is allowed, otherwise "Spawn gated: <reason> ..." with the reason returned by `DeckManager.CanDevSpawnToHand(out reason)`.
 - Scrollable card list — one row per filtered `CardDefinition`. Row shows kind badge (`[A]` / `[C]` / `[?]`), display name, cost, Spawn button. Spawn button routes through `DeckManager.DevSpawnCardToHand(def)`. See §11.
@@ -115,7 +117,7 @@ This is the load-bearing fact Phase 1 codified. If Infinite Turns is ever re-imp
 
 **New files:**
 - `Assets/Scripts/DevMode/DevModeController.cs` — file-level `#if ALWTTT_DEV`. Singleton, overlay, tab toolbar, infinite-turns state, `OnPlayerTurnStartInfiniteMode`, `ResetConvincedAudience`.
-- `Assets/Scripts/DevMode/DevCardCatalogueTab.cs` — file-level `#if ALWTTT_DEV`. Phase 2 static helper that renders the Catalogue tab body. Holds filter state, reads from `GameplayData.AllCardsList`, delegates spawn to `DeckManager.DevSpawnCardToHand`. No runtime mutation outside that delegation.
+- `Assets/Scripts/DevMode/DevCardCatalogueTab.cs` — file-level `#if ALWTTT_DEV`. Phase 2 static helper that renders the Catalogue tab body. Holds filter state, reads the catalogue via `PersistentGameplayData.BuildBandCardCatalog` (band union; `GameplayData.AllCardsList` fallback — DEMO-FIXES-A, D-DF-7=A), delegates spawn to `DeckManager.DevSpawnCardToHand`. No runtime mutation outside that delegation.
 - `Assets/Scripts/DevMode/DevStatsTab.cs` — file-level `#if ALWTTT_DEV`. Phase 3.1/3.2/3.3a/3.3b static helper that renders the Stats tab body. Breakdown section (P3.1) + Gig-Wide Stats section (P3.2 + Flow row added P3.3a) + Per-Character section (P3.3a stat controls + P3.3b status picker). Dispatches to `GigManager.DevSet…`, `BandCharacterStats.DevSet…`, `AudienceCharacterStats.DevSet…` wrappers for stat editing, and directly to `StatusEffectContainer.Apply`/`Clear` for the Composure stepper and P3.3b status picker. Phase 3.3b additions: `DrawStatusPicker(CharacterBase, ref int)` method, `_musicianStatusPickerIndex` and `_audienceStatusPickerIndex` static fields, `using ALWTTT.Characters` directive.
 - `Assets/Scripts/DevMode/DevAudioMixTab.cs` — file-level `#if ALWTTT_DEV`. M-AUDIO-MIX static helper rendering the Audio Mix tab body (global music + per-musician + master SFX sliders + a no-asset banner + the Solo/Duck/Clear highlight trigger). Routes all slider edits through `GigManager.DevSet…` audio wrappers; calls `MidiMusicManager.Highlight` directly for the trigger. No runtime mutation outside those calls.
 - `GigManager` `#if ALWTTT_DEV` audio additions (M-AUDIO-MIX): `DevGlobalMusicVolume01`/`DevSetGlobalMusicVolume01`, `DevGetMusicianVolume01`/`DevSetMusicianVolume01(MusicianBase,float)`, `DevMasterSfxVolume01`/`DevSetMasterSfxVolume01`, `DevHasAudioMixAsset`, `PersistAudioMixInEditor`. Always-compiled support: `ApplyPersistedAudioMix` (StartGig), `ReapplyMusicianMix` (after Play), `_globalMusicVolume01`, the `audioMix` SO ref.
@@ -351,6 +353,20 @@ always visible during diagnostic runs.
 | ST-MB4-4 | Comp-card spend path unaffected — pd unchanged, session decrements (build-phase divergence preserved as §13.4 caveat); verified via raw readout | ✅ PASS 2026-05-08 |
 | ST-MB4-5 | F-3 per-loop gain regression — pd ↔ session mirror unchanged; verified via raw readout | ✅ PASS 2026-05-08 |
 
+### 9.12 TLM-1 — run telemetry logger (2026-07-16)
+
+Smoke set for `DevRunTelemetryLogger` (§17). All run through normal gameplay in an `ALWTTT_DEV` build (records only write on the normal-flow `GigOutcomeEvent`).
+
+| Test | Subject | Result |
+|---|---|---|
+| ST-TLM-1 | Win record — normal-flow win writes exactly one JSONL line: `won:true`, empty `lossCause`, `songsCompleted == requiredSongCount`, all audience `convinced:true`/`endVibe:0`, roster + encounterLabel populated, `playCounts` sum == `plays` length; Stats-tab "last gig written to" line appears | ✅ PASS 2026-07-16 |
+| ST-TLM-2 | Loss record (unconvinced) — finishing required songs with ≥1 unconvinced member writes one line: `won:false`, `lossCause:"unconvinced_after_final_song"`, unconvinced member(s) show `endVibe > 0`/`convinced:false` matching the on-screen state at loss | ✅ PASS 2026-07-16 |
+| ST-TLM-3 | Song-index correctness (confound guard) — in a multi-song gig, a card played in song 1 carries `songIndex:0` and a different card in song 2 carries `songIndex:1`; play order preserved; composition **and** action cards both present in `plays[]` (unified funnel) | ✅ PASS 2026-07-16 |
+| ST-TLM-4 | Production strip — building without `ALWTTT_DEV` compiles clean, no `DevRunTelemetryLogger` symbol, no `DevTelemetry` directory created at runtime | ✅ PASS 2026-07-16 |
+| ST-TLM-R1 | Regression — gig outcome, loss-panel text, session tally, and reward flow are identical with the logger active vs. the pre-TLM-1 build; the only observable deltas are the log line, the file, and the Stats-tab line (logger publishes nothing, mutates nothing) | ✅ PASS 2026-07-16 |
+
+**Deferred (documented, not a gap in the above):** a cohesion-collapse loss (`DevSetBandCohesion` → 0) deliberately produces **no** record under D-TLM-3=A — verified by absence; a record appearing there would indicate an unexpected `GigOutcomeEvent` publish path and would itself be a failure. See §17.3.
+
 ---
 
 ## 10. Update rule
@@ -362,6 +378,7 @@ This SSoT must be updated when any of the following change:
 - The hand-visibility bridge semantics in `OnCompositionSessionEnded`.
 - The spawn-gate predicate in `CanDevSpawnToHand`.
 - Stats tab content changes (new sections, new controls, layout changes).
+- The run telemetry logger (§17): its bus subscriptions, record schema/field set, output path, or coverage limitations. A schema change bumps `schemaVersion` in code and this section.
 - Audio Mix tab content changes (sliders, highlight trigger, persistence wiring); the mix *model* itself is governed by `SSoT_Audio.md`.
 - New Dev-prefixed methods on gameplay classes (BandCharacterStats, MusicianBase, CompositionSession, etc.).
 - The `LiveInspiration` routing contract (which field Dev reads/writes when composition is active vs. not) — if that rule ever changes, update §13 and this list.
@@ -380,7 +397,7 @@ Arbitrary instantiation of any `CardDefinition` from the game's runtime catalogu
 
 ### 11.2 Catalogue source
 
-`GameManager.GameplayData.AllCardsList`. Runtime-authoritative; already used by `GameManager.SetInitialDeck` for the random-deck branch. No new SO. If a card is absent from `AllCardsList` it is not considered "real" by the game; the deck editor's catalogue (which scans `AssetDatabase`) may surface cards `AllCardsList` does not — this is an acceptable asymmetry. Cards authored for Dev Mode use must be added to `AllCardsList` on the `GameplayData` SO explicitly.
+Since **DEMO-FIXES-A (2026-07-15, D-DF-7=A)** the source is the **runtime union of the current band's per-musician catalogs** (`PersistentGameplayData.BuildBandCardCatalog` over `PD.MusicianList` → each rostered musician's `MusicianCharacterData.CardCatalog`; runtime read, no asset mutation). `GameManager.GameplayData.AllCardsList` is now **fallback only** (dev scenes with no band) and is deprecated as a hand-maintained catalogue — a Dev-Mode-only card needs adding to `AllCardsList` only for that no-band path; in a real band it appears via a rostered musician's `CardCatalog`. The deck editor's catalogue (which scans `AssetDatabase`) may still surface cards these do not — an acceptable asymmetry. Governing description: the Catalogue-tab **Source** bullet (§ Catalogue tab, Phase 2).
 
 ### 11.3 Spawn pipeline
 
@@ -616,3 +633,52 @@ Arbitrary status application and removal on any character without card authoring
 3. **Overlay tab wiring for `DevPinnedSongSeed`** (§8.7, §6) — currently code/debugger-only.
 
 > **Placement note (2026-07-05).** This backlog was originally specified to land in `M1_5_Dev_Mode_Sub_Roadmap.md`. That doc is archived (`SSoT_INDEX.md` lists it under Archived planning docs, superseded by this SSoT), so the backlog was placed here instead to avoid silently reviving a retired planning surface — see `changelog-ssot.md` (2026-07-05 entry) for the reasoning. Redirect back to a fresh live Dev Mode sub-roadmap instead if the backlog outgrows this section.
+
+---
+
+## 17. TLM-1 — run telemetry logger (2026-07-16)
+
+*(Placed after the §16 planning backlog to preserve §16's numbering — the §8.7 cross-reference to "§16, the idea backlog" stays valid. This is a shipped surface, not backlog.)*
+
+### 17.1 Surface
+
+`DevRunTelemetryLogger` — static class, `Assets/Scripts/DevMode/DevRunTelemetryLogger.cs`, **whole file inside `#if ALWTTT_DEV`**. Lifecycle owned by `DevModeController`: `Initialize()` in `Awake`, `Shutdown()` in `OnDestroy` (sibling pattern to `DevGigOutcomeTracker`). It is a **read-only** sensory-bus subscriber — it publishes nothing and mutates no game state (MidiGenPlay untouched). Subscriptions:
+
+- `GigStartedEvent` — clears the per-gig accumulators and records `RequiredSongCount`.
+- `CardPlayedEvent` — appends to the ordered play list, capturing `PD.CurrentSongIndex` **at play time** (the BALANCE-XREF confound guard — `CurrentSongIndex` only increments at song completion, so the value at a `CardPlayedEvent` is the index of the song the card was played in). Composition cards are included: `CardPlayedEvent` fires from the unified `DeckManager.OnCardPlayed` funnel, which observes both action/SFX and composition plays.
+- `LoopResolvedEvent` — increments the gig's loop count.
+- `GigOutcomeEvent` — assembles and writes the record.
+
+### 17.2 Record + output
+
+One **JSON-Lines** object per gig (`schemaVersion` 1), append-per-gig, human-readable. Fields (D-TLM-2=B):
+
+- `schemaVersion`, `timestampUtc` (ISO-8601), `sessionId` (per-play-session GUID prefix — groups one playtest sitting), `encounterLabel` (`GigEncounter.GetLabel()`), `requiredSongCount`.
+- `won`; `lossCause` (`"unconvinced_after_final_song"` for logged losses, empty on win — see §17.3 for why this is the only value).
+- `songsCompleted` (`PD.CurrentSongIndex` at outcome), `loopsPlayed`.
+- `roster[]` — musician `CharacterId`s (stable authored ids).
+- `audience[]` — one entry per member: authored `CharacterName` + spawn index (`index`) + `endVibe`/`maxVibe`/`convinced`. **Snapshotted at `GigOutcomeEvent`, which publishes before `WinGig`/`LoseGig`**, so the end-Vibe values precede any cleanup.
+- `plays[]` — ordered: `cardId` (`CardDefinition.Id`) + `songIndex`-at-play-time + `isComposition` + `inspirationCost`.
+- `playCounts[]` — per-`cardId` aggregate of `plays[]`.
+
+Output path (never under `Assets/` or `Resources/`, so no importer churn, never shipped):
+
+- Editor: `<projectRoot>/DevTelemetry/gig_runs_YYYY-MM-DD.jsonl` — **gitignored** (`DevTelemetry/`).
+- Dev Player builds: `Application.persistentDataPath/DevTelemetry/…`.
+
+The Stats tab shows a one-line `Last gig written to: <path>` next to the existing outcome tally (`DevRunTelemetryLogger.LastWritePath`).
+
+### 17.3 Coverage limitations (load-bearing for S5i analysis)
+
+- **Cohesion-collapse losses are NOT logged (D-TLM-3=A).** The `MusicianBase.OnBreakdown → BandCohesion 0 → LoseGig()` path publishes no `GigOutcomeEvent` — only `GigManager.ResolveGigOutcomeAndEnd` publishes it. The existing session W/L tally shares this exact blind spot. Consequently `lossCause` is constant `"unconvinced_after_final_song"` for every logged loss. **Do not read "no cohesion-loss records" as "no cohesion losses."** The publisher-side fix is the optional rider **TLM-1b** (adds the publish + a per-gig double-fire latch + a review of the tally semantics and the `tut_first_gig_won` debug-path exposure) — open it only if S5i playtests actually hit cohesion losses.
+- **Editor Debug context-menu Win/Lose** bypass `GigOutcomeEvent` by design and are not logged.
+- **Partial gigs** (retry/quit mid-gig) produce no record; accumulators reset on the next `GigStartedEvent`.
+- **Audience identity** in records is authored `CharacterName` + spawn index. `AudienceCharacterBase.CharacterId` embeds `GetInstanceID()` and is not stable across sessions, so it is deliberately not used as the record key.
+
+### 17.4 Smoke coverage
+
+ST-TLM-1..4 + ST-TLM-R1 — all PASS 2026-07-16. See §9.12.
+
+### 17.5 Update triggers (specific to this surface)
+
+Update this section (and bump `schemaVersion` in code) when any of: the set of subscribed bus events; the record field set or its nesting; the output path or format; or the documented coverage limitations (e.g. if TLM-1b lands and cohesion losses become loggable). Companion updates: `CURRENT_STATE.md` (operational) and `changelog-ssot.md` (semantic).

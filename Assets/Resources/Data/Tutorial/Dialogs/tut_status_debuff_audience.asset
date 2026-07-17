@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Effects on the crowd
   portrait: {fileID: 0}
   pages:
-  - "You've hung an effect on the crowd \u2014 the icon under their portrait. Effects
+  - 'You''ve hung an effect on the crowd: the icon under their portrait. Effects
     work on their own, turn after turn, no permission needed. Plant them and let
-    the music do the rest."
+    the music do the rest.'
   highlightKey: status_icon_audience

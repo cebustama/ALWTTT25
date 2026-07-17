@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Status effects
   portrait: {fileID: 0}
   pages:
-  - "See that icon over the musician? That's a status effect \u2014 and this one's
-    working for you. Hover it and it tells you exactly what it does. Read them: the
-    band lives on them."
+  - 'See that icon over the musician? That''s a status effect, and this one''s working
+    for you. Hover it and it tells you exactly what it does. Read them: the band
+    lives on them.'
   highlightKey: status_icon_musician

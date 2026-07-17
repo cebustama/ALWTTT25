@@ -6,7 +6,7 @@
 **Does not own:** the event bus itself (`SensoryEventBus`, `ISensoryEvent`) → `SSoT_Audience_and_Reactions` / Sensory Contract; FT presentation → Sensory Contract; `MidiMusicManager` as the playback host / channel-routing component → `SSoT_Runtime_CompositionSession_Integration` §3.4; any MidiGenPlay package internals (synth, soundfont, per-instrument attenuation) → MidiGenPlay docs.
 **Authority order:** `SSoT_CONTRACTS.md` → this SSoT for audio concepts → `CURRENT_STATE.md` for active slice. Cross-project audio facts defer to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`.
 **Created:** 2026-06-14 (M-AUDIO-MIX). Consolidates the as-built audio subsystem from `Design_Sensory_Contract_v0_1.md §5A` (S3-audio) and adds the music-mix model + audio boundary.
-**Updated:** 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
+**Updated:** 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
 
 ---
 
@@ -68,19 +68,32 @@ Two surfaces, kept separate on purpose:
   path), never a card sound. Spec-based cards run through `CardBase.ExecuteEffects`, never the
   `CharacterAction` classes, so the SFX hook lives on the card path (corrected ST-SA-9).
 - **Bus-sensory** — `SensoryAudioAdapter` subscribes to `AudienceReactionEvent`,
-  `SongEndVibeEvent`, and `SfxStageCrossedEvent`; resolves each to a `SensorySfxType`
+  `SongEndVibeEvent`, `SfxStageCrossedEvent`, `RewardChoiceOpenedEvent` (S5h) and
+  `AudienceVibeImpactEvent` (JUICE-PW); resolves each to a `SensorySfxType`
   via `SensorySfxPresentation`; plays through `AudioManager`.
 
-Both call the single `AudioManager` sink. A future `CardPlayedEvent` bus consumer
-(card→bus migration) is out of scope; if it lands, card play must not fire on both paths.
+Both call the single `AudioManager` sink.
+
+**A card can now sound on either path — never both (JUICE-PW / D-PW-AUDIO).** The old note here
+said a card→bus migration was out of scope and that, if it landed, card play must not fire on both
+paths. JUICE-PW lands the *effect-time* half of that: a card's **Vibe impact** is a bus surface
+(`AudienceVibeImpactEvent` → `CardVibeImpact`), fired at effect resolution, while the card's
+authored `AudioType` still fires at **drop** time on the card-direct path. The two are not
+mutually exclusive in code, so **authoring** keeps them apart: a card whose sound should be its
+impact is authored `AudioType = None` (Psychic Waves is the first). See invariant 18 and
+`SSoT_Card_Authoring_Contracts` §5.15. `CardPlayedEvent` itself is still **not** an audio
+producer — it stays a purely semantic tutorial event.
 
 **Two keys, one authority each (D-SA-6=A).**
 - `AudioActionType` (existing) — card-authored; on `CardDefinition`; card-only.
   Authority: `SSoT_Card_Authoring_Contracts`.
 - `SensorySfxType` (this SSoT) — bus surfaces, kept separate so sensory tags don't leak
   into card authoring. Members: `ReactionPositive/Negative`, `SongEndVibe/Blocked`,
-  `StageCrossLights/Smoke/Fire`. Neutral reaction is FT-only (`SensorySfxPresentation`
-  returns null). Grows additively; the Sensory Contract §4 audit is the to-do list.
+  `StageCrossLights/Smoke/Fire`, `RewardOpened` (S5h — **backfilled here 2026-07-13; the member
+  shipped with S5h but was never listed**), `CardVibeImpact` (JUICE-PW). Neutral reaction is
+  FT-only (`SensorySfxPresentation` returns null); so is every AoE target after the first on a
+  card impact (`ForCardVibeImpact` returns null for `FanoutIndex != 0`). Grows additively; the
+  Sensory Contract §4 audit is the to-do list.
 
 **Central inventory + coverage (D-SA-7=B).** `SoundBankSO` holds card profiles
 (`SoundProfileData` SOs keyed by `AudioActionType`) + inline sensory entries (keyed by
@@ -129,6 +142,19 @@ no `SensorySfxType` is added and `AudioManager` stays the dumb sink; `CharacterS
 and stays reaction-only. A **status-apply** fire (a second clip when the status lands, option B) is
 **deferred, not rejected** — it would hook the status-apply site in `CharacterActionProcessor…DoAction`,
 in parallel to this hook. Per-ability coverage is **not** audited (same posture as reactions).
+
+**Card Vibe impact sting (JUICE-PW / D-PW-AUDIO, D3=A).** A card whose `ModifyVibeSpec` resolves
+against the audience publishes `AudienceVibeImpactEvent` **once per target** from
+`CardBase.ExecuteEffects`. `SensoryAudioAdapter` plays **one** `CardVibeImpact` sting for the whole
+card, not one per target: `SensorySfxPresentation.ForCardVibeImpact` returns a key only when
+`FanoutIndex == 0` and null otherwise. The sting is **single-source → immediate** (`jitter: false`;
+jitter stays fan-out-only, invariant 10) — the *visual* fan-out is what staggers, in
+`SensoryFxAdapter`. It fires **at impact, not at drop**, and it fires even when the first target
+blocked the Vibe (the card resolved; the grey `INDIFFERENT` floater needs its audio floor per D2).
+Because the card-direct `AudioType` path is still live, **a card that opts into the impact sting is
+authored `AudioType = None`** — otherwise it sounds twice (invariant 18;
+`SSoT_Card_Authoring_Contracts` §5.15). Shipped with a **placeholder clip** (`Telephone`), like the
+rest of the S3-audio layer → D1 follow-up.
 
 **UI bus under the SFX level (AUDIO-SFX-FIX).** `AudioManager.SetSfxVolume01` drives both
 `sfxSource.volume` and `buttonSource.volume`, so the master-SFX level governs card SFX, sensory
@@ -399,6 +425,16 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
     `CharacterSfxProfileSO` is untouched (reaction-only). A status-apply fire (option B) is deferred, not
     rejected. Per-ability coverage is unaudited (same posture as reactions).
 
+18. **A card sounds once, on exactly one path.** Card audio has two possible producers — the
+    card-direct `AudioType` at **drop** (`CardBase.Use`) and the bus `CardVibeImpact` sting at
+    **impact** (`AudienceVibeImpactEvent` → `SensoryAudioAdapter`). A card uses **one**: opting into
+    the impact sting means authoring `AudioType = None` (D-PW-AUDIO; authoring rule in
+    `SSoT_Card_Authoring_Contracts` §5.15). The impact sting is **once per card play, not once per
+    AoE target** — `SensorySfxPresentation.ForCardVibeImpact` keys on `FanoutIndex == 0` — and is
+    **immediate, never jittered** (invariant 10); the per-member *visual* fan-out carries the
+    stagger. It fires on a blocked first target too (the card resolved). `CardPlayedEvent` remains
+    a purely semantic event and adds no SFX key.
+
 ---
 
 ## 8. Validation / smoke references
@@ -422,6 +458,13 @@ AUDIO-AMBIENCE ships ST-AMB-1..8 (loops idle; ducks on song start; returns at so
 ducked across parts [regression]; SFX slider scales it; card/UI one-shots intact [regression]; no
 click/pop at duck/return; no bleed into a non-gig scene) — all PASS. No deferrals (ambience and the
 Dev Audio Mix tab are both gig-scoped).
+
+JUICE-PW ships ST-PW-1..10 (impact FT+SFX+anim at beat 8; FX precedes the loop resolution; FX
+precedes the hold release [log order]; identical presentation outside the tutorial; Indifference →
+`INDIFFERENT`, no kick; Flow-scaled delta shown; readable against the song-end FT wave; no impact
+sting on non-Vibe cards [regression]; tutorial beats 3/5 intact [regression]; no scale drift on a
+`scaleOnBeat` + `skipEveryNBeats` character after repeated kicks [regression]) — **all PASS**
+(2026-07-13). No deferrals: ST-PW-5 ran without Dev Mode.
 
 ---
 
@@ -451,6 +494,14 @@ Dev Audio Mix tab are both gig-scoped).
   the phase-1 misses in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and
   `CURRENT_STATE.md`. **Deferred (option B):** a status-apply clip at the `CharacterActionProcessor…
   DoAction` site — not built.
+- **JUICE-PW: DONE (2026-07-13)** — card **Vibe-impact** sensory surface. New bus event
+  `AudienceVibeImpactEvent` (per target, published at effect resolution in `CardBase.ExecuteEffects`);
+  new key `CardVibeImpact` (one sting per card play, `FanoutIndex == 0`); per-member FT + procedural
+  `CharacterAnimator.PlayImpactKick` on target and performer. D-PW-AUDIO: the impact sting replaces
+  the drop-time `AudioType` for such a card (Psychic Waves → `AudioType = None`). §3, invariant 18.
+  ST-PW-1..10 PASS. **Clip is a placeholder (`Telephone`) → D1** (the bullet above): this is the most
+  demo-visible sting in the build (the tutorial's beat-8 finisher), so it is the highest-value clip in
+  the D1 backlog.
 - **GameplayData.cs cleanup:** DONE — the dead `globalMusicVolume01` field was removed
   (M-AUDIO-MIX); the live home is `AudioMixSettingsSO`.
 - **Player-facing audio options:** out of scope here; needs a real save layer (PlayerPrefs

@@ -6,6 +6,7 @@ using ALWTTT.UI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace ALWTTT.Tutorial
 {
@@ -92,6 +93,46 @@ namespace ALWTTT.Tutorial
         private Coroutine _pumpCo;
         private Coroutine _pulseCo; // [TUT-R2b] pulso del highlight activo
 
+        private Coroutine _persistPulseCo; // [DEMO-FIXES-A / CT1]
+
+        // [CT1] A directive is "alive" while an input gate or the loop hold is
+        // armed. Beats 3/5 arm inside the DialogCompleted invoke; beat 8 arms
+        // BEFORE its dialog shows — both shapes are covered by checking AFTER
+        // the invoke in OnDialogComplete.
+        private static bool DirectiveActive =>
+            TutorialInputGate.IsActive || TutorialLoopHoldGate.IsArmed;
+
+        private void TryStartPersistentPulse(TutorialDialogSO dialog)
+        {
+            // Never re-target while one runs: an unrelated reactive dialog
+            // completing mid-directive must not steal the directive's pulse.
+            if (_persistPulseCo != null) return;
+            if (!DirectiveActive) return;
+
+            var pulse = ResolvePulse(dialog);
+            if (pulse == null) return;
+
+            _persistPulseCo = StartCoroutine(PulseWhileDirective(pulse));
+            Log($"persistent pulse STARTED for '{dialog.TriggerId}' (until directive clears)");
+        }
+
+        private void StopPersistentPulse()
+        {
+            if (_persistPulseCo != null) { StopCoroutine(_persistPulseCo); _persistPulseCo = null; }
+        }
+
+        private System.Collections.IEnumerator PulseWhileDirective(UIPulseAnimator pulse)
+        {
+            var wait = new WaitForSeconds(0.9f);
+            while (DirectiveActive && pulse != null)
+            {
+                // Don't fight a modal's own highlight pulse while one shows.
+                if (!_showing) pulse.Pulse();
+                yield return wait;
+            }
+            _persistPulseCo = null;
+        }
+
         // [TUT-R2 / D3=B] Trigger ids suppressed while the guided driver is
         // active (superseded S4 reactives, TUT-R1 §6 ledger). Runtime
         // retirement ahead of the TUT-R3 asset retirement.
@@ -171,6 +212,7 @@ namespace ALWTTT.Tutorial
             { 
                 StopCoroutine(_pumpCo);
                 StopHighlightPulse();
+                StopPersistentPulse();
                 _pumpCo = null; 
             }
             ReleaseGate();
@@ -180,20 +222,15 @@ namespace ALWTTT.Tutorial
         private void OnGigStarted(GigStartedEvent e)
         {
             Log($"event GigStartedEvent (requiredSongs={e.RequiredSongCount}, frame {Time.frameCount})");
-            TryEnqueue(TutorialTriggerId.WelcomeToGig);
         }
 
         private void OnCardPlayed(CardPlayedEvent e)
         {
             Log($"event CardPlayedEvent (card='{(e.Definition != null ? e.Definition.name : "null")}', " +
                 $"comp={e.IsComposition}, action={e.IsAction}, cost={e.InspirationCost})");
-            if (e.IsAction)
-                TryEnqueue(TutorialTriggerId.FirstActionCard);
+
             if (e.IsComposition)
             {
-                TryEnqueue(TutorialTriggerId.FirstCompositionCard);          // beat 1
-                if (e.InspirationCost > 0)
-                    TryEnqueue(TutorialTriggerId.FirstInspirationSpend);     // beat 2
                 if (IsSoundCard(e.Definition))
                     TryEnqueue(TutorialTriggerId.FirstSoundCard);            // beat 5
             }
@@ -202,8 +239,6 @@ namespace ALWTTT.Tutorial
         private void OnLoopResolved(LoopResolvedEvent e)
         {
             Log($"event LoopResolvedEvent (inspirationGainedThisLoop={e.Context.InspirationGainedThisLoop})");
-            if (e.Context.InspirationGainedThisLoop > 0)
-                TryEnqueue(TutorialTriggerId.FirstLoopInspiration);          // beat 3
         }
 
         private void OnSfxStage(SfxStageCrossedEvent e)
@@ -222,23 +257,17 @@ namespace ALWTTT.Tutorial
         private void OnSongEnd(SongEndVibeEvent e)
         {
             Log("event SongEndVibeEvent");
-            TryEnqueue(TutorialTriggerId.FirstSongEnd);                      // beat 6 (fires once via fired-guard)
         }
 
         private void OnAudienceTurn(AudienceTurnStartedEvent e)
         {
             // Design: first audience turn AFTER first SongHype stage crossing.
             Log($"event AudienceTurnStartedEvent (stageSeen={_sfxStageSeen})");
-            if (_sfxStageSeen)
-                TryEnqueue(TutorialTriggerId.FirstAudienceAction);
         }
 
         private void OnStatusApplied(StatusAppliedEvent e)
         {
             Log($"event StatusAppliedEvent (status={e.Status}, delta={e.DeltaStacks})");
-            // Legacy monolithic trigger retained for D3=B fallback; suppressed
-            // while the guided driver is active (superseded, TUT-R1 §6).
-            TryEnqueue(TutorialTriggerId.FirstStatusApplied);
 
             if (e.DeltaStacks <= 0 || e.Source == null) return;
             var owner = e.Source.Owner; // [TUT-R2] set by CharacterBase
@@ -273,7 +302,6 @@ namespace ALWTTT.Tutorial
         private void OnGigOutcome(GigOutcomeEvent e)
         {
             Log($"event GigOutcomeEvent (won={e.Won})");
-            if (e.Won) TryEnqueue(TutorialTriggerId.FirstGigWon); // superseded → suppressed
             TryEnqueue(e.Won ? TutorialTriggerId.GigWon : TutorialTriggerId.GigLost);
         }
 
@@ -314,6 +342,12 @@ namespace ALWTTT.Tutorial
         private void TryEnqueue(string triggerId)
         {
             if (string.IsNullOrEmpty(triggerId)) return;
+
+            // [DEMO-FIXES-A] Belt guard (see driver note). ReplayDialog (revisit,
+            // MainMenu-hosted) does not pass through here and stays unaffected.
+            var pdGuard = PD;
+            if (pdGuard != null && !pdGuard.TutorialEnabled)
+            { Log($"  ↳ '{triggerId}' skipped (tutorial disabled)"); return; }
 
             if (_suppressed.Contains(triggerId))
             { Log($"  ↳ '{triggerId}' skipped (superseded — suppressed by guided driver)"); return; }
@@ -378,6 +412,13 @@ namespace ALWTTT.Tutorial
 
             DialogCompleted?.Invoke(dialog.TriggerId);
 
+            // [DEMO-FIXES-A / CT1] If a directive outlives the modal, keep the
+            // dialog's highlight target pulsing until it clears. Pulse only:
+            // the dim/spotlight overlay still closes with the modal
+            // (deliberate — keeping the dim screen would obstruct play).
+            TryStartPersistentPulse(dialog);
+
+
             Log($"COMPLETE '{dialog.TriggerId}' → marked fired (remaining queue {_queue.Count})");
             _showing = false;
             _showingId = null;             // [D-S4-DEDUP]
@@ -403,17 +444,88 @@ namespace ALWTTT.Tutorial
         {
             Log($"event MusicianStressHitEvent (absorbed={e.Absorbed}, applied={e.Applied})");
             if (e.Applied > 0) // an actual fortitude loss (TUT-R1 §4.3)
+            {
+                // [CARD-UX-1 / D3=B] Precision re-register: last-registered wins,
+                // so point the key at the musician that was actually hit BEFORE
+                // the dialog resolves its highlight.
+                ReregisterMusicianHighlight(e.Stats);
                 TryEnqueue(TutorialTriggerId.MusicianBreakdown);
+            }
         }
 
         private void OnAudienceBlocked(AudienceBlockedEvent e)
         {
             Log("event AudienceBlockedEvent");
+            // [CARD-UX-1 / D3=B] Point status_icon_blocked at the blocked member.
+            if (e.Audience != null)
+                ReregisterKeyOn(e.Audience.gameObject, "status_icon_blocked");
             TryEnqueue(TutorialTriggerId.StatusBlockedFront);
+        }
+
+        // ---- [CARD-UX-1 / D3=B] highlight precision helpers ----
+
+        private static void ReregisterMusicianHighlight(
+            ALWTTT.Characters.Band.BandCharacterStats stats)
+        {
+            var gig = GigManager.Instance;
+            if (stats == null || gig == null || gig.CurrentMusicianCharacterList == null)
+                return;
+
+            for (int i = 0; i < gig.CurrentMusicianCharacterList.Count; i++)
+            {
+                var m = gig.CurrentMusicianCharacterList[i];
+                if (m == null || !ReferenceEquals(m.Stats, stats)) continue;
+                ReregisterKeyOn(m.gameObject, "musician_stress_bar");
+                return;
+            }
+        }
+
+        private static void ReregisterKeyOn(GameObject host, string key)
+        {
+            if (host == null) return;
+            var targets = host.GetComponentsInChildren<TutorialHighlightTarget>(true);
+            for (int i = 0; i < targets.Length; i++)
+            {
+                if (targets[i] == null || targets[i].Key != key) continue;
+                TutorialHighlightRegistry.Register(targets[i]); // last-registered wins
+                return;
+            }
         }
 
         private Spotlight ResolveHighlight(TutorialDialogSO dialog)
         {
+            if (dialog != null && dialog.HasHighlight &&
+                TutorialHighlightRegistry.TryGet(dialog.HighlightKey, out var sceneTarget))
+            {
+                if (sceneTarget.IsWorldSpace) // [TUT-R3] world→screen
+                {
+                    bool hasB = sceneTarget.TryGetWorldBounds(out var wb);
+                    return new Spotlight
+                    {
+                        Enabled = true,
+                        HoleShape = defaultHoleShape,
+                        WorldTarget = sceneTarget.WorldTarget,
+                        WorldCamera = sceneTarget.WorldCamera,        // null → overlay usa Camera.main
+                        WorldBounds = wb,
+                        HasWorldBounds = hasB,
+                        // sin renderer → radio manual sensato para que no sea un punto.
+                        ManualRadiusFrac = hasB ? Vector2.zero : new Vector2(0.10f, 0.10f)
+                    };
+                }
+                if (sceneTarget.MaskTarget != null)
+                {
+                    return new Spotlight
+                    {
+                        Enabled = true,
+                        HoleShape = defaultHoleShape,
+                        Target = sceneTarget.MaskTarget,
+                        ManualCenterVp = default,
+                        ManualRadiusFrac = Vector2.zero
+                    };
+                }
+                // registry hit sin world ni MaskTarget → cae al fallback de bindings.
+            }
+
             if (dialog == null || !dialog.HasHighlight) return Spotlight.None;
             for (int i = 0; i < highlightBindings.Count; i++)
             {
@@ -435,20 +547,32 @@ namespace ALWTTT.Tutorial
             return Spotlight.None;
         }
 
-        // [TUT-R2b] Pulsa el UIPulseAnimator del binding del diálogo activo
-        // cada ~0.9 s mientras ese diálogo siga en pantalla. Sin binding o sin
-        // pulse asignado → no-op (misma degradación que el spotlight).
         private void StartHighlightPulse(TutorialDialogSO dialog)
         {
             StopHighlightPulse();
-            if (dialog == null || !dialog.HasHighlight) return;
+            var pulse = ResolvePulse(dialog);
+            if (pulse != null)
+                _pulseCo = StartCoroutine(PulseWhileShowing(pulse, dialog.TriggerId));
+        }
+
+        // [DEMO-FIXES-A / CT1] Factored out of StartHighlightPulse so the
+        // persistent-pulse path shares the exact same resolution order:
+        // scene registry first, serialized bindings fallback.
+        private UIPulseAnimator ResolvePulse(TutorialDialogSO dialog)
+        {
+            if (dialog == null || !dialog.HasHighlight) return null;
+
+            if (TutorialHighlightRegistry.TryGet(dialog.HighlightKey, out var t) &&
+                t.Pulse != null)
+                return t.Pulse;
+
             for (int i = 0; i < highlightBindings.Count; i++)
             {
                 var b = highlightBindings[i];
-                if (b == null || b.key != dialog.HighlightKey || b.pulse == null) continue;
-                _pulseCo = StartCoroutine(PulseWhileShowing(b.pulse, dialog.TriggerId));
-                return;
+                if (b != null && b.key == dialog.HighlightKey && b.pulse != null)
+                    return b.pulse;
             }
+            return null;
         }
 
         private void StopHighlightPulse()

@@ -91,5 +91,57 @@ namespace ALWTTT.Sensory
             color = default;
             return false;
         }
+
+        // ----- Card Vibe impact surface (JUICE-PW D1=A/D3=A) --------------
+
+        /// <summary>Drift direction for card-impact FT. Straight up, same as
+        /// the reaction surface; the SHORT "-N" form (vs song-end's
+        /// "-N Vibe") is what visually separates the two waves (ST-PW-7).</summary>
+        public static readonly Vector2 VibeImpactDrift = new Vector2(0f, 1.0f);
+
+        /// <summary>Per-target FT stagger step (seconds) for the AoE fan-out,
+        /// consumed by SensoryFxAdapter as FanoutIndex * step.</summary>
+        public const float VibeImpactStaggerStep = 0.07f;
+
+        /// <summary>
+        /// Builds the card-impact FT payload from an
+        /// <see cref="AudienceVibeImpactEvent"/>. S5e damage-number
+        /// convention (positive effect DEPLETES the resistance pool):
+        /// applied &gt; 0 → "-N" cyan (short form; song-end keeps "-N Vibe");
+        /// blocked by Indifference → "INDIFFERENT" grey — deliberately the
+        /// SAME word/colour as the song-end blocked surface (one concept,
+        /// one presentation).
+        /// Negative-delta cards (resistance restore) → "+N" red-ish, the
+        /// anti-player direction. Returns false for a zero no-op.
+        /// </summary>
+        public static bool TryBuildVibeImpactFt(
+            in AudienceVibeImpactEvent e, out string text, out Color color)
+        {
+            if (e.AppliedDelta > 0)
+            {
+                text = $"-{e.AppliedDelta}";
+                color = Color.cyan;
+                return true;
+            }
+
+            if (e.BlockedByIndifference)
+            {
+                text = "INDIFFERENT";
+                color = new Color(0.6f, 0.6f, 0.6f);
+                return true;
+            }
+
+            if (e.FinalDelta < 0)
+            {
+                // Anti-player: the member REGAINS resistance.
+                text = $"+{-e.FinalDelta}";
+                color = new Color(1.0f, 0.45f, 0.35f);
+                return true;
+            }
+
+            text = null;
+            color = default;
+            return false;
+        }
     }
 }

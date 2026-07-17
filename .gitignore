@@ -130,3 +130,6 @@ openai.json
 # ---- Scratch / snapshots locales (no versionar) ----
 *.zip
 /files.txt
+
+/DevTelemetry/
+/[Aa]ssets/CompositionSmoke

@@ -388,6 +388,57 @@ MonoBehaviour:
   devSettings: {fileID: 11400000, guid: 767ebbe00f02bb44eb7b39a77f8778c4, type: 2}
   setupRoster: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
   flowSettings: {fileID: 11400000, guid: 02e51bab3b739bc498b5d2f0c97ae6e5, type: 2}
+--- !u!1 &1246036101
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1246036102}
+  - component: {fileID: 1246036103}
+  m_Layer: 0
+  m_Name: CompositionSmoke
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1246036102
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1246036101}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1246036103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1246036101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e9e3874279ceeb41b4bc26832a1a66b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.CompositionSmokeRunner
+  setup: {fileID: 11400000, guid: f69668ce86b0b1140b1288e5c9d008cd, type: 2}
+  randomizeBpm: 0
+  bpmRange: 1
+  bpmRule: 0
+  randomizeRoot: 0
+  rootChoices: 
+  renderOnStart: 0
 --- !u!1001 &1380374145
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -774,3 +825,4 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 1380374145}
   - {fileID: 2060754670}
+  - {fileID: 1246036102}

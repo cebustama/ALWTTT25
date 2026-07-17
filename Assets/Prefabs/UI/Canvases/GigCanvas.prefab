@@ -2575,30 +2575,20 @@ MonoBehaviour:
   defaultHoleShape: {fileID: -2413806693520163455, guid: c3f4ce8d58a1c1b4fb8ad00ca6e4b71a, type: 3}
   verboseLogging: 0
   highlightBindings:
-  - key: song_hype
-    holeShape: {fileID: -2413806693520163455, guid: c3f4ce8d58a1c1b4fb8ad00ca6e4b71a, type: 3}
-    target: {fileID: 7477809651483731060}
-    useManualCenter: 0
-    manualCenter: {x: 0.5, y: 0.5}
-    manualRadius: {x: 0, y: 0}
-  - key: song_panel
-    holeShape: {fileID: -2413806693520163455, guid: c3f4ce8d58a1c1b4fb8ad00ca6e4b71a, type: 3}
-    target: {fileID: 512751831966095472}
-    useManualCenter: 0
-    manualCenter: {x: 0.5, y: 0.5}
-    manualRadius: {x: 0, y: 0}
-  - key: inspiration_counter
-    holeShape: {fileID: -2413806693520163455, guid: c3f4ce8d58a1c1b4fb8ad00ca6e4b71a, type: 3}
-    target: {fileID: 0}
-    useManualCenter: 0
-    manualCenter: {x: 0.5, y: 0.5}
-    manualRadius: {x: 0, y: 0}
   - key: 'hand '
     holeShape: {fileID: -2413806693520163455, guid: c3f4ce8d58a1c1b4fb8ad00ca6e4b71a, type: 3}
     target: {fileID: 0}
+    pulse: {fileID: 0}
     useManualCenter: 0
     manualCenter: {x: 0.5, y: 0.5}
     manualRadius: {x: 0, y: 0}
+  - key: audience_area
+    holeShape: {fileID: -2413806693520163455, guid: c3f4ce8d58a1c1b4fb8ad00ca6e4b71a, type: 3}
+    target: {fileID: 0}
+    pulse: {fileID: 0}
+    useManualCenter: 1
+    manualCenter: {x: 0.75, y: 0.25}
+    manualRadius: {x: 0.42, y: 0.18}
 --- !u!114 &3822468383165443389
 MonoBehaviour:
   m_ObjectHideFlags: 0

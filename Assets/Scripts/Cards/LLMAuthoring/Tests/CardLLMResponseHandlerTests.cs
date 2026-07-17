@@ -145,6 +145,67 @@ namespace ALWTTT.Cards.LLMAuthoring.Tests
         }
 
         [Test]
+        public void StyleBundleCreate_IsBanned()
+        {
+            // [BASS-CARD-1] The mint-a-bundle channel is hand-authored-JSON only:
+            // its 'fields' can carry asset paths, which this guard exists to block.
+            var o = Run(
+                "{ \"kind\": \"Composition\", \"id\": \"x\"," +
+                "  \"composition\": { \"trackAction\": { \"role\": \"Bassline\"," +
+                "    \"styleBundleCreate\": { \"requested\": true } } } }");
+            Assert.IsFalse(o.Success);
+            Assert.IsTrue(HasWarningContaining(o, "styleBundleCreate"));
+        }
+
+        [Test]
+        public void StyleBundleCreate_FieldsAlone_AreBanned()
+        {
+            // Content-based presence: no 'requested' flag, but 'fields' has content.
+            var o = Run(
+                "{ \"kind\": \"Composition\", \"id\": \"x\"," +
+                "  \"composition\": { \"trackAction\": { \"role\": \"Bassline\"," +
+                "    \"styleBundleCreate\": { \"fields\": [ { \"name\": \"chordExpression\", \"value\": \"Block\" } ] } } } }");
+            Assert.IsFalse(o.Success);
+            Assert.IsTrue(HasWarningContaining(o, "styleBundleCreate"));
+        }
+
+        [Test]
+        public void EmptyStyleBundleCreateObject_IsNotAnIntent()
+        {
+            // JsonUtility default-constructs absent nested objects; an empty
+            // styleBundleCreate object must NOT trip the guard.
+            var o = Run(
+                "{ \"kind\": \"Composition\", \"id\": \"x\"," +
+                "  \"composition\": { \"trackAction\": { \"role\": \"Bassline\"," +
+                "    \"styleBundleCreate\": { } } } }");
+            Assert.IsTrue(o.Success, string.Join("; ", o.DisplayWarnings));
+        }
+
+        [Test]
+        public void BasslineRole_IsInAlphabet()
+        {
+            // [BASS-CARD-1] TrackRoles come from Enum.GetNames(typeof(TrackRole)),
+            // so Bassline must validate like any other role.
+            var o = Run(
+                "{ \"kind\": \"Composition\", \"id\": \"x\"," +
+                "  \"composition\": { \"primaryKind\": \"Track\"," +
+                "    \"trackAction\": { \"role\": \"Bassline\" } } }");
+            Assert.IsTrue(o.Success, string.Join("; ", o.DisplayWarnings));
+        }
+
+        [Test]
+        public void PaletteIntent_ForBasslineRole_Fails()
+        {
+            // A BasslineCardConfigSO has no palette field — only articulation.
+            var o = Run(
+                "{ \"kind\": \"Composition\", \"id\": \"x\"," +
+                "  \"composition\": { \"trackAction\": { \"role\": \"Bassline\" }," +
+                "  \"palette\": { \"requested\": true } } }");
+            Assert.IsFalse(o.Success);
+            Assert.IsTrue(HasWarningContaining(o, "Bassline"));
+        }
+
+        [Test]
         public void ModifierEffectPaths_AreBanned()
         {
             var o = Run(

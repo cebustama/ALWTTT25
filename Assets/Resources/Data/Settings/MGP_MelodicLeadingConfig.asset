@@ -13,13 +13,16 @@ MonoBehaviour:
   m_Name: MGP_MelodicLeadingConfig
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MelodicLeadingConfig
   voicingPreset: {fileID: 11400000, guid: 574064b73663389408f65972f800cbfe, type: 2}
-  noteDensityMode: 1
-  notesPerChord: 2
-  minNotesPerChord: 2
-  maxNotesPerChord: 4
-  source: 0
-  lengthMode: 0
-  fixedSubdivisions: 1
+  noteSource: 0
   maxStepSemitones: 7
   chanceRepeatNote: 0.15
   chancePassingNote: 0
+  phrasePalette: {fileID: 11400000, guid: 9acecc8d6e8b1b0478f6db67b122e47c, type: 2}
+  normalVelMin: 80
+  normalVelMax: 100
+  accentVelMin: 105
+  accentVelMax: 120
+  phraseEndVelMin: 95
+  phraseEndVelMax: 110
+  restrictToScaleDegrees: 0
+  allowedScaleDegrees: 

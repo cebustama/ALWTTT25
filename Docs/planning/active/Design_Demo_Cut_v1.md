@@ -22,9 +22,15 @@ Menu with zero setup interaction. The player sees Main Menu → Start →
 | Songs to win | 4 | `DemoLaunchConfig.requiredSongCount` |
 | Parts per song | 1 | encounter song shape |
 | Loops per part | 4 | `GigFlowSettings.jamRules.loopsPerPart` |
-| Initial inspiration | 3 | `DemoLaunchConfig.initialGigInspiration` (DC-4=B) |
+| Initial inspiration | 1 | `DemoLaunchConfig.initialGigInspiration` (DC-4=B; D5 rider) |
 | Inspiration per loop | 1 | `DemoLaunchConfig.inspirationPerLoop` (DC-4=B) |
+| Draw per loop | 1 | `GigFlowSettings.DrawPerLoop` (TUT-R2c) |
+| Draw on play | 0 | `GigFlowSettings.DrawCardsOnPlay` (TUT-R2c) |
 | SFX→FlatVibe bonus (stage 1/2/3) | 3 / 6 / 10 | `GigPresentation.sfxBonusVibeStage{1,2,3}` (D-DCP-2=A) |
+
+> **Economy note (2026-07-09).** Starter composition `inspirationGenerated` set to 0 (flat-only economy: 1 initial / 1 per loop; the guided copy's fixed-per-loop framing depends on it). D-TUT-R2-1=B, **confirmed applied**. `Loops per part` stays **4** (D-DEMO-1 — the finisher keeps its budget-4-vs-cost-3 margin).
+
+> **Consequence note (CARD-UX-1, 2026-07-13).** With `Parts per song = 1` and `Loops per part = 4`, the song's only final loop **is** the beat-8 held loop. The final-loop composition lock (`SSoT_Runtime_CompositionSession_Integration.md` §5.4) is therefore **unreachable inside the guided tutorial**; the beat-8 `SingleCardOnly` gate (`Design_Tutorial_System_v0_2.md` §4.2) is what blocks compositions there. Testing the lock requires running the gig **without** the tutorial (today: disable the tutorial GameObject in the scene → see **DEMO-TUT-TOGGLE** under DEMO-FIXES in `S5_DemoCutClose_Sub_Roadmap.md`).
 
 ### 1.2 Entry path (D-FAST-1=C)
 
@@ -256,7 +262,7 @@ cyan song-end floater). Verified via the `[S5a-SMOKE]` log family (ST-S5a-1..9).
 | Constraint | Rationale |
 | --- | --- |
 | Single encounter — no meta-progression | Demo scope. Multi-encounter wiring deferred to post-§5.4. |
-| `PersistentGameplayData.IsFinalEncounter = true` forced after auto-start | Routes WinGig to WinPanel (Retry/Exit) instead of mid-run RewardCanvas → ReturnToMap. Same hack OnStartPressed already applies (B3-demo-polish A6). Removed when meta-progression sectors land. |
+| `PersistentGameplayData.IsFinalEncounter = true` forced after auto-start | Still forced (single-encounter demo). **S5h (2026-07-07) de-bypassed the routing:** the final-encounter branch now runs Win → RewardCanvas → WinPanel (D1=A), so the reward screen shows before the terminal Retry/Exit panel. Reward grants live in DontDestroyOnLoad PD → Retry carries them, fresh launch resets (`ApplyRunConfig`). The non-final branch (mid-run RewardCanvas → ReturnToMap) remains unreachable in the demo — both launch paths force `IsFinalEncounter=true`. Fully removed when meta-progression sectors land. |
 | Audience hover outline not rendering | Pre-existing bug. Cosmetic; not blocking. Polish-sweep deferred. |
 | Kid Tantrum AnimatorTrigger never fires | `AbilityRoutine` doesn't consume `NextAbility.Animation.AnimatorTrigger`. Cosmetic; ability still resolves mechanically. Polish-sweep deferred. |
 | Indifference + Hyped icon sprites unassigned | Statuses functional; icons missing on the catalogue assets. Asset wiring task, not code. Polish-sweep deferred. |

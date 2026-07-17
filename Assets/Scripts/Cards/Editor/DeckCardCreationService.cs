@@ -356,9 +356,14 @@ namespace ALWTTT.Cards.Editor
                     if (row.count < 0) { error = $"effects[{i}]: DrawCards.count must be >= 0."; return false; }
                     AddManagedEffect(listProp, new DrawCardsSpec { count = row.count });
                 }
+                else if (type.Equals("AddInspirationPerLoop", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (row.amount < 1) { error = $"effects[{i}]: AddInspirationPerLoop.amount must be >= 1."; return false; }
+                    AddManagedEffect(listProp, new AddInspirationPerLoopSpec { amountPerLoop = row.amount });
+                }
                 else
                 {
-                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress.";
+                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop.";
                     return false;
                 }
             }

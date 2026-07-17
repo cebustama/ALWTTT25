@@ -480,6 +480,15 @@ resolves: fixed performer → hover (composition only) → `SelectedMusician`
 fallback (D-ECON-3=A). The pips are the player-facing feedback for this
 attribution.
 
+**Overlay scoping (CARD-UX-1 / D5, 2026-07-13).** The unplayable-card overlay
+(`SSoT_Card_System.md` §10.5) takes budget into account **only when the payer is
+statically resolvable** (`FixedPerformerType != None`). `AnyMusician` cards —
+whose payer depends on hover / `SelectedMusician` at drop time — are excluded
+from the overlay's budget input until **D-ECON-GENERIC** resolves. Enforcement is
+unchanged: `TryConsumePlay` still denies the drop. Rationale: a false red on a
+card that *is* playable against another musician is worse than a false green on
+an advisory overlay. ECON-1's rule itself is untouched by this scoping.
+
 ### 14.6 Relation to Inspiration
 Inspiration cost is an ORTHOGONAL gate (HandController 2a.5 / session step 1)
 and is untouched by ECON-1. Budget burns only on successful plays: a play
@@ -495,6 +504,18 @@ Two pips per musician on `BandCharacterCanvas` (Action / Composition), pushed
 via `OnTurnPlayBudgetChanged`. Lit = play available; dimmed = consumed;
 re-lit at every seam reset. Steady-state visible (not hover-gated, not under
 the full-bar concealment root).
+
+**Hover tooltip (DEMO-FIXES-A, 2026-07-15, D-DF-6=A).** Each pip carries an
+`EconPipTooltipTarget` (`IPointerEnter/ExitHandler` → the existing `TooltipManager`
+pipeline, `StatusIconBase` pattern — single tooltip source), auto-attached and fed the
+remaining count by `BandCharacterCanvas.UpdateTurnPlayBudget`. Copy: "N action/composition
+card use(s) left this turn." Presentation only — zero semantic change; requires the pip
+`Image.raycastTarget = ON`. Closes the ECON-1 transparency debt on the pips. ST-DF-12 PASS.
+
+The pips remain the budget's **primary** player-facing feedback. The card overlay
+(`SSoT_Card_System.md` §10.5) is a **second, partial** surface — statically-resolvable
+payers only, per §14.5 — and is advisory; the pips and the overlay must agree on the
+frame after a play (regression ST-CU-10, CARD-UX-1).
 
 ### 14.8 Scope notes
 - Dev Mode card spawner adds cards to hand; plays still route through

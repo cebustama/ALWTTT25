@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_play_finisher_early
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_play_finisher_early
+  priority: 81
+  category: 0
+  revisitTitle: Te adelantaste
+  portrait: {fileID: 0}
+  pages:
+  - "\xDAltimo loop. Ahora puedes jugar Psychic Wa... \xBFQu\xE9? \xBFNo me estabas
+    escuchando, novato? Te adelantaste. En fin: el remate ya son\xF3. La pr\xF3xima
+    vez gu\xE1rdalo para el cierre, que es cuando la mente del p\xFAblico est\xE1
+    m\xE1s blanda."
+  highlightKey: 

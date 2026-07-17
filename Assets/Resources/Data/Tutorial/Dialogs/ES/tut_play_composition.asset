@@ -19,6 +19,5 @@ MonoBehaviour:
   portrait: {fileID: 0}
   pages:
   - "Juega una carta de composici\xF3n: arr\xE1strala a la banda. Cada una a\xF1ade
-    algo real a la canci\xF3n \u2014 no es decorado, es m\xFAsica. Empieza por el
-    ritmo."
+    algo real a la canci\xF3n. No es decorado, es m\xFAsica."
   highlightKey: card_default_mode

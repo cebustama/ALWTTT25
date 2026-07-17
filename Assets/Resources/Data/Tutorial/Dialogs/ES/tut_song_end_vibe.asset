@@ -19,6 +19,6 @@ MonoBehaviour:
   portrait: {fileID: 0}
   pages:
   - "Fin de la canci\xF3n: todo el hype que construiste se convierte en DA\xD1O de
-    Vibe contra el p\xFAblico. Cada uno aguanta hasta {$audience_hp} \u2014 vac\xEDasela
+    Vibe contra el p\xFAblico. Cada uno aguanta hasta {$audience_hp}. Vac\xEDasela
     y es tuyo: convencido. As\xED se gana un concierto, canci\xF3n a canci\xF3n."
   highlightKey: audience_vibe_bars

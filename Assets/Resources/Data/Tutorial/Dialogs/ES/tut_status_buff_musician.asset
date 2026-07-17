@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Efectos de estado
   portrait: {fileID: 0}
   pages:
-  - "\xBFVes ese icono sobre el m\xFAsico? Es un efecto de estado \u2014 y este juega
-    a tu favor. Pasa el cursor por encima y te dice exactamente qu\xE9 hace. L\xE9elos:
+  - "\xBFVes ese icono sobre el m\xFAsico? Es un efecto de estado, y este juega a
+    tu favor. Pasa el cursor por encima y te dice exactamente qu\xE9 hace. L\xE9elos:
     la banda vive de ellos."
   highlightKey: status_icon_musician

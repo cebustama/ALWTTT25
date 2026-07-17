@@ -19,6 +19,6 @@ MonoBehaviour:
   portrait: {fileID: 0}
   pages:
   - "Eso es COMPOSTURA: absorbe el da\xF1o al Stress antes de que toque la entereza
-    de tu m\xFAsico. Dura hasta tu pr\xF3ximo turno y luego se esfuma \u2014 es una
-    guardia, no una armadura. S\xFAbela cuando veas venir el golpe."
+    de tu m\xFAsico. Dura hasta tu pr\xF3ximo turno y luego se esfuma. Es una guardia,
+    no una armadura. S\xFAbela cuando veas venir el golpe."
   highlightKey: status_icon_composure

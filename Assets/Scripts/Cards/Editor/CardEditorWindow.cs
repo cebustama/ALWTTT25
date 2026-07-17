@@ -1778,6 +1778,8 @@ namespace ALWTTT.Cards.Editor
                             () => AddEffect(effectsProp, new ModifyStressSpec()));
                         menu.AddItem(new GUIContent("Draw Cards"), false,
                             () => AddEffect(effectsProp, new DrawCardsSpec()));
+                        menu.AddItem(new GUIContent("Add Inspiration / Loop"), false,
+                            () => AddEffect(effectsProp, new AddInspirationPerLoopSpec()));
                         menu.ShowAsContext();
                     }
                 }
@@ -1852,6 +1854,13 @@ namespace ALWTTT.Cards.Editor
                 string tgt = targetProp != null ? targetProp.enumDisplayNames[targetProp.enumValueIndex] : "?";
                 string sign = a >= 0 ? "+" : string.Empty;
                 return $"[{index}] ModifyStress {sign}{a} ({tgt})";
+            }
+
+            if (typeName == nameof(AddInspirationPerLoopSpec))
+            {
+                var amountProp = el.FindPropertyRelative("amountPerLoop");
+                int a = amountProp != null ? amountProp.intValue : 0;
+                return $"[{index}] +{a} Inspiration/loop";
             }
 
             return $"[{index}] {typeName}";

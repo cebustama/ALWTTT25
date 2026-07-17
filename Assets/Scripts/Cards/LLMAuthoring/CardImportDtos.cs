@@ -78,6 +78,7 @@ namespace ALWTTT.Cards.LLMAuthoring
         // - "DrawCards"
         // - "ModifyVibe"
         // - "ModifyStress"
+        // - "AddInspirationPerLoop"   [DF-INSPLOOP] Track cards only; uses `amount` as per-loop bonus (>= 1)
         public string type;
 
         // ─ ApplyStatusEffect ─
@@ -87,7 +88,7 @@ namespace ALWTTT.Cards.LLMAuthoring
         public int stacksDelta = 1;
         public float delay = 0f;
 
-        // ─ ModifyVibe / ModifyStress ─
+        // ─ ModifyVibe / ModifyStress / AddInspirationPerLoop ─
         public int amount = 1;           // vibe/stress delta
 
         // ─ DrawCards ─
@@ -201,10 +202,25 @@ namespace ALWTTT.Cards.LLMAuthoring
     }
 
     [Serializable]
+    public class BundleFieldJson
+    {
+        public string name;   // serialized field name on the bundle SO
+        public string value;  // coerced by property type
+    }
+
+    [Serializable]
+    public class StyleBundleCreateJson
+    {
+        public bool requested;             // explicit-presence flag (JsonUtility default-constructs nested objects)
+        public BundleFieldJson[] fields;   // optional field writes on the minted bundle
+    }
+
+    [Serializable]
     public class TrackActionJson
     {
         public string role;              // enum name as shown in inspector dropdown
         public string styleBundle;        // asset path or guid (hand-authored JSON only; banned from LLM output)
+        public StyleBundleCreateJson styleBundleCreate;
     }
 
     [Serializable]

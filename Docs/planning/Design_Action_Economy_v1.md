@@ -54,3 +54,13 @@ self-explanatory by watching the pips across one loop boundary
   cards set to cost 0; which cards become "finishers" (cost > 0) is deferred to
   a future design batch. Finisher costs will be tuned in S5i. See
   `Design_Starter_Deck_v1.md` §4 and `SSoT_Gig_Combat_Core.md` §14.6.
+- **D-ECON-GENERIC — open.** Who spends the ECON-1 per-musician budget for an
+  `AnyMusician` card (today: fixed → hover → `SelectedMusician`, §5). Blocks Keep
+  Cool's move to the generic catalog (`Design_Tutorial_System_v0_2.md` §9.2). It now
+  **also** gates half of the unplayable-card overlay: **CARD-UX-1 (2026-07-13) shipped
+  the overlay's budget input partially scoped** — statically-resolvable payers only
+  (`FixedPerformerType != None`); `AnyMusician` cards are excluded from the overlay's
+  budget check because a false red is worse than a false green on an advisory surface.
+  Enforcement is unaffected (`TryConsumePlay` still denies the drop). Resolving
+  D-ECON-GENERIC unblocks the `AnyMusician` half. See `SSoT_Gig_Combat_Core.md` §14.5
+  and `SSoT_Card_System.md` §10.5.

@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Inspiration
   portrait: {fileID: 0}
   pages:
-  - "See that +{$inspiration_per_loop}? Every loop feeds you {$inspiration_per_loop}
-    Inspiration. Some cards demand it to be played \u2014 the good ones, naturally.
-    Save it: one just landed in your hand that's worth it."
+  - 'See that +{$inspiration_per_loop}? Every loop feeds you {$inspiration_per_loop}
+    Inspiration. Some cards demand it to be played. The good ones, naturally. Save
+    it: one just landed in your hand that''s worth it.'
   highlightKey: inspiration_counter

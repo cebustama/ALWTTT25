@@ -277,7 +277,9 @@ namespace ALWTTT.UI
             // [B2 / #3] Capture pre-apply state for diff-driven fx classification.
             // Must run BEFORE any mutation (sections 3-5 below). Cheap copy of
             // ~10 value-typed fields; not a perf concern.
-            var snapshot = CaptureSnapshot(part, target);
+            var snapshot = CaptureSnapshot(part, target,
+                comp.PrimaryKind == CardPrimaryKind.Track
+                    ? comp.TrackAction?.role : (TrackRole?)null);
 
             // ---------------------------------------------------------
             // 2) RESOLVE TARGET MUSICIAN (IF REQUIRED)
@@ -701,7 +703,14 @@ namespace ALWTTT.UI
             // Replace (or insert) the selected musician track with a "Solo" entry
             if (!string.IsNullOrEmpty(musicianId))
             {
-                var existing = solo.tracks.FirstOrDefault(t => t.musicianId == musicianId);
+                // [BASS-1 / R2] A musician may now hold multiple role-tracks.
+                // The solo improvisation deterministically targets their Melody
+                // track when present (the lead voice), else their first track.
+                // Identical to legacy behavior for single-track musicians.
+                var existing =
+                    solo.tracks.FirstOrDefault(t => t.musicianId == musicianId
+                        && t.role == TrackRole.Melody)
+                    ?? solo.tracks.FirstOrDefault(t => t.musicianId == musicianId);
                 if (existing != null)
                 {
                     existing.info = "Improvisation";
@@ -784,7 +793,13 @@ namespace ALWTTT.UI
             int complexity = Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0);
             var synergy = sourceCard != null ? sourceCard.CardType : CardType.None;
 
-            var existing = part.tracks.FirstOrDefault(t => t.musicianId == musicianId);
+            // [BASS-1 / D-ALWTTT-FIX=A'] Tracks are keyed by (musicianId, role).
+            // Same role → replace that role's track; different role → add a new
+            // track alongside. A musician can host multiple role-tracks (e.g.
+            // Melody + Bassline). Previously keyed by musicianId only, which
+            // RETARGETED the musician's single track instead of adding.
+            var existing = part.tracks.FirstOrDefault(
+                t => t.musicianId == musicianId && t.role == role);
 
             if (existing != null)
             {
@@ -807,6 +822,20 @@ namespace ALWTTT.UI
             }
             else
             {
+                // [BASS-1 / D4=A] A bundle-less Track card (PartEffect carrier,
+                // e.g. Key Lift) augments an EXISTING track of its role but never
+                // creates an empty one: a role-track with no bundle renders as
+                // "no card" in the composer and only pollutes the model/UI. The
+                // part-level effect (handled upstream in ApplyCardToPart) still
+                // applies; only the track mutation is skipped.
+                if (styleBundle == null)
+                {
+                    Log($"[ApplyCardToPart] Bundle-less Track card for role " +
+                        $"'{role}' and no existing ({musicianId}, {role}) track " +
+                        $"— skipping track creation (D4=A).", false);
+                    return true;
+                }
+
                 var entry = new TrackEntry
                 {
                     musicianId = musicianId,
@@ -826,7 +855,9 @@ namespace ALWTTT.UI
 
             partUIs[partIndex].AddOrUpdateTrack(
                 musicianId, role.ToString(), info,
-                inspirationNext: complexity,
+                // [DF-INSPLOOP] badge shows track complexity + card per-loop bonus
+                inspirationNext: complexity +
+                    ALWTTT.Cards.Effects.AddInspirationPerLoopSpec.SumFor(sourceCard),
                 sourceCard: sourceCard); // [B2 / #3]
             UpdateIconsForCurrentPart();
             RaisePartChanged();
@@ -1148,42 +1179,59 @@ namespace ALWTTT.UI
             // For now: we only support TrackOnly and require a target musician
             if (fx.scope == EffectScope.TrackOnly && target != null)
             {
-                var track = part.tracks.FirstOrDefault(t =>
-                    t.musicianId == target.MusicianCharacterData.CharacterId);
+                // [BASS-1 / D2=A] A musician may now hold multiple role-tracks.
+                // The override applies to ALL of their tracks whose instrument
+                // family matches the effect mode: melodic modes (SpecificMelodic,
+                // InstrumentType) target non-Rhythm tracks; SpecificPercussion
+                // targets Rhythm tracks. Matches the fiction ("hand this musician
+                // a new instrument") and is deterministic. Identical to legacy
+                // behavior for single-track musicians.
+                var tgtIdFx = target.MusicianCharacterData.CharacterId;
+                bool percussionMode =
+                    fx.mode == InstrumentEffect.InstrumentTargetMode.SpecificPercussion;
 
-                if (track == null)
+                var matching = part.tracks.Where(t =>
+                    t.musicianId == tgtIdFx
+                    && (percussionMode
+                        ? t.role == TrackRole.Rhythm
+                        : t.role != TrackRole.Rhythm)).ToList();
+
+                if (matching.Count == 0)
                 {
-                    Log($"[InstrumentEffect] No track found for target " +
-                        $"'{target.name}' in part {partIndex}", false);
+                    Log($"[InstrumentEffect] No family-matching track found for " +
+                        $"target '{target.name}' in part {partIndex}", false);
                     return;
                 }
 
-                // Clear existing overrides
-                track.overrideMelodicInstrument = null;
-                track.overridePercussionInstrument = null;
-                track.hasOverrideInstrumentType = false;
-
-                switch (fx.mode)
+                foreach (var track in matching)
                 {
-                    case InstrumentEffect.InstrumentTargetMode.SpecificMelodic:
-                        track.overrideMelodicInstrument = fx.melodicInstrument;
-                        break;
+                    // Clear existing overrides
+                    track.overrideMelodicInstrument = null;
+                    track.overridePercussionInstrument = null;
+                    track.hasOverrideInstrumentType = false;
 
-                    case InstrumentEffect.InstrumentTargetMode.SpecificPercussion:
-                        track.overridePercussionInstrument = fx.percussionInstrument;
-                        break;
+                    switch (fx.mode)
+                    {
+                        case InstrumentEffect.InstrumentTargetMode.SpecificMelodic:
+                            track.overrideMelodicInstrument = fx.melodicInstrument;
+                            break;
 
-                    case InstrumentEffect.InstrumentTargetMode.InstrumentType:
-                        track.hasOverrideInstrumentType = true;
-                        track.overrideInstrumentType = fx.instrumentType;
-                        break;
-                }
+                        case InstrumentEffect.InstrumentTargetMode.SpecificPercussion:
+                            track.overridePercussionInstrument = fx.percussionInstrument;
+                            break;
 
-                // Optional: reflect something in the info label
-                if (track.styleBundle != null && fx.melodicInstrument != null)
-                {
-                    track.info = $"{track.styleBundle.name} - " +
-                        $"{fx.melodicInstrument.InstrumentName}";
+                        case InstrumentEffect.InstrumentTargetMode.InstrumentType:
+                            track.hasOverrideInstrumentType = true;
+                            track.overrideInstrumentType = fx.instrumentType;
+                            break;
+                    }
+
+                    // Optional: reflect something in the info label
+                    if (track.styleBundle != null && fx.melodicInstrument != null)
+                    {
+                        track.info = $"{track.styleBundle.name} - " +
+                            $"{fx.melodicInstrument.InstrumentName}";
+                    }
                 }
 
                 RefreshPartUI(partIndex);
@@ -1252,7 +1300,8 @@ namespace ALWTTT.UI
         /// Capture the diff-relevant pre-apply state for a part + optional target.
         /// Must be called BEFORE any mutation in <see cref="ApplyCardToPart"/>.
         /// </summary>
-        private PartChangeSnapshot CaptureSnapshot(PartEntry part, MusicianBase target)
+        private PartChangeSnapshot CaptureSnapshot(
+            PartEntry part, MusicianBase target, TrackRole? role = null)
         {
             if (part == null) return default;
 
@@ -1260,7 +1309,12 @@ namespace ALWTTT.UI
             if (target != null)
             {
                 string tgtId = target.MusicianCharacterData.CharacterId;
-                existing = part.tracks?.FirstOrDefault(t => t.musicianId == tgtId);
+                // [BASS-1 / R5] Role-scoped when the incoming card is a Track
+                // card (the card carries its role). Musician-only fallback for
+                // non-Track cards preserves legacy behavior.
+                existing = part.tracks?.FirstOrDefault(t =>
+                    t.musicianId == tgtId
+                    && (role == null || t.role == role.Value));
             }
 
             return new PartChangeSnapshot(
@@ -1373,7 +1427,11 @@ namespace ALWTTT.UI
             if (target != null && comp.PrimaryKind == CardPrimaryKind.Track)
             {
                 string tgtId = target.MusicianCharacterData.CharacterId;
-                var nowTrack = part.tracks?.FirstOrDefault(t => t.musicianId == tgtId);
+                // [BASS-1 / R5] Diff the track matching the played card's role.
+                var cardRole = comp.TrackAction?.role;
+                var nowTrack = part.tracks?.FirstOrDefault(t =>
+                    t.musicianId == tgtId
+                    && (cardRole == null || t.role == cardRole.Value));
 
                 bool isReplacedTrack =
                     before.prevTrackExisted

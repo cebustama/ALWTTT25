@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Loops
   portrait: {fileID: 0}
   pages:
-  - "Each song runs {$loops_per_part} loops, and every loop is a turn. The bar up
-    top shows what's left. When the last loop ends, the song closes \u2014 and the
-    bill comes due."
+  - Each song runs {$loops_per_part} loops, and every loop is a turn. The bar up
+    top shows what's left. When the last loop ends, the song closes, and the bill
+    comes due.
   highlightKey: loops_bar

@@ -136,12 +136,13 @@ MonoBehaviour:
   tooltipAnchor: {fileID: 4759268082142480627}
   cardImage: {fileID: 5153641007469403891}
   backgroundImage: {fileID: 7902859909872050512}
-  passiveImage: {fileID: 0}
+  passiveImage: {fileID: 5297134282105682746}
   nameTextField: {fileID: 8103016476528782798}
   descTextField: {fileID: 1941344470251713790}
   inspirationCostTextField: {fileID: 7292270004405966764}
   inspirationGenTextField: {fileID: 7028356461410207724}
   inspirationGenBadgeRoot: {fileID: 1389313792209333967}
+  inspirationCostBadgeRoot: {fileID: 8387183093294489949}
   typeTextField: {fileID: 3011037641633498653}
   actionBackground: {fileID: 6358231833499588198}
   compositionBackground: {fileID: 1422413742901503822}
@@ -452,6 +453,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5297134282105682746 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8548215695391793108, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 4549321109539710190}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1 &6358231833499588198 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7430540641808822920, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
@@ -501,6 +513,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &8387183093294489949 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5424354733780764083, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 4549321109539710190}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &9069316942307147365 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4827507812373027467, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}

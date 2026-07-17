@@ -102,3 +102,24 @@ When implemented:
 ## 10. Update rule
 
 Update this document when the post-MVP planning conversation revisits the mechanic. When this system enters implementation scope, supersede §2–§7 with the corresponding SSoT sections following the standard pattern (banner at superseded section header, header metadata flagged Partially superseded). §8 (vocabulary) and §9 (SSoT relationships) become the implementation seed.
+
+## 11. Per-loop Inspiration effect (DF-INSPLOOP, 2026-07-16)
+
+**Not a pending-bucket effect.** DF-INSPLOOP is a *recurring per-loop* effect, sibling to the pending pattern but distinct: it does not accumulate into a song-end bucket. It grants Inspiration at every loop boundary while a condition holds. Recorded here because this doc is the standing home for post-MVP economy-effect design; when an economy-effects SSoT is authored, §11 migrates alongside §2–§7 under the standard supersession pattern.
+
+**Origin.** S5e (D2/D3) set Inspiration to a fixed per-loop grant + card costs and content-deprecated per-card `inspirationGenerated` (stripped to 0 on all 36 assets), deferring a `+INS` CardEffect. DF-INSPLOOP is that deferred effect: the deliberate, card-gated path back to Inspiration generation. It does **not** re-activate the basal `inspirationGenerated` path (D-INSP-3=A) — that field stays 0 everywhere, including on the new cards.
+
+**Resolved decisions.**
+- **D-INSP-1=D — track-scoped.** The bonus is active while the track carrying the card is present in the looping part. Replacing/removing that track removes the bonus. NOT song-scoped, NOT permanent — "the groove that generates the idea only generates it while it plays."
+- **D-INSP-2=A — additive.** Distinct tracks each carrying the spec sum. Two cards on the same `(musician, role)` replace (track semantics). `MaxInspiration` clamp bounds the total.
+- **D-INSP-3=A — derived, not basal.** Per-loop value derived from the card's payload effects at `EvalPerLoopInsp` time, never written into `inspirationGenerated`.
+- **D-INSP-4 — LoopScore untouched.** The bonus never enters `LoopTrackSnapshot`, so `TotalComplexity` stays 0 and the complexity term stays inert by construction. S5i still owns that term.
+- **D-INSP-5=A — naming.** Spec `AddInspirationPerLoopSpec`; JSON `"AddInspirationPerLoop"`; field `amount` (≥ 1).
+- **D-INSP-6=A' — acquisition (corrected during validation).** The card is a `RewardPool` entry **in its owning musician's catalog** (`C2_CardCatalogData` for In the Pocket, `Sibi_CardCatalogData` for Vamp) AND carries `UnlockedByDefault`. Rationale: the reward pool (`PersistentGameplayData.BuildRewardCardPool`) sources cards that are `RewardPool ∩ UnlockedByDefault` from **per-musician** catalogs; generic-catalog entries are explicitly excluded (DF-CATALOG). The original A ("`RewardPool` in the generic catalogue") was runtime-ineffective. Starter deck untouched (no `StarterDeck` flag).
+- **D-INSP-7=A — self-creating carrier.** The authored cards carry a real style bundle (`RhythmCardConfigSO` / `BackingCardConfigSO`), so each *creates* its track and binds the bonus to it — the literal reading of D-INSP-1=D. The bundle-less carrier variant (augment + re-source) is mechanically valid but softens "generated" to "most-recently sourced"; retained as a possible future content shape, not the authored path.
+
+**Binding mechanism.** `AddInspirationPerLoopSpec.SumFor(CardDefinition)` is the single derivation point. `CompositionSession.EvalPerLoopInsp` sums, per track, `track.inspirationGenerated + SumFor(track.sourceCardDefinition)`. Because `sourceCardDefinition` is overwritten on same-role replacement, the bonus lives and dies with the track's current source card — track-scoping falls out for free, no extra lifecycle state.
+
+**Economy context.** The basal flat per-loop grant is **1** (`GigFlowSettings.asset` `defaultInspirationPerLoop`; applied by `GigManager.OnCompositionLoopFinished`). One In the Pocket / Vamp track raises the per-loop total to 2; both together (distinct musician/role tracks) to 3. Tuning of the +1 amount / cost 2 is S5i's.
+
+**Authored cards.** "In the Pocket" — Composition Track / Rhythm, C2 (`FixedMusicianType`), cost 2, `inspirationGenerated` 0, one `AddInspirationPerLoop` amount 1, style bundle `Rhythm - C2 - Moderate FourFour`. "Vamp" — Composition Track / Backing, Sibi (`FixedMusicianType`), cost 2, `inspirationGenerated` 0, one `AddInspirationPerLoop` amount 1, style bundle `Backing Card Config - Core Minor`. Both `RewardPool` + `UnlockedByDefault` in their owning musician's catalog.

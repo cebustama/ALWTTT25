@@ -274,6 +274,17 @@ namespace ALWTTT
                     card.CardData.GrooveCost
                 );*/
 
+                // [CARD-UX-1] Unplayable red overlay — single source of truth.
+                // Replaces the legacy groove-check pattern above. Advisory display
+                // only: enforcement stays in the play paths, which read the SAME
+                // underlying gates via GigManager.EvaluateCardPlayability.
+                if (useGigContext && GigManager != null && card.CardDefinition != null)
+                {
+                    card.SetUnplayableOverlay(
+                        GigManager.EvaluateCardPlayability(card.CardDefinition)
+                            != UnplayableReason.None);
+                }
+
                 var noCardHeld = heldCard == null; // Whether a card is "held" (outside of hand)
                 var onSelectedCard = noCardHeld && selected == i;
                 var onDraggedCard = noCardHeld && dragged == i;

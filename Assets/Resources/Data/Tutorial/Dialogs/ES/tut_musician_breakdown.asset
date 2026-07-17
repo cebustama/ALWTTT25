@@ -19,6 +19,6 @@ MonoBehaviour:
   portrait: {fileID: 0}
   pages:
   - "Golpe al Stress de tu m\xFAsico. Esa barra es su entereza, y se gasta: a cero,
-    colapsa y deja de tocar. Algunas cartas de acci\xF3n la recuperan \u2014 o la
-    protegen. Cuida a tu banda: sin banda no hay canci\xF3n."
+    colapsa y deja de tocar. Algunas cartas de acci\xF3n la recuperan, o la protegen.
+    Cuida a tu banda: sin banda no hay canci\xF3n."
   highlightKey: musician_stress_bar

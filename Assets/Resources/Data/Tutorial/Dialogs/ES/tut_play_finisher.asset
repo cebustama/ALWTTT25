@@ -15,10 +15,10 @@ MonoBehaviour:
   triggerId: tut_play_finisher
   priority: 80
   category: 0
-  revisitTitle: El Gran Final
+  revisitTitle: Psychic Waves
   portrait: {fileID: 0}
   pages:
-  - "\xDAltimo loop. Hora del Gran Final: una carta de ACCI\xD3N \u2014 no toca la
-    canci\xF3n, golpea al p\xFAblico. Cuesta Inspiraci\xF3n y pega a TODO el p\xFAblico
-    a la vez. Ju\xE9gala antes de que acabe el loop. El cierre lo es todo."
-  highlightKey: card_grand_finale
+  - "\xDAltimo loop. Hora del remate: PSYCHIC WAVES, una carta de ACCI\xD3N. No toca
+    la canci\xF3n: golpea la mente de TODO el p\xFAblico a la vez. Cuesta Inspiraci\xF3n.
+    Ju\xE9gala antes de que acabe el loop. El cierre lo es todo."
+  highlightKey: card_psychic_waves

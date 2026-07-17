@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: The crowd's turn
   portrait: {fileID: 0}
   pages:
-  - "Now it's their turn. Every character in the crowd has their own tricks: some
-    hit your musicians' Stress \u2014 their fortitude reserve; at zero, breakdown
-    \u2014 and others cover for each other. Watch them before your next turn."
+  - 'Now it''s their turn. Every character in the crowd has their own tricks: some
+    hit your musicians'' Stress, their fortitude reserve (at zero, breakdown), and
+    others cover for each other. Watch them before your next turn.'
   highlightKey: audience_area

@@ -42,11 +42,11 @@ namespace ALWTTT.Cards.Effects
 
         public static string Build(CardEffectSpec spec, BandCharacterStats stats = null)
         {
-            if (spec == null) return string.Empty;
             if (spec is ApplyStatusEffectSpec ase) return BuildApplyStatus(ase);
             if (spec is ModifyVibeSpec vibe) return BuildModifyVibe(vibe);
             if (spec is ModifyStressSpec stress) return BuildModifyStress(stress);
             if (spec is DrawCardsSpec draw) return BuildDrawCards(draw);
+            if (spec is AddInspirationPerLoopSpec inspLoop) return BuildAddInspirationPerLoop(inspLoop);
             return spec.GetType().Name;
         }
 
@@ -93,6 +93,15 @@ namespace ALWTTT.Cards.Effects
             return draw.count == 1
                 ? $"Draw {NumberColor}1{ColorEnd} card"
                 : $"Draw {NumberColor}{draw.count}{ColorEnd} cards";
+        }
+
+        // [DF-INSPLOOP] Track-scoped recurring Inspiration. Surfaced on hover
+        // tooltip / detail modal; composition card faces omit effects by design
+        // (SSoT_Card_System §10.1).
+        private static string BuildAddInspirationPerLoop(AddInspirationPerLoopSpec insp)
+        {
+            if (insp.amountPerLoop <= 0) return string.Empty;
+            return $"Gain {NumberColor}+{insp.amountPerLoop}{ColorEnd} Inspiration each loop while this track plays";
         }
 
         private static string DescribeTarget(ActionTargetType t)

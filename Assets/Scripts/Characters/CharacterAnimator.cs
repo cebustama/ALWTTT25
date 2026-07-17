@@ -72,6 +72,26 @@ namespace ALWTTT.Characters
         // Authored per-toggle settings are preserved across disable/enable.
         private bool beatAnimationEnabled = true;
 
+        // [JUICE-PW D2=B] One-shot impact kick (procedural, no clip system).
+        // Applied as a LateUpdate OVERLAY on top of whatever pose the beat
+        // loop wrote this frame, with snapshot/restore so it never
+        // accumulates when the beat loop skips a frame (skipEveryNBeats,
+        // idle gate, or all pose toggles off).
+        [Header("Impact Kick (one-shot) [JUICE-PW]")]
+        [Tooltip("Peak scale amplitude of the kick as a fraction (0.25 = up to 1.25×).")]
+        [SerializeField][Range(0f, 1f)] private float kickScaleAmplitude = 0.25f;
+        [Tooltip("Peak vertical hop of the kick in local units.")]
+        [SerializeField][Min(0f)] private float kickHopHeight = 0.12f;
+        [Tooltip("Default kick duration in seconds.")]
+        [SerializeField][Min(0.05f)] private float kickDuration = 0.35f;
+
+        private float _kickEndTime = -1f;
+        private float _kickActiveDuration;
+        private float _kickIntensity;
+        private bool _kickOverlayApplied;
+        private Vector3 _preKickScale, _postKickScale;
+        private Vector3 _preKickPos, _postKickPos;
+
         // Public 
         #region Encapsulation
         public int SkipEveryNBeats
@@ -295,6 +315,69 @@ namespace ALWTTT.Characters
             {
                 particleSystemRef.Emit(count);
             }
+        }
+
+        /// <summary>
+        /// [JUICE-PW D2=B] Fire a one-shot impact kick: a fast-attack,
+        /// eased-decay scale pop + vertical hop overlaid on the beat pose.
+        /// Safe to call while the beat loop is running, gated off (idle), or
+        /// mid-kick (restarts). Duration &lt;= 0 uses the authored default.
+        /// </summary>
+        public void PlayImpactKick(float intensity01 = 1f, float duration = -1f)
+        {
+            _kickIntensity = Mathf.Clamp01(intensity01);
+            _kickActiveDuration = duration > 0f ? duration : kickDuration;
+            _kickEndTime = Time.time + _kickActiveDuration;
+        }
+
+        // [JUICE-PW D2=B] Overlay runs in LateUpdate, after this component's
+        // Update wrote the beat pose. Snapshot/restore contract:
+        //   1. Undo LAST frame's overlay first — but only if the value still
+        //      equals what we wrote (i.e. no beat writer rewrote it this
+        //      frame). This kills accumulation on frames where the beat loop
+        //      skipped (skipEveryNBeats), is idle-gated, or has all pose
+        //      toggles off.
+        //   2. Apply this frame's overlay on the clean base and re-snapshot.
+        // On kick end with the idle gate off, the pose is restored to rest so
+        // no stale kick offset survives (mirrors SetBeatAnimationEnabled).
+        private void LateUpdate()
+        {
+            if (jumpRoot == null) return;
+
+            // (1) Undo the previous frame's overlay if it survived intact.
+            if (_kickOverlayApplied)
+            {
+                if (jumpRoot.localScale == _postKickScale)
+                    jumpRoot.localScale = _preKickScale;
+                if (jumpRoot.localPosition == _postKickPos)
+                    jumpRoot.localPosition = _preKickPos;
+                _kickOverlayApplied = false;
+            }
+
+            if (_kickEndTime < 0f) return;
+
+            if (Time.time >= _kickEndTime)
+            {
+                _kickEndTime = -1f;
+                if (!beatAnimationEnabled) ResetToRestPose();
+                return;
+            }
+
+            // (2) Apply this frame's overlay: fast attack (first 20%), eased
+            // decay (remaining 80%).
+            float t = 1f - (_kickEndTime - Time.time) / _kickActiveDuration;
+            float k = t < 0.2f ? (t / 0.2f) : (1f - (t - 0.2f) / 0.8f);
+            k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(k)) * _kickIntensity;
+
+            _preKickScale = jumpRoot.localScale;
+            _preKickPos = jumpRoot.localPosition;
+
+            jumpRoot.localScale = _preKickScale * (1f + kickScaleAmplitude * k);
+            jumpRoot.localPosition = _preKickPos + Vector3.up * (kickHopHeight * k);
+
+            _postKickScale = jumpRoot.localScale;
+            _postKickPos = jumpRoot.localPosition;
+            _kickOverlayApplied = true;
         }
 
         #region Private Methods

@@ -175,6 +175,10 @@ namespace ALWTTT.Managers
                     HandController.AddCardToHand(card);
                 }
 
+                // [CARD-UX-1 / D1=C] Tutorial highlight for driver-registered card ids.
+                ALWTTT.Tutorial.TutorialHighlightSpawnHook.AttachToCard(
+                    card, HandController != null ? HandController.Cam : null);
+
                 HandPile.Add(randomCard);
                 DrawPile.Remove(randomCard);
 
@@ -420,6 +424,10 @@ namespace ALWTTT.Managers
                     $"{DevTag} DevSpawnCardToHand: BuildAndGetCard returned null for '{def.DisplayName}'.");
                 return false;
             }
+
+            // [CARD-UX-1 / D1=C] Tutorial highlight for driver-registered card ids.
+            ALWTTT.Tutorial.TutorialHighlightSpawnHook.AttachToCard(
+                built, HandController != null ? HandController.Cam : null);
 
             if (!built.gameObject.activeInHierarchy)
             {
@@ -767,6 +775,10 @@ namespace ALWTTT.Managers
                 Debug.LogError($"{DebugTag} {tag} BuildAndGetCard returned null for '{matchCard.name}'.");
                 return false;
             }
+
+            // [CARD-UX-1 / D1=C] Tutorial highlight for driver-registered card ids.
+            ALWTTT.Tutorial.TutorialHighlightSpawnHook.AttachToCard(
+                cardObj, HandController != null ? HandController.Cam : null);
 
             HandController.AddCardToHand(cardObj);
             HandPile.Add(matchCard);

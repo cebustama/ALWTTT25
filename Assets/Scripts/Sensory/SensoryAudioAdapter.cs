@@ -38,6 +38,9 @@ namespace ALWTTT.Sensory
         public long StageEventsHandled { get; private set; }
         public long RewardChoicesOpened { get; private set; }
 
+        /// <summary>[JUICE-PW] Card-impact events handled (ST-PW parity).</summary>
+        public long VibeImpactEventsHandled { get; private set; }
+
         private SensoryEventBus _bus;
 
         private void OnEnable()
@@ -55,10 +58,11 @@ namespace ALWTTT.Sensory
             _bus.Subscribe<SongEndVibeEvent>(OnSongEndVibe);
             _bus.Subscribe<SfxStageCrossedEvent>(OnStageCrossed);
             _bus.Subscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
+            _bus.Subscribe<AudienceVibeImpactEvent>(OnVibeImpact);
 
             Debug.Log(
                 "[SensoryAudioAdapter] Subscribed to bus " +
-                "(AudienceReaction + SongEndVibe + SfxStageCrossed).");
+                "(AudienceReaction + SongEndVibe + SfxStageCrossed + AudienceVibeImpact).");
         }
 
         private void OnDisable()
@@ -68,7 +72,24 @@ namespace ALWTTT.Sensory
             _bus.Unsubscribe<SongEndVibeEvent>(OnSongEndVibe);
             _bus.Unsubscribe<SfxStageCrossedEvent>(OnStageCrossed);
             _bus.Unsubscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
+            _bus.Unsubscribe<AudienceVibeImpactEvent>(OnVibeImpact);
             _bus = null;
+        }
+
+        /// <summary>
+        /// [JUICE-PW D3=A] Card Vibe impact: ONE sting per card play, not one
+        /// per AoE target — SensorySfxPresentation.ForCardVibeImpact returns a
+        /// key only for FanoutIndex 0 and null for the rest (the per-member
+        /// FT wave carries the fan-out visually). No jitter: single-source by
+        /// construction. Plays even when the first target was blocked — the
+        /// card resolving is the audible moment, per the D2 audio floor.
+        /// </summary>
+        private void OnVibeImpact(AudienceVibeImpactEvent e)
+        {
+            VibeImpactEventsHandled++;
+            Play(SensorySfxPresentation.ForCardVibeImpact(in e),
+                 $"card-vibe-impact card='{e.Card?.DisplayName}' " +
+                 $"applied={e.AppliedDelta} fanout={e.FanoutIndex}/{e.TargetCount}");
         }
 
         private void OnAudienceReaction(AudienceReactionEvent e)

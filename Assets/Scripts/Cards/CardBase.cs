@@ -41,6 +41,15 @@ namespace ALWTTT
                  "number). Hidden when the card generates 0 inspiration. If " +
                  "unassigned, only inspirationGenTextField's GameObject is toggled.")]
         [SerializeField] protected GameObject inspirationGenBadgeRoot;
+
+        [Tooltip("[DEMO-FIXES-A / DF-COST0] Optional root for the COST badge " +
+                 "(background circle + number). Hidden when InspirationCost == 0 " +
+                 "(post-ECON-1 all starters cost 0 — the badge is noise). If " +
+                 "unassigned, only inspirationCostTextField's GameObject is toggled. " +
+                 "WIRE IN BOTH PREFABS (gameplay card + CardUI inventory — " +
+                 "two-prefab recurrence vector, CURRENT_STATE §4).")]
+        [SerializeField] protected GameObject inspirationCostBadgeRoot;
+
         [SerializeField] protected TextMeshProUGUI typeTextField;
 
         [Header("Type background [S5b / Item 1]")]
@@ -90,7 +99,16 @@ namespace ALWTTT
                 "COMPOSITION" : CardDefinition.CardType.ToString();
             nameTextField.text = CardDefinition.DisplayName;
             descTextField.text = CardDefinition.GetDescription();
-            inspirationCostTextField.text = CardDefinition.InspirationCost.ToString();
+
+            // [DEMO-FIXES-A / DF-COST0 / D-DF-5=A] Mirror of the S5e-ext
+            // gen-badge hide. Symmetric toggle so pooled/reused cards recover.
+            bool showCost = CardDefinition.InspirationCost > 0;
+            if (inspirationCostBadgeRoot != null)
+                inspirationCostBadgeRoot.SetActive(showCost);
+            else if (inspirationCostTextField != null)
+                inspirationCostTextField.gameObject.SetActive(showCost);
+            if (inspirationCostTextField != null && showCost)
+                inspirationCostTextField.text = CardDefinition.InspirationCost.ToString();
 
             // [S5e-ext] Post-D3 all content authors gen=0; hide the dead badge.
             // Symmetric toggle so pooled/reused hand cards recover if gen>0 returns.
@@ -278,6 +296,11 @@ namespace ALWTTT
                         continue;
                     }
 
+                    // [JUICE-PW D1=A] Fan-out counter for AudienceVibeImpactEvent.
+                    // Counts PUBLISHED events (valid audience targets), not raw
+                    // list slots, so FanoutIndex==0 is a reliable play-once key.
+                    int vibeFanout = 0;
+
                     for (int t = 0; t < targets.Count; t++)
                     {
                         var trg = targets[t];
@@ -382,6 +405,32 @@ namespace ALWTTT
                                 $"Δ{finalDelta} via card '{CardDefinition?.DisplayName}'.");
                         }
 #endif
+
+                        // [JUICE-PW D1=A] Publish the per-target impact to the
+                        // sensory bus AT RESOLUTION (gameplay only publishes;
+                        // FT/SFX/anim derivation lives in the adapters). This
+                        // runs strictly before DeckManager.OnCardPlayed at the
+                        // end of CardUseRoutine, so it precedes the beat-8
+                        // hold release keyed on CardPlayedEvent (task d).
+                        var sensoryBus = ALWTTT.Sensory.SensoryEventBus.Instance;
+                        if (sensoryBus != null)
+                        {
+                            int audienceIdx = allAudienceCharacters != null
+                                ? allAudienceCharacters.IndexOf(audience)
+                                : -1;
+                            sensoryBus.Publish(new ALWTTT.Sensory.AudienceVibeImpactEvent(
+                                audience,
+                                audienceIdx,
+                                audience.CharacterId,
+                                performer,
+                                CardDefinition,
+                                baseDelta,
+                                finalDelta,
+                                appliedVibe,
+                                vibeFanout,
+                                targets.Count));
+                            vibeFanout++;
+                        }
                     }
 
                     continue;
@@ -460,6 +509,14 @@ namespace ALWTTT
                             $"[Effects] {performer?.name} drew {draw.count} card(s) via card '{CardDefinition?.DisplayName}'.");
 #endif
                     }
+                    continue;
+                }
+
+                if (effect is AddInspirationPerLoopSpec)
+                {
+                    // [DF-INSPLOOP] Consumed at track-binding time
+                    // (EvalPerLoopInsp via TrackEntry.sourceCardDefinition),
+                    // not by the CardBase pipeline. No-op here by design.
                     continue;
                 }
 
@@ -591,6 +648,16 @@ namespace ALWTTT
             IsInactive = isInactive;
             passiveImage.gameObject.SetActive(isInactive);
         }
+
+        /// <summary>
+        /// [CARD-UX-1 / D4=A] Red "unplayable" overlay. Semantic wrapper over the
+        /// existing passiveImage mechanism — same guards apply (no-op on
+        /// IsPlayable=false instances like the inventory/minicard CardUI, and on
+        /// no-change). Driven EXCLUSIVELY by HandController from
+        /// GigManager.EvaluateCardPlayability; never compute playability here.
+        /// </summary>
+        public virtual void SetUnplayableOverlay(bool unplayable)
+            => SetInactiveMaterialState(unplayable);
 
         public virtual void Discard()
         {

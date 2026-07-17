@@ -34,6 +34,18 @@ using ALWTTT.DevMode;
 
 namespace ALWTTT.Managers
 {
+    /// <summary>[CARD-UX-1] Display taxonomy for the unplayable-card red overlay.
+    /// None = playable. Produced only by GigManager.EvaluateCardPlayability.</summary>
+    public enum UnplayableReason
+    {
+        None = 0,
+        TutorialGate = 1,   // TutorialInputGate beats 3/5 (+ beat-3 allow-list)
+        ActionTiming = 2,   // CanPlayActionCard window
+        Inspiration = 3,    // session cost gate (2a.5 / session step 1)
+        Budget = 4,         // ECON-1, statically-resolvable payer only (D5)
+        FinalLoopLock = 5   // D2=A: no next loop would render the change
+    }
+
     public class GigManager : MonoBehaviour
     {
         public const string DebugTag = "<color=magenta>GigManager:</color>";
@@ -89,6 +101,15 @@ namespace ALWTTT.Managers
         [SerializeField] private SongCompositionUI compositionUI;
         [SerializeField] private LoopsTimerUI loopsTimerUI;
         [SerializeField] private MidiGenPlayConfig midiGenPlayConfig;
+
+        [Header("Tutorial opt-in [DEMO-FIXES-A / DEMO-TUT-TOGGLE]")]
+        [SerializeField, Tooltip("Gig-open tutorial prompt. Lives in THIS (Gig) " +
+            "scene, so it's a normal serialized ref. If unwired/null, the gig " +
+            "starts immediately with the current PD.TutorialEnabled value.")]
+        private ALWTTT.Tutorial.TutorialOptInPrompt tutorialOptInPrompt;
+        // NOTE: no tutorialRoot field. TutorialController/Driver live on GigCanvas
+        // in the ALWTTTCore scene — a cross-scene serialized ref is impossible.
+        // The driver is resolved at runtime via UIManager.GigCanvas below.
 
         [Header("References")]
         [SerializeField] private BackgroundContainer backgroundContainer;
@@ -317,6 +338,13 @@ namespace ALWTTT.Managers
 
         private bool UseLogs => dev != null && dev.UseLogs;
 
+#if ALWTTT_DEV
+        public void DevWinNormalFlow() => WinGig();   // abre RewardCanvas → BuildReward(Card)
+        public void DevLoseNormalFlow() => LoseGig();
+        public void DevForceWinImmediate() => ReturnToMap(true);
+        public void DevForceLoseImmediate() => ReturnToMap(false);
+#endif
+
         #region Setup
         private void Awake()
         {
@@ -340,8 +368,46 @@ namespace ALWTTT.Managers
 
         private void Start()
         {
+            // [DEMO-FIXES-A / DEMO-TUT-TOGGLE] StartGig is DEFERRED until the
+            // opt-in answer, then the driver is PREPARED (forced-hand fill or
+            // stand-down) BEFORE StartGig runs its initial draw in SetupDeck.
+            var pd = GameManager.PersistentGameplayData;
+            if (tutorialOptInPrompt != null && tutorialOptInPrompt.IsWired && pd != null)
+            {
+                tutorialOptInPrompt.Show(pd.TutorialEnabled, enabled =>
+                {
+                    pd.TutorialEnabled = enabled;
+                    ResolveTutorialDriver()?.PrepareForGig(enabled);
+                    StartGig();
+                    SetupSongHypeDebugUI();
+                });
+                return;
+            }
+
+            bool en = pd == null || pd.TutorialEnabled;
+            ResolveTutorialDriver()?.PrepareForGig(en);   // dev / no-popup path
             StartGig();
             SetupSongHypeDebugUI();
+        }
+
+        // [DEMO-FIXES-A / D-DF-8=A] Cross-scene-safe runtime resolution. GigCanvas
+        // is core-instantiated (ALWTTTCore) and reachable via the UIManager
+        // singleton; includeInactive covers the case where GigCanvas hasn't been
+        // activated yet (StartGig activates it later). Null-safe: if resolution
+        // fails, the belt guards (PD.TutorialEnabled) still make the driver inert
+        // on "No", and a "Yes" merely skips the forced-hand nicety once — the
+        // reactive tutorial still runs and the M4.5 draw guarantee covers the hand.
+        private ALWTTT.Tutorial.TutorialGuidedDriver ResolveTutorialDriver()
+        {
+            var canvas = UIManager != null ? UIManager.GigCanvas : null;
+            if (canvas == null)
+            {
+                Debug.LogWarning($"{DebugTag} [DEMO-FIXES-A] Tutorial driver unresolved: " +
+                    "UIManager.GigCanvas is null at gig open. Proceeding without pre-arm.");
+                return null;
+            }
+            return canvas.GetComponentInChildren<ALWTTT.Tutorial.TutorialGuidedDriver>(
+                includeInactive: true);
         }
 
         private void OnDestroy()
@@ -618,6 +684,9 @@ namespace ALWTTT.Managers
 
                 _spawned.Add(clone);
 
+                // [CARD-UX-1 / D1=C] Tutorial highlight (musician_stress_bar).
+                ALWTTT.Tutorial.TutorialHighlightSpawnHook.AttachToMusician(clone);
+
                 MidiMusicManager?.RegisterMusicianAnchor(
                     clone.MusicianCharacterData.CharacterId, clone.transform);
 
@@ -646,6 +715,9 @@ namespace ALWTTT.Managers
                 );
 
                 clone.BuildCharacter();
+
+                // [CARD-UX-1 / D1=C] Tutorial highlights (audience_vibe_bars + blocked).
+                ALWTTT.Tutorial.TutorialHighlightSpawnHook.AttachToAudience(clone);
 
                 clone.ColumnIndex = Mathf.Min(i, AudienceMemberPosList.Count - 1);
 
@@ -1626,6 +1698,16 @@ namespace ALWTTT.Managers
                 return false;
             }
 
+            // [CARD-UX-1 / D2=A] Final-loop lock — presentation-avoidance mirror.
+            // Single authority is CompositionSession.IsFinalLoopRunning (the session
+            // gate below also denies); this early-out only prevents the one-shot
+            // animation from playing on a denied play (same pattern as ECON-1 T5).
+            if (_session != null && _session.IsFinalLoopRunning)
+            {
+                Log("[CARD-UX-1] Composition play denied — final-loop lock.");
+                return false;
+            }
+
             // One-shot composition card animation
             if (target != null && card != null && card.CardDefinition != null)
             {
@@ -1899,6 +1981,46 @@ namespace ALWTTT.Managers
                     $"C:{musician.Stats.CompositionPlaysRemaining}/{musician.Stats.MaxCompositionPlays})");
 
             return ok;
+        }
+
+        // ─── [CARD-UX-1] Single playability source of truth (display) ─────────
+        // AGGREGATES the same gates the play paths enforce — it does not duplicate
+        // logic. HandController polls this per-frame to drive the red overlay.
+        // Invariant (SSoT_Card_System §10.5 at close): no consumer computes
+        // playability locally; CardBase/HandController only read this.
+        public UnplayableReason EvaluateCardPlayability(CardDefinition def)
+        {
+            if (def == null) return UnplayableReason.None;
+
+            // 1) Tutorial directive gates (beats 3/5, beat-3 allow-list).
+            if (ALWTTT.Tutorial.TutorialInputGate.BlocksCardDrag(def))
+                return UnplayableReason.TutorialGate;
+
+            // 2) Domain gates.
+            if (def.IsAction && !CanPlayActionCard(def))
+                return UnplayableReason.ActionTiming;
+
+            if (def.IsComposition && _session != null && _session.IsFinalLoopRunning)
+                return UnplayableReason.FinalLoopLock; // [D2=A]
+
+            // 3) Inspiration — orthogonal gate, mirrors HandController 2a.5 /
+            //    session step 1 (both read CanAffordInspiration).
+            int cost = Mathf.Max(0, def.InspirationCost);
+            if (cost > 0 && (_session == null || !_session.CanAffordInspiration(cost)))
+                return UnplayableReason.Inspiration;
+
+            // 4) ECON-1 budget — ONLY when the payer is statically resolvable
+            //    (D5 / D-ECON-GENERIC=C scoping). AnyMusician cards and
+            //    hover-attributed compositions are EXCLUDED (never red on budget);
+            //    their enforcement remains the TryConsumePlay drop-denial.
+            if (def.FixedPerformerType != MusicianCharacterType.None)
+            {
+                var payer = ResolveMusicianByType(def.FixedPerformerType);
+                if (payer != null && !CanConsumePlay(payer, def.IsComposition))
+                    return UnplayableReason.Budget;
+            }
+
+            return UnplayableReason.None;
         }
 
         /// <summary>Refill every live musician's budget. Idempotent; safe to

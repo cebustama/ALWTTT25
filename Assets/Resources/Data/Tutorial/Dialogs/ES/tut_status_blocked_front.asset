@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Bloqueado
   portrait: {fileID: 0}
   pages:
-  - "El grandote se ha puesto delante y se ha BLOQUEADO: mientras le dure ese icono,
-    tu Vibe no le entra. No malgastes m\xFAsica contra un muro \u2014 espera a que
-    baje la guardia, o gasta la canci\xF3n en los que s\xED escuchan."
+  - "El grandote se ha puesto delante y se ha BLOQUEADO: mientras dure, tu Vibe no
+    le entra. No malgastes m\xFAsica contra un muro. Espera a que baje la guardia,
+    o gasta la canci\xF3n en los que s\xED escuchan."
   highlightKey: status_icon_blocked

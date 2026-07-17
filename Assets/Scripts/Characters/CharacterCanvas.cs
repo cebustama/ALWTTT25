@@ -2,6 +2,7 @@
 using ALWTTT.Status.Runtime;
 using ALWTTT.Tooltips;
 using ALWTTT.UI;
+using ALWTTT.Tutorial;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -39,6 +40,11 @@ namespace ALWTTT.Characters
 
         /// <summary>[S5e-ext] True once a meter value has been cached and it sits at Max.</summary>
         protected bool IsMeterFull => _meterMax > 0 && _meterCurrent >= _meterMax;
+
+        /// <summary>[CARD-UX-1] Rect of the primary meter bar (musician Stress /
+        /// audience Vibe) for world→screen tutorial highlights. Null-safe.</summary>
+        public RectTransform MeterBarRect =>
+            currentHealthBar != null ? currentHealthBar.transform as RectTransform : null;
 
         /// <summary>
         /// [S5e-ext] Cache the latest meter state. Called by SetCurrentVibe here
@@ -168,6 +174,13 @@ namespace ALWTTT.Characters
             clone.SetStatus(def.IconSprite);
             clone.BindTooltipSource(def, _boundContainer, id);
             _activeIcons[id] = clone;
+
+            // [CARD-UX-1 / D1=C] Register the fresh icon as a tutorial highlight
+            // target. Icons spawn exactly when the status applies (= when the
+            // dialog fires), so registry last-registered-wins points at the right
+            // icon by construction.
+            ALWTTT.Tutorial.TutorialHighlightSpawnHook.AttachToStatusIcon(
+                clone, id, musicianSide: this is Band.BandCharacterCanvas);
 
             // M1.8: trigger appear popup animation.
             clone.PlayAppear();

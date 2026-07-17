@@ -184,6 +184,15 @@ Resolution contract:
 }
 ```
 
+### 5.6a Example — AddInspirationPerLoop (DF-INSPLOOP, 2026-07-16)
+```json
+{
+  "type": "AddInspirationPerLoop",
+  "amount": 2
+}
+```
+Grants `amount` Inspiration at each loop boundary while the carrying card's track is active (track-scoped). `amount` must be `>= 1`; import rejects `< 1`. Meaningful only on **Composition Track** cards — on an Action card the spec is inert (defensive no-op branch in `CardBase.ExecuteEffects`, never bound as a track source). The importer does not hard-gate card kind; a kind mismatch is harmless, not an error.
+
 ### 5.7 Batch wrapper schema
 
 Multiple cards can be imported in a single JSON payload using a batch wrapper:
@@ -274,7 +283,78 @@ The `composition` payload block gained two CE-L1 authoring fields. Both are pars
 - `timeSignature` (optional, `TimeSignature` enum name) and `keywords` (optional string array) filter the candidate palettes.
 - Resolution is deterministic and seeded: `CardPaletteIntentResolver` selects over the project's real `DrumPatternPaletteSO` / `ChordProgressionPaletteSO` assets via the CE-F1 `PaletteSelector` (exact-meter tier → heuristic tier → raw weights), seeded by the panel's intent seed (same payload + same seed ⇒ same pick). Rhythm role → drum palettes; Backing role → chord palettes; Melody/Harmony intent fails loudly (no palette types exist); unmatched keywords fail listing the available palettes. The payload never names an asset.
 
-**Route scope (normative, code-verified 2026-06-12).** Palette intent is resolved **only** on the LLM routes — the Card Editor's *Generate* and *Import from clipboard* buttons, whose outcome carries a field plan consumed at Save by `ApplyLlmPlanOnSave`. The plain JSON **batch-import box** parses `composition.palette` into the DTO but **ignores it**: there is no field plan on that path, so `ApplyLlmPlanOnSave` is a no-op and no bundle/palette is assigned. Do not author `composition.palette` in batch JSON expecting it to take effect; assign the bundle's palette directly via the composition payload's `trackAction.styleBundle` (or the editor's bundle creator) instead. `modifierEffectNames`, by contrast, resolves identically on both routes.
+**Route scope (normative, code-verified 2026-06-12).** Palette intent is resolved **only** on the LLM routes — the Card Editor's *Generate* and *Import from clipboard* buttons, whose outcome carries a field plan consumed at Save by `ApplyLlmPlanOnSave`. The plain JSON **batch-import box** parses `composition.palette` into the DTO but **ignores it**: there is no field plan on that path, so `ApplyLlmPlanOnSave` is a no-op and no palette is resolved. *(Partially superseded by §5.13, BASS-CARD-1, 2026-07-12: the batch box **can** now mint and configure a style bundle via `trackAction.styleBundleCreate`. What it still cannot do is resolve palette **intent** — a palette can only be attached on that route by naming the asset, never by describing it.)* Do not author `composition.palette` in batch JSON expecting it to take effect; on that route either point `trackAction.styleBundle` at an existing bundle asset, mint one inline with `trackAction.styleBundleCreate`, or use the editor's bundle creator. `modifierEffectNames`, by contrast, resolves identically on both routes.
+
+### 5.13 — `composition.trackAction.styleBundleCreate` (BASS-CARD-1, 2026-07-12)
+
+Before this, a Composition card imported from JSON could only **point at** an existing `TrackStyleBundleSO` (`trackAction.styleBundle` = asset path or guid). It could neither create one nor set any field on it. That made **Bassline cards unauthorable from JSON**: a `BasslineCardConfigSO` carries no palette — only articulation (`chordExpression`, `arpeggioRate`) — so there was nothing to point at until someone hand-made the asset.
+
+`trackAction.styleBundleCreate` mints a **role-typed** bundle at Save and optionally writes fields on it:
+
+```json
+{
+  "composition": {
+    "primaryKind": "Track",
+    "trackAction": {
+      "role": "Bassline",
+      "styleBundleCreate": {
+        "requested": true,
+        "fields": [
+          { "name": "chordExpression", "value": "ArpeggioUp" },
+          { "name": "arpeggioRate",    "value": "Eighth" }
+        ]
+      }
+    }
+  }
+}
+```
+
+- **`requested`** (bool) — explicit-presence flag, for the same reason as `palette.requested` (§5.12): `JsonUtility` default-constructs absent nested objects, so mere presence is not a signal. Intent is recognized content-based (`requested == true` **or** `fields` non-empty). "Mint with all defaults" is `{"requested": true}`.
+- **`fields`** (optional) — `{ name, value }` pairs. `name` is a **serialized field name** on the bundle SO. `value` is always a string and is coerced by the target property's type: enum **by name** (case-insensitive), int, float, bool, string, or object reference by asset path/guid.
+- **Bundle type is derived from `role`**, via the Card Editor's existing `ResolveBundleTypeForRole` — the same map behind the wizard's role buttons. `Bassline` ⇒ `BasslineCardConfigSO`, `Backing` ⇒ `BackingCardConfigSO`, `Melody` ⇒ `MelodyCardConfigSO`, `Harmony` ⇒ `HarmonyCardConfigSO`, `Rhythm` ⇒ `RhythmCardConfigSO`.
+
+**Normative rules.**
+
+1. **Mutually exclusive with `styleBundle`.** Both present ⇒ hard failure at staging.
+2. **Requires `role`** (the bundle type is derived from it) and a **Composition** card. Either missing ⇒ hard failure at staging.
+3. **Unknown field names are hard errors, never silent skips.** The importer logs the offending name *and the bundle's full list of valid serialized field names* — a wrong guess is self-correcting.
+4. **Banned from LLM output.** `styleBundleCreate.fields` can carry asset paths (object-reference coercion), which is precisely the channel the §3.3 banned-asset-path guard exists to close. The LLM route does not need it: its bundle is minted by the field plan (`ApplyLlmPlanOnSave`) and its asset intent travels through `composition.palette`. **Hand-authored JSON only.** Enforced in `CardLLMResponseHandler.ApplyBannedFieldGuard`; covered by EditMode tests.
+5. **Applied at Save, not at staging** — `ApplyJsonBundleCreateOnSave` runs after the payload asset exists on disk, because the bundle's folder is derived from the payload's asset path. Consumed exactly once; cleared by `DiscardStagedJson`.
+
+### 5.14 — Track cards: `styleBundle` is what creates the track (BASS-1 D4=A, 2026-07-12)
+
+**A Composition card with `primaryKind: Track` and no `trackAction.styleBundle` does not create a track.** It augments the target musician's existing track *of that same role* if one exists, and otherwise applies only its part effect (`modifierEffects` / `modifierEffectNames`).
+
+This is intentional and is the runtime semantic D4=A, whose authority is `SSoT_Runtime_CompositionSession_Integration.md` §11 — restated here because it is the single rule most likely to trip a card author.
+
+**Authoring consequences.**
+
+- A Track card meant to **add a track** must carry a bundle: either `trackAction.styleBundle` (existing asset) or `trackAction.styleBundleCreate` (§5.13). This is not optional. A bass card with an empty bundle slot is **inert** — it will silently add nothing.
+- A Track card meant as a **PartEffect carrier** (Key Lift, Push It, Half Time) correctly leaves the bundle empty. Its `role` now selects *which* of the target musician's tracks it augments, which is a strengthening: previously it retargeted whatever single track the musician had, regardless of role.
+- The Card Editor's wizard role buttons and the LLM route both mint a bundle automatically, so only hand-written JSON can produce a bundle-less Track card by accident.
+
+### 5.15 — Card audio: drop-time vs impact-time (JUICE-PW / D-PW-AUDIO, 2026-07-13)
+
+`audioType` (the card-authored `AudioActionType`, §5.3) plays **when the card is dropped**, in
+`CardBase.Use`, and is **opt-in by type**: `Button` (the enum's 0-value and the default for any
+unset field) and `None` play nothing.
+
+Since JUICE-PW a second, **bus-side** producer exists for one card effect: a card carrying a
+`ModifyVibe` effect publishes `AudienceVibeImpactEvent` at effect resolution, and
+`SensoryAudioAdapter` plays a single `CardVibeImpact` sting **at impact**. Semantics and key
+authority: `SSoT_Audio.md` §3 + invariant 18.
+
+**Authoring rule.** The two paths are not mutually exclusive in code. A card whose sound should be
+its *impact* (a finisher, an AoE payoff) must be authored **`audioType: None`** — otherwise it
+sounds twice, once on the drop and once on the hit. A card whose sound should be its *cast* keeps a
+clip-backed `audioType` and gets no impact sting beyond what the bus already provides for its
+targets' reactions.
+
+**Currently authored this way:** `Psychic Waves` (Sibi, AoE `ModifyVibe +5`; the tutorial's beat-8
+finisher — `Design_Starter_Deck_v1.md` §5.17).
+
+**Not a new schema field.** This rule constrains the *value* of an existing field; no DTO, no
+importer, and no LLM-facing vocabulary changes.
 
 ---
 
@@ -344,6 +424,10 @@ Whenever a new `CardEffectSpec` subclass is added, update all four layers:
 4. runtime execution support
 
 A new effect type is not fully integrated until all four exist or the missing pieces are explicitly documented.
+
+**DF-INSPLOOP (2026-07-16) — conformant.** `AddInspirationPerLoopSpec` satisfies all four layers: data class (`Cards/Effects/AddInspirationPerLoopSpec.cs`), editor authoring (`CardEditorWindow` add-menu + generic field render + `BuildEffectLabel`; DeckEditor `DeckCardCreationService` branch), JSON/import (`CardEditorWindow.JsonImport` + `CardImportDtos` discriminator; LLM path `CardLLMPromptBuilder` vocabulary + `CardLLMResponseHandler` validation), and runtime execution — the runtime layer is **track-binding** (`CompositionSession.EvalPerLoopInsp` via `TrackEntry.sourceCardDefinition`), not the `CardBase` effect pipeline (defensive no-op branch only).
+
+**Import hardening (2026-07-16).** `ApplyCompositionJson` previously assigned a null `styleBundle` **silently** when a `trackAction.styleBundle` path failed to resolve; a null-bundle Track card is augment-only and will not create a track (D4=A), which surfaced as a "card played, no track created" bug during DF-INSPLOOP validation. The importer now logs a warning when a non-empty `styleBundle` path resolves to null. Authoring guidance: assigning the bundle by drag in the Inspector is the reliable path; the JSON path is a convenience that requires exact case/spacing.
 
 ---
 

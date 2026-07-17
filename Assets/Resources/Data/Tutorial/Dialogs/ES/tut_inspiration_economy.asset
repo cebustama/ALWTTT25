@@ -19,6 +19,6 @@ MonoBehaviour:
   portrait: {fileID: 0}
   pages:
   - "\xBFVes ese +{$inspiration_per_loop}? Cada loop te da {$inspiration_per_loop}
-    de Inspiraci\xF3n. Algunas cartas la exigen para jugarse \u2014 las buenas, claro.
+    de Inspiraci\xF3n. Algunas cartas la exigen para jugarse. Las buenas, claro.
     Gu\xE1rdala: te acaba de llegar a la mano una que la vale."
   highlightKey: inspiration_counter

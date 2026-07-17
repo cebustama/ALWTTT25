@@ -49,6 +49,7 @@ This doc captures the six decisions locked at reframe (D-RUN-1..6) and the per-s
 - Minimal ship hub scene (single screen, pilot portrait visible).
 - Encounter dispatcher (reuses or extends `GigLauncher`; if extension is needed it lands as a Phase C-internal batch, not a separate architectural slot).
 - Reward flow stub (existing `RewardCanvas` reused if functional by S6 open; otherwise stubbed to a single "continue" panel).
+- **Reward skip option (BR-D1 = B, locked 2026-07-16, BALANCE-XREF).** The end-of-gig 3-card offer gains an explicit *skip* alongside the choices — the Slay-the-Spire model, in which skipping is a first-class deck-consistency lever, not a failure state. Deferred from the demo cut deliberately (skip is inert in a single-gig demo); it lands here because S6 is the first multi-gig context and already owns full reward-selection. This matters more in ALWTTT than in StS: with guaranteed draws (M4.5) and a 17-card starter, every forced pick measurably dilutes draw slots. Wire the skip into `RewardCanvas` (a "Skip" affordance beside `ChoicePanel`), route it to `FinishReward` without granting, and cover it with `tut_first_reward_choice`. See maxim **N9** (`planning/Design_Game_And_Card_Maxims_v0_1.md`).
 - Run-state persistence across encounter boundaries (band roster, deck, run progress).
 
 **Tutorial.** `tut_ship_hub_intro`, `tut_first_reward_choice` (per Design_Tutorial_System §7).
@@ -58,6 +59,7 @@ This doc captures the six decisions locked at reframe (D-RUN-1..6) and the per-s
 **Open at S6 batch open.**
 - Encounter selection mechanic: player-choice vs fixed sequence.
 - Reward content scope: existing reward types (if any) vs stub with `tut_first_reward_choice` covering whatever lands.
+- **Run power curve — what makes the band feel stronger at the boss than at gig 1 (BALANCE-XREF, 2026-07-16).** The research is unanimous that felt power growth Act 1 → boss is what makes a run *a run*, not a sequence of fights (maxim **N8**). As currently scoped, a Phase C run is 3 gigs + boss with ~3 reward picks from a ~2-card pool (Compound Cycle, Pentameter) — the player would end the run with nearly the starter deck. The vertical slice's "publisher-showable multi-encounter run" claim depends on giving the run a **power spine**. Candidate spine: the full **SFX-as-equipment** system (#6b, deferred to Phase C — the ALWTTT relic/artifact layer) + **reward-pool growth** (more than 2 cards). Decide at S6 open how much of that spine S6/S7 must deliver. Acceptance target to add to the Phase C demo-readiness check (§10 / `Roadmap §7.4`): *a viewer watching gig 3 sees the band visibly and audibly stronger than at gig 1 — more SFX stages lit, 2–3 new cards audibly in the mix.*
 
 ### 3.2 S7 — Run content I (2 venues + 2 encounters + audience state machine)
 
@@ -284,6 +286,8 @@ See `Roadmap_ALWTTT.md §7.4` for the canonical Phase C DoD checklist. Highlight
 - Boss ability inventory (S8).
 - Closing-sequence format — scene vs modal (S8).
 - Whether ladder-mode formalization happens during or after Phase C. **Current default: after.**
+- **Duplicate rewards — BR-D3 revisit trigger (recorded 2026-07-16, BALANCE-XREF).** Owned-card exclusion in `PersistentGameplayData.BuildRewardCardPool` (D9) is absolute for the demo (every reward is a new axis; *mínimas cartas*). In a multi-gig run with a small reward pool, that exclusion can **empty the pool** — the `RewardCanvas.FinishIfEmpty` path fires and a gig yields no card. The disposition to weigh when this triggers: allow exact **duplicate** rewards (consistency picks — maxim **N7**), matching how the referents let a staple recur. Fires when: reward-pool size minus owned-cards approaches zero across the run. Tie this to the reward-pool-growth decision above (a large enough pool defers the trigger).
+- **Run power curve source (S6/S7) — see §3.1 S6 "Open at S6 batch open".** Whether the SFX-as-equipment spine (#6b) + reward-pool growth land in S6/S7 or slip; the "publisher-showable" claim depends on the run feeling like a rising arc (maxim N8).
 
 ---
 
@@ -297,3 +301,5 @@ See `Roadmap_ALWTTT.md §7.4` for the canonical Phase C DoD checklist. Highlight
 - `Roadmap_ALWTTT.md "Future milestones / Ladder mode"` (deferred ladder formalization; `GigLauncher` foundation suffices for vertical slice).
 - `systems/SSoT_Audience_and_Reactions.md` (audience contract; state-machine addition will need a semantic change entry when S7 ships).
 - `systems/SSoT_Gig_Encounter.md` (encounter / roster surface; updated when S6 ships if encounter dispatch needs SO-side support).
+- `planning/Design_Game_And_Card_Maxims_v0_1.md` (game/card-design maxims, 2026-07-16; N8 rising-arc, N9 reward-skip, N7 duplication, N4 break-the-game combo, N11 difficulty-tiers-as-telemetry all bear on Phase C scope decisions).
+- `planning/active/S5_DemoCutClose_Sub_Roadmap.md` → BALANCE-XREF ledger (BR-D1..BR-D4) and TLM-1 (the run logger that will be live before Phase C playtests).

@@ -18,6 +18,6 @@ MonoBehaviour:
   revisitTitle: Play a composition
   portrait: {fileID: 0}
   pages:
-  - "Play a composition card: drag it onto the band. Each one adds something real
-    to the song \u2014 it's not set dressing, it's music. Start with the rhythm."
+  - 'Play a composition card: drag it onto the band. Each one adds something real
+    to the song. It''s not set dressing, it''s music.'
   highlightKey: card_default_mode

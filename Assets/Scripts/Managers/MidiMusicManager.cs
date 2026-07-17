@@ -4,6 +4,7 @@ using ALWTTT.Music;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using MidiGenPlay;
+using MidiGenPlay.Composition; // MGP-ALWTTT-DBG-1: MusicianTrackKey
 using MidiGenPlay.Interfaces;
 using MidiGenPlay.MusicTheory;
 using MidiGenPlay.Services;
@@ -407,8 +408,10 @@ namespace ALWTTT.Managers
             for (int i = 0; i < takeCount && i < entranceOrderIds.Count; i++)
             {
                 var id = entranceOrderIds[i];
-                int ch = owners.IndexOf(id);
-                if (ch >= 0) allowed.Add(ch);
+                // [BASS-1 / R15] A musician may own MULTIPLE channels (one per
+                // role-track) — unmute all of them, not just the first.
+                for (int ch = 0; ch < owners.Count; ch++)
+                    if (owners[ch] == id) allowed.Add(ch);
             }
             if (allowed.Count == 0)
                 return PlayBytes(key, full.data, full.seconds,
@@ -433,6 +436,46 @@ namespace ALWTTT.Managers
                 $"subset[{allowed.Count}] '{song.SongTitle}'");
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // [BASS-1 / R13] Channel stamping helpers. ChannelMusicianOrder,
+        // ChannelRoles, and channelMap are index-parallel lists (seeded from
+        // Part 0 by SongConfigBuilder). A musician may now own MULTIPLE
+        // channels (one per role-track), so a musician-only dictionary is
+        // last-wins-ambiguous. Primary lookup is (musicianId, role); the
+        // musician-only map (first-wins) remains as fallback for tracks whose
+        // role wasn't present in the Part-0 seed. Identical behavior to the
+        // legacy code for single-track-per-musician content.
+        // ─────────────────────────────────────────────────────────────
+        private static void BuildChannelOwnerLookups(
+            SongConfig config, List<int> channelMap,
+            out Dictionary<string, int> byMusicianRole,
+            out Dictionary<string, int> byMusician)
+        {
+            byMusicianRole = new Dictionary<string, int>();
+            byMusician = new Dictionary<string, int>();
+            var roles = config.ChannelRoles;
+            for (int i = 0;
+                 i < config.ChannelMusicianOrder.Count && i < channelMap.Count; i++)
+            {
+                var id = config.ChannelMusicianOrder[i] ?? "";
+                if (string.IsNullOrEmpty(id)) continue;
+                if (roles != null && i < roles.Count)
+                    byMusicianRole[$"{id}|{roles[i]}"] = channelMap[i];
+                if (!byMusician.ContainsKey(id)) byMusician[id] = channelMap[i];
+            }
+        }
+
+        private static void StampChannel(
+            SongConfig.PartConfig.TrackConfig tr,
+            Dictionary<string, int> byMusicianRole,
+            Dictionary<string, int> byMusician)
+        {
+            if (tr == null || string.IsNullOrEmpty(tr.MusicianId)) return;
+            if (byMusicianRole.TryGetValue($"{tr.MusicianId}|{tr.Role}", out var ch)
+                || byMusician.TryGetValue(tr.MusicianId, out ch))
+                tr.Channel = ch;
+        }
+
         public float PlayFromConfig(
             SongConfig config, string title, IList<Characters.Band.MusicianBase> band)
         {
@@ -445,18 +488,12 @@ namespace ALWTTT.Managers
 
             // Build channel map and ownership just like the cached path
             var channelMap = BuildChannelMap(config.ChannelRoles ?? new List<TrackRole>());
-            var byMusician = new Dictionary<string, int>();
-            for (int i = 0; i < config.ChannelMusicianOrder.Count && i < channelMap.Count; i++)
-            {
-                var id = config.ChannelMusicianOrder[i] ?? "";
-                if (!string.IsNullOrEmpty(id)) byMusician[id] = channelMap[i];
-            }
+            BuildChannelOwnerLookups(config, channelMap,
+                out var byMusicianRole, out var byMusician); // [BASS-1 / R13]
 
             foreach (var part in config.Parts)
                 foreach (var tr in part.Tracks)
-                    if (!string.IsNullOrEmpty(tr.MusicianId)
-                        && byMusician.TryGetValue(tr.MusicianId, out var ch))
-                        tr.Channel = ch;
+                    StampChannel(tr, byMusicianRole, byMusician);
 
             // Persist routing maps under a unique ephemeral key (so OnMidiEvents works)
             var key = $"jam::{Guid.NewGuid():N}";
@@ -632,17 +669,12 @@ namespace ALWTTT.Managers
             var channelMap = BuildChannelMap(fullCfg.ChannelRoles ?? new List<TrackRole>());
 
             // Stamp channels into each track (like PlayFromConfig)
-            var byMusician = new Dictionary<string, int>();
-            for (int i = 0; i < fullCfg.ChannelMusicianOrder.Count && i < channelMap.Count; i++)
-            {
-                var id = fullCfg.ChannelMusicianOrder[i] ?? "";
-                if (!string.IsNullOrEmpty(id)) byMusician[id] = channelMap[i];
-            }
+            BuildChannelOwnerLookups(fullCfg, channelMap,
+                out var byMusicianRole, out var byMusician); // [BASS-1 / R13]
 
             var part = fullCfg.Parts[partIndex];
             foreach (var tr in part.Tracks)
-                if (!string.IsNullOrEmpty(tr.MusicianId) && byMusician.TryGetValue(tr.MusicianId, out var ch))
-                    tr.Channel = ch;
+                StampChannel(tr, byMusicianRole, byMusician);
 
             int? effectiveOverride = bpmOverride;
             if (!effectiveOverride.HasValue)
@@ -847,13 +879,35 @@ namespace ALWTTT.Managers
             int b1Hits = 0, b1Misses = 0;
             try
             {
+                // MGP-ALWTTT-DBG-1: the package now keys instrument overrides on
+                // (musicianId, TrackRole). The consumer still reasons in
+                // musicianId, so expand each id-keyed override to the composite
+                // key of every track that musician owns in THIS part.
+                // TODO(BASS-1): when ALWTTT migrates its own surfaces to the
+                // composite key (its own batch), build this map directly instead
+                // of expanding a musicianId-keyed one.
+                Dictionary<MusicianTrackKey, MIDIInstrumentSO> keyedOverrides = null;
+                if (instrumentOverrides != null && instrumentOverrides.Count > 0)
+                {
+                    keyedOverrides = new Dictionary<MusicianTrackKey, MIDIInstrumentSO>();
+                    foreach (var tr in part.Tracks)
+                    {
+                        if (tr == null || string.IsNullOrEmpty(tr.MusicianId)) continue;
+                        if (instrumentOverrides.TryGetValue(tr.MusicianId, out var inst)
+                            && inst != null)
+                        {
+                            keyedOverrides[new MusicianTrackKey(tr.MusicianId, tr.Role)] = inst;
+                        }
+                    }
+                }
+
                 // Generate stems via orchestrator
                 var render = generator.Orchestrator.GenerateSinglePart(
                     part,
                     fullCfg.ChannelRoles,
                     partIndex,
                     effectiveOverride,
-                    instrumentOverrides,
+                    keyedOverrides,
                     seedOverride: seedOverride);   // [S5g / MGP-ALWTTT-SEED-1]
 
                 if (logDebug)
@@ -866,19 +920,27 @@ namespace ALWTTT.Managers
                     mergedBytes = ms.ToArray();
                 }
 
-                // Serialize stems
+                // Serialize stems. MGP-ALWTTT-DBG-1: the package keys stems on
+                // (musicianId, TrackRole); the consumer's stem set / cache /
+                // ordering are musicianId-keyed, so flatten to MusicianId here.
+                // TODO(BASS-1): a musician owning two roles collapses here — the
+                // exact collision the package re-key removes. ALWTTT does not
+                // assign one musicianId to two roles today, so this is safe now;
+                // migrating the consumer to the composite key is its own batch.
                 stemsOut = new Dictionary<string, byte[]>();
                 foreach (var kv in render.stemsByMusician)
                 {
                     using var ms = new MemoryStream();
                     kv.Value.Write(ms);
-                    stemsOut[kv.Key] = ms.ToArray();
+                    stemsOut[kv.Key.MusicianId] = ms.ToArray();
                 }
 
                 seconds = ComputeDurationSeconds(render.merged);
                 bpmChosen = render.bpm;
-                pinned = render.melInstByMusician ??
-                    new Dictionary<string, MIDIInstrumentSO>();
+                // MGP-ALWTTT-DBG-1: flatten the (musicianId, role)-keyed instrument
+                // report to musicianId for the consumer's pinned map.
+                // TODO(BASS-1): same collapse caveat as stems above.
+                pinned = FlattenInstrumentReport(render.melInstByMusician);
 
                 // ───────────────────────────────────────────────────────
                 // [B1 / D-E=α'] Per-track persistence — only when cache
@@ -947,12 +1009,14 @@ namespace ALWTTT.Managers
                             $"falling back to orchestrator merged (cached stems ignored).");
                         // Restore orchestrator stems for ALL musicians (no verbatim persistence
                         // this turn) so stems and merged stay consistent.
+                        // MGP-ALWTTT-DBG-1: flatten (musicianId, role) key to id
+                        // (TODO(BASS-1): same collapse caveat as above).
                         stemsOut = new Dictionary<string, byte[]>();
                         foreach (var kv in render.stemsByMusician)
                         {
                             using var ms = new MemoryStream();
                             kv.Value.Write(ms);
-                            stemsOut[kv.Key] = ms.ToArray();
+                            stemsOut[kv.Key.MusicianId] = ms.ToArray();
                         }
                     }
                 }
@@ -1023,6 +1087,30 @@ namespace ALWTTT.Managers
         #endregion
 
         #region Private Methods
+
+        /// <summary>
+        /// MGP-ALWTTT-DBG-1 bridge: the package reports resolved instruments
+        /// keyed on (musicianId, TrackRole); the consumer's pinned map is
+        /// musicianId-keyed. Flattens to MusicianId, and is null-safe (returns
+        /// an empty map, replacing the old <c>report ?? new(...)</c> which no
+        /// longer type-checks across the key change).
+        /// TODO(BASS-1): a musician in two roles collapses to one entry here —
+        /// the collision the package re-key removes. ALWTTT does not do this
+        /// today; migrating the consumer to the composite key is its own batch.
+        /// </summary>
+        private static Dictionary<string, MIDIInstrumentSO> FlattenInstrumentReport(
+            Dictionary<MusicianTrackKey, MIDIInstrumentSO> report)
+        {
+            var flat = new Dictionary<string, MIDIInstrumentSO>();
+            if (report == null) return flat;
+            foreach (var kv in report)
+            {
+                if (string.IsNullOrEmpty(kv.Key.MusicianId) || kv.Value == null) continue;
+                flat[kv.Key.MusicianId] = kv.Value; // last-write-wins (BASS-1 caveat)
+            }
+            return flat;
+        }
+
         private IEnumerator RunBeatGrid(string key, float duration)
         {
             if (!cache.TryGetValue(key, out var entry)) yield break;
@@ -1161,20 +1249,14 @@ namespace ALWTTT.Managers
             // Channel mapping
             var channelMap = BuildChannelMap(config.ChannelRoles);
 
-            // Build musicianId -> channel lookup using ChannelMusicianOrder + channelMap
-            var byMusician = new Dictionary<string, int>();
-            for (int i = 0; i < config.ChannelMusicianOrder.Count && i < channelMap.Count; i++)
-            {
-                var id = config.ChannelMusicianOrder[i] ?? "";
-                if (!string.IsNullOrEmpty(id)) byMusician[id] = channelMap[i];
-            }
+            // Build (musicianId, role) -> channel lookup [BASS-1 / R13]
+            BuildChannelOwnerLookups(config, channelMap,
+                out var byMusicianRole, out var byMusician);
 
             // Stamp channels into tracks for debugging clarity
             foreach (var part in config.Parts)
                 foreach (var tr in part.Tracks)
-                    if (!string.IsNullOrEmpty(tr.MusicianId) &&
-                        byMusician.TryGetValue(tr.MusicianId, out var ch))
-                        tr.Channel = ch;
+                    StampChannel(tr, byMusicianRole, byMusician);
 
             // Owners map
             int maxCh = channelMap.Count > 0 ? channelMap.Max() : 0;

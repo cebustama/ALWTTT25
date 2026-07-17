@@ -20,5 +20,5 @@ MonoBehaviour:
   pages:
   - "Cada canci\xF3n dura {$loops_per_part} loops, y cada loop es un turno. La barra
     de arriba te dice cu\xE1ntos quedan. Cuando acaba el \xFAltimo loop, la canci\xF3n
-    se cierra \u2014 y se cobra."
+    se cierra y se cobra."
   highlightKey: loops_bar

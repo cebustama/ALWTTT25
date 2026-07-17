@@ -94,6 +94,10 @@ SensoryEventBus : MonoBehaviour       // singleton, static accessor (D-S2-1=A)
 | ✅ `GigOutcomeEvent` | `GigManager.ResolveGigOutcomeAndEnd` | **S4-shipped.** Carries Won; normal-flow only (editor Debug Win/Lose menus bypass by design). |
 | ✅ `LoopResolvedEvent` | `GigManager.OnCompositionLoopFinished` | **S4-shipped.** Bridges `CompositionSession.LoopFinished`; carries `LoopFeedbackContext`. Beat 3 keys on `InspirationGainedThisLoop` (track-derived per-loop gain). |
 | ✅ `AudienceTurnStartedEvent` | `GigManager` phase transition (after `OnEnemyTurnStarted?.Invoke()`) | **S4-shipped.** Bridges the C# turn-start event; drives the audience-action beat (only after a SongHype stage has crossed). |
+| ✅ `RewardChoiceOpenedEvent` | `GigManager.WinGig` (reward-screen open, both branches) | **S5h-shipped.** Parameterless; published only when ≥1 reward box was built (not on the skip path). Consumed by `SensoryAudioAdapter` (→ `SensorySfxType.RewardOpened`) and `TutorialController` (`tut_first_reward_choice`). *(Row backfilled 2026-07-13 — S5h-DOC.)* |
+| ✅ `MusicianStressHitEvent` | `BandCharacterStats.ApplyIncomingStressWithComposure` (once per incoming hit > 0) | **TUT-R2-shipped.** Semantic; carries stats + `Absorbed` (Composure) + `Applied` (post-Composure, post-Exposed). One publish site covers every Stress producer (all sources funnel through this method — the `StatusAppliedEvent` rationale, D-S4-SRC=A). Drives `tut_musician_breakdown` (first fire with `Applied > 0`). Adds no SFX key. *(Row backfilled 2026-07-13 — OPT-1.)* |
+| ✅ `AudienceBlockedEvent` | `AudienceCharacterBase.IsBlocked` setter (false→true transition only) | **TUT-R2-shipped.** Semantic; exists because Blocked is a sprite-tint bool since M1.2 (E3), not an SO status — `StatusAppliedEvent` never fires for it (code-truth deviation from TUT-R1 §4.1). Drives `tut_status_blocked_front`. Adds no SFX key. *(Row backfilled 2026-07-13 — OPT-1.)* |
+| ✅ `AudienceVibeImpactEvent` | `CardBase.ExecuteEffects` → `ModifyVibeSpec` branch | **JUICE-PW-shipped.** Published **once per audience target** at effect resolution. Carries audience ref/index/id, performer, card, base/final/applied delta, `FanoutIndex`/`TargetCount`. First bus event to add an SFX key (`CardVibeImpact`). |
 
 **S2 as-built scope (D-S2-2=A).** Exactly two event types ship in S2:
 `AudienceReactionEvent` and `SongEndVibeEvent` (the S1 sites). The rest of this
@@ -110,13 +114,38 @@ rows as implemented. Both shipped events live in `Assets/Scripts/Sensory/Events/
 > 1, 2 & 5 dead. (D-S4-PRODUCER.) The S4 events are additive *semantic* events — they add no
 > `SensorySfxType` key and do not touch the SFX sink.
 
+> **Card Vibe impact (JUICE-PW, 2026-07-13).** `CardPlayedEvent` is deliberately **not** the
+> carrier for card-effect presentation. It is published from `DeckManager.OnCardPlayed`, i.e.
+> **after** `ExecuteEffects` has run, it fires once for the whole card, and it carries no
+> per-target delta — so it cannot express "+N landed on member 2, member 3 blocked it".
+> `AudienceVibeImpactEvent` is published **inside** the `ModifyVibeSpec` branch, per target,
+> after the delta is applied and `appliedVibe` is known.
+>
+> Two consequences are load-bearing:
+> - **Timing guarantee.** Because the publish sits inside effect resolution and
+>   `DeckManager.OnCardPlayed` runs at the tail of `CardUseRoutine`, the impact FX is
+>   *structurally* earlier than anything keyed on `CardPlayedEvent` — including
+>   `TutorialGuidedDriver`'s beat-8 `TutorialLoopHoldGate.Release()`. The player always sees the
+>   finisher land before the held loop is let go.
+> - **Presentation split (D3=A).** The AoE fan-out is **visual per-member, audio once**:
+>   `SensoryFxAdapter` spawns one floater per target (staggered by `FanoutIndex ×`
+>   `SensoryFtPresentation.VibeImpactStaggerStep`) and kicks each landed target's animator, plus the
+>   performer's on `FanoutIndex == 0`; `SensoryAudioAdapter` plays exactly one sting, because
+>   `SensorySfxPresentation.ForCardVibeImpact` returns a key only for `FanoutIndex == 0`.
+>
+> **FT form.** `-N` cyan when it lands; `INDIFFERENT` grey when blocked (same word/colour as the
+> song-end blocked surface — one concept, one presentation). The **short** `-N` is deliberate:
+> song-end keeps the long `-N Vibe`, so a late finisher and the song-end wave stay readable when
+> they overlap. Blocked members get **no** kick and no particle burst — the grey floater carries it.
+> Presentation lives in `SensoryFtPresentation.TryBuildVibeImpactFt`; gameplay only publishes.
+
 ### Consumers
 
 | Consumer | Subscribes to | Status |
 | --- | --- | --- |
-| ✅ `SensoryFxAdapter` (S2-new) | `AudienceReactionEvent` + `SongEndVibeEvent` | **S2-shipped.** Thin bus→FT adapter (D-S2-6=A). Runs in **VerifyOnly** mode in S2 (computes + logs the exact FT payload, does not spawn); flips to **Spawn** in S3 when the direct calls are deleted (D-S2-7=A) |
+| ✅ `SensoryFxAdapter` (S2-new) | `AudienceReactionEvent` + `SongEndVibeEvent` + `AudienceVibeImpactEvent` (JUICE-PW) | **S2-shipped; Spawn since S3a.** Thin bus→FT adapter (D-S2-6=A). The S2 VerifyOnly mode is retained as a serialized fallback but the shipped mode is **Spawn**. JUICE-PW added the card-impact handler: staggered per-member FT + the procedural impact kick / particle burst on the landed target and on the performer (`FanoutIndex == 0`) — the adapter is therefore no longer FT-only. |
 | `SensoryFtPresentation` (S2-new, static helper) | n/a (not a subscriber) | **S2-shipped.** Single source of impression→text/colour + the song-end FT builder; consumed by BOTH the GigManager direct calls and the adapter so the two paths cannot drift before S3 deletes the direct calls (D-S2-7=A) |
-| ✅ `SensoryAudioAdapter` (S3-audio-new) | `AudienceReactionEvent` + `SongEndVibeEvent` + `SfxStageCrossedEvent` | **S3-audio-shipped.** Thin bus→audio adapter (D-SA-4=A); resolves each event to a `SensorySfxType` via `SensorySfxPresentation`, plays through `AudioManager` (the shared sink). Scene-placed on the gig Listeners object, mirroring `SensoryFxAdapter`. |
+| ✅ `SensoryAudioAdapter` (S3-audio-new) | `AudienceReactionEvent` + `SongEndVibeEvent` + `SfxStageCrossedEvent` + `RewardChoiceOpenedEvent` (S5h) + `AudienceVibeImpactEvent` (JUICE-PW) | **S3-audio-shipped.** Thin bus→audio adapter (D-SA-4=A); resolves each event to a `SensorySfxType` via `SensorySfxPresentation`, plays through `AudioManager` (the shared sink). Scene-placed on the gig Listeners object, mirroring `SensoryFxAdapter`. The card-impact handler plays **once per card**, not once per AoE target. |
 | ✅ `SensorySfxPresentation` (S3-audio-new, static helper) | n/a (not a subscriber) | **S3-audio-shipped.** Single source of event→`SensorySfxType` selection (audio analogue of `SensoryFtPresentation`); returns null for intentionally-silent surfaces (neutral reaction). |
 | `FloatingTextMidiListener` (existing FT pipeline) | — | NOT retrofitted in S2; S3+ if ever (its MIDI-note FT is a separate concern) |
 | `FxManager` (existing SFX pipeline) | meter / status / audience events (S3 coverage) | S3 |
@@ -155,12 +184,18 @@ The S1→S2→S3 ordering is the one explicit, time-boxed exception to "everythi
 
 > **(S3-audio close, 2026-06-14)** The "SFX (audio)?" column is now FILLED for card-play + the three bus surfaces (shipped — placeholder clips; final intentional SFX = D1 follow-up). Remaining "no" rows are deferred to future `SensorySfxType` additions. The S3a note above ("no audio subsystem exists yet") is superseded.
 
+> **(S5h, 2026-07-07 · JUICE-PW, 2026-07-13)** Two `SensorySfxType` keys added since S3-audio:
+> `RewardOpened` (mapped by `SensorySfxPresentation.ForRewardOpened()`; clip authoring optional —
+> warn-once acceptable per D-SA-2) and `CardVibeImpact` (see the card-effect Vibe row below).
+> Key authority: `SSoT_Audio.md` §3 + invariant 18.
+
 | State change | Producer (code site) | FT? | SFX (audio)? | Anim/Particle? | Remaining gap → owner |
 | --- | --- | --- | --- | --- | --- |
-| Card played | `CardBase.ExecuteEffects` | partial | card-direct (`CardBase.Use` → `PlayOneShot(AudioType)`); shipped (placeholder) | partial (Use anim) | final SFX = D1 follow-up |
+| Card played | `CardBase.ExecuteEffects` | partial (per-effect; see the Vibe row) | card-direct (`CardBase.Use` → `PlayOneShot(AudioType)`, opt-in by type); shipped (placeholder) | partial (Use anim) | final SFX = D1 follow-up. **A card may instead sound at *impact* rather than at *drop*** — see the Vibe row + `SSoT_Audio` §3/§7 inv. 18 |
 | Audience reaction (per-loop) | `GigManager` loop-finished path | yes (incl. neutral "…"); **bus-only (S3a: direct deleted, Spawn)** | bus → `ReactionPositive/Negative` (neutral FT-only); shipped (placeholder) | reaction anim **deferred (D-F-5b — no reaction state; only ability "Tantrum")**; FT outline done (D-S3-2) | final SFX = D1 follow-up; reaction anim → future |
 | Audience ability play (e.g. Kid "Tantrum") | `AudienceCharacterBase.AbilityRoutine` | yes (action-name FT) | no | **yes (S3a: ability trigger restored, D-F-5a)** | audio → S3-audio |
-| Vibe change (audience) | `ApplyIncomingVibe` | yes | no | no | audio → S3-audio |
+| Vibe change (audience) — **card effect** | `CardBase.ExecuteEffects` → `ModifyVibeSpec` → `ApplyIncomingVibe` | **yes (JUICE-PW: bus, per target — `-N` / `INDIFFERENT`)** | **yes (JUICE-PW: bus → `CardVibeImpact`, one sting per card)**; shipped (placeholder clip) | **yes (JUICE-PW: `CharacterAnimator.PlayImpactKick` + particle burst on landed target *and* performer)** | final SFX = D1 follow-up (the shipped clip is a placeholder) |
+| Vibe change (audience) — other callers | `ApplyIncomingVibe` (Earworm tick, song-end, audience actions) | yes — via their own rows (Earworm tick / song-end conversion) | see those rows | see those rows | — |
 | Stress change (musician) | `ApplyIncomingStressWithComposure` | yes | no | partial (status icon if Composure crosses 0) | audio → S3-audio |
 | Composure change | `ModifyStressSpec` (neg) / status apply | yes | no | partial (icon, M1.8) | audio → S3-audio |
 | Status applied | `StatusEffectContainer.Apply` | partial | no | yes (icon appear anim, M1.8) | audio → S3-audio |
@@ -175,34 +210,23 @@ The S1→S2→S3 ordering is the one explicit, time-boxed exception to "everythi
 
 **Format note.** S2 filled the FT column; S3a completed the audit, deleted the coexistence direct calls, and closed the animator (ability) + stage-VFX rows. The audio column is owned wholesale by S3-audio (D-S3-1=B). Phase C feature rows are compliant from the start per Standing Directive #2.
 
+> **Correction recorded (JUICE-PW-DOC, 2026-07-13).** The pre-JUICE-PW row asserted FT **yes** /
+> SFX **no** / anim **no** for `ApplyIncomingVibe` as a whole. The FT "yes" was inherited from the
+> Earworm-tick and song-end callers (which have their own rows); the **card-effect** caller produced
+> **no floating text at all** — only the Vibe-bar animation. That is the gap JUICE-PW closed. See
+> the sweep note in `changelog-ssot.md` (2026-07-13, JUICE-PW).
+
 > **S2 scope note (2026-06-14).** S2 was deliberately narrowed to bus + 2 event
 > types + 2 publish sites + 1 subscriber and did **not** walk the whole codebase
 > to fill this table, despite the original §3/§4 wording implying it would. Only
 > the two S2 rows below carry an as-built emission-path update. The **full
 > sensory-coverage audit lands in S3** alongside SFX coverage.
 
-This table is the starting skeleton. The full audit (walking the codebase,
-identifying every player-visible state change, recording its current sensory
-coverage) is an **S3** deliverable. The "Gap" column is what S3 / Phase C close.
-
-| State change | Producer (code site) | FT? | SFX? | Anim/Shader/Particle? | Gap → owning session |
-| --- | --- | --- | --- | --- | --- |
-| Card played | `CardBase.ExecuteEffects` | partial | no | partial (Use anim) | S2 audit + S3 SFX |
-| Audience reaction (per-loop impression) | `GigManager` loop-finished path | yes (S1, incl. neutral "…"); **bus + direct (coexistence, D-S2-3=A)** | no | no | S3: delete direct call + adapter Spawn flip; SFX + animator (D-F-5) + FT outline polish |
-| Vibe change (audience) | `ApplyIncomingVibe` | yes | no | no | S3 SFX |
-| Stress change (musician) | `ApplyIncomingStressWithComposure` | yes | no | partial (status icon if Composure crosses 0) | S3 SFX |
-| Composure change | `ModifyStressSpec` (negative) / status apply | yes | no | partial (icon, per M1.8) | S3 SFX |
-| Status applied | `StatusEffectContainer.Apply` | partial | no | yes (icon appear anim, per M1.8) | S2 audit + S3 SFX |
-| Status tick (Earworm vibe pulse) | `GigManager.AudienceTurnRoutine` Earworm block | yes | no | no | S3 SFX + animator |
-| Status decay / expire | `StatusEffectContainer.Tick` | partial | no | yes (icon disappear anim, per M1.8) | S2 audit |
-| SongHype meter | `GigManager.AddSongHype` | yes | no | yes (existing SFX lights/smoke/fire on stage crossing) | mostly compliant; S2 audit |
-| Stage crossing (lights/smoke/fire) | `GigManager.FireSongHypeStage` | yes ("+N Vibe!" floater) | yes (existing) | partial (lights present; smoke/fire VFX = S3 work, §5) | S3 VFX |
-| Audience state change | Phase C — see Design_Vertical_Slice §6.3 | n/a (designed compliant) | n/a | n/a | Phase C (S7) |
-| Song-end vibe conversion | `GigManager.RunSongVibeResolution` | yes; **bus + direct (coexistence, D-S2-3=A)** | no | partial | S3: delete direct call + adapter Spawn flip; SFX |
-| Turn phase change | turn machine | partial | no | partial | S2 audit |
-| Win / loss outcome | `WinGig` / `LoseGig` | yes (panel) | partial | partial | S2 audit |
-
-**Format note.** Each row's "Gap → owning session" column lists where the gap is closed. S2 fills the FT column completeness; S3 fills the SFX and most of the animator/shader/particle columns; Phase C feature work fills its own rows from the start (per Standing Directive #2).
+> **SUPERSEDED — retired 2026-07-13 (JUICE-PW-DOC, OPT-2=B).** The S2 "starting skeleton"
+> audit table that lived here disagreed with the S3a as-built table above (two tables defining
+> the same coverage — a one-concept-one-authority violation). The as-built table above is the
+> only §4 audit. The retired skeleton survives in git history and in the 2026-06-14 entries of
+> `changelog-ssot.md`.
 
 ---
 

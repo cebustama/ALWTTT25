@@ -38,6 +38,36 @@ namespace ALWTTT.Characters.Band
         [SerializeField] private TMP_Dropdown instrumentDebugDropdown;
         [SerializeField] private Slider volumeDebugSlider;
 
+        // [DEMO-FIXES-A / DF-ECONTIP] Lazy-attached hover tooltips on the pips.
+        private ALWTTT.Tooltips.EconPipTooltipTarget _actionPipTooltip;
+        private ALWTTT.Tooltips.EconPipTooltipTarget _compositionPipTooltip;
+
+        public void UpdateTurnPlayBudget(int actionRemaining, int compositionRemaining)
+        {
+            SetPipLit(actionPlayPip, actionRemaining > 0);
+            SetPipLit(compositionPlayPip, compositionRemaining > 0);
+
+            PushPipTooltip(ref _actionPipTooltip, actionPlayPip,
+                ALWTTT.Tooltips.EconPipTooltipTarget.PipKind.Action, actionRemaining);
+            PushPipTooltip(ref _compositionPipTooltip, compositionPlayPip,
+                ALWTTT.Tooltips.EconPipTooltipTarget.PipKind.Composition, compositionRemaining);
+        }
+
+        private static void PushPipTooltip(
+            ref ALWTTT.Tooltips.EconPipTooltipTarget cache, Image pip,
+            ALWTTT.Tooltips.EconPipTooltipTarget.PipKind kind, int remaining)
+        {
+            if (pip == null) return;
+            if (cache == null)
+            {
+                cache = pip.GetComponent<ALWTTT.Tooltips.EconPipTooltipTarget>();
+                if (cache == null)
+                    cache = pip.gameObject.AddComponent<ALWTTT.Tooltips.EconPipTooltipTarget>();
+                cache.Init(kind);
+            }
+            cache.SetRemaining(remaining);
+        }
+
         /// <summary>
         /// Defensive initialization: force stats to hidden before BuildCharacter runs
         /// (which also calls HideContextual). Prevents a single-frame flicker where
@@ -53,14 +83,6 @@ namespace ALWTTT.Characters.Band
             if (chrTextField != null) chrTextField.text = $"CHR: {chr}";
             if (tchTextField != null) tchTextField.text = $"TCH: {tch}";
             if (emtTextField != null) emtTextField.text = $"EMT: {emt}";
-        }
-
-        /// <summary>[ECON-1] Push target for BandCharacterStats.
-        /// OnTurnPlayBudgetChanged. Lit = plays remaining; dimmed = consumed.</summary>
-        public void UpdateTurnPlayBudget(int actionRemaining, int compositionRemaining)
-        {
-            SetPipLit(actionPlayPip, actionRemaining > 0);
-            SetPipLit(compositionPlayPip, compositionRemaining > 0);
         }
 
         private void SetPipLit(Image pip, bool lit)

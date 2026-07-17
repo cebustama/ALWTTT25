@@ -98,6 +98,14 @@ namespace ALWTTT.Data
         // scene loads via the GameManager singleton (no disk save system today).
         [SerializeField] private List<string> firedTutorialDialogs = new List<string>();
 
+        // [DEMO-FIXES-A / DEMO-TUT-TOGGLE / D-DF-1=A] Single source of truth for
+        // "tutorial activo". Written ONLY by the gig-open opt-in prompt (via
+        // GigManager.Start); read ONE-SHOT at gig open (D-DF-3=A). Persists
+        // across gigs within a launch (DontDestroyOnLoad) and serves as the
+        // prompt's visual default (D-DF-2=A). No disk save system exists: it
+        // never persists across app launches.
+        [SerializeField] private bool tutorialEnabled = true;
+
         #region Encapsulation
 
         public List<MusicianBase> MusicianList
@@ -489,6 +497,39 @@ namespace ALWTTT.Data
             }
             return pool;
         }
+
+        /// <summary>
+        /// [DEMO-FIXES-A / DF-CATALOG / D-DF-7=A] Band-scoped card-catalog
+        /// union: every distinct CardDefinition referenced by any entry of any
+        /// CURRENT band musician's CardCatalog, regardless of acquisition
+        /// flags (a dev spawner wants everything the musician can ever own).
+        /// Non-alloc: fills the caller's buffer. Runtime read only — no asset
+        /// mutation. Out-of-roster musicians (Conito pre-entry) are excluded
+        /// by construction, so out-of-spec catalogs never reach runtime through
+        /// this path until their owner joins the band. Generic-catalog entries
+        /// are NOT included (PD does not retain the GigSetupRosterSO after
+        /// launch — same limitation as BuildRewardCardPool).
+        /// </summary>
+        public void BuildBandCardCatalog(List<CardDefinition> results)
+        {
+            if (results == null) return;
+            results.Clear();
+            if (MusicianList == null) return;
+
+            foreach (var m in MusicianList)
+            {
+                var data = m != null ? m.MusicianCharacterData : null;
+                var catalog = data != null ? data.CardCatalog : null;
+                if (catalog == null || catalog.Entries == null) continue;
+
+                foreach (var e in catalog.Entries)
+                {
+                    if (e?.card == null) continue;
+                    if (!results.Contains(e.card)) results.Add(e.card);
+                }
+            }
+        }
+
 
         /// <summary>
         /// [S5h / D4] Type-correct, provenance-tracked reward grant. Resolves the
@@ -1084,6 +1125,13 @@ namespace ALWTTT.Data
         #endregion
 
         #region Tutorial
+
+        public bool TutorialEnabled
+        {
+            get => tutorialEnabled;
+            set => tutorialEnabled = value;
+        }
+
         public bool HasFiredTutorial(string id) =>
             !string.IsNullOrEmpty(id) && firedTutorialDialogs.Contains(id);
 

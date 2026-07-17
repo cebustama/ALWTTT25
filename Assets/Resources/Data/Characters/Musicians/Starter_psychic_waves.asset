@@ -22,7 +22,7 @@ MonoBehaviour:
   cardType: 2
   rarity: 0
   keywords: 
-  audioType: 0
+  audioType: 5
   musicianAnimation:
     kind: 0
     animatorTrigger: 

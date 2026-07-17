@@ -18,8 +18,16 @@ namespace ALWTTT.UI
         [Header("Dev")]
         [SerializeField] private bool useLogs = false;
 
-        private readonly Dictionary<string, SongTrackElementUI> trackByMusician = new();
+        // [BASS-1 / D1=A] Row registry keyed by "musicianId|role" so a
+        // musician can host multiple role-tracks (e.g. Melody + Bassline),
+        // each as an independent row. Placeholder rows (roster musician with
+        // no track yet) are keyed by musicianId alone and are upgraded in
+        // place by the first AddOrUpdateTrack for that musician.
+        private readonly Dictionary<string, SongTrackElementUI> trackByMusicianRole = new();
         private List<string> rosterOrder = new();
+
+        private static string RowKey(string musicianId, string role)
+            => $"{musicianId}|{role}";
 
         private SongCompositionUI.PartEntry boundModel;
         // [B1 / #1+#2] Cached pending-set from the latest Bind, so SetRosterOrder
@@ -52,28 +60,45 @@ namespace ALWTTT.UI
 
             // Rebuild tracks
             foreach (Transform c in tracksRoot) Destroy(c.gameObject);
-            trackByMusician.Clear();
+            trackByMusicianRole.Clear();
 
-            // Build one row per musician in roster order (placeholder if no track)
+            // [BASS-1 / D1=A] One row per (musicianId, role) in roster order;
+            // a roster musician with no tracks gets one placeholder row.
+            // Pending granularity stays per-musician (R6, documented): all of
+            // a musician's rows show pending together — conservative-correct,
+            // since a re-render refreshes the whole part.
             if (rosterOrder != null && rosterOrder.Count > 0)
             {
                 foreach (var id in rosterOrder)
                 {
-                    var t = model.tracks?.Find(x => x.musicianId == id);
-                    var ui = Instantiate(trackPrefab, tracksRoot);
-                    ui.gameObject.SetActive(true);
-                    trackByMusician[id] = ui;
-
                     bool isPending = pendingMusicianIds != null
                         && pendingMusicianIds.Contains(id);
 
-                    if (t != null)
+                    var owned = model.tracks?.FindAll(x => x.musicianId == id);
+                    if (owned == null || owned.Count == 0)
+                    {
+                        var ui = Instantiate(trackPrefab, tracksRoot);
+                        ui.gameObject.SetActive(true);
+                        trackByMusicianRole[id] = ui; // placeholder key
+                        ui.Bind("—", "", placeholder: true);
+                        continue;
+                    }
+
+                    foreach (var t in owned)
+                    {
+                        var ui = Instantiate(trackPrefab, tracksRoot);
+                        ui.gameObject.SetActive(true);
+                        trackByMusicianRole[RowKey(id, t.role.ToString())] = ui;
+
                         ui.Bind(
                             t.role.ToString(), t.info, placeholder: false,
-                            inspirationNext: t.inspirationGenerated, pending: isPending,
+                            // [DF-INSPLOOP] complexity + card per-loop bonus
+                            inspirationNext: t.inspirationGenerated +
+                                ALWTTT.Cards.Effects.AddInspirationPerLoopSpec.SumFor(
+                                    t.sourceCardDefinition),
+                            pending: isPending,
                             sourceCard: t.sourceCardDefinition); // [B2 / #3]
-                    else
-                        ui.Bind("—", "", placeholder: true);
+                    }
                 }
             }
             else
@@ -84,14 +109,19 @@ namespace ALWTTT.UI
                     {
                         var ui = Instantiate(trackPrefab, tracksRoot);
                         ui.gameObject.SetActive(true);
-                        trackByMusician[t.musicianId] = ui;
+                        trackByMusicianRole[
+                            RowKey(t.musicianId, t.role.ToString())] = ui;
 
                         bool isPending = pendingMusicianIds != null
                             && pendingMusicianIds.Contains(t.musicianId);
 
                         ui.Bind(
                             t.role.ToString(), t.info, placeholder: false,
-                            inspirationNext: t.inspirationGenerated, pending: isPending,
+                            // [DF-INSPLOOP] complexity + card per-loop bonus
+                            inspirationNext: t.inspirationGenerated +
+                                ALWTTT.Cards.Effects.AddInspirationPerLoopSpec.SumFor(
+                                    t.sourceCardDefinition),
+                            pending: isPending,
                             sourceCard: t.sourceCardDefinition); // [B2 / #3]
                     }
             }
@@ -104,19 +134,48 @@ namespace ALWTTT.UI
         {
             Log($"<color=red>Add/Update Track {musicianId} {role} {info}</color>");
 
-            // If the row exists (placeholder or not) → update it in place
-            if (!trackByMusician.TryGetValue(musicianId, out var trackUI))
-            {
-                trackUI = Instantiate(trackPrefab, tracksRoot);
-                trackUI.gameObject.SetActive(true);
-                trackByMusician[musicianId] = trackUI;
+            var key = RowKey(musicianId, role);
 
-                if (rosterOrder != null && rosterOrder.Count > 0)
+            // 1) Exact (musicianId, role) row exists → update it in place.
+            if (!trackByMusicianRole.TryGetValue(key, out var trackUI))
+            {
+                // 2) [BASS-1] Placeholder row for this musician exists →
+                //    upgrade it in place to this role's row.
+                if (trackByMusicianRole.TryGetValue(musicianId, out trackUI))
                 {
-                    int idx = rosterOrder.IndexOf(musicianId);
-                    if (idx >= 0)
+                    trackByMusicianRole.Remove(musicianId);
+                    trackByMusicianRole[key] = trackUI;
+                }
+                // 3) New row. Place it after the musician's last existing row
+                //    when they already have one; otherwise at roster position.
+                else
+                {
+                    trackUI = Instantiate(trackPrefab, tracksRoot);
+                    trackUI.gameObject.SetActive(true);
+                    trackByMusicianRole[key] = trackUI;
+
+                    int siblingIdx = -1;
+                    var prefix = musicianId + "|";
+                    foreach (var kv in trackByMusicianRole)
+                    {
+                        if (kv.Value == trackUI) continue;
+                        if (kv.Key == musicianId || kv.Key.StartsWith(prefix))
+                            siblingIdx = Mathf.Max(siblingIdx,
+                                kv.Value.transform.GetSiblingIndex());
+                    }
+
+                    if (siblingIdx >= 0)
+                    {
                         trackUI.transform.SetSiblingIndex(
-                            Mathf.Min(idx, tracksRoot.childCount - 1));
+                            Mathf.Min(siblingIdx + 1, tracksRoot.childCount - 1));
+                    }
+                    else if (rosterOrder != null && rosterOrder.Count > 0)
+                    {
+                        int idx = rosterOrder.IndexOf(musicianId);
+                        if (idx >= 0)
+                            trackUI.transform.SetSiblingIndex(
+                                Mathf.Min(idx, tracksRoot.childCount - 1));
+                    }
                 }
             }
 

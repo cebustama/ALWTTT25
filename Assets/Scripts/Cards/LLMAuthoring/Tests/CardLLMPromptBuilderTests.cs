@@ -20,7 +20,7 @@ namespace ALWTTT.Cards.LLMAuthoring.Tests
                 SpecialKeywords = new[] { "Exhaust", "Consume" },
                 ActionTargetTypes = new[] { "Self", "Musician", "AllAudienceCharacters" },
                 ActionTimings = new[] { "Always", "OnPlay" },
-                TrackRoles = new[] { "Backing", "Melody", "Harmony", "Rhythm" },
+                TrackRoles = new[] { "Backing", "Melody", "Harmony", "Rhythm", "Bassline" },
                 PrimaryKinds = new[] { "None", "Track", "Part" },
                 PartActionKinds = new[] { "None", "CreatePart", "MarkSolo", "Custom" },
                 AcquisitionFlags = new[] { "UnlockedByDefault", "StarterDeck", "RewardPool" },
@@ -43,7 +43,10 @@ namespace ALWTTT.Cards.LLMAuthoring.Tests
             var d = new PaletteDescriptor { Id = id, DisplayName = name, IsDrumDomain = drum };
             d.Entries.Add(new PaletteEntryDescriptor
             {
-                TimeSignature = ts, Subdivisions = 4, Measures = 2, StructuralOnsets = 4
+                TimeSignature = ts,
+                Subdivisions = 4,
+                Measures = 2,
+                StructuralOnsets = 4
             });
             return d;
         }

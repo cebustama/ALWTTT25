@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: "Efectos sobre el p\xFAblico"
   portrait: {fileID: 0}
   pages:
-  - "Le has colgado un efecto al p\xFAblico \u2014 el icono bajo su retrato. Los
-    efectos trabajan solos, turno a turno, sin pedir permiso. Pl\xE1ntalos y deja
-    que la m\xFAsica haga el resto."
+  - "Le has colgado un efecto al p\xFAblico: el icono bajo su retrato. Los efectos
+    trabajan solos, turno a turno, sin pedir permiso. Pl\xE1ntalos y deja que la
+    m\xFAsica haga el resto."
   highlightKey: status_icon_audience

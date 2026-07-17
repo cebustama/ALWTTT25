@@ -344,6 +344,8 @@ entries:
       - "Out of scope: composer-internal precedence chains, package repository loading rules, package authoring/editor internals, package-side TS normalization algorithms (those belong in MidiGenPlay docs)."
       - "Per-loop card draw and per-loop inspiration consumption are host-owned (GigManager.OnCompositionLoopFinished), not inside CompositionSession.HandleLoopFinished. CompositionSession remains the deck-non-mutating invariant holder per the [Obsolete] guards on PrepareDeck and ICompositionContext.Deck."
       - "CompositionSession.AddCurrentInspiration is the canonical session-budget mutator. It clamps to pd.MaxInspiration, mirrors to pd.CurrentInspiration, refreshes the composition UI, and returns the actual delta applied. All production-path inspiration deltas during an active session route through it."
+      - "A part's tracks are identified by the pair (musicianId, role), not musicianId alone. One musician may hold several role-tracks in the same part. A Track card whose role matches an existing track of that musician replaces it; a Track card whose role differs adds a new track alongside. (BASS-1, 2026-07-12; SSoT §11.)"
+      - "A Track card with a null trackAction.styleBundle never creates a track: it augments the target musician's existing track of that same role if one exists, and otherwise applies only its part effect. Bundle-less Track cards are PartEffect carriers only. (BASS-1 D4=A, 2026-07-12; SSoT §11; authoring consequence in SSoT_Card_Authoring_Contracts §5.14.)"
     notes: >
       ALWTTT-side composition/session runtime bridge. Three-way overlap with
       Runtime_Flow and Scoring_and_Meters on LoopScoreCalculator.cs and on
@@ -731,6 +733,14 @@ known_drift_signals:
       of SSoT_Card_System.md §5.2.1 and Integration §7.1/invariant 10
       directly against the docs on disk rather than trusting either
       CURRENT_STATE or the chat-derived stubs.
+
+      Numbering collision (2026-07-12, BASS-1): the Integration SSoT now
+      HAS an invariant 10, but it is BASS-1's track-identity invariant,
+      not the PCE-PROP block; §7.1 still does not exist. Do not read the
+      presence of invariant 10 as evidence that PCE-PROP (b) was pasted.
+      PCE-PROP itself is recorded RESOLVED 2026-07-06 (S5g close) in
+      CURRENT_STATE §1, with final bindings in SSoT_Card_System.md
+      §5.2.1 — so signal (b) is a candidate for closure on its own.
     affected_docs:
       - Docs/CURRENT_STATE.md
       - Docs/systems/SSoT_Card_System.md

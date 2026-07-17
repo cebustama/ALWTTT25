@@ -18,7 +18,7 @@ MonoBehaviour:
   revisitTitle: Stress
   portrait: {fileID: 0}
   pages:
-  - "Your musician's Stress took a hit. That bar is their fortitude, and it runs
-    out: at zero, they break down and stop playing. Some action cards restore it
-    \u2014 or shield it. Take care of your band: no band, no song."
+  - 'Your musician''s Stress took a hit. That bar is their fortitude, and it runs
+    out: at zero, they break down and stop playing. Some action cards restore it,
+    or shield it. Take care of your band: no band, no song.'
   highlightKey: musician_stress_bar

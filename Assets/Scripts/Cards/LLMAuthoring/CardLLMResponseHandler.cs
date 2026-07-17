@@ -275,6 +275,15 @@ namespace ALWTTT.Cards.LLMAuthoring
                 if (!string.IsNullOrWhiteSpace(comp.trackAction?.styleBundle))
                     errors.Add("Forbidden field 'composition.trackAction.styleBundle' present." + why);
 
+                // [BASS-CARD-1] styleBundleCreate mints a bundle and can write ANY
+                // serialized field on it, including object references resolved from
+                // an asset path/guid — the exact channel this guard exists to close.
+                // The LLM route does not need it: its bundle is minted by the field
+                // plan (ApplyLlmPlanOnSave) and its asset intent travels through
+                // composition.palette. Hand-authored JSON only.
+                if (HasBundleCreateIntent(comp.trackAction?.styleBundleCreate))
+                    errors.Add("Forbidden field 'composition.trackAction.styleBundleCreate' present." + why);
+
                 if (HasAnyContent(comp.modifierEffects))
                     errors.Add("Forbidden field 'composition.modifierEffects' (path/guid refs) present." + why);
 
@@ -322,6 +331,14 @@ namespace ALWTTT.Cards.LLMAuthoring
             }
             return false;
         }
+
+        /// <summary>
+        /// [BASS-CARD-1] Content-based presence test, for the same JsonUtility
+        /// reason as <see cref="HasPaletteIntent"/>: an absent nested object is
+        /// default-constructed, so mere non-nullness is not a signal.
+        /// </summary>
+        internal static bool HasBundleCreateIntent(StyleBundleCreateJson s)
+            => s != null && (s.requested || (s.fields != null && s.fields.Length > 0));
 
         private static bool HasAnyContent(string[] arr)
         {
@@ -374,7 +391,7 @@ namespace ALWTTT.Cards.LLMAuthoring
                 if (string.IsNullOrEmpty(type))
                 {
                     errors.Add($"effects[{i}].type is required " +
-                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress).");
+                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop).");
                     continue;
                 }
 
@@ -382,11 +399,12 @@ namespace ALWTTT.Cards.LLMAuthoring
                 bool isDraw = type.Equals("DrawCards", StringComparison.OrdinalIgnoreCase);
                 bool isVibe = type.Equals("ModifyVibe", StringComparison.OrdinalIgnoreCase);
                 bool isStress = type.Equals("ModifyStress", StringComparison.OrdinalIgnoreCase);
+                bool isInspLoop = type.Equals("AddInspirationPerLoop", StringComparison.OrdinalIgnoreCase);
 
-                if (!isApplyStatus && !isDraw && !isVibe && !isStress)
+                if (!isApplyStatus && !isDraw && !isVibe && !isStress && !isInspLoop)
                 {
                     errors.Add($"effects[{i}].type '{e.type}' is not supported " +
-                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress).");
+                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop).");
                     continue;
                 }
 
@@ -404,6 +422,9 @@ namespace ALWTTT.Cards.LLMAuthoring
 
                 if (isDraw && e.count < 0)
                     errors.Add($"effects[{i}].count must be >= 0.");
+
+                if (isInspLoop && e.amount < 1)
+                    errors.Add($"effects[{i}].amount must be >= 1 for AddInspirationPerLoop.");
 
                 if (isApplyStatus || isVibe || isStress)
                     CheckToken(e.targetType, v.ActionTargetTypes, $"effects[{i}].targetType", errors);

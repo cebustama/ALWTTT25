@@ -9,6 +9,10 @@
 
 **v1.2 (2026-07-07).** All starter Inspiration costs set to 0 per ECON-1 / D-ECON-6=DEFER (Warm Up, Mind Tap, Push It, Half Time, Key Lift: cost 1→0; gen unchanged). The "finisher" layer (cost ≥1 cards) is designed but its card assignments are deferred to a future batch; see the §4 note, §8, and `SSoT_Gig_Combat_Core.md` §14.6. Play-economy truth: `SSoT_Gig_Combat_Core.md` §14.
 
+**v1.3 (2026-07-09).** Two cards added for tutorial coverage (TUT-REBUILD): **Psychic Waves** (Sibi, Action/EMT, cost 3, `ModifyVibe +5` to `AllAudienceCharacters`) — the guided finisher (beat 8); and **Keep Cool** (**C2**, Action/CHR, cost 0, `ApplyStatusEffect composure +3 Self`) — the didactic Composure source, pairing with Take Five as the defensive heal/block pair. **Starter size 15 → 17.** Keep Cool is authored **C2-owned** (`FixedMusicianType`), not generic — the generic-catalog move is deferred pending **D-ECON-GENERIC** (who spends the ECON-1 per-musician action budget for an `AnyMusician` card; home `Design_Action_Economy_v1` / `SSoT_Gig_Combat_Core §14`). Psychic Waves partially closes the finisher layer (one card, cost ≥1); deep tuning stays S5i. See `changelog-ssot.md` 2026-07-09.
+
+**v1.4 (2026-07-16).** No card changes. Documentation-only pass from the deckbuilder balance-research cross-reference (BALANCE-XREF; see `changelog-ssot.md` 2026-07-16 and the new `planning/Design_Game_And_Card_Maxims_v0_1.md`). Two edits: (1) the §4 "Note on uniqueness ratio" was **corrected** — it still read the stale "12 cards / 10 unique" from before the v1.1/v1.3 growth to 17/15 — and re-framed as a *deliberate* divergence from genre norms whose comprehension cost is verified in S5i; (2) the *mínimas cartas* principle below now cross-references the governed maxims doc, which reconciles it with the newly-adopted maxim that **exact-copy duplication is a legitimate onboarding/consistency tool** (this is what the Wormus ×2 / Default Mode ×2 multiplicities already do — E1 forbids near-*duplicate axes*, not multiple copies of one card).
+
 ## Design principle: mínimas cartas, máxima expresividad
 
 The guiding principle for composition-card authoring in ALWTTT is: **minimal number of cards, maximal musical expressiveness per card**.
@@ -23,6 +27,8 @@ The acceptance test for a composition card is: *would an untrained listener dist
 The catalogue of axes a card can actually affect — with the carrier (PartEffect or styleBundle), the `SongConfig` field reached, and the per-card controllability status — is in `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` §3. The starter cards' axis assignments (now resolved, see §5) used that matrix as evidence base.
 
 This principle is binding for the starter deck and recommended as default for any future composition-card authoring in ALWTTT.
+
+> **Governed maxim (2026-07-16).** *Mínimas cartas, máxima expresividad* and the blind-listener test are now catalogued as maxims **E1** and **E2** in `planning/Design_Game_And_Card_Maxims_v0_1.md` (the project's consolidated game/card-design maxims, philosophy-class). That doc also records the reconciliation with maxim **N7** (*duplication is a legitimate tool — for onboarding and for consistency*): E1 forbids two cards that occupy the *same axis with a small contrast* ("same card, slightly different number"), whereas shipping **multiple exact copies of one card** — Default Mode ×2, Wormus Minor/Major ×2 — is explicitly permitted when it serves card velocity, onboarding legibility, or deck consistency. The two maxims do not conflict; they govern different things (axis distinctness vs. copy count).
 
 ### Tempo-lean as design intent (not runtime)
 
@@ -111,9 +117,9 @@ Picker semantics (override decision, validation rules, multiset-blind audience c
 
 ---
 
-## 4. Deck composition — the 15 cards
+## 4. Deck composition — the 17 cards
 
-**Starter deck size: 15 cards.** Composition: 4 Action + 4 C2 + 6 Sibi + 1 Cantante.
+**Starter deck size: 17 cards.** Domain split: **6 Action / 11 Composition**. Composition by performer: 5 C2 + 6 Sibi (no Cantante card in the starter). *(VERIFY-DOC-STARTER-1 resolved: the earlier "5 Action / 12 Composition" was wrong — both new cards are Action.)*
 
 | # | Card | Unique? | Copies | Domain | Owner | Effect (authoritative for MVP) | Inspiration cost / gen | Notes |
 |---|---|---|---|---|---|---|---|---|
@@ -128,25 +134,29 @@ Picker semantics (override decision, validation rules, multiset-blind audience c
 | 9 | Wormus Major | ✓ | 2 | Composition | Sibi | Backing. `BackingCardConfigSO` with major-mode `progressionPalette` (entries with `tonalities = [Ionian/Mixolydian/Lydian]`) | — / 2 | Sibi major-mode anchor — multiplicity 2 per D-STARTER-1=B |
 | 10 | Singing Field *(working name)* | ✓ | 1 | Composition | Sibi | Melody. `MelodyCardConfigSO` with `phrasePaletteOverride` set to a hook-shaped `PhrasePaletteSO` (specific asset TBD at authoring) | — / 3 | Sibi melodic hook — inherits progression from Wormus card via shared-progression mechanic |
 | 11 | Key Lift *(new, v1.1)* | ✓ | 1 | Composition | Sibi | Backing. `ModulationEffect.IntervalWithinScale(degree=5)` PartEffect | 0 / 2 | Sibi Modulation card — shifts root up a fifth |
+| 12 | Psychic Waves *(new, v1.3)* | ✓ | 1 | Action | Sibi | `ModifyVibe(+5, AllAudienceCharacters)` | 3 / — | Guided finisher (TUT-REBUILD beat 8) — AoE, no target select |
+| 13 | Keep Cool *(new, v1.3)* | ✓ | 1 | Action | C2 | `ApplyStatusEffect(composure, +3, Self)` | 0 / — | Didactic Composure source — heal/block pair with Take Five |
 
 **Derived counts (v1.1):**
 **Cost semantics post-ECON-1 (D-ECON-6=DEFER, 2026-07-07):** all starter cards are cost 0 today. The "finisher" layer (cards with cost ≥1) is designed but its card assignments are deferred to a future batch — see `SSoT_Gig_Combat_Core.md` §14.6 and `planning/active/Design_Action_Economy_v1.md` §3/§7. Finisher costs will be tuned in S5i.
 
-- 4 Action (total copies): 2 Warm Up + 1 Take Five + 1 Mind Tap.
+- 6 Action (total copies): 2 Warm Up + 1 Take Five + 1 Mind Tap + 1 Psychic Waves (Sibi) + 1 Keep Cool (C2).
 - 11 Composition (total copies): 2 Default Mode + 1 Waltz Protocol + 1 Push It + 1 Half Time + 2 Wormus Minor + 2 Wormus Major + 1 Singing Field + 1 Key Lift.
 - C2 composition coverage: 5 copies (2 + 1 + 1 + 1).
 - Sibi composition coverage: 6 copies (2 + 2 + 1 + 1).
 
 ### Reward pool (cards not in starter)
 
-Cards held in the per-musician catalog with `flags: UnlockedByDefault | RewardPool` and `StarterDeck` flag cleared. Forward-looking authoring metadata — the current `RewardContainerData` reward sourcing does not yet consume the `RewardPool` flag, but tagging cards here makes intent explicit for when reward emission gets reworked.
+Cards held in the per-musician catalog with `flags: UnlockedByDefault | RewardPool` and `StarterDeck` flag cleared. **As of S5h (2026-07-07, D2=B) this flag IS the runtime reward source:** `PersistentGameplayData.BuildRewardCardPool()` collects `RewardPool ∩ UnlockedByDefault` entries from the current band's catalogs, excluding cards already in the run deck (D9). The old `RewardContainerData` card-list path is retired for card rewards (the asset is now presentation-only: box sprite + description). Reward cards granted via the screen route through the provenance-aware `GrantRewardCard` (D4), so a composition reward files into the composition deck, not the action deck.
 
 - **Compound Cycle (6/8)** — moved 2026-05-22 per D-STARTER-2=B. Compound meter reserved as a post-demo unlock to give the meter axis somewhere to go across runs.
 - **Pentameter (5/4)** — moved 2026-05-22 per D-STARTER-2=B. Asymmetric meter reserved as reward-pool card.
 
 **Ratio asymmetry is intentional:** C2 picks the song's clock (more copies, broader meter coverage, with 4/4 as soft default at ×2). Sibi picks the song's emotional world and its hook (fewer copies, each card a distinct expressive lever).
 
-**Note on uniqueness ratio:** 12 cards / 10 unique is heavier on variety than the v0 design (12/7) and lighter on duplication than typical deckbuilder starters (StS ~10/4, Monster Train 2 ~15/5). This is a direct consequence of the *mínimas cartas, máxima expresividad* principle — each composition card plants a distinct axis, so duplicating a card without changing its axis would violate the principle.
+**Note on uniqueness ratio (corrected 2026-07-16).** The current starter is **17 cards / 15 unique** (v1.3). *(The prior text here read "12 cards / 10 unique", stale since the v1.1 growth to 15 and the v1.3 growth to 17 — corrected in the v1.4 doc pass.)* This is far heavier on variety than typical deckbuilder starters (Slay the Spire ~10 cards / 4 unique; Monster Train 2 ~15 cards / 5 unique). The high unique count is a direct consequence of *mínimas cartas, máxima expresividad* (maxim E1): composition cards are **content-bearing** — each one changes the music on a distinct axis — so a duplicate adds far less here than a duplicated Strike does in StS.
+
+**This divergence is deliberate, but it carries a known cost the balance research flags.** Heavy starter duplication is not only a power lever in the referents — it is an **onboarding device**: turn 1 looks like turn 4, so new players learn the loop faster. A 15-unique starter works *against* that, and the demo's success signal (D-REPLAN-1) is *unassisted comprehension*. The mitigations already carrying that load are the guaranteed-draw fallbacks (M4.5), the guided tutorial (TUT-REBUILD), and the 2-musician roster. **S5i must explicitly verify comprehension holds at this uniqueness level** (it is one of the three S5i observation lenses added by BALANCE-XREF — see `planning/active/S5_DemoCutClose_Sub_Roadmap.md` → S5i). If comprehension fails, *reducing starter variety by adding exact copies of the most legible cards is a permitted fallback* under maxim N7, not a violation of E1 — see the "Governed maxim" note in the Design principle section above.
 
 ---
 
@@ -273,6 +283,8 @@ Melody part. `MelodyCardConfigSO` with `phrasePaletteOverride = PhrasePaletteSO_
 - 1 copy — the rarity in Sibi's composition pool, deliberately.
 - **FixedPerformerType: Sibi.**
 
+> **Blocked until BASS-1 (2026-07-12) — now resolved.** This card's whole premise — "inherits whichever progression a Wormus card established for the part via the shared-progression mechanic" — was **not achievable** in the shipped build. Both Wormus and Singing Field are `FixedPerformerType: Sibi`, and a fixed-performer composition card ignores hover and always resolves onto its own musician. Under the pre-BASS-1 one-track-per-musician model, playing Singing Field after a Wormus card **retargeted Sibi's Backing track into a Melody track**, destroying the progression — and since C2 carries only Rhythm cards, the song lost its harmony entirely. BASS-1 re-keyed tracks by `(musicianId, role)`, so Sibi now holds Backing and Melody simultaneously and the mechanic works as designed. Verified ST-BASS-9 (2026-07-12). Authority: `runtime/SSoT_Runtime_CompositionSession_Integration.md` §11.
+
 ### 5.14 Push It (Composition, C2, ×1) *(new, v1.1)*
 
 - **Asset:** `Starter_push_it.asset` + `Starter_push_it_Payload.asset`.
@@ -303,6 +315,43 @@ Melody part. `MelodyCardConfigSO` with `phrasePaletteOverride = PhrasePaletteSO_
 - **Effect:** `ModifierEffects: [ModulationEffect_KeyLift_Degree5.asset]` — `mode: IntervalWithinScale`, `targetDegree: 5`, `timing: Immediate`.
 - **Audible effect:** the song's root pitch class shifts by a fifth. All stems for the part regenerate in the new key (per D-MOD-2=A); the styleBundle (e.g., Wormus Major's progression) is preserved through the play per D-MOD-FIX=A. "KEY!" floater fires on play when the previous render had an explicit root.
 - **Known limitation.** Octave of the new root is voice-leader-driven; the modulation may audibly ascend or descend depending on minimum voice-leading distance. Tracked as MGP-ALWTTT-MOD-DIR-1.
+
+### 5.17 Psychic Waves (Action, Sibi, ×1) *(new, v1.3)*
+
+- Owner Sibi (`FixedMusicianType`, D-TUT-R1-2). `ModifyVibe(+5, AllAudienceCharacters)`, cost 3 (D-TUT-R1-1=A).
+- Magnitude **5** (revised 4→5, D-TUT-R2c): 5×3 = 15 total Vibe; affordability gated by cost, not magnitude.
+- AoE ⇒ no target select ⇒ ideal for the beat-8 gate.
+- **Presentation (JUICE-PW, 2026-07-13).** The card is the demo's mechanical climax and now reads as
+  one: at *effect resolution* it fires a per-member `-N` floater (grey `INDIFFERENT` on a blocked
+  member), one `CardVibeImpact` sting, an impact kick + particle burst on each landed member, and a
+  kick + burst on Sibi. The FX is structurally guaranteed to precede the beat-8 loop-hold release.
+- **`audioType: None` — authored deliberately, do not "fix".** The card's sound is its **impact**
+  (the bus sting), not its **drop**. Giving it a clip-backed `audioType` would make it sound twice.
+  Rule: `SSoT_Card_Authoring_Contracts.md` §5.15; key: `SSoT_Audio.md` §3 + invariant 18.
+- **Cost/magnitude are untouched by JUICE-PW** — finisher economy tuning stays S5i.
+
+### 5.18 Keep Cool (Action, C2, ×1) *(new, v1.3)*
+
+- Owner **C2** (`FixedMusicianType`), target Self. `ApplyStatusEffect(composure, +3, Self)`, cost 0 (ECON-1 starter layer).
+- Composure clears at PlayerTurn start (`SSoT_Gig_Combat_Core §6.2`) → +3 reads against one turn-cycle; parity with Take Five (−3 Stress).
+- **Provisional:** C2-owned (not generic); C2 always in the demo band (roster = C2 + Sibi); generic-catalog move deferred (D-ECON-GENERIC).
+
+### 5.19 Sibi Bassline cards (BASS-CARD-1, 2026-07-12) — **starter status UNDECIDED**
+
+Two Bassline cards were authored for Sibi to validate BASS-1 end-to-end:
+
+| Card | Bundle | Purpose |
+|---|---|---|
+| **Worm Walk** | `BasslineCardConfigSO`, `chordExpression = Block` (default) | Baseline — sustained bass, bit-identical to legacy bass output |
+| **Worm Pulse** | `BasslineCardConfigSO`, `chordExpression = ArpeggioUp`, `arpeggioRate = Eighth` | Articulated — repeated-note eighth pulse on the monophonic line |
+
+Both were flagged `UnlockedByDefault | StarterDeck` **as a testing convenience**, which puts the starter at 19 cards and contradicts §4. **This is not a design decision.** Open item — resolve before demo:
+
+- **(A)** drop the `StarterDeck` flag (cards remain authored, inert);
+- **(B)** move to `RewardPool` — bass becomes a run unlock, giving Sibi a third expressive axis to grow into;
+- **(C)** promote bass to real starter content and re-derive §4's counts and the C2 : Sibi ratio.
+
+Recommendation: **(B)**. It costs nothing now, keeps §4 intact, and the "add a whole new voice" fantasy is a strong reward. (A) is the zero-thought fallback. (C) needs a tuning pass the demo cut does not have room for.
 
 ---
 
@@ -370,6 +419,7 @@ To be set in Inspector during M4.6 tuning pass:
 - Wormus Minor/Major palette contents (which `ChordProgressionData` entries are included in each `ChordProgressionPaletteSO`) — see §9 #7.
 - Singing Field phrase palette content (which `PhraseArchetypeSO` entries) — see §9 #6.
 - `captivatedBonusPerStack` — not in starter, deferred to roster expansion.
+- **Finisher layer partially closed (v1.3):** **Psychic Waves** = one cost-≥1 card authored; deep finisher tuning stays S5i. Defensive heal/block pair on record: **Take Five (−3 Stress) / Keep Cool (+3 Composure)**.
 
 ---
 

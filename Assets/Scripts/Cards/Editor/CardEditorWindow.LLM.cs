@@ -65,7 +65,11 @@ namespace ALWTTT.Cards.Editor
         [NonSerialized] private bool _llmPlanPending;
 
         private static readonly string[] KindHintOptions = { "(let the model decide)", "Action", "Composition" };
-        private static readonly string[] RoleHintOptions = { "(let the model decide)", "Backing", "Melody", "Harmony", "Rhythm" };
+        // [BASS-CARD-1] Bassline added. The VOCABULARY already accepted the token
+        // (CardLLMVocabularyBuilder builds TrackRoles from Enum.GetNames(TrackRole))
+        // and ApplyLlmPlanOnSave → CreateAndAssignStyleBundle already mints the
+        // right SO type — only this hint list omitted the role.
+        private static readonly string[] RoleHintOptions = { "(let the model decide)", "Backing", "Melody", "Harmony", "Rhythm", "Bassline" };
 
         /// <summary>
         /// CE-F1 Tier-B knob for the intent resolver. The editor panel uses the

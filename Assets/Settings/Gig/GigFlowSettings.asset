@@ -16,8 +16,8 @@ MonoBehaviour:
     loopsPerPart: 4
     drawPerPart: 0
     inspirationPerPart: 0
-  drawPerLoop: 2
-  drawCardsOnPlay: 2
+  drawPerLoop: 1
+  drawCardsOnPlay: 0
   discardActionCardsOnPlay: 0
   allowActionCardsDuringPerformance: 1
   skipAudienceActionsAfterFinalSong: 1

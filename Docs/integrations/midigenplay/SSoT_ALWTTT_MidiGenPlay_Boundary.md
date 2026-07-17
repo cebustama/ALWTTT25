@@ -93,6 +93,18 @@ ALWTTT owns:
 ### 4.2 MidiGenPlay-owned side
 MidiGenPlay owns the package-level machinery that turns build input into generated musical output.
 
+### 4.3 Known package constraints ALWTTT works around
+
+Recorded here so the workaround is not mistaken for ALWTTT design, and so the request to the package is written down once.
+
+**Per-musician stem and instrument readback (BASS-1, 2026-07-12).** `PartRender.stemsByMusician` and `PartRender.melInstByMusician` are keyed by `musicianId`, and the `instrumentOverrides` parameter of `RenderSinglePart` is likewise musician-keyed. Since BASS-1, an ALWTTT musician may hold **more than one role-track in a part** (Melody + Bassline, say), and these maps cannot represent that: the package returns one stem and one instrument per musician (last role wins).
+
+ALWTTT does **not** redefine or patch the package. It degrades safely instead: multi-track musicians are omitted from the track-inputs hash map and from the instrument-override argument, which disables the stem/bundle cache for the affected part and forces a fresh render. Per-role voice consistency is preserved by ALWTTT's own session pins, which are keyed `"musicianId|role|override-state"`. Detail: `runtime/SSoT_Runtime_CompositionSession_Integration.md` §8 invariant 9 and §11.
+
+**Request to MidiGenPlay (open, not blocking).** Re-key `PartRender.stemsByMusician` / `melInstByMusician` and the `instrumentOverrides` parameter by `(musicianId, TrackRole)`. That would let ALWTTT re-enable per-track stem caching for multi-track musicians. Until then the degradation above stands and is correct.
+
+**Not a constraint:** channel allocation. The package's `BuildChannelMap` already allocates per **track index**, not per musician, so two tracks belonging to one musician receive distinct channels natively. ALWTTT's `(musicianId, role)` channel stamping mirrors that.
+
 ---
 
 ## 5. Classification of older mixed docs

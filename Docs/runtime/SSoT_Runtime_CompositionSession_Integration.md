@@ -133,6 +133,16 @@ Rule:
 - ALWTTT documents the intended runtime boundary behavior here
 - precise generator-side implementation details do not belong in this SSoT
 
+### 5.4 Final-loop composition lock (CARD-UX-1, 2026-07-13)
+
+**Routing fact (code truth).** Since D-D=β retired the NextPart gesture, *every* composition drop during a running loop is normalized to `CurrentPart` and applied to `_currentPartIndex` — the part that is **currently looping** — with that part's cache invalidated. The change therefore becomes audible on the **next loop of that same part** (the Pending-Effects model, `planning/Design_Pending_Effects_v1.md`). This routing was code truth and was written nowhere; it is the premise of the rule below.
+
+**Rule.** On the **final** loop of a part there is no next loop to render the change, so the play is pure waste. `CompositionSession.IsFinalLoopRunning` is true when a loop is running (`BuildingNextPart` | `PlayingCurrentPart`) and `_loopsRemainingForPart == 1`. `TryPlayCompositionCard` denies the play **before any spend** (no inspiration, no ECON-1 budget), and the overlay surfaces it as `UnplayableReason.FinalLoopLock` (`SSoT_Card_System.md` §10.5). A presentation-avoidance mirror in `GigManager.TryPlayCompositionCard` keeps the drop from animating into a denial.
+
+**Exemption — held loops.** `IsFinalLoopRunning` is **false while `TutorialLoopHoldGate.IsArmed`**: a held loop *replays*, so the pending change would in fact render on the repeat. `TutorialModalGate` is **not** exempt — modals suspend audience turns and dragging (TUT-R2b FIX-2), they do **not** replay the loop.
+
+**Demo-cut consequence.** With parts-per-song = 1 and loops-per-part = 4 (`Design_Demo_Cut_v1.md` §1.1), the only final loop of a song is the loop the guided tutorial holds at beat 8. Inside the tutorial the lock is therefore structurally **unreachable**, and the composition gate at that moment is `TutorialInputGate.SingleCardOnly` (finisher-only, `Design_Tutorial_System_v0_2.md` §4), not this lock. The lock's live consumer is **non-tutorial play** (and any future multi-part song).
+
 ---
 
 ## 6. Audible-change vs non-audible-change behavior
@@ -182,6 +192,12 @@ Those details belong to MidiGenPlay.
 8. `CompositionSession.AddCurrentInspiration` is the canonical session-budget mutator. All production-path inspiration deltas during an active session route through it. It clamps to `pd.MaxInspiration` and mirrors to `pd.CurrentInspiration`. Dev-path mutation (`GigManager.DevSetInspiration` → `CompositionSession.DevSetCurrentInspiration`) is a parallel surface tracked separately in `SSoT_Dev_Mode §13`.
 9. **Per-track stem persistence + session-level instrument continuity** (B1, 2026-05-12). `MidiMusicManager` maintains a per-song stem cache keyed on `(musicianId, trackInputsHash, partMeterHash)` where `trackInputsHash` is computed ALWTTT-side from UI `TrackEntry` fields (role + StyleBundle GUID + override-melodic/percussion-instrument GUIDs + override-instrument-type) and passed as the 5th parameter of `RenderSinglePart`. Resolved runtime fields (`tcfg.Instrument`, `tcfg.PercussionInstrument`) are NOT in the hash — they are randomized per render by `SongConfigBuilder.FromUI` for the no-override path. Stable instrument continuity across cache invalidations within a song is maintained by `CompositionSession`'s session-level pin maps (`_sessionMelodicPin`/`_sessionPercussionPin`) keyed on `"musicianId|role|override-state"`. Cards with explicit SO override (`overrideMelodicInstrument`/`overridePercussionInstrument`) skip the pin (deterministic by definition). Cards with type-override pin the random pick within the type. Reset semantics: stem cache and instrument pins both clear at song boundary in `Begin()`/`End()`. Boundary: `SongConfig` (MidiGenPlay-owned) is NOT modified to carry the hash; the parameter travels as a per-call argument per `SSoT_ALWTTT_MidiGenPlay_Boundary §3`.
 
+   **Multi-track carve-out (BASS-1, 2026-07-12).** Both the stem cache and the part-cache instrument pin are keyed by `musicianId` alone, because the *package* returns exactly one stem and one resolved instrument per musician (`PartRender.stemsByMusician` / `melInstByMusician`). A musician may now hold more than one role-track in a part (§11), and those keys cannot represent that. `SongConfigBuilder.ComputeTrackInputsHashesForPart` therefore **omits multi-track musicians from the hash map**, which trips `MidiMusicManager`'s existing guard (any track without a hash ⇒ `cacheEnabled = false`) and disables the stem/bundle cache for that part; `CompositionSession` likewise strips them from the `instrumentOverrides` argument and from `PartCache.resolvedMelInstByMusician`. This is correct-by-construction at the cost of a fresh render for affected parts — reusing a cached per-musician stem would silently drop one of the musician's two lines from the mix. Voice consistency for those musicians is carried instead by the session pins (`_sessionMelodicPin` / `_sessionPercussionPin`), which were already keyed `"musicianId|role|override-state"` and are therefore unaffected. Parts in which every musician holds exactly one track are byte-identical to pre-BASS-1 behavior (regression-verified, ST-BASS-6).
+
+10. **Track identity is the pair `(musicianId, role)`, not `musicianId`** (BASS-1, 2026-07-12). One musician may hold several role-tracks in the same part. Same-role card ⇒ replace; different-role card ⇒ add. Full contract in §11.
+
+11. **A composition play is denied on the final loop of a part** (CARD-UX-1, 2026-07-13) — no subsequent loop of that part would render it, since every drop during a running loop routes to the currently looping part and becomes audible on that part's *next* loop. Exception: while a tutorial loop-hold is armed (`TutorialLoopHoldGate.IsArmed`), the held loop replays and the change does render, so the lock lifts. Denial occurs **before any inspiration or ECON-1 spend**. Full contract in §5.4.
+
 ---
 
 ## 9. Out-of-scope package internals
@@ -214,3 +230,26 @@ This deliberately replaces the accidental stability previously produced by the p
 **Package contract consumed, not redefined.** `GenerateSinglePart(..., int? seedOverride = null)`; the package resolves `baseSeed = seedOverride ?? settings.defaultSeed` once per render. `seedOverride: null` is bit-identical to pre-adoption behavior. Authority for the package-side mechanism: MidiGenPlay orchestration SSoT §5.1 (cross-project reference, read-only — not redefined here, per `SSoT_ALWTTT_MidiGenPlay_Boundary.md`).
 
 **Dev override.** A dev-only pin surface (`CompositionSession.DevPinnedSongSeed`) exists for reproducible songs; see `SSoT_Dev_Mode.md §8.7`.
+
+---
+
+## 11. Multi-role tracks per musician (BASS-1, 2026-07-12)
+
+**Invariant.** A track in `SongCompositionUI`'s editable model is identified by the pair **`(musicianId, role)`**, not by `musicianId` alone. One musician may hold several role-tracks in the same part (e.g. Backing + Melody + Bassline).
+
+**Card semantics that follow.** `SongCompositionUI.TryAddOrReplaceTrackOnPart` matches on `t.musicianId == musicianId && t.role == role`:
+
+- a Track card whose role **matches** an existing track of that musician **replaces** that role's track (the old retarget behavior, now correctly scoped);
+- a Track card whose role **differs** **adds** a new track alongside.
+
+**Why this was a live content bug, not only a bass blocker.** The previous musician-only lookup *retargeted* the musician's single track. A fixed-performer composition card ignores hover and always resolves onto its own musician (`HandController`; `CompositionSession` `ResolveMusicianByType`). Sibi's starter Backing card (Wormus) followed by her Melody card (Singing Field) — both `FixedPerformerType: Sibi` — therefore converted her Backing track into a Melody track, removing the song's harmony and breaking the shared-progression mechanic the starter deck is built on (`planning/Design_Starter_Deck_v1.md` §5.13). Fixed and verified (ST-BASS-9).
+
+**Bundle-less Track cards do not create tracks (D4=A).** A Track card with `trackAction.styleBundle == null` — a PartEffect carrier such as Key Lift, Push It, or Half Time — augments the matching-role track **if one exists**, and otherwise applies only its part effect. It never mints an empty role-track: a role-track with no bundle renders as "no card" in the composer anyway, so creating one only pollutes the model and the UI. The authoring consequence is normative in `SSoT_Card_Authoring_Contracts.md` §5.14.
+
+**Channels are per-track, not per-musician.** `MidiMusicManager` stamps `TrackConfig.Channel` from a `(musicianId, role) → channel` lookup built over the index-parallel `ChannelMusicianOrder` / `ChannelRoles` / `channelMap` lists, with a first-wins musician-only fallback for tracks whose role was absent from the Part-0 seed. A musician may therefore own several channels, and `PlaySameArrangementSubsetByMusicians` unmutes **every** channel an entrance-ordered musician owns. Budget: 15 melodic channels per part (ch 9 reserved for drums); `SongConfigBuilder` logs a warning past that.
+
+**Instrument overrides on a multi-track musician (D2=A).** An `InstrumentEffect` with `scope = TrackOnly` applies to **every** track of the target musician whose instrument family matches the effect mode — melodic modes (`SpecificMelodic`, `InstrumentType`) to non-Rhythm tracks, `SpecificPercussion` to Rhythm tracks. Deterministic, and no authoring-contract change was needed. A role-filtered variant is the natural extension if a card ever needs "change only the bass sound".
+
+**Pending visualization stays per-musician (accepted).** All of a musician's rows flag pending together. Conservative-correct: a re-render refreshes the whole part.
+
+**Cache and pin degradation:** see the multi-track carve-out in invariant 9 (§8).

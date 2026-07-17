@@ -15,10 +15,10 @@ MonoBehaviour:
   triggerId: tut_play_finisher
   priority: 80
   category: 0
-  revisitTitle: The Grand Finale
+  revisitTitle: Psychic Waves
   portrait: {fileID: 0}
   pages:
-  - "Last loop. Time for the Grand Finale: an ACTION card \u2014 it doesn't touch
-    the song, it hits the crowd. It costs Inspiration and it hits the WHOLE crowd
-    at once. Play it before the loop ends. The ending is everything."
-  highlightKey: card_grand_finale
+  - 'Last loop. Time for the closer: PSYCHIC WAVES, an ACTION card. It doesn''t touch
+    the song: it hits the WHOLE crowd''s mind at once. It costs Inspiration. Play
+    it before the loop ends. The ending is everything.'
+  highlightKey: card_psychic_waves

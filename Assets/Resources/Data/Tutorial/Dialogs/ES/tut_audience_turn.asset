@@ -19,7 +19,6 @@ MonoBehaviour:
   portrait: {fileID: 0}
   pages:
   - "Ahora les toca a ellos. Cada personaje del p\xFAblico tiene sus propias ma\xF1as:
-    unos golpean el Stress de tus m\xFAsicos \u2014 su reserva de entereza; a cero,
-    colapso \u2014 y otros se cubren entre s\xED. M\xEDralos bien antes de tu siguiente
-    turno."
+    unos golpean el Stress de tus m\xFAsicos, su reserva de entereza (a cero, colapso),
+    y otros se cubren entre s\xED. M\xEDralos bien antes de tu siguiente turno."
   highlightKey: audience_area
