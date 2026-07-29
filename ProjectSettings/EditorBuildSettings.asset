@@ -29,6 +29,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ALWTTTCore.unity
     guid: 14b0682341bae5a43815853466f02f90
+  - enabled: 1
+    path: Assets/PinkTrombonePOC/PinkTrombonePOCScene.unity
+    guid: 1b2d2ca9e2eda5049ba025afe46f40db
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

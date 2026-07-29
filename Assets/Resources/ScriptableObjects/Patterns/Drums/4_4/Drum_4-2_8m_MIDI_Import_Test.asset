@@ -1,0 +1,940 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbe172d1a7f543146b0be301460cb6c2, type: 3}
+  m_Name: Drum_4-2_8m_MIDI_Import_Test
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.DrumPatternData
+  DisplayName: 
+  TimeSignature: 0
+  Measures: 8
+  beatsPerMeasure: 4
+  subdivisions: 2
+  lanes:
+  - instrument: 35
+    defaultVelocity: 114
+    steps:
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 105
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 115
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 113
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 101
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 85
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 106
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 105
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 123
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 109
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 118
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 127
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 120
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 115
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 118
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 121
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 127
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 107
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 119
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 119
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 38
+    defaultVelocity: 127
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 124
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 123
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 41
+    defaultVelocity: 70
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 42
+    defaultVelocity: 127
+    steps:
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 125
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 123
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 115
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 113
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 116
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 125
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 126
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 121
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 123
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 43
+    defaultVelocity: 127
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 44
+    defaultVelocity: 127
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 48
+    defaultVelocity: 127
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 0
+    - active: 0
+      velocity: 0
+  velocity: 80
+  drumMappings: []
+  pianoRollPattern: 

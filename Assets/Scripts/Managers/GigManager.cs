@@ -25,6 +25,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using ALWTTT.Tutorial;
+using MidiGenPlay.Composition;
+
 
 
 
@@ -83,11 +85,21 @@ namespace ALWTTT.Managers
         private GigDevSettingsSO dev;
 
         [SerializeField] private AudioMixSettingsSO audioMix;   // M-AUDIO-MIX (D-MIX-HOME=B)
+        // [BAL-1] Bytes-plane ensemble gains (D-BAL-1=C..D-BAL-5=A). Optional;
+        // null ⇒ no CC7 emitted anywhere (byte-identity).
+        [SerializeField] private MixGainProfileSO mixGainProfile;
 
         // Public façade properties — preserved for callers written before F-2.
         public bool FlowActionFlatBonus => meters != null && meters.FlowActionFlatBonus;
         public int FlowActionVibeBonusPerStack => meters != null ? meters.FlowActionVibeBonusPerStack : 0;
         public float FlowVibeMultiplier => meters != null ? meters.FlowVibeMultiplier : 0f;
+
+        // [R1] Captivated tuning surface (MeterTuningSO-backed, Flow-pattern
+        // mirror). Read by AudienceCharacterStats.ApplyIncomingVibe.
+        public float CaptivatedVibeBonusPerStack => meters != null
+            ? meters.CaptivatedVibeBonusPerStack
+            : AudienceCharacterStats.DefaultCaptivatedBonusPerStack;
+
         public float BreakdownStressResetFraction => meters != null ? meters.BreakdownStressResetFraction : 0.5f;
 
         // ─── Scene refs (kept inline) ─────────────────────────────────────
@@ -262,6 +274,13 @@ namespace ALWTTT.Managers
         // [B2 / #4] Read-only accessor for HandController + dev tooling. Null between
         // songs and before the first composition session of the gig.
         public CompositionSession CompositionSession => _session;
+
+#if ALWTTT_DEV
+        /// <summary>[DBG-C1] Dev-only accessor for the composition-debug tab
+        /// (Compact/Full flag lives on GigDevSettingsSO). Not compiled in
+        /// production.</summary>
+        public GigDevSettingsSO DevSettings => dev;
+#endif
 
         private class GigContext : ICompositionContext
         {
@@ -453,6 +472,9 @@ namespace ALWTTT.Managers
             BuildBand();
             BuildAudience();
             ApplyPersistedAudioMix();
+            // [BAL-1] Resolve bytes-plane gains once for this gig.
+            MidiMusicManager?.SetGigMixGains(
+                mixGainProfile != null ? mixGainProfile.BuildGainMap() : null);
             // AUDIO-AMBIENCE: crowd present from gig open — fade the looping bed in.
             AudioManager.Instance?.FadeInAmbience();
 
@@ -2542,6 +2564,23 @@ namespace ALWTTT.Managers
             if (audioMix != null) audioMix.SetMusicianVolume01(musician.CharacterId, v);
             PersistAudioMixInEditor();
         }
+
+        // [BAL-1 task 4] Dev lever: runtime gain override (bytes plane; takes
+        // effect on the NEXT part render — hash covers gains, so the stem/
+        // bundle caches re-key and re-render deterministically).
+        public void DevSetMixGain(MusicianTrackKey key, float gain)
+            => MidiMusicManager?.DevOverrideMixGain(key, gain);
+
+        public System.Collections.Generic.IReadOnlyDictionary<MusicianTrackKey, float>
+            DevGetMixGains() => MidiMusicManager?.GigMixGains;
+
+        public System.Collections.Generic.IReadOnlyDictionary<MusicianTrackKey, int>
+            DevGetAppliedCc7ByTrack() => MidiMusicManager?.LastAppliedCc7ByTrack;
+
+        // [BAL-1 test 4] Live-composed CC7 last written to a channel
+        // (live01 × bakedGain × 100). Proves compose vs stomp numerically.
+        public int DevGetLiveComposedCc7(int channel)
+            => MidiMusicManager?.GetLiveComposedCc7(channel) ?? -1;
 
         public float DevMasterSfxVolume01 =>
             AudioManager.Instance != null

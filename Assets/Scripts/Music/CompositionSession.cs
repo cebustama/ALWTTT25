@@ -7,6 +7,7 @@ using ALWTTT.Managers;
 using ALWTTT.UI;
 using Melanchall.DryWetMidi.MusicTheory;
 using MidiGenPlay;
+using MidiGenPlay.Composition;
 using MidiGenPlay.Services;
 using System;
 using System.Collections.Generic;
@@ -59,6 +60,9 @@ namespace ALWTTT.Music
         private float _loopDurationSeconds;
 
         public event Action<LoopFeedbackContext> LoopFinished;
+        // [SINGER-1] Raised once per loop, immediately before PlayRaw, carrying the
+        // loop's stems + musical context so the singer can arm from the melody stem.
+        public event Action<ALWTTT.Music.Voice.SingerLoopContext> LoopPlaybackStarting;
         public event Action<PartFeedbackContext> PartFinished;
         public event Action<SongFeedbackContext> SongFinished;
 
@@ -67,10 +71,17 @@ namespace ALWTTT.Music
             public byte[] mergedBytes;
             public float seconds;
             public int resolvedBpm;
-            public Dictionary<string, byte[]> stemsByMusician = new();
-            public Dictionary<string, MIDIInstrumentSO> resolvedMelInstByMusician = new();
-            public Dictionary<string, MIDIPercussionInstrumentSO>
-                resolvedPercInstByMusician = new();
+            // [DBG-C1] Re-keyed on (musicianId, TrackRole) end-to-end. A
+            // musician holding two role-tracks holds two independent entries.
+            public Dictionary<MusicianTrackKey, byte[]> stemsByTrack = new();
+            public Dictionary<MusicianTrackKey, MIDIInstrumentSO> resolvedMelInstByTrack = new();
+            public Dictionary<MusicianTrackKey, MIDIPercussionInstrumentSO>
+                resolvedPercInstByTrack = new();
+#if ALWTTT_DEV
+            // [DBG-C2] DevOverrideStamp captured when this entry was rendered.
+            // Compared at loop start; mismatch ⇒ invalidate + re-render.
+            public int devOverrideStamp;
+#endif
         }
 
         private readonly Dictionary<int, PartCache> _partCache = new();
@@ -89,6 +100,174 @@ namespace ALWTTT.Music
         // type, so re-renders stay consistent.
         private readonly Dictionary<string, MIDIInstrumentSO> _sessionMelodicPin = new();
         private readonly Dictionary<string, MIDIPercussionInstrumentSO> _sessionPercussionPin = new();
+
+#if ALWTTT_DEV
+        // [DBG-C1 / D2=A, D3] Infinite composition-loop dev toggle. Owned by
+        // DevCompositionDebugTab; consumed by HandleLoopFinished. When ON, the
+        // loop countdown resets instead of advancing part / ending the song;
+        // per-loop host hooks (LoopFinished subscribers: draw, inspiration)
+        // keep firing. Reset at song boundary in Begin()/End() — never leaks
+        // across songs; the field itself does not exist in production builds.
+        public static bool DevInfiniteCompositionLoop;
+
+        // [DBG-C2 / D-C2-1..4=A] Per-render pattern-override map, owned by
+        // DevCompositionDebugTab. Keyed (musicianId, TrackRole). Passed to
+        // RenderSinglePart only when non-empty (null when idle — BC gate).
+        // Overrides are deliberately NOT part of any cache key: MMM bypasses
+        // its stem/bundle caches when the map is supplied (D-C2-4=A), and the
+        // stamp below invalidates this session's PartCache on change. Reset
+        // at song boundary in Begin()/End(); does not exist in production.
+        public static readonly System.Collections.Generic.Dictionary<
+            MusicianTrackKey, PatternDataSO> DevPatternOverrides = new();
+
+#if ALWTTT_DEV
+        // [D-CSV-24=B] Tracks added via DevInjectCompositionCard are audition-
+        // only: excluded from per-loop inspiration so R2a is economy-neutral
+        // (parity with "no cost, no effects"). Keyed (musicianId, role).
+        // Cleared at song boundary; a genuine card play on the same track
+        // reclaims it into the economy (see TryPlayCompositionCard).
+        private static readonly HashSet<MusicianTrackKey> _devInjectedTrackKeys = new();
+#endif
+
+        // [DBG-C2] Monotonic stamp, bumped on every override mutation and by
+        // the R2a "Re-render part now" button (D-C2-3=A). PlaySinglePartLoop
+        // compares it with the value stamped on the PartCache entry at render
+        // time; a mismatch invalidates the entry (keepTempo+keepInstruments)
+        // so the next loop renders fresh through the normal seeded path.
+        public static int DevOverrideStamp;
+        public static void DevBumpOverrideStamp() => DevOverrideStamp++;
+
+        // [DBG-C2] The tab needs the same MidiGenPlayConfig this session uses
+        // so its PatternRepositoryResources scans the same Resources roots.
+        public MidiGenPlayConfig DevMidiConfig => _settings;
+
+        // [DBG-C1] Read-only dev accessors for the composition-debug tab.
+        public int DevCurrentPartIndex => _currentPartIndex;
+        public int DevLoopsRemainingForPart => _loopsRemainingForPart;
+        public int DevLoopsTotalForPart => _loopsTotalForPart;
+        public int? DevSongSeed => _songSeed;
+        public ALWTTT.UI.SongCompositionUI DevCompositionUI => _ctx?.CompositionUI;
+
+        // [CSV-2] Musician lookup for the dev tab's permitted-set annotation
+        // (InstrumentRules.GetPermittedMelodic needs the MusicianBase).
+        public ALWTTT.Characters.Band.MusicianBase DevResolveMusicianById(string id)
+            => _ctx?.ResolveMusicianById(id);
+
+        // [CSV-2 / D-CSV-5=A refined] Dev instrument overrides write
+        // TrackEntry.override*Instrument directly (hash-participating,
+        // card-identical). This helper mirrors the INSTRUMENT-CARD
+        // invalidation path, NOT the pattern-stamp path: the stamp path
+        // invalidates with keepInstruments=TRUE, which preserves
+        // cache.resolvedMelInstByTrack and re-feeds it into RenderSinglePart
+        // as instrumentOverrides — that stale map must be dropped when the
+        // instrument itself changes. keepTempo stays true (instrument changes
+        // don't retune). Other tracks keep their voices via the session pin
+        // maps (_sessionMelodicPin / _sessionPercussionPin), which this does
+        // not touch; the overridden track's pin is skipped while the explicit
+        // override is set (BuildMelodicPinKey/PercussionPinKey return null)
+        // and re-applies on Clear — which is what makes clear/restore
+        // byte-identical under a pinned seed.
+        public void DevInvalidateForInstrumentOverride(int partIndex)
+        {
+            InvalidatePartCache(partIndex, keepTempo: true,
+                keepInstrumentsOverride: false);
+            DevBumpOverrideStamp();
+        }
+
+        /// <summary>[CSV-3] Band exposure for the dev tab's target picker.</summary>
+        public System.Collections.Generic.IReadOnlyList<MusicianBase> DevBand => _ctx?.Band;
+
+        /// <summary>
+        /// [CSV-3 / R2a / D-CSV-8=A] Debug-play a catalogue card's MUSICAL side on the
+        /// LIVE session model. Applies: ApplyCardDefinitionToPart (primary action +
+        /// CompositionCardPayload.modifierEffects), the production invalidation +
+        /// pending path. Skips: inspiration check/spend, InspirationGenerated one-shot,
+        /// CardPayload.effects.
+        /// [D-CSV-24=B] Economy-neutral: an injected TRACK is marked audition-only and
+        /// excluded from EvalPerLoopInsp, so its per-loop inspiration bonus does NOT
+        /// enter the run economy. The track still renders. A genuine play on the same
+        /// (musicianId, role) reclaims it.
+        /// NOTE (SINGER-1): renders through the normal loop path, so the singer sings
+        /// the auditioned melody at the next loop start — intended.
+        /// Not present in production builds.
+        /// </summary>
+        public bool DevInjectCompositionCard(
+            CardDefinition def, string targetMusicianId, out string reason)
+        {
+            reason = null;
+            var ui = _ctx?.CompositionUI;
+            if (ui == null) { reason = "CompositionUI is null"; return false; }
+            if (def == null || !def.IsComposition || def.CompositionPayload == null)
+            { reason = "Not a composition card"; return false; }
+            var comp = def.CompositionPayload;
+
+            if (IsFinalLoopRunning)
+            { reason = "Final loop running — enable Infinite loop to audition"; return false; }
+
+            MusicianBase target = !string.IsNullOrEmpty(targetMusicianId)
+                ? _ctx.ResolveMusicianById(targetMusicianId) : null;
+            if (comp.RequiresMusicianTarget && target == null && def.RequiresFixedPerformer)
+                target = _ctx.ResolveMusicianByType(def.FixedPerformerType);
+            if (comp.RequiresMusicianTarget && target == null)
+            { reason = "Card requires a musician target"; return false; }
+
+            if (!ui.CanApplyDefinition(def, target, out var canReason))
+            { reason = $"CanApply refused: {canReason}"; return false; }
+
+            bool loopIsRunning = _isPlaying &&
+                (_state == CompositionState.BuildingNextPart
+                 || _state == CompositionState.PlayingCurrentPart);
+            int partIdx = loopIsRunning ? _currentPartIndex : ui.Model.CurrentPartIndex;
+
+            if (!ui.ApplyCardDefinitionToPart(def, target, partIdx))
+            { reason = "ApplyCardDefinitionToPart returned false"; return false; }
+
+            bool isTrack = comp.PrimaryKind == CardPrimaryKind.Track;
+
+            // [D-CSV-24=B] Mark the injected track as audition-only BEFORE the resync
+            // below, so EvalPerLoopInsp already excludes it and the badge stays put.
+            if (isTrack && comp.TrackAction != null
+                && target?.MusicianCharacterData != null
+                && !string.IsNullOrEmpty(target.MusicianCharacterData.CharacterId))
+            {
+                _devInjectedTrackKeys.Add(new MusicianTrackKey(
+                    target.MusicianCharacterData.CharacterId, comp.TrackAction.role));
+            }
+
+            bool affectsSound = CompositionCardClassifier.AffectsSound(comp);
+            bool affectsPartMeter =
+                CompositionCardClassifier.IsTempoCard(comp)
+                || CompositionCardClassifier.IsTimeSignatureCard(comp)
+                || CompositionCardClassifier.IsTonalityCard(comp)
+                || CompositionCardClassifier.IsModulationCard(comp);
+
+            if (loopIsRunning && affectsSound)
+            {
+                InvalidatePartCache(_currentPartIndex, ShouldKeepTempo(def), ShouldKeepInstruments(def));
+                if (affectsPartMeter)
+                    ui.MarkAllTracksPending(_currentPartIndex);
+                else if (isTrack && target?.MusicianCharacterData != null
+                         && !string.IsNullOrEmpty(target.MusicianCharacterData.CharacterId))
+                    ui.MarkTrackPending(_currentPartIndex, target.MusicianCharacterData.CharacterId);
+                else
+                    ui.MarkAllTracksPending(_currentPartIndex);
+            }
+
+            // Derived per-loop-inspiration resync. With the key marked above, the
+            // injected track contributes 0 — so the badge does NOT jump (D-CSV-24=B).
+            if (isTrack && _state != CompositionState.BuildingCurrentPart
+                && _currentPartIndex >= 0 && _currentPartIndex < ui.Model.parts.Count)
+            {
+                _perLoopInspirationCurrentPart = EvalPerLoopInsp(ui.Model.parts[_currentPartIndex]);
+                ui.SetPlusInspiration(GlobalPerLoopBadgeValue);
+            }
+
+            Debug.Log($"<color=lime>[CSV-3][R2a]</color> Injected musical side of " +
+                $"'{def.DisplayName}' → part {partIdx} " +
+                $"(no cost, no effects, economy-neutral; renders next loop).");
+            return true;
+        }
+#endif
 
         public bool TryGetPartCache(int partIndex, out PartCache cache) =>
             _partCache.TryGetValue(partIndex, out cache);
@@ -146,6 +325,13 @@ namespace ALWTTT.Music
             (_state == CompositionState.BuildingNextPart ||
              _state == CompositionState.PlayingCurrentPart) &&
             _loopsRemainingForPart == 1 &&
+#if ALWTTT_DEV
+            // [DBG-C1 / D2=A] Under infinite loop, "final loop" never
+            // finalizes — a next render always exists, so the CARD-UX-1
+            // waste-deny does not apply. Dev-only branch; production
+            // predicate is byte-identical.
+            !DevInfiniteCompositionLoop &&
+#endif
             !ALWTTT.Tutorial.TutorialLoopHoldGate.IsArmed;
 
         /// <summary>
@@ -198,6 +384,11 @@ namespace ALWTTT.Music
             _partCache.Clear();
             _ctx.Music?.ResetStemCache(); // [B1 / D7=B] Per-song stem cache reset.
             _sessionMelodicPin.Clear();   // [B1 / #7.1 / D-F=γ]
+#if ALWTTT_DEV
+            DevInfiniteCompositionLoop = false; // [DBG-C1] song-boundary reset
+            DevPatternOverrides.Clear();        // [DBG-C2] never leaks across songs
+            _devInjectedTrackKeys.Clear();
+#endif
             _sessionPercussionPin.Clear(); // [B1 / #7.1 / D-F=γ]
             _loopHistoryByPart.Clear();
             _finishedParts.Clear();
@@ -246,6 +437,11 @@ namespace ALWTTT.Music
             _isPlaying = false;
             _partCache.Clear();
             _ctx.Music?.ResetStemCache(); // [B1 / D7=B] Per-song stem cache reset.
+#if ALWTTT_DEV
+            DevInfiniteCompositionLoop = false; // [DBG-C1] song-boundary reset
+            DevPatternOverrides.Clear();        // [DBG-C2] never leaks across songs
+            _devInjectedTrackKeys.Clear();
+#endif
             _sessionMelodicPin.Clear();   // [B1 / #7.1 / D-F=γ]
             _sessionPercussionPin.Clear(); // [B1 / #7.1 / D-F=γ]
             _loopHistoryByPart.Clear();
@@ -479,6 +675,16 @@ namespace ALWTTT.Music
             if (!ui.ApplyCardToPart(card, target, partIdx))
                 return Fail("ui.ApplyCardToPart returned false");
 
+#if ALWTTT_DEV
+            // [D-CSV-24=B] A genuine play on a previously dev-injected track
+            // reclaims it into the per-loop economy.
+            if (isTrack && comp?.TrackAction != null
+                && target?.MusicianCharacterData != null
+                && !string.IsNullOrEmpty(target.MusicianCharacterData.CharacterId))
+                _devInjectedTrackKeys.Remove(new MusicianTrackKey(
+                    target.MusicianCharacterData.CharacterId, comp.TrackAction.role));
+#endif
+
             // Apply Effects (status effects) immediately
             ApplyStatusActionsFromCard(def, target);
 
@@ -665,6 +871,24 @@ namespace ALWTTT.Music
             var ownerIds = mm.GetChannelOwnerIdsFor(cfg);
             mm.SetChannelOwners(ownerIds?.ToList());
 
+#if ALWTTT_DEV
+            // [DBG-C2 / D-C2-3=A, D-C2-4=A] Override state changed since this
+            // part was last rendered (assign/clear/Roman/R2a) → invalidate so
+            // the miss branch below re-renders with the current overrides.
+            // keepTempo+keepInstruments: overrides change patterns, not the
+            // part's BPM or the musicians' voices.
+            if (_partCache.TryGetValue(partIndex, out var devEntry)
+                && devEntry != null
+                && devEntry.devOverrideStamp != DevOverrideStamp)
+            {
+                Debug.Log($"<color=lime>[DBG-C2]</color> Override stamp " +
+                    $"{devEntry.devOverrideStamp}→{DevOverrideStamp} — invalidating " +
+                    $"part {partIndex} cache (keepTempo, keepInstruments).");
+                InvalidatePartCache(partIndex, keepTempo: true,
+                    keepInstrumentsOverride: true);
+            }
+#endif
+
             if (!_partCache.TryGetValue(partIndex, out var cache)
                 || cache?.mergedBytes == null || cache.mergedBytes.Length == 0)
             {
@@ -688,7 +912,7 @@ namespace ALWTTT.Music
                     $"tracksAtPart={tracksAtPart} " +
                     $"bpmOverride={bpmOverride?.ToString() ?? "null"} " +
                     $"cacheState={(cache == null ? "null" : "stale-or-empty")} " +
-                    $"melCacheCount={cache?.resolvedMelInstByMusician?.Count ?? 0}");
+                    $"melCacheCount={cache?.resolvedMelInstByTrack?.Count ?? 0}");
 
                 // [B1 / D-E=α'] Compute UI-stable input hashes per musician
                 // for this part. Passed to RenderSinglePart so the stem cache
@@ -696,7 +920,8 @@ namespace ALWTTT.Music
                 // resolution that happens inside FromUI).
                 var trackInputsHashes =
                     Music.SongConfigBuilder.ComputeTrackInputsHashesForPart(
-                        _ctx, partIndex);
+                        _ctx, partIndex,
+                        mm.GigMixGains); // [BAL-1] gain enters the hash (D-BAL-3=A)
 
                 // [B1 / #7.1 / D-F=γ] Apply session-level instrument pins to
                 // cfg before the render. Keeps the same musician's voice
@@ -706,22 +931,23 @@ namespace ALWTTT.Music
                 // overridePercussionInstrument set).
                 ApplyInstrumentPins(cfg, partIndex);
 
-                // [BASS-1 / D3=A] The instrumentOverrides parameter of the
-                // package render is keyed by musicianId only; for a musician
-                // holding >1 track in this part it would stomp BOTH tracks'
-                // instruments with one value. Strip such musicians before the
-                // call (their per-role voice consistency is carried by the
-                // mus|role session pins applied above via ApplyInstrumentPins,
-                // which set tcfg.Instrument per track).
-                var instOverridesForRender =
-                    FilterOutMultiTrackMusicians(
-                        cache?.resolvedMelInstByMusician, partIndex);
-
-                var (merged, stems, seconds, bpmChosen, instByMus) =
+                // [DBG-C1] instrumentOverrides is composite-keyed: one entry
+                // per (musician, role). The BASS-1 multi-track strip is
+                // retired — the stomp it defended against cannot occur.
+                // [DBG-C2] Dev pattern overrides: null when idle so the
+                // production/idle path is byte-for-byte identical (BC gate).
+                System.Collections.Generic.IReadOnlyDictionary<
+                    MusicianTrackKey, PatternDataSO> devOverrides = null;
+#if ALWTTT_DEV
+                if (DevPatternOverrides.Count > 0)
+                    devOverrides = DevPatternOverrides;
+#endif
+                var (merged, stems, seconds, bpmChosen, instByTrack) =
                     mm.RenderSinglePart(cfg, partIndex, bpmOverride,
-                        instOverridesForRender,
+                        cache?.resolvedMelInstByTrack,
                         trackInputsHashes,
-                        seedOverride: _songSeed);   // [S5g / MGP-ALWTTT-SEED-1]
+                        seedOverride: _songSeed,    // [S5g / MGP-ALWTTT-SEED-1]
+                        patternOverrides: devOverrides); // [DBG-C2 / D-C1-1 now LIVE]
 
                 if (merged == null || merged.Length == 0 || seconds <= 0f) return 0f;
 
@@ -736,22 +962,18 @@ namespace ALWTTT.Music
                 if (cache == null) cache = new PartCache();
                 cache.mergedBytes = merged;
                 cache.seconds = seconds;
-                cache.stemsByMusician = stems ?? new Dictionary<string, byte[]>();
+                cache.stemsByTrack = stems ?? new Dictionary<MusicianTrackKey, byte[]>();
                 cache.resolvedBpm = bpmChosen;
-                // [BASS-1 / D3=A] The package readback is musician-keyed
-                // (last role wins) — meaningless for multi-track musicians.
-                // Store entries only for single-track musicians; also evict a
-                // stale entry if a musician BECAME multi-track mid-song.
-                if (instByMus != null)
-                    foreach (var kv in instByMus)
-                    {
-                        if (CountTracksForMusician(partIndex, kv.Key) > 1)
-                            cache.resolvedMelInstByMusician.Remove(kv.Key);
-                        else
-                            cache.resolvedMelInstByMusician[kv.Key] = kv.Value;
-                    }
+                // [DBG-C1] Readback is (musician, role)-keyed — unambiguous for
+                // every musician; the BASS-1 single-track guard is retired.
+                if (instByTrack != null)
+                    foreach (var kv in instByTrack)
+                        cache.resolvedMelInstByTrack[kv.Key] = kv.Value;
 
                 _partCache[partIndex] = cache;
+#if ALWTTT_DEV
+                cache.devOverrideStamp = DevOverrideStamp; // [DBG-C2]
+#endif
             }
 
             if (cache.resolvedBpm > 0)
@@ -760,6 +982,30 @@ namespace ALWTTT.Music
             }
 
             var partName = _ctx.CompositionUI.Model.parts[partIndex].label;
+
+            // [SINGER-1] Announce before PlayRaw so the singer is armed when
+            // OnSongStarted fires. Subscriber failures must never kill the loop.
+            try
+            {
+                var pcfg = cfg.Parts[partIndex];
+                LoopPlaybackStarting?.Invoke(new ALWTTT.Music.Voice.SingerLoopContext
+                {
+                    partIndex = partIndex,
+                    stemsByTrack = cache.stemsByTrack,
+                    tonality = pcfg.Tonality,
+                    rootNote = pcfg.RootNote,
+                    timeSignature = pcfg.TimeSignature,
+                    bpm = cache.resolvedBpm,
+                    seconds = cache.seconds
+                });
+            }
+            catch (Exception ex) 
+            {
+                Debug.Log($"[SINGER-1] LoopPlaybackStarting part={partIndex} " +
+                  $"subs={LoopPlaybackStarting?.GetInvocationList().Length ?? 0} " +
+                  $"stems={cache.stemsByTrack?.Count ?? -1} bpm={cache.resolvedBpm}");
+            }
+
             var duration =
                 mm.PlayRaw(cache.mergedBytes, cache.seconds,
                 $"Part {partIndex} (cached:{partName})");
@@ -796,6 +1042,13 @@ namespace ALWTTT.Music
             int sum = 0;
             foreach (var t in part.tracks)
             {
+#if ALWTTT_DEV
+                // [D-CSV-24=B] Audition-only tracks contribute no per-loop
+                // inspiration — R2a is economy-neutral.
+                if (t != null && !string.IsNullOrEmpty(t.musicianId)
+                    && _devInjectedTrackKeys.Contains(new MusicianTrackKey(t.musicianId, t.role)))
+                    continue;
+#endif
                 sum += Math.Max(0, t.inspirationGenerated);
                 // [DF-INSPLOOP / D-INSP-1=D] Card-gated per-loop bonus, derived
                 // from the track's source card. Track replaced/removed → bonus
@@ -964,6 +1217,23 @@ namespace ALWTTT.Music
             list.Add(ctx);
 
             LoopFinished?.Invoke(ctx);
+
+#if ALWTTT_DEV
+            // [DBG-C1 / D2=A] Infinite composition loop: when the countdown
+            // would exhaust, reset it to the full per-part value instead of
+            // reaching the part-advance / song-end branch. Everything above —
+            // decrement, per-loop inspiration, LoopFeedbackContext, history,
+            // LoopFinished subscribers (host draw hooks) — already ran for
+            // this loop, exactly as in normal flow. Toggling OFF simply lets
+            // the restored countdown run out normally.
+            if (DevInfiniteCompositionLoop && _loopsRemainingForPart <= 0)
+            {
+                _loopsRemainingForPart = _loopsTotalForPart;
+                Debug.Log(
+                    "<color=lime>[DevMode][InfLoop]</color> Countdown exhausted → " +
+                    $"reset to {_loopsTotalForPart}. Part {_currentPartIndex} keeps looping.");
+            }
+#endif
 
             if (_loopsRemainingForPart > 0)
             {
@@ -1139,49 +1409,12 @@ namespace ALWTTT.Music
                 mergedBytes = null,
                 seconds = 0f,
                 resolvedBpm = preservedBpm,
-                stemsByMusician = new Dictionary<string, byte[]>(),
-                resolvedMelInstByMusician = keepInstruments
-                    ? cache.resolvedMelInstByMusician
-                    : new Dictionary<string, MIDIInstrumentSO>(),
-                resolvedPercInstByMusician = new()
+                stemsByTrack = new Dictionary<MusicianTrackKey, byte[]>(),
+                resolvedMelInstByTrack = keepInstruments
+                    ? cache.resolvedMelInstByTrack
+                    : new Dictionary<MusicianTrackKey, MIDIInstrumentSO>(),
+                resolvedPercInstByTrack = new()
             };
-        }
-
-        // ─────────────────────────────────────────────────────────────
-        // [B1 / #7.1 / D-F=γ.1] Instrument pin helpers — refined to key
-        // by override state so the pin doesn't override a type-override card.
-        // ─────────────────────────────────────────────────────────────
-        // [BASS-1 / D3=A] Helpers for musician-keyed boundary surfaces that
-        // cannot represent a musician holding multiple role-tracks.
-        private int CountTracksForMusician(int partIndex, string musicianId)
-        {
-            var ui = _ctx?.CompositionUI;
-            if (ui?.Model?.parts == null) return 0;
-            if (partIndex < 0 || partIndex >= ui.Model.parts.Count) return 0;
-            var tracks = ui.Model.parts[partIndex]?.tracks;
-            if (tracks == null) return 0;
-
-            int n = 0;
-            foreach (var t in tracks)
-                if (t != null && t.musicianId == musicianId) n++;
-            return n;
-        }
-
-        private Dictionary<string, MIDIInstrumentSO> FilterOutMultiTrackMusicians(
-            Dictionary<string, MIDIInstrumentSO> source, int partIndex)
-        {
-            if (source == null || source.Count == 0) return source;
-
-            Dictionary<string, MIDIInstrumentSO> filtered = null;
-            foreach (var kv in source)
-            {
-                if (CountTracksForMusician(partIndex, kv.Key) > 1)
-                {
-                    filtered ??= new Dictionary<string, MIDIInstrumentSO>(source);
-                    filtered.Remove(kv.Key);
-                }
-            }
-            return filtered ?? source;
         }
 
         private void ApplyInstrumentPins(SongConfig cfg, int partIndex)

@@ -51,10 +51,62 @@ namespace ALWTTT.DevMode
 
             DrawGlobalMusic(gm);
             DrawPerMusician(gm);
+            DrawMixGains(gm);
             DrawMasterSfx(gm);
             DrawHighlightTrigger(gm);
 
             GUILayout.EndScrollView();
+        }
+
+        // [BAL-1 task 4] Bytes-plane gains: override sliders per gained track
+        // + appliedCc7ByTrack readback. Edits take effect on the NEXT part
+        // render (bytes plane, deterministic; hash covers gains).
+        private static void DrawMixGains(GigManager gm)
+        {
+            GUILayout.Space(8);
+            GUILayout.Label("Mix gains — bytes plane (BAL-1)", _sectionHeader);
+            GUILayout.Label("Applies on next part render. Live sliders above are a separate plane.", _hint);
+
+            var gains = gm.DevGetMixGains();
+            var cc7 = gm.DevGetAppliedCc7ByTrack();
+
+            if (gains == null || gains.Count == 0)
+            {
+                GUILayout.Label("No gig gain profile active (byte-identity mode).", _hint);
+            }
+            else
+            {
+                foreach (var kv in System.Linq.Enumerable.ToList(gains))
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label($"{kv.Key.MusicianId} / {kv.Key.Role}",
+                        GUILayout.Width(180));
+                    float next = GUILayout.HorizontalSlider(
+                        kv.Value, 0f, 1.27f, GUILayout.ExpandWidth(true));
+                    string applied = cc7 != null
+                        && cc7.TryGetValue(kv.Key, out var v)
+                        ? $"CC7={v}" : "CC7=—";
+                    GUILayout.Label($"{kv.Value:0.00}  {applied}", GUILayout.Width(110));
+                    GUILayout.EndHorizontal();
+                    if (!Mathf.Approximately(next, kv.Value))
+                        gm.DevSetMixGain(kv.Key, next);
+                }
+            }
+
+            if (cc7 != null && cc7.Count > 0)
+                GUILayout.Label(
+                    "Last render emitted CC7 on " + cc7.Count + " track(s).", _hint);
+
+            GUILayout.Space(4);
+            GUILayout.Label("Live-composed CC7 per channel (test 4 gate):", _hint);
+            GUILayout.BeginHorizontal();
+            for (int ch = 0; ch < 16; ch++)
+            {
+                if (ch == 9) { GUILayout.Label("[9:drum]", GUILayout.Width(58)); continue; }
+                int v = gm.DevGetLiveComposedCc7(ch);
+                GUILayout.Label($"{ch}:{(v < 0 ? "—" : v.ToString())}", GUILayout.Width(46));
+            }
+            GUILayout.EndHorizontal();
         }
 
         private static void EnsureStyles()

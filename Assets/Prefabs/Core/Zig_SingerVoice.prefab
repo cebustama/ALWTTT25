@@ -1,0 +1,214 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &891189003443518974
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4232129115379188796}
+  - component: {fileID: 647905240301313358}
+  - component: {fileID: 5099053088749827844}
+  - component: {fileID: 5458941219725825606}
+  m_Layer: 0
+  m_Name: Zig_SingerVoice
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4232129115379188796
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891189003443518974}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &647905240301313358
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891189003443518974}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &5099053088749827844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891189003443518974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfa5b36b8a16f7a41a7567e467e59505, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Music.Voice.SingerVoice
+  setup: {fileID: 0}
+  measureCallbackLoad: 0
+  halfRateSynthesis: 0
+  transposeSemitones: -12
+  pitchLeadSeconds: 0.06
+  leadFullInterval: 7
+  alwaysVoice: 0
+  hardGateOutput: 0
+  attackMs: 10
+  releaseMs: 60
+  retriggerOnNoteOn: 1
+  tongueIndex: 12.9
+  tongueDiameter: 2.9
+  vibratoWobble: 0
+  pitchJitterGain: 1
+  tensenessJitterGain: 1
+  characterEnabled: 0
+  looseness: 0.15
+  vibratoDepth: 0.4
+  vibratoSpeedHz: 6
+  diction: 1
+  mouth: 0
+  brightness: 0.5
+  expressivityEnabled: 0
+  vowelOpennessEnabled: 1
+  vowelOpenAmount: 0.7
+  longNoteSeconds: 0.8
+  vowelContourEnabled: 1
+  vowelContourIdxShift: 2
+  tensenessDegreeEnabled: 1
+  tensenessDegreeAmount: 0.08
+  vibratoGain: 0.005
+  vibratoFrequency: 6
+  vibratoDelaySeconds: 0.35
+  vibratoRampSeconds: 0.4
+  minLoudness: 0.15
+  tensenessAtVel0: 0.4
+  tensenessAtVel127: 0.6
+  tensenessOverride: 0
+  tensenessOverrideValue: 0.6
+  toneEnabled: 1
+  toneCutoffHz: 3500
+  testScaleRootMidi: 60
+  testScaleOctaves: 1
+  testNoteMs: 250
+  testGapMs: 0
+  testHoldSeconds: 3
+  testNoteNumber: 60
+  gain: 0.5
+  loopPlayback: 0
+  syncTrimMs: 0
+  uiScale: 2
+--- !u!114 &5458941219725825606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891189003443518974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42a15b2e58145ab4586ef7c17412939e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Music.Voice.SingerVoiceDirector
+  adapter: {fileID: 0}
+  voice: {fileID: 5099053088749827844}
+  musicianId: 3
+  profile: {fileID: 11400000, guid: 39cf5a34f7407764faea21de5f2a9514, type: 2}
+  logDebug: 1

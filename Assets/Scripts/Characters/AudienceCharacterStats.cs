@@ -1,6 +1,7 @@
 using ALWTTT.Data;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
+using ALWTTT.Managers;
 using ALWTTT.Status;
 using ALWTTT.Status.Runtime;
 using System;
@@ -28,6 +29,12 @@ namespace ALWTTT.Characters.Audience
         public int MaxVibe { get; set; } // "HP"
         public int CurrentVibe { get; private set; }
         public bool IsConvinced { get; private set; } // "Death" (pool empty)
+
+        // [R1] Fallback for CaptivatedVibeBonusPerStack when no GigManager /
+        // MeterTuningSO is available (tests, detached construction). The
+        // tuned value lives on MeterTuningSO (D-R1-2=A).
+        public const float DefaultCaptivatedBonusPerStack = 0.25f;
+
         public bool IsStunned { get; private set; }
 
         public Action OnConvinced;
@@ -108,6 +115,9 @@ namespace ALWTTT.Characters.Audience
         ///   blocks 100% of incoming Vibe damage. Stack decay happens via the container's Tick
         ///   per its DecayMode/TickTiming config, NOT per-application — a block doesn't
         ///   reduce future blocking.
+        /// - Captivated (CharacterStatusId.DamageTakenUpMultiplier, key "captivated"):
+        ///   amplifies incoming Vibe by ×(1 + stacks × CaptivatedVibeBonusPerStack).
+        ///   Layered AFTER the Indifference gate; blocked stays 0.
         ///
         /// Call from card effects (ModifyVibeSpec positive), audience actions
         /// (AddVibeAction), DoT ticks (Earworm), and song-end macro Vibe.
@@ -147,8 +157,41 @@ namespace ALWTTT.Characters.Audience
                 return 0;
             }
 
-            AddVibe(incoming, duration);
-            return incoming;
+            // [R1] Captivated amplification layer (Design_Audience_Status_v1 §4
+            // → SSoT_Status_Effects §5.8). Sits AFTER the Indifference gate by
+            // design (D-DCP-6=A invariant): blocked is blocked, regardless of
+            // Captivated stacks. Applies to ALL positive Vibe routed through
+            // this helper — cards, Earworm ticks, SFX FlatVibe, song-end macro
+            // Vibe (D-R1-1=A, scope broadened vs the original card-only design
+            // wording). StatusKey guard mirrors the Earworm disambiguation
+            // pattern against future DamageTakenUpMultiplier variants.
+            int modified = incoming;
+            if (statuses != null &&
+                statuses.TryGet(CharacterStatusId.DamageTakenUpMultiplier,
+                    out var captivated) &&
+                captivated != null && captivated.Stacks > 0 &&
+                captivated.Definition != null &&
+                string.Equals(captivated.Definition.StatusKey, "captivated",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                var gm = GigManager.Instance;
+                float perStack = gm != null
+                    ? gm.CaptivatedVibeBonusPerStack
+                    : DefaultCaptivatedBonusPerStack;
+
+                float mult = 1f + captivated.Stacks * perStack;
+                modified = Mathf.RoundToInt(incoming * mult);
+
+#if UNITY_EDITOR
+                Debug.Log(
+                    $"<color=#888888>[ApplyIncomingVibe] CAPTIVATED ×{mult:0.##} " +
+                    $"stacks={captivated.Stacks} incoming={incoming} " +
+                    $"applied={modified}</color>");
+#endif
+            }
+
+            AddVibe(modified, duration);
+            return modified;
         }
 
         /// <summary>

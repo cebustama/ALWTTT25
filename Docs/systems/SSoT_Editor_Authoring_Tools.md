@@ -1,7 +1,7 @@
 # SSoT_Editor_Authoring_Tools — ALWTTT
 
 **Status:** Active governed SSoT
-**Scope:** Unity editor tools for authoring cards, decks, status effects, and musical data
+**Scope:** Unity editor tools for authoring cards, decks, status effects, and musical data, plus read-only inventory/curation browsers over card and composition assets
 **Owns:** tool inventory, capabilities, menu paths, data flows, supporting services, known gaps
 **Does not own:** card data contracts (see `SSoT_Card_Authoring_Contracts`), runtime card/status semantics, MidiGenPlay internals
 
@@ -46,8 +46,9 @@ It does not duplicate the data representation rules in `SSoT_Card_Authoring_Cont
 | Card Inventory | `CardInventoryWindow` | ALWTTT → Cards → Card Inventory | Read-only browser for `CardDefinition`, `MusicianCardCatalogData`, and `GenericCardCatalogSO` assets, with Print to Console + Export JSON per view |
 | Status Effect Wizard | `StatusEffectWizardWindow` | ALWTTT → Status → Status Effect Wizard | Create and edit StatusEffectSO assets backed by the CSO primitive database |
 | Chord Progression Catalogue | `ChordProgressionCatalogueWizard` | MidiGenPlay → Chord Progression Catalogue Wizard... | Read-only browser for ChordProgressionData and ChordProgressionPaletteSO assets |
+| Composition Inventory | `CompositionInventoryWindow` | ALWTTT → Dev → Composition Inventory | Read-only browser over every composition asset family (style bundles, drum/chord/melody patterns, palettes, libraries, phrase archetypes, melodic + percussion instruments) with filters, derived health columns, Print + Export JSON, and a naming report (CSV-1, 2026-07-18; see §17) |
 
-All five are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds.
+All six are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds. `CompositionInventoryWindow` additionally requires `ALWTTT_DEV` (D-CSV-10=A).
 
 ---
 
@@ -453,6 +454,9 @@ Assets/Scripts/Cards/Editor/
   DeckAssetSaveService.cs
   ChordProgressionCatalogueWizard.cs
 
+Assets/Scripts/DevMode/Editor/
+  CompositionInventoryWindow.cs    (CSV-1, 2026-07-18; #if UNITY_EDITOR && ALWTTT_DEV)
+
 Assets/Scripts/Cards/Editor/LLM/
   CardLLMVocabularyBuilder.cs      (Stage 1 — the only game-type toucher; CE-L1)
 
@@ -511,6 +515,19 @@ No sandbox scene exists for runtime card/status/composition testing. M1.5 Phase 
 
 `BandDeckData` is now a multiset; the Deck Editor edits `count` per staged entry. See `SSoT_Card_System.md §13` and `SSoT_Card_Authoring_Contracts.md §5.10`.
 
+### 14.8 Composition Inventory discovery under-reported — RESOLVED (2026-07-18, CSV-1b + CSV-1c)
+
+Palette and then pattern discovery were both narrowed to the Resources scan roots,
+producing incomplete listings and false `ORPHAN` flags. Fixed by unioning every family
+with `AssetDatabase` plus a reference harvest; chord progressions went 13 → 48 and the
+orphan column is now trustworthy. The residual runtime-side finding (the repositories
+still cannot resolve most in-use content) is surfaced as the `OFF-ROOT` flag and tracked
+as D-CSV-13 / D-CSV-14, not as a tooling gap. Full account in §17.7.
+
+### 14.9 No instrument authoring tool (logged 2026-07-18)
+
+Neither project has an editor window for `MIDIInstrumentSO` / `MIDIPercussionInstrumentSO`; `SSoT_Authoring_Tools.md §3` lists chord/drum/melody editors only. Instruments are authored through the standard Inspector. `CompositionInventoryWindow` §17 gives the first structured **view** of the family (soundfont/bank/patch/octave/volume + health flags), which is what CSV-4 curation needs, but it is not an authoring surface. If instrument authoring is ever tooled, the owning side must be decided first — the assets are package-owned.
+
 ---
 
 ## 15. Cross-references
@@ -557,3 +574,162 @@ The asset wired into `GigSetupController.setupConfig` that drives the Gig Setup 
 - The picker boundary semantics (band/audience override decision rules, multiset-blind comparator, encounter-swap reset) are governed by `SSoT_Gig_Encounter.md §7`. This section only catalogues the field surface.
 
 **Boundary note:** This is a runtime data SO, not an editor tool. It has no dedicated editor window; all fields are authored via Unity's standard Inspector. If a future authoring batch promotes a custom Inspector or wizard for this SO, that tooling gets a tool-section above (§4–§12 style), and this entry becomes a cross-reference to it.
+
+---
+
+## 17. Composition Inventory Window (`CompositionInventoryWindow`) — CSV-1, 2026-07-18
+
+**File:** `Assets/Scripts/DevMode/Editor/CompositionInventoryWindow.cs`
+**Namespace:** `ALWTTT.DevMode.Editor`
+**Menu:** ALWTTT → Dev → Composition Inventory (priority 30)
+**Gate:** `#if UNITY_EDITOR && ALWTTT_DEV` (D-CSV-10=A — literal compliance with the batch constraint; relaxing to plain `UNITY_EDITOR` is a one-line change and would still ship nothing)
+
+### 17.1 Documentary home (D-CSV-6=A, locked 2026-07-18)
+
+This window browses **package-owned** assets (MidiGenPlay patterns, palettes, instruments) alongside ALWTTT-owned style bundles, which raised the question of where it is documented. `SSoT_Authoring_Tools.md §4` (MidiGenPlay) assigns package documentation to tools that **author or edit** package assets. This tool authors nothing and edits nothing — it is a game-side curation browser — so it is documented here, mirroring `CardInventoryWindow` (§8). The boundary rule is unaffected: nothing in this section defines package asset semantics; the window only reports fields the package already owns.
+
+### 17.2 What it does
+
+Read-only inventory and **curation worklist** over every composition asset family. It exists because CSV-3..CSV-6 cannot judge musical content that cannot first be listed, and because no naming convention exists yet (CR-9). Each view supports `Print` (multi-line `Debug.Log`) and `Export JSON` (`SaveFilePanel` → `JsonUtility.ToJson(_, prettyPrint: true)` → `Debug.Log` of the path → `RevealInFinder`), following the `CardInventoryWindow` pattern verbatim. **`Export All` (CSV-1c)** takes one `SaveFolderPanel` and writes all seven views in a single pass using the same filenames and schemas; both export paths share `BuildJsonForView(View)`, and a view that throws is recorded and skipped rather than aborting the batch. It exists because a full re-baseline (the CSV-1b/1c workflow) is a seven-dialog operation otherwise.
+
+The window mutates nothing: no rename, no move, no `SetDirty`, no save (ST-CSV-7 PASS).
+
+**Read-only invariant reaffirmed (D-CSV-19=A, 2026-07-20).** Rename and lifecycle operations belong to a **separate editor window** (batch **CSV-4b**), not to a mode inside this one. The reason is not purity: this window is the independent verification surface used *before and after* a bulk rename run, and a tool that both renames and reports cannot be trusted to report on its own renames. **Do not add mutation here.**
+
+### 17.3 Views
+
+Seven toolbar views:
+
+- **Style Bundles** — every `TrackStyleBundleSO` (all subclasses), with `appliesTo` role and a summary of its direct pattern/palette references.
+- **Drum Patterns** — `DrumPatternData` + `DrumPatternPaletteSO`.
+- **Chord Progressions** — `ChordProgressionData` + `ChordProgressionPaletteSO` + `ChordProgressionLibrarySO` (the `MidiGenPlayConfig.progressionLibrary` reference is annotated `[config-wired]`).
+- **Melody / Phrases** — `MelodyPatternData` + `PhraseArchetypeSO` + `PhrasePaletteSO`.
+- **Melodic Instruments** / **Percussion Instruments** — split defensively, since `MIDIPercussionInstrumentSO` derives `MIDIInstrumentSO`.
+- **Names Report** — every asset in every family with asset name, display name (when it differs), source tag and path. This is the input artifact for the CSV-4 naming convention; the window performs no renames.
+
+### 17.4 Discovery (CSV-1b + CSV-1c)
+
+Every family is the **union** of the runtime read path and `AssetDatabase`, plus a
+reference harvest. The runtime repositories are still consulted first, and their
+membership is recorded — that recording is what produces the `OFF-ROOT` flag.
+
+- Patterns: `PatternRepositoryResources` ∪ `AssetDatabase.FindAssets("t:{Type}")` ∪ harvest.
+- Palettes: `TrackPatternConfigStoreResources<T>("Drums"/"Chords"/"Phrases")` ∪ `AssetDatabase`.
+- Instruments: `InstrumentRepositoryResources` ∪ `AssetDatabase`.
+- Style bundles, chord libraries, phrase archetypes: `AssetDatabase` only — no repository exists for these families.
+- **Harvest:** after discovery, every palette, library and style bundle is walked and any referenced pattern or archetype still missing is added. Anything referenced by content in use belongs in the inventory regardless of where it lives.
+
+**Why the union is necessary.** The repositories scan only their configured Resources
+roots (`{resourcesPatternsRoot}/Chords|Drums|Melodies`, `resourcesInstrumentsPath`).
+Several in-use families live outside them, so repository-only discovery silently omitted
+real content — measured at CSV-1c: chord progressions went 13 → 48, and the 13 the
+repository could see were *all* dead assets. The harvest has so far always been a no-op
+(`HARVESTED = 0`); it is retained as a safety net for assets no scan root covers.
+
+### 17.5 Filters
+
+Time signature, source (`All` / `Package` / `Local`, derived from an asset path prefix of `Packages/`), free-text over asset + display name, orphan-only, duplicate-only, flagged-only, bundle-reachable-only, and an editable **reference part measures** field (default 8, matching `SongCompositionUI.PartEntry.measures`) that feeds the length-comparison flags. "Bundle-reachable" is the §18.6 `(off-band)` notion generalised project-wide: reachable from any style bundle's direct reference or via a palette that a bundle references.
+
+### 17.6 Derived health flags
+
+The point of the tool — what turns a listing into a worklist.
+
+| Flag | Family | Meaning |
+| --- | --- | --- |
+| `EMPTY` | progressions, melody | no events / no notes |
+| `SHORT-TAIL` / `OVERFLOW` | progressions | authored event span shorter / longer than `Measures × beatsPerMeasure × subdivisions` |
+| `BASS-GAP` | progressions | `Measures` < reference part measures. **Static face of CR-7's "bass ends early"**: the bass renders the progression once with no repeat-to-fill (`SSoT_Composer_Bass_Track §1`), so a shorter progression leaves the bass silent for the remainder of the part. The backing track tiles and does not show this. |
+| `LONGER-THAN-PART` | progressions | `Measures` > reference part measures |
+| `BPMEAS-MISMATCH` | drums, melody | the asset's `beatsPerMeasure` field disagrees with its declared `TimeSignature` |
+| `NO-LANES` / `ALL-SILENT` | drums | no lanes, or no active step in any lane |
+| `OVERFLOW` | melody | last note ends past `TotalBeats` |
+| `ORPHAN` | all patterns/palettes/archetypes | not referenced by any discovered palette, library, or style bundle. Reliable since CSV-1c. **Direct only** — an asset referenced solely by an *orphan* palette or library is dead by transitivity and is not flagged; that inference has to be made by reading the `refs` column. |
+| `DUP#n` | all | content-duplicate group id |
+| `OFF-ROOT` | patterns, instruments | exists in the project, but **no runtime repository can resolve it** — outside every configured Resources scan root. It may still play via a direct palette/bundle reference, but it cannot appear in the dev pattern (§18.4) or instrument (§18.9) pickers, which are repository-fed. Measured 2026-07-18 against the (now superseded) 230-asset export: **30/30 live chord progressions are `OFF-ROOT`**, 1/41 drums, 2/14 melody, 0 instruments. Those family counts belong to the pre-cleanup inventory; the current baseline is the 183-asset export of 2026-07-20 (`CSV_Composition_Validation_Sub_Roadmap.md` §4.1.1). |
+| `HARVESTED` | patterns, archetypes | no scan found it at all; listed only because something references it. The strongest possible signal that a scan root is wrong. |
+| `NO-SOUNDFONT` / `OCTAVE-RANGE-INVERTED` / `VOLUME-ZERO` | instruments | authoring defects |
+
+**Origin classification — a third `source` value is owed (2026-07-20, implementation is CSV-4b).** `source` currently resolves to `local` | `pkg` by path prefix. Package assets under `Packages/**/Samples/` are outside `Resources/` and therefore invisible to every runtime repository, yet remain visible to this window's `AssetDatabase` discovery — so they are listed permanently and are re-investigated on every inventory pass. They must be classified as a third origin, **`sample`**. Six assets are in this state as of MidiGenPlay 1.1.0 (`Samples/ExampleCatalogue/ChordProgressions/`). This is expected behaviour of the discovery union, not a regression: the union is deliberately broader than `Resources`, which is exactly why the 1.1.0 move did not reduce the consumer count.
+
+**Duplicate signatures deliberately exclude naming and metadata** (asset name, `DisplayName`, `originalInput`, `songReferences`) so a rename cannot hide a duplicate and a duplicate cannot hide behind a different name. Progressions compare TS + measures + subdivisions + ordered events; drums compare grid + per-lane step/velocity strings; melody compares grid + ordered notes; instruments compare the `soundfont|bank|patch|patchIndex` quadruple (percussion additionally compares the mapping list).
+
+### 17.7 Discovery defect — RESOLVED (CSV-1b + CSV-1c, 2026-07-18)
+
+Recorded because the failure mode is subtle and will recur if discovery is ever
+narrowed back to a single source.
+
+The original window discovered palettes through `TrackPatternConfigStoreResources` and
+patterns through `PatternRepositoryResources`, both of which scan only
+`Resources/ScriptableObjects/Patterns/<type>`. Most project palettes and most in-use
+chord progressions live outside that root. Two consecutive failures resulted:
+
+- **CSV-1b (palettes).** First export found 1 drum / 1 chord / 1 phrase palette while
+  style bundles referenced 5 / 4 / 2 by name. The reference index was therefore
+  incomplete and `ORPHAN` was wrong: 38/40 drum patterns and 13/13 progressions
+  falsely flagged. Fixed by unioning with `AssetDatabase`; drum orphans fell to 13/40
+  and archetype orphans to 0.
+- **CSV-1c (patterns).** Chords still showed 13/13 orphan afterwards, because the
+  progressions those palettes reference were not in the pattern list at all — they
+  live under `ScriptableObjects/Chord Progressions/{Major,Minor,Modal,Tests}`, a
+  sibling of `Patterns/`. Fixed the same way: 13 → 48 progressions, orphans 13/13 →
+  14/48, and the 14 remaining are genuinely dead.
+
+**The residue is a runtime finding, not a tooling one.** The repositories still cannot
+see that content, which is why `OFF-ROOT` exists (§17.6). It does not break playback —
+palettes and bundles hold direct references — but it does mean the dev pattern-override
+dropdown (`SSoT_Dev_Mode §18.6`) is fed a list that excludes every in-use progression.
+Tracked as **D-CSV-13** (dropdown source) and **D-CSV-14** (whether the scan roots are
+corrected); neither belongs to this window.
+
+**D-CSV-14 scope reduced (2026-07-20, CSV-4).** The package-side chord-progression
+Resources root no longer exists — it moved to `Samples/` in MidiGenPlay 1.1.0 — so
+`Patterns/{Chords,Drums,Melodies}` are now the only package-side scan roots and the
+remaining mismatch is **exclusively Assets-side**: local chords under
+`ScriptableObjects/Chord Progressions/*` and two local melody patterns under
+`Patterns/Melody` (singular) rather than `Patterns/Melodies` (plural). D-CSV-14 is
+**no longer cross-boundary**; it stays with CSV-5.
+
+### 17.8 Export schemas
+
+- Bundles: `{ "bundles": [{ "type", "assetName", "appliesTo", "overrideRef", "paletteRef", "source", "assetPath" }] }`
+- Pattern views: `{ "patterns": [{ "assetName", "displayName", "timeSignature", "measures", "subdivisions", "contentCount", "source", "refs", "flags", "assetPath" }], "palettes": [{ "type", "assetName", "displayName", "entryCount", "refs", "orphan", "source", "assetPath" }] }`
+- Instrument views: `{ "instruments": [{ "assetName", "instrumentName", "instrumentType", "soundFont", "bank", "patch", "patchIndex", "octaveMin", "octaveMax", "volume01", "percussionMappings", "flags", "source", "assetPath" }] }`
+- Names Report: `{ "names": [{ "family", "assetName", "displayName", "source", "assetPath" }] }`
+
+As with `CardInventoryWindow` (§8.4), these schemas are **informational and human-readable; they are not designed to be re-imported** through any authoring path.
+
+### 17.9 Boundary note
+
+Viewer only. Pattern, progression and melody **authoring** remains package-side (`SSoT_Authoring_Tools.md §3`); style-bundle authoring remains card-side (`SSoT_Card_Authoring_Contracts.md`). No instrument editor exists in either project — the instrument views are the only structured view of that family that currently exists, and that remains a viewing surface, not a promotion of ownership.
+
+### 17.10 Known gap — no card → bundle reverse index (logged 2026-07-18)
+
+The window indexes references *downward* (bundle → palette → pattern) and can therefore
+say whether a pattern is used by a bundle. It does **not** index `CardDefinition →
+TrackStyleBundleSO`, so it cannot say whether a bundle itself is reachable from any
+card. Consequence: `TrackStyleBundleSO` rows carry no orphan status, and bundle cleanup
+cannot be decided from this export — several visibly test-flavoured bundles
+(`Rhythm - Card Config SO`, `Melody Card Config - Test`, `TEST Bassline Card Config SO`,
+`2CBacking001TestProg_…`, the two `Backing Card Config [roman]` assets) may or may not
+be live content.
+
+`CardInventoryWindow` (§8) does not supply this either — it lists cards but not their
+bundle references. Closing the gap means either a bundle-usage column here (walk every
+`CardDefinition`'s composition payload) or a card-side column there.
+
+**Escalated to blocking (D-CSV-16=A, 2026-07-20).** CSV-4 did need it. After the local
+test bundles were deleted, the liveness of the Modal and Test chord palettes could only
+be established **from the user's statement, not from tooling** — the reachable-set figure
+that CSV-4 records (14 of 33 progressions) therefore rests on recollection. The index is
+owed; the decision is locked as A, but **no batch owns it yet**. Arc home:
+`planning/active/CSV_Composition_Validation_Sub_Roadmap.md` §3.
+
+### 17.11 Instrument curation is pool-level, not asset-level (D-CSV-18=A, 2026-07-20)
+
+All 79 instruments (70 melodic + 9 percussion) report `source: pkg`. Under **D-CSV-7=A** (asset ownership is location-based: `Assets/` is ALWTTT's, `Packages/` is MidiGenPlay's), ALWTTT can neither rename, delete, nor retune them — `volume01` included.
+
+Instrument curation is therefore a **pool-level** activity. A listening verdict resolves to an edit of `InstrumentRules` and the per-musician whitelists, which are **ALWTTT-owned**; it never resolves to an edit of the instrument asset. Asset-level defects become package asks instead — the open one is **D-BAG-3 / MGP-MIX-1** (per-instrument mix balance; `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §4.3).
+
+This is the boundary rule applied correctly, not a workaround: **the package owns the instrument, ALWTTT owns who plays it.**
+
+Consequence for the window: the instrument views remain a *reporting* surface. They tell you which instrument to remove from a pool; they are not, and must not become, an instrument editor (§17.9).

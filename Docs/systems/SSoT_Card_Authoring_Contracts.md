@@ -356,6 +356,18 @@ finisher — `Design_Starter_Deck_v1.md` §5.17).
 **Not a new schema field.** This rule constrains the *value* of an existing field; no DTO, no
 importer, and no LLM-facing vocabulary changes.
 
+### 5.16 — Meter authoring: a part's meter is owned by a `MeterEffect` (D-MEL-1=A, CSV-3, 2026-07-22)
+
+A part's meter is a **model-construction default** (`FourFour`) mutated **only** by a
+`MeterEffect`. A rhythm card that presents a non-4/4 identity (e.g. a "6/8" card) **must**
+carry a matching `MeterEffect` in its `CompositionCardPayload.modifierEffects`, or the part
+stays 4/4 and **every** track (drums included, via TS normalization) renders in 4/4 regardless
+of the card's apparent meter.
+
+**Precedent:** Pentameter — a Rhythm card that also sets TS=5/4. **Not a new schema field:**
+this constrains the *composition* of an existing effect list. Runtime authority for the
+resolution rule: `SSoT_Runtime_CompositionSession_Integration.md` §12.
+
 ---
 
 ## 6. Backwards compatibility policy

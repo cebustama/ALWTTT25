@@ -1,8 +1,8 @@
 # SSoT_Dev_Mode — ALWTTT
 
 **Status:** Active governed SSoT
-**Scope:** Dev Mode tooling for playtest iteration: scripting-define gating, overlay, infinite turns, convinced-audience reset, between-song hand reset, hand-visibility re-enable, runtime card spawning from catalogue, Breakdown entry point, gig-wide stat editing, per-character stat editing, status apply/remove picker.
-**Owns:** Dev Mode compile-time gating, overlay interaction surface, infinite-turns semantics, runtime card spawn entry point, Breakdown force-trigger entry point, gig-wide stat-editing entry points (SongHype, Inspiration, BandCohesion), per-character stat-editing entry points (Stress, MaxStress, Composure, Vibe, MaxVibe, Flow), status apply/remove picker surface, Dev Mode entry points into gameplay managers, documented hand-visibility gap in production code.
+**Scope:** Dev Mode tooling for playtest iteration: scripting-define gating, overlay, infinite turns, convinced-audience reset, between-song hand reset, hand-visibility re-enable, runtime card spawning from catalogue, Breakdown entry point, gig-wide stat editing, per-character stat editing, status apply/remove picker, composition-debug tab (read + pattern overrides + instrument overrides).
+**Owns:** Dev Mode compile-time gating, overlay interaction surface, infinite-turns semantics, runtime card spawn entry point, Breakdown force-trigger entry point, gig-wide stat-editing entry points (SongHype, Inspiration, BandCohesion), per-character stat-editing entry points (Stress, MaxStress, Composure, Vibe, MaxVibe, Flow), status apply/remove picker surface, composition-debug tab surface (per-track intent/resolved log, seed pin, infinite composition-loop toggle, per-track pattern overrides, per-track instrument overrides), Dev Mode entry points into gameplay managers, documented hand-visibility gap in production code.
 **Does not own:** GigManager phase flow (`runtime/SSoT_Runtime_Flow.md`), CompositionSession boundary (`runtime/SSoT_Runtime_CompositionSession_Integration.md`), status system (`systems/SSoT_Status_Effects.md`), card authoring (`systems/SSoT_Card_Authoring_Contracts.md`).
 
 ---
@@ -39,7 +39,7 @@ Dev Mode's interaction surface is an IMGUI overlay on the existing gig scene.
 - **Toggle:** `F12`. Overlay defaults to off.
 - **Scale:** `_overlayScale` inspector field (`Range(1f, 4f)`, default `2.0f`). Applies a uniform `GUI.matrix` scale so IMGUI remains legible at modern resolutions.
 - **Window size:** `480×380` (default). Grown in Phase 2 to accommodate the Catalogue list comfortably at any scale; Infinite tab has room to spare.
-- **Tab toolbar (Phase 2+):** `GUILayout.Toolbar` at the top of the window switches between `Infinite`, `Catalogue`, `Stats`, and `Audio Mix`. One draggable window, one toggle key, one scale — tab content switches in-place.
+- **Tab toolbar (Phase 2+):** `GUILayout.Toolbar` at the top of the window switches between `Infinite`, `Catalogue`, `Stats`, `Audio Mix`, and `Composition` (DBG-C1). One draggable window, one toggle key, one scale — tab content switches in-place.
 - **Verbose logging:** `_verboseLogs` inspector flag. When on, the overlay reports Hand/HandPile/Draw/Discard counts and the current `GigPhase`, and `OnPlayerTurnStartInfiniteMode` logs its call context.
 - **Awake guard:** duplicate-instance destruction; `InfiniteTurnsEnabled` is reset on `OnDestroy` so it does not leak across scene reloads.
 
@@ -70,6 +70,9 @@ Tab content:
 - Global Music slider, one Per-Musician Music slider per spawned musician, and a Master SFX slider. All route through `GigManager.DevSet…` audio wrappers, which apply live and (in the editor) persist to `AudioMixSettingsSO` via `PersistAudioMixInEditor` (`#if UNITY_EDITOR` SetDirty/SaveAssets). Live mix works even with no asset wired — a hint banner reads "⚠ No AudioMixSettings wired — sliders work live but won't persist" (`GigManager.DevHasAudioMixAsset`); the SO is persistence/default only (D-MIX-FALLBACK=B).
 - Highlight trigger (ST-AM-6 / future highlight mechanic): a musician picker (`[◄][►]`) + `Solo` / `Duck` / `Clear` buttons calling `MidiMusicManager.Highlight(musicianId, mode)` directly (`HighlightMode.Solo` / `DuckOthers` / `None`).
 - The mix *model* (per-musician axis, effective-volume formula, persistence, boundary) is governed by `SSoT_Audio.md`; this tab is only the Dev surface.
+
+**Composition tab (DBG-C1):**
+- Read-only per-track composition debug + infinite composition-loop toggle + optional seed pin. Full semantics in §18.
 
 ---
 
@@ -121,6 +124,8 @@ This is the load-bearing fact Phase 1 codified. If Infinite Turns is ever re-imp
 - `Assets/Scripts/DevMode/DevStatsTab.cs` — file-level `#if ALWTTT_DEV`. Phase 3.1/3.2/3.3a/3.3b static helper that renders the Stats tab body. Breakdown section (P3.1) + Gig-Wide Stats section (P3.2 + Flow row added P3.3a) + Per-Character section (P3.3a stat controls + P3.3b status picker). Dispatches to `GigManager.DevSet…`, `BandCharacterStats.DevSet…`, `AudienceCharacterStats.DevSet…` wrappers for stat editing, and directly to `StatusEffectContainer.Apply`/`Clear` for the Composure stepper and P3.3b status picker. Phase 3.3b additions: `DrawStatusPicker(CharacterBase, ref int)` method, `_musicianStatusPickerIndex` and `_audienceStatusPickerIndex` static fields, `using ALWTTT.Characters` directive.
 - `Assets/Scripts/DevMode/DevAudioMixTab.cs` — file-level `#if ALWTTT_DEV`. M-AUDIO-MIX static helper rendering the Audio Mix tab body (global music + per-musician + master SFX sliders + a no-asset banner + the Solo/Duck/Clear highlight trigger). Routes all slider edits through `GigManager.DevSet…` audio wrappers; calls `MidiMusicManager.Highlight` directly for the trigger. No runtime mutation outside those calls.
 - `GigManager` `#if ALWTTT_DEV` audio additions (M-AUDIO-MIX): `DevGlobalMusicVolume01`/`DevSetGlobalMusicVolume01`, `DevGetMusicianVolume01`/`DevSetMusicianVolume01(MusicianBase,float)`, `DevMasterSfxVolume01`/`DevSetMasterSfxVolume01`, `DevHasAudioMixAsset`, `PersistAudioMixInEditor`. Always-compiled support: `ApplyPersistedAudioMix` (StartGig), `ReapplyMusicianMix` (after Play), `_globalMusicVolume01`, the `audioMix` SO ref.
+- `Assets/Scripts/DevMode/DevCompositionDebugTab.cs` — file-level `#if ALWTTT_DEV` (DBG-C1). Renders the Composition tab body: two-phase intent/resolved per-track log, optional seed field, infinite-loop toggle, Copy fingerprint, chd: dump. Read-only except the seed/toggle writes; no gameplay mutation. **(DBG-C2)** interactive controls added: per-track override dropdowns, Roman field, R2a re-render button, catalog browse. **(CSV-2, 2026-07-18)** per-track **instrument** override rows added (melodic + percussion pickers, `[dev-inst]` intent annotation, card-stomp detection, Clear-with-restore); the tab's `Clear ALL overrides` button now clears both override families. Still file-level `#if ALWTTT_DEV`.
+- `Assets/Scripts/DevMode/GenerationDebugFormatter.cs` — file-level `#if ALWTTT_DEV` (DBG-C1). Role-adaptive text formatter for the tab (intent lines, resolved lines with the `'*'` resolved-only convention, fingerprint block).
 
 **Modified production files (block-level `#if ALWTTT_DEV` patches only):**
 - `Assets/Scripts/Managers/GigManager.cs` — seven patches:
@@ -141,7 +146,12 @@ This is the load-bearing fact Phase 1 codified. If Infinite Turns is ever re-imp
 - `Assets/Scripts/Characters/Band/BandCharacterStats.cs` — Phase 3.1 surface: `DevResetBreakdown()` method. Sets `IsBreakdown = false` so `AddStress` can re-trigger the Breakdown path. Phase 3.3a surface: `CheckBreakdownThreshold()` private helper extracted from `AddStress`, `DevSetCurrentStress(int)`, `DevSetMaxStress(int)` (floor 1, clamps Current down, re-checks threshold). Dev Mode only; production code never un-breaks a musician.
 - `Assets/Scripts/Characters/Band/MusicianBase.cs` — `DevForceBreakdown()` method. Calls `DevResetBreakdown()` then `AddStress(MaxStress)`. Routes through the natural Breakdown path (Cohesion−1, Stress reset, Shaken apply, IsStunned). Re-triggerable.
 - `Assets/Scripts/Runtime/CompositionSession.cs` — Phase 3.2 block: `CurrentInspiration` getter + `DevSetCurrentInspiration(int)` method. Sets the session's live `_currentInspiration` field and calls `_ctx.CompositionUI?.SetInspiration(value)` to refresh the composition UI. Does not write back to `PersistentGameplayData` — caller (`GigManager.DevSetInspiration`) owns that side.
-- `Assets/Scripts/Runtime/CompositionSession.cs` — S5g seed-wiring addition (2026-07-05): `DevPinnedSongSeed` (`static int?`). When non-null, `Begin()` uses it in place of run entropy to seed `_songSeed`, producing a reproducible song render (see `SSoT_Runtime_CompositionSession_Integration.md §10`). Code/debugger-only today — no overlay control wires it; see §8.7.
+- `Assets/Scripts/Runtime/CompositionSession.cs` — S5g seed-wiring addition (2026-07-05): `DevPinnedSongSeed` (`static int?`). When non-null, `Begin()` uses it in place of run entropy to seed `_songSeed`, producing a reproducible song render (see `SSoT_Runtime_CompositionSession_Integration.md §10`). **DBG-C1** additions: `DevInfiniteCompositionLoop` (`static bool`, dev-only) consumed by the countdown-reset branch in `HandleLoopFinished` and the `IsFinalLoopRunning` dev exemption; read-only accessors (`DevCurrentPartIndex`, `DevLoopsRemaining/TotalForPart`, `DevSongSeed`, `DevCompositionUI`); song-boundary reset of the toggle in `Begin()`/`End()`. **(DBG-C2)** dev statics `DevPatternOverrides` / `DevOverrideStamp` / `DevBumpOverrideStamp()`, accessor `DevMidiConfig`, `PartCache.devOverrideStamp` field; stamp-invalidation + `patternOverrides` pass-through in `PlaySinglePartLoop`; song-boundary clear of `DevPatternOverrides`. **(CSV-2, 2026-07-18)** two further dev-region additions: `DevResolveMusicianById(string) : MusicianBase` (forwards `ICompositionContext.ResolveMusicianById`, needed by the tab to compute `InstrumentRules.GetPermittedMelodic` for the permitted-set annotation) and `DevInvalidateForInstrumentOverride(int partIndex)` (calls `InvalidatePartCache(partIndex, keepTempo: true, keepInstrumentsOverride: **false**)` then `DevBumpOverrideStamp()`). The `keepInstruments: false` choice is load-bearing and is **not** the pattern-override stamp path — see §18.9 and `SSoT_Runtime_CompositionSession_Integration §8` inv 9. All `#if ALWTTT_DEV` except the null-passed local (production byte-identical).
+- `Assets/Scripts/Managers/MidiMusicManager.cs` — **DBG-C1** read-only truth surface (`LastResolvedByTrack`/`LastPinnedByTrack`/`LastRenderSerial|PartIndex|Bpm|FromCache`) + `GetChordTimelineSnapshot()`/`ChordTimelineEntry`. Production API (only the consuming tab is dev-gated). **(DBG-C2)** cache bypass when `patternOverrides` is supplied (production API; the value is null in production).
+- `Assets/Scripts/Data/GigDevSettingsSO.cs` — **DBG-C1** `CompositionDebugFull` flag (Compact/Full tab format).
+- `Assets/Scripts/Managers/GigManager.cs` — **DBG-C1** `DevSettings` accessor (`#if ALWTTT_DEV`).
+
+**Not modified by CSV-2 (deliberate, D-CSV-5=A).** `SongCompositionUI`, `SongConfigBuilder`, and `MidiMusicManager` are untouched by the instrument-override surface. The dev write reuses the `TrackEntry.override*Instrument` fields those files already own, so the existing override precedence in `SongConfigBuilder.FromUI` and the existing `trackInputsHash` participation apply unchanged. The tool adds no new production API.
 
 All Dev Mode hooks are `#if ALWTTT_DEV`-guarded. No production behavior change when the define is absent.
 
@@ -183,8 +193,8 @@ The asset was removed on 2026-04-20 during Phase 2 closure (see changelog-ssot).
 
 If a "no-op composition card" concept is ever needed again, it requires an explicit design decision to extend `ApplyCardToPart` to accept `PrimaryKind == None` with no modifier effects. Not scheduled.
 
-### 8.7 `DevPinnedSongSeed` has no overlay control (deferred, 2026-07-05)
-`CompositionSession.DevPinnedSongSeed` (see §6) is settable only via code or the debugger today; no Stats-tab or other overlay control wires it, so it cannot be toggled during a normal playtest session. Tracked as Dev Mode surface debt — see the tab-wiring item in the idea backlog, §16.
+### 8.7 `DevPinnedSongSeed` overlay control — RESOLVED (DBG-C1, 2026-07-17)
+`CompositionSession.DevPinnedSongSeed` (see §6) is now wired to a seed field in the **Composition tab** (D-C1(seed)=A; §18). Set it before a song starts (read in `Begin()`) for a reproducible render — the BC-gate byte-diff (ST-S1) uses it. The prior code/debugger-only limitation is closed. (If §16 lists the seed-tab-wiring backlog item, mark it delivered by DBG-C1.)
 
 ---
 
@@ -367,6 +377,49 @@ Smoke set for `DevRunTelemetryLogger` (§17). All run through normal gameplay in
 
 **Deferred (documented, not a gap in the above):** a cohesion-collapse loss (`DevSetBandCohesion` → 0) deliberately produces **no** record under D-TLM-3=A — verified by absence; a record appearing there would indicate an unexpected `GigOutcomeEvent` publish path and would itself be a failure. See §17.3.
 
+### 9.13 DBG-C1 — composition-debug read surface + MusicianTrackKey migration (2026-07-17)
+
+Consumer read-side half of MGP-ALWTTT-DBG (§18.1–§18.3). All PASS 2026-07-17. ST-S1 is the BC gate (single-track byte-identical under dev OFF + same seed); ST-S2 is the BASS-1-retirement positive (`cacheEnabled=True` with per-role hashes for a multi-track musician; bundle key `…@@2:Backing#…,2:Melody#…`). ST-S1..S10 cover the migration end-to-end, the read-only truth surface / serial polling, the `chd:` dump, the seed pin, the infinite-loop toggle (host hooks keep firing), the CARD-UX-1 dev exemption, the Copy fingerprint, and the production strip (ST-S10, zero footprint).
+
+### 9.14 DBG-C2 — composition-debug interactive controls (2026-07-17)
+
+Write/interactive half (§18.4–§18.8). All PASS 2026-07-17. ST-C2-1 override RenderOverride path (audible; DBG-OBS-1 note); ST-C2-2 Bassline veto (warn+ignore); ST-C2-3 Roman → Backing override, chd: matches; ST-C2-4 hard-fail applies nothing, verdict shown; ST-C2-5 dropdown pick ≡ free-entry render; ST-C2-6 R2a re-render bit-reproducible under pinned seed; **ST-C2-7 = BC gate** (dev OFF or all controls idle ⇒ byte-identical); **ST-C2-8 = clear/restore regression** (D-C2-4); **ST-C2-9 = production compile**, zero tab footprint.
+
+### 9.15 CSV-1 / CSV-2 — composition inventory window + dev instrument overrides (2026-07-18)
+
+Inventory window surface is documented in `SSoT_Editor_Authoring_Tools.md §17`; the instrument-override surface in §18.9. **All 8 PASS 2026-07-18.**
+
+| ID | Test | Result |
+| --- | --- | --- |
+| **ST-CSV-1** | **BC gate** — `ALWTTT_DEV` build, seed pinned, no override ever touched: two runs of the same song produce identical Copy-fingerprints | PASS |
+| **ST-CSV-2** | Melodic override applies — picking a different melodic instrument for the Melody track changes that track's voice at the next loop, fresh render, `[dev-inst]` shown, other tracks unaffected | PASS |
+| **ST-CSV-3** | **Regression — clear/restore byte-identical** — fingerprint after `Clear` equals the pre-override fingerprint under a pinned seed (session-pin restore path, §18.9) | PASS |
+| **ST-CSV-4** | Percussion override on Rhythm — drum voice changes, melodic tracks unaffected (family routing correct) | PASS |
+| **ST-CSV-5** | Card stomp detection — an `InstrumentEffect` card on an already-dev-overridden track flips the row to `(card)` + superseded notice, drops the dev record, offers no stale restore | PASS |
+| **ST-CSV-6** | Outside-permitted probing — full catalogue listed, non-permitted entries annotated, still selectable, and they render | PASS |
+| **ST-CSV-7** | **Inventory window is inert** — open, cycle all seven views, Print, Export JSON ⇒ zero asset/meta modifications in VCS | PASS |
+| **ST-CSV-8** | **Production compile** — build without `ALWTTT_DEV` compiles clean; window and instrument-override code absent | PASS |
+
+**Not covered (deferred).** Pin behavior when one musician holds two melodic roles and only one is overridden — not reachable in current content; defer to CSV-3 or to a content layout that produces it.
+
+### 9.16 CSV-3 — R2a card debug-play + resolved-identity read line (2026-07-22)
+
+`DevInjectCompositionCard` (musical side only, live model, economy-neutral) + the `LastRenderResolved*` read line (§18.10/§18.1). **All PASS 2026-07-22.**
+
+| ID | Test | Result |
+| --- | --- | --- |
+| **ST-CSV3-1** | **BC gate** — dev OFF ⇒ byte-identical | PASS |
+| **ST-CSV3-2** | **BC gate** — all controls idle ⇒ byte-identical | PASS |
+| **ST-CSV3-3** | Injection applies the card's musical side (primary action + `modifierEffects`) via the shared `ApplyCardDefinitionToPart` core | PASS |
+| **ST-CSV3-4** | Injection **skips** inspiration check/spend, the `InspirationGenerated` one-shot, and `CardPayload.effects` | PASS |
+| **ST-CSV3-5** | Economy-neutral audition — injected track excluded from `EvalPerLoopInsp`; per-loop inspiration bonus does not enter the run economy | PASS |
+| **ST-CSV3-5b** | Reclaim — a genuine play on the same `(musicianId, role)` clears the audition-only mark | PASS |
+| **ST-CSV3-5c** | Boundary clear — the audition key set clears at song boundary | PASS |
+| **ST-CSV3-6** | C2a healthy — Core Minor aligns the part to Aeolian (`ChordTrack` step-2b), tonalities authored | PASS |
+| **ST-CSV3-7** | Resolved-identity read line publishes TS/Tonality/Root actually used; alignment annotated | PASS |
+| **ST-CSV3-8** | Overlay outer-scroll — Composition tab reachable past the screen bottom | PASS |
+| **ST-CSV3-9** | **Production compile** — build without `ALWTTT_DEV` compiles clean; inject path + read line absent | PASS |
+
 ---
 
 ## 10. Update rule
@@ -382,6 +435,7 @@ This SSoT must be updated when any of the following change:
 - Audio Mix tab content changes (sliders, highlight trigger, persistence wiring); the mix *model* itself is governed by `SSoT_Audio.md`.
 - New Dev-prefixed methods on gameplay classes (BandCharacterStats, MusicianBase, CompositionSession, etc.).
 - The `LiveInspiration` routing contract (which field Dev reads/writes when composition is active vs. not) — if that rule ever changes, update §13 and this list.
+- Composition tab content changes (§18): new/removed override families, a change to which model field or dictionary an override writes, a change to the cache-invalidation shape of any override family, or a change to the `'*'` / `(off-band)` / `(outside permitted set)` / `[dev-inst]` annotation conventions. A change to the *cache* semantics must also update `SSoT_Runtime_CompositionSession_Integration.md §8` inv 9.
 - The Dev-setter animation-duration convention (currently `0.1f` as a workaround for `HealthBarController.SetCurrentValue(duration=0f)` no-op behavior; see §14.5). If the underlying component is fixed to handle zero durations correctly, the Dev setters may revert to `0f`.
 - Any new Phase (3+) that adds or modifies runtime-mutation surfaces.
 
@@ -630,7 +684,7 @@ Arbitrary status application and removal on any character without card authoring
 
 1. **Runtime control of loops-per-song**, to make testing long/short songs faster without editing SO assets.
 2. **Runtime control of songs-left**, to skip to the end of a gig or extend it on demand.
-3. **Overlay tab wiring for `DevPinnedSongSeed`** (§8.7, §6) — currently code/debugger-only.
+3. ~~**Overlay tab wiring for `DevPinnedSongSeed`** (§8.7, §6) — currently code/debugger-only.~~ **Delivered by DBG-C1 (2026-07-17)** — seed field in the Composition tab (§18.2); §8.7 marked RESOLVED.
 
 > **Placement note (2026-07-05).** This backlog was originally specified to land in `M1_5_Dev_Mode_Sub_Roadmap.md`. That doc is archived (`SSoT_INDEX.md` lists it under Archived planning docs, superseded by this SSoT), so the backlog was placed here instead to avoid silently reviving a retired planning surface — see `changelog-ssot.md` (2026-07-05 entry) for the reasoning. Redirect back to a fresh live Dev Mode sub-roadmap instead if the backlog outgrows this section.
 
@@ -682,3 +736,78 @@ ST-TLM-1..4 + ST-TLM-R1 — all PASS 2026-07-16. See §9.12.
 ### 17.5 Update triggers (specific to this surface)
 
 Update this section (and bump `schemaVersion` in code) when any of: the set of subscribed bus events; the record field set or its nesting; the output path or format; or the documented coverage limitations (e.g. if TLM-1b lands and cohesion losses become loggable). Companion updates: `CURRENT_STATE.md` (operational) and `changelog-ssot.md` (semantic).
+
+---
+
+## 18. Composition debug tab (DBG-C1, 2026-07-17)
+
+**Consumer half of MGP-ALWTTT-DBG, read side (D1=B).** A `Composition` tab in the Dev overlay, surfacing what the package resolved per track for the current part, plus an infinite composition-loop toggle. DBG-C2 (2026-07-17) added the interactive write half (§18.4–§18.8). `#if ALWTTT_DEV`; zero production footprint (ST-S10 PASS).
+
+### 18.1 Per-track log — two phases
+- **Intent (handoff)** — drawn every OnGUI pass from `SongCompositionUI.TrackEntry`: role, musicianId, style bundle, explicit/type instrument overrides, per-loop inspiration. Pre-render truth.
+- **Resolved (last render)** — from `MidiMusicManager.LastResolvedByTrack` (package `PartRender.resolvedByTrack`), refreshed by polling `LastRenderSerial`. The serial bumps on every `RenderSinglePart` return; a bundle-cache replay republishes the **original** render's snapshot (D-DBG5=A). Header shows `fresh`/`bundle-cache replay` + serial. Observable behavior equals an `OnRenderCompleted` hook without cross-`#if` event plumbing.
+- **`'*'` convention (A1, CONFIRMED 2026-07-17 against `Design_Composition_Debug_Tab_v0_1 §3.1`).** A field carries `'*'` when it is **resolved-only** truth, not predictable from intent: `ResolvedSource` ∈ {`CardPalette`, `Procedural`, `SharedProgression`}. Deterministic sources (`RenderOverride`, `CardOverride`, `TrackParameters`) render without `'*'`. The implemented per-field placement is a faithful refinement of §3.1's illustrative sample (§3.1 shows a whole-line trailing `*`; the implementation attaches `*` per resolved field, which is stricter and self-consistent).
+- **Role-adaptive** (`GenerationDebugFormatter`): Rhythm → pattern/palette/style-id; Backing → pattern/palette/roman/figures; Melody → asset/per-span archetypes; Bassline → shared-progression flag/roman. Harmony not reported in v1 (ID-2=A). **Compact/Full** flag on `GigDevSettingsSO.CompositionDebugFull` (Compact = one line + counts; Full = every populated field).
+- **Copy fingerprint** — `GUIUtility.systemCopyBuffer`, exports header (seed/part/bpm/replay-origin) + per-`(musician, role)` resolved lines, **always Full** regardless of the Compact flag (ST-S7 PASS).
+- **chd: dump** — button logs `GetChordTimelineSnapshot()` per channel (governed chd: contract); validated against the tab's Backing roman + audible chords (ST-S5 PASS).
+- **Resolved meter/tonality/root (CSV-3, 2026-07-22).** A read line publishes the TS, Tonality and Root the render **actually used**, from `MidiMusicManager.LastRenderResolved{TimeSignature,Tonality,RootNote}` (dev-only; sibling of BAL-1 `appliedCc7ByTrack`, replay-faithful per D-DBG5=A). Tonality carries `aligned from intent <X>` when `ChordTrack` step-2b alignment fired (expected); TS/Root carry `DRIFT` if resolved ≠ model intent (impossible today — a DRIFT is itself a finding).
+
+### 18.2 Seed pin
+A seed text field wires `CompositionSession.DevPinnedSongSeed` (D-C1(seed)=A; closes §8.7). Read in `Begin()` — set before the song starts. Enables the ST-S1 BC-gate byte-diff.
+
+### 18.3 Infinite composition-loop toggle
+`CompositionSession.DevInfiniteCompositionLoop` (static, dev-only). When ON, the per-part loop **countdown resets** to the full per-part value instead of advancing the part / ending the song (branch in `HandleLoopFinished`, after `LoopFinished?.Invoke`). **Per-loop host hooks keep firing (D2=A):** draw + inspiration run every loop exactly as in normal flow — the decrement, `LoopFeedbackContext`, history, and `LoopFinished` subscribers all execute, only the exhaustion branch is redirected. Toggling OFF lets the restored countdown drain normally (ST-S8/S9 PASS). Resets at song boundary in `Begin()`/`End()` — never leaks across songs; the field does not exist in production builds. **CARD-UX-1 interaction:** under infinite loop a next render always exists, so `IsFinalLoopRunning` is dev-exempted (else the final-loop composition deny would wrongly fire) — see `SSoT_Runtime_CompositionSession_Integration §8` inv 11.
+
+### 18.4 Per-track pattern overrides (DBG-C2, 2026-07-17)
+The write half of the tab. `CompositionSession.DevPatternOverrides` (`static`, dev-only, `MusicianTrackKey → PatternDataSO`) is passed to `RenderSinglePart` as `patternOverrides` whenever non-empty; **null when idle** so the production/idle path is byte-identical (D-C1-1's C1 passthrough now LIVE; BC gate ST-C2-7 PASS). Package precedence is **step 0** (override beats card override, card palette, shared cache, `TrackParameters`); the composer clones-on-apply and **warn+ignores type mismatch**.
+- **UI:** one row per track. **Rhythm / Backing / Melody** get a `Pick…` dropdown + `Clear`. **Bassline** is greyed with "override Backing instead" — bass renders the shared progression and package-side Bassline overrides are warn+ignore (handoff (c)3; ST-C2-2 PASS). **Harmony** is greyed (no v1 override channel, ID-2=A).
+- **Cache rule (D-C2-4=A):** overrides are **never** part of any cache key. When any override is supplied, `MidiMusicManager` bypasses the stem/bundle caches for that render (mirror of the Mod-DIR one-shot bypass), and `CompositionSession` invalidates the part's `PartCache` on `DevOverrideStamp` mismatch (keepTempo+keepInstruments — overrides change patterns, not BPM or voices). Clearing an override bumps the stamp again and the next loop returns to the un-overridden baseline (ST-C2-8 PASS). Full detail in `SSoT_Runtime_CompositionSession_Integration §8` inv 9.
+
+### 18.5 Roman progression → Backing override (DBG-C2, D-C2-1=A)
+A foldout free-text field → `ChordProgressionRuntimeImporter.TryParseRoman(roman, partTS, measures, defaultDuration, tonality, …)`. Tonality/measures(0=derive)/default-duration are editable in the tab; TS comes from the current part. On success the returned `ChordProgressionData` is placed in `DevPatternOverrides` for the Backing key (overriding backing **is** overriding the part's harmony). **Importer verdict is surfaced verbatim** — no ALWTTT-side reduction; the D-L4.5 zero-warning guard (out-of-alphabet token ⇒ hard fail, no silent downgrade) is the package's policy and is not reinterpreted here. Hard fail ⇒ nothing applied, warnings shown (ST-C2-4 PASS). The built instance is `HideFlags.DontSave`, named `Runtime: <roman>`, and **never persisted** — it is destroyed on replace/clear. chd: dump matches the applied roman (ST-C2-3 PASS).
+
+### 18.6 Catalogue dropdowns (DBG-C2, Ask B, D-C2-2=A)
+Dropdowns are populated from the **full runtime registry** via `PatternRepositoryResources.Get{Drum,ChordProgression,Melody}Patterns(ts)`, TS-filtered to the current part (counterfactual probing is the point of the tab, so band-union was rejected). Assets not reachable from the current part's assigned style bundles (direct override refs + palette entries) are annotated `(off-band)`; a dropdown pick feeds the same `DevPatternOverrides` path as a manual assignment, so a picked asset and its free-entry equivalent render identically (ST-C2-5 PASS). A `Catalog browse` foldout enumerates palettes/phrases via `TrackPatternConfigStoreResources<T>("Drums"/"Chords"/"Phrases")` (requires the E-1b/E-2b package asset moves — confirmed done 2026-07-17).
+
+**Coverage limitation (measured 2026-07-18, CSV-1c).** Both the dropdowns and the browse foldout are **repository/store-fed**, and the repositories scan only their configured Resources roots. The CSV-1 inventory measured the consequence: **all 30 in-use chord progressions are outside those roots**, so the Backing dropdown can only offer the 13 progressions the repository resolves — every one of which is a dead asset. Drums are unaffected (drum patterns do live under `Patterns/Drums`). Playback is not affected, because palettes and style bundles hold direct references and never go through the repository. Whether the dropdown switches source, or the scan roots are corrected instead, is **D-CSV-13 / D-CSV-14** (CSV-3 / CSV-5); the inventory window's `OFF-ROOT` flag (`SSoT_Editor_Authoring_Tools §17.6`) is the measurement surface for both.
+
+**Source decision (D-CSV-13=A, CSV-3, 2026-07-22).** The Backing dropdown **stays** `PatternRepositoryResources`-fed (runtime-honest). The list is empty/small **by measurement**, not by bug — local chord content is off-root until the CSV-5 scan-root fix (D-CSV-14); an in-tab notice says so and points to the Roman free-text override. Switching the source to the inventory union was rejected (editor-only `AssetDatabase` in a runtime tab + duplicate discovery); the question dissolves once D-CSV-14 lands.
+
+### 18.7 R2a debug-play (DBG-C2, D-C2-3=A)
+"Re-render part now" bumps `DevOverrideStamp`, which invalidates the current part's `PartCache` and forces a fresh render through the **normal seeded `PlaySinglePartLoop`** at the next loop start (working path reused — no separate playback channel). Under a pinned seed the re-render is bit-reproducible (identical Copy-fingerprint, ST-C2-6 PASS); the resolved log refreshes via `LastRenderSerial` either way. **Disambiguation:** this is the *pattern-override* debug-play. The design doc's §4 R2a ("debug-play any catalogue card's musical side") is a different, larger surface still reserved under M1.5 Phase 5 and is **not** built by DBG-C2 (built by CSV-3, §18.10).
+
+### 18.8 Scope boundary / known follow-ups
+The MGP-ALWTTT-DBG consumer arc is complete with DBG-C2. Known non-blocking follow-up **DBG-OBS-1**: the `RenderOverride` resolved line may not display `pattern=<asset>` if the package leaves `ResolvedTrackChoice.sourceAssetName` unpopulated on that source path; localized formatter fallback available if pursued (override correctness is unaffected — ST-C2-1 PASS). Smoke coverage: read side §9.13 (ST-S1..S10), write side §9.14 (ST-C2-1..9). The tab itself continued to grow after the arc closed — see §18.9 (CSV-2), smoke coverage §9.15.
+
+### 18.9 Per-track instrument overrides (CSV-2, 2026-07-18)
+
+Sibling of §18.4, but a **different mechanism** — the asymmetry is the point of the section.
+
+**Mechanism (D-CSV-5=A).** A dev instrument pick writes directly into the composition model's existing fields: `SongCompositionUI.TrackEntry.overrideMelodicInstrument` / `overridePercussionInstrument` (exclusive-set, `hasOverrideInstrumentType` cleared — the same discipline `ApplyInstrumentEffect` follows). No parallel dictionary, no bypass machinery. This was chosen over a `DevPatternOverrides`-shaped separate map because **instrument-override GUIDs already participate in `trackInputsHash`** (`SongConfigBuilder.ComputeTrackInputsHashesForPart`), so the stem cache stays coherent by construction, and because the render-side precedence a dev pick needs is the precedence a card pick already gets. Consequence accepted: at the render boundary a dev override is **indistinguishable from card truth**; the tab's `[dev-inst]` suffix on the intent line is the only disambiguator, and it exists in the tab only (`GenerationDebugFormatter` is untouched).
+
+**Cache interaction — differs from §18.4.** Pattern overrides invalidate with `keepTempo + keepInstruments` (they change patterns, not voices). An instrument override must invalidate with **`keepInstruments: false`**, because a `PartCache` entry preserved with `keepInstruments: true` retains `resolvedMelInstByTrack`, and that map is re-fed into the next `RenderSinglePart` call as the `instrumentOverrides` argument — a stale voice would override the new pick. `CompositionSession.DevInvalidateForInstrumentOverride(partIndex)` therefore mirrors the **instrument-card** invalidation path (`ShouldKeepInstruments` → `CompositionCardClassifier.IsInstrumentCard` → `keepInstruments = false`), not the pattern-stamp path, and bumps `DevOverrideStamp` so the change lands at the next loop start through the normal seeded `PlaySinglePartLoop`. Detail in `SSoT_Runtime_CompositionSession_Integration §8` inv 9.
+
+**Clear / restore.** The tab records the pre-dev field state on first touch per `(musicianId, role)` key, so `Clear` restores whatever was there before — including a prior *card* override, not merely null. Restoration is byte-identical under a pinned seed (ST-CSV-3): the session-level pin maps are the mechanism — `BuildMelodicPinKey`/`BuildPercussionPinKey` return null while an explicit override is set, so the pin is skipped rather than overwritten and the original voice survives in `_sessionMelodicPin`/`_sessionPercussionPin` to be re-applied on clear.
+
+**Card stomp (documented consequence, not a bug).** `SongCompositionUI.ApplyInstrumentEffect` unconditionally clears and rewrites all three override fields on every matching track when an `InstrumentEffect` card is played. A later card therefore **supersedes** a dev override on that track. The tab detects this by comparing the field against the value it applied; on mismatch the row reads `(card) <name>` with a `superseded by card` notice, the dev record is dropped, and **no restore is attempted** — card truth is newer and owns the field.
+
+**Catalogue and permitted set.** Rhythm tracks get the full percussion catalogue; every other role gets the full melodic catalogue. Full catalogue is deliberate — counterfactual probing is the purpose. Entries outside `InstrumentRules.GetPermittedMelodic(musician, role, repo)` are annotated `(outside permitted set)` and remain selectable, mirroring the `(off-band)` convention of §18.6. There is no permitted-set rule for percussion in v1, so percussion entries are unannotated. Source is `InstrumentRepositoryResources` (already merges the package instrument root with `MidiGenPlayConfig.resourcesInstrumentsPath`, de-duped) — not re-implemented.
+
+**Lifecycle.** Dev records live in the tab and are cleared when the session goes inactive (the `TrackEntry` objects die with the model at song end), so nothing leaks across songs. `Clear ALL overrides` clears patterns and instruments together, restoring only the instrument fields the tab still owns.
+
+**Gate (D-CSV-10=A).** Same `#if ALWTTT_DEV` as the rest of the tab; production compile verified clean (ST-CSV-8).
+
+### 18.10 R2a card debug-play (CSV-3, 2026-07-22, D-CSV-8=A, D-CSV-24=B)
+
+Injects any catalogue card's **musical side only** via `CompositionSession.DevInjectCompositionCard(def, targetMusicianId, out reason)` — the concrete form of the M1.5 Phase 5 reserved surface. Applies the primary action + `CompositionCardPayload.modifierEffects` through the shared `SongCompositionUI.ApplyCardDefinitionToPart` core (extracted so no application logic is duplicated), plus the production invalidation/pending path. **Skips:** inspiration check/spend, the `InspirationGenerated` one-shot, and `CardPayload.effects`.
+
+- **D-CSV-8=A (live model).** The change is real and persistent for the loop; it reuses the normal seeded `PlaySinglePartLoop` — no shadow model, no second playback channel.
+- **D-CSV-24=B (economy-neutral).** An injected track is marked audition-only in a dev-only key set and excluded from `EvalPerLoopInsp`, so its per-loop inspiration bonus never enters the run economy. A genuine play on the same `(musicianId, role)` reclaims it; the set clears at song boundary. (Option A — no exclusion — was accepted first, then superseded to B for parity with a real play.)
+- **Card source** = band union with `AllCardsList` fallback (shared with `DevCardCatalogueTab`).
+- **Disambiguation.** DISTINCT from the DBG-C2 "Re-render part now" button (the pattern-override re-render, §18.7).
+
+Gate `#if ALWTTT_DEV`; production byte-identical (ST-CSV3-1/2).
+
+### 18.11 Overlay outer-scroll fix (CSV-3, 2026-07-22)
+
+The F12 overlay content is wrapped in a screen-bounded outer scroll (`DevModeController`), and `GUI.DragWindow` is restricted to the title bar. Fixes the Composition tab growing past the screen bottom with no way to reach it after the R2a section was added. Applies to all tabs; cosmetic/operational only.

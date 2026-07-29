@@ -56,12 +56,12 @@ namespace ALWTTT.Managers
         // D7=B (per-song lifetime), D-A1=A, D-A2=A, D-C=α (two-dict).
         //
         // _stemCache: verbatim per-musician stem bytes, keyed on
-        //   "{musicianId}|{trackInputsHash}|{partMeterHash}". Survives
+        //   "{musicianId}:{role}|{trackInputsHash}|{partMeterHash}". Survives
         //   PartCache invalidations within a song; reset at song boundary
         //   via ResetStemCache().
         //
         // _partBundleCache: full RenderSinglePart output keyed on
-        //   "{partMeterHash}@@{sortedMusician#trackHash csv}". When every
+        //   "{partMeterHash}@@{sorted musician:role#trackHash csv}". When every
         //   track input is identical to a prior render in this song, we
         //   skip GenerateSinglePart entirely and replay the cached bundle.
         //
@@ -75,10 +75,25 @@ namespace ALWTTT.Managers
         private class PartBundleCacheEntry
         {
             public byte[] mergedBytes;
-            public Dictionary<string, byte[]> stemsByMusician;
+            // [DBG-C1] Re-keyed on (musicianId, TrackRole) end-to-end.
+            public Dictionary<MusicianTrackKey, byte[]> stemsByTrack;
             public float seconds;
             public int bpmChosen;
-            public Dictionary<string, MIDIInstrumentSO> pinned;
+            public Dictionary<MusicianTrackKey, MIDIInstrumentSO> pinned;
+            // [DBG-C1 / D-DBG5=A] Snapshot of the render's resolvedByTrack so
+            // a bundle-cache replay still surfaces the ORIGINAL render's truth
+            // (replayed bytes == original bytes ⇒ original choices are still
+            // the truth; no dry resolve exists or is wanted).
+            public Dictionary<MusicianTrackKey, ResolvedTrackChoice> resolvedByTrack;
+            // [BAL-1 task 4] CC7 actually emitted per gained track for these bytes.
+            public Dictionary<MusicianTrackKey, int> appliedCc7ByTrack; // [BAL-1] existing
+#if ALWTTT_DEV
+            // [CSV-3] Resolved musical identity of the ORIGINAL render — D-DBG5=A analogue of
+            // appliedCc7ByTrack: replay bytes == original ⇒ resolved identity identical.
+            public MidiGenPlay.MusicTheory.MusicTheory.TimeSignature resolvedTs;
+            public MidiGenPlay.MusicTheory.MusicTheory.Tonality resolvedTonality;
+            public Melanchall.DryWetMidi.MusicTheory.NoteName resolvedRoot;
+#endif
         }
 
         private GameManager GameManager => GameManager.Instance;
@@ -649,17 +664,21 @@ namespace ALWTTT.Managers
         /// returning merged bytes, per-musician stems, and the duration in seconds.
         /// </summary>
         public (byte[] merged,
-                Dictionary<string, byte[]> stemsByMusician,
+                Dictionary<MusicianTrackKey, byte[]> stemsByTrack,
                 float seconds,
                 int bpmChosen,
-                Dictionary<string, MIDIInstrumentSO> pinned)
+                Dictionary<MusicianTrackKey, MIDIInstrumentSO> pinned)
             RenderSinglePart(
                 SongConfig fullCfg,
                 int partIndex,
                 int? bpmOverride = null,
-                Dictionary<string, MIDIInstrumentSO> instrumentOverrides = null,
-                Dictionary<string, string> trackInputsHashByMusician = null,
-                int? seedOverride = null)   // [S5g / MGP-ALWTTT-SEED-1] per-song seed, host policy
+                // [DBG-C1] All per-track surfaces keyed (musicianId, TrackRole).
+                Dictionary<MusicianTrackKey, MIDIInstrumentSO> instrumentOverrides = null,
+                Dictionary<MusicianTrackKey, string> trackInputsHashByTrack = null,
+                int? seedOverride = null,   // [S5g / MGP-ALWTTT-SEED-1] per-song seed, host policy
+                                            // [DBG-C1 / D-C1-1] Inert passthrough this batch (always null);
+                                            // DBG-C2 wires the override UI. Precedence step 0 package-side.
+                IReadOnlyDictionary<MusicianTrackKey, PatternDataSO> patternOverrides = null)
         {
             EnsureRegistriesLoaded();
             if (fullCfg == null || partIndex < 0 || partIndex >= fullCfg.Parts.Count)
@@ -667,6 +686,11 @@ namespace ALWTTT.Managers
 
             // Build channel map from the global ChannelRoles of this config
             var channelMap = BuildChannelMap(fullCfg.ChannelRoles ?? new List<TrackRole>());
+
+            // [BAL-1] Channel-gain snapshot for the live plane (D-BAL-6=B).
+            // Computed on EVERY render — including bundle-cache hits — so the
+            // following PlayBytes adopts the gains of exactly these bytes.
+            _pendingChannelGains = BuildChannelGains(fullCfg, channelMap);
 
             // Stamp channels into each track (like PlayFromConfig)
             BuildChannelOwnerLookups(fullCfg, channelMap,
@@ -734,11 +758,11 @@ namespace ALWTTT.Managers
             // still produces correct output.
             // ───────────────────────────────────────────────────────────
             string partMeterHash = ComputePartMeterHash(part);
-            var trackHashes = new Dictionary<string, string>();
-            var stemKeysByMusician = new Dictionary<string, string>();
+            var trackHashes = new Dictionary<MusicianTrackKey, string>();
+            var stemKeysByTrack = new Dictionary<MusicianTrackKey, string>();
             var bundleEntries = new List<string>();
             bool cacheEnabled =
-                trackInputsHashByMusician != null
+                trackInputsHashByTrack != null
                 && part.Tracks != null
                 && part.Tracks.Count > 0;
 
@@ -751,15 +775,21 @@ namespace ALWTTT.Managers
                         cacheEnabled = false;
                         break;
                     }
-                    if (!trackInputsHashByMusician.TryGetValue(tr.MusicianId, out var th)
+                    // [DBG-C1] Composite keying: a musician holding two roles
+                    // yields two independent cache identities. The BASS-1
+                    // "multi-track ⇒ omit hash ⇒ cache disabled" carve-out is
+                    // retired; the any-track-without-hash guard below remains
+                    // as a general integrity gate only.
+                    var trackKey = new MusicianTrackKey(tr.MusicianId, tr.Role);
+                    if (!trackInputsHashByTrack.TryGetValue(trackKey, out var th)
                         || string.IsNullOrEmpty(th))
                     {
                         cacheEnabled = false;
                         break;
                     }
-                    trackHashes[tr.MusicianId] = th;
-                    stemKeysByMusician[tr.MusicianId] = BuildStemKey(tr.MusicianId, th, partMeterHash);
-                    bundleEntries.Add($"{tr.MusicianId}#{th}");
+                    trackHashes[trackKey] = th;
+                    stemKeysByTrack[trackKey] = BuildStemKey(trackKey, th, partMeterHash);
+                    bundleEntries.Add($"{trackKey.MusicianId}:{trackKey.Role}#{th}");
                 }
             }
 
@@ -790,6 +820,27 @@ namespace ALWTTT.Managers
                 }
             }
 
+            // [DBG-C2 / D-C2-4=A] Per-render pattern overrides are
+            // counterfactual, debug-only state that is deliberately NOT part
+            // of any cache key. Mirror the Mod-DIR rule: when any override is
+            // supplied, bypass the stem/bundle caches entirely (no read, no
+            // write) so the override is always audible and cached identities
+            // are never polluted. patternOverrides == null (production, or
+            // dev with idle controls) leaves this path byte-for-byte
+            // identical to post-C1.
+            if (patternOverrides != null && patternOverrides.Count > 0)
+            {
+                cacheEnabled = false;
+                if (logDebug)
+                {
+                    Debug.Log(
+                        $"{DebugTag} <color=#ff8844>[DBG-C2/CacheBypass]</color> " +
+                        $"part={partIndex} '{part.Name}' " +
+                        $"overrides={patternOverrides.Count} " +
+                        $"→ stem/bundle cache bypassed for this render");
+                }
+            }
+
             string partBundleKey = cacheEnabled
                 ? BuildPartBundleKey(partMeterHash, bundleEntries)
                 : null;
@@ -813,7 +864,8 @@ namespace ALWTTT.Managers
                             ? t.Instrument.name : "_";
                         var percName = t.PercussionInstrument != null
                             ? t.PercussionInstrument.name : "_";
-                        var th = cacheEnabled && trackHashes.TryGetValue(t.MusicianId ?? "_", out var h)
+                        var th = cacheEnabled && trackHashes.TryGetValue(
+                                new MusicianTrackKey(t.MusicianId ?? "_", t.Role), out var h)
                             ? h : "(no-hash)";
                         return $"mus={t.MusicianId} role={t.Role} " +
                                $"style={styleName} inst={instName} perc={percName} " +
@@ -839,12 +891,24 @@ namespace ALWTTT.Managers
                         $"part={partIndex} key='{partBundleKey}' → fast-path replay " +
                         $"(seconds={bundleHit.seconds:0.##}, bpm={bundleHit.bpmChosen})");
                 }
+                // [DBG-C1] Replay publishes the ORIGINAL render's resolved
+                // truth (D-DBG5=A): bytes are identical, choices are identical.
+                LastAppliedCc7ByTrack = bundleHit.appliedCc7ByTrack; // [BAL-1]
+
+#if ALWTTT_DEV
+                LastRenderResolvedTimeSignature = bundleHit.resolvedTs;
+                LastRenderResolvedTonality = bundleHit.resolvedTonality;
+                LastRenderResolvedRootNote = bundleHit.resolvedRoot;
+#endif
+
+                PublishLastRender(partIndex, bundleHit.bpmChosen,
+                    bundleHit.resolvedByTrack, bundleHit.pinned, fromCache: true);
                 return (
                     bundleHit.mergedBytes,
-                    new Dictionary<string, byte[]>(bundleHit.stemsByMusician),
+                    new Dictionary<MusicianTrackKey, byte[]>(bundleHit.stemsByTrack),
                     bundleHit.seconds,
                     bundleHit.bpmChosen,
-                    new Dictionary<string, MIDIInstrumentSO>(bundleHit.pinned));
+                    new Dictionary<MusicianTrackKey, MIDIInstrumentSO>(bundleHit.pinned));
             }
 
             // [F-4] diagnostic — boundary-call shape dump immediately before
@@ -872,43 +936,30 @@ namespace ALWTTT.Managers
             // try-catch is permanent. Only the [F-4]-tagged log lines are
             // stripped at F-4 closure.
             byte[] mergedBytes;
-            Dictionary<string, byte[]> stemsOut;
+            Dictionary<MusicianTrackKey, byte[]> stemsOut;
             float seconds;
             int bpmChosen;
-            Dictionary<string, MIDIInstrumentSO> pinned;
+            Dictionary<MusicianTrackKey, MIDIInstrumentSO> pinned;
+            Dictionary<MusicianTrackKey, ResolvedTrackChoice> resolvedSnapshot;
+            Dictionary<MusicianTrackKey, int> appliedCc7 = null; // [BAL-1]
             int b1Hits = 0, b1Misses = 0;
             try
             {
-                // MGP-ALWTTT-DBG-1: the package now keys instrument overrides on
-                // (musicianId, TrackRole). The consumer still reasons in
-                // musicianId, so expand each id-keyed override to the composite
-                // key of every track that musician owns in THIS part.
-                // TODO(BASS-1): when ALWTTT migrates its own surfaces to the
-                // composite key (its own batch), build this map directly instead
-                // of expanding a musicianId-keyed one.
-                Dictionary<MusicianTrackKey, MIDIInstrumentSO> keyedOverrides = null;
-                if (instrumentOverrides != null && instrumentOverrides.Count > 0)
-                {
-                    keyedOverrides = new Dictionary<MusicianTrackKey, MIDIInstrumentSO>();
-                    foreach (var tr in part.Tracks)
-                    {
-                        if (tr == null || string.IsNullOrEmpty(tr.MusicianId)) continue;
-                        if (instrumentOverrides.TryGetValue(tr.MusicianId, out var inst)
-                            && inst != null)
-                        {
-                            keyedOverrides[new MusicianTrackKey(tr.MusicianId, tr.Role)] = inst;
-                        }
-                    }
-                }
-
-                // Generate stems via orchestrator
+                // [DBG-C1] Consumer is composite-keyed end-to-end; the caller's
+                // override map passes straight through. The old id→key
+                // expansion shim (TODO(BASS-1)) is retired.
                 var render = generator.Orchestrator.GenerateSinglePart(
                     part,
                     fullCfg.ChannelRoles,
                     partIndex,
                     effectiveOverride,
-                    keyedOverrides,
-                    seedOverride: seedOverride);   // [S5g / MGP-ALWTTT-SEED-1]
+                    instrumentOverrides,
+                    seedOverride: seedOverride,          // [S5g / MGP-ALWTTT-SEED-1]
+                    patternOverrides: patternOverrides,  // [DBG-C1 / D-C1-1] inert this batch
+                    mixGains: _gigMixGains);             // [BAL-1 / MGP-MIX-1] null ⇒ byte-identical
+
+                // [BAL-1 task 4] readback of the CC7 actually emitted.
+                appliedCc7 = render.appliedCc7ByTrack;
 
                 if (logDebug)
                     Debug.Log($"{DebugTag} [BPM] Part={partIndex} resolved BPM={render.bpm}");
@@ -920,27 +971,26 @@ namespace ALWTTT.Managers
                     mergedBytes = ms.ToArray();
                 }
 
-                // Serialize stems. MGP-ALWTTT-DBG-1: the package keys stems on
-                // (musicianId, TrackRole); the consumer's stem set / cache /
-                // ordering are musicianId-keyed, so flatten to MusicianId here.
-                // TODO(BASS-1): a musician owning two roles collapses here — the
-                // exact collision the package re-key removes. ALWTTT does not
-                // assign one musicianId to two roles today, so this is safe now;
-                // migrating the consumer to the composite key is its own batch.
-                stemsOut = new Dictionary<string, byte[]>();
+                // [DBG-C1] Stems stay composite-keyed verbatim — the collision
+                // the package re-key removed cannot re-enter here.
+                stemsOut = new Dictionary<MusicianTrackKey, byte[]>();
                 foreach (var kv in render.stemsByMusician)
                 {
                     using var ms = new MemoryStream();
                     kv.Value.Write(ms);
-                    stemsOut[kv.Key.MusicianId] = ms.ToArray();
+                    stemsOut[kv.Key] = ms.ToArray();
                 }
 
                 seconds = ComputeDurationSeconds(render.merged);
                 bpmChosen = render.bpm;
-                // MGP-ALWTTT-DBG-1: flatten the (musicianId, role)-keyed instrument
-                // report to musicianId for the consumer's pinned map.
-                // TODO(BASS-1): same collapse caveat as stems above.
-                pinned = FlattenInstrumentReport(render.melInstByMusician);
+                pinned = render.melInstByMusician != null
+                    ? new Dictionary<MusicianTrackKey, MIDIInstrumentSO>(render.melInstByMusician)
+                    : new Dictionary<MusicianTrackKey, MIDIInstrumentSO>();
+                // [DBG-C1] Snapshot the package readback for the dev truth
+                // surface + the bundle-cache entry.
+                resolvedSnapshot = render.resolvedByTrack != null
+                    ? new Dictionary<MusicianTrackKey, ResolvedTrackChoice>(render.resolvedByTrack)
+                    : new Dictionary<MusicianTrackKey, ResolvedTrackChoice>();
 
                 // ───────────────────────────────────────────────────────
                 // [B1 / D-E=α'] Per-track persistence — only when cache
@@ -951,18 +1001,18 @@ namespace ALWTTT.Managers
                 if (cacheEnabled)
                 {
                     var stemKeysSnapshot = stemsOut.Keys.ToList();
-                    foreach (var musId in stemKeysSnapshot)
+                    foreach (var trackKey in stemKeysSnapshot)
                     {
-                        if (!stemKeysByMusician.TryGetValue(musId, out var stemKey))
+                        if (!stemKeysByTrack.TryGetValue(trackKey, out var stemKey))
                             continue;
                         if (_stemCache.TryGetValue(stemKey, out var cachedStem))
                         {
-                            stemsOut[musId] = cachedStem;
+                            stemsOut[trackKey] = cachedStem;
                             b1Hits++;
                         }
                         else
                         {
-                            _stemCache[stemKey] = stemsOut[musId];
+                            _stemCache[stemKey] = stemsOut[trackKey];
                             b1Misses++;
                         }
                     }
@@ -977,13 +1027,20 @@ namespace ALWTTT.Managers
                 if (b1Hits > 0)
                 {
                     var ordered = new List<byte[]>();
-                    var seen = new HashSet<string>(StringComparer.Ordinal);
-                    if (fullCfg.ChannelMusicianOrder != null)
+                    var seen = new HashSet<MusicianTrackKey>();
+                    // [DBG-C1] Channel order pairs ChannelMusicianOrder[i] with
+                    // ChannelRoles[i]; a musician's two role-stems keep their
+                    // own channel positions instead of collapsing.
+                    if (fullCfg.ChannelMusicianOrder != null && fullCfg.ChannelRoles != null)
                     {
-                        foreach (var musId in fullCfg.ChannelMusicianOrder)
+                        int n = Math.Min(fullCfg.ChannelMusicianOrder.Count,
+                                         fullCfg.ChannelRoles.Count);
+                        for (int i = 0; i < n; i++)
                         {
+                            var musId = fullCfg.ChannelMusicianOrder[i];
                             if (string.IsNullOrEmpty(musId)) continue;
-                            if (stemsOut.TryGetValue(musId, out var b) && seen.Add(musId))
+                            var key = new MusicianTrackKey(musId, fullCfg.ChannelRoles[i]);
+                            if (stemsOut.TryGetValue(key, out var b) && seen.Add(key))
                                 ordered.Add(b);
                         }
                     }
@@ -1007,16 +1064,14 @@ namespace ALWTTT.Managers
                             $"{DebugTag} <color=cyan>[B1][stemCache]</color> " +
                             $"MergeStems returned null/empty for part={partIndex}; " +
                             $"falling back to orchestrator merged (cached stems ignored).");
-                        // Restore orchestrator stems for ALL musicians (no verbatim persistence
-                        // this turn) so stems and merged stay consistent.
-                        // MGP-ALWTTT-DBG-1: flatten (musicianId, role) key to id
-                        // (TODO(BASS-1): same collapse caveat as above).
-                        stemsOut = new Dictionary<string, byte[]>();
+                        // Restore orchestrator stems for ALL tracks (no verbatim
+                        // persistence this turn) so stems and merged stay consistent.
+                        stemsOut = new Dictionary<MusicianTrackKey, byte[]>();
                         foreach (var kv in render.stemsByMusician)
                         {
                             using var ms = new MemoryStream();
                             kv.Value.Write(ms);
-                            stemsOut[kv.Key.MusicianId] = ms.ToArray();
+                            stemsOut[kv.Key] = ms.ToArray();
                         }
                     }
                 }
@@ -1072,14 +1127,32 @@ namespace ALWTTT.Managers
                 _partBundleCache[partBundleKey] = new PartBundleCacheEntry
                 {
                     mergedBytes = mergedBytes,
-                    stemsByMusician = new Dictionary<string, byte[]>(stemsOut),
+                    stemsByTrack = new Dictionary<MusicianTrackKey, byte[]>(stemsOut),
                     seconds = seconds,
                     bpmChosen = bpmChosen,
-                    pinned = pinned != null
-                        ? new Dictionary<string, MIDIInstrumentSO>(pinned)
-                        : new Dictionary<string, MIDIInstrumentSO>()
+                    pinned = new Dictionary<MusicianTrackKey, MIDIInstrumentSO>(pinned),
+                    resolvedByTrack =
+                        new Dictionary<MusicianTrackKey, ResolvedTrackChoice>(resolvedSnapshot),
+                    appliedCc7ByTrack = appliedCc7 != null   // [BAL-1] existing
+                        ? new Dictionary<MusicianTrackKey, int>(appliedCc7) : null,
+#if ALWTTT_DEV
+                    resolvedTs = part.TimeSignature,
+                    resolvedTonality = part.Tonality,   // post step-2b alignment
+                    resolvedRoot = part.RootNote,
+#endif
                 };
             }
+
+            LastAppliedCc7ByTrack = appliedCc7; // [BAL-1] null when ungained
+
+#if ALWTTT_DEV
+            LastRenderResolvedTimeSignature = part.TimeSignature;
+            LastRenderResolvedTonality = part.Tonality;
+            LastRenderResolvedRootNote = part.RootNote;
+#endif
+
+            // [DBG-C1] Publish the fresh render's truth for the dev tab.
+            PublishLastRender(partIndex, bpmChosen, resolvedSnapshot, pinned, fromCache: false);
 
             return (mergedBytes, stemsOut, seconds, bpmChosen, pinned);
         }
@@ -1087,29 +1160,6 @@ namespace ALWTTT.Managers
         #endregion
 
         #region Private Methods
-
-        /// <summary>
-        /// MGP-ALWTTT-DBG-1 bridge: the package reports resolved instruments
-        /// keyed on (musicianId, TrackRole); the consumer's pinned map is
-        /// musicianId-keyed. Flattens to MusicianId, and is null-safe (returns
-        /// an empty map, replacing the old <c>report ?? new(...)</c> which no
-        /// longer type-checks across the key change).
-        /// TODO(BASS-1): a musician in two roles collapses to one entry here —
-        /// the collision the package re-key removes. ALWTTT does not do this
-        /// today; migrating the consumer to the composite key is its own batch.
-        /// </summary>
-        private static Dictionary<string, MIDIInstrumentSO> FlattenInstrumentReport(
-            Dictionary<MusicianTrackKey, MIDIInstrumentSO> report)
-        {
-            var flat = new Dictionary<string, MIDIInstrumentSO>();
-            if (report == null) return flat;
-            foreach (var kv in report)
-            {
-                if (string.IsNullOrEmpty(kv.Key.MusicianId) || kv.Value == null) continue;
-                flat[kv.Key.MusicianId] = kv.Value; // last-write-wins (BASS-1 caveat)
-            }
-            return flat;
-        }
 
         private IEnumerator RunBeatGrid(string key, float duration)
         {
@@ -1607,12 +1657,42 @@ namespace ALWTTT.Managers
             return map;
         }
 
+        // [BAL-1] (musicianId, role) gains → per-channel array. Channel 9 is
+        // never gained (shared Rhythm channel, D-BAL-5=A). No map ⇒ all 1.
+        private float[] BuildChannelGains(SongConfig fullCfg, List<int> channelMap)
+        {
+            var g = new float[16];
+            for (int i = 0; i < 16; i++) g[i] = 1f;
+            var roles = fullCfg.ChannelRoles;
+            var owners = fullCfg.ChannelMusicianOrder;
+            if (_gigMixGains == null || roles == null || owners == null) return g;
+
+            int n = Mathf.Min(roles.Count, Mathf.Min(owners.Count, channelMap.Count));
+            for (int i = 0; i < n; i++)
+            {
+                int ch = channelMap[i];
+                if (ch == 9) continue;
+                if (_gigMixGains.TryGetValue(
+                        new MusicianTrackKey(owners[i], roles[i]), out var gain))
+                    g[ch] = Mathf.Clamp(gain, 0f, 1.27f);
+            }
+            return g;
+        }
+
         private float PlayBytes(string key, byte[] data, float seconds, string label)
         {
             if (player == null) { Debug.LogError($"{DebugTag} No IPlayMidi."); return 0f; }
 
             player.Stop();            // will trigger OnSongEnded → ClearMarkers()
             _currentKey = key;
+
+            // [BAL-1] Adopt the channel gains of exactly these bytes. Non-gig
+            // paths (Play(SongData)/jam — no preceding RenderSinglePart) reset
+            // to identity so the live plane composes against gain 1.0.
+            var _bal1Src = _pendingChannelGains;
+            for (int _bal1Ch = 0; _bal1Ch < 16; _bal1Ch++)
+                _bakedGain01ByChannel[_bal1Ch] = _bal1Src != null ? _bal1Src[_bal1Ch] : 1f;
+            _pendingChannelGains = null;
 
             // Rebuild markers/timelines from the exact bytes we are going to play
             RebuildMarkersFromData(data);
@@ -1917,16 +1997,19 @@ namespace ALWTTT.Managers
             mix.SetChannelVolume01(MidiGenerator.MetronomeChannel, metro01);
             _lastKnownVol01[MidiGenerator.MetronomeChannel] = metro01;
 
-            // M-AUDIO-MIX: re-assert the last-known per-channel mix now that the song is live.
-            // GigManager.ReapplyMusicianMix populates _lastKnownVol01 just after Play(); MPTK may
-            // reset channel volumes on (re)start, so we re-send CC7 here to make the persisted/dev
-            // balance survive each song. Defensive against an unverified MidiGenPlay-side channel
-            // reset; harmless if MPTK already preserves volumes. Pending highlight overrides below.
-            for (int ch = 0; ch < 16; ch++)
-            {
-                if (ch == MidiGenerator.MetronomeChannel) continue;
-                mix?.SetChannelVolume01(ch, Mathf.Clamp01(_lastKnownVol01[ch]));
-            }
+            // [BAL-1 task 0] M-AUDIO-MIX re-assert — DEFERRED and COMPOSED.
+            // MPTK VERIFIABLY resets every channel CC7 to 100 on each play
+            // (MPTK_Play → MPTK_InitSynth → new MPTKChannels →
+            // fluid_channel_init_ctrl; EnableResetChannel default true), so the
+            // loop cannot be retired. But OnEventStartPlayMidi fires BEFORE the
+            // sequencer processes tick-0 events — an immediate write here lands
+            // BEFORE the baked MIX-1 preamble CC7 and is overwritten by it. We
+            // therefore re-assert only after the preamble is consumed. Writes
+            // go through WriteChannelVolume01 (D-BAL-6=B): identity balance
+            // reproduces the baked CC7 exactly (idempotent); non-identity
+            // balance composes multiplicatively on top of the baked gain.
+            if (_mixReassertCo != null) StopCoroutine(_mixReassertCo);
+            _mixReassertCo = StartCoroutine(ReassertLiveMixAfterPreamble());
 
 
             // stop previous grid if any
@@ -1940,6 +2023,27 @@ namespace ALWTTT.Managers
             }
             else if (logDebug)
                 Debug.LogWarning($"{DebugTag} OnSongStarted but key/cache missing.");
+        }
+
+        // [BAL-1 task 0] Deferred, composed live-mix re-assert. Runs after the
+        // tick-0 baked preamble is consumed so persisted/dev balance lands on
+        // top of the baked CC7 rather than under it.
+        private IEnumerator ReassertLiveMixAfterPreamble()
+        {
+            // Bounded wait: the tick-0 preamble is processed within the first
+            // sequencer slices. 30 frames is a hard cap, not an expectation.
+            for (int f = 0;
+                 f < 30 && (player == null || !player.IsPlaying
+                            || player.CurrentTick <= 0);
+                 f++)
+                yield return null;
+
+            for (int ch = 0; ch < 16; ch++)
+            {
+                if (ch == MidiGenerator.MetronomeChannel) continue;
+                WriteChannelVolume01(ch, Mathf.Clamp01(_lastKnownVol01[ch]));
+            }
+            _mixReassertCo = null;
         }
 
         private void OnSongEndedInternal()
@@ -1988,6 +2092,58 @@ namespace ALWTTT.Managers
         private string _highlightMusicianId;
         private HighlightMode _highlightMode = HighlightMode.None;
         private readonly float[] _lastKnownVol01 = new float[16];
+
+        // ── [BAL-1] Bytes-plane mix gains (Boundary §8.3) ────────────────────────────
+        // D-BAL-3=A: fixed per gig, set once by GigManager at gig start. Mutable dict
+        // so the Dev lever can override at runtime (hash covers gains ⇒ next render
+        // re-keys and re-renders deterministically).
+        private Dictionary<MusicianTrackKey, float> _gigMixGains;
+        public IReadOnlyDictionary<MusicianTrackKey, float> GigMixGains => _gigMixGains;
+
+        // Channel-gain snapshot of the bytes currently PLAYING (live-plane compose
+        // input, D-BAL-6=B). _pendingChannelGains is produced by RenderSinglePart and
+        // adopted by PlayBytes; non-gig plays adopt identity.
+        private float[] _pendingChannelGains;
+        private readonly float[] _bakedGain01ByChannel =
+            { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
+
+        // [BAL-1 task 4] Package readback: CC7 actually emitted per gained track for
+        // the last render (fresh or bundle replay). Null ⇒ ungained render.
+        public IReadOnlyDictionary<MusicianTrackKey, int> LastAppliedCc7ByTrack
+        { get; private set; }
+
+#if ALWTTT_DEV
+        /// <summary>[CSV-3] Musical identity the last render ACTUALLY used, read from the
+        /// PartConfig AFTER generation (post ChordTrack step-2b tonality alignment).
+        /// Read-only truth; never a gameplay input. Dev-only (batch constraint).</summary>
+        public MidiGenPlay.MusicTheory.MusicTheory.TimeSignature LastRenderResolvedTimeSignature { get; private set; }
+        public MidiGenPlay.MusicTheory.MusicTheory.Tonality LastRenderResolvedTonality { get; private set; }
+        public Melanchall.DryWetMidi.MusicTheory.NoteName LastRenderResolvedRootNote { get; private set; }
+#endif
+
+        private Coroutine _mixReassertCo;
+
+        public void SetGigMixGains(IReadOnlyDictionary<MusicianTrackKey, float> gains)
+        {
+            _gigMixGains = (gains != null && gains.Count > 0)
+                ? new Dictionary<MusicianTrackKey, float>(gains)
+                : null;
+            if (logDebug) Debug.Log($"{DebugTag} [BAL-1] gig mix gains set: " +
+                $"{_gigMixGains?.Count ?? 0} entries");
+        }
+
+        // [BAL-1 task 4] Dev-only runtime override. Rhythm rejected here too.
+        public void DevOverrideMixGain(MusicianTrackKey key, float gain)
+        {
+            if (key.Role == TrackRole.Rhythm)
+            {
+                Debug.LogWarning($"{DebugTag} [BAL-1] Rhythm gain rejected (D-BAL-5=A).");
+                return;
+            }
+            _gigMixGains ??= new Dictionary<MusicianTrackKey, float>();
+            _gigMixGains[key] = Mathf.Clamp(gain, 0f, 1.27f);
+        }
+
         private readonly float[] _savedVol01 = new float[16];
         private bool _hasSavedMix = false;
         private string _pendingHighlightMusicianId;
@@ -1998,7 +2154,7 @@ namespace ALWTTT.Managers
         {
             volume01 = Mathf.Clamp01(volume01);
             _lastKnownVol01[channel] = volume01;
-            mix?.SetChannelVolume01(channel, volume01); // runtime mix only
+            WriteChannelVolume01(channel, volume01); // runtime mix only [BAL-1 composed]
             if (logDebug) Debug.Log($"{DebugTag} SetChannelVolume ch={channel} vol={volume01:0.##}");
         }
 
@@ -2018,12 +2174,39 @@ namespace ALWTTT.Managers
                     continue;
 
                 _lastKnownVol01[ch] = volume01;
-                mix?.SetChannelVolume01(ch, volume01);
+                WriteChannelVolume01(ch, volume01); // [BAL-1 composed]
                 //if (logDebug)
                 Debug.Log($"{DebugTag} SetMusicianVolume musician={musicianId} " +
                     $"ch={ch} vol={volume01:0.##}");
             }
         }
+
+        // [BAL-1 / D-BAL-6=B] SINGLE write boundary for musician-channel live volume.
+        // The live intent composes multiplicatively with the baked bytes-plane gain of
+        // the playing part:  composedCc7 ≈ round(live01 × gain × 100).
+        // Identity: live 1.0 × gain 1.0 → CC7 100 — the MPTK channel default AND the
+        // baked identity, so identity writes are idempotent against the preamble.
+        // IMixController semantics are untouched (v01 → v127); composition lives here.
+        // Metronome writes deliberately bypass this (separate semantics, no gains).
+        private void WriteChannelVolume01(int ch, float live01)
+        {
+            float composed = Mathf.Clamp01(live01)
+                * _bakedGain01ByChannel[ch] * (100f / 127f);
+            mix?.SetChannelVolume01(ch, Mathf.Clamp01(composed));
+            // [BAL-1 test 4] Dev readout: the LIVE-COMPOSED CC7 actually sent
+            // (distinct from the baked LastAppliedCc7ByTrack). Lets the Audio
+            // Mix tab prove compose (~25) vs stomp (~64) numerically.
+            if (ch >= 0 && ch < 16)
+                _lastComposedCc7ByChannel[ch] = Mathf.RoundToInt(composed * 127f);
+        }
+
+        // [BAL-1 test 4] Per-channel live-composed CC7 (dev-facing readout only).
+        private readonly int[] _lastComposedCc7ByChannel = new int[16];
+
+        /// <summary>[BAL-1 test 4] Live-composed CC7 last written to this channel
+        /// (live01 × bakedGain × 100). Dev diagnostic; not part of the bytes plane.</summary>
+        public int GetLiveComposedCc7(int channel)
+            => (channel >= 0 && channel < 16) ? _lastComposedCc7ByChannel[channel] : -1;
 
         // Highlight: apply now if possible, else remember & apply at next OnSongStarted.
         public void Highlight(string musicianId, HighlightMode mode)
@@ -2119,7 +2302,7 @@ namespace ALWTTT.Managers
                 }
 
                 _lastKnownVol01[ch] = vol;
-                mix?.SetChannelVolume01(ch, vol);
+                WriteChannelVolume01(ch, vol); // [BAL-1 composed]
             }
         }
 
@@ -2143,7 +2326,7 @@ namespace ALWTTT.Managers
                     if (ch == MidiGenerator.MetronomeChannel) continue;
                     var vol = Mathf.Clamp01(_savedVol01[ch]);
                     _lastKnownVol01[ch] = vol;
-                    mix?.SetChannelVolume01(ch, vol);
+                    WriteChannelVolume01(ch, vol); // [BAL-1 composed]
                 }
                 _hasSavedMix = false; // snapshot consumed
                 if (logDebug) Debug.Log($"{DebugTag} Restored saved mix after highlight.");
@@ -2155,7 +2338,7 @@ namespace ALWTTT.Managers
                 {
                     if (ch == MidiGenerator.MetronomeChannel) continue;
                     _lastKnownVol01[ch] = 1f;
-                    mix?.SetChannelVolume01(ch, 1f);
+                    WriteChannelVolume01(ch, 1f); // [BAL-1 composed]
                 }
                 if (logDebug) Debug.Log($"{DebugTag} Restored neutral mix (no snapshot).");
             }
@@ -2252,6 +2435,91 @@ namespace ALWTTT.Managers
             }
         }
 
+        #region [DBG-C1] Read-only truth surface (last render + chord timeline)
+
+        /// <summary>Monotonic serial, bumped on EVERY RenderSinglePart return —
+        /// fresh render and bundle-cache replay alike. Poll to detect refresh.</summary>
+        public int LastRenderSerial { get; private set; }
+        public int LastRenderPartIndex { get; private set; } = -1;
+        public int LastRenderBpm { get; private set; }
+        /// <summary>True when the last return was a bundle-cache replay; the
+        /// resolved snapshot is then the ORIGINAL render's (D-DBG5=A).</summary>
+        public bool LastRenderFromCache { get; private set; }
+
+        private Dictionary<MusicianTrackKey, ResolvedTrackChoice> _lastResolvedByTrack = new();
+        private Dictionary<MusicianTrackKey, MIDIInstrumentSO> _lastPinnedByTrack = new();
+
+        /// <summary>[DBG-C1] Package readback of the last rendered part —
+        /// what each composer actually resolved. Read-only truth; never an
+        /// input to gameplay.</summary>
+        public IReadOnlyDictionary<MusicianTrackKey, ResolvedTrackChoice> LastResolvedByTrack
+            => _lastResolvedByTrack;
+        public IReadOnlyDictionary<MusicianTrackKey, MIDIInstrumentSO> LastPinnedByTrack
+            => _lastPinnedByTrack;
+
+        private void PublishLastRender(
+            int partIndex,
+            int bpm,
+            Dictionary<MusicianTrackKey, ResolvedTrackChoice> resolved,
+            Dictionary<MusicianTrackKey, MIDIInstrumentSO> pinned,
+            bool fromCache)
+        {
+            LastRenderPartIndex = partIndex;
+            LastRenderBpm = bpm;
+            LastRenderFromCache = fromCache;
+            _lastResolvedByTrack = resolved != null
+                ? new Dictionary<MusicianTrackKey, ResolvedTrackChoice>(resolved)
+                : new Dictionary<MusicianTrackKey, ResolvedTrackChoice>();
+            _lastPinnedByTrack = pinned != null
+                ? new Dictionary<MusicianTrackKey, MIDIInstrumentSO>(pinned)
+                : new Dictionary<MusicianTrackKey, MIDIInstrumentSO>();
+            LastRenderSerial++;
+        }
+
+        /// <summary>[DBG-C1 / Task 3] One entry of the parsed chd: chord
+        /// timeline. Public DTO of the private ChordLabel.</summary>
+        public readonly struct ChordTimelineEntry
+        {
+            public readonly long Tick;
+            public readonly string Symbol;   // "Cm7"
+            public readonly string Roman;    // "ii" / "IV"
+            public readonly int Degree;      // 1..7 (0 when n/a)
+            public readonly string Quality;  // ChordQuality name or null
+
+            public ChordTimelineEntry(
+                long tick, string symbol, string roman, int degree, string quality)
+            {
+                Tick = tick; Symbol = symbol; Roman = roman;
+                Degree = degree; Quality = quality;
+            }
+        }
+
+        /// <summary>
+        /// [DBG-C1 / Task 3] Read-only snapshot of the chd:-derived chord
+        /// timeline per MIDI channel for the CURRENTLY LOADED playback.
+        /// Built from the governed chd: marker contract
+        /// (MGP SSoT_Composer_Backing_Track §2.1). Snapshot copy — safe to
+        /// hold across frames; empty when nothing is loaded.
+        /// </summary>
+        public Dictionary<int, List<ChordTimelineEntry>> GetChordTimelineSnapshot()
+        {
+            var result = new Dictionary<int, List<ChordTimelineEntry>>();
+            foreach (var kv in _chordTimelineByChannel)
+            {
+                var list = new List<ChordTimelineEntry>(kv.Value.Count);
+                foreach (var (tick, label) in kv.Value)
+                {
+                    list.Add(new ChordTimelineEntry(
+                        tick, label.sym, label.roman, label.deg,
+                        label.quality?.ToString()));
+                }
+                result[kv.Key] = list;
+            }
+            return result;
+        }
+
+        #endregion
+
         #region [B1] Stem cache (per-track persistence + DryWetMidi merge)
 
         /// <summary>
@@ -2295,9 +2563,11 @@ namespace ALWTTT.Managers
                 part.TempoScale.ToString("F4", inv));
         }
 
+        // [DBG-C1] Stem identity is (musicianId, role): a musician holding two
+        // roles caches two independent stems.
         private static string BuildStemKey(
-            string musicianId, string trackInputsHash, string partMeterHash)
-            => $"{musicianId ?? "_"}|{trackInputsHash}|{partMeterHash}";
+            MusicianTrackKey key, string trackInputsHash, string partMeterHash)
+            => $"{key.MusicianId}:{key.Role}|{trackInputsHash}|{partMeterHash}";
 
         private static string BuildPartBundleKey(
             string partMeterHash, IEnumerable<string> musicianAndTrackHashEntries)

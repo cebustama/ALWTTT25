@@ -69,6 +69,534 @@ Navigation only — dates + labels. Full entries are in
 
 ---
 
+## 2026-07-23 — ROSTER-XP planning: Roster Expansion campaign consolidated (R0–R8)
+
+**Type:** reference-only + operational/roadmap. Planning session; **no code, no gameplay
+change, no smoke tests.**
+
+Feasibility evaluation of the 4-musician starter redesign (spec: per musician 2 identity
+composition + 1 identity action + 1 unique-mechanic finisher, plus 2 soft-path composition
+rewards + 1 status-carrying action reward) closed against the live baseline. Everything is
+ALWTTT-implementable except bass fidelity items — chord-tone walk (recorded package-side
+candidate), pocket-coupling (new cross-track), bossa split (CA-T2 deferred) — and
+chord-aware melody resolution (tapping reward): all queued as MidiGenPlay asks, filed with
+acceptance criteria at R2/R8 (never redesigned ALWTTT-side). Alphabet verifications:
+`RomanProgressionParser` carries Dominant7/Major7/Minor7/HalfDiminished7/Diminished7/Sus2/Sus4
+(Track Card Levels lvl-3 exemplar expressible; slash inversions are not — voicer owns
+inversions); `MelodyPatternData` is degree-based (tonality-adaptive, not chord-aware).
+
+Campaign decisions **D1=C** (R0–R3 interleave with S5i; R4+ post-S5j tag — live front
+unchanged) · **D2=A** (reuse existing card baseline: Wormus pair, Default Mode, Keep Cool,
+Psychic Waves-extended) · **D3=A** (Conito bass v1 approximations + asks) · **D4=A**
+(Double Harmony Tier A now, sung Tier B behind the deferred cap=2 validation) · **D5=A**
+(soft reward paths, no exclusivity mechanic) · **D6=A** (single consolidation home).
+
+New docs: `planning/active/RosterExpansion_Sub_Roadmap.md` (ledger + R0–R8 + verdict
+table + asks + R0 rehydration) · `planning/active/Design_Track_Card_Levels_v0_1.md`
+(re-play = level-up mechanic, batch R7; +INSP/complexity hooks flagged against
+DF-INSPLOOP overlap and the S5i-owned inert complexity term) ·
+`planning/Design_Fill_Window_v0_1.md` + `planning/Design_Singer_Expression_Input_v0_1.md`
+(registered ideas, post-campaign). Roadmap Roster Expansion section repointed
+(prerequisites updated: bass ✅, `ApplyIncomingVibe` ✅, Captivated → R1);
+`CURRENT_STATE §3` pointer added; manifest + SSoT_INDEX rows added.
+Applied 2026-07-23 by batch ROSTER-XP-DOC; `RosterExpansion_Doc_Diffs_2026-07-23.md`
+retired on apply (package convention).
+
+Classification: reference-only + operational (roadmap/structure). No SSoT authority moved.
+
+---
+
+## 2026-07-22 — CSV-3: R2a card debug-play + resolved meter/tonality surfaces + melody finding closed
+
+Adds `CompositionSession.DevInjectCompositionCard` (catalogue card's musical side only — live model D-CSV-8=A, economy-neutral D-CSV-24=B: injected tracks excluded from `EvalPerLoopInsp`, reclaimed by a genuine play, cleared at song boundary) and the `MidiMusicManager.LastRenderResolved*` read line (sibling of BAL-1 CC7, replay-faithful D-DBG5=A). D-CSV-13=A (Backing dropdown stays `PatternRepositoryResources`-fed + notice). D-MEL-1=A (a rhythm card owns meter via a `MeterEffect`; meter is a model-construction `FourFour` default). **Melody-path finding CLOSED as not-a-bug** — meter collision by construction (Core Minor holds zero 6/8 progressions); runs A/B no divergence; ST-CSV3-6 confirmed C2a healthy; **no package ask** (`MGP-ALWTTT-MEL-ORDER-1` not filed). Overlay outer-scroll fix. `SongCompositionUI` gained `CanApplyDefinition` / `ApplyCardDefinitionToPart` cores (mechanical extraction, production byte-identical). Integration §12 rewritten as CLOSED with a location correction (the `?? default` is the audience/`LoopFeedbackContext` path, not the render path). Smokes ST-CSV3-1..9 + 5b/5c PASS. Gate `#if ALWTTT_DEV`. CSV-4 listening pass UNBLOCKED. Classification: semantic + operational + lifecycle. Homes: `SSoT_Dev_Mode.md` §18.1/§18.6/§18.10/§18.11/§9.16 · `SSoT_Runtime_CompositionSession_Integration.md` §8 inv 9 / §12 · `SSoT_Card_Authoring_Contracts.md` §5.16 · boundary §4.3 · `CURRENT_STATE.md` §2/§4 · `coverage-matrix.md`. Doc-pass batch: CSV-3-DOC.
+
+---
+
+## 2026-07-22 — BAL-1: consumer-side mix gains (bytes plane) adopted
+
+Adopts **MGP-MIX-1** (delivered in MidiGenPlay 1.2.0) as ALWTTT's second mix
+plane: a per-`(musicianId, TrackRole)` **gain** baked into the generated MIDI as
+a CC7 event at render time, distinct from and composing with the live per-musician
+axis. Contract home: `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.3 (flipped
+pending→**ADOPTED**); ALWTTT model: `SSoT_Audio.md` §4.6.
+
+**Task 0 — live-plane collision fix (the prerequisite).** The MPTK read corrected
+the mechanism the boundary originally recorded. F-MPTK-1: MPTK resets every
+channel's CC7 to 100 on **each** play (`MPTK_Play → MPTK_InitSynth → new
+MPTKChannels → fluid_channel_init_ctrl`; `EnableResetChannel` default true) — the
+`OnSongStartedInternal` re-assert loop is **required**, cannot be retired. F-MPTK-2:
+`OnEventStartPlayMidi` fires *before* tick-0 events, so the baked preamble is the
+last writer at song start (the boundary's original "re-assert overwrites the baked
+CC7" direction was inverted). Fix (D-BAL-6=B + D-BAL-7): all musician-channel live
+writes route through one boundary `WriteChannelVolume01` that **composes**
+multiplicatively with the baked gain (`live01 × bakedGain × 100/127`; identity in ⇒
+identity out), and the re-assert is **deferred** past tick-0 (`ReassertLiveMixAfterPreamble`,
+waits `CurrentTick > 0`). The loop is kept, deferred, composed.
+
+**Delivered.** `MixGainProfileSO` (content SO, keyed `(musicianId, TrackRole)`,
+default 1.0, Rhythm warn+ignore); gig-start resolution (`GigManager.StartGig →
+SetGigMixGains`, D-BAL-8=A serialized field); `mixGains:` threaded into the per-part
+`GenerateSinglePart` call (gig loop only; `GenerateSong`/jam/menu stay ungained);
+gain folded into `ComputeHashFromTrackEntry` → stem + bundle keys (D-BAL-3=A: gain
+enters the hash regardless of lifecycle, cache replay can never serve stale CC7);
+`appliedCc7ByTrack` readback (incl. bundle-cache replay) + a live-composed CC7
+Dev-Mode strip (`GetLiveComposedCc7`).
+
+**Decisions.** D-BAL-1=C (dedicated content SO) · D-BAL-2=A (hand-authored ensemble
+intent) · D-BAL-3=A (fixed per gig, hash-participating) · D-BAL-4=A (content data,
+not player save) · D-BAL-5=A (no drum ask) — all locked at batch open; D-BAL-6=B
+(multiplicative live×baked compose) · D-BAL-7 (keep-defer-compose the re-assert) ·
+D-BAL-8=A (GigManager serialized field) — locked at resolution.
+
+**Smoke ST-BAL-1..7 all PASS on 1.2.0.** (1) byte identity ungained · (2) gain=1.0
+audible identity, CC7=100 · (3) gain=0 mute-without-delete · (4) plane composition
+~0.25 composed / ~50 at live 1.0 (the D-BAL-6=B proof; verified numerically via the
+live-composed CC7 strip) · (5) start-race F-MPTK-2 regression (persisted balance holds
+every song) · (6) Rhythm warn+ignore · (7) cache replay after gain change. Anti-
+compensation rule normative (gains ≠ per-patch loudness correction; that is package
+`volume01` / D-MIX-6). MidiGenPlay package untouched (consumed the 1.2.0 surface only).
+
+Classification: semantic + operational + lifecycle. Authority:
+`SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.3 · `SSoT_Audio.md` §4.2/§4.6 ·
+`SSoT_Runtime_CompositionSession_Integration.md` §8 inv 9 · `CURRENT_STATE.md`.
+
+---
+
+## 2026-07-21 — SINGER-1: Pink Trombone articulatory singer integrated
+
+New primary-authority SSoT `systems/SSoT_Singer_Voice.md`. The Pink Trombone
+voice (POC, research-class verdict) is promoted into ALWTTT as an optional singer
+for the melody track, scoped to the singer character (Zig, `musicianId="3"`).
+It sings a musician's `Melody`/`Lead` **stem** (already returned by
+`RenderSinglePart`, §8 inv 9) and mutes that channel via `SetChannelVolume`;
+unmatched melodies play as GM MIDI (coexistence by construction). Transport
+resolved D1=A (dsp anchor at `OnSongStarted` + per-profile `startTrimMs`; offset
+constant to one DSP buffer, not drift). Budget: 1 active / 2 hard ceiling.
+One `[SINGER-1]` seam added to `CompositionSession` (`LoopPlaybackStarting`
+before `PlayRaw`); `MidiMusicManager` and MidiGenPlay unchanged. Fork relocated to
+`Assets/ThirdParty/PinkTrombone/` (MIT, POC-FORK 1–7). `PinkTromboneBackingPlayer`
++ original `PinkTromboneSinger` retired. ST-V1..V8 PASS. Docs: new SSoT +
+`SSoT_Runtime_CompositionSession_Integration` inv 12 + `SSoT_Audio` pointer +
+INDEX/coverage rows. `PinkTrombone_Voice_Levers.md` relocated to `reference/`.
+Open (not blocking): D4=A profile field on `MusicianCharacterData`; Highlight×mute
+and cap=2 second-voice deferred to Dev Mode; mixer routing follow-up.
+Classification: semantic + structural + authority + lifecycle.
+
+## 2026-07-20 — CSV-4 (PARTIAL CLOSE): asset cleanup, MGP-BAGGAGE-1 resolution, content-standard decisions
+
+Content + cross-boundary batch of the **CSV** arc. **No code change, no gameplay change,
+no smoke tests** (documentation and content only). **CSV-4 closes PARTIALLY** — the
+listening pass and the naming application are deferred out of it. No document records it
+as a full close.
+
+### Content deleted (ALWTTT-side, `Assets/`)
+
+**Worklist A — 12 local orphan assets**, exactly as specified in the pre-replacement
+sub-roadmap §4.1.1 (6 chord progressions, 6 drum patterns):
+`Prog_Ionian_FourFour_4m_0_4_0_0-…` · `Prog_Ionian_FourFour_4m_0_4_5_1-…` ·
+`Prog_Ionian_ThreeFour_4m_0_3_3_0-…` · `Untitled` · `Untitled 1` (all five in
+`Assets/Resources/ScriptableObjects/Patterns/Chords/`) · `1 chord 1 measure`
+(`…/Chord Progressions/Tests/`) · `Drum_4-4_1m_BDSN` · `Drum_4-4_2m_CHBDSNOH` ·
+`Drum_6-1_2m_CHBDSNOH` · `LLMTest` · `TestSmokeSMR7` (all five in `…/Patterns/Drums/`) ·
+`DrumPattern-DefaultFourFour` (`…/ScriptableObjects/Drum Patterns/`). Deleting the first
+five emptied `Assets/Resources/ScriptableObjects/Patterns/Chords/`, which was removed
+with them.
+
+**5 local style bundles** — test content, not starter: `Backing Card Config [I – IV – V – I]` ·
+`Backing Card Config [I – vi – IV – V]` ·
+`2_Composition_001_CompositionPayload 1_Backing_StyleBundle` ·
+`2_Composition_001_CompositionPayload_Backing_StyleBundle` ·
+`2CBacking001TestProg_Payload_Backing_StyleBundle`.
+
+**One asset authored:** `Test_Scale_Melody_4-4_4m_14n`, in
+`Assets/Resources/ScriptableObjects/Patterns/Melodies/` — the correct (plural) scan root.
+
+Verified against a fresh Export All: counts dropped exactly as predicted, no LIVE asset
+lost a reference, no LIVE asset gained `ORPHAN`.
+
+### Three export baselines — which are void
+
+`230` (CSV-1c corrected) → `218` (post-worklist-A) → **`183` (post-MidiGenPlay-1.1.0)**.
+**Only the 183 set is current. The 230 and 218 sets are superseded and must not be
+reused.** The pre-fix 181-asset export was already void.
+
+### MGP-BAGGAGE-1 — filed, answered package-side, adopted (same day)
+
+ALWTTT measured 28 package assets that no consumer referenced and that in most cases
+could not render. ALWTTT cannot delete them (edits under `Packages/` revert on update;
+D-CSV-7=A), so the finding was filed as an ask. Package-side answer: none of the flagged
+assets was intentional — no runtime fallback, no editor template, no test fixture.
+**33 assets retired, 8 moved** to `Samples/ExampleCatalogue/ChordProgressions/`, taking
+them out of `Resources.LoadAll` reach. Package-side additions to ALWTTT's list:
+`Test Progression`, `Melodic Style - Test 1`, and the three `_*List` containers (kept but
+emptied, package-side D-BAG-4). Consumer re-export verifies `EMPTY` / `NO-LANES` /
+`ALL-SILENT` / `OVERFLOW` at **zero** across package-origin assets; gig smoke green.
+**Standing rule adopted:** any reappearance of those four flags on a package-origin asset
+is a package-side regression warranting a new ask, not consumer tolerance. Recorded in
+`SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.2.
+
+**Poly Synth correction — our export was faithful; the asset was mis-authored.** The
+package handoff §4.1 attributed the `Poly Synth` / `Warm Pad` duplicate to an extraction
+artifact in `CompositionInventoryWindow`. That does not hold: the window reads
+`PatchName` and `PatchIndex` **verbatim** (dup key `SoundFont|Bank|PatchName|PatchIndex`,
+four raw fields, no derivation, no 0/1 normalisation), and the 1.0.0 export showed **both**
+fields of `Poly Synth` carrying Warm Pad's values. 1.1.0 corrected the asset
+(`90 - Poly Synth` / 90, no `DUP`). **No consumer code change is owed**; handoff §7.4 is
+closed as resolved package-side, not as consumer debt.
+
+### Decisions locked
+
+- **D-CSV-7 = A** — asset ownership is **location-based**. `Assets/` is ALWTTT's;
+  `Packages/` is MidiGenPlay's. ALWTTT never renames or deletes package-side; it files
+  asks. **Rider: naming authority ≠ moving authority** — a rename must not change an
+  asset's position relative to a Resources scan root (that is D-CSV-14, CSV-5).
+- **D-CSV-15 — both mechanisms retained.** Melody is phrase-driven in current card
+  content (every `MelodyCardConfigSO` uses `phrasePaletteOverride`), *and*
+  `MelodyCardConfigSO.patternOverride` is retained **deliberately** as the landing surface
+  for a future MIDI-import path (human-composed DAW melodies → game-readable melody
+  patterns). Neither mechanism is deprecated; both authored local patterns are kept.
+- **D-CSV-16 = A, pending execution.** The card → bundle reverse index is owed, and it
+  moved from *nice to have* to **blocking**: with the test bundles deleted, liveness of
+  the Modal and Test palettes could only be established from the user's statement, not
+  from tooling. **Scope not yet assigned to a batch.**
+- **D-CSV-18 = A** — all 79 instruments are `source: pkg`, so instrument curation targets
+  the **pools** (`InstrumentRules` + per-musician whitelists, ALWTTT-owned), never the
+  assets. Nothing sounds in the demo without an explicit listening verdict.
+- **D-CSV-19 = A** — the renamer is a **separate editor window**, not a mode inside
+  `CompositionInventoryWindow`. The inventory window keeps its read-only invariant
+  (§17.2 / ST-CSV-7) so it stays trustworthy as the verification surface before and after
+  a rename run. Batch label **CSV-4b**.
+- **D-CSV-21 = C, then superseded by D-CSV-23.** Listening scope was set to the 14
+  reachable progressions (Core Major 8 + Core Minor 6), Test's 4 cut without listening,
+  Modal's 10 deferred. D-CSV-23 redirected Modal from *deferred* to *merged*, so D-CSV-21
+  is recorded as resolved-and-superseded, not as live guidance.
+- **D-CSV-22 = B** — CSV-3 runs before the melody investigation, because R2a is the
+  instrument that makes the investigation tractable.
+- **D-CSV-23 = A+B** — chord content standard. **(A)** Default progression length becomes
+  **8 measures**, matching the 8-measure part, applied to *new and repaired* content —
+  **not** a mass re-authoring of the existing 4-measure set. **(B)** The Modal palette is
+  dissolved into Core Major / Core Minor by tonic, so each palette carries modal colour
+  rather than being restricted to diatonic major/minor. Registered as **CR-10**; executed
+  at **CSV-6**, not CSV-4.
+
+### Package-side registry movements
+
+- **D-BAG-3 / MGP-MIX-1 — OPEN.** `volume01 = 1.0` on all 70 melodic instruments is
+  unauthored, not deliberately flat. It is a package authoring field and stays there, so
+  ALWTTT has **no consumer-side per-instrument gain** and must not edit package assets to
+  get one. ALWTTT input delivered 2026-07-20: granularity **per musician** (the model is
+  keyed `(musicianId, TrackRole)` end-to-end since BASS-1, and "the bass is too loud" is a
+  sentence about a character); composition law **multiplicative** (`volume01 × gain`,
+  gain defaulting to 1.0) so package-side loudness normalisation composes instead of being
+  discarded; and a consumer-side consequence on the application point — velocity scaling
+  changes timbre as well as level with soundfonts, which would invalidate the
+  per-instrument listening verdicts D-CSV-18 requires, whereas CC7 leaves timbre intact.
+  Not closed by 1.1.0. **Blocks any ALWTTT mix-balance batch.**
+- **BASSFILL-1 recalibrated, not withdrawn.** Filed on "27 of 30 live progressions trigger
+  `BASS-GAP`". The 8-measure standard (CR-10) extinguishes the flag on most future content
+  by construction, so the ask drops from *audible demo defect* to *robustness gap* — still
+  a silent failure mode (any later 4-measure progression, or any 16-measure part,
+  reproduces it), but it no longer blocks the demo and should not outrank MGP-MIX-1.
+  **Preferred remedy if addressed:** a generation-time warning when the progression does
+  not cover the part, rather than automatic fill — a progression that ends and leaves air
+  can be an intentional musical choice.
+- **D-CSV-14 reduced.** The package-side chord-progression Resources root no longer exists
+  (moved to `Samples/` in 1.1.0), so `Patterns/{Chords,Drums,Melodies}` are the only
+  package-side scan roots and the remaining mismatch is **exclusively Assets-side**:
+  local chords under `ScriptableObjects/Chord Progressions/*`, and two local melody
+  patterns under `Patterns/Melody` (singular) while the correct root is `Patterns/Melodies`
+  (plural) — evidenced by `Test_Scale_Melody_4-4_4m_14n`, authored in the plural folder and
+  *not* flagged `OFF-ROOT`. Still CSV-5's; **no longer cross-boundary**.
+
+### Reachability corrections
+
+`Chord Palette - Test` is now `ORPHAN` (its bundle was deleted), so its 4 progressions are
+dead. Live backing content is `Backing Card Config - Core Major` (8) and `- Core Minor`
+(6); `- Modal` (10) exists but no card references it. **Reachable set = 14 of 33.** Live
+drum set is **26, not 27** — `DNB 4-4 2m test` hung off the now-deleted package
+`DrumPatternPalette`. Both figures rest on the user's statement, not on tooling (D-CSV-16).
+
+**The `Samples/` count nuance is expected, not a regression.** The handoff §7.2 predicted
+the consumer count would drop by the 8 moved assets. It did not, correctly:
+`CompositionInventoryWindow` discovers via `AssetDatabase.FindAssets<T>()`, deliberately
+broader than `Resources`. The move achieved its purpose — `Resources.LoadAll` no longer
+returns them — but the inventory lists them permanently until the window distinguishes
+origin. A third `sample` origin is specified for CSV-4b
+(`SSoT_Editor_Authoring_Tools.md` §17.6).
+
+### Finding carried out of CSV-4 — evidence classes kept separate
+
+With rhythm 6/8 + Core Minor + Singing Field, the melody follows neither the meter nor the
+scale. **This is not classified as a bug and ownership is not assigned; CSV-3 assigns it.**
+
+- *Observed:* the divergence itself, under that combination.
+- *Code truth, confirmed:* `default` on the `TimeSignature` enum is `FourFour` (member 0)
+  — confirmed package-side in the MGP-BAGGAGE-1 handoff §1, where the same property
+  explained why every unauthored package asset reported 4/4.
+- *Inferred, unvalidated (1):* `CompositionSession` resolves
+  `partEntry?.timeSignature ?? default`, so a part whose meter was never set would be
+  silently 4/4.
+- *Inferred, unvalidated (2):* `MelodyTrackComposer` derives its scale from
+  `part.Tonality` / `part.RootNote` while harmonic context comes from the progression's
+  chord events — two independent sources that can diverge.
+- *Content fact:* Core Minor holds **zero** 6/8 progressions, so that combination is a
+  meter collision by construction.
+
+Recorded ALWTTT-side in `SSoT_Runtime_CompositionSession_Integration.md` §12 (new).
+Meter ownership registered as **D-MEL-1** (CSV-3). **Consequence: the listening pass is
+blocked** — a verdict issued against a mis-rendering engine blames the asset.
+
+### Deferred out of CSV-4
+
+- **Listening pass (worklist D)** — blocked by the melody finding; reopens after CSV-3.
+- **Naming application (worklist E)** — convention drafted as
+  `planning/Design_Asset_Naming_v0_1.md` (planning, non-normative); applied at **CSV-4b**,
+  together with the `sample` origin classification and, if CSV-5 has not taken it, the
+  `Patterns/Melody` → `Patterns/Melodies` alignment.
+
+### Documents changed
+
+`SSoT_ALWTTT_MidiGenPlay_Boundary.md` (§4.3 + new §8.2) · `CSV_Composition_Validation_Sub_Roadmap.md`
+(§2 CR-10 + CR-7 rider, §3 ledger + D-MEL-1, **§4.1.1 replaced wholesale**, §4 batch table
++ CSV-4b + blocking note, §5 asks, §8 homes) · `SSoT_Editor_Authoring_Tools.md`
+(§17.2, §17.6, §17.7, §17.10, new §17.11) · `SSoT_Runtime_CompositionSession_Integration.md`
+(new §12) · new `planning/Design_Asset_Naming_v0_1.md` · `SSoT_INDEX.md` ·
+`coverage-matrix.md` · `CURRENT_STATE.md` (§1, §2, §4, §5).
+
+Change classes: **integrative** (package baggage disposition, 1.1.0 adoption, D-BAG-3) ·
+**operational** (baseline re-measurement, ask priorities, D-CSV-14 scope) · **semantic**
+(chord content standard, silent 4/4 meter default, pool-level instrument curation) ·
+**structural** (new naming convention doc + its registration).
+
+---
+
+## 2026-07-18 — CSV-1 + CSV-2: composition inventory window + dev instrument overrides (closed; CSV arc opened)
+
+Opening batch of the **CSV** arc (Composition Session Validation). Tooling only —
+no gameplay change, no content change, **no MidiGenPlay file touched**, and no new
+production API. The arc is parallel to / behind S5i, which remains the live front.
+
+- **`CompositionInventoryWindow` (CSV-1).** New editor window
+  (`Assets/Scripts/DevMode/Editor/`, `#if UNITY_EDITOR && ALWTTT_DEV`) — the first
+  structured view of the composition asset inventory in either project. Seven views
+  (style bundles · drum patterns · chord progressions + palettes + libraries ·
+  melody patterns + phrase archetypes + phrase palettes · melodic instruments ·
+  percussion instruments · Names Report), filters (TS / package-vs-local / text /
+  orphan / duplicate / flagged / bundle-reachable / editable reference part
+  measures), derived health flags, and `Print` + `Export JSON` per view following the
+  `CardInventoryWindow` pattern. Reuses the existing read paths
+  (`PatternRepositoryResources`, `TrackPatternConfigStoreResources<T>`,
+  `InstrumentRepositoryResources`) rather than re-implementing them. Mutates
+  nothing (ST-CSV-7).
+- **Health flags as a curation worklist.** `BASS-GAP` (progression shorter than the
+  reference part) is the **static face of CR-7's "bass ends early"** — the bass
+  renders the progression once with no repeat-to-fill
+  (`SSoT_Composer_Bass_Track §1`) while the backing tiles. Plus `SHORT-TAIL` /
+  `OVERFLOW` / `BPMEAS-MISMATCH` / `NO-LANES` / `ALL-SILENT` / `ORPHAN` / `DUP#n`
+  and instrument soundfont/octave/volume checks. Duplicate signatures deliberately
+  exclude names and metadata so a rename cannot hide a duplicate.
+- **Documentary home: D-CSV-6=A.** `SSoT_Editor_Authoring_Tools.md` §17 (ALWTTT),
+  mirroring `CardInventoryWindow`. `SSoT_Authoring_Tools.md` §4 assigns package docs
+  to tools that *author or edit* package assets; this one authors nothing, and
+  documenting it package-side would have promoted a read-only game-side curation
+  browser into package documentation authority.
+- **Dev instrument overrides (CSV-2), D-CSV-5=A refined.** Per-track melodic +
+  percussion pickers in the Composition tab (`SSoT_Dev_Mode.md` §18.9), siblings of
+  the §18.4 pattern rows but a **different mechanism**: the pick writes
+  `TrackEntry.overrideMelodicInstrument` / `overridePercussionInstrument` directly.
+  Those GUIDs already participate in `trackInputsHash`, so the stem cache stays
+  coherent by construction — no separate dictionary, no cache bypass, and
+  `SongCompositionUI` / `SongConfigBuilder` / `MidiMusicManager` are untouched.
+- **The non-obvious part: invalidation shape.** Assign/clear route through a new
+  `CompositionSession.DevInvalidateForInstrumentOverride(partIndex)` that invalidates
+  with **`keepInstruments: false`** — mirroring the instrument-**card** path, not the
+  `DevOverrideStamp` pattern path. Preserving instruments would retain
+  `PartCache.resolvedMelInstByTrack`, which is re-fed into the next
+  `RenderSinglePart` as `instrumentOverrides`, letting a stale voice beat the new
+  pick. Recorded in `SSoT_Runtime_CompositionSession_Integration.md` §8 inv 9 as the
+  deliberate asymmetry against the pattern-override paragraph.
+- **Clear/restore + card supersession.** Clear restores the pre-dev field state —
+  including a prior *card* override, not merely null — byte-identically under a
+  pinned seed (ST-CSV-3); the mechanism is the session pin map, which is *skipped*
+  rather than overwritten while an explicit override is set. A later
+  `InstrumentEffect` card takes the field back (`ApplyInstrumentEffect` rewrites
+  unconditionally); the tab detects this, reports `superseded by card`, and drops its
+  record without restoring — card truth is newer.
+- **Full catalogue for probing.** Entries outside
+  `InstrumentRules.GetPermittedMelodic(musician, role)` are annotated
+  `(outside permitted set)` and remain selectable, mirroring the `(off-band)`
+  convention of §18.6. Percussion has no permitted rule in v1 and is unannotated.
+- **Smokes ST-CSV-1..8 all PASS** (§9.15): BC gate, melodic apply, clear/restore
+  regression, percussion routing, card-stomp detection, outside-permitted probing,
+  window inertness, production compile.
+- **Decision-ID correction.** An earlier draft labelled the window's compile gate
+  `D-CSV-7`, colliding with the naming-ownership question already registered under
+  that ID in the sub-roadmap. `D-CSV-7` keeps its original meaning; the gate decision
+  is **D-CSV-10=A**.
+- **Open, carried forward.** **CSV-1b** — palette/library discovery goes only through
+  `TrackPatternConfigStoreResources`, which scans only
+  `Resources/ScriptableObjects/Patterns/<type>`, while most project palettes live
+  elsewhere; the first real export found 1 drum / 1 chord / 1 phrase palette against
+  5 / 4 / 2 referenced by style bundles, so `refs` and `ORPHAN` are unverified
+  (38/40 drum patterns and 13/13 progressions falsely flagged). Fix is to union the
+  scan with `AssetDatabase.FindAssets`; must land before CSV-4 curation.
+  **D-CSV-11** — every `ChordProgressionData` reports `Measures = 0` and
+  `TimeSignature = FourFour` regardless of asset name, which makes the progression
+  length flags uninformative and sits upstream of CR-7's static diagnosis.
+- **First-export findings** (181 assets: 114 package, 67 local) recorded in
+  `CSV_Composition_Validation_Sub_Roadmap.md` §4.1.1 — drum patterns are the healthy
+  family (40 assets, 5 time signatures, zero meter mismatches), the melody-pattern
+  family is entirely empty placeholder (12 identical assets; melody is
+  phrase-archetype-driven in practice), instrument metadata is uniformly clean
+  (70 melodic, one soundfont, `volume01 = 1.0` on all) so CR-4 curation is a
+  listening pass rather than a metadata pass, and naming has at least four
+  competing schemes plus `Untitled` / `Untitled 1`.
+
+Docs touched: `SSoT_Editor_Authoring_Tools.md` (§3 table, §13, §14.8/§14.9, new §17),
+`SSoT_Dev_Mode.md` (header, §6, §18.8/§18.9, §9.15, §10),
+`SSoT_Runtime_CompositionSession_Integration.md` (§8 inv 9),
+`CSV_Composition_Validation_Sub_Roadmap.md` (batch table, decision ledger, §4.1.1,
+§4.1/§4.2 closures), `CURRENT_STATE.md`, `coverage-matrix.md`.
+
+### Rider — CSV-1b + CSV-1c (same day, 2026-07-18): inventory discovery corrected
+
+Two micro-batches closing a reporting defect the first real export exposed. Editor-only,
+read-only, no runtime code, MidiGenPlay untouched.
+
+- **CSV-1b — palette discovery.** `TrackPatternConfigStoreResources` scans only
+  `Resources/ScriptableObjects/Patterns/<type>`; most project palettes live elsewhere.
+  Unioned with `AssetDatabase.FindAssets`. Drum palettes 1→6, phrase palettes 1→3,
+  drum orphans 38/40→13/40, archetype orphans 6→0.
+- **CSV-1c — pattern + instrument discovery (D-CSV-12=A+B).** Chords did not improve
+  under CSV-1b, which diagnosed the same defect one layer down: the in-use progressions
+  live under `ScriptableObjects/Chord Progressions/{Major,Minor,Modal,Tests}`, a sibling
+  of `Patterns/`, never scanned. Same union applied to patterns and instruments, plus a
+  reference harvest over palettes/libraries/bundles. **Chord progressions 13 → 48**;
+  orphans 13/13 → 14/48 and the remainder are genuinely dead. `HARVESTED = 0` — the
+  AssetDatabase union alone sufficed; the harvest stands as a safety net.
+- **New flags.** `OFF-ROOT` (exists, but no runtime repository resolves it) and
+  `HARVESTED` (no scan found it; present only via a reference).
+- **Export All** — one folder pick writes all seven views; shares `BuildJsonForView`
+  with the per-view export, which is unchanged.
+- **D-CSV-11 dismissed.** `ChordProgressionData.Measures`/`TimeSignature` **are**
+  authored; the universal `0` / `FourFour` reading came from a sample containing only
+  dead assets. No package ask.
+- **Two findings carried forward.** (1) **All 30 live chord progressions are
+  `OFF-ROOT`** — `PatternRepositoryResources` resolves none of the content the game
+  plays, so the §18.6 dev Backing dropdown has only ever been able to offer dead assets
+  (**D-CSV-13**, CSV-3), and the underlying scan-root mismatch is **D-CSV-14** (CSV-5,
+  cross-boundary; local melodies show the same shape, `Patterns/Melody` vs the
+  configured `Patterns/Melodies`). Playback is unaffected — palettes and bundles hold
+  direct references. (2) With D-CSV-11 dismissed, **`BASS-GAP` fires on 27 of the 30
+  live progressions** (19 are 4-measure against an 8-measure default part); combined
+  with the bass's single-pass no-repeat-to-fill contract this is the strongest
+  pre-CSV-5 evidence for `MGP-ALWTTT-BASSFILL-1`.
+- **Clean-slate worklist** in sub-roadmap §4.1.1: 12 local deletions (all orphan test
+  residue), 2 design calls (the only two authored melody patterns, both unreferenced,
+  in a mechanism no card uses), 28 package-baggage items that ALWTTT cannot delete.
+  **Bundle cleanup is not decidable from this export** — no card → bundle reverse index
+  exists (new gap `SSoT_Editor_Authoring_Tools §17.10`).
+
+Rider docs touched: `SSoT_Editor_Authoring_Tools.md` (§17.2/§17.4/§17.6/§17.7 rewritten,
+new §17.10, §14.8 resolved), `SSoT_Dev_Mode.md` (§18.6 coverage limitation),
+`CSV_Composition_Validation_Sub_Roadmap.md` (§4.1.1 rewritten + worklist, batch table,
+D-CSV-11 resolved / D-CSV-12 locked / D-CSV-13 measured / D-CSV-14 registered),
+`CURRENT_STATE.md`, `coverage-matrix.md`.
+
+---
+
+## 2026-07-17 — DBG-C2: composition-debug interactive controls (closed; MGP-ALWTTT-DBG arc closed)
+
+The write/interactive half of the composition-debug feature. Consumes only
+package surfaces recorded by DBG-C1 (composite keying, the `patternOverrides`
+step-0 override, the runtime Roman importer, the DBG-2 pattern repository);
+**no MidiGenPlay file touched.**
+
+- **`patternOverrides` LIVE.** `CompositionSession.DevPatternOverrides`
+  (`static`, dev-only, `MusicianTrackKey → PatternDataSO`) passed to
+  `RenderSinglePart` when non-empty (null idle). D-C1-1's inert C1 passthrough
+  now carries values; package precedence step 0.
+- **Per-track override UI.** Rhythm/Backing/Melody dropdowns from the full
+  runtime registry (`PatternRepositoryResources`, TS-filtered), off-band
+  assets annotated (D-C2-2=A). Bassline vetoed (shared progression, package
+  warn+ignore); Harmony vetoed (no v1 channel).
+- **Roman → Backing override (D-C2-1=A).** Free text →
+  `ChordProgressionRuntimeImporter.TryParseRoman` (part TS + editable
+  tonality/measures/default-duration) → `ChordProgressionData` Backing
+  override. Importer verdict verbatim, out-of-alphabet ⇒ hard fail (nothing
+  applied), instance `DontSave` and never persisted.
+- **R2a debug-play (D-C2-3=A).** "Re-render part now" bumps `DevOverrideStamp`
+  → fresh render through the normal seeded `PlaySinglePartLoop`; seed-pinned ⇒
+  bit-reproducible. Distinct from the design doc's §4 card-injection R2a
+  (still M1.5 Phase 5, unbuilt).
+- **Cache interaction (D-C2-4=A).** Overrides never cache-keyed:
+  `MidiMusicManager` bypasses stem/bundle caches when overrides are supplied
+  (Mod-DIR-style one-shot bypass); `CompositionSession` stamp-invalidates
+  `PartCache` (keepTempo+keepInstruments) on change. Clear restores baseline.
+- **A1 CONFIRMED** against `Design_Composition_Debug_Tab_v0_1 §3.1` (was open
+  at C1). `GenerationDebugFormatter` unchanged.
+- **BC gate:** dev OFF or all controls idle ⇒ byte-identical (ST-C2-7);
+  clear/restore regression (ST-C2-8); production compile zero tab footprint
+  (ST-C2-9).
+
+Decisions D-C2-1..4=A · A1 confirmed; inherited D-C1-1=A / D-C1(seed)=A /
+D2=A / D3 / D-DBG1..5 / ID-1..4 / E-1..5(+1b/2b). ST-C2-1..9 PASS. Primary
+homes: `SSoT_Dev_Mode.md` §18.4–§18.8 · `SSoT_Runtime_CompositionSession_Integration.md`
+§8 inv 9. **Follow-up:** DBG-OBS-1 (non-blocking readback-display note).
+**Arc:** MGP-ALWTTT-DBG CLOSED — write `Roadmap_ALWTTT_Debug_Seams` as the
+arc-close deliverable. SSoT_INDEX + ssot_manifest: no change.
+
+---
+
+## 2026-07-17 — DBG-C1: MusicianTrackKey consumer migration + composition-debug read surface (closed)
+
+Consumer read-side half (D1=B) of the MGP-ALWTTT-DBG arc. The package
+(MGP-ALWTTT-DBG-1) re-keyed `PartRender.stemsByMusician` / `melInstByMusician`
+/ new `resolvedByTrack` and the `RenderSinglePart` override maps by
+`(musicianId, TrackRole)` (`MusicianTrackKey`), added a trailing
+`patternOverrides` map, and promoted the `chd:` per-chord marker to governed
+contract (MGP `SSoT_Composer_Backing_Track §2.1`). DBG-C1 is the consumer
+adoption:
+
+- **Composite keying end-to-end.** `MidiMusicManager` (stem/bundle cache,
+  `RenderSinglePart` signature → `trackInputsHashByTrack` + inert trailing
+  `patternOverrides`, D-C1-1=A; merged-rebuild ordering now pairs
+  `ChannelMusicianOrder[i]`/`ChannelRoles[i]`), `CompositionSession`
+  (`PartCache.resolvedMelInstByTrack`), `SongConfigBuilder`
+  (`ComputeTrackInputsHashesForPart` per-track). The `FlattenInstrumentReport`
+  + id→key expansion shims are deleted.
+- **BASS-1 carve-outs retired.** `FilterOutMultiTrackMusicians` +
+  `CountTracksForMusician`, the multi-track hash omission, and the `FromUI`
+  multi-track pin skip are removed — multi-track musicians are cacheable again
+  (ST-S2: `cacheEnabled=True`, per-role hashes; bundle key
+  `…@@2:Backing#…,2:Melody#…`). Boundary §4.3 BASS-1 request → **RESOLVED**.
+- **Read-only truth surface.** `MidiMusicManager.LastResolvedByTrack` /
+  `LastPinnedByTrack` / `LastRenderSerial|PartIndex|Bpm|FromCache` (published
+  on every render return; bundle replay republishes the original snapshot,
+  D-DBG5=A) + `GetChordTimelineSnapshot()`/`ChordTimelineEntry` (production
+  API over the governed chd: contract).
+- **Dev surface** (`#if ALWTTT_DEV`): `DevCompositionDebugTab` +
+  `GenerationDebugFormatter` — two-phase intent/resolved per-track log,
+  `'*'` resolved-only convention (**A1**, per `Design_Composition_Debug_Tab_v0_1
+  §3.1`, doc absent from PK — carried open), Compact/Full flag on
+  `GigDevSettingsSO`, Copy fingerprint, seed pin (closes `SSoT_Dev_Mode §8.7`),
+  infinite composition-loop toggle (`CompositionSession.DevInfiniteCompositionLoop`;
+  countdown resets, per-loop host hooks keep firing — D2=A; `IsFinalLoopRunning`
+  dev exemption so the CARD-UX-1 final-loop deny does not misfire, D3).
+- **BC gate:** dev OFF + no overrides + same seed ⇒ single-track output
+  byte-identical (ST-S1 PASS; the only stem-key change is a deterministic
+  `:{role}` segment).
+
+MidiGenPlay untouched (consumed the DBG package contract, redefined nothing).
+Decisions D-C1-1=A · D-C1(seed)=A · D2=A · D3; inherited D-DBG1..5 / ID-1..4 /
+E-1..E-5. ST-S1..S10 PASS. Primary homes:
+`SSoT_Runtime_CompositionSession_Integration.md` §8 inv 9 (+ §10/§11 riders,
+inv 11 dev rider) · `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §4.3 · `SSoT_Dev_Mode.md`
+§18 (+ §3/§6/§8.7). **Next:** DBG-C2 (interactive controls) → arc-close
+`Roadmap_ALWTTT_Debug_Seams`. SSoT_INDEX + ssot_manifest: no change.
+
+---
+
 ## 2026-07-16 — TLM-1: `ALWTTT_DEV` run telemetry logger (closed)
 
 **Type:** semantic (new dev surface contract) + operational (S5i unblocked) + lifecycle (TLM-1 closed; optional rider TLM-1b opened as backlog). **No gameplay/semantic change to shipped systems.** Opened by BALANCE-XREF (BR-D2=A) and slotted immediately before S5i; this entry closes it.

@@ -87,7 +87,7 @@ The session/UI layer applies the card's composition-owned data to the editable s
 Examples of observable ALWTTT-side mutations include:
 - track/role activation or change
 - part structure changes
-- tempo / meter / tonality / root-note style changes represented on the ALWTTT model side
+- tempo / meter / tonality / root-note style changes represented on the ALWTTT model side (**how an unset part field resolves** is §12)
 - instrument/style selections authored through ALWTTT-facing card payloads
 
 ### Step 4 — Gameplay effects may also execute
@@ -190,13 +190,44 @@ Those details belong to MidiGenPlay.
 6. Loop/part/song feedback emitted after playback belongs to the ALWTTT runtime contract.
 7. Per-loop card draw and per-loop inspiration consumption are host-owned (`GigManager.OnCompositionLoopFinished`), not inside `CompositionSession.HandleLoopFinished`. `CompositionSession` remains the deck-non-mutating invariant holder per the `[Obsolete]` guards on `CompositionSession.PrepareDeck` and `ICompositionContext.Deck`. The host hook fires synchronously from `CompositionSession.HandleLoopFinished`'s `LoopFinished?.Invoke(ctx)`, before the `_loopsRemainingForPart > 0` branch.
 8. `CompositionSession.AddCurrentInspiration` is the canonical session-budget mutator. All production-path inspiration deltas during an active session route through it. It clamps to `pd.MaxInspiration` and mirrors to `pd.CurrentInspiration`. Dev-path mutation (`GigManager.DevSetInspiration` → `CompositionSession.DevSetCurrentInspiration`) is a parallel surface tracked separately in `SSoT_Dev_Mode §13`.
-9. **Per-track stem persistence + session-level instrument continuity** (B1, 2026-05-12). `MidiMusicManager` maintains a per-song stem cache keyed on `(musicianId, trackInputsHash, partMeterHash)` where `trackInputsHash` is computed ALWTTT-side from UI `TrackEntry` fields (role + StyleBundle GUID + override-melodic/percussion-instrument GUIDs + override-instrument-type) and passed as the 5th parameter of `RenderSinglePart`. Resolved runtime fields (`tcfg.Instrument`, `tcfg.PercussionInstrument`) are NOT in the hash — they are randomized per render by `SongConfigBuilder.FromUI` for the no-override path. Stable instrument continuity across cache invalidations within a song is maintained by `CompositionSession`'s session-level pin maps (`_sessionMelodicPin`/`_sessionPercussionPin`) keyed on `"musicianId|role|override-state"`. Cards with explicit SO override (`overrideMelodicInstrument`/`overridePercussionInstrument`) skip the pin (deterministic by definition). Cards with type-override pin the random pick within the type. Reset semantics: stem cache and instrument pins both clear at song boundary in `Begin()`/`End()`. Boundary: `SongConfig` (MidiGenPlay-owned) is NOT modified to carry the hash; the parameter travels as a per-call argument per `SSoT_ALWTTT_MidiGenPlay_Boundary §3`.
+9. **Per-track stem persistence + session-level instrument continuity** (B1, 2026-05-12; re-keyed DBG-C1, 2026-07-17). `MidiMusicManager` maintains a per-song stem cache keyed on `(musicianId, role, trackInputsHash, partMeterHash)` where `trackInputsHash` is computed ALWTTT-side from UI `TrackEntry` fields (role + StyleBundle GUID + override-melodic/percussion-instrument GUIDs + override-instrument-type) and passed as the 5th parameter of `RenderSinglePart` (`trackInputsHashByTrack`, keyed by `MusicianTrackKey`). Resolved runtime fields (`tcfg.Instrument`, `tcfg.PercussionInstrument`) are NOT in the hash — they are randomized per render by `SongConfigBuilder.FromUI` for the no-override path. Stable instrument continuity across cache invalidations within a song is maintained by `CompositionSession`'s session-level pin maps (`_sessionMelodicPin`/`_sessionPercussionPin`) keyed on `"musicianId|role|override-state"` — a **superset** of `MusicianTrackKey` (the override-state dimension the composite key cannot carry), hence untouched by the re-key. Cards with explicit SO override (`overrideMelodicInstrument`/`overridePercussionInstrument`) skip the pin (deterministic by definition). Cards with type-override pin the random pick within the type. Reset semantics: stem cache and instrument pins both clear at song boundary in `Begin()`/`End()`. Boundary: `SongConfig` (MidiGenPlay-owned) is NOT modified to carry the hash; the parameter travels as a per-call argument per `SSoT_ALWTTT_MidiGenPlay_Boundary §3`.
 
-   **Multi-track carve-out (BASS-1, 2026-07-12).** Both the stem cache and the part-cache instrument pin are keyed by `musicianId` alone, because the *package* returns exactly one stem and one resolved instrument per musician (`PartRender.stemsByMusician` / `melInstByMusician`). A musician may now hold more than one role-track in a part (§11), and those keys cannot represent that. `SongConfigBuilder.ComputeTrackInputsHashesForPart` therefore **omits multi-track musicians from the hash map**, which trips `MidiMusicManager`'s existing guard (any track without a hash ⇒ `cacheEnabled = false`) and disables the stem/bundle cache for that part; `CompositionSession` likewise strips them from the `instrumentOverrides` argument and from `PartCache.resolvedMelInstByMusician`. This is correct-by-construction at the cost of a fresh render for affected parts — reusing a cached per-musician stem would silently drop one of the musician's two lines from the mix. Voice consistency for those musicians is carried instead by the session pins (`_sessionMelodicPin` / `_sessionPercussionPin`), which were already keyed `"musicianId|role|override-state"` and are therefore unaffected. Parts in which every musician holds exactly one track are byte-identical to pre-BASS-1 behavior (regression-verified, ST-BASS-6).
+   **Composite keying — multi-track carve-out retired (DBG-C1, 2026-07-17).** The stem cache, the part-cache instrument pin (`PartCache.resolvedMelInstByTrack`), the `instrumentOverrides` argument, and `ComputeTrackInputsHashesForPart` are all now keyed by `(musicianId, TrackRole)`, matching the package's re-keyed readback (`PartRender.stemsByMusician` / `melInstByMusician` / `resolvedByTrack`, keyed `MusicianTrackKey` since MGP-ALWTTT-DBG-1). A musician holding two role-tracks therefore yields **two independent cache identities**, one per role. The three BASS-1 degradations are **removed**: `ComputeTrackInputsHashesForPart` no longer omits multi-track musicians, `CompositionSession` no longer strips them from the override argument or the pin map, and `MidiMusicManager` no longer flattens keyed stems/instruments back to `musicianId`. Multi-track parts are now cacheable (ST-S2 PASS: `cacheEnabled=True` with per-role hashes). The any-track-without-hash guard survives only as a general integrity gate for legacy null-map callers. Single-track parts remain byte-identical to before (the only stem-key change is the added `:{role}` segment, deterministic; BC gate verified, ST-S1 PASS).
+
+   **Read-only render truth surface (DBG-C1, 2026-07-17).** `MidiMusicManager` publishes the last part render's package readback for observability — `LastResolvedByTrack` (`IReadOnlyDictionary<MusicianTrackKey, ResolvedTrackChoice>`), `LastPinnedByTrack`, and `LastRenderSerial`/`PartIndex`/`Bpm`/`FromCache`. The serial bumps on **every** `RenderSinglePart` return, fresh render and bundle-cache replay alike; a replay republishes the **original** render's snapshot (bytes identical ⇒ choices identical, D-DBG5=A). It is truth-only — never an input to gameplay. `GetChordTimelineSnapshot()` returns a read-only per-channel snapshot of the parsed `chd:` chord timeline (public `ChordTimelineEntry` DTO), consuming the governed `chd:` marker contract (MGP `SSoT_Composer_Backing_Track §2.1`). Consumers: `DevCompositionDebugTab` (`SSoT_Dev_Mode §18`).
+
+   **Dev pattern overrides — cache bypass (DBG-C2, 2026-07-17).** Under `#if ALWTTT_DEV`, `CompositionSession.DevPatternOverrides` (`MusicianTrackKey → PatternDataSO`) is passed as the trailing `patternOverrides` argument of `RenderSinglePart` when non-empty (null otherwise). These overrides are **deliberately not part of any cache key.** `MidiMusicManager` bypasses both the stem cache and the part-bundle cache for any render that supplies overrides (the same one-shot mechanism used for modulation transients), so an overridden render is always produced fresh and never pollutes a cached identity. `CompositionSession` carries a monotonic `DevOverrideStamp`; each `PartCache` entry records the stamp it was rendered under, and a mismatch at loop start invalidates the entry (keepTempo + keepInstruments) so the next loop re-renders with the current overrides. Clearing all overrides restores byte-identical un-overridden output (BC gate + clear/restore regression: ST-C2-7 / ST-C2-8 PASS). Production behavior is byte-identical: `patternOverrides` is null, the bypass predicate is false, and none of the stamp machinery exists in a non-`ALWTTT_DEV` build.
+
+   **Dev instrument overrides — hash-participating, NOT bypassed (CSV-2, 2026-07-18, D-CSV-5=A).** The instrument counterpart of the paragraph above takes the **opposite** shape, and the asymmetry is deliberate. A dev instrument pick writes `TrackEntry.overrideMelodicInstrument` / `overridePercussionInstrument` directly — the same fields an `InstrumentEffect` card writes — so it participates in `trackInputsHash` exactly as a card override does (those GUIDs are already hash inputs, first paragraph of this invariant), the stem-cache identity moves with the change, and no bypass is needed or wanted: a dev-overridden render is a legitimately distinct cache identity, unlike a pattern override which is not. **No new dictionary, no new argument, no new production API** — `SongCompositionUI`, `SongConfigBuilder`, and `MidiMusicManager` are untouched by CSV-2.
+
+   The one non-obvious consequence is the **invalidation shape**. `CompositionSession.DevInvalidateForInstrumentOverride(partIndex)` invalidates with `keepTempo: true, keepInstrumentsOverride: **false**` — mirroring the instrument-*card* path (`ShouldKeepInstruments` → `CompositionCardClassifier.IsInstrumentCard`), **not** the `DevOverrideStamp` pattern path, which preserves instruments. Preserving them here would be a live defect: `PartCache.resolvedMelInstByTrack` survives a `keepInstruments: true` invalidation and is passed back into the next `RenderSinglePart` call as `instrumentOverrides`, so the stale resolved voice would win over the new pick. The stamp is bumped as well, so the change lands at the next loop start through the normal seeded path.
+
+   **Bytes-plane mix gain — hash-participating (BAL-1, 2026-07-22, D-BAL-3=A).** A per-`(musicianId, TrackRole)` **gain** (`MixGainProfileSO`, resolved at gig start, held on `MidiMusicManager` as `_gigMixGains`) is folded into `ComputeHashFromTrackEntry` via a trailing gain segment (`ComputeTrackInputsHashesForPart(..., mixGains)`, threaded from `CompositionSession` as `mm.GigMixGains`). Consequences: (a) the gain enters `trackInputsHash` regardless of its per-gig lifecycle, so a gain change re-keys the stem/bundle cache and replay can never serve stale CC7; (b) the per-part render call now carries `mixGains: _gigMixGains` into `GenerateSinglePart`, and the package emits one CC7 per gained melodic track (null/empty map ⇒ byte-identical, the emission-gate identity guarantee); (c) the hash *value* format gains a trailing `|_` segment for **every** track (ungained included) — harmless, caches are session-scoped. Contract + law: `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.3; ALWTTT model: `SSoT_Audio.md` §4.6. The live-playback plane is unaffected (separate plane; composed at the `WriteChannelVolume01` boundary, §4.2 of the Audio SSoT).
+
+   **Clear/restore is byte-identical (ST-CSV-3 PASS)** and the mechanism is the session pin map, not a saved render: `BuildMelodicPinKey`/`BuildPercussionPinKey` return null while an explicit override is set, so the overridden track's pin is **skipped rather than overwritten** and the pre-override voice survives in `_sessionMelodicPin`/`_sessionPercussionPin` to be re-applied when the override clears. **Card supersession is expected behavior:** `ApplyInstrumentEffect` unconditionally rewrites the three override fields, so a later instrument card takes the field back from the dev tool; the dev surface detects and reports this rather than fighting it (`SSoT_Dev_Mode §18.9`). Production behavior is unchanged: the fields exist in production and are written only by cards; the dev write path and its invalidation helper do not exist in a non-`ALWTTT_DEV` build (ST-CSV-8 PASS).
+
+   **Resolved-identity read surface + audition economy exclusion (CSV-3, 2026-07-22, dev-only).** `MidiMusicManager` publishes `LastRenderResolvedTimeSignature` / `LastRenderResolvedTonality` / `LastRenderResolvedRootNote`, read from the `PartConfig` after generation (post `ChordTrack` step-2b alignment) and mirrored into the bundle-cache entry so replays republish the original truth (D-DBG5=A). `CompositionSession.DevInjectCompositionCard` applies a catalogue card's **musical side only**; injected tracks are held in a dev-only `_devInjectedTrackKeys` set and excluded from `EvalPerLoopInsp` (D-CSV-24=B), so audition is economy-neutral (a genuine play on the same key reclaims it; the set clears at song boundary). Both surfaces are `#if ALWTTT_DEV`; production is byte-identical.
 
 10. **Track identity is the pair `(musicianId, role)`, not `musicianId`** (BASS-1, 2026-07-12). One musician may hold several role-tracks in the same part. Same-role card ⇒ replace; different-role card ⇒ add. Full contract in §11.
 
-11. **A composition play is denied on the final loop of a part** (CARD-UX-1, 2026-07-13) — no subsequent loop of that part would render it, since every drop during a running loop routes to the currently looping part and becomes audible on that part's *next* loop. Exception: while a tutorial loop-hold is armed (`TutorialLoopHoldGate.IsArmed`), the held loop replays and the change does render, so the lock lifts. Denial occurs **before any inspiration or ECON-1 spend**. Full contract in §5.4.
+11. **A composition play is denied on the final loop of a part** (CARD-UX-1, 2026-07-13) — no subsequent loop of that part would render it, since every drop during a running loop routes to the currently looping part and becomes audible on that part's *next* loop. Exception: while a tutorial loop-hold is armed (`TutorialLoopHoldGate.IsArmed`), the held loop replays and the change does render, so the lock lifts. Denial occurs **before any inspiration or ECON-1 spend**. Full contract in §5.4. **Dev exemption (DBG-C1, 2026-07-17):** under the `#if ALWTTT_DEV` infinite composition-loop toggle (`SSoT_Dev_Mode §18`) a next render always exists, so `IsFinalLoopRunning` returns false and the deny does not apply; the production predicate is byte-identical.
+
+12. **Singer voice seam (SINGER-1, 2026-07-21).** `CompositionSession` raises
+    `event Action<ALWTTT.Music.Voice.SingerLoopContext> LoopPlaybackStarting`
+    immediately before `MidiMusicManager.PlayRaw`, on **every** path through
+    `PlaySinglePartLoop` (first loop, `HandleLoopFinished` replay, part advance,
+    tutorial hold). The payload carries `partIndex`, the loop's `stemsByTrack`
+    (`MusicianTrackKey → byte[]`, taken from `PartCache.stemsByTrack`), and the
+    part's musical context (`tonality`, `rootNote`, `timeSignature`, `bpm`,
+    `seconds`). Subscriber exceptions are caught and logged so a subscriber fault
+    cannot kill the loop. This is the **only** `CompositionSession` edit made for
+    the singer subsystem; `MidiMusicManager` is unchanged. The singer arms from a
+    musician's `Melody`/`Lead` stem, anchors on `IPlayMidi.OnSongStarted` via
+    `AudioSettings.dspTime`, and mutes that channel through the existing
+    `SetChannelVolume` mix path. Full authority: `systems/SSoT_Singer_Voice.md`.
+    Coexistence with GM MIDI is by construction — an unmatched melody stem plays
+    normally (ST-V8). Boundary: no `SongConfig`/package change; the stem the
+    singer consumes is the one invariant 9 already produces.
 
 ---
 
@@ -225,7 +256,7 @@ This deliberately replaces the accidental stability previously produced by the p
 
 **Prohibition.** The seed must never be derived from anything that changes between re-renders of the same song (a per-render clock read, a per-render counter). Doing so would break intra-song stability.
 
-**Cache key unaffected (D-S5gb-1=A).** `trackInputsHash` (invariant 9, §8) keeps its existing meaning — player-controlled inputs only. Cross-song isolation is guaranteed by the stem-cache/pin clear in `Begin()`/`End()` already documented in invariant 9; that claim is now **verified at runtime** by `ST-S5gb-3` (2026-07-05), moving invariant 9 from documented truth to observed truth for the cross-song-isolation portion of its claim. Documented fallback if this isolation is ever found to fail: fold the seed into the cache key itself (pattern `MOD-DIR-3`).
+**Cache key unaffected (D-S5gb-1=A).** `trackInputsHash` (invariant 9, §8) keeps its existing meaning — player-controlled inputs only. (DBG-C1 added a `role` segment to the cache *key*, not to the hash value; the hash's meaning is unchanged.) Cross-song isolation is guaranteed by the stem-cache/pin clear in `Begin()`/`End()` already documented in invariant 9; that claim is now **verified at runtime** by `ST-S5gb-3` (2026-07-05), moving invariant 9 from documented truth to observed truth for the cross-song-isolation portion of its claim. Documented fallback if this isolation is ever found to fail: fold the seed into the cache key itself (pattern `MOD-DIR-3`).
 
 **Package contract consumed, not redefined.** `GenerateSinglePart(..., int? seedOverride = null)`; the package resolves `baseSeed = seedOverride ?? settings.defaultSeed` once per render. `seedOverride: null` is bit-identical to pre-adoption behavior. Authority for the package-side mechanism: MidiGenPlay orchestration SSoT §5.1 (cross-project reference, read-only — not redefined here, per `SSoT_ALWTTT_MidiGenPlay_Boundary.md`).
 
@@ -252,4 +283,48 @@ This deliberately replaces the accidental stability previously produced by the p
 
 **Pending visualization stays per-musician (accepted).** All of a musician's rows flag pending together. Conservative-correct: a re-render refreshes the whole part.
 
-**Cache and pin degradation:** see the multi-track carve-out in invariant 9 (§8).
+**Cache and pin degradation:** ~~see the multi-track carve-out in invariant 9 (§8).~~ Retired by DBG-C1 (2026-07-17) — multi-track musicians are cacheable under composite `(musicianId, role)` keying; see invariant 9 (§8).
+
+---
+
+## 12. Part field resolution — meter and tonality sources (recorded 2026-07-20 CSV-4; CLOSED 2026-07-22 CSV-3)
+
+Recorded here because part-field resolution is ALWTTT-side model construction and had no
+documented home. The finding that opened this section is **CLOSED as not-a-bug** (CSV-3,
+2026-07-22); the resolution rules below are now ratified, and ownership is assigned by
+**D-MEL-1=A**.
+
+### 12.1 Part meter resolution — the model-construction 4/4 default
+
+The `partEntry?.timeSignature ?? default` expression previously cited here is in the
+**`LoopFeedbackContext` (audience) path, not the render path** — a location correction to
+the CSV-4 recording. The **render** path copies `PartEntry.timeSignature` directly
+(`SongConfigBuilder.FromUI`), and that field is explicitly initialized `FourFour` at every
+part-creation site and mutated **only** by a `MeterEffect`.
+
+So a part whose meter was never explicitly set renders 4/4 because that is its
+**model-construction default**, not because of a silent `?? default` fallback on the render
+path. **D-MEL-1=A** resolves ownership: a rhythm card that presents a non-4/4 identity must
+carry a matching `MeterEffect` (Pentameter precedent). Authoring rule:
+`systems/SSoT_Card_Authoring_Contracts.md` §5.16.
+
+### 12.2 Two independent sources feed melody tonality
+
+`MelodyTrackComposer` derives its scale from `part.Tonality` / `part.RootNote`, while the
+harmonic context per span comes from the **loaded progression's chord events** — two
+independent sources that can diverge. **With tonalities authored on the progression,
+`ChordTrack` step-2b aligns the part** (verified: Core Minor → Aeolian, ST-CSV3-6).
+
+This is a **read of package-side code, recorded for boundary clarity only**. The composer
+is package-owned and is **not modified by ALWTTT**
+(`SSoT_ALWTTT_MidiGenPlay_Boundary.md` §2.2).
+
+### 12.3 Verdict — meter collision by construction (not-a-bug)
+
+The 2026-07-20 observation (rhythm 6/8 + Core Minor + Singing Field: the melody follows
+neither the part's meter nor its scale) was a **meter collision by construction**: Core
+Minor holds **zero** 6/8 progressions, so that combination cannot render coherently. Runs
+A/B showed **no divergence**, and ST-CSV3-6 confirmed C2a healthy. The engine is meter- and
+tonality-consistent when content is authored correctly. **Finding CLOSED as not-a-bug; no
+package ask filed** (`SSoT_ALWTTT_MidiGenPlay_Boundary.md` §4.3). Evidence classes stay
+distinct: the closure rests on validated observed behavior (runs A/B), not on inference.

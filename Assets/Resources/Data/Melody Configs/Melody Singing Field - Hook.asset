@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.MelodyCardConfigSO
   appliesTo: 4
   leadingOverride: {fileID: 0}
-  phrasePaletteOverride: {fileID: 11400000, guid: 9acecc8d6e8b1b0478f6db67b122e47c, type: 2}
+  phrasePaletteOverride: {fileID: 0}
   style: {fileID: 0}
-  patternOverride: {fileID: 0}
+  patternOverride: {fileID: 11400000, guid: 8b7078c3099c4c444a728da438e2bc95, type: 2}

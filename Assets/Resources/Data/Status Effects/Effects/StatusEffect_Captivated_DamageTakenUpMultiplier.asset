@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16c425e2848e0024897e2764a0660ebf, type: 3}
+  m_Name: StatusEffect_Captivated_DamageTakenUpMultiplier
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Status.StatusEffectSO
+  statusKey: captivated
+  isDefaultVariant: 1
+  effectId: 301
+  displayName: Captivated
+  primitiveDatabase: {fileID: 11400000, guid: 4356d2d59e40392479cc4a48e2c2bf0d, type: 2}
+  stackMode: 0
+  maxStacks: 5
+  decayMode: 1
+  durationTurns: 0
+  tickTiming: 9
+  valueType: 0
+  isBuff: 0
+  iconSprite: {fileID: -5601364555382830627, guid: db1ec61fe0320284d8f6d7a5379e49ad, type: 3}
+  description: Locked in. Incoming Vibe hits +25% harder per stack.

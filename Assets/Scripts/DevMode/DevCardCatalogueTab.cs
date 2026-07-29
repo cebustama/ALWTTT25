@@ -35,6 +35,37 @@ namespace ALWTTT.DevMode
         private static int _lastBandCount = -1;
         private static bool _lastSourceWasBand;
 
+        // ---------------------------------------------------------------
+        // [CSV-3] Shared source accessor
+        // ---------------------------------------------------------------
+
+        /// <summary>
+        /// [CSV-3] Shared card source: the current band's per-musician catalog
+        /// union, with <see cref="ALWTTT.Data.GameplayData.AllCardsList"/> as a
+        /// dev-scene fallback (the DEMO-FIXES-A idiom). Extracted so
+        /// <see cref="DevCompositionDebugTab"/>'s R2a card debug-play draws from
+        /// exactly the same source this tab spawns from — no second catalogue.
+        /// Refreshes the union if the band count changed, so callers get a
+        /// current list. Returns null only when there is no GameManager.
+        /// </summary>
+        internal static IReadOnlyList<CardDefinition> GetBandUnionOrFallback(out string sourceLabel)
+        {
+            sourceLabel = "(no source)";
+            var gm = GameManager.Instance;
+            if (gm == null) return null;
+
+            RefreshBandUnionIfDirty(gm.PersistentGameplayData);
+
+            if (_bandUnion.Count > 0)
+            {
+                sourceLabel = $"band union ({_lastBandCount} musicians)";
+                return _bandUnion;
+            }
+
+            sourceLabel = "FALLBACK: GameplayData.AllCardsList (no band)";
+            return gm.GameplayData != null ? gm.GameplayData.AllCardsList : null;
+        }
+
         public static void Draw()
         {
             var gm = GameManager.Instance;
@@ -44,27 +75,10 @@ namespace ALWTTT.DevMode
                 return;
             }
 
-            // [DF-CATALOG] Source = union of the current band's per-musician
-            // catalogs (no hand-wiring; a 3rd musician joins the list the
-            // moment it joins the band). GameplayData.AllCardsList is kept as
-            // FALLBACK ONLY (dev scenes without a band) — deprecated as a
-            // hand-maintained catalogue.
-            var pd = gm.PersistentGameplayData;
-            RefreshBandUnionIfDirty(pd);
-
-            IReadOnlyList<CardDefinition> all;
-            string sourceLabel;
-            bool sourceIsBand = _bandUnion.Count > 0;
-            if (sourceIsBand)
-            {
-                all = _bandUnion;
-                sourceLabel = $"band union ({_lastBandCount} musicians)";
-            }
-            else
-            {
-                all = gm.GameplayData != null ? gm.GameplayData.AllCardsList : null;
-                sourceLabel = "FALLBACK: GameplayData.AllCardsList (no band)";
-            }
+            // [CSV-3] Source resolution now goes through the shared accessor
+            // (band union with AllCardsList fallback). Behavior identical to
+            // the previous inline block; the accessor also refreshes the union.
+            var all = GetBandUnionOrFallback(out var sourceLabel);
 
             if (all == null || all.Count == 0)
             {
@@ -73,6 +87,7 @@ namespace ALWTTT.DevMode
             }
 
             // Source flip invalidates the cached filter even at equal counts.
+            bool sourceIsBand = _bandUnion.Count > 0;
             if (sourceIsBand != _lastSourceWasBand)
             {
                 _lastSourceCount = -1;

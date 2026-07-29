@@ -7,20 +7,28 @@
 |   |   +---0 (2).unity
 |   |   \---0.unity
 |   +---CompositionSmoke
-|   |   +---smoke_rh-ba_194255.mid
-|   |   +---smoke_rh-ba_194329.mid
-|   |   +---smoke_rh-ba_194408.mid
-|   |   +---smoke_rh-ba_194838.mid
-|   |   +---smoke_rh-ba_195105.mid
-|   |   +---smoke_rh-ba_195148.mid
-|   |   +---smoke_rh-ba-ba_095653.mid
-|   |   +---smoke_rh-ba-ba_095751.mid
-|   |   +---smoke_rh-ba-ba_095832.mid
-|   |   +---smoke_rh-ba-ba_095928.mid
-|   |   +---smoke_rh-ba-ba_114336.mid
-|   |   +---smoke_rh-ba-ba_124742.mid
-|   |   +---smoke_rh-ba-ba_124936.mid
-|   |   \---smoke_rh-ba-ba_132612.mid
+|   |   +---BassLineTest.asset
+|   |   +---smoke_ba_124947.mid
+|   |   +---smoke_ba_130215.mid
+|   |   +---smoke_ba_134541.mid
+|   |   +---smoke_ba_134703.mid
+|   |   +---smoke_ba_230915.mid
+|   |   +---smoke_ba_231344.mid
+|   |   +---smoke_ba_231557.mid
+|   |   +---smoke_ba_231705.mid
+|   |   +---smoke_ba_231938.mid
+|   |   +---smoke_ba_232056.mid
+|   |   +---smoke_ba-rh_130234.mid
+|   |   +---smoke_ba-rh_130332.mid
+|   |   +---smoke_rh-ba_193520.mid
+|   |   +---smoke_rh-ba_193601.mid
+|   |   +---smoke_rh-ba_193801.mid
+|   |   +---smoke_rh-ba_194336.mid
+|   |   +---smoke_rh-ba_225411.mid
+|   |   +---smoke_rh-ba_225854.mid
+|   |   +---smoke_rh-ba_230618.mid
+|   |   +---smoke_rh-ba-ba_193916.mid
+|   |   \---smoke_rh-ba-me_194123.mid
 |   +---Materials
 |   |   \---Mat_SpriteOutline.mat
 |   +---MidiPlayer
@@ -1673,6 +1681,28 @@
 |   |   +---Third-Party Notices.txt
 |   |   +---Version changes full.txt
 |   |   \---Version changes.txt
+|   +---Packages
+|   +---PinkTrombonePOC
+|   |   +---PinkTromboneSrc
+|   |   |   +---Arg.cs
+|   |   |   +---FORK_NOTES.md
+|   |   |   +---Glottis.cs
+|   |   |   +---LICENSE.txt
+|   |   |   +---MathX.cs
+|   |   |   +---Noise.cs
+|   |   |   +---NoiseGenerator.cs
+|   |   |   +---PinkTrombone.cs
+|   |   |   +---RandomSource.cs
+|   |   |   +---Tract.cs
+|   |   |   +---TractShaper.cs
+|   |   |   +---Transient.cs
+|   |   |   \---TurbulencePoint.cs
+|   |   +---PinkTromboneBackingPlayer.cs
+|   |   +---PinkTrombonePlayground.cs
+|   |   +---PinkTrombonePOC.asmdef
+|   |   +---PinkTrombonePOCScene.unity
+|   |   +---PinkTromboneSinger.cs
+|   |   \---PinkTromboneSrc.zip
 |   +---Prefabs
 |   |   +---Backgrounds
 |   |   |   +---Venue_BG_1.prefab
@@ -1710,7 +1740,8 @@
 |   |   |   +---MusicDirector.prefab
 |   |   |   +---SectorMapManager.prefab
 |   |   |   +---ShipInteriorManager.prefab
-|   |   |   \---UIManager.prefab
+|   |   |   +---UIManager.prefab
+|   |   |   \---Zig_SingerVoice.prefab
 |   |   +---FX
 |   |   |   +---Materials
 |   |   |   |   +---CalmFxMaterial.mat
@@ -1797,19 +1828,20 @@
 |   |   |   |   \---Kid - Positive.wav
 |   |   |   +---OST
 |   |   |   |   \---MonDieu.wav
-|   |   |   \---SFXs
-|   |   |       +---CardSFX-AddStress.wav
-|   |   |       +---CardSFX-AddVibe.wav
-|   |   |       +---CardSFX-Button.wav
-|   |   |       +---CardSFX-HealStress.wav
-|   |   |       +---CardSFX-HealVibe.wav
-|   |   |       +---Sensory-ReactionNegative.wav
-|   |   |       +---Sensory-ReactionPositive.wav
-|   |   |       +---Sensory-SongEndBlocked.wav
-|   |   |       +---Sensory-SongEndVibe.wav
-|   |   |       +---StageSFX-Fire.wav
-|   |   |       +---StageSFX-Lights.wav
-|   |   |       \---StageSFX-Smoke.wav
+|   |   |   +---SFXs
+|   |   |   |   +---CardSFX-AddStress.wav
+|   |   |   |   +---CardSFX-AddVibe.wav
+|   |   |   |   +---CardSFX-Button.wav
+|   |   |   |   +---CardSFX-HealStress.wav
+|   |   |   |   +---CardSFX-HealVibe.wav
+|   |   |   |   +---Sensory-ReactionNegative.wav
+|   |   |   |   +---Sensory-ReactionPositive.wav
+|   |   |   |   +---Sensory-SongEndBlocked.wav
+|   |   |   |   +---Sensory-SongEndVibe.wav
+|   |   |   |   +---StageSFX-Fire.wav
+|   |   |   |   +---StageSFX-Lights.wav
+|   |   |   |   \---StageSFX-Smoke.wav
+|   |   |   \---MixGainProfile.asset
 |   |   +---Data
 |   |   |   +---Audio
 |   |   |   |   +---Add Stress SFX.asset
@@ -1855,9 +1887,7 @@
 |   |   |   |   |   |   +---BackingCardConfigs
 |   |   |   |   |   |   |   +---Backing Card Config - Core Major.asset
 |   |   |   |   |   |   |   +---Backing Card Config - Core Minor.asset
-|   |   |   |   |   |   |   +---Backing Card Config - Modal.asset
-|   |   |   |   |   |   |   +---Backing Card Config [I – IV – V – I].asset
-|   |   |   |   |   |   |   \---Backing Card Config [I – vi – IV – V].asset
+|   |   |   |   |   |   |   \---Backing Card Config - Modal.asset
 |   |   |   |   |   |   +---Backing  - Gus - [I – IV – V – I].asset
 |   |   |   |   |   |   +---Backing  - Gus - [I – vi – IV – V].asset
 |   |   |   |   |   |   +---Backing Card - Conito - Core Major [Bass].asset
@@ -1988,12 +2018,8 @@
 |   |   |   |   |   |       \---Rhythm
 |   |   |   |   |   |           \---4_Composition_002_CompositionPayload_Rhythm_StyleBundle.asset
 |   |   |   |   |   +---Sibi_Cards
-|   |   |   |   |   |   +---Payloads
-|   |   |   |   |   |   \---StyleBundles
-|   |   |   |   |   |       \---Backing
-|   |   |   |   |   |           +---2_Composition_001_CompositionPayload 1_Backing_StyleBundle.asset
-|   |   |   |   |   |           +---2_Composition_001_CompositionPayload_Backing_StyleBundle.asset
-|   |   |   |   |   |           \---2CBacking001TestProg_Payload_Backing_StyleBundle.asset
+|   |   |   |   |   +---Voice Profiles
+|   |   |   |   |   |   \---VoiceProfile_Zig.asset
 |   |   |   |   |   +---Band Character - Conito.asset
 |   |   |   |   |   +---Band Character - Robot C2.asset
 |   |   |   |   |   +---Band Character - Sibi.asset
@@ -2002,6 +2028,8 @@
 |   |   |   |   |   +---Cantante_CardCatalogData.asset
 |   |   |   |   |   +---Cantante_Composition_002.asset
 |   |   |   |   |   +---Cantante_Composition_002_Payload.asset
+|   |   |   |   |   +---Cantante_Composition_003.asset
+|   |   |   |   |   +---Cantante_Composition_003_Payload.asset
 |   |   |   |   |   +---cmp_flow_rhythm.asset
 |   |   |   |   |   +---cmp_flow_rhythm_Payload.asset
 |   |   |   |   |   +---Conito_CardCatalogData.asset
@@ -2011,6 +2039,8 @@
 |   |   |   |   |   +---Gusano_C_Bassline_001_WormWalk_Payload.asset
 |   |   |   |   |   +---Gusano_C_Bassline_002_WormPulse.asset
 |   |   |   |   |   +---Gusano_C_Bassline_002_WormPulse_Payload.asset
+|   |   |   |   |   +---in_the_pocket.asset
+|   |   |   |   |   +---in_the_pocket_Payload.asset
 |   |   |   |   |   +---MVP_AddComposure_03.asset
 |   |   |   |   |   +---MVP_AddComposure_03_Payload.asset
 |   |   |   |   |   +---MVP_AddFlow_02_All.asset
@@ -2069,7 +2099,11 @@
 |   |   |   |   |   +---test_modify_stress_heal.asset
 |   |   |   |   |   +---test_modify_stress_heal_Payload.asset
 |   |   |   |   |   +---test_modify_vibe.asset
-|   |   |   |   |   \---test_modify_vibe_Payload.asset
+|   |   |   |   |   +---test_modify_vibe_Payload.asset
+|   |   |   |   |   +---vamp.asset
+|   |   |   |   |   +---vamp_Payload.asset
+|   |   |   |   |   +---wink.asset
+|   |   |   |   |   \---wink_Payload.asset
 |   |   |   |   \---StyleBundles
 |   |   |   |       +---Bassline
 |   |   |   |       |   +---Gusano_C_Bassline_001_WormWalk_Payload_Bassline_StyleBundle.asset
@@ -2145,6 +2179,7 @@
 |   |   |   |   \---ButtonSoundProfile.asset
 |   |   |   +---Status Effects
 |   |   |   |   +---Effects
+|   |   |   |   |   +---StatusEffect_Captivated_DamageTakenUpMultiplier.asset
 |   |   |   |   |   +---StatusEffect_Choke_DisableActions.asset
 |   |   |   |   |   +---StatusEffect_Composure_TempShieldTurn.asset
 |   |   |   |   |   +---StatusEffect_Earworm_DamageOverTime.asset
@@ -2236,7 +2271,6 @@
 |   |   |   |   |   +---I (1) – II (1) – V (1) – I (1) Modal.asset
 |   |   |   |   |   \---I (2) – bVII (2) – S (2) Modal.asset
 |   |   |   |   +---Tests
-|   |   |   |   |   +---1 chord 1 measure.asset
 |   |   |   |   |   +---34 Test 1.asset
 |   |   |   |   |   +---44 Test.asset
 |   |   |   |   |   +---54 Test 1.asset
@@ -2246,7 +2280,6 @@
 |   |   |   |   +---Chord Palette - Modal.asset
 |   |   |   |   \---Chord Palette - Test.asset
 |   |   |   +---Drum Patterns
-|   |   |   |   \---DrumPattern-DefaultFourFour.asset
 |   |   |   +---Drums
 |   |   |   |   \---Palettes
 |   |   |   |       +---DrumPatternPalette-CompoundSwing.asset
@@ -2260,11 +2293,11 @@
 |   |   |   +---MIDI Instruments
 |   |   |   +---Patterns
 |   |   |   |   +---Chords
-|   |   |   |   |   +---Prog_Ionian_FourFour_4m_0_4_0_0-4_4_4_0-8_4_5_1-12_4_3_0.asset
-|   |   |   |   |   +---Prog_Ionian_FourFour_4m_0_4_5_1-4_4_3_0-8_4_0_0-12_4_4_0.asset
-|   |   |   |   |   +---Prog_Ionian_ThreeFour_4m_0_3_3_0-3_3_1_1-6_3_4_0-9_3_0_0.asset
-|   |   |   |   |   +---Untitled 1.asset
-|   |   |   |   |   \---Untitled.asset
+|   |   |   |   |   +---ProgSmoke_AsAuthored.asset
+|   |   |   |   |   +---ProgSmoke_Color.asset
+|   |   |   |   |   +---ProgSmoke_Diatonic.asset
+|   |   |   |   |   +---ProgSmoke_Dominant7.asset
+|   |   |   |   |   \---ProgSmoke_Functional.asset
 |   |   |   |   +---Drums
 |   |   |   |   |   +---3_4
 |   |   |   |   |   |   +---WL_BalladSparse.asset
@@ -2273,6 +2306,7 @@
 |   |   |   |   |   |   +---WL_JazzWaltz.asset
 |   |   |   |   |   |   \---WL_RockWaltz.asset
 |   |   |   |   |   +---4_4
+|   |   |   |   |   |   +---Drum_4-2_8m_MIDI_Import_Test.asset
 |   |   |   |   |   |   +---FF_BreakbeatDense.asset
 |   |   |   |   |   |   +---FF_DiscoPulse.asset
 |   |   |   |   |   |   +---FF_HalfTimeHeavy.asset
@@ -2297,13 +2331,10 @@
 |   |   |   |   |   |   +---Syncopated Pocket (Funk).asset
 |   |   |   |   |   |   \---Waltz-Pulse Lilt.asset
 |   |   |   |   |   +---DNB 4-4 2m test.asset
-|   |   |   |   |   +---Drum_4-2_2m_ACSN.asset
-|   |   |   |   |   +---Drum_4-4_1m_BDSN.asset
-|   |   |   |   |   +---Drum_4-4_2m_CHBDSNOH.asset
-|   |   |   |   |   +---Drum_6-1_2m_CHBDSNOH.asset
-|   |   |   |   |   +---LLMTest.asset
-|   |   |   |   |   \---TestSmokeSMR7.asset
+|   |   |   |   |   \---Drum_4-2_2m_ACSN.asset
 |   |   |   |   +---Melodies
+|   |   |   |   |   +---Melody_4-4_8m_30n-Test_Midi_Import.asset
+|   |   |   |   |   \---Test_Scale_Melody_4-4_4m_14n.asset
 |   |   |   |   \---Melody
 |   |   |   |       +---Melody_4-4_2m_8n.asset
 |   |   |   |       \---Melody_6-4_2m_11n.asset
@@ -2471,7 +2502,9 @@
 |   |   |   +---star.png
 |   |   |   \---star-white-icon.png
 |   |   +---LLMEnvSettings.asset
-|   |   \---SmokeSetup_0.asset
+|   |   +---SmokeSetup_0.asset
+|   |   +---SmokeSetup_BossaAB.asset
+|   |   \---SmokeSetup_Voice.asset
 |   +---Scenes
 |   |   +---0 - Main Menu.unity
 |   |   +---0.5 - Band Setup.unity
@@ -2511,6 +2544,7 @@
 |   |   |   |   +---CardEditorWindow.LLM.cs
 |   |   |   |   +---CardInventoryWindow.cs
 |   |   |   |   +---ChordProgressionCatalogueWizard.cs
+|   |   |   |   +---CompositionInventoryWindow.cs
 |   |   |   |   +---DeckAssetSaveService.cs
 |   |   |   |   +---DeckCardCreationService.cs
 |   |   |   |   +---DeckEditorDtos.cs
@@ -2600,10 +2634,12 @@
 |   |   |   +---Audio
 |   |   |   |   +---AudioMixSettingsSO.cs
 |   |   |   |   +---CharacterSfxProfileSO.cs
+|   |   |   |   +---MixGainProfileSO.cs
 |   |   |   |   +---OstCatalogSO.cs
 |   |   |   |   +---SongData.cs
 |   |   |   |   +---SoundBankSO.cs
-|   |   |   |   \---SoundProfileData.cs
+|   |   |   |   +---SoundProfileData.cs
+|   |   |   |   \---VoiceProfileSO.cs
 |   |   |   +---Cards
 |   |   |   |   +---Configs
 |   |   |   |   |   +---BandDeckData.cs
@@ -2663,9 +2699,12 @@
 |   |   +---DevMode
 |   |   |   +---DevAudioMixTab.cs
 |   |   |   +---DevCardCatalogueTab.cs
+|   |   |   +---DevCompositionDebugTab.cs
 |   |   |   +---DevGigOutcomeTracker.cs
 |   |   |   +---DevModeController.cs
-|   |   |   \---DevStatsTab.cs
+|   |   |   +---DevRunTelemetryLogger.cs
+|   |   |   +---DevStatsTab.cs
+|   |   |   \---GenerationDebugFormatter.cs
 |   |   +---Editor
 |   |   |   \---S5e_InspirationEconomyTool.cs
 |   |   +---Encounters
@@ -2754,6 +2793,9 @@
 |   |   |   +---Interfaces
 |   |   |   |   \---ICompositionContext.cs
 |   |   |   +---Musician Personalities
+|   |   |   +---Voice
+|   |   |   |   +---SingerVoice.cs
+|   |   |   |   \---SingerVoiceDirector.cs
 |   |   |   +---CompositionSession.cs
 |   |   |   +---FloatingTextMidiListener.cs
 |   |   |   +---InstrumentRules.cs
@@ -2932,8 +2974,14 @@
 |   +---InputSystem_Actions.inputactions
 |   +---make-tree.bat
 |   +---make-tree-unity.bat
+|   +---NuGet.config
+|   +---packages.config
 |   +---Project_Folder_Hierarchy_Heuristic.md
 |   \---UniversalRenderPipelineGlobalSettings.asset
++---DevTelemetry
+|   +---gig_runs_2026-07-16.jsonl
+|   +---gig_runs_2026-07-20.jsonl
+|   \---gig_runs_2026-07-23.jsonl
 +---Docs
 |   +---archive
 |   |   +---absorbed
@@ -2943,6 +2991,7 @@
 |   |   |   \---README.md
 |   |   +---changelog-ssot_2026-03-18_to_2026-06-22.md
 |   |   +---CURRENT_STATE_pre-prune_2026-06-16.md
+|   |   +---Design_Starter_Deck_v1.md
 |   |   +---README.md
 |   |   \---SNAPSHOT_RETENTION_POLICY.md
 |   +---audits
@@ -2958,15 +3007,19 @@
 |   |   \---README.md
 |   +---planning
 |   |   +---active
+|   |   |   +---CSV_Composition_Validation_Sub_Roadmap.md
 |   |   |   +---Design_Audience_Status_v1.md
+|   |   |   +---Design_Composition_Debug_Tab_v0_1.md
 |   |   |   +---Design_Demo_Cut_v1.md
 |   |   |   +---Design_Sensory_Contract_v0_1.md
-|   |   |   +---Design_Starter_Deck_v1.md
+|   |   |   +---Design_Starter_Deck_v2_DRAFT.md
+|   |   |   +---Design_Track_Card_Levels_v0_1.md
 |   |   |   +---Design_Tutorial_System_v0_1.md
 |   |   |   +---Design_Vertical_Slice_v0_1.md
 |   |   |   +---planning_active_README.md
 |   |   |   +---Roadmap_ALWTTT.md
 |   |   |   +---Roadmap_Audio.md
+|   |   |   +---RosterExpansion_Sub_Roadmap.md
 |   |   |   +---S5_DemoCutClose_Sub_Roadmap.md
 |   |   |   \---TUT-REBUILD_Sub_Roadmap.md
 |   |   +---archive
@@ -2977,8 +3030,11 @@
 |   |   |   +---Roadmap_Combat_MVP.md
 |   |   |   \---Roadmap_Combat_MVP_Closure_Actionable.md
 |   |   +---Design_Action_Economy_v1.md
+|   |   +---Design_Fill_Window_v0_1.md
+|   |   +---Design_Game_And_Card_Maxims_v0_1.md
 |   |   +---Design_Pending_Effects_v1.md
 |   |   +---Design_Project_Directives_v0_1.md
+|   |   +---Design_Singer_Expression_Input_v0_1.md
 |   |   +---Design_Song_Parts_Library_v0_1.md
 |   |   +---Design_Tempo_Identity_v1.md
 |   |   +---Design_Tutorial_System_v0_2.md
@@ -2986,6 +3042,7 @@
 |   |   \---planning_README.md
 |   +---reference
 |   |   +---CSO_Primitives_Catalog.md
+|   |   +---Design_Asset_Naming_v0_1.md
 |   |   \---README.md
 |   +---runtime
 |   |   +---README.md
@@ -3002,6 +3059,7 @@
 |   |   +---SSoT_Gig_Combat_Core.md
 |   |   +---SSoT_Gig_Encounter.md
 |   |   +---SSoT_Scoring_and_Meters.md
+|   |   +---SSoT_Singer_Voice.md
 |   |   \---SSoT_Status_Effects.md
 |   +---changelog-ssot.md
 |   +---coverage-matrix.md
@@ -3085,6 +3143,7 @@
 |   |   \---Third Party Notices.md
 |   +---manifest.json
 |   \---packages-lock.json
++---ProfilerCaptures
 +---ProjectSettings
 |   +---Packages
 |   |   \---com.unity.dedicated-server

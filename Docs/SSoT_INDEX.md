@@ -39,6 +39,7 @@ It defines:
 | `systems/SSoT_Editor_Authoring_Tools.md` | editor tools inventory, capabilities, supporting services, known gaps | active |
 | `systems/SSoT_Dev_Mode.md` | Dev Mode tooling: compile-time gating, overlay, infinite turns, hand-visibility bridge | active |
 | `systems/SSoT_Audio.md` | ALWTTT-side audio: SFX subsystem (card-direct + bus-sensory, single AudioManager sink), music-mix model (per-musician axis, global music, master SFX, persistence), audio boundary | active |
+| `systems/SSoT_Singer_Voice.md` | ALWTTT articulatory singer voice: per-loop melody-stem singing, voice budget (1 active / 2 hard), dsp-anchor transport, channel-mute contract, `VoiceProfileSO` schema, consumer-side Pink Trombone fork | active |
 
 > **M4.6F-2 navigation note (2026-05-07):** the four Gig SOs (`GigFlowSettingsSO`, `MeterTuningSO`, `GigPresentationSO`, `GigDevSettingsSO`) are governed under `SSoT_Gig_Combat_Core` (config locality §12). The renamed `GigSetupRosterSO` is governed under `SSoT_Gig_Encounter` (§7.5). `MeterTuningSO` is also referenced by `SSoT_Scoring_and_Meters` for semantic conversion meaning.
 
@@ -63,6 +64,7 @@ It defines:
 |---|---|---|
 | `planning/active/Roadmap_ALWTTT.md` | project-wide milestone roadmap | active |
 | `planning/active/Roadmap_Audio.md` | audio work-stream sub-roadmap: bus model + batch sequence (SFX-FIX, OST, Ambience, per-character profiles) + decisions ledger | active |
+| `planning/active/Roadmap_ALWTTT_Debug_Seams.md` | MGP-ALWTTT-DBG consumer arc (composition-debug seams: DBG-C1 read + DBG-C2 write) — arc-close record + decisions ledger + parked residuals; planning-only, not implementation authority | active (arc closed 2026-07-17) |
 | `planning/active/Design_Demo_Cut_v1.md` | demo-cut planning: run shape, coverage matrix, mechanics introduced, validation | active |
 | `planning/Design_Vibe_Telegraph_v0_1.md` | Vibe transparency surfaces (C1 readout + C2/C3 per-enemy telegraph); presentation of the Scoring §6 chain | active (shipped S5a) |
 | `planning/active/Design_Starter_Deck_v1.md` | first starter deck design: composition principle, per-card axis assignments, tuning rationale | active |
@@ -71,11 +73,17 @@ It defines:
 | `planning/active/Design_Tutorial_System_v0_1.md` | tutorial system: scope, trigger model, presentation, UX, demo-cut + Phase C dialogue inventory, DoD per Standing Directive #3 (2026-05-23) | active |
 | `planning/active/Design_Vertical_Slice_v0_1.md` | Phase C scope: ship hub, venues, audience archetypes + state machine, boss design, scene transitions (D-RUN-1..6 locked 2026-05-23) | active |
 | `planning/active/Design_Sensory_Contract_v0_1.md` | Sensory Contract operational expansion: bus design, audit-table placeholder, smoke/fire VFX integration plan for S3, consumer inventory (D2 expansion 2026-05-23) | active |
+| `planning/active/CSV_Composition_Validation_Sub_Roadmap.md` | CSV arc (Composition Session Validation & Content): requirements registry CR-1..CR-10, decision ledger D-CSV-*, batch sequence CSV-1..CSV-8 + CSV-4b, cross-project asks | active (CSV-1/1b/1c/2 closed; CSV-4 partially closed 2026-07-20) |
+| `planning/Design_Asset_Naming_v0_1.md` | Assets-side composition asset naming convention (per-family schema, rename-vs-move rider, `displayName` rule, bulk-rename safety) — **planning, non-normative; overrides no SSoT**; drafted CSV-4, applied at CSV-4b | active (drafted, not applied) |
 | `planning/Design_Project_Directives_v0_1.md` | standing project-level design directives (D1 promoted 2026-05-20; D2 + D3 promoted on declaration 2026-05-23) | standing |
 | `planning/Design_Pending_Effects_v1.md` | post-MVP first-batch design pillar: song-scoped accumulator layer | long-term |
 | `planning/Design_Tempo_Identity_v1.md` | long-term post-MVP direction: tempo-coupled card identity | long-term |
 | `planning/Design_Song_Parts_Library_v0_1.md` | long-term post-MVP direction: stored & repeatable song Parts | long-term |
 | `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` | observable musical expressive surface for composition cards across the MidiGenPlay boundary; 26-axis matrix + 5 documented gaps + per-musician SO whitelist precedence (2026-05-20) | active |
+| `planning/active/RosterExpansion_Sub_Roadmap.md` | Roster Expansion campaign (R0–R8): decision ledger D1–D6, batch sequence + phasing vs S5i/S5j, feasibility verdicts, pending MGP asks, R0 rehydration | active (planned 2026-07-23, not opened) |
+| `planning/active/Design_Track_Card_Levels_v0_1.md` | Track Card Levels mechanic (re-play = level-up): expressibility limits, runtime/authoring sketch, INSP/complexity hooks — batch R7 | active |
+| `planning/Design_Fill_Window_v0_1.md` | Registered idea: end-of-loop fill window (C2) — invariant analysis, overlay-vs-next-loop routes; post-campaign | registered (not scheduled) |
+| `planning/Design_Singer_Expression_Input_v0_1.md` | Registered idea: player input on live singer levers; Tier-B rider candidate; post-campaign | registered (not scheduled) |
 
 ---
 

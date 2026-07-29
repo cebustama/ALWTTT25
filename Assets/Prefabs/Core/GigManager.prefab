@@ -273,12 +273,14 @@ MonoBehaviour:
   presentation: {fileID: 11400000, guid: fd745730ede44ff49a393c711ec07df6, type: 2}
   dev: {fileID: 11400000, guid: 767ebbe00f02bb44eb7b39a77f8778c4, type: 2}
   audioMix: {fileID: 11400000, guid: d0d01ef5e7308064f866f582f22c86be, type: 2}
+  mixGainProfile: {fileID: 11400000, guid: fcb1c5c7e30dd8246aa4636aea9cc7f1, type: 2}
   gigHand: {fileID: 0}
   mainCamera: {fileID: 0}
   handCamera: {fileID: 0}
   compositionUI: {fileID: 0}
   loopsTimerUI: {fileID: 0}
   midiGenPlayConfig: {fileID: 0}
+  tutorialOptInPrompt: {fileID: 0}
   backgroundContainer: {fileID: 8882859419072933814}
   musicianPosList:
   - {fileID: 6870591446642485967}

@@ -262,26 +262,18 @@ namespace ALWTTT.Music
                     }
 
                     // PINNED INSTRUMENT OVERRIDE
-                    // [BASS-1 / D3=A] The part-cache pin map is keyed by
-                    // musicianId only (its values come from the package's
-                    // musician-keyed readback). For a musician holding >1
-                    // track in this part it is ambiguous and would stomp both
-                    // roles' instruments — skip it for them. Role-aware voice
-                    // consistency for multi-track musicians is carried by the
-                    // session pins in CompositionSession (keyed mus|role).
-                    bool multiTrackMusician =
-                        p.tracks.Count(t => t != null && t.musicianId == musicianId) > 1;
-
-                    if (!multiTrackMusician
-                        && ctx.TryGetPartCache(partIndex, out var partCache))
+                    // [DBG-C1] The part-cache pin map is keyed (musicianId,
+                    // role) — unambiguous for multi-track musicians; the
+                    // BASS-1 skip is retired.
+                    if (ctx.TryGetPartCache(partIndex, out var partCache))
                     {
                         if (!string.IsNullOrEmpty(musicianId) &&
-                            partCache.resolvedMelInstByMusician
-                                .TryGetValue(musicianId, out var pinned))
+                            partCache.resolvedMelInstByTrack.TryGetValue(
+                                new MusicianTrackKey(musicianId, role), out var pinned))
                         {
                             melInst = pinned;
                             ctx.Log($"[Pin] Using cached instrument for mus='{musicianId}' " +
-                                $"-> '{pinned?.InstrumentName ?? "-"}'", true);
+                                $"role={role} -> '{pinned?.InstrumentName ?? "-"}'", true);
                         }
                     }
 
@@ -350,24 +342,17 @@ namespace ALWTTT.Music
             return cfg;
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // [B1 / D-E=α'] Card-stable input hashes for MidiMusicManager._stemCache.
-        //
-        // Called by CompositionSession.PlaySinglePartLoop right before
-        // MidiMusicManager.RenderSinglePart. The returned map is passed
-        // through and lets the stem cache key on player-controlled inputs
-        // (StyleBundle, explicit instrument overrides, override-by-type)
-        // instead of the random instrument resolution that happens inside
-        // FromUI for the no-override path.
-        //
-        // Per the boundary contract (SSoT_ALWTTT_MidiGenPlay_Boundary §3):
-        // SongConfig is package-owned. We carry the hash ALWTTT-side as a
-        // per-call parameter rather than adding a field to TrackConfig.
-        // ─────────────────────────────────────────────────────────────
-        public static Dictionary<string, string> ComputeTrackInputsHashesForPart(
-            ICompositionContext ctx, int partIndex)
+        // [DBG-C1] Per-track (musicianId, role) hashes. The BASS-1 multi-track
+        // omission is retired: composite keys make a musician's two
+        // role-tracks two independent cache identities, so multi-track
+        // musicians are cacheable again. Single-track hash VALUES are
+        // unchanged (ComputeHashFromTrackEntry untouched) — stem-cache keys
+        // for single-track parts differ only by the ":{role}" segment.
+        public static Dictionary<MusicianTrackKey, string> ComputeTrackInputsHashesForPart(
+            ICompositionContext ctx, int partIndex,
+            IReadOnlyDictionary<MusicianTrackKey, float> mixGains = null) // [BAL-1]
         {
-            var result = new Dictionary<string, string>();
+            var result = new Dictionary<MusicianTrackKey, string>();
             var ui = ctx?.CompositionUI;
             if (ui?.Model?.parts == null) return result;
             if (partIndex < 0 || partIndex >= ui.Model.parts.Count) return result;
@@ -375,38 +360,22 @@ namespace ALWTTT.Music
             var p = ui.Model.parts[partIndex];
             if (p?.tracks == null) return result;
 
-            // [BASS-1 / D3=A] A musician may hold multiple tracks in a part
-            // (e.g. Melody + Bassline). The hash map — and the package's stem
-            // readback it keys — is per-musician, so for such musicians a
-            // single key cannot represent both tracks (and the package returns
-            // only one stem per musician: last-wins). OMIT multi-track
-            // musicians from the map. MidiMusicManager's existing guard (any
-            // track without a hash → cacheEnabled=false) then disables the
-            // stem/bundle cache for the whole part: correct-by-construction,
-            // at the cost of a fresh render for parts with multi-track
-            // musicians. Single-track parts are byte-identical to before.
-            var trackCountByMusician = new Dictionary<string, int>();
             foreach (var tr in p.tracks)
             {
                 if (tr == null || string.IsNullOrEmpty(tr.musicianId)) continue;
-                trackCountByMusician.TryGetValue(tr.musicianId, out var n);
-                trackCountByMusician[tr.musicianId] = n + 1;
-            }
-
-            foreach (var tr in p.tracks)
-            {
-                if (tr == null || string.IsNullOrEmpty(tr.musicianId)) continue;
-                if (trackCountByMusician[tr.musicianId] > 1) continue;
-                result[tr.musicianId] = ComputeHashFromTrackEntry(tr);
+                var key = new MusicianTrackKey(tr.musicianId, tr.role);
+                result[key] = ComputeHashFromTrackEntry(tr, GainSegment(mixGains, key));
             }
             return result;
         }
 
-        // Hash from UI-side TrackEntry. Stable across SongConfigBuilder.FromUI
-        // random instrument resolution; only changes when the player plays a
-        // card that mutates StyleBundle, role, an explicit override instrument
-        // SO, or the override instrument type.
-        private static string ComputeHashFromTrackEntry(SongCompositionUI.TrackEntry tr)
+        // [BAL-1] gainSegment folds the bytes-plane mix gain into the hash so
+        // stem keys and bundle keys can never replay stale CC7 (D-BAL-3=A,
+        // "gain enters trackInputsHash regardless of lifecycle"). "_" = no
+        // entry (no CC7 emitted). NOTE: hash VALUES change format vs pre-BAL-1
+        // ("|_" suffix) — harmless, caches are session-scoped.
+        private static string ComputeHashFromTrackEntry(
+            SongCompositionUI.TrackEntry tr, string gainSegment = "_")
         {
             if (tr == null) return "_";
             return string.Join("|",
@@ -416,8 +385,16 @@ namespace ALWTTT.Music
                 AssetKey(tr.overridePercussionInstrument),
                 tr.hasOverrideInstrumentType
                     ? tr.overrideInstrumentType.ToString()
-                    : "_");
+                    : "_",
+                gainSegment);
         }
+
+        private static string GainSegment(
+            IReadOnlyDictionary<MusicianTrackKey, float> mixGains,
+            MusicianTrackKey key)
+            => mixGains != null && mixGains.TryGetValue(key, out var g)
+                ? g.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)
+                : "_";
 
         private static string AssetKey(UnityEngine.Object obj)
         {

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5e27a885753584abaf43e9621788d8, type: 3}
+  m_Name: VoiceProfile_Zig
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Music.Voice.VoiceProfileSO
+  looseness: 0.15
+  vibratoDepth: 0.4
+  vibratoSpeedHz: 6
+  diction: 1
+  mouth: 0
+  brightness: 0.5
+  transposeSemitones: -12
+  tensenessAtVel0: 0.4
+  tensenessAtVel127: 0.6
+  vibratoDelaySeconds: 0.35
+  vibratoRampSeconds: 0.4
+  pitchLeadSeconds: 0.06
+  leadFullInterval: 7
+  minLoudness: 0.15
+  startTrimMs: 20
+  gain: 1

@@ -19,11 +19,14 @@ MonoBehaviour:
   logRepository: 0
   logGenerator: 1
   logMidiMusicManager: 0
-  debugDumpMidi: 0
+  debugDumpMidi: 1
   defaultTonality: 0
   defaultTimeSignature: 0
   defaultMeasures: 4
   defaultChordSubdivisions: 1
+  minHarmonicSubdivisions: 4
+  enableAccentSnap: 0
+  accentSnapToleranceSteps: 0
   preferSeventhInUI: 0
   defaultSeed: 560283958
   metronomeChannelVolume: 110

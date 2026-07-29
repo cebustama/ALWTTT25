@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GigFlowSettings
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigFlowSettingsSO
   jamRules:
-    loopsPerPart: 4
+    loopsPerPart: 1
     drawPerPart: 0
     inspirationPerPart: 0
   drawPerLoop: 1

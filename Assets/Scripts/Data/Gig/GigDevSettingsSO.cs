@@ -87,5 +87,22 @@ namespace ALWTTT.Data
 
         public bool AutoStartFromDefaults => autoStartFromDefaults;
         public DemoLaunchConfigSO DemoLaunchConfig => demoLaunchConfig;
+
+        // --- Composition debug [DBG-C1] ---
+
+        [Header("Composition Debug [DBG-C1]")]
+        [SerializeField, Tooltip("Dev composition tab format. Full = every " +
+            "resolved field per track (figures, per-span archetypes). " +
+            "Compact = one line per track with counts. The Copy/fingerprint " +
+            "export is always Full regardless of this flag.")]
+        private bool compositionDebugFull = false;
+
+        /// <summary>Setter exposed because DevCompositionDebugTab flips it
+        /// from the runtime overlay.</summary>
+        public bool CompositionDebugFull
+        {
+            get => compositionDebugFull;
+            set => compositionDebugFull = value;
+        }
     }
 }

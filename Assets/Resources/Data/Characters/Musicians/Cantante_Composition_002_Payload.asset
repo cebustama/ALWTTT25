@@ -12,12 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b987196233c610489faff2eb050697c, type: 3}
   m_Name: Cantante_Composition_002_Payload
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CompositionCardPayload
+  effects: []
   primaryKind: 1
   trackAction:
     role: 4
-    styleBundle: {fileID: 0}
+    styleBundle: {fileID: 11400000, guid: f3645a33f98da9841aff2612cb877218, type: 2}
   partAction:
     action: 0
     customLabel: 
     musicianId: 
   modifierEffects: []
+  references:
+    version: 2
+    RefIds: []

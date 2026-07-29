@@ -1,0 +1,17 @@
+{
+    "name": "MidiGenPlay.PinkTrombonePOC",
+    "rootNamespace": "",
+    "references": [
+        "MidiGenPlay.Runtime",
+        "MidiPlayer.Run"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

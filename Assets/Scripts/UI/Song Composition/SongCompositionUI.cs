@@ -249,18 +249,19 @@ namespace ALWTTT.UI
         /// </summary>
         public bool ApplyCardToPart(CardBase card, MusicianBase target, int partIndex)
         {
-            // ---------------------------------------------------------
-            // 0) BASIC VALIDATION
-            // ---------------------------------------------------------
-            if (card == null || card.CardDefinition == null || !card.CardDefinition.IsComposition)
-                return false;
+            if (card == null || card.CardDefinition == null) return false;
+            return ApplyCardDefinitionToPart(card.CardDefinition, target, partIndex);
+        }
 
-            var data = card.CardDefinition;
+        /// <summary>[CSV-3] CardDefinition-level core of ApplyCardToPart. Body is the
+        /// original verbatim with 'data' replacing 'card.CardDefinition'.</summary>
+        public bool ApplyCardDefinitionToPart(CardDefinition data, MusicianBase target, int partIndex)
+        {
+            if (data == null || !data.IsComposition) return false;
             var comp = data.CompositionPayload;
-
             if (comp == null)
             {
-                Log("ApplyCardToPart: card is marked Composition but has no CompositionPayload.");
+                Log("ApplyCardDefinitionToPart: Composition card with no CompositionPayload.");
                 return false;
             }
 
@@ -736,52 +737,42 @@ namespace ALWTTT.UI
 
         public bool CanApply(CardBase card, MusicianBase target, out string reason)
         {
+            if (card == null || card.CardDefinition == null)
+            { reason = "Not a composition card."; return false; }
+            return CanApplyDefinition(card.CardDefinition, target, out reason);
+        }
+
+        /// <summary>[CSV-3] CardDefinition-level core of CanApply. Shared with the dev
+        /// debug-play path (no CardBase). Body is the original verbatim, reading 'data'.</summary>
+        public bool CanApplyDefinition(CardDefinition data, MusicianBase target, out string reason)
+        {
             reason = null;
+            if (data == null || !data.IsComposition)
+            { reason = "Not a composition card."; return false; }
 
-            if (card == null || card.CardDefinition == null || !card.CardDefinition.IsComposition)
-            {
-                reason = "Not a composition card.";
-                return false;
-            }
-
-            var data = card.CardDefinition;
             var comp = data.CompositionPayload;
-            if (comp == null)
-            {
-                reason = "Missing composition payload.";
-                return false;
-            }
+            if (comp == null) { reason = "Missing composition payload."; return false; }
 
-            // Track cards always need a musician (unless you later auto-resolve by type)
             if (comp.PrimaryKind == CardPrimaryKind.Track && target == null)
-            {
-                reason = "Select a musician.";
-                return false;
-            }
+            { reason = "Select a musician."; return false; }
 
-            // Part cards that do NOT create a part require that at least one part exists
             if (comp.PrimaryKind == CardPrimaryKind.Part && model.parts.Count == 0)
             {
                 var pa = comp.PartAction;
                 bool createsPart = pa != null && pa.action == PartActionKind.CreatePart;
-
                 if (!createsPart)
-                {
-                    reason = "Create a part first (play any Track or Part-Create card).";
-                    return false;
-                }
+                { reason = "Create a part first (play any Track or Part-Create card)."; return false; }
             }
-
             return true;
         }
 
 
         private bool TryAddOrReplaceTrackOnPart(
-    PartEntry part, int partIndex,
-    string musicianId, string musicianName,
-    TrackRole role, string info,
-    CardDefinition sourceCard,
-    TrackStyleBundleSO styleBundle)
+            PartEntry part, int partIndex,
+            string musicianId, string musicianName,
+            TrackRole role, string info,
+            CardDefinition sourceCard,
+            TrackStyleBundleSO styleBundle)
         {
             if (part == null || string.IsNullOrEmpty(musicianId)) return false;
 

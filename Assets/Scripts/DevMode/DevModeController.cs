@@ -42,8 +42,15 @@ namespace ALWTTT.DevMode
 
         // Phase 2: tab selection. 0 = Infinite, 1 = Catalogue.
         private int _activeTab;
-        private static readonly string[] TabNames = { "Infinite", "Catalogue", "Stats", "Audio Mix" };
+        private static readonly string[] TabNames =
+            { "Infinite", "Catalogue", "Stats", "Audio Mix", "Composition" };
 
+        // [CSV-3] Outer scroll for tab content. GUILayout.Window auto-grows to
+        // fit content, so a tall tab (Composition, after the R2a section) pushed
+        // the window past the screen bottom with no way to reach it. Bounding
+        // the content to the visible height and scrolling the overflow fixes it
+        // for every tab.
+        private Vector2 _tabScroll;
 
         // ---------------------------------------------------------------
         // Lifecycle
@@ -123,9 +130,21 @@ namespace ALWTTT.DevMode
 
         private void DrawWindow(int id)
         {
-            // ---- Tab bar ----
+            // ---- Tab bar (stays fixed above the scroll) ----
             _activeTab = GUILayout.Toolbar(_activeTab, TabNames);
             GUILayout.Space(4);
+
+            // [CSV-3] Bound tab content to the visible screen and scroll the
+            // overflow. Coordinates here are logical (pre-scale), so the
+            // available height is the physical screen height divided by scale,
+            // minus the window's top offset and a reserve for the title + tab
+            // bar. Clamped so it stays usable on small screens.
+            float scale = Mathf.Max(1f, _overlayScale);
+            float available = Mathf.Max(
+                160f, (Screen.height / scale) - _windowRect.y - 72f);
+
+            _tabScroll = GUILayout.BeginScrollView(
+                _tabScroll, GUILayout.Height(available));
 
             switch (_activeTab)
             {
@@ -141,9 +160,16 @@ namespace ALWTTT.DevMode
                 case 3:
                     DevAudioMixTab.Draw();
                     break;
+                case 4:
+                    DevCompositionDebugTab.Draw();   // [DBG-C1]
+                    break;
             }
 
-            GUI.DragWindow();
+            GUILayout.EndScrollView();
+
+            // Drag by the title bar only, so click-drags inside the scrolled
+            // content don't move the window (they scroll / hit controls).
+            GUI.DragWindow(new Rect(0, 0, _windowRect.width, 20));
         }
 
         private void DrawInfiniteTab()

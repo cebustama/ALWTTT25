@@ -57,6 +57,17 @@ namespace ALWTTT.Data
         public bool FlowActionFlatBonus => flowActionFlatBonus;
         public float FlowVibeMultiplier => flowVibeMultiplier;
 
+        // --- Captivated (audience-side incoming-Vibe amplifier, R1) ---
+
+        [Header("Captivated (Audience)")]
+        [SerializeField, Range(0f, 1f), Tooltip("Per-stack bonus on incoming " +
+            "positive Vibe for audience members holding Captivated. " +
+            "finalVibe = round(incoming × (1 + stacks × this)). " +
+            "0.25 → 2 stacks = ×1.5.")]
+        private float captivatedVibeBonusPerStack = 0.25f;
+
+        public float CaptivatedVibeBonusPerStack => captivatedVibeBonusPerStack;
+
         // --- Loop scoring + hype thresholds ---
 
         [Header("Loop Scoring")]

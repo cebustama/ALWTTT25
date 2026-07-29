@@ -412,6 +412,15 @@ entries:
       + decisions ledger. Implementation truth lives in SSoT_Audio.md; this doc
       is not current-state.
 
+  - path: Docs/planning/active/RosterExpansion_Sub_Roadmap.md
+    class: roadmap
+    governs: []
+    hard_invariants: []
+    notes: >
+      Roster Expansion campaign sub-roadmap (planning-only): decision ledger
+      D1-D6, batches R0-R8, feasibility verdict table, pending MidiGenPlay asks.
+      Phasing D1=C relative to S5i/S5j. Never treated as implemented truth.
+
   # ── reference ──────────────────────────────────────────────────────────────
 
   - path: Docs/reference/CSO_Primitives_Catalog.md
@@ -431,6 +440,33 @@ entries:
       Design rationale for the per-turn play economy (ECON-1, 2026-07-07).
       Subordinate to SSoT_Gig_Combat_Core.md §14 — where this doc and the SSoT
       diverge, the SSoT wins. planning/active placement; not current-state.
+
+  - path: Docs/planning/active/Design_Track_Card_Levels_v0_1.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Track Card Levels design note (re-play = level-up), batch R7 of the
+      Roster Expansion campaign. At R7 closure the implementing SSoTs take
+      authority; this note is retained as rationale.
+
+  - path: Docs/planning/Design_Fill_Window_v0_1.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Registered idea, not scheduled: end-of-loop timed fill window (C2).
+      Records the invariant collision (mutations never touch the playing loop)
+      and the overlay-vs-next-loop routes. No SSoT references it.
+
+  - path: Docs/planning/Design_Singer_Expression_Input_v0_1.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Registered idea, not scheduled: player-driven live voice levers.
+      Subordinate to systems/SSoT_Singer_Voice.md; candidate rider of Double
+      Harmony Tier B.
 
   - path: Docs/integrations/midigenplay/ALWTTT_Uses_MidiGenPlay_Quick_Path.md
     class: reference

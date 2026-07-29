@@ -1,12 +1,12 @@
 # SSoT_Audio — ALWTTT
 
 **Status:** Active — governed subsystem SSoT.
-**Scope:** ALWTTT-side audio: the SFX subsystem (card-direct + bus-sensory, single `AudioManager` sink), the music-mix model (per-musician music axis, global music level, master SFX level, effective-volume composition, persistence), the OST playback bus (`MusicDirector` + `OstCatalogSO`, authored-clip music scaled by the Music level), and the ALWTTT↔MidiGenPlay audio boundary.
+**Scope:** ALWTTT-side audio: the SFX subsystem (card-direct + bus-sensory, single `AudioManager` sink), the music-mix model (per-musician music axis, global music level, master SFX level, effective-volume composition, persistence), the OST playback bus (`MusicDirector` + `OstCatalogSO`, authored-clip music scaled by the Music level), and the ALWTTT↔MidiGenPlay audio boundary. A second runtime audio source, the articulatory **singer voice**, is governed separately by `systems/SSoT_Singer_Voice.md`; it currently bypasses this SSoT's mixer routing (balance via the voice profile's `gain`), a follow-up noted there.
 **Owns:** `AudioManager` as the single SFX sink; `SensorySfxType` key authority; the central sound inventory + coverage audit (`SoundBankSO`); the **per-musician music volume axis** and its effective-volume composition; the persisted audio-mix balance (`AudioMixSettingsSO`); the master-SFX level; the looping crowd-ambience bus (SFX-group `ambienceSource` on `AudioManager`); the OST playback singleton (`MusicDirector`) and OST catalogue (`OstCatalogSO` / `OstTrackId`); the audio-side ownership split with MidiGenPlay.
 **Does not own:** the event bus itself (`SensoryEventBus`, `ISensoryEvent`) → `SSoT_Audience_and_Reactions` / Sensory Contract; FT presentation → Sensory Contract; `MidiMusicManager` as the playback host / channel-routing component → `SSoT_Runtime_CompositionSession_Integration` §3.4; any MidiGenPlay package internals (synth, soundfont, per-instrument attenuation) → MidiGenPlay docs.
 **Authority order:** `SSoT_CONTRACTS.md` → this SSoT for audio concepts → `CURRENT_STATE.md` for active slice. Cross-project audio facts defer to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`.
 **Created:** 2026-06-14 (M-AUDIO-MIX). Consolidates the as-built audio subsystem from `Design_Sensory_Contract_v0_1.md §5A` (S3-audio) and adds the music-mix model + audio boundary.
-**Updated:** 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
+**Updated:** 2026-07-22 (BAL-1) — bytes-plane mix gains adopted (MGP-MIX-1 on MidiGenPlay 1.2.0): new §4.6 (per-`(musicianId, TrackRole)` gain baked as CC7; `MixGainProfileSO`; emission gate; anti-compensation); §4.2 rewritten — the MPTK channel-volume reset is now **verified** (not assumed) and the re-assert is **deferred past tick-0** and **composed** with the baked gain via the single `WriteChannelVolume01` boundary. Contract home stays boundary §8.3. Prior: 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
 
 ---
 
@@ -235,11 +235,23 @@ generation and immediately before `Play(song)`. Consequences:
   song transitions).
 - `MidiMusicManager.OnSongStartedInternal` re-asserts the last-known per-channel mix
   (`_lastKnownVol01`, all non-metronome channels) when playback goes live, then applies
-  any pending highlight. This is defensive against an **unverified** MidiGenPlay-side
-  channel-volume reset on (re)start: if the package preserves volumes it is harmless; if
-  it resets them, the re-assert restores the intended balance. (This behavior is the
-  ALWTTT playback host re-asserting known state; the reset itself, if any, is package
-  truth and not verifiable from this side — see §6.)
+  any pending highlight. **The reset it defends against is now VERIFIED, not assumed
+  (BAL-1, 2026-07-22):** MPTK wipes every channel's CC7 to 100 on each play
+  (`MPTK_Play → MPTK_InitSynth → new MPTKChannels → fluid_channel_init_ctrl`;
+  `EnableResetChannel` default true — boundary §8.3 F-MPTK-1), so the re-assert is
+  required, not merely defensive. Two BAL-1 changes to this re-assert:
+  - **Deferred past tick-0.** `OnEventStartPlayMidi` fires *before* the sequencer
+    processes the tick-0 preamble (boundary §8.3 F-MPTK-2), so an immediate re-assert
+    would land *under* the baked bytes-plane CC7 and be overwritten. The re-assert now
+    runs from a bounded coroutine (`ReassertLiveMixAfterPreamble`, waits for
+    `CurrentTick > 0`) so a non-identity persisted/dev balance lands *after* the preamble
+    and wins.
+  - **Composed, not raw.** All musician-channel live writes go through a single boundary
+    `WriteChannelVolume01(ch, live01)` that composes the live value with the playing
+    part's baked bytes-plane gain: `composed01 = live01 × bakedGain01 × (100/127)`
+    (§4.6). Identity balance (live 1.0) reproduces the baked CC7 exactly, so the
+    re-assert is idempotent on ungained channels; a non-identity balance ducks on top of
+    the baked gain rather than replacing it. Metronome writes bypass this boundary.
 
 ### 4.3 Relationship to highlight
 
@@ -309,6 +321,42 @@ per-track `defaultLevel01`), not baked per file, so tracks stay consistent as th
 grows; `defaultLevel01` only attenuates (0..1), so the source must already peak near 0 dBFS.
 Seamless loops are a **compositional** property (loop-compatible start/end); Vorbis priming can
 add a micro-seam at the loop point — use WAV import if a sample-accurate seamless loop is required.
+
+---
+
+### 4.6 Bytes-plane mix gains (BAL-1 / MGP-MIX-1) — the second plane
+
+Distinct from the **live** per-musician axis above, ALWTTT also carries a **bytes-plane**
+ensemble balance: a per-`(musicianId, TrackRole)` **gain** baked into the generated MIDI as
+a CC7 event at render time. The two planes are separate controls and compose; neither
+replaces the other. The **contract home is `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.3** —
+this section states only the ALWTTT-side model.
+
+- **Where it lives.** `MixGainProfileSO` (content SO, `Assets/Scripts/Data/Audio/`), keyed
+  `(musicianId, TrackRole)`, implicit default 1.0. A serialized field on `GigManager`
+  (D-BAL-8=A), resolved once at gig start (`StartGig → SetGigMixGains`, D-BAL-3=A).
+- **Law.** `effectiveCc7 = clamp(round(volume01 × gain × 100), 0, 127)` (package-side;
+  `volume01` is 1.0/unauthored today). Identity `gain = 1.0` → CC7=100; `gain = 0` mutes
+  at playback but keeps note events (stems/hashes intact); saturates at `gain ≈ 1.27`.
+- **Emission gate.** A CC7 is emitted **only** for tracks with a profile entry — no entry
+  ⇒ no event ⇒ byte-identical output. A track's gain is folded into `trackInputsHash`
+  (`ComputeHashFromTrackEntry`), so a gain change re-keys the stem/bundle cache and can
+  never replay stale CC7.
+- **No Rhythm.** Channel 9 is shared; `MixGainProfileSO.BuildGainMap` drops Rhythm entries
+  with a warning before they reach the package (D-BAL-5=A / package D-MIX-4=A).
+- **Anti-compensation (normative).** Gains express **ensemble intent** ("this bass sits
+  back"), never per-patch loudness correction — that is the package `volume01`'s job and
+  would double up when the package's `volume01` authoring (D-MIX-6) lands (boundary §8.3).
+- **Scope.** Gig loop (per-part) only. `GenerateSong` / jam / menu paths stay ungained
+  (boundary §8.3 scope limit).
+- **Readback.** `MidiMusicManager.LastAppliedCc7ByTrack` (the *baked* CC7 the package
+  emitted) and `GetLiveComposedCc7(channel)` (the *live-composed* CC7 last written) feed the
+  Dev Mode → Audio Mix truth surface. Note the two differ by design: the baked readback does
+  not move when a live slider moves (no re-render); the composed strip does.
+
+Relationship to §4.1's axis formula: the bytes-plane gain is **not** the `instrument01`
+factor (that stays 1.0 and belongs to the package — §6). It is a *separate plane* applied at
+render time, composed with the live axis at the `WriteChannelVolume01` boundary.
 
 ---
 

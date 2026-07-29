@@ -1219,10 +1219,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: MidiMusicManager
       objectReference: {fileID: 0}
-    - target: {fileID: 193397461355193485, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3105887504060889637, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1262,22 +1258,6 @@ PrefabInstance:
     - target: {fileID: 3105887504060889637, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6475696563651527534, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
-      propertyPath: showBeats
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6475696563651527534, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
-      propertyPath: showNotes
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6475696563651527534, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
-      propertyPath: showChords
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8677859110867931874, guid: ca4d74aad976c054aaab9a6ceba590d6, type: 3}
-      propertyPath: mode
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
