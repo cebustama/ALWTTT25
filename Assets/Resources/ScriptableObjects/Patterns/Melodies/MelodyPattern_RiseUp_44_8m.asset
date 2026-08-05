@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9711c45ce818e0b4eb5fd9aa9464c225, type: 3}
+  m_Name: MelodyPattern_RiseUp_44_8m
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.MelodyPatternData
+  DisplayName: MelodyPattern_RiseUp_44_8m
+  TimeSignature: 0
+  Measures: 8
+  beatsPerMeasure: 4
+  subdivisions: 1
+  notes:
+  - degree: 0
+    octaveOffset: 0
+    startBeat: 0
+    durationBeats: 3
+    velocity: 92
+  - degree: 1
+    octaveOffset: 0
+    startBeat: 3
+    durationBeats: 1
+    velocity: 90
+  - degree: 1
+    octaveOffset: 0
+    startBeat: 4
+    durationBeats: 3
+    velocity: 96
+  - degree: 2
+    octaveOffset: 0
+    startBeat: 7
+    durationBeats: 1
+    velocity: 94
+  - degree: 2
+    octaveOffset: 0
+    startBeat: 8
+    durationBeats: 3
+    velocity: 100
+  - degree: 3
+    octaveOffset: 0
+    startBeat: 11
+    durationBeats: 1
+    velocity: 98
+  - degree: 3
+    octaveOffset: 0
+    startBeat: 12
+    durationBeats: 3
+    velocity: 104
+  - degree: 4
+    octaveOffset: 0
+    startBeat: 15
+    durationBeats: 1
+    velocity: 102
+  - degree: 4
+    octaveOffset: 0
+    startBeat: 16
+    durationBeats: 3
+    velocity: 108
+  - degree: 5
+    octaveOffset: 0
+    startBeat: 19
+    durationBeats: 1
+    velocity: 100
+  - degree: 5
+    octaveOffset: 0
+    startBeat: 20
+    durationBeats: 3
+    velocity: 112
+  - degree: 6
+    octaveOffset: 0
+    startBeat: 23
+    durationBeats: 1
+    velocity: 110
+  - degree: 6
+    octaveOffset: 0
+    startBeat: 24
+    durationBeats: 3
+    velocity: 116
+  - degree: 0
+    octaveOffset: 1
+    startBeat: 27
+    durationBeats: 1
+    velocity: 114
+  - degree: 0
+    octaveOffset: 1
+    startBeat: 28
+    durationBeats: 4
+    velocity: 120

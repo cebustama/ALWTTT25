@@ -69,6 +69,262 @@ Navigation only — dates + labels. Full entries are in
 
 ---
 
+## 2026-07-31 — CONT-B: pasada de contenido fase B + CTX-1/1b (override dev de tonalidad)
+
+**Qué cambió semánticamente.**
+
+1. **La paleta Modal pasa a ser modal.** Sus 10 entradas anteriores eran
+   progresiones mayores con acordes prestados, no material modal, y sin
+   restricción de tonalidad — el estado que la spec de fase A registró como
+   `F-MODAL-SELFDEFEAT`. Las sustituyen 7 assets: 5 buques insignia
+   (`AsAuthored`, `tonalities` de **un solo modo**, cadence `Modal`) y 2
+   esqueletos (`DiatonicToPart` + tabla de color, `tonalities` de 6 modos sin
+   Locrian). La restricción de tonalidad en los buques es **por diseño**: es
+   lo que impide que un vamp dórico se toque sobre una parte que lo desmienta.
+
+2. **`tonalities` vacío es semánticamente distinto de restringido.** Los 11
+   assets Core con política `DiatonicToPart`/`DiatonicToPartFunctional` se
+   dejan con la lista **vacía** (= sin restricción). Una lista de un solo modo
+   sobre política DTP deja la política **inerte**: el remapeo sería siempre
+   identidad. Es la misma clase de contradicción que `useColorTable` marcado
+   sobre `AsAuthored`. Regla derivada: *política que traduce ⇒ lista abierta;
+   política que se planta ⇒ lista cerrada.* (D5 / D3.)
+
+3. **La marca SECDOM es declaración + seguro.** `Prog_Maj_Ragtime_SECDOM` es
+   el único asset con marcas por evento. Como la validez de una dominante
+   secundaria depende del modo (en eólico el ii es disminuido, en frigio el V),
+   se restringe a `Ionian, Dorian, Lydian, Mixolydian` — los cuatro donde la
+   cadena de quintas sobrevive entera. (D5b.)
+
+4. **Dominantes estructurales ≠ dominantes funcionales.** `Prog_Maj_Blues8c`
+   se autora **sin** marcas SECDOM pese a estar lleno de acordes de séptima
+   dominante: en el blues la séptima es el idioma, no una flecha. Marcarlas
+   sería mecánicamente válido y musicalmente falso (ML-7).
+
+5. **Veredicto A3 = CONFIRMADO.** El `iv7` de `Prog_Min_BluesSoul_i7iv7` y
+   `Prog_Min_iiø7V7_8c` parsea como **Dominant7** (el sufijo pelado gana al
+   caso) y la escucha confirma que es la sonoridad deseada. No se corrige.
+
+6. **Contenido local consolidado bajo las raíces de escaneo.** Los 44 assets de
+   progresión viven ahora en `Patterns/Chords`. Esto **probablemente resuelve
+   D-CSV-14** (el desajuste de raíces era exclusivamente Assets-side desde
+   CSV-4) y con ello **dissuelve D-CSV-13**: el dropdown de Backing del Dev
+   Mode ya ofrece contenido real. Confirmar formalmente al aplicar (§4).
+
+7. **CTX-1/CTX-1b — el contexto musical de la parte es auditable sin autorar
+   cartas.** Ver `SSoT_Dev_Mode.md` §18.12.
+
+**Validación.** 29 tests de escucha, 27 PASS. `T4.5 FAIL` (F-KIT-1, mapeos de
+kit ausentes) y `T4.7` parcial (F-DNB-1, granularidad). Regresiones de paleta y
+de retirada, todas PASS.
+
+**Desviaciones de la spec de fase A** (para devolución package-side): D3, D5,
+D5b, D6, D8, D9 — detalle en `CONT-B_Returns_MidiGenPlay_2026-07-31.md`.
+
+---
+
+## 2026-07-31 — AUTH-1: Effect Editor + card-tooling cross-links + Inventory detailed print
+
+Editor-only consolidation of the card-authoring flow, opened from R2/Conito
+friction (PartEffects were Inspector-only; the Card Editor assigned but never
+created or edited effects; the Inventory print showed no parameters). New
+`PartEffectEditorWindow` (§18): TypeCache-discovered PartEffect family, inline
+default-or-custom inspector, Create defaulting to `_PartEffects/`, Duplicate,
+Delete with a `CompositionCardPayload.modifierEffects` usage scan, Find Usages,
+and Export JSON whose `usedBy` array gives the family its first card → effect
+reverse index. New `CardAuthoringNav` (§19) strip across Card Editor / Effect
+Editor / Card Inventory / Deck Editor, with context links (Inventory Edit →
+`CardEditorWindow.OpenAndSelect`; Card Editor `modifierEffects` shortcut rows →
+`PartEffectEditorWindow.OpenAndSelect`; "New Effect…"). `CardInventoryWindow`
+detailed print (§8.7): per-card parameter dump for Action (timing, effects with
+amounts and targets) and Composition (primaryKind, track role + style bundle +
+depth-1 bundle-field dump over MidiGenPlay-owned SOs, part action, modifiers
+with scope/timing/label, effects), nested under catalog entries; Detailed-OFF
+print and JSON export byte-preserved.
+
+Decisions: **D-AUTH1-0** (new window ratified rather than growing the 2.7k-line
+Card Editor) · **D-AUTH1-1=A** (embedded payload panel + shortcuts; no payload
+window) · **D-AUTH1-2=A** (PartEffect assets only; `CardEffectSpec` editing stays
+in the payload panel, since specs are `[SerializeReference]` payload data with no
+asset identity) · **D-AUTH1-3=A** (static nav utility, not a navigator window) ·
+**D-AUTH1-4=A** (mode-conditional `InstrumentEffect` fields as a `[CustomEditor]`,
+so Inspector and Effect Editor cannot diverge). **Family relabelled D-AUTH1-\***
+— `D-AUTH-1` / `D-AUTH-2` remain the S5g music-variety locks; the collision was
+caught at AUTH-1 open.
+
+**MC-AUTH1-1..10 PASS** first pass (MC-10 = regression on plain print + JSON
+export; 30 PartEffect assets, 47 CardDefinitions enumerated). **AUTH-1b**
+followed from three verification observations, all editor-presentation only:
+truncated list names with unused window width (→ draggable splitter, expanding
+columns, tooltips, filtered `N / total` counter), the always-visible
+`melodicInstrumentPool` (→ D-AUTH1-4=A), and a requested Effect Editor export
+(→ §18.8). **MC-AUTH1b-1..9 PASS.** Deck Editor validation errors observed
+during MC-AUTH1-9 were confirmed expected (`DeckValidationService` on an empty
+staged deck), not a regression.
+
+Verification finding recorded at open and re-confirmed at close: the
+**R0 / R1 / R2 Roster-Expansion doc stack is still unapplied** (four markers
+checked; see the AUTH-1 diff package §0.1), so AUTH-1 makes no claim about R2's
+documentary state. Runtime, the JSON/LLM import contract, and shared `test_*` /
+`MVP_*` assets are untouched. Primary home: `SSoT_Editor_Authoring_Tools.md`
+§3 / §4.11 / §5.8 / §8.7 / §13 / §14.9 / §15 / §18 / §19.
+
+---
+
+## 2026-07-31 — ROSTER-XP R2 + R2c + R2d: Conito enablement, shared-harmony resolution, `InstrumentEffect.RandomFromList`
+
+**Type:** lifecycle/migration-integrative + semantic + operational. Second interleavable enabler of the
+Roster Expansion campaign (D1=C), out of the demo roster. **R2c/R2d are the first campaign batches with
+code in the build**; both surfaces are BC-gated and the demo config leaves the default-harmony palette
+unassigned, so the S5i baseline is unperturbed by construction (ST-R2d-4 + ST-R2d-7 PASS).
+
+**R2 (authoring only):** Conito profile (`Bass` backing / `Guitar` lead → `InstrumentRules` routes
+`Bassline` off the backing list; 6-bass melodic whitelist for the dev pickers), two `InstrumentEffect`
+assets, three cards imported and catalog-registered in `Conito_CardCatalogData` (`starter_finger_bass` =
+`ArpeggioUp`/`PerBeat`/`ChordToneWalk`; `starter_slap_bass` = `Offbeat` + `SelfPocket`;
+`starter_static_rush` = `DrawCards(2)` then `ModifyStress(+1, Self)`), each `StarterDeck |
+UnlockedByDefault | copies 1`; the 10 legacy test entries **removed from the catalog, assets kept**
+(D-R2-8=B — diverges from R1's flags→`None` precedent, recorded not normalized). The three MidiGenPlay
+bass-fidelity asks (§8 #1–#3) were **resolved package-side 2026-07-28 before ALWTTT filed them**
+(boundary §8.4; incl. the naming trap `BassUpperSplit` ≠ `Bossa`). **The first import of the R2 JSON
+batch failed** because `modifierEffectNames` referenced two `PartEffect` assets that did not yet exist;
+the importer failed at **staging**, before writing any asset, so no orphan cards, payloads or bundles
+were left behind (verified by code path and inspection) — the `PartEffect` assets are a **hard
+prerequisite** of the import, not a follow-up.
+
+**R2c:** **ST-R2-1's failure was a bad test, not a bug** — a bass-only part has no harmony publisher,
+so silence was correct behavior under the documented contract; the test was replaced (ST-R2c-1) and the
+finding turned into the SOLO-1 adoption: MidiGenPlay's `GenerateSinglePart(..., defaultProgression)`
+seam wired into `MidiMusicManager.RenderSinglePart`, sourced from a serialized
+`ChordProgressionPaletteSO` (**D-R2-6=B**, weighted pick, asset never mutated), seeded from
+`(songSeed, partIndex)` — stable within a song, varied across songs. Plus
+`InstrumentEffect.RandomFromList` (**D-R2-7**): append-only 4th mode + `melodicInstrumentPool`,
+resolved **once per card application** before the track loop and persisted as an ordinary
+`overrideMelodicInstrument`, inheriting hash participation, cache coherence and supersession rules for
+free; `UnityEngine.Random` on purpose (a card play is not seed-reproducible); empty pool = warn + no-op.
+
+**R2d:** live gig exposed **F-BASS-ORDER-1** — bass card played before the backing card ⇒ the bass read
+the shared-progression cache before its only publisher wrote to it ⇒ permanent silence for that part.
+ALWTTT declined to fix it by reordering its own track list (**track list order is consumer identity**,
+now a package contract) and filed **MGP-ALWTTT-BASS-ORDER-1**, delivered same-cycle: Backing-first
+composition with list-order merge, a rewritten guard (host default discarded only when the Backing row
+actually *carries* harmony), a normative five-level precedence, and a `sharedProgressionSource`
+readback. ALWTTT adopted all of it, retired its `!hasBacking` proxy, and replaced the cache token with a
+**pre-render shared-harmony identity** `dp:` + `bk:` (**D-R2-10=A** — the readback-based rule is not
+implementable: the readback is produced by the render, and the key decides whether a render happens).
+The `bk:` segment closed **F-HARM-STALE-1**, **latent since B1 and unrelated to SOLO-1**: swapping the
+Backing card changed the *Backing* track's hash but not the bass's, so the bass stem replayed from cache
+with the old chords baked in — silent wrong output, found only because F-BASS-ORDER-1 forced an audit of
+what `partMeterHash` must represent (worth recording as an argument for auditing cache-key composition
+whenever a new render input is introduced). Also filed and delivered: **MGP-ALWTTT-BASS-SLAPFIG-1** →
+`PocketCouplingMode.SelfPocket`, autonomous slap/pop that reads no other track and therefore does
+**not** arm the §8.4 cache duty (`SlapPocket` still does); Slap Bass v1 re-authored onto it
+(**D-R2-11**), and `InstrumentEffect_SlapBass` moved to `RandomFromList {Slap Bass 1, Slap Bass 2}`
+(**D-R2-3** revised).
+
+Decisions **D-R2-1..11**. **ST-R2-2/4/5/6/7 · ST-R2c-1..6 · ST-R2d-1..7 all PASS**; ST-R2-1 superseded
+by ST-R2c-1; ST-R2-3 partial (multi-role-on-one-musician variant ST-R2-3b deferred to R5 Overload,
+which creates the configuration by construction). Authority: `SSoT_ALWTTT_MidiGenPlay_Boundary.md`
+§8.4/§8.5/§8.6 · `SSoT_Runtime_CompositionSession_Integration.md` §8 inv 9 + §11 ·
+`SSoT_Card_Authoring_Contracts.md` §5.13. Campaign home:
+`planning/active/RosterExpansion_Sub_Roadmap.md`. Doc package
+`RosterExpansion_R2_Doc_Diffs_2026-07-31.md` (supersedes the never-applied 2026-07-30 draft) retired on
+apply.
+
+---
+
+## 2026-07-23 — ROSTER-XP R1: Captivated + Wink + Cantante catalog cleanup
+
+**Type:** semantic (new canonical status) + operational. First campaign code in the build.
+Demo build unchanged and still demonstrable.
+
+**Captivated** shipped as an amplification layer inside the existing `AudienceCharacterStats.ApplyIncomingVibe`
+gate — no `CardBase` change was required (B3 had already routed the positive `ModifyVibeSpec` path through the
+helper in 2026-05-18) and no `GigManager` tick code was required (`StatusEffectContainer.Tick(AudienceTurnStart)`
+handles `LinearStacks` decay generically). While a holder has N stacks, incoming positive Vibe becomes
+`round(incoming × (1 + N × 0.25))`; the layer sits strictly **after** the Indifference gate, so
+`D-DCP-6=A` ("Indifference blocks ALL incoming Vibe") is preserved unconditionally. SO authored in
+`StatusEffectCatalogue_Audience` (`Additive` / `MaxStacks 5` / `LinearStacks` / `AudienceTurnStart` /
+`IsBuff = false`) with a new icon; runtime guards on `StatusKey == "captivated"` alongside the
+`DamageTakenUpMultiplier` primitive, mirroring the Earworm variant guard.
+
+**Scope broadened vs the frozen design** (`Design_Audience_Status_v1 §4.2` scoped amplification to
+`ModifyVibeSpec` positives): the shipped layer is **helper-wide** and amplifies every source routed through
+`ApplyIncomingVibe` — cards, `AddVibeAction`, Earworm ticks, the SFX→FlatVibe stage bonus, and the song-end
+macro conversion (D-R1-1=A). Tuning moved to `MeterTuningSO.captivatedVibeBonusPerStack` (surfaced as
+`GigManager.CaptivatedVibeBonusPerStack`, const fallback on `AudienceCharacterStats`) rather than living on the
+stats class, mirroring the Flow→Vibe tuning pattern (D-R1-2=A).
+
+**Content:** **Wink** (Zig, Action, cost 0, `ApplyStatusEffect(captivated, +2, AudienceCharacter)`) authored
+into `Cantante_CardCatalogData`. Cantante's 7 legacy starter-flagged entries were set to `flags = None`
+(kept, not deleted — reversible, assets preserved; D-R1-4=A), leaving Wink as the catalog's sole starter entry.
+Both are unreachable from the demo build: the Cantante catalog is outside the demo band roster and
+`SetBandDeckFromMusicians` / `BuildRewardCardPool` are band-scoped — verified empirically by ST-R1-6, which
+turns the D1=C interleaving-safety argument from structural into observed.
+
+**Smokes:** ST-R1-1..6 PASS (application · amplification math and rounding, `5 → 8` at 2 stacks ·
+decay 2→1→0 with icon clear · Indifference precedence, blocked stays 0 · Earworm amplification `+2 → +3`
+confirming helper-wide scope · demo-inertness regression). Decisions **D-R1-1=A · D-R1-2=A · D-R1-3
+(`IsBuff = false`) · D-R1-4=A**.
+
+**Documentary side-effects:** `Design_Audience_Status_v1` becomes **fully superseded** (its last active
+section, §4, migrated); `SSoT_Status_Effects §5.7` corrected — the Earworm tick has routed through
+`ApplyIncomingVibe`, not `AddVibe` directly, since B3, and the doc had carried the stale claim since then;
+`SSoT_Audience_and_Reactions §10` gained Indifference, which had been live since B3 without ever being listed.
+
+Doc package `RosterExpansion_R1_Doc_Diffs_2026-07-23.md` — proposed, apply pending.
+
+---
+
+## 2026-07-23 — ROSTER-XP R0: starter deck v2 design closed (D-R0-1..12)
+
+**Type:** semantic + operational + structural. Design batch; **no code, no gameplay change,
+no smoke tests owed.** Live demo front (S5i → S5j on starter v1) untouched.
+
+R0 of the Roster Expansion campaign closed. Produced `planning/active/Design_Starter_Deck_v2.md`:
+a 4-musician identity map with tempo lean (closing the v1 §"Tempo-lean" placeholder — C2 the
+tempo-shifter, Sibi slow/hypnotic, Conito fast/opportunistic, Zig build-and-drop), a **22-card /
+18-unique** starter on a symmetric kit shape (2 composition + 1 action + 1 finisher per musician,
+plus 2 generics), a fully-populated **finisher layer** (Spotlight / Psychic Wave v2 / Overload /
+Double Harmony — one unique mechanic each, closing D-ECON-6=DEFER's designation gap), and a
+17-slot reward slate with soft paths per D5=A.
+
+Decisions **D-R0-1..12** locked (ledger: sub-roadmap §2). Notable: **D-R0-2=B** inverts
+D-STARTER-2=B — Compound Cycle (6/8) is promoted to starter and Waltz Protocol (3/4) demoted to
+reward pool (flags-only, 1:1 swap); **D-R0-5=A** puts Overload in the Action domain so it survives
+the final-loop composition lock (inv 11), with a rider recording that explicit Voltage generation
+needs no new spec (`ApplyStatusEffectSpec` over an SO-catalogue counter status); **D-R0-6=B**
+moves Push It / Half Time / Key Lift / Singing Field to the reward pool, which also defers the
+two-melody texture (Sibi keys hook + Zig sung melody) to an earned reward state; **D-R0-8=A**
+reserves the +INSP-per-level hook so the economy lever is not duplicated against Vamp / In the
+Pocket mid-S5i.
+
+Verifications resolved by code read (method recorded in v2 §7): **V1** structurally verified
+(full quality alphabet reaches voicing at both backing render sites and the melody chord-tone
+path; interval-table audit deferred to R7 smoke) · **V2 FAIL** — `Tonality` is the seven diatonic
+modes only, absorbed by an ALWTTT-side fallback (Andalusian progressions with explicit per-event
+qualities over Phrygian), **no ask triggered** · **V3** resolved (authored melody loops tile by
+raw beats to part length, meter mismatch warns, D-MEL5.1=A) · **V4** — the recorded gap was
+**partially stale**: backing honors `degreeAccidental` on both render paths, bass does not; the
+diatonic-root constraint stands for band-composition reasons and MGP ask §8 #4 narrows to
+bass-side parity · **V5** structurally verified (shared target list; `AllAudienceCharacters`
+excludes `IsBlocked` members — relevant to Psychic Wave v2's Earworm).
+
+`Design_Track_Card_Levels_v0_1.md` → **v0.2**: §7 open questions resolved (per-part lifetime, max
+3, discard-on-replace, level-up = normal composition play, badge + floater UI, no Action-card
+levels), §6 +INSP reserved, §3 corrected with the V1/V4 outcomes.
+
+Sub-roadmap updated: R0 row closed, R4 row expanded (Read the Room + Keep Cool retarget + V5
+smoke), coverage map completed (Zig's two UNDEFINED reward slots filled with Torch Song /
+Motor Mouth), §9 marked resolved, §10 collapsed, ask #4 narrowed, R1 rehydration prompt swapped in.
+
+Classification: semantic (Levels spec closure, card-list design truth) + operational (campaign
+batch state) + structural (new planning doc registered in `SSoT_INDEX` + manifest). **No SSoT
+authority moved.** Applied by batch `ROSTER-XP-R0-DOC`; `RosterExpansion_R0_Doc_Diffs_2026-07-23.md`
+retired on apply.
+
+---
+
 ## 2026-07-23 — ROSTER-XP planning: Roster Expansion campaign consolidated (R0–R8)
 
 **Type:** reference-only + operational/roadmap. Planning session; **no code, no gameplay

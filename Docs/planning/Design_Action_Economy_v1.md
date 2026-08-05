@@ -45,6 +45,14 @@ self-explanatory by watching the pips across one loop boundary
 (demo-readiness criterion of the batch).
 
 ## 7. Deferred / debt
+- **D12 — merge Sibi backing + bassline (CONT-B, 2026-07-31 — OPEN, deferred by user decision).**
+  Whether Sibi backing cards auto-emit his bass line. Session decision: **keep A (status quo)** —
+  the bass stays a separate card: a **player decision** and an economy lever. **B (merge)** is
+  documented as the open alternative: musically correct (pianist's left/right hand) and it sounded
+  better than solo piano in the CONT-B listening pass. Estimated cost of B, for when it is evaluated:
+  touches `SongCompositionUI` (two tracks per card), per-musician role assignment, and Sibi's card
+  economy; it is not a content change. Trade-off on record: merging converts a player decision into a
+  default.
 - Per-musician authoring of maxima (D-ECON-5 revisit) — e.g. a drummer with
   2 composition plays as identity.
 - Pip denial flash (polish; only logs for now).

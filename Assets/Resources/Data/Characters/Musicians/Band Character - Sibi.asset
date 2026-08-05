@@ -28,7 +28,9 @@ MonoBehaviour:
   profile:
     backingInstruments: 0400000008000000
     leadInstruments: 08000000
-    backingMelodicInstruments: []
+    backingMelodicInstruments:
+    - {fileID: 11400000, guid: adfb1dbd3048bbc43839e4c257e3d325, type: 2}
+    - {fileID: 11400000, guid: 17a59cd1626a18b4b8f9d0fc7a130891, type: 2}
     leadMelodicInstruments:
     - {fileID: 11400000, guid: 4d53fbfada235e84cb11a76e47e73dc0, type: 2}
     - {fileID: 11400000, guid: dcc3208fa1cdd654f9b8a121f594e5d1, type: 2}

@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static MidiGenPlay.MusicTheory.MusicTheory;
+using NoteName = Melanchall.DryWetMidi.MusicTheory.NoteName; // [CTX-1]
 
 namespace ALWTTT.DevMode
 {
@@ -127,6 +128,101 @@ namespace ALWTTT.DevMode
         private static MusicianTrackKey? _instPickOpenFor;
         private static Vector2 _instPickScroll;
 
+        // ---- [CTX-1] dev part-context override state (tonality / root) ----
+        // Mechanism mirrors CSV-2 (D-CSV-5=A): write the PartEntry fields
+        // SongConfigBuilder.FromUI already reads (tonality / rootNote /
+        // hasExplicitRootNote), record the pre-dev state on first touch for
+        // Clear-with-restore, and bump the override stamp so the part
+        // re-renders at next loop start. Tonality/root participate in
+        // partMeterHash, so the fresh render regenerates EVERY stem in the
+        // part -- same blast radius as a tonality card (D-H1=alpha), which is
+        // the point: this override auditions exactly what such a card does,
+        // without authoring one. hasExplicitRootNote is forced true while
+        // applied (otherwise FromUI rolls a random root and the audition is
+        // non-deterministic); the original flag is restored on Clear.
+        // Stomp detection: a Tonality/Modulation card writing the part after
+        // us makes the fields diverge from applied*; the record is dropped
+        // WITHOUT restoring -- card truth is newer (same rule as CSV-2).
+        // NOTE: the package may still realign tonality at render (ChordTrack
+        // step-2b) when the active progression's allowed tonalities exclude
+        // the requested one; the CSV-3 resolved-identity line surfaces that
+        // as "aligned from intent X" -- that visibility is a feature here,
+        // not a bug: it is the observable for tonalities-restriction tests.
+        private sealed class PartCtxRecord
+        {
+            public SongCompositionUI.PartEntry entry; // model-identity guard
+            public Tonality origTonality;
+            public NoteName origRoot;
+            public bool origHasExplicitRoot;
+            public Tonality appliedTonality;
+            public NoteName appliedRoot;
+        }
+        private static PartCtxRecord _devPartCtx;
+        private static bool _ctxOpen;
+        private static bool _ctxSeeded;   // steppers seeded once from the part
+        private static bool _ctxHold = true;  // [CTX-1b] re-assert across loops
+        private static int _ctxReassertCount;  // diagnostic: how often it reverted
+        private static Tonality _ctxTonality;
+        private static NoteName _ctxRoot;
+
+        // ---- [CTX-2b] dev articulation override state (clone plane) ----
+        // D-CTX2B-1=A: unlike CSV-2/CTX-1/CTX-2a there is NO model field
+        // SongConfigBuilder already reads — chordExpression / arpeggioRate
+        // live only inside the style bundle asset the card brought
+        // (BackingCardConfigSO / BasslineCardConfigSO). The override swaps
+        // TrackEntry.styleBundle for a runtime Instantiate() copy with the
+        // two fields mutated; the project asset is NEVER touched. Hash
+        // participation is automatic: ComputeHashFromTrackEntry keys the
+        // bundle by GetInstanceID(), so the clone is a new cache identity
+        // and Clear (restoring the original reference) returns the original
+        // identity — the pre-override stem replays bit-identical.
+        //
+        // HASH TRAP (why Apply mints a FRESH clone every time): mutating the
+        // live clone in place keeps its instance ID, trackInputsHash would
+        // not change, and the stem cache would replay stale bytes. Each
+        // Apply clones from the recorded ORIGINAL and destroys the previous
+        // clone immediately — safe because renders run synchronously at
+        // loop start on the main thread, OnGUI never overlaps one, and stem
+        // caches hold bytes, not SO references.
+        //
+        // Hold semantics (narrower than CTX-1b, per CTX-2b task 5): Hold
+        // re-asserts the clone ONLY when the model drifts back to the
+        // recorded ORIGINAL bundle. A DIFFERENT bundle means a new Backing/
+        // Bassline card played — the card always wins (CSV-2: release
+        // WITHOUT restore, destroy the clone). Re-asserting over a foreign
+        // bundle would resurrect the previous card's whole musical identity,
+        // far more than a two-field articulation override should do.
+        //
+        // Determinism (fila 14, resolved 2026-08-03): concrete figures are
+        // deterministic — the articulator is RNG-free (Backing composer SSoT
+        // §8.3). The Random sentinels roll per chord event on dedicated
+        // seed-derived substreams (§8.5): reproducible under a pinned seed.
+        // On a Bassline bundle the package may defensively degrade
+        // Random → Block if the bass roll is not wired; the resolved output
+        // is the observable.
+        private sealed class DevArticRecord
+        {
+            public SongCompositionUI.TrackEntry entry;  // model-identity guard
+            public TrackStyleBundleSO original;         // asset every clone derives from
+            public TrackStyleBundleSO clone;            // currently assigned runtime copy
+            public ChordExpressionType appliedExpr;
+            public ArpeggioRate appliedRate;
+            public int reassertCount;
+        }
+        private static readonly Dictionary<MusicianTrackKey, DevArticRecord>
+            _devArtic = new();
+        private sealed class ArticStepper
+        {
+            public ChordExpressionType expr;
+            public ArpeggioRate rate;
+        }
+        private static readonly Dictionary<MusicianTrackKey, ArticStepper>
+            _articSteppers = new();
+        private static bool _articOpen;
+        private static bool _articHold = true;   // CTX-1b convention: default ON
+        private static string _articNote = "";
+        private static object _articModelSeen;
+
         // Off-band annotation set (D-C2-2=A): assets reachable from the
         // part's assigned style bundles (direct override refs + palette
         // entries, per the DBG-2 display-metadata contract). Rebuilt when
@@ -148,6 +244,10 @@ namespace ALWTTT.DevMode
                 // [CSV-2] TrackEntry fields die with the model at song end;
                 // never let dev instrument records leak across songs.
                 if (_devInst.Count > 0) _devInst.Clear();
+                // [CTX-2b] Clones are runtime ScriptableObjects — destroy
+                // them at song boundary or they leak (records die with the
+                // model; the SOs would not).
+                if (_devArtic.Count > 0) ReleaseAllArtic(restore: false);
                 GUILayout.Label("No active CompositionSession (start a song).");
                 DrawLastRenderHeader(mm);
                 DrawResolvedIdentityLine(mm, null); // [CSV-3] last-known resolved identity
@@ -185,6 +285,15 @@ namespace ALWTTT.DevMode
             // [CSV-3] Resolved meter/tonality/root the render actually used.
             DrawResolvedIdentityLine(mm, partEntry);
 
+            DrawResolvedBpmLine(session, partEntry, partIndex);            // [CTX-2a] tarea 3
+            DrawTempoOverrideSection(session, ui, partEntry, partIndex);   // [CTX-2a] tarea 2
+
+            // ---- [CTX-1] part-context override (tonality / root) ----
+            DrawPartContextSection(partEntry);
+
+            // ---- [CTX-2b] articulation override (clone plane) ----
+            DrawArticulationSection(ui, partEntry, tracks);
+
             // ---- [DBG-C2] OVERRIDES ----
             DrawOverridesSection(session, mm, partEntry, tracks, partIndex);
             GUILayout.Space(4);
@@ -213,6 +322,14 @@ namespace ALWTTT.DevMode
                         && (ReferenceEquals(rec.applied, t.overrideMelodicInstrument)
                             || ReferenceEquals(rec.applied, t.overridePercussionInstrument)))
                         line += "  [dev-inst]";
+                    // [CTX-2b] same disambiguator rule as [dev-inst]: the
+                    // bundle swap is indistinguishable from card truth by
+                    // design; the suffix is applied tab-side only.
+                    if (t != null && !string.IsNullOrEmpty(t.musicianId)
+                        && _devArtic.TryGetValue(
+                            new MusicianTrackKey(t.musicianId, t.role), out var arec)
+                        && ReferenceEquals(arec.clone, t.styleBundle))
+                        line += "  [dev-artic]";
                     GUILayout.Label(line);
                 }
 
@@ -248,6 +365,150 @@ namespace ALWTTT.DevMode
             }
 
             DrawCatalogBrowse();
+        }
+
+        // ===============================================================
+        // [CTX-2a] Part tempo override (BPM) — patrón CTX-1 (steppers +
+        // Apply + Clear-con-restore + Hold across loops). Cero API nueva:
+        // escribe PartEntry.absoluteBpmOverride (que SongConfigBuilder ya
+        // lee) y manipula PartCache.resolvedBpm para saltar/restaurar el
+        // cortocircuito de BPM cacheado de PlaySinglePartLoop.
+        // ===============================================================
+        private class DevTempoRecord
+        {
+            public int? prevAbsBpm;       // normalmente null
+            public string prevTempoLabel;
+            public int prevResolvedBpm;  // 0 = no había caché pre-Apply
+            public int target;
+            public int reassertCount;
+        }
+        private static DevTempoRecord _tempoRec;
+        private static bool _tempoOpen;
+        private static bool _tempoHold = true;   // CTX-1b: default ON
+        private static int _tempoField = 90;
+        private static bool _tempoFieldSeeded;
+        private static string _tempoNote = "";
+        private static object _tempoModelSeen;
+
+        private static void DrawResolvedBpmLine(
+            CompositionSession session, SongCompositionUI.PartEntry part, int partIndex)
+        {
+            session.TryGetPartCache(partIndex, out var cache);
+            string res = (cache != null && cache.resolvedBpm > 0)
+                ? cache.resolvedBpm.ToString() : "—";
+            string exp = part?.absoluteBpmOverride?.ToString() ?? "null";
+            string rng = part != null ? part.tempoRangeOverride.ToString() : "-";
+            string scl = part != null ? part.tempoScale.ToString("0.##") : "-";
+            var style = new GUIStyle(GUI.skin.label) { fontSize = 11 };
+            GUILayout.Label(
+                $"BPM: resolved={res}  |  model: Explicit={exp}  " +
+                $"Range={rng}  Scale=×{scl}", style);
+        }
+
+        private static void DrawTempoOverrideSection(
+            CompositionSession session, ALWTTT.UI.SongCompositionUI ui,
+            SongCompositionUI.PartEntry part, int partIndex)
+        {
+            if (part == null) return;
+
+            // Guarda de identidad de modelo (CTX-1): canción nueva ⇒ soltar sin restaurar.
+            var modelNow = ui?.Model;
+            if (!ReferenceEquals(modelNow, _tempoModelSeen))
+            {
+                _tempoModelSeen = modelNow;
+                _tempoRec = null; _tempoFieldSeeded = false; _tempoNote = "";
+            }
+
+            session.TryGetPartCache(partIndex, out var cache);
+            int resolved = cache?.resolvedBpm ?? 0;
+            if (!_tempoFieldSeeded && resolved > 0)
+            { _tempoField = resolved; _tempoFieldSeeded = true; }
+
+            // Drift / pisado por carta (antes de dibujar estado).
+            if (_tempoRec != null && part.absoluteBpmOverride != _tempoRec.target)
+            {
+                string drifted = part.absoluteBpmOverride?.ToString() ?? "null";
+                if (_tempoHold)
+                {
+                    part.absoluteBpmOverride = _tempoRec.target;
+                    part.tempo = $"{_tempoRec.target} BPM [dev]";
+                    _tempoRec.reassertCount++;
+                    Debug.Log($"<color=orange>[CTX-2a]</color> Model tempo drifted to " +
+                        $"{drifted}; re-asserting {_tempoRec.target} BPM " +
+                        $"(count={_tempoRec.reassertCount}).");
+                }
+                else
+                {
+                    _tempoNote = $"(superseded by card — was {_tempoRec.target} BPM)";
+                    _tempoRec = null;   // CSV-2: soltar SIN restaurar; la carta es más reciente
+                }
+            }
+
+            _tempoOpen = GUILayout.Toggle(_tempoOpen, " Part tempo override (BPM)");
+            if (!_tempoOpen) return;
+
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Target BPM:", GUILayout.Width(80));
+                if (GUILayout.Button("-10", GUILayout.Width(36))) _tempoField -= 10;
+                if (GUILayout.Button("-5", GUILayout.Width(32))) _tempoField -= 5;
+                string txt = GUILayout.TextField(
+                    _tempoField.ToString(), GUILayout.Width(48));
+                if (int.TryParse(txt, out var typed)) _tempoField = typed;
+                if (GUILayout.Button("+5", GUILayout.Width(32))) _tempoField += 5;
+                if (GUILayout.Button("+10", GUILayout.Width(36))) _tempoField += 10;
+                _tempoField = Mathf.Clamp(_tempoField, 40, 300);
+            }
+
+            using (new GUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Apply", GUILayout.Width(60)))
+                {
+                    if (_tempoRec == null)
+                        _tempoRec = new DevTempoRecord
+                        {
+                            prevAbsBpm = part.absoluteBpmOverride,
+                            prevTempoLabel = part.tempo,
+                            prevResolvedBpm = resolved
+                        };
+                    _tempoRec.target = _tempoField;
+                    _tempoRec.reassertCount = 0;
+                    part.absoluteBpmOverride = _tempoField;
+                    part.tempo = $"{_tempoField} BPM [dev]";
+                    _tempoNote = "";
+                    // Soltar el cortocircuito: sin esto, el resolvedBpm cacheado
+                    // gana y el override del modelo jamás se lee (keepTempo:true
+                    // en la invalidación por stamp preserva el 0 que dejamos).
+                    if (cache != null) cache.resolvedBpm = 0;
+                    CompositionSession.DevBumpOverrideStamp();
+                    Debug.Log($"<color=lime>[CTX-2a]</color> Tempo override " +
+                        $"{_tempoField} BPM applied to part {partIndex}; " +
+                        $"renders next loop.");
+                }
+                if (_tempoRec != null && GUILayout.Button("Clear", GUILayout.Width(60)))
+                {
+                    part.absoluteBpmOverride = _tempoRec.prevAbsBpm;  // null si era null
+                    part.tempo = _tempoRec.prevTempoLabel;
+                    // Restauración audible exacta: reescribir el BPM pre-Apply en la
+                    // caché (la invalidación por stamp lo preserva y lo reutiliza).
+                    // 0 ⇒ no había caché ⇒ sorteo fresco de banda, como antes.
+                    session.GetOrCreatePartCache(partIndex).resolvedBpm =
+                        _tempoRec.prevResolvedBpm;
+                    CompositionSession.DevBumpOverrideStamp();
+                    Debug.Log($"<color=lime>[CTX-2a]</color> Tempo override cleared; " +
+                        $"restored Explicit=" +
+                        $"{_tempoRec.prevAbsBpm?.ToString() ?? "null"}, " +
+                        $"resolvedBpm={_tempoRec.prevResolvedBpm}.");
+                    _tempoRec = null;
+                }
+                _tempoHold = GUILayout.Toggle(_tempoHold, " Hold across loops");
+            }
+
+            string state = _tempoRec != null
+                ? $"ACTIVE → {_tempoRec.target} BPM  (reasserts={_tempoRec.reassertCount})"
+                : "inactive";
+            GUILayout.Label($"Override: {state}  {_tempoNote}",
+                new GUIStyle(GUI.skin.label) { fontSize = 11 });
         }
 
         // ===============================================================
@@ -472,11 +733,14 @@ namespace ALWTTT.DevMode
                               $"(seed={session.DevSongSeed?.ToString() ?? "unpinned"}).");
                 }
                 if ((CompositionSession.DevPatternOverrides.Count > 0
-                     || _devInst.Count > 0) &&
+                     || _devInst.Count > 0 || _devPartCtx != null
+                     || _devArtic.Count > 0) && // [CTX-1] [CTX-2b]
                     GUILayout.Button("Clear ALL overrides", GUILayout.Width(140)))
                 {
                     ClearAllOverrides();
                     ClearAllInstrumentOverrides(session, tracks, partIndex); // [CSV-2]
+                    ClearPartContext(partEntry); // [CTX-1]
+                    ReleaseAllArtic(restore: true, tracks); // [CTX-2b]
                 }
             }
             if (!CompositionSession.DevInfiniteCompositionLoop)
@@ -682,6 +946,507 @@ namespace ALWTTT.DevMode
             }
             _romanWarnings.Clear();
             Debug.Log("<color=lime>[DBG-C2]</color> All overrides cleared.");
+        }
+
+        // ===============================================================
+        // [CTX-1] Part-context override (tonality / root)
+        // ===============================================================
+
+        private static void DrawPartContextSection(
+            SongCompositionUI.PartEntry partEntry)
+        {
+            if (partEntry == null) return;
+
+            // Model-rebuild guard: a new song rebuilds the model, so the
+            // record would point at a dead PartEntry. Drop it -- there is
+            // nothing valid to restore onto; the new model carries authored
+            // intent already.
+            if (_devPartCtx != null && !ReferenceEquals(_devPartCtx.entry, partEntry))
+                _devPartCtx = null;
+
+            // [CTX-1b] Sticky re-assert. Observed: the model reverts the part
+            // to its authored/card tonality on the NEXT loop, so a one-shot
+            // write only survives one render. With Hold ON the tab re-writes
+            // its values whenever the model has drifted away from them, and
+            // logs the drift once per occurrence so the reverting mechanism
+            // can be identified. Consequence (documented, not a bug): while
+            // Hold is ON the dev override WINS over a tonality card -- card-
+            // stomp detection only applies with Hold OFF.
+            bool drifted = _devPartCtx != null &&
+                (partEntry.tonality != _devPartCtx.appliedTonality
+                 || partEntry.rootNote != _devPartCtx.appliedRoot);
+
+            if (drifted && _ctxHold)
+            {
+                _ctxReassertCount++;
+                Debug.Log($"<color=lime>[CTX-1b]</color> Model drifted to " +
+                          $"Tonality={partEntry.tonality} Root={partEntry.rootNote}; " +
+                          $"re-asserting dev values (Tonality={_devPartCtx.appliedTonality} " +
+                          $"Root={_devPartCtx.appliedRoot}). Re-asserts this session: " +
+                          $"{_ctxReassertCount}.");
+                partEntry.tonality = _devPartCtx.appliedTonality;
+                partEntry.rootNote = _devPartCtx.appliedRoot;
+                partEntry.hasExplicitRootNote = true;
+                CompositionSession.DevBumpOverrideStamp();
+                drifted = false;
+            }
+
+            // Card-stomp detection (D-CSV-5=A semantics), Hold OFF only: a
+            // Tonality or Modulation card wrote the part after us. Drop
+            // without restore; show a notice below.
+            bool superseded = drifted;
+            if (superseded)
+                _devPartCtx = null;
+
+            _ctxOpen = GUILayout.Toggle(_ctxOpen,
+                " Part context override (tonality / root)");
+            if (!_ctxOpen)
+            {
+                if (superseded)
+                    GUILayout.Label("  (part-context override superseded by card)",
+                        new GUIStyle(GUI.skin.label) { fontSize = 10, fontStyle = FontStyle.Italic });
+                return;
+            }
+
+            if (!_ctxSeeded)
+            {
+                _ctxTonality = partEntry.tonality;
+                _ctxRoot = partEntry.rootNote;
+                _ctxSeeded = true;
+            }
+
+            string tag = _devPartCtx != null ? "  [dev-ctx]"
+                       : superseded ? "  (superseded by card)" : "  (model intent)";
+            GUILayout.Label(
+                $"Part: Tonality={partEntry.tonality}  Root={partEntry.rootNote}{tag}");
+
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Tonality:", GUILayout.Width(60));
+                var tonValues = (Tonality[])Enum.GetValues(typeof(Tonality));
+                int ti = Array.IndexOf(tonValues, _ctxTonality);
+                if (GUILayout.Button("<", GUILayout.Width(22)))
+                    _ctxTonality = tonValues[(ti - 1 + tonValues.Length) % tonValues.Length];
+                GUILayout.Label(_ctxTonality.ToString(), GUILayout.Width(90));
+                if (GUILayout.Button(">", GUILayout.Width(22)))
+                    _ctxTonality = tonValues[(ti + 1) % tonValues.Length];
+
+                GUILayout.Label("Root:", GUILayout.Width(38));
+                var rootValues = (NoteName[])Enum.GetValues(typeof(NoteName));
+                int ri = Array.IndexOf(rootValues, _ctxRoot);
+                if (GUILayout.Button("<", GUILayout.Width(22)))
+                    _ctxRoot = rootValues[(ri - 1 + rootValues.Length) % rootValues.Length];
+                GUILayout.Label(_ctxRoot.ToString(), GUILayout.Width(60));
+                if (GUILayout.Button(">", GUILayout.Width(22)))
+                    _ctxRoot = rootValues[(ri + 1) % rootValues.Length];
+            }
+
+            using (new GUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Apply (re-renders at next loop start)",
+                        GUILayout.Width(250)))
+                    ApplyPartContext(partEntry);
+                _ctxHold = GUILayout.Toggle(_ctxHold, " Hold across loops",
+                        GUILayout.Width(140));
+                if (_devPartCtx != null &&
+                    GUILayout.Button("Clear (restore)", GUILayout.Width(110)))
+                    ClearPartContext(partEntry);
+            }
+        }
+
+        private static void ApplyPartContext(SongCompositionUI.PartEntry partEntry)
+        {
+            if (partEntry == null) return;
+
+            if (_devPartCtx == null)
+            {
+                _devPartCtx = new PartCtxRecord
+                {
+                    entry = partEntry,
+                    origTonality = partEntry.tonality,
+                    origRoot = partEntry.rootNote,
+                    origHasExplicitRoot = partEntry.hasExplicitRootNote,
+                };
+            }
+
+            partEntry.tonality = _ctxTonality;
+            partEntry.rootNote = _ctxRoot;
+            // Without this, SongConfigBuilder.FromUI rolls a random root when
+            // the model never set one explicitly -- the audition would not be
+            // reproducible even under a pinned seed.
+            partEntry.hasExplicitRootNote = true;
+
+            _devPartCtx.appliedTonality = _ctxTonality;
+            _devPartCtx.appliedRoot = _ctxRoot;
+
+            // partMeterHash changes with tonality/root, so the cache misses on
+            // its own; the stamp bump additionally forces the re-render at the
+            // next loop start through the same path the pattern overrides use.
+            CompositionSession.DevBumpOverrideStamp();
+            Debug.Log($"<color=lime>[CTX-1]</color> Part context override: " +
+                      $"Tonality={_ctxTonality} Root={_ctxRoot} " +
+                      "(applies at next loop start; every stem regenerates).");
+        }
+
+        private static void ClearPartContext(SongCompositionUI.PartEntry partEntry)
+        {
+            if (_devPartCtx == null) return;
+            if (partEntry != null && ReferenceEquals(_devPartCtx.entry, partEntry))
+            {
+                partEntry.tonality = _devPartCtx.origTonality;
+                partEntry.rootNote = _devPartCtx.origRoot;
+                partEntry.hasExplicitRootNote = _devPartCtx.origHasExplicitRoot;
+                CompositionSession.DevBumpOverrideStamp();
+                Debug.Log("<color=lime>[CTX-1]</color> Part context restored: " +
+                          $"Tonality={partEntry.tonality} Root={partEntry.rootNote} " +
+                          $"hasExplicitRoot={partEntry.hasExplicitRootNote}.");
+            }
+            _devPartCtx = null;
+            _ctxSeeded = false; // re-seed steppers from the restored part
+            _ctxReassertCount = 0;
+        }
+
+        // ===============================================================
+        // [CTX-2b] Articulation override (chordExpression / arpeggioRate)
+        // — D-CTX2B-1=A clone plane. Rationale block at the state fields.
+        // ===============================================================
+
+        private static void DrawArticulationSection(
+            ALWTTT.UI.SongCompositionUI ui,
+            SongCompositionUI.PartEntry partEntry,
+            List<SongCompositionUI.TrackEntry> tracks)
+        {
+            if (partEntry == null) return;
+
+            // Model-identity guard (CTX-1 rule): a new song rebuilds the
+            // model; records point at dead TrackEntries. Nothing valid to
+            // restore onto — destroy clones, drop everything.
+            var modelNow = ui?.Model;
+            if (!ReferenceEquals(modelNow, _articModelSeen))
+            {
+                _articModelSeen = modelNow;
+                ReleaseAllArtic(restore: false);
+                _articNote = "";
+            }
+
+            // Drift / stomp pass, before drawing state.
+            if (_devArtic.Count > 0 && tracks != null)
+            {
+                List<MusicianTrackKey> drop = null;
+                foreach (var kv in _devArtic)
+                {
+                    var rec = kv.Value;
+                    var t = FindTrack(tracks, kv.Key);
+                    if (t == null || !ReferenceEquals(t, rec.entry))
+                    {
+                        // Dead/replaced TrackEntry: destroy, drop.
+                        SafeDestroy(rec.clone);
+                        (drop ??= new List<MusicianTrackKey>()).Add(kv.Key);
+                        continue;
+                    }
+
+                    if (ReferenceEquals(t.styleBundle, rec.clone)) continue; // healthy
+
+                    if (ReferenceEquals(t.styleBundle, rec.original))
+                    {
+                        // Model reverted to the ORIGINAL asset (CTX-1b-style
+                        // drift). Hold ON: re-assert the clone.
+                        if (_articHold)
+                        {
+                            t.styleBundle = rec.clone;
+                            rec.reassertCount++;
+                            CompositionSession.DevBumpOverrideStamp();
+                            Debug.Log("<color=orange>[CTX-2b]</color> Model reverted " +
+                                $"{kv.Key.MusicianId}:{kv.Key.Role} to its original bundle; " +
+                                $"re-asserting dev clone ({rec.appliedExpr}/{rec.appliedRate}). " +
+                                $"Re-asserts: {rec.reassertCount}.");
+                        }
+                        else
+                        {
+                            _articNote = $"({kv.Key.MusicianId}:{kv.Key.Role} released — " +
+                                         "model reverted to original)";
+                            SafeDestroy(rec.clone);
+                            (drop ??= new List<MusicianTrackKey>()).Add(kv.Key);
+                        }
+                    }
+                    else
+                    {
+                        // FOREIGN bundle: a new Backing/Bassline card played.
+                        // CSV-2 semantics regardless of Hold: release WITHOUT
+                        // restore — card truth is newer. (Re-asserting here
+                        // would override the new card's entire musical
+                        // identity, not just two articulation fields.)
+                        _articNote = $"({kv.Key.MusicianId}:{kv.Key.Role} superseded by card)";
+                        SafeDestroy(rec.clone);
+                        (drop ??= new List<MusicianTrackKey>()).Add(kv.Key);
+                        Debug.Log("<color=orange>[CTX-2b]</color> Articulation override on " +
+                            $"{kv.Key.MusicianId}:{kv.Key.Role} superseded by a new card " +
+                            "bundle; clone destroyed, nothing restored.");
+                    }
+                }
+                if (drop != null) foreach (var k in drop) _devArtic.Remove(k);
+            }
+
+            _articOpen = GUILayout.Toggle(_articOpen,
+                " Articulation override (chordExpression / arpeggioRate)");
+            var small = new GUIStyle(GUI.skin.label)
+            { fontSize = 10, fontStyle = FontStyle.Italic };
+            if (!_articOpen)
+            {
+                if (!string.IsNullOrEmpty(_articNote))
+                    GUILayout.Label("  " + _articNote, small);
+                return;
+            }
+
+            bool any = false;
+            if (tracks != null)
+                foreach (var t in tracks)
+                {
+                    if (t == null || string.IsNullOrEmpty(t.musicianId)) continue;
+                    if (!TryGetArtic(t.styleBundle, out var curExpr, out var curRate))
+                        continue; // only Backing/Bassline bundles carry the fields
+                    any = true;
+                    DrawArticRow(t, curExpr, curRate, small);
+                }
+            if (!any)
+                GUILayout.Label("  (no Backing/Bassline style bundles in this part — " +
+                                "nothing to articulate)");
+
+            using (new GUILayout.HorizontalScope())
+            {
+                _articHold = GUILayout.Toggle(_articHold, " Hold across loops",
+                    GUILayout.Width(140));
+                GUILayout.Label("(hold guards reversion to the ORIGINAL only; " +
+                    "a new card always wins)", small);
+            }
+            // Leak observable for ST-CTX2B-4: exactly one live clone per record.
+            if (_devArtic.Count > 0)
+                GUILayout.Label($"  live dev clones: {_devArtic.Count}", small);
+            if (!string.IsNullOrEmpty(_articNote))
+                GUILayout.Label("  " + _articNote, small);
+        }
+
+        private static void DrawArticRow(SongCompositionUI.TrackEntry t,
+            ChordExpressionType curExpr, ArpeggioRate curRate, GUIStyle small)
+        {
+            var key = new MusicianTrackKey(t.musicianId, t.role);
+            bool active = _devArtic.TryGetValue(key, out var rec)
+                          && ReferenceEquals(t.styleBundle, rec.clone);
+
+            if (!_articSteppers.TryGetValue(key, out var st))
+                _articSteppers[key] = st =
+                    new ArticStepper { expr = curExpr, rate = curRate };
+
+            // [CTX-2b] The clone's instance ID is the hash-trap observable:
+            // every Apply must mint a NEW id, or the stem cache would replay
+            // stale bytes. Surfaced here rather than log-only — the
+            // [stemCache][DIAG] spam buries the Apply line (finding, ST-3).
+            string tag = active
+                ? $"  [dev-artic id={rec.clone.GetInstanceID()} ×{rec.reassertCount}]"
+                : "  (card truth)";
+            GUILayout.Label(
+                $"{t.role}[{t.musicianId}]  bundle={t.styleBundle.name}: " +
+                $"expr={curExpr}  rate={curRate}{tag}",
+                new GUIStyle(GUI.skin.label) { fontSize = 11 });
+
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Expr:", GUILayout.Width(40));
+                var exprValues =
+                    (ChordExpressionType[])Enum.GetValues(typeof(ChordExpressionType));
+                int ei = Array.IndexOf(exprValues, st.expr);
+                if (GUILayout.Button("<", GUILayout.Width(22)))
+                    st.expr = exprValues[(ei - 1 + exprValues.Length) % exprValues.Length];
+                GUILayout.Label(st.expr.ToString(), GUILayout.Width(92));
+                if (GUILayout.Button(">", GUILayout.Width(22)))
+                    st.expr = exprValues[(ei + 1) % exprValues.Length];
+
+                GUILayout.Label("Rate:", GUILayout.Width(38));
+                var rateValues = (ArpeggioRate[])Enum.GetValues(typeof(ArpeggioRate));
+                int ri = Array.IndexOf(rateValues, st.rate);
+                if (GUILayout.Button("<", GUILayout.Width(22)))
+                    st.rate = rateValues[(ri - 1 + rateValues.Length) % rateValues.Length];
+                GUILayout.Label(st.rate.ToString(), GUILayout.Width(72));
+                if (GUILayout.Button(">", GUILayout.Width(22)))
+                    st.rate = rateValues[(ri + 1) % rateValues.Length];
+
+                if (GUILayout.Button("Apply", GUILayout.Width(56)))
+                    ApplyArtic(t, key, st);
+                if (active && GUILayout.Button("Clear (restore)", GUILayout.Width(110)))
+                    ClearArtic(t, key);
+            }
+
+            // Read-only hints. Rate is consumed by arpeggio (and, package-side,
+            // chugging-family) figures only — everything else ignores it.
+            // Stated in the UI because the silence is otherwise indistinguishable
+            // from a broken Apply: the render IS fresh, the field just is not
+            // read (ChordExpressionType.cs, ArpeggioRate doc).
+            bool rateConsumed = st.expr == ChordExpressionType.ArpeggioUp
+                             || st.expr == ChordExpressionType.ArpeggioDown
+                             || st.expr == ChordExpressionType.Chugging
+                             || st.expr == ChordExpressionType.Random;
+            if (!rateConsumed && st.rate == ArpeggioRate.Random)
+            {
+                // OBSERVED behaviour (ST-CTX2B-2b, 2026-08-03), NOT the
+                // documented contract — F-ARTIC-RATE-RANDOM-1. The composer
+                // SSoT §8.5 states the rate sentinel resolves on a dedicated
+                // substream and cannot affect figure selection; measured,
+                // rate=Random suppresses a concrete figure entirely (render
+                // is fresh, hash moves, output sounds un-articulated).
+                // The tool WARNS but never coerces the value: a real card can
+                // be authored this way, and auditing what the card actually
+                // does is the whole point of the tab.
+                var warn = new GUIStyle(GUI.skin.label)
+                { fontSize = 10, fontStyle = FontStyle.Italic };
+                warn.normal.textColor = Color.yellow;
+                GUILayout.Label(
+                    $"  WARNING F-ARTIC-RATE-RANDOM-1 (observed): rate=Random " +
+                    $"suppresses {st.expr}. The render IS fresh — the figure is " +
+                    "being dropped package-side. Pick a concrete rate to audition it.",
+                    warn);
+            }
+            else if (!rateConsumed)
+            {
+                GUILayout.Label($"  (per contract, rate is inert for {st.expr} — only " +
+                                "Arpeggio*/Chugging consume it)", small);
+            }
+
+            if (st.expr == ChordExpressionType.Random)
+            {
+                if (t.styleBundle is BackingCardConfigSO bk)
+                    GUILayout.Label(
+                        $"  Random pool: rerollChance={bk.randomRerollChance:0.##}  " +
+                        $"weights={(bk.randomFigureWeights?.Count ?? 0)} " +
+                        "— per-chord roll, deterministic under pinned seed (§8.5)", small);
+                else if (t.styleBundle is BasslineCardConfigSO)
+                    GUILayout.Label(
+                        "  NOTE: package may degrade Random → Block on bass if the " +
+                        "bass roll is not wired — the resolved output is the observable.",
+                        small);
+            }
+        }
+
+        private static void ApplyArtic(SongCompositionUI.TrackEntry t,
+            MusicianTrackKey key, ArticStepper st)
+        {
+            if (t?.styleBundle == null) return;
+
+            if (!_devArtic.TryGetValue(key, out var rec))
+                _devArtic[key] = rec = new DevArticRecord
+                {
+                    entry = t,
+                    // First touch: whatever the track carries IS card truth.
+                    original = t.styleBundle,
+                };
+
+            // HASH TRAP: fresh clone per Apply (see state-block rationale).
+            // Cloning from the ORIGINAL, not the previous clone, keeps every
+            // non-articulation field authored-truth by construction.
+            var fresh = UnityEngine.Object.Instantiate(rec.original);
+            fresh.name = rec.original.name + " [dev-artic]";
+            fresh.hideFlags = HideFlags.DontSave; // runtime-only, never persisted
+            SetArtic(fresh, st.expr, st.rate);
+
+            var old = rec.clone;
+            t.styleBundle = fresh;   // reassign FIRST, then destroy the orphan
+            rec.clone = fresh;
+            rec.appliedExpr = st.expr;
+            rec.appliedRate = st.rate;
+            rec.reassertCount = 0;
+            SafeDestroy(old);
+
+            _articNote = "";
+            CompositionSession.DevBumpOverrideStamp();
+            Debug.Log("<color=lime>[CTX-2b]</color> Articulation override on " +
+                $"{key.MusicianId}:{key.Role}: expr={st.expr} rate={st.rate} " +
+                $"(fresh clone id={fresh.GetInstanceID()}; new trackInputsHash; " +
+                "renders at next loop start).");
+        }
+
+        private static void ClearArtic(SongCompositionUI.TrackEntry t,
+            MusicianTrackKey key)
+        {
+            if (!_devArtic.TryGetValue(key, out var rec)) return;
+            if (t != null && ReferenceEquals(rec.entry, t)
+                && ReferenceEquals(t.styleBundle, rec.clone))
+            {
+                // Original instance ID back ⇒ original trackInputsHash ⇒ the
+                // pre-override stem replays bit-identical under a pinned seed.
+                t.styleBundle = rec.original;
+                CompositionSession.DevBumpOverrideStamp();
+                Debug.Log("<color=lime>[CTX-2b]</color> Articulation override cleared on " +
+                    $"{key.MusicianId}:{key.Role}; original bundle restored " +
+                    $"(id={rec.original.GetInstanceID()}).");
+            }
+            SafeDestroy(rec.clone);
+            _devArtic.Remove(key);
+            _articSteppers.Remove(key);
+        }
+
+        private static void ReleaseAllArtic(bool restore,
+            List<SongCompositionUI.TrackEntry> tracks = null)
+        {
+            if (_devArtic.Count == 0) return;
+            foreach (var kv in _devArtic)
+            {
+                var rec = kv.Value;
+                if (restore && tracks != null)
+                {
+                    var t = FindTrack(tracks, kv.Key);
+                    if (t != null && ReferenceEquals(rec.entry, t)
+                        && ReferenceEquals(t.styleBundle, rec.clone))
+                        t.styleBundle = rec.original;
+                }
+                SafeDestroy(rec.clone);
+            }
+            if (restore) CompositionSession.DevBumpOverrideStamp();
+            _devArtic.Clear();
+            _articSteppers.Clear();
+        }
+
+        private static SongCompositionUI.TrackEntry FindTrack(
+            List<SongCompositionUI.TrackEntry> tracks, MusicianTrackKey key)
+        {
+            foreach (var t in tracks)
+                if (t != null && t.musicianId == key.MusicianId && t.role == key.Role)
+                    return t;
+            return null;
+        }
+
+        private static bool TryGetArtic(TrackStyleBundleSO b,
+            out ChordExpressionType expr, out ArpeggioRate rate)
+        {
+            switch (b)
+            {
+                case BackingCardConfigSO bk:
+                    expr = bk.chordExpression; rate = bk.arpeggioRate; return true;
+                case BasslineCardConfigSO bs:
+                    expr = bs.chordExpression; rate = bs.arpeggioRate; return true;
+                default:
+                    expr = default; rate = default; return false;
+            }
+        }
+
+        private static void SetArtic(TrackStyleBundleSO b,
+            ChordExpressionType expr, ArpeggioRate rate)
+        {
+            switch (b)
+            {
+                case BackingCardConfigSO bk:
+                    bk.chordExpression = expr; bk.arpeggioRate = rate; break;
+                case BasslineCardConfigSO bs:
+                    bs.chordExpression = expr; bs.arpeggioRate = rate; break;
+            }
+        }
+
+        private static void SafeDestroy(UnityEngine.Object o)
+        {
+            if (o == null) return;
+            // Immediate destroy is safe here: renders run synchronously at
+            // loop start on the main thread, OnGUI never overlaps one, and
+            // after reassignment nothing dereferences the orphan (stem
+            // caches hold bytes, not SO refs).
+            UnityEngine.Object.Destroy(o);
         }
 
         // ===============================================================

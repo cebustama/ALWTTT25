@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d9e0b206e03e6141921e6beea255478, type: 3}
+  m_Name: PhrasePalette_Showtime
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.Phrases.PhrasePaletteSO
+  archetypes:
+  - archetype: {fileID: 11400000, guid: 0d44ddaf68406a74e903fd13c5175b56, type: 2}
+    weight: 0.25
+  - archetype: {fileID: 11400000, guid: 30d03b7c8b658ae419fc3f6fb71802f9, type: 2}
+    weight: 0.2
+  - archetype: {fileID: 11400000, guid: 332fd5fc3a32b1d4d9de7d67c0fb90d8, type: 2}
+    weight: 0.25
+  - archetype: {fileID: 11400000, guid: c6747e6abee224e4889c3a0aa0fcedb7, type: 2}
+    weight: 0.15
+  - archetype: {fileID: 11400000, guid: 5add0b8d855278246a02ba2984de17fe, type: 2}
+    weight: 0.15
+  defaultContourBias: 0
+  allowCrossChordPhrases: 0

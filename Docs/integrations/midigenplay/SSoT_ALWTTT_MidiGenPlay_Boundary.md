@@ -288,3 +288,196 @@ The D-CSV-18 listening verdicts (currently **blocked** by CSV-3 / D-MEL-1) are t
 - **D-BAL-8=A** — the `MixGainProfileSO` is resolved from a **serialized field on `GigManager`** (one profile, whole game), next to `audioMix`. A per-encounter `GigRunContext.RunConfig` override was the alternative; trivially movable later if needed.
 
 **Implementation — BAL-1, CLOSED 2026-07-22.** `MixGainProfileSO` (content SO, `Assets/Scripts/Data/Audio/`); gig-start resolution in `GigManager.StartGig` → `MidiMusicManager.SetGigMixGains`; `mixGains:` threaded into the per-part `GenerateSinglePart` call; gain folded into `ComputeHashFromTrackEntry` (stem + bundle keys); `appliedCc7ByTrack` readback surfaced (incl. bundle-cache replay); Dev Mode → Audio Mix gains section + live-composed CC7 strip. Smoke 1–7 green on 1.2.0 (byte identity ungained; gain=1.0 identity CC7=100; gain=0 mute-without-delete; plane composition ~0.25 / ~50 at live 1.0; start-race F-MPTK-2 regression; Rhythm warn+ignore; cache replay after gain change).
+
+---
+
+### 8.4 MGP-ALWTTT-BASS fidelity trio — RESOLVED package-side before filing (2026-07-28)
+
+The three bass-fidelity items registered at campaign planning as future asks
+(`planning/active/RosterExpansion_Sub_Roadmap.md` §8 #1–#3, under **D3=A**: "Conito bass ships
+v1 approximations now; the fidelity items are MidiGenPlay asks") were **delivered by MidiGenPlay
+before ALWTTT filed them**. The cross-boundary response dated **2026-07-28** invalidated the
+ALWTTT-side mirror of the bass surface. Recorded here so the non-filing is traceable and the
+trio is not re-derived as open.
+
+**Delivered surface (`BasslineCardConfigSO`, package-owned, all additive with BC defaults):**
+
+| Ask (was) | Delivered as | ALWTTT adoption |
+|---|---|---|
+| #1 Bass chord-tone walk | `arpeggioToneMode` = `RepeatedNote` (default) / `ChordToneWalk` / `ImprovisedWalk` | **Adopted R2** — Finger Bass v1: `ArpeggioUp` + `arpeggioRate = PerBeat` + `ChordToneWalk` (**D-R2-4=A**) |
+| #2 Bass pocket-coupling | `pocketMode = SlapPocket` + POCKET-2 refinements (`pocketSlapBoost`, `pocketPopBoost`, `pocketCustomLanes`, `pocketSlapLanes`, `pocketPopLanes`) | **Not adopted in this form.** Superseded for ALWTTT's use case by `SelfPocket` — see §8.6 |
+| #3 Bossa bass/upper split | `ChordExpressionType.BassUpperSplit` | **Not adopted.** Consumer is the R8 *Bossa Corda* reward card |
+
+**Naming trap — normative for card authors.** `ChordExpressionType` reads `Block, PerBeat,
+Offbeat, Staccato, ArpeggioUp, ArpeggioDown, Random, PowerChord, Chugging, BassUpperSplit,
+Bossa`. The member named **`Bossa` is NOT the register-selective split** — it designates a
+different figure. The split delivered for ask #3 is **`BassUpperSplit`**. Authoring `Bossa`
+expecting a split imports cleanly and sounds wrong.
+
+**Conditional consumer duty — pocket coupling and the cache key.** `SlapPocket` makes the bass
+line's rendered bytes depend on the **Rhythm track's resolved pattern**, which the Bassline
+`trackInputsHash` does not include. **If any ALWTTT bundle sets `pocketMode = SlapPocket`, the
+bass track's hash must be extended with the resolved Rhythm pattern inputs in the same batch**,
+or the cache can replay a bass stem rendered against a since-replaced drum pattern.
+
+**Status of that duty: DORMANT.** ALWTTT's slap content uses `SelfPocket` (§8.6), which reads no
+other track and therefore does not trigger it. The duty re-arms the moment any bundle selects
+`SlapPocket` — or a future `Auto` mode that falls back to rhythm coupling when a Rhythm track is
+present (registered as a design idea 2026-07-31; **not requested**, precisely because it would
+re-arm this duty and cost a consumer-side batch, not just a package enum member).
+
+**One package behavior ALWTTT must not assume away:** `RomanProgressionParser` does **not** fail
+on an unknown quality suffix — it warns and infers a diatonic quality. Any pipeline treating
+"the import succeeded" as "the content is what I asked for" is wrong; warnings must be read.
+
+**Package-side content defect, accepted (D-R2-5=A).** GM Slap Bass 1/2 are authored
+`octaveMin = 1` / `octaveMax = 3` (roots C0–B1), which reads muddy. Corrected in MidiGenPlay's
+content phase B. R2 closed with this as a known state rather than blocking. **Materially reduced
+by the `SelfPocket` adoption** — the pop hits at +12 restore register contrast, so the timbre
+distinction no longer depends on the muddy low octave.
+
+**Melody, for the record (R3 input, no change):** `MelodyPatternData` remains
+`(degree, octaveOffset)` and is **not** chord-aware; **D-MEL5.1=A** stands. Sub-roadmap §8 ask #5
+remains open, owned by R8.
+
+---
+
+### 8.5 MGP-ALWTTT-BASS-SOLO-1 — host default progression for backing-less parts — ADOPTED (R2c, 2026-07-30)
+
+**Package side (delivered, D-SOLO-SRC=A / D-SOLO-SURF=A2).** The shared progression channel had
+exactly two publishers: the backing composer and the authored fallback
+`SongOrchestrator.FindProgressionForPart` (which reads the **Backing** track's `Pattern`). A part
+holding a Bassline / Melody / Harmony row and **no Backing row** therefore had no harmony source
+at all, and the consumer rendered **silence by rule** — `ctx.GetProgressionForPart(part) ??
+cfg.Parameters.Pattern`, null ⇒ empty `MidiFile`. `GenerateSinglePart` accepts a trailing
+optional `ChordProgressionData defaultProgression`, pre-seeded into the per-render shared cache
+before the track loop, so every harmony consumer sees it through the normal channel.
+
+**Ownership is unchanged by adoption.** The bass still owns no harmony. `BasslineCardConfigSO`
+gains **no** harmonic field, and the D-DBG4=A warn+ignore on a Bassline `patternOverride` stands.
+The parameter is a **host channel into shared state**, not a bass surface.
+
+**ALWTTT side (R2c, D-R2-6=B).** `MidiMusicManager` holds a serialized
+`ChordProgressionPaletteSO defaultProgressionPalette` and resolves one progression per render
+inside `RenderSinglePart`, before the cache-key computation:
+
+- **A palette, not a single progression (D-R2-6=B).** `PickRandomProgression` (weighted,
+  `cloneResult = true` — the asset is never mutated) gives minimum harmonic variety from a
+  surface that already existed.
+- **Determinism.** Seeded from `(seedOverride, partIndex)`, where `seedOverride` is the per-song
+  render seed (§10, D-S5gb-2=B: one seed per song, stable Begin→End). Stable within a song — so
+  caches stay coherent and a re-render replays the same harmony — and varied across songs.
+  `CompositionSession` needed no change; the seed was already threaded.
+- **Applicability guard — REWRITTEN at R2d.** The original R2c guard was "part has a harmony
+  consumer **and no Backing track**", mirroring the package's D-SOLO-GUARD=A. That proxy is
+  **retired**: since ORDER-1 (§8.6) the package sniffs whether the Backing row actually *carries*
+  a harmony source, so Backing and a live default can now coexist. ALWTTT passes the default
+  whenever the part has **any** harmony consumer (**including Backing**) and a palette is
+  assigned, and lets the package's sniff decide. ALWTTT deliberately does **not** replicate that
+  sniff client-side — it just changed once; duplicating it guarantees drift.
+- **Cache participation.** See DIFF-R2-3.
+- **Inertness.** Palette unassigned ⇒ null argument ⇒ byte-identical to pre-SOLO-1 and hash
+  string unchanged. **The demo scene leaves the palette unassigned**, so the S5i baseline is
+  inert by construction, not by discipline (`ST-R2c-4` / `ST-R2d-4` PASS).
+
+**Smokes:** `ST-R2c-1..4`, `ST-R2d-2`, `ST-R2d-4` — all PASS.
+
+---
+
+### 8.6 MGP-ALWTTT-BASS-ORDER-1 + MGP-ALWTTT-BASS-SLAPFIG-1 — filed and delivered 2026-07-31 — BOTH ADOPTED
+
+Two demands filed by ALWTTT on 2026-07-31 and delivered package-side the same day. Unlike the
+§8.4 trio, these were genuinely filed: ORDER-1 came from a live gig failure, SLAPFIG-1 from a
+content need.
+
+**ORDER-1 — shared harmony is independent of track order.**
+
+*The failure (F-BASS-ORDER-1, ALWTTT-observed 2026-07-30).* Track order in a part is the order
+the player played the cards. Playing a Bassline card **before** a Backing card put the bass first
+in the list; the package composed in list order; the bass read the shared-progression cache
+before the only publisher had written to it; and `FindProgressionForPart` could not save it,
+because it inspects `Parameters.Pattern` — null when the card's harmony lives in the style
+bundle. Result: **null progression ⇒ empty `MidiFile` ⇒ permanent silence for that part**, not
+recoverable on later loops (the shared cache is per-render). This was the hard form of the
+normalization-order hazard already recorded in MGP `SSoT_Composer_Bass_Track §1`.
+
+*Why ALWTTT could not fix it.* Reordering the track list Backing-first was rejected: the list
+order feeds `ChannelRoles` / `ChannelMusicianOrder` (per-musician mute, singer duck, mix plane)
+and the RNG consumption order in `SongConfigBuilder.FromUI`, so reordering moves channel
+assignments and resolved instruments — it breaks byte identity for existing content. **Track list
+order is consumer identity.** That is now a package-side contract (`MGP SSoT_CONTRACTS §10`).
+
+*Delivered (D-ORD-MECH=A).* Three composition passes over the same list — PASS 0 Backing,
+PASS 1 everything except Backing/Harmony, PASS 2 Harmony — with the physical merge **deferred and
+performed in list-index order**, so file chunk order still follows the list even though
+composition order does not. Applied to both entry points. Channel assignment, `ChannelRoles`,
+`mus:` tags, per-track seeds (keyed `(role, musicianId)`, never composition order) and byte layout
+are all unchanged. **Log-reading note:** the `Merged [role]` line is emitted at composition time,
+so the log now starts with Backing while the file keeps list order. Intentional, not a symptom.
+
+*Guard rewritten (D-ORD-GUARD=A).* The host `defaultProgression` is now discarded only if the
+Backing row **carries** a harmony source (per-render `ChordProgressionData` override, card
+`progressionOverride`, palette with ≥1 valid weighted entry, or an authored `Pattern`). An
+**articulation-only Backing card** — the future bossa / ska / power-chord cards — no longer
+suppresses the default; the Backing composer consumes it and, as a bonus, meter-normalizes and
+re-qualifies it, which the raw SOLO-1 path did not.
+
+**Normative precedence for the shared progression channel** (card-authoring truth):
+
+1. `patternOverride` per-render on the Backing row (dev; imposes unconditionally)
+2. Backing card: `progressionOverride`, else weighted palette pick
+3. **host `defaultProgression`** (SOLO-1) — now also under an articulation-only Backing card
+4. authored `Pattern` on the Backing row
+5. procedural generation
+
+**Consequence: harmonic silence is no longer a reachable state** in any part with at least one
+source, regardless of play order.
+
+*New readback (D-ORD-RB).* `PartRender.sharedProgressionSource` (`ResolvedSource`, new member
+`HostDefault = 7`; values 0..6 untouched) and `PartRender.sharedProgressionAssetName` report which
+source **won** the channel. ALWTTT publishes both as `MidiMusicManager.LastSharedProgressionSource`
+/ `LastSharedProgressionAssetName`, stores them in the bundle-cache entry so a replay republishes
+the original verdict (D-DBG5=A precedent), and logs an `[ORDER-1] harmony source=…` line.
+
+**This readback is a verification surface, NOT a cache-key input** — see DIFF-R2-3b / invariant 9
+for why the package's suggested "condition the `dp:` token on `sharedProgressionSource ==
+HostDefault`" is not implementable, and what ALWTTT does instead.
+
+*Gaps declared by the package, out of scope, recorded:* (a) the bass's private `Pattern` still
+receives no meter normalization or re-qualification — it is private harmony, outside the shared
+channel; (b) a palette that passes the sniff but whose pick fails on time signature at compose
+time makes Backing degrade to procedural **without the suppressed default resurging** — not
+silence, and the pre-existing "failed palette pick" semantics.
+
+**SLAPFIG-1 — autonomous slap/pop figure (`PocketCouplingMode.SelfPocket = 2`).**
+
+Delivered append-only (`Off` and `SlapPocket` byte-identical). **Reads no other track** — in
+particular it never calls `GetRhythmOnsetsForPart`, verified package-side by a test pinning the
+bass stem byte-identical with and without a Rhythm row. **This is the whole point: `SelfPocket`
+does not arm the §8.4 cache duty; `SlapPocket` does.**
+
+- Hit source: cyclic `selfPocketPattern` over `{Slap, Pop, Rest}` (default `[Slap, Pop]`) on a
+  `selfPocketSubdivision` grid (`Beat` / `HalfBeat`) **anchored to the bar, not the chord**, so
+  the figure keeps phase across chord changes — matching what absolute drum onsets did.
+- Downstream verbatim from `SlapPocket`: pop = selected note **+12** with register-ceiling fold,
+  percussive gate ≤ 0.5 beats, jitter refold. Timbre stays with the patch (GM Slap Bass 1/2);
+  the mode supplies timing, register and dynamics.
+- Velocity: chord-event velocity plus the existing `pocketSlapBoost` / `pocketPopBoost`,
+  clamped 1..127. **Authoring note:** large symmetric boosts (e.g. `+64/+64`) saturate every hit
+  to 127 and flatten the contour. Small and asymmetric (`0` slap / `+12` pop) is the tuned
+  default (package recommendation after hearing ALWTTT's gig log; adopted).
+- Degradation: empty or all-`Rest` pattern ⇒ one warning + normal figure, byte-identical to
+  `Off`. Never an error, never silence.
+
+*ALWTTT adoption (D-R2-11).* Slap Bass v1 re-authored onto `SelfPocket` with
+`selfPocketPattern = [Slap, Pop]`, `selfPocketSubdivision = Beat`, boosts `0` / `+12`. This is a
+**bundle field change only** — no card re-import.
+
+*Agreed but not delivered (SLAPFIG-2):* mutes, ghost notes, hammer/pull, accents, swing placement.
+v1 speaks only Slap / Pop / Rest.
+
+**Smokes:** `ST-R2d-1` (order-independent audibility) · `ST-R2d-5` (slap/pop with no drums) ·
+`ST-R2d-6` (bass stem identical with and without a Rhythm row — autonomy verified consumer-side
+as well as package-side) — all PASS.
+
+**F-BASS-ORDER-1 is CLOSED.**

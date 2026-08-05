@@ -287,7 +287,7 @@ The `composition` payload block gained two CE-L1 authoring fields. Both are pars
 
 ### 5.13 — `composition.trackAction.styleBundleCreate` (BASS-CARD-1, 2026-07-12)
 
-Before this, a Composition card imported from JSON could only **point at** an existing `TrackStyleBundleSO` (`trackAction.styleBundle` = asset path or guid). It could neither create one nor set any field on it. That made **Bassline cards unauthorable from JSON**: a `BasslineCardConfigSO` carries no palette — only articulation (`chordExpression`, `arpeggioRate`) — so there was nothing to point at until someone hand-made the asset.
+Before this, a Composition card imported from JSON could only **point at** an existing `TrackStyleBundleSO` (`trackAction.styleBundle` = asset path or guid). It could neither create one nor set any field on it. That made **Bassline cards unauthorable from JSON**: a `BasslineCardConfigSO` carries no palette — only articulation — so there was nothing to point at until someone hand-made the asset.
 
 `trackAction.styleBundleCreate` mints a **role-typed** bundle at Save and optionally writes fields on it:
 
@@ -320,6 +320,40 @@ Before this, a Composition card imported from JSON could only **point at** an ex
 3. **Unknown field names are hard errors, never silent skips.** The importer logs the offending name *and the bundle's full list of valid serialized field names* — a wrong guess is self-correcting.
 4. **Banned from LLM output.** `styleBundleCreate.fields` can carry asset paths (object-reference coercion), which is precisely the channel the §3.3 banned-asset-path guard exists to close. The LLM route does not need it: its bundle is minted by the field plan (`ApplyLlmPlanOnSave`) and its asset intent travels through `composition.palette`. **Hand-authored JSON only.** Enforced in `CardLLMResponseHandler.ApplyBannedFieldGuard`; covered by EditMode tests.
 5. **Applied at Save, not at staging** — `ApplyJsonBundleCreateOnSave` runs after the payload asset exists on disk, because the bundle's folder is derived from the payload's asset path. Consumed exactly once; cleared by `DiscardStagedJson`.
+6. **The bundle's field set is package-owned and grows.** `styleBundleCreate.fields` writes
+   serialized fields by name, so the authorable surface is whatever the package version defines
+   — it is **not** enumerated in this SSoT, and a stale mental model produces a hard import
+   error, not silent wrong content (rule 3). As of MidiGenPlay 2026-07-31,
+   `BasslineCardConfigSO` accepts: `chordExpression`, `arpeggioRate`, `arpeggioToneMode`
+   (`RepeatedNote` / `ChordToneWalk` / `ImprovisedWalk`), `randomRerollChance`,
+   `randomFigureWeights`, `velocityJitter`, the pocket block (`pocketMode` =
+   `Off` / `SlapPocket` / `SelfPocket`, `pocketSlapBoost`, `pocketPopBoost`, `pocketCustomLanes`,
+   `pocketSlapLanes`, `pocketPopLanes`) and the SelfPocket block (`selfPocketPattern`,
+   `selfPocketSubdivision`). Contract and adoption status:
+   `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.4 + §8.6.
+
+   **Three authoring hazards at this surface.**
+   (i) In `ChordExpressionType`, the member named **`Bossa` is not the register-selective
+   bass/upper split** — that is `BassUpperSplit`. Authoring `Bossa` for a split imports cleanly
+   and sounds wrong.
+   (ii) **`pocketMode = SlapPocket` triggers a consumer-side cache duty** (boundary §8.4): the
+   bass stem then depends on the Rhythm track's resolved pattern, which the Bassline
+   `trackInputsHash` does not include. Do not author a `SlapPocket` bundle without the
+   accompanying hash change in the same batch. **`SelfPocket` reads no other track and is free
+   of this duty** — prefer it unless drum-locked coupling is specifically wanted.
+   (iii) **SelfPocket boosts are additive on top of the chord-event velocity and clamp at 127.**
+   Large symmetric boosts (`+64/+64`) saturate every hit and flatten the dynamic contour. Tuned
+   default: `0` slap / `+12` pop.
+
+   **Worked examples (R2 / R2d).**
+   *Finger Bass v1 (D-R2-4=A):* `chordExpression = ArpeggioUp`, `arpeggioRate = PerBeat`,
+   `arpeggioToneMode = ChordToneWalk`. On a monophonic line `ArpeggioUp` at rate `PerBeat`
+   places exactly one note per beat — the same rhythmic placement as the `PerBeat` figure — so
+   switching to a walk changes **pitch content only** and preserves the card's rhythmic
+   identity. `arpeggioRate` has no "quarter" member; one-note-per-beat **is**
+   `ArpeggioRate.PerBeat`.
+   *Slap Bass v1 (D-R2-11):* `chordExpression = Offbeat`, `pocketMode = SelfPocket`,
+   `selfPocketPattern = [Slap, Pop]`, `selfPocketSubdivision = Beat`, boosts `0` / `+12`.
 
 ### 5.14 — Track cards: `styleBundle` is what creates the track (BASS-1 D4=A, 2026-07-12)
 

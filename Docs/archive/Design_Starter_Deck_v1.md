@@ -13,6 +13,9 @@
 
 **v1.4 (2026-07-16).** No card changes. Documentation-only pass from the deckbuilder balance-research cross-reference (BALANCE-XREF; see `changelog-ssot.md` 2026-07-16 and the new `planning/Design_Game_And_Card_Maxims_v0_1.md`). Two edits: (1) the §4 "Note on uniqueness ratio" was **corrected** — it still read the stale "12 cards / 10 unique" from before the v1.1/v1.3 growth to 17/15 — and re-framed as a *deliberate* divergence from genre norms whose comprehension cost is verified in S5i; (2) the *mínimas cartas* principle below now cross-references the governed maxims doc, which reconciles it with the newly-adopted maxim that **exact-copy duplication is a legitimate onboarding/consistency tool** (this is what the Wormus ×2 / Default Mode ×2 multiplicities already do — E1 forbids near-*duplicate axes*, not multiple copies of one card).
 
+> **Terminology correction (2026-07-31, D-S5e-DOC-D):** every `VibeGoal` reference in this document predates the S5e inversion. Runtime truth since S5e: `VibeGoal` was retired into `MaxVibe`; audience Vibe is a resistance pool that starts at `MaxVibe`, is depleted by incoming Vibe, and Convinced fires at `Vibe <= 0`. The tuning numbers here (ranges 15–20 / 35–45, ST-SD-8) map to `MaxVibe` values. Historical design record — text not rewritten.
+
+
 ## Design principle: mínimas cartas, máxima expresividad
 
 The guiding principle for composition-card authoring in ALWTTT is: **minimal number of cards, maximal musical expressiveness per card**.

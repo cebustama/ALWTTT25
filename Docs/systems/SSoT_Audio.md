@@ -358,6 +358,30 @@ Relationship to §4.1's axis formula: the bytes-plane gain is **not** the `instr
 factor (that stays 1.0 and belongs to the package — §6). It is a *separate plane* applied at
 render time, composed with the live axis at the `WriteChannelVolume01` boundary.
 
+#### Límite de granularidad del plano de ganancias (CONT-B, 2026-07-31)
+
+`MixGainProfileSO` gana por `(musicianId, TrackRole)`. De ahí se sigue un
+límite que conviene tener explícito antes de intentar usarlo como remedio
+universal: **dos instrumentos distintos usados por el mismo músico en el mismo
+rol no son distinguibles por este plano.** Caso medido: Fingered Bass y Slap
+Bass son ambos `(<músico>, Bassline)`, y el desequilibrio entre ellos —
+originado en los boosts de Pocket, exclusivos de las lanes slap/pop — no tiene
+solución en la capa de mezcla.
+
+Palancas disponibles cuando el desequilibrio es **entre instrumentos del mismo
+rol**, en orden de coste:
+1. `MIDIInstrumentSO.volume01` del instrumento (asset del paquete; alcance =
+   todas sus apariciones).
+2. Ask package-side de ganancia/velocity a nivel de carta (§7, ask 3).
+
+Y cuando el problema es **de un músico y rol enteros** (p. ej. el piano de
+backing percibido como abrasivo), el plano **sí** es la herramienta correcta y
+la más quirúrgica: entrada `(músico, Backing)` con `gain < 1`, editable desde
+el tab Audio Mix, sin tocar assets del paquete y sin afectar a los demás roles
+del mismo músico. Si tras bajar la ganancia la aspereza persiste, la causa **no
+es de nivel** sino de articulación y voicing (`chordExpression`,
+`voiceLeadingOverride`), que se resuelven en la carta, no en la mezcla.
+
 ---
 
 ## 5. Persistence

@@ -36,8 +36,7 @@ namespace ALWTTT.DevMode
         private bool _verboseLogs = true;
 
         private bool _overlayVisible;
-        // Phase 2: grown to 480x380 to fit the catalogue list comfortably at any scale.
-        private Rect _windowRect = new Rect(10, 10, 480, 380);
+        private Rect _windowRect = new Rect(10, 10, 720, 380);
         private int _convincedResetCount;
 
         // Phase 2: tab selection. 0 = Infinite, 1 = Catalogue.
@@ -51,6 +50,7 @@ namespace ALWTTT.DevMode
         // the content to the visible height and scrolling the overflow fixes it
         // for every tab.
         private Vector2 _tabScroll;
+        private bool _resizing;
 
         // ---------------------------------------------------------------
         // Lifecycle
@@ -166,6 +166,22 @@ namespace ALWTTT.DevMode
             }
 
             GUILayout.EndScrollView();
+
+            // Resize grip: the composition tab's lines are long (bundle names,
+            // hashes, warnings) and a fixed 480 truncated them mid-sentence.
+            // Width only — GUILayout.Window owns the height.
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                var grip = GUILayoutUtility.GetRect(18f, 18f, GUILayout.ExpandWidth(false));
+                GUI.Label(grip, "◢");
+                var e = Event.current;
+                if (e.type == EventType.MouseDown && grip.Contains(e.mousePosition))
+                { _resizing = true; e.Use(); }
+                else if (_resizing && e.type == EventType.MouseDrag)
+                { _windowRect.width = Mathf.Clamp(e.mousePosition.x + 10f, 380f, 2000f); e.Use(); }
+                else if (e.type == EventType.MouseUp) { _resizing = false; }
+            }
 
             // Drag by the title bar only, so click-drags inside the scrolled
             // content don't move the window (they scroll / hit controls).

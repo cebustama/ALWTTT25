@@ -14,24 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.ChordProgressionPaletteSO
   paletteDisplayName: Modal
   paletteNotes: 
+  preferExactTsMatches: 1
   entries:
-  - progression: {fileID: 11400000, guid: f03dbdb7d488e1f43b30d0dbbddfe050, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: 520d08c2c70113d4fbc7922acc9cb883, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: ed53914330b96f54998bafe190da57f9, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: fbe4d90544587144d8d7a1e19df9d6b3, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: dcd09014b2d35344ab7d32613cb736c3, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: 56815e6ef131bf64fa0e0d8c2470df13, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: b3e9184b75a3bff4a984ba24f19b4991, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: 1efef999c1260ef47b6480f39346d644, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: b42b673f24f488049a38fa222275d4e1, type: 2}
-    weight: 0
-  - progression: {fileID: 11400000, guid: 8dea6a70e227a1444b3edb1a505a2ebc, type: 2}
+  - progression: {fileID: 11400000, guid: 8501ee6219843c84f932982ac135b828, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: bd2df9bca0a46654088b6fffce0991a7, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 39dd2aa05237b4e478f9d2b775bdc284, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 2d9e2f2c980852c498e113d02e0a0ad2, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: f9c129062c85c894a81c3ecfc9606e19, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 653e684b56fa7fe4e89eabb2a431f673, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: c272fdd55be66104ca8e7b7a1a407f23, type: 2}
     weight: 1

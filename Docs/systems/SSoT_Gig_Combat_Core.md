@@ -98,8 +98,8 @@ Long-term progression sits outside this SSoT.
 ### 4.4 Audience-level
 | Variable | Meaning |
 |---|---|
-| `Vibe` | Current engagement / persuasion progress. |
-| `VibeGoal` | Threshold required to convince that audience member. |
+| `Vibe` | Remaining resistance pool. Starts full at `MaxVibe` and is **depleted** by incoming Vibe (S5e inversion). |
+| `MaxVibe` | Resistance pool size ("HP"). `VibeGoal` was retired into `MaxVibe` at S5e. |
 | `Preferences` | Reaction bias by card/performance style. |
 | `Abilities` | Telegraphed audience actions / pressure patterns. |
 | `Audience statuses` | Optional / future-capable, not required for baseline MVP. |
@@ -149,7 +149,7 @@ Rules:
 - VibeDelta derives from:
   - `SongHype01`
   - audience-specific impression data accumulated across loops
-- an audience member is **Convinced** when `Vibe >= VibeGoal`
+- an audience member is **Convinced** when `Vibe <= 0` *(S5e inversion, corrected here 2026-07-31, D-S5e-DOC-D: Vibe is an enemy-HP-style resistance pool starting at `MaxVibe`, depleted by incoming Vibe; `VibeGoal` retired into `MaxVibe`; code: `AudienceCharacterStats.CheckConvincedThreshold`)*
 
 ### 5.4 Stress
 **Owner:** each musician.

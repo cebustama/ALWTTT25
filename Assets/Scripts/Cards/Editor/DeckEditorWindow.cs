@@ -121,6 +121,9 @@ namespace ALWTTT.Cards.Editor
 
         private void OnGUI()
         {
+            // AUTH-1 (D-AUTH1-3=A): shared card-tooling navigation.
+            CardAuthoringNav.DrawNavStrip(CardAuthoringNav.Tool.DeckEditor);
+
             _searchField ??= new SearchField();
 
             DrawHeader();

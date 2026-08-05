@@ -47,8 +47,9 @@ It does not duplicate the data representation rules in `SSoT_Card_Authoring_Cont
 | Status Effect Wizard | `StatusEffectWizardWindow` | ALWTTT → Status → Status Effect Wizard | Create and edit StatusEffectSO assets backed by the CSO primitive database |
 | Chord Progression Catalogue | `ChordProgressionCatalogueWizard` | MidiGenPlay → Chord Progression Catalogue Wizard... | Read-only browser for ChordProgressionData and ChordProgressionPaletteSO assets |
 | Composition Inventory | `CompositionInventoryWindow` | ALWTTT → Dev → Composition Inventory | Read-only browser over every composition asset family (style bundles, drum/chord/melody patterns, palettes, libraries, phrase archetypes, melodic + percussion instruments) with filters, derived health columns, Print + Export JSON, and a naming report (CSV-1, 2026-07-18; see §17) |
+| Effect Editor | `PartEffectEditorWindow` | ALWTTT → Cards → Effect Editor | Authoring surface for the PartEffect asset family: list/filter/search, inline editing, Create (default `_PartEffects/`), Duplicate, Delete with usage scan, Find Usages, Export JSON (AUTH-1, 2026-07-31; see §18) |
 
-All six are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds. `CompositionInventoryWindow` additionally requires `ALWTTT_DEV` (D-CSV-10=A).
+All seven are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds. `CompositionInventoryWindow` additionally requires `ALWTTT_DEV` (D-CSV-10=A).
 
 ---
 
@@ -177,6 +178,20 @@ A foldout panel providing LLM-assisted single-card authoring. Pattern adopted fr
 
 ---
 
+### 4.11 Nav strip + PartEffect shortcuts (AUTH-1, 2026-07-31)
+
+The toolbar gains the shared nav strip (§19). The composition payload editor
+draws, under the `modifierEffects` PropertyField, a read-only "PartEffects"
+shortcut box: one row per assigned effect (type + `GetLabel()` + Edit + Ping)
+plus a "New Effect…" jump into the Effect Editor (§18). Assignment itself stays
+on the PropertyField; the shortcut box never mutates the list.
+
+**D-AUTH1-1=A:** the embedded payload panel remains the payload-editing
+authority — no separate payload window. **D-AUTH1-0** (ratified at AUTH-1 open):
+the PartEffect asset family gets its own window rather than growing this one,
+because PartEffects are a shared asset family referenced across cards while this
+window is card-scoped.
+
 ## 5. Deck Editor (`DeckEditorWindow`)
 
 **File:** `Assets/Scripts/Cards/Editor/DeckEditorWindow.cs`
@@ -251,6 +266,11 @@ Entries: 5 (total copies: 8)
 The formatter uses `StagedCardEntry.ResolvedCard` (which transparently picks the right reference for both existing and pending entries) and reports `count` per row. Pending new cards display a trailing `[NEW]` suffix. Symmetric to `CardEditorWindow`'s `Print` button (§4.7).
 
 ---
+
+### 5.8 Nav strip (AUTH-1, 2026-07-31)
+
+`OnGUI` opens with the shared nav strip (§19). No other Deck Editor behaviour
+changed in AUTH-1; the existing validation panel and layout are untouched.
 
 ## 6. Status Effect Wizard (`StatusEffectWizardWindow`)
 
@@ -364,6 +384,32 @@ This tool is a **viewer**, not an authoring surface. It does not own any asset s
 
 ---
 
+### 8.7 Detailed print + cross-links (AUTH-1, 2026-07-31)
+
+A toolbar `Detailed` toggle (default ON) extends **Print** only — the on-screen
+rows and the JSON export schemas (§8.4) are unchanged, and with Detailed OFF the
+print output is the pre-AUTH-1 format. When ON, each card line is followed by an
+indented parameter dump:
+
+- **Common:** display name, performer rule (or fixed musician), inspiration
+  generated, rarity, card type, exhaust flag.
+- **Action:** `actionTiming`, legacy `conditions` count, and the `effects` list
+  with per-spec parameters (plain-text formatter, deliberately separate from
+  `CardEffectDescriptionBuilder`, which emits TMP rich text for players; unknown
+  spec types fall back to the type name).
+- **Composition:** `primaryKind`; `trackAction` role + bundle asset (name +
+  concrete type) + a depth-1 dump of the bundle's visible serialized fields
+  (read-only reflection over MidiGenPlay-owned SOs — no type coupling, arrays
+  print size only; boundary-safe); `partAction` (action / customLabel /
+  musicianId); `modifierEffects` (type, asset name, scope, timing, `GetLabel()`);
+  and the `effects` list as above.
+- **Catalog entries** (Views 3/4): flags, starter copies, unlock id as before,
+  with the card dump nested under each entry.
+
+Cross-links: every card row gains an **Edit** button →
+`CardEditorWindow.OpenAndSelect`. The window still mutates nothing (§8.6
+stands); Edit is navigation, not editing.
+
 ## 9. Card asset factory (`CardAssetFactory`)
 
 **File:** `Assets/Scripts/Cards/Editor/CardAssetFactory.cs`
@@ -453,6 +499,9 @@ Assets/Scripts/Cards/Editor/
   DeckValidationService.cs
   DeckAssetSaveService.cs
   ChordProgressionCatalogueWizard.cs
+  PartEffectEditorWindow.cs        (AUTH-1, 2026-07-31)
+  CardAuthoringNav.cs              (AUTH-1, 2026-07-31)
+  InstrumentEffectEditor.cs        (AUTH-1b, 2026-07-31; [CustomEditor] for InstrumentEffect)
 
 Assets/Scripts/DevMode/Editor/
   CompositionInventoryWindow.cs    (CSV-1, 2026-07-18; #if UNITY_EDITOR && ALWTTT_DEV)
@@ -530,6 +579,11 @@ Neither project has an editor window for `MIDIInstrumentSO` / `MIDIPercussionIns
 
 ---
 
+(AUTH-1, 2026-07-31: the game-owned PartEffect family is now tooled — §18 — and
+`InstrumentEffect` has a mode-conditional inspector — §18.9. This gap concerns
+package-owned `MIDIInstrumentSO` / `MIDIPercussionInstrumentSO` assets and
+stands unchanged.)
+
 ## 15. Cross-references
 
 | Topic | Governed home |
@@ -543,6 +597,8 @@ Neither project has an editor window for `MIDIInstrumentSO` / `MIDIPercussionIns
 | Active roadmap (M1 tasks referencing these tools) | `Roadmap_ALWTTT.md` |
 | LLM card-generation pipeline mechanism (CE-L1, §4.10) | `reference/Report_CardLLM_Pipeline.md` (explanatory reference) |
 | LLM-generation pattern authority (cross-project) | MidiGenPlay `authoring/SSoT_Authoring_LLM_Generation.md` §7 |
+| PartEffect runtime semantics (scope, timing, application order) | `SSoT_Runtime_CompositionSession_Integration.md` |
+| `InstrumentEffect.RandomFromList` semantics (pick-once-then-persist, D-R2-7) | `SSoT_Runtime_CompositionSession_Integration.md` §11 |
 ---
 
 ## 16. Configurable runtime SO surfaces (Inspector-only)
@@ -733,3 +789,125 @@ Instrument curation is therefore a **pool-level** activity. A listening verdict 
 This is the boundary rule applied correctly, not a workaround: **the package owns the instrument, ALWTTT owns who plays it.**
 
 Consequence for the window: the instrument views remain a *reporting* surface. They tell you which instrument to remove from a pool; they are not, and must not become, an instrument editor (§17.9).
+
+---
+
+## 18. Part Effect Editor (`PartEffectEditorWindow`) — AUTH-1, 2026-07-31
+
+**File:** `Assets/Scripts/Cards/Editor/PartEffectEditorWindow.cs`
+**Namespace:** `ALWTTT.Cards.Editor`
+**Menu:** ALWTTT → Cards → Effect Editor (priority 13, after Card Inventory)
+
+### 18.1 What it does
+
+First authoring surface for the PartEffect asset family, which was
+Inspector-only until AUTH-1 — the friction surfaced during R2/Conito authoring.
+Lists every `PartEffect`-derived asset in the project; supports type filter +
+name search, inline editing, Create, Duplicate, Delete with a reference-usage
+warning, an on-demand Find Usages scan, and Export JSON.
+
+### 18.2 Scope (D-AUTH1-2=A)
+
+PartEffect **SO assets only**. `CardEffectSpec` entries are `[SerializeReference]`
+payload data with no asset identity; their editing remains in the Card Editor's
+payload panel (§4). "Spec templates/presets" are explicitly out of scope for v1.
+
+### 18.3 Type discovery
+
+Concrete types come from `TypeCache.GetTypesDerivedFrom<PartEffect>()`
+(abstract/generic excluded) — never a hardcoded list. Family at close:
+`InstrumentEffect`, `MeterEffect`, `ModulationEffect`, `TempoEffect`,
+`TonalityEffect`, plus `DensityEffect` and `FeelEffect` (declared in
+`PartEffect.cs`; no assets authored). New subtypes appear in the filter and
+Create menus automatically.
+
+### 18.4 Create / Duplicate / Delete
+
+- **Create:** type dropdown + asset name + destination folder, defaulting to
+  `Assets/Resources/Data/Cards/Composition/_PartEffects/` (the canonical family
+  folder). Folder auto-created if missing; the new asset is selected and pinged.
+- **Duplicate:** `AssetDatabase.CopyAsset` with `GenerateUniqueAssetPath`.
+- **Delete:** runs the usage scan first; the confirm dialog reports how many
+  `CompositionCardPayload.modifierEffects` lists reference the asset and warns
+  that deletion leaves null entries in them.
+
+### 18.5 Inline editing
+
+The right panel hosts `UnityEditor.Editor.CreateEditor(asset)` — the asset's
+default **or custom** inspector — so field coverage tracks the type definitions
+with no per-type window code, and any `[CustomEditor]` written for a PartEffect
+type (§18.9) is honoured identically here and in the standard Inspector.
+`GetLabel()` is shown per row and in the header, try-wrapped so a malformed
+asset cannot break the list.
+
+### 18.6 Find Usages
+
+On demand (button, never per-frame): scans every `CompositionCardPayload` for
+reference-equality hits in `ModifierEffects`; results listed with Ping.
+
+### 18.7 Boundary note
+
+PartEffects are game-owned (`ALWTTT.Cards`). The window reads and writes only
+ALWTTT assets. It does not author MidiGenPlay instruments — §14.9 stands.
+
+### 18.8 Export JSON (AUTH-1b)
+
+`EditorUtility.SaveFilePanel` → pretty-printed `JsonUtility.ToJson`. Exports the
+**currently filtered** list (type filter + search), matching the Card Inventory
+"current view" convention (§8.4); like that export it is informational and not
+designed for re-import. Schema:
+
+{ "partEffects": [ { "assetName", "type", "assetPath", "scope", "timing",
+                     "label",
+                     "fields": [ { "name", "value" }, ... ],
+                     "usedBy": [ "<payload asset name>", ... ] } ] }
+
+`fields` is the same depth-1 serialized dump the Inventory detailed print uses
+(script field skipped, `scope`/`timing` lifted to top level, arrays print size
+only). `usedBy` comes from one reverse-index pass over every
+`CompositionCardPayload.modifierEffects`, so an export doubles as a
+**card → PartEffect reverse index**. (Distinct from the card → style-bundle
+reverse index still missing at §17.10; that gap is unchanged.)
+
+### 18.9 Layout and per-type inspectors (AUTH-1b)
+
+Two-panel layout with a draggable splitter (same pattern as `CardEditorWindow`);
+list rows use expanding name/label columns with tooltips carrying the full asset
+name and path, so long names are readable at any window width. The list header
+shows `N / total` while a filter is active.
+
+`InstrumentEffectEditor` (`[CustomEditor(typeof(InstrumentEffect))]`,
+`Assets/Scripts/Cards/Editor/InstrumentEffectEditor.cs`) draws only the fields
+the selected `mode` consumes — the `RandomFromList` pool no longer renders under
+`SpecificMelodic` / `SpecificPercussion` / `InstrumentType` — plus validation
+hints: unassigned instrument for the two Specific modes, empty pool (matching
+the runtime warn-and-no-op, R2c / D-R2-7), and single-entry pool (equivalent to
+`SpecificMelodic`, no variety). It falls back to the default inspector if any
+field is renamed, rather than silently hiding data.
+
+**D-AUTH1-4=A:** implemented as a custom inspector rather than window-local
+field filtering, so the standard Inspector and the Effect Editor cannot diverge.
+Presentation-only — hidden fields keep their serialized values and no runtime
+behaviour changes. This is the only per-type editor in the family; every other
+PartEffect type uses the default inspector.
+
+---
+
+## 19. Cross-window navigation (`CardAuthoringNav`) — AUTH-1, 2026-07-31
+
+**File:** `Assets/Scripts/Cards/Editor/CardAuthoringNav.cs` (internal static utility)
+
+A one-row toolbar strip drawn by each of the four card-tooling windows (Card
+Editor, Effect Editor, Card Inventory, Deck Editor); the current tool's button
+renders pressed and inert. **D-AUTH1-3=A:** a static utility extending the M1.1b
+`OpenAndSelect` pattern, deliberately not a window — no lifecycle, and each
+window stays self-contained.
+
+Context-carrying cross-links delivered with it:
+- Card Inventory rows → `CardEditorWindow.OpenAndSelect(card)` ("Edit" buttons,
+  both the All-CardDefinitions rows and the shared entry-list rows).
+- Card Editor composition payload → per-entry
+  `PartEffectEditorWindow.OpenAndSelect(fx)` + a "New Effect…" shortcut (§4.11).
+- `PartEffectEditorWindow.OpenAndSelect(PartEffect)` selects and pings the asset.
+
+Navigation only: no cross-link mutates an asset.

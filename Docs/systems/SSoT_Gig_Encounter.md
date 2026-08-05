@@ -95,7 +95,7 @@ It does not lock one exact implementation struct/API.
 |---|---|
 | `AudienceRoster` | the set of audience members present in the Gig |
 | `RequiredTargets` | which audience members must be convinced to clear the Gig |
-| `Vibe` / `VibeGoal` persistence | audience persuasion state carried across songs inside the Gig |
+| `Vibe` / `MaxVibe` persistence | audience persuasion state carried across songs inside the Gig (S5e: `VibeGoal` retired into `MaxVibe`; Vibe is a depleting resistance pool) |
 
 ### 5.3 Song relation
 Each Song is nested inside the Gig and contributes to encounter progress through:
@@ -195,14 +195,16 @@ The two SOs underlying the manual path remain unchanged:
 
 ### 8.1 Audience-member victory rule
 Each audience member has:
-- current `Vibe`
-- a target `VibeGoal`
+- current `Vibe` — a resistance pool, starting full
+- a pool size `MaxVibe` (S5e: `VibeGoal` retired into `MaxVibe`)
 
-An audience member is **Convinced** when:
+An audience member is **Convinced** when the pool is depleted:
 
 ```text
-Vibe >= VibeGoal
+Vibe <= 0
 ```
+
+*(S5e inversion, corrected here 2026-07-31, D-S5e-DOC-D; code: `AudienceCharacterStats.CheckConvincedThreshold`.)*
 
 ### 8.2 Gig-level victory rule
 **Baseline governed rule:** the Gig is cleared when all required audience members are convinced by the end of the encounter.
@@ -251,7 +253,7 @@ This SSoT owns the concept that such modifiers belong at encounter scope.
 ### 9.2 Special audience members / mini-bosses
 Baseline MVP assumes ordinary audience members use the normal persuasion model:
 - `Vibe`
-- `VibeGoal`
+- `MaxVibe` (S5e: replaces `VibeGoal`)
 - ability pressure
 - preferences / reaction logic
 

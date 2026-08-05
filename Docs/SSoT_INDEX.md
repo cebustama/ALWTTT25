@@ -67,7 +67,7 @@ It defines:
 | `planning/active/Roadmap_ALWTTT_Debug_Seams.md` | MGP-ALWTTT-DBG consumer arc (composition-debug seams: DBG-C1 read + DBG-C2 write) — arc-close record + decisions ledger + parked residuals; planning-only, not implementation authority | active (arc closed 2026-07-17) |
 | `planning/active/Design_Demo_Cut_v1.md` | demo-cut planning: run shape, coverage matrix, mechanics introduced, validation | active |
 | `planning/Design_Vibe_Telegraph_v0_1.md` | Vibe transparency surfaces (C1 readout + C2/C3 per-enemy telegraph); presentation of the Scoring §6 chain | active (shipped S5a) |
-| `planning/active/Design_Starter_Deck_v1.md` | first starter deck design: composition principle, per-card axis assignments, tuning rationale | active |
+| `planning/active/Design_Starter_Deck_v1.md` | first starter deck design (17-card, 2-musician): composition principle, per-card axis assignments, tuning rationale — **authoritative for the live S5 demo starter**; forward intent moves to v2 at R8 closure | active |
 | `planning/active/Design_Action_Economy_v1.md` | per-turn play economy design rationale (1 Action + 1 Composition per musician per period); subordinate to `systems/SSoT_Gig_Combat_Core.md §14` | active |
 | `planning/active/Design_Audience_Status_v1.md` | audience-side status design intent (§4 Captivated remains active; §3 + §5 superseded) | partial |
 | `planning/active/Design_Tutorial_System_v0_1.md` | tutorial system: scope, trigger model, presentation, UX, demo-cut + Phase C dialogue inventory, DoD per Standing Directive #3 (2026-05-23) | active |
@@ -80,8 +80,9 @@ It defines:
 | `planning/Design_Tempo_Identity_v1.md` | long-term post-MVP direction: tempo-coupled card identity | long-term |
 | `planning/Design_Song_Parts_Library_v0_1.md` | long-term post-MVP direction: stored & repeatable song Parts | long-term |
 | `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` | observable musical expressive surface for composition cards across the MidiGenPlay boundary; 26-axis matrix + 5 documented gaps + per-musician SO whitelist precedence (2026-05-20) | active |
-| `planning/active/RosterExpansion_Sub_Roadmap.md` | Roster Expansion campaign (R0–R8): decision ledger D1–D6, batch sequence + phasing vs S5i/S5j, feasibility verdicts, pending MGP asks, R0 rehydration | active (planned 2026-07-23, not opened) |
+| `planning/active/RosterExpansion_Sub_Roadmap.md` | Roster Expansion campaign (R0–R8): decision ledger D1–D6, batch sequence + phasing vs S5i/S5j, feasibility verdicts, pending MGP asks, R0 rehydration | active (R0 closed 2026-07-23; R1 closed 2026-07-23; R2 + R2c + R2d closed 2026-07-31 — next batch R3) |
 | `planning/active/Design_Track_Card_Levels_v0_1.md` | Track Card Levels mechanic (re-play = level-up): expressibility limits, runtime/authoring sketch, INSP/complexity hooks — batch R7 | active |
+| `planning/active/Design_Starter_Deck_v2.md` | 4-musician starter deck design (22 cards / 18 unique, symmetric kit shape), finisher layer, per-musician reward slate, identity map + tempo lean, R0 decision record D-R0-1..12 + verification method | active (R0-locked 2026-07-23; supersedes v1 as forward intent at R8 closure) |
 | `planning/Design_Fill_Window_v0_1.md` | Registered idea: end-of-loop fill window (C2) — invariant analysis, overlay-vs-next-loop routes; post-campaign | registered (not scheduled) |
 | `planning/Design_Singer_Expression_Input_v0_1.md` | Registered idea: player input on live singer levers; Tier-B rider candidate; post-campaign | registered (not scheduled) |
 

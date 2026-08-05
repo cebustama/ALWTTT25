@@ -16,15 +16,21 @@ MonoBehaviour:
   paletteNotes: 
   preferExactTsMatches: 1
   entries:
-  - progression: {fileID: 11400000, guid: a7056ff2febfc5344afc43fc535192e7, type: 2}
-    weight: 1
   - progression: {fileID: 11400000, guid: 5f5dc2866f41f8346aed2ac77126ca70, type: 2}
     weight: 1
-  - progression: {fileID: 11400000, guid: 362e6bce17c3aa642840fe5279078e76, type: 2}
+  - progression: {fileID: 11400000, guid: f082a76f6fea36346b09c5e5d826acc9, type: 2}
     weight: 1
-  - progression: {fileID: 11400000, guid: ed1bdb508ee70f74396f5e9657343dc2, type: 2}
+  - progression: {fileID: 11400000, guid: a7056ff2febfc5344afc43fc535192e7, type: 2}
     weight: 1
   - progression: {fileID: 11400000, guid: 268ae87895161d84a94a778370d4c160, type: 2}
     weight: 1
-  - progression: {fileID: 11400000, guid: f082a76f6fea36346b09c5e5d826acc9, type: 2}
+  - progression: {fileID: 11400000, guid: f1276c644f890134cb2bd7ac8b3aad1c, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: af45106432b4778489be2f8ba4b7d455, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: fb1adecaab5278142ac8adb3735443f9, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: ed53914330b96f54998bafe190da57f9, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 56815e6ef131bf64fa0e0d8c2470df13, type: 2}
     weight: 1

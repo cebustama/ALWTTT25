@@ -1,6 +1,6 @@
 # RosterExpansion_Sub_Roadmap — ALWTTT
 
-**Status:** Planning-only. Decomposes `Roadmap_ALWTTT.md` → Future Milestones → *Roster Expansion* into an executable campaign (R0–R8). Does **not** define implementation truth.
+**Status:** Planning-only. Decomposes `Roadmap_ALWTTT.md` → Future Milestones → *Roster Expansion* into an executable campaign (R0–R8). Does **not** define implementation truth. **R0 CLOSED 2026-07-23** (design record: `planning/active/Design_Starter_Deck_v2.md`); next batch **R1**, interleavable with S5i.
 **Pattern:** Same role as `S5_DemoCutClose_Sub_Roadmap.md` / `M1_5_Dev_Mode_Sub_Roadmap.md` — a durable multi-batch plan + decision ledger; per-batch **deep scope + rehydration prompt are generated at batch-open**, not duplicated here.
 **Classification:** `roadmap` (planning-only) — not a SSoT.
 **Created:** 2026-07-23 (feasibility + planning session). Per D6=A this document is the single consolidation home for that session; the detailed per-card reasoning lives in the session record and in the thematic design notes it points to.
@@ -13,7 +13,7 @@
 The campaign redesigns the starter deck to cover the **4 band musicians** (Sibi, C2, Conito, Zig) and populates the deferred **finisher layer** (D-ECON-6=DEFER, `SSoT_Gig_Combat_Core.md §14.6`). It became executable because both hard prerequisites of the original Roster Expansion entry resolved:
 
 - **Bass pipeline — validated.** BASS-1 + BASS-CARD-1 (2026-07-12): tracks keyed `(musicianId, role)`, `BasslineCardConfigSO`, role-typed `styleBundleCreate` authoring.
-- **`ApplyIncomingVibe` — shipped** (2026-05-18, B3) and already the canonical path for all card-sourced positive Vibe (`CardBase.cs`) and Earworm ticks. Only **Captivated** itself remains → batch R1.
+- **`ApplyIncomingVibe` — shipped** (2026-05-18, B3) and already the canonical path for all card-sourced positive Vibe (`CardBase.cs`) and Earworm ticks. **Captivated — shipped R1** (2026-07-23) as an amplification layer inside that same helper; no `CardBase` or `GigManager` change was needed. Both Roster Expansion prerequisites are now closed.
 - **Singer voice — live** (SINGER-1, 2026-07-21). `SSoT_Singer_Voice.md §8` already names *"Zig's self-harmony finisher"* as the intended first consumer of voice slot 2.
 
 **Phasing rule (D1=C).** The live demo front stays **S5i → S5j** untouched.
@@ -38,12 +38,47 @@ Plus one new cross-cutting mechanic in-campaign (**Track Card Levels**, §7 / ba
 
 Per-batch decisions get their own `D-RX-*` labels at batch open; these are the campaign-level ones.
 
-- **D1 = C** — Hybrid phasing: R0 + non-demo enablers (R1–R3) may interleave with S5i; starter-v2 / finisher / tutorial-touching batches (R4+) open only after the S5j tag.
+- **D1 = C** — Hybrid phasing: R0 + non-demo enablers (R1–R3) may interleave with S5i; starter-v2 / finisher / tutorial-touching batches (R4+) open only after the S5j tag. **Amended 2026-07-31 (D-SEQ-3=A):** R4+ open after the **snapshot tag**, not the demo-cut (S5j) tag.
 - **D2 = A** — Reuse the existing card baseline where it already satisfies the spec (Wormus ×2 pair, Default Mode, Keep Cool, Psychic Waves-extended, Waltz Protocol, reward-pool cards); author only the gaps. No from-scratch re-author.
 - **D3 = A** — Conito bass ships **v1 approximations** now (root-note bass + articulation figures + slap/nylon patches); the fidelity items (chord-tone walk, pocket-coupling, bossa split) are **MidiGenPlay asks**, not ALWTTT work (§8).
 - **D4 = A** — Double Harmony ships **Tier A** (MIDI Harmony-role track; composer exists package-side) in-campaign; **Tier B** (second sung voice, slot 2) is a follow-up gated on the deferred cap=2 Dev Mode validation and the ~21% two-voice DSP budget.
 - **D5 = A** — Reward "paths" are **soft**: both direction cards coexist in the per-musician pool (`RewardPool ∩ UnlockedByDefault`, owned excluded per D9). Exclusive branching is a Progression & Meta mechanic, retrofittable.
 - **D6 = A** — Documentation packaging: this sub-roadmap is the single consolidation home (compact verdict table §5); no separate feasibility-eval document. Thematic design notes exist only for content that feeds batches or registers ideas (§7).
+### R0 decision ledger (locked 2026-07-23)
+
+Full reasoning + card specs: `planning/active/Design_Starter_Deck_v2.md`.
+
+- **D-R0-1 = A** — Sibi taste-reveal card = **Read the Room**, RewardPool, authored at **R4** (a Sibi-catalog pool card would perturb the demo reward pool, so it cannot interleave with S5i).
+- **D-R0-2 = B (amended)** — **Compound Cycle (6/8) promoted to starter** as C2's second composition; **Waltz Protocol (3/4) moved to reward pool**. 1:1 swap, starter size unchanged. Inverts the original D-STARTER-2=B placement; meter-axis run-growth headroom now lives in Waltz + Pentameter.
+- **D-R0-3 = A** — Keep Cool retargeted `Self` → `Musician`. Tutorial-beat regression duty at R4.
+- **D-R0-4 = A** — Conito draw card = **Static Rush**: `DrawCards(2)` + `ModifyStress(+1, Self)`.
+- **D-R0-5 = A + rider** — **Overload is Action-domain** (playable on the final loop, where inv 11 denies only composition plays). **Rider:** Voltage is a standard SO-catalogue counter status, so explicit card-driven Voltage generation is supported today via `ApplyStatusEffectSpec` (Amp Up = zero new spec code); R5's only new runtime is the per-play passive hook + the Overload threshold/consumer.
+- **D-R0-6 = B** — Starter v2 = **22 cards / 18 unique** (16 musician-owned + 2 generics), symmetric kit shape 2 comp + 1 action + 1 finisher per musician. Push It, Half Time, Key Lift, Singing Field move to the reward pool.
+- **D-R0-7 = locked bundle** — Levels: per-part lifetime · max 3 · level discarded on replace-by-different-card · level-up is a normal composition play · badge + floater UI · no Action-card levels · Wormus-only pilot. Home: `Design_Track_Card_Levels_v0_1.md` §7 (v0.2).
+- **D-R0-8 = A** — +INSP-per-level **reserved**; complexity term remains the intended hook, filed to its S5i owner.
+- **D-R0-9 = locked** — Singalong = `ApplyStatusEffect(captivated, +1, AllAudienceCharacters)`, one-shot phrase + choir echo, no phase gate, three-rung degradation ladder.
+- **D-R0-10 = A** — Zig reward directions = **Torch Song** (ballad, slow-lean) / **Motor Mouth** (patter, fast-lean).
+- **D-R0-11 = A** — Existing pool cards (Vamp, In the Pocket, Pentameter, and the starter→pool moves) are **extras**, not reward-slate slots.
+- **D-R0-12 = agreed** — Finisher cost band first guess: Psychic Wave v2 = 3 · Spotlight = 2 · Overload = 2 (+ Voltage ≥ 3) · Double Harmony = 3. Tuned at R8 (N5).
+
+### R2 / R2c / R2d decision ledger (locked 2026-07-31)
+
+- **R2 / R2c / R2d batch ledger.** D-R2-1=A (Static Rush's +1 Stress routes through Composure
+  absorption unchanged) · D-R2-2=A (Finger = on-beat, Slap = Offbeat; contrast axis is rhythmic
+  displacement) · **D-R2-3 = `RandomFromList` over {Slap Bass 1, Slap Bass 2}** (revised
+  2026-07-31 from "Slap Bass 1 fixed, provisional": the new mode makes both patches live, which
+  also retires the pending re-listen) · D-R2-4=A (author the real chord-tone walk now) ·
+  D-R2-5=A (close R2 with the package's bass-register defect as a known state rather than
+  waiting for MidiGenPlay's content phase B; **materially mitigated** by the SelfPocket +12 pop
+  contour) · D-R2-6=B (wire SOLO-1 into the gig path, sourced from a **palette**) · D-R2-7 (new
+  `InstrumentEffect.RandomFromList`; pick once per application, persist as a specific override) ·
+  D-R2-8=B (**the Conito catalog cleanup removed the 10 test entries rather than flattening
+  their flags to `None`** — diverges from the R1 precedent D-R1-4=A; accepted because
+  reversibility is equivalent and the hard constraint "no assets deleted" held. Recorded, not
+  silently normalized) · D-R2-9=A (fix order-dependence via a package ask with full precedence
+  semantics, not by reordering ALWTTT's track list — list order is consumer identity) ·
+  D-R2-10=A (shared-harmony cache identity from **pre-render** segments `dp:` + `bk:`; the
+  package readback cannot serve as a key) · D-R2-11 (adopt `SelfPocket` for Slap Bass v1).
 
 ---
 
@@ -51,11 +86,13 @@ Per-batch decisions get their own `D-RX-*` labels at batch open; these are the c
 
 | Batch | Mode | Scope (one line) | Phasing | Depends on |
 |---|---|---|---|---|
-| **R0** | GAME DESIGN | `Design_Starter_Deck_v2` draft: 4-musician identity map (axes + tempo lean, closing the v1 placeholder), closed card list (~30: effects, costs, targets, levels, starter-vs-pool split under maxims E1/N7), Track Card Levels spec finalization, singalong design, remaining verifications (§9), minor-decision resolution (§10) | Now (no code) | — |
-| **R1** | IMPLEMENTATION | Zig enablement: **Captivated** (amplification layer in `ApplyIncomingVibe` + SO + icon) + **Wink** card + Cantante catalog cleanup (7/7 inert → spec) | Interleavable | R0 |
-| **R2** | IMPLEMENTATION | Conito enablement: profile/instruments (bass + guitars), **Finger Bass v1** + **Slap Bass v1** (`BasslineCardConfigSO` via `styleBundleCreate`), **Draw** card, Conito catalog cleanup (10/10 inert → spec), first bass-in-gig validation, **file MGP asks** (§8 #1–#3) | Interleavable (∥ R3) | R0 |
+| ~~**R0**~~ | GAME DESIGN | **CLOSED 2026-07-23.** `Design_Starter_Deck_v2` (locked): 4-musician identity map + tempo lean (v1 placeholder closed), 22-card/18-unique starter + reward slate, Levels spec closure, singalong design, §9 verifications resolved, D-R0-1..12 locked | — | — |
+| **R1** ✅ **CLOSED 2026-07-23** | IMPLEMENTATION | Zig enablement: **Captivated** (amplification layer in `ApplyIncomingVibe` + `MeterTuningSO` tuning surface + SO + icon) + **Wink** card + Cantante catalog cleanup (7 legacy → `flags = None`, Wink added as sole starter entry). D-R1-1=A helper-wide amplification · D-R1-2=A MeterTuningSO home · D-R1-3 `IsBuff=false` · D-R1-4=A entries parked not deleted. ST-R1-1..6 PASS incl. demo-inertness. Authority: `SSoT_Status_Effects.md §5.8` | Interleavable | R0 |
+| **R2** ✅ **CLOSED 2026-07-31** | IMPLEMENTATION | Conito enablement: profile/instruments (bass + guitars), **Finger Bass v1** + **Slap Bass v1** (`BasslineCardConfigSO` via `styleBundleCreate`), **Draw** card, Conito catalog cleanup (10/10 inert → spec), first bass-in-gig validation, **file MGP asks** (§8 #1–#3). **CLOSED 2026-07-31.** Delivered: profile (Bass backing / Guitar lead + 6-bass melodic whitelist), `InstrumentEffect_FingeredBass` + `InstrumentEffect_SlapBass`, 3 cards imported and catalog-registered, catalog cleanup. The **"file MGP asks" item is void** for #1–#3 — resolved package-side before filing (§8, boundary §8.4). Two *new* asks were filed and delivered same-cycle (boundary §8.6). | Interleavable (∥ R3) | R0 |
+| **R2c** | IMPLEMENTATION | Unblocker spawned by ST-R2-1 FAIL: wire MidiGenPlay's **SOLO-1** host default progression into the gig render path as a **palette** (D-R2-6=B) + `InstrumentEffect.RandomFromList` (D-R2-7). Production runtime code; BC-gated, inert in the demo config | Interleavable | R2 |
+| **R2d** | IMPLEMENTATION | Adoption of **ORDER-1** + **SLAPFIG-1** (filed and delivered 2026-07-31): guard rewrite, shared-harmony cache identity `dp:`+`bk:` (D-R2-10=A, closes the pre-existing **F-HARM-STALE-1**), harmony-source readback, Slap Bass re-authored onto `SelfPocket` (D-R2-11) | Interleavable | R2c |
 | **R3** | IMPL / CONTENT | Zig composition cards: ascending-degree `MelodyPatternData` (verbatim `patternOverride`) + scale-phrase palette; singer verification in a 3–4-musician band (mix, channel, mute) | Interleavable (∥ R2) | R0 |
-| **R4** | IMPLEMENTATION | Finishers I: **Psychic Wave v2** (add `ApplyStatusEffect(earworm, Y, AllAudienceCharacters)`; full-screen mask VFX on `TutorialSpotlight.shader` base; **tutorial beat-8 + JUICE-PW regression**) + **C2 Spotlight/Taunt** (counter status + `ResolveTargetsFor` redirect hook, 1 audience turn) | Post-S5j | S5j tag |
+| **R4** | IMPLEMENTATION | Finishers I: **Psychic Wave v2** (add `ApplyStatusEffect(earworm, Y≈2, AllAudienceCharacters)` — note the target branch skips `IsBlocked` members, so Indifference-blocked audience take no Earworm; full-screen mask VFX on `TutorialSpotlight.shader` base; **tutorial beat-8 + JUICE-PW regression**) + **C2 Spotlight/Taunt** (counter status + `ResolveTargetsFor` redirect hook, 1 audience turn) + **Read the Room** (`RevealPreferencesSpec` + `AudienceCharacterCanvas` surface, D-R0-1) + **Keep Cool retarget** `Self`→`Musician` (D-R0-3, **tutorial Composure-beat regression owed**) + **V5 runtime smoke** (`ApplyStatusEffect` × `AllAudienceCharacters`) | Post-S5j | S5j tag |
 | **R5** | IMPLEMENTATION | **Conito Overload** (own batch): counter status (no decay) + ≥3 threshold hook + guarded bonus-loop API (`_loopsRemainingForPart`) + one-loop-scoped solo track (Conito Melody, guitar) + channel duck/restore + revert. Opens with a session-invariant review (§5 note) | Post-S5j | R2, S5j |
 | **R6** | IMPLEMENTATION | **Double Harmony Tier A** (Harmony-role card + listening validation + dual per-track particle FX via `IMidiNoteListener`) + **`SingerVoiceDirector` one-shot API** (shared groundwork for singalong; Tier B + expression-input rider queued behind cap=2 validation) | Post-S5j | R3, S5j |
 | **R7** | IMPLEMENTATION | **Track Card Levels** mechanic (state on `TrackEntry`, level-up branch in `TryAddOrReplaceTrackOnPart`, cache-invalidation duty, INSP/complexity hooks) + pilot content (Wormus Major/Minor lvl2–3). Spec: `planning/active/Design_Track_Card_Levels_v0_1.md`. May file MGP ask §8 #4 if alphabet gaps bite | Post-S5j | R0 (spec), S5j |
@@ -69,10 +106,12 @@ Compression note: R3→R1 merge and per-musician reward distribution into R2/R3/
 
 | | Comp 1 | Comp 2 | Action | Finisher | Reward comp A | Reward comp B | Reward action (status) |
 |---|---|---|---|---|---|---|---|
-| **Sibi** | Wormus Major ×2 ✅ exists | Wormus Minor ×2 ✅ exists | Reveal card (name TBD — "Mind Tap" occupied) — R1-or-R4 | Psychic Wave v2 — R4 | Jazz chord palette — R8 | Phrygian / Phrygian-dominant / flamenco palette — R8 (V2 gate) | Earworm-carrying action — R8 |
-| **C2** | Default Mode (4/4) ✅ exists | 6/8 slot — D-STARTER-2 revisit (R0) | Targetable Composure (Keep Cool variant, `Musician`) — R4-or-R8 | Spotlight/Taunt tank — R4 | Jazz drum palette — R8 | EDM (d'n'b) drum palette — R8 | Composure/Flow-carrying action — R8 |
-| **Conito** | Finger Bass v1 — R2 | Slap Bass v1 — R2 | Draw X (identity refinement in R0) — R2 | Overload — R5 | Bossa backing, nylon guitar (v1) — R8 | Tapping melody (chord-aware gate, §9 V3) — R8 | Overload-synergy action — R8 |
-| **Zig** | Ascending-degree pattern — R3 | Scale-phrase palette — R3 | Wink (Captivated) — R1 | Double Harmony Tier A — R6 | **UNDEFINED — gap, R0 must propose** | **UNDEFINED — gap, R0 must propose** | **Singalong** — R8 (status TBD in R0) |
+| **Sibi** | Wormus Major ×2 ✅ exists (+lvl 2–3, R7) | Wormus Minor ×2 ✅ exists (+lvl 2–3, R7) | Mind Tap ✅ exists; **Read the Room** (reveal) = *reward* action — R4 | Psychic Wave v2 — R4 | **Jazz Palette** (7th qualities) — R8 | **Andaluza** — Phrygian + explicit per-event qualities (V2 fallback; no enum change) — R8 | **Hive Hum** (Earworm +4, cost 1) — R8 |
+| **C2** | Default Mode (4/4) ×2 ✅ exists | **Compound Cycle (6/8)** ✅ exists — promoted from pool (D-R0-2=B); Waltz Protocol → pool | Keep Cool ✅ exists, retargeted `Musician` — R4 | Spotlight/Taunt tank — R4 | **Jazz Kit** drum palette — R8 | **Neuro Kit** (d'n'b) drum palette — R8 | **Lock In** (Flow +2 Self, cost 1) — R8 |
+| **Conito** | Finger Bass v1 — R2 ✅ built | Slap Bass v1 — R2 ✅ built | **Static Rush** (Draw 2 + Stress +1 Self, D-R0-4) — R2 ✅ built | Overload (Action domain, Voltage ≥ 3) — R5 | **Bossa Corda** (nylon, v1 approx) — R8 | **Tapping v1** (scale-degree arpeggio; chord-aware = ask §8 #5) — R8 | **Amp Up** (Voltage +2 Self) — R8 |
+| **Zig** | **Rise Up** — ascending-degree pattern — R3 | **Showtime** — anthemic phrase palette — R3 | **Wink** (Captivated +2, cost 0) ✅ exists — R1 CLOSED | Double Harmony Tier A — R6 | **Torch Song** (ballad, slow-lean) — R8 | **Motor Mouth** (patter, fast-lean) — R8 | **Singalong** (Captivated +1 AoE, D-R0-9) — R8 |
+
+*(All `(working)` names remain subject to the per-batch naming pass.)*
 
 ---
 
@@ -86,7 +125,7 @@ Effort: **A** = authoring/content only · **B** = authoring + bounded ALWTTT cod
 | Sibi reveal action | Taste data exists (`TastePreferences`, 4 axes: Tempo / density / TS / Tonality). Needs new `CardEffectSpec` (`RevealPreferencesSpec`) via `SSoT_Card_Authoring_Contracts §9` four-layer rule + `AudienceCharacterCanvas` TMP surface. **Name collision:** existing Mind Tap = `ModifyVibe(+5)` + `Earworm(+2)` | ALWTTT | B |
 | Sibi Psychic Wave v2 | Psychic Waves exists (cost 3, `ModifyVibe +5, AllAudienceCharacters`). Add `ApplyStatusEffectSpec(earworm, Y, AllAudienceCharacters)` — target verified in spec + `CardBase`. VFX: full-screen circular mask + color inversion; `TutorialSpotlight.shader` reusable base. **Regression duty:** tutorial beat 8 + JUICE-PW presentation (per-target `AudienceVibeImpactEvent`, `CardVibeImpact` sting) | ALWTTT | A payload + B VFX |
 | C2 4/4 | Default Mode exists; optional `DrumPatternPaletteSO` upgrade (palette runtime wired 2026-06-04) | ALWTTT | 0–A |
-| C2 6/8 | Compound Cycle exists **in reward pool** (D-STARTER-2=B). Starter placement = R0 decision (revert vs distinct card vs keep-as-reward) | ALWTTT | A + decision |
+| C2 6/8 | **Resolved D-R0-2=B:** Compound Cycle promoted **to starter** (flags-only change; card already authored, `MeterEffect(6/8)`, gen 3), Waltz Protocol demoted to reward pool. Blind-listener contrast for C2's starter pair improves (simple duple vs compound triple). No tutorial reference to either card | ALWTTT | 0 (flags) |
 | C2 targetable Composure | Keep Cool exists (`Self`). `targetType = Musician` variant is pure authoring (verified) | ALWTTT | A |
 | C2 Spotlight/Taunt finisher | New status + redirect hook in `AudienceCharacterBase.ResolveTargetsFor` (`Musician`/`RandomMusician` → C2, 1 audience turn). No CSO redirect primitive → append (enum append-only) or bespoke key + runtime check. VFX = animation trigger | ALWTTT | B/C |
 | Conito Finger Bass | Bassline role + `BasslineCardConfigSO` exist (figures: Block, arpeggio pulse, Offbeat stabs, PerBeat). **1st–5th–8ve–3rd walk NOT implemented** — recorded package-side candidate (seeded-variation batch, CA roadmap) → ask §8 #1 | ALWTTT v1 / MGP walk | A + ask |
@@ -122,77 +161,61 @@ Effort: **A** = authoring/content only · **B** = authoring + bounded ALWTTT cod
 
 ---
 
-## 8. MidiGenPlay asks — pending, not filed
+## 8. MidiGenPlay asks
 
 Filing rule: asks are filed **with acceptance criteria** at the batch that owns the demand (R2 for #1–#3, R7/R8 for #4–#5), never as intentions. They join the existing pending item `MGP-ALWTTT-ARTIC-1` (DF-ARTIC) in the cross-boundary queue. None are redesigned here (boundary rule).
 
-1. **Bass chord-tone walk figures** (1st–5th–8ve–3rd cycling) — formal demand on the package-side recorded candidate (seeded-variation batch, CA roadmap). *(R2)*
-2. **Bass pocket-coupling** (bassline reads/follows the Rhythm track) — new cross-track feature. *(R2)*
-3. **Bossa bass/upper split** — formal demand on the package-side deferred CA-T2 item (register-selective emission). *(R2; consumed by R8 content)*
-4. **Conditional — chord alphabet / chromatic degrees:** only if R0 verifications V1-residual/V2/V4 fail for the target level content (e.g. Phrygian dominant tonality; `degreeAccidental` on grid paths). *(R7)*
+1. ~~Bass chord-tone walk figures~~ — **RESOLVED package-side 2026-07-28 before filing.**
+   Delivered as `arpeggioToneMode`. Adopted R2 (D-R2-4=A). Boundary §8.4.
+2. ~~Bass pocket-coupling~~ — **RESOLVED package-side 2026-07-28 before filing.** Delivered as
+   `pocketMode = SlapPocket` (+ POCKET-2). Superseded for ALWTTT by `SelfPocket` (§8.6);
+   `SlapPocket` retains a dormant consumer-side cache duty (§8.4).
+3. ~~Bossa bass/upper split~~ — **RESOLVED package-side 2026-07-28 before filing.** Delivered as
+   `ChordExpressionType.BassUpperSplit` (**not** the member named `Bossa` — naming trap, §8.4).
+   Consumer is R8 *Bossa Corda*.
+4. **Conditional — bass-side `degreeAccidental` consumption:** narrowed at R0. V1-residual passed structurally and V2's failure is absorbed by an ALWTTT-side fallback (authored Andalusian progressions over Phrygian), so neither triggers an ask. V4 showed the **backing** composer already honors accidentals on both render paths while the **bass** ignores them — the only remaining demand is bass-side parity, and it is triggered only if level or reward content ever needs chromatic roots in a band containing Conito. Level content is diatonic-root by decision, so this stays conditional. *(R7)*
 5. **Conditional — chord-aware melody resolution** (pattern degrees resolved against the sounding chord, or an arpeggio melody strategy) for the tapping reward. *(R8)*
 
+**Filed and delivered 2026-07-31 (boundary §8.6), both adopted:**
+- `MGP-ALWTTT-BASS-ORDER-1` — shared harmony independent of track order; five-level precedence;
+  new `sharedProgressionSource` readback. Closed **F-BASS-ORDER-1**.
+- `MGP-ALWTTT-BASS-SLAPFIG-1` — `PocketCouplingMode.SelfPocket`, autonomous slap/pop, no
+  cross-track read.
+Also previously delivered unrequested and adopted: `MGP-ALWTTT-BASS-SOLO-1` (§8.5).
+
+Items 4–5 (conditional chord alphabet / chromatic degrees; chord-aware melody resolution) remain
+**open and unfiled**, owned by R7 / R8. Filing rule unchanged.
+
+**Registered, not filed:** an `Auto` pocket mode (SelfPocket without drums, coupling to Rhythm
+when present). Deliberately not requested — conditional cross-track coupling re-arms the §8.4
+cache duty, so it costs a consumer-side batch, and a mid-song figure change may read as a bug
+rather than adaptation. Revisit alongside SLAPFIG-2 when real drum content exists.
+
 ---
 
-## 9. Verifications owed to R0
+## 9. Verifications — RESOLVED at R0 (2026-07-23)
 
-- **V1 — Chord quality alphabet: RESOLVED with caveats (2026-07-23).** `RomanProgressionParser` supports Major, Minor, Diminished, Augmented, **Dominant7, Major7, Minor7, HalfDiminished7, Diminished7, Sus2, Sus4**. The lvl3 exemplar (`Imaj7 | V7/vi | vi7 | ii7 V7`) is expressible (V7/vi = degree III + Dominant7 quality; iv = degree IV + Minor). **Not expressible:** slash-chord inversions (voicer owns inversions) — lvl2 `D/F#` degrades to `V`. Residual: confirm the voicing/rendering path honors all 7th qualities end-to-end (parser acceptance ≠ audited render).
-- **V2 — Phrygian dominant** in the tonality enum (Phrygian itself confirmed). Fallback: Andalusian-cadence authored progressions.
-- **V3 — Melody patterns: HALF-RESOLVED.** Degree-based + octave offset, runtime-resolved vs Part tonality/root (verified) → ascending card is fully adaptive. **Chord-aware resolution does not exist** → tapping reward gates on ask #5 or degrades to scale-degree figures. Residual: pattern `Measures` vs part length behavior.
-- **V4 — `degreeAccidental`** ignored on grid consumption paths (recorded gap, backing + bass SSoTs) — impact only on truly chromatic-root level content; scope level authoring to diatonic roots or trigger ask #4.
-- **V5 — `ApplyStatusEffectSpec` + `AllAudienceCharacters`** at runtime (target verified in code; low risk; covered by R4 smoke).
+Method + code citations: `Design_Starter_Deck_v2.md` §7.
+
+- **V1 — chord quality alphabet: RESOLVED.** Full alphabet parses; per-event quality reaches voicing at both backing render sites and on the melody chord-tone path. Slash inversions remain inexpressible (voicer owns inversions). Residual reduced to an interval-table audit + audible spot-check → **R7 pilot smoke**.
+- **V2 — Phrygian dominant: FAIL, fallback locked.** The `Tonality` enum is the seven diatonic modes only. The flamenco sound is authored instead as explicit degree+quality events over `Tonality.Phrygian` (the Andaluza reward card). **No MGP ask triggered.**
+- **V3 — melody patterns: RESOLVED.** Degree-based (tonality-adaptive) confirmed; the authored loop **tiles by raw beats to the part length**, truncating the final partial repeat, warning on meter mismatch (D-MEL5.1=A). Authoring guidance: author the pattern in the card's expected meter. Chord-aware resolution still absent → tapping reward gates on ask #5 or degrades.
+- **V4 — `degreeAccidental`: recorded gap CORRECTED.** Backing honors it on both paths (marker-parity tested); bass ignores it. Constraint (diatonic-root level content) stands, but for band-composition reasons. Ask #4 narrowed accordingly. **Cross-boundary doc note owed** — filed 2026-07-31; text preserved in `CSV_Composition_Validation_Sub_Roadmap.md` §5 (the R0 diff file is retired).
+- **V5 — `ApplyStatusEffectSpec` + `AllAudienceCharacters`: structurally verified.** One shared target list serves all specs on a card; the branch is live for Psychic Waves' `ModifyVibe` and **excludes `IsBlocked` members**. Runtime smoke stays at R4.
+
+## 10. Open items at R0 — RESOLVED
+
+All items are closed by **D-R0-1..12** (§2, R0 ledger). Residual work is owned per batch and listed in `Design_Starter_Deck_v2.md` §8 (interval-table audit → R7 · V5 smoke → R4 · dual-melody mix validation → R3/R8 · Keep Cool tutorial regression → R4 · draw/hand economy retune for 22 cards × 4 musicians → R8 · action:composition ratio observation → R8 · naming passes → per batch · finisher cost tuning → R8).
 
 ---
 
-## 10. Open items at R0 (beyond §9)
+## 11. R1 rehydration prompt — superseded (record)
 
-Sibi reveal-card naming (Mind Tap occupied) · C2 6/8 starter placement (D-STARTER-2 revisit) · Conito Draw identity vs Warm Up · Overload card domain (Action vs Composition; final-loop lock interaction — Action recommended) · starter-vs-pool split of ~30 cards + starter v2 size/ratio (maxims E1/N7; S5i comprehension lens) · Levels scope (generic mechanic + Wormus-only pilot) + level-state lifetime (per-part? per-song?) + max level + UI badge · +INSP-per-level vs Vamp/In the Pocket · singalong effect/status/timing · Zig's two composition-reward directions · whether existing pool cards (Vamp, In the Pocket, Compound Cycle, Pentameter) count toward the reward slate.
-
----
-
-## 11. R0 rehydration prompt
-
-```
-Mode: GAME DESIGN. R0 — Starter Deck v2 (4 músicos) + mecánicas nuevas: consolidación de diseño.
-
-Context: Campaña Roster Expansion planificada (este sub-roadmap, 2026-07-23; D1=C:
-R1–R3 intercalables con S5i, R4+ post-S5j). Evaluación de viabilidad cerrada (§5):
-todo ALWTTT salvo fidelidad de bajo (walk, pocket, bossa split) y chord-aware melody
-(asks §8). Alfabeto de acordes verificado rico (V1: 7as/sus disponibles; slash NO).
-MelodyPatternData por grados (adaptativo a tonalidad; NO chord-aware).
-
-Decisions locked: D1=C · D2=A (reusar baseline) · D3=A (bajo v1 + asks) · D4=A
-(Harmony Tier A) · D5=A (paths blandos) · D6=A (consolidación en sub-roadmap).
-
-Open at batch open: lista completa en §10 + verificaciones residuales §9 (V1
-residual, V2, V3 residual, V4, V5).
-
-Inputs: 1) RosterExpansion_Sub_Roadmap.md (este doc) · 2) Design_Track_Card_Levels_
-v0_1.md · 3) Design_Starter_Deck_v1.md · 4) MidiGenPlay_Expressive_Surface_for_
-ALWTTT_Cards.md · 5) Design_Audience_Status_v1.md · 6) SSoT_Gig_Combat_Core.md §14 ·
-7) SSoT_Singer_Voice.md · 8) SSoT_Composer_Bass_Track.md + SSoT_Composer_Backing_
-Track.md (§ alfabeto/calidades) · 9) Design_Game_And_Card_Maxims_v0_1.md.
-
-Task: 1) Mapa de identidad 4 músicos (ejes matriz expresiva + tempo lean, cerrando
-el placeholder v1). 2) Lista cerrada de cartas (~30): efecto autoritativo, coste/gen,
-target, nivel(es), starter-vs-pool. 3) Spec final de niveles (estado, authoring,
-ganchos INSP/complejidad, invalidación de caché) dentro del alfabeto verificado.
-4) Diseño singalong (secuencia, efecto/status, degradación). 5) Resolver §10 y
-residuales §9. 6) Tamaño/ratio starter v2 (maxims E1/N7). 7) Borrador
-Design_Starter_Deck_v2.
-
-Constraints: planning-only, cero código; internals de MidiGenPlay no se rediseñan
-(asks con criterios de aceptación, se archivan en R2/R7/R8); baseline S5i intocable;
-cartas existentes que cumplen se conservan (D2=A); Fill Window y Expression Input
-NO entran en la campaña (registradas).
-
-Deliverables: Design_Starter_Deck_v2 (draft) · spec de niveles cerrada (update de
-Design_Track_Card_Levels o anexo v2) · verificaciones resueltas con método · diffs
-propuestos de sub-roadmap/Roadmap/changelog · agenda R1–R8 confirmada.
-
-Closure exit criteria: v2 draft completo; abiertos resueltos o diferidos con dueño;
-doc-update propuesto, no aplicado (fase separada).
-```
+R0 closed with an R1 rehydration prompt issued at session close (2026-07-23); this section was to carry it
+verbatim (R0 doc package, P2.9). That prompt was consumed: **R1 closed 2026-07-23** and **R2 + R2c + R2d
+closed 2026-07-31** (§3), and its verbatim text was not preserved in the PK by the time the R0 package was
+applied (2026-07-31, DOC-APPLY-1). It is deliberately not reconstructed (no-invention rule). The next prompt
+owed by this section is the **R3** prompt, to be issued at R3 open.
 
 ---
 

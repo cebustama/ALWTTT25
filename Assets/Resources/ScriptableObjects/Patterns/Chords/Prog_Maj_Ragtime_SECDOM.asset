@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Prog_Maj_Ragtime_SECDOM
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.ChordProgressionData
   DisplayName: "I (2) \u2013 VI7 (2) \u2013 II7 (2) \u2013 V7 (2) [8 bars, FourFour,
-    sub x1, I]"
+    sub x1, I-D-L-M]"
   TimeSignature: 0
   Measures: 8
   subdivisions: 1
@@ -57,6 +57,6 @@ MonoBehaviour:
   qualityRenderPolicy: 2
   useColorTable: 0
   cadence: 1
-  tonalities: 00000000
+  tonalities: 00000000010000000300000004000000
   originalInput: "I (2) \u2013 VI7 (2) \u2013 II7 (2) \u2013 V7 (2)"
   songReferences: []

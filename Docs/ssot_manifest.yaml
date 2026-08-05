@@ -128,7 +128,7 @@ entries:
       - "Flow resets each Song (via explicit GigManager song-end reset, not tick decay). Combat meaning: amplifies Loop → SongHype conversion."
       - "Inspiration resets at Song start to a base value, increases from loop-level musical structure and composition contributions, is spent primarily on Composition cards."
       - "SongHype changes loop by loop, is derived from LoopScore conversion, measures structural musical strength, not audience taste directly."
-      - "Vibe gain happens at Song End. VibeDelta derives from SongHype01 and audience-specific impression data accumulated across loops. An audience member is Convinced when Vibe >= VibeGoal."
+      - "Vibe delivery happens at Song End. VibeDelta derives from SongHype01 and audience-specific impression data accumulated across loops. An audience member is Convinced when Vibe is depleted to 0 (S5e inversion: Vibe is a resistance pool starting at MaxVibe; VibeGoal retired into MaxVibe)."
       - "GigScore is an encounter-level aggregate derived from song outcomes. MVP-friendly default is the sum of song-level results such as final SongHype."
       - "Composure resets at PlayerTurnStart tick (NOT per-song — these are not equivalent)."
       - "Breakdown consequences (per changelog 2026-03-23): Cohesion−1 → LoseGig if Cohesion≤0 → Shaken application → Stress reset. Stress reset formula: floor(StressMax * breakdownStressResetFraction), default 0.5, configurable."
@@ -206,11 +206,11 @@ entries:
       - Assets/Scripts/Cards/CardActions/AudienceMoveToFrontAction.cs
     hard_invariants:
       - "Vibe is the canonical persuasion-side progress meter. Tracked per audience member. Increases mainly at Song End. Persists across songs within a Gig unless an encounter-specific modifier says otherwise."
-      - "When Vibe >= VibeGoal, that audience member becomes Convinced. Convinced audience members should no longer count as unresolved persuasion targets for encounter completion."
+      - "When Vibe is depleted to 0 (S5e inversion; the pool starts at MaxVibe), that audience member becomes Convinced. Convinced audience members should no longer count as unresolved persuasion targets for encounter completion."
       - "The audience is a reactive and pressuring system. It does not need a traditional HP/damage model to serve as combat structure."
       - "Preferences influence reaction/impression. Preferences do not directly replace SongHype or LoopScore."
       - "Intentions should be visible before the audience acts. Intention is presentation of the next meaningful audience action, not hidden simulation state."
-      - "MVP rules: each Audience Member has Vibe + VibeGoal; audience persuasion progress persists across songs within a Gig; audience preferences are simple and readable; audience pressure is primarily expressed through Stress-oriented abilities; intention telegraphing is favored over hidden surprise logic; audience-side statuses are part of the MVP baseline (Earworm is the first; extends via StatusEffectCatalogue_Audience)."
+      - "MVP rules: each Audience Member has Vibe + MaxVibe (VibeGoal retired into MaxVibe, S5e); audience persuasion progress persists across songs within a Gig; audience preferences are simple and readable; audience pressure is primarily expressed through Stress-oriented abilities; intention telegraphing is favored over hidden surprise logic; audience-side statuses are part of the MVP baseline (active set: Earworm M4.3, Indifference B3, Captivated R1; extends via StatusEffectCatalogue_Audience)."
     notes: >
       Audience entities, persuasion, preferences, intentions, reaction
       contracts. Does not own encounter envelope (that is SSoT_Gig_Encounter).
@@ -227,7 +227,7 @@ entries:
       - "Musicians: TriggerAllStatus is bound to GigManager.OnPlayerTurnStarted via MusicianBase.BindToGigContext(). Audience: TriggerAllStatus is called from GigManager.AudienceTurnRoutine at audience turn start."
       - "Dual status system exists: legacy StatusType path and current SO+container path both live in code. New work goes through SO+container only."
       - "A status application path must resolve through one canonical runtime route. Multiple variants must not become multiple silent meanings for the same gameplay concept."
-      - "Canonical MVP status set: flow, composure, choke, shaken, exposed, feedback, earworm. Feedback is musician-only; Earworm is audience-only (first audience-side status, M4.3). Audience Feedback DoT remains explicitly deferred (requires Stress path on AudienceCharacterBase, which does not exist). Earworm and Feedback share the DamageOverTime primitive but live in separate catalogues post-MB2 (StatusEffectCatalogue_Musicians / StatusEffectCatalogue_Audience). Flow combat meaning is bifurcated (M4.2): flat per-performer on Action cards, multiplier band-wide on Composition + Song End."
+      - "Canonical MVP status set: flow, composure, choke, shaken, exposed, feedback, earworm, indifference, captivated. Feedback is musician-only; Earworm, Indifference and Captivated are audience-only (Earworm first, M4.3; Indifference B3; Captivated R1). Audience Feedback DoT remains explicitly deferred (requires Stress path on AudienceCharacterBase, which does not exist). Earworm and Feedback share the DamageOverTime primitive but live in separate catalogues post-MB2 (StatusEffectCatalogue_Musicians / StatusEffectCatalogue_Audience). Flow combat meaning is bifurcated (M4.2): flat per-performer on Action cards, multiplier band-wide on Composition + Song End. AudienceCharacterStats.ApplyIncomingVibe is the single canonical gate for incoming positive Vibe: Indifference blocks unconditionally, then Captivated amplifies by (1 + stacks x MeterTuningSO.captivatedVibeBonusPerStack); both apply helper-wide, to cards, Earworm ticks, the SFX venue bonus and the song-end conversion alike."
     notes: >
       Runtime status truth, catalogue boundary, canonical MVP status meaning.
       Acknowledges the dual legacy/SO system as migration coexistence.
@@ -449,6 +449,17 @@ entries:
       Track Card Levels design note (re-play = level-up), batch R7 of the
       Roster Expansion campaign. At R7 closure the implementing SSoTs take
       authority; this note is retained as rationale.
+
+  - path: Docs/planning/active/Design_Starter_Deck_v2.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      4-musician starter deck design (Roster Expansion campaign, R0 output
+      2026-07-23). Decision record D-R0-1..12, verification method, identity
+      map, reward slate. Planning intent only — the authored .asset files
+      become runtime-authoritative at R8 closure, same lifecycle as v1.
+      Design_Starter_Deck_v1 remains the record of the live S5 demo starter.
 
   - path: Docs/planning/Design_Fill_Window_v0_1.md
     class: reference

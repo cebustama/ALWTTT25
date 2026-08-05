@@ -132,6 +132,12 @@ Rationale: Indifference means "doesn't get convinced", not "doesn't
 perceive music". Single gate = no double-blocking, and keeps
 `LoopScoreCalculator` / SongHype decoupled from per-audience status state.
 
+**Captivated layering (R1, 2026-07-23).** The same `ApplyIncomingVibe` gate hosts the Captivated
+amplification layer, applied strictly *after* the Indifference check: blocked stays 0 regardless of
+Captivated stacks. Captivated likewise does not touch `ResolveLoopEffect` output — it modulates only
+what crosses the Vibe boundary, keeping the single-gate property intact. Status spec:
+`SSoT_Status_Effects.md §5.8`.
+
 ---
 
 ## 6. Preferences (taste profiles)
@@ -235,7 +241,7 @@ For the baseline MVP, keep these rules true:
 - audience preferences are simple and readable
 - audience pressure is primarily expressed through Stress-oriented abilities
 - intention telegraphing is favored over hidden surprise logic
-- audience-side statuses are part of the MVP baseline; Earworm (M4.3) is the first active audience-side status. Future audience-side statuses extend this set through `StatusEffectCatalogue_Audience`.
+- audience-side statuses are part of the MVP baseline. Active set: **Earworm** (M4.3, first audience-side status — Vibe DoT), **Indifference** (B3 — blocks all incoming Vibe), **Captivated** (R1 — amplifies all incoming Vibe, ×(1 + N×0.25)). Future audience-side statuses extend this set through `StatusEffectCatalogue_Audience`. Semantics for all three: `SSoT_Status_Effects.md` §5.7–§5.8 (Indifference is documented alongside the `ApplyIncomingVibe` gate, §5.3 above).
 
 ---
 

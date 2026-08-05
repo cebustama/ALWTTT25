@@ -29,4 +29,12 @@ MonoBehaviour:
   - pattern: {fileID: 11400000, guid: c9bb1fd447bb3004883c6e71b38da5bf, type: 2}
     weight: 1
   - pattern: {fileID: 11400000, guid: 5523d1812c2a8df4088a1d33032e277a, type: 2}
-    weight: 100
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 80bf6d7dc7eee404eba97755f186ac9d, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 9bc62b47bd268d9449927bad8f0f9c5b, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: b200f02095339fd41b639843f7414e52, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: d6d884e838ec465439239c46e1bf7c04, type: 2}
+    weight: 1

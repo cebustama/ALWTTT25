@@ -31,6 +31,18 @@ namespace ALWTTT.Managers
         [Header("Settings")]
         [SerializeField] private MidiGenPlayConfig settings;
 
+        // [SOLO-1 / D-R2-6=B] Host default harmony for backing-less parts
+        // (MGP-ALWTTT-BASS-SOLO-1). Consumed by RenderSinglePart.
+        [Header("Harmony Defaults")]
+        [SerializeField, Tooltip(
+            "Fallback harmony palette for parts that have a harmony consumer " +
+            "(Bassline/Melody/Harmony) but NO Backing track. One progression is " +
+            "picked per (songSeed, partIndex): stable within a song (cache-" +
+            "coherent), varies across songs. UNASSIGNED = legacy behavior (such " +
+            "parts render harmony silence). Leave unassigned in the demo scene " +
+            "config: S5i inertness by construction.")]
+        private ChordProgressionPaletteSO defaultProgressionPalette;
+
         [Header("Refs")]
         [SerializeField] private MonoBehaviour playerBehaviour; // IPlayMidi (MPTK)
 
@@ -87,6 +99,13 @@ namespace ALWTTT.Managers
             public Dictionary<MusicianTrackKey, ResolvedTrackChoice> resolvedByTrack;
             // [BAL-1 task 4] CC7 actually emitted per gained track for these bytes.
             public Dictionary<MusicianTrackKey, int> appliedCc7ByTrack; // [BAL-1] existing
+            // [ORDER-1 / R2d] Which source won the shared progression channel for
+            // these bytes, and the asset behind it. Same D-DBG5=A logic as above:
+            // replayed bytes == original bytes ⇒ the original verdict still holds.
+            // Verification surface only — NEVER a cache-key input (see the
+            // harmony-identity token in RenderSinglePart for why).
+            public ResolvedSource sharedProgressionSource;
+            public string sharedProgressionAssetName;
 #if ALWTTT_DEV
             // [CSV-3] Resolved musical identity of the ORIGINAL render — D-DBG5=A analogue of
             // appliedCc7ByTrack: replay bytes == original ⇒ resolved identity identical.
@@ -746,6 +765,57 @@ namespace ALWTTT.Managers
             }
 
             // ───────────────────────────────────────────────────────────
+            // [SOLO-1 / D-R2-6=B; guard rewritten ORDER-1 / R2d 2026-07-31]
+            // Seed a host default progression whenever the part has ANY
+            // harmony consumer and a palette is assigned.
+            //
+            // The old `!hasBacking` skip is GONE. Since MGP-ALWTTT-BASS-ORDER-1
+            // the package sniffs whether the Backing row actually CARRIES a
+            // harmony source (per-render override, card progressionOverride,
+            // palette with a valid weighted entry, or an authored Pattern) and
+            // only then discards the default. An articulation-only Backing card
+            // (future bossa / ska / power-chord cards) therefore no longer
+            // suppresses the default — the Backing composer consumes it, and as
+            // a bonus meter-normalizes and re-qualifies it, which the raw SOLO-1
+            // path did not do. Backing is consequently a CONSUMER here, not a
+            // disqualifier: a part holding only an articulation-only Backing row
+            // must still be seeded.
+            //
+            // We no longer replicate the package's sniff client-side. It just
+            // changed once; duplicating it guarantees drift.
+            // Deterministic pick per (songSeed, partIndex).
+            // ───────────────────────────────────────────────────────────
+            ChordProgressionData defaultProgression = null;
+            string defaultProgressionToken = null;
+            {
+                bool hasHarmonyConsumer = part.Tracks != null &&
+                    part.Tracks.Any(t => t.Role == TrackRole.Backing
+                                      || t.Role == TrackRole.Bassline
+                                      || t.Role == TrackRole.Melody
+                                      || t.Role == TrackRole.Harmony);
+
+                if (hasHarmonyConsumer && defaultProgressionPalette != null)
+                {
+                    var dpRng = new System.Random(unchecked(
+                        ((seedOverride ?? 0) * 486187739) ^ (partIndex * 1000003)));
+                    defaultProgression =
+                        defaultProgressionPalette.PickRandomProgression(dpRng); // clone=true: el asset nunca se muta
+
+                    if (defaultProgression != null)
+                    {
+                        defaultProgressionToken =
+                            $"dp:{defaultProgressionPalette.name}:{seedOverride ?? 0}:{partIndex}";
+                        if (logDebug)
+                            Debug.Log($"{DebugTag} <color=#88ff88>[SOLO-1]</color> part={partIndex} " +
+                                $"'{part.Name}' offering default progression from palette " +
+                                $"'{defaultProgressionPalette.name}' ({defaultProgressionToken}). " +
+                                $"Whether it WINS the shared channel is decided package-side — " +
+                                $"read [ORDER-1] harmony source below.");
+                    }
+                }
+            }
+
+            // ───────────────────────────────────────────────────────────
             // [B1 / D-E=α'] Compute cache keys from caller-supplied
             // track-inputs hash map. The map is computed by
             // SongConfigBuilder.ComputeTrackInputsHashesForPart from
@@ -758,6 +828,66 @@ namespace ALWTTT.Managers
             // still produces correct output.
             // ───────────────────────────────────────────────────────────
             string partMeterHash = ComputePartMeterHash(part);
+
+            // ───────────────────────────────────────────────────────────
+            // [D-R2-10=A / R2d 2026-07-31] SHARED-HARMONY IDENTITY TOKEN.
+            //
+            // Everything derived from partMeterHash — stem keys, partBundleKey,
+            // the per-part invalidation sweep — must move when the harmony in
+            // effect moves, because that harmony is baked into every consumer's
+            // bytes.
+            //
+            // Why NOT `sharedProgressionSource` (the package's suggestion):
+            // it is READBACK. It exists after the render. This hash decides
+            // whether a render happens at all. Circular; not implementable as a
+            // key. The readback is used instead as a VERIFICATION surface
+            // (published below, asserted by ST-R2d-1/2).
+            //
+            // Two pre-render segments, both already in hand:
+            //
+            //  dp: — the palette/seed/part that MAY win the shared channel.
+            //        Constant within a song (seed and partIndex are fixed,
+            //        D-S5gb-2=B), so it never churns mid-song.
+            //
+            //  bk: — the Backing row's trackInputsHash. Exact proxy for "which
+            //        Backing card is present", which is what decides whether
+            //        the default is displaced and what the winning progression
+            //        is. This segment fixes **F-HARM-STALE-1**, a latent defect
+            //        since B1 and unrelated to SOLO-1: swapping the Backing card
+            //        (Wormus Major → Minor) changes the BACKING track's hash but
+            //        NOT the bass's, and previously not partMeterHash either —
+            //        so the bass stem was served from cache with the OLD chords
+            //        baked in. Silent wrong output, not silence.
+            //
+            // Accepted cost: over-invalidation. Swapping to an articulation-only
+            // Backing card re-renders the harmony consumers even though the
+            // effective harmony (the default) did not change. One extra render,
+            // song-scoped. Preferred over serving stale bytes.
+            //
+            // BC: both segments absent ⇒ hash string byte-identical to pre-R2c
+            // (no palette assigned AND no Backing row).
+            //
+            // Known limitation (recorded, not a defect): dp: identifies the
+            // palette ASSET, seed and partIndex — not the palette's contents.
+            // Editing its entries/weights mid-session does not invalidate.
+            // Harmless: the caches are per-song (D7=B) and die with the song.
+            // ───────────────────────────────────────────────────────────
+            if (defaultProgressionToken != null)
+                partMeterHash += "|" + defaultProgressionToken;
+
+            if (trackInputsHashByTrack != null && part.Tracks != null)
+            {
+                var backingTrack = part.Tracks
+                    .FirstOrDefault(t => t.Role == TrackRole.Backing);
+
+                if (backingTrack != null && trackInputsHashByTrack.TryGetValue(
+                        new MusicianTrackKey(backingTrack.MusicianId ?? "_", TrackRole.Backing),
+                        out var backingHash))
+                {
+                    partMeterHash += "|bk:" + backingHash;
+                }
+            }
+
             var trackHashes = new Dictionary<MusicianTrackKey, string>();
             var stemKeysByTrack = new Dictionary<MusicianTrackKey, string>();
             var bundleEntries = new List<string>();
@@ -895,6 +1025,14 @@ namespace ALWTTT.Managers
                 // truth (D-DBG5=A): bytes are identical, choices are identical.
                 LastAppliedCc7ByTrack = bundleHit.appliedCc7ByTrack; // [BAL-1]
 
+                // [ORDER-1 / R2d] Republish the ORIGINAL render's harmony verdict.
+                LastSharedProgressionSource = bundleHit.sharedProgressionSource;
+                LastSharedProgressionAssetName = bundleHit.sharedProgressionAssetName;
+                if (logDebug)
+                    Debug.Log($"{DebugTag} <color=#88ff88>[ORDER-1]</color> part={partIndex} " +
+                        $"harmony source={LastSharedProgressionSource} " +
+                        $"asset='{LastSharedProgressionAssetName ?? "_"}' (bundle replay)");
+
 #if ALWTTT_DEV
                 LastRenderResolvedTimeSignature = bundleHit.resolvedTs;
                 LastRenderResolvedTonality = bundleHit.resolvedTonality;
@@ -956,10 +1094,27 @@ namespace ALWTTT.Managers
                     instrumentOverrides,
                     seedOverride: seedOverride,          // [S5g / MGP-ALWTTT-SEED-1]
                     patternOverrides: patternOverrides,  // [DBG-C1 / D-C1-1] inert this batch
-                    mixGains: _gigMixGains);             // [BAL-1 / MGP-MIX-1] null ⇒ byte-identical
+                    mixGains: _gigMixGains,              // [BAL-1 / MGP-MIX-1] null ⇒ byte-identical
+                                                         // [SOLO-1 / D-R2-6=B] Host channel into the shared
+                                                         // progression cache for backing-less parts. null ⇒
+                                                         // byte-identical. Package-side guard (D-SOLO-GUARD=A)
+                                                         // warns+ignores if the part HAS backing; we already
+                                                         // skip that case client-side.
+                    defaultProgression: defaultProgression);
 
                 // [BAL-1 task 4] readback of the CC7 actually emitted.
                 appliedCc7 = render.appliedCc7ByTrack;
+
+                // [ORDER-1 / R2d] Which source actually won the shared progression
+                // channel. This is the answer to "did our default get used?" — the
+                // question the old `!hasBacking` proxy answered wrongly once an
+                // articulation-only Backing card could coexist with a live default.
+                LastSharedProgressionSource = render.sharedProgressionSource;
+                LastSharedProgressionAssetName = render.sharedProgressionAssetName;
+                if (logDebug)
+                    Debug.Log($"{DebugTag} <color=#88ff88>[ORDER-1]</color> part={partIndex} " +
+                        $"harmony source={LastSharedProgressionSource} " +
+                        $"asset='{LastSharedProgressionAssetName ?? "_"}' (fresh render)");
 
                 if (logDebug)
                     Debug.Log($"{DebugTag} [BPM] Part={partIndex} resolved BPM={render.bpm}");
@@ -1135,6 +1290,8 @@ namespace ALWTTT.Managers
                         new Dictionary<MusicianTrackKey, ResolvedTrackChoice>(resolvedSnapshot),
                     appliedCc7ByTrack = appliedCc7 != null   // [BAL-1] existing
                         ? new Dictionary<MusicianTrackKey, int>(appliedCc7) : null,
+                    sharedProgressionSource = LastSharedProgressionSource,   // [ORDER-1 / R2d]
+                    sharedProgressionAssetName = LastSharedProgressionAssetName,
 #if ALWTTT_DEV
                     resolvedTs = part.TimeSignature,
                     resolvedTonality = part.Tonality,   // post step-2b alignment
@@ -2111,6 +2268,18 @@ namespace ALWTTT.Managers
         // the last render (fresh or bundle replay). Null ⇒ ungained render.
         public IReadOnlyDictionary<MusicianTrackKey, int> LastAppliedCc7ByTrack
         { get; private set; }
+
+        // [ORDER-1 / R2d 2026-07-31] Package readback (MGP-ALWTTT-BASS-ORDER-1):
+        // which source WON the shared progression channel in the last render, and
+        // the asset behind it. `ResolvedSource.HostDefault` means our own
+        // defaultProgressionPalette supplied the harmony everyone played over.
+        //
+        // Truth-only. This is deliberately NOT a cache-key input: it is produced
+        // by the render, and the cache key must exist before the render. The key
+        // uses the pre-render harmony-identity token instead (D-R2-10=A). Do not
+        // "improve" this by feeding it back into the hash — it cannot work.
+        public ResolvedSource LastSharedProgressionSource { get; private set; }
+        public string LastSharedProgressionAssetName { get; private set; }
 
 #if ALWTTT_DEV
         /// <summary>[CSV-3] Musical identity the last render ACTUALLY used, read from the

@@ -5,6 +5,9 @@
 **Evidence base:** All SSoT docs, governance docs, roadmap, and 40+ source files  
 **Governance authority:** Multi-Project Documentation Governance System v0.4 → Documentation Update Loop Local Addendum
 
+
+> **Terminology correction (2026-07-31, D-S5e-DOC-D):** `VibeGoal` references in this audit predate the S5e inversion. Runtime truth since S5e: `VibeGoal` retired into `MaxVibe`; Vibe is a resistance pool starting at `MaxVibe`, depleted by incoming Vibe; Convinced fires at `Vibe <= 0`. Historical audit — body not rewritten.
+
 ---
 
 ## 1) Combat MVP Reconstructed Scope

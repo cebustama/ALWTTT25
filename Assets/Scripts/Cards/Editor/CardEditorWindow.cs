@@ -342,6 +342,9 @@ namespace ALWTTT.Cards.Editor
                     }
                 }
 
+                // AUTH-1 (D-AUTH1-3=A): shared card-tooling navigation.
+                CardAuthoringNav.DrawNavStrip(CardAuthoringNav.Tool.CardEditor);
+
                 if (_registries != null)
                 {
                     var missing = new System.Collections.Generic.List<string>();
@@ -1492,6 +1495,10 @@ namespace ALWTTT.Cards.Editor
             DrawTrackActionEditor(trackActionProp, payload);
             EditorGUILayout.PropertyField(partActionProp, includeChildren: true);
             EditorGUILayout.PropertyField(modifierEffectsProp, includeChildren: true);
+            // AUTH-1 (D-AUTH1-1=A): PartEffect cross-links — per-entry jump into
+            // the Effect Editor + a "New Effect…" shortcut. Assignment itself
+            // stays on the PropertyField above.
+            DrawModifierEffectShortcuts(payload);
 
             EditorGUILayout.Space(8);
             DrawEffectsBlock(effectsProp, _registries);
@@ -1506,6 +1513,67 @@ namespace ALWTTT.Cards.Editor
             else
             {
                 so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        /// <summary>
+        /// AUTH-1: read-only shortcut rows under the modifierEffects list.
+        /// One row per assigned PartEffect (label + Edit + Ping) plus a
+        /// "New Effect…" jump into the Effect Editor. Never mutates the list.
+        /// </summary>
+        private static void DrawModifierEffectShortcuts(CompositionCardPayload payload)
+        {
+            if (payload == null) return;
+
+            var mods = payload.ModifierEffects;
+
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("PartEffects", EditorStyles.miniBoldLabel);
+                    GUILayout.FlexibleSpace();
+
+                    if (GUILayout.Button("New Effect…", GUILayout.Width(100)))
+                        PartEffectEditorWindow.Open();
+                }
+
+                if (mods == null || mods.Count == 0)
+                {
+                    EditorGUILayout.LabelField(
+                        "No PartEffects assigned.", EditorStyles.miniLabel);
+                    return;
+                }
+
+                for (int i = 0; i < mods.Count; i++)
+                {
+                    var fx = mods[i];
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (fx == null)
+                        {
+                            GUILayout.Label($"[{i}] <null>", EditorStyles.miniLabel);
+                            continue;
+                        }
+
+                        string label;
+                        try { label = fx.GetLabel(); }
+                        catch { label = "<label error>"; }
+
+                        GUILayout.Label(
+                            $"[{i}] {fx.GetType().Name} — {label}",
+                            EditorStyles.miniLabel, GUILayout.MinWidth(160));
+
+                        GUILayout.FlexibleSpace();
+
+                        if (GUILayout.Button("Edit", GUILayout.Width(44)))
+                            PartEffectEditorWindow.OpenAndSelect(fx);
+
+                        if (GUILayout.Button("Ping", GUILayout.Width(44)))
+                            EditorGUIUtility.PingObject(fx);
+                    }
+                }
             }
         }
 

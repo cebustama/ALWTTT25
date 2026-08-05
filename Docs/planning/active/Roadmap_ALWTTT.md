@@ -797,11 +797,15 @@ Long-term design pillar, deferred. Captured in `planning/Design_Tempo_Identity_v
 Multi-encounter run mode that queues encounters and dispatches them through `GigLauncher` (single non-Gig→Gig scene transition entry point established by §5.3.5). Introduces `LadderRunner` (DontDestroyOnLoad, encounter-queue holder, gig-won event subscriber) and an `EncounterLaunchConfigSO` family (`DemoLaunchConfigSO` sibling, per-encounter, designed for queuing). Band roster carries over between encounters via `bandRoster: null` to `GigLauncher.Launch` (signature already supports this path). Enables tuning of multi-gig mechanics: Cohesion, card rewards, deck modifications across encounters. Opens after §5.4 closes.
 
 ### Roster Expansion
-**Planned 2026-07-23 as the R0–R8 campaign — decomposed in `planning/active/RosterExpansion_Sub_Roadmap.md`** (decision ledger D1–D6; phasing **D1=C**: R0 design + R1–R3 enablers may interleave with S5i without touching its baseline; R4+ — starter v2, finisher layer, tutorial-touching — open only after the S5j tag). Campaign spec: per musician (Sibi, C2, Conito, Zig) 2 identity composition cards + 1 identity action + 1 unique-mechanic finisher (populating the D-ECON-6=DEFER finisher layer, `SSoT_Gig_Combat_Core.md §14.6`), plus 2 soft-path composition rewards + 1 status-carrying action reward; plus the Track Card Levels mechanic (`planning/active/Design_Track_Card_Levels_v0_1.md`, batch R7).
-- Bring Conito (bassist — flight + electricity) into the band. Prerequisite **resolved**: bass pipeline validated (BASS-1 + BASS-CARD-1, 2026-07-12). Remaining fidelity items (chord-tone walk, pocket-coupling, bossa split) are MidiGenPlay asks, filed with acceptance criteria at R2/R8 — sub-roadmap §8.
-- Bring Ziggy (vocalist — multiharmony) into the band. Prerequisites: `ApplyIncomingVibe` **shipped** (2026-05-18, B3, already the canonical card-Vibe path); `Captivated` (CSO `DamageTakenUpMultiplier`) → **batch R1**. Design intent remains `planning/Design_Audience_Status_v1.md` §4.
-- Per-musician identity cards for **all four** musicians (feasibility verdicts + effort classes in sub-roadmap §5).
-- Starter deck revision to 4-musician composition → `Design_Starter_Deck_v2`, drafted in **R0**; size/ratio decided there under maxims E1/N7 (S5i comprehension lens).
+- Bring Conito (bassist — flight + electricity) into the band. Prerequisite **met**: bass pipeline validated (BASS-1 + BASS-CARD-1, 2026-07-12). Enablement = campaign batch **R2**.
+- Bring Zig (vocalist — multiharmony) into the band. Prerequisites: `ApplyIncomingVibe` **shipped** (2026-05-18, and already the canonical positive-Vibe path); `Captivated` remains the only open item → campaign batch **R1**. Design intent: `planning/active/Design_Audience_Status_v1.md` §4.
+- Per-musician identity cards for Conito and Ziggy (Action + Composition).
+- Starter deck revision to 4-musician composition — **specified at R0 (2026-07-23)**: 22 cards / 18 unique, symmetric kit shape (2 composition + 1 action + 1 finisher per musician + 2 generics), 11 composition : 11 action-domain. Supersedes the earlier 8:4 / 7:5 guess. Design: `planning/active/Design_Starter_Deck_v2.md`.
+
+**R1 closed 2026-07-23; R2 + R2c + R2d closed 2026-07-31** (Conito enablement, plus the first
+campaign code in the build: SOLO-1/ORDER-1 harmony wiring and `InstrumentEffect.RandomFromList`,
+both BC-gated and inert in the demo config). **R3 (Zig composition cards) is the remaining
+interleavable enabler.** Live front unchanged: **S5i → S5j**. R4+ still gated on the demo-cut close *(amended 2026-07-31, D-SEQ-3=A: the R4+ gate is the **snapshot tag**, not the S5j tag)*.
 
 ### Progression & Meta
 - Run structure (map, node types, rewards).

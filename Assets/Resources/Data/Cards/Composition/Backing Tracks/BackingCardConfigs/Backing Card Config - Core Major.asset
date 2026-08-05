@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.BackingCardConfigSO
   appliesTo: 1
   voiceLeadingOverride: {fileID: 11400000, guid: 574064b73663389408f65972f800cbfe, type: 2}
-  chordExpression: 1
-  arpeggioRate: 1
+  chordExpression: 6
+  arpeggioRate: 3
+  randomRerollChance: 1
+  randomFigureWeights: []
+  velocityJitter: 0
   progressionOverride: {fileID: 0}
   progressionPalette: {fileID: 11400000, guid: 6ed9c331c96af514c908695205860fa2, type: 2}

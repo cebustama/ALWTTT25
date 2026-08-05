@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using ALWTTT.Cards;
+using ALWTTT.Cards.Effects;
 using ALWTTT.Enums;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,11 @@ namespace ALWTTT.Cards.Editor
     /// per view. Four views: all CardDefinitions, all MusicianCardCatalogData (with summaries),
     /// one specific musician catalogue, all GenericCardCatalogSO.
     /// Editor-only, batch (3.B).
+    ///
+    /// AUTH-1 additions: "Detailed" print mode (per-card parameter dump — Action effects+params,
+    /// Composition primaryKind/trackAction/bundle fields/partAction/modifierEffects, entry
+    /// flags/copies/unlockId), cross-link Edit buttons into CardEditorWindow, and the shared
+    /// CardAuthoringNav strip. Export JSON intentionally unchanged (contract untouched).
     /// </summary>
     public sealed class CardInventoryWindow : EditorWindow
     {
@@ -30,6 +36,9 @@ namespace ALWTTT.Cards.Editor
         [SerializeField] private MusicianCharacterType _selectedMusician = MusicianCharacterType.None;
         [SerializeField] private Vector2 _scroll;
 
+        // AUTH-1: detailed print toggle (affects Print output only).
+        [SerializeField] private bool _detailedPrint = true;
+
         [MenuItem("ALWTTT/Cards/Card Inventory", priority = 12)]
         public static void Open()
         {
@@ -42,6 +51,7 @@ namespace ALWTTT.Cards.Editor
         private void OnGUI()
         {
             DrawToolbar();
+            CardAuthoringNav.DrawNavStrip(CardAuthoringNav.Tool.Inventory);
             EditorGUILayout.Space(4);
             using (var s = new EditorGUILayout.ScrollViewScope(_scroll))
             {
@@ -85,6 +95,10 @@ namespace ALWTTT.Cards.Editor
                         _selectedMusician, EditorStyles.toolbarPopup, GUILayout.Width(140));
                 }
 
+                // AUTH-1: detailed print toggle
+                _detailedPrint = GUILayout.Toggle(
+                    _detailedPrint, "Detailed", EditorStyles.toolbarButton, GUILayout.Width(64));
+
                 if (GUILayout.Button("Print", EditorStyles.toolbarButton, GUILayout.Width(56)))
                     PrintCurrentView();
                 if (GUILayout.Button("Export JSON", EditorStyles.toolbarButton, GUILayout.Width(96)))
@@ -111,6 +125,11 @@ namespace ALWTTT.Cards.Editor
                     GUILayout.Label(c.DisplayName ?? "<no name>", GUILayout.Width(220));
                     GUILayout.Label($"cost={c.InspirationCost}", GUILayout.Width(60));
                     GUILayout.FlexibleSpace();
+
+                    // AUTH-1 cross-link: jump into the Card Editor at this card.
+                    if (GUILayout.Button("Edit", GUILayout.Width(44)))
+                        CardEditorWindow.OpenAndSelect(c);
+
                     if (GUILayout.Button("Ping", GUILayout.Width(48)))
                         EditorGUIUtility.PingObject(c);
                 }
@@ -234,6 +253,15 @@ namespace ALWTTT.Cards.Editor
                     GUILayout.Label(e.IsReward ? "R" : "—", GUILayout.Width(28));
                     GUILayout.Label(e.UnlockedByDefault ? "U" : "L", GUILayout.Width(28));
                     GUILayout.Label(string.IsNullOrEmpty(e.unlockId) ? "" : $"unlock={e.unlockId}");
+
+                    GUILayout.FlexibleSpace();
+
+                    // AUTH-1 cross-link: jump into the Card Editor at this card.
+                    using (new EditorGUI.DisabledScope(e.card == null))
+                    {
+                        if (GUILayout.Button("Edit", GUILayout.Width(44)))
+                            CardEditorWindow.OpenAndSelect(e.card);
+                    }
                 }
             }
         }
@@ -244,13 +272,16 @@ namespace ALWTTT.Cards.Editor
         private void PrintCurrentView()
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"=== CARD INVENTORY — {_view} ===");
+            sb.AppendLine($"=== CARD INVENTORY — {_view}{(_detailedPrint ? " (detailed)" : "")} ===");
 
             switch (_view)
             {
                 case View.AllCardDefinitions:
                     foreach (var c in FindAllAssets<CardDefinition>())
+                    {
                         sb.AppendLine($"  {c.Id} | {(c.IsAction ? "Action" : c.IsComposition ? "Composition" : "?")} | cost={c.InspirationCost} | {AssetDatabase.GetAssetPath(c)}");
+                        if (_detailedPrint) AppendCardDetail(sb, c, "    ");
+                    }
                     break;
                 case View.AllMusicianCatalogs:
                     foreach (var cat in FindAllAssets<MusicianCardCatalogData>())
@@ -264,18 +295,19 @@ namespace ALWTTT.Cards.Editor
                     break;
                 case View.SingleMusicianCatalog:
                     foreach (var cat in FindAllAssets<MusicianCardCatalogData>())
-                        if (cat.MusicianType == _selectedMusician) AppendEntries(sb, cat.name, cat.Entries);
+                        if (cat.MusicianType == _selectedMusician) AppendEntries(sb, cat.name, cat.Entries, _detailedPrint);
                     break;
                 case View.AllGenericCatalogs:
                     foreach (var cat in FindAllAssets<GenericCardCatalogSO>())
-                        AppendEntries(sb, cat.name, cat.Entries);
+                        AppendEntries(sb, cat.name, cat.Entries, _detailedPrint);
                     break;
             }
 
             Debug.Log(sb.ToString());
         }
 
-        private static void AppendEntries(StringBuilder sb, string title, List<MusicianCardEntry> entries)
+        private static void AppendEntries(
+            StringBuilder sb, string title, List<MusicianCardEntry> entries, bool detailed)
         {
             sb.AppendLine($"  -- {title} --");
             if (entries == null) { sb.AppendLine("    (no entries)"); return; }
@@ -285,11 +317,193 @@ namespace ALWTTT.Cards.Editor
                 if (e == null) { sb.AppendLine($"    [{i + 1}] <null>"); continue; }
                 string id = e.card != null ? e.card.Id : "<null>";
                 sb.AppendLine($"    [{i + 1}] {id} | flags=[{e.flags}] | copies={e.starterCopies} | unlockId={(string.IsNullOrEmpty(e.unlockId) ? "<none>" : e.unlockId)}");
+                if (detailed && e.card != null)
+                    AppendCardDetail(sb, e.card, "        ");
             }
         }
 
         // ──────────────────────────────────────────────────────────────────
-        // Export JSON
+        // AUTH-1 — detailed per-card dump (Print only)
+        // ──────────────────────────────────────────────────────────────────
+        private static void AppendCardDetail(StringBuilder sb, CardDefinition c, string ind)
+        {
+            if (c == null) return;
+
+            // Common CardDefinition surface
+            string performer = c.RequiresFixedPerformer
+                ? $"Fixed:{c.FixedPerformerType}"
+                : c.PerformerRule.ToString();
+
+            sb.AppendLine(
+                $"{ind}name=\"{c.DisplayName}\" | performer={performer} | " +
+                $"gen={c.InspirationGenerated} | rarity={c.Rarity} | type={c.CardType} | " +
+                $"exhaust={c.ExhaustAfterPlay}");
+
+            // Action side
+            var ap = c.ActionPayload;
+            if (ap != null)
+            {
+                sb.AppendLine(
+                    $"{ind}ACTION | timing={ap.ActionTiming} | " +
+                    $"conditions={ap.Conditions?.Count ?? 0} (legacy)");
+                AppendEffects(sb, c.Payload.Effects, ind);
+                return;
+            }
+
+            // Composition side
+            var cp = c.CompositionPayload;
+            if (cp != null)
+            {
+                sb.AppendLine($"{ind}COMPOSITION | primaryKind={cp.PrimaryKind}");
+
+                var ta = cp.TrackAction;
+                if (ta != null)
+                {
+                    ScriptableObject bundle = ta.styleBundle;
+                    if (bundle == null)
+                    {
+                        sb.AppendLine($"{ind}track: role={ta.role} | bundle=<none>");
+                    }
+                    else
+                    {
+                        sb.AppendLine(
+                            $"{ind}track: role={ta.role} | " +
+                            $"bundle={bundle.name} ({bundle.GetType().Name})");
+                        AppendSerializedFields(sb, bundle, ind + "    ");
+                    }
+                }
+
+                var pa = cp.PartAction;
+                if (pa != null)
+                {
+                    string label = string.IsNullOrEmpty(pa.customLabel) ? "<none>" : pa.customLabel;
+                    string mus = string.IsNullOrEmpty(pa.musicianId) ? "<none>" : pa.musicianId;
+                    sb.AppendLine($"{ind}part: action={pa.action} | label={label} | musicianId={mus}");
+                }
+
+                var mods = cp.ModifierEffects;
+                if (mods != null && mods.Count > 0)
+                {
+                    sb.AppendLine($"{ind}modifiers ({mods.Count}):");
+                    for (int i = 0; i < mods.Count; i++)
+                    {
+                        var m = mods[i];
+                        if (m == null) { sb.AppendLine($"{ind}  [{i}] <null>"); continue; }
+                        sb.AppendLine(
+                            $"{ind}  [{i}] {m.GetType().Name} \"{m.name}\" | " +
+                            $"scope={m.scope} | timing={m.timing} | {SafeLabel(m)}");
+                    }
+                }
+
+                AppendEffects(sb, c.Payload.Effects, ind);
+            }
+        }
+
+        private static void AppendEffects(
+            StringBuilder sb, IReadOnlyList<CardEffectSpec> effects, string ind)
+        {
+            if (effects == null || effects.Count == 0)
+            {
+                sb.AppendLine($"{ind}effects: <none>");
+                return;
+            }
+
+            sb.AppendLine($"{ind}effects ({effects.Count}):");
+            for (int i = 0; i < effects.Count; i++)
+                sb.AppendLine($"{ind}  [{i}] {DescribeSpec(effects[i])}");
+        }
+
+        /// <summary>Plain-text spec formatter for console output. Deliberately
+        /// separate from CardEffectDescriptionBuilder, which emits TMP rich
+        /// text for player-facing card descriptions. Unknown spec types fall
+        /// back to the type name.</summary>
+        private static string DescribeSpec(CardEffectSpec s)
+        {
+            switch (s)
+            {
+                case null:
+                    return "<null spec>";
+
+                case ApplyStatusEffectSpec a:
+                    {
+                        string st = a.status != null
+                            ? (string.IsNullOrWhiteSpace(a.status.DisplayName)
+                                ? a.status.name : a.status.DisplayName)
+                            : "<null status>";
+                        string delay = a.delay > 0f ? $" | delay={a.delay:0.##}s" : "";
+                        return $"ApplyStatus \"{st}\" | stacks={Signed(a.stacksDelta)} | target={a.targetType}{delay}";
+                    }
+
+                case ModifyVibeSpec v:
+                    return $"ModifyVibe {Signed(v.amount)} | target={v.targetType}";
+
+                case ModifyStressSpec m:
+                    return $"ModifyStress {Signed(m.amount)} | target={m.targetType}";
+
+                case DrawCardsSpec d:
+                    return $"DrawCards x{d.count}";
+
+                case AddInspirationPerLoopSpec i:
+                    return $"AddInspirationPerLoop +{i.amountPerLoop}/loop";
+
+                default:
+                    return s.GetType().Name;
+            }
+        }
+
+        private static string Signed(int v) => v >= 0 ? $"+{v}" : v.ToString();
+
+        private static string SafeLabel(PartEffect fx)
+        {
+            try { return fx != null ? fx.GetLabel() : ""; }
+            catch { return "<label error>"; }
+        }
+
+        /// <summary>Depth-1 generic dump of an SO's visible serialized fields.
+        /// Used for track style bundles (MidiGenPlay-owned types): read-only
+        /// reflection over the serialized surface, no type coupling, bounded
+        /// output (arrays print size only).</summary>
+        private static void AppendSerializedFields(StringBuilder sb, ScriptableObject so, string ind)
+        {
+            var ser = new SerializedObject(so);
+            var it = ser.GetIterator();
+            bool enter = true;
+
+            while (it.NextVisible(enter))
+            {
+                enter = false;
+                if (it.name == "m_Script") continue;
+                sb.AppendLine($"{ind}{it.name} = {DescribeProp(it)}");
+            }
+        }
+
+        private static string DescribeProp(SerializedProperty p)
+        {
+            switch (p.propertyType)
+            {
+                case SerializedPropertyType.Integer: return p.intValue.ToString();
+                case SerializedPropertyType.Boolean: return p.boolValue.ToString();
+                case SerializedPropertyType.Float: return p.floatValue.ToString("0.###");
+                case SerializedPropertyType.String: return $"\"{p.stringValue}\"";
+                case SerializedPropertyType.Enum:
+                    {
+                        var names = p.enumNames;
+                        int idx = p.enumValueIndex;
+                        return idx >= 0 && idx < names.Length ? names[idx] : $"<enum {idx}>";
+                    }
+                case SerializedPropertyType.ObjectReference:
+                    return p.objectReferenceValue != null
+                        ? $"{p.objectReferenceValue.name} ({p.objectReferenceValue.GetType().Name})"
+                        : "<null>";
+                case SerializedPropertyType.Generic:
+                    return p.isArray ? $"[{p.arraySize} items]" : "<struct>";
+                default:
+                    return $"<{p.propertyType}>";
+            }
+        }
+
+        // ──────────────────────────────────────────────────────────────────
+        // Export JSON  (unchanged by AUTH-1)
         // ──────────────────────────────────────────────────────────────────
         [Serializable] private class JsonCardDef { public string id; public string displayName; public string kind; public int inspirationCost; public string assetPath; }
         [Serializable] private class JsonCatalogSummary { public string musicianType; public string assetName; public int entryCount; public int starterCount; public int starterCopiesTotal; }

@@ -26,22 +26,16 @@ MonoBehaviour:
   tch: 3
   emt: 3
   profile:
-    backingInstruments: 000000000100000005000000
-    leadInstruments: 000000000100000005000000
+    backingInstruments: 01000000
+    leadInstruments: 00000000
     backingMelodicInstruments:
-    - {fileID: 11400000, guid: e09d9c72d09f8e9438f57fb63c9e8f4b, type: 2}
-    - {fileID: 11400000, guid: 1ba712923f0a11a45b77b4afdf8fb2de, type: 2}
-    - {fileID: 11400000, guid: 0e14ee7cb036b1e428000e747ba8b221, type: 2}
-    - {fileID: 11400000, guid: 24306ac96d5669549952484c181f6a76, type: 2}
-    - {fileID: 11400000, guid: 555820f6e31acd546a1ddb8f50f10abb, type: 2}
-    - {fileID: 11400000, guid: a9a1dc8309f61f8469f74e94ccd9ce5c, type: 2}
-    leadMelodicInstruments:
-    - {fileID: 11400000, guid: e09d9c72d09f8e9438f57fb63c9e8f4b, type: 2}
-    - {fileID: 11400000, guid: 1ba712923f0a11a45b77b4afdf8fb2de, type: 2}
-    - {fileID: 11400000, guid: 0e14ee7cb036b1e428000e747ba8b221, type: 2}
-    - {fileID: 11400000, guid: 24306ac96d5669549952484c181f6a76, type: 2}
-    - {fileID: 11400000, guid: 555820f6e31acd546a1ddb8f50f10abb, type: 2}
-    - {fileID: 11400000, guid: a9a1dc8309f61f8469f74e94ccd9ce5c, type: 2}
+    - {fileID: 11400000, guid: 6577098b4737e8c46a49904c39c2fdbc, type: 2}
+    - {fileID: 11400000, guid: 0b3a2330714f86a4b9dba15d9c73d897, type: 2}
+    - {fileID: 11400000, guid: 82cfc5c0fcb39184c8587c53bb826b05, type: 2}
+    - {fileID: 11400000, guid: a6eaef48d0709094b9553a5318b677dc, type: 2}
+    - {fileID: 11400000, guid: 19889ea7d34284844a6cf964d9282dce, type: 2}
+    - {fileID: 11400000, guid: 4c04ad83fa6dfc24999fbc43d20be6b8, type: 2}
+    leadMelodicInstruments: []
     percussionInstruments: []
     defaultMelodicLeading: {fileID: 11400000, guid: 91e23e39892422b40a107dfada0cfe3d, type: 2}
     defaultHarmonicLeading: {fileID: 0}

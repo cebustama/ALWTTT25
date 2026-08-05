@@ -831,6 +831,15 @@ Only if desired: make the deck asset/runtime support real multiplicity.
 
 ---
 
+> **Delivered note (AUTH-1, 2026-07-31):** cross-window navigation landed ahead
+> of this phase via `CardAuthoringNav` (nav strip in Card Editor / Effect
+> Editor / Card Inventory / Deck Editor) plus context-carrying Edit links
+> (Inventory → Card Editor, Card Editor ↔ Effect Editor). Implementation truth
+> lives in `SSoT_Editor_Authoring_Tools.md` §18–§19. This roadmap remains
+> planning-only and the remaining Phase 7 items are unaffected.
+
+---
+
 ## Suggested Implementation Order
 
 If the objective is maximum usefulness soonest, the best order is:

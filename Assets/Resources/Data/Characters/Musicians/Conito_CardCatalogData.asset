@@ -13,4 +13,16 @@ MonoBehaviour:
   m_Name: Conito_CardCatalogData
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.MusicianCardCatalogData
   musicianType: 1
-  entries: []
+  entries:
+  - card: {fileID: 11400000, guid: b371a58b1eb1de34fa933ec20a3ce9c5, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: adc2cad197843e64989106bf46a679b8, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: bf6434b906dc29c43b12b447abd72457, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 1

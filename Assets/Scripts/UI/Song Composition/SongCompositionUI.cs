@@ -99,7 +99,7 @@ namespace ALWTTT.UI
         public class PartEntry
         {
             public string label = "Part";
-            public string tempo = "Very Fast";
+            public string tempo = "Slow";
 
             public int measures = 8;
             public List<TrackEntry> tracks = new();
@@ -116,7 +116,7 @@ namespace ALWTTT.UI
             public TimeSignature timeSignature;
 
             // Tempo
-            public TempoRange tempoRangeOverride = TempoRange.Fast;
+            public TempoRange tempoRangeOverride = TempoRange.Slow;
             public int? absoluteBpmOverride = null;
             public float tempoScale = 1f;
 
@@ -418,7 +418,7 @@ namespace ALWTTT.UI
                 {
                     label = label,
                     timeSignature = TimeSignature.FourFour,
-                    tempo = "Very Fast",
+                    tempo = "Slow",
                     tonality = Tonality.Ionian,
                     measures = 8,
                     tracks = new List<TrackEntry>()
@@ -542,7 +542,7 @@ namespace ALWTTT.UI
                 label = label,
                 timeSignature = inherit != null
                     ? inherit.timeSignature : TimeSignature.FourFour,
-                tempo = inherit != null ? inherit.tempo : "Very Fast",
+                tempo = inherit != null ? inherit.tempo : "Slow",
                 tonality = inherit != null ? inherit.tonality : Tonality.Ionian,
                 measures = inherit != null ? inherit.measures : 8,
                 tracks = new List<TrackEntry>(),
@@ -1194,6 +1194,41 @@ namespace ALWTTT.UI
                     return;
                 }
 
+                // [R2c / D-R2-7] RandomFromList is resolved ONCE per
+                // application, before the track loop, so a multi-track
+                // musician receives a single coherent instrument (same
+                // fiction as the other modes: "hand this musician a new
+                // instrument"). The pick then persists as a plain
+                // overrideMelodicInstrument, which already enters
+                // SongConfigBuilder.ComputeHashFromTrackEntry — so caching
+                // and downstream determinism are untouched.
+                //
+                // RNG: UnityEngine.Random on purpose. The roll happens at a
+                // player-driven card play, whose ordering is not reproducible
+                // from the per-song seed anyway; binding it to _songSeed would
+                // imply a reproducibility that does not exist.
+                MIDIInstrumentSO randomListPick = null;
+                if (fx.mode == InstrumentEffect.InstrumentTargetMode.RandomFromList)
+                {
+                    var pool = fx.melodicInstrumentPool?
+                        .Where(i => i != null)
+                        .Distinct()
+                        .ToList();
+
+                    if (pool == null || pool.Count == 0)
+                    {
+                        Log($"[InstrumentEffect] RandomFromList on '{fx.name}' has " +
+                            $"an empty pool — no override applied", false);
+                        return;
+                    }
+
+                    randomListPick = pool[UnityEngine.Random.Range(0, pool.Count)];
+
+                    Log($"[InstrumentEffect] RandomFromList '{fx.name}' picked " +
+                        $"'{randomListPick.InstrumentName}' out of {pool.Count} " +
+                        $"for '{target.name}' in part {partIndex}", true);
+                }
+
                 foreach (var track in matching)
                 {
                     // Clear existing overrides
@@ -1215,13 +1250,28 @@ namespace ALWTTT.UI
                             track.hasOverrideInstrumentType = true;
                             track.overrideInstrumentType = fx.instrumentType;
                             break;
+
+                        // [R2c / D-R2-7] Persisted as a specific melodic
+                        // override — indistinguishable from SpecificMelodic
+                        // downstream, by design.
+                        case InstrumentEffect.InstrumentTargetMode.RandomFromList:
+                            track.overrideMelodicInstrument = randomListPick;
+                            break;
                     }
 
-                    // Optional: reflect something in the info label
-                    if (track.styleBundle != null && fx.melodicInstrument != null)
+                    // Optional: reflect something in the info label.
+                    // [R2c] Read the EFFECTIVE instrument, so RandomFromList
+                    // labels the instrument actually applied instead of
+                    // falling back to the (unused) melodicInstrument field.
+                    var appliedInst =
+                        fx.mode == InstrumentEffect.InstrumentTargetMode.RandomFromList
+                            ? randomListPick
+                            : fx.melodicInstrument;
+
+                    if (track.styleBundle != null && appliedInst != null)
                     {
                         track.info = $"{track.styleBundle.name} - " +
-                            $"{fx.melodicInstrument.InstrumentName}";
+                            $"{appliedInst.InstrumentName}";
                     }
                 }
 

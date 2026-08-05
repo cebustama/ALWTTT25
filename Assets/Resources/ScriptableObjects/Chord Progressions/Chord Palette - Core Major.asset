@@ -14,20 +14,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.ChordProgressionPaletteSO
   paletteDisplayName: Major
   paletteNotes: 
+  preferExactTsMatches: 1
   entries:
-  - progression: {fileID: 11400000, guid: 8c04ae43b2a0b6240a2ad0f7b0b037ac, type: 2}
-    weight: 1
-  - progression: {fileID: 11400000, guid: 3cbd0f5230cdd794c8a098e920e04411, type: 2}
-    weight: 1
   - progression: {fileID: 11400000, guid: 36179f2cdc745cd41b3cf93ef7fd52d7, type: 2}
-    weight: 1
-  - progression: {fileID: 11400000, guid: e28186e0b86aaa94d8548ad3df0609a0, type: 2}
-    weight: 1
-  - progression: {fileID: 11400000, guid: 4e261cedfcd9dfb4188d9a2327674eab, type: 2}
-    weight: 1
-  - progression: {fileID: 11400000, guid: 0368165ded18c21439b02535a9d90508, type: 2}
     weight: 1
   - progression: {fileID: 11400000, guid: 1ef5de011b6f1f44e8d12d3f41f9f83e, type: 2}
     weight: 1
-  - progression: {fileID: 11400000, guid: 64e3ae0daecdf2940bd433bd755578be, type: 2}
+  - progression: {fileID: 11400000, guid: 4e261cedfcd9dfb4188d9a2327674eab, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: e28186e0b86aaa94d8548ad3df0609a0, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 8c04ae43b2a0b6240a2ad0f7b0b037ac, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 0368165ded18c21439b02535a9d90508, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 3cbd0f5230cdd794c8a098e920e04411, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 13a65b81573677643bfe7a094b50968a, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 791f810148847fa41abdc017e554df67, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 59d8f8f381f05714f808109d80f25405, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: 7c4499140db50e04b875660aa41f5959, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: ea5e71dfa831ccd428100381552d5f07, type: 2}
+    weight: 1
+  - progression: {fileID: 11400000, guid: fbe4d90544587144d8d7a1e19df9d6b3, type: 2}
     weight: 1

@@ -8,27 +8,12 @@
 |   |   \---0.unity
 |   +---CompositionSmoke
 |   |   +---BassLineTest.asset
-|   |   +---smoke_ba_124947.mid
-|   |   +---smoke_ba_130215.mid
-|   |   +---smoke_ba_134541.mid
-|   |   +---smoke_ba_134703.mid
-|   |   +---smoke_ba_230915.mid
-|   |   +---smoke_ba_231344.mid
-|   |   +---smoke_ba_231557.mid
-|   |   +---smoke_ba_231705.mid
-|   |   +---smoke_ba_231938.mid
-|   |   +---smoke_ba_232056.mid
-|   |   +---smoke_ba-rh_130234.mid
-|   |   +---smoke_ba-rh_130332.mid
-|   |   +---smoke_rh-ba_193520.mid
-|   |   +---smoke_rh-ba_193601.mid
-|   |   +---smoke_rh-ba_193801.mid
-|   |   +---smoke_rh-ba_194336.mid
-|   |   +---smoke_rh-ba_225411.mid
-|   |   +---smoke_rh-ba_225854.mid
-|   |   +---smoke_rh-ba_230618.mid
-|   |   +---smoke_rh-ba-ba_193916.mid
-|   |   \---smoke_rh-ba-me_194123.mid
+|   |   +---smoke_ba-ba_144459.mid
+|   |   +---smoke_ba-ba_144833.mid
+|   |   +---smoke_ba-ba_145050.mid
+|   |   +---smoke_ba-ba_145131.mid
+|   |   +---smoke_ba-ba_145352.mid
+|   |   \---smoke_ba-ba_145445.mid
 |   +---Materials
 |   |   \---Mat_SpriteOutline.mat
 |   +---MidiPlayer
@@ -1856,8 +1841,10 @@
 |   |   |   |   +---Composition
 |   |   |   |   |   +---_PartEffects
 |   |   |   |   |   |   +---InstrumentEffect_Bass.asset
+|   |   |   |   |   |   +---InstrumentEffect_FingeredBass.asset
 |   |   |   |   |   |   +---InstrumentEffect_Guitar.asset
 |   |   |   |   |   |   +---InstrumentEffect_Sibi_Voice.asset
+|   |   |   |   |   |   +---InstrumentEffect_SlapBass.asset
 |   |   |   |   |   |   +---InstrumentEffect_Synth.asset
 |   |   |   |   |   |   +---MeterEffect_3_4.asset
 |   |   |   |   |   |   +---MeterEffect_4_4.asset
@@ -2051,11 +2038,15 @@
 |   |   |   |   |   +---MVP_AddVibe_05_Payload.asset
 |   |   |   |   |   +---MVP_RemoveStress_02.asset
 |   |   |   |   |   +---MVP_RemoveStress_02_Payload.asset
+|   |   |   |   |   +---sibi_backing_modal.asset
+|   |   |   |   |   +---sibi_backing_modal_Payload.asset
 |   |   |   |   |   +---Sibi_CardCatalogData.asset
 |   |   |   |   |   +---starter_compound_cycle.asset
 |   |   |   |   |   +---starter_compound_cycle_Payload.asset
 |   |   |   |   |   +---starter_default_mode.asset
 |   |   |   |   |   +---starter_default_mode_Payload.asset
+|   |   |   |   |   +---starter_finger_bass.asset
+|   |   |   |   |   +---starter_finger_bass_Payload.asset
 |   |   |   |   |   +---Starter_half_time.asset
 |   |   |   |   |   +---Starter_half_time_Payload.asset
 |   |   |   |   |   +---Starter_keep_cool.asset
@@ -2072,6 +2063,10 @@
 |   |   |   |   |   +---Starter_push_it_Payload.asset
 |   |   |   |   |   +---starter_singing_field.asset
 |   |   |   |   |   +---starter_singing_field_Payload.asset
+|   |   |   |   |   +---starter_slap_bass.asset
+|   |   |   |   |   +---starter_slap_bass_Payload.asset
+|   |   |   |   |   +---starter_static_rush.asset
+|   |   |   |   |   +---starter_static_rush_Payload.asset
 |   |   |   |   |   +---starter_take_five.asset
 |   |   |   |   |   +---starter_take_five_Payload.asset
 |   |   |   |   |   +---starter_waltz_protocol.asset
@@ -2106,8 +2101,16 @@
 |   |   |   |   |   \---wink_Payload.asset
 |   |   |   |   \---StyleBundles
 |   |   |   |       +---Bassline
+|   |   |   |       |   +---BassCard_W2_Improv.asset
+|   |   |   |       |   +---BasslineCardConfig_SlapV1.asset
+|   |   |   |       |   +---BasslineCardConfig_SlapV2.asset
+|   |   |   |       |   +---BasslineCardConfig_SlapV3.asset
+|   |   |   |       |   +---BasslineCardConfig_SlapV4.asset
+|   |   |   |       |   +---BasslineCardConfig_SlapV5.asset
 |   |   |   |       |   +---Gusano_C_Bassline_001_WormWalk_Payload_Bassline_StyleBundle.asset
-|   |   |   |       |   \---Gusano_C_Bassline_002_WormPulse_Payload_Bassline_StyleBundle.asset
+|   |   |   |       |   +---Gusano_C_Bassline_002_WormPulse_Payload_Bassline_StyleBundle.asset
+|   |   |   |       |   +---starter_finger_bass_Payload_Bassline_StyleBundle.asset
+|   |   |   |       |   \---starter_slap_bass_Payload_Bassline_StyleBundle.asset
 |   |   |   |       \---Rhythm
 |   |   |   |           +---cmp_flow_rhythm_Payload_Rhythm_StyleBundle.asset
 |   |   |   |           +---starter_compound_cycle_Payload_Rhythm_StyleBundle.asset
@@ -2243,38 +2246,7 @@
 |   |   |   \---AnthropicClientData.asset
 |   |   +---ScriptableObjects
 |   |   |   +---Chord Progressions
-|   |   |   |   +---Major
-|   |   |   |   |   +---As.asset
-|   |   |   |   |   +---I (1) – IV (1) – V (1) – I (1).asset
-|   |   |   |   |   +---I (1) – V (1) – vi (1) – iii (1) – IV (1) – I (1) – IV (1) – V (1).asset
-|   |   |   |   |   +---I (1) – V (1) – vi (1) – IV (1).asset
-|   |   |   |   |   +---I (1) – vi (1) – ii (1) – V (1).asset
-|   |   |   |   |   +---I (1) – vi (1) – IV (1) – V (1).asset
-|   |   |   |   |   +---ii (0.5) – V (0.5) – I (1).asset
-|   |   |   |   |   \---IV (1) – I (1) – V (1) – vi (1).asset
-|   |   |   |   +---Minor
-|   |   |   |   |   +---i (1) – iv (1) – V (1) – i (1) Aeolian 34.asset
-|   |   |   |   |   +---i (1) – iv (1) – V (1) – i (1) Aeolian.asset
-|   |   |   |   |   +---i (1) – VI (1) – III (1) – VII (1) Aeolian.asset
-|   |   |   |   |   +---i (1) – VII (1) – VI (1) – VII (1) Aeolian.asset
-|   |   |   |   |   +---i (2) – VI (2) – III (2) – VII (2) Aeolian.asset
-|   |   |   |   |   \---V (1) – VI (1) Aeolian.asset
-|   |   |   |   +---Modal
-|   |   |   |   |   +---bVII (1) – IV (1) – I (2) Modal.asset
-|   |   |   |   |   +---I (1) – #IVdim7 (1) – V7 (1) – I (1) Modal.asset
-|   |   |   |   |   +---i (1) – bII (1) – V (1) – i (1) Modal.asset
-|   |   |   |   |   +---I (1) – bIII (1) – IV (1) – I (1) Modal.asset
-|   |   |   |   |   +---I (1) – bVI (1) – IV (1) – I (1) Modal.asset
-|   |   |   |   |   +---i (1) – bVI (1) – iv (1) – V (1) – i (1) Modal.asset
-|   |   |   |   |   +---I (1) – bVII (1) – bVI (1) – V (1) Modal.asset
-|   |   |   |   |   +---I (1) – bVII (1) – IV (1) – I (1) Modal.asset
-|   |   |   |   |   +---I (1) – II (1) – V (1) – I (1) Modal.asset
-|   |   |   |   |   \---I (2) – bVII (2) – S (2) Modal.asset
-|   |   |   |   +---Tests
-|   |   |   |   |   +---34 Test 1.asset
-|   |   |   |   |   +---44 Test.asset
-|   |   |   |   |   +---54 Test 1.asset
-|   |   |   |   |   \---68 Test 1.asset
+|   |   |   |   +---Chord Palette - Bass Defaults.asset
 |   |   |   |   +---Chord Palette - Core Major.asset
 |   |   |   |   +---Chord Palette - Core Minor.asset
 |   |   |   |   +---Chord Palette - Modal.asset
@@ -2293,11 +2265,45 @@
 |   |   |   +---MIDI Instruments
 |   |   |   +---Patterns
 |   |   |   |   +---Chords
+|   |   |   |   |   +---34 Test 1.asset
+|   |   |   |   |   +---44 Test.asset
+|   |   |   |   |   +---54 Test 1.asset
+|   |   |   |   |   +---68 Test 1.asset
+|   |   |   |   |   +---i(2)–VI(2)–III(2)–VII(2) 8c.asset
+|   |   |   |   |   +---Pachelbel 8c.asset
+|   |   |   |   |   +---Prog_Maj_Axis_8c.asset
+|   |   |   |   |   +---Prog_Maj_AxisRot_8c.asset
+|   |   |   |   |   +---Prog_Maj_Blues8c.asset
+|   |   |   |   |   +---Prog_Maj_Cincuentas_8c.asset
+|   |   |   |   |   +---Prog_Maj_Creep_IVpiv.asset
+|   |   |   |   |   +---Prog_Maj_Nubarron_bVI.asset
+|   |   |   |   |   +---Prog_Maj_Periodo_IVV_8c.asset
+|   |   |   |   |   +---Prog_Maj_Prestamo_bIII.asset
+|   |   |   |   |   +---Prog_Maj_PuertaTrasera_bVII.asset
+|   |   |   |   |   +---Prog_Maj_Ragtime_SECDOM.asset
+|   |   |   |   |   +---Prog_Maj_Sentence_T2_8c.asset
+|   |   |   |   |   +---Prog_Maj_ViejaEscuela_8c.asset
+|   |   |   |   |   +---Prog_Min_Andaluza.asset
+|   |   |   |   |   +---Prog_Min_BluesSoul_i7iv7.asset
+|   |   |   |   |   +---Prog_Min_bVI_iv_V_8c.asset
+|   |   |   |   |   +---Prog_Min_iiø7V7_8c.asset
+|   |   |   |   |   +---Prog_Min_ivV_T2_34_8c.asset
+|   |   |   |   |   +---Prog_Min_ivV_T2_8c.asset
+|   |   |   |   |   +---Prog_Min_Napolitana_bII.asset
+|   |   |   |   |   +---Prog_Min_RotacionVII_8c.asset
+|   |   |   |   |   +---Prog_Modal_Dorico_Vamp.asset
+|   |   |   |   |   +---Prog_Modal_Eolico_Giro.asset
+|   |   |   |   |   +---Prog_Modal_Frigio_Descenso.asset
+|   |   |   |   |   +---Prog_Modal_Lidio_Flotante.asset
+|   |   |   |   |   +---Prog_Modal_Mixo_SweetHome.asset
+|   |   |   |   |   +---Prog_Modal_Skel_TonicaCuartoSegundo.asset
+|   |   |   |   |   +---Prog_Modal_Skel_TonicaSeptimo.asset
 |   |   |   |   |   +---ProgSmoke_AsAuthored.asset
 |   |   |   |   |   +---ProgSmoke_Color.asset
 |   |   |   |   |   +---ProgSmoke_Diatonic.asset
 |   |   |   |   |   +---ProgSmoke_Dominant7.asset
-|   |   |   |   |   \---ProgSmoke_Functional.asset
+|   |   |   |   |   +---ProgSmoke_Functional.asset
+|   |   |   |   |   \---ProgSmoke_TonFilter.asset
 |   |   |   |   +---Drums
 |   |   |   |   |   +---3_4
 |   |   |   |   |   |   +---WL_BalladSparse.asset
@@ -2331,7 +2337,15 @@
 |   |   |   |   |   |   +---Syncopated Pocket (Funk).asset
 |   |   |   |   |   |   \---Waltz-Pulse Lilt.asset
 |   |   |   |   |   +---DNB 4-4 2m test.asset
-|   |   |   |   |   \---Drum_4-2_2m_ACSN.asset
+|   |   |   |   |   +---Drum_4-2_2m_ACSN.asset
+|   |   |   |   |   +---FF_CountryTrain8c.asset
+|   |   |   |   |   +---FF_LatinSon32_8c.asset
+|   |   |   |   |   +---FF_Metal8c.asset
+|   |   |   |   |   +---FF_Rock8c.asset
+|   |   |   |   |   +---SP_DnB8c.asset
+|   |   |   |   |   +---SP_Funk8c.asset
+|   |   |   |   |   +---SP_HipHop8c.asset
+|   |   |   |   |   \---SP_Jazz8c.asset
 |   |   |   |   +---Melodies
 |   |   |   |   |   +---Melody_4-4_8m_30n-Test_Midi_Import.asset
 |   |   |   |   |   \---Test_Scale_Melody_4-4_4m_14n.asset
@@ -2503,7 +2517,9 @@
 |   |   |   \---star-white-icon.png
 |   |   +---LLMEnvSettings.asset
 |   |   +---SmokeSetup_0.asset
+|   |   +---SmokeSetup_Bass_W2.asset
 |   |   +---SmokeSetup_BossaAB.asset
+|   |   +---SmokeSetup_Slapfig2.asset
 |   |   \---SmokeSetup_Voice.asset
 |   +---Scenes
 |   |   +---0 - Main Menu.unity
@@ -2539,6 +2555,7 @@
 |   |   |   |   +---LLM
 |   |   |   |   |   \---CardLLMVocabularyBuilder.cs
 |   |   |   |   +---CardAssetFactory.cs
+|   |   |   |   +---CardAuthoringNav.cs
 |   |   |   |   +---CardEditorWindow.cs
 |   |   |   |   +---CardEditorWindow.JsonImport.cs
 |   |   |   |   +---CardEditorWindow.LLM.cs
@@ -2551,7 +2568,9 @@
 |   |   |   |   +---DeckEditorWindow.cs
 |   |   |   |   +---DeckJsonImportService.cs
 |   |   |   |   +---DeckValidationService.cs
-|   |   |   |   \---MusicianCatalogService.cs
+|   |   |   |   +---InstrumentEffectEditor.cs
+|   |   |   |   +---MusicianCatalogService.cs
+|   |   |   |   \---PartEffectEditorWindow.cs
 |   |   |   +---Effects
 |   |   |   |   +---AddInspirationPerLoopSpec.cs
 |   |   |   |   +---ApplyStatusEffectSpec.cs
@@ -2992,6 +3011,7 @@
 |   |   +---changelog-ssot_2026-03-18_to_2026-06-22.md
 |   |   +---CURRENT_STATE_pre-prune_2026-06-16.md
 |   |   +---Design_Starter_Deck_v1.md
+|   |   +---DOC-APPLY-1_Application_Report_2026-07-31.md
 |   |   +---README.md
 |   |   \---SNAPSHOT_RETENTION_POLICY.md
 |   +---audits

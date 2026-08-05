@@ -1,6 +1,7 @@
 # Design — Track Card Levels v0.1
 
-**Status:** Active design proposal — planning only, subject to R0 refinement and playtest revision. Assigned batch: **R7** (`RosterExpansion_Sub_Roadmap.md`).
+**Status:** Spec CLOSED at R0 (2026-07-23) — planning only, subject to playtest revision (N5). Assigned batch: **R7** (`RosterExpansion_Sub_Roadmap.md`).
+**v0.2 (2026-07-23, R0).** §7 open questions resolved (D-R0-7); §6 +INSP overlap resolved (D-R0-8=A, reserve); §3 updated with the R0 verification outcomes (V1 residual, V4 correction). Decision homes: `Design_Starter_Deck_v2.md` §6 (summary) + this doc (full spec).
 **Scope:** Re-playing an already-rendered composition card levels its track up instead of being a dead play. Mechanic definition, expressibility limits, runtime/authoring sketch, gameplay hooks, open questions.
 **Classification:** `reference (planning)` — **not a SSoT**. At R7 closure the implementing SSoTs take authority (`SSoT_Runtime_CompositionSession_Integration.md`, `SSoT_Card_System.md`, `SSoT_Card_Authoring_Contracts.md`); this note is retained as rationale.
 **Created:** 2026-07-23 (Roster Expansion planning session; idea by Matías).
@@ -45,8 +46,9 @@ Lvl 3 — final form:
 
 - **Lvl 3 is expressible** as authored degree/quality events: `Imaj7` = I + Major7 · `V7/vi` = **III + Dominant7** (the secondary-dominant *label* is not a concept; its sound is) · `vi7` = vi + Minor7 · `ii7` = ii + Minor7 · `V7` = V + Dominant7.
 - **Lvl 2 partially degrades:** `iv` = IV + Minor ✅; **`D/F#` (slash inversion) is NOT expressible** — the voicer owns inversions (`SSoT_Composer_Backing_Track` §7), so lvl 2 authors `V` and accepts whatever inversion the voicer picks. Level-2 color must come from quality/degree changes (e.g. the added `iv`), not from bass-note dictation.
-- **Chromatic roots** (bII etc.): `degreeAccidental` is recorded as ignored on grid consumption paths — scope level content to diatonic roots, or trigger the conditional MGP ask (sub-roadmap §8 #4).
-- **Residual verification (R0):** confirm the voicing/render path honors all 7th qualities end-to-end (parser acceptance ≠ audited render); extended/added chords (9/11/13, add) are outside the alphabet — do not author them.
+- **Chromatic roots** (bII etc.) — **recorded gap corrected at R0 (V4).** The *backing* composer **does** honor `degreeAccidental`: root transpose plus roman prefix at both render sites (`ChordTrackComposer` grid loop and `RenderFromProgression`, the latter guarded on `!= 0` for byte-identity, covered by `ChordMarkerParityTests`). The *bass* composer genuinely ignores it (zero consumption in `BassTrackComposer`). Because a 4-musician band normally renders Conito's bass over the shared progression, a chromatic-root level would desync bass against backing. **Constraint stands — level content is diatonic-root only — but the reason is band composition, not the backing path.** Conditional MGP ask (sub-roadmap §8 #4) narrows to bass-side accidental consumption.
+- **7th-quality render path — structurally verified at R0 (V1 residual).** `ChordQualityResolver` enumerates the full alphabet as distinct cases; both backing render sites voice per-event quality via `GetChordNoteNames(degreeRoot, e.quality)`, and the melody chord-tone path consumes the same call. Quality therefore reaches voicing per event on every path the lvl3 exemplar uses. **Not yet audited:** the interval table itself (`MusicTheory.GetChordNoteNames`) and an audible spot-check — both are R7 pilot-smoke items, not blockers.
+- Extended/added chords (9/11/13, add) are outside the alphabet — do not author them.
 
 Levels are therefore **content selection, not generation changes**: each level is a separate `ChordProgressionData` asset (or per-level palette) authored inside the verified alphabet. Zero MidiGenPlay modification.
 
@@ -65,12 +67,21 @@ Levels are therefore **content selection, not generation changes**: each level i
 
 ## 6. Gameplay hooks
 
-- **+INSP per level above 1:** natural extension of the existing track-scoped derivation point (`AddInspirationPerLoopSpec.SumFor` over `TrackEntry.sourceCardDefinition`, DF-INSPLOOP D-INSP-1=D) — make the sum level-aware. **Overlap warning:** Vamp / In the Pocket already occupy the +INSP-per-loop lever; R0 resolves coexist / replace / reserve so the economy lever is not duplicated.
+- **+INSP per level above 1 — RESERVED (D-R0-8=A, 2026-07-23).** R7 ships levels with musical payoff only; no `AddInspirationPerLoopSpec` level-awareness. The +INSP-per-loop lever stays exclusively Vamp / In the Pocket's, so the economy is not double-levered mid-S5i tuning. A level-up is already strictly better than a dead play (richer content on a budget-legal use of a duplicate copy). Revisit only if playtest shows levels are under-rewarded.
 - **Complexity:** the LoopScore complexity term is currently **inert** (`LoopTrackSnapshot`/`TotalComplexity` untouched, D-INSP-4, owned by S5i). Track level is its first honest input candidate (level ⇒ complexity ⇒ audience-reaction weight). **Coordinate with S5i** — that batch owns the term; do not activate it unilaterally from R7.
 
-## 7. Open questions (R0)
+## 7. Resolutions (D-R0-7, locked 2026-07-23)
 
-Level lifetime: per-part only (a fresh part starts at lvl 1) vs remembered per-song vs per-gig · max level (3 assumed) · what a *different* card replacing a leveled track does to level state (reset assumed) · UI representation (level badge on `SongTrackElementUI` / composer row; floating text on level-up via the existing composition-FX diff path) · does level-up refresh the card's `PartEffect`s or only track content · +INSP economy resolution (§6) · whether Action-domain cards ever level (out of scope v0.1 — composition/Track cards only).
+| Question | Resolution |
+|---|---|
+| Level lifetime | **Per-part.** A fresh part starts at level 1. Matches cache scoping; per-song/per-gig memory is a later buff knob, not v1. |
+| Max level | **3.** |
+| Different card replaces a leveled track | **Level state discarded.** State keys on `sourceCardDefinition`; a new identity enters at level 1. |
+| Does level-up refresh `PartEffect`s / co-effects | **Yes — a level-up is a normal composition play in every respect except the track branch.** `modifierEffects` and `CardPayload.Effects` execute exactly as on a first play; no suppression code. Moot for the Wormus pilot (neither card carries them), but the rule is stated so R7 does not invent one. |
+| UI representation | Roman-numeral badge (II / III) on `SongTrackElementUI`; **"LEVEL UP!"** floater via the existing composition-FX diff path. |
+| +INSP economy | **Reserved** — see §6 (D-R0-8=A). The LoopScore complexity term stays the intended honest hook, filed to its S5i owner; R7 does not activate it unilaterally. |
+| Do Action-domain cards ever level | **No.** Confirms the v0.1 non-goal: composition/Track cards only. |
+| Scope | **Generic mechanic + Wormus Major/Minor pilot only** (confirmed, unchanged). |
 
 ## 8. Non-goals
 
@@ -78,4 +89,4 @@ No MidiGenPlay changes (levels select authored content). No procedural "complexi
 
 ## 9. Update rule
 
-Update at R0 (spec closure: §7 resolved) and at R7 open/close. At R7 closure, authority moves to the implementing SSoTs; this note is retained as rationale (same lifecycle as `Design_Starter_Deck_v1.md`).
+R0 spec closure applied 2026-07-23 (v0.2: §7 resolved, §6 resolved, §3 verifications). Next update at R7 open/close. At R7 closure, authority moves to the implementing SSoTs; this note is retained as rationale (same lifecycle as `Design_Starter_Deck_v1.md`).

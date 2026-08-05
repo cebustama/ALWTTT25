@@ -1,4 +1,6 @@
-# Design_Starter_Deck_v2 — ALWTTT (DRAFT, R0)
+# Design_Starter_Deck_v2 — ALWTTT (R0)
+
+> **v2 finalization (2026-07-31, DOC-APPLY-1 — R0 P9 + D5):** this document (formerly `Design_Starter_Deck_v2_DRAFT.md`) **is** the final v2 design record, confirmed by the user. Renamed and placed at `Docs/planning/active/Design_Starter_Deck_v2.md`; registered in `SSoT_INDEX.md` + `ssot_manifest.yaml` (R0 P4.1/P5).
 
 **Status:** Locked design — R0 output (2026-07-23), D-R0-1..12 **locked by user 2026-07-23** (D-R0-2=B amended: Compound Cycle 6/8 into starter, Waltz Protocol 3/4 to reward). Planning only; numbers subject to playtest revision (N5).
 **Scope:** 4-musician starter deck (Sibi, C2, Conito, Zig), finisher layer, per-musician reward slate, per-musician identity map with tempo lean, Track Card Levels resolution summary, singalong design.
@@ -36,6 +38,8 @@ Axis-collision note: v1 gave Sibi the melody hook (Singing Field). In v2 the **s
 
 Domain split: 11 Composition / 11 Action-domain (7 basic actions incl. generics + 4 finishers).
 
+> **Built (R2, 2026-07-31):** the three Conito starter cards exist as assets and are catalog-registered — `starter_finger_bass`, `starter_slap_bass`, `starter_static_rush`, each `StarterDeck | UnlockedByDefault`, `starterCopies = 1`, in `Conito_CardCatalogData`. This doc is design; this line is what lets a reader tell designed-from-built.
+
 | # | Card | Copies | Domain | Owner | Effect (authoritative for v2) | Cost / gen | Origin |
 |---|---|---|---|---|---|---|---|
 | 1 | Warm Up | 2 | Action | Any | `DrawCards(2)` | 0 / — | v1, conserved |
@@ -48,8 +52,8 @@ Domain split: 11 Composition / 11 Action-domain (7 basic actions incl. generics 
 | 8 | Wormus Major | 2 | Comp | Sibi | Backing. Major-mode `progressionPalette` — **levels 2–3 authored (Levels pilot, R7)** | 0 / 2 | v1, conserved + leveled |
 | 9 | Mind Tap | 1 | Action | Sibi | `ModifyVibe(+5, AudienceCharacter)` + `ApplyStatusEffect(earworm, +2, AudienceCharacter)` | 0 / — | v1, conserved |
 | 10 | **Psychic Wave v2** | 1 | **Finisher** | Sibi | `ModifyVibe(+5, AllAudienceCharacters)` + **`ApplyStatusEffect(earworm, +Y, AllAudienceCharacters)`** (Y first guess: 2; blocked members excluded per `CardBase` target filter). Full-screen mask VFX (R4) | 3 / — | v1, upgraded R4 |
-| 11 | **Finger Bass v1** *(working)* | 1 | Comp | Conito | Bassline. `BasslineCardConfigSO` — finger figure set (Block / PerBeat lean), finger-bass patch. v1 approximation; walk = ask §8 #1 | 0 / 2 | new, R2 |
-| 12 | **Slap Bass v1** *(working)* | 1 | Comp | Conito | Bassline. `BasslineCardConfigSO` — `Offbeat`/`ArpeggioUp` figure lean, Slap Bass patch. Pocket-coupling = ask §8 #2 | 0 / 2 | new, R2 |
+| 11 | **Finger Bass v1** *(working)* | 1 | Comp | Conito | Bassline. `BasslineCardConfigSO` — `ArpeggioUp` + `arpeggioRate = PerBeat` + `arpeggioToneMode = ChordToneWalk`; Fingered Bass patch (33) via `InstrumentEffect_FingeredBass`. **Walk is real, not an approximation** — ask §8 #1 was resolved package-side before filing (D-R2-4=A; boundary §8.4) | 0 / 2 | new, R2 |
+| 12 | **Slap Bass v1** *(working)* | 1 | Comp | Conito | Bassline. `BasslineCardConfigSO` — `Offbeat` + `pocketMode = SelfPocket` (`[Slap, Pop]` @ `Beat`, boosts 0/+12); Slap Bass patch via `InstrumentEffect_SlapBass` in **`RandomFromList` over {Slap Bass 1, Slap Bass 2}** (D-R2-3, D-R2-11). Contrast axis vs Finger Bass = **rhythmic displacement** (D-R2-2=A), reinforced by the +12 pop contour | 0 / 2 | new, R2 |
 | 13 | **Static Rush** *(working)* | 1 | Action | Conito | `DrawCards(2)` + `ModifyStress(+1, Self)` (D-R0-4) | 0 / — | new, R2 |
 | 14 | **Overload** | 1 | **Finisher (Action domain, D-R0-5)** | Conito | Requires **Voltage ≥ 3** on Conito (consumed): one bonus loop this song + one-loop Conito guitar solo track with channel duck, full revert after (R5 guarded API) | 2 / — | new, R5 |
 | 15 | **Rise Up** *(working)* | 1 | Comp | Zig | Melody. `MelodyCardConfigSO.patternOverride` = authored ascending-degree `MelodyPatternData` (degree-based ⇒ key/mode-adaptive; tiles to part length per D-MEL5.1). Sung glide via Pink Trombone | 0 / 3 | new, R3 |

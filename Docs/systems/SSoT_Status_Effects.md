@@ -220,7 +220,9 @@ If future encounter design requires extending stun via additional Choke stacks, 
 
 **Applies to:** audience members only. `StatusEffectCatalogue_Musicians` does not contain Earworm; the runtime hook iterates `CurrentAudienceCharacterList` only. Authoring a card that targets musicians with Earworm is silently a no-op at runtime.
 
-**Interaction with Flow:** none. Earworm ticks call `AddVibe(stacks)` directly and do not pass through the `ModifyVibeSpec` Flow-bifurcation pipeline. This parallels the musician-side Feedback DoT, which also bypasses Stress modifiers on its tick path. Validated against ST-M43-7.
+**Interaction with Flow:** none. Earworm ticks do not pass through the `ModifyVibeSpec` Flow-bifurcation pipeline; the tick amount is the raw stack count. This parallels the musician-side Feedback DoT, which also bypasses Stress modifiers on its tick path. Validated against ST-M43-7.
+
+**Routing correction (B3, 2026-05-18 — recorded at R1):** the tick no longer calls `AddVibe(stacks)` directly. `GigManager.AudienceTurnRoutine` routes it through `AudienceCharacterStats.ApplyIncomingVibe`, so Earworm ticks are Indifference-blockable and — since R1 — Captivated-amplifiable (§5.8). Flow remains excluded. Read-then-decay ordering is unchanged.
 
 **Interaction with `IsBlocked`:** Blocked audiences are skipped for Vibe gain (consistent with `ComputeSongVibeDeltas`). Stack decay continues normally on the same audience turn.
 
@@ -231,6 +233,36 @@ If future encounter design requires extending stun via additional Choke stacks, 
 **Validation history:** ST-M43-1a/1b/2/3/4/5/6/7/8 all PASS 2026-04-28 (M4.3 closure). Initial implementation shipped with a copy-paste duplicate `Tick(AudienceTurnStart)` block in `AudienceTurnRoutine` producing -2/turn decay; caught by stack-count observation in ST-M43-2/3; resolved by deletion of the duplicate block before closure.
 
 **Applied by:** Mind Tap (M4.6 — pending). `Assets/Resources/Data/Characters/Musicians/{Musician}_Cards/TestEarworm.asset` retained as a dev-only regression card (`[TEST]` prefix on DisplayName, `inspirationCost: 0`, `actionTiming: Always`).
+
+### 5.8 Captivated
+**Primitive:** `DamageTakenUpMultiplier` (`CharacterStatusId = 301`)
+**Key:** `"captivated"`
+**Scope:** single Audience member
+**Tick timing:** `AudienceTurnStart`
+**SO config:** `StackMode = Additive`, `DecayMode = LinearStacks`, `MaxStacks = 5`, `IsBuff = false`, `ValueType = Flat`
+**Catalogue:** `StatusEffectCatalogue_Audience`, `IsDefaultVariant = true` for the primitive on the audience side.
+
+**Combat meaning:** while the holder has `N > 0` stacks, incoming positive Vibe is amplified to `round(incoming × (1 + N × CaptivatedVibeBonusPerStack))`. Initial tuning `0.25` → 2 stacks = ×1.5. The amplification is computed inside `AudienceCharacterStats.ApplyIncomingVibe`, immediately after the Indifference gate. Fantasía: they're locked in; every push lands harder.
+
+**Scope of amplification (R1, D-R1-1=A):** helper-wide. Every source that routes through `ApplyIncomingVibe` is amplified — card `ModifyVibeSpec` positives, `AddVibeAction`, Earworm ticks, the SFX→FlatVibe stage bonus, and the song-end macro conversion. This is broader than the original design wording (`planning/Design_Audience_Status_v1.md §4.2` scoped it to "`ModifyVibeSpec` positive"); the broadening is deliberate and follows the single-canonical-entry-point architecture Indifference already relies on. Negative-Vibe paths (`RemoveVibe`, negative `ModifyVibeSpec`) are **not** amplified — they do not route through the helper (§5.7 precedent; same documented limitation as Indifference).
+
+**Interaction with Indifference (D-DCP-6=A invariant, preserved):** Indifference is checked first and returns 0 unconditionally. A holder who is both Indifferent and Captivated takes 0 Vibe regardless of stack count, and no CAPTIVATED log line is emitted. Validated ST-R1-4.
+
+**Interaction with Flow:** compounding, not merged. Flow's flat bonus / multiplier is applied upstream in `CardBase.ExecuteEffects` (band-wide song-end multiplier in `GigManager`), producing an already-rounded `finalDelta`; Captivated then multiplies that value and rounds again. Two rounding steps, in that order.
+
+**Rounding:** `Mathf.RoundToInt` (banker's rounding — `.5` → even). Same convention as the Flow multiplier path. Pinned by ST-R1-2: incoming 5 at 2 stacks → `7.5` → **8**.
+
+**Tuning home:** `MeterTuningSO.captivatedVibeBonusPerStack` (Inspector), surfaced as `GigManager.CaptivatedVibeBonusPerStack`; `AudienceCharacterStats.DefaultCaptivatedBonusPerStack = 0.25f` is the fallback when no `GigManager` is present (tests, detached construction). Mirrors the Flow→Vibe tuning pattern (`SSoT_Scoring_and_Meters.md §7.1`).
+
+**Variant disambiguation:** the runtime guards on `StatusKey == "captivated"` in addition to the primitive id, mirroring the Earworm `DamageOverTime` guard, so a future audience-side `DamageTakenUpMultiplier` variant cannot silently inherit the amplification.
+
+**Decay:** generic. `StatusEffectContainer.Tick(AudienceTurnStart)` handles `LinearStacks` decay; R1 added **no** `GigManager` code. Icon clears at 0 stacks. Validated ST-R1-3.
+
+**Applies to:** audience members only. `StatusEffectCatalogue_Musicians` does not contain Captivated, and nothing musician-side reads `DamageTakenUpMultiplier` on a Vibe path.
+
+**Applied by:** **Wink** (Zig, `Cantante_CardCatalogData`; Action, cost 0, `ApplyStatusEffect(captivated, +2, AudienceCharacter)`). Authored R1 and deliberately **unreachable in the demo build** — the Cantante catalog is outside the demo band roster, and both `PersistentGameplayData.SetBandDeckFromMusicians` and `BuildRewardCardPool` are band-scoped. `Singalong` (Captivated +1 AoE, D-R0-9) is queued for R8.
+
+**Validation history:** ST-R1-1..6 all PASS 2026-07-23 (R1 closure). ST-R1-2 pinned the rounding; ST-R1-4 pinned Indifference precedence; ST-R1-5 pinned the helper-wide scope (Earworm 2 stacks → +3 applied); ST-R1-6 pinned demo-inertness (starter deck and reward pool unchanged from the S5i baseline).
 
 ---
 

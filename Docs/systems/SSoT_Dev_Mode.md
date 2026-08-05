@@ -124,7 +124,7 @@ This is the load-bearing fact Phase 1 codified. If Infinite Turns is ever re-imp
 - `Assets/Scripts/DevMode/DevStatsTab.cs` — file-level `#if ALWTTT_DEV`. Phase 3.1/3.2/3.3a/3.3b static helper that renders the Stats tab body. Breakdown section (P3.1) + Gig-Wide Stats section (P3.2 + Flow row added P3.3a) + Per-Character section (P3.3a stat controls + P3.3b status picker). Dispatches to `GigManager.DevSet…`, `BandCharacterStats.DevSet…`, `AudienceCharacterStats.DevSet…` wrappers for stat editing, and directly to `StatusEffectContainer.Apply`/`Clear` for the Composure stepper and P3.3b status picker. Phase 3.3b additions: `DrawStatusPicker(CharacterBase, ref int)` method, `_musicianStatusPickerIndex` and `_audienceStatusPickerIndex` static fields, `using ALWTTT.Characters` directive.
 - `Assets/Scripts/DevMode/DevAudioMixTab.cs` — file-level `#if ALWTTT_DEV`. M-AUDIO-MIX static helper rendering the Audio Mix tab body (global music + per-musician + master SFX sliders + a no-asset banner + the Solo/Duck/Clear highlight trigger). Routes all slider edits through `GigManager.DevSet…` audio wrappers; calls `MidiMusicManager.Highlight` directly for the trigger. No runtime mutation outside those calls.
 - `GigManager` `#if ALWTTT_DEV` audio additions (M-AUDIO-MIX): `DevGlobalMusicVolume01`/`DevSetGlobalMusicVolume01`, `DevGetMusicianVolume01`/`DevSetMusicianVolume01(MusicianBase,float)`, `DevMasterSfxVolume01`/`DevSetMasterSfxVolume01`, `DevHasAudioMixAsset`, `PersistAudioMixInEditor`. Always-compiled support: `ApplyPersistedAudioMix` (StartGig), `ReapplyMusicianMix` (after Play), `_globalMusicVolume01`, the `audioMix` SO ref.
-- `Assets/Scripts/DevMode/DevCompositionDebugTab.cs` — file-level `#if ALWTTT_DEV` (DBG-C1). Renders the Composition tab body: two-phase intent/resolved per-track log, optional seed field, infinite-loop toggle, Copy fingerprint, chd: dump. Read-only except the seed/toggle writes; no gameplay mutation. **(DBG-C2)** interactive controls added: per-track override dropdowns, Roman field, R2a re-render button, catalog browse. **(CSV-2, 2026-07-18)** per-track **instrument** override rows added (melodic + percussion pickers, `[dev-inst]` intent annotation, card-stomp detection, Clear-with-restore); the tab's `Clear ALL overrides` button now clears both override families. Still file-level `#if ALWTTT_DEV`.
+- `Assets/Scripts/DevMode/DevCompositionDebugTab.cs` — file-level `#if ALWTTT_DEV` (DBG-C1). Renders the Composition tab body: two-phase intent/resolved per-track log, optional seed field, infinite-loop toggle, Copy fingerprint, chd: dump. Read-only except the seed/toggle writes; no gameplay mutation. **(DBG-C2)** interactive controls added: per-track override dropdowns, Roman field, R2a re-render button, catalog browse. **(CSV-2, 2026-07-18)** per-track **instrument** override rows added (melodic + percussion pickers, `[dev-inst]` intent annotation, card-stomp detection, Clear-with-restore); the tab's `Clear ALL overrides` button now clears both override families. Still file-level `#if ALWTTT_DEV`. **(CTX-1/1b, 2026-07-31)** sección de override de contexto de parte (tonalidad/raíz) con Hold-across-loops y log de diagnóstico de drift; el botón `Clear ALL overrides` limpia ahora tres familias (patrón · instrumento · contexto de parte). Sigue `#if ALWTTT_DEV` a nivel de fichero.
 - `Assets/Scripts/DevMode/GenerationDebugFormatter.cs` — file-level `#if ALWTTT_DEV` (DBG-C1). Role-adaptive text formatter for the tab (intent lines, resolved lines with the `'*'` resolved-only convention, fingerprint block).
 
 **Modified production files (block-level `#if ALWTTT_DEV` patches only):**
@@ -422,6 +422,22 @@ Inventory window surface is documented in `SSoT_Editor_Authoring_Tools.md §17`;
 
 ---
 
+
+### 9.17 CTX-1 / CTX-1b — part-context override (2026-07-31)
+
+| ID | Test | Estado |
+|---|---|---|
+| **ST-CTX-1** | Apply básico — parte Ionian/C → override Aeolian/A; resolved muestra el modo pedido y todos los tracks suenan en menor | PENDIENTE |
+| **ST-CTX-2** | Reproducibilidad — seed pineado, dos re-renders del mismo override ⇒ fingerprint idéntico (verifica que `hasExplicitRootNote` fija la raíz) | PENDIENTE |
+| **ST-CTX-3** | Regresión clear/restore — fingerprint post-Clear == pre-Apply bajo seed pineado | PENDIENTE |
+| **ST-CTX-4** | Realineación — Backing = `Prog_Min_Andaluza` (tonalities=Aeolian) + petición Lydian ⇒ `aligned from intent Lydian`, sin crash | PENDIENTE |
+| **ST-CTX-5** | Pisado por carta (Hold OFF) — carta de tonalidad tras Apply ⇒ `(superseded by card)`, manda la carta | PENDIENTE |
+| **ST-CTX-6** | Compilación de producción sin `ALWTTT_DEV` ⇒ byte-idéntica | PENDIENTE |
+| **ST-CTX-7** | Persistencia (CTX-1b) — con Hold ON, el override sobrevive ≥ 3 loops; el log de drift identifica el mecanismo que revierte | PENDIENTE |
+
+**Uso en producción de la herramienta.** Los tests T2.1–T2.7 de la pasada de
+escucha CONT-B se ejecutaron con esta sección (7/7 PASS), lo que constituye su
+primera validación de campo aunque los smokes formales sigan pendientes.
 ## 10. Update rule
 
 This SSoT must be updated when any of the following change:
@@ -811,3 +827,52 @@ Gate `#if ALWTTT_DEV`; production byte-identical (ST-CSV3-1/2).
 ### 18.11 Overlay outer-scroll fix (CSV-3, 2026-07-22)
 
 The F12 overlay content is wrapped in a screen-bounded outer scroll (`DevModeController`), and `GUI.DragWindow` is restricted to the title bar. Fixes the Composition tab growing past the screen bottom with no way to reach it after the R2a section was added. Applies to all tabs; cosmetic/operational only.
+
+### 18.12 Part-context override — tonality / root (CTX-1, 2026-07-31)
+
+**Qué añade.** Una sección colapsable `Part context override (tonality / root)`
+entre la línea resolved-identity (§18.3/CSV-3) y OVERRIDES, con steppers de
+`Tonality` y `NoteName`, Apply, Clear-con-restore y un toggle
+`Hold across loops`.
+
+**Mecanismo (extensión de D-CSV-5=A al nivel de parte).** Escribe los campos que
+`SongConfigBuilder.FromUI` **ya lee** — `PartEntry.tonality`, `.rootNote`,
+`.hasExplicitRootNote` — en vez de abrir un canal nuevo. Como tonalidad y raíz
+participan en `partMeterHash`, el cambio invalida la caché por sí solo; el
+`DevBumpOverrideStamp()` adicional fuerza el re-render en el siguiente inicio de
+loop por la misma ruta que los overrides de patrón. **Onda expansiva: todos los
+stems de la parte se regeneran** — idéntica a la de una carta de tonalidad
+(D-H1=α), que es precisamente lo que la herramienta auditiona.
+
+**`hasExplicitRootNote` se fuerza a `true` mientras el override está aplicado.**
+Sin eso, `FromUI` tira una raíz **aleatoria** cuando el modelo nunca fijó una, y
+la audición deja de ser reproducible incluso con seed pineado. El valor original
+se restaura en Clear.
+
+**Realineación del paquete es visible, no silenciosa.** Si se pide un modo que
+las `tonalities` de la progresión activa excluyen, `ChordTrackComposer` (paso
+2b) realinea y la línea resolved muestra `aligned from intent <X>`. **Ese
+mensaje es el observable directo de la restricción de tonalidades** y se usa
+como señal de test, no como fallo.
+
+**CTX-1b — persistencia entre loops.** Observado en la primera sesión de uso: el
+modelo revierte la parte a su tonalidad autorada/de carta en el loop siguiente,
+de modo que una escritura única solo sobrevive a un render. **La causa concreta
+no está identificada** (reconstrucción del `PartEntry` vs. reaplicación del
+intent de la carta al inicio de loop). Con `Hold across loops` activado (default)
+el tab re-escribe sus valores cuando detecta que el modelo se ha desviado, y
+loguea `[CTX-1b] Model drifted to …; re-asserting …` con contador — ese log es
+el instrumento de diagnóstico para identificar el mecanismo. **Consecuencia
+documentada, no defecto: con Hold ON el override dev gana a una carta de
+tonalidad**; la detección de pisado por carta solo aplica con Hold OFF.
+
+**Guardas.** Identidad de modelo (una canción nueva reconstruye el modelo ⇒ el
+registro se suelta, no hay nada válido sobre lo que restaurar) y pisado por
+carta con semántica CSV-2 (se suelta **sin** restaurar; la verdad de la carta es
+más reciente). `Clear ALL overrides` limpia también esta familia.
+
+**Alcance.** `#if ALWTTT_DEV` a nivel de fichero, huella de producción cero, sin
+API nueva. Ruta de producción equivalente: una carta con
+`TonalityEffect(Explicit, <modo>)`, audicionable vía R2a (§18.10) — ambas rutas
+escriben el mismo campo del modelo, así que lo que se oye con el override es lo
+que hará la carta.

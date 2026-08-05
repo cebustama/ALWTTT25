@@ -16,31 +16,34 @@ MonoBehaviour:
   partContext:
     partName: SmokePart
     tonality: 0
-    rootNote: 7
+    rootNote: 0
     timeSignature: 0
-    measures: 4
+    measures: 8
     bpm: 100
   entries:
   - spec:
-      role: 1
-      instrument: {fileID: 11400000, guid: ca372fe06d2607d4aa8f65507dc18a0a, type: 2}
+      role: 3
+      instrument: {fileID: 11400000, guid: 4c04ad83fa6dfc24999fbc43d20be6b8, type: 2}
       percussionInstrument: {fileID: 0}
-      pattern: {fileID: 11400000, guid: 8c04ae43b2a0b6240a2ad0f7b0b037ac, type: 2}
-      style: {fileID: 0}
+      pattern: {fileID: 11400000, guid: 13a65b81573677643bfe7a094b50968a, type: 2}
+      style: {fileID: 11400000, guid: 9662aed883256b747bb66e3885e0fc5a, type: 2}
     chordExpression: 0
     arpeggioRate: 1
     randomRerollChance: 1
     randomFigureWeights: []
+    velocityJitter: 0
   - spec:
-      role: 4
-      instrument: {fileID: 11400000, guid: fbfaacd61632c1d4bb06ab92c8fc7d7a, type: 2}
+      role: 1
+      instrument: {fileID: 11400000, guid: adfb1dbd3048bbc43839e4c257e3d325, type: 2}
       percussionInstrument: {fileID: 0}
-      pattern: {fileID: 11400000, guid: f74af2c5bc43ef74589f65f3e6afc63d, type: 2}
+      pattern: {fileID: 0}
       style: {fileID: 0}
-    chordExpression: 0
-    arpeggioRate: 1
+    chordExpression: 1
+    arpeggioRate: 0
     randomRerollChance: 1
     randomFigureWeights: []
+    velocityJitter: 0
+  defaultProgression: {fileID: 0}
   overrideSeed: 1
   seed: 12345
-  stripMetronome: 0
+  stripMetronome: 1

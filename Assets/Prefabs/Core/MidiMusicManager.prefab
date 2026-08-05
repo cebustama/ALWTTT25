@@ -48,6 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: 2a02a4f12bc6e504083042e7790ee803, type: 2}
+  defaultProgressionPalette: {fileID: 11400000, guid: 0165de7483a24604486b077c5099000d, type: 2}
   playerBehaviour: {fileID: 6744716752777685964}
   logDebug: 1
   drumChannel: 9

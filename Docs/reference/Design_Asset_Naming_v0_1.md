@@ -60,6 +60,16 @@ Token definitions:
 The meter appears in the name because the meter is the one property that determines
 whether an asset is usable at all in a given part, and it does not change.
 
+**Patrones de percusión (aplicado CONT-B, 2026-07-31).** Prefijo de paleta +
+nombre + sufijo de longitud: `FF_Rock8c`, `SP_Funk8c`, `FF_LatinSon32_8c`.
+Prefijos en uso: `FF_` (FourOnTheFloor) · `SP_` (SyncopatedPocket) · `WL_`
+(WaltzLilt) · `OM_` (OddMeterAngular) · `CS_` (CompoundSwing). El sufijo `8c`
+distingue el estándar de 8 compases del material heredado de 2. El prefijo
+declara la paleta de destino, no la ubicación en disco — que es
+`Patterns/Drums`, la raíz de escaneo (ver D-CSV-14).
+
+> **Reconciliation owed:** the applied CONT-B drum naming (palette prefix + `8c` suffix) diverges from this doc's draft `Drum_<TS>_<Nm>_<Style>` schema and from §4 ("why the prefixes go"). The draft was never applied (CSV-4b); reconcile the schema with the applied reality at CSV-4b.
+
 ---
 
 ## 4. Why the `WL_` / `FF_` / `OM_` / `CS_` prefixes go

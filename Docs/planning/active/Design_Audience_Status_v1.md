@@ -1,9 +1,9 @@
 # Design_Audience_Status_v1 — ALWTTT
 
-**Status:** Partially superseded — §3 (Earworm) and §5 (`ApplyIncomingVibe`) authority migrated. §4 (Captivated) remains the only active design intent.  
+**Status:** Fully superseded (2026-07-23, R1) — §3 (Earworm), §4 (Captivated), and §5 (`ApplyIncomingVibe`) have all migrated. `SSoT_Status_Effects.md` §5.7/§5.8 and the live `AudienceCharacterStats.ApplyIncomingVibe` are authoritative. Retained as historical design rationale only; no active design intent remains in this document.  
 **Scope:** Audience-side status effects for ALWTTT. Covers Earworm (closed M4.3, see §6), Captivated (deferred design intent), and the `ApplyIncomingVibe` helper (now shipped).  
 **Classification:** `reference (planning)` — **not a SSoT**. §3 Earworm authority migrated to `SSoT_Status_Effects.md` §5.7 on 2026-04-28 (M4.3 closure); §3 here is retained as historical rationale only. **§5 `ApplyIncomingVibe` helper shipped 2026-05-18** as part of §5.3.5 Demo cut prep closure — the helper was implemented to support Indifference (audience-side Vibe blocker) and the SFX→FlatVibe routing path, not Captivated. §5 here is retained as historical design rationale for the helper's shape; the live helper exists in `AudienceCharacterStats.ApplyIncomingVibe`. **§4 (Captivated) remains authoritative design intent until roster expansion entry** (tracked in `planning/active/Roadmap_ALWTTT.md` → Future Milestones → Roster Expansion as a prerequisite for bringing Ziggy into the band).  
-**Last updated:** 2026-05-20
+**Last updated:** 2026-07-23
 
 ---
 
@@ -106,7 +106,9 @@ If future playtest suggests the pairing is weaker than alternatives, reassignmen
 
 ## 4. Captivated — deferred design intent (for Roster Expansion)
 
-> **Scheduled under:** `planning/active/Roadmap_ALWTTT.md` → Future Milestones → Roster Expansion. Captivated is listed there as a prerequisite for bringing Ziggy (vocalist) into the band; this section is the design spec the Roadmap entry refers to.
+> **⚠️ Superseded 2026-07-23 (batch R1).** Captivated shipped: amplification layer inside `AudienceCharacterStats.ApplyIncomingVibe`, SO + icon in `StatusEffectCatalogue_Audience`, applied by the **Wink** card. Authority is `SSoT_Status_Effects.md` §5.8; where that spec and the text below diverge, the SSoT wins. Two deliberate divergences: (1) **scope** — the shipped amplification is helper-wide (all `ApplyIncomingVibe` traffic incl. Earworm ticks, SFX bonus, song-end conversion), not the card-only scope §4.2 imagined (D-R1-1=A); (2) **tuning home** — `captivatedBonusPerStack` lives on `MeterTuningSO`, not on `AudienceCharacterStats` (D-R1-2=A). `IsBuff = false` (D-R1-3), matching the Earworm convention. The text below is retained as historical design rationale.
+>
+> *(Original scheduling note: `planning/active/Roadmap_ALWTTT.md` → Future Milestones → Roster Expansion, where Captivated was a prerequisite for bringing Zig into the band.)*
 
 ### 4.1 Identity
 
@@ -195,7 +197,7 @@ When `ApplyIncomingVibe` lands, `ModifyVibeSpec` negative deltas (which currentl
 This planning doc does not override any SSoT. At each batch closure, the implementing SSoT takes authority:
 
 - **M4.3 closure:** `SSoT_Status_Effects.md` gains §5.7 (Earworm full spec). `SSoT_Audience_and_Reactions.md` §8 and §10 update to reflect Earworm as the first active audience-side status. This document's §3 retains rationale; the SSoT is the authoritative spec from that point onward.
-- **Roster Expansion (whenever sequenced):** `SSoT_Status_Effects.md` gains §5.8 (Captivated), `AudienceCharacterStats` gains the `ApplyIncomingVibe` helper, and `CardBase.ExecuteEffects` routes through it. This document's §4 and §5 retain rationale.
+- **Roster Expansion R1 (closed 2026-07-23):** `SSoT_Status_Effects.md` gained §5.8 (Captivated). The `ApplyIncomingVibe` helper and the `CardBase.ExecuteEffects` routing had already shipped earlier, at B3 (2026-05-18), for Indifference — R1 only added the amplification layer inside the existing helper. This document's §4 and §5 retain rationale only.
 
 Until those closures, this document is the single source of design intent for the listed statuses.
 

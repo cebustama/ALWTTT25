@@ -171,7 +171,10 @@ passes without a semantic change entry.
 Other modifiers on the last step: Flow song-end multiplier (§7.1, applied to
 the impression-modified base above — the "L" part — only), the flat SFX venue
 bonus added after Flow (§6.2), Indifference gate at `ApplyIncomingVibe`
-(see `SSoT_Audience_and_Reactions.md` §5.3), encounter modifiers.
+(see `SSoT_Audience_and_Reactions.md` §5.3), Captivated amplification at that
+same gate (audience-side, `×(1 + N × MeterTuningSO.captivatedVibeBonusPerStack)`,
+applied after the Indifference gate — `SSoT_Status_Effects.md §5.8`, R1),
+encounter modifiers.
 
 ### 6.2 SFX venue bonus + song-end delivery (S5a)
 
@@ -190,8 +193,11 @@ total is paid **once at Song End**, combined with the per-audience conversion in
 where `lPart` is the §6.1 result (`round(baseVibe × impressionFactor)`, floored
 at 0), `flowSongEndMult` is the band-wide Flow multiplier (§7.1) applied to the L
 part only, and `pendingSfx` is the flat banked total added after Flow. The combined
-delta is gated once at `ApplyIncomingVibe` (Indifference → 0); `IsBlocked` members
-are excluded upstream. The banked total equals the pre-S5a sum of per-stage
+delta is gated once at `ApplyIncomingVibe` (Indifference → 0, then Captivated
+amplification if the member holds stacks — `SSoT_Status_Effects.md §5.8`);
+`IsBlocked` members are excluded upstream. Consequence worth noting for tuning:
+the flat SFX bonus is *not* Flow-scaled but *is* Captivated-scaled, because
+Captivated applies at the gate, downstream of the `lPart + pendingSfx` sum. The banked total equals the pre-S5a sum of per-stage
 applications — S5a moved **when** the bonus lands (mid-song → song-end), not
 the amount.
 
