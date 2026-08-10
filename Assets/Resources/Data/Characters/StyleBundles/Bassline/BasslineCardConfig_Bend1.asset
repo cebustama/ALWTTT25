@@ -25,10 +25,10 @@ MonoBehaviour:
   pocketCustomLanes: 0
   pocketSlapLanes: 
   pocketPopLanes: 
-  selfPocketSubdivision: 1
-  selfPocketPattern: 0000000001000000
-  hammerOffsetSemitones: 3
-  pullOffsetSemitones: -1
+  selfPocketSubdivision: 2
+  selfPocketPattern: 030000000300000001000000030000000300000001000000
+  hammerOffsetDegrees: 1
+  pullOffsetDegrees: -1
   ghostVelocityFactor: 0.6
   ghostPopVelocityFactor: 0.5
   hammerOnVelocityFactor: 0.6

@@ -11,6 +11,32 @@ namespace ALWTTT.Managers
     {
         private const string DebugTag = "<color=magenta>DeckManager:</color>";
 
+        // ---- [LOG-1 / D-LOG-3=B] Log gating ------------------------------
+        // This class shipped entirely ungated and fires on every draw, drag
+        // and discard, which is a large share of the console during a gig.
+        // Every Debug.Log here was mechanically rewritten to LogV; the message
+        // text is byte-identical, only the gate is new. Debug.LogWarning and
+        // Debug.LogError were deliberately NOT touched.
+        //
+        // Fail-OPEN when there is no GigManager: this switch is a gig dev
+        // setting, and outside a gig (deck editor, menus) it does not apply --
+        // going silent there would hide diagnostics the toggle never governed.
+        private static bool VerboseLogs
+        {
+            get
+            {
+                var gm = GigManager.Instance;
+                var d = gm != null ? gm.DevSettings : null;
+                if (d == null) return true;          // no gig: unchanged behaviour
+                return d.UseLogs && d.LogVerbose;
+            }
+        }
+
+        private static void LogV(string msg)
+        {
+            if (VerboseLogs) Debug.Log(msg);
+        }
+
         public static DeckManager Instance;
 
         [Header("Controllers")]
@@ -50,7 +76,7 @@ namespace ALWTTT.Managers
 
         public void SetGameDeck()
         {
-            Debug.Log($"{DebugTag} Setting game deck...");
+            LogV($"{DebugTag} Setting game deck...");
 
             var gm = GameManager;
             var pd = gm != null ? gm.PersistentGameplayData : null;
@@ -81,7 +107,7 @@ namespace ALWTTT.Managers
             Add(pd.CurrentActionCards, "Action");
             Add(pd.CurrentCompositionCards, "Composition");
 
-            Debug.Log($"{DebugTag} Deck built: total={DrawPile.Count} " +
+            LogV($"{DebugTag} Deck built: total={DrawPile.Count} " +
                       $"(Action={pd.CurrentActionCards?.Count ?? 0}, Composition={pd.CurrentCompositionCards?.Count ?? 0})");
         }
 
@@ -89,7 +115,7 @@ namespace ALWTTT.Managers
         {
             if (targetDrawCount <= 0)
             {
-                Debug.Log($"{DebugTag} Drawing 0 cards... (requested={targetDrawCount})");
+                LogV($"{DebugTag} Drawing 0 cards... (requested={targetDrawCount})");
                 return;
             }
 
@@ -108,7 +134,7 @@ namespace ALWTTT.Managers
             int available = DrawPile.Count + DiscardPile.Count;
             int drawCount = Mathf.Min(targetDrawCount, available);
 
-            Debug.Log(
+            LogV(
                 $"{DebugTag} Drawing {drawCount} cards... " +
                 $"(requested={targetDrawCount}, draw={DrawPile.Count}, discard={DiscardPile.Count}, " +
                 $"handBefore={HandController.Hand.Count})"
@@ -119,7 +145,7 @@ namespace ALWTTT.Managers
                 // Cards on hand limit
                 if (GameManager.GameplayData.MaxCardsOnHand <= HandPile.Count)
                 {
-                    Debug.Log($"{DebugTag} Max number of cards on hand reached.");
+                    LogV($"{DebugTag} Max number of cards on hand reached.");
                     break;
                 }
 
@@ -186,7 +212,7 @@ namespace ALWTTT.Managers
                     UIManager.GigCanvas.SetPileTexts();
             }
 
-            Debug.Log($"{DebugTag} Draw complete. handAfter={HandController.Hand.Count} handPile={HandPile.Count} draw={DrawPile.Count} discard={DiscardPile.Count}");
+            LogV($"{DebugTag} Draw complete. handAfter={HandController.Hand.Count} handPile={HandPile.Count} draw={DrawPile.Count} discard={DiscardPile.Count}");
 
             // TODO: Update card texts based on status effects, etc
             foreach (var cardObject in HandController.Hand)
@@ -207,7 +233,7 @@ namespace ALWTTT.Managers
 
         public void OnCardPlayed(CardBase targetCard)
         {
-            //Debug.Log($"{DebugTag} On Card Played...");
+            //LogV($"{DebugTag} On Card Played...");
 
             // [S4 D-S4-BUS=B] The one play site that observes BOTH action/SFX cards
             // (via CardBase.Use) and composition cards (bypass-routed via
@@ -299,7 +325,7 @@ namespace ALWTTT.Managers
 
             if (destroyed > 0 || strayDestroyed > 0)
             {
-                Debug.Log($"{DebugTag} DiscardHand complete. " +
+                LogV($"{DebugTag} DiscardHand complete. " +
                     $"destroyed={destroyed} strayDestroyed={strayDestroyed} " +
                     $"handPile={HandPile.Count} discard={DiscardPile.Count}");
             }
@@ -328,7 +354,7 @@ namespace ALWTTT.Managers
                 return 0;
             }
 
-            Debug.Log($"{DevTag} DeckManager.DevForceHandResetToDiscard: " +
+            LogV($"{DevTag} DeckManager.DevForceHandResetToDiscard: " +
                       $"BEFORE  hand={HandController.Hand.Count}  handPile={HandPile.Count}  " +
                       $"discard={DiscardPile.Count}  draw={DrawPile.Count}");
 
@@ -345,7 +371,7 @@ namespace ALWTTT.Managers
                     var cb = child != null ? child.GetComponent<CardBase>() : null;
                     if (cb == null) continue;
                     if (HandController.Hand.Contains(cb)) continue; // still tracked, let main loop handle
-                    Debug.Log($"{DevTag}   Stray card under DrawTransform destroyed: {child.name}");
+                    LogV($"{DevTag}   Stray card under DrawTransform destroyed: {child.name}");
                     UnityEngine.Object.Destroy(child.gameObject);
                     strayDestroyed++;
                 }
@@ -374,7 +400,7 @@ namespace ALWTTT.Managers
             if (UIManager != null && UIManager.GigCanvas != null)
                 UIManager.GigCanvas.SetPileTexts();
 
-            Debug.Log($"{DevTag} DeckManager.DevForceHandResetToDiscard: " +
+            LogV($"{DevTag} DeckManager.DevForceHandResetToDiscard: " +
                       $"AFTER  hand={HandController.Hand.Count}  handPile={HandPile.Count}  " +
                       $"discard={DiscardPile.Count}  draw={DrawPile.Count}  " +
                       $"destroyed={destroyed} strayDestroyed={strayDestroyed}");
@@ -413,7 +439,7 @@ namespace ALWTTT.Managers
 
             if (!CanDevSpawnToHand(out string reason))
             {
-                Debug.Log($"{DevTag} DevSpawnCardToHand skipped ('{def.DisplayName}'): {reason}");
+                LogV($"{DevTag} DevSpawnCardToHand skipped ('{def.DisplayName}'): {reason}");
                 return false;
             }
 
@@ -448,7 +474,7 @@ namespace ALWTTT.Managers
                 ? GameManager.GameplayData.MaxCardsOnHand
                 : -1;
 
-            Debug.Log(
+            LogV(
                 $"{DevTag} DevSpawnCardToHand: '{def.DisplayName}' → " +
                 $"hand={HandController.Hand.Count}/{max}  handPile={HandPile.Count}  " +
                 $"discard={DiscardPile.Count}  draw={DrawPile.Count}");
@@ -595,7 +621,7 @@ namespace ALWTTT.Managers
 
         private void ReshuffleDiscardPile()
         {
-            Debug.Log($"{DebugTag} Reshuffling discard pile...");
+            LogV($"{DebugTag} Reshuffling discard pile...");
             foreach (var i in DiscardPile)
             {
                 DrawPile.Add(i);
@@ -634,7 +660,7 @@ namespace ALWTTT.Managers
             {
                 _lastTurnGuaranteeSummary =
                     $"needs=[--] reserved=0 fired=[--] drawn=0/{effectiveBudget} (budget=0)";
-                Debug.Log($"{DebugTag} [M4.5] {_lastTurnGuaranteeSummary}");
+                LogV($"{DebugTag} [M4.5] {_lastTurnGuaranteeSummary}");
                 return;
             }
 
@@ -652,7 +678,7 @@ namespace ALWTTT.Managers
                 if (!ok && scripted.Fallback != null)
                     ok = DrawCardFiltered(scripted.Fallback, $"TUT ScriptedFallback:{scripted.Label}");
                 if (ok) scriptedDrawn++;
-                else Debug.Log($"{DebugTag} [TUT-R2] Scripted entry '{scripted.Label}' " +
+                else LogV($"{DebugTag} [TUT-R2] Scripted entry '{scripted.Label}' " +
                                "missed both stages — slot falls through to normal draw (D1).");
             }
 
@@ -669,7 +695,7 @@ namespace ALWTTT.Managers
 
             int phase1 = Mathf.Max(0, effectiveBudget - reserved);
 
-            Debug.Log($"{DebugTag} [M4.5] Begin turn draw: budget={budget} effective={effectiveBudget} " +
+            LogV($"{DebugTag} [M4.5] Begin turn draw: budget={budget} effective={effectiveBudget} " +
                       $"needComp={needComp} needAction={needAction} reserved={reserved} phase1={phase1}");
 
             // Phase 1: normal draws holding back `reserved` slots.
@@ -705,7 +731,7 @@ namespace ALWTTT.Managers
                 $"fired=[{(firedComp ? "C" : "-")}{(firedAction ? "A" : "-")}] " +
                 $"drawn={drawnTotal}/{effectiveBudget}";
 
-            Debug.Log($"{DebugTag} [M4.5] End turn draw: {_lastTurnGuaranteeSummary}");
+            LogV($"{DebugTag} [M4.5] End turn draw: {_lastTurnGuaranteeSummary}");
         }
 
         /// <summary>
@@ -728,7 +754,7 @@ namespace ALWTTT.Managers
 
             if (GameManager.GameplayData.MaxCardsOnHand <= HandPile.Count)
             {
-                Debug.Log($"{DebugTag} {tag} Hand at MaxCardsOnHand. Skipping filtered draw.");
+                LogV($"{DebugTag} {tag} Hand at MaxCardsOnHand. Skipping filtered draw.");
                 return false;
             }
 
@@ -745,7 +771,7 @@ namespace ALWTTT.Managers
 
                 if (!discardHasMatch)
                 {
-                    Debug.Log($"{DebugTag} {tag} No matching card in DrawPile or DiscardPile. Skipping.");
+                    LogV($"{DebugTag} {tag} No matching card in DrawPile or DiscardPile. Skipping.");
                     return false;
                 }
 
@@ -784,7 +810,7 @@ namespace ALWTTT.Managers
             HandPile.Add(matchCard);
             DrawPile.RemoveAt(matchIndex);
 
-            Debug.Log($"{DebugTag} {tag} Drew filtered card '{matchCard.name}'. " +
+            LogV($"{DebugTag} {tag} Drew filtered card '{matchCard.name}'. " +
                       $"hand={HandController.Hand.Count} draw={DrawPile.Count} discard={DiscardPile.Count}");
 
             if (UIManager != null && UIManager.GigCanvas != null)

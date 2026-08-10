@@ -18,14 +18,35 @@ namespace ALWTTT.Music
     {
         private const string DebugTag = "<color=green>[SongConfigBuilder]</color>";
 
+        // [LOG-1 / D-LOG-3=B] This class is static and holds no settings
+        // reference of its own, so the host pushes the two levels in once,
+        // from GigManager.Awake(). Defaults are deliberately permissive: if
+        // GigManager never runs (editor tooling, tests) the builder behaves
+        // exactly as it did before LOG-1 rather than going silent.
+        public static bool LogEnabled = true;
+        public static bool LogVerbose = false;
+
         public static void Log(string log, bool highlight = false, string customColor = "")
         {
+            if (!LogEnabled) return;
+
             if (highlight)
                 Debug.Log($"{DebugTag} <color=yellow>{log}</color>");
             else if (!string.IsNullOrWhiteSpace(customColor))
                 Debug.Log($"{DebugTag} <color={customColor}>{log}</color>");
             else
                 Debug.Log($"{DebugTag} {log}");
+        }
+
+        /// <summary>[LOG-1] Verbose tier. Used for the derived music-theory
+        /// tables (scale notes, diatonic triads) that are recomputable from
+        /// tonality + root and therefore carry no state a smoke test reads.
+        /// The part header line stays on <see cref="Log"/>: it is the line
+        /// that reports the MODEL tonality, and both the D-R3C-3 premise
+        /// correction and the open D-R4-1 question rest on it.</summary>
+        public static void LogV(string log, string customColor = "")
+        {
+            if (LogVerbose) Log(log, false, customColor);
         }
 
         public static SongConfig FromUI(
@@ -121,7 +142,7 @@ namespace ALWTTT.Music
                                     .ToArray();
 
                 var scaleStr = string.Join("  ", scaleNotes);
-                Log($"Scale notes ({part.Tonality} " +
+                LogV($"Scale notes ({part.Tonality} " +      // [LOG-1] verbose
                     $"over {part.RootNote}): {scaleStr}", customColor: "orange");
 
                 // LOG
@@ -152,7 +173,7 @@ namespace ALWTTT.Music
                     diatonic.Add($"{rn} {rootLabel} [{notesStr}]");
                 }
 
-                Log($"Diatonic triads: {string.Join("  ", diatonic)}",
+                LogV($"Diatonic triads: {string.Join("  ", diatonic)}",  // [LOG-1] verbose
                     customColor: "orange");
                 //
 

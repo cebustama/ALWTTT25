@@ -157,6 +157,19 @@ If a composition card references track/bundle/composer structures, ALWTTT owns t
 
 ### 5.2.1 Card → palette bindings (authoritative table)
 
+> **Cantante (Zig) — R3, cerrado 2026-08-08.** Dos comps nuevas, ambas StarterDeck, 1 copia:
+>
+> | Carta | Músico | Rol | Binding | Ruta |
+> | --- | --- | --- | --- | --- |
+> | Rise Up | Cantante (Zig) | Melody | `MelodyCardConfig_RiseUp` → `patternOverride: MelodyPattern_RiseUp_44_8m` | `ComposeFromPattern` (verbatim). Los campos `leadingOverride` / `phrasePaletteOverride` / `style` quedan deliberadamente vacíos: el patrón los silencia incondicionalmente. |
+> | Showtime | Cantante (Zig) | Melody | `MelodyCardConfig_Showtime` → `phrasePaletteOverride: PhrasePalette_Showtime` + `style: MelodicStyle_Showtime` + `leadingOverride: MelodicLeading-Showtime` | Ruta procedural. `patternOverride` **debe** quedar en null. Operativa desde ST-R3-11 PASS (2026-08-08); la resolución de MGP-MEL-1 no cambió qué campos deben poblarse (B4 verificado, sin cambio). |
+>
+> **Invariante de autoría (R3).** En un `MelodyCardConfigSO`, `patternOverride` y el
+> trío (leading / paleta / estilo) son **mutuamente excluyentes en la práctica**: si
+> el patrón está presente, `MelodyTrackComposer` toma la rama `ComposeFromPattern` y
+> retorna antes de leer los otros tres, sin aviso. Poblar ambos lados produce una
+> carta cuyo authoring aparente no corresponde a lo que suena.
+
 Authoritative game-side table (MidiGenPlay mirrors; PCE-PROP D1=A). Closed at S5g
 (2026-07-06), ST-S5g-1..5 PASS.
 

@@ -8,12 +8,25 @@
 |   |   \---0.unity
 |   +---CompositionSmoke
 |   |   +---BassLineTest.asset
-|   |   +---smoke_ba-ba_144459.mid
-|   |   +---smoke_ba-ba_144833.mid
-|   |   +---smoke_ba-ba_145050.mid
-|   |   +---smoke_ba-ba_145131.mid
-|   |   +---smoke_ba-ba_145352.mid
-|   |   \---smoke_ba-ba_145445.mid
+|   |   +---smoke_ba_155959.mid
+|   |   +---smoke_ba_160051.mid
+|   |   +---smoke_ba_160314.mid
+|   |   +---smoke_ba_160426.mid
+|   |   +---smoke_ba_160538.mid
+|   |   +---smoke_ba_160847.mid
+|   |   +---smoke_ba_161206.mid
+|   |   +---smoke_ba-ba_125009.mid
+|   |   +---smoke_ba-ba_125019.mid
+|   |   +---smoke_ba-ba_125052.mid
+|   |   +---smoke_ba-ba_125113.mid
+|   |   +---smoke_ba-ba_125235.mid
+|   |   +---smoke_ba-ba_125320.mid
+|   |   +---smoke_ba-ba_125335.mid
+|   |   +---smoke_ba-ba_144721.mid
+|   |   +---smoke_ba-ba_150036.mid
+|   |   +---smoke_ba-ba_152600.mid
+|   |   +---smoke_ba-ba_152625.mid
+|   |   \---smoke_ba-ba_152725.mid
 |   +---Materials
 |   |   \---Mat_SpriteOutline.mat
 |   +---MidiPlayer
@@ -1739,6 +1752,8 @@
 |   |   |   +---SkepticalFx.prefab
 |   |   |   +---StressFx.prefab
 |   |   |   \---VibeFx.prefab
+|   |   +---Gig
+|   |   |   \---MusicianPositions.prefab
 |   |   +---Map
 |   |   |   +---LinkPrefab.prefab
 |   |   |   +---NodePrefab.prefab
@@ -1884,6 +1899,17 @@
 |   |   |   |   |   |   \---Backing Card - Gus - Modal.asset
 |   |   |   |   |   +---Melody Tracks
 |   |   |   |   |   |   +---MelodyCardConfigs
+|   |   |   |   |   |   |   +---RiseUp
+|   |   |   |   |   |   |   |   \---MelodyCardConfig_RiseUp.asset
+|   |   |   |   |   |   |   +---Showtime
+|   |   |   |   |   |   |   |   +---MelodicStyle_Showtime.asset
+|   |   |   |   |   |   |   |   +---MelodyCardConfig_Showtime.asset
+|   |   |   |   |   |   |   |   +---Phrase_Anthem_BurstHold.asset
+|   |   |   |   |   |   |   |   +---Phrase_Anthem_BurstShort.asset
+|   |   |   |   |   |   |   |   +---Phrase_Anthem_FlowDense.asset
+|   |   |   |   |   |   |   |   +---Phrase_Anthem_SustainHigh.asset
+|   |   |   |   |   |   |   |   +---Phrase_Anthem_SustainLead.asset
+|   |   |   |   |   |   |   |   \---PhrasePalette_Showtime.asset
 |   |   |   |   |   |   |   +---SingingField
 |   |   |   |   |   |   |   |   +---Phrase_Hook_BurstDense.asset
 |   |   |   |   |   |   |   |   +---Phrase_Hook_BurstShort.asset
@@ -2017,8 +2043,6 @@
 |   |   |   |   |   +---Cantante_Composition_002_Payload.asset
 |   |   |   |   |   +---Cantante_Composition_003.asset
 |   |   |   |   |   +---Cantante_Composition_003_Payload.asset
-|   |   |   |   |   +---cmp_flow_rhythm.asset
-|   |   |   |   |   +---cmp_flow_rhythm_Payload.asset
 |   |   |   |   |   +---Conito_CardCatalogData.asset
 |   |   |   |   |   +---debug_apply_shaken_to_musician.asset
 |   |   |   |   |   +---debug_apply_shaken_to_musician_Payload.asset
@@ -2026,8 +2050,6 @@
 |   |   |   |   |   +---Gusano_C_Bassline_001_WormWalk_Payload.asset
 |   |   |   |   |   +---Gusano_C_Bassline_002_WormPulse.asset
 |   |   |   |   |   +---Gusano_C_Bassline_002_WormPulse_Payload.asset
-|   |   |   |   |   +---in_the_pocket.asset
-|   |   |   |   |   +---in_the_pocket_Payload.asset
 |   |   |   |   |   +---MVP_AddComposure_03.asset
 |   |   |   |   |   +---MVP_AddComposure_03_Payload.asset
 |   |   |   |   |   +---MVP_AddFlow_02_All.asset
@@ -2061,6 +2083,10 @@
 |   |   |   |   |   +---Starter_psychic_waves_Payload.asset
 |   |   |   |   |   +---Starter_push_it.asset
 |   |   |   |   |   +---Starter_push_it_Payload.asset
+|   |   |   |   |   +---starter_rise_up.asset
+|   |   |   |   |   +---starter_rise_up_Payload.asset
+|   |   |   |   |   +---starter_showtime.asset
+|   |   |   |   |   +---starter_showtime_Payload.asset
 |   |   |   |   |   +---starter_singing_field.asset
 |   |   |   |   |   +---starter_singing_field_Payload.asset
 |   |   |   |   |   +---starter_slap_bass.asset
@@ -2095,13 +2121,23 @@
 |   |   |   |   |   +---test_modify_stress_heal_Payload.asset
 |   |   |   |   |   +---test_modify_vibe.asset
 |   |   |   |   |   +---test_modify_vibe_Payload.asset
-|   |   |   |   |   +---vamp.asset
-|   |   |   |   |   +---vamp_Payload.asset
 |   |   |   |   |   +---wink.asset
-|   |   |   |   |   \---wink_Payload.asset
+|   |   |   |   |   +---wink_Payload.asset
+|   |   |   |   |   +---wormus_bossa.asset
+|   |   |   |   |   +---wormus_bossa_Payload.asset
+|   |   |   |   |   +---wormus_modal.asset
+|   |   |   |   |   +---wormus_modal_Payload.asset
+|   |   |   |   |   +---wormus_test.asset
+|   |   |   |   |   \---wormus_test_Payload.asset
 |   |   |   |   \---StyleBundles
+|   |   |   |       +---Backing
+|   |   |   |       |   +---wormus_bossa_Payload_Backing_StyleBundle.asset
+|   |   |   |       |   +---wormus_modal_Payload_Backing_StyleBundle.asset
+|   |   |   |       |   \---wormus_test_Payload_Backing_StyleBundle.asset
 |   |   |   |       +---Bassline
+|   |   |   |       |   +---Bass_Phrase_Aeroplane4.asset
 |   |   |   |       |   +---BassCard_W2_Improv.asset
+|   |   |   |       |   +---BasslineCardConfig_Bend1.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapV1.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapV2.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapV3.asset
@@ -2154,6 +2190,7 @@
 |   |   |   |   \---SectorMapData.asset
 |   |   |   +---Melody Configs
 |   |   |   |   +---Ascending Climb - default.asset
+|   |   |   |   +---MelodicLeading-Showtime.asset
 |   |   |   |   +---Melody Card Config - Test.asset
 |   |   |   |   +---Melody Flashy-Soloist.asset
 |   |   |   |   +---Melody Groove-Pocket.asset
@@ -2170,6 +2207,7 @@
 |   |   |   |   +---MGP_Config.asset
 |   |   |   |   +---MGP_HarmonicLeadingConfig.asset
 |   |   |   |   +---MGP_MelodicLeadingConfig.asset
+|   |   |   |   +---MGP_VL_BackingTight.asset
 |   |   |   |   +---MGP_VoiceLeadingConfig.asset
 |   |   |   |   \---Scene Data.asset
 |   |   |   +---Songs
@@ -2264,7 +2302,12 @@
 |   |   |   |       \---MelodyGenParams_TEST.asset
 |   |   |   +---MIDI Instruments
 |   |   |   +---Patterns
+|   |   |   |   +---Basslines
 |   |   |   |   +---Chords
+|   |   |   |   |   +---Songs
+|   |   |   |   |   |   +---Georgia_A_16c.asset
+|   |   |   |   |   |   +---Georgia_A_Final_24c.asset
+|   |   |   |   |   |   \---Georgia_Bridge_16c.asset
 |   |   |   |   |   +---34 Test 1.asset
 |   |   |   |   |   +---44 Test.asset
 |   |   |   |   |   +---54 Test 1.asset
@@ -2303,7 +2346,8 @@
 |   |   |   |   |   +---ProgSmoke_Diatonic.asset
 |   |   |   |   |   +---ProgSmoke_Dominant7.asset
 |   |   |   |   |   +---ProgSmoke_Functional.asset
-|   |   |   |   |   \---ProgSmoke_TonFilter.asset
+|   |   |   |   |   +---ProgSmoke_TonFilter.asset
+|   |   |   |   |   \---Test - Lab Progression.asset
 |   |   |   |   +---Drums
 |   |   |   |   |   +---3_4
 |   |   |   |   |   |   +---WL_BalladSparse.asset
@@ -2348,6 +2392,7 @@
 |   |   |   |   |   \---SP_Jazz8c.asset
 |   |   |   |   +---Melodies
 |   |   |   |   |   +---Melody_4-4_8m_30n-Test_Midi_Import.asset
+|   |   |   |   |   +---MelodyPattern_RiseUp_44_8m.asset
 |   |   |   |   |   \---Test_Scale_Melody_4-4_4m_14n.asset
 |   |   |   |   \---Melody
 |   |   |   |       +---Melody_4-4_2m_8n.asset
@@ -2561,6 +2606,7 @@
 |   |   |   |   +---CardEditorWindow.LLM.cs
 |   |   |   |   +---CardInventoryWindow.cs
 |   |   |   |   +---ChordProgressionCatalogueWizard.cs
+|   |   |   |   +---CompositionInventoryWindow.Cards.cs
 |   |   |   |   +---CompositionInventoryWindow.cs
 |   |   |   |   +---DeckAssetSaveService.cs
 |   |   |   |   +---DeckCardCreationService.cs
@@ -2713,6 +2759,7 @@
 |   |   |   |   +---SerializableCardInventory.cs
 |   |   |   |   \---SerializableStringIntDictionary.cs
 |   |   |   +---UI
+|   |   |   +---AlwtttLogSetup.cs
 |   |   |   +---ALWTTTProjectRegistriesSO.cs
 |   |   |   \---CompositionFxConfigSO.cs
 |   |   +---DevMode
@@ -3063,6 +3110,7 @@
 |   +---reference
 |   |   +---CSO_Primitives_Catalog.md
 |   |   +---Design_Asset_Naming_v0_1.md
+|   |   +---PinkTrombone_Voice_Levers.md
 |   |   \---README.md
 |   +---runtime
 |   |   +---README.md

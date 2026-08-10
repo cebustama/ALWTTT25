@@ -11,7 +11,17 @@ project:
   docs_root: Docs
   code_root: Assets/Scripts
   governance_baseline: "MultiProject_Documentation_Governance_System v0.4"
-  manifest_date: "2026-04-14"
+  manifest_date: "2026-08-08"
+  paths_verified_against: "repo tree export, 2026-08-08 (tree.txt, 3251 paths)"
+  manifest_revision: >
+    MANIFEST-1 (2026-08-08). Previous revision 2026-04-14 — nearly four months
+    stale, which produced four of the seven findings in the DOC-APPLY-2 auditor
+    run. This revision: registered SSoT_Dev_Mode, SSoT_Singer_Voice,
+    Design_Composition_Debug_Tab and Design_Game_And_Card_Maxims; reconciled the
+    Design_Starter_Deck_v2 path against the real file; reclassified
+    changelog-ssot (archive -> reference, D5); applied the OPT-5 fragment owed
+    since 2026-07-13 (SSoT_Audio invariant 18). No document content was edited
+    by this manifest revision beyond the companion INDEX/matrix registration.
   notes: >
     Music-themed deckbuilder. Cross-project boundary with the MidiGenPlay package
     is the first of its kind in the workshop series — ALWTTT owns the game-side
@@ -259,7 +269,6 @@ entries:
       - Assets/Scripts/Encounters
       - Assets/Scripts/Data/Encounters
       - Assets/Scripts/Data/Gig/GigSetupRosterSO.cs         # ← was GigSetupConfigData.cs
-      - Assets/Scripts/Managers/GigSetupSceneManager.cs
       - Assets/Scripts/UI/GigSetupController.cs
       - Assets/Scripts/UI/MusicianPickerRow.cs
       - Assets/Scripts/UI/AudiencePickerRow.cs
@@ -378,6 +387,7 @@ entries:
       - "Gig music and OST never play simultaneously: gig scenes are unlisted in the MusicDirector scene-to-track map, so they resolve to OstTrackId.None and stop OST."
       - "Crowd ambience is an SFX-group loop on AudioManager: effective = masterSfx × ambienceLevel × fade; present while the crowd is idle, ducks under a performing song; duck/return are volume-only (no loop restart). Gig-scoped — started at gig open (StartGig), returned at song end (OnCompositionSessionEnded, which nulls _session synchronously so a polled flag would miss the edge), stopped on teardown (OnDestroy)."
       - "Reaction clips resolve per-character first, then bank per polarity: a reacting character's CharacterSfxProfileSO (on AudienceCharacterData.sfxProfile) is consulted before SoundBankSO; an empty polarity falls back to the bank for that polarity, then warn-once/no-op. The per-character SO is a clip source for the existing ReactionPositive/Negative keys — no new SensorySfxType. Neutral stays FT-only; jitter (fan-out only) unchanged on both paths; per-character coverage unaudited. (AUDIO-CHAR-PROFILES phase 1; backfilled into the manifest at phase 2.)"
+      - "A card sounds once, on exactly one path. Card audio has two possible producers — the card-direct AudioType at drop (CardBase.Use) and the bus CardVibeImpact sting at impact (AudienceVibeImpactEvent -> SensoryAudioAdapter). A card uses ONE: opting into the impact sting means authoring AudioType = None (D-PW-AUDIO; authoring rule in SSoT_Card_Authoring_Contracts §5.15). The sting is once per card play, not once per AoE target (SensorySfxPresentation.ForCardVibeImpact keys on FanoutIndex == 0), and is immediate, never jittered; the per-member visual fan-out carries the stagger. It fires on a blocked first target too. CardPlayedEvent remains purely semantic and adds no SFX key. (SSoT_Audio §7 inv 18 — OPT-5 fragment, delivered 2026-07-13, applied MANIFEST-1 2026-08-08.)"
       - "Ability SFX fires once at activation, single-source and immediate: an audience ability's inline abilitySfx clip (on AudienceAbilityData, beside its AbilityAnimationData trigger) plays once in AudienceCharacterBase.AbilityRoutine via AudioManager.PlayOneShot(AudioClip, jitter:false) — never jittered (jitter is fan-out only), after the stun/null/empty guards and before PlayAbilityAnimation (independent of the animation guard), no-op on null. Profile/data-sourced — no new SensorySfxType; AudioManager stays the dumb sink; CharacterSfxProfileSO unchanged (reaction-only). Status-apply fire (option B) deferred. (AUDIO-CHAR-PROFILES-2.)"
     notes: >
       ALWTTT-side audio home. Consolidates the as-built SFX subsystem (migrated
@@ -392,6 +402,68 @@ entries:
       OstCatalogSO + OstTrackId); no AudioMixer in ALWTTT — OST volume is
       AudioSource.volume = musicLevel01 * defaultLevel01; gig music and OST
       never play simultaneously.
+
+  # ── subsystem_ssot: systems/ (registered MANIFEST-1, 2026-08-08) ───────────
+
+  - path: Docs/systems/SSoT_Dev_Mode.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/DevMode
+      - Assets/Scripts/Data/AlwtttLogSetup.cs   # path verified against the repo tree 2026-08-08. NOTE: namespace is ALWTTT.Core but the file sits under Data/ — see finding F16
+    hard_invariants:
+      - "Gating is a scripting define, not an asmdef: `ALWTTT_DEV`, namespace `ALWTTT.DevMode`, file-level `#if` on dedicated Dev files and block-level `#if` around every hook injected into production files. Production builds omit the define; all Dev code and hooks disappear at compile time. (§2)"
+      - "Hand-visibility gap is load-bearing. CompositionSession calls ShowHand(false) at session setup and production has no symmetric ShowHand(true) between song end and the next PlayerTurn. Dev Mode bridges it in OnCompositionSessionEnded; DeckManager.CanDevSpawnToHand refuses to spawn while HandController.DrawTransform.activeInHierarchy is false. Any future non-Dev multi-song flow must bridge the same gap. (§5)"
+      - "DevResetConvinced clears the legacy StatusType.Convinced enum in addition to flipping IsConvinced, because some icon/UI callers still read the legacy statusDict. Migration coexistence, not a second authority; no new work relies on the legacy enum. (§7)"
+      - "Dev setters and play-path setters share one threshold check (CheckConvincedThreshold / CheckBreakdownThreshold, extracted from AddVibe / AddStress) so Dev and play paths cannot drift. (§6, §14.7)"
+      - "Composition-debug tab: the `*` annotation marks resolved-only truth (ResolvedSource in {CardPalette, Procedural, SharedProgression}); deterministic sources (RenderOverride, CardOverride, TrackParameters) render without it. `Clear ALL overrides` clears five override families — pattern, instrument, part context, tempo, articulation. (§18.1, §18.14)"
+      - "Five log switches, two independent host master/verbose pairs plus one package-side master. A verbose line is visible only when master AND verbose are both ON (UseLogs && LogVerbose, or logDebug && logVerbose); a protected line hangs off its master only. MidiMusicManager.logDebug is [HideInInspector] and overwritten unconditionally at startup from MidiGenPlayConfig.logMidiMusicManager; logVerbose is host-owned and is NOT overwritten. (§19.1)"
+      - "SEVEN protected log lines — `[ORDER-1]`, `[JAM-1]`, `[JAM-2]`, `[B1][stemCache]` WITHOUT `[DIAG]`, `[DBG-C2/CacheBypass]`, `[ChordTrack] Tonality`, `Timeline ch=` — are each the direct observable of at least one smoke test, and none hangs off a verbose flag. Degrading one does not fail its test; it makes the test unrunnable. Code comments say six because they count host-owned lines only (`[ChordTrack] Tonality` is package-owned). (§19.2)"
+      - "`[B1][stemCache]` (PROTECTED, logDebug only) and `[B1][stemCache][DIAG]` (VERBOSE, logDebug && logVerbose) are two different lines with different tiers. Filter by `[DIAG]`, never by the shared `[B1][stemCache]` prefix. (§19.3)"
+      - "Stack traces are disabled for LogType.Log before any scene loads (AlwtttLogSetup, RuntimeInitializeOnLoadMethod BeforeSceneLoad); Warning and Error keep theirs. This retires no log line — information cost zero. (§19.4)"
+      - "The F-4 try/catch and its error dump are permanent. LOG-1 retired the `[F-4]`-tagged lines, not the defense; removing the try/catch on reading §19.5 is a misreading. (§19.5)"
+      - "New per-render / per-loop dumps are born verbose by default. A new line that a smoke test uses as an observable must be added to §19.2 in the same batch as the test. (§19.6)"
+      - "Telemetry coverage limit is load-bearing: cohesion-collapse losses publish no GigOutcomeEvent and are not logged, so lossCause is constantly 'unconvinced_after_final_song'. 'No cohesion-loss records' must not be read as 'no cohesion losses'. (§17.3)"
+    notes: >
+      Registered MANIFEST-1 (2026-08-08) — absent from the manifest since the
+      doc was promoted, which is why the LOG-1 §19 authority landed on a
+      document governance did not recognise. Owns the Dev-Mode tooling surface
+      and, since LOG-1, the normative log-tier contract (§19) — the only thing
+      stopping a future batch from silently demoting a smoke observable.
+      Deliberate overlaps, not collisions: DevAudioMixTab.cs is also listed
+      under SSoT_Audio (tab surface here, mix model there — both docs state the
+      split); the production files Dev Mode patches (GigManager, DeckManager,
+      CompositionSession, MidiMusicManager, the character stats classes) stay
+      governed by their own SSoTs — this doc owns the Dev entry points, not
+      those files. See finding F9. §6 of the doc cites two code paths that do
+      not match this manifest's paths elsewhere
+      (`Assets/Scripts/Runtime/CompositionSession.cs` vs `.../Music/...`,
+      `Assets/Scripts/Data/GigDevSettingsSO.cs` vs `.../Data/Gig/...`) —
+      reported as F10, not resolved here.
+
+  - path: Docs/systems/SSoT_Singer_Voice.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/Music/Voice
+      - Assets/Scripts/Data/Audio/VoiceProfileSO.cs
+      - Assets/PinkTrombonePOC/PinkTromboneSrc   # path corrected MANIFEST-1: `Assets/ThirdParty/PinkTrombone/` (cited by SSoT_Singer_Voice §3.6) does not exist — see F16
+    hard_invariants:
+      - "Cost is a hard design constraint, not a target: ~10.5% DSP per voice in a build. ActiveVoiceCap = 1 (demo), HardVoiceCap = 2 (never exceeded). A refused acquisition sits the singer out with a logged reason — never queued, never instantiated. (§3.1)"
+      - "Monophonic: one note at a time, last-note priority, Melody/Lead roles only. Inherited from the model, not an integration choice. (§3.2)"
+      - "Transport is a dsp anchor (D1=A): the singer shares no transport with MPTK. It arms silently, then on IPlayMidi.OnSongStarted captures AudioSettings.dspTime and starts its precomputed schedule from that anchor plus the profile's startTrimMs. Measured offset constant to one DSP buffer. (§3.3)"
+      - "The melody channel is muted at runtime, per loop, via MidiMusicManager.SetChannelVolume(ch, 0), written through _lastKnownVol01 so MMM's mix reapply preserves it, and re-asserted on every OnSongStarted because GigManager repopulates musician volumes after Play. No render-path change, no re-merge; the melody's IMidiNoteListener events still fire. (§3.4)"
+      - "One re-arm per loop: card mutations never touch the currently playing loop, so the singer re-arms at the loop boundary from whatever stem the part cache holds. `loopPlayback` on the voice stays false in integration; the Director owns looping. (§3.5)"
+      - "The Pink Trombone fork stays consumer-side under Assets/ThirdParty/PinkTrombone/ and must never enter MidiGenPlay.Runtime. Audio-path determinism is out of scope; package MIDI determinism is unaffected. (§3.6)"
+      - "CompositionSession.LoopPlaybackStarting is the ONLY edit this subsystem makes to CompositionSession. It fires on every path through PlaySinglePartLoop, and subscriber exceptions are caught and logged so a singer fault can never kill the loop. (§4)"
+      - "This subsystem owns nothing in MidiGenPlay.Runtime. It consumes the per-musician melody stem RenderSinglePart already returns and does not change how that stem is produced. Phase D4 (IPerformanceMetadataSink) stays deferred and is not built opportunistically. (§1, §8)"
+    notes: >
+      Registered MANIFEST-1 (2026-08-08) — active in coverage-matrix since
+      SINGER-1 closed (2026-07-21) but never in the manifest. Cross-project
+      posture is unusually clean: zero MidiMusicManager changes, one ALWTTT-side
+      seam. Known limitation recorded in the doc, not lifted as an invariant:
+      the sit-out restore returns the channel to full volume and can stomp a
+      gameplay duck or MidiMusicManager.Highlight; Highlight x mute is deferred
+      to Dev Mode. Open item: D4=A, a VoiceProfileSO field on
+      MusicianCharacterData replacing the serialized musicianId string.
 
   # ── roadmap ────────────────────────────────────────────────────────────────
 
@@ -432,7 +504,7 @@ entries:
       catalog, not primary runtime authority. If it conflicts with
       SSoT_Status_Effects, the SSoT wins.
 
-  - path: Docs/planning/active/Design_Action_Economy_v1.md
+  - path: Docs/planning/Design_Action_Economy_v1.md   # path corrected MANIFEST-1 (was planning/active/) — verified against the repo tree
     class: reference
     governs: []
     hard_invariants: []
@@ -450,7 +522,7 @@ entries:
       Roster Expansion campaign. At R7 closure the implementing SSoTs take
       authority; this note is retained as rationale.
 
-  - path: Docs/planning/active/Design_Starter_Deck_v2.md
+  - path: Docs/planning/active/Design_Starter_Deck_v2_DRAFT.md
     class: reference
     governs: []
     hard_invariants: []
@@ -460,6 +532,12 @@ entries:
       map, reward slate. Planning intent only — the authored .asset files
       become runtime-authoritative at R8 closure, same lifecycle as v1.
       Design_Starter_Deck_v1 remains the record of the live S5 demo starter.
+      Path corrected MANIFEST-1 (D6=B): the manifest entry now follows the real
+      file `Design_Starter_Deck_v2_DRAFT.md`. The file is NOT renamed — the
+      `_DRAFT` suffix is accurate until R8 closure, and renaming it would
+      invalidate the references already written into changelog-ssot and the
+      Roster Expansion sub-roadmap. Drop the suffix at R8, when the doc stops
+      being draft.
 
   - path: Docs/planning/Design_Fill_Window_v0_1.md
     class: reference
@@ -487,28 +565,140 @@ entries:
       One-page quick-path guide explaining the end-to-end integration flow.
       Support/explanatory only. Not authority.
 
-  - path: Docs/reference/Report_CardLLM_Pipeline.md
+  - path: Docs/planning/active/Design_Composition_Debug_Tab_v0_1.md
     class: reference
     governs: []
     hard_invariants: []
     notes: >
-      Explanatory reference for the CE-L1 LLM card-generation pipeline
-      (2026-06-11). Not authority: tool truth lives in
-      systems/SSoT_Editor_Authoring_Tools.md §4.10, schema truth in
+      Registered MANIFEST-1 (2026-08-08). Requirements doc for the Dev Mode
+      composition tab (R1 log, R2a debug-play, R2b pattern force, R2c typed
+      progression) plus the ALWTTT/MidiGenPlay ownership map for each field.
+      Self-declared "planning-only; not an SSoT, not implementation authority"
+      — implementation truth is `systems/SSoT_Dev_Mode.md` §18 and
+      `runtime/SSoT_Runtime_CompositionSession_Integration.md` §8 inv 9 / §12.
+      Still live: CTX-2a resolved rows 5-6 and CTX-2b resolved row 14 + D4 in
+      it. Its own D1 (where the doc lives) is resolved by evidence at MANIFEST-1
+      (D9): the file is at `Docs/planning/active/`. The `Docs/design/` folder
+      it proposed does not exist in the repo tree and is not created.
+
+  - path: Docs/planning/Design_Game_And_Card_Maxims_v0_1.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Registered MANIFEST-1 (2026-08-08), settling a debt recorded in
+      coverage-matrix and CURRENT_STATE §5 since BALANCE-XREF (2026-07-16):
+      the matrix row was applied, the SSoT_INDEX and manifest rows were owed
+      because the file was absent from the working set. Self-classified
+      `reference (design philosophy) — not a SSoT`: E1-E6 + N1-N12 maxims,
+      intent layer only. Where a maxim and a SSoT appear to conflict, the SSoT
+      wins and the conflict is surfaced, not resolved there.
+
+  - path: Docs/reference/PinkTrombone_Voice_Levers.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Registered MANIFEST-1 (2026-08-08, D13=A) — promoted into ALWTTT's
+      `Docs/reference/` from the MidiGenPlay-side POC folder, which is what the
+      document's own header prescribes ("travels with it when promoted into
+      ALWTTT"); the singer was promoted at SINGER-1 (2026-07-21). Schema source
+      for `VoiceProfileSO` (`SSoT_Singer_Voice.md` §5). Consumer-side voice
+      design, NOT a package internal: six macro levers (looseness, vibratoDepth,
+      vibratoSpeedHz, diction, mouth, brightness) behind `characterEnabled`,
+      plus the §2 identity fields (transposeSemitones, the 0.40–0.60 tenseness
+      window, vibrato delay/ramp, pitch lead, minLoudness). `hard_invariants`
+      deliberately EMPTY: this is reference, and the runtime invariants it
+      implies already live in `SSoT_Singer_Voice.md` — duplicating them here
+      would create the second definition this manifest exists to prevent. Two
+      load-bearing statements to read from it rather than restate: the profile
+      surface is the six levers + identity fields and **nothing else** (the
+      remaining ~40 singer fields are diagnostics and must stay out of the
+      asset), and the §3 three-tier "when" model — note-level C-lite is
+      automatic and exists, section-level animation is the intended integration
+      pattern (the game owns "when", the singer exposes "what"), and
+      phrase-metadata-driven expression does not exist and is the Phase D4
+      boundary, not to be built opportunistically. Companion
+      `PinkTrombone_Rendering_POC_Verdict.md` stays MidiGenPlay-side: class
+      research, its four sessions ran inside that host project.
+
+  - path: Docs/reference/Report_CardLLM_Pipeline.md
+    class: archive   # RETIRED 2026-08-08 (MANIFEST-1): the file no longer exists; user-confirmed. Entry kept as a tombstone so the two citations that pointed at it stay traceable — see F16.
+    governs: []
+    hard_invariants: []
+    notes: >
+      **TOMBSTONE — the file no longer exists (confirmed 2026-08-08).** It was
+      the explanatory reference for the LLM card-generation pipeline (CE-L1),
+      mechanism-level and never authority. Two citations in
+      `SSoT_Editor_Authoring_Tools.md` (§4.10 and the §-index row) pointed at it
+      and have been corrected to say the doc is retired. CONSEQUENCE, recorded
+      rather than patched: the end-to-end mechanism of the LLM pipeline now has
+      **no documented home** — the code is the only description. Whether to
+      re-document it inside §4.10 or accept code-only is a decision, not a
+      cleanup. Tool truth still lives in
+      systems/SSoT_Editor_Authoring_Tools.md §4.10 and schema truth in
       systems/SSoT_Card_Authoring_Contracts.md §5.12; cross-project pattern
       authority is MidiGenPlay authoring/SSoT_Authoring_LLM_Generation.md §7.
-      If it conflicts with those, they win.
+      See F16.
+
+  - path: Docs/planning/active/Design_Tutorial_System_v0_2.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      Registered MANIFEST-1 (2026-08-08, D11=A). Single tutorial design home:
+      scope, trigger model, presentation, UX, the S4 reactive inventory kept as
+      history, and the gig-1 guided curriculum (TUT-REBUILD). Self-classified
+      `reference (planning) — not a SSoT`; becomes runtime-authoritative when
+      shipped. Copy authority is explicitly NOT this doc: the localized dialog
+      text lives in the `TutorialDialogCatalog` seeders / `.asset` files, and on
+      divergence code wins. Runtime lives in `Assets/Scripts/Tutorial/` and is
+      not claimed here.
 
   # ── archive ────────────────────────────────────────────────────────────────
 
   - path: Docs/changelog-ssot.md
+    class: reference
+    governs: []
+    hard_invariants: []
+    notes: >
+      RECLASSIFIED MANIFEST-1 (2026-08-08), D5=A: was `archive`. It is a LIVE
+      append-only record, written at every batch close, listed `active` in
+      SSoT_INDEX, and since D-LOG-4=C it is the definitional home of the
+      `snapshot-01` tag contents. Classifying it `archive` applied the rule
+      "archive content is not authoritative" to a document a live concept rests
+      on. `reference` is the accurate class: authoritative for what happened
+      and when, never for current implementation truth — an SSoT always wins
+      over it. NOTE: this diverges from the Eon / Islands.PCG / MidiGenPlay
+      convention of filing the changelog under `archive`. The cleaner fix is a
+      dedicated `changelog` authority class, but that extends an enum shared
+      across four workshop projects and belongs to the governance baseline, not
+      to this project's manifest. Filed as a baseline proposal, not applied
+      here.
+
+  - path: Docs/planning/archive/Design_Tutorial_System_v0_1.md
     class: archive
     governs: []
     hard_invariants: []
     notes: >
-      Semantic/documentary change history. Not authority for implementation
-      truth but contains useful signals about recent promotions and
-      supersessions. Consistent with Eon and Islands.PCG cases.
+      Archived MANIFEST-1 (2026-08-08, D11=A) — see finding F17. S4-era reactive
+      tutorial design; superseded whole by
+      `planning/active/Design_Tutorial_System_v0_2.md`. Carries a supersession
+      banner. Not authority for anything.
+
+  - path: Docs/archive/Design_Starter_Deck_v1.md
+    class: archive
+    governs: []
+    hard_invariants: []
+    notes: >
+      Registered MANIFEST-1 (2026-08-08, D10=B) — see finding F18. Design
+      rationale for the 17-card, 2-musician S5 demo starter: why each card
+      exists, per-musician identity mapping, tuning reasoning. Correctly filed in
+      `archive/` per the document's own classification clause (since M4.6
+      closure the authored `.asset` files are the runtime authority). The
+      "authoritative for the live S5 demo starter" wording in SSoT_INDEX and in
+      Starter Deck v2 was the error and has been corrected. Contains a dated
+      `VibeGoal` correction banner (D-S5e-DOC-D) — historical text not rewritten.
 
   - path: Docs/archive/absorbed/Source_Docs_Supersession_Map.md
     class: archive
@@ -550,7 +740,7 @@ entries:
     hard_invariants: []
     notes: "Second Combat MVP roadmap in archive. Relationship to Roadmap_Combat_MVP.md unclear — possible legacy duplication."
 
-  - path: Docs/planning/music/ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md
+  - path: Docs/planning/music/ALWTTT_MidiGenPlay_Soundfont_Emulation_Report_2026-03-24.md   # M1-note: neither the file nor the `planning/music/` folder exists in the 2026-08-08 tree — see F16
     class: archive
     governs: []
     hard_invariants: []
@@ -561,6 +751,12 @@ entries:
   # ── excluded ───────────────────────────────────────────────────────────────
   # Folder READMEs, navigation indexes, and governance baseline docs.
   # Excluded from the audit surface but listed for traceability.
+
+  - path: CONTRIBUTING.md
+    class: excluded
+    governs: []
+    hard_invariants: []
+    notes: "Version-control / development-process guide. Self-declared not a governed SSoT; defines no mechanics, contracts or authority. `.gitattributes` is the source of truth for the LFS list. Listed for traceability only. Registered MANIFEST-1."
 
   - path: Docs/README.md
     class: excluded
@@ -589,7 +785,7 @@ entries:
     governs: []
     hard_invariants: []
 
-  - path: Docs/integrations/midigenplay/README.md
+  - path: Docs/integrations/midigenplay/integrations_midigenplay_README.md
     class: excluded
     governs: []
     hard_invariants: []
@@ -599,12 +795,12 @@ entries:
     governs: []
     hard_invariants: []
 
-  - path: Docs/planning/README.md
+  - path: Docs/planning/planning_README.md
     class: excluded
     governs: []
     hard_invariants: []
 
-  - path: Docs/planning/active/README.md
+  - path: Docs/planning/active/planning_active_README.md
     class: excluded
     governs: []
     hard_invariants: []
@@ -746,9 +942,22 @@ known_drift_signals:
       - Assets/Scripts/PersistentGameplayData.cs
 
   - id: F7
-    severity: MEDIUM
+    severity: LOW
     kind: authority_doc_gap_window
-    status: open — pending user confirmation of two batch closures
+    status: >
+      largely closed MANIFEST-1 (2026-08-08) — verified against the docs on
+      disk, as the signal's own auditor guidance demanded. Signal (b) CLOSED:
+      SSoT_Card_System.md §5.2.1 "Card → palette bindings (authoritative
+      table)" exists; PCE-PROP is recorded RESOLVED 2026-07-06 in
+      CURRENT_STATE §1; §7.1 of the Integration SSoT still does not exist and
+      is no longer expected to (the concept landed in Card_System). Signal (a)
+      substantially CLOSED: S1 / B3-slate-F is recorded closed 2026-06-12 with
+      ST-S1-1..8 PASS in CURRENT_STATE §3, the changelog carries the S1
+      (B3-slate-F) entry, and SSoT_Audience_and_Reactions carries the
+      Indifference content. RESIDUE: the "D-F-1..3 resolutions" this signal
+      expected appear under that label nowhere in the working set — either they
+      were never labelled that way or the ledger was lost. Kept open at LOW for
+      that residue only. Do not re-derive the rest.
     concept: "CURRENT_STATE.md overwrite + reconstructed gap window 2026-05-22 → 2026-06-12"
     description: >
       Docs/CURRENT_STATE.md (class current_state, the operational-reality
@@ -814,6 +1023,292 @@ known_drift_signals:
       so the auditor does not report it as novel drift.
     affected_code:
       - Assets/Scripts/Managers/MidiMusicManager.cs
+
+  - id: F16
+    severity: LOW
+    kind: claim_drift
+    status: >
+      mostly closed 2026-08-08 after user confirmation; one decision open (D13)
+      and one item unresolved (the Soundfont report's missing folder)
+    concept: "Manifest and SSoT path claims reconciled against a real repo-tree export"
+    description: >
+      A 3251-path tree export (2026-08-08) was checked against every `path:` and
+      `governs:` entry — the first time this manifest has been validated against
+      the filesystem rather than against other documents. FIXED here, verified:
+      `Design_Action_Economy_v1.md` is at `Docs/planning/`, not
+      `planning/active/` · `Design_Composition_Debug_Tab_v0_1.md` is at
+      `Docs/planning/active/` (resolves D9) · `AlwtttLogSetup.cs` is at
+      `Assets/Scripts/Data/`, not `Assets/Scripts/Core/` · the three folder
+      READMEs carry prefixed filenames in the repo
+      (`planning_README.md`, `planning_active_README.md`,
+      `integrations_midigenplay_README.md`).
+      SETTLED 2026-08-08 by user confirmation, after the tree flagged them:
+      · `Assets/Scripts/Managers/GigSetupSceneManager.cs` — **deleted**, and the
+      deletion was always on the record: `Roadmap_ALWTTT.md` §D-FAST-1=C closure
+      notes (2026-05-18) say "Empty `GigSetupSceneManager.cs` deleted" as part of
+      the three-scene → two-scene pivot. The manifest carried a governs entry for
+      a file that had not existed for nearly three months; removed.
+      · `Docs/reference/Report_CardLLM_Pipeline.md` — **no longer exists**. Entry
+      demoted to a tombstone, citations corrected. Residual gap recorded there:
+      the LLM pipeline mechanism now has no documented home.
+      · `PinkTrombone_Rendering_POC_Verdict.md` — **belongs to the MidiGenPlay
+      project**, not to ALWTTT's `Docs/reference/`. Unambiguous: `Authority
+      class: research`, Sessions 1–4 ran inside the MidiGenPlay host project.
+      · `PinkTrombone_Voice_Levers.md` — was NOT unambiguous; resolved D13=A,
+      **promoted into ALWTTT's `Docs/reference/` and registered here** because it
+      is the schema source for an ALWTTT-owned asset. See F19.
+
+      STILL OPEN, not resolved unilaterally:
+      (1) `Docs/planning/music/` does not exist, so the Soundfont Emulation
+      report (2026-03-24) has no home. Deleted or moved without a trail; the
+      entry is left in place rather than guessed at. Cheapest resolution: a
+      `ls Docs/planning` and either a path fix or a deletion with a changelog
+      line.
+      (2) The `Assets/ThirdParty/PinkTrombone/` question is CLOSED as a fact and
+      OPEN as a lifecycle question. Both uploaded POC documents place the fork at
+      `Assets/PinkTrombonePOC/` ("Lives in `Assets/PinkTrombonePOC/` beside the
+      singer"; "`PinkTromboneSrc/FORK_NOTES.md`"), matching the tree. So the
+      promotion to `ThirdParty/` that SSoT_Singer_Voice §3.6/§7 describes **was
+      never executed**. §3.6 and §7 corrected to describe the one folder that
+      exists. What remains open is whether the promotion is still wanted before
+      the harness is retired — a lifecycle call, not a documentation one.
+
+  - id: F19
+    severity: RESOLVED
+    kind: cross_project_home_conflict
+    status: closed 2026-08-08 (MANIFEST-1, D13=A)
+    concept: "PinkTrombone_Voice_Levers.md is the schema source for an ALWTTT asset but is filed with MidiGenPlay"
+    description: >
+      The user confirms both Pink Trombone POC documents belong to the
+      MidiGenPlay project. For `PinkTrombone_Rendering_POC_Verdict.md` that is
+      clean: `Authority class: research`, Sessions 1–4 ran inside the MidiGenPlay
+      host project, zero ALWTTT involvement. `PinkTrombone_Voice_Levers.md` is
+      not clean, and the conflict is in the document's own header:
+      (a) it self-declares `Class: reference, consumer-side` and says it "never
+      enters the MidiGenPlay PK as authority" — so it is not authority in the
+      project that holds it;
+      (b) it says it "travels with it when promoted into ALWTTT" — and the singer
+      WAS promoted (SINGER-1, 2026-07-21; `Assets/Scripts/Music/Voice/` exists);
+      (c) `SSoT_Singer_Voice.md` §5 names it the SCHEMA SOURCE for
+      `VoiceProfileSO`, which is an ALWTTT-owned asset at
+      `Assets/Scripts/Data/Audio/VoiceProfileSO.cs`.
+      Net: a governed ALWTTT SSoT delegates a schema to a document that is
+      authority in neither project. This is not a MidiGenPlay internal — it
+      describes six consumer-side voice-design levers, and the boundary rule
+      keeps package internals out, not consumer-side design. Resolution is D13.
+      RESOLUTION (D13=A). `PinkTrombone_Voice_Levers.md` promoted into ALWTTT's
+      `Docs/reference/` and registered here; the `SSoT_Singer_Voice` §5 citation
+      is local again. The document's own header authorised exactly this, and the
+      trigger it named — promotion of the singer into ALWTTT — happened at
+      SINGER-1. The Verdict note stays MidiGenPlay-side as research. The failure
+      mode this closes is specific: with the schema source across the boundary,
+      an edit to the levers in the other project would drift `VoiceProfileSO`
+      with no audit able to see it, because the auditor does not cross the
+      boundary. It can see it now.
+    affected_docs:
+      - Docs/systems/SSoT_Singer_Voice.md
+      - Docs/coverage-matrix.md
+
+  - id: F17
+    severity: RESOLVED
+    kind: competing_primary_home
+    status: closed 2026-08-08 (MANIFEST-1, D11=A)
+    concept: "Two tutorial design documents exist simultaneously"
+    description: >
+      The tree holds BOTH `Docs/planning/active/Design_Tutorial_System_v0_1.md`
+      AND `Docs/planning/Design_Tutorial_System_v0_2.md`. SSoT_INDEX points at
+      v0_1 (in active/); coverage-matrix names v0_2 as the doc home and the
+      runtime-authoritative surface once shipped. This is not the path typo it
+      looked like before the tree arrived: it is two live documents for one
+      concept, which is the exact shape SSoT_CONTRACTS §1 forbids. Neither is
+      archived, and the newer one sits in the LESS active folder. Do not fix by
+      repointing the index alone — that would leave v0_1 in `active/` looking
+      current.
+
+      RESOLUTION (D11=A). v0_2 verified as a complete successor before archiving,
+      not assumed: its header carries v0_1's full update history, its §6 preserves
+      v0_1's §6 standalone dialog list and §6A jam sequence as "S4 reactive
+      inventory — historical", and its §10 ledger retains D-TUT-6/7/8/9/10/11 plus
+      the S4 implementation decisions. v0_1 moved to
+      `Docs/planning/archive/Design_Tutorial_System_v0_1.md` with a supersession
+      banner; v0_2 moved to `Docs/planning/active/`; SSoT_INDEX and coverage-matrix
+      repointed. One concept, one home.
+
+  - id: F18
+    severity: RESOLVED
+    kind: authority_class_contradiction
+    status: closed 2026-08-08 (MANIFEST-1, D10=B)
+    concept: "Design_Starter_Deck_v1 is filed in archive/ while declared authoritative"
+    description: >
+      `Design_Starter_Deck_v1.md` is at `Docs/archive/`. SSoT_INDEX lists it
+      under Active planning docs at `planning/active/` and calls it
+      "authoritative for the live S5 demo starter"; the Starter Deck v2 entry
+      says v1 "remains the record of the live S5 demo starter" until R8
+      closure. SSoT_CONTRACTS §4 says archive content does not define truth.
+      So the document that defines the deck the demo actually ships is filed in
+      the one folder the contracts declare non-authoritative. Same failure mode
+      as the changelog (D5), on a document with direct demo consequences.
+
+      RESOLUTION (D10=B) — the folder was right and the wording was wrong, which
+      is the opposite of what this signal first assumed. v1's own Classification
+      clause says that once M4.6 authoring closed, the authored `.asset` files
+      became the runtime-authoritative version and the document is "retained as
+      historical rationale". M4.6 closed 2026-05-07. So v1 has been retained
+      rationale for three months and `Docs/archive/` is its correct home; the
+      false claim was SSoT_INDEX calling it authoritative and Starter Deck v2
+      calling it "the authoritative record". Both corrected; the file was not
+      moved. Runtime authority for the shipped starter is the `.asset` set.
+
+  - id: F15
+    severity: INFO
+    kind: expected_overlap
+    concept: "Three further governs-overlaps surfaced by the MANIFEST-1 mechanical sweep"
+    description: >
+      A path-containment sweep across every `governs:` list (run at MANIFEST-1)
+      found eight overlaps. Five were already registered (F2 GigManager, F3
+      LoopScoreCalculator, F4 Cards/Effects, F9 DevMode/Audio). The other three
+      were never flagged and would be re-reported as novel every run:
+      (1) `Assets/Scripts/Cards/Payloads` (SSoT_Card_System) contains
+      `Cards/Payloads/CardPayload.cs` (SSoT_Card_Authoring_Contracts) — same
+      split as F4, mechanics semantics vs data contract, on the payload file.
+      (2) `Assets/Scripts/Cards/CardActions` (SSoT_Card_System) contains
+      `AddStressAction.cs` and `AudienceMoveToFrontAction.cs`
+      (SSoT_Audience_and_Reactions) — the card-action tree is card semantics;
+      those two specific actions are audience-facing behaviour. Real shared
+      surface, deliberate.
+      (3) `Assets/Scripts/Status` (SSoT_Status_Effects) contains
+      `Status/Editor` (SSoT_Editor_Authoring_Tools) — runtime status truth vs
+      the editor tool surface over it, the same posture as the Cards/Editor
+      split already recorded in the Editor_Authoring_Tools notes.
+      None is a competing primary definition; all three are one tree seen from
+      two concerns. Flagged so future runs do not report them as drift.
+    affected_code:
+      - Assets/Scripts/Cards/Payloads/CardPayload.cs
+      - Assets/Scripts/Cards/CardActions/AddStressAction.cs
+      - Assets/Scripts/Cards/CardActions/AudienceMoveToFrontAction.cs
+      - Assets/Scripts/Status/Editor
+
+  - id: F9
+    severity: INFO
+    kind: expected_overlap
+    concept: "Dev Mode tree vs SSoT_Audio; Dev entry points inside production files"
+    description: >
+      Two deliberate overlaps created by registering SSoT_Dev_Mode
+      (MANIFEST-1). (1) Assets/Scripts/DevMode/DevAudioMixTab.cs is claimed by
+      SSoT_Dev_Mode (as part of the Dev tree) and listed under SSoT_Audio. Both
+      documents state the split in their own text: SSoT_Dev_Mode §10 says "the
+      mix *model* itself is governed by SSoT_Audio.md"; the SSoT_Audio manifest
+      note already records the same posture for MidiMusicManager (F8). Tab
+      surface here, mix model there. (2) SSoT_Dev_Mode §6 documents Dev entry
+      points injected into GigManager, DeckManager, CompositionSession,
+      MidiMusicManager, BandCharacterStats, AudienceCharacterStats and
+      MusicianBase — all governed by other SSoTs. SSoT_Dev_Mode's `governs:`
+      list deliberately does NOT claim those files; it owns the Dev entry
+      points, not the files. Same posture as SSoT_Scoring_and_Meters' narrow
+      list. Flagged so neither is reported as novel drift.
+    affected_code:
+      - Assets/Scripts/DevMode/DevAudioMixTab.cs
+      - Assets/Scripts/Managers/GigManager.cs
+      - Assets/Scripts/Music/CompositionSession.cs
+
+  - id: F10
+    severity: LOW
+    kind: claim_drift
+    status: open — reported, not resolved (MANIFEST-1 does not edit governed docs' body text)
+    concept: "Two code paths in SSoT_Dev_Mode §6 disagree with the paths used elsewhere in this manifest"
+    description: >
+      SSoT_Dev_Mode.md §6 cites `Assets/Scripts/Runtime/CompositionSession.cs`
+      and `Assets/Scripts/Data/GigDevSettingsSO.cs`. Everywhere else the
+      governed set uses `Assets/Scripts/Music/CompositionSession.cs` and
+      `Assets/Scripts/Data/Gig/GigDevSettingsSO.cs`. At most one of each pair
+      can be right. Cheap to settle against the repo tree; not settled here
+      because MANIFEST-1 does not edit document bodies and inventing a path
+      would be worse than reporting the divergence.
+    affected_docs:
+      - Docs/systems/SSoT_Dev_Mode.md
+
+  - id: F11
+    severity: MEDIUM
+    kind: coverage_gap
+    status: open — owner is the D7 decision; candidate batch MANIFEST-2
+    concept: "The manifest under-enumerates the governed set by roughly seventeen documents"
+    description: >
+      The DOC-APPLY-2 audit named three missing documents because those were
+      the three the pass had touched. A full comparison of the working set
+      against `entries:` shows the gap is much wider. Registered in SSoT_INDEX
+      and/or coverage-matrix but absent from this manifest after MANIFEST-1:
+      CSV_Composition_Validation_Sub_Roadmap.md · S5_DemoCutClose_Sub_Roadmap.md
+      · TUT-REBUILD_Sub_Roadmap.md · Design_Demo_Cut_v1.md ·
+      Design_Vertical_Slice_v0_1.md · Design_Tutorial_System_v0_2.md ·
+      Design_Sensory_Contract_v0_1.md · Design_Vibe_Telegraph_v0_1.md ·
+      Design_Audience_Status_v1.md · Design_Starter_Deck_v1.md ·
+      Design_Asset_Naming_v0_1.md · Design_Project_Directives_v0_1.md ·
+      Design_Pending_Effects_v1.md · Design_Tempo_Identity_v1.md ·
+      Design_Song_Parts_Library_v0_1.md ·
+      MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md ·
+      M1_5_Dev_Mode_Sub_Roadmap.md (archived) ·
+      How_Successful_Roguelike_Deckbuilders_Are_Designed_and_Balanced.md
+      (research). Several are not merely planning: Design_Vibe_Telegraph is
+      named presentation authority for a shipped feature, Design_Starter_Deck_v1
+      is "authoritative for the live S5 demo starter", and
+      Design_Tutorial_System_v0_2 is "runtime-authoritative once shipped".
+      Classifying those is an authority claim, which is why MANIFEST-1 stopped
+      and reported instead of sweeping them in. Related open decision:
+      D-SENSORY-HOME (CURRENT_STATE §4) — the sensory carril has a real
+      contract and no SSoT home.
+
+  - id: F12
+    severity: LOW
+    kind: schema_divergence
+    status: open — reported for the workshop baseline, not fixable inside this project
+    concept: "This manifest's key names diverge from the auditor skill's documented schema"
+    description: >
+      The ssot-drift-auditor skill documents `ssots:` / `authority_class:` /
+      `invariants:`. This manifest (and its three sibling workshop manifests)
+      uses `entries:` / `class:` / `hard_invariants:`. Runs have worked, so the
+      reader is tolerant, but a stricter reader would find zero governed docs
+      and report a clean project. Either the skill's reference schema or the
+      manifests should move; that is a governance-baseline decision across four
+      projects, not an ALWTTT one.
+
+  - id: F13
+    severity: MEDIUM
+    kind: inherited_obligation
+    status: open — re-registered with owners at MANIFEST-1
+    concept: "Three of the four DOC-APPLY-1 obligations remain unsettled"
+    description: >
+      (1) `CONT-B_Returns_MidiGenPlay_2026-07-31.md` does not exist, yet the
+      CONT-B changelog entry, CSV sub-roadmap §5 and open item D9 all point at
+      it — a dangling cross-project reference. Owner: the MidiGenPlay-side
+      session, not ALWTTT; nothing in this project can produce it. (2)
+      `Design_Asset_Naming_v0_1.md` §3-vs-§4 reconciliation: the applied CONT-B
+      drum naming (palette prefix + `8c`) contradicts the doc's own draft
+      schema and its §4 rationale for dropping palette prefixes. The document
+      carries its own "Reconciliation owed" note and defers to CSV-4b — owner
+      confirmed, no action here; harmless while the doc stays non-normative.
+      (3) The CSV-3-DOC doc pass remains outside every batch's scope so far.
+      The fourth obligation, R2-11 smoke-record disposition, is answered by the
+      D8 decision at MANIFEST-1 (smoke records live in the SSoT that owns the
+      observable; coverage-matrix grows no smoke section).
+
+  - id: F14
+    severity: RESOLVED
+    kind: claim_drift
+    status: closed 2026-08-08 (MANIFEST-1) — both rows settled
+    concept: "Two SSoT_INDEX rows point at files that are not in the working set under that name"
+    description: >
+      SSoT_INDEX lists `planning/active/Design_Tutorial_System_v0_1.md` while
+      coverage-matrix and the working-set file both say `_v0_2` — same class of
+      error as the Design_Starter_Deck_v2 path that MANIFEST-1 fixed. And
+      `planning/active/Roadmap_ALWTTT_Debug_Seams.md` is listed active in
+      SSoT_INDEX but is absent from the working set entirely, so its existence
+      cannot be confirmed from this side.
+
+      RESOLUTION. The repo-tree export settled both. The tutorial row was not a
+      path typo at all — both files existed; escalated to F17 and closed there
+      (D11=A). `Roadmap_ALWTTT_Debug_Seams.md` does not exist anywhere in the
+      tree, so its SSoT_INDEX row was removed (D12); the MGP-ALWTTT-DBG arc-close
+      record lives in `systems/SSoT_Dev_Mode.md` §18 and in coverage-matrix.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Cross-project boundary: the auditor does not cross it.

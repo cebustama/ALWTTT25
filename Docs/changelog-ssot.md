@@ -14,6 +14,237 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-08-08 — MANIFEST-1: reparación de la gobernanza que el auditor destapó
+
+**Documentación pura. Sin código, sin smoke tests** (regla del proyecto: los lotes
+documentales no los requieren). Clasificación: *authority* + *structural* + *operational*.
+
+`ssot_manifest.yaml` llevaba sin tocarse desde **2026-04-14** — casi cuatro meses — y **cuatro
+de los siete hallazgos** del auditor en DOC-APPLY-2 §9 eran síntomas de ese único hecho. Este
+lote los ataca en la causa, y de paso hace algo que nunca se había hecho: **validar el
+manifiesto contra el sistema de ficheros** (export del árbol, 3.251 rutas) en vez de contra
+otros documentos.
+
+**Altas.** `systems/SSoT_Dev_Mode.md` (`subsystem_ssot`, gobierna `Assets/Scripts/DevMode`,
+**doce invariantes duros levantados del documento**, incluidas las siete líneas de log
+protegidas de §19 y la trampa `[B1][stemCache]` vs `[DIAG]`) · `systems/SSoT_Singer_Voice.md`
+(`subsystem_ssot`, ocho invariantes) · `planning/active/Design_Composition_Debug_Tab_v0_1.md`
+· `planning/Design_Game_And_Card_Maxims_v0_1.md` (saldando la deuda BALANCE-XREF) ·
+`planning/active/Design_Tutorial_System_v0_2.md` · `archive/Design_Starter_Deck_v1.md` ·
+`planning/archive/Design_Tutorial_System_v0_1.md` · `CONTRIBUTING.md` (`excluded`).
+
+Que `SSoT_Dev_Mode` faltara era el hallazgo grave: LOG-1 acababa de escribir en él §19, que es
+**autoridad normativa sobre qué líneas de log no se pueden degradar**, sobre un documento que
+la gobernanza no reconocía. Un auditor futuro no lo habría mirado, y la protección de siete
+observables de smoke dependía de eso.
+
+**Correcciones de clase y de ruta.** `changelog-ssot.md` reclasificado `archive` → `reference`
+(**D5=A**): es un documento vivo, escrito en cada cierre, y desde D-LOG-4=C es el hogar de la
+definición de `snapshot-01` — declararlo archivo aplicaba «el contenido de archivo no es
+autoritativo» a un fichero del que cuelga un concepto vivo. Ruta de Starter Deck v2
+reconciliada contra el fichero real `_DRAFT` (**D6=B**: se corrige la entrada, no se renombra
+el fichero; el sufijo es exacto hasta R8, y el propio v2 afirmaba un renombrado que **nunca
+ocurrió en disco**). Aplicado por fin el fragmento **OPT-5**, debido desde 2026-07-13: el
+invariante 18 de `SSoT_Audio` («una carta suena una vez, por exactamente un camino»). Cinco
+rutas corregidas contra el árbol: `Design_Action_Economy_v1` vive en `planning/`,
+`Design_Asset_Naming_v0_1` en `reference/`, `AlwtttLogSetup.cs` en `Assets/Scripts/Data/`,
+`Design_Composition_Debug_Tab` en `planning/active/`, y los tres README de carpeta llevan
+nombre prefijado. **F10 cerrada:** el manifiesto tenía razón y `SSoT_Dev_Mode §6` estaba mal
+en dos rutas de código.
+
+**Regla nueva (D8), en `SSoT_CONTRACTS §8`:** el registro de un smoke vive en la SSoT dueña del
+**observable**; el changelog registra el resultado del lote; `coverage-matrix.md` **no** crece
+una sección de smokes. Salda la disposición R2-11 diferida en DOC-APPLY-1 y re-diferida en
+DOC-APPLY-2. El precedente ya existía y nadie lo había escrito: `SSoT_Dev_Mode §9` son
+diecinueve secciones de smoke por lote, y §19.2 ata siete líneas de log a los tests que las
+consumen.
+
+**Tres contradicciones de autoridad que solo el árbol podía destapar, resueltas aquí.**
+**F17** — existían **dos** documentos de tutorial vivos a la vez, v0_1 en `planning/active/` y
+v0_2 en el `planning/` menos activo, con el índice apuntando al viejo y la matriz al nuevo.
+Verificado que v0_2 absorbe a v0_1 entero (historia en cabecera, §6 y §6A preservados como
+inventario reactivo histórico, ledger D-TUT-6..11 retenido) **antes** de archivar, no después:
+v0_1 a `planning/archive/` con banner, v0_2 a `planning/active/` (**D11=A**). **F18** —
+`Design_Starter_Deck_v1.md` está en `archive/` mientras el índice lo llamaba «authoritative for
+the live S5 demo starter». La resolución es la contraria a la esperada: **la carpeta era
+correcta y la palabra era falsa** — por la propia cláusula de clasificación de v1, desde el
+cierre de M4.6 los `.asset` autorados son la autoridad de runtime y el documento es rationale
+retenida. Corregidos el índice y la cláusula de supersesión de v2; el fichero no se movió
+(**D10=B**). **F14** — `Roadmap_ALWTTT_Debug_Seams.md` no existe en el árbol: fila retirada del
+índice (**D12**), y el registro de cierre del arco MGP-ALWTTT-DBG vive en `SSoT_Dev_Mode §18`
+y en la matriz.
+
+**Inventario re-baselinado: 232 assets** (export del 2026-08-08, D3=A). Sustituye a los 183 del
+2026-07-20. Tabla por familia y lectura de salud en `SSoT_Editor_Authoring_Tools.md` §17.12.
+**D-CSV-14 queda verificada y cerrable:** de los 7 `OFF-ROOT`, cinco son package-side bajo
+`Samples/` y los **dos locales son exactamente** los patrones de melodía bajo `Patterns/Melody`
+(singular), que es lo que la decisión pedía confirmar. Catorce progresiones marcan `BASS-GAP`,
+que es justo la señal detrás del estándar de 8 compases de CR-10.
+
+**Diseño registrado.** **D-R4-1 = RECONOCER, NO CONSUMIR**: el público sí debe juzgar la
+tonalidad que suena, pero no se cablea en este demo; el límite (el seam lee tonalidad autorada)
+pasa de hallazgo sin dueño a deuda con dirección decidida, y queda prohibido «resolverlo» hacia
+la autorada. **D-R4-2 = A**: el calificador de canción (HAPPY/SAD/FUNKY) se **deriva** —bucket
+Major/Minor por la tercera del modo sonante—, nunca se autora como fuente primaria, porque un
+calificador escrito a mano se desincroniza de lo que suena y esta vez sin nada contra qué
+contrastarlo. Mostrarlo destacado en la descripción de la carta es opcional y no bloquea R4.
+
+**Señales.** F7 rebajada a LOW con evidencia verificada en disco. Cerradas: F10, F14, F17, F18.
+Abiertas: **F11** (~17 documentos indexados aún ausentes del manifiesto → MANIFEST-2, después
+de R4, junto con D-SENSORY-HOME), **F12** (el esquema del manifiesto diverge del que documenta
+la propia skill del auditor), **F13** (tres obligaciones de DOC-APPLY-1 re-registradas con
+dueño), **F15** (tres solapes de `governs` declarados deliberados tras un barrido mecánico),
+**F16**, abierta por la mañana y **casi cerrada el mismo día** con confirmación del usuario y
+los dos documentos del POC en mano. `GigSetupSceneManager.cs` fue **borrado el 2026-05-18** y
+siempre estuvo en el registro: las notas de cierre de D-FAST-1=C en `Roadmap_ALWTTT` dicen
+"Empty `GigSetupSceneManager.cs` deleted" como parte del pivote de tres escenas a dos — el
+manifiesto llevaba casi tres meses gobernando un fichero inexistente. `Report_CardLLM_Pipeline.md`
+**ya no existe**: su entrada queda como lápida y sus dos citas en
+`SSoT_Editor_Authoring_Tools` se corrigen, con la consecuencia **registrada y no parcheada** de
+que el mecanismo de siete etapas del pipeline LLM se queda **sin hogar documental** (el código
+es la única descripción). Y los dos documentos del POC de Pink Trombone **pertenecen al
+proyecto MidiGenPlay**. Residuo único: `Docs/planning/music/` no existe, así que el informe de
+emulación de soundfont no tiene hogar. **F19 abierta y cerrada el mismo día (D13=A)**: era la pregunta que estaba
+escondida debajo. `PinkTrombone_Voice_Levers.md` es la fuente del esquema de `VoiceProfileSO`
+—un asset de ALWTTT— y vivía en el otro proyecto, mientras su propia cabecera declara que
+"nunca entra en el PK de MidiGenPlay como autoridad" **y** que "viaja con el cantante cuando se
+promueve a ALWTTT". El cantante se promovió en SINGER-1, así que el disparador que el propio
+documento nombraba ya se había cumplido: **promovido a `Docs/reference/` de ALWTTT** y
+registrado en el manifiesto y en `SSoT_INDEX`. No es un interno del paquete: son seis levers de
+diseño de voz consumer-side, y la regla de frontera excluye los internos, no el diseño del
+consumidor. El fallo que esto cierra es concreto: con el esquema al otro lado, una edición de
+los levers en MidiGenPlay habría desviado `VoiceProfileSO` **sin que ninguna corrida del
+auditor pudiera verlo**, porque el auditor no cruza la frontera. El `Rendering_POC_Verdict` se
+queda en MidiGenPlay como research. Corolario del mismo par de documentos: **la promoción del fork a
+`Assets/ThirdParty/` nunca se ejecutó** —ambos lo sitúan en `Assets/PinkTrombonePOC/`, igual
+que el árbol—, así que §3.6 y §7 de Singer Voice quedan corregidas a la única carpeta que
+existe. El invariante se sostiene en sustancia; lo que queda abierto es de ciclo de vida:
+si se quiere la promoción antes de retirar el arnés, porque hoy el código de producción del
+cantante cuelga de una carpeta llamada "POC".
+
+Hogares: `ssot_manifest.yaml` · `SSoT_INDEX.md` · `coverage-matrix.md` · `SSoT_CONTRACTS.md §8`
+· `SSoT_Dev_Mode.md` · `SSoT_Singer_Voice.md` · `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8 ·
+`SSoT_Editor_Authoring_Tools.md` §17.12 · `CSV_Composition_Validation_Sub_Roadmap.md` §4.1.1 ·
+`CURRENT_STATE.md` §4/§5.
+
+---
+
+## 2026-08-08 — LOG-1: higiene de consola, etiqueta de acorde reparada, tag `snapshot-01`
+
+**Operacional + semántico.** ST-LOG-1..8 todas PASS.
+
+- **Etiqueta de acorde reparada (D-LOG-1=B).** `I?7` pasa a leerse `Imaj7`. La etiqueta se
+  reconstruye desde `deg` + `quality` —ambos ASCII por construcción— y **el glifo del marcador
+  no se muestra nunca**: los text-events MIDI se escriben en 7 bits y sustituyen el carácter no
+  mapeable por `?` **al escribir**, así que el original ya no existe cuando el host lee, y un
+  `I7` de aspecto reparado significaría un acorde distinto del que suena. La tabla de sufijos
+  acopla **por cadena, no por el enum `ChordQuality`**: ese enum es package-owned y append-only,
+  de modo que un `switch` por valor rompería el build ante un rename y se volvería
+  silenciosamente no-exhaustivo ante una adición; por cadena, un nombre desconocido cae al
+  `default` y **se reporta una vez por render** con el nombre real. Home: boundary §8.10.
+- **Causa raíz NO afirmada.** Queda acotada a dos hipótesis —pérdida de encoding en el
+  text-event MIDI (H1) vs. el paquete emitiendo `?` (H2)— con el discriminador ya en el código
+  (`ReportChordTagDamage` imprime los campos crudos) pero **el dato sin capturar**. El ask
+  **MGP-CHD-ASCII-1** se archiva **sin prioridad asignada** hasta leerlo. La mitigación
+  consumer-side es completa e independiente de cuál sea la causa.
+- **Niveles de log (D-LOG-3=B).** `LogVerbose` en `GigDevSettingsSO` + campo propio `logVerbose`
+  en `MidiMusicManager` (host-owned, **no** sobrescrito en el arranque, a diferencia de
+  `logDebug`, que pasa a `[HideInInspector]` precisamente porque el arranque lo sobreescribe y
+  el mando del inspector no decidía nada). **Las siete líneas protegidas no cuelgan de ningún
+  flag verbose** — ST-LOG-3 es su regresión. Escritas en `SSoT_Dev_Mode.md` §19 con el test que
+  sostiene cada una, más la trampa `[B1][stemCache]` vs `[B1][stemCache][DIAG]`: dos líneas con
+  tiers distintos que un `grep` por el prefijo común confunde.
+- **Trazas de pila de `LogType.Log` desactivadas** desde `AlwtttLogSetup`, antes de cargar
+  escena. 762 de 864 líneas de la captura de referencia (`log11.txt`) eran traza sin
+  información. Warning y Error las conservan. Coste de información **cero**, por eso va primero.
+  Escape: `ALWTTT/Debug/Log stack traces`.
+- **`[F-4]` retirado — con el `try/catch` INTACTO y su volcado de error CONSERVADO.** Se
+  retiraron las dos líneas *tageadas*, no la defensa de F-4 Stage A, que el código declara
+  permanente. Anotado explícitamente porque la lectura contraria es fácil y destructiva.
+- **Barrido de huérfanos (D-LOG-2=B):** limitado a los que R3 creó — `Chord Palette - Test` y
+  sus 4 progresiones muertas. El resto de la curación sigue siendo **CSV-6**. Recordatorio
+  escrito en `SSoT_Editor_Authoring_Tools.md` §17.12: `ORPHAN` es **directo**, la transitividad
+  sigue sin marcarse.
+- **Dos asks nuevos a MidiGenPlay:** **MGP-CHD-ASCII-1** (¿el marcador `chd:` es contrato
+  ASCII-puro o UTF-8?) y **MGP-LOG-VERBOSE-1** (partir `logGenerator`: hoy es **un solo bit**
+  que contiene a la vez `[MelodySlot]` —una línea por nota— y `[ChordTrack] Tonality`, de la que
+  dependen tests del host; no se puede silenciar el ruido sin perder el observable). Ambos en el
+  nuevo registro de asks abiertos, boundary §8.9.
+
+## 2026-08-08 — `snapshot-01`: qué contiene el tag (D-LOG-4=C)
+
+**Lifecycle.** El tag `snapshot-01` es **ordinal, no descriptivo** (D-LOG-4=C): el nombre no
+dice qué hay dentro, y esa es la decisión — **el contenido vive aquí, en el changelog**, no en
+el nombre del tag. Un tag descriptivo envejece mal (describe la intención del día que se cortó,
+no lo que acabó dentro) y obliga a renombrar historia cuando la descripción deja de ser cierta.
+
+**`snapshot-01` (cortado 2026-08-08) contiene:**
+
+- Todo el demo cut hasta **S5i**, sin cambios en el live front.
+- **Campaña RosterExpansion: R0, R1, R2 (+R2c, +R2d) y R3 cerrados.** R3 incluye las dos comps
+  de Zig (Rise Up, Showtime), **JAM-1** y **JAM-2** en `CompositionSession`, la poda de
+  `Chord Palette - Modal` (7→5) y las tres cartas Wormus de banco de dev (`flags=None`).
+- **CTX-2a** (default de tempo del modelo a `Slow` + override de tempo en Dev Mode) y **CTX-2b**
+  (override de articulación vía clon de bundle en runtime).
+- **LOG-1** completo: niveles de log, etiqueta de acorde reparada, trazas de pila desactivadas,
+  `[F-4]` retirado, huérfanos de R3 barridos.
+- **Excepciones al freeze de baseline S5i:** tres precedentes autorizados (D-R3-6, D-R3C-1=C,
+  D-R3C-8=A).
+
+**Qué NO contiene:** R4+ (starter-v2, finisher, lotes que tocan tutorial), la medición de
+**D11b**, la resolución de **D-R4-1**, y las cuatro asks abiertas a MidiGenPlay.
+
+**Efecto de puerta:** con el tag cortado, **R4+ queda DESBLOQUEADO** bajo D-SEQ-3=A (la puerta
+es el tag snapshot, no el tag de demo-cut S5j).
+
+## 2026-08-08 — R3 CERRADO: Zig composition cards + JAM-1 / JAM-2 (continuidad de armonía compartida)
+
+**Semántico + operacional + lifecycle.** Cierra R3, el último enabler interleavable de la
+campaña RosterExpansion. Todas las verificaciones PASS: ST-A1..A7 · ST-B1/B2 · ST-C1 · C5 ·
+ST-R3-11 · C4 · ST-J1..J6.
+
+- **Contenido.** Catálogo Cantante: **Rise Up** (patrón verbatim de 8 compases por grado,
+  adaptativo a raíz y a modo) y **Showtime** (ruta procedural, operativa desde ST-R3-11 PASS),
+  ambas StarterDeck, 1 copia. **`Chord Palette - Modal` podada 7 → 5** (D-R3C-5=B: dos entradas
+  Skel salen de la paleta modal). Tres cartas **Wormus** —Test, Modal y Bossa— creadas con
+  `flags = None`: banco de dev, invisibles para el jugador y ausentes del reward pool **por
+  construcción**, no por filtro (D-R3C-6=A). C5 lo verifica con un gig completo: ni Cantante ni
+  cartas Wormus en mazo ni en pool.
+- **JAM-1 — la jam conserva su armonía.** Tercer readback (`LastSharedProgressionData`),
+  publicado también en replay de bundle y guardado en la entrada de caché. La progresión se
+  impone sobre la pista de Backing **salvo** que la tonalidad se haya movido desde la captura
+  **o** el bundle de Backing adopte (D-R3C-2=A: la carta que mueve la tonalidad gana). Captura
+  post-render, saltada cuando la fuente es `CardOverride` (D-R3C-4=B′: no capturar la armonía
+  de la propia carta de Backing, y limpiar la entrada).
+- **JAM-2 — el modo viaja con la armonía** (D-R3C-8=A, arreglado en lote como respuesta a
+  F-JAM-SCALE-SPLIT). El defecto: JAM-1 guardaba la armonía junto a una instantánea de
+  tonalidad tomada del **modelo de UI**, pero la adopción nunca llega al modelo, así que una
+  progresión lidia quedaba etiquetada "Ionian" y al imponerse el Backing sonaba en sus acordes
+  autorados mientras el resto de la parte se generaba contra otra escala. **Dos mapas, a
+  propósito:** uno sigue el modelo y responde *"¿movió el jugador la tonalidad?"* (la guarda
+  que decide **si** imponer); otro sigue el render y responde *"¿en qué modo sonaron estos
+  acordes?"* (la carga útil que **se propaga**). Fundirlos haría que la guarda se comparase
+  consigo misma y dejase de detectar movimientos de tonalidad reales — ST-J3 es su regresión.
+- **Corrección de premisa: D-R3C-3 pasa a A′.** La decisión —*la carta es el modo*— sigue en
+  pie; lo que era falso es la premisa escrita de que "la tonalidad de la parte persiste hasta
+  que una carta con autoridad tonal la mueva". Eso es cierto del **modelo**, no de la
+  **adopción**: la adopción muta el `PartConfig` por render y nunca alcanza el modelo. Se
+  registra como corrección explícita, no como reemplazo silencioso.
+- **Arquetipo articulation-only, verificado en juego:** misma progresión, 14 → 76 notas,
+  timeline de acordes idéntico byte a byte. Diez figuras autorables con cero código.
+- **Nota de determinismo (F1).** F1 cambió la secuencia de sorteo del RNG de melodía: **todo
+  render con seed pineado anterior a MGP-MEL-1b deja de ser comparable en la pista de
+  melodía.** Afecta a la medición de D11b. Corolario de JAM-1/B′: un test de determinismo debe
+  arrancar de canción nueva, porque una parte que impone re-pinea su armonía cada render y
+  mantiene la caché puenteada mientras dure la cadena.
+- **Abierto tras el cierre:** **D-R4-1** (¿el público juzga la tonalidad autorada o la que
+  suena? `LoopFeedbackContext` se construye desde el modelo ⇒ bajo armonía modal la audiencia
+  ve Ionian; diseño, no defecto) y la verificación auditiva de melodía sobre parte modal, no
+  alcanzable con el contenido actual.
+- **Baseline S5i:** segunda y tercera excepción autorizada al freeze (D-R3C-1=C, D-R3C-8=A).
+- Autoridad: `SSoT_Runtime_CompositionSession_Integration.md` §13 ·
+  `SSoT_Card_Authoring_Contracts.md` §5.17/§5.18 · `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.8.
+
 ## Milestone index of the archived history (2026-03-18 → 2026-06-22)
 
 Navigation only — dates + labels. Full entries are in
@@ -68,6 +299,111 @@ Navigation only — dates + labels. Full entries are in
   micro-pass.
 
 ---
+
+## 2026-08-05 — R3 (parcial): Zig composition cards
+
+*(Entrada de estado intermedio, conservada por fidelidad histórica. El cierre de R3 está
+en la entrada de 2026-08-08.)*
+
+- Catálogo Cantante: +Rise Up, +Showtime (StarterDeck, 1 copia c/u). 7 legacy
+  siguen aparcadas (`flags = None`).
+- Rise Up operativa y verificada; entregable de banda de 3-4 (mezcla/canal/mute)
+  cumplido.
+- Showtime bloqueada package-side (MGP-MEL-1 P1/P8) — **desbloqueada el 2026-08-08**.
+- **Baseline demo:** Wormus Major/Minor fijan ahora la tonalidad de la parte.
+  No-regresión verificada (ST-R3-12).
+- **Bug de autoría cerrado.** Rise Up se importó con `trackAction.styleBundle = null`.
+  Bajo la regla BASS-1/D4=A, un Track card sin bundle **no crea pista y devuelve `true`**,
+  y sobre una pista existente **preserva el bundle anterior**: dos síntomas (la carta no
+  hacía nada; luego "se veía pero no sonaba") con una sola causa.
+- D-R3-1..6 registradas. D-R3-4 corrige una recomendación previa del mismo lote
+  (el sesgo ascendente vive en una sola capa, la directiva `AscendingOnly`).
+- Ask **MGP-MEL-1** filtrado (P1..P8).
+
+## 2026-08-03 — CTX-2a: control de tempo en el tab Composition + default del modelo a `Slow`
+
+**Semántico + operacional.** Cierra **F-TEMPO-1** y **D11 (=A)**.
+
+- **Producción (un cambio, efecto global).** El default de `PartEntry` pasa de
+  `"Very Fast"` / `TempoRange.Fast` a `"Slow"` / `TempoRange.Slow`, en la
+  declaración de los campos, en `EnsurePartAt` y en el fallback de
+  `CreateNextDraftPart`. Como la carta de modo por defecto no fija tempo, ese
+  default es lo que suena en el demo; con el anterior, los ocho patrones de 8
+  compases de CONT-B se atropellaban y la arquitectura 3+1 no se percibía. Home:
+  `SSoT_Runtime_CompositionSession_Integration.md` §12.4.
+- **Dev Mode.** Sección `Part tempo override (BPM)` en `DevCompositionDebugTab`
+  sobre el patrón CTX-1 (stepper ±5/±10 · Apply · Clear-con-restore ·
+  `Hold across loops`), más una línea de lectura
+  `BPM: resolved=… | model: Explicit=… Range=… Scale=×…`. Escribe
+  `PartEntry.absoluteBpmOverride`, que `SongConfigBuilder` ya lee; **cero API
+  nueva**. `Clear ALL overrides` pasa a limpiar cuatro familias. Home:
+  `SSoT_Dev_Mode.md` §18.13 + §9.18.
+- **El hallazgo es de runtime, no de herramienta.** `CompositionSession`
+  cortocircuita la resolución de BPM mientras `PartCache.resolvedBpm > 0`, y
+  todas las invalidaciones de dev preservan ese valor (`keepTempo: true`): un
+  override ingenuo del modelo habría sido **inaudible**. Apply pone el caché a
+  0; Clear reescribe el valor pre-Apply, lo que da restauración audible exacta
+  sin depender de la reproducibilidad del sorteo de banda. Precedencia
+  verificada y ahora escrita: `bpmOverride` > `ExplicitBpm` > `GetBPMFromRange`,
+  con `TempoScale` multiplicando después (suelo 40); solo las cartas de tempo
+  re-resuelven (`ShouldKeepTempo`). De ahí que override 70 + Push It (×1.5) dé
+  **105** — compone, no bloquea (ST-CTX2A-5). Home:
+  `SSoT_Runtime_CompositionSession_Integration.md` §8 **invariante 13** (nuevo).
+- **Descartado:** `tempoScale` como palanca de la herramienta —
+  `AudienceCharacterBase` lo lee como eje de gusto de la audiencia con línea
+  base 1.0, así que es semántica de gameplay, no de frontera.
+- **Verificación CTX-2b.** `chordExpression` / `arpeggioRate` **no existen en el
+  modelo** (solo en `BackingCardConfigSO`, vía import de carta). CTX-2b sale del
+  lote y se abre como lote propio con decisión de arquitectura owed
+  (**D-CTX2B-1**), registrada en `Design_Composition_Debug_Tab_v0_1.md` §8.
+- **Smokes:** ST-CTX2A-1..7 **PASS** (regresión del default · Apply · regresión
+  clear/restore · persistencia ≥3 loops · precedencia con carta de escala ·
+  pisado con Hold OFF · compilación de producción).
+- **Cierre parcial deliberado:** la medición para **D11b** (BPM legible +
+  dispersión de `Slow`) se **difiere a post-R3** por decisión de usuario. El
+  lote entrega el instrumento de medida; el dato y el ajuste de bandas
+  (package-side, MidiGenPlay) llegan después.
+- **MidiGenPlay intacto.** No por permiso — el paquete es propio — sino porque
+  ajustar la banda antes de medir se calibra a ciegas.
+
+### CTX-2b — override dev de articulación (`chordExpression` / `arpeggioRate`) en el tab Composition
+
+La precondición bloqueante del lote —¿la expresión es determinista del bundle o se
+aleatoriza en el composer?— se resolvió como **determinista**
+(`SSoT_Composer_Backing_Track` §8.1 campo persistente · §8.3 articulador RNG-free ·
+§8.5 centinela `Random` en substream dedicado derivado del seed), lo que mantuvo el lote
+como herramienta de **control** y no de observación.
+
+**Plano nuevo (D-CTX2B-1=A):** es el primer override del tab que no escribe un campo que
+el builder ya lea —`chordExpression` y `arpeggioRate` solo existen dentro del style
+bundle— así que Apply clona el bundle en runtime, muta la copia y la asigna a
+`TrackEntry.styleBundle`; el asset nunca se muta. La participación en el hash sale gratis
+porque `SongConfigBuilder.AssetKey` usa `GetInstanceID()`, y por la misma razón **Clear
+recupera identidad de bytes**: restaurar la referencia original devuelve la clave de caché
+original y el render se sirve como `bundle HIT` del array guardado (ST-CTX2B-1).
+
+**Invariante del plano: clon fresco por Apply** — mutar el clon vigente conservaría su
+instance ID, el hash no se movería y la caché serviría bytes rancios; la herramienta
+habría fabricado conclusiones falsas sobre el composer (ST-CTX2B-3 es su regresión).
+**Hold se estrechó respecto a CTX-1b**: re-asserta solo contra reversión al bundle
+original; un bundle ajeno (carta nueva) gana siempre, porque re-asertar reemplazaría la
+identidad musical entera de la carta, no dos campos. Ciclo de vida de los clones cubierto
+en tres puntos (fin de canción · rebuild de modelo · pisado), verificado sin fugas
+(ST-CTX2B-4). D-CTX2B-2=A: consumer-side puro, **sin** ask nuevo por el plano.
+
+**El hallazgo del lote es de frontera: F-ARTIC-RATE-RANDOM-1** — figura concreta +
+`arpeggioRate = Random` produce render sin articulación, contradiciendo §8 (rate inerte
+para figuras no-arpegio) y §8.5 (substreams independientes), y **sin warning** pese a la
+regla "never silent"; filtrado como **MGP-ARTIC-RATE-1**. Mitigación consumer-side: aviso
+en UI, sin coerción del valor —una carta real puede autorarse así y el tab existe para
+auditar lo que la carta hace de verdad. Deuda derivada abierta: **D-ARTIC-AUDIT** (§4).
+Registro retroactivo saldado: **MGP-ALWTTT-ARTIC-1** ya estaba entregado package-side
+(boundary §8.7).
+
+ST-CTX2B-1..5+7 PASS; ST-CTX2B-6 (determinismo de `Random` entre relanzamientos) diferido
+como test package-side. Autoridad: `SSoT_Dev_Mode.md` §18.14/§9.19 ·
+`SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.7 · `Design_Composition_Debug_Tab_v0_1.md`
+§3.3 fila 14 + §8 D4.
 
 ## 2026-07-31 — CONT-B: pasada de contenido fase B + CTX-1/1b (override dev de tonalidad)
 

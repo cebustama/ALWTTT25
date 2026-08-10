@@ -47,7 +47,21 @@ namespace ALWTTT.Managers
         [SerializeField] private MonoBehaviour playerBehaviour; // IPlayMidi (MPTK)
 
         [Header("Options")]
-        [SerializeField] private bool logDebug = true;
+        // [LOG-1] Master switch, but the inspector value decides nothing: it
+        // is overwritten unconditionally at boot from
+        // MidiGenPlayConfig.logMidiMusicManager (see Init below). Hidden so it
+        // stops inviting people to flip a control that has no effect.
+        [HideInInspector, SerializeField] private bool logDebug = true;
+
+        // [LOG-1 / D-LOG-3=B] Second tier, host-owned, NOT overwritten at
+        // boot. Gates only the chatty per-render dumps. The six test-bearing
+        // lines stay on logDebug alone and must remain visible with this OFF:
+        //   [ORDER-1] . [B1][stemCache] (WITHOUT [DIAG]) .
+        //   [DBG-C2/CacheBypass] . "Timeline ch="
+        [SerializeField, Tooltip("Second logging tier for this manager. " +
+            "Leave OFF for a readable console. Does NOT gate [ORDER-1], " +
+            "[B1][stemCache], [DBG-C2/CacheBypass] or 'Timeline ch='.")]
+        private bool logVerbose = false;
         public bool MetronomeEnabled { get; private set; }
         private const string CacheEpoch = "v2-metro";
 
@@ -106,6 +120,12 @@ namespace ALWTTT.Managers
             // harmony-identity token in RenderSinglePart for why).
             public ResolvedSource sharedProgressionSource;
             public string sharedProgressionAssetName;
+
+            // [JAM-1 / MGP-MEL-1b P7] Runtime clone of the harmony that won the
+            // shared channel for these bytes. Same D-DBG5=A logic as its two
+            // siblings above: replayed bytes == original bytes ⇒ the original
+            // progression is still the truth for this entry.
+            public MidiGenPlay.ChordProgressionData sharedProgressionData;
 #if ALWTTT_DEV
             // [CSV-3] Resolved musical identity of the ORIGINAL render — D-DBG5=A analogue of
             // appliedCc7ByTrack: replay bytes == original ⇒ resolved identity identical.
@@ -191,6 +211,10 @@ namespace ALWTTT.Managers
             _chordTimelineByChannel = new();
         private readonly Dictionary<int, int> _chordTimelineCursor = new();
         private readonly Dictionary<int, ChordLabel> _currentChordByChannel = new();
+
+        // [LOG-1] One chd:-damage report per BuildChordMarkers call, not one
+        // per marker. Reset at the top of BuildChordMarkers.
+        private bool _chordTagDamageReported;
 
         private struct ChordLabel
         {
@@ -595,7 +619,7 @@ namespace ALWTTT.Managers
         {
             if (config == null)
             {
-                if (logDebug)
+                if (logDebug && logVerbose)   // [LOG-1] verbose
                     Debug.Log($"{DebugTag} GetChannelOwnerIdsFor(SongConfig): " +
                         $"config is NULL");
                 return Array.Empty<string>();
@@ -627,7 +651,7 @@ namespace ALWTTT.Managers
                 perChannel[ch] = id;
             }
 
-            if (logDebug)
+            if (logDebug && logVerbose)   // [LOG-1] verbose: 16-column dump
             {
                 var summary = string.Join(
                     ", ",
@@ -748,8 +772,8 @@ namespace ALWTTT.Managers
 
                 effectiveOverride = baseBpm;
 
-                if (logDebug)
-                {
+                if (logDebug && logVerbose)   // [LOG-1] verbose: duplicated by
+                {                             // "[BPM] Part=N resolved BPM=", which stays
                     Debug.Log(
                         $"{DebugTag} [BPM] Resolve part {partIndex} '{part.Name}': " +
                         $"mode={mode} -> BPM={baseBpm} | " +
@@ -757,7 +781,7 @@ namespace ALWTTT.Managers
                         $"TempoRange={part.TempoRange}, TempoScale={part.TempoScale:0.##}");
                 }
             }
-            else if (logDebug)
+            else if (logDebug && logVerbose)   // [LOG-1] verbose
             {
                 Debug.Log(
                     $"{DebugTag} [BPM] RenderSinglePart part={partIndex} '{part.Name}' " +
@@ -977,7 +1001,12 @@ namespace ALWTTT.Managers
 
             // [B1] DIAG: dump full hash info for every render (so we can see WHY
             // the bundle hits or misses). Per-track + part-level shape.
-            if (logDebug)
+            //
+            // [LOG-1] VERBOSE. Six lines per render. Note carefully: this is
+            // [B1][stemCache][DIAG] and is NOT the protected [B1][stemCache]
+            // line that ST-A6 / ST-C1 read -- the [DIAG] suffix is the whole
+            // difference, and a grep for "[B1][stemCache]" confuses the two.
+            if (logDebug && logVerbose)
             {
                 var partDiag =
                     $"part={partIndex} '{part.Name}' " +
@@ -1028,6 +1057,7 @@ namespace ALWTTT.Managers
                 // [ORDER-1 / R2d] Republish the ORIGINAL render's harmony verdict.
                 LastSharedProgressionSource = bundleHit.sharedProgressionSource;
                 LastSharedProgressionAssetName = bundleHit.sharedProgressionAssetName;
+                LastSharedProgressionData = bundleHit.sharedProgressionData;  // [JAM-1]
                 if (logDebug)
                     Debug.Log($"{DebugTag} <color=#88ff88>[ORDER-1]</color> part={partIndex} " +
                         $"harmony source={LastSharedProgressionSource} " +
@@ -1049,21 +1079,15 @@ namespace ALWTTT.Managers
                     new Dictionary<MusicianTrackKey, MIDIInstrumentSO>(bundleHit.pinned));
             }
 
-            // [F-4] diagnostic — boundary-call shape dump immediately before
-            // SongOrchestrator.GenerateSinglePart. Tracks the IndexOutOfRange
-            // crash inside MidiGenPlay at >=4 loops/part. The [F-4] log lines
-            // are tagged for revert at F-4 closure; the surrounding try-catch
-            // (D2-A defense) is production-quality and stays.
+            // [LOG-1] The F-4 per-render ENTRY dump was removed at F-4 closure
+            // (it fired on every single render). These three counters survive
+            // it deliberately: the catch-path dump below still reports them,
+            // and that one fires ONLY when the package throws, so it costs
+            // nothing in console volume and is the repro spec for that crash.
+            // The D2-A try-catch itself is production-quality and permanent.
             int channelRolesCount = fullCfg.ChannelRoles?.Count ?? -1;
             int channelOwnersCount = fullCfg.ChannelMusicianOrder?.Count ?? -1;
             int tracksAtPart = part.Tracks?.Count ?? -1;
-            Debug.Log(
-                $"<color=lime>[F-4][MMM]</color> RenderSinglePart entry: " +
-                $"partIndex={partIndex} parts={fullCfg.Parts.Count} " +
-                $"channelRoles={channelRolesCount} channelOwners={channelOwnersCount} " +
-                $"channelMap={channelMap.Count} tracksAtPart={tracksAtPart} " +
-                $"bpm={effectiveOverride?.ToString() ?? "null"} " +
-                $"instOverrides={instrumentOverrides?.Count ?? 0}");
 
             // F-4 D2-A defense: try-catch around the package-internal orchestrator
             // call and its serialization. On catch, dump the failing args + stack
@@ -1111,6 +1135,7 @@ namespace ALWTTT.Managers
                 // articulation-only Backing card could coexist with a live default.
                 LastSharedProgressionSource = render.sharedProgressionSource;
                 LastSharedProgressionAssetName = render.sharedProgressionAssetName;
+                LastSharedProgressionData = render.sharedProgressionData;  // [JAM-1] may be null
                 if (logDebug)
                     Debug.Log($"{DebugTag} <color=#88ff88>[ORDER-1]</color> part={partIndex} " +
                         $"harmony source={LastSharedProgressionSource} " +
@@ -1244,9 +1269,12 @@ namespace ALWTTT.Managers
             }
             catch (Exception ex)
             {
-                // [F-4] diagnostic dump on catch — full per-track detail so the
-                // package owner has a clean repro spec if root cause is package-
-                // internal. Removed at F-4 closure (the try-catch stays).
+                // Diagnostic dump on catch — full per-track detail so the
+                // package owner has a clean repro spec if root cause is
+                // package-internal. [LOG-1] KEPT (correcting the LOG-1 spec,
+                // which had listed it for deletion): this is an error path, not
+                // a per-render path.  Retagged off [F-4] since that batch is
+                // closed.
                 var perTrack = part.Tracks != null
                     ? string.Join(", ", part.Tracks.Select((t, i) =>
                         $"[{i}: ch={t.Channel} role={t.Role} mus={(string.IsNullOrEmpty(t.MusicianId) ? "-" : t.MusicianId)}]"))
@@ -1258,7 +1286,7 @@ namespace ALWTTT.Managers
                     ? string.Join(",", fullCfg.ChannelMusicianOrder.Select(s => string.IsNullOrEmpty(s) ? "-" : s))
                     : "(null)";
                 Debug.LogError(
-                    $"<color=lime>[F-4][MMM]</color> SongOrchestrator.GenerateSinglePart caught " +
+                    $"{DebugTag} SongOrchestrator.GenerateSinglePart caught " +
                     $"{ex.GetType().Name}: {ex.Message}\n" +
                     $"  partIndex={partIndex} parts={fullCfg.Parts.Count}\n" +
                     $"  channelRoles[{channelRolesCount}]={rolesDump}\n" +
@@ -1292,6 +1320,7 @@ namespace ALWTTT.Managers
                         ? new Dictionary<MusicianTrackKey, int>(appliedCc7) : null,
                     sharedProgressionSource = LastSharedProgressionSource,   // [ORDER-1 / R2d]
                     sharedProgressionAssetName = LastSharedProgressionAssetName,
+                    sharedProgressionData = LastSharedProgressionData,       // [JAM-1]
 #if ALWTTT_DEV
                     resolvedTs = part.TimeSignature,
                     resolvedTonality = part.Tonality,   // post step-2b alignment
@@ -1749,7 +1778,14 @@ namespace ALWTTT.Managers
                         notes = notes.Select(e => e.Value).ToList(),
                         time = n0.RealTime / 1000f,
                         anchor = anchor,
-                        symbol = labelSym,
+                        // [LOG-1 / D-LOG-1=B] A damaged symbol is dropped
+                        // rather than shown; FloatingTextMidiListener.OnChord
+                        // already has a roman-only branch, so the label
+                        // degrades to "(Imaj7)" instead of lying with
+                        // "C?maj7". The raw value survives in the label and in
+                        // the "Timeline ch=" line, which is where ST-LOG-2
+                        // reads it.
+                        symbol = LooksDamaged(labelSym) ? null : labelSym,
                         roman = labelRoman,
                         degreeIndex = degreeIndex,
                         quality = qual
@@ -1936,7 +1972,9 @@ namespace ALWTTT.Managers
                 }
             }
             _partMarkers.Sort((a, b) => a.tick.CompareTo(b.tick));
-            if (settings != null && settings.logMidiMusicManager)
+            // [LOG-1] verbose: a count, and "Timeline ch=" already reports
+            // whether the timeline was built at all.
+            if (settings != null && settings.logMidiMusicManager && logVerbose)
                 Debug.Log($"[MidiMusicManager] Built part markers: {_partMarkers.Count}");
         }
 
@@ -1959,7 +1997,7 @@ namespace ALWTTT.Managers
                 BuildPartMarkers(midi);   // keeps _partMarkers in sync with this playback
                 BuildChordMarkers(midi);  // fills _chordLabelsByChannel + timelines
 
-                if (logDebug)
+                if (logDebug && logVerbose)   // [LOG-1] verbose
                 {
                     int tl = _chordTimelineByChannel.Values.Sum(t => t?.Count ?? 0);
                     Debug.Log($"{DebugTag} Rebuilt markers from bytes. " +
@@ -1976,6 +2014,7 @@ namespace ALWTTT.Managers
         {
             _chordLabelsByTrack.Clear();
             _chordLabelsByChannel.Clear();
+            _chordTagDamageReported = false;   // [LOG-1]
 
             int trackIndex = 0;
             foreach (var chunk in file.GetTrackChunks())
@@ -2014,7 +2053,10 @@ namespace ALWTTT.Managers
                     }
                 }
 
-                if (settings != null && settings.logMidiMusicManager && countHere > 0)
+                // [LOG-1] verbose: per-track tick dump, redundant with the
+                // per-channel "Timeline ch=" line below (which is PROTECTED).
+                if (settings != null && settings.logMidiMusicManager && logVerbose
+                    && countHere > 0)
                 {
                     var sample = _chordLabelsByTrack[trackIndex].Keys.OrderBy(t => t).Take(8)
                                  .Select(FormatTick);
@@ -2046,9 +2088,131 @@ namespace ALWTTT.Managers
                 }
             }
 
-            if (settings != null && settings.logMidiMusicManager)
+            // [LOG-1] verbose: counts only.
+            if (settings != null && settings.logMidiMusicManager && logVerbose)
                 Debug.Log($"[MidiMusicManager] Built chord labels: " +
                     $"tracks={_chordLabelsByTrack.Count} channels={_chordLabelsByChannel.Count}");
+        }
+
+        // ---- [LOG-1 / D-LOG-1=B] Chord-label typography -------------------
+        //
+        // The chd: marker's `roman` and `symbol` fields can arrive with a
+        // non-ASCII glyph already destroyed: the major-seventh triangle, the
+        // half-diminished slashed o, sharp and flat signs. MIDI text events
+        // are written in a 7-bit alphabet by default, and any unmappable
+        // character is replaced by a literal '?' AT WRITE TIME. By the time we
+        // read the bytes the original character is gone; no amount of cleaning
+        // recovers it, and a repaired-looking "I7" would mean a DIFFERENT
+        // chord from the "Imaj7" that actually sounds.
+        //
+        // So we never DISPLAY the marker's glyph. The marker is
+        // self-describing: it also carries `deg` (an int) and `quality`
+        // (ChordQuality.ToString()), both ASCII by construction. The roman
+        // numeral is rebuilt from `quality` through the table below, which is
+        // ALWTTT-owned typography. Boundary position: MidiGenPlay decides what
+        // sounds, ALWTTT decides how it is spelled on screen.
+        //
+        // The table keys on the raw quality STRING, not on the ChordQuality
+        // enum, deliberately. That enum is package-owned and append-only: a
+        // value switch would fail to compile on a rename and go silently
+        // non-exhaustive on an addition. A string switch cannot do either --
+        // an unknown name falls to the default, which reports itself once per
+        // render so the table can be completed from a log line.
+        private static string RomanSuffixForQuality(string q)
+        {
+            if (string.IsNullOrEmpty(q)) return "";
+
+            switch (q)
+            {
+                // Confirmed against the MidiGenPlay authoring SSoT, 4.1.
+                case "Major": return "";       // numeral case carries it
+                case "Minor": return "";
+                case "Major7": return "maj7";
+                case "Minor7": return "m7";
+                case "Dominant7": return "7";
+                case "Major6": return "6";
+                case "Minor6": return "m6";
+                case "Dominant7sus4": return "7sus4";
+                case "Dominant9": return "9";
+                case "Major9": return "maj9";
+                case "Minor9": return "m9";
+
+                // NOT verified against MusicTheory.ChordQuality. These are the
+                // expected member names for the qualities whose Roman suffixes
+                // the authoring SSoT documents. If one is wrong the default
+                // branch fires and the [LOG-1] warning prints the real name;
+                // add it here then. A case that never matches costs nothing.
+                case "Diminished": return "dim";
+                case "Diminished7": return "dim7";
+                case "Augmented": return "aug";
+                case "HalfDiminished7": return "m7b5";
+                case "Sus2": return "sus2";
+                case "Sus4": return "sus4";
+
+                default: return null;   // unmapped -> bare numeral + report
+            }
+        }
+
+        /// <summary>[LOG-1] Rebuild the roman we show: authored accidental
+        /// (kept only when it is ASCII 'b' or '#') + numeral core + a suffix
+        /// derived from the quality field. A leading glyph that is neither is
+        /// dropped rather than displayed.</summary>
+        private static string NormalizeRoman(string raw, string qualityRaw,
+                                             out bool unmapped)
+        {
+            unmapped = false;
+            if (string.IsNullOrEmpty(raw)) return raw;
+
+            const string Numerals = "IVXivx";
+
+            string acc = "";
+            int i = 0;
+            if (Numerals.IndexOf(raw[0]) < 0)
+            {
+                if (raw[0] == 'b' || raw[0] == '#') acc = raw[0].ToString();
+                i = 1;                                  // consume it either way
+            }
+
+            int j = i;
+            while (j < raw.Length && Numerals.IndexOf(raw[j]) >= 0) j++;
+            if (j == i) return raw;                     // no numeral core found
+
+            string suffix = RomanSuffixForQuality(qualityRaw);
+            if (suffix == null) { unmapped = true; suffix = ""; }
+
+            return acc + raw.Substring(i, j - i) + suffix;
+        }
+
+        /// <summary>[LOG-1] A field that carries a replacement marker is a
+        /// field whose original character is unrecoverable.</summary>
+        private static bool LooksDamaged(string s) =>
+            !string.IsNullOrEmpty(s) &&
+            (s.IndexOf('?') >= 0 || s.IndexOf('\uFFFD') >= 0);
+
+        /// <summary>[LOG-1] The diagnostic instrument. Fires at most once per
+        /// render and prints the RAW fields, which is how we tell the two
+        /// possible causes apart: if `raw sym` still shows a real sharp or
+        /// flat sign, the MIDI transport is fine and the package wrote the
+        /// '?' itself; if `raw sym` is damaged too, the transport is
+        /// destroying the whole class of glyphs.</summary>
+        private void ReportChordTagDamage(string rawRoman, string rawSym,
+                                          string qualityRaw, string shownRoman,
+                                          bool unmapped)
+        {
+            if (_chordTagDamageReported) return;
+            if (settings == null || !settings.logMidiMusicManager) return;
+            if (!unmapped && !LooksDamaged(rawRoman) && !LooksDamaged(rawSym))
+                return;
+
+            _chordTagDamageReported = true;
+            Debug.LogWarning(
+                $"{DebugTag} <color=#ff8844>[LOG-1]</color> chd tag repaired - " +
+                $"raw roman='{rawRoman}' raw sym='{rawSym}' " +
+                $"quality='{qualityRaw}' => shown roman='{shownRoman}'" +
+                (unmapped
+                    ? "  ** QUALITY NOT IN SUFFIX TABLE - add this name to " +
+                      "RomanSuffixForQuality **"
+                    : ""));
         }
 
         // Supports new and old formats:
@@ -2068,24 +2232,38 @@ namespace ALWTTT.Managers
             if (parts.Length >= 6 && int.TryParse(parts[1], out var chParsed))
             {
                 ch = chParsed;
-                label.roman = parts[2];
                 label.sym = parts[3];
                 label.deg = (parts.Length >= 5 && int.TryParse(parts[4], out var d)) ? d : 0;
                 label.quality = (parts.Length >= 6 &&
                                  Enum.TryParse<ChordQuality>(parts[5], true, out var q))
                                 ? q : (ChordQuality?)null;
+
+                // [LOG-1 / D-LOG-1=B] Rebuild the roman from `quality` instead
+                // of trusting the marker's glyph. `sym` is deliberately left
+                // RAW here: it is the evidence the ST-LOG-2 discriminator
+                // reads, and it is sanitised at display time instead.
+                label.roman = NormalizeRoman(parts[2], parts[5], out var unmapped);
+                ReportChordTagDamage(parts[2], label.sym, parts[5],
+                                     label.roman, unmapped);
                 return true;
             }
 
             // Back-compat (no channel)
             if (parts.Length >= 3)
             {
-                label.roman = parts[1];
                 label.sym = parts[2];
                 label.deg = (parts.Length >= 4 && int.TryParse(parts[3], out var d2)) ? d2 : 0;
                 label.quality = (parts.Length >= 5 &&
                                  Enum.TryParse<ChordQuality>(parts[4], true, out var q2))
                                 ? q2 : (ChordQuality?)null;
+
+                // [LOG-1] Same treatment on the legacy shape. The quality
+                // field may be absent here; NormalizeRoman then returns the
+                // bare numeral, which is still better than a '?' on screen.
+                string qRaw2 = parts.Length >= 5 ? parts[4] : null;
+                label.roman = NormalizeRoman(parts[1], qRaw2, out var unmapped2);
+                ReportChordTagDamage(parts[1], label.sym, qRaw2,
+                                     label.roman, unmapped2);
                 return true;
             }
 
@@ -2227,7 +2405,8 @@ namespace ALWTTT.Managers
                 var path = Path.Combine(dir, fileName);
                 File.WriteAllBytes(path, data);
 
-                if (logDebug) Debug.Log($"{DebugTag} DevDumpMidi -> {path}");
+                if (logDebug && logVerbose)   // [LOG-1] verbose
+                    Debug.Log($"{DebugTag} DevDumpMidi -> {path}");
             }
             catch (Exception ex)
             {
@@ -2281,6 +2460,12 @@ namespace ALWTTT.Managers
         public ResolvedSource LastSharedProgressionSource { get; private set; }
         public string LastSharedProgressionAssetName { get; private set; }
 
+        // [JAM-1 / P7] Runtime CLONE of the progression that won the shared
+        // channel on the last render. Session-lifetime only: it is a runtime
+        // ScriptableObject, NOT an asset. Never serialize it, never write it
+        // to disk, never expect it to survive a domain reload.
+        public MidiGenPlay.ChordProgressionData LastSharedProgressionData { get; private set; }
+
 #if ALWTTT_DEV
         /// <summary>[CSV-3] Musical identity the last render ACTUALLY used, read from the
         /// PartConfig AFTER generation (post ChordTrack step-2b tonality alignment).
@@ -2324,7 +2509,9 @@ namespace ALWTTT.Managers
             volume01 = Mathf.Clamp01(volume01);
             _lastKnownVol01[channel] = volume01;
             WriteChannelVolume01(channel, volume01); // runtime mix only [BAL-1 composed]
-            if (logDebug) Debug.Log($"{DebugTag} SetChannelVolume ch={channel} vol={volume01:0.##}");
+            // [LOG-1] verbose: fires per channel, per render.
+            if (logDebug && logVerbose)
+                Debug.Log($"{DebugTag} SetChannelVolume ch={channel} vol={volume01:0.##}");
         }
 
         public void SetMusicianVolume01(string musicianId, float volume01)

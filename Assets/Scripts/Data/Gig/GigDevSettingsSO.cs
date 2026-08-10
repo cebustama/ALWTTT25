@@ -7,7 +7,7 @@ namespace ALWTTT.Data
     /// per slate D6: log gating, debug-mode flags, and per-feature debug
     /// pickers. Unrelated to DevModeController (runtime cheat menu).
     ///
-    /// [§5.3.5] Also hosts the demo-build auto-start switch + reference to
+    /// [S5.3.5] Also hosts the demo-build auto-start switch + reference to
     /// the baked DemoLaunchConfigSO. GigSetupController reads these in
     /// Start() and bypasses the picker UI when the switch is on. Locality
     /// per DC-1=C (dev settings, not flow settings).
@@ -29,6 +29,21 @@ namespace ALWTTT.Data
         [SerializeField] private bool useLogs = true;
         [SerializeField] private bool useCompositionLogs = true;
 
+        // [LOG-1 / D-LOG-3=B] Second logging tier. UseLogs is the master
+        // switch; this one gates the chatty per-render / per-loop dumps whose
+        // owning milestone is already closed (S5a smoke, B3 LoopCtx, cache
+        // DIAG blocks, theory tables).
+        //
+        // The six test-bearing lines do NOT hang off this flag and must stay
+        // visible with LogVerbose OFF:
+        //   [ORDER-1] . [JAM-1] . [JAM-2] . [B1][stemCache] (WITHOUT [DIAG])
+        //   . [DBG-C2/CacheBypass] . "Timeline ch="
+        // Authority: SSoT_Dev_Mode (log levels section).
+        [SerializeField, Tooltip("Second logging tier. Leave OFF for a " +
+            "readable console; turn ON to restore the per-render diagnostic " +
+            "dumps. Does NOT gate the lines the smoke tests depend on.")]
+        private bool logVerbose = false;
+
         public bool UseLogs
         {
             get => useLogs;
@@ -39,6 +54,16 @@ namespace ALWTTT.Data
         {
             get => useCompositionLogs;
             set => useCompositionLogs = value;
+        }
+
+        /// <summary>[LOG-1] Verbose tier. Read together with UseLogs: a line
+        /// is verbose-visible only when UseLogs AND LogVerbose are both true.
+        /// Setter exposed so Dev Mode / editor scripts can flip it at runtime,
+        /// matching the pattern of the debug-surface flags below.</summary>
+        public bool LogVerbose
+        {
+            get => logVerbose;
+            set => logVerbose = value;
         }
 
         // --- Debug surfaces ---
@@ -70,13 +95,13 @@ namespace ALWTTT.Data
             set => debugMusicianVolume = value;
         }
 
-        // --- Demo-build auto-start [§5.3.5] ---
+        // --- Demo-build auto-start [S5.3.5] ---
 
-        [Header("Demo Auto-start [§5.3.5]")]
+        [Header("Demo Auto-start [S5.3.5]")]
         [SerializeField, Tooltip("When true AND DemoLaunchConfig is non-null, " +
             "GigSetupController.Start() bypasses the picker UI and immediately " +
             "launches the gig using the baked values. Production builds keep " +
-            "this OFF — manual GigSetup interaction is preserved. DC-1=C locks " +
+            "this OFF - manual GigSetup interaction is preserved. DC-1=C locks " +
             "locality on GigDevSettings (not GigFlowSettings).")]
         private bool autoStartFromDefaults = false;
 

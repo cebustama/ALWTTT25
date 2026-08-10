@@ -18,6 +18,32 @@ namespace ALWTTT
     {
         private const string DebugTag = "<color=green>HandController:</color>";
 
+        // ---- [LOG-1 / D-LOG-3=B] Log gating ------------------------------
+        // This class shipped entirely ungated and fires on every draw, drag
+        // and discard, which is a large share of the console during a gig.
+        // Every Debug.Log here was mechanically rewritten to LogV; the message
+        // text is byte-identical, only the gate is new. Debug.LogWarning and
+        // Debug.LogError were deliberately NOT touched.
+        //
+        // Fail-OPEN when there is no GigManager: this switch is a gig dev
+        // setting, and outside a gig (deck editor, menus) it does not apply --
+        // going silent there would hide diagnostics the toggle never governed.
+        private static bool VerboseLogs
+        {
+            get
+            {
+                var gm = ALWTTT.Managers.GigManager.Instance;
+                var d = gm != null ? gm.DevSettings : null;
+                if (d == null) return true;          // no gig: unchanged behaviour
+                return d.UseLogs && d.LogVerbose;
+            }
+        }
+
+        private static void LogV(string msg)
+        {
+            if (VerboseLogs) Debug.Log(msg);
+        }
+
         [Header("Card Settings")]
         [SerializeField] private bool cardUprightWhenSelected = true;
         [SerializeField] private bool cardTilt = true;
@@ -160,7 +186,7 @@ namespace ALWTTT
             UpdateCurvePoints();
 
             // M1.9 temp log
-            Debug.Log($"{DebugTag} [M1.9] InitHand — cardBaseScale={cardBaseScale} " +
+            LogV($"{DebugTag} [M1.9] InitHand — cardBaseScale={cardBaseScale} " +
                 $"hoverMult={cardHoverScaleMultiplier} scaleFactor={sf} " +
                 $"scaledHandSize={scaledHandSize}");
         }
@@ -213,7 +239,7 @@ namespace ALWTTT
         /// </summary>
         public void AddCardToHand(CardBase card, int index = -1)
         {
-            Debug.Log($"{DebugTag} Adding card {card.CardDefinition.DisplayName} to hand");
+            LogV($"{DebugTag} Adding card {card.CardDefinition.DisplayName} to hand");
 
             // Set initial scale immediately so cards don't pop in at prefab size (M1.9)
             card.transform.localScale = Vector3.one * cardBaseScale;
@@ -400,7 +426,7 @@ namespace ALWTTT
                     if (isHighlighted && !_hasLoggedScaleInit)
                     {
                         _hasLoggedScaleInit = true;
-                        Debug.Log($"{DebugTag} [M1.9] First hover scale: " +
+                        LogV($"{DebugTag} [M1.9] First hover scale: " +
                             $"card={card.CardDefinition.DisplayName} " +
                             $"target={targetScale:F3} current={cardTransform.localScale.x:F3}");
                     }
@@ -504,7 +530,7 @@ namespace ALWTTT
                 var musician = IsOverMusician(mousePos);
                 if (musician != null)
                 {
-                    //Debug.Log(musician.MusicianCharacterData.CharacterName);
+                    //LogV(musician.MusicianCharacterData.CharacterName);
                 }
 
                 heldCard.UpdateDescription(musician);
@@ -533,10 +559,10 @@ namespace ALWTTT
                     /*
                     // ENTER / EXIT logs
                     if (_prevHoverZone != CardDropZone.None)
-                        Debug.Log($"{DebugTag} Exited zone: {_prevHoverZone}");
+                        LogV($"{DebugTag} Exited zone: {_prevHoverZone}");
 
                     if (_hoverZone != CardDropZone.None)
-                        Debug.Log($"{DebugTag} Entered zone: {_hoverZone}");
+                        LogV($"{DebugTag} Entered zone: {_hoverZone}");
                     */
 
                     _prevHoverZone = _hoverZone;
@@ -548,7 +574,7 @@ namespace ALWTTT
                     if (_hoverZone != CardDropZone.None)
                     {
                         _pendingDropZone = _hoverZone;
-                        Debug.Log($"<color=yellow>{DebugTag} DROPPED on zone: " +
+                        LogV($"<color=yellow>{DebugTag} DROPPED on zone: " +
                             $"{_pendingDropZone} " +
                             $"(card='{heldCard.CardDefinition.DisplayName}')</color>");
                     }
@@ -560,7 +586,7 @@ namespace ALWTTT
 
         private void PlayCard(Vector2 mousePos)
         {
-            Debug.Log($"{DebugTag} Playing card...");
+            LogV($"{DebugTag} Playing card...");
 
             // Turn off Gig highlights if they were active
             if (useGigContext && GigManager != null)
@@ -620,7 +646,7 @@ namespace ALWTTT
 
             if (backToHand)
             {
-                Debug.Log($"{DebugTag} <color=red>Card couldn't be played.</color>");
+                LogV($"{DebugTag} <color=red>Card couldn't be played.</color>");
                 AddCardToHand(heldCard, selected);
             }
 
@@ -645,11 +671,11 @@ namespace ALWTTT
                     target = _resolveTargetByType(data.FixedPerformerType);
 
                     if (target != null)
-                        Debug.Log($"{DebugTag} [Gig] Fixed-target card -> " +
+                        LogV($"{DebugTag} [Gig] Fixed-target card -> " +
                             $"{target.MusicianCharacterData.CharacterName} " +
                             $"({data.FixedPerformerType}).");
                     else
-                        Debug.Log($"{DebugTag} [Gig] Fixed-target card but resolver returned null " +
+                        LogV($"{DebugTag} [Gig] Fixed-target card but resolver returned null " +
                             $"for {data.FixedPerformerType}.");
                 }
 
@@ -660,13 +686,13 @@ namespace ALWTTT
                     if (hovered != null)
                     {
                         target = hovered;
-                        Debug.Log($"{DebugTag} [Gig] Hover-target -> " +
+                        LogV($"{DebugTag} [Gig] Hover-target -> " +
                             $"{target.MusicianCharacterData.CharacterName}.");
                     }
                     else
                     {
                         target = GigManager.SelectedMusician as MusicianBase;
-                        Debug.Log($"{DebugTag} [Gig] Selected/Default target -> " +
+                        LogV($"{DebugTag} [Gig] Selected/Default target -> " +
                             $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
                     }
                 }
@@ -674,7 +700,7 @@ namespace ALWTTT
                 // 1c) If the card REQUIRES a musician and still none, abort.
                 if (data.RequiresMusicianTarget && target == null)
                 {
-                    Debug.Log($"{DebugTag} [Gig] " +
+                    LogV($"{DebugTag} [Gig] " +
                         $"Card requires musician target but none resolved.");
                     return false;
                 }
@@ -691,7 +717,7 @@ namespace ALWTTT
                 // 2a) Timing gate (song playing / between songs)
                 if (!GigManager.CanPlayActionCard(data))
                 {
-                    Debug.Log($"{DebugTag} [Gig] Cannot play action card " +
+                    LogV($"{DebugTag} [Gig] Cannot play action card " +
                               $"'{data.DisplayName}' in current timing. Returning to hand.");
                     return false;
                 }
@@ -706,7 +732,7 @@ namespace ALWTTT
                     if (session == null || !session.CanAffordInspiration(actionCost))
                     {
                         session?.FlashInspirationDenied();
-                        Debug.Log($"{DebugTag} [Gig] Action card '{data.DisplayName}' " +
+                        LogV($"{DebugTag} [Gig] Action card '{data.DisplayName}' " +
                             $"cost={actionCost} but session={(session == null ? "null" : "short")}. Denied.");
                         return false;
                     }
@@ -729,12 +755,12 @@ namespace ALWTTT
                 {
                     bandCharacter = _resolveTargetByType(data.FixedPerformerType);
                     if (bandCharacter != null)
-                        Debug.Log($"{DebugTag} [Gig] Action performer resolved by FixedPerformerType ({data.FixedPerformerType}).");
+                        LogV($"{DebugTag} [Gig] Action performer resolved by FixedPerformerType ({data.FixedPerformerType}).");
                 }
                 if (bandCharacter == null)
                 {
                     bandCharacter = GigManager.SelectedMusician;
-                    Debug.Log($"{DebugTag} [Gig] Action performer fallback to SelectedMusician.");
+                    LogV($"{DebugTag} [Gig] Action performer fallback to SelectedMusician.");
                 }
 
                 // If card requires a target, we must raycast and validate it.
@@ -766,13 +792,13 @@ namespace ALWTTT
                 if (bandCharacter is MusicianBase budgetPayer &&
                     !GigManager.TryConsumePlay(budgetPayer, isComposition: false))
                 {
-                    Debug.Log($"{DebugTag} [Gig][ECON-1] Action play denied — " +
+                    LogV($"{DebugTag} [Gig][ECON-1] Action play denied — " +
                         $"{budgetPayer.CharacterName} has no action plays left " +
                         "this period. Returning to hand.");
                     return false;
                 }
 
-                Debug.Log($"{DebugTag} [Gig] Zone hint = {zoneUsed}");
+                LogV($"{DebugTag} [Gig] Zone hint = {zoneUsed}");
 
                 // musician one-shot animation if the caster is a musician
                 if (bandCharacter is MusicianBase bandMusician)
@@ -812,11 +838,11 @@ namespace ALWTTT
                 target = _resolveTargetByType(data.FixedPerformerType);
 
                 if (target != null)
-                    Debug.Log($"{DebugTag} [Ship] " +
+                    LogV($"{DebugTag} [Ship] " +
                         $"Fixed-target card -> {target.MusicianCharacterData.CharacterName} " +
                         $"({data.FixedPerformerType}).");
                 else
-                    Debug.Log($"{DebugTag} [Ship] " +
+                    LogV($"{DebugTag} [Ship] " +
                         $"Fixed-target card but resolver returned null for " +
                         $"{data.FixedPerformerType}.");
             }
@@ -830,7 +856,7 @@ namespace ALWTTT
                 if (hovered != null)
                 {
                     target = hovered;
-                    Debug.Log($"{DebugTag} [Ship] Hover-target -> " +
+                    LogV($"{DebugTag} [Ship] Hover-target -> " +
                         $"{target.MusicianCharacterData.CharacterName}.");
                 }
                 else
@@ -839,7 +865,7 @@ namespace ALWTTT
                     // (may be the first musician if none highlighted)
                     target =
                         shipInteriorManager.GetSelectedMusicianOrDefault() as MusicianBase;
-                    Debug.Log($"{DebugTag} [Ship] Selected/Default target -> " +
+                    LogV($"{DebugTag} [Ship] Selected/Default target -> " +
                         $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}.");
                 }
             }
@@ -847,7 +873,7 @@ namespace ALWTTT
             // If the card REQUIRES a musician and still none, abort.
             if (data.RequiresMusicianTarget && target == null)
             {
-                Debug.Log($"{DebugTag} [Ship] " +
+                LogV($"{DebugTag} [Ship] " +
                     $"Card requires musician target but none resolved.");
                 return false;
             }
@@ -883,27 +909,27 @@ namespace ALWTTT
 
             if (!Physics.Raycast(ray, out var hit, 1000, targetLayer))
             {
-                Debug.Log($"{DebugTag} [Gig] No character hit by raycast.");
+                LogV($"{DebugTag} [Gig] No character hit by raycast.");
                 return false;
             }
 
             var character = hit.collider.gameObject.GetComponent<ICharacter>();
             if (character == null)
             {
-                Debug.Log($"{DebugTag} [Gig] Raycast hit but no ICharacter component.");
+                LogV($"{DebugTag} [Gig] Raycast hit but no ICharacter component.");
                 return false;
             }
 
             if (character.IsStunned)
             {
-                Debug.Log($"{DebugTag} [Gig] Target is stunned; cannot target.");
+                LogV($"{DebugTag} [Gig] Target is stunned; cannot target.");
                 return false;
             }
 
             var baseTarget = character.GetCharacterBase();
             if (baseTarget == null)
             {
-                Debug.Log($"{DebugTag} [Gig] ICharacter.GetCharacterBase returned null.");
+                LogV($"{DebugTag} [Gig] ICharacter.GetCharacterBase returned null.");
                 return false;
             }
 
@@ -944,7 +970,7 @@ namespace ALWTTT
             {
                 if (baseTarget.GetCharacterType() != CharacterType.Musician)
                 {
-                    Debug.Log($"{DebugTag} [Gig] Card expects a musician target.");
+                    LogV($"{DebugTag} [Gig] Card expects a musician target.");
                     return false;
                 }
             }
@@ -952,7 +978,7 @@ namespace ALWTTT
             {
                 if (baseTarget.GetCharacterType() != CharacterType.Audience)
                 {
-                    Debug.Log($"{DebugTag} [Gig] Card expects an audience target.");
+                    LogV($"{DebugTag} [Gig] Card expects an audience target.");
                     return false;
                 }
             }
@@ -1107,7 +1133,7 @@ namespace ALWTTT
         public void RecalculateCurve()
         {
             InitHand();
-            Debug.Log($"{DebugTag} [M1.9] RecalculateCurve — curve recomputed with cardBaseScale={cardBaseScale}");
+            LogV($"{DebugTag} [M1.9] RecalculateCurve — curve recomputed with cardBaseScale={cardBaseScale}");
         }
 
 #if UNITY_EDITOR

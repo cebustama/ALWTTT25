@@ -59,8 +59,8 @@ Categories: **[code]** = confirmed by reading ALWTTT source; **[obs]** = observe
 | 2 | Style bundle name | ALWTTT [code] | Yes | `TrackEntry.styleBundle.name` |
 | 3 | Instrument override (SO / type) | ALWTTT [code] | Yes | `TrackEntry.overrideMelodicInstrument / overridePercussionInstrument / overrideInstrumentType` |
 | 4 | Time signature / tonality / root | ALWTTT [code] | Yes | `PartEntry.timeSignature / tonality / rootNote` |
-| 5 | Tempo range / scale / explicit bpm | ALWTTT [code] | Yes | `PartEntry.tempoRangeOverride / tempoScale / absoluteBpmOverride` |
-| 6 | **Resolved BPM** | ALWTTT [code] | Yes (post-render) | `PartCache.resolvedBpm`, surfaced via `OnPartBpmResolved` |
+| 5 | Tempo range / scale / explicit bpm | ALWTTT [code] | Yes | `PartEntry.tempoRangeOverride / tempoScale / absoluteBpmOverride` — **entregado CTX-2a (2026-08-03)**: los tres visibles en la línea de lectura; `absoluteBpmOverride` además **editable** (§18.13 de `SSoT_Dev_Mode.md`) |
+| 6 | **Resolved BPM** | ALWTTT [code] | Yes (post-render) | `PartCache.resolvedBpm`, surfaced via `OnPartBpmResolved` — **entregado CTX-2a (2026-08-03)**; el cortocircuito de caché que lo gobierna está escrito en `SSoT_Runtime_CompositionSession_Integration.md` §8 inv 13 |
 | 7 | **Resolved melodic instrument** | ALWTTT via MGP readback [code] | Yes (post-render) | `RenderSinglePart` return tuple `pinned` (`Dictionary<musicianId, MIDIInstrumentSO>`). **BASS-1 carve-out:** multi-track musicians have no reliable per-role readback (last-role-wins); see §3.4 |
 | 8 | Resolved percussion instrument | ALWTTT [code] | Yes | Read from built `SongConfig` `TrackConfig.PercussionInstrument` (ALWTTT picks it in `SongConfigBuilder.FromUI`) |
 | 9 | **Resolved chord progression (Roman + symbol, per chord)** | ALWTTT via in-MIDI tags [code] | In-process now; needs MMM accessor | `chd:<ch>:<roman>:<sym>:<deg>:<quality>` tags parsed into `MidiMusicManager._chordTimelineByChannel` (private). Needs a public read accessor; MGP to confirm the tag contract (§ handoff A2) |
@@ -68,7 +68,7 @@ Categories: **[code]** = confirmed by reading ALWTTT source; **[obs]** = observe
 | 11 | Resolved **rhythm pattern identity** (palette pick) | MGP [MGP] | **No** | Resolved inside `RhythmTrackComposer`; not returned. Requires readback extension |
 | 12 | Resolved **melody phrase archetype** | MGP [MGP] | **No** | Resolved package-side; not returned. Requires readback extension |
 | 13 | Resolved **bass pattern identity** | MGP [MGP] | **No** | Same as 11/12 for bass tracks |
-| 14 | **Chord expression** (ska strum, etc.) | MGP [MGP?] | Unknown | Need MGP to say whether expression is a deterministic field of the style bundle (ALWTTT reads it from the asset directly) or resolved/randomized in the composer (needs readback) |
+| 14 | **Chord expression** (ska strum, etc.) | ALWTTT (bundle) | **Yes — CTX-2b, 2026-08-03** | **DETERMINISTA.** Campo persistente del style bundle (`SSoT_Composer_Backing_Track §8.1`); el articulador es RNG-free (§8.3). El centinela `Random` rueda por evento de acorde en un substream dedicado derivado del seed (§8.5) ⇒ reproducible bajo seed pineado. Editable en vivo desde Dev Mode §18.14 vía clon de bundle. **Salvedad:** con `arpeggioRate = Random` la figura concreta se suprime — F-ARTIC-RATE-RANDOM-1, boundary §8.7 |
 
 **R1 conclusion:** rows 1–8 are shippable ALWTTT-side today. Row 9 is available in-process and needs only an accessor. Rows 10–14 are the genuine MidiGenPlay dependency and are the core of the companion handoff.
 
@@ -146,6 +146,15 @@ The string→`ChordProgressionData` parser is the MidiGenPlay Chord Progression 
 - **Recommendation:** A. The BASS-1 precedent is exactly "write the request down once so the workaround isn't mistaken for design." Recording the open request now is consistent and prevents re-derivation.
 
 **D3 — R2a model target (audition vs commit).** Deferred to implementation (see §4.3). Not owed at this stage.
+
+**D4 — plano de escritura del override de articulación. [RESUELTO 2026-08-03 — CTX-2b]**
+**D-CTX2B-1 = A:** clon en runtime del `TrackStyleBundleSO` con `chordExpression` /
+`arpeggioRate` mutados, asignado a `TrackEntry.styleBundle`; el asset nunca se muta.
+Elegido sobre (B) mapa de override hilado hasta `RenderSinglePart` —exige parámetro nuevo
+en la frontera ⇒ fuera de alcance ALWTTT-only— y (C) promover los campos a truth de
+primera clase en `TrackEntry` —es diseño de gameplay (cartas de articulación), no
+herramienta. **D-CTX2B-2 = A:** el plano es consumer-side puro y **no** dispara ningún
+ask nuevo de paquete. Detalle e invariantes del plano: `SSoT_Dev_Mode.md §18.14`.
 
 ---
 

@@ -404,6 +404,104 @@ resolution rule: `SSoT_Runtime_CompositionSession_Integration.md` §12.
 
 ---
 
+### 5.17 — Composition cards: tonalidad, adopción y armonía compartida (R3, 2026-08-08)
+
+**D4=A — regla normativa.** Una carta **no debe** llevar a la vez un `TonalityEffect` y un
+bundle de Backing con `adoptProgressionTonality`. La adopción gana en silencio en tiempo de
+compose y el efecto se convierte en una mentira que el autor no puede ver. Validador de dos
+capas: editor al guardar (`DrawCompositionPayloadEditor`) + aviso en runtime al jugar
+(`TryPlayCompositionCard`).
+
+**Regla de autoría modal.** Escribir grados planos, sin alteraciones: en Frigio, el grado II
+*es* ♭II. Escribir `bII` lo baja dos veces. El color viene de la tonalidad adoptada, no de la
+notación.
+
+**Pre-flight de adopción.** Toda entrada de paleta destinada a adoptar necesita una lista
+`tonalities` no vacía y con un **modo real en `[0]`**. Que la lista esté poblada no basta:
+un esqueleto mode-agnostic con Ionian en primera posición adopta Ionian y no hace nada.
+
+**Peligro de `subdivisions`.** Es el denominador de unidad, derivado en la ruta Roman.
+Editarlo a mano reescala los eventos; el síntoma es acordes que cambian muy rápido seguidos
+de silencio.
+
+**Tonalidad — regla de persistencia.** La tonalidad de la parte la mueven **solo** las cartas
+con autoridad tonal (`TonalityEffect`, `ModulationEffect`), que mutan el modelo de UI antes
+del render. `adoptProgressionTonality` **no** es una de esas cartas: la adopción muta el
+`PartConfig` por render durante el compose y **nunca alcanza el modelo**. Un modo adoptado
+dura por tanto exactamente lo que dura la carta que lo adopta — *la carta es el modo* — y se
+propaga al resto de la parte únicamente a través de **JAM-2** mientras haya una entrada de
+jam viva.
+
+> ⚠ **Esto CORRIGE, y no reemplaza en silencio, a D-R3C-3 tal como quedó recogida en el
+> handoff §2.** La decisión (**A**) sigue en pie; lo que era falso es su **premisa** escrita
+> ("la tonalidad de la parte persiste hasta que una carta con autoridad tonal la mueva"): eso
+> era cierto del modelo, pero se estaba leyendo como cierto también de la adopción. Evidencia:
+> toda línea de adopción lee `Ionian -> X`, y `[SongConfigBuilder]` reporta `Tonality: Ionian`
+> en cada render, incluidos los que adoptan. La decisión pasa a citarse como **D-R3C-3=A′**.
+
+**NO "arreglar" el aviso de desajuste modal.** Cuando JAM-2 no está en juego, el paquete
+puede emitir:
+
+> `Progression '…' was authored for [Lydian] but part 'X' is Ionian; rendering AsAuthored in
+> the part's tonality (card wins). Consider qualityRenderPolicy=DiatonicToPart on the asset
+> if it should adapt diatonically.`
+
+**No apliques `DiatonicToPart` a entradas de paleta modal.** Bajo esa política, el II de un
+vamp lidio se reproyectaría a un acorde menor cuando la parte lee Ionian: la carta de estilo
+cambiaría en silencio los acordes de la canción — exactamente el fallo que JAM-1 existe para
+evitar. `AsAuthored` es lo correcto para vamps ligados a un modo. `DiatonicToPart` es para
+progresiones pensadas para adaptarse (p. ej. `Test - Lab Progression`).
+
+**Nota acotada sobre `IV9` y grados desnudos.** Verificado en vivo: un asset modal almacenado
+que contiene `IV9` renderiza correctamente (`GSharp9(IV⁹)`). El peligro es **solo de
+re-importación**: `9` está fuera del alfabeto de calidades v1 y los grados desnudos se
+resuelven por inferencia de mayúsculas/minúsculas, así que re-importar esas cadenas Roman
+puede no reproducir el asset almacenado. Los assets almacenados son seguros: trátalos como
+artefactos autorados, no como texto round-trippable.
+
+### 5.18 — Arquetipo de carta articulation-only (R3, 2026-08-08)
+
+**No requiere funcionalidad nueva.** Una carta de Backing articulation-only ya es legal hoy:
+un `BackingCardConfigSO` con `progressionOverride` **y** `progressionPalette` en `None` es una
+carta que funciona (R2d reescribió la guarda del paquete para que el default del host solo se
+descarte cuando la fila de Backing *lleva armonía de verdad*).
+
+**JAM-1 es lo que hace bueno el arquetipo.** Antes, una carta articulation-only caía a la
+paleta por defecto del host y por tanto traía *acordes distintos*: el jugador cambiaba el
+estilo y perdía la canción en silencio. Con JAM-1 la armonía almacenada se impone sobre la
+pista de Backing, así que la carta entrega exactamente lo que promete: **misma progresión,
+ropa nueva.** JAM-2 extiende esa garantía a contextos modales.
+
+**Figuras disponibles** (`ChordExpressionType`, todas autorables hoy, cero código):
+`Block` · `PerBeat` · `Offbeat` (upstroke ska/reggae) · `Staccato` · `ArpeggioUp` /
+`ArpeggioDown` (usan `arpeggioRate`) · `Random` (pool ponderado vía `randomFigureWeights`) ·
+`PowerChord` · `Chugging` (palm-mute; reutiliza `arpeggioRate` como tasa de pulso) ·
+`BassUpperSplit` · `Bossa`.
+
+> ⚠ **Trampa de nombres.** `BassUpperSplit` (valor 9) se llamaba antes `Bossa` y se renombró
+> porque su alternancia regular downbeat/offbeat suena como un upstroke ska tranquilo
+> (hallazgo F-BOSSA-FEEL). La figura de comping auténtica es `Bossa` (valor 10): pulso LOW en
+> 0.0 y **2.0 fuerte** (el peso de surdo cae en el tiempo 2, no en el downbeat), UPPERS en 0.0
+> y 1.0 más la síncopa en 2.5 sostenida hasta el fin de ciclo, sin ataque en el tiempo 3.
+> `arpeggioRate` se ignora. **Autorar `Bossa` esperando ska, o `BassUpperSplit` esperando
+> bossa, es el error por defecto de esta familia.**
+
+**El bajo es articulation-only por construcción.** `BasslineCardConfigSO` no tiene canal de
+progresión en absoluto — solo `chordExpression`, `arpeggioRate`, `randomFigureWeights`,
+`randomRerollChance`, `velocityJitter`. El bajo siempre lee la progresión compartida, y Dev
+Mode veta de plano los overrides de patrón de bajo (*"bass renders the shared progression;
+override Backing instead"*).
+
+**Slap vs finger son dos cosas a la vez:** el timbre viene del `InstrumentEffect`
+(`InstrumentEffect_SlapBass`, hoy `RandomFromList {SB1, SB2}`); la figura viene del bundle.
+Una carta de slap convincente suele llevar ambos. Preferir `PocketCouplingMode.SelfPocket`
+para cartas nuevas: es autónomo y **no** arma el deber de caché de la frontera §8.4 que sí
+arma `SlapPocket`.
+
+**Desequilibrio conocido (CONT-B, D9):** Fingered mide por debajo de Slap, y la causa es
+*payload, no instrumento* — los boosts de Pocket son exclusivos de slap/pop. Contar con esa
+diferencia al autorar el par; no es un defecto nuevo.
+
 ## 6. Backwards compatibility policy
 
 WAUC-style rule:

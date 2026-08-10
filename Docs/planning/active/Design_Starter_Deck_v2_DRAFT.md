@@ -1,11 +1,13 @@
 # Design_Starter_Deck_v2 — ALWTTT (R0)
 
-> **v2 finalization (2026-07-31, DOC-APPLY-1 — R0 P9 + D5):** this document (formerly `Design_Starter_Deck_v2_DRAFT.md`) **is** the final v2 design record, confirmed by the user. Renamed and placed at `Docs/planning/active/Design_Starter_Deck_v2.md`; registered in `SSoT_INDEX.md` + `ssot_manifest.yaml` (R0 P4.1/P5).
+> **v2 finalization (2026-07-31, DOC-APPLY-1 — R0 P9 + D5):** this document **is** the final v2 design record, confirmed by the user.
+>
+> **Rename correction (2026-08-08, MANIFEST-1 / D6=B).** The line above claimed the file had been renamed to `Design_Starter_Deck_v2.md` and placed at `Docs/planning/active/`. A repo-tree export shows **the rename never happened on disk**: the file is still `Design_Starter_Deck_v2_DRAFT.md`, and `SSoT_INDEX.md` + `ssot_manifest.yaml` were pointing at a path that did not exist. Resolved by moving the *entry*, not the file — the `_DRAFT` suffix is accurate until R8 closure, and renaming now would invalidate the references already written into `changelog-ssot.md` and `RosterExpansion_Sub_Roadmap.md`. **Drop the suffix at R8**, when the document stops being a draft and its `.asset` files become runtime-authoritative.
 
 **Status:** Locked design — R0 output (2026-07-23), D-R0-1..12 **locked by user 2026-07-23** (D-R0-2=B amended: Compound Cycle 6/8 into starter, Waltz Protocol 3/4 to reward). Planning only; numbers subject to playtest revision (N5).
 **Scope:** 4-musician starter deck (Sibi, C2, Conito, Zig), finisher layer, per-musician reward slate, per-musician identity map with tempo lean, Track Card Levels resolution summary, singalong design.
 **Classification:** `reference (planning)` — **not a SSoT**. Same lifecycle as `Design_Starter_Deck_v1.md`: when R4–R8 authoring closes, the `.asset` files become runtime-authoritative and this doc is retained as rationale.
-**Supersession:** supersedes `Design_Starter_Deck_v1.md` **as forward design intent** at R8 closure; v1 remains the authoritative record of the S5-era 17-card demo starter until then (D1=C — the live demo front S5i→S5j runs on v1 untouched).
+**Supersession:** supersedes `Design_Starter_Deck_v1.md` **as forward design intent** at R8 closure; v1 remains the **design-rationale record** of the S5-era 17-card demo starter until then (D1=C — the live demo front S5i→S5j runs on v1 untouched). *Wording corrected 2026-08-08 (MANIFEST-1 / D10=B): v1 was described here as the "authoritative record", which contradicted v1's own classification clause — since M4.6 authoring closed, the authored `.asset` files are the runtime authority and v1 is retained rationale. v1 therefore stays filed in `Docs/archive/`; what was wrong was the word, not the folder.*
 **Placement:** `Docs/planning/active/Design_Starter_Deck_v2.md`
 **Campaign home:** `Docs/planning/active/RosterExpansion_Sub_Roadmap.md` (batches, decisions D1–D6, asks §8).
 
@@ -56,8 +58,8 @@ Domain split: 11 Composition / 11 Action-domain (7 basic actions incl. generics 
 | 12 | **Slap Bass v1** *(working)* | 1 | Comp | Conito | Bassline. `BasslineCardConfigSO` — `Offbeat` + `pocketMode = SelfPocket` (`[Slap, Pop]` @ `Beat`, boosts 0/+12); Slap Bass patch via `InstrumentEffect_SlapBass` in **`RandomFromList` over {Slap Bass 1, Slap Bass 2}** (D-R2-3, D-R2-11). Contrast axis vs Finger Bass = **rhythmic displacement** (D-R2-2=A), reinforced by the +12 pop contour | 0 / 2 | new, R2 |
 | 13 | **Static Rush** *(working)* | 1 | Action | Conito | `DrawCards(2)` + `ModifyStress(+1, Self)` (D-R0-4) | 0 / — | new, R2 |
 | 14 | **Overload** | 1 | **Finisher (Action domain, D-R0-5)** | Conito | Requires **Voltage ≥ 3** on Conito (consumed): one bonus loop this song + one-loop Conito guitar solo track with channel duck, full revert after (R5 guarded API) | 2 / — | new, R5 |
-| 15 | **Rise Up** *(working)* | 1 | Comp | Zig | Melody. `MelodyCardConfigSO.patternOverride` = authored ascending-degree `MelodyPatternData` (degree-based ⇒ key/mode-adaptive; tiles to part length per D-MEL5.1). Sung glide via Pink Trombone | 0 / 3 | new, R3 |
-| 16 | **Showtime** *(working)* | 1 | Comp | Zig | Melody. `phrasePaletteOverride` — anthemic phrase palette (existing archetypes) | 0 / 3 | new, R3 |
+| 15 | **Rise Up** ✅ **autorada R3 (2026-08-08)** | 1 | Comp | Zig | Melody. `MelodyCardConfigSO.patternOverride` = authored ascending-degree `MelodyPatternData` (degree-based ⇒ key/mode-adaptive; tiles to part length per D-MEL5.1). Sung glide via Pink Trombone. Verificada adaptativa a raíz (A#, B, E, G# Ionian) y a modo (Aeolian) | 0 / 3 | new, R3 |
+| 16 | **Showtime** ✅ **autorada R3 (2026-08-08)** | 1 | Comp | Zig | Melody. `phrasePaletteOverride` — anthemic phrase palette (existing archetypes) + `style` + `leadingOverride`; `patternOverride` **debe** quedar null. Operativa desde ST-R3-11 PASS | 0 / 3 | new, R3 |
 | 17 | **Wink** | 1 | Action | Zig | `ApplyStatusEffect(captivated, +2, AudienceCharacter)` — first Captivated sender (amplification layer in `ApplyIncomingVibe`, R1) | 0 / — | new, R1 |
 | 18 | **Double Harmony** (Tier A) | 1 | **Finisher** | Zig | Adds a Harmony-role MIDI track harmonizing the current melody (`HarmonyCardConfigSO`; composer exists package-side; listening validation owed at R6 open). Tier B (2nd sung voice) deferred | 3 / 3 | new, R6 |
 
@@ -136,3 +138,5 @@ Locked at R0 (D-R0-7/8): lifetime **per-part** · max level **3** · replace-by-
 ## 9. Update rule
 
 Update at each campaign batch close that authors v2 content (R1–R8). At R8 closure: authored `.asset` files become runtime-authoritative; this doc retained as rationale; v1 fully historical; update `Roadmap_ALWTTT.md`, `CURRENT_STATE.md`, `changelog-ssot.md`, sub-roadmap per its §12.
+
+**R3 close (2026-08-08).** Las dos comps de Zig (§3, filas 15–16) quedan **autoradas**. Nota de comprensión **N7** confirmada en la práctica: **Rise Up** es la «default comp» legible de Zig — patrón verbatim, resultado predecible en cualquier tonalidad — mientras Showtime es la variante procedural, menos predecible por construcción. Si R8 necesita el fallback sancionado de N7 (copias exactas de las cartas más legibles), Rise Up es la candidata de Zig, no Showtime.

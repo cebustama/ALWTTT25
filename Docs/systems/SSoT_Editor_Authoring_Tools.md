@@ -157,7 +157,7 @@ Generic mode renders the entry list with the per-row `Starter` checkbox + `Copie
 
 **File:** `Assets/Scripts/Cards/Editor/CardEditorWindow.LLM.cs` (partial-class extension)
 
-A foldout panel providing LLM-assisted single-card authoring. Pattern adopted from MidiGenPlay's drum/chord LLM panels (third adopter) — pattern authority is MidiGenPlay `authoring/SSoT_Authoring_LLM_Generation.md` §7 (link, do not duplicate). End-to-end mechanism is documented in `reference/Report_CardLLM_Pipeline.md` (explanatory reference, not authority).
+A foldout panel providing LLM-assisted single-card authoring. Pattern adopted from MidiGenPlay's drum/chord LLM panels (third adopter) — pattern authority is MidiGenPlay `authoring/SSoT_Authoring_LLM_Generation.md` §7 (link, do not duplicate). End-to-end mechanism **ya no tiene documento**: `reference/Report_CardLLM_Pipeline.md` fue retirado y confirmado inexistente el 2026-08-08 (MANIFEST-1, señal F16). El código es hoy la única descripción del pipeline de siete etapas. Re-documentarlo aquí o aceptar solo-código es una decisión pendiente, no una limpieza.
 
 **Panel inputs:** optional `LLMClientData` override (when empty, the first `LLMClientData` asset in the project is used); free-text brief; card-kind hint; track-role hint (Backing / Melody / Harmony / Rhythm / Bassline, or "let the model decide"); **intent seed** (seeds the deterministic palette pick — same payload + same seed ⇒ same palette; Randomize button); max-prompt-chars budget (pre-network cost cap; `0` = no cap; an over-budget prompt fails before anything is sent).
 
@@ -595,7 +595,7 @@ stands unchanged.)
 | ALWTTT ↔ MidiGenPlay boundary | `SSoT_ALWTTT_MidiGenPlay_Boundary.md` |
 | Runtime phase flow, deck/hand pipeline | `SSoT_Runtime_Flow.md` |
 | Active roadmap (M1 tasks referencing these tools) | `Roadmap_ALWTTT.md` |
-| LLM card-generation pipeline mechanism (CE-L1, §4.10) | `reference/Report_CardLLM_Pipeline.md` (explanatory reference) |
+| LLM card-generation pipeline mechanism (CE-L1, §4.10) | **sin hogar documental** — `reference/Report_CardLLM_Pipeline.md` retirado 2026-08-08 (F16); solo código |
 | LLM-generation pattern authority (cross-project) | MidiGenPlay `authoring/SSoT_Authoring_LLM_Generation.md` §7 |
 | PartEffect runtime semantics (scope, timing, application order) | `SSoT_Runtime_CompositionSession_Integration.md` |
 | `InstrumentEffect.RandomFromList` semantics (pick-once-then-persist, D-R2-7) | `SSoT_Runtime_CompositionSession_Integration.md` §11 |
@@ -791,6 +791,63 @@ This is the boundary rule applied correctly, not a workaround: **the package own
 Consequence for the window: the instrument views remain a *reporting* surface. They tell you which instrument to remove from a pool; they are not, and must not become, an instrument editor (§17.9).
 
 ---
+
+### 17.12 Barrido de huérfanos post-R3 (LOG-1, 2026-08-08)
+
+**Alcance del barrido (D-LOG-2=B): solo los huérfanos que R3 creó.** No es una pasada de
+inventario general. Retirados: **`Chord Palette - Test` y sus 4 progresiones muertas**, que
+quedaron sin referencia al cerrar R3. El destino del trabajo de curación general sigue siendo
+**CSV-6**; este barrido no lo adelanta ni lo sustituye.
+
+**Recordatorio operativo — `ORPHAN` es DIRECTO, y la transitividad sigue sin marcarse.** El
+flag `ORPHAN` (§17.6) marca un asset no referenciado por ninguna paleta, librería o style
+bundle *descubierto*. Un asset referenciado **únicamente por una paleta huérfana** está muerto
+por transitividad y **no se marca**: esa inferencia hay que hacerla leyendo la columna `refs`.
+Es precisamente el caso que se acaba de barrer a mano —una paleta huérfana arrastrando cuatro
+progresiones que el flag no señalaba— y seguirá siendo manual hasta que CSV-6 aporte cierre
+transitivo. **Un conteo de `ORPHAN` no es un conteo de assets muertos; es un suelo.**
+
+**Conteo de inventario — 232 assets (export del 2026-08-08).** Línea base vigente, medida con
+`Export All` sobre las siete vistas. El `Names Report` devuelve 232 filas y cuadra exactamente
+con la suma por familia, así que las vistas no se solapan ni pierden nada. Sustituye a la línea
+base de **183 del 2026-07-20**, que pasa a **histórica y no citable como actual**.
+
+| Familia | 183 (2026-07-20) | **232 (2026-08-08)** | Δ |
+| --- | --- | --- | --- |
+| Progresiones de acordes | 33 | **48** | +15 |
+| Paletas / librerías de acordes | 4 | **6** | +2 (5 `ChordProgressionPaletteSO` + 1 `ChordProgressionLibrarySO`) |
+| Patrones de percusión | 27 | **36** | +9 |
+| Paletas de percusión | 5 | **5** | = |
+| Patrones de melodía | 3 | **5** | +2 |
+| Paletas de frases | 3 | **4** | +1 |
+| Arquetipos de frase | 9 | **14** | +5 |
+| Style bundles | 19 | **35** | +16 (14 Bassline · 8 Melody · 7 Rhythm · 6 Backing) |
+| Instrumentos melódicos | 70 | **70** | = |
+| Instrumentos de percusión | 9 | **9** | = |
+| **Total** | **183** | **232** | **+49** |
+
+**Los +49 no deben leerse como «contenido nuevo bueno».** Cubren R0–R3 completos (bundles de
+Conito y de las tres Wormus, patrón de melodía, paleta de frases), la consolidación de
+progresiones de CONT-B y los 8 patrones de percusión de 8 compases. Atribuir cada delta asset
+por asset es trabajo de curación, no de conteo: pertenece a CSV-4b/CSV-6, no a esta sección.
+
+**Salud medida en el mismo export** (recordatorio de arriba: `ORPHAN` es un **suelo**, no un
+censo de assets muertos):
+
+- **15 patrones `ORPHAN`** (11 de ellos progresiones) y **4 paletas o frases huérfanas**:
+  `Chord Palette - Bass Defaults`, `Chord Palette - Test`, `_ChordProgressionLibrary`,
+  `PhrasePalette_SingingField`.
+- **`BASS-GAP` en 14 progresiones** (8× 4m, 4× 2m, 2× 1m frente a una parte de 8 compases) —
+  la señal que motiva el estándar de 8 compases de **CR-10 / D-CSV-23**.
+- **3 `LONGER-THAN-PART`** (2× 16m, 1× 24m) y **1 `SHORT-TAIL`** (span 255/256 pasos).
+- **3 `DUP#1`**, dos de ellos los `ProgSmoke_*` locales.
+- **7 `OFF-ROOT`, y su reparto cierra la verificación pendiente de D-CSV-14:** cinco son
+  package-side bajo `Packages/…/Samples/ExampleCatalogue/ChordProgressions/` (efecto del
+  movimiento a `Samples/` de MidiGenPlay 1.1.0 — no es de ALWTTT arreglarlo), y los **dos
+  locales son exactamente** `Melody_4-4_2m_8n` y `Melody_6-4_2m_11n`, bajo `Patterns/Melody`
+  (singular). **Cero `OFF-ROOT` locales en progresiones y percusión**, tal como anticipaba la
+  resolución de CONT-B. El residuo es de dos ficheros; su alineación a `Patterns/Melodies` es
+  trabajo de CSV-4b/CSV-5.
 
 ## 18. Part Effect Editor (`PartEffectEditorWindow`) — AUTH-1, 2026-07-31
 

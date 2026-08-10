@@ -171,7 +171,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1574733499
   m_SortingLayer: 2
-  m_SortingOrder: 20
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7704189906054360298, guid: 77d024311e0a1594e92937f5517b54e2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -274,6 +274,9 @@ MonoBehaviour:
   particlesPerBurst: 10
   emitEveryNBeats: 1
   particleBeatOffsetBeats: 0
+  kickScaleAmplitude: 0.25
+  kickHopHeight: 0.12
+  kickDuration: 0.35
 --- !u!1001 &6539706920368495622
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -689,6 +692,9 @@ MonoBehaviour:
   particlesPerBurst: 10
   emitEveryNBeats: 1
   particleBeatOffsetBeats: 0
+  kickScaleAmplitude: 0.25
+  kickHopHeight: 0.12
+  kickDuration: 0.35
 --- !u!198 &2406010551821969077 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 8908798543092447923, guid: 7907fd050ad55f44db8c12a44a8bfd93, type: 3}

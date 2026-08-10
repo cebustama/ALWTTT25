@@ -16,11 +16,13 @@ MonoBehaviour:
   usePerPhraseOverrides: 1
   perPhraseDirectives:
   - weight: 0.5
+    useOverrideStrategy: 0
+    overrideStrategy: 1
     contour: 0
     repeatDirective:
       enabled: 1
       notesToRepeat: 3
-      transposeSemitones: 0
+      transposeSemitones: 2
     intervalDirective:
       enabled: 0
       pitchClassSource: 0
@@ -38,31 +40,11 @@ MonoBehaviour:
       applyOnFirstNote: 0
       firstNoteUsesAnchor: 0
   - weight: 0.3
+    useOverrideStrategy: 0
+    overrideStrategy: 1
     contour: 1
     repeatDirective:
       enabled: 1
-      notesToRepeat: 3
-      transposeSemitones: 0
-    intervalDirective:
-      enabled: 0
-      pitchClassSource: 0
-      mode: 0
-      relativeMode: 0
-      baseDirection: 0
-      alternateDirection: 0
-      clampToRange: 0
-      anchorStart: 0
-      semitonesPerPhrase: 0
-      upSemitones: []
-      downSemitones: []
-      upScaleSteps: []
-      downScaleSteps: []
-      applyOnFirstNote: 0
-      firstNoteUsesAnchor: 0
-  - weight: 1
-    contour: 0
-    repeatDirective:
-      enabled: 0
       notesToRepeat: 3
       transposeSemitones: 0
     intervalDirective:

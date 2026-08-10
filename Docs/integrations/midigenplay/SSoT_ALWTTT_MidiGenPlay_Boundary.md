@@ -191,9 +191,9 @@ If a concept is primarily game/runtime truth, MidiGenPlay may mention it but ALW
 
 ---
 
-## 8. Cross-project contract elements (delivered/adopted log)
+## 8. Cross-project contract elements (ask lifecycle log)
 
-Concrete, dated instances of the shared integration surface (§2.3) that were filed against MidiGenPlay's tracker and resolved. Each entry records the lifecycle (filed → delivered → adopted) and any ALWTTT-side decision about how the delivered element is consumed.
+Concrete, dated instances of the shared integration surface (§2.3) filed against MidiGenPlay's tracker. **§8.1–§8.8 record asks that were resolved; §8.9 is the register of asks still open (confirmed D1=A, MANIFEST-1 2026-08-08). One boundary, one home for its state.** Each entry records the lifecycle (filed → delivered → adopted) and any ALWTTT-side decision about how the delivered element is consumed.
 
 ### 8.1 MGP-ALWTTT-SEED-1 — per-render seed parameter
 
@@ -481,3 +481,153 @@ v1 speaks only Slap / Pop / Rest.
 as well as package-side) — all PASS.
 
 **F-BASS-ORDER-1 is CLOSED.**
+
+### 8.7 MGP-ALWTTT-ARTIC-1 — ADOPTADO · y defecto derivado F-ARTIC-RATE-RANDOM-1 (2026-08-03)
+
+**Adopción (registro retroactivo).** El ask de articulación aleatoria está
+**implementado package-side** desde el snapshot MGP-20260729: centinela
+`ChordExpressionType.Random` resuelto por evento de acorde vía
+`RandomArticulationRoller` sobre stream dedicado (`SongOrchestrator.ResolveArticulationSeed`),
+`randomFigureWeights` opcional por carta (SD-2=A), `randomRerollChance`, y el espejo
+`ArpeggioRate.Random` en su propio substream (CA-V1, D-V1-RATE-SEL=A). Contrato:
+`SSoT_Composer_Backing_Track §8.5`. `CURRENT_STATE §5` seguía listando la entrada como
+debida "cuando el ask se filtre package-side"; el ask ya estaba entregado. Corregido aquí.
+
+**Consumo ALWTTT.** El override de articulación de Dev Mode (§18.14) expone ambos
+centinelas como valores seleccionables: son valores de carta legítimos y reproducibles
+bajo seed pineado.
+
+**F-ARTIC-RATE-RANDOM-1 — comportamiento OBSERVADO, contradice el contrato escrito.**
+Medido 2026-08-03 (ST-CTX2B-2b, herramienta CTX-2b, seed pineado):
+
+- `chordExpression = Offbeat` (figura concreta) + `arpeggioRate = Random` ⇒ render
+  **sin articulación**; suena como `Block`.
+- La misma configuración con `arpeggioRate = PerBeat` ⇒ `Offbeat` correcto. El rate es
+  la única variable.
+- El consumidor queda descartado como causa: `trackInputsHash` se movió, `cacheEnabled=True`,
+  render fresco confirmado (creció `bundleCache`), sin `bundle HIT`; y el **mismo** plano
+  de clon con rate concreto sí articula ⇒ el clon es honrado por el composer.
+- **Sin warning de degradación.** §8 exige "never silent" para todo degrade.
+
+Contradice dos afirmaciones escritas: §8 (doc del enum `ArpeggioRate`: *"Ignored by all
+other expressions"* — con `Offbeat` el campo debe ser inerte) y §8.5 / D-V1-RATE-SEL=A
+(substream dedicado, *"so the figure roll sequence is unaffected by this knob"*).
+
+**Impacto de contenido ALWTTT.** Hay bundles ya autorados en esta combinación —
+`Backing Card Config - Core Minor` (`expr=Random`, `rate=Random`). Pierden articulación
+en silencio. Auditoría de assets **no** ejecutada (ver `CURRENT_STATE §4`, D-ARTIC-AUDIT).
+
+**Estado:** filtrado al proyecto MidiGenPlay como **MGP-ARTIC-RATE-1** (2026-08-03,
+sesión paralela). Mitigación consumer-side: aviso en la UI del Dev Mode, sin coerción del
+valor. Retirar el aviso al cerrar el ask.
+
+### 8.8 R3 — shared-harmony readbacks and adopted tonality (2026-08-08)
+
+**Consumed surface (additions).**
+
+- `PartRender.sharedProgressionData` — the progression object that won the shared channel,
+  added alongside `sharedProgressionSource` (R2d, §8.6). ALWTTT publishes it as
+  `MidiMusicManager.LastSharedProgressionData` and stores it on `PartBundleCacheEntry`, so a
+  bundle replay republishes it. Like its two siblings, it is a **verification and continuity
+  surface, not a cache-key input**.
+- `adoptProgressionTonality` (Backing bundle field) — consumed as the second condition of the
+  JAM-1 imposition guard. The authoring contract it implies is normative ALWTTT-side:
+  `SSoT_Card_Authoring_Contracts.md` §5.17.
+
+**D6=B recorded as host policy.** The package reports *what won the shared channel*; **ALWTTT
+decides what "joining a jam" means.** Rationale: keeping that policy package-side would bind
+every consumer of MidiGenPlay to ALWTTT's band fiction. The package answers a factual
+question; the game answers a fictional one.
+
+**Correction to the lost-name defect (amends the R2d/E3 record).** The defect affects the
+**clone's Unity object `name`**, not the reported asset name. `LastSharedProgressionAssetName`
+is correct on all sources — verified live on `CardOverride`
+(`asset='Test - Lab Progression'`). The empty name is confirmed **only** on the `CardPalette`
+path; the `CardOverride` path is unverified. **Do not state the broader claim.**
+
+**Adopted tonality is read host-side, not requested from the package.** ALWTTT consumes the
+adopted tonality by reading its own `cfg.Parts[i]` *after* the render returns, rather than
+asking for a readback. No new consumed surface — but recorded here deliberately, because it
+means the package's **in-place mutation of `PartConfig` during compose is load-bearing for the
+host**. A future package refactor that rebuilt `PartConfig` internally, or that copied it
+before mutating, would silently break JAM-2 with no compile error and no warning. If that
+refactor is ever planned, ALWTTT needs a real readback first.
+
+### 8.9 Registro de asks ABIERTOS (filed, not yet delivered) — abierto 2026-08-08
+
+> **Nota estructural.** §8.1–§8.8 son un *delivered/adopted log*: registran asks ya resueltos.
+> Los asks **abiertos** no tenían hogar en este documento y vivían dispersos entre
+> `CURRENT_STATE §5` y los sub-roadmaps, que es exactamente el patrón que produjo la deriva de
+> registro de MGP-ALWTTT-ARTIC-1 (§8.7: entregado package-side y seguido listando como debido).
+> Esta sección centraliza el estado abierto. **Se mantiene aquí solo el hecho de la frontera**;
+> el detalle técnico package-side no se gobierna en este proyecto.
+
+| Ask | Filed | Dominio | Estado | Contenido |
+|---|---|---|---|---|
+| **MGP-MEL-1** | 2026-08-05 | Pipeline de melodía | Enviado | Ocho puntos (P1..P8). P1 selección de altura estancada dentro de la frase (fue bloqueante de Showtime) · P2 campos serializados inertes · P3 observabilidad del leading efectivo · P4 progresiones modales vs tonalidad de la parte · P5 viabilidad de "Rise Up adaptativa" · P6 refinamiento/documentación de la superficie de autoría de melodía · P7 propiedad de la progresión al añadir pistas a un jam en marcha · P8 `totalSlotsInPhrase` inconsistente. P6 es transversal: lo motivan tres campos serializados inertes y una tabla de precedencia no documentada. |
+| **MGP-ARTIC-RATE-1** | 2026-08-03 | Backing / articulación | Enviado | Figura concreta + `arpeggioRate = Random` ⇒ render sin articulación, y **sin warning** pese a la regla "never silent". Detalle y evidencia: §8.7. |
+| **MGP-CHD-ASCII-1** | 2026-08-08 | Marcador `chd:` | Enviado, **sin prioridad asignada** | ¿El marcador `chd:` debe ser **ASCII puro** o **UTF-8**? Ver §8.10 — hoy ALWTTT no puede distinguir dos causas posibles y ha mitigado consumer-side. |
+| **MGP-LOG-VERBOSE-1** | 2026-08-08 | Logging del generador | Enviado | **Partir `MidiGenPlayConfig.logGenerator`.** Hoy es **un solo bit** que contiene a la vez `[MelodySlot]` (una línea por nota — el volumen dominante de la consola) y `[ChordTrack] Tonality`, de la que dependen tests del host (ST-A7, ST-J3). El host no puede silenciar el ruido sin perder un observable protegido, ni conservar el observable sin tragarse el ruido. Pedido: dos bits, o un bit por familia de línea. Contexto host: `SSoT_Dev_Mode.md` §19.1/§19.2. |
+
+### 8.10 La tipografía de la etiqueta de acorde es propiedad de ALWTTT (LOG-1, 2026-08-08)
+
+**Posición de frontera, en una frase: MidiGenPlay decide qué SUENA; ALWTTT decide cómo se
+DELETREA en pantalla.**
+
+**El defecto observado.** La etiqueta de acorde en pantalla mostraba `I?7` donde debía leerse
+`Imaj7`. El glifo de séptima mayor (`Δ`), el círculo tachado del semidisminuido y los signos de
+sostenido y bemol llegan al host ya destruidos, sustituidos por un `?` literal.
+
+**Por qué no se puede "limpiar".** Los text-events MIDI se escriben por defecto en un alfabeto
+de 7 bits, y cualquier carácter no mapeable se sustituye por `?` **en el momento de la
+escritura**. Cuando el host lee los bytes, el carácter original ya no existe: ninguna limpieza
+lo recupera. Y un `I7` de aspecto reparado significaría un **acorde distinto** del `Imaj7` que
+realmente suena. Reparar por adivinación no es una opción aquí.
+
+**La solución (D-LOG-1=B): no mostrar nunca el glifo del marcador.** El marcador es
+autodescriptivo: además del símbolo lleva `deg` (un entero) y `quality`
+(`ChordQuality.ToString()`), **ambos ASCII por construcción**. La etiqueta se reconstruye desde
+ahí. Precisión de implementación, para no colapsar verdad documentada con verdad de código: el
+núcleo de numeral romano se toma del campo `raw` **filtrado a numerales ASCII** (un glifo
+inicial que no sea `b` o `#` ASCII se **descarta**, no se muestra), y el **sufijo** se deriva de
+`quality` mediante la tabla ALWTTT-owned. El campo de símbolo del marcador no se muestra nunca.
+
+**El acoplamiento es por CADENA, no por el enum — decisión de frontera.** La tabla de sufijos
+hace `switch` sobre el **nombre en texto** de la calidad, no sobre el valor de
+`MusicTheory.ChordQuality`. Motivo: **ese enum es package-owned y append-only.** Un `switch`
+por valor fallaría al compilar ante un rename y se volvería silenciosamente no-exhaustivo ante
+una adición. Un `switch` por cadena no puede hacer ninguna de las dos cosas: un nombre
+desconocido cae al `default`, que **se reporta a sí mismo una vez por render** con el nombre
+real, de modo que la tabla se completa a partir de una línea de log en vez de a partir de un
+fallo de compilación en el proyecto del consumidor. Es un acoplamiento deliberadamente más
+débil, elegido porque la frontera es de versionado, no de tipos.
+
+- Calidades **confirmadas** contra la SSoT de autoría del paquete (4.1): `Major`, `Minor`,
+  `Major7`, `Minor7`, `Dominant7`, `Major6`, `Minor6`, `Dominant7sus4`, `Dominant9`, `Major9`,
+  `Minor9`.
+- Calidades **no verificadas** contra `MusicTheory.ChordQuality`, incluidas por nombre esperado:
+  `Diminished`, `Diminished7`, `Augmented`, `HalfDiminished7`, `Sus2`, `Sus4`. Si alguna está
+  mal, la rama `default` dispara y el warning `[LOG-1]` imprime el nombre real. **Un `case` que
+  nunca casa no cuesta nada.**
+
+**Causa raíz: acotada a dos hipótesis, discriminador PENDIENTE.**
+
+- **H1 — pérdida de encoding en el transporte:** el text-event MIDI destruye toda la clase de
+  glifos no-ASCII al escribirse.
+- **H2 — el paquete emite `?`:** el marcador ya sale del generador con el carácter sustituido.
+
+**No se afirma ninguna de las dos.** El instrumento discriminador ya existe y está en el
+código: `ReportChordTagDamage` imprime los campos **crudos** una vez por render. La lectura
+decide — si `raw sym` todavía muestra un sostenido o bemol real, el transporte está bien y el
+paquete escribió el `?` (H2); si `raw sym` también viene dañado, el transporte está destruyendo
+la clase entera de glifos (H1). **El dato no se ha capturado todavía**, así que el ask
+**MGP-CHD-ASCII-1** queda archivado **sin prioridad asignada** hasta que se lea.
+
+**Estado de la mitigación:** consumer-side y completa. La etiqueta en pantalla es correcta hoy
+con independencia de cuál de las dos hipótesis sea cierta, porque la reconstrucción no depende
+del glifo. Lo que el ask decide es si el marcador `chd:` debe ser contrato ASCII-puro o
+contrato UTF-8 — es decir, de quién es el bug, no si el jugador lo ve.
+
+**Superficie adoptada, recordatorio (ver §8.8):** el host lee la tonalidad adoptada de su propio
+`cfg.Parts[i]` post-render. La mutación in-place del `PartConfig` durante compose es
+**load-bearing** para el host.

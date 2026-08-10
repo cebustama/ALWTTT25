@@ -46,8 +46,14 @@ namespace ALWTTT.DevMode.Editor
     /// Print, Export JSON and Export All follow the CardInventoryWindow pattern
     /// ([Serializable] wrappers per view, file dialog, Debug.Log of path).
     /// The Names Report view is the CSV-4 naming-convention input.
+    ///
+    /// **CSV-4c (D-CSV-16=A).** An eighth view, Cards -> Bundles, plus the
+    /// reachability columns on Style Bundles, live in the partial file
+    /// CompositionInventoryWindow.Cards.cs. That file adds the only UPWARD
+    /// index in the window (CardDefinition -> TrackStyleBundleSO) and the
+    /// UNREACHABLE / UNSOURCED / UNWIRED-SRC flags. Read-only like the rest.
     /// </summary>
-    public sealed class CompositionInventoryWindow : EditorWindow
+    public sealed partial class CompositionInventoryWindow : EditorWindow
     {
         private enum View
         {
@@ -57,7 +63,11 @@ namespace ALWTTT.DevMode.Editor
             MelodyAndPhrases,
             MelodicInstruments,
             PercussionInstruments,
-            NamesReport
+            NamesReport,
+            // [CSV-4c] Appended LAST on purpose: Export All iterates
+            // Enum.GetValues, so a new member is picked up automatically, and
+            // appending keeps the serialized _view index of existing windows valid.
+            CardBundles
         }
 
         [SerializeField] private View _view = View.StyleBundles;
@@ -141,6 +151,7 @@ namespace ALWTTT.DevMode.Editor
                     case View.MelodicInstruments: DrawMelodicInstruments(); break;
                     case View.PercussionInstruments: DrawPercussionInstruments(); break;
                     case View.NamesReport: DrawNamesReport(); break;
+                    case View.CardBundles: DrawCardsToBundles(); break;
                 }
             }
         }
@@ -230,6 +241,10 @@ namespace ALWTTT.DevMode.Editor
             HarvestReferencedPatterns();
             BuildReferenceIndex();
             BuildDuplicateIndex();
+            // [CSV-4c / D-CSV-16=A] Reverse index LAST: it needs _bundles to
+            // already exist so a bundle no card reaches still gets a row and an
+            // UNREACHABLE flag. See CompositionInventoryWindow.Cards.cs.
+            BuildCardBundleIndex();
             _loaded = true;
         }
 
@@ -565,6 +580,7 @@ namespace ALWTTT.DevMode.Editor
                 Tab(View.MelodicInstruments, "Melodic Instr.", 100);
                 Tab(View.PercussionInstruments, "Percussion Instr.", 115);
                 Tab(View.NamesReport, "Names Report", 100);
+                Tab(View.CardBundles, "Cards → Bundles", 120);
 
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(60)))
@@ -657,14 +673,21 @@ namespace ALWTTT.DevMode.Editor
             foreach (var b in _bundles)
             {
                 if (b == null) continue;
-                if (!PassesCommonFilters(b, b.name, null, null)) continue;
+                // [CSV-4c] Bundle rows now carry reachability flags, so the shared
+                // "Flagged" toggle finally means something here (it previously
+                // received null and hid every bundle).
+                if (!PassesCommonFilters(b, b.name, null, BundleCardFlags(b))) continue;
                 using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
                 {
                     GUILayout.Label($"[{SourceTag(b)}]", GUILayout.Width(40));
                     GUILayout.Label(b.GetType().Name, GUILayout.Width(160));
                     GUILayout.Label(b.name, GUILayout.Width(220));
                     GUILayout.Label($"role={b.appliesTo}", GUILayout.Width(110));
-                    GUILayout.Label(BundleRefsSummary(b));
+                    GUILayout.Label(BundleRefsSummary(b), GUILayout.MinWidth(200));
+                    // [CSV-4c] The reverse-index columns: who reaches this bundle,
+                    // and whether that reach survives to a wired source.
+                    GUILayout.Label($"cards: {BundleCardsLabel(b)}", GUILayout.MinWidth(180));
+                    DrawFlags(BundleCardFlags(b));
                     GUILayout.FlexibleSpace();
                     if (GUILayout.Button("Ping", GUILayout.Width(44)))
                         EditorGUIUtility.PingObject(b);
@@ -918,6 +941,9 @@ namespace ALWTTT.DevMode.Editor
                 case View.NamesReport:
                     AppendNames(sb);
                     break;
+                case View.CardBundles:
+                    AppendCardBundles(sb);
+                    break;
             }
             Debug.Log(sb.ToString());
         }
@@ -956,7 +982,10 @@ namespace ALWTTT.DevMode.Editor
         // Export JSON — CardInventoryWindow pattern ([Serializable] wrappers,
         // SaveFilePanel, Debug.Log of path, RevealInFinder)
         // ══════════════════════════════════════════════════════════════════
-        [Serializable] private class JsonBundle { public string type; public string assetName; public string appliesTo; public string overrideRef; public string paletteRef; public string source; public string assetPath; }
+        // [CSV-4c] cardRefs / cardFlags appended to the existing bundle schema.
+        // Additive only: older exports remain readable, newer ones carry two
+        // extra fields. Schema of record: SSoT_Editor_Authoring_Tools §17.8.
+        [Serializable] private class JsonBundle { public string type; public string assetName; public string appliesTo; public string overrideRef; public string paletteRef; public string source; public string assetPath; public string cardRefs; public string cardFlags; }
         [Serializable] private class JsonPattern { public string assetName; public string displayName; public string timeSignature; public int measures; public int subdivisions; public int contentCount; public string source; public string refs; public string flags; public string assetPath; }
         [Serializable] private class JsonPalette { public string type; public string assetName; public string displayName; public int entryCount; public string refs; public bool orphan; public string source; public string assetPath; }
         [Serializable] private class JsonInstrument { public string assetName; public string instrumentName; public string instrumentType; public string soundFont; public string bank; public string patch; public int patchIndex; public int octaveMin; public int octaveMax; public float volume01; public int percussionMappings; public string flags; public string source; public string assetPath; }
@@ -1031,7 +1060,9 @@ namespace ALWTTT.DevMode.Editor
                                 overrideRef = BundleOverrideName(b),
                                 paletteRef = BundlePaletteName(b),
                                 source = SourceTag(b),
-                                assetPath = AssetDatabase.GetAssetPath(b)
+                                assetPath = AssetDatabase.GetAssetPath(b),
+                                cardRefs = BundleCardsLabel(b),
+                                cardFlags = string.Join(";", BundleCardFlags(b))
                             });
                         json = JsonUtility.ToJson(w, true);
                         break;
@@ -1127,6 +1158,9 @@ namespace ALWTTT.DevMode.Editor
                         json = JsonUtility.ToJson(w, true);
                         break;
                     }
+                case View.CardBundles:
+                    json = BuildCardLinksJson();
+                    break;
                 default: json = "{}"; break;
             }
 

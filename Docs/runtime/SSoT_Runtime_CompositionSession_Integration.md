@@ -233,6 +233,44 @@ Those details belong to MidiGenPlay.
 
 ---
 
+13. **Resolución y cacheo consumer-side del BPM de parte (recorded CTX-2a,
+    2026-08-03).** El BPM es resuelto por ALWTTT, no por el paquete.
+    `MidiMusicManager.RenderSinglePart` aplica esta precedencia, en este orden:
+    (a) `bpmOverride` entrante gana sobre todo lo demás; si no hay,
+    (b) `part.ExplicitBpm` (← `PartEntry.absoluteBpmOverride`) si tiene valor;
+    (c) en su defecto `MusicTheory.GetBPMFromRange(part.TempoRange,
+    TempoRule.MultiplesOfTen)`. Sobre el resultado de (b) o (c) se aplica
+    `part.TempoScale` como **factor multiplicativo** cuando difiere de 1, con
+    suelo de seguridad 40 BPM. Corolario: **`ExplicitBpm` ensombrece
+    `TempoRange`** — mientras el primero tenga valor, el segundo es inerte, y
+    cualquier herramienta que escriba `ExplicitBpm` debe devolverlo a `null`
+    para restaurar la semántica de rango.
+
+    **El BPM se resuelve una vez por parte y se cachea.**
+    `CompositionSession.PlaySinglePartLoop` pasa `cache.resolvedBpm` como
+    `bpmOverride` (rama (a)) siempre que sea `> 0`, de modo que la re-resolución
+    **no se ejecuta** en los loops siguientes de esa parte. La invalidación de
+    caché es selectiva: `InvalidatePartCache(partIndex, keepTempo)` preserva
+    `resolvedBpm` cuando `keepTempo` es `true`, y `ShouldKeepTempo` devuelve
+    `false` **solo** para cartas clasificadas como de tempo
+    (`CompositionCardClassifier.IsTempoCard`). Las cartas de compás, tonalidad e
+    instrumento, y todas las invalidaciones de Dev Mode, mantienen el BPM.
+    Consecuencia operativa: un cambio del intent de tempo del modelo **no es
+    audible** hasta que algo invalide con `keepTempo: false` o ponga
+    `resolvedBpm = 0`.
+
+    **Dispersión entre partes.** Como cada parte resuelve por separado, dos
+    partes marcadas con el mismo `TempoRange` pueden sonar a BPM distintos. Que
+    `GetBPMFromRange` sortee dentro de la banda es **INFERIDO**, no confirmado:
+    la función es interna de MidiGenPlay y el espejo `MGP-20260729_*` está
+    declarado obsoleto y no es autoridad. Verificar en el proyecto MidiGenPlay
+    real antes de tratarlo como hecho. La magnitud de la dispersión es el dato
+    que decide **D11b** (`CURRENT_STATE.md` §4), medición diferida a post-R3.
+
+    **Boundary:** ninguna de estas reglas es package-owned. El paquete recibe un
+    entero de BPM ya resuelto; la política de resolución, cacheo e invalidación
+    es ALWTTT.
+
 ## 9. Out-of-scope package internals
 
 The following are intentionally **not** governed here:
@@ -340,3 +378,118 @@ A/B showed **no divergence**, and ST-CSV3-6 confirmed C2a healthy. The engine is
 tonality-consistent when content is authored correctly. **Finding CLOSED as not-a-bug; no
 package ask filed** (`SSoT_ALWTTT_MidiGenPlay_Boundary.md` §4.3). Evidence classes stay
 distinct: the closure rests on validated observed behavior (runs A/B), not on inference.
+
+### 12.4 Part tempo default — model-construction `Slow` (D11=A, CTX-2a 2026-08-03)
+
+La construcción del modelo fija el tempo de parte igual que fija el compás 4/4
+(§12.1): en la declaración del campo y en cada sitio de construcción de
+`PartEntry`. Desde CTX-2a el default es **`TempoRange.Slow`** (etiqueta `"Slow"`),
+antes `TempoRange.Fast` / `"Very Fast"`.
+
+**Por qué está aquí y no en Dev Mode.** Es comportamiento de producción: la
+carta de modo por defecto no fija tempo, así que el default del modelo es
+literalmente lo que suena en el demo. Con el anterior, los patrones de
+percusión de 8 compases eran ilegibles (F-TEMPO-1) y la arquitectura 3+1 no se
+percibía.
+
+**Sitios afectados:** la declaración de `PartEntry.tempo` /
+`.tempoRangeOverride`, `EnsurePartAt` y el fallback de `CreateNextDraftPart` en
+`SongCompositionUI`. Intro / Outro / Solo heredan la **etiqueta** `tempo` de la
+parte vecina y toman `tempoRangeOverride` del default de campo — desalineación
+latente si una carta cambió el rango de la parte origen; preexistente, no
+introducida por D11, no corregida aquí.
+
+**Abierto:** cuánto más rápido debería ser `Slow` (**D11b**), y si el problema
+dominante es la posición de la banda o su dispersión (§8 inv 13). Se decide con
+medición, diferida a post-R3.
+
+---
+
+## 13. JAM — shared-harmony continuity (R3, 2026-08-08)
+
+### 13.1 JAM-1 — the jam keeps its harmony
+
+**Readback consumed.** `MidiMusicManager.LastSharedProgressionData` is the third readback
+alongside `LastSharedProgressionSource` / `…AssetName`. It is published on a fresh render
+**and** on bundle replay, and is stored on `PartBundleCacheEntry` — same D-DBG5=A logic as
+its two siblings, and for the same reason: a cache replay must republish the same truth a
+fresh render would, or the readback silently means "whatever the last uncached render
+happened to be".
+
+**Runtime clone, session lifetime.** The stored progression is a runtime clone: never an
+asset, never serialized, does not survive a domain reload. `_jamProgressionByPart` is
+cleared in `Begin()` / `End()` together with `_partCache`.
+
+**Imposition policy (D-R3C-2=A).** Impose the stored progression on the Backing track key
+**unless** either: the tonality moved since capture, **or** the Backing bundle carries
+`adoptProgressionTonality`. Two conditions, and between them the coverage is complete —
+pre-render mutations of the model are caught by the snapshot comparison, and compose-time
+adoption is caught by the flag. The design rule behind it: **the card that moves the key
+wins**; a stored jam harmony is never allowed to override a deliberate tonal move.
+
+**Capture policy (D-R3C-4=B′).** Capture *after* the render, and skip — with a `Remove` —
+when `LastSharedProgressionSource == CardOverride`. Capturing a Backing card's own
+`CardOverride` would pin the part to the card that just played, which is not a jam; it is
+the card repeating itself.
+
+**Cache interaction — correcting the record.** `patternOverrides` does **not** need a
+cache-key segment. `MidiMusicManager` bypasses the stem and bundle caches entirely while
+that map is non-empty (D-C2-4=A, `MidiMusicManager.cs:961`). Accepted cost, scoped to the
+renders that actually impose.
+
+**Dev override precedence.** Dev pattern overrides win over JAM-1, and are copied into a
+fresh map — never aliased to the static `DevPatternOverrides`.
+
+**Known limit O3.** The Backing row is selected with `FirstOrDefault` over Backing-role
+tracks. With two Backing tracks in one part the choice is arbitrary. Unreachable with
+current content; recorded, not fixed.
+
+### 13.2 JAM-2 — mode travels with the harmony
+
+**Problem.** JAM-1 captured the progression clone alongside a tonality snapshot taken from
+the **UI model**. Adoption never reaches the model (§13.3), so a Lydian progression was
+stored labelled "Ionian". On imposition the Backing rendered the authored chords (package
+policy `AsAuthored`) while every other track in the part was generated against the model's
+scale — e.g. B major (D♯) over an A Ionian scale (D natural). Not reachable in R3 content,
+because no part carried both a modal Backing and a melody; reachable as soon as melody
+cards land on modal parts.
+
+**Fix.** A second per-part map, `_jamRenderedTonalityByPart`, storing the tonality and root
+the captured harmony **actually rendered in**. On imposition that tonality is written onto
+`cfg.Parts[partIndex]` before `RenderSinglePart`.
+
+- **Two maps, deliberately.** `_jamTonalitySnapByPart` tracks the **model** and answers
+  *"did the player move the key since capture?"* — it is the guard that decides whether to
+  impose. `_jamRenderedTonalityByPart` tracks the **render** and answers *"what mode did
+  these chords sound in?"* — it is the payload to propagate. They diverge precisely when a
+  Backing card adopts. Collapsing them into one field would make the guard compare a mode
+  against itself and stop detecting real tonality moves, violating D-R3C-2=A. Verified by
+  ST-J3.
+- **No new package surface.** Adoption mutates the per-render `PartConfig` **in place**
+  during compose, and that object lives inside the host-built `cfg`, still in hand after
+  `RenderSinglePart` returns. `MidiMusicManager.LastRenderResolvedTonality` exists but is
+  `#if ALWTTT_DEV`; reading `cfg` works in release.
+- **Scope is the render, not the model.** `BuildSongConfigFromUI` rebuilds `cfg` every
+  loop. D-R3C-3=A′ holds: the mode lives exactly as long as the jam entry.
+- **Self-consistent under repetition.** After alignment the render is in the adopted mode,
+  so the subsequent capture stores that same mode. The part stays coherently modal for the
+  life of the card chain, with no drift.
+- **Eviction.** The new map is cleared in `Begin()` / `End()` and `Remove`d on the B′
+  non-capturable path, alongside its two siblings.
+- **Log surface.** `[JAM-2] part=N aligning render tonality X/root -> Y/root (mode of the
+  imposed harmony)`. Absent on renders that do not impose (ST-J6).
+
+**Correcting the record on capture policy (B′).** Imposed harmony is republished by the
+package as source `RenderOverride`, which **is** capturable, so an imposing part re-pins
+itself every render. This is intended — it is what keeps the jam alive across a chain of
+articulation-only cards — but it means an imposing part keeps the stem/bundle cache
+bypassed for as long as the chain lasts. Accepted cost, unchanged from D-C2-4=A. Practical
+consequence for testing: **any determinism test must start from a fresh song.**
+
+### 13.3 Known limit — the audience seam is not aligned (→ D-R4-1)
+
+`LoopFeedbackContext` is built from the UI model, so audience taste evaluation reads the
+**authored** tonality, not the **sounding** one. Under modal harmony the audience sees
+Ionian. This is a design question — should the crowd judge what is written or what is
+played? — **not a defect**, and out of JAM-2's scope. Registered as **D-R4-1**
+(`CURRENT_STATE.md` §4).

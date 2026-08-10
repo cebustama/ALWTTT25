@@ -1,5 +1,27 @@
 # Design_Tutorial_System_v0_1 — ALWTTT
 
+> # ⛔ SUPERSEDED — ARCHIVED 2026-08-08 (MANIFEST-1, D11=A)
+>
+> **This document is no longer the tutorial design home.** Its successor is
+> `planning/active/Design_Tutorial_System_v0_2.md`, which absorbs this document
+> whole: v0_2 carries this file's update history in its header
+> (`v0_1 updated 2026-06-16 TUT-JAM-SEQ, 2026-06-17 S4 closure, 2026-07-04 S5f`),
+> preserves the §6 standalone dialog list and the §6A jam sequence as its own §6
+> "S4 reactive inventory — historical", and retains the decision record
+> D-TUT-6/7/8/9/10/11 plus the S4 implementation decisions in its §10 ledger.
+>
+> **Why it was archived.** Until 2026-08-08 BOTH files existed simultaneously —
+> this one in `planning/active/`, its successor in the less-active `planning/`.
+> `coverage-matrix.md` named v0_2 as the home while `SSoT_INDEX.md` still pointed
+> here. Two live documents for one concept is precisely what `SSoT_CONTRACTS.md`
+> §1 forbids, and repointing the index alone would have left this file sitting in
+> `active/` looking current. Recorded as manifest finding **F17**.
+>
+> **New location:** `Docs/planning/archive/Design_Tutorial_System_v0_1.md`.
+> **Read this only** for the S4-era reactive design as it stood before
+> TUT-REBUILD. Nothing here defines current truth.
+
+
 **Status:** **Implemented in S4 (2026-06-17).** Smoke suite complete (ST-S4-1..11 + QUEUE/PERSIST/RESET/REVISIT/OPP/NODIR/GATE; D-S4-DEDUP double-show fix). Originally active design — all implementation landed in S4 (tutorial controller + overlay + bus-event extension + dialogue authoring). The 2026-05-23 reframe originally split this across S2 (event-bus consumer wiring) and S4 (authoring); S2 closed 2026-06-14 with `TutorialController` deferred to S4 (D-S2-5), so S4 is the single implementation home. *Updated 2026-06-16 (TUT-JAM-SEQ); 2026-06-17 (S4 closure).*
 **Scope:** Tutorial system for ALWTTT, demo cut (S4) + vertical slice (S6-S8).
 **Classification:** `reference (planning)` — **not a SSoT**. Becomes runtime-authoritative when shipped; this doc is then retained as historical rationale.

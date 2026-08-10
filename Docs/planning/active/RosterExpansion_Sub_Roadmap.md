@@ -91,7 +91,7 @@ Full reasoning + card specs: `planning/active/Design_Starter_Deck_v2.md`.
 | **R2** ✅ **CLOSED 2026-07-31** | IMPLEMENTATION | Conito enablement: profile/instruments (bass + guitars), **Finger Bass v1** + **Slap Bass v1** (`BasslineCardConfigSO` via `styleBundleCreate`), **Draw** card, Conito catalog cleanup (10/10 inert → spec), first bass-in-gig validation, **file MGP asks** (§8 #1–#3). **CLOSED 2026-07-31.** Delivered: profile (Bass backing / Guitar lead + 6-bass melodic whitelist), `InstrumentEffect_FingeredBass` + `InstrumentEffect_SlapBass`, 3 cards imported and catalog-registered, catalog cleanup. The **"file MGP asks" item is void** for #1–#3 — resolved package-side before filing (§8, boundary §8.4). Two *new* asks were filed and delivered same-cycle (boundary §8.6). | Interleavable (∥ R3) | R0 |
 | **R2c** | IMPLEMENTATION | Unblocker spawned by ST-R2-1 FAIL: wire MidiGenPlay's **SOLO-1** host default progression into the gig render path as a **palette** (D-R2-6=B) + `InstrumentEffect.RandomFromList` (D-R2-7). Production runtime code; BC-gated, inert in the demo config | Interleavable | R2 |
 | **R2d** | IMPLEMENTATION | Adoption of **ORDER-1** + **SLAPFIG-1** (filed and delivered 2026-07-31): guard rewrite, shared-harmony cache identity `dp:`+`bk:` (D-R2-10=A, closes the pre-existing **F-HARM-STALE-1**), harmony-source readback, Slap Bass re-authored onto `SelfPocket` (D-R2-11) | Interleavable | R2c |
-| **R3** | IMPL / CONTENT | Zig composition cards: ascending-degree `MelodyPatternData` (verbatim `patternOverride`) + scale-phrase palette; singer verification in a 3–4-musician band (mix, channel, mute) | Interleavable (∥ R2) | R0 |
+| **R3** ✅ **CLOSED 2026-08-08** | IMPL / CONTENT | Zig composition cards: ascending-degree `MelodyPatternData` (verbatim `patternOverride`) + scale-phrase palette; singer verification in a 3–4-musician band (mix, channel, mute). **CLOSED 2026-08-08.** Entregado: **Rise Up** (patrón autorado de 8 compases por grado, adaptativo a raíz y a modo) y **Showtime** (ruta procedural, ST-R3-11 PASS, operativa). Entregable de banda 3–4 (mezcla/canal/mute) **CUMPLIDO**. Además en lote: **JAM-1** (continuidad de armonía compartida) y **JAM-2** (el modo viaja con la armonía), tres cartas Wormus de banco de dev (`flags=None`, D-R3C-6=A), paleta `Chord Palette - Modal` 7→5 (D-R3C-5=B). Verificaciones: ST-A1..A7 · ST-B1/B2 · ST-C1 · C5 · ST-R3-11 · C4 · ST-J1..J6, todas PASS. Excepción al freeze de baseline S5i autorizada por D-R3C-1=C / D-R3C-8=A (2º y 3er precedente). | Interleavable (∥ R2) | R0 |
 | **R4** | IMPLEMENTATION | Finishers I: **Psychic Wave v2** (add `ApplyStatusEffect(earworm, Y≈2, AllAudienceCharacters)` — note the target branch skips `IsBlocked` members, so Indifference-blocked audience take no Earworm; full-screen mask VFX on `TutorialSpotlight.shader` base; **tutorial beat-8 + JUICE-PW regression**) + **C2 Spotlight/Taunt** (counter status + `ResolveTargetsFor` redirect hook, 1 audience turn) + **Read the Room** (`RevealPreferencesSpec` + `AudienceCharacterCanvas` surface, D-R0-1) + **Keep Cool retarget** `Self`→`Musician` (D-R0-3, **tutorial Composure-beat regression owed**) + **V5 runtime smoke** (`ApplyStatusEffect` × `AllAudienceCharacters`) | Post-S5j | S5j tag |
 | **R5** | IMPLEMENTATION | **Conito Overload** (own batch): counter status (no decay) + ≥3 threshold hook + guarded bonus-loop API (`_loopsRemainingForPart`) + one-loop-scoped solo track (Conito Melody, guitar) + channel duck/restore + revert. Opens with a session-invariant review (§5 note) | Post-S5j | R2, S5j |
 | **R6** | IMPLEMENTATION | **Double Harmony Tier A** (Harmony-role card + listening validation + dual per-track particle FX via `IMidiNoteListener`) + **`SingerVoiceDirector` one-shot API** (shared groundwork for singalong; Tier B + expression-input rider queued behind cap=2 validation) | Post-S5j | R3, S5j |
@@ -155,6 +155,17 @@ Effort: **A** = authoring/content only · **B** = authoring + bounded ALWTTT cod
 
 ## 7. New mechanics and registered ideas
 
+> **Design backlog — R3 (2026-08-08). Ideas registradas, NINGUNA comprometida.**
+> *(Material de planificación. No es autoridad y no dirige implementación.)*
+>
+> 1. **Carta "transport"** (D-R3C-2, variante B) — una carta cuyo propósito explícito sea
+>    mover la canción entera a otra tonalidad transportando la armonía existente en vez de
+>    reemplazarla. Arrastrada desde el handoff §6 D7. **Idea, no comprometida.**
+> 2. **Familia de cartas articulation-only.** Diez figuras de `ChordExpressionType` son
+>    autorables hoy con cero código, y JAM-2 hace el arquetipo seguro también en contextos
+>    modales ⇒ diez cartas de estilo posibles sin trabajo de runtime. Contrato de autoría y
+>    trampa de nombres `BassUpperSplit` vs `Bossa`: `SSoT_Card_Authoring_Contracts.md` §5.18.
+
 - **Track Card Levels** — in campaign (R7). Spec + expressibility analysis: `planning/active/Design_Track_Card_Levels_v0_1.md`. Solves the dead-composition-card problem (re-playing an already-rendered card levels the track instead of doing nothing meaningful).
 - **Fill Window** — registered, **not scheduled**: `planning/Design_Fill_Window_v0_1.md`. End-of-loop timed window for fill cards; conflicts with the "mutations never touch the playing loop" invariant → overlay-vs-next-loop analysis in the note. Candidate C2 "path" post-campaign; the windowed-timing primitive is reusable.
 - **Singer Expression Input** — registered, **not scheduled**: `planning/Design_Singer_Expression_Input_v0_1.md`. Player input drives live voice levers; the SSoT's "concrete consumer" condition is met by design here. Natural rider of Double Harmony Tier B.
@@ -162,6 +173,31 @@ Effort: **A** = authoring/content only · **B** = authoring + bounded ALWTTT cod
 ---
 
 ## 8. MidiGenPlay asks
+
+> **Estado post-R3 (2026-08-08).** Task A **hecha**, Wormus Modal **hecha**. Cola restante:
+> **LOG-1 → tag snapshot → R4+**. Con `snapshot-01` cortado (2026-08-08), R4+ queda
+> **DESBLOQUEADO** bajo D-SEQ-3=A.
+>
+> **Decisiones y verificaciones que R3 deja debidas:**
+> - **D-R4-1 — ¿el público juzga la tonalidad autorada o la que suena?** `LoopFeedbackContext`
+>   se construye desde el modelo de UI, así que bajo armonía modal la audiencia evalúa Ionian.
+>   Es una pregunta de **diseño**, no un defecto. Owed antes o durante R4.
+> - **Verificación diferida:** comprobación auditiva de melodía sobre parte modal. No es
+>   alcanzable con el contenido actual (ninguna parte lleva a la vez Backing modal y melodía);
+>   owed en R4.
+>
+> **Criterio de aceptación de C4 — reformulado.** La variación se mide **entre renders**, no
+> entre loops: un loop repetido replaya bytes cacheados por construcción, así que exigir
+> variación loop-a-loop mediría la caché, no el composer.
+>
+> - **MGP-MEL-1** (enviado 2026-08-05) — pipeline de melodía, 8 puntos. P1 selección de altura
+>   estancada (era bloqueante de Showtime), P2 campos serializados inertes, P3 observabilidad
+>   del leading efectivo, P4 progresiones modales vs tonalidad de la parte, P5 viabilidad de
+>   "Rise Up adaptativa", P6 refinamiento de la superficie de autoría, P7 propiedad de la
+>   progresión al añadir pistas a un jam en marcha, P8 `totalSlotsInPhrase` inconsistente.
+>   Registro de frontera: `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.9.
+> - **O4 / evidencia debida a MidiGenPlay:** `MGP_Evidence_Bundle_from_ALWTTT_R3_2026-08-08.md`
+>   (cuatro asks package-side).
 
 Filing rule: asks are filed **with acceptance criteria** at the batch that owns the demand (R2 for #1–#3, R7/R8 for #4–#5), never as intentions. They join the existing pending item `MGP-ALWTTT-ARTIC-1` (DF-ARTIC) in the cross-boundary queue. None are redesigned here (boundary rule).
 

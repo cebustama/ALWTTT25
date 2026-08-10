@@ -1466,6 +1466,7 @@ namespace ALWTTT.Cards.Editor
                 Undo.RecordObject(payload, "Edit ActionCardPayload");
                 so.ApplyModifiedProperties();
                 EditorUtility.SetDirty(payload);
+
                 AssetDatabase.SaveAssets();
             }
             else
@@ -1509,6 +1510,29 @@ namespace ALWTTT.Cards.Editor
                 so.ApplyModifiedProperties();
                 EditorUtility.SetDirty(payload);
                 AssetDatabase.SaveAssets();
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(payload, "Edit CompositionCardPayload");
+                    so.ApplyModifiedProperties();
+                    EditorUtility.SetDirty(payload);
+                    AssetDatabase.SaveAssets();
+
+                    // [JAM-1 / MGP-MEL-1b §2.6 / D4=A] A card cannot carry BOTH a
+                    // TonalityEffect and a Backing bundle with adoptProgressionTonality.
+                    // The composer cannot tell "default tonality" from "effect-pinned
+                    // tonality", so adoption wins SILENTLY at compose time and the
+                    // TonalityEffect becomes a lie the author cannot see. Catch it here.
+                    if (payload.TrackAction?.styleBundle is BackingCardConfigSO bkCfg
+                        && bkCfg.adoptProgressionTonality
+                        && CompositionCardClassifier.IsTonalityCard(payload))
+                    {
+                        Debug.LogWarning($"[CARD-VALIDATION] '{payload.name}': carries a " +
+                            $"TonalityEffect AND a Backing bundle with " +
+                            $"adoptProgressionTonality=ON. Adoption wins at compose time; " +
+                            $"the TonalityEffect will not be heard. Remove one.");
+                    }
+                }
             }
             else
             {

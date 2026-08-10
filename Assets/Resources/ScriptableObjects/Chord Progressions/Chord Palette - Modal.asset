@@ -26,7 +26,3 @@ MonoBehaviour:
     weight: 1
   - progression: {fileID: 11400000, guid: f9c129062c85c894a81c3ecfc9606e19, type: 2}
     weight: 1
-  - progression: {fileID: 11400000, guid: 653e684b56fa7fe4e89eabb2a431f673, type: 2}
-    weight: 1
-  - progression: {fileID: 11400000, guid: c272fdd55be66104ca8e7b7a1a407f23, type: 2}
-    weight: 1

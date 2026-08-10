@@ -4,6 +4,12 @@
 **Scope:** Tutorial system for ALWTTT — demo cut (guided gig‑1 curriculum + retained reactive layer) + vertical slice (S6–S8).
 **Classification:** `reference (planning)` — **not a SSoT**. Becomes runtime‑authoritative when shipped; retained as historical rationale thereafter. **Copy authority note:** the authoritative, localized dialog text lives in the `TutorialDialogCatalog` seeders / `.asset` files (code truth). EN copy reproduced in §6B is the design‑approved reference; on divergence, code wins.
 **Created:** 2026-05-23 · **v0_2:** 2026-07-09 (TUT‑REBUILD).
+**Placement:** `Docs/planning/active/Design_Tutorial_System_v0_2.md` — moved there
+2026-08-08 (MANIFEST-1, D11=A) from `Docs/planning/`. Its predecessor
+`Design_Tutorial_System_v0_1.md` was archived to `Docs/planning/archive/` in the
+same pass: both files had been live at once, with the successor sitting in the
+*less* active folder (manifest finding **F17**). This document is the single
+tutorial design home.
 *History: v0_1 updated 2026-06-16 (TUT‑JAM‑SEQ), 2026-06-17 (S4 closure), 2026-07-04 (S5f localization).*
 
 **Rule:** Tutorial‑as‑mandatory is Standing Directive #3 (`planning/Design_Project_Directives_v0_1.md §D3`). Every demo‑cut feature MUST have tutorial coverage; every Phase C feature by S8 closure. This doc defines the system that makes the rule implementable.

@@ -86,6 +86,29 @@ namespace ALWTTT.Music
 
         private readonly Dictionary<int, PartCache> _partCache = new();
 
+        // [JAM-1 / MGP-MEL-1b P7 / D-R3C-2=A] Per-part shared harmony carried
+        // forward so a card joining an ongoing jam ACCOMPANIES it instead of
+        // rewriting it. Values are runtime SO clones from MidiMusicManager —
+        // never assets, never serialized, never written to disk. Per-song
+        // lifetime: cleared in Begin()/End() alongside _partCache.
+        private readonly Dictionary<int, ChordProgressionData> _jamProgressionByPart = new();
+
+        // [JAM-1] Tonality/root at the moment each progression was captured.
+        // Comparing this against the CURRENT model is how we detect "the
+        // incoming card moved the tonality" without enumerating effect types.
+        private readonly Dictionary<int, (Tonality ton, NoteName root)> _jamTonalitySnapByPart = new();
+
+        // [JAM-2 / F-JAM-SCALE-SPLIT] Tonality/root the captured harmony ACTUALLY
+        // RENDERED IN. Deliberately a SECOND field, not a replacement for the
+        // snapshot above: that one tracks the MODEL and answers "did the player
+        // move the key since we captured?"; this one tracks the RENDER and answers
+        // "what mode did these chords sound in?". The two diverge whenever a
+        // Backing card adopts — adoption mutates the per-render PartConfig and
+        // never the model (verified O1), so the model reads Ionian while the
+        // chords are Lydian. Collapsing them into one field would break the
+        // move-detection guard.
+        private readonly Dictionary<int, (Tonality ton, NoteName root)> _jamRenderedTonalityByPart = new();
+
         // [B1 / #7.1 / D-F=γ] Session-level instrument pin maps. Keyed on
         // "musicianId|role". Populated after each successful render with the
         // resolved Instrument / PercussionInstrument. Consumed before each
@@ -382,6 +405,9 @@ namespace ALWTTT.Music
             _currentPartIndex = -1;
             _isPlaying = false;
             _partCache.Clear();
+            _jamProgressionByPart.Clear();      // [JAM-1] runtime clones die with the song
+            _jamTonalitySnapByPart.Clear();     // [JAM-1]
+            _jamRenderedTonalityByPart.Clear(); // [JAM-2]
             _ctx.Music?.ResetStemCache(); // [B1 / D7=B] Per-song stem cache reset.
             _sessionMelodicPin.Clear();   // [B1 / #7.1 / D-F=γ]
 #if ALWTTT_DEV
@@ -436,6 +462,9 @@ namespace ALWTTT.Music
             _state = CompositionState.Ended;
             _isPlaying = false;
             _partCache.Clear();
+            _jamProgressionByPart.Clear();      // [JAM-1] runtime clones die with the song
+            _jamTonalitySnapByPart.Clear();     // [JAM-1]
+            _jamRenderedTonalityByPart.Clear(); // [JAM-2]
             _ctx.Music?.ResetStemCache(); // [B1 / D7=B] Per-song stem cache reset.
 #if ALWTTT_DEV
             DevInfiniteCompositionLoop = false; // [DBG-C1] song-boundary reset
@@ -574,6 +603,17 @@ namespace ALWTTT.Music
             void Info(string msg) => _ctx?.Log($"[TryPlay] {msg}");
             bool Fail(string msg) { _ctx?.Log($"[TryPlay][FAIL] {msg}", true); return false; }
 
+            // [LOG-1 / D-LOG-3=B] Verbose tier for the INTERIOR of a card play.
+            // `enter`, `SUCCESS` and every Fail stay on Info: those three
+            // delimit the play and are what you read when a card misbehaves.
+            // The intermediate bookkeeping below is derivable from them.
+            void InfoV(string msg)
+            {
+                var dev = ALWTTT.Managers.GigManager.Instance != null
+                    ? ALWTTT.Managers.GigManager.Instance.DevSettings : null;
+                if (dev != null && dev.UseLogs && dev.LogVerbose) Info(msg);
+            }
+
             var ui = _ctx?.CompositionUI;
             if (ui == null) return Fail("UI is null");
             if (card == null || card.CardDefinition == null) return Fail("Card or CardData is null");
@@ -593,6 +633,19 @@ namespace ALWTTT.Music
                 CompositionCardClassifier.IsModulationCard(comp);
             bool requiresTarget = comp != null && comp.RequiresMusicianTarget;
             bool affectsSound = comp != null && CompositionCardClassifier.AffectsSound(comp);
+
+            // [JAM-1 / MGP-MEL-1b §2.6 / D4=A] Runtime belt for hand-edited
+            // assets that bypassed the editor check. The composer cannot tell
+            // "default tonality" from "effect-pinned tonality", so adoption
+            // wins SILENTLY at compose time and the TonalityEffect is a lie.
+            // Warn only — never block a play mid-gig.
+            if (isTonality
+                && comp.TrackAction?.styleBundle is BackingCardConfigSO bkAdopt
+                && bkAdopt.adoptProgressionTonality)
+            {
+                Debug.LogWarning($"[CARD-VALIDATION] '{def.DisplayName}': TonalityEffect + " +
+                    $"adoptProgressionTonality — adoption wins, the effect is inert.");
+            }
 
             // [B1 / #1+#2 / D-H1=α] A card "affects part meter" when it
             // mutates any field that goes into partMeterHash (TS, tonality,
@@ -618,7 +671,7 @@ namespace ALWTTT.Music
             if (def.IsComposition)
             {
                 int cost = Math.Max(0, def.InspirationCost);
-                Info($"inspiration: have={_currentInspiration} " +
+                InfoV($"inspiration: have={_currentInspiration} " +
                     $"cost={cost} gen={def.InspirationGenerated}");
                 if (cost > _currentInspiration)
                 {
@@ -667,7 +720,7 @@ namespace ALWTTT.Music
             else
                 partIdx = ui.Model.CurrentPartIndex;
 
-            Info($"routing: loopRunning={loopIsRunning} zone={zone} -> partIdx={partIdx} " +
+            InfoV($"routing: loopRunning={loopIsRunning} zone={zone} -> partIdx={partIdx} " +
                  $"(ui.CurrentPartIndex={ui.Model.CurrentPartIndex} " +
                  $"currentPartIndex={_currentPartIndex})");
 
@@ -895,24 +948,10 @@ namespace ALWTTT.Music
                 int? bpmOverride = (cache != null && cache.resolvedBpm > 0)
                     ? cache.resolvedBpm : (int?)null;
 
-                // [F-4] diagnostic — boundary-call shape dump immediately before
-                // MidiMusicManager.RenderSinglePart. Tracks the IndexOutOfRange
-                // crash inside MidiGenPlay.SongOrchestrator at >=4 loops/part.
-                // Removed at F-4 closure.
-                int loopIndex0 = _loopsTotalForPart - _loopsRemainingForPart;
-                int tracksAtPart = (partIndex >= 0 && partIndex < cfg.Parts.Count
-                    && cfg.Parts[partIndex]?.Tracks != null)
-                    ? cfg.Parts[partIndex].Tracks.Count : -1;
-                Debug.Log(
-                    $"<color=lime>[F-4][CompSession]</color> RenderSinglePart call: " +
-                    $"partIndex={partIndex} loop={loopIndex0 + 1}/{_loopsTotalForPart} " +
-                    $"parts={cfg.Parts?.Count ?? -1} " +
-                    $"channelOwners={cfg.ChannelMusicianOrder?.Count ?? -1} " +
-                    $"channelRoles={cfg.ChannelRoles?.Count ?? -1} " +
-                    $"tracksAtPart={tracksAtPart} " +
-                    $"bpmOverride={bpmOverride?.ToString() ?? "null"} " +
-                    $"cacheState={(cache == null ? "null" : "stale-or-empty")} " +
-                    $"melCacheCount={cache?.resolvedMelInstByTrack?.Count ?? 0}");
+                // [LOG-1] The F-4 boundary-call shape dump was removed at F-4
+                // closure. It fired on every render that missed the cache and
+                // had no error-path counterpart, so nothing is lost by taking
+                // it out. Its two locals went with it.
 
                 // [B1 / D-E=α'] Compute UI-stable input hashes per musician
                 // for this part. Passed to RenderSinglePart so the stem cache
@@ -932,28 +971,121 @@ namespace ALWTTT.Music
                 ApplyInstrumentPins(cfg, partIndex);
 
                 // [DBG-C1] instrumentOverrides is composite-keyed: one entry
-                // per (musician, role). The BASS-1 multi-track strip is
-                // retired — the stomp it defended against cannot occur.
-                // [DBG-C2] Dev pattern overrides: null when idle so the
-                // production/idle path is byte-for-byte identical (BC gate).
-                System.Collections.Generic.IReadOnlyDictionary<
-                    MusicianTrackKey, PatternDataSO> devOverrides = null;
+                // per (musician, role). [JAM-1] The override map now carries a
+                // second, production-live source: the stored shared harmony,
+                // imposed when this render should ACCOMPANY rather than lead.
+                // NOTE: any non-empty map makes MMM bypass its stem/bundle
+                // caches (D-C2-4=A, MidiMusicManager.cs:961). Accepted cost.
+                Dictionary<MusicianTrackKey, PatternDataSO> overrides = null;
+
+                if (_jamProgressionByPart.TryGetValue(partIndex, out var jamProg)
+                    && jamProg != null
+                    && !JamTonalityMovedSinceCapture(partIndex)
+                    && TryGetBackingJamTarget(partIndex, out var backingKey, out var adopts)
+                    && !adopts)
+                {
+                    overrides = new Dictionary<MusicianTrackKey, PatternDataSO>
+                    { [backingKey] = jamProg };
+                    _ctx?.Log($"[JAM-1] part={partIndex} imposing shared progression " +
+                              $"'{jamProg.name}' on Backing (accompany policy, D-R3C-2=A)", true);
+
+                    // [JAM-2 / F-JAM-SCALE-SPLIT] Impose the MODE as well as the
+                    // chords. Without this the part renders every OTHER track
+                    // (melody, lead) against the model's scale while the Backing
+                    // plays chords authored in a different mode — e.g. B major
+                    // (with D#) over an Ionian A scale (with D natural). Chords
+                    // survive because the package renders them AsAuthored; the
+                    // scale does not, because nothing carried it across.
+                    //
+                    // Scope is the per-render cfg, which BuildSongConfigFromUI
+                    // rebuilds every loop. The model is NOT touched, so D-R3C-3=A'
+                    // holds: the mode lives exactly as long as the jam entry does.
+                    if (_jamRenderedTonalityByPart.TryGetValue(partIndex, out var jamRen)
+                        && cfg?.Parts != null
+                        && partIndex >= 0 && partIndex < cfg.Parts.Count
+                        && cfg.Parts[partIndex] != null)
+                    {
+                        var jamCfgPart = cfg.Parts[partIndex];
+                        if (jamCfgPart.Tonality != jamRen.ton || jamCfgPart.RootNote != jamRen.root)
+                        {
+                            _ctx?.Log($"[JAM-2] part={partIndex} aligning render tonality " +
+                                      $"{jamCfgPart.Tonality}/{jamCfgPart.RootNote} -> " +
+                                      $"{jamRen.ton}/{jamRen.root} (mode of the imposed harmony)", true);
+                            jamCfgPart.Tonality = jamRen.ton;
+                            jamCfgPart.RootNote = jamRen.root;
+                        }
+                    }
+                }
 #if ALWTTT_DEV
+                // [DBG-C2] Dev overrides deliberately win over JAM-1: the dev
+                // tab exists precisely to force a pattern regardless of policy.
                 if (DevPatternOverrides.Count > 0)
-                    devOverrides = DevPatternOverrides;
+                {
+                    overrides ??= new Dictionary<MusicianTrackKey, PatternDataSO>();
+                    foreach (var kv in DevPatternOverrides)
+                        overrides[kv.Key] = kv.Value;
+                }
 #endif
                 var (merged, stems, seconds, bpmChosen, instByTrack) =
                     mm.RenderSinglePart(cfg, partIndex, bpmOverride,
                         cache?.resolvedMelInstByTrack,
                         trackInputsHashes,
-                        seedOverride: _songSeed,    // [S5g / MGP-ALWTTT-SEED-1]
-                        patternOverrides: devOverrides); // [DBG-C2 / D-C1-1 now LIVE]
+                        seedOverride: _songSeed,      // [S5g / MGP-ALWTTT-SEED-1]
+                        patternOverrides: overrides); // [DBG-C2 + JAM-1]
 
                 if (merged == null || merged.Length == 0 || seconds <= 0f) return 0f;
 
                 // [B1 / #7.1 / D-F=γ] Record resolved instruments into the
                 // session-level pin map for future renders to reuse.
                 UpdateInstrumentPins(cfg, partIndex);
+
+                // [JAM-1 / D-R3C-4=B′] Capture AFTER the render — adoption mutates
+                // the PartConfig in place during compose, so the post-render
+                // tonality is the mode this progression actually rendered in.
+                //
+                // But capture ONLY when the harmony came from somewhere OTHER than
+                // the Backing card's own fixed override. Rationale: JAM-1 exists to
+                // carry forward harmony a LATER card would otherwise overwrite. A
+                // card's own progressionOverride cannot drift between renders, so
+                // re-imposing it on itself buys nothing and costs the stem/bundle
+                // cache (D-C2-4=A bypasses on any override). Procedural and palette
+                // sources DO drift, so those still get pinned.
+                //
+                // On the CardOverride path we CLEAR rather than leave stale: that
+                // card's fixed harmony is now the part's truth, and a leftover entry
+                // would keep the tonality snapshot frozen at an older render.
+                var jamSrc = mm.LastSharedProgressionSource;
+                bool jamCaptureable =
+                    jamSrc != ResolvedSource.CardOverride
+                    && mm.LastSharedProgressionData != null;
+
+                if (jamCaptureable)
+                {
+                    _jamProgressionByPart[partIndex] = mm.LastSharedProgressionData;
+                    var jamPart = _ctx?.CompositionUI?.Model?.parts?[partIndex];
+                    if (jamPart != null)
+                        _jamTonalitySnapByPart[partIndex] = (jamPart.tonality, jamPart.rootNote);
+
+                    // [JAM-2] The package mutates cfg.Parts[partIndex] IN PLACE when
+                    // the Backing card adopts, so after the render this reads the mode
+                    // the chords actually sounded in — Lydian where the model still
+                    // says Ionian. No new package readback is needed: cfg is ours.
+                    // Captured post-render for the same reason B' captures late.
+                    if (cfg?.Parts != null
+                        && partIndex >= 0 && partIndex < cfg.Parts.Count
+                        && cfg.Parts[partIndex] != null)
+                    {
+                        var jamRenPart = cfg.Parts[partIndex];
+                        _jamRenderedTonalityByPart[partIndex] =
+                            (jamRenPart.Tonality, jamRenPart.RootNote);
+                    }
+                }
+                else
+                {
+                    _jamProgressionByPart.Remove(partIndex);
+                    _jamTonalitySnapByPart.Remove(partIndex);
+                    _jamRenderedTonalityByPart.Remove(partIndex);   // [JAM-2]
+                }
 
                 // [B1 / #1+#2 / D-H4=α] Fresh render succeeded for this part —
                 // clear pending visualization on its tracks.
@@ -999,7 +1131,7 @@ namespace ALWTTT.Music
                     seconds = cache.seconds
                 });
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Debug.Log($"[SINGER-1] LoopPlaybackStarting part={partIndex} " +
                   $"subs={LoopPlaybackStarting?.GetInvocationList().Length ?? 0} " +
@@ -1201,11 +1333,17 @@ namespace ALWTTT.Music
 #if UNITY_EDITOR
             // [B3 / ST-B3b-CTX1] Diagnostic — verify musical identity surfaces
             // correctly. Strip at B3 closure if log noise becomes friction.
-            Debug.Log(
-                $"<color=cyan>[LoopCtx] Part={_currentPartIndex} " +
-                $"Loop={loopIndex0 + 1}/{_loopsTotalForPart} " +
-                $"TempoScale={tempoScale:0.##} TS={timeSignature} " +
-                $"Root={rootNote} Tonality={tonality}</color>");
+            // [LOG-1] B3 is closed and the noise became friction: demoted to
+            // the verbose tier rather than stripped, so the identity readout is
+            // still one toggle away.
+            var devLoopCtx = ALWTTT.Managers.GigManager.Instance != null
+                ? ALWTTT.Managers.GigManager.Instance.DevSettings : null;
+            if (devLoopCtx != null && devLoopCtx.UseLogs && devLoopCtx.LogVerbose)
+                Debug.Log(
+                    $"<color=cyan>[LoopCtx] Part={_currentPartIndex} " +
+                    $"Loop={loopIndex0 + 1}/{_loopsTotalForPart} " +
+                    $"TempoScale={tempoScale:0.##} TS={timeSignature} " +
+                    $"Root={rootNote} Tonality={tonality}</color>");
 #endif
 
             // Store in per-part history
@@ -1415,6 +1553,35 @@ namespace ALWTTT.Music
                     : new Dictionary<MusicianTrackKey, MIDIInstrumentSO>(),
                 resolvedPercInstByTrack = new()
             };
+        }
+
+        // [JAM-1] Did the part's tonality move since we captured the harmony?
+        // Any effect that changes tonality (TonalityEffect, ModulationEffect)
+        // mutates the UI model BEFORE the render, so one comparison catches
+        // them all — no coupling to the effect taxonomy.
+        private bool JamTonalityMovedSinceCapture(int partIndex)
+        {
+            if (!_jamTonalitySnapByPart.TryGetValue(partIndex, out var snap)) return true;
+            var p = _ctx?.CompositionUI?.Model?.parts;
+            if (p == null || partIndex < 0 || partIndex >= p.Count) return true;
+            return p[partIndex].tonality != snap.ton || p[partIndex].rootNote != snap.root;
+        }
+
+        // [JAM-1] Does the Backing card on this part opt into compose-time
+        // tonality adoption? That mutation happens DURING the render, so the
+        // comparison above cannot see it — hence this explicit flag check.
+        // Returns the Backing track key as a by-product (that is the key the
+        // override must be filed under).
+        private bool TryGetBackingJamTarget(int partIndex, out MusicianTrackKey key, out bool adopts)
+        {
+            key = default; adopts = false;
+            var p = _ctx?.CompositionUI?.Model?.parts;
+            if (p == null || partIndex < 0 || partIndex >= p.Count) return false;
+            var tr = p[partIndex].tracks?.FirstOrDefault(t => t.role == TrackRole.Backing);
+            if (tr == null || string.IsNullOrEmpty(tr.musicianId)) return false;
+            key = new MusicianTrackKey(tr.musicianId, TrackRole.Backing);
+            adopts = (tr.styleBundle as BackingCardConfigSO)?.adoptProgressionTonality == true;
+            return true;
         }
 
         private void ApplyInstrumentPins(SongConfig cfg, int partIndex)

@@ -357,6 +357,19 @@ namespace ALWTTT.Managers
 
         private bool UseLogs => dev != null && dev.UseLogs;
 
+        /// <summary>[LOG-1 / D-LOG-3=B] Verbose tier. A line is verbose-visible
+        /// only when BOTH UseLogs and LogVerbose are on. Used for the smoke
+        /// readouts of closed milestones (S5a) and for per-play bookkeeping.
+        /// The protected lines — [JAM-1] and [JAM-2], which reach here through
+        /// GigContext.Log — must NEVER be routed through this.</summary>
+        private bool UseVerboseLogs =>
+            dev != null && dev.UseLogs && dev.LogVerbose;
+
+        private void LogVerbose(string log, string customColor = "")
+        {
+            if (UseVerboseLogs) Log(log, false, customColor);
+        }
+
 #if ALWTTT_DEV
         public void DevWinNormalFlow() => WinGig();   // abre RewardCanvas → BuildReward(Card)
         public void DevLoseNormalFlow() => LoseGig();
@@ -383,6 +396,15 @@ namespace ALWTTT.Managers
             {
                 _instrumentRepo = new InstrumentRepositoryResources(midiGenPlayConfig);
             }
+
+            // [LOG-1 / D-LOG-3=B] SongConfigBuilder is a static class with no
+            // settings reference of its own, so the host pushes the two log
+            // levels in once, here. `dev` is [SerializeField] and therefore
+            // already resolved at Awake time. If dev is missing we deliberately
+            // leave the builder permissive rather than silent.
+            Music.SongConfigBuilder.LogEnabled = dev == null || dev.UseLogs;
+            Music.SongConfigBuilder.LogVerbose = dev != null && dev.UseLogs
+                                                 && dev.LogVerbose;
         }
 
         private void Start()
@@ -880,7 +902,7 @@ namespace ALWTTT.Managers
 
             // [S5a/T8+T11] Seed the projection (C1 readout + C2/C3 telegraph) now;
             // refreshed thereafter at each loop boundary and SFX stage crossing.
-            if (UseLogs)
+            if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
             {
                 Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-START pendingVibe(SFX)={_pendingSfxVibe} " +
                     $"(expect 0) SongHype01={SongHype01:F3}");
@@ -1995,7 +2017,10 @@ namespace ALWTTT.Managers
 
             bool ok = musician.Stats.TryConsumePlay(isComposition);
 
-            if (UseLogs)
+            // [LOG-1] Split by outcome. A DENIED play is a functional event —
+            // it explains why a card did nothing — and stays at the normal
+            // level. A consumed play is bookkeeping and goes verbose.
+            if (UseLogs && (!ok || UseVerboseLogs))
                 Debug.Log($"{DebugTag} [ECON-1] {(ok ? "Consumed" : "DENIED")} " +
                     $"{(isComposition ? "Composition" : "Action")} play — " +
                     $"{musician.CharacterName} " +
@@ -2054,7 +2079,7 @@ namespace ALWTTT.Managers
             for (int i = 0; i < CurrentMusicianCharacterList.Count; i++)
                 CurrentMusicianCharacterList[i]?.Stats?.ResetTurnPlayBudget();
 
-            if (UseLogs)
+            if (UseVerboseLogs)   // [LOG-1] verbose: derivable from the next play
                 Debug.Log($"{DebugTag} [ECON-1] Play budgets reset ({reason}).");
         }
 
@@ -2456,7 +2481,7 @@ namespace ALWTTT.Managers
                     new Color(1f, 0.85f, 0.25f)); // warm gold - banked SFX cue
             }
 
-            if (UseLogs)
+            if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                 Debug.Log($"{DebugTag} <color=yellow>[S5a-SMOKE] BANK stage={stage} +{bonusInt} " +
                     $"pendingVibe={_pendingSfxVibe} (banked, NOT applied this turn)</color>");
         }
@@ -2766,7 +2791,7 @@ namespace ALWTTT.Managers
                 // Blocked chars get no vibe
                 if (audience.IsBlocked)
                 {
-                    if (UseLogs)
+                    if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                         Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END   i={i} " +
                             $"'{audience.CharacterId}' reason=IsBlocked (Immune, 0 Vibe)");
                     continue;
@@ -3236,7 +3261,7 @@ namespace ALWTTT.Managers
             // the Flow multiply (D-S5-SFX-SCALE=A: SFX bypasses Flow).
             int sfx = _pendingSfxVibe;
 
-            if (UseLogs)
+            if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                 Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END begin: bankedSFX={sfx} " +
                     $"flowStacks={GetTotalFlowStacks()} SongHype01={SongHype01:F3} members={deltas.Count}");
 
@@ -3263,7 +3288,7 @@ namespace ALWTTT.Managers
                 // Preserves event<->FT parity: no event/FT when nothing lands.
                 if (finalDelta <= 0)
                 {
-                    if (UseLogs)
+                    if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                         Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END   i={entry.AudienceIndex} " +
                             $"'{audience.CharacterId}' L={lPart} +SFX{sfx} = 0 (no Vibe, skipped)");
                     continue;
@@ -3288,7 +3313,7 @@ namespace ALWTTT.Managers
 
                 SensoryEventBus.Instance?.Publish(vibeEvt);
 
-                if (UseLogs)
+                if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                     Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END   i={entry.AudienceIndex} " +
                         $"'{audience.CharacterId}' L={lPart} " +
                         $"flowx{(flowStacks > 0 ? displayMult : 1f):F2}->{lAfterFlow} " +
@@ -3360,7 +3385,7 @@ namespace ALWTTT.Managers
             if (UIManager != null && UIManager.GigCanvas != null)
                 UIManager.GigCanvas.SetVibeReadout(lPart, sfxPart);
 
-            if (UseLogs)
+            if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                 Debug.Log($"{DebugTag} [S5a-SMOKE] PROJ ({reason}) readout L={lPart} " +
                     $"SFX={sfxPart} N={lPart + sfxPart} SongHype01={SongHype01:F3}");
 
@@ -3399,7 +3424,7 @@ namespace ALWTTT.Managers
                     showNumber: presentation == null || presentation.ShowVibeProjectedNumbers,
                     showLabel: presentation == null || presentation.ShowVibeEffectivenessLabels);
 
-                if (UseLogs)
+                if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                     Debug.Log($"{DebugTag} [S5a-SMOKE] PROJ ({reason})   i={i} " +
                         $"'{aud.CharacterId}' tier={tier} projected={projected} " +
                         $"avg={avg:F2} blocked={aud.IsBlocked} indiff={indifferent}");

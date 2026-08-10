@@ -124,7 +124,7 @@ This is the load-bearing fact Phase 1 codified. If Infinite Turns is ever re-imp
 - `Assets/Scripts/DevMode/DevStatsTab.cs` — file-level `#if ALWTTT_DEV`. Phase 3.1/3.2/3.3a/3.3b static helper that renders the Stats tab body. Breakdown section (P3.1) + Gig-Wide Stats section (P3.2 + Flow row added P3.3a) + Per-Character section (P3.3a stat controls + P3.3b status picker). Dispatches to `GigManager.DevSet…`, `BandCharacterStats.DevSet…`, `AudienceCharacterStats.DevSet…` wrappers for stat editing, and directly to `StatusEffectContainer.Apply`/`Clear` for the Composure stepper and P3.3b status picker. Phase 3.3b additions: `DrawStatusPicker(CharacterBase, ref int)` method, `_musicianStatusPickerIndex` and `_audienceStatusPickerIndex` static fields, `using ALWTTT.Characters` directive.
 - `Assets/Scripts/DevMode/DevAudioMixTab.cs` — file-level `#if ALWTTT_DEV`. M-AUDIO-MIX static helper rendering the Audio Mix tab body (global music + per-musician + master SFX sliders + a no-asset banner + the Solo/Duck/Clear highlight trigger). Routes all slider edits through `GigManager.DevSet…` audio wrappers; calls `MidiMusicManager.Highlight` directly for the trigger. No runtime mutation outside those calls.
 - `GigManager` `#if ALWTTT_DEV` audio additions (M-AUDIO-MIX): `DevGlobalMusicVolume01`/`DevSetGlobalMusicVolume01`, `DevGetMusicianVolume01`/`DevSetMusicianVolume01(MusicianBase,float)`, `DevMasterSfxVolume01`/`DevSetMasterSfxVolume01`, `DevHasAudioMixAsset`, `PersistAudioMixInEditor`. Always-compiled support: `ApplyPersistedAudioMix` (StartGig), `ReapplyMusicianMix` (after Play), `_globalMusicVolume01`, the `audioMix` SO ref.
-- `Assets/Scripts/DevMode/DevCompositionDebugTab.cs` — file-level `#if ALWTTT_DEV` (DBG-C1). Renders the Composition tab body: two-phase intent/resolved per-track log, optional seed field, infinite-loop toggle, Copy fingerprint, chd: dump. Read-only except the seed/toggle writes; no gameplay mutation. **(DBG-C2)** interactive controls added: per-track override dropdowns, Roman field, R2a re-render button, catalog browse. **(CSV-2, 2026-07-18)** per-track **instrument** override rows added (melodic + percussion pickers, `[dev-inst]` intent annotation, card-stomp detection, Clear-with-restore); the tab's `Clear ALL overrides` button now clears both override families. Still file-level `#if ALWTTT_DEV`. **(CTX-1/1b, 2026-07-31)** sección de override de contexto de parte (tonalidad/raíz) con Hold-across-loops y log de diagnóstico de drift; el botón `Clear ALL overrides` limpia ahora tres familias (patrón · instrumento · contexto de parte). Sigue `#if ALWTTT_DEV` a nivel de fichero.
+- `Assets/Scripts/DevMode/DevCompositionDebugTab.cs` — file-level `#if ALWTTT_DEV` (DBG-C1). Renders the Composition tab body: two-phase intent/resolved per-track log, optional seed field, infinite-loop toggle, Copy fingerprint, chd: dump. Read-only except the seed/toggle writes; no gameplay mutation. **(DBG-C2)** interactive controls added: per-track override dropdowns, Roman field, R2a re-render button, catalog browse. **(CSV-2, 2026-07-18)** per-track **instrument** override rows added (melodic + percussion pickers, `[dev-inst]` intent annotation, card-stomp detection, Clear-with-restore); the tab's `Clear ALL overrides` button now clears both override families. Still file-level `#if ALWTTT_DEV`. **(CTX-1/1b, 2026-07-31)** sección de override de contexto de parte (tonalidad/raíz) con Hold-across-loops y log de diagnóstico de drift; el botón `Clear ALL overrides` limpia ahora tres familias (patrón · instrumento · contexto de parte). **(CTX-2a, 2026-08-03)** sección de override de **tempo** (BPM) con Hold-across-loops y línea de lectura de BPM resuelto; el `Clear ALL overrides` limpia ahora **cuatro** familias (patrón · instrumento · contexto de parte · tempo). **(CTX-2b, 2026-08-03)** sección de **articulación** (`chordExpression` / `arpeggioRate`) sobre un plano nuevo —clon en runtime del style bundle, D-CTX2B-1=A— con Hold-across-loops de semántica estrechada; el `Clear ALL overrides` limpia ahora **cinco** familias (patrón · instrumento · contexto de parte · tempo · articulación). Sigue `#if ALWTTT_DEV` a nivel de fichero.
 - `Assets/Scripts/DevMode/GenerationDebugFormatter.cs` — file-level `#if ALWTTT_DEV` (DBG-C1). Role-adaptive text formatter for the tab (intent lines, resolved lines with the `'*'` resolved-only convention, fingerprint block).
 
 **Modified production files (block-level `#if ALWTTT_DEV` patches only):**
@@ -145,10 +145,10 @@ This is the load-bearing fact Phase 1 codified. If Infinite Turns is ever re-imp
 - `Assets/Scripts/Characters/Audience/AudienceCharacterStats.cs` — Phase 3.1 surface: `DevResetConvinced()` method (implementation landed in P3.3a — previously doc-declared but unimplemented; see §7). Phase 3.3a surface: `CheckConvincedThreshold()` private helper extracted from `AddVibe`, `DevSetCurrentVibe(int)`, `DevSetMaxVibe(int)` — all route through the shared threshold-check so Dev and play paths cannot drift.
 - `Assets/Scripts/Characters/Band/BandCharacterStats.cs` — Phase 3.1 surface: `DevResetBreakdown()` method. Sets `IsBreakdown = false` so `AddStress` can re-trigger the Breakdown path. Phase 3.3a surface: `CheckBreakdownThreshold()` private helper extracted from `AddStress`, `DevSetCurrentStress(int)`, `DevSetMaxStress(int)` (floor 1, clamps Current down, re-checks threshold). Dev Mode only; production code never un-breaks a musician.
 - `Assets/Scripts/Characters/Band/MusicianBase.cs` — `DevForceBreakdown()` method. Calls `DevResetBreakdown()` then `AddStress(MaxStress)`. Routes through the natural Breakdown path (Cohesion−1, Stress reset, Shaken apply, IsStunned). Re-triggerable.
-- `Assets/Scripts/Runtime/CompositionSession.cs` — Phase 3.2 block: `CurrentInspiration` getter + `DevSetCurrentInspiration(int)` method. Sets the session's live `_currentInspiration` field and calls `_ctx.CompositionUI?.SetInspiration(value)` to refresh the composition UI. Does not write back to `PersistentGameplayData` — caller (`GigManager.DevSetInspiration`) owns that side.
-- `Assets/Scripts/Runtime/CompositionSession.cs` — S5g seed-wiring addition (2026-07-05): `DevPinnedSongSeed` (`static int?`). When non-null, `Begin()` uses it in place of run entropy to seed `_songSeed`, producing a reproducible song render (see `SSoT_Runtime_CompositionSession_Integration.md §10`). **DBG-C1** additions: `DevInfiniteCompositionLoop` (`static bool`, dev-only) consumed by the countdown-reset branch in `HandleLoopFinished` and the `IsFinalLoopRunning` dev exemption; read-only accessors (`DevCurrentPartIndex`, `DevLoopsRemaining/TotalForPart`, `DevSongSeed`, `DevCompositionUI`); song-boundary reset of the toggle in `Begin()`/`End()`. **(DBG-C2)** dev statics `DevPatternOverrides` / `DevOverrideStamp` / `DevBumpOverrideStamp()`, accessor `DevMidiConfig`, `PartCache.devOverrideStamp` field; stamp-invalidation + `patternOverrides` pass-through in `PlaySinglePartLoop`; song-boundary clear of `DevPatternOverrides`. **(CSV-2, 2026-07-18)** two further dev-region additions: `DevResolveMusicianById(string) : MusicianBase` (forwards `ICompositionContext.ResolveMusicianById`, needed by the tab to compute `InstrumentRules.GetPermittedMelodic` for the permitted-set annotation) and `DevInvalidateForInstrumentOverride(int partIndex)` (calls `InvalidatePartCache(partIndex, keepTempo: true, keepInstrumentsOverride: **false**)` then `DevBumpOverrideStamp()`). The `keepInstruments: false` choice is load-bearing and is **not** the pattern-override stamp path — see §18.9 and `SSoT_Runtime_CompositionSession_Integration §8` inv 9. All `#if ALWTTT_DEV` except the null-passed local (production byte-identical).
+- `Assets/Scripts/Music/CompositionSession.cs` — Phase 3.2 block: `CurrentInspiration` getter + `DevSetCurrentInspiration(int)` method. Sets the session's live `_currentInspiration` field and calls `_ctx.CompositionUI?.SetInspiration(value)` to refresh the composition UI. Does not write back to `PersistentGameplayData` — caller (`GigManager.DevSetInspiration`) owns that side.
+- `Assets/Scripts/Music/CompositionSession.cs` — S5g seed-wiring addition (2026-07-05): `DevPinnedSongSeed` (`static int?`). When non-null, `Begin()` uses it in place of run entropy to seed `_songSeed`, producing a reproducible song render (see `SSoT_Runtime_CompositionSession_Integration.md §10`). **DBG-C1** additions: `DevInfiniteCompositionLoop` (`static bool`, dev-only) consumed by the countdown-reset branch in `HandleLoopFinished` and the `IsFinalLoopRunning` dev exemption; read-only accessors (`DevCurrentPartIndex`, `DevLoopsRemaining/TotalForPart`, `DevSongSeed`, `DevCompositionUI`); song-boundary reset of the toggle in `Begin()`/`End()`. **(DBG-C2)** dev statics `DevPatternOverrides` / `DevOverrideStamp` / `DevBumpOverrideStamp()`, accessor `DevMidiConfig`, `PartCache.devOverrideStamp` field; stamp-invalidation + `patternOverrides` pass-through in `PlaySinglePartLoop`; song-boundary clear of `DevPatternOverrides`. **(CSV-2, 2026-07-18)** two further dev-region additions: `DevResolveMusicianById(string) : MusicianBase` (forwards `ICompositionContext.ResolveMusicianById`, needed by the tab to compute `InstrumentRules.GetPermittedMelodic` for the permitted-set annotation) and `DevInvalidateForInstrumentOverride(int partIndex)` (calls `InvalidatePartCache(partIndex, keepTempo: true, keepInstrumentsOverride: **false**)` then `DevBumpOverrideStamp()`). The `keepInstruments: false` choice is load-bearing and is **not** the pattern-override stamp path — see §18.9 and `SSoT_Runtime_CompositionSession_Integration §8` inv 9. All `#if ALWTTT_DEV` except the null-passed local (production byte-identical).
 - `Assets/Scripts/Managers/MidiMusicManager.cs` — **DBG-C1** read-only truth surface (`LastResolvedByTrack`/`LastPinnedByTrack`/`LastRenderSerial|PartIndex|Bpm|FromCache`) + `GetChordTimelineSnapshot()`/`ChordTimelineEntry`. Production API (only the consuming tab is dev-gated). **(DBG-C2)** cache bypass when `patternOverrides` is supplied (production API; the value is null in production).
-- `Assets/Scripts/Data/GigDevSettingsSO.cs` — **DBG-C1** `CompositionDebugFull` flag (Compact/Full tab format).
+- `Assets/Scripts/Data/Gig/GigDevSettingsSO.cs` — **DBG-C1** `CompositionDebugFull` flag (Compact/Full tab format).
 - `Assets/Scripts/Managers/GigManager.cs` — **DBG-C1** `DevSettings` accessor (`#if ALWTTT_DEV`).
 
 **Not modified by CSV-2 (deliberate, D-CSV-5=A).** `SongCompositionUI`, `SongConfigBuilder`, and `MidiMusicManager` are untouched by the instrument-override surface. The dev write reuses the `TrackEntry.override*Instrument` fields those files already own, so the existing override precedence in `SongConfigBuilder.FromUI` and the existing `trackInputsHash` participation apply unchanged. The tool adds no new production API.
@@ -438,6 +438,39 @@ Inventory window surface is documented in `SSoT_Editor_Authoring_Tools.md §17`;
 **Uso en producción de la herramienta.** Los tests T2.1–T2.7 de la pasada de
 escucha CONT-B se ejecutaron con esta sección (7/7 PASS), lo que constituye su
 primera validación de campo aunque los smokes formales sigan pendientes.
+### 9.18 CTX-2a — part tempo override (2026-08-03)
+
+| ID | Test | Estado |
+|---|---|---|
+| **ST-CTX2A-1** | **Regresión D11** — build nuevo, canción nueva, sin cartas de tempo ⇒ la línea de lectura muestra `Range=Slow` y un `resolved` dentro de la banda Slow | PASS |
+| **ST-CTX2A-2** | Apply — override 70 BPM ⇒ el loop siguiente resuelve `70` y suena al tempo pedido (verifica que el cortocircuito de `resolvedBpm` se soltó) | PASS |
+| **ST-CTX2A-3** | **Regresión clear/restore** — tras Clear, `Explicit=null`, etiqueta `tempo` restaurada y `resolved` == valor pre-Apply exacto; sin residuo | PASS |
+| **ST-CTX2A-4** | Persistencia — con Hold ON y loop infinito, el override sobrevive ≥3 loops; si el modelo drifta, el log `[CTX-2a] … re-asserting` lo cuenta | PASS |
+| **ST-CTX2A-5** | Precedencia vs carta de escala — override 70 + Push It (×1.5) ⇒ **105** (el override compone con la escala, no la bloquea) | PASS |
+| **ST-CTX2A-6** | Pisado por carta (Hold OFF) — carta de tempo Range tras Apply ⇒ `(superseded by card)`, manda la carta | PASS |
+| **ST-CTX2A-7** | **Compilación de producción** sin `ALWTTT_DEV` ⇒ compila limpio; el único diff de producción del lote es el default `Slow` | PASS |
+
+**Nota.** ST-CTX2A-7 **no** es un test de identidad de bytes respecto al build
+anterior: D11=A cambia comportamiento de producción a propósito. La afirmación
+verificada es que el diff de producción del lote es *exactamente* ese default.
+
+### 9.19 CTX-2b — articulation override (2026-08-03)
+
+| ID | Test | Estado |
+|---|---|---|
+| **ST-CTX2B-1** | Identidad de bytes tras Clear — seed pineado, Apply `Offbeat` → Clear ⇒ `bundle HIT` con clave idéntica a la de línea base (id 53202 restaurado) | **PASS** |
+| **ST-CTX2B-2** | Apply audible — `Offbeat` sobre Electric Piano ⇒ `trackHash` movido, render fresco, contratiempo audible, sufijo `[dev-artic]` | **PASS** |
+| **ST-CTX2B-3** | Trampa del hash — segundo Apply sin Clear ⇒ clon con **instance ID nuevo** (−46610 → −46700), hash nuevo, render fresco, audio del nuevo valor | **PASS** |
+| **ST-CTX2B-2b** | `rate=Random` — figura concreta + rate centinela ⇒ herramienta correcta (clon, hash, render fresco) pero **figura suprimida** package-side | **PASS (herramienta)** — hallazgo F-ARTIC-RATE-RANDOM-1 |
+| **ST-CTX2B-4** | Fuga de clones — Hold ON, ≥6 loops ⇒ `live dev clones: 1` constante y `id=` estable | **PASS** |
+| **ST-CTX2B-5** | Pisado por carta — carta de Backing con bundle propio ⇒ `superseded by card`, clon destruido, nada restaurado | **PASS** |
+| **ST-CTX2B-6** | Determinismo de `expr=Random` bajo seed pineado entre relanzamientos | **DIFERIDO** — la comparación estricta pertenece al contrato §8.5 del composer; es test package-side, no de consumidor |
+| **ST-CTX2B-7** | Compilación de producción sin `ALWTTT_DEV` | **PASS** |
+
+**Nota de instrumentación (reutilizable).** La caché de bundles de `MidiMusicManager`
+es el detector de identidad de bytes: un `bundle HIT` devuelve el `mergedBytes` guardado,
+el mismo array. No hace falta añadir un volcado de hash al tab.
+
 ## 10. Update rule
 
 This SSoT must be updated when any of the following change:
@@ -828,6 +861,15 @@ Gate `#if ALWTTT_DEV`; production byte-identical (ST-CSV3-1/2).
 
 The F12 overlay content is wrapped in a screen-bounded outer scroll (`DevModeController`), and `GUI.DragWindow` is restricted to the title bar. Fixes the Composition tab growing past the screen bottom with no way to reach it after the R2a section was added. Applies to all tabs; cosmetic/operational only.
 
+**Addendum de ergonomía (CTX-2b, 2026-08-03 — verificado en código 2026-08-08, D2=SÍ).**
+Ancho por defecto de la ventana **480 → 720** (`_windowRect` en `DevModeController`) más un
+**agarradero de redimensionado** `◢` bajo el scroll, que ajusta *solo* el ancho
+(`Mathf.Clamp(..., 380f, 2000f)`; `GUILayout.Window` sigue siendo dueño del alto). El motivo
+está escrito en el propio código: las líneas de la pestaña de composición —nombres de bundle,
+hashes, avisos— se truncaban a media frase con 480 fijos. El arrastre de la ventana sigue
+restringido a la barra de título, de modo que el agarradero y el contenido con scroll no la
+mueven.
+
 ### 18.12 Part-context override — tonality / root (CTX-1, 2026-07-31)
 
 **Qué añade.** Una sección colapsable `Part context override (tonality / root)`
@@ -876,3 +918,253 @@ API nueva. Ruta de producción equivalente: una carta con
 `TonalityEffect(Explicit, <modo>)`, audicionable vía R2a (§18.10) — ambas rutas
 escriben el mismo campo del modelo, así que lo que se oye con el override es lo
 que hará la carta.
+
+### 18.13 Part tempo override — BPM (CTX-2a, 2026-08-03)
+
+**Qué añade.** Una sección colapsable `Part tempo override (BPM)` junto a la de
+CTX-1, con stepper de BPM (±5 / ±10 + campo, clamp 40–300), Apply,
+Clear-con-restore y el toggle `Hold across loops` (default ON). Encima, una
+línea de lectura `BPM: resolved=… | model: Explicit=… Range=… Scale=×…` que
+muestra el BPM que la última render realmente usó (`PartCache.resolvedBpm`)
+junto al intent del modelo.
+
+**Mecanismo (extensión de D-CSV-5=A al plano de tempo).** Escribe
+`PartEntry.absoluteBpmOverride`, un campo que `SongConfigBuilder.FromUI` **ya
+lee** (`ExplicitBpm`), en vez de abrir un canal nuevo. No escribe
+`tempoRangeOverride` (así Clear restaura sin tocarlo) y **no** usa `tempoScale`:
+`tempoScale` es el eje de gusto de la audiencia (`AudienceCharacterBase` compara
+`ctx.TempoScale` contra umbrales cuyo default es 1.0, y las cartas Push It /
+Half Time asumen línea base 1.0), de modo que usarlo como palanca de
+herramienta contaminaría gameplay.
+
+**El paso no obvio: soltar el BPM cacheado.** `CompositionSession`
+cortocircuita la resolución de BPM cuando `PartCache.resolvedBpm > 0` (lo pasa
+como `bpmOverride` a `RenderSinglePart`), y las invalidaciones de dev
+(`DevBumpOverrideStamp` / `DevInvalidateForInstrumentOverride`) usan
+`keepTempo: true`, que **preserva** ese valor. Escribir el modelo y bumpear el
+stamp por sí solos **no cambian el BPM audible**. Apply pone por tanto
+`cache.resolvedBpm = 0` antes de bumpear el stamp; Clear reescribe el
+`resolvedBpm` capturado pre-Apply, lo que restaura el estado audible **exacto**
+sin depender de que el sorteo de banda sea reproducible (no lo es
+necesariamente: es interno del paquete). `0` pre-Apply ⇒ no había caché ⇒ tras
+Clear se re-resuelve fresco, como antes de la sesión. Invariante de runtime
+completo: `SSoT_Runtime_CompositionSession_Integration.md` §8 inv 13.
+
+**Doble plano de persistencia (a diferencia de CTX-1).** El BPM audible
+persiste **solo**, porque el cortocircuito de caché lo sostiene mientras nada
+invalide con `keepTempo: false`. `Hold across loops` no existe para eso: existe
+para reafirmar la **verdad del modelo** cuando este revierte (mismo mecanismo no
+identificado que CTX-1b), de forma que la línea de lectura no mienta y el
+override sobreviva a una invalidación que sí re-resuelva. Loguea
+`[CTX-2a] Model tempo drifted to …; re-asserting … (count=N)` — mismo
+instrumento de diagnóstico que CTX-1b.
+
+**Precedencia frente a cartas de tempo (verificada, ST-CTX2A-5/6).** Las cartas
+de tempo son las únicas que invalidan con `keepTempo: false`
+(`CompositionSession.ShouldKeepTempo`), así que fuerzan re-resolución:
+- **ScaleFactor** (Push It ×1.5 / Half Time ×0.66): **compone** con el override
+  — el BPM final es `override × escala`, porque `ExplicitBpm` sigue en el modelo
+  y la escala se aplica después.
+- **Range / AbsoluteBpm**: con `Hold` OFF manda la carta y el registro se suelta
+  **sin** restaurar (semántica CSV-2: la verdad de la carta es más reciente, se
+  anota `(superseded by card)`); con `Hold` ON el reassert devuelve el override
+  dev. **Consecuencia documentada, no defecto**, idéntica a CTX-1b.
+
+**Guardas.** Identidad de modelo (canción nueva ⇒ el registro se suelta, no hay
+nada válido que restaurar) y pisado por carta con semántica CSV-2.
+`Clear ALL overrides` limpia también esta familia — son ya **cuatro**
+(patrón · instrumento · contexto de parte · tempo).
+
+**Alcance.** `#if ALWTTT_DEV` a nivel de fichero, huella de producción cero,
+**sin API nueva** (`TryGetPartCache` / `GetOrCreatePartCache` /
+`PartCache.resolvedBpm` ya eran públicos). Ruta de producción equivalente: una
+carta con `TempoEffect(AbsoluteBpm, N)` — ambas rutas escriben el mismo campo
+del modelo.
+
+**Deuda anotada, no arreglada aquí.** `SongCompositionUI.ApplyEffectToModel`
+escribe `tempoRangeOverride = TempoRange.Fast` como centinela en la rama
+`AbsoluteBpm` de `TempoEffect`. Tras D11=A ese centinela contradice el nuevo
+default. Está ensombrecido por `ExplicitBpm` (§8 inv 13), así que es inerte hoy;
+se vuelve visible si alguien limpia el `ExplicitBpm` de esa parte sin limpiar el
+rango.
+
+### 18.14 Articulation override — chordExpression / arpeggioRate (CTX-2b, 2026-08-03)
+
+Cuarto override del tab, y el primero que **no** escribe un campo que
+`SongConfigBuilder` ya lea. `chordExpression` y `arpeggioRate` no existen en el modelo
+de composición: viven dentro del style bundle que la carta trae
+(`BackingCardConfigSO` / `BasslineCardConfigSO`). El plano es por tanto distinto
+(D-CTX2B-1=A) aunque la UI reutilice el patrón CTX-1 (steppers · Apply ·
+Clear-con-restore · `Hold across loops`).
+
+**Plano: clon en runtime.** Apply hace `Instantiate()` del bundle **original**, muta
+los dos campos en la copia, marca la copia `HideFlags.DontSave` y la asigna a
+`TrackEntry.styleBundle`. El asset del proyecto no se toca nunca, ni transitoriamente.
+Participación en el hash: automática — `SongConfigBuilder.AssetKey` usa
+`GetInstanceID()`, así que el clon tiene clave propia y el render es fresco por
+construcción.
+
+**Clon fresco por Apply (invariante del plano).** Mutar el clon vigente en sitio
+conserva su instance ID ⇒ `trackInputsHash` no se mueve ⇒ la caché de bundles de
+`MidiMusicManager` serviría bytes rancios: un segundo Apply cambiaría la UI sin cambiar
+el audio, y la herramienta fabricaría conclusiones falsas sobre el composer. Cada Apply
+clona **desde el original** (nunca desde el clon anterior: así todo campo no-articulatorio
+sigue siendo verdad autorada por construcción) y destruye el huérfano. La destrucción es
+inmediata y segura: los renders son síncronos al inicio de loop en el hilo principal,
+`OnGUI` nunca se solapa con uno, y las cachés guardan bytes, no referencias a SOs.
+
+**Clear recupera identidad de bytes.** Restaurar la referencia original devuelve el
+instance ID original ⇒ la clave de bundle original ⇒ `bundle HIT` y replay del array
+cacheado. No es "suena igual": son los mismos bytes. Verificado en ST-CTX2B-1.
+
+**Hold es más estrecho que en CTX-1b (deliberado).** Hold re-asserta el clon **solo**
+cuando el modelo revierte al bundle **original** registrado. Un bundle **ajeno** significa
+carta de Backing/Bassline nueva y la carta gana siempre (semántica CSV-2: soltar sin
+restaurar, destruir el clon), con Hold ON o OFF. Motivo: re-asertar sobre un bundle ajeno
+resucitaría la identidad musical **entera** de la carta anterior (progresión, paleta,
+instrumentación de estilo), mucho más de lo que un override de dos campos debe hacer.
+En CTX-1 la asimetría es aceptable porque allí se reescriben dos campos escalares.
+
+**Ciclo de vida de los clones.** Son los primeros `ScriptableObject` de runtime creados
+por el tab; un SO instanciado no muere solo. Tres puntos de liberación: fin de canción
+(rama de sesión inactiva), reconstrucción del modelo (guarda de identidad, patrón
+CTX-2a), y pisado por carta. `Clear ALL overrides` limpia también esta familia — son
+ahora **cinco** (patrón · instrumento · contexto de parte · tempo · articulación).
+
+**Observables en la UI** (no solo en log, por hallazgo de ST-CTX2B-3: el volcado
+`[stemCache][DIAG]` sepulta la línea de Apply en la consola):
+- `id=` del clon vigente en la fila — cada Apply debe mostrar un ID **nuevo**.
+- `live dev clones: N` — el contador de fuga.
+- `[dev-artic]` como sufijo en la línea de INTENT, misma convención que `[dev-inst]`.
+
+**Aviso F-ARTIC-RATE-RANDOM-1.** La fila avisa en amarillo cuando se combina figura
+concreta con `arpeggioRate = Random` (ver §8.7 del boundary SSoT). La herramienta
+**avisa pero no corrige el valor**: una carta real puede autorarse así, y auditar lo que
+la carta hace de verdad es el propósito del tab. Retirar el aviso cuando MGP-ARTIC-RATE-1
+cierre.
+
+**Alcance de la sección.** Solo se listan tracks cuyo bundle vigente sea Backing o
+Bassline —son los únicos que llevan los dos campos—; `RhythmCardConfigSO` no los tiene.
+
+**Trampa de lectura del log (anotada aquí porque se tropezó con ella en este lote).**
+El segmento `dp:<paleta>` de `partMeterHash` identifica la paleta por defecto que se
+**ofrece** al canal de armonía compartida, **no** la que ganó. El veredicto lo da la
+línea `[ORDER-1] harmony source=… asset='…'`, y el paquete además avisa explícitamente
+cuando la ignora (`[SongOrchestrator] defaultProgression … Ignoring`). Ver
+`MidiMusicManager` §D-R2-10=A para por qué el candidato está en la clave.
+
+**Deuda anotada, inerte.** El warning `OnSongStarted but key/cache missing`
+(`MidiMusicManager`, `LogWarning`) se observó durante los smokes de este lote. Sin
+relación con la articulación; no investigado.
+
+---
+
+## 19. Niveles de log (LOG-1, 2026-08-08)
+
+Esta sección existe por una razón concreta: **es lo único que impide que un lote futuro
+degrade por descuido una línea de la que depende un test.** El riesgo no es teórico. Casi
+todas las líneas protegidas de abajo *parecen* ruido de diagnóstico, y todas ellas son el
+observable de una verificación. Antes de mover cualquier línea de log a un tier más
+silencioso, mirar esta sección.
+
+### 19.1 Los cinco interruptores
+
+Cinco flags, tres dueños, dos planos. No forman una jerarquía única: hay dos maestros
+independientes (host de gig y `MidiMusicManager`) más un tercero package-side.
+
+| # | Flag | Dueño / hogar | Tier | Qué gatea |
+|---|---|---|---|---|
+| 1 | `GigDevSettingsSO.UseLogs` | ALWTTT, asset de gig | **maestro** | El log de gig en general. Con OFF no hay consola de gig que leer. |
+| 2 | `GigDevSettingsSO.UseCompositionLogs` | ALWTTT, asset de gig | maestro de dominio | El flujo de composición dentro del log de gig. |
+| 3 | `GigDevSettingsSO.LogVerbose` | ALWTTT, asset de gig | **verbose (D-LOG-3=B)** | Los volcados charlatanes por render / por loop cuyo hito ya cerró: smoke de S5a, `LoopCtx` de B3, bloques `DIAG` de caché, tablas de teoría. **Default OFF.** |
+| 4 | `MidiMusicManager.logDebug` | ALWTTT, campo del componente | maestro del manager | Todo el log de `MidiMusicManager`. **`[HideInInspector]`**: el valor del inspector/prefab **no decide nada**, se sobreescribe incondicionalmente en el arranque desde `MidiGenPlayConfig.logMidiMusicManager`. Se ocultó precisamente para que deje de invitar a girar un mando que no está conectado. |
+| 5 | `MidiMusicManager.logVerbose` | ALWTTT, campo del componente | **verbose (D-LOG-3=B)** | Segundo tier del manager, **host-owned y NO sobrescrito en el arranque** (a diferencia de `logDebug`). Solo los volcados por render. **Default OFF.** |
+| — | `MidiGenPlayConfig.logGenerator` | **MidiGenPlay (package-owned)** | maestro package-side | El log del generador. Un único bit que contiene a la vez `[MelodySlot]` (una línea por nota) y `[ChordTrack] Tonality`, de la que dependen tests host. Ver §19.4 / boundary §8.10. |
+
+**Regla de lectura.** Una línea verbose es visible **solo** cuando su maestro **y** su
+verbose están ambos en ON (`UseLogs && LogVerbose`, o `logDebug && logVerbose`). Una línea
+protegida cuelga **solo** de su maestro.
+
+**Por qué dos pares maestro/verbose y no uno.** `GigDevSettingsSO` es un asset de contenido
+de gig; `MidiMusicManager` es un componente que existe también fuera de un gig. Colgar el
+verbose del manager de un asset de gig lo dejaría sin gobierno en cualquier escena sin gig,
+que es exactamente donde se depura composición. El coste —dos mandos en vez de uno— es
+menor que el de un mando que a veces no existe.
+
+### 19.2 Las SIETE líneas PROTEGIDAS
+
+Cada una es el observable directo de al menos un test. **Ninguna cuelga de un flag verbose.**
+Degradar cualquiera de ellas rompe la verificación que la sostiene, y la rompe *en silencio*:
+el test no falla, deja de poder ejecutarse.
+
+| Línea | Sostiene | Por qué no se puede mover |
+|---|---|---|
+| `[ORDER-1] part=N harmony source=… asset='…'` | ST-R2d-1, ST-A1..A7, ST-J1/J6 | Es el **veredicto** de quién ganó el canal de armonía compartida. El segmento `dp:` del hash solo dice qué se *ofreció* (§18.14). Sin esta línea no hay forma de saber qué progresión sonó. |
+| `[JAM-1] part=N imposing shared progression …` | ST-J1, ST-J2, ST-J4, ST-J5 | Único observable de que la imposición ocurrió. Su **ausencia** es igual de informativa que su presencia (ST-J6 verifica que no aparece). |
+| `[JAM-2] part=N aligning render tonality X/root -> Y/root` | ST-J3, ST-J6 | Único observable de la propagación de modo. ST-J6 verifica su **ausencia** en renders que no imponen: una línea que se pueda silenciar por configuración vuelve inservible un test de ausencia. |
+| `[B1][stemCache] …` **SIN** `[DIAG]` | ST-CTX2B-1, ST-C1, C4, tests de identidad de bytes | `bundle HIT` es el detector de identidad de bytes del proyecto (§9.19, nota de instrumentación). Sin él no hay forma barata de afirmar "son los mismos bytes" en vez de "suena igual". |
+| `[DBG-C2/CacheBypass] …` | ST-J4, ST-CTX2B-2/3 | Explica **por qué** un render fue fresco. Sin ella, un render fresco y un fallo de caché son indistinguibles en la consola. |
+| `[ChordTrack] Tonality: …` | ST-A7, ST-J3, evidencia de la corrección de premisa de D-R3C-3 | Es la prueba de que el render ocurrió en el modo que se cree. **Package-owned** — ver la trampa de §19.4. |
+| `Timeline ch=…` | ST-LOG-2, C4, comparación de timeline de acordes | Reporta el timeline de acordes por canal. Es donde se leyó la etiqueta de acorde dañada que originó MGP-CHD-ASCII-1. |
+
+> **Contador.** Son **siete** líneas protegidas en total. Los comentarios de código hablan de
+> **seis** porque cuentan solo las de dueño host: `[ChordTrack] Tonality` es package-owned y no
+> cuelga de ningún flag ALWTTT. No es una contradicción, es una diferencia de alcance — y es
+> exactamente el motivo por el que existe el ask **MGP-LOG-VERBOSE-1**.
+
+### 19.3 LA TRAMPA: `[B1][stemCache]` vs `[B1][stemCache][DIAG]`
+
+**Son dos líneas distintas con tiers distintos, y un `grep "[B1][stemCache]"` las confunde.**
+
+- `[B1][stemCache]` — **PROTEGIDA.** Reporta `bundle HIT` / `stem HIT` y las claves. Cuelga
+  de `logDebug` solo.
+- `[B1][stemCache][DIAG]` — **VERBOSE.** Volcado de diagnóstico por parte, largo. Cuelga de
+  `logDebug && logVerbose`. Es el volcado que en ST-CTX2B-3 sepultaba la línea de Apply en la
+  consola, y el motivo de que §18.14 exponga observables en la UI y no solo en log.
+
+Un lote que quiera silenciar "el volcado de stemCache" y filtre por el prefijo común apagará
+también la línea protegida. **Filtrar por `[DIAG]`, nunca por `[B1][stemCache]`.** El código
+lleva un comentario en el punto exacto (`MidiMusicManager.cs`, ~1006) avisando de esto; esta
+sección es su autoridad documental.
+
+### 19.4 Trazas de pila desactivadas
+
+`AlwtttLogSetup` (`ALWTTT.Core`, `[RuntimeInitializeOnLoadMethod(BeforeSceneLoad)]`) llama a
+`Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None)` antes de que cargue
+ninguna escena.
+
+**Medida sobre la captura de referencia de R3 (`log11.txt`): 762 de 864 líneas de consola eran
+trazas de pila colgando de `Debug.Log` planos** — el 88% del volumen sin información, porque
+toda línea de log del host ya va etiquetada con la clase que la emite y la traza solo repite lo
+que dice la etiqueta.
+
+- **Warning y Error conservan su traza.** Ahí sí se quiere: saltan en rutas que no se esperaba
+  alcanzar.
+- **No retira ni degrada ninguna línea de log.** Es el único cambio de LOG-1 con coste de
+  información **cero**, por eso va primero y se mide solo, antes de degradar nada a verbose.
+- **Escape:** `AlwtttLogSetup.SetPlainLogTraces(true)`, o el menú de editor
+  **`ALWTTT/Debug/Log stack traces/Enable`**. Es global y dura la sesión de juego. Usarlo
+  cuando haga falta localizar de dónde sale un `Debug.Log` sin etiquetar.
+
+### 19.5 Qué se retiró y qué NO
+
+- **Los dos logs `[F-4]` retirados** (`CompositionSession.cs`, `MidiMusicManager.cs`): el
+  volcado de forma de la llamada de frontera y el volcado de ENTRY por render. El propio
+  comentario del código decía "Removed at F-4 closure" y F-4 está cerrado.
+- **El `try/catch` de F-4 Stage A queda INTACTO, y su volcado de error CONSERVADO.** Lo que se
+  retiró son las líneas *tageadas* `[F-4]`, no la defensa. El comentario del código lo declara
+  permanente. **Retirar el try/catch al leer esta sección sería un error de lectura**: el log
+  era el andamio, el catch es la estructura.
+- `SongConfigBuilder.Log` pasa a estar gateado (antes no tenía gate alguno).
+- Gateados también los logs de `DeckManager` / `HandController` / `GameManager`.
+
+### 19.6 Regla de actualización
+
+Antes de mover una línea a verbose o de retirarla:
+
+1. Comprobar si aparece en la tabla de §19.2. Si aparece, **no se mueve** sin retirar o
+   reescribir antes el test que la usa, y sin actualizar esta sección y `coverage-matrix.md`.
+2. Si es nueva y algún smoke la va a usar como observable, **añadirla a §19.2 en el mismo
+   lote** que el test. Una línea protegida sin entrada aquí es una línea que el siguiente
+   lote apagará.
+3. Los volcados nuevos por render / por loop nacen **verbose por defecto**.

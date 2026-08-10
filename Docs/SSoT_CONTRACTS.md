@@ -156,6 +156,28 @@ Update:
 
 ---
 
+### Where the smoke record lives (D8, 2026-08-08)
+
+A smoke test's **record** lives in the SSoT that owns the **observable** the test
+reads — not in a central registry. `systems/SSoT_Dev_Mode.md` §9 is the worked
+precedent: nineteen per-batch smoke sections, and §19.2 binds seven protected log
+lines to the tests that consume them.
+
+Consequences, in order:
+
+1. If a test's observable is a log line, a meter, a UI element or a runtime
+   surface, its record belongs to that subsystem's SSoT.
+2. `changelog-ssot.md` records the batch's **pass/fail result** and the test ids.
+   That is a historical record, and the changelog is its home.
+3. `coverage-matrix.md` **never grows a smoke section.** The matrix answers one
+   question — which document owns a concept — and a per-batch smoke table would
+   give it a second job and turn it into a catalogue.
+
+This settles the R2-11 disposition deferred at DOC-APPLY-1 (2026-07-31) and
+re-deferred at DOC-APPLY-2 (2026-08-08).
+
+---
+
 ## 9. Conflict resolution rule
 
 When two docs disagree, resolve in this order:

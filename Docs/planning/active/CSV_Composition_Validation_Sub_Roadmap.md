@@ -148,6 +148,13 @@ text stated a 230-asset inventory and an unactioned A–E worklist; both are sup
 The pre-fix 181-asset export and the 230- and 218-asset exports are **void** — they must
 not be cited as current. Only the **183-asset** post-1.1.0 export set is current.
 
+> **Superado 2026-08-08 (MANIFEST-1 / D3=A).** La línea base vigente es el export de
+> **232 assets** del 2026-08-08; el conjunto de 183 pasa a histórico. Tabla por familia y
+> lectura de salud en `SSoT_Editor_Authoring_Tools.md` §17.12. **D-CSV-14 queda verificada y
+> cerrable:** los únicos `OFF-ROOT` locales son los dos patrones de melodía bajo
+> `Patterns/Melody` (singular); los otros cinco son package-side bajo `Samples/`.
+> El índice inverso carta→bundle (**D-CSV-16**) recibe por fin lote: **CSV-4c**.
+
 **1. Baseline: 230 → 218 → 183.**
 
 Three measured export sets exist. `230` was the CSV-1c corrected export; `218` is

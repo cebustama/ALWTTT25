@@ -3,6 +3,19 @@
 **Status:** Active design proposal — planning only, subject to playtest revision  
 **Scope:** Composition, per-card effect spec, per-musician identity mapping, tuning rationale, and open questions for the first starter deck the player uses at the start of a run  
 **Classification:** `reference (planning)` — **not a SSoT**. This document expresses design intent. When M4.6 authoring closes, the authored `.asset` files become the runtime-authoritative version; this document is then retained as historical rationale.  
+> **Classification clarified 2026-08-08 (MANIFEST-1, D10=B).** This file lives at
+> `Docs/archive/Design_Starter_Deck_v1.md`, and that placement is **correct**: by this
+> document's own Classification clause, once M4.6 authoring closed the authored `.asset`
+> files became the runtime-authoritative version and this document became retained
+> rationale. `SSoT_INDEX.md` had been listing it under *Active planning docs* at
+> `planning/active/` and calling it "authoritative for the live S5 demo starter" — that
+> wording was the error, not the folder, and it has been corrected. **What this document
+> still is:** the design rationale for the 17-card, 2-musician S5 demo starter — why each
+> card exists, the per-musician identity mapping, the tuning reasoning. **What it is not:**
+> a definition of what the build ships. That is the `.asset` files. Recorded as manifest
+> finding **F18**. Forward intent lives in `planning/active/Design_Starter_Deck_v2_DRAFT.md`,
+> which takes over as the design record at R8 closure.
+
 **Last updated:** 2026-05-20 (cross-reference paths updated for MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md move to `integrations/midigenplay/`; no content change to design intent)
 
 **v1.1 (2026-05-22).** Three new cards added to starter (Push It, Half Time, Key Lift). Wormus pair multiplicity doubled (2 each) per D-STARTER-1=B. Compound Cycle + Pentameter moved out of starter into reward pool per D-STARTER-2=B. Starter size 12 → 15 cards. See `changelog-ssot.md` 2026-05-22 entry for context.
