@@ -226,13 +226,15 @@ If future encounter design requires extending stun via additional Choke stacks, 
 
 **Interaction with `IsBlocked`:** Blocked audiences are skipped for Vibe gain (consistent with `ComputeSongVibeDeltas`). Stack decay continues normally on the same audience turn.
 
+**AoE application and `IsBlocked` (R4 — behavior, not a bug):** on AoE application, the `AllAudienceCharacters` branch of `CardBase.DetermineTargets` excludes `IsBlocked` members, so audience blocked by positional Indifference receive **no Earworm** (and no Vibe) from Psychic Wave v2. Verified ST-R4-2. Precision to avoid a misreading: an **unblocked** member carrying Indifference as a *status* does receive Earworm; what gets blocked afterwards are its ticks, at the `ApplyIncomingVibe` gate (see the routing correction above).
+
 **Interaction with `IsConvinced`:** ticks are harmless. `AddVibe` clamps at `MaxVibe`; `CheckConvincedThreshold`'s `!IsConvinced` guard prevents `OnConvinced` re-firing. The icon may linger on a Convinced audience until natural expiry — known cosmetic, deferred to UI polish.
 
 **Variant relationship with Feedback:** Earworm and Feedback share the `DamageOverTime` primitive but live in separate catalogues post-MB2. Both are marked `IsDefaultVariant = true` in their respective catalogues. The runtime hook in `GigManager.AudienceTurnRoutine` disambiguates by `StatusKey == "earworm"` for defensive isolation against future audience-side `DamageOverTime` variants.
 
 **Validation history:** ST-M43-1a/1b/2/3/4/5/6/7/8 all PASS 2026-04-28 (M4.3 closure). Initial implementation shipped with a copy-paste duplicate `Tick(AudienceTurnStart)` block in `AudienceTurnRoutine` producing -2/turn decay; caught by stack-count observation in ST-M43-2/3; resolved by deletion of the duplicate block before closure.
 
-**Applied by:** Mind Tap (M4.6 — pending). `Assets/Resources/Data/Characters/Musicians/{Musician}_Cards/TestEarworm.asset` retained as a dev-only regression card (`[TEST]` prefix on DisplayName, `inspirationCost: 0`, `actionTiming: Always`).
+**Applied by:** Mind Tap (M4.6 — pending) and **Psychic Wave v2** (R4, 2026-08-10 — `ApplyStatusEffect(earworm, +2, AllAudienceCharacters)` on top of the AoE `ModifyVibe`). `Assets/Resources/Data/Characters/Musicians/{Musician}_Cards/TestEarworm.asset` retained as a dev-only regression card (`[TEST]` prefix on DisplayName, `inspirationCost: 0`, `actionTiming: Always`).
 
 ### 5.8 Captivated
 **Primitive:** `DamageTakenUpMultiplier` (`CharacterStatusId = 301`)
@@ -263,6 +265,26 @@ If future encounter design requires extending stun via additional Choke stacks, 
 **Applied by:** **Wink** (Zig, `Cantante_CardCatalogData`; Action, cost 0, `ApplyStatusEffect(captivated, +2, AudienceCharacter)`). Authored R1 and deliberately **unreachable in the demo build** — the Cantante catalog is outside the demo band roster, and both `PersistentGameplayData.SetBandDeckFromMusicians` and `BuildRewardCardPool` are band-scoped. `Singalong` (Captivated +1 AoE, D-R0-9) is queued for R8.
 
 **Validation history:** ST-R1-1..6 all PASS 2026-07-23 (R1 closure). ST-R1-2 pinned the rounding; ST-R1-4 pinned Indifference precedence; ST-R1-5 pinned the helper-wide scope (Earworm 2 stacks → +3 applied); ST-R1-6 pinned demo-inertness (starter deck and reward pool unchanged from the S5i baseline).
+
+### 5.9 Spotlight
+**Primitive:** `RedirectIncoming` (`CharacterStatusId = 504`, Control range; 404 is taken by `NegateIncomingPositive` — no collision)
+**Key:** `"spotlight"`. `IsDefaultVariant = true`.
+**Scope:** single Musician (C2 finisher carrier)
+**Tick timing:** `PlayerTurnStart`
+**SO config:** `StackMode = Replace`, `MaxStacks = 1`, `DecayMode = LinearStacks`, `TickTiming = PlayerTurnStart`
+**Catalogue:** `StatusEffectCatalogue_Musicians`
+
+**Combat meaning:** while the holder has `stacks > 0`, audience-side single-target hostile targeting (`ActionTargetType.Musician` and `RandomMusician` in `AudienceCharacterBase.ResolveTargetsFor`) is redirected to the holder.
+
+**Explicit rule — `AllMusicians` is NOT redirected.** An AoE already includes the holder; redirecting it would collapse the ability to single-target, which is substituting the ability, not taunting it.
+
+**Dual guard:** the runtime checks the primitive **and** `StatusKey == "spotlight"` (Earworm/Captivated precedent, §2.1), so a future `RedirectIncoming` variant does not inherit the taunt by accident.
+
+**Lifecycle:** applied on Player Turn N (whose tick has already passed), survives Audience Turn N, decays at the opening of Player Turn N+1 ⇒ "1 audience turn" with no bespoke expiry code. Same cycle as Composure (§5.2).
+
+**Legibility debt (D-R4-8, open):** the protected musician shows nothing; only the holder carries an icon. Recommended direction: a floater on the original target when a redirect fires.
+
+**Applied by:** **Spotlight** (C2 finisher, starter v2 row 6, cost 2). Authored and validated at R4 (2026-08-10, ST-R4 suite).
 
 ---
 
@@ -300,6 +322,8 @@ Use the split like this:
 - reference catalog = explanatory primitive catalog, examples, and broader ontology support
 
 If they conflict, this doc wins for current ALWTTT status truth.
+
+**Operational note (R4, 2026-08-10 — context for F-R4-3):** a new primitive requires **two** writes, not one — the value in `CharacterStatusId` (serialization contract) **and** the `case` in `CharacterStatusPrimitiveDatabaseSO.TryGetCanonicalData` (navigable registry). Without the second, `Populate From CSO Canonical` skips the entry with a warning and the gap silently reopens after any regeneration (per D-R4-6=A, the CSO registry is repopulated from canonical after adding the `case`).
 
 ---
 

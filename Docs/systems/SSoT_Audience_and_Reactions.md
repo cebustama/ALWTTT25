@@ -160,6 +160,11 @@ as **taste profiles** authored inline on
 `RootNote` is intentionally NOT a taste axis (D-F-1, S1): pitch class without
 modal context carries no archetype meaning; Tonality covers the modal axis.
 
+**Presentation note (F-R4-2, no batch assigned).** Time-signature and tonality
+values are currently shown to the player as their **enum names** (`SixEight`,
+`FourFour`, `Aeolian`) — legible for the team, not for the player. A mapping to
+domain text (`6/8`) is missing. Registered as F-R4-2 at R4 (2026-08-10).
+
 ### 6.2 Combination rule (D-F-1=A, discrete per-axis count)
 
 Per loop, each enabled axis contributes +1 / −1 / 0. The sum is clamped to
@@ -174,6 +179,20 @@ This is also the backward-compat path for any audience asset authored pre-B3.
 - `systems/SSoT_Scoring_and_Meters.md` §6 owns: how accumulated impressions
   convert to Vibe at song-end (the impressionFactor multiplier).
 - Asset-side thresholds (per-archetype values) are content, not contract.
+
+### 6.4 Preference reveal (R4, 2026-08-10)
+
+- Runtime state: `AudienceCharacterBase.PreferencesRevealed`, instance scope
+  (GameObject lifetime ⇒ per-gig), **not persisted across gigs**.
+- Idempotent: revealing the same member twice is a deliberate silent no-op.
+- Surface: `AudienceCharacterCanvas.ShowTastePanel(TastePreferences)`. An
+  unwired prefab degrades to a no-op (S5a telegraph pattern);
+  `IsTastePanelWired` exposes it.
+- Authority: the reveal spec carries **no taste data**. `AudienceCharacterData`
+  owns the data; the canvas owns the presentation. A spec carrying text or axes
+  would duplicate §6.1 and desynchronize on the first retune.
+- **Open debt (D-R4-10):** the panel is persistent for the rest of the gig; the
+  recommended direction is a persistent icon + detail on hover.
 
 ---
 
@@ -211,6 +230,8 @@ MVP categories:
    Rare, encounter-specific exceptions.
 
 Audience members may also carry player-applied statuses that shape their state during the audience turn — Earworm (M4.3) is the first. These statuses are not abilities; they are persistent effects whose runtime contract is owned by `systems/SSoT_Status_Effects.md` and whose tick hooks live in `GigManager.AudienceTurnRoutine`. The audience-side status surface is data-extensible through `StatusEffectCatalogue_Audience.asset`.
+
+**Targeting redirect hook (R4, 2026-08-10 — Spotlight).** `AudienceCharacterBase.ResolveTargetsFor` now has a **prior step** on the `Musician` and `RandomMusician` branches: if any musician carries an active Spotlight, the target is substituted by the holder. `AllMusicians` does not pass through the hook. This is the single targeting funnel, so every future audience ability inherits the redirect with no per-ability edit. Status semantics: `systems/SSoT_Status_Effects.md` §5.9.
 
 This SSoT owns the audience-facing gameplay meaning of those categories.
 Detailed execution timing belongs to runtime.

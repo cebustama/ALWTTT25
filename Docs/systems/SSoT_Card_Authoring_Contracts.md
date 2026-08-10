@@ -193,6 +193,12 @@ Resolution contract:
 ```
 Grants `amount` Inspiration at each loop boundary while the carrying card's track is active (track-scoped). `amount` must be `>= 1`; import rejects `< 1`. Meaningful only on **Composition Track** cards — on an Action card the spec is inert (defensive no-op branch in `CardBase.ExecuteEffects`, never bound as a track source). The importer does not hard-gate card kind; a kind mismatch is harmless, not an error.
 
+### 5.6b Example — RevealPreferences (R4, 2026-08-10)
+```json
+{ "type": "RevealPreferences", "targetType": "AudienceCharacter" }
+```
+Reuses `targetType`; no new DTO fields. Reveals the target's `TastePreferences` on the audience canvas (runtime meaning: `SSoT_Audience_and_Reactions.md` §6.4).
+
 ### 5.7 Batch wrapper schema
 
 Multiple cards can be imported in a single JSON payload using a batch wrapper:
@@ -570,6 +576,17 @@ Whenever a new `CardEffectSpec` subclass is added, update all four layers:
 A new effect type is not fully integrated until all four exist or the missing pieces are explicitly documented.
 
 **DF-INSPLOOP (2026-07-16) — conformant.** `AddInspirationPerLoopSpec` satisfies all four layers: data class (`Cards/Effects/AddInspirationPerLoopSpec.cs`), editor authoring (`CardEditorWindow` add-menu + generic field render + `BuildEffectLabel`; DeckEditor `DeckCardCreationService` branch), JSON/import (`CardEditorWindow.JsonImport` + `CardImportDtos` discriminator; LLM path `CardLLMPromptBuilder` vocabulary + `CardLLMResponseHandler` validation), and runtime execution — the runtime layer is **track-binding** (`CompositionSession.EvalPerLoopInsp` via `TrackEntry.sourceCardDefinition`), not the `CardBase` effect pipeline (defensive no-op branch only).
+
+**R4 (2026-08-10) — conformant: `RevealPreferencesSpec`.** All four layers:
+
+| Layer | Site |
+|---|---|
+| 1 · data | `Assets/Scripts/Cards/Effects/RevealPreferencesSpec.cs` |
+| 2 · editor | `CardEditorWindow` add-menu + `BuildEffectLabel`; `DeckCardCreationService` import branch |
+| 3 · import | `CardEditorWindow.JsonImport` branch + `CardImportDtos` discriminator; LLM via `CardLLMPromptBuilder` + `CardLLMResponseHandler` |
+| 4 · runtime | `CardBase.ExecuteEffects` branch **+ the two targeting derivations** |
+
+**New normative, transferable note:** the layers are four, but layer 4 has **two targeting sites** that until R4 only `ApplyStatusEffectSpec` knew about: `CardDefinition.RequiresTargetSelection` and `HandController.TryResolveCardTarget`. A single-target spec that does not update both produces a playable card **with no hover** that resolves an empty target list and **silently no-ops** — the worst possible failure mode, because there is no error. Every future spec with a single-target `targetType` must touch both.
 
 **Import hardening (2026-07-16).** `ApplyCompositionJson` previously assigned a null `styleBundle` **silently** when a `trackAction.styleBundle` path failed to resolve; a null-bundle Track card is augment-only and will not create a track (D4=A), which surfaced as a "card played, no track created" bug during DF-INSPLOOP validation. The importer now logs a warning when a non-empty `styleBundle` path resolves to null. Authoring guidance: assigning the bundle by drag in the Inspector is the reliable path; the JSON path is a convenience that requires exact case/spacing.
 

@@ -79,6 +79,7 @@ namespace ALWTTT.Cards.LLMAuthoring
         // - "ModifyVibe"
         // - "ModifyStress"
         // - "AddInspirationPerLoop"   [DF-INSPLOOP] Track cards only; uses `amount` as per-loop bonus (>= 1)
+        // - "RevealPreferences"        [R4 / D-R0-1] Info-only; uses `targetType` only (no amount/stacks)
         public string type;
 
         // ─ ApplyStatusEffect ─

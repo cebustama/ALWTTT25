@@ -10,19 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0bfb378d84595bd47b8057a55797bc41, type: 3}
-  m_Name: Starter_keep_cool_Payload
+  m_Name: crd_sibi_read_the_room_Payload
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.ActionCardPayload
   effects:
-  - rid: 6360921230241955926
+  - rid: 8163568405127626829
   actionTiming: 0
   conditions: []
   references:
     version: 2
     RefIds:
-    - rid: 6360921230241955926
-      type: {class: ApplyStatusEffectSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
+    - rid: 8163568405127626829
+      type: {class: RevealPreferencesSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
       data:
-        status: {fileID: 11400000, guid: 17906c57b9250dc4f9865c852bb7b9b5, type: 2}
-        targetType: 1
-        stacksDelta: 3
-        delay: 0
+        targetType: 0

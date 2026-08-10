@@ -1,10 +1,10 @@
-using ALWTTT.Actions;
+ï»¿using ALWTTT.Actions;
 using ALWTTT.Cards.Effects;
 using ALWTTT.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ALWTTT.Cards 
+namespace ALWTTT.Cards
 {
     /// <summary>
     /// "What a card is": stable identity, presentation, economy + a payload reference.
@@ -18,9 +18,11 @@ namespace ALWTTT.Cards
         [SerializeField] private string displayName;
 
         [Header("Character")]
-        [SerializeField] private CardPerformerRule performerRule =
+        [SerializeField]
+        private CardPerformerRule performerRule =
             CardPerformerRule.FixedMusicianType;
-        [SerializeField] private MusicianCharacterType musicianCharacterType = 
+        [SerializeField]
+        private MusicianCharacterType musicianCharacterType =
             MusicianCharacterType.None;
 
         [Header("Visuals")]
@@ -56,7 +58,7 @@ namespace ALWTTT.Cards
 
         public CardPerformerRule PerformerRule => performerRule;
         public MusicianCharacterType FixedPerformerType => musicianCharacterType;
-        public bool RequiresFixedPerformer => 
+        public bool RequiresFixedPerformer =>
             performerRule == CardPerformerRule.FixedMusicianType;
         public bool RequiresTargetSelection
         {
@@ -75,6 +77,20 @@ namespace ALWTTT.Cards
                         if (e is ApplyStatusEffectSpec ase)
                         {
                             switch (ase.targetType)
+                            {
+                                case ActionTargetType.Musician:
+                                case ActionTargetType.AudienceCharacter:
+                                    return true;
+                            }
+                        }
+
+                        // [R4] RevealPreferencesSpec is the second spec kind that can
+                        // demand a hovered target. Without this branch a reveal-only
+                        // card would be playable with no hover, resolve an empty target
+                        // list and no-op silently.
+                        if (e is RevealPreferencesSpec reveal)
+                        {
+                            switch (reveal.targetType)
                             {
                                 case ActionTargetType.Musician:
                                 case ActionTargetType.AudienceCharacter:
@@ -145,7 +161,7 @@ namespace ALWTTT.Cards
         private string BuildEditorLabel()
         {
             var domain = IsAction ? "Action" : (IsComposition ? "Composition" : "Unknown");
-            return $"{Id} — {DisplayName} ({domain})";
+            return $"{Id} ï¿½ {DisplayName} ({domain})";
         }
 
         private void OnValidate()

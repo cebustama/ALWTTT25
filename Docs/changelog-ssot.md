@@ -14,6 +14,65 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-08-10 — R4 (Finishers I) cierre + DOC-R4 (doc-update)
+
+**R4 cerró el 2026-08-10** con las cuatro piezas entregadas: **Psychic Wave v2**
+(`ApplyStatusEffect(earworm, +2, AllAudienceCharacters)` sobre el AoE de Vibe; la rama AoE
+excluye `IsBlocked` — comportamiento verificado, no bug; overlay full-screen vía
+`PsychicWaveOverlayController` dedicado sobre el bus) · **C2 Spotlight/Taunt** (primitivo nuevo
+`RedirectIncoming = 504`; hook previo en `ResolveTargetsFor` para `Musician`/`RandomMusician`,
+`AllMusicians` exento; guard doble primitivo+key; ciclo Composure ⇒ 1 turno de audiencia sin
+código de expiración propio) · **Read the Room** (`RevealPreferencesSpec`, RewardPool Sibi
+coste 0; el spec no transporta datos de gusto — `AudienceCharacterData` posee los datos, el
+canvas la presentación) · **Keep Cool retarget** `Self`→`Musician` (regresión de tutorial
+ST-R4-9 PASS). **ST-R4-1..10 PASS · V-R4-MODAL PASS** — este último salda la deuda auditiva
+que R3 dejó abierta por falta de contenido: la melodía sobre parte modal resuelve contra el
+modo impuesto.
+
+**Decisiones:** D-R4-2=defer-A · D-R4-3=A · D-R4-4=A · D-R4-5=A · D-R4-6=A · D-R4-9
+verificada empíricamente · **abiertas** D-R4-7 (VFX v3) / D-R4-8 (legibilidad del taunt) /
+D-R4-10 (reveal a hover) · **D-R4-1 heredada, sigue abierta** — dirección decidida (el público
+debe juzgar lo que suena), cableado **prohibido**; lote propio antes de R8.
+
+**Hallazgos:** **F-R4-1** — la verificación V5 de R0 afirmaba «one shared target list serves
+all specs on a card»; el código resuelve **por spec** (equivalente para `All*`, no para
+`Random*`). Corrección aplicada en los **tres** sitios: `SSoT_Card_System.md` §8.2 ·
+`RosterExpansion_Sub_Roadmap.md` §9 · `Design_Starter_Deck_v2_DRAFT.md` §7. · **F-R4-2** —
+compás/tonalidad se muestran al jugador como nombres de enum (`SixEight`); sin lote. ·
+**F-R4-3** — `StatusEffectWizardWindow` no escribe `statusKey` (assets irreconocibles sin
+error); recomendado colarlo al abrir R5.
+
+**DOC-R4 (documentación pura — sin código, sin assets, sin smokes)** aplicó los once diffs de
+`PENDING_DOC_DIFFS_R4.md` (retirado al aplicar): `SSoT_Status_Effects.md` (**§5.9 Spotlight
+nueva** · §5.7 Earworm appliers + salto de `IsBlocked` en AoE · §8 nota del doble registro
+CSO) · `SSoT_Card_Authoring_Contracts.md` (§9 conformidad `RevealPreferencesSpec` + **nota
+normativa de los dos sitios de targeting de la capa 4** · §5.6b ejemplo JSON) ·
+`SSoT_Audience_and_Reactions.md` (**§6.4 reveal nueva** · §8 hook de redirección · §6.1 nota
+F-R4-2) · `SSoT_Card_System.md` (§8.2 resolución por spec + exclusión `IsBlocked` · §6.2
+vocabulario 5→6 specs) · `RosterExpansion_Sub_Roadmap.md` (fila R4 CLOSED · ledger R4 · §9 V5
+· §8/§10 deudas saldadas) · `Design_Starter_Deck_v2_DRAFT.md` (filas 5/6/Read the Room
+construidas · §7 V5 · §8 residuales) · `CURRENT_STATE.md` (§1 fila R4 · §3 planificación por
+superficies S1–S6 + orden propuesto · §4 cinco abiertos nuevos + nota de proceso PK↔repo +
+duplicado D-R4-1 colapsado · §5 estado post-update) · esta entrada · `coverage-matrix.md`
+(Spotlight §5.9 · `RevealPreferencesSpec` · fila `PsychicWaveOverlayController` sin hogar) ·
+`Design_Tutorial_System_v0_2.md` (nota del beat de Composure; TUT-REFRESH registrado como lote
+propio) · `ssot_manifest.yaml` (invariantes cacheados de Status Effects y Audience — únicas
+entradas tocadas; F11/F16/D-SENSORY-HOME quedan para MANIFEST-2).
+
+**D-DOC-R4-1 = A:** `Design_Sensory_Contract_v0_1` **no** se promueve a autoridad en este
+lote; `PsychicWaveOverlayController` queda registrado como **tercera** entrada sin hogar,
+alimentando **D-SENSORY-HOME** (se resuelve en MANIFEST-2). Promover un documento es cambio de
+estructura, no de contenido; pertenece al lote que revisa el manifiesto completo.
+
+**Nota de proceso (regla operativa nueva):** el snapshot del PK diverge del repo y en R4 casi
+provoca dos regresiones (una indetectable por el compilador). Regla: **no reescribir archivos
+completos desde el PK** — parches sobre anclas o archivos vivos subidos en sesión.
+
+Clasificaciones: semantic (D1/D3/D4, incl. corrección F-R4-1) · operational (D2/D7) ·
+lifecycle (D5/D8) · reference-only (D6/D10) · structural (D9) · authority (D11).
+
+---
+
 ## 2026-08-08 — MANIFEST-1: reparación de la gobernanza que el auditor destapó
 
 **Documentación pura. Sin código, sin smoke tests** (regla del proyecto: los lotes

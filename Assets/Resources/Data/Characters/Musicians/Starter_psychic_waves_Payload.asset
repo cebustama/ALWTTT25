@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.ActionCardPayload
   effects:
   - rid: 6360921230241955925
+  - rid: 8163568405127626827
   actionTiming: 0
   conditions: []
   references:
@@ -24,3 +25,10 @@ MonoBehaviour:
       data:
         targetType: 2
         amount: 5
+    - rid: 8163568405127626827
+      type: {class: ApplyStatusEffectSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
+      data:
+        status: {fileID: 11400000, guid: 309e959f0b2e1ee4dba82e4756cbd5b2, type: 2}
+        targetType: 2
+        stacksDelta: 2
+        delay: 0

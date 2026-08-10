@@ -391,7 +391,7 @@ namespace ALWTTT.Cards.LLMAuthoring
                 if (string.IsNullOrEmpty(type))
                 {
                     errors.Add($"effects[{i}].type is required " +
-                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop).");
+                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop, RevealPreferences).");
                     continue;
                 }
 
@@ -400,11 +400,13 @@ namespace ALWTTT.Cards.LLMAuthoring
                 bool isVibe = type.Equals("ModifyVibe", StringComparison.OrdinalIgnoreCase);
                 bool isStress = type.Equals("ModifyStress", StringComparison.OrdinalIgnoreCase);
                 bool isInspLoop = type.Equals("AddInspirationPerLoop", StringComparison.OrdinalIgnoreCase);
+                // [R4 / D-R0-1=A] Info-only effect; validated on targetType alone.
+                bool isReveal = type.Equals("RevealPreferences", StringComparison.OrdinalIgnoreCase);
 
-                if (!isApplyStatus && !isDraw && !isVibe && !isStress && !isInspLoop)
+                if (!isApplyStatus && !isDraw && !isVibe && !isStress && !isInspLoop && !isReveal)
                 {
                     errors.Add($"effects[{i}].type '{e.type}' is not supported " +
-                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop).");
+                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop, RevealPreferences).");
                     continue;
                 }
 
@@ -426,7 +428,7 @@ namespace ALWTTT.Cards.LLMAuthoring
                 if (isInspLoop && e.amount < 1)
                     errors.Add($"effects[{i}].amount must be >= 1 for AddInspirationPerLoop.");
 
-                if (isApplyStatus || isVibe || isStress)
+                if (isApplyStatus || isVibe || isStress || isReveal)
                     CheckToken(e.targetType, v.ActionTargetTypes, $"effects[{i}].targetType", errors);
             }
         }

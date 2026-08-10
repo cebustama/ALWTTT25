@@ -202,7 +202,7 @@ Rules:
 
 ### 6.2 Built-in effect specs currently in active vocabulary
 
-All five effect types below are implemented and runtime-validated.
+All six effect types below are implemented and runtime-validated.
 
 | Spec class | JSON `type` | Status | Notes |
 |---|---|---|---|
@@ -211,6 +211,7 @@ All five effect types below are implemented and runtime-validated.
 | `ModifyStressSpec` | `"ModifyStress"` | ✅ Implemented + validated | Routes through `ApplyIncomingStressWithComposure` for positive values |
 | `DrawCardsSpec` | `"DrawCards"` | ✅ Implemented + validated | Calls `DeckManager.DrawCards(count)` at effect execution time |
 | `AddInspirationPerLoopSpec` | `"AddInspirationPerLoop"` | ✅ Implemented + validated (DF-INSPLOOP) | **Not executed by the `CardBase` pipeline.** Consumed at track-binding time: `CompositionSession.EvalPerLoopInsp` reads it off `TrackEntry.sourceCardDefinition` via `AddInspirationPerLoopSpec.SumFor`. Grants `amount` Inspiration/loop while the card's track is active (track-scoped, D-INSP-1=D). Composition Track cards only; inert elsewhere. |
+| `RevealPreferencesSpec` | `"RevealPreferences"` | ✅ Implemented + validated (R4, 2026-08-10) | Reveals the target audience member's `TastePreferences` on the audience canvas. Single-target (`AudienceCharacter`), per-gig, idempotent; the spec carries no taste data. Runtime meaning: `SSoT_Audience_and_Reactions.md` §6.4; four-layer conformance + the two-targeting-sites rule: `SSoT_Card_Authoring_Contracts.md` §9 |
 
 ### 6.3 ApplyStatusEffectSpec
 This effect applies a concrete authored `StatusEffectSO` variant.
@@ -258,6 +259,10 @@ MVP-facing rule set:
 - card-level overrides may exist when the card definition explicitly forces targeting behavior
 
 **Valid `targetType` values:** `Self`, `Musician`, `AudienceCharacter`, `AllAudienceCharacters`, `AllMusicians`, `RandomAudienceCharacter`, `RandomMusician`
+
+**Per-spec resolution (R4 correction, F-R4-1, 2026-08-10).** Each spec on a card resolves its **own** target list: `CardBase.ExecuteEffects` calls `DetermineTargets` per spec. There is no shared target list serving all specs on a card. For `All*` targets the result is equivalent (deterministic, same snapshot); for `Random*` it is **not** — two random specs of the same type on one card may resolve to different members. (The R0 verification record previously stated "one shared target list serves all specs on a card"; that wording is corrected here and in the two documents that cite it: `RosterExpansion_Sub_Roadmap.md` §9 and `Design_Starter_Deck_v2_DRAFT.md` §7.)
+
+**`AllAudienceCharacters` excludes `IsBlocked` members (R4).** The `AllAudienceCharacters` branch of `CardBase.DetermineTargets` **excludes** blocked members. Intentional behavior, verified ST-R4-2, not an omission.
 
 ### 8.3 Composition targeting
 Composition cards may require a musician target independently of their effects if the composition semantics require it.

@@ -79,6 +79,6 @@ MonoBehaviour:
     preferAtLeastRoles: 2
     preferredTimeSignatures: 010000000300000007000000
     dislikedTimeSignatures: 00000000
-    preferredTonalities: 
-    dislikedTonalities: 
+    preferredTonalities: 05000000
+    dislikedTonalities: 00000000
   sfxProfile: {fileID: 0}

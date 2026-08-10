@@ -361,9 +361,18 @@ namespace ALWTTT.Cards.Editor
                     if (row.amount < 1) { error = $"effects[{i}]: AddInspirationPerLoop.amount must be >= 1."; return false; }
                     AddManagedEffect(listProp, new AddInspirationPerLoopSpec { amountPerLoop = row.amount });
                 }
+                else if (type.Equals("RevealPreferences", StringComparison.OrdinalIgnoreCase))
+                {
+                    // [R4 / D-R0-1=A] Read the Room. No new DTO fields; targetType only.
+                    var target = ActionTargetType.AudienceCharacter;
+                    if (!string.IsNullOrWhiteSpace(row.targetType) &&
+                        !Enum.TryParse<ActionTargetType>(row.targetType, true, out target))
+                    { error = $"effects[{i}]: invalid targetType '{row.targetType}'. Valid: {string.Join(", ", Enum.GetNames(typeof(ActionTargetType)))}"; return false; }
+                    AddManagedEffect(listProp, new RevealPreferencesSpec { targetType = target });
+                }
                 else
                 {
-                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop.";
+                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop, RevealPreferences.";
                     return false;
                 }
             }

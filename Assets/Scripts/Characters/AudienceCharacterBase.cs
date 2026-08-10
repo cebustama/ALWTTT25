@@ -6,6 +6,7 @@ using ALWTTT.Extentions;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using ALWTTT.Music;
+using ALWTTT.Status;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -46,6 +47,29 @@ namespace ALWTTT.Characters.Audience
             }
         }
         public int ColumnIndex { get; set; }
+
+        // [R4 / D-R0-1=A] Taste-reveal state. Instance-scoped: a reveal lasts for
+        // the rest of the gig (the audience GameObject's lifetime) and is not
+        // persisted across gigs. Idempotent by design - re-casting a reveal card on
+        // an already-revealed member is a deliberate silent no-op, not an error.
+        public bool PreferencesRevealed { get; private set; }
+
+        /// <summary>
+        /// [R4 / D-R0-1=A] Expose this member's TastePreferences on their canvas.
+        /// Called from the RevealPreferencesSpec branch in CardBase.ExecuteEffects.
+        /// Data stays owned by AudienceCharacterData; presentation stays owned by
+        /// AudienceCharacterCanvas - this method only connects the two.
+        /// </summary>
+        public void RevealPreferences()
+        {
+            if (PreferencesRevealed) return;
+            if (AudienceCharacterData == null) return;
+
+            PreferencesRevealed = true;
+            AudienceCharacterCanvas?.ShowTastePanel(AudienceCharacterData.Taste);
+
+            Debug.Log($"[R4][Reveal] {CharacterId} preferences revealed.");
+        }
 
         public string CharacterId =>
             AudienceCharacterData.CharacterName + "-" + gameObject.GetInstanceID();
@@ -386,6 +410,36 @@ namespace ALWTTT.Characters.Audience
             return .5f;
         }
 
+        /// <summary>
+        /// [R4 / D-R4-3=A] First musician holding an active Spotlight (taunt).
+        /// Guards on StatusKey in addition to the RedirectIncoming primitive, the
+        /// same defensive pattern Earworm and Captivated use, so a future
+        /// RedirectIncoming variant cannot inherit taunt behaviour by accident.
+        /// Returns null when nobody is spotlit (the common case).
+        /// </summary>
+        private MusicianBase FindSpotlitMusician()
+        {
+            var list = GigManager != null ? GigManager.CurrentMusicianCharacterList : null;
+            if (list == null || list.Count == 0) return null;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var m = list[i];
+                if (m == null || m.Statuses == null) continue;
+
+                if (!m.Statuses.TryGet(CharacterStatusId.RedirectIncoming, out var inst)) continue;
+                if (inst == null || inst.Stacks <= 0 || inst.Definition == null) continue;
+
+                if (!string.Equals(inst.Definition.StatusKey, "spotlight",
+                        System.StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                return m;
+            }
+
+            return null;
+        }
+
         private List<CharacterBase> ResolveTargetsFor(CharacterActionData action)
         {
             var gm = GigManager;
@@ -397,6 +451,18 @@ namespace ALWTTT.Characters.Audience
 
                 case ActionTargetType.Musician:
                     {
+                        // [R4 / Spotlight] Taunt redirect. Placed at the funnel rather
+                        // than per-ability so every present and future single-target
+                        // musician ability respects the taunt with no per-ability edit.
+                        var spotlitDirected = FindSpotlitMusician();
+                        if (spotlitDirected != null)
+                        {
+                            Debug.Log(
+                                $"[R4][Spotlight] {CharacterId}: Musician target redirected " +
+                                $"-> '{spotlitDirected.name}'.");
+                            return new List<CharacterBase>() { spotlitDirected };
+                        }
+
                         var list = gm.CurrentMusicianCharacterList;
                         if (list.Count == 0) return null;
 
@@ -412,6 +478,18 @@ namespace ALWTTT.Characters.Audience
 
                 case ActionTargetType.RandomMusician:
                     {
+                        // [R4 / Spotlight] Same redirect as the Musician branch: a
+                        // taunt that random targeting could dodge would not read as a
+                        // taunt to the player.
+                        var spotlitRandom = FindSpotlitMusician();
+                        if (spotlitRandom != null)
+                        {
+                            Debug.Log(
+                                $"[R4][Spotlight] {CharacterId}: RandomMusician target redirected " +
+                                $"-> '{spotlitRandom.name}'.");
+                            return new List<CharacterBase>() { spotlitRandom };
+                        }
+
                         var list = gm.CurrentMusicianCharacterList;
                         if (list.Count == 0) return null;
                         var index = Random.Range(0, list.Count);

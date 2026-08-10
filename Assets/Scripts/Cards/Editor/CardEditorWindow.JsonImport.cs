@@ -574,7 +574,7 @@ namespace ALWTTT.Cards.Editor
 
                 if (string.IsNullOrWhiteSpace(row.type))
                 {
-                    error = $"effects[{i}].type is required. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop.";
+                    error = $"effects[{i}].type is required. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop, RevealPreferences.";
                     return false;
                 }
 
@@ -707,9 +707,24 @@ namespace ALWTTT.Cards.Editor
                     var spec = new AddInspirationPerLoopSpec { amountPerLoop = row.amount };
                     AddManagedEffect(listProp, spec);
                 }
+                else if (type.Equals("RevealPreferences", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    // [R4 / D-R0-1=A] Info-only effect. Reuses `targetType`; no new
+                    // DTO fields, so the import schema grows by one discriminator only.
+                    var target = ActionTargetType.AudienceCharacter;
+                    if (!string.IsNullOrWhiteSpace(row.targetType) &&
+                        !System.Enum.TryParse<ActionTargetType>(row.targetType, true, out target))
+                    {
+                        error = $"effects[{i}]: invalid targetType '{row.targetType}'. Valid: {string.Join(", ", System.Enum.GetNames(typeof(ActionTargetType)))}";
+                        return false;
+                    }
+
+                    var spec = new RevealPreferencesSpec { targetType = target };
+                    AddManagedEffect(listProp, spec);
+                }
                 else
                 {
-                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop.";
+                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop, RevealPreferences.";
                     return false;
                 }
             }

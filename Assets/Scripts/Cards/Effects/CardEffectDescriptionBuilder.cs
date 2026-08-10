@@ -47,6 +47,7 @@ namespace ALWTTT.Cards.Effects
             if (spec is ModifyStressSpec stress) return BuildModifyStress(stress);
             if (spec is DrawCardsSpec draw) return BuildDrawCards(draw);
             if (spec is AddInspirationPerLoopSpec inspLoop) return BuildAddInspirationPerLoop(inspLoop);
+            if (spec is RevealPreferencesSpec reveal) return BuildRevealPreferences(reveal);
             return spec.GetType().Name;
         }
 
@@ -102,6 +103,14 @@ namespace ALWTTT.Cards.Effects
         {
             if (insp.amountPerLoop <= 0) return string.Empty;
             return $"Gain {NumberColor}+{insp.amountPerLoop}{ColorEnd} Inspiration each loop while this track plays";
+        }
+
+        // [R4 / D-R0-1=A] Info-only effect: no number, no status name, so the line
+        // is intentionally plain prose rather than the coloured number grammar the
+        // meter-touching specs use.
+        private static string BuildRevealPreferences(RevealPreferencesSpec reveal)
+        {
+            return $"Reveal the musical tastes of {DescribeTarget(reveal.targetType)}";
         }
 
         private static string DescribeTarget(ActionTargetType t)

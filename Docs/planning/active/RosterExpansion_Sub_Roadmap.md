@@ -80,6 +80,23 @@ Full reasoning + card specs: `planning/active/Design_Starter_Deck_v2.md`.
   D-R2-10=A (shared-harmony cache identity from **pre-render** segments `dp:` + `bk:`; the
   package readback cannot serve as a key) · D-R2-11 (adopt `SelfPocket` for Slap Bass v1).
 
+### R4 decision ledger (recorded at close, 2026-08-10)
+
+- **D-R4-1** — heredada de R3, **sigue abierta**. Dirección decidida (el público debe juzgar lo
+  que suena — RECONOCER); **cableado PROHIBIDO** (NO CONSUMIR). Lote propio, antes de R8.
+- **D-R4-2 = defer-A** — calificador de canción no se cablea; A como dirección, C como destino,
+  B solo override.
+- **D-R4-3 = A** — `RedirectIncoming = 504` añadido al CSO (rango Control; 404 lo ocupa
+  `NegateIncomingPositive`, sin colisión).
+- **D-R4-4 = A** — panel de gustos persistente en el canvas (revisado por D-R4-10).
+- **D-R4-5 = A** — `PsychicWaveOverlayController` dedicado, escucha el bus.
+- **D-R4-6 = A** — registro CSO repoblado desde canónico tras añadir el `case`.
+- **D-R4-7** — abierta (VFX v3 Psychic Wave: doble onda + inversión de color, shader propio).
+- **D-R4-8** — abierta (legibilidad del taunt; recomendación A = floater en el objetivo original).
+- **D-R4-9** — verificada empíricamente (`Tonality`/`TimeSignature` renderizan legibles; sin
+  formatter — pero ver F-R4-2).
+- **D-R4-10** — abierta (reveal a hover + icono persistente).
+
 ---
 
 ## 3. Batch sequence
@@ -92,7 +109,7 @@ Full reasoning + card specs: `planning/active/Design_Starter_Deck_v2.md`.
 | **R2c** | IMPLEMENTATION | Unblocker spawned by ST-R2-1 FAIL: wire MidiGenPlay's **SOLO-1** host default progression into the gig render path as a **palette** (D-R2-6=B) + `InstrumentEffect.RandomFromList` (D-R2-7). Production runtime code; BC-gated, inert in the demo config | Interleavable | R2 |
 | **R2d** | IMPLEMENTATION | Adoption of **ORDER-1** + **SLAPFIG-1** (filed and delivered 2026-07-31): guard rewrite, shared-harmony cache identity `dp:`+`bk:` (D-R2-10=A, closes the pre-existing **F-HARM-STALE-1**), harmony-source readback, Slap Bass re-authored onto `SelfPocket` (D-R2-11) | Interleavable | R2c |
 | **R3** ✅ **CLOSED 2026-08-08** | IMPL / CONTENT | Zig composition cards: ascending-degree `MelodyPatternData` (verbatim `patternOverride`) + scale-phrase palette; singer verification in a 3–4-musician band (mix, channel, mute). **CLOSED 2026-08-08.** Entregado: **Rise Up** (patrón autorado de 8 compases por grado, adaptativo a raíz y a modo) y **Showtime** (ruta procedural, ST-R3-11 PASS, operativa). Entregable de banda 3–4 (mezcla/canal/mute) **CUMPLIDO**. Además en lote: **JAM-1** (continuidad de armonía compartida) y **JAM-2** (el modo viaja con la armonía), tres cartas Wormus de banco de dev (`flags=None`, D-R3C-6=A), paleta `Chord Palette - Modal` 7→5 (D-R3C-5=B). Verificaciones: ST-A1..A7 · ST-B1/B2 · ST-C1 · C5 · ST-R3-11 · C4 · ST-J1..J6, todas PASS. Excepción al freeze de baseline S5i autorizada por D-R3C-1=C / D-R3C-8=A (2º y 3er precedente). | Interleavable (∥ R2) | R0 |
-| **R4** | IMPLEMENTATION | Finishers I: **Psychic Wave v2** (add `ApplyStatusEffect(earworm, Y≈2, AllAudienceCharacters)` — note the target branch skips `IsBlocked` members, so Indifference-blocked audience take no Earworm; full-screen mask VFX on `TutorialSpotlight.shader` base; **tutorial beat-8 + JUICE-PW regression**) + **C2 Spotlight/Taunt** (counter status + `ResolveTargetsFor` redirect hook, 1 audience turn) + **Read the Room** (`RevealPreferencesSpec` + `AudienceCharacterCanvas` surface, D-R0-1) + **Keep Cool retarget** `Self`→`Musician` (D-R0-3, **tutorial Composure-beat regression owed**) + **V5 runtime smoke** (`ApplyStatusEffect` × `AllAudienceCharacters`) | Post-S5j | S5j tag |
+| **R4** ✅ **CLOSED 2026-08-10** | IMPLEMENTATION | **CLOSED 2026-08-10.** Cuatro piezas entregadas: **Psychic Wave v2** · **C2 Spotlight/Taunt** · **Read the Room** · **Keep Cool retarget**. **ST-R4-1..10 PASS · V-R4-MODAL PASS** (salda la deuda auditiva de R3: la melodía sobre parte modal resuelve contra el modo impuesto). Ledger del lote en §2. Scope original: Finishers I: **Psychic Wave v2** (add `ApplyStatusEffect(earworm, Y≈2, AllAudienceCharacters)` — note the target branch skips `IsBlocked` members, so Indifference-blocked audience take no Earworm; full-screen mask VFX on `TutorialSpotlight.shader` base; **tutorial beat-8 + JUICE-PW regression**) + **C2 Spotlight/Taunt** (counter status + `ResolveTargetsFor` redirect hook, 1 audience turn) + **Read the Room** (`RevealPreferencesSpec` + `AudienceCharacterCanvas` surface, D-R0-1) + **Keep Cool retarget** `Self`→`Musician` (D-R0-3, **tutorial Composure-beat regression owed**) + **V5 runtime smoke** (`ApplyStatusEffect` × `AllAudienceCharacters`) | Post-S5j | S5j tag |
 | **R5** | IMPLEMENTATION | **Conito Overload** (own batch): counter status (no decay) + ≥3 threshold hook + guarded bonus-loop API (`_loopsRemainingForPart`) + one-loop-scoped solo track (Conito Melody, guitar) + channel duck/restore + revert. Opens with a session-invariant review (§5 note) | Post-S5j | R2, S5j |
 | **R6** | IMPLEMENTATION | **Double Harmony Tier A** (Harmony-role card + listening validation + dual per-track particle FX via `IMidiNoteListener`) + **`SingerVoiceDirector` one-shot API** (shared groundwork for singalong; Tier B + expression-input rider queued behind cap=2 validation) | Post-S5j | R3, S5j |
 | **R7** | IMPLEMENTATION | **Track Card Levels** mechanic (state on `TrackEntry`, level-up branch in `TryAddOrReplaceTrackOnPart`, cache-invalidation duty, INSP/complexity hooks) + pilot content (Wormus Major/Minor lvl2–3). Spec: `planning/active/Design_Track_Card_Levels_v0_1.md`. May file MGP ask §8 #4 if alphabet gaps bite | Post-S5j | R0 (spec), S5j |
@@ -181,10 +198,12 @@ Effort: **A** = authoring/content only · **B** = authoring + bounded ALWTTT cod
 > **Decisiones y verificaciones que R3 deja debidas:**
 > - **D-R4-1 — ¿el público juzga la tonalidad autorada o la que suena?** `LoopFeedbackContext`
 >   se construye desde el modelo de UI, así que bajo armonía modal la audiencia evalúa Ionian.
->   Es una pregunta de **diseño**, no un defecto. Owed antes o durante R4.
-> - **Verificación diferida:** comprobación auditiva de melodía sobre parte modal. No es
->   alcanzable con el contenido actual (ninguna parte lleva a la vez Backing modal y melodía);
->   owed en R4.
+>   Es una pregunta de **diseño**, no un defecto. **Estado tras R4 (2026-08-10):** dirección
+>   decidida (RECONOCER, NO CONSUMIR — el público debe juzgar lo que suena); cableado
+>   **prohibido**; lote propio, antes de R8 (R8 autora contenido que asume la semántica).
+> - ~~**Verificación diferida:** comprobación auditiva de melodía sobre parte modal.~~
+>   **CERRADA en R4 (V-R4-MODAL PASS, 2026-08-10):** la melodía sobre parte modal resuelve
+>   contra el modo impuesto. La deuda auditiva de R3 queda saldada.
 >
 > **Criterio de aceptación de C4 — reformulado.** La variación se mide **entre renders**, no
 > entre loops: un loop repetido replaya bytes cacheados por construcción, así que exigir
@@ -237,11 +256,11 @@ Method + code citations: `Design_Starter_Deck_v2.md` §7.
 - **V2 — Phrygian dominant: FAIL, fallback locked.** The `Tonality` enum is the seven diatonic modes only. The flamenco sound is authored instead as explicit degree+quality events over `Tonality.Phrygian` (the Andaluza reward card). **No MGP ask triggered.**
 - **V3 — melody patterns: RESOLVED.** Degree-based (tonality-adaptive) confirmed; the authored loop **tiles by raw beats to the part length**, truncating the final partial repeat, warning on meter mismatch (D-MEL5.1=A). Authoring guidance: author the pattern in the card's expected meter. Chord-aware resolution still absent → tapping reward gates on ask #5 or degrades.
 - **V4 — `degreeAccidental`: recorded gap CORRECTED.** Backing honors it on both paths (marker-parity tested); bass ignores it. Constraint (diatonic-root level content) stands, but for band-composition reasons. Ask #4 narrowed accordingly. **Cross-boundary doc note owed** — filed 2026-07-31; text preserved in `CSV_Composition_Validation_Sub_Roadmap.md` §5 (the R0 diff file is retired).
-- **V5 — `ApplyStatusEffectSpec` + `AllAudienceCharacters`: structurally verified.** One shared target list serves all specs on a card; the branch is live for Psychic Waves' `ModifyVibe` and **excludes `IsBlocked` members**. Runtime smoke stays at R4.
+- **V5 — `ApplyStatusEffectSpec` + `AllAudienceCharacters`: verified and CLOSED (runtime smoke run at R4, 2026-08-10).** Target resolution is **per spec** — each spec calls `DetermineTargets` and resolves its own list (equivalent for `All*` targets, **not** for `Random*`). The `AllAudienceCharacters` branch is live for Psychic Wave v2's `ModifyVibe` + `ApplyStatusEffect` and **excludes `IsBlocked` members**. *(Corrected at R4 / F-R4-1: this record previously claimed "one shared target list serves all specs on a card", which the code does not do. V5's result stands; only its description changed. Authority: `SSoT_Card_System.md` §8.2.)*
 
 ## 10. Open items at R0 — RESOLVED
 
-All items are closed by **D-R0-1..12** (§2, R0 ledger). Residual work is owned per batch and listed in `Design_Starter_Deck_v2.md` §8 (interval-table audit → R7 · V5 smoke → R4 · dual-melody mix validation → R3/R8 · Keep Cool tutorial regression → R4 · draw/hand economy retune for 22 cards × 4 musicians → R8 · action:composition ratio observation → R8 · naming passes → per batch · finisher cost tuning → R8).
+All items are closed by **D-R0-1..12** (§2, R0 ledger). Residual work is owned per batch and listed in `Design_Starter_Deck_v2.md` §8 (interval-table audit → R7 · ~~V5 smoke → R4~~ **cerrado R4 2026-08-10** · dual-melody mix validation → R3/R8 · ~~Keep Cool tutorial regression → R4~~ **cerrado R4, ST-R4-9 PASS** · draw/hand economy retune for 22 cards × 4 musicians → R8 · action:composition ratio observation → R8 · naming passes → per batch · finisher cost tuning → R8).
 
 ---
 

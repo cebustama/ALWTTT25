@@ -48,8 +48,8 @@ Domain split: 11 Composition / 11 Action-domain (7 basic actions incl. generics 
 | 2 | Take Five | 1 | Action | Any | `ModifyStress(−3, Self)` | 0 / — | v1, conserved |
 | 3 | Default Mode | 2 | Comp | C2 | Rhythm. `MeterEffect(4/4)` + `ApplyStatusEffect(flow, +1, Self)` on play | 0 / 3 | v1, conserved |
 | 4 | Compound Cycle | 1 | Comp | C2 | Rhythm. `MeterEffect(6/8)` — promoted from reward pool (D-R0-2=B: compound meter is the starter's odd-meter anchor; blind-listener contrast vs 4/4 is maximal — simple duple vs compound triple) | 0 / 3 | v1 pool, promoted |
-| 5 | Keep Cool | 1 | Action | C2 | `ApplyStatusEffect(composure, +3, **Musician**)` — retargeted Self→Musician (D-R0-3) | 0 / — | v1, modified |
-| 6 | **Spotlight** *(working)* | 1 | **Finisher** | C2 | New taunt status on C2: audience `Musician`/`RandomMusician` targeting redirects to C2 for 1 audience turn (`ResolveTargetsFor` hook, R4) | 2 / — | new, R4 |
+| 5 | Keep Cool ✅ **retarget construido R4 (2026-08-10)** | 1 | Action | C2 | `ApplyStatusEffect(composure, +3, **Musician**)` — retargeted Self→Musician (D-R0-3); regresión de tutorial ST-R4-9 PASS | 0 / — | v1, modified |
+| 6 | **Spotlight** ✅ **construida R4 (2026-08-10)** | 1 | **Finisher** | C2 | New taunt status on C2: audience `Musician`/`RandomMusician` targeting redirects to C2 for 1 audience turn (`ResolveTargetsFor` hook; `AllMusicians` exento). Autoridad: `SSoT_Status_Effects.md` §5.9 | 2 / — | new, R4 |
 | 7 | Wormus Minor | 2 | Comp | Sibi | Backing. Minor-mode `progressionPalette` — **levels 2–3 authored (Levels pilot, R7)** | 0 / 2 | v1, conserved + leveled |
 | 8 | Wormus Major | 2 | Comp | Sibi | Backing. Major-mode `progressionPalette` — **levels 2–3 authored (Levels pilot, R7)** | 0 / 2 | v1, conserved + leveled |
 | 9 | Mind Tap | 1 | Action | Sibi | `ModifyVibe(+5, AudienceCharacter)` + `ApplyStatusEffect(earworm, +2, AudienceCharacter)` | 0 / — | v1, conserved |
@@ -90,7 +90,7 @@ Slate slots authored in full; pre-existing pool cards and starter→pool moves a
 | **C2** | **Jazz Kit** *(working)* — jazz `DrumPatternPaletteSO` (skill `rhythm-pattern-generator`) | **Neuro Kit** *(working)* — d'n'b `DrumPatternPaletteSO` (same skill) | **Lock In** *(working)* — `ApplyStatusEffect(flow, +2, Self)`, cost 1: pure momentum spike | In the Pocket, Waltz Protocol, Pentameter, Push It, Half Time |
 | **Conito** | **Bossa Corda** *(working)* — Backing, nylon-guitar patch + arpeggio/offbeat figure + bossa-suited palette (v1 approx; true split = ask §8 #3) | **Tapping v1** *(working)* — Melody, scale-degree arpeggio figures fitting the palette's progressions (chord-aware = ask §8 #5; degrades gracefully) | **Amp Up** *(working)* — `ApplyStatusEffect(voltage, +2, Self)`, cost 0: Overload accelerator | — |
 | **Zig** | **Torch Song** *(working)* — ballad: SustainLeadIn-heavy phrase palette + legato leading (slow-lean) | **Motor Mouth** *(working)* — patter: BurstThenHold/dense-EvenFlow palette + repetition directives (fast-lean) | **Singalong** — see §5 | — |
-| **Any** | — | — | **Read the Room** *(working)* — `RevealPreferencesSpec(AudienceCharacter)`: reveals TastePreferences on the audience canvas. Sibi-owned, RewardPool, R4 (D-R0-1) | — |
+| **Any** | — | — | **Read the Room** ✅ **construida R4 (2026-08-10)** — `RevealPreferencesSpec(AudienceCharacter)`: reveals TastePreferences on the audience canvas. Sibi-owned, RewardPool, coste 0 (D-R0-1). Autoridad: `SSoT_Audience_and_Reactions.md` §6.4 | — |
 
 Pool total after campaign: ~20 cards across four musicians — enough for N9 (skip is a real choice) to bite.
 
@@ -120,16 +120,16 @@ Locked at R0 (D-R0-7/8): lifetime **per-part** · max level **3** · replace-by-
 | V2 | **FAIL** — Tonality enum = 7 diatonic modes only. Fallback locked: Andalusian progressions by explicit degree+quality over Phrygian (Andaluza card). Ask #4 not triggered by V2 | Code read: `ChordProgressionData.cs` L172–178 (exhaustive switch) |
 | V3 residual | **RESOLVED** — authored melody loop tiles by raw beats to part length, truncating final partial repeat; meter mismatch warns (D-MEL5.1=A) | Code read: `MelodyTrackComposer.cs` L575–679 |
 | V4 | **Recorded gap partially stale** — backing honors `degreeAccidental` on both paths (+ parity tests); **bass ignores it** (confirmed). Level content stays diatonic; ask #4 narrows to bass-side. Bass SSoT parenthetical stale → cross-boundary doc note filed to MidiGenPlay project | Code read: `ChordTrackComposer.cs` L524/L1405, `BassTrackComposer.cs` (zero hits); `SSoT_Composer_Backing_Track.md`, `SSoT_Composer_Bass_Track.md` L33 |
-| V5 | Structurally verified — shared target-list resolution for all specs; `AllAudienceCharacters` branch live (blocked members excluded). Runtime confirmation stays R4 smoke | Code read: `CardBase.cs` L560–600 |
+| V5 | Verificada y **CERRADA** (smoke de runtime en R4, 2026-08-10) — resolución de targets **por spec**: cada spec llama a `DetermineTargets` y resuelve su propia lista (equivalente para `All*`, **no** para `Random*`); rama `AllAudienceCharacters` viva (miembros bloqueados excluidos). *Corrección F-R4-1: la redacción previa «shared target-list resolution for all specs» era falsa; el resultado de V5 no cambia. Autoridad: `SSoT_Card_System.md` §8.2* | Code read: `CardBase.cs` L560–600 · smokes ST-R4 |
 
 ---
 
 ## 8. Open at v2 draft (owners assigned)
 
 - Interval-table audit + 7th-quality listening spot-check → **R7** (file `MusicTheory.cs` host as shared project file first).
-- `ApplyStatusEffect × AllAudienceCharacters` runtime smoke → **R4**.
+- ~~`ApplyStatusEffect × AllAudienceCharacters` runtime smoke → **R4**.~~ **Cerrado R4 (2026-08-10)** — ver §7 V5.
 - Dual-melody mix validation (Sibi Singing Field + Zig melody as reward state) → **R3** (band-scale singer verification) + **R8** (full-pool smokes).
-- Keep Cool retarget tutorial regression → **R4**.
+- ~~Keep Cool retarget tutorial regression → **R4**.~~ **Cerrado R4 (ST-R4-9 PASS).**
 - Draw/hand economy retune for 22 cards / 4 musicians → **R8**.
 - Action:composition ratio observation (11:11 vs v1's 6:11) → **R8** comprehension/tuning lens; correction = composition copies (N7).
 - Naming pass on all *(working)* names → authoring time per batch.

@@ -379,6 +379,17 @@ namespace ALWTTT.Status
                         "—",
                         "—");
                     return true;
+
+                case CharacterStatusId.RedirectIncoming:
+                    data = new CanonicalPrimitiveData(
+                        "Control",
+                        "While active (stacks > 0), single-target hostile targeting redirects to the holder. " +
+                        "AoE targeting is NOT redirected (it already includes the holder). " +
+                        "Runtime additionally guards on StatusKey. First user: C2 Spotlight (R4, taunt).",
+                        "—",
+                        "—",
+                        "—");
+                    return true;
             }
 
             data = default;

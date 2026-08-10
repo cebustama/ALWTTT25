@@ -280,6 +280,46 @@ namespace ALWTTT
                 }
 
 
+                // [R4 / D-R0-1=A] Reveal the target audience member's taste panel.
+                // The spec carries no taste data: AudienceCharacterData owns the
+                // preferences and AudienceCharacterCanvas owns presentation, so this
+                // branch is a pure dispatch. Non-audience targets are an authoring
+                // error and are logged, not silently dropped.
+                if (effect is RevealPreferencesSpec reveal)
+                {
+                    var revealTargets = DetermineTargets(
+                        performer,
+                        primaryTarget,
+                        allAudienceCharacters,
+                        allBandCharacters,
+                        reveal.targetType);
+
+                    if (revealTargets == null || revealTargets.Count == 0)
+                    {
+                        Debug.LogWarning(
+                            $"[CardBase] RevealPreferencesSpec resolved 0 targets. Card='{CardDefinition?.name}', targetType={reveal.targetType}.");
+                        continue;
+                    }
+
+                    for (int t = 0; t < revealTargets.Count; t++)
+                    {
+                        var revealTarget = revealTargets[t];
+                        if (revealTarget == null) continue;
+
+                        var revealAudience = revealTarget as AudienceCharacterBase;
+                        if (revealAudience == null)
+                        {
+                            Debug.LogError(
+                                $"[CardBase] RevealPreferencesSpec target must be AudienceCharacterBase. Got='{revealTarget.GetType().Name}' ('{revealTarget.name}'). Card='{CardDefinition?.name}'.");
+                            continue;
+                        }
+
+                        revealAudience.RevealPreferences();
+                    }
+
+                    continue;
+                }
+
                 if (effect is ModifyVibeSpec vibe)
                 {
                     var targets = DetermineTargets(

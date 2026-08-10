@@ -147,6 +147,7 @@ namespace ALWTTT.Cards.LLMAuthoring
             sb.AppendLine("- { \"type\": \"ModifyVibe\", \"amount\": int, \"targetType\": <as above> }");
             sb.AppendLine("- { \"type\": \"ModifyStress\", \"amount\": int, \"targetType\": <as above> }");
             sb.AppendLine("- { \"type\": \"AddInspirationPerLoop\", \"amount\": int >= 1 }   (Composition Track cards only: grants Inspiration each loop while the card's track is active)");
+            sb.AppendLine("- { \"type\": \"RevealPreferences\", \"targetType\": <AudienceCharacter|AllAudienceCharacters> }   (Info only: reveals the target audience member's musical tastes on their canvas; no meter change)");
             sb.AppendLine();
             sb.AppendLine("STATUS KEYS: " + Join(v.StatusKeys));
             sb.AppendLine();

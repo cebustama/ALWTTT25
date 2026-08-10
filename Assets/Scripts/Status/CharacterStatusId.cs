@@ -41,6 +41,16 @@
         DisableMovement = 502,
         ShakenRestriction = 503,
 
+        // [R4 / D-R4-3=A] Taunt primitive. While an instance with stacks > 0 is
+        // active on a character, single-target hostile targeting from the audience
+        // side (ActionTargetType.Musician / RandomMusician in
+        // AudienceCharacterBase.ResolveTargetsFor) redirects to the holder.
+        // AllMusicians is deliberately NOT redirected: an AoE already includes the
+        // holder, and redirecting it would convert the ability to single-target.
+        // Runtime guards on StatusKey in addition to this id (Earworm/Captivated
+        // precedent) so a future RedirectIncoming variant cannot silently taunt.
+        RedirectIncoming = 504,
+
         // ───────────── Pressure (600–699)
         DamageOverTime = 600,
 

@@ -264,7 +264,6 @@ MonoBehaviour:
   characterAnimator: {fileID: 6981906805491641733}
   animator: {fileID: 7639766325466097293}
   statusCatalogue: {fileID: 11400000, guid: a0d5c957c23a58945851931838536de4, type: 2}
-  outlineController: {fileID: 4506841092420466041}
   legacyIsStunned: 0
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
   characterCanvas: {fileID: 9060181179430792495}
@@ -385,11 +384,67 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  scaleOnBeat: 0
+  scaleAmplitude: 0.15
+  scaleCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  stretchOnBeat: 0
+  stretchYAmplitude: 0.25
+  stretchXAmplitude: 0.15
+  stretchCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   particleSystemRef: {fileID: 0}
   emitoOnBeat: 0
   particlesPerBurst: 10
   emitEveryNBeats: 1
   particleBeatOffsetBeats: 0
+  kickScaleAmplitude: 0.25
+  kickHopHeight: 0.12
+  kickDuration: 0.35
 --- !u!95 &7639766325466097293
 Animator:
   serializedVersion: 7

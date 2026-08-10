@@ -1872,6 +1872,9 @@ namespace ALWTTT.Cards.Editor
                             () => AddEffect(effectsProp, new DrawCardsSpec()));
                         menu.AddItem(new GUIContent("Add Inspiration / Loop"), false,
                             () => AddEffect(effectsProp, new AddInspirationPerLoopSpec()));
+                        // [R4 / D-R0-1=A] Reveal Preferences (Read the Room).
+                        menu.AddItem(new GUIContent("Reveal Preferences"), false,
+                            () => AddEffect(effectsProp, new RevealPreferencesSpec()));
                         menu.ShowAsContext();
                     }
                 }
@@ -1953,6 +1956,13 @@ namespace ALWTTT.Cards.Editor
                 var amountProp = el.FindPropertyRelative("amountPerLoop");
                 int a = amountProp != null ? amountProp.intValue : 0;
                 return $"[{index}] +{a} Inspiration/loop";
+            }
+
+            if (typeName == nameof(RevealPreferencesSpec))
+            {
+                var targetProp = el.FindPropertyRelative("targetType");
+                string tgt = targetProp != null ? targetProp.enumDisplayNames[targetProp.enumValueIndex] : "?";
+                return $"[{index}] RevealPreferences ({tgt})";
             }
 
             return $"[{index}] {typeName}";

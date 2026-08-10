@@ -948,6 +948,24 @@ namespace ALWTTT
             {
                 for (int i = 0; i < effects.Count; i++)
                 {
+                    // [R4] Reveal cards constrain targeting the same way single-target
+                    // status specs do. Kept as its own branch (not folded into the
+                    // ApplyStatusEffectSpec cast) so the two spec kinds stay legible.
+                    if (effects[i] is RevealPreferencesSpec reveal)
+                    {
+                        switch (reveal.targetType)
+                        {
+                            case ActionTargetType.Musician:
+                                expectsMusicianSingle = true;
+                                break;
+
+                            case ActionTargetType.AudienceCharacter:
+                                expectsAudienceSingle = true;
+                                break;
+                        }
+                        continue;
+                    }
+
                     if (effects[i] is not ApplyStatusEffectSpec ase)
                         continue;
 

@@ -216,6 +216,8 @@ The curriculum drives seven rewritten reactive beats that fire from live combat 
 
 **Blocked presentation (O1 = A).** Blocked is a tint bool (F2), so its copy stays **de‑iconified** — it references the guard visually, not an SO status icon. No Blocked SO icon is authored (it would re‑open the F2 divergence). Visual parity, if wanted later, is a JUICE/DEMO‑FIXES item.
 
+**Composure beat — gesto actualizado (R4, 2026-08-10).** Keep Cool pasa a exigir **arrastre sobre un músico** (`RequiresTargetSelection` derivado del payload tras el retarget `Self`→`Musician`, D-R0-3) y hereda el rechazo de objetivo aturdido. **El copy del beat no cambia; el gesto del jugador sí.** Verificado en ST-R4-9. **Fuera de este doc-update:** el realineamiento completo del tutorial con el roster actual (dos músicos nuevos, Conito→BASSLINE, melodía→Zig) y la reescritura de todos los diálogos son un lote propio — **TUT-REFRESH**, planificado después de R6 — no una edición de documentación.
+
 ### 6B.3 Driver / gate spec
 - **Forced initial hand (F1).** Filled in `TutorialGuidedDriver.Awake` (`FillForcedInitialHand`, guarded by `!HasFired(YourTurn)`) — the order is Default Mode, Wormus Major, Singing Field, Warm Up, with role/domain fallbacks; a full miss hits the M4.5 guarantee (D1).
 - **Scripted draws (D1=B, M4.5 seam).** Forced hand (beat 2) + scripted finisher draw (beat 7), via `TutorialScriptedDrawQueue`.
