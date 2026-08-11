@@ -23,6 +23,12 @@ namespace ALWTTT.Characters
         [SerializeField] protected CharacterAnimator characterAnimator;
         [SerializeField] protected Animator animator;
 
+        [Tooltip("[PRES-1b T6b] Sprite outline used as the hover highlight. Lives on " +
+         "the SpriteRenderer GameObject. Null = character degrades to no outline.")]
+        [SerializeField] private SpriteOutlineController spriteOutline;
+
+        public SpriteOutlineController SpriteOutline => spriteOutline;
+
         [Header("Status (Runtime)")]
         [Tooltip("Optional: assign the catalogue to allow systems to resolve ids to StatusEffectSO later. Not required for Step 3.")]
         [SerializeField] private StatusEffectCatalogueSO statusCatalogue;
@@ -76,6 +82,9 @@ namespace ALWTTT.Characters
 
         protected virtual void Awake()
         {
+            if (spriteOutline == null && spriteRenderer != null)
+                spriteOutline = spriteRenderer.GetComponent<SpriteOutlineController>();
+
             Statuses = new StatusEffectContainer();
 
             Statuses.SetOwner(this); // [TUT-R2] owner identity for bus consumers
@@ -123,8 +132,17 @@ namespace ALWTTT.Characters
         public CharacterBase GetCharacterBase() => this;
         public CharacterType GetCharacterType() => CharacterType;
 
-        protected virtual void OnPointerEnter() { }
-        protected virtual void OnPointerExit() { }
+        // [PRES-1b T6b] Hover highlight lives here so every character type inherits it;
+        // subclasses already call base.OnPointerEnter/Exit before their own chrome.
+        protected virtual void OnPointerEnter()
+        {
+            if (spriteOutline != null) spriteOutline.SetOutline(true);
+        }
+
+        protected virtual void OnPointerExit()
+        {
+            if (spriteOutline != null) spriteOutline.SetOutline(false);
+        }
 
         /// <summary>
         /// [B2.5 / #3] Broadcast the song BPM to every <see cref="CharacterAnimator"/>

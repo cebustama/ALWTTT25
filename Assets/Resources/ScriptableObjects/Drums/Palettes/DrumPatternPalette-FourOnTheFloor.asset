@@ -27,7 +27,7 @@ MonoBehaviour:
   - pattern: {fileID: 11400000, guid: 9b5cac8c75b7a5143a238b4ed38d6799, type: 2}
     weight: 1
   - pattern: {fileID: 11400000, guid: c9bb1fd447bb3004883c6e71b38da5bf, type: 2}
-    weight: 1
+    weight: 0
   - pattern: {fileID: 11400000, guid: 5523d1812c2a8df4088a1d33032e277a, type: 2}
     weight: 1
   - pattern: {fileID: 11400000, guid: 80bf6d7dc7eee404eba97755f186ac9d, type: 2}

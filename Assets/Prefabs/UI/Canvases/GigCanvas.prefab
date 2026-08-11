@@ -410,6 +410,81 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &2257847923857145959
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5295907366041127268}
+  - component: {fileID: 8126065897537350502}
+  - component: {fileID: 8349029419945237427}
+  m_Layer: 0
+  m_Name: PsychicWaveInvertOverlay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &5295907366041127268
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2257847923857145959}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5187739888115215308}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &8126065897537350502
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2257847923857145959}
+  m_CullTransparentMesh: 1
+--- !u!114 &8349029419945237427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2257847923857145959}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 2100000, guid: 097d5843c2d6a6e429a9b98374bf4090, type: 2}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &2520116098907605357
 GameObject:
   m_ObjectHideFlags: 0
@@ -2436,6 +2511,7 @@ RectTransform:
   - {fileID: 7477809651483731060}
   - {fileID: 2267493489910675875}
   - {fileID: 33983343026123586}
+  - {fileID: 5295907366041127268}
   - {fileID: 5237377005748407816}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2824,7 +2900,7 @@ GameObject:
   - component: {fileID: 8238055317420875393}
   - component: {fileID: 7379847858225650970}
   m_Layer: 0
-  m_Name: PsychicWaveTest
+  m_Name: PsychicWaveOverlayController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2864,14 +2940,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6596115008953216484}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 2100000, guid: 3fe6e7e6b0b66f84e99330a4b8c3011b, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2899,13 +2975,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc707f4d029129f40ba0f24a40aa456d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Sensory.PsychicWaveOverlayController
+  invertImage: {fileID: 8349029419945237427}
+  triggerCard: {fileID: 11400000, guid: 09b0e888a886a3240ad4950bf85f7199, type: 2}
   overlayImage: {fileID: 8238055317420875393}
   holeShape: {fileID: -2413806693520163455, guid: c3f4ce8d58a1c1b4fb8ad00ca6e4b71a, type: 3}
-  triggerCard: {fileID: 11400000, guid: 09b0e888a886a3240ad4950bf85f7199, type: 2}
-  maskTint: {r: 0.55, g: 0.2, b: 0.85, a: 0.65}
-  expandDuration: 0.8
-  maxHalfSize: 1.2
-  fadeStartFraction: 0.35
+  coverDuration: 1
+  holdDuration: 0.75
+  uncoverDuration: 1
+  edgeWidth: 0.2
+  waveColor: {r: 1, g: 1, b: 1, a: 1}
   logDiagnostics: 1
 --- !u!1 &6668514846873555965
 GameObject:

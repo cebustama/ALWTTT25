@@ -198,7 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbe49cd7bb060ad4a941026953474547, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Characters.SpriteOutlineController
-  outlineWidth: 4
+  outlineWidth: 8
   outlineColor: {r: 1, g: 0.85, b: 0.2, a: 1}
 --- !u!1 &7812822335308069666
 GameObject:
@@ -263,6 +263,7 @@ MonoBehaviour:
     m_Bits: 128
   characterAnimator: {fileID: 6981906805491641733}
   animator: {fileID: 7639766325466097293}
+  spriteOutline: {fileID: 0}
   statusCatalogue: {fileID: 11400000, guid: a0d5c957c23a58945851931838536de4, type: 2}
   legacyIsStunned: 0
   audienceCharacterData: {fileID: 11400000, guid: 483110584a200964b9c276d9a8634a05, type: 2}
@@ -559,6 +560,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AudienceCharacterCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 2509326286657756562, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3010150280399116158, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
       propertyPath: m_SortingLayerID
       value: -827049649
@@ -570,6 +575,10 @@ PrefabInstance:
     - target: {fileID: 4033435451783531182, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
       propertyPath: m_fontSizeBase
       value: 3.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4045679727849080360, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5374294540003364508, guid: 6aa4e835e24c62c40a9d02613c2bc221, type: 3}
       propertyPath: m_AnchoredPosition.y

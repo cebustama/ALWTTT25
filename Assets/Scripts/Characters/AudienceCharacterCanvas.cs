@@ -31,28 +31,82 @@ namespace ALWTTT.Characters
         public bool IsVibeTelegraphWired =>
             vibeTelegraphRoot != null && effectivenessLabel != null && projectedVibeText != null;
 
-        // [R4 / D-R4-4=A] Taste reveal panel (Read the Room). Optional/null-guarded
-        // like the S5a telegraph slots: an unwired prefab degrades to "no panel"
-        // rather than an NRE.
-        [Header("Taste Reveal (R4)")]
+        // [R4 / D-R4-4=A -> PRES-1 / D-PRES1-3=A] Taste reveal.
+        //
+        // R4 shipped this as a persistent panel on the audience canvas. PRES-1
+        // keeps WHERE it lives (D-R4-4=A is not reopened) and changes only HOW it
+        // presents: the taste TEXT now composes into the single hover tooltip, and
+        // an icon is the discreet persistent "revealed" marker. Rationale: one
+        // hover surface per character is a canvas invariant, and the persistent
+        // panel also overlapped the "Songs left" readout.
+        [Header("Taste Reveal (R4 -> PRES-1)")]
+        [Tooltip("[PRES-1] Persistent 'tastes revealed' marker. Null-guarded: an " +
+                 "unwired icon degrades to no marker; the tooltip still works.")]
+        [SerializeField] private GameObject revealedTasteIcon;
+
+        // [PRES-1] RETIRED persistent-panel slots. Never activated at runtime any
+        // more; kept so existing prefab wiring does not dangle before the prefab
+        // pass deletes the panel object. Remove both fields in that pass.
         [SerializeField] private GameObject tastePanelRoot;
         [SerializeField] private TextMeshProUGUI tasteText;
 
-        /// <summary>[R4-SMOKE] True when both reveal slots are wired on the prefab.</summary>
-        public bool IsTastePanelWired => tastePanelRoot != null && tasteText != null;
+        // [PRES-1] Cached reveal state for tooltip composition. The AUTHORITATIVE
+        // "has been revealed" flag still lives on AudienceCharacterBase and the
+        // data still lives on AudienceCharacterData (SSoT_Audience_and_Reactions
+        // §6.4); this is a presentation cache, not a second source of truth.
+        private TastePreferences _revealedTaste;
+        private bool _tasteRevealed;
+
+        /// <summary>
+        /// [R4-SMOKE -> PRES-1] SEMANTIC SHIFT with D-PRES1-3=A: this used to mean
+        /// "both panel slots wired". It now means "the persistent icon is wired".
+        /// The tooltip composition needs no prefab wiring at all and works
+        /// regardless of this flag.
+        /// </summary>
+        public bool IsTastePanelWired => revealedTasteIcon != null;
+
+        // [PRES-1] ESP copy, hardcoded per D-S5f-7=A / D-S5f-8=A like the Blocked
+        // tooltip and telegraph labels; all migrate together in the S5f-ext pass.
+        //
+        // [PRES-1c / D-PRES1c-1=A] TMP rich text: the block header is bolded so it
+        // reads as a SECTION heading rather than as one more taste line. Without it
+        // the taste block ran on visually from the intention text, which is what
+        // ST-PRES1-7 surfaced. If the tooltip body's TMP has richText disabled the
+        // tags render literally — that is a prefab fix, not a code one (see
+        // ST-PRES1-7b).
+        private const string TasteBlockHeader = "<b>— Gustos —</b>";
+        private const string TasteOnlyHeader = "Gustos";
 
         protected override void ShowTooltipInfo()
         {
             base.ShowTooltipInfo();
 
+            string header = null;
+            string body = null;
+
             if (NextAbility != null && CurrentIntention != null)
             {
-                var abilityName = NextAbility.AbilityName;
-                var contentText = CurrentIntention.ContentText;
-
-                ShowTooltipInfo(
-                    TooltipManager.Instance, contentText, abilityName, descriptionRoot);
+                header = NextAbility.AbilityName;
+                body = CurrentIntention.ContentText;
             }
+
+            // [PRES-1 / D-PRES1-3=A] Compose the revealed tastes INTO the one hover
+            // surface instead of opening a second one. This also covers the phases
+            // where there is no intention to show: under the old panel-less path
+            // the tooltip simply did not appear, which would have made revealed
+            // tastes vanish between turns.
+            if (_tasteRevealed)
+            {
+                string tasteBlock = TasteBlockHeader + "\n" + BuildTasteText(_revealedTaste);
+                body = string.IsNullOrEmpty(body)
+                    ? tasteBlock
+                    : body + "\n\n" + tasteBlock;
+
+                if (header == null) header = TasteOnlyHeader;
+            }
+
+            if (body != null)
+                ShowTooltipInfo(TooltipManager.Instance, body, header, descriptionRoot);
         }
 
         /// <summary>
@@ -110,7 +164,7 @@ namespace ALWTTT.Characters
         {
             switch (tier)
             {
-                case VibeEffectiveness.SuperEffective: return "�S�per!";
+                case VibeEffectiveness.SuperEffective: return "¡Súper!";
                 case VibeEffectiveness.NotVeryEffective: return "Resiste";
                 case VibeEffectiveness.Immune: return "Inmune";
                 default: return "Normal";
@@ -133,13 +187,13 @@ namespace ALWTTT.Characters
         // [S5f / E-lite] Blocked ("oscurito") legend. Blocked is sprite-tint
         // only per M1.2 Decision E3 (no status icon), so this hover tooltip is
         // the only textual surface explaining the tint. ESP copy (tester build
-        // default; D-S5f-7=A � hardcoded until the S5f-ext localization pass).
-        // ENG: "Blocked � someone tall is in the way. Immune to persuasion
+        // default; D-S5f-7=A — hardcoded until the S5f-ext localization pass).
+        // ENG: "Blocked — someone tall is in the way. Immune to persuasion
         // from this position."
         private const string BlockedTooltipHeader = "Bloqueado";
         private const string BlockedTooltipBody =
-            "Alguien alto le tapa el escenario. Es inmune a la persuasi�n " +
-            "mientras est� en esta posici�n.";
+            "Alguien alto le tapa el escenario. Es inmune a la persuasión " +
+            "mientras está en esta posición.";
 
         /// <summary>[S5f / E-lite] Show the Blocked-tint explanation tooltip.</summary>
         public void ShowBlockedTooltip()
@@ -154,31 +208,46 @@ namespace ALWTTT.Characters
             HideTooltipInfo(TooltipManager.Instance);
         }
 
-        // ---- [R4 / D-R0-1=A + D-R4-4=A] Taste reveal --------------------------
+        // ---- [R4 / D-R0-1=A + D-R4-4=A -> PRES-1 / D-PRES1-3=A] Taste reveal ----
         //
-        // Presentation only: no state lives here. AudienceCharacterBase owns the
-        // "has been revealed" flag; AudienceCharacterData owns the preference data.
-        // ESP copy is hardcoded, matching the Blocked tooltip and the telegraph
-        // labels (D-S5f-7=A / D-S5f-8=A); all three migrate together in the S5f-ext
-        // localization pass.
+        // Presentation only. AudienceCharacterBase owns the "has been revealed"
+        // flag and its per-gig idempotence; AudienceCharacterData owns the
+        // preference data. ESP copy is hardcoded, matching the Blocked tooltip and
+        // the telegraph labels (D-S5f-7=A / D-S5f-8=A); all three migrate together
+        // in the S5f-ext localization pass.
 
         private const string TasteNeutralText = "Le da igual todo";
 
         /// <summary>
-        /// [R4] Show this member's taste panel. Persistent once shown - the caller
-        /// (AudienceCharacterBase.RevealPreferences) guarantees one call per gig.
+        /// [R4 -> PRES-1 / D-PRES1-3=A] Register this member's tastes as revealed.
+        ///
+        /// Method name deliberately unchanged: the caller
+        /// (AudienceCharacterBase.RevealPreferences) is NOT touched by PRES-1, so
+        /// its idempotence and one-call-per-gig guarantee carry over untouched.
+        /// What changed is the surface — the persistent panel is retired; this now
+        /// caches the taste for tooltip composition and lights the discreet icon.
         /// </summary>
         public void ShowTastePanel(TastePreferences taste)
         {
-            if (tastePanelRoot == null || tasteText == null) return;
+            _revealedTaste = taste;
+            _tasteRevealed = true;
 
-            tasteText.text = BuildTasteText(taste);
-            tastePanelRoot.SetActive(true);
+            if (revealedTasteIcon != null)
+                revealedTasteIcon.SetActive(true);
         }
 
-        /// <summary>[R4] Hide the taste panel (gig teardown / dev reset).</summary>
+        /// <summary>
+        /// [R4 -> PRES-1] Clear the reveal (gig teardown / dev reset). Also hides
+        /// the retired legacy panel defensively, so a prefab that still carries the
+        /// old object cannot strand it on screen.
+        /// </summary>
         public void HideTastePanel()
         {
+            _revealedTaste = null;
+            _tasteRevealed = false;
+
+            if (revealedTasteIcon != null)
+                revealedTasteIcon.SetActive(false);
             if (tastePanelRoot != null)
                 tastePanelRoot.SetActive(false);
         }

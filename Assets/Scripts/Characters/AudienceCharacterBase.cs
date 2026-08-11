@@ -59,6 +59,11 @@ namespace ALWTTT.Characters.Audience
         /// Called from the RevealPreferencesSpec branch in CardBase.ExecuteEffects.
         /// Data stays owned by AudienceCharacterData; presentation stays owned by
         /// AudienceCharacterCanvas - this method only connects the two.
+        ///
+        /// [PRES-1] Untouched by D-PRES1-3=A. The canvas changed HOW it presents
+        /// (tooltip composition + icon instead of a persistent panel); the
+        /// idempotence and per-gig scope guaranteed here are unchanged, which is
+        /// what ST-PRES1-8 regresses.
         /// </summary>
         public void RevealPreferences()
         {
@@ -440,6 +445,79 @@ namespace ALWTTT.Characters.Audience
             return null;
         }
 
+        /// <summary>
+        /// [PRES-1 / behaviour-preserving extraction] The pre-Spotlight default
+        /// single-target pick: the most-stressed musician (S5e inverted meter —
+        /// higher remaining fortitude = least-stressed; semantic preserved).
+        ///
+        /// Extracted so the normal targeting path and the redirect FLOATER use
+        /// literally the same selector. If they were two copies they could drift,
+        /// and the floater would start naming a musician the game would not
+        /// actually have hit — a lie in the UI is worse than no UI.
+        /// Pure: no side effects, no RNG, safe to call for presentation.
+        /// </summary>
+        private static MusicianBase SelectDefaultMusicianTarget(
+            List<MusicianBase> list)
+        {
+            if (list == null || list.Count == 0) return null;
+
+            MusicianBase best = null;
+            foreach (var m in list)
+            {
+                // [S5e] Inverted meter: higher remaining fortitude = least-stressed (semantic preserved)
+                if (best == null ||
+                    m.MusicianStats.CurrentStress > best.MusicianStats.CurrentStress)
+                    best = m;
+            }
+
+#if ALWTTT_DEV
+            // [PRES-1b T1-diag] Makes the selector's ranking auditable when a smoke
+            // setup depends on who the default target is.
+            var sb = new System.Text.StringBuilder("[PRES-1][Selector] candidates: ");
+            foreach (var m in list)
+                sb.Append($"{m.name}={m.MusicianStats.CurrentStress} ");
+            sb.Append($"-> winner='{best?.name}'");
+            Debug.Log(sb.ToString());
+#endif
+
+            return best;
+        }
+
+        /// <summary>
+        /// [PRES-1 / D-PRES1-2=A] Presentation-only redirect announcement.
+        ///
+        /// Skips the visual no-op: when the default target already WAS the spotlit
+        /// musician, nothing was redirected and a "-&gt; himself" floater would be
+        /// noise. Publishing never affects targeting — the caller has already
+        /// decided and returned its list shape.
+        /// </summary>
+        private void PublishSpotlightRedirect(
+    MusicianBase protectedMusician, MusicianBase original)
+        {
+            if (protectedMusician == null) return;
+
+            // [PRES-1b T1-diag] The suppression used to be a silent return, which made
+            // a legitimate no-op indistinguishable from a broken presentation path.
+            if (original == protectedMusician)
+            {
+                Debug.Log(
+                    $"[PRES-1][Spotlight] {CharacterId}: redirect SUPPRESSED (visual " +
+                    $"no-op) — default target ALREADY was '{protectedMusician.name}' " +
+                    $"(CurrentStress={protectedMusician.MusicianStats.CurrentStress}). " +
+                    $"No event published, no floater expected.");
+                return;
+            }
+
+            Debug.Log(
+                $"[PRES-1][Spotlight] {CharacterId}: original=" +
+                $"'{(original != null ? original.name : "RANDOM/none")}' -> protected=" +
+                $"'{protectedMusician.name}'. Publishing SpotlightRedirectEvent.");
+
+            ALWTTT.Sensory.SensoryEventBus.Instance?.Publish(
+                new ALWTTT.Sensory.SpotlightRedirectEvent(
+                    this, original, protectedMusician));
+        }
+
         private List<CharacterBase> ResolveTargetsFor(CharacterActionData action)
         {
             var gm = GigManager;
@@ -460,20 +538,22 @@ namespace ALWTTT.Characters.Audience
                             Debug.Log(
                                 $"[R4][Spotlight] {CharacterId}: Musician target redirected " +
                                 $"-> '{spotlitDirected.name}'.");
+
+                            // [PRES-1 / D-PRES1-2=A] Presentation only. The same pure
+                            // selector the normal path uses names the would-be target,
+                            // so the floater cannot contradict the game's own choice.
+                            PublishSpotlightRedirect(spotlitDirected,
+                                SelectDefaultMusicianTarget(gm.CurrentMusicianCharacterList));
+
                             return new List<CharacterBase>() { spotlitDirected };
                         }
 
                         var list = gm.CurrentMusicianCharacterList;
                         if (list.Count == 0) return null;
 
-                        MusicianBase best = null;
-                        foreach (var m in list)
-                        {
-                            // [S5e] Inverted meter: higher remaining fortitude = least-stressed (semantic preserved)
-                            if (best == null || m.MusicianStats.CurrentStress > best.MusicianStats.CurrentStress)
-                                best = m;
-                        }
-                        return new List<CharacterBase>() { best };
+                        // [PRES-1] Same selection as before, now single-sourced.
+                        return new List<CharacterBase>()
+                            { SelectDefaultMusicianTarget(list) };
                     }
 
                 case ActionTargetType.RandomMusician:
@@ -487,6 +567,14 @@ namespace ALWTTT.Characters.Audience
                             Debug.Log(
                                 $"[R4][Spotlight] {CharacterId}: RandomMusician target redirected " +
                                 $"-> '{spotlitRandom.name}'.");
+
+                            // [PRES-1 / D-PRES1-2=A] Original target is passed as NULL
+                            // on purpose: it does not exist until Random.Range is
+                            // called, and rolling for presentation would consume global
+                            // RNG state and shift every later roll in the gig. The
+                            // floater anchors on the protected musician instead.
+                            PublishSpotlightRedirect(spotlitRandom, null);
+
                             return new List<CharacterBase>() { spotlitRandom };
                         }
 
@@ -497,6 +585,10 @@ namespace ALWTTT.Characters.Audience
                     }
 
                 case ActionTargetType.AllMusicians:
+                    // [R4 / SSoT_Status_Effects §5.9] NEVER redirected. A taunt that
+                    // absorbed an everyone-hits attack would delete the attack.
+                    // [PRES-1] Consequently no redirect event can fire here either
+                    // (ST-PRES1-9 regresses both halves).
                     return new List<CharacterBase>(gm.CurrentMusicianCharacterList);
 
                 case ActionTargetType.AudienceCharacter:

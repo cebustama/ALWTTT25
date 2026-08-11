@@ -19,6 +19,11 @@ namespace ALWTTT.Sensory
     /// in play mode and the previous intermittent "never subscribed" failure
     /// is gone. A success line is logged so init health is visible.
     ///
+    /// [PRES-1 / D-PRES1-2=A] Adds the Spotlight redirect surface. Like every
+    /// other handler here it honours <see cref="mode"/>: an adapter parked in
+    /// VerifyOnly must go visually silent across ALL surfaces, or a debugging
+    /// session sees one lone floater and cannot tell which path drew it.
+    ///
     /// Placement: scene-placed in the gig scene (NOT on the DDOL managers
     /// object), so OnEnable/OnDisable exercise subscribe/unsubscribe across
     /// scene reloads (ST-S2-4) — same pattern as FloatingTextMidiListener.
@@ -46,6 +51,10 @@ namespace ALWTTT.Sensory
 
         /// <summary>[JUICE-PW] Card-impact events handled (ST-PW parity).</summary>
         public long VibeImpactEventsHandled { get; private set; }
+
+        /// <summary>[PRES-1] Spotlight redirect events handled (ST-PRES1-4/5/6
+        /// parity — in particular ST-PRES1-6, where the expected count is 0).</summary>
+        public long SpotlightRedirectEventsHandled { get; private set; }
 
         [Header("JUICE-PW: card Vibe impact presentation")]
         [Tooltip("One-shot kick intensity [0..1] for the impacted audience " +
@@ -81,10 +90,12 @@ namespace ALWTTT.Sensory
             _bus.Subscribe<AudienceReactionEvent>(OnAudienceReaction);
             _bus.Subscribe<SongEndVibeEvent>(OnSongEndVibe);
             _bus.Subscribe<AudienceVibeImpactEvent>(OnVibeImpact);
+            _bus.Subscribe<SpotlightRedirectEvent>(OnSpotlightRedirect); // [PRES-1]
 
             Debug.Log(
                 $"[SensoryFxAdapter] Subscribed to bus " +
-                $"(AudienceReaction + SongEndVibe + AudienceVibeImpact). Mode={mode}, " +
+                $"(AudienceReaction + SongEndVibe + AudienceVibeImpact + " +
+                $"SpotlightRedirect). Mode={mode}, " +
                 $"logVerification={logVerification}.");
         }
 
@@ -94,6 +105,7 @@ namespace ALWTTT.Sensory
             _bus.Unsubscribe<AudienceReactionEvent>(OnAudienceReaction);
             _bus.Unsubscribe<SongEndVibeEvent>(OnSongEndVibe);
             _bus.Unsubscribe<AudienceVibeImpactEvent>(OnVibeImpact);
+            _bus.Unsubscribe<SpotlightRedirectEvent>(OnSpotlightRedirect); // [PRES-1]
             _bus = null;
         }
 
@@ -235,6 +247,54 @@ namespace ALWTTT.Sensory
                 e.Performer.CharacterAnimator.PlayImpactKick(performerKickIntensity);
                 if (performerBurstParticles > 0)
                     e.Performer.CharacterAnimator.BurstParticles(performerBurstParticles);
+            }
+        }
+
+        // ----- Spotlight redirect [PRES-1 / D-PRES1-2=A] -------------------
+
+        /// <summary>
+        /// Announces a taunt redirect that until now only existed in the console
+        /// log. Anchor priority: the ORIGINAL target's TextSpawnRoot when the
+        /// event names one (the floater belongs where the hit was aimed), else
+        /// the protected musician's. Honours <see cref="mode"/> like every other
+        /// handler — see the class summary for why that matters.
+        ///
+        /// The publisher already filters the visual no-op case, so any event
+        /// arriving here is worth drawing.
+        /// </summary>
+        private void OnSpotlightRedirect(SpotlightRedirectEvent e)
+        {
+            SpotlightRedirectEventsHandled++;
+
+            if (!SensoryFtPresentation.TryBuildSpotlightRedirectFt(
+                    e, out string text, out Color color))
+                return;
+
+            if (mode == AdapterMode.Spawn)
+            {
+                ALWTTT.Characters.CharacterBase owner =
+                    e.OriginalTarget != null
+                        ? (ALWTTT.Characters.CharacterBase)e.OriginalTarget
+                        : e.ProtectedTarget;
+
+                if (owner == null || FxManager.Instance == null) return;
+
+                var anchor = owner.TextSpawnRoot != null
+                    ? owner.TextSpawnRoot
+                    : owner.transform;
+
+                FxManager.Instance.SpawnFloatingText(
+                    anchor, text,
+                    SensoryFtPresentation.SpotlightRedirectDrift, color);
+            }
+            else if (logVerification)
+            {
+                Debug.Log(
+                    $"[SensoryFxAdapter][Verify] SpotlightRedirect " +
+                    $"source={e.Source?.CharacterId} " +
+                    $"original={(e.OriginalTarget != null ? e.OriginalTarget.CharacterName : "RANDOM/none")} " +
+                    $"protected={e.ProtectedTarget?.CharacterName} " +
+                    $"-> \"{text}\" rgba=({color.r:F2},{color.g:F2},{color.b:F2})");
             }
         }
     }

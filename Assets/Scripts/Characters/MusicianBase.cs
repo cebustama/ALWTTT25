@@ -193,12 +193,14 @@ namespace ALWTTT.Characters.Band
         {
             base.OnPointerEnter();
             bandCharacterCanvas.ShowContextual();
+            bandCharacterCanvas.SetHighlight(true);   // [PRES-1b T6]
         }
 
         protected override void OnPointerExit()
         {
             base.OnPointerExit();
             bandCharacterCanvas.HideContextual();
+            bandCharacterCanvas.SetHighlight(false);  // [PRES-1b T6]
         }
 
         public void TriggerNoteVFX(int note, int velocity)

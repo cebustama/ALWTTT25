@@ -143,5 +143,56 @@ namespace ALWTTT.Sensory
             color = default;
             return false;
         }
+
+        // ----- Spotlight redirect surface [PRES-1 / D-PRES1-2=A] ----------
+
+        /// <summary>Drift for the redirect floater. Straight up, matching the
+        /// other single-beat surfaces.</summary>
+        public static readonly Vector2 SpotlightRedirectDrift = new Vector2(0f, 1.0f);
+
+        /// <summary>Spotlight gold — reads as stage light, and is distinct from
+        /// every colour already in use (cyan impact, green/red impression,
+        /// grey indifference).</summary>
+        public static readonly Color SpotlightGold = new Color(1.0f, 0.84f, 0.30f);
+
+        /// <summary>
+        /// Builds the Spotlight redirect floater from a
+        /// <see cref="SpotlightRedirectEvent"/>. Two shapes by necessity:
+        ///
+        ///   OriginalTarget known (Musician branch) → "-&gt; {protected}" spawned
+        ///   ON THE ORIGINAL. Reads as "the hit aimed at you went that way",
+        ///   which is the information the player is missing.
+        ///
+        ///   OriginalTarget null (RandomMusician branch) → "¡Foco!" spawned on
+        ///   the PROTECTED musician. The would-be target is genuinely
+        ///   indeterminate there: naming one would require rolling the RNG,
+        ///   which a presentation path must never do (it would shift every
+        ///   later roll in the gig).
+        ///
+        /// ASCII arrow on purpose: "→" is not guaranteed in the FT font atlas,
+        /// and a tofu box in the middle of a combat beat is worse than "-&gt;".
+        /// ESP copy hardcoded, matching the Blocked tooltip and telegraph labels
+        /// (D-S5f-7=A / D-S5f-8=A); migrates with them in the S5f-ext pass.
+        /// </summary>
+        public static bool TryBuildSpotlightRedirectFt(
+            in SpotlightRedirectEvent e, out string text, out Color color)
+        {
+            color = SpotlightGold;
+
+            if (e.OriginalTarget != null && e.ProtectedTarget != null)
+            {
+                text = $"-> {e.ProtectedTarget.CharacterName}";
+                return true;
+            }
+
+            if (e.ProtectedTarget != null)
+            {
+                text = "¡Foco!";
+                return true;
+            }
+
+            text = null;
+            return false;
+        }
     }
 }

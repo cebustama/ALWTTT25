@@ -25,7 +25,7 @@ MonoBehaviour:
     abilityDuration: 3
     actionList:
     - cardActionType: 3
-      actionTargetType: 1
+      actionTargetType: 3
       actionValue: 5
       actionDelay: 0
       statusEffect: {fileID: 0}

@@ -65,8 +65,8 @@ MonoBehaviour:
     m_Bits: 128
   characterAnimator: {fileID: 8876883093181404695}
   animator: {fileID: 7605783526218429665}
+  spriteOutline: {fileID: 0}
   statusCatalogue: {fileID: 11400000, guid: 3c12538606a42a944b49754c65c1758c, type: 2}
-  outlineController: {fileID: 8082880978324405119}
   legacyIsStunned: 0
   bandCharacterCanvas: {fileID: 4399159240658199444}
   musicianCharacterData: {fileID: 11400000, guid: 162ca2d9fe6886742aa04e892ddd5edf, type: 2}
@@ -189,11 +189,67 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  scaleOnBeat: 0
+  scaleAmplitude: 0.15
+  scaleCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  stretchOnBeat: 0
+  stretchYAmplitude: 0.25
+  stretchXAmplitude: 0.15
+  stretchCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   particleSystemRef: {fileID: 8908798543092447923}
   emitoOnBeat: 0
   particlesPerBurst: 10
   emitEveryNBeats: 1
   particleBeatOffsetBeats: 0
+  kickScaleAmplitude: 0.25
+  kickHopHeight: 0.12
+  kickDuration: 0.35
 --- !u!114 &5299901056022696988
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,7 +455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbe49cd7bb060ad4a941026953474547, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Characters.SpriteOutlineController
-  outlineWidth: 4
+  outlineWidth: 8
   outlineColor: {r: 1, g: 0.85, b: 0.2, a: 1}
 --- !u!1 &8485957698062669560
 GameObject:

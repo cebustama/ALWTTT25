@@ -203,8 +203,13 @@ namespace ALWTTT.Characters
             healthBar?.SetCurrentValue(current, max, duration);
         }
 
-        public void SetHighlight(bool open) =>
-            highlightRoot.gameObject.SetActive(open);
+        // [PRES-1b T6] Null-guarded: a prefab without HighlightRoot degrades to
+        // "no outline", it must not NRE the whole hover chain.
+        public void SetHighlight(bool open)
+        {
+            if (highlightRoot != null)
+                highlightRoot.gameObject.SetActive(open);
+        }
 
         // [S5e-ext] Bar visibility policy (supersedes the pre-S5e "hidden until
         // damaged" convention and the transitional post-S5e "always visible"):
