@@ -22,6 +22,6 @@ MonoBehaviour:
   - archetype: {fileID: 11400000, guid: c6747e6abee224e4889c3a0aa0fcedb7, type: 2}
     weight: 0.15
   - archetype: {fileID: 11400000, guid: 5add0b8d855278246a02ba2984de17fe, type: 2}
-    weight: 0.15
+    weight: 1
   defaultContourBias: 0
   allowCrossChordPhrases: 0

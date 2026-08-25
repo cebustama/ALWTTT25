@@ -24,6 +24,13 @@ namespace ALWTTT.Status.Editor
         private CharacterStatusId _selectedId;
         private string _displayName;
 
+        // [R5 / D-R5-3=A · F-R4-3] statusKey is a serialization contract (JSON /
+        // tooling + the catalogue's by-key index). The wizard used to never write
+        // it: the asset was created and registered, and every by-key lookup then
+        // failed to see it — with no error at creation time.
+        private string _statusKey;
+        private string _statusKeyLastSuggest;
+
         // Create: Behavior draft fields (what we write into the new asset)
         private StackMode _stackMode = StackMode.Additive;
         private int _maxStacks = 999;
@@ -121,6 +128,27 @@ namespace ALWTTT.Status.Editor
 
             EditorGUILayout.Space(8);
             _displayName = EditorGUILayout.TextField("Display Name", _displayName);
+
+            // [R5 / D-R5-3=A · F-R4-3] Editable, pre-filled from the display name.
+            // It keeps following the display name until the author edits it by hand
+            // (then it stops, so a deliberate key is never silently overwritten).
+            // Shown rather than derived silently: a key nobody sees is a key nobody
+            // validates until a card references it wrongly at runtime.
+            if (string.IsNullOrEmpty(_statusKey) || _statusKey == _statusKeyLastSuggest)
+            {
+                _statusKey = StatusEffectSO.SuggestKey(_displayName);
+                _statusKeyLastSuggest = _statusKey;
+            }
+
+            _statusKey = EditorGUILayout.TextField("Status Key", _statusKey);
+
+            if (_catalogue != null && !string.IsNullOrWhiteSpace(_statusKey)
+                && _catalogue.ContainsKey(_statusKey))
+            {
+                EditorGUILayout.HelpBox(
+                    $"Catalogue '{_catalogue.name}' already contains StatusKey '{_statusKey}'. " +
+                    "Keys must be unique (case-insensitive).", MessageType.Error);
+            }
 
             EditorGUILayout.Space(10);
             DrawOntologyPreview(_selectedId);
@@ -487,6 +515,19 @@ namespace ALWTTT.Status.Editor
                 return;
             }
 
+            // [R5 / F-R4-3] Resolve the key ONCE, here, and guard duplicates the way
+            // the EffectId is already guarded. Normalized through the SO's own seam so
+            // what is written matches what OnValidate would have produced.
+            var keyToWrite = StatusEffectSO.SuggestKey(
+                string.IsNullOrWhiteSpace(_statusKey) ? _displayName : _statusKey);
+
+            if (_catalogue.ContainsKey(keyToWrite))
+            {
+                Debug.LogError(
+                    $"[StatusEffectWizard] Duplicate StatusKey '{keyToWrite}' in catalogue '{_catalogue.name}'.");
+                return;
+            }
+
             if (!AssetDatabase.IsValidFolder(_assetFolder))
             {
                 Debug.LogError($"[StatusEffectWizard] Folder does not exist: {_assetFolder}");
@@ -501,6 +542,10 @@ namespace ALWTTT.Status.Editor
             so.FindProperty("effectId").intValue = (int)_selectedId;
             so.FindProperty("displayName").stringValue =
                 string.IsNullOrWhiteSpace(_displayName) ? _selectedId.ToString() : _displayName;
+
+            // [R5 / F-R4-3] The write that was missing. Without it the catalogue's
+            // by-key index skips the entry and the status is unreachable by key.
+            so.FindProperty("statusKey").stringValue = keyToWrite;
 
             if (_primitiveDb != null)
                 so.FindProperty("primitiveDatabase").objectReferenceValue = _primitiveDb;
@@ -530,7 +575,9 @@ namespace ALWTTT.Status.Editor
             EditorGUIUtility.PingObject(asset);
             Selection.activeObject = asset;
 
-            Debug.Log($"[StatusEffectWizard] Created '{asset.name}' at '{path}' and registered in '{_catalogue.name}'.");
+            Debug.Log(
+                $"[StatusEffectWizard] Created '{asset.name}' at '{path}' (StatusKey='{keyToWrite}') " +
+                $"and registered in '{_catalogue.name}'.");
         }
 
         private static void SetEnumIfExists<TEnum>(SerializedObject so, string propName, TEnum value) where TEnum : Enum
@@ -557,8 +604,14 @@ namespace ALWTTT.Status.Editor
         private void TryAutoFindAssets()
         {
             // Auto-find 1 catalogue + 1 primitive DB if available.
+            //
+            // [R5 / D-R5-3 rider] No silent first-hit default for the CATALOGUE: the
+            // project holds several (Musicians / Audience), and "whatever FindAssets
+            // returns first" once landed a musician status in the Audience catalogue
+            // with no warning. Auto-assign only when the choice is unambiguous; the
+            // existing HelpBox already prompts for a manual pick otherwise.
             var catGuids = AssetDatabase.FindAssets("t:StatusEffectCatalogueSO");
-            if (_catalogue == null && catGuids.Length > 0)
+            if (_catalogue == null && catGuids.Length == 1)
                 _catalogue = AssetDatabase.LoadAssetAtPath<StatusEffectCatalogueSO>(AssetDatabase.GUIDToAssetPath(catGuids[0]));
 
             var dbGuids = AssetDatabase.FindAssets("t:CharacterStatusPrimitiveDatabaseSO");

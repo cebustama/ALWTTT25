@@ -99,6 +99,8 @@ SensoryEventBus : MonoBehaviour       // singleton, static accessor (D-S2-1=A)
 | ✅ `AudienceBlockedEvent` | `AudienceCharacterBase.IsBlocked` setter (false→true transition only) | **TUT-R2-shipped.** Semantic; exists because Blocked is a sprite-tint bool since M1.2 (E3), not an SO status — `StatusAppliedEvent` never fires for it (code-truth deviation from TUT-R1 §4.1). Drives `tut_status_blocked_front`. Adds no SFX key. *(Row backfilled 2026-07-13 — OPT-1.)* |
 | ✅ `AudienceVibeImpactEvent` | `CardBase.ExecuteEffects` → `ModifyVibeSpec` branch | **JUICE-PW-shipped.** Published **once per audience target** at effect resolution. Carries audience ref/index/id, performer, card, base/final/applied delta, `FanoutIndex`/`TargetCount`. First bus event to add an SFX key (`CardVibeImpact`). |
 
+| ✅ `SpotlightRedirectEvent` | `AudienceCharacterBase.ResolveTargetsFor` | `SensoryFxAdapter` | **PRES-1-shipped.** readonly struct (D-S2-4=A). Payload: `Source`, `OriginalTarget` (**nullable by design** — the `RandomMusician` branch cannot name a target without consuming global RNG), `ProtectedTarget`. Presentation-only; publishing never alters targeting. Visual no-ops (default target already the spotlit musician) are suppressed and logged. |
+
 **S2 as-built scope (D-S2-2=A).** Exactly two event types ship in S2:
 `AudienceReactionEvent` and `SongEndVibeEvent` (the S1 sites). The rest of this
 table is the forward inventory for S3 and Phase C; do not treat the unmarked
@@ -270,6 +272,50 @@ Per the audit table in §4, S3 is the session where SFX coverage lands for event
 
 ---
 
+#### Psychic Wave VFX — v4 (PRES-1, D-R4-7 · D-PRES1-1=B+ · D-PRES1-5=A)
+
+Effect model: **cover → hold → uncover**, both fronts anchored on the performer.
+Phase 1 an inverted disc expands from the anchor until the screen is covered;
+a configurable hold; phase 2 a hole expands from the same anchor, undoing it.
+
+Implemented as ONE region — the annulus between `_InnerRadius` and
+`_OuterRadius` in `ALWTTT/UI/PsychicWaveInvert`. The second (tint) shader
+anticipated when D-PRES1-5 was locked proved unnecessary; **that plan is
+superseded**.
+
+True colour inversion with NO framebuffer read:
+`Blend OneMinusDstColor OneMinusSrcAlpha` with a premultiplied source
+(`rgb = _RingColor.rgb * a`) evaluates to `RingColor*a*(1-Dst) + (1-a)*Dst`.
+GrabPass does not exist in URP and no SRP texture contains a
+Screen-Space-Overlay canvas (composited after the SRP finishes), so a
+shader-read approach is not merely expensive here — it is impossible.
+`_RingColor` white = pure inversion; tinting keeps it an inversion while
+pushing the result toward a hue (pure inversion reads as white on dark scenes).
+
+Viewport position comes from `ComputeScreenPos`, **not** sprite UVs: a UGUI
+`Image` with no sprite writes zero UVs to every vertex
+(`Image.GenerateSimpleSprite` → `uv = Vector4.zero`), which silently collapses
+the radial maths. This also removes any dependence on sprite atlasing and on
+the Image's exact rect.
+
+Cover radius is **computed per play** (aspect-corrected distance from the
+anchor to the farthest screen corner, plus the soft-edge width), not authored:
+a corner anchor needs ~2× a centred one. There is no max-size field to
+mis-tune.
+
+Production values (runtime-verified at PRES-1b): cover 0.45 / hold 0.30 /
+uncover 0.70 / edge 0.12 — total ≈1.45 s, inside the ~1.5 s budget so the
+effect does not drag past tutorial beat 8. Operational note: the script
+defaults differ (`cover 0.5`); **the serialized instance wins**.
+
+**Retired at v4:** the v2/v3 `TutorialSpotlight` tint front. It tinted the whole
+screen from frame 0 and punched a growing hole — the un-punched remainder read
+as an arbitrary "colour oval" and contradicted the cover-then-uncover model.
+The wave's colour identity now lives in `_RingColor`. The legacy `Image` is
+force-disabled at `Awake` if still wired: no scene rewiring required.
+
+---
+
 ## 5A. Audio subsystem → moved
 
 > **Migrated 2026-06-15 (M-AUDIO-MIX).** The audio subsystem (two-paths-one-sink SFX,
@@ -295,6 +341,53 @@ Per the audit table in §4, S3 is the session where SFX coverage lands for event
 | future animator-trigger consumer | per-feature | landed in S3 and Phase C as needed |
 | future shader-flash consumer | per-feature | landed if any meter / status wants a screen-edge flash |
 | future particle consumer | per-feature | landed if any state change wants a particle burst |
+
+---
+
+### Character presentation surfaces (PRES-1b/1c)
+
+**Hover highlight (restored at PRES-1b · D-PRES1b-1=B).** Character hover draws
+a sprite-silhouette outline, not a canvas frame. Implementation:
+`ALWTTT/SpriteOutlineURP` (URP-2D sprite shader, 8-neighbour alpha outline,
+width in texels of `_MainTex`) toggled by `SpriteOutlineController` via
+`MaterialPropertyBlock`.
+
+The toggle lives in `CharacterBase.OnPointerEnter/OnPointerExit`, NOT in the
+subclasses: both `MusicianBase` and `AudienceCharacterBase` already call the
+base virtual, so every present and future character type inherits the highlight
+with no per-type edit. Duplicating it per subclass is what allowed the original
+call site to be lost.
+
+Asset preconditions (prefab-side, not code): sprite import Mesh Type = Full
+Rect, plus transparent padding wider than `outlineWidth`. The outline is drawn
+INTO the transparent margin of the quad; a tight mesh has nowhere to draw it.
+
+Null-guarded: a character without `SpriteOutlineController` degrades to "no
+outline" and must not break the hover chain (tooltip + meter reveal share the
+same handler).
+
+**Lifecycle record:** this shader and its controller are **M1.7** work. The call
+site was lost at some point in the repo's history and the project came to treat
+the capability as nonexistent. PRES-1b RESTORES it; it does not invent it.
+Recording this prevents a future audit from reading the restoration as a new
+feature.
+
+**`HighlightRoot` channel — kept, inert (D-PRES1b-2=A).**
+`CharacterCanvas.SetHighlight(bool)` and the `HighlightRoot` slot remain wired
+from the pointer handlers but carry NO authored visual. The hover highlight is
+the sprite outline above. The canvas channel is kept as an inert, null-guarded
+slot for future chrome with different semantics — e.g. a "valid targeting"
+frame, which is not the same signal as hover. `HighlightRoot` ships deactivated
+in prefab. (`SetHighlight` gained its null-guard at PRES-1b; it previously
+called `SetActive` unguarded — a guaranteed NRE on any prefab without the slot.)
+
+**Diagnostic logs — operational note (PRES-1b · R5-pre):**
+
+| Log | Disposition | Reason |
+|---|---|---|
+| `[PRES-1][Spotlight] … SUPPRESSED (visual no-op)` | **KEEP** | Positive evidence for ST-PRES1-6. Without it, "I saw no floater" cannot distinguish a correct suppression from a broken system. |
+| `[PRES-1][Spotlight] … Publishing SpotlightRedirectEvent` | **KEEP** | Names the original target, which no other line reports. |
+| `[PRES-1][Selector] candidates: …` | **RETIRED at R5-pre** | Noisy (twice per redirect); useful only for building smoke setups. |
 
 ---
 

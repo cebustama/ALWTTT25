@@ -43,6 +43,25 @@ Each loop may:
 - generate **Impression** per audience member
 - generate **Inspiration** from the active musical context
 
+#### 3.1.1 Loop boundary sequence (code truth, R5-c)
+
+`GigManager.OnCompositionLoopFinished` opens with `TryTriggerOverload()` (R5-c), **before**
+`TriggerAudienceMicroReactions`. Full order:
+
+1. `TryTriggerOverload()` — threshold check, `SpendStacks`, arms `_overloadFactorThisLoop`
+2. `TriggerAudienceMicroReactions()` — where the loop's LoopScore and hype are computed **and
+   applied** (`ComputeLoopScore` / `ComputeHypeDelta` live inside this call, F-R5b-1)
+3. Vibe projection refresh
+4. `LoopResolvedEvent` published
+5. ECON-1 budget refill (Seam C, §14.3)
+6. F-3 hook (per-loop draw / inspiration)
+
+Two consequences worth keeping explicit. First, a consumer placed at the head of
+`OnCompositionLoopFinished` can still affect the loop that just closed — which is why Overload
+needs no "pending multiplier" state and no cleanup at the song boundary. Second, audience
+impressions (`ResolveLoopEffect`) read `loopCtx`, **not** the score, so Overload does not alter
+them.
+
 ### 3.2 Part
 A musical block such as Intro / Verse / Chorus.
 
@@ -58,6 +77,23 @@ At **Song End**:
 - SongHype + audience impressions convert into **VibeDelta**
 - audience executes its action phase
 - song-scoped resources and statuses prepare for reset on the next Song
+
+#### 3.3.1 Song reset is an explicit allowlist, not a category (R5-a, 2026-08-21)
+
+`GigManager.ResetSongScopedStatuses` clears exactly two primitives: `DamageUpFlat` (Flow) and
+`TempShieldTurn` (Composure). It does not consult the `StatusEffectSO`, there is no scope flag,
+and it does not iterate the container. **A new status survives the song boundary unless it is
+explicitly added to that list** — which is the case for Voltage (D-R5-8=A, see
+`SSoT_Status_Effects.md` §5.10).
+
+Additionally, the reset fires from `StartCompositionSession`, i.e. at the **start of the next
+song**, not at the close of the previous one. The turns between songs are playable, so any status
+generated in them is lost the instant the song begins. Before adding a primitive to the allowlist,
+decide whether that edge is acceptable for the status in question; if it is not, the reset has to
+move to a real song close, which is a phase-sequence change, not a one-liner.
+
+*(Verified in R5-a, 2026-08-21; regressed by ST-R5a-6R, which checks at the same boundary that
+Voltage persists and Flow is cleared.)*
 
 ### 3.4 Gig
 A Gig is the encounter unit: a sequence of Songs with shared band/audience stakes.
@@ -473,6 +509,12 @@ Resets are idempotent refills; overlapping seams are harmless.
 - Maxima seeded at gig setup from `GigFlowSettingsSO`
   (`DefaultActionPlaysPerTurn` / `DefaultCompositionPlaysPerTurn`, both 1);
   no per-musician authoring field yet (D-ECON-5=A).
+- **Side effect (R5-b):** the consumed branch of `GigManager.TryConsumePlay` carries the
+  Voltage generation hook (see `SSoT_Status_Effects.md` §5.10). The hook **reads** the result
+  of the consumption; it does not write budget. Covering regression: ST-R5b-6. Anyone reading
+  ECON-1 before refactoring the gate — or adding a third caller — must know it is no longer
+  purely accounting. Attribution consequence: the payer resolved by §14.5 is the generator, so
+  an `AnyMusician` card billed to Conito generates and a Conito card billed elsewhere does not.
 
 ### 14.5 Attribution
 Cards with `AnyMusician` performer bill the musician the play pipeline

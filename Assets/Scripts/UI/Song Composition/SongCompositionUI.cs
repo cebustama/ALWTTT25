@@ -116,7 +116,7 @@ namespace ALWTTT.UI
             public TimeSignature timeSignature;
 
             // Tempo
-            public TempoRange tempoRangeOverride = TempoRange.Slow;
+            public TempoRange tempoRangeOverride = TempoRange.Moderate;
             public int? absoluteBpmOverride = null;
             public float tempoScale = 1f;
 

@@ -44,11 +44,11 @@ namespace ALWTTT.Characters
                  "unwired icon degrades to no marker; the tooltip still works.")]
         [SerializeField] private GameObject revealedTasteIcon;
 
-        // [PRES-1] RETIRED persistent-panel slots. Never activated at runtime any
-        // more; kept so existing prefab wiring does not dangle before the prefab
-        // pass deletes the panel object. Remove both fields in that pass.
-        [SerializeField] private GameObject tastePanelRoot;
-        [SerializeField] private TextMeshProUGUI tasteText;
+        // [R5-pre, 2026-08-11] The retired persistent-panel slots (tastePanelRoot /
+        // tasteText) were REMOVED here, together with the TastePanel object in the
+        // audience prefab. They were kept inert at PRES-1 only so live wiring would
+        // not dangle before that prefab pass. Reveal surface: the hover tooltip
+        // (SSoT_Audience_and_Reactions §6.4).
 
         // [PRES-1] Cached reveal state for tooltip composition. The AUTHORITATIVE
         // "has been revealed" flag still lives on AudienceCharacterBase and the
@@ -237,9 +237,9 @@ namespace ALWTTT.Characters
         }
 
         /// <summary>
-        /// [R4 -> PRES-1] Clear the reveal (gig teardown / dev reset). Also hides
-        /// the retired legacy panel defensively, so a prefab that still carries the
-        /// old object cannot strand it on screen.
+        /// [R4 -> PRES-1 -> R5-pre] Clear the reveal (gig teardown / dev reset).
+        /// The defensive hide of the retired legacy panel is gone with the panel
+        /// itself (R5-pre prefab pass): there is no longer an object to strand.
         /// </summary>
         public void HideTastePanel()
         {
@@ -248,8 +248,6 @@ namespace ALWTTT.Characters
 
             if (revealedTasteIcon != null)
                 revealedTasteIcon.SetActive(false);
-            if (tastePanelRoot != null)
-                tastePanelRoot.SetActive(false);
         }
 
         // Mirrors the four frozen taste axes of SSoT_Audience_and_Reactions section 6.1

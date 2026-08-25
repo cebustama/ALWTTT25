@@ -74,5 +74,6 @@
         ArchetypeAmplifier = 990,
         TempoAcceleration = 991,
         ResourceGenerationModifier = 992,
+        ResourceCounter = 993,
     }
 }

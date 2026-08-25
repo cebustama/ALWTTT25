@@ -18,39 +18,54 @@ MonoBehaviour:
     tonality: 0
     rootNote: 7
     timeSignature: 0
-    measures: 4
-    bpm: 100
+    measures: 8
+    bpm: 114
   entries:
   - spec:
-      role: 0
-      instrument: {fileID: 0}
-      percussionInstrument: {fileID: 11400000, guid: a85773e86ee3f7e48be0365c61ace840, type: 2}
-      pattern: {fileID: 0}
-      style: {fileID: 11400000, guid: a66725700be1b1f4ab1e0bc02f4fe901, type: 2}
+      role: 1
+      instrument: {fileID: 11400000, guid: adfb1dbd3048bbc43839e4c257e3d325, type: 2}
+      percussionInstrument: {fileID: 0}
+      pattern: {fileID: 11400000, guid: 791f810148847fa41abdc017e554df67, type: 2}
+      style: {fileID: 0}
     chordExpression: 0
-    arpeggioRate: 1
+    arpeggioRate: 0
     randomRerollChance: 1
     randomFigureWeights: []
-  - spec:
-      role: 1
-      instrument: {fileID: 11400000, guid: 17a59cd1626a18b4b8f9d0fc7a130891, type: 2}
-      percussionInstrument: {fileID: 0}
-      pattern: {fileID: 11400000, guid: 8c04ae43b2a0b6240a2ad0f7b0b037ac, type: 2}
-      style: {fileID: 0}
-    chordExpression: 6
-    arpeggioRate: 1
-    randomRerollChance: 0.5
-    randomFigureWeights: []
+    velocityJitter: 0
   - spec:
       role: 3
       instrument: {fileID: 11400000, guid: 4c04ad83fa6dfc24999fbc43d20be6b8, type: 2}
       percussionInstrument: {fileID: 0}
       pattern: {fileID: 0}
-      style: {fileID: 0}
-    chordExpression: 1
+      style: {fileID: 11400000, guid: 87e9d1c2a0b2b0d44aa37a96de62d6ca, type: 2}
+    chordExpression: 0
     arpeggioRate: 1
     randomRerollChance: 1
     randomFigureWeights: []
+    velocityJitter: 0
+  - spec:
+      role: 4
+      instrument: {fileID: 11400000, guid: ec6ed295fd9f87b458e9670281188ef8, type: 2}
+      percussionInstrument: {fileID: 0}
+      pattern: {fileID: 0}
+      style: {fileID: 11400000, guid: b7e326c2979b5e54ead82aef8a38d20d, type: 2}
+    chordExpression: 0
+    arpeggioRate: 1
+    randomRerollChance: 1
+    randomFigureWeights: []
+    velocityJitter: 0
+  - spec:
+      role: 0
+      instrument: {fileID: 0}
+      percussionInstrument: {fileID: 11400000, guid: 06b0763db4c68b64bbf72064349aefa3, type: 2}
+      pattern: {fileID: 11400000, guid: 80bf6d7dc7eee404eba97755f186ac9d, type: 2}
+      style: {fileID: 0}
+    chordExpression: 0
+    arpeggioRate: 1
+    randomRerollChance: 1
+    randomFigureWeights: []
+    velocityJitter: 0
+  defaultProgression: {fileID: 0}
   overrideSeed: 1
   seed: 12345
-  stripMetronome: 0
+  stripMetronome: 1

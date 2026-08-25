@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: GigFlowSettings
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigFlowSettingsSO
   jamRules:
-    loopsPerPart: 2
+    loopsPerPart: 1
     drawPerPart: 0
     inspirationPerPart: 0
-  drawPerLoop: 1
-  drawCardsOnPlay: 0
+  drawPerLoop: 2
+  drawCardsOnPlay: 2
   discardActionCardsOnPlay: 0
   allowActionCardsDuringPerformance: 1
   skipAudienceActionsAfterFinalSong: 1
@@ -25,7 +25,7 @@ MonoBehaviour:
   defaultInspirationPerLoop: 1
   defaultActionPlaysPerTurn: 1
   defaultCompositionPlaysPerTurn: 1
-  defaultDiscardHandBetweenTurns: 1
+  defaultDiscardHandBetweenTurns: 0
   defaultKeepInspirationBetweenTurns: 0
   allowOverrideRequiredSongCount: 1
   defaultRequiredSongCount: 3

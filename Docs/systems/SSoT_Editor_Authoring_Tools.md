@@ -292,7 +292,27 @@ Two tabs with shared header:
 ### 6.3 Key workflows
 
 **Create new status effect:**
-Pick an unused `CharacterStatusId` from the filtered dropdown, set display name and behavior parameters, press Create. The wizard creates the `StatusEffectSO` asset, writes all fields via `SerializedObject`, saves it to disk, and registers it in the catalogue via `EditorTryAdd`. The asset is pinged and selected.
+Pick an unused `CharacterStatusId` from the filtered dropdown, set display name and behavior parameters, press Create. The wizard creates the `StatusEffectSO` asset, writes `effectId`, `displayName`, `statusKey` (D-R5-3=A), `primitiveDatabase` and the Behavior block via `SerializedObject`, saves it to disk, and registers it in the catalogue via `EditorTryAdd`. The asset is pinged and selected.
+
+**Mandatory manual steps after Create (R5-a, 2026-08-21).** The wizard does **not** write
+`isDefaultVariant`, `iconSprite` or `description`. All three must be filled in by hand in the
+Inspector before the status counts as authored; none of the three raises an error when missing:
+
+- `iconSprite` null ⇒ the status applies correctly but is **invisible** in the HUD; only a
+  `CharacterCanvas` `LogWarning` reveals it.
+- `description` empty ⇒ the card tooltip renders with an empty body.
+- `isDefaultVariant = false` ⇒ harmless today, because `RebuildCache` adopts the first one seen
+  as the default; it breaks silently as soon as a second variant of the same primitive exists.
+
+**The asset is named after the primitive, not the variant.** `CreateAsset` names it
+`StatusEffect_{EffectId}`, so a second status on the same primitive yields
+`StatusEffect_ResourceCounter 1` via `GenerateUniqueAssetPath` — already registered in the
+catalogue. Rename to `StatusEffect_<Variant>` after creating; the GUID is stable and catalogue
+references do not break. An accidental duplicate stays registered in the catalogue and
+`RebuildCache` indexes the first one seen, leaving the second unreachable via `TryGetByKey`.
+
+*(Observed in R5-a, 2026-08-21, while authoring Voltage. Tool debt: write the three fields from
+the wizard and name the asset after `displayName`.)*
 
 **Edit existing status effect:**
 Select from the catalogue dropdown, edit fields in the inline inspector, Apply to persist changes.

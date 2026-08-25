@@ -1824,6 +1824,12 @@ namespace ALWTTT.Managers
 
         private void OnCompositionLoopFinished(LoopFeedbackContext loopCtx)
         {
+            // [R5-c / D-R5-16=A] MUST run before TriggerAudienceMicroReactions:
+            // that call is where ComputeHypeDelta runs and where the factor is
+            // read (F-R5b-1). Unconditional call — the reset of the per-loop
+            // factor lives inside, ahead of every early-return.
+            TryTriggerOverload();
+
             TriggerAudienceMicroReactions(loopCtx);
 
             // [S5a/T8+T11] Loop-boundary refresh of the Vibe projection (runs before
@@ -2027,10 +2033,159 @@ namespace ALWTTT.Managers
                     $"(A:{musician.Stats.ActionPlaysRemaining}/{musician.Stats.MaxActionPlays} " +
                     $"C:{musician.Stats.CompositionPlaysRemaining}/{musician.Stats.MaxCompositionPlays})");
 
+            // [R5-b / D-R5-5=A rider] Generation hangs off the CONSUMED branch,
+            // not off the return value. The musician == null path returns true
+            // WITHOUT consuming and exits above, so it never reaches here.
+            if (ok)
+                GrantVoltageOnConsumedPlay(musician);
+
             return ok;
         }
 
-        // ─── [CARD-UX-1] Single playability source of truth (display) ─────────
+        // ─── [R5-b] Voltage generation ───────────────────────────────────
+        // +1 Voltage per genuinely consumed play — action or composition, any
+        // Inspiration cost including 0 (D-R5-10=A). Conito only, by musician
+        // identity (D-R5-9=A); generalizing to an authorable marker is a
+        // one-seam swap if a second generator ever exists.
+        //
+        // Structural exclusions (no extra guard needed, and this is WHY the
+        // hook lives inside TryConsumePlay rather than at its call sites):
+        //  - denied by budget       → ok == false
+        //  - denied by timing/cost/target → never reaches TryConsumePlay
+        //  - composition rejected by session → GigManager only calls
+        //    TryConsumePlay when played == true
+        //  - musician == null       → early-returns true before consuming
+        //
+        // Resolution is by StatusKey from the BEARER's catalogue (variant is
+        // the authority); the primitive check is a defensive authoring-error
+        // tripwire, not the guard of record.
+        private const string VoltageStatusKey = "voltage";
+
+        private void GrantVoltageOnConsumedPlay(MusicianBase musician)
+        {
+            // [D-R5-12=A] Null flow → generate (mirrors the SO's default ON).
+            if (flow != null && !flow.GenerateVoltageOnConsumedPlay) return;
+
+            if (musician.MusicianCharacterData == null ||
+                musician.MusicianCharacterData.CharacterType != MusicianCharacterType.Conito)
+                return;
+
+            var catalogue = musician.StatusCatalogue;
+            if (catalogue == null ||
+                !catalogue.TryGetByKey(VoltageStatusKey, out var voltageSO))
+            {
+                Debug.LogWarning($"{DebugTag} [R5-b] Voltage SO not resolvable from " +
+                    $"{musician.CharacterName}'s catalogue — generation skipped.");
+                return;
+            }
+
+            if (voltageSO.EffectId != CharacterStatusId.ResourceCounter)
+            {
+                Debug.LogError($"{DebugTag} [R5-b] '{VoltageStatusKey}' resolves to " +
+                    $"primitive {voltageSO.EffectId}, expected ResourceCounter. " +
+                    "Generation skipped — fix the StatusEffectSO.");
+                return;
+            }
+
+            musician.Statuses.Apply(voltageSO, 1);
+
+            if (UseLogs && UseVerboseLogs)
+                Debug.Log($"{DebugTag} [R5-b] +1 Voltage → {musician.CharacterName} " +
+                    $"(now {musician.Statuses.GetStacks(CharacterStatusId.ResourceCounter)}).");
+            // Clamp to MaxStacks (9) is ApplyStackingPolicy's final unconditional
+            // clamp — applied even under StackMode.Additive. No local clamp.
+        }
+
+        // ─── [R5-c] Overload — Voltage consumer ──────────────────────────
+        // Per-loop transient. Reset FIRST inside TryTriggerOverload, ahead of
+        // every early-return, so a discharge can never leak into the next loop.
+        // Safe as a field (and not as pending state) because
+        // TriggerAudienceMicroReactions has exactly one caller: the read happens
+        // in the same synchronous chain as the write, two lines later.
+        private float _overloadFactorThisLoop = 1f;
+
+        private void TryTriggerOverload()
+        {
+            _overloadFactorThisLoop = 1f;
+
+            // Null flow → no Overload. This DIVERGES from R5-b's null policy on
+            // purpose: generation needs one bool and can mirror the SO default,
+            // consumption needs three authored numbers. Inventing a threshold in
+            // code would make the SO stop being the tuning authority.
+            if (flow == null || !flow.OverloadConsumerEnabled) return;
+
+            var musicians = CurrentMusicianCharacterList;
+            if (musicians == null) return;
+
+            int threshold = flow.OverloadThreshold;
+            int cost = flow.OverloadCost;
+
+            for (int i = 0; i < musicians.Count; i++)
+            {
+                var m = musicians[i];
+                if (m == null || m.Statuses == null) continue;
+
+                // Dual guard, checked on the LIVE instance: primitive first
+                // (container is keyed by it), then StatusKey (the variant is the
+                // authority). Identity is NOT checked here — the resource is the
+                // gate, so a future second bearer needs no change at this seam.
+                if (!m.Statuses.TryGet(CharacterStatusId.ResourceCounter, out var inst)
+                    || inst == null || !inst.IsActive || inst.Definition == null)
+                    continue;
+
+                if (inst.Definition.StatusKey != VoltageStatusKey)
+                {
+                    Debug.LogError($"{DebugTag} [R5-c] {m.CharacterName} carries " +
+                        $"ResourceCounter variant '{inst.Definition.StatusKey}', not " +
+                        $"'{VoltageStatusKey}'. Overload skipped — a second " +
+                        "ResourceCounter variant now collides on this bearer.");
+                    continue;
+                }
+
+                if (inst.Stacks < threshold) continue;
+
+                int spent = m.Statuses.SpendStacks(CharacterStatusId.ResourceCounter, cost);
+                if (spent <= 0) continue;   // nothing spent → no multiplier earned
+
+                _overloadFactorThisLoop = flow.OverloadHypeFactor;
+                SpawnOverloadFeedback(m, spent);
+
+                if (UseLogs)
+                    Debug.Log($"{DebugTag} <color=yellow>[R5-c] OVERLOAD: " +
+                        $"{m.CharacterName} spent {spent} Voltage " +
+                        $"(remaining {m.Statuses.GetStacks(CharacterStatusId.ResourceCounter)}), " +
+                        $"hype factor x{_overloadFactorThisLoop:0.##} for this loop.</color>");
+
+                // [D-R5-15=A] One discharge per loop boundary. A single loop
+                // cannot be multiplied twice, whatever the roster holds.
+                return;
+            }
+        }
+
+        /// <summary>
+        /// [R5-c] Visible discharge cue. Reuses the existing FxManager floater
+        /// route — no new presentation system. Two floaters, offset from each
+        /// other: the reward ("what you got") and the cost ("what it took").
+        /// </summary>
+        private void SpawnOverloadFeedback(MusicianBase bearer, int spent)
+        {
+            if (FxManager.Instance == null || bearer == null
+                || bearer.TextSpawnRoot == null) return;
+
+            FxManager.Instance.SpawnFloatingText(
+                bearer.TextSpawnRoot,
+                $"OVERLOAD x{_overloadFactorThisLoop:0.##}!",
+                new Vector2(0f, 1.2f),
+                new Color(1f, 0.85f, 0.25f));      // warm gold - payoff
+
+            FxManager.Instance.SpawnFloatingText(
+                bearer.TextSpawnRoot,
+                $"-{spent} VOLTAGE",                // [S5e] damage-number convention
+                new Vector2(-0.5f, 0.9f),
+                new Color(0.35f, 0.7f, 1f));       // electric blue - resource
+        }
+
+        // ─── [CARD-UX-1] Single playability source of truth (display) ─────────// ─── [CARD-UX-1] Single playability source of truth (display) ─────────
         // AGGREGATES the same gates the play paths enforce — it does not duplicate
         // logic. HandController polls this per-frame to drive the red overlay.
         // Invariant (SSoT_Card_System §10.5 at close): no consumer computes
@@ -2167,13 +2322,24 @@ namespace ALWTTT.Managers
                 loopScore, meters != null ? meters.HypeThresholds : HypeThresholds.Default);
             float hypeDelta = baseHypeDelta * (meters != null ? meters.SongHypeDeltaMultiplier : 1f);
 
+            // [R5-c / D-R5-17=A] Overload multiplies the DELTA, not the raw
+            // loopScore: ComputeHypeDelta is a step function, so scaling its
+            // input gives a jumpy, untestable result. Applied in the expression —
+            // meters.SongHypeDeltaMultiplier is persistent encounter config and
+            // is never mutated.
+            // [D-R5-19=B] Positive deltas only: an automatic trigger the player
+            // does not choose must never deepen a bad loop.
+            bool overloadApplied = _overloadFactorThisLoop > 1f && hypeDelta > 0f;
+            if (overloadApplied) hypeDelta *= _overloadFactorThisLoop;
+
             // Flow → SongHype path RETIRED (M4.2). Removed entirely.
 
             AddSongHype(hypeDelta);
 
             Log($"{DebugTag} [Gig] Loop finished. " +
-                $"Score={loopScore:F1}, ΔHype={hypeDelta:F1}, " +
-                $"SongHype={SongHype:F1}");
+                $"Score={loopScore:F1}, ΔHype={hypeDelta:F1}" +
+                (overloadApplied ? $" [OVERLOAD x{_overloadFactorThisLoop:0.##}]" : "") +
+                $", SongHype={SongHype:F1}");
 
             // Part index from the loop context
             int partIndex = loopCtx.PartIndex;

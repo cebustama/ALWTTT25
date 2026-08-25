@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: Phrase_Anthem_BurstShort
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.Phrases.BurstThenHoldPhraseSO
   forcedContourDir: 0
+  endRestFraction: 0.2
+  meterFitSlots: 1
+  allowTupletSubdivisions: 0
   burstNoteCountMin: 2
   burstNoteCountMax: 3
   burstSubdivisionBeats: 0.25
+  restProbMid: 0.2

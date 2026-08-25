@@ -95,7 +95,127 @@ Full reasoning + card specs: `planning/active/Design_Starter_Deck_v2.md`.
 - **D-R4-8** — abierta (legibilidad del taunt; recomendación A = floater en el objetivo original).
 - **D-R4-9** — verificada empíricamente (`Tonality`/`TimeSignature` renderizan legibles; sin
   formatter — pero ver F-R4-2).
-- **D-R4-10** — abierta (reveal a hover + icono persistente).
+- **D-R4-10** — **cerrada en PRES-1 (2026-08-11)**: reveal compuesto en el tooltip de hover +
+  icono persistente discreto; panel retirado.
+- **D-R4-8** — **cerrada en PRES-1 (2026-08-11)**: floater de redirect en ambas ramas, con
+  supresión logueada del no-op visual.
+
+### R5 decision ledger (apertura, 2026-08-11)
+
+- **D-R5-1 = A** — el doc-update de PRES-1 se aplica como **fase de apertura de R5**
+  (`DOC-APPLY-PRES1`), antes de tocar código. Motivo: R5 y F-PRES1b-1 escriben en los mismos
+  documentos y las mismas secciones que PRES-1 dejó pendientes; apilar un segundo diff sobre uno
+  sin aplicar deja dos futuros compitiendo por la misma línea.
+- **D-R5-2 = A (resuelve F-PRES1b-1)** — el objetivo por defecto de una acción mono-objetivo de
+  audiencia es el músico **más cercano al Breakdown**: `CurrentStress` absoluto más bajo bajo el
+  medidor invertido S5e. El comparador `>` sobrevivió a la inversión S5e sin voltearse porque el
+  selector lee el campo crudo, fuera de la API direction-agnostic que S5e sí protegió; regresión
+  **inferida**, no diseño. **Absoluto y no proporcional**: el Breakdown dispara a 0 absoluto, así
+  que los puntos restantes son la distancia mecánica al colapso — una regla proporcional a veces
+  pasaría por alto al que está más cerca de caer. Cambio de GAMEPLAY: ST-R5pre-1..4 + regresión
+  ST-PRES1-4/-6.
+- **D-R5-3 = A** — `StatusEffectWizardWindow` gana campo `statusKey` editable pre-rellenado y
+  escritura explícita en `CreateAssetAndRegister` (cierra **F-R4-3**), más guard de clave
+  duplicada. Rider en el mismo toque: el auto-find solo auto-asigna catálogo si hay exactamente
+  uno. Se valida solo al crear el estado Voltage del propio R5.
+- La **review de invariantes de sesión** exigida por la fila R5 (§3 + nota de §5) es la fase
+  siguiente (R5-inv) y precede a cualquier código del núcleo de Overload. Punto de choque ya
+  identificado: el revert one-loop contra la persistencia actual del part cache.
+
+### R5 decision ledger — fases R5-inv / R5-a / R5-b / R5-c (aplicado 2026-08-23, DOC-APPLY-R5)
+
+**R5-inv (2026-08-11)** — siete invariantes clasificados contra código. Dos correcciones al
+plan: el patrón economy-neutral D-CSV-24 **no es reutilizable** (`_devInjectedTrackKeys` es
+`#if ALWTTT_DEV`, no existe en producción) y no hace falta — un track de solo con
+`inspirationGenerated = 0` y sin `AddInspirationPerLoopSpec` contribuye 0 a `EvalPerLoopInsp`
+por construcción; y el precedente real de alcance-un-loop es **JAM-1/JAM-2**, no D-CSV-24.
+**Verificado además:** el turno de audiencia se dispara solo en boundaries de **canción**
+(`GigPhase.AudienceTurn` se fija en `SongPerformanceRoutine` y en `OnCompositionSessionEnded`),
+nunca en `OnCompositionLoopFinished` ⇒ un loop de bonus **no** concedería turno de audiencia
+extra ni decaería estados de audiencia una vez más.
+
+- **D-R5-4 = A** — el solo de un loop se inyecta con **alcance de render** en el `SongConfig`
+  (patrón JAM-1/JAM-2), no como mutación del modelo con revert. Se rechazó (B) añadir API de
+  borrado al modelo — abriría reversibilidad para todas las cartas — y (C) "no revertir", que
+  con parts-per-song = 1 equivale a "hasta el fin de la canción" y explota en cuanto haya
+  canciones multi-parte. **Coste aceptado:** el solo no se ve como fila de track; su legibilidad
+  es presentacional. **Forma confirmada por el usuario:** la base sigue sonando; Conito toca el
+  solo **encima**, no en sustitución. ⚠ **Decisión vigente, alcance NO construido** — pasa a
+  R5-d (ver la nota de sustitución al final de este ledger).
+- **D-R5-5 = A** — el hook pasivo "+1 Voltage por jugada de Conito" vive en la rama consumada de
+  `GigManager.TryConsumePlay`, único punto por el que pasan las dos rutas de juego con el
+  intérprete ya resuelto. Se rechazó (B) duplicar por dominio y (C) suscribirse a
+  `CardPlayedEvent`, que **no lleva el intérprete**. **Rider:** colgar de "consumió de verdad",
+  no del retorno: con `musician == null` la API devuelve `true` sin consumir. **Asimetría
+  heredada de ECON-1, registrada:** la ruta de acción consume **antes** de `heldCard.Use(...)`;
+  si alguna vez algo posterior a ese punto puede fallar, Voltage se cargaría en una jugada
+  abortada. **CONSTRUIDA en R5-b.**
+- **D-R5-6 = B** — el loop de bonus **no** refilla el presupuesto ECON-1 de la banda. Overload da
+  música, no tempo de cartas. El resto del boundary (draw F-3, inspiración, bus, Vibe) se
+  comporta igual que en cualquier loop. ⚠ **Decisión vigente, alcance NO construido** — no hay
+  loop de bonus; pasa a R5-d.
+- **D-R5-7 = A** — Voltage recibe primitiva propia **`ResourceCounter = 993`** (rango Meta
+  990–1099, libre verificado contra el enum refrescado 2026-08-11 y contra los `case` del
+  registro). Se rechazó reutilizar `ResourceGenerationModifier = 992`: semánticamente Voltage
+  **es** el recurso, no un modificador de su generación, y como el contenedor está keyed por
+  primitiva, la reutilización condenaría a colisión a cualquier futuro estado que sí modifique
+  generación. Tras R5-a el registro CSO pasa de 26 a **27** entradas. **CONSTRUIDA en R5-a.**
+- **D-R5-8 = A** — Voltage es de **alcance gig**. `ResetSongScopedStatuses` es una allowlist de
+  dos primitivas y **no se amplía**. Coste aceptado: banca de cargas de Overload (`MaxStacks 9`).
+  Verificado por ST-R5a-6R. Reversión posible, pero exige mover el reset a un cierre de canción
+  real. **CONSTRUIDA en R5-a.**
+- **D-R5-9 = A** — generación limitada a **Conito** por identidad de músico
+  (`MusicianCharacterData.CharacterType`). Sin marcador autorable. Generalizar es un cambio de
+  una línea en un solo seam. **CONSTRUIDA en R5-b.**
+- **D-R5-10 = A** — cuentan **todas** las jugadas genuinamente consumidas: acción y composición,
+  cualquier coste de inspiración **incluido 0**. Bajo D-ECON-6=DEFER todas las cartas starter son
+  coste 0; excluirlas habría hecho Voltage inalcanzable con el contenido actual. El rider de
+  subir las cartas dev a coste 1 queda anulado. **CONSTRUIDA en R5-b.**
+- **D-R5-11 = <pendiente>** — cuándo importar *Amp Up* (R8). Recomendación emitida: **B**
+  (importar con `flags = UnlockedByDefault`, sin `RewardPool`, y activar el flag en R8). **No
+  resuelta**; la carta no se autoró.
+- **D-R5-12 = A** — el interruptor de generación vive en `GigFlowSettingsSO`, no en
+  `GigDevSettingsSO` ni en `GigManager`. Default **ON**, leído **por jugada** ⇒ conmutable en
+  caliente durante Play. Es una regla de gig, no un debug. Verificado en ST-R5b-7R.
+  **CONSTRUIDA en R5-b.**
+- **D-R5-13 = A** — Overload multiplica la contribución del loop a **SongHype**. **CONSTRUIDA en
+  R5-c.** ⚠ Ver nota de sustitución.
+- **D-R5-14 = A** — umbral **6**, consume **6**, autorables. Fijado contra el dato medido en R5-b
+  (+2/periodo ⇒ ~3 periodos por carga). Bajo `MaxStacks 9` no hay banca de dos cargas.
+  **CONSTRUIDA en R5-c.** ⚠ Contradice `D-R0-12` (Overload = Voltage ≥ 3) — ver nota de
+  sustitución.
+- **D-R5-15 = A** — disparo **automático** al cruzar el umbral. Coste aceptado: el jugador
+  **observa** Overload, no lo decide. **CONSTRUIDA en R5-c.** ⚠ Contradice `D-R0-5=A` (Overload
+  es Action-domain, carta jugable) — ver nota de sustitución.
+- **D-R5-16 = A** — consumidor en `GigManager`, al inicio de `OnCompositionLoopFinished`,
+  **antes** de `TriggerAudienceMicroReactions`. Reset-primero: el factor no sobrevive al loop. No
+  se crea `CardEffectSpec` nuevo: sin carta, no hay spec que escribir. **CONSTRUIDA en R5-c.**
+- **D-R5-17 = A** — el multiplicador se aplica sobre **`hypeDelta`**, después de
+  `ComputeHypeDelta`, **no** sobre el `loopScore` crudo. Default **×1.5**, un solo loop. Corrige
+  explícitamente la formulación previa ("multiplicador de LoopScore"), emitida antes de leer el
+  seam: `ComputeHypeDelta` es no lineal y escalar su entrada da un efecto impredecible e
+  intesteable. Constraint respetada: NO mutar `meters.SongHypeDeltaMultiplier`. **CONSTRUIDA en
+  R5-c.**
+- **D-R5-18 = C** — el gasto va por `StatusEffectContainer.SpendStacks`. `ConsumeOnTrigger`
+  guarda `Decay == ConsumeOnTrigger`: sobre Voltage (`DecayMode.None`) sería un no-op silencioso
+  — multiplicador sin gasto. `Apply(-n)` publicaría `StatusAppliedEvent` con delta negativo
+  (semántica falsa en el bus). **CONSTRUIDA en R5-c.**
+- **D-R5-19 = B** — el coste se paga siempre al cruzar el umbral; el factor solo si
+  `hypeDelta > 0`. Preventiva: con el calculador actual los deltas negativos son inalcanzables.
+  Revertir = borrar `&& hypeDelta > 0f`. **CONSTRUIDA en R5-c.**
+- **Abiertas al abrir R5-d:** **D-R5-20** (convivencia disparo automático ↔ carta Action) ·
+  **D-R5-21** (umbral 6 del pasivo vs ≥3 de la carta, D-R0-12) · **D-R5-22** (otras cartas que
+  gasten Voltage; `SpendStacks` ya lo hace barato).
+- **Fases cerradas:** R5-inv 2026-08-11 · **R5-a CERRADO 2026-08-21** (ST-R5a-1..5 + 6R PASS) ·
+  **R5-b CERRADO 2026-08-21** (ST-R5b-1..6 + 7R PASS) · **R5-c CERRADO 2026-08-21**
+  (ST-R5c-1..9 PASS a la primera). **R5 no cierra** — ver §3.
+
+> **Nota de sustitución (registrada 2026-08-21, aplicada 2026-08-23 — D26).** D-R5-13/14/15
+> definieron un Overload **pasivo** (automático, umbral 6, payload = multiplicador de hype). Eso
+> **no** sustituye a `D-R0-5 = A` ni a `D-R5-4 = A`: se emitió sin citarlas, y el alcance original
+> (carta Action + loop de bonus + solo de un loop) sigue vigente y sin construir. Lo entregado en
+> R5-c es una **capa adicional** sobre el mismo recurso, no el finisher de R0. La convivencia de
+> ambos disparadores se decide en R5-d (D-R5-20). Registro por evidencia de implementación, §12.
 
 ---
 
@@ -110,7 +230,8 @@ Full reasoning + card specs: `planning/active/Design_Starter_Deck_v2.md`.
 | **R2d** | IMPLEMENTATION | Adoption of **ORDER-1** + **SLAPFIG-1** (filed and delivered 2026-07-31): guard rewrite, shared-harmony cache identity `dp:`+`bk:` (D-R2-10=A, closes the pre-existing **F-HARM-STALE-1**), harmony-source readback, Slap Bass re-authored onto `SelfPocket` (D-R2-11) | Interleavable | R2c |
 | **R3** ✅ **CLOSED 2026-08-08** | IMPL / CONTENT | Zig composition cards: ascending-degree `MelodyPatternData` (verbatim `patternOverride`) + scale-phrase palette; singer verification in a 3–4-musician band (mix, channel, mute). **CLOSED 2026-08-08.** Entregado: **Rise Up** (patrón autorado de 8 compases por grado, adaptativo a raíz y a modo) y **Showtime** (ruta procedural, ST-R3-11 PASS, operativa). Entregable de banda 3–4 (mezcla/canal/mute) **CUMPLIDO**. Además en lote: **JAM-1** (continuidad de armonía compartida) y **JAM-2** (el modo viaja con la armonía), tres cartas Wormus de banco de dev (`flags=None`, D-R3C-6=A), paleta `Chord Palette - Modal` 7→5 (D-R3C-5=B). Verificaciones: ST-A1..A7 · ST-B1/B2 · ST-C1 · C5 · ST-R3-11 · C4 · ST-J1..J6, todas PASS. Excepción al freeze de baseline S5i autorizada por D-R3C-1=C / D-R3C-8=A (2º y 3er precedente). | Interleavable (∥ R2) | R0 |
 | **R4** ✅ **CLOSED 2026-08-10** | IMPLEMENTATION | **CLOSED 2026-08-10.** Cuatro piezas entregadas: **Psychic Wave v2** · **C2 Spotlight/Taunt** · **Read the Room** · **Keep Cool retarget**. **ST-R4-1..10 PASS · V-R4-MODAL PASS** (salda la deuda auditiva de R3: la melodía sobre parte modal resuelve contra el modo impuesto). Ledger del lote en §2. Scope original: Finishers I: **Psychic Wave v2** (add `ApplyStatusEffect(earworm, Y≈2, AllAudienceCharacters)` — note the target branch skips `IsBlocked` members, so Indifference-blocked audience take no Earworm; full-screen mask VFX on `TutorialSpotlight.shader` base; **tutorial beat-8 + JUICE-PW regression**) + **C2 Spotlight/Taunt** (counter status + `ResolveTargetsFor` redirect hook, 1 audience turn) + **Read the Room** (`RevealPreferencesSpec` + `AudienceCharacterCanvas` surface, D-R0-1) + **Keep Cool retarget** `Self`→`Musician` (D-R0-3, **tutorial Composure-beat regression owed**) + **V5 runtime smoke** (`ApplyStatusEffect` × `AllAudienceCharacters`) | Post-S5j | S5j tag |
-| **R5** | IMPLEMENTATION | **Conito Overload** (own batch): counter status (no decay) + ≥3 threshold hook + guarded bonus-loop API (`_loopsRemainingForPart`) + one-loop-scoped solo track (Conito Melody, guitar) + channel duck/restore + revert. Opens with a session-invariant review (§5 note) | Post-S5j | R2, S5j |
+| **R5** 🔵 **PARCIAL** (abierto 2026-08-11; R5-a/b/c cerrados 2026-08-21) | IMPLEMENTATION | **Conito Overload** (own batch). **Entregado (R5-a/b/c):** estado contador `Voltage` (`ResourceCounter = 993`, sin decay, `MaxStacks 9`, alcance gig) · hook pasivo de generación **+1 por jugada consumida de Conito** (`GigFlowSettingsSO.GenerateVoltageOnConsumedPlay`, default ON) · `StatusEffectContainer.SpendStacks` (D-R5-18=C) · **Overload pasivo**: descarga automática en el boundary de loop, umbral 6 / coste 6, **×1.5 sobre el `hypeDelta` de ese loop** (D-R5-13/14/15/16/17). ST-R5a-* · ST-R5b-* · ST-R5c-1..9 PASS. **NO entregado, sigue siendo alcance R5:** Overload como **carta de dominio Action** (D-R0-5=A; coste 2 + Voltage ≥ 3 por D-R0-12) · API guardada de loop de bonus (`TryGrantBonusLoop` / excepción de inv 11) · **solo de un loop de Conito** (Melody, guitarra) con alcance de render (D-R5-4=A) · duck/restore de canal. **Continúa en R5-d** (ver F-R5c-4 y la nota de sustitución en §2). Abrió con la review de invariantes de sesión (R5-inv, §5 note) | Post-S5j | R2, S5j |
+| **R5-d** ⚪ **PENDIENTE** | IMPLEMENTATION | Cierre del alcance R5: carta Action **Overload** + `TryGrantBonusLoop` guardada + solo de un loop por inyección de alcance de render + duck/restore. Abre con **D-R5-20** (convivencia pasivo↔carta), **D-R5-21** (umbral 6 vs ≥3) y **D-R5-22** (otros consumidores de Voltage). Los siete diffs HELD de los paquetes `PENDING_DOC_DIFFS_R5*` se aplican al cerrarlo | Post-R5-c | R5-a/b/c |
 | **R6** | IMPLEMENTATION | **Double Harmony Tier A** (Harmony-role card + listening validation + dual per-track particle FX via `IMidiNoteListener`) + **`SingerVoiceDirector` one-shot API** (shared groundwork for singalong; Tier B + expression-input rider queued behind cap=2 validation) | Post-S5j | R3, S5j |
 | **R7** | IMPLEMENTATION | **Track Card Levels** mechanic (state on `TrackEntry`, level-up branch in `TryAddOrReplaceTrackOnPart`, cache-invalidation duty, INSP/complexity hooks) + pilot content (Wormus Major/Minor lvl2–3). Spec: `planning/active/Design_Track_Card_Levels_v0_1.md`. May file MGP ask §8 #4 if alphabet gaps bite | Post-S5j | R0 (spec), S5j |
 | **R8** | CONTENT / TEST | Rewards for all 4 (palettes via skills: jazz / Phrygian / jazz-vs-EDM drums; bossa v1 + tapping-or-degradation) + **Singalong** (on R6 one-shot API) + starter v2 registration + full-band smokes (4 musicians, full pool) + campaign doc closure | Last | R4–R7 |

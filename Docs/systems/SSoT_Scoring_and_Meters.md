@@ -97,6 +97,22 @@ removal when the inspiration economy is re-tuned.
 
 `ComputeHypeDelta` maps LoopScore to a SongHype delta via a piecewise threshold table (`HypeThresholds` struct). Both thresholds and deltas are Inspector-tuneable on `MeterTuningSO` (M4.6F-2; authored on `GigManager` pre-F-2). Defaults: Amazing ≥25 → +15, VeryGood ≥15 → +8, Decent ≥5 → +3, Neutral >−5 → 0, Meh >−15 → −5, Bad else → −12.
 
+**Full expression, including the Overload factor (R5-c).** A loop's contribution to SongHype is
+
+```text
+hypeDelta = ComputeHypeDelta(loopScore, HypeThresholds) × SongHypeDeltaMultiplier
+            [× OverloadHypeFactor  if Overload discharged at this boundary AND hypeDelta > 0]
+```
+
+The factor lives in the expression inside `GigManager.TriggerAudienceMicroReactions`;
+`MeterTuningSO.SongHypeDeltaMultiplier` is persistent encounter configuration and is **not**
+mutated at runtime. The multiplier applies to the **delta**, not to the `loopScore`:
+`ComputeHypeDelta` is a step function, so scaling its input produces unpredictable jumps —
+sometimes nothing, sometimes a whole band. The positive-delta condition is preventive
+(D-R5-19=B): with the current calculator negative deltas are unreachable, and the cost is paid
+on threshold crossing regardless. Overload semantics, threshold and cost live in
+`SSoT_Status_Effects.md` §5.10; this document owns only where the factor sits in the chain.
+
 ---
 
 ## 4. SongHype

@@ -185,14 +185,32 @@ This is also the backward-compat path for any audience asset authored pre-B3.
 - Runtime state: `AudienceCharacterBase.PreferencesRevealed`, instance scope
   (GameObject lifetime ⇒ per-gig), **not persisted across gigs**.
 - Idempotent: revealing the same member twice is a deliberate silent no-op.
-- Surface: `AudienceCharacterCanvas.ShowTastePanel(TastePreferences)`. An
-  unwired prefab degrades to a no-op (S5a telegraph pattern);
-  `IsTastePanelWired` exposes it.
+- Surface (PRES-1 · D-PRES1-3=A): the taste text **composes into the single
+  hover tooltip** (`AudienceCharacterCanvas.ShowTooltipInfo`), plus a discreet
+  persistent icon as the "revealed" marker. One hover surface per character is
+  a canvas invariant; a second persistent panel violated it and overlapped the
+  "Songs left" readout.
+- The tooltip composition needs **no prefab wiring** and works regardless of
+  icon state. Composition also covers the phases with no active intention,
+  where the tooltip previously did not appear at all — without it, revealed
+  tastes would vanish between turns.
+- `IsTastePanelWired` **changed meaning**: it now reports whether the ICON is
+  wired, not the retired panel pair.
+- Taste block header (PRES-1c · D-PRES1c-1=A): renders bold
+  (`<b>— Gustos —</b>`, TMP rich text) so it reads as a section heading inside
+  the shared hover tooltip rather than as one more taste line. Verified
+  ST-PRES1-7b (the tag renders; it is not printed literally). ESP copy stays
+  hardcoded alongside the Blocked tooltip and telegraph labels (D-S5f-7=A /
+  D-S5f-8=A); all migrate together in S5f-ext. Known degradation: a body TMP
+  with `richText` disabled would print the tags literally — a prefab fix, not
+  code.
 - Authority: the reveal spec carries **no taste data**. `AudienceCharacterData`
   owns the data; the canvas owns the presentation. A spec carrying text or axes
   would duplicate §6.1 and desynchronize on the first retune.
-- **Open debt (D-R4-10):** the panel is persistent for the rest of the gig; the
-  recommended direction is a persistent icon + detail on hover.
+- **D-R4-10 closed at PRES-1.** The persistent panel is retired; its slots
+  (`tastePanelRoot`, `tasteText`) survived briefly as inert fields so live
+  prefab wiring would not dangle, and were removed — fields and `TastePanel`
+  prefab object alike — in the R5-pre cleanup pass (2026-08-11).
 
 ---
 
@@ -230,6 +248,8 @@ MVP categories:
    Rare, encounter-specific exceptions.
 
 Audience members may also carry player-applied statuses that shape their state during the audience turn — Earworm (M4.3) is the first. These statuses are not abilities; they are persistent effects whose runtime contract is owned by `systems/SSoT_Status_Effects.md` and whose tick hooks live in `GigManager.AudienceTurnRoutine`. The audience-side status surface is data-extensible through `StatusEffectCatalogue_Audience.asset`.
+
+**Default single-target selection (R5, 2026-08-11 — D-R5-2=A).** When an audience action targets one musician and no redirect applies, the target is the musician **closest to Breakdown**: the lowest absolute `CurrentStress` (the S5e-inverted pool, 0 = Breakdown). Absolute, not proportional — Breakdown fires at 0 absolute, so remaining points are the mechanical distance to collapse; a proportional rule would sometimes pass over the musician nearer to dropping. Implemented once in `AudienceCharacterBase.SelectDefaultMusicianTarget`, which both the targeting path and the redirect floater consume, so the two cannot diverge. Between S5e and R5 the comparator was inverted and picked the healthiest musician (F-PRES1b-1); this is the focus-fire behaviour the intention families below assume, and the reason protective tools (Keep Cool retarget, Spotlight) are worth playing.
 
 **Targeting redirect hook (R4, 2026-08-10 — Spotlight).** `AudienceCharacterBase.ResolveTargetsFor` now has a **prior step** on the `Musician` and `RandomMusician` branches: if any musician carries an active Spotlight, the target is substituted by the holder. `AllMusicians` does not pass through the hook. This is the single targeting funnel, so every future audience ability inherits the redirect with no per-ability edit. Status semantics: `systems/SSoT_Status_Effects.md` §5.9.
 

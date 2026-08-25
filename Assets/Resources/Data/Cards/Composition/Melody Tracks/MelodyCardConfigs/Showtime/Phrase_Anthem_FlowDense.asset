@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: Phrase_Anthem_FlowDense
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.Phrases.EvenFlowPhraseSO
   forcedContourDir: 0
+  endRestFraction: 0.15
+  meterFitSlots: 1
+  allowTupletSubdivisions: 0
   minSlots: 6
   maxSlots: 9
   restProbMid: 0.05

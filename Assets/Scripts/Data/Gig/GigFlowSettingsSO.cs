@@ -88,6 +88,47 @@ namespace ALWTTT.Data
         public int DefaultActionPlaysPerTurn => Mathf.Max(0, defaultActionPlaysPerTurn);
         public int DefaultCompositionPlaysPerTurn => Mathf.Max(0, defaultCompositionPlaysPerTurn);
 
+        // ─── [R5-b / D-R5-12=A] Voltage generation switch ────────────────
+        [Header("Gig Rules — Voltage (R5)")]
+        [SerializeField, Tooltip("When ON, every GENUINELY consumed play by " +
+            "Conito (action or composition, any Inspiration cost including 0) " +
+            "grants +1 Voltage. When OFF, Voltage is only applied by cards " +
+            "that carry an explicit ApplyStatusEffectSpec for it. Read per " +
+            "play, so toggling during Play mode takes effect on the next play.")]
+        private bool generateVoltageOnConsumedPlay = true;
+
+        public bool GenerateVoltageOnConsumedPlay => generateVoltageOnConsumedPlay;
+
+        // ─── [R5-c / D-R5-13..17] Overload — consumidor de Voltage ───────
+        [SerializeField, Tooltip("When ON, a loop boundary where the Voltage " +
+            "bearer holds >= OverloadThreshold stacks discharges Overload: it " +
+            "spends OverloadCost stacks and multiplies THAT loop's SongHype " +
+            "contribution by OverloadHypeFactor. Read once per loop boundary, " +
+            "so toggling during Play takes effect on the next finished loop.")]
+        private bool overloadConsumerEnabled = true;
+
+        [SerializeField, Min(1), Tooltip("Voltage stacks required to discharge " +
+            "Overload. Tuning rule (D-R5-10 rider): if Overload never fires in " +
+            "short songs, LOWER this — never raise Voltage generation.")]
+        private int overloadThreshold = 6;
+
+        [SerializeField, Min(1), Tooltip("Voltage stacks spent per discharge. " +
+            "Surplus above the cost survives and keeps accumulating. Values " +
+            "above the threshold are harmless: the spend clamps to the stacks " +
+            "actually held.")]
+        private int overloadCost = 6;
+
+        [SerializeField, Tooltip("Multiplier applied to the loop's hype delta " +
+            "on discharge. Applied in the expression, AFTER ComputeHypeDelta " +
+            "and after MeterTuningSO.SongHypeDeltaMultiplier — the asset is " +
+            "never mutated. Clamped to >= 1: Overload cannot make a loop worse.")]
+        private float overloadHypeFactor = 1.5f;
+
+        public bool OverloadConsumerEnabled => overloadConsumerEnabled;
+        public int OverloadThreshold => Mathf.Max(1, overloadThreshold);
+        public int OverloadCost => Mathf.Max(1, overloadCost);
+        public float OverloadHypeFactor => Mathf.Max(1f, overloadHypeFactor);
+
         [Header("Setup Defaults � Hand / Inspiration Policies")]
         [SerializeField] private bool defaultDiscardHandBetweenTurns = false;
         [SerializeField] private bool defaultKeepInspirationBetweenTurns = false;

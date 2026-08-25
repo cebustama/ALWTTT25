@@ -20,6 +20,8 @@ MonoBehaviour:
   logGenerator: 1
   logMidiMusicManager: 1
   debugDumpMidi: 1
+  enableTonalityAudit: 1
+  tonalityAuditShowInfo: 1
   defaultTonality: 0
   defaultTimeSignature: 0
   defaultMeasures: 4

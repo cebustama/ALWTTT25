@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8dd50818346b5f74a9aff78d6c17556a, type: 3}
+  m_Name: SmokeSetup_TonMatrix
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.SmokeSetupSO
+  config: {fileID: 11400000, guid: 2a02a4f12bc6e504083042e7790ee803, type: 2}
+  partContext:
+    partName: SmokePart
+    tonality: 0
+    rootNote: 7
+    timeSignature: 0
+    measures: 8
+    bpm: 114
+  entries:
+  - spec:
+      role: 1
+      instrument: {fileID: 11400000, guid: ca372fe06d2607d4aa8f65507dc18a0a, type: 2}
+      percussionInstrument: {fileID: 0}
+      pattern: {fileID: 0}
+      style: {fileID: 0}
+    chordExpression: 0
+    arpeggioRate: 1
+    randomRerollChance: 1
+    randomFigureWeights: []
+    velocityJitter: 0
+  - spec:
+      role: 3
+      instrument: {fileID: 11400000, guid: 0b3a2330714f86a4b9dba15d9c73d897, type: 2}
+      percussionInstrument: {fileID: 0}
+      pattern: {fileID: 0}
+      style: {fileID: 0}
+    chordExpression: 0
+    arpeggioRate: 1
+    randomRerollChance: 1
+    randomFigureWeights: []
+    velocityJitter: 0
+  - spec:
+      role: 4
+      instrument: {fileID: 11400000, guid: ec6ed295fd9f87b458e9670281188ef8, type: 2}
+      percussionInstrument: {fileID: 0}
+      pattern: {fileID: 0}
+      style: {fileID: 11400000, guid: 5972e214e6b27f14db16532ce917a187, type: 2}
+    chordExpression: 0
+    arpeggioRate: 1
+    randomRerollChance: 1
+    randomFigureWeights: []
+    velocityJitter: 0
+  defaultProgression: {fileID: 0}
+  overrideSeed: 1
+  seed: 12345
+  stripMetronome: 1

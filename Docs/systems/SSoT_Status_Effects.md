@@ -43,6 +43,15 @@ This layer may control:
 Rule:
 - stable identity and themed presentation must not be conflated.
 
+**One instance per primitive and holder (code truth).** The container indexes by
+`CharacterStatusId`, not by `StatusKey` (`StatusEffectContainer._active` is a
+`Dictionary<CharacterStatusId, StatusEffectInstance>`). Two variants authored on the same
+primitive **do not coexist** on the same character: the second application writes over the
+first one's instance. Two rules already in use follow from this: (a) the dual guard on
+`StatusKey` in every consumer, and (b) every semantically new status asks for its own
+primitive (append-only), even when an existing one seems to "fit". *(Verified in R5-inv,
+2026-08-11 — D6.)*
+
 ---
 
 ## 3. Runtime ownership
@@ -56,6 +65,22 @@ The runtime status surface includes:
 - icon presentation (sprite authority on `StatusEffectSO`, event-driven rendering on `CharacterCanvas`)
 
 This SSoT owns the gameplay/runtime meaning of that surface.
+
+### 3.0 Container contract — explicit resource spend (`SpendStacks`, R5-c)
+
+`StatusEffectContainer.SpendStacks(CharacterStatusId id, int n) → int` — explicit resource
+spend for counter statuses (`DecayMode.None`). It does **not** require
+`DecayMode.ConsumeOnTrigger`; the `ConsumeOnTrigger` guard is untouched. It spends
+`min(stacks, n)`, fires `OnStatusChanged` / `OnStatusCleared`, and **does not** fire
+`OnStatusApplied` nor publish `StatusAppliedEvent` — spending a resource is not applying a
+status. It returns the stacks actually spent, so the caller can tell "I spent" from "there was
+nothing there" without re-reading the container. First consumer: Overload (R5-c, §5.10).
+
+Why this is its own API rather than a reuse: `ConsumeOnTrigger` guards on
+`Definition.Decay == ConsumeOnTrigger`, so on a `DecayMode.None` status it is a **silent
+no-op** — the consumer would get its effect without paying (F-R5c-1). And `Apply(-n)` would
+publish a `StatusAppliedEvent` with a negative delta, i.e. a false statement on the sensory
+bus. (D-R5-18=C.)
 
 ### 3.1 Tick timing system
 
@@ -276,15 +301,123 @@ If future encounter design requires extending stun via additional Choke stacks, 
 
 **Combat meaning:** while the holder has `stacks > 0`, audience-side single-target hostile targeting (`ActionTargetType.Musician` and `RandomMusician` in `AudienceCharacterBase.ResolveTargetsFor`) is redirected to the holder.
 
-**Explicit rule — `AllMusicians` is NOT redirected.** An AoE already includes the holder; redirecting it would collapse the ability to single-target, which is substituting the ability, not taunting it.
+**Explicit rule — `AllMusicians` is NOT redirected.** An AoE already includes the holder; redirecting it would collapse the ability to single-target, which is substituting the ability, not taunting it. Consequently no `SpotlightRedirectEvent` can fire for `AllMusicians` either: the invariant covers both targeting and its presentation. Regressed by ST-PRES1-9.
 
 **Dual guard:** the runtime checks the primitive **and** `StatusKey == "spotlight"` (Earworm/Captivated precedent, §2.1), so a future `RedirectIncoming` variant does not inherit the taunt by accident.
 
 **Lifecycle:** applied on Player Turn N (whose tick has already passed), survives Audience Turn N, decays at the opening of Player Turn N+1 ⇒ "1 audience turn" with no bespoke expiry code. Same cycle as Composure (§5.2).
 
-**Legibility debt (D-R4-8, open):** the protected musician shows nothing; only the holder carries an icon. Recommended direction: a floater on the original target when a redirect fires.
+**Legibility (D-R4-8, closed at PRES-1 · D-PRES1-2=A):** a redirect publishes `SpotlightRedirectEvent` (presentation-only, sensory bus) and `SensoryFxAdapter` draws a gold floater.
+- `Musician` branch → `"-> {protected}"` anchored on the ORIGINAL target, named by the same pure selector the normal path uses (`SelectDefaultMusicianTarget`), so the floater cannot contradict the game's own choice.
+- `RandomMusician` branch → `"¡Foco!"` anchored on the PROTECTED musician. The would-be target is genuinely indeterminate there: naming one would require rolling `Random.Range`, consuming global RNG state and shifting every later roll in the gig. A presentation path must never do that.
+- No-op suppression: when the default target already WAS the spotlit musician, no event is published ("→ himself" is noise, not information).
+
+Publishing never alters targeting. The suppression is logged (`redirect SUPPRESSED (visual no-op)`), so a correctly-suppressed redirect is distinguishable from a broken presentation path. That log is load-bearing for ST-PRES1-6 and must not be pruned as debug noise.
+
+> **Selector note (R5, 2026-08-11 — D-R5-2=A).** `SelectDefaultMusicianTarget` picks the musician **closest to Breakdown** (lowest remaining fortitude under the S5e inverted meter). Until R5 it picked the highest `CurrentStress`, i.e. the healthiest — the comparator read `CurrentStress` raw, outside the direction-agnostic API S5e protected, and was silently inverted by the storage flip (finding F-PRES1b-1). Spotlight's value as a taunt depends on this: redirecting hits that were already landing on the healthiest musician protects nothing.
 
 **Applied by:** **Spotlight** (C2 finisher, starter v2 row 6, cost 2). Authored and validated at R4 (2026-08-10, ST-R4 suite).
+
+### 5.10 Voltage
+**Primitive:** `ResourceCounter` (`CharacterStatusId = 993`, Meta range)
+**Key:** `"voltage"`. `IsDefaultVariant = true`.
+**Scope:** single Musician (Conito).
+**Tick timing:** `None`
+**SO config:** `StackMode = Additive`, `MaxStacks = 9`, `DecayMode = None`,
+`DurationTurns = 0`, `ValueType = Flat`, `IsBuff = true`
+**Catalogue:** `StatusEffectCatalogue_Musicians`
+
+**Combat meaning:** a pure counter. It has no intrinsic effect: its meaning comes from its
+consumer. Sole consumer as of R5-c: **Overload (passive)** — see the consumption rule below.
+
+**Generation (D-R5-5=A · D-R5-9=A · D-R5-10=A).** Every play **genuinely consumed** by Conito
+generates **+1 Voltage**, action or composition, regardless of inspiration cost (including cost
+0). The hook lives in the consumed branch of `GigManager.TryConsumePlay` (`if (ok)`), not in its
+callers: the trigger condition and the budget consumption are the same control-flow fact and
+cannot be allowed to diverge. Generation is restricted to Conito by musician identity
+(`MusicianCharacterData.CharacterType`) — there is no authorable marker; generalizing is a
+one-line change at a single seam.
+
+What does **not** generate Voltage: a play denied by the ECON-1 budget (`ok == false`); one
+denied by timing, inspiration cost or target resolution (never reaches `TryConsumePlay`); a
+composition drop **rejected by the session** (`GigManager` only calls `TryConsumePlay` when
+`played == true`); and the no-attributable-musician branch (`musician == null`), which returns
+`true` **without consuming** and exits before the hook.
+
+Generation can be switched off with `GigFlowSettingsSO.GenerateVoltageOnConsumedPlay` (default
+ON, read per play, hot-swappable in Play — D-R5-12=A). With the flag off, Voltage is applied
+only by cards carrying an explicit `ApplyStatusEffectSpec` (*Amp Up*, R8, needs no new code).
+
+**Generation follows attribution, not card authorship (D19).** A card with an `AnyMusician`
+performer generates Voltage if the payer the play pipeline resolves (fixed → hover →
+`SelectedMusician`, D-ECON-3=A) turns out to be Conito, even though it is not "a Conito card".
+**Whoever pays the budget generates.** Conversely, a Conito card billed to another musician does
+not generate. *(Verified as a non-failure in ST-R5b-4.)*
+
+**Per-period ceiling.** ECON-1 grants 1 action play + 1 composition play per period and
+musician, so pure generation contributes **at most +2 Voltage per period**. Under `MaxStacks 9`
+reaching the cap takes ~5 periods.
+
+**SO resolution:** by `StatusKey` from the **holder's** catalogue (`CharacterBase.StatusCatalogue`),
+the `MusicianBase` / `"shaken"` pattern. The check that the primitive is `ResourceCounter` is a
+defensive authoring tripwire, not the authority guard.
+
+**Consumption — Overload (passive, R5-c).** At the close of every composition loop, if the
+Voltage holder has stacks ≥ `OverloadThreshold` (default 6), Overload discharges automatically:
+it spends `OverloadCost` stacks (default 6, via `SpendStacks` — §3.0) and multiplies **that
+loop's** contribution to SongHype by `OverloadHypeFactor` (default ×1.5). The factor is applied
+to `hypeDelta` (after `ComputeHypeDelta` and after the encounter's `SongHypeDeltaMultiplier`),
+only if the delta is positive (D-R5-19=B), and it is strictly local to one loop: no pending
+state survives between loops. Surplus above the cost survives and keeps accumulating. At most
+one discharge per boundary, whatever the roster. Switchable off with
+`GigFlowSettingsSO.OverloadConsumerEnabled` (default ON, read per loop). Every consumer keeps
+the **dual guard**: primitive `ResourceCounter` **and** `StatusKey == "voltage"`, checked
+against the live container instance — not against the catalogue: the catalogue says what the
+holder *could* have, the container says what it has.
+
+> **Scope note (F-R5c-4).** This passive Overload is **not** the Overload of the accepted R5
+> scope. The accepted scope (D-R0-5=A, D-R0-12, D-R5-4=A) is a playable **Action-domain card**
+> that grants a bonus loop with a Conito guitar solo over the base. That is **not built**; it
+> remains R5 scope and continues in **R5-d**. What R5-c shipped is an additional layer on the
+> same resource. See `RosterExpansion_Sub_Roadmap.md` §2 (substitution note) and §3 (R5 row).
+
+**No decay, no reset — GIG scope (D-R5-8=A, verified 2026-08-21).** `DecayMode.None` means
+`StatusEffectContainer.Tick` never alters the stacks at any boundary. Note that
+`TickTiming.None` does **not** exclude the status from the tick loop (see §6): immunity to decay
+comes from `DecayMode` alone. The song boundary does **not** clear it either:
+`GigManager.ResetSongScopedStatuses` is an allowlist of two primitives (`DamageUpFlat` = Flow,
+`TempShieldTurn` = Composure), not a sweep by category (see `SSoT_Gig_Combat_Core.md` §3.3.1).
+Voltage survives turns, loops, parts and songs, bounded only by `MaxStacks = 9`. Overload is
+therefore a resource **bankable across the gig** — under threshold/cost 6, one stored charge,
+never two — not a threat the song resets.
+
+**Primitive occupancy.** `StatusEffectContainer._active` is keyed by primitive, not by
+`StatusKey` (§2.1, D6). While Voltage is active on a holder, **no other `ResourceCounter`
+variant can coexist on it**: a second variant would add stacks to the Voltage instance. Register
+here any second variant authored in the future.
+
+**Tuning home:** `GigFlowSettingsSO` — `generateVoltageOnConsumedPlay` (ON) ·
+`overloadConsumerEnabled` (ON) · `overloadThreshold` (6) · `overloadCost` (6) ·
+`overloadHypeFactor` (1.5, clamped ≥1 in the getter — a factor < 1 would turn Overload into a
+silent punishment). All read at the loop boundary, so they are hot-adjustable. Inherited tuning
+rule: if Overload never fires in short songs, **lower the threshold**; never raise generation
+(that would reopen D-R5-10 and invalidate the R5-a/R5-b runbook arithmetic). With `flow == null`
+the consumer does not fire, deliberately diverging from generation (which mirrors the SO's
+default ON): generating needs one bool, consuming needs three authored numbers, and inventing
+those in code would stop the SO from being the tuning authority.
+
+**Dev-card interaction (operational note, R5-b).** With `GenerateVoltageOnConsumedPlay = ON` the
+`DEV_Voltage_*` cards stop being neutral instruments: they apply their `stacksDelta` **and** fire
+the hook (`DEV_Voltage_Plus1` played by Conito = **+2**). The ST-R5a-1..4 arithmetic (1→2→3,
+7+4=9, 2−2=0) is only valid with the toggle **OFF**; turning it off is the standard procedure for
+re-running the R5-a suite. *(Primary home is the R5-a runbook header; recorded here because that
+runbook is not a governed document.)*
+
+**Verification:** ST-R5a-1..5 + ST-R5a-6R PASS (2026-08-21) — absence of decay checked at seven
+boundaries with a positive control, not by reading the SO; the clamp at 9 checked from 7 with
+`+4` and from 9 with `+1`. ST-R5b-1..6 + ST-R5b-7R PASS (2026-08-21) — generation, denial paths,
+attribution, toggle. ST-R5c-1..9 PASS first time (2026-08-21) — threshold, spend, ×1.5 on
+`hypeDelta`, one discharge per boundary, no pending state.
 
 ---
 
@@ -296,6 +429,18 @@ Status behavior may vary by authored configuration, but the following invariants
 - duration/expiry must be explicit in runtime or authoring semantics
 - a status application path must resolve through one canonical runtime route
 - multiple variants must not become multiple silent meanings for the same gameplay concept
+- **`MaxStacks` always caps, in every `StackMode`.** The final clamp in
+  `ApplyStackingPolicy` sits **outside** the switch, so `Additive` and `AdditiveClamped`
+  produce the same observable result. A status that must be genuinely unbounded needs a
+  deliberately high `MaxStacks`, not a different stacking mode. *(Verified against code in
+  R5-inv, 2026-08-11 — D5.)*
+- **`TickTiming.None` means "at every timing", not "at none".** The filter in
+  `StatusEffectContainer.Tick` only discards statuses whose timing is defined *and* does not
+  match the current boundary (`if (def.Tick != TickTiming.None && def.Tick != timing) continue;`),
+  so a `None` timing always passes the filter and falls through to `switch (def.Decay)`. What
+  prevents decay is **`DecayMode.None`**, never `TickTiming`. A status that must be immune to
+  the passage of time is authored with `DecayMode = None`; setting `TickTiming = None` is at
+  most redundant. *(Verified against code in R5-a, 2026-08-21; regressed by ST-R5a-2 — D13.)*
 
 If a new status changes how stacking/expiry works system-wide, update this SSoT and the changelog.
 

@@ -14,6 +14,171 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-08-21 — R5-a / R5-b / R5-c: Voltage, generación pasiva y Overload pasivo (**R5 queda PARCIAL**) + DOC-APPLY-R5 (2026-08-23, parcial)
+
+**Tres sub-fases cerradas el 2026-08-21; el lote R5 NO cierra.** Lo que sigue separa lo
+construido de lo que se dio por construido y no lo estaba.
+
+**R5-a — el estado.** `Voltage`: primitiva propia `ResourceCounter = 993` (rango Meta,
+**D-R5-7=A**), `Additive` / `MaxStacks 9` / `DecayMode None` / `TickTiming None`, en
+`StatusEffectCatalogue_Musicians`, portador único Conito. Contador puro: sin efecto intrínseco,
+el significado lo pone el consumidor. Se rechazó reutilizar `ResourceGenerationModifier = 992`
+porque Voltage **es** el recurso, no un modificador de su generación. **Alcance gig**
+(**D-R5-8=A**), y la razón importa: `GigManager.ResetSongScopedStatuses` no es un barrido por
+categoría sino una **allowlist literal de dos primitivas** (`DamageUpFlat` = Flow,
+`TempShieldTurn` = Composure), y además se invoca desde `StartCompositionSession`, es decir al
+**abrir** la canción siguiente y no al cerrar la anterior — de modo que un estado generado en los
+turnos entre canciones se borraría justo cuando la canción empieza. El esqueleto original de la
+ficha de Voltage afirmaba lo contrario ("el boundary de canción sí lo limpia"); la verificación
+empírica lo desmintió y la entrada se **sustituyó**, no se matizó. Dos verdades de código que
+nunca se habían escrito quedan fijadas en el SSoT: **`TickTiming.None` significa "en todos los
+timings", no "en ninguno"** (el filtro de `Tick` solo descarta timings definidos que no coinciden;
+lo que impide el decay es `DecayMode.None` en solitario), y **el contenedor está keyed por
+primitiva, no por `StatusKey`** ⇒ una instancia por primitiva y portador, que es la razón de fondo
+de la guarda dual y del "toda semántica nueva pide primitiva propia". Deuda de herramienta
+registrada: el `StatusEffectWizardWindow` no escribe `isDefaultVariant`, `iconSprite` ni
+`description`, y nombra el asset por primitiva y no por variante. **ST-R5a-1..5 + 6R PASS.**
+
+**R5-b — la generación.** Hook pasivo **+1 Voltage por jugada genuinamente consumida de Conito**,
+colocado en la rama `if (ok)` de `GigManager.TryConsumePlay` (**D-R5-5=A**). El punto no es
+estético: es el único sitio por el que pasan las dos rutas de juego con el intérprete ya resuelto,
+y colgar el hook del **consumo** y no del retorno evita el falso positivo de la rama
+`musician == null`, que devuelve `true` sin consumir. Se rechazó suscribirse a `CardPlayedEvent`
+porque ese evento **no lleva el intérprete**. Cuentan todas las jugadas consumidas, acción y
+composición, **coste 0 incluido** (**D-R5-10=A**): bajo D-ECON-6=DEFER todas las starter son coste
+0, así que excluirlas habría hecho Voltage inalcanzable con el contenido actual. Restricción a
+Conito por identidad de músico (**D-R5-9=A**), sin marcador autorable. Interruptor en
+`GigFlowSettingsSO.GenerateVoltageOnConsumedPlay` (**D-R5-12=A**, default ON, leído por jugada ⇒
+conmutable en caliente) — es regla de gig, no debug. Dos conductas contraintuitivas, ambas
+predichas antes de ejecutar la suite y registradas como contrato, no como hallazgo: **genera quien
+paga el presupuesto**, de modo que una carta `AnyMusician` facturada a Conito genera y una carta de
+Conito facturada a otro no; y con el toggle en ON las cartas `DEV_Voltage_*` dejan de ser
+instrumentos neutrales (aplican su delta **y** disparan el hook), por lo que la aritmética de los
+runbooks de R5-a solo vale con el toggle en OFF. Techo medido: **+2 Voltage por periodo**.
+**ST-R5b-1..6 + 7R PASS.**
+
+**R5-c — el consumidor.** `StatusEffectContainer.SpendStacks(id, n) → int` (**D-R5-18=C**): gasto
+explícito de recurso, gasta `min(stacks, n)`, dispara `OnStatusChanged`/`OnStatusCleared` y **no**
+publica `StatusAppliedEvent`, porque gastar un recurso no es aplicar un status. Las dos
+alternativas se descartaron por conducta, no por gusto: `ConsumeOnTrigger` guarda
+`Decay == ConsumeOnTrigger` y sobre un status `DecayMode.None` sería un **no-op silencioso** —
+multiplicador cobrado sin pagar —, y `Apply(-n)` publicaría un delta negativo en el bus, una
+afirmación falsa. Encima de esa API, **Overload pasivo**: al cierre de cada loop de composición, si
+el portador tiene ≥ `OverloadThreshold` (6) stacks, gasta `OverloadCost` (6) y multiplica **la
+contribución de ese loop** a SongHype por `OverloadHypeFactor` (×1.5). Tres precisiones que
+costaron decisión propia. (1) El consumidor va **al inicio** de `OnCompositionLoopFinished`
+(**D-R5-16=A**) porque `ComputeLoopScore`/`ComputeHypeDelta` viven dentro de
+`TriggerAudienceMicroReactions`, que es la primera llamada de ese método: colocarse antes permite
+afectar al loop **que acaba de cerrarse** y elimina la necesidad de estado pendiente entre loops y
+de su limpieza en el boundary de canción. (2) El factor se aplica sobre **`hypeDelta`**, no sobre
+el `loopScore` crudo (**D-R5-17=A**, corrige explícitamente la formulación previa "multiplicador de
+LoopScore", emitida antes de leer el seam): `ComputeHypeDelta` es una función escalonada y escalar
+su entrada da un efecto que a veces es nulo y a veces desproporcionado. (3) El coste se paga
+siempre al cruzar el umbral y el factor solo si el delta es positivo (**D-R5-19=B**), preventivo
+frente a contenido futuro con penalizaciones. `meters.SongHypeDeltaMultiplier` **no se muta**: es
+configuración persistente del encuentro. Umbral 6 / coste 6 (**D-R5-14=A**) se fijó contra el dato
+medido en R5-b (+2/periodo ⇒ ~3 periodos por carga), sustituyendo el 3/3 que se había asumido antes
+de existir esa medición. Regla de tuning heredada: si no dispara en canciones cortas se **baja el
+umbral**, nunca se sube la generación. **ST-R5c-1..9 PASS a la primera.**
+
+**Hallazgo de gobernanza — F-R5c-4 (por qué R5 no cierra).** El alcance R5 aceptado **antes** de
+escribir código —fila R5 del sub-roadmap, `D-R0-5=A` (Overload es Action-domain, **carta
+jugable**), `D-R0-12` (coste 2, **Voltage ≥ 3**), `D-R5-4=A` (solo de un loop por inyección con
+alcance de render), `D-R5-6=B` (el loop de bonus no refilla ECON-1)— define Overload como *carta
+que concede un loop de bonus con un solo de guitarra de Conito encima de la base*. Lo construido en
+R5-c es *un disparo automático que multiplica el hype ×1.5*. **D-R5-13/14/15 hicieron esa
+sustitución sin citar ni una sola de las decisiones anteriores, y ninguna quedó registrada como
+revertida.** Lo entregado es una **capa adicional** sobre el mismo recurso, no el finisher de R0.
+Consecuencia: **R5 = PARCIAL** (**D25**), el alcance no construido pasa a **R5-d**, y la
+sustitución queda registrada en el ledger (**D26**) en vez de quedar implícita. Abiertas para
+R5-d: **D-R5-20** (convivencia disparo automático ↔ carta), **D-R5-21** (umbral 6 vs ≥3),
+**D-R5-22** (otros consumidores de Voltage).
+
+**DOC-APPLY-R5 (2026-08-23) — aplicación PARCIAL, deliberada.** De los 26 diffs acumulados se
+aplican **19**; **siete quedan HELD** (D1, D2, D3, D7, D8, D10 y el D11 original) porque describen
+el loop de bonus, el solo y Overload-como-carta — **código que no existe**. Aplicarlos habría
+introducido divergencia doc↔código *a propósito*, que es justo lo que el invariante "code and docs
+may diverge; when they do, identify the divergence explicitly" existe para impedir. Por la misma
+razón, y **rompiendo la convención de paquetes** (el fichero de diffs se retira al aplicarse), los
+cuatro ficheros `PENDING_DOC_DIFFS_R5*` **no se retiran**: se anotan con qué quedó aplicado y qué
+retenido, con fecha, y se consumen al cerrar R5-d. Docs editados: `SSoT_Status_Effects.md` (§2.1 ·
+**§3.0 nueva** · **§5.10 nueva** · §6) · `SSoT_Gig_Combat_Core.md` (**§3.1.1 nueva** · **§3.3.1
+nueva** · §14.4) · `SSoT_Scoring_and_Meters.md` (§3.3) · `SSoT_Editor_Authoring_Tools.md` (§6.3) ·
+`RosterExpansion_Sub_Roadmap.md` (ledger R5 · nota de sustitución · fila R5 PARCIAL · fila R5-d) ·
+`CURRENT_STATE.md` (§1/§3/§5) · `coverage-matrix.md` · este fichero. **Sin cambios** en
+`SSoT_INDEX.md`, `ssot_manifest.yaml` ni `SSoT_Runtime_CompositionSession_Integration.md` — este
+último precisamente porque sus tres diffs son los HELD.
+
+**Hallazgos menores registrados, no aplicados como diff:** **F-R5c-2** — la copia de
+`LoopScoreCalculator.cs` en project files está desfasada (expone sobrecargas sin parámetros de
+config que `GigManager` ya no usa); refrescar. **F-R5a-1** — la copia de `CharacterStatusId.cs`
+estaba desfasada al abrir R5 (le faltaban `NegateIncomingPositive = 404` y `RedirectIncoming =
+504`); refrescada en R5-a. Lección operativa: una auditoría de ids libres no puede apoyarse solo en
+el enum, hay que cruzarlo con el registro CSO, que en este caso estaba más al día que el propio
+contrato de serialización.
+
+---
+
+## 2026-08-11 — PRES-1 (+1b/1c) cierre + DOC-APPLY-PRES1 + apertura de R5
+
+**PRES-1 cerró el 2026-08-11** (15/15 smokes PASS, 0 diferidos; ST-PRES1-1..11d). Cuatro
+superficies: **Psychic Wave v2 → v4** (cover→hold→uncover ancladas al performer; inversión de
+color real vía `Blend OneMinusDstColor OneMinusSrcAlpha` con fuente premultiplicada — GrabPass no
+existe en URP y ningún SRP texture contiene un canvas Screen-Space-Overlay, así que leer el
+framebuffer no es caro sino imposible; posición de viewport por `ComputeScreenPos` y no por UVs
+de sprite, que en una `Image` sin sprite son cero en todos los vértices; radio de cobertura
+calculado por jugada; producción 0.45/0.30/0.70/0.12 ≈1.45 s; **frente de tinte v2/v3 retirado**,
+`Image` legacy force-disabled en `Awake`) · **floater de redirect de Spotlight** (dos ramas; el
+objetivo original lo nombra el MISMO selector puro del camino normal —
+`SelectDefaultMusicianTarget`, extracción behaviour-preserving para que camino y floater no
+puedan divergir; la rama `RandomMusician` ancla en el protegido porque nombrar al original
+exigiría tirar `Random.Range` y desplazar toda la secuencia de RNG del gig; supresión del no-op
+visual con log positivo; **cierra D-R4-8**) · **reveal de gustos compuesto en el tooltip de
+hover** + icono persistente (panel retirado; `IsTastePanelWired` re-semantizado — ahora informa
+del icono; encabezado en negrita; **cierra D-R4-10**) · **outline de sprite M1.7 RESTAURADO como
+highlight de hover** (la llamada se había perdido en la historia del repo y el proyecto trataba
+la capacidad como inexistente; toggle centralizado en `CharacterBase.OnPointerEnter/Exit` para
+que todo tipo de personaje presente y futuro lo herede sin edición por subclase; **no es feature
+nueva** — registro de lifecycle explícito para que una auditoría futura no la lea como tal).
+
+**Decisiones:** D-PRES1-1=B+ · D-PRES1-2=A · D-PRES1-3=A · D-PRES1-4=A · D-PRES1-5=A
+(supersedida por B+) · **D-PRES1b-1=B** (revierte una recomendación previa de usar una `Image` en
+`HighlightRoot`: el shader M1.7 existía en el repo) · D-PRES1b-2=A (canal `HighlightRoot`
+conservado inerte y null-guardeado) · D-PRES1c-1=A · D-PRES1c-2=A (los síntomas de
+melodía/tonalidad se investigan en MidiGenPlay, MGP-TONALITY-1, no aquí).
+
+**Encoding fix (D-PRES1-4=A):** `AudienceCharacterCanvas.cs` contenía 7× U+FFFD REPLACEMENT
+CHARACTER — pérdida irreversible, no un mis-encoding recuperable. Cuatro estaban en **copy ESP
+visible al jugador** de la tester build (`¡Súper!`, `persuasión`, `está`, `posición`), lo que
+socavaba directamente D-REPLAN-1 (comprensión en español sin asistencia); tres en comentarios.
+Restaurados como UTF-8. Causa probable: guardado como CP1252/Latin-1 releído como UTF-8. **El
+resto del repo no se ha barrido** — abierto en `CURRENT_STATE.md` §4.
+
+**Hallazgo F-PRES1b-1:** `SelectDefaultMusicianTarget` elegía el `CurrentStress` absoluto más
+alto; bajo el medidor invertido S5e, el músico **más sano**. El comparador no se volteó en S5e
+porque el selector lee el campo crudo, fuera de la API direction-agnostic que S5e sí protegió.
+**Resuelto al abrir R5 — D-R5-2=A** (más cercano al Breakdown = absoluto más bajo). Cambio de
+gameplay; ST-R5pre-1..4 + regresión ST-PRES1-4/-6 debidos.
+
+**DOC-APPLY-PRES1 (D-R5-1=A, fase de apertura de R5)** aplicó los diffs de
+`PENDING_DOC_DIFFS_PRES1.md` + `PENDING_DOC_DIFFS_PRES1c.md` (ambos retirados al aplicar; HELD-1
+quedó resuelto por PRES-1b, HELD-2 migrado a `CURRENT_STATE.md` §4): `SSoT_Status_Effects.md`
+§5.9 · `SSoT_Audience_and_Reactions.md` §6.4 + §8 · `Design_Sensory_Contract_v0_1.md` (evento,
+Psychic Wave v4, superficies de presentación de personaje, nota de logs — sigue `planning`) ·
+`RosterExpansion_Sub_Roadmap.md` (ledger de apertura de R5) ·
+`SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.11 · `CURRENT_STATE.md` (§1/§3/§4/§5) · esta entrada ·
+`coverage-matrix.md`. **Enmiendas declaradas:** D10 se aplica como resuelto y no como pregunta
+abierta (la decisión se tomó el mismo día); la viñeta del encabezado en negrita de §6.4 queda
+**en espera de ST-PRES1-7b**, que verifica que TMP renderiza `<b>` en lugar de imprimirlo literal.
+
+**R5 ABIERTO 2026-08-11** (Conito Overload — lote solo, toca invariantes de sesión). Fase R5-pre:
+fix de targeting (D-R5-2=A), cierre de F-R4-3 (D-R5-3=A), retirada del log `[PRES-1][Selector]`
+tras sus smokes, pasada de prefab (objeto `TastePanel` + campos muertos `tastePanelRoot` /
+`tasteText`). Fase siguiente: **R5-inv**, la review de invariantes de sesión previa al núcleo de
+Overload.
+
+---
+
 ## 2026-08-10 — R4 (Finishers I) cierre + DOC-R4 (doc-update)
 
 **R4 cerró el 2026-08-10** con las cuatro piezas entregadas: **Psychic Wave v2**

@@ -631,3 +631,23 @@ contrato UTF-8 — es decir, de quién es el bug, no si el jugador lo ve.
 **Superficie adoptada, recordatorio (ver §8.8):** el host lee la tonalidad adoptada de su propio
 `cfg.Parts[i]` post-render. La mutación in-place del `PartConfig` durante compose es
 **load-bearing** para el host.
+
+---
+
+### 8.11 Reenvío MGP-TONALITY-1 — síntomas de melodía / tonalidad / compás (PRES-1b → R5, 2026-08-11)
+
+Tres síntomas observados en runtime durante PRES-1b — notas de melodía fuera de la tonalidad
+declarada, ausencia de silencios inter e intra frase, y frases que no encajan con el beat — más
+la duplicación del tempo percibido en el Compound Cycle (6/8), pertenecen a **internals de
+MidiGenPlay** y **no se documentan como verdad de ALWTTT** (D-PRES1c-2=A). Abiertos en el
+proyecto compañero como **MGP-TONALITY-1**.
+
+Lo único gobernable desde este lado de la frontera es **qué valores inyecta la carta en
+`SongConfig`**: `TimeSignature` y tonalidad, vía `SongConfigBuilder` y el asset de la carta.
+
+**Acción propuesta antes de arrancar el ítem compañero:** un log de verificación en
+`SongConfigBuilder` que imprima los valores efectivos enviados por canción. Si el valor *enviado*
+ya es incorrecto, el defecto es nuestro y no cruza la frontera; si es correcto, el ticket
+compañero arranca con evidencia en lugar de con sospecha. Es la misma disciplina que §8.10 aplicó
+al daño de glifos en la etiqueta de acorde: medir de qué lado nace el dato antes de asignar el
+bug.

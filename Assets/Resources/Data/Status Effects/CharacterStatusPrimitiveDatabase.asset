@@ -174,3 +174,12 @@ MonoBehaviour:
     slayTheSpireReference: Energy / draw scaling
     monsterTrainReference: Ember / draw scaling
     griftlandsReference: Action / draw engines
+  - effectId: 993
+    category: Meta
+    abstractFunction: 'Pure accumulator with no intrinsic effect. Stacks carry no
+      rule by themselves; meaning is supplied entirely by an explicit consumer that
+      reads a threshold and spends stacks. Runtime additionally guards on StatusKey.
+      First user: Voltage (R5, Conito).'
+    slayTheSpireReference: "Mantra (accumulate \u2192 spend at threshold)"
+    monsterTrainReference: "\u2014"
+    griftlandsReference: "\u2014"

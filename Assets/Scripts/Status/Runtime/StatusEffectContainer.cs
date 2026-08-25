@@ -175,6 +175,37 @@ namespace ALWTTT.Status.Runtime
                 OnStatusChanged?.Invoke(id, inst.Stacks);
         }
 
+        /// <summary>
+        /// [R5-c / D-R5-18=C] Explicit resource spend for counter-style statuses.
+        /// Unlike <see cref="ConsumeOnTrigger"/>, this does NOT require
+        /// <see cref="DecayMode.ConsumeOnTrigger"/> — it is the spend path for
+        /// resources that never decay on their own (Voltage: DecayMode.None).
+        /// Spends min(stacks held, requested) and returns what was actually spent.
+        /// Fires OnStatusChanged / OnStatusCleared so icons stay in sync, and
+        /// deliberately does NOT fire OnStatusApplied nor publish
+        /// StatusAppliedEvent: spending a resource is not applying a status.
+        /// </summary>
+        public int SpendStacks(CharacterStatusId id, int stacks)
+        {
+            if (stacks <= 0) return 0;
+            if (!_active.TryGetValue(id, out var inst) || inst == null) return 0;
+
+            int held = inst.Stacks;
+            if (held <= 0) return 0;
+
+            int spent = Math.Min(held, stacks);
+            inst.AddStacks(-spent);
+
+            if (inst.Stacks <= 0)
+            {
+                Clear(id);   // raises OnStatusCleared
+                return spent;
+            }
+
+            OnStatusChanged?.Invoke(id, inst.Stacks);
+            return spent;
+        }
+
         private static void ApplyStackingPolicy(StatusEffectInstance inst, int deltaStacks)
         {
             var def = inst.Definition;

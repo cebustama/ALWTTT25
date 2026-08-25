@@ -446,9 +446,18 @@ namespace ALWTTT.Characters.Audience
         }
 
         /// <summary>
-        /// [PRES-1 / behaviour-preserving extraction] The pre-Spotlight default
-        /// single-target pick: the most-stressed musician (S5e inverted meter —
-        /// higher remaining fortitude = least-stressed; semantic preserved).
+        /// [PRES-1 extraction · R5 / D-R5-2=A] The default single-target pick:
+        /// the musician CLOSEST TO BREAKDOWN — the LOWEST remaining fortitude
+        /// (CurrentStress is the S5e-inverted HP-style pool; 0 = Breakdown).
+        ///
+        /// The pre-R5 comparator picked the HIGHEST CurrentStress. That was
+        /// correct pre-S5e and was silently inverted by the S5e storage flip:
+        /// this method reads CurrentStress RAW, outside the direction-agnostic
+        /// AddStress/HealStress API that S5e was careful to protect, so the
+        /// '>' survived the flip and started meaning "the healthiest musician".
+        /// Restored at R5 (finding F-PRES1b-1). Absolute, not proportional:
+        /// Breakdown fires at 0 absolute, so remaining points ARE the distance
+        /// to collapse.
         ///
         /// Extracted so the normal targeting path and the redirect FLOATER use
         /// literally the same selector. If they were two copies they could drift,
@@ -464,21 +473,18 @@ namespace ALWTTT.Characters.Audience
             MusicianBase best = null;
             foreach (var m in list)
             {
-                // [S5e] Inverted meter: higher remaining fortitude = least-stressed (semantic preserved)
+                // [R5 / D-R5-2=A] Closest to Breakdown wins: the LOWEST remaining
+                // fortitude under the S5e inverted meter. See F-PRES1b-1.
                 if (best == null ||
-                    m.MusicianStats.CurrentStress > best.MusicianStats.CurrentStress)
+                    m.MusicianStats.CurrentStress < best.MusicianStats.CurrentStress)
                     best = m;
             }
 
-#if ALWTTT_DEV
-            // [PRES-1b T1-diag] Makes the selector's ranking auditable when a smoke
-            // setup depends on who the default target is.
-            var sb = new System.Text.StringBuilder("[PRES-1][Selector] candidates: ");
-            foreach (var m in list)
-                sb.Append($"{m.name}={m.MusicianStats.CurrentStress} ");
-            sb.Append($"-> winner='{best?.name}'");
-            Debug.Log(sb.ToString());
-#endif
+            // [R5-pre, 2026-08-11] The ALWTTT_DEV [PRES-1][Selector] ranking log was
+            // REMOVED here once ST-R5pre-1..4 passed (Task 5). It fired twice per
+            // redirect and existed only to build those smoke setups. The two
+            // [PRES-1][Spotlight] logs in PublishSpotlightRedirect stay: they are
+            // load-bearing evidence for ST-PRES1-6.
 
             return best;
         }

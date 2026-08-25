@@ -371,6 +371,18 @@ namespace ALWTTT.Status
                         "Action / draw engines");
                     return true;
 
+                case CharacterStatusId.ResourceCounter:
+                    data = new CanonicalPrimitiveData(
+                        "Meta",
+                        "Pure accumulator with no intrinsic effect. Stacks carry no rule " +
+                        "by themselves; meaning is supplied entirely by an explicit " +
+                        "consumer that reads a threshold and spends stacks. " +
+                        "Runtime additionally guards on StatusKey. First user: Voltage (R5, Conito).",
+                        "Mantra (accumulate → spend at threshold)",
+                        "—",
+                        "—");
+                    return true;
+
                 case CharacterStatusId.ShakenRestriction:
                     data = new CanonicalPrimitiveData(
                         "Control",
