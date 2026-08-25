@@ -662,6 +662,28 @@ namespace ALWTTT.Managers
             return perChannel;
         }
 
+        /// <summary>
+        /// [R5-d] MIDI channel a given (musicianId, role) track resolves to under
+        /// this config's layout. Same lookup StampChannel uses — composite key
+        /// first, musician-wide fallback second — exposed so the host can address
+        /// one track's channel (e.g. to exempt it from a duck). Returns -1 when
+        /// the musician is absent from the layout entirely.
+        /// </summary>
+        public int GetChannelForTrack(SongConfig cfg, string musicianId, TrackRole role)
+        {
+            if (cfg == null || string.IsNullOrEmpty(musicianId)) return -1;
+            if (cfg.ChannelMusicianOrder == null) return -1;
+
+            var channelMap = BuildChannelMap(cfg.ChannelRoles ?? new List<TrackRole>());
+            BuildChannelOwnerLookups(cfg, channelMap,
+                out var byMusicianRole, out var byMusician);
+
+            if (byMusicianRole.TryGetValue($"{musicianId}|{role}", out var ch))
+                return ch;
+
+            return byMusician.TryGetValue(musicianId, out ch) ? ch : -1;
+        }
+
         public IEnumerator WaitForEnd()
         {
             if (player == null) yield break;
@@ -2443,6 +2465,70 @@ namespace ALWTTT.Managers
         private readonly float[] _bakedGain01ByChannel =
             { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
 
+        // ── [R5-d] Duck plane (third live-compose factor) ────────────────────────────
+        // 1 = untouched. Never written by Highlight and never read by it: the
+        // two compose through WriteChannelVolume01 instead of fighting over
+        // _savedVol01. A duck therefore survives a Highlight save/restore cycle
+        // unchanged, and vice versa.
+        private readonly float[] _duck01ByChannel =
+            { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
+
+        /// <summary>
+        /// [R5-d] Duck every channel except the soloist's, for the duration of a
+        /// solo. The metronome is exempt (separate semantics, no gains — same
+        /// carve-out WriteChannelVolume01 documents). Idempotent: calling it
+        /// again with a new level simply re-composes.
+        /// </summary>
+        public void SetSoloDuck(int soloChannel, float duck01)
+        {
+            duck01 = Mathf.Clamp01(duck01);
+            for (int ch = 0; ch < 16; ch++)
+            {
+                _duck01ByChannel[ch] =
+                    (ch == soloChannel || ch == MidiGenerator.MetronomeChannel)
+                        ? 1f : duck01;
+            }
+            ReapplyLiveVolumes();
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} <color=#ffd084>[R5-d]</color> Solo duck "
+                    + $"x{duck01:0.##} on every channel except ch{soloChannel}.");
+        }
+
+        /// <summary>[R5-d] Remove the duck. No-op when nothing is ducked, so it is
+        /// safe to call at every loop boundary, part change and session end.</summary>
+        public void ClearSoloDuck()
+        {
+            bool any = false;
+            for (int ch = 0; ch < 16; ch++)
+            {
+                if (!Mathf.Approximately(_duck01ByChannel[ch], 1f))
+                {
+                    _duck01ByChannel[ch] = 1f;
+                    any = true;
+                }
+            }
+
+            if (!any) return;
+            ReapplyLiveVolumes();
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} [R5-d] Solo duck cleared.");
+        }
+
+        /// <summary>[R5-d] Re-send every channel's live intent through the write
+        /// boundary so a change to the duck plane takes effect immediately.
+        /// Reads _lastKnownVol01, which Awake seeds to 1f, so this can never
+        /// silence a channel that was never explicitly set.</summary>
+        private void ReapplyLiveVolumes()
+        {
+            for (int ch = 0; ch < 16; ch++)
+            {
+                if (ch == MidiGenerator.MetronomeChannel) continue;
+                WriteChannelVolume01(ch, Mathf.Clamp01(_lastKnownVol01[ch]));
+            }
+        }
+
         // [BAL-1 task 4] Package readback: CC7 actually emitted per gained track for
         // the last render (fresh or bundle replay). Null ⇒ ungained render.
         public IReadOnlyDictionary<MusicianTrackKey, int> LastAppliedCc7ByTrack
@@ -2546,8 +2632,16 @@ namespace ALWTTT.Managers
         // Metronome writes deliberately bypass this (separate semantics, no gains).
         private void WriteChannelVolume01(int ch, float live01)
         {
+            // [R5-d] Third gain plane. It multiplies INSIDE this method, so
+            // D-BAL-6=B still holds: ONE write boundary, now composing three
+            // planes (live intent x baked bytes gain x duck). Deliberately NOT
+            // a save/restore of raw volumes — Highlight owns the single
+            // _savedVol01 snapshot slot, and a second saver would restore the
+            // other's values whenever the two interleave.
             float composed = Mathf.Clamp01(live01)
-                * _bakedGain01ByChannel[ch] * (100f / 127f);
+                * _bakedGain01ByChannel[ch]
+                * _duck01ByChannel[ch]
+                * (100f / 127f);
             mix?.SetChannelVolume01(ch, Mathf.Clamp01(composed));
             // [BAL-1 test 4] Dev readout: the LIVE-COMPOSED CC7 actually sent
             // (distinct from the baked LastAppliedCc7ByTrack). Lets the Audio

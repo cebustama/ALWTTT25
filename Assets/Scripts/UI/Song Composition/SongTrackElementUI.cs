@@ -1,109 +1,412 @@
-﻿using ALWTTT.Cards;
+﻿// Placement: Assets/Scripts/UI/Song Composition/SongTrackElementUI.cs  (REPLACES existing file)
+//
+// [HUD-COMP-1] Composition-strip track row.
+//
+// WHY THE CLASS NAME AND FILE PATH ARE UNCHANGED: keeping the type identity
+// keeps the .meta GUID, so every prefab that already has this component keeps
+// it. Serialized field names change (roleText/infoText/inspirationNextText are
+// gone), so the prefab MUST be re-wired — but it is a field re-wire, not a
+// component swap, and SongPartElementUI's Instantiate path is untouched.
+//
+// CONTRACT CHANGE vs the previous version:
+//   - `role` arrives as TrackRole, not string. The row renders an ICON; the
+//     role NAME only exists in hover. (Spec §1.2.1 / restriction "texto minimo")
+//   - the +N inspiration TMP is REMOVED from rest and moved to hover (§1.2.8)
+//   - `pending` no longer tints text orange (gold = venue/SFX in the HUD color
+//     system); it draws an animated dashed border instead (§1.2.7)
+//   - level pips exist but nothing feeds them yet: RowData.level defaults to 1
+//     and Lv1 draws NO pips (D2). R7 sets the field; this file needs no change.
+//
+// The row is a DISPLAY. It has no click handler and never disables hand drag.
+
+using System.Collections;
+using ALWTTT.Cards;
+using ALWTTT.Data;
+using MidiGenPlay;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace ALWTTT.UI
 {
+    /// <summary>Density tiers from Composition_View_Spec.md §6.</summary>
+    public enum StripDensityTier
+    {
+        Normal = 0,   // R <= 4
+        TightEmpties, // R >= 5  : empty rows shrink
+        Compact,      // R >= 6  : row height / font / icon shrink
+        HideEmpties,  // R >= 7  : empty rows collapse to 0
+        PipsHoverOnly // R >= 8  : level pips leave rest
+    }
+
     public class SongTrackElementUI : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler
     {
-        [SerializeField] private TMP_Text roleText; // e.g., Rhythm / Backing
-        [SerializeField] private TMP_Text infoText; // e.g., card/pattern name
-        [SerializeField] private TMP_Text inspirationNextText; // [B1 / D-H3=α]
+        #region Bind payload
+
+        /// <summary>
+        /// One struct instead of nine positional args. Adding a field later
+        /// (R7's real level source, a mute flag) does not churn every call site.
+        /// </summary>
+        public struct RowData
+        {
+            public TrackRole role;
+            public string musicianId;
+            public string musicianName;   // hover line 1
+            public Sprite musicianIcon;   // empty-row content
+            public string info;           // card name — the ONLY rest text
+            public int level;             // 1..3; 1 draws no pips (D2)
+            public int maxLevel;          // 3 (D1)
+            public bool placeholder;      // roster musician with no track
+            public bool pending;          // applies next loop
+            public int inspirationNext;   // hover only
+            public string instrumentName; // hover only; "" when unresolved
+            public string bundleName;     // hover only, DEV builds only
+            public CardDefinition sourceCard;
+        }
+
+        #endregion
+
+        #region Wiring
+
+        [Header("Theme")]
+        [SerializeField] private CompositionStripThemeSO theme;
+
+        [Header("Visuals")]
+        [SerializeField] private RectTransform rowRect;
+        [SerializeField] private LayoutElement layoutElement;
+        [SerializeField] private Image pillImage;
+        [SerializeField] private Image borderImage;   // pending dashed border
+        [SerializeField] private Image roleIcon;
+        [SerializeField] private Image musicianIcon;  // empty rows only
+        [SerializeField] private TMP_Text nameText;
         [SerializeField] private CanvasGroup cg;
 
-        [Header("Pending visual (D-H2=α)")]
-        [SerializeField] private Color pendingColor = new Color(1f, 0.7f, 0.2f, 1f);
+        [Header("Level (R7 feeds this; inert until then)")]
+        [SerializeField] private RectTransform levelPipsRoot;
+        [SerializeField] private Image[] levelPips = new Image[3];
+        [SerializeField] private RectTransform levelUpFloater;
 
-        // Captured the first time Bind runs so we can revert from pending tint.
-        private Color _defaultRoleColor;
-        private Color _defaultInfoColor;
-        private bool _defaultsCaptured = false;
+        #endregion
 
-        // [B2 / #3] Source card for hover minicard preview. Null when placeholder
-        // or when no card has populated this row yet.
-        private CardDefinition _sourceCardDefinition;
+        #region State
 
-        private void CaptureDefaultsIfNeeded()
+        private RowData _data;
+        private bool _hasData;
+        private int _lastLevel = -1;
+        private StripDensityTier _tier = StripDensityTier.Normal;
+        private Coroutine _levelUpCo;
+        private Coroutine _flashCo;
+        private float _pendingPhase;
+
+        public bool IsPlaceholder => _data.placeholder;
+        public string CardName => _data.info;
+        public TMP_Text NameText => nameText;   // SongPartElementUI measures this
+
+        #endregion
+
+        #region Bind
+
+        /// <param name="suppressFx">
+        /// True on a full rebuild (Bind of the whole part), where every row is
+        /// freshly instantiated and a "level up" animation would be a lie.
+        /// False on the incremental AddOrUpdateTrack path, which is the only
+        /// place a real level transition can be observed.
+        /// </param>
+        public void Bind(RowData data, bool suppressFx = false)
         {
-            if (_defaultsCaptured) return;
-            if (roleText) _defaultRoleColor = roleText.color;
-            if (infoText) _defaultInfoColor = infoText.color;
-            _defaultsCaptured = true;
+            EnsureRefs();
+            bool levelRose = _hasData && !suppressFx &&
+                             data.level > _lastLevel && _lastLevel > 0 &&
+                             data.sourceCard == _data.sourceCard;
+            bool cardChanged = _hasData && data.sourceCard != _data.sourceCard;
+
+            _data = data;
+            _hasData = true;
+
+            if (data.placeholder) ApplyEmpty();
+            else ApplyActive();
+
+            ApplyDensity(_tier);
+
+            if (levelRose) PlayLevelUp();
+            else if (cardChanged && !suppressFx && !data.placeholder) PlayReplaceFlash();
+
+            _lastLevel = data.placeholder ? -1 : Mathf.Max(1, data.level);
+        }
+
+        private void ApplyEmpty()
+        {
+            // An empty row's job is to say WHICH musician is silent — that is
+            // the whole reason it earns pixels. The old build drew "—", which
+            // said only "something is missing".
+            if (pillImage)
+            {
+                pillImage.color = Mul(theme.pillFill, 0.55f);
+                pillImage.enabled = true;
+            }
+            if (borderImage) borderImage.enabled = false;
+            if (roleIcon) roleIcon.enabled = false;
+            if (nameText) nameText.text = "";
+            if (musicianIcon)
+            {
+                musicianIcon.sprite = _data.musicianIcon;
+                musicianIcon.color = new Color(1f, 1f, 1f, 0.45f);
+                musicianIcon.enabled = _data.musicianIcon != null;
+            }
+            SetPips(0);
+            if (cg) cg.alpha = 1f;
+        }
+
+        private void ApplyActive()
+        {
+            if (pillImage) { pillImage.color = theme.pillFill; pillImage.enabled = true; }
+            if (musicianIcon) musicianIcon.enabled = false;
+
+            if (roleIcon)
+            {
+                theme.TryGetRole(_data.role, out var icon, out var tint, out _);
+                roleIcon.sprite = icon;
+                roleIcon.color = tint;         // tint lives on the GLYPH only (D6=B)
+                roleIcon.enabled = icon != null;
+            }
+
+            if (nameText)
+            {
+                nameText.text = string.IsNullOrWhiteSpace(_data.info) ? "" : _data.info.Trim();
+                nameText.color = theme.nameColor;   // never the pending tint
+            }
+
+            SetPips(_data.level);
+
+            if (borderImage)
+            {
+                borderImage.enabled = _data.pending;
+                borderImage.color = _data.pending
+                    ? theme.pendingBorderColor
+                    : theme.pillBorder;
+            }
+            if (cg) cg.alpha = 1f;
+        }
+
+        /// <summary>Lv1 draws nothing (D2). Empty pips are not drawn as rings —
+        /// a ring would read as "missing", and Lv1 is not a deficiency.</summary>
+        private void SetPips(int level)
+        {
+            bool hide = _tier == StripDensityTier.PipsHoverOnly;
+            int shown = (hide || level < 2) ? 0 : Mathf.Clamp(level, 0, levelPips.Length);
+            if (levelPipsRoot) levelPipsRoot.gameObject.SetActive(shown > 0);
+            for (int i = 0; i < levelPips.Length; i++)
+            {
+                if (!levelPips[i]) continue;
+                levelPips[i].enabled = i < shown;
+                levelPips[i].color = theme.levelColor;
+                levelPips[i].rectTransform.localScale = Vector3.one;
+            }
+        }
+
+        #endregion
+
+        #region Density + width
+
+        public void ApplyDensity(StripDensityTier tier)
+        {
+            EnsureRefs();
+            _tier = tier;
+            bool compact = tier >= StripDensityTier.Compact;
+
+            float h;
+            if (_data.placeholder)
+            {
+                h = tier >= StripDensityTier.HideEmpties ? 0f
+                  : tier >= StripDensityTier.TightEmpties ? theme.emptyRowHeightDense
+                  : theme.emptyRowHeight;
+            }
+            else h = compact ? theme.rowHeightDense : theme.rowHeight;
+
+            if (layoutElement) { layoutElement.preferredHeight = h; layoutElement.minHeight = h; }
+            gameObject.SetActive(h > 0.01f || !_data.placeholder);
+
+            if (roleIcon)
+            {
+                float s = compact ? theme.roleIconSizeDense : theme.roleIconSize;
+                roleIcon.rectTransform.sizeDelta = new Vector2(s, s);
+            }
+            if (nameText)
+            {
+                nameText.fontSize = compact ? theme.nameFontSizeDense : theme.nameFontSize;
+                // Tier 4 truncation: overflow already ellipsizes; we only tighten
+                // the budget so the strip cannot widen under pressure.
+                nameText.overflowMode = TextOverflowModes.Ellipsis;
+                nameText.enableWordWrapping = false;
+            }
+            if (!_data.placeholder) SetPips(_data.level);
+        }
+
+        /// <summary>Set by SongPartElementUI so every row shares one width.</summary>
+        public void SetWidth(float width)
+        {
+            if (!rowRect) return;
+            rowRect.sizeDelta = new Vector2(width, rowRect.sizeDelta.y);
+            if (layoutElement) { layoutElement.preferredWidth = width; layoutElement.minWidth = width; }
+        }
+
+        #endregion
+
+        #region FX
+
+        private void PlayLevelUp()
+        {
+            if (_levelUpCo != null) StopCoroutine(_levelUpCo);
+            _levelUpCo = StartCoroutine(LevelUpRoutine());
+        }
+
+        private IEnumerator LevelUpRoutine()
+        {
+            int idx = Mathf.Clamp(_data.level, 1, levelPips.Length) - 1;
+            var pip = (idx >= 0 && idx < levelPips.Length) ? levelPips[idx] : null;
+            if (levelUpFloater) levelUpFloater.gameObject.SetActive(true);
+
+            float t = 0f;
+            Vector2 floaterStart = levelUpFloater ? levelUpFloater.anchoredPosition : Vector2.zero;
+            var floaterImg = levelUpFloater ? levelUpFloater.GetComponent<Image>() : null;
+
+            while (t < theme.levelUpDuration)
+            {
+                t += Time.deltaTime;
+                float k = t / theme.levelUpDuration;
+
+                // pip overshoot 0 -> 1.4 -> 1 over the first 120 ms
+                if (pip)
+                {
+                    float p = Mathf.Clamp01(t / 0.12f);
+                    float s = p < 1f ? Mathf.Lerp(0f, 1.4f, p) : 1f;
+                    if (t > 0.12f) s = Mathf.Lerp(1.4f, 1f, Mathf.Clamp01((t - 0.12f) / 0.12f));
+                    pip.rectTransform.localScale = Vector3.one * s;
+                }
+                // border pulse: green 2px -> 0 over 600 ms
+                if (borderImage && !_data.pending)
+                {
+                    float b = 1f - Mathf.Clamp01(t / 0.6f);
+                    borderImage.enabled = b > 0.01f;
+                    var c = theme.levelColor; c.a = b;
+                    borderImage.color = c;
+                }
+                // floater rises 32px and fades
+                if (levelUpFloater)
+                {
+                    levelUpFloater.anchoredPosition = floaterStart + new Vector2(0f, 32f * k);
+                    if (floaterImg)
+                    {
+                        var c = theme.levelColor; c.a = 1f - k; floaterImg.color = c;
+                    }
+                }
+                yield return null;
+            }
+
+            if (pip) pip.rectTransform.localScale = Vector3.one;
+            if (levelUpFloater)
+            {
+                levelUpFloater.anchoredPosition = floaterStart;
+                levelUpFloater.gameObject.SetActive(false);
+            }
+            if (borderImage)
+            {
+                borderImage.enabled = _data.pending;
+                borderImage.color = _data.pending ? theme.pendingBorderColor : theme.pillBorder;
+            }
+            _levelUpCo = null;
+        }
+
+        private void PlayReplaceFlash()
+        {
+            if (_flashCo != null) StopCoroutine(_flashCo);
+            _flashCo = StartCoroutine(FlashRoutine());
+        }
+
+        private IEnumerator FlashRoutine()
+        {
+            if (!pillImage) yield break;
+            var baseColor = theme.pillFill;
+            float t = 0f;
+            while (t < theme.replaceFlashDuration)
+            {
+                t += Time.deltaTime;
+                float k = 1f - (t / theme.replaceFlashDuration);
+                pillImage.color = Color.Lerp(baseColor, new Color(1f, 1f, 1f, 0.35f), k);
+                yield return null;
+            }
+            pillImage.color = baseColor;
+            _flashCo = null;
         }
 
         /// <summary>
-        /// Bind a track row.
+        /// Pending marker. D-IMPL-DASH: true marching-ants needs a material with
+        /// a scrolling UV. If the assigned border sprite has no such material,
+        /// this degrades to an alpha pulse — still an unmistakable "this row is
+        /// not what you are hearing yet", with zero shader work.
         /// </summary>
-        /// <param name="role">Track role label (Rhythm / Backing / Melody / Harmony, or "—").</param>
-        /// <param name="info">Card/pattern name or empty.</param>
-        /// <param name="placeholder">No track present; render dim with no badge or tooltip.</param>
-        /// <param name="inspirationNext">Per-loop inspiration generated; 0 hides badge.</param>
-        /// <param name="pending">Apply pending tint (suppressed for placeholders).</param>
-        /// <param name="sourceCard">
-        /// [B2 / #3] Source <see cref="CardDefinition"/> for hover minicard preview.
-        /// Null on placeholders or before any card has populated this slot.
-        /// </param>
-        public void Bind(
-            string role,
-            string info,
-            bool placeholder = false,
-            int inspirationNext = 0,
-            bool pending = false,
-            CardDefinition sourceCard = null)
+        private void Update()
         {
-            CaptureDefaultsIfNeeded();
+            if (!_hasData || !_data.pending || borderImage == null) return;
+            _pendingPhase += Time.deltaTime / Mathf.Max(0.01f, theme.pendingPulsePeriod);
+            float a = Mathf.Lerp(0.35f, 0.85f, (Mathf.Sin(_pendingPhase * Mathf.PI * 2f) + 1f) * 0.5f);
+            var c = theme.pendingBorderColor; c.a = a;
+            borderImage.color = c;
 
-            if (roleText) roleText.text = string.IsNullOrWhiteSpace(role) ? "—" : role.Trim();
-            if (infoText) infoText.text = string.IsNullOrWhiteSpace(info) ? "" : info.Trim();
-
-            // [B1 / D-H3=α] Inspiration-next badge. Hidden for placeholders
-            // (no track) and for tracks generating zero inspiration.
-            if (inspirationNextText)
-            {
-                if (placeholder || inspirationNext <= 0)
-                    inspirationNextText.text = "";
-                else
-                    inspirationNextText.text = $"+{inspirationNext}";
-            }
-
-            // [B1 / D-H1+H2=α] Pending tint. Suppressed for placeholders
-            // (no track exists yet that could be "pending").
-            bool effectivePending = pending && !placeholder;
-            if (roleText) roleText.color = effectivePending ? pendingColor : _defaultRoleColor;
-            if (infoText) infoText.color = effectivePending ? pendingColor : _defaultInfoColor;
-
-            if (!cg) cg = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
-            cg.alpha = placeholder ? 0.45f : 1f;
-
-            // [B2 / #3] Track the source card for hover preview. Placeholders never
-            // preview anything (their "—" content is not a real card).
-            _sourceCardDefinition = placeholder ? null : sourceCard;
+            var mat = borderImage.material;
+            if (mat != null && mat.HasProperty("_DashOffset"))
+                mat.SetFloat("_DashOffset", _pendingPhase % 1f);
         }
 
-        #region [B2 / #3] Pointer hover → minicard preview
+        #endregion
+
+        #region Hover (§5)
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (_sourceCardDefinition == null) return;
-            var ctrl = MinicardTooltipController.Instance;
-            if (ctrl != null) ctrl.Show(_sourceCardDefinition);
+            if (!_hasData) return;
+
+            // Facts panel: exists for EVERY row, including empty ones — "no track
+            // yet" is information, and a row that swallows hover teaches the
+            // player that hovering is unreliable.
+            TrackHoverPanel.Instance?.ShowForTrack(_data, rowRect);
+
+            // Minicard: only when a real card backs the row. Anchored to the row
+            // (not the cursor) so the panel + card open as one block over the
+            // stage art, never over hand or audience.
+            if (_data.sourceCard != null)
+                MinicardTooltipController.Instance?.Show(_data.sourceCard, rowRect);
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public void OnPointerExit(PointerEventData eventData) => HideHover();
+
+        private void OnDisable() => HideHover();
+
+        private void HideHover()
         {
-            var ctrl = MinicardTooltipController.Instance;
-            if (ctrl != null) ctrl.Hide();
+            TrackHoverPanel.Instance?.Hide();
+            MinicardTooltipController.Instance?.Hide();
         }
 
-        // If the row is destroyed while hovered (e.g., re-bind rebuilds rows),
-        // ensure the preview hides; pointer-exit won't fire on destroyed objects.
-        private void OnDisable()
+        #endregion
+
+        #region Helpers
+
+        private void EnsureRefs()
         {
-            var ctrl = MinicardTooltipController.Instance;
-            if (ctrl != null) ctrl.Hide();
+            if (!rowRect) rowRect = transform as RectTransform;
+            if (!cg) cg = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            if (!layoutElement) layoutElement = GetComponent<LayoutElement>()
+                ?? gameObject.AddComponent<LayoutElement>();
+            if (theme == null)
+                Debug.LogError($"[SongTrackElementUI] No theme assigned on {name}. " +
+                               "Assign CompositionStripTheme on the row prefab.");
         }
+
+        private static Color Mul(Color c, float alphaScale)
+            => new Color(c.r, c.g, c.b, c.a * alphaScale);
 
         #endregion
     }

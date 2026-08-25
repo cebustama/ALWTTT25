@@ -65,6 +65,12 @@ namespace ALWTTT.UI
             "Leave null to skip composition floating text (same effect as null anchor).")]
         private CompositionFxConfigSO fxConfig;
 
+        [Header("[HUD-COMP-1] Composition strip")]
+        [SerializeField, Tooltip("Optional. Refreshes the strip's context row " +
+    "(loop pips) at loop boundaries. Leave null to skip — the strip still " +
+    "renders, it just stops updating the loop counter between binds.")]
+        private CompositionStripDriver stripDriver;
+
         [Header("Dev")]
         [SerializeField] private bool useLogs = false;
 
@@ -845,11 +851,17 @@ namespace ALWTTT.UI
                 SetPartVisible(partIndex, true);
 
             partUIs[partIndex].AddOrUpdateTrack(
-                musicianId, role.ToString(), info,
-                // [DF-INSPLOOP] badge shows track complexity + card per-loop bonus
+                // [HUD-COMP-1] role travels as the ENUM now: the row renders an
+                // icon, and re-parsing a string back into a TrackRole inside the
+                // row would be a lossy round-trip for zero benefit.
+                musicianId, role, info,
+                // [DF-INSPLOOP] value survives, but it is hover-only now —
+                // the +N TMP left the rest state (spec §1.2.8).
                 inspirationNext: complexity +
                     ALWTTT.Cards.Effects.AddInspirationPerLoopSpec.SumFor(sourceCard),
-                sourceCard: sourceCard); // [B2 / #3]
+                sourceCard: sourceCard, // [B2 / #3]
+                pending: false,
+                level: 1);              // R7 supplies the real level; Lv1 draws no pips
             UpdateIconsForCurrentPart();
             RaisePartChanged();
             return true;
@@ -947,6 +959,17 @@ namespace ALWTTT.UI
 
             ui.SetRosterOrder(rosterOrder);
             partUIs.Add(ui);
+
+            // [HUD-COMP-1] Re-emit part identity to EVERY part, not just the new
+            // one: adding part N changes the total for the N-1 that already
+            // exist, and the part letter is suppressed on total == 1. Updating
+            // only the newcomer would show the letter on some rows and not
+            // others — the exact inconsistency that made "Part A" feel like noise.
+            for (int i = 0; i < partUIs.Count; i++)
+                if (partUIs[i] != null) partUIs[i].SetPartContext(i, model.parts.Count);
+
+            if (stripDriver != null) stripDriver.Register(ui);
+
             RefreshPartUI(partUIs.Count - 1);
         }
 

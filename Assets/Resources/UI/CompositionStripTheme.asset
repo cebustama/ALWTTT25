@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ec888f6b0d0ef7419dbc5d12faabca5, type: 3}
+  m_Name: CompositionStripTheme
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.CompositionStripThemeSO
+  roles:
+  - role: 0
+    icon: {fileID: 21300000, guid: ff57c2f666d09a34b922775b16d5d451, type: 3}
+    tint: {r: 0.9098039, g: 0.7607843, b: 0.47843137, a: 1}
+    displayName: Rhythm
+  - role: 1
+    icon: {fileID: 21300000, guid: b9f0b8f6022820f41bb79bee621c3bf3, type: 3}
+    tint: {r: 0.7882353, g: 0.65882355, b: 1, a: 1}
+    displayName: Backing
+  - role: 3
+    icon: {fileID: 21300000, guid: 5e5d0116990d5aa45bbf84780de1d8e5, type: 3}
+    tint: {r: 0.49803922, g: 0.8784314, b: 0.78431374, a: 1}
+    displayName: Bassline
+  - role: 4
+    icon: {fileID: 21300000, guid: cec40a489189d5e49ab1ca347c0b9732, type: 3}
+    tint: {r: 1, g: 0.61960787, b: 0.78039217, a: 0}
+    displayName: Melody
+  - role: 5
+    icon: {fileID: 21300000, guid: af7c9d7748df3c2439da3f11f98f31ad, type: 3}
+    tint: {r: 0.9411765, g: 0.9019608, b: 0.627451, a: 1}
+    displayName: Harmony
+  - role: 2
+    icon: {fileID: 21300000, guid: 1afeaf748844b8f4ab27ecfc1742d8d7, type: 3}
+    tint: {r: 1, g: 0.6901961, b: 0.5647059, a: 1}
+    displayName: Lead
+  meters:
+  - meter: 0
+    glyph: {fileID: 21300000, guid: 6e3899940dc22fb40814ae5c7bb47050, type: 3}
+    displayName: Four Four
+  - meter: 3
+    glyph: {fileID: 21300000, guid: 4ff6a15aa84c0fe4eaf140a67cfd4069, type: 3}
+    displayName: Six Eight
+  - meter: 1
+    glyph: {fileID: 21300000, guid: 08a2e294d5bc497438db4636ebfded1a, type: 3}
+    displayName: Three Four
+  - meter: 6
+    glyph: {fileID: 21300000, guid: 39c1bf40c45146a41a2332bcf425718a, type: 3}
+    displayName: Five Four
+  - meter: 7
+    glyph: {fileID: 21300000, guid: c28ddcb6ffd948a429c781dbaefb0df0, type: 3}
+    displayName: Seven Eight
+  tempos:
+  - tempo: 0
+    icon: {fileID: 21300000, guid: 9e047a2e64e7d9847b6887455eb91443, type: 3}
+    displayName: Very Slow
+  - tempo: 1
+    icon: {fileID: 21300000, guid: bcae263c2c75ba54cbdc62bff95b7f69, type: 3}
+    displayName: Slow
+  - tempo: 2
+    icon: {fileID: 21300000, guid: 5f5944fd8283c0044b4a8740b6a9d3f0, type: 3}
+    displayName: Medium
+  - tempo: 3
+    icon: {fileID: 21300000, guid: c77397b7c6aaed74ca473b80537c950f, type: 3}
+    displayName: Fast
+  - tempo: 4
+    icon: {fileID: 21300000, guid: 82456f8fe8fde2e4490f458611903608, type: 3}
+    displayName: Very Fast
+  moods:
+  - tonality: 0
+    mood: 1
+    glyph: {fileID: 21300000, guid: 4d4e23312b76a754ea77dcca8323585b, type: 3}
+    tint: {r: 1, g: 0.8784314, b: 0.5411765, a: 1}
+  - tonality: 4
+    mood: 5
+    glyph: {fileID: 21300000, guid: 8f3b659b44ccc754e8a2ea71a31830a3, type: 3}
+    tint: {r: 1, g: 0.7058824, b: 0.41960785, a: 1}
+  - tonality: 3
+    mood: 4
+    glyph: {fileID: 21300000, guid: 2dc2b133112d186418ce88dc9d55efa9, type: 3}
+    tint: {r: 0.7882353, g: 0.72156864, b: 1, a: 1}
+  - tonality: 1
+    mood: 3
+    glyph: {fileID: 21300000, guid: 60e3702ae056e184d8ed575d6ef2a305, type: 3}
+    tint: {r: 0.56078434, g: 0.9411765, b: 0.8156863, a: 1}
+  - tonality: 5
+    mood: 2
+    glyph: {fileID: 21300000, guid: 36155d35ec0839e469b9bdc3c6ad6376, type: 3}
+    tint: {r: 0.56078434, g: 0.7058824, b: 1, a: 1}
+  - tonality: 2
+    mood: 6
+    glyph: {fileID: 21300000, guid: 855c17ce6a6a5134e856a2ca4d468eb7, type: 3}
+    tint: {r: 0.7058824, g: 0.54901963, b: 1, a: 1}
+  - tonality: 6
+    mood: 7
+    glyph: {fileID: 21300000, guid: 0abd60a287cb76545b9801ab6ca8bdd4, type: 3}
+    tint: {r: 1, g: 0.5411765, b: 0.41960785, a: 1}
+  unknownGlyph: {fileID: 21300000, guid: e949b14e9d7fa68488bbc33621b4afd6, type: 3}
+  unknownTint: {r: 0.6039216, g: 0.627451, b: 0.69, a: 1}
+  pillFill: {r: 0.031, g: 0.039, b: 0.094, a: 0.68}
+  pillBorder: {r: 1, g: 1, b: 1, a: 0.1}
+  pillRadius: 12
+  emptyPillRadius: 8
+  rowHeight: 44
+  rowHeightDense: 36
+  contextRowHeight: 36
+  emptyRowHeight: 26
+  emptyRowHeightDense: 14
+  rowGap: 6
+  minWidth: 220
+  maxWidth: 340
+  maxWidthDense: 300
+  roleIconSize: 22
+  roleIconSizeDense: 18
+  nameFontSize: 22
+  nameFontSizeDense: 18
+  paddingLeft: 12
+  paddingRight: 14
+  nameLeftInset: 46
+  nameColor: {r: 1, g: 1, b: 1, a: 0.92}
+  levelColor: {r: 0.561, g: 0.839, b: 0.58, a: 1}
+  finalLoopColor: {r: 1, g: 0.541, b: 0.42, a: 1}
+  pendingBorderColor: {r: 1, g: 1, b: 1, a: 0.7}
+  rowGrowDuration: 0.16
+  widthDuration: 0.16
+  levelUpDuration: 1.2
+  replaceFlashDuration: 0.12
+  pendingPulsePeriod: 1

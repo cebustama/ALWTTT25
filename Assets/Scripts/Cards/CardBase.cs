@@ -552,6 +552,27 @@ namespace ALWTTT
                     continue;
                 }
 
+                // [R5-d / D-R0-5=A] Bonus loop. The COST is deliberately NOT
+                // here: it was checked and spent upstream, before the play was
+                // committed (D-R5-26=A). A cost inside a spec would run after
+                // inspiration and the ECON-1 budget were already burned, so the
+                // card could be played with an empty resource and then fail
+                // silently. By the time this runs the grant has been pre-checked
+                // at the play path, so a failure here is a genuine anomaly and
+                // is logged as one rather than swallowed.
+                if (effect is GrantBonusLoopSpec bonusLoop)
+                {
+                    var gm = ALWTTT.Managers.GigManager.Instance;
+                    if (gm == null || !gm.TryGrantBonusLoop(bonusLoop.soloOverBonusLoop))
+                    {
+                        Debug.LogWarning(
+                            $"[CardBase] GrantBonusLoopSpec did not apply. " +
+                            $"Card='{CardDefinition?.name}'. The play was already " +
+                            "committed — check the pre-commit gate at the play path.");
+                    }
+                    continue;
+                }
+
                 if (effect is AddInspirationPerLoopSpec)
                 {
                     // [DF-INSPLOOP] Consumed at track-binding time

@@ -366,6 +366,13 @@ namespace ALWTTT.Cards.Editor
             SetInt(cardSO, "inspirationCost", Mathf.Max(0, dto.inspirationCost));
             SetInt(cardSO, "inspirationGenerated", Mathf.Max(0, dto.inspirationGenerated));
 
+            // [R5-d / D-R5-26=A] Resource cost pair. Written unconditionally —
+            // CardDefinition.HasResourceCost is what decides whether a cost
+            // exists, so an absent key stages as empty and stays inert.
+            SetString(cardSO, "resourceCostStatusKey",
+                dto.resourceCostStatusKey != null ? dto.resourceCostStatusKey.Trim() : string.Empty);
+            SetInt(cardSO, "resourceCostAmount", Mathf.Max(0, dto.resourceCostAmount));
+
             if (TryParseEnum(dto.cardType, out CardType ctype))
                 SetEnum(cardSO, "cardType", ctype);
 
@@ -574,7 +581,7 @@ namespace ALWTTT.Cards.Editor
 
                 if (string.IsNullOrWhiteSpace(row.type))
                 {
-                    error = $"effects[{i}].type is required. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop, RevealPreferences.";
+                    error = $"effects[{i}].type is required. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop, RevealPreferences, GrantBonusLoop.";
                     return false;
                 }
 
@@ -722,9 +729,20 @@ namespace ALWTTT.Cards.Editor
                     var spec = new RevealPreferencesSpec { targetType = target };
                     AddManagedEffect(listProp, spec);
                 }
+                else if (type.Equals("GrantBonusLoop", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    // [R5-d / D-R0-5=A] No validation to do: the spec carries one
+                    // bool and no asset reference. The precondition that matters
+                    // (a running part) is a RUNTIME gate, not an authoring one.
+                    var spec = new GrantBonusLoopSpec
+                    {
+                        soloOverBonusLoop = row.soloOverBonusLoop
+                    };
+                    AddManagedEffect(listProp, spec);
+                }
                 else
                 {
-                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop, RevealPreferences.";
+                    error = $"effects[{i}]: unsupported type '{row.type}'. Supported: ApplyStatusEffect, ModifyVibe, ModifyStress, DrawCards, AddInspirationPerLoop, RevealPreferences, GrantBonusLoop.";
                     return false;
                 }
             }

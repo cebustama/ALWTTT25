@@ -519,6 +519,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6455820577279347465}
   - component: {fileID: 4001486454177890013}
+  - component: {fileID: 258449390308053763}
   m_Layer: 0
   m_Name: SongCompositionUI
   m_TagString: Untagged
@@ -583,7 +584,22 @@ MonoBehaviour:
   compositionFxAnchor: {fileID: 6569949226045640336}
   compositionFxDir: {x: 0, y: 1.2}
   fxConfig: {fileID: 11400000, guid: 081226bfdcc5eaa4398070a850d15198, type: 2}
+  stripDriver: {fileID: 258449390308053763}
   useLogs: 0
+--- !u!114 &258449390308053763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3120489831432651415}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0df5b335c0780a498e89cb845a8c0d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.UI.CompositionStripDriver
+  partElements: []
+  pollInterval: 0.25
 --- !u!1 &3570776515193599803
 GameObject:
   m_ObjectHideFlags: 0

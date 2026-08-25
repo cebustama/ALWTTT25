@@ -738,6 +738,19 @@ namespace ALWTTT
                     }
                 }
 
+                // 2a.6) [R5-d] Bonus-loop precondition. Checked BEFORE any spend
+                // so a card that cannot extend anything never burns its
+                // resource. CanPlayActionCard (2a) is domain-wide and returns
+                // true in the between-songs action window; this gate is
+                // card-specific and closes exactly that hole.
+                if (GigManager != null && GigManager.CardGrantsBonusLoop(data)
+                    && !GigManager.CanGrantBonusLoop())
+                {
+                    LogV($"{DebugTag} [Gig][R5-d] '{data.DisplayName}' needs a running " +
+                         "part with a bonus loop available. Returning to hand.");
+                    return false;
+                }
+
                 // NOTE: for now we IGNORE the old groove checks so we don’t depend
                 // on the legacy gig state machine / groove economy.
                 // If you want them back later, re-enable:
@@ -795,6 +808,25 @@ namespace ALWTTT
                     LogV($"{DebugTag} [Gig][ECON-1] Action play denied — " +
                         $"{budgetPayer.CharacterName} has no action plays left " +
                         "this period. Returning to hand.");
+                    return false;
+                }
+
+                // [R5-d / D-R5-26=A] Resource cost, consumed right after the
+                // ECON-1 budget and before the animation. Order vs the Voltage
+                // generation hook inside TryConsumePlay is NET-NEUTRAL: both a
+                // +1 grant and an -N spend happen either way, so the balance is
+                // identical whichever runs first.
+                //
+                // Inherited ECON-1 asymmetry, on record: the budget is already
+                // consumed at this point, so a resource denial here returns the
+                // card to hand having burned one play. In practice unreachable —
+                // 2a.6 and the playability overlay both pre-check — but it is
+                // the same asymmetry ECON-1 already carries, not a new one.
+                if (bandCharacter is MusicianBase resourcePayer &&
+                    !GigManager.TryPayResourceCost(data, resourcePayer))
+                {
+                    LogV($"{DebugTag} [Gig][R5-d] '{data.DisplayName}' resource cost " +
+                         "denied at commit. Returning to hand.");
                     return false;
                 }
 

@@ -35,6 +35,12 @@ namespace ALWTTT.Cards.LLMAuthoring
         public int inspirationCost = 1;
         public int inspirationGenerated = 0;
 
+        // [R5-d / D-R5-26=A] Resource cost. Generic (statusKey, amount) pair —
+        // NOT a voltage-specific field. Empty key or amount 0 = no cost, which
+        // is what every pre-R5-d card imports as.
+        public string resourceCostStatusKey;
+        public int resourceCostAmount = 0;
+
         public bool exhaustAfterPlay;
         public bool overrideRequiresTargetSelection;
         public bool requiresTargetSelectionOverrideValue;
@@ -80,6 +86,9 @@ namespace ALWTTT.Cards.LLMAuthoring
         // - "ModifyStress"
         // - "AddInspirationPerLoop"   [DF-INSPLOOP] Track cards only; uses `amount` as per-loop bonus (>= 1)
         // - "RevealPreferences"        [R4 / D-R0-1] Info-only; uses `targetType` only (no amount/stacks)
+        // - "GrantBonusLoop"           [R5-d / D-R0-5=A] Uses `soloOverBonusLoop` only.
+        //                              The COST is not here — it lives on the card
+        //                              definition (resourceCostStatusKey/Amount).
         public string type;
 
         // ─ ApplyStatusEffect ─
@@ -94,6 +103,12 @@ namespace ALWTTT.Cards.LLMAuthoring
 
         // ─ DrawCards ─
         public int count = 1;
+
+        // ─ GrantBonusLoop ─  [R5-d]
+        // Defaults to true: JsonUtility runs the field initializer and only
+        // overwrites keys actually present in the JSON, so omitting this gives
+        // a solo, matching GrantBonusLoopSpec's own default.
+        public bool soloOverBonusLoop = true;
     }
 
     [Serializable]

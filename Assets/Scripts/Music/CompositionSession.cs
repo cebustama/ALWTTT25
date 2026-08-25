@@ -52,6 +52,27 @@ namespace ALWTTT.Music
         private int _loopsTotalForPart;
         private int _loopsRemainingForPart;
 
+        // ─── [R5-d] Bonus loops ──────────────────────────────────────────
+        // _bonusLoopsPendingForPart: granted but NOT yet started. It is the
+        // term that keeps IsFinalLoopRunning from flipping mid-loop (D-R5-23=A):
+        // a grant raises _loopsRemainingForPart and this counter together, so
+        // their difference — the count of ordinary loops left — is unchanged.
+        private int _bonusLoopsPendingForPart;
+        private int _bonusLoopsGrantedForPart;   // cap bookkeeping, per part
+        private bool _currentLoopIsBonus;        // the loop now playing
+        private bool _lastFinishedLoopWasBonus;  // frozen for LoopFinished subscribers
+        private bool _bonusSoloRequested;        // solo asked for on the pending loop(s)
+        private float _bonusSoloDuck01 = 1f;     // duck level carried from the grant
+
+        /// <summary>[R5-d] True while the loop currently playing is a bonus loop.</summary>
+        public bool CurrentLoopIsBonus => _currentLoopIsBonus;
+
+        /// <summary>[R5-d] Whether the loop that JUST finished was a bonus loop.
+        /// Frozen at the top of HandleLoopFinished, so it is stable for every
+        /// LoopFinished subscriber (GigManager's Seam-C suppression reads it).</summary>
+        public bool LastFinishedLoopWasBonus => _lastFinishedLoopWasBonus;
+
+
         private int _currentInspiration;
         private int _perLoopInspirationCurrentPart;
         private int _buildingPartInspirationPerLoop;
@@ -347,8 +368,15 @@ namespace ALWTTT.Music
             _isPlaying &&
             (_state == CompositionState.BuildingNextPart ||
              _state == CompositionState.PlayingCurrentPart) &&
-            _loopsRemainingForPart == 1 &&
+            // [R5-d / D-R5-23=A] "Final loop" means the last ORDINARY loop, and
+            // stays true across the whole bonus tail. Two consequences, both
+            // wanted: (1) granting a bonus loop mid-loop does NOT flip the lock
+            // while a render is already sounding; (2) a bonus loop is a payoff,
+            // not a second authoring window (coherent with D-R5-6=B: Overload
+            // buys music, not card tempo). Revert = drop the second term.
+            _loopsRemainingForPart - _bonusLoopsPendingForPart == 1 &&
 #if ALWTTT_DEV
+
             // [DBG-C1 / D2=A] Under infinite loop, "final loop" never
             // finalizes — a next render always exists, so the CARD-UX-1
             // waste-deny does not apply. Dev-only branch; production
@@ -356,6 +384,16 @@ namespace ALWTTT.Music
             !DevInfiniteCompositionLoop &&
 #endif
             !ALWTTT.Tutorial.TutorialLoopHoldGate.IsArmed;
+
+        private void ResetBonusLoopState()
+        {
+            _bonusLoopsPendingForPart = 0;
+            _bonusLoopsGrantedForPart = 0;
+            _currentLoopIsBonus = false;
+            _lastFinishedLoopWasBonus = false;
+            _bonusSoloRequested = false;
+            _bonusSoloDuck01 = 1f;
+        }
 
         /// <summary>
         /// True while the session is active (after Begin and before End).
@@ -420,6 +458,7 @@ namespace ALWTTT.Music
             _finishedParts.Clear();
             _buildingPartInspirationPerLoop = 0;
             _perLoopInspirationCurrentPart = 0; // [DF-INSPLOOP-badge/ST-2] limpia valor stale entre canciones
+            ResetBonusLoopState();              // [R5-d] never leaks across songs
 
             // [S5g / D-S5gb-2=B] One seed per song, stable until End().
 #if ALWTTT_DEV
@@ -478,6 +517,9 @@ namespace ALWTTT.Music
             _keepInstrumentByPart.Clear();
             _songSeed = null; // [S5g] seed dies with the song
 
+            ResetBonusLoopState();
+            _ctx?.Music?.ClearSoloDuck();      // [R5-d] never leave the mix ducked
+
             _ctx.LoopsTimerUI?.ClearProgress();
             _ctx.ShowHand(false);
             _ctx.ShowCompositionUI(false);
@@ -515,6 +557,89 @@ namespace ALWTTT.Music
             return Math.Max(0, cost) <= _currentInspiration;
         }
 
+        /// <summary>[R5-d] Parameters of a bonus-loop grant. Passed in by the
+        /// host so the session keeps its settings-free contract (it holds
+        /// JamRules only, never a GigFlowSettingsSO).</summary>
+        public readonly struct BonusLoopRequest
+        {
+            public readonly int MaxLoopsPerPart;
+            public readonly bool WithSolo;
+            public readonly float Duck01;
+
+            public BonusLoopRequest(int maxLoopsPerPart, bool withSolo, float duck01)
+            {
+                MaxLoopsPerPart = maxLoopsPerPart;
+                WithSolo = withSolo;
+                Duck01 = duck01;
+            }
+        }
+
+        /// <summary>[R5-d] Non-mutating check: is there a running part that can
+        /// still take a bonus loop? Consumed by the playability overlay.</summary>
+        public bool CanGrantBonusLoop(int maxLoopsPerPart)
+        {
+            if (!_isPlaying) return false;
+            if (_state != CompositionState.BuildingNextPart &&
+                _state != CompositionState.PlayingCurrentPart) return false;
+            return _bonusLoopsGrantedForPart < Mathf.Max(0, maxLoopsPerPart);
+        }
+
+        /// <summary>
+        /// [R5-d] Extend the running part by one loop.
+        ///
+        /// Both counters move together and BOTH matter:
+        ///  - _loopsTotalForPart keeps loopIndex0 and IsLastLoopOfPart coherent
+        ///    (the bonus loop becomes the part's last loop, and only it — the
+        ///    ordinary final loop stops being last the moment we grant).
+        ///  - _bonusLoopsPendingForPart holds the composition lock (D-R5-23=A).
+        /// </summary>
+        public bool TryGrantBonusLoop(in BonusLoopRequest req, out string reason)
+        {
+            if (!_isPlaying)
+            { reason = "no loop is running"; return false; }
+
+            if (_state != CompositionState.BuildingNextPart &&
+                _state != CompositionState.PlayingCurrentPart)
+            { reason = $"session state {_state} cannot take a bonus loop"; return false; }
+
+            if (_bonusLoopsGrantedForPart >= Mathf.Max(0, req.MaxLoopsPerPart))
+            { reason = $"part already took {_bonusLoopsGrantedForPart} bonus loop(s)"; return false; }
+
+            _loopsTotalForPart++;
+            _loopsRemainingForPart++;
+            _bonusLoopsPendingForPart++;
+            _bonusLoopsGrantedForPart++;
+
+            if (req.WithSolo)
+            {
+                _bonusSoloRequested = true;
+                _bonusSoloDuck01 = Mathf.Clamp01(req.Duck01);
+            }
+
+            // [D-R5-25=A] The strip is rebuilt, not appended to: BuildBars
+            // destroys and re-instantiates. Repaint immediately so the extra
+            // bar does not show one blank frame before Tick catches up.
+            var l = _ctx?.LoopsTimerUI;
+            if (l != null)
+            {
+                l.BuildBars(_loopsTotalForPart);
+                int loopsCompleted = Math.Max(0, _loopsTotalForPart - _loopsRemainingForPart);
+                float pct = _loopDurationSeconds > 0f
+                    ? Mathf.Clamp01((Time.time - _loopStartTime) / _loopDurationSeconds)
+                    : 0f;
+                l.SetProgress(loopsCompleted, pct);
+                l.SetBarsVisible(true);
+            }
+
+            _ctx?.Log($"[R5-d] Bonus loop granted — part {_currentPartIndex} now " +
+                      $"{_loopsTotalForPart} loops ({_loopsRemainingForPart} left, " +
+                      $"{_bonusLoopsPendingForPart} pending bonus, " +
+                      $"solo={(req.WithSolo ? "yes" : "no")}).", true);
+
+            reason = null;
+            return true;
+        }
+
         /// <summary>
         /// Deduct <paramref name="cost"/> from session inspiration and refresh the UI.
         /// Caller must check <see cref="CanAffordInspiration"/> first; this method
@@ -545,6 +670,8 @@ namespace ALWTTT.Music
             _currentPartIndex = 0;
             _loopsTotalForPart = _rules.loopsPerPart;
             _loopsRemainingForPart = _rules.loopsPerPart;
+
+            ResetBonusLoopState();             // [R5-d] first loop of a part is never bonus
 
             float secs = PlaySinglePartLoop(_currentPartIndex);
             if (secs <= 0f) { _ctx.Log("[Session] Failed to start first loop"); return; }
@@ -910,7 +1037,6 @@ namespace ALWTTT.Music
             // not performed here (otherwise we risk wiping the player's hand).
         }
 
-
         private float PlaySinglePartLoop(int partIndex)
         {
             var mm = _ctx.Music;
@@ -921,6 +1047,18 @@ namespace ALWTTT.Music
 
             if (partIndex < 0 || partIndex >= cfg.Parts.Count) return 0f;
 
+            // ─── [R5-d / D-R5-4=A] One-loop solo, RENDER SCOPE ───────────
+            // The composition model is never touched. BuildSongConfigFromUI
+            // rebuilds `cfg` every loop, so an injection here lives exactly one
+            // render: there is no revert API and nothing to unwind.
+            bool soloThisLoop = false;
+            MusicianTrackKey soloKey = default;
+            if (_currentLoopIsBonus && _bonusSoloRequested)
+                soloThisLoop = TryInjectBonusSoloTrack(cfg, partIndex, out soloKey);
+
+            // Owners must be published AFTER the injection, or the solo's
+            // channel has no owner and the mix / floaters / beat animation
+            // cannot attribute it.
             var ownerIds = mm.GetChannelOwnerIdsFor(cfg);
             mm.SetChannelOwners(ownerIds?.ToList());
 
@@ -942,11 +1080,27 @@ namespace ALWTTT.Music
             }
 #endif
 
-            if (!_partCache.TryGetValue(partIndex, out var cache)
-                || cache?.mergedBytes == null || cache.mergedBytes.Length == 0)
+            // [R5-d] `stored` is the PERSISTENT entry; `cache` is what THIS
+            // render writes into. On a solo loop they must not be the same
+            // object: the pre-R5-d code reused the cached instance by
+            // reference, so writing the solo bytes into it would make the solo
+            // replay on every later loop of the part.
+            _partCache.TryGetValue(partIndex, out var stored);
+
+            bool cacheHit = !soloThisLoop
+                && stored?.mergedBytes != null
+                && stored.mergedBytes.Length > 0;
+
+            var cache = soloThisLoop ? null : stored;
+
+            if (!cacheHit)
             {
-                int? bpmOverride = (cache != null && cache.resolvedBpm > 0)
-                    ? cache.resolvedBpm : (int?)null;
+                // [R5-d] BPM and the resolved-instrument readback still come
+                // from the STORED entry even on a solo loop: a bonus loop must
+                // not re-roll the part's tempo, nor let the base tracks land on
+                // different instruments than the loop before it.
+                int? bpmOverride = (stored != null && stored.resolvedBpm > 0)
+                    ? stored.resolvedBpm : (int?)null;
 
                 // [LOG-1] The F-4 boundary-call shape dump was removed at F-4
                 // closure. It fired on every render that missed the cache and
@@ -962,12 +1116,26 @@ namespace ALWTTT.Music
                         _ctx, partIndex,
                         mm.GigMixGains); // [BAL-1] gain enters the hash (D-BAL-3=A)
 
+                // [R5-d] The hash map is built from the UI MODEL, which knows
+                // nothing about the injected solo. Without an entry for it,
+                // RenderSinglePart sets cacheEnabled = false and regenerates
+                // EVERY track — the base would stop being byte-identical, which
+                // is the one thing the solo must not do. A synthetic, stable
+                // entry keeps the stem cache serving the base verbatim; only
+                // the bundle key changes, so only the new stem is generated.
+                if (soloThisLoop && trackInputsHashes != null)
+                    trackInputsHashes[soloKey] = BuildBonusSoloHash(cfg, partIndex, soloKey);
+
                 // [B1 / #7.1 / D-F=γ] Apply session-level instrument pins to
                 // cfg before the render. Keeps the same musician's voice
                 // consistent when only style/role-style changes. Respects
                 // explicit instrument overrides from cards (skipped per-track
                 // when UI TrackEntry has overrideMelodicInstrument /
                 // overridePercussionInstrument set).
+                //
+                // [R5-d] The injected solo track carries an instrument chosen
+                // in TryInjectBonusSoloTrack and has no pin, so this pass
+                // leaves it alone.
                 ApplyInstrumentPins(cfg, partIndex);
 
                 // [DBG-C1] instrumentOverrides is composite-keyed: one entry
@@ -1028,7 +1196,7 @@ namespace ALWTTT.Music
 #endif
                 var (merged, stems, seconds, bpmChosen, instByTrack) =
                     mm.RenderSinglePart(cfg, partIndex, bpmOverride,
-                        cache?.resolvedMelInstByTrack,
+                        stored?.resolvedMelInstByTrack,   // [R5-d] STORED, not `cache`
                         trackInputsHashes,
                         seedOverride: _songSeed,      // [S5g / MGP-ALWTTT-SEED-1]
                         patternOverrides: overrides); // [DBG-C2 + JAM-1]
@@ -1037,7 +1205,13 @@ namespace ALWTTT.Music
 
                 // [B1 / #7.1 / D-F=γ] Record resolved instruments into the
                 // session-level pin map for future renders to reuse.
-                UpdateInstrumentPins(cfg, partIndex);
+                //
+                // [R5-d] SKIPPED on a solo loop. Pinning here would bind the
+                // solo's guitar to (soloist, Melody) for the rest of the
+                // session, and a later genuine Melody card on that musician
+                // would silently inherit it.
+                if (!soloThisLoop)
+                    UpdateInstrumentPins(cfg, partIndex);
 
                 // [JAM-1 / D-R3C-4=B′] Capture AFTER the render — adoption mutates
                 // the PartConfig in place during compose, so the post-render
@@ -1054,6 +1228,11 @@ namespace ALWTTT.Music
                 // On the CardOverride path we CLEAR rather than leave stale: that
                 // card's fixed harmony is now the part's truth, and a leftover entry
                 // would keep the tonality snapshot frozen at an older render.
+                //
+                // [R5-d] The solo loop runs this unchanged and that is correct:
+                // the injected track is appended LAST and is Melody/Harmony, so
+                // the Backing track still resolves the shared progression first
+                // and the capture writes back the same value it already held.
                 var jamSrc = mm.LastSharedProgressionSource;
                 bool jamCaptureable =
                     jamSrc != ResolvedSource.CardOverride
@@ -1102,10 +1281,15 @@ namespace ALWTTT.Music
                     foreach (var kv in instByTrack)
                         cache.resolvedMelInstByTrack[kv.Key] = kv.Value;
 
-                _partCache[partIndex] = cache;
+                // [R5-d] The solo render is TRANSIENT: never persisted, so the
+                // next loop finds the base-only entry untouched and replays it.
+                if (!soloThisLoop)
+                {
+                    _partCache[partIndex] = cache;
 #if ALWTTT_DEV
-                cache.devOverrideStamp = DevOverrideStamp; // [DBG-C2]
+                    cache.devOverrideStamp = DevOverrideStamp; // [DBG-C2]
 #endif
+                }
             }
 
             if (cache.resolvedBpm > 0)
@@ -1140,13 +1324,139 @@ namespace ALWTTT.Music
 
             var duration =
                 mm.PlayRaw(cache.mergedBytes, cache.seconds,
-                $"Part {partIndex} (cached:{partName})");
+                $"Part {partIndex} ({(soloThisLoop ? "BONUS+solo" : "cached")}:{partName})");
             if (duration <= 0f) return 0f;
+
+            // [R5-d] Duck the rest of the band for this loop only. Applied
+            // AFTER PlayRaw so the playback preamble's own volume writes cannot
+            // undo it. Cleared at the loop boundary (HandleLoopFinished),
+            // AdvanceToNextPart and End().
+            if (soloThisLoop)
+            {
+                int soloCh = mm.GetChannelForTrack(cfg, soloKey.MusicianId, soloKey.Role);
+                if (soloCh >= 0) mm.SetSoloDuck(soloCh, _bonusSoloDuck01);
+                else _ctx?.Log("[R5-d] Solo channel unresolved — playing unducked.", true);
+            }
 
             _isPlaying = true;
             _loopStartTime = Time.time;
             _loopDurationSeconds = duration;
             return duration;
+        }
+
+        // ─── [R5-d / D-R5-24=A] Bonus-loop solo injection ────────────────
+        // Track identity is (musicianId, role). MidiMusicManager's
+        // BuildChannelOwnerLookups keys "{id}|{role}" and StampChannel falls
+        // back to byMusician on a miss, so injecting a role the soloist ALREADY
+        // holds makes both tracks stamp the SAME midi channel: one program
+        // change wins and the duck silences the base track too. Hence the
+        // preference chain, and the honest give-up when both roles are taken.
+        private static readonly TrackRole[] BonusSoloRolePreference =
+            { TrackRole.Melody, TrackRole.Harmony };
+
+        private bool TryInjectBonusSoloTrack(
+            SongConfig cfg, int partIndex, out MusicianTrackKey soloKey)
+        {
+            soloKey = default;
+
+            var soloist = _ctx?.ResolveMusicianByType(MusicianCharacterType.Conito);
+            var mcd = soloist != null ? soloist.MusicianCharacterData : null;
+            if (mcd == null || string.IsNullOrEmpty(mcd.CharacterId))
+            {
+                _ctx?.Log("[R5-d] Bonus solo skipped — soloist not in this band.", true);
+                return false;
+            }
+
+            string musicianId = mcd.CharacterId;
+            var part = cfg.Parts[partIndex];
+            if (part?.Tracks == null) return false;
+
+            TrackRole role = TrackRole.Melody;
+            bool found = false;
+            for (int i = 0; i < BonusSoloRolePreference.Length && !found; i++)
+            {
+                var candidate = BonusSoloRolePreference[i];
+                bool taken = part.Tracks.Any(t =>
+                    t != null && t.Role == candidate &&
+                    string.Equals(t.MusicianId, musicianId, StringComparison.Ordinal));
+                if (!taken) { role = candidate; found = true; }
+            }
+
+            if (!found)
+            {
+                _ctx?.Log($"[R5-d] Bonus solo skipped — {musicianId} already holds " +
+                          "Melody and Harmony in this part. The bonus loop plays " +
+                          "without a solo (D-R5-24=A).", true);
+                return false;
+            }
+
+            var instruments = new InstrumentRepositoryResources(_settings);
+            instruments.Refresh();
+            var instrument = InstrumentRules
+                .GetPermittedMelodic(soloist, role, instruments)
+                .FirstOrDefault(i => i != null);
+
+            if (instrument == null)
+            {
+                _ctx?.Log($"[R5-d] Bonus solo skipped — no permitted melodic " +
+                          $"instrument for {musicianId} in role {role}. Check the " +
+                          "profile's leadInstruments.", true);
+                return false;
+            }
+
+            var pd = GameManager.Instance != null
+                ? GameManager.Instance.PersistentGameplayData : null;
+            var mgd = pd != null ? pd.GetMusicianGameplayData(musicianId) : null;
+
+            part.Tracks.Add(new SongConfig.PartConfig.TrackConfig
+            {
+                Role = role,
+                MusicianId = musicianId,
+                Instrument = instrument,
+                Parameters = new TrackParameters
+                {
+                    melodyStrategyId = MelodyStrategyId.ScaleFlow,
+                    melodicLeadingOverride = mgd?.CurrentMelodicLeading,
+                    harmonyStrategyId = HarmonyStrategyId.NearestChordTone,
+                    harmonicLeadingOverride = mgd?.CurrentHarmonicLeading,
+                }
+            });
+
+            // Channel layout. SongConfigBuilder seeds ChannelRoles /
+            // ChannelMusicianOrder from PART 0 only; BuildChannelMap allocates
+            // sequentially over that list, so APPENDING cannot move a channel
+            // an existing track already owns — the solo takes the next free one.
+            cfg.ChannelRoles ??= new List<TrackRole>();
+            cfg.ChannelMusicianOrder ??= new List<string>();
+            cfg.ChannelRoles.Add(role);
+            cfg.ChannelMusicianOrder.Add(musicianId);
+
+            soloKey = new MusicianTrackKey(musicianId, role);
+
+            _ctx?.Log($"[R5-d] Bonus solo injected — {musicianId} / {role} / " +
+                      $"'{instrument.InstrumentName}' (render scope, part {partIndex}).", true);
+            return true;
+        }
+
+        /// <summary>
+        /// [R5-d] Synthetic, stable stem-cache identity for the injected solo
+        /// track. Stable across repeats of the same bonus loop within a song,
+        /// and distinct from any authored track hash — the "r5dsolo|" prefix
+        /// cannot be produced by ComputeTrackInputsHashesForPart.
+        /// </summary>
+        private string BuildBonusSoloHash(
+            SongConfig cfg, int partIndex, MusicianTrackKey key)
+        {
+            var track = cfg.Parts[partIndex].Tracks
+                .LastOrDefault(t => t != null && t.Role == key.Role
+                    && string.Equals(t.MusicianId, key.MusicianId, StringComparison.Ordinal));
+
+            string instId = track?.Instrument != null
+                ? track.Instrument.GetInstanceID().ToString(
+                    System.Globalization.CultureInfo.InvariantCulture)
+                : "_";
+
+            return $"r5dsolo|{key.Role}|{instId}";
         }
 
         private SongConfig BuildSongConfigFromUI()
@@ -1167,6 +1477,72 @@ namespace ALWTTT.Music
                 _rng
             );
         }
+
+        #region [HUD-COMP-1] Read-only UI seams
+
+        /// <summary>
+        /// Loop progress for the composition strip. `current` is 1-based.
+        /// `finalLoopLocks` mirrors IsFinalLoopRunning — the strip must warn
+        /// about the composition lock BEFORE the player is denied a play.
+        /// Returns false when no song is running (strip shows no pips).
+        /// </summary>
+        public bool TryGetLoopProgressForUI(
+            out int current, out int total, out bool finalLoopLocks)
+        {
+            current = 0; total = 0; finalLoopLocks = false;
+            if (!_isPlaying || _loopsTotalForPart <= 0) return false;
+            total = _loopsTotalForPart;
+            current = Mathf.Clamp(
+                _loopsTotalForPart - _loopsRemainingForPart + 1, 1, _loopsTotalForPart);
+            finalLoopLocks = IsFinalLoopRunning;
+            return true;
+        }
+
+        /// <summary>
+        /// Tonality the part's harmony ACTUALLY RENDERED IN (JAM-2 capture),
+        /// not the model's. The two legitimately diverge when a Backing card
+        /// adopts: the model still reads Ionian while the chords sound Lydian.
+        /// The strip must show what is audible, so it reads this — never
+        /// PartEntry.tonality — once a render exists.
+        /// Returns false before the first render of that part.
+        /// </summary>
+        public bool TryGetRenderedTonality(
+            int partIndex, out Tonality tonality, out string rootLabel)
+        {
+            tonality = default; rootLabel = null;
+            if (!_jamRenderedTonalityByPart.TryGetValue(partIndex, out var v)) return false;
+            tonality = v.ton;
+            // "FSharp" is an enum name, not a note. Format at the seam so no
+            // UI file needs the DryWetMidi MusicTheory using (which would drag
+            // in an ambiguous TimeSignature symbol).
+            rootLabel = v.root.ToString().Replace("Sharp", "#").Replace("Flat", "b");
+            return true;
+        }
+
+        /// <summary>
+        /// Instrument pinned for (musicianId, role) after the last successful
+        /// render. Hover-only. Returns false when the track has not rendered yet.
+        /// </summary>
+        public bool TryGetResolvedInstrumentName(
+            string musicianId, TrackRole role, out string instrumentName)
+        {
+            instrumentName = null;
+            if (string.IsNullOrEmpty(musicianId)) return false;
+            var key = $"{musicianId}|{role}";
+            if (_sessionMelodicPin.TryGetValue(key, out var mel) && mel != null)
+            {
+                instrumentName = mel.name;
+                return true;
+            }
+            if (_sessionPercussionPin.TryGetValue(key, out var perc) && perc != null)
+            {
+                instrumentName = perc.name;
+                return true;
+            }
+            return false;
+        }
+
+        #endregion
 
         private static int EvalPerLoopInsp(SongCompositionUI.PartEntry part)
         {
@@ -1265,6 +1641,11 @@ namespace ALWTTT.Music
                 return;
             }
 
+            // [R5-d] Freeze the just-finished loop's bonus flag BEFORE the
+            // countdown moves. Every LoopFinished subscriber reads
+            // LastFinishedLoopWasBonus, and GigManager's Seam-C suppression
+            // depends on it being about the loop that ENDED, not the next one.
+            _lastFinishedLoopWasBonus = _currentLoopIsBonus;
             _loopsRemainingForPart--;
 
             int inspirationGainedThisLoop = _perLoopInspirationCurrentPart;
@@ -1375,6 +1756,20 @@ namespace ALWTTT.Music
 
             if (_loopsRemainingForPart > 0)
             {
+                // [R5-d] Classify the loop we are ABOUT to start. Bonus loops
+                // are the last ones of the part, so "remaining <= pending" is
+                // exactly the bonus tail. Must run before PlaySinglePartLoop —
+                // the solo injection reads _currentLoopIsBonus.
+                // Dev note: under DevInfiniteCompositionLoop the countdown is
+                // restored above, which can re-classify a loop as ordinary.
+                // Accepted: the dev toggle already suspends part progression.
+                _currentLoopIsBonus =
+                    _bonusLoopsPendingForPart > 0 &&
+                    _loopsRemainingForPart <= _bonusLoopsPendingForPart;
+
+                if (_currentLoopIsBonus) _bonusLoopsPendingForPart--;
+                else if (_lastFinishedLoopWasBonus) _ctx?.Music?.ClearSoloDuck();
+
                 // F-4 D3-B (Stage A, production-quality): mirror AdvanceToNextPart's
                 // graceful-end pattern when PlaySinglePartLoop returns 0f. Without
                 // this guard, a render failure mid-part leaves _loopStartTime /
@@ -1448,6 +1843,9 @@ namespace ALWTTT.Music
 
             _loopsTotalForPart = _rules.loopsPerPart;
             _loopsRemainingForPart = _rules.loopsPerPart;
+
+            ResetBonusLoopState();             // [R5-d] the cap is per PART
+            _ctx?.Music?.ClearSoloDuck();      // [R5-d] safety: no duck across parts
 
             float secs = PlaySinglePartLoop(_currentPartIndex);
             if (secs <= 0f) { End(); return; }

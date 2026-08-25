@@ -26,6 +26,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using ALWTTT.Tutorial;
 using MidiGenPlay.Composition;
+using static MidiGenPlay.MusicTheory.MusicTheory;
+
 
 
 
@@ -45,7 +47,13 @@ namespace ALWTTT.Managers
         ActionTiming = 2,   // CanPlayActionCard window
         Inspiration = 3,    // session cost gate (2a.5 / session step 1)
         Budget = 4,         // ECON-1, statically-resolvable payer only (D5)
-        FinalLoopLock = 5   // D2=A: no next loop would render the change
+        FinalLoopLock = 5,  // D2=A: no next loop would render the change
+
+        // [R5-d] Not enough of the card's authored resource (Voltage today).
+        Resource = 6,
+
+        // [R5-d] Bonus-loop card played with no part looping.
+        NoRunningLoop = 7
     }
 
     public class GigManager : MonoBehaviour
@@ -1707,6 +1715,59 @@ namespace ALWTTT.Managers
             return mus != null ? mus.MusicianCharacterData?.CharacterIcon : null;
         }
 
+        #region [HUD-COMP-1] Composition-strip seams
+
+        public bool TryGetLoopProgressForUI(
+            out int current, out int total, out bool finalLoopLocks)
+        {
+            current = 0; total = 0; finalLoopLocks = false;
+            return _session != null
+                && _session.TryGetLoopProgressForUI(out current, out total, out finalLoopLocks);
+        }
+
+        public bool TryGetRenderedTonalityForUI(
+            int partIndex, out Tonality tonality, out string rootLabel)
+        {
+            tonality = default; rootLabel = null;
+            return _session != null
+                && _session.TryGetRenderedTonality(partIndex, out tonality, out rootLabel);
+        }
+
+        public bool TryGetResolvedInstrumentNameForUI(
+            string musicianId, TrackRole role, out string instrumentName)
+        {
+            instrumentName = null;
+            return _session != null
+                && _session.TryGetResolvedInstrumentName(musicianId, role, out instrumentName);
+        }
+
+        /// <summary>
+        /// Icon + display name for a musician by CharacterId. The existing
+        /// TryGetMusicianIcon keys on MusicianCharacterType (what card faces
+        /// have); the strip keys on the string CharacterId (what TrackEntry
+        /// has). Same in-gig-only scope and the same null-means-no-icon rule
+        /// as D-S5b-ICON-RESOLVER=A.
+        /// </summary>
+        public bool TryGetMusicianDisplayById(
+            string musicianId, out Sprite icon, out string displayName)
+        {
+            icon = null; displayName = musicianId;
+            if (string.IsNullOrEmpty(musicianId) || CurrentMusicianCharacterList == null)
+                return false;
+
+            var mus = CurrentMusicianCharacterList.FirstOrDefault(m =>
+                m?.MusicianCharacterData != null &&
+                m.MusicianCharacterData.CharacterId == musicianId);
+            if (mus == null) return false;
+
+            icon = mus.MusicianCharacterData.CharacterIcon;
+            var n = mus.MusicianCharacterData.CharacterName;
+            if (!string.IsNullOrWhiteSpace(n)) displayName = n;
+            return true;
+        }
+
+        #endregion
+
         private MusicianBase ResolveMusicianByType(MusicianCharacterType t)
         {
             if (t == MusicianCharacterType.None || CurrentMusicianCharacterList == null)
@@ -1752,6 +1813,20 @@ namespace ALWTTT.Managers
                 return false;
             }
 
+            // [R5-d / D-R5-26=A] Resource cost. CHECKED here — before the
+            // one-shot animation, like every other denial on this path — and
+            // SPENT below alongside the ECON-1 budget, so a composition card
+            // burns nothing until the session accepts the drop.
+            var cardDef = card != null ? card.CardDefinition : null;
+            if (cardDef != null && cardDef.HasResourceCost &&
+                !CanPayResourceCost(cardDef, payer))
+            {
+                Log($"[R5-d] Composition play denied — "
+                    + $"{(payer != null ? payer.CharacterName : "?")} cannot pay "
+                    + $"{cardDef.ResourceCostAmount} '{cardDef.ResourceCostStatusKey}'.");
+                return false;
+            }
+
             // One-shot composition card animation
             if (target != null && card != null && card.CardDefinition != null)
             {
@@ -1766,6 +1841,11 @@ namespace ALWTTT.Managers
             if (played)
             {
                 TryConsumePlay(payer, isComposition: true);
+
+                // [R5-d] Success-only, exactly like the budget above. Order vs
+                // the Voltage generation inside TryConsumePlay is NET-NEUTRAL:
+                // both the +1 grant and the -N spend happen either way.
+                TryPayResourceCost(cardDef, payer);
             }
 
             return played;
@@ -1846,7 +1926,21 @@ namespace ALWTTT.Managers
             // refill is independent of draw/inspiration config (same rationale
             // as the bus publish above). Firing on the song's LAST loop is
             // inert: Seam A refills again at the next PlayerTurn.
-            ResetAllTurnPlayBudgets("loop-boundary");
+            // [R5-d / D-R5-6=B] A bonus loop is MUSIC, not card tempo: it does
+            // not open a new performance period. The suppression is surgical —
+            // the bus publish above and the F-3 draw + per-loop inspiration
+            // below still fire for this loop. Seam A refills at the next
+            // PlayerTurn anyway, so nothing is lost permanently; what the
+            // player does NOT get is an extra play window bought with Voltage.
+            if (_session == null || !_session.LastFinishedLoopWasBonus)
+            {
+                ResetAllTurnPlayBudgets("loop-boundary");
+            }
+            else if (UseVerboseLogs)
+            {
+                Debug.Log($"{DebugTag} [R5-d] Bonus loop boundary — ECON-1 refill "
+                    + "SUPPRESSED (D-R5-6=B).");
+            }
 
             // M4.6F-3: per-loop draw + per-loop inspiration consumption.
             // Hook lives here (host-owned subscriber) to respect the
@@ -2096,6 +2190,127 @@ namespace ALWTTT.Managers
             // clamp — applied even under StackMode.Additive. No local clamp.
         }
 
+        // ─── [R5-d / D-R5-26=A] Resource cost (Voltage today) ────────────
+        // Orthogonal to Inspiration and to ECON-1: three independent gates,
+        // never substituted for one another. Resolution keeps R5's dual guard —
+        // the StatusKey is the authority, the primitive is how the container is
+        // keyed — and both are checked on the LIVE instance, because the
+        // catalogue says what a bearer COULD hold and the container says what
+        // it actually holds right now.
+        private bool TryResolveResourceHolding(
+            CardDefinition def, MusicianBase payer,
+            out CharacterStatusId primitive, out int held)
+        {
+            primitive = default;
+            held = 0;
+
+            if (def == null || !def.HasResourceCost) return false;
+            if (payer == null || payer.Statuses == null) return false;
+
+            var catalogue = payer.StatusCatalogue;
+            if (catalogue == null ||
+                !catalogue.TryGetByKey(def.ResourceCostStatusKey, out var so) || so == null)
+                return false;   // this bearer cannot hold the resource at all
+
+            primitive = so.EffectId;
+
+            if (!payer.Statuses.TryGet(primitive, out var inst)
+                || inst == null || !inst.IsActive || inst.Definition == null)
+                return false;
+
+            if (inst.Definition.StatusKey != def.ResourceCostStatusKey)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+        /// <summary>[R5-d] True when this definition asks for a bonus loop.
+        /// Instance method on purpose: every call site reaches GigManager
+        /// through an instance reference.</summary>
+        public bool CardGrantsBonusLoop(CardDefinition def)
+        {
+            var effects = def?.Payload?.Effects;
+            if (effects == null) return false;
+            for (int i = 0; i < effects.Count; i++)
+                if (effects[i] is ALWTTT.Cards.Effects.GrantBonusLoopSpec) return true;
+            return false;
+        }
+
+        /// <summary>[R5-d] Is there a running part that can still take one?</summary>
+        public bool CanGrantBonusLoop()
+        {
+            if (_session == null) return false;
+            int cap = flow != null ? flow.MaxBonusLoopsPerPart : 1;
+            return _session.CanGrantBonusLoop(cap);
+        }
+
+        /// <summary>[R5-d] Host bridge: reads the gig rules and hands the session
+        /// a settings-free request (the session holds JamRules only, never an SO).</summary>
+        public bool TryGrantBonusLoop(bool withSolo)
+        {
+            if (_session == null)
+            {
+                Debug.LogWarning($"{DebugTag} [R5-d] Bonus loop requested with no session.");
+                return false;
+            }
+
+            int cap = flow != null ? flow.MaxBonusLoopsPerPart : 1;
+            bool solo = withSolo && (flow == null || flow.BonusSoloEnabled);
+            float duck = flow != null ? flow.BonusSoloDuck01 : 1f;
+
+            var req = new CompositionSession.BonusLoopRequest(cap, solo, duck);
+            if (_session.TryGrantBonusLoop(req, out var reason)) return true;
+
+            Debug.LogWarning($"{DebugTag} [R5-d] Bonus loop NOT granted — {reason}.");
+            return false;
+        }
+
         // ─── [R5-c] Overload — Voltage consumer ──────────────────────────
         // Per-loop transient. Reset FIRST inside TryTriggerOverload, ahead of
         // every early-return, so a discharge can never leak into the next loop.
@@ -2204,6 +2419,25 @@ namespace ALWTTT.Managers
 
             if (def.IsComposition && _session != null && _session.IsFinalLoopRunning)
                 return UnplayableReason.FinalLoopLock; // [D2=A]
+
+            // 2b) [R5-d] A bonus-loop card needs a part actually looping. This is
+            //     card-specific, not domain-wide: CanPlayActionCard returns true
+            //     in the between-songs action window, where there is nothing to
+            //     extend and the resource would burn for nothing.
+            if (def.IsAction && CardGrantsBonusLoop(def) && !CanGrantBonusLoop())
+                return UnplayableReason.NoRunningLoop;
+
+            // 2c) [R5-d / D-R5-26=A] Resource cost. Same static-payer scoping as
+            //     ECON-1 below (D5): only red when the payer is statically
+            //     resolvable. AnyMusician cards keep their enforcement at the
+            //     play-path denial rather than in the overlay.
+            if (def.HasResourceCost &&
+                def.FixedPerformerType != MusicianCharacterType.None)
+            {
+                var resPayer = ResolveMusicianByType(def.FixedPerformerType);
+                if (resPayer != null && !CanPayResourceCost(def, resPayer))
+                    return UnplayableReason.Resource;
+            }
 
             // 3) Inspiration — orthogonal gate, mirrors HandController 2a.5 /
             //    session step 1 (both read CanAffordInspiration).

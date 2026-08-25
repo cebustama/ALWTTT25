@@ -35,7 +35,8 @@ MonoBehaviour:
     - {fileID: 11400000, guid: a6eaef48d0709094b9553a5318b677dc, type: 2}
     - {fileID: 11400000, guid: 19889ea7d34284844a6cf964d9282dce, type: 2}
     - {fileID: 11400000, guid: 4c04ad83fa6dfc24999fbc43d20be6b8, type: 2}
-    leadMelodicInstruments: []
+    leadMelodicInstruments:
+    - {fileID: 11400000, guid: 0ae17d3c5b7345042a7a997b9bc039ea, type: 2}
     percussionInstruments: []
     defaultMelodicLeading: {fileID: 11400000, guid: 91e23e39892422b40a107dfada0cfe3d, type: 2}
     defaultHarmonicLeading: {fileID: 0}

@@ -2587,12 +2587,14 @@
 |   |   |   +---portada1_3.png
 |   |   |   +---premio.png
 |   |   |   +---star.png
-|   |   |   \---star-white-icon.png
+|   |   |   +---star-white-icon.png
+|   |   |   \---whitediamond.png
 |   |   +---LLMEnvSettings.asset
 |   |   +---SmokeSetup_0.asset
 |   |   +---SmokeSetup_Bass_W2.asset
 |   |   +---SmokeSetup_BossaAB.asset
 |   |   +---SmokeSetup_Slapfig2.asset
+|   |   +---SmokeSetup_TonMatrix.asset
 |   |   \---SmokeSetup_Voice.asset
 |   +---Scenes
 |   |   +---0 - Main Menu.unity
@@ -3168,6 +3170,7 @@
 |   |   \---SSoT_Status_Effects.md
 |   +---changelog-ssot.md
 |   +---coverage-matrix.md
+|   +---CURRENT_STATE.md
 |   +---make-tree-unity.bat
 |   +---README.md
 |   +---SSoT_CONTRACTS.md

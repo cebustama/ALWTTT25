@@ -32,6 +32,22 @@ namespace ALWTTT.Cards
         [SerializeField] private int inspirationCost = 1;
         [SerializeField] private int inspirationGenerated = 0;
 
+        // ─── [R5-d / D-R5-26=A] Resource cost ────────────────────────────
+        // Generic (statusKey, amount) pair, NOT a `voltageCost` field. The
+        // container is keyed by primitive and the variant is the authority,
+        // so a string key + an int cover Voltage today and any future
+        // character resource without migrating this asset again.
+        // Empty key or amount 0 ⇒ no resource cost (the default).
+        [Header("Resource Cost (R5-d)")]
+        [SerializeField, Tooltip("StatusKey of the resource this card spends " +
+            "(e.g. \"voltage\"). Empty = no resource cost. Resolved from the " +
+            "PAYER's catalogue; a bearer without it cannot play the card.")]
+        private string resourceCostStatusKey = "";
+
+        [SerializeField, Min(0), Tooltip("Stacks spent on play. Checked before " +
+            "any spend and consumed via StatusEffectContainer.SpendStacks.")]
+        private int resourceCostAmount = 0;
+
         [Header("Synergies")]
         [SerializeField] private CardType cardType;
 
@@ -122,6 +138,17 @@ namespace ALWTTT.Cards
         public Sprite CardSprite => cardSprite;
 
         public int InspirationCost => inspirationCost;
+
+        /// <summary>[R5-d / D-R5-26=A] StatusKey of the spent resource, or empty.</summary>
+        public string ResourceCostStatusKey => resourceCostStatusKey;
+
+        /// <summary>[R5-d] Stacks spent on play. Never negative.</summary>
+        public int ResourceCostAmount => Mathf.Max(0, resourceCostAmount);
+
+        /// <summary>[R5-d] True when both halves of the pair are authored.</summary>
+        public bool HasResourceCost =>
+            !string.IsNullOrWhiteSpace(resourceCostStatusKey) && resourceCostAmount > 0;
+
         public int InspirationGenerated => inspirationGenerated;
 
         public RarityType Rarity => rarity;

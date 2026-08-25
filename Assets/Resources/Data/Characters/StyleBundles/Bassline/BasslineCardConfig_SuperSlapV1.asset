@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a4d0a9aa94092d49b5eb86580c9120a, type: 3}
+  m_Name: BasslineCardConfig_SuperSlapV1
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.BasslineCardConfigSO
+  appliesTo: 3
+  chordExpression: 0
+  arpeggioRate: 0
+  randomRerollChance: 1
+  randomFigureWeights: []
+  velocityJitter: 0
+  arpeggioToneMode: 0
+  pocketMode: 2
+  pocketSlapBoost: 0
+  pocketPopBoost: 0
+  pocketCustomLanes: 0
+  pocketSlapLanes: 
+  pocketPopLanes: 
+  selfPocketSubdivision: 2
+  selfPocketPattern: 00000000030000000300000001000000020000000300000004000000010000000000000003000000030000000200000001000000030000000300000001000000
+  hammerOffsetSemitones: 3
+  pullOffsetSemitones: -1
+  ghostVelocityFactor: 0.6
+  ghostPopVelocityFactor: 0.65
+  hammerOnVelocityFactor: 0.6
+  pullOffVelocityFactor: 0.55
+  ghostGateBeats: 0.1

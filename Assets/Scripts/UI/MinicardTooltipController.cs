@@ -85,6 +85,7 @@ namespace ALWTTT.UI
                 pos.y = canvasRect.rect.height;
             if (pos.y < size.y) pos.y = size.y;
 
+            if (_anchor != null) { UpdateAnchoredPosition(); return; }
             follower.anchoredPosition = pos;
         }
 
@@ -166,5 +167,40 @@ namespace ALWTTT.UI
         }
 
         #endregion
+
+        /// <summary>
+        /// [HUD-COMP-1] Anchored variant: the preview parks to the RIGHT of a
+        /// static UI element instead of following the cursor. Clamped so it
+        /// never enters the hand strip or the audience third.
+        /// </summary>
+        public void Show(CardDefinition card, RectTransform anchor)
+        {
+            Show(card);                 // reuse the existing content path verbatim
+            _anchor = anchor;           // consumed by the follow logic below
+            UpdateAnchoredPosition();
+        }
+
+        private RectTransform _anchor;
+
+        private void UpdateAnchoredPosition()
+        {
+            if (_anchor == null || follower == null || canvasRect == null) return;
+
+            var corners = new Vector3[4];
+            _anchor.GetWorldCorners(corners);
+            var topRight = (Vector2)canvasRect.InverseTransformPoint(corners[2]);
+            var bottomRight = (Vector2)canvasRect.InverseTransformPoint(corners[3]);
+
+            // 300 = strip hover panel width + gap; the minicard sits beyond it.
+            float x = topRight.x + 300f;
+            float y = (topRight.y + bottomRight.y) * 0.5f;
+
+            float halfH = follower.rect.height * 0.5f;
+            if (y - halfH < -300f) y = -300f + halfH;
+            if (x + follower.rect.width > 300f)
+                x = 300f - follower.rect.width;
+
+            follower.anchoredPosition = new Vector2(x, y);
+        }
     }
 }
