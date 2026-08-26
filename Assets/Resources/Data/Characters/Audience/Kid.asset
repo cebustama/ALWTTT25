@@ -33,7 +33,7 @@ MonoBehaviour:
       animatorTrigger: Tantrum
       animationDuration: 2
       disableBeatAnimator: 1
-    abilitySfx: {fileID: 8300000, guid: 6c9b729e91da79d44a193fd5df6fc3a9, type: 3}
+    abilitySfx: {fileID: 8300000, guid: 39ea5e5d160ab424e9bea6a25b1acfaa, type: 3}
   - abilityName: Egg Him On
     intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
     hideActionValue: 1

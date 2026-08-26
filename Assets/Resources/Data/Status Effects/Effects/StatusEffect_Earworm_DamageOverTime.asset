@@ -24,7 +24,6 @@ MonoBehaviour:
   tickTiming: 9
   valueType: 0
   isBuff: 0
-  iconSprite: {fileID: -8727825837309483597, guid: ea2e20774f4e652458db2bfbfe0cec28, type: 3}
-  description: "This audience member has the song stuck in their head \u2014 they
-    convince themselves a little more each turn (+N Vibe per audience turn, where
-    N = current stacks; loses 1 stack per turn)."
+  iconSprite: {fileID: 21300000, guid: 32a73bb80f57cb840a74e892906cbd5b, type: 3}
+  description: This audience member has the song stuck in their head (+N Vibe per
+    audience turn, loses 1 stack per turn).

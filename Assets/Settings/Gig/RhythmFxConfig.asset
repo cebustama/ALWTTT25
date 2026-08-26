@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9324ac03217ddd4da153b81a7885d4a, type: 3}
+  m_Name: RhythmFxConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.RhythmFxConfigSO
+  enabled: 1
+  lanes:
+  - lane: 0
+    enabled: 1
+    burstCount: 8
+    tint: {r: 1, g: 0.55, b: 0.2, a: 1}
+    direction: {x: -1, y: 0.1}
+    speed: 2.6
+    speedJitter: 0.3
+    spreadDegrees: 20
+    lifetime: 0.45
+    size: 0.35
+    minInterval: 0.04
+    velocityInfluence: 0.5
+  - lane: 1
+    enabled: 1
+    burstCount: 6
+    tint: {r: 1, g: 0.25, b: 0.25, a: 1}
+    direction: {x: 1, y: 0}
+    speed: 2.4
+    speedJitter: 0.3
+    spreadDegrees: 20
+    lifetime: 0.4
+    size: 0.32
+    minInterval: 0.04
+    velocityInfluence: 0.5
+  - lane: 2
+    enabled: 1
+    burstCount: 3
+    tint: {r: 0.75, g: 0.85, b: 0.9, a: 1}
+    direction: {x: 0, y: 1}
+    speed: 1.6
+    speedJitter: 0.35
+    spreadDegrees: 25
+    lifetime: 0.3
+    size: 0.22
+    minInterval: 0.03
+    velocityInfluence: 0.6
+  - lane: 3
+    enabled: 1
+    burstCount: 5
+    tint: {r: 0.55, g: 0.75, b: 0.9, a: 1}
+    direction: {x: 0, y: 1}
+    speed: 2
+    speedJitter: 0.35
+    spreadDegrees: 25
+    lifetime: 0.35
+    size: 0.28
+    minInterval: 0.03
+    velocityInfluence: 0.6
+  - lane: 4
+    enabled: 1
+    burstCount: 5
+    tint: {r: 0.4, g: 0.7, b: 1, a: 1}
+    direction: {x: 0.5, y: 0.6}
+    speed: 2.2
+    speedJitter: 0.3
+    spreadDegrees: 20
+    lifetime: 0.45
+    size: 0.33
+    minInterval: 0.04
+    velocityInfluence: 0.5
+  - lane: 5
+    enabled: 1
+    burstCount: 10
+    tint: {r: 1, g: 0.85, b: 0.4, a: 1}
+    direction: {x: 0, y: 0.8}
+    speed: 1.4
+    speedJitter: 0.4
+    spreadDegrees: 45
+    lifetime: 0.7
+    size: 0.4
+    minInterval: 0.06
+    velocityInfluence: 0.4
+  - lane: 7
+    enabled: 1
+    burstCount: 12
+    tint: {r: 0.95, g: 0.25, b: 0.85, a: 1}
+    direction: {x: 0, y: 1}
+    speed: 1.2
+    speedJitter: 0.45
+    spreadDegrees: 60
+    lifetime: 0.8
+    size: 0.36
+    minInterval: 0.25
+    velocityInfluence: 0.2

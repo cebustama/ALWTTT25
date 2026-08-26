@@ -51,6 +51,7 @@ MonoBehaviour:
   defaultProgressionPalette: {fileID: 11400000, guid: 0165de7483a24604486b077c5099000d, type: 2}
   playerBehaviour: {fileID: 6744716752777685964}
   logDebug: 1
+  logVerbose: 0
   drumChannel: 9
   kickNotes: 2300000024000000
 --- !u!1 &3104151361972250330
@@ -103,6 +104,9 @@ MonoBehaviour:
   showChords: 0
   showBeats: 0
   labelPercussionByName: 1
+  showPercussionNotes: 0
+  showDrumKick: 0
+  logChords: 0
   pitchClassColors:
   - {r: 0.95, g: 0.3, b: 0.3, a: 1}
   - {r: 1, g: 0.55, b: 0.25, a: 1}

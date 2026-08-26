@@ -41,6 +41,13 @@
 |   |   +---smoke_ba-ba-me-rh_141839.mid
 |   |   \---smoke_ba-ba-me-rh_181437.mid
 |   +---Materials
+|   |   +---Mat_RhythmFx_Chord.mat
+|   |   +---Mat_RhythmFx_Cymbal.mat
+|   |   +---Mat_RhythmFx_HiHatClosed.mat
+|   |   +---Mat_RhythmFx_HiHatOpen.mat
+|   |   +---Mat_RhythmFx_Kick.mat
+|   |   +---Mat_RhythmFx_Snare.mat
+|   |   +---Mat_RhythmFx_Tom.mat
 |   |   \---Mat_SpriteOutline.mat
 |   +---MidiPlayer
 |   |   +---Demo
@@ -1790,6 +1797,9 @@
 |   |   |   |   +---SectorMapCanvas.prefab
 |   |   |   |   \---ShipInteriorCanvas.prefab
 |   |   |   +---Song Composition
+|   |   |   |   +---ContextRow.prefab
+|   |   |   |   +---LoopPip.prefab
+|   |   |   |   +---LoopPipFinal.prefab
 |   |   |   |   +---PartElement.prefab
 |   |   |   |   +---PartTracksLayout.prefab
 |   |   |   |   +---SongCompositionUI.prefab
@@ -2057,6 +2067,8 @@
 |   |   |   |   |   +---Cantante_Composition_003.asset
 |   |   |   |   |   +---Cantante_Composition_003_Payload.asset
 |   |   |   |   |   +---Conito_CardCatalogData.asset
+|   |   |   |   |   +---conito_overload.asset
+|   |   |   |   |   +---conito_overload_Payload.asset
 |   |   |   |   |   +---crd_c2_spotlight.asset
 |   |   |   |   |   +---crd_c2_spotlight_Payload.asset
 |   |   |   |   |   +---crd_sibi_read_the_room.asset
@@ -2169,6 +2181,7 @@
 |   |   |   |       |   +---BasslineCardConfig_SlapV3.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapV4.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapV5.asset
+|   |   |   |       |   +---BasslineCardConfig_SuperSlapV1.asset
 |   |   |   |       |   +---Gusano_C_Bassline_001_WormWalk_Payload_Bassline_StyleBundle.asset
 |   |   |   |       |   +---Gusano_C_Bassline_002_WormPulse_Payload_Bassline_StyleBundle.asset
 |   |   |   |       |   +---starter_finger_bass_Payload_Bassline_StyleBundle.asset
@@ -2563,6 +2576,68 @@
 |   |   |   |   +---shooting star.png
 |   |   |   |   +---TallIcon.png
 |   |   |   |   \---wave.png
+|   |   |   +---icons
+|   |   |   |   +---composition
+|   |   |   |   |   +---border-dashed.png
+|   |   |   |   |   +---fallback-question.png
+|   |   |   |   |   +---floater-lvl.png
+|   |   |   |   |   +---meter-3-4.png
+|   |   |   |   |   +---meter-4-4.png
+|   |   |   |   |   +---meter-5-4.png
+|   |   |   |   |   +---meter-6-8.png
+|   |   |   |   |   +---meter-7-8.png
+|   |   |   |   |   +---mood-dark.png
+|   |   |   |   |   +---mood-dreamy.png
+|   |   |   |   |   +---mood-funky.png
+|   |   |   |   |   +---mood-groovy.png
+|   |   |   |   |   +---mood-happy.png
+|   |   |   |   |   +---mood-sad.png
+|   |   |   |   |   +---mood-tense.png
+|   |   |   |   |   +---pill-rounded.png
+|   |   |   |   |   +---pip-circle.png
+|   |   |   |   |   +---pip-diamond.png
+|   |   |   |   |   +---role-backing.png
+|   |   |   |   |   +---role-bassline.png
+|   |   |   |   |   +---role-harmony.png
+|   |   |   |   |   +---role-lead.png
+|   |   |   |   |   +---role-melody.png
+|   |   |   |   |   +---role-rhythm.png
+|   |   |   |   |   +---tempo-1-veryslow.png
+|   |   |   |   |   +---tempo-2-slow.png
+|   |   |   |   |   +---tempo-3-medium.png
+|   |   |   |   |   +---tempo-4-fast.png
+|   |   |   |   |   \---tempo-5-veryfast.png
+|   |   |   |   +---hud
+|   |   |   |   |   +---arrow.png
+|   |   |   |   |   +---chevron-double-up.png
+|   |   |   |   |   +---chevron-down.png
+|   |   |   |   |   +---circle-slash.png
+|   |   |   |   |   +---inspiration.png
+|   |   |   |   |   +---intent-bolt.png
+|   |   |   |   |   +---intent-unknown.png
+|   |   |   |   |   +---pile-discard.png
+|   |   |   |   |   +---pile-draw.png
+|   |   |   |   |   +---play.png
+|   |   |   |   |   +---star.png
+|   |   |   |   |   +---status-blocked.png
+|   |   |   |   |   +---status-captivated.png
+|   |   |   |   |   +---status-choke.png
+|   |   |   |   |   +---status-composure.png
+|   |   |   |   |   +---status-earworm.png
+|   |   |   |   |   +---status-exposed.png
+|   |   |   |   |   +---status-feedback.png
+|   |   |   |   |   +---status-flow.png
+|   |   |   |   |   +---status-shaken.png
+|   |   |   |   |   \---status-spotlight.png
+|   |   |   |   \---particles
+|   |   |   |       +---particle-beamed.png
+|   |   |   |       +---particle-dot-soft.png
+|   |   |   |       +---particle-eighth.png
+|   |   |   |       +---particle-quarter.png
+|   |   |   |       +---particle-ring.png
+|   |   |   |       +---particle-sparkle.png
+|   |   |   |       +---particle-star4-small.png
+|   |   |   |       \---particle-treble.png
 |   |   |   +---Ship
 |   |   |   |   +---nave espacial.png
 |   |   |   |   +---sala de ensayo.png
@@ -2589,6 +2664,8 @@
 |   |   |   +---star.png
 |   |   |   +---star-white-icon.png
 |   |   |   \---whitediamond.png
+|   |   +---UI
+|   |   |   \---CompositionStripTheme.asset
 |   |   +---LLMEnvSettings.asset
 |   |   +---SmokeSetup_0.asset
 |   |   +---SmokeSetup_Bass_W2.asset
@@ -2653,6 +2730,7 @@
 |   |   |   |   +---CardEffectDescriptionBuilder.cs
 |   |   |   |   +---CardEffectSpec.cs
 |   |   |   |   +---DrawCardsSpec.cs
+|   |   |   |   +---GrantBonusLoopSpec.cs
 |   |   |   |   +---ModifyStressSpec.cs
 |   |   |   |   +---ModifyVibeSpec.cs
 |   |   |   |   \---RevealPreferencesSpec.cs
@@ -2792,7 +2870,8 @@
 |   |   |   +---UI
 |   |   |   +---AlwtttLogSetup.cs
 |   |   |   +---ALWTTTProjectRegistriesSO.cs
-|   |   |   \---CompositionFxConfigSO.cs
+|   |   |   +---CompositionFxConfigSO.cs
+|   |   |   \---RhythmFxConfigSO.cs
 |   |   +---DevMode
 |   |   |   +---DevAudioMixTab.cs
 |   |   |   +---DevCardCatalogueTab.cs
@@ -2818,6 +2897,7 @@
 |   |   |   +---FxType.cs
 |   |   |   +---GigPhase.cs
 |   |   |   +---InventoryType.cs
+|   |   |   +---MoodTag.cs
 |   |   |   +---MusicianCharacterType.cs
 |   |   |   +---MusicianStat.cs
 |   |   |   +---NodeType.cs
@@ -2825,6 +2905,7 @@
 |   |   |   +---RandomEventEffectType.cs
 |   |   |   +---RarityType.cs
 |   |   |   +---RewardType.cs
+|   |   |   +---RhythmLane.cs
 |   |   |   +---SensorySfxType.cs
 |   |   |   +---SpecialKeywords.cs
 |   |   |   \---VenueType.cs
@@ -2962,11 +3043,14 @@
 |   |   |   |   +---RewardCanvas.cs
 |   |   |   |   \---ShipInteriorCanvas.cs
 |   |   |   +---Song Composition
+|   |   |   |   +---CompositionContextRowUI.cs
+|   |   |   |   +---CompositionStripDriver.cs
 |   |   |   |   +---LoopsTimerUI.cs
 |   |   |   |   +---SongCompositionUI.cs
 |   |   |   |   +---SongPartElementUI.cs
 |   |   |   |   +---SongPartsLayoutUI.cs
-|   |   |   |   \---SongTrackElementUI.cs
+|   |   |   |   +---SongTrackElementUI.cs
+|   |   |   |   \---TrackHoverPanel.cs
 |   |   |   +---Tooltips
 |   |   |   |   +---EconPipTooltipTarget.cs
 |   |   |   |   +---I2DTooltipTarget.cs
@@ -2979,6 +3063,7 @@
 |   |   |   +---CardDetailViewController.cs
 |   |   |   +---CardUI.cs
 |   |   |   +---ChoicePanel.cs
+|   |   |   +---CompositionStripThemeSO.cs
 |   |   |   +---ConflictPanelUI.cs
 |   |   |   +---FloatingText.cs
 |   |   |   +---GigCanvas.cs
@@ -3003,7 +3088,9 @@
 |   |   +---Code_Extended.zip
 |   |   +---Code_Min.zip
 |   |   +---file_tree.txt
-|   |   \---make-tree-unity.bat
+|   |   +---make-tree-unity.bat
+|   |   +---RhythmParticleEmitter.cs
+|   |   \---RhythmParticleMidiListener.cs
 |   +---Settings
 |   |   +---Build Profiles
 |   |   |   \---New Windows Profile.asset
@@ -3150,7 +3237,8 @@
 |   |   +---CSO_Primitives_Catalog.md
 |   |   +---Design_Asset_Naming_v0_1.md
 |   |   +---PinkTrombone_Voice_Levers.md
-|   |   \---README.md
+|   |   +---README.md
+|   |   \---Report_CardLLM_Pipeline.md
 |   +---runtime
 |   |   +---README.md
 |   |   +---SSoT_Runtime_CompositionSession_Integration.md
@@ -3174,6 +3262,7 @@
 |   +---make-tree-unity.bat
 |   +---README.md
 |   +---SSoT_CONTRACTS.md
+|   +---SSoT_INDEX.md
 |   \---ssot_manifest.yaml
 +---Packages
 |   +---com.merry-yellow.code-assist

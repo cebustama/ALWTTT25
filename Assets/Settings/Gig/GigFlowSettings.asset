@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: GigFlowSettings
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigFlowSettingsSO
   jamRules:
-    loopsPerPart: 3
+    loopsPerPart: 4
     drawPerPart: 0
     inspirationPerPart: 0
-  drawPerLoop: 0
-  drawCardsOnPlay: 0
+  drawPerLoop: 1
+  drawCardsOnPlay: 1
   discardActionCardsOnPlay: 0
   allowActionCardsDuringPerformance: 1
   skipAudienceActionsAfterFinalSong: 1

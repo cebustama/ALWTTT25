@@ -23,7 +23,7 @@ MonoBehaviour:
     musicianId: 
   modifierEffects:
   - {fileID: 11400000, guid: 36930987b63e84747b9d81e9ae89a38d, type: 2}
-  - {fileID: 11400000, guid: 12005ff9eb8f2e4438d5a728b17ad435, type: 2}
+  - {fileID: 11400000, guid: 6e461d6fadfb8f34ab15242e9959cf19, type: 2}
   references:
     version: 2
     RefIds: []

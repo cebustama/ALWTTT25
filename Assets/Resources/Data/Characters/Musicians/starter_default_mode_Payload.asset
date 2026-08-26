@@ -22,7 +22,7 @@ MonoBehaviour:
     customLabel: 
     musicianId: 
   modifierEffects:
-  - {fileID: 11400000, guid: 12005ff9eb8f2e4438d5a728b17ad435, type: 2}
+  - {fileID: 11400000, guid: 6e461d6fadfb8f34ab15242e9959cf19, type: 2}
   references:
     version: 2
     RefIds: []

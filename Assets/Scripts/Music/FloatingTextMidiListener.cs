@@ -4,19 +4,67 @@ using Melanchall.DryWetMidi.Standards;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Floating-text presentation driven by MidiMusicManager callbacks.
+///
+/// [RFX-1] Percussion floating text is being replaced by sprite particle
+/// bursts (RhythmParticleMidiListener + RhythmParticleEmitter). This class
+/// keeps every emission path, but the percussion paths are now gated OFF by
+/// default so the two systems never draw the same hit twice.
+///
+/// Two NEW serialized fields carry that gate:
+///   - showPercussionNotes (default false) - gates the drum branch of OnMidiNote
+///   - showDrumKick        (default false) - gates OnDrumKick, which previously
+///                                           had NO toggle at all
+///
+/// Because both are new fields, existing scene/prefab instances have no
+/// serialized value for them and Unity falls back to the code default. That
+/// means dropping this file in switches percussion FT off with no inspector
+/// work. The OLD fields (showNotes, showChords, showBeats,
+/// showTempoSignature) keep whatever value the scene already stores - changing
+/// their code defaults would do nothing to an existing instance.
+///
+/// KNOWN DOUBLE-FIRE (code truth, MidiMusicManager.HandleMidiEvents):
+/// for notes 35/36 on the drum channel the manager calls BOTH OnMidiNote
+/// (generic note loop) AND OnDrumKick (kick-specific hook). The kick therefore
+/// had two floating texts before RFX-1. Any consumer that mirrors this class's
+/// callback set must implement only ONE of the two, or it will double-emit.
+/// RhythmParticleMidiListener deliberately does not implement IDrumKickListener.
+/// </summary>
 public class FloatingTextMidiListener :
-    MonoBehaviour, 
-    IMidiNoteListener, 
+    MonoBehaviour,
+    IMidiNoteListener,
     IChordListener,
-    IBeatGridListener, 
+    IBeatGridListener,
     IDrumKickListener,
     ITempoSignatureListener,
     IPartInfoListener
 {
+    [Header("Master toggles")]
     [SerializeField] private bool showNotes = true;
     [SerializeField] private bool showChords = true;
     [SerializeField] private bool showBeats = true;
     [SerializeField] private bool labelPercussionByName = true; // "Kick", "Snare", ...
+
+    [Header("Percussion FT [RFX-1] - superseded by particles")]
+    [SerializeField]
+    [Tooltip("Drum-channel note floaters. OFF since RFX-1: percussion is now " +
+             "drawn by RhythmParticleMidiListener. Turn ON only to debug " +
+             "whether a missing burst is a MIDI problem or an emitter problem " +
+             "(requires showNotes as well).")]
+    private bool showPercussionNotes = false;
+
+    [SerializeField]
+    [Tooltip("The kick-specific hook. Independent of showNotes/showPercussionNotes " +
+             "because MidiMusicManager calls it in ADDITION to OnMidiNote for " +
+             "notes 35/36 - enabling both reproduces the pre-RFX-1 double floater.")]
+    private bool showDrumKick = false;
+
+    [Header("Chord FT [RFX-1 / D5=B] - kept alongside particles during dev")]
+    [SerializeField]
+    [Tooltip("Per-chord console line. Fires on every chord ATTACK, not on chord " +
+             "change, so it is noisy under strummed backing tracks.")]
+    private bool logChords = true;
 
     [Header("Colors - Notes (12 pitch classes)")]
     [SerializeField]
@@ -49,6 +97,11 @@ public class FloatingTextMidiListener :
     [SerializeField] private Color cymbalColor = new Color(1.00f, 0.85f, 0.40f);
     [SerializeField] private Color otherPercColor = new Color(0.85f, 0.85f, 0.85f);
 
+    // [RFX-1] These direction vectors are the AUTHORED SOURCE for the per-lane
+    // directions now copied into RhythmFxConfigSO (kick left, snare right,
+    // hi-hat up...). They are the readable "language" of the groove; if you
+    // retune one here, retune the matching lane in the SO or the two systems
+    // will disagree while both are enabled for debugging.
     [Header("Directions")]
     [SerializeField] private Vector2 drumKickDir = new(-1f, 0.1f); // left
     [SerializeField] private Vector2 snareDir = new(1f, 0.0f); // right
@@ -72,8 +125,19 @@ public class FloatingTextMidiListener :
     // Treat channel 9 as drums (GM channel 10), keep in sync with MidiMusicManager
     private const int DrumChannel = 9;
 
+    /// <summary>[RFX-1] Smoke-test counters. Read from the inspector in debug
+    /// mode (or from a Dev Mode tab) to prove ST-RFX-1/ST-RFX-3 numerically
+    /// instead of by eye. Reset on enable.</summary>
+    public long PercussionFtSpawned { get; private set; }
+    public long DrumKickFtSpawned { get; private set; }
+    public long ChordFtSpawned { get; private set; }
+
     void OnEnable()
     {
+        PercussionFtSpawned = 0;
+        DrumKickFtSpawned = 0;
+        ChordFtSpawned = 0;
+
         var mm = FindFirstObjectByType<MidiMusicManager>();
         if (mm == null) return;
         mm.Register((IMidiNoteListener)this);
@@ -100,11 +164,16 @@ public class FloatingTextMidiListener :
     public void OnMidiNote(MidiTaggedEvent e)
     {
         if (!showNotes || e.anchor == null) return;
-        var (label, color) = BuildNoteLabelAndColor(e);
 
         // If drum, choose direction by element
         if (e.channel == DrumChannel)
         {
+            // [RFX-1] Percussion is particle-drawn now. Gate BEFORE building
+            // the label so the disabled path costs nothing at MIDI note rate
+            // (this callback fires 8-16 times a second on a busy pattern).
+            if (!showPercussionNotes) return;
+
+            var (percLabel, percColor) = BuildNoteLabelAndColor(e);
             var gm = (GeneralMidiPercussion)Mathf.Clamp(e.note, 35, 81);
             var dir = gm switch
             {
@@ -120,12 +189,15 @@ public class FloatingTextMidiListener :
                 GeneralMidiPercussion.SplashCymbal or GeneralMidiPercussion.ChineseCymbal => cymbalDir,
                 _ => noteDir
             };
-            FxManager.Instance?.SpawnFloatingText(e.anchor, label, dir, color);
+
+            FxManager.Instance?.SpawnFloatingText(e.anchor, percLabel, dir, percColor);
+            PercussionFtSpawned++;
             return;
         }
 
         // Melodic
         // TODO: Only if lead (melody or harmony)
+        //var (label, color) = BuildNoteLabelAndColor(e);
         //FxManager.Instance?.SpawnFloatingText(e.anchor, label, noteDir, color);
     }
 
@@ -146,6 +218,12 @@ public class FloatingTextMidiListener :
             label = $"Chord ({string.Join(",", e.notes)})"; // fallback
 
         FxManager.Instance?.SpawnFloatingText(e.anchor, label, chordDir, chordColor);
+        ChordFtSpawned++;
+
+        // [RFX-1] Gated: this line fires per chord ATTACK. Under a strummed
+        // backing it drowns the console, which is exactly when you most need
+        // to read the RhythmFx warnings.
+        if (!logChords) return;
 
         var notesPretty = (e.notes != null && e.notes.Count > 0)
             ? string.Join(" ", e.notes.Select(NoteName))
@@ -167,11 +245,15 @@ public class FloatingTextMidiListener :
         //FxManager.Instance?.SpawnFloatingText(transform, "Downbeat", downbeatDir, beatColor);
     }
 
-    // Specific drum kick hook
+    // Specific drum kick hook.
+    // [RFX-1] Previously unguarded - this was the second of the two kick
+    // floaters. The method must stay (it is the IDrumKickListener contract),
+    // so the guard is a toggle rather than a deletion.
     public void OnDrumKick(MidiTaggedEvent e)
     {
-        if (e.anchor == null) return;
+        if (!showDrumKick || e.anchor == null) return;
         FxManager.Instance?.SpawnFloatingText(e.anchor, "Kick", drumKickDir, kickColor);
+        DrumKickFtSpawned++;
     }
 
     public void OnTempoChanged(double bpm)
@@ -190,7 +272,7 @@ public class FloatingTextMidiListener :
 
     public void OnPartStarted(PartInfoEvent e)
     {
-        
+
     }
     #endregion
 

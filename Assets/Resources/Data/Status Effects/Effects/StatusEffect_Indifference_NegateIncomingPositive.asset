@@ -25,5 +25,4 @@ MonoBehaviour:
   valueType: 0
   isBuff: 1
   iconSprite: {fileID: 21300000, guid: 01ff16a57300e084aae1c70f9c1e34ea, type: 3}
-  description: The crowd is riled up. Each stack adds +1 to Stress dealt by this
-    audience member; loses 1 stack per Player Turn.
+  description: Inmune to vibe.

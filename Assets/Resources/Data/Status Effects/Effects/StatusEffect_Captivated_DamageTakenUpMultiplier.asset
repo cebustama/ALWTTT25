@@ -24,5 +24,5 @@ MonoBehaviour:
   tickTiming: 9
   valueType: 0
   isBuff: 0
-  iconSprite: {fileID: -5211314506668528542, guid: 9fae16fa4a2331e4399d3e8b21fe90f4, type: 3}
+  iconSprite: {fileID: 21300000, guid: 86f176c93c05d5c418305ce71d877821, type: 3}
   description: Locked in. Incoming Vibe hits +25% harder per stack.
