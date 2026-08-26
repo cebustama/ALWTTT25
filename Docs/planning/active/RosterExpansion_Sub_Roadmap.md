@@ -217,6 +217,23 @@ extra ni decaería estados de audiencia una vez más.
 > R5-c es una **capa adicional** sobre el mismo recurso, no el finisher de R0. La convivencia de
 > ambos disparadores se decide en R5-d (D-R5-20). Registro por evidencia de implementación, §12.
 
+### R5 decision ledger — fase R5-d (código entregado 2026-08-26; aplicado DOC-APPLY-3)
+
+- **D-R5-20 = B** — the Action card supersedes; the R5-c passive stays behind
+  `OverloadConsumerEnabled`, default OFF. Review at R8: still OFF ⇒ retire.
+- **D-R5-21 = per-card cost** — Voltage cost is authored on the card, not global. Overload = 3.
+  Rider: `MaxBonusLoopsPerPart = 1`, authorable.
+- **D-R5-22 = A** — composition cards may be Voltage sinks with the same pair, no extra code.
+- **D-R5-23 = A** — the composition lock holds across the bonus tail; predicate gains
+  `- _bonusLoopsPendingForPart`.
+- **D-R5-24 = A** — solo role preference Melody → Harmony → no solo (bonus loop still granted).
+- **D-R5-25 = A** — `LoopsTimerUI.BuildBars` re-called on grant (verified rebuildable mid-part).
+- **D-R5-26 = A** — cost as a generic `(resourceCostStatusKey, resourceCostAmount)` pair on
+  `CardDefinition`, not a `voltageCost` field and not a `CardEffectSpec`.
+- **D-R5-27 = OPEN** — does the Voltage-3 tier go on the existing `starter_slap_bass`
+  (StarterDeck) or on new RewardPool cards? Recommendation on record: new cards.
+  **Sigue abierta tras DOC-APPLY-3**; ningún diff aplicado depende de ella.
+
 ---
 
 ## 3. Batch sequence
@@ -230,8 +247,8 @@ extra ni decaería estados de audiencia una vez más.
 | **R2d** | IMPLEMENTATION | Adoption of **ORDER-1** + **SLAPFIG-1** (filed and delivered 2026-07-31): guard rewrite, shared-harmony cache identity `dp:`+`bk:` (D-R2-10=A, closes the pre-existing **F-HARM-STALE-1**), harmony-source readback, Slap Bass re-authored onto `SelfPocket` (D-R2-11) | Interleavable | R2c |
 | **R3** ✅ **CLOSED 2026-08-08** | IMPL / CONTENT | Zig composition cards: ascending-degree `MelodyPatternData` (verbatim `patternOverride`) + scale-phrase palette; singer verification in a 3–4-musician band (mix, channel, mute). **CLOSED 2026-08-08.** Entregado: **Rise Up** (patrón autorado de 8 compases por grado, adaptativo a raíz y a modo) y **Showtime** (ruta procedural, ST-R3-11 PASS, operativa). Entregable de banda 3–4 (mezcla/canal/mute) **CUMPLIDO**. Además en lote: **JAM-1** (continuidad de armonía compartida) y **JAM-2** (el modo viaja con la armonía), tres cartas Wormus de banco de dev (`flags=None`, D-R3C-6=A), paleta `Chord Palette - Modal` 7→5 (D-R3C-5=B). Verificaciones: ST-A1..A7 · ST-B1/B2 · ST-C1 · C5 · ST-R3-11 · C4 · ST-J1..J6, todas PASS. Excepción al freeze de baseline S5i autorizada por D-R3C-1=C / D-R3C-8=A (2º y 3er precedente). | Interleavable (∥ R2) | R0 |
 | **R4** ✅ **CLOSED 2026-08-10** | IMPLEMENTATION | **CLOSED 2026-08-10.** Cuatro piezas entregadas: **Psychic Wave v2** · **C2 Spotlight/Taunt** · **Read the Room** · **Keep Cool retarget**. **ST-R4-1..10 PASS · V-R4-MODAL PASS** (salda la deuda auditiva de R3: la melodía sobre parte modal resuelve contra el modo impuesto). Ledger del lote en §2. Scope original: Finishers I: **Psychic Wave v2** (add `ApplyStatusEffect(earworm, Y≈2, AllAudienceCharacters)` — note the target branch skips `IsBlocked` members, so Indifference-blocked audience take no Earworm; full-screen mask VFX on `TutorialSpotlight.shader` base; **tutorial beat-8 + JUICE-PW regression**) + **C2 Spotlight/Taunt** (counter status + `ResolveTargetsFor` redirect hook, 1 audience turn) + **Read the Room** (`RevealPreferencesSpec` + `AudienceCharacterCanvas` surface, D-R0-1) + **Keep Cool retarget** `Self`→`Musician` (D-R0-3, **tutorial Composure-beat regression owed**) + **V5 runtime smoke** (`ApplyStatusEffect` × `AllAudienceCharacters`) | Post-S5j | S5j tag |
-| **R5** 🔵 **PARCIAL** (abierto 2026-08-11; R5-a/b/c cerrados 2026-08-21) | IMPLEMENTATION | **Conito Overload** (own batch). **Entregado (R5-a/b/c):** estado contador `Voltage` (`ResourceCounter = 993`, sin decay, `MaxStacks 9`, alcance gig) · hook pasivo de generación **+1 por jugada consumida de Conito** (`GigFlowSettingsSO.GenerateVoltageOnConsumedPlay`, default ON) · `StatusEffectContainer.SpendStacks` (D-R5-18=C) · **Overload pasivo**: descarga automática en el boundary de loop, umbral 6 / coste 6, **×1.5 sobre el `hypeDelta` de ese loop** (D-R5-13/14/15/16/17). ST-R5a-* · ST-R5b-* · ST-R5c-1..9 PASS. **NO entregado, sigue siendo alcance R5:** Overload como **carta de dominio Action** (D-R0-5=A; coste 2 + Voltage ≥ 3 por D-R0-12) · API guardada de loop de bonus (`TryGrantBonusLoop` / excepción de inv 11) · **solo de un loop de Conito** (Melody, guitarra) con alcance de render (D-R5-4=A) · duck/restore de canal. **Continúa en R5-d** (ver F-R5c-4 y la nota de sustitución en §2). Abrió con la review de invariantes de sesión (R5-inv, §5 note) | Post-S5j | R2, S5j |
-| **R5-d** ⚪ **PENDIENTE** | IMPLEMENTATION | Cierre del alcance R5: carta Action **Overload** + `TryGrantBonusLoop` guardada + solo de un loop por inyección de alcance de render + duck/restore. Abre con **D-R5-20** (convivencia pasivo↔carta), **D-R5-21** (umbral 6 vs ≥3) y **D-R5-22** (otros consumidores de Voltage). Los siete diffs HELD de los paquetes `PENDING_DOC_DIFFS_R5*` se aplican al cerrarlo | Post-R5-c | R5-a/b/c |
+| **R5** ⏳ **PARCIAL** | IMPLEMENTATION | R5-a/b/c shipped Voltage + passive Overload. **R5-d code shipped 2026-08-26**: bonus loop, render-scope solo, duck plane, generic resource cost, `conito_overload` authored. **Blocking closure — un solo criterio: ST-R5d-1..15 sin ejecutar.** Los otros dos cayeron el 2026-08-26: los 20 diffs de R5-d se aplicaron en DOC-APPLY-3, y los siete diffs HELD de `PENDING_DOC_DIFFS_R5*` quedaron **declarados perdidos y retirados como criterio de cierre** (D-DOC-5; ver §3.1). D-R5-27 sigue abierta pero **no bloquea**: es una decisión de contenido, no de contrato. | — | R0 |
+| **R5-d** 🔵 **CÓDIGO ENTREGADO 2026-08-26, SIN SMOKE** | IMPLEMENTATION | Cierre del alcance R5: carta Action **Overload** (`conito_overload`, inspiración 2, Voltage 3) + `TryGrantBonusLoop` guardada + solo de un loop por inyección de alcance de render (§8 inv 14) + duck de canal (`SSoT_Audio` §4.7) + par genérico de coste de recurso. Decisiones D-R5-20..26 cerradas; **D-R5-27 abierta**. **Doc diffs aplicados en DOC-APPLY-3 (2026-08-26).** **Pendiente para cerrar: ST-R5d-1..15.** | Post-R5-c | R5-a/b/c |
 | **R6** | IMPLEMENTATION | **Double Harmony Tier A** (Harmony-role card + listening validation + dual per-track particle FX via `IMidiNoteListener`) + **`SingerVoiceDirector` one-shot API** (shared groundwork for singalong; Tier B + expression-input rider queued behind cap=2 validation) | Post-S5j | R3, S5j |
 | **R7** | IMPLEMENTATION | **Track Card Levels** mechanic (state on `TrackEntry`, level-up branch in `TryAddOrReplaceTrackOnPart`, cache-invalidation duty, INSP/complexity hooks) + pilot content (Wormus Major/Minor lvl2–3). Spec: `planning/active/Design_Track_Card_Levels_v0_1.md`. May file MGP ask §8 #4 if alphabet gaps bite | Post-S5j | R0 (spec), S5j |
 | **R8** | CONTENT / TEST | Rewards for all 4 (palettes via skills: jazz / Phrygian / jazz-vs-EDM drums; bossa v1 + tapping-or-degradation) + **Singalong** (on R6 one-shot API) + starter v2 registration + full-band smokes (4 musicians, full pool) + campaign doc closure | Last | R4–R7 |
@@ -239,6 +256,43 @@ extra ni decaería estados de audiencia una vez más.
 Compression note: R3→R1 merge and per-musician reward distribution into R2/R3/R6 can shrink the campaign to ~7 batches at the cost of less-bounded batches. **R5 must stay solo** (invariant-touching).
 
 ---
+
+
+### 3.1 Registro de pérdida — `PENDING_DOC_DIFFS_R5*` (D-DOC-5, 2026-08-26)
+
+**Los cuatro ficheros `PENDING_DOC_DIFFS_R5.md` + addenda R5-a / R5-b / R5-c se declaran
+PERDIDOS.** No se aportaron en ninguna sesión desde DOC-APPLY-R5 (2026-08-23) y no son
+recuperables. Sus **siete diffs HELD** —**D1, D2, D3, D7, D8, D10, D11-original**— no se
+aplicarán nunca.
+
+**Por qué esto no deja un hueco de documentación, y el razonamiento importa.** DOC-APPLY-R5
+retuvo exactamente esos siete **porque describían el loop de bonus, el solo y
+Overload-como-carta: código que en agosto de 2026 no existía**. Aplicarlos habría introducido
+divergencia doc↔código a propósito. Ese código **se entregó el 2026-08-26** (R5-d) y quedó
+documentado el mismo día (DOC-APPLY-3) por los 20 diffs de `PENDING_DOC_DIFFS_R5d.md`, esta vez
+**escritos contra el código real**, con anclas verificadas contra los documentos reales.
+
+Los tres diffs HELD que apuntaban a `SSoT_Runtime_CompositionSession_Integration.md` cubrían el
+mismo territorio que hoy ocupan §5.4 (cláusula de bonus loop), §8 invariante 11 (cláusula del
+predicado) y §8 invariante 14 (inyección de pista con alcance de render). **El material perdido
+es la versión especulativa de lo que ya está escrito desde la observación.** Recuperarlo, si
+fuera posible, sería documentar dos veces el mismo concepto desde una fuente peor — y violaría
+«un concepto, una autoridad».
+
+**Lo que sí se pierde, dicho sin adornos:** el rationale de redacción de esos siete —qué
+alternativas se consideraron y se descartaron **antes** de escribir el código de R5-d. Ese
+razonamiento no es reconstruible y no se va a inventar. Coste aceptado.
+
+**Consecuencia de gobernanza.** «Retirar los cuatro ficheros `PENDING_DOC_DIFFS_R5*`» **deja de
+ser criterio de salida de R5**. Sustituido por este registro. R5 queda con **un solo criterio de
+cierre pendiente: ST-R5d-1..15**.
+
+**Lección operativa, para que no se repita.** Un paquete de diffs retenido es un fichero suelto
+sin dueño: no vive en ninguna carpeta gobernada, no aparece en el manifiesto y nada obliga a
+adjuntarlo. Retener por la razón correcta (no documentar código inexistente) y **no fijar una
+fecha de consumo** es cómo se pierde. Regla que sale de aquí: **un paquete retenido nombra en su
+propia cabecera el lote que lo consume; si ese lote cierra sin consumirlo, el paquete se declara
+perdido en ese mismo cierre, no más tarde.**
 
 ## 4. Requirement × musician coverage map
 

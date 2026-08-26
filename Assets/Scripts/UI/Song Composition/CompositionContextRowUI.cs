@@ -97,6 +97,8 @@ namespace ALWTTT.UI
 
             BuildLoopPips(data);
 
+            ApplyChipSize(meterChip); ApplyChipSize(tempoChip); ApplyChipSize(moodChip);
+
             if (meterChip)
             {
                 theme.TryGetMeter(data.meter, out var glyph, out _);
@@ -130,6 +132,12 @@ namespace ALWTTT.UI
                 rowRect.sizeDelta = new Vector2(rowRect.sizeDelta.x, theme.contextRowHeight);
         }
 
+        private void ApplyChipSize(Image chip)
+        {
+            if (chip == null || theme == null) return;
+            chip.rectTransform.sizeDelta = new Vector2(theme.chipSize, theme.chipSize);
+        }
+
         public void SetWidth(float width)
         {
             if (!rowRect) return;
@@ -154,6 +162,11 @@ namespace ALWTTT.UI
                         ? loopPipFinalPrefab : loopPipPrefab;
                     var go = Instantiate(prefab, loopPipsRoot);
                     go.SetActive(true);
+                    // Size from the theme, not from the pip prefab: two prefabs
+                    // (round + diamond) that must always match are two places to
+                    // forget. One token keeps them identical by construction.
+                    if (go.transform is RectTransform prt)
+                        prt.sizeDelta = new Vector2(theme.loopPipSize, theme.loopPipSize);
                     _pips.Add(go);
                 }
             }

@@ -495,6 +495,13 @@ Budgets refill for every live musician at three seams in `GigManager`:
   original anchor was corrected during implementation.
 - **Seam C** — `OnCompositionLoopFinished`, placed BEFORE the F-3 draw/insp
   early-return so the per-loop refill is config-independent.
+  **Bonus-loop exception (R5-d, D-R5-6=B):** the refill is suppressed when
+  `CompositionSession.LastFinishedLoopWasBonus` is true. A bonus loop is music,
+  not card tempo, so it does not open a new performance period. The suppression
+  is surgical — the `LoopResolvedEvent` publish, the Vibe refresh, the F-3 draw
+  and the per-loop inspiration all still fire for that loop. Nothing is lost
+  permanently either: Seam A refills at the next PlayerTurn. What the player
+  does not get is an extra play window bought with a resource.
 Resets are idempotent refills; overlapping seams are harmless.
 
 ### 14.4 State and API homes
@@ -515,6 +522,11 @@ Resets are idempotent refills; overlapping seams are harmless.
   ECON-1 before refactoring the gate — or adding a third caller — must know it is no longer
   purely accounting. Attribution consequence: the payer resolved by §14.5 is the generator, so
   an `AnyMusician` card billed to Conito generates and a Conito card billed elsewhere does not.
+- **Orthogonal gate (R5-d):** the resource cost (`GigManager.CanPayResourceCost` /
+  `TryPayResourceCost`) is a *third* independent gate beside Inspiration and ECON-1 — never a
+  substitute for either. Action path: checked at HandController 2a.6-bis, spent after
+  `TryConsumePlay`. Composition path: checked in `TryPlayCompositionCard` before the one-shot
+  animation, spent only on a session-accepted play. Contract home: `SSoT_Status_Effects` §5.10.
 
 ### 14.5 Attribution
 Cards with `AnyMusician` performer bill the musician the play pipeline
@@ -567,3 +579,68 @@ frame after a play (regression ST-CU-10, CARD-UX-1).
   home), D-ECON-3=A (attribution), D-ECON-4=A (strict Y=1), D-ECON-5=A
   (flow-default maxima), D-ECON-6=DEFER (2026-07-07: all starter costs → 0;
   finisher card designation deferred to a future batch).
+
+---
+
+## 15. Composition strip (HUD-COMP-1, 2026-08-26)
+
+The player-facing readout of what the band is currently playing. Implemented truth; the
+originating spec, `Composition_View_Spec.md`, was **declared lost on 2026-08-26** (D-DOC-5) and
+is not in the project knowledge; **this section is the only record of the strip**, written from
+the shipped implementation rather than summarised from that spec. Treat it accordingly: there is
+no upstream document to reconcile against, so a future change edits here or nowhere.
+
+### 15.1 What the strip shows
+
+- A **context row**: loop pips, time signature, tempo, mood.
+- **One row per `(musicianId, role)`** in roster order, **including placeholder rows for
+  musicians with no track**. An empty seat is information, not clutter (D7).
+
+### 15.2 Row identity
+
+The row key is `"{musicianId}|{role}"`. **One musician may occupy two rows** — this is the
+BASS-1 pair rule (`SSoT_Runtime_CompositionSession_Integration.md` §8 inv 10) surfaced in the
+HUD, not a new concept. Anything that reconstructs this key must not collapse it to
+`musicianId`.
+
+### 15.3 Row states
+
+Empty · newly added · pending render · active Lv1 · active Lv2+ · levelling up · replaced.
+
+> **Two states are defined but not live, and must not be read as implemented:**
+> **«muted»** has no data source wired — the state exists in the view model and nothing feeds
+> it. **Track level** is supported by the UI but the model field does not exist; filling it is
+> **R7** work (`planning/Design_Track_Card_Levels_v0_1.md` §7).
+
+### 15.4 Final-loop warning
+
+The last loop pip uses a **diamond shape in addition to red colour**. The reason is a contract
+one, not decorative: the composition lock (`UnplayableReason.FinalLoopLock`,
+`SSoT_Card_System.md` §10.5) changes what the player may legally do, so it must be legible
+without relying on colour.
+
+### 15.5 Pending-render granularity
+
+Pending state is tracked **per musician, per part**. A change to a *part property* (time
+signature, tempo, tonality) marks the **whole part** pending, and that is correct rather than
+coarse: every track re-renders when a part property moves.
+
+### 15.6 Text budget at rest
+
+At rest the strip shows **the card name and nothing else**. Role, time signature, tempo and
+mood are carried by icon, shape and colour (D5); their text lives only in hover.
+
+### 15.7 Read surface
+
+The strip consumes the three read-only seams of
+`SSoT_Runtime_CompositionSession_Integration.md` §5.5 and shows the **rendered** tonality,
+never the model's. It writes nothing.
+
+> **Known defect (HUD-COMP-1, deferred).** The hover's `Instrument:` line does **not** resolve
+> reliably. The seam and the three-segment pin key are correct (§5.5); what still fails is the
+> *moment* of the query, despite the hover fix. Diferido a sesión posterior. See §8 inv 15.
+
+> **Known gap (HUD-COMP-1 / D-07, roadmap not SSoT).** `TrackEntry` does not store the card's
+> `PartEffect`s (explicit TODO in the model), so the hover prints `Modifiers: -`
+> permanently. It is printed **on purpose**, so the absence reads as a known hole rather than
+> an oversight. Candidate for its own batch if design wants modifiers exposed.

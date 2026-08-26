@@ -382,6 +382,41 @@ del mismo músico. Si tras bajar la ganancia la aspereza persiste, la causa **no
 es de nivel** sino de articulación y voicing (`chordExpression`,
 `voiceLeadingOverride`), que se resuelven en la carta, no en la mezcla.
 
+### 4.7 Solo duck (R5-d) — the third plane
+
+A one-loop soloist needs the rest of the band to sit back. The duck is a **third multiplicative
+factor composed inside `WriteChannelVolume01`**, not a save/restore of raw channel volumes:
+
+```
+composedCc7 ≈ round(live01 × bakedGain × duck01 × 100)
+```
+
+`MidiMusicManager._duck01ByChannel` (16 floats, 1 = untouched) is written only by
+`SetSoloDuck(soloChannel, duck01)` / `ClearSoloDuck()`, and `ReapplyLiveVolumes()` re-sends
+every channel's live intent through the boundary so a duck change takes effect at once. The
+soloist's channel and the metronome are exempt.
+
+**Why not save/restore.** Highlight (§4.3) owns a **single** snapshot slot (`_savedVol01` +
+`_hasSavedMix`). A second saver would restore the other's values whenever the two interleave —
+a duck applied during an active highlight, or a highlight fired mid-duck, would leave the mix
+at whichever party restored last. Because the duck never touches `_lastKnownVol01` or
+`_savedVol01`, the two planes **compose** instead: a duck survives a highlight save/restore
+cycle unchanged and vice versa.
+
+**D-BAL-6=B still holds.** The contract is *one write boundary*, not *two factors*: there is
+still exactly one call site into `IMixController.SetChannelVolume01`, and `GetLiveComposedCc7`
+still reports the CC7 actually emitted — now with the duck included, which is what a diagnostic
+should show.
+
+Lifecycle: applied after `PlayRaw` on an injected-solo loop (so the playback preamble's own
+volume writes cannot undo it) and cleared at the loop boundary, at `AdvanceToNextPart` and at
+`End()`. `ClearSoloDuck` is a no-op when nothing is ducked, so the redundancy is free.
+`_lastKnownVol01` is seeded to 1f at Awake, so a clear can never silence a channel that was
+never explicitly set.
+
+**Tuning home:** `GigFlowSettingsSO.bonusSoloDuck01` (default 0.55, clamped 0..1) and
+`bonusSoloEnabled`.
+
 ---
 
 ## 5. Persistence
@@ -506,6 +541,12 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
     **immediate, never jittered** (invariant 10); the per-member *visual* fan-out carries the
     stagger. It fires on a blocked first target too (the card resolved). `CardPlayedEvent` remains
     a purely semantic event and adds no SFX key.
+
+19. **The live music plane composes three factors, through one boundary** (R5-d).
+    `WriteChannelVolume01` multiplies live intent × baked bytes-plane gain × solo duck. Any
+    future per-channel attenuation is added as a further plane inside that method — never as a
+    competing save/restore, which would collide with Highlight's single snapshot slot (§4.7 /
+    §4.3).
 
 ---
 

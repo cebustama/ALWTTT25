@@ -78,10 +78,31 @@ Levels are therefore **content selection, not generation changes**: each level i
 | Max level | **3.** |
 | Different card replaces a leveled track | **Level state discarded.** State keys on `sourceCardDefinition`; a new identity enters at level 1. |
 | Does level-up refresh `PartEffect`s / co-effects | **Yes — a level-up is a normal composition play in every respect except the track branch.** `modifierEffects` and `CardPayload.Effects` execute exactly as on a first play; no suppression code. Moot for the Wormus pilot (neither card carries them), but the rule is stated so R7 does not invent one. |
-| UI representation | Roman-numeral badge (II / III) on `SongTrackElementUI`; **"LEVEL UP!"** floater via the existing composition-FX diff path. |
+| UI representation | **REVERTIDA en HUD-COMP-1 (D8=B, 2026-08-26) — ver la nota bajo la tabla.** En reposo, **pips** verdes (`#8FD694`), hasta 3, **sin pips en Lv1**. En hover, texto `Lv n / 3`, con sufijo `· max` en Lv3. El floater de subida es un glifo **`▲` sin texto propio, local a la fila**. *(Resolución original, sustituida: badge de numeral romano II / III más floater "LEVEL UP!".)* |
 | +INSP economy | **Reserved** — see §6 (D-R0-8=A). The LoopScore complexity term stays the intended honest hook, filed to its S5i owner; R7 does not activate it unilaterally. |
 | Do Action-domain cards ever level | **No.** Confirms the v0.1 non-goal: composition/Track cards only. |
 | Scope | **Generic mechanic + Wormus Major/Minor pilot only** (confirmed, unchanged). |
+
+### 7.1 Reversión explícita de la representación UI (HUD-COMP-1, D8=B, 2026-08-26)
+
+**Esto revierte una decisión previa de este mismo documento y se registra como tal, no en
+silencio.** La resolución de D-R0-7 (2026-07-23) especificaba un numeral romano; la
+implementación de HUD-COMP-1 entrega pips.
+
+**Motivo.** El numeral romano **colisiona con los grados armónicos** (I, V, vi) que el juego ya
+usa para acordes: el mismo símbolo significaría dos cosas en la misma pantalla, y una de ellas
+en la tira de composición, que es donde el jugador lee armonía. Además la spec de la tira
+impone **texto cero en reposo** (D5), y `Lv 1 / 3` se lee como carencia en una pista que
+simplemente es normal — de ahí que Lv1 no lleve pips (D2).
+
+**Nota de implementación para R7.** El cap `= 3` se consume desde `RowData.maxLevel`, y la UI
+**ya soporta niveles con `level` ausente** (se interpreta Lv1, sin pips). R7 sólo tiene que
+rellenar el campo: **el nivel de pista no está implementado**, la UI lo soporta y el modelo no
+lo expone todavía. Ver `SSoT_Gig_Combat_Core.md` §15.3.
+
+**Alcance del floater `▲`.** Es **local a la fila** y no pasa por `SensoryEventBus`. Registrado
+como excepción, no como precedente tácito: `Design_Sensory_Contract_v0_1.md` §"Excepciones
+registradas" (D-DOC-3, abierta para R7).
 
 ## 8. Non-goals
 

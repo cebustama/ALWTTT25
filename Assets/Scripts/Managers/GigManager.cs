@@ -1734,11 +1734,12 @@ namespace ALWTTT.Managers
         }
 
         public bool TryGetResolvedInstrumentNameForUI(
-            string musicianId, TrackRole role, out string instrumentName)
+            int partIndex, string musicianId, TrackRole role, out string instrumentName)
         {
             instrumentName = null;
             return _session != null
-                && _session.TryGetResolvedInstrumentName(musicianId, role, out instrumentName);
+                && _session.TryGetResolvedInstrumentName(
+                       partIndex, musicianId, role, out instrumentName);
         }
 
         /// <summary>

@@ -79,6 +79,66 @@ with intra-song stability, not per-build reproducibility.
 
 ## 2. Active work
 
+- **DOC-APPLY-3 — aplicación fusionada de tres paquetes de doc diffs (2026-08-26).**
+  Sesión sólo documental. Se aplicaron en orden estricto **CSV-4c (16) → R5-d (20) →
+  HUD-COMP-1 (7)** = 43 diffs sobre 19 documentos, con `CURRENT_STATE`, `changelog-ssot` y
+  `coverage-matrix` editados **una sola vez, fusionando**. Retirables del PK: los tres ficheros
+  de pendientes consumidos. **Sigue retenida** la deuda de `PENDING_DOC_DIFFS_R5.md` + addenda
+  (7 diffs HELD: D1, D2, D3, D7, D8, D10, D11-original), cuyos ficheros **no se han aportado en
+  ninguna sesión**. Hallazgo de la pasada: la invariante «12» que R5-d daba por libre en
+  `SSoT_Runtime_CompositionSession_Integration` §8 **ya estaba ocupada** (12 = singer voice
+  seam, 13 = BPM), así que la inyección de alcance de render quedó como **inv 14** y la de
+  HUD-COMP-1 como **inv 15**.
+
+- **R5-d — Overload como carta Action (código 2026-08-26).** Voltage ya tiene sumidero
+  jugable. `CardDefinition` lleva un par genérico `(resourceCostStatusKey,
+  resourceCostAmount)` (D-R5-26=A) usable por cartas Action y de Composición por igual;
+  `GrantBonusLoopSpec` extiende la parte en curso un loop
+  (`CompositionSession.TryGrantBonusLoop`, tapado por `GigFlowSettingsSO.MaxBonusLoopsPerPart`
+  = 1). El bonus loop se renderiza con una pista de solista de alcance de render superpuesta a
+  una base byte-idéntica (§8 inv 14) y agacha al resto de la banda con un tercer plano de
+  ganancia en `WriteChannelVolume01` (`SSoT_Audio` §4.7). El bloqueo de composición se mantiene
+  a lo largo de la cola de bonus (D-R5-23=A) y el refill de ECON-1 del boundary de loop queda
+  suprimido ahí (D-R5-6=B). La descarga pasiva de R5-c queda **OFF por defecto** (D-R5-20=B) y
+  se conserva como fallback. Carta autorada: `conito_overload` (Action, Conito, inspiración 2,
+  Voltage 3, RewardPool).
+  **Estado: implementado, SIN verificación de smoke — ST-R5d-1..15 NO EJECUTADOS** (D-DOC-2=A:
+  se documenta con la marca en vez de retener los diffs otro ciclo). **D-R5-27 sigue abierta**
+  (si el tier Voltage-3 va sobre `starter_slap_bass` o sobre cartas nuevas de RewardPool);
+  ningún diff aplicado depende de ella. Hogares: `SSoT_Status_Effects` §5.10 ·
+  `SSoT_Card_System` §10.5 · `SSoT_Runtime_CompositionSession_Integration` §5.4 + §8 inv 11/14 ·
+  `SSoT_Gig_Combat_Core` §14.3/§14.4 · `SSoT_Audio` §4.7 + inv 19 ·
+  `SSoT_Card_Authoring_Contracts` §5.3a/§5.6c.
+
+- **HUD-COMP-1 — Composition View v1 (cerrado 2026-08-26; 11 smoke PASS, ST-6b y ST-10
+  diferidos).** Tira anclada arriba a la izquierda, pastillas oscuras por fila, íconos de rol,
+  pips de loop con aviso de loop final (rombo + rojo, legible sin color), chips de
+  compás/tempo/mood, hover anclado a fila.
+  **Retirados del estado de reposo:** `partLabelText` (condicionado a `partsPerSong > 1`),
+  `partInfoText`, `roleText`, `inspirationNextText` — los tres últimos viven ahora sólo en
+  hover. El panel claro contenedor (Image de `SongPartsLayout`) queda **desactivado**. La
+  columna `MusicianIcons` queda **desactivada** (D-STRIP-ICONS = C).
+  **Nivel de pista NO implementado:** la UI lo soporta, falta el campo del modelo (R7). El
+  estado de fila «silenciada» está **definido sin fuente de datos** — tampoco es verdad
+  implementada.
+  **Bug conocido, diferido a sesión posterior:** la línea `Instrument:` del hover de la tira
+  **no resuelve de forma fiable**. El seam y la clave de pin de tres segmentos son correctos
+  (`SSoT_Runtime_CompositionSession_Integration` §5.5); lo que sigue fallando es el **momento
+  de la consulta**, pese al fix de hover. Ver §8 inv 15.
+  **Hallazgo sin lote (D-07):** `TrackEntry` no almacena los `PartEffect`s de la carta (TODO
+  explícito en el modelo), así que el hover imprime `Modifiers: -` de forma permanente. Se
+  imprime a propósito, para que la ausencia sea un hueco conocido y no un olvido.
+  Autoridad: `SSoT_Gig_Combat_Core` §15, que es ahora el **único** registro de la tira:
+  `Composition_View_Spec.md` y `CLOSEOUT_HUD-COMP-1.md` se declaran **perdidos** (D-DOC-5,
+  2026-08-26) y quedan fuera del índice y del coverage-matrix.
+
+- **CSV-4c — índice inverso carta→bundle (cerrado 2026-08-10; 8/8 smoke PASS).** D-CSV-16
+  cerrada con herramienta: octava vista `Cards → Bundles`, columna `cards:` en Style Bundles,
+  flags `UNREACHABLE` / `UNSOURCED` / `UNWIRED-SRC`. Primera medición de alcanzabilidad de
+  bundles del proyecto: **18 de 35 alcanzables, 17 muertos, 10 de ellos Bassline**. La cifra de
+  CSV-4 sobre progresiones alcanzables (14 de 33) queda **histórica y debe re-medirse, no
+  re-citarse**. Autoridad: `SSoT_Editor_Authoring_Tools` §17.
+
 - **Escucha de validación de contenido — EJECUTADA 2026-07-31 (CONT-B).** Desbloquea D-CSV-18 (`volume01`): captura entregada — los bajos se distinguen entre sí y los slaps leen; el único desequilibrio medido es Fingered por debajo de Slap, y **no es de instrumento sino de payload** (los boosts de Pocket son exclusivos de slap/pop). Ver **D9** (§6.2).
 
 - **Card-authoring flow consolidation — LIVE (AUTH-1, closed 2026-07-31).**
@@ -430,7 +490,13 @@ The §5 doc-closure *history* (every applied edit since 2026-04-29) was removed 
 - **Aplicado 2026-08-10 (DOC-R4 — doc-update de R4, documentación pura, sin código ni smokes).** Los once diffs de `PENDING_DOC_DIFFS_R4.md` aplicados (el fichero de diffs se retira al aplicar, convención de paquetes): `SSoT_Status_Effects.md` (§5.9 nueva · §5.7 · §8) · `SSoT_Card_Authoring_Contracts.md` (§9 · §5.6b nueva) · `SSoT_Audience_and_Reactions.md` (§6.4 nueva · §8 · §6.1) · `SSoT_Card_System.md` (§8.2 corrección F-R4-1 + exclusión `IsBlocked` · §6.2) · `RosterExpansion_Sub_Roadmap.md` (fila R4 CLOSED · ledger R4 · §9 V5 · §8/§10 deudas) · `Design_Starter_Deck_v2_DRAFT.md` (filas 5/6/Read the Room construidas · §7 V5 · §8) · este fichero (§1/§3/§4/§5) · `changelog-ssot.md` · `coverage-matrix.md` · `Design_Tutorial_System_v0_2.md` (nota del beat de Composure) · `ssot_manifest.yaml` (invariantes cacheados de Status Effects y Audience). **La corrección F-R4-1 (resolución por spec) está aplicada en los tres sitios** (Card System §8.2 · RosterExpansion §9 · Starter Deck v2 §7). **D-DOC-R4-1 = A:** `Design_Sensory_Contract_v0_1` NO se promueve a SSoT aquí — `PsychicWaveOverlayController` queda registrado en coverage-matrix como tercera entrada sin hogar, alimentando D-SENSORY-HOME (MANIFEST-2). La historia de doc-passes aplicados que vivía en esta sección se poda a este bloque + el changelog (regla propia de §5: forward-looking only).
 - **Aplicado 2026-08-11 (DOC-APPLY-PRES1 — doc-update de PRES-1, aplicado como fase de apertura de R5, D-R5-1=A).** Los diffs READY de `PENDING_DOC_DIFFS_PRES1.md` + `PENDING_DOC_DIFFS_PRES1c.md` (ambos ficheros se retiran al aplicar, convención de paquetes): `SSoT_Status_Effects.md` (§5.9 legibilidad cerrada + invariante `AllMusicians` reforzado + nota del selector) · `SSoT_Audience_and_Reactions.md` (§6.4 superficie del reveal + D-R4-10 cerrada · §8 regla de selección por defecto) · `Design_Sensory_Contract_v0_1.md` (fila `SpotlightRedirectEvent` · Psychic Wave v4 + retirada del tinte · superficies de presentación de personaje + nota de logs — **sigue planning**, D-DOC-R4-1=A; suma 4ª y 5ª entradas sin hogar que alimentan D-SENSORY-HOME) · `RosterExpansion_Sub_Roadmap.md` (ledger de apertura de R5, D-R5-1..3 + fila R5 ABIERTO) · `SSoT_ALWTTT_MidiGenPlay_Boundary.md` (§8.11 nota de reenvío MGP-TONALITY-1) · este fichero (§1/§3/§4/§5) · `changelog-ssot.md` · `coverage-matrix.md`. **Enmiendas respecto a lo emitido:** el D10 de PRES1c registraba F-PRES1b-1 como pregunta abierta — se aplica ya como **resuelta** (D-R5-2=A) porque la decisión se tomó al abrir R5 el mismo día; el HELD-2 (barrido U+FFFD) migró a §4 de este fichero antes de retirar el paquete. **Pendiente de puerta:** la viñeta del encabezado en negrita (§6.4) espera a ST-PRES1-7b, que verifica que TMP renderiza `<b>` y no lo imprime literal.
 - **Aplicado 2026-08-23 (DOC-APPLY-R5 — PARCIAL, documentación pura, sin código ni smokes).** De los 26 diffs acumulados en `PENDING_DOC_DIFFS_R5.md` + los tres addenda R5-a/R5-b/R5-c se aplican **19**: `SSoT_Status_Effects.md` (§2.1 contenedor keyed por primitiva · **§3.0 nueva** contrato `SpendStacks` · **§5.10 nueva** Voltage completa: generación, atribución, consumo por Overload pasivo, alcance gig, tuning y nota de cartas dev · §6 dos invariantes nuevos: `MaxStacks` topa en todos los `StackMode`, y `TickTiming.None` = "en todos los timings") · `SSoT_Gig_Combat_Core.md` (**§3.1.1 nueva** secuencia del loop boundary · **§3.3.1 nueva** el reset de canción es allowlist y dispara al abrir · §14.4 efecto lateral de Voltage en la puerta ECON-1) · `SSoT_Scoring_and_Meters.md` (§3.3 expresión completa del hype con el factor de Overload) · `SSoT_Editor_Authoring_Tools.md` (§6.3 los tres campos que el wizard no escribe + nombre de asset por primitiva) · `RosterExpansion_Sub_Roadmap.md` (ledger R5 completo de las cuatro fases cerradas + **nota de sustitución** + fila R5 → **PARCIAL** + fila **R5-d** nueva) · este fichero (§1/§3/§5) · `changelog-ssot.md` · `coverage-matrix.md`. **Siete diffs quedan HELD por F-R5c-4** (D1, D2, D3, D7, D8, D10 y el D11 original): describen loop de bonus, solo de un loop y Overload-como-carta, que **no existen en código**. Los cuatro ficheros de pendientes **NO se retiran** — se anotan con lo aplicado y lo retenido, y se consumen al cerrar **R5-d**. Esto rompe deliberadamente la convención de "el paquete se retira al aplicarse": el paquete solo se aplicó a medias porque el lote solo se construyó a medias. **Sin cambios en `SSoT_INDEX.md` ni en `ssot_manifest.yaml`**: R5 no crea documento gobernado nuevo ni mueve autoridad (`SpendStacks` es API del contenedor y su hogar ya es `SSoT_Status_Effects`). `SSoT_Runtime_CompositionSession_Integration.md` **no cambia**: sus tres diffs (D1/D2/D3) son precisamente los HELD.
-- **Owed by R5-d:** aplicar los siete diffs HELD de `PENDING_DOC_DIFFS_R5.md` + addenda, y retirar los cuatro ficheros entonces. Decisiones abiertas que el lote debe resolver primero: **D-R5-20** (convivencia disparo automático ↔ carta Action) · **D-R5-21** (umbral 6 del pasivo vs ≥3 de la carta, D-R0-12) · **D-R5-22** (otros consumidores de Voltage).
+- **Aplicado 2026-08-26 (DOC-APPLY-3 — tres paquetes fusionados, documentación pura, sin código
+  ni smokes).** 43 diffs: `CSV-4c_Doc_Diffs.md` (16/16) · `PENDING_DOC_DIFFS_R5d.md` (20/20,
+  con la corrección de numeración inv 12 → inv 14) · `PENDING_DOC_DIFFS_HUD-COMP-1.md` (7/7).
+  Los tres ficheros de pendientes quedan marcados APLICADO y **se retiran del PK**.
+  D-DOC-2 = A (R5-d se documenta como implementado sin smoke) · D-DOC-3 = A (floater `▲` como
+  excepción registrada al `SensoryEventBus`, abierta para R7).
+- **DECLARADO PERDIDO 2026-08-26 (D-DOC-5).** Los cuatro ficheros `PENDING_DOC_DIFFS_R5.md` + addenda R5-a/R5-b/R5-c no se aportaron en ninguna sesión desde DOC-APPLY-R5 y **no son recuperables**; sus siete diffs HELD (**D1, D2, D3, D7, D8, D10, D11-original**) no se aplicarán. **No queda hueco de contenido:** se retuvieron porque describían el loop de bonus, el solo y Overload-como-carta cuando ese código no existía, y ese mismo territorio quedó documentado el 2026-08-26 por los 20 diffs de R5-d, escritos contra el código real (`SSoT_Runtime_CompositionSession_Integration` §5.4 · §8 inv 11 · §8 inv 14). Lo perdido es el rationale de redacción previo al código; no se reconstruye ni se inventa. **«Retirar los cuatro ficheros» deja de ser criterio de cierre de R5** — registro completo en `RosterExpansion_Sub_Roadmap.md` §3.1.
 - **Owed by S4 (when it lands):** `Design_Tutorial_System §6A` status (design → shipped); new bus-event rows in `Design_Sensory_Contract §3` (`CardPlayedEvent` + Inspiration-delta + per-loop-gain); `SSoT_Editor_Authoring_Tools.md` or a promoted tutorial SSoT if `TutorialController` earns one; `changelog-ssot.md`; `coverage-matrix.md` + `SSoT_INDEX.md` only if a tutorial authority is promoted or navigation changes.
 - **Owed by BALANCE-XREF (partially applied):** the maxims-doc registration row in `coverage-matrix.md` was **applied 2026-07-16 (TLM-1 close sweep)**. **Saldado 2026-08-08 (MANIFEST-1):** el doc de maxims queda registrado en `SSoT_INDEX.md` y en `ssot_manifest.yaml` como `reference` (design philosophy), tal como se preveía.
 - **Applied 2026-07-20 (CSV-4 doc pass, documentation-only):** `SSoT_ALWTTT_MidiGenPlay_Boundary.md` (§4.3 D-BAG-3/MGP-MIX-1 registered; new §8.2 MGP-BAGGAGE-1 + Poly Synth rider); `CSV_Composition_Validation_Sub_Roadmap.md` (CR-10; decision ledger D-CSV-7/15/16/18/19/21/22/23 moved to locked, D-MEL-1 opened, D-CSV-14 reduced; **§4.1.1 replaced wholesale**; batch table + CSV-4b row + blocking note; §5 asks recalibrated); `SSoT_Editor_Authoring_Tools.md` (§17.2 read-only reaffirmed, §17.6 `sample` origin, §17.7 D-CSV-14 rider, §17.10 escalation, new §17.11 pool-level instrument curation); `SSoT_Runtime_CompositionSession_Integration.md` (new §12 part-field resolution); new `planning/Design_Asset_Naming_v0_1.md`; `SSoT_INDEX.md` + `coverage-matrix.md` (registration); `CURRENT_STATE.md` §1/§2/§4/§5; `changelog-ssot.md`. No code change, no smoke tests (documentation-only batch).
@@ -443,7 +509,7 @@ The §5 doc-closure *history* (every applied edit since 2026-04-29) was removed 
 - **Owed a MANIFEST-2 (después de R4):** la señal **F11** (~17 documentos indexados que el manifiesto aún no enumera) junto con **D-SENSORY-HOME**; y la señal **F19** (ver abajo). **F16 quedó casi cerrada el mismo día** con confirmación del usuario: `GigSetupSceneManager.cs` fue **borrado el 2026-05-18** —consta en las notas de cierre de D-FAST-1=C del `Roadmap_ALWTTT`, el manifiesto llevaba tres meses gobernando un fichero inexistente—; `reference/Report_CardLLM_Pipeline.md` **ya no existe** y su entrada queda como lápida, con la consecuencia registrada de que **el mecanismo del pipeline LLM se queda sin hogar documental** (solo código); y los dos documentos del POC de Pink Trombone **pertenecen al proyecto MidiGenPlay**. Queda un solo residuo real: la carpeta `Docs/planning/music/` no existe, así que el informe de emulación de soundfont (2026-03-24) no tiene hogar — se resuelve con un `ls` y o bien una corrección de ruta o un borrado con línea de changelog.
 - **F19 / D13 — RESUELTA 2026-08-08 = A.** `PinkTrombone_Voice_Levers.md` **promovido a `Docs/reference/` de ALWTTT** y registrado en el manifiesto y en `SSoT_INDEX`. Es la fuente del esquema de `VoiceProfileSO`, un asset propiedad de ALWTTT (`Assets/Scripts/Data/Audio/VoiceProfileSO.cs`), y su propia cabecera ya autorizaba el movimiento: "viaja con el cantante cuando se promueve a ALWTTT" — y el cantante se promovió en SINGER-1 (2026-07-21). No es un interno del paquete: son seis levers de diseño de voz consumer-side, que la regla de frontera no excluye. **Lo que cierra esto en concreto:** con el esquema al otro lado de la frontera, una edición de los levers en MidiGenPlay habría desviado `VoiceProfileSO` sin que ninguna auditoría lo viera, porque el auditor no cruza la frontera. `PinkTrombone_Rendering_POC_Verdict.md` se queda en MidiGenPlay como research.
 - **Ciclo de vida del fork (F16, residuo).** Los dos documentos del POC confirman por escrito lo que decía el árbol: el fork vive dentro de `Assets/PinkTrombonePOC/PinkTromboneSrc/`. **La promoción a `Assets/ThirdParty/PinkTrombone/` que §3.6 y §7 de Singer Voice describían nunca se ejecutó.** El invariante se sostiene en sustancia —consumer-side, nunca en `MidiGenPlay.Runtime`— y §3.6/§7 quedan corregidas. Lo abierto no es documental: hay que decidir si se quiere la promoción **antes** de retirar el arnés, porque el código de producción del cantante depende hoy de una carpeta llamada "POC".
-- **Owed:** el conteo de inventario quedó re-baselinado a **232 assets** (2026-08-08) y **D-CSV-14 es cerrable** (los únicos `OFF-ROOT` locales son los dos patrones de melodía bajo `Patterns/Melody` singular). El índice inverso carta→bundle (**D-CSV-16**, bloqueante desde CSV-4) recibe por fin lote: **CSV-4c**, que además añade la vista de cartas de Bassline.
+- **Owed:** el conteo de inventario quedó re-baselinado a **232 assets** (2026-08-08) y **D-CSV-14 es cerrable** (los únicos `OFF-ROOT` locales son los dos patrones de melodía bajo `Patterns/Melody` singular). El índice inverso carta→bundle (**D-CSV-16**) está **cerrado (CSV-4c, 2026-08-10)**: la ventana ya indexa `CardDefinition → TrackStyleBundleSO` y marca `UNREACHABLE` / `UNSOURCED` / `UNWIRED-SRC`. Queda abierto en el arco CSV: **CSV-4b** (renamer separado, clasificación de origen `sample`, alineación `Patterns/Melody` → `Melodies`), **CSV-5** y **CSV-6** (curación y cierre transitivo).
 - **Low-priority pending (optional, unscheduled):** `SSoT_Gig_Combat_Core.md §4.2` — one-line note on Inspiration dual-siting (PD vs the session's live budget), surfaced by M1.5 P3.2. Not scheduled.
 
 ---

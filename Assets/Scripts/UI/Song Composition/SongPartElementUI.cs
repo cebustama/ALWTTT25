@@ -173,6 +173,7 @@ namespace ALWTTT.UI
                 inspirationNext = inspirationNext,
                 sourceCard = sourceCard,
                 bundleName = null,
+                partIndex = Mathf.Max(0, _partIndex),
             };
             ResolveMusicianDisplay(musicianId, ref data);
             data.instrumentName = ResolveInstrumentName(musicianId, role);
@@ -210,6 +211,7 @@ namespace ALWTTT.UI
                 musicianId = musicianId,
                 placeholder = true,
                 level = 1,
+                partIndex = Mathf.Max(0, _partIndex),
                 maxLevel = 3,
             };
             ResolveMusicianDisplay(musicianId, ref d);
@@ -235,6 +237,7 @@ namespace ALWTTT.UI
                     ALWTTT.Cards.Effects.AddInspirationPerLoopSpec.SumFor(t.sourceCardDefinition),
                 sourceCard = t.sourceCardDefinition,
                 bundleName = t.styleBundle != null ? t.styleBundle.name : null,
+                partIndex = Mathf.Max(0, _partIndex),
             };
             ResolveMusicianDisplay(t.musicianId, ref d);
             d.instrumentName = ResolveInstrumentName(t.musicianId, t.role);
@@ -285,8 +288,11 @@ namespace ALWTTT.UI
         private string ResolveInstrumentName(string musicianId, TrackRole role)
         {
             var gm = GigManager.Instance;
+            // partIndex is required: the pin maps are per-part-config, and the
+            // key depends on this track's instrument overrides, which only the
+            // model row knows.
             return (gm != null && gm.TryGetResolvedInstrumentNameForUI(
-                        musicianId, role, out var n)) ? n : "";
+                        Mathf.Max(0, _partIndex), musicianId, role, out var n)) ? n : "";
         }
 
         private void RefreshContextRow(SongCompositionUI.PartEntry model)

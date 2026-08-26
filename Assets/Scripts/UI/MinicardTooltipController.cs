@@ -200,7 +200,17 @@ namespace ALWTTT.UI
             if (x + follower.rect.width > 300f)
                 x = 300f - follower.rect.width;
 
-            follower.anchoredPosition = new Vector2(x, y);
+            // x/y are canvas-local CENTER-origin (InverseTransformPoint).
+            // anchoredPosition is measured from this rect's anchor, which on the
+            // minicard follower sits at the canvas bottom-left. Convert instead of
+            // re-anchoring the prefab: the cursor path depends on those anchors.
+            var a = follower.anchorMin;                 // anchorMin == anchorMax here
+            var parentSize = canvasRect.rect.size;
+            var parentPivot = canvasRect.pivot;
+            var offset = new Vector2(
+                (a.x - parentPivot.x) * parentSize.x,
+                (a.y - parentPivot.y) * parentSize.y);
+            follower.anchoredPosition = new Vector2(x, y) - offset;
         }
     }
 }

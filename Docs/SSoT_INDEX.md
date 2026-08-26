@@ -1,0 +1,182 @@
+# SSoT_INDEX — ALWTTT
+
+This file is the master index for governed documentation.
+
+It defines:
+- which docs are authoritative,
+- which docs are planning/reference/archive only,
+- where cross-project boundaries live,
+- and how the old source tree maps into the governed system.
+
+---
+
+## Root governance docs
+
+| Document | Role | Status |
+|---|---|---|
+| `README.md` | root entry + authority order | active |
+| `SSoT_CONTRACTS.md` | documentary governance rules | active |
+| `CURRENT_STATE.md` | validated project baseline + active work + next steps | active |
+| `coverage-matrix.md` | authority lookup | active |
+| `changelog-ssot.md` | semantic/documentary change history | active |
+| `SSoT_INDEX.md` | authority map / index | active |
+
+---
+
+## Active governed subsystem SSoTs
+
+### Systems
+
+| Document | Primary scope | Status |
+|---|---|---|
+| `systems/SSoT_Gig_Combat_Core.md` | gig/combat rules, meters, loop/song hooks, turn structure | active |
+| `systems/SSoT_Card_System.md` | card model, action vs composition semantics, payload boundaries | active |
+| `systems/SSoT_Card_Authoring_Contracts.md` | authoring/import/editor contracts for cards and statuses | active |
+| `systems/SSoT_Audience_and_Reactions.md` | audience entities, tastes, intention/reaction contracts, persuasion progress | active |
+| `systems/SSoT_Status_Effects.md` | runtime status truth and catalogue-facing gameplay semantics | active |
+| `systems/SSoT_Scoring_and_Meters.md` | loop score, song hype, vibe, and meter-relationship semantics | active |
+| `systems/SSoT_Gig_Encounter.md` | encounter-level gig structure, victory/failure, rosters, modifiers, resolution envelope | active |
+| `systems/SSoT_Editor_Authoring_Tools.md` | editor tools inventory, capabilities, supporting services, known gaps | active |
+| `systems/SSoT_Dev_Mode.md` | Dev Mode tooling: compile-time gating, overlay, infinite turns, hand-visibility bridge | active |
+| `systems/SSoT_Audio.md` | ALWTTT-side audio: SFX subsystem (card-direct + bus-sensory, single AudioManager sink), music-mix model (per-musician axis, global music, master SFX, persistence), audio boundary | active |
+| `systems/SSoT_Singer_Voice.md` | ALWTTT articulatory singer voice: per-loop melody-stem singing, voice budget (1 active / 2 hard), dsp-anchor transport, channel-mute contract, `VoiceProfileSO` schema, consumer-side Pink Trombone fork | active |
+
+> **M4.6F-2 navigation note (2026-05-07):** the four Gig SOs (`GigFlowSettingsSO`, `MeterTuningSO`, `GigPresentationSO`, `GigDevSettingsSO`) are governed under `SSoT_Gig_Combat_Core` (config locality §12). The renamed `GigSetupRosterSO` is governed under `SSoT_Gig_Encounter` (§7.5). `MeterTuningSO` is also referenced by `SSoT_Scoring_and_Meters` for semantic conversion meaning.
+
+### Runtime
+
+| Document | Primary scope | Status |
+|---|---|---|
+| `runtime/SSoT_Runtime_Flow.md` | runtime managers, phase flow, deck/hand → play → execute → resolve | active |
+| `runtime/SSoT_Runtime_CompositionSession_Integration.md` | ALWTTT-side composition/session runtime bridge | active |
+
+### Integrations
+
+| Document | Primary scope | Status |
+|---|---|---|
+| `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md` | explicit ownership split and contract boundary | active |
+
+---
+
+## Active planning docs
+
+| Document | Scope | Status |
+|---|---|---|
+| `planning/active/Roadmap_ALWTTT.md` | project-wide milestone roadmap | active |
+| `planning/active/Roadmap_Audio.md` | audio work-stream sub-roadmap: bus model + batch sequence (SFX-FIX, OST, Ambience, per-character profiles) + decisions ledger | active |
+| `planning/active/Design_Demo_Cut_v1.md` | demo-cut planning: run shape, coverage matrix, mechanics introduced, validation | active |
+| `planning/Design_Vibe_Telegraph_v0_1.md` | Vibe transparency surfaces (C1 readout + C2/C3 per-enemy telegraph); presentation of the Scoring §6 chain | active (shipped S5a) |
+| `archive/Design_Starter_Deck_v1.md` | first starter deck design (17-card, 2-musician): composition principle, per-card axis assignments, tuning rationale — **design-rationale record** for the S5 demo starter; runtime authority is the authored `.asset` files (v1's own classification clause, since M4.6 closure). Forward intent moves to v2 at R8 closure | retained rationale (D10=B, 2026-08-08) |
+| `planning/Design_Action_Economy_v1.md` | per-turn play economy design rationale (1 Action + 1 Composition per musician per period); subordinate to `systems/SSoT_Gig_Combat_Core.md §14` | active |
+| `planning/active/Design_Audience_Status_v1.md` | audience-side status design intent (§4 Captivated remains active; §3 + §5 superseded) | partial |
+| `planning/active/Design_Tutorial_System_v0_2.md` | tutorial system: scope, trigger model, presentation, UX, S4 reactive inventory (historical) + gig-1 guided curriculum (TUT-REBUILD), decision ledger, DoD per Standing Directive #3 | active (single tutorial home; v0_1 archived 2026-08-08, D11=A) |
+| `planning/active/Design_Vertical_Slice_v0_1.md` | Phase C scope: ship hub, venues, audience archetypes + state machine, boss design, scene transitions (D-RUN-1..6 locked 2026-05-23) | active |
+| `planning/active/Design_Sensory_Contract_v0_1.md` | Sensory Contract operational expansion: bus design, audit-table placeholder, smoke/fire VFX integration plan for S3, consumer inventory (D2 expansion 2026-05-23) | active |
+| `planning/active/CSV_Composition_Validation_Sub_Roadmap.md` | CSV arc (Composition Session Validation & Content): requirements registry CR-1..CR-10, decision ledger D-CSV-*, batch sequence CSV-1..CSV-8 + CSV-4b, cross-project asks | active (CSV-1/1b/1c/2 closed; CSV-4 partially closed 2026-07-20) |
+| `reference/PinkTrombone_Voice_Levers.md` | Six macro voice levers (looseness, vibratoDepth, vibratoSpeedHz, diction, mouth, brightness) + identity fields + recipes; **schema source for `VoiceProfileSO`** (`systems/SSoT_Singer_Voice.md` §5) — reference, consumer-side, not a SSoT | active (promoted into ALWTTT 2026-08-08, D13=A) |
+| `reference/Design_Asset_Naming_v0_1.md` | Assets-side composition asset naming convention (per-family schema, rename-vs-move rider, `displayName` rule, bulk-rename safety) — **planning, non-normative; overrides no SSoT**; drafted CSV-4, applied at CSV-4b | active (drafted, not applied) |
+| `planning/Design_Project_Directives_v0_1.md` | standing project-level design directives (D1 promoted 2026-05-20; D2 + D3 promoted on declaration 2026-05-23) | standing |
+| `planning/Design_Pending_Effects_v1.md` | post-MVP first-batch design pillar: song-scoped accumulator layer | long-term |
+| `planning/Design_Tempo_Identity_v1.md` | long-term post-MVP direction: tempo-coupled card identity | long-term |
+| `planning/Design_Song_Parts_Library_v0_1.md` | long-term post-MVP direction: stored & repeatable song Parts | long-term |
+| `integrations/midigenplay/MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` | observable musical expressive surface for composition cards across the MidiGenPlay boundary; 26-axis matrix + 5 documented gaps + per-musician SO whitelist precedence (2026-05-20) | active |
+| `planning/active/RosterExpansion_Sub_Roadmap.md` | Roster Expansion campaign (R0–R8): decision ledger D1–D6, batch sequence + phasing vs S5i/S5j, feasibility verdicts, pending MGP asks, R0 rehydration | active (R0 closed 2026-07-23; R1 closed 2026-07-23; R2 + R2c + R2d closed 2026-07-31 — next batch R3) |
+| `planning/active/Design_Track_Card_Levels_v0_1.md` | Track Card Levels mechanic (re-play = level-up): expressibility limits, runtime/authoring sketch, INSP/complexity hooks — batch R7 | active |
+| `planning/active/Design_Starter_Deck_v2_DRAFT.md` | 4-musician starter deck design (22 cards / 18 unique, symmetric kit shape), finisher layer, per-musician reward slate, identity map + tempo lean, R0 decision record D-R0-1..12 + verification method | active (R0-locked 2026-07-23; supersedes v1 as forward intent at R8 closure) |
+| `planning/Design_Fill_Window_v0_1.md` | Registered idea: end-of-loop fill window (C2) — invariant analysis, overlay-vs-next-loop routes; post-campaign | registered (not scheduled) |
+| `planning/Design_Singer_Expression_Input_v0_1.md` | Registered idea: player input on live singer levers; Tier-B rider candidate; post-campaign | registered (not scheduled) |
+| `planning/active/Design_Composition_Debug_Tab_v0_1.md` | Dev-Mode composition tab requirements (R1 per-track log, R2a debug-play, R2b pattern force, R2c typed progression) + per-field ALWTTT/MidiGenPlay ownership map; **planning-only, not implementation authority** — implementation truth lives in `systems/SSoT_Dev_Mode.md` §18 | active (R1 + R2a shipped; rows 10–13 still MGP-dependent) |
+| `planning/Design_Game_And_Card_Maxims_v0_1.md` | Consolidated game/card design maxims E1–E6 + N1–N12; **reference (design philosophy), not a SSoT** — where a maxim and a SSoT conflict, the SSoT wins | active |
+
+> **MANIFEST-1 registration note (2026-08-08):** the two rows above were registered in `SSoT_INDEX.md` and `ssot_manifest.yaml` in the same pass. Three row paths in this table were also corrected against a real repo-tree export (`Design_Composition_Debug_Tab` → `planning/active/`, `Design_Action_Economy_v1` → `planning/`, `Design_Asset_Naming_v0_1` → `reference/`). The three authority findings the tree surfaced are now **resolved in the same pass**: `Design_Starter_Deck_v1` re-listed at `archive/` as retained rationale (F18 / D10=B) · `Design_Tutorial_System_v0_1` archived and v0_2 promoted to the single tutorial home (F17 / D11=A) · the `Roadmap_ALWTTT_Debug_Seams.md` row removed, since no such file exists in the tree (F14 / D12) — the arc-close record for MGP-ALWTTT-DBG lives in `systems/SSoT_Dev_Mode.md` §18 and in `coverage-matrix.md`. The maxims row settles a debt open since BALANCE-XREF (2026-07-16). `ssot_manifest.yaml` still under-enumerates this table by roughly seventeen documents (manifest signal **F11**); that sweep is a batch of its own (**MANIFEST-2**) because several of the unregistered rows are de-facto authority, not planning — classifying them is an authority claim.
+
+---
+
+## Archived planning docs
+
+| Document | Original scope | Status | Superseded by |
+|---|---|---|---|
+| `planning/archive/Roadmap_Combat_MVP.md` | combat MVP short roadmap | complete / archived | `Roadmap_ALWTTT.md` (Combat MVP recorded as completed milestone) |
+| `planning/archive/Roadmap_Combat_MVP_Closure_Actionable.md` | combat MVP closure phases (5 phases, all complete) | complete / archived | `Roadmap_ALWTTT.md` + `CURRENT_STATE.md` §1 |
+| `planning/archive/ALWTTT_DeckEditorWindow_Roadmap_Proposal.md` | Deck Editor design, requirements, phased roadmap (phases 0–6 complete) | substantially complete / archived | `Roadmap_ALWTTT.md` M1.1 (remaining polish items) |
+| `planning/archive/M1_5_Dev_Mode_Sub_Roadmap.md` | Dev Mode milestone sub-roadmap; Phases 1–3 closed via M1 closure 2026-04-26; Phases 4 + 5 not implemented (effectively dropped at M1 closure) | complete (Phases 1–3) / dropped (Phases 4–5) / archived | `systems/SSoT_Dev_Mode.md` (Dev Mode implementation authority) |
+| `planning/archive/Design_Tutorial_System_v0_1.md` | tutorial system, S4-era reactive design (created 2026-05-23; §6 standalone dialog list + §6A jam sequence) | superseded / archived 2026-08-08 (D11=A) | `planning/active/Design_Tutorial_System_v0_2.md` (absorbs it whole, incl. the D-TUT-6..11 ledger) |
+
+---
+
+## Supporting governed folders
+
+| Folder / doc | Role | Status |
+|---|---|---|
+| `planning/active/` | live roadmaps and future sequencing | active |
+| `planning/archive/` | completed/superseded planning | active |
+| `reference/` | explanatory/support material that does not override SSoTs | active |
+| `archive/` | historical/superseded/absorbed traceability | active |
+| `archive/absorbed/Source_Docs_Supersession_Map.md` | durable old→new redirect map | active |
+| `archive/SNAPSHOT_RETENTION_POLICY.md` | policy for keeping the pre-governance snapshot as backup only | active |
+
+---
+
+## Transitional source docs from the previous set
+
+These are important source inputs, but they are **not** the governed structure.
+
+| Previous doc | Current role in migration | Governed home now |
+|---|---|---|
+| `canon/SSoT_Combat.md` | delta snapshot only | `CURRENT_STATE.md` + `systems/SSoT_Gig_Combat_Core.md` |
+| `canon/Roadmap_Combat.md` | planning-only source | `planning/archive/Roadmap_Combat_MVP.md` (archived) |
+| `canon/Appendix_Authoring_DataContracts.md` | source promoted in Batch 02 | `systems/SSoT_Card_Authoring_Contracts.md` |
+| `reference/Gig_Combat.md` | source absorbed in Batch 02 | `systems/SSoT_Gig_Combat_Core.md` |
+| `reference/Card.md` | source absorbed in Batch 02 | `systems/SSoT_Card_System.md` |
+| `reference/Gig.md` | source absorbed in Batch 05 | `systems/SSoT_Gig_Encounter.md` |
+| `reference/AudienceMember.md` | source absorbed in Batch 04 | `systems/SSoT_Audience_and_Reactions.md` |
+| `reference/StatusEffects.md` | source absorbed in Batch 04 | `systems/SSoT_Status_Effects.md` |
+| `reference/StatusEffects_Primitives_with_References.md` | source retained as governed reference | `reference/CSO_Primitives_Catalog.md` |
+| `backlog/ideas/loopscore_songhype_vibe.md` | source absorbed in Batch 04 | `systems/SSoT_Scoring_and_Meters.md` |
+| `backlog/ideas/gig_pipeline_summary.md` | runtime source absorbed in Batch 03 | `runtime/SSoT_Runtime_Flow.md` |
+| `reference/subsystems/Composition Pipeline/SSoT_Runtime_CompositionSession_Bridge.md` | source promoted in Batch 03 | `runtime/SSoT_Runtime_CompositionSession_Integration.md` |
+| `reference/subsystems/Composition Pipeline/SSoT_CompositionCards_TrackStyleBundles.md` | mixed source doc | split across card/runtime/boundary docs |
+| `reference/subsystems/Composition Pipeline/SSoT_CompositionAuthoringTools.md` | package-heavy reference | MidiGenPlay docs + ALWTTT boundary docs |
+| `reference/subsystems/Composition Pipeline/SSoT_Composer_*` | package-owned composer internals | MidiGenPlay docs |
+| `archive/ALWTTT_MidiGenPlay_TS_Normalization_Roadmap.md` | historical cross-project planning | archive/reference only |
+
+For the durable old→new crosswalk, use:
+- `archive/absorbed/Source_Docs_Supersession_Map.md`
+
+---
+
+## Explicit non-authority categories
+
+These are useful, but are **not** primary truth:
+- roadmap docs
+- backlog docs
+- research prompts
+- historical progress reports
+- archived snapshots
+- legacy docs
+
+Those must not silently define current implementation truth.
+
+---
+
+## Local update reminder
+
+After every meaningful technical change:
+
+1. Identify what concept actually changed.
+2. Find its primary home in `coverage-matrix.md`.
+3. Update that primary SSoT first.
+4. Then apply the follow-up rules:
+   - update `CURRENT_STATE.md` if operational reality or active focus changed
+   - update `changelog-ssot.md` if meaning, contract, authority, or interpretation changed
+   - update `coverage-matrix.md` only if the concept's primary home changed
+   - update reference docs only if support/navigation material changed
+
+A technical change is not complete until the required documentation updates are done.
+
+Minimum decision batch for doc-update triage:
+- `SSoT_INDEX.md`
+- `coverage-matrix.md`
+- `CURRENT_STATE.md`
+- `changelog-ssot.md`
+- the suspected primary SSoT(s) for the changed concept

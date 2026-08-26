@@ -14,6 +14,145 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-08-26 — DOC-APPLY-3: tres paquetes de doc diffs aplicados en una pasada (CSV-4c + R5-d + HUD-COMP-1)
+
+Clasificación: *operational* + *structural* + *semantic* + *lifecycle*. **Documentación pura:
+cero cambios en código, prefabs, escenas o assets.** 43 diffs sobre 19 documentos.
+
+**Por qué una sola sesión y en este orden.** Tres paquetes llevaban sin aplicarse hasta
+solaparse sobre los mismos documentos: CSV-4c (16 diffs, desbloqueado desde 2026-08-10), R5-d
+(20, HELD, código entregado 2026-08-26) y HUD-COMP-1 (7, cerrados el mismo día).
+`CURRENT_STATE`, `changelog-ssot` y `coverage-matrix` recibían diffs de los tres. Se aplicó el
+orden cronológico estricto **CSV-4c → R5-d → HUD-COMP-1** —la lección de DOC-APPLY-2
+(2026-08-08, 50 ítems): aplicar el paquete nuevo primero produce anclas no encontradas en
+cascada— y los tres ficheros compartidos se editaron **una vez cada uno, fusionando**.
+
+**El hallazgo de la pasada: una invariante que ya estaba ocupada.** `PENDING_DOC_DIFFS_R5d.md`
+pedía crear la **invariante 12** de `SSoT_Runtime_CompositionSession_Integration` §8, con ancla
+marcada VERIFICADA. Para cuando se aplicó, §8 llevaba **13** invariantes: la 12 es el *singer
+voice seam* (SINGER-1) y la 13 la resolución/cacheo de BPM (CTX-2a), ambas citadas desde
+`coverage-matrix`, este changelog, `CURRENT_STATE` y `SSoT_Dev_Mode`. Renumerar habría roto seis
+referencias vivas para respetar un número redactado antes de que el documento creciera. La
+inyección de pista con alcance de render queda como **invariante 14**; la de HUD-COMP-1, como
+**15**. Contenido intacto, número corregido, nota dentro del propio documento. *Es el mismo
+error de clase que CSV-4c existe para no repetir: un dato que entra en documentación sin
+comprobarse contra el documento real.*
+
+**CSV-4c — el índice inverso carta→bundle (16/16).** D-CSV-16 cerrada con herramienta.
+`SSoT_Editor_Authoring_Tools` §17 pasa de siete a **ocho vistas** (`Cards → Bundles`, §17.13
+nueva), gana la columna `cards:` en Style Bundles, los flags `UNREACHABLE` / `UNSOURCED` /
+`UNWIRED-SRC` (§17.6), dos campos en el esquema de bundles y un esquema de export nuevo
+(§17.8), y §17.10 se reescribe de *hueco conocido* a *cerrado* conservando el registro
+histórico íntegro. **Tres flags y no uno, a propósito:** la cadena es `bundle ← carta ←
+catálogo/mazo ← músico/roster` y cada tramo roto pide una reparación distinta; colapsarlos haría
+borrar un bundle correcto porque el catálogo de encima está roto. El cuarto salto **no** se
+comprueba: `UNREACHABLE` es **suelo, no censo**. Primera medición: **18 de 35 bundles
+alcanzables, 17 muertos, 10 de ellos Bassline**. La cifra de CSV-4 (14 de 33 progresiones)
+queda **histórica y debe re-medirse, no re-citarse**. Hallazgo lateral: identificado el
+generador de los nombres `*_Payload_<Role>_StyleBundle` —`CardEditorWindow`, dos rutas, ambas
+derivando del nombre del payload—, lo que desbloquea el punto muerto de
+`Design_Asset_Naming_v0_1` §7. También: `SSoT_Dev_Mode` §9.20 nueva (smoke ST-CSV4c-1..9).
+Decisiones D-CSV4c-1=C · -2=B · -3=B · -4=B · -5=B.
+
+**R5-d — Overload como carta Action (20/20).** Sin cambio de hogar primario.
+`SSoT_Status_Effects` §5.10 gana la regla de consumo por coste de carta y **degrada el pasivo a
+fallback** (`OverloadConsumerEnabled` default **OFF**, D-R5-20=B — verificado en código);
+`SSoT_Card_System` §10.5 gana dos razones (`NoRunningLoop`, `Resource`) y una tabla de
+precedencia renumerada a siete; `SSoT_Runtime_CompositionSession_Integration` §5.4 + inv 11
+ganan la cláusula de bonus loop y §8 gana la **invariante 14** (inyección de pista con alcance de
+render — un concepto que antes no existía); `SSoT_Gig_Combat_Core` §14.3 gana la excepción de
+Seam C y §14.4 la viñeta de puerta ortogonal; `SSoT_Audio` gana **§4.7** (solo duck, tercer
+plano) y la **invariante 19**; `SSoT_Card_Authoring_Contracts` gana §5.3a (par de coste de
+recurso) y §5.6c (discriminador `GrantBonusLoop`). Decisiones D-R5-20..26 en
+`RosterExpansion_Sub_Roadmap` §2; **D-R5-27 sigue abierta** y ningún diff aplicado depende de
+ella.
+**El coste es un campo de definición, nunca un `CardEffectSpec`** — los specs corren en
+`CardBase.ExecuteEffects`, después de comprometer la jugada, así que un coste ahí permitiría
+jugar la carta con el recurso vacío y fallar en silencio: carta gastada, efecto no. Y es un par
+genérico `(statusKey, amount)`, no un campo `voltageCost`, porque el contenedor se indexa por
+primitiva mientras la variante es la autoridad (D-R5-26=A).
+**Estado documentado con marca explícita: implementado, SIN verificación de smoke.**
+ST-R5d-1..15 no se han ejecutado (**D-DOC-2 = A**): se documenta con la marca en vez de retener
+los diffs otro ciclo, porque llevan retenidos desde agosto y la deuda ya produjo este
+solapamiento.
+
+**HUD-COMP-1 — Composition View v1 (7/7).** `SSoT_Gig_Combat_Core` gana **§15**, la primera
+definición gobernada de la tira de composición: qué muestra, identidad de fila
+`"{musicianId}|{role}"` (BASS-1 en el HUD), estados de fila, aviso de loop final por **forma
+además de color**, granularidad de pendiente por músico/parte, presupuesto de texto en reposo.
+`SSoT_Runtime_CompositionSession_Integration` gana **§5.5** (tres seams de solo lectura) y la
+**invariante 15**. **La UI muestra la tonalidad renderizada, nunca la del modelo** — las dos
+divergen legítimamente cuando una carta de Backing adopta, y mostrar el modelo sería mentir
+exactamente cuando el jugador necesita la verdad.
+**Reversión explícita, marcada como tal:** `Design_Track_Card_Levels_v0_1` §7 sustituye el
+numeral romano por **pips** (§7.1 nueva). Motivo: el numeral colisiona con los grados armónicos
+(I, V, vi) que el juego ya usa para acordes — el mismo símbolo significando dos cosas en la
+misma pantalla, y una de ellas en la tira donde el jugador lee armonía. No se aplicó en
+silencio.
+`Design_Sensory_Contract_v0_1` registra el floater `▲` como **excepción documentada** al
+`SensoryEventBus` (**D-DOC-3 = A**), abierta para R7: el bus no tiene aún un tipo de evento con
+granularidad de fila, e inventarlo es trabajo de R7, no de una sesión documental.
+**Registrado como no implementado, deliberadamente:** el nivel de pista (R7, el campo del modelo
+no existe) y el estado de fila «silenciada» (definido sin fuente de datos). **Bug conocido
+diferido:** la línea `Instrument:` del hover no resuelve de forma fiable — el seam y la clave de
+tres segmentos son correctos, falla el momento de la consulta.
+
+**Deuda que NO se salda aquí.** `PENDING_DOC_DIFFS_R5.md` y sus tres addenda **no se han
+aportado en ninguna sesión**; sus **siete diffs HELD** (D1, D2, D3, D7, D8, D10, D11-original)
+siguen sin aplicar y su retirada es criterio de cierre explícito de R5. Hay que recuperarlos o
+declararlos perdidos y re-derivarlos desde el registro de R5-a/b/c. **R5 no pasa a CLOSED:**
+faltan esos siete diffs, ST-R5d-1..15 y D-R5-27.
+
+**Deuda de código detectada, no de documentación (DD-R5d-20).** `CardLLMPromptBuilder` enumera
+los discriminadores de efecto **a mano** y lista seis; el importador acepta siete desde R5-d. El
+generador LLM **nunca emitirá `GrantBonusLoop`** hasta que se añada allí. A diferencia de los
+alfabetos de enum de la etapa 1, que salen de `Enum.GetNames()` y se auto-actualizan, ese bloque
+envejece en silencio. Registrado en `Report_CardLLM_Pipeline.md`; sin lote asignado.
+
+**Autoridad.** Ningún concepto queda con dos hogares. `Composition_View_Spec.md` se registra
+como **reference (planning), no autoridad**: la tira se define en `SSoT_Gig_Combat_Core` §15.
+`ssot_manifest.yaml` se tocó por un solo motivo (DD-R5d-19): los `CardEffectSpec` se gobiernan
+**por carpeta**, no por fichero, así que `GrantBonusLoopSpec.cs` no necesitaba ruta nueva — pero
+la invariante que enumera el vocabulario activo llevaba tres specs de retraso y se corrigió.
+`SSoT_INDEX.md` recibe el alta de referencia de HUD-COMP-1 D-06.
+
+Ficheros retirables del PK: `CSV-4c_Doc_Diffs.md`, `PENDING_DOC_DIFFS_R5d.md`,
+`PENDING_DOC_DIFFS_HUD-COMP-1.md`.
+
+**Cierre en limpio — D-DOC-5 (mismo día, decisión de usuario).** Todo input que no está en el
+Project Knowledge se declara **perdido**, no pendiente. Afecta a tres cosas y ninguna se deja
+como deuda abierta:
+
+1. **`PENDING_DOC_DIFFS_R5.md` + addenda R5-a/b/c — PERDIDOS.** Sus siete diffs HELD (D1, D2, D3,
+   D7, D8, D10, D11-original) no se aplicarán. **No dejan hueco de contenido, y la razón es
+   estructural, no optimista:** DOC-APPLY-R5 los retuvo precisamente porque describían el loop de
+   bonus, el solo y Overload-como-carta *cuando ese código no existía*. El código se entregó en
+   R5-d y quedó documentado el mismo día por los 20 diffs de `PENDING_DOC_DIFFS_R5d.md`, escritos
+   contra el código real y con anclas verificadas. Los tres HELD que apuntaban a
+   `SSoT_Runtime_CompositionSession_Integration` cubrían el territorio que hoy ocupan §5.4, §8
+   inv 11 y §8 inv 14. Lo verdaderamente perdido es el **rationale de redacción anterior al
+   código** — qué alternativas se descartaron antes de escribirlo. No es reconstruible y no se
+   inventa. Registro completo: `RosterExpansion_Sub_Roadmap.md` §3.1.
+2. **`Composition_View_Spec.md` — PERDIDA.** La fila que DOC-APPLY-3 acababa de dar de alta en
+   `coverage-matrix` y `SSoT_INDEX` **se retira**: un índice gobernado no puede apuntar a un
+   fichero que no existe. `SSoT_Gig_Combat_Core.md` §15 pasa de «resumen gobernado de una spec de
+   planning» a **único registro de la tira**, y lo dice en su encabezado — no hay documento
+   aguas arriba con el que reconciliar.
+3. **`CLOSEOUT_HUD-COMP-1.md` — PERDIDO.** Las cifras de smoke de HUD-COMP-1 (11 PASS, ST-6b y
+   ST-10 diferidos) quedan **sin fuente independiente**, sostenidas sólo por el propio paquete de
+   diffs. Anotado como tal.
+
+**Consecuencia de gobernanza: R5 queda con un único criterio de cierre pendiente — ST-R5d-1..15.**
+«Retirar los cuatro ficheros `PENDING_DOC_DIFFS_R5*`» deja de ser criterio de salida.
+
+**Regla que sale de la pérdida.** Un paquete de diffs retenido es un fichero suelto sin dueño: no
+vive en carpeta gobernada, no aparece en el manifiesto, y nada obliga a adjuntarlo a la sesión
+siguiente. Retener por la razón correcta y **no fijar fecha de consumo** es exactamente cómo se
+pierde. En adelante: **un paquete retenido nombra en su propia cabecera el lote que lo consume; si
+ese lote cierra sin consumirlo, se declara perdido en ese mismo cierre, no más tarde.**
+
+---
+
 ## 2026-08-21 — R5-a / R5-b / R5-c: Voltage, generación pasiva y Overload pasivo (**R5 queda PARCIAL**) + DOC-APPLY-R5 (2026-08-23, parcial)
 
 **Tres sub-fases cerradas el 2026-08-21; el lote R5 NO cierra.** Lo que sigue separa lo

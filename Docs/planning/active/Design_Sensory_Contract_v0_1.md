@@ -44,6 +44,16 @@ The directive itself is recorded at `planning/Design_Project_Directives_v0_1.md 
 
 - **S1 visual-only exception.** S1 (B3-slate-F) ships per-audience FT only; SFX for `ResolveLoopEffect` outputs lands in S3. This is the one explicitly-documented exception to the FT+SFX preferred baseline during the demo-cut sequence. See B3-slate-F constraints in the 2026-05-23 rehydration prompt.
 - **Pre-existing gaps** (status icons without sound, etc.): closed during S3 sensory coverage pass. The audit table in §4 tracks them.
+- **Track level-up floater `▲` — excepción registrada (HUD-COMP-1, 2026-08-26; D-DOC-3 = A).**
+  El floater de subida de nivel de pista de la tira de composición es **local a la fila** y
+  **no pasa por `SensoryEventBus`**. Se registra aquí precisamente para que no se convierta en
+  precedente silencioso: el contrato sensorial define el bus como el canal de la
+  retroalimentación, y una excepción sin anotar erosiona esa regla sin que nadie lo decida.
+  **Decisión abierta para R7:** mantener la excepción o migrar el floater al bus. Motivo por el
+  que hoy es excepción y no migración: el evento es de fila, no de personaje ni de encuentro, y
+  el bus no tiene aún un tipo de evento con esa granularidad — inventarlo es trabajo de R7, no
+  de una sesión documental. Superficie: `SSoT_Gig_Combat_Core.md` §15.3 ·
+  `Design_Track_Card_Levels_v0_1.md` §7.1.
 
 ---
 

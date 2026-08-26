@@ -104,16 +104,24 @@ namespace ALWTTT.Data
         public float emptyRowHeight = 26f;
         public float emptyRowHeightDense = 14f;
         public float rowGap = 6f;
-        public float minWidth = 220f;
-        public float maxWidth = 340f;
-        public float maxWidthDense = 300f;
-        public float roleIconSize = 22f;
-        public float roleIconSizeDense = 18f;
+        public float minWidth = 260f;
+        public float maxWidth = 380f;
+        public float maxWidthDense = 340f;
+        public float roleIconSize = 26f;
+        public float roleIconSizeDense = 20f;
+        [Tooltip("Empty-row musician portrait.")]
+        public float musicianIconSize = 24f;
+        [Tooltip("Meter / tempo / mood chips on the context row.")]
+        public float chipSize = 28f;
+        [Tooltip("Loop progress pips. Applied on instantiate.")]
+        public float loopPipSize = 12f;
+        [Tooltip("Track level pips (R7).")]
+        public float levelPipSize = 7f;
         public float nameFontSize = 22f;
         public float nameFontSizeDense = 18f;
         public float paddingLeft = 12f;
         public float paddingRight = 14f;
-        public float nameLeftInset = 46f;    // paddingLeft + icon + gap
+        public float nameLeftInset = 50f;    // paddingLeft + icon + gap
 
         [Header("State colors")]
         public Color nameColor = new Color(1f, 1f, 1f, 0.92f);

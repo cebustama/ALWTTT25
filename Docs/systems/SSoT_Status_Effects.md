@@ -362,7 +362,7 @@ reaching the cap takes ~5 periods.
 the `MusicianBase` / `"shaken"` pattern. The check that the primitive is `ResourceCounter` is a
 defensive authoring tripwire, not the authority guard.
 
-**Consumption — Overload (passive, R5-c).** At the close of every composition loop, if the
+**Consumption — Overload auto-discharge (fallback, R5-c).** At the close of every composition loop, if the
 Voltage holder has stacks ≥ `OverloadThreshold` (default 6), Overload discharges automatically:
 it spends `OverloadCost` stacks (default 6, via `SpendStacks` — §3.0) and multiplies **that
 loop's** contribution to SongHype by `OverloadHypeFactor` (default ×1.5). The factor is applied
@@ -370,16 +370,55 @@ to `hypeDelta` (after `ComputeHypeDelta` and after the encounter's `SongHypeDelt
 only if the delta is positive (D-R5-19=B), and it is strictly local to one loop: no pending
 state survives between loops. Surplus above the cost survives and keeps accumulating. At most
 one discharge per boundary, whatever the roster. Switchable off with
-`GigFlowSettingsSO.OverloadConsumerEnabled` (default ON, read per loop). Every consumer keeps
+`GigFlowSettingsSO.OverloadConsumerEnabled` (**default OFF** since R5-d, D-R5-20=B; read per loop). Every consumer keeps
 the **dual guard**: primitive `ResourceCounter` **and** `StatusKey == "voltage"`, checked
 against the live container instance — not against the catalogue: the catalogue says what the
 holder *could* have, the container says what it has.
+
+**Status after R5-d (D-R5-20=B).** This automatic discharge is **off by default** and is no
+longer the player-facing Overload — the Action card is (see the consumption rule below). It
+survives as a tuning/dev fallback behind `GigFlowSettingsSO.OverloadConsumerEnabled`. Two
+consumers of one resource is a deliberate, bounded exception: with the flag off there is
+exactly one Overload the player can observe. **Review trigger:** if the flag is still off at
+R8, retire the consumer entirely (D-R5-20 option C). Note that flipping the field's default in
+code does NOT change an already-serialized `GigFlowSettingsSO` asset — the live asset must be
+edited by hand.
+
+**Consumption — card resource cost (R5-d, D-R5-26=A).** The player-facing sink is a card
+cost. `CardDefinition` carries a generic pair — `resourceCostStatusKey` (string) +
+`resourceCostAmount` (int) — and **not** a `voltageCost` field: the container is keyed by
+primitive while the variant is the authority, so a string key plus an int cover Voltage today
+and any future character resource without migrating the asset again. Empty key or amount 0 ⇒
+no cost, which is how every pre-R5-d card deserializes.
+
+The cost is a **definition field, never a `CardEffectSpec`.** Effect specs run in
+`CardBase.ExecuteEffects`, *after* the play is committed — inspiration paid, ECON-1 budget
+consumed, animation fired. A cost living there would let the card be played with an empty
+resource and then fail silently: card spent, effect not. The gate therefore mirrors
+Inspiration's shape exactly.
+
+Resolution and spend live on the host: `GigManager.CanPayResourceCost` /
+`TryPayResourceCost`, keeping the **dual guard** (primitive `ResourceCounter` **and**
+`StatusKey` match) checked against the live container instance. The spend goes through
+`SpendStacks` (§3.0), not through a negative `Apply`. Both play paths gate before any spend;
+the Action path spends after `TryConsumePlay` and the Composition path only on a
+session-accepted drop. Order against the R5-b generation hook is net-neutral: a `+1` grant and
+a `−N` spend both occur regardless of which runs first. The overlay surfaces a shortfall as
+`UnplayableReason.Resource` (`SSoT_Card_System.md` §10.5).
+
+First card: **Overload** (Action, Conito, inspiration 2, Voltage 3). D-R5-22 admits
+composition cards as sinks with the same pair and no further code.
 
 > **Scope note (F-R5c-4).** This passive Overload is **not** the Overload of the accepted R5
 > scope. The accepted scope (D-R0-5=A, D-R0-12, D-R5-4=A) is a playable **Action-domain card**
 > that grants a bonus loop with a Conito guitar solo over the base. That is **not built**; it
 > remains R5 scope and continues in **R5-d**. What R5-c shipped is an additional layer on the
 > same resource. See `RosterExpansion_Sub_Roadmap.md` §2 (substitution note) and §3 (R5 row).
+>
+> **Superseded 2026-08-26 (R5-d).** The Action card described above **is built**: code shipped
+> at R5-d (`conito_overload`, `GrantBonusLoopSpec`, render-scope solo, duck plane). The note is
+> kept because it records why two consumers of one resource coexist. Smoke ST-R5d-1..15 was
+> **not yet run** at the time of this documentation pass.
 
 **No decay, no reset — GIG scope (D-R5-8=A, verified 2026-08-21).** `DecayMode.None` means
 `StatusEffectContainer.Tick` never alters the stacks at any boundary. Note that
@@ -387,9 +426,12 @@ holder *could* have, the container says what it has.
 comes from `DecayMode` alone. The song boundary does **not** clear it either:
 `GigManager.ResetSongScopedStatuses` is an allowlist of two primitives (`DamageUpFlat` = Flow,
 `TempShieldTurn` = Composure), not a sweep by category (see `SSoT_Gig_Combat_Core.md` §3.3.1).
-Voltage survives turns, loops, parts and songs, bounded only by `MaxStacks = 9`. Overload is
-therefore a resource **bankable across the gig** — under threshold/cost 6, one stored charge,
-never two — not a threat the song resets.
+Voltage survives turns, loops, parts and songs, bounded only by `MaxStacks = 9`. Voltage is
+therefore a resource **bankable across the gig**, not a threat the song resets. The number of
+stored charges follows the *card's* cost, which is per-card (D-R5-21): at cost 3 the cap holds
+three, at cost 6 it holds one. Chaining is bounded structurally rather than by the resource —
+`GigFlowSettingsSO.MaxBonusLoopsPerPart` (default 1) caps how many bonus loops one part may
+take, so a full bank cannot turn a 4-loop part into a 7-loop one.
 
 **Primitive occupancy.** `StatusEffectContainer._active` is keyed by primitive, not by
 `StatusKey` (§2.1, D6). While Voltage is active on a holder, **no other `ResourceCounter`
@@ -397,7 +439,7 @@ variant can coexist on it**: a second variant would add stacks to the Voltage in
 here any second variant authored in the future.
 
 **Tuning home:** `GigFlowSettingsSO` — `generateVoltageOnConsumedPlay` (ON) ·
-`overloadConsumerEnabled` (ON) · `overloadThreshold` (6) · `overloadCost` (6) ·
+`overloadConsumerEnabled` (**OFF** since R5-d, D-R5-20=B) · `overloadThreshold` (6) · `overloadCost` (6) ·
 `overloadHypeFactor` (1.5, clamped ≥1 in the getter — a factor < 1 would turn Overload into a
 silent punishment). All read at the loop boundary, so they are hot-adjustable. Inherited tuning
 rule: if Overload never fires in short songs, **lower the threshold**; never raise generation

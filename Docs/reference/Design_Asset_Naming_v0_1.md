@@ -105,13 +105,23 @@ afterthought.
 
 ## 7. Style bundles are out of scope for v1
 
-Bundle names matching `*_Payload_<Role>_StyleBundle` are **tool-generated**.
-`CardAssetFactory` was checked and is **not** the generator; the emitting authoring path
-is currently **unidentified**.
+Bundle names matching `*_Payload_<Role>_StyleBundle` are **tool-generated**. `CardAssetFactory`
+is not the generator; the emitting path was **identified at CSV-4c** and is
+`CardEditorWindow`, in two places:
+
+- `CreateAndAssignStyleBundle` — `$"{payload.name}_{roleName}_StyleBundle.asset"`, wrapped in
+  `AssetDatabase.GenerateUniqueAssetPath`;
+- `CloneAndRepointStyleBundle` — the same template over the cloned payload's name.
+
+Both derive the bundle name from the **payload asset name**, so a bundle rename that is not
+accompanied by a payload rename is undone the next time either path runs on that card. That
+is the concrete shape of the "hand-renaming is wasted work" warning below, and it is what a
+bundle-naming convention has to solve first: rename the payload, or change the template.
+Deciding which is CSV-4b's call.
 
 Two consequences:
 
-1. Hand-renaming them is wasted work — the next authored card reintroduces the pattern.
+1. Hand-renaming them is wasted work — the template above regenerates the pattern from the payload name on the next create-or-clone.
 2. Renaming them may break an assumption in whatever path does emit them.
 
 **Identify the generator before including bundles in this convention.** Until then,

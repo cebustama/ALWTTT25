@@ -471,6 +471,32 @@ verificada es que el diff de producción del lote es *exactamente* ese default.
 es el detector de identidad de bytes: un `bundle HIT` devuelve el `mergedBytes` guardado,
 el mismo array. No hace falta añadir un volcado de hash al tab.
 
+### 9.20 CSV-4c — card → bundle reverse index (2026-08-10)
+
+Superficie en `SSoT_Editor_Authoring_Tools.md` §17.10 / §17.13. **Resultado: 8/8 PASS.**
+
+> **[DOC-APPLY-3, pregunta abierta]** El encabezado del diff origen (CSV-4c D14) dice
+> «8/8» sobre una tabla de **nueve** filas (ST-CSV4c-1..9). Se aplica literal, sin
+> recontar: o el conteo excluye ST-CSV4c-9 (verificado sobre export, no en sesión), o el
+> encabezado quedó desactualizado al añadirse los riders. Confirmar y corregir el conteo.
+
+| ID | Test | Resultado |
+| --- | --- | --- |
+| **ST-CSV4c-1** | **Regresión de ST-CSV-7** — ocho vistas, Print, Export JSON, Export All ⇒ cero modificaciones de asset/meta | PASS |
+| **ST-CSV4c-2** | Multiplicidad — dos cartas al mismo bundle ⇒ `cards: 2×` y dos filas | PASS |
+| **ST-CSV4c-3** | `UNREACHABLE` sobre un bundle sin cartas; el toggle `Flagged` lo aísla | PASS |
+| **ST-CSV4c-4** | Sin falso positivo por mazo autoral (`BandDeckData` como fuente) | PASS |
+| **ST-CSV4c-5** | Payload de Bassline visible y distinguible; cadena reportada como payload-born | PASS |
+| **ST-CSV4c-6** | `Export All` escribe ocho vistas, ninguna aborta el lote | PASS |
+| **ST-CSV4c-7** | **Compilación de producción** — sin `ALWTTT_DEV`, cero huella | PASS |
+| **ST-CSV4c-8** | Rider 1 — `Role: Bassline` muestra la familia completa: 4 filas con carta + sección `Unreached bundles: 10`, cada una con su payload | PASS |
+| **ST-CSV4c-9** | Rider 2 — el grupo `selfPocket*` se rellena solo bajo `pocketMode = SelfPocket`; verificado sobre el export: `starter_slap_bass` trae grid/patrón/frase, y las tres cartas en `Off` traen el grupo vacío | PASS (export) |
+
+**No cubierto (diferido).** Alcanzabilidad vía pool de recompensas o tabla de unlock:
+`RewardDatabase` no se escanea como fuente de cartas, así que un bundle alcanzable solo por
+recompensa lee `UNSOURCED`. La ventana lo declara en su propia UI. Añadir la fuente es un
+rider de CSV-6 si la curación lo necesita.
+
 ## 10. Update rule
 
 This SSoT must be updated when any of the following change:

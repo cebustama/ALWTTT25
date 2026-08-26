@@ -33,7 +33,7 @@ MonoBehaviour:
   - pattern: {fileID: 11400000, guid: 80bf6d7dc7eee404eba97755f186ac9d, type: 2}
     weight: 1
   - pattern: {fileID: 11400000, guid: 9bc62b47bd268d9449927bad8f0f9c5b, type: 2}
-    weight: 1
+    weight: 0
   - pattern: {fileID: 11400000, guid: b200f02095339fd41b639843f7414e52, type: 2}
     weight: 1
   - pattern: {fileID: 11400000, guid: d6d884e838ec465439239c46e1bf7c04, type: 2}

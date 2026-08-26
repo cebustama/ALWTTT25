@@ -666,22 +666,36 @@ This window browses **package-owned** assets (MidiGenPlay patterns, palettes, in
 
 ### 17.2 What it does
 
-Read-only inventory and **curation worklist** over every composition asset family. It exists because CSV-3..CSV-6 cannot judge musical content that cannot first be listed, and because no naming convention exists yet (CR-9). Each view supports `Print` (multi-line `Debug.Log`) and `Export JSON` (`SaveFilePanel` → `JsonUtility.ToJson(_, prettyPrint: true)` → `Debug.Log` of the path → `RevealInFinder`), following the `CardInventoryWindow` pattern verbatim. **`Export All` (CSV-1c)** takes one `SaveFolderPanel` and writes all seven views in a single pass using the same filenames and schemas; both export paths share `BuildJsonForView(View)`, and a view that throws is recorded and skipped rather than aborting the batch. It exists because a full re-baseline (the CSV-1b/1c workflow) is a seven-dialog operation otherwise.
+Read-only inventory and **curation worklist** over every composition asset family. It exists because CSV-3..CSV-6 cannot judge musical content that cannot first be listed, and because no naming convention exists yet (CR-9). Each view supports `Print` (multi-line `Debug.Log`) and `Export JSON` (`SaveFilePanel` → `JsonUtility.ToJson(_, prettyPrint: true)` → `Debug.Log` of the path → `RevealInFinder`), following the `CardInventoryWindow` pattern verbatim. **`Export All` (CSV-1c)** takes one `SaveFolderPanel` and writes all eight views in a single pass using the same filenames and schemas; both export paths share `BuildJsonForView(View)`, and a view that throws is recorded and skipped rather than aborting the batch. It exists because a full re-baseline (the CSV-1b/1c workflow) is an eight-dialog operation otherwise (seven before CSV-4c).
 
 The window mutates nothing: no rename, no move, no `SetDirty`, no save (ST-CSV-7 PASS).
+
+**Eighth view added at CSV-4c (D-CSV-16=A).** `Cards → Bundles` is the only view that
+indexes *upward*. It lives in the partial file
+`Assets/Scripts/DevMode/Editor/CompositionInventoryWindow.Cards.cs`; the split is a
+readability decision, not an architectural one — same class, same window, same read-only
+invariant. `View.CardBundles` is appended last in the enum so `Export All`
+(`Enum.GetValues`) picks it up without a second registration point.
 
 **Read-only invariant reaffirmed (D-CSV-19=A, 2026-07-20).** Rename and lifecycle operations belong to a **separate editor window** (batch **CSV-4b**), not to a mode inside this one. The reason is not purity: this window is the independent verification surface used *before and after* a bulk rename run, and a tool that both renames and reports cannot be trusted to report on its own renames. **Do not add mutation here.**
 
 ### 17.3 Views
 
-Seven toolbar views:
+Eight toolbar views:
 
-- **Style Bundles** — every `TrackStyleBundleSO` (all subclasses), with `appliesTo` role and a summary of its direct pattern/palette references.
+- **Style Bundles** — every `TrackStyleBundleSO` (all subclasses), with `appliesTo` role, a summary of its direct pattern/palette references and, since CSV-4c, a `cards:` column giving the multiplicity and identity of every card that reaches it, plus the reachability flags of §17.6.
 - **Drum Patterns** — `DrumPatternData` + `DrumPatternPaletteSO`.
 - **Chord Progressions** — `ChordProgressionData` + `ChordProgressionPaletteSO` + `ChordProgressionLibrarySO` (the `MidiGenPlayConfig.progressionLibrary` reference is annotated `[config-wired]`).
 - **Melody / Phrases** — `MelodyPatternData` + `PhraseArchetypeSO` + `PhrasePaletteSO`.
 - **Melodic Instruments** / **Percussion Instruments** — split defensively, since `MIDIPercussionInstrumentSO` derives `MIDIInstrumentSO`.
 - **Names Report** — every asset in every family with asset name, display name (when it differs), source tag and path. This is the input artifact for the CSV-4 naming convention; the window performs no renames.
+- **Cards → Bundles** (CSV-4c) — the reverse index. One row per `CardDefinition` that
+  carries a `TrackStyleBundleSO`, showing owner musician, track role, the resolved chain,
+  which catalogue or deck contains the card, and — for `BasslineCardConfigSO` — the payload
+  surface behind D9 (`chordExpression`, `arpeggioRate`, `arpeggioToneMode`, `pocketMode`,
+  `pocketSlapBoost`/`pocketPopBoost`, `pocketCustomLanes`, `velocityJitter`,
+  `randomRerollChance`, weight-list size). Sub-filters are local to this view: role,
+  flagged-only, payload-columns toggle.
 
 ### 17.4 Discovery (CSV-1b + CSV-1c)
 
@@ -706,6 +720,14 @@ repository could see were *all* dead assets. The harvest has so far always been 
 
 Time signature, source (`All` / `Package` / `Local`, derived from an asset path prefix of `Packages/`), free-text over asset + display name, orphan-only, duplicate-only, flagged-only, bundle-reachable-only, and an editable **reference part measures** field (default 8, matching `SongCompositionUI.PartEntry.measures`) that feeds the length-comparison flags. "Bundle-reachable" is the §18.6 `(off-band)` notion generalised project-wide: reachable from any style bundle's direct reference or via a palette that a bundle references.
 
+**CSV-4c.** The shared `Flagged` toggle now applies to Style Bundles as well. It previously
+received `null` for that view, which silently hid every bundle when the toggle was on;
+bundle rows now supply the reachability flags of §17.6, so `Flagged` there means «only
+bundles with a reachability problem» — the one-click way to produce the `UNREACHABLE`
+worklist. The `Cards → Bundles` view carries its own sub-filter row (track role,
+flagged-only, payload columns) and reuses only the shared free-text filter, matching against
+card id, card display name and bundle name.
+
 ### 17.6 Derived health flags
 
 The point of the tool — what turns a listing into a worklist.
@@ -720,10 +742,35 @@ The point of the tool — what turns a listing into a worklist.
 | `NO-LANES` / `ALL-SILENT` | drums | no lanes, or no active step in any lane |
 | `OVERFLOW` | melody | last note ends past `TotalBeats` |
 | `ORPHAN` | all patterns/palettes/archetypes | not referenced by any discovered palette, library, or style bundle. Reliable since CSV-1c. **Direct only** — an asset referenced solely by an *orphan* palette or library is dead by transitivity and is not flagged; that inference has to be made by reading the `refs` column. |
+| `UNREACHABLE` | style bundles | no `CardDefinition` anywhere points at this bundle. **This is the flag D-CSV-16 was owed** (CSV-4c). Same *direct-only* caveat as `ORPHAN`, one layer up. |
+| `UNSOURCED` | style bundles | at least one card points at it, but **none of those cards appears in any discovered catalogue or deck**. The bundle is alive only through an asset nothing distributes. |
+| `UNWIRED-SRC` | style bundles | the cards are in a source, but **every such source is itself attached to nothing** — a `MusicianCardCatalogData` on no `MusicianCharacterData`, or a `BandDeckData` on no `GigSetupRosterSO`. |
 | `DUP#n` | all | content-duplicate group id |
 | `OFF-ROOT` | patterns, instruments | exists in the project, but **no runtime repository can resolve it** — outside every configured Resources scan root. It may still play via a direct palette/bundle reference, but it cannot appear in the dev pattern (§18.4) or instrument (§18.9) pickers, which are repository-fed. Measured 2026-07-18 against the (now superseded) 230-asset export: **30/30 live chord progressions are `OFF-ROOT`**, 1/41 drums, 2/14 melody, 0 instruments. Those family counts belong to the pre-cleanup inventory; the current baseline is the 183-asset export of 2026-07-20 (`CSV_Composition_Validation_Sub_Roadmap.md` §4.1.1). |
 | `HARVESTED` | patterns, archetypes | no scan found it at all; listed only because something references it. The strongest possible signal that a scan root is wrong. |
 | `NO-SOUNDFONT` / `OCTAVE-RANGE-INVERTED` / `VOLUME-ZERO` | instruments | authoring defects |
+
+**Reachability is a three-hop walk, and the fourth hop is not checked (CSV-4c).** The chain
+is `bundle ← card ← catalogue/deck ← musician/roster`. Each of the three flags above names a
+*different* broken link, and they must not be collapsed: `UNREACHABLE` means delete the
+bundle, `UNSOURCED` means the **card** is the orphan and the bundle may be fine,
+`UNWIRED-SRC` means an entire catalogue or deck was never plugged in. Collapsing them is the
+expensive mistake — it deletes a correct bundle because the catalogue above it is broken.
+
+Nothing beyond the third hop is verified. A deck listed on a roster that no scene loads, or
+a musician no roster offers, still reads as reachable. **A count of `UNREACHABLE` is a
+floor, not a census of dead bundles** — verbatim the same warning §17.12 gives for `ORPHAN`,
+for verbatim the same reason. Full transitive closure is CSV-6 work.
+
+**Card-source discovery is a union of three sources** (CSV-4c, D-CSV4c-4=B):
+`MusicianCardCatalogData` ∪ `GenericCardCatalogSO` ∪ `BandDeckData`, plus a full
+`AssetDatabase` sweep of `CardDefinition` so an un-sourced card produces `UNSOURCED` rather
+than being silently counted as reachable. `BandDeckData` is in the union because
+`PersistentGameplayData` materialises authored decks directly, without passing through any
+catalogue; omitting it would produce false `UNREACHABLE` on live content — the CSV-1b
+failure mode repeated one layer up. **Not scanned:** reward pools, unlock tables and
+runtime-generated cards. A bundle reachable only through one of those reads as `UNSOURCED`,
+and the window states this limitation in its own UI rather than inferring reachability.
 
 **Origin classification — a third `source` value is owed (2026-07-20, implementation is CSV-4b).** `source` currently resolves to `local` | `pkg` by path prefix. Package assets under `Packages/**/Samples/` are outside `Resources/` and therefore invisible to every runtime repository, yet remain visible to this window's `AssetDatabase` discovery — so they are listed permanently and are re-investigated on every inventory pass. They must be classified as a third origin, **`sample`**. Six assets are in this state as of MidiGenPlay 1.1.0 (`Samples/ExampleCatalogue/ChordProgressions/`). This is expected behaviour of the discovery union, not a regression: the union is deliberately broader than `Resources`, which is exactly why the 1.1.0 move did not reduce the consumer count.
 
@@ -767,7 +814,27 @@ remaining mismatch is **exclusively Assets-side**: local chords under
 
 ### 17.8 Export schemas
 
-- Bundles: `{ "bundles": [{ "type", "assetName", "appliesTo", "overrideRef", "paletteRef", "source", "assetPath" }] }`
+- Bundles: `{ "bundles": [{ "type", "assetName", "appliesTo", "overrideRef", "paletteRef", "source", "assetPath", "cardRefs", "cardFlags" }] }` — `cardRefs` / `cardFlags` added at CSV-4c. **Additive only:** pre-CSV-4c exports remain readable; the two fields are absent there, not empty.
+- Cards → Bundles (CSV-4c): `{ "sourceNotes": [string], "cards": [{ "cardId", "cardName", "owner", "cardRole", "cardSource", "cardPath", "bundleName", "bundleType", "bundleRole", "bundlePath", "paletteRef", "patternRef", "sources", "sourced", "wiredSource", "flags", "chordExpression", "arpeggioRate", "arpeggioToneMode", "pocketMode", "pocketSlapBoost", "pocketPopBoost", "pocketCustomLanes", "velocityJitter", "randomRerollChance", "randomFigureWeights" }], "unreachableBundles": [{ "assetName", "type", "appliesTo", "source", "assetPath", "flags", "bassline" }] }`
+
+  The Bassline payload is a **nested `bassline` object**, present in both `cards[]` and
+  `unreachableBundles[]` (CSV-4c riders). It was nested when the real version of
+  `BasslineCardConfigSO` arrived: the surface went from 10 fields to 24, and flat it would
+  have put 24 bass columns on every Rhythm row.
+
+  `{ "isBassline", "chordExpression", "arpeggioRate", "arpeggioToneMode", "pocketMode", "pocketSlapBoost", "pocketPopBoost", "pocketCustomLanes", "pocketSlapLanes", "pocketPopLanes", "velocityJitter", "randomRerollChance", "randomFigureWeights", "selfPocketSubdivision", "selfPocketPattern", "selfPocketPatternSteps", "selfPocketPhraseActive", "selfPocketPhraseLengthBars", "selfPocketVariantSelection", "selfPocketSubstitutions", "hammerOffsetDegrees", "pullOffsetDegrees", "ghostVelocityFactor", "ghostPopVelocityFactor", "hammerOnVelocityFactor", "pullOffVelocityFactor", "ghostGateBeats" }`
+
+  **Two reading rules.** `JsonUtility` never omits a field, so a non-bass row emits the
+  object anyway with empty strings and zeros: **read `isBassline`, not the emptiness of a
+  string**. And the `selfPocket*` group is populated **only** when
+  `pocketMode = SelfPocket`; under `Off` or `SlapPocket` those values exist in the asset but
+  nothing reads them, and exporting them would imply the card is modelled by numbers it
+  ignores. `selfPocketPattern` is exported as glyphs (`S` slap · `P` pop · `·` rest · `g`
+  ghost · `p` ghost-pop · `h` hammer-on · `o` pull-off) so a cyclic pattern reads as a rhythm
+  and not as a list of enums. The Bassline payload fields are `null`/`0` for non-Bassline
+  families. `sourceNotes` records what was scanned and what was found unwired; it is
+  exported, not just displayed, so a stored export can be audited later for what its
+  reachability figures were based on.
 - Pattern views: `{ "patterns": [{ "assetName", "displayName", "timeSignature", "measures", "subdivisions", "contentCount", "source", "refs", "flags", "assetPath" }], "palettes": [{ "type", "assetName", "displayName", "entryCount", "refs", "orphan", "source", "assetPath" }] }`
 - Instrument views: `{ "instruments": [{ "assetName", "instrumentName", "instrumentType", "soundFont", "bank", "patch", "patchIndex", "octaveMin", "octaveMax", "volume01", "percussionMappings", "flags", "source", "assetPath" }] }`
 - Names Report: `{ "names": [{ "family", "assetName", "displayName", "source", "assetPath" }] }`
@@ -778,27 +845,53 @@ As with `CardInventoryWindow` (§8.4), these schemas are **informational and hum
 
 Viewer only. Pattern, progression and melody **authoring** remains package-side (`SSoT_Authoring_Tools.md §3`); style-bundle authoring remains card-side (`SSoT_Card_Authoring_Contracts.md`). No instrument editor exists in either project — the instrument views are the only structured view of that family that currently exists, and that remains a viewing surface, not a promotion of ownership.
 
-### 17.10 Known gap — no card → bundle reverse index (logged 2026-07-18)
+### 17.10 Card → bundle reverse index — CLOSED (CSV-4c, D-CSV-16=A)
 
-The window indexes references *downward* (bundle → palette → pattern) and can therefore
-say whether a pattern is used by a bundle. It does **not** index `CardDefinition →
-TrackStyleBundleSO`, so it cannot say whether a bundle itself is reachable from any
-card. Consequence: `TrackStyleBundleSO` rows carry no orphan status, and bundle cleanup
-cannot be decided from this export — several visibly test-flavoured bundles
-(`Rhythm - Card Config SO`, `Melody Card Config - Test`, `TEST Bassline Card Config SO`,
-`2CBacking001TestProg_…`, the two `Backing Card Config [roman]` assets) may or may not
-be live content.
+**Historical record (why the gap existed, 2026-07-18 → 2026-08-10).** The window indexed
+references *downward* only — bundle → palette → pattern — so it could say whether a pattern
+was used but never whether a **bundle** was. `TrackStyleBundleSO` rows therefore carried no
+orphan status, and bundle cleanup could not be decided from any export. Several
+visibly test-flavoured bundles (`Rhythm - Card Config SO`, `Melody Card Config - Test`,
+`TEST Bassline Card Config SO`, `2CBacking001TestProg_…`, the two `Backing Card Config
+[roman]` assets) sat in permanent ambiguity. `CardInventoryWindow` (§8) did not supply the
+other direction either. The decision was locked **A** at CSV-4 (2026-07-20) and **escalated
+to blocking** when the liveness of the Modal and Test chord palettes could only be
+established from the user's statement rather than from tooling — the reachable-progression
+figure CSV-4 recorded (14 of 33) therefore rested on recollection. **Keep this paragraph:**
+the failure was not the missing feature, it was a measured number entering documentation
+without a measuring instrument behind it.
 
-`CardInventoryWindow` (§8) does not supply this either — it lists cards but not their
-bundle references. Closing the gap means either a bundle-usage column here (walk every
-`CardDefinition`'s composition payload) or a card-side column there.
+**Closed at CSV-4c.** `CompositionInventoryWindow.Cards.cs` builds the
+`CardDefinition → TrackStyleBundleSO` index and surfaces it as (a) the `cards:` column on
+Style Bundles, (b) the `Cards → Bundles` view, (c) the `UNREACHABLE` / `UNSOURCED` /
+`UNWIRED-SRC` flags of §17.6, (d) two fields on the bundles export schema and a new export
+schema (§17.8).
 
-**Escalated to blocking (D-CSV-16=A, 2026-07-20).** CSV-4 did need it. After the local
-test bundles were deleted, the liveness of the Modal and Test chord palettes could only
-be established **from the user's statement, not from tooling** — the reachable-set figure
-that CSV-4 records (14 of 33 progressions) therefore rests on recollection. The index is
-owed; the decision is locked as A, but **no batch owns it yet**. Arc home:
-`planning/active/CSV_Composition_Validation_Sub_Roadmap.md` §3.
+**Three code-truth findings recorded at closure**, because each contradicts an assumption
+that was reasonable before the code was read:
+
+1. **Arity is 0..1, not many.** A card reaches at most one bundle: the only card-side
+   reference in the codebase is `CompositionCardPayload.TrackAction.styleBundle`. The
+   multiplicity is on the other side — many cards per bundle — and that is where the
+   multiset lives. The index is kept edge-shaped so a second card-side slot would not
+   require reshaping it.
+2. **`BandDeckData` is a fourth card source** and had to be added; see §17.6.
+3. **The base class holds no asset references — verified, not inferred (2026-08-10).**
+   `TrackStyleBundleSO` carries exactly one field, `appliesTo`. The chain walk in
+   `BuildReferenceIndex` is therefore complete: nothing is reachable through the base that
+   the per-family `switch` misses. CSV-4c was written before this file was available and
+   flagged the inference as an open risk; the risk is now closed, not merely aged out.
+   Related, from the same read: `TrackRole` has six values and one of them, **`Lead`, is
+   targeted by no bundle family** — no `LeadCardConfigSO` exists. Recorded as an
+   observation, not a defect.
+4. **For the whole Bassline family, the chain terminates at the bundle.**
+   `BasslineCardConfigSO` holds no pattern and no palette reference — it is absent from the
+   `BuildReferenceIndex` switch for that reason. Its musical identity is entirely
+   **payload-born** (expression / pocket / walk). The view reports
+   `chain: (payload-born — no pattern/palette ref)` rather than fabricating a chain. This is
+   the same fact underneath **D9**: a Fingered bass sitting under a Slap one is a payload
+   difference, not an instrument difference — because for bass there is no intermediate
+   asset in which the difference could hide.
 
 ### 17.11 Instrument curation is pool-level, not asset-level (D-CSV-18=A, 2026-07-20)
 
@@ -868,6 +961,116 @@ censo de assets muertos):
   (singular). **Cero `OFF-ROOT` locales en progresiones y percusión**, tal como anticipaba la
   resolución de CONT-B. El residuo es de dos ficheros; su alineación a `Patterns/Melodies` es
   trabajo de CSV-4b/CSV-5.
+
+**Alcanzabilidad de bundles — primera medición con herramienta (CSV-4c, 2026-08-10).**
+
+| Métrica | Valor |
+| --- | --- |
+| `CardDefinition` escaneadas | 50 |
+| Cartas de composición que portan un style bundle | 19 |
+| Bundles alcanzados / total | **18 / 35** |
+| `UNREACHABLE` | **17** (10 Bassline · 4 Melody · 3 Rhythm) |
+| `UNSOURCED` | 3 |
+| `UNWIRED-SRC` | 1 |
+| Fuentes de cartas | 4 catálogos de músico (4 enganchados) · 2 genéricos (1 enganchado) · 3 mazos (1 en roster) |
+
+**Casi la mitad de los style bundles del proyecto no los alcanza ninguna carta.** El reparto
+por familia importa más que el total: **10 de los 14 bundles de Bassline están muertos**
+(`SlapV1`–`SlapV4`, `Bend1`, `Bass_Phrase_Aeroplane4`, `BassCard_W2_Improv`, `BassLineTest`,
+`TEST Bassline Card Config SO`, `starter_slap_bass_Payload_Bassline_StyleBundle`), frente a
+4 de 8 en Melody y 3 de 7 en Rhythm. La familia más numerosa y más trabajada es también la
+que más residuo de iteración acumula.
+
+**Nota de nomenclatura corregida por la medición.** Hasta CSV-4c se hablaba indistintamente
+de «las 14 cartas/bundles de Bassline». Son **14 bundles y 4 cartas**. La confusión venía de
+no tener el índice; ya no aplica.
+
+**Esta es la primera cifra de alcanzabilidad de bundles del proyecto medida con
+herramienta.** La cifra de CSV-4 sobre progresiones alcanzables (14 de 33) se estableció de
+memoria; queda **histórica y debe re-medirse**, no re-citarse.
+
+**Tres hallazgos de contenido del mismo export**, todos con lote destinatario:
+
+1. **`starter_slap_bass_Payload_Bassline_StyleBundle` está `UNREACHABLE`** mientras la carta
+   `starter_slap_bass` apunta a `BasslineCardConfig_SlapV5`, hecho a mano. Es **D-CSV4b-2
+   observado en el proyecto**: el bundle autogenerado quedó huérfano al repuntar la carta.
+2. **Dos cartas de bajo fuera del catálogo de su músico.**
+   `Gusano_C_Bassline_001_WormWalk` y `…_002_WormPulse` leen `UNSOURCED`. **«Gusano» es el
+   nombre retirado de Sibi**, cuyo `Sibi_CardCatalogData` existe y está enganchado — las dos
+   cartas simplemente no figuran en él. Abierto: el catálogo de Sibi solo contiene cartas de
+   **Backing** y estas dos son de **Bassline**, mientras el bajista del roster es Conito; hay
+   que decidir si Sibi cubre ambas pistas (⇒ añadir las entradas) o si son residuo de
+   experimentación (⇒ borrarlas con los bundles asociados en CSV-6).
+   **Residuo de nomenclatura, entrada directa para CSV-4b:** los assets conservan tres
+   generaciones del mismo músico — `Gusano_C_*` (retirado), `wormus_*` / `starter_wormus_*`
+   (intermedio) y `sibi_*` / `Sibi_*` (actual). El índice inverso es lo que puso las tres
+   capas en la misma tabla.
+3. **D9 medido: el slap y el fingered difieren en tres ejes a la vez, y ningún mando de
+   compensación está tocado.** Con la superficie completa de `BasslineCardConfigSO`
+   (2026-08-10) el contraste es:
+
+   | | `starter_slap_bass` | `starter_finger_bass` |
+   | --- | --- | --- |
+   | pocket | **SelfPocket**, grid `QuarterBeat` | `Off` |
+   | densidad | 4 posiciones candidatas por pulso | 1 nota por pulso (`PerBeat`) |
+   | patrón | `SggP·gpPSgg·PggP` (16 pasos) | — |
+   | alfabeto | 2 slap · 2 pop · **8 ghost** · 1 ghost-pop · 2 rest | ataque pleno siempre |
+   | altura | `Block` + `RepeatedNote` | `ArpeggioUp` + `ChordToneWalk` |
+   | frase | OFF (tabla vacía) | — |
+
+   **Más de la mitad de los golpes del slap son ghosts al 0.60 del factor de velocidad**, y
+   sus dos únicos ataques plenos por ciclo caen contra una línea fingered que ataca cada
+   pulso a velocidad íntegra. La diferencia es de **densidad y de clase de golpe**, no de
+   instrumento ni de ganancia.
+   Y los mandos que existen precisamente para reequilibrar esto están **todos a cero en las
+   cuatro cartas vivas**: `pocketSlapBoost`, `pocketPopBoost`, `velocityJitter`,
+   `randomFigureWeights`. **D9 queda acotada como payload-born y corregible con lo ya
+   implementado**, sin tocar instrumentos ni pedir nada al paquete.
+
+4. **Los cinco `BasslineCardConfig_Slap*` son una serie de iteración, no basura.** Leídos en
+   orden por su patrón: `SP`@HalfBeat → `S·gP` → `SggP·ggP` → `SggP·gpPSg·PggpP` →
+   `SggP·gpPSgg·PggP`. V4 y V5 difieren en dos glifos. **Consecuencia para CSV-6: no aplicar
+   borrado en bloque a los 10 bundles muertos de Bassline** — cuatro de ellos son el
+   historial de audición de la carta que sí está viva, y la decisión correcta puede ser
+   archivarlos, no eliminarlos.
+
+5. **La maquinaria de frases de PHRASE-1 no la alcanza ninguna carta.** Los dos únicos assets
+   del proyecto con `selfPocketPhraseActive = true` son `Bass_Phrase_Aeroplane4` y
+   `BassLineTest`, y ambos son `UNREACHABLE`. La función más reciente del paquete está
+   autorizada, autorizada en assets y **a cero de alcance desde el juego**. Es contenido, no
+   herramienta; sin lote asignado.
+
+### 17.13 Cards → Bundles view (CSV-4c)
+
+**Row model.** One row per `CardDefinition` carrying a style bundle. Line 1: source tag,
+card id, resolved owner, card track role, bundle name and bundle type, reachability flags,
+`Ping` buttons for card and bundle. Line 2: the resolved chain and the source list
+(`musCat:` / `genCat:` / `deck:`, each suffixed `(unwired)` when the source itself is
+attached to nothing). Line 3, when the toggle is on and the bundle is a
+`BasslineCardConfigSO`: the payload surface.
+
+**Owner resolution order:** the `MusicianType` of every musician catalogue containing the
+card (joined with `/` when more than one) → `(any)` when
+`CardPerformerRule.AnyMusician` → the card's `FixedPerformerType`. Catalogue membership wins
+because it reflects who actually receives the card, not who is permitted to play it.
+
+**`appliesTo` vs the card's track role.** Both are displayed and they may differ. This is
+**not** a defect: `appliesTo` is a cosmetic tag (`BasslineCardConfigSO.Reset` sets it on
+creation) and the composer resolves the bundle from the track's Style slot, not from that
+field. Recorded here so a future reader does not chase it as a bug.
+
+**Unreached-bundles section (rider, added after the first export).** Below the card rows,
+the view lists every bundle **no card reaches**, honouring the role and text filters and
+carrying the same payload line. Reason: the first export returned 10 of 14 Bassline bundles
+as `UNREACHABLE`, and their payload was visible nowhere — Style Bundles renders
+`(no pattern refs)` for the family and this view skipped them for lack of a card, so
+deciding which dead bundle to revive versus delete meant opening each asset in the
+Inspector. With a role filter set, the two sections together are the **complete family**:
+`Role: Bassline` ⇒ 4 rows with a card + 10 without = 14.
+
+**Read-only, like everything else in §17.** The view loads through `AssetDatabase`, never
+writes, never `SetDirty`s, never saves. Verified by **ST-CSV4c-1**, which is a regression
+re-run of ST-CSV-7 over all eight views.
 
 ## 18. Part Effect Editor (`PartEffectEditorWindow`) — AUTH-1, 2026-07-31
 

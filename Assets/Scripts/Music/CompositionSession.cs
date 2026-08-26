@@ -1520,25 +1520,55 @@ namespace ALWTTT.Music
         }
 
         /// <summary>
-        /// Instrument pinned for (musicianId, role) after the last successful
-        /// render. Hover-only. Returns false when the track has not rendered yet.
+        /// [HUD-COMP-1] Instrument shown in the strip's hover.
+        ///
+        /// Mirrors BuildMelodicPinKey / BuildPercussionPinKey exactly: the key is
+        /// "musicianId|role|NONE" or "...|TYPE:<x>", never "musicianId|role".
+        /// An explicit SO override stores NO pin (the override IS the pick), so
+        /// that case is answered from the model instead of the pin map.
+        /// Returns false only when the track has not rendered yet.
         /// </summary>
         public bool TryGetResolvedInstrumentName(
-            string musicianId, TrackRole role, out string instrumentName)
+            int partIndex, string musicianId, TrackRole role, out string instrumentName)
         {
             instrumentName = null;
             if (string.IsNullOrEmpty(musicianId)) return false;
-            var key = $"{musicianId}|{role}";
-            if (_sessionMelodicPin.TryGetValue(key, out var mel) && mel != null)
+
+            var parts = _ctx?.CompositionUI?.Model?.parts;
+            if (parts == null || partIndex < 0 || partIndex >= parts.Count) return false;
+
+            var tr = parts[partIndex]?.tracks?
+                .Find(t => t.musicianId == musicianId && t.role == role);
+            if (tr == null) return false;
+
+            // Explicit overrides: no pin is ever written for these.
+            if (tr.overrideMelodicInstrument != null)
+            {
+                instrumentName = tr.overrideMelodicInstrument.name;
+                return true;
+            }
+            if (tr.overridePercussionInstrument != null)
+            {
+                instrumentName = tr.overridePercussionInstrument.name;
+                return true;
+            }
+
+            var melKey = tr.hasOverrideInstrumentType
+                ? $"{musicianId}|{role}|TYPE:{tr.overrideInstrumentType}"
+                : $"{musicianId}|{role}|NONE";
+            if (_sessionMelodicPin.TryGetValue(melKey, out var mel) && mel != null)
             {
                 instrumentName = mel.name;
                 return true;
             }
-            if (_sessionPercussionPin.TryGetValue(key, out var perc) && perc != null)
+
+            var percKey = $"{musicianId}|{role}|NONE";
+            if (_sessionPercussionPin.TryGetValue(percKey, out var perc) && perc != null)
             {
                 instrumentName = perc.name;
                 return true;
             }
+
             return false;
         }
 

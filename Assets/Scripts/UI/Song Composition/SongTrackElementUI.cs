@@ -22,6 +22,7 @@
 using System.Collections;
 using ALWTTT.Cards;
 using ALWTTT.Data;
+using ALWTTT.Managers;
 using MidiGenPlay;
 using TMPro;
 using UnityEngine;
@@ -61,7 +62,8 @@ namespace ALWTTT.UI
             public bool placeholder;      // roster musician with no track
             public bool pending;          // applies next loop
             public int inspirationNext;   // hover only
-            public string instrumentName; // hover only; "" when unresolved
+            public int partIndex;         // needed to re-resolve the instrument
+            public string instrumentName; // hover only; refreshed on hover
             public string bundleName;     // hover only, DEV builds only
             public CardDefinition sourceCard;
         }
@@ -228,10 +230,24 @@ namespace ALWTTT.UI
             if (layoutElement) { layoutElement.preferredHeight = h; layoutElement.minHeight = h; }
             gameObject.SetActive(h > 0.01f || !_data.placeholder);
 
+            // [HUD-COMP-1] Every icon size lives in the theme, not in the
+            // prefab: the strip is tuned as ONE object, and chasing a size
+            // across four prefabs is how a strip ends up visually incoherent.
             if (roleIcon)
             {
                 float s = compact ? theme.roleIconSizeDense : theme.roleIconSize;
                 roleIcon.rectTransform.sizeDelta = new Vector2(s, s);
+            }
+            if (musicianIcon)
+            {
+                float s = theme.musicianIconSize * (compact ? 0.85f : 1f);
+                musicianIcon.rectTransform.sizeDelta = new Vector2(s, s);
+            }
+            for (int i = 0; i < levelPips.Length; i++)
+            {
+                if (!levelPips[i]) continue;
+                levelPips[i].rectTransform.sizeDelta =
+                    new Vector2(theme.levelPipSize, theme.levelPipSize);
             }
             if (nameText)
             {
@@ -367,6 +383,20 @@ namespace ALWTTT.UI
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (!_hasData) return;
+
+            // [HUD-COMP-1 fix] Re-resolve the instrument HERE, not at Bind.
+            // Bind runs when the card is PLAYED, which is strictly before the
+            // loop that renders it — at that moment no instrument is pinned yet,
+            // so a bind-time value is empty for the most recently played track
+            // and only fills in later, by accident, when some other play forces
+            // a rebuild. Hover is the first moment the answer can be correct.
+            if (!_data.placeholder)
+            {
+                var gm = GigManager.Instance;
+                if (gm != null && gm.TryGetResolvedInstrumentNameForUI(
+                        _data.partIndex, _data.musicianId, _data.role, out var inst))
+                    _data.instrumentName = inst;
+            }
 
             // Facts panel: exists for EVERY row, including empty ones — "no track
             // yet" is information, and a row that swallows hover teaches the

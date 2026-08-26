@@ -12,10 +12,14 @@
 // zones instead of hoping the cursor stays out of them.
 //
 // Safe zone (reference canvas 1920x1080, see spec §5):
-//   - never below y = -520  (band characters start there)
-//   - never right of x = 1280 (audience third)
-// The clamp is expressed in canvas-local coordinates so it survives resolution
-// changes via the Canvas Scaler.
+//   - never below minBottomY (keeps the hand strip readable)
+//   - never right of maxRightX (keeps the audience third readable)
+// Clamps are canvas-local and CENTER-origin (0 = mid-screen), because that is
+// what canvasRect.InverseTransformPoint returns.
+//
+// Text uses ASCII separators only: the LiberationSans SDF atlas ships a
+// Latin-1 character set, so U+00B7 (mid dot) renders but U+2014 (em dash)
+// comes out as a missing-glyph box.
 
 using System.Text;
 using TMPro;
@@ -49,7 +53,21 @@ namespace ALWTTT.UI
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
-            if (!panel) panel = transform as RectTransform;
+            // [HUD-COMP-1 fix] `panel` MUST be this object's own RectTransform.
+            // PlaceNextTo writes an anchoredPosition expressed in canvasRect
+            // (center-origin) space, and anchoredPosition is relative to the
+            // PARENT. This object is the direct child of the canvas; a child of
+            // it is not, so pointing `panel` at the visual background would add
+            // a second offset and park the panel near screen centre.
+            var self = transform as RectTransform;
+            if (panel != self)
+            {
+                if (panel != null)
+                    Debug.LogWarning($"[TrackHoverPanel] `panel` pointed at " +
+                        $"'{panel.name}'; it must be this object's own RectTransform. " +
+                        "Overriding. Clear the field in the inspector.");
+                panel = self;
+            }
             SetAlphaImmediate(0f);
         }
 
@@ -104,7 +122,7 @@ namespace ALWTTT.UI
                 sb.Append($"+{d.inspirationNext} inspiration / loop").AppendLine();
 
             sb.Append("Instrument: ")
-              .Append(string.IsNullOrEmpty(d.instrumentName) ? "—" : d.instrumentName);
+              .Append(string.IsNullOrEmpty(d.instrumentName) ? "-" : d.instrumentName);
 
 #if ALWTTT_DEV
             if (!string.IsNullOrEmpty(d.bundleName))
@@ -113,7 +131,7 @@ namespace ALWTTT.UI
             // Per-track PartEffects are not stored on TrackEntry today (explicit
             // TODO in the model). We print the row rather than omit it, so the
             // absence is visible as a known gap and not as an oversight.
-            sb.AppendLine().Append("Modifiers: —");
+            sb.AppendLine().Append("Modifiers: -");
 
             return sb.ToString();
         }
@@ -167,15 +185,18 @@ namespace ALWTTT.UI
             if (Mathf.Approximately(canvasGroup.alpha, _targetAlpha)) return;
             float step = fadeDuration <= 0f ? 1f : Time.unscaledDeltaTime / fadeDuration;
             canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, _targetAlpha, step);
-            if (canvasGroup.alpha <= 0.001f && panel) panel.gameObject.SetActive(false);
-            else if (panel && !panel.gameObject.activeSelf) panel.gameObject.SetActive(true);
+            // Visibility is alpha-only. Deactivating this GameObject would also
+            // stop this Update(), so the panel could never fade back in.
         }
 
         private void SetAlphaImmediate(float a)
         {
             _targetAlpha = a;
-            if (canvasGroup) canvasGroup.alpha = a;
-            if (panel) panel.gameObject.SetActive(a > 0.001f);
+            if (canvasGroup)
+            {
+                canvasGroup.alpha = a;
+                canvasGroup.blocksRaycasts = false;
+            }
         }
     }
 }

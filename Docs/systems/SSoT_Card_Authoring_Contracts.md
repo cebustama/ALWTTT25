@@ -154,6 +154,23 @@ Optional:
 - `cardSpritePath`
 - `action`, `composition` — domain-specific payload blocks (composition-block CE-L1 fields `modifierEffectNames` + `palette` intent are documented in §5.12)
 - `entry` — catalog-entry defaults (see §5.6)
+- `resourceCostStatusKey`, `resourceCostAmount` — resource cost pair (see §5.3a)
+
+### 5.3a Resource cost (R5-d, D-R5-26=A)
+
+Two serialized fields on `CardDefinition`, authorable on **any** card of either domain:
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `resourceCostStatusKey` | `string` | `""` | `StatusKey` of the status spent on play. Resolved from the **payer's** catalogue. |
+| `resourceCostAmount` | `int` (≥0) | `0` | Stacks spent. |
+
+`HasResourceCost` is true only when both halves are authored. The key must match the
+`StatusEffectSO`'s `StatusKey` exactly; a mismatch reads at runtime as "not enough resource",
+so it is the first thing to check when a card is permanently unplayable.
+
+**The cost is not an effect spec.** Specs execute after the play is committed; a cost there
+could be paid with nothing. See `SSoT_Status_Effects.md` §5.10.
 
 ### 5.4 Effect object rule
 Each effect entry must contain:
@@ -198,6 +215,24 @@ Grants `amount` Inspiration at each loop boundary while the carrying card's trac
 { "type": "RevealPreferences", "targetType": "AudienceCharacter" }
 ```
 Reuses `targetType`; no new DTO fields. Reveals the target's `TastePreferences` on the audience canvas (runtime meaning: `SSoT_Audience_and_Reactions.md` §6.4).
+
+### 5.6c Example — GrantBonusLoop (R5-d, 2026-08-26)
+```json
+{ "type": "GrantBonusLoop", "soloOverBonusLoop": true }
+```
+Extends the running part by one loop (`CompositionSession.TryGrantBonusLoop`), capped by
+`GigFlowSettingsSO.MaxBonusLoopsPerPart`. `soloOverBonusLoop` (default `true`) asks for a
+render-scope soloist track over a byte-identical base
+(`SSoT_Runtime_CompositionSession_Integration.md` §8 inv 14). Meaningful only while a part is
+looping; outside that window the play is denied as `UnplayableReason.NoRunningLoop`.
+
+**Supported effect discriminators are now seven:** `ApplyStatusEffect`, `ModifyVibe`,
+`ModifyStress`, `DrawCards`, `AddInspirationPerLoop`, `RevealPreferences`, `GrantBonusLoop`.
+
+> **Authoring-route caveat (verified 2026-08-26).** The JSON import path supports all seven.
+> The **LLM generation route does not**: `CardLLMPromptBuilder` enumerates the discriminators
+> by hand and lists only six. Until `GrantBonusLoop` is added there, the generator will never
+> emit it. That is a **code** gap, not a documentation one — see `Report_CardLLM_Pipeline.md`.
 
 ### 5.7 Batch wrapper schema
 

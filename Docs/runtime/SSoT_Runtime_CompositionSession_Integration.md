@@ -137,11 +137,56 @@ Rule:
 
 **Routing fact (code truth).** Since D-D=β retired the NextPart gesture, *every* composition drop during a running loop is normalized to `CurrentPart` and applied to `_currentPartIndex` — the part that is **currently looping** — with that part's cache invalidated. The change therefore becomes audible on the **next loop of that same part** (the Pending-Effects model, `planning/Design_Pending_Effects_v1.md`). This routing was code truth and was written nowhere; it is the premise of the rule below.
 
-**Rule.** On the **final** loop of a part there is no next loop to render the change, so the play is pure waste. `CompositionSession.IsFinalLoopRunning` is true when a loop is running (`BuildingNextPart` | `PlayingCurrentPart`) and `_loopsRemainingForPart == 1`. `TryPlayCompositionCard` denies the play **before any spend** (no inspiration, no ECON-1 budget), and the overlay surfaces it as `UnplayableReason.FinalLoopLock` (`SSoT_Card_System.md` §10.5). A presentation-avoidance mirror in `GigManager.TryPlayCompositionCard` keeps the drop from animating into a denial.
+**Rule.** On the **final** loop of a part there is no next loop to render the change, so the play is pure waste. `CompositionSession.IsFinalLoopRunning` is true when a loop is running (`BuildingNextPart` | `PlayingCurrentPart`) and `_loopsRemainingForPart - _bonusLoopsPendingForPart == 1`. `TryPlayCompositionCard` denies the play **before any spend** (no inspiration, no ECON-1 budget), and the overlay surfaces it as `UnplayableReason.FinalLoopLock` (`SSoT_Card_System.md` §10.5). A presentation-avoidance mirror in `GigManager.TryPlayCompositionCard` keeps the drop from animating into a denial.
 
 **Exemption — held loops.** `IsFinalLoopRunning` is **false while `TutorialLoopHoldGate.IsArmed`**: a held loop *replays*, so the pending change would in fact render on the repeat. `TutorialModalGate` is **not** exempt — modals suspend audience turns and dragging (TUT-R2b FIX-2), they do **not** replay the loop.
 
 **Demo-cut consequence.** With parts-per-song = 1 and loops-per-part = 4 (`Design_Demo_Cut_v1.md` §1.1), the only final loop of a song is the loop the guided tutorial holds at beat 8. Inside the tutorial the lock is therefore structurally **unreachable**, and the composition gate at that moment is `TutorialInputGate.SingleCardOnly` (finisher-only, `Design_Tutorial_System_v0_2.md` §4), not this lock. The lock's live consumer is **non-tutorial play** (and any future multi-part song).
+
+**Bonus loops hold the lock (R5-d, D-R5-23=A).** A granted bonus loop raises
+`_loopsRemainingForPart` and `_bonusLoopsPendingForPart` **together**, so the predicate's
+difference — the count of ordinary loops left — does not move at grant time. Two consequences,
+both intended:
+
+1. Playing a bonus-loop card *during* the final loop does **not** flip the lock while a render
+   is already sounding. A naked `_loopsRemainingForPart++` would, and card playability changing
+   mid-loop is a contract event, not an emergent side effect.
+2. The lock stays true across the whole bonus tail. A bonus loop is a payoff, not a second
+   authoring window — coherent with D-R5-6=B (Overload buys music, not card tempo). The cost is
+   that the bonus loop cannot be dressed with a new track; that is the accepted trade.
+
+Reverting is one term: delete `- _bonusLoopsPendingForPart`.
+
+**Companion gate.** A card carrying `GrantBonusLoopSpec` also needs a part actually looping.
+`CanPlayActionCard` returns true in the between-songs action window, where there is nothing to
+extend and the resource would burn for nothing, so the evaluator adds a card-specific
+`UnplayableReason.NoRunningLoop` (`GigManager.CanGrantBonusLoop`, capped by
+`GigFlowSettingsSO.MaxBonusLoopsPerPart`).
+
+### 5.5 UI read seams (HUD-COMP-1, 2026-08-26)
+
+The Composition View strip consumes three **read-only** seams. They return `false` rather
+than a sentinel when the answer does not yet exist, so a caller can never render a guess.
+
+| Seam | Returns | Rule |
+|---|---|---|
+| `TryGetLoopProgressForUI(out cur, out total, out finalLocks)` | 1-based progress inside the part | `false` when no song is running |
+| `TryGetRenderedTonality(partIndex, out Tonality, out rootLabel)` | the **rendered** tonality, not the model's | `false` before the first render |
+| `TryGetResolvedInstrumentName(partIndex, musicianId, role, out name)` | instrument pinned after the render | `false` while the track has not rendered |
+
+**Invariant — the UI shows the rendered tonality.** The strip reads
+`_jamRenderedTonalityByPart`, never `PartEntry.tonality`. The two diverge legitimately when a
+Backing card adopts: the model still says Ionian while the chords sound Lydian. Showing the
+model would be lying exactly when the player needs the truth.
+
+**Invariant — pin keys have three segments.** The pin maps are keyed
+`"{musicianId}|{role}|NONE"` or `"...|TYPE:<x>"`, and an **explicit instrument override writes
+no pin**. Any consumer that reconstructs that key must replicate `BuildMelodicPinKey` /
+`BuildPercussionPinKey` rather than concatenating its own.
+
+**Invariant (learned from a bug) — the resolved instrument does not exist at play time.** It
+is written after `RenderSinglePart`. Every UI consumer must read it *at the moment of
+display*, not at the bind of the play. See §8 invariant 15.
 
 ---
 
@@ -214,6 +259,10 @@ Those details belong to MidiGenPlay.
 
 11. **A composition play is denied on the final loop of a part** (CARD-UX-1, 2026-07-13) — no subsequent loop of that part would render it, since every drop during a running loop routes to the currently looping part and becomes audible on that part's *next* loop. Exception: while a tutorial loop-hold is armed (`TutorialLoopHoldGate.IsArmed`), the held loop replays and the change does render, so the lock lifts. Denial occurs **before any inspiration or ECON-1 spend**. Full contract in §5.4. **Dev exemption (DBG-C1, 2026-07-17):** under the `#if ALWTTT_DEV` infinite composition-loop toggle (`SSoT_Dev_Mode §18`) a next render always exists, so `IsFinalLoopRunning` returns false and the deny does not apply; the production predicate is byte-identical.
 
+    **Bonus-loop clause (R5-d, D-R5-23=A):** the predicate is
+    `_loopsRemainingForPart - _bonusLoopsPendingForPart == 1`. A bonus loop granted mid-loop
+    does not lift the lock, and the lock stays on for every bonus loop. See §5.4.
+
 12. **Singer voice seam (SINGER-1, 2026-07-21).** `CompositionSession` raises
     `event Action<ALWTTT.Music.Voice.SingerLoopContext> LoopPlaybackStarting`
     immediately before `MidiMusicManager.PlayRaw`, on **every** path through
@@ -270,6 +319,52 @@ Those details belong to MidiGenPlay.
     **Boundary:** ninguna de estas reglas es package-owned. El paquete recibe un
     entero de BPM ya resuelto; la política de resolución, cacheo e invalidación
     es ALWTTT.
+
+14. **Render-scope track injection** (R5-d, D-R5-4=A). A track may be added to the `SongConfig`
+    of a **single render** without touching the composition model. `BuildSongConfigFromUI`
+    rebuilds `cfg` every loop, so the injection lives exactly one render: there is no revert
+    API and nothing to unwind. Four duties make it sound and none are optional:
+
+    a. **Channel layout.** `SongConfigBuilder` seeds `ChannelRoles` / `ChannelMusicianOrder`
+       from part 0 only; `BuildChannelOwnerLookups` keys `"{id}|{role}"` and `StampChannel`
+       falls back to `byMusician` on a miss. An injected track whose pair is absent from the
+       layout therefore stamps the channel its musician already owns — one program change wins
+       and any per-channel operation hits both tracks. The injection **must** append to both
+       lists. `BuildChannelMap` allocates sequentially, so appending cannot move a channel an
+       existing track already holds.
+
+    b. **Hash duty.** The injected track must carry an entry in `trackInputsHashByTrack`
+       (synthetic, stable, prefixed so it cannot collide with an authored hash). Without one,
+       `RenderSinglePart` sets `cacheEnabled = false` and regenerates **every** track, so the
+       base stops being byte-identical — the one thing the injection must not do. With one,
+       only the bundle key moves and the base stems are served from `_stemCache` verbatim.
+
+    c. **Cache transience.** The render must **not** be written into `CompositionSession._partCache`.
+       The pre-R5-d code reused the cached entry by reference; writing the injected render into
+       it would make the injection permanent for the rest of the part. BPM and the
+       resolved-instrument readback are still read from the *stored* entry, so the injected
+       render neither re-rolls tempo nor lets the base land on different instruments.
+
+    d. **No pin write.** `UpdateInstrumentPins` is skipped for an injected render, or the
+       injected instrument binds `(musician, role)` session-wide and a later genuine card on
+       that pair inherits it silently.
+
+    Identity collision is resolved by a preference chain, never by a synthetic musician id
+    (D-R5-24=A): the injector picks the first role the musician does not already hold, and
+    gives up on the injection — not on the loop — when none is free. First consumer: the
+    bonus-loop solo (§5.4).
+
+    > **Numbering note (DOC-APPLY-3, 2026-08-26).** The R5-d diff package drafted this as
+    > "invariant 12". By the time it was applied, §8 already carried 13 invariants (12 = singer
+    > voice seam, 13 = BPM resolution/caching), both cross-referenced from other governed
+    > documents. It is therefore recorded as **invariant 14**; the content is unchanged.
+
+15. **A resolved instrument does not exist at play time** (HUD-COMP-1, 2026-08-26). The pin is
+    written **after** `RenderSinglePart`, so between the card play and the render there is no
+    instrument to read. Every UI consumer must query it *at the moment of display*
+    (`TryGetResolvedInstrumentName`, §5.5), never cache it at the bind of the play. Recorded as
+    an invariant because the opposite assumption is the natural one and it was learned from a
+    bug, not from the design.
 
 ## 9. Out-of-scope package internals
 

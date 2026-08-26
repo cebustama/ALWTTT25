@@ -422,15 +422,28 @@ deliberate — a tutorial directive outranks a domain rule):
 | 1 | `TutorialGate` | `TutorialInputGate.BlocksCardDrag` (beat-3 allow-list, beat-5 PlayOnly, beat-8 SingleCardOnly) | `Design_Tutorial_System_v0_2` §4 |
 | 2 | `ActionTiming` | `GigManager.CanPlayActionCard` | this SSoT §9.1 |
 | 3 | `FinalLoopLock` | `CompositionSession.IsFinalLoopRunning` | `SSoT_Runtime_CompositionSession_Integration` §5.4 |
-| 4 | `Inspiration` | `CompositionSession.CanAffordInspiration` | `SSoT_Gig_Combat_Core` §5.1 / §14.6 |
-| 5 | `Budget` | `GigManager.CanConsumePlay` (ECON-1) | `SSoT_Gig_Combat_Core` §14 |
+| 4 | `NoRunningLoop` | `GigManager.CanGrantBonusLoop` (bonus-loop cards only) | `SSoT_Runtime_CompositionSession_Integration` §5.4 |
+| 5 | `Resource` | `GigManager.CanPayResourceCost` | `SSoT_Status_Effects` §5.10 |
+| 6 | `Inspiration` | `CompositionSession.CanAffordInspiration` | `SSoT_Gig_Combat_Core` §5.1 / §14.6 |
+| 7 | `Budget` | `GigManager.CanConsumePlay` (ECON-1) | `SSoT_Gig_Combat_Core` §14 |
 | — | `None` | playable | — |
+
+**Precedence note (R5-d).** `NoRunningLoop` and `Resource` are evaluated **before**
+`Inspiration` on purpose — a card that cannot exist at this moment (no loop running) or that
+has nothing to pay itself with should read as such, not as "not enough inspiration".
 
 **`Budget` is scoped** to cards whose payer is statically resolvable (`FixedPerformerType !=
 None`). `AnyMusician` cards and hover-attributed compositions are **excluded** from the
 overlay's budget input until **D-ECON-GENERIC** resolves — a false red on a card that *is*
 playable against another musician is worse than a false green on an advisory overlay, and the
 `TryConsumePlay` drop-denial remains the enforcement. See `SSoT_Gig_Combat_Core.md` §14.5.
+
+**`Resource` is scoped the same way** (R5-d): only cards whose payer is statically resolvable
+(`FixedPerformerType != None`) can go red on a resource shortfall. `AnyMusician` cards are
+excluded from the overlay's resource input for the identical reason — a false red on a card
+that *is* payable by another musician is worse than a false green — and the play-path denial
+remains the enforcement. `NoRunningLoop` carries no such scoping: it is a session-state fact,
+independent of who would pay.
 
 **Presentation.** The overlay reuses the existing `passiveImage` / `SetInactiveMaterialState`
 mechanism (red restyle of the asset). **No new serialized field** — deliberate: a new `Image`
