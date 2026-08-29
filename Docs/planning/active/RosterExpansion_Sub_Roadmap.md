@@ -230,9 +230,63 @@ extra ni decaería estados de audiencia una vez más.
 - **D-R5-25 = A** — `LoopsTimerUI.BuildBars` re-called on grant (verified rebuildable mid-part).
 - **D-R5-26 = A** — cost as a generic `(resourceCostStatusKey, resourceCostAmount)` pair on
   `CardDefinition`, not a `voltageCost` field and not a `CardEffectSpec`.
-- **D-R5-27 = OPEN** — does the Voltage-3 tier go on the existing `starter_slap_bass`
-  (StarterDeck) or on new RewardPool cards? Recommendation on record: new cards.
-  **Sigue abierta tras DOC-APPLY-3**; ningún diff aplicado depende de ella.
+- **D-R5-27 = B** (cerrada 2026-08-28, R5-e) — el tier de Voltage-3 en slap va sobre cartas
+  **nuevas de RewardPool** (`conito_slap_groove` 3, `conito_super_slap` 6);
+  `starter_slap_bass` queda intacta y sin coste de recurso. Comprobación previa: búsqueda por
+  GUID sobre todos los `.asset`/`.prefab`/`.unity` — el único referente es
+  `Conito_CardCatalogData.asset`, ningún asset de tutorial ni escena la guiona. El motivo de
+  la decisión NO es ese riesgo sino el otro: `starter_slap_bass` es
+  `StarterDeck | UnlockedByDefault`, se reparte en la mano inicial, y gatearla tras Voltage 3
+  la vuelve impagable en el turno 1 — empeora la apertura de toda partida con Conito en vez
+  de añadir una decisión. **Autoría ejecutada y verificada en R5-f (2026-08-28).**
+
+### R5 decision ledger — fases R5-e / R5-f (2026-08-28)
+
+- **D1 = B** — `ST-R5d-1..15` **declarada PERDIDA** y sustituida por `ST-R5f-1..18`, derivada de
+  los documentos gobernados y no del código. Ver §3.2. La numeración es nueva a propósito:
+  reutilizar las etiquetas habría presentado tests re-derivados como si fueran la suite original.
+- **D2a = B** — las dos cartas se autoran completas, pero `conito_super_slap` entra con
+  `RewardPool` **sin** `UnlockedByDefault`: existe, es testeable por spawner dev y **no** entra al
+  pool hasta R8. `PersistentGameplayData.BuildRewardCardPool` exige `IsReward ∧ UnlockedByDefault`
+  (verdad de código), así que un flag ausente es un parqueo limpio — mismo patrón que la
+  recomendación de D-R5-11. Motivo: a 6 de Voltage la carta está **dominada** por
+  Overload (3) + `slap_groove` (3), que cuesta lo mismo y da un loop entero con solo. Se autora
+  ahora y se habilita cuando la economía la sostenga.
+- **D2b** — inspiración **0** en ambas cartas. El Voltage es el precio; una segunda puerta cuyo
+  rechazo tampoco tiene feedback en pantalla solo añade confusión. En el mismo toque se retiró el
+  coste de inspiración 2 de `conito_overload`, que se confundía visualmente con el de recurso.
+- **D3 = A** — **precio = espectáculo**. Las técnicas de slap se ordenan de sobria a aparatosa y
+  el Voltage compra aparato. Se rechazó B (side-grades puros: un side-grade con coste es
+  estrictamente peor que el gratis) y C (acoplar el precio a otro eje de riesgo: diseño nuevo, sin
+  tomar). Consecuencia aplicada: `starter_slap_bass` repuntada a `BasslineCardConfig_SlapV1`.
+  **Registro honesto:** tal como quedaron autorados, los tres slaps son **niveles de una técnica**
+  (vocabulario acumulativo), no tres técnicas alternativas. Jugable y coherente con D3=A, pero
+  **R7 debe evaluar si los subsume** cuando implemente niveles en `TrackEntry`.
+- **D5 = A** — la puerta de **coste de recurso** debe correr **antes** que la de presupuesto
+  ECON-1 en la ruta de acción. Hoy corre después, y como el hook de generación de Voltage vive
+  dentro de `TryConsumePlay`, una carta de coste N jugada por un músico que genera ese recurso
+  cuesta **N−1** efectivo (verificado: 2 → +1 → paga 3 → 0). La ruta de **composición** ya tiene
+  el orden correcto (ST-R5f-16), así que el arreglo es alinear una con otra. Se rechazó B (enseñar
+  al overlay a contar el +1 pendiente: el descuento sería dependiente del músico, y generalizar la
+  generación es «un cambio de una línea» según D-R5-9) y C (repuntar Overload a 4: esconde un
+  fallo de orden detrás de un número de contenido). **Corrige una afirmación de D-R5-26=A:**
+  «net-neutral» es cierto para el saldo y falso para la puerta. Efecto lateral deseado: una
+  denegación de recurso deja de quemar la jugada ECON-1.
+  **CONSTRUIDO en R5-g (2026-08-29), pero no como decía este texto.** El arreglo no fue mover la
+  puerta de recurso delante de la de presupuesto, sino **añadir la comprobación no consumidora
+  que `SSoT_Gig_Combat_Core` §14.4 ya especificaba y que nunca se implementó** (D1=B). Mover el
+  cobro habría arreglado la aritmética creando la asimetría espejo: una denegación de ECON-1
+  posterior al cobro quemaría Voltage —recurso persistente— para salvar una jugada que se repone
+  cada turno. `ST-R5g-1..8` 8/8 PASS.
+- **D-R5-11 — cerrada de facto, no por decisión (F-R5f-5).** El ledger la da por «no resuelta» y
+  recomendaba importar *Amp Up* con un solo flag; el asset vivo `reward_amp_up` tiene **ambos** y
+  está en el pool. Además da **+3**, no +2: aplica su `stacksDelta` y dispara el hook por jugada
+  consumida. La medición «+2 por periodo» sobre la que se fijó el umbral 6 (D-R5-14=A) **ya no
+  describe el juego**. Re-medir antes de tocar umbrales. → **R8**.
+- **Tuning aplicado:** `BonusSoloDuck01` 0.55 → **0.75** (escucha; 0.55 hundía a la banda).
+- **Fases cerradas:** **R5-e CERRADO 2026-08-28** (autoría de Overload; sin runtime) ·
+  **R5-f CERRADO 2026-08-28** (`ST-R5f-1..18`: 15 PASS · 2 FAIL con destinatario · 1 diferido).
+  **R5 CERRADO.**
 
 ---
 
@@ -247,8 +301,11 @@ extra ni decaería estados de audiencia una vez más.
 | **R2d** | IMPLEMENTATION | Adoption of **ORDER-1** + **SLAPFIG-1** (filed and delivered 2026-07-31): guard rewrite, shared-harmony cache identity `dp:`+`bk:` (D-R2-10=A, closes the pre-existing **F-HARM-STALE-1**), harmony-source readback, Slap Bass re-authored onto `SelfPocket` (D-R2-11) | Interleavable | R2c |
 | **R3** ✅ **CLOSED 2026-08-08** | IMPL / CONTENT | Zig composition cards: ascending-degree `MelodyPatternData` (verbatim `patternOverride`) + scale-phrase palette; singer verification in a 3–4-musician band (mix, channel, mute). **CLOSED 2026-08-08.** Entregado: **Rise Up** (patrón autorado de 8 compases por grado, adaptativo a raíz y a modo) y **Showtime** (ruta procedural, ST-R3-11 PASS, operativa). Entregable de banda 3–4 (mezcla/canal/mute) **CUMPLIDO**. Además en lote: **JAM-1** (continuidad de armonía compartida) y **JAM-2** (el modo viaja con la armonía), tres cartas Wormus de banco de dev (`flags=None`, D-R3C-6=A), paleta `Chord Palette - Modal` 7→5 (D-R3C-5=B). Verificaciones: ST-A1..A7 · ST-B1/B2 · ST-C1 · C5 · ST-R3-11 · C4 · ST-J1..J6, todas PASS. Excepción al freeze de baseline S5i autorizada por D-R3C-1=C / D-R3C-8=A (2º y 3er precedente). | Interleavable (∥ R2) | R0 |
 | **R4** ✅ **CLOSED 2026-08-10** | IMPLEMENTATION | **CLOSED 2026-08-10.** Cuatro piezas entregadas: **Psychic Wave v2** · **C2 Spotlight/Taunt** · **Read the Room** · **Keep Cool retarget**. **ST-R4-1..10 PASS · V-R4-MODAL PASS** (salda la deuda auditiva de R3: la melodía sobre parte modal resuelve contra el modo impuesto). Ledger del lote en §2. Scope original: Finishers I: **Psychic Wave v2** (add `ApplyStatusEffect(earworm, Y≈2, AllAudienceCharacters)` — note the target branch skips `IsBlocked` members, so Indifference-blocked audience take no Earworm; full-screen mask VFX on `TutorialSpotlight.shader` base; **tutorial beat-8 + JUICE-PW regression**) + **C2 Spotlight/Taunt** (counter status + `ResolveTargetsFor` redirect hook, 1 audience turn) + **Read the Room** (`RevealPreferencesSpec` + `AudienceCharacterCanvas` surface, D-R0-1) + **Keep Cool retarget** `Self`→`Musician` (D-R0-3, **tutorial Composure-beat regression owed**) + **V5 runtime smoke** (`ApplyStatusEffect` × `AllAudienceCharacters`) | Post-S5j | S5j tag |
-| **R5** ⏳ **PARCIAL** | IMPLEMENTATION | R5-a/b/c shipped Voltage + passive Overload. **R5-d code shipped 2026-08-26**: bonus loop, render-scope solo, duck plane, generic resource cost, `conito_overload` authored. **Blocking closure — un solo criterio: ST-R5d-1..15 sin ejecutar.** Los otros dos cayeron el 2026-08-26: los 20 diffs de R5-d se aplicaron en DOC-APPLY-3, y los siete diffs HELD de `PENDING_DOC_DIFFS_R5*` quedaron **declarados perdidos y retirados como criterio de cierre** (D-DOC-5; ver §3.1). D-R5-27 sigue abierta pero **no bloquea**: es una decisión de contenido, no de contrato. | — | R0 |
-| **R5-d** 🔵 **CÓDIGO ENTREGADO 2026-08-26, SIN SMOKE** | IMPLEMENTATION | Cierre del alcance R5: carta Action **Overload** (`conito_overload`, inspiración 2, Voltage 3) + `TryGrantBonusLoop` guardada + solo de un loop por inyección de alcance de render (§8 inv 14) + duck de canal (`SSoT_Audio` §4.7) + par genérico de coste de recurso. Decisiones D-R5-20..26 cerradas; **D-R5-27 abierta**. **Doc diffs aplicados en DOC-APPLY-3 (2026-08-26).** **Pendiente para cerrar: ST-R5d-1..15.** | Post-R5-c | R5-a/b/c |
+| ~~**R5**~~ ✅ **CLOSED 2026-08-28** | IMPLEMENTATION | Voltage + Overload completo. R5-a/b/c: recurso, generación y descarga pasiva. R5-d: carta Action, loop de bonus, solo de alcance de render, duck de canal, par genérico de coste. R5-e: autoría y validación de editor. **R5-f: `ST-R5f-1..18` ejecutada — 15 PASS, 2 FAIL con lote destinatario (R5-g), 1 diferido**; las dos cartas de D-R5-27=B autoradas. El criterio `ST-R5d-1..15` fue **sustituido**: aquella suite se declaró perdida (D1=B, §3.2) y `ST-R5f-1..18` ocupa su lugar. | — | R0 |
+| ~~**R5-d**~~ ✅ **CLOSED 2026-08-28** | IMPLEMENTATION | Cierre del alcance R5: carta Action **Overload** (`conito_overload`, **inspiración 0** tras R5-f, Voltage 3) + `TryGrantBonusLoop` guardada + solo de un loop por inyección de alcance de render (§8 inv 14) + duck de canal (`SSoT_Audio` §4.7) + par genérico de coste de recurso. D-R5-20..26 cerradas. Doc diffs en DOC-APPLY-3. **Verificado en runtime por `ST-R5f-1..18` (2026-08-28).** | Post-R5-c | R5-a/b/c |
+| ~~**R5-e**~~ ✅ **CLOSED 2026-08-28** | IMPLEMENTATION | Autoría de Overload: par de coste visible en el Card Editor con validación blanda, `GrantBonusLoopSpec` en *Add Effect…*, siete discriminadores en el prompt del generador y en el guard de la etapa 5, dos tests que atan las cuatro superficies. Sin runtime. D-R5-27 cerrada = B. | Post-R5-d | R5-d |
+| ~~**R5-f**~~ ✅ **CLOSED 2026-08-28** | TESTING / VALIDATION | `ST-R5d-1..15` declarada perdida (D1=B) y sustituida por **`ST-R5f-1..18`**: 15 PASS, 2 FAIL (F-R5f-1/-9, misma causa → R5-g), ST-R5f-4 diferido. `conito_slap_groove` y `conito_super_slap` autoradas; `starter_slap_bass` repuntada a `SlapV1`; duck a 0.75. D1=B · D2a=B · D2b · D3=A · D5=A. | Post-R5-e | R5-e |
+| ~~**R5-g**~~ ✅ **CLOSED 2026-08-29** | IMPLEMENTATION | **D5=A resuelto por D1=B.** `HandController` **2b.5**: comprobación no consumidora (`CanPayResourceCost`) delante de la puerta ECON-1, cobro donde estaba — ambas rutas comparten ahora «comprobar todo, cobrar después». **D2=B:** helper `LogGate` de tier maestro para la denegación (en verbose la carta volvía a la mano sin explicación en consola). Comentario falso de ~l.820 reescrito; el `2a.6-bis` de §14.4 **nunca existió** y la sección queda corregida. **F-R5f-11 CERRADO — no era defecto:** el canal excluido del duck se **deriva** del solo inyectado (`CompositionSession` l.1336, `GetChannelForTrack(cfg, soloKey…)`); si no resuelve, el loop suena **sin duck** en vez de atenuar un canal arbitrario. **ST-R5g-0** midió los tiers de log de R5 (§19.2 pasa de 7 a 11 líneas protegidas). `ST-R5g-1..8` 8/8 PASS; ST-R5f-1/-18 → PASS, -3/-16 sin regresión. Hallazgos: **F-R5g-1** (asimetría de tier del log de ECON-1 dentro de `HandController`, no se arregla: `GigManager` ya imprime la denegación a tier maestro) · **F-R5g-2** (tercera instancia del patrón §3.1/§3.2: `ST-R5f-1..18` cerró R5 y sus definiciones **no** están en documento gobernado) · **F-R5g-3** (`SSoT_Status_Effects` §5.10 seguía diciendo «inspiración 2» para Overload tras R5-f). | Post-R5-f | R5-f |
 | **R6** | IMPLEMENTATION | **Double Harmony Tier A** (Harmony-role card + listening validation + dual per-track particle FX via `IMidiNoteListener`) + **`SingerVoiceDirector` one-shot API** (shared groundwork for singalong; Tier B + expression-input rider queued behind cap=2 validation) | Post-S5j | R3, S5j |
 | **R7** | IMPLEMENTATION | **Track Card Levels** mechanic (state on `TrackEntry`, level-up branch in `TryAddOrReplaceTrackOnPart`, cache-invalidation duty, INSP/complexity hooks) + pilot content (Wormus Major/Minor lvl2–3). Spec: `planning/active/Design_Track_Card_Levels_v0_1.md`. May file MGP ask §8 #4 if alphabet gaps bite | Post-S5j | R0 (spec), S5j |
 | **R8** | CONTENT / TEST | Rewards for all 4 (palettes via skills: jazz / Phrygian / jazz-vs-EDM drums; bossa v1 + tapping-or-degradation) + **Singalong** (on R6 one-shot API) + starter v2 registration + full-band smokes (4 musicians, full pool) + campaign doc closure | Last | R4–R7 |
@@ -284,8 +341,9 @@ alternativas se consideraron y se descartaron **antes** de escribir el código d
 razonamiento no es reconstruible y no se va a inventar. Coste aceptado.
 
 **Consecuencia de gobernanza.** «Retirar los cuatro ficheros `PENDING_DOC_DIFFS_R5*`» **deja de
-ser criterio de salida de R5**. Sustituido por este registro. R5 queda con **un solo criterio de
-cierre pendiente: ST-R5d-1..15**.
+ser criterio de salida de R5**. Sustituido por este registro. R5 quedó entonces con **un solo
+criterio de cierre pendiente: ST-R5d-1..15**. *(Superado 2026-08-28: esa suite también se
+declaró perdida — ver §3.2 — y R5 cerró contra `ST-R5f-1..18`.)*
 
 **Lección operativa, para que no se repita.** Un paquete de diffs retenido es un fichero suelto
 sin dueño: no vive en ninguna carpeta gobernada, no aparece en el manifiesto y nada obliga a
@@ -293,6 +351,40 @@ adjuntarlo. Retener por la razón correcta (no documentar código inexistente) y
 fecha de consumo** es cómo se pierde. Regla que sale de aquí: **un paquete retenido nombra en su
 propia cabecera el lote que lo consume; si ese lote cierra sin consumirlo, el paquete se declara
 perdido en ese mismo cierre, no más tarde.**
+
+### 3.2 Registro de pérdida — runbook de R5-d / `ST-R5d-1..15` (D1=B, 2026-08-28)
+
+**Las definiciones de `ST-R5d-1..15` se declaran PERDIDAS.** Al abrir R5-f se buscaron en
+`CURRENT_STATE.md`, `changelog-ssot.md`, este sub-roadmap, `SSoT_Status_Effects.md` §5.10 y
+`SSoT_Dev_Mode.md` §9 —el registro de cobertura de smokes del proyecto—. Los cinco **citan la
+etiqueta** y ninguno contiene una sola fila de setup / acción / resultado esperado / criterio de
+fallo. Su hogar era el runbook de R5-d (2026-08-26), que no es documento gobernado y nunca entró
+al PK.
+
+**Segunda instancia del patrón de §3.1, y por eso importa.** La lección operativa que salió de la
+pérdida de los `PENDING_DOC_DIFFS_R5*` fue sobre *paquetes retenidos*. Esta amplía el alcance: **un
+runbook que define los criterios de salida de un lote es un artefacto de gobernanza, no un fichero
+de trabajo**, y un criterio de cierre que solo existe en un artefacto no gobernado no es un
+criterio, es una promesa. Regla que sale de aquí: **si un runbook define tests de los que depende
+el cierre de un lote, sus definiciones se copian a un documento gobernado en el mismo cierre que
+las produce** — el destino natural es `SSoT_Dev_Mode.md` §9.
+
+**Lo único que sobrevivió** fue el agrupamiento citado en el prompt de rehidratación de R5-f
+(puertas 7/8/11/12 · concesión y UI 1 · audio 2/3/9/10 · regresiones 4/5/6 · composición
+13/14/15). Es una partición limpia de 1..15 y describe la **cobertura**, pero un agrupamiento no
+es una definición de test. Reconstruir quince tests desde cinco etiquetas y numerarlos
+`ST-R5d-N` habría presentado tests re-derivados como si fueran la suite original — colapsando
+«verdad documentada» con «inferido no verificado».
+
+**Sustitución.** `ST-R5f-1..18`, derivada de los SSoT y **no del código**, deliberadamente: una
+suite escrita contra los documentos mide **acuerdo doc↔runtime**, y un FAIL informa en las dos
+direcciones. Cubre los cinco grupos originales y añade tres casos que la suite perdida no podía
+tener (`ST-R5f-16`, primera prueba real de D-R5-22=A, imposible antes de que existiera una carta
+de composición con coste; `ST-R5f-17`, generación real de *Amp Up*; `ST-R5f-18`, coherencia entre
+el overlay y la ruta de drop). **Lo que sí se pierde:** el rationale de por qué el autor de R5-d
+eligió esos quince casos y no otros. No es reconstruible y no se va a inventar.
+
+---
 
 ## 4. Requirement × musician coverage map
 

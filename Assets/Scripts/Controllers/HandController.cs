@@ -44,6 +44,23 @@ namespace ALWTTT
             if (VerboseLogs) Debug.Log(msg);
         }
 
+
+        // ---- [R5-g] Log de tier MAESTRO ----------------------------------
+        // LogV cuelga de UseLogs && LogVerbose. Una DENEGACIÓN no es
+        // bookkeeping: es la explicación de por qué una carta no hizo nada, y
+        // la doctrina de LOG-1 (ver GigManager.TryConsumePlay, ~l.2124, y
+        // SSoT_Dev_Mode §19) la mantiene en el tier normal. La ruta de
+        // composición ya lo hace así (GigManager.Log en TryPlayCompositionCard);
+        // esta es la mitad de acción de esa misma regla.
+        //
+        // Fail-OPEN sin GigManager, idéntico a VerboseLogs y por la misma razón.
+        private static void LogGate(string msg)
+        {
+            var gm = ALWTTT.Managers.GigManager.Instance;
+            var d = gm != null ? gm.DevSettings : null;
+            if (d == null || d.UseLogs) Debug.Log(msg);
+        }
+
         [Header("Card Settings")]
         [SerializeField] private bool cardUprightWhenSelected = true;
         [SerializeField] private bool cardTilt = true;
@@ -795,9 +812,39 @@ namespace ALWTTT
                     targetCharacter = null;
                 }
 
+                // 2b.5) [R5-g / D1=B] Coste de recurso — COMPROBACIÓN, no cobro.
+                // Va aquí, y no en 2a.6-bis como decía el contrato, porque este
+                // es el primer punto donde el pagador existe (2b lo resuelve) y
+                // el último donde todavía no se ha consumido nada.
+                //
+                // Por qué DELANTE del presupuesto: el hook de generación de
+                // Voltage de R5-b vive dentro de TryConsumePlay (GigManager
+                // ~l.2131), así que comprobar después del presupuesto compara
+                // contra un saldo que el jugador aún no tenía al decidir. Con
+                // 2 Voltage y coste 3, la comparación pasaba a 3 >= 3 y la carta
+                // se colaba. El saldo FINAL no cambia con este arreglo — el +1 y
+                // el -N ocurren igual, y eso es lo que el comentario viejo
+                // llamaba NET-NEUTRAL; lo que cambia es QUÉ JUGADAS SON LEGALES.
+                //
+                // Espeja exactamente la ruta de composición
+                // (GigManager.TryPlayCompositionCard: CanConsumePlay →
+                // CanPayResourceCost → animación → sesión → cobros en éxito).
+                // Efecto lateral deseado: una denegación de recurso ya no quema
+                // la jugada de ECON-1.
+                if (bandCharacter is MusicianBase resourceChecker &&
+                    !GigManager.CanPayResourceCost(data, resourceChecker))
+                {
+                    LogGate($"{DebugTag} [Gig][R5-g] '{data.DisplayName}' denied — " +
+                        $"{resourceChecker.CharacterName} cannot pay " +
+                        $"{data.ResourceCostAmount} '{data.ResourceCostStatusKey}'. " +
+                        "Returning to hand.");
+                    return false;
+                }
+
                 // [ECON-1 / T4] Per-turn play budget — consumed LAST, once
                 // nothing else in this pipeline can fail (timing 2a,
-                // inspiration 2a.5, target resolution 2b all passed) and
+                // inspiration 2a.5, target resolution 2b, resource 2b.5 all
+                // passed) and
                 // BEFORE the one-shot animation, so a denied play neither
                 // animates nor fires. D-ECON-3=A: AnyMusician cards bill the
                 // performer resolved above (fixed → SelectedMusician
@@ -811,22 +858,27 @@ namespace ALWTTT
                     return false;
                 }
 
-                // [R5-d / D-R5-26=A] Resource cost, consumed right after the
-                // ECON-1 budget and before the animation. Order vs the Voltage
-                // generation hook inside TryConsumePlay is NET-NEUTRAL: both a
-                // +1 grant and an -N spend happen either way, so the balance is
-                // identical whichever runs first.
+                // [R5-d / D-R5-26=A · reordenado en R5-g] Cobro del recurso.
+                // La decisión ya se tomó en 2b.5, contra el saldo previo a la
+                // generación de Voltage; esto es solo la contabilidad, y por eso
+                // puede correr después del presupuesto sin alterar nada.
                 //
-                // Inherited ECON-1 asymmetry, on record: the budget is already
-                // consumed at this point, so a resource denial here returns the
-                // card to hand having burned one play. In practice unreachable —
-                // 2a.6 and the playability overlay both pre-check — but it is
-                // the same asymmetry ECON-1 already carries, not a new one.
+                // Este `false` es ahora, de verdad, casi inalcanzable: 2b.5
+                // acaba de comprobar el mismo saldo con la misma API sobre el
+                // mismo pagador, y entre ambos puntos solo corre TryConsumePlay,
+                // que puede AÑADIR Voltage pero nunca restarlo. Queda como
+                // guardia por si alguien inserta algo consumidor en medio. Nota
+                // heredada corregida: el comentario anterior justificaba lo
+                // inalcanzable citando «2a.6 y el overlay», pero 2a.6 solo mira
+                // el bonus-loop y el overlay excluye a los pagadores no
+                // resolubles estáticamente (§10.5). Ninguno de los dos era una
+                // pre-comprobación de recurso. Ahora sí existe una: 2b.5.
                 if (bandCharacter is MusicianBase resourcePayer &&
                     !GigManager.TryPayResourceCost(data, resourcePayer))
                 {
-                    LogV($"{DebugTag} [Gig][R5-d] '{data.DisplayName}' resource cost " +
-                         "denied at commit. Returning to hand.");
+                    Debug.LogWarning($"{DebugTag} [Gig][R5-g] '{data.DisplayName}' passed " +
+                        "the 2b.5 resource check and failed the spend. Something " +
+                        "consumed the resource between the two gates.");
                     return false;
                 }
 

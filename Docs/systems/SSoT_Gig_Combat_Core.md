@@ -522,11 +522,24 @@ Resets are idempotent refills; overlapping seams are harmless.
   ECON-1 before refactoring the gate — or adding a third caller — must know it is no longer
   purely accounting. Attribution consequence: the payer resolved by §14.5 is the generator, so
   an `AnyMusician` card billed to Conito generates and a Conito card billed elsewhere does not.
-- **Orthogonal gate (R5-d):** the resource cost (`GigManager.CanPayResourceCost` /
-  `TryPayResourceCost`) is a *third* independent gate beside Inspiration and ECON-1 — never a
-  substitute for either. Action path: checked at HandController 2a.6-bis, spent after
-  `TryConsumePlay`. Composition path: checked in `TryPlayCompositionCard` before the one-shot
-  animation, spent only on a session-accepted play. Contract home: `SSoT_Status_Effects` §5.10.
+- **Orthogonal gate (R5-d; ordering fixed in R5-g, 2026-08-29):** the resource cost
+  (`GigManager.CanPayResourceCost` / `TryPayResourceCost`) is a *third* independent gate beside
+  Inspiration and ECON-1 — never a substitute for either. **Both paths now share one shape:
+  check everything, then spend.**
+  - **Action path:** checked at `HandController` **2b.5** — after target resolution, immediately
+    **before** the ECON-1 block — and spent after `TryConsumePlay`.
+  - **Composition path:** checked in `TryPlayCompositionCard` before the one-shot animation,
+    spent only on a session-accepted play.
+
+  **Correction of record (R5-g).** Until 2026-08-29 this bullet read "checked at HandController
+  2a.6-bis". **No such step ever existed in the code**: `2a.6` is the bonus-loop precondition and
+  nothing on the action path pre-checked the resource. The single call site was the *consuming*
+  one, placed after the budget gate, so the comparison ran against a balance the player did not
+  yet hold when deciding (the R5-b Voltage grant fires inside `TryConsumePlay`). The doc
+  described the intent; R5-g implemented it. The location moved from the documented `2a.6-bis`
+  to `2b.5` because the payer does not exist until 2b resolves it.
+
+  Contract home: `SSoT_Status_Effects` §5.10.
 
 ### 14.5 Attribution
 Cards with `AnyMusician` performer bill the musician the play pipeline

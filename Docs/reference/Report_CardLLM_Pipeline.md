@@ -97,14 +97,38 @@ an over-budget prompt fails with zero tokens spent.
 > `RevealPreferences` — `CardLLMPromptBuilder`, one `AppendLine` each). The count is corrected
 > above.
 >
-> **The list is hand-maintained, and it is now behind the import schema.** R5-d added a seventh
-> discriminator, **`GrantBonusLoop`**, to `CardJsonImport`
-> (`SSoT_Card_Authoring_Contracts.md` §5.6c). It is **not** in the prompt builder, so the
-> generator cannot emit it. This is a **code** gap, not a documentation one, and it is the
-> generic failure mode of this stage: unlike the enum alphabets of stage 1 — which come from
-> `Enum.GetNames()` and self-update — the effect-type block is typed out by hand and silently
-> ages. Candidate fix: derive it from the `CardEffectSpec` subclass set the importer accepts.
-> No batch assigned.
+> **Resuelto en R5-e (2026-08-28). El desfase estaba en CUATRO superficies, no en una.** El
+> conjunto de discriminadores está tecleado a mano en cuatro sitios independientes, y R5-d
+> solo actualizó uno:
+>
+> | Superficie | Antes de R5-e | Después |
+> |---|---|---|
+> | `CardEditorWindow.JsonImport.cs` — importador | 7 | 7 (referencia, sin tocar) |
+> | `CardLLMPromptBuilder.cs` — prompt de la etapa 2 | 6 | 7 + par de coste |
+> | `CardEditorWindow.cs` — menú *Add Effect…* | 6 | 7 |
+> | `CardLLMResponseHandler.cs` — guard de la etapa 5 | 6, **rechazaba el séptimo** | 7 + valida `resourceCostStatusKey` |
+>
+> La del guard era la grave: no omitía `GrantBonusLoop`, lo declaraba `not supported` y
+> tumbaba la generación entera. Parchear solo el prompt habría convertido "una carta que el
+> generador no sabe hacer" en "una generación que siempre falla".
+>
+> El guard tampoco validaba `resourceCostStatusKey` (campo de definición, no de efecto, por
+> D-R5-26=A). Sin esa comprobación, una key inventada se guardaba y la carta quedaba
+> **impagable** en partida: la puerta de pago falla cerrada
+> (`GigManager.TryResolveResourceHolding` → `CanPayResourceCost` → denegación antes de la
+> animación, con log nombrando la key). Nunca se salta el cobro, pero la carta no funciona
+> nunca y solo lo dice la consola.
+>
+> **Lo que impide la reincidencia:** dos tests que atan las superficies de dos en dos —
+> `CardLLMPromptBuilderTests.SystemPrompt_DeclaresEveryImporterEffectDiscriminator` (el
+> prompt ofrece todo lo que el importador acepta) y
+> `CardLLMResponseHandlerTests.GrantBonusLoop_IsAccepted` (el guard acepta lo que el prompt
+> ofrece). Las listas siguen siendo manuales; el desfase ya no es silencioso.
+>
+> **Arreglo de raíz, sin lote asignado:** derivar las listas del conjunto de subclases de
+> `CardEffectSpec` que el importador acepta. No se hizo en R5-e porque la entrada del prompt
+> no es solo un nombre — lleva firma de campos y prosa de uso, que no se derivan de un
+> `typeof`.
 
 ### 3–4. The call and extraction
 

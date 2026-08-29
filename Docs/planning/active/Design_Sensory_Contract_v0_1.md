@@ -350,7 +350,78 @@ force-disabled at `Awake` if still wired: no scene rewiring required.
 | `StageVfxController` (working name) | S3-new | smoke / fire particle systems on stage 2 / 3 crossings |
 | future animator-trigger consumer | per-feature | landed in S3 and Phase C as needed |
 | future shader-flash consumer | per-feature | landed if any meter / status wants a screen-edge flash |
-| future particle consumer | per-feature | landed if any state change wants a particle burst |
+| `RhythmParticleMidiListener` + `RhythmParticleEmitter` | RFX-1 | per-lane sprite particle bursts for percussion and chord changes; MIDI-driven, **not** a bus consumer — see §6.1. Chord side is a five-rung ladder since RFX-2 — see §6.2 |
+| future particle consumer (bus-side) | per-feature | still open: landed if any *game-state* change wants a particle burst |
+
+### 6.1 Why the rhythm particle consumer is NOT on the bus (RFX-1 · D2=A)
+
+`RhythmParticleMidiListener` subscribes directly to `MidiMusicManager`
+(`IMidiNoteListener`, `IChordListener`) and deliberately does not publish to or
+consume from `SensoryEventBus`. This is a decision, not an omission.
+
+The bus carries **player-visible game-state changes** with semantic payloads
+(§3). A MIDI note is not a state change — it is the render of audio that is
+already playing — and it fires at 8–16 Hz per musician on a busy pattern. Two
+consequences if it were bussed:
+
+1. **Volume.** The bus is designed around single-digit publishes per turn and
+   low double-digits at song end. MIDI notes would be three orders of magnitude
+   above that, and every subscriber (tutorial triggers, audio adapter) would pay
+   the filtering cost for events none of them want.
+2. **Semantics.** The event inventory in §4 is the readable list of "things that
+   happen to the player". Adding `MidiNotePlayed` to it would make that list
+   useless as a design artifact.
+
+The Sensory Contract itself is unaffected: the contract governs state changes,
+and RFX-1 adds a sensory artifact to something that was never a state change. If
+a future feature wants a particle burst on an actual state change, it goes on
+the bus, through the still-open consumer slot above.
+
+**§4 audit table — deliberately unchanged.** Percussion and chord rendering were
+never rows in the audit table, because they are not player-visible state
+changes. RFX-1 and RFX-2 add nothing to it and remove nothing from it. Recorded
+explicitly so a future auditor does not read the absence as drift.
+
+### 6.2 The chord particle counts pitch classes, not notes (RFX-2 · D1=B)
+
+The chord lane became a five-rung ladder — `ChordSingle`, `ChordPower`,
+`ChordTriad`, `ChordSeventh`, `ChordExtended` — and the rung is chosen by how
+many **distinct pitch classes** the chord contains, not by how many notes
+sounded and not by the chord's declared quality.
+
+**Not quality:** `ChordEvent.quality` is null on every LABEL MISS, so a
+quality-keyed ladder would go blank exactly when the label pipeline fails, which
+is when the visual is carrying the most weight.
+
+**Not raw note count:** `ChordEvent.notes` is the raw list of simultaneous
+NoteOns on one channel at one tick, so octave doubling inflates it. The standard
+guitar power chord — root, fifth, octave-root — is three raw notes but two pitch
+classes. Counting raw would draw the triad sprite on a power chord. The rung
+names are harmonic, so the count has to be harmonic.
+
+Four consequences a reader of this contract should know:
+
+- **Arpeggios produce no chord particle, and that is correct.**
+  `MidiMusicManager` groups NoteOns *per channel per tick* and raises `OnChord`
+  only when a group holds more than one note. An arpeggiated progression puts
+  each note on its own tick, so every group is a single note and the chord path
+  is never entered — the filtering happens upstream of `chordMinNotes`, not in
+  it. This is the desired behaviour: a chord particle marks a chord being
+  *struck*, and an arpeggio is not a strike. Recorded here because it will
+  otherwise be re-reported as a bug.
+- **`ChordSingle` is rare by construction.** Same upstream gate: a single voice
+  cannot reach this path at all. The rung fires only on an octave-stacked unison
+  of three or more notes.
+- **A bare two-note power chord never bursts.** The `chordMinNotes` gate (D9,
+  reaffirmed as RFX-2 D3=A) counts raw notes and rejects it, along with the bass
+  double-stops and melodic dyads it was built to reject. Accepted cost.
+- **Two rungs are currently unreachable from authored content.** The progression
+  vocabulary spans triads through ninths but contains no no-third quality, so
+  `ChordSingle` and `ChordPower` are dormant on today's content. They are
+  correct, cost nothing, and light up if such content ever exists. See
+  `CURRENT_STATE.md` and the roadmap direction on harmonic richness.
+
+---
 
 ---
 

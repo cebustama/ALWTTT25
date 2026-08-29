@@ -288,6 +288,54 @@ namespace ALWTTT.Cards.LLMAuthoring.Tests
             Assert.IsTrue(HasWarningContaining(o, "SummonDragon"));
         }
 
+        /// <summary>
+        /// [R5-e] The symmetric half of
+        /// CardLLMPromptBuilderTests.SystemPrompt_DeclaresEveryImporterEffectDiscriminator.
+        /// That test says the prompt OFFERS the effect; this one says the guard ACCEPTS it.
+        /// Both are needed: before R5-e the prompt offered six and the guard accepted six,
+        /// while the importer accepted seven — and the guard did not merely ignore the
+        /// seventh, it hard-failed on it. Patching only one side would have turned a card
+        /// the generator could not produce into a generation that always errored.
+        /// </summary>
+        [Test]
+        public void GrantBonusLoop_IsAccepted()
+        {
+            var o = Run(
+                "{ \"kind\": \"Action\", \"id\": \"crd_bonus\"," +
+                "  \"effects\": [ { \"type\": \"GrantBonusLoop\", \"soloOverBonusLoop\": true } ] }");
+
+            Assert.IsTrue(o.Success, string.Join("; ", o.DisplayWarnings));
+        }
+
+        /// <summary>
+        /// [R5-e / D-R5-26=A] The resource-cost pair lives on the card definition, not on an
+        /// effect, so it needs its own alphabet check. An unresolvable key does not skip the
+        /// cost at runtime — the payment gate fails closed and the card becomes unplayable
+        /// (GigManager.TryResolveResourceHolding) — which is a card that silently never works.
+        /// </summary>
+        [Test]
+        public void UnknownResourceCostStatusKey_Fails()
+        {
+            var o = Run(
+                "{ \"kind\": \"Action\", \"id\": \"x\"," +
+                "  \"resourceCostStatusKey\": \"voltag\", \"resourceCostAmount\": 3 }");
+
+            Assert.IsFalse(o.Success,
+                "an unresolvable cost key stages a card the payment gate can never satisfy");
+            Assert.IsTrue(HasWarningContaining(o, "voltag"));
+            Assert.IsTrue(HasWarningContaining(o, "resourceCostStatusKey"));
+        }
+
+        [Test]
+        public void KnownResourceCostStatusKey_Stages()
+        {
+            var o = Run(
+                "{ \"kind\": \"Action\", \"id\": \"x\"," +
+                "  \"resourceCostStatusKey\": \"flow\", \"resourceCostAmount\": 2 }");
+
+            Assert.IsTrue(o.Success, string.Join("; ", o.DisplayWarnings));
+        }
+
         [Test]
         public void EnumCasing_IsForgiven()
         {

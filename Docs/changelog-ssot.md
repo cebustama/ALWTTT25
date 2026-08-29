@@ -14,6 +14,352 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-08-29 — R5-g CERRADO: la puerta de recurso que el contrato decía tener
+
+**Tipo:** semantic + operational + lifecycle.
+
+**Qué cambió y por qué así.** `SSoT_Gig_Combat_Core` §14.4 afirmaba desde R5-d que la ruta de
+acción comprobaba el coste de recurso en «HandController 2a.6-bis» antes de cobrarlo. **Ese paso
+nunca existió en el código.** El único punto de contacto era la llamada consumidora
+(`TryPayResourceCost`), colocada **después** de la puerta ECON-1 — y como el hook de generación de
+Voltage de R5-b vive dentro de `TryConsumePlay`, la comparación se hacía contra un saldo posterior
+a la concesión. Con 2 de Voltage, una carta de coste 3 pasaba (2 → +1 → 3 ≥ 3). El documento
+describía la intención; R5-g la implementa.
+
+**D1 = B — comprobar antes, cobrar después.** Se añade `HandController` **2b.5**:
+`CanPayResourceCost`, no consumidora, tras la resolución de objetivo (primer punto donde existe el
+pagador) y antes del bloque ECON-1. **Se rechazó el intercambio literal de las dos puertas**, que
+era lo que el prompt del lote pedía: arregla la aritmética pero crea la asimetría espejo — una
+denegación de presupuesto posterior a un cobro completado quemaría Voltage, recurso persistente,
+para proteger una jugada que se repone cada turno. Con 2b.5 **ninguna de las dos puertas puede
+quemar el recurso de la otra**. Se rechazó también sacar el hook de generación de `TryConsumePlay`
+(radio de explosión sobre el contrato R5-b, su regresión ST-R5b-6 y la atribución de §14.5).
+
+**Precisión que evita una lectura errónea del diff:** el saldo final de una jugada válida **no
+cambia**. Con 3 de Voltage y coste 3, antes y después quedan 1. La puerta no suma, compara; lo
+único que cambia es qué jugadas son legales. Ahí está el error de D-R5-26=A: «net-neutral» es
+cierto del saldo y falso de la decisión.
+
+**D2 = B — la denegación se ve por defecto.** Helper `HandController.LogGate` (tier maestro) para
+la nueva línea. `CanPayResourceCost` es silenciosa, así que con `LogV` la carta habría vuelto a la
+mano sin rastro en consola con los ajustes por defecto — el primer caso del juego con esa
+propiedad. Es la doctrina que el propio código ya enuncia en `TryConsumePlay` («a DENIED play is a
+functional event»), aplicada a la mitad de acción.
+
+**ST-R5g-0 — tiers de log medidos, y el hueco documental de R5-f cerrado.** Con `UseLogs` ON y
+`LogVerbose` OFF: **maestro** `[R5-d] … spent …`, `[ECON-1] DENIED`, `[R5-d] Bonus loop granted` y
+la nueva `[R5-g] … denied`; **verbose** `[ECON-1] Consumed` y `[R5-b] +1 Voltage`.
+`SSoT_Dev_Mode` §19.2 pasa de **siete a once** líneas protegidas y gana **§19.7**: en
+`TryConsumePlay` una **sola** cadena de formato vive en dos tiers según el resultado
+(`!ok || UseVerboseLogs`), de modo que filtrar por el prefijo `[ECON-1]` apagaría la denegación
+protegida. Es la trampa de §19.3 en otra forma sintáctica, y peor: no hay dos líneas que separar,
+hay una condición que leer. Consecuencia operativa registrada: **ST-R5f-17 y todo test que lea la
+generación solo son ejecutables con verbose ON.**
+
+**F-R5f-11 cerrado — no era defecto.** El canal excluido del duck se **deriva** del solo
+inyectado (`CompositionSession` l.1336). Que en las trazas saliera `ch1` fue el layout de esa
+partida. Si el canal no resuelve, el loop suena **sin duck** en vez de atenuar uno arbitrario:
+falla hacia el ruido, no hacia el silencio del solista. El riesgo real y distinto —el solista ya
+ocupando el rol inyectado, que haría estampar el mismo canal a dos pistas— ya estaba cubierto en
+R5-d por la cadena de preferencia `Melody → Harmony` y su abandono explícito.
+
+**Verificación.** `ST-R5g-1..8` **8/8 PASS**. ST-R5f-1 y -18 pasan a PASS; -3 y -16 sin regresión.
+`ST-R5g-8` se resolvió por cobertura: es `ST-R5f-3` (aritmética 3 → +1 → −3 = 1), idéntico a
+`ST-R5g-2`.
+
+**Hallazgos.** **F-R5g-1** — asimetría de tier dentro de `HandController`; no se arregla, la
+denegación de ECON-1 ya se imprime a maestro desde `GigManager` y la línea del controller es un
+duplicado. **F-R5g-2** — **tercera instancia** del patrón de pérdida documentado en
+`RosterExpansion_Sub_Roadmap` §3.1/§3.2: `ST-R5f-1..18` es la suite contra la que R5 cerró y sus
+definiciones no están en ningún documento gobernado; `ST-R5f-3` hubo que recuperarlo de un chat.
+La regla que salió de la segunda pérdida —copiar a documento gobernado en el mismo cierre— **no se
+aplicó al cerrar R5-f**. La ventana de salvamento sigue abierta y se cierra sola.
+**F-R5g-3** — `SSoT_Status_Effects` §5.10 seguía declarando «inspiración 2» para Overload después
+de que R5-f la repuntara a 0; corregido.
+
+**Documentos tocados.** `SSoT_Gig_Combat_Core` §14.4 (corrección del fantasma 2a.6-bis) ·
+`SSoT_Card_System` §10.5 (display y enforcement convergen) · `SSoT_Status_Effects` §5.10 ·
+`SSoT_Dev_Mode` §19.2/§19.6/§19.7 · `coverage-matrix` · `RosterExpansion_Sub_Roadmap` §2/§3 ·
+`CURRENT_STATE` §2 · `PK_Manifest` §A.2 (fila de `HandController.cs`, que iba dos meses por detrás
+de su propio fichero).
+
+---
+
+## 2026-08-28 — R5-e + R5-f CERRADOS: R5 CLOSED (Overload verificado en runtime)
+
+**Tipo:** operational + semantic + lifecycle. Dos lotes, una entrada: R5-e no tuvo entrada propia
+en su día. **R5 pasa de PARCIAL a CLOSED.**
+
+**R5-e — cierre de la autoría de Overload (sin runtime).** Cuatro huecos de editor: el par
+`(resourceCostStatusKey, resourceCostAmount)` se dibuja en el Card Editor con validación **blanda**
+contra ambos catálogos (`StatusEffectCatalogueSO.ContainsKey`, nunca error — el pagador es
+runtime); `GrantBonusLoopSpec` entra en el menú *Add Effect…*; el prompt del generador declara los
+siete discriminadores y el par de coste; el guard de la etapa 5 **aceptaba seis y rechazaba
+`GrantBonusLoop`** y no validaba la key — ambas cosas corregidas. Cuatro superficies con la misma
+lista escrita a mano, atadas ahora por dos tests. **F-R5e-3 resuelta con verdad de código:** una
+StatusKey de coste que no resuelve hace la carta **impagable**, nunca salta el cobro —
+fail-closed, denegación antes de la animación.
+
+**R5-f — ejecución de smokes, autoría de tiers y cierre.**
+
+- **`ST-R5d-1..15` declarada PERDIDA (D1=B, lifecycle).** Sus definiciones no existían en ningún
+  documento gobernado: vivían solo en el runbook de R5-d, que no es documento gobernado y nunca
+  entró al PK. **Segunda instancia del patrón de la pérdida de `PENDING_DOC_DIFFS_R5*`**, y amplía
+  su lección: un runbook que define criterios de salida es artefacto de gobernanza, no fichero de
+  trabajo. Regla nueva: **si un runbook define tests de los que depende el cierre de un lote, sus
+  definiciones se copian a documento gobernado en el mismo cierre que las produce** (destino:
+  `SSoT_Dev_Mode.md` §9). Registro completo en `RosterExpansion_Sub_Roadmap.md` §3.2.
+- **Sustituida por `ST-R5f-1..18`**, derivada de los SSoT y **no del código**: una suite escrita
+  contra los documentos mide **acuerdo doc↔runtime** y un FAIL informa en las dos direcciones.
+  **15 PASS · 2 FAIL con lote destinatario · 1 diferido.** Añade tres casos que la suite perdida
+  no podía tener, entre ellos la **primera prueba real de D-R5-22=A**, imposible antes de que
+  existiera una carta de composición con coste de recurso.
+- **F-R5f-1 / F-R5f-9 (semantic, → R5-g): el coste de recurso es N−1 para un músico que genera
+  ese recurso.** En la ruta de **acción** la puerta ECON-1 corre antes que la de recurso y el hook
+  de generación vive dentro de `TryConsumePlay`: con 2 stacks, una carta de coste 3 se juega
+  (2 → +1 → paga 3 → 0). La de **composición** no tiene el defecto. **Corrige una afirmación de
+  D-R5-26=A:** «net-neutral» es cierto para el saldo y **falso para la puerta** — sumar es
+  conmutativo; comprobar-un-umbral-y-luego-sumar, no. Consecuencia gemela: el overlay evalúa antes
+  (rojo) y el drop después (sí); ambos aciertan y discrepan. **D5 = A**, alcance a R5-g.
+- **F-R5f-5 (semantic, → R8).** `reward_amp_up` está vivo con `RewardPool | UnlockedByDefault`
+  pese a que D-R5-11 sigue marcada «no resuelta», y da **+3**, no +2. La medición «+2 por periodo»
+  sobre la que se fijó el umbral 6 de Overload (D-R5-14=A) **ya no describe el juego**.
+- **Contenido.** `conito_slap_groove` (Voltage 3, ambos flags) y `conito_super_slap` (Voltage 6,
+  `RewardPool` **sin** `UnlockedByDefault` — parqueado hasta R8, D2a=B). Inspiración 0 en ambas
+  (D2b); el coste de inspiración 2 de `conito_overload` se retiró por confundirse con el de
+  recurso. `starter_slap_bass` repuntada a `BasslineCardConfig_SlapV1` bajo **D3=A** (precio =
+  espectáculo). `BonusSoloDuck01` 0.55 → **0.75**.
+- **Registro honesto sobre el contenido:** los tres slaps, tal como quedaron autorados, son
+  **niveles de una técnica** (vocabulario acumulativo: 2 pasos → ghosts → ghost-pop), no tres
+  técnicas alternativas. Coherente con D3=A y jugable, pero **R7 debe evaluar si los subsume**.
+- **Hallazgos de documentación abiertos.** **F-R5f-7** — drift doc↔asset en los bajos starter
+  (`SlapV3` vs `SlapV5`; el ejemplo trabajado de `SSoT_Card_Authoring_Contracts` §5.13 describe una
+  carta que ya no existe; el finger usa `ImprovisedWalk`, no `ChordToneWalk`). **F-R5f-8** —
+  `BasslineCardConfigSO` creció **diez** campos que el snapshot de §5.13 (2026-07-31) no enumera;
+  no es divergencia de contrato (la regla 6 dice que la superficie es del paquete y crece) pero el
+  snapshot caducado engaña igual que un error. **F-R5f-6** — el Card Inventory no imprime el par de
+  coste: quinta superficie con la lista escrita a mano.
+- **Propuesta registrada (usuario):** «Export JSON» por click derecho sobre `TrackStyleBundleSO`,
+  **por reflexión sobre campos serializados, nunca lista manual**. Mata F-R5f-6 y F-R5f-8 de raíz
+  y es inmune al crecimiento de superficie del paquete.
+
+**Decisiones:** D1=B · D2a=B · D2b · D3=A · D5=A · D-R5-11 cerrada de facto · D-R5-27 ejecutada.
+**Hogares:** `RosterExpansion_Sub_Roadmap.md` §2/§3/§3.2 · `CURRENT_STATE.md` §3/§4 ·
+`SSoT_Status_Effects.md` §5.10.
+
+
+## 2026-08-27 — PK-AUDIT-1 + PK-CUT-1: auditoría del Project Knowledge y transición al modelo de tres capas
+
+Clasificación: *operational* + *structural*. **Cero cambios en código, prefabs, escenas o assets.
+Cero cambios de autoridad**: D-PK-0 = A fija que la pertenencia al Project Knowledge es
+presupuesto de contexto, no gobernanza — `SSoT_INDEX.md` y `ssot_manifest.yaml` describen el
+**repo**, no el PK. Ningún documento gobernado fue promovido, degradado ni reclasificado.
+
+**Por qué esta sesión.** El PK estaba al 89 % de capacidad con 359 ficheros (5 666 KB en disco)
+y opera en modo búsqueda. El riesgo dominante no era el coste por consulta sino que la búsqueda
+recuperase una copia desfasada y la presentase como verdad de código — ya había ocurrido dos
+veces (F-R5a-1 `CharacterStatusId.cs`; F-R5c-2 `LoopScoreCalculator.cs`). Procedencia primero,
+volumen después.
+
+**Clasificación completa.** Los 359 ficheros repartidos en PERMANENTE 54 · POR-LOTE 231 ·
+FUERA-ALCANCE 51 · HISTÓRICO 15 · REDUNDANTE 8. Confirmado que los documentos históricos no eran
+la palanca (~8 %): lo eran el código fuera de núcleo y el bloque MidiGenPlay (~62 %).
+
+**Decisiones.** D-PK-0 = A (retirar del PK no es gobernanza) · D-PK-1 = C (núcleo `.cs` pequeño)
+· D-PK-2 = C (de MidiGenPlay solo documentos de frontera) · D-PK-3 = B (todo lo retirado queda
+registrado con fecha, motivo y ruta). **D-PK-4 = B**: núcleo de **19 seams** (304 KB);
+`GigManager`, `CompositionSession`, `MidiMusicManager` y `SongCompositionUI` quedan **fuera** y
+se piden por lote, porque los tocó *todos* los lotes de código desde julio y una capa que
+churnea no recompensa la caché. **D-PK-5**: quedan 6 documentos de frontera MGP (130 KB).
+**D-PK-5b = retirar**: el `ssot_manifest.yaml` del companion (170 KB) sale; su función de
+navegación la asume `MGP_Boundary_Index.md`.
+
+**Ejecución (PK-CUT-1).** Fase 1 riesgo cero (23 ficheros, 540 KB) → Fase 2 (250, 2 906 KB) →
+Fase 3-A (16, 139 KB), más 3 escapados detectados al reconciliar y 7 altas del lote RFX-1.
+**359 → 80 ficheros; 89 % → ~34 % de capacidad.**
+
+**Refrescos aplicados.** `LoopScoreCalculator.cs` (firmas pre-M4.6F-2 → `ComputeLoopScore(in
+ctx, in LoopScoringConfig)` / `ComputeHypeDelta(float, in HypeThresholds)`, coincide con la
+llamada de `GigManager`) y `CharacterStatusId.cs` (faltaban `NegateIncomingPositive = 404`,
+`RedirectIncoming = 504`, `ResourceCounter = 993`). **F-R5c-2 y F-R5a-1 cerradas en su faceta de
+PK.**
+
+**Incidente y regla derivada.** Tras refrescar `CharacterStatusId.cs` no se actualizó su fila del
+manifiesto. Menos de 24 h después, una consulta de rutina leyó esa fila, concluyó que al fichero
+seguían faltándole las primitivas y escribió que *«la copia adjunta lo confirma»* — una
+verificación fabricada sobre un fichero que decía lo contrario. Bajo modo retrieval un índice
+rancio no es un hueco pasivo: sustituye al fichero como fuente aparente. Regla nueva
+(`PK_Manifest.md` §C.1.0): **un refresco no está hecho hasta que su fila lo dice.** Detector:
+reconciliar el conteo del PK contra §A en cada cierre que mueva ficheros.
+
+**Hallazgos registrados, no resueltos aquí.**
+1. **MANIFEST-2** — `Design_Composition_Variations_v0_1.md` en el PK sin fila de índice ·
+   `Design_Starter_Deck_v2` vs `_DRAFT` (nombre inconsistente entre `SSoT_INDEX` y manifiesto) ·
+   ~96 `.cs` sin `governs:` (Sensory 21, Tutorial 14, Tooltips 6, Backgrounds 4…) ·
+   `MidiMusicManager.cs` sin bloque `governs:` pese a ser el seam de frontera ·
+   `Assets/Scripts/Map` (11 ficheros) sin hogar documental · el manifiesto no gobierna
+   `*.shader` · `AGENTS.md` en la raíz del repo, no citado por ningún índice.
+2. **D-DOC-5, disposición debida** — `CTX-2a_Doc_Diffs_2026-08-03.md` figura pendiente en
+   `CURRENT_STATE` §5 pero la invariante 13 (BPM) ya existe: contradicción interna ·
+   `CONT-B_Returns_MidiGenPlay_2026-07-31.md` nunca producido ·
+   `DEMO-FIXES-A_Doc_Diffs_2026-07-15.md` referenciado y ausente.
+3. **Pérdida de originales** — tres ficheros clasificados HISTÓRICO «absorbido» no estaban en
+   `Docs/archive/` al cruzarlos contra el árbol real: el informe de emulación de soundfont, el
+   research de roguelike deckbuilders y `DOC-APPLY-2_Application_Report`. Su contenido vive en
+   changelog y en `Design_Game_And_Card_Maxims`; los originales no.
+4. **Fantasmas** — `CardEditorWindow_JsonImport.cs`, `CardEditorWindow_LLM.cs` y
+   `CompositionInventoryWindow_Cards.cs` estaban en el PK y **no existen en el repo**: copias de
+   ficheros renombrados o fusionados, del tipo que la búsqueda podía servir como verdad de código.
+5. **HELD-2** — 61 ficheros del PK con U+FFFD (el ítem abierto registra 5 inspeccionados). Es
+   insumo con caveat: el daño puede ser de la copia, no del repo.
+
+**Artefactos nuevos (Capa 2 del PK, NO gobernados).**
+- `Docs/PK_Manifest.md` — §A lo que hay en el PK con procedencia y estado, §B lo retirado con
+  ruta y cómo pedirlo, §C reglas de mantenimiento, §D cruce contra el árbol real.
+- `Docs/MGP_Boundary_Index.md` — los 67 ficheros del espejo `MGP-20260810_*` con ruta,
+  last-write y «cuándo pedirlo».
+- `Docs/Repo_Tree_Index.md` — 445 rutas reales de código y documentación; sustituye a la
+  inferencia de rutas por `namespace` y avisa de nombres homónimos (hoy 9 × `README.md`), que el
+  PK plano no distingue. Generado por `make-tree-unity.ps1`.
+- `Docs/audits/PK_Audit_Report_2026-08-26.md` — informe completo con la clasificación fichero a
+  fichero.
+
+**Documentos rescatados al repo** (existían solo en el PK): `Design_Composition_Variations_v0_1.md`
+→ `Docs/planning/active/`, más los dos índices y el informe. **Siguen solo en el PK y sin
+comprometer**: `CSV-4b_Name_Lookup_Audit.md` y `PENDING_DOC_DIFFS_RFX-1.md` — este último es un
+paquete retenido bajo D-DOC-5 cuya única copia vive en un sistema del que se retiran ficheros
+por rutina.
+
+**Docs editados:** este fichero · `CURRENT_STATE.md` §2. Sin cambios en `SSoT_INDEX.md`,
+`ssot_manifest.yaml` ni `coverage-matrix.md`: los índices de Capa 2 son operativa del PK, no
+autoridad, y no se registran en el índice de autoridad.
+
+---
+
+## 2026-08-26 — RFX-1 · Partículas de ritmo y acorde (sustituyen al floating text)
+
+Clasificación: *semantic* (el artefacto sensorial de percusión y armonía cambia de medio) +
+*operational*. **Sin cambios de SSoT, contrato, medidor, scoring ni jugabilidad.** Ningún
+concepto cambia de hogar de autoridad.
+
+**Nuevo**
+- `Assets/Scripts/Enums/RhythmLane.cs` — 7 lanes, valores explícitos (se serializan).
+- `Assets/Scripts/Data/RhythmFxConfigSO.cs` + `Assets/Settings/Gig/RhythmFxConfig.asset`.
+- `RhythmParticleEmitter.cs` — banco de `ParticleSystem` pre-instanciados por músico.
+- `RhythmParticleMidiListener.cs` — consumidor `IMidiNoteListener` + `IChordListener`.
+- `RhythmFxTester.cs` + `Assets/Scenes/RhythmFxSandbox.unity` — **dev, fuera del build y
+  fuera del PK**.
+- 7 × `Assets/Materials/Mat_RhythmFx_*.mat` + sprites; objeto `RhythmFx` con 7 hijos
+  `ParticleSystem` en `BandCharacter - Base.prefab`.
+
+**Modificado**
+- `FloatingTextMidiListener.cs` — guards `showPercussionNotes` / `showDrumKick` /
+  `logChords` + contadores de smoke.
+
+**Defecto corregido.** El bombo emitía **dos** floating texts:
+`MidiMusicManager.HandleMidiEvents` llama a `OnMidiNote` (bucle genérico) **y** a
+`OnDrumKick` (hook de bombo) para las notas 35/36, y `OnDrumKick` no tenía toggle. Por la
+misma razón `RhythmParticleMidiListener` **no** implementa `IDrumKickListener`.
+
+**Decisiones.** D1=A un `ParticleSystem` por lane (no atlas compartido) · **D2=A escucha
+directa de `MidiMusicManager`, NO `SensoryEventBus`** — una nota MIDI es render de audio a
+8–16 Hz, no un cambio de estado visible; razonamiento en `Design_Sensory_Contract_v0_1.md`
+§6.1 · D3=B ráfaga de acorde al **cambio**, no a cada ataque · D4=A el emisor vive en el
+prefab del músico y se resuelve desde `e.anchor` · D5=B el FT de acorde se mantiene junto a
+las partículas durante desarrollo · D6=A las 7 lanes se autoran en Base y las variantes
+heredan (la propiedad de pista se resuelve en runtime: cualquier músico puede ser el
+batería) · D7=A el SO posee el movimiento y se renuncia a la preview de partículas del
+editor, sustituida por el sandbox en Play mode · D8=A `size` y `lifetime` son absolutos en
+el SO, no multiplicadores sobre el prefab · **D9=A la ráfaga de acorde exige `chordMinNotes`
+(3) notas simultáneas** — `MidiMusicManager` levanta `OnChord` para cualquier canal no-drum
+con 2+ notas, así que los dobles del bajo y las díadas melódicas leerían como armonía ·
+D10=A `CharacterAnimator.emitoOnBeat` apagado en Base.
+
+**Verificado.** ST-RFX-1..10 PASS. ST-RFX-9: canal 9 resuelto al propietario de la pista de
+Rhythm. ST-RFX-4: ráfagas de acorde solo en el portador de armonía (filtro D9 operativo).
+ST-RFX-6: sorting sincronizado (orden 11 delante, 1 detrás). ST-RFX-10: el cambio de
+composición de banda re-apunta correctamente.
+
+**Abierto, trasladado a RFX-2.** El clamp de `LaneFor` y la ausencia de diagnóstico para
+percusión no mapeada. Ambos cerrados en RFX-2.
+
+---
+
+## 2026-08-26 — RFX-2 · Escalera de complejidad de acorde + corrección del rango GM + resolución de articulación de bajo
+
+Clasificación: *semantic* (el significado de la partícula de acorde pasa de «hubo armonía» a
+«hubo armonía de esta densidad») + *operational* + **authority** (entra un ask nuevo en el
+registro de frontera). **Sin cambios de SSoT, contrato, medidor, scoring ni jugabilidad.**
+
+**Decisiones.**
+- **D-S2-CHORD = A** — la escalera se indexa por un **recuento**, nunca por
+  `ChordEvent.quality`: `quality` es null en cada LABEL MISS, así que una escalera indexada
+  por calidad tendría huecos justo donde el pipeline de etiquetas falla.
+- **D1 = B** — el recuento es de **clases de altura distintas**, no de `notes.Count` crudo.
+  Refina la función de conteo de D-S2-CHORD; **no la revierte**. Un power chord voiceado
+  root/quinta/octava son 3 notas crudas y 2 clases; contar crudo dibujaría la tríada. Los
+  nombres de los peldaños son armónicos, así que el conteo debe serlo. Implementado con
+  máscara de 12 bits, **sin asignación**, porque corre antes de que la detección de cambio
+  pueda suprimir un rasgueo repetido.
+- **D2 = B luego A** — `RhythmLane.Chord` se conserva como fallback de autoría; se retira
+  cuando `ChordLadderFallbacks` marque 0. **El valor 7 queda reservado para siempre**
+  incluso tras la retirada. El fallback consulta `RhythmParticleEmitter.IsLaneReady` y **no**
+  el retorno de `Emit()`: `Emit()` devuelve false tanto por «no autorada» como por
+  **throttle**, y confundirlas haría que un peldaño meramente estrangulado dibujase una
+  **segunda** ráfaga en la lane heredada — el throttle produciría más partículas, no menos.
+- **D3 = A** — `chordMinNotes` sigue siendo una puerta sobre notas **crudas** en 3. Coste
+  aceptado y explícito: un power chord de dos notas desnudo nunca hace ráfaga.
+- **D-S2-PERC = A** — corregido el clamp.
+- **D5 = B** — tintes en rampa monótona de luminancia Rec.709 dentro de una sola familia de
+  tono. La rampa sube por el canal **verde** (peso 0.7152 frente a 0.0722 del azul) y baja
+  el azul, en vez de escalar los tres canales: escalar hacia el blanco disolvería la familia
+  de tono justo donde hace falta intacta.
+- **D-S2-BASS = C** — diferida. Ask **MGP-BASS-ARTIC-EVENT-1** presentado hacia B.
+
+**Cambiado.** `RhythmLane.cs` (+5 valores, **append-only**) · `RhythmParticleEmitter.cs`
+(+`IsLaneReady`) · `RhythmParticleMidiListener.cs` (check de rango, escalera, fallback, dos
+diagnósticos una-vez-por-nota, contador `ChordLadderFallbacks`) · `RhythmFxTester.cs`
+(ciclo de escalera, inyección de nota e inyección de acorde) · `RhythmFxConfig.asset`
+(+5 entradas de lane) · 4 × `Mat_RhythmFx_Chord*` + 5 × `PS_Chord*` en `BandCharacter - Base`.
+
+**Defecto corregido (D-S2-PERC).** `Mathf.Clamp(e.note, 35, 81)` no rechaza la entrada fuera
+de rango: la **promueve** al límite más cercano. Toda nota de canal de batería por debajo de
+35 se convertía en 35 = `AcousticBassDrum`, así que sticks (31), square click (32) y
+metronome click (33) dibujaban cada uno un bombo fantasma — en el downbeat, donde se espera
+un bombo real y el falso es por tanto **invisible como bug**. Sustituido por un check de
+rango que descarta la nota, más dos diagnósticos una-vez-por-número-de-nota (fuera de rango;
+y nota GM válida que cae en el bucket `Perc`, no autorado a propósito).
+
+**Hallazgo de test — F-RFX2-1.** ST-RFX-18 se escribió como intestable y **no podía fallar
+ni aprobar**. `RhythmFxTester.Fire()` llama a `RhythmParticleEmitter.Emit(lane, …)` — al
+**emisor**, con la lane ya decidida — y nunca toca al listener. Así que `chordMinNotes`, la
+detección de cambio, `LadderFor`, `IsLaneReady` y todo el fallback D2=B quedan fuera del
+alcance del driver de groove, y ningún contador del listener se mueve haga lo que haga el
+groove. Corregido añadiendo **inyección de acorde** (`ChordEvent` sintético a través de
+`OnChord`) con seis presets. Regla derivada: *un test que atraviesa el emisor no dice nada
+sobre el listener.*
+
+**Hallazgo de contenido — F-RFX2-2.** Una progresión arpegiada **no produce partícula de
+acorde, y es correcto**. `MidiMusicManager` agrupa NoteOns por canal y por tick y levanta
+`OnChord` solo si el grupo tiene más de una nota; un arpegio pone cada nota en su propio
+tick, así que el filtrado ocurre **aguas arriba** de `chordMinNotes`. Una partícula de
+acorde marca un acorde **atacado**, y un arpegio no es un ataque. Registrado porque de otro
+modo se re-reportará como bug.
+
+**Hallazgo de contenido — F-RFX2-3.** Verificado contra el export del inventario de
+progresiones (48 patrones, 6 paletas): el vocabulario de grados llega hasta séptimas
+(`V7`, `im7`, `Imaj7`, `iim7`, `iiø7`, `VII°`, `#ivdim7`) con una novena (`IV9`) y una sexta
+(`IV6`), y **no contiene ninguna calidad sin tercera**. Peldaños alcanzables hoy:
+`ChordTriad`, `ChordSeventh` y, raramente vía `IV9`, `ChordExtended`. `ChordSingle` y
+`ChordPower` quedan **dormidos**: correctos, sin coste, y no un defecto. Si deben ser
+alcanzables es una pregunta de **contenido**, no un ask de frontera — dirección de roadmap.
+
+**Verificado.** ST-RFX-11..20 y 22..23 PASS. **ST-RFX-21 NO demostrado** — es la única
+prueba que separa D1=B de un conteo crudo, porque todos los peldaños observados hasta ahora
+tienen `raw == clases`. Queda como ítem abierto en `CURRENT_STATE.md` §4.
+
+---
+
 ## 2026-08-26 — DOC-APPLY-3: tres paquetes de doc diffs aplicados en una pasada (CSV-4c + R5-d + HUD-COMP-1)
 
 Clasificación: *operational* + *structural* + *semantic* + *lifecycle*. **Documentación pura:

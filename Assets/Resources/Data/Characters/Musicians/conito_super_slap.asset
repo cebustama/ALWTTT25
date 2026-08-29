@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 09c7763474057584b96a4d0a44be87e3, type: 3}
-  m_Name: conito_overload
+  m_Name: conito_super_slap
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardDefinition
-  id: conito_overload
-  displayName: Overload
+  id: conito_super_slap
+  displayName: Super Slap
   performerRule: 1
   musicianCharacterType: 1
   cardSprite: {fileID: 21300000, guid: aa43d531ba2af354d8360bbdfa0e3f05, type: 3}
   inspirationCost: 0
   inspirationGenerated: 0
   resourceCostStatusKey: voltage
-  resourceCostAmount: 3
+  resourceCostAmount: 6
   cardType: 0
-  rarity: 1
+  rarity: 0
   keywords: 
   audioType: 0
   musicianAnimation:
@@ -32,6 +32,6 @@ MonoBehaviour:
     disableBeatAnimator: 1
     loopBoolParameter: 
   exhaustAfterPlay: 0
-  overrideRequiresTargetSelection: 1
+  overrideRequiresTargetSelection: 0
   requiresTargetSelectionOverrideValue: 0
-  payload: {fileID: 11400000, guid: a242ac54c63791d40b501dff3b4c3d4a, type: 2}
+  payload: {fileID: 11400000, guid: 8165500bf442ad94091ab09167638dc4, type: 2}

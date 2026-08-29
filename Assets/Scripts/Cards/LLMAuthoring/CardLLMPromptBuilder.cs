@@ -132,6 +132,8 @@ namespace ALWTTT.Cards.LLMAuthoring
             sb.AppendLine("  \"audioType\": <" + Join(v.AudioTypes) + ">");
             sb.AppendLine("  \"inspirationCost\": int >= 0");
             sb.AppendLine("  \"inspirationGenerated\": int >= 0");
+            sb.AppendLine("  \"resourceCostStatusKey\": <see STATUS KEYS>          (optional; status the PLAYER of this card spends)");
+            sb.AppendLine("  \"resourceCostAmount\": int >= 0                      (a cost exists only when the key is set AND amount > 0)");
             sb.AppendLine("  \"exhaustAfterPlay\": bool   (if true, also add the \"Exhaust\" keyword)");
             sb.AppendLine("  \"keywords\": [<" + Join(v.SpecialKeywords) + ">]");
             sb.AppendLine("  \"effects\": [ see EFFECTS ]");
@@ -148,6 +150,7 @@ namespace ALWTTT.Cards.LLMAuthoring
             sb.AppendLine("- { \"type\": \"ModifyStress\", \"amount\": int, \"targetType\": <as above> }");
             sb.AppendLine("- { \"type\": \"AddInspirationPerLoop\", \"amount\": int >= 1 }   (Composition Track cards only: grants Inspiration each loop while the card's track is active)");
             sb.AppendLine("- { \"type\": \"RevealPreferences\", \"targetType\": <AudienceCharacter|AllAudienceCharacters> }   (Info only: reveals the target audience member's musical tastes on their canvas; no meter change)");
+            sb.AppendLine("- { \"type\": \"GrantBonusLoop\", \"soloOverBonusLoop\": bool }   (grants ONE extra loop of the part being played; soloOverBonusLoop=true renders only this card's own track during that loop, ducking the rest. Requires a part already running when the card is played — a runtime condition, not an authoring one. Give any card carrying this effect a resource cost.)");
             sb.AppendLine();
             sb.AppendLine("STATUS KEYS: " + Join(v.StatusKeys));
             sb.AppendLine();

@@ -119,6 +119,57 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &240128538
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 240128539}
+  - component: {fileID: 240128540}
+  m_Layer: 0
+  m_Name: RhythmParticleMidiListener
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &240128539
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 240128538}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &240128540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 240128538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a71e847db13ab24db2c24478b6a2c91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RhythmParticleMidiListener
+  percussionParticles: 1
+  chordParticles: 1
+  drumChannel: 9
+  chordMinNotes: 3
+  logMisses: 1
+  logEveryHit: 0
+  logChannelOwnership: 1
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -305,14 +356,25 @@ MonoBehaviour:
   manualVelocity: 1
   autoGroove: 1
   bpm: 140
-  kickOn1And3: 1
-  snareOn2And4: 1
-  hiHat: 2
-  openHatOnTurnaround: 1
-  tomFillEveryFourBars: 1
-  crashOnBarOne: 1
-  chordEveryBar: 1
+  kickOn1And3: 0
+  snareOn2And4: 0
+  hiHat: 0
+  openHatOnTurnaround: 0
+  tomFillEveryFourBars: 0
+  crashOnBarOne: 0
+  chordEveryBar: 0
+  chordLadderCycle: 0
+  barsPerRung: 2
   simulateAccents: 1
+  injectionTarget: {fileID: 240128540}
+  injectNote: 31
+  injectVelocity: 100
+  injectChannel: 9
+  injectRepeatCount: 5
+  chordPreset: 3
+  customChordNotes: 3c0000004000000043000000
+  injectChordChannel: 0
+  injectChordSymbol: 
   logSteps: 0
 --- !u!1 &619394800
 GameObject:
@@ -526,3 +588,4 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 2024620874}
   - {fileID: 555149710}
+  - {fileID: 240128539}

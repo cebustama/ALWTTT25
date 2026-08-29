@@ -30,6 +30,7 @@ This file tracks the currently validated project baseline, active work, and imme
 
 | Batch | Closed | Outcome |
 | --- | --- | --- |
+| RFX-1 · RFX-2 | 2026-08-26 | **Percussion and chord presentation moved from floating text to sprite particles; chord side is a five-rung complexity ladder.** Presentation-only: no SSoT, contract, meter, scoring or gameplay change. **RFX-1:** `RhythmParticleMidiListener` (gig scene, sibling of `FloatingTextMidiListener`) consumes `IMidiNoteListener` + `IChordListener` **directly from `MidiMusicManager`, off-bus by design** (D2=A — a MIDI note is audio render at 8–16 Hz, not a player-visible state change; rationale in `Design_Sensory_Contract_v0_1.md` §6.1). `RhythmParticleEmitter` on `RhythmFx`, a child of `BandCharacter - Base`, holds one pre-instantiated `ParticleSystem` per lane; bursts use `ParticleSystem.Emit` and **nothing is instantiated per note**. `RhythmFxConfigSO` (`Assets/Settings/Gig/RhythmFxConfig.asset`) owns all numeric tuning (count, direction, speed, spread, size, lifetime, tint, throttle, velocity response); the `ParticleSystem` owns sprite/material, curves, gravity, sorting, simulation space. Authored once on Base; Conito, Robot C2, Sibi and Ziggy inherit as Prefab Variants — **every musician carries every lane on purpose**, because track ownership is resolved at runtime and whoever holds the Rhythm track *is* the drummer for that gig. Percussion floating text off (`showPercussionNotes`/`showDrumKick` default false); chord FT kept alongside (D5=B, dev toggle). Defect fixed: the kick emitted **two** floating texts, because `HandleMidiEvents` calls both `OnMidiNote` and `OnDrumKick` for notes 35/36 — the particle listener deliberately does **not** implement `IDrumKickListener`. D1=A · D2=A · D3=B · D4=A · D5=B · D6=A · D7=A · D8=A · D9=A · D10=A. ST-RFX-1..10 PASS. **RFX-2:** `RhythmLane` gained `ChordSingle`/`ChordPower`/`ChordTriad`/`ChordSeventh`/`ChordExtended` at values **8–12, appended** — these are serialized in `RhythmFxConfig.asset`, so **append only, never renumber**. The rung is selected by **distinct pitch class count**, not raw `notes.Count` and not `ChordEvent.quality` (null on every LABEL MISS): a root/fifth/octave-root power chord is 3 raw notes but 2 pitch classes, so raw counting would draw the triad sprite (D1=B; classifier is a 12-bit mask, allocation-free, because it runs before change detection can suppress a re-strum). `RhythmLane.Chord` (7) **retained as the fallback** for an unauthored rung so the gig scene never loses chord particles mid-authoring; the fallback asks `RhythmParticleEmitter.IsLaneReady`, **not** `Emit()`'s return value, because `Emit()` also returns false on throttle and reading it would make a throttled rung draw a *second* burst (D2=B then A — retire at `ChordLadderFallbacks == 0`; value 7 stays reserved permanently). `chordMinNotes` remains a **raw**-note gate at 3 (D3=A): a bare two-note power chord never bursts, accepted. Tints ramp monotonically in Rec.709 luminance inside one hue family (D5=B). **Defect fixed (D-S2-PERC=A):** `Mathf.Clamp(e.note, 35, 81)` *promoted* every drum-channel note below 35 to `AcousticBassDrum`, so sticks (31), square click (32) and metronome click (33) each drew a phantom kick — on the downbeat, where a real kick is expected and a fake one is invisible as a bug. Replaced with a range check that drops the note; two once-per-note-number diagnostics added (out-of-range, and valid GM landing on the unauthored `Perc` bucket). ST-RFX-11..23 PASS **except ST-RFX-21, not yet demonstrated** (see §4). **Bass articulation is NOT implemented and is not implementable consumer-side** — D-S2-BASS=C, ask **MGP-BASS-ARTIC-EVENT-1** filed; see `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.12. **Dev-only, outside the PK and outside the build:** `Assets/Scenes/RhythmFxSandbox.unity` + `RhythmFxTester.cs`; the editor particle preview cannot show this system (every meaningful value is overridden per emit), so Play-mode with live asset editing is the authoring loop. Authority: `Design_Sensory_Contract_v0_1.md` §6/§6.1/§6.2 (planning — **feeds D-SENSORY-HOME as its 6th homeless entry**). Detail in `changelog-ssot.md`. |
 | R5-a · R5-b · R5-c (**R5 sigue PARCIAL**) | 2026-08-21 | **Voltage + generación pasiva + Overload pasivo. Las tres sub-fases cerradas; R5 NO.** **R5-a:** estado contador **Voltage** (`ResourceCounter = 993`, rango Meta, D-R5-7=A; `StackMode Additive`, `MaxStacks 9`, `DecayMode None`, `TickTiming None`) en `StatusEffectCatalogue_Musicians`. **Alcance gig** (D-R5-8=A): `ResetSongScopedStatuses` resultó ser una **allowlist literal de dos primitivas** (`DamageUpFlat`, `TempShieldTurn`), no un barrido por categoría, y además dispara desde `StartCompositionSession` — al **abrir** la canción siguiente, no al cerrar la anterior; Voltage sobrevive turnos, loops, partes y canciones. Dos verdades de código nunca escritas quedaron fijadas: `TickTiming.None` significa "en todos los timings", no "en ninguno" (la inmunidad al decay viene solo de `DecayMode.None`), y el contenedor está keyed **por primitiva**, no por `StatusKey` ⇒ una instancia por primitiva y portador. ST-R5a-1..5 + 6R PASS. **R5-b:** hook pasivo de generación **+1 Voltage por jugada genuinamente consumida de Conito** en la rama `if (ok)` de `GigManager.TryConsumePlay` (D-R5-5=A) — acción y composición, cualquier coste incluido 0 (D-R5-10=A), limitado a Conito por identidad de músico (D-R5-9=A), conmutable en caliente vía `GigFlowSettingsSO.GenerateVoltageOnConsumedPlay` (D-R5-12=A, default ON). **Genera quien paga el presupuesto**, no quien firma la carta: una carta `AnyMusician` facturada a Conito genera. Techo medido: **+2 Voltage por periodo**. ST-R5b-1..6 + 7R PASS. **R5-c:** `StatusEffectContainer.SpendStacks(id, n) → int` (D-R5-18=C — `ConsumeOnTrigger` sería un no-op silencioso sobre un status sin decay, y `Apply(-n)` publicaría un `StatusAppliedEvent` con delta negativo) + **Overload pasivo**: al cierre de cada loop, si hay ≥ 6 stacks, gasta 6 y multiplica **el `hypeDelta` de ese loop** ×1.5 (D-R5-13/14/15/16/17; el factor va sobre el delta y no sobre el `loopScore` porque `ComputeHypeDelta` es escalonada). Cuatro campos nuevos en `GigFlowSettingsSO`, todos leídos por boundary. ST-R5c-1..9 PASS a la primera. **Hallazgo de gobernanza F-R5c-4:** lo construido en R5-c **no es** el Overload aceptado en R0 — la carta Action con loop de bonus y solo de guitarra (D-R0-5=A, D-R0-12, D-R5-4=A, D-R5-6=B) sigue vigente y **sin construir**; D-R5-13/14/15 la sustituyeron de facto sin citarla. **R5 queda PARCIAL y continúa en R5-d.** Autoridad: `SSoT_Status_Effects.md` §5.10 + §3.0 · `SSoT_Gig_Combat_Core.md` §3.1.1/§3.3.1/§14.4 · `SSoT_Scoring_and_Meters.md` §3.3. Detalle en `changelog-ssot.md`. |
 | PRES-1 (+1b/1c) | 2026-08-11 | **Capa de presentación post-R4 — 15/15 smokes PASS, 0 diferidos.** **Psychic Wave v4** (cover→hold→uncover ancladas al performer; inversión de color real vía `Blend OneMinusDstColor OneMinusSrcAlpha` premultiplicado — GrabPass no existe en URP y ningún SRP texture contiene un overlay canvas, así que leer el framebuffer no es caro sino imposible; radio de cobertura calculado por jugada; producción 0.45/0.30/0.70/0.12 ≈1.45 s, la instancia serializada manda sobre los defaults del script; frente de tinte v2/v3 retirado; D-PRES1-1=B+, D-PRES1-5 supersedida) · **floater de redirect de Spotlight** en sus dos ramas (`Musician`: "→ protegido" anclado al objetivo original, nombrado por el MISMO selector puro del camino normal; `RandomMusician`: "¡Foco!" en el protegido — nombrar al original consumiría RNG global; supresión del no-op visual con log positivo; **cierra D-R4-8**) · **reveal de gustos compuesto en el tooltip de hover** + icono persistente discreto (panel retirado; `IsTastePanelWired` re-semantizado; encabezado `— Gustos —` en negrita, D-PRES1c-1=A; **cierra D-R4-10**) · **outline de sprite M1.7 restaurado como highlight de hover** (D-PRES1b-1=B — el shader existía en el repo y la llamada se había perdido; toggle centralizado en `CharacterBase.OnPointerEnter/Exit`; canal `HighlightRoot` conservado inerte y null-guardeado, D-PRES1b-2=A) · **fix de encoding** (7× U+FFFD en `AudienceCharacterCanvas.cs`, 4 en copy ESP visible de la tester build; D-PRES1-4=A). Hallazgo **F-PRES1b-1** (targeting por defecto invertido desde S5e — resuelto al abrir R5, D-R5-2=A; ver §4). Autoridad: `SSoT_Status_Effects.md` §5.9 · `SSoT_Audience_and_Reactions.md` §6.4 · `Design_Sensory_Contract_v0_1.md` (planning — alimenta D-SENSORY-HOME). Detalle en `changelog-ssot.md`. |
 | R4 | 2026-08-10 | **Finishers I — cuatro piezas entregadas.** **Psychic Wave v2** (añade `ApplyStatusEffect(earworm, +2, AllAudienceCharacters)` sobre el AoE de Vibe; la rama AoE de `CardBase.DetermineTargets` excluye `IsBlocked` — comportamiento, no bug, ST-R4-2; overlay full-screen vía `PsychicWaveOverlayController` dedicado que escucha el bus, D-R4-5=A) · **C2 Spotlight/Taunt** (primitivo nuevo `RedirectIncoming = 504`, D-R4-3=A; hook previo en `AudienceCharacterBase.ResolveTargetsFor` para `Musician`/`RandomMusician`, `AllMusicians` exento; guard doble primitivo+`statusKey`; ciclo Composure ⇒ 1 turno de audiencia sin código de expiración propio) · **Read the Room** (`RevealPreferencesSpec`, RewardPool Sibi coste 0, D-R0-1; panel de gustos persistente D-R4-4=A, revisado por D-R4-10; el spec no transporta datos de gusto) · **Keep Cool retarget** `Self`→`Musician` (D-R0-3; regresión de tutorial ST-R4-9 PASS). **ST-R4-1..10 PASS · V-R4-MODAL PASS** (salda la deuda auditiva de R3: la melodía sobre parte modal resuelve contra el modo impuesto). Hallazgos: **F-R4-1** (V5 — la resolución de targets es POR SPEC, no lista compartida; corrección aplicada en los tres docs que la citaban) · **F-R4-2** (nombres de enum como texto de jugador) · **F-R4-3** (`StatusEffectWizardWindow` no escribe `statusKey`). Autoridad: `SSoT_Status_Effects.md` §5.9 · `SSoT_Audience_and_Reactions.md` §6.4 · `SSoT_Card_System.md` §8.2/§6.2 · `SSoT_Card_Authoring_Contracts.md` §9/§5.6b. Detalle en `changelog-ssot.md`. |
@@ -79,6 +80,37 @@ with intra-song stability, not per-build reproducibility.
 
 ## 2. Active work
 
+- **PK-AUDIT-1 + PK-CUT-1 — el Project Knowledge pasa al modelo de tres capas (2026-08-27).**
+  Sesión sólo operativa: cero código, cero cambios de autoridad (D-PK-0 = A — la pertenencia al
+  PK es presupuesto de contexto; `SSoT_INDEX.md` y `ssot_manifest.yaml` describen el **repo**).
+  El PK pasa de **359 a 80 ficheros** (89 % → ~34 % de capacidad) y se opera en tres capas:
+  **núcleo permanente** (gobernanza, SSoTs vivas, roadmaps activos y **19 seams `.cs`**) ·
+  **índices** · **resto bajo petición por lote** vía File Request Protocol.
+  **D-PK-4 = B**: `GigManager`, `CompositionSession`, `MidiMusicManager` y `SongCompositionUI`
+  quedan fuera del núcleo y se piden frescos en todo lote de superficie S3 y en toda pregunta de
+  frontera — los tocó cada lote de código desde julio, así que una copia permanente o está
+  desfasada o hay que refrescarla en cada cierre. **D-PK-5b = retirar**: fuera el
+  `ssot_manifest.yaml` del companion (170 KB).
+  **Refrescos aplicados:** `LoopScoreCalculator.cs` (firmas pre-M4.6F-2 → con `LoopScoringConfig`
+  / `HypeThresholds`) y `CharacterStatusId.cs` (faltaban 404 / 504 / 993). **F-R5c-2 y F-R5a-1
+  cerradas en su faceta de PK.** Ningún fichero del núcleo queda con refresco pendiente.
+  **Índices de Capa 2 (no gobernados, operativa del PK):** `Docs/PK_Manifest.md` (qué hay, con
+  qué procedencia, qué se retiró y cómo pedirlo) · `Docs/MGP_Boundary_Index.md` (los 67 ficheros
+  del espejo `MGP-20260810_*`) · `Docs/Repo_Tree_Index.md` (445 rutas reales; sustituye a la
+  inferencia por `namespace`; se regenera con `make-tree-unity.ps1`). Informe completo en
+  `Docs/audits/PK_Audit_Report_2026-08-26.md`.
+  **Regla operativa nueva** (`PK_Manifest.md` §C.1.0), tras un incidente de la propia transición:
+  refrescar un `.cs` y no actualizar su fila hizo que, un día después, una consulta afirmase que
+  el fichero seguía desfasado y que *lo había verificado*. Bajo modo retrieval un índice rancio
+  sustituye al fichero como fuente aparente. **Un refresco no está hecho hasta que su fila lo
+  dice**, y el detector es reconciliar el conteo del PK contra §A en cada cierre que mueva
+  ficheros. Un lote que cambia código no cierra hasta actualizar las filas de sus ficheros de
+  núcleo o diferirlo explícitamente.
+  **Riesgo abierto:** `CSV-4b_Name_Lookup_Audit.md` y `PENDING_DOC_DIFFS_RFX-1.md` existen
+  **solo en el PK**, no en el repo; el segundo es un paquete retenido bajo D-DOC-5. Comprometer
+  antes de retirarlos. Hallazgos para **MANIFEST-2** y disposiciones **D-DOC-5** pendientes:
+  ver la entrada de `changelog-ssot.md` del 2026-08-27.
+
 - **DOC-APPLY-3 — aplicación fusionada de tres paquetes de doc diffs (2026-08-26).**
   Sesión sólo documental. Se aplicaron en orden estricto **CSV-4c (16) → R5-d (20) →
   HUD-COMP-1 (7)** = 43 diffs sobre 19 documentos, con `CURRENT_STATE`, `changelog-ssot` y
@@ -100,15 +132,138 @@ with intra-song stability, not per-build reproducibility.
   ganancia en `WriteChannelVolume01` (`SSoT_Audio` §4.7). El bloqueo de composición se mantiene
   a lo largo de la cola de bonus (D-R5-23=A) y el refill de ECON-1 del boundary de loop queda
   suprimido ahí (D-R5-6=B). La descarga pasiva de R5-c queda **OFF por defecto** (D-R5-20=B) y
-  se conserva como fallback. Carta autorada: `conito_overload` (Action, Conito, inspiración 2,
-  Voltage 3, RewardPool).
-  **Estado: implementado, SIN verificación de smoke — ST-R5d-1..15 NO EJECUTADOS** (D-DOC-2=A:
-  se documenta con la marca en vez de retener los diffs otro ciclo). **D-R5-27 sigue abierta**
-  (si el tier Voltage-3 va sobre `starter_slap_bass` o sobre cartas nuevas de RewardPool);
-  ningún diff aplicado depende de ella. Hogares: `SSoT_Status_Effects` §5.10 ·
+  se conserva como fallback. Carta autorada: `conito_overload` (Action, Conito, **inspiración 0**
+  — el coste 2 original se retiró en R5-f por confundirse con el de recurso —, Voltage 3,
+  RewardPool | UnlockedByDefault).
+  **Estado: VERIFICADO EN RUNTIME 2026-08-28 (R5-f).** La marca «SIN verificación de smoke —
+  ST-R5d-1..15 NO EJECUTADOS» queda **retirada**: aquella suite se declaró perdida y fue
+  sustituida por **ST-R5f-1..18** (15 PASS · 2 FAIL con lote destinatario · 1 diferido). Ver la
+  entrada R5-f. **D-R5-27 cerrada = B** el 2026-08-28 (cartas nuevas de RewardPool,
+  `starter_slap_bass` sin coste de recurso); **las dos cartas quedaron autoradas en R5-f**. 
+  
+  
+- **R5-e — cierre de la autoría de Overload (2026-08-28).** Sin cambios de runtime; todo
+  herramienta de editor y pipeline de generación. Cuatro huecos cerrados: (1) el Card Editor
+  ya dibuja el par `(resourceCostStatusKey, resourceCostAmount)` — el dato se guardaba desde
+  R5-d pero era invisible en la ventana de autoría, que enumera los campos comunes a mano;
+  la key se valida **en blando** contra ambos catálogos vía `StatusEffectCatalogueSO.ContainsKey`,
+  nunca como error, porque el pagador es runtime. (2) El menú *Add Effect…* ya ofrece
+  `GrantBonusLoopSpec`. (3) El prompt del generador declara los siete discriminadores del
+  importador y el par de coste. (4) El guard de la etapa 5 **aceptaba seis y rechazaba
+  `GrantBonusLoop`**, además de no validar la key de coste; ambas cosas corregidas. Cuatro
+  superficies con la misma lista escrita a mano, atadas ahora por dos tests
+  (`SystemPrompt_DeclaresEveryImporterEffectDiscriminator` ·
+  `GrantBonusLoop_IsAccepted`). **Configuración de assets vivos verificada por captura:**
+  `OverloadConsumerEnabled` OFF · `MaxBonusLoopsPerPart` = 1 · `BonusSoloEnabled` ON ·
+  `BonusSoloDuck01` = 0.55 · perfil de Conito con Guitar en `leadInstruments` y
+  *Overdrive Guitar* en `leadMelodicInstruments`. **F-R5e-3 resuelta con verdad de código:**
+  una StatusKey de coste que no resuelve en el catálogo del pagador hace la carta
+  **impagable**, nunca salta el cobro — `TryResolveResourceHolding` devuelve false y la puerta
+  niega **antes** de la animación, con log `[R5-d] Composition play denied — <músico> cannot
+  pay <n> '<key>'`. Fail-closed. **Deuda de UX heredada (no regresión):** la denegación no
+  tiene feedback en pantalla, igual que ECON-1 y el final-loop lock; visible en demo, candidata
+  a lote propio. *(ST-R5d-1..15 se declararon PERDIDOS en R5-f y se sustituyeron por
+  ST-R5f-1..18 — ver esa entrada.)*
+  Hogares: `Docs/reference/Report_CardLLM_Pipeline.md` §2 ·
+  `SSoT_Card_Authoring_Contracts.md` §5.6c · `SSoT_Editor_Authoring_Tools.md`.
+
+- **R5-f — ejecución de smokes, autoría de tiers y CIERRE DE R5 (2026-08-28).** Lote de
+  TESTING/VALIDATION. **R5 pasa de PARCIAL a CERRADO.**
+  **Suite sustituta.** `ST-R5d-1..15` se declaró **PERDIDA** (D1=B): sus definiciones no existían
+  en ningún documento gobernado, vivían solo en el runbook de R5-d, que no es documento gobernado
+  y nunca entró al PK. Segunda instancia del patrón de D-DOC-5 (ver sub-roadmap §3.2). Sustituida
+  por **`ST-R5f-1..18`**, derivada de los SSoT en vez del código — deliberadamente, para que la
+  suite mida acuerdo doc↔runtime. **Resultado: 15 PASS · 2 FAIL · 1 diferido.**
+  **Verificado en runtime:** puerta de coste, aritmética del cobro (3 → +1 → −3 = 1), tira de
+  loops reconstruida en caliente, loop de bonus audible, solo superpuesto con la base sonando,
+  duck y **restauración**, supresión de ECON-1 en el boundary de bonus, resto del boundary
+  normal, concesión sin solista elegible, base byte-idéntica bajo semilla fijada, pasivo de R5-c
+  confirmado OFF, lock de composición aguantando y liberándose, y **D-R5-22=A por primera vez**
+  (`conito_slap_groove` denegada por recurso en la ruta de composición).
+  **F-R5f-1 (FAIL, → R5-g): el coste de recurso es N−1 para un músico que genera ese recurso.**
+  En la ruta de **acción** la puerta ECON-1 corre **antes** que la de recurso, y el hook de
+  generación vive dentro de `TryConsumePlay`: con 2 stacks, Overload (coste 3) se juega —
+  2 → +1 → paga 3 → 0. La ruta de **composición** no tiene el defecto (comprueba el recurso
+  primero), así que el arreglo es **alinear acción con composición**, no diseñar orden nuevo.
+  Corrige una afirmación de **D-R5-26=A**: «net-neutral» es cierto para el saldo y **falso para
+  la puerta** — sumar es conmutativo, comprobar-un-umbral-y-luego-sumar no lo es. Consecuencia
+  gemela **F-R5f-9**: el overlay evalúa antes (2<3 ⇒ rojo) y el drop después (3≥3 ⇒ sí); ambos
+  aciertan y **discrepan**. **D5 = A.**
+  **Contenido.** `conito_slap_groove` (Voltage 3, `RewardPool | UnlockedByDefault`) y
+  `conito_super_slap` (Voltage 6, `RewardPool` **sin** `UnlockedByDefault` — parqueado hasta R8
+  por D2a=B; `BuildRewardCardPool` exige la intersección de ambos flags). Ambas inspiración 0
+  (D2b), sin `TempoEffect` (decisión pendiente), bundles `SlapGroove` y `SuperSlapV1`.
+  `starter_slap_bass` **repuntada a `BasslineCardConfig_SlapV1`** (el más sobrio) bajo **D3=A**
+  — precio = espectáculo. **Registro honesto:** los tres slaps, tal como están autorados, son
+  **niveles de una técnica** (vocabulario acumulativo: 2 pasos → ghosts → ghost-pop), no tres
+  técnicas alternativas; coherente con D3=A y jugable, pero **R7 debe evaluar si los subsume**.
+  **Tuning:** `BonusSoloDuck01` 0.55 → **0.75**.
+  **Hallazgos abiertos con destinatario:** **F-R5f-5** — `reward_amp_up` está vivo con ambos
+  flags y da **+3**, no +2 (efecto +2 más el hook por jugada consumida); D-R5-11 sigue marcada
+  «no resuelta» en el ledger pese a estar ejecutada, y la medición «+2 por periodo» que fijó el
+  umbral 6 **ya no describe el juego** (→ R8, re-medir antes de tocar umbrales). **F-R5f-6** — el
+  Card Inventory no imprime el par de coste: quinta superficie con la lista de campos escrita a
+  mano. **F-R5f-7** — drift doc↔asset en los bajos starter. **F-R5f-8** — `BasslineCardConfigSO`
+  creció diez campos no enumerados en el snapshot de `SSoT_Card_Authoring_Contracts` §5.13.
+  **F-R5f-11** — el duck excluye `ch1` por número de canal; verificar que se deriva del solo
+  inyectado y no es constante (→ R5-g). **ST-R5f-4 diferido**: ECON-1 da una jugada de acción por
+  periodo, así que la segunda Overload choca contra el presupuesto antes de llegar a
+  `MaxBonusLoopsPerPart`; inalcanzable sin refill de dev.
+  **Propuesta registrada (usuario):** «Export JSON» por click derecho sobre `TrackStyleBundleSO`,
+  **por reflexión sobre campos serializados, nunca lista manual** — mata F-R5f-6 y F-R5f-8 de
+  raíz y es inmune al crecimiento de superficie del paquete.
+  Hogares: `RosterExpansion_Sub_Roadmap.md` §2/§3/§3.2 · `SSoT_Status_Effects.md` §5.10 ·
+  `SSoT_Card_Authoring_Contracts.md` §5.13 · `SSoT_Dev_Mode.md` §9/§19.2.
+  
+  Hogares: `SSoT_Status_Effects` §5.10 ·
   `SSoT_Card_System` §10.5 · `SSoT_Runtime_CompositionSession_Integration` §5.4 + §8 inv 11/14 ·
   `SSoT_Gig_Combat_Core` §14.3/§14.4 · `SSoT_Audio` §4.7 + inv 19 ·
   `SSoT_Card_Authoring_Contracts` §5.3a/§5.6c.
+
+- **R5-g — orden de puertas de recurso + veredicto del duck (cerrado 2026-08-29).**
+  Cierra los dos FAIL de R5-f (F-R5f-1 / F-R5f-9) y el hallazgo F-R5f-11. **8/8 smokes PASS.**
+  **El defecto no era de orden, era una puerta ausente.** `SSoT_Gig_Combat_Core` §14.4
+  especificaba desde R5-d una comprobación de recurso en la ruta de acción («2a.6-bis») que
+  **nunca se implementó**: el único punto de contacto era la llamada *consumidora*, colocada
+  después de ECON-1, y como el hook de generación de Voltage de R5-b vive dentro de
+  `TryConsumePlay`, la comparación corría contra un saldo que el jugador aún no tenía al decidir.
+  **D1=B:** se implementa esa comprobación como `HandController` **2b.5** —
+  `CanPayResourceCost`, no consumidora, tras la resolución de objetivo y antes del bloque
+  ECON-1—, dejando el cobro donde estaba. Se **rechazó** el intercambio literal de las dos
+  puertas: habría arreglado la aritmética creando la asimetría espejo (una denegación de ECON-1
+  posterior al cobro quema Voltage, recurso persistente, para salvar una jugada que se repone
+  cada turno). Verificado explícitamente en ST-R5g-3.
+  **Lo que NO cambió:** el saldo final de una jugada válida. Con 3 de Voltage y coste 3, antes y
+  después queda 1. La puerta no suma, **compara**; lo único que cambia es qué jugadas son
+  legales. Cualquier tarifado futuro de cartas de Conito se calibra contra el saldo
+  **pre-generación**.
+  **D2=B:** helper `HandController.LogGate` (tier maestro) para la denegación de recurso —
+  `CanPayResourceCost` no loguea, así que en verbose la carta volvía a la mano sin explicación en
+  consola. Es la doctrina de LOG-1 ya escrita en `TryConsumePlay` («a DENIED play is a functional
+  event»), aplicada a la mitad de acción.
+  **ST-R5g-0 — tiers de log de R5 medidos** (`UseLogs` ON / `LogVerbose` OFF): maestro
+  `[R5-d] … spent …`, `[ECON-1] DENIED`, `[R5-d] Bonus loop granted` y la nueva `[R5-g] … denied`;
+  verbose `[ECON-1] Consumed` y `[R5-b] +1 Voltage`. `SSoT_Dev_Mode` §19.2 pasa de **siete a once**
+  líneas protegidas y gana **§19.7** (segunda trampa de filtrado: en `TryConsumePlay` una sola
+  cadena vive en dos tiers según el resultado). Consecuencia operativa: **ST-R5f-17 y cualquier
+  test que lea la generación solo son ejecutables con `LogVerbose` ON.**
+  **F-R5f-11 CERRADO, no era defecto.** El canal excluido del duck se **deriva** del solo
+  inyectado (`CompositionSession` l.1336: `GetChannelForTrack(cfg, soloKey.MusicianId,
+  soloKey.Role)`); que saliera `ch1` fue el layout de esa partida, no una constante. Si el canal
+  no resuelve, el loop suena **sin duck** en lugar de atenuar uno arbitrario. Sin verificar,
+  y no se pidió el fichero por presupuesto de contexto: la semántica interna de
+  `MidiMusicManager.SetSoloDuck(int, float)` — inferida del nombre y corroborada por ST-R5f-8.
+  **Hallazgos nuevos.** **F-R5g-1** — dentro de `HandController` la denegación de ECON-1 sigue en
+  verbose mientras la de recurso pasa a maestro; **no se arregla**, porque `GigManager` ya imprime
+  esa denegación a tier maestro y la línea del controller es un duplicado, no el observable.
+  **F-R5g-2** — **tercera instancia** del patrón de §3.1/§3.2 del sub-roadmap: `ST-R5f-1..18` es la
+  suite contra la que **R5 entero cerró** y sus definiciones no viven en ningún documento
+  gobernado; `ST-R5f-3` hubo que recuperarlo de un chat. La regla que salió de la segunda pérdida
+  no se aplicó en el cierre de R5-f. **Ventana de salvamento abierta — decisión D3 pendiente.**
+  **F-R5g-3** — `SSoT_Status_Effects` §5.10 seguía diciendo «inspiración 2» para Overload tras
+  R5-f haberla repuntado a 0; corregido en esta pasada.
+  Hogares: `SSoT_Gig_Combat_Core` §14.4 · `SSoT_Card_System` §10.5 · `SSoT_Status_Effects` §5.10 ·
+  `SSoT_Dev_Mode` §19.2/§19.7 · `RosterExpansion_Sub_Roadmap` §2/§3.
 
 - **HUD-COMP-1 — Composition View v1 (cerrado 2026-08-26; 11 smoke PASS, ST-6b y ST-10
   diferidos).** Tira anclada arriba a la izquierda, pastillas oscuras por fila, íconos de rol,
@@ -232,7 +387,21 @@ Ship interior batches (bar, chill, rehearsal), space map, ladder-mode formalizat
 - **Demo build is unchanged by R1 and remains demonstrable.** Captivated has no sender inside the demo roster, and Wink is unreachable from both the starter-assembly and reward paths (both band-scoped). The interleaving-safety argument of D1=C is now empirically verified rather than only structural (ST-R1-6).
 - R1 closed 2026-07-23; **R2 + R2c + R2d closed 2026-07-31**. R2c/R2d are the first campaign batches with code in the build (`MidiMusicManager` harmony wiring + `InstrumentEffect.RandomFromList`); both surfaces are BC-gated and the demo config leaves the default-harmony palette unassigned, so the S5i baseline is unperturbed by construction (ST-R2d-4 + ST-R2d-7 PASS). **R3 (Zig composition cards) is the last interleavable enabler.** Live front unchanged: **S5i → S5j**.
 
-- **R5 PARCIAL — R5-a/R5-b/R5-c cerrados 2026-08-21; R5-d pendiente.** Lo demostrable hoy es
+- **R5 CERRADO 2026-08-28 (R5-f).** Lo demostrable hoy es el bucle completo de Overload:
+  Voltage carga sobre Conito, el jugador **decide** gastar 3, la parte gana un loop, la banda se
+  agacha (`BonusSoloDuck01` = **0.75**, subido desde 0.55 en R5-f por escucha) y Conito toca un
+  solo de *Overdrive Guitar* **encima** de una base byte-idéntica; al acabar, todo se restaura.
+  Un espectador ve cargar un recurso, ve una decisión de gasto, y oye una canción que se alarga.
+  **Aristas aceptables:** el solo no aparece como fila de pista en la tira (coste registrado de
+  D-R5-4=A, presentacional); `conito_super_slap` no es alcanzable por juego normal (D2a=B,
+  deliberado hasta R8). **Bloqueante, pero inactivo hoy:** ninguna denegación tiene feedback en
+  pantalla (compartido con ECON-1 y el final-loop lock) y el coste de recurso no se dibuja en la
+  carta (D4 sin resolver). **Conito sigue fuera del roster de demo por construcción**, así que el
+  build de demo queda inalterado por todo R5 y esto se enseña en un encuentro de pruebas; el día
+  que Conito entre al roster, D4 y la UX de denegación son **precondición**, no mejora.
+
+- *(Histórico, superado por la línea anterior)* **R5 PARCIAL — R5-a/R5-b/R5-c cerrados
+  2026-08-21; R5-d pendiente.** Lo demostrable entonces era
   exactamente esto: **Voltage es visible** — el icono del contador aparece sobre Conito y su
   número sube +1 cada vez que Conito juega una carta que de verdad consume presupuesto (acción o
   composición, cualquier coste), y **no baja** en ningún boundary: sobrevive turnos, loops,
@@ -325,6 +494,34 @@ riesgo de runtime.
 ## 4. Open items and risks
 
 ### Open items (non-blocking)
+
+- **ST-RFX-21 owed — the one test that proves D1=B (RFX-2, 2026-08-26).** The
+  pitch-class classifier has **not** been demonstrated on a chord whose raw note
+  count differs from its pitch-class count. Every rung observed so far
+  (`raw=3 lane=ChordTriad`, `raw=4 lane=ChordSeventh`) has raw == classes, so a
+  raw counter would have produced the identical log and the two hypotheses are
+  not yet separated. The test is one injection: `RhythmFxTester` →
+  `chordPreset = PowerOctave` (60/67/72) with `logEveryHit` on, expecting
+  `raw=3 lane=ChordPower`. Until it runs, D1=B is **implemented but unverified**.
+- **`ChordSingle` and `ChordPower` are dormant on authored content (RFX-2,
+  2026-08-26).** Verified against the 48-pattern / 6-palette chord-progression
+  inventory export: the degree vocabulary runs `I`, `IV`, `V`, `i`, `iv`, `vi`,
+  … through sevenths (`V7`, `im7`, `Imaj7`, `iim7`, `iiø7`, `VII°`, `#ivdim7`)
+  and one ninth (`IV9`) and one sixth (`IV6`), and contains **no no-third
+  quality** anywhere. So the reachable rungs on today's content are
+  `ChordTriad`, `ChordSeventh` and — rarely, via `IV9` — `ChordExtended`. The
+  two lower rungs are correct, cost nothing, and are not a defect. Whether they
+  should ever be reachable is a **content** question, registered as a roadmap
+  direction, not a boundary ask.
+- **D6 open — `ChordSingle`/`ChordPower` read too alike at tempo (RFX-2).**
+  Proposed widening of the bottom two rungs (count 3/8, spread 10/22, size
+  0.28/0.33, luminance 0.29/0.375) not yet applied or declined. Cosmetic;
+  blocks nothing.
+- **D2 retirement gate not run (RFX-2).** `RhythmLane.Chord` is still the
+  authoring fallback. Retire only when `ChordLadderFallbacks` reads 0 across a
+  full song; **value 7 stays reserved permanently even after retirement**,
+  because re-using it would silently re-map any asset, prefab or scene still
+  carrying a Chord entry, including ones in old branches.
 - **D9 — Fingered vs Slap level balance (CONT-B, 2026-07-31 — OPEN).** Fingered Bass sits below Slap Bass in the mix; the imbalance is **payload-born, not instrument-born** (Pocket boosts are slap/pop-exclusive). Options: (A) raise `volume01` on the shared `Fingered Bass` package asset; (B) ask MidiGenPlay for card-level gain/velocity on `BasslineCardConfigSO`; (C) lower the slap card's Pocket boosts. Recommendation on record: **A now + B filed as ask** (C rejected — the boosts are what makes slap read as slap; T1.3/T1.4 just validated them). Homes: `SSoT_Audio.md` §4.6 granularity note · CSV sub-roadmap §5 (CONT-B ask 3) · returns doc (pending).
 - **D10 — pattern ↔ drum-kit compatibility (CONT-B, from F-KIT-1 — OPEN).** No mechanism guarantees a drum pattern is played by a kit that maps its instruments. Options: (A) restrict the authoring vocabulary to the all-kit intersection (cheap; impoverishes content, kills the latin pattern as authored); (B) pattern→kit compatibility table (whitelist or weighted list) consulted at selection — the correct fix, needs a new structure and a home decision; (C) package ask to widen kit mappings (claves/congas/cowbell). Recommendation on record: **C + B**; A only under demo pressure. **Interim: retire `FF_LatinSon32_8c` from its palette (do not delete).** F-KIT-1 becomes **blocking** while that pattern remains demo-reachable.
 - **[RESUELTO 2026-08-03 — CTX-2a] D11 — default part tempo (CONT-B, from F-TEMPO-1).** Resuelta **=A**: el default del modelo pasa a `Slow`. Historia completa en el changelog; regla viva en `SSoT_Runtime_CompositionSession_Integration.md` §12.4. Queda abierta solo la calibración de la banda (**D11b**, abajo).

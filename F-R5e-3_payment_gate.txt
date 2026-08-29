@@ -1,0 +1,2531 @@
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\CardDefinition.cs : lineas 15-80 =====
+    {
+        [Header("Card Profile")]
+        [SerializeField] private string id;
+        [SerializeField] private string displayName;
+
+        [Header("Character")]
+        [SerializeField]
+        private CardPerformerRule performerRule =
+            CardPerformerRule.FixedMusicianType;
+        [SerializeField]
+        private MusicianCharacterType musicianCharacterType =
+            MusicianCharacterType.None;
+
+        [Header("Visuals")]
+        [SerializeField] private Sprite cardSprite;
+
+        [Header("Inspiration")]
+        [SerializeField] private int inspirationCost = 1;
+        [SerializeField] private int inspirationGenerated = 0;
+
+        // ─── [R5-d / D-R5-26=A] Resource cost ────────────────────────────
+        // Generic (statusKey, amount) pair, NOT a `voltageCost` field. The
+        // container is keyed by primitive and the variant is the authority,
+        // so a string key + an int cover Voltage today and any future
+        // character resource without migrating this asset again.
+        // Empty key or amount 0 ⇒ no resource cost (the default).
+        [Header("Resource Cost (R5-d)")]
+        [SerializeField, Tooltip("StatusKey of the resource this card spends " +
+            "(e.g. \"voltage\"). Empty = no resource cost. Resolved from the " +
+            "PAYER's catalogue; a bearer without it cannot play the card.")]
+        private string resourceCostStatusKey = "";
+
+        [SerializeField, Min(0), Tooltip("Stacks spent on play. Checked before " +
+            "any spend and consumed via StatusEffectContainer.SpendStacks.")]
+        private int resourceCostAmount = 0;
+
+        [Header("Synergies")]
+        [SerializeField] private CardType cardType;
+
+        [Header("Meta")]
+        [SerializeField] private RarityType rarity = RarityType.Common;
+        // TODO: Automate based on effects/other fields
+        [SerializeField] private List<SpecialKeywords> keywords = new();
+
+        [Header("FX / Animation")]
+        [SerializeField] private AudioActionType audioType;
+        [SerializeField] private CardAnimationData musicianAnimation;
+
+        [Header("Play Rules")]
+        [SerializeField] private bool exhaustAfterPlay;
+        [SerializeField] private bool overrideRequiresTargetSelection;
+        [SerializeField] private bool requiresTargetSelectionOverrideValue;
+
+        [Header("Payload")]
+        [SerializeField] private CardPayload payload;
+
+        // --- Read-only API  ---
+        public string Id => id;
+        public string DisplayName => displayName;
+
+        public CardPerformerRule PerformerRule => performerRule;
+        public MusicianCharacterType FixedPerformerType => musicianCharacterType;
+        public bool RequiresFixedPerformer =>
+            performerRule == CardPerformerRule.FixedMusicianType;
+        public bool RequiresTargetSelection
+        {
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\CardDefinition.cs : lineas 19-84 =====
+
+        [Header("Character")]
+        [SerializeField]
+        private CardPerformerRule performerRule =
+            CardPerformerRule.FixedMusicianType;
+        [SerializeField]
+        private MusicianCharacterType musicianCharacterType =
+            MusicianCharacterType.None;
+
+        [Header("Visuals")]
+        [SerializeField] private Sprite cardSprite;
+
+        [Header("Inspiration")]
+        [SerializeField] private int inspirationCost = 1;
+        [SerializeField] private int inspirationGenerated = 0;
+
+        // ─── [R5-d / D-R5-26=A] Resource cost ────────────────────────────
+        // Generic (statusKey, amount) pair, NOT a `voltageCost` field. The
+        // container is keyed by primitive and the variant is the authority,
+        // so a string key + an int cover Voltage today and any future
+        // character resource without migrating this asset again.
+        // Empty key or amount 0 ⇒ no resource cost (the default).
+        [Header("Resource Cost (R5-d)")]
+        [SerializeField, Tooltip("StatusKey of the resource this card spends " +
+            "(e.g. \"voltage\"). Empty = no resource cost. Resolved from the " +
+            "PAYER's catalogue; a bearer without it cannot play the card.")]
+        private string resourceCostStatusKey = "";
+
+        [SerializeField, Min(0), Tooltip("Stacks spent on play. Checked before " +
+            "any spend and consumed via StatusEffectContainer.SpendStacks.")]
+        private int resourceCostAmount = 0;
+
+        [Header("Synergies")]
+        [SerializeField] private CardType cardType;
+
+        [Header("Meta")]
+        [SerializeField] private RarityType rarity = RarityType.Common;
+        // TODO: Automate based on effects/other fields
+        [SerializeField] private List<SpecialKeywords> keywords = new();
+
+        [Header("FX / Animation")]
+        [SerializeField] private AudioActionType audioType;
+        [SerializeField] private CardAnimationData musicianAnimation;
+
+        [Header("Play Rules")]
+        [SerializeField] private bool exhaustAfterPlay;
+        [SerializeField] private bool overrideRequiresTargetSelection;
+        [SerializeField] private bool requiresTargetSelectionOverrideValue;
+
+        [Header("Payload")]
+        [SerializeField] private CardPayload payload;
+
+        // --- Read-only API  ---
+        public string Id => id;
+        public string DisplayName => displayName;
+
+        public CardPerformerRule PerformerRule => performerRule;
+        public MusicianCharacterType FixedPerformerType => musicianCharacterType;
+        public bool RequiresFixedPerformer =>
+            performerRule == CardPerformerRule.FixedMusicianType;
+        public bool RequiresTargetSelection
+        {
+            get
+            {
+                if (overrideRequiresTargetSelection)
+                    return requiresTargetSelectionOverrideValue;
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\CardDefinition.cs : lineas 113-178 =====
+                                    return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public bool CanBePlayedByAnyMusician => performerRule == CardPerformerRule.AnyMusician;
+
+        public bool CanBePlayedWithoutHover
+        {
+            get
+            {
+                // You can play without hover if no target selection is needed.
+                // If later you add "optional target" cards, this will become more nuanced.
+                return !RequiresTargetSelection;
+            }
+        }
+
+        public bool RequiresMusicianTarget =>
+            CompositionPayload != null && CompositionPayload.RequiresMusicianTarget;
+
+        public Sprite CardSprite => cardSprite;
+
+        public int InspirationCost => inspirationCost;
+
+        /// <summary>[R5-d / D-R5-26=A] StatusKey of the spent resource, or empty.</summary>
+        public string ResourceCostStatusKey => resourceCostStatusKey;
+
+        /// <summary>[R5-d] Stacks spent on play. Never negative.</summary>
+        public int ResourceCostAmount => Mathf.Max(0, resourceCostAmount);
+
+        /// <summary>[R5-d] True when both halves of the pair are authored.</summary>
+        public bool HasResourceCost =>
+            !string.IsNullOrWhiteSpace(resourceCostStatusKey) && resourceCostAmount > 0;
+
+        public int InspirationGenerated => inspirationGenerated;
+
+        public RarityType Rarity => rarity;
+        public IReadOnlyList<SpecialKeywords> Keywords => keywords;
+
+        public AudioActionType AudioType => audioType;
+        public CardAnimationData MusicianAnimation => musicianAnimation;
+
+        public CardType CardType => cardType;
+
+        public bool ExhaustAfterPlay => exhaustAfterPlay;
+
+        public CardPayload Payload => payload;
+        public bool HasPayload => payload != null;
+
+        public bool IsAction => payload is ActionCardPayload;
+        public bool IsComposition => payload is CompositionCardPayload;
+
+        public ActionCardPayload ActionPayload => payload as ActionCardPayload;
+        public CompositionCardPayload CompositionPayload => payload as CompositionCardPayload;
+
+        public CardDomain Domain => payload != null ? payload.Domain : CardDomain.Unknown;
+
+#if UNITY_EDITOR
+        [System.NonSerialized] private string _cachedEditorLabel;
+
+        public string EditorLabel
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\CardDefinition.cs : lineas 116-181 =====
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public bool CanBePlayedByAnyMusician => performerRule == CardPerformerRule.AnyMusician;
+
+        public bool CanBePlayedWithoutHover
+        {
+            get
+            {
+                // You can play without hover if no target selection is needed.
+                // If later you add "optional target" cards, this will become more nuanced.
+                return !RequiresTargetSelection;
+            }
+        }
+
+        public bool RequiresMusicianTarget =>
+            CompositionPayload != null && CompositionPayload.RequiresMusicianTarget;
+
+        public Sprite CardSprite => cardSprite;
+
+        public int InspirationCost => inspirationCost;
+
+        /// <summary>[R5-d / D-R5-26=A] StatusKey of the spent resource, or empty.</summary>
+        public string ResourceCostStatusKey => resourceCostStatusKey;
+
+        /// <summary>[R5-d] Stacks spent on play. Never negative.</summary>
+        public int ResourceCostAmount => Mathf.Max(0, resourceCostAmount);
+
+        /// <summary>[R5-d] True when both halves of the pair are authored.</summary>
+        public bool HasResourceCost =>
+            !string.IsNullOrWhiteSpace(resourceCostStatusKey) && resourceCostAmount > 0;
+
+        public int InspirationGenerated => inspirationGenerated;
+
+        public RarityType Rarity => rarity;
+        public IReadOnlyList<SpecialKeywords> Keywords => keywords;
+
+        public AudioActionType AudioType => audioType;
+        public CardAnimationData MusicianAnimation => musicianAnimation;
+
+        public CardType CardType => cardType;
+
+        public bool ExhaustAfterPlay => exhaustAfterPlay;
+
+        public CardPayload Payload => payload;
+        public bool HasPayload => payload != null;
+
+        public bool IsAction => payload is ActionCardPayload;
+        public bool IsComposition => payload is CompositionCardPayload;
+
+        public ActionCardPayload ActionPayload => payload as ActionCardPayload;
+        public CompositionCardPayload CompositionPayload => payload as CompositionCardPayload;
+
+        public CardDomain Domain => payload != null ? payload.Domain : CardDomain.Unknown;
+
+#if UNITY_EDITOR
+        [System.NonSerialized] private string _cachedEditorLabel;
+
+        public string EditorLabel
+        {
+            get
+            {
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\CardDefinition.cs : lineas 119-184 =====
+                return false;
+            }
+        }
+
+        public bool CanBePlayedByAnyMusician => performerRule == CardPerformerRule.AnyMusician;
+
+        public bool CanBePlayedWithoutHover
+        {
+            get
+            {
+                // You can play without hover if no target selection is needed.
+                // If later you add "optional target" cards, this will become more nuanced.
+                return !RequiresTargetSelection;
+            }
+        }
+
+        public bool RequiresMusicianTarget =>
+            CompositionPayload != null && CompositionPayload.RequiresMusicianTarget;
+
+        public Sprite CardSprite => cardSprite;
+
+        public int InspirationCost => inspirationCost;
+
+        /// <summary>[R5-d / D-R5-26=A] StatusKey of the spent resource, or empty.</summary>
+        public string ResourceCostStatusKey => resourceCostStatusKey;
+
+        /// <summary>[R5-d] Stacks spent on play. Never negative.</summary>
+        public int ResourceCostAmount => Mathf.Max(0, resourceCostAmount);
+
+        /// <summary>[R5-d] True when both halves of the pair are authored.</summary>
+        public bool HasResourceCost =>
+            !string.IsNullOrWhiteSpace(resourceCostStatusKey) && resourceCostAmount > 0;
+
+        public int InspirationGenerated => inspirationGenerated;
+
+        public RarityType Rarity => rarity;
+        public IReadOnlyList<SpecialKeywords> Keywords => keywords;
+
+        public AudioActionType AudioType => audioType;
+        public CardAnimationData MusicianAnimation => musicianAnimation;
+
+        public CardType CardType => cardType;
+
+        public bool ExhaustAfterPlay => exhaustAfterPlay;
+
+        public CardPayload Payload => payload;
+        public bool HasPayload => payload != null;
+
+        public bool IsAction => payload is ActionCardPayload;
+        public bool IsComposition => payload is CompositionCardPayload;
+
+        public ActionCardPayload ActionPayload => payload as ActionCardPayload;
+        public CompositionCardPayload CompositionPayload => payload as CompositionCardPayload;
+
+        public CardDomain Domain => payload != null ? payload.Domain : CardDomain.Unknown;
+
+#if UNITY_EDITOR
+        [System.NonSerialized] private string _cachedEditorLabel;
+
+        public string EditorLabel
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_cachedEditorLabel))
+                    _cachedEditorLabel = BuildEditorLabel();
+                return _cachedEditorLabel;
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\CardDefinition.cs : lineas 120-185 =====
+            }
+        }
+
+        public bool CanBePlayedByAnyMusician => performerRule == CardPerformerRule.AnyMusician;
+
+        public bool CanBePlayedWithoutHover
+        {
+            get
+            {
+                // You can play without hover if no target selection is needed.
+                // If later you add "optional target" cards, this will become more nuanced.
+                return !RequiresTargetSelection;
+            }
+        }
+
+        public bool RequiresMusicianTarget =>
+            CompositionPayload != null && CompositionPayload.RequiresMusicianTarget;
+
+        public Sprite CardSprite => cardSprite;
+
+        public int InspirationCost => inspirationCost;
+
+        /// <summary>[R5-d / D-R5-26=A] StatusKey of the spent resource, or empty.</summary>
+        public string ResourceCostStatusKey => resourceCostStatusKey;
+
+        /// <summary>[R5-d] Stacks spent on play. Never negative.</summary>
+        public int ResourceCostAmount => Mathf.Max(0, resourceCostAmount);
+
+        /// <summary>[R5-d] True when both halves of the pair are authored.</summary>
+        public bool HasResourceCost =>
+            !string.IsNullOrWhiteSpace(resourceCostStatusKey) && resourceCostAmount > 0;
+
+        public int InspirationGenerated => inspirationGenerated;
+
+        public RarityType Rarity => rarity;
+        public IReadOnlyList<SpecialKeywords> Keywords => keywords;
+
+        public AudioActionType AudioType => audioType;
+        public CardAnimationData MusicianAnimation => musicianAnimation;
+
+        public CardType CardType => cardType;
+
+        public bool ExhaustAfterPlay => exhaustAfterPlay;
+
+        public CardPayload Payload => payload;
+        public bool HasPayload => payload != null;
+
+        public bool IsAction => payload is ActionCardPayload;
+        public bool IsComposition => payload is CompositionCardPayload;
+
+        public ActionCardPayload ActionPayload => payload as ActionCardPayload;
+        public CompositionCardPayload CompositionPayload => payload as CompositionCardPayload;
+
+        public CardDomain Domain => payload != null ? payload.Domain : CardDomain.Unknown;
+
+#if UNITY_EDITOR
+        [System.NonSerialized] private string _cachedEditorLabel;
+
+        public string EditorLabel
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_cachedEditorLabel))
+                    _cachedEditorLabel = BuildEditorLabel();
+                return _cachedEditorLabel;
+            }
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.cs : lineas 1288-1353 =====
+                            $"Failed to delete card asset: {cardPath}");
+                }
+            }
+
+            _selectedEntryIndex = -1;
+            Repaint();
+        }
+
+        private void DrawCardDefinitionCommonFields(CardDefinition card)
+        {
+            if (card == null) return;
+
+            var so = new SerializedObject(card);
+            so.Update();
+
+            // These names must match CardDefinition's private fields.
+            var idProp = so.FindProperty("id");
+            var displayNameProp = so.FindProperty("displayName");
+
+            var performerRuleProp = so.FindProperty("performerRule");
+            var musicianTypeProp = so.FindProperty("musicianCharacterType");
+
+            var spriteProp = so.FindProperty("cardSprite");
+
+            var inspirationCostProp = so.FindProperty("inspirationCost");
+            var inspirationGeneratedProp = so.FindProperty("inspirationGenerated");
+
+            // [R5-e / D-R5-26=A] Resource cost pair. Lives on CardDefinition, not on a
+            // CardEffectSpec: specs run AFTER the play commits, and a cost must be able
+            // to refuse the play. Names must match CardDefinition's private fields.
+            var resourceCostKeyProp = so.FindProperty("resourceCostStatusKey");
+            var resourceCostAmountProp = so.FindProperty("resourceCostAmount");
+
+            var cardTypeProp = so.FindProperty("cardType");
+            var rarityProp = so.FindProperty("rarity");
+            var keywordsProp = so.FindProperty("keywords");
+
+            var audioTypeProp = so.FindProperty("audioType");
+            var musicianAnimProp = so.FindProperty("musicianAnimation"); // nested CardAnimationData
+
+            var exhaustAfterPlayProp = so.FindProperty("exhaustAfterPlay");
+            var overrideReqTargetProp = so.FindProperty("overrideRequiresTargetSelection");
+            var reqTargetOverrideValueProp = so.FindProperty("requiresTargetSelectionOverrideValue");
+
+            EditorGUI.BeginChangeCheck();
+
+            // Card profile
+            EditorGUILayout.PropertyField(idProp);
+            EditorGUILayout.PropertyField(displayNameProp);
+
+            EditorGUILayout.Space(6);
+
+            // Character
+            EditorGUILayout.PropertyField(performerRuleProp);
+
+            // Only show fixed performer enum when rule is FixedMusicianType.
+            if (performerRuleProp != null &&
+                performerRuleProp.enumValueIndex == (int)CardPerformerRule.FixedMusicianType)
+            {
+                EditorGUILayout.PropertyField(musicianTypeProp, new GUIContent("Fixed Musician"));
+            }
+
+            EditorGUILayout.Space(6);
+
+            // Visuals / Economy
+            EditorGUILayout.PropertyField(spriteProp);
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.cs : lineas 1289-1354 =====
+                }
+            }
+
+            _selectedEntryIndex = -1;
+            Repaint();
+        }
+
+        private void DrawCardDefinitionCommonFields(CardDefinition card)
+        {
+            if (card == null) return;
+
+            var so = new SerializedObject(card);
+            so.Update();
+
+            // These names must match CardDefinition's private fields.
+            var idProp = so.FindProperty("id");
+            var displayNameProp = so.FindProperty("displayName");
+
+            var performerRuleProp = so.FindProperty("performerRule");
+            var musicianTypeProp = so.FindProperty("musicianCharacterType");
+
+            var spriteProp = so.FindProperty("cardSprite");
+
+            var inspirationCostProp = so.FindProperty("inspirationCost");
+            var inspirationGeneratedProp = so.FindProperty("inspirationGenerated");
+
+            // [R5-e / D-R5-26=A] Resource cost pair. Lives on CardDefinition, not on a
+            // CardEffectSpec: specs run AFTER the play commits, and a cost must be able
+            // to refuse the play. Names must match CardDefinition's private fields.
+            var resourceCostKeyProp = so.FindProperty("resourceCostStatusKey");
+            var resourceCostAmountProp = so.FindProperty("resourceCostAmount");
+
+            var cardTypeProp = so.FindProperty("cardType");
+            var rarityProp = so.FindProperty("rarity");
+            var keywordsProp = so.FindProperty("keywords");
+
+            var audioTypeProp = so.FindProperty("audioType");
+            var musicianAnimProp = so.FindProperty("musicianAnimation"); // nested CardAnimationData
+
+            var exhaustAfterPlayProp = so.FindProperty("exhaustAfterPlay");
+            var overrideReqTargetProp = so.FindProperty("overrideRequiresTargetSelection");
+            var reqTargetOverrideValueProp = so.FindProperty("requiresTargetSelectionOverrideValue");
+
+            EditorGUI.BeginChangeCheck();
+
+            // Card profile
+            EditorGUILayout.PropertyField(idProp);
+            EditorGUILayout.PropertyField(displayNameProp);
+
+            EditorGUILayout.Space(6);
+
+            // Character
+            EditorGUILayout.PropertyField(performerRuleProp);
+
+            // Only show fixed performer enum when rule is FixedMusicianType.
+            if (performerRuleProp != null &&
+                performerRuleProp.enumValueIndex == (int)CardPerformerRule.FixedMusicianType)
+            {
+                EditorGUILayout.PropertyField(musicianTypeProp, new GUIContent("Fixed Musician"));
+            }
+
+            EditorGUILayout.Space(6);
+
+            // Visuals / Economy
+            EditorGUILayout.PropertyField(spriteProp);
+            EditorGUILayout.PropertyField(inspirationCostProp);
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.cs : lineas 1335-1400 =====
+            EditorGUILayout.PropertyField(idProp);
+            EditorGUILayout.PropertyField(displayNameProp);
+
+            EditorGUILayout.Space(6);
+
+            // Character
+            EditorGUILayout.PropertyField(performerRuleProp);
+
+            // Only show fixed performer enum when rule is FixedMusicianType.
+            if (performerRuleProp != null &&
+                performerRuleProp.enumValueIndex == (int)CardPerformerRule.FixedMusicianType)
+            {
+                EditorGUILayout.PropertyField(musicianTypeProp, new GUIContent("Fixed Musician"));
+            }
+
+            EditorGUILayout.Space(6);
+
+            // Visuals / Economy
+            EditorGUILayout.PropertyField(spriteProp);
+            EditorGUILayout.PropertyField(inspirationCostProp);
+            EditorGUILayout.PropertyField(inspirationGeneratedProp);
+
+            // clamps
+            if (inspirationCostProp != null && inspirationCostProp.intValue < 0) inspirationCostProp.intValue = 0;
+            if (inspirationGeneratedProp != null && inspirationGeneratedProp.intValue < 0) inspirationGeneratedProp.intValue = 0;
+
+
+            EditorGUILayout.Space(6);
+
+            // [R5-e] Resource cost (the Voltage sink shipped in R5-d).
+            DrawResourceCostSection(resourceCostKeyProp, resourceCostAmountProp, _registries);
+
+            EditorGUILayout.Space(6);
+
+            // Meta / Synergies
+            EditorGUILayout.PropertyField(cardTypeProp);
+            EditorGUILayout.PropertyField(rarityProp);
+            EditorGUILayout.PropertyField(keywordsProp, includeChildren: true);
+
+            EditorGUILayout.Space(6);
+
+            // FX / Animation
+            EditorGUILayout.PropertyField(audioTypeProp);
+            EditorGUILayout.PropertyField(musicianAnimProp, includeChildren: true);
+
+            EditorGUILayout.Space(6);
+
+            // Play rules
+            EditorGUILayout.PropertyField(exhaustAfterPlayProp);
+
+            EditorGUILayout.PropertyField(overrideReqTargetProp, new GUIContent("Override Requires Target?"));
+            if (overrideReqTargetProp != null && overrideReqTargetProp.boolValue)
+                EditorGUILayout.PropertyField(reqTargetOverrideValueProp, new GUIContent("Requires Target"));
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(card, "Edit CardDefinition");
+                so.ApplyModifiedProperties();
+                EditorUtility.SetDirty(card);
+                AssetDatabase.SaveAssets();
+            }
+            else
+            {
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.cs : lineas 2022-2087 =====
+        ///  (b) the key is validated SOFTLY against the project catalogues. Never an
+        ///      error: the key resolves against the PAYER's catalogue at runtime and this
+        ///      window cannot know who will play the card.
+        /// </summary>
+        private static void DrawResourceCostSection(
+            SerializedProperty keyProp,
+            SerializedProperty amountProp,
+            ALWTTTProjectRegistriesSO registries)
+        {
+            if (keyProp == null || amountProp == null) return;
+
+            EditorGUILayout.LabelField("Resource Cost", EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(keyProp, new GUIContent(
+                "Cost Status Key",
+                "Status key spent by whoever plays this card (e.g. \"voltage\"). " +
+                "Leave empty for no resource cost."));
+
+            string key = keyProp.stringValue;
+            bool hasKey = !string.IsNullOrWhiteSpace(key);
+
+            if (!hasKey)
+            {
+                // An amount with no key charges nothing. Do not hide non-zero data:
+                // silent inert state is exactly what an authoring UI must not produce.
+                if (amountProp.intValue != 0)
+                {
+                    EditorGUILayout.PropertyField(amountProp, new GUIContent("Cost Amount"));
+                    EditorGUILayout.HelpBox(
+                        "An amount is set but the key is empty, so this card costs nothing " +
+                        "(HasResourceCost needs BOTH). Clear the amount or set a key.",
+                        MessageType.Warning);
+                }
+                return;
+            }
+
+            EditorGUILayout.PropertyField(amountProp, new GUIContent("Cost Amount"));
+            if (amountProp.intValue < 0) amountProp.intValue = 0;
+
+            if (amountProp.intValue == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "Amount is 0, so this card has no resource cost (HasResourceCost needs amount > 0).",
+                    MessageType.Info);
+            }
+
+            if (!TryCheckResourceCostKey(key, registries, out bool known))
+            {
+                EditorGUILayout.HelpBox(
+                    "Status catalogues are not wired on the project registries, so the key " +
+                    "could not be checked here. It is still resolved at runtime.",
+                    MessageType.Info);
+            }
+            else if (!known)
+            {
+                EditorGUILayout.HelpBox(
+                    $"No StatusEffectSO with key '{key.Trim()}' is registered in either catalogue. " +
+                    "This is a warning, not an error — the key resolves against the PAYER's " +
+                    "catalogue at runtime and this window cannot know who will pay. " +
+                    "Check the spelling if that is unexpected.",
+                    MessageType.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Checks a cost key through the catalogue's OWN lookup, so the editor check
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.cs : lineas 2034-2099 =====
+
+            EditorGUILayout.PropertyField(keyProp, new GUIContent(
+                "Cost Status Key",
+                "Status key spent by whoever plays this card (e.g. \"voltage\"). " +
+                "Leave empty for no resource cost."));
+
+            string key = keyProp.stringValue;
+            bool hasKey = !string.IsNullOrWhiteSpace(key);
+
+            if (!hasKey)
+            {
+                // An amount with no key charges nothing. Do not hide non-zero data:
+                // silent inert state is exactly what an authoring UI must not produce.
+                if (amountProp.intValue != 0)
+                {
+                    EditorGUILayout.PropertyField(amountProp, new GUIContent("Cost Amount"));
+                    EditorGUILayout.HelpBox(
+                        "An amount is set but the key is empty, so this card costs nothing " +
+                        "(HasResourceCost needs BOTH). Clear the amount or set a key.",
+                        MessageType.Warning);
+                }
+                return;
+            }
+
+            EditorGUILayout.PropertyField(amountProp, new GUIContent("Cost Amount"));
+            if (amountProp.intValue < 0) amountProp.intValue = 0;
+
+            if (amountProp.intValue == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "Amount is 0, so this card has no resource cost (HasResourceCost needs amount > 0).",
+                    MessageType.Info);
+            }
+
+            if (!TryCheckResourceCostKey(key, registries, out bool known))
+            {
+                EditorGUILayout.HelpBox(
+                    "Status catalogues are not wired on the project registries, so the key " +
+                    "could not be checked here. It is still resolved at runtime.",
+                    MessageType.Info);
+            }
+            else if (!known)
+            {
+                EditorGUILayout.HelpBox(
+                    $"No StatusEffectSO with key '{key.Trim()}' is registered in either catalogue. " +
+                    "This is a warning, not an error — the key resolves against the PAYER's " +
+                    "catalogue at runtime and this window cannot know who will pay. " +
+                    "Check the spelling if that is unexpected.",
+                    MessageType.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Checks a cost key through the catalogue's OWN lookup, so the editor check
+        /// cannot drift from runtime semantics (StatusEffectCatalogueSO.ContainsKey trims
+        /// and compares OrdinalIgnoreCase). Returns false when there is nothing wired to
+        /// check against — "unknown" and "absent" are different answers.
+        /// </summary>
+        private static bool TryCheckResourceCostKey(
+            string key, ALWTTTProjectRegistriesSO registries, out bool known)
+        {
+            known = false;
+
+            var musicians = registries != null ? registries.StatusCatalogueMusicians : null;
+            var audience = registries != null ? registries.StatusCatalogueAudience : null;
+            if (musicians == null && audience == null) return false;
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.JsonImport.cs : lineas 340-405 =====
+
+            // If fixed musician missing, default to selected musician
+            var fixedMusicianString = string.IsNullOrWhiteSpace(dto.fixedMusician)
+                ? _selectedMusician.ToString()
+                : dto.fixedMusician;
+
+            if (TryParseEnum(fixedMusicianString, out MusicianCharacterType mType))
+                SetEnum(cardSO, "musicianCharacterType", mType);
+
+            // Sprite (optional path)
+            if (!string.IsNullOrWhiteSpace(dto.cardSpritePath))
+            {
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(dto.cardSpritePath.Trim());
+                if (sprite != null)
+                    SetObject(cardSO, "cardSprite", sprite);
+            }
+
+            // Fallback: if still missing, use musician default sprite
+            var cardSpriteProp = cardSO.FindProperty("cardSprite");
+            if (cardSpriteProp != null && cardSpriteProp.objectReferenceValue == null)
+            {
+                var fallback = _loadedMusicianData != null ? _loadedMusicianData.DefaultCardSprite : null;
+                if (fallback != null)
+                    SetObject(cardSO, "cardSprite", fallback);
+            }
+
+            SetInt(cardSO, "inspirationCost", Mathf.Max(0, dto.inspirationCost));
+            SetInt(cardSO, "inspirationGenerated", Mathf.Max(0, dto.inspirationGenerated));
+
+            // [R5-d / D-R5-26=A] Resource cost pair. Written unconditionally —
+            // CardDefinition.HasResourceCost is what decides whether a cost
+            // exists, so an absent key stages as empty and stays inert.
+            SetString(cardSO, "resourceCostStatusKey",
+                dto.resourceCostStatusKey != null ? dto.resourceCostStatusKey.Trim() : string.Empty);
+            SetInt(cardSO, "resourceCostAmount", Mathf.Max(0, dto.resourceCostAmount));
+
+            if (TryParseEnum(dto.cardType, out CardType ctype))
+                SetEnum(cardSO, "cardType", ctype);
+
+            if (TryParseEnum(dto.rarity, out RarityType rarity))
+                SetEnum(cardSO, "rarity", rarity);
+
+            if (TryParseEnum(dto.audioType, out AudioActionType audio))
+                SetEnum(cardSO, "audioType", audio);
+
+            SetBool(cardSO, "exhaustAfterPlay", dto.exhaustAfterPlay);
+            SetBool(cardSO, "overrideRequiresTargetSelection", dto.overrideRequiresTargetSelection);
+            SetBool(cardSO, "requiresTargetSelectionOverrideValue", dto.requiresTargetSelectionOverrideValue);
+
+            // Keywords
+            if (dto.keywords != null && dto.keywords.Length > 0)
+            {
+                var kwProp = cardSO.FindProperty("keywords");
+                if (kwProp != null)
+                {
+                    kwProp.ClearArray();
+                    foreach (var kwStr in dto.keywords)
+                    {
+                        if (TryParseEnum(kwStr, out SpecialKeywords kw))
+                        {
+                            kwProp.InsertArrayElementAtIndex(kwProp.arraySize);
+                            kwProp.GetArrayElementAtIndex(kwProp.arraySize - 1)
+                                .enumValueIndex = (int)kw;
+                        }
+                        else
+                        {
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.JsonImport.cs : lineas 342-407 =====
+            var fixedMusicianString = string.IsNullOrWhiteSpace(dto.fixedMusician)
+                ? _selectedMusician.ToString()
+                : dto.fixedMusician;
+
+            if (TryParseEnum(fixedMusicianString, out MusicianCharacterType mType))
+                SetEnum(cardSO, "musicianCharacterType", mType);
+
+            // Sprite (optional path)
+            if (!string.IsNullOrWhiteSpace(dto.cardSpritePath))
+            {
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(dto.cardSpritePath.Trim());
+                if (sprite != null)
+                    SetObject(cardSO, "cardSprite", sprite);
+            }
+
+            // Fallback: if still missing, use musician default sprite
+            var cardSpriteProp = cardSO.FindProperty("cardSprite");
+            if (cardSpriteProp != null && cardSpriteProp.objectReferenceValue == null)
+            {
+                var fallback = _loadedMusicianData != null ? _loadedMusicianData.DefaultCardSprite : null;
+                if (fallback != null)
+                    SetObject(cardSO, "cardSprite", fallback);
+            }
+
+            SetInt(cardSO, "inspirationCost", Mathf.Max(0, dto.inspirationCost));
+            SetInt(cardSO, "inspirationGenerated", Mathf.Max(0, dto.inspirationGenerated));
+
+            // [R5-d / D-R5-26=A] Resource cost pair. Written unconditionally —
+            // CardDefinition.HasResourceCost is what decides whether a cost
+            // exists, so an absent key stages as empty and stays inert.
+            SetString(cardSO, "resourceCostStatusKey",
+                dto.resourceCostStatusKey != null ? dto.resourceCostStatusKey.Trim() : string.Empty);
+            SetInt(cardSO, "resourceCostAmount", Mathf.Max(0, dto.resourceCostAmount));
+
+            if (TryParseEnum(dto.cardType, out CardType ctype))
+                SetEnum(cardSO, "cardType", ctype);
+
+            if (TryParseEnum(dto.rarity, out RarityType rarity))
+                SetEnum(cardSO, "rarity", rarity);
+
+            if (TryParseEnum(dto.audioType, out AudioActionType audio))
+                SetEnum(cardSO, "audioType", audio);
+
+            SetBool(cardSO, "exhaustAfterPlay", dto.exhaustAfterPlay);
+            SetBool(cardSO, "overrideRequiresTargetSelection", dto.overrideRequiresTargetSelection);
+            SetBool(cardSO, "requiresTargetSelectionOverrideValue", dto.requiresTargetSelectionOverrideValue);
+
+            // Keywords
+            if (dto.keywords != null && dto.keywords.Length > 0)
+            {
+                var kwProp = cardSO.FindProperty("keywords");
+                if (kwProp != null)
+                {
+                    kwProp.ClearArray();
+                    foreach (var kwStr in dto.keywords)
+                    {
+                        if (TryParseEnum(kwStr, out SpecialKeywords kw))
+                        {
+                            kwProp.InsertArrayElementAtIndex(kwProp.arraySize);
+                            kwProp.GetArrayElementAtIndex(kwProp.arraySize - 1)
+                                .enumValueIndex = (int)kw;
+                        }
+                        else
+                        {
+                            Debug.LogWarning(
+                                $"[CardEditorWindow] Unknown keyword '{kwStr}' on card '{dto.id}' — skipped.");
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.JsonImport.cs : lineas 343-408 =====
+                ? _selectedMusician.ToString()
+                : dto.fixedMusician;
+
+            if (TryParseEnum(fixedMusicianString, out MusicianCharacterType mType))
+                SetEnum(cardSO, "musicianCharacterType", mType);
+
+            // Sprite (optional path)
+            if (!string.IsNullOrWhiteSpace(dto.cardSpritePath))
+            {
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(dto.cardSpritePath.Trim());
+                if (sprite != null)
+                    SetObject(cardSO, "cardSprite", sprite);
+            }
+
+            // Fallback: if still missing, use musician default sprite
+            var cardSpriteProp = cardSO.FindProperty("cardSprite");
+            if (cardSpriteProp != null && cardSpriteProp.objectReferenceValue == null)
+            {
+                var fallback = _loadedMusicianData != null ? _loadedMusicianData.DefaultCardSprite : null;
+                if (fallback != null)
+                    SetObject(cardSO, "cardSprite", fallback);
+            }
+
+            SetInt(cardSO, "inspirationCost", Mathf.Max(0, dto.inspirationCost));
+            SetInt(cardSO, "inspirationGenerated", Mathf.Max(0, dto.inspirationGenerated));
+
+            // [R5-d / D-R5-26=A] Resource cost pair. Written unconditionally —
+            // CardDefinition.HasResourceCost is what decides whether a cost
+            // exists, so an absent key stages as empty and stays inert.
+            SetString(cardSO, "resourceCostStatusKey",
+                dto.resourceCostStatusKey != null ? dto.resourceCostStatusKey.Trim() : string.Empty);
+            SetInt(cardSO, "resourceCostAmount", Mathf.Max(0, dto.resourceCostAmount));
+
+            if (TryParseEnum(dto.cardType, out CardType ctype))
+                SetEnum(cardSO, "cardType", ctype);
+
+            if (TryParseEnum(dto.rarity, out RarityType rarity))
+                SetEnum(cardSO, "rarity", rarity);
+
+            if (TryParseEnum(dto.audioType, out AudioActionType audio))
+                SetEnum(cardSO, "audioType", audio);
+
+            SetBool(cardSO, "exhaustAfterPlay", dto.exhaustAfterPlay);
+            SetBool(cardSO, "overrideRequiresTargetSelection", dto.overrideRequiresTargetSelection);
+            SetBool(cardSO, "requiresTargetSelectionOverrideValue", dto.requiresTargetSelectionOverrideValue);
+
+            // Keywords
+            if (dto.keywords != null && dto.keywords.Length > 0)
+            {
+                var kwProp = cardSO.FindProperty("keywords");
+                if (kwProp != null)
+                {
+                    kwProp.ClearArray();
+                    foreach (var kwStr in dto.keywords)
+                    {
+                        if (TryParseEnum(kwStr, out SpecialKeywords kw))
+                        {
+                            kwProp.InsertArrayElementAtIndex(kwProp.arraySize);
+                            kwProp.GetArrayElementAtIndex(kwProp.arraySize - 1)
+                                .enumValueIndex = (int)kw;
+                        }
+                        else
+                        {
+                            Debug.LogWarning(
+                                $"[CardEditorWindow] Unknown keyword '{kwStr}' on card '{dto.id}' — skipped.");
+                        }
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Editor\CardEditorWindow.JsonImport.cs : lineas 344-409 =====
+                : dto.fixedMusician;
+
+            if (TryParseEnum(fixedMusicianString, out MusicianCharacterType mType))
+                SetEnum(cardSO, "musicianCharacterType", mType);
+
+            // Sprite (optional path)
+            if (!string.IsNullOrWhiteSpace(dto.cardSpritePath))
+            {
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(dto.cardSpritePath.Trim());
+                if (sprite != null)
+                    SetObject(cardSO, "cardSprite", sprite);
+            }
+
+            // Fallback: if still missing, use musician default sprite
+            var cardSpriteProp = cardSO.FindProperty("cardSprite");
+            if (cardSpriteProp != null && cardSpriteProp.objectReferenceValue == null)
+            {
+                var fallback = _loadedMusicianData != null ? _loadedMusicianData.DefaultCardSprite : null;
+                if (fallback != null)
+                    SetObject(cardSO, "cardSprite", fallback);
+            }
+
+            SetInt(cardSO, "inspirationCost", Mathf.Max(0, dto.inspirationCost));
+            SetInt(cardSO, "inspirationGenerated", Mathf.Max(0, dto.inspirationGenerated));
+
+            // [R5-d / D-R5-26=A] Resource cost pair. Written unconditionally —
+            // CardDefinition.HasResourceCost is what decides whether a cost
+            // exists, so an absent key stages as empty and stays inert.
+            SetString(cardSO, "resourceCostStatusKey",
+                dto.resourceCostStatusKey != null ? dto.resourceCostStatusKey.Trim() : string.Empty);
+            SetInt(cardSO, "resourceCostAmount", Mathf.Max(0, dto.resourceCostAmount));
+
+            if (TryParseEnum(dto.cardType, out CardType ctype))
+                SetEnum(cardSO, "cardType", ctype);
+
+            if (TryParseEnum(dto.rarity, out RarityType rarity))
+                SetEnum(cardSO, "rarity", rarity);
+
+            if (TryParseEnum(dto.audioType, out AudioActionType audio))
+                SetEnum(cardSO, "audioType", audio);
+
+            SetBool(cardSO, "exhaustAfterPlay", dto.exhaustAfterPlay);
+            SetBool(cardSO, "overrideRequiresTargetSelection", dto.overrideRequiresTargetSelection);
+            SetBool(cardSO, "requiresTargetSelectionOverrideValue", dto.requiresTargetSelectionOverrideValue);
+
+            // Keywords
+            if (dto.keywords != null && dto.keywords.Length > 0)
+            {
+                var kwProp = cardSO.FindProperty("keywords");
+                if (kwProp != null)
+                {
+                    kwProp.ClearArray();
+                    foreach (var kwStr in dto.keywords)
+                    {
+                        if (TryParseEnum(kwStr, out SpecialKeywords kw))
+                        {
+                            kwProp.InsertArrayElementAtIndex(kwProp.arraySize);
+                            kwProp.GetArrayElementAtIndex(kwProp.arraySize - 1)
+                                .enumValueIndex = (int)kw;
+                        }
+                        else
+                        {
+                            Debug.LogWarning(
+                                $"[CardEditorWindow] Unknown keyword '{kwStr}' on card '{dto.id}' — skipped.");
+                        }
+                    }
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Effects\GrantBonusLoopSpec.cs : lineas 1-29 =====
+using System;
+using UnityEngine;
+
+namespace ALWTTT.Cards.Effects
+{
+    /// <summary>
+    /// [R5-d / D-R0-5=A] Grants ONE bonus loop of the currently running part,
+    /// optionally with a one-loop soloist track layered over the base.
+    ///
+    /// The spec carries NO cost. Under D-R5-26=A the resource price lives on
+    /// <see cref="ALWTTT.Cards.CardDefinition"/> (resourceCostStatusKey +
+    /// resourceCostAmount) so it can be checked and spent BEFORE the play is
+    /// committed. A cost inside an effect spec would run after the inspiration
+    /// and the ECON-1 budget were already burned, which would let the card be
+    /// played with an empty resource and then fail silently.
+    ///
+    /// Runtime owner: GigManager.TryGrantBonusLoop → CompositionSession.
+    /// Dispatched from CardBase.ExecuteEffects.
+    /// </summary>
+    [Serializable]
+    public sealed class GrantBonusLoopSpec : CardEffectSpec
+    {
+        [Tooltip("When on, the bonus loop is rendered with an extra soloist " +
+                 "track layered over the unchanged base (render scope only — " +
+                 "the composition model is never mutated). When off, the bonus " +
+                 "loop is a plain repeat of the part.")]
+        public bool soloOverBonusLoop = true;
+    }
+}
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\Effects\GrantBonusLoopSpec.cs : lineas 1-29 =====
+using System;
+using UnityEngine;
+
+namespace ALWTTT.Cards.Effects
+{
+    /// <summary>
+    /// [R5-d / D-R0-5=A] Grants ONE bonus loop of the currently running part,
+    /// optionally with a one-loop soloist track layered over the base.
+    ///
+    /// The spec carries NO cost. Under D-R5-26=A the resource price lives on
+    /// <see cref="ALWTTT.Cards.CardDefinition"/> (resourceCostStatusKey +
+    /// resourceCostAmount) so it can be checked and spent BEFORE the play is
+    /// committed. A cost inside an effect spec would run after the inspiration
+    /// and the ECON-1 budget were already burned, which would let the card be
+    /// played with an empty resource and then fail silently.
+    ///
+    /// Runtime owner: GigManager.TryGrantBonusLoop → CompositionSession.
+    /// Dispatched from CardBase.ExecuteEffects.
+    /// </summary>
+    [Serializable]
+    public sealed class GrantBonusLoopSpec : CardEffectSpec
+    {
+        [Tooltip("When on, the bonus loop is rendered with an extra soloist " +
+                 "track layered over the unchanged base (render scope only — " +
+                 "the composition model is never mutated). When off, the bonus " +
+                 "loop is a plain repeat of the part.")]
+        public bool soloOverBonusLoop = true;
+    }
+}
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\LLMAuthoring\CardImportDtos.cs : lineas 11-76 =====
+    ///
+    /// All fields are plain strings / numbers / bools on purpose: this assembly
+    /// cannot reference ALWTTT game types (it is consumed BY Assembly-CSharp,
+    /// never the reverse), and string-shaped fields are what an LLM can emit.
+    /// Enum-name resolution and asset resolution happen window-side, in the
+    /// existing staging path.
+    ///
+    /// Field names are serialization contract (JsonUtility) — do not rename
+    /// without migrating authored JSON snippets.
+    /// </summary>
+    [Serializable]
+    public class CardJsonImport
+    {
+        public string kind;              // "Action" or "Composition"
+        public string id;
+        public string displayName;
+
+        public string performerRule;     // e.g. "FixedMusicianType" or "AnyMusician"
+        public string fixedMusician;     // e.g. "Cantante" (optional)
+
+        public string cardType;          // e.g. "CHR"
+        public string rarity;            // e.g. "Common"
+        public string audioType;         // e.g. "Button"
+
+        public int inspirationCost = 1;
+        public int inspirationGenerated = 0;
+
+        // [R5-d / D-R5-26=A] Resource cost. Generic (statusKey, amount) pair —
+        // NOT a voltage-specific field. Empty key or amount 0 = no cost, which
+        // is what every pre-R5-d card imports as.
+        public string resourceCostStatusKey;
+        public int resourceCostAmount = 0;
+
+        public bool exhaustAfterPlay;
+        public bool overrideRequiresTargetSelection;
+        public bool requiresTargetSelectionOverrideValue;
+
+        public string[] keywords;        // e.g. ["Exhaust", "Consume"]
+
+        /// <summary>
+        /// Optional AssetDatabase path to a Sprite. Accepted from hand-authored
+        /// JSON only; LLM-origin payloads carrying this field are hard-rejected
+        /// by the response handler (CE-L1 banned-asset-path guard).
+        /// </summary>
+        public string cardSpritePath;
+
+        // New pipeline: polymorphic card effects (SerializeReference list on CardPayload)
+        public EffectJson[] effects;
+
+        // Legacy (rejected): kept only so we can emit a helpful error instead of silently ignoring.
+        public LegacyStatusActionJson[] statusActions;
+
+        public ActionJson action;
+        public CompositionJson composition;
+
+        public EntryJson entry;          // optional defaults when adding to catalog
+    }
+
+    [Serializable]
+    public class CardBatchJsonImport
+    {
+        // Batch wrapper: { "cards": [ { ...CardJsonImport... }, ... ] }
+        public CardJsonImport[] cards;
+
+        // Optional: shared entry defaults applied to any card whose own "entry" is null.
+        public EntryJson defaultEntry;
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\LLMAuthoring\CardImportDtos.cs : lineas 12-77 =====
+    /// All fields are plain strings / numbers / bools on purpose: this assembly
+    /// cannot reference ALWTTT game types (it is consumed BY Assembly-CSharp,
+    /// never the reverse), and string-shaped fields are what an LLM can emit.
+    /// Enum-name resolution and asset resolution happen window-side, in the
+    /// existing staging path.
+    ///
+    /// Field names are serialization contract (JsonUtility) — do not rename
+    /// without migrating authored JSON snippets.
+    /// </summary>
+    [Serializable]
+    public class CardJsonImport
+    {
+        public string kind;              // "Action" or "Composition"
+        public string id;
+        public string displayName;
+
+        public string performerRule;     // e.g. "FixedMusicianType" or "AnyMusician"
+        public string fixedMusician;     // e.g. "Cantante" (optional)
+
+        public string cardType;          // e.g. "CHR"
+        public string rarity;            // e.g. "Common"
+        public string audioType;         // e.g. "Button"
+
+        public int inspirationCost = 1;
+        public int inspirationGenerated = 0;
+
+        // [R5-d / D-R5-26=A] Resource cost. Generic (statusKey, amount) pair —
+        // NOT a voltage-specific field. Empty key or amount 0 = no cost, which
+        // is what every pre-R5-d card imports as.
+        public string resourceCostStatusKey;
+        public int resourceCostAmount = 0;
+
+        public bool exhaustAfterPlay;
+        public bool overrideRequiresTargetSelection;
+        public bool requiresTargetSelectionOverrideValue;
+
+        public string[] keywords;        // e.g. ["Exhaust", "Consume"]
+
+        /// <summary>
+        /// Optional AssetDatabase path to a Sprite. Accepted from hand-authored
+        /// JSON only; LLM-origin payloads carrying this field are hard-rejected
+        /// by the response handler (CE-L1 banned-asset-path guard).
+        /// </summary>
+        public string cardSpritePath;
+
+        // New pipeline: polymorphic card effects (SerializeReference list on CardPayload)
+        public EffectJson[] effects;
+
+        // Legacy (rejected): kept only so we can emit a helpful error instead of silently ignoring.
+        public LegacyStatusActionJson[] statusActions;
+
+        public ActionJson action;
+        public CompositionJson composition;
+
+        public EntryJson entry;          // optional defaults when adding to catalog
+    }
+
+    [Serializable]
+    public class CardBatchJsonImport
+    {
+        // Batch wrapper: { "cards": [ { ...CardJsonImport... }, ... ] }
+        public CardJsonImport[] cards;
+
+        // Optional: shared entry defaults applied to any card whose own "entry" is null.
+        public EntryJson defaultEntry;
+    }
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\LLMAuthoring\CardImportDtos.cs : lineas 61-126 =====
+        public LegacyStatusActionJson[] statusActions;
+
+        public ActionJson action;
+        public CompositionJson composition;
+
+        public EntryJson entry;          // optional defaults when adding to catalog
+    }
+
+    [Serializable]
+    public class CardBatchJsonImport
+    {
+        // Batch wrapper: { "cards": [ { ...CardJsonImport... }, ... ] }
+        public CardJsonImport[] cards;
+
+        // Optional: shared entry defaults applied to any card whose own "entry" is null.
+        public EntryJson defaultEntry;
+    }
+
+    [Serializable]
+    public class EffectJson
+    {
+        // Discriminator. Supported:
+        // - "ApplyStatusEffect"
+        // - "DrawCards"
+        // - "ModifyVibe"
+        // - "ModifyStress"
+        // - "AddInspirationPerLoop"   [DF-INSPLOOP] Track cards only; uses `amount` as per-loop bonus (>= 1)
+        // - "RevealPreferences"        [R4 / D-R0-1] Info-only; uses `targetType` only (no amount/stacks)
+        // - "GrantBonusLoop"           [R5-d / D-R0-5=A] Uses `soloOverBonusLoop` only.
+        //                              The COST is not here — it lives on the card
+        //                              definition (resourceCostStatusKey/Amount).
+        public string type;
+
+        // ─ ApplyStatusEffect ─
+        public string statusKey;         // resolves to a StatusEffectSO (by StatusKey, DisplayName, or asset name)
+        public int effectId = -1;        // optional fallback: CharacterStatusId backing int
+        public string targetType;        // ActionTargetType enum name
+        public int stacksDelta = 1;
+        public float delay = 0f;
+
+        // ─ ModifyVibe / ModifyStress / AddInspirationPerLoop ─
+        public int amount = 1;           // vibe/stress delta
+
+        // ─ DrawCards ─
+        public int count = 1;
+
+        // ─ GrantBonusLoop ─  [R5-d]
+        // Defaults to true: JsonUtility runs the field initializer and only
+        // overwrites keys actually present in the JSON, so omitting this gives
+        // a solo, matching GrantBonusLoopSpec's own default.
+        public bool soloOverBonusLoop = true;
+    }
+
+    [Serializable]
+    public class LegacyStatusActionJson
+    {
+        public string statusKey;
+        public int effectId = -1;        // legacy fallback
+        public string targetType;        // ActionTargetType enum name
+        public int stacksDelta = 1;
+        public float delay = 0f;
+    }
+
+    // Deprecated
+    [Serializable]
+    public class ActionJson
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\LLMAuthoring\CardLLMPromptBuilder.cs : lineas 105-170 =====
+        // System prompt
+        // -------------------------------------------------------------------
+
+        private static string BuildSystemPrompt(CardLLMVocabulary v)
+        {
+            var sb = new StringBuilder(4096);
+
+            sb.AppendLine("You author playing cards for the game ALWTTT.");
+            sb.AppendLine();
+            sb.AppendLine("OUTPUT CONTRACT");
+            sb.AppendLine("Respond with EXACTLY ONE card as a single JSON object inside ONE fenced code block:");
+            sb.AppendLine("```json");
+            sb.AppendLine("{ ... }");
+            sb.AppendLine("```");
+            sb.AppendLine("One object only — no batch wrapper, no array, no commentary inside the fence.");
+            sb.AppendLine("Omit any optional field to accept its default. Never invent field names.");
+            sb.AppendLine();
+
+            sb.AppendLine("SCHEMA (allowed values in angle brackets; all enum values are exact names)");
+            sb.AppendLine("{");
+            sb.AppendLine("  \"kind\": <" + Join(v.CardKinds) + ">              (required)");
+            sb.AppendLine("  \"id\": string                                      (required; short snake_case, e.g. \"crd_flow_draw\")");
+            sb.AppendLine("  \"displayName\": string");
+            sb.AppendLine("  \"performerRule\": <" + Join(v.PerformerRules) + ">");
+            sb.AppendLine("  \"fixedMusician\": <" + Join(v.MusicianTypes) + ">");
+            sb.AppendLine("  \"cardType\": <" + Join(v.CardTypes) + ">");
+            sb.AppendLine("  \"rarity\": <" + Join(v.Rarities) + ">");
+            sb.AppendLine("  \"audioType\": <" + Join(v.AudioTypes) + ">");
+            sb.AppendLine("  \"inspirationCost\": int >= 0");
+            sb.AppendLine("  \"inspirationGenerated\": int >= 0");
+            sb.AppendLine("  \"resourceCostStatusKey\": <see STATUS KEYS>          (optional; status the PLAYER of this card spends)");
+            sb.AppendLine("  \"resourceCostAmount\": int >= 0                      (a cost exists only when the key is set AND amount > 0)");
+            sb.AppendLine("  \"exhaustAfterPlay\": bool   (if true, also add the \"Exhaust\" keyword)");
+            sb.AppendLine("  \"keywords\": [<" + Join(v.SpecialKeywords) + ">]");
+            sb.AppendLine("  \"effects\": [ see EFFECTS ]");
+            sb.AppendLine("  \"action\": { \"actionTiming\": <" + Join(v.ActionTimings) + "> }       (Action cards only)");
+            sb.AppendLine("  \"composition\": { see COMPOSITION }                                    (Composition cards only)");
+            sb.AppendLine("  \"entry\": { \"flags\": \"comma-separated <" + Join(v.AcquisitionFlags) + ">\", \"starterCopies\": int >= 1, \"unlockId\": string (required unless flags include UnlockedByDefault) }");
+            sb.AppendLine("}");
+            sb.AppendLine();
+
+            sb.AppendLine("EFFECTS — each entry is one of:");
+            sb.AppendLine("- { \"type\": \"ApplyStatusEffect\", \"statusKey\": <see STATUS KEYS>, \"targetType\": <" + Join(v.ActionTargetTypes) + ">, \"stacksDelta\": int, \"delay\": float >= 0 }");
+            sb.AppendLine("- { \"type\": \"DrawCards\", \"count\": int >= 0 }");
+            sb.AppendLine("- { \"type\": \"ModifyVibe\", \"amount\": int, \"targetType\": <as above> }");
+            sb.AppendLine("- { \"type\": \"ModifyStress\", \"amount\": int, \"targetType\": <as above> }");
+            sb.AppendLine("- { \"type\": \"AddInspirationPerLoop\", \"amount\": int >= 1 }   (Composition Track cards only: grants Inspiration each loop while the card's track is active)");
+            sb.AppendLine("- { \"type\": \"RevealPreferences\", \"targetType\": <AudienceCharacter|AllAudienceCharacters> }   (Info only: reveals the target audience member's musical tastes on their canvas; no meter change)");
+            sb.AppendLine("- { \"type\": \"GrantBonusLoop\", \"soloOverBonusLoop\": bool }   (grants ONE extra loop of the part being played; soloOverBonusLoop=true renders only this card's own track during that loop, ducking the rest. Requires a part already running when the card is played — a runtime condition, not an authoring one. Give any card carrying this effect a resource cost.)");
+            sb.AppendLine();
+            sb.AppendLine("STATUS KEYS: " + Join(v.StatusKeys));
+            sb.AppendLine();
+
+            sb.AppendLine("COMPOSITION");
+            sb.AppendLine("\"composition\": {");
+            sb.AppendLine("  \"primaryKind\": <" + Join(v.PrimaryKinds) + ">");
+            sb.AppendLine("  \"trackAction\": { \"role\": <" + Join(v.TrackRoles) + "> }");
+            sb.AppendLine("  \"partAction\": { \"action\": <" + Join(v.PartActionKinds) + ">, \"customLabel\": string, \"musicianId\": string }");
+            sb.AppendLine("  \"modifierEffectNames\": [ exact names from MODIFIER EFFECTS ]");
+            sb.AppendLine("  \"palette\": { \"requested\": true, \"timeSignature\": <" + Join(v.TimeSignatures) + "> (optional), \"keywords\": [strings] (optional) }");
+            sb.AppendLine("}");
+            sb.AppendLine();
+            sb.AppendLine("MODIFIER EFFECTS (exact names): " + JoinOrNone(v.ModifierEffectNames));
+            sb.AppendLine();
+
+            sb.AppendLine("PALETTE INTENT");
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\LLMAuthoring\CardLLMPromptBuilder.cs : lineas 106-171 =====
+        // -------------------------------------------------------------------
+
+        private static string BuildSystemPrompt(CardLLMVocabulary v)
+        {
+            var sb = new StringBuilder(4096);
+
+            sb.AppendLine("You author playing cards for the game ALWTTT.");
+            sb.AppendLine();
+            sb.AppendLine("OUTPUT CONTRACT");
+            sb.AppendLine("Respond with EXACTLY ONE card as a single JSON object inside ONE fenced code block:");
+            sb.AppendLine("```json");
+            sb.AppendLine("{ ... }");
+            sb.AppendLine("```");
+            sb.AppendLine("One object only — no batch wrapper, no array, no commentary inside the fence.");
+            sb.AppendLine("Omit any optional field to accept its default. Never invent field names.");
+            sb.AppendLine();
+
+            sb.AppendLine("SCHEMA (allowed values in angle brackets; all enum values are exact names)");
+            sb.AppendLine("{");
+            sb.AppendLine("  \"kind\": <" + Join(v.CardKinds) + ">              (required)");
+            sb.AppendLine("  \"id\": string                                      (required; short snake_case, e.g. \"crd_flow_draw\")");
+            sb.AppendLine("  \"displayName\": string");
+            sb.AppendLine("  \"performerRule\": <" + Join(v.PerformerRules) + ">");
+            sb.AppendLine("  \"fixedMusician\": <" + Join(v.MusicianTypes) + ">");
+            sb.AppendLine("  \"cardType\": <" + Join(v.CardTypes) + ">");
+            sb.AppendLine("  \"rarity\": <" + Join(v.Rarities) + ">");
+            sb.AppendLine("  \"audioType\": <" + Join(v.AudioTypes) + ">");
+            sb.AppendLine("  \"inspirationCost\": int >= 0");
+            sb.AppendLine("  \"inspirationGenerated\": int >= 0");
+            sb.AppendLine("  \"resourceCostStatusKey\": <see STATUS KEYS>          (optional; status the PLAYER of this card spends)");
+            sb.AppendLine("  \"resourceCostAmount\": int >= 0                      (a cost exists only when the key is set AND amount > 0)");
+            sb.AppendLine("  \"exhaustAfterPlay\": bool   (if true, also add the \"Exhaust\" keyword)");
+            sb.AppendLine("  \"keywords\": [<" + Join(v.SpecialKeywords) + ">]");
+            sb.AppendLine("  \"effects\": [ see EFFECTS ]");
+            sb.AppendLine("  \"action\": { \"actionTiming\": <" + Join(v.ActionTimings) + "> }       (Action cards only)");
+            sb.AppendLine("  \"composition\": { see COMPOSITION }                                    (Composition cards only)");
+            sb.AppendLine("  \"entry\": { \"flags\": \"comma-separated <" + Join(v.AcquisitionFlags) + ">\", \"starterCopies\": int >= 1, \"unlockId\": string (required unless flags include UnlockedByDefault) }");
+            sb.AppendLine("}");
+            sb.AppendLine();
+
+            sb.AppendLine("EFFECTS — each entry is one of:");
+            sb.AppendLine("- { \"type\": \"ApplyStatusEffect\", \"statusKey\": <see STATUS KEYS>, \"targetType\": <" + Join(v.ActionTargetTypes) + ">, \"stacksDelta\": int, \"delay\": float >= 0 }");
+            sb.AppendLine("- { \"type\": \"DrawCards\", \"count\": int >= 0 }");
+            sb.AppendLine("- { \"type\": \"ModifyVibe\", \"amount\": int, \"targetType\": <as above> }");
+            sb.AppendLine("- { \"type\": \"ModifyStress\", \"amount\": int, \"targetType\": <as above> }");
+            sb.AppendLine("- { \"type\": \"AddInspirationPerLoop\", \"amount\": int >= 1 }   (Composition Track cards only: grants Inspiration each loop while the card's track is active)");
+            sb.AppendLine("- { \"type\": \"RevealPreferences\", \"targetType\": <AudienceCharacter|AllAudienceCharacters> }   (Info only: reveals the target audience member's musical tastes on their canvas; no meter change)");
+            sb.AppendLine("- { \"type\": \"GrantBonusLoop\", \"soloOverBonusLoop\": bool }   (grants ONE extra loop of the part being played; soloOverBonusLoop=true renders only this card's own track during that loop, ducking the rest. Requires a part already running when the card is played — a runtime condition, not an authoring one. Give any card carrying this effect a resource cost.)");
+            sb.AppendLine();
+            sb.AppendLine("STATUS KEYS: " + Join(v.StatusKeys));
+            sb.AppendLine();
+
+            sb.AppendLine("COMPOSITION");
+            sb.AppendLine("\"composition\": {");
+            sb.AppendLine("  \"primaryKind\": <" + Join(v.PrimaryKinds) + ">");
+            sb.AppendLine("  \"trackAction\": { \"role\": <" + Join(v.TrackRoles) + "> }");
+            sb.AppendLine("  \"partAction\": { \"action\": <" + Join(v.PartActionKinds) + ">, \"customLabel\": string, \"musicianId\": string }");
+            sb.AppendLine("  \"modifierEffectNames\": [ exact names from MODIFIER EFFECTS ]");
+            sb.AppendLine("  \"palette\": { \"requested\": true, \"timeSignature\": <" + Join(v.TimeSignatures) + "> (optional), \"keywords\": [strings] (optional) }");
+            sb.AppendLine("}");
+            sb.AppendLine();
+            sb.AppendLine("MODIFIER EFFECTS (exact names): " + JoinOrNone(v.ModifierEffectNames));
+            sb.AppendLine();
+
+            sb.AppendLine("PALETTE INTENT");
+            sb.AppendLine("To give a Composition card a musical identity, set composition.palette with");
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\LLMAuthoring\Tests\CardLLMPromptBuilderTests.cs : lineas 132-174 =====
+        /// The EFFECTS block is hand-maintained while the stage-1 alphabets self-update
+        /// from Enum.GetNames(), so it silently ages behind the importer � it did: six
+        /// entries vs seven discriminators, R5-d through R5-e. The list below mirrors
+        /// CardEditorWindow.JsonImport's discriminator set; the test assembly cannot
+        /// reference the editor assembly, so this stays a hand-copied contract � but it
+        /// now fails loudly instead of yielding a generator that quietly cannot emit an
+        /// effect the importer accepts.
+        /// </summary>
+        [Test]
+        public void SystemPrompt_DeclaresEveryImporterEffectDiscriminator()
+        {
+            var r = CardLLMPromptBuilder.Build(MakeVocabulary(), new CardLLMPromptBuilder.Input("a card"));
+            Assert.IsTrue(r.Success, r.FailureReason);
+
+            string[] discriminators =
+            {
+                "ApplyStatusEffect", "DrawCards", "ModifyVibe", "ModifyStress",
+                "AddInspirationPerLoop", "RevealPreferences", "GrantBonusLoop"
+            };
+
+            foreach (var d in discriminators)
+                StringAssert.Contains("\"type\": \"" + d + "\"", r.SystemPrompt,
+                    $"the prompt does not declare the '{d}' effect the importer accepts");
+        }
+
+        [Test]
+        public void SystemPrompt_DeclaresResourceCostPair()
+        {
+            var r = CardLLMPromptBuilder.Build(MakeVocabulary(), new CardLLMPromptBuilder.Input("a card"));
+            Assert.IsTrue(r.Success, r.FailureReason);
+            StringAssert.Contains("resourceCostStatusKey", r.SystemPrompt);
+            StringAssert.Contains("resourceCostAmount", r.SystemPrompt);
+        }
+
+        [Test]
+        public void TotalCharCount_IsSumOfPrompts()
+        {
+            var r = CardLLMPromptBuilder.Build(MakeVocabulary(), new CardLLMPromptBuilder.Input("a card"));
+            Assert.IsTrue(r.Success);
+            Assert.AreEqual(r.SystemPrompt.Length + r.UserPrompt.Length, r.TotalCharCount);
+        }
+    }
+}
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Cards\LLMAuthoring\Tests\CardLLMPromptBuilderTests.cs : lineas 133-174 =====
+        /// from Enum.GetNames(), so it silently ages behind the importer � it did: six
+        /// entries vs seven discriminators, R5-d through R5-e. The list below mirrors
+        /// CardEditorWindow.JsonImport's discriminator set; the test assembly cannot
+        /// reference the editor assembly, so this stays a hand-copied contract � but it
+        /// now fails loudly instead of yielding a generator that quietly cannot emit an
+        /// effect the importer accepts.
+        /// </summary>
+        [Test]
+        public void SystemPrompt_DeclaresEveryImporterEffectDiscriminator()
+        {
+            var r = CardLLMPromptBuilder.Build(MakeVocabulary(), new CardLLMPromptBuilder.Input("a card"));
+            Assert.IsTrue(r.Success, r.FailureReason);
+
+            string[] discriminators =
+            {
+                "ApplyStatusEffect", "DrawCards", "ModifyVibe", "ModifyStress",
+                "AddInspirationPerLoop", "RevealPreferences", "GrantBonusLoop"
+            };
+
+            foreach (var d in discriminators)
+                StringAssert.Contains("\"type\": \"" + d + "\"", r.SystemPrompt,
+                    $"the prompt does not declare the '{d}' effect the importer accepts");
+        }
+
+        [Test]
+        public void SystemPrompt_DeclaresResourceCostPair()
+        {
+            var r = CardLLMPromptBuilder.Build(MakeVocabulary(), new CardLLMPromptBuilder.Input("a card"));
+            Assert.IsTrue(r.Success, r.FailureReason);
+            StringAssert.Contains("resourceCostStatusKey", r.SystemPrompt);
+            StringAssert.Contains("resourceCostAmount", r.SystemPrompt);
+        }
+
+        [Test]
+        public void TotalCharCount_IsSumOfPrompts()
+        {
+            var r = CardLLMPromptBuilder.Build(MakeVocabulary(), new CardLLMPromptBuilder.Input("a card"));
+            Assert.IsTrue(r.Success);
+            Assert.AreEqual(r.SystemPrompt.Length + r.UserPrompt.Length, r.TotalCharCount);
+        }
+    }
+}
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 1792-1857 =====
+            // back to SelectedMusician — same attribution chain HandController
+            // already applies (fixed → hover → SelectedMusician), so in
+            // practice `target` is non-null and this fallback is defensive.
+            var payer = target != null ? target : SelectedMusician;
+
+            // [ECON-1 / T5] Gate BEFORE the one-shot animation so a denied
+            // play neither animates nor reaches the session.
+            if (!CanConsumePlay(payer, isComposition: true))
+            {
+                Log($"[ECON-1] Composition play denied — " +
+                    $"{(payer != null ? payer.CharacterName : "?")} has no " +
+                    "composition plays left this period.");
+                return false;
+            }
+
+            // [CARD-UX-1 / D2=A] Final-loop lock — presentation-avoidance mirror.
+            // Single authority is CompositionSession.IsFinalLoopRunning (the session
+            // gate below also denies); this early-out only prevents the one-shot
+            // animation from playing on a denied play (same pattern as ECON-1 T5).
+            if (_session != null && _session.IsFinalLoopRunning)
+            {
+                Log("[CARD-UX-1] Composition play denied — final-loop lock.");
+                return false;
+            }
+
+            // [R5-d / D-R5-26=A] Resource cost. CHECKED here — before the
+            // one-shot animation, like every other denial on this path — and
+            // SPENT below alongside the ECON-1 budget, so a composition card
+            // burns nothing until the session accepts the drop.
+            var cardDef = card != null ? card.CardDefinition : null;
+            if (cardDef != null && cardDef.HasResourceCost &&
+                !CanPayResourceCost(cardDef, payer))
+            {
+                Log($"[R5-d] Composition play denied — "
+                    + $"{(payer != null ? payer.CharacterName : "?")} cannot pay "
+                    + $"{cardDef.ResourceCostAmount} '{cardDef.ResourceCostStatusKey}'.");
+                return false;
+            }
+
+            // One-shot composition card animation
+            if (target != null && card != null && card.CardDefinition != null)
+            {
+                target.PlayCardOneShotAnimation(card.CardDefinition);
+            }
+
+            bool played = _session?.TryPlayCompositionCard(card, target, zone) ?? false;
+
+            // [ECON-1 / T5] Consume ONLY on session-accepted plays — budget
+            // must not burn on invalid drops, full parts, or the session's own
+            // inspiration denial (batch constraint: burn on success only).
+            if (played)
+            {
+                TryConsumePlay(payer, isComposition: true);
+
+                // [R5-d] Success-only, exactly like the budget above. Order vs
+                // the Voltage generation inside TryConsumePlay is NET-NEUTRAL:
+                // both the +1 grant and the -N spend happen either way.
+                TryPayResourceCost(cardDef, payer);
+            }
+
+            return played;
+        }
+
+        private void StartCompositionSession()
+        {
+            if (_session != null)
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 1797-1862 =====
+            // [ECON-1 / T5] Gate BEFORE the one-shot animation so a denied
+            // play neither animates nor reaches the session.
+            if (!CanConsumePlay(payer, isComposition: true))
+            {
+                Log($"[ECON-1] Composition play denied — " +
+                    $"{(payer != null ? payer.CharacterName : "?")} has no " +
+                    "composition plays left this period.");
+                return false;
+            }
+
+            // [CARD-UX-1 / D2=A] Final-loop lock — presentation-avoidance mirror.
+            // Single authority is CompositionSession.IsFinalLoopRunning (the session
+            // gate below also denies); this early-out only prevents the one-shot
+            // animation from playing on a denied play (same pattern as ECON-1 T5).
+            if (_session != null && _session.IsFinalLoopRunning)
+            {
+                Log("[CARD-UX-1] Composition play denied — final-loop lock.");
+                return false;
+            }
+
+            // [R5-d / D-R5-26=A] Resource cost. CHECKED here — before the
+            // one-shot animation, like every other denial on this path — and
+            // SPENT below alongside the ECON-1 budget, so a composition card
+            // burns nothing until the session accepts the drop.
+            var cardDef = card != null ? card.CardDefinition : null;
+            if (cardDef != null && cardDef.HasResourceCost &&
+                !CanPayResourceCost(cardDef, payer))
+            {
+                Log($"[R5-d] Composition play denied — "
+                    + $"{(payer != null ? payer.CharacterName : "?")} cannot pay "
+                    + $"{cardDef.ResourceCostAmount} '{cardDef.ResourceCostStatusKey}'.");
+                return false;
+            }
+
+            // One-shot composition card animation
+            if (target != null && card != null && card.CardDefinition != null)
+            {
+                target.PlayCardOneShotAnimation(card.CardDefinition);
+            }
+
+            bool played = _session?.TryPlayCompositionCard(card, target, zone) ?? false;
+
+            // [ECON-1 / T5] Consume ONLY on session-accepted plays — budget
+            // must not burn on invalid drops, full parts, or the session's own
+            // inspiration denial (batch constraint: burn on success only).
+            if (played)
+            {
+                TryConsumePlay(payer, isComposition: true);
+
+                // [R5-d] Success-only, exactly like the budget above. Order vs
+                // the Voltage generation inside TryConsumePlay is NET-NEUTRAL:
+                // both the +1 grant and the -N spend happen either way.
+                TryPayResourceCost(cardDef, payer);
+            }
+
+            return played;
+        }
+
+        private void StartCompositionSession()
+        {
+            if (_session != null)
+            {
+                _session.LoopFinished -= OnCompositionLoopFinished;
+                _session.PartFinished -= OnCompositionPartFinished;
+                _session.SongFinished -= OnCompositionSongFinished;
+                _session.End();
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2178-2243 =====
+            {
+                Debug.LogError($"{DebugTag} [R5-b] '{VoltageStatusKey}' resolves to " +
+                    $"primitive {voltageSO.EffectId}, expected ResourceCounter. " +
+                    "Generation skipped — fix the StatusEffectSO.");
+                return;
+            }
+
+            musician.Statuses.Apply(voltageSO, 1);
+
+            if (UseLogs && UseVerboseLogs)
+                Debug.Log($"{DebugTag} [R5-b] +1 Voltage → {musician.CharacterName} " +
+                    $"(now {musician.Statuses.GetStacks(CharacterStatusId.ResourceCounter)}).");
+            // Clamp to MaxStacks (9) is ApplyStackingPolicy's final unconditional
+            // clamp — applied even under StackMode.Additive. No local clamp.
+        }
+
+        // ─── [R5-d / D-R5-26=A] Resource cost (Voltage today) ────────────
+        // Orthogonal to Inspiration and to ECON-1: three independent gates,
+        // never substituted for one another. Resolution keeps R5's dual guard —
+        // the StatusKey is the authority, the primitive is how the container is
+        // keyed — and both are checked on the LIVE instance, because the
+        // catalogue says what a bearer COULD hold and the container says what
+        // it actually holds right now.
+        private bool TryResolveResourceHolding(
+            CardDefinition def, MusicianBase payer,
+            out CharacterStatusId primitive, out int held)
+        {
+            primitive = default;
+            held = 0;
+
+            if (def == null || !def.HasResourceCost) return false;
+            if (payer == null || payer.Statuses == null) return false;
+
+            var catalogue = payer.StatusCatalogue;
+            if (catalogue == null ||
+                !catalogue.TryGetByKey(def.ResourceCostStatusKey, out var so) || so == null)
+                return false;   // this bearer cannot hold the resource at all
+
+            primitive = so.EffectId;
+
+            if (!payer.Statuses.TryGet(primitive, out var inst)
+                || inst == null || !inst.IsActive || inst.Definition == null)
+                return false;
+
+            if (inst.Definition.StatusKey != def.ResourceCostStatusKey)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2183-2248 =====
+            }
+
+            musician.Statuses.Apply(voltageSO, 1);
+
+            if (UseLogs && UseVerboseLogs)
+                Debug.Log($"{DebugTag} [R5-b] +1 Voltage → {musician.CharacterName} " +
+                    $"(now {musician.Statuses.GetStacks(CharacterStatusId.ResourceCounter)}).");
+            // Clamp to MaxStacks (9) is ApplyStackingPolicy's final unconditional
+            // clamp — applied even under StackMode.Additive. No local clamp.
+        }
+
+        // ─── [R5-d / D-R5-26=A] Resource cost (Voltage today) ────────────
+        // Orthogonal to Inspiration and to ECON-1: three independent gates,
+        // never substituted for one another. Resolution keeps R5's dual guard —
+        // the StatusKey is the authority, the primitive is how the container is
+        // keyed — and both are checked on the LIVE instance, because the
+        // catalogue says what a bearer COULD hold and the container says what
+        // it actually holds right now.
+        private bool TryResolveResourceHolding(
+            CardDefinition def, MusicianBase payer,
+            out CharacterStatusId primitive, out int held)
+        {
+            primitive = default;
+            held = 0;
+
+            if (def == null || !def.HasResourceCost) return false;
+            if (payer == null || payer.Statuses == null) return false;
+
+            var catalogue = payer.StatusCatalogue;
+            if (catalogue == null ||
+                !catalogue.TryGetByKey(def.ResourceCostStatusKey, out var so) || so == null)
+                return false;   // this bearer cannot hold the resource at all
+
+            primitive = so.EffectId;
+
+            if (!payer.Statuses.TryGet(primitive, out var inst)
+                || inst == null || !inst.IsActive || inst.Definition == null)
+                return false;
+
+            if (inst.Definition.StatusKey != def.ResourceCostStatusKey)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2192-2257 =====
+        }
+
+        // ─── [R5-d / D-R5-26=A] Resource cost (Voltage today) ────────────
+        // Orthogonal to Inspiration and to ECON-1: three independent gates,
+        // never substituted for one another. Resolution keeps R5's dual guard —
+        // the StatusKey is the authority, the primitive is how the container is
+        // keyed — and both are checked on the LIVE instance, because the
+        // catalogue says what a bearer COULD hold and the container says what
+        // it actually holds right now.
+        private bool TryResolveResourceHolding(
+            CardDefinition def, MusicianBase payer,
+            out CharacterStatusId primitive, out int held)
+        {
+            primitive = default;
+            held = 0;
+
+            if (def == null || !def.HasResourceCost) return false;
+            if (payer == null || payer.Statuses == null) return false;
+
+            var catalogue = payer.StatusCatalogue;
+            if (catalogue == null ||
+                !catalogue.TryGetByKey(def.ResourceCostStatusKey, out var so) || so == null)
+                return false;   // this bearer cannot hold the resource at all
+
+            primitive = so.EffectId;
+
+            if (!payer.Statuses.TryGet(primitive, out var inst)
+                || inst == null || !inst.IsActive || inst.Definition == null)
+                return false;
+
+            if (inst.Definition.StatusKey != def.ResourceCostStatusKey)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2196-2261 =====
+        // never substituted for one another. Resolution keeps R5's dual guard —
+        // the StatusKey is the authority, the primitive is how the container is
+        // keyed — and both are checked on the LIVE instance, because the
+        // catalogue says what a bearer COULD hold and the container says what
+        // it actually holds right now.
+        private bool TryResolveResourceHolding(
+            CardDefinition def, MusicianBase payer,
+            out CharacterStatusId primitive, out int held)
+        {
+            primitive = default;
+            held = 0;
+
+            if (def == null || !def.HasResourceCost) return false;
+            if (payer == null || payer.Statuses == null) return false;
+
+            var catalogue = payer.StatusCatalogue;
+            if (catalogue == null ||
+                !catalogue.TryGetByKey(def.ResourceCostStatusKey, out var so) || so == null)
+                return false;   // this bearer cannot hold the resource at all
+
+            primitive = so.EffectId;
+
+            if (!payer.Statuses.TryGet(primitive, out var inst)
+                || inst == null || !inst.IsActive || inst.Definition == null)
+                return false;
+
+            if (inst.Definition.StatusKey != def.ResourceCostStatusKey)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2208-2273 =====
+            if (def == null || !def.HasResourceCost) return false;
+            if (payer == null || payer.Statuses == null) return false;
+
+            var catalogue = payer.StatusCatalogue;
+            if (catalogue == null ||
+                !catalogue.TryGetByKey(def.ResourceCostStatusKey, out var so) || so == null)
+                return false;   // this bearer cannot hold the resource at all
+
+            primitive = so.EffectId;
+
+            if (!payer.Statuses.TryGet(primitive, out var inst)
+                || inst == null || !inst.IsActive || inst.Definition == null)
+                return false;
+
+            if (inst.Definition.StatusKey != def.ResourceCostStatusKey)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2210-2275 =====
+
+            var catalogue = payer.StatusCatalogue;
+            if (catalogue == null ||
+                !catalogue.TryGetByKey(def.ResourceCostStatusKey, out var so) || so == null)
+                return false;   // this bearer cannot hold the resource at all
+
+            primitive = so.EffectId;
+
+            if (!payer.Statuses.TryGet(primitive, out var inst)
+                || inst == null || !inst.IsActive || inst.Definition == null)
+                return false;
+
+            if (inst.Definition.StatusKey != def.ResourceCostStatusKey)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+        /// <summary>[R5-d] True when this definition asks for a bonus loop.
+        /// Instance method on purpose: every call site reaches GigManager
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2221-2286 =====
+
+            if (inst.Definition.StatusKey != def.ResourceCostStatusKey)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+        /// <summary>[R5-d] True when this definition asks for a bonus loop.
+        /// Instance method on purpose: every call site reaches GigManager
+        /// through an instance reference.</summary>
+        public bool CardGrantsBonusLoop(CardDefinition def)
+        {
+            var effects = def?.Payload?.Effects;
+            if (effects == null) return false;
+            for (int i = 0; i < effects.Count; i++)
+                if (effects[i] is ALWTTT.Cards.Effects.GrantBonusLoopSpec) return true;
+            return false;
+        }
+
+        /// <summary>[R5-d] Is there a running part that can still take one?</summary>
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2224-2289 =====
+                Debug.LogError($"{DebugTag} [R5-d] {payer.CharacterName} carries "
+                    + $"primitive {primitive} as variant '{inst.Definition.StatusKey}', "
+                    + $"not '{def.ResourceCostStatusKey}'. Card denied — a second "
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+        /// <summary>[R5-d] True when this definition asks for a bonus loop.
+        /// Instance method on purpose: every call site reaches GigManager
+        /// through an instance reference.</summary>
+        public bool CardGrantsBonusLoop(CardDefinition def)
+        {
+            var effects = def?.Payload?.Effects;
+            if (effects == null) return false;
+            for (int i = 0; i < effects.Count; i++)
+                if (effects[i] is ALWTTT.Cards.Effects.GrantBonusLoopSpec) return true;
+            return false;
+        }
+
+        /// <summary>[R5-d] Is there a running part that can still take one?</summary>
+        public bool CanGrantBonusLoop()
+        {
+            if (_session == null) return false;
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2227-2292 =====
+                    + "variant now collides on this bearer.");
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+        /// <summary>[R5-d] True when this definition asks for a bonus loop.
+        /// Instance method on purpose: every call site reaches GigManager
+        /// through an instance reference.</summary>
+        public bool CardGrantsBonusLoop(CardDefinition def)
+        {
+            var effects = def?.Payload?.Effects;
+            if (effects == null) return false;
+            for (int i = 0; i < effects.Count; i++)
+                if (effects[i] is ALWTTT.Cards.Effects.GrantBonusLoopSpec) return true;
+            return false;
+        }
+
+        /// <summary>[R5-d] Is there a running part that can still take one?</summary>
+        public bool CanGrantBonusLoop()
+        {
+            if (_session == null) return false;
+            int cap = flow != null ? flow.MaxBonusLoopsPerPart : 1;
+            return _session.CanGrantBonusLoop(cap);
+        }
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2228-2293 =====
+                return false;
+            }
+
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+        /// <summary>[R5-d] True when this definition asks for a bonus loop.
+        /// Instance method on purpose: every call site reaches GigManager
+        /// through an instance reference.</summary>
+        public bool CardGrantsBonusLoop(CardDefinition def)
+        {
+            var effects = def?.Payload?.Effects;
+            if (effects == null) return false;
+            for (int i = 0; i < effects.Count; i++)
+                if (effects[i] is ALWTTT.Cards.Effects.GrantBonusLoopSpec) return true;
+            return false;
+        }
+
+        /// <summary>[R5-d] Is there a running part that can still take one?</summary>
+        public bool CanGrantBonusLoop()
+        {
+            if (_session == null) return false;
+            int cap = flow != null ? flow.MaxBonusLoopsPerPart : 1;
+            return _session.CanGrantBonusLoop(cap);
+        }
+
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2231-2296 =====
+            held = inst.Stacks;
+            return true;
+        }
+
+        /// <summary>[R5-d] Non-consuming check. No authored cost → always true.</summary>
+        public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+        /// <summary>[R5-d] True when this definition asks for a bonus loop.
+        /// Instance method on purpose: every call site reaches GigManager
+        /// through an instance reference.</summary>
+        public bool CardGrantsBonusLoop(CardDefinition def)
+        {
+            var effects = def?.Payload?.Effects;
+            if (effects == null) return false;
+            for (int i = 0; i < effects.Count; i++)
+                if (effects[i] is ALWTTT.Cards.Effects.GrantBonusLoopSpec) return true;
+            return false;
+        }
+
+        /// <summary>[R5-d] Is there a running part that can still take one?</summary>
+        public bool CanGrantBonusLoop()
+        {
+            if (_session == null) return false;
+            int cap = flow != null ? flow.MaxBonusLoopsPerPart : 1;
+            return _session.CanGrantBonusLoop(cap);
+        }
+
+        /// <summary>[R5-d] Host bridge: reads the gig rules and hands the session
+        /// a settings-free request (the session holds JamRules only, never an SO).</summary>
+        public bool TryGrantBonusLoop(bool withSolo)
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2237-2302 =====
+        {
+            if (def == null || !def.HasResourceCost) return true;
+            return TryResolveResourceHolding(def, payer, out _, out int held)
+                   && held >= def.ResourceCostAmount;
+        }
+
+        /// <summary>
+        /// [R5-d] Spend the authored resource cost. Call only once the play can
+        /// no longer fail. Spends via SpendStacks (D-R5-18=C): no
+        /// StatusAppliedEvent with a negative delta, and no reliance on
+        /// ConsumeOnTrigger (a no-op under DecayMode.None, which Voltage uses).
+        /// </summary>
+        public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
+        {
+            if (def == null || !def.HasResourceCost) return true;
+
+            if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
+                || held < def.ResourceCostAmount)
+                return false;
+
+            int spent = payer.Statuses.SpendStacks(primitive, def.ResourceCostAmount);
+            if (spent < def.ResourceCostAmount)
+            {
+                Debug.LogError($"{DebugTag} [R5-d] Resource spend short: asked "
+                    + $"{def.ResourceCostAmount}, spent {spent}. Card '{def.DisplayName}'.");
+                return false;
+            }
+
+            if (UseLogs)
+                Debug.Log($"{DebugTag} <color=#4dd8ff>[R5-d]</color> {payer.CharacterName} "
+                    + $"spent {spent} '{def.ResourceCostStatusKey}' for '{def.DisplayName}' "
+                    + $"(remaining {payer.Statuses.GetStacks(primitive)}).");
+
+            return true;
+        }
+
+        // ─── [R5-d] Bonus loop bridge ────────────────────────────────────
+        /// <summary>[R5-d] True when this definition asks for a bonus loop.
+        /// Instance method on purpose: every call site reaches GigManager
+        /// through an instance reference.</summary>
+        public bool CardGrantsBonusLoop(CardDefinition def)
+        {
+            var effects = def?.Payload?.Effects;
+            if (effects == null) return false;
+            for (int i = 0; i < effects.Count; i++)
+                if (effects[i] is ALWTTT.Cards.Effects.GrantBonusLoopSpec) return true;
+            return false;
+        }
+
+        /// <summary>[R5-d] Is there a running part that can still take one?</summary>
+        public bool CanGrantBonusLoop()
+        {
+            if (_session == null) return false;
+            int cap = flow != null ? flow.MaxBonusLoopsPerPart : 1;
+            return _session.CanGrantBonusLoop(cap);
+        }
+
+        /// <summary>[R5-d] Host bridge: reads the gig rules and hands the session
+        /// a settings-free request (the session holds JamRules only, never an SO).</summary>
+        public bool TryGrantBonusLoop(bool withSolo)
+        {
+            if (_session == null)
+            {
+                Debug.LogWarning($"{DebugTag} [R5-d] Bonus loop requested with no session.");
+                return false;
+            }
+
+===== D:\Projects\ALWTTT25\Assets\Scripts\Managers\GigManager.cs : lineas 2405-2470 =====
+        // AGGREGATES the same gates the play paths enforce — it does not duplicate
+        // logic. HandController polls this per-frame to drive the red overlay.
+        // Invariant (SSoT_Card_System §10.5 at close): no consumer computes
+        // playability locally; CardBase/HandController only read this.
+        public UnplayableReason EvaluateCardPlayability(CardDefinition def)
+        {
+            if (def == null) return UnplayableReason.None;
+
+            // 1) Tutorial directive gates (beats 3/5, beat-3 allow-list).
+            if (ALWTTT.Tutorial.TutorialInputGate.BlocksCardDrag(def))
+                return UnplayableReason.TutorialGate;
+
+            // 2) Domain gates.
+            if (def.IsAction && !CanPlayActionCard(def))
+                return UnplayableReason.ActionTiming;
+
+            if (def.IsComposition && _session != null && _session.IsFinalLoopRunning)
+                return UnplayableReason.FinalLoopLock; // [D2=A]
+
+            // 2b) [R5-d] A bonus-loop card needs a part actually looping. This is
+            //     card-specific, not domain-wide: CanPlayActionCard returns true
+            //     in the between-songs action window, where there is nothing to
+            //     extend and the resource would burn for nothing.
+            if (def.IsAction && CardGrantsBonusLoop(def) && !CanGrantBonusLoop())
+                return UnplayableReason.NoRunningLoop;
+
+            // 2c) [R5-d / D-R5-26=A] Resource cost. Same static-payer scoping as
+            //     ECON-1 below (D5): only red when the payer is statically
+            //     resolvable. AnyMusician cards keep their enforcement at the
+            //     play-path denial rather than in the overlay.
+            if (def.HasResourceCost &&
+                def.FixedPerformerType != MusicianCharacterType.None)
+            {
+                var resPayer = ResolveMusicianByType(def.FixedPerformerType);
+                if (resPayer != null && !CanPayResourceCost(def, resPayer))
+                    return UnplayableReason.Resource;
+            }
+
+            // 3) Inspiration — orthogonal gate, mirrors HandController 2a.5 /
+            //    session step 1 (both read CanAffordInspiration).
+            int cost = Mathf.Max(0, def.InspirationCost);
+            if (cost > 0 && (_session == null || !_session.CanAffordInspiration(cost)))
+                return UnplayableReason.Inspiration;
+
+            // 4) ECON-1 budget — ONLY when the payer is statically resolvable
+            //    (D5 / D-ECON-GENERIC=C scoping). AnyMusician cards and
+            //    hover-attributed compositions are EXCLUDED (never red on budget);
+            //    their enforcement remains the TryConsumePlay drop-denial.
+            if (def.FixedPerformerType != MusicianCharacterType.None)
+            {
+                var payer = ResolveMusicianByType(def.FixedPerformerType);
+                if (payer != null && !CanConsumePlay(payer, def.IsComposition))
+                    return UnplayableReason.Budget;
+            }
+
+            return UnplayableReason.None;
+        }
+
+        /// <summary>Refill every live musician's budget. Idempotent; safe to
+        /// fire at overlapping seams (player-turn / song-start / loop-boundary).</summary>
+        private void ResetAllTurnPlayBudgets(string reason)
+        {
+            if (CurrentMusicianCharacterList == null) return;
+
+            for (int i = 0; i < CurrentMusicianCharacterList.Count; i++)
+                CurrentMusicianCharacterList[i]?.Stats?.ResetTurnPlayBudget();

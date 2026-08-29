@@ -44,6 +44,12 @@ namespace ALWTTT.Fx
     ///     Instantiate (Awake runs synchronously) and only THEN calls
     ///     SetSpriteLayerOrder. Reading in Awake would miss the front/back stage
     ///     assignment. Anyone changing a musician's order later calls SyncSorting().
+    ///
+    /// ------------------------------------------------------------------
+    /// [RFX-2] IsLaneReady
+    /// ------------------------------------------------------------------
+    /// The chord ladder needs to know whether a lane is AUTHORED, which is a
+    /// different question from whether Emit() succeeded. See the method.
     /// </summary>
     public sealed class RhythmParticleEmitter : MonoBehaviour
     {
@@ -59,8 +65,12 @@ namespace ALWTTT.Fx
 
         [Header("Lanes")]
         [Tooltip("One ParticleSystem per lane this musician can produce. " +
-                 "Author all 7: any musician can end up owning the rhythm or " +
-                 "backing track depending on band composition.")]
+                 "[RFX-2] Author all eleven emitting lanes: the six percussion " +
+                 "lanes, the legacy Chord fallback, and the five chord-ladder " +
+                 "rungs. Perc is intentionally left unauthored - it is a " +
+                 "diagnostic bucket, not a visual. Any musician can end up " +
+                 "owning the rhythm or backing track depending on band " +
+                 "composition, so every prefab carries every lane.")]
         [SerializeField] private List<LaneSlot> slots = new List<LaneSlot>();
 
         [Header("Sorting")]
@@ -89,6 +99,29 @@ namespace ALWTTT.Fx
         public bool HasLane(RhythmLane lane) => _byLane.ContainsKey(lane);
         public long BurstsFor(RhythmLane lane) =>
             _bursts.TryGetValue(lane, out var n) ? n : 0L;
+
+        /// <summary>
+        /// [RFX-2] True when this lane can produce a burst as a matter of
+        /// AUTHORING: a ParticleSystem is wired for it AND the config carries an
+        /// enabled entry for it.
+        ///
+        /// Deliberately distinct from Emit() returning false, which ALSO happens
+        /// on throttle. The chord ladder needs "is this rung authored?" without
+        /// conflating it with "did this rung just fire?" - otherwise the D2=B
+        /// fallback would fire a SECOND burst on RhythmLane.Chord every time a
+        /// rung was merely inside its minInterval, and the throttle would end up
+        /// producing more particles instead of fewer.
+        ///
+        /// Cheap by construction: a dictionary probe plus the config's own
+        /// lazily-built lane map. Safe to call on the per-chord path.
+        /// </summary>
+        public bool IsLaneReady(RhythmLane lane)
+        {
+            if (config == null || !config.Enabled) return false;
+            if (!_byLane.TryGetValue(lane, out var ps) || ps == null) return false;
+            var e = config.For(lane);
+            return e != null && e.enabled;
+        }
 
         private void Awake()
         {

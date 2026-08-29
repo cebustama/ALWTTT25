@@ -172,6 +172,16 @@ so it is the first thing to check when a card is permanently unplayable.
 **The cost is not an effect spec.** Specs execute after the play is committed; a cost there
 could be paid with nothing. See `SSoT_Status_Effects.md` §5.10.
 
+
+**Orden de puertas — defecto abierto (F-R5f-1, 2026-08-28; D5=A, sin construir → R5-g).** El par
+resuelve contra el catálogo del **pagador**, pero *cuándo* se cobra difiere por ruta. En la ruta
+de **composición** el recurso se comprueba **antes** del presupuesto ECON-1 (correcto,
+ST-R5f-16 PASS). En la de **acción** se comprueba **después**, y como el hook de generación de
+Voltage vive dentro de `TryConsumePlay`, una carta de coste N jugada por un músico que genera ese
+mismo recurso cuesta **N−1** efectivo. Al autorar un coste, contar con esa diferencia hasta que
+R5-g la elimine. Corrige la afirmación «net-neutral» de D-R5-26=A, cierta para el saldo y falsa
+para la puerta.
+
 ### 5.4 Effect object rule
 Each effect entry must contain:
 - a stable discriminator such as `type`
@@ -358,6 +368,24 @@ Before this, a Composition card imported from JSON could only **point at** an ex
 
 1. **Mutually exclusive with `styleBundle`.** Both present ⇒ hard failure at staging.
 2. **Requires `role`** (the bundle type is derived from it) and a **Composition** card. Either missing ⇒ hard failure at staging.
+> **Snapshot de campos caducado — F-R5f-7 / F-R5f-8 (2026-08-28).** La enumeración de campos de
+> `BasslineCardConfigSO` que aparece arriba está fechada 2026-07-31 y **no es censo**. Medición
+> por Inspector en R5-f: la superficie viva incluye además `selfPocketPhraseLengthBars`,
+> `selfPocketBarSubstitutions`, `selfPocketVariantSelection`, `hammerOffsetDegrees`,
+> `pullOffsetDegrees`, `ghostVelocityFactor`, `ghostPopVelocityFactor`,
+> `hammerOnVelocityFactor`, `pullOffVelocityFactor` y `ghostGateBeats`. **No es divergencia de
+> contrato** — la regla 6 dice que la superficie es propiedad del paquete y crece, y que esta
+> SSoT no la enumera. Pero un snapshot caducado engaña igual que un error, así que se marca en
+> vez de actualizarse: **actualizar el snapshot solo reinicia el reloj**. La cura estructural es
+> el export por **reflexión** sobre campos serializados propuesto en R5-f, que hace innecesaria
+> toda lista escrita a mano.
+>
+> **Ejemplo trabajado obsoleto.** El ejemplo de Slap Bass v1 (D-R2-11) describe `chordExpression
+> = Offbeat`, patrón `[Slap, Pop]` @ `Beat` y boosts `0/+12`. El asset vivo de
+> `starter_slap_bass` es `BasslineCardConfig_SlapV1` (repuntado en R5-f desde `SlapV3`) con
+> boosts a **0/0**. Los documentos que dicen `SlapV5` —CSV-4c y `SSoT_Editor_Authoring_Tools`
+> §17— nunca describieron el estado vivo. Reautorar el ejemplo contra el asset real es trabajo de
+> **CARD-VAR-1**, no de R5-f.
 3. **Unknown field names are hard errors, never silent skips.** The importer logs the offending name *and the bundle's full list of valid serialized field names* — a wrong guess is self-correcting.
 4. **Banned from LLM output.** `styleBundleCreate.fields` can carry asset paths (object-reference coercion), which is precisely the channel the §3.3 banned-asset-path guard exists to close. The LLM route does not need it: its bundle is minted by the field plan (`ApplyLlmPlanOnSave`) and its asset intent travels through `composition.palette`. **Hand-authored JSON only.** Enforced in `CardLLMResponseHandler.ApplyBannedFieldGuard`; covered by EditMode tests.
 5. **Applied at Save, not at staging** — `ApplyJsonBundleCreateOnSave` runs after the payload asset exists on disk, because the bundle's folder is derived from the payload's asset path. Consumed exactly once; cleared by `DiscardStagedJson`.

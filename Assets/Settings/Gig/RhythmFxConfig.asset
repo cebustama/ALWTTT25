@@ -98,3 +98,63 @@ MonoBehaviour:
     size: 0.36
     minInterval: 0.25
     velocityInfluence: 0.2
+  - lane: 8
+    enabled: 1
+    burstCount: 3
+    tint: {r: 0.4509804, g: 0.2, b: 0.7490196, a: 1}
+    direction: {x: 0, y: 1}
+    speed: 0.85
+    speedJitter: 0.45
+    spreadDegrees: 10
+    lifetime: 0.8
+    size: 0.28
+    minInterval: 0.25
+    velocityInfluence: 0
+  - lane: 9
+    enabled: 1
+    burstCount: 8
+    tint: {r: 0.7019608, g: 0.23137255, b: 0.86, a: 1}
+    direction: {x: 0, y: 1}
+    speed: 1.08
+    speedJitter: 0.45
+    spreadDegrees: 22
+    lifetime: 0.8
+    size: 0.33
+    minInterval: 0.25
+    velocityInfluence: 0
+  - lane: 10
+    enabled: 1
+    burstCount: 12
+    tint: {r: 0.95, g: 0.25, b: 0.85, a: 1}
+    direction: {x: 0, y: 1}
+    speed: 1.2
+    speedJitter: 0.45
+    spreadDegrees: 28
+    lifetime: 0.8
+    size: 0.36
+    minInterval: 0.25
+    velocityInfluence: 0
+  - lane: 11
+    enabled: 1
+    burstCount: 16
+    tint: {r: 1, g: 0.33, b: 0.7, a: 1}
+    direction: {x: 0, y: 1}
+    speed: 1.26
+    speedJitter: 0.45
+    spreadDegrees: 38
+    lifetime: 0.8
+    size: 0.38
+    minInterval: 0.25
+    velocityInfluence: 0
+  - lane: 12
+    enabled: 1
+    burstCount: 19
+    tint: {r: 1, g: 0.46, b: 0.56, a: 1}
+    direction: {x: 0, y: 1}
+    speed: 1.38
+    speedJitter: 0.45
+    spreadDegrees: 50
+    lifetime: 0.8
+    size: 0.4
+    minInterval: 0.25
+    velocityInfluence: 0

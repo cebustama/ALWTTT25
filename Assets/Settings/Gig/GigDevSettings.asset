@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigDevSettingsSO
   useLogs: 1
   useCompositionLogs: 1
-  logVerbose: 0
+  logVerbose: 1
   debugSongHype: 0
   debugInstrumentPicker: 0
   debugMusicianVolume: 0

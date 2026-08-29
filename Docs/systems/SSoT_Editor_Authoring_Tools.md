@@ -992,8 +992,14 @@ memoria; queda **histórica y debe re-medirse**, no re-citarse.
 **Tres hallazgos de contenido del mismo export**, todos con lote destinatario:
 
 1. **`starter_slap_bass_Payload_Bassline_StyleBundle` está `UNREACHABLE`** mientras la carta
-   `starter_slap_bass` apunta a `BasslineCardConfig_SlapV5`, hecho a mano. Es **D-CSV4b-2
+   `starter_slap_bass` apunta a `BasslineCardConfig_SlapV1`, hecho a mano. Es **D-CSV4b-2
    observado en el proyecto**: el bundle autogenerado quedó huérfano al repuntar la carta.
+   > **Corrección de procedencia (F-R5f-7, 2026-08-28).** Esta fila decía `SlapV5`. Medición por
+> export de inventario en R5-f: `starter_slap_bass` apuntaba a `SlapV3` y quedó repuntada a
+> `SlapV1` bajo D3=A (la técnica más sobria para la carta de mano inicial). Los seis bundles
+> `Slap*` restantes más `SuperSlapV1` y `starter_slap_bass_Payload_Bassline_StyleBundle` figuran
+> `UNREACHABLE`; **dos dejaron de estarlo** al importarse `conito_slap_groove` y
+> `conito_super_slap`.
 2. **Dos cartas de bajo fuera del catálogo de su músico.**
    `Gusano_C_Bassline_001_WormWalk` y `…_002_WormPulse` leen `UNSOURCED`. **«Gusano» es el
    nombre retirado de Sibi**, cuyo `Sibi_CardCatalogData` existe y está enganchado — las dos

@@ -1312,6 +1312,12 @@ namespace ALWTTT.Cards.Editor
             var inspirationCostProp = so.FindProperty("inspirationCost");
             var inspirationGeneratedProp = so.FindProperty("inspirationGenerated");
 
+            // [R5-e / D-R5-26=A] Resource cost pair. Lives on CardDefinition, not on a
+            // CardEffectSpec: specs run AFTER the play commits, and a cost must be able
+            // to refuse the play. Names must match CardDefinition's private fields.
+            var resourceCostKeyProp = so.FindProperty("resourceCostStatusKey");
+            var resourceCostAmountProp = so.FindProperty("resourceCostAmount");
+
             var cardTypeProp = so.FindProperty("cardType");
             var rarityProp = so.FindProperty("rarity");
             var keywordsProp = so.FindProperty("keywords");
@@ -1351,6 +1357,12 @@ namespace ALWTTT.Cards.Editor
             // clamps
             if (inspirationCostProp != null && inspirationCostProp.intValue < 0) inspirationCostProp.intValue = 0;
             if (inspirationGeneratedProp != null && inspirationGeneratedProp.intValue < 0) inspirationGeneratedProp.intValue = 0;
+
+
+            EditorGUILayout.Space(6);
+
+            // [R5-e] Resource cost (the Voltage sink shipped in R5-d).
+            DrawResourceCostSection(resourceCostKeyProp, resourceCostAmountProp, _registries);
 
             EditorGUILayout.Space(6);
 
@@ -1875,6 +1887,11 @@ namespace ALWTTT.Cards.Editor
                         // [R4 / D-R0-1=A] Reveal Preferences (Read the Room).
                         menu.AddItem(new GUIContent("Reveal Preferences"), false,
                             () => AddEffect(effectsProp, new RevealPreferencesSpec()));
+                        // [R5-e] Grant Bonus Loop — the R5-d effect. This menu had aged
+                        // behind the importer (six entries vs seven discriminators), so the
+                        // effect could only be added by importing JSON, never by hand.
+                        menu.AddItem(new GUIContent("Grant Bonus Loop"), false,
+                            () => AddEffect(effectsProp, new GrantBonusLoopSpec()));
                         menu.ShowAsContext();
                     }
                 }
@@ -1994,6 +2011,96 @@ namespace ALWTTT.Cards.Editor
             }
 
             EditorGUILayout.PropertyField(el, includeChildren: true);
+        }
+
+        /// <summary>
+        /// [R5-e] Resource cost pair on CardDefinition (D-R5-26=A). Two authoring
+        /// affordances beyond a bare pair of PropertyFields:
+        ///  (a) the amount is only drawn once a key exists — an amount without a key is
+        ///      inert, so drawing it unconditionally invites authoring a cost that never
+        ///      charges;
+        ///  (b) the key is validated SOFTLY against the project catalogues. Never an
+        ///      error: the key resolves against the PAYER's catalogue at runtime and this
+        ///      window cannot know who will play the card.
+        /// </summary>
+        private static void DrawResourceCostSection(
+            SerializedProperty keyProp,
+            SerializedProperty amountProp,
+            ALWTTTProjectRegistriesSO registries)
+        {
+            if (keyProp == null || amountProp == null) return;
+
+            EditorGUILayout.LabelField("Resource Cost", EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(keyProp, new GUIContent(
+                "Cost Status Key",
+                "Status key spent by whoever plays this card (e.g. \"voltage\"). " +
+                "Leave empty for no resource cost."));
+
+            string key = keyProp.stringValue;
+            bool hasKey = !string.IsNullOrWhiteSpace(key);
+
+            if (!hasKey)
+            {
+                // An amount with no key charges nothing. Do not hide non-zero data:
+                // silent inert state is exactly what an authoring UI must not produce.
+                if (amountProp.intValue != 0)
+                {
+                    EditorGUILayout.PropertyField(amountProp, new GUIContent("Cost Amount"));
+                    EditorGUILayout.HelpBox(
+                        "An amount is set but the key is empty, so this card costs nothing " +
+                        "(HasResourceCost needs BOTH). Clear the amount or set a key.",
+                        MessageType.Warning);
+                }
+                return;
+            }
+
+            EditorGUILayout.PropertyField(amountProp, new GUIContent("Cost Amount"));
+            if (amountProp.intValue < 0) amountProp.intValue = 0;
+
+            if (amountProp.intValue == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "Amount is 0, so this card has no resource cost (HasResourceCost needs amount > 0).",
+                    MessageType.Info);
+            }
+
+            if (!TryCheckResourceCostKey(key, registries, out bool known))
+            {
+                EditorGUILayout.HelpBox(
+                    "Status catalogues are not wired on the project registries, so the key " +
+                    "could not be checked here. It is still resolved at runtime.",
+                    MessageType.Info);
+            }
+            else if (!known)
+            {
+                EditorGUILayout.HelpBox(
+                    $"No StatusEffectSO with key '{key.Trim()}' is registered in either catalogue. " +
+                    "This is a warning, not an error — the key resolves against the PAYER's " +
+                    "catalogue at runtime and this window cannot know who will pay. " +
+                    "Check the spelling if that is unexpected.",
+                    MessageType.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Checks a cost key through the catalogue's OWN lookup, so the editor check
+        /// cannot drift from runtime semantics (StatusEffectCatalogueSO.ContainsKey trims
+        /// and compares OrdinalIgnoreCase). Returns false when there is nothing wired to
+        /// check against — "unknown" and "absent" are different answers.
+        /// </summary>
+        private static bool TryCheckResourceCostKey(
+            string key, ALWTTTProjectRegistriesSO registries, out bool known)
+        {
+            known = false;
+
+            var musicians = registries != null ? registries.StatusCatalogueMusicians : null;
+            var audience = registries != null ? registries.StatusCatalogueAudience : null;
+            if (musicians == null && audience == null) return false;
+
+            known = (musicians != null && musicians.ContainsKey(key))
+                 || (audience != null && audience.ContainsKey(key));
+            return true;
         }
 
         private static void DrawStatusEffectPicker(SerializedProperty statusProp, ALWTTTProjectRegistriesSO registries)

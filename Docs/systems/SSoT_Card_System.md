@@ -428,6 +428,15 @@ deliberate — a tutorial directive outranks a domain rule):
 | 7 | `Budget` | `GigManager.CanConsumePlay` (ECON-1) | `SSoT_Gig_Combat_Core` §14 |
 | — | `None` | playable | — |
 
+**Enforcement now agrees with this order (R5-g, 2026-08-29).** Until R5-g the action play path
+ran its resource gate **after** ECON-1, i.e. in the opposite order to rows 5 and 7 of this table,
+and — because the R5-b Voltage grant fires inside `TryConsumePlay` — it compared against a
+post-grant balance. The overlay (which calls the non-consuming `CanPayResourceCost` and therefore
+sees the pre-grant balance) said red while the drop path allowed the play: both were internally
+right and they disagreed, which is precisely the failure mode CARD-UX-1 exists to remove.
+`HandController` step **2b.5** now performs the same non-consuming check ahead of the budget gate.
+The overlay's precedence is unchanged; what changed is that execution follows it.
+
 **Precedence note (R5-d).** `NoRunningLoop` and `Resource` are evaluated **before**
 `Inspiration` on purpose — a card that cannot exist at this moment (no loop running) or that
 has nothing to pay itself with should read as such, not as "not enough inspiration".

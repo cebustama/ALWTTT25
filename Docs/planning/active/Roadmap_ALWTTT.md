@@ -790,6 +790,53 @@ Long-term design pillar, deferred. Captured in `planning/Design_Tempo_Identity_v
 
 ---
 
+## Post-MVP — Harmonic richness as a visible reward (design direction, no implementation slot)
+
+**Opened 2026-08-26 (RFX-2, D7=B). Planning only. Not a commitment, not a batch.**
+
+**The observation.** RFX-2 shipped a chord-particle ladder with five rungs, keyed on how
+many distinct pitch classes a chord contains. The classifier is correct and costs nothing.
+But the authored chord-progression content only exercises **three** of the five rungs —
+verified against the 48-pattern / 6-palette inventory export: the degree vocabulary runs
+through sevenths (`V7`, `im7`, `Imaj7`, `iim7`, `iiø7`, `VII°`, `#ivdim7`) with a single
+ninth (`IV9`) and a single sixth (`IV6`), and holds **no no-third quality** at all. So
+`ChordTriad` is nearly everything the player sees, `ChordSeventh` appears where sevenths are
+authored, and `ChordExtended` is a one-progression rarity.
+
+**Why this is a design item and not a bug report.** The batch produced a *free visual payoff
+for harmonic complexity* that nothing in the game currently spends. A composition card that
+pushes a progression from triads into sevenths, or a style bundle built around extended
+voicings, would now make the band **visibly** richer with no further presentation work. That
+is a reward channel that did not exist before RFX-2, and it is cheaper to notice now than to
+rediscover later.
+
+**Directions, in rough order of cost.**
+
+1. **Content only — cheapest.** Author more seventh- and extension-heavy progressions into
+   the existing palettes. Exercises `ChordSeventh` and `ChordExtended` with zero code and
+   zero boundary work. This is the obvious first move if the ladder is ever demoed.
+2. **Card identity.** A composition card whose stated identity *is* harmonic sophistication
+   — reharmonisation, a jazz palette — pairing a mechanical effect with the visual step-up.
+   Needs a design pass on what the mechanical half is; the visual half already exists.
+3. **Voicing, not vocabulary — the only one that reaches the two dormant rungs.**
+   `ChordSingle` and `ChordPower` cannot be reached by adding progressions, because they
+   require a *voicing* that omits a chord tone or stacks octaves. Voicing is decided
+   composer-side, inside MidiGenPlay. This would be a boundary ask, and it is **explicitly
+   NOT filed**: we do not yet know whether power-chord voicings are wanted as a game-design
+   matter, and filing a speculative ask would dilute the one open bass ask
+   (MGP-BASS-ARTIC-EVENT-1). Decide the design question first, then file if the answer is
+   yes.
+
+**Explicitly out of scope of this project.** Chord voicing and the progression-generation
+algorithm are MidiGenPlay internals. ALWTTT owns only the game-side reading of what crosses
+the boundary — which, for the ladder, is already correct and already shipped.
+
+**Non-goal.** Do not retire `ChordSingle` or `ChordPower` to "clean up". They are appended
+enum values (8 and 9), serialized in `RhythmFxConfig.asset`; removal buys nothing and the
+values can never be reused.
+
+---
+
 ## Future milestones (scope only, not yet sequenced)
 
 ### Ladder mode (post-demo architectural batch)
@@ -797,15 +844,10 @@ Long-term design pillar, deferred. Captured in `planning/Design_Tempo_Identity_v
 Multi-encounter run mode that queues encounters and dispatches them through `GigLauncher` (single non-Gig→Gig scene transition entry point established by §5.3.5). Introduces `LadderRunner` (DontDestroyOnLoad, encounter-queue holder, gig-won event subscriber) and an `EncounterLaunchConfigSO` family (`DemoLaunchConfigSO` sibling, per-encounter, designed for queuing). Band roster carries over between encounters via `bandRoster: null` to `GigLauncher.Launch` (signature already supports this path). Enables tuning of multi-gig mechanics: Cohesion, card rewards, deck modifications across encounters. Opens after §5.4 closes.
 
 ### Roster Expansion
-- Bring Conito (bassist — flight + electricity) into the band. Prerequisite **met**: bass pipeline validated (BASS-1 + BASS-CARD-1, 2026-07-12). Enablement = campaign batch **R2**.
-- Bring Zig (vocalist — multiharmony) into the band. Prerequisites: `ApplyIncomingVibe` **shipped** (2026-05-18, and already the canonical positive-Vibe path); `Captivated` remains the only open item → campaign batch **R1**. Design intent: `planning/active/Design_Audience_Status_v1.md` §4.
+- Bring Conito (bassist — flight + electricity) into the band. Prerequisite: Bass pipeline validation (currently not on any critical path).
+- Bring Ziggy (vocalist — multiharmony) into the band. Prerequisite: `Captivated` audience-side status (CSO `DamageTakenUpMultiplier`) and `ApplyIncomingVibe` helper on `AudienceCharacterStats`. Both deferred from M4.3 to here; design intent recorded in `planning/Design_Audience_Status_v1.md`.
 - Per-musician identity cards for Conito and Ziggy (Action + Composition).
-- Starter deck revision to 4-musician composition — **specified at R0 (2026-07-23)**: 22 cards / 18 unique, symmetric kit shape (2 composition + 1 action + 1 finisher per musician + 2 generics), 11 composition : 11 action-domain. Supersedes the earlier 8:4 / 7:5 guess. Design: `planning/active/Design_Starter_Deck_v2.md`.
-
-**R1 closed 2026-07-23; R2 + R2c + R2d closed 2026-07-31** (Conito enablement, plus the first
-campaign code in the build: SOLO-1/ORDER-1 harmony wiring and `InstrumentEffect.RandomFromList`,
-both BC-gated and inert in the demo config). **R3 (Zig composition cards) is the remaining
-interleavable enabler.** Live front unchanged: **S5i → S5j**. R4+ still gated on the demo-cut close *(amended 2026-07-31, D-SEQ-3=A: the R4+ gate is the **snapshot tag**, not the S5j tag)*.
+- Starter deck revision to 4-musician composition (likely returns to the 8:4 or 7:5 ratios with 4 identity actions and 4 identity compositions).
 
 ### Progression & Meta
 - Run structure (map, node types, rewards).

@@ -366,6 +366,14 @@ namespace ALWTTT.Cards.LLMAuthoring
             CheckToken(dto.rarity, v.Rarities, "rarity", errors);
             CheckToken(dto.audioType, v.AudioTypes, "audioType", errors);
 
+
+            // [R5-e / D-R5-26=A] The resource-cost pair lives on the card definition, not
+            // on an effect, so it needs its own alphabet check here. An unresolvable key
+            // stages silently: HasResourceCost is true (key non-empty, amount > 0) but no
+            // catalogue can resolve it, which is exactly the silent-wrong outcome this
+            // guard exists to prevent. Empty passes — a card with no cost is legitimate.
+            CheckToken(dto.resourceCostStatusKey, v.StatusKeys, "resourceCostStatusKey", errors);
+
             if (dto.keywords != null)
                 foreach (var kw in dto.keywords)
                     CheckToken(kw, v.SpecialKeywords, "keywords", errors);
@@ -391,7 +399,8 @@ namespace ALWTTT.Cards.LLMAuthoring
                 if (string.IsNullOrEmpty(type))
                 {
                     errors.Add($"effects[{i}].type is required " +
-                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop, RevealPreferences).");
+                       "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, " +
+                       "AddInspirationPerLoop, RevealPreferences, GrantBonusLoop).");
                     continue;
                 }
 
@@ -403,10 +412,17 @@ namespace ALWTTT.Cards.LLMAuthoring
                 // [R4 / D-R0-1=A] Info-only effect; validated on targetType alone.
                 bool isReveal = type.Equals("RevealPreferences", StringComparison.OrdinalIgnoreCase);
 
-                if (!isApplyStatus && !isDraw && !isVibe && !isStress && !isInspLoop && !isReveal)
+                // [R5-e] The R5-d effect. The importer has accepted it since R5-d; this
+                // guard did not, so the LLM route hard-failed any card carrying it.
+                // Nothing to alphabet-check: the spec carries one bool and no token.
+                bool isGrantBonusLoop = type.Equals("GrantBonusLoop", StringComparison.OrdinalIgnoreCase);
+
+                if (!isApplyStatus && !isDraw && !isVibe && !isStress && !isInspLoop && !isReveal &&
+                    !isGrantBonusLoop)
                 {
                     errors.Add($"effects[{i}].type '{e.type}' is not supported " +
-                               "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, AddInspirationPerLoop, RevealPreferences).");
+                        "(ApplyStatusEffect, DrawCards, ModifyVibe, ModifyStress, " +
+                        "AddInspirationPerLoop, RevealPreferences, GrantBonusLoop).");
                     continue;
                 }
 

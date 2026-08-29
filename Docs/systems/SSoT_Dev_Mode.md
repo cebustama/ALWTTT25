@@ -1117,7 +1117,7 @@ verbose del manager de un asset de gig lo dejaría sin gobierno en cualquier esc
 que es exactamente donde se depura composición. El coste —dos mandos en vez de uno— es
 menor que el de un mando que a veces no existe.
 
-### 19.2 Las SIETE líneas PROTEGIDAS
+### 19.2 Las ONCE líneas PROTEGIDAS
 
 Cada una es el observable directo de al menos un test. **Ninguna cuelga de un flag verbose.**
 Degradar cualquiera de ellas rompe la verificación que la sostiene, y la rompe *en silencio*:
@@ -1132,11 +1132,24 @@ el test no falla, deja de poder ejecutarse.
 | `[DBG-C2/CacheBypass] …` | ST-J4, ST-CTX2B-2/3 | Explica **por qué** un render fue fresco. Sin ella, un render fresco y un fallo de caché son indistinguibles en la consola. |
 | `[ChordTrack] Tonality: …` | ST-A7, ST-J3, evidencia de la corrección de premisa de D-R3C-3 | Es la prueba de que el render ocurrió en el modo que se cree. **Package-owned** — ver la trampa de §19.4. |
 | `Timeline ch=…` | ST-LOG-2, C4, comparación de timeline de acordes | Reporta el timeline de acordes por canal. Es donde se leyó la etiqueta de acorde dañada que originó MGP-CHD-ASCII-1. |
+| `[R5-d] <músico> spent N '<key>' for '<carta>' (remaining M)` | ST-R5f-3, ST-R5g-2, ST-R5f-16 | Único observable de la **aritmética** del cobro de recurso. Cuelga de `UseLogs` solo (`GigManager.TryPayResourceCost`). Sin ella no hay forma de distinguir «cobró N» de «cobró N−1», que es exactamente el defecto que R5-g arregló. |
+| `[ECON-1] DENIED <tipo> play — …` | ST-R5g-3, ST-R5f-4 (diferido) | Es el veredicto del presupuesto. **Ver la trampa de §19.7:** la rama `Consumed` de la MISMA cadena es verbose. |
+| `[Gig][R5-g] '<carta>' denied — <músico> cannot pay N '<key>'` | ST-R5g-1, ST-R5f-1, ST-R5f-18 | Único observable de la puerta 2b.5. Nace a tier maestro **por decisión** (D2=B de R5-g, helper `HandController.LogGate`): `CanPayResourceCost` no loguea nada, así que en verbose esta denegación dejaría una carta volviendo a la mano sin explicación en consola. |
+| `[R5-d] Bonus loop granted — part N now M loops (…)` | ST-R5f-6, ST-R5g-2 | Único observable de la concesión del loop de bonus y de sus contadores. **Tier observado** en ST-R5g-0 (visible con `LogVerbose` OFF); el gate no se leyó en código en ese lote — verificar antes de moverla. |
 
-> **Contador.** Son **siete** líneas protegidas en total. Los comentarios de código hablan de
-> **seis** porque cuentan solo las de dueño host: `[ChordTrack] Tonality` es package-owned y no
-> cuelga de ningún flag ALWTTT. No es una contradicción, es una diferencia de alcance — y es
-> exactamente el motivo por el que existe el ask **MGP-LOG-VERBOSE-1**.
+> **Contador.** Son **once** líneas protegidas en total: **diez** de dueño host y una
+> package-owned (`[ChordTrack] Tonality`, que no cuelga de ningún flag ALWTTT — ver §19.4 y el
+> ask **MGP-LOG-VERBOSE-1**). Los comentarios de código hablan de **seis**: cuentan solo las de
+> dueño host **y son anteriores a R5**. No es una contradicción, es un recuento sin actualizar;
+> las cuatro filas nuevas entraron con R5-g (2026-08-29) tras medir sus tiers en **ST-R5g-0**.
+
+> **Líneas de R5 que NO son protegidas, y qué significa.** Medido en ST-R5g-0 (2026-08-29,
+> `UseLogs` ON / `LogVerbose` OFF, jugando Overload): `[ECON-1] Consumed <tipo> play` y
+> `[R5-b] +1 Voltage → <músico>` **no salen**. Son verbose. Consecuencia operativa, no cosmética:
+> **ST-R5f-17 (generación real de Amp Up) y cualquier test que lea la generación solo son
+> ejecutables con `LogVerbose` en ON**, y así deben redactarse en su precondición. La alternativa
+> —promoverlas a maestro— se rechazó: la generación es contabilidad de rutina que dispara en cada
+> jugada consumida, y §19.1 reserva el tier maestro para lo que explica un comportamiento.
 
 ### 19.3 LA TRAMPA: `[B1][stemCache]` vs `[B1][stemCache][DIAG]`
 
@@ -1194,3 +1207,23 @@ Antes de mover una línea a verbose o de retirarla:
    lote** que el test. Una línea protegida sin entrada aquí es una línea que el siguiente
    lote apagará.
 3. Los volcados nuevos por render / por loop nacen **verbose por defecto**.
+4. **Antes de filtrar por prefijo, leer §19.7.** Una línea cuyo tier depende del resultado en
+   tiempo de ejecución no se puede clasificar leyendo su texto.
+
+### 19.7 TRAMPA 2: el `if` partido de `TryConsumePlay`
+
+**Una misma cadena de formato vive en dos tiers según el resultado.** En
+`GigManager.TryConsumePlay` (~l.2124):
+
+```
+if (UseLogs && (!ok || UseVerboseLogs))
+    Debug.Log($"… [ECON-1] {(ok ? "Consumed" : "DENIED")} …");
+```
+
+La rama **DENIED** cuelga solo del maestro y está **PROTEGIDA** (§19.2). La rama **Consumed** es
+verbose. Un lote que quiera «bajar a verbose el ruido de ECON-1» y filtre por el prefijo común
+`[ECON-1]` apagará también la denegación. **Filtrar por la palabra del resultado, nunca por el
+prefijo** — misma familia de error que §19.3, en otro sitio y con otra forma sintáctica: allí son
+dos `Debug.Log` distintos con prefijos anidados, aquí es **un solo** `Debug.Log` cuyo tier depende
+de una variable en tiempo de ejecución. La segunda forma es peor: no hay dos líneas que separar,
+hay una condición que leer.

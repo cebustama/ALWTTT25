@@ -947,7 +947,7 @@ MonoBehaviour:
   drumChannel: 9
   chordMinNotes: 3
   logMisses: 1
-  logEveryHit: 0
+  logEveryHit: 1
   logChannelOwnership: 1
 --- !u!1 &175278646
 GameObject:

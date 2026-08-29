@@ -10,20 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b987196233c610489faff2eb050697c, type: 3}
-  m_Name: starter_slap_bass_Payload
+  m_Name: conito_super_slap_Payload
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CompositionCardPayload
   effects: []
   primaryKind: 1
   trackAction:
     role: 3
-    styleBundle: {fileID: 11400000, guid: 9662aed883256b747bb66e3885e0fc5a, type: 2}
+    styleBundle: {fileID: 11400000, guid: d99b0fdc75a67684c8c43eb3576a5032, type: 2}
   partAction:
     action: 0
     customLabel: 
     musicianId: 
   modifierEffects:
   - {fileID: 11400000, guid: e50a3569835e7674e891044d4cd2f30d, type: 2}
-  - {fileID: 11400000, guid: 12005ff9eb8f2e4438d5a728b17ad435, type: 2}
   references:
     version: 2
     RefIds: []

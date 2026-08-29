@@ -128,6 +128,41 @@ namespace ALWTTT.Cards.LLMAuthoring.Tests
             StringAssert.Contains("Conito", r.UserPrompt);
         }
 
+        /// <summary>
+        /// The EFFECTS block is hand-maintained while the stage-1 alphabets self-update
+        /// from Enum.GetNames(), so it silently ages behind the importer — it did: six
+        /// entries vs seven discriminators, R5-d through R5-e. The list below mirrors
+        /// CardEditorWindow.JsonImport's discriminator set; the test assembly cannot
+        /// reference the editor assembly, so this stays a hand-copied contract — but it
+        /// now fails loudly instead of yielding a generator that quietly cannot emit an
+        /// effect the importer accepts.
+        /// </summary>
+        [Test]
+        public void SystemPrompt_DeclaresEveryImporterEffectDiscriminator()
+        {
+            var r = CardLLMPromptBuilder.Build(MakeVocabulary(), new CardLLMPromptBuilder.Input("a card"));
+            Assert.IsTrue(r.Success, r.FailureReason);
+
+            string[] discriminators =
+            {
+                "ApplyStatusEffect", "DrawCards", "ModifyVibe", "ModifyStress",
+                "AddInspirationPerLoop", "RevealPreferences", "GrantBonusLoop"
+            };
+
+            foreach (var d in discriminators)
+                StringAssert.Contains("\"type\": \"" + d + "\"", r.SystemPrompt,
+                    $"the prompt does not declare the '{d}' effect the importer accepts");
+        }
+
+        [Test]
+        public void SystemPrompt_DeclaresResourceCostPair()
+        {
+            var r = CardLLMPromptBuilder.Build(MakeVocabulary(), new CardLLMPromptBuilder.Input("a card"));
+            Assert.IsTrue(r.Success, r.FailureReason);
+            StringAssert.Contains("resourceCostStatusKey", r.SystemPrompt);
+            StringAssert.Contains("resourceCostAmount", r.SystemPrompt);
+        }
+
         [Test]
         public void TotalCharCount_IsSumOfPrompts()
         {

@@ -46,3 +46,11 @@ MonoBehaviour:
     flags: 6
     unlockId: 
     starterCopies: 1
+  - card: {fileID: 11400000, guid: a9e3088ed3a61bb49a7043b0a4bfadaa, type: 2}
+    flags: 6
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: 951b1c995b2fabb4c845932b2c05afca, type: 2}
+    flags: 2
+    unlockId: r8_super_slap
+    starterCopies: 1

@@ -400,14 +400,22 @@ Inspiration's shape exactly.
 Resolution and spend live on the host: `GigManager.CanPayResourceCost` /
 `TryPayResourceCost`, keeping the **dual guard** (primitive `ResourceCounter` **and**
 `StatusKey` match) checked against the live container instance. The spend goes through
-`SpendStacks` (§3.0), not through a negative `Apply`. Both play paths gate before any spend;
-the Action path spends after `TryConsumePlay` and the Composition path only on a
-session-accepted drop. Order against the R5-b generation hook is net-neutral: a `+1` grant and
-a `−N` spend both occur regardless of which runs first. The overlay surfaces a shortfall as
+`SpendStacks` (§3.0), not through a negative `Apply`.
+
+**Both play paths check before anything is consumed, and spend afterwards (R5-g, 2026-08-29).**
+Action path: non-consuming check at `HandController` **2b.5**, ahead of the ECON-1 budget gate;
+spend after `TryConsumePlay`. Composition path: check in `TryPlayCompositionCard` before the
+one-shot animation; spend only on a session-accepted drop. **The check must run before the R5-b
+grant** — that is the whole contract. Ordering against the generation hook is net-neutral for the
+*balance* (a `+1` and a `−N` both occur either way) and **not** net-neutral for the *gate*:
+addition commutes, threshold-check-then-add does not. Any future tariffing of Conito cards is
+calibrated against the **pre-grant** balance. The overlay surfaces a shortfall as
 `UnplayableReason.Resource` (`SSoT_Card_System.md` §10.5).
 
-First card: **Overload** (Action, Conito, inspiration 2, Voltage 3). D-R5-22 admits
-composition cards as sinks with the same pair and no further code.
+First card: **Overload** (Action, Conito, **inspiration 0** since R5-f, Voltage 3). D-R5-22
+admits composition cards as sinks with the same pair and no further code. *(Cost corrected
+2026-08-29, F-R5g-3: this line still read "inspiration 2" after R5-f re-authored the card to 0;
+the change was recorded in `CURRENT_STATE.md` and never propagated here.)*
 
 > **Scope note (F-R5c-4).** This passive Overload is **not** the Overload of the accepted R5
 > scope. The accepted scope (D-R0-5=A, D-R0-12, D-R5-4=A) is a playable **Action-domain card**
@@ -455,11 +463,49 @@ the hook (`DEV_Voltage_Plus1` played by Conito = **+2**). The ST-R5a-1..4 arithm
 re-running the R5-a suite. *(Primary home is the R5-a runbook header; recorded here because that
 runbook is not a governed document.)*
 
+**Amp Up is live, and it breaks the measurement (F-R5f-5, 2026-08-28).** `reward_amp_up`
+(`ApplyStatus "Voltage"`, `stacksDelta +2`) is authored and carries `RewardPool |
+UnlockedByDefault`, so it is reachable. Played by Conito it grants **+3**, not +2: the spec's
+delta **plus** the consumed-play hook. The "+2 per period" ceiling measured in R5-b — the number
+the threshold of 6 was fixed against (D-R5-14=A) — was taken **before an explicit generator
+existed** and no longer describes the game. **Re-measure before touching any threshold.** The
+inherited tuning rule still stands: lower the threshold, never raise generation.
+
+**Resource-cost gate ordering — FIXED in R5-g (2026-08-29). Kept as the record of the defect and
+of what it corrected.** *(F-R5f-1, found 2026-08-28; D5=A; fixed by D1=B, see below.)* On the
+**action** route the ECON-1 budget gate ran **before** the resource gate,
+and the generation hook lives inside `TryConsumePlay`. A card costing N, played by a musician who
+generates that same resource, therefore costs **N−1** effective: verified at 2 stacks paying a
+cost of 3 (2 → +1 → pay 3 → 0). The **composition** route does not have the defect — it checks the
+resource first (ST-R5f-16 PASS), so the fix is to align action with composition. This **corrects a
+claim in D-R5-26=A**: the order being "net-neutral" is true for the balance and **false for the
+gate** — addition commutes, threshold-check-then-add does not. Twin consequence: the playability
+overlay evaluated before the grant (short ⇒ red) and the drop path after (sufficient ⇒ allowed);
+both were right and they disagreed.
+
+**Resolution (R5-g, D1=B).** The fix was **not** to swap the two gates. `SSoT_Gig_Combat_Core`
+§14.4 already specified a pre-check on the action path (as "2a.6-bis") that had never been
+implemented; R5-g implemented it as `HandController` **2b.5** — `CanPayResourceCost`,
+non-consuming, ahead of the budget gate — and left the spend where it was. A literal swap
+(spending the resource before the budget gate) would have fixed the arithmetic while creating the
+mirror asymmetry: a budget denial after a completed spend would burn Voltage, a persistent
+resource, to save a per-turn one. With 2b.5 in place **neither** gate can burn the other's
+resource. Verified by ST-R5g-1..8, 8/8 PASS, including the mirror case explicitly (ST-R5g-3:
+ECON-1 denial with sufficient Voltage leaves the Voltage untouched).
+
 **Verification:** ST-R5a-1..5 + ST-R5a-6R PASS (2026-08-21) — absence of decay checked at seven
 boundaries with a positive control, not by reading the SO; the clamp at 9 checked from 7 with
 `+4` and from 9 with `+1`. ST-R5b-1..6 + ST-R5b-7R PASS (2026-08-21) — generation, denial paths,
 attribution, toggle. ST-R5c-1..9 PASS first time (2026-08-21) — threshold, spend, ×1.5 on
-`hypeDelta`, one discharge per boundary, no pending state.
+`hypeDelta`, one discharge per boundary, no pending state. **ST-R5f-1..18 (2026-08-28)** — 15 PASS,
+2 FAIL (both the gate-ordering defect above, **cleared by ST-R5g-1 and ST-R5g-5 on 2026-08-29**),
+1 deferred; **ST-R5g-1..8 (2026-08-29)** — 8/8 PASS: denial at 2 stacks against a cost of 3 with
+the budget untouched, unchanged arithmetic at 3 stacks, ECON-1 denial leaving the resource
+untouched, composition route unregressed, overlay and drop path in agreement, cards without an
+authored cost unaffected, clean denial when the resource is absent rather than at 0; `ST-R5d-1..15` was declared lost and
+replaced (`RosterExpansion_Sub_Roadmap.md` §3.2). `ST-R5f-16` is the **first real test of
+D-R5-22=A**: a composition card as a Voltage sink, denied fail-closed at 2 stacks against a cost
+of 3.
 
 ---
 

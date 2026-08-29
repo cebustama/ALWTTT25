@@ -1,11 +1,8 @@
-﻿ALWTTT25
+ALWTTT25
+(generado 2026-08-29 19:30)
 +---.github
 |   \---copilot-instructions.md
 +---Assets
-|   +---_Recovery
-|   |   +---0 (1).unity
-|   |   +---0 (2).unity
-|   |   \---0.unity
 |   +---CompositionSmoke
 |   |   +---BassLineTest.asset
 |   |   +---smoke_ba_155959.mid
@@ -42,6 +39,10 @@
 |   |   \---smoke_ba-ba-me-rh_181437.mid
 |   +---Materials
 |   |   +---Mat_RhythmFx_Chord.mat
+|   |   +---Mat_RhythmFx_ChordExtended.mat
+|   |   +---Mat_RhythmFx_ChordPower.mat
+|   |   +---Mat_RhythmFx_ChordSeventh.mat
+|   |   +---Mat_RhythmFx_ChordTriad.mat
 |   |   +---Mat_RhythmFx_Cymbal.mat
 |   |   +---Mat_RhythmFx_HiHatClosed.mat
 |   |   +---Mat_RhythmFx_HiHatOpen.mat
@@ -2176,6 +2177,7 @@
 |   |   |   |       |   +---BassCard_ChordToneWalk.asset
 |   |   |   |       |   +---BassCard_W2_Improv.asset
 |   |   |   |       |   +---BasslineCardConfig_Bend1.asset
+|   |   |   |       |   +---BasslineCardConfig_SlapGroove.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapV1.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapV2.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapV3.asset
@@ -2637,7 +2639,20 @@
 |   |   |   |       +---particle-ring.png
 |   |   |   |       +---particle-sparkle.png
 |   |   |   |       +---particle-star4-small.png
-|   |   |   |       \---particle-treble.png
+|   |   |   |       +---particle-treble.png
+|   |   |   |       +---ps-chord.png
+|   |   |   |       +---ps-chord-extended.png
+|   |   |   |       +---ps-chord-power.png
+|   |   |   |       +---ps-chord-seventh.png
+|   |   |   |       +---ps-chord-triad.png
+|   |   |   |       +---ps-cymbal.png
+|   |   |   |       +---ps-hihat-closed.png
+|   |   |   |       +---ps-hihat-open.png
+|   |   |   |       +---ps-kick.png
+|   |   |   |       +---ps-note.png
+|   |   |   |       +---ps-snare 1.png
+|   |   |   |       +---ps-snare.png
+|   |   |   |       \---ps-tom.png
 |   |   |   +---Ship
 |   |   |   |   +---nave espacial.png
 |   |   |   |   +---sala de ensayo.png
@@ -2682,7 +2697,8 @@
 |   |   +---3 - Gig Scene.unity
 |   |   +---ALWTTTCore.unity
 |   |   +---Game Over.unity
-|   |   \---MidiGenPlay Panel Sample.unity
+|   |   +---MidiGenPlay Panel Sample.unity
+|   |   \---RhythmFxSandbox.unity
 |   +---Scripts
 |   |   +---Backgrounds
 |   |   |   +---BackgroundContainer.cs
@@ -2980,6 +2996,9 @@
 |   |   |   +---LoopScoreCalculator.cs
 |   |   |   +---MidiEventInterfaces.cs
 |   |   |   +---MusicianMidiResponder.cs
+|   |   |   +---RhythmFxTester.cs
+|   |   |   +---RhythmParticleEmitter.cs
+|   |   |   +---RhythmParticleMidiListener.cs
 |   |   |   \---SongConfigBuilder.cs
 |   |   +---Sensory
 |   |   |   +---Events
@@ -3088,9 +3107,7 @@
 |   |   +---Code_Extended.zip
 |   |   +---Code_Min.zip
 |   |   +---file_tree.txt
-|   |   +---make-tree-unity.bat
-|   |   +---RhythmParticleEmitter.cs
-|   |   \---RhythmParticleMidiListener.cs
+|   |   \---make-tree-unity.bat
 |   +---Settings
 |   |   +---Build Profiles
 |   |   |   \---New Windows Profile.asset
@@ -3101,7 +3118,8 @@
 |   |   |   +---GigDevSettings.asset
 |   |   |   +---GigFlowSettings.asset
 |   |   |   +---GigMeterTuning.asset
-|   |   |   \---GigPresentation.asset
+|   |   |   +---GigPresentation.asset
+|   |   |   \---RhythmFxConfig.asset
 |   |   +---Scenes
 |   |   |   \---URP2DSceneTemplate.unity
 |   |   +---Lit2DSceneTemplate.scenetemplate
@@ -3171,7 +3189,8 @@
 |   +---gig_runs_2026-07-20.jsonl
 |   +---gig_runs_2026-07-23.jsonl
 |   +---gig_runs_2026-08-11.jsonl
-|   \---gig_runs_2026-08-20.jsonl
+|   +---gig_runs_2026-08-20.jsonl
+|   \---gig_runs_2026-08-29.jsonl
 +---Docs
 |   +---archive
 |   |   +---absorbed
@@ -3188,7 +3207,8 @@
 |   |   +---Runbook_ST_R5a_Voltage.md
 |   |   \---SNAPSHOT_RETENTION_POLICY.md
 |   +---audits
-|   |   \---ALWTTT_Combat_MVP_Audit_Final.md
+|   |   +---ALWTTT_Combat_MVP_Audit_Final.md
+|   |   \---PK_Audit_Report_2026-08-26.md
 |   +---integrations
 |   |   +---midigenplay
 |   |   |   +---ALWTTT_Uses_MidiGenPlay_Quick_Path.md
@@ -3203,6 +3223,7 @@
 |   |   |   +---CSV_Composition_Validation_Sub_Roadmap.md
 |   |   |   +---Design_Audience_Status_v1.md
 |   |   |   +---Design_Composition_Debug_Tab_v0_1.md
+|   |   |   +---Design_Composition_Variations_v0_1.md
 |   |   |   +---Design_Demo_Cut_v1.md
 |   |   |   +---Design_Sensory_Contract_v0_1.md
 |   |   |   +---Design_Starter_Deck_v2_DRAFT.md
@@ -3260,6 +3281,8 @@
 |   +---coverage-matrix.md
 |   +---CURRENT_STATE.md
 |   +---make-tree-unity.bat
+|   +---MGP_Boundary_Index.md
+|   +---PK_Manifest.md
 |   +---README.md
 |   +---SSoT_CONTRACTS.md
 |   +---SSoT_INDEX.md
@@ -3380,4 +3403,6 @@
 +---Docs.zip
 +---file_copies.zip
 +---files.txt
-\---make-tree-unity.bat
++---F-R5e-3_payment_gate.txt
++---make-tree-unity.bat
+\---make-tree-unity.ps1

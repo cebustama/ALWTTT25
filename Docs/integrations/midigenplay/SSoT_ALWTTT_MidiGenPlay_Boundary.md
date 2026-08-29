@@ -567,6 +567,7 @@ refactor is ever planned, ALWTTT needs a real readback first.
 | **MGP-MEL-1** | 2026-08-05 | Pipeline de melodía | Enviado | Ocho puntos (P1..P8). P1 selección de altura estancada dentro de la frase (fue bloqueante de Showtime) · P2 campos serializados inertes · P3 observabilidad del leading efectivo · P4 progresiones modales vs tonalidad de la parte · P5 viabilidad de "Rise Up adaptativa" · P6 refinamiento/documentación de la superficie de autoría de melodía · P7 propiedad de la progresión al añadir pistas a un jam en marcha · P8 `totalSlotsInPhrase` inconsistente. P6 es transversal: lo motivan tres campos serializados inertes y una tabla de precedencia no documentada. |
 | **MGP-ARTIC-RATE-1** | 2026-08-03 | Backing / articulación | Enviado | Figura concreta + `arpeggioRate = Random` ⇒ render sin articulación, y **sin warning** pese a la regla "never silent". Detalle y evidencia: §8.7. |
 | **MGP-CHD-ASCII-1** | 2026-08-08 | Marcador `chd:` | Enviado, **sin prioridad asignada** | ¿El marcador `chd:` debe ser **ASCII puro** o **UTF-8**? Ver §8.10 — hoy ALWTTT no puede distinguir dos causas posibles y ha mitigado consumer-side. |
+| **MGP-BASS-ARTIC-EVENT-1** | 2026-08-26 | Bass / articulación | **Por enviar** (RFX-2) | Pedido: un marcador de articulación explícito por hit — `art:<canal>:<clase>`, escrito como `TextEvent`, **mismo transporte que `chd:`** — para Slap / Pop / Ghost / GhostPop / HammerOn / PullOff. Motivo: HammerOn/PullOff **no emiten NoteOn** (MGP-ALWTTT-BASS-BEND-1: legato real sobre nota portadora, pitch bend post-build vía `PitchBendWriter`) y `MidiMusicManager` **no lee pitch bend en absoluto**, así que son estructuralmente invisibles al consumidor. Slap vs Pop tampoco es separable con fiabilidad: el pliegue de techo D-REG-2=B puede hacer que Pop caiga sobre la nota seleccionada, y los boosts son autorados por carta. **Nota de implementación:** un marcador de legato **no puede** engancharse al tick de un NoteOn como hace `chd:`, porque el hit legato no tiene NoteOn; debe dispararse por **cruce de tick**, como `_partMarkers`. Detalle: §8.12. |
 | **MGP-LOG-VERBOSE-1** | 2026-08-08 | Logging del generador | Enviado | **Partir `MidiGenPlayConfig.logGenerator`.** Hoy es **un solo bit** que contiene a la vez `[MelodySlot]` (una línea por nota — el volumen dominante de la consola) y `[ChordTrack] Tonality`, de la que dependen tests del host (ST-A7, ST-J3). El host no puede silenciar el ruido sin perder un observable protegido, ni conservar el observable sin tragarse el ruido. Pedido: dos bits, o un bit por familia de línea. Contexto host: `SSoT_Dev_Mode.md` §19.1/§19.2. |
 
 ### 8.10 La tipografía de la etiqueta de acorde es propiedad de ALWTTT (LOG-1, 2026-08-08)
@@ -651,3 +652,65 @@ ya es incorrecto, el defecto es nuestro y no cruza la frontera; si es correcto, 
 compañero arranca con evidencia en lugar de con sospecha. Es la misma disciplina que §8.10 aplicó
 al daño de glifos en la etiqueta de acorde: medir de qué lado nace el dato antes de asignar el
 bug.
+
+---
+
+### 8.12 La articulación de bajo no cruza la frontera hoy (RFX-2, 2026-08-26)
+
+**Posición de frontera, en una frase: MidiGenPlay decide qué SUENA; si lo que suena no deja
+un artefacto observable, ALWTTT no lo adivina — lo pide.**
+
+**Lo que se quería.** Partículas por articulación de bajo: slap, pop, hammer-on, pull-off.
+
+**Por qué no se puede inferir — verificado contra las copias `MGP-20260810_*`, no inferido.**
+
+1. **HammerOn / PullOff no golpean ninguna nota.** MGP-ALWTTT-BASS-BEND-1: el hit legato ya
+   no ataca; el hit anterior se convierte en su **portadora**, la puerta de la portadora se
+   extiende por la cola, y cada hit de cola se convierte en un gesto de pitch bend escrito
+   post-build por `PitchBendWriter`.
+2. **`MidiMusicManager` no lee pitch bend.** `HandleMidiEvents` filtra
+   `MPTKCommand.NoteOn && Velocity > 0`. No existe ninguna rama `PitchWheel` en el archivo.
+3. **Slap vs Pop tampoco es separable con fiabilidad.** Pop es seleccionada + 12 con boost
+   aditivo, pero el pliegue de techo D-REG-2=B hace que Pop caiga **sobre** la nota
+   seleccionada cuando +12 no cabe: Pop puede ser idéntico en altura a Slap. Los boosts
+   (`pocketSlapBoost` / `pocketPopBoost`) son autorados por carta y pueden ser iguales o
+   cero, y Ghost / GhostPop añaden dos clases más con otra ley de velocidad.
+
+De modo que «inferir desde los datos de nota» no es frágil: para la mitad del vocabulario es
+**estructuralmente imposible**, y para la otra mitad es una heurística sobre números
+autorados que pueden coincidir legítimamente.
+
+**Lo interesante, y la lección general de esta frontera.** MidiGenPlay hizo el hammer-on
+*musicalmente correcto* volviéndolo invisible para nosotros. Un hammer-on real no es un
+segundo ataque: es una nota pulsada cuya altura se mueve. Renderizarlo como bend sobre una
+portadora sostenida es la decisión correcta para cómo **suena** — y esa misma decisión borra
+el único artefacto que un consumidor basado en NoteOn podría haber visto. El patrón se
+repetirá: el paquete optimiza la verdad de audio, y la verdad de audio a veces elimina los
+ganchos que un consumidor visual habría usado. La respuesta nunca es hacer ingeniería
+inversa del audio; es pedir un evento explícito.
+
+**El mecanismo pedido ya existe y está probado en producción.** Las etiquetas de acorde
+cruzan esta misma frontera como `TextEvent` de DryWetMidi,
+`chd:<canal>:<roman>:<símbolo>:<deg>:<quality>`, parseadas en carga por `BuildChordMarkers`.
+Un marcador `art:` viajaría por los mismos raíles. Con una precisión de implementación que es
+justamente lo que hace de esto un pedido package-side y no un parseo consumer-side: los
+marcadores de articulación **no pueden** engancharse a ticks de NoteOn como hace `chd:`,
+porque los hits legato no tienen NoteOn. Deben dispararse por **cruce de tick**, como ya
+hacen `_partMarkers` en `Update`.
+
+**Estado ALWTTT.** Ninguna partícula de bajo implementada. `RhythmLane` no gana peldaños de
+bajo hasta que el ask se entregue. **Ninguna heurística de inferencia se ha escrito,
+deliberadamente:** una heurística silenciosamente equivocada aquí sería indistinguible de un
+render correcto, y por tanto intestable.
+
+**Frescura de la evidencia.** Verificado contra las copias `MGP-20260810_*` del proyecto
+compañero. Si MidiGenPlay ha cerrado batches BASS después del 2026-08-10, reverificar los
+puntos 1 y 3 **antes** de enviar el ask.
+
+**Nota sobre consumidores (RFX-1/RFX-2, cierre del condicional del paquete de diffs).**
+Este SSoT define la **forma** de la frontera, no la lista de consumidores ALWTTT-side de
+`MidiMusicManager`; por eso RFX-1 no abrió fila de consumidor aquí. RFX-1 y RFX-2 añadieron
+un consumidor en el lado ALWTTT de una superficie existente, que es exactamente lo que la
+frontera permite: `TrackRole.Rhythm → canal 9`, la resolución de propiedad por pista y
+`RegisterMusicianAnchor` fueron **leídos**, nunca redefinidos. La única entrada que RFX-2
+genera aquí es el ask de §8.9 + este §8.12.
