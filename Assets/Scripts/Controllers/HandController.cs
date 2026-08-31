@@ -5,6 +5,7 @@ using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using ALWTTT.Interfaces;
 using ALWTTT.Managers;
+using ALWTTT.Sensory;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -888,6 +889,13 @@ namespace ALWTTT
                 if (bandCharacter is MusicianBase bandMusician)
                 {
                     bandMusician.PlayCardOneShotAnimation(data);
+
+
+                    // [WINK-1 D-WINK-1=A] Commit beat: past every denial gate,
+                    // before effects. Bus-published so presentation stays out
+                    // of the play pipeline.
+                    SensoryEventBus.Instance?.Publish(
+                        new CardPerformedEvent(bandMusician, data));
                 }
 
                 // 2c) Execute the card in gig context

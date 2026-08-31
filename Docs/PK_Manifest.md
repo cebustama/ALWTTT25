@@ -42,6 +42,22 @@ verificado contra el contenido real de los ficheros:
 | `MidiEventInterfaces.cs` | **Petición CERRADA.** Solicitado cuatro veces durante RFX-1 y RFX-2 y adjuntado por fin el 2026-08-26. `ChordEvent.notes` es `List<int>`; `MidiTaggedEvent` y `ChordEvent` son `struct` de campos públicos. **Todas las inferencias de RFX-1 sobre ambas formas resultaron correctas.** No borrar esta fila al cerrarla: es la evidencia de que la inferencia fue segura, y el único registro de que el fichero **no** entra al PK (se lee por lote, ver §B). | cerrada |
 | Los 5 ficheros del lote RFX-2 (`RhythmLane.cs`, `RhythmFxConfigSO.cs`, `RhythmParticleEmitter.cs`, `RhythmParticleMidiListener.cs`, `RhythmFxTester.cs`) | **No entran al PK.** Se mantiene la exclusión decidida en RFX-1 §6. `RhythmFxTester.cs` y `RhythmFxSandbox.unity` son dev-only y además están fuera del build. | sin acción |
 
+#### Refrescos abiertos por WINK-1 (2026-08-31)
+
+El lote modificó código cuyas copias viven en el PK. **Un refresco no está hecho hasta que su fila
+lo dice** (§C.1), así que las filas de §A.2 quedan marcadas y estas son las acciones pendientes.
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `StatusEffectContainer.cs` | **Refrescar.** El publisher de `StatusAppliedEvent` pasa `effect` como cuarto argumento. | **abierto** |
+| `StatusEffectSO.cs` | **Refrescar.** Campo `applySfx` + accessor `ApplySfx`. | **abierto** |
+| `HandController.cs` | **Refrescar.** `using ALWTTT.Sensory` + publish de `CardPerformedEvent` tras `PlayCardOneShotAnimation`. | **abierto** |
+| `MusicianBase.cs` | **Refrescar + corregir clasificación.** `PlayCardAnimationRoutine` resuelve vía `MusicianCharacterData.ResolveCardAnimation`. Además figura en §B.2 como retirado a Capa 3 pero **está presente en el PK**: corregir la contradicción al refrescar. | **abierto** |
+| `CharacterCanvas.cs` | **Solo corrección de clasificación.** No lo tocó WINK-1; misma contradicción retirado-pero-presente que `MusicianBase.cs`, pendiente desde antes del lote. | **abierto** |
+| `GigManager.cs` | **No está en el PK** (Capa 3, §B.2 — 171 KB). Modificado por WINK-1 (publish de composición): se anota aquí para que el próximo lote que lo pida sepa que su copia de repo debe ser posterior al 2026-08-31. | sin acción de PK |
+| `SensoryFxAdapter.cs` · `SensoryAudioAdapter.cs` · `SensoryFtPresentation.cs` · `CharacterSfxProfileSO.cs` · `MusicianCharacterData.cs` | **No entran al PK.** Modificados por WINK-1; se piden por lote (Capa 3). | sin acción |
+| `CardPerformedEvent.cs` · `StatusVisualDriver.cs` | **Ficheros nuevos, no entran al PK.** Costuras pequeñas y estables; se piden por lote si un lote futuro las edita. Rutas: `Assets/Scripts/Sensory/` y `Assets/Scripts/Characters/`. | sin acción |
+
 #### Discrepancia abierta — el conjunto `MGP-20260810_*` está en el PK
 
 **Detectada al abrir RFX-2 (2026-08-26). Necesita veredicto; no dejar sin decidir.**
@@ -142,8 +158,8 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | `SSoT_Status_Effects.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
 | `SongConfigBuilder.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Music/SongConfigBuilder.cs | BAL-1 (2026-07-22): mixGains; DBG-C1: MusicianTrackKey | lotes posteriores posibles: R5-d render-scope solo (§8 inv 14) — no verificable en la copia |
 | `StatusEffectCatalogueSO.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Status/StatusEffectCatalogueSO.cs | statusKey presente; sin marca posterior | sin lote posterior conocido |
-| `StatusEffectContainer.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Status/Runtime/StatusEffectContainer.cs | R5-a (2026-08-21): SpendStacks + MaxStacks presentes | ok · sin lote posterior conocido |
-| `StatusEffectSO.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Status/StatusEffectSO.cs | R5-pre (2026-08-11): SuggestKey presente | ok · sin lote posterior conocido |
+| `StatusEffectContainer.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Status/Runtime/StatusEffectContainer.cs | R5-a (2026-08-21): SpendStacks + MaxStacks presentes | **RANCIA desde WINK-1 (2026-08-31)** — la copia del PK publica `StatusAppliedEvent` con 3 argumentos; el código real pasa 4 (`effect`). Refresco abierto en §A.1 |
+| `StatusEffectSO.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Status/StatusEffectSO.cs | R5-pre (2026-08-11): SuggestKey presente | **RANCIA desde WINK-1 (2026-08-31)** — falta `applySfx` / `ApplySfx`. Refresco abierto en §A.1 |
 | `changelog-ssot.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | historia semántica |
 | `coverage-matrix.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | lookup de autoridad |
 | `ssot_manifest.yaml` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | manifiesto (governs:) |

@@ -56,6 +56,13 @@ namespace ALWTTT.Sensory
         /// parity — in particular ST-PRES1-6, where the expected count is 0).</summary>
         public long SpotlightRedirectEventsHandled { get; private set; }
 
+
+        /// <summary>[WINK-1] Performer-beat events handled (ST-W1/W6 parity).</summary>
+        public long CardPerformedEventsHandled { get; private set; }
+
+        /// <summary>[WINK-1] Status-applied events handled (ST-W3/W7 parity).</summary>
+        public long StatusAppliedEventsHandled { get; private set; }
+
         [Header("JUICE-PW: card Vibe impact presentation")]
         [Tooltip("One-shot kick intensity [0..1] for the impacted audience " +
                  "member's CharacterAnimator (null-guarded per prefab).")]
@@ -71,6 +78,25 @@ namespace ALWTTT.Sensory
         [Tooltip("Particles burst on each impacted member (0 = off). Blocked " +
                  "(INDIFFERENT) members get no burst — the grey FT carries it.")]
         [SerializeField][Min(0)] private int targetBurstParticles = 6;
+
+
+        [Header("WINK-1: status-apply presentation")]
+        [Tooltip("One-shot kick intensity [0..1] on the character that RECEIVES " +
+                 "a status (soft — the card-impact kick stays the loud one).")]
+        [SerializeField][Range(0f, 1f)] private float statusApplyKickIntensity = 0.4f;
+
+
+        [Tooltip("Particles burst on the PERFORMER at the card-performed beat " +
+                 "(0 = off). This is the anticipation burst at commit; the " +
+                 "JUICE-PW performer burst is a SEPARATE, later beat that only " +
+                 "damage cards reach (AudienceVibeImpact). A damage card fires " +
+                 "both — keep this one smaller.")]
+        [SerializeField][Min(0)] private int cardPerformedBurstParticles = 8;
+
+        [Tooltip("Kick intensity [0..1] on the performer at the card-performed " +
+                 "beat. Leave at 0 when an Animator gesture already carries the " +
+                 "beat (D-WINK-AUTH-2=A) — a kick on top double-pops the pose.")]
+        [SerializeField][Range(0f, 1f)] private float cardPerformedKickIntensity = 0f;
 
         private SensoryEventBus _bus;
 
@@ -92,6 +118,9 @@ namespace ALWTTT.Sensory
             _bus.Subscribe<AudienceVibeImpactEvent>(OnVibeImpact);
             _bus.Subscribe<SpotlightRedirectEvent>(OnSpotlightRedirect); // [PRES-1]
 
+            _bus.Subscribe<CardPerformedEvent>(OnCardPerformed);   // [WINK-1]
+            _bus.Subscribe<StatusAppliedEvent>(OnStatusApplied);   // [WINK-1]
+
             Debug.Log(
                 $"[SensoryFxAdapter] Subscribed to bus " +
                 $"(AudienceReaction + SongEndVibe + AudienceVibeImpact + " +
@@ -106,6 +135,8 @@ namespace ALWTTT.Sensory
             _bus.Unsubscribe<SongEndVibeEvent>(OnSongEndVibe);
             _bus.Unsubscribe<AudienceVibeImpactEvent>(OnVibeImpact);
             _bus.Unsubscribe<SpotlightRedirectEvent>(OnSpotlightRedirect); // [PRES-1]
+            _bus.Unsubscribe<CardPerformedEvent>(OnCardPerformed);   // [WINK-1]
+            _bus.Unsubscribe<StatusAppliedEvent>(OnStatusApplied);   // [WINK-1]
             _bus = null;
         }
 
@@ -247,6 +278,105 @@ namespace ALWTTT.Sensory
                 e.Performer.CharacterAnimator.PlayImpactKick(performerKickIntensity);
                 if (performerBurstParticles > 0)
                     e.Performer.CharacterAnimator.BurstParticles(performerBurstParticles);
+            }
+        }
+
+        // ----- Card performed / status applied [WINK-1] --------------------
+
+        /// <summary>
+        /// Performer beat (1): FT "NAME!" on the committing musician. SFX and
+        /// animation for this beat do NOT live here — audio rides the card's
+        /// own AudioType path and the one-shot animation is triggered at the
+        /// commit sites; this handler only owns the floater.
+        /// </summary>
+        private void OnCardPerformed(CardPerformedEvent e)
+        {
+            CardPerformedEventsHandled++;
+
+            bool hasFt = SensoryFtPresentation.TryBuildCardPerformedFt(
+                in e, out string text, out Color color);
+
+            if (mode != AdapterMode.Spawn)
+            {
+                if (logVerification)
+                    Debug.Log(
+                        $"[SensoryFxAdapter][Verify] CardPerformed " +
+                        $"performer={e.Performer?.CharacterName} " +
+                        $"card='{e.Card?.DisplayName}' -> " +
+                        $"\"{(hasFt ? text : "(no FT)")}\"");
+                return;
+            }
+
+            if (hasFt
+                && e.Performer != null
+                && e.Performer.TextSpawnRoot != null
+                && FxManager.Instance != null)
+            {
+                FxManager.Instance.SpawnFloatingText(
+                    e.Performer.TextSpawnRoot, text,
+                    SensoryFtPresentation.CardPerformedDrift, color);
+            }
+
+            // Procedural garnish on the performer, INDEPENDENT of the FT: a
+            // card with no DisplayName still deserves the beat. Also
+            // independent of the Animator gesture — BurstParticles and
+            // PlayImpactKick are CharacterAnimator one-shots, so they survive
+            // the DisableBeatAnimator window the card animation opens.
+            // BurstParticles no-ops silently when the CharacterAnimator has no
+            // particleSystemRef assigned.
+            if (e.Performer != null && e.Performer.CharacterAnimator != null)
+            {
+                if (cardPerformedBurstParticles > 0)
+                    e.Performer.CharacterAnimator.BurstParticles(
+                        cardPerformedBurstParticles);
+                if (cardPerformedKickIntensity > 0f)
+                    e.Performer.CharacterAnimator.PlayImpactKick(
+                        cardPerformedKickIntensity);
+            }
+        }
+
+        /// <summary>
+        /// Target beat (4), visual half: FT of the status + soft impact kick on
+        /// the RECEIVING character, resolved via StatusEffectContainer.Owner
+        /// (TUT-R2) — works for musicians and audience alike, and for BOTH
+        /// apply routes (card ExecuteEffects and audience actions), because the
+        /// container's Apply is the single point they share. The delta &gt; 0
+        /// gate lives in the FT builder (ST-W7). Persistent visuals (heart
+        /// eyes) are NOT here — StatusVisualDriver owns them per prefab.
+        /// </summary>
+        private void OnStatusApplied(StatusAppliedEvent e)
+        {
+            StatusAppliedEventsHandled++;
+
+            var owner = e.Source?.Owner as ALWTTT.Characters.CharacterBase;
+            bool ownerIsMusician = owner is ALWTTT.Characters.Band.MusicianBase;
+
+            if (!SensoryFtPresentation.TryBuildStatusAppliedFt(
+                    in e, ownerIsMusician, out string text, out Color color))
+                return;
+
+            if (mode == AdapterMode.Spawn)
+            {
+                if (owner == null || FxManager.Instance == null) return;
+
+                var anchor = owner.TextSpawnRoot != null
+                    ? owner.TextSpawnRoot
+                    : owner.transform;
+
+                FxManager.Instance.SpawnFloatingText(
+                    anchor, text,
+                    SensoryFtPresentation.StatusAppliedDrift, color);
+
+                if (owner.CharacterAnimator != null)
+                    owner.CharacterAnimator.PlayImpactKick(statusApplyKickIntensity);
+            }
+            else if (logVerification)
+            {
+                Debug.Log(
+                    $"[SensoryFxAdapter][Verify] StatusApplied " +
+                    $"status={e.Status} delta={e.DeltaStacks} " +
+                    $"owner={(owner != null ? owner.name : "null")} " +
+                    $"-> \"{text}\"");
             }
         }
 

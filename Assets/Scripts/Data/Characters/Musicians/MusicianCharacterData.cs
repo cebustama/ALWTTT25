@@ -25,6 +25,16 @@ namespace ALWTTT.Musicians
         [SerializeField] private MusicianCardCatalogData cardCatalog;
         [SerializeField] private Sprite defaultCardSprite; // TEMP: later replace with a sprite catalog
 
+
+        [Header("Card Animations (WINK-1 D3=B+)")]
+        [Tooltip("Fallback one-shot used when the played card has no usable animation " +
+                 "(no trigger) and no override matches. Leave trigger empty for 'none'.")]
+        [SerializeField] private CardAnimationData defaultCardAnimation;
+
+        [Tooltip("Per-card overrides: THIS musician plays THIS animation for THAT card, " +
+                 "beating the card's own MusicianAnimation.")]
+        [SerializeField] private List<CardAnimationOverride> cardAnimationOverrides = new();
+
         [Header("Stats")]
         [SerializeField] private int chr;
         [SerializeField] private int tch;
@@ -46,6 +56,44 @@ namespace ALWTTT.Musicians
         public MusicianCardCatalogData CardCatalog => cardCatalog;
         public Sprite DefaultCardSprite => defaultCardSprite;
 
+
+        /// <summary>
+        /// [WINK-1 D3=B+] Resolution: override(this musician, card) -> the
+        /// card's own animation -> this musician's default.
+        ///
+        /// "Usable" means HAS A TRIGGER: CardAnimationData is a plain
+        /// [Serializable] class, so Unity auto-instantiates it on every
+        /// serialized asset — it is effectively NEVER null. A naive null-chain
+        /// would let the card's empty auto-instance always win and make
+        /// defaultCardAnimation dead on arrival. The FINAL fallback returns the
+        /// card's own animation even when trigger-less, preserving today's
+        /// observable behavior byte-for-byte (including the routine's
+        /// DisableBeatAnimator pause) when nothing new is authored.
+        /// </summary>
+        public CardAnimationData ResolveCardAnimation(CardDefinition card)
+        {
+            if (card != null && cardAnimationOverrides != null)
+            {
+                for (int i = 0; i < cardAnimationOverrides.Count; i++)
+                {
+                    var o = cardAnimationOverrides[i];
+                    if (o != null && o.card == card && HasTrigger(o.animation))
+                        return o.animation;
+                }
+            }
+
+            if (card != null && HasTrigger(card.MusicianAnimation))
+                return card.MusicianAnimation;
+
+            if (HasTrigger(defaultCardAnimation))
+                return defaultCardAnimation;
+
+            return card != null ? card.MusicianAnimation : null;
+        }
+
+        private static bool HasTrigger(CardAnimationData a)
+            => a != null && !string.IsNullOrEmpty(a.AnimatorTrigger);
+
         // Transitional helpers
         public IReadOnlyList<CardDefinition> BaseActionCards =>
             BuildBaseList(isAction: true);
@@ -60,6 +108,14 @@ namespace ALWTTT.Musicians
         public int TCH => tch;
         public int EMT => emt;
         #endregion
+
+        /// <summary>[WINK-1 D3=B+] One per-card animation override entry.</summary>
+        [System.Serializable]
+        public class CardAnimationOverride
+        {
+            public CardDefinition card;
+            public CardAnimationData animation;
+        }
 
         private List<CardDefinition> BuildBaseList(bool isAction)
         {

@@ -41,6 +41,10 @@ namespace ALWTTT.Sensory
         /// <summary>[JUICE-PW] Card-impact events handled (ST-PW parity).</summary>
         public long VibeImpactEventsHandled { get; private set; }
 
+
+        /// <summary>[WINK-1] Status-applied events handled (ST-W3/W6 parity).</summary>
+        public long StatusAppliedEventsHandled { get; private set; }
+
         private SensoryEventBus _bus;
 
         private void OnEnable()
@@ -59,6 +63,7 @@ namespace ALWTTT.Sensory
             _bus.Subscribe<SfxStageCrossedEvent>(OnStageCrossed);
             _bus.Subscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
             _bus.Subscribe<AudienceVibeImpactEvent>(OnVibeImpact);
+            _bus.Subscribe<StatusAppliedEvent>(OnStatusApplied);   // [WINK-1]
 
             Debug.Log(
                 "[SensoryAudioAdapter] Subscribed to bus " +
@@ -73,6 +78,7 @@ namespace ALWTTT.Sensory
             _bus.Unsubscribe<SfxStageCrossedEvent>(OnStageCrossed);
             _bus.Unsubscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
             _bus.Unsubscribe<AudienceVibeImpactEvent>(OnVibeImpact);
+            _bus.Unsubscribe<StatusAppliedEvent>(OnStatusApplied);   // [WINK-1]
             _bus = null;
         }
 
@@ -90,6 +96,76 @@ namespace ALWTTT.Sensory
             Play(SensorySfxPresentation.ForCardVibeImpact(in e),
                  $"card-vibe-impact card='{e.Card?.DisplayName}' " +
                  $"applied={e.AppliedDelta} fanout={e.FanoutIndex}/{e.TargetCount}");
+        }
+
+        /// <summary>
+        /// [WINK-1 D2=C] Target beat (4), audible half. Two-layer clip
+        /// resolution: receiving character's CharacterSfxProfileSO by StatusKey
+        /// -> StatusEffectSO.applySfx -> DELIBERATE silence. No warn on the
+        /// silent tail — a status may be mute by design; this diverges from
+        /// SSoT_Audio inv.3 (warn-once) ON PURPOSE and is recorded at batch
+        /// close, not normalized quietly. No new SensorySfxType key
+        /// (precedent D-ABILITY-SFX-HOME=(i)): the clip is played direct,
+        /// AudioManager stays a dumb sink.
+        ///
+        /// jitter:true (D-WINK-3=A): the event carries no fan-out index, so an
+        /// AoE status application would stack N identical clips on one frame
+        /// without it.
+        ///
+        /// Profile layer is audience-only for now: MusicianCharacterData has no
+        /// sfxProfile slot (out of WINK-1 scope) — musician statuses resolve
+        /// SO.applySfx -> silence.
+        /// </summary>
+        private void OnStatusApplied(StatusAppliedEvent e)
+        {
+            StatusAppliedEventsHandled++;
+
+            if (e.DeltaStacks <= 0 || e.Effect == null)
+            {
+                if (logVerification)
+                    Debug.Log($"[SensoryAudioAdapter] status={e.Status} " +
+                              $"delta={e.DeltaStacks} → no sting (non-positive delta).");
+                return;
+            }
+
+            // Layer 1: per-character profile, keyed by StatusKey.
+            var profile =
+                (e.Source?.Owner is ALWTTT.Characters.Audience.AudienceCharacterBase aud
+                 && aud.AudienceCharacterData != null)
+                    ? aud.AudienceCharacterData.SfxProfile
+                    : null;
+            var clip = profile != null
+                ? profile.GetClipForStatus(e.Effect.StatusKey)
+                : null;
+            string source = clip != null ? $"profile '{profile.name}'" : null;
+
+
+            if (clip == null && logVerification)
+                Debug.Log($"[SensoryAudioAdapter] status layer-1 miss: " +
+                          $"profile={(profile != null ? profile.name : "NONE on character data")} " +
+                          $"key='{e.Effect.StatusKey}'.");
+
+            // Layer 2: the status variant's own base clip.
+            if (clip == null && e.Effect.ApplySfx != null)
+            {
+                clip = e.Effect.ApplySfx;
+                source = "SO.applySfx";
+            }
+
+            // Layer 3: deliberate silence. NOT a warn (diverges from inv.3 on purpose).
+            if (clip == null)
+            {
+                if (logVerification)
+                    Debug.Log($"[SensoryAudioAdapter] status '{e.Effect.StatusKey}' " +
+                              "→ deliberately silent (no profile override, no applySfx).");
+                return;
+            }
+
+            if (logVerification)
+                Debug.Log($"[SensoryAudioAdapter] status '{e.Effect.StatusKey}' " +
+                          $"delta={e.DeltaStacks} → clip '{clip.name}' via {source} (jitter).");
+
+            AudioManager.Instance?.PlayOneShot(clip, jitter: true);   // D-WINK-3=A
         }
 
         private void OnAudienceReaction(AudienceReactionEvent e)

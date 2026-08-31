@@ -150,6 +150,40 @@ Two runtime hosts surface status tooltips:
 
 ---
 
+### 3.4 Bus mirror and persistent per-status visuals (WINK-1, 2026-08-31)
+
+**`StatusAppliedEvent` payload.** `StatusEffectContainer.Apply` publishes the bus mirror of
+`OnStatusApplied` (rationale: D-S4-SRC=A, one subscription instead of one per container). Since
+WINK-1 the payload carries the **applied `StatusEffectSO`** alongside the primitive id and the
+delta. The SO is carried rather than re-resolved from the id because **several authored variants
+can share one `CharacterStatusId`** — the id alone cannot recover the `DisplayName`, `IsBuff`,
+`StatusKey` or `ApplySfx` of the variant that actually landed. The constructor parameter is
+**required**, not optional-with-default: a default would let a future publisher omit it and
+compile, turning `Effect == null` into a legal phantom state.
+
+**Presentation gate — `DeltaStacks > 0`.** `Apply` publishes for *any* call that leaves stacks
+above zero, **including a negative delta that merely reduces them**. Every presentation consumer
+(floating text, apply SFX) must therefore gate on a positive delta; without it, removing stacks
+draws a gain. `SpendStacks` is unaffected — it deliberately publishes nothing (§3.0).
+
+**Persistent visuals — `StatusVisualDriver`.** Icons (§3.3) are the general surface; a status may
+additionally own a **bespoke persistent visual** on the character prefab (Captivated's heart eyes).
+`StatusVisualDriver` (`Assets/Scripts/Characters/StatusVisualDriver.cs`) sits on the prefab,
+self-binds to its `CharacterBase.Statuses` in `Start`, and toggles registered `GameObject`s from
+the container's own events: `OnStatusChanged` with stacks > 0 turns them on, `OnStatusCleared`
+turns them off.
+
+- **ON matches the variant, OFF matches the primitive.** Each entry carries the primitive id plus
+  an **optional `statusKey`**; when set, the driver reads the active `StatusEffectInstance.Definition`
+  and lights the visual only for that variant, so a future status sharing the primitive cannot
+  inherit another's artwork. The OFF path needs no key and cannot have one — the instance carrying
+  it is already gone when `OnStatusCleared` fires — and needs none, because the container holds at
+  most one instance per primitive id.
+- **OFF is instantaneous** (`SetActive(false)`, D-WINK-5=A). An animated disappearance would
+  reopen the re-apply-during-disappear collision documented for icons in `CharacterCanvas`.
+
+---
+
 ## 4. Catalogue and variants
 
 The catalogue-facing contract exists so cards and effects can apply statuses without hardcoding one-off logic.
@@ -287,7 +321,11 @@ If future encounter design requires extending stun via additional Choke stacks, 
 
 **Applies to:** audience members only. `StatusEffectCatalogue_Musicians` does not contain Captivated, and nothing musician-side reads `DamageTakenUpMultiplier` on a Vibe path.
 
-**Applied by:** **Wink** (Zig, `Cantante_CardCatalogData`; Action, cost 0, `ApplyStatusEffect(captivated, +2, AudienceCharacter)`). Authored R1 and deliberately **unreachable in the demo build** — the Cantante catalog is outside the demo band roster, and both `PersistentGameplayData.SetBandDeckFromMusicians` and `BuildRewardCardPool` are band-scoped. `Singalong` (Captivated +1 AoE, D-R0-9) is queued for R8.
+**Applied by:** **Wink** (Zig, `Cantante_CardCatalogData`; Action, cost 0, `ApplyStatusEffect(captivated, +2, AudienceCharacter)`). Authored R1 as deliberately **unreachable in the default demo build** — the Cantante catalog is outside the demo band roster, and both `PersistentGameplayData.SetBandDeckFromMusicians` and `BuildRewardCardPool` are band-scoped. `Singalong` (Captivated +1 AoE, D-R0-9) is queued for R8.
+**Reachability corrected (WINK-1, 2026-08-31):** unreachability holds for the *default* demo band
+only. With Zig selected through the Gig Setup band picker, Wink is drawn and played normally —
+verified in ST-W0, and the whole WINK-1 sensory batch was validated on that path. The original
+wording read as an absolute property of the build; it is a property of the default roster.
 
 **Validation history:** ST-R1-1..6 all PASS 2026-07-23 (R1 closure). ST-R1-2 pinned the rounding; ST-R1-4 pinned Indifference precedence; ST-R1-5 pinned the helper-wide scope (Earworm 2 stacks → +3 applied); ST-R1-6 pinned demo-inertness (starter deck and reward pool unchanged from the S5i baseline).
 

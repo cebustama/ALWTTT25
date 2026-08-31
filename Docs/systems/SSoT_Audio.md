@@ -476,11 +476,17 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
 2. **Two SFX keys, one authority each.** `AudioActionType` is card-only
    (`SSoT_Card_Authoring_Contracts`); `SensorySfxType` is bus-only (this SSoT). Neither
    leaks into the other. `CharacterSfxProfileSO` is an alternative clip *source* for the two
-   `SensorySfxType` reaction keys, not a new key (invariant 16).
+   `SensorySfxType` reaction keys, not a new key (invariant 16). Since WINK-1 (2026-08-31) it is
+   also a clip source for **status-apply** audio, keyed by `StatusKey` — still no new
+   `SensorySfxType` (invariant 20).
 3. **Missing audio is a content gap, not a crash.** Missing profile / empty clip list →
    warn-once + no-op. OST follows the same rule via `MusicDirector` (a missing / clipless
    `OstTrackId` warns + no-op; note OST warns *per-occurrence*, not warn-once — harmless at OST
    frequency).
+   **One deliberate exception (WINK-1, 2026-08-31):** a **status-apply** with no clip on either
+   layer is **silent without a warn**. A status may be mute by design (most are), so warn-once
+   would fire on nearly every application and train the team to ignore the channel. Recorded as a
+   divergence, not normalised: every other surface keeps warn-once.
 4. **ALWTTT owns only the per-musician music axis.** `MIDIInstrumentSO.volume01` is never
    wired ALWTTT-side; `instrument01 == 1.0` in the effective-volume formula.
 5. **Effective music volume = `global * perMusician * 1.0`**, composed in
@@ -495,7 +501,9 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
 9. **Card SFX is opt-in by type.** `Button` (default / UI-click type) and `None` play nothing on
    the card path; a card opts into a sound via a non-default, clip-backed `AudioActionType`.
 10. **Jitter is caller-controlled (fan-out only).** Only `SensoryAudioAdapter`'s reaction handler
-    passes `jitter: true`; card and single-source SFX are immediate. `sfxMaxJitterSeconds`
+    passes `jitter: true`; card and single-source SFX are immediate. **WINK-1 (2026-08-31)** adds the
+    second jittered handler: **status-apply**, because `StatusAppliedEvent` carries no fan-out
+    index and an AoE application would otherwise stack N clips in one frame (D-WINK-3=A). `sfxMaxJitterSeconds`
     (default 0.15, 0 = off) lives on `AudioManager`.
 11. **Master SFX applies app-wide at `AudioManager.Awake`** and governs `sfxSource` + `buttonSource`
     (UI clicks are under the SFX level).
@@ -530,7 +538,10 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
     plays), and **no-ops on a null clip** (invariant 3). The clip is profile/data-sourced — it adds **no
     new `SensorySfxType`** and `AudioManager` stays the dumb sink (D-ABILITY-SFX-HOME=(i), D-CHAR-SFX-2=A).
     `CharacterSfxProfileSO` is untouched (reaction-only). A status-apply fire (option B) is deferred, not
-    rejected. Per-ability coverage is unaudited (same posture as reactions).
+    rejected.
+    **Superseded in part by WINK-1 (2026-08-31):** the status-apply fire shipped, `CharacterSfxProfileSO`
+    is no longer reaction-only, and it did **not** hook the `CharacterActionProcessor` site option B named
+    — see invariant 20 and §9. Per-ability coverage is unaudited (same posture as reactions).
 
 18. **A card sounds once, on exactly one path.** Card audio has two possible producers — the
     card-direct `AudioType` at **drop** (`CardBase.Use`) and the bus `CardVibeImpact` sting at
@@ -547,6 +558,21 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
     future per-channel attenuation is added as a further plane inside that method — never as a
     competing save/restore, which would collide with Highlight's single snapshot slot (§4.7 /
     §4.3).
+
+20. **A status application sounds through two clip layers and a deliberate silence** (WINK-1,
+    2026-08-31). The publish site is `StatusEffectContainer.Apply` (`StatusAppliedEvent`), which is
+    the **only** point shared by both application routes — card effects
+    (`CardBase.ExecuteEffects` → `trg.Statuses.Apply`) and audience actions. Resolution, in order:
+    the receiving character's `CharacterSfxProfileSO.GetClipForStatus(StatusKey)` →
+    `StatusEffectSO.applySfx` → **deliberate silence, no warn** (the invariant-3 exception).
+    `jitter: true` on both clip layers (invariant 10). The clip plays through
+    `AudioManager.PlayOneShot(AudioClip, jitter)` and adds **no new `SensorySfxType`**
+    (precedent D-ABILITY-SFX-HOME=(i)); the sink stays dumb. Only applications with
+    `DeltaStacks > 0` sound — a negative delta that leaves stacks standing still publishes the
+    event, and announcing a loss as a gain is the failure mode that gate exists to prevent. The
+    profile layer is **audience-only** today: `MusicianCharacterData` has no `sfxProfile` field, so
+    musician statuses resolve `applySfx` → silence. Per-status coverage is unaudited, same posture
+    as reactions and abilities.
 
 ---
 
@@ -606,7 +632,8 @@ sting on non-Vibe cards [regression]; tutorial beats 3/5 intact [regression]; no
   PASS (ST-ABIL-5 deferred to Dev Mode / M1.5 — Stun not player-applicable). §3, invariant 17. Backfilled
   the phase-1 misses in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and
   `CURRENT_STATE.md`. **Deferred (option B):** a status-apply clip at the `CharacterActionProcessor…
-  DoAction` site — not built.
+  DoAction` site — not built. **SHIPPED at WINK-1 (2026-08-31) — and NOT at that site.**
+  See the WINK-1 bullet below for why the site moved.
 - **JUICE-PW: DONE (2026-07-13)** — card **Vibe-impact** sensory surface. New bus event
   `AudienceVibeImpactEvent` (per target, published at effect resolution in `CardBase.ExecuteEffects`);
   new key `CardVibeImpact` (one sting per card play, `FanoutIndex == 0`); per-member FT + procedural
@@ -615,6 +642,18 @@ sting on non-Vibe cards [regression]; tutorial beats 3/5 intact [regression]; no
   ST-PW-1..10 PASS. **Clip is a placeholder (`Telephone`) → D1** (the bullet above): this is the most
   demo-visible sting in the build (the tutorial's beat-8 finisher), so it is the highest-value clip in
   the D1 backlog.
+- **WINK-1: DONE (2026-08-31)** — card-play sensory beat, status-apply half. **Site reversal, recorded
+  deliberately:** the deferred "option B" of this section placed the status-apply clip at the
+  `CharacterActionProcessor` → `DoAction` site. That site covers **audience actions only** — statuses
+  applied by cards go straight to `trg.Statuses.Apply` from `CardBase.ExecuteEffects` and would never
+  have reached it, so a hook there would have shipped a sound that works for half the game and looks
+  correct in review. The single point both routes share is `StatusEffectContainer.Apply`, which already
+  publishes `StatusAppliedEvent`; the clip therefore rides the bus. Two clip layers (invariant 20):
+  `CharacterSfxProfileSO.statusOverrides` keyed by `StatusKey` (the SO is **no longer reaction-only** —
+  invariants 2 and 17 amended) and `StatusEffectSO.applySfx`. Missing clip = silence without warn
+  (invariant 3 exception). No new `SensorySfxType`. `StatusAppliedEvent` grew an additive
+  `StatusEffectSO Effect` field, required in the constructor so no future publisher can omit it.
+  ST-W1..W7 PASS; ST-W8 deferred to TUT-REFRESH. Clips are placeholders → **D1**.
 - **GameplayData.cs cleanup:** DONE — the dead `globalMusicVolume01` field was removed
   (M-AUDIO-MIX); the live home is `AudioMixSettingsSO`.
 - **Player-facing audio options:** out of scope here; needs a real save layer (PlayerPrefs

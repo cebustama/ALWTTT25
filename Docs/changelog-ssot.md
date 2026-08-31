@@ -14,6 +14,99 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-08-31 — WINK-1 CERRADO: la jugada de una carta como secuencia de tiempos
+
+**Tipo:** semantic + operational + lifecycle.
+
+**Qué cambió y por qué así.** Jugar una carta producía un montón de efectos simultáneos y ninguna
+lectura. WINK-1 descompone la jugada de Wink en tiempos separados y audibles: el performer actúa,
+pasa medio segundo, el objetivo reacciona. La pieza que faltaba era un evento en el **momento de
+compromiso** — pasadas todas las puertas de denegación, antes de que los efectos resuelvan.
+`CardPlayedEvent` no podía serlo: dispara post-efectos, y usarlo habría puesto el grito del
+performer *después* de la reacción del objetivo, invirtiendo la causalidad que el lote existe para
+construir. De ahí **`CardPerformedEvent`**, publicado en los dos sitios de commit (acción en
+`HandController`, composición en `GigManager.TryPlayCompositionCard`), junto a las llamadas ya
+existentes a `PlayCardOneShotAnimation` — que son, precisamente, el marcador de ese instante en
+ambas rutas.
+
+**Reversión de sitio — `SSoT_Audio` §9 "option B".** La opción diferida desde AUDIO-CHAR-PROFILES-2
+emplazaba el clip de status-apply en el sitio `CharacterActionProcessor` → `DoAction`. Ese registro
+estático cubre **solo acciones de audiencia**; un status aplicado por una carta va directo a
+`trg.Statuses.Apply` desde `CardBase.ExecuteEffects` y nunca habría pasado por ahí. Un hook allí
+habría entregado un sonido que funciona para la mitad del juego y parece correcto en revisión. El
+único punto que ambas rutas comparten es `StatusEffectContainer.Apply`, que ya publicaba
+`StatusAppliedEvent`; el clip viaja por el bus. Se registra como reversión explícita, con su motivo,
+en vez de corregirse en silencio.
+
+**`StatusAppliedEvent` crece — y el parámetro es obligatorio a propósito.** El payload suma
+`StatusEffectSO Effect`. El id primitivo no bastaba porque **varias variantes autoradas comparten un
+`CharacterStatusId`** (Captivated es un `DamageTakenUpMultiplier`), y del id no se recuperan
+`DisplayName`, `IsBuff`, `StatusKey` ni `ApplySfx` de la variante que realmente cayó. El parámetro
+NO es opcional con default `null`: un default dejaría a cualquier publisher futuro compilar en
+silencio y convertiría `Effect == null` en un estado legal fantasma. El compilador es el guardián.
+El suscriptor del tutorial sigue leyendo `Status` sin cambios.
+
+**Puerta `DeltaStacks > 0`.** `Apply` publica para cualquier llamada que deje stacks por encima de
+cero — **incluida una delta negativa que solo los reduce**. Sin la puerta, restar stacks dibujaría
+un "+CAPTIVATED": anunciar una pérdida como ganancia. La puerta vive en presentación, no en el
+publisher, para que el tutorial siga viendo todas las aplicaciones.
+
+**Silencio deliberado — divergencia registrada, no normalizada.** Un status sin clip en ninguna de
+las dos capas **no avisa**. Diverge del invariante 3 de `SSoT_Audio` (warn-once) a propósito: la
+mayoría de los status son mudos por diseño, y un warn por aplicación entrenaría al equipo a ignorar
+el canal. Queda escrito como excepción única, con su motivo.
+
+**`CharacterSfxProfileSO` deja de ser reaction-only.** Suma `statusOverrides` (lista clave→clips,
+clave = `StatusKey`) y `GetClipForStatus`. Sigue sin introducir claves de `SensorySfxType`: el clip
+se toca directo sobre `AudioManager`, que sigue siendo un sink tonto (precedente
+D-ABILITY-SFX-HOME=(i)). Los invariantes 2 y 17 se enmiendan en consecuencia.
+
+**`StatusVisualDriver` — visual persistente por prefab.** ON comprueba la **variante** (campo
+opcional `statusKey`, leído del `StatusEffectInstance.Definition`), OFF basta con la primitiva
+porque el contenedor guarda una sola instancia por id y la que llevaba la clave ya se fue cuando
+`OnStatusCleared` dispara. El apagado es **instantáneo** (D-WINK-5=A): una animación de desaparición
+reabriría la colisión re-apply-durante-disappear que los iconos documentan.
+
+**Cadena de animación de carta, y una verdad de código que la sostiene.** `PlayCardOneShotAnimation`
+resuelve override(músico,carta) → carta → default del músico. La validez se mide como **"tiene
+trigger"**, no como "no es null", porque `CardAnimationData` es una clase `[Serializable]` que Unity
+auto-instancia en todo asset: es efectivamente **nunca null**. Una cadena de nulls ingenua habría
+dejado ganar siempre a la instancia vacía de la carta y el `defaultCardAnimation` habría nacido
+muerto. Efecto lateral documentado, preexistente: como el bloque nunca es null y `animationDuration`
+vale `-1` por defecto (→ 2 s), toda carta sin animación autorada abre una ventana de 2 segundos con
+`DisableBeatAnimator`. No se arregla aquí.
+
+**D-WINK-6=B revierte una dirección de la sesión de plan.** Se descarta el campo autorable de texto
+en `CardDefinition` con fallback; el floater del performer se deriva del `DisplayName` en mayúsculas
+dentro de `SensoryFtPresentation`. Motivo: coste de contrato de autoría sin un caso real detrás.
+
+**§5.8 corregida.** El doc afirmaba que Wink era "unreachable in the demo build" como propiedad
+absoluta. Es propiedad del **roster por defecto**: con Zig elegido en el picker de banda, Wink se
+roba y se juega con normalidad (ST-W0), y todo el lote se validó por esa vía.
+
+**Gobernanza nombrada, no resuelta.** `CardPerformedEvent` y la ampliación de `StatusAppliedEvent`
+son la **7ª y 8ª** entradas de inventario sensorial sin hogar de autoridad. **D-SENSORY-HOME sigue
+abierta**; este lote la alimenta y no la cierra.
+
+**Nota de proceso — anclas.** Un paso del runbook addendum ancló en `if (mode == AdapterMode.Spawn)`,
+literal que aparece cinco veces en `SensoryFxAdapter.cs`, y el bloque se aplicó dentro de
+`OnAudienceReaction`, sobrescribiendo el floater de impresión de la audiencia. Se reparó con anclas
+de **firma de método**. Regla derivada: en ficheros con handlers repetitivos, el ancla es la firma,
+nunca una línea de control de flujo.
+
+**Validación.** ST-W0..W7 PASS. **ST-W8 DIFERIDO a TUT-REFRESH**: su mitad de tutorial no es
+ejecutable porque el guion no corre contra el roster actual. El criterio de cierre del lote
+autorizaba diferir ST-W7, no ST-W8; la desviación se acepta explícitamente aquí.
+
+**Docs tocados:** `SSoT_Audio.md` (inv. 2/3/10/17 enmendados · **inv. 20 nuevo** · §9 bullet WINK-1 +
+corrección de la option B) · `SSoT_Status_Effects.md` (**§3.4 nueva** · §5.8 alcanzabilidad) ·
+`SSoT_Card_Authoring_Contracts.md` (**§5.19 nueva**) · `Design_Sensory_Contract_v0_1.md` (fila
+`CardPerformedEvent` · fila `StatusAppliedEvent` ampliada · dos filas de consumidor) ·
+`coverage-matrix.md` (7ª/8ª entradas sin hogar) · `CURRENT_STATE.md` (§1 · §3 S6) · este fichero ·
+`PK_Manifest.md`.
+
+---
+
 ## 2026-08-29 — R5-g CERRADO: la puerta de recurso que el contrato decía tener
 
 **Tipo:** semantic + operational + lifecycle.

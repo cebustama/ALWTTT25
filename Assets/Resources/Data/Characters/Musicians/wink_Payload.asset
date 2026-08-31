@@ -25,4 +25,4 @@ MonoBehaviour:
         status: {fileID: 11400000, guid: bb55dde20a31ec04380e7a7b2c7cf030, type: 2}
         targetType: 0
         stacksDelta: 2
-        delay: 0
+        delay: 0.5

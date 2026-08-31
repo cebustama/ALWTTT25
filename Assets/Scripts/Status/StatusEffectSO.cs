@@ -63,6 +63,13 @@ namespace ALWTTT.Status
                  "Read directly by CharacterCanvas via the StatusEffectContainer.")]
         [SerializeField] private Sprite iconSprite;
 
+
+        [Tooltip("[WINK-1 D2=C base layer] One-shot played when this status is " +
+                 "APPLIED with positive delta, unless the receiving character's " +
+                 "CharacterSfxProfileSO overrides it by StatusKey. " +
+                 "Null = deliberately silent (no warn — a status may be mute by design).")]
+        [SerializeField] private AudioClip applySfx;
+
         [Tooltip("Short player-facing description shown in status tooltips. " +
          "1–2 sentences, rich-text friendly. Example: 'Adds flat bonus to outgoing Vibe gains.'")]
         [TextArea(2, 4)]
@@ -91,6 +98,10 @@ namespace ALWTTT.Status
         public bool IsBuff => isBuff;
 
         public Sprite IconSprite => iconSprite;
+
+
+        /// <summary>[WINK-1 D2=C] Base-layer apply clip. Null = deliberate silence.</summary>
+        public AudioClip ApplySfx => applySfx;
 
         /// <summary>
         /// Convenience: Try get the ontology entry for this status (Category, Abstract Function, references).

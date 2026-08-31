@@ -16,3 +16,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: e3223124f90278a408044f9ae682ad27, type: 3}
   negativeClips:
   - {fileID: 8300000, guid: bc450a1ff4a566548a3ad7da04d6f393, type: 3}
+  statusOverrides:
+  - statusKey: captivated
+    clips:
+    - {fileID: 8300000, guid: e38bea8cfb1b04049b71cb6dc56671d4, type: 3}

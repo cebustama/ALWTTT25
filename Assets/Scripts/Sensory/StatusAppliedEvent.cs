@@ -25,14 +25,26 @@ namespace ALWTTT.Sensory
         /// <summary>Stacks delta applied this call.</summary>
         public int DeltaStacks { get; }
 
+
+        /// <summary>[WINK-1] The full authored variant that was applied. Never
+        /// null from the single publisher (StatusEffectContainer.Apply), which
+        /// receives the SO by parameter. Additive: the tutorial gate keeps
+        /// reading <see cref="Status"/> untouched (ST-W8). Carried as the SO
+        /// (not re-looked-up by id) because multiple variants can share one
+        /// CharacterStatusId — the id alone cannot recover DisplayName/IsBuff/
+        /// StatusKey/ApplySfx of the variant actually applied.</summary>
+        public StatusEffectSO Effect { get; }
+
         public StatusAppliedEvent(
             StatusEffectContainer source,
             CharacterStatusId status,
-            int deltaStacks)
+            int deltaStacks,
+            StatusEffectSO effect)
         {
             Source = source;
             Status = status;
             DeltaStacks = deltaStacks;
+            Effect = effect;
         }
     }
 }

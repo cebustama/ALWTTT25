@@ -571,6 +571,40 @@ arma `SlapPocket`.
 *payload, no instrumento* — los boosts de Pocket son exclusivos de slap/pop. Contar con esa
 diferencia al autorar el par; no es un defecto nuevo.
 
+### 5.19 — Card animation resolution: override → card → musician default (WINK-1, 2026-08-31)
+
+A card's `musicianAnimation` (`CardAnimationData`: animator trigger, duration, beat-animator
+guard) is **no longer the only source** of the performer's one-shot. `MusicianBase.PlayCardOneShotAnimation`
+now resolves through `MusicianCharacterData.ResolveCardAnimation(card)`:
+
+1. **Per-musician override** — `MusicianCharacterData.cardAnimationOverrides`, an entry pairing a
+   `CardDefinition` with a `CardAnimationData`. Answers *"this musician plays THIS card differently"*;
+   the card cannot express it, because one card is shared by every musician who can play it.
+2. **The card's own `musicianAnimation`.**
+3. **`MusicianCharacterData.defaultCardAnimation`** — a generic per-musician gesture for cards that
+   author none.
+
+**Validity is "has a trigger", not "is non-null" — this is load-bearing.** `CardAnimationData` is a
+plain `[Serializable]` class, so Unity auto-instantiates it on every serialized asset: it is
+effectively **never null**. A null-chained resolution would let a card's empty auto-instance win at
+step 2 on every card in the game, and `defaultCardAnimation` would be dead on arrival. The resolver
+therefore tests `!string.IsNullOrEmpty(AnimatorTrigger)` at steps 1–3, and its **final fallback
+returns the card's own block even when trigger-less**, preserving pre-WINK-1 observable behaviour
+byte-for-byte (including the `DisableBeatAnimator` pause) for content that authors nothing.
+
+**Known pre-existing wart, not introduced here.** Because the block is never null and
+`animationDuration` defaults to `-1` (→ 2 s), a card that authors no animation still opens a 2-second
+`DisableBeatAnimator` window: the musician stops moving to the beat with nothing to show for it.
+Authoring `animationDuration` to the real clip length is the per-card fix; changing the default is a
+separate decision, unowned.
+
+**Authoring note.** An animator trigger only fires if the musician's `Animator` has an
+`AnimatorController` with that parameter. The idle/default state must use a clip with **no transform
+curves** — the Animator writes every property its clips animate, every frame, and would otherwise
+permanently override `CharacterAnimator`'s beat pose.
+
+---
+
 ## 6. Backwards compatibility policy
 
 WAUC-style rule:

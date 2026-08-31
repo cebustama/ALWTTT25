@@ -81,4 +81,4 @@ MonoBehaviour:
     dislikedTimeSignatures: 00000000
     preferredTonalities: 05000000
     dislikedTonalities: 00000000
-  sfxProfile: {fileID: 0}
+  sfxProfile: {fileID: 11400000, guid: 7e43b6a8a89b04e4dbb2c3bccccb6c8a, type: 2}

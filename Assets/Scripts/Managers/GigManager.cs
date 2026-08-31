@@ -1832,6 +1832,13 @@ namespace ALWTTT.Managers
             if (target != null && card != null && card.CardDefinition != null)
             {
                 target.PlayCardOneShotAnimation(card.CardDefinition);
+
+
+                // [WINK-1 D-WINK-1=A] Same commit beat as the action path
+                // (HandController). Fires even if the session then rejects the
+                // drop — mirrors the one-shot animation's existing timing.
+                SensoryEventBus.Instance?.Publish(
+                    new CardPerformedEvent(target, card.CardDefinition));
             }
 
             bool played = _session?.TryPlayCompositionCard(card, target, zone) ?? false;

@@ -144,6 +144,72 @@ namespace ALWTTT.Sensory
             return false;
         }
 
+        // ----- Card performed / status applied surfaces [WINK-1] -----------
+
+        /// <summary>Drift for the performer "shout" FT. Straight up, like the
+        /// other single-beat surfaces.</summary>
+        public static readonly Vector2 CardPerformedDrift = new Vector2(0f, 1.0f);
+
+        /// <summary>Drift for the status-applied FT on the receiving character.</summary>
+        public static readonly Vector2 StatusAppliedDrift = new Vector2(0f, 1.0f);
+
+        // 4-way palette (proposal, adjustable): side x IsBuff. Musician side
+        // reuses the impression green/red so "good/bad for the band" reads with
+        // the vocabulary the player already learned. Audience side gets its own
+        // family — pink for player-favorable charms (Captivated hearts), cold
+        // blue-grey for the rest — so a status landing on the crowd never
+        // masquerades as a band impression.
+        private static readonly Color StatusMusicianBuff = new Color(0.40f, 1.0f, 0.40f);
+        private static readonly Color StatusMusicianDebuff = new Color(1.0f, 0.30f, 0.30f);
+        private static readonly Color StatusAudienceBuff = new Color(1.0f, 0.55f, 0.75f);
+        private static readonly Color StatusAudienceDebuff = new Color(0.55f, 0.65f, 0.85f);
+
+        /// <summary>
+        /// [WINK-1 D-WINK-6=B] Performer beat FT. Text is DERIVED — the card's
+        /// DisplayName uppercased plus "!" — deliberately NOT an authorable
+        /// CardDefinition field: an authoring contract with no real case behind
+        /// it is pure cost. Reverses the direction hinted at in the plan
+        /// session (authorable field with fallback); recorded at batch close.
+        /// </summary>
+        public static bool TryBuildCardPerformedFt(
+            in CardPerformedEvent e, out string text, out Color color)
+        {
+            color = Color.white;
+            string name = e.Card != null ? e.Card.DisplayName : null;
+            if (string.IsNullOrEmpty(name))
+            {
+                text = null;
+                return false;
+            }
+            text = name.ToUpperInvariant() + "!";
+            return true;
+        }
+
+        /// <summary>
+        /// [WINK-1] Status-applied FT on the receiving character.
+        /// GATE (ST-W7): DeltaStacks must be &gt; 0 — the container publishes
+        /// StatusAppliedEvent for ANY apply that leaves stacks &gt; 0, including
+        /// a negative delta that merely reduces them; drawing on those would
+        /// announce a "gain" on a loss. Colour = owner side x IsBuff.
+        /// </summary>
+        public static bool TryBuildStatusAppliedFt(
+            in StatusAppliedEvent e, bool ownerIsMusician,
+            out string text, out Color color)
+        {
+            text = null;
+            color = default;
+
+            if (e.DeltaStacks <= 0) return false;                 // ST-W7 gate
+            var so = e.Effect;
+            if (so == null || string.IsNullOrEmpty(so.DisplayName)) return false;
+
+            text = "+" + so.DisplayName.ToUpperInvariant();
+            color = ownerIsMusician
+                ? (so.IsBuff ? StatusMusicianBuff : StatusMusicianDebuff)
+                : (so.IsBuff ? StatusAudienceBuff : StatusAudienceDebuff);
+            return true;
+        }
+
         // ----- Spotlight redirect surface [PRES-1 / D-PRES1-2=A] ----------
 
         /// <summary>Drift for the redirect floater. Straight up, matching the

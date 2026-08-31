@@ -85,7 +85,7 @@ namespace ALWTTT.Status.Runtime
 
             // [S4 D-S4-SRC=A] Global bus mirror so the tutorial observes "first status
             // applied to anyone" from one subscription instead of every container.
-            SensoryEventBus.Instance?.Publish(new StatusAppliedEvent(this, id, stacks));
+            SensoryEventBus.Instance?.Publish(new StatusAppliedEvent(this, id, stacks, effect));
         }
 
         /// <summary>

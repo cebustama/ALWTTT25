@@ -44,8 +44,45 @@ namespace ALWTTT.Data
                  "Empty -> adapter falls back to SoundBankSO's ReactionNegative entry.")]
         [SerializeField] private List<AudioClip> negativeClips = new();
 
+
+        [Header("Status-apply overrides (WINK-1 D2=C top layer, keyed by StatusKey)")]
+        [Tooltip("Per-character clip override for a status APPLICATION. Key must match " +
+                 "StatusEffectSO.StatusKey exactly. No entry / empty clips -> caller falls " +
+                 "back to StatusEffectSO.applySfx, then deliberate silence (never a warn).")]
+        [SerializeField] private List<StatusSfxOverride> statusOverrides = new();
+
+        [System.Serializable]
+        public class StatusSfxOverride
+        {
+            [Tooltip("StatusEffectSO.StatusKey of the variant this override targets.")]
+            [SerializeField] private string statusKey;
+            [SerializeField] private List<AudioClip> clips = new();
+
+            public string StatusKey => statusKey;
+            public bool HasClips => clips != null && clips.Count > 0;
+            public AudioClip GetRandomClip() => HasClips ? clips.RandomItem() : null;
+        }
+
         public bool HasPositiveClips => positiveClips != null && positiveClips.Count > 0;
         public bool HasNegativeClips => negativeClips != null && negativeClips.Count > 0;
+
+        /// <summary>
+        /// [WINK-1 D2=C top layer] Random clip for a status APPLICATION, or null
+        /// when this profile has no override for the key — the caller
+        /// (SensoryAudioAdapter) then falls back to StatusEffectSO.applySfx and
+        /// finally to deliberate silence. Key comparison is exact (StatusKey is
+        /// normalized at authoring time by StatusEffectSO.OnValidate).
+        /// </summary>
+        public AudioClip GetClipForStatus(string statusKey)
+        {
+            if (string.IsNullOrEmpty(statusKey) || statusOverrides == null) return null;
+            for (int i = 0; i < statusOverrides.Count; i++)
+            {
+                var o = statusOverrides[i];
+                if (o != null && o.StatusKey == statusKey) return o.GetRandomClip();
+            }
+            return null;
+        }
 
         /// <summary>
         /// Random clip for a reaction polarity, or null if this profile has nothing for

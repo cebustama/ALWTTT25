@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 92.1
       objectReference: {fileID: 0}
+    - target: {fileID: 2936546003366694738, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3046897531401015989, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.46
@@ -36,6 +40,14 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3503961367658151807, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.32
+      objectReference: {fileID: 0}
+    - target: {fileID: 3503961367658151807, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.97
+      objectReference: {fileID: 0}
     - target: {fileID: 3601109956159456147, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 64.2
@@ -56,10 +68,22 @@ PrefabInstance:
       propertyPath: m_Center.y
       value: 2.41
       objectReference: {fileID: 0}
+    - target: {fileID: 6059627801251531062, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6214814892290893219, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 9c7bcd3644cfcae46ba17a06a06fb3db, type: 3}
+    - target: {fileID: 6546232793583240418, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6546232793583240418, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6917983199166522259, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 76.7
@@ -111,6 +135,10 @@ PrefabInstance:
     - target: {fileID: 7812822335308069666, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_Name
       value: AudienceCharacter - Cool Dude
+      objectReference: {fileID: 0}
+    - target: {fileID: 8723616287162858202, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9176438517605008869, guid: 6b2fcfe7d2f0815488f3c97d21d09495, type: 3}
       propertyPath: m_AnchoredPosition.y

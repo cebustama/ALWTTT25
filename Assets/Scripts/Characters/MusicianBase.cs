@@ -225,7 +225,12 @@ namespace ALWTTT.Characters.Band
         {
             if (card == null) return null;
 
-            var anim = card.MusicianAnimation;
+            // [WINK-1 D3=B+] override(musician,card) -> card -> musician default.
+            // Resolution lives in MusicianCharacterData; the routine below
+            // (including DisableBeatAnimator handling) is untouched.
+            var anim = musicianCharacterData != null
+                ? musicianCharacterData.ResolveCardAnimation(card)
+                : card.MusicianAnimation;
             if (anim == null) return null;
 
             return StartCoroutine(PlayCardAnimationRoutine(anim));
