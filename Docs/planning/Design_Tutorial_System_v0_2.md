@@ -225,6 +225,21 @@ The curriculum drives seven rewritten reactive beats that fire from live combat 
 - **holdLoop (beat 8).** `TutorialLoopHoldGate` holds the last-loop window and does not re-grant inspiration; `tut_play_finisher_early` (prio 81) covers the already-played case. **CARD-UX-1 (2026-07-13):** the hold now arms the **`SingleCardOnly`** gate alongside it (finisher-only, hand-guarded — §4.2 (d)), which is what gates compositions in that loop; the final-loop composition lock is exempt while a hold is armed.
 - **Pacing (D‑TUT‑R2b‑1=B).** §4.3.
 - **Ordering fixes (TUT‑R2b).** **FIX‑1:** `OnCompositionLoopFinished` publishes `LoopResolvedEvent` **before** the per‑loop inspiration grant, so the beat‑8 affordability check under‑read by one; the driver now uses request flags (`_beat7Requested`/`_beat8Requested`) that latch on the driver's *action*, independent of dialog completion (loops keep running under modals). **FIX‑2:** beat‑7 swallow corrected.
+- **⚠ DEUDA TUT-REFRESH — el beat 4 dejó de ser cierto (registrado 2026-09-01, cierre de R6).**
+  `tut_tracks_three` afirma «Three tracks: RHYTHM, BACKING and MELODY». Con **Double Harmony** en
+  el mazo inicial de Zig existe un **cuarto rol de pista visible al jugador**, y la frase pasa a
+  ser falsa en cuanto el jugador la juega. Verdad de código que TUT-REFRESH debe consumir al
+  reescribir la línea:
+  - `Harmony` **es** un rol visible: fila propia en el panel de la parte, colocada junto a las
+    demás filas del mismo músico, siempre bajo su fila `Melody` (precondición D-R6-4=A: sin
+    melodía propia la carta se deniega).
+  - El **texto** de la fila es el **nombre de la carta** («Double Harmony»), no el del rol. El
+    nombre del rol sólo aparece en **hover**, y es autorable en
+    `CompositionStripThemeSO.RoleEntry.displayName`; vacío ⇒ se usa el nombre del enum, `Harmony`.
+  - La pista Harmony **no pasa por el director de voz**: suena como instrumento GM, no como la voz
+    de Zig. El tutorial **no puede** llamarla «una segunda voz cantada» (eso es Tier B, R8).
+  - Canal nuevo disponible para el tutorial: `GigMessageUI.Show(texto, segundos)` (D-R6-7).
+
 - **Copy evolution (TUT‑R2b/c v2).** Em dashes removed; the beat‑3 rhythm line moved to beat 4 (`tut_tracks_three`); the finisher named **Psychic Waves** (beat 8); the Blocked copy de‑iconified.
 
 ### 6B.4 Finisher economy (D‑DEMO‑1 = 4 loops)

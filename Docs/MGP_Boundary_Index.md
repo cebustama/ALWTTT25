@@ -10,6 +10,19 @@
 
 **Convenciones de la columna PK:** **QUEDA** = permanente en el PK (D-PK-5; 5 ficheros + `package.json`) · **retirado** = fuera del PK tras PK-CUT-1 · **Fase 3-B** = sigue en el PK hasta que cierre el lote que lo consume. **D-PK-5b resuelta = retirar**: `MGP-20260810_ssot_manifest.yaml` (170 KB) sale.
 
+> **Asks vivos hacia el companion (actualizado 2026-09-01).**
+> - **`MGP-ALWTTT-METER-1` — ABIERTO (filado 2026-09-01, R6).** La melodía no llena la parte en
+>   métricas compuestas. Nuestra hipótesis es `D-MEL5.1 = A` (documentado en el `CURRENT_STATE`
+>   del paquete: `MEL-BEATUNIT-1` arregló la duración del beat y dejó abierto el número de beats
+>   por compás). Bloquea la validación en juego de F-HARM-1 y decide el futuro de los patrones de
+>   melodía autorados fuera de 4/4. Ficheros a nombrar si se pide contexto:
+>   `MGP-20260810_CURRENT_STATE.md`, `MGP-20260810_MelodyPatternData.cs`,
+>   `MGP-20260810_SSoT_Authoring_Melody_Composition.md`.
+> - **`MGP-ALWTTT-HARMONY-1` — CERRADO 2026-09-01.** Cuatro ítems aplicados y **validados
+>   ALWTTT-side en R6**. Filas 25-26 de
+>   `MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` corregidas a ❌: `HarmonyCardConfigSO`
+>   **no tiene lector**. Diferidos vivos: ítems 3/5/6/7/8/9 y el residual **F-HARM-8**.
+
 ## Índice
 
 | Fichero (espejo) | Ruta en MidiGenPlay | Last write | Contiene | Cuándo pedirlo | PK |
@@ -34,7 +47,10 @@
 | `MGP-20260810_Handoff_MGP_BAGGAGE_1.md` | `Documentation~\reference\cross-project\ALWTTT\Handoff_MGP_BAGGAGE_1.md` | 2026-07-21 13:49 | Handoff: MGP-BAGGAGE-1 — disposición de assets muertos del catálogo del paquete | sólo para re-litigar MGP-BAGGAGE-1 (adoptado CSV-4 2026-07-20; resumen en boundary §8.2) | retirado |
 | `MGP-20260810_Handoff_MGP_MIX_1.md` | `Documentation~\reference\cross-project\ALWTTT\Handoff_MGP_MIX_1.md` | 2026-07-21 13:49 | Handoff — MGP-MIX-1: consumer-side mix gain (MidiGenPlay → ALWTTT) | sólo para re-litigar MGP-MIX-1 (adoptado BAL-1; boundary §8.3) | retirado |
 | `MGP-20260810_Handoff_MGP_POCKET.md` | `Documentation~\reference\cross-project\ALWTTT\Handoff_MGP_POCKET.md` | 2026-07-27 00:03 | Handoff — MGP-ALWTTT-BASS-POCKET-1 + POCKET-2 (consumer side) | sólo para re-litigar POCKET-1/2 (adoptado R2d; boundary §8.4–8.6) | retirado |
-| `MGP-20260810_HarmonyCardConfigSO.cs` | `Runtime\CoreScripts\Composition\Data\HarmonyCardConfigSO.cs` | 2025-11-13 16:46 | SO de bundle Harmony (stub, sin canal v1) | R6 (Harmony-role card; hoy 0.3 KB, sin canal v1) | retirado |
+| `MGP-20260810_HarmonyCardConfigSO.cs` | `Runtime\CoreScripts\Composition\Data\HarmonyCardConfigSO.cs` | 2025-11-13 16:46 | **CORREGIDO 2026-08-31 (MGP-HARMONY-AUDIT).** SO real con 2 campos (`leadingOverride: HarmonicLeadingConfig`, `strategyIdOverride: HarmonyStrategyId`) + `appliesTo`, **hoy sin lector en el paquete** — la carta es decorativa. NO es un stub del ROL: el rol tiene composer funcional, ranura PASS 2 y canal normal (ver filas siguientes) | R6 / cualquier pregunta de autoría de armonía | retirado |
+| `HarmonyTrackComposer.cs` | `Runtime\CoreScripts\Composition\Composers\HarmonyTrackComposer.cs` | — | **AUSENTE DEL EXPORT — hueco de espejo, no ausencia de código.** Composer real que emite notas: resuelve progresión, localiza la melodía líder vía cache D-MEL4.4, pide altura nota a nota a la estrategia y emite sobre la rejilla temporal de la melodía. Defectos verificados F-HARM-1..8 (metro, accidentales, lookup, cache) | R6 y cualquier defecto de armonía | **pedir al companion** |
+| `IHarmonyStrategy.cs` · `HarmonicLeadingConfig.cs` | `Runtime\CoreScripts\Composition\` (Interfaces / Data) | — | **AUSENTES DEL EXPORT.** `HarmonicLeadingConfig` es rico: enum `HarmonyRelation` (5 modos, default `NearestDifferentChordTone`), intervalos, separación min/max respecto a la melodía, `voicingPreset` | contrato de autoría de armonía | **pedir al companion** |
+| *(fichero de estrategias de armonía)* | `Runtime\CoreScripts\Composition\` — nombre exacto sin confirmar | — | **AUSENTE DEL EXPORT y no leído por nadie todavía.** Contiene `NearestChordToneHarmonyStrategy` y `NearestDifferentChordToneHarmonyStrategy`. **Frontera de verificación abierta:** sin él no se sabe si `HarmonicLeadingConfig.relation` se honra — y de eso depende que una línea de armonía no salga al unísono con la melodía | **ítem 0 de `MGP-ALWTTT-HARMONY-1`** | **pedir al companion** |
 | `MGP-20260810_IPatternRepository.cs` | `Runtime\CoreScripts\Interfaces\IPatternRepository.cs` | 2025-10-01 13:23 | interfaz de repositorio de patrones | interfaz (raro) | retirado |
 | `MGP-20260810_ITrackComposer.cs` | `Runtime\CoreScripts\Composition\Interfaces\ITrackComposer.cs` | 2025-10-26 21:09 | interfaz de factoría de composers | interfaz (raro) | retirado |
 | `MGP-20260810_ITrackPatternConfigStore.cs` | `Runtime\CoreScripts\Interfaces\ITrackPatternConfigStore.cs` | 2025-09-02 21:45 | interfaz de store lectura/escritura de SOs de patrón | interfaz (raro) | retirado |

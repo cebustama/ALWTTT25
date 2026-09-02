@@ -56,6 +56,14 @@ pipeline is therefore *by construction*: the stem filter is the only switch.
 2. **Monophonic.** One note at a time, last-note priority, `Melody`/`Lead` roles
    only. Inherited from the model; not an integration choice.
 
+2b. **El filtro de rol es también un límite de alcance (registrado R6, 2026-09-01).**
+   Como consecuencia directa del invariante anterior, una pista de rol `Harmony` **no** pasa
+   por la voz articulatoria: su canal no se mutea y suena como instrumento GM. Verificado en
+   juego con *Double Harmony* de Zig (`Melody` ch=1 muteado + Pink Trombone; `Harmony` ch=2
+   sonando como GM). Esto **no es un defecto**: es el alcance Tier A aceptado en `D-R6-D4=A`.
+   La segunda voz cantada es **Tier B**, y su precondición es levantar `ActiveVoiceCap` a 2 y
+   medir el coste DSP de dos voces concurrentes (§3.1) — ver §8.
+
 3. **Transport = dsp anchor (D1=A).** The singer shares no transport with MPTK.
    It arms silently, then on `IPlayMidi.OnSongStarted` captures
    `AudioSettings.dspTime` and starts its precomputed schedule from that anchor
@@ -179,8 +187,14 @@ lookup, retiring the serialized string. Follow-up, not required for the demo.
 ## 8. Deferred / out of scope
 
 - `MidiMusicManager.Highlight` × mute interaction — Dev Mode validation.
-- Second concurrent voice (cap = 2) — needs a second singer character
-  (Zig's self-harmony finisher is the intended first consumer of slot 2).
+- Second concurrent voice (cap = 2) — **Tier B, diferido a R8 (D-R6-6, 2026-09-01).**
+  El consumidor previsto ya existe y está validado: *Double Harmony* de Zig ships en R6 como
+  Tier A (pista MIDI de rol `Harmony`, sonando GM). La validación auditiva de R6 confirmó que la
+  armonía es musicalmente correcta, así que Tier B deja de ser una apuesta de diseño y pasa a ser
+  un problema de presupuesto: hay que levantar `ActiveVoiceCap` a 2 en Dev Mode, medir el DSP de
+  dos voces (~10.5 % cada una, §3.1) y decidir cómo el director gestiona cap, duck y sincronía con
+  **dos** stems del mismo músico. Nótese que hoy el director resuelve por rol `Melody`/`Lead`:
+  admitir `Harmony` es un cambio de su regla de selección, no sólo del contador.
 - Mixer-group routing — the singer currently bypasses `AudioMixSettings`;
   balance is the profile `gain`. A small follow-up.
 - Consonants / nasal branch — vowels only.

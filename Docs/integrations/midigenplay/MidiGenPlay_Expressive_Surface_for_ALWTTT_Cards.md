@@ -71,8 +71,8 @@ Legend for **"Per-card today?"**:
 | 22 | Per-phrase melodic directives | `MelodyCardConfigSO.style` → `MelodicStyleSO.perPhraseDirectives` | via Style | `WeightedPhraseDirective`, `InterPhraseIntervalDirective` | ✅ |
 | 23 | Phrase palette (archetypes) | `MelodyCardConfigSO.phrasePaletteOverride` | via Style | `PhrasePaletteSO` → `PhraseArchetypeSO` | ✅ |
 | 24 | Melodic leading | `MelodyCardConfigSO.leadingOverride` | via Style | `MelodicLeadingConfig` | ✅ |
-| 25 | Harmony strategy | `HarmonyCardConfigSO.strategyIdOverride` via styleBundle | `TrackParameters.Style` | — | ✅ |
-| 26 | Harmonic leading | `HarmonyCardConfigSO.leadingOverride` | via Style | `HarmonicLeadingConfig` | ✅ |
+| 25 | Harmony strategy | `HarmonyCardConfigSO.strategyIdOverride` via styleBundle | `TrackParameters.Style` | — | ❌ (ver §8.6) |
+| 26 | Harmonic leading | `HarmonyCardConfigSO.leadingOverride` | via Style | `HarmonicLeadingConfig` | ❌ (ver §8.6) |
 
 **Axes 4–6 (Tempo) — ALWTTT-side cache interaction.** Playing a card with `TempoEffect.ScaleFactor`, `.AbsoluteBpm`, or `.Range` modifies `PartConfig.TempoScale` / `.ExplicitBpm` / `.TempoRange`, all of which are part of ALWTTT's B1 `partMeterHash`. The play invalidates all cached stems for the part and triggers a full part regen on the next render. This is intended behavior — different BPMs typically warrant different drum patterns and note density anyway. See `SSoT_Runtime_CompositionSession_Integration §8` for the cache key composition.
 
@@ -279,6 +279,24 @@ Not a current priority. Recorded here for future roadmap consideration.
 ---
 
 ## 8. Known contractual gaps
+
+### 8.6 `HarmonyCardConfigSO` no tiene lector (corrección, R6 2026-09-01)
+
+Las filas 25 y 26 estaban marcadas ✅ por inferencia de simetría con los demás bundles de rol.
+**Es falso, y la corrección la aportó el propio paquete** en el ask `MGP-ALWTTT-HARMONY-1`
+(2026-09-01): ningún campo de `HarmonyCardConfigSO` se lee package-side. Lo que gobierna la
+armonía es el `HarmonicLeadingConfig` **global** del `MidiGenPlayConfig`, y dentro de él sólo
+`minDistanceFromMelody` y `maxDistanceFromMelody` tienen efecto.
+
+Inertes dentro de ese config, y por tanto trampa de autoría: `relation` (se evalúa en un `if` de
+cuerpo vacío), `intervalSemitones` y `diatonicSteps`. Además,
+`NearestDifferentChordToneHarmonyStrategy` es **inalcanzable** para cualquier pista con
+`TrackParameters`, porque la factory sustituye por `HarmonyStrategyFactory.Create(harmonyStrategyId)`
+y `HarmonyStrategyId` tiene un único miembro.
+
+**Consecuencia de diseño:** elegir el intervalo de la armonía (tercera vs sexta, encima vs debajo)
+**no existe hoy**. Es el residual `F-HARM-8` del ask, diferido. Toda carta de armonía suena con el
+mismo carácter hasta que se pida.
 
 ### 8.1 `TonalityProfileSO` not injectable per card
 

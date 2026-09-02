@@ -14,6 +14,69 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-09-01 — R6 CERRADO: la primera regla que necesitaba saber dónde cae la carta
+
+**Tipo:** semantic + operational + contrato + lifecycle.
+
+**Qué cambió y por qué así.** R6 autora *Double Harmony*, el finisher de composición de Zig: añade
+una pista de rol `Harmony` que dobla su propia melodía. El rol ya existía package-side, así que el
+lote parecía autoría de contenido. No lo fue.
+
+La carta trae una **precondición** —sólo es legal si el músico ya sostiene una fila `Melody` en esa
+parte (**D-R6-4=A**)— y esa es la primera regla del proyecto que necesita mirar el **contenido de
+una parte** para decidir. Al implementarla apareció **F-R6-2**: `CompositionSession` evaluaba el
+gate de reglas *antes* de calcular a qué parte se enruta la jugada. Con un loop corriendo la carta
+cae en `_currentPartIndex` (la parte que suena) mientras el gate leía `Model.CurrentPartIndex`
+(`parts.Count - 1`, la parte en borrador). La regla juzgaba una parte distinta de aquella donde la
+carta iba a caer. **No era un defecto de Harmony: ninguna regla dependiente de contenido podía ser
+correcta durante un loop**, y no se había manifestado porque hasta hoy todas las reglas miraban la
+carta, el objetivo o el estado de sesión.
+
+El arreglo hoistea normalización de zona y cálculo de índice por encima del gate —ambos son cálculo
+puro, sin efectos secundarios— y pasa el índice a una **sobrecarga** de `CanApplyDefinition`. La
+sobrecarga de tres argumentos se conserva y cae a `Model.CurrentPart`, así que ningún llamador
+anterior cambia de comportamiento. Se descartó la alternativa de que la UI consultase el índice a
+la sesión: duplicaba la regla de enrutado en dos sitios e invertía la dirección de dependencia.
+
+**Segundo hallazgo con consecuencia de diseño.** `CardDefinition` no tiene campo de descripción y
+las caras de carta de composición omiten el texto de efecto por diseño (§10.1). Es decir: **la
+precondición no se puede imprimir en la carta**. El único canal posible era el motivo de
+denegación, que hasta hoy sólo existía en consola. De ahí **D-R6-7** y `GigMessageUI`, un campo de
+texto con autoocultado configurable enganchado al embudo `Fail(...)` de `TryPlayCompositionCard` —
+que ya captura *todas* las denegaciones internas— y a las tres puertas previas de `GigManager`.
+Eso cierra de paso la nota «ninguna denegación tiene feedback en pantalla» que R5 dejó abierta.
+
+**Autoría deliberadamente vacía.** `HarmonyCardConfigSO` no tiene lector package-side (ask
+`MGP-ALWTTT-HARMONY-1`, ítem 3 diferido). El asset debe existir, pero poblar sus campos es autoría
+fantasma: se registra como invariante en `SSoT_Card_System.md` §5.2.1 y como excepción en
+`SSoT_Card_Authoring_Contracts.md` §5.13. Por el mismo motivo se corrigen a ❌ las filas 25-26 de
+`MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md`, que estaban en ✅ por inferencia de simetría.
+
+**Lo que la validación auditiva sí y no probó.** PASS en 4/4 y sobre progresión con accidentales
+(`harmonizing melody of '3' (self)`, 15 guide notes → 15 notas). **6/8 INCONCLUSO**, no fallido: la
+melodía procedural no llena la parte en métricas compuestas (**F-R6-4**), lo que corresponde a
+`D-MEL5.1 = A` del propio paquete y se fila como **`MGP-ALWTTT-METER-1`**. Como la armonía sigue
+las guide notes de la melodía, una melodía corta produce una armonía corta: con ese defecto
+delante, `ST-R6-6` no puede probar el arreglo de metro de F-HARM-1.
+
+**Alcance que se movió.** `D-R6-1=C`: la fila de partículas por track queda superseded por
+RFX-1/RFX-2, con el residual «distinguir las dos pistas de un mismo músico» como RFX-3 candidato.
+`D-R6-2=B` y `D-R6-6`: la API one-shot de voz y **Tier B** (la armonía como segunda voz de Pink
+Trombone) van a R8 — que por tanto **deja de ser un lote de contenido** y pasa a abrir runtime de
+voz, con medición de DSP de dos voces y un cambio en la regla de selección del director, hoy
+filtrada a `Melody`/`Lead`.
+
+**Docs tocados.** `SSoT_Card_System.md` (§5.2.1, §10.1) · `SSoT_Runtime_CompositionSession_Integration.md`
+(§5.6 nueva, §11.1 nueva) · `SSoT_Card_Authoring_Contracts.md` (§5.13) · `SSoT_Singer_Voice.md`
+(§3 invariante 2b, §8) · `MidiGenPlay_Expressive_Surface_for_ALWTTT_Cards.md` (filas 25-26, §8.6
+nueva) · `RosterExpansion_Sub_Roadmap.md` (fila R6, ledger R6, §8 asks, alcance R8) ·
+`CURRENT_STATE.md` (tabla de lotes, F-R6-1..5, retirada de las 7 entradas legacy del catálogo
+Cantante, blocker de R5 resuelto) · `coverage-matrix.md` (2 filas nuevas) ·
+`Design_Tutorial_System_v0_2.md` (deuda del beat 4) · `MGP_Boundary_Index.md` (asks) ·
+`PK_Manifest.md` (4 filas).
+
+---
+
 ## 2026-08-31 — WINK-1 CERRADO: la jugada de una carta como secuencia de tiempos
 
 **Tipo:** semantic + operational + lifecycle.

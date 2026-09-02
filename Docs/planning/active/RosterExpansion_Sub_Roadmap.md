@@ -290,6 +290,23 @@ extra ni decaería estados de audiencia una vez más.
 
 ---
 
+### R6 decision ledger (cerrado 2026-09-01)
+
+| Id | Resolución |
+|---|---|
+| **D-R6-D4** | **A** (heredada) — ship Tier A. Tier B fuera; ver D-R6-6. |
+| **D-R6-COST** | **3** — sin afinar; la palanca de balance es el coste, no un rider (ver D-R6-3). |
+| **D-R6-GO** | **C** — el subconjunto barato del ask se pidió y llegó entregado. |
+| **D-R6-1** | **C** — la fila «dual per-track particle FX» queda **superseded** por RFX-1/RFX-2 (2026-08-26), que entregaron partículas por nota y por acorde ancladas por músico. Residual real: distinguir **cuál de las dos pistas de un mismo músico** suena → **RFX-3, candidato sin fecha**. La fila R6 es anterior a RFX y no debe leerse literal. |
+| **D-R6-2** | **B** — la API one-shot de `SingerVoiceDirector` se construye en **R8**, con Singalong delante. Construir API sin consumidor deja preguntas sin respuesta (formato de frase, ventana pre-canción, interacción con `ActiveVoiceCap`). Coste aceptado: R8 abre runtime de voz. |
+| **D-R6-3** | **A** — sin rider. Lo que distingue un finisher de composición es que **persiste**: la pista suena el resto de la canción. Si el coste 3 se siente caro, se baja el coste; no se inventa un bonus que hoy no podemos justificar. |
+| **D-R6-4** | **A** — la carta se **deniega** si el músico no tiene melodía propia en la parte destino. Alternativa B (armonizar a otro músico) reintroducía la dependencia de orden de lista que `D-H1-5a=B` acababa de eliminar; C (dejar pasar) podía producir un finisher de coste 3 silencioso. |
+| **D-R6-5** | resuelto de facto — el `CompositionStripThemeSO` ya tenía entrada `Harmony` con glifo propio (ST-R6-4 PASS). |
+| **D-R6-6** | **diferido a R8** — la armonía **debe** ser una segunda voz de Pink Trombone. Eso es Tier B. No se difiere por complejidad sino por presupuesto no medido. Interim aceptado: instrumento GM aleatorio. |
+| **D-R6-7** | **construido** — `GigMessageUI`, campo de texto con autoocultado configurable (default 5 s), enganchado al embudo `Fail(...)` de `TryPlayCompositionCard` y a las tres puertas previas de `GigManager`. Cierra la nota «ninguna denegación tiene feedback en pantalla» que R5 dejó abierta. |
+
+**Hallazgos de R6** (detalle en `CURRENT_STATE.md` §4): **F-R6-1** feedback visual precede a la aceptación · **F-R6-2** enrutado de parte tras el gate de reglas (**ARREGLADO**) · **F-R6-3** hover muestra `Instrument: -` · **F-R6-4** melodía no llena la parte en 6/8 (**ask al paquete**) · **F-R6-5** glifo de Melody con alfa 0 (**arreglado**, asset).
+
 ## 3. Batch sequence
 
 | Batch | Mode | Scope (one line) | Phasing | Depends on |
@@ -306,9 +323,9 @@ extra ni decaería estados de audiencia una vez más.
 | ~~**R5-e**~~ ✅ **CLOSED 2026-08-28** | IMPLEMENTATION | Autoría de Overload: par de coste visible en el Card Editor con validación blanda, `GrantBonusLoopSpec` en *Add Effect…*, siete discriminadores en el prompt del generador y en el guard de la etapa 5, dos tests que atan las cuatro superficies. Sin runtime. D-R5-27 cerrada = B. | Post-R5-d | R5-d |
 | ~~**R5-f**~~ ✅ **CLOSED 2026-08-28** | TESTING / VALIDATION | `ST-R5d-1..15` declarada perdida (D1=B) y sustituida por **`ST-R5f-1..18`**: 15 PASS, 2 FAIL (F-R5f-1/-9, misma causa → R5-g), ST-R5f-4 diferido. `conito_slap_groove` y `conito_super_slap` autoradas; `starter_slap_bass` repuntada a `SlapV1`; duck a 0.75. D1=B · D2a=B · D2b · D3=A · D5=A. | Post-R5-e | R5-e |
 | ~~**R5-g**~~ ✅ **CLOSED 2026-08-29** | IMPLEMENTATION | **D5=A resuelto por D1=B.** `HandController` **2b.5**: comprobación no consumidora (`CanPayResourceCost`) delante de la puerta ECON-1, cobro donde estaba — ambas rutas comparten ahora «comprobar todo, cobrar después». **D2=B:** helper `LogGate` de tier maestro para la denegación (en verbose la carta volvía a la mano sin explicación en consola). Comentario falso de ~l.820 reescrito; el `2a.6-bis` de §14.4 **nunca existió** y la sección queda corregida. **F-R5f-11 CERRADO — no era defecto:** el canal excluido del duck se **deriva** del solo inyectado (`CompositionSession` l.1336, `GetChannelForTrack(cfg, soloKey…)`); si no resuelve, el loop suena **sin duck** en vez de atenuar un canal arbitrario. **ST-R5g-0** midió los tiers de log de R5 (§19.2 pasa de 7 a 11 líneas protegidas). `ST-R5g-1..8` 8/8 PASS; ST-R5f-1/-18 → PASS, -3/-16 sin regresión. Hallazgos: **F-R5g-1** (asimetría de tier del log de ECON-1 dentro de `HandController`, no se arregla: `GigManager` ya imprime la denegación a tier maestro) · **F-R5g-2** (tercera instancia del patrón §3.1/§3.2: `ST-R5f-1..18` cerró R5 y sus definiciones **no** están en documento gobernado) · **F-R5g-3** (`SSoT_Status_Effects` §5.10 seguía diciendo «inspiración 2» para Overload tras R5-f). | Post-R5-f | R5-f |
-| **R6** | IMPLEMENTATION | **Double Harmony Tier A** (Harmony-role card + listening validation + dual per-track particle FX via `IMidiNoteListener`) + **`SingerVoiceDirector` one-shot API** (shared groundwork for singalong; Tier B + expression-input rider queued behind cap=2 validation) | Post-S5j | R3, S5j |
+| ~~**R6**~~ ✅ **CLOSED 2026-09-01** | IMPLEMENTATION | **Double Harmony Tier A entregada, jugable y validada de oído.** Carta `starter_double_harmony` (rol Harmony, coste 3, bundle `HarmonyCardConfig_DoubleHarmony` **inerte por diseño**) + precondición D-R6-4=A + **arreglo estructural F-R6-2** (enrutado de parte antes del gate de reglas) + **`GigMessageUI`** (D-R6-7, primer feedback de denegación en pantalla). **Partículas por track: superseded** por RFX-1/RFX-2 (D-R6-1=C; residual → RFX-3 candidato). **API one-shot de voz: NO construida** (D-R6-2=B → R8). ST-R6-0..18 PASS salvo **ST-R6-6 INCONCLUSO** (6/8 bloqueado por F-R6-4, ask `MGP-ALWTTT-METER-1`). | — | R3 ✅ |
 | **R7** | IMPLEMENTATION | **Track Card Levels** mechanic (state on `TrackEntry`, level-up branch in `TryAddOrReplaceTrackOnPart`, cache-invalidation duty, INSP/complexity hooks) + pilot content (Wormus Major/Minor lvl2–3). Spec: `planning/active/Design_Track_Card_Levels_v0_1.md`. May file MGP ask §8 #4 if alphabet gaps bite | Post-S5j | R0 (spec), S5j |
-| **R8** | CONTENT / TEST | Rewards for all 4 (palettes via skills: jazz / Phrygian / jazz-vs-EDM drums; bossa v1 + tapping-or-degradation) + **Singalong** (on R6 one-shot API) + starter v2 registration + full-band smokes (4 musicians, full pool) + campaign doc closure | Last | R4–R7 |
+| **R8** | CONTENT / TEST **+ RUNTIME DE VOZ** ⚠ | **Alcance ampliado en R6 (2026-09-01): R8 ya NO es sólo contenido.** Arrastra (a) la **API one-shot de `SingerVoiceDirector`** para Singalong (D-R6-2=B: construirla sin consumidor era especulativo) y (b) **Tier B de Double Harmony** (D-R6-6: la armonía debe ser una segunda voz de Pink Trombone), que exige levantar `ActiveVoiceCap` a 2, **medir el DSP de dos voces** y cambiar la regla de selección del director, hoy filtrada a `Melody`/`Lead`. Planificarlo como «autorar unas cartas» es incorrecto. Además: rewards for all 4 (palettes via skills: jazz / Phrygian / jazz-vs-EDM drums; bossa v1 + tapping-or-degradation) + **Singalong** (on R6 one-shot API) + starter v2 registration + full-band smokes (4 musicians, full pool) + campaign doc closure | Last | R4–R7 |
 
 Compression note: R3→R1 merge and per-musician reward distribution into R2/R3/R6 can shrink the campaign to ~7 batches at the cost of less-bounded batches. **R5 must stay solo** (invariant-touching).
 
@@ -419,7 +436,7 @@ Effort: **A** = authoring/content only · **B** = authoring + bounded ALWTTT cod
 | Zig ascending-note comp | `MelodyCardConfigSO.patternOverride` plays `MelodyPatternData` verbatim; **patterns are degree-based** (ScaleDegree + octave offset, pitch resolved vs Part tonality/root — verified) → key/mode-adaptive by construction. Sung: Pink Trombone glide (`pitchLeadSeconds`/`leadFullInterval`) renders the sweep. Verify pattern-Measures vs part length at authoring | ALWTTT | A |
 | Zig scale-phrase comp | `PhrasePaletteSO` + existing archetypes (EvenFlow / BurstThenHold / SustainLeadIn) + `MelodicStyleSO` | ALWTTT | A |
 | Zig Wink (Captivated) | Designed (`Design_Audience_Status_v1 §4`, `DamageTakenUpMultiplier`, ×(1+0.25N)). `ApplyIncomingVibe` already canonical → only the amplification layer + SO + icon + card remain | ALWTTT | B (small) |
-| Zig Double Harmony | **Tier A:** Harmony role exists end-to-end package-side (`HarmonyTrackComposerFactory`, `NearestDifferentChordTone`, two-pass orchestration reading Melody guide notes D-MEL4.4; readback does not report Harmony ID-2=A → **listening validation owed at batch open**). **Tier B:** second sung voice = slot-2 intended consumer; needs Director role-filter extension (Melody/Lead only today) + cap=2 validation (deferred to Dev Mode) + 2-voice DSP budget | ALWTTT | A/B (Tier A) · B/C (Tier B) |
+| Zig Double Harmony | **Tier A — VERDICTO CORREGIDO 2026-08-31 (MGP-HARMONY-AUDIT, veredicto HUECO ACOTADO).** El verdicto original de 2026-07-23 ("exists end-to-end package-side") era direccionalmente correcto en infraestructura e impreciso en tres puntos que deciden si R6 es contenido o bloqueo: (i) la orquestación es de **tres** pasadas desde ORDER-1, no dos; (ii) la estrategia efectiva es `NearestChordToneHarmonyStrategy`, **no** la `NearestDifferentChordTone` citada — esta última solo se alcanza como default de constructor con `Parameters == null`, prácticamente nunca; (iii) "end-to-end" omitía que **la superficie de autoría no está conectada** (el composer nunca lee la carta) y que el rol carece de tests, smoke y readback. Lo que SÍ está verificado por lectura de código: composer real que emite notas, consumo de guide notes D-MEL4.4, ranura PASS 2, degradación segura sin melodía y sin backing. Defectos abiertos: metro (roto en 6/8), ceguera a accidentales, cache de armonía bajo identidad de melodía. Ask acotado: `MGP-ALWTTT-HARMONY-1` (ítems 0/1/2/4). **Validación auditiva sigue debida** (ID-2=A). **Tier B:** second sung voice = slot-2 intended consumer; needs Director role-filter extension (Melody/Lead only today) + cap=2 validation (deferred to Dev Mode) + 2-voice DSP budget | ALWTTT | A/B (Tier A) · B/C (Tier B) |
 | Track Card Levels | New mechanic; spec note `Design_Track_Card_Levels_v0_1.md`. Alphabet verified rich enough for the lvl3 exemplar minus slash chords (§9 V1) | ALWTTT | C (R7) |
 | Fill Window (C2) | Registered idea, post-campaign — `planning/Design_Fill_Window_v0_1.md` | cross-cutting | C+ |
 | Singer expression input | Registered idea, post-campaign (candidate Tier-B rider) — `planning/Design_Singer_Expression_Input_v0_1.md` | ALWTTT | B |
@@ -457,6 +474,26 @@ Effort: **A** = authoring/content only · **B** = authoring + bounded ALWTTT cod
 ---
 
 ## 8. MidiGenPlay asks
+
+> **Ask abierto — `MGP-ALWTTT-METER-1` (filado 2026-09-01, R6).** La melodía **no llena la parte
+> en métricas compuestas**: en 6/8 la melodía procedural (Showtime) termina antes que el resto de
+> la pista, repetible. Nuestra hipótesis, con la documentación del propio paquete: es
+> **`D-MEL5.1 = A`** — `MEL-BEATUNIT-1` (2026-07-24) arregló *cuánto dura un beat*, y dejó
+> explícitamente abierto *cuántos beats tiene un compás* («bar-time renormalization is post-MVP»).
+> **Impacto en ALWTTT:** bloquea la validación en juego de **F-HARM-1** (el arreglo de metro de
+> `MGP-ALWTTT-HARMONY-1`), porque la armonía sigue las guide notes de la melodía: melodía corta ⇒
+> armonía corta. `ST-R6-6` queda **INCONCLUSO**, no fallido. También decide si `Rise Up`
+> (`MelodyPattern_RiseUp_44_8m`) podrá sonar alguna vez en partes que no sean 4/4.
+
+> **Cerrado — `MGP-ALWTTT-HARMONY-1` (2026-09-01).** Cuatro ítems aplicados. **Validado
+> ALWTTT-side en R6:** `[HarmonyTrackComposer] harmonizing melody of '3' (self)`, 15 guide notes →
+> 15 notas, progresión correcta, en 4/4 y sobre progresión con accidentales. **Diferidos a
+> registrar:** ítem 3 (puente carta→composer — sin él no hay segunda carta de armonía ni niveles de
+> carta sobre el rol), ítem 5 (objetivo de melodía configurable), ítem 6 (contrato de cache),
+> **ítem 7 (velocidad fija 80** — causa conocida de cualquier desequilibrio armonía/melodía**)**,
+> resto del ítem 8, ítem 9 (SSoT propia del composer), y el residual **F-HARM-8**
+> (`relation` / `intervalSemitones` / `diatonicSteps` inertes; `NearestDifferentChordTone`
+> inalcanzable) — sin él **no existe control de intervalo**: ni tercera-vs-sexta ni encima-vs-debajo.
 
 > **Estado post-R3 (2026-08-08).** Task A **hecha**, Wormus Modal **hecha**. Cola restante:
 > **LOG-1 → tag snapshot → R4+**. Con `snapshot-01` cortado (2026-08-08), R4+ queda

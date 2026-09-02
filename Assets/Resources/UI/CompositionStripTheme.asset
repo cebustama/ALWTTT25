@@ -27,7 +27,7 @@ MonoBehaviour:
     displayName: Bassline
   - role: 4
     icon: {fileID: 21300000, guid: cec40a489189d5e49ab1ca347c0b9732, type: 3}
-    tint: {r: 1, g: 0.61960787, b: 0.78039217, a: 0}
+    tint: {r: 1, g: 0.61960787, b: 0.78039217, a: 1}
     displayName: Melody
   - role: 5
     icon: {fileID: 21300000, guid: af7c9d7748df3c2439da3f11f98f31ad, type: 3}

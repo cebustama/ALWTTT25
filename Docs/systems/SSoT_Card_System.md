@@ -164,6 +164,33 @@ If a composition card references track/bundle/composer structures, ALWTTT owns t
 > | Rise Up | Cantante (Zig) | Melody | `MelodyCardConfig_RiseUp` → `patternOverride: MelodyPattern_RiseUp_44_8m` | `ComposeFromPattern` (verbatim). Los campos `leadingOverride` / `phrasePaletteOverride` / `style` quedan deliberadamente vacíos: el patrón los silencia incondicionalmente. |
 > | Showtime | Cantante (Zig) | Melody | `MelodyCardConfig_Showtime` → `phrasePaletteOverride: PhrasePalette_Showtime` + `style: MelodicStyle_Showtime` + `leadingOverride: MelodicLeading-Showtime` | Ruta procedural. `patternOverride` **debe** quedar en null. Operativa desde ST-R3-11 PASS (2026-08-08); la resolución de MGP-MEL-1 no cambió qué campos deben poblarse (B4 verificado, sin cambio). |
 >
+> **Cantante (Zig) — R6, cerrado 2026-09-01.** Una comp nueva, StarterDeck, 1 copia:
+>
+> | Carta | Músico | Rol | Binding | Ruta |
+> | --- | --- | --- | --- | --- |
+> | Double Harmony | Cantante (Zig) | **Harmony** | `HarmonyCardConfig_DoubleHarmony` — **autorado vacío a propósito** | `HarmonyTrackComposer` con la configuración GLOBAL (`MGP_HarmonicLeadingConfig`). Coste 3, finisher. |
+>
+> **Invariante de autoría (R6) — el bundle de Harmony es inerte.** A fecha 2026-09-01
+> MidiGenPlay **no lee** `HarmonyCardConfigSO`: sus campos no tienen consumidor
+> package-side (ítem 3 del ask `MGP-ALWTTT-HARMONY-1`, diferido). El asset debe existir
+> —una fila de pista sin bundle no se crea (D4=A)— pero poblar sus campos es **autoría
+> fantasma**: produce una carta cuyo authoring aparente no corresponde a nada.
+> El carácter de la armonía lo fija en su totalidad `HarmonicLeadingConfig.minDistanceFromMelody`
+> (global, valor actual 3). Corolario: **una segunda carta de armonía que suene distinta, o
+> niveles de carta sobre el rol, son imposibles** hasta que se pida el ítem 3.
+>
+> **Precondición de jugada (D-R6-4=A).** Double Harmony se **deniega** si el músico no
+> sostiene ya una fila `Melody` propia en la parte destino. Motivo: el composer prefiere la
+> melodía del propio músico y sólo cae a «la primera de la lista» si no la encuentra; permitir
+> la jugada sin melodía propia devolvería la dependencia de orden de lista que `D-H1-5a=B`
+> eliminó, o emitiría un fichero vacío. La regla vive en `SongCompositionUI.TryGetHarmonyDenial`,
+> consultada desde el pre-flight (`CanApplyDefinition`) y desde el punto de aplicación.
+>
+> **Consecuencia sonora registrada.** El `SingerVoiceDirector` filtra por rol `Melody`/`Lead`,
+> así que la pista Harmony **no** pasa por la voz articulatoria: suena como instrumento GM
+> (sorteado entre los melódicos permitidos del músico, `SongConfigBuilder`). La segunda voz
+> *cantada* es Tier B y está diferida a R8.
+
 > **Invariante de autoría (R3).** En un `MelodyCardConfigSO`, `patternOverride` y el
 > trío (leading / paleta / estilo) son **mutuamente excluyentes en la práctica**: si
 > el patrón está presente, `MelodyTrackComposer` toma la rama `ComposeFromPattern` y
@@ -326,6 +353,14 @@ Surfaces: card-face text (§10.1), hover tooltips (§10.2), detail modal (§10.3
 `CardDefinitionDescriptionExtensions.GetDescription` delegates the action-card branch to `CardEffectDescriptionBuilder.BuildList(action.Effects, stats)`. The builder handles `ApplyStatusEffectSpec`, `ModifyVibeSpec`, `ModifyStressSpec`, `DrawCardsSpec`, and `AddInspirationPerLoopSpec` (DF-INSPLOOP: renders "Gain +N Inspiration each loop while this track plays"). Composition card faces still omit effect text by design (density reduction, 2026-04-21) — the `AddInspirationPerLoop` line is surfaced via the card-hover tooltip (§10.2) and the detail modal (§10.3), not the card face. TMP rich-text tokens: buff `#8FD694`, debuff `#D6858F`, numbers `#FFD084`. Zero-delta effects render as empty strings and are filtered out. Target-type phrasing is centralized.
 
 Composition card faces use a separate path: role/part + modifier count badge. `CardPayload.Effects` on composition cards are not surfaced on the card face (intentional density reduction, 2026-04-21). They are discoverable via card-hover tooltips (§10.2).
+
+**Consecuencia registrada (R6, 2026-09-01): una carta de composición no tiene canal en su
+propia cara para una regla de jugabilidad.** `CardDefinition` no lleva campo de descripción y
+las caras de composición omiten el texto de efecto por la reducción de densidad de arriba. Cuando
+una carta de composición tiene una **precondición** —Double Harmony exige una fila Melody propia
+en la parte (§5.2.1, D-R6-4=A)— el jugador no puede leerla en la carta. El único canal es el
+**aviso de denegación** (`GigMessageUI`, D-R6-7). Toda precondición nueva de carta de composición
+debe, por tanto, o venir con su texto de denegación, o aceptar ser invisible.
 
 ### 10.2 Card-hover tooltips (M1.3c)
 

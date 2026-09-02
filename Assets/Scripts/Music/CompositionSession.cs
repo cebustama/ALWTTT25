@@ -255,13 +255,14 @@ namespace ALWTTT.Music
             if (comp.RequiresMusicianTarget && target == null)
             { reason = "Card requires a musician target"; return false; }
 
-            if (!ui.CanApplyDefinition(def, target, out var canReason))
-            { reason = $"CanApply refused: {canReason}"; return false; }
-
+            // [R6 / F-R6-2] Route first, then judge. Same reason as the CardBase path.
             bool loopIsRunning = _isPlaying &&
                 (_state == CompositionState.BuildingNextPart
                  || _state == CompositionState.PlayingCurrentPart);
             int partIdx = loopIsRunning ? _currentPartIndex : ui.Model.CurrentPartIndex;
+
+            if (!ui.CanApplyDefinition(def, target, out var canReason, partIdx))
+            { reason = $"CanApply refused: {canReason}"; return false; }
 
             if (!ui.ApplyCardDefinitionToPart(def, target, partIdx))
             { reason = "ApplyCardDefinitionToPart returned false"; return false; }
@@ -312,6 +313,19 @@ namespace ALWTTT.Music
             return true;
         }
 #endif
+
+        /// <summary>
+        /// [R6 / D-R6-7] The log line is written for a developer ("UI.CanApply
+        /// refused: Needs your own melody…"); the player only needs the sentence.
+        /// Strips the diagnostic prefix when present, leaves anything else alone.
+        /// </summary>
+        private static string StripDenialPrefix(string msg)
+        {
+            if (string.IsNullOrEmpty(msg)) return msg;
+            const string k = "CanApply refused: ";
+            int i = msg.IndexOf(k, System.StringComparison.Ordinal);
+            return i >= 0 ? msg.Substring(i + k.Length) : msg;
+        }
 
         public bool TryGetPartCache(int partIndex, out PartCache cache) =>
             _partCache.TryGetValue(partIndex, out cache);
@@ -728,7 +742,14 @@ namespace ALWTTT.Music
         {
             // ----- helpers -----
             void Info(string msg) => _ctx?.Log($"[TryPlay] {msg}");
-            bool Fail(string msg) { _ctx?.Log($"[TryPlay][FAIL] {msg}", true); return false; }
+            // [R6 / D-R6-7] Single funnel: every internal denial of a composition
+            // play passes through here, including "CanApply refused: <reason>".
+            bool Fail(string msg)
+            {
+                _ctx?.Log($"[TryPlay][FAIL] {msg}", true);
+                ALWTTT.UI.GigMessageUI.Show(StripDenialPrefix(msg));
+                return false;
+            }
 
             // [LOG-1 / D-LOG-3=B] Verbose tier for the INTERIOR of a card play.
             // `enter`, `SUCCESS` and every Fail stay on Info: those three
@@ -820,36 +841,36 @@ namespace ALWTTT.Music
                     return Fail("Card requires musician target but none resolved");
             }
 
-            // 3) Business rules (centralized in UI)
-            if (!ui.CanApply(card, target, out var reason))
-                return Fail($"UI.CanApply refused: {reason}");
-
-            // 4) [B1 / D-D=β] Zone normalization. NextPart gesture removed
-            // in Phase B; every drop is treated as CurrentPart. The
-            // CardDropZone.NextPart enum value + downstream branches are
-            // preserved dormant for migration coexistence.
+            // [R6 / F-R6-2] Zone normalization + part routing MOVED ABOVE the
+            // business-rule gate. Rules that depend on part CONTENT (Harmony,
+            // D-R6-4=A) must judge the part the play lands on, not the part the
+            // UI happens to have last in its list. Steps 4/5 below are pure
+            // computation, so hoisting them has no other effect.
             if (zone == CardDropZone.NextPart)
             {
                 Info("[B1/D-D=β] redirecting NextPart → CurrentPart (dormant gesture)");
                 zone = CardDropZone.CurrentPart;
             }
 
-            // 5) Compute part index based on zone + loop state
             bool loopIsRunning =
                 _isPlaying &&
                 (_state == CompositionState.BuildingNextPart
                 || _state == CompositionState.PlayingCurrentPart);
 
-            int partIdx;
-            if (loopIsRunning)
-                partIdx = (zone == CardDropZone.NextPart) ?
-                    ui.Model.CurrentPartIndex : _currentPartIndex;
-            else
-                partIdx = ui.Model.CurrentPartIndex;
+            int partIdx = loopIsRunning
+                ? ((zone == CardDropZone.NextPart)
+                    ? ui.Model.CurrentPartIndex : _currentPartIndex)
+                : ui.Model.CurrentPartIndex;
 
             InfoV($"routing: loopRunning={loopIsRunning} zone={zone} -> partIdx={partIdx} " +
                  $"(ui.CurrentPartIndex={ui.Model.CurrentPartIndex} " +
                  $"currentPartIndex={_currentPartIndex})");
+
+            // 3) Business rules (centralized in UI), now judged on partIdx.
+            if (card == null || card.CardDefinition == null)
+                return Fail("UI.CanApply refused: Not a composition card.");
+            if (!ui.CanApplyDefinition(card.CardDefinition, target, out var reason, partIdx))
+                return Fail($"UI.CanApply refused: {reason}");
 
             // 6) Apply to model
             if (!ui.ApplyCardToPart(card, target, partIdx))

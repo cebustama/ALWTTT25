@@ -322,6 +322,19 @@ namespace ALWTTT.UI
 
                 TrackRole role = desc.role;
 
+                // [R6 / D-R6-4=A] Authoritative Harmony gate on the EXACT part.
+                // Mirrors the pre-flight so the dev debug-play path and any
+                // caller that skips CanApply still cannot land a Harmony row
+                // without an own Melody row. Note: EnsurePartAt has already run,
+                // so an empty part may exist after this denial — same shape as
+                // the existing "requires a musician target" denials above.
+                if (TryGetHarmonyDenial(part, tgtId, role, out var harmonyDeny))
+                {
+                    Log($"[R6] Harmony play denied for '{tgtName}' ({tgtId}) on " +
+                        $"partIndex={partIndex}: {harmonyDeny}", true);
+                    return false;
+                }
+
                 bool ok = TryAddOrReplaceTrackOnPart(
                     part,
                     partIndex,
@@ -748,8 +761,38 @@ namespace ALWTTT.UI
             return CanApplyDefinition(card.CardDefinition, target, out reason);
         }
 
-        /// <summary>[CSV-3] CardDefinition-level core of CanApply. Shared with the dev
-        /// debug-play path (no CardBase). Body is the original verbatim, reading 'data'.</summary>
+        /// <summary>
+        /// [R6 / F-R6-2] Overload that names the part the play will actually land on.
+        ///
+        /// Why this exists: CompositionSession evaluates business rules (CanApply)
+        /// BEFORE it computes the routed part index — during a running loop the
+        /// drop goes to _currentPartIndex (the LOOPING part), while this class's
+        /// Model.CurrentPartIndex is parts.Count-1 (the part being drafted). Any
+        /// rule that depends on part CONTENT was therefore reading the wrong part.
+        /// Harmony (D-R6-4=A) is the first such rule, which is why it surfaced now.
+        ///
+        /// Pass -1 to mean "use the model's current part" — the behavior every
+        /// caller had before, preserved for the dev debug-play path (CSV-3).
+        /// </summary>
+        public bool CanApplyDefinition(
+            CardDefinition data, MusicianBase target, out string reason, int partIndex)
+        {
+            _canApplyPartIndexOverride = partIndex;
+            try { return CanApplyDefinition(data, target, out reason); }
+            finally { _canApplyPartIndexOverride = -1; }
+        }
+
+        /// <summary>[R6 / F-R6-2] Set only for the duration of one overloaded call.
+        /// -1 = fall back to Model.CurrentPart.</summary>
+        private int _canApplyPartIndexOverride = -1;
+
+        /// <summary>[R6 / F-R6-2] The part a content-dependent rule must judge.</summary>
+        private PartEntry PartUnderTest =>
+            (_canApplyPartIndexOverride >= 0
+             && _canApplyPartIndexOverride < model.parts.Count)
+                ? model.parts[_canApplyPartIndexOverride]
+                : model.CurrentPart;
+
         public bool CanApplyDefinition(CardDefinition data, MusicianBase target, out string reason)
         {
             reason = null;
@@ -762,6 +805,21 @@ namespace ALWTTT.UI
             if (comp.PrimaryKind == CardPrimaryKind.Track && target == null)
             { reason = "Select a musician."; return false; }
 
+
+            // [R6 / D-R6-4=A] Harmony pre-flight. Uses the CURRENT part because
+            // this overload carries no partIndex and ApplyCard() targets
+            // model.CurrentPartIndex — the same part the drop will land on.
+            // The exact-part check lives in ApplyCardDefinitionToPart.
+            if (comp.PrimaryKind == CardPrimaryKind.Track && comp.TrackAction != null)
+            {
+                string preflightId = target.MusicianCharacterData != null
+                    ? target.MusicianCharacterData.CharacterId : null;
+
+                if (TryGetHarmonyDenial(PartUnderTest, preflightId,
+                        comp.TrackAction.role, out var harmonyReason))
+                { reason = harmonyReason; return false; }
+            }
+
             if (comp.PrimaryKind == CardPrimaryKind.Part && model.parts.Count == 0)
             {
                 var pa = comp.PartAction;
@@ -772,6 +830,40 @@ namespace ALWTTT.UI
             return true;
         }
 
+        /// <summary>
+        /// [R6 / D-R6-4=A] A Harmony-role track is legal on a part ONLY when the
+        /// SAME musician already holds a Melody row on that part.
+        ///
+        /// Why the rule is "row exists" and nothing stronger: the composer
+        /// (MidiGenPlay HarmonyTrackComposer, D-H1-5a=B) looks for the harmony
+        /// musician's OWN melody first and only then falls back to the first
+        /// melody in list order. Denying the play when no own melody exists keeps
+        /// the card on its promise ("double YOUR melody"), keeps the diagnostic
+        /// log on "self" (the observable the listening validation relies on),
+        /// and removes the empty-file / warn path. The row's styleBundle is NOT
+        /// required: a Solo-part copy keeps the Melody row without a bundle and
+        /// still renders a melody, and the player's truth is the row they see.
+        ///
+        /// Single authority for the reason text. Called from the pre-flight
+        /// (CanApplyDefinition, player-facing) and from the apply path
+        /// (ApplyCardDefinitionToPart, exact part). Roles other than Harmony
+        /// never deny here.
+        /// </summary>
+        private static bool TryGetHarmonyDenial(
+            PartEntry part, string musicianId, TrackRole role, out string reason)
+        {
+            reason = null;
+            if (role != TrackRole.Harmony) return false;
+
+            bool hasOwnMelody =
+                part != null && part.tracks != null && !string.IsNullOrEmpty(musicianId)
+                && part.tracks.Any(t => t.musicianId == musicianId
+                                     && t.role == TrackRole.Melody);
+            if (hasOwnMelody) return false;
+
+            reason = "Needs your own melody on this part first.";
+            return true;
+        }
 
         private bool TryAddOrReplaceTrackOnPart(
             PartEntry part, int partIndex,

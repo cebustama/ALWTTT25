@@ -340,6 +340,13 @@ The `composition` payload block gained two CE-L1 authoring fields. Both are pars
 
 Before this, a Composition card imported from JSON could only **point at** an existing `TrackStyleBundleSO` (`trackAction.styleBundle` = asset path or guid). It could neither create one nor set any field on it. That made **Bassline cards unauthorable from JSON**: a `BasslineCardConfigSO` carries no palette — only articulation — so there was nothing to point at until someone hand-made the asset.
 
+> **Excepción registrada — `role: Harmony` (R6, 2026-09-01).** Para el rol `Harmony`,
+> `styleBundleCreate` debe pedirse **sin `fields`**. El asset tiene que existir (una fila de pista
+> sin bundle no se crea), pero MidiGenPlay **no lee** `HarmonyCardConfigSO`: sus campos carecen de
+> consumidor package-side (ítem 3 del ask `MGP-ALWTTT-HARMONY-1`, diferido). Autorar ahí es
+> autoría fantasma y, peor, engaña al siguiente autor que abra el asset. Ver
+> `SSoT_Card_System.md` §5.2.1, invariante de autoría R6.
+
 `trackAction.styleBundleCreate` mints a **role-typed** bundle at Save and optionally writes fields on it:
 
 ```json

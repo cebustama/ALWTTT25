@@ -399,9 +399,55 @@ This deliberately replaces the accidental stability previously produced by the p
 
 ---
 
+### 5.6 Orden de evaluación: enrutado de parte ANTES de las reglas (F-R6-2, 2026-09-01)
+
+**Invariante.** En `CompositionSession.TryPlayCompositionCard` y en la ruta gemela de
+`CardDefinition` (dev / CSV-3), la **normalización de zona y el cálculo del índice de parte
+destino se evalúan antes** del gate de reglas de negocio, y ese índice se pasa a
+`SongCompositionUI.CanApplyDefinition(def, target, out reason, partIndex)`.
+
+**Por qué.** Hasta R6 el gate corría primero y no recibía índice, de modo que cualquier regla
+que necesitara mirar el **contenido** de la parte leía `Model.CurrentPartIndex` —que es
+`parts.Count - 1`, la última parte de la lista de la UI. Con un loop corriendo, la jugada se
+enruta a `_currentPartIndex` (la parte **que suena**, §5.4), que puede ser otra. La regla juzgaba
+una parte distinta de aquella donde la carta iba a caer.
+
+**Alcance del defecto: estructural, no de Harmony.** Ninguna regla dependiente del contenido de
+parte podía ser correcta durante un loop. No se había manifestado porque hasta R6 todas las
+reglas miraban la carta, el objetivo o el estado de sesión. Double Harmony (§11.1) fue la
+primera regla dependiente de contenido y por eso lo destapó.
+
+**Seguridad del movimiento.** Los pasos hoisteados son cálculo puro —normalizar una zona y elegir
+un índice—, sin efectos secundarios ni mutación de modelo.
+
+**Compatibilidad.** La sobrecarga de tres argumentos de `CanApplyDefinition` se conserva y cae a
+`Model.CurrentPart`: todo llamador anterior mantiene su comportamiento.
+
+---
+
 ## 11. Multi-role tracks per musician (BASS-1, 2026-07-12)
 
 **Invariant.** A track in `SongCompositionUI`'s editable model is identified by the pair **`(musicianId, role)`**, not by `musicianId` alone. One musician may hold several role-tracks in the same part (e.g. Backing + Melody + Bassline).
+
+### 11.1 Precondición del rol Harmony (D-R6-4=A, R6 2026-09-01)
+
+**Invariante.** Una fila de rol `Harmony` sólo es legal en una parte si **el mismo músico** ya
+sostiene una fila `Melody` en **esa misma parte**. La jugada se deniega en caso contrario, con
+motivo visible para el jugador.
+
+**Autoridad única.** `SongCompositionUI.TryGetHarmonyDenial(part, musicianId, role, out reason)`.
+Se consulta desde dos sitios y sólo desde ellos: el pre-flight `CanApplyDefinition` (que aporta el
+texto al jugador) y el punto de aplicación `ApplyCardDefinitionToPart` (autoritativo sobre la parte
+exacta, cubre a cualquier llamador que se salte el pre-flight). Roles distintos de `Harmony`
+retornan `false` de inmediato.
+
+**Por qué «existe la fila» y no algo más estricto.** No se exige `styleBundle` en la fila Melody:
+la copia de parte de Solo conserva la fila sin bundle y aun así renderiza melodía. La verdad que
+el jugador ve es la fila del panel, y la regla sigue esa verdad.
+
+**Efecto colateral aceptado.** `EnsurePartAt` ya ha corrido cuando la denegación ocurre, así que
+puede quedar una parte vacía creada. Es la misma forma que las denegaciones preexistentes por
+falta de objetivo.
 
 **Card semantics that follow.** `SongCompositionUI.TryAddOrReplaceTrackOnPart` matches on `t.musicianId == musicianId && t.role == role`:
 

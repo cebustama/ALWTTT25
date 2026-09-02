@@ -1798,6 +1798,8 @@ namespace ALWTTT.Managers
             // play neither animates nor reaches the session.
             if (!CanConsumePlay(payer, isComposition: true))
             {
+                ALWTTT.UI.GigMessageUI.Show("No plays left this loop.");
+
                 Log($"[ECON-1] Composition play denied — " +
                     $"{(payer != null ? payer.CharacterName : "?")} has no " +
                     "composition plays left this period.");
@@ -1810,6 +1812,8 @@ namespace ALWTTT.Managers
             // animation from playing on a denied play (same pattern as ECON-1 T5).
             if (_session != null && _session.IsFinalLoopRunning)
             {
+                ALWTTT.UI.GigMessageUI.Show("Final loop — this change wouldn't be heard.");
+
                 Log("[CARD-UX-1] Composition play denied — final-loop lock.");
                 return false;
             }
@@ -1822,6 +1826,8 @@ namespace ALWTTT.Managers
             if (cardDef != null && cardDef.HasResourceCost &&
                 !CanPayResourceCost(cardDef, payer))
             {
+                ALWTTT.UI.GigMessageUI.Show("Not enough resources for this card.");
+
                 Log($"[R5-d] Composition play denied — "
                     + $"{(payer != null ? payer.CharacterName : "?")} cannot pay "
                     + $"{cardDef.ResourceCostAmount} '{cardDef.ResourceCostStatusKey}'.");
