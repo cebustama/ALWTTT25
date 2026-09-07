@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_bonus_loop
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_bonus_loop
+  priority: 136
+  category: 2
+  revisitTitle: Loop extra
+  portrait: {fileID: 0}
+  pages:
+  - "Loop extra. La canci\xF3n se alarga un loop m\xE1s, la banda se agacha y alguien
+    sale al frente con un solo. Eso es lo que compra el Voltage: tiempo, y el frente
+    del escenario."
+  highlightKey: loops_bar

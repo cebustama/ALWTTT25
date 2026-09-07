@@ -20,7 +20,7 @@ MonoBehaviour:
   inspirationCost: 0
   inspirationGenerated: 0
   resourceCostStatusKey: voltage
-  resourceCostAmount: 3
+  resourceCostAmount: 1
   cardType: 0
   rarity: 0
   keywords: 

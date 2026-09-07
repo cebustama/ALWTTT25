@@ -1,5 +1,5 @@
 ALWTTT25
-(generado 2026-08-29 19:30)
+(generado 2026-09-05 12:29)
 +---.github
 |   \---copilot-instructions.md
 +---Assets
@@ -12,6 +12,7 @@ ALWTTT25
 |   |   +---smoke_ba_160538.mid
 |   |   +---smoke_ba_160847.mid
 |   |   +---smoke_ba_161206.mid
+|   |   +---smoke_ba-ba_123254.mid
 |   |   +---smoke_ba-ba_125009.mid
 |   |   +---smoke_ba-ba_125019.mid
 |   |   +---smoke_ba-ba_125052.mid
@@ -19,6 +20,7 @@ ALWTTT25
 |   |   +---smoke_ba-ba_125235.mid
 |   |   +---smoke_ba-ba_125320.mid
 |   |   +---smoke_ba-ba_125335.mid
+|   |   +---smoke_ba-ba_135250.mid
 |   |   +---smoke_ba-ba_144721.mid
 |   |   +---smoke_ba-ba_150036.mid
 |   |   +---smoke_ba-ba_152600.mid
@@ -30,13 +32,18 @@ ALWTTT25
 |   |   +---smoke_ba-ba_181051.mid
 |   |   +---smoke_ba-ba_181154.mid
 |   |   +---smoke_ba-ba-me_181245.mid
+|   |   +---smoke_ba-ba-me-rh_103502.mid
 |   |   +---smoke_ba-ba-me-rh_124314.mid
 |   |   +---smoke_ba-ba-me-rh_124457.mid
 |   |   +---smoke_ba-ba-me-rh_124524.mid
+|   |   +---smoke_ba-ba-me-rh_134056.mid
 |   |   +---smoke_ba-ba-me-rh_134134.mid
 |   |   +---smoke_ba-ba-me-rh_134634.mid
 |   |   +---smoke_ba-ba-me-rh_141839.mid
-|   |   \---smoke_ba-ba-me-rh_181437.mid
+|   |   +---smoke_ba-ba-me-rh_171604.mid
+|   |   +---smoke_ba-ba-me-rh_181437.mid
+|   |   +---smoke_walk_AFTER.mid
+|   |   \---smoke_walk_BEFORE.mid
 |   +---Materials
 |   |   +---Mat_RhythmFx_Chord.mat
 |   |   +---Mat_RhythmFx_ChordExtended.mat
@@ -1833,9 +1840,12 @@ ALWTTT25
 |   |   |   |   +---Kid - Idle.anim
 |   |   |   |   \---Kid - Tantrum.anim
 |   |   |   +---Musicians
+|   |   |   |   +---AC_Ziggy.controller
 |   |   |   |   +---Conito - Base.controller
 |   |   |   |   +---Conito - Fly.anim
-|   |   |   |   \---Conito - Idle.anim
+|   |   |   |   +---Conito - Idle.anim
+|   |   |   |   +---Ziggy - Idle.anim
+|   |   |   |   \---Ziggy - Wink.anim
 |   |   |   +---Audience Character Idle.anim
 |   |   |   +---AudienceCharacter - Base.controller
 |   |   |   +---Band Test Animator.controller
@@ -2070,6 +2080,10 @@ ALWTTT25
 |   |   |   |   |   +---Conito_CardCatalogData.asset
 |   |   |   |   |   +---conito_overload.asset
 |   |   |   |   |   +---conito_overload_Payload.asset
+|   |   |   |   |   +---conito_slap_groove.asset
+|   |   |   |   |   +---conito_slap_groove_Payload.asset
+|   |   |   |   |   +---conito_super_slap.asset
+|   |   |   |   |   +---conito_super_slap_Payload.asset
 |   |   |   |   |   +---crd_c2_spotlight.asset
 |   |   |   |   |   +---crd_c2_spotlight_Payload.asset
 |   |   |   |   |   +---crd_sibi_read_the_room.asset
@@ -2105,6 +2119,8 @@ ALWTTT25
 |   |   |   |   |   +---starter_compound_cycle_Payload.asset
 |   |   |   |   |   +---starter_default_mode.asset
 |   |   |   |   |   +---starter_default_mode_Payload.asset
+|   |   |   |   |   +---starter_double_harmony.asset
+|   |   |   |   |   +---starter_double_harmony_Payload.asset
 |   |   |   |   |   +---starter_finger_bass.asset
 |   |   |   |   |   +---starter_finger_bass_Payload.asset
 |   |   |   |   |   +---Starter_half_time.asset
@@ -2175,6 +2191,7 @@ ALWTTT25
 |   |   |   |       +---Bassline
 |   |   |   |       |   +---Bass_Phrase_Aeroplane4.asset
 |   |   |   |       |   +---BassCard_ChordToneWalk.asset
+|   |   |   |       |   +---BassCard_ChordToneWalk_TEST.asset
 |   |   |   |       |   +---BassCard_W2_Improv.asset
 |   |   |   |       |   +---BasslineCardConfig_Bend1.asset
 |   |   |   |       |   +---BasslineCardConfig_SlapGroove.asset
@@ -2188,6 +2205,8 @@ ALWTTT25
 |   |   |   |       |   +---Gusano_C_Bassline_002_WormPulse_Payload_Bassline_StyleBundle.asset
 |   |   |   |       |   +---starter_finger_bass_Payload_Bassline_StyleBundle.asset
 |   |   |   |       |   \---starter_slap_bass_Payload_Bassline_StyleBundle.asset
+|   |   |   |       +---Harmony
+|   |   |   |       |   \---starter_double_harmony_Payload_Harmony_StyleBundle.asset
 |   |   |   |       \---Rhythm
 |   |   |   |           +---cmp_flow_rhythm_Payload_Rhythm_StyleBundle.asset
 |   |   |   |           +---starter_compound_cycle_Payload_Rhythm_StyleBundle.asset
@@ -2215,7 +2234,8 @@ ALWTTT25
 |   |   |   |   +---GigEncounter 1.asset
 |   |   |   |   +---GigEncounter 2.asset
 |   |   |   |   +---GigEncounter 3.asset
-|   |   |   |   \---GigEncounter 4.asset
+|   |   |   |   +---GigEncounter 4.asset
+|   |   |   |   \---GigEncounter EMPTY.asset
 |   |   |   +---Events
 |   |   |   |   +---Event - Frog Song.asset
 |   |   |   |   +---Event - Reporter Interview.asset
@@ -2280,44 +2300,70 @@ ALWTTT25
 |   |   |       +---Dialogs
 |   |   |       |   +---ES
 |   |   |       |   |   +---tut_audience_turn.asset
+|   |   |       |   |   +---tut_bonus_loop.asset
+|   |   |       |   |   +---tut_captivated.asset
 |   |   |       |   |   +---tut_composure.asset
+|   |   |       |   |   +---tut_earworm_tick.asset
+|   |   |       |   |   +---tut_final_loop_lock.asset
 |   |   |       |   |   +---tut_first_sfx_stage.asset
 |   |   |       |   |   +---tut_first_sound_card.asset
 |   |   |       |   |   +---tut_gig_lost.asset
 |   |   |       |   |   +---tut_gig_won.asset
+|   |   |       |   |   +---tut_harmony_denied.asset
+|   |   |       |   |   +---tut_harmony_track.asset
 |   |   |       |   |   +---tut_inspiration_economy.asset
 |   |   |       |   |   +---tut_jam_welcome.asset
 |   |   |       |   |   +---tut_loops_structure.asset
 |   |   |       |   |   +---tut_musician_breakdown.asset
+|   |   |       |   |   +---tut_overload_ready.asset
+|   |   |       |   |   +---tut_play_budget.asset
 |   |   |       |   |   +---tut_play_composition.asset
 |   |   |       |   |   +---tut_play_finisher.asset
 |   |   |       |   |   +---tut_play_finisher_early.asset
 |   |   |       |   |   +---tut_press_play.asset
+|   |   |       |   |   +---tut_read_the_room.asset
 |   |   |       |   |   +---tut_song_end_vibe.asset
+|   |   |       |   |   +---tut_spotlight.asset
 |   |   |       |   |   +---tut_status_blocked_front.asset
 |   |   |       |   |   +---tut_status_buff_musician.asset
 |   |   |       |   |   +---tut_status_debuff_audience.asset
-|   |   |       |   |   +---tut_tracks_three.asset
+|   |   |       |   |   +---tut_sung_melody.asset
+|   |   |       |   |   +---tut_track_replaced.asset
+|   |   |       |   |   +---tut_tracks_by_musician.asset
+|   |   |       |   |   +---tut_voltage_first.asset
 |   |   |       |   |   \---tut_your_turn.asset
 |   |   |       |   +---tut_audience_turn.asset
+|   |   |       |   +---tut_bonus_loop.asset
+|   |   |       |   +---tut_captivated.asset
 |   |   |       |   +---tut_composure.asset
+|   |   |       |   +---tut_earworm_tick.asset
+|   |   |       |   +---tut_final_loop_lock.asset
 |   |   |       |   +---tut_first_sfx_stage.asset
 |   |   |       |   +---tut_first_sound_card.asset
 |   |   |       |   +---tut_gig_lost.asset
 |   |   |       |   +---tut_gig_won.asset
+|   |   |       |   +---tut_harmony_denied.asset
+|   |   |       |   +---tut_harmony_track.asset
 |   |   |       |   +---tut_inspiration_economy.asset
 |   |   |       |   +---tut_jam_welcome.asset
 |   |   |       |   +---tut_loops_structure.asset
 |   |   |       |   +---tut_musician_breakdown.asset
+|   |   |       |   +---tut_overload_ready.asset
+|   |   |       |   +---tut_play_budget.asset
 |   |   |       |   +---tut_play_composition.asset
 |   |   |       |   +---tut_play_finisher.asset
 |   |   |       |   +---tut_play_finisher_early.asset
 |   |   |       |   +---tut_press_play.asset
+|   |   |       |   +---tut_read_the_room.asset
 |   |   |       |   +---tut_song_end_vibe.asset
+|   |   |       |   +---tut_spotlight.asset
 |   |   |       |   +---tut_status_blocked_front.asset
 |   |   |       |   +---tut_status_buff_musician.asset
 |   |   |       |   +---tut_status_debuff_audience.asset
-|   |   |       |   +---tut_tracks_three.asset
+|   |   |       |   +---tut_sung_melody.asset
+|   |   |       |   +---tut_track_replaced.asset
+|   |   |       |   +---tut_tracks_by_musician.asset
+|   |   |       |   +---tut_voltage_first.asset
 |   |   |       |   \---tut_your_turn.asset
 |   |   |       +---Portraits
 |   |   |       |   \---capitan_mensaje.png
@@ -2577,7 +2623,8 @@ ALWTTT25
 |   |   |   |   +---Shield Heart.png
 |   |   |   |   +---shooting star.png
 |   |   |   |   +---TallIcon.png
-|   |   |   |   \---wave.png
+|   |   |   |   +---wave.png
+|   |   |   |   \---white-heart.png
 |   |   |   +---icons
 |   |   |   |   +---composition
 |   |   |   |   |   +---border-dashed.png
@@ -2683,6 +2730,7 @@ ALWTTT25
 |   |   |   \---CompositionStripTheme.asset
 |   |   +---LLMEnvSettings.asset
 |   |   +---SmokeSetup_0.asset
+|   |   +---SmokeSetup_1.asset
 |   |   +---SmokeSetup_Bass_W2.asset
 |   |   +---SmokeSetup_BossaAB.asset
 |   |   +---SmokeSetup_Slapfig2.asset
@@ -2816,6 +2864,7 @@ ALWTTT25
 |   |   |   +---MusicianBase.cs
 |   |   |   +---SpriteOutlineController.cs
 |   |   |   +---StatusStats.cs
+|   |   |   +---StatusVisualDriver.cs
 |   |   |   \---VibeEffectiveness.cs
 |   |   +---Controllers
 |   |   |   +---HandController.cs
@@ -3009,12 +3058,16 @@ ALWTTT25
 |   |   |   |   \---SpotlightRedirectEvent.cs
 |   |   |   +---AudienceBlockedEvent.cs
 |   |   |   +---AudienceTurnStartedEvent.cs
+|   |   |   +---BonusLoopStartedEvent.cs
+|   |   |   +---CardPerformedEvent.cs
 |   |   |   +---CardPlayedEvent.cs
+|   |   |   +---EarwormTickEvent.cs
 |   |   |   +---GigOutcomeEvent.cs
 |   |   |   +---GigStartedEvent.cs
 |   |   |   +---ISensoryEvent.cs
 |   |   |   +---LoopResolvedEvent.cs
 |   |   |   +---MusicianStressHitEvent.cs
+|   |   |   +---PlayDeniedEvent.cs
 |   |   |   +---PsychicWaveOverlayController.cs
 |   |   |   +---RewardChoiceOpenedEvent.cs
 |   |   |   +---SensoryAudioAdapter.cs
@@ -3022,7 +3075,8 @@ ALWTTT25
 |   |   |   +---SensoryFtPresentation.cs
 |   |   |   +---SensoryFxAdapter.cs
 |   |   |   +---SensorySfxPresentation.cs
-|   |   |   \---StatusAppliedEvent.cs
+|   |   |   +---StatusAppliedEvent.cs
+|   |   |   \---TrackReplacedEvent.cs
 |   |   +---Status
 |   |   |   +---Editor
 |   |   |   |   \---StatusEffectWizardWindow.cs
@@ -3086,6 +3140,7 @@ ALWTTT25
 |   |   |   +---ConflictPanelUI.cs
 |   |   |   +---FloatingText.cs
 |   |   |   +---GigCanvas.cs
+|   |   |   +---GigMessageUI.cs
 |   |   |   +---GigSetupController.cs
 |   |   |   +---HealthBarController.cs
 |   |   |   +---MainMenuController.cs
@@ -3190,7 +3245,11 @@ ALWTTT25
 |   +---gig_runs_2026-07-23.jsonl
 |   +---gig_runs_2026-08-11.jsonl
 |   +---gig_runs_2026-08-20.jsonl
-|   \---gig_runs_2026-08-29.jsonl
+|   +---gig_runs_2026-08-29.jsonl
+|   +---gig_runs_2026-08-31.jsonl
+|   +---gig_runs_2026-09-02.jsonl
+|   +---gig_runs_2026-09-03.jsonl
+|   \---gig_runs_2026-09-04.jsonl
 +---Docs
 |   +---archive
 |   |   +---absorbed
@@ -3239,6 +3298,7 @@ ALWTTT25
 |   |   +---archive
 |   |   |   +---ALWTTT_DeckEditorWindow_Roadmap_Proposal.md
 |   |   |   +---Combat_MVP_Roadmap.md
+|   |   |   +---Design_Tutorial_System_v0_2.md
 |   |   |   +---M1_5_Dev_Mode_Sub_Roadmap.md
 |   |   |   +---README.md
 |   |   |   +---Roadmap_Combat_MVP.md
@@ -3251,7 +3311,7 @@ ALWTTT25
 |   |   +---Design_Singer_Expression_Input_v0_1.md
 |   |   +---Design_Song_Parts_Library_v0_1.md
 |   |   +---Design_Tempo_Identity_v1.md
-|   |   +---Design_Tutorial_System_v0_2.md
+|   |   +---Design_Tutorial_System_v0_3.md
 |   |   +---Design_Vibe_Telegraph_v0_1.md
 |   |   \---planning_README.md
 |   +---reference

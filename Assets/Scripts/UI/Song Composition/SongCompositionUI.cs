@@ -907,6 +907,14 @@ namespace ALWTTT.UI
                 if (styleBundle != null)
                     existing.styleBundle = styleBundle;
 
+                // [TUT-REDESIGN-B] Semantic replacement only: a bundle-less
+                // PartEffect carrier augments (styleBundle == null) and the same
+                // card again is not a swap. Published before the pointer moves.
+                if (styleBundle != null && existing.sourceCardDefinition != sourceCard)
+                    ALWTTT.Sensory.SensoryEventBus.Instance?.Publish(
+                        new ALWTTT.Sensory.TrackReplacedEvent(
+                            musicianId, role, existing.sourceCardDefinition, sourceCard));
+
                 existing.sourceCardDefinition = sourceCard; // [B2 / #3]
             }
             else

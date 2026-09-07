@@ -454,7 +454,7 @@ deliberate — a tutorial directive outranks a domain rule):
 
 | # | `UnplayableReason` | Gate consulted | Owner doc |
 | --- | --- | --- | --- |
-| 1 | `TutorialGate` | `TutorialInputGate.BlocksCardDrag` (beat-3 allow-list, beat-5 PlayOnly, beat-8 SingleCardOnly) | `Design_Tutorial_System_v0_2` §4 |
+| 1 | `TutorialGate` | `TutorialInputGate.BlocksCardDrag` (beat-3 allow-list, beat-5 PlayOnly, beat-8 SingleCardOnly) | `Design_Tutorial_System_v0_3` §4 (v0_2 until 2026-09-04) |
 | 2 | `ActionTiming` | `GigManager.CanPlayActionCard` | this SSoT §9.1 |
 | 3 | `FinalLoopLock` | `CompositionSession.IsFinalLoopRunning` | `SSoT_Runtime_CompositionSession_Integration` §5.4 |
 | 4 | `NoRunningLoop` | `GigManager.CanGrantBonusLoop` (bonus-loop cards only) | `SSoT_Runtime_CompositionSession_Integration` §5.4 |
@@ -488,6 +488,18 @@ excluded from the overlay's resource input for the identical reason — a false 
 that *is* payable by another musician is worse than a false green — and the play-path denial
 remains the enforcement. `NoRunningLoop` carries no such scoping: it is a session-state fact,
 independent of who would pay.
+
+**Denials now carry a message (TUT-REDESIGN-B, 2026-09-03).** The overlay is advisory; the
+*denial* is what the play path says when the drop is refused. Since this batch **every action-card
+denial shows its reason on screen**: timing (`ActionTiming`), inspiration (via the existing flash,
+**no text**), bonus-loop precondition (`NoRunningLoop`), resource cost (`Resource`) and ECON-1
+(`Budget`). Before this batch the action path was **silent at every gate** — `GigMessageUI`
+(D-R6-7) covered composition only. All of them go through the single funnel
+`GigManager.ReportPlayDenied` (`SSoT_Gig_Combat_Core.md` §14.4), which shows the text and publishes
+`PlayDeniedEvent` with a typed `PlayDenyReason`; the tutorial routes on that reason
+(`Design_Tutorial_System_v0_3.md` §3.1). Rule for new gates: a gate that denies without calling
+the funnel is a defect, not a style choice — the overlay and the message must agree with the
+enforcement, and the funnel is how they do.
 
 **Presentation.** The overlay reuses the existing `passiveImage` / `SetInactiveMaterialState`
 mechanism (red restyle of the asset). **No new serialized field** — deliberate: a new `Image`

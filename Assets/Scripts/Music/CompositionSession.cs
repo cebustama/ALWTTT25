@@ -744,10 +744,16 @@ namespace ALWTTT.Music
             void Info(string msg) => _ctx?.Log($"[TryPlay] {msg}");
             // [R6 / D-R6-7] Single funnel: every internal denial of a composition
             // play passes through here, including "CanApply refused: <reason>".
-            bool Fail(string msg)
+            // [TUT-REDESIGN-B / D-TUTB-1=A] The funnel now routes through
+            // GigManager.ReportPlayDenied (message + typed PlayDeniedEvent).
+            // `why` defaults to Other; the four semantic sites pass their reason.
+            bool Fail(string msg,
+                ALWTTT.Sensory.PlayDenyReason why = ALWTTT.Sensory.PlayDenyReason.Other)
             {
                 _ctx?.Log($"[TryPlay][FAIL] {msg}", true);
-                ALWTTT.UI.GigMessageUI.Show(StripDenialPrefix(msg));
+                ALWTTT.Managers.GigManager.ReportPlayDenied(
+                    why, StripDenialPrefix(msg),
+                    card != null ? card.CardDefinition : null, target);
                 return false;
             }
 
@@ -813,7 +819,7 @@ namespace ALWTTT.Music
             // neither inspiration (step 1/8) nor the ECON budget burns (budget
             // burns only on played==true, upstream in GigManager).
             if (def.IsComposition && IsFinalLoopRunning)
-                return Fail("Final-loop lock: no next loop would render this change");
+                return Fail("Final-loop lock: no next loop would render this change", ALWTTT.Sensory.PlayDenyReason.FinalLoopLock);
 
             // 1) Inspiration cost (only for composition cards)
             if (def.IsComposition)
@@ -824,7 +830,7 @@ namespace ALWTTT.Music
                 if (cost > _currentInspiration)
                 {
                     _ctx?.CompositionUI?.FlashInspirationDenied(); // [B2 / #4]
-                    return Fail("Not enough inspiration");
+                    return Fail("Not enough inspiration", ALWTTT.Sensory.PlayDenyReason.InspirationCost);
                 }
             }
 
@@ -838,7 +844,7 @@ namespace ALWTTT.Music
                         $"{(target != null ? target.MusicianCharacterData.CharacterName : "null")}");
                 }
                 if (def.RequiresMusicianTarget && target == null)
-                    return Fail("Card requires musician target but none resolved");
+                    return Fail("Card requires musician target but none resolved", ALWTTT.Sensory.PlayDenyReason.NoTarget);
             }
 
             // [R6 / F-R6-2] Zone normalization + part routing MOVED ABOVE the
@@ -870,7 +876,15 @@ namespace ALWTTT.Music
             if (card == null || card.CardDefinition == null)
                 return Fail("UI.CanApply refused: Not a composition card.");
             if (!ui.CanApplyDefinition(card.CardDefinition, target, out var reason, partIdx))
-                return Fail($"UI.CanApply refused: {reason}");
+                // [TUT-REDESIGN-B] Harmony is the only CanApply rule in v1
+                // (D-R6-4). Classifying by the card's role rather than by the
+                // reason string keeps the beat off the copy. If a second
+                // CanApply rule for Harmony ever appears, split here.
+                return Fail($"UI.CanApply refused: {reason}",
+                    comp != null && comp.TrackAction != null &&
+                    comp.TrackAction.role == TrackRole.Harmony
+                        ? ALWTTT.Sensory.PlayDenyReason.HarmonyPrecondition
+                        : ALWTTT.Sensory.PlayDenyReason.Other);
 
             // 6) Apply to model
             if (!ui.ApplyCardToPart(card, target, partIdx))
@@ -1818,7 +1832,14 @@ namespace ALWTTT.Music
                     _bonusLoopsPendingForPart > 0 &&
                     _loopsRemainingForPart <= _bonusLoopsPendingForPart;
 
-                if (_currentLoopIsBonus) _bonusLoopsPendingForPart--;
+                if (_currentLoopIsBonus)
+                {
+                    _bonusLoopsPendingForPart--;
+                    // [TUT-REDESIGN-B] Semantic start-of-bonus-loop for consumers
+                    // (tutorial tut_bonus_loop). Before the render call on purpose.
+                    ALWTTT.Sensory.SensoryEventBus.Instance?.Publish(
+                        new ALWTTT.Sensory.BonusLoopStartedEvent(_currentPartIndex));
+                }
                 else if (_lastFinishedLoopWasBonus) _ctx?.Music?.ClearSoloDuck();
 
                 // F-4 D3-B (Stage A, production-quality): mirror AdvanceToNextPart's

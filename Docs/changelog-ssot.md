@@ -14,6 +14,362 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-09-06 — GEW-1: autoría de encuentros (`GigEncounterWizard`)
+
+**Tipo:** operativo + **estructural** (§22 nueva en `SSoT_Editor_Authoring_Tools`, filas en §3/§13,
+fila de coverage) + **autoridad** (una edición de `ssot_manifest.yaml`) + lifecycle (PK, democión
+de dos docs de requisitos).
+Editor-only: ningún cambio de runtime, ningún smoke de gameplay (exención por tooling); las
+regresiones R1 (auto-launch del demo) y R2 (gig por picker) son la guarda de esa exención y van
+verdes.
+
+**Qué cambió de significado.** La autoría de `GigEncounterSO` pasa de "un asset a la vez en el
+Inspector" a tener superficie propia con vista de conjunto. Lo que **no** cambia, y es la decisión
+que sostiene el lote: la ventana **no puntúa dificultad** (D-GEW-SIM). La semántica del encuentro
+sigue en `SSoT_Gig_Encounter.md`; §22 gobierna la herramienta. Un estimador de dureza habría sido
+una segunda implementación de reglas que viven en `GigManager` y en `ResolveLoopEffect` — el mismo
+argumento de AMW-1, un nivel por encima.
+
+**Código.** Un fichero nuevo: `Assets/Scripts/Encounters/Editor/GigEncounterWizard.cs`, namespace
+`ALWTTT.Encounters.Editor` (D-GEW-1=A). Nada más.
+
+**Por qué así y no de la forma obvia:**
+- **Ventana propia, no una pestaña del `AudienceMemberWizard`** (D-GEW-3=A). El argumento a favor
+  de la pestaña era real —público y encuentro se autoran juntos— pero §19 ya registró lo que pasa
+  cuando una superficie de dominio absorbe a la vecina, y la pestaña habría puesto el namespace
+  `ALWTTT.Characters.Editor` a gobernar encuentros. El cross-link por `OpenAndSelect` cubre el caso
+  de uso sin el acoplamiento; de paso, ese punto de entrada creado en AMW-1 deja de estar muerto.
+- **Dos flags explícitos en vez de una columna de usos** (D-GEW-7=A). §21.7 escanea dependencias y
+  cuenta assets referenciantes, que era lo correcto allí: cualquier tipo puede referenciar a un
+  enemigo. Aquí sólo dos lo hacen —`GigSetupRosterSO.AvailableEncounters` y
+  `DemoLaunchConfigSO.encounter`— y significan cosas distintas para quien diseña: "seleccionable en
+  el picker" y "éste es el gig del demo". Un `2` las habría mezclado. Desvío declarado de §18.6.
+- **La multiplicidad se muestra, no se colapsa** (D-GEW-8=A). Al abrir el lote se planteó
+  imitar la ceguera del picker, con el argumento de que mostrar algo que el juego no honra es peor
+  que no mostrarlo. Con `GigEncounterSO.cs` delante, la premisa resultó **falsa**:
+  `BuildRuntime(null)` copia la lista horneada literalmente, así que los duplicados **sí** se honran
+  en el camino por defecto —el del demo y el del futuro ladder— y sólo se pierden si el jugador
+  personaliza. Colapsarlos habría ocultado el comportamiento normal en favor de la excepción. Se
+  muestran, con badge informativo que nombra la excepción.
+- **La validación de roster se apaga si no hay exactamente un roster** (D-GEW-5=A). Con cero o con
+  varios `GigSetupRosterSO`, "FUERA DEL ROSTER" y `MaxAudienceCount` no tienen respuesta única.
+  Elegir uno por orden de `FindAssets` habría producido badges que parecen verdad y no lo son; la
+  ventana prefiere un banner que dice qué está apagado y por qué.
+- **Todas las derivadas se leen del stream serializado**, como en §21: evita depender de accesores
+  que quizá no existan, y convierte un renombrado de campo en un banner rojo con el nombre en vez
+  de en una columna de ceros silenciosos.
+- **Los cambios estructurales de la lista de público abortan el frame** (`ExitGUI`) y el elemento
+  nuevo se anula explícitamente, porque `arraySize++` copia el anterior — aquí eso habría duplicado
+  un arquetipo en silencio, que es justo el dato que el lote existe para hacer visible.
+
+**Verdad de código resuelta en el lote (NV de apertura).** `GigEncounterSO` serializa seis campos
+(`targetVenueType`, `displayName`, `audienceMemberList`, `numberOfSongs`, `fansOnWin`,
+`cohesionPenaltyOnLoss`) y expone getters de sólo lectura; `BuildRuntime(audienceOverride)` con
+override nulo copia la lista horneada. `GigSetupRosterSO` y `DemoLaunchConfigSO` son los dos únicos
+referenciantes.
+
+**Hallazgos registrados (no corregidos aquí):**
+- **F-GEW-1** — el SO implementa 6 de los 8 campos de intención de `SSoT_Gig_Encounter` §4. No hay
+  `difficultyTier`, así que la ventana muestra `Venue` donde iría la columna de tier. §4 declara que
+  no fija una struct, luego es hueco de contenido, no drift. §4 gana ahora un párrafo de forma
+  implementada.
+- **F-GEW-2** — §7.5 afirma que las song-shape values quedan "content-baked on … encounter assets
+  respectively". El asset **no** tiene `partsPerSong` ni `loopsPerPart`. La frase queda marcada como
+  no verificada en su propio sitio; dueño: el próximo lote que toque forma de canción.
+- **F-GEW-3** — `EncounterData` (contenedor del mapa de sectores) guarda listas **inline** de
+  `GigEncounter`, la clase de runtime serializada directamente, no referencias a
+  `GigEncounterSO`. **Dos representaciones de encuentro coexisten.** Si esa ruta sigue viva es NV.
+  Es una pregunta de "un concepto, una autoridad" para el lote de mapa/ladder, no de GEW-1.
+- **F-GEW-4** — ninguno de los seis ficheros leídos usa `AudienceCharacterData.characterId`
+  (`DemoLaunchConfigSO` lee el `CharacterId` **del músico**, para la etiqueta del mazo). **D5 de
+  AMW-1 vuelve a AMW-2 con resultado negativo**, que es más de lo que tenía: ahora se sabe dónde
+  *no* está el lector.
+- **F-GEW-5** — el camino del demo sobreescribe `numberOfSongs`
+  (`overrideRequiredSongCount = true`). La ventana edita el campo y **imprime la sobreescritura al
+  lado**; no afirma que el picker lo consuma, porque no se leyó `GigSetupController`.
+
+**Deuda cerrada.** La 8ª edición de `DocApply_AMW-1.md` —el banner de supersesión en
+`Design_AudienceMemberWizard_Requirements_v0_1.md`, que DOC-APPLY-4 no pudo aplicar por ausencia del
+fichero— se aplica aquí (D-GEW-9). `DocApply_AMW-1.md` queda libre para retirarse del PK sin declarar
+pérdida. **F-DA4-1** (la celda del tutorial en `coverage-matrix.md` que se contradecía a sí misma:
+v0_3 arriba, v0_2 abajo) se corrige también aquí (D-GEW-10=A): era una línea, ya diagnosticada, en un
+fichero que el lote abría de todos modos.
+
+**Verificación.** V1–V9 (inventario contrastado contra el export JSON de AMW-1, roster, persistencia
++ `git diff` acotado, edición estructural con Undo, tope de aforo, cross-link, creación por plantilla,
+filtros, export) + R1 (auto-launch del demo) y R2 (picker) — todos PASS.
+
+**Lifecycle.** `Design_GigEncounterWizard_Requirements_v0_1.md` queda consumido: su autoridad pasa a
+§22 y el documento se archiva con banner de supersesión, igual que su hermano de AMW-1.
+
+**Refresco ajeno que este lote NO cierra:** `StatusEffectContainer.cs` (WINK-1 — la copia del PK
+publica `StatusAppliedEvent` con 3 argumentos; el código real pasa 4).
+
+---
+
+## 2026-09-05 — DOC-APPLY-4: los tres paquetes de doc diffs del PK, resueltos
+
+**Tipo:** lifecycle + operativo + **autoridad** (tres ediciones de `ssot_manifest.yaml`). Sin
+código, sin assets, sin smokes de gameplay — exención explícita: el lote no toca runtime.
+
+Precedentes: DOC-APPLY-2 (de donde sale el orden cronológico estricto) y DOC-APPLY-3 (tres
+paquetes en una pasada). Aquí los tres paquetes que quedaban en el PK se resuelven **en las tres
+direcciones distintas que merecían**, que es el resultado interesante del lote.
+
+**`PENDING_DOC_DIFFS_TUT-REDESIGN-B.md` — ya aplicado, era residuo.** Verificados por muestreo
+cinco de sus once diffs contra los destinos reales (§1.1 la línea de deuda cerrada en el tutorial ·
+§1.2 la §6C nueva · §1.4 el renombrado a `v0_3` en `SSoT_INDEX` · §2.1 el roster de 4 corregido en
+tres sitios de `CURRENT_STATE` · §10 la fila de `coverage-matrix` con ST-TUTB-1..21 y ST-W8
+retirado · §11.3 la fila de PK). Todos presentes. El paquete llevaba en el PK desde el 2026-09-04
+**pese a que su propia convención dice que se retira al aplicarse**: dos ficheros compitiendo en
+retrieval con los documentos que ya los habían absorbido. Retirado.
+
+**`PENDING_DOC_DIFFS_RFX-1.md` — consumido, no perdido (D-DA4-D2 = A).** El hallazgo del lote:
+el paquete **no estaba pendiente**, estaba pendiente *de comprobarse*. §1 (contrato sensorial §6 +
+§6.1), §2 (`CURRENT_STATE`), §3 (changelog) y §6 (`PK_Manifest`) ya estaban aplicados — los absorbió
+la pasada documental de RFX-2 el mismo 2026-08-26, y §1 incluso creció después con la §6.2 de la
+escalera de acordes. §4 tenía su veredicto registrado literalmente en la fila del contrato sensorial
+de `coverage-matrix.md` («la matriz mapea concepto→autoridad, no eventos ni superficies de
+presentación»). Quedaba **un** condicional sin resolver, §5, y se resuelve aquí.
+
+**Veredicto de RFX-1 §5 — `SSoT_ALWTTT_MidiGenPlay_Boundary.md`: SIN CAMBIO.** El paquete pedía
+añadir una fila de consumidor *si* la SSoT de frontera enumeraba los consumidores ALWTTT de
+`MidiMusicManager`. No los enumera: §2.3 y §4.1 definen la **forma** de la frontera (quién decide
+cuándo hay sesión, cuándo arranca el playback, qué componente lo hospeda) y §8 es un registro de
+*asks* entre proyectos; en 717 líneas no aparece `IMidiNoteListener`, `IChordListener` ni
+`IDrumKickListener`. Se aplica por tanto la segunda rama del condicional. Registrado explícitamente
+para que una auditoría futura no lo reabra: **la ausencia de `RhythmParticleMidiListener` en la SSoT
+de frontera no es deriva.** RFX-1 añadió un consumidor del lado ALWTTT de una superficie existente,
+que es justo lo que la frontera permite; no definió internos de MidiGenPlay ni cambió contrato.
+
+**`DocApply_AMW-1.md` — aplicado, 8 de 8** (ver la entrada de AMW-1, abajo). Séptima edición sin
+destino disponible en sesión: `Design_AudienceMemberWizard_Requirements_v0_1.md` no está en el PK
+ni se aportó, así que **la edición 8 (banner de supersesión + archivado) queda PENDIENTE** y es lo
+único que este lote no cierra de AMW-1.
+
+**`ssot_manifest.yaml` — las tres ediciones aplicadas (D-DA4-D3 = A).** Revierte explícitamente el
+enrutado de DOC-TUTR-B, que difirió el path del tutorial a «lote MANIFEST-*». Motivo del cambio de
+criterio: las tres son **correcciones del registro contra verdad documental ya gobernada**, no
+clasificaciones de documentos sin registrar, que es lo que MANIFEST-2 tiene por alcance.
+(i) `Docs/planning/active/Design_Tutorial_System_v0_2.md` → `v0_3.md`: el path apuntaba a un fichero
+**que ya no existe** desde el renombrado del 2026-09-04, y un path colgado en el manifiesto es peor
+que una clasificación discutible porque el auditor de deriva lo lee como fichero ausente.
+(ii)+(iii) el `governs:` de `SSoT_Editor_Authoring_Tools.md` gana `Assets/Scripts/Editor/Text`
+(deuda no detectada de TXT-1) y `Assets/Scripts/Characters/Editor` (AMW-1): la SSoT ya documenta
+esos dos árboles en §20 y §21, así que el manifiesto iba por detrás de su propio documento y el
+código editor de dos lotes quedaba fuera del alcance de auditoría. **MANIFEST-2 no se toca**: su
+alcance —los ~17 documentos sin registrar de la F11— sigue abierto y sigue siendo una reclamación
+de autoridad, no una corrección.
+
+**Veredicto registrado sin edición:** `SSoT_INDEX.md` **no cambia** por AMW-1. §21 es una sección de
+un documento ya indexado (fila `systems/SSoT_Editor_Authoring_Tools.md`, activa), no un documento
+nuevo; el índice registra documentos, no secciones.
+
+**Hallazgo F-DA4-1 (no corregido, se pregunta).** La fila del tutorial en `coverage-matrix.md` se
+contradice dentro de sí misma: dice «Doc home v0_2 → **v0_3** por renombrado 2026-09-04» y más
+abajo, en la misma celda, «Doc home: **`planning/active/Design_Tutorial_System_v0_2.md`** — hogar
+único desde 2026-08-08». La segunda frase es residuo de DOC-TUTR-B. No se toca en este lote porque
+no pertenece a ninguno de los tres paquetes.
+
+**Riesgo D-DOC-5 que este lote reduce y el que deja abierto.** Los dos paquetes retirados eran
+ficheros que vivían **solo en el PK**; ambos quedan consumidos, con su contenido absorbido en los
+destinos, misma disposición que CSV-4c / R5-d / HUD-COMP-1 en DOC-APPLY-3 (§D.2 de `PK_Manifest`):
+desaparición correcta, no pérdida. **Sigue abierto** `CSV-4b_Name_Lookup_Audit.md`, que también vive
+solo en el PK y cuyo lote dueño (CSV-4b) no ha abierto: comprometer antes de retirarlo.
+
+**Refresco ajeno que este lote NO cierra:** `StatusEffectContainer.cs` (WINK-1 — la copia del PK
+publica `StatusAppliedEvent` con 3 argumentos, el código real pasa 4).
+
+---
+
+## 2026-09-05 — AMW-1 / AMW-1b: autoría de enemigos (`AudienceMemberWizard`)
+
+**Tipo:** operativo + **estructural** (§21 nueva en `SSoT_Editor_Authoring_Tools`, filas en §3/§13,
+fila de coverage) + lifecycle (PK, democión del doc de requisitos).
+Editor-only: ningún cambio de runtime, ningún smoke de gameplay (exención por tooling); la
+regresión R1 —un gig con la audiencia actual se juega igual— es la guarda de esa exención y va verde.
+
+**Qué cambió de significado.** La autoría de `AudienceCharacterData` pasa de "un asset a la vez en
+el Inspector" a tener superficie propia con vista de conjunto. Lo que **no** cambia, y es la
+decisión que sostiene el lote: la ventana **no** recalcula impresiones ni simula loops (D-AMW-SIM).
+La semántica de la audiencia sigue en `SSoT_Audience_and_Reactions.md` §6; §21 gobierna la
+herramienta, no el algoritmo. Un previsualizador habría sido una segunda implementación de
+`ResolveLoopEffect` — exactamente la divergencia que TXT-1 evitó factorizando `ComputeParity`, con
+la diferencia de que aquí factorizar exigiría tocar runtime, y este lote no toca runtime.
+
+**Código.** Un fichero nuevo: `Assets/Scripts/Characters/Editor/AudienceMemberWizard.cs`, namespace
+`ALWTTT.Characters.Editor` (D-AMW-1=A). Nada más. `AudienceCharacterData.cs` no se editó.
+
+**Por qué así y no de la forma obvia:**
+- **Edición por `SerializedObject`, no por setters nuevos** (D-AMW-EDIT). Los campos son privados
+  serializados; `SerializedObject` escribe donde escribe el Inspector y da Undo y dirty. Añadir
+  setters habría ampliado la superficie runtime de una clase que el gig lee en caliente.
+- **Las columnas derivadas también salen del stream serializado, no de los getters.** Motivo
+  concreto: `followAbilityPattern` no tiene accesor, y añadir uno era un cambio de runtime
+  prohibido por D-AMW-0. Efecto lateral bueno: si un campo se renombra, la ventana pinta un banner
+  rojo con el nombre en vez de reportar ceros.
+- **Usos por dependencias de asset, no por nombre de campo** (D-AMW-3=B). `GetDependencies` sobre
+  cada `GigEncounterSO` / `GigSetupRosterSO` sobrevive a renombrados en dos tipos que la ventana no
+  posee. Desvío declarado de §18.6 (allí el escaneo es botón bajo demanda porque el corpus de
+  cartas es grande): aquí es columna cacheada. `usage sources: 0` avisa, que es la única forma de
+  que un renombrado de clase se note.
+- **Los cambios estructurales de la lista de habilidades abortan el frame** (`ExitGUI`) tras
+  confirmar. Mutar `arraySize` a mitad de `OnGUI` invalida el árbol de controles que IMGUI ya
+  cacheó; sin el aborto el fallo es intermitente, que es peor que determinista.
+- **`arraySize++` copia el elemento anterior**, así que "+ Add" resetea explícitamente
+  (`animationDuration = -1`, `disableBeatAnimator = true`, `actionList` vacío). Sin eso una
+  habilidad nueva heredaría el animator trigger de la anterior en silencio.
+- **La ventana no entra en `CardAuthoringNav`** (D-AMW-4=A): §19 define esa barra como card-scoped,
+  y un enemigo no es una carta. Una barra global de autoría sería su propia decisión, no un efecto
+  colateral de este lote.
+
+**AMW-1b — corrección de layout, registrada porque explica una regla.** La primera implementación
+dibujaba cada fila con su propio `EditorGUILayout.HorizontalScope`. IMGUI reparte el espacio
+sobrante **por scope**, partiendo del mínimo que exige el contenido de cada control, así que con
+dos columnas expandibles (Name, Taste) cada fila resolvía anchos distintos y todas las columnas
+posteriores arrancaban en x distinta: cinco filas, cinco layouts. Se sustituyó por una rejilla de
+rects (`GUILayoutUtility.GetRect` + un `BuildCols` compartido por cabecera y filas). §21.2 lo
+recoge con una nota de "no simplificar esto de vuelta".
+
+**Verdad de código resuelta en el lote (NV de apertura):** `CharacterActionData` es una clase
+inline `[Serializable]`, no un SO; `AudienceIntentionData` sí es SO. De ahí la regla de §21.10: se
+edita el dato inline, se referencian y se hace ping a los SO ajenos.
+
+**Decisiones.** D-AMW-1=A (ubicación/namespace/menú) · D-AMW-2=A (splitter) · D-AMW-3=B (usos como
+columna cacheada por dependencias) · D-AMW-4=A (fuera de `CardAuthoringNav`) · D6=A (`NEUTRAL
+TASTE` suprimido en fila, desvío declarado del requisito §3.7).
+**Abierta: D5** — `characterId` duplicado no se detecta. Observado en el export: un asset creado
+por plantilla comparte `"kid"` con `Kid`. El badge es trivial; lo que no está resuelto es si la
+ventana debería además *derivar* un id al crear, y eso exige verificar antes quién lee
+`characterId` — ningún documento gobernado lo dice.
+
+**Verificación.** V1–V10 (inventario, persistencia, Undo, creación por plantilla, badges, usos,
+export filtrado, borrado) + L1–L6 (rejilla) + R1 (regresión de gig) — todos PASS.
+
+**Lifecycle.** `Design_AudienceMemberWizard_Requirements_v0_1.md` queda consumido: su autoridad
+pasa a §21 y el documento se archiva con banner de supersesión. *(Banner **no aplicado** en
+DOC-APPLY-4: el fichero no estaba disponible en sesión. Pendiente.)*
+
+---
+
+## 2026-09-05 — TXT-1: pipeline de textos de jugador (`GameTextWindow`) + paridad como dato
+
+**Tipo:** operativo + **estructural** (§20 nueva en `SSoT_Editor_Authoring_Tools`) + lifecycle (PK).
+Editor-only: ningún cambio de runtime, ningún smoke de gameplay (exención por refactor/tooling).
+
+**Qué cambió de significado.** Hasta hoy la autoría del texto del tutorial vivía en seeders
+`[ContextMenu]` con el copy embebido en C#: cambiar una coma era editar código, y editar el `.asset`
+a mano se perdía en el siguiente re-seed. TXT-1 traslada la autoría a una herramienta y **fija que
+los `.asset` son la verdad** (D1=A); el CSV es formato de intercambio y **nada de este pipeline se
+lee en runtime** (D-TXT-1). Los seeders **no se retiran**: quedan como semilla de emergencia
+(D-TXT-3).
+
+**Código.**
+- Nuevo `Assets/Scripts/Editor/Text/`: `GameTextWindow.cs` · `TutorialTextTable.cs` ·
+  `GameTextCsv.cs`, namespace `ALWTTT.TextAuthoring` (D4). El namespace **no** es `ALWTTT.Editor.*`:
+  un namespace `ALWTTT.Editor` haría que `Editor` resolviera a él antes que a `UnityEditor.Editor`
+  dentro de todo `ALWTTT.*`, rompiendo cualquier `[CustomEditor] : Editor` (p. ej.
+  `InstrumentEffectEditor`).
+- `TutorialDialogCatalogSO.cs` editado: campo de autoría `languageCode` + accesor (**D2=B**), y la
+  paridad factorizada como dato — `CanonicalTriggerIds()`, `ParityReport`, `ComputeParity(catalog)`,
+  con `ReservedUnauthored` promovido de local a campo estático. El `[MenuItem]`
+  `ALWTTT/Tutorial/Validate catalog language parity` queda como **envoltorio de salida idéntica**.
+
+**Por qué así y no de la forma obvia** (registro para lectores futuros):
+- *Edición por `SerializedObject`, no por setters nuevos en el SO.* `revisitTitle` y `pages` son
+  campos privados serializados; `SerializedObject` escribe donde escribe el Inspector y aporta Undo
+  y dirty. Añadir setters habría ensanchado la superficie runtime de una clase que el juego lee en
+  caliente, y un `SetDirty` a mano deja ventana y asset capaces de discrepar tras un Undo.
+- *Idioma como campo, no como convención de ruta.* `Dialogs/` vs `Dialogs/ES/` es una convención que
+  nada sostiene, topa el número de columnas en el layout de carpetas, y habría ocultado la tensión
+  multi-catálogo de `Design_Tutorial_System_v0_3` §5A.1 en vez de exponerla (la ventana marca
+  `NO LANGUAGE` y `DUPLICATE`).
+- *Una sola implementación de paridad.* Si la ventana calculase la suya, el día que una de las dos
+  se retune y la otra no, el proyecto tendría dos respuestas a "qué diálogo falta".
+- *El import escribe solo diferencias.* Es lo que hace que reimportar un export intacto toque cero
+  assets y deje `git status` limpio; sin el diff, cada import ensuciaría los 68 `.asset` y la hoja
+  de cálculo sería inservible en un repo con varias manos. Corolario deliberado: una celda de título
+  vacía es "sin opinión", nunca "borra el título".
+
+**Alcance declarado, no simulado.** Cartas y status effects son **monolingües por construcción** y
+quedan como inventario de sólo lectura (`CardDefinition` no tiene campo de descripción: la genera
+`CardEffectDescriptionBuilder`, `SSoT_Card_System` §10.1). **Menús: inalcanzable** —
+`MainMenuController` no contiene strings de jugador; los rótulos son `TMP_Text` en escena/prefab,
+fuera de `AssetDatabase`. Ambas cosas quedan como items abiertos en `CURRENT_STATE` §4
+(P-TXT-1, P-TXT-2) junto con **O-TXT-3 (Unity Localization) diferida y registrada**, con su punto de
+disparo explícito: la primera categoría que necesite un segundo idioma.
+
+**Verificación.** RT-1..RT-10 PASS: round-trip CSV sin cambios espurios (fingerprint SHA-1 idéntico
+antes/después), edición desde hoja de cálculo tocando un único `.asset`, Undo, paridad verde tras
+usar la ventana, y regresión de seeder (re-seed no borra `languageCode`).
+
+**Docs.** `SSoT_Editor_Authoring_Tools.md` §3 + §13 + §15 + **§20 nueva** ·
+`Design_Tutorial_System_v0_3.md` §5A.1 + §5A.4 (la *authoring window* de D-S5f-3=B queda
+**entregada**; el sistema `{$concept}` sigue sin construir) · `CURRENT_STATE.md` §1 + §4 ·
+`coverage-matrix.md` (fila de editor tooling) · `PK_Manifest.md` (salidas POR-LOTE TXT-1, refresco
+de `StatusEffectSO.cs` que cierra el abierto de WINK-1, y aviso de copia vencida de
+`TutorialDialogCatalogSO.cs`).
+
+---
+
+## 2026-09-04 — DOC-TUTR-B: doc-update de TUT-REDESIGN-A/B (documentación pura)
+
+**Tipo:** lifecycle + operativo + **autoridad** (corrección de tres afirmaciones falsas de roster en
+`CURRENT_STATE.md`). Sin código, sin assets, sin smokes.
+
+Los once diffs de `PENDING_DOC_DIFFS_TUT-REDESIGN-B.md` aplicados; el paquete se retira del PK
+(convención) tras emitir su §12 como prompt de TXT-1. **Precedencia registrada:** tres correcciones
+son de *verdad documental contra verdad observada* — roster, número de canciones e inspiración
+inicial — y en las tres el asset es la verdad. Docs: `Design_Tutorial_System_v0_2.md` →
+**`v0_3.md`** (renombrado, D-TUTR-6=B; §6C nueva; deuda de §6B.3 consumida) · `SSoT_INDEX.md` ·
+`CURRENT_STATE.md` · `Design_Starter_Deck_v2_DRAFT.md` §3 (la tabla R0 **no se borró**: baja a §3.1
+como rationale) · `Design_Sensory_Contract_v0_1.md` §3 (sigue planning, D-DOC-R4-1) ·
+`SSoT_Gig_Combat_Core.md` §14.4 + **§16 nueva** (el "§15.3" del paquete no existía) ·
+`SSoT_Card_System.md` §10.5 · `SSoT_Dev_Mode.md` §17 + §11.2 · `RosterExpansion_Sub_Roadmap.md` R8 ·
+`coverage-matrix.md` · `PK_Manifest.md`. **No aplicado:** path del tutorial en `ssot_manifest.yaml`
+(lote MANIFEST-*). Hallazgo nuevo: Super Slap está en el pool con `UnlockedByDefault` pese al parqueo
+D2a=B — registrado en R8, no resuelto.
+
+## 2026-09-03 — TUT-REDESIGN-A/B CERRADOS: el tutorial se rediseña para la banda de 4
+
+**Tipo:** semantic + operational + contrato + lifecycle.
+
+2026-09-03 · TUT-REDESIGN-B · catálogos de starter en estado definitivo (18/15, verificado
+por export) · bus: PlayDeniedEvent + GigLossCause + EarwormTick/BonusLoopStarted/TrackReplaced ·
+tutorial: 34 ids, 0 reservados, arco de gig 1 para la banda de 4, supresión por arco ·
+gig: victoria anticipada + techo de 6 canciones. 22/22 smokes verdes.
+
+**Qué cambió y por qué así.** TUT-REDESIGN-A (2026-09-02, GAME DESIGN) sustituyó el TUT-REFRESH
+planificado por un rediseño: inventario de mecánicas enseñables contra la banda real de 4
+(Conito · Ziggy · Robot C2 · Sibi, verificada contra `DemoLaunchConfig`) y flujo nuevo. La premisa
+"roster = C2 + Sibi" que `CURRENT_STATE.md` sostenía en tres sitios era falsa desde antes.
+TUT-REDESIGN-B construyó el arco: **11 beats** guiados (`tut_tracks_by_musician` sustituye a
+`tut_tracks_three`, que contaba roles y se volvía falso con Double Harmony; `tut_play_budget`
+dispara sólo por denegación ECON-1), 10 reactivos anclados al personaje, **34 ids y cero
+reservados** (`tut_flow` y `tut_audience_preferences` absorbidos), mano forzada de 4 con slot 0 =
+Default Mode, supresión **liberada al completar el arco guiado y no por gig** (D-TUTB-6=B: el demo
+tiene una gig; el alcance por gig los habría dejado inalcanzables), enrutado por `StatusKey` y
+nunca por id de carta.
+
+**Contratos.** `PlayDeniedEvent(PlayDenyReason, DisplayText, Card, Payer)` publicado sólo desde el
+embudo `GigManager.ReportPlayDenied`, que también muestra el mensaje — antes la ruta de acción era
+**muda en todas sus puertas** (D-TUTB-1=A). `GigLossCause` obligatorio en `GigOutcomeEvent` y
+`LoseGig(GigLossCause)` para la ruta de Cohesion, que antes no publicaba (D-TUTB-3=A; consume
+TLM-1b; `LoseGig()` sigue mudo a propósito para Debug). `EarwormTickEvent`, `BonusLoopStartedEvent`,
+`TrackReplacedEvent`. **Gig:** victoria anticipada al convencer a todo el público antes del turno
+de audiencia + techo de 6 canciones (D-TUTB-7=C; tuning, no contrato).
+
+**Catálogos (D-CAT-1..5).** Starter real **18/15**: Overload al starter (D-CAT-1=A); Compound Cycle
+al pool (**revierte D-R0-2=B**); DEV_Voltage en ningún catálogo ⇒ no spawneables; Keep Cool
+conserva nombre; Slap Groove en el starter y Slap Bass fuera — la forma simétrica de D-R0-6 **no se
+cumple** (D-CAT-5). Sin cura de Stress, sin Vibe mono-objetivo, sin metro/tempo/modulación en el
+starter. Abiertos: F-TUTB-1 (inspiración inicial 0 vs 1), F-TUTB-3 (rama sin `GigOutcomeEvent`),
+F-TUTB-4 (highlight al último target registrado), F-TUTB-5 (modal tapa panel), O5
+(`tut_read_the_room` sin trigger). ST-W8 partido. Hogares: `Design_Tutorial_System_v0_3.md` §6C ·
+`SSoT_Gig_Combat_Core.md` §16 · `SSoT_Card_System.md` §10.5 · `Design_Sensory_Contract_v0_1.md` §3.
+
+---
+
 ## 2026-09-01 — R6 CERRADO: la primera regla que necesitaba saber dónde cae la carta
 
 **Tipo:** semantic + operational + contrato + lifecycle.

@@ -25,9 +25,8 @@ namespace ALWTTT.DevMode
     /// Coverage (D-TLM-3=A — documented gap, mirrors the existing tally):
     ///   - Logged: normal-flow outcomes via ResolveGigOutcomeAndEnd (the only
     ///     GigOutcomeEvent publish site). lossCause is therefore always
-    ///     "unconvinced_after_final_song" for logged losses.
-    ///   - NOT logged: cohesion-collapse losses (MusicianBase.OnBreakdown →
-    ///     LoseGig() directly — no event), and editor Debug context-menu
+    ///     "unconvinced_after_final_song" for logged losses. cohesion-collapse losses.
+    ///   - NOT logged: and editor Debug context-menu
     ///     Win/Lose (bypass by design). Partial gigs (retry/quit mid-gig)
     ///     produce no record; accumulators reset on the next GigStartedEvent.
     ///
@@ -169,7 +168,7 @@ namespace ALWTTT.DevMode
 
         private static void OnGigOutcome(GigOutcomeEvent e)
         {
-            try { WriteRecord(e.Won); }
+            try { WriteRecord(e.Won, e.Cause); }
             catch (Exception ex)
             {
                 Debug.LogError($"{Tag} Failed to write gig record: {ex}");
@@ -185,7 +184,7 @@ namespace ALWTTT.DevMode
         // Record assembly + IO
         // ---------------------------------------------------------------
 
-        private static void WriteRecord(bool won)
+        private static void WriteRecord(bool won, GigLossCause cause)
         {
             var pd = GameManager.Instance.PersistentGameplayData;
             var gm = ALWTTT.Managers.GigManager.Instance;
@@ -196,7 +195,9 @@ namespace ALWTTT.DevMode
                 timestampUtc = DateTime.UtcNow.ToString("o"),
                 sessionId = SessionId,
                 won = won,
-                lossCause = won ? string.Empty : "unconvinced_after_final_song",
+                lossCause = won ? string.Empty
+                    : cause == GigLossCause.CohesionCollapse ? "cohesion_collapse"
+                    : "unconvinced_after_final_song",
                 songsCompleted = pd != null ? pd.CurrentSongIndex : -1,
                 loopsPlayed = _loopsThisGig,
                 requiredSongCount = _requiredSongCount,

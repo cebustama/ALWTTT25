@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_play_budget
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_play_budget
+  priority: 65
+  category: 0
+  revisitTitle: One play per head
+  portrait: {fileID: 0}
+  pages:
+  - 'That musician already played. Each of them gets ONE composition and ONE action
+    per loop; whatever''s left waits for the next one. Before the song starts, same
+    rule: one and one. Four musicians means four turns inside your turn. Spread them
+    out.'
+  highlightKey: hand

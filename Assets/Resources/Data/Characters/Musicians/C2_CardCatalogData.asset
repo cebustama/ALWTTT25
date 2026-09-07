@@ -17,13 +17,21 @@ MonoBehaviour:
   - card: {fileID: 11400000, guid: a098a43d82afe7d4ab2a2a0b62989f42, type: 2}
     flags: 5
     unlockId: 
+    starterCopies: 3
+  - card: {fileID: 11400000, guid: 18f188133ca95d54bb32c7f43ddbaf10, type: 2}
+    flags: 5
+    unlockId: 
     starterCopies: 1
-  - card: {fileID: 11400000, guid: 620a191401b102b46ba4df85e61a9097, type: 2}
-    flags: 4
+  - card: {fileID: 11400000, guid: 2e3ecc6694758b441bcc7bdecab73676, type: 2}
+    flags: 5
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: f27dd56c6b8469247832b83d58d10393, type: 2}
-    flags: 7
+    flags: 6
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: 620a191401b102b46ba4df85e61a9097, type: 2}
+    flags: 0
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: ff1da3ec6e10d0146b8437649f5f6178, type: 2}
@@ -36,13 +44,5 @@ MonoBehaviour:
     starterCopies: 1
   - card: {fileID: 11400000, guid: 84523d39d45aea9408eb557909c14147, type: 2}
     flags: 6
-    unlockId: 
-    starterCopies: 1
-  - card: {fileID: 11400000, guid: 18f188133ca95d54bb32c7f43ddbaf10, type: 2}
-    flags: 5
-    unlockId: 
-    starterCopies: 1
-  - card: {fileID: 11400000, guid: 2e3ecc6694758b441bcc7bdecab73676, type: 2}
-    flags: 5
     unlockId: 
     starterCopies: 1

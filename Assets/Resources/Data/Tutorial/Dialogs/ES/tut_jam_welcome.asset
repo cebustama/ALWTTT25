@@ -18,7 +18,8 @@ MonoBehaviour:
   revisitTitle: Bienvenido a la jam
   portrait: {fileID: 0}
   pages:
-  - "Bienvenido al escenario, novato. Esto es una jam: la banda toca en vivo y el
-    p\xFAblico decide si vales algo. Tu \xFAnico trabajo es hacer que la m\xFAsica
-    hable. Yo te voy diciendo c\xF3mo."
+  - "Bienvenido al escenario, HOLA LOCO WENA COMO ESTAI CHORO novato. Esto es una
+    jam: la banda toca en vivo y el p\xFAblico decide si vales algo. Cuatro m\xFAsicos,
+    cuatro voces: bater\xEDa, teclas, bajo y cantante. Tu \xFAnico trabajo es hacer
+    que hablen a la vez. Yo te voy diciendo c\xF3mo."
   highlightKey: 

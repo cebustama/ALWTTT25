@@ -16,9 +16,11 @@ MonoBehaviour:
   displayName: Wormus Minor
   performerRule: 1
   musicianCharacterType: 3
-  cardSprite: {fileID: -5489366909490485182, guid: 430a67ab3deb5e847b06d02ea1b746d7, type: 3}
+  cardSprite: {fileID: 2788456226534158206, guid: 5a281f86c814d2343af0dfa48cd3a04d, type: 3}
   inspirationCost: 0
-  inspirationGenerated: 3
+  inspirationGenerated: 0
+  resourceCostStatusKey: 
+  resourceCostAmount: 0
   cardType: 2
   rarity: 0
   keywords: 

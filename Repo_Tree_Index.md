@@ -1,6 +1,6 @@
 ﻿# Repo_Tree_Index — índice de rutas del repositorio ALWTTT
 
-**Snapshot: 2026-08-29 19:30.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
+**Snapshot: 2026-09-05 12:29.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
 
 **Para qué sirve.** El PK es plano: los ficheros adjuntos pierden su carpeta. Este índice devuelve la ruta real de cualquier fichero por su nombre, sin inferirla del `namespace`. Sirve para rellenar la columna *Ruta en repo* de `PK_Manifest.md` y para pedir ficheros por ruta exacta en el File Request Protocol.
 
@@ -12,7 +12,7 @@
 
 Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-IncludeAssets` si un lote de contenido los necesita.
 
-**Total indexado: 446 ficheros.**
+**Total indexado: 454 ficheros.**
 
 | Carpeta | Ficheros | KB |
 |---|---:|---:|
@@ -21,10 +21,10 @@ Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-Inc
 | `Assets/PinkTrombonePOC/PinkTromboneSrc` | 13 | 54 |
 | `Assets/Scripts` | 1 | 7 |
 | `Assets/Scripts/Backgrounds` | 4 | 11 |
-| `Assets/Scripts/Cards` | 78 | 770 |
-| `Assets/Scripts/Characters` | 19 | 140 |
-| `Assets/Scripts/Controllers` | 2 | 52 |
-| `Assets/Scripts/Data` | 50 | 228 |
+| `Assets/Scripts/Cards` | 78 | 771 |
+| `Assets/Scripts/Characters` | 20 | 145 |
+| `Assets/Scripts/Controllers` | 2 | 56 |
+| `Assets/Scripts/Data` | 50 | 232 |
 | `Assets/Scripts/DevMode` | 8 | 163 |
 | `Assets/Scripts/Editor` | 1 | 7 |
 | `Assets/Scripts/Encounters` | 2 | 2 |
@@ -32,27 +32,27 @@ Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-Inc
 | `Assets/Scripts/Extensions` | 1 | 1 |
 | `Assets/Scripts/Generation` | 13 | 29 |
 | `Assets/Scripts/Interfaces` | 7 | 3 |
-| `Assets/Scripts/Managers` | 13 | 442 |
+| `Assets/Scripts/Managers` | 13 | 447 |
 | `Assets/Scripts/Map` | 11 | 25 |
-| `Assets/Scripts/Music` | 16 | 288 |
-| `Assets/Scripts/Sensory` | 21 | 81 |
-| `Assets/Scripts/Status` | 9 | 84 |
-| `Assets/Scripts/Tutorial` | 14 | 131 |
-| `Assets/Scripts/UI` | 44 | 286 |
+| `Assets/Scripts/Music` | 16 | 291 |
+| `Assets/Scripts/Sensory` | 26 | 102 |
+| `Assets/Scripts/Status` | 9 | 85 |
+| `Assets/Scripts/Tutorial` | 14 | 151 |
+| `Assets/Scripts/UI` | 45 | 295 |
 | `Assets/Scripts/Utils` | 5 | 8 |
-| `Docs` | 9 | 581 |
+| `Docs` | 9 | 649 |
 | `Docs/archive` | 8 | 660 |
 | `Docs/archive/absorbed` | 2 | 5 |
 | `Docs/archive/snapshots` | 1 | 0 |
 | `Docs/audits` | 2 | 107 |
 | `Docs/integrations` | 1 | 1 |
-| `Docs/integrations/midigenplay` | 5 | 96 |
-| `Docs/planning` | 11 | 122 |
-| `Docs/planning/active` | 16 | 437 |
-| `Docs/planning/archive` | 6 | 58 |
+| `Docs/integrations/midigenplay` | 5 | 97 |
+| `Docs/planning` | 11 | 133 |
+| `Docs/planning/active` | 16 | 457 |
+| `Docs/planning/archive` | 7 | 102 |
 | `Docs/reference` | 5 | 31 |
-| `Docs/runtime` | 3 | 66 |
-| `Docs/systems` | 12 | 454 |
+| `Docs/runtime` | 3 | 68 |
+| `Docs/systems` | 12 | 484 |
 | `Packages` | 2 | 19 |
 
 ## Nombres duplicados (atención)
@@ -219,6 +219,7 @@ Assets/Scripts/Characters/MusicianBase.cs
 Assets/Scripts/Characters/Musicians/MusicianCharacterSimple.cs
 Assets/Scripts/Characters/SpriteOutlineController.cs
 Assets/Scripts/Characters/StatusStats.cs
+Assets/Scripts/Characters/StatusVisualDriver.cs
 Assets/Scripts/Characters/VibeEffectiveness.cs
 ```
 
@@ -433,7 +434,10 @@ Assets/Scripts/Music/Voice/SingerVoiceDirector.cs
 ```
 Assets/Scripts/Sensory/AudienceBlockedEvent.cs
 Assets/Scripts/Sensory/AudienceTurnStartedEvent.cs
+Assets/Scripts/Sensory/BonusLoopStartedEvent.cs
+Assets/Scripts/Sensory/CardPerformedEvent.cs
 Assets/Scripts/Sensory/CardPlayedEvent.cs
+Assets/Scripts/Sensory/EarwormTickEvent.cs
 Assets/Scripts/Sensory/Events/AudienceReactionEvent.cs
 Assets/Scripts/Sensory/Events/AudienceVibeImpactEvent.cs
 Assets/Scripts/Sensory/Events/SfxStageCrossedEvent.cs
@@ -444,6 +448,7 @@ Assets/Scripts/Sensory/GigStartedEvent.cs
 Assets/Scripts/Sensory/ISensoryEvent.cs
 Assets/Scripts/Sensory/LoopResolvedEvent.cs
 Assets/Scripts/Sensory/MusicianStressHitEvent.cs
+Assets/Scripts/Sensory/PlayDeniedEvent.cs
 Assets/Scripts/Sensory/PsychicWaveOverlayController.cs
 Assets/Scripts/Sensory/RewardChoiceOpenedEvent.cs
 Assets/Scripts/Sensory/SensoryAudioAdapter.cs
@@ -452,6 +457,7 @@ Assets/Scripts/Sensory/SensoryFtPresentation.cs
 Assets/Scripts/Sensory/SensoryFxAdapter.cs
 Assets/Scripts/Sensory/SensorySfxPresentation.cs
 Assets/Scripts/Sensory/StatusAppliedEvent.cs
+Assets/Scripts/Sensory/TrackReplacedEvent.cs
 ```
 
 ### Assets/Scripts/Status
@@ -508,6 +514,7 @@ Assets/Scripts/UI/CompositionStripThemeSO.cs
 Assets/Scripts/UI/ConflictPanelUI.cs
 Assets/Scripts/UI/FloatingText.cs
 Assets/Scripts/UI/GigCanvas.cs
+Assets/Scripts/UI/GigMessageUI.cs
 Assets/Scripts/UI/GigSetupController.cs
 Assets/Scripts/UI/HealthBarController.cs
 Assets/Scripts/UI/MainMenuController.cs
@@ -620,7 +627,7 @@ Docs/planning/Design_Project_Directives_v0_1.md
 Docs/planning/Design_Singer_Expression_Input_v0_1.md
 Docs/planning/Design_Song_Parts_Library_v0_1.md
 Docs/planning/Design_Tempo_Identity_v1.md
-Docs/planning/Design_Tutorial_System_v0_2.md
+Docs/planning/Design_Tutorial_System_v0_3.md
 Docs/planning/Design_Vibe_Telegraph_v0_1.md
 Docs/planning/planning_README.md
 ```
@@ -651,6 +658,7 @@ Docs/planning/active/TUT-REBUILD_Sub_Roadmap.md
 ```
 Docs/planning/archive/ALWTTT_DeckEditorWindow_Roadmap_Proposal.md
 Docs/planning/archive/Combat_MVP_Roadmap.md
+Docs/planning/archive/Design_Tutorial_System_v0_2.md
 Docs/planning/archive/M1_5_Dev_Mode_Sub_Roadmap.md
 Docs/planning/archive/README.md
 Docs/planning/archive/Roadmap_Combat_MVP.md

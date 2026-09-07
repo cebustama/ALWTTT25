@@ -144,7 +144,8 @@ namespace ALWTTT.Characters.Band
                 // Decision D: gig loss on Cohesion ≤ 0
                 if (pd.BandCohesion <= 0)
                 {
-                    GigManager.Instance?.LoseGig();
+                    // [TUT-REDESIGN-B / D-TUTB-3=A] Publishes GigOutcomeEvent(lost, CohesionCollapse).
+                    GigManager.Instance?.LoseGig(ALWTTT.Sensory.GigLossCause.CohesionCollapse);
                     return;
                 }
             }

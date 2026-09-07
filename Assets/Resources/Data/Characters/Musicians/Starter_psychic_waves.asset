@@ -16,9 +16,11 @@ MonoBehaviour:
   displayName: Psychic Waves
   performerRule: 1
   musicianCharacterType: 3
-  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
+  cardSprite: {fileID: -7516595770810293389, guid: b742ee9aa2522054798f139f8153260c, type: 3}
   inspirationCost: 3
   inspirationGenerated: 0
+  resourceCostStatusKey: 
+  resourceCostAmount: 0
   cardType: 2
   rarity: 0
   keywords: 

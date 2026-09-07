@@ -294,6 +294,9 @@ entries:
     governs:
       - Assets/Scripts/Cards/Editor
       - Assets/Scripts/Status/Editor
+      - Assets/Scripts/Editor/Text
+      - Assets/Scripts/Characters/Editor
+      - Assets/Scripts/Encounters/Editor
     hard_invariants: []
     notes: >
       Editor tools inventory, capabilities, supporting services, known gaps.
@@ -302,6 +305,16 @@ entries:
       coverage, candidate invariants should be lifted then. Overlaps
       Card_Authoring_Contracts on the Cards/Editor tree; owns the tool
       capability surface, not the data contract.
+      DOC-APPLY-4 (2026-09-05, D-DA4-D3=A): `governs:` extended with
+      `Assets/Scripts/Editor/Text` (§20, TXT-1 — undetected debt at that
+      batch's close) and `Assets/Scripts/Characters/Editor` (§21, AMW-1).
+      Both trees were already documented by this SSoT; the manifest was
+      behind its own document, which left two batches' editor code outside
+      the drift auditor's scope. Recording, not a new authority claim.
+      GEW-1 (2026-09-06): `governs:` extended with
+      `Assets/Scripts/Encounters/Editor` (§22, GigEncounterWizard) in the
+      same session that created the tree, per the lesson of the previous
+      line — the manifest row is part of the batch, not of a later cleanup.
 
   # ── subsystem_ssot: runtime/ ───────────────────────────────────────────────
 
@@ -644,11 +657,18 @@ entries:
       authority is MidiGenPlay authoring/SSoT_Authoring_LLM_Generation.md §7.
       See F16.
 
-  - path: Docs/planning/active/Design_Tutorial_System_v0_2.md
+  - path: Docs/planning/active/Design_Tutorial_System_v0_3.md
     class: reference
     governs: []
     hard_invariants: []
     notes: >
+      Path corrected v0_2 -> v0_3 in DOC-APPLY-4 (2026-09-05, D-DA4-D3=A).
+      The file was renamed in DOC-TUTR-B (2026-09-04, D-TUTR-6=B); same
+      folder, same class, no v0_2 file remains, so the old path was dangling.
+      DOC-TUTR-B deferred this to a MANIFEST-* batch; that routing is
+      reversed here because a dangling path is a registry defect, not an
+      authority classification. §6C (gig-1 arc for the band of 4) is the
+      current curriculum; §6B (TUT-REBUILD) is retained as record.
       Registered MANIFEST-1 (2026-08-08, D11=A). Single tutorial design home:
       scope, trigger model, presentation, UX, the S4 reactive inventory kept as
       history, and the gig-1 guided curriculum (TUT-REBUILD). Self-classified

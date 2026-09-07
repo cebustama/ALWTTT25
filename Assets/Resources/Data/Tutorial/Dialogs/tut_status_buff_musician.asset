@@ -15,10 +15,10 @@ MonoBehaviour:
   triggerId: tut_status_buff_musician
   priority: 110
   category: 1
-  revisitTitle: Status effects
+  revisitTitle: Flow
   portrait: {fileID: 0}
   pages:
   - 'See that icon over the musician? That''s a status effect, and this one''s working
-    for you. Hover it and it tells you exactly what it does. Read them: the band
-    lives on them.'
+    for you: FLOW, the musician''s on a roll and their music hits harder. Hover it
+    and it tells you exactly what it does. Read them: the band lives on them.'
   highlightKey: status_icon_musician

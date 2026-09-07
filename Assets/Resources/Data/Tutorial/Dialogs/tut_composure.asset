@@ -19,6 +19,7 @@ MonoBehaviour:
   portrait: {fileID: 0}
   pages:
   - 'That''s COMPOSURE: it soaks Stress damage before it touches your musician''s
-    fortitude. It lasts until your next turn, then it''s gone. It''s a guard, not
-    armor. Raise it when you see the hit coming.'
+    fortitude. You play it by dragging the card onto the musician you want covered.
+    It lasts until your next turn, then it''s gone. It''s a guard, not armor. Raise
+    it when you see the hit coming.'
   highlightKey: status_icon_composure

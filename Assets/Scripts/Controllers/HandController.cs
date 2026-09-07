@@ -735,6 +735,9 @@ namespace ALWTTT
                 // 2a) Timing gate (song playing / between songs)
                 if (!GigManager.CanPlayActionCard(data))
                 {
+                    GigManager.ReportPlayDenied(PlayDenyReason.Timing,
+                        "Not now — wait for your turn.", data, null);
+
                     LogV($"{DebugTag} [Gig] Cannot play action card " +
                               $"'{data.DisplayName}' in current timing. Returning to hand.");
                     return false;
@@ -750,6 +753,11 @@ namespace ALWTTT
                     if (session == null || !session.CanAffordInspiration(actionCost))
                     {
                         session?.FlashInspirationDenied();
+
+                        // [TUT-REDESIGN-B] The flash is the visual; publish only.
+                        GigManager.ReportPlayDenied(PlayDenyReason.InspirationCost,
+                            "Not enough Inspiration.", data, null, showMessage: false);
+
                         LogV($"{DebugTag} [Gig] Action card '{data.DisplayName}' " +
                             $"cost={actionCost} but session={(session == null ? "null" : "short")}. Denied.");
                         return false;
@@ -764,6 +772,9 @@ namespace ALWTTT
                 if (GigManager != null && GigManager.CardGrantsBonusLoop(data)
                     && !GigManager.CanGrantBonusLoop())
                 {
+                    GigManager.ReportPlayDenied(PlayDenyReason.BonusLoopPrecondition,
+                        "Nothing running to extend right now.", data, null);
+
                     LogV($"{DebugTag} [Gig][R5-d] '{data.DisplayName}' needs a running " +
                          "part with a bonus loop available. Returning to hand.");
                     return false;
@@ -835,6 +846,9 @@ namespace ALWTTT
                 if (bandCharacter is MusicianBase resourceChecker &&
                     !GigManager.CanPayResourceCost(data, resourceChecker))
                 {
+                    GigManager.ReportPlayDenied(PlayDenyReason.ResourceCost,
+                        "Not enough resources for this card.", data, resourceChecker);
+
                     LogGate($"{DebugTag} [Gig][R5-g] '{data.DisplayName}' denied — " +
                         $"{resourceChecker.CharacterName} cannot pay " +
                         $"{data.ResourceCostAmount} '{data.ResourceCostStatusKey}'. " +
@@ -853,6 +867,9 @@ namespace ALWTTT
                 if (bandCharacter is MusicianBase budgetPayer &&
                     !GigManager.TryConsumePlay(budgetPayer, isComposition: false))
                 {
+                    GigManager.ReportPlayDenied(PlayDenyReason.EconBudget,
+                        "No plays left this loop.", data, budgetPayer);
+
                     LogV($"{DebugTag} [Gig][ECON-1] Action play denied — " +
                         $"{budgetPayer.CharacterName} has no action plays left " +
                         "this period. Returning to hand.");

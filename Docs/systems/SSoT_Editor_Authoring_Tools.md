@@ -47,9 +47,12 @@ It does not duplicate the data representation rules in `SSoT_Card_Authoring_Cont
 | Status Effect Wizard | `StatusEffectWizardWindow` | ALWTTT → Status → Status Effect Wizard | Create and edit StatusEffectSO assets backed by the CSO primitive database |
 | Chord Progression Catalogue | `ChordProgressionCatalogueWizard` | MidiGenPlay → Chord Progression Catalogue Wizard... | Read-only browser for ChordProgressionData and ChordProgressionPaletteSO assets |
 | Composition Inventory | `CompositionInventoryWindow` | ALWTTT → Dev → Composition Inventory | Read-only browser over every composition asset family (style bundles, drum/chord/melody patterns, palettes, libraries, phrase archetypes, melodic + percussion instruments) with filters, derived health columns, Print + Export JSON, and a naming report (CSV-1, 2026-07-18; see §17) |
+| Game Text | `GameTextWindow` | ALWTTT → Text → Game Text | Player-facing text by category, one column per language: full editing + CSV round-trip for the tutorial catalogs; read-only inventory for cards and status effects (TXT-1, 2026-09-05; see §20) |
 | Effect Editor | `PartEffectEditorWindow` | ALWTTT → Cards → Effect Editor | Authoring surface for the PartEffect asset family: list/filter/search, inline editing, Create (default `_PartEffects/`), Duplicate, Delete with usage scan, Find Usages, Export JSON (AUTH-1, 2026-07-31; see §18) |
+| Audience Member Wizard | `AudienceMemberWizard` | ALWTTT → Characters → Audience Member Wizard | Authoring surface for `AudienceCharacterData`: inventory with derived columns, filters, inline editing via `SerializedObject`, ability-list editor, taste block with prose reading, Create (default `Data/Characters/Audience/`, optional duplicate-as-template), Duplicate/Delete, cached usage column, validation badges, Export JSON (AMW-1, 2026-09-05; see §21) |
+| Gig Encounter Wizard | `GigEncounterWizard` | ALWTTT → Encounters → Gig Encounter Wizard | Authoring surface for `GigEncounterSO`: inventory with derived columns (venue, songs, audience size, distinct archetypes, Vibe sum, in-roster, is-demo, error count), filters, full editing via `SerializedObject`, audience-list editor with per-row archetype data and cross-link to §21, prose restatement of the composition, Create/Duplicate/Delete, validation badges, Export JSON (GEW-1, 2026-09-06; see §22) |
 
-All seven are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds. `CompositionInventoryWindow` additionally requires `ALWTTT_DEV` (D-CSV-10=A).
+All ten are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds. `CompositionInventoryWindow` additionally requires `ALWTTT_DEV` (D-CSV-10=A).
 
 ---
 
@@ -550,7 +553,33 @@ Assets/Scripts/Cards/Composition/
 
 Assets/Scripts/Status/Editor/
   StatusEffectWizardWindow.cs
+
+Assets/Scripts/Editor/Text/           (TXT-1, 2026-09-05)
+  GameTextWindow.cs                   (the window; namespace ALWTTT.TextAuthoring)
+  TutorialTextTable.cs                (catalogs -> languages -> rows model; diff/import/export)
+  GameTextCsv.cs                      (RFC-4180 codec; no project dependencies)
+
+Assets/Scripts/Characters/Editor/      (AMW-1, 2026-09-05)
+  AudienceMemberWizard.cs              (namespace ALWTTT.Characters.Editor)
+
+Assets/Scripts/Encounters/Editor/      (GEW-1, 2026-09-06)
+  GigEncounterWizard.cs                (namespace ALWTTT.Encounters.Editor)
 ```
+
+> **Namespace note (TXT-1, D4).** The text tooling lives in `ALWTTT.TextAuthoring`, **not**
+> `ALWTTT.Editor.*`. A namespace named `ALWTTT.Editor` would make the identifier `Editor` resolve
+> to that namespace ahead of `UnityEditor.Editor` inside every `ALWTTT.*` namespace, breaking any
+> `[CustomEditor]` class declared as `: Editor` (e.g. `InstrumentEffectEditor`).
+
+> **AMW-1 extension (2026-09-05).** `ALWTTT.<Domain>.Editor` remains the house convention and is
+> safe: `ALWTTT.Cards.Editor`, `ALWTTT.Status.Editor` and now `ALWTTT.Characters.Editor` all
+> resolve `Editor` correctly, because the collision is caused only by a namespace named exactly
+> `ALWTTT.Editor`. `ALWTTT.TextAuthoring` is the exception, not the rule.
+
+> **GEW-1 confirmation (2026-09-06).** `ALWTTT.Encounters.Editor` follows the same convention. The
+> domain word is taken from the **runtime namespace of the type being authored**, not from the
+> folder the asset happens to sit in: `GigEncounterSO` lives at `Assets/Scripts/Data/Encounters/`
+> but declares `namespace ALWTTT.Encounters`, so the window is `Encounters`, not `Data.Encounters`.
 
 ---
 
@@ -619,6 +648,7 @@ stands unchanged.)
 | LLM-generation pattern authority (cross-project) | MidiGenPlay `authoring/SSoT_Authoring_LLM_Generation.md` §7 |
 | PartEffect runtime semantics (scope, timing, application order) | `SSoT_Runtime_CompositionSession_Integration.md` |
 | `InstrumentEffect.RandomFromList` semantics (pick-once-then-persist, D-R2-7) | `SSoT_Runtime_CompositionSession_Integration.md` §11 |
+| Tutorial dialog content, beats, copy voice | `planning/active/Design_Tutorial_System_v0_3.md` §5A / §6C — the **text pipeline** is owned here (§20); the **copy itself** is owned by the `.asset` files, with that doc as design-approved reference |
 ---
 
 ## 16. Configurable runtime SO surfaces (Inspector-only)
@@ -1197,3 +1227,459 @@ Context-carrying cross-links delivered with it:
 - `PartEffectEditorWindow.OpenAndSelect(PartEffect)` selects and pings the asset.
 
 Navigation only: no cross-link mutates an asset.
+
+---
+
+## 20. Game Text Window (`GameTextWindow`) — TXT-1, 2026-09-05
+
+**Files:** `Assets/Scripts/Editor/Text/GameTextWindow.cs` · `TutorialTextTable.cs` · `GameTextCsv.cs`
+**Namespace:** `ALWTTT.TextAuthoring` (see the namespace note in §13)
+**Menu:** ALWTTT → Text → Game Text (priority 40)
+
+### 20.1 What it does
+
+A single window for player-facing text, organised as one tab per category and, inside a tab, a
+table of *element × language*. It exists because tutorial copy was previously authored inside
+`[ContextMenu]` seeders in C#: changing one comma meant editing code, and any manual edit of an
+`.asset` was destroyed by the next re-seed.
+
+Model (**D1=A**, locked at TXT-1 open): **the `.asset` files remain the single source of truth.**
+The window is a lens plus a diff engine over them; the CSV is an interchange format for the
+spreadsheet loop and is *never* a source. Nothing in this pipeline is read at runtime (**D-TXT-1**):
+no network, no CSV in a build.
+
+Editing goes through `SerializedObject` / `SerializedProperty` on the real assets, never through new
+public setters on the SOs. This is deliberate: `revisitTitle` and `pages` are private serialized
+fields, `SerializedObject` writes to the same place the Inspector does, and it supplies Undo and
+dirty-marking for free. Adding setters would have widened the runtime surface of a class the game
+reads live, and hand-rolled `SetDirty` would have left the window and the asset able to disagree
+after an Undo.
+
+### 20.2 Tab status (v1)
+
+| Tab | State | Text fields | Languages | Why |
+|---|---|---|---|---|
+| Tutorial | **Full** — read, edit, create, CSV import/export | `TutorialDialogSO.revisitTitle`, `pages[]` | N, one per catalog `languageCode` | the only category with per-language storage |
+| Cards | **Inventory only** (read + CSV export) | `CardDefinition.displayName` | 1 | no description field exists; card descriptions are *generated in code* by `CardEffectDescriptionBuilder` (`SSoT_Card_System` §10.1) |
+| Status Effects | **Inventory only** (read + CSV export) | `StatusEffectSO.displayName`, `description` | 1 | see the auto-rename warning in §20.7 |
+| Menus | **Declared unreachable** | — | — | `MainMenuController` holds no player-facing strings; button labels are `TMP_Text` components in the MainMenu scene/prefabs, which `AssetDatabase` type search cannot enumerate |
+
+The non-tutorial tabs are declared, not simulated: each renders its real inventory and a note
+stating why it is read-only. Giving them a language slot is gated on **O-TXT-3** (§20.8).
+
+### 20.3 Language columns (D2=B)
+
+`TutorialDialogCatalogSO` gained `[SerializeField] private string languageCode` plus a
+`LanguageCode` accessor. **Authoring-only:** runtime language selection is still the inspector
+assignment of one catalog to `TutorialController.catalog` (D-S5f-2=B, `Design_Tutorial_System_v0_3`
+§5A.1); no runtime code reads the field, and the seeders do not touch it.
+
+The window discovers every catalog asset, normalises the code (trim + lowercase), and builds one
+column per distinct code, `en` first then alphabetical. A catalog with no code is shown with a
+`NO LANGUAGE` badge and a one-click suggestion derived from the asset-name suffix
+(`TutorialDialogCatalog_ES` → `es`). A second catalog claiming an already-taken code is flagged
+`DUPLICATE (ignored)` rather than silently merged.
+
+The alternative — inferring language from the directory (`Dialogs/` vs `Dialogs/ES/`) — was
+rejected: it is a convention nothing enforces, it caps the column count at the directory layout,
+and it would have hidden the multi-catalog tension noted in `Design_Tutorial_System_v0_3` §5A.1
+instead of surfacing it.
+
+### 20.4 Parity as data
+
+`TutorialDialogCatalogSO` now exposes `CanonicalTriggerIds()`, a `ParityReport` type, and
+`ComputeParity(catalog)`. The editor menu `ALWTTT/Tutorial/Validate catalog language parity`
+is unchanged in behaviour and output — it is now a wrapper over `ComputeParity`, and the
+`ReservedUnauthored` exemption moved from a local to a static field so both callers share it.
+
+**One implementation, two surfaces.** The window renders the same report as a per-catalog badge
+(`PARITY OK` / `missing N · extra N`) and per-row issue badges. Had the window computed parity
+independently, the day one of the two is retuned and the other is not, the project would hold two
+answers to "which dialog is missing".
+
+Per-row issue flags: `MISSING <lang>` · `EXTRA id` (present in a catalog, absent from
+`TutorialTriggerId`) · `EMPTY <lang>` · `PAGES>2 <lang>` (the D-S5f-5=B two-page authoring cap) ·
+`NO TITLE <lang>` · `TOKENS differ` (the set of `{$token}` occurrences is not identical across
+languages — a translation that dropped `{$loops_per_part}` is a runtime hole the copy alone would
+not reveal).
+
+### 20.5 Creating a missing dialog
+
+A `MISSING` cell offers `Create <id> [lang]`: it creates `{dir}/{id}.asset` in that catalog's
+dominant dialog directory, copies `priority` / `category` / `highlightKey` from a sibling language
+(identical across languages by contract), authors an empty title and one empty page, and appends
+the asset to the catalog's list. The seeders are not involved — they remain the emergency seed
+(**D-TXT-3**), not the repair path.
+
+### 20.6 CSV format and round-trip contract
+
+Long table, one row per text field:
+
+```
+id;field;en;es
+tut_jam_welcome;revisitTitle;Welcome to the stage;Bienvenido al escenario
+tut_jam_welcome;page_1;...;...
+tut_first_sfx_stage;page_2;;Mantenla viva y habrá momentos más grandes.
+```
+
+- **Delimiter:** chosen on export (`,` `;` TAB — Spanish-locale Excel expects `;`), sniffed from
+  the header line on import.
+- **Encoding:** UTF-8 **with BOM** on write so Excel opens accents correctly; the BOM is stripped
+  on read. Records terminate CRLF; CRLF *inside* a quoted cell is normalised to LF on read, because
+  spreadsheets rewrite newlines and a page authored with LF must not register as changed after a
+  sheet round-trip.
+- **Quoting:** RFC-4180. Any cell may hold newlines, quotes and the delimiter when quoted; inner
+  quotes are doubled. A quote that does not start its cell aborts the import with nothing applied.
+- **Pages:** `page_1..page_N` must be contiguous. Trailing empty cells trim the page list (EN with
+  one page beside ES with two is normal); an empty cell *between* two filled ones is rejected for
+  that dialog rather than guessed. All-empty pages are rejected.
+- **Empty title cell = no opinion**, never "clear the title". Clearing a title is only possible in
+  the window. A blank cell in a shared sheet is almost always an accident.
+- **Partial files are legal:** ids or language columns absent from the CSV are left untouched. An
+  *unknown* language column aborts the whole import.
+
+**Round-trip contract:** import writes only the `(dialog, field)` pairs whose value differs.
+Re-importing an unmodified export therefore touches zero assets and leaves `git status` clean. That
+property is what makes the spreadsheet loop usable in a repo with more than one contributor; without
+the diff, every import would dirty all 68 assets. `Fingerprint` (toolbar) prints a SHA-1 over every
+`(id, lang, title, pages)` in canonical order, and the import log prints the fingerprint before and
+after so a clean round-trip is verifiable in the Console.
+
+### 20.7 Known limitations
+
+- **Menus** are not editable (§20.2). A scene-walking pass would be required.
+- **`StatusEffectSO.displayName` auto-renames its asset file** to
+  `StatusEffect_{DisplayName}_{EffectId}` from `OnValidate`. Any future *editable* status tab must
+  decide explicitly whether editing a display name should move a file on disk.
+- Cards and status effects have exactly one language slot each; see O-TXT-3.
+- Asset discovery re-runs per render frame (same pattern as §8.5), acceptable at these counts.
+
+### 20.8 Open decision — O-TXT-3 (Unity Localization)
+
+Whether to migrate to Unity Localization (String Tables, keys instead of text) or keep
+project-owned catalogs is **deferred, not dismissed** (D3=B at TXT-1 open). The natural decision
+point is the first category that needs a second language — cards or status effects — because that
+is where the real choice appears: per-language fields on each SO, side tables, or String Tables.
+Deciding before that case exists would be designing without it. Presence of `com.unity.localization`
+in `Packages/manifest.json` is unverified.
+
+
+---
+
+## 21. Audience Member Wizard (`AudienceMemberWizard`) — AMW-1 / AMW-1b, 2026-09-05
+
+**File:** `Assets/Scripts/Characters/Editor/AudienceMemberWizard.cs`
+**Namespace:** `ALWTTT.Characters.Editor` (see the namespace note in §13)
+**Menu:** ALWTTT → Characters → Audience Member Wizard
+
+### 21.1 What it does
+
+One window for the `AudienceCharacterData` family — the game's enemies. It exists because
+archetypes were authored one at a time in the Inspector with no collective view: no way to compare
+`maxVibe` across archetypes, to see who has taste configured and who is neutral, or to notice that
+an enemy has no abilities until `GetAbility()` emits a `LogError` mid-gig.
+
+Ordering note: the window was built *before* the gigs 2–3 enemy content it serves (GIG23-A),
+deliberately. Authoring five new archetypes blind in the Inspector is the cost the tool removes.
+
+Left panel: inventory with derived columns and filters. Right panel: full editing of the selected
+asset. Row interaction: single click selects, double click pings the asset in the Project window.
+
+**Editor-only.** No runtime type was modified; `AudienceCharacterData.cs` is untouched (D-AMW-0).
+The window is not part of `CardAuthoringNav` (D-AMW-4=A): that strip is card-scoped by §19, and an
+enemy is not a card. A project-wide authoring strip would be its own decision.
+
+### 21.2 Layout — a rect-based column grid, not `EditorGUILayout` rows
+
+Two panels with a draggable splitter (same pattern as §18.9 / `CardEditorWindow`).
+
+The inventory list does **not** use one `HorizontalScope` per row. It did in the first
+implementation and the columns did not line up: IMGUI distributes leftover horizontal space *per
+scope*, starting from each control's content-derived minimum, so a row with a long taste summary
+and a row reading `neutral` resolved different widths for the same expandable column, and every
+fixed column after them started at a different x. Five rows computed five independent layouts.
+
+Each row now takes one full-width rect (`GUILayoutUtility.GetRect`) and a single `BuildCols`
+helper turns that rect into nine sub-rects — seven fixed-width numeric/flag columns, the remainder
+split 45/55 between Name and Taste. The header uses the same helper on the same width, so
+alignment is structural rather than emergent. **Do not "simplify" this back to layout rows.**
+
+Readability conventions that follow from owning the rect: numeric columns right-align, flag and
+pattern columns centre, absent values render as a muted `·` and present ones as `✓`, `random`
+renders muted because it is the default behaviour while `cyclic` does not, and rows alternate a
+3%-white wash with the selected row washed blue.
+
+### 21.3 Editing path — `SerializedObject`, never new setters
+
+All editing goes through `SerializedObject` / `SerializedProperty` on the real asset (D-AMW-EDIT),
+the same channel the Inspector uses: it writes the serialized stream, records Undo and marks dirty.
+Adding setters "for the editor" would have widened the runtime surface of a class the gig reads
+live. Same reasoning as TXT-1 §20.1.
+
+The derived inventory columns are read the same way, per asset, on refresh — not through the
+public getters. This matters for one column: `followAbilityPattern` has **no** accessor on the
+runtime type, and adding one would have been a runtime change. Reading the serialized stream keeps
+D-AMW-0 intact. If a field is ever renamed, the window shows a red banner naming the missing field
+instead of silently reporting zeros.
+
+### 21.4 Ability editor
+
+`AudienceAbilityData` is an inline `[Serializable]` class, not an asset, so its instances live
+inside the enemy's `.asset` and the window edits them directly. Explicit add / duplicate / move /
+delete buttons per ability, plus per-field editing including `actionList` and the `animation` block.
+This is the highest-friction part of the Inspector and the main reason the window exists.
+
+Two mechanics worth preserving:
+
+- **Structural changes abort the frame.** Mutating `arraySize` or moving an element during `OnGUI`
+  changes the control tree that IMGUI already cached for that pass. The window commits the change
+  (`ApplyModifiedProperties`, so Undo and dirty are recorded), refreshes derived rows, then calls
+  `GUIUtility.ExitGUI()`. Omitting the abort appears to work and corrupts hit-testing
+  intermittently.
+- **A grown element is a copy.** `arraySize++` on a list of serializable classes appends a copy of
+  the previous element, so "+ Add" explicitly resets the new entry to the type's defaults
+  (`animationDuration = -1`, `disableBeatAnimator = true`, empty `actionList`). Without the reset a
+  new ability silently inherits the previous one's animator trigger.
+
+### 21.5 Taste block and prose reading
+
+The four axes are edited in one compact block, followed by a plain-language restatement of the
+authored fields ("Prefers tempo above 1×. Rewards arrangements with ≥3 active roles.") plus a count
+of enabled axis *sides*.
+
+**The window never simulates a reaction** (D-AMW-SIM). It restates fields; it does not compute an
+impression for any loop. A previewer would be a second implementation of
+`AudienceCharacterBase.ResolveLoopEffect`, and the runtime algorithm (+1/−1 per enabled axis, sum
+clamped to [−2, +2]) stays owned by `SSoT_Audience_and_Reactions.md` §6. This is the same
+divergence TXT-1 avoided by factoring `ComputeParity` — here the equivalent move would be to
+factor the algorithm out of the runtime component, and that is a runtime change nobody has asked
+for.
+
+Enum values are rendered through `SerializedProperty.enumDisplayNames`, so the window never names
+or enumerates MidiGenPlay's `TimeSignature` / `Tonality` types itself. Boundary intact.
+
+### 21.6 Validation badges
+
+Non-blocking, shown as chips on the row and listed with an explanation in the right-hand panel.
+
+| Badge | Condition | Meaning |
+|---|---|---|
+| `NO ABILITIES` | `abilityList` empty | `GetAbility()` will `LogError` at runtime |
+| `NO PREFAB` | `characterPrefab` null | nothing to spawn the member from |
+| `MAXVIBE ≤ 0` | `maxVibe <= 0` | the Vibe pool starts depleted (§7 of `SSoT_Gig_Encounter`) |
+| `PATTERN WITH 1 ABILITY` | `followAbilityPattern` and exactly one ability | cyclic over one entry is indistinguishable from random |
+| `DUPLICATE NAME` | two assets share `characterName` | ambiguous in every list that shows names |
+| `NEUTRAL TASTE` | every axis disabled | informative, not an error |
+
+**D6=A — `NEUTRAL TASTE` is suppressed on inventory rows** and appears only in the panel. This is a
+declared deviation from the AMW-1 requirements (§3.7 asked for every badge on both surfaces): the
+Taste column already reads `neutral` in muted grey, so the chip repeated the same fact and cost the
+row an extra line. Restoring it is a one-line change in `VisibleBadges`.
+
+**Open — D5: duplicate `characterId` is not detected.** The duplicate check is on `characterName`
+only, so creating from a template produces two assets sharing an id (observed: `Test Enemy` and
+`Kid` both carry `"kid"`). A `DUPLICATE ID` chip was proposed and deliberately **not** built: it
+would be trivial, but the pairing question — whether the window should also *derive* an id on
+create — needs someone to verify who reads `characterId` first. Nothing in the governed docs does.
+
+### 21.7 Usages column
+
+The column counts how many `GigEncounterSO` / `GigSetupRosterSO` assets reference each member, with
+Ping per referencing asset in the panel.
+
+It is computed with `AssetDatabase.GetDependencies(path, recursive: false)` over every encounter and
+roster asset, matching returned paths against the audience assets — **not** by walking
+`audienceMemberList` / `AvailableAudienceCharacters` by name. The window therefore does not couple
+itself to two types it does not own and does not break when their fields are renamed. The cost is
+negligible at the current corpus, so unlike §18.6's on-demand button this is a **cached column,
+rebuilt on Refresh / project change** — a declared deviation from that precedent, justified by
+corpus size and by the fact that "is this enemy used anywhere?" is a scanning question during
+encounter design, not a per-asset query.
+
+The list header prints `usage sources: N`; `N == 0` raises a warning, which is the only way a
+future rename of the encounter/roster classes would surface.
+
+**Known limit:** the column counts referencing *assets*, not multiplicity. An encounter listing
+`[A, A, B]` counts A once, matching the picker's own multiset-blindness (`SSoT_Gig_Encounter` §7.5).
+
+### 21.8 Create, duplicate, delete
+
+Create takes a name, a target folder (default `Assets/Resources/Data/Characters/Audience/`) and an
+optional existing member as template; the asset is created, selected and pinged. When a template is
+used, `characterName` is set to the new file name — otherwise the copy would open already flagged
+`DUPLICATE NAME`. `characterId` is left untouched (see the D5 note in §21.6).
+
+Delete confirms with the reference count from §21.7 in the dialog.
+
+### 21.9 Export JSON
+
+`EditorUtility.SaveFilePanel` → pretty-printed `JsonUtility.ToJson` over the **currently filtered**
+list, matching the Card Inventory "current view" convention (§8.4); like that export it is
+informational and **not designed for re-import**. Per member: asset name and path, `characterId`,
+`characterName`, `maxVibe`, `isTall`, `followAbilityPattern`, prefab/SFX presence, taste summary,
+an ability list (name, intention asset name, action count, duration, animator trigger, SFX
+presence), badges, and the names of referencing encounter/roster assets.
+
+### 21.10 Boundary and scope limits
+
+- Writes only `AudienceCharacterData` `.asset` files. It does not touch prefabs, animator
+  controllers or scenes.
+- `AudienceIntentionData`, `StatusEffectSO` (inside each `CharacterActionData`) and
+  `CharacterSfxProfileSO` are **referenced and pinged, never created or authored**. Each deserves
+  its own authoring decision.
+- `CharacterActionData` is an inline `[Serializable]` class (verified 2026-09-05), so it is edited
+  as part of the enemy asset — the "do not author foreign types" rule applies to the SO types
+  above, not to inline data.
+- `isTall` carries a pre-existing `// TODO Generalize` on the runtime type. Not resolved here.
+
+---
+
+## 22. Gig Encounter Wizard (`GigEncounterWizard`) — GEW-1, 2026-09-06
+
+**File:** `Assets/Scripts/Encounters/Editor/GigEncounterWizard.cs`
+**Namespace:** `ALWTTT.Encounters.Editor` (see the namespace note in §13)
+**Menu:** ALWTTT → Encounters → Gig Encounter Wizard
+
+### 22.1 What it does
+
+One window for the `GigEncounterSO` family — the container that decides which enemies appear, how
+many songs the gig lasts, and what a win or a loss pays. It exists for the same reason as §21 one
+level up: encounters were authored one asset at a time in the Inspector, with no way to compare
+audience composition, size or payout across them. The §21 "Uses" column showed the problem from the
+other side — you could see *that* `Kid` appears in four encounters, but not compare the four without
+opening each.
+
+Left panel: inventory with derived columns and filters. Right panel: full editing of the selected
+asset, an audience editor, a validation block, and a prose restatement of the composition. Row
+interaction: single click selects, double click pings.
+
+Ordering note: built *before* the gigs 2–3 encounter content it serves (GIG23-A), deliberately —
+same argument as §21.
+
+**Editor-only.** No runtime type was modified (D-GEW-0). `GigSetupRosterSO` and `DemoLaunchConfigSO`
+are read for validation and pinged, never edited (D-GEW-2=A) — one authoring surface per type. It is
+its own window rather than a tab of §21 (D-GEW-3=A): §19 already recorded what happens when a
+domain-scoped surface absorbs a neighbouring domain. The two windows are joined by their
+`OpenAndSelect` entry points instead.
+
+### 22.2 Layout — the same rect-based column grid as §21.2
+
+Two panels with a draggable splitter. The inventory and the audience list are both drawn as **one
+rect per row** (`GUILayoutUtility.GetRect`) subdivided by a `BuildCols(rect)` helper shared by the
+header and every row — never one `EditorGUILayout.HorizontalScope` per row, for the reason §21.2
+records. Header sits outside the scroll with a 1 px rule; numbers are right-aligned, flags and short
+labels centred, text left; absent values are a dimmed `·` and present ones a `✓`; zebra striping on
+alternate rows.
+
+The eleven-rule list this window was built against lives in the (now archived) requirements note;
+its content is restated here and in §21.2 — the rules are the authority, not the note.
+
+**Fixed-width arithmetic.** The window's minimum width is derived from the panels: the inventory's
+fixed columns plus padding plus the flexible column's minimum must fit inside the left panel
+minimum, and the same for the audience row inside the right panel, or the grid eats its own text.
+
+### 22.3 Editing
+
+All fields through `SerializedObject`/`SerializedProperty` (D-GEW-EDIT), never through new setters —
+same reason as §21.3 and §20, with one extra: the encounter asset is read by `GigLauncher`, by the
+picker and by the demo auto-launch. Every derived column is likewise read from the serialized stream
+rather than the public getters, so a renamed field produces a red banner naming the field instead of
+a column of silent zeros.
+
+Audience list: add / duplicate / move / remove. Structural changes follow the §21.4 pattern —
+`ApplyModifiedProperties()` → rebuild derived data → `GUIUtility.ExitGUI()`, because mutating
+`arraySize` mid-`OnGUI` invalidates the control tree IMGUI has already cached and the failure is
+otherwise intermittent. `+ Add entry` explicitly nulls the new element, because `arraySize++` copies
+the previous one — here that would silently duplicate an archetype.
+
+Asset creation, duplication and deletion are not undoable (`AssetDatabase`); field and list edits
+are. Delete is **refused** while the roster or the demo config references the asset, since the window
+does not edit those SOs and would otherwise leave a dangling reference.
+
+### 22.4 Derived columns
+
+`Name` · `Venue` · `Songs` · `Size` · `Arch` · `Vibe` · `Roster` · `Demo` · `!`.
+
+`Size` counts entries, `Arch` counts distinct archetypes: size ≠ variety, and `[Kid, Kid, Kid]` is
+3 / 1. `Vibe` sums `maxVibe` over the baked audience, duplicates included. `Roster` and `Demo` are
+two **explicit flags**, not a generic usage count (D-GEW-7=A): only two types reference encounters
+today — `GigSetupRosterSO.AvailableEncounters` and `DemoLaunchConfigSO.encounter` — and they mean
+different things to a designer ("selectable in the picker" vs "this is the demo gig"), which a single
+number would merge. This is a declared divergence from §21.7's type-agnostic dependency scan.
+
+### 22.5 Validation badges
+
+Errors: `SIN PÚBLICO` · `MIEMBRO NULO` · `PÚBLICO > MaxAudienceCount` · `MIEMBRO CON BADGES` (some
+archetype in the audience carries a §21 error badge) · `CANCIONES < 1`.
+Informational: `FUERA DEL ROSTER` (absent from `AvailableEncounters`, so unreachable from the picker)
+· `DUPLICADOS HORNEADOS`.
+
+`DUPLICADOS HORNEADOS` is shown rather than collapsed (D-GEW-8=A). Baked duplicates **are** honoured
+on the default launch path — `BuildRuntime(null)` copies the list verbatim — and are lost only if the
+player customises the audience, because the picker dedups (`SSoT_Gig_Encounter` §7.5). Showing the
+multiplicity therefore shows what the asset actually does; collapsing it would hide the default path
+in favour of the exception.
+
+Roster-dependent validation requires **exactly one** `GigSetupRosterSO` asset (D-GEW-5=A). With zero
+or several, `MaxAudienceCount` and roster membership are ambiguous, so the window disables those
+badges and says so in a banner rather than validating against an arbitrary pick. Same rule for
+`DemoLaunchConfigSO` and the `Demo` column.
+
+### 22.6 Composition prose
+
+A restatement of authored fields, in the manner of §21.5: members, distinct archetypes with their
+multiplicity, total Vibe, song count, then how many members reward fast tempo / punish slow tempo /
+reward density / react to time signature / react to tonality, and how many are fully neutral.
+
+**It is not a difficulty estimate** (D-GEW-SIM). No score, no projection, no "hardness" derived from
+Vibe or taste. Encounter difficulty is judged by playing (GIG23-A); a scorer here would be a second
+implementation of rules that live in `GigManager` and `ResolveLoopEffect`, which is exactly the
+divergence §21 refused for the same reason.
+
+### 22.7 Create, duplicate, delete
+
+Create takes a name, a target folder (defaulting to the folder of the first discovered encounter) and
+an optional existing encounter as template; `displayName` is set to the asset name for the same
+reason as §21.8 — otherwise `GetLabel()` falls back to the `"<venue> | Songs:n | FansWin:n |
+CohLoss:n"` string and the new asset reads as unnamed everywhere it is listed. The asset is created,
+selected and pinged. Duplicate is Create-with-template into the original's folder.
+
+### 22.8 Cross-links
+
+An audience row's `→` button calls `AudienceMemberWizard.OpenAndSelect(data)` — the §21 entry point
+that had no callers until this batch. The window exposes a mirror `GigEncounterWizard.OpenAndSelect`
+for the reverse direction; it currently has no callers.
+
+### 22.9 Export JSON
+
+`EditorUtility.SaveFilePanel` over the **currently filtered** view, informational and **not designed
+for re-import** (§8.4 convention). Carries the roster/demo header, per encounter the derived fields
+and badges and the composition prose, and per member the archetype name, `characterId`, `maxVibe`,
+ability count, pattern, taste summary and badges.
+
+### 22.10 Boundary and scope limits
+
+- Writes only `GigEncounterSO` `.asset` files. No prefabs, no scenes — in particular
+  `GigScene.AudienceMemberPosList`, the mirror of `MaxAudienceCount`, is **not** counted from the
+  scene; the number is read from the roster SO.
+- `AudienceCharacterData` is read-only here and edited in §21.
+- Does not list the inline `GigEncounter` entries held by `EncounterData` (the sector-map path). Two
+  encounter representations coexist in the project; see §22.11.
+- Does not resolve the picker's multiset-blindness; it displays it.
+
+### 22.11 Known limits and findings recorded at GEW-1
+
+- **`GigEncounterSO` implements six of the eight fields `SSoT_Gig_Encounter` §4 describes as design
+  intent.** There is no `difficultyTier`, so the inventory shows `Venue` where a tier column would
+  otherwise sit. §4 explicitly does not lock a struct, so this is a gap in content, not drift.
+- **Two encounter representations coexist** (F-GEW-3). `EncounterData` (`ALWTTT/Containers/
+  EncounterData`, the sector-map container) holds **inline** `GigEncounter` objects per sector — the
+  runtime class serialized directly, not `GigEncounterSO` references. Whether that path is still live
+  was not verified at GEW-1. Until it is, this window governs the SO family only.
+- **`numberOfSongs` is edited but its consumption is partly unverified** (F-GEW-5). The demo path
+  overrides it (`DemoLaunchConfigSO.ToRunConfig` sets `overrideRequiredSongCount = true`); the panel
+  prints that override beside the field. Whether the picker path reads the encounter's value or
+  `GigFlowSettingsSO.DefaultRequiredSongCount` was not read at GEW-1.
+- **`AudienceMemberWizard.cs` was not in session** when this window was written: the grid, splitter
+  and structural-edit patterns were re-implemented from the rules in §21.2/§21.4 rather than copied.
+  Behavioural parity was verified by test, not by diff.

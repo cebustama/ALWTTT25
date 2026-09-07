@@ -13,12 +13,14 @@ MonoBehaviour:
   m_Name: starter_finger_bass
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardDefinition
   id: starter_finger_bass
-  displayName: Finger Bass
+  displayName: Walking Bass
   performerRule: 1
   musicianCharacterType: 1
-  cardSprite: {fileID: 21300000, guid: aa43d531ba2af354d8360bbdfa0e3f05, type: 3}
+  cardSprite: {fileID: -1027608927903957380, guid: c2ab408554923774ea062d230a965380, type: 3}
   inspirationCost: 0
   inspirationGenerated: 0
+  resourceCostStatusKey: 
+  resourceCostAmount: 0
   cardType: 1
   rarity: 0
   keywords: 

@@ -1281,6 +1281,24 @@ namespace ALWTTT.Managers
                 yield return RunSongVibeResolution(_lastSongFeedback.Value);
                 _lastSongFeedback = null;
 
+                // [TUT-REDESIGN-B / D-TUTB-7=C] Victoria anticipada. Hasta ahora la
+                // condición de victoria SÓLO se evaluaba al agotarse el presupuesto de
+                // canciones: convencer a todo el público en la canción 1 no terminaba
+                // la gig, se seguía tocando. Con el techo alto de C eso sería una gig
+                // que no acaba. El chequeo va aquí, justo después de aplicar el Vibe de
+                // fin de canción y ANTES de que el público actúe: si ya están todos
+                // convencidos, no tiene sentido que reaccionen a una canción que ya los
+                // convenció. Reutiliza ResolveGigOutcomeAndEnd, que recalcula el
+                // resultado, publica GigOutcomeEvent y llama a WinGig.
+                if (AllAudienceConvinced())
+                {
+                    Debug.Log($"{DebugTag} [D-TUTB-7] Todo el público convencido tras la " +
+                              $"canción {GameManager.PersistentGameplayData.CurrentSongIndex} " +
+                              $"de {_requiredSongCount} — victoria anticipada.");
+                    ResolveGigOutcomeAndEnd();
+                    yield break;
+                }
+
                 // [B2.5 / D-8] Numeric + UI + beat intensity reset runs AFTER
                 // RunSongVibeResolution has read SongHype01 to compute deltas.
                 // The DeactivateAllSFX inside ResetSongHype is idempotent —
@@ -1341,6 +1359,12 @@ namespace ALWTTT.Managers
                 // Design_Audience_Status_v1 §3.8).
                 int appliedEarworm = a.Stats.ApplyIncomingVibe(a.Statuses, inst.Stacks);
                 int afterVibe = a.Stats.CurrentVibe;
+
+
+                // [TUT-REDESIGN-B] Semantic tick for consumers (tutorial
+                // tut_earworm_tick). Stacks read BEFORE the container decay below.
+                SensoryEventBus.Instance?.Publish(
+                    new EarwormTickEvent(a, appliedEarworm, inst.Stacks));
 
                 // [B2 / #3] Multiplier-with-icon floating text. Magenta tint
                 // distinguishes Earworm-sourced Vibe gain from card-sourced
@@ -1424,6 +1448,25 @@ namespace ALWTTT.Managers
             {
                 CurrentGigPhase = GigPhase.PlayerTurn;
             }
+        }
+
+        /// <summary>
+        /// [TUT-REDESIGN-B / D-TUTB-3=A] Loss entry for paths that do NOT go
+        /// through ResolveGigOutcomeAndEnd (today: Cohesion collapse from
+        /// MusicianBase.OnBreakdown). Publishes GigOutcomeEvent with the cause,
+        /// then runs the ordinary LoseGig(). The parameterless LoseGig() stays
+        /// silent on the bus on purpose: Dev/Debug menus use it and D-S4-SRC=A
+        /// keeps those out of tutorial and telemetry.
+        /// </summary>
+        public void LoseGig(GigLossCause cause)
+        {
+            bool suppressed = false;
+#if ALWTTT_DEV
+            suppressed = DevModeController.InfiniteTurnsEnabled;
+#endif
+            if (!suppressed)
+                SensoryEventBus.Instance?.Publish(new GigOutcomeEvent(false, cause));
+            LoseGig();
         }
 
         public void LoseGig()
@@ -1798,7 +1841,8 @@ namespace ALWTTT.Managers
             // play neither animates nor reaches the session.
             if (!CanConsumePlay(payer, isComposition: true))
             {
-                ALWTTT.UI.GigMessageUI.Show("No plays left this loop.");
+                ReportPlayDenied(PlayDenyReason.EconBudget, "No plays left this loop.",
+                    card != null ? card.CardDefinition : null, payer);
 
                 Log($"[ECON-1] Composition play denied — " +
                     $"{(payer != null ? payer.CharacterName : "?")} has no " +
@@ -1812,7 +1856,9 @@ namespace ALWTTT.Managers
             // animation from playing on a denied play (same pattern as ECON-1 T5).
             if (_session != null && _session.IsFinalLoopRunning)
             {
-                ALWTTT.UI.GigMessageUI.Show("Final loop — this change wouldn't be heard.");
+                ReportPlayDenied(PlayDenyReason.FinalLoopLock,
+                    "Final loop — this change wouldn't be heard.",
+                    card != null ? card.CardDefinition : null, payer);
 
                 Log("[CARD-UX-1] Composition play denied — final-loop lock.");
                 return false;
@@ -1826,7 +1872,8 @@ namespace ALWTTT.Managers
             if (cardDef != null && cardDef.HasResourceCost &&
                 !CanPayResourceCost(cardDef, payer))
             {
-                ALWTTT.UI.GigMessageUI.Show("Not enough resources for this card.");
+                ReportPlayDenied(PlayDenyReason.ResourceCost,
+                    "Not enough resources for this card.", cardDef, payer);
 
                 Log($"[R5-d] Composition play denied — "
                     + $"{(payer != null ? payer.CharacterName : "?")} cannot pay "
@@ -2471,6 +2518,26 @@ namespace ALWTTT.Managers
             }
 
             return UnplayableReason.None;
+        }
+
+        /// <summary>
+        /// [TUT-REDESIGN-B / D-TUTR-5, D-TUTB-1=A] Single player-facing funnel
+        /// for a refused play: shows the message (unless the site already has
+        /// its own visual, e.g. the inspiration flash) and publishes the typed
+        /// <see cref="PlayDeniedEvent"/>. Every denial gate on both play paths
+        /// (composition: this class + CompositionSession; action: HandController)
+        /// calls this instead of GigMessageUI directly, so "told the player" and
+        /// "told the bus" cannot drift apart. Callers keep their own logs.
+        /// </summary>
+        public static void ReportPlayDenied(
+            PlayDenyReason reason, string displayText,
+            CardDefinition card, MusicianBase payer, bool showMessage = true)
+        {
+            if (showMessage && !string.IsNullOrEmpty(displayText))
+                ALWTTT.UI.GigMessageUI.Show(displayText);
+
+            SensoryEventBus.Instance?.Publish(
+                new PlayDeniedEvent(reason, displayText, card, payer));
         }
 
         /// <summary>Refill every live musician's budget. Idempotent; safe to
@@ -3854,6 +3921,24 @@ namespace ALWTTT.Managers
                     aud.AudienceCharacterCanvas.HideVibeTelegraph();
         }
 
+        /// <summary>
+        /// [TUT-REDESIGN-B / D-TUTB-7=C] True cuando no queda ningún miembro sin
+        /// convencer. Lista vacía = false: una gig sin público no es una victoria,
+        /// es una escena mal configurada, y declararla ganada escondería el fallo.
+        /// </summary>
+        private bool AllAudienceConvinced()
+        {
+            if (CurrentAudienceCharacterList == null ||
+                CurrentAudienceCharacterList.Count == 0) return false;
+
+            foreach (var a in CurrentAudienceCharacterList)
+            {
+                if (a == null || a.Stats == null) return false;
+                if (!a.Stats.IsConvinced) return false;
+            }
+            return true;
+        }
+
         private void ResolveGigOutcomeAndEnd()
         {
             bool win = true;
@@ -3866,8 +3951,8 @@ namespace ALWTTT.Managers
                 }
             }
 
-            // [S4 D-S4-SRC=A] Normal-flow outcome (debug WinGig/LoseGig menus bypass this).
-            SensoryEventBus.Instance?.Publish(new GigOutcomeEvent(win));
+            SensoryEventBus.Instance?.Publish(new GigOutcomeEvent(win,
+                win ? GigLossCause.None : GigLossCause.UnconvincedAfterFinalSong));
 
             if (win) WinGig();
             else LoseGig();

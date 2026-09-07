@@ -36,9 +36,47 @@ Axis-collision note: v1 gave Sibi the melody hook (Singing Field). In v2 the **s
 
 ---
 
-## 3. Starter deck v2 — 22 cards / 18 unique (D-R0-6=B)
+## 3. Starter deck v2 — **real starter: 18 cards / 15 unique** (verified by catalog export, TUT-REDESIGN-B, 2026-09-03)
 
-Domain split: 11 Composition / 11 Action-domain (7 basic actions incl. generics + 4 finishers).
+> **DOC-TUTR-B (2026-09-04).** This section is now defined by the **starter as it exists in the
+> catalogs**, verified by the `CardInventoryWindow` full export with flags — not by inspection and
+> not by the R0 design. The R0 table (22 / 18) is kept below as **§3.1, design rationale**, and is
+> superseded wherever it differs from this block. Precedence: the asset is the truth; the
+> document was out of date.
+
+**Starter de banda = 18 cartas / 15 únicas:**
+- C2 (4): Default Mode ×2 · Keep Cool · Spotlight
+- Sibi (6): Wormus Minor ×2 · Wormus Major ×2 · Psychic Waves · Read the Room
+- Conito (4): Finger Bass · Static Rush · Overload · Slap Groove
+- Zig (4): Rise Up · Showtime · Wink · Double Harmony
+- Genéricos: ninguno (catálogo cableado vacío)
+
+Pool de recompensa (`IsReward ∧ UnlockedByDefault`) = 7: Compound Cycle · Push It · Half Time ·
+Pentameter · wormus_modal · Amp Up · Super Slap.
+Consecuencias de tuning registradas: sin cura de Stress en el starter · sin Vibe a objetivo
+único · sin cambio de metro, tempo ni modulación (identidades expresivas de C2 y Sibi viven
+en el pool).
+
+**Catalog decisions (D-CAT-1..5, 2026-09-03):** D-CAT-1=A Overload → StarterDeck ·
+D-CAT-2 Compound Cycle starter → RewardPool (**reverts D-R0-2=B**) · D-CAT-3 sin objeto (the
+DEV_Voltage cards are in no catalog ⇒ not spawnable from Dev Mode) · D-CAT-4 sin cambio (Keep
+Cool keeps its `displayName`; "Heat Sink" not applied) · D-CAT-5 below.
+
+**Desviación aceptada respecto al diseño de §3.1 (D-CAT-5, 2026-09-03).** Conito lleva
+Slap Groove (Voltage 3) en el starter y Slap Bass queda fuera (`UnlockedByDefault`, sin
+StarterDeck). Consecuencia: Conito tiene una sola composición de coste cero. La forma
+simétrica "2 comp + 1 acción + 1 finisher" de D-R0-6 **no se cumple** en el starter real:
+C2 es 1+1+1 con dos copias, Sibi 2+1+1 con dos copias, Conito 1+1+1+1 con un coste de
+recurso, Zig 2+1+1 exacto.
+
+**Also verified by the export:** Key Lift is `flags = None` — Sibi's modulation is neither in the
+starter nor in the pool. Generic cards (Warm Up, Take Five) are not in the wired generic
+catalog (empty), so the "generic 3" of §3.1 does not exist in play. Read the Room is in Sibi's
+**starter**, not only the reward slate of §4.
+
+### 3.1 R0 design table — 22 cards / 18 unique (D-R0-6=B) — **rationale, superseded where §3 differs**
+
+Domain split (design): 11 Composition / 11 Action-domain (7 basic actions incl. generics + 4 finishers).
 
 > **Built (R2, 2026-07-31):** the three Conito starter cards exist as assets and are catalog-registered — `starter_finger_bass`, `starter_slap_bass`, `starter_static_rush`, each `StarterDeck | UnlockedByDefault`, `starterCopies = 1`, in `Conito_CardCatalogData`. This doc is design; this line is what lets a reader tell designed-from-built.
 
@@ -69,7 +107,7 @@ Domain split: 11 Composition / 11 Action-domain (7 basic actions incl. generics 
 
 **Moved starter → reward pool (D-R0-6 + D-R0-2=B; conserved per D2=A, placement change only):** Waltz Protocol, Push It, Half Time (C2) · Key Lift, Singing Field (Sibi). **Promoted pool → starter:** Compound Cycle (C2). Net starter size unchanged (1:1 swap).
 
-### Derived counts
+### Derived counts (R0 design — the real starter is 18/15, see §3)
 - Composition 11: DM×2 + Compound Cycle + Wormus×4 + Finger + Slap + Rise Up + Showtime.
 - Actions 7: Warm Up×2, Take Five, Keep Cool, Mind Tap, Static Rush, Wink.
 - Finishers 4: Spotlight, Psychic Wave v2, Overload, Double Harmony — one per musician, each a distinct mechanic (redirect / AoE status climax / bonus-loop solo / added voice). Closes D-ECON-6=DEFER's populated-finisher-layer requirement.

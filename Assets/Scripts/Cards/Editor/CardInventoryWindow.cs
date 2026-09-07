@@ -511,7 +511,7 @@ namespace ALWTTT.Cards.Editor
         [Serializable] private class JsonCatalogFull { public string assetName; public string musicianType; public List<JsonEntry> entries = new(); }
 
         [Serializable] private class WrapDefs { public List<JsonCardDef> cardDefinitions = new(); }
-        [Serializable] private class WrapCatSums { public List<JsonCatalogSummary> catalogs = new(); }
+        [Serializable] private class WrapCatSums { public List<JsonCatalogSummary> catalogs = new(); public List<JsonCatalogFull> fullCatalogs = new(); }   // [TUT-REDESIGN-B] + full entries (flags/copies/unlockId) for every musician catalog and every generic catalog in ONE file
         [Serializable] private class WrapCatsFull { public List<JsonCatalogFull> catalogs = new(); }
 
         private void ExportCurrentView()
@@ -555,7 +555,16 @@ namespace ALWTTT.Cards.Editor
                                 starterCount = s,
                                 starterCopiesTotal = sc
                             });
+                            // [TUT-REDESIGN-B] Full entry list per catalog — the
+                            // AllCardDefinitions export cannot carry flags (they
+                            // live on the catalog entry, not on the card).
+                            w.fullCatalogs.Add(BuildFullCatalog(
+                                cat.name, cat.MusicianType.ToString(), cat.Entries));
                         }
+                        // [TUT-REDESIGN-B] Generic catalog(s) in the same file so a
+                        // single export is the whole starter/reward surface.
+                        foreach (var g in FindAllAssets<GenericCardCatalogSO>())
+                            w.fullCatalogs.Add(BuildFullCatalog(g.name, "<generic>", g.Entries));
                         json = JsonUtility.ToJson(w, true);
                         break;
                     }

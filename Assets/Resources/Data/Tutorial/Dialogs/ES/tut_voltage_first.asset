@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
-  m_Name: tut_tracks_three
+  m_Name: tut_voltage_first
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
-  triggerId: tut_tracks_three
-  priority: 40
-  category: 2
-  revisitTitle: Tres pistas
+  triggerId: tut_voltage_first
+  priority: 134
+  category: 1
+  revisitTitle: Voltage
   portrait: {fileID: 0}
   pages:
-  - "\xBFVes el panel de la canci\xF3n? Tres pistas: RITMO, BASE y MELOD\xCDA. Cada
-    carta de composici\xF3n toca UNA de ellas. La bater\xEDa marca el pulso, los
-    acordes ponen el mundo, la melod\xEDa es lo que se queda en la cabeza."
-  highlightKey: song_panel_tracks
+  - "VOLTAGE: el bajo carga la bater\xEDa. Cada carta que juega Conito suma uno,
+    y se guarda entre canciones. No se gasta solo: es su moneda, y hay cartas suyas
+    que la piden. S\xFAbelo."
+  highlightKey: status_icon_musician

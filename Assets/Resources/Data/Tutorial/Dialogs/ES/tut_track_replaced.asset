@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_track_replaced
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_track_replaced
+  priority: 131
+  category: 2
+  revisitTitle: Pista reemplazada
+  portrait: {fileID: 0}
+  pages:
+  - "Misma pista, nueva carta: la nueva pisa a la vieja. Un m\xFAsico no toca dos
+    versiones de lo mismo. Si quieres sumar en vez de cambiar, cambia de pista o
+    de m\xFAsico."
+  highlightKey: song_panel_tracks

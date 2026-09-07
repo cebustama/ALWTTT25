@@ -26,27 +26,27 @@ MonoBehaviour:
     flags: 5
     unlockId: 
     starterCopies: 1
-  - card: {fileID: 11400000, guid: 65c4508d6c724f34eb58ae2eec48bf7a, type: 2}
+  - card: {fileID: 11400000, guid: 87198ba5f99fd8b4e85a5dfa52534f25, type: 2}
+    flags: 5
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: 6c6c3c941846d1a449ea0b567494d086, type: 2}
     flags: 6
     unlockId: 
     starterCopies: 1
+  - card: {fileID: 11400000, guid: 65c4508d6c724f34eb58ae2eec48bf7a, type: 2}
+    flags: 0
+    unlockId: 
+    starterCopies: 1
   - card: {fileID: 11400000, guid: 81b94d78bcaf60b498416d5e53da2fdf, type: 2}
-    flags: 6
+    flags: 0
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: 1a9b2e277405acf49a5e03878ba1005f, type: 2}
     flags: 0
     unlockId: none-test
     starterCopies: 1
-  - card: {fileID: 11400000, guid: 6c6c3c941846d1a449ea0b567494d086, type: 2}
-    flags: 0
-    unlockId: 
-    starterCopies: 1
   - card: {fileID: 11400000, guid: bbe2e85968b91774f9dcb363b0b85256, type: 2}
     flags: 0
-    unlockId: 
-    starterCopies: 1
-  - card: {fileID: 11400000, guid: 87198ba5f99fd8b4e85a5dfa52534f25, type: 2}
-    flags: 6
     unlockId: 
     starterCopies: 1

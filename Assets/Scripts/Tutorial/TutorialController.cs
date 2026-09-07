@@ -43,6 +43,11 @@ namespace ALWTTT.Tutorial
         [SerializeField] private bool verboseLogging = true;
 
         private const string DebugTag = "<color=#7fd4ff>[Tutorial]</color>";
+
+        [Tooltip("[TUT-REDESIGN-B] Voltage total at which tut_overload_ready fires. " +
+         "Mirror of Overload's Voltage cost (D-R0-12 = 3).")]
+        [SerializeField] private int voltageOverloadThreshold = 3;
+
         private void Log(string msg) { if (verboseLogging) Debug.Log($"{DebugTag} {msg}"); }
 
         [Serializable]
@@ -187,6 +192,11 @@ namespace ALWTTT.Tutorial
             bus.Subscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
             bus.Subscribe<MusicianStressHitEvent>(OnMusicianStressHit);
             bus.Subscribe<AudienceBlockedEvent>(OnAudienceBlocked);
+            // [TUT-REDESIGN-B]
+            bus.Subscribe<PlayDeniedEvent>(OnPlayDenied);
+            bus.Subscribe<EarwormTickEvent>(OnEarwormTick);
+            bus.Subscribe<BonusLoopStartedEvent>(OnBonusLoopStarted);
+            bus.Subscribe<TrackReplacedEvent>(OnTrackReplaced);
             Log($"OnEnable: subscribed to 11 events (frame {Time.frameCount}).");
         }
 
@@ -206,6 +216,10 @@ namespace ALWTTT.Tutorial
                 bus.Unsubscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
                 bus.Unsubscribe<MusicianStressHitEvent>(OnMusicianStressHit);
                 bus.Unsubscribe<AudienceBlockedEvent>(OnAudienceBlocked);
+                bus.Unsubscribe<PlayDeniedEvent>(OnPlayDenied);
+                bus.Unsubscribe<EarwormTickEvent>(OnEarwormTick);
+                bus.Unsubscribe<BonusLoopStartedEvent>(OnBonusLoopStarted);
+                bus.Unsubscribe<TrackReplacedEvent>(OnTrackReplaced);
             }
             // Defensive: never leave gameplay gated if disabled mid-modal.
             if (_pumpCo != null) 
@@ -233,6 +247,19 @@ namespace ALWTTT.Tutorial
             {
                 if (IsSoundCard(e.Definition))
                     TryEnqueue(TutorialTriggerId.FirstSoundCard);            // beat 5
+
+
+                // [TUT-REDESIGN-B / D-TUTR-1 rider] By ROLE, never by card id.
+                // Melody == sung in the demo (Sibi's Singing Field is out of the
+                // demo; Zig's Rise Up / Showtime are Pink Trombone). Revisit if a
+                // non-sung Melody card ever enters the starter or the pool.
+                var comp = e.Definition != null ? e.Definition.CompositionPayload : null;
+                var role = comp != null && comp.TrackAction != null
+                    ? comp.TrackAction.role : (MidiGenPlay.TrackRole?)null;
+                if (role == MidiGenPlay.TrackRole.Harmony)
+                    TryEnqueue(TutorialTriggerId.HarmonyTrack);
+                else if (role == MidiGenPlay.TrackRole.Melody)
+                    TryEnqueue(TutorialTriggerId.SungMelody);
             }
         }
 
@@ -280,22 +307,49 @@ namespace ALWTTT.Tutorial
                     TryEnqueue(TutorialTriggerId.Composure);
                     return;
                 }
-                // Buff/debuff polarity from the SO's semantic flag.
-                bool isBuff = e.Source.TryGet(e.Status, out var inst) &&
-                              inst?.Definition != null && inst.Definition.IsBuff;
-                if (isBuff)
-                    TryEnqueue(TutorialTriggerId.StatusBuffMusician);
-                // Musician debuffs: no dedicated dialog (breakdown beat covers
-                // the pressure narrative).
+                // [TUT-REDESIGN-B / D-TUTR-1 rider] Route by StatusKey, never by
+                // card id. Flow keeps the generic buff beat (which absorbs the old
+                // reserved tut_flow); Voltage / Spotlight have their own beats
+                // (suppressed during gig 1, D-TUTB-5=A). Any other musician buff
+                // gets no beat: a Flow-worded dialog on an unknown buff is worse
+                // than silence. Debuffs: the breakdown beat covers the narrative.
+                if (!e.Source.TryGet(e.Status, out var inst) || inst?.Definition == null) return;
+                string key = inst.Definition.StatusKey ?? string.Empty;
+                if (!inst.Definition.IsBuff) return;
+
+                switch (key.ToLowerInvariant())
+                {
+                    case "flow":
+                        TryEnqueue(TutorialTriggerId.StatusBuffMusician);
+                        break;
+                    case "voltage":
+                        TryEnqueue(TutorialTriggerId.VoltageFirst);
+                        // Threshold read from the container total AFTER the apply;
+                        // the event carries the delta only. 3 = Overload's Voltage cost
+                        // (D-R0-12); serialized so tuning does not touch code.
+                        if (inst.Stacks >= voltageOverloadThreshold)
+                            TryEnqueue(TutorialTriggerId.OverloadReady);
+                        break;
+                    case "spotlight":
+                        TryEnqueue(TutorialTriggerId.Spotlight);
+                        break;
+                    default:
+                        Log($"  ↳ musician buff '{key}' has no tutorial beat (by design)");
+                        break;
+                }
             }
             else if (owner is ALWTTT.Characters.Audience.AudienceCharacterBase)
             {
-                // Player-origin proxy (documented limitation): the bus event
-                // carries no source actor; in the demo cut, container statuses
-                // on audience members originate from player cards (Earworm et
-                // al.). Blocked never reaches here — it is a bool, not a status
-                // (see AudienceBlockedEvent).
-                TryEnqueue(TutorialTriggerId.StatusDebuffAudience);
+                // [TUT-REDESIGN-B] Captivated (Zig) has its own beat; every other
+                // audience status keeps the generic debuff beat. Earworm's OWN
+                // beat is the tick (OnEarwormTick), not the application.
+                bool isCaptivated = e.Source.TryGet(e.Status, out var audInst) &&
+                    audInst?.Definition != null &&
+                    string.Equals(audInst.Definition.StatusKey, "captivated",
+                        StringComparison.OrdinalIgnoreCase);
+                TryEnqueue(isCaptivated
+                    ? TutorialTriggerId.Captivated
+                    : TutorialTriggerId.StatusDebuffAudience);
             }
         }
 
@@ -451,6 +505,46 @@ namespace ALWTTT.Tutorial
                 ReregisterMusicianHighlight(e.Stats);
                 TryEnqueue(TutorialTriggerId.MusicianBreakdown);
             }
+        }
+
+        // ── [TUT-REDESIGN-B] ──────────────────────────────────────────────
+
+        private void OnPlayDenied(PlayDeniedEvent e)
+        {
+            Log($"event PlayDeniedEvent (reason={e.Reason}, card='{(e.Card != null ? e.Card.Id : "null")}', " +
+                $"payer='{(e.Payer != null ? e.Payer.CharacterName : "null")}')");
+            switch (e.Reason)
+            {
+                case PlayDenyReason.EconBudget:
+                    TryEnqueue(TutorialTriggerId.PlayBudget);        // beat 7 (D-TUTB-4=A: denial only)
+                    break;
+                case PlayDenyReason.FinalLoopLock:
+                    TryEnqueue(TutorialTriggerId.FinalLoopLock);
+                    break;
+                case PlayDenyReason.HarmonyPrecondition:
+                    TryEnqueue(TutorialTriggerId.HarmonyDenied);
+                    break;
+                    // ResourceCost / InspirationCost / NoTarget / Timing / BonusLoop /
+                    // Other: the on-screen message is the whole lesson. No beat.
+            }
+        }
+
+        private void OnEarwormTick(EarwormTickEvent e)
+        {
+            Log($"event EarwormTickEvent (applied={e.Applied}, stacks={e.StacksBeforeDecay})");
+            TryEnqueue(TutorialTriggerId.EarwormTick);
+        }
+
+        private void OnBonusLoopStarted(BonusLoopStartedEvent e)
+        {
+            Log($"event BonusLoopStartedEvent (part={e.PartIndex})");
+            TryEnqueue(TutorialTriggerId.BonusLoop);
+        }
+
+        private void OnTrackReplaced(TrackReplacedEvent e)
+        {
+            Log($"event TrackReplacedEvent ({e.MusicianId} / {e.Role})");
+            TryEnqueue(TutorialTriggerId.TrackReplaced);
         }
 
         private void OnAudienceBlocked(AudienceBlockedEvent e)

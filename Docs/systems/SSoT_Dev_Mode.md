@@ -528,6 +528,8 @@ Arbitrary instantiation of any `CardDefinition` from the game's runtime catalogu
 
 Since **DEMO-FIXES-A (2026-07-15, D-DF-7=A)** the source is the **runtime union of the current band's per-musician catalogs** (`PersistentGameplayData.BuildBandCardCatalog` over `PD.MusicianList` → each rostered musician's `MusicianCharacterData.CardCatalog`; runtime read, no asset mutation). `GameManager.GameplayData.AllCardsList` is now **fallback only** (dev scenes with no band) and is deprecated as a hand-maintained catalogue — a Dev-Mode-only card needs adding to `AllCardsList` only for that no-band path; in a real band it appears via a rostered musician's `CardCatalog`. The deck editor's catalogue (which scans `AssetDatabase`) may still surface cards these do not — an acceptable asymmetry. Governing description: the Catalogue-tab **Source** bullet (§ Catalogue tab, Phase 2).
 
+**Consequence of D-CAT-3 (TUT-REDESIGN-B, 2026-09-03).** The `DEV_Voltage` cards are in **no** catalog, so they are **not spawnable** from the Catalogue tab in a real band: the spawner reads the union of the band's catalogs, and a card that no rostered musician owns is invisible to it. They remain reachable only via the deprecated no-band `AllCardsList` fallback path, if listed there (not verified).
+
 ### 11.3 Spawn pipeline
 
 `DeckManager.DevSpawnCardToHand(CardDefinition)` is the sole Dev Mode entry point. Overlay code (`DevCardCatalogueTab`) does not mutate hand state directly.
@@ -783,7 +785,7 @@ Arbitrary status application and removal on any character without card authoring
 One **JSON-Lines** object per gig (`schemaVersion` 1), append-per-gig, human-readable. Fields (D-TLM-2=B):
 
 - `schemaVersion`, `timestampUtc` (ISO-8601), `sessionId` (per-play-session GUID prefix — groups one playtest sitting), `encounterLabel` (`GigEncounter.GetLabel()`), `requiredSongCount`.
-- `won`; `lossCause` (`"unconvinced_after_final_song"` for logged losses, empty on win — see §17.3 for why this is the only value).
+- `won`; `lossCause` — `"unconvinced_after_final_song"` or, since TUT-REDESIGN-B (2026-09-03), `"cohesion_collapse"`; empty on win. New value in an existing field: **`schemaVersion` stays 1**. See §17.3.
 - `songsCompleted` (`PD.CurrentSongIndex` at outcome), `loopsPlayed`.
 - `roster[]` — musician `CharacterId`s (stable authored ids).
 - `audience[]` — one entry per member: authored `CharacterName` + spawn index (`index`) + `endVibe`/`maxVibe`/`convinced`. **Snapshotted at `GigOutcomeEvent`, which publishes before `WinGig`/`LoseGig`**, so the end-Vibe values precede any cleanup.
@@ -799,7 +801,8 @@ The Stats tab shows a one-line `Last gig written to: <path>` next to the existin
 
 ### 17.3 Coverage limitations (load-bearing for S5i analysis)
 
-- **Cohesion-collapse losses are NOT logged (D-TLM-3=A).** The `MusicianBase.OnBreakdown → BandCohesion 0 → LoseGig()` path publishes no `GigOutcomeEvent` — only `GigManager.ResolveGigOutcomeAndEnd` publishes it. The existing session W/L tally shares this exact blind spot. Consequently `lossCause` is constant `"unconvinced_after_final_song"` for every logged loss. **Do not read "no cohesion-loss records" as "no cohesion losses."** The publisher-side fix is the optional rider **TLM-1b** (adds the publish + a per-gig double-fire latch + a review of the tally semantics and the `tut_first_gig_won` debug-path exposure) — open it only if S5i playtests actually hit cohesion losses.
+- **TLM-1b CONSUMED (TUT-REDESIGN-B, 2026-09-03).** `GigManager.LoseGig(GigLossCause)` now publishes `GigOutcomeEvent` with `Cause = CohesionCollapse` on the `MusicianBase.OnBreakdown → BandCohesion 0` route (`SSoT_Gig_Combat_Core.md` §16.1), so cohesion-collapse losses **are logged** with `lossCause = "cohesion_collapse"`. The paragraph below is the pre-batch record. **Still not logged:** the editor Debug Win/Lose context menus (bypass by design, unchanged). **Code debt:** the `<summary>` "Coverage (D-TLM-3=A)" block of `DevRunTelemetryLogger` still states the cause is always `unconvinced_after_final_song` — update the comment at the next touch of the file (comment only; no behaviour change).
+- *(Superseded, kept as record.)* **Cohesion-collapse losses are NOT logged (D-TLM-3=A).** The `MusicianBase.OnBreakdown → BandCohesion 0 → LoseGig()` path publishes no `GigOutcomeEvent` — only `GigManager.ResolveGigOutcomeAndEnd` publishes it. The existing session W/L tally shares this exact blind spot. Consequently `lossCause` is constant `"unconvinced_after_final_song"` for every logged loss. **Do not read "no cohesion-loss records" as "no cohesion losses."** The publisher-side fix is the optional rider **TLM-1b** (adds the publish + a per-gig double-fire latch + a review of the tally semantics and the `tut_first_gig_won` debug-path exposure) — open it only if S5i playtests actually hit cohesion losses.
 - **Editor Debug context-menu Win/Lose** bypass `GigOutcomeEvent` by design and are not logged.
 - **Partial gigs** (retry/quit mid-gig) produce no record; accumulators reset on the next `GigStartedEvent`.
 - **Audience identity** in records is authored `CharacterName` + spawn index. `AudienceCharacterBase.CharacterId` embeds `GetInstanceID()` and is not stable across sessions, so it is deliberately not used as the record key.

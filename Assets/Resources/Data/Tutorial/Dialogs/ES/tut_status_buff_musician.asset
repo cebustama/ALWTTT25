@@ -15,10 +15,11 @@ MonoBehaviour:
   triggerId: tut_status_buff_musician
   priority: 110
   category: 1
-  revisitTitle: Efectos de estado
+  revisitTitle: Flow
   portrait: {fileID: 0}
   pages:
   - "\xBFVes ese icono sobre el m\xFAsico? Es un efecto de estado, y este juega a
-    tu favor. Pasa el cursor por encima y te dice exactamente qu\xE9 hace. L\xE9elos:
-    la banda vive de ellos."
+    tu favor: FLOW, el m\xFAsico est\xE1 en racha y su m\xFAsica pega m\xE1s fuerte.
+    Pasa el cursor por encima y te dice exactamente qu\xE9 hace. L\xE9elos: la banda
+    vive de ellos."
   highlightKey: status_icon_musician

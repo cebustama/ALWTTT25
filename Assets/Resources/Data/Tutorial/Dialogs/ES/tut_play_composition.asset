@@ -18,6 +18,7 @@ MonoBehaviour:
   revisitTitle: "Juega una composici\xF3n"
   portrait: {fileID: 0}
   pages:
-  - "Juega una carta de composici\xF3n: arr\xE1strala a la banda. Cada una a\xF1ade
-    algo real a la canci\xF3n. No es decorado, es m\xFAsica."
+  - "Juega una carta de composici\xF3n: arr\xE1strala a la banda. Cada carta lleva
+    el nombre de su m\xFAsico y cae sobre \xE9l, da igual d\xF3nde la sueltes. Cada
+    una a\xF1ade algo real a la canci\xF3n. No es decorado, es m\xFAsica."
   highlightKey: card_default_mode

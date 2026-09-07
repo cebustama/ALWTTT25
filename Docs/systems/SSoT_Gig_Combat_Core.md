@@ -265,7 +265,7 @@ Breakdown is not just flavor; it is a combat-visible threshold event.
 
 **Immediate MVP consequences (in order):**
 1. `Cohesion − 1`
-2. If `Cohesion <= 0` after step 1: call `GigManager.LoseGig()` immediately — **steps 3–4 are skipped**
+2. If `Cohesion <= 0` after step 1: call `GigManager.LoseGig(GigLossCause.CohesionCollapse)` immediately — **steps 3–4 are skipped**. *(TUT-REDESIGN-B, 2026-09-03: was the parameterless `LoseGig()`, which publishes nothing; see §16.)*
 3. Apply `Shaken` status (1 stack via `StatusEffectCatalogueSO` key `"shaken"`)
 4. Reset `Stress = floor(StressMax * breakdownStressResetFraction)` — default fraction is `0.5`, configured on `MeterTuningSO.breakdownStressResetFraction` (M4.6F-2; previously authored on `GigManager` directly).
 
@@ -397,7 +397,7 @@ These can exist as planning/reference material without overriding this SSoT.
 | Flow stacks boost Vibe per card play | ✅ Validated (B3) |
 | Song-end Flow + Composure reset | ✅ Validated (B7) |
 | Breakdown → Cohesion−1 + Stress reset + Shaken application | ✅ Implemented (Decision C) |
-| LoseGig on Cohesion ≤ 0 | ✅ Implemented (Decision D) |
+| LoseGig on Cohesion ≤ 0 | ✅ Implemented (Decision D); publishes `GigOutcomeEvent(Cause = CohesionCollapse)` since TUT-REDESIGN-B (§16) |
 | Exposed stress multiplier on musicians | ✅ Implemented (Decision E) |
 | Feedback DoT on musicians (AudienceTurnRoutine) | ✅ Implemented (Decision E) |
 | Audience Feedback DoT | ⛔ Deferred — no Stress path on audience |
@@ -541,6 +541,21 @@ Resets are idempotent refills; overlapping seams are harmless.
 
   Contract home: `SSoT_Status_Effects` §5.10.
 
+- **Denial funnel (TUT-REDESIGN-B, 2026-09-03, D-TUTB-1=A).** Every play denial — the three
+  composition gates of D-R6-7 in `TryPlayCompositionCard` (ECON-1 / final-loop lock / resource
+  cost) plus `CompositionSession.Fail(msg, reason)`, and the **four** action gates in
+  `HandController` (timing, inspiration, bonus-loop precondition, resource cost, ECON-1) — now
+  passes through **`GigManager.ReportPlayDenied(PlayDenyReason, text, card, payer)`**. It does two
+  things in one place: shows the message via `GigMessageUI` and publishes `PlayDeniedEvent` on
+  the sensory bus. Why one funnel: "we told the player" and "we told the bus" must never diverge,
+  and a gate that forgets one of the two is the failure mode this replaces.
+  **Record:** before this batch **the action path showed no message at any of its gates**;
+  `GigMessageUI` (D-R6-7) covered composition only. **Closes session finding H-4** (TUT-REDESIGN-B):
+  the "three prior gates" referenced by the coverage-matrix row for `GigMessageUI` are exactly
+  ECON-1 / final-loop lock / resource cost in `TryPlayCompositionCard`. Display side:
+  `SSoT_Card_System.md` §10.5. Inspiration denials on the action path are signalled by the
+  existing flash, without text.
+
 ### 14.5 Attribution
 Cards with `AnyMusician` performer bill the musician the play pipeline
 resolves: fixed performer → hover (composition only) → `SelectedMusician`
@@ -657,3 +672,48 @@ never the model's. It writes nothing.
 > `PartEffect`s (explicit TODO in the model), so the hover prints `Modifiers: -`
 > permanently. It is printed **on purpose**, so the absence reads as a known hole rather than
 > an oversight. Candidate for its own batch if design wants modifiers exposed.
+
+---
+
+## 16. Gig end — loss cause, early victory, song ceiling (TUT-REDESIGN-B, 2026-09-03)
+
+Implemented truth. Until this batch the gig end had no section of its own: the Cohesion defeat
+lived in §6.3 step 2 and victory was only evaluated after the song budget ran out. Both changed.
+
+### 16.1 `LoseGig(GigLossCause)` — the Cohesion defeat now publishes (D-TUTB-3=A)
+
+- `GigOutcomeEvent` carries a **`Cause`** (`GigLossCause`), **mandatory in the constructor**. A
+  mandatory field, not an optional one, for the same reason `StatusAppliedEvent.Effect` is: a
+  future publisher must not be able to compile with an unclassified loss.
+- `GigManager.LoseGig(GigLossCause)` publishes the event and then delegates to the existing end
+  path. The Cohesion route (`MusicianBase.OnBreakdown → BandCohesion 0`) calls it with
+  `CohesionCollapse`, so the defeat that previously published nothing — the blind spot recorded
+  by TLM-1 (`SSoT_Dev_Mode.md` §17.3, D-TLM-3=A) and by the tutorial (`tut_gig_lost` never fired
+  on it) — is now visible to every bus consumer. **TLM-1b is consumed by this.**
+- The parameterless **`LoseGig()` stays mute on purpose**: it is the Dev/Debug entry
+  (D-S4-SRC=A — editor Debug Win/Lose menus bypass the bus by design). Do not "fix" it.
+
+### 16.2 Early victory (D-TUTB-7=C)
+
+At the end of each song, once the song-end Vibe has been applied (§7 Phase 4), **if every audience
+member is convinced the gig resolves as won immediately — before the audience acts** (`AllAudienceConvinced`
+check). Before this batch victory was only evaluated when the song budget was exhausted, so a
+band that convinced the whole crowd in song 1 still had to play out the remaining songs and eat
+the audience turns in between. Why before the audience turn and not after: the audience turn is
+pressure on a band that has nothing left to win; resolving first is what a spectator expects.
+
+### 16.3 Song ceiling: 6 (tuning, not contract)
+
+`requiredSongCount` is **6** in the demo config (was 2 in the asset vs 4 documented — F-TUTB-2,
+resolved by D-TUTB-7=C). With early victory the ceiling is the *maximum* length of a gig, not its
+typical length. The number is tuning and lives in the asset; this section records the rule, not
+the value. **Observed-behaviour limit:** songs 3–6 of a gig have never been played in a smoke;
+deck recycling at that depth is code truth, not observed truth (`CURRENT_STATE.md` §2).
+
+### 16.4 Known gap
+
+**F-TUTB-3 (open):** a `PlayerTurn` branch of `GigManager` (~l.1012) calls `WinGig` / `LoseGig`
+without publishing `GigOutcomeEvent`. Reachability unverified. Recorded, not resolved.
+
+Consumers: `TutorialController` (`tut_gig_won` / `tut_gig_lost`), `DevRunTelemetryLogger`
+(`lossCause`), `DevGigOutcomeTracker`. Bus inventory: `Design_Sensory_Contract_v0_1.md` §3.

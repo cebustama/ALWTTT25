@@ -36,7 +36,8 @@ namespace ALWTTT.Tutorial
         public const string JamWelcome = "tut_jam_welcome";          // beat 1
         public const string YourTurn = "tut_your_turn";            // beat 2
         public const string PlayComposition = "tut_play_composition";     // beat 3 (gate: input)
-        public const string TracksThree = "tut_tracks_three";         // beat 4
+        // [TUT-REDESIGN-B] Replaces tut_tracks_three (retired: it asserted 3 roles; the band of 4 has 5).
+        public const string TracksByMusician = "tut_tracks_by_musician";  // beat 4
         public const string PressPlay = "tut_press_play";           // beat 5 (gate: input)
         public const string LoopsStructure = "tut_loops_structure";      // beat 6
         public const string InspirationEconomy = "tut_inspiration_economy";  // beat 7 (+ scripted draw)
@@ -56,9 +57,26 @@ namespace ALWTTT.Tutorial
         public const string MusicianBreakdown = "tut_musician_breakdown";
         public const string Composure = "tut_composure";
 
-        // ── Reserved, no trigger wired (D6 / D-TUT-R1-4, Phase C pattern) ──
-        public const string AudiencePreferences = "tut_audience_preferences";
-        public const string Flow = "tut_flow";
+
+        // ── [TUT-REDESIGN-B] Gig-1 beats over the band of 4 ──
+        public const string PlayBudget = "tut_play_budget";          // beat 7 (ECON-1, on first EconBudget denial — D-TUTB-4=A)
+        public const string FinalLoopLock = "tut_final_loop_lock";   // reactive gig 1
+        public const string TrackReplaced = "tut_track_replaced";    // reactive gig 1
+
+        // ── [TUT-REDESIGN-B / D-TUTR-3=B] Card-anchored reactives, gigs 2+ (suppressed during the guided gig, D-TUTB-5=A) ──
+        public const string EarwormTick = "tut_earworm_tick";        // Sibi
+        public const string Captivated = "tut_captivated";           // Zig
+        public const string VoltageFirst = "tut_voltage_first";      // Conito
+        public const string OverloadReady = "tut_overload_ready";    // Conito
+        public const string BonusLoop = "tut_bonus_loop";            // Conito
+        public const string Spotlight = "tut_spotlight";             // C2
+        public const string ReadTheRoom = "tut_read_the_room";       // Sibi (absorbs tut_audience_preferences; trigger wiring pending O5)
+        public const string HarmonyTrack = "tut_harmony_track";      // Zig
+        public const string HarmonyDenied = "tut_harmony_denied";    // Zig
+        public const string SungMelody = "tut_sung_melody";          // Zig
+
+        // [TUT-REDESIGN-B] tut_audience_preferences → absorbed by ReadTheRoom;
+        // tut_flow → absorbed by StatusBuffMusician (Flow-keyed). No reserved ids remain.
     }
 
     /// <summary>

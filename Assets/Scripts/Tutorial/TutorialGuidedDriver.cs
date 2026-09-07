@@ -45,7 +45,7 @@ namespace ALWTTT.Tutorial
         [SerializeField] private CardDefinition finisherCard;
 
         [Tooltip("Forced initial hand for beat 2, in order: Default Mode, " +
-                 "Wormus Major, Singing Field, Warm Up. Role/domain fallbacks " +
+                 "Wormus Major, Finger Bass, Rise Up (one composition per musician). Role fallbacks " +
                  "when an exact card is missing; full miss → M4.5 guarantee (D1).")]
         [SerializeField] private List<CardDefinition> forcedInitialHand = new();
 
@@ -56,6 +56,22 @@ namespace ALWTTT.Tutorial
         private void Log(string msg) { if (verboseLogging) Debug.Log($"{DebugTag} {msg}"); }
 
         private static readonly string[] SupersededIds = System.Array.Empty<string>();
+
+
+        // [TUT-REDESIGN-B / D-TUTB-5=A] Card-anchored reactives stay silent while
+        // the guided gig runs: the four identities are HEARD in gig 1 and NAMED
+        // from gig 2 on. Every event here recurs (Voltage per Conito play, Wink,
+        // Harmony rows, Earworm ticks…), so suppression defers, never loses.
+        // Installed by PrepareForGig when the forced hand is queued; cleared
+        // (back to SupersededIds) on every later gig.
+        private static readonly string[] Gig1SuppressedReactives =
+        {
+            TutorialTriggerId.EarwormTick, TutorialTriggerId.Captivated,
+            TutorialTriggerId.VoltageFirst, TutorialTriggerId.OverloadReady,
+            TutorialTriggerId.BonusLoop, TutorialTriggerId.Spotlight,
+            TutorialTriggerId.ReadTheRoom, TutorialTriggerId.HarmonyTrack,
+            TutorialTriggerId.HarmonyDenied, TutorialTriggerId.SungMelody,
+        };
 
         private bool _finisherPlayedThisSong;
         // [TUT-R2b FIX-2] Request flags: set when the driver ACTS on a beat,
@@ -114,13 +130,19 @@ namespace ALWTTT.Tutorial
             else
             {
                 Log($"PrepareForGig: {(tutorialEnabled ? "already-fired" : "DISABLED")} " +
-                    "— no forced hand.");
+                                    "— no forced hand.");
             }
+
+            // [TUT-REDESIGN-B / D-TUTB-6=B] Una sola llamada, después de decidir la
+            // mano forzada: el estado del arco manda, no la rama.
+            ApplySuppressionForArcState();
         }
 
         private void OnEnable()
         {
-            controller?.SetSuppressedTriggers(SupersededIds);
+            // [TUT-REDESIGN-B / D-TUTB-6=B] Antes: SetSuppressedTriggers(SupersededIds)
+            // incondicional, que vaciaba lo instalado por PrepareForGig.
+            ApplySuppressionForArcState();
 
             var bus = SensoryEventBus.Instance;
             if (bus == null)
@@ -167,8 +189,8 @@ namespace ALWTTT.Tutorial
             {
                 c => IsCompositionWithRole(c, TrackRole.Rhythm),
                 c => IsCompositionWithRole(c, TrackRole.Backing),
-                c => IsCompositionWithRole(c, TrackRole.Melody),
-                c => c != null && c.IsAction,
+                c => IsCompositionWithRole(c, TrackRole.Bassline),   // [TUT-REDESIGN-B] Conito
+                c => IsCompositionWithRole(c, TrackRole.Melody),     // [TUT-REDESIGN-B] Zig (was: any Action)
             };
 
             for (int i = 0; i < 4; i++)
@@ -251,7 +273,7 @@ namespace ALWTTT.Tutorial
                         break;
                     }
 
-                case TutorialTriggerId.TracksThree:
+                case TutorialTriggerId.TracksByMusician:
                     TryBeat(TutorialTriggerId.PressPlay);
                     break;
 
@@ -277,7 +299,7 @@ namespace ALWTTT.Tutorial
             {
                 TutorialInputGate.Clear();
                 Log("beat 3 gate SATISFIED (composition played)");
-                TryBeat(TutorialTriggerId.TracksThree);
+                TryBeat(TutorialTriggerId.TracksByMusician);
             }
 
             if (IsFinisher(e.Definition))
@@ -417,6 +439,11 @@ namespace ALWTTT.Tutorial
         {
             TryBeat(TutorialTriggerId.SongEndVibe);
 
+            // [TUT-REDESIGN-B / D-TUTB-6=B] Red de seguridad: si el arco se completó
+            // por otra vía (skip, revisit, beat ya disparado en un lanzamiento
+            // anterior), la frontera de canción también libera. Idempotente.
+            ApplySuppressionForArcState();
+
             // Song boundary: reset per-song tracking so beat 8 can degrade/fire
             // correctly in later songs of gig 1 if it hasn't completed yet.
             _finisherPlayedThisSong = false;
@@ -435,6 +462,36 @@ namespace ALWTTT.Tutorial
         private void OnAudienceTurn(AudienceTurnStartedEvent e)
         {
             TryBeat(TutorialTriggerId.AudienceTurn);
+            // [TUT-REDESIGN-B / D-TUTB-6=B] AudienceTurn es el último beat guiado:
+            // en cuanto dispara, el arco terminó y las identidades se sueltan.
+            ApplySuppressionForArcState();
+        }
+
+        /// <summary>
+        /// [TUT-REDESIGN-B / D-TUTB-6=B] ÚNICO punto de instalación del set suprimido.
+        /// Mientras el arco guiado está pendiente, los reactivos anclados al personaje
+        /// callan (si no, Voltage salta durante el beat 3, cuando el jugador aún no
+        /// sabe qué es un músico). En cuanto el arco cierra, el set se vacía y esos
+        /// beats disparan en la canción siguiente.
+        ///
+        /// Se llama desde OnEnable Y desde PrepareForGig a propósito: el orden entre
+        /// ambos no está garantizado (GigCanvas se habilita al abrir la gig), y con un
+        /// solo punto idempotente da igual cuál gane. Antes esto vivía en dos sitios
+        /// con valores distintos y el segundo borraba al primero.
+        /// </summary>
+        private void ApplySuppressionForArcState()
+        {
+            if (controller == null) return;
+
+            bool arcPending = TutorialEnabledFlag &&
+                              !HasFired(TutorialTriggerId.AudienceTurn);
+
+            controller.SetSuppressedTriggers(
+                arcPending ? Gig1SuppressedReactives : SupersededIds);
+
+            Log(arcPending
+                ? $"suppression ON ({Gig1SuppressedReactives.Length} card-anchored ids) — guided arc pending"
+                : "suppression OFF — guided arc complete");
         }
 
         // ---------------- helpers ----------------

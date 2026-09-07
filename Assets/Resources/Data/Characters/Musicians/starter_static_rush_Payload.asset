@@ -28,4 +28,4 @@ MonoBehaviour:
       type: {class: ModifyStressSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
       data:
         targetType: 6
-        amount: 1
+        amount: 3

@@ -78,6 +78,16 @@ Suggested design-facing fields:
 This document owns the **existence and role** of these fields as encounter concepts.  
 It does not lock one exact implementation struct/API.
 
+**Implemented shape as of GEW-1 (code truth, `GigEncounterSO.cs` read 2026-09-06).** The asset
+serializes six fields: `targetVenueType`, `displayName`, `audienceMemberList`, `numberOfSongs`
+(`[Min(1)]`), `fansOnWin`, `cohesionPenaltyOnLoss`. Mapping to the table above: `displayName` →
+`displayName`; `numberOfSongs` → `songCount`; `audienceMemberList` → `audienceRoster`;
+`fansOnWin` + `cohesionPenaltyOnLoss` are a two-field stand-in for `rewardProfile`. **Not
+implemented:** `gigId`, `difficultyTier`, `bandRoster` (the band comes from the launch config or
+the picker, not the encounter), `gigModifiers`. This is recorded as a content gap, not as drift —
+the paragraph above deliberately does not lock a struct. The authoring surface for these fields is
+`SSoT_Editor_Authoring_Tools.md` §22.
+
 ---
 
 ## 5. Canonical encounter-scoped state
@@ -174,6 +184,18 @@ A gig is launched through `GigLauncher.Launch` (see
    remain content-baked on the canonical `GigFlowSettingsSO` and
    encounter assets respectively. Used by the demo cut to skip GigSetup
    entirely.
+   > **Unverified since GEW-1 (2026-09-06), F-GEW-2.** The clause "…and
+   > encounter assets respectively" is **not backed by the encounter asset**:
+   > `GigEncounterSO` serializes `numberOfSongs` and nothing else about song
+   > shape — no `partsPerSong`, no `loopsPerPart` (§4, implemented shape).
+   > Where `partsPerSong` actually lives was not resolved at GEW-1;
+   > `GigFlowSettingsSO` is the likely home but was not read. Do not cite this
+   > sentence as code truth until a batch that touches song shape resolves it.
+   > Related: `DemoLaunchConfigSO.ToRunConfig` sets
+   > `overrideRequiredSongCount = true`, so on the demo path the encounter's
+   > `numberOfSongs` is overridden by the launch config (F-GEW-5); whether the
+   > picker path reads the encounter value or the flow-settings default is
+   > likewise unverified.
 3. **LadderRunner** (post-§5.3.5, not yet authored). Will queue per-
    encounter launch configs and dispatch through GigLauncher with
    `bandRoster: null` for band carry-over.
