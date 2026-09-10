@@ -1,13 +1,12 @@
-// Place at: Assets/Scripts/Data/ConceptGlossarySO.cs
-// [TXT-2 / D-TAG-2=C � D-TAG-2b=(i)] Per-language registry of player-facing definitions for
-// game concepts that have NO other tooltip home: meters (Hype, Inspiration, Cohesion) and game
-// objects (loop, track, period, song end, ...). It is NOT an authority over statuses (that is
-// StatusEffectSO, by StatusKey) nor over card keywords (SpecialKeywordData, by SpecialKeywords):
-// ConceptTooltipResolver consults those FIRST and this glossary LAST, so an entry here can never
-// shadow an existing home. GameTextWindow's Concepts tab flags an id that exists in two registries.
+﻿// Place at: Assets/Scripts/Data/ConceptGlossarySO.cs
+// [TXT-2 / D-TAG-2=C → TXT-3 / D-TXT3-0=B] Per-language registry of ALL player-facing concept
+// definitions: meters and game objects (TXT-2), and — since TXT-3 — statuses (id = StatusKey) and
+// card keywords (id = lowercased SpecialKeywords name). It is the ONLY text home; StatusEffectSO
+// and the SpecialKeywords enum are identity, not text. GameTextWindow ▸ Concepts reports
+// COVERAGE gaps (a status key or keyword name with no entry in some language).
 //
 // One asset per language, selected by inspector assignment (mirror of TutorialDialogCatalogSO,
-// D-S5f-2=B / D2=B): runtime never reads languageCode. No public setters � the editor writes
+// D-S5f-2=B / D2=B): runtime never reads languageCode. No public setters — the editor writes
 // through SerializedObject (TXT-1 invariant); property names below are the editor's contract.
 using System;
 using System.Collections.Generic;

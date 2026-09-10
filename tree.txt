@@ -1,5 +1,5 @@
 ALWTTT25
-(generado 2026-09-10 11:30)
+(generado 2026-09-10 20:45)
 +---.github
 |   \---copilot-instructions.md
 +---Assets
@@ -2219,8 +2219,7 @@ ALWTTT25
 |   |   |   +---Containers
 |   |   |   |   +---MainSoundBank-Mouth.asset
 |   |   |   |   +---OstCatalog.asset
-|   |   |   |   +---Reward Container.asset
-|   |   |   |   \---Special Keyword.asset
+|   |   |   |   \---Reward Container.asset
 |   |   |   +---Decks
 |   |   |   |   +---Payloads
 |   |   |   |   |   \---new_any_group_heal_Payload.asset
@@ -2244,6 +2243,9 @@ ALWTTT25
 |   |   |   |   +---Event - Frog Song.asset
 |   |   |   |   +---Event - Reporter Interview.asset
 |   |   |   |   \---Event - Wailing Tree.asset
+|   |   |   +---Glossary
+|   |   |   |   +---ConceptGlossary_EN.asset
+|   |   |   |   \---ConceptGlossary_ES.asset
 |   |   |   +---Maps
 |   |   |   |   +---NodeTypes
 |   |   |   |   |   +---_NodeTypeDatabase.asset
@@ -2374,6 +2376,7 @@ ALWTTT25
 |   |   |       +---Portraits
 |   |   |       |   \---capitan_mensaje.png
 |   |   |       +---GameText_Tutorial_20260910_1057.csv
+|   |   |       +---GameText_Tutorial_20260910_1236.csv
 |   |   |       +---TutorialDialogCatalog_EN.asset
 |   |   |       \---TutorialDialogCatalog_ES.asset
 |   |   +---LLM
@@ -2917,8 +2920,7 @@ ALWTTT25
 |   |   |   +---Core
 |   |   |   |   +---GameplayData.cs
 |   |   |   |   +---PersistentGameplayData.cs
-|   |   |   |   +---SceneData.cs
-|   |   |   |   \---SpecialKeywordData.cs
+|   |   |   |   \---SceneData.cs
 |   |   |   +---Encounters
 |   |   |   |   +---EncounterData.cs
 |   |   |   |   \---GigEncounterSO.cs
@@ -2946,6 +2948,7 @@ ALWTTT25
 |   |   |   +---AlwtttLogSetup.cs
 |   |   |   +---ALWTTTProjectRegistriesSO.cs
 |   |   |   +---CompositionFxConfigSO.cs
+|   |   |   +---ConceptGlossarySO.cs
 |   |   |   \---RhythmFxConfigSO.cs
 |   |   +---DevMode
 |   |   |   +---DevAudioMixTab.cs
@@ -2958,6 +2961,7 @@ ALWTTT25
 |   |   |   \---GenerationDebugFormatter.cs
 |   |   +---Editor
 |   |   |   +---Text
+|   |   |   |   +---ConceptGlossaryTextTable.cs
 |   |   |   |   +---GameTextCsv.cs
 |   |   |   |   +---GameTextWindow.cs
 |   |   |   |   \---TutorialTextTable.cs
@@ -3141,6 +3145,8 @@ ALWTTT25
 |   |   |   |   +---SongTrackElementUI.cs
 |   |   |   |   \---TrackHoverPanel.cs
 |   |   |   +---Tooltips
+|   |   |   |   +---ConceptTagRenderer.cs
+|   |   |   |   +---ConceptTooltipResolver.cs
 |   |   |   |   +---EconPipTooltipTarget.cs
 |   |   |   |   +---I2DTooltipTarget.cs
 |   |   |   |   +---ITooltipTargetBase.cs
@@ -3268,7 +3274,8 @@ ALWTTT25
 |   +---gig_runs_2026-08-31.jsonl
 |   +---gig_runs_2026-09-02.jsonl
 |   +---gig_runs_2026-09-03.jsonl
-|   \---gig_runs_2026-09-04.jsonl
+|   +---gig_runs_2026-09-04.jsonl
+|   \---gig_runs_2026-09-10.jsonl
 +---Docs
 |   +---archive
 |   |   +---absorbed
@@ -3351,6 +3358,7 @@ ALWTTT25
 |   |   +---SSoT_Card_System.md
 |   |   +---SSoT_Dev_Mode.md
 |   |   +---SSoT_Editor_Authoring_Tools.md
+|   |   +---SSoT_Game_Text.md
 |   |   +---SSoT_Gig_Combat_Core.md
 |   |   +---SSoT_Gig_Encounter.md
 |   |   +---SSoT_Scoring_and_Meters.md

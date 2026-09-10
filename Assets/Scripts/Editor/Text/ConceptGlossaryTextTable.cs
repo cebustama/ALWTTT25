@@ -3,10 +3,10 @@
 // [TXT-2 / D-TAG-2=C · D-TAG-6] Editor model for the Concepts tab of GameTextWindow plus the
 // registry index used by the Tutorial tab's tag checks.
 //
-//   ConceptRegistryEditorIndex — which concept ids exist in which registry (status keys from
-//     every StatusEffectSO asset, SpecialKeywords enum names, glossary ids). "Known" = in any;
-//     "duplicate" = in more than one. Runtime does not need this: ConceptTooltipResolver's
-//     fixed order decides; the editor only makes a collision visible so it gets fixed.
+//   ConceptRegistryEditorIndex — status keys (every StatusEffectSO), SpecialKeywords enum names
+//     and glossary ids. Since TXT-3 the glossary is the ONLY text registry: "known" = in the
+//     glossary; status keys and keyword names are the COVERAGE set the glossary must contain.
+//     A tag to an id the glossary lacks renders plain at runtime, so the editor flags it.
 //   ConceptGlossaryTextTable — one column per ConceptGlossarySO.languageCode, rows by id union,
 //     reads/writes through SerializedObject (D1=A: the assets are the truth), CSV round-trip
 //     with the same contract as the tutorial table (empty cell = no opinion, diff-only writes).
@@ -49,10 +49,12 @@ namespace ALWTTT.TextAuthoring
             }
         }
 
-        public static bool IsKnown(string id) =>
-            StatusKeys.Contains(id) || KeywordNames.Contains(id) || GlossaryIds.Contains(id);
+        /// <summary>[TXT-3] Known = the glossary has it. Status keys and keyword names are no
+        /// longer text sources; a tag pointing at one without a glossary entry is unknown.</summary>
+        public static bool IsKnown(string id) => GlossaryIds.Contains(id);
 
-        /// <summary>Registries that claim this id, in resolver order. More than one = collision.</summary>
+        /// <summary>Registries that mention this id. Informational since TXT-3: status/keyword
+        /// presence means the glossary MUST have it, not that it collides.</summary>
         public static List<string> Owners(string id)
         {
             var l = new List<string>(3);
@@ -163,10 +165,9 @@ namespace ALWTTT.TextAuthoring
             {
                 row.Issues.RemoveAll(s => !s.StartsWith("DUPLICATE id", StringComparison.Ordinal));
                 if (!IdRx.IsMatch(row.Id)) row.Issues.Add("ID invalid (use [a-z0-9_])");
-                // [D-TAG-2=C] one home per concept: an id that a status or a keyword already owns must
-                // not ALSO live here — the resolver would never reach it, and the text would rot.
-                if (ConceptRegistryEditorIndex.StatusKeys.Contains(row.Id)) row.Issues.Add("DUPLICATE: status owns it");
-                if (ConceptRegistryEditorIndex.KeywordNames.Contains(row.Id)) row.Issues.Add("DUPLICATE: keyword owns it");
+                // [TXT-3 / D-TXT3-4=A] The glossary is the only text home: a status key or keyword
+                // name living here is REQUIRED, not a collision. Gaps are reported by
+                // MissingCoverage(), not per row — the missing ids have no row to badge.
                 foreach (var lang in Languages)
                 {
                     if (!row.ByLanguage.TryGetValue(lang, out var c)) { row.Issues.Add($"MISSING {lang}"); continue; }
@@ -175,6 +176,29 @@ namespace ALWTTT.TextAuthoring
                     if (ConceptTagRenderer.HasUnbalancedLinks(c.Description)) row.Issues.Add($"TAG unclosed {lang}");
                 }
             }
+        }
+
+        /// <summary>[TXT-3] Ids the glossary MUST contain but does not (in at least one language):
+        /// every StatusEffectSO.StatusKey and every SpecialKeywords enum name (lowercased). Each
+        /// line reads "status 'x' — missing: en, es". Empty = full coverage.</summary>
+        public List<string> MissingCoverage()
+        {
+            var lines = new List<string>();
+            void Check(string kind, string id)
+            {
+                var row = Rows.FirstOrDefault(r => string.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase));
+                var missing = new List<string>();
+                foreach (var lang in Languages)
+                {
+                    if (row == null || !row.ByLanguage.TryGetValue(lang, out var c) ||
+                        string.IsNullOrWhiteSpace(c.Name) || string.IsNullOrWhiteSpace(c.Description))
+                        missing.Add(lang);
+                }
+                if (missing.Count > 0) lines.Add($"{kind} '{id}' — missing: {string.Join(", ", missing)}");
+            }
+            foreach (var k in ConceptRegistryEditorIndex.StatusKeys.OrderBy(x => x, StringComparer.Ordinal)) Check("status", k);
+            foreach (var k in ConceptRegistryEditorIndex.KeywordNames.OrderBy(x => x, StringComparer.Ordinal)) Check("keyword", k.ToLowerInvariant());
+            return lines;
         }
 
         public void SetGlossaryLanguage(GlossaryInfo g, string code)

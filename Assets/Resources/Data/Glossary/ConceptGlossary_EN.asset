@@ -84,3 +84,68 @@ MonoBehaviour:
     description: 'An audience member standing at the front is Blocked: it receives
       no Vibe from cards or from song end. Positional, recomputed whenever the audience
       reorders.'
+  - id: captivated
+    displayName: Captivated
+    description: Locked in. Incoming Vibe hits +25% harder per stack.
+  - id: choke
+    displayName: Choke
+    description: Forces additional card discards at turn start. Loses 1 stack per
+      turn.
+  - id: composure
+    displayName: Composure
+    description: Absorbs incoming Stress before it lands. Clears at the start of
+      each Player Turn.
+  - id: earworm
+    displayName: Earworm
+    description: This audience member has the song stuck in their head (+N Vibe per
+      audience turn, loses 1 stack per turn).
+  - id: exposed
+    displayName: Exposed
+    description: Each stack adds +25% to incoming Stress multipliers.
+  - id: feedback
+    displayName: Feedback
+    description: Damage over time at the start of each Player Turn. Lasts until cleared.
+  - id: flow
+    displayName: Flow
+    description: Each stack adds +1 to any positive Vibe gain from cards and song
+      resolution.
+  - id: hyped
+    displayName: Hyped
+    description: The crowd is riled up. Each stack adds +1 to Stress dealt by this
+      audience member; loses 1 stack per Player Turn.
+  - id: indifference
+    displayName: Indifference
+    description: Inmune to vibe.
+  - id: shaken
+    displayName: Shaken
+    description: Applied when a musician breaks down. Lasts one full song cycle.
+  - id: spotlight
+    displayName: Spotlight
+    description: The audience only has eyes for C2. During their next turn, their
+      targeted attacks go to C2.
+  - id: voltage
+    displayName: Voltage
+    description: 'Stored charge. Does nothing on its own: it gets spent.'
+  - id: stress
+    displayName: Stress
+    description: When full, causes a Breakdown.
+  - id: vibe
+    displayName: Vibe
+    description: Fill to win over Audience Members.
+  - id: convinced
+    displayName: Convinced
+    description: Is vibing with the music. Doesn't act anymore.
+  - id: tall
+    displayName: Tall
+    description: Blocks the view of all non-tall character behind them.
+  - id: consume
+    displayName: Consume
+    description: Removed from your deck after playing. Gone for the rest of this
+      gig.
+  - id: ethereal
+    displayName: Ethereal
+    description: If not played this turn, removed from deck.
+  - id: exhaust
+    displayName: Exhaust
+    description: Can only be played once per encounter. Moves to exhaust pile after
+      use.

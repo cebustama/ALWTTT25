@@ -88,3 +88,71 @@ MonoBehaviour:
     description: "Un miembro del p\xFAblico en primera fila est\xE1 Bloqueado: no
       recibe Vibe de cartas ni del final de la canci\xF3n. Depende de la posici\xF3n;
       se recalcula al reordenarse el p\xFAblico."
+  - id: captivated
+    displayName: Cautivado
+    description: "Totalmente entregado. El Vibe que recibe pega un 25 % m\xE1s fuerte
+      por cada nivel."
+  - id: choke
+    displayName: Ahogo
+    description: Obliga a descartar cartas adicionales al empezar el turno. Pierde
+      1 nivel por turno.
+  - id: composure
+    displayName: Compostura
+    description: Absorbe el Stress entrante antes de que llegue. Se limpia al empezar
+      cada turno del jugador.
+  - id: earworm
+    displayName: Pegadiza
+    description: "Este miembro del p\xFAblico tiene la canci\xF3n metida en la cabeza
+      (+N Vibe por turno del p\xFAblico; pierde 1 nivel por turno)."
+  - id: exposed
+    displayName: Expuesto
+    description: "Cada nivel a\xF1ade un +25 % a los multiplicadores de Stress entrante."
+  - id: feedback
+    displayName: Feedback
+    description: "Da\xF1o continuado al empezar cada turno del jugador. Dura hasta
+      que se limpia."
+  - id: flow
+    displayName: Flow
+    description: "Cada nivel a\xF1ade +1 a cualquier ganancia positiva de Vibe por
+      cartas y por la resoluci\xF3n de la canci\xF3n."
+  - id: hyped
+    displayName: Exaltado
+    description: "El p\xFAblico se ha venido arriba. Cada nivel a\xF1ade +1 al Stress
+      que inflige este miembro del p\xFAblico; pierde 1 nivel por turno del jugador."
+  - id: indifference
+    displayName: Indiferencia
+    description: Inmune al Vibe.
+  - id: shaken
+    displayName: Shaken
+    description: "Se aplica cuando un m\xFAsico colapsa. Dura un ciclo completo de
+      canci\xF3n."
+  - id: spotlight
+    displayName: Foco
+    description: "El p\xFAblico solo tiene ojos para C2. Durante su pr\xF3ximo turno,
+      sus ataques dirigidos van a C2."
+  - id: voltage
+    displayName: Voltaje
+    description: "Carga acumulada. No hace nada por s\xED sola: se gasta."
+  - id: stress
+    displayName: Stress
+    description: Cuando se llena, provoca un Colapso.
+  - id: vibe
+    displayName: Vibe
+    description: "Ll\xE9nalo para convencer a los miembros del p\xFAblico."
+  - id: convinced
+    displayName: Convencido
+    description: "Est\xE1 vibrando con la m\xFAsica. Ya no act\xFAa."
+  - id: tall
+    displayName: Alto
+    description: "Tapa la vista a todos los personajes no altos que tenga detr\xE1s."
+  - id: consume
+    displayName: Consumir
+    description: Se retira de tu mazo tras jugarla. Desaparece durante el resto del
+      concierto.
+  - id: ethereal
+    displayName: "Et\xE9reo"
+    description: Si no se juega este turno, se retira del mazo.
+  - id: exhaust
+    displayName: Agotar
+    description: Solo se puede jugar una vez por encuentro. Va a la pila de agotadas
+      tras usarse.

@@ -1,6 +1,6 @@
 ﻿# Repo_Tree_Index — índice de rutas del repositorio ALWTTT
 
-**Snapshot: 2026-09-10 11:30.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
+**Snapshot: 2026-09-10 20:45.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
 
 **Para qué sirve.** El PK es plano: los ficheros adjuntos pierden su carpeta. Este índice devuelve la ruta real de cualquier fichero por su nombre, sin inferirla del `namespace`. Sirve para rellenar la columna *Ruta en repo* de `PK_Manifest.md` y para pedir ficheros por ruta exacta en el File Request Protocol.
 
@@ -12,7 +12,7 @@
 
 Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-IncludeAssets` si un lote de contenido los necesita.
 
-**Total indexado: 463 ficheros.**
+**Total indexado: 467 ficheros.**
 
 | Carpeta | Ficheros | KB |
 |---|---:|---:|
@@ -21,12 +21,12 @@ Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-Inc
 | `Assets/PinkTrombonePOC/PinkTromboneSrc` | 13 | 54 |
 | `Assets/Scripts` | 1 | 7 |
 | `Assets/Scripts/Backgrounds` | 4 | 11 |
-| `Assets/Scripts/Cards` | 78 | 771 |
+| `Assets/Scripts/Cards` | 78 | 772 |
 | `Assets/Scripts/Characters` | 22 | 220 |
 | `Assets/Scripts/Controllers` | 2 | 56 |
-| `Assets/Scripts/Data` | 50 | 233 |
+| `Assets/Scripts/Data` | 50 | 235 |
 | `Assets/Scripts/DevMode` | 8 | 163 |
-| `Assets/Scripts/Editor` | 4 | 70 |
+| `Assets/Scripts/Editor` | 5 | 102 |
 | `Assets/Scripts/Encounters` | 3 | 55 |
 | `Assets/Scripts/Enums` | 22 | 12 |
 | `Assets/Scripts/Extensions` | 1 | 1 |
@@ -37,22 +37,22 @@ Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-Inc
 | `Assets/Scripts/Music` | 16 | 291 |
 | `Assets/Scripts/Sensory` | 26 | 102 |
 | `Assets/Scripts/Status` | 9 | 85 |
-| `Assets/Scripts/Tutorial` | 14 | 137 |
-| `Assets/Scripts/UI` | 48 | 323 |
+| `Assets/Scripts/Tutorial` | 14 | 143 |
+| `Assets/Scripts/UI` | 50 | 334 |
 | `Assets/Scripts/Utils` | 5 | 8 |
-| `Docs` | 9 | 720 |
+| `Docs` | 9 | 779 |
 | `Docs/archive` | 8 | 660 |
 | `Docs/archive/absorbed` | 2 | 5 |
 | `Docs/archive/snapshots` | 1 | 0 |
 | `Docs/audits` | 2 | 107 |
 | `Docs/integrations` | 1 | 1 |
 | `Docs/integrations/midigenplay` | 5 | 97 |
-| `Docs/planning` | 11 | 140 |
-| `Docs/planning/active` | 16 | 457 |
+| `Docs/planning` | 11 | 146 |
+| `Docs/planning/active` | 16 | 465 |
 | `Docs/planning/archive` | 7 | 102 |
 | `Docs/reference` | 5 | 31 |
 | `Docs/runtime` | 3 | 68 |
-| `Docs/systems` | 12 | 520 |
+| `Docs/systems` | 13 | 551 |
 | `Packages` | 2 | 19 |
 
 ## Nombres duplicados (atención)
@@ -264,10 +264,10 @@ Assets/Scripts/Data/Characters/Audience/AudienceIntentionData.cs
 Assets/Scripts/Data/Characters/Musicians/MusicianCharacterData.cs
 Assets/Scripts/Data/Characters/Musicians/MusicianProfileData.cs
 Assets/Scripts/Data/CompositionFxConfigSO.cs
+Assets/Scripts/Data/ConceptGlossarySO.cs
 Assets/Scripts/Data/Core/GameplayData.cs
 Assets/Scripts/Data/Core/PersistentGameplayData.cs
 Assets/Scripts/Data/Core/SceneData.cs
-Assets/Scripts/Data/Core/SpecialKeywordData.cs
 Assets/Scripts/Data/Encounters/EncounterData.cs
 Assets/Scripts/Data/Encounters/GigEncounterSO.cs
 Assets/Scripts/Data/Events/RandomEventData.cs
@@ -304,6 +304,7 @@ Assets/Scripts/DevMode/GenerationDebugFormatter.cs
 
 ```
 Assets/Scripts/Editor/S5e_InspirationEconomyTool.cs
+Assets/Scripts/Editor/Text/ConceptGlossaryTextTable.cs
 Assets/Scripts/Editor/Text/GameTextCsv.cs
 Assets/Scripts/Editor/Text/GameTextWindow.cs
 Assets/Scripts/Editor/Text/TutorialTextTable.cs
@@ -540,6 +541,8 @@ Assets/Scripts/UI/Song Composition/SongTrackElementUI.cs
 Assets/Scripts/UI/Song Composition/TrackHoverPanel.cs
 Assets/Scripts/UI/StatusIconBase.cs
 Assets/Scripts/UI/TempoTextIndicator.cs
+Assets/Scripts/UI/Tooltips/ConceptTagRenderer.cs
+Assets/Scripts/UI/Tooltips/ConceptTooltipResolver.cs
 Assets/Scripts/UI/Tooltips/EconPipTooltipTarget.cs
 Assets/Scripts/UI/Tooltips/I2DTooltipTarget.cs
 Assets/Scripts/UI/Tooltips/ITooltipTargetBase.cs
@@ -702,6 +705,7 @@ Docs/systems/SSoT_Card_Authoring_Contracts.md
 Docs/systems/SSoT_Card_System.md
 Docs/systems/SSoT_Dev_Mode.md
 Docs/systems/SSoT_Editor_Authoring_Tools.md
+Docs/systems/SSoT_Game_Text.md
 Docs/systems/SSoT_Gig_Combat_Core.md
 Docs/systems/SSoT_Gig_Encounter.md
 Docs/systems/SSoT_Scoring_and_Meters.md

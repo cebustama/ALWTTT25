@@ -810,15 +810,15 @@ namespace ALWTTT
             var tooltipManager = TooltipManager.Instance;
             if (tooltipManager == null) return;
 
-            // 1) SpecialKeywords (existing behavior, now non-early-returning).
-            if (CardDefinition.Keywords != null && tooltipManager.SpecialKeywordData != null)
+            // 1) Keyword tooltips — text from the active ConceptGlossarySO, keyed by the enum
+            //    name (TXT-3 / D-TXT3-0=B). SpecialKeywordData no longer exists. A keyword the
+            //    glossary lacks shows its raw id and warns once: visible, never silent.
+            if (CardDefinition.Keywords != null)
             {
                 foreach (var kw in CardDefinition.Keywords)
                 {
-                    var sk = tooltipManager.SpecialKeywordData.SpecialKeywordBaseList
-                        .Find(x => x.SpecialKeyword == kw);
-                    if (sk == null) continue;
-                    tooltipManager.ShowTooltip(sk.GetContent(), sk.GetHeader());
+                    ConceptTooltipResolver.TryGetKeywordText(kw, out var kwHeader, out var kwBody);
+                    tooltipManager.ShowTooltip(kwBody, kwHeader);
                 }
             }
 
@@ -835,9 +835,9 @@ namespace ALWTTT
                             && ase.status != null
                             && seen.Add(ase.status))
                         {
-                            var header = string.IsNullOrWhiteSpace(ase.status.DisplayName)
-                                ? ase.status.name : ase.status.DisplayName;
-                            var body = ase.status.Description ?? string.Empty;
+                            // [TXT-3] Name + body from the glossary by StatusKey. DisplayName is
+                            // a developer label since TXT-3 and never reaches the player here.
+                            ConceptTooltipResolver.TryGetStatusText(ase.status, out var header, out var body);
                             tooltipManager.ShowTooltip(body, header);
                         }
                     }

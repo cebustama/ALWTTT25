@@ -330,11 +330,16 @@ entries:
     hard_invariants:
       - id: GAMETEXT-RESOLUTION-ORDER
         statement: >
-          A concept id resolves status (StatusEffectCatalogueSO by StatusKey) →
-          card keyword (SpecialKeywordData by enum name) → glossary
-          (ConceptGlossarySO by id), first hit wins. The glossary is consulted
-          LAST and owns only ids no other registry owns, so a glossary entry can
-          never shadow a pre-existing home for a concept's meaning.
+          Player-facing concept wording has exactly ONE registry: the
+          ConceptGlossarySO of the running language. StatusEffectSO and the
+          SpecialKeywords enum supply identity (StatusKey, enum name), never
+          text — StatusEffectSO.displayName is a developer label (asset file
+          name, logs, editor) and no player surface may read it. Every StatusKey
+          and every SpecialKeywords name MUST have a glossary entry in every
+          language; a missing entry resolves to the raw id with one warning per
+          id per session, and never falls back to displayName. Rewritten at
+          TXT-3 (2026-09-10, D-TXT3-4=A); the TXT-2 form of this invariant was
+          a three-registry precedence order, which no longer describes the code.
         source: SSoT_Game_Text.md §3
       - id: GAMETEXT-TAG-IS-A-POINTER
         statement: >
@@ -365,6 +370,18 @@ entries:
       finding F-TXT-2-1 (a fifth text population — hardcoded Spanish literals in
       AudienceCharacterCanvas — reachable by no tool) and carries O-TXT-3 forward
       with the case TXT-1 was waiting for.
+      TXT-3 (2026-09-10): status text and card-keyword text MOVED into the
+      glossary (D-TXT3-0=B). StatusEffectSO.description removed, displayName
+      redefined as a developer label, SpecialKeywordData retired (asset and
+      class), and GAMETEXT-RESOLUTION-ORDER rewritten above from a precedence
+      order to a single-registry rule with a coverage obligation. This is an
+      AUTHORITY change, applied with the batch and not deferred to a MANIFEST-*
+      pass: leaving the cached invariant describing three registries would have
+      pointed the drift auditor at a contract the code no longer honours.
+      `governs:` unchanged — the fourth consumer added by TXT-3
+      (SensoryFtPresentation.TryBuildStatusAppliedFt, in Assets/Scripts/Sensory)
+      is a READER of this document's contract, not a place where the contract
+      lives; claiming that tree here would put the sensory bus under a text SSoT.
 
   # ── subsystem_ssot: runtime/ ───────────────────────────────────────────────
 

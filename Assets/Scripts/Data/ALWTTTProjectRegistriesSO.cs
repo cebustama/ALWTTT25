@@ -32,7 +32,6 @@ namespace ALWTTT
         [FormerlySerializedAs("gigSetupConfig")]
         [SerializeField] private GigSetupRosterSO gigSetupRoster;
 
-        [SerializeField] private SpecialKeywordData specialKeywordData;
         [SerializeField] private RewardContainerData rewardContainer;
 
         public CharacterStatusPrimitiveDatabaseSO CSO => csoPrimitiveDatabase;
@@ -59,7 +58,9 @@ namespace ALWTTT
         /// </summary>
         public GigSetupRosterSO GigSetupRoster => gigSetupRoster;
 
-        public SpecialKeywordData SpecialKeywords => specialKeywordData;
+        // [TXT-3 / D-TXT3-8] SpecialKeywordData retired: keyword player text lives in
+        // ConceptGlossarySO by enum name (SSoT_Game_Text §1). The SpecialKeywords enum
+        // remains the id space for card keywords; it needs no registry asset.
         public RewardContainerData Rewards => rewardContainer;
 
         /// <summary>

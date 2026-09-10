@@ -14,6 +14,86 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-09-10 — TXT-3: el texto de jugador de estados y keywords se muda, y el orden de resolución se colapsa
+
+**Tipo:** **autoridad** (el texto cambia de hogar; un invariante cacheado cambia de forma) + semántico
++ operativo + lifecycle.
+
+**Qué cambió.** Los 12 estados y los 7 keywords tenían **una sola ranura de idioma**, así que en la
+build española siete conceptos taggeados abrían tooltips en inglés (T-TAG-1). TXT-3 no les añade
+ranuras: **mueve el texto** a `ConceptGlossarySO`, que ya era por idioma, ya tenía pestaña, CSV,
+paridad y fingerprint. El glosario pasa de 17 a **36 ids**, importados por CSV y nunca pegados en C#.
+
+**Por qué mover y no duplicar (D-TXT3-0=B).** Un campo `descriptionEs` en `StatusEffectSO` habría
+metido la traducción dentro de un asset de gameplay y exigido tocar el script por cada idioma nuevo.
+Y el precedente estaba fresco: TUT-TXT-1c documentó que con la copy en dos sitios los seeders y los
+assets divergieron **en ambos sentidos** durante meses sin que nada lo detectara (F-TT-3, F-TT-4).
+De ahí la restricción dura del lote: el texto no queda en los dos sitios ni un día.
+
+**Qué le pasa a `StatusEffectSO` (D-TXT3-2=a, D-TXT3-3=a).** `description` **se elimina**;
+`displayName` **se queda y cambia de contrato**. Se queda porque `OnValidate` deriva de él la
+sugerencia de `statusKey` y el nombre del fichero (`StatusEffect_{DisplayName}_{EffectId}`): borrarlo
+era un lote de tooling de assets disfrazado de lote de texto. Cambia de contrato porque ahora es una
+**etiqueta de desarrollo** —fichero, logs, listas de editor— y el SSoT lo dice con esas palabras, que
+es la única forma de que no vuelva a divergir en seis semanas. Efecto lateral bueno: traducir un
+nombre visible ya no mueve un fichero en disco (P-TXT-2 rebajada). `description` se borra en vez de
+dejarse vacío-deprecated porque los consumidores migran en el mismo runbook y una ranura vacía se
+rellena sola.
+
+**La invariante deja de ser el orden (D-TXT3-4=A).** TXT-2 resolvía estado → keyword → glosario, y su
+invariante era *el orden*: el glosario iba último para no poder tapar un hogar existente. Con el
+texto movido, la invariante es *un solo hogar*. No se conservó fallback de migración: con el
+movimiento aplicado de forma atómica no hay a qué caer, y un fallback dormido es una invitación a
+rellenar el campo que lee. **Política de fallo visible:** un id sin entrada resuelve al id crudo con
+un warning por sesión, y **nunca** cae a `displayName` — eso lo devolvería a ser texto de jugador por
+la puerta de atrás.
+
+**La regla de la ventana se invierte, y por una razón mecánica.** El badge `DUPLICATE: status owns it`
+marcaba como error que un id de glosario coincidiera con un `StatusKey`, y la corrección era borrar la
+entrada del glosario. Desde TXT-3 ese solape es **obligatorio** y el **hueco** es el error. Se reporta
+como bloque `COVERAGE` y no como badge de fila porque **un id que falta no tiene fila que badgear**:
+un chequeo por fila habría sido invisible exactamente cuando importaba.
+
+**Dónde vive el glosario activo (D-TXT3-5=A).** En `TooltipManager`, ocupando el asiento serializado
+que tenía `SpecialKeywordData`. Es un campo y una propiedad: `ShowTooltip` y `HideTooltip` no se
+tocan, así que **TIP-1 sigue abierta e intacta** — misma disciplina que D-TAG-5=D en TXT-2. La
+alternativa (`GameTextSettingsSO` nuevo) creaba un asset y un segundo punto de asignación para el
+mismo dato. `SpecialKeywordData` se retira entera (D-TXT3-8): sin `contentText` era una lista de
+valores de enum sin dato, y la identidad del keyword ya es el enum.
+
+**El consumidor que casi se escapa (F-TXT-3-1).** El censo de apertura buscó consumidores de
+*tooltip* y encontró tres. El cuarto, `SensoryFtPresentation.TryBuildStatusAppliedFt`, lee un
+**nombre** para pintar `+{NOMBRE}` sobre el personaje: en ES habría dibujado «+COMPOSURE» bajo un
+tooltip que decía «Compostura». Apareció al cerrar, no al abrir. **Regla que deja:** al mover una
+población de texto, censar por *campo leído*, no por tipo de superficie. Resuelto por **D-TXT3-9=A**
+—la resolución vive dentro de `SensoryFtPresentation`, no en el adaptador, porque el trabajo declarado
+de esa clase es decidir texto y color en un solo sitio (D-S2-7=A)—. **D-WINK-6=B no se revierte:** el
+texto sigue derivado, sin campo autorable; sólo cambia el registro de origen. El color sigue saliendo
+de `IsBuff`, que es semántica de gameplay, y la puerta `DeltaStacks > 0` (ST-W7) no se toca.
+
+**Hallazgos.** **F-TXT-3-1** (cuarto consumidor, cerrada en el paso 11) · **F-TXT-3-4**
+(`ALWTTTProjectRegistriesSO` sostenía la referencia sin consumir texto; la precondición-grep lo
+atrapó **con el compilador roto**, un paso más tarde de lo que debía) · **F-TXT-3-5** (nombre y
+descripción de carta; la descripción **no existe como dato** ⇒ TXT-4 no puede reutilizar este
+movimiento) · **F-TXT-3-6** (los keywords no llegan a la cara de la carta: densidad, no idioma ⇒
+CARD-FACE-1, con dependencia de TIP-1) · **F-TXT-2-1 censada** con sus 13 literales exactos.
+
+**Verificación.** ST-TXT3-1..12 PASS, incluidas tres regresiones: los logs de gameplay conservan el
+nombre del status (`displayName` sigue sirviendo de etiqueta), no hay NRE ni paneles huérfanos al
+salir al menú, y la puerta de delta negativo sigue sin dibujar floater. Round-trip CSV limpio:
+fingerprint `6632813b43573214aa32fdfc5b5ae20680c24e8f`, 36 ids × 2 idiomas.
+
+**Pendiente declarado.** **TXT-3b**: `TutorialOverlayView` sigue llamando al constructor `[Obsolete]`
+y `TutorialController` sigue con `conceptStatusCatalogues`; compila con un `CS0618` a propósito.
+Cerrarlo cierra además **R-1**, que es el riesgo real que deja el lote: nada sincroniza el idioma de
+los dos glosarios asignados por inspector, y cruzarlos reproduce el síntoma que TXT-3 eliminó.
+
+**Autoridad.** `systems/SSoT_Game_Text.md` §1/§3/§5/§6/§9 · `systems/SSoT_Status_Effects.md` §3.3 ·
+`systems/SSoT_Card_System.md` §3.3/§10.2 · `systems/SSoT_Editor_Authoring_Tools.md` §20.2/§20.4/§20.11 ·
+`ssot_manifest.yaml` (`GAMETEXT-RESOLUTION-ORDER`).
+
+---
+
 ## 2026-09-10 — TXT-2: lenguaje de tags de conceptos, y el texto mecánico al mínimo
 
 **Tipo:** semántico + operativo + **autoridad** (documento nuevo) + lifecycle.

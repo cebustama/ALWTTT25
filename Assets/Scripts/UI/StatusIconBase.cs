@@ -198,12 +198,10 @@ namespace ALWTTT.UI
             if (tm == null) return;
 
             int stacks = _container != null ? _container.GetStacks(_boundId) : 0;
-            var header = stacks > 1
-                ? $"{_definition.DisplayName} ×{stacks}"
-                : _definition.DisplayName;
-            var body = string.IsNullOrWhiteSpace(_definition.Description)
-                ? string.Empty
-                : _definition.Description;
+            // [TXT-3] Player text comes from the active ConceptGlossarySO by StatusKey.
+            // DisplayName is a developer label since TXT-3 and must not reach the player.
+            ConceptTooltipResolver.TryGetStatusText(_definition, out var name, out var body);
+            var header = stacks > 1 ? $"{name} ×{stacks}" : name;
 
             tm.ShowTooltip(body, header, transform, cam: null);
         }

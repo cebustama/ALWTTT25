@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using ALWTTT.Tooltips;   // [TXT-3] ConceptTooltipResolver — player text lives in the glossary
+using UnityEngine;
 
 namespace ALWTTT.Sensory
 {
@@ -191,6 +192,12 @@ namespace ALWTTT.Sensory
         /// StatusAppliedEvent for ANY apply that leaves stacks &gt; 0, including
         /// a negative delta that merely reduces them; drawing on those would
         /// announce a "gain" on a loss. Colour = owner side x IsBuff.
+        ///
+        /// [TXT-3] The NAME comes from the active ConceptGlossarySO by StatusKey, not from
+        /// StatusEffectSO.displayName (a developer label since TXT-3). A status missing from the
+        /// glossary draws its raw key and warns once — visible, never silent. IsBuff stays on the
+        /// SO: it is gameplay semantics, not text. D-WINK-6=B is NOT reversed: the text is still
+        /// derived (uppercased name + "+"), with no authorable field on the card or the status.
         /// </summary>
         public static bool TryBuildStatusAppliedFt(
             in StatusAppliedEvent e, bool ownerIsMusician,
@@ -201,9 +208,13 @@ namespace ALWTTT.Sensory
 
             if (e.DeltaStacks <= 0) return false;                 // ST-W7 gate
             var so = e.Effect;
-            if (so == null || string.IsNullOrEmpty(so.DisplayName)) return false;
+            if (so == null) return false;
 
-            text = "+" + so.DisplayName.ToUpperInvariant();
+            // [TXT-3] Player-facing name from the glossary (falls back to StatusKey on a miss).
+            ConceptTooltipResolver.TryGetStatusText(so, out string statusName, out _);
+            if (string.IsNullOrEmpty(statusName)) return false;   // defensive: never expected
+
+            text = "+" + statusName.ToUpperInvariant();
             color = ownerIsMusician
                 ? (so.IsBuff ? StatusMusicianBuff : StatusMusicianDebuff)
                 : (so.IsBuff ? StatusAudienceBuff : StatusAudienceDebuff);

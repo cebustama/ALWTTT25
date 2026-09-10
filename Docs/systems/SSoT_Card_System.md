@@ -72,7 +72,9 @@ Core contract:
 
 ### 3.3 SpecialKeywords
 
-`CardDefinition.Keywords` is a serialized `List<SpecialKeywords>` that tags a card with player-facing trait and mechanic keywords. Keywords serve two purposes: they generate tooltip entries on card hover (via `SpecialKeywordData` lookup in `CardBase.ShowTooltipInfo`), and they will eventually drive runtime behavior (see §3.3.2).
+`CardDefinition.Keywords` is a serialized `List<SpecialKeywords>` that tags a card with player-facing trait and mechanic keywords. Keywords serve two purposes: they generate tooltip entries on card hover (see §10.2), and they will eventually drive runtime behavior (see §3.3.2).
+
+> **Keyword text moved out of this SSoT (TXT-3, 2026-09-10).** Until 2026-09-10 the wording of a keyword lived in `SpecialKeywordData` (`SpecialKeywordBase.contentText`), one language slot, edited only in the Inspector. **TXT-3 moved it to `ConceptGlossarySO`**, one asset per language, keyed by the enum name lowercased (`exhaust`, `vibe`, …), and **retired `SpecialKeywordData` — asset and class**. The `SpecialKeywords` enum is unchanged and remains the id space; it simply no longer needs a registry asset to carry strings. Authority for the wording is `systems/SSoT_Game_Text.md` §1/§3; what a keyword *means* stays here. A keyword with no glossary entry shows its raw id and logs once, and the editor reports it as a coverage gap.
 
 #### 3.3.1 Canonical keyword inventory
 
@@ -364,18 +366,18 @@ debe, por tanto, o venir con su texto de denegación, o aceptar ser invisible.
 
 ### 10.2 Card-hover tooltips (M1.3c)
 
-`CardBase.ShowTooltipInfo()` aggregates tooltips from two sources on pointer enter:
+`CardBase.ShowTooltipInfo()` aggregates tooltips from two sources on pointer enter. Since **TXT-3 (2026-09-10)** both sources take their text from the same place — the active `ConceptGlossarySO`, via `ConceptTooltipResolver`:
 
-1. `CardDefinition.Keywords` — each keyword resolved against `TooltipManager.SpecialKeywordData`. One tooltip per matched keyword.
-2. `CardDefinition.Payload.Effects` — unique `StatusEffectSO` references extracted from `ApplyStatusEffectSpec.status` entries. Dedupe via `HashSet<StatusEffectSO>`. One tooltip per unique SO, showing `DisplayName` as header and `StatusEffectSO.Description` as body.
+1. `CardDefinition.Keywords` — one tooltip per keyword, resolved by enum name (`TryGetKeywordText`). Behaviour change from M1.3c: a keyword with no entry no longer skips silently, it shows its raw id and logs once.
+2. `CardDefinition.Payload.Effects` — unique `StatusEffectSO` references extracted from `ApplyStatusEffectSpec.status` entries. Dedupe via `HashSet<StatusEffectSO>`. One tooltip per unique SO, resolved by `StatusKey` (`TryGetStatusText`).
 
 Display order: keywords first, statuses second. Tooltips follow the mouse cursor. `TooltipController` prefab uses `VerticalLayoutGroup` (Upper Left, spacing 5, ControlChildSize Width+Height) + `ContentSizeFitter` (Preferred Size on both axes) for stacking.
 
-`CardBase` is the assembly point but does not own the data. `StatusEffectSO` owns description text (`SSoT_Status_Effects.md` §3.3). `SpecialKeywordData` owns keyword text.
+**One `ShowTooltip` per entry is deliberate here.** This surface stacks panels on purpose (M1.3c) and is *not* governed by the single-panel hover contract of `SSoT_Game_Text.md` §4, which applies to concept tags in the tutorial overlay. TXT-3 changed the source of the text and nothing about the assembly.
 
-**Second consumer of `SpecialKeywordData` (TXT-2, 2026-09-10).** `ConceptTooltipResolver` resolves a `<link=id>` concept tag against the `SpecialKeywords` enum names before falling through to the concept glossary, so `<link=vibe>` in tutorial text shows the same body a card hover shows. Reader, not a new home — governed by `systems/SSoT_Game_Text.md` §3. Two consequences: the enum stays the key space for card keywords (TXT-2 did **not** extend it with meters, which would have polluted a set §3.3 reserves for keywords with future runtime behaviour), and keyword text still has **one language slot** (T-TAG-1, resolved by TXT-3).
+`CardBase` is the assembly point but does not own the data — the glossary does (`systems/SSoT_Game_Text.md` §1). `StatusEffectSO` and the `SpecialKeywords` enum supply **identity** (`StatusKey`, enum name), not strings.
 
-Card descriptions themselves remain untagged: `CardEffectDescriptionBuilder` (§10.1) generates them in code, so tagging them is a separate batch on top of the same renderer.
+**Card names and descriptions are a different problem, still open.** `CardDefinition.displayName` has one language slot, and card descriptions have **no storage at all** — `CardEffectDescriptionBuilder` (§10.1) generates them from the effect specs. TXT-3 did not touch either, so a Spanish build shows an English card face under a Spanish tooltip (**F-TXT-3-5**). Giving them a language slot cannot reuse the TXT-3 move: there are no strings to relocate, so the batch that does it (**TXT-4**) has to build the per-language fragment registry the builder composes from. Card descriptions also remain untagged for the same reason.
 
 ### 10.3 Card detail modal (M1.10)
 

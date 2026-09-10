@@ -30,6 +30,7 @@ This file tracks the currently validated project baseline, active work, and imme
 
 | Batch | Closed | Outcome |
 | --- | --- | --- |
+| TXT-3 | 2026-09-10 | **El texto de jugador de estados y keywords tiene un solo hogar y dos idiomas.** Cierra **T-TAG-1**. **D-TXT3-0=B — es un MOVIMIENTO de autoridad, no una copia:** los 12 estados y los 7 keywords salen de `StatusEffectSO` (`displayName`/`description`) y de `SpecialKeywordData` (`contentText`) y entran en `ConceptGlossarySO` EN/ES (17 → **36 ids**), por CSV importable, nunca pegados en C#. **D-TXT3-2=a:** `displayName` **se queda pero cambia de contrato** — etiqueta de desarrollo (nombre de fichero vía auto-rename, logs, listas de editor, semilla de `statusKey`); ninguna superficie de jugador lo lee. Borrarlo habría sido un lote de tooling de assets, no de texto. **D-TXT3-3=a:** `description` **eliminado**, no vaciado-deprecated: los consumidores migran en el mismo runbook y una ranura vacía se rellena sola en seis semanas. **D-TXT3-4=A:** un solo registro, **sin fallback de migración** — con el movimiento aplicado de forma atómica no hay a qué caer, y un fallback dormido invita a rellenar el campo que lee. La invariante deja de ser *el orden* y pasa a ser *un solo hogar*. **D-TXT3-5=A:** el glosario activo vive en `TooltipManager` (el asiento que ocupaba `SpecialKeywordData`); campo serializado y propiedad, **sin tocar `ShowTooltip`/`HideTooltip`** — TIP-1 sigue abierta e intacta. **D-TXT3-8:** `SpecialKeywordData` retirado (clase + asset + fila de `ALWTTTProjectRegistriesSO`); sin `contentText` sería una lista de enums sin dato. **D-TXT3-9=A:** el nombre del floater se resuelve **dentro** de `SensoryFtPresentation`, no en el adaptador, porque el trabajo declarado de esa clase es decidir texto y color en un solo sitio (D-S2-7=A). **La regla de la ventana se invierte:** `DUPLICATE: status owns it` desaparece y nace `COVERAGE` — el solape entre `StatusKey` e id de glosario pasa de error a obligación, y el hueco es el fallo; se reporta como bloque y no como badge de fila porque **un id que falta no tiene fila que badgear**. **Política de fallo visible:** id sin entrada ⇒ id crudo + un warning por sesión, **nunca** fallback a `displayName` (sería volver a hacerlo texto de jugador por la puerta de atrás). **Hallazgos:** **F-TXT-3-1** (cuarto consumidor no censado — el floater de status leía `DisplayName`; en ES habría dibujado «+COMPOSURE» bajo un tooltip «Compostura». Se encontró al cerrar, porque lee un *nombre* y no un tooltip) · **F-TXT-3-4** (`ALWTTTProjectRegistriesSO` sostenía la referencia a `SpecialKeywordData` sin consumir texto; lo atrapó la precondición-grep del paso 8, que debería haber estado en el paso 0) · **F-TXT-3-5** (nombre y descripción de carta: una ranura implícita; la descripción **no existe como dato**, la genera `CardEffectDescriptionBuilder` ⇒ TXT-4 no puede reutilizar el movimiento de TXT-3) · **F-TXT-3-6** (los keywords no aparecen en la cara de la carta ni en el modal; densidad de información, no idioma ⇒ CARD-FACE-1, con dependencia de TIP-1) · **F-TXT-2-1 censada** con sus 13 literales exactos. **ST-TXT3-1..12 PASS**, incluidas tres regresiones (logs conservan el nombre; sin NRE ni paneles huérfanos; la puerta `DeltaStacks > 0` de ST-W7 intacta). **Pendiente declarado: TXT-3b** — `TutorialOverlayView` sigue llamando al constructor `[Obsolete]` y `TutorialController` sigue con `conceptStatusCatalogues`; compila con un `CS0618` a propósito, y cerrarlo cierra **R-1** (nada sincroniza el idioma de los dos glosarios asignados por inspector). Autoridad: `systems/SSoT_Game_Text.md` §1/§3/§5/§6 · `SSoT_Status_Effects.md` §3.3 · `SSoT_Card_System.md` §3.3/§10.2 · `SSoT_Editor_Authoring_Tools.md` §20.2/§20.4/§20.11. Detalle en `changelog-ssot.md`. |
 | TXT-2 | 2026-09-10 | **Lenguaje de tags de conceptos: el texto de jugador señala conceptos sin definirlos.** `<link=id>texto visible</link>` nativo de TMP en el `.asset`, decorado en **un único punto** (`ConceptTagRenderer.Decorate`) después de resolver `{$token}` (**D-TAG-1=A′**; una sintaxis propia sin preprocesador pinta corchetes literales, `<link>` sin decorador pinta texto plano — se eligió el fallo invisible). **D-TAG-2=C:** `ConceptTooltipResolver` consulta **estado → keyword → glosario**, primero que acierte gana; el glosario (`ConceptGlossarySO`, uno por idioma, **D-TAG-2b=(i)**) va último y sólo posee ids que nadie más posee, así que no puede tapar un hogar existente — **la invariante es el orden, no el registro**. **D-TAG-5=D:** hover por `TMP_TextUtilities.FindIntersectingLink` (sin raycast: los gates del tutorial son irrelevantes) con `Hide`→un solo `Show` **sin transform** por cambio de link, lo que deja **F-BN-7** y **F-BN-8** fuera de alcance sin tocar `TooltipManager` ni `TooltipController` — **TIP-1 sigue abierta e intacta**. **D-TAG-8=A aplicada:** el canvas de tooltips estaba por debajo del overlay y el panel salía detrás del bocadillo; subido (el modal de detalle de carta debe seguir por encima, `SSoT_Card_System` §10.3). **D-TAG-6:** la ventana marca `TAGS differ` / `MECHANIC TAGS differ` / `TAG unknown` / `TAG unclosed`, por la misma razón que los `{$token}`. Vocabulario v1 = 24 ids (**D-TAG-3=B**): 3 keyword + 4 estado + 17 glosario. Texto mecánico de los 24 ids reescrito y taggeado en EN + ES: **2 283 → 1 607 palabras (−30 %)**. Superficie de texto = sólo `mechanicText` (**D-TAG-4**); las páginas con voz y las descripciones de carta quedan sin taggear aunque la capacidad las alcanza. **Autoridad nueva (D-TAG-9=A):** `systems/SSoT_Game_Text.md`, dueño de la fontanería del texto de jugador y explícitamente no del significado de ningún concepto. ST-TAG-1..10 + regresión PASS; round-trip CSV limpio con tags; `StatusKey` de `flow`/`composure` verificados (cierra el riesgo R2 de apertura). Hallazgos: **F-TXT-2-1** (cinco poblaciones de texto, no tres) y **T-TAG-1** (7 tooltips en inglés dentro del tutorial ES, D-TAG-10=A, lo cierra TXT-3). Detalle en `changelog-ssot.md`. |
 | TUT-TXT-1c | 2026-09-09 | **La copy del tutorial deja de existir en C#.** `TutorialDialogCatalogSO` pasa de **6 seeders con texto a 2 de estructura** sobre una tabla única de 34 ids (id, prioridad, categoría, `highlightKey`) — estructura **verificada idéntica en EN y ES**, así que una tabla basta. `Add()` crea el asset si falta y, si existe, llama al nuevo `TutorialDialogSO.EditorSeedStructure`, que **no puede** tocar `revisitTitle`, `pages` ni `mechanicText`. `BeginSeed`/`dialogs.Clear()` **retirados**: ningún menú del asset puede reducir el catálogo de 34 a 3. El fichero pasa de 470 a 299 líneas; la diferencia es copy borrada. **D-TT-6=C revierte D-TXT-3** (ver §4). **Orden obligatorio del lote:** rescatar la copy por import ANTES de vaciar el C# — para tres diálogos la única versión buena del árbol de trabajo estaba en los literales del seeder. Cerradas así **F-TT-1, F-TT-3 y F-TT-4**. **D-TT-7=A**: el CSV de recuperación vive en `Assets/Resources/Data/Tutorial/`. **ST-TT-9..14 PASS**, incluido **ST-TT-13** (borrar un asset → re-sembrar estructura → importar CSV → diálogo completo), que es la prueba de la ruta de recuperación entera. Autoridad: `SSoT_Editor_Authoring_Tools.md` §20.10 · `Design_Tutorial_System_v0_3.md` §5A.1/§5A.5. |
 | TUT-TXT-1 | 2026-09-09 | **Texto mecánico plano por entrada de tutorial.** Campo `mechanicText` en `TutorialDialogSO`, uno por catálogo de idioma (**D-TT-1=A**; se rechazó `mechanicTextEn/Es` porque mete el idioma en el SO y rompe D2=B de TXT-1 — reversión de lo pedido, registrada, no absorbida). **D-TT-2=A**: `TutorialController.showMechanicText` pasa un `pagesOverride` de una página a `TutorialOverlayView`, que resuelve `{$token}` sobre el cuerpo que reciba — mismo camino en ambos modos; título, retrato, spotlight, gates, cola y `firedDialogs` intactos (**D-TT-5=A**). Un id sin texto cae a sus páginas. **D-TT-3=B**: 24 ids (gig 1 + jam) escritos en EN/ES; los 10 reactivos de gigs 2+ quedan en **TUT-TXT-1b**. **D-TT-4=A**: fila `mechanicText` en `GameTextWindow` y en el CSV, "celda vacía = sin opinión", incluida en `Fingerprint` (**todo fingerprint anterior al 2026-09-09 es incomparable**) y con badges `NO MECHANIC` **sólo por asimetría** EN/ES — marcar los 34 vacíos habría inutilizado el filtro *Only issues* el mismo día. Sin setters públicos nuevos: se escribe por `SerializedObject` (invariante TXT-1). **ST-TT-1..8 PASS**. Autoridad: `SSoT_Editor_Authoring_Tools.md` §20.9 · `Design_Tutorial_System_v0_3.md` §5A.5. |
@@ -601,25 +602,60 @@ riesgo de runtime.
 
 ### Open items (non-blocking)
 
-- **T-TAG-1 — estados y keywords no tienen ranura de idioma; 7 tooltips salen en inglés en el tutorial ES (TXT-2, 2026-09-10). ACEPTADA para playtest (D-TAG-10=A), la cierra TXT-3.**
-  `<link=flow>`, `composure`, `earworm`, `shaken` resuelven contra `StatusEffectSO`
-  (`DisplayName`/`Description`, una sola ranura) y `vibe`, `stress`, `convinced` contra
-  `SpecialKeywordData` (ídem). Los 17 ids del glosario sí son por idioma. En la build ES eso son 7
-  definiciones en inglés y 17 en español. **No es un fallo de implementación:** es la invariante
-  "si el concepto ya tiene hogar, el tag lo consume" chocando con O-TXT-3. **TXT-3** lo resuelve
-  **moviendo** el texto de jugador de esas dos poblaciones al glosario —`StatusEffectSO.description`
-  deja de ser texto de jugador y `displayName` se redefine como etiqueta de desarrollo (logs,
-  editor)— nunca duplicándolo. Alternativa rechazada: campos por idioma en el SO, que mete la
-  traducción dentro de un asset de gameplay y exige tocar el script por cada idioma nuevo.
-  Autoridad: `systems/SSoT_Game_Text.md` §3, §7.
+- **T-TAG-1 — CERRADA 2026-09-10 por TXT-3.** Los 12 estados y los 7 keywords tienen texto en EN y
+  ES en `ConceptGlossarySO`; ninguna superficie de jugador lee ya una ranura única. Verificado en
+  ST-TXT3-1..5 y 10..11 sobre la build ES.
 
-- **F-TXT-2-1 — el texto de jugador vive en CINCO poblaciones, no en tres (TXT-2, 2026-09-10). ABIERTA (censo, sin lote asignado).**
-  A las cuatro conocidas (catálogos de tutorial, `StatusEffectSO`, `SpecialKeywordData`,
-  `ConceptGlossarySO`) se suma una quinta: **literales en español dentro de C#** — las líneas del
-  desglose de Vibe y la copy de `ShowBlockedTooltip` en `AudienceCharacterCanvas` (D-S5f-7=A).
-  Inalcanzable por `GameTextWindow`, invisible a cualquier chequeo de paridad, y **no la arregla
-  ningún esquema por-SO**, incluido el de TXT-3. Es entrada obligatoria para O-TXT-3. Censo completo
-  en `systems/SSoT_Game_Text.md` §1.
+- **F-TXT-3-1 — el floater de status era un cuarto consumidor de texto, no censado. CERRADA 2026-09-10 (paso 11 de TXT-3).**
+  `SensoryFtPresentation.TryBuildStatusAppliedFt` construía el texto como
+  `"+" + so.DisplayName.ToUpperInvariant()`. En la build ES habría dibujado **«+COMPOSURE»** sobre el
+  músico mientras el tooltip del icono decía «Compostura». **Por qué se escapó al censo:** se buscaron
+  consumidores de *tooltip* (quién llama `GetContent`/`Description`) y esta superficie lee un
+  **nombre**. Regla que deja: al mover una población de texto, censar por *campo leído*, no por tipo
+  de superficie. Resuelto por **D-TXT3-9=A** (la resolución vive dentro de `SensoryFtPresentation`,
+  no en el adaptador). El **color** sigue derivándose de `IsBuff`: es semántica de gameplay, no texto.
+
+- **F-TXT-3-4 — `ALWTTTProjectRegistriesSO` sostenía la referencia a `SpecialKeywordData`. CERRADA 2026-09-10 (paso 8b de TXT-3).**
+  No consumía texto: sólo guardaba y exponía el asset (`public SpecialKeywordData SpecialKeywords`,
+  nombre además homónimo del enum). Lo atrapó la precondición-grep del paso 8 **con el compilador
+  roto**, cuando debería haber estado en el paso 0. Regla que deja: la retirada de un asset se
+  precede de un grep del *tipo*, no sólo de sus métodos, y ese grep va antes de la primera edición.
+
+- **F-TXT-3-5 — nombre y descripción de carta: una ranura de idioma implícita. ABIERTA (entrada obligatoria de O-TXT-3, alcance de TXT-4).**
+  `CardDefinition.displayName` tiene una sola ranura; las descripciones **no existen como dato** — las
+  genera `CardEffectDescriptionBuilder` a partir de los `CardEffectSpec` (`SSoT_Card_System` §10.1).
+  Consecuencia visible tras TXT-3: en la build ES la cara de la carta está en inglés bajo un tooltip
+  en español, y el floater del intérprete dice «KEEP COOL!». **TXT-4 no puede reutilizar el movimiento
+  de TXT-3**: no hay cadenas que mover, hay que construir el registro de fragmentos por idioma que el
+  builder componga. Censo completo en `systems/SSoT_Game_Text.md` §1 (poblaciones 3 y 4).
+
+- **F-TXT-3-6 — los keywords no llegan a la cara de la carta. ABIERTA (⇒ CARD-FACE-1, depende de TIP-1).**
+  El tooltip de `Agotar` resuelve bien (ST-TXT3-2 PASS) pero la palabra no aparece ni en la cara ni en
+  el modal de detalle: tipo de pista y modificadores ocupan el espacio. Es **densidad de información**,
+  no idioma. Propuesta del usuario (2026-09-10): iconos para tipo de pista y modificadores —los assets
+  existen— con el detalle al hover. **Aviso de secuencia:** mover información de la cara al tooltip
+  aumenta la presión sobre **TIP-1**, que sigue abierta con F-BN-7 y F-BN-8; ese lote probablemente
+  deba abrir cerrándola.
+
+- **R-1 (TXT-3) — nada sincroniza el idioma de los dos glosarios asignados por inspector. ABIERTA, la cierra TXT-3b.**
+  `TooltipManager.conceptGlossary` y `TutorialController.conceptGlossary` se asignan por separado y
+  runtime no lee `languageCode` (D-S5f-2=B, invariante que TXT-3 **no** rompió para añadir un chequeo).
+  Asignarlos cruzados reproduce exactamente el síntoma que TXT-3 eliminó. **TXT-3b** lo cierra por
+  construcción: `TutorialController` suelta su campo y cae al fallback del manager.
+
+- **F-TXT-2-1 — literales de jugador hardcodeados en C#. ABIERTA, censada exactamente (TXT-2 2026-09-10; censo cerrado en TXT-3, 2026-09-10). Sin lote asignado; entrada obligatoria de O-TXT-3.**
+  TXT-3 redujo las poblaciones de cinco a tres al fusionar estados y keywords en el glosario, pero
+  **ésta no la toca** y es la que ningún esquema por-SO alcanza. Censo exacto en
+  `AudienceCharacterCanvas.cs` — **13 literales**, todos en español, todos inalcanzables por
+  `GameTextWindow` e invisibles a cualquier chequeo de paridad:
+  `TasteBlockHeader` («— Gustos —») · `TasteOnlyHeader` («Gustos») · las líneas de `BuildVibeText`
+  («Hype de la canción», «Bloqueado (alguien alto le tapa) → 0», «gustos», «Flow (N)», «SFX»,
+  «Indiferente → 0», **«Captivado (N)»** —un nombre de status en español, segundo hogar de facto—,
+  «Al acabar la canción», «¡Esta canción lo convence!») · `LabelFor` («¡Súper!» / «Resiste» /
+  «Inmune» / «Normal») · `BlockedTooltipHeader`/`Body` («Bloqueado», «Alguien alto le tapa el
+  escenario…») · `TasteNeutralText` («Le da igual todo») · las líneas de gustos («+ Rapido»,
+  «- Lento», «pistas»). Origen declarado: D-S5f-7=A y D-S5f-8=A, copy ESP para la tester build,
+  emplazada a «la pasada S5f-ext de localización» que nunca se abrió.
 
 - **D-TAG-8 — orden de canvas entre tooltips y overlay del tutorial. CERRADA 2026-09-10 = A, aplicada.**
   El canvas de `TooltipManager` renderizaba por debajo del overlay: el tooltip existía y salía detrás
@@ -650,10 +686,12 @@ riesgo de runtime.
   no enumera. Hacerlos editables exige una pasada por escenas o mover los textos a un asset —
   decisión acoplada a O-TXT-3. La escena de opciones no está verificada.
 
-- **P-TXT-2 — editar `StatusEffectSO.displayName` renombra el fichero en disco.**
-  `OnValidate` reescribe el asset a `StatusEffect_{DisplayName}_{EffectId}` (auto-rename M1.2). La
-  pestaña de status de `GameTextWindow` es de sólo lectura en v1 precisamente por esto; una futura
-  pestaña editable debe decidir explícitamente si cambiar un nombre visible debe mover un fichero.
+- **P-TXT-2 — editar `StatusEffectSO.displayName` renombra el fichero en disco. REBAJADA 2026-09-10 (TXT-3), no cerrada.**
+  `OnValidate` sigue reescribiendo el asset a `StatusEffect_{DisplayName}_{EffectId}` (auto-rename
+  M1.2). Lo que cambia es que **ya no es un problema de texto**: desde TXT-3 el nombre que ve el
+  jugador vive en el glosario, así que traducir o corregir copy no mueve ningún fichero. `displayName`
+  sólo lo tocaría alguien renombrando el asset a propósito. La pestaña de status sigue sin editor —
+  ahora por no tener texto que editar, no por miedo al renombrado.
 
 - **D-TXT-3 — REVERTIDA por D-TT-6=C (TUT-TXT-1c, 2026-09-09).**
   TXT-1 la cerró como «los seeders siguen vivos como semilla de emergencia» **con su copy dentro**.
@@ -926,6 +964,8 @@ riesgo de runtime.
 ## 5. Docs that must be edited next
 
 The §5 doc-closure *history* (every applied edit since 2026-04-29) was removed in the 2026-06-16 hygiene prune — that record lives in `changelog-ssot.md`. This section is now forward-looking only.
+
+- **Aplicado 2026-09-10 (TXT-3 — doc-update aplicado EN LA MISMA SESIÓN que el código, por decisión del usuario; excepción declarada a la convención de doc-pass separado).** Doce documentos: **`systems/SSoT_Game_Text.md`** (§1 poblaciones 2+3 fusionadas en la nueva 2 y tabla renumerada a 5 filas con las cuatro superficies consumidoras; **§3 reescrita** de orden de tres registros a registro único + política de fallo visible + regla de cobertura + R-1; §5 vocabulario 24 → **36 ids** en tres grupos de origen; §6 modos de fallo reescritos; §7 D-TAG-10 cerrada y TXT-4 / TXT-3b / F-TXT-3-6 abiertas; **§9 nueva** — registro de cambios del documento) · `systems/SSoT_Status_Effects.md` §3.3 (**cesión explícita con fecha**: el bloque de tooltip content pasa a decir que el texto **se movió**; `displayName` = etiqueta de desarrollo con la frase «ninguna superficie de jugador puede leerlo»; los tres hosts reescritos, floater incluido) · `systems/SSoT_Card_System.md` §3.3 (cesión del texto de keyword + retirada de `SpecialKeywordData`) y §10.2 (dos fuentes reescritas, nota de que el apilado de M1.3c **no** es el contrato de un panel de §4, y F-TXT-3-5) · `systems/SSoT_Editor_Authoring_Tools.md` (§20.2 filas Concepts/Cards/Status Effects + párrafo de cola, §20.4 semántica de `IsKnown` cambiada, **§20.11 badges `DUPLICATE` retirados y regla invertida a `COVERAGE`**) · `ssot_manifest.yaml` (**`GAMETEXT-RESOLUTION-ORDER` reescrita** — cambio de **autoridad**, aplicado con el lote y no diferido a MANIFEST-*: dejar el invariante cacheado describiendo tres registros habría apuntado el auditor de drift a un contrato que el código ya no cumple; `governs:` **sin cambios**, con la razón escrita) · `SSoT_INDEX.md` (descripción de la fila) · `coverage-matrix.md` (fila extendida + ST-TXT3-1..12) · `planning/Design_Sensory_Contract_v0_1.md` (fila de `SensoryFxAdapter`: el floater de status es superficie de texto y D-WINK-6=B **no** se revierte) · este fichero (§1 fila, §4 T-TAG-1 cerrada + F-TXT-3-1/4/5/6 + R-1 + F-TXT-2-1 con sus 13 literales + P-TXT-2 rebajada, §5 este bloque) · `changelog-ssot.md` · `PK_Manifest.md` **v10** · `planning/active/S5_DemoCutClose_Sub_Roadmap.md` (TXT-3 cerrada; **TXT-3b, TXT-4 y CARD-FACE-1 dadas de alta**). **Clase:** **autoridad** (el texto de jugador cambia de hogar y el invariante cacheado cambia de forma) + semántica + operativa + lifecycle. **Los dos runbooks se retiran al aplicarse** (convención de paquetes). **Pendiente explícito:** **TXT-3b** (un `CS0618` vivo a propósito) y regenerar `Repo_Tree_Index.md`, que sigue con deuda.
 
 - **Aplicado 2026-09-10 (TXT-2-DOC — doc-update de TXT-2, documentación pura; el código y los smokes se cerraron el mismo día).** Once documentos: **`systems/SSoT_Game_Text.md` creado** (autoridad nueva, D-TAG-9=A) y dado de alta en `SSoT_INDEX.md`, `ssot_manifest.yaml` (fila `subsystem_ssot` con tres invariantes duras: `GAMETEXT-RESOLUTION-ORDER`, `GAMETEXT-TAG-IS-A-POINTER`, `GAMETEXT-HOVER-SINGLE-PANEL`) y `coverage-matrix.md`; `systems/SSoT_Editor_Authoring_Tools.md` (§20.2 fila Concepts, §20.4 badges de tags, §20.8 O-TXT-3 con el caso, **§20.11 nueva**, nota de solape en la fila del manifiesto); `planning/active/Design_Tutorial_System_v0_3.md` (**§5A.6 nueva** + aviso de demo corregido: son dos `verboseLogging`); `systems/SSoT_Status_Effects.md` §3.3 y `systems/SSoT_Card_System.md` §10.2 (nota de tercer/segundo consumidor — lectores, no hogares nuevos); `CURRENT_STATE.md` §1 + §4 (T-TAG-1, F-TXT-2-1, D-TAG-8 cerrada, O-TXT-3 reafirmada); `changelog-ssot.md`; `PK_Manifest.md` v9; `planning/active/S5_DemoCutClose_Sub_Roadmap.md` (TXT-2 cerrada, **TXT-3 dada de alta**). **Pendiente explícito:** regenerar `Repo_Tree_Index.md` (5.º lote de deuda).
 

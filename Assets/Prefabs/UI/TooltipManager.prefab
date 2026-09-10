@@ -244,7 +244,7 @@ MonoBehaviour:
   tooltipController: {fileID: 7490862232294092563}
   tooltipTextPrefab: {fileID: 800384665433159820, guid: 4918016ad81e7464b817266cab044a68, type: 3}
   canvasGroup: {fileID: 3621886462221782790}
-  specialKeywordData: {fileID: 11400000, guid: 7c2c5ec16404787409c82288bfbef62e, type: 2}
+  conceptGlossary: {fileID: 11400000, guid: 07d4fad3281d8e543800d86995b65d83, type: 2}
   fadeCurve:
     serializedVersion: 2
     m_Curve:

@@ -136,19 +136,43 @@ Icon sprite authority lives on `StatusEffectSO.IconSprite`. Each StatusEffectSO 
 - `AudienceCharacterBase.BuildCharacter()` calls `AudienceCharacterCanvas.BindStatusContainer(Statuses)` after stats construction.
 - Both bind to `CharacterBase.Statuses`, which is created in `CharacterBase.Awake()`.
 
-**Status tooltip content (M1.3a + M1.3c, 2026-04-23):**
+**Status player text — this SSoT no longer owns it (TXT-3, 2026-09-10):**
 
-`StatusEffectSO` carries a `description` field (`[TextArea(2, 4)]`, public getter `Description`) authored per status. Description text is the single source for tooltip body text. `DisplayName` is the single source for tooltip header text.
+> **Authority moved, with a date.** Until 2026-09-10 `StatusEffectSO` carried a `description` field
+> and `DisplayName` was the tooltip header — one language slot each, which is why a Spanish build
+> showed English status tooltips (**T-TAG-1**). **TXT-3 moved that text out of this asset** into
+> `ConceptGlossarySO`, one per language, keyed by `StatusKey` (D-TXT3-0=B). This was a *move*, not a
+> copy: the text does not live in both places, not for a day.
+>
+> - `description` was **removed** from `StatusEffectSO`.
+> - `displayName` is a **developer label**: the asset file name (`StatusEffect_{DisplayName}_{EffectId}`,
+>   via `OnValidate` auto-rename), log lines, editor lists, and the seed for `statusKey`. **No player
+>   surface may read it.** A reintroduced text field here is a governance regression, not a shortcut.
+> - Authority for the wording of a status is now `systems/SSoT_Game_Text.md` §1/§3. What a status
+>   *means* stays here.
 
-Two runtime hosts surface status tooltips:
+What this SSoT still owns is the **icon hosts** and how they get their text:
 
-1. **Per-icon hover (M1.3a):** `StatusIconBase` implements `IPointerEnter/ExitHandler`. `CharacterCanvas.TryCreateIcon` calls `BindTooltipSource(StatusEffectSO, StatusEffectContainer, CharacterStatusId)` immediately after `SetStatus`. Hovering a status icon shows `{DisplayName}` (or `{DisplayName} ×N` when stacks > 1) as header and `Description` as body, via `TooltipManager.ShowTooltip`.
+1. **Per-icon hover (M1.3a):** `StatusIconBase` implements `IPointerEnter/ExitHandler`.
+   `CharacterCanvas.TryCreateIcon` calls `BindTooltipSource(StatusEffectSO, StatusEffectContainer,
+   CharacterStatusId)` immediately after `SetStatus` — the SO is still the icon's **identity** (sprite
+   and `StatusKey`), it is just no longer its text. On hover, `ConceptTooltipResolver.TryGetStatusText`
+   returns the player name and body from the active glossary; header is `{name}` or `{name} ×N` when
+   stacks > 1.
 
-2. **Card-hover extraction (M1.3c):** `CardBase.ShowTooltipInfo()` iterates `CardDefinition.Keywords` (resolved against `TooltipManager.SpecialKeywordData`) then extracts unique `StatusEffectSO` references from `CardDefinition.Payload.Effects` filtered to `ApplyStatusEffectSpec.status`. Dedupe via `HashSet<StatusEffectSO>`. Display order: keywords first, statuses second. Each unique SO produces one `ShowTooltip` call with `DisplayName` header + `Description` body. Tooltip follows the mouse cursor (no static anchor).
+2. **Card-hover extraction (M1.3c):** `CardBase.ShowTooltipInfo()` extracts unique `StatusEffectSO`
+   references from `CardDefinition.Payload.Effects` filtered to `ApplyStatusEffectSpec.status`
+   (dedupe via `HashSet<StatusEffectSO>`) and resolves each through the same entry point. Display
+   order: keywords first, statuses second. Tooltip follows the mouse cursor (no static anchor).
 
-`CardBase` is the assembly point for card-hover tooltips but does not own the data — `StatusEffectSO` owns description text, `SpecialKeywordData` owns keyword text.
+3. **Status floater (WINK-1, retargeted at TXT-3):** `SensoryFtPresentation.TryBuildStatusAppliedFt`
+   draws `+{NAME}` on the receiving character. The name is the glossary name uppercased; the
+   **colour** still comes from `IsBuff` × owner side, because `IsBuff` is gameplay semantics and
+   stays on the SO. The `DeltaStacks > 0` gate (§3.4) is untouched.
 
-**Third consumer (TXT-2, 2026-09-10):** `ConceptTooltipResolver` reads the same `DisplayName` / `Description` pair when a `<link=id>` concept tag in player-facing text matches a `StatusKey`. It is a *reader*, not a new home: statuses are consulted **first** in its resolution order precisely so that no other registry can shadow this one. Resolution order and tag syntax are governed by `systems/SSoT_Game_Text.md` §2–§3. Consequence worth stating here: these two fields have **one language slot**, so a tag to a status displays its authored language regardless of the surrounding text's language (finding **T-TAG-1**; the migration that would give them language slots is TXT-3, and it MOVES the text out of `StatusEffectSO` rather than duplicating it).
+`CardBase` and `CharacterCanvas` are assembly points, not owners. A status whose `StatusKey` has no
+glossary entry shows its raw key and logs once — visible by design, and reported in the editor as a
+coverage gap rather than left silent (`SSoT_Editor_Authoring_Tools.md` §20.11).
 
 ---
 

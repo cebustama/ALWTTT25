@@ -17,13 +17,18 @@ namespace ALWTTT.Tooltips
         //[SerializeField] private CursorController cursorController;
         [SerializeField] private TooltipText tooltipTextPrefab;
         [SerializeField] private CanvasGroup canvasGroup;
-        [SerializeField] private SpecialKeywordData specialKeywordData;
+        [Tooltip("[TXT-3 / D-TXT3-5=A] Glossary of the running build's language. The ONLY " +
+         "source of player-facing concept text: status icons (by StatusKey), card " +
+         "keywords (by enum name) and <link=id> tags resolve here. Assign the same " +
+         "language as the tutorial catalog and its glossary.")]
+        [SerializeField] private ConceptGlossarySO conceptGlossary;
 
         [Header("Settings")]
         [SerializeField] private AnimationCurve fadeCurve;
         [SerializeField] private float showDelayTime = 0.5f;
 
-        public SpecialKeywordData SpecialKeywordData => specialKeywordData;
+        /// <summary>[TXT-3] Active-language glossary. Null = nothing assigned (consumers show raw ids and warn once).</summary>
+        public ConceptGlossarySO ConceptGlossary => conceptGlossary;
 
         private List<TooltipText> tooltipTextList = new List<TooltipText>();
         private TooltipController TooltipController => tooltipController;

@@ -1261,14 +1261,17 @@ after an Undo.
 | Tab | State | Text fields | Languages | Why |
 |---|---|---|---|---|
 | Tutorial | **Full** — read, edit, create, CSV import/export | `TutorialDialogSO.revisitTitle`, `mechanicText`, `pages[]` | N, one per catalog `languageCode` | first category with per-language storage |
-| Concepts | **Full** — read, edit, create, CSV import/export (TXT-2, 2026-09-10) | `ConceptGlossarySO` → `ConceptEntry.displayName`, `description` | N, one per glossary `languageCode` | second category with per-language storage; see §20.11 |
-| Cards | **Inventory only** (read + CSV export) | `CardDefinition.displayName` | 1 | no description field exists; card descriptions are *generated in code* by `CardEffectDescriptionBuilder` (`SSoT_Card_System` §10.1) |
-| Status Effects | **Inventory only** (read + CSV export) | `StatusEffectSO.displayName`, `description` | 1 | see the auto-rename warning in §20.7 |
+| Concepts | **Full** — read, edit, create, CSV import/export (TXT-2, 2026-09-10) | `ConceptGlossarySO` → `ConceptEntry.displayName`, `description` | N, one per glossary `languageCode` | **the only text tab that matters since TXT-3**: statuses and card keywords were moved here (§20.11) |
+| Cards | **Inventory only** (read + CSV export) | `CardDefinition.displayName` | 1 | no description field exists; card descriptions are *generated in code* by `CardEffectDescriptionBuilder` (`SSoT_Card_System` §10.1). Both are F-TXT-3-5, scope of TXT-4 |
+| Status Effects | **Inventory + coverage** (read + CSV export of the developer label) (TXT-3, 2026-09-10) | `StatusEffectSO.displayName` — **a developer label, not player text** | — | player name/description live in the Concepts glossaries under `StatusKey`; this tab shows which languages cover each key (§20.11) |
 | Menus | **Declared unreachable** | — | — | `MainMenuController` holds no player-facing strings; button labels are `TMP_Text` components in the MainMenu scene/prefabs, which `AssetDatabase` type search cannot enumerate |
 
 The remaining read-only tabs are declared, not simulated: each renders its real inventory and a note
-stating why it is read-only. Giving them a language slot is gated on **O-TXT-3** (§20.8) — TXT-3 is
-the batch that would do it for Status Effects and card keywords.
+stating why it is read-only. **TXT-3 (2026-09-10) removed Status Effects from that queue** by moving
+its text into the Concepts glossaries rather than giving the tab an editor — the tab now shows a
+developer label and a coverage report, and the CSV export column is renamed `devLabel` so nobody
+mistakes it for translatable copy. **Cards remains gated on O-TXT-3** (§20.8) and is the scope of
+TXT-4, which cannot reuse the TXT-3 move: card descriptions have no stored strings to relocate.
 
 ### 20.3 Language columns (D2=B)
 
@@ -1311,8 +1314,11 @@ not reveal) · **`NO MECHANIC <lang>`** and **`MECHANIC TOKENS differ`** (TUT-TX
 **Concept tags are checked by the same rule as tokens, for the same reason.** The *set* of
 `<link=id>` ids must be identical across languages; a translation that drops a tag leaves a word
 that looks ordinary and opens nothing, which reading the copy would never reveal. `TAG unknown`
-additionally checks the id against the three concept registries (status keys, `SpecialKeywords`
-names, glossary ids) built once per rebuild by `ConceptRegistryEditorIndex`.
+additionally checks the id against the glossary. **Changed at TXT-3:** `ConceptRegistryEditorIndex.IsKnown`
+used to mean "present in any of three registries"; since the move it means "present in the glossary",
+because a tag pointing at a `StatusKey` with no glossary entry no longer resolves to anything. Status
+keys and keyword names are still indexed, but as the **coverage set** the glossary must contain
+(§20.11), not as alternative text sources.
 
 `NO MECHANIC` fires on **asymmetry only** — one language has plain mechanic text and the other does
 not. An id empty in *every* language is legitimate while TUT-TXT-1b has not covered it, and flagging
@@ -1457,15 +1463,25 @@ runtime never reads it, exactly as with tutorial catalogs, D2=B). Rows are the u
 `description`). Writes go through `SerializedObject` — no new public setters on the SO (TXT-1
 invariant).
 
-**What it does not edit.** Status and keyword text stay read-only, in their own tabs; the header
-strip shows their id inventory (`status keys: N · keywords: …`) purely as reference. That
-asymmetry is the point: the glossary must only hold concepts nobody else owns.
+**What it edits since TXT-3 (2026-09-10).** Everything. Status text and card-keyword text were moved
+into these same assets (`SSoT_Game_Text.md` §1), so the tab went from "the concepts nobody else owns"
+to the single authoring surface for all concept wording: 36 ids × 2 languages.
 
 **Badges.** `MISSING <lang>` · `NO NAME <lang>` · `NO DESCRIPTION <lang>` · `ID invalid` (ids are
-`[a-z0-9_]`) · `TAG unclosed <lang>` · **`DUPLICATE: status owns it`** / **`DUPLICATE: keyword owns
-it`**. The duplicate badges are the visible enforcement of the resolution order: a glossary entry
-whose id a status or keyword already claims is never reached at runtime, so it would rot silently.
-The fix is always deleting the glossary entry.
+`[a-z0-9_]`) · `TAG unclosed <lang>`.
+
+**`DUPLICATE: status owns it` / `DUPLICATE: keyword owns it` were REMOVED at TXT-3, and the rule they
+enforced was inverted.** Under TXT-2 a glossary id that a status key or keyword name also claimed was
+an error, and the fix was deleting the glossary entry. Since the move that overlap is **mandatory**,
+and the error is the **gap**. The window therefore reports coverage instead:
+
+- a `COVERAGE` block above the table listing every `StatusKey` and every `SpecialKeywords` name that
+  lacks a complete entry (name *and* description) in at least one language, one line per id
+  (`status 'hyped' — missing: es`), from `ConceptGlossaryTextTable.MissingCoverage()`;
+- a `NO GLOSSARY <lang>` badge per asset on the Status Effects tab (§20.2).
+
+The gap is reported as a block and not as a row badge for a mechanical reason worth stating: **a
+missing id has no row to badge.** A per-row check would have been invisible exactly when it mattered.
 
 **Create.** `+ concept (all languages)` appends the id to every glossary at once, so parity starts
 green. Import creates a missing id rather than skipping the row — a glossary entry is a list

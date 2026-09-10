@@ -19,6 +19,9 @@ namespace ALWTTT.Status
     ///   StatusEffectContainer. Replaces the former StatusIconsData lookup table.
     /// - Auto-rename (M1.2 polish): asset file renames itself to
     ///   "StatusEffect_{DisplayName}_{EffectId}" whenever DisplayName or EffectId changes.
+    /// - TXT-3 (2026-09-10): displayName is a DEVELOPER LABEL (file name, logs, editor lists).
+    ///   The player-facing name and description live in ConceptGlossarySO — one asset per
+    ///   language — under this asset's StatusKey. The former `description` field was removed.
     /// </summary>
     [CreateAssetMenu(
         fileName = "StatusEffect",
@@ -36,7 +39,10 @@ namespace ALWTTT.Status
         [Header("Identity (CSO)")]
         [SerializeField] private CharacterStatusId effectId;
 
-        [Tooltip("Designer-facing name shown in UI/tooltips. Can later become a localization key.")]
+        [Tooltip("DEVELOPER LABEL — not player text (TXT-3). Used for the asset file name " +
+         "(StatusEffect_{DisplayName}_{EffectId}), log lines and editor lists, and as the " +
+         "seed for statusKey. The player-facing name and description live in the " +
+         "ConceptGlossarySO of each language under this asset's StatusKey.")]
         [SerializeField] private string displayName;
 
         [Tooltip("Optional: Assign the CSO registry asset used to validate EffectId and browse ontology metadata.")]
@@ -70,12 +76,8 @@ namespace ALWTTT.Status
                  "Null = deliberately silent (no warn — a status may be mute by design).")]
         [SerializeField] private AudioClip applySfx;
 
-        [Tooltip("Short player-facing description shown in status tooltips. " +
-         "1–2 sentences, rich-text friendly. Example: 'Adds flat bonus to outgoing Vibe gains.'")]
-        [TextArea(2, 4)]
-        [SerializeField] private string description;
-
-        public string Description => description;
+        // [TXT-3 / D-TXT3-3=a] `description` removed: player text lives in ConceptGlossarySO
+        // by StatusKey. Do not reintroduce a text field here — see SSoT_Game_Text §1.
 
         // ─────────────────────────────────────────────────────────────────────────────
         // Public API (read-only)

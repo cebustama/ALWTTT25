@@ -26,9 +26,11 @@ namespace ALWTTT.TextAuthoring
     ///   and it has a single language; descriptions are generated in code by
     ///   CardEffectDescriptionBuilder (SSoT_Card_System §10.1). Editing deferred
     ///   (D-TXT-2: tutorial first; language slot = O-TXT-3).
-    /// - Status effects — INVENTORY ONLY. StatusEffectSO.displayName + description,
-    ///   single language. NOTE: editing displayName triggers the SO's OnValidate
-    ///   auto-rename of the .asset file — a future edit tab must decide about that.
+    /// - Status effects — INVENTORY + COVERAGE (TXT-3). StatusEffectSO carries no player
+    ///   text: displayName is a developer label (also the .asset file name via OnValidate
+    ///   auto-rename); the player name/description live in the Concepts glossaries under
+    ///   StatusKey. This tab lists each SO and which glossary languages cover its key.
+    ///   Editing happens in the Concepts tab.
     /// - Menus — DECLARED UNREACHABLE. MainMenuController carries no strings; button
     ///   labels are TMP_Text components in the MainMenu scene/prefabs, not assets
     ///   discoverable by AssetDatabase type search.
@@ -412,9 +414,9 @@ namespace ALWTTT.TextAuthoring
             t.UpdateSerialized();
 
             EditorGUILayout.HelpBox(
-                "Concept glossary: tooltip text for <link=id> tags whose id has NO other home. Statuses resolve from " +
-                "StatusEffectSO (by StatusKey) and card keywords from SpecialKeywordData — those are read-only here and an id " +
-                "they own is flagged DUPLICATE if it also appears in a glossary. One glossary asset per language (languageCode).",
+                                "Concept glossary — the ONLY home of player-facing concept text (TXT-3): <link=id> tags, status icons " +
+                "(by StatusKey) and card keywords (by enum name) all resolve here. Every status key and keyword name MUST " +
+                "have an entry in every language; gaps are listed under COVERAGE. One glossary asset per language (languageCode).",
                 MessageType.Info);
 
             _showCatalogs = EditorGUILayout.Foldout(_showCatalogs,
@@ -440,7 +442,14 @@ namespace ALWTTT.TextAuthoring
                 }
                 using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
                 {
-                    GUILayout.Label($"Other registries (read-only) — status keys: {ConceptRegistryEditorIndex.StatusKeys.Count} · keywords: {string.Join(", ", ConceptRegistryEditorIndex.KeywordNames.OrderBy(x => x))}", EditorStyles.wordWrappedMiniLabel);
+                    GUILayout.Label($"Coverage set — every id below must have name + description in every glossary. Status keys: {ConceptRegistryEditorIndex.StatusKeys.Count} · keywords: {string.Join(", ", ConceptRegistryEditorIndex.KeywordNames.OrderBy(x => x))}", EditorStyles.wordWrappedMiniLabel);
+                }
+                var missing = t.MissingCoverage();   // [TXT-3 / D-TXT3-4=A] gaps, not duplicates
+                if (missing.Count > 0)
+                    EditorGUILayout.HelpBox($"COVERAGE — {missing.Count} id(s) without complete glossary text:\n" + string.Join("\n", missing), MessageType.Error);
+                using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+                {
+                    GUILayout.Label(missing.Count == 0 ? "COVERAGE — complete in every language." : "Fix coverage before shipping: a missing id shows its raw key in game.", EditorStyles.wordWrappedMiniLabel);
                 }
             }
             EditorGUILayout.Space(6);
@@ -594,25 +603,32 @@ namespace ALWTTT.TextAuthoring
         private void DrawStatusEffects()
         {
             var fx = FindAllAssets<StatusEffectSO>();
+
+            _concepts.UpdateSerialized();   // [TXT-3] coverage badges below read the glossary cells
+
             EditorGUILayout.HelpBox(
-                "Inventory only (TXT-1 / D-TXT-2). Text fields: StatusEffectSO.displayName + description — one language. " +
-                "Caution for the future edit tab: changing displayName triggers the SO's OnValidate auto-rename of the .asset file " +
-                "(StatusEffect_{DisplayName}_{EffectId}).", MessageType.Info);
+                "Inventory + coverage (TXT-3). StatusEffectSO carries NO player text: displayName is a developer label " +
+                "(and the .asset file name via OnValidate auto-rename). Player name + description live in the Concepts " +
+                "glossaries under StatusKey — edit them there. Badges show which languages lack an entry.", MessageType.Info);
             EditorGUILayout.LabelField($"StatusEffectSO assets: {fx.Count}", EditorStyles.boldLabel);
             foreach (var s in fx.OrderBy(x => x.StatusKey, StringComparer.Ordinal))
             {
-                if (!Matches(s.StatusKey, s.DisplayName, s.Description)) continue;
+                if (!Matches(s.StatusKey, s.DisplayName)) continue;
                 using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         EditorGUILayout.SelectableLabel(s.StatusKey ?? "", EditorStyles.boldLabel, GUILayout.Width(180), GUILayout.Height(18));
                         EditorGUILayout.SelectableLabel(s.DisplayName ?? "", GUILayout.Height(18));
-                        if (string.IsNullOrWhiteSpace(s.Description)) Badge("NO DESCRIPTION", Color.yellow);
+                        foreach (var lang in _concepts.Languages)   // [TXT-3] coverage per language
+                        {
+                            var row = _concepts.Rows.FirstOrDefault(r => string.Equals(r.Id, s.StatusKey, StringComparison.OrdinalIgnoreCase));
+                            bool covered = row != null && row.ByLanguage.TryGetValue(lang, out var c) &&
+                                           !string.IsNullOrWhiteSpace(c.Name) && !string.IsNullOrWhiteSpace(c.Description);
+                            if (!covered) Badge($"NO GLOSSARY {lang}", new Color(0.95f, 0.6f, 0.5f));
+                        }
                         if (GUILayout.Button("Ping", GUILayout.Width(48))) EditorGUIUtility.PingObject(s);
                     }
-                    if (!string.IsNullOrWhiteSpace(s.Description))
-                        EditorGUILayout.LabelField(s.Description, EditorStyles.wordWrappedMiniLabel);
                 }
             }
         }
@@ -649,12 +665,11 @@ namespace ALWTTT.TextAuthoring
                     foreach (var c in FindAllAssets<CardDefinition>().OrderBy(d => d.Id, StringComparer.Ordinal))
                         table.Rows.Add(new[] { c.Id ?? "", "displayName", c.DisplayName ?? "" });
                     suffix = "Cards"; break;
-                case Tab.StatusEffects:
-                    table = new GameTextCsv.Table { Header = { "id", "field", "en" } };
+                case Tab.StatusEffects:   // [TXT-3] developer labels only; player text exports from Concepts
+                    table = new GameTextCsv.Table { Header = { "id", "field", "devLabel" } };
                     foreach (var s in FindAllAssets<StatusEffectSO>().OrderBy(x => x.StatusKey, StringComparer.Ordinal))
                     {
                         table.Rows.Add(new[] { s.StatusKey ?? "", "displayName", s.DisplayName ?? "" });
-                        table.Rows.Add(new[] { s.StatusKey ?? "", "description", s.Description ?? "" });
                     }
                     suffix = "StatusEffects"; break;
                 default:

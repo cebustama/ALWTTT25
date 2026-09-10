@@ -1,5 +1,14 @@
 # PK_Manifest — ALWTTT Project Knowledge (Capa 2 · índice de contenido del PK)
 
+**Versión 10 — 2026-09-10 (TXT-3).** Cambios en v10: bloque **§A.1 → «Refrescos y bajas de TXT-3»**
+con los dos refrescos del lote (`StatusEffectSO.cs`, `CardBase.cs` — esta última **gana procedencia
+por primera vez**) y el **cierre de los dos refrescos abiertos desde BIGNUM-1** (`CharacterCanvas.cs`
+y `AudienceCharacterCanvas.cs`: TXT-3 no las editó, pero se adjuntaron copias frescas del repo el
+2026-09-10 y sirven de sustitución verificada); **baja de `SpecialKeywordData.cs`** del censo de §B.2
+(fichero y asset eliminados del proyecto, D-TXT3-8); censo de los **ocho ficheros editados que no
+entran al PK**; los once documentos del doc-pass **sustituidos por reemplazo completo**.
+`Repo_Tree_Index.md` **NO regenerado** — deuda de seis lotes.
+
 **Versión 9 — 2026-09-10 (TXT-2-DOC).** Cambios en v9: **alta de `SSoT_Game_Text.md`** en §A.2
 (autoridad nueva, D-TAG-9=A) ⇒ **83 ficheros**; bloque **§A.1 → «Refrescos y altas de TXT-2»** con
 las tres copias que el lote deja rancias (`TutorialOverlayView.cs` no está en el PK y no entra;
@@ -97,6 +106,27 @@ lo dice** (§C.1), así que las filas de §A.2 quedan marcadas y estas son las a
 | `GigManager.cs` | **No está en el PK** (Capa 3, §B.2 — 171 KB). Modificado por WINK-1 (publish de composición): se anota aquí para que el próximo lote que lo pida sepa que su copia de repo debe ser posterior al 2026-08-31. | sin acción de PK |
 | `SensoryFxAdapter.cs` · `SensoryAudioAdapter.cs` · `SensoryFtPresentation.cs` · `CharacterSfxProfileSO.cs` · `MusicianCharacterData.cs` | **No entran al PK.** Modificados por WINK-1; se piden por lote (Capa 3). | sin acción |
 | `CardPerformedEvent.cs` · `StatusVisualDriver.cs` | **Ficheros nuevos, no entran al PK.** Costuras pequeñas y estables; se piden por lote si un lote futuro las edita. Rutas: `Assets/Scripts/Sensory/` y `Assets/Scripts/Characters/`. | sin acción |
+
+#### Refrescos y bajas de TXT-3 (2026-09-10)
+
+Lote de código **y** documentación cerrado el mismo día. Un refresco no está hecho hasta que su fila
+lo dice (§C.1).
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `StatusEffectSO.cs` | **Refrescar.** EDITADO 2026-09-10 — campo `description` **eliminado**; tooltip de `displayName` reescrito como etiqueta de desarrollo; cabecera de clase con la nota de TXT-3. | **cerrado 2026-09-10** — copia fresca adjuntada al chat de TXT-3 y editada por runbook |
+| `CardBase.cs` | **Refrescar.** EDITADO 2026-09-10 — `ShowTooltipInfo` resuelve keywords y estados por `ConceptTooltipResolver`; ya no referencia `SpecialKeywordData` ni `.Description`. **Gana procedencia por primera vez**: su fila de §A.2 estaba «no registrada». | **cerrado 2026-09-10** |
+| `CharacterCanvas.cs` | **No editado por TXT-3** (sólo enlaza el icono; ya no compone texto). Copia fresca del repo adjuntada el 2026-09-10 ⇒ **cierra el refresco abierto por BIGNUM-1** (override de predicción presente y verificado). | **cerrado 2026-09-10** — cierra la fila de BIGNUM-1 |
+| `AudienceCharacterCanvas.cs` | **No editado por TXT-3** (censado para F-TXT-2-1, no migrado). Copia fresca del repo adjuntada el 2026-09-10 ⇒ **cierra el refresco abierto por BIGNUM-1**. | **cerrado 2026-09-10** — cierra la fila de BIGNUM-1 |
+| `SpecialKeywordData.cs` | **BAJA.** Fichero y asset **eliminados del proyecto** (D-TXT3-8). Retirar de la lista de `Data/*` en §B.2; no estaba en el PK. | **ejecutado 2026-09-10** |
+| `ConceptTooltipResolver.cs` · `TooltipManager.cs` · `StatusIconBase.cs` · `SensoryFtPresentation.cs` · `ConceptGlossaryTextTable.cs` · `GameTextWindow.cs` · `ALWTTTProjectRegistriesSO.cs` · `ConceptGlossarySO.cs` | **No entran al PK** (Capa 3). Editados por TXT-3; se piden por lote. `ConceptTooltipResolver.cs` fue **reemplazo completo**. `ALWTTTProjectRegistriesSO.cs` **no tenía procedencia registrada**: la copia del 2026-09-10 es la primera. | sin acción de PK |
+| `TutorialOverlayView.cs` · `TutorialController.cs` | **No editados por TXT-3**, pero **los edita TXT-3b**. `TutorialController.cs` sigue **RANCIA con dos lotes encima** (F-TT-5). Pedir copia fresca al abrir TXT-3b, no reutilizar la del PK. | **abierto — bloqueante para TXT-3b** |
+
+**Assets de datos tocados (no indexables por `Repo_Tree_Index.md`):** los dos `ConceptGlossary`
+(EN/ES) pasan de 17 a **36 entradas**; el asset de `SpecialKeywordData` **eliminado**; el CSV
+`GameText_Concepts_TXT-3_import.csv` es intercambio de lote, **no se commitea como semilla** (a
+diferencia del CSV de recuperación del tutorial, D-TT-7=A — aquí el `.asset` ya es la verdad y la
+ruta de recuperación es el export de la pestaña).
 
 #### Refrescos y altas abiertos por BIGNUM-1 (2026-09-09)
 

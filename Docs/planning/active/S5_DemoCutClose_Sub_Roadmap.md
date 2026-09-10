@@ -178,6 +178,41 @@ The TUT-R* arc lives in `TUT-REBUILD_Sub_Roadmap.md`; these three fell out of it
     estado + 7 keywords + los consumidores de tooltip (`CharacterCanvas`, `CardBase.ShowTooltipInfo`).
     **No arregla F-TXT-2-1** (literales hardcodeados en `AudienceCharacterCanvas`), que sigue siendo
     entrada de O-TXT-3. No bloquea el Combat MVP.
+    **CERRADA 2026-09-10.** Ejecutada como movimiento, no como copia: 12 estados + 7 keywords al
+    glosario (17 → **36 ids**, EN + ES), `StatusEffectSO.description` **eliminado**, `displayName`
+    redefinido como etiqueta de desarrollo, **`SpecialKeywordData` retirado** (clase + asset). El
+    orden de resolución **no** quedó con fallback de migración como anticipaba esta ficha: se colapsó
+    a **registro único** (D-TXT3-4=A) porque con el movimiento atómico no hay a qué caer. La regla de
+    la ventana se **invirtió** (`DUPLICATE` → `COVERAGE`). Alcance real mayor que el previsto: además
+    de `CharacterCanvas`/`CardBase` hubo que tocar `StatusIconBase`, `TooltipManager`,
+    `ALWTTTProjectRegistriesSO` (**F-TXT-3-4**) y **`SensoryFtPresentation`** (**F-TXT-3-1** — el
+    floater de status era un cuarto consumidor, encontrado al cerrar). **ST-TXT3-1..12 PASS.**
+    Documentación aplicada en la misma sesión. **Abre TXT-3b, TXT-4 y CARD-FACE-1.**
+  - **TXT-3b** — **limpieza del `[Obsolete]` y cierre de R-1.** `TutorialOverlayView.SetConceptSources`
+    al constructor de un argumento; `TutorialController` suelta `conceptStatusCatalogues` y —esta es la
+    parte que importa— **suelta también `conceptGlossary`** para caer al fallback de `TooltipManager`.
+    Mientras haya dos puntos de asignación de idioma por inspector, nada impide asignarlos cruzados y
+    reproducir el síntoma que TXT-3 eliminó (**R-1**); runtime no lee `languageCode` (D-S5f-2=B) y
+    TXT-3 no rompió esa invariante para añadir un chequeo. Lote pequeño: dos ficheros, un `CS0618` que
+    desaparece, regresión ST-TXT3-4 repetida. **La copia de `TutorialController.cs` del PK lleva dos
+    lotes rancia** (F-TT-5) — pedir copia fresca al abrir.
+  - **TXT-4** — **todo el texto de jugador al mismo sistema, y el sistema crece.** Alcance: nombres de
+    carta (una ranura), **descripciones de carta (sin almacenamiento: las genera
+    `CardEffectDescriptionBuilder` desde los specs)** y los **13 literales** de
+    `AudienceCharacterCanvas` (F-TXT-2-1). **No es una repetición de TXT-3:** ahí había cadenas que
+    mover; aquí hay que **crear** el registro de fragmentos por idioma que el builder componga, y eso
+    obliga a tocar `CardEffectDescriptionBuilder`, que es código de presentación de gameplay. Es el
+    punto natural de decisión de **O-TXT-3** con el caso completo delante por primera vez. **Segundo
+    eje del lote:** ampliar el sistema de texto para admitir **iconos/sprites inline** (TMP sprite
+    assets, `<sprite=…>`) y más rich text, que es lo que permite que la cara de la carta diga en
+    símbolos lo que hoy no cabe en palabras — condición previa de CARD-FACE-1.
+  - **CARD-FACE-1** — **densidad de información de la cara de carta (F-TXT-3-6).** Los keywords
+    resuelven bien al hover pero no aparecen en la cara ni en el modal; tipo de pista y modificadores
+    ocupan el espacio. Propuesta: iconos para tipo de pista y modificadores (los assets existen), con
+    el detalle al hover. **Depende de dos cosas:** del vocabulario de sprites inline de TXT-4, y de
+    **TIP-1** — mover información de la cara al tooltip aumenta la presión sobre un pipeline que apila
+    paneles (F-BN-7) y proyecta mal el anclaje estático (F-BN-8). Probablemente deba abrir cerrando
+    TIP-1.
   - **DF-ARTIC** *(cross-boundary)* — **randomized chord articulation.** Today a card binds exactly one articulation; wanted: a Random option, potentially re-rolled per loop and per chord. The randomization mechanism is **MidiGenPlay-internal** (composer/config side) — per the boundary rule it is filed as a cross-project ask (**MGP-ALWTTT-ARTIC-1**, same pattern as SEED-1 / MOD-DIR-1); the ALWTTT side owns only the authoring surface that requests it and adopts after the package ships.
 
 ## S5h — Reward screen  *(IMPORTANT; pulled-forward presentation half of old S5d, per D-REPLAN-3)*

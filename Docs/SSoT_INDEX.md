@@ -37,7 +37,7 @@ It defines:
 | `systems/SSoT_Scoring_and_Meters.md` | loop score, song hype, vibe, and meter-relationship semantics | active |
 | `systems/SSoT_Gig_Encounter.md` | encounter-level gig structure, victory/failure, rosters, modifiers, resolution envelope | active |
 | `systems/SSoT_Editor_Authoring_Tools.md` | editor tools inventory, capabilities, supporting services, known gaps | active |
-| `systems/SSoT_Game_Text.md` | player-facing text plumbing: where each population of text is stored, concept-tag syntax (`<link=id>`), the status→keyword→glossary resolution order, hover contract, parity and CSV interchange — **owns the plumbing, never what a concept means** | active (created TXT-2 2026-09-10, D-TAG-9=A) |
+| `systems/SSoT_Game_Text.md` | player-facing text plumbing: where each population of text is stored, concept-tag syntax (`<link=id>`), tooltip resolution from the **single** concept registry (`ConceptGlossarySO`), the coverage rule and miss policy, hover contract, parity and CSV interchange — **owns the plumbing, never what a concept means** | active (created TXT-2 2026-09-10, D-TAG-9=A; resolution rewritten TXT-3 2026-09-10) |
 | `systems/SSoT_Dev_Mode.md` | Dev Mode tooling: compile-time gating, overlay, infinite turns, hand-visibility bridge | active |
 | `systems/SSoT_Audio.md` | ALWTTT-side audio: SFX subsystem (card-direct + bus-sensory, single AudioManager sink), music-mix model (per-musician axis, global music, master SFX, persistence), audio boundary | active |
 | `systems/SSoT_Singer_Voice.md` | ALWTTT articulatory singer voice: per-loop melody-stem singing, voice budget (1 active / 2 hard), dsp-anchor transport, channel-mute contract, `VoiceProfileSO` schema, consumer-side Pink Trombone fork | active |
