@@ -161,6 +161,12 @@ namespace ALWTTT.Managers
 
         private int _currentBpm;
 
+
+        /// <summary>[BIGNUM-1r45 / D-BN-3c] Last BPM resolved for the part being played.
+        /// Read-only surface for presentation that needs the tempo but not the beat grid
+        /// (the C1 readout pulse while BEAT-1 is open). 0 until the first part resolves.</summary>
+        public int CurrentBpm => _currentBpm;
+
         // PartIndex -> (AudienceIndex -> List of impressions per loop)
         private readonly Dictionary<int, Dictionary<int, List<int>>>
             _audienceLoopImpressionsByPart = new();
@@ -183,6 +189,14 @@ namespace ALWTTT.Managers
         // out once at song end in RunSongVibeResolution. Reset alongside
         // _songHypeStage in ResetSongHype (covers song-start prep + post-payout).
         private int _pendingSfxVibe;
+
+
+        // [BIGNUM-1 / D-BN-12=A] True while the C1/C2/C3 projection is on screen
+        // (song start → HideVibeProjection). Gates the status-change refresh so a
+        // status landing during the audience turn (Cool Dude's Indifference) cannot
+        // resurrect the telegraph mid-turn.
+        private bool _vibeProjectionActive;
+        private bool _statusHookSubscribed;
 
         private SongFeedbackContext? _lastSongFeedback;
 
@@ -465,6 +479,12 @@ namespace ALWTTT.Managers
             // the reward/menu scene. The fade runs on the DontDestroyOnLoad AudioManager,
             // so it completes across the scene unload.
             AudioManager.Instance?.StopAmbience();
+
+
+            // [BIGNUM-1 / D-BN-12=A] Mirror of the lazy subscribe at song start.
+            if (_statusHookSubscribed && SensoryEventBus.Instance != null)
+                SensoryEventBus.Instance.Unsubscribe<StatusAppliedEvent>(OnStatusAppliedForProjection);
+            _statusHookSubscribed = false;
 
             foreach (var m in _spawned)
             {
@@ -906,6 +926,22 @@ namespace ALWTTT.Managers
             {
                 UIManager.GigCanvas.SetSongHypeVisible(true);
                 UIManager.GigCanvas.SetSongHype(SongHype01);
+            }
+
+            // [BIGNUM-1 / D-BN-7=A] The Vibe readout has its own switch. It no longer
+            // rides on the SongHype bar, so gig 1 keeps the bar OFF (D-S5f-6=B) and
+            // still shows the number.
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetVibeReadoutVisible(
+                    presentation == null || presentation.ShowVibeReadout);
+
+            // [BIGNUM-1 / D-BN-12=A] Arm the status-change refresh. Subscribed lazily
+            // here (not in Awake) so bus availability order cannot silently skip it.
+            _vibeProjectionActive = true;
+            if (!_statusHookSubscribed && SensoryEventBus.Instance != null)
+            {
+                SensoryEventBus.Instance.Subscribe<StatusAppliedEvent>(OnStatusAppliedForProjection);
+                _statusHookSubscribed = true;
             }
 
             // [S5a/T8+T11] Seed the projection (C1 readout + C2/C3 telegraph) now;
@@ -3281,11 +3317,9 @@ namespace ALWTTT.Managers
                 float avgImpression =
                     sampleCounts[i] > 0 ? totalImpression[i] / sampleCounts[i] : 0f; // [-2, 2]
 
-                // Map avgImpression [-2,2] → multiplier [0.5, 1.5]
-                float impressionFactor = 1f + (avgImpression * 0.25f);
-
-                float vibeFloat = baseVibe * impressionFactor;
-                int vibeDelta = Mathf.RoundToInt(vibeFloat);
+                // [BIGNUM-1 / D-BN-10=A] §6.1 lives in ComputeLPart; the projection
+                // calls the same function. Numerics unchanged (ST-BN-1 R1).
+                int vibeDelta = ComputeLPart(baseVibe, avgImpression, out _);
 
                 // [S5a/T4] Floor the L-part at 0 (no negative macro Vibe) but KEEP every
                 // non-blocked member - even L==0 - so SFX-only members still pay out at
@@ -3303,10 +3337,16 @@ namespace ALWTTT.Managers
             return result;
         }
 
-        // TODO: Move all animation logic to its own class ie "BandAnimator" etc
         public void ApplyBpmToStage(int partIndex, int bpm)
         {
             _currentBpm = bpm;
+
+            // [BIGNUM-1r45 / D-BN-3c] Feed the C1 readout pulse the real tempo. The beat
+            // grid (IBeatGridListener) is silent in the gig scene — F-BN-5 / BEAT-1 — so
+            // its OnTempoChanged never arrives and the pulse sits at its 120 default.
+            // This is a TEMPO push, not a beat: the pulse keeps its own single clock.
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetReadoutTempo(bpm);
 
             if (UseLogs)
                 Debug.Log($"{DebugTag} [Gig] Part {partIndex} BPM resolved → {bpm}");
@@ -3775,7 +3815,10 @@ namespace ALWTTT.Managers
                     continue;
                 }
 
-                // [B3] Canonical ApplyIncomingVibe path. Indifference gates the WHOLE
+                // [BIGNUM-1r / D-BN-14=A] Drop this member's ghost segment NOW: the real
+                // bar lerps down through it in the next line. Members earlier in the
+                // loop have already paid; later ones keep their ghost until their turn.
+                audience.AudienceCharacterCanvas?.ClearPredictedVibe();
                 // combined delta to 0 (single gate point; L and SFX blocked together).
                 int appliedDelta = audience.AudienceStats.ApplyIncomingVibe(
                     audience.Statuses, finalDelta, duration: barFillDelayLocal);
@@ -3842,6 +3885,96 @@ namespace ALWTTT.Managers
             return count > 0 ? sum / count : 0f;
         }
 
+        // [BIGNUM-1 / D-BN-10=A] The §6.1 impression step, written ONCE. Song end
+        // (ComputeSongVibeDeltas) and the projection (RefreshVibeProjection →
+        // BuildVibeProjection) both call this; the two cannot drift. Returns
+        // round(baseVibe × factor), NOT floored — callers floor at 0 where §6.1 says so.
+        // The clamp is a no-op for song end (a mean of [−2,2] samples is in [−2,2]) and
+        // matches what the projection already did in S5a.
+        private static int ComputeLPart(float baseVibe, float avgImpression, out float impressionFactor)
+        {
+            avgImpression = Mathf.Clamp(avgImpression, -2f, 2f);
+            impressionFactor = 1f + (avgImpression * 0.25f);   // [-2,2] → [0.5,1.5]
+            return Mathf.RoundToInt(baseVibe * impressionFactor);
+        }
+
+        // [BIGNUM-1 / D-BN-4] Reference magnitude for the C1 readout: mean MaxVibe of
+        // the members still to convince (falls back to all members; 0 with no crowd).
+        // Presentation-only; nothing reads it for gameplay.
+        private float AverageUnconvincedMaxVibe()
+        {
+            if (CurrentAudienceCharacterList == null) return 0f;
+            float sum = 0f, sumAll = 0f;
+            int n = 0, nAll = 0;
+            foreach (var a in CurrentAudienceCharacterList)
+            {
+                if (a == null || a.Stats == null) continue;
+                sumAll += a.Stats.MaxVibe; nAll++;
+                if (a.Stats.IsConvinced) continue;
+                sum += a.Stats.MaxVibe; n++;
+            }
+            if (n > 0) return sum / n;
+            return nAll > 0 ? sumAll / nAll : 0f;
+        }
+
+        // [BIGNUM-1 / D-BN-2=A + D-BN-8=B] One member's projected song-end Vibe, walked
+        // with the SAME three functions the payout uses: ComputeLPart (§6.1),
+        // ApplyFlowToLPart (§7.1) and AudienceCharacterStats.PreviewIncomingVibe (the
+        // gate: Indifference → 0, then Captivated). IsBlocked is excluded UPSTREAM at
+        // song end (ComputeSongVibeDeltas skips the member), so Final = 0 there whatever
+        // the gate says. Nothing here mutates state.
+        private VibeProjection BuildVibeProjection(int index, AudienceCharacterBase aud,
+            float baseVibe, int sfxPart)
+        {
+            var p = new VibeProjection();
+            p.HypeBase = baseVibe;
+            p.Sfx = sfxPart;
+            p.Blocked = aud.IsBlocked;
+            p.AvgImpression = Mathf.Clamp(GetLiveAvgImpression(index), -2f, 2f);
+
+            // §6.1 — same function as ComputeSongVibeDeltas, floored at 0 like there.
+            p.LAfterImpression = Mathf.Max(0,
+                ComputeLPart(baseVibe, p.AvgImpression, out p.ImpressionFactor));
+
+            // §7.1 — same function as RunSongVibeResolution (L only; SFX flat, after).
+            p.FlowStacks = p.LAfterImpression > 0 ? GetTotalFlowStacks() : 0;
+            p.FlowMult = p.FlowStacks > 0 ? 1f + p.FlowStacks * FlowVibeMultiplier : 1f;
+            p.LAfterFlow = ApplyFlowToLPart(p.LAfterImpression);
+            p.Subtotal = p.LAfterFlow + sfxPart;
+
+            // The gate — same code path as the payout, minus the AddVibe.
+            var stats = aud.Stats;
+            var gate = stats != null
+                ? stats.PreviewIncomingVibe(aud.Statuses, p.Subtotal)
+                : new IncomingVibePreview(p.Subtotal, p.Subtotal, 0, 0, 1f);
+            p.Indifferent = gate.IndifferenceStacks > 0;
+            p.CaptivatedStacks = gate.CaptivatedStacks;
+            p.CaptivatedMult = gate.CaptivatedMult;
+            p.Final = p.Blocked ? 0 : gate.Applied;
+
+            p.TargetCurrentVibe = stats != null ? stats.CurrentVibe : 0;
+            p.Ko = stats != null && !stats.IsConvinced
+                && p.Final > 0 && p.Final >= p.TargetCurrentVibe;
+            p.Magnitude01 = p.TargetCurrentVibe > 0
+                ? Mathf.Clamp01((float)p.Final / p.TargetCurrentVibe) : 0f;
+
+            p.Tier = (p.Blocked || p.Indifferent) ? VibeEffectiveness.Immune
+                   : p.AvgImpression > 0.0001f ? VibeEffectiveness.SuperEffective
+                   : p.AvgImpression < -0.0001f ? VibeEffectiveness.NotVeryEffective
+                   : VibeEffectiveness.Normal;
+            return p;
+        }
+
+        // [BIGNUM-1 / D-BN-12=A] A status landing on an audience member (Wink →
+        // Captivated, Cool Dude → Indifference, Earworm) refreshes the projection NOW,
+        // not one loop late. Owner is set on the container by CharacterBase (TUT-R2).
+        private void OnStatusAppliedForProjection(StatusAppliedEvent e)
+        {
+            if (!_vibeProjectionActive) return;
+            if (e.Source == null || !(e.Source.Owner is AudienceCharacterBase)) return;
+            RefreshVibeProjection("status");
+        }
+
         // [S5a/T3+T11] Flow amplifies the L-part only (SFX stays flat). Shared by the
         // song-end payout and the C3 projection so the two cannot drift.
         private int ApplyFlowToLPart(int lPart)
@@ -3863,8 +3996,14 @@ namespace ALWTTT.Managers
             int lPart = Mathf.RoundToInt(baseVibe);
             int sfxPart = _pendingSfxVibe;                   // banked SFX (monotonic)
 
+            // [BIGNUM-1 / D-BN-4] Magnitude is RELATIVE to the crowd in front of the
+            // player: 1.0 = "one average unconvinced member's worth of Vibe this song".
+            float avgMaxVibe = AverageUnconvincedMaxVibe();
+            float magnitude01 = avgMaxVibe > 0f
+                ? Mathf.Clamp01((lPart + sfxPart) / avgMaxVibe) : 0f;
             if (UIManager != null && UIManager.GigCanvas != null)
-                UIManager.GigCanvas.SetVibeReadout(lPart, sfxPart);
+                UIManager.GigCanvas.SetVibeReadout(lPart, sfxPart, magnitude01,
+                    SongHype01, avgMaxVibe);
 
             if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                 Debug.Log($"{DebugTag} [S5a-SMOKE] PROJ ({reason}) readout L={lPart} " +
@@ -3877,38 +4016,22 @@ namespace ALWTTT.Managers
                 var aud = CurrentAudienceCharacterList[i];
                 if (aud == null || aud.AudienceCharacterCanvas == null) continue;
 
-                bool indifferent = aud.Statuses != null
-                    && aud.Statuses.GetStacks(CharacterStatusId.NegateIncomingPositive) > 0;
-
-                float avg = Mathf.Clamp(GetLiveAvgImpression(i), -2f, 2f);
-
-                VibeEffectiveness tier;
-                int projected = 0;
-
-                if (aud.IsBlocked || indifferent)
-                {
-                    tier = VibeEffectiveness.Immune; // both gates -> no Vibe lands at song end
-                }
-                else
-                {
-                    float factor = 1f + (avg * 0.25f);
-                    int lDelta = Mathf.RoundToInt(baseVibe * factor);
-                    projected = ApplyFlowToLPart(lDelta) + sfxPart; // mirrors song-end math
-
-                    tier = avg > 0.0001f ? VibeEffectiveness.SuperEffective
-                         : avg < -0.0001f ? VibeEffectiveness.NotVeryEffective
-                         : VibeEffectiveness.Normal;
-                }
+                // [BIGNUM-1 / D-BN-2=A, D-BN-8=B] One implementation, two surfaces: the
+                // projection walks the SAME steps as the song-end payout, gate included
+                // (Indifference → 0, Captivated amplification), via BuildVibeProjection.
+                // The S5a "mirrors song-end math" copy of §6.1 is gone (D-BN-10=A).
+                var proj = BuildVibeProjection(i, aud, baseVibe, sfxPart);
 
                 aud.AudienceCharacterCanvas.SetVibeTelegraph(
-                    tier, projected,
+                    in proj,
                     showNumber: presentation == null || presentation.ShowVibeProjectedNumbers,
                     showLabel: presentation == null || presentation.ShowVibeEffectivenessLabels);
 
                 if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                     Debug.Log($"{DebugTag} [S5a-SMOKE] PROJ ({reason})   i={i} " +
-                        $"'{aud.CharacterId}' tier={tier} projected={projected} " +
-                        $"avg={avg:F2} blocked={aud.IsBlocked} indiff={indifferent}");
+                        $"'{aud.CharacterId}' tier={proj.Tier} projected={proj.Final} " +
+                        $"avg={proj.AvgImpression:F2} blocked={proj.Blocked} indiff={proj.Indifferent} " +
+                        $"capt={proj.CaptivatedStacks} ko={proj.Ko}");
             }
         }
 
@@ -3919,6 +4042,12 @@ namespace ALWTTT.Managers
             foreach (var aud in CurrentAudienceCharacterList)
                 if (aud != null && aud.AudienceCharacterCanvas != null)
                     aud.AudienceCharacterCanvas.HideVibeTelegraph();
+
+
+            // [BIGNUM-1] Readout and status hook go quiet with the telegraph.
+            _vibeProjectionActive = false;
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetVibeReadoutVisible(false);
         }
 
         /// <summary>

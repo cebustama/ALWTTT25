@@ -148,6 +148,8 @@ Two runtime hosts surface status tooltips:
 
 `CardBase` is the assembly point for card-hover tooltips but does not own the data — `StatusEffectSO` owns description text, `SpecialKeywordData` owns keyword text.
 
+**Third consumer (TXT-2, 2026-09-10):** `ConceptTooltipResolver` reads the same `DisplayName` / `Description` pair when a `<link=id>` concept tag in player-facing text matches a `StatusKey`. It is a *reader*, not a new home: statuses are consulted **first** in its resolution order precisely so that no other registry can shadow this one. Resolution order and tag syntax are governed by `systems/SSoT_Game_Text.md` §2–§3. Consequence worth stating here: these two fields have **one language slot**, so a tag to a status displays its authored language regardless of the surrounding text's language (finding **T-TAG-1**; the migration that would give them language slots is TXT-3, and it MOVES the text out of `StatusEffectSO` rather than duplicating it).
+
 ---
 
 ### 3.4 Bus mirror and persistent per-status visuals (WINK-1, 2026-08-31)
@@ -303,7 +305,7 @@ If future encounter design requires extending stun via additional Choke stacks, 
 **SO config:** `StackMode = Additive`, `DecayMode = LinearStacks`, `MaxStacks = 5`, `IsBuff = false`, `ValueType = Flat`
 **Catalogue:** `StatusEffectCatalogue_Audience`, `IsDefaultVariant = true` for the primitive on the audience side.
 
-**Combat meaning:** while the holder has `N > 0` stacks, incoming positive Vibe is amplified to `round(incoming × (1 + N × CaptivatedVibeBonusPerStack))`. Initial tuning `0.25` → 2 stacks = ×1.5. The amplification is computed inside `AudienceCharacterStats.ApplyIncomingVibe`, immediately after the Indifference gate. Fantasía: they're locked in; every push lands harder.
+**Combat meaning:** while the holder has `N > 0` stacks, incoming positive Vibe is amplified to `round(incoming × (1 + N × CaptivatedVibeBonusPerStack))`. Initial tuning `0.25` → 2 stacks = ×1.5. The amplification is computed in `AudienceCharacterStats.PreviewIncomingVibe` and applied by `ApplyIncomingVibe` (BIGNUM-1, D-BN-6=A), immediately after the Indifference gate. Because the preview is what the per-enemy telegraph reads, the Captivated amplification is now visible to the player *before* the song ends, and the projected number is guaranteed equal to the applied one. Fantasía: they're locked in; every push lands harder.
 
 **Scope of amplification (R1, D-R1-1=A):** helper-wide. Every source that routes through `ApplyIncomingVibe` is amplified — card `ModifyVibeSpec` positives, `AddVibeAction`, Earworm ticks, the SFX→FlatVibe stage bonus, and the song-end macro conversion. This is broader than the original design wording (`planning/Design_Audience_Status_v1.md §4.2` scoped it to "`ModifyVibeSpec` positive"); the broadening is deliberate and follows the single-canonical-entry-point architecture Indifference already relies on. Negative-Vibe paths (`RemoveVibe`, negative `ModifyVibeSpec`) are **not** amplified — they do not route through the helper (§5.7 precedent; same documented limitation as Indifference).
 

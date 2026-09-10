@@ -22,3 +22,8 @@ MonoBehaviour:
     out: at zero, they break down and stop playing. Some action cards restore it,
     or shield it. Take care of your band: no band, no song.'
   highlightKey: musician_stress_bar
+  mechanicText: 'A musician''s <link=stress>Stress</link> bar is their remaining
+    fortitude; audience actions reduce it. At zero the musician <link=breakdown>breaks
+    down</link>: <link=cohesion>Cohesion</link> loses one, the bar refills, the musician
+    gets <link=shaken>Shaken</link>. Cohesion at zero loses the gig. Some <link=action_card>action
+    cards</link> restore or protect fortitude.'

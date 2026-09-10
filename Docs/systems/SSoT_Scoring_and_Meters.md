@@ -192,6 +192,13 @@ same gate (audience-side, `×(1 + N × MeterTuningSO.captivatedVibeBonusPerStack
 applied after the Indifference gate — `SSoT_Status_Effects.md §5.8`, R1),
 encounter modifiers.
 
+**Code home (BIGNUM-1, D-BN-10=A).** The impression step lives in
+`GigManager.ComputeLPart(baseVibe, avgImpression, out impressionFactor)`. Both
+`ComputeSongVibeDeltas` (song end) and `RefreshVibeProjection`/`BuildVibeProjection` (the
+live projection) call it. Before BIGNUM-1 the formula was written twice (F-BN-4); they
+agreed, but the player-facing breakdown makes any future divergence a visible lie.
+Numerically unchanged — regression ST-BN-1 (identical totals on the same seed) PASS.
+
 ### 6.2 SFX venue bonus + song-end delivery (S5a)
 
 The SongHype "venue energy" bonus (per-stage magnitudes on

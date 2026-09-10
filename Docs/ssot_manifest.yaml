@@ -315,6 +315,56 @@ entries:
       `Assets/Scripts/Encounters/Editor` (§22, GigEncounterWizard) in the
       same session that created the tree, per the lesson of the previous
       line — the manifest row is part of the batch, not of a later cleanup.
+      TXT-2 (2026-09-10): `Assets/Scripts/Editor/Text/ConceptGlossaryTextTable.cs`
+      is governed by BOTH this document (§20.11, window behaviour) and
+      SSoT_Game_Text (structure and resolution order). Deliberate, stated in
+      both notes; the split is behaviour-vs-structure, not two answers to one
+      question.
+
+  - path: Docs/systems/SSoT_Game_Text.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/UI/Tooltips
+      - Assets/Scripts/Data/ConceptGlossarySO.cs
+      - Assets/Scripts/Editor/Text/ConceptGlossaryTextTable.cs
+    hard_invariants:
+      - id: GAMETEXT-RESOLUTION-ORDER
+        statement: >
+          A concept id resolves status (StatusEffectCatalogueSO by StatusKey) →
+          card keyword (SpecialKeywordData by enum name) → glossary
+          (ConceptGlossarySO by id), first hit wins. The glossary is consulted
+          LAST and owns only ids no other registry owns, so a glossary entry can
+          never shadow a pre-existing home for a concept's meaning.
+        source: SSoT_Game_Text.md §3
+      - id: GAMETEXT-TAG-IS-A-POINTER
+        statement: >
+          A <link=id> tag carries an id, never a definition. Tag ids are
+          language-neutral and identical across language columns; the visible
+          text is what gets translated. Decoration happens in exactly one place
+          (ConceptTagRenderer.Decorate) after {$token} resolution, and an
+          undecorated surface degrades to plain text, never to literal markup.
+        source: SSoT_Game_Text.md §2
+      - id: GAMETEXT-HOVER-SINGLE-PANEL
+        statement: >
+          A concept hover issues at most one HideTooltip followed by at most one
+          ShowTooltip per link change, and passes no target transform. This is
+          what keeps TooltipManager's per-call panel stacking (F-BN-7) and
+          TooltipController's static-anchor projection (F-BN-8) out of reach
+          without modifying either file; TIP-1 remains open and independent.
+        source: SSoT_Game_Text.md §4
+    notes: >
+      Created at TXT-2 (2026-09-10, D-TAG-9=A) because the concept-tag language
+      needed a home and no existing document could take it without becoming a
+      second opinion on concept meaning. Owns PLUMBING only: storage populations,
+      tag syntax, resolution order, hover contract, parity, CSV interchange.
+      Meaning stays with SSoT_Status_Effects (statuses), SSoT_Card_System
+      (keywords, card text), SSoT_Scoring_and_Meters and SSoT_Gig_Combat_Core
+      (meters). Deliberate overlap with SSoT_Editor_Authoring_Tools §20: that
+      document owns GameTextWindow's behaviour and the CSV codec; this one owns
+      what the text means structurally and how it resolves at runtime. Records
+      finding F-TXT-2-1 (a fifth text population — hardcoded Spanish literals in
+      AudienceCharacterCanvas — reachable by no tool) and carries O-TXT-3 forward
+      with the case TXT-1 was waiting for.
 
   # ── subsystem_ssot: runtime/ ───────────────────────────────────────────────
 

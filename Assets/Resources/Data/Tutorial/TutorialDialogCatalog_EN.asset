@@ -13,14 +13,15 @@ MonoBehaviour:
   m_Name: TutorialDialogCatalog_EN
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogCatalogSO
   dialogs:
-  - {fileID: 11400000, guid: f73b9446ae2184549901dad185f921d6, type: 2}
-  - {fileID: 11400000, guid: f75b4b7eb4f87c444b64716f5c994050, type: 2}
   - {fileID: 11400000, guid: 5cad425a6075c7d46b8c82c3f55fe78c, type: 2}
   - {fileID: 11400000, guid: 3f27cb90fa35d2846aac531fc636e2d3, type: 2}
   - {fileID: 11400000, guid: ea24c51c4c2b50f419f0abdf9fcc668b, type: 2}
+  - {fileID: 11400000, guid: f73b9446ae2184549901dad185f921d6, type: 2}
   - {fileID: 11400000, guid: 87e91f83bcd4838489b6b19a2d82031f, type: 2}
+  - {fileID: 11400000, guid: f75b4b7eb4f87c444b64716f5c994050, type: 2}
   - {fileID: 11400000, guid: eb5517ff5645d65429bb9402ac3f9441, type: 2}
   - {fileID: 11400000, guid: 29bf2b08d5138f04f971c80515bbb21e, type: 2}
+  - {fileID: 11400000, guid: 62f84cd16a0a41e489cc330c76b5a94a, type: 2}
   - {fileID: 11400000, guid: a80d1ae6ce51d744dbc4e29b49c261b0, type: 2}
   - {fileID: 11400000, guid: e8c13e02bcbaf4e44ac356ca1751d19f, type: 2}
   - {fileID: 11400000, guid: d66426d3b100cdf46a4eea3ceb52bda6, type: 2}
@@ -33,7 +34,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 60e1cb8d860562d44b1998663fbc6879, type: 2}
   - {fileID: 11400000, guid: bf1a914796bff914595bd23b5e211d4a, type: 2}
   - {fileID: 11400000, guid: 57076accdfb0775478ff8304bd01bbff, type: 2}
-  - {fileID: 11400000, guid: 62f84cd16a0a41e489cc330c76b5a94a, type: 2}
+  - {fileID: 11400000, guid: 991749d2ff36e1d41818afd38825ad86, type: 2}
   - {fileID: 11400000, guid: 47a7d9ff7a252ea439856d61491dbf89, type: 2}
   - {fileID: 11400000, guid: 23114ede5db14154ba6503217e8053e3, type: 2}
   - {fileID: 11400000, guid: 07b6f8d959bcc00459eb50f241d8ad7a, type: 2}
@@ -46,5 +47,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e588bad56db080141a9235535b45adce, type: 2}
   - {fileID: 11400000, guid: dab57d206cb81664994236ea493571f1, type: 2}
   - {fileID: 11400000, guid: 8ac693bb4c8bf2d4385a1669dca584c7, type: 2}
-  - {fileID: 11400000, guid: 991749d2ff36e1d41818afd38825ad86, type: 2}
   languageCode: en

@@ -1393,6 +1393,10 @@ PrefabInstance:
       propertyPath: highlightBindings.Array.data[3].useManualCenter
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7686292279295812275, guid: 3dedf81a95fb8d44abf966c6fcd5ca53, type: 3}
+      propertyPath: verboseLogging
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8730885651718308310, guid: 3dedf81a95fb8d44abf966c6fcd5ca53, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0

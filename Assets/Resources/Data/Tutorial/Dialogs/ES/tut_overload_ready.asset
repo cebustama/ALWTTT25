@@ -21,3 +21,4 @@ MonoBehaviour:
   - "Conito tiene Voltage de sobra para un remate: OVERLOAD. Cuesta Voltage, no Inspiraci\xF3n.
     Decide: lo gastas ahora en un solo, o lo guardas para la pr\xF3xima canci\xF3n."
   highlightKey: status_icon_musician
+  mechanicText: 

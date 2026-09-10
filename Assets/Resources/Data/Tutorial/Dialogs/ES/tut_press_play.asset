@@ -21,3 +21,7 @@ MonoBehaviour:
   - "Ahora dale al Play. La canci\xF3n sonar\xE1 en bucle, y todo lo que juegues
     desde ahora entra en vivo. Sin ensayo. As\xED se toca de verdad."
   highlightKey: play_button
+  mechanicText: "<link=play>Play</link> inicia la canci\xF3n. Antes de Play hay un
+    \xFAnico <link=period>periodo de preparaci\xF3n</link>. Tras Play la canci\xF3n
+    suena en <link=loop>loops</link>; las cartas jugadas entonces surten efecto sin
+    detenerla."

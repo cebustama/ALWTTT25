@@ -22,3 +22,6 @@ MonoBehaviour:
     versiones de lo mismo. Si quieres sumar en vez de cambiar, cambia de pista o
     de m\xFAsico."
   highlightKey: song_panel_tracks
+  mechanicText: "Una <link=composition_card>carta de composici\xF3n</link> jugada
+    en una <link=track>pista</link> que ya tiene una la sustituye: una carta por
+    pista. Para a\xF1adir en lugar de sustituir, juega en otra pista."

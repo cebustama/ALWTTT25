@@ -22,3 +22,7 @@ MonoBehaviour:
     through. Don''t waste music on a wall. Wait for the guard to drop, or spend the
     song on the ones actually listening.'
   highlightKey: status_icon_blocked
+  mechanicText: 'An audience member moved to the front and is <link=blocked>Blocked</link>:
+    no <link=vibe>Vibe</link> from cards or from <link=song_end>song end</link>.
+    Positional, not timed; recomputed whenever the audience reorders. Spend Vibe
+    on unblocked members.'

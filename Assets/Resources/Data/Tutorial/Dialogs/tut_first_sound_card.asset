@@ -18,6 +18,9 @@ MonoBehaviour:
   revisitTitle: Sound cards
   portrait: {fileID: -8592814519688813882, guid: e4ce0c89601e9a34497855d51bc2812f, type: 3}
   pages:
-  - "That card reshaped the music itself \u2014 its speed, or its key \u2014 not
-    your meters. Sound cards change how the song sounds."
+  - 'That card reshaped the music itself: its speed, or its key, not your meters.
+    Sound cards change how the song sounds.'
   highlightKey: song_panel
+  mechanicText: A <link=sound_card>sound card</link> changes a property of the whole
+    song, such as tempo or key, instead of adding a part to one <link=track>track</link>.
+    By itself it changes no meter.

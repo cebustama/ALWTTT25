@@ -21,3 +21,6 @@ MonoBehaviour:
   - 'Your turn. Your hand holds two kinds of cards: COMPOSITION cards build the song;
     ACTION cards protect the band and push the crowd. Music first. Always.'
   highlightKey: hand
+  mechanicText: Two card types. <link=composition_card>Composition cards</link> add
+    music and go onto the band. <link=action_card>Action cards</link> change meters
+    and statuses and go onto a musician or an audience member. Some cost <link=inspiration>Inspiration</link>.

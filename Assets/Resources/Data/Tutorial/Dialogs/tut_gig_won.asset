@@ -22,3 +22,6 @@ MonoBehaviour:
     belongs to you now. Don''t let it go to your head, rookie: it was ONE gig. But
     it was real music.'
   highlightKey: 
+  mechanicText: The <link=gig>gig</link> is won when every audience member is <link=convinced>convinced</link>
+    (every <link=vibe>Vibe</link> pool at zero). Checked at each <link=song_end>song
+    end</link>, before the audience acts. A reward choice follows.

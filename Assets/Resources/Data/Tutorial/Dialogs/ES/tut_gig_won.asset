@@ -22,3 +22,7 @@ MonoBehaviour:
     p\xFAblico que ya es tuyo. No te lo creas demasiado, novato: fue UN concierto.
     Pero fue m\xFAsica de verdad."
   highlightKey: 
+  mechanicText: "El <link=gig>concierto</link> se gana cuando todo el p\xFAblico
+    queda <link=convinced>convencido</link> (todas las reservas de <link=vibe>Vibe</link>
+    a cero). Se comprueba en cada <link=song_end>final de canci\xF3n</link>, antes
+    de que act\xFAe el p\xFAblico. Despu\xE9s, elecci\xF3n de recompensa."

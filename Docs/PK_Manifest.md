@@ -1,5 +1,28 @@
 # PK_Manifest — ALWTTT Project Knowledge (Capa 2 · índice de contenido del PK)
 
+**Versión 9 — 2026-09-10 (TXT-2-DOC).** Cambios en v9: **alta de `SSoT_Game_Text.md`** en §A.2
+(autoridad nueva, D-TAG-9=A) ⇒ **83 ficheros**; bloque **§A.1 → «Refrescos y altas de TXT-2»** con
+las tres copias que el lote deja rancias (`TutorialOverlayView.cs` no está en el PK y no entra;
+`TutorialController.cs` **sigue rancia y ahora con un segundo lote encima**; `SSoT_Card_System.md`,
+`SSoT_Status_Effects.md`, `Design_Tutorial_System_v0_3.md`, `SSoT_Editor_Authoring_Tools.md`,
+`CURRENT_STATE.md`, `changelog-ssot.md`, `coverage-matrix.md`, `SSoT_INDEX.md`, `ssot_manifest.yaml`
+y `S5_DemoCutClose_Sub_Roadmap.md` **sustituidos por reemplazo completo**); censo en §B.2 de los
+**cuatro `.cs` nuevos** del lote y de los **tres assets/CSV** que `Repo_Tree_Index.md` no puede
+indexar; **F-TT-5 sigue abierta** (cuatro retiradas registradas como ejecutadas el 2026-09-05 que no
+se ejecutaron) y ahora arrastra también la fila de `TutorialController.cs`. `Repo_Tree_Index.md`
+**NO regenerado** — deuda de cinco lotes.
+
+**Versión 8 — 2026-09-10 (TUT-TXT-1-DOC).** Cambios en v8: bloque **§A.1 → «Refrescos, salidas y
+altas de TUT-TXT-1 / TUT-TXT-1c»** (dos copias marcadas rancias: `TutorialDialogSO.cs` y
+`TutorialController.cs`; `TutorialDialogCatalogSO.cs` **sustituida por reemplazo completo**);
+**corrección de la fila de TXT-1** que daba por vencida la copia del catálogo (no lo estaba: era la
+fila la que estaba rancia); **hallazgo F-TT-5** — cuatro retiradas registradas como ejecutadas el
+2026-09-05 que **no se ejecutaron**; alta del **CSV de recuperación** del tutorial (D-TT-7=A), que
+`Repo_Tree_Index.md` no puede indexar por ser `.csv`; `Repo_Tree_Index.md` regenerado
+(snapshot 2026-09-10 11:30).
+
+**Versión 7 — 2026-09-09 (BIGNUM-1-DOC).** Cambios en v7: bloque de refrescos de **BIGNUM-1** en §A.1 (tres copias marcadas rancias: `AudienceCharacterStats.cs`, `AudienceCharacterCanvas.cs`, `CharacterCanvas.cs`) · **dos altas** en §A.2 (`VibeProjection.cs` y `Design_Vibe_Telegraph_v0_1.md`, que reingresa desde §B.5) ⇒ **82 ficheros** · censo de los cuatro ficheros nuevos del lote en §B.2 · **F-BN-0 cerrada** con una nota que fija que los encabezados de §B.2 son etiquetas de área, no rutas · deuda del índice de rutas actualizada a cuatro lotes.
+
 **Versión 6 — 2026-08-27.** Refleja el PK **realmente observado**: **80 ficheros** (Fase 3-A ejecutada 2026-08-27; el plan de corte de PK-CUT-1 queda **completo**). Cambios en v6: **corregida §D.4** — los tres supuestos «fantasmas» eran renombrados punto→guion bajo, no ausencias; regla nueva sobre registrar ambos nombres. Cambios en v5: alta de `Repo_Tree_Index.md` (Capa 2, 445 rutas) · nueva regla §C.5 de regeneración · corregidas las rutas de los tres `README.md` renombrados para el PK. Cambios en v4: los 16 de Fase 3-A pasan de §A a **§B.5** · `Design_Composition_Variations_v0_1.md` y `MGP_Boundary_Index.md` comprometidos al repo (§D.1 actualizada). Cambios en v3: **todas las rutas de repo verificadas contra el árbol real** (`tree.txt`, 2026-08-27) — desaparece el marcador † de ruta inferida · marcados los ficheros que **solo existen en el PK** y no en el repo · nueva §D con el resultado del cruce. Cambios de v2 respecto de v1: filas de `LoopScoreCalculator.cs` y `CharacterStatusId.cs` corregidas tras el refresco del Paso 1 (§A.1 queda vacía) · alta de los 7 ficheros del lote **RFX-1** · alta de los dos índices de Capa 2 · los 3 ficheros escapados de las Fases 1–2 pasan a §B.4 · columna **Estado** en §A para no volver a confundir «está en el PK» con «debe seguir en el PK».
 
 **Propósito.** Este fichero dice **qué hay en el PK, con qué procedencia, y qué se retiró y dónde vive ahora**, para que un chat pueda pedir por nombre lo que no está adjunto (File Request Protocol). **No es un documento gobernado por SSoT** — es operativa del PK. No define autoridad: la autoridad vive en `SSoT_INDEX.md` y `ssot_manifest.yaml`, que describen el **repo** (D-PK-0 = A: la pertenencia al PK es presupuesto de contexto, no gobernanza).
@@ -15,6 +38,23 @@
 ## §A — En el PK
 
 ### A.1 Refresco pendiente
+
+#### Refrescos y altas de TXT-2 (2026-09-10)
+
+| Fichero | Clase | Acción | Motivo |
+|---|---|---|---|
+| `SSoT_Game_Text.md` | PERMANENTE | **ALTA** en el PK (Capa 1) | autoridad nueva creada por el lote (D-TAG-9=A). Sin ella, cualquier pregunta futura sobre orden de resolución de conceptos se responde por inferencia |
+| `SSoT_INDEX.md` · `ssot_manifest.yaml` · `coverage-matrix.md` · `CURRENT_STATE.md` · `changelog-ssot.md` | PERMANENTE | **reemplazo completo** | alta de la autoridad nueva + cierre del lote |
+| `SSoT_Editor_Authoring_Tools.md` · `Design_Tutorial_System_v0_3.md` · `SSoT_Status_Effects.md` · `SSoT_Card_System.md` · `S5_DemoCutClose_Sub_Roadmap.md` | PERMANENTE | **reemplazo completo** | §20.11 / §5A.6 nuevas; notas de consumidor; TXT-2 cerrada y TXT-3 dada de alta |
+| `TutorialController.cs` | PERMANENTE | **sigue RANCIA — segundo lote encima** | ya marcada rancia en v8 (copia 2026-09-03, editada por TUT-TXT-1 el 2026-09-09); TXT-2 le añade dos campos serializados y una línea en `OnEnable`. La copia del PK **contenía** los edits de TUT-TXT-1 pese a la marca, lo que hizo utilizable el Step 6 con verificación previa de anclas — pero eso fue suerte, no proceso. **Refrescar o ejecutar su retirada (F-TT-5) antes del próximo lote que la toque.** |
+| `TutorialOverlayView.cs` | Capa 3 | **no entra** | editada por el lote; se pide por File Request Protocol cuando haga falta. Registrarla en el PK sería crear una copia que envejece |
+
+> **Por qué la fila de `TutorialController.cs` importa más que las demás.** Es la segunda vez
+> consecutiva que un lote la edita estando marcada rancia. En TXT-2 se resolvió imponiendo un
+> `grep -c` de cada ancla contra el fichero del repo antes de aplicar el paso — es decir, tratando la
+> copia del PK como *sospechosa* y no como verdad de código. Ese es el comportamiento correcto y
+> debería seguir aplicándose mientras la fila no se cierre; lo que no debe repetirse es llegar a un
+> tercer lote con la misma fila abierta.
 
 **Uno, abierto 2026-08-26 (RFX-1/RFX-2) — ver la tabla al final de esta sección.**
 La declaración «Ninguno» de 2026-08-27 se mantiene para las dos filas históricas.
@@ -57,6 +97,36 @@ lo dice** (§C.1), así que las filas de §A.2 quedan marcadas y estas son las a
 | `GigManager.cs` | **No está en el PK** (Capa 3, §B.2 — 171 KB). Modificado por WINK-1 (publish de composición): se anota aquí para que el próximo lote que lo pida sepa que su copia de repo debe ser posterior al 2026-08-31. | sin acción de PK |
 | `SensoryFxAdapter.cs` · `SensoryAudioAdapter.cs` · `SensoryFtPresentation.cs` · `CharacterSfxProfileSO.cs` · `MusicianCharacterData.cs` | **No entran al PK.** Modificados por WINK-1; se piden por lote (Capa 3). | sin acción |
 | `CardPerformedEvent.cs` · `StatusVisualDriver.cs` | **Ficheros nuevos, no entran al PK.** Costuras pequeñas y estables; se piden por lote si un lote futuro las edita. Rutas: `Assets/Scripts/Sensory/` y `Assets/Scripts/Characters/`. | sin acción |
+
+#### Refrescos y altas abiertos por BIGNUM-1 (2026-09-09)
+
+Lote de código cerrado el 2026-09-09; documentación aplicada en BIGNUM-1-DOC el mismo día.
+**Un refresco no está hecho hasta que su fila lo dice** (§C.1); las filas de §A.2 quedan marcadas
+y estas son las acciones.
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `GigManager.cs` | **No está en el PK** (Capa 3, §B.2 — 171 KB). **EDITADO 2026-09-09:** `ComputeLPart`, `BuildVibeProjection`, `RefreshVibeProjection`, `AverageUnconvincedMaxVibe`, hook de `StatusAppliedEvent`, `SetVibeReadout(int,int,float,float,float)`, `SetReadoutTempo`, `CurrentBpm`. **Toda copia anterior al 2026-09-09 es rancia.** | sin acción de PK · fila de §B.2 actualizada |
+| `AudienceCharacterStats.cs` | **Refrescar.** EDITADO 2026-09-09 — `PreviewIncomingVibe` + `IncomingVibePreview`. Ruta real confirmada: `Assets/Scripts/Characters/AudienceCharacterStats.cs` (**F-BN-0 cerrada**, nota en §B.2). | **abierto** |
+| `AudienceCharacterCanvas.cs` | **Refrescar.** EDITADO 2026-09-09 — sobrecarga con `VibeProjection`, tooltip de barra, tinte de KO, `SetPredictionVisible`. | **abierto** |
+| `CharacterCanvas.cs` | **Refrescar.** EDITADO 2026-09-09 — override de predicción en la política de visibilidad (S5e-ext enmendada por D-BN-17=A). La copia de §A.2 es del alta del 2026-09-04. | **abierto** |
+| `VibeEffectiveness.cs` | **Sin cambios**, confirmado con el fichero delante durante el lote. | cerrado |
+| `VibeProjection.cs` | **ALTA en el PK** (Capa 1, seam file). Contrato de presentación del Vibe por miembro; pequeño y estable, lo leerá cualquier lote de UI de gig. Ruta: `Assets/Scripts/Characters/VibeProjection.cs`. | **pendiente de adjuntar** |
+| `Design_Vibe_Telegraph_v0_1.md` | **ALTA en el PK** (Capa 1). Hogar de presentación de C1/C2/C3, ahora con §10; se consultará en GIG23-A y en TIP-1. Ruta: `Docs/planning/Design_Vibe_Telegraph_v0_1.md`. Reingresa desde §B.5. | **pendiente de adjuntar** (copia posterior a BIGNUM-1-DOC) |
+| `VibeReadoutBeatPulse.cs` · `VibeReadoutTooltipTarget.cs` · `VibeBarTooltipTarget.cs` | **No entran al PK.** Ficheros nuevos, costuras pequeñas; se piden por lote (Capa 3). Rutas: `Assets/Scripts/UI/` y `Assets/Scripts/UI/Tooltips/`. | sin acción |
+| `GigCanvas.cs` · `GigPresentationSO.cs` · `HealthBarController.cs` | **No están en el PK.** Editados por BIGNUM-1; censados en §B.2. | sin acción de PK |
+| `MidiMusicManager.cs` | Editado **sólo si se aplicó la sonda `[BeatProbe]` del rider r3**. La sonda es **temporal** y la retira BEAT-1; no censar como cambio permanente. | condicional |
+
+**Refrescos ajenos que este lote NO cierra:** `StatusEffectContainer.cs` (WINK-1 — la copia del PK
+publica `StatusAppliedEvent` con 3 argumentos, el código real pasa 4) y la D5 de AMW-1
+(`characterId` duplicado) → **AMW-2**, con el resultado negativo de F-GEW-4.
+
+**Ficheros a descartar del chat al cerrar BIGNUM-1-DOC:** `GigManager.cs` · `GigCanvas.cs` ·
+`AudienceCharacterCanvas.cs` · `AudienceCharacterStats.cs` · `GigPresentationSO.cs` ·
+`VibeEffectiveness.cs` · `BeatPulseIndicator.cs` · `MidiListenerCanvasBase.cs` ·
+`HealthBarController.cs` · `EconPipTooltipTarget.cs` · `TooltipManager.cs` ·
+`TooltipController.cs` · `MidiMusicManager.cs` · `CoreLoader.cs` · `BIGNUM-1_Doc_Package.md`
+(se retira al aplicarse, convención de paquetes) · todas las capturas.
 
 #### Refrescos, ediciones y altas de TUT-REDESIGN-B / DOC-TUTR-B (2026-09-03 / 2026-09-04)
 
@@ -104,6 +174,17 @@ TXT-1`). Todas viven en el repo; ninguna es de las de §D.1:
 | `TutorialController.cs` · `TutorialGuidedDriver.cs` · `TutorialDialogSO.cs` | **Salen del PK** (Capa 3). Sin cambios en TXT-1: las copias de 2026-09-03 siguen siendo verdad de código. | ejecutadas 2026-09-05 |
 | `TutorialDialogCatalogSO.cs` | **Sale del PK y su copia queda VENCIDA.** TXT-1 la editó: `languageCode` + `CanonicalTriggerIds()` / `ParityReport` / `ComputeParity()` + `ReservedUnauthored` promovido a campo estático + el `[MenuItem]` convertido en envoltorio. **Toda copia anterior al 2026-09-05 es inválida**; si vuelve al PK algún día, entra con copia post-TXT-1. | ejecutada 2026-09-05 |
 
+> **CORRECCIÓN 2026-09-10 (TUT-TXT-1-DOC).** Las dos filas anteriores describen **intención, no
+> estado**. Verificado por presencia directa al abrir TUT-TXT-1 (2026-09-09): `TutorialController.cs`,
+> `TutorialGuidedDriver.cs`, `TutorialDialogSO.cs` y `TutorialDialogCatalogSO.cs` **seguían en el
+> PK**; ninguna de las cuatro salidas «ejecutadas 2026-09-05» se ejecutó (la fila de
+> `TutorialGuidedDriver` en §B.2 ya lo anotaba para sí misma; aplica a las cuatro). Registrado como
+> **F-TT-5** en `CURRENT_STATE.md` §4. Además, la fila de `TutorialDialogCatalogSO.cs` afirmaba que
+> su copia quedaba **VENCIDA** por TXT-1: **no era cierto**. La copia del PK ya era post-TXT-1
+> (`languageCode`, `ComputeParity`) y resultó **byte a byte idéntica** a la copia fresca del repo
+> pedida el 2026-09-09. Estaba rancia la fila, no la copia. *(Esa copia sí queda vencida ahora, por
+> TUT-TXT-1c.)*
+
 **Refresco cerrado:** `StatusEffectSO.cs` (ver la tabla de WINK-1 arriba y su fila en §A.2). Queda
 **abierto** el otro refresco de WINK-1: `StatusEffectContainer.cs` (la copia del PK publica
 `StatusAppliedEvent` con 3 argumentos; el código real pasa 4).
@@ -121,6 +202,40 @@ consumidores de runtime; se piden por lote si un lote futuro las edita:
 `MainMenuController.cs`, `tree.txt`, `Repo_Tree_Index.md` (copia subida). De `MainMenuController.cs`
 queda constancia documental de su hallazgo — no contiene strings de jugador — en `CURRENT_STATE` §4
 (P-TXT-1), de modo que retirarlo no pierde la conclusión.
+
+#### Refrescos, salidas y altas de TUT-TXT-1 / TUT-TXT-1c (2026-09-09, aplicado 2026-09-10)
+
+**Copias del PK que este lote deja RANCIAS.** Los tres ficheros figuran como retirados el
+2026-09-05 y **seguían presentes** (F-TT-5). Acción: **sustituir por la copia post-lote** si se
+quieren mantener, o **retirar de verdad** — son Capa 3 por política (D-PK-1=C), así que retirar es lo
+coherente; lo que **no** es admisible es dejarlos presentes y desfasados.
+
+| Fichero | Estaba | Está | Acción |
+|---|---|---|---|
+| `TutorialDialogSO.cs` | 2026-09-03 (TUT-REDESIGN-B) | **EDITADO 2026-09-09:** `mechanicText` + `MechanicText` / `HasMechanicText` + `EditorSeedStructure`. `EditorSeed` sobrevive y su único uso legítimo pasa a ser crear un asset desde cero. | sustituir o retirar |
+| `TutorialController.cs` | 2026-09-03 (TUT-REDESIGN-B) | **EDITADO 2026-09-09:** `showMechanicText`, `ResolveBodyPages`, `pagesOverride` en los dos call-sites de `overlay.Show` y `body=` en el log de `SHOW`. | sustituir o retirar |
+| `TutorialDialogCatalogSO.cs` | 2026-09-03 = repo (verificado idéntica) | **REEMPLAZO COMPLETO 2026-09-09:** 470 → 299 líneas. 6 seeders con copy → 2 de estructura; `Add()` sin texto; `BeginSeed`/`dialogs.Clear()` retirados; paridad intacta. | sustituir o retirar |
+| `TutorialGuidedDriver.cs` | 2026-09-03 | **sin cambios** en estos lotes | retirar (salida pendiente desde TXT-1) |
+
+**Ficheros del lote que NO entran al PK** (Capa 3; `Editor/Text` ya censado arriba por TXT-1):
+`TutorialOverlayView.cs` (`Assets/Scripts/Tutorial/TutorialOverlayView.cs`, editado: parámetro
+`pagesOverride`) y los tres de `Assets/Scripts/Editor/Text/` (`GameTextWindow.cs`,
+`TutorialTextTable.cs`, `GameTextCsv.cs`, los tres editados).
+
+**Alta de artefacto — el CSV de recuperación del tutorial (D-TT-7=A).**
+Ruta: `Assets/Resources/Data/Tutorial/` (export de `GameTextWindow`, **nombre fijo sin timestamp**).
+No es un fichero del PK: es un artefacto del **repo** y la mitad «texto» de la ruta de recuperación
+del tutorial (`SSoT_Editor_Authoring_Tools.md` §20.10). Se censa aquí porque
+**`Repo_Tree_Index.md` no lo indexa**: el índice excluye `.csv`, así que este fichero es invisible al
+índice de rutas y ningún chat lo encontrará por ahí. Regenerar el índice no lo hará aparecer.
+
+**Adjuntos de chat descartados al cerrar:** `GameTextWindow.cs`, `GameTextCsv.cs`,
+`TutorialTextTable.cs`, `TutorialOverlayView.cs`, `TutorialController.cs`,
+`TutorialDialogCatalogSO.cs`, `GameText_Tutorial_20260909_2109.csv`, `tree.txt`,
+`Repo_Tree_Index.md` (copia subida — su contenido se adopta como fila nueva, ver §C.1 regla 5).
+
+**Paquete consumido:** `TUT-TXT-1_DocPackage.md` se retira del PK al aplicarse (convención de
+paquetes, D-DOC-5).
 
 #### Altas, salidas y descartes de AMW-1 / AMW-1b + DOC-APPLY-4 (2026-09-05)
 
@@ -187,8 +302,13 @@ cierre GEW-1 + nota de legibilidad del Vibe) · `changelog-ssot.md` (entrada GEW
 
 **`Repo_Tree_Index.md` desactualizado — regenerar (regla §C.1 punto 5).** El snapshot vigente es del
 2026-08-27 y ya no lista tres carpetas creadas después: `Assets/Scripts/Editor/Text/` (TXT-1),
-`Assets/Scripts/Characters/Editor/` (AMW-1) y `Assets/Scripts/Encounters/Editor/` (GEW-1). Tres
-lotes de deuda acumulada en el mismo índice que sirve para pedir ficheros por ruta.
+`Assets/Scripts/Characters/Editor/` (AMW-1) y `Assets/Scripts/Encounters/Editor/` (GEW-1), ni los
+cuatro ficheros nuevos de BIGNUM-1 (`VibeProjection.cs`, `VibeReadoutBeatPulse.cs`,
+`VibeReadoutTooltipTarget.cs`, `VibeBarTooltipTarget.cs`). **Cuatro lotes** de deuda acumulada en el
+mismo índice que sirve para pedir ficheros por ruta. Nota de BIGNUM-1-DOC: el snapshot del
+2026-08-27, pese a la deuda, **cerró F-BN-0** — para ficheros anteriores a esa fecha sigue siendo
+evidencia válida, y mejor que cualquier encabezado de §B.2 (ver la nota allí). La regeneración se
+debe por los ficheros **nuevos**, no por los viejos.
 
 **Refresco ajeno que sigue ABIERTO y que este lote no cierra:** `StatusEffectContainer.cs` (WINK-1
 — la copia del PK publica `StatusAppliedEvent` con 3 argumentos; el código real pasa 4).
@@ -233,6 +353,7 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | Fichero | Clase | Estado | Fecha de copia | Ruta en repo | Verificado-contra (lote/fecha) | Notas |
 |---|---|---|---|---|---|---|
 | `ALWTTT_Uses_MidiGenPlay_Quick_Path.md` | POR-LOTE | Fase 3-B — sale al cerrar frontera (3 KB) | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | reference frontera (3 KB) |
+| `SSoT_Game_Text.md` | PERMANENTE | queda | TXT-2 (2026-09-10) | Docs/systems/SSoT_Game_Text.md | TXT-2 (2026-09-10) — creado y aplicado en la misma sesión | autoridad nueva: fontanería del texto de jugador (poblaciones, tags, orden de resolución, hover, paridad, CSV). NO es autoridad sobre el significado de ningún concepto |
 | `AudienceCharacterBase.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Characters/AudienceCharacterBase.cs | PRES-1 / D-R5-2 (2026-08-11): SelectDefaultMusicianTarget + SpotlightRedirectEvent presentes | ok · sin lote posterior conocido |
 | `AudienceCharacterData.cs` | PERMANENTE | queda | AMW-1 (2026-09-05) | Assets/Scripts/Data/Characters/Audience/AudienceCharacterData.cs | GEW-1 (2026-09-06): leída para derivar las columnas de la fila de público (`maxVibe`, `abilityList`, `followAbilityPattern`, `taste`); no editada. Antes: AMW-1 (2026-09-05), copia fresca comparada con la del PK — **idénticas** salvo BOM/EOL | ok · ni AMW-1 ni GEW-1 editaron el fichero (editor-only) |
 | `CSV-4b_Name_Lookup_Audit.md` | POR-LOTE | Fase 3-B — sale al cerrar CSV-4b | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | insumo de CSV-4b (lote vivo, queued) · **no existe en el repo — solo vive aquí; comprometer antes de retirarla** |
@@ -255,6 +376,8 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | `Design_Track_Card_Levels_v0_1.md` | POR-LOTE | Fase 3-B — sale al cerrar R7 | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | R7 (spec) |
 | `Design_Tutorial_System_v0_3.md` | POR-LOTE | **RETIRADA 2026-09-05 al cerrar TXT-1** (ver §A.1, bloque TXT-1) | 2026-09-04 (renombrada v0_2 → v0_3 en DOC-TUTR-B) | Docs/planning/active/Design_Tutorial_System_v0_3.md | DOC-TUTR-B / 2026-09-04 — §6C arco de la banda de 4 | **sustituye la copia `v0_2`**: no deben coexistir (§C.3) |
 | `Design_Vertical_Slice_v0_1.md` | POR-LOTE | Fase 3-B — sale al cerrar S6–S8 | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | S6–S8 (queued) |
+| `Design_Vibe_Telegraph_v0_1.md` | PERMANENTE | queda (alta BIGNUM-1-DOC 2026-09-09) | 2026-09-09 | Docs/planning/Design_Vibe_Telegraph_v0_1.md | BIGNUM-1-DOC (2026-09-09): contiene §10 (§10.1–§10.7) | hogar de presentación C1/C2/C3; insumo de GIG23-A y TIP-1. Sigue clasificado `planning` en `SSoT_INDEX` — la matemática vive en `SSoT_Scoring_and_Meters` §6. Reingresa desde §B.5 |
+| `VibeProjection.cs` | PERMANENTE | queda (alta BIGNUM-1-DOC 2026-09-09) | 2026-09-09 | Assets/Scripts/Characters/VibeProjection.cs | BIGNUM-1 (2026-09-09): fichero nuevo del lote | contrato de presentación del Vibe por miembro; seam pequeño y estable para lotes de UI de gig |
 | `Documentation_Update_Loop_Local_Addendum_v0_4.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | gobernanza operativa (addendum local) |
 | `GigFlowSettingsSO.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Data/Gig/GigFlowSettingsSO.cs | R5-d (2026-08-26): MaxBonusLoopsPerPart presente | ok · sin lote posterior conocido |
 | `GigRunContext.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Managers/GigRunContext.cs | sin marcas de lote reconocibles | sin lote posterior conocido |
@@ -279,7 +402,7 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | `TutorialDialogSO.cs` | POR-LOTE | **RETIRADA 2026-09-05 al cerrar TXT-1** (insumo de TXT-1; alta 2026-09-04) | 2026-09-03 (refrescada) | Assets/Scripts/Tutorial/TutorialDialogSO.cs | TUT-REDESIGN-B / 2026-09-03 — 34 constantes, `TracksByMusician`, sin reservados | ídem |
 | `TutorialDialogCatalogSO.cs` | POR-LOTE | **RETIRADA 2026-09-05 al cerrar TXT-1** (insumo de TXT-1; alta 2026-09-04) | 2026-09-03 (refrescada) | Assets/Scripts/Tutorial/TutorialDialogCatalogSO.cs | TUT-REDESIGN-B / 2026-09-03 — seeders `Seed TUT-REDESIGN-B dialogs EN/ES (13, band of 4)` | ídem. **La copia retirada quedó VENCIDA el 2026-09-05: TXT-1 editó el fichero** (`languageCode`, `ComputeParity`). Cualquier reingreso futuro exige copia post-TXT-1 |
 | `MusicianBase.cs` | POR-LOTE | Fase 3-B — sale al cerrar TXT-1 salvo decisión de núcleo (alta 2026-09-04, D1=A) | 2026-09-03 (refrescada) | Assets/Scripts/Characters/Band/MusicianBase.cs | TUT-REDESIGN-B / 2026-09-03 — `LoseGig(GigLossCause.CohesionCollapse)`; `ResolveCardAnimation` (WINK-1) | contradicción retirado-pero-presente **resuelta**: presente y censado |
-| `CharacterCanvas.cs` | POR-LOTE | Fase 3-B — retirar en el próximo corte (alta 2026-09-04, D1=A; sin lote que lo pida) | no registrada | Assets/Scripts/Characters/CharacterCanvas.cs | sin lote posterior conocido (contiene el hook `TutorialHighlight`, CARD-UX-1) | contradicción retirado-pero-presente **resuelta**: presente y censado |
+| `CharacterCanvas.cs` | POR-LOTE | Fase 3-B — retirar en el próximo corte (alta 2026-09-04, D1=A) | no registrada | Assets/Scripts/Characters/CharacterCanvas.cs | **RANCIA desde BIGNUM-1 (2026-09-09)** — el lote añadió el override de predicción (`SetPredictionVisible`) a la política de visibilidad S5e-ext; la copia del PK es anterior | contradicción retirado-pero-presente resuelta 2026-09-04; **refresco abierto §A.1 (BIGNUM-1)** — no usar como verdad de código sin copia fresca |
 | `PinkTrombone_Voice_Levers.md` | POR-LOTE | Fase 3-B — sale al cerrar R6 | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | schema VoiceProfileSO; R6 (SingerVoiceDirector) |
 | `Rehydration_Prompt_Guide.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | operativa de handoff entre chats |
 | `Roadmap_ALWTTT.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | roadmap activo |
@@ -370,7 +493,7 @@ Cómo pedirlos: **copia fresca del repo al chat del lote** que los toque (FRP pa
 
 | Fichero | KB | Ruta | Quién los pedirá |
 |---|---:|---|---|
-| `GigManager.cs` | 171 | Assets/Scripts/Managers/GigManager.cs | R5-d-SMOKE, ~~R6~~, R7, cualquier lote de turno/meters. **EDITADO en R6 (2026-09-01, D-R6-7):** tres llamadas a `GigMessageUI.Show` en las puertas ECON-1 / final-loop lock / coste de recurso. Toda copia anterior a esa fecha es RANCIA |
+| `GigManager.cs` | 171 | Assets/Scripts/Managers/GigManager.cs | R5-d-SMOKE, ~~R6~~, R7, cualquier lote de turno/meters. **EDITADO en R6 (2026-09-01, D-R6-7):** tres llamadas a `GigMessageUI.Show` en las puertas ECON-1 / final-loop lock / coste de recurso. Toda copia anterior a esa fecha es RANCIA **EDITADO en BIGNUM-1 (2026-09-09):** `ComputeLPart`, `BuildVibeProjection`, `RefreshVibeProjection`, `AverageUnconvincedMaxVibe`, hook de `StatusAppliedEvent`, `SetVibeReadout(int,int,float,float,float)`, `SetReadoutTempo`, `CurrentBpm`. Toda copia anterior al 2026-09-09 es RANCIA. |
 | `CompositionSession.cs` | 100 | Assets/Scripts/Music/CompositionSession.cs | R5-d-SMOKE, ~~R6~~, R7. **EDITADO en R6 (2026-09-01):** (a) F-R6-2 — el enrutado de parte se hoisteó por encima del gate de reglas en las **dos** rutas (`TryPlayCompositionCard` y la de `CardDefinition`), que ahora llaman a la sobrecarga de 4 args de `CanApplyDefinition`; (b) D-R6-7 — el `Fail(...)` local publica en `GigMessageUI` y se añadió `StripDenialPrefix`. Toda copia anterior es RANCIA |
 | `MidiMusicManager.cs` | 144 | Assets/Scripts/Managers/MidiMusicManager.cs | R5-d-SMOKE (duck), R6, CSV-5, frontera |
 | `SongCompositionUI.cs` | 61 | Assets/Scripts/UI/Song Composition/SongCompositionUI.cs | **EDITADO en R6 (2026-09-01):** `TryGetHarmonyDenial` (D-R6-4=A) + sobrecarga de 4 args de `CanApplyDefinition` con `_canApplyPartIndexOverride` / `PartUnderTest` (F-R6-2) + los dos puntos de llamada del gate. Toda copia anterior es RANCIA. R7, HUD follow-ups — sin marca HUD-COMP-1 en la copia retirada: pedir SIEMPRE fresca |
@@ -393,17 +516,27 @@ Cómo pedirlos: **copia fresca del repo al chat del lote** que los toque (FRP pa
 
 **`Cards/Effects`** (8 ficheros · 14 KB): `AddInspirationPerLoopSpec.cs`, `ApplyStatusEffectSpec.cs`, `CardEffectDescriptionBuilder.cs`, `DrawCardsSpec.cs`, `GrantBonusLoopSpec.cs`, `ModifyStressSpec.cs`, `ModifyVibeSpec.cs`, `RevealPreferencesSpec.cs`
 
-**`Characters`** (8 ficheros · 56 KB) — *`CharacterCanvas.cs`: retirada nunca ejecutada; presente y censado en §A.2 desde 2026-09-04*: `AudienceCharacterCanvas.cs`, `CharacterAnimator.cs`, `CharacterBase.cs`, `CharacterCanvas.cs`, `CharacterStats.cs`, `SpriteOutlineController.cs`, `StatusStats.cs`, `VibeEffectiveness.cs`
+**`Characters`** (8 ficheros · 56 KB) — *`CharacterCanvas.cs`: retirada nunca ejecutada; presente y censado en §A.2 desde 2026-09-04*: `AudienceCharacterCanvas.cs`, `CharacterAnimator.cs`, `CharacterBase.cs`, `CharacterCanvas.cs`, `CharacterStats.cs`, `SpriteOutlineController.cs`, `StatusStats.cs`, `VibeEffectiveness.cs`, `VibeProjection.cs` *(alta BIGNUM-1 2026-09-09; pasa a §A.2)*
 
 **`Characters/Actions | Cards/CardActions`** (11 ficheros · 23 KB): `AddStressAction.cs`, `AddVibeAction.cs`, `ApplyStatusEffectAction.cs`, `AudienceMoveToFrontAction.cs`, `BlockStressAction.cs`, `BlockVibeAction.cs`, `CharacterActionData.cs`, `CharacterActionParameters.cs`, `CharacterActionProcessor.cs`, `HealStressAction.cs`, `RemoveVibeAction.cs`
 
 **`Characters/Audience`** (2 ficheros · 13 KB): `AudienceCharacterSimple.cs`, `AudienceCharacterStats.cs`
 
+> **F-BN-0 — cerrada 2026-09-09 (BIGNUM-1-DOC).** Los encabezados en negrita de esta sección son
+> **etiquetas de agrupación por área, no rutas de repo** — como deja ver `Characters/Actions |
+> Cards/CardActions`, que abarca dos carpetas. Verificado contra `Repo_Tree_Index.md` (export
+> mecánico, snapshot 2026-08-27): `Assets/Scripts/Characters/Audience/` existe y contiene **sólo**
+> `AudienceCharacterSimple.cs`; `AudienceCharacterStats.cs` vive en
+> `Assets/Scripts/Characters/AudienceCharacterStats.cs`. Lo mismo aplica al encabezado
+> `Characters/Band`: esos seis ficheros están repartidos entre `Characters/`,
+> `Characters/Musicians/` y `Data/Characters/`. **Para pedir un fichero por ruta se consulta el
+> índice, nunca estos encabezados.**
+
 **`Characters/Band`** (6 ficheros · 43 KB) — *`MusicianBase.cs`: retirada nunca ejecutada; presente y censado en §A.2 desde 2026-09-04*: `BandCharacterCanvas.cs`, `BandCharacterStats.cs`, `MusicianBase.cs`, `MusicianCharacterData.cs`, `MusicianCharacterSimple.cs`, `MusicianProfileData.cs`
 
 **`Data (F16)`** (1 ficheros · 2 KB): `AlwtttLogSetup.cs`
 
-**`Data/*`** (14 ficheros · 60 KB): `AudienceIntentionData.cs`, `AudioMixSettingsSO.cs`, `CharacterSfxProfileSO.cs`, `CompositionFxConfigSO.cs`, `CompositionStripThemeSO.cs`, `DemoLaunchConfigSO.cs`, `GigDevSettingsSO.cs`, `GigPresentationSO.cs`, `GigSetupRosterSO.cs`, `MixGainProfileSO.cs`, `OstCatalogSO.cs`, `RewardDatabase.cs`, `SoundBankSO.cs`, `SpecialKeywordData.cs`
+**`Data/*`** (14 ficheros · 60 KB): `AudienceIntentionData.cs`, `AudioMixSettingsSO.cs`, `CharacterSfxProfileSO.cs`, `CompositionFxConfigSO.cs`, `CompositionStripThemeSO.cs`, `DemoLaunchConfigSO.cs`, `GigDevSettingsSO.cs`, `GigPresentationSO.cs`, `GigSetupRosterSO.cs`, `MixGainProfileSO.cs`, `OstCatalogSO.cs`, `RewardDatabase.cs`, `SoundBankSO.cs`, `SpecialKeywordData.cs` — *`GigPresentationSO.cs` EDITADO en BIGNUM-1 (2026-09-09): `showVibeReadout` nuevo; `showVibeEffectivenessLabels` y `showVibeProjectedNumbers` documentados por primera vez (F-BN-2)*
 
 **`DevMode`** (8 ficheros · 142 KB): `DevAudioMixTab.cs`, `DevCardCatalogueTab.cs`, `DevCompositionDebugTab.cs`, `DevGigOutcomeTracker.cs`, `DevModeController.cs`, `DevRunTelemetryLogger.cs`, `DevStatsTab.cs`, `GenerationDebugFormatter.cs`
 
@@ -427,9 +560,9 @@ Cómo pedirlos: **copia fresca del repo al chat del lote** que los toque (FRP pa
 
 **`Tutorial`** (14 ficheros · 130 KB) — *los cuatro primeros estuvieron en el PK como POR-LOTE (TXT-1) entre 2026-09-04 y su retirada el 2026-09-05; `TutorialDialogCatalogSO.cs` fue además **editado por TXT-1**, así que su copia retirada está vencida*: `TutorialController.cs`, `TutorialDialogCatalogSO.cs`, `TutorialDialogSO.cs`, `TutorialGuidedDriver.cs`, `TutorialHighlightSpawnHook.cs`, `TutorialHighlightTarget.cs`, `TutorialInputGate.cs`, `TutorialLoopHoldGate.cs`, `TutorialModalGate.cs`, `TutorialOptInPrompt.cs`, `TutorialOverlayView.cs`, `TutorialRevisitPanel.cs`, `TutorialScriptedDrawQueue.cs`, `TutorialTokenResolver.cs`
 
-**`UI`** (17 ficheros · 146 KB): `AudiencePickerRow.cs`, `BeatPulseIndicator.cs`, `CardDetailViewController.cs`, `CompositionContextRowUI.cs`, `CompositionStripDriver.cs`, `FloatingText.cs`, `GigCanvas.cs`, `GigSetupController.cs`, `InventoryCanvas.cs`, `MinicardTooltipController.cs`, `MusicianPickerRow.cs`, `RewardCanvas.cs`, `SongPartElementUI.cs`, `SongTrackElementUI.cs`, `StatusIconBase.cs`, `TrackHoverPanel.cs`, `UIPulseAnimator.cs`
+**`UI`** (17 ficheros · 146 KB): `AudiencePickerRow.cs`, `BeatPulseIndicator.cs`, `CardDetailViewController.cs`, `CompositionContextRowUI.cs`, `CompositionStripDriver.cs`, `FloatingText.cs`, `GigCanvas.cs`, `GigSetupController.cs`, `InventoryCanvas.cs`, `MinicardTooltipController.cs`, `MusicianPickerRow.cs`, `RewardCanvas.cs`, `SongPartElementUI.cs`, `SongTrackElementUI.cs`, `StatusIconBase.cs`, `TrackHoverPanel.cs`, `UIPulseAnimator.cs`, `VibeReadoutBeatPulse.cs` *(nuevo, BIGNUM-1 2026-09-09)* — *editados por BIGNUM-1 sin entrar al PK: `GigCanvas.cs`, `HealthBarController.cs`*
 
-**`UI/Tooltips`** (6 ficheros · 11 KB): `EconPipTooltipTarget.cs`, `I2DTooltipTarget.cs`, `ITooltipTargetBase.cs`, `TooltipController.cs`, `TooltipManager.cs`, `TooltipText.cs`
+**`UI/Tooltips`** (6 ficheros · 11 KB): `EconPipTooltipTarget.cs`, `I2DTooltipTarget.cs`, `ITooltipTargetBase.cs`, `TooltipController.cs`, `TooltipManager.cs`, `TooltipText.cs`, `VibeReadoutTooltipTarget.cs`, `VibeBarTooltipTarget.cs` *(nuevos, BIGNUM-1 2026-09-09)*
 
 **`paquete MGP`** (1 ficheros · 1 KB): `MIDITrack.cs`
 
@@ -516,7 +649,7 @@ Detectados al reconciliar el PK tras el Paso 6 (98 observados vs 88 esperados).
 2. **Al abrir un lote que adjunta ficheros al PK** (como RFX-1): dar de alta sus filas en §A.2 con Estado = `lote <X> activo` **al abrir**, no al cerrar. Un fichero en el PK sin fila es un huérfano desde el minuto uno.
 3. **En cada DOC-APPLY / sesión documental.** Revisar §A.2 filas de documentos: si un doc gobernado se creó, archivó o cambió de ruta, reflejarlo aquí (fila nueva en §A, o fila en §B con "dónde vive ahora"). Los paquetes de diffs consumidos pasan a §B el mismo día que se aplican.
 4. **Al ejecutar cada Fase del plan de corte.** Cambiar "propuesta" → "EJECUTADO <fecha>" en §B; mover a §B lo que salga de Fase 3 al decidirse.
-5. **Al crear, borrar o mover ficheros del repo:** regenerar `Repo_Tree_Index.md` (`make-tree-unity.bat`) y actualizar la fecha de su fila en §A.2. Un índice de rutas viejo hace pedir ficheros que ya no existen — la misma familia de fallo que una fila de copia rancia, un piso más abajo. Si el aviso de **nombres duplicados** crece, revisarlo antes de adjuntar cualquiera de esos ficheros: el PK es plano y no los distingue.
+5. **Al crear, borrar o mover ficheros del repo:** regenerar `Repo_Tree_Index.md` (`make-tree-unity.bat`) y actualizar la fecha de su fila en §A.2. *(Regenerado 2026-09-10 11:30, TUT-TXT-1c. **Aviso permanente:** el índice no cubre `.csv` ni assets de Unity, así que artefactos como el CSV de recuperación del tutorial no aparecerán nunca ahí; se censan en §A.1.)* Un índice de rutas viejo hace pedir ficheros que ya no existen — la misma familia de fallo que una fila de copia rancia, un piso más abajo. Si el aviso de **nombres duplicados** crece, revisarlo antes de adjuntar cualquiera de esos ficheros: el PK es plano y no los distingue.
 6. **Al re-exportar el espejo MGP.** Sustituir el bloque `MGP-*` de §A.2 en bloque (nuevo prefijo de fecha), actualizar `MGP_Boundary_Index.md` en la misma sesión, y anotar aquí el prefijo anterior como retirado.
 
 **C.2 Regla D-DOC-5 (paquetes retenidos/pendientes).** Un paquete de diffs, informe de retorno o handoff que entre al PK o al chat lleva **en su propia cabecera** el lote que lo consume. Si ese lote cierra sin consumirlo, **se declara perdido en ese mismo cierre** (fila en §B con motivo "declarado perdido D-DOC-5 en <lote>"), no después. Este fichero es donde esa declaración queda visible; la narrativa va al changelog. Pendientes con dueño hoy: ver `PK_Audit_Report_2026-08-26.md` §4.3 (`CTX-2a_Doc_Diffs`, `CONT-B_Returns_MidiGenPlay`, `DEMO-FIXES-A_Doc_Diffs`, `CSV-4b_Name_Lookup_Audit` → CSV-4b).
@@ -598,7 +731,7 @@ Diseños enviados, ideas registradas sin lote, READMEs de carpeta y shaders. **L
 | `Design_Singer_Expression_Input_v0_1.md` | `Docs/planning/Design_Singer_Expression_Input_v0_1.md` | adjuntar al chat si un lote futuro lo retoma |
 | `Design_Song_Parts_Library_v0_1.md` | `Docs/planning/Design_Song_Parts_Library_v0_1.md` | adjuntar al chat si un lote futuro lo retoma |
 | `Design_Tempo_Identity_v1.md` | `Docs/planning/Design_Tempo_Identity_v1.md` | adjuntar al chat si un lote futuro lo retoma |
-| `Design_Vibe_Telegraph_v0_1.md` | `Docs/planning/Design_Vibe_Telegraph_v0_1.md` | adjuntar al chat si un lote futuro lo retoma |
+| `Design_Vibe_Telegraph_v0_1.md` | `Docs/planning/Design_Vibe_Telegraph_v0_1.md` | **REINGRESA AL PK el 2026-09-09 (BIGNUM-1-DOC)** — fila viva en §A.2; esta fila queda como historia de la retirada del 2026-08-27 |
 | `MGP-20260810_coverage-matrix.md` | `(companion MidiGenPlay)` | adjuntar al chat si un lote futuro lo retoma |
 | `PsychicWaveInvert.shader` | `Assets/Shaders/PsychicWaveInvert.shader` | adjuntar al chat si un lote futuro lo retoma |
 | `SpriteOutlineURP.shader` | `Assets/Shaders/SpriteOutlineURP.shader` | adjuntar al chat si un lote futuro lo retoma |

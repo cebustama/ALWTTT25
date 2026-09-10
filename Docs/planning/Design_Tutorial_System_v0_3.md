@@ -163,7 +163,7 @@ The spotlight (D3 = `ALWTTT/UI/TutorialSpotlight`, a positionable inverted sprit
 ## 5A. Localization & copy voice (S5f) + copy evolution (TUT‑REBUILD)
 
 ### 5A.1 Dual‑catalog localization (D‑S5f‑2 = B)
-One `TutorialDialogCatalogSO` per language, selected by inspector assignment to `TutorialController.catalog`; no runtime language mechanics (demo cut). EN: `Assets/Resources/Data/Tutorial/Dialogs/`; ES: `.../Dialogs/ES/` (**ES ships assigned**). Trigger ids, priorities, categories, and highlight keys are identical across languages; only `revisitTitle` + `pages` differ. `firedDialogs` keys on trigger id, so catalog swaps preserve progress.
+One `TutorialDialogCatalogSO` per language, selected by inspector assignment to `TutorialController.catalog`; no runtime language mechanics (demo cut). EN: `Assets/Resources/Data/Tutorial/Dialogs/`; ES: `.../Dialogs/ES/` (**ES ships assigned**). Trigger ids, priorities, categories, and highlight keys are identical across languages (verified across all 34 ids at TUT-TXT-1c); only `revisitTitle`, `mechanicText` and `pages` differ. `firedDialogs` keys on trigger id, so catalog swaps preserve progress.
 
 **Authoring surface (TXT‑1, 2026‑09‑05).** Each catalog now carries an authoring‑only
 `languageCode` field (`en` / `es`); no runtime code reads it — language selection is still the
@@ -173,6 +173,16 @@ every catalog, builds one column per code, and edits `revisitTitle` + `pages` di
 the source of truth and the `[ContextMenu]` seeders stay as an emergency seed. Pipeline authority:
 `systems/SSoT_Editor_Authoring_Tools.md` §20.
 
+**Amendment (TUT-TXT-1c, 2026-09-09 — D-TT-6=C).** The seeders no longer carry copy. They seed
+**structure** (id, priority, category, highlight key) and cannot overwrite the text of an existing
+asset; the emergency seed is now *structure + the committed CSV export* under
+`Assets/Resources/Data/Tutorial/` (D-TT-7=A). Six `[ContextMenu]` entries collapsed to two
+(`Author/Seed structure EN|ES`), and the two that began with `dialogs.Clear()` are gone — no menu on
+the asset can take the catalog from 34 entries to 3 any more. The writing constraints those copy
+blocks used to carry (ES voice D-S5f-1, no em dashes, two-page cap, MGP-ALWTTT-MOD-DIR-1) survive as
+comments in `TutorialDialogCatalogSO.cs` and now bind whoever writes in `GameTextWindow`, which is
+where the text lives. See `systems/SSoT_Editor_Authoring_Tools.md` §20.10.
+
 **Parity guard.** Editor menu `ALWTTT/Tutorial/Validate catalog language parity` compares every catalog asset against the `TutorialTriggerId` constant set. **TUT‑R3 adds a `ReservedUnauthored` exemption** (O2=A) so intentionally‑reserved ids (`tut_audience_preferences`, `tut_flow`) are not reported as missing while still catching EN/ES divergence and true extras. *(v0_3: the exemption set is now **empty** — §6C.4.)* *(Note: `tut_first_reward_choice` may still report missing if its dialog lives in a separate S5h catalog — a pre‑existing multi‑catalog tension; add it to the exemption if it is unauthored everywhere.)*
 
 ### 5A.2 Copy voice — Spanish (D‑S5f‑1)
@@ -181,6 +191,8 @@ Register **tú**. The manager is slightly condescending toward the player, genui
 ### 5A.3 Style rule — no em dashes (TUT‑R2b)
 Em dashes read as AI‑authored and are **disallowed in dialog copy**. The 18 guided/rewritten dialogs comply. The retained reactive dialogs are de‑dashed in TUT‑R3.
 > **Copy‑pass scope note (TUT‑R3):** the copy pass originally targeted "the 11 S5f reactive dialogs," but the TUT‑R3 retirement deletes 9 of those 11 in the same batch. Only the **2 retained** reactives (`tut_first_sfx_stage`, `tut_first_sound_card`) survive to be de‑dashed; the other 9 need no copy work.
+
+> **Record correction (TUT‑TXT‑1c, 2026‑09‑09 — F‑TT‑3).** That de‑dash reached the **C# seeders** and never reached the **`.asset` files**. `tut_first_sfx_stage` and `tut_first_sound_card` still carried em dashes in EN and ES until TUT‑TXT‑1c repaired them by CSV import. The rule stands; what changed is where it binds — the text lives in the assets, so the rule binds whoever writes in `GameTextWindow`, and the structural cause (copy in two places) is closed by D‑TT‑6=C (§5A.1).
 
 ### 5A.4 D8 token subset (S5f‑ext preview)
 The guided copy uses runtime tokens resolved by `TutorialTokenResolver`:
@@ -195,6 +207,87 @@ The multi‑language authoring window half of D‑S5f‑3=B was **delivered in T
 `GameTextWindow`, §5A.1 and `SSoT_Editor_Authoring_Tools.md` §20; it also flags a dialog whose token
 set differs between languages. The general `{$concept}` system remains S5f‑ext and unbuilt. The
 Tutorial Browser editor is scoped as **TUT‑R4** (event‑driven; opens when portrait/viñeta art arrives).
+
+### 5A.5 Plain mechanic text (TUT‑TXT‑1, 2026‑09‑09)
+
+Every dialog can carry, beside its voiced copy, a **plain** explanation of its mechanic:
+`TutorialDialogSO.mechanicText`, one per language catalog (**D‑TT‑1=A**). Register: no character,
+no narrative second person, no jokes, no em dashes — what triggers the mechanic, what it does, what
+limits it. It exists so a playtester can be given the rule without the manager's performance of it.
+
+**Why a field per catalog and not `mechanicTextEn`/`mechanicTextEs`.** The second shape was what was
+literally asked for, and it was rejected: it puts language inside the SO, which contradicts D2=B of
+TXT‑1 (language lives on the catalog) and would have made this the one text field the authoring
+window has to special‑case. Recorded rather than absorbed, because it reverses a request.
+
+**Display (D‑TT‑2=A).** `TutorialController.showMechanicText`, a serialized bool on the controller.
+When on, the controller hands the overlay a single‑page body override (`pagesOverride`) instead of
+`dialog.Pages`. `TutorialOverlayView` resolves `{$token}` on whatever body it is given, so
+`{$loops_per_part}` reads the same in both modes. **Untouched by the toggle:** revisit title,
+portrait, skip button, spotlight (resolved from `highlightKey`, not from the text), the input gates,
+the priority queue and the persisted `firedDialogs` set. One page, never paginated (**D‑TT‑5=A**).
+A dialog whose `mechanicText` is empty falls back to its authored pages, so the toggle is safe to
+leave on with partial content.
+
+Alternative rejected: making `Pages` itself return the mechanic text under a flag. That hides global
+state in a data class and makes the accessor lie; the override keeps one presentation path with one
+optional source.
+
+**Scope (D‑TT‑3=B).** The 24 gig‑1 and jam ids are written in EN and ES. The 10 character‑anchored
+reactives for gigs 2+ (`tut_earworm_tick` … `tut_sung_melody`) are **TUT‑TXT‑1b**;
+`tut_read_the_room` additionally waits for its trigger to exist (O5, §6C).
+
+**Authoring (D‑TT‑4=A).** `GameTextWindow`, field `M`, and the CSV row `field = mechanicText` — never
+in C#. Empty CSV cell means "no opinion", never "clear it". Asymmetry between languages raises
+`NO MECHANIC <lang>`; a token set that differs raises `MECHANIC TOKENS differ`. Pipeline authority:
+`systems/SSoT_Editor_Authoring_Tools.md` §20.9.
+
+**Demo warning.** `showMechanicText` is a `[SerializeField]`: ticking it dirties the scene/prefab and
+it can be committed ticked. Untick before showing the game, alongside `verboseLogging` — note there
+are **two** `verboseLogging` fields, one on `TutorialController` and one on `TutorialOverlayView`
+(the latter defaults to `true`).
+
+### 5A.6 Concept tags in mechanic text (TXT‑2, 2026‑09‑10)
+
+Mechanic text marks the concepts it names: `<link=gig>concierto</link>` renders in the concept
+colour, underlined, and opens that concept's tooltip on hover. Structural authority — syntax,
+resolution order, failure modes, canvas order — is `systems/SSoT_Game_Text.md`; what belongs here is
+the **authoring register**.
+
+**Rules for authoring tagged mechanic text.** Tag the *first* occurrence of a concept in a cell;
+later mentions stay plain. Tag ids are language‑neutral and identical in EN and ES — the visible text
+is what gets translated. The register of §5A.5 is unchanged: no character, no narrative second
+person, no jokes, no em dashes. Imperatives of action ("Arrastra la carta…") are fine; narration is
+not.
+
+**Why the text got shorter, not just marked.** The 24 gig‑1 and jam ids were rewritten in the same
+pass, from 2 283 words to 1 607 across both languages (−30 %). Marking without condensing would have
+been the worse half of the work: once a definition is one hover away, repeating it inside the
+sentence is padding. What remains is mechanism — trigger, effect, limit — which is why it did not
+shrink further.
+
+**Coverage.** The 24 ids of D‑TT‑3=B are tagged in EN and ES. The voiced pages are **not** tagged
+(D‑TAG‑4): the capability exists on the same rendering path and could be turned on for them, but
+that is a copy pass of its own. The 10 TUT‑TXT‑1b ids still have no mechanic text at all.
+
+**Parity.** A tag present in one language and missing in the other raises `MECHANIC TAGS differ` in
+`GameTextWindow`, by the same rule that governs `{$token}` sets. Pipeline authority:
+`systems/SSoT_Editor_Authoring_Tools.md` §20.11.
+
+**Known asymmetry (T‑TAG‑1).** Seven of the tagged ids resolve to registries with a single language
+slot, so in the Spanish build `flow`, `composure`, `earworm`, `shaken`, `vibe`, `stress` and
+`convinced` show **English** tooltips while the other seventeen show Spanish. Accepted for playtest
+(D‑TAG‑10=A); TXT‑3 is the batch that fixes it.
+
+**Open (O‑TT‑1).** The manager portrait stays visible in plain mode — the toggle replaces the body,
+not the frame. If "no character" should include the portrait, it is one guard on
+`captainImage.enabled` keyed on `pagesOverride != null`.
+
+**Known copy‑vs‑code divergence (F‑TT‑2, open).** `tut_musician_breakdown`'s voiced pages say the
+musician "stops playing"; code truth (`systems/SSoT_Gig_Combat_Core.md` §6.3) is Cohesion−1 + Stress
+reset + Shaken, and Shaken's restrictions are **not enforced at runtime**
+(`systems/SSoT_Status_Effects.md` §5.4). The mechanic text follows the code; the voiced pages were
+not rewritten. Resolve when it is decided whether Shaken gets implemented or the copy gets corrected.
 
 ---
 

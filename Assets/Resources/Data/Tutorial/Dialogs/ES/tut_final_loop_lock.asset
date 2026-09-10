@@ -22,3 +22,7 @@ MonoBehaviour:
     no hay siguiente loop que lo toque. Las composiciones van antes; el \xFAltimo
     loop es para acciones y remates."
   highlightKey: loops_bar
+  mechanicText: "\xDAltimo <link=loop>loop</link>: las <link=composition_card>cartas
+    de composici\xF3n</link> est\xE1n bloqueadas, porque un cambio ahora no tendr\xEDa
+    ning\xFAn loop en el que sonar. Las <link=action_card>cartas de acci\xF3n</link>
+    s\xED se juegan."

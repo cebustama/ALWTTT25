@@ -22,3 +22,6 @@ MonoBehaviour:
     two versions of the same thing. To add instead of swap, change the track or the
     musician.'
   highlightKey: song_panel_tracks
+  mechanicText: 'A <link=composition_card>composition card</link> played on a <link=track>track</link>
+    that already has one replaces it: one card per track. To add instead of replace,
+    play on another track.'

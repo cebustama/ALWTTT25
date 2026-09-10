@@ -22,3 +22,6 @@ MonoBehaviour:
     hit your musicians'' Stress, their fortitude reserve (at zero, breakdown), and
     others cover for each other. Watch them before your next turn.'
   highlightKey: audience_area
+  mechanicText: 'After the player''s turn, each audience member acts on its own:
+    some reduce a musician''s <link=stress>Stress</link>, some move to the front,
+    some do nothing. Audience statuses tick now. Then a new player turn begins.'

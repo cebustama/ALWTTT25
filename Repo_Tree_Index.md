@@ -1,6 +1,6 @@
 ﻿# Repo_Tree_Index — índice de rutas del repositorio ALWTTT
 
-**Snapshot: 2026-09-05 12:29.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
+**Snapshot: 2026-09-10 11:30.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
 
 **Para qué sirve.** El PK es plano: los ficheros adjuntos pierden su carpeta. Este índice devuelve la ruta real de cualquier fichero por su nombre, sin inferirla del `namespace`. Sirve para rellenar la columna *Ruta en repo* de `PK_Manifest.md` y para pedir ficheros por ruta exacta en el File Request Protocol.
 
@@ -12,7 +12,7 @@
 
 Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-IncludeAssets` si un lote de contenido los necesita.
 
-**Total indexado: 454 ficheros.**
+**Total indexado: 463 ficheros.**
 
 | Carpeta | Ficheros | KB |
 |---|---:|---:|
@@ -22,37 +22,37 @@ Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-Inc
 | `Assets/Scripts` | 1 | 7 |
 | `Assets/Scripts/Backgrounds` | 4 | 11 |
 | `Assets/Scripts/Cards` | 78 | 771 |
-| `Assets/Scripts/Characters` | 20 | 145 |
+| `Assets/Scripts/Characters` | 22 | 220 |
 | `Assets/Scripts/Controllers` | 2 | 56 |
-| `Assets/Scripts/Data` | 50 | 232 |
+| `Assets/Scripts/Data` | 50 | 233 |
 | `Assets/Scripts/DevMode` | 8 | 163 |
-| `Assets/Scripts/Editor` | 1 | 7 |
-| `Assets/Scripts/Encounters` | 2 | 2 |
+| `Assets/Scripts/Editor` | 4 | 70 |
+| `Assets/Scripts/Encounters` | 3 | 55 |
 | `Assets/Scripts/Enums` | 22 | 12 |
 | `Assets/Scripts/Extensions` | 1 | 1 |
 | `Assets/Scripts/Generation` | 13 | 29 |
 | `Assets/Scripts/Interfaces` | 7 | 3 |
-| `Assets/Scripts/Managers` | 13 | 447 |
+| `Assets/Scripts/Managers` | 13 | 455 |
 | `Assets/Scripts/Map` | 11 | 25 |
 | `Assets/Scripts/Music` | 16 | 291 |
 | `Assets/Scripts/Sensory` | 26 | 102 |
 | `Assets/Scripts/Status` | 9 | 85 |
-| `Assets/Scripts/Tutorial` | 14 | 151 |
-| `Assets/Scripts/UI` | 45 | 295 |
+| `Assets/Scripts/Tutorial` | 14 | 137 |
+| `Assets/Scripts/UI` | 48 | 323 |
 | `Assets/Scripts/Utils` | 5 | 8 |
-| `Docs` | 9 | 649 |
+| `Docs` | 9 | 720 |
 | `Docs/archive` | 8 | 660 |
 | `Docs/archive/absorbed` | 2 | 5 |
 | `Docs/archive/snapshots` | 1 | 0 |
 | `Docs/audits` | 2 | 107 |
 | `Docs/integrations` | 1 | 1 |
 | `Docs/integrations/midigenplay` | 5 | 97 |
-| `Docs/planning` | 11 | 133 |
+| `Docs/planning` | 11 | 140 |
 | `Docs/planning/active` | 16 | 457 |
 | `Docs/planning/archive` | 7 | 102 |
 | `Docs/reference` | 5 | 31 |
 | `Docs/runtime` | 3 | 68 |
-| `Docs/systems` | 12 | 484 |
+| `Docs/systems` | 12 | 520 |
 | `Packages` | 2 | 19 |
 
 ## Nombres duplicados (atención)
@@ -215,12 +215,14 @@ Assets/Scripts/Characters/CharacterAnimator.cs
 Assets/Scripts/Characters/CharacterBase.cs
 Assets/Scripts/Characters/CharacterCanvas.cs
 Assets/Scripts/Characters/CharacterStats.cs
+Assets/Scripts/Characters/Editor/AudienceMemberWizard.cs
 Assets/Scripts/Characters/MusicianBase.cs
 Assets/Scripts/Characters/Musicians/MusicianCharacterSimple.cs
 Assets/Scripts/Characters/SpriteOutlineController.cs
 Assets/Scripts/Characters/StatusStats.cs
 Assets/Scripts/Characters/StatusVisualDriver.cs
 Assets/Scripts/Characters/VibeEffectiveness.cs
+Assets/Scripts/Characters/VibeProjection.cs
 ```
 
 ### Assets/Scripts/Controllers
@@ -302,11 +304,15 @@ Assets/Scripts/DevMode/GenerationDebugFormatter.cs
 
 ```
 Assets/Scripts/Editor/S5e_InspirationEconomyTool.cs
+Assets/Scripts/Editor/Text/GameTextCsv.cs
+Assets/Scripts/Editor/Text/GameTextWindow.cs
+Assets/Scripts/Editor/Text/TutorialTextTable.cs
 ```
 
 ### Assets/Scripts/Encounters
 
 ```
+Assets/Scripts/Encounters/Editor/GigEncounterWizard.cs
 Assets/Scripts/Encounters/EncounterBase.cs
 Assets/Scripts/Encounters/GigEncounter.cs
 ```
@@ -540,7 +546,10 @@ Assets/Scripts/UI/Tooltips/ITooltipTargetBase.cs
 Assets/Scripts/UI/Tooltips/TooltipController.cs
 Assets/Scripts/UI/Tooltips/TooltipManager.cs
 Assets/Scripts/UI/Tooltips/TooltipText.cs
+Assets/Scripts/UI/Tooltips/VibeBarTooltipTarget.cs
+Assets/Scripts/UI/Tooltips/VibeReadoutTooltipTarget.cs
 Assets/Scripts/UI/UIPulseAnimator.cs
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs
 ```
 
 ### Assets/Scripts/Utils

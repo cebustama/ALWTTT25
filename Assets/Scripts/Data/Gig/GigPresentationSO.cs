@@ -98,10 +98,10 @@ namespace ALWTTT.Data
 
         [Header("SongHype Bar Visibility [S5f / #6a]")]
         [SerializeField, Tooltip("Master switch for the SongHype bar UI " +
-            "(includes the 'L + SFX = N' readout under it). OFF = the bar " +
+            "(the Vibe readout has its own switch since BIGNUM-1). OFF = the bar " +
             "never shows during performance — used for the simplified first " +
             "gig. SongHype still accrues, stage SFX still fire, and song-end " +
-            "Vibe conversion is unchanged; only the readout is hidden.")]
+            "Vibe conversion is unchanged; only the bar is hidden.")]
         private bool showSongHypeBar = true;
 
         [SerializeField, Tooltip("Etiquetas de efectividad sobre el público " +
@@ -116,6 +116,16 @@ namespace ALWTTT.Data
         public bool ShowVibeProjectedNumbers => showVibeProjectedNumbers;
 
         public bool ShowSongHypeBar => showSongHypeBar;
+
+
+        // [BIGNUM-1 / D-BN-7=A] The C1 Vibe readout ("big number") has its own switch,
+        // decoupled from the bar. D-S5f-6=B keeps the bar OFF in gig 1; the number can
+        // still show. In the prefab the readout must NOT live under songHypeRoot.
+        [SerializeField, Tooltip("[BIGNUM-1] Número grande de Vibe proyectado (L + SFX) " +
+            "durante la canción. Independiente de la barra de SongHype.")]
+        private bool showVibeReadout = true;
+
+        public bool ShowVibeReadout => showVibeReadout;
 
         // --- SFX → FlatVibe bonus [§5.3.5] ---
 

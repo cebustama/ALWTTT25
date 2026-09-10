@@ -156,6 +156,28 @@ The TUT-R* arc lives in `TUT-REBUILD_Sub_Roadmap.md`; these three fell out of it
   - **DEMO-FIXES-A — ✅ CLOSED 2026-07-15.** Landed: **DEMO-TUT-TOGGLE** (gig-open opt-in prompt; `PD.TutorialEnabled` single flag; `TutorialGuidedDriver.PrepareForGig`; runtime driver resolution via `UIManager.GigCanvas`, D-DF-8=A) · **R1** (beat-8 `HandHas`, D-DF-4=A) · **CT1** (persistent highlight pulse survives modal close) · **DF-COST0** (hide cost badge at cost 0, D-DF-5=A) · **DF-ECONTIP** (pip hover tooltip, D-DF-6=A) · **DF-CATALOG** (runtime band-catalog union; `AllCardsList` → fallback, D-DF-7=A). Decisions D-DF-1..8 all = A. Smokes ST-DF-1..6 + 8..13 PASS; ST-DF-7 (finisher-in-pile) deferred to Dev Mode / M1.5 (unreachable in normal play). Doc pass: `DEMO-FIXES-A_Doc_Diffs_2026-07-15.md`. First real test of the final-loop composition lock on a non-tutorial path (ST-DF-3 PASS).
     **Still open in DEMO-FIXES:** `DF-INSPLOOP` (new effect spec — own batch, ideally before S5i) · `DF-ARTIC` / `MGP-ALWTTT-ARTIC-1` (cross-boundary MidiGenPlay).
   - **DF-INSPLOOP** — "+INSP per loop" as a **card effect** (behaves like `inspirationGenerated > 0` on the session's per-loop gain). New effect spec ⇒ goes through the `SSoT_Card_Authoring_Contracts.md` §9 extension rule; open design decisions to surface at batch open: duration (song-scoped? part-scoped? permanent?), stacking, and interaction with the retired basal generation (S5e D-S5e-1=A locked `inspirationGenerated = 0` project-wide; this effect is the deliberate, card-gated way back in) + the inert LoopScore complexity term (CURRENT_STATE §4, owned by S5i).
+  - **TUT-TXT-1b** — texto mecánico plano para los **10 reactivos anclados a personaje de gigs 2+** (`tut_earworm_tick`, `tut_captivated`, `tut_voltage_first`, `tut_overload_ready`, `tut_bonus_loop`, `tut_spotlight`, `tut_read_the_room`, `tut_harmony_track`, `tut_harmony_denied`, `tut_sung_melody`), EN + ES. Los 24 ids de gig 1 y jam ya están escritos (TUT-TXT-1, 2026-09-09, D-TT-3=B). Entrega en CSV importable, nunca pegado en C# (D-TT-6=C). **No bloquea el Combat MVP**: los ids sin texto caen a su copy con voz. `tut_read_the_room` espera además a que exista su trigger (O5).
+  - **TXT-2** — **lenguaje de tags de conceptos + condensación del texto mecánico.** Marcar los conceptos mecánicos en el texto (`Vibe`, `Stress`, `Composure`, `Inspiración`…) para que se rendericen distinto y abran tooltip al hover, y en la misma pasada reducir el `mechanicText` al mínimo suficiente (reescribir dos veces es tirar la parte cara del trabajo — decisión de secuencia al abrir). **Riesgos conocidos de apertura:** TMP pinta literales los tags que no conoce, así que el formato real es `<link>` / `<style>` o un preprocesador propio; ya existen **dos** fuentes de significado de concepto (`StatusEffectSO` y `TooltipManager.SpecialKeywordData`) y el lote **no debe crear una tercera**; y **TIP-1** sigue abierta con dos defectos del pipeline de tooltips que un hover por palabra pisa de lleno. Prompt de rehidratación emitido al cerrar TUT-TXT-1c.
+    **CERRADA 2026-09-10.** Los tres riesgos de apertura se resolvieron sin ceder en ninguno:
+    sintaxis `<link=id>` nativa de TMP decorada en un punto (D-TAG-1=A′), la tercera fuente **sí** se
+    creó pero **ordenada la última** (D-TAG-2=C — el glosario sólo posee ids que nadie más posee, así
+    que no puede tapar un hogar existente), y el hover se construyó de modo que F-BN-7 y F-BN-8
+    quedan fuera de alcance sin tocar el pipeline (D-TAG-5=D), dejando **TIP-1 abierta e intacta**.
+    Autoridad nueva `systems/SSoT_Game_Text.md` (D-TAG-9=A). Texto mecánico −30 %. ST-TAG-1..10 +
+    regresión PASS. Hallazgos T-TAG-1 y F-TXT-2-1 → TXT-3 y O-TXT-3.
+  - **TXT-3** — **el texto de jugador de estados y keywords gana ranura de idioma, moviéndose al
+    glosario.** Abierta por T-TAG-1 (TXT-2, 2026-09-10): 7 de los 24 conceptos taggeados muestran
+    tooltip en inglés dentro del tutorial español, porque `StatusEffectSO` (`DisplayName`,
+    `Description`) y `SpecialKeywordData` (`contentText`) tienen una sola ranura. **Es un MOVIMIENTO
+    de autoridad, no una copia:** el texto sale de esos dos assets y entra en `ConceptGlossarySO`
+    (ya por idioma, ya con pestaña, CSV, paridad y fingerprint); `StatusEffectSO.displayName` se
+    redefine como etiqueta de desarrollo declarada (logs y editor, nunca pantalla) y el orden de
+    resolución de `SSoT_Game_Text` §3 se simplifica hacia un registro único con los otros dos como
+    fallback de migración. **Alternativa rechazada:** campos por idioma en el SO — mete la traducción
+    dentro de un asset de gameplay y exige tocar el script por cada idioma. Alcance: 12 assets de
+    estado + 7 keywords + los consumidores de tooltip (`CharacterCanvas`, `CardBase.ShowTooltipInfo`).
+    **No arregla F-TXT-2-1** (literales hardcodeados en `AudienceCharacterCanvas`), que sigue siendo
+    entrada de O-TXT-3. No bloquea el Combat MVP.
   - **DF-ARTIC** *(cross-boundary)* — **randomized chord articulation.** Today a card binds exactly one articulation; wanted: a Random option, potentially re-rolled per loop and per chord. The randomization mechanism is **MidiGenPlay-internal** (composer/config side) — per the boundary rule it is filed as a cross-project ask (**MGP-ALWTTT-ARTIC-1**, same pattern as SEED-1 / MOD-DIR-1); the ALWTTT side owns only the authoring surface that requests it and adopts after the package ships.
 
 ## S5h — Reward screen  *(IMPORTANT; pulled-forward presentation half of old S5d, per D-REPLAN-3)*

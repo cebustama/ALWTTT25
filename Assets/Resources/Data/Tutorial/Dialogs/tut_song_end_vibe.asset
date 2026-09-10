@@ -22,3 +22,7 @@ MonoBehaviour:
     Each of them holds up to {$audience_hp}. Drain it and they''re yours: convinced.
     That''s how you win a gig, song by song.'
   highlightKey: audience_vibe_bars
+  mechanicText: 'At <link=song_end>song end</link>, <link=hype>Hype</link> becomes
+    <link=vibe>Vibe</link> damage to each audience member. Vibe pools hold up to
+    {$audience_hp}; at zero the member is <link=convinced>convinced</link>. <link=blocked>Blocked</link>
+    members receive nothing. All convinced: the gig is won at once.'

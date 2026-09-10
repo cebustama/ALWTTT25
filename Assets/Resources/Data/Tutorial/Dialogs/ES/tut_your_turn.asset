@@ -22,3 +22,7 @@ MonoBehaviour:
     la canci\xF3n; las de ACCI\xD3N cuidan a la banda y empujan al p\xFAblico. La
     m\xFAsica primero. Siempre."
   highlightKey: hand
+  mechanicText: "Dos tipos de carta. Las <link=composition_card>cartas de composici\xF3n</link>
+    a\xF1aden m\xFAsica y van sobre la banda. Las <link=action_card>cartas de acci\xF3n</link>
+    cambian medidores y estados y van sobre un m\xFAsico o un miembro del p\xFAblico.
+    Algunas cuestan <link=inspiration>Inspiraci\xF3n</link>."

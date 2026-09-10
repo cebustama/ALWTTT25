@@ -21,3 +21,4 @@ MonoBehaviour:
   - 'Conito''s got Voltage to spare for a closer: OVERLOAD. It costs Voltage, not
     Inspiration. Decide: spend it now on a solo, or bank it for the next song.'
   highlightKey: status_icon_musician
+  mechanicText: 

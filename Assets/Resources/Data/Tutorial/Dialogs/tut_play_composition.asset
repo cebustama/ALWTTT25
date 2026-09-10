@@ -22,3 +22,7 @@ MonoBehaviour:
     name and lands on them, wherever you drop it. Each one adds something real to
     the song. It''s not set dressing, it''s music.'
   highlightKey: card_default_mode
+  mechanicText: Drag the <link=composition_card>composition card</link> onto the
+    band. It resolves on the musician named on the card, whatever the drop point,
+    and writes to that musician's <link=track>track</link>. It scores on every <link=loop>loop</link>
+    it plays in.

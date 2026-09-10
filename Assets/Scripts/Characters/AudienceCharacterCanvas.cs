@@ -77,9 +77,95 @@ namespace ALWTTT.Characters
         private const string TasteBlockHeader = "<b>— Gustos —</b>";
         private const string TasteOnlyHeader = "Gustos";
 
+
+        // [BIGNUM-1 / D-BN-9=A] The step-by-step Vibe breakdown composes into the SAME
+        // hover tooltip as intention + tastes (PRES-1 invariant: one hover surface per
+        // character). This is a presentation cache of what GigManager projected — not
+        // a second source of truth; GigManager.BuildVibeProjection owns the numbers.
+        // ESP copy hardcoded like the rest of this canvas (D-S5f-7=A).
+        // [BIGNUM-1r] VibeBlockHeader retired with the D-BN-9 revert; the bar tooltip
+        // uses VibeOnlyHeader as its plain header.
+        private const string VibeOnlyHeader = "Vibe";
+        private VibeProjection _projection;
+        private bool _hasProjection;
+
+        private bool _barHovered;
+
+        /// <summary>[BIGNUM-1r / D-BN-15] Set by VibeBarTooltipTarget (child, runs first).</summary>
+        public void NotifyBarHover(bool hovered) { _barHovered = hovered; }
+
+        /// <summary>[BIGNUM-1r / D-BN-14=A] The step-by-step breakdown, on the bar's hover only.</summary>
+        public void ShowVibeTooltip()
+        {
+            if (!_hasProjection) return;
+            ShowTooltipInfo(TooltipManager.Instance,
+                BuildVibeText(in _projection), VibeOnlyHeader, descriptionRoot);
+        }
+
+        public void HideVibeTooltip()
+        {
+            HideTooltipInfo(TooltipManager.Instance);
+        }
+
+        /// <summary>
+        /// [BIGNUM-1r / D-BN-14=A] Drop the predicted segment. GigManager calls this
+        /// right before the song-end ApplyIncomingVibe, so the real bar lerps down
+        /// through where the ghost was — prediction becomes payment on screen.
+        /// </summary>
+        public void ClearPredictedVibe()
+        {
+            healthBar?.SetPredictedLoss(0);
+        }
+
+        // [BIGNUM-1 / D-BN-4] "KO" tint for the C3 number when this song would convince
+        // the member (projected >= remaining resistance). The default tint is captured
+        // from the prefab the first time the number shows, so an unstyled prefab keeps
+        // its own colour and nothing else changes.
+        [Header("Vibe Telegraph — KO (BIGNUM-1)")]
+        [SerializeField] private Color projectedKoColor = new Color(1f, 0.85f, 0.25f);
+        private Color _projectedDefaultColor;
+        private bool _projectedDefaultCached;
+
+        // Lines follow the PAYOUT order (SSoT_Scoring §6.1 → §7.1 → §6.2 → gate).
+        // Every line is shown even when neutral (× 1,00): the shape teaches the model.
+        private static string BuildVibeText(in VibeProjection p)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append("Hype de la canción: ").Append(p.HypeBase.ToString("0.#"));
+
+            if (p.Blocked)
+            {
+                sb.Append("\nBloqueado (alguien alto le tapa) → 0");
+                sb.Append("\nAl acabar la canción: 0");
+                return sb.ToString();
+            }
+
+            sb.Append("\n× ").Append(p.ImpressionFactor.ToString("0.00"))
+              .Append(" gustos → ").Append(p.LAfterImpression);
+            sb.Append("\n× ").Append(p.FlowMult.ToString("0.00"))
+              .Append(" Flow (").Append(p.FlowStacks).Append(") → ").Append(p.LAfterFlow);
+            sb.Append("\n+ ").Append(p.Sfx).Append(" SFX → ").Append(p.Subtotal);
+
+            if (p.Indifferent)
+                sb.Append("\nIndiferente → 0");
+            else
+                sb.Append("\n× ").Append(p.CaptivatedMult.ToString("0.00"))
+                  .Append(" Captivado (").Append(p.CaptivatedStacks).Append(") → ").Append(p.Final);
+
+            sb.Append("\nAl acabar la canción: ").Append(p.Final > 0 ? "-" + p.Final : "0");
+            if (p.Ko) sb.Append("\n¡Esta canción lo convence!");
+            return sb.ToString();
+        }
+
         protected override void ShowTooltipInfo()
         {
             base.ShowTooltipInfo();
+
+
+            // [BIGNUM-1r / D-BN-15] The bar's own tooltip is showing; PointerEnter reaches
+            // the child (VibeBarTooltipTarget) before this canvas, so the flag is already
+            // set when we get here. Stand down instead of overwriting its tooltip.
+            if (_barHovered) return;
 
             string header = null;
             string body = null;
@@ -104,6 +190,10 @@ namespace ALWTTT.Characters
 
                 if (header == null) header = TasteOnlyHeader;
             }
+
+            // [BIGNUM-1r] D-BN-9=A was tried and REVERTED by observation (2026-09-09):
+            // status + intention + tastes + Vibe in one column was too much. The Vibe
+            // breakdown now lives on the resistance bar's own hover (ShowVibeTooltip).
 
             if (body != null)
                 ShowTooltipInfo(TooltipManager.Instance, body, header, descriptionRoot);
@@ -139,13 +229,55 @@ namespace ALWTTT.Characters
                 bool show = showNumber && tier != VibeEffectiveness.Immune;
                 projectedVibeText.gameObject.SetActive(show);
                 if (show)
+                {
+                    // [BIGNUM-1] Capture the prefab tint once; reset to it on every
+                    // show so a previous KO tint never leaks into the next refresh.
+                    if (!_projectedDefaultCached)
+                    {
+                        _projectedDefaultColor = projectedVibeText.color;
+                        _projectedDefaultCached = true;
+                    }
+                    projectedVibeText.color = _projectedDefaultColor;
                     projectedVibeText.text = $"-{projectedNumber}";
+                }
             }
+        }
+
+        /// <summary>
+        /// [BIGNUM-1 / D-BN-2=A] Telegraph from a full projection: caches it for the
+        /// tooltip breakdown (D-BN-9=A) and tints the C3 number when this song would
+        /// convince the member (D-BN-4 KO). The S5a surface is delegated to the S5a
+        /// method; this adds presentation on top, no numbers of its own.
+        /// </summary>
+        public void SetVibeTelegraph(in VibeProjection p, bool showNumber, bool showLabel = true)
+        {
+            _projection = p;
+            _hasProjection = true;
+
+            SetVibeTelegraph(p.Tier, p.Final, showNumber, showLabel);
+
+            // [BIGNUM-1r2 / D-BN-16=A] The ghost is its OWN surface: it survives the
+            // numeric-label toggle. showVibeProjectedNumbers governs the "-N" text, not
+            // the bar segment — turning the number off to reduce clutter should leave
+            // the bar readable, which is the whole point of the segment.
+            // Immune/blocked project 0, so the ghost simply does not show for them.
+            healthBar?.SetPredictedLoss(p.Final);
+
+            SetPredictionVisible(p.Final > 0); // [BIGNUM-1r3 / D-BN-17=A]
+
+            if (projectedVibeText != null && projectedVibeText.gameObject.activeSelf && p.Ko)
+                projectedVibeText.color = projectedKoColor;
         }
 
         /// <summary>[S5a] Hide the telegraph (between songs / audience turn).</summary>
         public void HideVibeTelegraph()
         {
+            _hasProjection = false; // [BIGNUM-1] no breakdown in the tooltip between songs
+
+            healthBar?.SetPredictedLoss(0); // [BIGNUM-1r] no ghost between songs either
+
+            SetPredictionVisible(false);    // [BIGNUM-1r3] full bars go back to hidden
+
             // Deactivate the labels explicitly too, so hide works whether they are
             // children of vibeTelegraphRoot or siblings of it (prefab-layout robust).
             if (vibeTelegraphRoot != null)

@@ -18,6 +18,10 @@ MonoBehaviour:
   revisitTitle: The stage reacts
   portrait: {fileID: -8592814519688813882, guid: e4ce0c89601e9a34497855d51bc2812f, type: 3}
   pages:
-  - "The crowd's heating up \u2014 the stage reacts as the song's hype climbs. Keep
-    it going for bigger moments."
+  - The crowd's heating up. The stage reacts as the song's hype climbs. Keep it going
+    for bigger moments.
   highlightKey: 
+  mechanicText: <link=stage>Stage effects</link> step up each time the song's <link=hype>Hype</link>
+    crosses a threshold. Each upward crossing banks a flat <link=vibe>Vibe</link>
+    bonus paid to every audience member at <link=song_end>song end</link>. Higher
+    stages unlock as run rewards.

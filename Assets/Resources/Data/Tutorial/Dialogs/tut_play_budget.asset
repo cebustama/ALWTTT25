@@ -23,3 +23,7 @@ MonoBehaviour:
     rule: one and one. Four musicians means four turns inside your turn. Spread them
     out.'
   highlightKey: hand
+  mechanicText: 'Play refused: this musician''s <link=budget>budget</link> for the
+    <link=period>period</link> is spent. One <link=composition_card>composition card</link>
+    and one <link=action_card>action card</link> per musician per period. Unspent
+    plays do not carry over.'

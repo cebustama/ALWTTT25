@@ -22,3 +22,7 @@ MonoBehaviour:
     trabajan solos, turno a turno, sin pedir permiso. Pl\xE1ntalos y deja que la
     m\xFAsica haga el resto."
   highlightKey: status_icon_audience
+  mechanicText: "Se ha aplicado un estado a un miembro del p\xFAblico (icono bajo
+    su retrato). Los estados del p\xFAblico act\xFAan por su cuenta cada turno del
+    p\xFAblico hasta expirar o agotar sus acumulaciones. El icono muestra qu\xE9
+    hace al pasar el cursor."

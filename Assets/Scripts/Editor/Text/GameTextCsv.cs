@@ -35,6 +35,7 @@ namespace ALWTTT.TextAuthoring
         public const string ColId = "id";
         public const string ColField = "field";
         public const string FieldTitle = "revisitTitle";
+        public const string FieldMechanic = "mechanicText";   // [TUT-TXT-1 / D-TT-4=A] one row per id
         public const string FieldPagePrefix = "page_";
 
         public static readonly char[] SupportedDelimiters = { ',', ';', '\t' };

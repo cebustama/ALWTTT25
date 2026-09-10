@@ -22,3 +22,6 @@ MonoBehaviour:
     top shows what's left. When the last loop ends, the song closes, and the bill
     comes due.
   highlightKey: loops_bar
+  mechanicText: A song lasts {$loops_per_part} <link=loop>loops</link>; each is one
+    play <link=period>period</link>. The loops bar shows how many remain. After the
+    last loop, the song's result is applied to the audience.

@@ -18,8 +18,11 @@ MonoBehaviour:
   revisitTitle: Cartas de sonido
   portrait: {fileID: 0}
   pages:
-  - "Esa carta no toc\xF3 tus medidores \u2014 toc\xF3 la m\xFAsica misma: su velocidad,
+  - "Esa carta no toc\xF3 tus medidores: toc\xF3 la m\xFAsica misma, su velocidad,
     su tonalidad."
   - "Las cartas de sonido cambian c\xF3mo suena la canci\xF3n. Es lo m\xE1s parecido
     a magia que vas a manejar."
   highlightKey: song_panel
+  mechanicText: "Una <link=sound_card>carta de sonido</link> cambia una propiedad
+    de toda la canci\xF3n, como el tempo o la tonalidad, en lugar de a\xF1adir una
+    parte a una <link=track>pista</link>. Por s\xED sola no cambia ning\xFAn medidor."

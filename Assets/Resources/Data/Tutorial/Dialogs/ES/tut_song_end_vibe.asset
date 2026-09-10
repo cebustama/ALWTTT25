@@ -22,3 +22,8 @@ MonoBehaviour:
     Vibe contra el p\xFAblico. Cada uno aguanta hasta {$audience_hp}. Vac\xEDasela
     y es tuyo: convencido. As\xED se gana un concierto, canci\xF3n a canci\xF3n."
   highlightKey: audience_vibe_bars
+  mechanicText: "Al <link=song_end>final de la canci\xF3n</link>, el <link=hype>Hype</link>
+    se convierte en da\xF1o de <link=vibe>Vibe</link> para cada miembro del p\xFAblico.
+    Las reservas de Vibe llegan hasta {$audience_hp}; a cero, el miembro queda <link=convinced>convencido</link>.
+    Los miembros <link=blocked>bloqueados</link> no reciben nada. Todos convencidos:
+    el concierto se gana al instante."

@@ -2,6 +2,7 @@ using ALWTTT.Cards;
 using ALWTTT.Data;
 using ALWTTT.Managers;
 using ALWTTT.Sensory;
+using ALWTTT.Status;     // [TXT-2] StatusEffectCatalogueSO
 using ALWTTT.UI;
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,22 @@ namespace ALWTTT.Tutorial
         [SerializeField] private Sprite defaultPortrait;
         [SerializeField] private Sprite defaultHoleShape;
 
+
+        [Header("Concept tags (TXT-2)")]
+        [Tooltip("[TXT-2 / D-TAG-2b=(i)] Glossary in the SAME language as 'catalog'. Language is chosen " +
+                 "here, once, by inspector assignment (D-S5f-2=B); runtime never reads languageCode.")]
+        [SerializeField] private ConceptGlossarySO conceptGlossary;
+        [Tooltip("[TXT-2 / D-TAG-2=C] Status catalogues searched by StatusKey for <link=id> tags " +
+                 "(musician + audience). Searched before keywords and before the glossary.")]
+        [SerializeField] private StatusEffectCatalogueSO[] conceptStatusCatalogues;
+
+
+        [Header("Playtest (TUT-TXT-1)")]
+        [Tooltip("[TUT-TXT-1 / D-TT-2=A] Show each dialog's plain mechanicText instead of its " +
+                 "pages. Dialogs with empty mechanicText fall back to pages. Title, portrait, " +
+                 "spotlight, gates and fired-state are unaffected. OFF = voiced tutorial.")]
+        [SerializeField] private bool showMechanicText;
+
         [Header("Debug")]
         [Tooltip("Logs every event received, enqueue decision, dialog shown, and gate " +
                  "change. Turn OFF before demo/ship.")]
@@ -49,6 +66,14 @@ namespace ALWTTT.Tutorial
         [SerializeField] private int voltageOverloadThreshold = 3;
 
         private void Log(string msg) { if (verboseLogging) Debug.Log($"{DebugTag} {msg}"); }
+
+
+        // [TUT-TXT-1 / D-TT-2=A · D-TT-5=A] Body override: one page of plain mechanic text,
+        // or null so the overlay paginates dialog.Pages exactly as before.
+        private IReadOnlyList<string> ResolveBodyPages(TutorialDialogSO dialog) =>
+            showMechanicText && dialog != null && dialog.HasMechanicText
+                ? new[] { dialog.MechanicText }
+                : null;
 
         [Serializable]
         public class HighlightBinding
@@ -173,6 +198,9 @@ namespace ALWTTT.Tutorial
         private void OnEnable()
         {
             catalog?.BuildIndex();
+
+            if (overlay != null) overlay.SetConceptSources(conceptGlossary, conceptStatusCatalogues);   // [TXT-2]
+
             var bus = SensoryEventBus.Instance;
             if (bus == null)
             {
@@ -451,9 +479,11 @@ namespace ALWTTT.Tutorial
 
             var spot = ResolveHighlight(next);
             Log($"SHOW '{next.TriggerId}' (highlight='{(next.HasHighlight ? next.HighlightKey : "none")}', " +
-                $"spotlight={(spot.Enabled ? (spot.Target != null ? spot.Target.name : "manual") : "none")})");
+                $"spotlight={(spot.Enabled ? (spot.Target != null ? spot.Target.name : "manual") : "none")}, " +
+                $"body={(ResolveBodyPages(next) != null ? "mechanic" : "pages")})");
             overlay.Show(next, spot, defaultPortrait,
-                onComplete: () => OnDialogComplete(next));
+                onComplete: () => OnDialogComplete(next),
+                pagesOverride: ResolveBodyPages(next));
             StartHighlightPulse(next); // [TUT-R2b]
         }
 
@@ -739,7 +769,8 @@ namespace ALWTTT.Tutorial
             var spot = ResolveHighlight(dialog);
             // No gate, no fired-state change; just present and hide on complete.
             overlay.Show(dialog, spot, defaultPortrait,
-                onComplete: () => overlay.Hide());
+                onComplete: () => overlay.Hide(),
+                pagesOverride: ResolveBodyPages(dialog));
         }
 
         /// <summary>Clear the entire fired set so every tutorial re-shows on its next

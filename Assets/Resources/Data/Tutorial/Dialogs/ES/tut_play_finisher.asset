@@ -23,3 +23,8 @@ MonoBehaviour:
     Ju\xE9gala antes de que acabe el loop. Cada m\xFAsico tiene su remate; hoy toca
     el de Sibi. El cierre lo es todo."
   highlightKey: card_psychic_waves
+  mechanicText: "Psychic Waves es una <link=action_card>carta de acci\xF3n</link>:
+    cuesta <link=inspiration>Inspiraci\xF3n</link>, reduce el <link=vibe>Vibe</link>
+    de todo el p\xFAblico a la vez y aplica <link=earworm>Earworm</link>, que sigue
+    reduciendo Vibe en los turnos del p\xFAblico siguientes. No cambia la canci\xF3n.
+    El tutorial la espera en el \xFAltimo <link=loop>loop</link>."

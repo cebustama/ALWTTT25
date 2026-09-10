@@ -1,5 +1,6 @@
 ﻿using ALWTTT.Managers;
 using ALWTTT.Utils;
+using ALWTTT.Tooltips; // [BIGNUM-1r] VibeReadoutTooltipTarget
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -42,6 +43,26 @@ namespace ALWTTT.UI
         [SerializeField] private Image songHypeImage;
         [SerializeField] private TextMeshProUGUI songHypeLabel; // % text
         [SerializeField] private TextMeshProUGUI vibeReadoutLabel; // [S5a] "L + SFX = N" under the SongHype bar
+
+
+        // [BIGNUM-1 / D-BN-1=A + D-BN-7=A] The C1 readout is now its own surface.
+        // PREFAB RULE: vibeReadoutLabel must live under vibeReadoutRoot, a SIBLING of
+        // songHypeRoot — not a child — or SetSongHypeVisible(false) keeps hiding it.
+        // [BIGNUM-1r / D-BN-13=A] The label shows ONLY the big total; the band-wide
+        // chain (Hype % → L, + SFX = N, one member's worth) is a hover tooltip on the
+        // number (vibeReadoutTooltip, optional). vibeReadoutPulse is optional: when
+        // null, the label is scaled directly and does not beat.
+        [Header("Vibe Readout (BIGNUM-1)")]
+        [SerializeField] private GameObject vibeReadoutRoot;
+        [SerializeField] private VibeReadoutTooltipTarget vibeReadoutTooltip; // [BIGNUM-1r / D-BN-13=A]
+        [SerializeField] private VibeReadoutBeatPulse vibeReadoutPulse;
+        [SerializeField, Min(0.1f)] private float readoutMinScale = 1f;
+        [SerializeField, Min(0.1f)] private float readoutMaxScale = 2.2f;
+        [SerializeField] private Color readoutColdColor = Color.white;
+        [SerializeField] private Color readoutHotColor = new Color(1f, 0.35f, 0.2f);
+        [SerializeField]
+        private AnimationCurve readoutGrowthCurve =
+            AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
         [Header("Song Hype Visuals")]
         [SerializeField] private float hypeLerpDefaultDuration = 1f;
@@ -108,6 +129,10 @@ namespace ALWTTT.UI
 
             if (songHypeRoot != null)
                 songHypeRoot.SetActive(false);
+
+            // [BIGNUM-1 / D-BN-7=A] The readout starts hidden too; GigManager shows it
+            // at song start from its own switch (ShowVibeReadout), never from the bar.
+            SetVibeReadoutVisible(false);
             _songHypeVisible = false;
         }
 
@@ -288,11 +313,75 @@ namespace ALWTTT.UI
         // [S5a/T7] C1 global accumulator readout: "L + SFX = N" under the SongHype bar.
         // L = SongHype-driven base Vibe (volatile), SFX = banked flat bonus (monotonic),
         // N = total. Driven by GigManager.RefreshVibeProjection at loop boundaries.
-        // The label lives under songHypeRoot, so it shows/hides with the bar.
-        public void SetVibeReadout(int lPart, int sfxPart)
+        // [BIGNUM-1] The label lives under vibeReadoutRoot (own switch); the bar no
+        // longer governs it. Size and colour scale with magnitude01 (D-BN-4: relative
+        // to the crowd — 1.0 = one average unconvinced member's worth this song); the
+        // beat pulse, when wired, gets the same magnitude as intensity (D-BN-3=A).
+        public void SetVibeReadout(int lPart, int sfxPart, float magnitude01,
+            float hype01, float avgMaxVibe)
         {
             if (vibeReadoutLabel == null) return;
-            vibeReadoutLabel.text = $"{lPart} + {sfxPart} = {lPart + sfxPart}";
+
+            int total = lPart + sfxPart;
+            float m = Mathf.Clamp01(magnitude01);
+
+            vibeReadoutLabel.text = total.ToString();
+
+            if (vibeReadoutTooltip != null)
+                vibeReadoutTooltip.SetContent("Vibe de la canción",
+                    BuildReadoutTooltip(lPart, sfxPart, hype01, avgMaxVibe));
+
+            float k = readoutGrowthCurve != null ? Mathf.Clamp01(readoutGrowthCurve.Evaluate(m)) : m;
+            float scale = Mathf.Lerp(readoutMinScale, readoutMaxScale, k);
+            vibeReadoutLabel.color = Color.Lerp(readoutColdColor, readoutHotColor, k);
+
+            if (vibeReadoutPulse != null)
+            {
+                vibeReadoutPulse.SetBaseScale(scale);   // the pulse owns localScale
+                vibeReadoutPulse.SetIntensity01(m);
+            }
+            else
+            {
+                vibeReadoutLabel.rectTransform.localScale = Vector3.one * scale;
+            }
+        }
+
+        // [BIGNUM-1r / D-BN-13=A] Band-wide chain only: per-member tastes/status live on
+        // each member's bar tooltip. ESP copy hardcoded like the rest (D-S5f-7=A).
+        private static string BuildReadoutTooltip(int lPart, int sfxPart, float hype01, float avgMaxVibe)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append("Hype de la canción: ")
+              .Append(Mathf.RoundToInt(Mathf.Clamp01(hype01) * 100f)).Append(" % → ").Append(lPart);
+            sb.Append("\n+ SFX del local → ").Append(sfxPart);
+            sb.Append("\n= ").Append(lPart + sfxPart)
+              .Append(" de Vibe por espectador,\nantes de gustos y estados.");
+            if (avgMaxVibe > 0f)
+                sb.Append("\nUn espectador medio aguanta ").Append(Mathf.RoundToInt(avgMaxVibe)).Append('.');
+            return sb.ToString();
+        }
+
+        // [BIGNUM-1r45 / D-BN-3c] Tempo passthrough for the readout pulse. Called from
+        // GigManager.ApplyBpmToStage; a no-op when no pulse component is wired.
+        public void SetReadoutTempo(int bpm)
+        {
+            if (vibeReadoutPulse != null) vibeReadoutPulse.SetFallbackBpm(bpm);
+        }
+
+        // [BIGNUM-1 / D-BN-7=A] Independent of SetSongHypeVisible. Falls back to the
+        // label's own GameObject when no root is wired (degrades, never NREs).
+        public void SetVibeReadoutVisible(bool visible)
+        {
+            GameObject root = vibeReadoutRoot != null
+                ? vibeReadoutRoot
+                : (vibeReadoutLabel != null ? vibeReadoutLabel.gameObject : null);
+            if (root != null) root.SetActive(visible);
+
+            if (!visible)
+            {
+                if (vibeReadoutLabel != null) vibeReadoutLabel.text = string.Empty;
+                if (vibeReadoutTooltip != null) vibeReadoutTooltip.Clear();
+            }
         }
 
         private Color EvaluateHypeColor(float t)
@@ -334,8 +423,8 @@ namespace ALWTTT.UI
             if (!visible && songHypeLabel != null)
                 songHypeLabel.text = string.Empty;
 
-            if (!visible && vibeReadoutLabel != null)
-                vibeReadoutLabel.text = string.Empty;
+            // [BIGNUM-1 / D-BN-7=A] The Vibe readout no longer follows the bar; see
+            // SetVibeReadoutVisible.
         }
 
         public void SetSongsLeft(int songsLeft, int requiredSongCount)

@@ -22,3 +22,7 @@ MonoBehaviour:
     el nombre de su m\xFAsico y cae sobre \xE9l, da igual d\xF3nde la sueltes. Cada
     una a\xF1ade algo real a la canci\xF3n. No es decorado, es m\xFAsica."
   highlightKey: card_default_mode
+  mechanicText: "Arrastra la <link=composition_card>carta de composici\xF3n</link>
+    sobre la banda. Se resuelve sobre el m\xFAsico indicado en la carta, se suelte
+    donde se suelte, y escribe en la <link=track>pista</link> de ese m\xFAsico. Punt\xFAa
+    en cada <link=loop>loop</link> en que suena."

@@ -14,6 +14,243 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-09-10 — TXT-2: lenguaje de tags de conceptos, y el texto mecánico al mínimo
+
+**Tipo:** semántico + operativo + **autoridad** (documento nuevo) + lifecycle.
+
+**Qué cambió.** El texto de jugador puede ahora **señalar** un concepto sin definirlo:
+`<link=gig>concierto</link>` se pinta en color de concepto, subrayado, y abre el tooltip de ese
+concepto al pasar el cursor. Cuatro ficheros nuevos —`ConceptGlossarySO`, `ConceptTooltipResolver`,
+`ConceptTagRenderer`, `ConceptGlossaryTextTable`— más ediciones en `TutorialOverlayView`,
+`TutorialController`, `TutorialTextTable` y `GameTextWindow`. Los 24 ids de `mechanicText` de gig 1
+y jam reescritos y taggeados en EN + ES: **2 283 → 1 607 palabras (−30 %)**.
+
+**La decisión que sostiene el lote (D-TAG-2=C).** Ya existían dos fuentes de significado de
+concepto y el lote no debía crear una tercera. La salida no fue evitar el registro nuevo, sino
+**ordenarlo**: `ConceptTooltipResolver` consulta estado (`StatusEffectSO` por `StatusKey`) →
+keyword (`SpecialKeywordData` por nombre de enum) → glosario (`ConceptGlossarySO` por id), primero
+que acierte gana. El glosario va **último**, así que sólo puede poseer ids que nadie más posee, y si
+alguien duplica un id la ventana lo marca (`DUPLICATE: … owns it`) en vez de que el texto se pudra en
+silencio. La invariante es el orden, no el registro.
+
+**Sintaxis (D-TAG-1=A′).** `<link=id>` nativo de TMP en el asset, decorado en **un solo punto**
+(`ConceptTagRenderer.Decorate`) después de resolver `{$token}`. Una superficie que no decore pinta
+texto plano, nunca corchetes literales: el modo de fallo de una sintaxis propia sin preprocesador.
+
+**Hover sin tocar TIP-1 (D-TAG-5=D).** `FindIntersectingLink` sobre la geometría del link (sin
+raycast, así que los gates del tutorial son irrelevantes) y, por cada cambio de link, un `Hide`
+seguido de un solo `Show` **sin transform**. Eso deja F-BN-7 (apilado por llamada) y F-BN-8
+(proyección de ancla estática) fuera de alcance sin modificar `TooltipManager` ni
+`TooltipController`. **TIP-1 sigue abierta e intacta.**
+
+**Autoridad nueva (D-TAG-9=A).** `systems/SSoT_Game_Text.md`: dueño del *fontanería* del texto de
+jugador —qué población guarda qué, sintaxis de tags, orden de resolución, contrato de hover, paridad,
+CSV— y explícitamente **no** dueño de lo que significa ningún concepto. Alta en `SSoT_INDEX.md`,
+`ssot_manifest.yaml` (3 invariantes duras) y `coverage-matrix.md`.
+
+**Hallazgos.** **F-TXT-2-1** — el texto de jugador vive en **cinco** poblaciones, no tres: la quinta
+son literales en español dentro de `AudienceCharacterCanvas`, inalcanzables por herramienta e
+invisibles a cualquier chequeo de paridad. **T-TAG-1** — estados y keywords tienen una sola ranura de
+idioma, así que 7 de los 24 conceptos muestran tooltip en inglés dentro del tutorial español;
+aceptado para playtest (D-TAG-10=A) y resuelto por TXT-3. **D-TAG-8=A aplicada** — el canvas de
+tooltips estaba por debajo del overlay del tutorial y el tooltip salía detrás del bocadillo; subido.
+
+**O-TXT-3 reafirmada con el caso que esperaba.** TXT-1 difirió la decisión de localización hasta "la
+primera categoría que necesite un segundo idioma". TXT-2 fue esa categoría y la respuesta tomada fue
+seguir con catálogos propios (D-TAG-2b=(i)): reutiliza todo lo de TXT-1, pero encarece una migración
+futura a dos categorías en vez de una. Registrado, no escondido.
+
+**Verificación.** ST-TAG-1..10 + regresión PASS (2026-09-10). Round-trip CSV limpio con tags
+(fingerprint idéntico). Paridad verde incluida la de tags. `StatusKey` de `flow` y `composure`
+verificados contra los assets, cerrando el riesgo R2 de apertura.
+
+**Docs tocados:** `systems/SSoT_Game_Text.md` (nuevo) · `SSoT_INDEX.md` · `ssot_manifest.yaml` ·
+`coverage-matrix.md` · `systems/SSoT_Editor_Authoring_Tools.md` (§20.2, §20.4, §20.8, **§20.11
+nueva**) · `planning/active/Design_Tutorial_System_v0_3.md` (§5A.5 + **§5A.6 nueva**) ·
+`systems/SSoT_Status_Effects.md` (§3.3) · `systems/SSoT_Card_System.md` (§10.2) · `CURRENT_STATE.md`
+(§1, §4, §5) · `PK_Manifest.md` (v9) · `planning/active/S5_DemoCutClose_Sub_Roadmap.md`.
+
+---
+
+## 2026-09-09 — TUT-TXT-1 / TUT-TXT-1c: texto mecánico plano, y la copy del tutorial sale del C#
+
+**Qué cambió de concepto.** Dos cosas, en este orden. (1) Cada diálogo del tutorial puede llevar,
+además de su copy con voz, una **explicación mecánica plana** por idioma. (2) La copy de jugador del
+tutorial pasa a tener **un solo hogar**: los `.asset`. Lo segundo no es limpieza: es el cierre de una
+divergencia real y ya materializada.
+
+### TUT-TXT-1 — `mechanicText`
+
+- **D-TT-1=A** — campo `mechanicText` en `TutorialDialogSO`, uno por catálogo de idioma. Se rechazó
+  `mechanicTextEn`/`mechanicTextEs`, que era lo pedido literalmente: mete el idioma dentro del SO y
+  contradice **D2=B** de TXT-1, con lo que el campo sería el único que la ventana tendría que tratar
+  aparte. Reversión de una petición, registrada explícitamente.
+- **D-TT-2=A** — `TutorialController.showMechanicText` entrega al overlay un `pagesOverride` de una
+  sola página. `TutorialOverlayView.Show` gana un parámetro opcional y resuelve `{$token}` sobre
+  `pagesOverride ?? dialog.Pages`, de modo que hay **un único camino de presentación con una fuente
+  opcional**, no dos caminos que puedan divergir. Se descartó que `Pages` devolviera el texto
+  mecánico bajo un flag: escondería estado global en una clase de datos.
+- **D-TT-5=A** — una página; título, retrato, spotlight (resuelto de `highlightKey`), gates, cola por
+  prioridad y `firedDialogs` no se ven afectados. Id sin texto ⇒ fallback a páginas.
+- **D-TT-3=B** — 24 ids (gig 1 + jam) escritos en EN/ES. Los 10 reactivos anclados a personaje de
+  gigs 2+ quedan para **TUT-TXT-1b**; `tut_read_the_room` espera además a tener trigger (O5).
+- **D-TT-4=A** — fila `mechanicText` en `GameTextWindow` y en el CSV; celda vacía = **sin opinión**;
+  escritura sólo por diferencia (contrato de round-trip intacto); `Fingerprint` la incluye — **los
+  fingerprints previos al 2026-09-09 dejan de ser comparables**, por diseño. Badges nuevos
+  `NO MECHANIC <lang>` y `MECHANIC TOKENS differ`; el primero marca **sólo asimetría** EN/ES, porque
+  marcar los 34 vacíos habría dejado inservible el filtro *Only issues* el mismo día de añadirlo.
+- Sin setters públicos nuevos en los SO: se escribe por `SerializedObject` (invariante de TXT-1).
+- **ST-TT-1..8 PASS.**
+
+### TUT-TXT-1c — D-TT-6=C: los seeders pierden el texto
+
+- **D-TXT-3 queda REVERTIDA.** TXT-1 la había cerrado como «los seeders siguen vivos como semilla de
+  emergencia» *con su copy*. La evidencia que la invalida: con el texto en dos sitios, C# y assets
+  divergieron **en ambos sentidos** sin que nada avisara. **F-TT-3** — el de-dash de TUT-R3 llegó al
+  C# y nunca a los assets. **F-TT-4** — el asset de `tut_first_reward_choice` se quedó en copy
+  anterior a S5h mientras el seeder llevaba la nueva. La paridad no podía verlo: compara conjuntos de
+  ids, no texto.
+- **Forma del cambio.** `TutorialDialogCatalogSO` pasa de 6 seeders con literales a **2 de
+  estructura** sobre una tabla única de 34 ids — estructura verificada **idéntica en EN y ES**, de
+  ahí que baste una tabla. `Add()` crea el asset si falta (`EditorSeed`, ahora su único uso legítimo)
+  y, si existe, llama al nuevo **`TutorialDialogSO.EditorSeedStructure`**, que sólo escribe id,
+  prioridad, categoría y `highlightKey`. Se descartó dejar `EditorSeed` con strings vacíos: habría
+  convertido el seeder en un **borrador** de copy, peor que el estado previo.
+- **`BeginSeed` / `dialogs.Clear()` retirados.** Los tres seeders demo-cut vaciaban la lista: un clic
+  la dejaba en 3 entradas de 34. Ningún menú del asset puede ya encogerla.
+- **Orden obligatorio del lote:** rescatar la copy por import **antes** de borrar los literales. Para
+  tres diálogos, la única versión buena del árbol de trabajo vivía en el C#.
+- **D-TT-7=A** — el CSV de recuperación vive en `Assets/Resources/Data/Tutorial/`, con nombre fijo.
+  Coste aceptado: entra en el build como `TextAsset` inerte; nada lo lee (**D-TXT-1** intacta).
+- La paridad (`CanonicalTriggerIds`, `ComputeParity`, `ReservedUnauthored`, el `[MenuItem]`) **no se
+  tocó**: es por reflexión sobre ids y no depende del texto.
+- **ST-TT-9..14 PASS**, incluido **ST-TT-13**: borrar un asset, re-sembrar estructura, importar el
+  CSV, diálogo completo. Esa es la prueba de que la ruta de recuperación existe sin copy en C#.
+
+### Ficheros
+`TutorialDialogSO.cs` (campo + accesores + `EditorSeedStructure`) · `GameTextCsv.cs`
+(`FieldMechanic`) · `TutorialTextTable.cs` (celda, export, import, fingerprint, badges) ·
+`GameTextWindow.cs` (campo `M`, búsqueda) · `TutorialOverlayView.cs` (`pagesOverride`) ·
+`TutorialController.cs` (toggle + `ResolveBodyPages` + dos call-sites) ·
+`TutorialDialogCatalogSO.cs` (**reemplazo completo**, 470 → 299 líneas).
+
+### Hogares
+`systems/SSoT_Editor_Authoring_Tools.md` §20.9 / §20.10 · `planning/active/Design_Tutorial_System_v0_3.md`
+§5A.1 / §5A.3 / §5A.5 · `CURRENT_STATE.md` §1/§2/§4.
+
+### Abiertas
+**O-TT-1** (retrato en modo plano) · **F-TT-2** (copy con voz vs código en `tut_musician_breakdown`,
+con Shaken sin aplicar en runtime) · **F-TT-5** (retiradas del PK registradas y no ejecutadas) ·
+**TUT-TXT-1b** · **TXT-2** (lenguaje de tags de conceptos + condensación).
+
+
+## 2026-09-09 — BIGNUM-1: legibilidad del Vibe (número grande + número por enemigo)
+
+**Tipo:** semántico de presentación (§10 nueva en `Design_Vibe_Telegraph_v0_1`, §12.1 nueva en
+`SSoT_Gig_Combat_Core`) + **autoridad** (la política de barras S5e-ext gana su primer hogar) +
+referencia (hogar de código de §6.1) + operativo (CURRENT_STATE, coverage, PK) + lifecycle
+(dos lotes derivados abiertos). Documentación aplicada en el lote **BIGNUM-1-DOC** (2026-09-09);
+el código cerró el mismo día tras seis riders.
+
+**Qué NO cambió, y es la premisa del lote.** La matemática. `SSoT_Scoring_and_Meters` §6 está
+intacta y el total de Vibe aplicado en el song end es idéntico al de antes (regresión **ST-BN-1
+PASS**). Todo lo que sigue es presentación de cifras que ya se calculaban, más una que se
+calculaba mal por omisión (la proyección ignoraba Captivated, **F-BN-3**).
+
+**Qué cambió de significado.**
+- **La forma del gate único** (`SSoT_Audience_and_Reactions` §5.3, D-BN-6=A). "Un solo gate" pasa
+  a materializarse en dos métodos: `PreviewIncomingVibe` calcula sin tocar estado y devuelve un
+  `IncomingVibePreview`; `ApplyIncomingVibe` lo llama y aplica. El invariante no se relaja — se
+  refuerza: la superficie que enseña el número al jugador **es** la que lo calcula, así que una
+  copia del gate en la UI queda prohibida por construcción (D-BN-0). La única asimetría deliberada
+  es que el preview lee ambos estados incluso con `incoming <= 0`, para poder explicar por qué un
+  cero es cero.
+- **Captivated** (`SSoT_Status_Effects` §5.8): se computa en el preview y se aplica en el apply.
+  Consecuencia de jugabilidad, no sólo de código: la amplificación es **visible antes** de que
+  acabe la canción.
+- **§6.1 tiene hogar de código** (`SSoT_Scoring_and_Meters`, D-BN-10=A): `GigManager.ComputeLPart`,
+  llamado por el song end y por la proyección. Antes estaba escrita dos veces (**F-BN-4**);
+  coincidían, pero con un desglose visible en pantalla cualquier divergencia futura sería una
+  mentira observable.
+- **La política de barras S5e-ext** ("llena ⇒ oculta") se enmienda a "llena **y sin predicción** ⇒
+  oculta" (D-BN-17=A) y, al hacerlo, **gana su primer hogar de autoridad** en
+  `SSoT_Gig_Combat_Core` §12.1: hasta hoy sólo existía en una fila de `CURRENT_STATE` y en la
+  entrada de changelog del 2026-07-02. Esto convierte la edición en un cambio de **autoridad**,
+  no en una nota operativa.
+- **PRES-1 gana una excepción acotada** (D-BN-15): la barra de resistencia tiene hover propio, de
+  la misma clase que los tooltips de los iconos de status. Limitación conocida y aceptada: pasar
+  de la barra al cuerpo sin salir del personaje no devuelve el tooltip compuesto hasta re-entrar.
+
+**Por qué así y no de la forma obvia.**
+- **Magnitud relativa, no umbrales fijos** (D-BN-4). El tamaño y el color del número grande se
+  miden contra el público: `ratio = (L+SFX) / MaxVibe medio de los no convencidos`. Una rampa fija
+  pintaría igual un 25 que en gig 1 es enorme y en gig 3 es un arañazo.
+- **El número por enemigo es la cadena completa, no la base** (D-BN-8=B). Enseñar la base habría
+  sido más barato y habría mentido en cuanto un gusto o un status entrara en juego.
+- **El fantasma es superficie propia** (D-BN-16=A): `showVibeProjectedNumbers` apaga el texto `-N`,
+  no el segmento. Apagar el número para reducir ruido debe dejar la barra legible; si el toggle se
+  llevara ambos, apagarlo destruiría justo la información que el segmento existe para dar.
+- **Color propio para el fantasma** (**F-BN-6**): el mismo rojo a menos alfa se probó y no se
+  distinguía del relleno.
+
+**Reversiones — se registran, no se borran.**
+- **D-BN-9=A construida y REVERTIDA por observación.** El desglose se compuso primero dentro del
+  tooltip existente del personaje, para respetar PRES-1. Se envió, se miró y se retiró: status +
+  intención + gustos + Vibe en una columna era ilegible y el bloque que importaba quedaba abajo.
+  Queda escrito en `Design_Vibe_Telegraph_v0_1` §10.3 para que no se vuelva a proponer.
+- **D-BN-18 B → B′ → B″.** Mover el número (B) era la cola meneando al perro; un anchor world-space
+  asignado a mano (B′) es **imposible** por **F-BN-9**. Vive B″: anchor creado en runtime.
+
+**Hallazgos.**
+- **F-BN-2** — `GigPresentationSO` tenía dos toggles sin documentar. Corregido en §12.1.
+- **F-BN-3** — la proyección aplicaba Flow y SFX pero no Captivated.
+- **F-BN-4** — §6.1 escrita dos veces.
+- **F-BN-5** → **BEAT-1**. `IBeatGridListener` se registra y **no recibe eventos** en la escena de
+  gig; `OnTempoChanged` tampoco. El único consumidor previo tenía el cuerpo comentado y
+  `BeatPulseIndicator` no estaba en escena: la ruta nunca se había ejercitado. El fallo es viejo;
+  lo nuevo es el primer consumidor que lo nota. Deuda declarada, con respaldo por temporizador
+  (D-BN-3b=B) y empuje de tempo (D-BN-3c) — una sola fuente de pulso, no dos.
+- **F-BN-6** — el fantasma necesita color propio.
+- **F-BN-7 / F-BN-8** → **TIP-1**. `ShowTooltip` apila paneles si no se llama antes a `HideTooltip`;
+  la rama de objetivo estático de `TooltipController` proyecta por `Camera.main` y por tanto exige
+  transform en world-space, así que un anchor bajo canvas Overlay acaba clampeado en una esquina.
+- **F-BN-9** — `GigCanvas` vive en la escena persistente **ALWTTTCore** (aditiva vía `CoreLoader`):
+  **ninguna** referencia suya a un objeto de la escena de gig es serializable. Restricción general
+  de cualquier trabajo sobre GigCanvas, no una rareza de tooltips.
+- **F-BN-0 — cerrada.** `AudienceCharacterStats.cs` está en `Assets/Scripts/Characters/`. La
+  contradicción venía de leer un encabezado de agrupación de `PK_Manifest` §B.2 como ruta de repo;
+  esos encabezados son etiquetas de área (`Characters/Actions | Cards/CardActions` abarca dos
+  carpetas). Nota correctiva escrita en §B.2.
+
+**D-BN-5 — verificación, no edición.** El diálogo 90 del tutorial se comprobó contra el catálogo y
+**no requiere cambio**: su copia no referencia la posición ni el tamaño de ninguna cifra. Se
+registra la verificación para que no se rehaga.
+
+**Smokes.** **ST-BN-1..17 PASS** — ST-BN-13..16 se corrieron el 2026-09-09, después del cierre de
+código y antes de esta pasada documental. ST-BN-11c/e′/f′/g/h PASS. Deuda de registro menor: la
+especificación paso-a-paso de ST-BN-13..16 no se conservó fuera de la sesión de código; el
+resultado sí está registrado en `coverage-matrix.md`.
+
+**Verificaciones documentales resueltas en BIGNUM-1-DOC.** (a) El pipeline de tooltips **no**
+recibe hogar en `SSoT_Editor_Authoring_Tools` — ese SSoT gobierna herramientas de editor y el
+pipeline es UI de runtime; F-BN-7/F-BN-8 quedan en `CURRENT_STATE` §4 y la decisión de hogar se
+pliega a **D-SENSORY-HOME**/TIP-1. Esto **revierte explícitamente** la propuesta de
+`BIGNUM-1_Doc_Package.md` §8. (b) La política S5e-ext no tenía sección que enmendar; la enmienda
+crea su hogar (arriba).
+
+**Documentos editados (BIGNUM-1-DOC):** `planning/Design_Vibe_Telegraph_v0_1.md` ·
+`systems/SSoT_Gig_Combat_Core.md` · `systems/SSoT_Audience_and_Reactions.md` ·
+`systems/SSoT_Status_Effects.md` · `systems/SSoT_Scoring_and_Meters.md` · `CURRENT_STATE.md` ·
+`changelog-ssot.md` · `coverage-matrix.md` · `PK_Manifest.md`. **Sin cambios** en `SSoT_INDEX.md`
+ni en `ssot_manifest.yaml`: no nace documento gobernado nuevo y `Design_Vibe_Telegraph_v0_1` sigue
+siendo `planning` — la matemática no se ha movido de `SSoT_Scoring_and_Meters`.
+
+**Refrescos ajenos que este lote NO cierra:** `StatusEffectContainer.cs` (la copia del PK publica
+`StatusAppliedEvent` con 3 argumentos, el código real pasa 4) y la D5 de AMW-1 (`characterId`
+duplicado), devuelta a **AMW-2** con el resultado negativo de F-GEW-4.
+
+---
+
 ## 2026-09-06 — GEW-1: autoría de encuentros (`GigEncounterWizard`)
 
 **Tipo:** operativo + **estructural** (§22 nueva en `SSoT_Editor_Authoring_Tools`, filas en §3/§13,

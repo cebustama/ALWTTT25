@@ -23,3 +23,7 @@ MonoBehaviour:
     ending, when the crowd''s mind is at its softest. And remember: every musician
     has one.'
   highlightKey: 
+  mechanicText: 'Psychic Waves was played before the last <link=loop>loop</link>.
+    Nothing is lost: <link=action_card>action cards</link> act the moment they are
+    played. The last loop was asked for because <link=composition_card>composition
+    cards</link> are locked then.'

@@ -1453,6 +1453,11 @@ namespace ALWTTT.Managers
 
                 // Emit beats within this segment
                 double tLocal = 0.0;
+                if (logDebug)
+                    Debug.Log($"{DebugTag} [BeatProbe] segment {i} segSeconds={segSeconds:0.00} " +
+                        $"bpm={bpm:0.#} {numerator}/{denominator} " +
+                        $"IsPlaying={(player != null && player.IsPlaying)} gridSubs={_gridSubs.Count}");
+
                 while (tLocal + 1e-6 < segSeconds && player != null && player.IsPlaying)
                 {
                     // Beat event at (songTimeSec + tLocal)
@@ -1462,6 +1467,10 @@ namespace ALWTTT.Managers
                         beatInBar = beatInBar,
                         time = (float)(songTimeSec + tLocal)
                     };
+
+                    if (logDebug && barIndex == 0 && beatInBar < 4)
+                        Debug.Log($"{DebugTag} [BeatProbe] EMIT bar={barIndex} beat={beatInBar} " +
+                            $"→ {_gridSubs.Count} listener(s)");
 
                     foreach (var g in _gridSubs) g?.OnBeat(ev);
                     if (beatInBar == 0)
@@ -2376,6 +2385,11 @@ namespace ALWTTT.Managers
             {
                 NotifyTempoSignatureAtStart(_currentKey); // push BPM/TS immediately
                 _beatGridCo = StartCoroutine(RunBeatGrid(_currentKey, entry.seconds));
+
+                if (logDebug) Debug.Log($"{DebugTag} [BeatProbe] RunBeatGrid STARTED " +
+                    $"key={_currentKey} dur={entry.seconds:0.0}s gridSubs={_gridSubs.Count} " +
+                    $"tempoSubs={_tempoSigSubs.Count} IsPlaying={(player != null && player.IsPlaying)}");
+
                 ApplyDeferredHighlightIfAny(); // apply highlight that was queued before channels were known
             }
             else if (logDebug)

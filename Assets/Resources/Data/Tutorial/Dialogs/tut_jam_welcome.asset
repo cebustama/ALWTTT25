@@ -22,3 +22,6 @@ MonoBehaviour:
     decides if you''re worth anything. Four musicians, four voices: drums, keys,
     bass and singer. Your only job is to make them talk at once. I''ll tell you how.'
   highlightKey: 
+  mechanicText: A <link=gig>gig</link> is a sequence of <link=song>songs</link>.
+    Each song is built from cards; at <link=song_end>song end</link> its result hits
+    the audience. The gig is won when every audience member is <link=convinced>convinced</link>.

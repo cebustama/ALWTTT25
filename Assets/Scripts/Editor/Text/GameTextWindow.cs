@@ -38,7 +38,7 @@ namespace ALWTTT.TextAuthoring
     /// </summary>
     public sealed class GameTextWindow : EditorWindow
     {
-        private enum Tab { Tutorial, Cards, StatusEffects, Menus }
+        private enum Tab { Tutorial, Concepts, Cards, StatusEffects, Menus }   // [TXT-2] Concepts
 
         [SerializeField] private Tab _tab = Tab.Tutorial;
         [SerializeField] private string _search = "";
@@ -60,6 +60,8 @@ namespace ALWTTT.TextAuthoring
         [SerializeField, Range(0.8f, 1.6f)] private float _density = 1f;
 
         private TutorialTextTable _tutorial;
+        private ConceptGlossaryTextTable _concepts;   // [TXT-2]
+        [SerializeField] private string _newConceptId = "";
         private string _lastFingerprint;
 
         private static GUIStyle _wrapArea;
@@ -86,10 +88,12 @@ namespace ALWTTT.TextAuthoring
 
         private void OnDisable() => Undo.undoRedoPerformed -= OnUndoRedo;
         private void OnProjectChange() => Rebuild();          // seeder re-run, asset added/removed
-        private void OnUndoRedo() { _tutorial?.UpdateSerialized(); _tutorial?.RefreshIssues(); Repaint(); }
+        private void OnUndoRedo() { _tutorial?.UpdateSerialized(); _tutorial?.RefreshIssues(); _concepts?.UpdateSerialized(); _concepts?.RefreshIssues(); Repaint(); }
 
         private void Rebuild()
         {
+            _concepts ??= new ConceptGlossaryTextTable();   // [TXT-2] before the tutorial: its index feeds the TAG checks
+            _concepts.Rebuild();
             _tutorial ??= new TutorialTextTable();
             _tutorial.Rebuild();
         }
@@ -108,6 +112,7 @@ namespace ALWTTT.TextAuthoring
                 switch (_tab)
                 {
                     case Tab.Tutorial: DrawTutorial(); break;
+                    case Tab.Concepts: DrawConcepts(); break;   // [TXT-2]
                     case Tab.Cards: DrawCards(); break;
                     case Tab.StatusEffects: DrawStatusEffects(); break;
                     case Tab.Menus: DrawMenus(); break;
@@ -120,13 +125,14 @@ namespace ALWTTT.TextAuthoring
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 TabToggle(Tab.Tutorial, "Tutorial", 80);
+                TabToggle(Tab.Concepts, "Concepts", 76);   // [TXT-2]
                 TabToggle(Tab.Cards, "Cards", 60);
                 TabToggle(Tab.StatusEffects, "Status Effects", 100);
                 TabToggle(Tab.Menus, "Menus", 60);
 
                 GUILayout.Space(8);
                 _search = EditorGUILayout.TextField(_search, EditorStyles.toolbarSearchField, GUILayout.MinWidth(140), GUILayout.MaxWidth(260));
-                if (_tab == Tab.Tutorial)
+                if (_tab == Tab.Tutorial || _tab == Tab.Concepts)
                 {
                     _onlyIssues = GUILayout.Toggle(_onlyIssues, "Only issues", EditorStyles.toolbarButton, GUILayout.Width(84));
                     GUILayout.Label("Height", EditorStyles.miniLabel, GUILayout.Width(42));
@@ -138,10 +144,19 @@ namespace ALWTTT.TextAuthoring
                 GUILayout.Label("CSV:", GUILayout.Width(30));
                 _delimiterIndex = EditorGUILayout.Popup(_delimiterIndex, GameTextCsv.DelimiterLabels, EditorStyles.toolbarPopup, GUILayout.Width(110));
                 if (GUILayout.Button("Export", EditorStyles.toolbarButton, GUILayout.Width(56))) ExportCsv();
-                using (new EditorGUI.DisabledScope(_tab != Tab.Tutorial))
-                    if (GUILayout.Button(new GUIContent("Import", _tab == Tab.Tutorial ? "Apply a CSV to the tutorial assets" : "Import is Tutorial-only in TXT-1"),
+                using (new EditorGUI.DisabledScope(_tab != Tab.Tutorial && _tab != Tab.Concepts))   // [TXT-2] Concepts imports too
+                    if (GUILayout.Button(new GUIContent("Import", _tab == Tab.Tutorial ? "Apply a CSV to the tutorial assets" : _tab == Tab.Concepts ? "Apply a CSV to the glossary assets" : "Import is Tutorial/Concepts-only"),
                             EditorStyles.toolbarButton, GUILayout.Width(56))) ImportCsv();
 
+                if (_tab == Tab.Concepts)   // [TXT-2]
+                {
+                    if (GUILayout.Button("Fingerprint", EditorStyles.toolbarButton, GUILayout.Width(76)))
+                        Debug.Log($"[GameText] Concept glossary fingerprint: {_concepts.Fingerprint()} — {_concepts.Rows.Count} ids × {_concepts.Languages.Count} languages");
+                    int cdirty = _concepts.DirtyCount();
+                    using (new EditorGUI.DisabledScope(cdirty == 0))
+                        if (GUILayout.Button(cdirty == 0 ? "Saved" : $"Save ({cdirty})", EditorStyles.toolbarButton, GUILayout.Width(72)))
+                            AssetDatabase.SaveAssets();
+                }
                 if (_tab == Tab.Tutorial)
                 {
                     if (GUILayout.Button("Fingerprint", EditorStyles.toolbarButton, GUILayout.Width(76))) PrintFingerprint();
@@ -216,6 +231,8 @@ namespace ALWTTT.TextAuthoring
                 if (c.Dialog == null) continue;
                 sb.Append('\n').Append(c.Title);
                 foreach (var p in c.Pages) sb.Append('\n').Append(p);
+
+                sb.Append('\n').Append(c.Mechanic);   // [TUT-TXT-1] search matches mechanic text too
             }
             return sb.ToString();
         }
@@ -361,11 +378,182 @@ namespace ALWTTT.TextAuthoring
                 GUILayout.Space(24);
             }
 
+            // [TUT-TXT-1 / D-TT-4=A] Plain mechanic text: one field per language, written
+            // through the same SerializedObject as title/pages (same Undo, same dirty).
+            var mech = so.FindProperty("mechanicText");
+            if (mech != null)
+            {
+                float mh = Mathf.Clamp(
+                    WrapArea.CalcHeight(new GUIContent(mech.stringValue ?? ""), textWidth) + 4f,
+                    PageMinHeight, PageMaxHeight) * _density;
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUILayout.Label(new GUIContent("M", "mechanicText — plain register, no voice"), GUILayout.Width(24));
+                    mech.stringValue = EditorGUILayout.TextArea(mech.stringValue, WrapArea,
+                        GUILayout.Width(textWidth), GUILayout.Height(mh));
+                    GUILayout.Space(24);
+                }
+            }
+
+
             if (EditorGUI.EndChangeCheck())
             {
                 so.ApplyModifiedProperties();   // marks dirty + Undo; Save button / Ctrl+S persists to disk
                 _tutorial.RefreshIssues();
             }
+        }
+
+        // ──────────────────────────────────────────────────────────────────
+        // Tab 1b — Concepts (TXT-2 / D-TAG-2=C: glossary = only what no other registry owns)
+        // ──────────────────────────────────────────────────────────────────
+        private void DrawConcepts()
+        {
+            var t = _concepts;
+            t.UpdateSerialized();
+
+            EditorGUILayout.HelpBox(
+                "Concept glossary: tooltip text for <link=id> tags whose id has NO other home. Statuses resolve from " +
+                "StatusEffectSO (by StatusKey) and card keywords from SpecialKeywordData — those are read-only here and an id " +
+                "they own is flagged DUPLICATE if it also appears in a glossary. One glossary asset per language (languageCode).",
+                MessageType.Info);
+
+            _showCatalogs = EditorGUILayout.Foldout(_showCatalogs,
+                $"Glossaries: {t.Glossaries.Count} · Languages: {(t.Languages.Count == 0 ? "none" : string.Join(", ", t.Languages))} · Concept rows: {t.Rows.Count}", true);
+            if (_showCatalogs)
+            {
+                if (t.Glossaries.Count == 0)
+                    EditorGUILayout.HelpBox("No ConceptGlossarySO assets found. Create > ALWTTT > Text > Concept Glossary (one per language).", MessageType.Warning);
+                foreach (var g in t.Glossaries)
+                {
+                    using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+                    {
+                        EditorGUILayout.LabelField(g.Glossary.name, EditorStyles.boldLabel, GUILayout.Width(220));
+                        GUILayout.Label($"{g.Glossary.Entries.Count} entries", EditorStyles.miniLabel, GUILayout.Width(80));
+                        GUILayout.Label("lang:", GUILayout.Width(32));
+                        string code = EditorGUILayout.DelayedTextField(g.Language, GUILayout.Width(44));
+                        if (code != g.Language) { t.SetGlossaryLanguage(g, code); Rebuild(); GUIUtility.ExitGUI(); }
+                        if (string.IsNullOrEmpty(g.Language)) Badge("NO LANGUAGE", Color.yellow);
+                        if (g.DuplicateLanguage) Badge("DUPLICATE (ignored)", Color.red);
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("Ping", GUILayout.Width(48))) EditorGUIUtility.PingObject(g.Glossary);
+                    }
+                }
+                using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+                {
+                    GUILayout.Label($"Other registries (read-only) — status keys: {ConceptRegistryEditorIndex.StatusKeys.Count} · keywords: {string.Join(", ", ConceptRegistryEditorIndex.KeywordNames.OrderBy(x => x))}", EditorStyles.wordWrappedMiniLabel);
+                }
+            }
+            EditorGUILayout.Space(6);
+            if (t.Languages.Count == 0)
+            {
+                EditorGUILayout.HelpBox("Set a languageCode on each glossary above to build the language columns.", MessageType.Info);
+                return;
+            }
+
+            // New concept: created in EVERY language column so parity starts green.
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label("New id", GUILayout.Width(44));
+                _newConceptId = EditorGUILayout.TextField(_newConceptId, GUILayout.Width(200));
+                if (GUILayout.Button("+ concept (all languages)", GUILayout.Width(170)))
+                {
+                    var errors = new List<string>();
+                    foreach (var lang in t.Languages)
+                        if (!t.CreateEntry(_newConceptId, lang, out string err)) errors.Add($"[{lang}] {err}");
+                    if (errors.Count > 0) EditorUtility.DisplayDialog("Create concept", string.Join("\n", errors), "OK");
+                    _newConceptId = "";
+                    Rebuild(); GUIUtility.ExitGUI();
+                }
+            }
+
+            float avail = EditorGUIUtility.currentViewWidth - 34f;
+            int n = Mathf.Max(1, t.Languages.Count);
+            float col = Mathf.Max(MinColumnWidth, (avail - (n - 1) * ColumnGap) / n);
+            int shown = 0;
+            foreach (var row in t.Rows)
+            {
+                if (_onlyIssues && !row.HasIssues) continue;
+                var hay = new StringBuilder(row.Id);
+                foreach (var c in row.ByLanguage.Values) hay.Append('\n').Append(c.Name).Append('\n').Append(c.Description);
+                if (!Matches(hay.ToString())) continue;
+                shown++;
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        EditorGUILayout.SelectableLabel(row.Id, EditorStyles.boldLabel, GUILayout.Width(IdColumnWidth), GUILayout.Height(18));
+                        GUILayout.Label("<link=" + row.Id + ">", EditorStyles.miniLabel);
+                        GUILayout.FlexibleSpace();
+                        foreach (var issue in row.Issues)
+                            Badge(issue, issue.StartsWith("MISSING") || issue.StartsWith("DUPLICATE") ? new Color(0.95f, 0.6f, 0.5f) : Color.yellow);
+                    }
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        for (int i = 0; i < t.Languages.Count; i++)
+                        {
+                            string lang = t.Languages[i];
+                            if (i > 0) GUILayout.Space(ColumnGap);
+                            using (new EditorGUILayout.VerticalScope(GUILayout.Width(col)))
+                            {
+                                GUILayout.Label(lang.ToUpperInvariant(), EditorStyles.miniBoldLabel, GUILayout.Width(28));
+                                if (!row.ByLanguage.TryGetValue(lang, out var cell))
+                                {
+                                    EditorGUILayout.HelpBox($"No entry in '{lang}'.", MessageType.Warning);
+                                    if (GUILayout.Button($"Create {row.Id} [{lang}]"))
+                                    {
+                                        if (!t.CreateEntry(row.Id, lang, out string err)) EditorUtility.DisplayDialog("Create entry", err, "OK");
+                                        Rebuild(); GUIUtility.ExitGUI();
+                                    }
+                                    continue;
+                                }
+                                var so = cell.Owner.Serialized;
+                                so.Update();
+                                EditorGUI.BeginChangeCheck();
+                                var el = cell.Element;
+                                var name = el.FindPropertyRelative("displayName");
+                                var desc = el.FindPropertyRelative("description");
+                                GUILayout.Label("Name", EditorStyles.miniLabel);
+                                name.stringValue = EditorGUILayout.TextField(name.stringValue, GUILayout.Width(col - 6f));
+                                float textWidth = col - 6f;
+                                float h = Mathf.Clamp(WrapArea.CalcHeight(new GUIContent(desc.stringValue ?? ""), textWidth) + 4f, PageMinHeight, PageMaxHeight) * _density;
+                                GUILayout.Label("Description", EditorStyles.miniLabel);
+                                desc.stringValue = EditorGUILayout.TextArea(desc.stringValue, WrapArea, GUILayout.Width(textWidth), GUILayout.Height(h));
+                                if (EditorGUI.EndChangeCheck()) { so.ApplyModifiedProperties(); t.RefreshIssues(); }
+                            }
+                        }
+                        GUILayout.FlexibleSpace();
+                    }
+                }
+            }
+            EditorGUILayout.LabelField($"{shown} / {t.Rows.Count} concepts shown", EditorStyles.miniLabel);
+        }
+
+        private void ImportConceptsCsv()
+        {
+            string path = EditorUtility.OpenFilePanel("Import Game Text CSV (Concepts)", "", "csv");
+            if (string.IsNullOrEmpty(path)) return;
+            GameTextCsv.Table table;
+            try { table = GameTextCsv.Read(path); }
+            catch (FormatException ex)
+            {
+                EditorUtility.DisplayDialog("Import CSV", $"Malformed CSV — nothing applied.\n{ex.Message}", "OK");
+                return;
+            }
+            string before = _concepts.Fingerprint();
+            var result = _concepts.ApplyCsv(table);
+            if (result.Aborted)
+            {
+                EditorUtility.DisplayDialog("Import CSV", "Import aborted — nothing applied:\n" + string.Join("\n", result.Errors), "OK");
+                return;
+            }
+            string after = _concepts.Fingerprint();
+            var sb = new StringBuilder();
+            sb.AppendLine($"[GameText] Concepts import '{Path.GetFileName(path)}': {result.FieldsChanged} field(s) changed on {result.DialogsChanged} entry/entries; {result.DialogsUntouched} untouched.");
+            sb.AppendLine($"  fingerprint before {before}");
+            sb.AppendLine($"  fingerprint after  {after}{(before == after ? "  (identical — round-trip clean)" : "")}");
+            if (result.Skipped.Count > 0) { sb.AppendLine($"  skipped ({result.Skipped.Count}):"); foreach (var s in result.Skipped) sb.Append("    - ").AppendLine(s); }
+            if (result.Skipped.Count > 0) Debug.LogWarning(sb.ToString()); else Debug.Log(sb.ToString());
+            Rebuild();
         }
 
         private static void Badge(string text, Color color)
@@ -454,6 +642,8 @@ namespace ALWTTT.TextAuthoring
             {
                 case Tab.Tutorial:
                     table = _tutorial.ToCsvTable(); suffix = "Tutorial"; break;
+                case Tab.Concepts:   // [TXT-2]
+                    table = _concepts.ToCsvTable(); suffix = "Concepts"; break;
                 case Tab.Cards:
                     table = new GameTextCsv.Table { Header = { "id", "field", "en" } };
                     foreach (var c in FindAllAssets<CardDefinition>().OrderBy(d => d.Id, StringComparer.Ordinal))
@@ -481,6 +671,7 @@ namespace ALWTTT.TextAuthoring
 
         private void ImportCsv()
         {
+            if (_tab == Tab.Concepts) { ImportConceptsCsv(); return; }   // [TXT-2]
             if (_tab != Tab.Tutorial) return;
             string path = EditorUtility.OpenFilePanel("Import Game Text CSV (Tutorial)", "", "csv");
             if (string.IsNullOrEmpty(path)) return;

@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed7d7b33cc88b5a458b10c8c0df737a2, type: 3}
+  m_Name: ConceptGlossary_ES
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.ConceptGlossarySO
+  languageCode: es
+  entries:
+  - id: gig
+    displayName: Concierto
+    description: "Secuencia de canciones tocadas ante un p\xFAblico. Se gana al convencer
+      a todo el p\xFAblico; se pierde si la \xFAltima canci\xF3n acaba con alguien
+      sin convencer o la Cohesi\xF3n llega a cero."
+  - id: song
+    displayName: "Canci\xF3n"
+    description: "Una pieza del concierto, construida con cartas y tocada en loops.
+      Al acabar, su Hype se convierte en da\xF1o de Vibe al p\xFAblico."
+  - id: loop
+    displayName: Loop
+    description: "Una repetici\xF3n de la canci\xF3n y un periodo de juego para el
+      jugador. Una canci\xF3n dura un n\xFAmero fijo de loops."
+  - id: period
+    displayName: Periodo de juego
+    description: "Tramo en que se aplica el presupuesto de jugadas de cada m\xFAsico:
+      la preparaci\xF3n antes de Play y despu\xE9s cada loop."
+  - id: play
+    displayName: Play
+    description: "El bot\xF3n que inicia la canci\xF3n. Las cartas jugadas despu\xE9s
+      surten efecto en la canci\xF3n en marcha sin detenerla."
+  - id: track
+    displayName: Pista
+    description: "La l\xEDnea de un m\xFAsico en el panel de la canci\xF3n. Contiene
+      una carta de composici\xF3n activa a la vez; una nueva sustituye a la anterior."
+  - id: song_end
+    displayName: "Final de la canci\xF3n"
+    description: "El momento en que termina el \xFAltimo loop. El Hype se convierte
+      en da\xF1o de Vibe, se pagan los bonos del escenario y se comprueba la victoria."
+  - id: stage
+    displayName: Efectos del escenario
+    description: "Niveles de intensidad visual ligados a umbrales de Hype. Cada cruce
+      ascendente acumula un bono fijo de Vibe que se paga al final de la canci\xF3n.
+      Los niveles altos se desbloquean como recompensa."
+  - id: budget
+    displayName: Presupuesto de jugadas
+    description: "Por periodo, cada m\xFAsico puede jugar una carta de composici\xF3n
+      y una de acci\xF3n. Las jugadas no usadas no se acumulan."
+  - id: composition_card
+    displayName: "Carta de composici\xF3n"
+    description: "A\xF1ade m\xFAsica a la canci\xF3n. Se juega sobre la banda; se
+      resuelve sobre el m\xFAsico indicado en la carta y escribe en su pista."
+  - id: action_card
+    displayName: "Carta de acci\xF3n"
+    description: "Cambia medidores o estados. Se juega sobre un m\xFAsico o un miembro
+      del p\xFAblico; surte efecto al instante y no cambia la canci\xF3n."
+  - id: sound_card
+    displayName: Carta de sonido
+    description: "Carta de composici\xF3n que cambia una propiedad de toda la canci\xF3n,
+      como el tempo o la tonalidad, en lugar de a\xF1adir una parte. Por s\xED sola
+      no cambia ning\xFAn medidor."
+  - id: hype
+    displayName: Hype
+    description: "Intensidad acumulada de la canci\xF3n. Al final se convierte en
+      da\xF1o de Vibe a todo el p\xFAblico; cruzar umbrales sube los efectos del
+      escenario."
+  - id: inspiration
+    displayName: "Inspiraci\xF3n"
+    description: El recurso que paga las cartas. Se concede al final de cada loop.
+      Una carta con coste no puede jugarse sin ella.
+  - id: cohesion
+    displayName: "Cohesi\xF3n"
+    description: "La resistencia compartida de la banda. Pierde un punto cada vez
+      que un m\xFAsico colapsa. A cero, el concierto se pierde."
+  - id: breakdown
+    displayName: Colapso
+    description: "Lo que ocurre cuando la barra de Stress de un m\xFAsico llega a
+      cero: la banda pierde una Cohesi\xF3n, la barra se rellena y el m\xFAsico queda
+      Shaken."
+  - id: blocked
+    displayName: Bloqueado
+    description: "Un miembro del p\xFAblico en primera fila est\xE1 Bloqueado: no
+      recibe Vibe de cartas ni del final de la canci\xF3n. Depende de la posici\xF3n;
+      se recalcula al reordenarse el p\xFAblico."

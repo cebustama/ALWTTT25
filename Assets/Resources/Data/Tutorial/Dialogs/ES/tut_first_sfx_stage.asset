@@ -18,7 +18,11 @@ MonoBehaviour:
   revisitTitle: El escenario reacciona
   portrait: {fileID: 0}
   pages:
-  - "\xBFLo sientes? El hype sube y hasta el escenario responde \u2014 cuando la
-    m\xFAsica aprieta, todo lo que la rodea despierta."
+  - "\xBFLo sientes? El hype sube y hasta el escenario responde: cuando la m\xFAsica
+    aprieta, todo lo que la rodea despierta."
   - "Mantenla viva y habr\xE1 momentos m\xE1s grandes."
   highlightKey: 
+  mechanicText: "Los <link=stage>efectos del escenario</link> suben cada vez que
+    el <link=hype>Hype</link> cruza un umbral. Cada cruce ascendente acumula un bono
+    fijo de <link=vibe>Vibe</link> que se paga a todo el p\xFAblico al <link=song_end>final
+    de la canci\xF3n</link>. Los niveles altos se desbloquean como recompensa."

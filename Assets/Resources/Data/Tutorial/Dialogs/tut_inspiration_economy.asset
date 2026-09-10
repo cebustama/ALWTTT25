@@ -22,3 +22,6 @@ MonoBehaviour:
     Inspiration. Some cards demand it to be played. The good ones, naturally. Save
     it: one just landed in your hand that''s worth it.'
   highlightKey: inspiration_counter
+  mechanicText: '<link=inspiration>Inspiration</link> pays for cards: {$inspiration_per_loop}
+    per <link=loop>loop</link>, granted at loop end. A card with a cost shows it
+    and needs it. No cost, free.'

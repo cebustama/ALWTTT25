@@ -23,3 +23,8 @@ MonoBehaviour:
     it before the loop ends. Every musician has their own closer; tonight it''s Sibi''s.
     The ending is everything.'
   highlightKey: card_psychic_waves
+  mechanicText: 'Psychic Waves is an <link=action_card>action card</link>: costs
+    <link=inspiration>Inspiration</link>, reduces every audience member''s <link=vibe>Vibe</link>
+    at once and applies <link=earworm>Earworm</link>, which keeps reducing Vibe on
+    later audience turns. It does not change the song. The tutorial waits for it
+    on the last <link=loop>loop</link>.'

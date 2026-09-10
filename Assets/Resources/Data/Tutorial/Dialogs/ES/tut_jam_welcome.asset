@@ -18,8 +18,12 @@ MonoBehaviour:
   revisitTitle: Bienvenido a la jam
   portrait: {fileID: 0}
   pages:
-  - "Bienvenido al escenario, HOLA LOCO WENA COMO ESTAI CHORO novato. Esto es una
-    jam: la banda toca en vivo y el p\xFAblico decide si vales algo. Cuatro m\xFAsicos,
-    cuatro voces: bater\xEDa, teclas, bajo y cantante. Tu \xFAnico trabajo es hacer
-    que hablen a la vez. Yo te voy diciendo c\xF3mo."
+  - "Bienvenido al escenario, novato. Esto es una jam: la banda toca en vivo y el
+    p\xFAblico decide si vales algo. Cuatro m\xFAsicos, cuatro voces: bater\xEDa,
+    teclas, bajo y cantante. Tu \xFAnico trabajo es hacer que hablen a la vez. Yo
+    te voy diciendo c\xF3mo."
   highlightKey: 
+  mechanicText: "Un <link=gig>concierto</link> es una secuencia de <link=song>canciones</link>.
+    Cada canci\xF3n se construye con cartas; al <link=song_end>final de la canci\xF3n</link>
+    su resultado golpea al p\xFAblico. El concierto se gana cuando todo el p\xFAblico
+    queda <link=convinced>convencido</link>."

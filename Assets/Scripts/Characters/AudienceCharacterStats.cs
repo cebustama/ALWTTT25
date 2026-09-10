@@ -11,6 +11,39 @@ using UnityEngine;
 namespace ALWTTT.Characters.Audience
 {
     /// <summary>
+    /// [BIGNUM-1 / D-BN-6=A] Result of walking the incoming-Vibe gate WITHOUT applying
+    /// it. Produced by <see cref="AudienceCharacterStats.PreviewIncomingVibe"/>; consumed
+    /// by <see cref="AudienceCharacterStats.ApplyIncomingVibe"/> (which then applies
+    /// <see cref="Applied"/>) and by the projection/telegraph (which only displays it).
+    /// One implementation of the gate, two surfaces. Pure data — no state.
+    /// </summary>
+    public readonly struct IncomingVibePreview
+    {
+        /// <summary>The raw amount that was offered to the gate.</summary>
+        public readonly int Incoming;
+        /// <summary>What would land: 0 if blocked or if Incoming ≤ 0, else round(Incoming × CaptivatedMult).</summary>
+        public readonly int Applied;
+        /// <summary>Indifference stacks read on the container (0 = not gated).</summary>
+        public readonly int IndifferenceStacks;
+        /// <summary>Captivated stacks read on the container (0 = no amplification).</summary>
+        public readonly int CaptivatedStacks;
+        /// <summary>1 + CaptivatedStacks × perStack; 1 when no Captivated.</summary>
+        public readonly float CaptivatedMult;
+
+        public bool Blocked => IndifferenceStacks > 0;
+
+        public IncomingVibePreview(int incoming, int applied, int indifferenceStacks,
+            int captivatedStacks, float captivatedMult)
+        {
+            Incoming = incoming;
+            Applied = applied;
+            IndifferenceStacks = indifferenceStacks;
+            CaptivatedStacks = captivatedStacks;
+            CaptivatedMult = captivatedMult;
+        }
+    }
+
+    /// <summary>
     /// [S5e / D1] INVERTED METER SEMANTICS.
     /// CurrentVibe is now the audience member's remaining PERSUASION
     /// RESISTANCE (enemy-HP-style pool): it starts at MaxVibe and is
@@ -107,8 +140,72 @@ namespace ALWTTT.Characters.Audience
         }
 
         /// <summary>
+        /// [BIGNUM-1 / D-BN-6=A] Walk the incoming-Vibe gate WITHOUT applying it.
+        /// This is the single implementation of the gate; <see cref="ApplyIncomingVibe"/>
+        /// calls it and then applies <see cref="IncomingVibePreview.Applied"/>. The
+        /// projection (GigManager.RefreshVibeProjection) calls it and only displays the
+        /// result. Reads the SAME statuses, in the SAME order, with the SAME tuning
+        /// source as the apply path, so the two cannot drift.
+        ///
+        /// Order (SSoT_Audience_and_Reactions §5.3, SSoT_Status_Effects §5.8):
+        /// 1. Indifference (NegateIncomingPositive, stacks &gt; 0) → Applied = 0.
+        /// 2. Captivated (DamageTakenUpMultiplier, statusKey "captivated") →
+        ///    Applied = round(incoming × (1 + stacks × CaptivatedVibeBonusPerStack)).
+        /// Both statuses are read even when <paramref name="incoming"/> ≤ 0 so the
+        /// tooltip can show the gate state next to a zero; Applied is 0 in that case.
+        ///
+        /// No logging here: this runs once per audience member per projection refresh.
+        /// </summary>
+        public IncomingVibePreview PreviewIncomingVibe(
+            StatusEffectContainer statuses,
+            int incoming)
+        {
+            int indiffStacks = 0;
+            int captStacks = 0;
+            float captMult = 1f;
+
+            if (statuses != null)
+            {
+                indiffStacks = statuses.GetStacks(
+                    CharacterStatusId.NegateIncomingPositive);
+
+                // StatusKey guard mirrors the Earworm disambiguation pattern against
+                // future DamageTakenUpMultiplier variants (R1).
+                if (statuses.TryGet(CharacterStatusId.DamageTakenUpMultiplier,
+                        out var captivated) &&
+                    captivated != null && captivated.Stacks > 0 &&
+                    captivated.Definition != null &&
+                    string.Equals(captivated.Definition.StatusKey, "captivated",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    var gm = GigManager.Instance;
+                    float perStack = gm != null
+                        ? gm.CaptivatedVibeBonusPerStack
+                        : DefaultCaptivatedBonusPerStack;
+
+                    captStacks = captivated.Stacks;
+                    captMult = 1f + captStacks * perStack;
+                }
+            }
+
+            int applied;
+            if (incoming <= 0 || indiffStacks > 0)
+                applied = 0;
+            else if (captStacks > 0)
+                applied = Mathf.RoundToInt(incoming * captMult);
+            else
+                applied = incoming;
+
+            return new IncomingVibePreview(incoming, applied, indiffStacks, captStacks, captMult);
+        }
+
+        /// <summary>
         /// Single canonical entry point for incoming POSITIVE Vibe.
         /// Mirror of BandCharacterStats.ApplyIncomingStressWithComposure (M4.1 pattern).
+        ///
+        /// [BIGNUM-1 / D-BN-6=A] The gate itself now lives in
+        /// <see cref="PreviewIncomingVibe"/>; this method is "preview, then apply".
+        /// Numerics are unchanged vs the R1 body (regression ST-BN-1).
         ///
         /// Currently registered statuses:
         /// - Indifference (CharacterStatusId.NegateIncomingPositive): while stacks > 0,
@@ -139,59 +236,30 @@ namespace ALWTTT.Characters.Audience
         {
             if (incoming <= 0) return 0;
 
-            // Indifference block: stacks > 0 → gate all incoming Vibe to 0.
-            int indiffStacks = 0;
-            if (statuses != null)
-            {
-                indiffStacks = statuses.GetStacks(
-                    CharacterStatusId.NegateIncomingPositive);
-            }
+            var preview = PreviewIncomingVibe(statuses, incoming);
 
-            if (indiffStacks > 0)
+            if (preview.Blocked)
             {
 #if UNITY_EDITOR
                 Debug.Log(
                     $"<color=#888888>[ApplyIncomingVibe] BLOCKED " +
-                    $"incoming={incoming} indiffStacks={indiffStacks}</color>");
+                    $"incoming={incoming} indiffStacks={preview.IndifferenceStacks}</color>");
 #endif
                 return 0;
             }
 
-            // [R1] Captivated amplification layer (Design_Audience_Status_v1 §4
-            // → SSoT_Status_Effects §5.8). Sits AFTER the Indifference gate by
-            // design (D-DCP-6=A invariant): blocked is blocked, regardless of
-            // Captivated stacks. Applies to ALL positive Vibe routed through
-            // this helper — cards, Earworm ticks, SFX FlatVibe, song-end macro
-            // Vibe (D-R1-1=A, scope broadened vs the original card-only design
-            // wording). StatusKey guard mirrors the Earworm disambiguation
-            // pattern against future DamageTakenUpMultiplier variants.
-            int modified = incoming;
-            if (statuses != null &&
-                statuses.TryGet(CharacterStatusId.DamageTakenUpMultiplier,
-                    out var captivated) &&
-                captivated != null && captivated.Stacks > 0 &&
-                captivated.Definition != null &&
-                string.Equals(captivated.Definition.StatusKey, "captivated",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                var gm = GigManager.Instance;
-                float perStack = gm != null
-                    ? gm.CaptivatedVibeBonusPerStack
-                    : DefaultCaptivatedBonusPerStack;
-
-                float mult = 1f + captivated.Stacks * perStack;
-                modified = Mathf.RoundToInt(incoming * mult);
-
 #if UNITY_EDITOR
+            if (preview.CaptivatedStacks > 0)
+            {
                 Debug.Log(
-                    $"<color=#888888>[ApplyIncomingVibe] CAPTIVATED ×{mult:0.##} " +
-                    $"stacks={captivated.Stacks} incoming={incoming} " +
-                    $"applied={modified}</color>");
-#endif
+                    $"<color=#888888>[ApplyIncomingVibe] CAPTIVATED ×{preview.CaptivatedMult:0.##} " +
+                    $"stacks={preview.CaptivatedStacks} incoming={incoming} " +
+                    $"applied={preview.Applied}</color>");
             }
+#endif
 
-            AddVibe(modified, duration);
-            return modified;
+            AddVibe(preview.Applied, duration);
+            return preview.Applied;
         }
 
         /// <summary>

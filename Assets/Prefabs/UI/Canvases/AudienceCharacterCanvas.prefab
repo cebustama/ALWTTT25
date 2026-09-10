@@ -757,7 +757,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4438441184472882901, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8284894178020583705}
   m_SourcePrefab: {fileID: 100100000, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
 --- !u!114 &1489967832596637540 stripped
 MonoBehaviour:
@@ -786,12 +789,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &7235029455346468599 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4438441184472882901, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+  m_PrefabInstance: {fileID: 6485040841467516962}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8284894178020583705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7235029455346468599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c2bd722bbca474f94360f13fcd8ce0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tooltips.VibeBarTooltipTarget
+  canvas: {fileID: 6280537678877212704}
 --- !u!114 &8436283020789504068 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3237187619091841126, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
   m_PrefabInstance: {fileID: 6485040841467516962}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 7235029455346468599}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d2e5858fab8a36d4293a2980fd459d7f, type: 3}
@@ -831,7 +852,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1836188541970597043, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_PresetInfoIsWorld
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}
       propertyPath: m_text
@@ -1008,6 +1029,7 @@ MonoBehaviour:
   effectivenessLabel: {fileID: 7103623726913545517}
   projectedVibeText: {fileID: 6100007475598273823}
   revealedTasteIcon: {fileID: 6713211781343933903}
+  projectedKoColor: {r: 1, g: 0.85, b: 0.25, a: 1}
 --- !u!114 &4033435451783531182 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5829644541643512539, guid: 7f95a6473f845ea419cbc4dcc4c70d97, type: 3}

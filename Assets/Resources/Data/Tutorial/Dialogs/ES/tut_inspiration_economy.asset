@@ -22,3 +22,6 @@ MonoBehaviour:
     de Inspiraci\xF3n. Algunas cartas la exigen para jugarse. Las buenas, claro.
     Gu\xE1rdala: te acaba de llegar a la mano una que la vale."
   highlightKey: inspiration_counter
+  mechanicText: "La <link=inspiration>Inspiraci\xF3n</link> paga las cartas: {$inspiration_per_loop}
+    por <link=loop>loop</link>, concedida al final del loop. Una carta con coste
+    lo muestra y lo exige. Sin coste, gratis."

@@ -22,3 +22,6 @@ MonoBehaviour:
     la pr\xF3xima vez guarda Inspiraci\xF3n para el final y remata. Venga, otra vez
     desde arriba."
   highlightKey: 
+  mechanicText: "El <link=gig>concierto</link> se pierde cuando su \xFAltima canci\xF3n
+    termina con alguien sin convencer, o cuando la <link=cohesion>Cohesi\xF3n</link>
+    llega a cero por <link=breakdown>colapsos</link> de m\xFAsicos."

@@ -23,3 +23,9 @@ MonoBehaviour:
     Pasa el cursor por encima y te dice exactamente qu\xE9 hace. L\xE9elos: la banda
     vive de ellos."
   highlightKey: status_icon_musician
+  mechanicText: "<link=flow>Flow</link> es un estado sobre un m\xFAsico (icono encima).
+    Cada acumulaci\xF3n sube el <link=vibe>Vibe</link> de sus <link=action_card>cartas
+    de acci\xF3n</link>; el Flow de toda la banda multiplica el Vibe de las <link=composition_card>cartas
+    de composici\xF3n</link> y del <link=song_end>final de la canci\xF3n</link>.
+    No decae por turno; se reinicia al final de la canci\xF3n. El icono muestra su
+    descripci\xF3n al pasar el cursor."

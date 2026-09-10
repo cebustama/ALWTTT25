@@ -23,3 +23,7 @@ MonoBehaviour:
     cubrir. Dura hasta tu pr\xF3ximo turno y luego se esfuma. Es una guardia, no
     una armadura. S\xFAbela cuando veas venir el golpe."
   highlightKey: status_icon_composure
+  mechanicText: "<link=composure>Compostura</link> es un estado sobre un m\xFAsico:
+    absorbe el da\xF1o de <link=stress>Stress</link> entrante antes de que llegue
+    a la entereza. Arrastra la carta sobre el m\xFAsico a proteger. Desaparece al
+    inicio del siguiente turno del jugador, se haya usado o no."

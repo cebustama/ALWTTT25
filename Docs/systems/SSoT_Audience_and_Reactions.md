@@ -138,6 +138,17 @@ Captivated stacks. Captivated likewise does not touch `ResolveLoopEffect` output
 what crosses the Vibe boundary, keeping the single-gate property intact. Status spec:
 `SSoT_Status_Effects.md §5.8`.
 
+**Form of the gate (BIGNUM-1, D-BN-6=A).** "One gate" is now materialised as two methods on
+`AudienceCharacterStats`: `PreviewIncomingVibe(statuses, incoming)` computes the gate and
+returns an `IncomingVibePreview` (applied amount, Indifference stacks, Captivated stacks and
+multiplier) **without touching state**; `ApplyIncomingVibe` calls it and applies the result.
+The gate is still written once. The projection/telegraph calls the preview, so the number
+shown to the player and the number applied at song end cannot diverge — a UI-side copy of
+the gate is prohibited (D-BN-0).
+
+Reading, not applying, has one deliberate difference: the preview reads both statuses even
+when `incoming <= 0`, so the bar tooltip can show *why* a zero is a zero.
+
 ---
 
 ## 6. Preferences (taste profiles)
@@ -211,6 +222,14 @@ This is also the backward-compat path for any audience asset authored pre-B3.
   (`tastePanelRoot`, `tasteText`) survived briefly as inert fields so live
   prefab wiring would not dangle, and were removed — fields and `TastePanel`
   prefab object alike — in the R5-pre cleanup pass (2026-08-11).
+- **BIGNUM-1 / D-BN-15 (2026-09-09).** The resistance bar has its own hover tooltip (the Vibe
+  breakdown), a bounded exception to "one hover surface per character" of the same class as
+  the status icons. While the pointer is on the bar the composite tooltip stands down
+  (`VibeBarTooltipTarget` raises a flag; `AudienceCharacterCanvas.ShowTooltipInfo` yields).
+  Limitation: moving bar → body without leaving the character does not restore the composite
+  until re-entry. **D-BN-9=A — composing the breakdown INTO the shared tooltip — was built
+  and reverted by observation**; read `planning/Design_Vibe_Telegraph_v0_1.md` §10.3 before
+  re-proposing it.
 
 ---
 

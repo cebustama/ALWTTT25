@@ -41,6 +41,23 @@ namespace ALWTTT.Characters
         /// <summary>[S5e-ext] True once a meter value has been cached and it sits at Max.</summary>
         protected bool IsMeterFull => _meterMax > 0 && _meterCurrent >= _meterMax;
 
+
+        // [BIGNUM-1r3 / D-BN-17=A] Prediction override for the S5e-ext bar policy.
+        // That policy hides a FULL bar because "there is no information to convey".
+        // A predicted-loss segment IS information about a full bar, so while one is
+        // showing the bar stays visible. Set by AudienceCharacterCanvas from the live
+        // projection; band canvases never set it and keep the old behaviour exactly.
+        private bool _predictionVisible;
+
+        /// <summary>[BIGNUM-1r3 / D-BN-17=A] Keep the bar visible while a predicted
+        /// segment is on it, even at full meter. Applies the steady-state rule at once.</summary>
+        protected void SetPredictionVisible(bool visible)
+        {
+            if (_predictionVisible == visible) return;
+            _predictionVisible = visible;
+            UpdateVisibility();
+        }
+
         /// <summary>[CARD-UX-1] Rect of the primary meter bar (musician Stress /
         /// audience Vibe) for world→screen tutorial highlights. Null-safe.</summary>
         public RectTransform MeterBarRect =>
@@ -232,13 +249,14 @@ namespace ALWTTT.Characters
         /// <summary>Steady-state rule; called on every meter change.</summary>
         public void UpdateVisibility()
         {
-            SetBarVisible(!IsMeterFull);
+            SetBarVisible(!IsMeterFull || _predictionVisible); // [BIGNUM-1r3 / D-BN-17=A]
         }
 
-        /// <summary>Hover-exit / build-time conceal: hides the bar only when full.</summary>
         public virtual void HideContextual()
         {
-            if (IsMeterFull)
+            // [BIGNUM-1r3 / D-BN-17=A] A full bar carrying a prediction must survive
+            // pointer-exit; otherwise the ghost would blink out from under the cursor.
+            if (IsMeterFull && !_predictionVisible)
                 SetBarVisible(false);
         }
 

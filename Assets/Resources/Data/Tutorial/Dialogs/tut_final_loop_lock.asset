@@ -22,3 +22,6 @@ MonoBehaviour:
     there''s no next loop to play it. Compositions go early; the last loop is for
     actions and closers.'
   highlightKey: loops_bar
+  mechanicText: 'Last <link=loop>loop</link>: <link=composition_card>composition
+    cards</link> are locked, since a change now would have no loop left to sound
+    in. <link=action_card>Action cards</link> still play.'

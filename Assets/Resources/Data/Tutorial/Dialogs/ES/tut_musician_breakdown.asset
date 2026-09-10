@@ -22,3 +22,8 @@ MonoBehaviour:
     colapsa y deja de tocar. Algunas cartas de acci\xF3n la recuperan, o la protegen.
     Cuida a tu banda: sin banda no hay canci\xF3n."
   highlightKey: musician_stress_bar
+  mechanicText: "La barra de <link=stress>Stress</link> de un m\xFAsico es su entereza
+    restante; las acciones del p\xFAblico la reducen. A cero, el m\xFAsico <link=breakdown>colapsa</link>:
+    la <link=cohesion>Cohesi\xF3n</link> pierde uno, la barra se rellena y el m\xFAsico
+    recibe <link=shaken>Shaken</link>. Cohesi\xF3n a cero pierde el concierto. Algunas
+    <link=action_card>cartas de acci\xF3n</link> recuperan o protegen la entereza."

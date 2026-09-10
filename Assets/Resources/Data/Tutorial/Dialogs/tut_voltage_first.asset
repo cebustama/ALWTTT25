@@ -22,3 +22,4 @@ MonoBehaviour:
     over between songs. It doesn''t spend itself: it''s his currency, and some of
     his cards demand it. Build it.'
   highlightKey: status_icon_musician
+  mechanicText: 

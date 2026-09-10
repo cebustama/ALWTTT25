@@ -22,3 +22,6 @@ MonoBehaviour:
     pulse, keys build the world, bass holds it together, voice is what sticks in
     your head. Each composition card touches the track of whoever plays it.'
   highlightKey: song_panel_tracks
+  mechanicText: One <link=track>track</link> per musician in the song panel. A <link=composition_card>composition
+    card</link> writes to the track of the musician who plays it. Tracks sound together;
+    each holds one active card.

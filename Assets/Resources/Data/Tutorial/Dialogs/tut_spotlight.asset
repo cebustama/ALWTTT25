@@ -21,3 +21,4 @@ MonoBehaviour:
   - 'SPOTLIGHT: C2 stepped under the light. For one turn, anyone in the crowd aiming
     at a single target aims at him. Use it to choose who takes the hit.'
   highlightKey: status_icon_musician
+  mechanicText: 

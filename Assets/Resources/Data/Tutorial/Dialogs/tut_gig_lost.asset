@@ -22,3 +22,6 @@ MonoBehaviour:
     next time, bank Inspiration for the finish and close it out. Come on, from the
     top.'
   highlightKey: 
+  mechanicText: The <link=gig>gig</link> is lost when its last song ends with someone
+    unconvinced, or when <link=cohesion>Cohesion</link> reaches zero from musician
+    <link=breakdown>breakdowns</link>.

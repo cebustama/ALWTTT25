@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed7d7b33cc88b5a458b10c8c0df737a2, type: 3}
+  m_Name: ConceptGlossary_EN
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.ConceptGlossarySO
+  languageCode: en
+  entries:
+  - id: gig
+    displayName: Gig
+    description: A sequence of songs played to one audience. Won when every audience
+      member is convinced; lost if the last song ends with someone unconvinced or
+      Cohesion reaches zero.
+  - id: song
+    displayName: Song
+    description: One piece of a gig, built from cards and played in loops. When it
+      ends, its Hype converts into Vibe damage on the audience.
+  - id: loop
+    displayName: Loop
+    description: One repetition of the song and one play period for the player. A
+      song lasts a fixed number of loops.
+  - id: period
+    displayName: Play period
+    description: 'The span in which each musician''s play budget applies: the preparation
+      before Play, then each loop.'
+  - id: play
+    displayName: Play
+    description: The button that starts the song. Cards played after it take effect
+      in the running song without stopping it.
+  - id: track
+    displayName: Track
+    description: A musician's line in the song panel. Holds one active composition
+      card at a time; a new card replaces the old one.
+  - id: song_end
+    displayName: Song end
+    description: The moment the last loop finishes. Hype converts into Vibe damage,
+      banked stage bonuses are paid, and the win condition is checked.
+  - id: stage
+    displayName: Stage effects
+    description: Visual intensity levels tied to Hype thresholds. Each upward crossing
+      banks a flat Vibe bonus paid at song end. Higher levels unlock as run rewards.
+  - id: budget
+    displayName: Play budget
+    description: Per period, each musician may play one composition card and one
+      action card. Unspent plays do not carry over.
+  - id: composition_card
+    displayName: Composition card
+    description: Adds music to the song. Played onto the band; resolves on the musician
+      named on the card and writes to that musician's track.
+  - id: action_card
+    displayName: Action card
+    description: Changes meters or statuses. Played onto a musician or an audience
+      member; takes effect immediately and does not change the song.
+  - id: sound_card
+    displayName: Sound card
+    description: A composition card that changes a property of the whole song, such
+      as tempo or key, instead of adding a part. Changes no meter by itself.
+  - id: hype
+    displayName: Hype
+    description: The song's accumulated intensity. At song end it converts into Vibe
+      damage on every audience member; crossing thresholds steps up the stage effects.
+  - id: inspiration
+    displayName: Inspiration
+    description: The resource that pays for cards. Granted at the end of each loop.
+      A card with a cost cannot be played without it.
+  - id: cohesion
+    displayName: Cohesion
+    description: The band's shared endurance. Loses one point each time a musician
+      breaks down. At zero, the gig is lost.
+  - id: breakdown
+    displayName: Breakdown
+    description: 'What happens when a musician''s Stress bar reaches zero: the band
+      loses one Cohesion, the bar refills and the musician becomes Shaken.'
+  - id: blocked
+    displayName: Blocked
+    description: 'An audience member standing at the front is Blocked: it receives
+      no Vibe from cards or from song end. Positional, recomputed whenever the audience
+      reorders.'

@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using ALWTTT.Tutorial;
+using ALWTTT.Tooltips;   // [TXT-2] ConceptTagRenderer (tag regex + balance check)
 using UnityEditor;
 using UnityEngine;
 
@@ -28,6 +29,7 @@ namespace ALWTTT.TextAuthoring
         // ── Serialized field names on the SOs (change here if the SO changes) ──
         private const string PropTitle = "revisitTitle";
         private const string PropPages = "pages";
+        private const string PropMechanic = "mechanicText";   // [TUT-TXT-1]
         private const string PropDialogs = "dialogs";
         private const string PropLanguage = "languageCode";
 
@@ -51,6 +53,11 @@ namespace ALWTTT.TextAuthoring
             public TutorialDialogSO Dialog;      // null → MISSING in this language
             public SerializedObject Serialized;  // null when Dialog is null
             public string Title => Serialized?.FindProperty(PropTitle).stringValue ?? "";
+
+            // [TUT-TXT-1] Null-safe on the property: a dialog asset serialized before step 1
+            // still reads as "" instead of throwing.
+            public string Mechanic => Serialized?.FindProperty(PropMechanic)?.stringValue ?? "";
+
             public List<string> Pages
             {
                 get
@@ -89,6 +96,7 @@ namespace ALWTTT.TextAuthoring
         public void Rebuild()
         {
             Catalogs.Clear(); Languages.Clear(); Rows.Clear();
+            ConceptRegistryEditorIndex.Build();   // [TXT-2] registries for the TAG unknown check
 
             foreach (var guid in AssetDatabase.FindAssets($"t:{nameof(TutorialDialogCatalogSO)}"))
             {
@@ -165,6 +173,17 @@ namespace ALWTTT.TextAuthoring
                 row.Issues.Clear();
                 if (!row.Canonical) row.Issues.Add("EXTRA id");
                 HashSet<string> refTokens = null;
+
+                // [TUT-TXT-1 / D-TT-4=A] Mechanic text is flagged only on ASYMMETRY (one language
+                // has it, the other does not): ids outside the D-TT-3 scope are legitimately empty
+                // in every language and must not light up "Only issues".
+                string refMech = null, refMechLang = null;
+                HashSet<string> refMechTokens = null;
+                // [TXT-2 / D-TAG-6] Concept tags are checked like tokens: the SET of ids must match
+                // across languages (a translation that drops a tag is a UI hole the copy hides), and
+                // every id must exist in some registry (status key, keyword, glossary).
+                HashSet<string> refTags = null, refMechTags = null;
+
                 foreach (var lang in Languages)
                 {
                     if (!row.ByLanguage.TryGetValue(lang, out var cell) || cell.Dialog == null)
@@ -176,9 +195,32 @@ namespace ALWTTT.TextAuthoring
                     if (pages.Count > PageCap) row.Issues.Add($"PAGES>{PageCap} {lang}");
                     if (string.IsNullOrWhiteSpace(cell.Title)) row.Issues.Add($"NO TITLE {lang}");
 
+
+                    var mechTokens = new HashSet<string>(TokenRx.Matches(cell.Mechanic ?? "").Cast<Match>().Select(m => m.Value));
+                    if (refMechLang == null) { refMech = cell.Mechanic; refMechLang = lang; refMechTokens = mechTokens; }
+                    else
+                    {
+                        bool hereEmpty = string.IsNullOrWhiteSpace(cell.Mechanic);
+                        bool refEmpty = string.IsNullOrWhiteSpace(refMech);
+                        if (hereEmpty != refEmpty) row.Issues.Add($"NO MECHANIC {(hereEmpty ? lang : refMechLang)}");
+                        else if (!hereEmpty && !refMechTokens.SetEquals(mechTokens)) row.Issues.Add("MECHANIC TOKENS differ");
+                    }
+
                     var tokens = new HashSet<string>(pages.SelectMany(p => TokenRx.Matches(p ?? "").Cast<Match>().Select(m => m.Value)));
                     if (refTokens == null) refTokens = tokens;
                     else if (!refTokens.SetEquals(tokens)) row.Issues.Add("TOKENS differ");
+
+                    // [TXT-2] tag parity + unknown + unclosed (mechanic and pages)
+                    var mechTags = new HashSet<string>(ConceptTagRenderer.ExtractIds(cell.Mechanic), StringComparer.OrdinalIgnoreCase);
+                    var pageTags = new HashSet<string>(pages.SelectMany(ConceptTagRenderer.ExtractIds), StringComparer.OrdinalIgnoreCase);
+                    if (refMechTags == null) refMechTags = mechTags;
+                    else if (!string.IsNullOrWhiteSpace(cell.Mechanic) && !refMechTags.SetEquals(mechTags)) row.Issues.Add("MECHANIC TAGS differ");
+                    if (refTags == null) refTags = pageTags;
+                    else if (!refTags.SetEquals(pageTags)) row.Issues.Add("TAGS differ");
+                    foreach (var id in mechTags.Concat(pageTags).Distinct(StringComparer.OrdinalIgnoreCase))
+                        if (!ConceptRegistryEditorIndex.IsKnown(id)) row.Issues.Add($"TAG unknown: {id}");
+                    if (ConceptTagRenderer.HasUnbalancedLinks(cell.Mechanic) || pages.Any(ConceptTagRenderer.HasUnbalancedLinks))
+                        row.Issues.Add($"TAG unclosed {lang}");
                 }
             }
         }
@@ -280,6 +322,11 @@ namespace ALWTTT.TextAuthoring
 
                 t.Rows.Add(BuildRecord(row, GameTextCsv.FieldTitle, lang =>
                     row.ByLanguage.TryGetValue(lang, out var c) && c.Dialog != null ? c.Title : ""));
+
+                // [TUT-TXT-1] Row order title → mechanicText → page_N is fixed: stable diffs.
+                t.Rows.Add(BuildRecord(row, GameTextCsv.FieldMechanic, lang =>
+                    row.ByLanguage.TryGetValue(lang, out var c) && c.Dialog != null ? c.Mechanic : ""));
+
                 for (int p = 1; p <= maxPages; p++)
                 {
                     int idx = p - 1;
@@ -344,7 +391,7 @@ namespace ALWTTT.TextAuthoring
                 if (rec.Length < 2) continue;
                 string id = rec[0].Trim(); string field = rec[1].Trim();
                 if (string.IsNullOrEmpty(id)) continue;
-                if (field != GameTextCsv.FieldTitle && GameTextCsv.ParsePageIndex(field) < 0)
+                if (field != GameTextCsv.FieldTitle && field != GameTextCsv.FieldMechanic && GameTextCsv.ParsePageIndex(field) < 0)
                 { result.Skipped.Add($"row {r + 2}: unknown field '{field}'"); continue; }
                 if (!pending.TryGetValue(id, out var byField)) pending[id] = byField = new();
                 if (!byField.TryGetValue(field, out var byLang)) byField[field] = byLang = new();
@@ -366,6 +413,8 @@ namespace ALWTTT.TextAuthoring
                     // Assemble the target state for this (id, lang)
                     string newTitle = null;
                     if (kvId.Value.TryGetValue(GameTextCsv.FieldTitle, out var tl) && tl.TryGetValue(lang, out var tv)) newTitle = tv;
+                    string newMechanic = null;   // [TUT-TXT-1] same "empty cell = no opinion" rule as the title
+                    if (kvId.Value.TryGetValue(GameTextCsv.FieldMechanic, out var ml) && ml.TryGetValue(lang, out var mv)) newMechanic = mv;
 
                     var pageCells = kvId.Value
                         .Where(f => GameTextCsv.ParsePageIndex(f.Key) > 0)
@@ -393,6 +442,8 @@ namespace ALWTTT.TextAuthoring
                     // Empty title cell = "no opinion", never "clear the title" (blank sheet cells are usually accidents).
                     if (!string.IsNullOrEmpty(newTitle) && newTitle != cell.Title)
                     { cell.Serialized.FindProperty(PropTitle).stringValue = newTitle; touched = true; result.FieldsChanged++; }
+                    if (!string.IsNullOrEmpty(newMechanic) && newMechanic != cell.Mechanic)
+                    { cell.Serialized.FindProperty(PropMechanic).stringValue = newMechanic; touched = true; result.FieldsChanged++; }
                     if (newPages != null && !newPages.SequenceEqual(cell.Pages))
                     {
                         var p = cell.Serialized.FindProperty(PropPages);
@@ -421,6 +472,7 @@ namespace ALWTTT.TextAuthoring
                 {
                     if (!row.ByLanguage.TryGetValue(lang, out var c) || c.Dialog == null) continue;
                     sb.Append(row.Id).Append('\u001f').Append(lang).Append('\u001f').Append(c.Title);
+                    sb.Append('\u001f').Append(c.Mechanic);   // [TUT-TXT-1] every fingerprint changes ONCE at this step
                     foreach (var p in c.Pages) sb.Append('\u001f').Append(p);
                     sb.Append('\u001e');
                 }

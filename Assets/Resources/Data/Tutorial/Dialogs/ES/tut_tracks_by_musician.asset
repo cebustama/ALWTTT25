@@ -23,3 +23,7 @@ MonoBehaviour:
     voz es lo que se queda en la cabeza. Cada carta de composici\xF3n toca la pista
     de quien la juega."
   highlightKey: song_panel_tracks
+  mechanicText: "Una <link=track>pista</link> por m\xFAsico en el panel de la canci\xF3n.
+    Una <link=composition_card>carta de composici\xF3n</link> escribe en la pista
+    del m\xFAsico que la toca. Las pistas suenan juntas; cada una contiene una sola
+    carta activa."

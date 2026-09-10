@@ -13,10 +13,16 @@ MonoBehaviour:
   m_Name: tut_first_reward_choice
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
   triggerId: tut_first_reward_choice
-  priority: 100
-  category: 0
-  revisitTitle: Primera recompensa
+  priority: 122
+  category: 4
+  revisitTitle: Recompensa
   portrait: {fileID: 0}
   pages:
-  - Recoge tus recompensas!
+  - "Ganaste, rookie, as\xED que hay bot\xEDn. Elige UNA de estas cartas: se queda
+    en tu mazo para lo que viene."
+  - "No agarres la que brilla. Agarra la que le falta a la banda. Un mazo se construye
+    as\xED, elecci\xF3n a elecci\xF3n."
   highlightKey: 
+  mechanicText: Tras un <link=gig>concierto</link> ganado, la pantalla de recompensa
+    ofrece varias cartas; solo una se une al mazo de la banda para el resto de la
+    run.

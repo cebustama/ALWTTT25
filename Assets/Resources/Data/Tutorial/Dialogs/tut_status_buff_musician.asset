@@ -22,3 +22,8 @@ MonoBehaviour:
     for you: FLOW, the musician''s on a roll and their music hits harder. Hover it
     and it tells you exactly what it does. Read them: the band lives on them.'
   highlightKey: status_icon_musician
+  mechanicText: <link=flow>Flow</link> is a status on a musician (icon above them).
+    Each stack raises the <link=vibe>Vibe</link> of that musician's <link=action_card>action
+    cards</link>; band-wide Flow multiplies the Vibe of <link=composition_card>composition
+    cards</link> and of <link=song_end>song end</link>. No per-turn decay; resets
+    at song end. Hover a status icon for its description.

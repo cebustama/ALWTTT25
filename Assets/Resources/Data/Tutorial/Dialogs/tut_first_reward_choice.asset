@@ -13,10 +13,15 @@ MonoBehaviour:
   m_Name: tut_first_reward_choice
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
   triggerId: tut_first_reward_choice
-  priority: 100
-  category: 0
-  revisitTitle: First reward
+  priority: 122
+  category: 4
+  revisitTitle: Reward
   portrait: {fileID: 0}
   pages:
-  - Pick up the spoils!
+  - 'You won, rookie, so there''s loot. Pick ONE of these cards: it stays in your
+    deck for what''s next.'
+  - 'Don''t grab the shiny one. Grab the one the band is missing. That''s how a deck
+    gets built: one choice at a time.'
   highlightKey: 
+  mechanicText: After a won <link=gig>gig</link>, the reward screen offers several
+    cards; exactly one joins the band's deck for the rest of the run.

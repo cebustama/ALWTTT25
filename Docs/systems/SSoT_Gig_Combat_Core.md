@@ -418,10 +418,39 @@ These can exist as planning/reference material without overriding this SSoT.
 |---|---|
 | `GigFlowSettingsSO` | JamRules, Action card gating, Gig End behavior, setup-screen defaults |
 | `MeterTuningSO` | SongHype caps/seed, Vibe/Hype balance, Flow→Vibe (bifurcated MVP), `LoopScoringConfig`, `HypeThresholds`, `breakdownStressResetFraction` |
-| `GigPresentationSO` | Audience beat curve/threshold, idle BPM, sequence pacing values, SongHype bar visibility (`showSongHypeBar`, S5f/#6a — OFF hides the bar + the C1 "L + SFX = N" readout; SongHype accrual, stage SFX, and song-end Vibe conversion are unaffected) |
+| `GigPresentationSO` | Audience beat curve/threshold, idle BPM, sequence pacing values, **four independent Vibe-presentation switches** (`showSongHypeBar`, `showVibeReadout`, `showVibeEffectivenessLabels`, `showVibeProjectedNumbers` — see §12.1, BIGNUM-1 2026-09-09) |
 | `GigDevSettingsSO` | Inspector-time toggles only: `useLogs`, `useCompositionLogs`, `debugSongHype`, `debugInstrumentPicker`, `debugMusicianVolume` |
 
 Scene-instance references (cameras, hand, composition UI, position lists, scene changer, MidiGenPlayConfig boundary, songHypeDebugSlider, background container) remain inline-serialized on `GigManager` — they cannot be assets.
+
+### 12.1 Vibe presentation switches (BIGNUM-1, 2026-09-09)
+
+Four independent booleans on `GigPresentationSO`:
+
+| Field | Governs | Demo asset (D-BN-11=A) |
+|---|---|---|
+| `showSongHypeBar` | the SongHype bar **only**. Before BIGNUM-1 it also hid the C1 readout; that coupling is gone (D-BN-7=A). | OFF (D-S5f-6=B: simplified gig 1) |
+| `showVibeReadout` | the C1 "big number" and its hover tooltip. New at BIGNUM-1. | ON |
+| `showVibeEffectivenessLabels` | the per-member ¡Súper!/Normal/Resiste/Inmune labels. **Existed undocumented before BIGNUM-1 (F-BN-2).** | ON |
+| `showVibeProjectedNumbers` | the per-member `-N` text **only** — NOT the predicted bar segment, which is its own surface (D-BN-16=A). | ON |
+
+SongHype still accrues, stage SFX still fire and song-end conversion is unchanged whatever
+these are set to: they are presentation, not rules.
+
+**Bar visibility (S5e-ext, amended by D-BN-17=A).** Steady-state rule is now
+"full meter AND no prediction → hidden". `CharacterCanvas.SetPredictionVisible` is raised by
+the audience canvas from the live projection; band canvases never raise it. This section is
+the policy's **first authoritative home**: before BIGNUM-1-DOC the S5e-ext rule existed only
+in a `CURRENT_STATE.md` batch row and a `changelog-ssot.md` entry (2026-07-02). Presentation
+rationale: `planning/Design_Vibe_Telegraph_v0_1.md` §10.4.
+
+**New presentation accessor:** `GigManager.CurrentBpm` (last BPM resolved for the part being
+played; 0 before the first part). Exists for the readout pulse while BEAT-1 is open.
+
+**Scene note (F-BN-9).** `GigCanvas` lives in the persistent **ALWTTTCore** scene, loaded
+additively by `CoreLoader`. No reference from that canvas to an object in the gig scene can
+be serialised — Unity does not serialise cross-scene references. Any such link must be
+resolved at runtime. This is a general constraint on GigCanvas work, not a tooltip quirk.
 
 Façade properties on `GigManager` (`FlowActionFlatBonus`, `FlowActionVibeBonusPerStack`, `FlowVibeMultiplier`, `BreakdownStressResetFraction`) are preserved for callers written before F-2 and now delegate to `MeterTuningSO`.
 

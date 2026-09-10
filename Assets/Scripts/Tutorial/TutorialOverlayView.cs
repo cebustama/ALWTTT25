@@ -1,9 +1,13 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;   // [TUT-TXT-1] IReadOnlyList<string> pagesOverride
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using ALWTTT.Data;          // [TXT-2] ConceptGlossarySO
+using ALWTTT.Status;        // [TXT-2] StatusEffectCatalogueSO
+using ALWTTT.Tooltips;      // [TXT-2] ConceptTooltipResolver, ConceptTagRenderer, TooltipManager
 
 namespace ALWTTT.Tutorial
 {
@@ -90,6 +94,12 @@ namespace ALWTTT.Tutorial
         [Tooltip("Characters per second for the typed reveal (unscaled).")]
         [SerializeField] private float typeSpeed = 45f;
 
+        [Header("Concept tags (TXT-2)")]
+        [Tooltip("[TXT-2 / D-TAG-1=A′] Colour applied to every <link=id> whose id resolves in a concept " +
+                 "registry (status catalogue, card keywords, glossary). Unknown ids render plain.")]
+        [SerializeField] private Color conceptColor = new Color(0.949f, 0.757f, 0.306f); // #F2C14E
+        [SerializeField] private bool conceptUnderline = true;
+
         [Header("Debug")]
         [SerializeField] private bool verboseLogging = true;
         private const string DebugTag = "<color=#ffd479>[TutorialOverlay]</color>";
@@ -103,6 +113,28 @@ namespace ALWTTT.Tutorial
         private bool _isTyping;
 
         public bool IsShowing { get; private set; }
+
+        // ---- [TXT-2] Concept tags: resolver handed over by the controller (language-bound) ----
+        private ConceptTooltipResolver _concepts;      // null until SetConceptSources: tags render plain
+        private Canvas _canvas;
+        private string _hoverLinkId;                    // link id under the pointer; null = none
+        private readonly HashSet<string> _unknownWarned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>[TXT-2 / D-TAG-2=C] Called once by TutorialController with the glossary that
+        /// matches its catalog language and the status catalogues to search. Keywords come from
+        /// TooltipManager.Instance at resolve time (it may not exist yet here).</summary>
+        public void SetConceptSources(ConceptGlossarySO glossary, IReadOnlyList<StatusEffectCatalogueSO> statusCatalogues)
+        {
+            _concepts = new ConceptTooltipResolver(glossary, statusCatalogues);
+            if (glossary == null) Log("SetConceptSources: glossary is NULL — glossary-only concepts will render plain.");
+        }
+
+        private void WarnUnknownConcept(string id)
+        {
+            if (_unknownWarned.Add(id))
+                Debug.LogWarning($"{DebugTag} Unknown concept tag <link={id}> — rendered plain, no tooltip. " +
+                                 "Add it to a ConceptGlossarySO, or fix the id (GameTextWindow flags 'TAG unknown').");
+        }
 
         private void Awake()
         {
@@ -147,16 +179,24 @@ namespace ALWTTT.Tutorial
             TutorialDialogSO dialog,
             Spotlight spotlight,
             Sprite portrait,
-            Action onComplete)
+            Action onComplete,
+            IReadOnlyList<string> pagesOverride = null)   // [TUT-TXT-1 / D-TT-2=A] null ⇒ dialog.Pages
         {
             if (dialog == null) { onComplete?.Invoke(); return; }
 
             _onComplete = onComplete;
-            _pages = (dialog.Pages != null && dialog.Pages.Count > 0)
-                ? new string[dialog.Pages.Count]
-                : new[] { string.Empty };
-            for (int i = 0; i < _pages.Length && i < dialog.Pages.Count; i++)
-                _pages[i] = TutorialTokenResolver.Resolve(dialog.Pages[i]); // [TUT-R2 / D8]
+            // [TUT-TXT-1 / D-TT-2=A] The controller may hand over the body (plain mechanic
+            // text). Same token path as authored pages, so {$…} resolves identically.
+            var src = pagesOverride ?? dialog.Pages;
+            int srcCount = src != null ? src.Count : 0;
+            _pages = srcCount > 0 ? new string[srcCount] : new[] { string.Empty };
+            for (int i = 0; i < srcCount; i++)
+            {
+                // [TUT-R2 / D8] tokens first, so a {$token} inside a tag is already text when the
+                // tag is decorated; [TXT-2] then the ONE decoration pass (no per-consumer styling).
+                string resolved = TutorialTokenResolver.Resolve(src[i]);
+                _pages[i] = ConceptTagRenderer.Decorate(resolved, _concepts, conceptColor, conceptUnderline, WarnUnknownConcept);
+            }
 
             _pageIndex = 0;
             IsShowing = true;
@@ -190,9 +230,58 @@ namespace ALWTTT.Tutorial
         public void Hide()
         {
             IsShowing = false;
+            ClearConceptHover();                            // [TXT-2] never leave a word tooltip behind the closed modal
             if (_typeRoutine != null) { StopCoroutine(_typeRoutine); _typeRoutine = null; }
             if (_matInstance != null) _matInstance.SetFloat("_HoleEnabled", 0f);
             SetGroupVisible(false);
+        }
+
+        // ---- [TXT-2 / D-TAG-5=D] Concept hover: word-level tooltip via TMP link geometry ----
+        // No raycast involved: TMP_TextUtilities.FindIntersectingLink tests the pointer against the
+        // link's character quads, so the modal's blocksRaycasts and the input gates are irrelevant.
+        // Characters not yet revealed by the typewriter (maxVisibleCharacters) are not visible and
+        // do not intersect, so a word cannot be hovered before it has been typed.
+        private void Update()
+        {
+            if (!IsShowing || messageText == null) return;
+            UpdateConceptHover();
+        }
+
+        private void UpdateConceptHover()
+        {
+            string id = null;
+            if (_concepts != null && messageText.textInfo != null && messageText.textInfo.linkCount > 0)
+            {
+                if (_canvas == null) _canvas = messageText.GetComponentInParent<Canvas>();
+                var cam = (_canvas == null || _canvas.renderMode == RenderMode.ScreenSpaceOverlay) ? null : _canvas.worldCamera;
+                int idx = TMP_TextUtilities.FindIntersectingLink(messageText, Input.mousePosition, cam);
+                if (idx >= 0) id = messageText.textInfo.linkInfo[idx].GetLinkID();
+            }
+
+            if (string.Equals(id, _hoverLinkId, StringComparison.Ordinal)) return;
+
+            // Link changed (enter, leave, or jump straight from one word to the next): ONE Hide, then
+            // at most ONE Show. TooltipManager.ShowTooltip stacks a panel per call and only
+            // HideTooltip resets the stack (F-BN-7), so a change is always Hide→Show, never Show→Show.
+            // No target transform is passed, so the tooltip follows the cursor and the static-anchor
+            // projection of F-BN-8 is never entered.
+            var tm = TooltipManager.Instance;
+            if (_hoverLinkId != null && tm != null) tm.HideTooltip();
+            _hoverLinkId = null;
+
+            if (id != null && tm != null && _concepts.Resolve(id, out string header, out string body) != ConceptSource.None)
+            {
+                tm.ShowTooltip(body, header);
+                _hoverLinkId = id;
+            }
+        }
+
+        private void ClearConceptHover()
+        {
+            if (_hoverLinkId == null) return;
+            _hoverLinkId = null;
+            var tm = TooltipManager.Instance;
+            if (tm != null) tm.HideTooltip();
         }
 
         // ---- Input: click anywhere advances (reveal-all → next page → complete) ----
@@ -228,6 +317,7 @@ namespace ALWTTT.Tutorial
         private void ShowPage(int index)
         {
             if (messageText == null) return;
+            ClearConceptHover();                            // [TXT-2] the hovered word may not exist on the next page
             string text = (index >= 0 && index < _pages.Length) ? _pages[index] : string.Empty;
             messageText.text = text;
             messageText.ForceMeshUpdate();

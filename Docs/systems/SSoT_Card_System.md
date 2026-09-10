@@ -373,6 +373,10 @@ Display order: keywords first, statuses second. Tooltips follow the mouse cursor
 
 `CardBase` is the assembly point but does not own the data. `StatusEffectSO` owns description text (`SSoT_Status_Effects.md` §3.3). `SpecialKeywordData` owns keyword text.
 
+**Second consumer of `SpecialKeywordData` (TXT-2, 2026-09-10).** `ConceptTooltipResolver` resolves a `<link=id>` concept tag against the `SpecialKeywords` enum names before falling through to the concept glossary, so `<link=vibe>` in tutorial text shows the same body a card hover shows. Reader, not a new home — governed by `systems/SSoT_Game_Text.md` §3. Two consequences: the enum stays the key space for card keywords (TXT-2 did **not** extend it with meters, which would have polluted a set §3.3 reserves for keywords with future runtime behaviour), and keyword text still has **one language slot** (T-TAG-1, resolved by TXT-3).
+
+Card descriptions themselves remain untagged: `CardEffectDescriptionBuilder` (§10.1) generates them in code, so tagging them is a separate batch on top of the same renderer.
+
 ### 10.3 Card detail modal (M1.10)
 
 `CardDetailViewController` (singleton, `ALWTTT.UI`) manages a dedicated Screen Space – Overlay canvas triggered by right-click (`PointerEventData.InputButton.Right`) on any `CardBase` in hand. The canvas sits at a sort order above the tooltip canvas and is disabled by default.

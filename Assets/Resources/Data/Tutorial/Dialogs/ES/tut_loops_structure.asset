@@ -22,3 +22,6 @@ MonoBehaviour:
     de arriba te dice cu\xE1ntos quedan. Cuando acaba el \xFAltimo loop, la canci\xF3n
     se cierra y se cobra."
   highlightKey: loops_bar
+  mechanicText: "Una canci\xF3n dura {$loops_per_part} <link=loop>loops</link>; cada
+    uno es un <link=period>periodo</link> de juego. La barra de loops muestra cu\xE1ntos
+    quedan. Tras el \xFAltimo, el resultado de la canci\xF3n se aplica al p\xFAblico."

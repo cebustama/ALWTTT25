@@ -1231,6 +1231,7 @@ Navigation only: no cross-link mutates an asset.
 ---
 
 ## 20. Game Text Window (`GameTextWindow`) — TXT-1, 2026-09-05
+*(extended by TUT-TXT-1 and TUT-TXT-1c, 2026-09-09 — §20.9, §20.10, and the amendment in §20.5)*
 
 **Files:** `Assets/Scripts/Editor/Text/GameTextWindow.cs` · `TutorialTextTable.cs` · `GameTextCsv.cs`
 **Namespace:** `ALWTTT.TextAuthoring` (see the namespace note in §13)
@@ -1259,13 +1260,15 @@ after an Undo.
 
 | Tab | State | Text fields | Languages | Why |
 |---|---|---|---|---|
-| Tutorial | **Full** — read, edit, create, CSV import/export | `TutorialDialogSO.revisitTitle`, `pages[]` | N, one per catalog `languageCode` | the only category with per-language storage |
+| Tutorial | **Full** — read, edit, create, CSV import/export | `TutorialDialogSO.revisitTitle`, `mechanicText`, `pages[]` | N, one per catalog `languageCode` | first category with per-language storage |
+| Concepts | **Full** — read, edit, create, CSV import/export (TXT-2, 2026-09-10) | `ConceptGlossarySO` → `ConceptEntry.displayName`, `description` | N, one per glossary `languageCode` | second category with per-language storage; see §20.11 |
 | Cards | **Inventory only** (read + CSV export) | `CardDefinition.displayName` | 1 | no description field exists; card descriptions are *generated in code* by `CardEffectDescriptionBuilder` (`SSoT_Card_System` §10.1) |
 | Status Effects | **Inventory only** (read + CSV export) | `StatusEffectSO.displayName`, `description` | 1 | see the auto-rename warning in §20.7 |
 | Menus | **Declared unreachable** | — | — | `MainMenuController` holds no player-facing strings; button labels are `TMP_Text` components in the MainMenu scene/prefabs, which `AssetDatabase` type search cannot enumerate |
 
-The non-tutorial tabs are declared, not simulated: each renders its real inventory and a note
-stating why it is read-only. Giving them a language slot is gated on **O-TXT-3** (§20.8).
+The remaining read-only tabs are declared, not simulated: each renders its real inventory and a note
+stating why it is read-only. Giving them a language slot is gated on **O-TXT-3** (§20.8) — TXT-3 is
+the batch that would do it for Status Effects and card keywords.
 
 ### 20.3 Language columns (D2=B)
 
@@ -1301,15 +1304,32 @@ Per-row issue flags: `MISSING <lang>` · `EXTRA id` (present in a catalog, absen
 `TutorialTriggerId`) · `EMPTY <lang>` · `PAGES>2 <lang>` (the D-S5f-5=B two-page authoring cap) ·
 `NO TITLE <lang>` · `TOKENS differ` (the set of `{$token}` occurrences is not identical across
 languages — a translation that dropped `{$loops_per_part}` is a runtime hole the copy alone would
-not reveal).
+not reveal) · **`NO MECHANIC <lang>`** and **`MECHANIC TOKENS differ`** (TUT-TXT-1, 2026-09-09) ·
+**`TAGS differ`**, **`MECHANIC TAGS differ`**, **`TAG unknown: <id>`** and **`TAG unclosed <lang>`**
+(TXT-2, 2026-09-10 — concept tags, §20.11).
+
+**Concept tags are checked by the same rule as tokens, for the same reason.** The *set* of
+`<link=id>` ids must be identical across languages; a translation that drops a tag leaves a word
+that looks ordinary and opens nothing, which reading the copy would never reveal. `TAG unknown`
+additionally checks the id against the three concept registries (status keys, `SpecialKeywords`
+names, glossary ids) built once per rebuild by `ConceptRegistryEditorIndex`.
+
+`NO MECHANIC` fires on **asymmetry only** — one language has plain mechanic text and the other does
+not. An id empty in *every* language is legitimate while TUT-TXT-1b has not covered it, and flagging
+those would have put 34 badges on the board and made the `Only issues` filter useless on the day it
+was added.
 
 ### 20.5 Creating a missing dialog
 
 A `MISSING` cell offers `Create <id> [lang]`: it creates `{dir}/{id}.asset` in that catalog's
 dominant dialog directory, copies `priority` / `category` / `highlightKey` from a sibling language
 (identical across languages by contract), authors an empty title and one empty page, and appends
-the asset to the catalog's list. The seeders are not involved — they remain the emergency seed
-(**D-TXT-3**), not the repair path.
+the asset to the catalog's list. The seeders are not involved — they are not the repair path.
+
+**Amendment (TUT-TXT-1c, 2026-09-09 — D-TT-6=C).** The seeders are no longer "the emergency seed"
+*carrying the copy*: **D-TXT-3 is reverted**. They now seed **structure only** (trigger id, priority,
+category, highlight key) and cannot write title, pages or `mechanicText` onto an asset that already
+exists. Recovery of lost text is §20.9.
 
 ### 20.6 CSV format and round-trip contract
 
@@ -1318,6 +1338,7 @@ Long table, one row per text field:
 ```
 id;field;en;es
 tut_jam_welcome;revisitTitle;Welcome to the stage;Bienvenido al escenario
+tut_jam_welcome;mechanicText;A gig is a sequence of songs...;Un concierto es una secuencia...
 tut_jam_welcome;page_1;...;...
 tut_first_sfx_stage;page_2;;Mantenla viva y habrá momentos más grandes.
 ```
@@ -1334,7 +1355,10 @@ tut_first_sfx_stage;page_2;;Mantenla viva y habrá momentos más grandes.
   one page beside ES with two is normal); an empty cell *between* two filled ones is rejected for
   that dialog rather than guessed. All-empty pages are rejected.
 - **Empty title cell = no opinion**, never "clear the title". Clearing a title is only possible in
-  the window. A blank cell in a shared sheet is almost always an accident.
+  the window. A blank cell in a shared sheet is almost always an accident. **The same rule governs
+  `mechanicText`** (TUT-TXT-1): an empty mechanic cell never clears the field.
+- **Field order per id** is `revisitTitle` → `mechanicText` → `page_1..page_N`. It is fixed so that
+  two exports of the same content diff cleanly.
 - **Partial files are legal:** ids or language columns absent from the CSV are left untouched. An
   *unknown* language column aborts the whole import.
 
@@ -1342,7 +1366,8 @@ tut_first_sfx_stage;page_2;;Mantenla viva y habrá momentos más grandes.
 Re-importing an unmodified export therefore touches zero assets and leaves `git status` clean. That
 property is what makes the spreadsheet loop usable in a repo with more than one contributor; without
 the diff, every import would dirty all 68 assets. `Fingerprint` (toolbar) prints a SHA-1 over every
-`(id, lang, title, pages)` in canonical order, and the import log prints the fingerprint before and
+`(id, lang, title, mechanic, pages)` in canonical order — **the mechanic field entered the hash at
+TUT-TXT-1 (2026-09-09), so fingerprints printed before that date are not comparable with later ones**, and the import log prints the fingerprint before and
 after so a clean round-trip is verifiable in the Console.
 
 ### 20.7 Known limitations
@@ -1363,6 +1388,101 @@ is where the real choice appears: per-language fields on each SO, side tables, o
 Deciding before that case exists would be designing without it. Presence of `com.unity.localization`
 in `Packages/manifest.json` is unverified.
 
+**TXT-2 supplied that case and the decision was still not taken (2026-09-10).** Concept tooltips
+needed definitions in EN and ES, so `ConceptGlossarySO` was built as a **second** per-language
+category on the project-owned pattern (D-TAG-2b=(i)) rather than as a migration. The cost is
+recorded, not hidden: a future move to Unity Localization now converts two categories instead of
+one. TXT-2 also surfaced **F-TXT-2-1** — a fifth text population, hardcoded Spanish literals in
+`AudienceCharacterCanvas`, reachable by no tool and counted by no parity check — which no per-SO
+scheme addresses and which O-TXT-3 must now weigh. Structural home for all of this:
+`systems/SSoT_Game_Text.md` §1, §7.
+
+### 20.9 Plain mechanic text (`mechanicText`) — TUT-TXT-1, 2026-09-09
+
+`TutorialDialogSO` carries a third authored string beside `revisitTitle` and `pages[]`:
+`mechanicText`, a **plain** description of the beat's mechanic — what triggers it, what it does,
+what limits it — with no character voice. It exists for playtesting: a reader who needs the rule,
+not the manager's opinion of the reader.
+
+**Storage (D-TT-1=A).** One field on the dialog asset, therefore one per language catalog, exactly
+like the other two. The alternative the request literally asked for — `mechanicTextEn` /
+`mechanicTextEs` on the same SO — was rejected because it puts language *inside* the SO and breaks
+D2=B (§20.3), which is the decision that lets this window build N language columns instead of two.
+
+**Authoring (D-TT-4=A).** Editable in the Tutorial tab (field label `M`, under the pages) and in the
+CSV as `field = mechanicText`. Written through the same `SerializedObject` as the rest — no new
+public setter on a class the game reads live. The window's search matches it; parity does not
+change, because parity keys on ids, not text.
+
+**Runtime.** `TutorialController.showMechanicText` (Inspector toggle) makes the tutorial overlay
+show this text instead of the authored pages. Editor tooling does not own that behaviour; see
+`planning/active/Design_Tutorial_System_v0_3.md` §5A.5.
+
+### 20.10 Recovery path (TUT-TXT-1c, D-TT-6=C)
+
+Player-facing tutorial copy lives **only** in the `.asset` files (D1=A). Recovery therefore has two
+halves:
+
+1. **Structure** — the catalog's `Author/Seed structure EN|ES` menus recreate a missing dialog asset
+   and align id / priority / category / highlight key. They never write text onto an existing asset.
+2. **Text** — importing the committed CSV export, which lives in `Assets/Resources/Data/Tutorial/`
+   (**D-TT-7=A**). Export under a fixed filename, without the timestamp, so `git diff` between
+   versions is readable.
+
+Validated end to end by **ST-TT-13**: delete a dialog asset, re-seed structure, import the CSV, and
+the dialog returns complete — title, pages and mechanic text.
+
+**Why the copy left the C# seeders.** While the same text lived in the seeders *and* in the assets,
+the two diverged in both directions without anything noticing: TUT-R3's em-dash removal reached the
+seeders and never reached the assets (F-TT-3), and `tut_first_reward_choice`'s asset stayed on
+pre-S5h copy while the seeder carried the newer one (F-TT-4). Parity could not see either, because
+it compares id sets. Both were repaired by CSV import in TUT-TXT-1c, *before* the literals were
+deleted — rescuing first and deleting second was the ordering constraint of that batch.
+
+**Accepted cost of D-TT-7=A.** A CSV under `Resources/` is imported as a `TextAsset` and ships in
+every build. Nothing reads it (**D-TXT-1** intact); the alternative — `Documentation~/`, excluded
+from the build by Unity's tilde convention — was available and not taken, in exchange for the file
+sitting next to the assets it describes. Note also that `Repo_Tree_Index.md` does not index `.csv`,
+so this file is invisible to the path index; `PK_Manifest.md` records it instead.
+
+### 20.11 Concepts tab and the concept glossary (TXT-2, 2026-09-10)
+
+**File:** `Assets/Scripts/Editor/Text/ConceptGlossaryTextTable.cs` (model) rendered by
+`GameTextWindow.DrawConcepts()`. Structural authority for the tag language, the resolution order and
+the failure modes is `systems/SSoT_Game_Text.md`; this section documents the window only.
+
+**What it edits.** `ConceptGlossarySO` assets, one per language (`languageCode`, authoring-only —
+runtime never reads it, exactly as with tutorial catalogs, D2=B). Rows are the union of
+`ConceptEntry.id` across glossaries, one column per language, two fields per row (`displayName`,
+`description`). Writes go through `SerializedObject` — no new public setters on the SO (TXT-1
+invariant).
+
+**What it does not edit.** Status and keyword text stay read-only, in their own tabs; the header
+strip shows their id inventory (`status keys: N · keywords: …`) purely as reference. That
+asymmetry is the point: the glossary must only hold concepts nobody else owns.
+
+**Badges.** `MISSING <lang>` · `NO NAME <lang>` · `NO DESCRIPTION <lang>` · `ID invalid` (ids are
+`[a-z0-9_]`) · `TAG unclosed <lang>` · **`DUPLICATE: status owns it`** / **`DUPLICATE: keyword owns
+it`**. The duplicate badges are the visible enforcement of the resolution order: a glossary entry
+whose id a status or keyword already claims is never reached at runtime, so it would rot silently.
+The fix is always deleting the glossary entry.
+
+**Create.** `+ concept (all languages)` appends the id to every glossary at once, so parity starts
+green. Import creates a missing id rather than skipping the row — a glossary entry is a list
+element, not an asset file, so creation is cheap and side-effect-free (this is the one behavioural
+difference from the Tutorial import contract, §20.6).
+
+**CSV.** Same codec, same contract: `id, field, <lang…>` with `field ∈ {displayName, description}`,
+empty cell = "no opinion", diff-only writes, unknown language column aborts the whole import,
+fingerprint before/after printed so a clean round-trip is provable.
+
+**Known limitation (TXT-2).** The tab creates and edits but does **not delete**. Removing an entry
+means selecting the `.asset` and using the Inspector list's `−`. Left as-is because the only
+expected trigger — a `DUPLICATE` badge — should occur approximately never.
+
+**Rebuild order.** `GameTextWindow.Rebuild()` builds the Concepts table *before* the Tutorial table,
+because `ConceptRegistryEditorIndex` feeds the Tutorial tab's `TAG unknown` check. Reversing the
+order silently disables that badge.
 
 ---
 

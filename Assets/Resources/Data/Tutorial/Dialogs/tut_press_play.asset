@@ -21,3 +21,6 @@ MonoBehaviour:
   - Now hit Play. The song will run in a loop, and everything you play from here
     lands live. No rehearsal. That's how real music gets made.
   highlightKey: play_button
+  mechanicText: <link=play>Play</link> starts the song. Before Play there is one
+    <link=period>preparation period</link>. After Play the song runs in <link=loop>loops</link>;
+    cards played then take effect without stopping it.

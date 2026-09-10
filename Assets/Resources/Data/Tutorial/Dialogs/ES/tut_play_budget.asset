@@ -23,3 +23,7 @@ MonoBehaviour:
     la misma regla: una y una. Cuatro m\xFAsicos son cuatro turnos dentro de tu turno.
     Rep\xE1rtelos."
   highlightKey: hand
+  mechanicText: "Jugada rechazada: el <link=budget>presupuesto</link> de este m\xFAsico
+    para el <link=period>periodo</link> est\xE1 agotado. Una <link=composition_card>carta
+    de composici\xF3n</link> y una <link=action_card>carta de acci\xF3n</link> por
+    m\xFAsico y periodo. Las jugadas no usadas no se acumulan."

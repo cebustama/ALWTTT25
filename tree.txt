@@ -1,5 +1,5 @@
 ALWTTT25
-(generado 2026-09-05 12:29)
+(generado 2026-09-10 11:30)
 +---.github
 |   \---copilot-instructions.md
 +---Assets
@@ -42,6 +42,9 @@ ALWTTT25
 |   |   +---smoke_ba-ba-me-rh_141839.mid
 |   |   +---smoke_ba-ba-me-rh_171604.mid
 |   |   +---smoke_ba-ba-me-rh_181437.mid
+|   |   +---smoke_ba-ba-me-rh_202358.mid
+|   |   +---smoke_ba-ba-me-rh_205236.mid
+|   |   +---smoke_ba-ba-me-rh_205858.mid
 |   |   +---smoke_walk_AFTER.mid
 |   |   \---smoke_walk_BEFORE.mid
 |   +---Materials
@@ -2235,7 +2238,8 @@ ALWTTT25
 |   |   |   |   +---GigEncounter 2.asset
 |   |   |   |   +---GigEncounter 3.asset
 |   |   |   |   +---GigEncounter 4.asset
-|   |   |   |   \---GigEncounter EMPTY.asset
+|   |   |   |   +---GigEncounter EMPTY.asset
+|   |   |   |   \---GigEncounter New.asset
 |   |   |   +---Events
 |   |   |   |   +---Event - Frog Song.asset
 |   |   |   |   +---Event - Reporter Interview.asset
@@ -2305,6 +2309,7 @@ ALWTTT25
 |   |   |       |   |   +---tut_composure.asset
 |   |   |       |   |   +---tut_earworm_tick.asset
 |   |   |       |   |   +---tut_final_loop_lock.asset
+|   |   |       |   |   +---tut_first_reward_choice.asset
 |   |   |       |   |   +---tut_first_sfx_stage.asset
 |   |   |       |   |   +---tut_first_sound_card.asset
 |   |   |       |   |   +---tut_gig_lost.asset
@@ -2338,6 +2343,7 @@ ALWTTT25
 |   |   |       |   +---tut_composure.asset
 |   |   |       |   +---tut_earworm_tick.asset
 |   |   |       |   +---tut_final_loop_lock.asset
+|   |   |       |   +---tut_first_reward_choice.asset
 |   |   |       |   +---tut_first_sfx_stage.asset
 |   |   |       |   +---tut_first_sound_card.asset
 |   |   |       |   +---tut_gig_lost.asset
@@ -2367,6 +2373,7 @@ ALWTTT25
 |   |   |       |   \---tut_your_turn.asset
 |   |   |       +---Portraits
 |   |   |       |   \---capitan_mensaje.png
+|   |   |       +---GameText_Tutorial_20260910_1057.csv
 |   |   |       +---TutorialDialogCatalog_EN.asset
 |   |   |       \---TutorialDialogCatalog_ES.asset
 |   |   +---LLM
@@ -2850,6 +2857,8 @@ ALWTTT25
 |   |   |   |   \---CharacterActionProcessor.cs
 |   |   |   +---Audience
 |   |   |   |   \---AudienceCharacterSimple.cs
+|   |   |   +---Editor
+|   |   |   |   \---AudienceMemberWizard.cs
 |   |   |   +---Musicians
 |   |   |   |   \---MusicianCharacterSimple.cs
 |   |   |   +---AudienceCharacterBase.cs
@@ -2865,7 +2874,8 @@ ALWTTT25
 |   |   |   +---SpriteOutlineController.cs
 |   |   |   +---StatusStats.cs
 |   |   |   +---StatusVisualDriver.cs
-|   |   |   \---VibeEffectiveness.cs
+|   |   |   +---VibeEffectiveness.cs
+|   |   |   \---VibeProjection.cs
 |   |   +---Controllers
 |   |   |   +---HandController.cs
 |   |   |   \---MidiGenPlayPanelController.cs
@@ -2947,8 +2957,14 @@ ALWTTT25
 |   |   |   +---DevStatsTab.cs
 |   |   |   \---GenerationDebugFormatter.cs
 |   |   +---Editor
+|   |   |   +---Text
+|   |   |   |   +---GameTextCsv.cs
+|   |   |   |   +---GameTextWindow.cs
+|   |   |   |   \---TutorialTextTable.cs
 |   |   |   \---S5e_InspirationEconomyTool.cs
 |   |   +---Encounters
+|   |   |   +---Editor
+|   |   |   |   \---GigEncounterWizard.cs
 |   |   |   +---EncounterBase.cs
 |   |   |   \---GigEncounter.cs
 |   |   +---Enums
@@ -3130,7 +3146,9 @@ ALWTTT25
 |   |   |   |   +---ITooltipTargetBase.cs
 |   |   |   |   +---TooltipController.cs
 |   |   |   |   +---TooltipManager.cs
-|   |   |   |   \---TooltipText.cs
+|   |   |   |   +---TooltipText.cs
+|   |   |   |   +---VibeBarTooltipTarget.cs
+|   |   |   |   \---VibeReadoutTooltipTarget.cs
 |   |   |   +---AudiencePickerRow.cs
 |   |   |   +---BeatPulseIndicator.cs
 |   |   |   +---CardDetailViewController.cs
@@ -3152,7 +3170,8 @@ ALWTTT25
 |   |   |   +---RewardContainer.cs
 |   |   |   +---StatusIconBase.cs
 |   |   |   +---TempoTextIndicator.cs
-|   |   |   \---UIPulseAnimator.cs
+|   |   |   +---UIPulseAnimator.cs
+|   |   |   \---VibeReadoutBeatPulse.cs
 |   |   +---Utils
 |   |   |   +---ButtonSoundPlayer.cs
 |   |   |   +---CoreLoader.cs

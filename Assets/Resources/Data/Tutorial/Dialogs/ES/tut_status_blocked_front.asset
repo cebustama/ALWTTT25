@@ -22,3 +22,7 @@ MonoBehaviour:
     le entra. No malgastes m\xFAsica contra un muro. Espera a que baje la guardia,
     o gasta la canci\xF3n en los que s\xED escuchan."
   highlightKey: status_icon_blocked
+  mechanicText: "Un miembro del p\xFAblico se ha movido al frente y est\xE1 <link=blocked>Bloqueado</link>:
+    no recibe <link=vibe>Vibe</link> de las cartas ni del <link=song_end>final de
+    la canci\xF3n</link>. Depende de la posici\xF3n, no del tiempo; se recalcula
+    al reordenarse el p\xFAblico. Gasta el Vibe en miembros no bloqueados."

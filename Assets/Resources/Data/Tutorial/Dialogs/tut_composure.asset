@@ -23,3 +23,7 @@ MonoBehaviour:
     It lasts until your next turn, then it''s gone. It''s a guard, not armor. Raise
     it when you see the hit coming.'
   highlightKey: status_icon_composure
+  mechanicText: '<link=composure>Composure</link> is a status on a musician: it absorbs
+    incoming <link=stress>Stress</link> damage before it reaches fortitude. Drag
+    the card onto the musician to protect. Clears at the start of the player''s next
+    turn, used or not.'

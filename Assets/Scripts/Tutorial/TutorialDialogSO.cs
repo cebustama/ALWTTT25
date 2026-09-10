@@ -119,6 +119,17 @@ namespace ALWTTT.Tutorial
                  "highlight bindings and spotlights it (R1). Empty = no spotlight.")]
         [SerializeField] private string highlightKey;
 
+
+        // [TUT-TXT-1 / D-TT-1=A] Plain mechanical explanation of this beat: no character
+        // voice, no narrative. One per language catalog, same as revisitTitle/pages.
+        // Shown INSTEAD of pages when TutorialController.showMechanicText is on
+        // (D-TT-2=A); empty ⇒ the controller falls back to pages. Written by
+        // GameTextWindow through SerializedObject (no setter, TXT-1 invariant).
+        // EditorSeed does not touch it, so re-running a seeder keeps this text.
+        [Tooltip("[TUT-TXT-1] Plain mechanical text (no voice). Empty = fall back to pages.")]
+        [TextArea(3, 8)]
+        [SerializeField] private string mechanicText;
+
         public string TriggerId => triggerId;
         public int Priority => priority;
         public TutorialCategory Category => category;
@@ -129,7 +140,27 @@ namespace ALWTTT.Tutorial
         public string HighlightKey => highlightKey;
         public bool HasHighlight => !string.IsNullOrWhiteSpace(highlightKey);
 
+        // [TUT-TXT-1] Read-only like every other field. Empty ⇒ caller falls back to Pages.
+        public string MechanicText => mechanicText;
+        public bool HasMechanicText => !string.IsNullOrWhiteSpace(mechanicText);
+
 #if UNITY_EDITOR
+
+        /// <summary>
+        /// [TUT-TXT-1c / D-TT-6=C] Aligns ONLY the structural fields of an existing asset.
+        /// Never touches revisitTitle, pages or mechanicText: after D-TT-6=C the .asset is the
+        /// sole home of player-facing copy (D1=A), and a seeder that could overwrite it is the
+        /// exact mechanism that produced F-TT-3 / F-TT-4. Use EditorSeed() only for an asset
+        /// being created from nothing.
+        /// </summary>
+        public void EditorSeedStructure(string id, int prio, TutorialCategory cat, string highlight)
+        {
+            triggerId = id;
+            priority = prio;
+            category = cat;
+            highlightKey = highlight;
+        }
+
         /// <summary>Editor seeding helper used by the catalog's default-author menu.</summary>
         public void EditorSeed(
             string id, int prio, TutorialCategory cat, string title,
