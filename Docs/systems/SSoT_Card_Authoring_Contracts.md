@@ -239,10 +239,15 @@ looping; outside that window the play is denied as `UnplayableReason.NoRunningLo
 **Supported effect discriminators are now seven:** `ApplyStatusEffect`, `ModifyVibe`,
 `ModifyStress`, `DrawCards`, `AddInspirationPerLoop`, `RevealPreferences`, `GrantBonusLoop`.
 
-> **Authoring-route caveat (verified 2026-08-26).** The JSON import path supports all seven.
-> The **LLM generation route does not**: `CardLLMPromptBuilder` enumerates the discriminators
-> by hand and lists only six. Until `GrantBonusLoop` is added there, the generator will never
-> emit it. That is a **code** gap, not a documentation one — see `Report_CardLLM_Pipeline.md`.
+> **Authoring-route caveat — RESOLVED 2026-08-28 (R5-e); note corrected 2026-09-14 (TEXT-5-DOC).**
+> Recorded at R5-d: the JSON import path supported all seven discriminators while the **LLM
+> generation route** enumerated only six by hand in `CardLLMPromptBuilder`, so the generator could
+> never emit `GrantBonusLoop`. R5-e added the seventh discriminator to the prompt builder and to the
+> stage-5 guard, with two tests tying the four surfaces together. Kept as a record because the
+> failure mode — one authoring route silently narrower than the contract it claims to implement — is
+> invisible from the contract side, and nothing in this document would have revealed it. The note
+> itself then stayed stale for seventeen days, which is the second half of the same lesson: a caveat
+> that names its own resolution condition still needs a batch to come back and read it.
 
 ### 5.7 Batch wrapper schema
 

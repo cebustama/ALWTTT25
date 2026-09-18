@@ -2,10 +2,25 @@
 //
 // [HUD-COMP-1] The single row above the tracks: loop pips + meter/tempo/mood chips.
 //
+// [SONG-PANEL-1b / F-SP1-7] Source is PURE ASCII and saved with a BOM: this file was
+// Windows-1252 (six 0xB7 mid-dots, one 0x97 em-dash) and compiled only by the compiler's
+// code-page fallback. The mid-dot is now the escape "\u00B7" (Sep). Same fix as
+// TrackHoverPanel.cs (F-T6-1 / F-SP1-2): a BOM alone does not survive an editor round-trip,
+// ASCII purity does.
+//
+// [SONG-PANEL-1b / F-SP1-8] Population 9: every WORD in the hover comes from
+// ConceptGlossarySO via GameText.Format. What stays in code is punctuation (Sep,
+// parentheses) and the Tonality enum name. STILL OPEN: meterLabel / tempoLabel / mood come
+// from CompositionStripThemeSO -- asset-authored English, population 10, decision D-SP1-6.
+// [TEXT-VIBE-1 / D-SP1-6=B] RESOLVED for meter and tempo: the label is a template keyed by the enum
+// VALUE (GameTextTemplateIds.UiCtxMeter / UiCtxTempo); the theme asset carries no text for them.
+// Census correction: "Happy" / "Sad" (F-SP1-13) were never asset text -- MoodTag is an ENUM printed
+// by ToString(), so mood joins Tonality under F-TXT4-2 (CARD-FACE-1), not under population 10.
+//
 // This row replaces the old "SixEight - VerySlow - Ionian" string AND adds the
 // one thing the current build never showed: how much of this part is left.
 // That omission matters because the final loop LOCKS composition
-// (UnplayableReason.FinalLoopLock) — the player was being denied a play with no
+// (UnplayableReason.FinalLoopLock) -- the player was being denied a play with no
 // prior warning on screen.
 //
 // Shape carries the warning, not just color: the last pip is a DIAMOND, always.
@@ -20,7 +35,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using ALWTTT.Tooltips;                               // [SONG-PANEL-1b]
 using static MidiGenPlay.MusicTheory.MusicTheory;
+using static ALWTTT.Tooltips.GameTextTemplateIds;    // [SONG-PANEL-1b]
 
 namespace ALWTTT.UI
 {
@@ -44,7 +61,7 @@ namespace ALWTTT.UI
             public Tonality tonality;
             public string rootLabel;           // "C", "F#", ... formatted by the seam
 
-            public string partLabel;           // "Part A"
+            public string partLabel;           // glossary part label ("Parte A")
             public int partIndex;              // 0-based
             public int partTotal;
             public int silentMusicians;        // density tier 3 hover addendum
@@ -72,6 +89,10 @@ namespace ALWTTT.UI
         [SerializeField] private Image tempoOverrideDot;
 
         #endregion
+
+        // U+00B7 mid dot: Latin-1, present in the LiberationSans SDF atlas. Escaped so the
+        // SOURCE stays ASCII (see header). Punctuation stays in code, never in the glossary.
+        private const string Sep = " \u00B7 ";
 
         private ContextData _data;
         private bool _hasData;
@@ -101,13 +122,13 @@ namespace ALWTTT.UI
 
             if (meterChip)
             {
-                theme.TryGetMeter(data.meter, out var glyph, out _);
+                theme.TryGetMeter(data.meter, out var glyph);
                 meterChip.sprite = glyph;
                 meterChip.enabled = glyph != null;
             }
             if (tempoChip)
             {
-                theme.TryGetTempo(data.tempo, out var icon, out _);
+                theme.TryGetTempo(data.tempo, out var icon);
                 tempoChip.sprite = icon;
                 tempoChip.enabled = icon != null;
             }
@@ -218,30 +239,47 @@ namespace ALWTTT.UI
         private string BuildHoverText()
         {
             var sb = new StringBuilder();
-            sb.Append($"Loop {_data.loopCurrent} of {_data.loopTotal}");
-            if (_data.finalLoopLocks) sb.Append(" · final loop locks composition");
+            // [SONG-PANEL-1c / F-SP1-11] loopTotal is 0 until TryGetLoopProgressForUI answers
+            // (RefreshContextRow leaves the field at its default before the first render), and the
+            // old line printed "Loop 1 de 0" - a count that asserts something false. With no total
+            // there is nothing honest to say about the total, so it is not said. Same principle as
+            // D3=C on the mood chip: before the render, do not assert what cannot be backed.
+            sb.Append(_data.loopTotal > 0
+                ? GameText.Format(UiCtxLoop, _data.loopCurrent, _data.loopTotal)
+                : GameText.Format(UiCtxLoopNoTotal, _data.loopCurrent));
+            if (_data.finalLoopLocks) sb.Append(Sep).Append(GameText.Format(UiCtxFinalLoopLocks));
             sb.AppendLine();
 
-            theme.TryGetMeter(_data.meter, out _, out var meterLabel);
-            theme.TryGetTempo(_data.tempo, out _, out var tempoLabel);
-            if (_data.absoluteBpm.HasValue)
-                tempoLabel = $"{_data.absoluteBpm.Value} BPM (absolute override)";
-            sb.Append($"{meterLabel} · {tempoLabel}");
+            // [TEXT-VIBE-1 / D-SP1-6=B] Population 10 RESOLVED for meter and tempo: the label is a
+            // template keyed by the enum VALUE (ui_ctx_meter_<value> / ui_ctx_tempo_<value>), so the
+            // theme asset no longer carries player text and the enum name cannot leak into the label
+            // ("Four Four (FourFour)" was exactly that leak). Absolute BPM still replaces the range.
+            string meterLabel = GameText.Format(UiCtxMeter(_data.meter));
+            string tempoLabel = _data.absoluteBpm.HasValue
+                ? GameText.Format(UiCtxBpmAbsolute, _data.absoluteBpm.Value)
+                : GameText.Format(UiCtxTempo(_data.tempo));
+            sb.Append(meterLabel).Append(Sep).Append(tempoLabel);
             if (!Mathf.Approximately(_data.tempoScale, 1f) && _data.tempoScale > 0f)
-                sb.Append($" · x{_data.tempoScale:0.##}");
+                sb.Append(Sep).Append("x").Append(GameText.Number(_data.tempoScale, "0.##"));
             sb.AppendLine();
 
+            // mood (MoodTag) and _data.tonality (Tonality) are ENUM names (F-TXT4-2 -> CARD-FACE-1): not templates.
             theme.TryGetMood(_data.tonality, out var mood, out _, out _);
-            sb.Append($"{mood} · {_data.tonality}");
+            sb.Append(mood).Append(Sep).Append(_data.tonality);
             if (!string.IsNullOrEmpty(_data.rootLabel)) sb.Append($" ({_data.rootLabel})");
-            if (!_data.hasRenderedTonality) sb.Append(" · pending render");
+            if (!_data.hasRenderedTonality) sb.Append(Sep).Append(GameText.Format(UiCtxPendingRender));
 
             if (_data.partTotal > 1)
-                sb.AppendLine().Append(
-                    $"{_data.partLabel} · {_data.partIndex + 1} of {_data.partTotal}");
+                sb.AppendLine().Append(_data.partLabel).Append(Sep)
+                  .Append(GameText.Format(UiCtxPartOf, _data.partIndex + 1, _data.partTotal));
 
+            // [SONG-PANEL-1b] One/many split, as ui_card_modifier_one/many already does. The old
+            // line printed "1 musicians silent": a grammar bug invisible while the string was a
+            // literal, and unwritable once each count has its own template.
             if (_data.silentMusicians > 0)
-                sb.AppendLine().Append($"{_data.silentMusicians} musicians silent");
+                sb.AppendLine().Append(GameText.Format(
+                    _data.silentMusicians == 1 ? UiCtxMusicianSilentOne : UiCtxMusiciansSilentMany,
+                    _data.silentMusicians));
 
             return sb.ToString();
         }

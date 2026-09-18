@@ -1,5 +1,6 @@
 ﻿using ALWTTT.Data;
 using ALWTTT.Tooltips;
+using static ALWTTT.Tooltips.GameTextTemplateIds;   // [TXT-4]
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -74,8 +75,9 @@ namespace ALWTTT.Characters
         // ST-PRES1-7 surfaced. If the tooltip body's TMP has richText disabled the
         // tags render literally — that is a prefab fix, not a code one (see
         // ST-PRES1-7b).
-        private const string TasteBlockHeader = "<b>— Gustos —</b>";
-        private const string TasteOnlyHeader = "Gustos";
+        // [TXT-4 / F-TXT-2-1] Words from the glossary (ui_aud_*); the bold wrapper is formatting and stays here.
+        private static string TasteBlockHeader => "<b>" + GameText.Format(UiAudTasteBlockHeader) + "</b>";
+        private static string TasteOnlyHeader => GameText.Format(UiAudTasteHeader);
 
 
         // [BIGNUM-1 / D-BN-9=A] The step-by-step Vibe breakdown composes into the SAME
@@ -85,7 +87,9 @@ namespace ALWTTT.Characters
         // ESP copy hardcoded like the rest of this canvas (D-S5f-7=A).
         // [BIGNUM-1r] VibeBlockHeader retired with the D-BN-9 revert; the bar tooltip
         // uses VibeOnlyHeader as its plain header.
-        private const string VibeOnlyHeader = "Vibe";
+        // [TEXT-VIBE-1 / F-TV-3] Was a literal left behind in population 5. Same word in EN/ES today,
+        // still a player surface: it reads the `vibe` keyword concept, like the Flow/Captivated lines.
+        private static string VibeOnlyHeader => GameText.ConceptName("vibe");
         private VibeProjection _projection;
         private bool _hasProjection;
 
@@ -126,34 +130,48 @@ namespace ALWTTT.Characters
         private Color _projectedDefaultColor;
         private bool _projectedDefaultCached;
 
-        // Lines follow the PAYOUT order (SSoT_Scoring §6.1 → §7.1 → §6.2 → gate).
-        // Every line is shown even when neutral (× 1,00): the shape teaches the model.
+        // Lines follow the PAYOUT order (SSoT_Scoring 6.1 -> 7.1 -> 6.2 -> gate).
+        // [TEXT-VIBE-1 / D1, F-TIP-6] A step line prints only when its OUTPUT differs from its INPUT,
+        // compared on RAW values in the int domain each step emits; the tastes step rounds its float
+        // input with the same Mathf.RoundToInt that GigManager.ComputeLPart uses. "x 1,00" is NOT the
+        // test: a 1,004 that moves the number would pass it, and "+ 0" would need a second rule.
+        // Guard rails: the Hype line and the song-end line ALWAYS print; the Blocked and Indifferent
+        // branches are untouched because they explain a zero, which is where the reason matters most.
+        // This REVERSES BIGNUM-1's "every line is shown even when neutral", by observation
+        // (ST-TIP-10): four inert lines buried the two that moved the number.
+        // Authority: planning/Design_Vibe_Telegraph_v0_1.md 10.2.
         private static string BuildVibeText(in VibeProjection p)
         {
+            // [TXT-4 / F-TXT-2-1] Every line is a ui_aud_vibe_* template; status names resolve by StatusKey
+            // (GameText.ConceptName) so "Captivado" stops being a second home for the captivated status.
             var sb = new System.Text.StringBuilder();
-            sb.Append("Hype de la canción: ").Append(p.HypeBase.ToString("0.#"));
+            sb.Append(GameText.Format(UiAudVibeHype, GameText.Number(p.HypeBase, "0.#")));
 
             if (p.Blocked)
             {
-                sb.Append("\nBloqueado (alguien alto le tapa) → 0");
-                sb.Append("\nAl acabar la canción: 0");
+                sb.Append('\n').Append(GameText.Format(UiAudVibeBlocked));
+                sb.Append('\n').Append(GameText.Format(UiAudVibeSongEnd, "0"));
                 return sb.ToString();
             }
 
-            sb.Append("\n× ").Append(p.ImpressionFactor.ToString("0.00"))
-              .Append(" gustos → ").Append(p.LAfterImpression);
-            sb.Append("\n× ").Append(p.FlowMult.ToString("0.00"))
-              .Append(" Flow (").Append(p.FlowStacks).Append(") → ").Append(p.LAfterFlow);
-            sb.Append("\n+ ").Append(p.Sfx).Append(" SFX → ").Append(p.Subtotal);
+            // 6.1 tastes: input HypeBase (float, printed "0.#"), output LAfterImpression (int).
+            if (Mathf.RoundToInt(p.HypeBase) != p.LAfterImpression)
+                sb.Append('\n').Append(GameText.Format(UiAudVibeTastes, GameText.Number(p.ImpressionFactor, "0.00"), p.LAfterImpression));
+            // 7.1 Flow: input LAfterImpression, output LAfterFlow.
+            if (p.LAfterFlow != p.LAfterImpression)
+                sb.Append('\n').Append(GameText.Format(UiAudVibeStatusMult, GameText.Number(p.FlowMult, "0.00"), GameText.ConceptName("flow"), p.FlowStacks, p.LAfterFlow));
+            // 6.2 SFX: input LAfterFlow, output Subtotal (equivalent to Sfx != 0).
+            if (p.Subtotal != p.LAfterFlow)
+                sb.Append('\n').Append(GameText.Format(UiAudVibeSfx, p.Sfx, p.Subtotal));
 
+            // Gate. Indifferent prints ALWAYS (it explains the zero). Captivated prints when it moved Final.
             if (p.Indifferent)
-                sb.Append("\nIndiferente → 0");
-            else
-                sb.Append("\n× ").Append(p.CaptivatedMult.ToString("0.00"))
-                  .Append(" Captivado (").Append(p.CaptivatedStacks).Append(") → ").Append(p.Final);
+                sb.Append('\n').Append(GameText.Format(UiAudVibeIndifferent, GameText.ConceptName("indifference")));
+            else if (p.Final != p.Subtotal)
+                sb.Append('\n').Append(GameText.Format(UiAudVibeStatusMult, GameText.Number(p.CaptivatedMult, "0.00"), GameText.ConceptName("captivated"), p.CaptivatedStacks, p.Final));
 
-            sb.Append("\nAl acabar la canción: ").Append(p.Final > 0 ? "-" + p.Final : "0");
-            if (p.Ko) sb.Append("\n¡Esta canción lo convence!");
+            sb.Append('\n').Append(GameText.Format(UiAudVibeSongEnd, p.Final > 0 ? "-" + p.Final : "0"));
+            if (p.Ko) sb.Append('\n').Append(GameText.Format(UiAudVibeKo));
             return sb.ToString();
         }
 
@@ -172,8 +190,12 @@ namespace ALWTTT.Characters
 
             if (NextAbility != null && CurrentIntention != null)
             {
-                header = NextAbility.AbilityName;
-                body = CurrentIntention.ContentText;
+                // [TEXT-5 / D-T5-1=A] Name + body from the glossary by abilityId (one concept per ability).
+                // abilityName / intention.contentText are developer labels; a missing entry shows the raw
+                // id and warns once (SSoT_Game_Text §3 miss policy). The null guard above is unchanged:
+                // the intention SO still gates the hover (it also carries the sprite).
+                header = GameText.ConceptName(NextAbility.AbilityId);
+                body = GameText.ConceptDescription(NextAbility.AbilityId);
             }
 
             // [PRES-1 / D-PRES1-3=A] Compose the revealed tastes INTO the one hover
@@ -296,10 +318,10 @@ namespace ALWTTT.Characters
         {
             switch (tier)
             {
-                case VibeEffectiveness.SuperEffective: return "¡Súper!";
-                case VibeEffectiveness.NotVeryEffective: return "Resiste";
-                case VibeEffectiveness.Immune: return "Inmune";
-                default: return "Normal";
+                case VibeEffectiveness.SuperEffective: return GameText.Format(UiAudEffSuper);       // [TXT-4]
+                case VibeEffectiveness.NotVeryEffective: return GameText.Format(UiAudEffResists);
+                case VibeEffectiveness.Immune: return GameText.Format(UiAudEffImmune);
+                default: return GameText.Format(UiAudEffNormal);
             }
         }
 
@@ -322,10 +344,11 @@ namespace ALWTTT.Characters
         // default; D-S5f-7=A — hardcoded until the S5f-ext localization pass).
         // ENG: "Blocked — someone tall is in the way. Immune to persuasion
         // from this position."
-        private const string BlockedTooltipHeader = "Bloqueado";
-        private const string BlockedTooltipBody =
-            "Alguien alto le tapa el escenario. Es inmune a la persuasión " +
-            "mientras está en esta posición.";
+        // [TXT-4 / F-TXT-2-1] The Blocked legend IS the `blocked` glossary concept (SSoT_Game_Text §5,
+        // glossary-native): header + body come from there, so the tint tooltip and the tutorial tag can
+        // never disagree. The former ES literal was a second home for the same concept.
+        private static string BlockedTooltipHeader => GameText.ConceptName("blocked");
+        private static string BlockedTooltipBody => GameText.ConceptDescription("blocked");
 
         /// <summary>[S5f / E-lite] Show the Blocked-tint explanation tooltip.</summary>
         public void ShowBlockedTooltip()
@@ -348,7 +371,7 @@ namespace ALWTTT.Characters
         // the telegraph labels (D-S5f-7=A / D-S5f-8=A); all three migrate together
         // in the S5f-ext localization pass.
 
-        private const string TasteNeutralText = "Le da igual todo";
+        private static string TasteNeutralText => GameText.Format(UiAudTasteNeutral);   // [TXT-4]
 
         /// <summary>
         /// [R4 -> PRES-1 / D-PRES1-3=A] Register this member's tastes as revealed.
@@ -393,12 +416,12 @@ namespace ALWTTT.Characters
             var sb = new System.Text.StringBuilder();
 
             if (t.tempoMatchOnFast)
-                AppendTasteLine(sb, "+ Rapido");
+                AppendTasteLine(sb, GameText.Format(UiAudTasteFast));      // [TXT-4]
             if (t.tempoMismatchOnSlow)
-                AppendTasteLine(sb, "- Lento");
+                AppendTasteLine(sb, GameText.Format(UiAudTasteSlow));
 
             if (t.roleCountMatchOnRich)
-                AppendTasteLine(sb, $"+ {t.preferAtLeastRoles}+ pistas");
+                AppendTasteLine(sb, GameText.Format(UiAudTasteTracks, t.preferAtLeastRoles));
 
             if (t.preferredTimeSignatures != null && t.preferredTimeSignatures.Count > 0)
                 AppendTasteLine(sb, "+ " + string.Join(", ", t.preferredTimeSignatures));

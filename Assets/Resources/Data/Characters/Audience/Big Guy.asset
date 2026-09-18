@@ -19,7 +19,8 @@ MonoBehaviour:
   characterPrefab: {fileID: 8137859568071339047, guid: 730d609a7ff00034f9beb9863123dda4, type: 3}
   isTall: 0
   abilityList:
-  - abilityName: Total Indiference
+  - abilityName: Total Indifference
+    abilityId: ab_total_indifference
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
     hideActionValue: 0
     abilityDuration: 0

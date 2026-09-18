@@ -30,16 +30,20 @@ namespace ALWTTT.TextAuthoring
         public static readonly HashSet<string> StatusKeys = new(StringComparer.OrdinalIgnoreCase);
         public static readonly HashSet<string> KeywordNames = new(StringComparer.OrdinalIgnoreCase);
         public static readonly HashSet<string> GlossaryIds = new(StringComparer.OrdinalIgnoreCase);
+        /// <summary>[TEXT-5 / D-T5-1=A] Every AudienceAbilityData.abilityId (EMPTY ones as "EMPTY:asset[i]"
+        /// sentinels). Third REQUIRED coverage group after status keys and keyword names.</summary>
+        public static readonly HashSet<string> AbilityIds = new(StringComparer.OrdinalIgnoreCase);
 
         public static void Build()
         {
-            StatusKeys.Clear(); KeywordNames.Clear(); GlossaryIds.Clear();
+            StatusKeys.Clear(); KeywordNames.Clear(); GlossaryIds.Clear(); AbilityIds.Clear();
             foreach (var g in AssetDatabase.FindAssets($"t:{nameof(StatusEffectSO)}"))
             {
                 var so = AssetDatabase.LoadAssetAtPath<StatusEffectSO>(AssetDatabase.GUIDToAssetPath(g));
                 if (so != null && !string.IsNullOrWhiteSpace(so.StatusKey)) StatusKeys.Add(so.StatusKey.Trim());
             }
             foreach (var name in Enum.GetNames(typeof(SpecialKeywords))) KeywordNames.Add(name);
+            foreach (var id in AudienceAbilityTextIndex.AbilityIds()) AbilityIds.Add(id);   // [TEXT-5]
             foreach (var g in AssetDatabase.FindAssets($"t:{nameof(ConceptGlossarySO)}"))
             {
                 var gl = AssetDatabase.LoadAssetAtPath<ConceptGlossarySO>(AssetDatabase.GUIDToAssetPath(g));
@@ -60,6 +64,7 @@ namespace ALWTTT.TextAuthoring
             var l = new List<string>(3);
             if (StatusKeys.Contains(id)) l.Add("status");
             if (KeywordNames.Contains(id)) l.Add("keyword");
+            if (AbilityIds.Contains(id)) l.Add("ability");   // [TEXT-5]
             if (GlossaryIds.Contains(id)) l.Add("glossary");
             return l;
         }
@@ -168,12 +173,25 @@ namespace ALWTTT.TextAuthoring
                 // [TXT-3 / D-TXT3-4=A] The glossary is the only text home: a status key or keyword
                 // name living here is REQUIRED, not a collision. Gaps are reported by
                 // MissingCoverage(), not per row — the missing ids have no row to badge.
+                HashSet<string> refSprites = null; string refSpriteLang = null;   // [TXT-4 / D-TXT4-7]
                 foreach (var lang in Languages)
                 {
                     if (!row.ByLanguage.TryGetValue(lang, out var c)) { row.Issues.Add($"MISSING {lang}"); continue; }
                     if (string.IsNullOrWhiteSpace(c.Name)) row.Issues.Add($"NO NAME {lang}");
                     if (string.IsNullOrWhiteSpace(c.Description)) row.Issues.Add($"NO DESCRIPTION {lang}");
                     if (ConceptTagRenderer.HasUnbalancedLinks(c.Description)) row.Issues.Add($"TAG unclosed {lang}");
+                    // [TXT-4 / D-TXT4-6 · D-TXT4-7] same rules as the Templates tab: declared tag subset, names-only
+                    // sprites, sprite-set parity across languages, sprite existence when a default sprite asset exists.
+                    string body = c.Name + "\n" + c.Description;
+                    var bad = GameTextRichText.UnsupportedTags(body);
+                    if (bad.Count > 0) row.Issues.Add($"TAG unsupported {lang}: {string.Join(", ", bad)}");
+                    if (GameTextRichText.UsesSpriteIndex(body)) row.Issues.Add($"SPRITE index {lang} (use name=)");
+                    var sprites = GameTextRichText.SpriteNames(body);
+                    if (GameTextRichText.SpriteAssetAvailable)
+                        foreach (var sName in sprites)
+                            if (!GameTextRichText.SpriteExists(sName)) row.Issues.Add($"SPRITE unknown {lang}: {sName}");
+                    if (refSprites == null) { refSprites = sprites; refSpriteLang = lang; }
+                    else if (!GameTextRichText.SetsEqual(refSprites, sprites)) row.Issues.Add($"SPRITES differ {refSpriteLang}/{lang}");
                 }
             }
         }
@@ -198,6 +216,9 @@ namespace ALWTTT.TextAuthoring
             }
             foreach (var k in ConceptRegistryEditorIndex.StatusKeys.OrderBy(x => x, StringComparer.Ordinal)) Check("status", k);
             foreach (var k in ConceptRegistryEditorIndex.KeywordNames.OrderBy(x => x, StringComparer.Ordinal)) Check("keyword", k.ToLowerInvariant());
+            // [TEXT-5 / D-T5-1=A] An EMPTY abilityId is emitted by the index as an "EMPTY:asset[i]" sentinel:
+            // it can never be covered, so it shows here pointing at the asset instead of vanishing.
+            foreach (var k in ConceptRegistryEditorIndex.AbilityIds.OrderBy(x => x, StringComparer.Ordinal)) Check("ability", k);
             return lines;
         }
 

@@ -230,6 +230,24 @@ This is also the backward-compat path for any audience asset authored pre-B3.
   until re-entry. **D-BN-9=A — composing the breakdown INTO the shared tooltip — was built
   and reverted by observation**; read `planning/Design_Vibe_Telegraph_v0_1.md` §10.3 before
   re-proposing it.
+- **TXT-4 (2026-09-11) — the taste block and the Vibe breakdown are glossary templates.** Every line
+  of `BuildVibeText` and of the taste block is now a `ui_aud_*` template resolved through `GameText`,
+  and the status names inside those lines are resolved by **`StatusKey`** through the same registry.
+  «Cautivado» in a breakdown line and «Cautivado» in the status-icon tooltip are one string with one
+  home; before TXT-4 the breakdown carried its own Spanish literal, which was a de facto second home
+  for a status name (**F-TXT-2-1**, now closed). `blocked` stays a concept entry because the Blocked
+  tint has no `StatusEffectSO` (Decision E3, `SSoT_Status_Effects.md`). The `<b>— Gustos —</b>`
+  header of PRES-1c is now an authored cell, so the note above about ESP copy "migrating together in
+  S5f-ext" is superseded: that migration happened, in TXT-4. Text plumbing:
+  `systems/SSoT_Game_Text.md` §1, population 5.
+- **F-TXT4-8 (2026-09-11) — bar visibility and bar interactivity are decoupled, and must not be.**
+  `CharacterCanvas.SetBarVisible` moves `canvasGroup.alpha` and nothing else. The `CanvasGroup` had
+  `Blocks Raycasts` off, so the resistance bar was drawn and never received the pointer: the D-BN-15
+  tooltip above existed and was unreachable by hover. Fixed by prefab for TXT-4's smokes (one
+  checkbox). **The inverse defect is still open:** with `blocksRaycasts` pinned on, a bar hidden by
+  alpha 0 (D-BN-17) still eats the raycast for whatever sits underneath. The correct fix is for
+  `SetBarVisible` to move alpha **and** `blocksRaycasts` together, because "invisible but clickable"
+  and "visible but dead" are the same bug with the sign flipped. Owner: **TIP-1**.
 
 ---
 
@@ -249,6 +267,77 @@ Typical intention families:
 Rules:
 - intentions should be visible before the audience acts
 - intention is presentation of the next meaningful audience action, not hidden simulation state
+
+**Where intention text lives (F-TXT4-7, CLOSED 2026-09-11 by TEXT-5).** The header and body a player
+reads when hovering a telegraphed intention come from `ConceptGlossarySO.entries`, keyed by
+**`AudienceAbilityData.abilityId`** (D-T5-1a=A): one entry per ability, its **name** rendering as the
+tooltip header and its **description** as the body (D-T5-1=A). `AudienceCharacterCanvas` resolves them
+with `GameText.ConceptName` / `GameText.ConceptDescription` under the pre-existing
+`NextAbility != null && CurrentIntention != null` guard, which TEXT-5 did not touch — which is also
+why the "ability with no intention assigned" case stays **unverified**: no content reaches it
+(deferred to Dev Mode / M1.5).
+
+`AudienceAbilityData.abilityName` and `AudienceIntentionData.contentText` are **developer labels**
+since TEXT-5 and reach no player surface — `AudienceCharacterBase.AbilityRoutine` still logs
+`AbilityName` when an intention sprite is missing, which is a conformant read (`ssot_manifest.yaml`,
+`GAMETEXT-NO-DEV-LABEL`, stated over surfaces and not over fields). `AudienceMemberWizard` shows the
+**id**, not the text; authoring the wording is a `GameTextWindow ▸ Concepts` job.
+
+**A shared id is correct (D-T5-5=A).** Two audience characters may author the same ability and
+therefore the same `abilityId`; they get **one** glossary entry, not two copies free to drift. The
+seeding tool reports this as `SHARED`, never as `DUPLICATE` — a warning that fires on correct content
+is a warning people learn to ignore.
+
+**Note on file location, verified 2026-09-11:** `AudienceIntentionData` has its own file under
+`Assets/Scripts/Data/Characters/Audience/`, but **`AudienceAbilityData` is a nested class inside
+`AudienceCharacterData.cs`** — there is no `AudienceAbilityData.cs`, and a file request that asks for
+one comes back empty.
+
+**Authority split unchanged.** This document owns what an intention **means** and which families
+exist; `systems/SSoT_Game_Text.md` §1 (population 6) and §5 (ability id group) own where the text
+lives and how it resolves. ~~**Open content debt: F-T5-1** — of the seven abilities, two intention
+bodies were authored as generic sentences.~~ **CLOSED 2026-09-14 by TEXT-6, and the count was wrong:
+all seven were generic**, not two (F-T6-6).
+
+### 7.1 What an intention body says (D-T6-1=C, TEXT-6)
+
+The seven bodies now describe **what the ability does**, in a character voice, under three rules that
+exist for mechanical reasons rather than stylistic ones:
+
+- **No numbers.** The telegraphed value is already drawn beside the icon, and a body that repeats it
+  would have to be re-authored on every balance change — the same argument that made card
+  descriptions fragments rather than sentences (`SSoT_Game_Text.md` §1, population 4). There is a
+  sharper reason too: the drawn value is `NextAbility.ActionList[0].ActionValue`, the **first**
+  action's value, which is not always the damage. `ab_heckle` telegraphs `x1` — its Exposed stacks —
+  and then deals 2 Stress. A body saying "2 Stress" beside a telegraph saying `x1` would make the
+  panel contradict itself (**F-T6-5**, → AUD/PRES).
+- **No `<link=>` tags.** A concept tag inside the body would stack a second panel on the intention
+  panel; panel stacking is TIP-1's, and a text batch must not decide it by accident.
+- **The body may not contradict the intention icon beside it.** Where the mechanic and the icon pull
+  apart — a Special-move icon over an ability that mostly repositions — the body is what reconciles
+  them, which is the whole reason a generic body was worse than nothing: it restated the icon.
+
+**The bodies were written against the assets, not against the ability names.** The action lists below
+were read out of the five `AudienceCharacterData` assets at TEXT-6 and are the oracle for the wording;
+an ability name is a developer label and describes nothing reliably.
+
+| Ability id | Character | Action list (type · target · value · status) | What the body says |
+|---|---|---|---|
+| `ab_block_the_view` | Cool Dude (tall) | `MoveToFront · Self · 1` | moves forward one slot; whoever is shorter and behind ends up Blocked |
+| `ab_indifference` | Cool Dude | `ApplyStatusEffect · Self · 2 · Indifference` (value hidden) | self-buff: no Vibe gets through while it lasts |
+| `ab_heckle` | Cool Dude | `ApplyStatusEffect · Musician · 1 · Exposed` **then** `AddStress · Musician · 2` (delay 1) | one bandmate, Exposed **first**, Stress after |
+| `ab_egg_him_on` | Kid | `ApplyStatusEffect · AudienceTall · 1 · Hyped` (value hidden) | buffs the tall one; their Stress hits harder |
+| `ab_tantrum` | Kid **and** Kid-TestTaster | Kid `AddStress · AllMusicians · 5` · Kid-Test `AddStress · AllAudienceCharacters · 5` | Stress, **scope deliberately unstated** — see below |
+| `ab_scathing_review` | Influencer (tall) | `AddStress · AllMusicians · 10` | the whole band takes Stress |
+| `ab_total_indifference` | Big Guy | `AddStress · AllMusicians · 20` | the whole band takes Stress |
+
+**A shared id is correct; two sharers that disagree are not (F-T6-4, D-T6-5=A).** `ab_tantrum` is
+authored by two characters — legitimate under D-T5-5=A — but with **different targets**. One glossary
+entry therefore describes two mechanics. TEXT-6 contained this in the wording (the body states the
+effect and not its scope) and did **not** touch the assets, because which of the two is right is an
+encounter-content decision, not a text one. The rule worth carrying: **a shared id is safe only while
+the sharers agree on what the ability does, and nothing in the pipeline checks that** — the seeding
+tool reports `SHARED` on the id, never on the behaviour behind it.
 
 ---
 
@@ -311,5 +400,7 @@ Update this document when a technical/design change affects:
 - what counts as an Audience Member
 - how persuasion resistance (Vibe) is defined
 - how preferences or intentions are interpreted
+- **what an intention body may say (§7.1) or what an ability's action list does**, since the body is
+  written against the action list and goes stale silently when the list changes
 - what categories of audience pressure exist
 - what “Convinced” means at gameplay level

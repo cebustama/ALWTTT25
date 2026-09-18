@@ -11,6 +11,8 @@ using ALWTTT.UI;
 using ALWTTT.Utils;
 using ALWTTT.Status;
 using ALWTTT.Sensory;
+using ALWTTT.Tooltips;                               // [CARD-FACE-1] GameText
+using static ALWTTT.Tooltips.GameTextTemplateIds;    // [CARD-FACE-1] ui_fx_vibe_bonus
 using ALWTTT.Characters; // [S5a] VibeEffectiveness + AudienceCharacterCanvas telegraph
 
 using MidiGenPlay;
@@ -303,6 +305,30 @@ namespace ALWTTT.Managers
         /// production.</summary>
         public GigDevSettingsSO DevSettings => dev;
 #endif
+
+        // [SONG-PANEL-1 / F-SP1-5] The LOG-GATE contract, compiled in EVERY build.
+        //
+        // WHY THIS EXISTS: HandController, DeckManager and CompositionSession gate their
+        // Debug.Log calls on UseLogs / LogVerbose (LOG-1). Until now they reached for
+        // `DevSettings` - an accessor deliberately compiled out of production by DBG-C1 -
+        // so removing ALWTTT_DEV broke five call sites in three files. The callers never
+        // needed the ScriptableObject: they needed two booleans. Handing them the booleans
+        // keeps the dev-tooling SURFACE dev-only (DBG-C1 intact) while making the log gate
+        // a first-class, always-available question.
+        //
+        // FAIL-OPEN, on purpose: no dev asset means "nobody configured logging", not
+        // "logging is off". This mirrors what every caller already did with a null check,
+        // so behaviour is preserved for HandController and DeckManager.
+        //
+        // NOTE the deliberate asymmetry with GigManager's own Log()/UseVerboseLogs below,
+        // which fail CLOSED (`dev != null && dev.UseLogs`). Internal gig logging without a
+        // configured dev asset stays silent; EXTERNAL callers, which also run outside a gig,
+        // do not. Both semantics are intentional; neither was changed by this batch.
+        /// <summary>[LOG-1] Master log gate for callers outside GigManager. True when no dev asset.</summary>
+        public bool LogsEnabled => dev == null || dev.UseLogs;
+
+        /// <summary>[LOG-1] Verbose log gate for callers outside GigManager. True when no dev asset.</summary>
+        public bool VerboseLogsEnabled => dev == null || (dev.UseLogs && dev.LogVerbose);
 
         private class GigContext : ICompositionContext
         {
@@ -2993,7 +3019,7 @@ namespace ALWTTT.Managers
             {
                 FxManager.Instance.SpawnFloatingText(
                     spawn,
-                    $"+{bonusInt} Vibe!",
+                    GameText.Format(UiFxVibeBonus, bonusInt),   // [CARD-FACE-1 / F-TV-4 / D-CF-8]
                     0, 1,
                     new Color(1f, 0.85f, 0.25f)); // warm gold - banked SFX cue
             }
@@ -3149,27 +3175,6 @@ namespace ALWTTT.Managers
         }
 
         /// <summary>
-        /// [S3 D-S3-8=A] Absolute Dev set that ALSO fires stage-threshold crossings
-        /// (venue VFX + SFX->Vibe bonus), restoring parity with the ±10% buttons.
-        /// Both Dev SongHype sliders route here; prior to S3 they set the value
-        /// directly and skipped crossing detection (Dev regression).
-        /// </summary>
-        private void DevSetSongHypeAbsolute(float value)
-        {
-            float max = meters != null ? meters.MaxSongHype : 0f;
-            float beforeNorm = max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);
-            _songHype = Mathf.Clamp(value, 0f, max);
-            float afterNorm = max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);
-
-            UpdateAudienceBeatIntensity();
-            if (songHypeDebugSlider != null)
-                songHypeDebugSlider.SetValueWithoutNotify(_songHype);
-
-            EvaluateSongHypeThresholds(beforeNorm, afterNorm);
-            OnSongHypeChanged01?.Invoke(SongHype01);
-        }
-
-        /// <summary>
         /// Dev Mode: set CurrentInspiration, clamped to [0, MaxInspiration].
         /// Always writes to pd.CurrentInspiration. When a CompositionSession is active,
         /// also routes to CompositionSession.DevSetCurrentInspiration so the live
@@ -3254,6 +3259,36 @@ namespace ALWTTT.Managers
             }
         }
 #endif
+
+        // [SONG-PANEL-1 / F-SP1-6] Moved OUT of the ALWTTT_DEV block.
+        //
+        // S5f compile-gated the Dev SongHype WRAPPERS (DevAddSongHype / DevResetSongHype)
+        // and swept this private helper in with them - but its other caller,
+        // OnDebugSongHypeSliderChanged (the in-scene debug slider, guarded at RUNTIME by
+        // GigDevSettingsSO.DebugSongHype), was never gated. Non-dev builds therefore had a
+        // call to a method that did not exist. The method is PRIVATE: moving it out adds no
+        // dev surface to a player build, which is what S5f was protecting. The public
+        // wrappers stay inside the #if.
+        /// <summary>
+        /// [S3 D-S3-8=A] Absolute Dev set that ALSO fires stage-threshold crossings
+        /// (venue VFX + SFX->Vibe bonus), restoring parity with the ±10% buttons.
+        /// Both Dev SongHype sliders route here; prior to S3 they set the value
+        /// directly and skipped crossing detection (Dev regression).
+        /// </summary>
+        private void DevSetSongHypeAbsolute(float value)
+        {
+            float max = meters != null ? meters.MaxSongHype : 0f;
+            float beforeNorm = max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);
+            _songHype = Mathf.Clamp(value, 0f, max);
+            float afterNorm = max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);
+
+            UpdateAudienceBeatIntensity();
+            if (songHypeDebugSlider != null)
+                songHypeDebugSlider.SetValueWithoutNotify(_songHype);
+
+            EvaluateSongHypeThresholds(beforeNorm, afterNorm);
+            OnSongHypeChanged01?.Invoke(SongHype01);
+        }
 
         private struct AudienceVibeDelta
         {

@@ -79,6 +79,11 @@ namespace ALWTTT.Data
     {
         [Header("Settings")]
         [SerializeField] private string abilityName;
+        [Tooltip("[TEXT-5 / D-T5-1a=A] Stable id of this ability's PLAYER TEXT in ConceptGlossarySO.entries " +
+         "(name = tooltip header, description = tooltip body). Lowercase [a-z0-9_], 'ab_' prefix by " +
+         "convention. Seed once with ALWTTT ▸ Text ▸ Seed Ability Ids; an empty id is a COVERAGE error. " +
+         "abilityName is a developer label since TEXT-5 and reaches no player surface.")]
+        [SerializeField] private string abilityId;
         [SerializeField] private AudienceIntentionData intention;
         [SerializeField] private bool hideActionValue;
         [SerializeField] private float abilityDuration;
@@ -96,6 +101,7 @@ namespace ALWTTT.Data
 
         #region Encapsulation
         public string AbilityName => abilityName;
+        public string AbilityId => abilityId;
         public AudienceIntentionData Intention => intention;
         public bool HideActionValue => hideActionValue;
         public float AbilityDuration => abilityDuration;

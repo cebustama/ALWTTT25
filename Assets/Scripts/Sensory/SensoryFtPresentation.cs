@@ -176,7 +176,9 @@ namespace ALWTTT.Sensory
             in CardPerformedEvent e, out string text, out Color color)
         {
             color = Color.white;
-            string name = e.Card != null ? e.Card.DisplayName : null;
+            // [TEXT-5 / F-TXT4-3] Glossary card name, not the developer label. Still DERIVED (uppercased + "!"),
+            // so D-WINK-6=B is untouched. A card with no name entry shouts its raw id and warns once.
+            string name = e.Card != null ? GameText.CardName(e.Card) : null;
             if (string.IsNullOrEmpty(name))
             {
                 text = null;

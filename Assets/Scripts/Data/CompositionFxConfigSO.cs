@@ -7,11 +7,24 @@ namespace ALWTTT.Data
     /// Per-category configuration for composition-card floating text spawned
     /// by <c>SongCompositionUI.SpawnCompositionFx</c>.
     ///
-    /// Each <see cref="FxEntry"/> bundles a per-category toggle, label, and color.
+    /// Each <see cref="FxEntry"/> bundles a per-category toggle and color.
     /// The master <see cref="Enabled"/> kills the whole system in one click.
     ///
-    /// Authority: B2 / #3 (operational). Not an SSoT-governed contract — purely
-    /// presentation tuning. Path convention: alongside <c>GigPresentation.asset</c>.
+    /// [TEXT-VIBE-1 / D-SP1-6=B] The per-entry <c>label</c> field is GONE. It was
+    /// population 8 of the text map (F-T6-9): player text with one language slot,
+    /// no editor tab, no CSV and no coverage check. The text now lives in the
+    /// concept glossary under <c>ui_fx_*</c> template ids, one per category, and
+    /// the id is chosen by <c>SongCompositionUI.FxTextIdOf</c> from WHICH entry the
+    /// classifier picked -- the category is the key, so there is nothing to author
+    /// here. The field was deleted rather than migrated for the SONG-PANEL-1 reason:
+    /// a serialized text field is the surface, and a migrated literal would have
+    /// left an English default one inspector edit away from returning.
+    /// "Empty label = silent" no longer exists; <c>enabled</c> is the only gate.
+    ///
+    /// Authority: B2 / #3 (operational) for toggles and colors; text ids in
+    /// systems/SSoT_Game_Text.md section 1 (population 8). Not an SSoT-governed
+    /// contract otherwise -- purely presentation tuning. Path convention:
+    /// alongside <c>GigPresentation.asset</c>.
     /// </summary>
     [CreateAssetMenu(
         fileName = "CompositionFxConfig",
@@ -20,16 +33,14 @@ namespace ALWTTT.Data
     public sealed class CompositionFxConfigSO : ScriptableObject
     {
         /// <summary>
-        /// Per-category entry: toggle, label, and color. Designer-tuneable in the inspector.
+        /// Per-category entry: toggle and color. Designer-tuneable in the inspector.
+        /// The on-screen word is NOT here (see class summary).
         /// </summary>
         [Serializable]
         public class FxEntry
         {
             [Tooltip("Disable to suppress this category without removing the asset reference.")]
             public bool enabled = true;
-
-            [Tooltip("Text shown on screen when this category fires. Empty = silent.")]
-            public string label = "CHANGE";
 
             [Tooltip("Floating-text color when this category fires.")]
             public Color color = Color.yellow;
@@ -46,7 +57,6 @@ namespace ALWTTT.Data
         private FxEntry tempo = new FxEntry
         {
             enabled = true,
-            label = "TEMPO!",
             color = new Color(1.00f, 0.80f, 0.30f)
         };
 
@@ -54,23 +64,21 @@ namespace ALWTTT.Data
         private FxEntry meter = new FxEntry
         {
             enabled = true,
-            label = "METER!",
             color = new Color(1.00f, 0.60f, 0.30f)
         };
 
-        [SerializeField, Tooltip("First-time tonality set (before was uninitialized).")]
+        [SerializeField, Tooltip("First-time tonality set (before was uninitialized). " +
+            "Design hook: no code path selects this entry today (D-B2.5-3=B), so it has no text id.")]
         private FxEntry tonality = new FxEntry
         {
             enabled = true,
-            label = "TONALITY!",
             color = new Color(0.90f, 0.50f, 1.00f)
         };
 
-        [SerializeField, Tooltip("Mid-song tonality/key change (modulation — already had a key).")]
+        [SerializeField, Tooltip("Mid-song tonality/key change (modulation -- already had a key).")]
         private FxEntry modulation = new FxEntry
         {
             enabled = true,
-            label = "KEY!",
             color = new Color(0.70f, 0.50f, 1.00f)
         };
 
@@ -78,15 +86,14 @@ namespace ALWTTT.Data
         private FxEntry instrument = new FxEntry
         {
             enabled = true,
-            label = "INSTRUMENT!",
             color = new Color(0.50f, 0.90f, 1.00f)
         };
 
-        [SerializeField, Tooltip("Catch-all for single modifier effects not matched above.")]
+        [SerializeField, Tooltip("Catch-all for single modifier effects not matched above. " +
+            "Design hook: no code path selects this entry today, so it has no text id.")]
         private FxEntry modifier = new FxEntry
         {
             enabled = true,
-            label = "MODIFIER!",
             color = new Color(1.00f, 0.95f, 0.25f)
         };
 
@@ -95,27 +102,24 @@ namespace ALWTTT.Data
         private FxEntry majorChange = new FxEntry
         {
             enabled = true,
-            label = "MAJOR CHANGE",
             color = new Color(1.00f, 0.40f, 0.40f)
         };
 
-        [SerializeField, Tooltip("Fallback when the classifier matches no specific category " +
-            "but a change was detected anyway. Should rarely fire after change detection lands.")]
+        [SerializeField, Tooltip("Fallback when a replaced track has a role outside the four " +
+            "authored below. Should rarely fire.")]
         private FxEntry fallback = new FxEntry
         {
             enabled = false,
-            label = "CHANGE",
             color = new Color(1.00f, 0.95f, 0.25f)
         };
 
-        // ---- Track roles (per-role label/color on new/replaced track) ----
+        // ---- Track roles (per-role color on replaced track) ----
 
         [Header("Track roles")]
         [SerializeField]
         private FxEntry rhythm = new FxEntry
         {
             enabled = true,
-            label = "RHYTHM!",
             color = new Color(1.00f, 0.70f, 0.30f)
         };
 
@@ -123,7 +127,6 @@ namespace ALWTTT.Data
         private FxEntry backing = new FxEntry
         {
             enabled = true,
-            label = "BACKING!",
             color = new Color(0.80f, 1.00f, 0.50f)
         };
 
@@ -131,7 +134,6 @@ namespace ALWTTT.Data
         private FxEntry melody = new FxEntry
         {
             enabled = true,
-            label = "MELODY!",
             color = new Color(0.50f, 1.00f, 1.00f)
         };
 
@@ -139,7 +141,6 @@ namespace ALWTTT.Data
         private FxEntry harmony = new FxEntry
         {
             enabled = true,
-            label = "HARMONY!",
             color = new Color(1.00f, 0.60f, 0.90f)
         };
 

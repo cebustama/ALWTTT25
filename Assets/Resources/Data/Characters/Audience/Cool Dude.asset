@@ -20,6 +20,7 @@ MonoBehaviour:
   isTall: 1
   abilityList:
   - abilityName: Block the View
+    abilityId: ab_block_the_view
     intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
     hideActionValue: 0
     abilityDuration: 2
@@ -35,6 +36,7 @@ MonoBehaviour:
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
   - abilityName: Indifference
+    abilityId: ab_indifference
     intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
     hideActionValue: 1
     abilityDuration: 2
@@ -50,6 +52,7 @@ MonoBehaviour:
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
   - abilityName: Heckle
+    abilityId: ab_heckle
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
     hideActionValue: 0
     abilityDuration: 3

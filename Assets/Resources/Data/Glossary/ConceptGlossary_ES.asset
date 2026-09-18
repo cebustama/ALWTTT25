@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: ConceptGlossary_ES
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.ConceptGlossarySO
   languageCode: es
+  numberCulture: es-ES
   entries:
   - id: gig
     displayName: Concierto
@@ -156,3 +157,511 @@ MonoBehaviour:
     displayName: Agotar
     description: Solo se puede jugar una vez por encuentro. Va a la pila de agotadas
       tras usarse.
+  - id: ab_block_the_view
+    displayName: Tapar la Vista
+    description: "Se abre paso hacia delante. Quien quede detr\xE1s y sea m\xE1s
+      bajo queda Bloqueado y no recibe Vibe."
+  - id: ab_egg_him_on
+    displayName: Darle Cuerda
+    description: "Le da cuerda a un espectador Alto: gana Exaltado y todo el Stress
+      que inflige pega m\xE1s fuerte."
+  - id: ab_heckle
+    displayName: Abuchear
+    description: "Se ceba con un m\xFAsico: lo deja Expuesto y luego le carga el
+      Stress."
+  - id: ab_indifference
+    displayName: Indiferencia
+    description: 'Pasa de la banda. Gana Indiferencia: mientras dure, no le llega
+      nada de Vibe.'
+  - id: ab_scathing_review
+    displayName: "Cr\xEDtica Mordaz"
+    description: Publica un repaso a la banda entera. Todos en el escenario reciben
+      Stress.
+  - id: ab_tantrum
+    displayName: Rabieta
+    description: Se pone a berrear. La banda recibe Stress.
+  - id: ab_total_indifference
+    displayName: Indiferencia Total
+    description: "Ni pesta\xF1ea. Esa cara de nada inflige Stress a toda la banda."
+  - id: role_rhythm
+    displayName: Ritmo
+    description: "La pista de percusi\xF3n. Marca el pulso contra el que toca todo
+      lo dem\xE1s."
+  - id: role_backing
+    displayName: "Acompa\xF1amiento"
+    description: "La pista de acordes de fondo. Expone la armon\xEDa sobre la que
+      se mueven las dem\xE1s partes."
+  - id: role_bassline
+    displayName: Bajo
+    description: "La l\xEDnea grave. Ata los acordes al ritmo y sostiene la base
+      de la canci\xF3n."
+  - id: role_melody
+    displayName: "Melod\xEDa"
+    description: "La l\xEDnea principal. Es la que el p\xFAblico recuerda y tararea."
+  - id: role_harmony
+    displayName: "Armon\xEDa"
+    description: "Voces secundarias que acompa\xF1an a la melod\xEDa y le dan cuerpo."
+  - id: role_lead
+    displayName: Solista
+    description: "La l\xEDnea protagonista. Toca por encima del resto y se lleva
+      el primer plano."
+  - id: scope_trackonly
+    displayName: "S\xF3lo esta pista"
+    description: "Afecta a la pista de un solo m\xFAsico. El resto de la canci\xF3n
+      no cambia."
+  - id: scope_currentpart
+    displayName: Parte actual
+    description: Afecta a la parte que suena ahora. Termina cuando termina esa parte.
+  - id: scope_nextpart
+    displayName: Parte siguiente
+    description: "Afecta a la parte que viene despu\xE9s de \xE9sta. Hasta entonces
+      no cambia nada."
+  - id: scope_wholesong
+    displayName: "Toda la canci\xF3n"
+    description: "Afecta a toda la canci\xF3n a partir de aqu\xED. Sobrevive a la
+      parte en la que la jugaste."
+  - id: timing_immediate
+    displayName: Inmediato
+    description: Surte efecto en el momento de jugar la carta.
+  - id: timing_onnextloop
+    displayName: "Pr\xF3ximo bucle"
+    description: Surte efecto cuando acaba el bucle actual y empieza el siguiente.
+  - id: timing_onnextpartstart
+    displayName: "Al empezar la pr\xF3xima parte"
+    description: Espera a que acabe la parte actual y surte efecto cuando empieza
+      la siguiente.
+  - id: mod_meter
+    displayName: "Comp\xE1s"
+    description: "Cu\xE1ntos pulsos caben en un comp\xE1s. Cambiarlo cambia la forma
+      del groove."
+  - id: mod_tempo
+    displayName: Tempo
+    description: "A qu\xE9 velocidad va la canci\xF3n. M\xE1s r\xE1pido sube la energ\xEDa;
+      m\xE1s lento da aire a cada nota."
+  - id: mod_key
+    displayName: Tonalidad
+    description: "La nota sobre la que se centra la canci\xF3n. Moverla sube o baja
+      todo a la vez."
+  - id: mod_instrument
+    displayName: Instrumento
+    description: "Qu\xE9 instrumento toca esta pista. Cambia el timbre, no las notas."
+  - id: mod_tonality
+    displayName: Modo
+    description: "El color de la escala que usa la canci\xF3n. Decide si un pasaje
+      suena luminoso u oscuro."
+  cardNames:
+  - id: 3_Action_001
+    displayName: Conteo
+  - id: Cantante_Composition_002
+    displayName: Falsete Nebulosa
+  - id: Cantante_Composition_003
+    displayName: Escala Nebulosa
+  - id: DEV_Voltage_Minus2
+    displayName: DEV Voltage -2
+  - id: DEV_Voltage_Plus1
+    displayName: DEV Voltage +1
+  - id: DEV_Voltage_Plus4
+    displayName: DEV Voltage +4
+  - id: Gusano_C_Bassline_001_WormWalk
+    displayName: Paseo del Gusano
+  - id: Gusano_C_Bassline_002_WormPulse
+    displayName: Pulso del Gusano
+  - id: MVP_AddComposure_03
+    displayName: Centrarse (Compostura)
+  - id: MVP_AddFlow_02_All
+    displayName: Enganchados (Flow)
+  - id: MVP_AddStress_03
+    displayName: "Empuj\xF3n a Tope"
+  - id: MVP_AddVibe_05
+    displayName: Pulso de Bis
+  - id: MVP_RemoveStress_02
+    displayName: Respira y Reinicia
+  - id: Starter_half_time
+    displayName: Medio Tiempo
+  - id: Starter_keep_cool
+    displayName: "Mant\xE9n la Calma"
+  - id: Starter_key_lift
+    displayName: Subida de Tono
+  - id: Starter_psychic_waves
+    displayName: "Ondas Ps\xEDquicas"
+  - id: Starter_push_it
+    displayName: "Dale Ca\xF1a"
+  - id: conito_overload
+    displayName: Sobrecarga
+  - id: conito_slap_groove
+    displayName: Slap Groove
+  - id: conito_super_slap
+    displayName: "S\xFAper Slap"
+  - id: crd_c2_spotlight
+    displayName: Foco
+  - id: crd_sibi_read_the_room
+    displayName: Leer el Ambiente
+  - id: debug_apply_shaken_to_musician
+    displayName: 'Debug: Apply Shaken (Musician)'
+  - id: new_any_group_heal
+    displayName: Esfuerzo Conjunto
+  - id: new_cantante_stress_heal
+    displayName: 'Cantante: Respira Hondo'
+  - id: new_cantante_vibe_all
+    displayName: "Cantante: Presencia Esc\xE9nica"
+  - id: new_conito_draw
+    displayName: "Conito: Lick R\xE1pido"
+  - id: new_conito_vibe_single
+    displayName: 'Conito: Elige un Fan'
+  - id: reward_amp_up
+    displayName: A Todo Volumen
+  - id: sibi_backing_modal
+    displayName: Deriva Modal
+  - id: starter_compound_cycle
+    displayName: Ciclo Compuesto
+  - id: starter_default_mode
+    displayName: Modo por Defecto
+  - id: starter_double_harmony
+    displayName: "Doble Armon\xEDa"
+  - id: starter_finger_bass
+    displayName: Walking Bass
+  - id: starter_mind_tap
+    displayName: Toque Mental
+  - id: starter_pentameter
+    displayName: "Pent\xE1metro"
+  - id: starter_rise_up
+    displayName: "Lev\xE1ntate"
+  - id: starter_showtime
+    displayName: Hora del Show
+  - id: starter_singing_field
+    displayName: Campo Cantor
+  - id: starter_slap_bass
+    displayName: Bajo Slap
+  - id: starter_static_rush
+    displayName: "Subid\xF3n Est\xE1tico"
+  - id: starter_take_five
+    displayName: Take Five
+  - id: starter_waltz_protocol
+    displayName: Protocolo Vals
+  - id: starter_warm_up
+    displayName: Calentamiento
+  - id: starter_wormus_major
+    displayName: Wormus Mayor
+  - id: starter_wormus_minor
+    displayName: Wormus Menor
+  - id: test_apply_choke
+    displayName: 'Test: Choke +1'
+  - id: test_apply_composure
+    displayName: 'Test: Composure +5'
+  - id: test_apply_exposed
+    displayName: 'Test: Exposed +3'
+  - id: test_apply_feedback
+    displayName: 'Test: Feedback +2'
+  - id: test_apply_flow
+    displayName: 'Test: Flow +2'
+  - id: test_draw_cards
+    displayName: 'Test: Draw 2'
+  - id: test_modify_stress_add
+    displayName: 'Test: Stress +4'
+  - id: test_modify_stress_heal
+    displayName: 'Test: Heal Stress 3'
+  - id: test_modify_vibe
+    displayName: 'Test: Vibe +5 All'
+  - id: wink
+    displayName: "\xA1GUI\xD1O!"
+  - id: wormus_bossa
+    displayName: Wormus Bossa
+  - id: wormus_modal
+    displayName: Wormus Modal
+  - id: wormus_test
+    displayName: Wormus Test
+  templates:
+  - id: fx_no_effects
+    text: Sin efectos.
+  - id: fx_gain_status
+    text: Gana {0} {1}
+  - id: fx_apply_status
+    text: Aplica {0} {1} a {2}
+  - id: fx_deal_vibe
+    text: Inflige {0} de Vibe a {1}
+  - id: fx_restore_vibe
+    text: Restaura {0} de Vibe a {1}
+  - id: fx_deal_stress
+    text: Inflige {0} de Stress a {1}
+  - id: fx_heal_stress
+    text: Cura {0} de Stress a {1}
+  - id: fx_draw_one
+    text: Roba {0} carta
+  - id: fx_draw_many
+    text: Roba {0} cartas
+  - id: fx_inspiration_per_loop
+    text: "Gana {0} de Inspiraci\xF3n cada loop mientras suene esta pista"
+  - id: fx_reveal_tastes
+    text: Revela los gustos musicales de {0}
+  - id: tgt_self
+    text: ti mismo
+  - id: tgt_musician
+    text: "un compa\xF1ero de banda"
+  - id: tgt_all_musicians
+    text: toda la banda
+  - id: tgt_random_musician
+    text: "un compa\xF1ero al azar"
+  - id: tgt_audience
+    text: este espectador
+  - id: tgt_all_audience
+    text: "todo el p\xFAblico"
+  - id: tgt_random_audience
+    text: un espectador al azar
+  - id: ui_card_kind_track
+    text: Pista
+  - id: ui_card_kind_part
+    text: Parte
+  - id: ui_card_kind_composition
+    text: "Composici\xF3n"
+  - id: ui_card_modifier_one
+    text: '{0} modificador'
+  - id: ui_card_modifier_many
+    text: '{0} modificadores'
+  - id: ui_card_detail_style
+    text: 'Estilo: {0}'
+  - id: ui_card_detail_musician
+    text: "M\xFAsico: {0}"
+  - id: ui_card_detail_modifiers
+    text: Modificadores
+  - id: ui_card_detail_effects
+    text: Efectos
+  - id: ui_aud_taste_block_header
+    text: "\u2014 Gustos \u2014"
+  - id: ui_aud_taste_header
+    text: Gustos
+  - id: ui_aud_taste_neutral
+    text: Le da igual todo
+  - id: ui_aud_taste_fast
+    text: "+ R\xE1pido"
+  - id: ui_aud_taste_slow
+    text: '- Lento'
+  - id: ui_aud_taste_tracks
+    text: + {0}+ pistas
+  - id: ui_aud_vibe_hype
+    text: "Hype de la canci\xF3n: {0}"
+  - id: ui_aud_vibe_blocked
+    text: "Bloqueado (alguien alto le tapa) \u2192 0"
+  - id: ui_aud_vibe_song_end
+    text: "Al acabar la canci\xF3n: {0}"
+  - id: ui_aud_vibe_tastes
+    text: "\xD7 {0} gustos \u2192 {1}"
+  - id: ui_aud_vibe_status_mult
+    text: "\xD7 {0} {1} ({2}) \u2192 {3}"
+  - id: ui_aud_vibe_sfx
+    text: "+ {0} SFX \u2192 {1}"
+  - id: ui_aud_vibe_indifferent
+    text: "{0} \u2192 0"
+  - id: ui_aud_vibe_ko
+    text: "\xA1Esta canci\xF3n lo convence!"
+  - id: ui_aud_eff_super
+    text: "\xA1S\xFAper!"
+  - id: ui_aud_eff_resists
+    text: Resiste
+  - id: ui_aud_eff_immune
+    text: Inmune
+  - id: ui_aud_eff_normal
+    text: Normal
+  - id: fx_grant_bonus_loop
+    text: Toca un loop extra de esta parte
+  - id: fx_grant_bonus_loop_solo
+    text: Toca un loop extra de esta parte, con un solo por encima
+  - id: ui_card_type_composition
+    text: "COMPOSICI\xD3N"
+  - id: ui_track_inspiration_per_loop
+    text: "+{0} de Inspiraci\xF3n / loop"
+  - id: ui_track_instrument
+    text: 'Instrumento: {0}'
+  - id: ui_track_level
+    text: Nv {0} / {1}
+  - id: ui_track_level_max
+    text: "m\xE1x"
+  - id: ui_track_no_track
+    text: "sin pista todav\xEDa"
+  - id: ui_track_pending
+    text: "entra en el pr\xF3ximo loop"
+  - id: ui_fx_chord_fallback
+    text: Acorde ({0})
+  - id: ui_part_intro
+    text: Intro
+  - id: ui_part_label
+    text: Parte {0}
+  - id: ui_part_outro
+    text: Cierre
+  - id: ui_part_solo
+    text: Solo
+  - id: ui_song_theme
+    text: 'Tema: {0}'
+  - id: ui_song_theme_default
+    text: Instrumental
+  - id: ui_song_title_default
+    text: "Jam sin t\xEDtulo"
+  - id: ui_track_finale
+    text: Final
+  - id: ui_track_improvisation
+    text: "Improvisaci\xF3n"
+  - id: ui_track_lead_in
+    text: Entrada
+  - id: ui_ctx_bpm_absolute
+    text: "{0} BPM (anulaci\xF3n absoluta)"
+  - id: ui_ctx_final_loop_locks
+    text: "el loop final bloquea la composici\xF3n"
+  - id: ui_ctx_loop
+    text: Loop {0} de {1}
+  - id: ui_ctx_musician_silent_one
+    text: "{0} m\xFAsico en silencio"
+  - id: ui_ctx_musicians_silent_many
+    text: "{0} m\xFAsicos en silencio"
+  - id: ui_ctx_part_of
+    text: '{0} de {1}'
+  - id: ui_ctx_pending_render
+    text: pendiente de render
+  - id: ui_ctx_loop_no_total
+    text: Loop {0}
+  - id: ui_readout_header
+    text: "Vibe de la canci\xF3n"
+  - id: ui_readout_hype
+    text: "Hype de la canci\xF3n: {0} % \u2192 {1}"
+  - id: ui_readout_sfx
+    text: "+ SFX del local \u2192 {0}"
+  - id: ui_readout_total
+    text: = {0} de Vibe por espectador,
+  - id: ui_readout_total_note
+    text: antes de gustos y estados.
+  - id: ui_readout_avg_resist
+    text: Un espectador medio aguanta {0}.
+  - id: ui_fx_tempo
+    text: "\xA1TEMPO!"
+  - id: ui_fx_meter
+    text: "\xA1COMP\xC1S!"
+  - id: ui_fx_key
+    text: "\xA1TONALIDAD!"
+  - id: ui_fx_instrument
+    text: "\xA1INSTRUMENTO!"
+  - id: ui_fx_major_change
+    text: GRAN CAMBIO
+  - id: ui_fx_change
+    text: CAMBIO
+  - id: ui_fx_track_rhythm
+    text: "\xA1RITMO!"
+  - id: ui_fx_track_backing
+    text: "\xA1ACOMPA\xD1AMIENTO!"
+  - id: ui_fx_track_melody
+    text: "\xA1MELOD\xCDA!"
+  - id: ui_fx_track_harmony
+    text: "\xA1ARMON\xCDA!"
+  - id: ui_ctx_meter_twofour
+    text: 2/4
+  - id: ui_ctx_meter_threefour
+    text: 3/4
+  - id: ui_ctx_meter_fourfour
+    text: 4/4
+  - id: ui_ctx_meter_sixeight
+    text: 6/8
+  - id: ui_ctx_meter_seveneight
+    text: 7/8
+  - id: ui_ctx_meter_nineeight
+    text: 9/8
+  - id: ui_ctx_meter_twelveeight
+    text: 12/8
+  - id: ui_ctx_tempo_veryslow
+    text: Muy lento
+  - id: ui_ctx_tempo_slow
+    text: Lento
+  - id: ui_ctx_tempo_moderate
+    text: Moderado
+  - id: ui_ctx_tempo_fast
+    text: "R\xE1pido"
+  - id: ui_ctx_tempo_veryfast
+    text: "Muy r\xE1pido"
+  - id: ui_ctx_meter_fivefour
+    text: 5/4
+  - id: ui_mod_tempo_scale
+    text: "\xD7{0}"
+  - id: ui_mod_key
+    text: 'Tonalidad: {0}'
+  - id: ui_mod_degree
+    text: Modula a {0}
+  - id: ui_mod_random_key
+    text: Tonalidad al azar
+  - id: ui_mod_random_in_scale
+    text: Grado al azar en la escala
+  - id: ui_mod_instrument
+    text: '{0}'
+  - id: ui_mod_drums
+    text: "Bater\xEDa: {0}"
+  - id: ui_mod_instrument_type
+    text: Cualquier {0}
+  - id: ui_mod_instrument_random
+    text: Uno de {0} al azar
+  - id: ui_gig_songs_left
+    text: 'Canciones restantes: {0}'
+  - id: ui_fx_vibe_bonus
+    text: "\xA1+{0} Vibe!"
+  - id: ui_role_rhythm
+    text: Ritmo
+  - id: ui_role_backing
+    text: "Acompa\xF1amiento"
+  - id: ui_role_lead
+    text: Solista
+  - id: ui_role_bassline
+    text: Bajo
+  - id: ui_role_melody
+    text: "Melod\xEDa"
+  - id: ui_role_harmony
+    text: "Armon\xEDa"
+  - id: ui_degree_tonic
+    text: "T\xF3nica"
+  - id: ui_degree_supertonic
+    text: "Supert\xF3nica"
+  - id: ui_degree_mediant
+    text: Mediante
+  - id: ui_degree_subdominant
+    text: Subdominante
+  - id: ui_degree_dominant
+    text: Dominante
+  - id: ui_degree_submediant
+    text: Submediante
+  - id: ui_degree_leadingtone
+    text: Sensible
+  - id: ui_note_c
+    text: Do
+  - id: ui_note_csharp
+    text: Do#
+  - id: ui_note_d
+    text: Re
+  - id: ui_note_dsharp
+    text: Re#
+  - id: ui_note_e
+    text: Mi
+  - id: ui_note_f
+    text: Fa
+  - id: ui_note_fsharp
+    text: Fa#
+  - id: ui_note_g
+    text: Sol
+  - id: ui_note_gsharp
+    text: Sol#
+  - id: ui_note_a
+    text: La
+  - id: ui_note_asharp
+    text: La#
+  - id: ui_note_b
+    text: Si
+  - id: ui_instrumenttype_guitar
+    text: Guitarra
+  - id: ui_instrumenttype_acousticguitar
+    text: "Guitarra ac\xFAstica"
+  - id: ui_instrumenttype_bass
+    text: Bajo
+  - id: ui_instrumenttype_drums
+    text: "Bater\xEDa"
+  - id: ui_instrumenttype_piano
+    text: Piano
+  - id: ui_instrumenttype_strings
+    text: Cuerdas
+  - id: ui_instrumenttype_brassandwoodwind
+    text: Viento
+  - id: ui_instrumenttype_synth
+    text: Sintetizador
+  - id: ui_instrumenttype_vocals
+    text: Voces

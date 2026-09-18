@@ -821,6 +821,7 @@ namespace ALWTTT.Characters.Editor
 
                     EditorGUI.indentLevel++;
                     Field(pAbilityName);
+                    Field(el.FindPropertyRelative("abilityId"));   // [TEXT-5] glossary key; empty = COVERAGE error in GameTextWindow ▸ Concepts
                     FieldWithPing(el.FindPropertyRelative("intention"));
                     Field(el.FindPropertyRelative("hideActionValue"));
                     Field(el.FindPropertyRelative("abilityDuration"));
@@ -851,6 +852,7 @@ namespace ALWTTT.Characters.Editor
         private static void ResetAbility(SerializedProperty el)
         {
             SetString(el, "abilityName", "");
+            SetString(el, "abilityId", "");   // [TEXT-5]
             SetObject(el, "intention", null);
             SetBool(el, "hideActionValue", false);
             SetFloat(el, "abilityDuration", 0f);
@@ -1027,7 +1029,7 @@ namespace ALWTTT.Characters.Editor
         // ──────────────────────────────────────────────────────────────────
         // Export JSON — informational, current filtered view, not re-importable
         // ──────────────────────────────────────────────────────────────────
-        [Serializable] private class JsonAbility { public string name; public string intention; public int actionCount; public float duration; public string animatorTrigger; public bool hasSfx; }
+        [Serializable] private class JsonAbility { public string id; public string name; public string intention; public int actionCount; public float duration; public string animatorTrigger; public bool hasSfx; }
         [Serializable]
         private class JsonMember
         {
@@ -1077,6 +1079,7 @@ namespace ALWTTT.Characters.Editor
                         if (a == null) continue;
                         m.abilities.Add(new JsonAbility
                         {
+                            id = a.AbilityId,   // [TEXT-5]
                             name = a.AbilityName,
                             intention = a.Intention != null ? a.Intention.name : "<null>",
                             actionCount = a.ActionList?.Count ?? 0,

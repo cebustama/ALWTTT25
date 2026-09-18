@@ -72,3 +72,30 @@ self-explanatory by watching the pips across one loop boundary
   Enforcement is unaffected (`TryConsumePlay` still denies the drop). Resolving
   D-ECON-GENERIC unblocks the `AnyMusician` half. See `SSoT_Gig_Combat_Core.md` §14.5
   and `SSoT_Card_System.md` §10.5.
+
+---
+
+## F-SP1-9 — Overload paga un loop que otra carta puede quedarse (registro, 2026-09-14)
+
+**Observado** (SONG-PANEL-1, en cámara): Overload jugada en el loop 2 extiende la parte y programa un
+solo. En el loop 3 se juega otra carta de Conito: **el loop extra se mantiene, pero su contenido se
+sustituye** por la nueva carta. Es coherente con el modelo actual —una pista por (músico, rol), gana
+la última carta— y aun así es un agujero: la carta compra un loop que no posee.
+
+**Opciones sobre la mesa** (ninguna decidida; esto es registro, no decisión):
+
+- **A — jugable sólo en el último loop, requisito duro.** Convierte Overload en una decisión de final
+  de parte. Coste: `UnplayableReason` nueva, texto de denegación (§10.1 de `SSoT_Card_System.md`: toda
+  precondición de carta de composición viene con su denegación o es invisible), y el riesgo de carta
+  muerta en mano.
+- **B — jugable siempre; extiende sólo si es el último loop.** La carta nunca es basura y el concepto
+  «solo» sobrevive como etiqueta. Coste: el valor depende del momento sin que nada lo diga; es la
+  clase de regla que se aprende por sorpresa y se reporta como bug. **Recomendada, con telegrafía en
+  la cara de la carta** (estado actual: extiende / no extiende), no sólo en la descripción estática.
+- **C — el loop extra queda reservado al solo.** La pista del solista no es reemplazable en ese loop.
+  Ataca la causa en vez del momento, y no restringe cuándo se juega. Más trabajo: `TrackEntry`
+  necesita saber que está reservada.
+
+**Lo que la observación dice y las tres opciones no capturan por igual:** el problema que se vio no
+fue *cuándo* se juega, sino que otra carta del mismo músico se quedó con el contenido del loop que
+Overload pagó. A y B regulan el momento; sólo C toca la propiedad del loop.

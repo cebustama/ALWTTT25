@@ -151,6 +151,44 @@ language of `Design_Sensory_Contract`.
 surface and survives that toggle — turning the number off to reduce clutter should still
 leave the bar readable, which is the point of the segment.
 
+**F-TIP-6 — the breakdown prints steps that change nothing. OPEN (2026-09-15) → VIBE-READ-1.**
+`BuildVibeText` walks the payout order and prints **every** line, including `× 1,00 tastes`,
+`× 1,00 Flow (0)`, `+ 0 SFX` and `× 1,00 Captivated (0)`. The code states the reason on the
+function itself — *every line is shown even when neutral: the shape teaches the model* — and that
+criterion is **reversed here, by observation**, exactly as D-BN-9 was (§10.3): observed in ST-TIP-10
+with four of six lines inert, the panel reads as noise and the two lines that move the number are
+buried among the four that do not. The pedagogy is paid on every hover forever and collected once.
+**Agreed rule:** suppress a line when its **output equals its input** — not when «the multiplier is
+1,00», which would keep a 1,004 factor that does move the number and would need a second rule for
+`+ 0`. Guard rails: the first line (Hype) and the last (`Al acabar la canción: −N`) always print, so
+the panel can never be empty nor end without its conclusion; the `Blocked` and `Indifferent`
+branches are untouched, since they *explain a zero* and are the case where the reason matters most.
+The same shape exists on the C1 readout (`+ SFX del local → 0`), whose producer is
+`GigCanvas.BuildReadoutTooltip` — the two are fixed together in **VIBE-READ-1**.
+
+**APPLIED 2026-09-16 (TEXT-VIBE-1, which absorbed VIBE-READ-1). One implementation detail is part of
+the rule and not below it: the comparison is on RAW values, in the integer domain each step emits.**
+Per line: tastes is inert when `Mathf.RoundToInt(HypeBase) == LAfterImpression`, Flow when
+`LAfterFlow == LAfterImpression`, SFX when `Subtotal == LAfterFlow`, Captivated when
+`Final == Subtotal`. The tastes step rounds its float input with the **same** `Mathf.RoundToInt` that
+`GigManager.ComputeLPart` uses, so the two sides of the comparison are measured the way the payout
+measures them.
+
+**Why raw and not the printed string.** The first line prints `HypeBase` as `"0.#"` while every later
+step is an `int`. Comparing what is *printed* would never suppress «12,4 → × 1,00 → 12», which is
+exactly the inert case ST-TIP-10 reported. **Declared consequence, accepted:** with raw comparison a
+rounding that changes the displayed number without a factor moving it (12,4 → 12 at × 1,00) is no
+longer shown. That is the cost of the rule, it is one comparison away from being reversed, and it is
+written here so a future reader does not rediscover it as a bug. Verified by **ST-TV-5**, which exists
+for this case alone.
+
+**The C1 readout took the same rule** (`if (sfxPart != 0)`), and in the same pass its five Spanish
+literals became `ui_readout_*` templates — population 11 of `systems/SSoT_Game_Text.md` §1, closed
+here. Note for gig 1: venue SFX stages ship **locked** (S5h), so the suppressed state is the *default*
+one a viewer sees, not an edge case. **ST-TV-1..8 PASS**, including the regression that the readout
+still updates **in place** through `UpdateTooltip` without stacking a second panel
+(`systems/SSoT_Tooltip_Pipeline.md` §2).
+
 ### 10.3 D-BN-9=A — tried and REVERTED (2026-09-09)
 
 The breakdown was first composed into the character's existing hover tooltip, to honour the
@@ -191,7 +229,20 @@ switches it depends on. This paragraph is the presentation rationale; §12.1 is 
 - **Known gap:** the resolved-BPM path carries no time signature, so a non-4 denominator
   will pulse wrong until BEAT-1 closes.
 
-### 10.6 Tooltip anchoring (D-BN-18=B″)
+### 10.6 Tooltip anchoring (D-BN-18=B″ — RETIRED 2026-09-15 by TIP-1)
+
+**Status: historical.** The anchoring truth now lives in `systems/SSoT_Tooltip_Pipeline.md` §3.
+TIP-1 closed **F-BN-8** by inferring the anchor space from the target's **root canvas**
+(D-TIP-2=B): a target under a Screen Space – Overlay canvas has its `.position` taken as the
+screen point with no projection at all, so `VibeReadoutTooltipTarget` anchors on its own transform
+with a pixel offset. The runtime anchor GameObject described below — created, kept alive with
+`DontDestroyOnLoad` and re-parked every frame — is **deleted from the code**; ST-TIP-3 verifies it
+no longer exists at runtime. The paragraph is kept because the two earlier failed attempts (B and
+B′) still deserve to stay recorded, and because **F-BN-9 remains true** as a Unity fact: nothing in
+the persistent ALWTTTCore scene can serialize a reference into the gig scene. What changed is that
+the C1 tooltip no longer needs one.
+
+**Original record (BIGNUM-1, 2026-09-09):**
 
 The C1 tooltip anchors on a GameObject the component **creates at runtime** and parks, each
 frame while hovered, at the world point that projects back to the wanted pixel (the number's
@@ -205,3 +256,11 @@ world anchor) — impossible, see **F-BN-9**. The root cause is **F-BN-8**; the 
 **ST-BN-1..17 PASS** (ST-BN-1 is the regression that guards the "math unchanged" premise;
 ST-BN-13..16 were run on 2026-09-09, after the code closed and before this doc pass).
 Recorded in `coverage-matrix.md`.
+
+**TIP-1 additions (2026-09-15).** `ST-TIP-1..10 PASS`, of which four guard this note's surfaces:
+ST-TIP-1 (the C1 panel lands at its offset and stays on screen — the direct F-BN-8 regression),
+ST-TIP-2 (the breakdown updates in place while hovered, no second panel and no fade replay),
+ST-TIP-3 (no `VibeReadoutTooltipAnchor (runtime)` object exists any more) and ST-TIP-10 (the bar
+hover still shows its own single panel and the composite still stands down — D-BN-15 intact).
+ST-TIP-10 passed **and** produced F-TIP-6 above: a smoke can pass on its stated criterion and still
+report what it saw.

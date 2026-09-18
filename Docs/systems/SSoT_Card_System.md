@@ -231,7 +231,9 @@ Rules:
 
 ### 6.2 Built-in effect specs currently in active vocabulary
 
-All six effect types below are implemented and runtime-validated.
+All **seven** effect types below are implemented and runtime-validated. "Active vocabulary" and
+"implemented" are the same set; there is no narrower reading, which is the question F-DOC4-1 left
+open and TEXT-5 closed by reading the file instead of the path index.
 
 | Spec class | JSON `type` | Status | Notes |
 |---|---|---|---|
@@ -241,6 +243,7 @@ All six effect types below are implemented and runtime-validated.
 | `DrawCardsSpec` | `"DrawCards"` | ✅ Implemented + validated | Calls `DeckManager.DrawCards(count)` at effect execution time |
 | `AddInspirationPerLoopSpec` | `"AddInspirationPerLoop"` | ✅ Implemented + validated (DF-INSPLOOP) | **Not executed by the `CardBase` pipeline.** Consumed at track-binding time: `CompositionSession.EvalPerLoopInsp` reads it off `TrackEntry.sourceCardDefinition` via `AddInspirationPerLoopSpec.SumFor`. Grants `amount` Inspiration/loop while the card's track is active (track-scoped, D-INSP-1=D). Composition Track cards only; inert elsewhere. |
 | `RevealPreferencesSpec` | `"RevealPreferences"` | ✅ Implemented + validated (R4, 2026-08-10) | Reveals the target audience member's `TastePreferences` on the audience canvas. Single-target (`AudienceCharacter`), per-gig, idempotent; the spec carries no taste data. Runtime meaning: `SSoT_Audience_and_Reactions.md` §6.4; four-layer conformance + the two-targeting-sites rule: `SSoT_Card_Authoring_Contracts.md` §9 |
+| `GrantBonusLoopSpec` | `"GrantBonusLoop"` | ✅ Implemented (R5-d, 2026-08-26) + runtime-validated (R5-f, `ST-R5f-1..18`, 2026-08-28) | Extends the running part by one loop via `CompositionSession.TryGrantBonusLoop`, capped by `GigFlowSettingsSO.MaxBonusLoopsPerPart`. `soloOverBonusLoop` (default `true`) requests a render-scope soloist track over a byte-identical base (`SSoT_Runtime_CompositionSession_Integration.md` §8 inv 14). **Companion gate:** meaningful only while a part is looping; outside that window the play is denied as `UnplayableReason.NoRunningLoop` (`GigManager.CanGrantBonusLoop`). Authored on `conito_overload` (StarterDeck). Authoring contract and JSON example: `SSoT_Card_Authoring_Contracts.md` §5.6c. **Added at TEXT-5-DOC (2026-09-14), closing F-DOC4-1** — the divergence was detectable from a path index but not resolvable from one: the JSON `type` and the validation state came from reading the file and three other documents |
 
 ### 6.3 ApplyStatusEffectSpec
 This effect applies a concrete authored `StatusEffectSO` variant.
@@ -352,7 +355,9 @@ Surfaces: card-face text (§10.1), hover tooltips (§10.2), detail modal (§10.3
 
 `CardEffectDescriptionBuilder` (static class, `ALWTTT.Cards.Effects`) is the single owner of card-effect text formatting. `CardEffectSpec` remains data-only (§6.1) — no virtual `Describe()` method.
 
-`CardDefinitionDescriptionExtensions.GetDescription` delegates the action-card branch to `CardEffectDescriptionBuilder.BuildList(action.Effects, stats)`. The builder handles `ApplyStatusEffectSpec`, `ModifyVibeSpec`, `ModifyStressSpec`, `DrawCardsSpec`, and `AddInspirationPerLoopSpec` (DF-INSPLOOP: renders "Gain +N Inspiration each loop while this track plays"). Composition card faces still omit effect text by design (density reduction, 2026-04-21) — the `AddInspirationPerLoop` line is surfaced via the card-hover tooltip (§10.2) and the detail modal (§10.3), not the card face. TMP rich-text tokens: buff `#8FD694`, debuff `#D6858F`, numbers `#FFD084`. Zero-delta effects render as empty strings and are filtered out. Target-type phrasing is centralized.
+`CardDefinitionDescriptionExtensions.GetDescription` (`Assets/Scripts/Cards/Extensions/`) delegates the action-card branch to `CardEffectDescriptionBuilder.BuildList(action.Effects, stats)`. **Since TXT-4 (2026-09-11) the builder composes, it does not format.** Every line is a **template fragment** taken from `ConceptGlossarySO.templates` and filled through positional placeholders with the spec's own numbers (`systems/SSoT_Game_Text.md` §1, §5). No English sentence exists anywhere in the builder, and a balance retune changes the rendered line without touching a language column. The set of specs that produce text went from **six to seven** at TXT-4 with the addition of `GrantBonusLoopSpec` (`fx_grant_bonus_loop` / `fx_grant_bonus_loop_solo`, D-TXT4-8) — previously it fell through to the diagnostic fallback and printed its own class name. `AddInspirationPerLoopSpec` keeps its DF-INSPLOOP behaviour ("Gain +N Inspiration each loop while this track plays"). Composition card faces still omit effect text by design (density reduction, 2026-04-21) — the `AddInspirationPerLoop` line is surfaced via the card-hover tooltip (§10.2) and the detail modal (§10.3), not the card face. TMP rich-text tokens: buff `#8FD694`, debuff `#D6858F`, numbers `#FFD084`; the full declared rich-text subset and the sprite-naming rules are `SSoT_Game_Text.md` §2.1. Zero-delta effects render as empty strings and are filtered out. Target-type phrasing is centralized in the `tgt_*` fragments, which by authoring rule **never begin with a definite article** (F-TXT4-5, `SSoT_Game_Text.md` §2.1).
+
+**Two builder details that are deliberate and must not be "cleaned up".** First, the emptiness test is `HasAnyLine`, not a comparison against an English literal: the previous code asked whether the composed string equalled a hardcoded English phrase, which silently answered "not empty" for every non-English build. Second, the fallback for a spec with no template is still `spec.GetType().Name`. That looks like a bug and is a **diagnostic**: a class name on a card face is unmistakable in a playtest, whereas an empty line reads as an intentionally text-free card and survives for months — which is exactly how `GrantBonusLoopSpec` went unnoticed until TXT-4.
 
 Composition card faces use a separate path: role/part + modifier count badge. `CardPayload.Effects` on composition cards are not surfaced on the card face (intentional density reduction, 2026-04-21). They are discoverable via card-hover tooltips (§10.2).
 
@@ -364,6 +369,21 @@ en la parte (§5.2.1, D-R6-4=A)— el jugador no puede leerla en la carta. El ú
 **aviso de denegación** (`GigMessageUI`, D-R6-7). Toda precondición nueva de carta de composición
 debe, por tanto, o venir con su texto de denegación, o aceptar ser invisible.
 
+**Regla de la fila del panel de canción (SONG-PANEL-1, 2026-09-14, D-SP1-1=A).** La etiqueta de una
+fila de pista es **el nombre de carta del glosario** (`GameText.CardName`), y se escribe **una sola
+vez**: al crear la pista. Ningún efecto la reescribe después. La regla nace de **F-T6-8**, donde un
+`InstrumentEffect` reasignaba `TrackEntry.info` a `"{styleBundle.name} - {instrumentName}"` y la
+fila acababa mostrando un nombre de asset (`BassCard_W2_Improv - Fingered Bass`) mientras la
+minicard de al lado mostraba `Walking Bass`.
+
+Lo que se corrigió no fue la redacción sino **la existencia de un segundo escritor** de un campo que
+ya tenía dueño. Por eso el arreglo es una supresión y no una condición: cualquier variante que deje
+viva una segunda escritura —condicionada, formateada o traducida— conserva la clase de fallo, porque
+el siguiente efecto que quiera «reflejar algo» en la fila tomará el mismo camino. El instrumento
+efectivo ya tenía campo propio (`overrideMelodicInstrument`) y lector propio (el hover de la fila),
+de modo que la reasignación era además redundante. La verificación que importa es la **segunda**
+aplicación sobre la misma pista (ST-SP1-2): es donde un arreglo con guarda habría fallado.
+
 ### 10.2 Card-hover tooltips (M1.3c)
 
 `CardBase.ShowTooltipInfo()` aggregates tooltips from two sources on pointer enter. Since **TXT-3 (2026-09-10)** both sources take their text from the same place — the active `ConceptGlossarySO`, via `ConceptTooltipResolver`:
@@ -373,11 +393,11 @@ debe, por tanto, o venir con su texto de denegación, o aceptar ser invisible.
 
 Display order: keywords first, statuses second. Tooltips follow the mouse cursor. `TooltipController` prefab uses `VerticalLayoutGroup` (Upper Left, spacing 5, ControlChildSize Width+Height) + `ContentSizeFitter` (Preferred Size on both axes) for stacking.
 
-**One `ShowTooltip` per entry is deliberate here.** This surface stacks panels on purpose (M1.3c) and is *not* governed by the single-panel hover contract of `SSoT_Game_Text.md` §4, which applies to concept tags in the tutorial overlay. TXT-3 changed the source of the text and nothing about the assembly.
+**One `ShowTooltip` per entry is deliberate here.** This surface stacks panels on purpose (M1.3c) and is *not* governed by the single-panel hover contract of `SSoT_Game_Text.md` §4, which applies to concept tags in the tutorial overlay. TXT-3 changed the source of the text and nothing about the assembly. **TIP-1 (2026-09-15) made that deliberateness a contract instead of a convention:** `ShowTooltip` is declared a **push** — N calls show N panels — in `systems/SSoT_Tooltip_Pipeline.md` §2 and in the hard invariant `TOOLTIP-SHOW-IS-A-PUSH`. Before TIP-1 the stacking was the *side effect* of not calling `HideTooltip`, and it was on record as a defect (F-BN-7) because a live-updating surface tripped over it; the fix gave that surface its own entry (`UpdateTooltip`) rather than removing the stacking this one depends on. `CardBase` was not edited and its assembly is unchanged: the guarantee is that a future batch cannot "fix" the stacking without breaking a written invariant. The transport — where the column is placed and how a panel is measured — is governed there; what the panels say stays here and in `SSoT_Game_Text.md`.
 
 `CardBase` is the assembly point but does not own the data — the glossary does (`systems/SSoT_Game_Text.md` §1). `StatusEffectSO` and the `SpecialKeywords` enum supply **identity** (`StatusKey`, enum name), not strings.
 
-**Card names and descriptions are a different problem, still open.** `CardDefinition.displayName` has one language slot, and card descriptions have **no storage at all** — `CardEffectDescriptionBuilder` (§10.1) generates them from the effect specs. TXT-3 did not touch either, so a Spanish build shows an English card face under a Spanish tooltip (**F-TXT-3-5**). Giving them a language slot cannot reuse the TXT-3 move: there are no strings to relocate, so the batch that does it (**TXT-4**) has to build the per-language fragment registry the builder composes from. Card descriptions also remain untagged for the same reason.
+**Card names and descriptions were closed by TXT-4 (2026-09-11) — F-TXT-3-5 CLOSED.** Card names moved into `ConceptGlossarySO.cardNames` (60 ids, one entry per language) and are resolved by `GameText.CardName(definition)`. `CardDefinition.displayName` is now a **developer label** on exactly the same terms as `StatusEffectSO.displayName` since TXT-3: inspector lists, logs, editor tooling, asset identification — **no player surface may read it**. Card descriptions gained per-language storage without gaining stored sentences: the glossary holds 47 fragments and the builder composes (§10.1). **Three surfaces still read the developer label and are open defects, not exceptions** (**F-TXT4-3** → TEXT-5): the played-card floater (`SensoryFtPresentation`), this document's §10.3 modal header, and the song-panel track label (`SongCompositionUI`). Structural home for all of it: `systems/SSoT_Game_Text.md` §1. Card descriptions remain untagged: concept tags inside a composed fragment are possible but out of scope until a later batch.
 
 ### 10.3 Card detail modal (M1.10)
 
@@ -390,7 +410,21 @@ Display order: keywords first, statuses second. Tooltips follow the mouse cursor
 
 `CardBase.OnPointerDown` discriminates button: right-click calls `CardDetailViewController.Toggle(CardDefinition)`, left-click retains existing behavior. `HandController.DisableDragging()` while modal is open; `EnableDragging()` on dismiss. Dismiss paths: background click (Button on DimBackground Image), Esc key, or right-click toggle on the same card.
 
+**Text sources of the modal (TEXT-5, 2026-09-11 — F-TXT4-3 closed).** Three of its strings resolve through the glossary and none of them through a developer label: the **header** via `GameText.CardName(definition)`; the **type label** of a composition card via the `ui_card_type_composition` template (D-T5-3=A — the same id `CardBase.typeTextField` uses, so face and modal cannot drift); and the **keyword line** via `GameText.ConceptName` per keyword (D-T5-4=A), which replaced `Keywords[i].ToString()` — an enum name on a player surface that already had a mandatory glossary entry, so the modal read «Tall» while the hover read «Alto». The defect this paragraph recorded until TXT-4 (modal header «Double Harmony» over a card face «Doble Armonía», ST-TXT4-12) is gone. **Still an enum name here, by design:** the type label of an *Action* card, which is F-TXT4-2 → CARD-FACE-1 and explicitly outside `GAMETEXT-NO-DEV-LABEL` (`ssot_manifest.yaml`). **Unverified path:** no card in the catalogue carries a keyword, so the keyword line is live and empty — ST-T5-5 is **deferred, not passed** (`SSoT_Game_Text.md` §7, F-TXT-3-6).
+
 The detail modal is the third card-information surface, after card-face text (§10.1) and card-hover tooltips (§10.2). It is the designated home for any composition detail cut from the card face.
+
+**The modifier lines are an uncensused text producer (F-TV-7, TEXT-VIBE-1, 2026-09-16).** The
+`GetLabel()` of each `PartEffect` — named above as the source of one line per modifier — emits English
+that reaches the player: `golden D` shows `Meter 5/4`, `Tempo: Slow`, `Mode Ionian`,
+`Mod → degree Mediant ↑`, `Random Instrument (2)`, `Set Instrument: Fingered Bass`. The **enum half**
+(`5/4`, `Ionian`, `Slow`) is already F-TXT4-2 and its fix is symbolic; the **literal half** (`Meter`,
+`Tempo:`, `Mode`, `degree`, `Random Instrument`, `Set Instrument:`) is words written in the effect
+classes, a location no text census has visited. It also creates a **second home for one concept**: the
+composition strip's context row prints `5/4` from a glossary template while this modal prints
+`Meter 5/4` from code, which is the divergence `systems/SSoT_Game_Text.md` D-T6-3=B exists to prevent.
+Assigned to **CARD-FACE-1**, which must read the effect classes before counting anything — whether
+these are literals or `ToString()` is **not** established code truth today.
 
 ### 10.4 Card-face visual identity (S5b, 2026-06-20)
 

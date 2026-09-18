@@ -2,6 +2,8 @@
 using System.Text;
 using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
+using ALWTTT.Tooltips;
+using static ALWTTT.Tooltips.GameTextTemplateIds;
 
 namespace ALWTTT.Cards.Effects
 {
@@ -13,6 +15,16 @@ namespace ALWTTT.Cards.Effects
     /// Keeps CardEffectSpec strictly data-only (per SSoT_Card_System §6.1)
     /// by holding cross-cutting formatting (zero-delta hiding, target
     /// naming, rich-text coloring) in one place.
+    ///
+    /// [TXT-4 / D-TXT4-3=b′] The WORDS are no longer here. Every line is a
+    /// template in the active ConceptGlossarySO (GameTextTemplateIds.fx_* /
+    /// tgt_*), composed through GameText.Format with the numbers and status
+    /// names already coloured. What stays in code is grammar-independent:
+    /// which template a spec maps to, the zero-delta hiding, the sign, the
+    /// colours. Status names come from the glossary by StatusKey
+    /// (GameText.StatusName) — this builder used to read
+    /// StatusEffectSO.DisplayName, a developer label since TXT-3 (F-TXT4-1).
+    /// Rendered English is byte-identical to the pre-TXT-4 strings.
     /// </summary>
     public static class CardEffectDescriptionBuilder
     {
@@ -27,7 +39,7 @@ namespace ALWTTT.Cards.Effects
             IReadOnlyList<CardEffectSpec> effects,
             BandCharacterStats stats = null)
         {
-            if (effects == null || effects.Count == 0) return "No effects.";
+            if (effects == null || effects.Count == 0) return GameText.Format(FxNoEffects);
 
             var sb = new StringBuilder();
             for (int i = 0; i < effects.Count; i++)
@@ -37,7 +49,19 @@ namespace ALWTTT.Cards.Effects
                 if (sb.Length > 0) sb.Append('\n');
                 sb.Append(line);
             }
-            return sb.Length == 0 ? "No effects." : sb.ToString();
+            return sb.Length == 0 ? GameText.Format(FxNoEffects) : sb.ToString();
+        }
+
+        /// <summary>[TXT-4] True when BuildList would produce at least one line (i.e. not the
+        /// "no effects" text). Callers used to compare against the English literal.</summary>
+        public static bool HasAnyLine(
+            IReadOnlyList<CardEffectSpec> effects,
+            BandCharacterStats stats = null)
+        {
+            if (effects == null || effects.Count == 0) return false;
+            for (int i = 0; i < effects.Count; i++)
+                if (!string.IsNullOrEmpty(Build(effects[i], stats))) return true;
+            return false;
         }
 
         public static string Build(CardEffectSpec spec, BandCharacterStats stats = null)
@@ -48,27 +72,27 @@ namespace ALWTTT.Cards.Effects
             if (spec is DrawCardsSpec draw) return BuildDrawCards(draw);
             if (spec is AddInspirationPerLoopSpec inspLoop) return BuildAddInspirationPerLoop(inspLoop);
             if (spec is RevealPreferencesSpec reveal) return BuildRevealPreferences(reveal);
-            return spec.GetType().Name;
+            if (spec is GrantBonusLoopSpec bonusLoop) return BuildGrantBonusLoop(bonusLoop);
+            return spec.GetType().Name;   // developer diagnostic: an unmapped spec shows its type name (unchanged)
         }
 
         private static string BuildApplyStatus(ApplyStatusEffectSpec ase)
         {
-            if (ase.status == null) return "Apply <missing status>.";
+            if (ase.status == null) return "Apply <missing status>.";   // authoring-error diagnostic, not player text
             if (ase.stacksDelta == 0) return string.Empty;
 
-            var name = string.IsNullOrWhiteSpace(ase.status.DisplayName)
-                ? ase.status.name
-                : ase.status.DisplayName;
+            var name = GameText.StatusName(ase.status);
 
             var colorTag = ase.status.IsBuff ? BuffColor : DebuffColor;
             var signed = ase.stacksDelta > 0
                 ? $"{NumberColor}+{ase.stacksDelta}{ColorEnd}"
                 : $"{NumberColor}{ase.stacksDelta}{ColorEnd}";
+            var coloredName = $"{colorTag}{name}{ColorEnd}";
 
             if (ase.targetType == ActionTargetType.Self)
-                return $"Gain {signed} {colorTag}{name}{ColorEnd}";
+                return GameText.Format(FxGainStatus, signed, coloredName);
 
-            return $"Apply {signed} {colorTag}{name}{ColorEnd} to {DescribeTarget(ase.targetType)}";
+            return GameText.Format(FxApplyStatus, signed, coloredName, Target(ase.targetType));
         }
 
         private static string BuildModifyVibe(ModifyVibeSpec vibe)
@@ -76,24 +100,24 @@ namespace ALWTTT.Cards.Effects
             if (vibe.amount == 0) return string.Empty;
             // [S5e] damage-verb convention, parallel to BuildModifyStress
             if (vibe.amount > 0)
-                return $"Deal {NumberColor}{vibe.amount}{ColorEnd} Vibe to {DescribeTarget(vibe.targetType)}";
-            return $"Restore {NumberColor}{-vibe.amount}{ColorEnd} Vibe on {DescribeTarget(vibe.targetType)}";
+                return GameText.Format(FxDealVibe, Number(vibe.amount), Target(vibe.targetType));
+            return GameText.Format(FxRestoreVibe, Number(-vibe.amount), Target(vibe.targetType));
         }
 
         private static string BuildModifyStress(ModifyStressSpec stress)
         {
             if (stress.amount == 0) return string.Empty;
             if (stress.amount > 0)
-                return $"Deal {NumberColor}{stress.amount}{ColorEnd} Stress to {DescribeTarget(stress.targetType)}";
-            return $"Heal {NumberColor}{-stress.amount}{ColorEnd} Stress on {DescribeTarget(stress.targetType)}";
+                return GameText.Format(FxDealStress, Number(stress.amount), Target(stress.targetType));
+            return GameText.Format(FxHealStress, Number(-stress.amount), Target(stress.targetType));
         }
 
         private static string BuildDrawCards(DrawCardsSpec draw)
         {
             if (draw.count <= 0) return string.Empty;
             return draw.count == 1
-                ? $"Draw {NumberColor}1{ColorEnd} card"
-                : $"Draw {NumberColor}{draw.count}{ColorEnd} cards";
+                ? GameText.Format(FxDrawOne, Number(1))
+                : GameText.Format(FxDrawMany, Number(draw.count));
         }
 
         // [DF-INSPLOOP] Track-scoped recurring Inspiration. Surfaced on hover
@@ -102,7 +126,7 @@ namespace ALWTTT.Cards.Effects
         private static string BuildAddInspirationPerLoop(AddInspirationPerLoopSpec insp)
         {
             if (insp.amountPerLoop <= 0) return string.Empty;
-            return $"Gain {NumberColor}+{insp.amountPerLoop}{ColorEnd} Inspiration each loop while this track plays";
+            return GameText.Format(FxInspirationPerLoop, $"{NumberColor}+{insp.amountPerLoop}{ColorEnd}");
         }
 
         // [R4 / D-R0-1=A] Info-only effect: no number, no status name, so the line
@@ -110,21 +134,44 @@ namespace ALWTTT.Cards.Effects
         // meter-touching specs use.
         private static string BuildRevealPreferences(RevealPreferencesSpec reveal)
         {
-            return $"Reveal the musical tastes of {DescribeTarget(reveal.targetType)}";
+            return GameText.Format(FxRevealTastes, Target(reveal.targetType));
         }
 
-        private static string DescribeTarget(ActionTargetType t)
+        // [R5-d / D-TXT4-8=A] Antes de TXT-4 esta carta caía al diagnóstico final de Build() y
+        // pintaba "GrantBonusLoopSpec" en la cara (visible en golden A y B). Dos plantillas
+        // completas en vez de una con fragmento opcional: la variante con solo cambia la frase
+        // entera y su puntuación, que es gramática del idioma, no del builder.
+        // El coste en Voltage NO se menciona aquí: vive en CardDefinition (D-R5-26=A) y lo
+        // presenta la economía de la carta, no la línea de efecto.
+        private static string BuildGrantBonusLoop(GrantBonusLoopSpec bonusLoop)
+        {
+            return GameText.Format(bonusLoop.soloOverBonusLoop
+                ? FxGrantBonusLoopSolo
+                : FxGrantBonusLoop);
+        }
+
+        private static string Number(int n) => $"{NumberColor}{n}{ColorEnd}";
+
+        /// <summary>Target phrase from the glossary (tgt_*). An ActionTargetType with no
+        /// template id keeps the pre-TXT-4 behaviour: its enum name.</summary>
+        private static string Target(ActionTargetType t)
+        {
+            string id = TargetTemplateId(t);
+            return id == null ? t.ToString() : GameText.Format(id);
+        }
+
+        private static string TargetTemplateId(ActionTargetType t)
         {
             switch (t)
             {
-                case ActionTargetType.Self: return "self";
-                case ActionTargetType.Musician: return "a bandmate";
-                case ActionTargetType.AllMusicians: return "all bandmates";
-                case ActionTargetType.RandomMusician: return "a random bandmate";
-                case ActionTargetType.AudienceCharacter: return "target";
-                case ActionTargetType.AllAudienceCharacters: return "all audience";
-                case ActionTargetType.RandomAudienceCharacter: return "a random audience member";
-                default: return t.ToString();
+                case ActionTargetType.Self: return TgtSelf;
+                case ActionTargetType.Musician: return TgtMusician;
+                case ActionTargetType.AllMusicians: return TgtAllMusicians;
+                case ActionTargetType.RandomMusician: return TgtRandomMusician;
+                case ActionTargetType.AudienceCharacter: return TgtAudience;
+                case ActionTargetType.AllAudienceCharacters: return TgtAllAudience;
+                case ActionTargetType.RandomAudienceCharacter: return TgtRandomAudience;
+                default: return null;
             }
         }
     }

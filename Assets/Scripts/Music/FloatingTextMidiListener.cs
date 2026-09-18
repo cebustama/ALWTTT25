@@ -1,8 +1,10 @@
 ﻿using ALWTTT.Managers;
 using ALWTTT.Music;
+using ALWTTT.Tooltips;                               // [SONG-PANEL-1]
 using Melanchall.DryWetMidi.Standards;
 using System.Linq;
 using UnityEngine;
+using static ALWTTT.Tooltips.GameTextTemplateIds;    // [SONG-PANEL-1]
 
 /// <summary>
 /// Floating-text presentation driven by MidiMusicManager callbacks.
@@ -59,6 +61,18 @@ public class FloatingTextMidiListener :
              "because MidiMusicManager calls it in ADDITION to OnMidiNote for " +
              "notes 35/36 - enabling both reproduces the pre-RFX-1 double floater.")]
     private bool showDrumKick = false;
+
+    // [SONG-PANEL-1 / D-SP1-4=B] The two percussion floater paths are DEV-only diagnostics
+    // (RFX-1: percussion is particle-drawn now; both gates ship OFF). Making the gate
+    // compile-time keeps their labels ("Kick", "Snare", "HH cl", ...) off every player
+    // surface without giving diagnostics a glossary id - the D-T6-4=A rule applied here.
+    // A const in the condition (rather than #if around the body) keeps both serialized
+    // fields and both callback contracts intact in every build configuration.
+#if ALWTTT_DEV
+    private const bool DevFloaters = true;
+#else
+    private const bool DevFloaters = false;
+#endif
 
     [Header("Chord FT [RFX-1 / D5=B] - kept alongside particles during dev")]
     [SerializeField]
@@ -171,7 +185,7 @@ public class FloatingTextMidiListener :
             // [RFX-1] Percussion is particle-drawn now. Gate BEFORE building
             // the label so the disabled path costs nothing at MIDI note rate
             // (this callback fires 8-16 times a second on a busy pattern).
-            if (!showPercussionNotes) return;
+            if (!DevFloaters || !showPercussionNotes) return;   // [SONG-PANEL-1 / D-SP1-4=B]
 
             var (percLabel, percColor) = BuildNoteLabelAndColor(e);
             var gm = (GeneralMidiPercussion)Mathf.Clamp(e.note, 35, 81);
@@ -215,7 +229,7 @@ public class FloatingTextMidiListener :
         else if (!string.IsNullOrEmpty(e.roman))
             label = $"({e.roman})";
         else
-            label = $"Chord ({string.Join(",", e.notes)})"; // fallback
+            label = GameText.Format(UiFxChordFallback, string.Join(",", e.notes)); // [SONG-PANEL-1] fallback
 
         FxManager.Instance?.SpawnFloatingText(e.anchor, label, chordDir, chordColor);
         ChordFtSpawned++;
@@ -251,7 +265,7 @@ public class FloatingTextMidiListener :
     // so the guard is a toggle rather than a deletion.
     public void OnDrumKick(MidiTaggedEvent e)
     {
-        if (!showDrumKick || e.anchor == null) return;
+        if (!DevFloaters || !showDrumKick || e.anchor == null) return;   // [SONG-PANEL-1 / D-SP1-4=B]
         FxManager.Instance?.SpawnFloatingText(e.anchor, "Kick", drumKickDir, kickColor);
         DrumKickFtSpawned++;
     }

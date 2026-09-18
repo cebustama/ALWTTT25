@@ -1,6 +1,7 @@
 ﻿using ALWTTT.Managers;
 using ALWTTT.Utils;
 using ALWTTT.Tooltips; // [BIGNUM-1r] VibeReadoutTooltipTarget
+using static ALWTTT.Tooltips.GameTextTemplateIds; // [TEXT-VIBE-1] ui_readout_*
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -328,7 +329,7 @@ namespace ALWTTT.UI
             vibeReadoutLabel.text = total.ToString();
 
             if (vibeReadoutTooltip != null)
-                vibeReadoutTooltip.SetContent("Vibe de la canción",
+                vibeReadoutTooltip.SetContent(GameText.Format(UiReadoutHeader),
                     BuildReadoutTooltip(lPart, sfxPart, hype01, avgMaxVibe));
 
             float k = readoutGrowthCurve != null ? Mathf.Clamp01(readoutGrowthCurve.Evaluate(m)) : m;
@@ -347,17 +348,23 @@ namespace ALWTTT.UI
         }
 
         // [BIGNUM-1r / D-BN-13=A] Band-wide chain only: per-member tastes/status live on
-        // each member's bar tooltip. ESP copy hardcoded like the rest (D-S5f-7=A).
+        // each member's bar tooltip.
+        // [TEXT-VIBE-1 / F-TIP-2 / D3=A] Population 11: every line is a ui_readout_* template. The
+        // line break between the total and its note stays in code as layout (separators rule).
+        // [TEXT-VIBE-1 / D1] The SFX line prints only when it moves the number: output == input
+        // suppresses, the same rule as AudienceCharacterCanvas.BuildVibeText. First line (Hype) and
+        // the total always print.
         private static string BuildReadoutTooltip(int lPart, int sfxPart, float hype01, float avgMaxVibe)
         {
             var sb = new System.Text.StringBuilder();
-            sb.Append("Hype de la canción: ")
-              .Append(Mathf.RoundToInt(Mathf.Clamp01(hype01) * 100f)).Append(" % → ").Append(lPart);
-            sb.Append("\n+ SFX del local → ").Append(sfxPart);
-            sb.Append("\n= ").Append(lPart + sfxPart)
-              .Append(" de Vibe por espectador,\nantes de gustos y estados.");
+            int hypePercent = Mathf.RoundToInt(Mathf.Clamp01(hype01) * 100f);
+            sb.Append(GameText.Format(UiReadoutHype, hypePercent, lPart));
+            if (sfxPart != 0)
+                sb.Append('\n').Append(GameText.Format(UiReadoutSfx, sfxPart));
+            sb.Append('\n').Append(GameText.Format(UiReadoutTotal, lPart + sfxPart));
+            sb.Append('\n').Append(GameText.Format(UiReadoutTotalNote));
             if (avgMaxVibe > 0f)
-                sb.Append("\nUn espectador medio aguanta ").Append(Mathf.RoundToInt(avgMaxVibe)).Append('.');
+                sb.Append('\n').Append(GameText.Format(UiReadoutAvgResist, Mathf.RoundToInt(avgMaxVibe)));
             return sb.ToString();
         }
 
@@ -430,7 +437,9 @@ namespace ALWTTT.UI
         public void SetSongsLeft(int songsLeft, int requiredSongCount)
         {
             if (songsLeftTextField == null) return;
-            songsLeftTextField.text = $"Songs left: {songsLeft}";
+            // [CARD-FACE-1 / F-TV-1 / D-CF-7] Called from OnEnable; GameText resolves the glossary per call
+            // and applies the section 3 miss policy, so no Start() detour is needed.
+            songsLeftTextField.text = GameText.Format(UiGigSongsLeft, songsLeft);
         }
     }
 }

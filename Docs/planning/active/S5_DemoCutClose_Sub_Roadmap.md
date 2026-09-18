@@ -196,16 +196,49 @@ The TUT-R* arc lives in `TUT-REBUILD_Sub_Roadmap.md`; these three fell out of it
     TXT-3 no rompió esa invariante para añadir un chequeo. Lote pequeño: dos ficheros, un `CS0618` que
     desaparece, regresión ST-TXT3-4 repetida. **La copia de `TutorialController.cs` del PK lleva dos
     lotes rancia** (F-TT-5) — pedir copia fresca al abrir.
-  - **TXT-4** — **todo el texto de jugador al mismo sistema, y el sistema crece.** Alcance: nombres de
-    carta (una ranura), **descripciones de carta (sin almacenamiento: las genera
-    `CardEffectDescriptionBuilder` desde los specs)** y los **13 literales** de
-    `AudienceCharacterCanvas` (F-TXT-2-1). **No es una repetición de TXT-3:** ahí había cadenas que
-    mover; aquí hay que **crear** el registro de fragmentos por idioma que el builder componga, y eso
-    obliga a tocar `CardEffectDescriptionBuilder`, que es código de presentación de gameplay. Es el
-    punto natural de decisión de **O-TXT-3** con el caso completo delante por primera vez. **Segundo
-    eje del lote:** ampliar el sistema de texto para admitir **iconos/sprites inline** (TMP sprite
-    assets, `<sprite=…>`) y más rich text, que es lo que permite que la cara de la carta diga en
-    símbolos lo que hoy no cabe en palabras — condición previa de CARD-FACE-1.
+  - **TXT-4 — CERRADA 2026-09-11.** Nombres de carta (60) y descripciones generadas (47 plantillas)
+    al glosario por idioma; los 13 literales de `AudienceCharacterCanvas` resueltos;
+    `CardDefinition.displayName` degradado a etiqueta de desarrollo (**MOVIMIENTO**, mismo criterio
+    que TXT-3); vocabulario de rich text declarado con sprites por nombre y un Sprite Asset global.
+    **O-TXT-3 CERRADA** (D-TXT4-2 = patrón propio; `com.unity.localization` verificado ausente).
+    **ST-TXT4-1..12 PASS**, dos diferidos con motivo (no hay atlas de sprites; ningún contenido
+    aplica Indiferencia). Documentación aplicada en **TXT-4-DOC** el mismo día, doce documentos.
+    **Abre TEXT-5 y encuadra TIP-1.**
+  - **TEXT-5 — CERRADA 2026-09-11** (código y datos; documentación aplicada en **TEXT-5-DOC** el 2026-09-14, trece documentos). **Las superficies que se quedaron fuera, y la población que el censo había perdido.**
+    Tres superficies siguen leyendo la etiqueta de desarrollo (**F-TXT4-3**: floater de carta jugada,
+    cabecera del modal de detalle, etiqueta de pista del panel de canción); la **sexta población** de
+    texto —nombres de habilidad y cuerpos de intención del público, en campos monolingües de SO de
+    contenido (**F-TXT4-7**)— no la alcanzó ningún censo; el separador decimal de cultura invariante
+    (**F-TXT4-10**); y el literal `"COMPOSITION"` de `CardBase` (**F-TXT4-2**). **No diseña nada
+    nuevo:** aplica el patrón que TXT-4 dejó montado. **Avisos de apertura:** la copia de
+    `SongCompositionUI.cs` del PK lleva rancia desde R6 y esa edición **no es anclable** sin copia
+    fresca; `AudienceAbilityData` es una clase **anidada** en `AudienceCharacterData.cs` y no existe
+    como fichero suelto; y §6.2 de `SSoT_Card_System` arrastra una divergencia anotada (**F-DOC4-1**,
+    `GrantBonusLoopSpec` ausente de la tabla) que este lote puede cerrar de paso. Golden C es el
+    oráculo de regresión EN y regenerarlo es obligatorio antes de cerrar. **Criterio de cierre
+    heredado:** promover `GAMETEXT-NO-DEV-LABEL` a invariante dura en `ssot_manifest.yaml`
+    (D-DOC-1=C).
+  - **TEXT-6 — dada de alta 2026-09-14 por TEXT-5.** **Contenido y literales; sin plumbing nuevo.**
+    **F-T5-2** — `Instrument:`, `bundle:` y `Modifiers:` salen en inglés en el panel de canción de una
+    build española. **No son nombres de enum**: son literales de C#, migrables con el patrón que ya
+    existe. **Verificado que NO están en `SongCompositionUI.cs`** (copia fresca, cero coincidencias);
+    por el índice de rutas viven en `Assets/Scripts/UI/Song Composition/TrackHoverPanel.cs` o en
+    `SongTrackElementUI.cs` — **existencia de ambas rutas verificada, contenido no leído**, así que el
+    lote abre pidiendo **los dos**. El nombre de style bundle que aparece al lado **queda fuera**: es
+    F-TXT4-2 → CARD-FACE-1.
+    **F-T5-1** — dos de las siete descripciones de intención del público están escritas como frases
+    genéricas en vez de decir lo que hace la habilidad. Trabajo de escritura; las entradas existen y
+    tienen cobertura en los dos idiomas. **Por qué TEXT-6 y no arrastrarlo a TIP-1:** F-T5-2 es la
+    razón por la que el criterio «la build ES no muestra inglés salvo enums» **no se cumple**, y ese
+    criterio pertenece a la línea de texto, no a la de tooltips.
+  - **TIP-1** — **el pipeline de tooltips, ahora con encuadre.** Recibe F-BN-7 y F-BN-8 originales,
+    **F-TXT4-11** (el apilado de paneles es la función que el canvas del público quiere, no sólo un
+    defecto), **F-TXT4-8** (visibilidad e interactividad de la barra desacopladas, y su defecto
+    inverso con `blocksRaycasts` fijo en on), F-TXT4-6, y ST-TXT4-13 si para entonces existe atlas de
+    sprites. **Antes de reproponer el tooltip compuesto: leer
+    `planning/Design_Vibe_Telegraph_v0_1.md` §10.3 — D-BN-9=A ya se construyó y se revirtió por
+    observación.** Es trabajo de observación, y su DoD («que se lea bien») no puede compartir cierre
+    con uno que dice «cero ids crudos».
   - **CARD-FACE-1** — **densidad de información de la cara de carta (F-TXT-3-6).** Los keywords
     resuelven bien al hover pero no aparecen en la cara ni en el modal; tipo de pista y modificadores
     ocupan el espacio. Propuesta: iconos para tipo de pista y modificadores (los assets existen), con

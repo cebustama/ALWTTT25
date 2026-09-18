@@ -20,6 +20,7 @@ MonoBehaviour:
   isTall: 0
   abilityList:
   - abilityName: Tantrum
+    abilityId: ab_tantrum
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
     hideActionValue: 0
     abilityDuration: 3
@@ -35,6 +36,7 @@ MonoBehaviour:
       disableBeatAnimator: 1
     abilitySfx: {fileID: 8300000, guid: 39ea5e5d160ab424e9bea6a25b1acfaa, type: 3}
   - abilityName: Egg Him On
+    abilityId: ab_egg_him_on
     intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
     hideActionValue: 1
     abilityDuration: 2

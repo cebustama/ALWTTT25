@@ -324,9 +324,29 @@ entries:
   - path: Docs/systems/SSoT_Game_Text.md
     class: subsystem_ssot
     governs:
-      - Assets/Scripts/UI/Tooltips
+      # TIP-1-DOC (2026-09-15, D-TIP-1=A): the folder Assets/Scripts/UI/Tooltips
+      # is no longer governed WHOLESALE by this document. It is split by FILE
+      # between this document (text: storage, resolution, tags) and
+      # SSoT_Tooltip_Pipeline.md (panel entries, placement, lifecycle). The
+      # split is text-vs-transport, not two answers to one question — the same
+      # shape as the ConceptGlossaryTextTable.cs split with
+      # SSoT_Editor_Authoring_Tools recorded above.
+      - Assets/Scripts/UI/Tooltips/GameText.cs
+      - Assets/Scripts/UI/Tooltips/GameTextTemplateIds.cs
+      - Assets/Scripts/UI/Tooltips/ConceptTooltipResolver.cs
+      - Assets/Scripts/UI/Tooltips/ConceptTagRenderer.cs
       - Assets/Scripts/Data/ConceptGlossarySO.cs
       - Assets/Scripts/Editor/Text/ConceptGlossaryTextTable.cs
+      - Assets/Scripts/Editor/Text/GlossarySectionTable.cs
+      - Assets/Scripts/Editor/Text/GameTextRichText.cs
+      - Assets/Scripts/Editor/Text/CardTextDumpMenu.cs
+      - Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs
+      - Assets/Scripts/Cards/Effects/CardEffectDescriptionBuilder.cs
+      - Assets/Scripts/Cards/Extensions/CardDefinitionDescriptionExtensions.cs
+      # SONG-PANEL-1 (2026-09-14): both files produce player text through the
+      # glossary since this batch, so they come under this document's authority.
+      - Assets/Scripts/Music/FloatingTextMidiListener.cs
+      - Assets/Scripts/UI/Song Composition/CompositionContextRowUI.cs
     hard_invariants:
       - id: GAMETEXT-RESOLUTION-ORDER
         statement: >
@@ -352,11 +372,36 @@ entries:
       - id: GAMETEXT-HOVER-SINGLE-PANEL
         statement: >
           A concept hover issues at most one HideTooltip followed by at most one
-          ShowTooltip per link change, and passes no target transform. This is
-          what keeps TooltipManager's per-call panel stacking (F-BN-7) and
-          TooltipController's static-anchor projection (F-BN-8) out of reach
-          without modifying either file; TIP-1 remains open and independent.
-        source: SSoT_Game_Text.md §4
+          ShowTooltip per link change, and passes no target transform. Restated
+          at TIP-1-DOC (2026-09-15) as a CONDUCT rule instead of a workaround:
+          the original wording justified itself by keeping two open defects out
+          of reach (F-BN-7 per-call stacking, F-BN-8 static-anchor projection),
+          and both closed at TIP-1. The conduct survives its original reason
+          because it is what a concept hover WANTS — one panel, following the
+          cursor. The pipeline now states the same contract from the other side:
+          ShowTooltip is a push, so a single-panel surface hides first
+          (SSoT_Tooltip_Pipeline.md §2), and a target with no transform takes
+          the cursor-follow branch (§3).
+        source: SSoT_Game_Text.md §4 + SSoT_Tooltip_Pipeline.md §2, §3
+      - id: GAMETEXT-NO-DEV-LABEL
+        statement: >
+          No PLAYER SURFACE reads a developer label. The labels are
+          StatusEffectSO.displayName, CardDefinition.displayName,
+          AudienceAbilityData.abilityName and AudienceIntentionData.contentText;
+          the player surfaces are every TextMeshProUGUI the player can see —
+          tooltip, floater, card face, detail modal, song-panel row, audience
+          canvas. Player text resolves through ConceptTooltipResolver or
+          GameText from the ConceptGlossarySO of the running language, and a
+          miss renders the raw id with one warning per id per domain reload,
+          never the label. Logs, inspector lists, editor tooling and asset file
+          names MAY read labels: they are not player surfaces, and
+          AudienceCharacterBase.AbilityRoutine reading AbilityName in a log line
+          is conformant, not a violation. Enum ToString() on a player surface is
+          OUTSIDE this invariant (F-TXT4-2 -> CARD-FACE-1): an enum name is a
+          missing symbol, not a leaked label. Promoted at TEXT-5-DOC
+          (2026-09-14) once the last three readers closed at TEXT-5, which is
+          the D-DOC-1=C criterion.
+        source: SSoT_Game_Text.md §1, §3.1
     notes: >
       Created at TXT-2 (2026-09-10, D-TAG-9=A) because the concept-tag language
       needed a home and no existing document could take it without becoming a
@@ -382,8 +427,113 @@ entries:
       (SensoryFtPresentation.TryBuildStatusAppliedFt, in Assets/Scripts/Sensory)
       is a READER of this document's contract, not a place where the contract
       lives; claiming that tree here would put the sensory bus under a text SSoT.
+      TXT-4 (2026-09-11): card names MOVED into ConceptGlossarySO.cardNames and
+      CardDefinition.displayName redefined as a developer label, on the same
+      criterion applied to StatusEffectSO.displayName at TXT-3; card descriptions
+      gained per-language storage as 47 composable fragments
+      (ConceptGlossarySO.templates) instead of as sentences; the 13
+      AudienceCharacterCanvas literals resolved; a declared rich-text and sprite
+      vocabulary added (SSoT_Game_Text.md 2.1). O-TXT-3 CLOSED (D-TXT4-2 =
+      project-owned pattern; com.unity.localization verified absent).
+      `governs:` extended with the three new editor files and the two card-text
+      composition files, in the same session that documents them — the lesson of
+      DOC-APPLY-4, where the manifest stayed behind its own document and left two
+      batches of editor code outside the auditor's scope. All five paths verified
+      against the Repo_Tree_Index.md snapshot of 2026-09-11 14:47; note that
+      CardDefinitionDescriptionExtensions.cs lives under Assets/Scripts/Cards/
+      Extensions/, not Assets/Scripts/Cards/.
+      HISTORICAL (TXT-4, 2026-09-11): GAMETEXT-RESOLUTION-ORDER was deliberately
+      NOT extended to cover CardDefinition.displayName, because three player
+      surfaces still read it (F-TXT4-3) and a cached invariant the code does not
+      honour trains its reader to skip the finding. Kept as a record of the
+      reasoning, not as a live constraint.
+      TEXT-5 (2026-09-11, doc-pass TEXT-5-DOC 2026-09-14): the criterion is met.
+      F-TXT4-3 closed — zero live player-surface readers of a developer label —
+      and GAMETEXT-NO-DEV-LABEL is promoted above. It is stated over SURFACES
+      rather than over fields on purpose: the fields still have legitimate
+      readers (asset file names via OnValidate, inspector lists, and
+      AudienceCharacterBase logging AbilityName), and an invariant phrased "no
+      code reads displayName" would be false on the day it was written.
+      GAMETEXT-RESOLUTION-ORDER is NOT rewritten: it governs where concept
+      WORDING comes from, and the new invariant governs what a player surface may
+      READ. Two rules, two failure modes; merging them would give one id to two
+      questions.
+      `governs:` extended with Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs
+      (TEXT-5), verified against the Repo_Tree_Index.md snapshot of 2026-09-14 12:30.
+      The sixth text population (audience ability/intention) now lives in
+      ConceptGlossarySO.entries keyed by AudienceAbilityData.abilityId, so its
+      STORAGE is governed here while its MEANING stays with
+      SSoT_Audience_and_Reactions §7/§8 — the same split this document has held
+      since TXT-2.
 
   # ── subsystem_ssot: runtime/ ───────────────────────────────────────────────
+
+  - path: Docs/systems/SSoT_Tooltip_Pipeline.md
+    class: subsystem_ssot
+    governs:
+      - Assets/Scripts/UI/Tooltips/TooltipManager.cs
+      - Assets/Scripts/UI/Tooltips/TooltipController.cs
+      - Assets/Scripts/UI/Tooltips/TooltipText.cs
+      - Assets/Scripts/UI/Tooltips/ITooltipTargetBase.cs
+      - Assets/Scripts/UI/Tooltips/I2DTooltipTarget.cs
+      - Assets/Scripts/UI/Tooltips/EconPipTooltipTarget.cs
+      - Assets/Scripts/UI/Tooltips/VibeReadoutTooltipTarget.cs
+      - Assets/Scripts/UI/Tooltips/VibeBarTooltipTarget.cs
+    hard_invariants:
+      - id: TOOLTIP-SHOW-IS-A-PUSH
+        statement: >
+          TooltipManager.ShowTooltip PUSHES one panel onto the column and
+          restarts the fade; it never replaces. N calls without HideTooltip show
+          N panels, which two surfaces depend on (card hover, one panel per
+          keyword and per unique status; audience canvas, status + intention).
+          A surface that wants exactly one panel calls HideTooltip first; a
+          surface whose content changes while hovered calls UpdateTooltip, which
+          rewrites a shown panel in place without creating one, without
+          restarting the fade and without changing the count, and returns false
+          when that panel is not shown. Stacking is therefore a declared
+          capability, never the side effect of a forgotten Hide.
+        source: SSoT_Tooltip_Pipeline.md §2
+      - id: TOOLTIP-ANCHOR-SPACE-IS-INFERRED
+        statement: >
+          The coordinate space of a static tooltip target is read from the
+          target's ROOT canvas, never declared by the caller: Screen Space -
+          Overlay means .position IS the screen point and no camera is used;
+          Screen Space - Camera projects through the canvas camera; World Space
+          or no canvas projects through the cam argument or Camera.main. The
+          space is a property of the transform, so a call site cannot get it
+          wrong. Closes F-BN-8 and retires the runtime-anchor workaround
+          D-BN-18=B'' (Design_Vibe_Telegraph_v0_1.md §10.6).
+        source: SSoT_Tooltip_Pipeline.md §3
+      - id: TOOLTIP-REBUILD-BEFORE-MEASURE
+        statement: >
+          Every tooltip text assignment is followed by
+          TooltipController.Reposition(): force the layout rebuild, then
+          measure, then place — unconditionally. The column is content-sized, so
+          its rect lags one layout pass behind SetText and a clamp computed
+          against the stale rect places the panel with the PREVIOUS tooltip's
+          size. Placement must not depend on hover history. Same rule and same
+          failure shape as F-SP1-12 in TrackHoverPanel.ShowRaw.
+        source: SSoT_Tooltip_Pipeline.md §4
+    notes: >
+      Created at TIP-1-DOC (2026-09-15, D-TIP-1=A). The pipeline had eight
+      consumer surfaces and no owner: this manifest assigned the whole folder
+      Assets/Scripts/UI/Tooltips to SSoT_Game_Text.md, whose §4 explicitly
+      declined ownership ("TIP-1 owns it"), while the only written statement of
+      the anchoring rule lived in a PLANNING note
+      (Design_Vibe_Telegraph_v0_1.md §10.6) and the song panel wrote its own
+      placement outside the pipeline entirely. That is what an unowned pipeline
+      produces, and it is the argument BIGNUM-1-DOC did not yet have when it
+      decided NOT to create this document: the condition changed (TIP-1 touched
+      the contract), not the reasoning.
+      Owns TRANSPORT only: entries, placement, panel lifecycle, fade. It never
+      owns what a tooltip SAYS (SSoT_Game_Text.md and the meaning SSoTs behind
+      it) nor which surface shows one and when (SSoT_Card_System.md §10.2,
+      SSoT_Audience_and_Reactions.md §6.4, Design_Vibe_Telegraph_v0_1.md §10).
+      TrackHoverPanel.cs and CompositionContextRowUI.cs are deliberately NOT
+      governed here: they are conformant independent implementations that anchor
+      to a row and clamp against game zones the pipeline knows nothing about
+      (recorded as F-TIP-5, open and unscheduled). Folding them in would require
+      the pipeline to learn game-zone clamps.
 
   - path: Docs/runtime/SSoT_Runtime_Flow.md
     class: subsystem_ssot

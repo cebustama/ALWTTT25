@@ -2487,10 +2487,13 @@ MonoBehaviour:
   canvasRect: {fileID: 941049037}
   canvasGroup: {fileID: 805509607}
   bodyText: {fileID: 1116086219}
+  background: {fileID: 1994323350}
+  backgroundColor: {r: 0.05, g: 0.05, b: 0.07, a: 0.85}
   anchorGapX: 32
   minBottomY: -300
   maxRightX: 300
   fadeDuration: 0.12
+  showDevInfo: 1
 --- !u!114 &805509609
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4451,10 +4454,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 805509606}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 23, y: -23}
-  m_SizeDelta: {x: 22, y: 22}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 12, y: 12}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1994323350
 MonoBehaviour:

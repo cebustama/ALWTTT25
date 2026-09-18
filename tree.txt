@@ -1,5 +1,5 @@
 ALWTTT25
-(generado 2026-09-10 20:45)
+(generado 2026-09-16 17:34)
 +---.github
 |   \---copilot-instructions.md
 +---Assets
@@ -2961,9 +2961,13 @@ ALWTTT25
 |   |   |   \---GenerationDebugFormatter.cs
 |   |   +---Editor
 |   |   |   +---Text
+|   |   |   |   +---AudienceAbilityTextIndex.cs
+|   |   |   |   +---CardTextDumpMenu.cs
 |   |   |   |   +---ConceptGlossaryTextTable.cs
 |   |   |   |   +---GameTextCsv.cs
+|   |   |   |   +---GameTextRichText.cs
 |   |   |   |   +---GameTextWindow.cs
+|   |   |   |   +---GlossarySectionTable.cs
 |   |   |   |   \---TutorialTextTable.cs
 |   |   |   \---S5e_InspirationEconomyTool.cs
 |   |   +---Encounters
@@ -3148,6 +3152,8 @@ ALWTTT25
 |   |   |   |   +---ConceptTagRenderer.cs
 |   |   |   |   +---ConceptTooltipResolver.cs
 |   |   |   |   +---EconPipTooltipTarget.cs
+|   |   |   |   +---GameText.cs
+|   |   |   |   +---GameTextTemplateIds.cs
 |   |   |   |   +---I2DTooltipTarget.cs
 |   |   |   |   +---ITooltipTargetBase.cs
 |   |   |   |   +---TooltipController.cs
@@ -3363,7 +3369,8 @@ ALWTTT25
 |   |   +---SSoT_Gig_Encounter.md
 |   |   +---SSoT_Scoring_and_Meters.md
 |   |   +---SSoT_Singer_Voice.md
-|   |   \---SSoT_Status_Effects.md
+|   |   +---SSoT_Status_Effects.md
+|   |   \---SSoT_Tooltip_Pipeline.md
 |   +---changelog-ssot.md
 |   +---coverage-matrix.md
 |   +---CURRENT_STATE.md

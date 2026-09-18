@@ -62,7 +62,7 @@ Tab content:
 **Stats tab (Phase 3.1–3.3b):**
 - Breakdown section (P3.1): musician selector grid (shows `{Name} [{Stress}/{MaxStress}]`, appends `(BD)` when `IsBreakdown` is true), stress/stun/status readout for selected musician, "Force Breakdown → {Name}" button.
 - Status readout iterates `StatusEffectContainer.Active` and displays `{DisplayName}×{Stacks}` for each active entry.
-- Gig-Wide Stats section (P3.2 + P3.3a): SongHype slider `[0, MaxSongHype]`, Inspiration slider `[0, MaxInspiration]` bound to `LiveInspiration` (session value when composing, PD value otherwise), BandCohesion stepper (`−`/`+`, floor 0, no upper cap), Flow stepper (`−`/`+`, uniform ±1 applied to every musician's `DamageUpFlat` stack; aggregate readout via `GigManager.TotalFlowStacks`). Sliders fire through `GigManager.DevSet…` wrappers. Slider idle-epsilon on SongHype (`0.01f`) avoids per-frame event spam. **S5f note (#15):** the Gig-Wide Stats SongHype **slider** routes through `DevSetSongHypeAbsolute` (guarded by `GigDevSettingsSO.debugSongHype`) and is unchanged — it was already gated. The separate `GigManager.DevAddSongHype` / `DevResetSongHype` wrappers (not surfaced by this slider) are compile-gated under `ALWTTT_DEV` as of S5f and stripped from non-dev builds.
+- Gig-Wide Stats section (P3.2 + P3.3a): SongHype slider `[0, MaxSongHype]`, Inspiration slider `[0, MaxInspiration]` bound to `LiveInspiration` (session value when composing, PD value otherwise), BandCohesion stepper (`−`/`+`, floor 0, no upper cap), Flow stepper (`−`/`+`, uniform ±1 applied to every musician's `DamageUpFlat` stack; aggregate readout via `GigManager.TotalFlowStacks`). Sliders fire through `GigManager.DevSet…` wrappers. Slider idle-epsilon on SongHype (`0.01f`) avoids per-frame event spam. **S5f note (#15):** the Gig-Wide Stats SongHype **slider** routes through `DevSetSongHypeAbsolute` (guarded by `GigDevSettingsSO.debugSongHype`) and is unchanged — it was already gated. The separate `GigManager.DevAddSongHype` / `DevResetSongHype` wrappers (not surfaced by this slider) are compile-gated under `ALWTTT_DEV` as of S5f and stripped from non-dev builds. **Corrección (SONG-PANEL-1, 2026-09-14, F-SP1-6):** S5f se llevó dentro del `#if` también el helper privado `DevSetSongHypeAbsolute`, cuyo otro llamador —`OnDebugSongHypeSliderChanged`, el slider de escena— está guardado en **runtime**, no en compilación. La build sin `ALWTTT_DEV` contenía por tanto una llamada a un método inexistente. El helper vuelve **fuera** del bloque: es `private`, así que no añade superficie dev a una build de jugador, que es lo que S5f protegía. Los wrappers públicos siguen dentro.
 - Per-Character section (P3.3a + P3.3b): musician selector grid (shares index with Breakdown section) + per-musician Stress slider, MaxStress stepper (floor 1), Composure stepper (backed by `TempShieldTurn` status stacks — see §14.3). Audience selector grid + per-audience Vibe slider, MaxVibe stepper (floor 1). All stat writes fire through `DevSet…` wrappers on the respective stats classes.
 - Per-Character status editing (P3.3b): each character's subsection (musician, audience) includes a status picker below the stat controls. **Active readout:** lists all active statuses on the selected character (`{DisplayName} ×{Stacks}`) with `[−1]` (decrements via `container.Apply(def, -1)`, auto-clears at 0) and `[Clear]` (immediate full removal via `container.Clear(id)`) buttons per row. **Catalogue picker:** `[◄][►]` buttons cycle through non-null entries in the character's `StatusCatalogue.Effects`; selected entry shown as `{DisplayName} ({EffectId})`; `[+1]` button calls `container.Apply(selectedSO, 1)` with a lime `[DevMode]` log. No `DevSet…` wrappers needed — the existing `StatusEffectContainer` public API is sufficient. Falls back gracefully: "(no catalogue — assign on prefab)" when `StatusCatalogue` is null on the character.
 
@@ -150,6 +150,38 @@ This is the load-bearing fact Phase 1 codified. If Infinite Turns is ever re-imp
 - `Assets/Scripts/Managers/MidiMusicManager.cs` — **DBG-C1** read-only truth surface (`LastResolvedByTrack`/`LastPinnedByTrack`/`LastRenderSerial|PartIndex|Bpm|FromCache`) + `GetChordTimelineSnapshot()`/`ChordTimelineEntry`. Production API (only the consuming tab is dev-gated). **(DBG-C2)** cache bypass when `patternOverrides` is supplied (production API; the value is null in production).
 - `Assets/Scripts/Data/Gig/GigDevSettingsSO.cs` — **DBG-C1** `CompositionDebugFull` flag (Compact/Full tab format).
 - `Assets/Scripts/Managers/GigManager.cs` — **DBG-C1** `DevSettings` accessor (`#if ALWTTT_DEV`).
+  **(SONG-PANEL-1, 2026-09-14, D-SP1-5=C)** dos propiedades **compiladas en toda build** junto al
+  accesorio dev: `LogsEnabled` y `VerboseLogsEnabled`. Ver §6.1.
+
+### 6.1 Contrato de gate de log (SONG-PANEL-1, D-SP1-5=C) — hecho de código
+
+**`GigManager.LogsEnabled` y `GigManager.VerboseLogsEnabled` son la vía pública para consultar si
+hay que loguear. `DevSettings` no se usa fuera de `DevMode`.**
+
+El hallazgo que lo motiva (**F-SP1-5**): al quitar por primera vez el tag `ALWTTT_DEV`, la build no
+compiló. Cinco gates de log en tres ficheros de producción —`HandController` (×2), `DeckManager`,
+`CompositionSession` (×2)— leían `GigManager.DevSettings`, que **DBG-C1 compila fuera de
+producción**. El tipo `GigDevSettingsSO` vive en `Assets/Scripts/Data/Gig/` y sí existe en toda
+build; lo que no existía era la *propiedad*. Ninguno de los cinco necesitaba el ScriptableObject:
+necesitaban dos booleanos.
+
+Por qué dos propiedades nuevas y no quitar el `#if` del accesorio: DBG-C1 decidió deliberadamente
+que la superficie de herramientas dev no se compila en producción, y desgatearla habría revertido
+esa decisión en silencio para resolver un problema de logging. El gate de log **no es dev-only** —
+LOG-1 existe en toda build. Separar las dos cosas arregla la clase de fallo: el próximo gate le
+pregunta al manager en vez de buscar el asset dev.
+
+**Asimetría deliberada de fallo.** Las dos propiedades nuevas fallan **abiertas** (`dev == null`
+devuelve `true`): sin asset dev, «nadie configuró el logging», no «el logging está apagado». Es lo
+que ya hacían `HandController` y `DeckManager` con su comprobación de nulo, así que su
+comportamiento se preserva. El `Log()` / `UseVerboseLogs` **internos** de `GigManager` siguen
+fallando **cerrados** (`dev != null && dev.UseLogs`): un gig sin asset dev configurado permanece
+silencioso por dentro. Ambas semánticas son intencionadas.
+
+**Un cambio de comportamiento declarado.** Los dos sitios de `CompositionSession` fallaban cerrados
+y ahora fallan abiertos. Dentro de una sesión de composición `GigManager` siempre tiene su asset
+asignado, así que la diferencia es inalcanzable en la práctica; se unifica a propósito y se declara
+aquí en vez de dejarse como divergencia silenciosa entre tres consumidores del mismo gate.
 
 **Not modified by CSV-2 (deliberate, D-CSV-5=A).** `SongCompositionUI`, `SongConfigBuilder`, and `MidiMusicManager` are untouched by the instrument-override surface. The dev write reuses the `TrackEntry.override*Instrument` fields those files already own, so the existing override precedence in `SongConfigBuilder.FromUI` and the existing `trackInputsHash` participation apply unchanged. The tool adds no new production API.
 

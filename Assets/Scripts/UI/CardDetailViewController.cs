@@ -1,4 +1,5 @@
 ﻿using ALWTTT.Cards;
+using ALWTTT.Tooltips;   // [TEXT-5] GameText — player text lives in the glossary
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -141,12 +142,12 @@ namespace ALWTTT.UI
 
             // Header fields
             if (cardNameText != null)
-                cardNameText.text = card.DisplayName;
+                cardNameText.text = GameText.CardName(card);   // [TEXT-5 / F-TXT4-3] displayName is a developer label
 
             if (cardTypeText != null)
             {
                 cardTypeText.text = card.IsComposition
-                    ? "COMPOSITION"
+                    ? GameText.Format(GameTextTemplateIds.UiCardTypeComposition)   // [TEXT-5 / D-T5-3=A] same id as CardBase.typeTextField
                     : card.CardType.ToString();
             }
 
@@ -176,7 +177,9 @@ namespace ALWTTT.UI
                     for (int i = 0; i < card.Keywords.Count; i++)
                     {
                         if (i > 0) sb.Append(", ");
-                        sb.Append(card.Keywords[i].ToString());
+                        // [TEXT-5 / D-T5-4=A] Keyword ids are the enum names lowercased and are REQUIRED
+                        // glossary coverage since TXT-3, so this is not an F-TXT4-2 enum: a registry reaches it.
+                        sb.Append(GameText.ConceptName(card.Keywords[i].ToString().ToLowerInvariant()));
                     }
                     keywordsText.text = sb.ToString();
                     keywordsText.gameObject.SetActive(true);

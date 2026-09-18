@@ -738,6 +738,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HealthBar Test
       objectReference: {fileID: 0}
+    - target: {fileID: 6162777024066716989, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
+      propertyPath: m_BlocksRaycasts
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7469092287805325040, guid: ba5fb5069abc1174abd0fbe8ca49acfb, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0

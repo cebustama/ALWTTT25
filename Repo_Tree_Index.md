@@ -1,6 +1,6 @@
 ﻿# Repo_Tree_Index — índice de rutas del repositorio ALWTTT
 
-**Snapshot: 2026-09-10 20:45.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
+**Snapshot: 2026-09-16 17:34.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
 
 **Para qué sirve.** El PK es plano: los ficheros adjuntos pierden su carpeta. Este índice devuelve la ruta real de cualquier fichero por su nombre, sin inferirla del `namespace`. Sirve para rellenar la columna *Ruta en repo* de `PK_Manifest.md` y para pedir ficheros por ruta exacta en el File Request Protocol.
 
@@ -12,7 +12,7 @@
 
 Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-IncludeAssets` si un lote de contenido los necesita.
 
-**Total indexado: 467 ficheros.**
+**Total indexado: 474 ficheros.**
 
 | Carpeta | Ficheros | KB |
 |---|---:|---:|
@@ -21,38 +21,38 @@ Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-Inc
 | `Assets/PinkTrombonePOC/PinkTromboneSrc` | 13 | 54 |
 | `Assets/Scripts` | 1 | 7 |
 | `Assets/Scripts/Backgrounds` | 4 | 11 |
-| `Assets/Scripts/Cards` | 78 | 772 |
-| `Assets/Scripts/Characters` | 22 | 220 |
-| `Assets/Scripts/Controllers` | 2 | 56 |
-| `Assets/Scripts/Data` | 50 | 235 |
+| `Assets/Scripts/Cards` | 78 | 775 |
+| `Assets/Scripts/Characters` | 22 | 224 |
+| `Assets/Scripts/Controllers` | 2 | 57 |
+| `Assets/Scripts/Data` | 50 | 242 |
 | `Assets/Scripts/DevMode` | 8 | 163 |
-| `Assets/Scripts/Editor` | 5 | 102 |
+| `Assets/Scripts/Editor` | 9 | 154 |
 | `Assets/Scripts/Encounters` | 3 | 55 |
 | `Assets/Scripts/Enums` | 22 | 12 |
 | `Assets/Scripts/Extensions` | 1 | 1 |
 | `Assets/Scripts/Generation` | 13 | 29 |
 | `Assets/Scripts/Interfaces` | 7 | 3 |
-| `Assets/Scripts/Managers` | 13 | 455 |
+| `Assets/Scripts/Managers` | 13 | 457 |
 | `Assets/Scripts/Map` | 11 | 25 |
-| `Assets/Scripts/Music` | 16 | 291 |
-| `Assets/Scripts/Sensory` | 26 | 102 |
+| `Assets/Scripts/Music` | 16 | 292 |
+| `Assets/Scripts/Sensory` | 26 | 103 |
 | `Assets/Scripts/Status` | 9 | 85 |
 | `Assets/Scripts/Tutorial` | 14 | 143 |
-| `Assets/Scripts/UI` | 50 | 334 |
+| `Assets/Scripts/UI` | 52 | 376 |
 | `Assets/Scripts/Utils` | 5 | 8 |
-| `Docs` | 9 | 779 |
+| `Docs` | 9 | 935 |
 | `Docs/archive` | 8 | 660 |
 | `Docs/archive/absorbed` | 2 | 5 |
 | `Docs/archive/snapshots` | 1 | 0 |
 | `Docs/audits` | 2 | 107 |
 | `Docs/integrations` | 1 | 1 |
-| `Docs/integrations/midigenplay` | 5 | 97 |
-| `Docs/planning` | 11 | 146 |
-| `Docs/planning/active` | 16 | 465 |
+| `Docs/integrations/midigenplay` | 5 | 99 |
+| `Docs/planning` | 11 | 153 |
+| `Docs/planning/active` | 16 | 468 |
 | `Docs/planning/archive` | 7 | 102 |
 | `Docs/reference` | 5 | 31 |
 | `Docs/runtime` | 3 | 68 |
-| `Docs/systems` | 13 | 551 |
+| `Docs/systems` | 14 | 668 |
 | `Packages` | 2 | 19 |
 
 ## Nombres duplicados (atención)
@@ -304,9 +304,13 @@ Assets/Scripts/DevMode/GenerationDebugFormatter.cs
 
 ```
 Assets/Scripts/Editor/S5e_InspirationEconomyTool.cs
+Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs
+Assets/Scripts/Editor/Text/CardTextDumpMenu.cs
 Assets/Scripts/Editor/Text/ConceptGlossaryTextTable.cs
 Assets/Scripts/Editor/Text/GameTextCsv.cs
+Assets/Scripts/Editor/Text/GameTextRichText.cs
 Assets/Scripts/Editor/Text/GameTextWindow.cs
+Assets/Scripts/Editor/Text/GlossarySectionTable.cs
 Assets/Scripts/Editor/Text/TutorialTextTable.cs
 ```
 
@@ -544,6 +548,8 @@ Assets/Scripts/UI/TempoTextIndicator.cs
 Assets/Scripts/UI/Tooltips/ConceptTagRenderer.cs
 Assets/Scripts/UI/Tooltips/ConceptTooltipResolver.cs
 Assets/Scripts/UI/Tooltips/EconPipTooltipTarget.cs
+Assets/Scripts/UI/Tooltips/GameText.cs
+Assets/Scripts/UI/Tooltips/GameTextTemplateIds.cs
 Assets/Scripts/UI/Tooltips/I2DTooltipTarget.cs
 Assets/Scripts/UI/Tooltips/ITooltipTargetBase.cs
 Assets/Scripts/UI/Tooltips/TooltipController.cs
@@ -711,6 +717,7 @@ Docs/systems/SSoT_Gig_Encounter.md
 Docs/systems/SSoT_Scoring_and_Meters.md
 Docs/systems/SSoT_Singer_Voice.md
 Docs/systems/SSoT_Status_Effects.md
+Docs/systems/SSoT_Tooltip_Pipeline.md
 ```
 
 ### Packages

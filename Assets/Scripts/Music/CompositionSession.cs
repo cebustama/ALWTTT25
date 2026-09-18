@@ -763,9 +763,15 @@ namespace ALWTTT.Music
             // The intermediate bookkeeping below is derivable from them.
             void InfoV(string msg)
             {
-                var dev = ALWTTT.Managers.GigManager.Instance != null
-                    ? ALWTTT.Managers.GigManager.Instance.DevSettings : null;
-                if (dev != null && dev.UseLogs && dev.LogVerbose) Info(msg);
+                // [SONG-PANEL-1 / F-SP1-5] DevSettings is compiled out of player builds
+                // (DBG-C1); the log gate is not dev-only. BEHAVIOUR NOTE: the old expression
+                // failed CLOSED on a missing dev asset, VerboseLogsEnabled fails OPEN. Inside
+                // a composition session GigManager always has its dev asset assigned, so the
+                // difference is unreachable in practice; the two other consumers of this gate
+                // (HandController, DeckManager) already failed open, and LOG-1 doctrine is that
+                // an unconfigured asset must not silence diagnostics. Unified deliberately.
+                var gm = ALWTTT.Managers.GigManager.Instance;
+                if (gm != null && gm.VerboseLogsEnabled) Info(msg);
             }
 
             var ui = _ctx?.CompositionUI;
@@ -1782,9 +1788,9 @@ namespace ALWTTT.Music
             // [LOG-1] B3 is closed and the noise became friction: demoted to
             // the verbose tier rather than stripped, so the identity readout is
             // still one toggle away.
-            var devLoopCtx = ALWTTT.Managers.GigManager.Instance != null
-                ? ALWTTT.Managers.GigManager.Instance.DevSettings : null;
-            if (devLoopCtx != null && devLoopCtx.UseLogs && devLoopCtx.LogVerbose)
+            // [SONG-PANEL-1 / F-SP1-5] See InfoV above; same substitution, same note.
+            var gmLoopCtx = ALWTTT.Managers.GigManager.Instance;
+            if (gmLoopCtx != null && gmLoopCtx.VerboseLogsEnabled)
                 Debug.Log(
                     $"<color=cyan>[LoopCtx] Part={_currentPartIndex} " +
                     $"Loop={loopIndex0 + 1}/{_loopsTotalForPart} " +

@@ -1262,7 +1262,8 @@ after an Undo.
 |---|---|---|---|---|
 | Tutorial | **Full** — read, edit, create, CSV import/export | `TutorialDialogSO.revisitTitle`, `mechanicText`, `pages[]` | N, one per catalog `languageCode` | first category with per-language storage |
 | Concepts | **Full** — read, edit, create, CSV import/export (TXT-2, 2026-09-10) | `ConceptGlossarySO` → `ConceptEntry.displayName`, `description` | N, one per glossary `languageCode` | **the only text tab that matters since TXT-3**: statuses and card keywords were moved here (§20.11) |
-| Cards | **Inventory only** (read + CSV export) | `CardDefinition.displayName` | 1 | no description field exists; card descriptions are *generated in code* by `CardEffectDescriptionBuilder` (`SSoT_Card_System` §10.1). Both are F-TXT-3-5, scope of TXT-4 |
+| Cards | **Full** — read, edit, CSV import/export (TXT-4, 2026-09-11) | `ConceptGlossarySO.cardNames` | N, one per glossary `languageCode` | card names moved into the glossary at TXT-4 (D-TXT4-4). `CardDefinition.displayName` is **not** what this tab edits; it is a developer label, shown beside the row as `devLabel` for identification only |
+| Templates | **Full** — read, edit, CSV import/export (TXT-4, 2026-09-11) | `ConceptGlossarySO.templates` | N, one per glossary `languageCode` | the **102** ids (2026-09-16; this cell read **54** until then and was two batches stale — 73 at SONG-PANEL-1, 102 at TEXT-VIBE-1. The set is no longer hand-declared: see §20.12): the fragments `CardEffectDescriptionBuilder` composes from, plus the `ui_aud_*` audience-canvas lines and the `ui_track_*` song-panel lines that used to be C# literals. Coverage is computed against `GameTextTemplateIds.All`, not against the asset (§20.12) |
 | Status Effects | **Inventory + coverage** (read + CSV export of the developer label) (TXT-3, 2026-09-10) | `StatusEffectSO.displayName` — **a developer label, not player text** | — | player name/description live in the Concepts glossaries under `StatusKey`; this tab shows which languages cover each key (§20.11) |
 | Menus | **Declared unreachable** | — | — | `MainMenuController` holds no player-facing strings; button labels are `TMP_Text` components in the MainMenu scene/prefabs, which `AssetDatabase` type search cannot enumerate |
 
@@ -1270,8 +1271,13 @@ The remaining read-only tabs are declared, not simulated: each renders its real 
 stating why it is read-only. **TXT-3 (2026-09-10) removed Status Effects from that queue** by moving
 its text into the Concepts glossaries rather than giving the tab an editor — the tab now shows a
 developer label and a coverage report, and the CSV export column is renamed `devLabel` so nobody
-mistakes it for translatable copy. **Cards remains gated on O-TXT-3** (§20.8) and is the scope of
-TXT-4, which cannot reuse the TXT-3 move: card descriptions have no stored strings to relocate.
+mistakes it for translatable copy. **Cards stopped being gated at TXT-4 (2026-09-11), and O-TXT-3 is closed** (§20.8). The batch did
+not reuse the TXT-3 move for descriptions, because there were no stored strings to relocate: it built
+the fragment registry the builder composes from, and gave it its own tab. The window therefore now
+edits **three id spaces inside one asset family** — concepts, card names and templates — each with
+its own coverage rule, parity check and fingerprint. The `GlossarySectionTable` model behind the two
+new tabs is one implementation rendered as two sections (§20.12), for the same reason `ComputeParity`
+has one implementation and two surfaces (§20.4).
 
 ### 20.3 Language columns (D2=B)
 
@@ -1382,7 +1388,11 @@ after so a clean round-trip is verifiable in the Console.
 - **`StatusEffectSO.displayName` auto-renames its asset file** to
   `StatusEffect_{DisplayName}_{EffectId}` from `OnValidate`. Any future *editable* status tab must
   decide explicitly whether editing a display name should move a file on disk.
-- Cards and status effects have exactly one language slot each; see O-TXT-3.
+- ~~Cards and status effects have exactly one language slot each; see O-TXT-3.~~ **No longer true
+  since TXT-3 / TXT-4 and struck here at TEXT-5-DOC (2026-09-14).** Status text moved into the
+  glossary at TXT-3 and card names and descriptions at TXT-4; all of it is per-language. The line
+  survived two doc-passes inside a *Known limitations* list, which is the lesson worth keeping: a
+  limitation list is the last place anyone re-reads when the limitation is lifted.
 - Asset discovery re-runs per render frame (same pattern as §8.5), acceptable at these counts.
 
 ### 20.8 Open decision — O-TXT-3 (Unity Localization)
@@ -1402,6 +1412,22 @@ one. TXT-2 also surfaced **F-TXT-2-1** — a fifth text population, hardcoded Sp
 `AudienceCharacterCanvas`, reachable by no tool and counted by no parity check — which no per-SO
 scheme addresses and which O-TXT-3 must now weigh. Structural home for all of this:
 `systems/SSoT_Game_Text.md` §1, §7.
+
+**O-TXT-3 CLOSED 2026-09-11 by TXT-4 — project-owned pattern (D-TXT4-2).** The decision was deferred
+three times because each batch arrived with a partial case. TXT-4 had the complete one: card names,
+generated descriptions and the hardcoded literals at once, which is every population a per-SO scheme
+fails to reach. The answer was to stay on the project-owned pattern and finish consolidating onto it,
+so that all solved populations share one asset shape, one CSV codec and one fingerprint
+discipline. **Presence of `com.unity.localization` in `Packages/manifest.json` was verified absent**,
+which closed the last unexamined branch — there was no partially-adopted package to inherit.
+
+**The cost is stated, not hidden.** A migration to Unity Localization now converts **three lists in
+one asset family** rather than six unrelated schemes (five at TXT-4, six since TEXT-5 folded audience
+ability and intention text into the same registry); the conversion got cheaper per category and
+larger in absolute terms. **New review trigger:** a third language, or a real external translator.
+Those are the conditions under which String Tables buy something this pipeline does not have — a
+translator-facing UI and a translation memory. A second language does not, which is the thing three
+deferrals kept re-learning.
 
 ### 20.9 Plain mechanic text (`mechanicText`) — TUT-TXT-1, 2026-09-09
 
@@ -1496,9 +1522,113 @@ fingerprint before/after printed so a clean round-trip is provable.
 means selecting the `.asset` and using the Inspector list's `−`. Left as-is because the only
 expected trigger — a `DUPLICATE` badge — should occur approximately never.
 
+**Ability coverage (TEXT-5, 2026-09-11).** The Concepts tab now reports a **third** coverage set
+beside status keys and keyword names: the `abilityId` of every ability authored on every
+`AudienceCharacterData`. It is the only coverage set in the window that is **enumerated from assets**
+rather than read from code (`Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs`), because ability
+ids exist only as authored strings — there is no enum and no catalogue to walk. An ability with an
+empty `abilityId` cannot be keyed, so it is reported under the sentinel `EMPTY:<asset>[i]`; an id
+shared by two abilities is reported as `SHARED`, **not** as `DUPLICATE`, because sharing is correct
+content (D-T5-5=A) and a warning that fires on correct content is a warning people stop reading.
+Structural authority: `systems/SSoT_Game_Text.md` §5 and §6.
+
 **Rebuild order.** `GameTextWindow.Rebuild()` builds the Concepts table *before* the Tutorial table,
 because `ConceptRegistryEditorIndex` feeds the Tutorial tab's `TAG unknown` check. Reversing the
 order silently disables that badge.
+
+### 20.12 Cards and Templates tabs, and the shared section model (TXT-4, 2026-09-11)
+
+**Files:** `Assets/Scripts/Editor/Text/GlossarySectionTable.cs` (model) ·
+`Assets/Scripts/Editor/Text/GameTextRichText.cs` (rich-text validation) ·
+`Assets/Scripts/Editor/Text/CardTextDumpMenu.cs` (regression oracle), all rendered by
+`GameTextWindow`. Structural authority for the id spaces, the resolution path and the failure modes
+is `systems/SSoT_Game_Text.md`; this section documents the window only.
+
+**One model, two sections.** `GlossarySectionTable` renders both the Cards list and the Templates
+list. They differ in their **coverage set** and in nothing else: Cards must cover every
+`CardDefinition` in the catalogue, Templates must cover every id in `GameTextTemplateIds.All`. Two
+independent tables would have been the obvious route and would have produced two answers to "is this
+row missing a language" within a month — the same argument that gave `ComputeParity` one
+implementation and two surfaces (§20.4).
+
+**Coverage.** Cards: a `CardDefinition` with no `cardNames` entry is reported in a block above the
+table, not as a row badge, because a missing id has no row to badge (§20.11). Templates: same
+mechanism against `All`. **A template present in the asset but absent from `All` is invisible to
+coverage** — it can be authored, imported, fingerprinted and shipped while the tab reports green.
+Registering the id is therefore part of adding a template, not a follow-up.
+
+**CSV shape of the Templates tab, confirmed by export 2026-09-16 (TEXT-VIBE-1).** `id,field,en,es`
+with a constant `field = text`, i.e. the **same four-column codec as Concepts** (§20.11) and the
+tutorial (§20.6), not a three-column `id,en,es`. It had never been written down, and the batch that
+needed it had to export first and read the header to find out. The rest of the §20.6 contract holds
+verbatim: delimiter sniffed from the header line, UTF-8 **with BOM** on write and stripped on read,
+RFC-4180 quoting, empty cell = «no opinion», partial files legal, an unknown language column aborts
+the whole import with nothing applied. Import **creates** a missing id rather than skipping the row,
+as Concepts does. Verified round-trip: re-importing an unmodified file touches zero assets.
+
+**The coverage check is asymmetric, and the asymmetry decides how id sets must be imported
+(F-TV-5, 2026-09-16).** A missing id is reported in the `COVERAGE` block; **an id in the asset that
+`All` does not declare is invisible** — the paragraph above already said so, and TEXT-VIBE-1 is the
+first time it cost something. When the id list is transcribed by a person instead of enumerated, the
+two failures arrive **together**: the invented id displaces the real one, the real one is reported
+missing, and the invented one sits in the asset reporting nothing. The window did signal it — the
+footer banner gains its `Orphans …` clause when one exists — but the `COVERAGE` block did not, and
+the block is what people read. **Rule:** import a derived id family from the tab's own coverage
+output, never from a written list, and check both directions afterwards. **Deleting the orphan needs
+the Inspector**: this tab creates and edits but does not delete, in *both* glossaries.
+
+**Since TEXT-VIBE-1 the Templates coverage set is partly enumerated, not declared.**
+`GameTextTemplateIds.All` is `Fixed` plus one id per value of `TimeSignature` and `TempoRange`
+(`systems/SSoT_Game_Text.md` §5). Consequence for this window: a package update that adds a meter
+turns this tab **red on its own**, with no code edit — the first coverage set here that can grow
+without a person editing a file, and the reason the ability-id enumerator (§20.13) is no longer the
+only non-declared set.
+
+**New badges (TXT-4).** `SPRITE unknown` (name absent from the atlas) · `SPRITE index`
+(`<sprite=N>` — forbidden, the atlas renumbers on reimport) · `SPRITES differ` (the sprite set is not
+identical across languages) · `PLACEHOLDERS differ` (the positional placeholder set is not identical
+across languages) · `TAG unsupported` (a rich-text tag outside the declared subset).
+`GameTextRichText` is the single parser behind all five and all three tables call it, so a rule added
+there applies to concepts, card names and templates at once.
+
+**The import log declares its language columns (F-TXT4-4).** Before TXT-4 a CSV carrying one language
+imported with a full success log, and nothing said the other language had not been touched; it
+happened on 2026-09-11 and looked like a clean import. The log now states which languages the file
+carries **and** which project languages it leaves uncovered. The general rule worth keeping: a
+success message that does not say what it covered is indistinguishable from a success message that
+covered half.
+
+**`ALWTTT ▸ Text ▸ Dump Card Text (EN/ES)` is a regression oracle, not a utility.** It writes the
+fully rendered card text for every card in both languages. Its value is the **diff between dumps**,
+which is what let TXT-4 prove the English build was unchanged across a total rewrite of how card text
+is produced: `golden A → B` = 60 hunks, all of them `name:` lines, with `name:` equal to `devLabel:`
+in all 60 — i.e. the only change was a field that renders identically; `golden B → C` = 2 lines, both
+the declared D-TXT4-8 deviation. Any batch touching templates, the builder or card names regenerates
+and diffs before closing.
+
+**Known limitation (inherited from §20.11).** These tabs create and edit but do **not** delete.
+
+### 20.13 Ability id seeder (`ALWTTT ▸ Text ▸ Seed Ability Ids`) — TEXT-5, 2026-09-11
+
+**File:** `Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs`. Structural authority for the id
+space and its coverage rule is `systems/SSoT_Game_Text.md` §5; this section documents the menu item.
+
+**What it does.** Walks every `AudienceCharacterData`, and for each authored ability with an empty
+`abilityId` writes one derived from the ability's developer label (`ab_` + slug). It reports how many
+ids it wrote, the census of ids found, and any `SHARED` id. That console census is the **only** place
+the concrete id set exists in readable form: no SSoT lists the ids, by design (§20.11 and
+`SSoT_Game_Text.md` §5).
+
+**Idempotent by contract.** A second run reports `0 id(s) written`. That property is what makes the
+tool safe to re-run after adding a character, and it is the check to perform after any edit to this
+file: a seeder that rewrote ids on every run would silently orphan every glossary entry it had
+already keyed, because the id **is** the key.
+
+**Why seeding and not authoring by hand.** The alternative was typing an id into the wizard for every
+ability. Seven abilities make that look cheap; the cost appears on the eighth, authored by someone who
+does not know the `ab_` convention, and surfaces as a raw id in a tooltip weeks later. The sentinel
+plus the coverage block (§20.11) catch that case in the editor, but the seeder is what stops it
+happening.
 
 ---
 

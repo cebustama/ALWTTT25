@@ -25,10 +25,11 @@ namespace ALWTTT.Managers
         {
             get
             {
+                // [SONG-PANEL-1 / F-SP1-5] GigManager.VerboseLogsEnabled is compiled in every
+                // build; DevSettings is not (DBG-C1). Same fail-open behaviour as before.
                 var gm = GigManager.Instance;
-                var d = gm != null ? gm.DevSettings : null;
-                if (d == null) return true;          // no gig: unchanged behaviour
-                return d.UseLogs && d.LogVerbose;
+                if (gm == null) return true;         // no gig: unchanged behaviour
+                return gm.VerboseLogsEnabled;
             }
         }
 

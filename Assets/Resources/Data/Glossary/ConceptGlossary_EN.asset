@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: ConceptGlossary_EN
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.ConceptGlossarySO
   languageCode: en
+  numberCulture: 
   entries:
   - id: gig
     displayName: Gig
@@ -149,3 +150,509 @@ MonoBehaviour:
     displayName: Exhaust
     description: Can only be played once per encounter. Moves to exhaust pile after
       use.
+  - id: ab_block_the_view
+    displayName: Block the View
+    description: Pushes his way toward the front. Anyone shorter left behind him
+      is Blocked and takes no Vibe.
+  - id: ab_egg_him_on
+    displayName: Egg Him On
+    description: 'Winds up a Tall audience member: they gain Hyped, and every bit
+      of Stress they deal hits harder.'
+  - id: ab_heckle
+    displayName: Heckle
+    description: 'Picks on one bandmate: leaves them Exposed, then piles on the Stress.'
+  - id: ab_indifference
+    displayName: Indifference
+    description: 'Tunes the band out. Gains Indifference: no Vibe gets through to
+      him while it lasts.'
+  - id: ab_scathing_review
+    displayName: Scathing Review
+    description: Posts a public takedown of the whole band. Everyone on stage takes
+      Stress.
+  - id: ab_tantrum
+    displayName: Tantrum
+    description: Screams the place down. The band takes Stress.
+  - id: ab_total_indifference
+    displayName: Total Indifference
+    description: Doesn't even blink. That blank stare deals Stress to the whole band.
+  - id: role_rhythm
+    displayName: Rhythm
+    description: The percussion track. It sets the pulse everything else plays against.
+  - id: role_backing
+    displayName: Backing
+    description: The chord track underneath. It states the harmony the other parts
+      move over.
+  - id: role_bassline
+    displayName: Bassline
+    description: The low line. It ties the chords to the rhythm and anchors the song's
+      bottom end.
+  - id: role_melody
+    displayName: Melody
+    description: The main tune. It is the line an audience remembers and hums back.
+  - id: role_harmony
+    displayName: Harmony
+    description: Secondary voices that move with the melody and thicken it.
+  - id: role_lead
+    displayName: Lead
+    description: The spotlight line. It plays over everything else and takes the
+      foreground.
+  - id: scope_trackonly
+    displayName: Track only
+    description: Affects one musician's track. The rest of the song is untouched.
+  - id: scope_currentpart
+    displayName: Current part
+    description: Affects the part playing right now. It stops when the part does.
+  - id: scope_nextpart
+    displayName: Next part
+    description: Affects the part that comes after this one. Nothing changes until
+      then.
+  - id: scope_wholesong
+    displayName: Whole song
+    description: Affects the whole song from here on. It outlives the part you played
+      it in.
+  - id: timing_immediate
+    displayName: Immediately
+    description: Takes effect the moment the card is played.
+  - id: timing_onnextloop
+    displayName: Next loop
+    description: Takes effect when the current loop ends and the next one starts.
+  - id: timing_onnextpartstart
+    displayName: Next part start
+    description: Waits for the current part to finish and takes effect when the next
+      one begins.
+  - id: mod_meter
+    displayName: Meter
+    description: How many beats fit in a bar. Changing it changes the shape of the
+      groove.
+  - id: mod_tempo
+    displayName: Tempo
+    description: How fast the song runs. Faster raises the energy; slower gives each
+      note room.
+  - id: mod_key
+    displayName: Key
+    description: The note the song is centred on. Moving it lifts or drops everything
+      at once.
+  - id: mod_instrument
+    displayName: Instrument
+    description: Which instrument plays this track. It changes the timbre, not the
+      notes.
+  - id: mod_tonality
+    displayName: Mode
+    description: The scale colour the song uses. It decides whether a passage reads
+      bright or dark.
+  cardNames:
+  - id: 3_Action_001
+    displayName: Count-In
+  - id: Cantante_Composition_002
+    displayName: Nebula Falsetto
+  - id: Cantante_Composition_003
+    displayName: Nebula Scale
+  - id: DEV_Voltage_Minus2
+    displayName: DEV Voltage -2
+  - id: DEV_Voltage_Plus1
+    displayName: DEV Voltage +1
+  - id: DEV_Voltage_Plus4
+    displayName: DEV Voltage +4
+  - id: Gusano_C_Bassline_001_WormWalk
+    displayName: Worm Walk
+  - id: Gusano_C_Bassline_002_WormPulse
+    displayName: Worm Pulse
+  - id: MVP_AddComposure_03
+    displayName: Centering (Composure)
+  - id: MVP_AddFlow_02_All
+    displayName: Lock In (Flow)
+  - id: MVP_AddStress_03
+    displayName: White-Knuckle Push
+  - id: MVP_AddVibe_05
+    displayName: Encore Pulse
+  - id: MVP_RemoveStress_02
+    displayName: Breathe & Reset
+  - id: Starter_half_time
+    displayName: Half Time
+  - id: Starter_keep_cool
+    displayName: Keep Cool
+  - id: Starter_key_lift
+    displayName: Key Lift
+  - id: Starter_psychic_waves
+    displayName: Psychic Waves
+  - id: Starter_push_it
+    displayName: Push It
+  - id: conito_overload
+    displayName: Overload
+  - id: conito_slap_groove
+    displayName: Slap Groove
+  - id: conito_super_slap
+    displayName: Super Slap
+  - id: crd_c2_spotlight
+    displayName: Spotlight
+  - id: crd_sibi_read_the_room
+    displayName: Read the Room
+  - id: debug_apply_shaken_to_musician
+    displayName: 'Debug: Apply Shaken (Musician)'
+  - id: new_any_group_heal
+    displayName: Group Effort
+  - id: new_cantante_stress_heal
+    displayName: 'Cantante: Breathe Through It'
+  - id: new_cantante_vibe_all
+    displayName: 'Cantante: Crowd Presence'
+  - id: new_conito_draw
+    displayName: 'Conito: Quick Lick'
+  - id: new_conito_vibe_single
+    displayName: 'Conito: Pick A Fan'
+  - id: reward_amp_up
+    displayName: Amp Up
+  - id: sibi_backing_modal
+    displayName: Modal Drift
+  - id: starter_compound_cycle
+    displayName: Compound Cycle
+  - id: starter_default_mode
+    displayName: Default Mode
+  - id: starter_double_harmony
+    displayName: Double Harmony
+  - id: starter_finger_bass
+    displayName: Walking Bass
+  - id: starter_mind_tap
+    displayName: Mind Tap
+  - id: starter_pentameter
+    displayName: Pentameter
+  - id: starter_rise_up
+    displayName: Rise Up
+  - id: starter_showtime
+    displayName: Showtime
+  - id: starter_singing_field
+    displayName: Singing Field
+  - id: starter_slap_bass
+    displayName: Slap Bass
+  - id: starter_static_rush
+    displayName: Static Rush
+  - id: starter_take_five
+    displayName: Take Five
+  - id: starter_waltz_protocol
+    displayName: Waltz Protocol
+  - id: starter_warm_up
+    displayName: Warm Up
+  - id: starter_wormus_major
+    displayName: Wormus Major
+  - id: starter_wormus_minor
+    displayName: Wormus Minor
+  - id: test_apply_choke
+    displayName: 'Test: Choke +1'
+  - id: test_apply_composure
+    displayName: 'Test: Composure +5'
+  - id: test_apply_exposed
+    displayName: 'Test: Exposed +3'
+  - id: test_apply_feedback
+    displayName: 'Test: Feedback +2'
+  - id: test_apply_flow
+    displayName: 'Test: Flow +2'
+  - id: test_draw_cards
+    displayName: 'Test: Draw 2'
+  - id: test_modify_stress_add
+    displayName: 'Test: Stress +4'
+  - id: test_modify_stress_heal
+    displayName: 'Test: Heal Stress 3'
+  - id: test_modify_vibe
+    displayName: 'Test: Vibe +5 All'
+  - id: wink
+    displayName: WINK!
+  - id: wormus_bossa
+    displayName: Wormus Bossa
+  - id: wormus_modal
+    displayName: Wormus Modal
+  - id: wormus_test
+    displayName: Wormus Test
+  templates:
+  - id: fx_no_effects
+    text: No effects.
+  - id: fx_gain_status
+    text: Gain {0} {1}
+  - id: fx_apply_status
+    text: Apply {0} {1} to {2}
+  - id: fx_deal_vibe
+    text: Deal {0} Vibe to {1}
+  - id: fx_restore_vibe
+    text: Restore {0} Vibe on {1}
+  - id: fx_deal_stress
+    text: Deal {0} Stress to {1}
+  - id: fx_heal_stress
+    text: Heal {0} Stress on {1}
+  - id: fx_draw_one
+    text: Draw {0} card
+  - id: fx_draw_many
+    text: Draw {0} cards
+  - id: fx_inspiration_per_loop
+    text: Gain {0} Inspiration each loop while this track plays
+  - id: fx_reveal_tastes
+    text: Reveal the musical tastes of {0}
+  - id: tgt_self
+    text: self
+  - id: tgt_musician
+    text: a bandmate
+  - id: tgt_all_musicians
+    text: all bandmates
+  - id: tgt_random_musician
+    text: a random bandmate
+  - id: tgt_audience
+    text: target
+  - id: tgt_all_audience
+    text: all audience
+  - id: tgt_random_audience
+    text: a random audience member
+  - id: ui_card_kind_track
+    text: Track
+  - id: ui_card_kind_part
+    text: Part
+  - id: ui_card_kind_composition
+    text: Composition
+  - id: ui_card_modifier_one
+    text: '{0} modifier'
+  - id: ui_card_modifier_many
+    text: '{0} modifiers'
+  - id: ui_card_detail_style
+    text: 'Style: {0}'
+  - id: ui_card_detail_musician
+    text: 'Musician: {0}'
+  - id: ui_card_detail_modifiers
+    text: Modifiers
+  - id: ui_card_detail_effects
+    text: Effects
+  - id: ui_aud_taste_block_header
+    text: "\u2014 Tastes \u2014"
+  - id: ui_aud_taste_header
+    text: Tastes
+  - id: ui_aud_taste_neutral
+    text: Doesn't care about anything
+  - id: ui_aud_taste_fast
+    text: + Fast
+  - id: ui_aud_taste_slow
+    text: '- Slow'
+  - id: ui_aud_taste_tracks
+    text: + {0}+ tracks
+  - id: ui_aud_vibe_hype
+    text: 'Song Hype: {0}'
+  - id: ui_aud_vibe_blocked
+    text: "Blocked (someone tall is in the way) \u2192 0"
+  - id: ui_aud_vibe_song_end
+    text: 'At song end: {0}'
+  - id: ui_aud_vibe_tastes
+    text: "\xD7 {0} tastes \u2192 {1}"
+  - id: ui_aud_vibe_status_mult
+    text: "\xD7 {0} {1} ({2}) \u2192 {3}"
+  - id: ui_aud_vibe_sfx
+    text: "+ {0} SFX \u2192 {1}"
+  - id: ui_aud_vibe_indifferent
+    text: "{0} \u2192 0"
+  - id: ui_aud_vibe_ko
+    text: This song convinces them!
+  - id: ui_aud_eff_super
+    text: Super!
+  - id: ui_aud_eff_resists
+    text: Resists
+  - id: ui_aud_eff_immune
+    text: Immune
+  - id: ui_aud_eff_normal
+    text: Normal
+  - id: fx_grant_bonus_loop
+    text: Play one extra loop of this part
+  - id: fx_grant_bonus_loop_solo
+    text: Play one extra loop of this part, with a solo over it
+  - id: ui_card_type_composition
+    text: COMPOSITION
+  - id: ui_track_inspiration_per_loop
+    text: +{0} Inspiration / loop
+  - id: ui_track_instrument
+    text: 'Instrument: {0}'
+  - id: ui_track_level
+    text: Lv {0} / {1}
+  - id: ui_track_level_max
+    text: max
+  - id: ui_track_no_track
+    text: no track yet
+  - id: ui_track_pending
+    text: applies next loop
+  - id: ui_fx_chord_fallback
+    text: Chord ({0})
+  - id: ui_part_intro
+    text: Intro
+  - id: ui_part_label
+    text: Part {0}
+  - id: ui_part_outro
+    text: Outro
+  - id: ui_part_solo
+    text: Solo
+  - id: ui_song_theme
+    text: 'Theme: {0}'
+  - id: ui_song_theme_default
+    text: Instrumental
+  - id: ui_song_title_default
+    text: Untitled Jam
+  - id: ui_track_finale
+    text: Finale
+  - id: ui_track_improvisation
+    text: Improvisation
+  - id: ui_track_lead_in
+    text: Lead-in
+  - id: ui_ctx_bpm_absolute
+    text: '{0} BPM (absolute override)'
+  - id: ui_ctx_final_loop_locks
+    text: final loop locks composition
+  - id: ui_ctx_loop
+    text: Loop {0} of {1}
+  - id: ui_ctx_musician_silent_one
+    text: '{0} musician silent'
+  - id: ui_ctx_musicians_silent_many
+    text: '{0} musicians silent'
+  - id: ui_ctx_part_of
+    text: '{0} of {1}'
+  - id: ui_ctx_pending_render
+    text: pending render
+  - id: ui_ctx_loop_no_total
+    text: Loop {0}
+  - id: ui_readout_header
+    text: Song Vibe
+  - id: ui_readout_hype
+    text: "Song Hype: {0} % \u2192 {1}"
+  - id: ui_readout_sfx
+    text: "+ venue SFX \u2192 {0}"
+  - id: ui_readout_total
+    text: = {0} Vibe per audience member,
+  - id: ui_readout_total_note
+    text: before tastes and statuses.
+  - id: ui_readout_avg_resist
+    text: An average member withstands {0}.
+  - id: ui_fx_tempo
+    text: TEMPO!
+  - id: ui_fx_meter
+    text: METER!
+  - id: ui_fx_key
+    text: KEY!
+  - id: ui_fx_instrument
+    text: INSTRUMENT!
+  - id: ui_fx_major_change
+    text: MAJOR CHANGE
+  - id: ui_fx_change
+    text: CHANGE
+  - id: ui_fx_track_rhythm
+    text: RHYTHM!
+  - id: ui_fx_track_backing
+    text: BACKING!
+  - id: ui_fx_track_melody
+    text: MELODY!
+  - id: ui_fx_track_harmony
+    text: HARMONY!
+  - id: ui_ctx_meter_twofour
+    text: 2/4
+  - id: ui_ctx_meter_threefour
+    text: 3/4
+  - id: ui_ctx_meter_fourfour
+    text: 4/4
+  - id: ui_ctx_meter_sixeight
+    text: 6/8
+  - id: ui_ctx_meter_seveneight
+    text: 7/8
+  - id: ui_ctx_meter_nineeight
+    text: 9/8
+  - id: ui_ctx_meter_twelveeight
+    text: 12/8
+  - id: ui_ctx_tempo_veryslow
+    text: Very slow
+  - id: ui_ctx_tempo_slow
+    text: Slow
+  - id: ui_ctx_tempo_moderate
+    text: Moderate
+  - id: ui_ctx_tempo_fast
+    text: Fast
+  - id: ui_ctx_tempo_veryfast
+    text: Very fast
+  - id: ui_ctx_meter_fivefour
+    text: 5/4
+  - id: ui_mod_tempo_scale
+    text: "\xD7{0}"
+  - id: ui_mod_key
+    text: 'Key: {0}'
+  - id: ui_mod_degree
+    text: Modulate to {0}
+  - id: ui_mod_random_key
+    text: Random key
+  - id: ui_mod_random_in_scale
+    text: Random degree in scale
+  - id: ui_mod_instrument
+    text: '{0}'
+  - id: ui_mod_drums
+    text: 'Drums: {0}'
+  - id: ui_mod_instrument_type
+    text: Any {0}
+  - id: ui_mod_instrument_random
+    text: Random of {0}
+  - id: ui_gig_songs_left
+    text: 'Songs left: {0}'
+  - id: ui_fx_vibe_bonus
+    text: +{0} Vibe!
+  - id: ui_role_rhythm
+    text: Rhythm
+  - id: ui_role_backing
+    text: Backing
+  - id: ui_role_lead
+    text: Lead
+  - id: ui_role_bassline
+    text: Bassline
+  - id: ui_role_melody
+    text: Melody
+  - id: ui_role_harmony
+    text: Harmony
+  - id: ui_degree_tonic
+    text: Tonic
+  - id: ui_degree_supertonic
+    text: Supertonic
+  - id: ui_degree_mediant
+    text: Mediant
+  - id: ui_degree_subdominant
+    text: Subdominant
+  - id: ui_degree_dominant
+    text: Dominant
+  - id: ui_degree_submediant
+    text: Submediant
+  - id: ui_degree_leadingtone
+    text: Leading Tone
+  - id: ui_note_c
+    text: C
+  - id: ui_note_csharp
+    text: C#
+  - id: ui_note_d
+    text: D
+  - id: ui_note_dsharp
+    text: D#
+  - id: ui_note_e
+    text: E
+  - id: ui_note_f
+    text: F
+  - id: ui_note_fsharp
+    text: F#
+  - id: ui_note_g
+    text: G
+  - id: ui_note_gsharp
+    text: G#
+  - id: ui_note_a
+    text: A
+  - id: ui_note_asharp
+    text: A#
+  - id: ui_note_b
+    text: B
+  - id: ui_instrumenttype_guitar
+    text: Guitar
+  - id: ui_instrumenttype_acousticguitar
+    text: Acoustic Guitar
+  - id: ui_instrumenttype_bass
+    text: Bass
+  - id: ui_instrumenttype_drums
+    text: Drums
+  - id: ui_instrumenttype_piano
+    text: Piano
+  - id: ui_instrumenttype_strings
+    text: Strings
+  - id: ui_instrumenttype_brassandwoodwind
+    text: Brass & Woodwind
+  - id: ui_instrumenttype_synth
+    text: Synth
+  - id: ui_instrumenttype_vocals
+    text: Vocals

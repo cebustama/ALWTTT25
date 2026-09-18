@@ -2,11 +2,15 @@
 //
 // [HUD-COMP-1] Keeps the context row's loop pips honest.
 //
+// [SONG-PANEL-1 / F-SP1-2] Re-saved as UTF-8 with BOM and PURE ASCII source:
+// this file was Windows-1252 without BOM (0xA7, 0x97 in comments) and compiled
+// only by the compiler's code-page fallback. No behaviour change.
+//
 // WHY POLLING AND NOT AN EVENT:
 // CompositionSession publishes LoopFinished / PartFinished / SongFinished, but
 // there is NO "loop started" event. The pip that must light up is the CURRENT
 // loop, which changes at loop START. We could add a LoopStarted event, but that
-// widens a governed runtime contract for a purely cosmetic consumer — a bad
+// widens a governed runtime contract for a purely cosmetic consumer -- a bad
 // trade for a UI batch. So we poll a cheap struct four times a second and only
 // touch the UI when the values actually changed.
 //
@@ -51,7 +55,7 @@ namespace ALWTTT.UI
             _lastLoop = cur; _lastTotal = total; _lastLocked = locked;
 
             // RedrawAll() destroys and re-creates every part element, so this
-            // list accumulates Unity-null entries. Prune before iterating —
+            // list accumulates Unity-null entries. Prune before iterating --
             // cheap, and it keeps the list from growing across songs.
             for (int i = partElements.Count - 1; i >= 0; i--)
                 if (partElements[i] == null) partElements.RemoveAt(i);

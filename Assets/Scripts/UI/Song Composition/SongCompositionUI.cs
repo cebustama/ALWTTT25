@@ -3,6 +3,7 @@ using ALWTTT.Characters.Band;
 using ALWTTT.Data;
 using ALWTTT.Enums;
 using ALWTTT.Managers;
+using ALWTTT.Tooltips;                               // [SONG-PANEL-1]
 using Melanchall.DryWetMidi.MusicTheory;
 using MidiGenPlay;
 using MidiGenPlay.Composition;
@@ -14,6 +15,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using static MidiGenPlay.MusicTheory.MusicTheory;
+using static ALWTTT.Tooltips.GameTextTemplateIds;    // [SONG-PANEL-1]
 
 namespace ALWTTT.UI
 {
@@ -36,9 +38,16 @@ namespace ALWTTT.UI
         [SerializeField] private Image musicianIconTemplateFromScene;      // optional override
 
         [Header("Visual Defaults")]
-        [SerializeField] private string defaultSongTitle = "Untitled Jam";
-        [SerializeField] private string defaultTheme = "Instrumental";
-        [SerializeField] private string defaultPartLabel = "Part A";
+        // [SONG-PANEL-1 / D-SP1-3=B] The three serialized English defaults are GONE: their
+        // inspector values were monolingual player data, the same failure shape as population 8
+        // (F-T6-9). Player text now comes from the glossary. Part labels are LETTERS everywhere
+        // ("Part B", not "Part 2"): the old code mixed both schemes, and SongPartElementUI
+        // already speaks of "the part letter".
+        private static string DefaultSongTitle => GameText.Format(UiSongTitleDefault);
+        private static string DefaultTheme => GameText.Format(UiSongThemeDefault);
+        private static string ThemeLine(string theme) => GameText.Format(UiSongTheme, theme);
+        private static string PartLabelFor(int index)
+            => GameText.Format(UiPartLabel, (char)('A' + Mathf.Clamp(index, 0, 25)));
 
         [Header("Inspiration")]
         [SerializeField] private GameObject inspirationRoot;
@@ -104,7 +113,7 @@ namespace ALWTTT.UI
         [Serializable]
         public class PartEntry
         {
-            public string label = "Part";
+            public string label;   // [SONG-PANEL-1] set by every creator; GetPartLabel() covers null/empty
             public string tempo = "Slow";
 
             public int measures = 8;
@@ -177,10 +186,13 @@ namespace ALWTTT.UI
         #endregion
 
         #region Lifecycle
-        private void Awake()
+        // [SONG-PANEL-1] Start, not Awake: these lines now read the glossary through
+        // TooltipManager.Instance, and Awake order across scene objects is undefined.
+        // Start runs after every Awake and still before the first rendered frame.
+        private void Start()
         {
-            if (songTitleText) songTitleText.text = defaultSongTitle;
-            if (songThemeText) songThemeText.text = $"Theme: {defaultTheme}";
+            if (songTitleText) songTitleText.text = DefaultSongTitle;
+            if (songThemeText) songThemeText.text = ThemeLine(DefaultTheme);
         }
         #endregion
 
@@ -199,8 +211,8 @@ namespace ALWTTT.UI
         {
             model = new SongModel
             {
-                title = defaultSongTitle,
-                theme = defaultTheme
+                title = DefaultSongTitle,
+                theme = DefaultTheme
             };
             RedrawAll();
             RaiseChanged();
@@ -208,8 +220,8 @@ namespace ALWTTT.UI
 
         public void SetTheme(string theme)
         {
-            model.theme = string.IsNullOrWhiteSpace(theme) ? defaultTheme : theme;
-            if (songThemeText) songThemeText.text = $"Theme: {model.theme}";
+            model.theme = string.IsNullOrWhiteSpace(theme) ? DefaultTheme : theme;
+            if (songThemeText) songThemeText.text = ThemeLine(model.theme);
             RaiseChanged();
         }
 
@@ -341,7 +353,7 @@ namespace ALWTTT.UI
                     tgtId,
                     tgtName,
                     role,
-                    data.DisplayName,
+                    ALWTTT.Tooltips.GameText.CardName(data),   // [TEXT-5 / F-TXT4-3] row label; tracks are keyed by (musicianId, role), never by this string
                     data,
                     desc.styleBundle);
 
@@ -430,9 +442,7 @@ namespace ALWTTT.UI
 
             while (model.parts.Count <= partIndex)
             {
-                var label = model.parts.Count == 0 ?
-                    defaultPartLabel :
-                    $"Part {model.parts.Count + 1}";
+                var label = PartLabelFor(model.parts.Count);
                 var p = new PartEntry
                 {
                     label = label,
@@ -554,7 +564,7 @@ namespace ALWTTT.UI
 
             var label = !string.IsNullOrWhiteSpace(customLabel)
                 ? customLabel
-                : (newIndex == 0 ? defaultPartLabel : $"Part {newIndex + 1}");
+                : PartLabelFor(newIndex);
 
             var p = new PartEntry
             {
@@ -590,7 +600,7 @@ namespace ALWTTT.UI
         {
             // Defensive: no model or no parts → default label
             if (model == null || model.parts == null || model.parts.Count == 0)
-                return defaultPartLabel;
+                return PartLabelFor(0);
 
             // Clamp index into range so we never blow up on edges
             int clampedIndex = Mathf.Clamp(partIndex, 0, model.parts.Count - 1);
@@ -601,9 +611,7 @@ namespace ALWTTT.UI
             // Fallbacks if label is empty / null
             if (string.IsNullOrWhiteSpace(label))
             {
-                label = (clampedIndex == 0)
-                    ? defaultPartLabel
-                    : $"Part {clampedIndex + 1}";
+                label = PartLabelFor(clampedIndex);
             }
 
             return label;
@@ -651,7 +659,7 @@ namespace ALWTTT.UI
 
             var intro = new PartEntry
             {
-                label = "Intro",
+                label = GameText.Format(UiPartIntro),
                 timeSignature = model.parts[0].timeSignature,
                 tempo = model.parts[0].tempo
             };
@@ -662,7 +670,7 @@ namespace ALWTTT.UI
                 intro.tracks.Add(new TrackEntry
                 {
                     musicianId = musicianId,
-                    info = "Lead-in"
+                    info = GameText.Format(UiTrackLeadIn)
                 });
             }
 
@@ -680,7 +688,7 @@ namespace ALWTTT.UI
 
             var outro = new PartEntry
             {
-                label = "Outro",
+                label = GameText.Format(UiPartOutro),
                 timeSignature = model.parts.Last().timeSignature,
                 tempo = model.parts.Last().tempo
             };
@@ -689,7 +697,7 @@ namespace ALWTTT.UI
                 outro.tracks.Add(new TrackEntry
                 {
                     musicianId = musicianId,
-                    info = "Finale"
+                    info = GameText.Format(UiTrackFinale)
                 });
             }
 
@@ -709,7 +717,7 @@ namespace ALWTTT.UI
             var basePart = model.CurrentPart;
             var solo = new PartEntry
             {
-                label = "Solo",
+                label = GameText.Format(UiPartSolo),
                 timeSignature = basePart.timeSignature,
                 tempo = basePart.tempo,
                 tracks = basePart.tracks.Select(t => new TrackEntry
@@ -733,14 +741,14 @@ namespace ALWTTT.UI
                     ?? solo.tracks.FirstOrDefault(t => t.musicianId == musicianId);
                 if (existing != null)
                 {
-                    existing.info = "Improvisation";
+                    existing.info = GameText.Format(UiTrackImprovisation);
                 }
                 else
                 {
                     solo.tracks.Add(new TrackEntry
                     {
                         musicianId = musicianId,
-                        info = "Improvisation"
+                        info = GameText.Format(UiTrackImprovisation)
                     });
                 }
             }
@@ -975,7 +983,7 @@ namespace ALWTTT.UI
         {
             // song title + theme
             if (songTitleText) songTitleText.text = model.title;
-            if (songThemeText) songThemeText.text = $"Theme: {model.theme}";
+            if (songThemeText) songThemeText.text = ThemeLine(model.theme);
 
             // clear parts UI
             foreach (var p in partUIs) if (p) Destroy(p.gameObject);
@@ -1382,20 +1390,14 @@ namespace ALWTTT.UI
                             break;
                     }
 
-                    // Optional: reflect something in the info label.
-                    // [R2c] Read the EFFECTIVE instrument, so RandomFromList
-                    // labels the instrument actually applied instead of
-                    // falling back to the (unused) melodicInstrument field.
-                    var appliedInst =
-                        fx.mode == InstrumentEffect.InstrumentTargetMode.RandomFromList
-                            ? randomListPick
-                            : fx.melodicInstrument;
-
-                    if (track.styleBundle != null && appliedInst != null)
-                    {
-                        track.info = $"{track.styleBundle.name} - " +
-                            $"{appliedInst.InstrumentName}";
-                    }
+                    // [SONG-PANEL-1 / F-T6-8 / D-SP1-1=A] The row label is NEVER rewritten here.
+                    // track.info is the glossary card name set at creation (TEXT-5); the instrument
+                    // actually applied is already carried by overrideMelodicInstrument above and
+                    // resolved for the hover by GigManager.TryGetResolvedInstrumentNameForUI.
+                    // The previous assignment wrote "{styleBundle.name} - {InstrumentName}" - an
+                    // asset name on a player surface, by DATA, invisible to the literal census.
+                    // Deleted, not gated: a second InstrumentEffect on the same track must not
+                    // re-introduce it either.
                 }
 
                 RefreshPartUI(partIndex);
@@ -1514,11 +1516,36 @@ namespace ALWTTT.UI
             if (!before.valid) return;
 
             var entry = SelectFxEntry(comp, before, partIndex, target);
-            if (entry == null || !entry.enabled || string.IsNullOrEmpty(entry.label))
-                return;
+            if (entry == null || !entry.enabled) return;
+
+            // [TEXT-VIBE-1 / D-SP1-6=B] The entry carries no text: the id follows from WHICH entry the
+            // classifier picked. Null id = an unreachable hook entry (Tonality, Modifier); stays silent.
+            string textId = FxTextIdOf(entry);
+            if (textId == null) return;
 
             FxManager.Instance.SpawnFloatingText(
-                compositionFxAnchor, entry.label, compositionFxDir, entry.color);
+                compositionFxAnchor, GameText.Format(textId), compositionFxDir, entry.color);
+        }
+
+        /// <summary>
+        /// [TEXT-VIBE-1 / D-SP1-6=B] Population 8: which glossary template a selected FxEntry prints.
+        /// Reference comparison against the config's accessors, so the mapping lives in code and the
+        /// asset holds toggles and colors only. Returns null for entries no code path selects.
+        /// </summary>
+        private string FxTextIdOf(CompositionFxConfigSO.FxEntry entry)
+        {
+            if (entry == null || fxConfig == null) return null;
+            if (ReferenceEquals(entry, fxConfig.Tempo)) return UiFxTempo;
+            if (ReferenceEquals(entry, fxConfig.Meter)) return UiFxMeter;
+            if (ReferenceEquals(entry, fxConfig.Modulation)) return UiFxKey;
+            if (ReferenceEquals(entry, fxConfig.Instrument)) return UiFxInstrument;
+            if (ReferenceEquals(entry, fxConfig.MajorChange)) return UiFxMajorChange;
+            if (ReferenceEquals(entry, fxConfig.Fallback)) return UiFxChange;
+            if (ReferenceEquals(entry, fxConfig.Rhythm)) return UiFxTrackRhythm;
+            if (ReferenceEquals(entry, fxConfig.Backing)) return UiFxTrackBacking;
+            if (ReferenceEquals(entry, fxConfig.Melody)) return UiFxTrackMelody;
+            if (ReferenceEquals(entry, fxConfig.Harmony)) return UiFxTrackHarmony;
+            return null;   // Tonality, Modifier: design hooks without a text id (see the SO)
         }
 
         /// <summary>

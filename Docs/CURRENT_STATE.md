@@ -30,6 +30,12 @@ This file tracks the currently validated project baseline, active work, and imme
 
 | Batch | Closed | Outcome |
 | --- | --- | --- |
+| TEXT-VIBE-1 | 2026-09-16 | **El desglose dice sólo lo que cambia el número, y la pregunta de autoridad que el mapa de texto arrastraba desde TEXT-6 se contesta una vez.** Fusiona VIBE-READ-1 y TEXT-7 porque comparten una **pregunta**, no un fichero: las poblaciones 8, 10 y 11 preguntan si un sitio que no es el glosario puede guardar texto de jugador. **D-SP1-6=B, en su forma fuerte: el asset no guarda ni el texto ni un id, sino el DATO del que el id se deriva, y el campo de texto se borra.** En la 8, `FxEntry.label` desaparece y el id lo elige el código según **qué entrada seleccionó el clasificador** (`FxTextIdOf`): la categoría *es* la clave. En la 10, los dos `displayName` de compás y tempo desaparecen y la etiqueta pasa a `ui_ctx_meter_<valor>` / `ui_ctx_tempo_<valor>`, derivada del valor de enum que el lookup ya recibe — lo que hace **inescribible** el `Four Four (FourFour)` observado. Se rechazó el id autorado en inspector por el argumento de SONG-PANEL-1: un id tecleado está a una edición de ser erróneo, **y un id erróneo es invisible a la cobertura**. **D1 (F-TIP-6):** el desglose del Vibe suprime una línea cuando **su salida es igual a su entrada**, comparado sobre valores **crudos** en el dominio entero que emite cada paso — no sobre el texto formateado (dos líneas pueden imprimir lo mismo y diferir en el tercer decimal) ni sobre «el multiplicador es 1,00» (dejaría pasar un 1,004 que sí mueve el número y exigiría una segunda regla para el `+ 0`). Hype y la línea final siempre se imprimen; `Blocked` e `Indiferencia` quedan intactas porque **explican un cero**. **Revierte por observación** el criterio de BIGNUM-1 escrito sobre la propia función, igual que se revirtió D-BN-9. Coste declarado y aceptado: un redondeo sin factor (12,4 → 12) deja de verse — ST-TV-5 existe sólo para ese caso. **D3=A:** la población 11 se migra en el mismo pase que reescribe su productor, **sin depender de D-SP1-6**, porque es texto **en código** y ése precedente está fijado desde TXT-4. **D5 — el conjunto de ids deja de ser una lista literal:** `GameTextTemplateIds.All` se construye en la inicialización del tipo como `Fixed` + un id por valor de `TimeSignature` + uno por `TempoRange`, acoplado por **nombre** de enum por la razón de frontera de §8.10 (un rename package-side debe degradar a miss visible, nunca a error de compilación). Plantillas **73 → 102**, trece de ellas derivadas. **Siete hallazgos, y tres son de método**: **F-TV-5** — la cobertura es **asimétrica** (un id que falta grita; un id que sobra es invisible), así que una lista de ids escrita a mano falla en las **dos** direcciones a la vez y sólo se reporta una: ocurrió en el lote, con `ui_ctx_meter_fiveeight` (valor inexistente) desplazando a `ui_ctx_meter_fivefour`, que **una carta C2 del starter deck alcanza en la demo**; **F-TV-6** — el oráculo de regresión perdió su línea base (`golden C` no existe), el check 4 **no se corrió** y se sustituyó por tres comprobaciones débiles más un argumento por construcción, con `golden D` establecido y la exigencia de que la base viva bajo control de versiones; **F-TV-3** — un literal (`VibeOnlyHeader = "Vibe"`) sobrevivió dentro de una población declarada RESUELTA, porque una población resuelta no se vuelve a censar. Más **F-TV-1** (`Songs left`, no migrado por orden de inicialización, D4=B), **F-TV-2** (dos ficheros más en Windows-1252, tercera y cuarta recurrencia de F-T6-1), **F-TV-4** (`"+N Vibe!"` en `GigManager`) y **F-TV-7** (`PartEffect.GetLabel()`, productor de texto de jugador nunca censado, que además crea un **segundo hogar** para el compás: la fila de contexto imprime `5/4` desde el glosario y el modal `Meter 5/4` desde código). **Cierra F-T6-9, F-TIP-2, F-TIP-6, F-TV-2 y F-TV-3; F-SP1-13 cierra en dos tercios** — `RoleEntry.displayName` queda abierta porque su consumidor no se leyó, y migrar un consumidor no leído es una conjetura con un id encima. Corrección de censo: `Happy`/`Sad` **nunca fueron texto de asset** (`MoodTag` es un enum ⇒ F-TXT4-2), y el tema tenía **tres** campos de texto, no dos. **Fingerprints:** Concepts `1bfbc375…` (43 × 2) · Cards `7012d489…` (60 × 2, **sexto lote consecutivo intacto**) · Templates `37516c1c1e4bac50a9dcd7bd96da840b2e402ff7` (102 × 2). **ST-TV-1..12 PASS, cero diferidos** — y ST-TV-4 ejercitó Indiferencia con el selector de Dev Mode, lo que convierte la nota de ST-TXT4-14 en una afirmación sobre **contenido**, no sobre testabilidad. Autoridad: `systems/SSoT_Game_Text.md` §1/§5/§7/§8/§9 · `planning/Design_Vibe_Telegraph_v0_1.md` §10.2 · `systems/SSoT_Editor_Authoring_Tools.md` §20.12 · `integrations/midigenplay/SSoT_ALWTTT_MidiGenPlay_Boundary.md` **§8.13 nueva** · `SSoT_Card_System.md` §10.3. Doc-pass **TEXT-VIBE-1-DOC** aplicado en la misma sesión. Detalle en `changelog-ssot.md`. |
+| TIP-1 | 2026-09-15 | **El pipeline de tooltips deja de ser de nadie: gana contrato, gana hogar, y los dos defectos que arrastraba desde BIGNUM-1 se cierran.** **D-TIP-1=A:** nace `systems/SSoT_Tooltip_Pipeline.md`. BIGNUM-1-DOC había decidido NO crearlo y esa decisión **se revierte con un argumento nuevo, no con un cambio de gusto**: aquel lote no tocaba el contrato y éste sí, y entretanto SONG-PANEL-1 añadió un **tercer** consumidor de superficie de tooltip (`TrackHoverPanel` + fila de contexto) que resolvió su colocación por su cuenta — que es exactamente lo que produce un pipeline sin dueño. Se descubrió además una **contradicción de autoridad latente**: `ssot_manifest.yaml` asignaba la carpeta `Assets/Scripts/UI/Tooltips` entera a `SSoT_Game_Text.md`, cuyo §4 declinaba la propiedad por escrito («TIP-1 owns it»), mientras la única regla de anclaje escrita vivía en un doc de **planning** (`Design_Vibe_Telegraph` §10.6). La carpeta pasa a repartirse **por fichero**: texto aquí, transporte allí. **D-TIP-2=B — F-BN-8 CERRADA:** el espacio del anchor se **infiere del root canvas** del target (Overlay ⇒ `.position` ya es el píxel, sin cámara; Screen Space – Camera ⇒ cámara del canvas; World ⇒ `cam ?? Camera.main`, rama intacta). Se rechazó el parámetro explícito porque **el espacio es propiedad del transform, no de la llamada**: con un enum, ocho llamadores pueden equivocarse; con la inferencia, ninguno. Retira el anchor de runtime **D-BN-18=B″** (GameObject `DontDestroyOnLoad` aparcado cada frame), verificado ausente en ST-TIP-3. **D-TIP-3=B — F-BN-7 CERRADA y F-TXT4-11 RESUELTA por reencuadre:** `ShowTooltip` se declara **push** (N llamadas, N paneles) en la invariante dura `TOOLTIP-SHOW-IS-A-PUSH`, y nace `UpdateTooltip`, que reescribe un panel ya mostrado sin crear otro, sin reiniciar el fundido y sin tocar el contador. El apilado **no se elimina**: es lo que quieren el hover de carta (§10.2) y el canvas de público. La superficie que se tropezaba con él (el readout C1, contenido vivo) recibe entrada propia. Se rechazó renombrar a `PushTooltip` y añadir un `bool stack`: ambas tocaban ocho llamadores para no cambiarles el comportamiento. **Regla asignar → reconstruir → medir → colocar**, incondicional, en las dos entradas: la columna es content-sized y su rect va un pase de layout por detrás, así que clampear contra el rect rancio coloca el panel con el **tamaño del tooltip anterior** — misma forma que **F-SP1-12**, invisible con fundido (alpha 0) y visible como salto de un frame al actualizar en el sitio. **Regla de orden de clamps:** se añaden izquierda y abajo, y gana el último aplicado (izquierda/arriba), porque la cabecera va en la primera línea. **Tres ficheros editados** (`TooltipManager.cs`, `TooltipController.cs`, `VibeReadoutTooltipTarget.cs`), **cero consumidores tocados** — la firma de `ShowTooltip` sólo gana un parámetro opcional al final. `GigCanvas` **no se tocó**: el anchor de runtime no vivía ahí, vivía entero en `VibeReadoutTooltipTarget` (corrección al encuadre de apertura del lote). `TrackHoverPanel` y `CompositionContextRowUI` quedan **fuera del pipeline** a propósito, como implementaciones conformes independientes (**F-TIP-5**, abierta sin lote). **El lote NO toca texto de jugador:** plantillas **73** sin cambio, y los tres fingerprints declarados **intactos** — Concepts `1bfbc375…` (43 × 2) · Cards `7012d489…` (60 × 2, **quinto lote consecutivo**) · Templates `af11363b…` (73 × 2); golden C 0 hunks. Barrido de bytes de los tres `.cs`: `nonASCII=0`. **ST-TIP-1..10 PASS**, incluidas las cinco regresiones que importaban (apilado de público, apilado de carta, world-space, hover del tutorial, D-BN-15) y el caso de historial hover alto → bajo → alto. **Hallazgos:** **F-TIP-1** (byte no ASCII en `VibeBarTooltipTarget.cs`, familia F-T6-1) · **F-TIP-2** (el tooltip del readout C1 es ES hardcodeado en `GigCanvas.BuildReadoutTooltip` ⇒ **población 11** del mapa de texto, ausente hasta hoy: **estrecha** la afirmación de cierre de SONG-PANEL-1) · **F-TIP-3** (`TooltipText` mide el header inactivo) · **F-TIP-4** (`screenOffset` se lee al abrir el hover, no cada frame) · **F-TIP-5** · **F-TIP-6** (el desglose imprime pasos que no cambian nada — **revierte por observación** el criterio de BIGNUM-1 «every line is shown even when neutral», igual que se revirtió D-BN-9; regla acordada: suprimir una línea cuando **su salida es igual a su entrada**). F-TIP-2 y F-TIP-6 → **VIBE-READ-1**. **F-TXT4-8 NO entra**: se queda con hogar en `SSoT_Audience_and_Reactions` §6.4. Autoridad: **`systems/SSoT_Tooltip_Pipeline.md` (alta)** · `systems/SSoT_Game_Text.md` §1/§4/§8/§9 · `SSoT_Card_System.md` §10.2 · `planning/Design_Vibe_Telegraph_v0_1.md` §10.2/§10.6/§10.7 · `ssot_manifest.yaml`. Doc-pass **TIP-1-DOC** aplicado en la misma sesión. Detalle en `changelog-ssot.md`. |
+| SONG-PANEL-1 (+1b, +1c) | 2026-09-14 | **La fila de pista deja de mentir, el panel se lee entero, y el criterio ES se contesta con una lista en vez de con un sí o un no.** Fusiona TEXT-6b y HUD-COMP-2 (D-NEXT-1=B). Cierra **F-T6-8**: `SongCompositionUI` reasignaba `track.info` a `"{styleBundle.name} - {instrumentName}"` tras resolver un `InstrumentEffect`, y la fila mostraba un nombre de asset donde el glosario tiene el nombre de carta. **D-SP1-1=A:** la fila muestra el nombre de carta y **`TrackEntry.info` se escribe una sola vez, al crear la pista** — el arreglo es una supresión, no una guarda, porque el defecto no era la redacción sino la existencia de un **segundo escritor**; verificado contra una **segunda** aplicación sobre la misma pista (ST-SP1-2), que es donde una guarda habría fallado. **D-SP1-3=B:** el recuento heredado (cuatro literales) estaba mal por un factor de tres — el censo del productor dio **catorce** — y además faltaba un productor entero, `CompositionContextRowUI` (**F-SP1-1**, cuarta recurrencia de F-T6-2 y la primera en que lo que se pierde es un **fichero**, no una rama). Tres defaults `[SerializeField]` con texto de jugador en el inspector se **borran**, no se migran; las dos líneas de título/tema pasan de `Awake` a `Start` porque una lectura de glosario depende de `TooltipManager.Instance` y el orden de `Awake` no está definido; las etiquetas de parte se unifican a **letras** («Parte B», no «Parte 2»). **D-SP1-2=B:** el toggle de información de desarrollo vive **dentro** del `#if ALWTTT_DEV`, así que la condición de reapertura de **D-T6-4** se probó y **no se disparó**: D-T6-4=A queda **confirmada**, no invertida. **D-SP1-4=B:** los floaters de percusión («Kick», «Snare», «HH cl»…) son diagnóstico de RFX-1 con los dos gates apagados y pasan a exclusión por compilación **sin id** — dar id a texto de desarrollo invertiría `GAMETEXT-NO-DEV-LABEL`; sólo el fallback `Chord (…)`, alcanzable por defecto, recibe plantilla. **D-SP1-5=C** (ver abajo). **D-SP1-6=B diferida a TEXT-7.** **Dos poblaciones nuevas**: la **9** (hover de la fila de contexto) RESUELTA con ids `ui_ctx_*`; la **10** (`CompositionStripThemeSO`: `Four Four (FourFour)`, `Fast (Fast)`, `Happy`, `Sad`) **ABIERTA** — y se escopa **junto a la población 8**, porque son la misma pregunta de autoridad (¿un asset guarda texto de jugador o un id?) y migrar una sola crearía dos precedentes. **F-SP1-2 / F-SP1-7:** `TrackHoverPanel.cs` apareció **de vuelta en Windows-1252** (F-T6-1 se había cerrado sin verificar el fichero **en disco**) y `CompositionContextRowUI.cs` estaba igual; el barrido de bytes tras el arreglo explica la recurrencia y **corrige la regla**: la sustitución aterrizó con `nonASCII=0` pero `BOM=False` — Unity se come el BOM al importar. **La defensa es la fuente ASCII pura; el criterio de cierre es `nonASCII=0`, no `BOM=True`.** **F-SP1-5 y F-SP1-6:** al quitar por primera vez el tag `ALWTTT_DEV` la build **no compilaba** — cinco gates de log de producción leían el accesorio dev `GigManager.DevSettings` (**D-SP1-5=C:** nacen `LogsEnabled` / `VerboseLogsEnabled`, compiladas en toda build, y `DevSettings` no se usa fuera de DevMode) y un helper privado, `DevSetSongHypeAbsolute`, había quedado dentro del `#if` en S5f mientras su llamador (el slider de escena, guardado en runtime) no. **Es la primera vez que se verifica que la build de jugador compila.** **F-SP1-10:** «1 musicians silent» — el literal escondía una rama singular que la plantilla hace **inescribible** (`ui_ctx_musician_silent_one` / `_many`). **F-SP1-11:** «Loop 1 de 0» — sin total no se afirma el total. **F-SP1-12:** el panel se colocaba con el tamaño del tooltip **anterior** (es content-sized y `panel.rect` va un pase de layout por detrás), así que pasar de una fila de pista al hover de contexto lo mandaba fuera de pantalla; se fuerza el rebuild antes de medir, **incondicionalmente**, porque la posición no puede depender del historial del ratón — misma forma que **F-BN-8**, que hereda TIP-1. **F-SP1-9 ABIERTA → economía de acción:** Overload extiende la parte y paga un loop cuyo contenido otra carta del mismo músico puede sustituir. Plantillas 54 → **73**. **ST-SP1-1..16 PASS** salvo **ST-SP1-5 / ST-SP1-6 (no testeables: no existen cartas Intro/Outro ni canciones multiparte)**; los ids quedan **vivos e inertes**, como `ui_track_level`. Fingerprints: Concepts `1bfbc3755e8ad348c3d5a6d4633f00ac4d90661e` (43 × 2) · Cards `7012d4898044ef3e67c5bd2587be50786e31815b` (60 × 2, **intacto por cuarto lote consecutivo**) · Templates `af11363bd984f5c43072520ae6ebd06a6fdd803c` (73 × 2). Golden C: 0 hunks. **El criterio «la build ES no muestra inglés salvo nombres de enum y de asset» queda *cumplido para el texto autorizado en código y abierto para el autorizado en assets*** — una afirmación más útil que el booleano con el que nació, y la razón de que el lote siguiente sea una decisión sobre assets y no otro barrido → **TEXT-7**. Autoridad: `systems/SSoT_Game_Text.md` §1/§5/§7/§8/§9 · `SSoT_Card_System.md` §10.1 · `SSoT_Dev_Mode.md` §6.1 · `planning/Design_Action_Economy_v1.md`. Detalle en `changelog-ssot.md`. |
+| TEXT-6 | 2026-09-14 | **El panel de canción deja de hablar inglés y el público explica lo que va a hacer — y el censo de texto deja de darse por cerrado.** Cierra **F-T5-1** y **F-T5-2**, ambas con **el recuento corregido**: los cuerpos de habilidad genéricos eran **siete de siete**, no dos, y los literales del panel eran **siete**, no tres, más uno bajo `#if ALWTTT_DEV`. Las dos se habían contado desde una muestra (un vistazo a las entradas, una captura) en vez de desde el productor. **D-T6-1=C:** el cuerpo de una habilidad lleva gancho de personaje **y** mecánica, **sin números** y **sin `<link=>`** — sin números porque el valor telegrafiado es `ActionList[0].ActionValue`, que no siempre es el daño (`ab_heckle` telegrafía `x1`, sus stacks de Expuesto, y pega 2 de Stress: **F-T6-5**), y sin links porque apilar paneles es de TIP-1. Los siete cuerpos se escribieron **contra los `actionList` leídos de los cinco assets**, no contra los nombres de habilidad. **D-T6-3=B:** seis ids nuevos `ui_track_*` y **reutilización** de `ui_card_detail_modifiers` para el rótulo `Modifiers` — un id nuevo habría sido más barato y erróneo, porque dos ids para un concepto divergen en cuanto un traductor los rinde distinto y **la cobertura no comprueba que dos ids concuerden**. **D-T6-4=A:** `Bundle:` se queda literal mientras esté excluido en compilación; si pasa a toggle de runtime vuelve a ser superficie de jugador y la decisión se reabre. **D-T6-5=A:** `ab_tantrum` es SHARED por dos assets con **targets distintos** (F-T6-4) — se contiene en la redacción, no en los assets, porque cuál es el correcto es contenido. **Tres poblaciones nuevas en el mapa de texto**: la 7 (literales del hover de pista) RESUELTA; la 8 (`CompositionFxConfigSO.FxEntry.label`, monolingüe, sin pestaña ni CSV ni cobertura) **ABIERTA** como F-T6-9; y una **forma de fallo nueva**, **F-T6-8**: `track.info` se **sobrescribe en runtime** con `"{styleBundle.name} - {instrumentName}"`, de modo que la fila muestra un nombre de asset donde el glosario tiene el nombre de carta y la minicard de al lado muestra el nombre bueno — **violación de `GAMETEXT-NO-DEV-LABEL` por dato, no por literal**, invisible a los dos métodos de censo anteriores. **F-T6-1:** `TrackHoverPanel.cs` estaba en Windows-1252 **sin BOM** y compilaba solo por el fallback de página de códigos del compilador; transcodificado a UTF-8 con BOM y separador como escape `\u00B7`. **Tercera desviación EN declarada** (siete cuerpos; precedente D-TXT4-8 / D-T5-6). **ST-T6-1..12 PASS** salvo **ST-T6-3 / ST-T6-3R (no testeables: el nivel de pista no está implementado)**; `ui_track_level` y `ui_track_level_max` quedan **vivas e inertes**. Fingerprints: Concepts `1bfbc3755e8ad348c3d5a6d4633f00ac4d90661e` (43 × 2) · Templates `e26fead6736ef4c7ea69d75f8badc28c6f1bd6fb` (54 × 2) · Cards `7012d489…` **intacto por tercer lote consecutivo**. Golden C: 0 hunks. **El criterio «la build ES no muestra inglés salvo nombres de enum» sigue NO CUMPLIDO**, por segunda vez registrado como incumplido en vez de declarado cerrado — pero ahora con lista exacta de lo que falta → **TEXT-6b**. Autoridad: `systems/SSoT_Game_Text.md` §1/§5/§7/§8/§9 · `systems/SSoT_Audience_and_Reactions.md` §7 + **§7.1 nueva** · `systems/SSoT_Editor_Authoring_Tools.md` §20.2. Detalle en `changelog-ssot.md`. |
+| TEXT-5 | 2026-09-11 | **El texto de jugador termina de salirse del código: se cierra la última etiqueta de desarrollo y aparece la población que el censo había perdido.** Cierra **F-TXT4-3**, **F-TXT4-7**, **F-TXT4-10**, la mitad migrable de **F-TXT4-2** y **F-DOC4-1**. **D-T5-1a=A:** la clave del texto de una habilidad es un `abilityId` estable, no su nombre — un nombre es contenido y se mueve con la escritura, un id es identidad. **D-T5-1=A:** una entrada de concepto por habilidad (nombre = cabecera del tooltip, descripción = cuerpo), no dos ids ni una plantilla: las dos mitades no se muestran nunca por separado, y partirlas habría creado un id cuyo único consumidor es media ventana. **D-T5-2=B:** la cultura numérica viaja en el asset de idioma (`ConceptGlossarySO.numberCulture`, `GameText.Number`) con invariante como *fallback* explícito; **el hallazgo estaba mal titulado** — `ToString("0.00")` no usaba cultura invariante sino **`CurrentCulture`**, así que la línea dependía de la máquina que corría la build y no del idioma elegido. **D-T5-3=A:** el literal `"COMPOSITION"` vivía en **dos** ficheros (`CardBase`, `CardDetailViewController`), no en uno; ambos pasan a la plantilla `ui_card_type_composition` (plantillas 47 → 48). **D-T5-4=A:** los keywords del modal dejan de ser `ToString()` de enum y resuelven por glosario. **D-T5-5=A:** un `abilityId` compartido por dos personajes es **correcto** — una entrada, no dos copias que divergen; el sembrador lo reporta como `SHARED`, no como `DUPLICATE`. **D-T5-6=A:** errata EN corregida, **segunda desviación EN declarada** tras D-TXT4-8. Fichero nuevo: `Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs` — el **único conjunto de cobertura del proyecto enumerado desde assets** y no declarado en código, con centinela `EMPTY:<asset>[i]` para el id vacío; por eso los SSoT dan el recuento de ids de habilidad y no la lista. Conceptos 36 → **43**. **Fingerprints:** Concepts `7e22a03f…` (43 × 2) · Cards `7012d489…` (60 × 2, **byte-idéntico a TXT-4** — la prueba de que el lote movió **lectores** y no el registro) · Templates `feb4add8…` (48 × 2). **Golden C: 0 hunks.** **ST-T5-1..12 PASS salvo ST-T5-5, DIFERIDO** (ninguna carta del catálogo lleva keyword: el camino existe y está sin ejercer, no «no aplica» — ver F-TXT-3-6); R1–R3 especificados y no ejecutados. **El criterio de cierre heredado —«la build ES no muestra inglés salvo nombres de enum»— NO se cumple**, por **F-T5-2**, y se registra como incumplido. Abre **F-T5-1** y **F-T5-2** → TEXT-6. Autoridad: `systems/SSoT_Game_Text.md` §1/§3.1/§5/§6/§7/§8/§9 · `SSoT_Card_System.md` §6.2/§10.3 · `SSoT_Audience_and_Reactions.md` §7 · `SSoT_Editor_Authoring_Tools.md` §20.11/§20.13 · `ssot_manifest.yaml` (invariante `GAMETEXT-NO-DEV-LABEL` **promovida**). Detalle en `changelog-ssot.md`. |
+| TXT-4 | 2026-09-11 | **El texto de carta deja de tener un solo idioma, y las descripciones se componen en vez de escribirse.** Cierra **F-TXT-3-5**, **F-TXT-2-1** y **O-TXT-3**. **D-TXT4-1=a:** alcance completo —nombres, descripciones generadas y los 13 literales— porque las tres poblaciones comparten el mismo registro y partirlas habría construido el mismo pipeline dos veces. **D-TXT4-2 = patrón propio, O-TXT-3 CERRADA:** `com.unity.localization` **verificado ausente**; nuevo disparador de revisión = tercer idioma o traductor externo real. **D-TXT4-3=b′:** las descripciones se almacenan como **47 fragmentos** con placeholders posicionales (`ConceptGlossarySO.templates`, ids declarados en `GameTextTemplateIds.All`), **no como frases** — un retuneo de balance no obliga a re-autorar texto, que es la razón de no almacenar la descripción acabada. **D-TXT4-4:** los **60 nombres de carta** entran en `ConceptGlossarySO.cardNames` con pestaña propia; `CardDefinition.displayName` pasa a **etiqueta de desarrollo**, mismo criterio que `StatusEffectSO.displayName` en TXT-3 — **es un MOVIMIENTO, no una copia**. **D-TXT4-5/6/7:** vocabulario de rich text declarado `{sprite, color, b, i, u, size, link}`, **sprites por nombre y nunca por índice** (el atlas TMP renumera al reimportar), un Sprite Asset global en TMP Settings en vez de uno por familia, y paridad de sprites y de placeholders en las tres tablas. **D-TXT4-8=A:** única desviación EN declarada (`fx_grant_bonus_loop` / `_solo`), verificada en aislamiento. **Dos entradas, un registro:** `ConceptTooltipResolver` responde hovers, `GameText` responde el resto; mismo asset, mismo asiento, leído en tiempo de llamada. **ST-TXT4-1..12 PASS**; ST-TXT4-13 y ST-TXT4-14 diferidos con motivo (no existe atlas de sprites; ningún contenido aplica Indiferencia). Fingerprints: Concepts `6632813b…` (36 × 2, intacto desde TXT-3) · Cards `7012d489…` (60 × 2) · Templates `d6ffe212…` (47 × 2). **Once hallazgos:** tres cerrados en el lote (**F-TXT4-1** el builder leía la etiqueta de desarrollo — violación silenciosa del invariante de TXT-3, sin deuda acumulada · **F-TXT4-4** log de import que no declaraba idiomas · **F-TXT4-5** contracción «a el» y la regla de autoría que deja) y seis abiertos con lote asignado (F-TXT4-2/3/7/10 → TEXT-5 y CARD-FACE-1 · F-TXT4-8/11 → TIP-1). **Sexta población de texto descubierta** (F-TXT4-7), que el censo de TXT-1 perdió por recorrer ficheros de código en busca de literales cuando esta población se autoriza como dato. Autoridad: `systems/SSoT_Game_Text.md` §1/§2.1/§3.1/§5/§6/§7/§9 · `SSoT_Card_System.md` §10.1/§10.2/§10.3 · `SSoT_Editor_Authoring_Tools.md` §20.2/§20.8/§20.12 · `SSoT_Status_Effects.md` §3.3 · `SSoT_Audience_and_Reactions.md` §6.4/§7. Detalle en `changelog-ssot.md`. |
 | TXT-3 | 2026-09-10 | **El texto de jugador de estados y keywords tiene un solo hogar y dos idiomas.** Cierra **T-TAG-1**. **D-TXT3-0=B — es un MOVIMIENTO de autoridad, no una copia:** los 12 estados y los 7 keywords salen de `StatusEffectSO` (`displayName`/`description`) y de `SpecialKeywordData` (`contentText`) y entran en `ConceptGlossarySO` EN/ES (17 → **36 ids**), por CSV importable, nunca pegados en C#. **D-TXT3-2=a:** `displayName` **se queda pero cambia de contrato** — etiqueta de desarrollo (nombre de fichero vía auto-rename, logs, listas de editor, semilla de `statusKey`); ninguna superficie de jugador lo lee. Borrarlo habría sido un lote de tooling de assets, no de texto. **D-TXT3-3=a:** `description` **eliminado**, no vaciado-deprecated: los consumidores migran en el mismo runbook y una ranura vacía se rellena sola en seis semanas. **D-TXT3-4=A:** un solo registro, **sin fallback de migración** — con el movimiento aplicado de forma atómica no hay a qué caer, y un fallback dormido invita a rellenar el campo que lee. La invariante deja de ser *el orden* y pasa a ser *un solo hogar*. **D-TXT3-5=A:** el glosario activo vive en `TooltipManager` (el asiento que ocupaba `SpecialKeywordData`); campo serializado y propiedad, **sin tocar `ShowTooltip`/`HideTooltip`** — TIP-1 sigue abierta e intacta. **D-TXT3-8:** `SpecialKeywordData` retirado (clase + asset + fila de `ALWTTTProjectRegistriesSO`); sin `contentText` sería una lista de enums sin dato. **D-TXT3-9=A:** el nombre del floater se resuelve **dentro** de `SensoryFtPresentation`, no en el adaptador, porque el trabajo declarado de esa clase es decidir texto y color en un solo sitio (D-S2-7=A). **La regla de la ventana se invierte:** `DUPLICATE: status owns it` desaparece y nace `COVERAGE` — el solape entre `StatusKey` e id de glosario pasa de error a obligación, y el hueco es el fallo; se reporta como bloque y no como badge de fila porque **un id que falta no tiene fila que badgear**. **Política de fallo visible:** id sin entrada ⇒ id crudo + un warning por sesión, **nunca** fallback a `displayName` (sería volver a hacerlo texto de jugador por la puerta de atrás). **Hallazgos:** **F-TXT-3-1** (cuarto consumidor no censado — el floater de status leía `DisplayName`; en ES habría dibujado «+COMPOSURE» bajo un tooltip «Compostura». Se encontró al cerrar, porque lee un *nombre* y no un tooltip) · **F-TXT-3-4** (`ALWTTTProjectRegistriesSO` sostenía la referencia a `SpecialKeywordData` sin consumir texto; lo atrapó la precondición-grep del paso 8, que debería haber estado en el paso 0) · **F-TXT-3-5** (nombre y descripción de carta: una ranura implícita; la descripción **no existe como dato**, la genera `CardEffectDescriptionBuilder` ⇒ TXT-4 no puede reutilizar el movimiento de TXT-3) · **F-TXT-3-6** (los keywords no aparecen en la cara de la carta ni en el modal; densidad de información, no idioma ⇒ CARD-FACE-1, con dependencia de TIP-1) · **F-TXT-2-1 censada** con sus 13 literales exactos. **ST-TXT3-1..12 PASS**, incluidas tres regresiones (logs conservan el nombre; sin NRE ni paneles huérfanos; la puerta `DeltaStacks > 0` de ST-W7 intacta). **Pendiente declarado: TXT-3b** — `TutorialOverlayView` sigue llamando al constructor `[Obsolete]` y `TutorialController` sigue con `conceptStatusCatalogues`; compila con un `CS0618` a propósito, y cerrarlo cierra **R-1** (nada sincroniza el idioma de los dos glosarios asignados por inspector). Autoridad: `systems/SSoT_Game_Text.md` §1/§3/§5/§6 · `SSoT_Status_Effects.md` §3.3 · `SSoT_Card_System.md` §3.3/§10.2 · `SSoT_Editor_Authoring_Tools.md` §20.2/§20.4/§20.11. Detalle en `changelog-ssot.md`. |
 | TXT-2 | 2026-09-10 | **Lenguaje de tags de conceptos: el texto de jugador señala conceptos sin definirlos.** `<link=id>texto visible</link>` nativo de TMP en el `.asset`, decorado en **un único punto** (`ConceptTagRenderer.Decorate`) después de resolver `{$token}` (**D-TAG-1=A′**; una sintaxis propia sin preprocesador pinta corchetes literales, `<link>` sin decorador pinta texto plano — se eligió el fallo invisible). **D-TAG-2=C:** `ConceptTooltipResolver` consulta **estado → keyword → glosario**, primero que acierte gana; el glosario (`ConceptGlossarySO`, uno por idioma, **D-TAG-2b=(i)**) va último y sólo posee ids que nadie más posee, así que no puede tapar un hogar existente — **la invariante es el orden, no el registro**. **D-TAG-5=D:** hover por `TMP_TextUtilities.FindIntersectingLink` (sin raycast: los gates del tutorial son irrelevantes) con `Hide`→un solo `Show` **sin transform** por cambio de link, lo que deja **F-BN-7** y **F-BN-8** fuera de alcance sin tocar `TooltipManager` ni `TooltipController` — **TIP-1 sigue abierta e intacta**. **D-TAG-8=A aplicada:** el canvas de tooltips estaba por debajo del overlay y el panel salía detrás del bocadillo; subido (el modal de detalle de carta debe seguir por encima, `SSoT_Card_System` §10.3). **D-TAG-6:** la ventana marca `TAGS differ` / `MECHANIC TAGS differ` / `TAG unknown` / `TAG unclosed`, por la misma razón que los `{$token}`. Vocabulario v1 = 24 ids (**D-TAG-3=B**): 3 keyword + 4 estado + 17 glosario. Texto mecánico de los 24 ids reescrito y taggeado en EN + ES: **2 283 → 1 607 palabras (−30 %)**. Superficie de texto = sólo `mechanicText` (**D-TAG-4**); las páginas con voz y las descripciones de carta quedan sin taggear aunque la capacidad las alcanza. **Autoridad nueva (D-TAG-9=A):** `systems/SSoT_Game_Text.md`, dueño de la fontanería del texto de jugador y explícitamente no del significado de ningún concepto. ST-TAG-1..10 + regresión PASS; round-trip CSV limpio con tags; `StatusKey` de `flow`/`composure` verificados (cierra el riesgo R2 de apertura). Hallazgos: **F-TXT-2-1** (cinco poblaciones de texto, no tres) y **T-TAG-1** (7 tooltips en inglés dentro del tutorial ES, D-TAG-10=A, lo cierra TXT-3). Detalle en `changelog-ssot.md`. |
 | TUT-TXT-1c | 2026-09-09 | **La copy del tutorial deja de existir en C#.** `TutorialDialogCatalogSO` pasa de **6 seeders con texto a 2 de estructura** sobre una tabla única de 34 ids (id, prioridad, categoría, `highlightKey`) — estructura **verificada idéntica en EN y ES**, así que una tabla basta. `Add()` crea el asset si falta y, si existe, llama al nuevo `TutorialDialogSO.EditorSeedStructure`, que **no puede** tocar `revisitTitle`, `pages` ni `mechanicText`. `BeginSeed`/`dialogs.Clear()` **retirados**: ningún menú del asset puede reducir el catálogo de 34 a 3. El fichero pasa de 470 a 299 líneas; la diferencia es copy borrada. **D-TT-6=C revierte D-TXT-3** (ver §4). **Orden obligatorio del lote:** rescatar la copy por import ANTES de vaciar el C# — para tres diálogos la única versión buena del árbol de trabajo estaba en los literales del seeder. Cerradas así **F-TT-1, F-TT-3 y F-TT-4**. **D-TT-7=A**: el CSV de recuperación vive en `Assets/Resources/Data/Tutorial/`. **ST-TT-9..14 PASS**, incluido **ST-TT-13** (borrar un asset → re-sembrar estructura → importar CSV → diálogo completo), que es la prueba de la ruta de recuperación entera. Autoridad: `SSoT_Editor_Authoring_Tools.md` §20.10 · `Design_Tutorial_System_v0_3.md` §5A.1/§5A.5. |
@@ -90,6 +96,50 @@ package-threaded seed") is superseded in spirit by the seed-variety policy
 with intra-song stability, not per-build reproducibility.
 
 ## 2. Active work
+
+- **TEXT-VIBE-1 — cerrado 2026-09-16 (código, datos y smokes); documentación aplicada el mismo día
+  (TEXT-VIBE-1-DOC).** El tooltip que explica de dónde sale el Vibe ya sólo enseña los pasos que
+  **mueven el número**, y las tres últimas superficies que guardaban texto de jugador fuera del
+  glosario dejan de hacerlo.
+
+  **Mostrable hoy:** en una partida ES, el desglose de la barra de un espectador sin gustos casados,
+  sin Flow y sin SFX es de **dos líneas** —«Hype de la canción: N» y «Al acabar la canción: −N»— en
+  vez de seis, cuatro de ellas inertes; el readout C1 y los chips de compás/tempo hablan español;
+  los floaters de composición salen traducidos. **Aristas aceptables para enseñarlo:** el modal de
+  detalle de carta sigue en inglés en la línea de modificadores (**F-TV-7**) y muestra nombres de
+  asset de style bundle (F-TXT4-2); «Songs left» sigue en inglés (**F-TV-1**, deliberado).
+  **Antes de enseñarlo a un publisher:** nada bloqueante; F-TV-7 es lo primero que notaría alguien
+  que abra un modal en la build ES.
+
+  **Lo que cambió de fondo** no es que haya 29 plantillas más: es que **un asset deja de poder
+  guardar texto de jugador, y tampoco guarda un id** — guarda el dato del que el id se deriva
+  (D-SP1-6=B). Y con ello, por primera vez, una parte del conjunto de cobertura **no la escribe una
+  persona**: `All` enumera dos enums del paquete, así que un valor nuevo pone la pestaña en rojo sin
+  que nadie edite nada. El lote demostró por qué importa en el peor sitio posible — el propio dato
+  que sí escribió una persona (una lista de ids transcrita a mano) entró con un valor inexistente y
+  desplazó a uno **alcanzable en la demo**, y la cobertura sólo reportó la mitad del error (F-TV-5).
+
+- **TEXT-5 — cerrado 2026-09-11 (código y datos); documentación aplicada 2026-09-14 (TEXT-5-DOC).**
+  Una partida completa en español **sin etiquetas de desarrollo en pantalla**: nombres de carta,
+  descripciones compuestas, etiqueta de tipo, etiquetas de pista, tooltips de estado, el desglose de
+  Vibe con coma decimal y las **intenciones del público**, que hasta este lote no existían como
+  texto traducible en ningún sitio.
+
+  **Mostrable hoy:** un enemigo que telegrafía «Rabieta / Este personaje va a infligir Stress.» sobre
+  su propio retrato. **Aristas aceptables para enseñarlo:** nombres de enum en cara de carta y en
+  filas de pista (`Rhythm`, `Backing`) y nombres de asset de style bundle — los dos son F-TXT4-2 y su
+  arreglo es simbólico (iconos), no textual. **Antes de enseñarlo a un publisher:** **F-T5-2**, los
+  literales `Instrument:` / `bundle:` / `Modifiers:` del panel de canción, porque están en el centro
+  de la pantalla de composición y salen en cada jugada.
+
+  **Lo que cambió de fondo** no es una lista más en el glosario: es que el proyecto ya no tiene
+  **ninguna** superficie de jugador leyendo una etiqueta de desarrollo, y por eso
+  `GAMETEXT-NO-DEV-LABEL` deja de ser criterio de cierre y pasa a **invariante dura**
+  (`ssot_manifest.yaml`). Se enuncia sobre **superficies** y no sobre campos porque los campos
+  conservan lectores legítimos —nombre de fichero de asset, listas de inspector, y
+  `AudienceCharacterBase` logueando `AbilityName`—, así que «ningún código lee `displayName`» habría
+  nacido falso. La prueba de que el lote movió **lectores** y no el registro es el fingerprint de
+  Cards, byte-idéntico desde TXT-4.
 
 - **TUT-TXT-1 + TUT-TXT-1c — cerrados 2026-09-09; documentación aplicada 2026-09-10.**
   El tutorial tiene ahora **dos registros conmutables**: la voz del manager y una explicación
@@ -602,6 +652,201 @@ riesgo de runtime.
 
 ### Open items (non-blocking)
 
+- **F-TXT4-3 — tres superficies siguen leyendo `CardDefinition.displayName`. ABIERTA → TEXT-5.**
+  Floater de carta jugada (`SensoryFtPresentation`), cabecera del modal de detalle
+  (`CardDetailViewController`) y etiqueta de pista del panel de canción (`SongCompositionUI`).
+  Confirmado en vivo en ST-TXT4-12: cara «Doble Armonía» / modal «Double Harmony». Una línea cada
+  una (`GameText.CardName`), salvo `SongCompositionUI`, cuya copia del PK lleva rancia desde R6 y
+  **cuya edición no es anclable sin copia fresca**.
+
+- **F-TXT4-7 — sexta población de texto, no censada. ABIERTA → TEXT-5.**
+  `AudienceIntentionData.ContentText` y `AudienceAbilityData.AbilityName` son texto de jugador en
+  campos monolingües de SO de contenido: la build ES muestra «Tantrum / This Character intends to
+  inflict Stress.» **Por qué el censo la perdió:** TXT-1 censó recorriendo *ficheros de código* en
+  busca de literales, y esta población se autoriza como **dato** en assets de contenido, donde no
+  hay literal que encontrar. Regla que deja, espejo de la de F-TXT-3-1: censar por lo que **lee** una
+  superficie de jugador, y censar assets además de código. **Nota de fichero (verificada 2026-09-11
+  contra el índice de rutas):** `AudienceAbilityData` es una clase anidada dentro de
+  `AudienceCharacterData.cs`; **no existe `AudienceAbilityData.cs`** y pedirlo por ese nombre
+  devuelve vacío. Almacenamiento sin decidir (D-T5-1).
+
+- **F-TXT4-2 — nombres de enum en superficies de jugador. ABIERTA → CARD-FACE-1 (el literal, a TEXT-5).**
+  `TrackRole`, `PartAction`, `CardType`, `scope`/`timing`, nombres de style bundle, tonalidades y
+  compases llegan al jugador como `ToString()` de un enum o de un nombre de asset. **No son
+  cadenas**, así que ningún registro de texto los alcanza: la solución es simbólica (iconos), y por
+  eso el hallazgo va contra CARD-FACE-1 y no contra un lote de texto. Excepción migrable: el literal
+  `"COMPOSITION"` de `CardBase.typeTextField`.
+
+- **F-TXT4-10 — separador decimal de cultura invariante en la build ES. ABIERTA → TEXT-5.**
+  «× 1.00 gustos», por `ToString("0.00")`. Cosmético y visible. La decisión (D-T5-2) es si
+  presentación formatea por cultura —lo que mete una dependencia de `CultureInfo` en una capa que hoy
+  no la tiene— o se acepta el punto.
+
+- **F-TXT4-8 — visibilidad e interactividad de la barra de resistencia están desacopladas. ABIERTA → hogar `systems/SSoT_Audience_and_Reactions.md` §6.4; NO la consumió TIP-1 (2026-09-15), que verificó que cae fuera del pipeline: es política de visibilidad de una barra de personaje, no transporte de paneles.**
+  `CharacterCanvas.SetBarVisible` mueve sólo `canvasGroup.alpha`; con `Blocks Raycasts` desactivado
+  la barra se dibujaba y nunca recibía el puntero, así que el tooltip de D-BN-15 existía y era
+  inalcanzable. Arreglado por prefab (una casilla) para los smokes de TXT-4. **Defecto inverso
+  abierto:** con `blocksRaycasts` fijo en on, una barra oculta por alpha 0 (D-BN-17) se come el
+  raycast de lo que hay debajo. `SetBarVisible` debe mover las dos cosas juntas — «invisible pero
+  clicable» y «visible pero muerta» son el mismo fallo con el signo cambiado.
+
+- **F-TXT4-11 — RESUELTA 2026-09-15 por TIP-1, por reencuadre y no por arreglo.** El apilado que
+  describía es ahora **capacidad declarada**: `ShowTooltip` es un *push* por contrato
+  (`TOOLTIP-SHOW-IS-A-PUSH`, `systems/SSoT_Tooltip_Pipeline.md` §2), el hover de carta y el canvas de
+  público siguen apilando sin cambiar una línea, y la superficie que se tropezaba con ello (contenido
+  vivo) tiene entrada propia, `UpdateTooltip`. §4 de `SSoT_Game_Text` **sí se tocó**, pero no para
+  cambiar la conducta: para dejar de justificarla como rodeo de dos defectos abiertos y enunciarla
+  como lo que la superficie quiere. Regresiones ST-TIP-5 y ST-TIP-6 PASS.
+
+- **F-TXT4-9 — `HealthBarController.logPredicted` sigue a `true`.** ST-BN-12 decía apagarlo. Hasta 12
+  líneas de log por barra y sesión. Limpieza, sin lote asignado.
+
+- **F-DOC4-1 — `SSoT_Card_System` §6.2 decía «All six effect types» y el directorio tiene siete. CERRADA 2026-09-11 por TEXT-5, aplicada 2026-09-14.**
+  §6.2 tiene ya la fila de `GrantBonusLoopSpec` (JSON `"GrantBonusLoop"`, implementado en R5-d,
+  **validado en runtime en R5-f** por `ST-R5f-1..18`, autorado en `conito_overload`) y el bloque de
+  divergencia se ha retirado; «vocabulario activo» e «implementado» quedan declarados el mismo
+  conjunto. **La lección, que es lo que sobrevive:** la divergencia se **detectó** desde un índice de
+  rutas pero **no se pudo resolver** desde él — hizo falta leer el fichero y tres documentos más para
+  saber el `type` JSON y el estado de validación. Un índice de rutas detecta ausencias; no rellena
+  filas.
+
+- **F-DOC4-2 — `AudienceCharacterCanvas.cs`: retirada del PK registrada y nunca ejecutada. ANOTADA 2026-09-11.**
+  Tercera ocurrencia de la misma familia tras `CharacterCanvas.cs` y `MusicianBase.cs`: presente en
+  el PK, sin fila en `PK_Manifest` §A.2, listada como retirada en §B.2. Resuelta como las anteriores
+  —dándole fila y marcándola rancia— y **no** ejecutando la retirada, porque TIP-1 va a necesitar esa
+  costura.
+
+- **TEXT-6 — lote siguiente, dado de alta 2026-09-14.** Contenido y literales, sin plumbing nuevo.
+  **F-T5-2** (los literales `Instrument:` / `bundle:` / `Modifiers:` del panel de canción:
+  **verificado que NO están en `SongCompositionUI.cs`**, copia fresca, cero coincidencias; por el
+  índice de rutas viven en `Assets/Scripts/UI/Song Composition/TrackHoverPanel.cs` o en
+  `SongTrackElementUI.cs` — **existencia de ambas rutas verificada, contenido no leído**; el lote
+  debe pedir los dos ficheros) y **F-T5-1** (dos de las siete descripciones de intención están
+  escritas como frases genéricas). El nombre de style bundle que aparece al lado **no** entra: es
+  F-TXT4-2 → CARD-FACE-1.
+- **F-T5-3 — tres afirmaciones vencidas encontradas en el propio doc-pass. CERRADAS 2026-09-14 al
+  encontrarlas.** (1) `SSoT_Card_Authoring_Contracts` §5.6c seguía diciendo que el generador LLM nunca
+  emitiría `GrantBonusLoop`, cosa que **R5-e corrigió el 2026-08-28** — diecisiete días vencida, misma
+  familia que F-DOC4-1 y sin nota de divergencia. (2) `SSoT_Editor_Authoring_Tools` §20.7 listaba
+  «cards and status effects have exactly one language slot each» entre las **limitaciones conocidas**,
+  falso desde TXT-3/TXT-4. (3) §20.8 contaba «cinco poblaciones resueltas», seis desde TEXT-5. **Lo que
+  las tres tienen en común:** ninguna vive en la sección que el lote que las invalidó estaba editando.
+  Una lista de limitaciones y un *caveat* de contrato son los últimos sitios que alguien relee cuando
+  la limitación se levanta. El barrido que las encontró fue un `grep` de frases de control sobre los
+  trece documentos **después** de aplicar los diffs; merece quedarse como paso de cierre de cualquier
+  doc-pass.
+- **F-T5-2 — literales sin migrar en el panel de canción. ABIERTA → TEXT-6.** `Instrument:`,
+  `bundle:` y `Modifiers:` en inglés dentro de una build española. **No son nombres de enum**: son
+  literales de C#, migrables con el patrón existente, y por eso no caen en F-TXT4-2.
+- **F-T5-1 — siete habilidades, dos cuerpos genéricos. ABIERTA → TEXT-6.** Dos de las siete
+  descripciones de intención se autoraron como frases genéricas en vez de decir lo que hace la
+  habilidad. Trabajo de **contenido**: las entradas existen y tienen cobertura en los dos idiomas.
+  Hogar del significado: `SSoT_Audience_and_Reactions.md` §7.
+- **El criterio «la build ES no muestra inglés salvo nombres de enum» NO se cumple (registrado
+  2026-09-14).** Lo incumple F-T5-2. Se registra incumplido en vez de declararlo cerrado porque el
+  panel afectado es el centro de la pantalla de composición; un criterio declarado cumplido y falso
+  reaparece en una demo.
+- **ST-T5-5 — DIFERIDO, no «no aplica» (2026-09-11).** Ninguna carta del catálogo lleva keyword, así
+  que la línea de keywords del modal de detalle está **viva y vacía**. Cerrarlo como «no aplica»
+  daría por verificado un camino que nadie ha ejercido. Se reintenta cuando F-TXT-3-6 ponga keywords
+  en alguna carta.
+- **R1–R3 de TEXT-5 — especificados, no ejecutados (2026-09-11).** Política de miss (`ab_heckle` sin
+  entrada ES), cultura desconocida (`numberCulture = xx-XX`) e **idempotencia del sembrador**. El
+  tercero es el que protege la propiedad de la que depende todo el grupo Ability: un sembrador que
+  reescribiese ids huerfanaría cada entrada de glosario ya keyeada. Tras correr R1/R2 hay que volver
+  a tomar el fingerprint de Concepts y confirmar que regresa a `7e22a03f…`. **Nota TEXT-6:** el
+  fingerprint de referencia de Concepts ya **no** es `7e22a03f…` sino
+  `1bfbc3755e8ad348c3d5a6d4633f00ac4d90661e`; R1/R2 deben volver a ese valor, no al de TEXT-5.
+
+- **F-T6-8 — el nombre de carta se pisa con un nombre de asset en runtime. ABIERTA → TEXT-6b
+  (2026-09-14, observada en cámara).** Tras resolver un `InstrumentEffect`, `SongCompositionUI`
+  reasigna `track.info` a `"{styleBundle.name} - {instrumentName}"`; la fila muestra
+  «BassCard_W2_Improv - Fingered Bass» mientras la minicard a dos centímetros muestra «Walking Bass».
+  **Es violación de `GAMETEXT-NO-DEV-LABEL` por dato, no por literal**: no se salta ningún registro,
+  se asigna contenido de desarrollo a un campo que alimenta una superficie de jugador. **No se parchea
+  sin decidir antes qué debe mostrar la fila** (nombre de carta, o nombre de carta + instrumento
+  aplicado en segunda línea): es semántica de composición.
+- **F-TV-1 — `"Songs left: {n}"` en `GigCanvas.SetSongsLeft`. ABIERTA → CARD-FACE-1.** Inglés en
+  superficie de jugador, en el mismo fichero que la población 11, encontrado por el censo del
+  productor. **No migrado a propósito (D4=B):** su primera llamada sale de `OnEnable` en un canvas de
+  la escena persistente, antes de que `TooltipManager.Instance` esté garantizado (lección
+  `Awake`→`Start` de SONG-PANEL-1), y un miss ahí gastaría el warn-once del id en un fallo que no lo
+  es. Requiere `CanvasBase.cs` para saber dónde hay un `Start` seguro. Id previsto:
+  `ui_gig_songs_left`.
+
+- **F-TV-4 — `$"+{bonusInt} Vibe!"` en `GigManager.ApplySfxBonusVibe`. ABIERTA → CARD-FACE-1.**
+  Floater de SFX de local construido por interpolación, dentro de un fichero de runtime de 4 150
+  líneas. Alcanzable en cuanto hay una etapa de SFX desbloqueada; observado durante ST-TV-7. No se
+  migró porque `GigManager.cs` quedaba fuera del conjunto de ficheros del lote — que es exactamente la
+  contención que pedía F-T6-9. Id previsto: `ui_fx_sfx_vibe_banked`.
+
+- **F-TV-5 — la cobertura de texto es asimétrica. REGISTRADA COMO MÉTODO (no se cierra).** Un id que
+  falta aparece en el bloque `COVERAGE`; **un id que sobra —presente en el asset, ausente de `All`— es
+  invisible**. Cuando el conjunto de ids lo transcribe una persona en vez de enumerarlo, los dos
+  errores llegan **juntos** (el id inventado desplaza al real) y sólo se reporta uno. Ocurrió en
+  TEXT-VIBE-1 con `ui_ctx_meter_fiveeight` (valor de enum inexistente) contra `ui_ctx_meter_fivefour`,
+  que **una carta C2 del starter deck alcanza en la demo**. Regla que deja, ya escrita en
+  `SSoT_Game_Text` §8: una familia de ids derivados se importa desde la salida de cobertura de la
+  ventana, nunca desde una lista escrita, y tras importar se comprueban **las dos direcciones**.
+
+- **F-TV-6 — el oráculo de regresión de carta perdió su línea base. ABIERTA (proceso).** `golden C` no
+  existe, así que el check 4 de `SSoT_Game_Text` §8 **no se corrió** en TEXT-VIBE-1. El volcado solo no
+  prueba nada: su valor es el **diff**. Sustituido en el cierre por tres comprobaciones más débiles
+  sobre el volcado nuevo (60 cartas, coincidiendo con el `60 × 2` del fingerprint de Cards; **cero
+  tokens de id crudo**; `name == devLabel` en las 60) más el argumento por construcción de que
+  **ninguno de los 29 ids nuevos lo consume el builder de cartas**. Es un argumento, no una medición.
+  **`golden D` (2026-09-16) queda establecido** y debe vivir bajo control de versiones, no en una
+  carpeta de descargas.
+
+- **F-TV-7 — `PartEffect.GetLabel()` es un productor de texto de jugador nunca censado. ABIERTA →
+  CARD-FACE-1.** El modal de detalle imprime una línea por modificador desde el `GetLabel()` de cada
+  `PartEffect` (`SSoT_Card_System` §10.3). En `golden D` se ven `Meter 5/4`, `Tempo: Slow` (×7),
+  `Tempo ×0.66`, `Mode Ionian`, `Mod → degree Mediant ↑`, `Random Instrument (2)` (×3) y
+  `Set Instrument: Fingered Bass`. **La mitad de enum ya es F-TXT4-2; la mitad literal es nueva** —
+  `Meter`, `Tempo:`, `Mode`, `degree`, `Random Instrument`, `Set Instrument:` son palabras inglesas
+  escritas en las clases de efecto, un sitio que ningún método de censo visita. Además crea un
+  **segundo hogar para un concepto**: la fila de contexto imprime `5/4` desde el glosario y el modal
+  `Meter 5/4` desde código, que es justo la divergencia que D-T6-3=B existe para impedir. **No es
+  verdad de código** si son literales o `ToString()`: el fichero productor no se adjuntó. Pedirlo
+  explícitamente antes de contar nada.
+
+- **F-T6-9 — octava población de texto: etiquetas de floater autoradas en SO. CERRADA 2026-09-16 por
+  TEXT-VIBE-1** (D-SP1-6=B: diez ids `ui_fx_*`, campo `label` borrado; dos entradas —`Tonality`,
+  `Modifier`— no reciben id porque **ningún camino de código las selecciona**). Registro original: `CompositionFxConfigSO.FxEntry.label` es texto de jugador con **una sola
+  ranura de idioma, sin pestaña de editor, sin CSV y sin cobertura** — la forma exacta de la población
+  6 antes de TEXT-5. **Estado: verdad de código, no observada** (leída en copia fresca del PK; ningún
+  barrido ha confirmado cuáles se ven). **No debe colarse en un lote de literales:** migrarla exige un
+  id por entrada y decidir si estas etiquetas van al glosario o deben ser simbólicas (respuesta
+  CARD-FACE-1).
+- **F-T6-4 — `ab_tantrum` es SHARED con targets divergentes. ABIERTA → contenido.** `Kid` la autoriza
+  contra `AllMusicians` y `Kid-TestTaster` contra `AllAudienceCharacters`: una entrada de glosario
+  describe dos mecánicas. Contenida en redacción (D-T6-5=A). **Regla que deja:** un id compartido es
+  seguro sólo mientras los que lo comparten coincidan en qué hace la habilidad, y **nada lo comprueba**.
+- **F-T6-5 — el número telegrafiado puede contradecir al cuerpo. ABIERTA → AUD/PRES.** El valor junto
+  al icono es `ActionList[0].ActionValue`: `ab_heckle` muestra `x1` (stacks de Expuesto) y pega 2 de
+  Stress; `ab_block_the_view` muestra `x1` (pasos) bajo icono de movimiento especial. Defecto de
+  presentación, no de texto.
+- **F-T6-7 — `musicianId` es fallback visible. ABIERTA (baja), sin lote.** La fila y el hover caen a
+  `musicianId` cuando `musicianName` está vacío. Preexistente y conformante como fallback; se registra
+  para que no se redescubra como defecto.
+- **ST-T6-3 / ST-T6-3R — NO TESTEABLES, no «no aplica» (2026-09-14).** La rama de nivel de pista
+  (`d.level >= 2`) es inalcanzable porque el nivel de pista no está implementado. Las plantillas
+  `ui_track_level` y `ui_track_level_max` quedan autoradas, cubiertas y **vivas e inertes** — mismo
+  criterio que ST-T5-5. Se reintentan cuando exista la mecánica
+  (`planning/Design_Track_Card_Levels_v0_1.md`).
+- **Legibilidad del hover de pista — ABIERTA → TEXT-6b / HUD-COMP-2 (2026-09-14, ST-T6-2 y ST-T6-4).**
+  El panel es funcionalmente correcto y **se lee mal**: cuerpo pequeño, sin jerarquía, sin fondo. Dos
+  arreglos baratos (rótulos en negrita, fondo semitransparente) caben en TEXT-6b porque abre el mismo
+  fichero; el rediseño tipográfico es HUD-COMP-2. **Petición explícita del usuario:** que la
+  información de Instrumento/Bundle sea conmutable aparte de `ALWTTT_DEV` — ver D-T6-4, que se reabre
+  si el toggle pasa a runtime.
+
+- **TIP-1 — CERRADA 2026-09-15** (código + doc-pass en la misma sesión). Cerró F-BN-7, F-BN-8 y, por
+  reencuadre, F-TXT4-11. **No** consumió F-TXT4-8 (hogar §6.4) ni ST-TXT4-13 (sigue diferida: no hay
+  atlas de sprites). El aviso sobre el tooltip compuesto **sigue vigente para cualquier lote futuro**:
+  antes de reproponerlo hay que leer `planning/Design_Vibe_Telegraph_v0_1.md` §10.3 — D-BN-9=A se
+  construyó y se revirtió por observación, y TIP-1 no lo repropuso.
+
 - **T-TAG-1 — CERRADA 2026-09-10 por TXT-3.** Los 12 estados y los 7 keywords tienen texto en EN y
   ES en `ConceptGlossarySO`; ninguna superficie de jugador lee ya una ranura única. Verificado en
   ST-TXT3-1..5 y 10..11 sobre la build ES.
@@ -621,13 +866,11 @@ riesgo de runtime.
   roto**, cuando debería haber estado en el paso 0. Regla que deja: la retirada de un asset se
   precede de un grep del *tipo*, no sólo de sus métodos, y ese grep va antes de la primera edición.
 
-- **F-TXT-3-5 — nombre y descripción de carta: una ranura de idioma implícita. ABIERTA (entrada obligatoria de O-TXT-3, alcance de TXT-4).**
-  `CardDefinition.displayName` tiene una sola ranura; las descripciones **no existen como dato** — las
-  genera `CardEffectDescriptionBuilder` a partir de los `CardEffectSpec` (`SSoT_Card_System` §10.1).
-  Consecuencia visible tras TXT-3: en la build ES la cara de la carta está en inglés bajo un tooltip
-  en español, y el floater del intérprete dice «KEEP COOL!». **TXT-4 no puede reutilizar el movimiento
-  de TXT-3**: no hay cadenas que mover, hay que construir el registro de fragmentos por idioma que el
-  builder componga. Censo completo en `systems/SSoT_Game_Text.md` §1 (poblaciones 3 y 4).
+- **F-TXT-3-5 — nombre y descripción de carta: una ranura de idioma implícita. CERRADA 2026-09-11 por TXT-4.**
+  Los 60 nombres viven en `ConceptGlossarySO.cardNames` y se resuelven por `GameText.CardName`; las
+  descripciones se componen desde 47 plantillas con placeholders posicionales. `CardDefinition.displayName`
+  es etiqueta de desarrollo. **Lo que queda abierto no es la población, son tres lectores** — ver
+  F-TXT4-3. Población viva descrita en `systems/SSoT_Game_Text.md` §1, filas 3 y 4.
 
 - **F-TXT-3-6 — los keywords no llegan a la cara de la carta. ABIERTA (⇒ CARD-FACE-1, depende de TIP-1).**
   El tooltip de `Agotar` resuelve bien (ST-TXT3-2 PASS) pero la palabra no aparece ni en la cara ni en
@@ -643,19 +886,14 @@ riesgo de runtime.
   Asignarlos cruzados reproduce exactamente el síntoma que TXT-3 eliminó. **TXT-3b** lo cierra por
   construcción: `TutorialController` suelta su campo y cae al fallback del manager.
 
-- **F-TXT-2-1 — literales de jugador hardcodeados en C#. ABIERTA, censada exactamente (TXT-2 2026-09-10; censo cerrado en TXT-3, 2026-09-10). Sin lote asignado; entrada obligatoria de O-TXT-3.**
-  TXT-3 redujo las poblaciones de cinco a tres al fusionar estados y keywords en el glosario, pero
-  **ésta no la toca** y es la que ningún esquema por-SO alcanza. Censo exacto en
-  `AudienceCharacterCanvas.cs` — **13 literales**, todos en español, todos inalcanzables por
-  `GameTextWindow` e invisibles a cualquier chequeo de paridad:
-  `TasteBlockHeader` («— Gustos —») · `TasteOnlyHeader` («Gustos») · las líneas de `BuildVibeText`
-  («Hype de la canción», «Bloqueado (alguien alto le tapa) → 0», «gustos», «Flow (N)», «SFX»,
-  «Indiferente → 0», **«Captivado (N)»** —un nombre de status en español, segundo hogar de facto—,
-  «Al acabar la canción», «¡Esta canción lo convence!») · `LabelFor` («¡Súper!» / «Resiste» /
-  «Inmune» / «Normal») · `BlockedTooltipHeader`/`Body` («Bloqueado», «Alguien alto le tapa el
-  escenario…») · `TasteNeutralText` («Le da igual todo») · las líneas de gustos («+ Rapido»,
-  «- Lento», «pistas»). Origen declarado: D-S5f-7=A y D-S5f-8=A, copy ESP para la tester build,
-  emplazada a «la pasada S5f-ext de localización» que nunca se abrió.
+- **F-TXT-2-1 — literales de jugador hardcodeados en C#. CERRADA 2026-09-11 por TXT-4.**
+  Los 13 literales de `AudienceCharacterCanvas` son ahora plantillas `ui_aud_*` del glosario, más el
+  concepto `blocked` para el tooltip de Bloqueado. **«Cautivado» deja de ser un segundo hogar de
+  facto**: la línea del desglose de Vibe resuelve el nombre por `StatusKey` contra el mismo registro
+  que el tooltip del icono. La pasada «S5f-ext de localización» a la que D-S5f-7=A / D-S5f-8=A
+  emplazaban esta copy, y que nunca se abrió con ese nombre, es este lote. Verificado en
+  ST-TXT4-4/5/6. El censo exacto de los 13 literales queda en el changelog; la población viva se
+  describe en `systems/SSoT_Game_Text.md` §1, fila 5.
 
 - **D-TAG-8 — orden de canvas entre tooltips y overlay del tutorial. CERRADA 2026-09-10 = A, aplicada.**
   El canvas de `TooltipManager` renderizaba por debajo del overlay: el tooltip existía y salía detrás
@@ -664,21 +902,19 @@ riesgo de runtime.
   tooltips (`SSoT_Card_System` §10.3); cualquier futuro reajuste de sort orders debe verificar las
   dos relaciones, no una.
 
-- **O-TXT-3 — ¿Unity Localization o catálogos propios? DIFERIDA, no descartada (TXT-1, 2026-09-05; REAFIRMADA con caso en TXT-2, 2026-09-10).**
-  El tutorial almacena texto por idioma (dos catálogos); **cartas y status effects no tienen ranura
-  de idioma en absoluto**, y las descripciones de carta se generan en código
-  (`CardEffectDescriptionBuilder`). El punto natural de decisión es **la primera categoría que
-  necesite un segundo idioma**, porque es ahí donde aparece la elección real: campos por idioma en
-  cada SO, tablas laterales propias, o String Tables de Unity Localization. Decidir antes sería
-  diseñar sin el caso. Registrada en `SSoT_Editor_Authoring_Tools.md` §20.8. Presencia de
-  `com.unity.localization` en `Packages/manifest.json`: **NV**.
-  **Actualización TXT-2 (2026-09-10):** ese punto de decisión **llegó** —los tooltips de concepto
-  necesitaban definiciones en dos idiomas— y la respuesta tomada fue seguir con el patrón propio
-  (`ConceptGlossarySO` por idioma, D-TAG-2b=(i)), porque reutiliza entero lo que construyó TXT-1 y
-  no mete un paquete en un lote de texto. **Coste registrado, no escondido:** ahora hay **dos**
-  categorías sobre el patrón propio, así que una migración futura convierte dos en vez de una. La
-  decisión además ya no puede ignorar **F-TXT-2-1**: ningún esquema por-SO alcanza los literales
-  hardcodeados. Nuevo punto natural de decisión: un tercer idioma, o un traductor externo real.
+- **O-TXT-3 — ¿Unity Localization o catálogos propios? CERRADA 2026-09-11 por TXT-4 = patrón propio (D-TXT4-2).**
+  Diferida en TXT-1, reafirmada en TXT-2, arrastrada por TXT-3: cada lote llegaba con un caso
+  parcial. TXT-4 llegó con el completo —nombres, descripciones generadas y literales hardcodeados a
+  la vez, que es exactamente lo que ningún esquema por-SO alcanza— y la respuesta fue consolidar
+  sobre el patrón propio en vez de meter un paquete dentro de un lote de texto.
+  **`com.unity.localization` verificado ausente** en `Packages/manifest.json`: se cierra la única
+  rama sin examinar, la de «quizá ya lo tenemos a medias». **Coste registrado, no escondido:** una
+  migración futura convierte **tres listas de una misma familia de asset**, no cinco esquemas
+  sueltos — más barata por categoría y mayor en absoluto. **Nuevo disparador de revisión: un tercer
+  idioma o un traductor externo real**, que es cuando las String Tables aportan algo que este
+  pipeline no tiene (UI de traductor y memoria de traducción). Un segundo idioma nunca lo fue, y eso
+  es justo lo que tres aplazamientos fueron aprendiendo. Registro en
+  `SSoT_Editor_Authoring_Tools.md` §20.8 y `systems/SSoT_Game_Text.md` §7.
 
 - **P-TXT-1 — los textos de menú no son alcanzables por herramienta (TXT-1, 2026-09-05).**
   `MainMenuController.cs` no contiene ni un string de jugador: los rótulos de botón son componentes
@@ -847,7 +1083,9 @@ riesgo de runtime.
 - **Presentation / animation has no SSoT — `CURRENT_STATE` is the interim operational home (S5b debt).** The play-animation gating shipped in S5b lives only in code + here. `GigManager.ApplyBpmToStage` (runs per loop via `OnPartBpmResolved`) reads `CompositionSession.GetMusicianIdsWithTrackInPart(partIndex)` — a read-through of the `SongCompositionUI` model (that model is the authority) — and enables the beat/"playing" animation only for musicians who own a track in the played part; the active set is recomputed every loop. Non-performers are stopped via the new `CharacterAnimator` master gate (`SetBeatAnimationEnabled(false)` + `ResetToRestPose()`, authored per-toggle style preserved). `ResetStageToIdle` (between songs, via `OnCompositionSongFinished`) re-enables the whole band's idle sway. `CharacterAnimator` still carries a "move animation to its own class" TODO; when presentation/animation work grows, promote this to a dedicated SSoT and relocate this note. Until then, this section is the home for the gating + master-gate semantics. **S5h rider (2026-07-07, recorded 2026-07-13):** the reward screen and the venue-SFX unlock also have no promoted presentation SSoT — same interim home (this file), same S5b precedent.
 - **Legibilidad del Vibe — CERRADA por BIGNUM-1 (2026-09-09).** El diagnóstico de apertura se confirmó y era doble: las dos superficies existían desde S5a, y en el asset del demo estaban **apagadas por configuración** — `showSongHypeBar` OFF arrastraba también al readout C1 (acoplamiento roto en D-BN-7=A), y los otros dos toggles (`showVibeEffectivenessLabels`, `showVibeProjectedNumbers`) ni siquiera estaban documentados (F-BN-2). Es decir: parte del hueco reportado era de visibilidad, no de ausencia, y esa verificación evitó construir un segundo contador al lado de uno apagado. Lo que sí faltaba: escala visual, desglose, y una proyección por enemigo que pasara por el gate real (antes ignoraba Captivated, F-BN-3). Autoridad de presentación: `planning/Design_Vibe_Telegraph_v0_1.md` §10; matemática intacta en `SSoT_Scoring_and_Meters.md` §6 (R1 PASS).
 - **BEAT-1 — el beat grid no entrega en la escena de gig (F-BN-5, abierto 2026-09-09).** `IBeatGridListener` se registra correctamente y **no recibe nada**; `OnTempoChanged` tampoco. El único consumidor previo (`FloatingTextMidiListener.OnBeat`) tenía el cuerpo comentado y `BeatPulseIndicator` no estaba en la escena, así que la ruta **nunca se había ejercitado** — el fallo es viejo, lo nuevo es el primer consumidor que lo nota. Hipótesis principal: en `RunBeatGrid`, el guard `while (… && player.IsPlaying)` se evalúa antes de que el reproductor se declare sonando y el coroutine sale sin emitir una sola vez. Sonda `[BeatProbe]` preparada en el rider r3 sobre `MidiMusicManager.cs` (**temporal**; puede estar aplicada o no). **Mitigación viva:** el latido del readout corre con temporizador propio (`selfTimerWhenGridSilent`, D-BN-3b=B) alimentado por `GigManager.ApplyBpmToStage → GigCanvas.SetReadoutTempo` (D-BN-3c) — es un empuje de **tempo**, no una segunda fuente de pulso. **Hueco conocido:** la ruta de BPM resuelto no lleva compás, así que un denominador distinto de 4 late mal. **Al cerrar:** retirar la sonda y el respaldo, y volver a D-BN-3=A puro.
-- **TIP-1 — anclas y refresco en el pipeline de tooltips (F-BN-7 + F-BN-8, abierto 2026-09-09).** Dos defectos del pipeline compartido, ninguno introducido por BIGNUM-1: (i) `TooltipManager.ShowTooltip` **acumula** — incrementa `currentShownTooltipCount` y activa un `TooltipText` más por llamada; sólo `HideTooltip` lo resetea, así que una superficie con contenido vivo apila un panel por refresco salvo que haga Hide antes de cada Show, y el coste de hacerlo es que el fundido de entrada se repite; (ii) la rama de objetivo estático de `TooltipController.SetPosition` proyecta con `Camera.main.WorldToScreenPoint(target.position)` y clampea al rect del canvas, así que un anchor bajo un canvas Screen Space - Overlay (cuya `.position` ya está en píxeles) devuelve una coordenada fuera de rango y el panel acaba clavado en una esquina. **Workaround vivo (D-BN-18=B″):** un anchor creado en runtime que se aparca cada frame en `Camera.main.ScreenToWorldPoint(pixel deseado)` — el viaje de ida y vuelta es exacto. **Al cerrar:** soporte de anclas en espacio de pantalla + una entrada "actualizar en el sitio" en `TooltipManager`; entonces el anchor de runtime de BIGNUM-1 se puede retirar. **Sin hogar documental:** el pipeline de tooltips no tiene sección de autoridad (sólo fragmentos en `SSoT_Card_System` §10.x y `SSoT_Status_Effects` §7). **Decisión de BIGNUM-1-DOC:** NO se le crea hogar en `SSoT_Editor_Authoring_Tools` —ese SSoT gobierna herramientas de editor, no UI de runtime—; la decisión de hogar se pliega a **D-SENSORY-HOME** / TIP-1. Esto revierte la propuesta de `BIGNUM-1_Doc_Package.md` §8.
+- **TIP-1 — CERRADA 2026-09-15.** Los dos defectos que abría (F-BN-7, apilado por llamada; F-BN-8, proyección de anclas estáticas por `Camera.main`) están cerrados; el anchor de runtime D-BN-18=B″ retirado y verificado ausente (ST-TIP-3); **el pipeline gana hogar documental propio**, `systems/SSoT_Tooltip_Pipeline.md` (D-TIP-1=A), lo que **revierte la decisión de BIGNUM-1-DOC** de no crearle uno: aquel lote no tocaba el contrato y éste sí, y entretanto apareció un tercer consumidor que se escribió su propia colocación. La decisión de hogar **deja de plegarse a D-SENSORY-HOME**, que vuelve a cubrir sólo el contrato sensorial. Queda abierto **F-TIP-5**: `TrackHoverPanel` y `CompositionContextRowUI` siguen fuera del pipeline como implementaciones conformes independientes; unificarlas exigiría que el pipeline aprendiera clamps de zona de juego, y eso es propuesta de contrato, no limpieza.
+
+- **TIP-1 (registro de apertura, 2026-09-09) — anclas y refresco en el pipeline de tooltips.** Dos defectos del pipeline compartido, ninguno introducido por BIGNUM-1: (i) `TooltipManager.ShowTooltip` **acumula** — incrementa `currentShownTooltipCount` y activa un `TooltipText` más por llamada; sólo `HideTooltip` lo resetea, así que una superficie con contenido vivo apila un panel por refresco salvo que haga Hide antes de cada Show, y el coste de hacerlo es que el fundido de entrada se repite; (ii) la rama de objetivo estático de `TooltipController.SetPosition` proyecta con `Camera.main.WorldToScreenPoint(target.position)` y clampea al rect del canvas, así que un anchor bajo un canvas Screen Space - Overlay (cuya `.position` ya está en píxeles) devuelve una coordenada fuera de rango y el panel acaba clavado en una esquina. **Workaround vivo (D-BN-18=B″):** un anchor creado en runtime que se aparca cada frame en `Camera.main.ScreenToWorldPoint(pixel deseado)` — el viaje de ida y vuelta es exacto. **Al cerrar:** soporte de anclas en espacio de pantalla + una entrada "actualizar en el sitio" en `TooltipManager`; entonces el anchor de runtime de BIGNUM-1 se puede retirar. **Sin hogar documental:** el pipeline de tooltips no tiene sección de autoridad (sólo fragmentos en `SSoT_Card_System` §10.x y `SSoT_Status_Effects` §7). **Decisión de BIGNUM-1-DOC:** NO se le crea hogar en `SSoT_Editor_Authoring_Tools` —ese SSoT gobierna herramientas de editor, no UI de runtime—; la decisión de hogar se pliega a **D-SENSORY-HOME** / TIP-1. Esto revierte la propuesta de `BIGNUM-1_Doc_Package.md` §8.
 - **F-BN-0 — CERRADA 2026-09-09.** `AudienceCharacterStats.cs` vive en `Assets/Scripts/Characters/AudienceCharacterStats.cs`, verificado contra el export mecánico `Repo_Tree_Index.md` (snapshot 2026-08-27): la carpeta `Assets/Scripts/Characters/Audience/` existe pero sólo contiene `AudienceCharacterSimple.cs`. La contradicción venía de leer un **encabezado de agrupación** de `PK_Manifest §B.2` como si fuera una ruta de repo; no lo es (el propio §B.2 tiene encabezados como `Characters/Actions | Cards/CardActions`, que abarcan dos carpetas). Corregido con una nota en §B.2 del manifiesto.
 - **Deuda de registro menor (BIGNUM-1, no bloqueante).** ST-BN-13..16 se corrieron el 2026-09-09 y **PASAN**, pero su especificación paso-a-paso no se conservó fuera de la sesión de código: `coverage-matrix.md` registra el resultado, no el procedimiento. Si esos cuatro observables vuelven a necesitar verificación, hay que re-derivarlos.
 - **Vibe transparency surfaces (S5a) — presentation home is the planning design note.** The C1 readout (`GigCanvas`) + C2/C3 per-enemy telegraph (`AudienceCharacterCanvas` + `VibeEffectiveness`) shipped in S5a; their presentation authority is `planning/Design_Vibe_Telegraph_v0_1.md` (now indexed + in coverage-matrix as "active (shipped S5a)", mirroring the Tutorial precedent), while the underlying math stays in `SSoT_Scoring_and_Meters.md` §6/§8. No dedicated systems-SSoT; if presentation work grows, fold this and the animation note above into one. The SFX song-end delivery (`_pendingSfxVibe`) is semantic and lives in Scoring §6.2/§8.
@@ -964,6 +1202,84 @@ riesgo de runtime.
 ## 5. Docs that must be edited next
 
 The §5 doc-closure *history* (every applied edit since 2026-04-29) was removed in the 2026-06-16 hygiene prune — that record lives in `changelog-ssot.md`. This section is now forward-looking only.
+
+- **Aplicado 2026-09-16 (TEXT-VIBE-1-DOC — doc-pass de TEXT-VIBE-1, aplicado en la misma sesión que
+  el código).** Nueve documentos. **Sin altas y sin cambios de autoridad de fichero**, que es lo
+  primero que este registro debe decir: el lote no creó hogares nuevos ni movió carpetas, así que
+  `SSoT_INDEX.md` y `ssot_manifest.yaml` **no se tocan** — y eso se comprobó, no se asumió.
+  **Cambio semántico principal:** `systems/SSoT_Game_Text.md` §1 contesta D-SP1-6 como **precedente**
+  (un asset guarda el dato, no el texto ni el id) y §5 documenta un **contrato nuevo**: el conjunto de
+  plantillas se **enumera** desde dos enums del paquete en vez de declararse a mano, con el
+  acoplamiento por nombre justificado. §8 gana dos checks de cierre (las dos direcciones de la
+  cobertura; una familia derivada se importa desde la ventana). **Alta de sección en frontera:**
+  `SSoT_ALWTTT_MidiGenPlay_Boundary.md` **§8.13** — el paquete decide qué valores existen, ALWTTT cómo
+  se leen; espejo declarado de §8.10, con los dos modos de degradación escritos (añadir ⇒ pestaña
+  roja; renombrar ⇒ miss visible, nunca error de compilación). **Deriva corregida de paso:**
+  `SSoT_Editor_Authoring_Tools.md` §20 daba **54** plantillas, dos lotes rancio; ahora 102, y §20.12
+  gana la forma del CSV de la pestaña (`id,field,en,es`, confirmada por export porque **no estaba
+  escrita en ningún sitio**) y el registro de la asimetría de cobertura. Resto:
+  `planning/Design_Vibe_Telegraph_v0_1.md` §10.2 (D1 aplicada, con la comparación en crudo y su coste
+  declarado) · `SSoT_Card_System.md` §10.3 (F-TV-7) · `CURRENT_STATE.md` §1/§2/§4/§5 ·
+  `changelog-ssot.md` · `coverage-matrix.md` · `PK_Manifest.md` v16.
+
+- **Aplicado 2026-09-15 (TIP-1-DOC — doc-pass de TIP-1, aplicado en la misma sesión que el código).**
+  Once documentos. **Alta:** `systems/SSoT_Tooltip_Pipeline.md` — hogar del **transporte** de tooltips
+  (tres entradas con contrato, dos modos de colocación y tabla de proyección por root canvas, orden de
+  clamps, ciclo asignar → reconstruir → medir → colocar, censo de ocho superficies consumidoras, tres
+  invariantes duras). **Cambio de autoridad, no sólo de contenido:** `ssot_manifest.yaml` deja de dar
+  la carpeta `Assets/Scripts/UI/Tooltips` entera a `SSoT_Game_Text.md` y la reparte **por fichero**
+  (texto: `GameText.cs`, `GameTextTemplateIds.cs`, `ConceptTooltipResolver.cs`,
+  `ConceptTagRenderer.cs`; transporte: los ocho restantes), con la invariante
+  `GAMETEXT-HOVER-SINGLE-PANEL` **reenunciada** — la conducta no cambia, cambia su justificación, que
+  citaba dos defectos hoy cerrados. Resto: `systems/SSoT_Game_Text.md` §1 (**población 11**, F-TIP-2,
+  con la regla de método que deja: un hover/floater/readout nuevo registra su fila **al salir**, porque
+  el censo posterior no lo encuentra recorriendo ficheros de texto) / §4 (reescrito) / §8 / §9 ·
+  `SSoT_Card_System.md` §10.2 · `planning/Design_Vibe_Telegraph_v0_1.md` §10.2 (F-TIP-6) + §10.6
+  (D-BN-18=B″ **RETIRADA**, historial conservado) + §10.7 · `coverage-matrix.md` (fila nueva + fila 20)
+  · `SSoT_INDEX.md` · `CURRENT_STATE.md` · `changelog-ssot.md` · `PK_Manifest.md` **v15** ·
+  `Repo_Tree_Index.md` (una ruta nueva; ningún `.cs` nuevo). **No tocados a propósito:**
+  `SSoT_Status_Effects.md` (su §7 nunca habló del pipeline: el fragmento que se le atribuía en el
+  encuadre de apertura no existe) y `SSoT_Audience_and_Reactions.md` (F-TXT4-8 sigue asignada a su
+  §6.4 sin que TIP-1 la toque).
+
+- **Aplicado 2026-09-14 (TEXT-6-DOC — doc-pass de TEXT-6, aplicado en la misma sesión que el
+  código).** Siete documentos: **`systems/SSoT_Game_Text.md` (reemplazo completo)** — §1 mapa de
+  poblaciones 6 → **8** y el censo deja de declararse cerrado, con las dos notas de método nuevas
+  (censar el productor y no el fotograma; el texto de jugador puede **asignarse en runtime**); §5
+  plantillas 48 → **54**, la regla de **cuándo NO añadir un id** (D-T6-3=B) y qué se queda en código
+  y por qué; §7 F-T5-1 y F-T5-2 **cerradas con recuento corregido**, TEXT-6 cerrada con
+  D-T6-1..5, **TEXT-6b abierta**, F-T6-1..9 registradas; §8 dos disparadores nuevos; §9 fila de
+  cierre con fingerprints · **`systems/SSoT_Audience_and_Reactions.md` §7 + §7.1 nueva** (qué puede
+  decir un cuerpo de intención y la **tabla de action lists verificada** de las siete habilidades;
+  regla del id compartido) + §11 un disparador · `systems/SSoT_Editor_Authoring_Tools.md` §20.2 (54)
+  · `coverage-matrix.md` (fila de texto) · `CURRENT_STATE.md` (esta entrada, fila de lote, siete
+  ítems abiertos) · `changelog-ssot.md` · `PK_Manifest.md` **v13**. **No tocados a propósito:**
+  `ssot_manifest.yaml` (la invariante `GAMETEXT-NO-DEV-LABEL` **no cambia de enunciado**: F-T6-8 es
+  una violación *por dato* de la invariante tal como está escrita, no un motivo para reescribirla) y
+  `SSoT_INDEX.md` (no hay altas ni cambios de autoridad).
+- **Aplicado 2026-09-14 (TEXT-5-DOC — doc-update de TEXT-5, documentación pura; el código y los
+  smokes se cerraron el 2026-09-11 en sesión separada).** Trece documentos: `ssot_manifest.yaml`
+  (**invariante dura `GAMETEXT-NO-DEV-LABEL` PROMOVIDA** — D-DOC-1=C cumplida, enunciada sobre
+  **superficies de jugador** y no sobre campos porque los campos conservan lectores legítimos;
+  `governs:` + `AudienceAbilityTextIndex.cs`; la nota de TXT-4 que explicaba la NO promoción pasa a
+  **histórico** en vez de borrarse) · `SSoT_INDEX.md` · **`systems/SSoT_Game_Text.md` (reemplazo
+  completo, 22 ediciones en nueve secciones)** · `systems/SSoT_Card_System.md` §6.2 (**F-DOC4-1
+  cerrada**: fila de `GrantBonusLoopSpec`, bloque de divergencia retirado) + §10.3 ·
+  `systems/SSoT_Audience_and_Reactions.md` §7 · `systems/SSoT_Editor_Authoring_Tools.md` §20.11 +
+  **§20.13 nueva** (D2=A) **+ §20.7/§20.8 corregidas** (F-T5-3) · `systems/SSoT_Card_Authoring_Contracts.md` §5.6c (D3=A — caveat vencido
+  por R5-e desde el 2026-08-28, hallazgo de este pase) · `coverage-matrix.md` (**sin cambio de
+  hogar**) · este fichero · `changelog-ssot.md` · `PK_Manifest.md` **v12** ·
+  `planning/active/S5_DemoCutClose_Sub_Roadmap.md` (TEXT-5 cerrada, **TEXT-6 dada de alta**) ·
+  `Repo_Tree_Index.md` (regenerado **antes** de abrir el pase: snapshot 2026-09-14 12:30, **473
+  ficheros**). **Clase:** **autoridad** (se promueve una invariante dura) + semántica + operativa +
+  lifecycle. **D1=B:** los SSoT dan el **recuento** de ids de habilidad y no la lista, porque el
+  conjunto se enumera desde assets y escribirlo crearía un cuarto sitio que mantener sincronizado.
+  **Corrección registrada:** el título de F-TXT4-10 decía «cultura invariante» y el mecanismo real
+  era `CurrentCulture` — peor, porque es dependiente de máquina y por tanto no reproducible desde el
+  asset. **Criterio de cierre heredado NO cumplido** (F-T5-2), registrado como tal. **Puerta de
+  frescura:** las cinco costuras de código del lote ya estaban refrescadas en el PK al abrir el pase,
+  así que se escribió contra verdad de código y no contra inferencia.
+- **Aplicado 2026-09-11 (TXT-4-DOC — doc-update de TXT-4, documentación pura; el código y los smokes se cerraron el 2026-09-11 en sesión separada).** Doce documentos: **`systems/SSoT_Game_Text.md`** (§1 reescrita — población 3 **movida** al glosario, población 4 redefinida como fragmentos compuestos, población 5 **resuelta**, **población 6 nueva**; **§2.1 nueva** vocabulario de rich text, sprites por nombre, regla de autoría de `tgt_*`; **§3.1 nueva** dos entradas / un registro / un asiento, con la excepción `SetEditorFallback` declarada; §5 tres espacios de ids 36+60+47 y la doble función de `GameTextTemplateIds.All`; §6 cinco modos de fallo nuevos + política de fallo de `GameText` + nota operativa de recarga de dominio; §7 **O-TXT-3 cerrada**, F-TXT-2-1 y F-TXT-3-5 cerradas, F-TXT4-2/3/7/10/11 y TEXT-5 abiertas; §8 dos disparadores nuevos; §9 fila TXT-4 con los tres fingerprints. **§4 byte-idéntica, verificada por `diff`**) · `systems/SSoT_Card_System.md` §10.1/§10.2/§10.3 + **nota de divergencia en §6.2** (F-DOC4-1, anotada y no resuelta) · `systems/SSoT_Editor_Authoring_Tools.md` (§20.2 dos filas, §20.8 O-TXT-3 cerrada, **§20.12 nueva**) · `systems/SSoT_Status_Effects.md` §3.3 (F-TXT4-1 y la regla de censar lectores, no sólo escritores) · `systems/SSoT_Audience_and_Reactions.md` §6.4 + §7 · `ssot_manifest.yaml` (`governs:` **+5 rutas verificadas contra el índice regenerado** y notas; **`hard_invariants:` sin cambios, con la razón escrita**) · `SSoT_INDEX.md` · `coverage-matrix.md` · este fichero · `changelog-ssot.md` · `PK_Manifest.md` **v11** · `planning/active/S5_DemoCutClose_Sub_Roadmap.md` (TXT-4 cerrada; **TEXT-5 y TIP-1 dadas de alta**). **Clase:** **autoridad** (el nombre de carta cambia de hogar) + semántica + operativa + lifecycle. **D-DOC-1=C:** `GAMETEXT-NO-DEV-LABEL` **no** entra todavía como invariante dura y `GAMETEXT-RESOLUTION-ORDER` **no** se amplía a `CardDefinition.displayName` —lo que **revierte** ese diff propuesto en el paquete de cierre—, porque tres superficies vivas lo violan (F-TXT4-3) y un invariante cacheado que el código incumple entrena a su lector a saltarse el hallazgo; la promoción es **criterio de cierre de TEXT-5**. **D-DOC-2=A:** la sexta población se documenta como **censo** (fila 6 + lote asignado), sin esquema de almacenamiento — eso es D-T5-1 y exige leer antes las dos clases. **D-DOC-3=aplicar:** el sub-roadmap entra al doc-pass aunque no estaba en el paquete, porque si no el roadmap diría que TXT-4 está por hacer mientras este fichero dice que cerró. **D-DOC-4 = resuelta por regeneración:** `Repo_Tree_Index.md` **regenerado** (snapshot 2026-09-11 14:47, **472 ficheros**) — **deuda de siete lotes saldada**, y el índice sirvió de paso para verificar las cinco rutas nuevas del manifiesto, confirmar `GrantBonusLoopSpec.cs` (F-DOC4-1) y descubrir que `AudienceAbilityData.cs` no existe como fichero. **Pendiente explícito:** F-DOC4-1 y F-DOC4-2 (§4), y `SongCompositionUI.cs` rancia desde R6, bloqueante para un paso de TEXT-5.
 
 - **Aplicado 2026-09-10 (TXT-3 — doc-update aplicado EN LA MISMA SESIÓN que el código, por decisión del usuario; excepción declarada a la convención de doc-pass separado).** Doce documentos: **`systems/SSoT_Game_Text.md`** (§1 poblaciones 2+3 fusionadas en la nueva 2 y tabla renumerada a 5 filas con las cuatro superficies consumidoras; **§3 reescrita** de orden de tres registros a registro único + política de fallo visible + regla de cobertura + R-1; §5 vocabulario 24 → **36 ids** en tres grupos de origen; §6 modos de fallo reescritos; §7 D-TAG-10 cerrada y TXT-4 / TXT-3b / F-TXT-3-6 abiertas; **§9 nueva** — registro de cambios del documento) · `systems/SSoT_Status_Effects.md` §3.3 (**cesión explícita con fecha**: el bloque de tooltip content pasa a decir que el texto **se movió**; `displayName` = etiqueta de desarrollo con la frase «ninguna superficie de jugador puede leerlo»; los tres hosts reescritos, floater incluido) · `systems/SSoT_Card_System.md` §3.3 (cesión del texto de keyword + retirada de `SpecialKeywordData`) y §10.2 (dos fuentes reescritas, nota de que el apilado de M1.3c **no** es el contrato de un panel de §4, y F-TXT-3-5) · `systems/SSoT_Editor_Authoring_Tools.md` (§20.2 filas Concepts/Cards/Status Effects + párrafo de cola, §20.4 semántica de `IsKnown` cambiada, **§20.11 badges `DUPLICATE` retirados y regla invertida a `COVERAGE`**) · `ssot_manifest.yaml` (**`GAMETEXT-RESOLUTION-ORDER` reescrita** — cambio de **autoridad**, aplicado con el lote y no diferido a MANIFEST-*: dejar el invariante cacheado describiendo tres registros habría apuntado el auditor de drift a un contrato que el código ya no cumple; `governs:` **sin cambios**, con la razón escrita) · `SSoT_INDEX.md` (descripción de la fila) · `coverage-matrix.md` (fila extendida + ST-TXT3-1..12) · `planning/Design_Sensory_Contract_v0_1.md` (fila de `SensoryFxAdapter`: el floater de status es superficie de texto y D-WINK-6=B **no** se revierte) · este fichero (§1 fila, §4 T-TAG-1 cerrada + F-TXT-3-1/4/5/6 + R-1 + F-TXT-2-1 con sus 13 literales + P-TXT-2 rebajada, §5 este bloque) · `changelog-ssot.md` · `PK_Manifest.md` **v10** · `planning/active/S5_DemoCutClose_Sub_Roadmap.md` (TXT-3 cerrada; **TXT-3b, TXT-4 y CARD-FACE-1 dadas de alta**). **Clase:** **autoridad** (el texto de jugador cambia de hogar y el invariante cacheado cambia de forma) + semántica + operativa + lifecycle. **Los dos runbooks se retiran al aplicarse** (convención de paquetes). **Pendiente explícito:** **TXT-3b** (un `CS0618` vivo a propósito) y regenerar `Repo_Tree_Index.md`, que sigue con deuda.
 

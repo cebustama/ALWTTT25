@@ -150,6 +150,17 @@ Icon sprite authority lives on `StatusEffectSO.IconSprite`. Each StatusEffectSO 
 >   surface may read it.** A reintroduced text field here is a governance regression, not a shortcut.
 > - Authority for the wording of a status is now `systems/SSoT_Game_Text.md` §1/§3. What a status
 >   *means* stays here.
+>
+> **Enforcement gap closed at TXT-4 (2026-09-11) — F-TXT4-1.** TXT-3 removed the field and wrote the
+> rule, but did not audit every reader: `CardEffectDescriptionBuilder` was still calling
+> `StatusEffectSO.DisplayName` to render a status name on a card face, which is precisely the
+> player-facing read this block forbids. It accumulated **no debt** — all 12 developer labels
+> happened to match their glossary names, proved by the golden A→B diff — but "it happened to be
+> right" is not the same as "it was correct", and the day someone renamed an asset the card face
+> would have drifted from the tooltip with nothing to catch it. The rule is unchanged; what TXT-4
+> adds is that it is now true of the code as well as of this document. **Rule this leaves:** a
+> ceded-authority block is not finished until every *reader* of the old field has been enumerated,
+> not just every writer.
 
 What this SSoT still owns is the **icon hosts** and how they get their text:
 

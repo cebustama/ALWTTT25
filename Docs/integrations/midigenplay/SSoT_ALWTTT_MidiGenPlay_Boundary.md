@@ -714,3 +714,35 @@ un consumidor en el lado ALWTTT de una superficie existente, que es exactamente 
 frontera permite: `TrackRole.Rhythm → canal 9`, la resolución de propiedad por pista y
 `RegisterMusicianAnchor` fueron **leídos**, nunca redefinidos. La única entrada que RFX-2
 genera aquí es el ask de §8.9 + este §8.12.
+
+### 8.13 El texto de jugador de un valor de enum del paquete es propiedad de ALWTTT (TEXT-VIBE-1, 2026-09-16)
+
+**Posición de frontera, en una frase: MidiGenPlay decide qué VALORES existen; ALWTTT decide cómo se
+LEEN en pantalla.** Es el mismo reparto de §8.10 (el paquete decide qué suena, ALWTTT cómo se
+deletrea), aplicado ahora a `MusicTheory.TimeSignature` y `TempoRange`.
+
+**Qué hace ALWTTT.** El chip de compás y el de tempo de la fila de contexto imprimen una plantilla de
+glosario **derivada del valor**: `ui_ctx_meter_<nombre en minúsculas>` y `ui_ctx_tempo_<…>`. El
+conjunto de cobertura `GameTextTemplateIds.All` **enumera los dos enums** en la inicialización del
+tipo, así que existe una fila EN/ES por valor. Hasta este lote esos chips imprimían un `displayName`
+autorado en `CompositionStripThemeSO`, que en pantalla se leía `Four Four (FourFour)`: el nombre del
+enum duplicado dentro del texto autorado.
+
+**El acoplamiento es por NOMBRE, no por valor — misma decisión que §8.10 y por la misma razón.** El id
+se construye con `meter.ToString().ToLowerInvariant()`. Un `switch` por valor fallaría al compilar
+ante un rename package-side y quedaría silenciosamente no exhaustivo ante una adición. Con el nombre:
+- **añadir** un valor ⇒ aparece un id nuevo en `All` sin fila ⇒ la pestaña Templates se pone **roja**.
+  Es el caso bueno: el fallo es de autoría y se ve antes de publicar.
+- **renombrar** un valor ⇒ el id viejo queda huérfano y el nuevo sin fila ⇒ **miss visible** (id crudo
+  en pantalla) más un warning por sesión, nunca un error de compilación. Es el fallo degradado que la
+  frontera quiere.
+
+**Lo que ALWTTT NO hace y no debe hacer.** No pide al paquete que añada texto, ni `displayName`, ni
+localización: el enum es una identidad musical, no una etiqueta. No hay ask abierto por esto y no
+debería abrirse; si alguna vez MidiGenPlay expusiera texto de presentación para estos valores, ALWTTT
+seguiría sin leerlo, por la misma razón que §8.10 no lee el glifo del marcador.
+
+**Riesgo registrado:** un rename package-side es invisible hasta que alguien mira la pestaña o juega
+en esa métrica. El disparador de revisión es la nota de versión de cualquier MidiGenPlay que toque
+`MusicTheory`; el coste de comprobarlo es abrir `GameTextWindow ▸ Templates` y leer el bloque
+`COVERAGE`.

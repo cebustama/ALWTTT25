@@ -33,10 +33,13 @@ namespace ALWTTT
         {
             get
             {
+                // [SONG-PANEL-1 / F-SP1-5] Ask GigManager the question instead of reaching for
+                // the dev ScriptableObject: DevSettings is compiled out of player builds
+                // (DBG-C1) and this gate is not dev-only. Behaviour is unchanged - the
+                // property fails open on a null dev asset exactly as the old null check did.
                 var gm = ALWTTT.Managers.GigManager.Instance;
-                var d = gm != null ? gm.DevSettings : null;
-                if (d == null) return true;          // no gig: unchanged behaviour
-                return d.UseLogs && d.LogVerbose;
+                if (gm == null) return true;         // no gig: unchanged behaviour
+                return gm.VerboseLogsEnabled;
             }
         }
 
@@ -57,9 +60,9 @@ namespace ALWTTT
         // Fail-OPEN sin GigManager, idéntico a VerboseLogs y por la misma razón.
         private static void LogGate(string msg)
         {
+            // [SONG-PANEL-1 / F-SP1-5] See VerboseLogs above. Same fail-open semantics.
             var gm = ALWTTT.Managers.GigManager.Instance;
-            var d = gm != null ? gm.DevSettings : null;
-            if (d == null || d.UseLogs) Debug.Log(msg);
+            if (gm == null || gm.LogsEnabled) Debug.Log(msg);
         }
 
         [Header("Card Settings")]

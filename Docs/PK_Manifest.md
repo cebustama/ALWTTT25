@@ -1,5 +1,187 @@
 # PK_Manifest — ALWTTT Project Knowledge (Capa 2 · índice de contenido del PK)
 
+**Versión 16 — 2026-09-16 (TEXT-VIBE-1 / TEXT-VIBE-1-DOC).** Cambios en v16: **ningún alta y ninguna
+baja** — ni de documento ni de código. **Nueve documentos sustituidos por reemplazo completo**
+(`SSoT_Game_Text.md`, `Design_Vibe_Telegraph_v0_1.md`, `SSoT_Editor_Authoring_Tools.md`,
+`SSoT_ALWTTT_MidiGenPlay_Boundary.md`, `SSoT_Card_System.md`, `CURRENT_STATE.md`,
+`changelog-ssot.md`, `coverage-matrix.md`) más este manifiesto. **`SSoT_INDEX.md` y
+`ssot_manifest.yaml` NO se tocan y eso es un resultado, no un olvido:** el lote no creó documentos ni
+movió autoridad de ficheros, y se comprobó antes de afirmarlo.
+
+**Dos copias de núcleo quedan RANCIAS y se marcan en §A.1** (`AudienceCharacterCanvas.cs`,
+`SongCompositionUI.cs`): el lote las editó y el PK conserva las copias de TEXT-5, de 2026-09-11. No se
+refrescan en esta sesión porque ningún lote inmediato las necesita — CARD-FACE-1 abre por la cara de
+carta y por `PartEffect`, no por estos dos —, así que la deuda se **registra con su disparador** en vez
+de pagarse a ciegas: quien vuelva a anclar una edición en cualquiera de las dos pide copia fresca
+primero (puerta de frescura del FRP).
+
+**R4 en este lote: sin excepción, y con una lección nueva.** Los dos reemplazos completos de `.cs`
+(`CompositionFxConfigSO.cs`, `CompositionStripThemeSO.cs`) se construyeron sobre **copias frescas del
+repo adjuntadas en la misma sesión**. Los nueve documentos se editaron sobre sus copias del PK, cuya
+fecha es 2026-09-15 (TIP-1-DOC) y a las que ningún lote cerrado ha tocado desde entonces: la puerta de
+frescura se comprueba y pasa. **Lo que v16 añade a R4 es el caso inverso** (F-TV-5): una copia fresca
+del repo garantiza la verdad del **código**, pero no la de un **dato transcrito a mano**. En este lote
+la lista de ids de plantilla se escribió leyendo una captura de pantalla en vez de la salida de la
+herramienta, y entró un id de un valor de enum inexistente que desplazó a uno alcanzable en la demo.
+La regla que deja, ya escrita en `SSoT_Game_Text` §8: **una familia de ids derivados se importa desde
+la salida de cobertura de la ventana, nunca desde un documento ni desde un mensaje de chat.**
+
+### Ediciones de TEXT-VIBE-1 / TEXT-VIBE-1-DOC (2026-09-16)
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `AudienceCharacterCanvas.cs` | **NÚCLEO, EDITADO** (dos pasos anclados: `VibeOnlyHeader` pasa a leer el concepto `vibe` — F-TV-3 —, y `BuildVibeText` suprime por salida==entrada en crudo — D1/F-TIP-6). | **fila de §A.2 marcada RANCIA** · refresco pendiente con disparador declarado |
+| `SongCompositionUI.cs` | **NÚCLEO, EDITADO** (dos pasos anclados: `SpawnCompositionFx` deja de leer `entry.label` y formatea por glosario; alta de `FxTextIdOf`, mapa entrada→id por identidad de referencia). | **fila de §A.2 marcada RANCIA** · refresco pendiente con disparador declarado |
+| `CompositionFxConfigSO.cs` | **Capa 3, REEMPLAZO COMPLETO** (`FxEntry.label` **borrado**, D-SP1-6=B) y transcodificado de Windows-1252 a ASCII puro (**F-TV-2**). | fila de Capa 3 · `nonASCII=0` verificado en disco |
+| `CompositionStripThemeSO.cs` | **Capa 3, REEMPLAZO COMPLETO** (los `displayName` de `MeterEntry` y `TempoEntry` **borrados**; `TryGetMeter`/`TryGetTempo` pierden `out string label`; `RoleEntry.displayName` **intacto y declarado abierto**) y transcodificado (**F-TV-2**). | fila de Capa 3 · `nonASCII=0` verificado en disco |
+| `CompositionContextRowUI.cs` | **Capa 3, EDITADO** (cinco pasos anclados: los dos `Bind` pierden el `out _`, el hover formatea `UiCtxMeter`/`UiCtxTempo`, dos comentarios de censo corregidos). | fila de Capa 3 actualizada · `nonASCII=0` |
+| `GameTextTemplateIds.cs` | **Capa 3, EDITADO** (`All` **73 → 102** y, más importante, **deja de ser una lista literal**: `BuildAll()` enumera `TimeSignature` y `TempoRange`). | fila de Capa 3 actualizada |
+| `GigCanvas.cs` | **Capa 3, EDITADO** (población 11: seis ids `ui_readout_*`, cabecera incluida; D1 en la línea de SFX). **No está en el PK** y no entra. | sin acción de PK |
+| `GigManager.cs` · `VibeProjection.cs` | **LEÍDOS, no editados.** `GigManager` aportó el redondeo que fija la comparación de D1 (`ComputeLPart`, `ApplyFlowToLPart`) y destapó **F-TV-4**. | sin acción de PK; `VibeProjection.cs` conserva su fila |
+| `FxManager.cs` · `CompositionStripThemeSO` consumidores | **LEÍDOS.** `FxManager` confirmó por dónde viaja el label de la población 8. **`SongTrackElementUI.cs` / `TrackHoverPanel.cs` NO se leyeron**, y por eso `RoleEntry.displayName` queda abierto. | sin acción de PK |
+| Assets `ConceptGlossary_EN` / `_ES` | **Editados por import de CSV** (29 filas nuevas) + **borrado manual de un huérfano** en el Inspector de ambos (la pestaña no borra). | no son ficheros del PK |
+
+**Adjuntos del chat a descartar al cerrar:** los ocho `.cs` del lote, los dos CSV de plantillas (A y
+B), el CSV de arreglo de una fila, el export previo `GameText_Templates_20260916_1630.csv` y el
+volcado `CardText_en_20260916_164613.txt` — **este último NO se descarta sin guardarlo antes**: es
+`golden D`, la línea base nueva del oráculo de regresión, y su predecesor se perdió exactamente así
+(**F-TV-6**). Va a control de versiones, no a Descargas.
+
+**Versión 15 — 2026-09-15 (TIP-1 / TIP-1-DOC).** Cambios en v15: **un alta en §A.2** —
+`SSoT_Tooltip_Pipeline.md`, documento **nuevo** creado por el doc-pass (D-TIP-1=A) — y **ninguna copia
+de código del núcleo editada**: los tres `.cs` del lote
+(`TooltipManager.cs`, `TooltipController.cs`, `VibeReadoutTooltipTarget.cs`) son **Capa 3** y se piden
+por lote. **Ocho documentos sustituidos por reemplazo completo** (`SSoT_Game_Text.md`,
+`SSoT_Card_System.md`, `Design_Vibe_Telegraph_v0_1.md`, `SSoT_INDEX.md`, `coverage-matrix.md`,
+`ssot_manifest.yaml`, `CURRENT_STATE.md`, `changelog-ssot.md`), más `Repo_Tree_Index.md` (Capa 2) y
+este manifiesto. **Nada de código entró ni salió del PK.**
+
+**R4 en este lote: sin excepción.** Los tres reemplazos completos de `.cs` se construyeron sobre
+**copias frescas del repo adjuntadas en la misma sesión**, y los diez documentos editados se editaron
+**sobre sus copias del PK, que son la versión viva**: su fecha de copia es 2026-09-14 (doc-pass de
+SONG-PANEL-1) y **ningún lote cerrado las ha tocado desde entonces** — TIP-1 cambió código, no
+documentos. La puerta de frescura del FRP se comprueba y se pasa; no es una excepción declarada como
+la de `SongCompositionUI.cs` en v14.
+
+### Ediciones de TIP-1 / TIP-1-DOC (2026-09-15)
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `SSoT_Tooltip_Pipeline.md` | **ALTA, documento nuevo** (Capa 1). Hogar del transporte de tooltips: tres entradas, tabla de proyección por root canvas, orden de clamps, ciclo asignar → reconstruir → medir → colocar, censo de ocho superficies, tres invariantes duras. Registrado en `SSoT_INDEX.md`, `ssot_manifest.yaml`, `coverage-matrix.md` y `Repo_Tree_Index.md` **en la misma sesión** (alta de documento = cambio de autoridad). | fila nueva en §A.2 |
+| `SSoT_Game_Text.md` | **Sustituido.** §1 población 11 (F-TIP-2) y recuento 11/8/3; §4 reescrito (F-BN-7/F-BN-8 cerradas, conducta reenunciada); §8 disparador repuntado; §9 fila. **Pierde autoridad sobre cinco ficheros** de `Assets/Scripts/UI/Tooltips`. | fila de §A.2 con fecha nueva |
+| `SSoT_Card_System.md` · `Design_Vibe_Telegraph_v0_1.md` · `SSoT_INDEX.md` · `coverage-matrix.md` · `ssot_manifest.yaml` · `CURRENT_STATE.md` · `changelog-ssot.md` | **Sustituidos** (reemplazo completo). | filas de §A.2 con fecha nueva |
+| `Repo_Tree_Index.md` | **Actualizado a mano**, no regenerado: una ruta nueva en `Docs/systems` (13 → 14 ficheros, total 473 → **474**). Ningún `.cs` nuevo, borrado ni movido, así que no procede regenerar con el script. | Capa 2, sin fila de §A.2 |
+| `TooltipManager.cs` · `TooltipController.cs` · `VibeReadoutTooltipTarget.cs` | **Capa 3, EDITADOS** (reemplazo completo los tres). Rutas: `Assets/Scripts/UI/Tooltips/`. Gobernados por `SSoT_Tooltip_Pipeline.md` desde este doc-pass. **No entran al PK**: son costuras de un pipeline cuyo contrato ya vive en un SSoT, que es justo lo que hace innecesaria la copia. | sin acción de PK |
+| `GigCanvas.cs` · `StatusIconBase.cs` · `TooltipText.cs` · `VibeBarTooltipTarget.cs` · `ITooltipTargetBase.cs` · `I2DTooltipTarget.cs` · `TrackHoverPanel.cs` | **Capa 3, LEÍDOS y no editados.** `GigCanvas.cs` se pidió por una hipótesis falsa (el anchor de runtime no vivía ahí); el dato queda registrado para no repetir la petición. `TrackHoverPanel.cs` se leyó como **referencia de colocación** y su aritmética de clamps quedó citada en el SSoT nuevo §3. | sin acción de PK |
+| Prefab `TooltipController` | **Leído en el inspector** (VerticalLayoutGroup + ContentSizeFitter, pivot/anchors (0,0); canvas Overlay sort order 10). **No modificado** por el lote. | no es fichero del PK; registrado para trazabilidad |
+
+**Adjuntos del chat a descartar al cerrar:** los diez `.cs` del lote y las dos capturas de inspector.
+Ninguno entra al PK.
+
+**Deuda de recuento (registrada, no resuelta aquí).** La última versión que declaró un total absoluto
+fue **v9 (83 ficheros, TXT-2-DOC)**; v10–v14 registraron altas y retiradas sin recalcularlo, así que el
+número de v9 lleva cinco versiones sin actualizarse. Contando las filas reales de §A.2 en esta versión
+salen **94**, que no cuadra con 83 + las altas registradas: o hay filas de ficheros ya retirados que
+siguen en la tabla, o altas sin registrar en las cabeceras. **v15 no inventa un total**: declara su
+delta (**+1 alta**, `SSoT_Tooltip_Pipeline.md`) y deja el recuento absoluto como tarea de una pasada de
+auditoría del PK, que es trabajo de conciliación tabla-contra-PK-real y no de este lote. Se registra
+aquí para que la próxima versión no repita el número de v9 como si fuera cierto.
+
+**Versión 14 — 2026-09-14 (SONG-PANEL-1 / 1b / 1c).** Cambios en v14: **una copia del núcleo
+editada** — `SongCompositionUI.cs`, cuyo refresco estaba previsto desde v13 y queda **cumplido**;
+`FloatingTextMidiListener.cs` cierra su refresco abierto desde RFX-1 **por retirada** (es Capa 3 y no
+gana nada por estar en el PK); alta del bloque §A.1 «Refrescos y ediciones de SONG-PANEL-1»; censo de
+Capa 3 con **nueve ficheros editados** y tres leídos sin tocar. **Ocho documentos sustituidos por
+reemplazo completo** (`SSoT_Game_Text.md`, `SSoT_Card_System.md`, `SSoT_Dev_Mode.md`,
+`CURRENT_STATE.md`, `changelog-ssot.md`, `coverage-matrix.md`, `ssot_manifest.yaml`,
+`Design_Action_Economy_v1.md`). **Nada entró al PK en este lote.**
+
+**Lección de procedimiento que v14 registra (R4).** El reemplazo completo de `SongCompositionUI.cs`
+se generó **desde la copia del PK**, no desde una copia fresca del repo, porque el fichero no se
+editó en TEXT-6 y su fila estaba vigente. Es una **excepción declarada** a R4, mitigada con:
+verificación de integridad de la copia (1651 líneas, llaves balanceadas, fin de fichero intacto),
+aserción de unicidad de las veinte anclas antes de sustituir, y `git diff` obligatorio antes de
+sobrescribir. Se registra para que la próxima excepción sea una decisión y no una costumbre.
+
+### Refrescos y ediciones de SONG-PANEL-1 (2026-09-14)
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `SongCompositionUI.cs` | **NÚCLEO, EDITADO** (veinte ediciones: helpers de glosario, `Awake` → `Start`, letras de parte, borrado de los tres `[SerializeField]` de texto, **supresión de la reasignación de `track.info`** — F-T6-8). Entregado como **reemplazo de fichero completo**; ver la nota R4 de arriba. | **fila de §A.2 refrescada a 2026-09-14** · refresco previsto de v13 **cumplido** |
+| `FloatingTextMidiListener.cs` | **EDITADO** (gate de compilación `DevFloaters`, fallback `Chord (…)` a plantilla). Su copia del PK estaba **rancia desde RFX-1** y **no se usó**: el lote trabajó sobre copia fresca del repo. | **RETIRAR del PK** → §B, Capa 3. Cierra el refresco abierto desde RFX-1 |
+| `TrackHoverPanel.cs` | **Capa 3, EDITADO** (clamps de borde de pantalla, fondo, negritas, toggle dev dentro del `#if`, rebuild de layout antes de medir) y **re-transcodificado**: estaba **de vuelta en cp1252** (F-SP1-2). | fila de Capa 3 actualizada · **`nonASCII=0` verificado en disco** |
+| `CompositionContextRowUI.cs` | **Capa 3, EDITADO** (población 9 migrada, rama singular/plural, `Loop` sin total) y transcodificado (F-SP1-7). | alta de fila de Capa 3 · `nonASCII=0` verificado |
+| `CompositionStripDriver.cs` | **Capa 3, EDITADO sólo en codificación.** Diff funcional cero. | fila de Capa 3 actualizada |
+| `GameTextTemplateIds.cs` | **Capa 3, EDITADO** (`All` 54 → **73**). | fila de Capa 3 actualizada |
+| `GigManager.cs` | **EDITADO** (`LogsEnabled` / `VerboseLogsEnabled`; `DevSetSongHypeAbsolute` fuera del `#if`). Copia fresca del repo adjunta al chat. | si tiene fila de núcleo: **refrescar**; si no, fila de Capa 3 |
+| `HandController.cs`, `DeckManager.cs` | **EDITADOS** (gates de log). Copias frescas del repo. | filas de núcleo/Capa 3 **a refrescar** |
+| `CompositionSession.cs` | **EDITADO** (gates de log, con cambio de semántica declarado). Copia fresca del repo. | fila de Capa 3 actualizada |
+| `SongTrackElementUI.cs`, `SongPartElementUI.cs` | **LEÍDOS, no tocados.** Confirmaron que `RowData.info` es la etiqueta de fila y que D-SP1-1=A no obliga a tocar el constructor de filas. | filas de Capa 3 con «leído, no editado» |
+| Prefab `TrackHoverPanel` | **Editado en el inspector** (fondo `Panel`, anchors, `edgeMargin`). | no es fichero del PK; registrado aquí para trazabilidad |
+
+**Adjuntos del chat a descartar al cerrar:** los diez `.cs` del lote, el CSV de plantillas, el golden C
+y las capturas de inspector. Ninguno entra al PK.
+
+**Versión 13 — 2026-09-14 (TEXT-6).** Cambios en v13: **ninguna copia del núcleo del PK fue editada
+por el lote** — TEXT-6 tocó dos ficheros de **Capa 3** (`GameTextTemplateIds.cs`, editado;
+`TrackHoverPanel.cs`, editado y **transcodificado**) y leyó un tercero sin tocarlo
+(`SongTrackElementUI.cs`). `SongCompositionUI.cs` **no se editó**, así que su fila de §A.2 sigue
+vigente con fecha 2026-09-11 — pero **queda marcada como la que TEXT-6b va a editar**, y con un
+hallazgo nuevo verificado contra ella (**F-T6-8**, la reasignación de `track.info`). Alta de bloque
+§A.1 «Refrescos y ediciones de TEXT-6». **Siete documentos sustituidos por reemplazo completo**
+(`SSoT_Game_Text.md`, `SSoT_Audience_and_Reactions.md`, `SSoT_Editor_Authoring_Tools.md`,
+`coverage-matrix.md`, `CURRENT_STATE.md`, `changelog-ssot.md` y este fichero). **Adjuntos del chat de
+TEXT-6 a descartar:** `TrackHoverPanel.cs`, `SongTrackElementUI.cs`, los cinco `.asset` de público,
+`ActionTargetType.cs`, `CharacterActionType.cs`, los tres CSV de export, el golden y las dos capturas.
+**`Repo_Tree_Index.md` no se regenera:** el lote no creó ni renombró ficheros (verificado — la única
+alta es el reemplazo de un fichero existente).
+
+**Regla que TEXT-6 confirma y conviene no perder:** `TrackHoverPanel.cs` y `SongTrackElementUI.cs`
+estaban en Capa 3 con **existencia verificada y contenido no leído** desde v12, y esa anotación fue
+exactamente la que permitió pedirlos por nombre exacto en el paso 1 del FRP sin adivinar rutas. Una
+fila de Capa 3 que registra «existe, no leído» vale lo que cuesta.
+
+**Versión 12 — 2026-09-14 (TEXT-5-DOC).** Cambios en v12: bloque **§A.1 → «Refrescos y altas de
+TEXT-5»** con las **cinco costuras de núcleo** que el lote dejó frescas en el PK (`CardBase.cs`,
+`SongCompositionUI.cs`, `AudienceCharacterCanvas.cs`, `AudienceCharacterData.cs` y el **alta** de
+`GameText.cs`), el **cierre de los cuatro refrescos que TXT-4 dejó abiertos**, y el censo de los
+**nueve ficheros editados o creados que NO entran al PK** (Capa 3), uno de ellos nuevo.
+**`SongCompositionUI.cs` deja de estar rancia desde R6**: llevaba tres lotes marcada y bloqueando un
+paso concreto de TEXT-5, y además **estaba físicamente en el PK sin fila en §A.2** mientras §B.2 la
+listaba como retirada — **cuarta ocurrencia** de la familia de contradicción de `CharacterCanvas.cs`,
+`MusicianBase.cs` y `AudienceCharacterCanvas.cs` (F-DOC4-2), resuelta igual: dándole fila y **sin**
+ejecutar la retirada. **`GameText.cs` cambia de capa**: TXT-4 lo censó como Capa 3 y TEXT-5 lo subió al
+PK porque es la entrada única de todo el texto compuesto; gana fila de alta. **`Repo_Tree_Index.md`
+regenerado y sustituido** (snapshot **2026-09-14 12:30**, **473 ficheros**; el ejemplar anterior del PK
+era el del 2026-09-11 14:47, 472): incorpora el fichero nuevo del lote, verificó la ruta del `governs:`
+nuevo del manifiesto y confirmó que los dos candidatos de **F-T5-2** (`TrackHoverPanel.cs`,
+`SongTrackElementUI.cs`) **existen** — existencia verificada, **contenido no leído**. Los trece
+documentos del doc-pass **sustituidos por reemplazo completo**. Adjuntos del chat de TEXT-5:
+**descartados**.
+
+**Censo de Capa 3 de TEXT-5 (editados o creados, fuera del PK por presupuesto de contexto, no por
+autoridad — regla de invariantes del proyecto):** `ConceptGlossarySO.cs` · `GameTextTemplateIds.cs` ·
+`ConceptGlossaryTextTable.cs` · `GameTextWindow.cs` · `AudienceMemberWizard.cs` ·
+`CardDetailViewController.cs` · `SensoryFtPresentation.cs` · `AudienceIntentionData.cs` ·
+**`AudienceAbilityTextIndex.cs` (nuevo)**. Un lote que toque cobertura de texto, el wizard de público o
+el modal de detalle debe pedirlos por el File Request Protocol; ninguno gana ni pierde autoridad por no
+estar aquí.
+
+**Versión 11 — 2026-09-11 (TXT-4-DOC).** Cambios en v11: bloque **§A.1 → «Refrescos, altas y
+contradicciones de TXT-4»** con los dos ficheros de núcleo que el lote editó (`CardBase.cs`,
+`AudienceCharacterCanvas.cs`), la **procedencia nueva de `CardDefinition.cs`** (el lote no lo editó,
+pero cambió el contrato de uno de sus campos y su fila decía «no registrada»), y el censo de los
+**diez ficheros editados o creados que NO entran al PK** (Capa 3), cinco de ellos nuevos. **F-DOC4-2**:
+`AudienceCharacterCanvas.cs` estaba físicamente en el PK **sin fila en §A.2** y figuraba como retirada
+en §B.2 — tercera ocurrencia de la misma familia tras `CharacterCanvas.cs` y `MusicianBase.cs`;
+resuelta dándole fila y marcándola rancia, **sin ejecutar la retirada**, porque TIP-1 necesitará esa
+costura. `SongCompositionUI.cs` **sigue rancia desde R6 y ahora bloquea un paso concreto de TEXT-5**.
+Los doce documentos del doc-pass **sustituidos por reemplazo completo**. **`Repo_Tree_Index.md`
+REGENERADO** (snapshot **2026-09-11 14:47**, **472 ficheros**): la deuda de **siete lotes** queda
+**saldada**, y la regeneración pagó de paso tres verificaciones — las cinco rutas nuevas del
+`governs:` del manifiesto, la existencia de `GrantBonusLoopSpec.cs` (F-DOC4-1) y el hecho de que
+**`AudienceAbilityData.cs` no existe como fichero** (es una clase anidada en `AudienceCharacterData.cs`).
+
 **Versión 10 — 2026-09-10 (TXT-3).** Cambios en v10: bloque **§A.1 → «Refrescos y bajas de TXT-3»**
 con los dos refrescos del lote (`StatusEffectSO.cs`, `CardBase.cs` — esta última **gana procedencia
 por primera vez**) y el **cierre de los dos refrescos abiertos desde BIGNUM-1** (`CharacterCanvas.cs`
@@ -47,6 +229,92 @@ fila la que estaba rancia); **hallazgo F-TT-5** — cuatro retiradas registradas
 ## §A — En el PK
 
 ### A.1 Refresco pendiente
+
+#### Refrescos y ediciones de TEXT-6 (2026-09-14)
+
+Lote de código, datos y documentación cerrado en una sola sesión. **Consecuencia para el PK: casi
+nada.** Lo que cambió vive en Capa 3, y la única fila del núcleo afectada lo está por un **hallazgo**,
+no por una edición.
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `GameTextTemplateIds.cs` | **Capa 3, EDITADO** (tres pasos anclados: comentario de familias, seis consts `ui_track_*`, `All` 48 → 54). **No entra al PK**: sigue siendo Capa 3 por presupuesto de contexto, igual que en TEXT-5. Quien lo necesite lo pide fresco. | sin fila de §A.2 · censado aquí |
+| `TrackHoverPanel.cs` | **Capa 3, EDITADO y TRANSCODIFICADO** (cp1252 sin BOM → UTF-8 con BOM; F-T6-1). Entregado como **reemplazo de fichero completo**, no como anclas, porque sus separadores eran el byte crudo `0xB7` y un ancla que lo contuviera no es estable entre editores. Reconstruido desde copia fresca del repo de la misma sesión (regla R4 cumplida). | sin fila de §A.2 · censado aquí |
+| `SongTrackElementUI.cs` | **Capa 3, LEÍDO y NO tocado.** Confirmó que los literales de F-T5-2 no estaban ahí: la inferencia de v12 acertó el fichero. Cero literales de jugador; su único string es un `Debug.LogWarning`. | sin fila de §A.2 · censado aquí |
+| `SongCompositionUI.cs` | *(refresco cumplido en v14 — ver el bloque de SONG-PANEL-1 arriba.)* **NO editado por TEXT-6.** Su copia de 2026-09-11 sigue siendo fresca y sirvió para verificar **F-T6-8** por contenido (reasignación de `track.info` tras `InstrumentEffect`) y para dimensionar **F-T6-9** (`CompositionFxConfigSO.FxEntry.label`). **TEXT-6b SÍ lo va a editar**: su fila de §A.2 queda marcada para refresco en el cierre de ese lote. | fila de §A.2 vigente · **refresco previsto en TEXT-6b** |
+| Cinco `.asset` de público (`Big Guy`, `Cool Dude`, `Influencer`, `Kid`, `Kid-TestTaster`) | **Adjuntos al chat, no editados.** Fueron el **oráculo de mecánica** de las siete descripciones: sin ellos, dos de los siete cuerpos habrían sido invención. Se descartan al cierre; la tabla de acciones verificada queda en `SSoT_Audience_and_Reactions.md` §7.1, que es donde tiene que estar para no volver a pedirlos. | descartar |
+| `ActionTargetType.cs`, `CharacterActionType.cs` | **Adjuntos al chat, no editados.** Resolvieron los ordinales de los assets (`6 = Self`, `100 = AudienceTall`, `3 = AddStress`, `10 = MoveToFront`, `11 = ApplyStatusEffect`). Enums pequeños y estables; **no entran al PK** — se piden cuando hagan falta. | descartar |
+
+**Lección de contexto del lote:** el fichero más caro de este lote no fue código sino **datos** — los
+cinco `.asset`. Un export del wizard que incluyera `cardActionType / actionTargetType / actionValue /
+statusEffect` por acción habría evitado adjuntarlos. Queda anotado como mejora de tooling para quien
+toque `AudienceMemberWizard`.
+
+#### Refrescos y altas de TEXT-5 (2026-09-11, aplicado 2026-09-14)
+
+Lote de código cerrado el 2026-09-11; documentación aplicada en TEXT-5-DOC el 2026-09-14, en sesión
+separada. **Todos los refrescos de este bloque están hechos**: al abrir el doc-pass las cinco copias ya
+estaban en el PK y se verificaron **por contenido**, no por fecha — es la razón por la que este pase se
+escribió contra verdad de código y no contra inferencia (§C.1).
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `GameText.cs` | **ALTA en el PK (cambia de Capa 3 a núcleo).** TXT-4 lo censó como Capa 3; TEXT-5 lo sube porque es la **entrada única** de todo el texto compuesto y ningún lote de texto puede razonar sin él. Verificado por contenido: `Number(double, string)` presente, formatea por `Glossary.NumberFormat` con `CultureInfo.InvariantCulture` como *fallback* explícito. | **cerrado 2026-09-14** · fila de alta creada en §A.2 |
+| `CardBase.cs` | **Refrescado.** Cierra el refresco abierto por TXT-4. Verificado por contenido: L99 compone la etiqueta de tipo con `GameText.Format(GameTextTemplateIds.UiCardTypeComposition)` y la rama de enum queda marcada `F-TXT4-2 → CARD-FACE-1`. El literal `"COMPOSITION"` ya no está. | **cerrado 2026-09-14** |
+| `SongCompositionUI.cs` | **Refrescado + contradicción de clasificación resuelta.** Cierra la rancidez **abierta desde R6 (2026-09-01)**, tres lotes. Verificado por contenido: L344 `ALWTTT.Tooltips.GameText.CardName(data)` con la nota de que las pistas se indexan por `(musicianId, role)` y nunca por esa cadena. Además **estaba en el PK sin fila en §A.2** mientras §B.2 la listaba como retirada a Capa 3: **cuarta ocurrencia** de la familia tras `CharacterCanvas.cs`, `MusicianBase.cs` y `AudienceCharacterCanvas.cs`. Se resuelve igual — fila en §A.2, **retirada no ejecutada** — porque TEXT-6 la va a necesitar. | **cerrado 2026-09-14** · fila de alta creada en §A.2 |
+| `AudienceCharacterCanvas.cs` | **Refrescado.** Cierra el refresco abierto por TXT-4. Verificado por contenido: L174–181 resuelven el hover de intención por `GameText.ConceptName` / `ConceptDescription` sobre `NextAbility.AbilityId`; L138–154 formatean los números por `GameText.Number`. | **cerrado 2026-09-14** |
+| `AudienceCharacterData.cs` | **Procedencia nueva.** Su fila de §A.2 databa de AMW-1 y el fichero acaba de ganar un campo de contrato. Verificado por contenido: `abilityId` presente con el tooltip que declara el contrato (`[a-z0-9_]`, prefijo `ab_`, sembrado por `ALWTTT ▸ Text ▸ Seed Ability Ids`, id vacío = error de cobertura) y `abilityName` declarado **etiqueta de desarrollo**. | **cerrado 2026-09-14** |
+| `ConceptGlossarySO.cs` · `GameTextTemplateIds.cs` · `ConceptGlossaryTextTable.cs` · `GameTextWindow.cs` · `AudienceMemberWizard.cs` · `CardDetailViewController.cs` · `SensoryFtPresentation.cs` · `AudienceIntentionData.cs` · **`AudienceAbilityTextIndex.cs`** | **No entran al PK** (Capa 3). Editados o creados por el lote; se piden por lote. El único **nuevo** es `AudienceAbilityTextIndex.cs`, ya indexado en `Repo_Tree_Index.md` (snapshot 2026-09-14 12:30) en `Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs` y gobernado por `SSoT_Game_Text.md` en `ssot_manifest.yaml` desde este doc-pass. | sin acción de PK |
+
+**Assets de datos tocados (no indexables por `Repo_Tree_Index.md`):** los dos `ConceptGlossary` (EN/ES)
+ganan **siete entradas de concepto** (36 → 43), **una plantilla** (47 → 48, `ui_card_type_composition`)
+y el campo `numberCulture`. Fingerprints al cierre: Concepts
+`7e22a03fa95f3c9f7d18ed93b86e1be826551f3f` · Cards `7012d4898044ef3e67c5bd2587be50786e31815b`
+(**byte-idéntico a TXT-4**) · Templates `feb4add82dfa4d478c7c6a48a744c1c895d43ca5`. Los CSV de import
+del lote son **intercambio**, no se commitean como semilla (misma regla que TXT-3 y TXT-4).
+
+**Ficheros a descartar del chat al cerrar TEXT-5-DOC:** los adjuntos de la sesión de código de TEXT-5 y
+todas las capturas. `Runbook_TEXT-5.md` y `Runbook_TEXT-5-DOC.md` **se retiran al aplicarse**
+(convención de paquetes).
+
+**Dato que no llegó:** qué **dos personajes de público comparten `ab_tantrum`** (D-T5-5=A). La nota de
+contenido de `SSoT_Audience_and_Reactions` §7 está escrita en genérico para no inventar nombres. Se
+cierra con una frase cuando aparezca; no bloquea nada.
+
+#### Refrescos, altas y contradicciones de TXT-4 (2026-09-11)
+
+Lote de código cerrado el 2026-09-11; documentación aplicada en TXT-4-DOC el mismo día, en sesión
+separada. **Un refresco no está hecho hasta que su fila lo dice** (§C.1).
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `CardBase.cs` | **Refrescar.** EDITADO 2026-09-11 — el nombre de carta se resuelve por `GameText.CardName`; el literal `"COMPOSITION"` sigue en `typeTextField` (F-TXT4-2, migrable, va a TEXT-5). Su fila de §A.2 ganó procedencia en TXT-3 y vuelve a quedar vencida. | **cerrado 2026-09-14 por TEXT-5** — ver el bloque de TEXT-5 |
+| `AudienceCharacterCanvas.cs` | **Refrescar + resolver contradicción de clasificación (F-DOC4-2).** EDITADO 2026-09-11 — los 13 literales sustituidos por plantillas `ui_aud_*` y por el concepto `blocked`. Además: **estaba presente en el PK sin fila en §A.2** mientras §B.2 lo listaba como retirado a Capa 3. Misma familia de contradicción que se resolvió para `CharacterCanvas.cs` y `MusicianBase.cs` en DOC-TUTR-B; se resuelve igual, dándole fila. | **cerrado 2026-09-14 por TEXT-5** — la fila de §A.2 deja de estar marcada RANCIA |
+| `CardDefinition.cs` | **Procedencia nueva.** El lote **no** lo editó, pero su fila de §A.2 decía «no registrada» y el fichero acaba de cambiar de significado (`displayName` = etiqueta de desarrollo). Copia del 2026-09-11 adjuntada al chat del lote y verificada por contenido. | **cerrado 2026-09-11** |
+| `SongCompositionUI.cs` | **Sigue RANCIA desde R6 (2026-09-01) y ahora bloquea un paso concreto.** TEXT-5 debe cambiar la etiqueta de pista de la línea 344 (F-TXT4-3) y **esa edición no es anclable sin copia fresca**: la copia del PK no contiene los cambios de R6. Tercer lote consecutivo con la fila abierta. | **cerrado 2026-09-14 por TEXT-5** — copia fresca en el PK, rancidez de R6 saldada tras tres lotes |
+| `ConceptGlossarySO.cs` · `CardEffectDescriptionBuilder.cs` · `CardDefinitionDescriptionExtensions.cs` · `ConceptGlossaryTextTable.cs` · `GameTextWindow.cs` · **`GameText.cs`** · **`GameTextTemplateIds.cs`** · **`GlossarySectionTable.cs`** · **`GameTextRichText.cs`** · **`CardTextDumpMenu.cs`** | **No entran al PK** (Capa 3). Editados o creados por el lote; se piden por lote. Los cinco en negrita son **ficheros nuevos**, ya indexados en `Repo_Tree_Index.md` (snapshot 2026-09-11 14:47): `Assets/Scripts/UI/Tooltips/GameText.cs` · `.../GameTextTemplateIds.cs` · `Assets/Scripts/Editor/Text/GlossarySectionTable.cs` · `.../GameTextRichText.cs` · `.../CardTextDumpMenu.cs`. Las cinco rutas quedan gobernadas por `SSoT_Game_Text.md` en `ssot_manifest.yaml` desde este doc-pass. | sin acción de PK |
+
+**Assets de datos tocados (no indexables por `Repo_Tree_Index.md`):** los dos `ConceptGlossary`
+(EN/ES) ganan **dos listas** — `cardNames` (60) y `templates` (47) — junto a las 36 entradas de
+concepto que ya tenían. Fingerprints al cierre: Concepts
+`6632813b43573214aa32fdfc5b5ae20680c24e8f` · Cards `7012d4898044ef3e67c5bd2587be50786e31815b` ·
+Templates `d6ffe2128873cc3ead794136fc5879650c6ecc80`. Los CSV de import del lote son **intercambio**,
+no se commitean como semilla (misma regla que TXT-3: el `.asset` ya es la verdad y la ruta de
+recuperación es el export de la pestaña, a diferencia del CSV de recuperación del tutorial, D-TT-7=A).
+
+**Ficheros a descartar del chat al cerrar TXT-4-DOC:** los 24 adjuntos de la sesión de código de
+TXT-4 y todas las capturas. El paquete `TXT-4_Cierre_docdiffs_y_rehidratacion.md` **se retira al
+aplicarse** (convención de paquetes); `TXT-4-DOC_Runbook.md` se retira con él.
+
+**`Repo_Tree_Index.md` REGENERADO — deuda de siete lotes SALDADA.** Snapshot **2026-09-11 14:47**,
+**472 ficheros** (desde 445 en el snapshot del 2026-08-27). Actualiza también la fila de §A.2 y la
+regla §C.5. Merece registro por qué se regeneró **antes** de escribir este bloque y no después: tres
+afirmaciones de este doc-pass eran inferencias hasta que existió el índice — la ruta
+`Assets/Scripts/Cards/Extensions/CardDefinitionDescriptionExtensions.cs` (el paquete de cierre la
+daba como corrección, sin verificar), la existencia de `GrantBonusLoopSpec.cs` (F-DOC4-1) y la
+**inexistencia** de `AudienceAbilityData.cs`, que el prompt de TEXT-5 pedía por nombre y que habría
+devuelto vacío. Un índice de rutas no es documentación: es lo que convierte una petición de fichero
+en una operación con respuesta.
 
 #### Refrescos y altas de TXT-2 (2026-09-10)
 
@@ -108,6 +376,8 @@ lo dice** (§C.1), así que las filas de §A.2 quedan marcadas y estas son las a
 | `CardPerformedEvent.cs` · `StatusVisualDriver.cs` | **Ficheros nuevos, no entran al PK.** Costuras pequeñas y estables; se piden por lote si un lote futuro las edita. Rutas: `Assets/Scripts/Sensory/` y `Assets/Scripts/Characters/`. | sin acción |
 
 #### Refrescos y bajas de TXT-3 (2026-09-10)
+
+> Bloque histórico. El bloque vivo es el de TXT-4, más abajo en esta misma sección.
 
 Lote de código **y** documentación cerrado el mismo día. Un refresco no está hecho hasta que su fila
 lo dice (§C.1).
@@ -383,14 +653,18 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | Fichero | Clase | Estado | Fecha de copia | Ruta en repo | Verificado-contra (lote/fecha) | Notas |
 |---|---|---|---|---|---|---|
 | `ALWTTT_Uses_MidiGenPlay_Quick_Path.md` | POR-LOTE | Fase 3-B — sale al cerrar frontera (3 KB) | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | reference frontera (3 KB) |
-| `SSoT_Game_Text.md` | PERMANENTE | queda | TXT-2 (2026-09-10) | Docs/systems/SSoT_Game_Text.md | TXT-2 (2026-09-10) — creado y aplicado en la misma sesión | autoridad nueva: fontanería del texto de jugador (poblaciones, tags, orden de resolución, hover, paridad, CSV). NO es autoridad sobre el significado de ningún concepto |
+| `SSoT_Tooltip_Pipeline.md` | PERMANENTE | queda | **2026-09-15 (alta, TIP-1-DOC)** | Docs/systems/SSoT_Tooltip_Pipeline.md | **TIP-1-DOC / 2026-09-15** — creado y aplicado en la misma sesión que el código que documenta; ruta verificada contra `Repo_Tree_Index.md` (actualizado en el mismo paso) | autoridad nueva: **transporte** de tooltips (entradas, anclaje, colocación, ciclo de vida del panel). No gobierna texto ni significado. Tres invariantes duras en `ssot_manifest.yaml`: `TOOLTIP-SHOW-IS-A-PUSH`, `TOOLTIP-ANCHOR-SPACE-IS-INFERRED`, `TOOLTIP-REBUILD-BEFORE-MEASURE` |
+| `SSoT_Game_Text.md` | PERMANENTE | queda | **2026-09-15 (sustituida, TIP-1-DOC)** | Docs/systems/SSoT_Game_Text.md | **TIP-1-DOC (2026-09-15)** — §1 gana la población 11 y §4 se reescribe; el documento **pierde `governs:` sobre cinco ficheros** de `Assets/Scripts/UI/Tooltips`, que pasan a `SSoT_Tooltip_Pipeline.md`. Antes: TXT-2 (2026-09-10) — creado y aplicado en la misma sesión | autoridad nueva: fontanería del texto de jugador (poblaciones, tags, orden de resolución, hover, paridad, CSV). NO es autoridad sobre el significado de ningún concepto |
 | `AudienceCharacterBase.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Characters/AudienceCharacterBase.cs | PRES-1 / D-R5-2 (2026-08-11): SelectDefaultMusicianTarget + SpotlightRedirectEvent presentes | ok · sin lote posterior conocido |
-| `AudienceCharacterData.cs` | PERMANENTE | queda | AMW-1 (2026-09-05) | Assets/Scripts/Data/Characters/Audience/AudienceCharacterData.cs | GEW-1 (2026-09-06): leída para derivar las columnas de la fila de público (`maxVibe`, `abilityList`, `followAbilityPattern`, `taste`); no editada. Antes: AMW-1 (2026-09-05), copia fresca comparada con la del PK — **idénticas** salvo BOM/EOL | ok · ni AMW-1 ni GEW-1 editaron el fichero (editor-only) |
+| `AudienceCharacterData.cs` | PERMANENTE | queda | **2026-09-11 (refrescada, TEXT-5)** | Assets/Scripts/Data/Characters/Audience/AudienceCharacterData.cs | **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: la clase anidada `AudienceAbilityData` tiene `abilityId` con el tooltip que declara su contrato, y `abilityName` marcado etiqueta de desarrollo. Antes: GEW-1 (2026-09-06) y AMW-1 (2026-09-05), ambos editor-only y sin editar el fichero | ok · **contiene `AudienceAbilityData` como clase anidada**: no existe `AudienceAbilityData.cs` y pedirlo por ese nombre devuelve vacío (verificado TXT-4-DOC) |
 | `CSV-4b_Name_Lookup_Audit.md` | POR-LOTE | Fase 3-B — sale al cerrar CSV-4b | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | insumo de CSV-4b (lote vivo, queued) · **no existe en el repo — solo vive aquí; comprometer antes de retirarla** |
 | `CSV_Composition_Validation_Sub_Roadmap.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | sub-roadmap activo (CSV-4b/5/6) |
 | `CURRENT_STATE.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | baseline operativo |
-| `CardBase.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Cards/CardBase.cs | R5 marker presente; JUICE-PW/CARD-UX-1 presentes | ok · sin lote posterior conocido |
-| `CardDefinition.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Cards/CardDefinition.cs | R5-d (2026-08-26): resourceCostStatusKey/Amount presentes | ok — última marca = último lote de código · sin lote posterior conocido |
+| `CardBase.cs` | PERMANENTE | queda | **2026-09-11 (refrescada, TEXT-5)** | Assets/Scripts/Cards/CardBase.cs | **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: L99 `GameText.Format(GameTextTemplateIds.UiCardTypeComposition)`, L100 `GameText.CardName` | ok · el literal `"COMPOSITION"` **ya no está** (D-T5-3=A). Lo que queda en `typeTextField` es la rama de enum de las cartas Action: F-TXT4-2 → CARD-FACE-1, y **fuera** de `GAMETEXT-NO-DEV-LABEL` por definición |
+| `AudienceCharacterCanvas.cs` | PERMANENTE | queda — alta 2026-09-11 (F-DOC4-2) · **RANCIA desde 2026-09-16 (TEXT-VIBE-1 la editó: `VibeOnlyHeader` + supresión de D1 en `BuildVibeText`). Disparador de refresco: el primer lote que vuelva a anclar una edición en este fichero** | **2026-09-11 (refrescada, TEXT-5) — anterior al lote que la editó** | Assets/Scripts/Characters/AudienceCharacterCanvas.cs | **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: L174–181 hover de intención por `GameText.ConceptName`/`ConceptDescription` sobre `AbilityId`; L138–154 números por `GameText.Number` | ok · **contradicción retirado-pero-presente resuelta en TXT-4** (figuraba en §B.2 como Capa 3 estando físicamente en el PK sin fila; la retirada nunca se ejecutó — tercera ocurrencia de la familia tras `CharacterCanvas.cs` y `MusicianBase.cs`). TIP-1 va a necesitar esta costura |
+| `GameText.cs` | PERMANENTE | queda — **alta 2026-09-14 (TEXT-5)** | **2026-09-11 (fresca, TEXT-5)** | Assets/Scripts/UI/Tooltips/GameText.cs | **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: `CardName`, `ConceptName`, `ConceptDescription`, `StatusName`, `Format`, y **`Number(double, string)`** formateando por `Glossary.NumberFormat` con invariante explícita | **sube de Capa 3 a núcleo.** TXT-4 lo creó y lo censó como Capa 3; TEXT-5 lo promueve porque es la **entrada única** de todo el texto compuesto (la otra, `ConceptTooltipResolver`, solo responde hovers) y ningún lote de texto puede razonar sin él. Gobernado por `SSoT_Game_Text.md` vía `Assets/Scripts/UI/Tooltips` |
+| `SongCompositionUI.cs` | PERMANENTE | queda — **alta 2026-09-14 (contradicción resuelta)** · **RANCIA desde 2026-09-16 (TEXT-VIBE-1 la editó: `SpawnCompositionFx` + alta de `FxTextIdOf`). Disparador de refresco: el primer lote que vuelva a anclar una edición en este fichero** | **2026-09-11 (TEXT-5) — anterior al lote que la editó** | Assets/Scripts/UI/Song Composition/SongCompositionUI.cs | **TEXT-6 / 2026-09-14** — NO editada por TEXT-6; la copia de TEXT-5 sigue fresca y se verificó por contenido dos veces más: L1396 reasigna `track.info` a `"{styleBundle.name} - {instrumentName}"` (**F-T6-8**) y L1516–1521 pasa `CompositionFxConfigSO.FxEntry.label` a `SpawnFloatingText` (**F-T6-9**, población 8). Antes: **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: L344 `GameText.CardName(data)` como etiqueta de fila. Antes: **RANCIA desde R6 (2026-09-01)**, tres lotes | **cuarta ocurrencia de la familia retirado-pero-presente** tras `CharacterCanvas.cs`, `MusicianBase.cs` y `AudienceCharacterCanvas.cs`: estaba físicamente en el PK, sin fila en §A.2, y §B.2 la listaba como retirada a Capa 3. Resuelta igual — fila creada, **retirada no ejecutada** — porque TEXT-6 la necesita para F-T5-2. **Los literales `Instrument:` / `bundle:` / `Modifiers:` NO están en este fichero** (verificado, cero coincidencias) |
+| `CardDefinition.cs` | PERMANENTE | queda | **2026-09-11 (procedencia nueva, TXT-4-DOC)** | Assets/Scripts/Cards/CardDefinition.cs | **TXT-4 / 2026-09-11** — copia fresca adjuntada al chat del lote y verificada por contenido; `resourceCostStatusKey`/`Amount` (R5-d) siguen presentes. **El lote NO editó el fichero**, pero cambió lo que significa uno de sus campos | **`displayName` es etiqueta de desarrollo desde TXT-4** (D-TXT4-4), mismo contrato que `StatusEffectSO.displayName` desde TXT-3. Ninguna superficie de jugador debe leerlo; tres lo siguen haciendo (F-TXT4-3 → TEXT-5). La fila gana procedencia precisamente porque **un campo que cambia de contrato sin cambiar de forma es lo que una copia rancia no delata** |
 | `CardEffectSpec.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Cards/Effects/CardEffectSpec.cs | sin marcas (0.4 KB, base abstracta) | sin lote posterior conocido |
 | `CharacterStatusId.cs` | PERMANENTE | queda | 2026-08-26 17:41 (refrescada) | Assets/Scripts/Status/CharacterStatusId.cs | **R4 / R5-a · verificada 2026-08-27** | contiene `NegateIncomingPositive = 404`, `RedirectIncoming = 504` (R4/D-R4-3=A), `ResourceGenerationModifier = 992`, `ResourceCounter = 993` (R5-a/Voltage). F-R5a-1 **cerrada en su faceta de PK**. |
 | `DeckManager.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Managers/DeckManager.cs | CARD-UX-1 (2026-07-13): BuildAndGetCard + TutorialHighlight hook | lotes posteriores posibles: DF-CATALOG 2026-07-15 (unión de catálogos) — no verificable en la copia |
@@ -464,7 +738,7 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | `ssot_manifest.yaml` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | manifiesto (governs:) |
 | `PK_Manifest.md` | PERMANENTE (Capa 2) | queda | 2026-08-27 (v2) | `Docs/PK_Manifest.md` | PK-CUT-1 / 2026-08-27 | este fichero; no gobernado — operativa del PK |
 | `MGP_Boundary_Index.md` | PERMANENTE (Capa 2) | queda | 2026-08-26 | `Docs/MGP_Boundary_Index.md` | PK-AUDIT-1 / 2026-08-26 | índice del espejo MGP-20260810; no gobernado |
-| `Repo_Tree_Index.md` | PERMANENTE (Capa 2) | queda | **snapshot 2026-08-27 15:43** | `Docs/Repo_Tree_Index.md` | generado por `make-tree-unity.ps1` | 445 rutas de `Assets/Scripts`, `Assets/Editor`, `Assets/PinkTrombonePOC`, `Docs`, `Packages` + docs de raíz. Excluye código de terceros (`MidiPlayer`, `com.merry-yellow.code-assist`). Avisa de homónimos (hoy: 9 × `README.md`). **Caduca** — ver §C.5 |
+| `Repo_Tree_Index.md` | PERMANENTE (Capa 2) | queda | **snapshot 2026-09-14 12:30 (regenerado, TEXT-5)** | `Docs/Repo_Tree_Index.md` | generado por `make-tree-unity.ps1` | **473 rutas** (472 en el snapshot del 2026-09-11 14:47; 445 en el del 2026-08-27) de `Assets/Scripts`, `Assets/Editor`, `Assets/PinkTrombonePOC`, `Docs`, `Packages` + docs de raíz. Excluye código de terceros (`MidiPlayer`, `com.merry-yellow.code-assist`) y assets de Unity (`-IncludeAssets` para incluirlos). Avisa de homónimos. **Deuda de siete lotes saldada 2026-09-11**; regenerado de nuevo en TEXT-5 por el fichero nuevo del lote. Sirvió además para verificar la ruta del `governs:` nuevo y para confirmar que existen `TrackHoverPanel.cs` y `SongTrackElementUI.cs` (candidatos de F-T5-2, **existencia verificada, contenido no leído**). **Caduca** — ver §C.5 |
 | `RhythmLane.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Enums/RhythmLane.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | enum de carril rítmico; 1 KB |
 | `RhythmFxConfigSO.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Data/RhythmFxConfigSO.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | config SO del FX rítmico; 6 KB |
 | `RhythmParticleEmitter.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Music/RhythmParticleEmitter.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | emisor de partículas; 9 KB |
@@ -546,7 +820,7 @@ Cómo pedirlos: **copia fresca del repo al chat del lote** que los toque (FRP pa
 
 **`Cards/Effects`** (8 ficheros · 14 KB): `AddInspirationPerLoopSpec.cs`, `ApplyStatusEffectSpec.cs`, `CardEffectDescriptionBuilder.cs`, `DrawCardsSpec.cs`, `GrantBonusLoopSpec.cs`, `ModifyStressSpec.cs`, `ModifyVibeSpec.cs`, `RevealPreferencesSpec.cs`
 
-**`Characters`** (8 ficheros · 56 KB) — *`CharacterCanvas.cs`: retirada nunca ejecutada; presente y censado en §A.2 desde 2026-09-04*: `AudienceCharacterCanvas.cs`, `CharacterAnimator.cs`, `CharacterBase.cs`, `CharacterCanvas.cs`, `CharacterStats.cs`, `SpriteOutlineController.cs`, `StatusStats.cs`, `VibeEffectiveness.cs`, `VibeProjection.cs` *(alta BIGNUM-1 2026-09-09; pasa a §A.2)*
+**`Characters`** (8 ficheros · 56 KB) — *`AudienceCharacterCanvas.cs`: retirada nunca ejecutada; presente y censado en §A.2 desde 2026-09-11 (F-DOC4-2)* — *`CharacterCanvas.cs`: retirada nunca ejecutada; presente y censado en §A.2 desde 2026-09-04*: `AudienceCharacterCanvas.cs`, `CharacterAnimator.cs`, `CharacterBase.cs`, `CharacterCanvas.cs`, `CharacterStats.cs`, `SpriteOutlineController.cs`, `StatusStats.cs`, `VibeEffectiveness.cs`, `VibeProjection.cs` *(alta BIGNUM-1 2026-09-09; pasa a §A.2)*
 
 **`Characters/Actions | Cards/CardActions`** (11 ficheros · 23 KB): `AddStressAction.cs`, `AddVibeAction.cs`, `ApplyStatusEffectAction.cs`, `AudienceMoveToFrontAction.cs`, `BlockStressAction.cs`, `BlockVibeAction.cs`, `CharacterActionData.cs`, `CharacterActionParameters.cs`, `CharacterActionProcessor.cs`, `HealStressAction.cs`, `RemoveVibeAction.cs`
 

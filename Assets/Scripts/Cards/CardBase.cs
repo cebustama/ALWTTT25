@@ -96,8 +96,8 @@ namespace ALWTTT
 
             cardImage.sprite = CardDefinition.CardSprite;
             typeTextField.text = CardDefinition.IsComposition ?
-                "COMPOSITION" : CardDefinition.CardType.ToString();
-            nameTextField.text = CardDefinition.DisplayName;
+                GameText.Format(GameTextTemplateIds.UiCardTypeComposition) : CardDefinition.CardType.ToString();   // [TEXT-5 / D-T5-3=A] enum branch is F-TXT4-2 → CARD-FACE-1
+            nameTextField.text = GameText.CardName(CardDefinition);   // [TXT-4] glossary cardNames by Id; displayName is a developer label
             descTextField.text = CardDefinition.GetDescription();
 
             // [DEMO-FIXES-A / DF-COST0 / D-DF-5=A] Mirror of the S5e-ext
@@ -809,6 +809,45 @@ namespace ALWTTT
             if (!descriptionRoot) return;
             var tooltipManager = TooltipManager.Instance;
             if (tooltipManager == null) return;
+
+
+            // 0) Track-role tooltip [CARD-FACE-1 / D-CF-13=C]. The face shows the role as a GLYPH
+            //    with no word (density); its meaning arrives here, exactly as a keyword's does.
+            //    Read straight from the glossary by derived id (role_<trackrole>): ConceptTooltipResolver
+            //    keys by StatusKey and keyword name, and a TrackRole is neither, so adding a case
+            //    there would be a change to the tooltip pipeline (out of scope, D-CF-2).
+            //    Miss policy is GameText's: the header shows the raw id, never nothing.
+            if (CardDefinition.HasPayload
+                && CardDefinition.Payload is CompositionCardPayload compPayload
+                && compPayload.PrimaryKind == CardPrimaryKind.Track
+                && compPayload.TrackAction != null)
+            {
+                string roleConceptId = GameSymbols.RoleConcept(compPayload.TrackAction.role);
+                tooltipManager.ShowTooltip(
+                    GameText.ConceptDescription(roleConceptId),
+                    GameText.ConceptName(roleConceptId));
+            }
+
+            // 0b) Modifier-family tooltips [CARD-FACE-1 / D-CF-14=B]. The face now shows a glyph per
+            //     modifier; this is where those glyphs acquire meaning, same mechanism as the role.
+            //     DEDUPED BY FAMILY on purpose: on the face, repetition is information (two tempo
+            //     effects = two glyphs = two modifiers); in the stack it would be two identical
+            //     panels, so the family is shown once. Unmapped subclasses contribute no panel.
+            if (CardDefinition.HasPayload
+                && CardDefinition.Payload is CompositionCardPayload modPayload
+                && modPayload.ModifierEffects != null)
+            {
+                var seenFamilies = new HashSet<string>();
+                foreach (var fx in modPayload.ModifierEffects)
+                {
+                    if (fx == null) continue;
+                    string conceptId = PartEffectDescriptionBuilder.FamilyConceptId(fx);
+                    if (conceptId == null || !seenFamilies.Add(conceptId)) continue;
+                    tooltipManager.ShowTooltip(
+                        GameText.ConceptDescription(conceptId),
+                        GameText.ConceptName(conceptId));
+                }
+            }
 
             // 1) Keyword tooltips — text from the active ConceptGlossarySO, keyed by the enum
             //    name (TXT-3 / D-TXT3-0=B). SpecialKeywordData no longer exists. A keyword the

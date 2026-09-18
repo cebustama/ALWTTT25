@@ -1,9 +1,9 @@
-// Placement: Assets/Scripts/Data/UI/CompositionStripThemeSO.cs
+// Placement: Assets/Scripts/UI/CompositionStripThemeSO.cs
 //
 // [HUD-COMP-1 / D-IMPL-SO] Single authoring surface for the composition strip:
 // role lexicon, meter glyphs, tempo icons, mood map, and layout tokens.
 //
-// DEVIATION FROM Composition_View_Spec.md §7 (stated, not silent): the spec
+// DEVIATION FROM Composition_View_Spec.md section 7 (stated, not silent): the spec
 // listed four separate SOs. They are consolidated here because all four are
 // consumed together by the same prefab, and three of the four fail SILENTLY
 // when unassigned (a missing sprite just doesn't draw). One asset = one null
@@ -13,6 +13,20 @@
 // serialize dictionaries) and cached into dictionaries on first access.
 // Every lookup has a defined fallback: a package-side enum value we have never
 // seen must degrade to a neutral chip, never to a null-ref.
+//
+// [TEXT-VIBE-1 / D-SP1-6=B] Population 10 (F-SP1-13): MeterEntry.displayName and
+// TempoEntry.displayName are GONE, and TryGetMeter / TryGetTempo no longer return a
+// label. The chip hover text is a glossary template keyed by the enum VALUE
+// (GameTextTemplateIds.UiCtxMeter / UiCtxTempo), resolved by the consumer
+// (CompositionContextRowUI). This asset owns glyphs, icons, tints and layout --
+// never a word the player reads. The old "{displayName} ({enum})" shape is what
+// produced "Four Four (FourFour)" on screen. RoleEntry.displayName is NOT touched
+// by this batch: its consumer was not censused in the session that made this
+// change (see SSoT_Game_Text section 1, row 10).
+//
+// [TEXT-VIBE-1 / F-TV-2] Source is PURE ASCII: this file was Windows-1252 (raw 0x97
+// em-dashes and 0xA7 section signs in comments, no BOM) and compiled only by the
+// compiler's code-page fallback -- the F-SP1-7 shape. Same fix as TrackHoverPanel.cs.
 
 using ALWTTT.Enums;
 using MidiGenPlay;
@@ -34,10 +48,11 @@ namespace ALWTTT.Data
         {
             public TrackRole role;
             public Sprite icon;
-            [Tooltip("Glyph tint ONLY. Never applied to the pill — pill/border " +
+            [Tooltip("Glyph tint ONLY. Never applied to the pill -- pill/border " +
                      "colors are reserved for STATE (pending / level-up / final loop).")]
             public Color tint = Color.white;
-            [Tooltip("Hover label. Defaults to the enum name when empty.")]
+            [Tooltip("Hover label. Defaults to the enum name when empty. " +
+                     "OPEN: player text on an asset (SSoT_Game_Text row 10); consumer not yet censused.")]
             public string displayName;
         }
 
@@ -46,8 +61,6 @@ namespace ALWTTT.Data
         {
             public TimeSignature meter;
             public Sprite glyph;
-            [Tooltip("Hover label, e.g. \"6/8\". Enum name is appended automatically.")]
-            public string displayName;
         }
 
         [System.Serializable]
@@ -55,8 +68,6 @@ namespace ALWTTT.Data
         {
             public TempoRange tempo;
             public Sprite icon;
-            [Tooltip("Hover label, e.g. \"Very Slow\".")]
-            public string displayName;
         }
 
         [System.Serializable]
@@ -68,16 +79,16 @@ namespace ALWTTT.Data
             public Color tint = Color.white;
         }
 
-        [Header("Track role lexicon (§2)")]
+        [Header("Track role lexicon (section 2)")]
         [SerializeField] private List<RoleEntry> roles = new();
 
-        [Header("Meter glyphs (§1.1.3)")]
+        [Header("Meter glyphs (section 1.1.3)")]
         [SerializeField] private List<MeterEntry> meters = new();
 
-        [Header("Tempo icons (§1.1.4)")]
+        [Header("Tempo icons (section 1.1.4)")]
         [SerializeField] private List<TempoEntry> tempos = new();
 
-        [Header("Mood map — keyed on the RENDERED tonality (§1.3 / D3=C)")]
+        [Header("Mood map -- keyed on the RENDERED tonality (section 1.3 / D3=C)")]
         [SerializeField] private List<MoodEntry> moods = new();
 
         [Header("Fallbacks (used for any enum value with no authored entry)")]
@@ -86,11 +97,11 @@ namespace ALWTTT.Data
 
         #endregion
 
-        #region Layout tokens (§3) — retunable without recompiling
+        #region Layout tokens (section 3) -- retunable without recompiling
 
         [Header("Pill")]
         [Tooltip("D-IMPL-BLUR=B: no runtime blur. Legibility over the stage art " +
-                 "comes from LOW LUMINANCE, not from defocus — the current build's " +
+                 "comes from LOW LUMINANCE, not from defocus -- the current build's " +
                  "panel fails because it is light, not because it is sharp.")]
         public Color pillFill = new Color(0.031f, 0.039f, 0.094f, 0.68f);
         public Color pillBorder = new Color(1f, 1f, 1f, 0.10f);
@@ -129,7 +140,7 @@ namespace ALWTTT.Data
         public Color levelColor = new Color(0.561f, 0.839f, 0.580f, 1f);
         [Tooltip("Final-loop danger. Also tints the diamond loop pip.")]
         public Color finalLoopColor = new Color(1f, 0.541f, 0.420f, 1f);
-        [Tooltip("Pending-render border. White dashed — NOT the old orange text " +
+        [Tooltip("Pending-render border. White dashed -- NOT the old orange text " +
                  "tint, which collided with gold = venue/SFX.")]
         public Color pendingBorderColor = new Color(1f, 1f, 1f, 0.70f);
 
@@ -176,7 +187,10 @@ namespace ALWTTT.Data
             return false;
         }
 
-        public bool TryGetMeter(TimeSignature meter, out Sprite glyph, out string label)
+        /// <summary>Glyph for a meter. Text is NOT here: the consumer formats
+        /// GameTextTemplateIds.UiCtxMeter(meter). Returns false (fallback glyph) for an
+        /// enum value with no authored entry; the text still resolves by value.</summary>
+        public bool TryGetMeter(TimeSignature meter, out Sprite glyph)
         {
             if (_meterMap == null)
             {
@@ -186,16 +200,15 @@ namespace ALWTTT.Data
             if (_meterMap.TryGetValue(meter, out var entry) && entry.glyph != null)
             {
                 glyph = entry.glyph;
-                label = string.IsNullOrWhiteSpace(entry.displayName)
-                    ? meter.ToString() : $"{entry.displayName} ({meter})";
                 return true;
             }
             glyph = unknownGlyph;
-            label = meter.ToString();
             return false;
         }
 
-        public bool TryGetTempo(TempoRange tempo, out Sprite icon, out string label)
+        /// <summary>Icon for a tempo range. Text is NOT here: the consumer formats
+        /// GameTextTemplateIds.UiCtxTempo(tempo). Same fallback contract as TryGetMeter.</summary>
+        public bool TryGetTempo(TempoRange tempo, out Sprite icon)
         {
             if (_tempoMap == null)
             {
@@ -205,12 +218,9 @@ namespace ALWTTT.Data
             if (_tempoMap.TryGetValue(tempo, out var entry) && entry.icon != null)
             {
                 icon = entry.icon;
-                label = string.IsNullOrWhiteSpace(entry.displayName)
-                    ? tempo.ToString() : $"{entry.displayName} ({tempo})";
                 return true;
             }
             icon = unknownGlyph;
-            label = tempo.ToString();
             return false;
         }
 
