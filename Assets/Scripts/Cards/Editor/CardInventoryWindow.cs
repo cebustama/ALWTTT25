@@ -376,9 +376,9 @@ namespace ALWTTT.Cards.Editor
                 var pa = cp.PartAction;
                 if (pa != null)
                 {
-                    string label = string.IsNullOrEmpty(pa.customLabel) ? "<none>" : pa.customLabel;
                     string mus = string.IsNullOrEmpty(pa.musicianId) ? "<none>" : pa.musicianId;
-                    sb.AppendLine($"{ind}part: action={pa.action} | label={label} | musicianId={mus}");
+                    // [CARD-FACE-2 / D-CF-21] customLabel deleted: the kind IS the label now.
+                    sb.AppendLine($"{ind}part: action={pa.action} | musicianId={mus}");
                 }
 
                 var mods = cp.ModifierEffects;

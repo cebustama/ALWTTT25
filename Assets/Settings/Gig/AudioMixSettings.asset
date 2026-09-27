@@ -17,3 +17,7 @@ MonoBehaviour:
   musicianVolumes:
   - musicianId: 2
     volume01: 1
+  - musicianId: 3
+    volume01: 1
+  - musicianId: 1
+    volume01: 1

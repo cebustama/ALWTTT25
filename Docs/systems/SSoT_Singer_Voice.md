@@ -73,6 +73,12 @@ pipeline is therefore *by construction*: the stem filter is the only switch.
    pre-agreed escalation if loop-to-loop *variance* ever appears is a
    `CurrentTick`-corrected hybrid; it was not needed.
 
+   **Pause (PAUSE-1, 2026-09-25).** Because the singer shares no transport, pausing MPTK does not stop
+   it. `MidiMusicManager.SuspendPlayback` therefore also pauses the singer's playing `AudioSource`
+   (every source under the manager outside the transport hierarchy) and un-pauses it on resume or on
+   `Stop`. Sync after resume **verified** (ST-P1-6 PASS). **Known gap:** the player music level
+   (`SSoT_Audio` §4.8) does not scale the voice — balance still comes from the profile's `gain`.
+
 4. **Melody channel muted at runtime, per loop (D2=A).** The singer mutes its
    melody channel via `MidiMusicManager.SetChannelVolume(ch, 0)`, which writes
    through `_lastKnownVol01` so MMM's own mix reapply preserves it. The mute is

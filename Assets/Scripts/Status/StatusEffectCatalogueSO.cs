@@ -247,6 +247,35 @@ namespace ALWTTT.Status
                     }
                 }
 
+                // [CARD-FACE-2 / D-CF-18=C] One drawing per status. The inline glyph is st_<key> in the
+                // global atlas by construction; the canvas host (CharacterCanvas -> IconSprite) is an
+                // authored field and CAN diverge. This does not force it -- reassigning the 12 icons is
+                // content work (D-CF-22) -- it makes the divergence visible in the console instead of on a
+                // playtester's screen. Census of 2026-09-18: 12/12 icons came from unrelated textures, and
+                // 'composure' and 'spotlight' shared one sprite (F-CF2-1).
+                //
+                // It lives HERE, not in OnValidate: this method is the one already behind the import-worker
+                // guard and the delayCall, and StatusKey / IconSprite are exactly the fields that are not
+                // deserialized yet during an import. A check on them outside those guards reports phantom
+                // misses every time a prefab referencing the catalogue is selected.
+                if (key != null)
+                {
+                    string expectedSprite = ALWTTT.Tooltips.GameSymbols.StatusName(key);
+                    if (e.IconSprite == null)
+                    {
+                        Debug.LogWarning(
+                            $"[StatusEffectCatalogue] '{key}': no IconSprite. Expected the atlas sub-sprite '{expectedSprite}'.",
+                            e);
+                    }
+                    else if (!string.Equals(e.IconSprite.name, expectedSprite, StringComparison.Ordinal))
+                    {
+                        Debug.LogWarning(
+                            $"[StatusEffectCatalogue] '{key}': IconSprite is '{e.IconSprite.name}', expected '{expectedSprite}' " +
+                            $"(one drawing per status, D-CF-18=C).",
+                            e);
+                    }
+                }
+
                 if (e.IsDefaultVariant)
                 {
                     defaultCount.TryGetValue(e.EffectId, out int c);

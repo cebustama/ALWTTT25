@@ -1,0 +1,94 @@
+Assets/Scripts/DevMode/DevAudioMixTab.cs:215:                mm?.Highlight(sel.CharacterId, MidiMusicManager.HighlightMode.Solo);
+Assets/Scripts/DevMode/DevAudioMixTab.cs:217:                mm?.Highlight(sel.CharacterId, MidiMusicManager.HighlightMode.DuckOthers);
+Assets/Scripts/DevMode/DevAudioMixTab.cs:219:                mm?.Highlight(null, MidiMusicManager.HighlightMode.None);
+Assets/Scripts/Managers/GigManager.cs:170:        public int CurrentBpm => _currentBpm;
+Assets/Scripts/Managers/GigManager.cs:3380:            // grid (IBeatGridListener) is silent in the gig scene — F-BN-5 / BEAT-1 — so
+Assets/Scripts/Managers/GigManager.cs:3381:            // its OnTempoChanged never arrives and the pulse sits at its 120 default.
+Assets/Scripts/Managers/GigManager.cs:3384:                UIManager.GigCanvas.SetReadoutTempo(bpm);
+Assets/Scripts/Managers/MidiMusicManager.cs:190:        private readonly List<IBeatGridListener> _gridSubs = new();
+Assets/Scripts/Managers/MidiMusicManager.cs:195:        private readonly List<ITempoSignatureListener> _tempoSigSubs = new();
+Assets/Scripts/Managers/MidiMusicManager.cs:253:        public void Register(IBeatGridListener l)
+Assets/Scripts/Managers/MidiMusicManager.cs:255:        public void Unregister(IBeatGridListener l) { _gridSubs.Remove(l); }
+Assets/Scripts/Managers/MidiMusicManager.cs:261:        public void Register(ITempoSignatureListener l)
+Assets/Scripts/Managers/MidiMusicManager.cs:265:        public void Unregister(ITempoSignatureListener l) { _tempoSigSubs.Remove(l); }
+Assets/Scripts/Managers/MidiMusicManager.cs:1467:        private IEnumerator RunBeatGrid(string key, float duration)
+Assets/Scripts/Managers/MidiMusicManager.cs:1526:                    foreach (var s in _tempoSigSubs) s?.OnTempoChanged(bpm);
+Assets/Scripts/Managers/MidiMusicManager.cs:1532:                        s?.OnTimeSignatureChanged(numerator, denominator);
+Assets/Scripts/Managers/MidiMusicManager.cs:1570:                    foreach (var g in _gridSubs) g?.OnBeat(ev);
+Assets/Scripts/Managers/MidiMusicManager.cs:1572:                        foreach (var g in _gridSubs) g?.OnDownbeat(ev);
+Assets/Scripts/Managers/MidiMusicManager.cs:2032:        private void NotifyTempoSignatureAtStart(string key)
+Assets/Scripts/Managers/MidiMusicManager.cs:2048:                s?.OnTempoChanged(bpm);
+Assets/Scripts/Managers/MidiMusicManager.cs:2051:                s?.OnTimeSignatureChanged(numerator, denominator);
+Assets/Scripts/Managers/MidiMusicManager.cs:2481:                NotifyTempoSignatureAtStart(_currentKey); // push BPM/TS immediately
+Assets/Scripts/Managers/MidiMusicManager.cs:2482:                _beatGridCo = StartCoroutine(RunBeatGrid(_currentKey, entry.seconds));
+Assets/Scripts/Managers/MidiMusicManager.cs:2484:                if (logDebug) Debug.Log($"{DebugTag} [BeatProbe] RunBeatGrid STARTED " +
+Assets/Scripts/Music/FloatingTextMidiListener.cs:40:    IBeatGridListener,
+Assets/Scripts/Music/FloatingTextMidiListener.cs:42:    ITempoSignatureListener,
+Assets/Scripts/Music/FloatingTextMidiListener.cs:159:        mm.Register((IBeatGridListener)this);
+Assets/Scripts/Music/FloatingTextMidiListener.cs:161:        mm.Register((ITempoSignatureListener)this);
+Assets/Scripts/Music/FloatingTextMidiListener.cs:171:        mm.Unregister((IBeatGridListener)this);
+Assets/Scripts/Music/FloatingTextMidiListener.cs:173:        mm.Unregister((ITempoSignatureListener)this);
+Assets/Scripts/Music/FloatingTextMidiListener.cs:249:    public void OnBeat(BeatGridEvent e)
+Assets/Scripts/Music/FloatingTextMidiListener.cs:255:    public void OnDownbeat(BeatGridEvent e)
+Assets/Scripts/Music/FloatingTextMidiListener.cs:273:    public void OnTempoChanged(double bpm)
+Assets/Scripts/Music/FloatingTextMidiListener.cs:280:    public void OnTimeSignatureChanged(int numerator, int denominator)
+Assets/Scripts/Music/MidiEventInterfaces.cs:65:    public interface IBeatGridListener
+Assets/Scripts/Music/MidiEventInterfaces.cs:67:        void OnBeat(BeatGridEvent e);       // fires every beat
+Assets/Scripts/Music/MidiEventInterfaces.cs:68:        void OnDownbeat(BeatGridEvent e);   // fires on beatInBar == 0
+Assets/Scripts/Music/MidiEventInterfaces.cs:75:    public interface ITempoSignatureListener
+Assets/Scripts/Music/MidiEventInterfaces.cs:77:        void OnTempoChanged(double bpm);
+Assets/Scripts/Music/MidiEventInterfaces.cs:78:        void OnTimeSignatureChanged(int numerator, int denominator);
+Assets/Scripts/Music/MusicianMidiResponder.cs:11:        IBeatGridListener, // global beat grid (no per-musician ID)
+Assets/Scripts/Music/MusicianMidiResponder.cs:13:        ITempoSignatureListener // BPM & TS changes
+Assets/Scripts/Music/MusicianMidiResponder.cs:35:            mm.Register((IBeatGridListener)this);
+Assets/Scripts/Music/MusicianMidiResponder.cs:37:            mm.Register((ITempoSignatureListener)this);
+Assets/Scripts/Music/MusicianMidiResponder.cs:46:            mm.Unregister((IBeatGridListener)this);
+Assets/Scripts/Music/MusicianMidiResponder.cs:48:            mm.Unregister((ITempoSignatureListener)this);
+Assets/Scripts/Music/MusicianMidiResponder.cs:67:        public void OnBeat(BeatGridEvent e)
+Assets/Scripts/Music/MusicianMidiResponder.cs:72:        public void OnDownbeat(BeatGridEvent e)
+Assets/Scripts/Music/MusicianMidiResponder.cs:85:        public void OnTempoChanged(double bpm)
+Assets/Scripts/Music/MusicianMidiResponder.cs:91:        public void OnTimeSignatureChanged(int numerator, int denominator)
+Assets/Scripts/UI/BeatPulseIndicator.cs:9:    public class BeatPulseIndicator : MidiListenerCanvasBase
+Assets/Scripts/UI/BeatPulseIndicator.cs:34:        // live tempo data (from ITempoSignatureListener)
+Assets/Scripts/UI/BeatPulseIndicator.cs:50:        protected override void OnTempoChanged(double bpm) { _bpm = bpm <= 0 ? 120 : bpm; }
+Assets/Scripts/UI/BeatPulseIndicator.cs:51:        protected override void OnTimeSignatureChanged(int n, int d) { _den = Mathf.Max(1, d); }
+Assets/Scripts/UI/BeatPulseIndicator.cs:54:        protected override void OnBeat(BeatGridEvent e)
+Assets/Scripts/UI/BeatPulseIndicator.cs:61:        protected override void OnDownbeat(BeatGridEvent e)
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:12:    public class MidiListenerCanvasBase : CanvasBase,
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:13:        IMidiNoteListener, IChordListener, IBeatGridListener,
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:14:        ITempoSignatureListener, IDrumKickListener
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:52:            mm.Register((IBeatGridListener)this);
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:54:            mm.Register((ITempoSignatureListener)this);
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:68:                mm.Unregister((IBeatGridListener)this);
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:70:                mm.Unregister((ITempoSignatureListener)this);
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:84:        void IBeatGridListener.OnBeat(BeatGridEvent e) => OnBeat(e);
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:85:        void IBeatGridListener.OnDownbeat(BeatGridEvent e) => OnDownbeat(e);
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:86:        protected virtual void OnBeat(BeatGridEvent e) { }
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:87:        protected virtual void OnDownbeat(BeatGridEvent e) { }
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:89:        void ITempoSignatureListener.OnTempoChanged(double bpm) => OnTempoChanged(bpm);
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:90:        void ITempoSignatureListener.OnTimeSignatureChanged(int n, int d) => OnTimeSignatureChanged(n, d);
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:91:        protected virtual void OnTempoChanged(double bpm) { }
+Assets/Scripts/UI/Canvases/MidiListenerCanvasBase.cs:92:        protected virtual void OnTimeSignatureChanged(int numerator, int denominator) { }
+Assets/Scripts/UI/GigCanvas.cs:373:        public void SetReadoutTempo(int bpm)
+Assets/Scripts/UI/GigCanvas.cs:375:            if (vibeReadoutPulse != null) vibeReadoutPulse.SetFallbackBpm(bpm);
+Assets/Scripts/UI/TempoTextIndicator.cs:11:    public class TempoTextIndicator : MidiListenerCanvasBase
+Assets/Scripts/UI/TempoTextIndicator.cs:39:        protected override void OnTempoChanged(double bpm)
+Assets/Scripts/UI/TempoTextIndicator.cs:45:        protected override void OnTimeSignatureChanged(int numerator, int denominator)
+Assets/Scripts/UI/TempoTextIndicator.cs:51:        protected override void OnBeat(BeatGridEvent e)
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:11:    /// <see cref="MidiListenerCanvasBase"/> (OnBeat / OnDownbeat / OnTempoChanged).
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:17:    ///  - a FALLBACK (selfTimerWhenGridSilent, OFF by default — D-BN-3b, decide with
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:26:    public class VibeReadoutBeatPulse : MidiListenerCanvasBase
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:55:        [SerializeField] private bool selfTimerWhenGridSilent = false;
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:57:        // live tempo data (from ITempoSignatureListener via the base class)
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:88:        /// A real OnTempoChanged from the grid overwrites this the moment one arrives —
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:93:        public void SetFallbackBpm(int bpm)
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:98:                Debug.Log($"[VibePulse] SetFallbackBpm({bpm}) secPerBeat={SecPerBeat:0.000}", this);
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:115:            if (selfTimerWhenGridSilent)
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:127:        protected override void OnTempoChanged(double bpm)
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:130:            if (logBeats) Debug.Log($"[VibePulse] OnTempoChanged bpm={_bpm:0.#}", this);
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:133:        protected override void OnTimeSignatureChanged(int n, int d)
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:136:            if (logBeats) Debug.Log($"[VibePulse] OnTimeSignatureChanged {n}/{d}", this);
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:139:        protected override void OnBeat(BeatGridEvent e)
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:145:        protected override void OnDownbeat(BeatGridEvent e)
+Assets/Prefabs/UI/Canvases/GigCanvas.prefab:849:  logBeats: 1
+Assets/Prefabs/UI/Canvases/GigCanvas.prefab:850:  selfTimerWhenGridSilent: 1

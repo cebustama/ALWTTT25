@@ -376,7 +376,7 @@ namespace ALWTTT.UI
                 {
                     case PartActionKind.CreatePart:
                         BeginDraftNextPart(
-                            string.IsNullOrWhiteSpace(pa.customLabel) ? null : pa.customLabel);
+                                                        null);   // [CARD-FACE-2] letter label (PartLabelFor); customLabel deleted
                         break;
 
                     case PartActionKind.MarkIntro:
@@ -393,7 +393,7 @@ namespace ALWTTT.UI
 
                     case PartActionKind.MarkBridge:
                         BeginDraftNextPart(
-                            string.IsNullOrWhiteSpace(pa.customLabel) ? "Bridge" : pa.customLabel);
+                                                        GameText.Format(UiPartBridge));   // [CARD-FACE-2 / D-CF-21] was the literal "Bridge"
                         break;
 
                     case PartActionKind.MarkFinal:

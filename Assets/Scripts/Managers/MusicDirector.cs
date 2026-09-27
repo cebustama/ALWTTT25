@@ -100,6 +100,7 @@ namespace ALWTTT.Managers
             _active = _a;
 
             SceneManager.sceneLoaded += OnSceneLoaded;
+            PlayerAudioPrefs.Changed += RefreshMusicLevel;   // [PAUSE-1] live Options slider
         }
 
         private void Start()
@@ -115,6 +116,7 @@ namespace ALWTTT.Managers
             if (Instance == this)
             {
                 SceneManager.sceneLoaded -= OnSceneLoaded;
+                PlayerAudioPrefs.Changed -= RefreshMusicLevel;   // [PAUSE-1]
                 Instance = null;
             }
         }
@@ -202,7 +204,9 @@ namespace ALWTTT.Managers
         #endregion
 
         #region Internal playback
-        private float MusicLevel01() => audioMix != null ? audioMix.GlobalMusicVolume01 : 1f;
+        // [PAUSE-1 / D10=B] Designed Music level x player plane (Options). Never writes the SO.
+        private float MusicLevel01() =>
+            (audioMix != null ? audioMix.GlobalMusicVolume01 : 1f) * PlayerAudioPrefs.Music01;
 
         private float TargetVolume() =>
             Mathf.Clamp01(MusicLevel01() * Mathf.Clamp01(_currentTrackLevel01));

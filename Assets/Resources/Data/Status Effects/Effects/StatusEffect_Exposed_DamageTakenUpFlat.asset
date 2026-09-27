@@ -24,5 +24,5 @@ MonoBehaviour:
   tickTiming: 2
   valueType: 0
   isBuff: 0
-  iconSprite: {fileID: 21300000, guid: 945d56c41e0949a4b88f25bdb8229bb0, type: 3}
-  description: Each stack adds +25% to incoming Stress multipliers.
+  iconSprite: {fileID: 2716241672521532147, guid: 9b476237b83113e40b8545208c70072f, type: 3}
+  applySfx: {fileID: 0}

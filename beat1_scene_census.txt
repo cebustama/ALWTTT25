@@ -1,0 +1,33 @@
+### 1. Donde se usa cada script
+== Assets/Scripts/Music/MusicianMidiResponder.cs (458701ff70630b048b6d432ec781807c)
+Assets/Prefabs/Characters/Musicians/BandCharacter - Base.prefab
+== Assets/Scripts/UI/TempoTextIndicator.cs (a1ca976721258804eb3b31ccb754c7df)
+Assets/Prefabs/Core/UIManager.prefab
+== Assets/Scripts/Music/FloatingTextMidiListener.cs (22886bf37c6a4544dac3c7bd89836850)
+Assets/Prefabs/Core/MidiMusicManager.prefab
+== Assets/Scripts/UI/BeatPulseIndicator.cs (36874ec7a6becd54783ebff60ff5bb98)
+Assets/Prefabs/Core/UIManager.prefab
+### 2. Valores serializados
+Assets/Prefabs/Characters/Musicians/BandCharacter - Base.prefab:5114:  reactToBeats: 0
+Assets/Prefabs/Core/MidiMusicManager.prefab:142:  showTempoSignature: 1
+Assets/Prefabs/Core/UIManager.prefab:2467:  pulseOnBeat: 1
+### 3. Uso en codigo y TriggerBeatVFX
+Assets/Scripts/Characters/MusicianBase.cs:221:        public void TriggerBeatVFX(int beatIndex)
+Assets/Scripts/Characters/MusicianBase.cs-222-        {
+Assets/Scripts/Characters/MusicianBase.cs-223-        }
+Assets/Scripts/Characters/MusicianBase.cs-224-
+--
+Assets/Scripts/Managers/GigManager.cs:767:                        clone.gameObject.AddComponent<MusicianMidiResponder>();
+Assets/Scripts/Managers/GigManager.cs-768-                responder.Init(clone);
+Assets/Scripts/Managers/GigManager.cs-769-
+Assets/Scripts/Managers/GigManager.cs-770-                clone.BindToGigContext();
+--
+Assets/Scripts/Managers/ShipInteriorManager.cs:206:                        clone.gameObject.AddComponent<MusicianMidiResponder>();
+Assets/Scripts/Managers/ShipInteriorManager.cs-207-                responder.Init(clone);
+Assets/Scripts/Managers/ShipInteriorManager.cs-208-
+Assets/Scripts/Managers/ShipInteriorManager.cs-209-                _spawned.Add(clone);
+--
+Assets/Scripts/UI/TempoTextIndicator.cs:11:    public class TempoTextIndicator : MidiListenerCanvasBase
+Assets/Scripts/UI/TempoTextIndicator.cs-12-    {
+Assets/Scripts/UI/TempoTextIndicator.cs-13-        [Header("UI")]
+Assets/Scripts/UI/TempoTextIndicator.cs-14-        [SerializeField] private TMP_Text label;

@@ -1007,7 +1007,7 @@ namespace ALWTTT.Cards.Editor
                         break;
                     case CardPrimaryKind.Part:
                         kindLabel = comp.PartAction != null
-                            ? $"Part: {(string.IsNullOrWhiteSpace(comp.PartAction.customLabel) ? comp.PartAction.action.ToString() : comp.PartAction.customLabel)}"
+                                                        ? $"Part: {comp.PartAction.action}"   // [CARD-FACE-2 / D-CF-21] customLabel deleted
                             : "Part";
                         break;
                     default:

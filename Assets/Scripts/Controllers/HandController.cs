@@ -239,6 +239,12 @@ namespace ALWTTT
         {
             if (!IsDraggingActive) return;
 
+
+            // [PAUSE-1 / D12=C] Pause is its own gate, ANDed with IsDraggingActive (which the
+            // tutorial modal and SetHandVisible already share). timeScale = 0 does not stop
+            // Update or Input, so without this line cards stay playable behind the menu.
+            if (ALWTTT.UI.PauseGate.IsPaused) return;
+
             // Recompute curve every frame so it follows the GameObject if moved (M1.9)
             UpdateCurvePoints();
 
@@ -254,6 +260,27 @@ namespace ALWTTT
 
         public void EnableDragging() => IsDraggingActive = true;
         public void DisableDragging() => IsDraggingActive = false;
+
+
+        /// <summary>
+        /// [PAUSE-1] Return a card held OUTSIDE the hand back into it and end any drag.
+        /// Mirrors the "card has gone back into hand" branch of HandleDraggedCardOutsideHand,
+        /// minus the resumed drag (dragged = -1): while paused the mouse-up is never read, so a
+        /// held card would otherwise stay glued to the cursor and drop on the next click.
+        /// </summary>
+        public void ReleaseHeldCardToHand()
+        {
+            dragged = -1;
+            heldCardOffset = Vector3.zero;
+            if (heldCard == null) return;
+
+            heldCard.UpdateDescription(null);
+            AddCardToHand(heldCard, selected);
+            selected = -1;
+            heldCard = null;
+
+            if (useGigContext && GigManager != null) GigManager.DeactivateCardHighlights();
+        }
 
         /// <summary>
         /// Visually adds a card to the hand. Optional param to insert it at a given index.

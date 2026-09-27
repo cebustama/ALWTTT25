@@ -168,7 +168,7 @@ namespace ALWTTT.UI
 
             if (roleIcon)
             {
-                theme.TryGetRole(_data.role, out var icon, out var tint, out _);
+                theme.TryGetRole(_data.role, out var icon, out var tint);   // [CARD-FACE-2] label param deleted
                 roleIcon.sprite = icon;
                 roleIcon.color = tint;         // tint lives on the GLYPH only (D6=B)
                 roleIcon.enabled = icon != null;

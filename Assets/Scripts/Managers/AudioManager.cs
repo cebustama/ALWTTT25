@@ -71,6 +71,13 @@ namespace ALWTTT.Managers
         private Coroutine _ambienceFadeCo;
         private bool _ambienceClipWarned;
 
+
+        // [PAUSE-1] Design-level master SFX (what SetSfxVolume01 receives from the SO /
+        // Dev tab), kept apart from the effective level (design x player plane, D10=B).
+        // _ambiencePausedByPause marks a crowd loop paused by the pause menu (D11=C).
+        private float _designSfx01 = 1f;
+        private bool _ambiencePausedByPause;
+
         #region Setup
         private void Awake()
         {
@@ -83,6 +90,8 @@ namespace ALWTTT.Managers
             transform.parent = null;
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            PlayerAudioPrefs.Changed += OnPlayerAudioPrefsChanged;   // [PAUSE-1 / D10=B]
 
             BuildDictionaries();
 
@@ -206,15 +215,14 @@ namespace ALWTTT.Managers
         // M-AUDIO-MIX / AUDIO-SFX-FIX: master SFX level. Drives sfxSource.volume AND
         // buttonSource.volume (card + sensory SFX + UI clicks). Applied app-wide at
         // Awake from AudioMixSettingsSO, re-applied at gig start, live from the Dev tab.
-        public float SfxVolume01 => sfxSource != null ? sfxSource.volume : 1f;
+        // [PAUSE-1] Returns the DESIGN level (what the Dev tab set), not sfxSource.volume,
+        // which now also carries the player plane. Identical while the player level is 1.
+        public float SfxVolume01 => _designSfx01;
 
         public void SetSfxVolume01(float volume01)
         {
-            volume01 = Mathf.Clamp01(volume01);
-            _masterSfx01 = volume01;                                     // AUDIO-AMBIENCE: SFX-group cap
-            if (sfxSource != null) sfxSource.volume = volume01;
-            if (buttonSource != null) buttonSource.volume = volume01;    // AUDIO-SFX-FIX: UI under SFX
-            ApplyAmbienceVolume();                                       // AUDIO-AMBIENCE: ambience under SFX
+            _designSfx01 = Mathf.Clamp01(volume01);                     // [PAUSE-1] design level
+            ApplySfxLevels();                                            // design x player -> sources
         }
         #endregion
 
@@ -351,6 +359,48 @@ namespace ALWTTT.Managers
             ApplyAmbienceVolume();
             if (ambienceSource != null) ambienceSource.Stop();
             _ambienceFadeCo = null;
+        }
+        #endregion
+
+        #region [PAUSE-1] Pause + player SFX plane
+        /// <summary>
+        /// D11=C: pause the crowd loop in place. Source-level Pause keeps volume, fade
+        /// envelope and loop position, so it is agnostic to whether a song had ducked it.
+        /// No-op if the loop is not audible-playing.
+        /// </summary>
+        public void PauseAmbience()
+        {
+            if (ambienceSource == null || _ambiencePausedByPause) return;
+            if (!ambienceSource.isPlaying) return;
+            ambienceSource.Pause();
+            _ambiencePausedByPause = true;
+        }
+
+        /// <summary>Undo PauseAmbience. No-op if the pause menu did not pause it.</summary>
+        public void ResumeAmbience()
+        {
+            if (!_ambiencePausedByPause) return;
+            _ambiencePausedByPause = false;
+            if (ambienceSource != null) ambienceSource.UnPause();
+        }
+
+        // Effective SFX-group level = design (SO / Dev tab) x player (Options). Applied to
+        // sfx + button sources and recomposed onto ambience, exactly where the pre-PAUSE-1
+        // SetSfxVolume01 applied the design level alone.
+        private void ApplySfxLevels()
+        {
+            float effective = Mathf.Clamp01(_designSfx01 * PlayerAudioPrefs.Sfx01);
+            _masterSfx01 = effective;                                    // AUDIO-AMBIENCE: SFX-group cap
+            if (sfxSource != null) sfxSource.volume = effective;
+            if (buttonSource != null) buttonSource.volume = effective;   // AUDIO-SFX-FIX: UI under SFX
+            ApplyAmbienceVolume();                                       // AUDIO-AMBIENCE: ambience under SFX
+        }
+
+        private void OnPlayerAudioPrefsChanged() => ApplySfxLevels();
+
+        private void OnDestroy()
+        {
+            if (Instance == this) PlayerAudioPrefs.Changed -= OnPlayerAudioPrefsChanged;
         }
         #endregion
 

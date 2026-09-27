@@ -2051,7 +2051,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -2492,6 +2492,7 @@ MonoBehaviour:
   anchorGapX: 32
   minBottomY: -300
   maxRightX: 300
+  edgeMargin: 16
   fadeDuration: 0.12
   showDevInfo: 1
 --- !u!114 &805509609

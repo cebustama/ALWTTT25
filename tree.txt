@@ -1,8 +1,12 @@
 ALWTTT25
-(generado 2026-09-16 17:34)
+(generado 2026-09-25 19:17)
 +---.github
 |   \---copilot-instructions.md
 +---Assets
+|   +---Art
+|   |   \---UI
+|   |       \---Symbols
+|   |           \---game_symbols.asset
 |   +---CompositionSmoke
 |   |   +---BassLineTest.asset
 |   |   +---smoke_ba_155959.mid
@@ -1824,6 +1828,7 @@ ALWTTT25
 |   |   |   +---MusicianPickerRow.prefab
 |   |   |   +---MusicianStatusUI.prefab
 |   |   |   +---MusicianUI.prefab
+|   |   |   +---OptionsPanel.prefab
 |   |   |   +---RewardContainerPrefab.prefab
 |   |   |   +---SongIconPrefab.prefab
 |   |   |   +---SongUI.prefab
@@ -1919,6 +1924,8 @@ ALWTTT25
 |   |   |   |   |   |   +---TonalityEffect_Ionian.asset
 |   |   |   |   |   |   +---TonalityEffect_Locrian.asset
 |   |   |   |   |   |   +---TonalityEffect_Lydian.asset
+|   |   |   |   |   |   +---TonalityEffect_Majorish.asset
+|   |   |   |   |   |   +---TonalityEffect_Minorish.asset
 |   |   |   |   |   |   +---TonalityEffect_Mixolydian.asset
 |   |   |   |   |   |   +---TonalityEffect_Phrygian.asset
 |   |   |   |   |   |   \---TonalityEffect_Random.asset
@@ -2635,6 +2642,10 @@ ALWTTT25
 |   |   |   |   +---TallIcon.png
 |   |   |   |   +---wave.png
 |   |   |   |   \---white-heart.png
+|   |   |   +---Game Symbols
+|   |   |   |   +---game_symbols.png
+|   |   |   |   +---Pistas a 24 px · lead vs melody@2x.png
+|   |   |   |   \---Tira de prueba · 27 iconos a 24 px@2x.png
 |   |   |   +---icons
 |   |   |   |   +---composition
 |   |   |   |   |   +---border-dashed.png
@@ -2807,6 +2818,7 @@ ALWTTT25
 |   |   |   |   +---GrantBonusLoopSpec.cs
 |   |   |   |   +---ModifyStressSpec.cs
 |   |   |   |   +---ModifyVibeSpec.cs
+|   |   |   |   +---PartEffectDescriptionBuilder.cs
 |   |   |   |   \---RevealPreferencesSpec.cs
 |   |   |   +---Enums
 |   |   |   |   +---CardAcquisitionFlags.cs
@@ -2888,6 +2900,7 @@ ALWTTT25
 |   |   |   |   +---CharacterSfxProfileSO.cs
 |   |   |   |   +---MixGainProfileSO.cs
 |   |   |   |   +---OstCatalogSO.cs
+|   |   |   |   +---PlayerAudioPrefs.cs
 |   |   |   |   +---SongData.cs
 |   |   |   |   +---SoundBankSO.cs
 |   |   |   |   +---SoundProfileData.cs
@@ -2969,7 +2982,12 @@ ALWTTT25
 |   |   |   |   +---GameTextWindow.cs
 |   |   |   |   +---GlossarySectionTable.cs
 |   |   |   |   \---TutorialTextTable.cs
-|   |   |   \---S5e_InspirationEconomyTool.cs
+|   |   |   +---GameSymbolsCoverageMenu.cs
+|   |   |   +---GameSymbolsDumpMenu.cs
+|   |   |   +---GameSymbolsSyncMenu.cs
+|   |   |   +---GameSymbolsTableMenu.cs
+|   |   |   +---S5e_InspirationEconomyTool.cs
+|   |   |   \---SymbolMetricsTuner.cs
 |   |   +---Encounters
 |   |   |   +---Editor
 |   |   |   |   \---GigEncounterWizard.cs
@@ -3016,6 +3034,7 @@ ALWTTT25
 |   |   |   |   +---SectorGraphGenerator.cs
 |   |   |   |   \---SectorGraphStepper.cs
 |   |   |   \---Music
+|   |   |       +---IMidiTransportSuspend.cs
 |   |   |       \---MidiToolkitAdapter.cs
 |   |   +---Interfaces
 |   |   |   +---IAudienceMember.cs
@@ -3139,6 +3158,10 @@ ALWTTT25
 |   |   |   |   +---RecruitCanvas.cs
 |   |   |   |   +---RewardCanvas.cs
 |   |   |   |   \---ShipInteriorCanvas.cs
+|   |   |   +---Pause
+|   |   |   |   +---OptionsPanelController.cs
+|   |   |   |   +---PauseGate.cs
+|   |   |   |   \---PauseMenuController.cs
 |   |   |   +---Song Composition
 |   |   |   |   +---CompositionContextRowUI.cs
 |   |   |   |   +---CompositionStripDriver.cs
@@ -3149,9 +3172,11 @@ ALWTTT25
 |   |   |   |   +---SongTrackElementUI.cs
 |   |   |   |   \---TrackHoverPanel.cs
 |   |   |   +---Tooltips
+|   |   |   |   +---CardFacePresentation.cs
 |   |   |   |   +---ConceptTagRenderer.cs
 |   |   |   |   +---ConceptTooltipResolver.cs
 |   |   |   |   +---EconPipTooltipTarget.cs
+|   |   |   |   +---GameSymbols.cs
 |   |   |   |   +---GameText.cs
 |   |   |   |   +---GameTextTemplateIds.cs
 |   |   |   |   +---I2DTooltipTarget.cs
@@ -3499,4 +3524,5 @@ ALWTTT25
 +---files.txt
 +---F-R5e-3_payment_gate.txt
 +---make-tree-unity.bat
-\---make-tree-unity.ps1
++---make-tree-unity.ps1
+\---pause1_grep.txt

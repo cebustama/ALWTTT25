@@ -249,6 +249,50 @@ MonoBehaviour:
     displayName: Modo
     description: "El color de la escala que usa la canci\xF3n. Decide si un pasaje
       suena luminoso u oscuro."
+  - id: cardtype_chr
+    displayName: Carisma
+    description: "Presencia y aplomo. Las cartas de Carisma mantienen unida a la
+      banda y aguantan la presi\xF3n del p\xFAblico."
+  - id: cardtype_tch
+    displayName: "T\xE9cnica"
+    description: "Destreza y precisi\xF3n. Las cartas de T\xE9cnica doblan el tempo,
+      el momento y la forma de la canci\xF3n."
+  - id: cardtype_emt
+    displayName: "Emoci\xF3n"
+    description: "Sentimiento e intensidad. Las cartas de Emoci\xF3n mueven al p\xFAblico
+      directamente."
+  - id: cardtype_sfx
+    displayName: Efecto de sonido
+    description: "Pedales, ruido y textura. Las cartas de Efecto cambian c\xF3mo
+      golpea la canci\xF3n."
+  - id: cardtype_songmod
+    displayName: "Mod. de canci\xF3n"
+    description: "Un tipo de carta heredado que altera la propia canci\xF3n."
+  - id: partaction_createpart
+    displayName: Parte nueva
+    description: "A\xF1ade una parte nueva al final de la canci\xF3n. La banda conserva
+      lo que tocaba."
+  - id: partaction_markintro
+    displayName: Intro
+    description: "Marca esta parte como intro: una entrada antes de la canci\xF3n
+      en s\xED."
+  - id: partaction_marksolo
+    displayName: Solo
+    description: "Cede el protagonismo a un m\xFAsico durante esta parte."
+  - id: partaction_markoutro
+    displayName: Outro
+    description: "Marca esta parte como outro: la canci\xF3n se apaga aqu\xED."
+  - id: partaction_markbridge
+    displayName: Puente
+    description: "A\xF1ade un puente: una parte nueva que rompe el patr\xF3n antes
+      de volver."
+  - id: partaction_markfinal
+    displayName: Parte final
+    description: "Marca esta parte como la \xFAltima. La canci\xF3n termina tras
+      ella."
+  - id: partaction_custom
+    displayName: Parte personalizada
+    description: Una parte con etiqueta propia.
   cardNames:
   - id: 3_Action_001
     displayName: Conteo
@@ -665,3 +709,53 @@ MonoBehaviour:
     text: Sintetizador
   - id: ui_instrumenttype_vocals
     text: Voces
+  - id: ui_tonality_ionian
+    text: Alegre
+  - id: ui_tonality_dorian
+    text: Con groove
+  - id: ui_tonality_phrygian
+    text: Oscuro
+  - id: ui_tonality_lydian
+    text: "So\xF1ador"
+  - id: ui_tonality_mixolydian
+    text: Funky
+  - id: ui_tonality_aeolian
+    text: Triste
+  - id: ui_tonality_locrian
+    text: Tenso
+  - id: ui_tonality_random_any
+    text: Cualquier tono
+  - id: ui_tonality_random_majorish
+    text: Un tono luminoso
+  - id: ui_tonality_random_minorish
+    text: "Un tono sombr\xEDo"
+  - id: ui_cardtype_chr
+    text: Carisma
+  - id: ui_cardtype_tch
+    text: "T\xE9cnica"
+  - id: ui_cardtype_emt
+    text: "Emoci\xF3n"
+  - id: ui_cardtype_sfx
+    text: Efecto de sonido
+  - id: ui_cardtype_songmod
+    text: "Mod. de canci\xF3n"
+  - id: ui_cardtype_none
+    text: '-'
+  - id: ui_partaction_none
+    text: '-'
+  - id: ui_partaction_createpart
+    text: Parte nueva
+  - id: ui_partaction_markintro
+    text: Intro
+  - id: ui_partaction_marksolo
+    text: Solo
+  - id: ui_partaction_markoutro
+    text: Outro
+  - id: ui_partaction_markbridge
+    text: Puente
+  - id: ui_partaction_markfinal
+    text: Parte final
+  - id: ui_partaction_custom
+    text: Parte personalizada
+  - id: ui_part_bridge
+    text: Puente

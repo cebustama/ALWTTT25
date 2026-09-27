@@ -59,6 +59,37 @@ Owns the ALWTTT-side conversion from editable model state into runtime playback/
 ### 3.4 MidiMusicManager
 Owns the game-side hosting/control of playback for the current scene/session.
 
+#### 3.4.1 Beat grid and tempo/signature broadcast (BEAT-1, 2026-09-27)
+
+`MidiMusicManager` is the single broadcaster of `IBeatGridListener` (`OnBeat` / `OnDownbeat`) and
+`ITempoSignatureListener` (`OnTempoChanged` / `OnTimeSignatureChanged`). Contract:
+
+1. **Source = the bytes being played.** Every `PlayBytes` keeps a reference to the exact byte array
+   handed to the player and bumps a playback serial. `OnSongStartedInternal` starts the grid from those
+   bytes and **never reads `cache`**: `PlayRaw` — the whole composition path — plays under
+   `jam-raw::<guid>` keys that are never cached (F-P1-8). A grid whose serial is no longer current ends
+   by itself. The grid only reads bytes; it never writes them.
+2. **Clock = the sequencer tick.** Beats are placed in MIDI ticks from the file's PPQ and
+   time-signature map — a beat's tick length depends only on PPQ and the denominator, never on tempo —
+   and emitted when `IPlayMidi.CurrentTick` crosses them. There is no second clock: a suspended
+   transport (PAUSE-1, `IMidiTransportSuspend`) freezes the tick and therefore the grid. If one frame
+   crosses several beats, only the latest is emitted; bar/beat counters stay exact.
+3. **One announcer.** Each playback announces its starting tempo and signature once, before its first
+   beat. Later changes written in the bytes are announced when the playhead crosses them, before the beat
+   they govern. `GigManager.ApplyBpmToStage` no longer pushes tempo to presentation (D-BN-3c retired).
+4. **Per-playback reset.** Each playback — each composition loop — starts at bar 0, and
+   `BeatGridEvent.time` counts seconds from that playback's start. The grid stops a sixteenth note before
+   the file's last event (`gridEndTick = lastTick - PPQ/4`, D9=A): generated loops end one tick past
+   their last barline, and without the margin that barline emitted a phantom downbeat right before the
+   next loop's own bar 0 (F-B1-14).
+5. **Downbeat semantics unchanged:** on `beatInBar == 0` both `OnBeat` and `OnDownbeat` fire.
+6. **Explicitly not changed (D3=B):** the deferred highlight (`ApplyDeferredHighlightIfAny`) keeps its
+   pre-BEAT-1 reach — cached playbacks only. On the composition path, a highlight queued before the
+   channels are known (Dev Mode Audio Mix) is never applied.
+
+Observables: `[BEAT-1] grid start … endTick=…` and `[BEAT-1] grid end … exit=… emitted=N skipped=M`,
+verbose tier (`SSoT_Dev_Mode` §19.2). Verified by ST-B1-1..12, 2026-09-27 (ST-B1-6 by code truth).
+
 ### 3.5 Source-of-truth boundary (must stay explicit)
 There are **two different truths on two different sides of the handoff**.
 

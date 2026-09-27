@@ -1,4 +1,4 @@
-﻿// VibeReadoutBeatPulse.cs  — v3 (BIGNUM-1r45: probe + fallback tempo)
+﻿// VibeReadoutBeatPulse.cs  - v4 (BEAT-1: grid only; fallback timer retired)
 using ALWTTT.Music;
 using System.Collections;
 using UnityEngine;
@@ -14,10 +14,10 @@ namespace ALWTTT.UI
     ///  - a PROBE (logBeats): logs registration state, every incoming beat and every
     ///    StartPulse decision under the tag [VibePulse], so ST-BN-6 can be diagnosed
     ///    from the console instead of by eye. Turn OFF once ST-BN-6 is green.
-    ///  - a FALLBACK (selfTimerWhenGridSilent, OFF by default — D-BN-3b, decide with
-    ///    the probe's evidence): if the grid delivers no beat for 2 beats, tick from
-    ///    the last known BPM. Only meant for the case "the grid is not emitted in the
-    ///    gig scene"; it stays silent while real beats arrive.
+    ///
+    /// [BEAT-1] The v2 FALLBACK timer (selfTimerWhenGridSilent, D-BN-3b=B) and its
+    /// tempo push (SetFallbackBpm, D-BN-3c) are retired: the beat grid now delivers in
+    /// the gig scene, tempo and time signature included. Back to D-BN-3=A: one clock.
     ///
     /// Owns the target's localScale. GigCanvas sets the BASE scale (magnitude → size)
     /// and the INTENSITY (magnitude → pop strength); this component pops on top of the
@@ -50,10 +50,6 @@ namespace ALWTTT.UI
         [Tooltip("Log [VibePulse] lines: enable/register state, first beats, pulse decisions.")]
         [SerializeField] private bool logBeats = true;
 
-        [Header("Fallback (D-BN-3b — keep OFF unless the probe shows a silent grid)")]
-        [Tooltip("If no grid beat arrives for 2 beats, tick from the last known BPM.")]
-        [SerializeField] private bool selfTimerWhenGridSilent = false;
-
         // live tempo data (from ITempoSignatureListener via the base class)
         double _bpm = 120;
         int _den = 4;
@@ -63,10 +59,8 @@ namespace ALWTTT.UI
         float _baseScale = 1f;
         float _intensity01;
         Coroutine _pulseCo;
-        Coroutine _timerCo;
 
         int _beatCount;
-        float _lastGridBeatTime = -999f;
 
         /// <summary>Base (resting) scale — the magnitude-driven size set by GigCanvas.</summary>
         public void SetBaseScale(float scale)
@@ -82,22 +76,6 @@ namespace ALWTTT.UI
             _intensity01 = Mathf.Clamp01(intensity01);
         }
 
-        /// <summary>
-        /// [BIGNUM-1r4 / D-BN-3c] Tempo for the FALLBACK timer, pushed by
-        /// GigManager.ApplyBpmToStage while the beat grid is silent (F-BN-5 / BEAT-1).
-        /// A real OnTempoChanged from the grid overwrites this the moment one arrives —
-        /// the grid stays authoritative; this only fills the gap. The denominator keeps
-        /// its last known value: the resolved-BPM path carries no time signature, so a
-        /// non-4 denominator stays wrong until BEAT-1 closes (declared debt).
-        /// </summary>
-        public void SetFallbackBpm(int bpm)
-        {
-            if (bpm <= 0) return;
-            _bpm = bpm;
-            if (logBeats)
-                Debug.Log($"[VibePulse] SetFallbackBpm({bpm}) secPerBeat={SecPerBeat:0.000}", this);
-        }
-
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -111,14 +89,10 @@ namespace ALWTTT.UI
                           $"activeInHierarchy={gameObject.activeInHierarchy} " +
                           $"MidiMusicManager={(Midi != null ? "present" : "NULL")} " +
                           $"bpm={_bpm:0.#} den={_den}", this);
-
-            if (selfTimerWhenGridSilent)
-                _timerCo = StartCoroutine(SelfTimer());
         }
 
         protected override void OnDisable()
         {
-            if (_timerCo != null) { StopCoroutine(_timerCo); _timerCo = null; }
             if (logBeats)
                 Debug.Log($"[VibePulse] OnDisable  beatsReceived={_beatCount}", this);
             base.OnDisable();
@@ -151,7 +125,6 @@ namespace ALWTTT.UI
         void NoteGridBeat(BeatGridEvent e, string kind)
         {
             _beatCount++;
-            _lastGridBeatTime = useUnscaledTime ? Time.unscaledTime : Time.time;
             if (logBeats && _beatCount <= 12)
                 Debug.Log($"[VibePulse] {kind} #{_beatCount} bar={e.barIndex} beatInBar={e.beatInBar} " +
                           $"t={e.time:0.00} frame={Time.frameCount}", this);
@@ -159,23 +132,7 @@ namespace ALWTTT.UI
 
         // ─────────────────────────────────────────────────────────────────────
 
-        IEnumerator SelfTimer()
-        {
-            // D-BN-3b fallback: silent while the grid is alive.
-            while (true)
-            {
-                float secBeat = Mathf.Max(0.05f, SecPerBeat);
-                yield return useUnscaledTime
-                    ? new WaitForSecondsRealtime(secBeat)
-                    : new WaitForSeconds(secBeat);
-
-                float now = useUnscaledTime ? Time.unscaledTime : Time.time;
-                bool gridSilent = (now - _lastGridBeatTime) > 2f * secBeat;
-                if (gridSilent) StartPulse(1f, fromTimer: true);
-            }
-        }
-
-        void StartPulse(float boost, bool fromTimer = false)
+        void StartPulse(float boost)
         {
             if (!target)
             {
@@ -202,7 +159,7 @@ namespace ALWTTT.UI
             float pop = Mathf.Lerp(minPop, maxPop, _intensity01) * Mathf.Max(1f, boost);
 
             if (logBeats && _beatCount <= 12)
-                Debug.Log($"[VibePulse] StartPulse{(fromTimer ? " (TIMER)" : "")} pop={pop:0.00} " +
+                Debug.Log($"[VibePulse] StartPulse pop={pop:0.00} " +
                           $"base={_baseScale:0.00} intensity={_intensity01:0.00} " +
                           $"tGrow={tGrow:0.000}s tSettle={tSettle:0.000}s " +
                           $"scaleNow={target.localScale.x:0.00}", this);

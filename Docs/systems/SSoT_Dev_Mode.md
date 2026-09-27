@@ -50,6 +50,12 @@ Tab content:
 - "Reset Convinced Audience Now" button for manual reset (the automatic reset still runs on PlayerTurn).
 - Auto-reset counter for the current gig.
 - Song / Required counter, Cohesion, and (verbose) Hand/DrawPile/DiscardPile/HandPile counts + current phase.
+- **Card-face presentation toggles (CARD-FACE-2 / 2b, 2026-09-21).** Two checkboxes writing static
+  runtime flags on `CardFacePresentation` (`Assets/Scripts/UI/Tooltips/`): **«Card face: symbols»** →
+  `UseSymbols` (glyphs vs words on face and hover headers, D-CF-19=B) and **«Show action card type»** →
+  `ShowCardType` (default off, D-CF-25=B). **No persistence**: both reset on domain reload. They are
+  **design-comparison tools, not player options** — the player build has neither checkbox and runs
+  with the defaults. Semantics of what each flag changes: `SSoT_Card_System.md` §10.1–§10.3.
 - **Gig-outcome buttons (DEV-WINLOSE, 2026-07-16).** The Dev overlay's Infinite tab exposes **WIN** and **LOSE** buttons. They call `ALWTTT_DEV`-guarded wrappers on `GigManager`: `DevWinNormalFlow` → `WinGig` (opens `RewardCanvas` → `BuildReward(Card/Sfx)`), `DevLoseNormalFlow` → `LoseGig`, plus `DevForceWinImmediate`/`DevForceLoseImmediate` (`ReturnToMap`). These mirror the pre-existing `[ContextMenu]` debug outcome methods. **`DevGigOutcomeTracker` does NOT count these** — dev-forced outcomes bypass `GigOutcomeEvent` by design (win-rate stats reflect normal-flow gigs only). `WinGig` self-suppresses while Infinite Turns is enabled, so disable it before pressing WIN.
 
 **Catalogue tab (Phase 2):**
@@ -607,6 +613,19 @@ Phase 2 did **not** unblock T7 Shaken validation — that required the Phase 3.1
 - Stat editing (Inspiration, LoopScore, SongHype, Cohesion, per-character stats — Phase 3 scope).
 - Encounter-modifier toggles (Phase 3 scope).
 
+### 11.8 Playtest card `dev_convince` (CONV-TINT-1, 2026-09-27)
+
+Action card, cost 0, `performerRule: AnyMusician`, one effect `ModifyVibe(999, AudienceCharacter)`, entry
+flags `UnlockedByDefault` only (never in a starter deck or reward pool). Convinces the member it is dropped
+on through the **real** path (`ApplyIncomingVibe`: an Indifferent member is not convinced; a blocked member
+**is**, because the `IsBlocked` exclusion lives only in the AoE branch). Needs the target-selection override
+(F-CT-4, `SSoT_Card_Authoring_Contracts.md` §9). Consumes the performer's ECON-1 Action slot. To be
+spawnable it must sit in a rostered musician's `CardCatalog` (§11.2). For a convince without the gate, the
+Stats-tab per-audience Vibe slider (§9.6) remains the faster path; neither un-convinces (Infinite Turns does).
+
+**Observation, not verified (F-CT-8):** the card's JSON set no `actionTiming` and it played during the
+PlayerTurn, which §8.4 says a default timing prevents. §8.4 may be stale; not edited here.
+
 ---
 
 ## 12. Phase 3.1 — Breakdown entry point (2026-04-23)
@@ -1114,9 +1133,14 @@ línea `[ORDER-1] harmony source=… asset='…'`, y el paquete además avisa ex
 cuando la ignora (`[SongOrchestrator] defaultProgression … Ignoring`). Ver
 `MidiMusicManager` §D-R2-10=A para por qué el candidato está en la clave.
 
-**Deuda anotada, inerte.** El warning `OnSongStarted but key/cache missing`
-(`MidiMusicManager`, `LogWarning`) se observó durante los smokes de este lote. Sin
-relación con la articulación; no investigado.
+**Deuda anotada — CERRADA (BEAT-1, 2026-09-27).** El warning `OnSongStarted but key/cache missing`
+salía en **cada loop** del camino de composición (F-P1-8, localizado en PAUSE-1): `PlayRaw` usa claves
+`jam-raw::<guid>` que nunca están en `cache`, y esa rama se saltaba el beat grid. BEAT-1 arranca el grid
+desde los bytes reproducidos y **retira el warning**; en su lugar queda `[BEAT-1] OnSongStarted with no
+play data`, que no debe salir nunca. **Sigue muerto a propósito (D3=B):** la espera diferida de
+`Highlight` —la que usa la pestaña Audio Mix (Solo / Duck / Clear)— solo se aplica en reproducciones
+cacheadas; en composición, un highlight pedido antes de conocerse los canales no se aplica. Reactivarla
+es lote propio.
 
 ---
 
@@ -1152,7 +1176,7 @@ verbose del manager de un asset de gig lo dejaría sin gobierno en cualquier esc
 que es exactamente donde se depura composición. El coste —dos mandos en vez de uno— es
 menor que el de un mando que a veces no existe.
 
-### 19.2 Las ONCE líneas PROTEGIDAS
+### 19.2 Las DOCE líneas PROTEGIDAS
 
 Cada una es el observable directo de al menos un test. **Ninguna cuelga de un flag verbose.**
 Degradar cualquiera de ellas rompe la verificación que la sostiene, y la rompe *en silencio*:
@@ -1170,9 +1194,10 @@ el test no falla, deja de poder ejecutarse.
 | `[R5-d] <músico> spent N '<key>' for '<carta>' (remaining M)` | ST-R5f-3, ST-R5g-2, ST-R5f-16 | Único observable de la **aritmética** del cobro de recurso. Cuelga de `UseLogs` solo (`GigManager.TryPayResourceCost`). Sin ella no hay forma de distinguir «cobró N» de «cobró N−1», que es exactamente el defecto que R5-g arregló. |
 | `[ECON-1] DENIED <tipo> play — …` | ST-R5g-3, ST-R5f-4 (diferido) | Es el veredicto del presupuesto. **Ver la trampa de §19.7:** la rama `Consumed` de la MISMA cadena es verbose. |
 | `[Gig][R5-g] '<carta>' denied — <músico> cannot pay N '<key>'` | ST-R5g-1, ST-R5f-1, ST-R5f-18 | Único observable de la puerta 2b.5. Nace a tier maestro **por decisión** (D2=B de R5-g, helper `HandController.LogGate`): `CanPayResourceCost` no loguea nada, así que en verbose esta denegación dejaría una carta volviendo a la mano sin explicación en consola. |
+| `[PAUSE-1] PAUSE …` / `[PAUSE-1] RESUME(<motivo>) … tick=… suspended=… songPlaying=… phase=… timeScale=…` | ST-P1-1, ST-P1-2, ST-P1-4, ST-P1-10 | Único observable de que la pausa congeló el tick y de que cada salida restauró el tiempo. Cuelga de su propio interruptor, `PauseMenuController.logPause` (ON por defecto), **no** de `UseLogs` ni de `logDebug`: apagarlo deja ST-P1-2 sin evidencia. Las líneas `[PAUSE-1] suspend/resume` de `MidiMusicManager` sí cuelgan de `logDebug` y **no** son protegidas. |
 | `[R5-d] Bonus loop granted — part N now M loops (…)` | ST-R5f-6, ST-R5g-2 | Único observable de la concesión del loop de bonus y de sus contadores. **Tier observado** en ST-R5g-0 (visible con `LogVerbose` OFF); el gate no se leyó en código en ese lote — verificar antes de moverla. |
 
-> **Contador.** Son **once** líneas protegidas en total: **diez** de dueño host y una
+> **Contador.** Son **doce** líneas protegidas en total: **once** de dueño host y una
 > package-owned (`[ChordTrack] Tonality`, que no cuelga de ningún flag ALWTTT — ver §19.4 y el
 > ask **MGP-LOG-VERBOSE-1**). Los comentarios de código hablan de **seis**: cuentan solo las de
 > dueño host **y son anteriores a R5**. No es una contradicción, es un recuento sin actualizar;
@@ -1185,6 +1210,12 @@ el test no falla, deja de poder ejecutarse.
 > ejecutables con `LogVerbose` en ON**, y así deben redactarse en su precondición. La alternativa
 > —promoverlas a maestro— se rechazó: la generación es contabilidad de rutina que dispara en cada
 > jugada consumida, y §19.1 reserva el tier maestro para lo que explica un comportamiento.
+
+> **Líneas de BEAT-1 que NO son protegidas (2026-09-27).** `[BEAT-1] grid start … endTick=…` y
+> `[BEAT-1] grid end … exit=… emitted=N skipped=M` cuelgan de `logDebug && logVerbose`: son contabilidad
+> por loop, como las de R5 de arriba. Consecuencia operativa: **ST-B1-3 (tiempos por loop = compases ×
+> numerador, sin tiempo doble en la costura) solo es ejecutable con `logVerbose` en ON**, y así figura en
+> su precondición. La sonda temporal `[BeatProbe]` quedó retirada por BEAT-1.
 
 ### 19.3 LA TRAMPA: `[B1][stemCache]` vs `[B1][stemCache][DIAG]`
 

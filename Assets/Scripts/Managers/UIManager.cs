@@ -77,13 +77,38 @@ namespace ALWTTT.Managers
         // [B3-demo-polish / D-UX3=D] Simple two-state ESC behavior:
         // - Not on main menu: return to main menu.
         // - On main menu: quit the game.
-        // TODO (post-demo): replace with proper pause menu (D-UX3=A).
+        // [PAUSE-1] D-UX3=A implemented: in a gig, Esc opens the pause menu (layer 3
+        // below); the scene rule only runs where no layer consumed the key.
         private void HandleEscapeKey()
         {
+            // [CARD-FACE-3 / O-CF3-2 / D5=B] Esc has ONE listener and an explicit priority chain.
+            // Before this batch, CardDetailViewController had its own Update watching Esc, so a single
+            // press was consumed twice in the same frame: the modal closed AND the gig was abandoned
+            // for the main menu. Which of the two ran first was undefined (Unity does not order Update
+            // between scripts unless Script Execution Order says so), so a guard on either side would
+            // have been a race. Topmost layer first; add future layers (pause, tutorial overlay) HERE,
+            // above the scene rule, not as new Update listeners.
+            var detail = CardDetailViewController.Instance;
+            if (detail != null && detail.IsVisible)
+            {
+                detail.Hide();
+                return;
+            }
+
+            // [PAUSE-1] Layers 2 and 3, still above the scene rule:
+            // 2) any open Options panel (pause-hosted or Main-Menu-hosted) closes first, so
+            //    Esc on the Main Menu with Options open does NOT quit (ST-CF3-15 holds);
+            // 3) the pause menu: cancels its confirm, resumes, or opens the pause in a gig.
+            //    Outside a gig it declines and the scene rule below runs unchanged.
+            if (OptionsPanelController.TryCloseTopmost()) return;
+
+            var pause = PauseMenuController.Instance;
+            if (pause != null && pause.HandleEscape()) return;
+
             int activeSceneIndex = SceneManager.GetActiveScene().buildIndex;
 
-            Debug.Log($"[UIManager] HandleEscapeKey → activeSceneIndex={activeSceneIndex}, " +
-                      $"mainMenuSceneIndex={mainMenuSceneIndex}");
+            Debug.Log($"[UIManager] HandleEscapeKey -> activeSceneIndex={activeSceneIndex}, " +
+                $"mainMenuSceneIndex={mainMenuSceneIndex}");
 
             if (activeSceneIndex == mainMenuSceneIndex)
             {

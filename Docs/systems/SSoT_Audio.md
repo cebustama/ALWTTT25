@@ -6,7 +6,7 @@
 **Does not own:** the event bus itself (`SensoryEventBus`, `ISensoryEvent`) → `SSoT_Audience_and_Reactions` / Sensory Contract; FT presentation → Sensory Contract; `MidiMusicManager` as the playback host / channel-routing component → `SSoT_Runtime_CompositionSession_Integration` §3.4; any MidiGenPlay package internals (synth, soundfont, per-instrument attenuation) → MidiGenPlay docs.
 **Authority order:** `SSoT_CONTRACTS.md` → this SSoT for audio concepts → `CURRENT_STATE.md` for active slice. Cross-project audio facts defer to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`.
 **Created:** 2026-06-14 (M-AUDIO-MIX). Consolidates the as-built audio subsystem from `Design_Sensory_Contract_v0_1.md §5A` (S3-audio) and adds the music-mix model + audio boundary.
-**Updated:** 2026-07-22 (BAL-1) — bytes-plane mix gains adopted (MGP-MIX-1 on MidiGenPlay 1.2.0): new §4.6 (per-`(musicianId, TrackRole)` gain baked as CC7; `MixGainProfileSO`; emission gate; anti-compensation); §4.2 rewritten — the MPTK channel-volume reset is now **verified** (not assumed) and the re-assert is **deferred past tick-0** and **composed** with the baked gain via the single `WriteChannelVolume01` boundary. Contract home stays boundary §8.3. Prior: 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
+**Updated:** 2026-09-25 (PAUSE-1) — player volume plane (`PlayerAudioPrefs`, PlayerPrefs; multiplies the designed mix, never writes the SO): new §4.8; transport suspension seam (`IMidiTransportSuspend`, ALWTTT-side, `IPlayMidi` untouched): new §4.9; §4.4 design vs effective SFX; §5 persistence now two layers; §6 boundary bullet; invariants 21–23. Prior: 2026-07-22 (BAL-1) — bytes-plane mix gains adopted (MGP-MIX-1 on MidiGenPlay 1.2.0): new §4.6 (per-`(musicianId, TrackRole)` gain baked as CC7; `MixGainProfileSO`; emission gate; anti-compensation); §4.2 rewritten — the MPTK channel-volume reset is now **verified** (not assumed) and the re-assert is **deferred past tick-0** and **composed** with the baked gain via the single `WriteChannelVolume01` boundary. Contract home stays boundary §8.3. Prior: 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
 
 ---
 
@@ -271,6 +271,12 @@ not `musicSource`). Applied **app-wide at `AudioManager.Awake`** from the SO (D-
 from boot (Main Menu included), not only inside a gig. `GigManager.ApplyPersistedAudioMix`
 re-applies it at gig start; the Dev tab drives it live.
 
+**Design vs effective (PAUSE-1).** `SetSfxVolume01` receives the **design** level (SO / Dev tab) and
+stores it in `_designSfx01`; `SfxVolume01` returns that design level. The level actually written to
+`sfxSource`, `buttonSource` and the ambience cap is **design × player** (`PlayerAudioPrefs.Sfx01`, §4.8),
+recomposed in `AudioManager.ApplySfxLevels`. With the player level at 1.0 both are identical, so the
+Dev Audio Mix slider reads exactly what it did before (ST-P1-13).
+
 ### 4.5 OST playback bus (AUDIO-OST)
 
 A second music surface, kept separate from gig music on purpose. "Gig music" =
@@ -417,12 +423,60 @@ never explicitly set.
 **Tuning home:** `GigFlowSettingsSO.bonusSoloDuck01` (default 0.55, clamped 0..1) and
 `bonusSoloEnabled`.
 
+### 4.8 Player plane (PAUSE-1) — the fourth plane
+
+The player-facing Options panel (v1: music + SFX) adds a **player plane** that multiplies on top of the
+**designed** mix instead of replacing it:
+
+```
+gig music : composedCc7 ≈ round(live01 × bakedGain × duck01 × player01 × 100)
+OST       : volume = globalMusic01 × player01 × track.defaultLevel01
+SFX group : effective = designSfx01 × playerSfx01   (sfx + button + ambience cap)
+```
+
+- **Home:** `PlayerAudioPrefs` (static, `Assets/Scripts/Data/Audio/PlayerAudioPrefs.cs`), persisted in
+  `PlayerPrefs` (keys `alwttt.audio.player_music01` / `alwttt.audio.player_sfx01`, default 1.0). Consumers
+  subscribe to `PlayerAudioPrefs.Changed`; `Save()` flushes on Options close.
+- **Gig music write site:** the fourth factor inside `MidiMusicManager.WriteChannelVolume01`; a change
+  re-sends every channel via `ReapplyLiveVolumes()`, which reads `_lastKnownVol01`. Consequence: a singer
+  mute (0) or a Highlight is **scaled, never overwritten** — unlike `SetMusicianVolume01`, which writes a
+  musician's channels and would un-mute the singer's melody channel. Verified ST-P1-11 (no doubled melody).
+- **Why multiplicative, not a replacing override:** a replacing override would mask every later Dev
+  Audio Mix edit on any machine that ever touched Options. Two planes, two owners (designer / player).
+- `GigManager.ComputeEffectiveMusicianVolume01` is **unchanged**: it still composes design-side axes only.
+- **Known gaps:** the metronome channel bypasses `WriteChannelVolume01` and is not scaled (dev-only); the
+  singer voice (`SSoT_Singer_Voice`) has its own source and is not scaled by the player music level.
+- **Dev readout:** `GetLiveComposedCc7` (BAL-1 test 4) now includes the player factor; identical at 1.0.
+
+### 4.9 Transport suspension (PAUSE-1)
+
+Pause freezes gig music **in place** (D1=A). The seam is `ALWTTT.Music.IMidiTransportSuspend`
+(`IsSuspended`, `Suspend()`, `Resume()`), implemented by `MidiToolkitAdapter` over MPTK's
+`MPTK_Pause` / `MPTK_UnPause`. `IPlayMidi` is **declared package-side** (a repo-wide grep of `Assets/`
+finds no declaration) and is **not** extended; `MidiMusicManager` discovers the seam with a type test.
+
+- **Contract:** the tick is kept and resumes from the same value (ST-P1-2); **`IsPlaying` stays `true`
+  while suspended** so every "wait while playing" loop keeps waiting instead of finishing; a suspension
+  raises no end-of-song event (the adapter ignores one, with a warning, if MPTK ever sent it); `Play` and
+  `Stop` clear the suspension (un-pause first, so a next song never inherits a paused sequencer).
+- **Side sources:** `MidiMusicManager.SuspendPlayback` also pauses every playing `AudioSource` under the
+  manager **outside** the transport's own hierarchy — in practice the dsp-anchored singer. Sync after
+  resume verified (ST-P1-6).
+- **Degradation, declared:** a player that does not implement the seam leaves music playing while paused,
+  logged once (`[PAUSE-1] DEGRADED`).
+- **Ambience (D11=C):** `AudioManager.PauseAmbience` / `ResumeAmbience` pause the crowd source in place,
+  agnostic to duck/fade state; fades keep running in unscaled time by design.
+- Speed control is **not** part of this seam (SPEED-1, D7=B).
+
 ---
 
 ## 5. Persistence
 
-There is **no runtime save system** in ALWTTT. The audio-mix balance is persisted as a
-**design-time SO asset** (`AudioMixSettingsSO`), referenced by `GigManager`.
+There is **no runtime save system for the designed mix**: the audio-mix balance is persisted as a
+**design-time SO asset** (`AudioMixSettingsSO`), referenced by `GigManager`. Since PAUSE-1 a second,
+**player** layer exists (`PlayerAudioPrefs`, PlayerPrefs, §4.8). The two never write each other:
+**the player path never writes `AudioMixSettingsSO`** — in the editor, writing an SO during Play mode
+mutates the asset and would leak a player choice into the shipped default.
 
 - **Load (gig start).** `GigManager.ApplyPersistedAudioMix` runs in `StartGig` after
   the band is built: it seeds `_musicianVolume01` from the SO's per-musician list, pushes
@@ -436,9 +490,9 @@ There is **no runtime save system** in ALWTTT. The audio-mix balance is persiste
   in-build persistence of further edits; Dev Mode (and therefore the tab) is
   `ALWTTT_DEV`-gated, so the player never edits the mix — they consume the baked default.
 
-This is editor-time tuning whose output ships as the runtime default. It is **not** a
-player-facing settings menu; an in-game audio options screen (player-writable, build-time
-persistent) is a separate future feature and would need a real save layer.
+This is editor-time tuning whose output ships as the runtime default. The player-facing Options
+panel (PAUSE-1) does **not** edit it: it writes the player plane only (§4.8), build-time persistent via
+PlayerPrefs, verified by restart in ST-P1-11 with the SO asset unchanged.
 
 ### 5.1 Persistence home (D-MIX-HOME=B)
 
@@ -466,6 +520,9 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
 - Any channel-volume reset behavior on song (re)start is **package truth** and not
   verifiable from the ALWTTT side; ALWTTT's response (§4.2 re-assert) is a defensive
   host-side measure, not a claim about package behavior.
+- **`IPlayMidi` is package-declared; the pause seam is ALWTTT-side** (PAUSE-1). ALWTTT adds
+  `IMidiTransportSuspend` on its own adapter rather than extending the package interface (§4.9). No ask
+  was raised; the MPTK pause API is third-party (MPTK), not MidiGenPlay.
 
 ---
 
@@ -574,6 +631,18 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
     musician statuses resolve `applySfx` → silence. Per-status coverage is unaudited, same posture
     as reactions and abilities.
 
+21. **The player plane multiplies, never replaces, and never writes the SO** (PAUSE-1). Effective
+    level = design × `PlayerAudioPrefs` (§4.8). Gig music applies it inside `WriteChannelVolume01` and
+    re-sends through `ReapplyLiveVolumes`, so mutes and highlights are preserved.
+
+22. **A suspended transport is still playing.** While `IMidiTransportSuspend.IsSuspended`,
+    `IPlayMidi.IsPlaying` is `true` and no end-of-song event is forwarded; `Play`/`Stop` clear the
+    suspension (§4.9).
+
+23. **Pause-transparent audio is unscaled.** OST crossfades and ambience fades run on
+    `Time.unscaledDeltaTime` and complete during a pause (ST-P1-12); the crowd source itself is paused in
+    place (D11=C).
+
 ---
 
 ## 8. Validation / smoke references
@@ -604,6 +673,14 @@ precedes the hold release [log order]; identical presentation outside the tutori
 sting on non-Vibe cards [regression]; tutorial beats 3/5 intact [regression]; no scale drift on a
 `scaleOnBeat` + `skipEveryNBeats` character after repeated kicks [regression]) — **all PASS**
 (2026-07-13). No deferrals: ST-PW-5 ran without Dev Mode.
+
+PAUSE-1 ships ST-P1-1..13 (2026-09-25): pause while planning; pause mid-song with the tick kept;
+`_isSongPlaying` / action window after resume; loop clock; singer sync; held card returned; Esc chain
+regressions ST-CF3-13 / ST-CF3-15; return-to-menu with confirmation; player volumes persisted with the
+SO unchanged; unscaled fades; Dev Audio Mix design-level readout — **all PASS**; **ST-P1-3 N/A by
+content** (D13=A: the composition path renders zero `part:` markers, so there is no marker crossing to
+lose or duplicate). ST-P1-12 also closes AUDIO-OST's deferred **live-Music-slider-on-playing-OST** test
+(the Options panel is menu-accessible).
 
 ---
 
@@ -656,8 +733,8 @@ sting on non-Vibe cards [regression]; tutorial beats 3/5 intact [regression]; no
   ST-W1..W7 PASS; ST-W8 deferred to TUT-REFRESH. Clips are placeholders → **D1**.
 - **GameplayData.cs cleanup:** DONE — the dead `globalMusicVolume01` field was removed
   (M-AUDIO-MIX); the live home is `AudioMixSettingsSO`.
-- **Player-facing audio options:** out of scope here; needs a real save layer (PlayerPrefs
-  / JSON). Distinct from this editor-time tuning surface.
+- **Player-facing audio options: DONE (PAUSE-1, 2026-09-25)** — music + SFX via `PlayerAudioPrefs`
+  (§4.8). Language stays out (D-S5f-2=B). Distinct from the editor-time tuning surface.
 - `SSoT_ALWTTT_MidiGenPlay_Boundary.md` — cross-project ownership.
 - `SSoT_Runtime_CompositionSession_Integration.md` §3.4 — `MidiMusicManager` integration / channel routing.
 - `SSoT_Dev_Mode.md` — the Dev "Audio Mix" tab surface.

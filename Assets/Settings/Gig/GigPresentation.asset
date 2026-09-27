@@ -52,6 +52,7 @@ MonoBehaviour:
   showVibeEffectivenessLabels: 0
   showVibeProjectedNumbers: 0
   showVibeReadout: 1
+  convincedSpriteTint: {r: 0, g: 0.24313726, b: 0.7490196, a: 1}
   sfxBonusVibeStage1: 3
   sfxBonusVibeStage2: 6
   sfxBonusVibeStage3: 10

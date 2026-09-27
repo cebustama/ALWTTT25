@@ -24,5 +24,5 @@ MonoBehaviour:
   tickTiming: 0
   valueType: 0
   isBuff: 1
-  iconSprite: {fileID: 21300000, guid: 7fe79f68d7c4ddd45ae52707d136a817, type: 3}
-  description: "Carga acumulada. No hace nada por s\xED sola: se gasta."
+  iconSprite: {fileID: 3558444778393103151, guid: 9b476237b83113e40b8545208c70072f, type: 3}
+  applySfx: {fileID: 0}

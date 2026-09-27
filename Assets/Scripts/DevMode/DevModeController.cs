@@ -2,6 +2,7 @@
 using ALWTTT.Characters.Audience;
 using ALWTTT.Managers;
 using ALWTTT.Sensory;
+using ALWTTT.Tooltips;   // [CARD-FACE-2] CardFacePresentation
 using UnityEngine;
 
 namespace ALWTTT.DevMode
@@ -262,6 +263,25 @@ namespace ALWTTT.DevMode
             DrawSongHypeControls();
 
             GUILayout.Space(6);
+
+            // [CARD-FACE-2 / D-CF-19=B] Card face: symbols vs words. A comparison tool for the design
+            // playtest, not a player setting: lives here, not in options, not persisted. Applies to faces
+            // rebuilt after the flip (next draw / SetCard); cards already in hand keep their current text.
+            bool prevSym = CardFacePresentation.UseSymbols;
+            CardFacePresentation.UseSymbols = GUILayout.Toggle(CardFacePresentation.UseSymbols,
+                " Card face: symbols (off = glossary words; applies to cards built after the flip)");
+            if (CardFacePresentation.UseSymbols != prevSym)
+                Debug.Log($"{Tag} Card face symbols → {CardFacePresentation.UseSymbols}");
+
+            // [CARD-FACE-2b / D-CF-25=B] Card type is off for players; this is the design switch to look at it.
+            bool prevType = CardFacePresentation.ShowCardType;
+            CardFacePresentation.ShowCardType = GUILayout.Toggle(CardFacePresentation.ShowCardType,
+                " Show action card type (Charisma/Technique...; applies to cards built after the flip)");
+            if (CardFacePresentation.ShowCardType != prevType)
+                Debug.Log($"{Tag} Show card type → {CardFacePresentation.ShowCardType}");
+
+            GUILayout.Space(6);
+
             GUILayout.Label("Gig Outcome (dev)");
             using (new GUILayout.HorizontalScope())
             {

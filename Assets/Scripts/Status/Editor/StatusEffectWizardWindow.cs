@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
+using ALWTTT.TextAuthoring;   // [CARD-FACE-2] GameTextCsv: same codec as GameTextWindow (id,field,... UTF-8 BOM, CRLF)
+
 
 namespace ALWTTT.Status.Editor
 {
@@ -101,6 +104,13 @@ namespace ALWTTT.Status.Editor
 
                 _primitiveDb = (CharacterStatusPrimitiveDatabaseSO)EditorGUILayout.ObjectField(
                     "CSO Primitive DB", _primitiveDb, typeof(CharacterStatusPrimitiveDatabaseSO), false);
+
+
+                // [CARD-FACE-2 / D-CF-18 census] Dumps EVERY catalogue in the project, not the one
+                // assigned above: the sprite family st_<key> must cover Musicians AND Audience, and
+                // a hand-typed list is exactly the transcription F-TV-5 forbids.
+                if (GUILayout.Button("Export ALL catalogues to CSV (census)"))
+                    ExportCatalogueCsv();
 
                 if (_catalogue == null)
                     EditorGUILayout.HelpBox("Assign a StatusEffectCatalogueSO to enable duplicate-prevention and existing selection.", MessageType.Info);
@@ -599,6 +609,81 @@ namespace ALWTTT.Status.Editor
             var p = so.FindProperty(propName);
             if (p == null) return;
             p.boolValue = value;
+        }
+
+        // ------------------------------------------------------------------
+        // [CARD-FACE-2 / D-CF-18=C] Census export.
+        //
+        // One row per (catalogue, StatusEffectSO). A StatusEffectSO registered in no catalogue
+        // still gets a row, under "(none)", so an orphan asset is visible and not silently
+        // dropped from the sprite count. Columns:
+        //   catalogue   asset name of the StatusEffectCatalogueSO ("(none)" for orphans)
+        //   statusKey   StatusEffectSO.StatusKey (already normalised by the SO)
+        //   spriteId    "st_" + statusKey — the inline glyph id this batch will draw
+        //   effectId    CharacterStatusId primitive
+        //   isDefault   IsDefaultVariant
+        //   displayName DEVELOPER label (TXT-3); never player text
+        //   isBuff
+        //   iconSprite  name of the current IconSprite (canvas host), "" if unassigned
+        //   iconTexture texture the IconSprite is sliced from — D-CF-18=C wants this to be
+        //               game_symbols once the atlas carries st_*; today it tells us how far we are
+        // Same codec as GameTextWindow ▸ Export (GameTextCsv), comma delimiter.
+        // ------------------------------------------------------------------
+        private static void ExportCatalogueCsv()
+        {
+            var table = new GameTextCsv.Table
+            {
+                Header = { "catalogue", "statusKey", "spriteId", "effectId", "isDefault",
+                           "displayName", "isBuff", "iconSprite", "iconTexture" }
+            };
+
+            var seen = new HashSet<StatusEffectSO>();
+
+            foreach (var guid in AssetDatabase.FindAssets("t:StatusEffectCatalogueSO"))
+            {
+                var cat = AssetDatabase.LoadAssetAtPath<StatusEffectCatalogueSO>(AssetDatabase.GUIDToAssetPath(guid));
+                if (cat == null || cat.Effects == null) continue;
+                foreach (var fx in cat.Effects.Where(f => f != null)
+                                              .OrderBy(f => f.StatusKey, StringComparer.Ordinal))
+                {
+                    seen.Add(fx);
+                    table.Rows.Add(CensusRow(cat.name, fx));
+                }
+            }
+
+            // Orphans: assets no catalogue registers.
+            foreach (var guid in AssetDatabase.FindAssets("t:StatusEffectSO"))
+            {
+                var fx = AssetDatabase.LoadAssetAtPath<StatusEffectSO>(AssetDatabase.GUIDToAssetPath(guid));
+                if (fx != null && seen.Add(fx))
+                    table.Rows.Add(CensusRow("(none)", fx));
+            }
+
+            string path = EditorUtility.SaveFilePanel("Export Status Catalogue CSV", "",
+                $"StatusCatalogue_{DateTime.Now:yyyyMMdd_HHmm}.csv", "csv");
+            if (string.IsNullOrEmpty(path)) return;
+
+            GameTextCsv.Write(path, table, ',');
+            Debug.Log($"[StatusEffectWizard] Exported {table.Rows.Count} rows ({seen.Count} StatusEffectSO) -> {path}");
+            EditorUtility.RevealInFinder(path);
+        }
+
+        private static string[] CensusRow(string catalogue, StatusEffectSO fx)
+        {
+            string key = fx.StatusKey ?? "";
+            var icon = fx.IconSprite;
+            return new[]
+            {
+                catalogue,
+                key,
+                "st_" + key,
+                fx.EffectId.ToString(),
+                fx.IsDefaultVariant ? "1" : "0",
+                fx.DisplayName ?? "",
+                fx.IsBuff ? "1" : "0",
+                icon != null ? icon.name : "",
+                icon != null && icon.texture != null ? icon.texture.name : ""
+            };
         }
 
         private void TryAutoFindAssets()

@@ -13,8 +13,8 @@
 // context row formats - so "5/4" has one home (task 2). MeterEffect.meterLabel no longer exists.
 //
 // Diagnostics stay literal (D-SP1-4=B precedent "Apply <missing status>."): an effect with no
-// asset assigned, an empty pool, and an unmapped subclass (its type name). Until Part B maps
-// TonalityEffect, that subclass shows its type name - visible, never silent.
+// asset assigned, an empty pool, and an unmapped subclass (its type name). Every shipped subclass is
+// mapped since CARD-FACE-2 (TonalityEffect was the last); the diagnostic remains for the next one.
 //
 // SOURCE IS PURE ASCII ON PURPOSE (F-T6-1 / F-SP1-2).
 
@@ -46,6 +46,7 @@ namespace ALWTTT.Cards.Effects
                 case TempoEffect t: return BuildTempo(t);
                 case ModulationEffect mod: return BuildModulation(mod);
                 case InstrumentEffect inst: return BuildInstrument(inst);
+                case TonalityEffect tn: return BuildTonality(tn);   // [CARD-FACE-2 / D-CF-17=D]
                 default: return fx.GetType().Name;   // developer diagnostic: unmapped subclass
             }
         }
@@ -70,6 +71,7 @@ namespace ALWTTT.Cards.Effects
             TempoEffect => GameSymbols.ModTempo,
             ModulationEffect => GameSymbols.ModKey,
             InstrumentEffect => GameSymbols.ModInstrument,
+            TonalityEffect => GameSymbols.ModTonality,     // [CARD-FACE-2] Part B closed; glyph existed since CARD-FACE-1
             _ => null      // unmapped subclass: no glyph, and the modal shows its type name
         };
 
@@ -80,6 +82,7 @@ namespace ALWTTT.Cards.Effects
             TempoEffect => GameSymbols.ModTempoConcept,
             ModulationEffect => GameSymbols.ModKeyConcept,
             InstrumentEffect => GameSymbols.ModInstrumentConcept,
+            TonalityEffect => GameSymbols.ModTonalityConcept,   // [CARD-FACE-2]
             _ => null
         };
 
@@ -133,6 +136,22 @@ namespace ALWTTT.Cards.Effects
                 _ => string.Empty
             };
             return body + dir;
+        }
+
+        // [CARD-FACE-2 / D-CF-17=D, D-CF-15] The value of a tonality modifier is the mode's EMOTIONAL
+        // colour, read from the glossary by the Tonality value ("Bright"), never the mode's name and never
+        // MoodTag. The three random modes are fixed ids: they are not enum values. Same miss policy as every
+        // derived family: an id the glossary lacks renders the id, visible, never silent.
+        private static string BuildTonality(TonalityEffect tn)
+        {
+            switch (tn.mode)
+            {
+                case TonalityEffect.TonalityEffectMode.Explicit: return GameText.Format(UiTonality(tn.tonality));
+                case TonalityEffect.TonalityEffectMode.RandomAny: return GameText.Format(UiTonalityRandomAny);
+                case TonalityEffect.TonalityEffectMode.RandomMajorish: return GameText.Format(UiTonalityRandomMajorish);
+                case TonalityEffect.TonalityEffectMode.RandomMinorish: return GameText.Format(UiTonalityRandomMinorish);
+                default: return string.Empty;
+            }
         }
 
         private static string BuildInstrument(InstrumentEffect inst)

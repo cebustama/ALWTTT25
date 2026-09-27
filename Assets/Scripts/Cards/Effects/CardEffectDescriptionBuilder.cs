@@ -37,14 +37,15 @@ namespace ALWTTT.Cards.Effects
         /// <summary>Format every non-empty effect line in order, joined by '\n'.</summary>
         public static string BuildList(
             IReadOnlyList<CardEffectSpec> effects,
-            BandCharacterStats stats = null)
+            BandCharacterStats stats = null,
+            bool statusGlyphOnly = false)
         {
             if (effects == null || effects.Count == 0) return GameText.Format(FxNoEffects);
 
             var sb = new StringBuilder();
             for (int i = 0; i < effects.Count; i++)
             {
-                var line = Build(effects[i], stats);
+                var line = Build(effects[i], stats, statusGlyphOnly);
                 if (string.IsNullOrEmpty(line)) continue;
                 if (sb.Length > 0) sb.Append('\n');
                 sb.Append(line);
@@ -64,9 +65,12 @@ namespace ALWTTT.Cards.Effects
             return false;
         }
 
-        public static string Build(CardEffectSpec spec, BandCharacterStats stats = null)
+        // [CARD-FACE-2 / D-CF-13=C] statusGlyphOnly: the card FACE passes true (glyph, meaning in the
+        // hover stack); the detail modal and every other caller keep the default (glyph + name). The
+        // default is the one that never loses the word, so an unknown caller cannot lose it by accident.
+        public static string Build(CardEffectSpec spec, BandCharacterStats stats = null, bool statusGlyphOnly = false)
         {
-            if (spec is ApplyStatusEffectSpec ase) return BuildApplyStatus(ase);
+            if (spec is ApplyStatusEffectSpec ase) return BuildApplyStatus(ase, statusGlyphOnly);
             if (spec is ModifyVibeSpec vibe) return BuildModifyVibe(vibe);
             if (spec is ModifyStressSpec stress) return BuildModifyStress(stress);
             if (spec is DrawCardsSpec draw) return BuildDrawCards(draw);
@@ -76,7 +80,7 @@ namespace ALWTTT.Cards.Effects
             return spec.GetType().Name;   // developer diagnostic: an unmapped spec shows its type name (unchanged)
         }
 
-        private static string BuildApplyStatus(ApplyStatusEffectSpec ase)
+        private static string BuildApplyStatus(ApplyStatusEffectSpec ase, bool glyphOnly)
         {
             if (ase.status == null) return "Apply <missing status>.";   // authoring-error diagnostic, not player text
             if (ase.stacksDelta == 0) return string.Empty;
@@ -87,7 +91,14 @@ namespace ALWTTT.Cards.Effects
             var signed = ase.stacksDelta > 0
                 ? $"{NumberColor}+{ase.stacksDelta}{ColorEnd}"
                 : $"{NumberColor}{ase.stacksDelta}{ColorEnd}";
-            var coloredName = $"{colorTag}{name}{ColorEnd}";
+            // [CARD-FACE-2 / D-CF-18=C] The st_<key> glyph sits INSIDE the buff/debuff colour tag: with
+            // tint=1 it inherits green or red, so polarity is still carried by colour, not by the drawing
+            // (which is why the sprite brief says "do not encode polarity"). Face: glyph alone. Elsewhere:
+            // glyph + name, because there is no hover to explain it.
+            var glyph = GameSymbols.StatusGlyph(ase.status.StatusKey);
+            var coloredName = glyphOnly
+                ? $"{colorTag}{glyph}{ColorEnd}"
+                : $"{colorTag}{glyph} {name}{ColorEnd}";
 
             if (ase.targetType == ActionTargetType.Self)
                 return GameText.Format(FxGainStatus, signed, coloredName);

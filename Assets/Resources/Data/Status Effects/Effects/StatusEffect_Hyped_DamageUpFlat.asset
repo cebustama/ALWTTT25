@@ -24,6 +24,5 @@ MonoBehaviour:
   tickTiming: 8
   valueType: 0
   isBuff: 1
-  iconSprite: {fileID: -4777780482022033070, guid: 8173826f6f2812a4fa958f24682c6b8b, type: 3}
-  description: The crowd is riled up. Each stack adds +1 to Stress dealt by this
-    audience member; loses 1 stack per Player Turn.
+  iconSprite: {fileID: 219622939007441197, guid: 9b476237b83113e40b8545208c70072f, type: 3}
+  applySfx: {fileID: 0}

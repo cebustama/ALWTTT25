@@ -24,5 +24,5 @@ MonoBehaviour:
   tickTiming: 8
   valueType: 0
   isBuff: 0
-  iconSprite: {fileID: 21300000, guid: 3f4062f7ce2e18f4883ca692ba0433d2, type: 3}
-  description: Damage over time at the start of each Player Turn. Lasts until cleared.
+  iconSprite: {fileID: 2439628300156994867, guid: 9b476237b83113e40b8545208c70072f, type: 3}
+  applySfx: {fileID: 0}

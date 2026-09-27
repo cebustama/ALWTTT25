@@ -119,6 +119,17 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &175657866 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9204626166763068009, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+  m_PrefabInstance: {fileID: 1881602578806723659}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec3c4c91b412c1b4e839f075568119f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.UI.OptionsPanelController
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -388,6 +399,7 @@ MonoBehaviour:
   devSettings: {fileID: 11400000, guid: 767ebbe00f02bb44eb7b39a77f8778c4, type: 2}
   setupRoster: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
   flowSettings: {fileID: 11400000, guid: 02e51bab3b739bc498b5d2f0c97ae6e5, type: 2}
+  optionsPanel: {fileID: 175657866}
 --- !u!1 &1246036101
 GameObject:
   m_ObjectHideFlags: 0
@@ -675,6 +687,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 535596037834307732, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 641221900037812282, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -699,6 +715,22 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4407806095357762791, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4407806095357762791, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4407806095357762791, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4407806095357762791, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5654840096748668912, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
       propertyPath: m_Name
       value: MainMenuCanvas
@@ -706,6 +738,10 @@ PrefabInstance:
     - target: {fileID: 5654840096748668912, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6099932442226712724, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_text
+      value: Continue
       objectReference: {fileID: 0}
     - target: {fileID: 6177763762030934210, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
       propertyPath: m_AnchorMax.y
@@ -798,6 +834,38 @@ PrefabInstance:
     - target: {fileID: 7995636102022799503, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8805750223474766208, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8805750223474766208, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8805750223474766208, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 767450637}
+    - target: {fileID: 8805750223474766208, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8805750223474766208, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnOptionsPressed
+      objectReference: {fileID: 0}
+    - target: {fileID: 8805750223474766208, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ALWTTT.Managers.MainMenuController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8805750223474766208, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 9095201061701417017, guid: 3dbe588c5fd58f04b8066991c3f9c8e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

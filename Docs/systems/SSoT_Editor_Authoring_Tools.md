@@ -52,6 +52,11 @@ It does not duplicate the data representation rules in `SSoT_Card_Authoring_Cont
 | Audience Member Wizard | `AudienceMemberWizard` | ALWTTT → Characters → Audience Member Wizard | Authoring surface for `AudienceCharacterData`: inventory with derived columns, filters, inline editing via `SerializedObject`, ability-list editor, taste block with prose reading, Create (default `Data/Characters/Audience/`, optional duplicate-as-template), Duplicate/Delete, cached usage column, validation badges, Export JSON (AMW-1, 2026-09-05; see §21) |
 | Gig Encounter Wizard | `GigEncounterWizard` | ALWTTT → Encounters → Gig Encounter Wizard | Authoring surface for `GigEncounterSO`: inventory with derived columns (venue, songs, audience size, distinct archetypes, Vibe sum, in-roster, is-demo, error count), filters, full editing via `SerializedObject`, audience-list editor with per-row archetype data and cross-link to §21, prose restatement of the composition, Create/Duplicate/Delete, validation badges, Export JSON (GEW-1, 2026-09-06; see §22) |
 
+**Game-symbol menu items (CARD-FACE-1/2, 2026-09-18/21; see §20.14)** — not windows:
+`ALWTTT ▸ Game Text ▸ Dump sprite names (GameSymbols)`, `ALWTTT ▸ Game Text ▸ Tune symbol metrics`,
+`ALWTTT ▸ Game Text ▸ Check symbol coverage`. **There is no «Slice symbol sheet» menu**: the CARD-FACE-1
+record named one and it never existed — the sheet is sliced in the Sprite Editor.
+
 All ten are `#if UNITY_EDITOR` gated `EditorWindow` subclasses. None ship in builds. `CompositionInventoryWindow` additionally requires `ALWTTT_DEV` (D-CSV-10=A).
 
 ---
@@ -322,9 +327,21 @@ Select from the catalogue dropdown, edit fields in the inline inspector, Apply t
 
 ### 6.4 Validation
 
+- **Catalogue guard (CARD-FACE-2, D-CF-18=C):** `StatusEffectCatalogueSO` warns when an entry's
+  `IconSprite` is missing or is not the atlas sub-sprite `st_<key>` (`SSoT_Status_Effects.md` §3.3).
+  Not a wizard check, but it fires on the assets this wizard creates.
 - Duplicate `CharacterStatusId` prevention — the Create tab only shows ids not already in the catalogue.
 - Missing catalogue/primitive DB warnings shown as help boxes.
 - Invalid asset folder path rejected on create.
+
+### 6.5 Census export — «Export ALL catalogues to CSV (census)» (CARD-FACE-2, 2026-09-21)
+
+A button in the wizard writes one CSV covering **every** `StatusEffectCatalogueSO` in the project
+(musicians and audience), one row per entry. **Rule: the status census comes from here**, not from a
+list in a document or from the PK — the principle of `systems/SSoT_Game_Text.md` §8 check 6 applied
+to statuses. The CSV's **header row is the authority for its columns**; they are not transcribed into
+this section, to avoid a second home that drifts (the column list was not in the retained package and
+the tool file was not attached at the doc-pass).
 
 ---
 
@@ -423,8 +440,8 @@ indented parameter dump:
 - **Composition:** `primaryKind`; `trackAction` role + bundle asset (name +
   concrete type) + a depth-1 dump of the bundle's visible serialized fields
   (read-only reflection over MidiGenPlay-owned SOs — no type coupling, arrays
-  print size only; boundary-safe); `partAction` (action / customLabel /
-  musicianId); `modifierEffects` (type, asset name, scope, timing, `GetLabel()`);
+  print size only; boundary-safe); `partAction` (action /
+  musicianId; `customLabel` deleted at CARD-FACE-2); `modifierEffects` (type, asset name, scope, timing, `GetLabel()`);
   and the `effects` list as above.
 - **Catalog entries** (Views 3/4): flags, starter copies, unlock id as before,
   with the card dump nested under each entry.
@@ -491,7 +508,7 @@ Checks are based on concrete effect subclass types (`TempoEffect`, `MeterEffect`
 
 **File:** `Assets/Scripts/Cards/Composition/PartActionDescriptor.cs`
 
-Serializable descriptor for structural part actions: `PartActionKind` (CreatePart, MarkIntro, MarkBridge, MarkSolo, MarkOutro, MarkFinal), optional custom label, optional musician id for solos.
+Serializable descriptor for structural part actions: `PartActionKind` (CreatePart, MarkIntro, MarkBridge, MarkSolo, MarkOutro, MarkFinal), optional musician id for solos. **The optional custom label was deleted at CARD-FACE-2 (2026-09-21, D-SP1-6=B):** the player label derives from `PartActionKind`. Deleting it touched five consumers in the repo, three of them editor tools (`CardData`, `CardInventoryWindow`, `DeckEditorWindow`) outside the batch's file set (F-CF2-4).
 
 ### 12.2 `TrackActionDescriptor`
 
@@ -564,6 +581,11 @@ Assets/Scripts/Characters/Editor/      (AMW-1, 2026-09-05)
 
 Assets/Scripts/Encounters/Editor/      (GEW-1, 2026-09-06)
   GigEncounterWizard.cs                (namespace ALWTTT.Encounters.Editor)
+
+Assets/Scripts/Editor/                 (CARD-FACE-1/2; editor root, files governed individually)
+  GameSymbolsDumpMenu.cs               (Dump sprite names)
+  SymbolMetricsTuner.cs                (Tune symbol metrics / Fix horizontal)
+  GameSymbolsCoverageMenu.cs           (Check symbol coverage; CARD-FACE-2)
 ```
 
 > **Namespace note (TXT-1, D4).** The text tooling lives in `ALWTTT.TextAuthoring`, **not**
@@ -1608,6 +1630,10 @@ and diffs before closing.
 
 **Known limitation (inherited from §20.11).** These tabs create and edit but do **not** delete.
 
+**The export is not a reconciliation tool (CARD-FACE-2).** The Templates export writes the rows the
+asset **has**, not the ids of `All`; a new derived id with no text yet appears **only** in the tab's
+`COVERAGE` panel. Reconcile derived families from the panel (`systems/SSoT_Game_Text.md` §8 check 6).
+
 ### 20.13 Ability id seeder (`ALWTTT ▸ Text ▸ Seed Ability Ids`) — TEXT-5, 2026-09-11
 
 **File:** `Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs`. Structural authority for the id
@@ -1629,6 +1655,93 @@ ability. Seven abilities make that look cheap; the cost appears on the eighth, a
 does not know the `ab_` convention, and surfaces as a raw id in a tooltip weeks later. The sentinel
 plus the coverage block (§20.11) catch that case in the editor, but the seeder is what stops it
 happening.
+
+### 20.14 Game symbols — atlas tooling and regeneration procedure (CARD-FACE-1/2, 2026-09-18/21)
+
+**Files:** `Assets/Scripts/Editor/GameSymbolsDumpMenu.cs`, `SymbolMetricsTuner.cs`,
+`GameSymbolsCoverageMenu.cs`, `GameSymbolsSyncMenu.cs` (CARD-FACE-3), `GameSymbolsTableMenu.cs`
+(documented 2026-09-25, F-CF3DOC-1). Structural authority for the
+symbol vocabulary — prefixes, the
+symbol-or-text rule, the atlas authority and path, the metrics — is `systems/SSoT_Game_Text.md` §2.1;
+this section owns the menus and the procedure.
+
+**Menus.**
+- **`Dump sprite names (GameSymbols)`** prints the names the producers may emit. It reads the same
+  expected set as the coverage check (`ExpectedSpriteNames`: `GameSymbols.AllSpriteNames` plus the
+  `st_*` names enumerated from the status catalogues). **It is the only source for slice names**:
+  names are copied from its output, never typed (F-TV-5).
+- **`Tune symbol metrics`** applies the uniform metrics (`Scale 1.6 · BY 89.6 · BX 0 · Advance 128`)
+  and offers **«Fix horizontal»**, which corrects the `BX = −width/2` every Center-pivot regeneration
+  produces (F-CF-4).
+- **`Check symbol coverage`** (CARD-FACE-2) checks sprites **in both directions** — every expected
+  name exists in the atlas character table; every table entry is expected or declared orphan — and
+  that every glyph concept (`GameSymbols.AllConceptIds`) has glossary text. It is `SSoT_Game_Text.md`
+  §8 check 7. Before it existed the glyph concepts were watched by nothing: a misspelt `role_*` showed
+  a raw id on hover while `GameTextWindow` stayed green.
+- **`Sync sprite names from texture`** (CARD-FACE-3) copies each slice **name** from the source
+  texture into the TMP character table, in one direction only, and then runs `Check symbol coverage`
+  so the sync is judged by step 5's verdict and not by its own log. It exists because step 3 below is
+  a one-way door: TMP fixes an entry's name when it **creates** it. Mechanism: a `TMP_SpriteCharacter`
+  reaches its `TMP_SpriteGlyph` by `glyphIndex`, and the glyph keeps an optional reference to the
+  `Sprite` it was built from; a character whose glyph has **no** sprite reference is counted and left
+  untouched, never guessed by position. The name setter does not recompute the lookup hashcode, so the
+  menu calls `UpdateLookupTables()`. Every rename is logged `old -> new`, and a new name no producer
+  emits is tagged `UNEXPECTED` — a typo in a slice is propagated knowingly and then turns the coverage
+  check red, which is preferable to a «smart» sync that hides the authoring error. Undo-able.
+  Validated 2026-09-22: idempotent on a healthy atlas (0 renamed / 51 unchanged / 0 without sprite),
+  and it restores a hand-broken name (ST-CF3-9, ST-CF3-10).
+- **`Export symbol table (HTML)`** (`ALWTTT/Game Text/Export symbol table (HTML)`, namespace
+  `ALWTTT.TextAuthoring` per the §13 note) writes a **read-only contact sheet** of the atlas: one row
+  per slice with its icon, its family (from the `GameSymbols` prefixes, never retyped) and the
+  **Spanish player-facing name** of the concept it stands for. It is **not** a coverage check —
+  `Check symbol coverage` is. It reads the slices of the **source texture** (the atlas authority,
+  D-CF-9=A′) and the pixels from the PNG file, so importer Read/Write and Max Size do not matter.
+  Sprite id → concept id is derived from the same enum values `GameSymbols` uses (F-TV-5); the two
+  exceptions follow `SSoT_Game_Text`: `st_` → the `StatusKey`, `kw_` → the enum name lowercased (§5).
+  The glossary is chosen by `languageCode`, never by path (TXT-1 D2=B), and read through the declared
+  seat `GameText.SetEditorFallback` (`SSoT_Game_Text` §3). A glyph with no concept, or a concept with
+  no entry, prints its sprite id in grey (§3 miss policy); `mod_dir_up` / `mod_dir_down` have no
+  concept id and are **always** grey, by design of `GameSymbols`. Source pure ASCII (verified).
+  **Origin not recorded:** the header cites `SYM-TABLE-1`, a label no package, runbook or changelog
+  entry contains; the file surfaced in the 2026-09-25 tree index (F-CF3DOC-1). **Not observed** in any
+  session: behaviour above is read from code, not from a run.
+  **Known gaps (code truth, not fixed):**
+  - **Play mode silently changes the language.** `GameText.Glossary` returns the `TooltipManager`'s
+    glossary **before** the editor fallback, so with a manager in the scene the fallback is ignored
+    and names come out in the running language — Spanish only if the game is running in Spanish. Run
+    it in Edit mode.
+  - **It clears the fallback instead of restoring it.** The `finally` block calls
+    `SetEditorFallback(null)`; an editor tool that had set its own fallback loses it until it sets it
+    again. Which tools set it was not checked (their files are not in the PK), so the impact is
+    **inferred, not observed**.
+  - **Menu root.** It files under `ALWTTT/Game Text/`, while `GameTextWindow` lives under
+    `ALWTTT → Text`. The other symbol menus' paths are not recorded in this section, so which root is
+    the odd one is **unverified**.
+  - The save dialog opens in `Docs/`. The HTML is a derived artefact, not documentation;
+    `Repo_Tree_Index.md` does not index `.html`, so a copy left there is invisible to the indexes.
+- `SymbolMetricsTuner` and `Check symbol coverage` **locate the atlas by search** (`LoadSpriteAsset`)
+  and warn if more than one exists (D-CF-24=C), because the path recorded at CARD-FACE-1 was wrong
+  (F-CF2-5).
+
+**Regeneration procedure (the order is the contract; both hazards show their symptom far from the
+cause).**
+1. **Compose the sheet outside Unity, by script,** keeping the existing cells **byte-identical** — a
+   new glyph must not move or re-rasterise an old one. Grid 128. The colour strip is merged into the
+   sheet, not kept as a fallback atlas (D-CF-23=A).
+2. **Slice in the Sprite Editor** (grid 128, **Keep Empty Rects OFF**). Slicing is manual on purpose:
+   the contract is the **name**, not the slicer.
+3. **Name EVERY slice before the first `Update Sprite Asset`,** copying from the dump. TMP's character
+   table fixes an entry's name when it is created and later Updates do not rewrite it (F-CF2-2: an
+   entry born `game_symbols_50` had to be renamed `st_spotlight` by hand). Since the 2026-09-18
+   rename, `Update Sprite Asset` keeps existing names — verified. **If the naming is missed, do not
+   edit the table by hand: run `Sync sprite names from texture`** (CARD-FACE-3), which is the same
+   repair with the lookup rebuilt for you and a log of what it changed. The rule stays as written:
+   the sync is a recovery path, not a licence to slice unnamed.
+4. **`Update Sprite Asset`**, then **«Fix horizontal» after EVERY Update**, including for old glyphs.
+5. **`Check symbol coverage` → OK**, then a visual pass on a card face and a hover header.
+
+*(The `Sync sprite names from texture` menu proposed here was implemented at CARD-FACE-3, 2026-09-22;
+see the menu list above and step 3.)*
 
 ---
 

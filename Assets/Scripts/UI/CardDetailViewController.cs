@@ -70,13 +70,11 @@ namespace ALWTTT.UI
                 Instance = null;
         }
 
-        private void Update()
-        {
-            if (!_isVisible) return;
-
-            if (Input.GetKeyDown(KeyCode.Escape))
-                Hide();
-        }
+        // [CARD-FACE-3 / O-CF3-2 / D5=B] The Esc handler that lived here is gone. Esc is now read in
+        // ONE place, UIManager.HandleEscapeKey, which closes this modal first and only then falls
+        // through to its scene rule. This class no longer polls any key: it is driven by Toggle/Show/
+        // Hide (right click, dismiss button) and by that chain. Do not re-add an Update here; add the
+        // new layer to the chain in UIManager instead.
 
         #endregion
 
@@ -148,7 +146,13 @@ namespace ALWTTT.UI
             {
                 cardTypeText.text = card.IsComposition
                     ? GameText.Format(GameTextTemplateIds.UiCardTypeComposition)   // [TEXT-5 / D-T5-3=A] same id as CardBase.typeTextField
-                    : card.CardType.ToString();
+                    // [CARD-FACE-2 / A16, F-TXT4-2] The enum name is gone. The modal has no hover (F-CF-5), so
+                    // an opaque symbol carries its WORD: glyph + name (D-CF-13=C). Not gated by UseSymbols: the
+                    // toggle compares card FACES (D-CF-19=B).
+                    // [CARD-FACE-2b / D-CF-25=B] Hidden while the action card type is off for players.
+                    : !CardFacePresentation.ShowCardType ? string.Empty
+                    : GameSymbols.CardTypeGlyph(card.CardType) + " " +
+                      GameText.Format(GameTextTemplateIds.UiCardType(card.CardType));
             }
 
             if (costText != null)

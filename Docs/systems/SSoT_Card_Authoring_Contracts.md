@@ -697,6 +697,16 @@ A new effect type is not fully integrated until all four exist or the missing pi
 
 **New normative, transferable note:** the layers are four, but layer 4 has **two targeting sites** that until R4 only `ApplyStatusEffectSpec` knew about: `CardDefinition.RequiresTargetSelection` and `HandController.TryResolveCardTarget`. A single-target spec that does not update both produces a playable card **with no hover** that resolves an empty target list and **silently no-ops** — the worst possible failure mode, because there is no error. Every future spec with a single-target `targetType` must touch both.
 
+**Known non-conformance — `ModifyVibeSpec` single-target (CONV-TINT-1, 2026-09-27; F-CT-4).** The spec
+predates R4 and content only ever authored it as AoE (`AllAudienceCharacters`, Psychic Wave). With
+`targetType: "AudienceCharacter"` it is **not** listed in `CardDefinition.RequiresTargetSelection`, so a
+card without the card-level override plays with no hover and no-ops with only a warning — exactly the
+failure mode above. `HandController.TryResolveCardTarget` sets no musician/audience expectation for it,
+so it accepts either kind (a drop on a musician logs an error in `CardBase`). Workaround in use:
+`overrideRequiresTargetSelection: true` + `requiresTargetSelectionOverrideValue: true` (card
+`dev_convince`, `SSoT_Dev_Mode.md` §11.8). JSON key `amount` verified by observation (import + play).
+Fix = add the `ModifyVibeSpec` branch to both targeting sites; not scheduled.
+
 **Import hardening (2026-07-16).** `ApplyCompositionJson` previously assigned a null `styleBundle` **silently** when a `trackAction.styleBundle` path failed to resolve; a null-bundle Track card is augment-only and will not create a track (D4=A), which surfaced as a "card played, no track created" bug during DF-INSPLOOP validation. The importer now logs a warning when a non-empty `styleBundle` path resolves to null. Authoring guidance: assigning the bundle by drag in the Inspector is the reliable path; the JSON path is a convenience that requires exact case/spacing.
 
 ---

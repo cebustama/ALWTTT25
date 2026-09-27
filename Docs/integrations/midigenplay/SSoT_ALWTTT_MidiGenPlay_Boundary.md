@@ -89,6 +89,9 @@ ALWTTT owns:
 - when playback should start/stop/rebuild
 - which game runtime component hosts playback
 - how loop/part/song feedback feeds back into the game
+- when playback is suspended and resumed (PAUSE-1). The seam is ALWTTT's own
+  `IMidiTransportSuspend` on `MidiToolkitAdapter` (over MPTK, third-party); the package-declared
+  `IPlayMidi` is **not** extended and no ask was raised. See `SSoT_Audio` §4.9.
 
 ### 4.2 MidiGenPlay-owned side
 MidiGenPlay owns the package-level machinery that turns build input into generated musical output.

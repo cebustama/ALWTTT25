@@ -1,0 +1,117 @@
+== IPlayMidi (declaracion + implementadores)
+Assets/Scripts/Generation/Music/MidiToolkitAdapter.cs:10:    public class MidiToolkitAdapter : MonoBehaviour, IPlayMidi
+Assets/Scripts/Managers/MidiMusicManager.cs:47:        [SerializeField] private MonoBehaviour playerBehaviour; // IPlayMidi (MPTK)
+Assets/Scripts/Managers/MidiMusicManager.cs:142:        private IPlayMidi player;
+Assets/Scripts/Managers/MidiMusicManager.cs:301:            player = playerBehaviour as IPlayMidi ??
+Assets/Scripts/Managers/MidiMusicManager.cs:307:                    $"{DebugTag} No IPlayMidi found. Add MidiToolkitAdapter to Core.");
+Assets/Scripts/Managers/MidiMusicManager.cs:400:            long curTick = player.CurrentTick; // via IPlayMidi
+Assets/Scripts/Managers/MidiMusicManager.cs:703:        /// Passthrough of IPlayMidi.IsPlaying.
+Assets/Scripts/Managers/MidiMusicManager.cs:1908:            if (player == null) { Debug.LogError($"{DebugTag} No IPlayMidi."); return 0f; }
+Assets/Scripts/Music/Voice/SingerVoiceDirector.cs:37:    ///   2. IPlayMidi.OnSongStarted (MidiToolkitAdapter) → capture
+== tiempo (D8)
+Assets/Scripts/Backgrounds/ForegroundAnimator.cs:53:            timer += Time.deltaTime;
+Assets/Scripts/Backgrounds/StageLightAnimator.cs:46:            timer += Time.deltaTime;
+Assets/Scripts/Cards/CardActions/AudienceMoveToFrontAction.cs:105:                timer += Time.deltaTime;
+Assets/Scripts/Cards/CardBase.cs:248:                        yield return new WaitForSeconds(ase.delay);
+Assets/Scripts/Cards/CardBase.cs:696:                timer += Time.deltaTime;
+Assets/Scripts/Characters/AudienceCharacterBase.cs:303:            yield return new WaitForSeconds(delay);
+Assets/Scripts/Characters/AudienceCharacterBase.cs:389:                yield return new WaitForSeconds(actionDelay);
+Assets/Scripts/Characters/AudienceCharacterBase.cs:405:                    yield return new WaitForSeconds(reactionDuration);
+Assets/Scripts/Characters/AudienceCharacterBase.cs:692:                timer += Time.deltaTime * speed;
+Assets/Scripts/Characters/CharacterAnimator.cs:207:            while (Time.time >= nextAnimBeatTime)
+Assets/Scripts/Characters/CharacterAnimator.cs:213:            timer += Time.deltaTime;
+Assets/Scripts/Characters/CharacterAnimator.cs:267:            while (Time.time >= nextParticleTime)
+Assets/Scripts/Characters/CharacterAnimator.cs:330:            _kickEndTime = Time.time + _kickActiveDuration;
+Assets/Scripts/Characters/CharacterAnimator.cs:359:            if (Time.time >= _kickEndTime)
+Assets/Scripts/Characters/CharacterAnimator.cs:368:            float t = 1f - (_kickEndTime - Time.time) / _kickActiveDuration;
+Assets/Scripts/Characters/CharacterAnimator.cs:401:            float now = Time.time;
+Assets/Scripts/Characters/CharacterAnimator.cs:425:            float now = Time.time;
+Assets/Scripts/Characters/MusicianBase.cs:259:            yield return new WaitForSeconds(delay);
+Assets/Scripts/Controllers/HandController.cs:399:                    80f * Time.deltaTime
+Assets/Scripts/Controllers/HandController.cs:431:                        Vector3.MoveTowards(cardTransform.position, cardPos, 16f * Time.deltaTime);
+Assets/Scripts/Controllers/HandController.cs:444:                        scaleLerpSpeed * Time.deltaTime);
+Assets/Scripts/Controllers/HandController.cs:538:                    Quaternion.LookRotation(cardForward, cardUp), 80f * Time.deltaTime);
+Assets/Scripts/Controllers/HandController.cs:545:                    scaleLerpSpeed * Time.deltaTime);
+Assets/Scripts/Controllers/HandController.cs:1150:               * Time.deltaTime;
+Assets/Scripts/Controllers/HandController.cs:1157:            force += (mousePosDelta * tiltStrength - heldCardTilt) * Time.deltaTime;
+Assets/Scripts/Controllers/HandController.cs:1158:            force *= 1 - tiltDrag * Time.deltaTime;
+Assets/Scripts/Controllers/HandController.cs:1159:            heldCardTilt += force * (Time.deltaTime * tiltSpeed);
+Assets/Scripts/Managers/AudioManager.cs:196:            yield return new WaitForSeconds(delay);
+Assets/Scripts/Managers/AudioManager.cs:325:                t += Time.unscaledDeltaTime;
+Assets/Scripts/Managers/AudioManager.cs:344:                t += Time.unscaledDeltaTime;
+Assets/Scripts/Managers/GigManager.cs:835:                _session.Tick(Time.deltaTime);
+Assets/Scripts/Managers/GigManager.cs:1280:            yield return new WaitForSeconds(reactionDuration);
+Assets/Scripts/Managers/GigManager.cs:1338:            var waitDelay = new WaitForSeconds(
+Assets/Scripts/Managers/GigManager.cs:3812:            yield return new WaitForSeconds(songEndPauseLocal);
+Assets/Scripts/Managers/GigManager.cs:3882:                yield return new WaitForSeconds(barFillDelayLocal);
+Assets/Scripts/Managers/GigManager.cs:3886:                yield return new WaitForSeconds(perAudVibeDelayLocal);
+Assets/Scripts/Managers/MidiMusicManager.cs:1480:                    yield return new WaitForSeconds((float)spb);
+Assets/Scripts/Managers/MusicDirector.cs:274:                t += Time.unscaledDeltaTime;
+Assets/Scripts/Managers/MusicDirector.cs:295:                t += Time.unscaledDeltaTime;
+Assets/Scripts/Managers/ShipInteriorManager.cs:186:            _session?.Tick(Time.deltaTime);
+Assets/Scripts/Managers/UIManager.cs:66:            if (Time.unscaledTime - _lastUpdateLog > 1f)
+Assets/Scripts/Managers/UIManager.cs:68:                _lastUpdateLog = Time.unscaledTime;
+Assets/Scripts/Managers/UIManager.cs:178:                timer += Time.deltaTime * (isIn ? fadeSpeed : -fadeSpeed);
+Assets/Scripts/Map/NodeResolveContext.cs:44:            yield return new WaitForSeconds(0.1f);
+Assets/Scripts/Map/NodeResolveContext.cs:67:            yield return new WaitForSeconds(0.1f);
+Assets/Scripts/Map/ShipController.cs:32:            transform.Rotate(0f, 0f, dir * orbitSpeedDegPerSec * Time.deltaTime, Space.Self);
+Assets/Scripts/Music/CompositionSession.cs:642:                    ? Mathf.Clamp01((Time.time - _loopStartTime) / _loopDurationSeconds)
+Assets/Scripts/Music/CompositionSession.cs:694:            _loopStartTime = Time.time;
+Assets/Scripts/Music/CompositionSession.cs:732:                float elapsed = Time.time - _loopStartTime;
+Assets/Scripts/Music/CompositionSession.cs:1383:            _loopStartTime = Time.time;
+Assets/Scripts/Music/CompositionSession.cs:1932:            _loopStartTime = Time.time;
+Assets/Scripts/Music/RhythmFxTester.cs:217:        _nextStepTime = Time.time;
+Assets/Scripts/Music/RhythmFxTester.cs:232:        while (Time.time >= _nextStepTime)
+Assets/Scripts/Music/RhythmFxTester.cs:379:                time = Time.time,
+Assets/Scripts/Music/RhythmFxTester.cs:446:                time = Time.time,
+Assets/Scripts/Music/RhythmParticleEmitter.cs:193:            float now = Time.time;
+Assets/Scripts/Sensory/PsychicWaveOverlayController.cs:315:                t += Time.unscaledDeltaTime;
+Assets/Scripts/Sensory/PsychicWaveOverlayController.cs:329:                    t += Time.unscaledDeltaTime;
+Assets/Scripts/Sensory/PsychicWaveOverlayController.cs:338:                t += Time.unscaledDeltaTime;
+Assets/Scripts/Sensory/SensoryFxAdapter.cs:245:            yield return new WaitForSeconds(delay);
+Assets/Scripts/Tutorial/TutorialController.cs:156:            var wait = new WaitForSeconds(0.9f);
+Assets/Scripts/Tutorial/TutorialController.cs:710:            var wait = new WaitForSeconds(0.9f);
+Assets/Scripts/Tutorial/TutorialOverlayView.cs:337:                shown += typeSpeed * Time.unscaledDeltaTime;
+Assets/Scripts/UI/BeatPulseIndicator.cs:90:            var dt = useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+Assets/Scripts/UI/FloatingText.cs:43:                timer += Time.deltaTime;
+Assets/Scripts/UI/FloatingText.cs:46:                pos.x += xCurve.Evaluate(timer / duration) * xDir * Time.deltaTime;
+Assets/Scripts/UI/FloatingText.cs:47:                pos.y += yCurve.Evaluate(timer / duration) * yDir * Time.deltaTime;
+Assets/Scripts/UI/FloatingText.cs:63:                timer += Time.deltaTime;
+Assets/Scripts/UI/FloatingText.cs:66:                pos.x += xCurve.Evaluate(timer / duration) * d.x * Time.deltaTime;
+Assets/Scripts/UI/FloatingText.cs:67:                pos.y += yCurve.Evaluate(timer / duration) * d.y * Time.deltaTime;
+Assets/Scripts/UI/GigCanvas.cs:175:                float wobble = Mathf.Sin(Time.unscaledTime * Mathf.PI * 2f * hypeWobbleSpeed)
+Assets/Scripts/UI/GigCanvas.cs:286:                elapsed += Time.unscaledDeltaTime;
+Assets/Scripts/UI/GigMessageUI.cs:71:            yield return new WaitForSecondsRealtime(seconds);
+Assets/Scripts/UI/HealthBarController.cs:130:                t += Time.deltaTime / duration;
+Assets/Scripts/UI/MinicardTooltipController.cs:144:                t += Time.unscaledDeltaTime;
+Assets/Scripts/UI/MinicardTooltipController.cs:160:                t += Time.unscaledDeltaTime;
+Assets/Scripts/UI/Song Composition/CompositionContextRowUI.cs:219:            _pulse += Time.deltaTime / 1.2f;
+Assets/Scripts/UI/Song Composition/CompositionStripDriver.cs:46:            _timer += Time.deltaTime;
+Assets/Scripts/UI/Song Composition/SongTrackElementUI.cs:293:                t += Time.deltaTime;
+Assets/Scripts/UI/Song Composition/SongTrackElementUI.cs:351:                t += Time.deltaTime;
+Assets/Scripts/UI/Song Composition/SongTrackElementUI.cs:369:            _pendingPhase += Time.deltaTime / Mathf.Max(0.01f, theme.pendingPulsePeriod);
+Assets/Scripts/UI/Song Composition/TrackHoverPanel.cs:285:            float step = fadeDuration <= 0f ? 1f : Time.unscaledDeltaTime / fadeDuration;
+Assets/Scripts/UI/StatusIconBase.cs:153:                t += Time.deltaTime;
+Assets/Scripts/UI/StatusIconBase.cs:172:                t += Time.deltaTime;
+Assets/Scripts/UI/TempoTextIndicator.cs:63:            _pulseTimer += Time.unscaledDeltaTime;
+Assets/Scripts/UI/Tooltips/TooltipManager.cs:143:            yield return new WaitForSeconds(delay);
+Assets/Scripts/UI/Tooltips/TooltipManager.cs:147:                timer += Time.deltaTime;
+Assets/Scripts/UI/UIPulseAnimator.cs:106:                float dt = useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+Assets/Scripts/UI/UIPulseAnimator.cs:120:                float dt = useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:154:            _lastGridBeatTime = useUnscaledTime ? Time.unscaledTime : Time.time;
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:169:                    ? new WaitForSecondsRealtime(secBeat)
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:170:                    : new WaitForSeconds(secBeat);
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:172:                float now = useUnscaledTime ? Time.unscaledTime : Time.time;
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:222:                t += useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+Assets/Scripts/UI/VibeReadoutBeatPulse.cs:233:                t += useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+== tweens/animator (D8)
+== listener pause
+== D-UX3 (opcional)
+Docs/archive/changelog-ssot_2026-03-18_to_2026-06-22.md:975:- F3: ESC key handling via UIManager.Update + HandleEscapeKey (D-UX3=D).
+Docs/archive/CURRENT_STATE_pre-prune_2026-06-16.md:355:**F3+F8.** Escape key + UIManager scene routing. `UIManager` gained `mainMenuSceneIndex` SerializeField + public getter, `Update()` with `Input.GetKeyDown(KeyCode.Escape)` polling + 1Hz diagnostic tick, `HandleEscapeKey` (in-gig → main menu; on main menu → quit), `QuitGame` (Application.Quit + EditorApplication.isPlaying=false in Editor). Decision D-UX3=D (simple ESC; full pause menu deferred).
+Docs/changelog-ssot.md:80:- **D-UX3** (=D vigente, =A menú de pausa) lo cita el paquete como decisión existente, pero no consta en
+Docs/CURRENT_STATE.md:114:  UI); con el modal cerrado, Esc abandona el gig sin confirmación (D-UX3=D, provisional). **Antes de
+Docs/CURRENT_STATE.md:695:  - **D-UX3=D sigue siendo provisional (baja prioridad).** Esc, con el modal cerrado, abandona el gig
+Docs/CURRENT_STATE.md:696:    sin confirmación y cierra el juego desde el menú. El menú de pausa (D-UX3=A) sigue sin
+Docs/CURRENT_STATE.md:698:    *(D-UX3 lo cita CARD-FACE-3; su registro original no está en ningún documento del PK — localizarlo
+Docs/systems/SSoT_Card_System.md:479:quit if already there — D-UX3=D). Before that, both classes polled Esc in their own `Update`, so one

@@ -24,6 +24,5 @@ MonoBehaviour:
   tickTiming: 8
   valueType: 0
   isBuff: 1
-  iconSprite: {fileID: -5023445413321877241, guid: 58b4eca4978234c45a5e998fa0638282, type: 3}
-  description: "El p\xFAblico solo tiene ojos para C2. Durante su pr\xF3ximo turno,
-    sus ataques dirigidos van a C2."
+  iconSprite: {fileID: -127236019057060770, guid: 9b476237b83113e40b8545208c70072f, type: 3}
+  applySfx: {fileID: 0}

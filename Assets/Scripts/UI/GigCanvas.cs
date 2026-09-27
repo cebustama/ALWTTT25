@@ -368,13 +368,6 @@ namespace ALWTTT.UI
             return sb.ToString();
         }
 
-        // [BIGNUM-1r45 / D-BN-3c] Tempo passthrough for the readout pulse. Called from
-        // GigManager.ApplyBpmToStage; a no-op when no pulse component is wired.
-        public void SetReadoutTempo(int bpm)
-        {
-            if (vibeReadoutPulse != null) vibeReadoutPulse.SetFallbackBpm(bpm);
-        }
-
         // [BIGNUM-1 / D-BN-7=A] Independent of SetSongHypeVisible. Falls back to the
         // label's own GameObject when no root is wired (degrades, never NREs).
         public void SetVibeReadoutVisible(bool visible)

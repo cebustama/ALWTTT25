@@ -239,14 +239,57 @@ The TUT-R* arc lives in `TUT-REBUILD_Sub_Roadmap.md`; these three fell out of it
     `planning/Design_Vibe_Telegraph_v0_1.md` §10.3 — D-BN-9=A ya se construyó y se revirtió por
     observación.** Es trabajo de observación, y su DoD («que se lea bien») no puede compartir cierre
     con uno que dice «cero ids crudos».
-  - **CARD-FACE-1** — **densidad de información de la cara de carta (F-TXT-3-6).** Los keywords
-    resuelven bien al hover pero no aparecen en la cara ni en el modal; tipo de pista y modificadores
-    ocupan el espacio. Propuesta: iconos para tipo de pista y modificadores (los assets existen), con
-    el detalle al hover. **Depende de dos cosas:** del vocabulario de sprites inline de TXT-4, y de
-    **TIP-1** — mover información de la cara al tooltip aumenta la presión sobre un pipeline que apila
-    paneles (F-BN-7) y proyecta mal el anclaje estático (F-BN-8). Probablemente deba abrir cerrando
-    TIP-1.
+  - **CARD-FACE-1 — CERRADA 2026-09-18.** Primer vocabulario simbólico del proyecto: atlas global cuya
+    autoridad es la textura fuente (D-CF-9=A′); la cara de carta dice rol y modificadores en glifos, la
+    pila de hover los explica, el modal lleva glifo + palabra (D-CF-13=C, D-CF-14=B/14b). Notación =
+    texto, categoría = símbolo (D-CF-10=A). Cierra F-TXT-3-6, F-TV-1 (en código), F-TV-4, F-TV-7;
+    plantillas 102 → 147, conceptos 43 → 61. Detalle: `CURRENT_STATE.md` §1, `SSoT_Game_Text.md` §7.
+  - **CARD-FACE-2 (+2b) — CERRADA 2026-09-21.** El mapa de poblaciones de `SSoT_Game_Text` §1 llega a
+    **cero filas abiertas** (DoD cumplido); estados, tipo de carta y acción de parte pasan a glifo; un
+    dibujo por estado (D-CF-22=A); tipo de carta Action oculto (D-CF-25=B); glifo repetido en la
+    cabecera del hover (D-CF-26=A). Cierra F-TXT4-2 (2b paso 5). Glifos 51, plantillas 172, conceptos
+    73, cartas sin mover (octavo lote). Documentación de ambos lotes aplicada en **CARD-FACE-1/2-DOC**
+    (2026-09-21).
+  - **CARD-FACE-3 — CERRADA 2026-09-22.** La superficie de carta queda presentable: cierra **O-CF2b-2**
+    (captura de puntero de uGUI en `OnPointerUp`; el orden de canvas no era la causa), **F-CF2b-1**
+    (U+00A0 **y** panel de tooltip 250 → 280, D3=B) y **F-CF-7** (GameObject desactivado en escena), y
+    añade el menú «Sync sprite names from texture». Encontró y cerró **O-CF3-2** (Esc con dos oyentes:
+    una pulsación cerraba el modal y abandonaba el gig; ahora un único oyente con prioridad en
+    `UIManager`, D5=B). O-CF3-3 aceptada (D7). Fingerprints sin mover (noveno lote). Documentación
+    aplicada en **CARD-FACE-3-DOC** (2026-09-25). Detalle: `CURRENT_STATE.md` §1, `SSoT_Game_Text.md` §7.
+  - **F-CF-6 — PROPUESTA (no abierta), lote propio de diseño de UI** (D2=B de CARD-FACE-3): el TMP del
+    modal de detalle se lee más pequeño que el de la cara. Es pasada de diseño, no defecto, y por eso
+    no comparte cierre con un lote de correcciones.
   - **DF-ARTIC** *(cross-boundary)* — **randomized chord articulation.** Today a card binds exactly one articulation; wanted: a Random option, potentially re-rolled per loop and per chord. The randomization mechanism is **MidiGenPlay-internal** (composer/config side) — per the boundary rule it is filed as a cross-project ask (**MGP-ALWTTT-ARTIC-1**, same pattern as SEED-1 / MOD-DIR-1); the ALWTTT side owns only the authoring surface that requests it and adopts after the package ships.
+
+### Inserted demo-cut-close batches — registro 2026-09-27 (F-POOL-2 + bloque de pulido audiovisual)
+
+Registrado al abrir SONG-TAIL-1 (D-REG). Cierra **F-POOL-2** (ni este roadmap ni `CURRENT_STATE` §3
+registraban PAUSE-1 ni BEAT-1). Detalle de cada lote cerrado: `CURRENT_STATE.md` §1; este bloque sólo
+fija secuencia y alcance.
+
+- **PAUSE-1 — ✅ CERRADA 2026-09-25** (documentación aplicada en DOC-POOL-1, 2026-09-27). Esc abre una
+  pausa que congela juego y música a la vez; reanuda en el mismo tick. Opciones v1 con plano del jugador.
+- **BEAT-1 — ✅ CERRADA 2026-09-27** (documentación aplicada en DOC-POOL-1). El beat grid lee los bytes
+  reproducidos y avanza con el tick del secuenciador; un solo anunciante de tempo/compás.
+- **Bloque de pulido audiovisual previo a GIG23-A** (plan del 2026-09-27, **D1=A**: pulido antes de
+  GIG23-A; las mecánicas van a Phase C). Secuencia estricta, izquierda a derecha:
+  1. **CONV-TINT-1 (+1b) — ✅ CERRADA 2026-09-27** (documentación aplicada en SONG-TAIL-1, tarea 0).
+     Tinte de convencido que anula el tapado; canvas oculto por `CanvasGroup` de estado.
+  2. **SONG-TAIL-1** — *abierta 2026-09-27.* La banda sigue sonando durante el turno del público: un
+     «tail» musical conmutable (A/B) que vive **fuera** de `CompositionSession` (D-ST0) y no emite
+     feedback de loop.
+  3. **CROWD-SFX-1** — aplausos y abucheos; se mezcla **contra el tail**, por eso va después.
+  4. **SPEED-1** — velocidad de partida fija: juego y música con el mismo número. Experimento acotado:
+     frenar al mirar cartas, sólo en el límite de loop.
+  5. **CAM-1** — `ZoomTo` con ida / estancia / vuelta / curva / offset, para el tutorial.
+  6. **GIG23-A**.
+  7. **SING-2** — Double Harmony Tier B; abre **midiendo el coste de DSP de dos voces**.
+  8. **SING-3** — expresividad vocal, lado ALWTTT (no MidiGenPlay).
+- **Phase C (fuera del bloque, registrado aquí para no perderlo):** **STAGE-LAYOUT-1** (recolocar a los
+  convencidos al fondo; recalcula oclusión; recibe **F-CT-2** y **F-CT-5**) → **WAVES-1a / 1b** →
+  **LOOP-ACT-1**.
+
 
 ## S5h — Reward screen  *(IMPORTANT; pulled-forward presentation half of old S5d, per D-REPLAN-3)*
 

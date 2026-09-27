@@ -19,7 +19,6 @@ MonoBehaviour:
     styleBundle: {fileID: 11400000, guid: dd3bddf1ac1503e4884579d2f04dff16, type: 2}
   partAction:
     action: 0
-    customLabel: 
     musicianId: 
   modifierEffects:
   - {fileID: 11400000, guid: e50a3569835e7674e891044d4cd2f30d, type: 2}

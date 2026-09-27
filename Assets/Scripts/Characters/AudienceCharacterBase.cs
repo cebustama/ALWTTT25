@@ -35,18 +35,61 @@ namespace ALWTTT.Characters.Audience
             get => isBlocked;
             set
             {
-                if (SpriteRenderer != null)
-                    SpriteRenderer.color = value ? obscuredColor : Color.white;
+                // [CONV-TINT-1] Sprite colour is composed in RefreshSpriteTint (below).
 
                 // [TUT-R2] Publish on the false→true transition only.
                 bool wasBlocked = isBlocked;
                 isBlocked = value;
+                RefreshStatePresentation(); // [CONV-TINT-1b] tint + canvas; after the field is updated
                 if (!wasBlocked && value)
                     ALWTTT.Sensory.SensoryEventBus.Instance?.Publish(
                         new ALWTTT.Sensory.AudienceBlockedEvent(this));
             }
         }
         public int ColumnIndex { get; set; }
+
+
+        // [CONV-TINT-1 / D-T1] Presentation rule: once convinced, "blocked" stops being
+        // shown. IsBlocked keeps its gameplay truth (occlusion, AoE targeting, Vibe gate);
+        // only the sprite tint and the "oscurito" tooltip read the presented predicate.
+        private bool IsConvincedPresented => stats != null && stats.IsConvinced;
+        private bool IsBlockedPresented => IsBlocked && !IsConvincedPresented;
+
+        /// <summary>
+        /// [CONV-TINT-1 / D-T1] Sole writer of this member's SpriteRenderer.color.
+        /// Recomputes from state instead of restoring a fixed colour, so the call order
+        /// between the IsBlocked setter, OnConvinced and Dev resets does not matter.
+        /// Priority: convinced > blocked > plain.
+        /// </summary>
+        private void RefreshSpriteTint()
+        {
+            if (SpriteRenderer == null) return;
+
+            if (IsConvincedPresented)
+            {
+                var pres = GigManager != null ? GigManager.Presentation : null;
+                SpriteRenderer.color = pres != null
+                    ? pres.ConvincedSpriteTint
+                    : GigPresentationSO.DefaultConvincedSpriteTint;
+                return;
+            }
+
+            SpriteRenderer.color = IsBlocked ? obscuredColor : Color.white;
+        }
+
+        /// <summary>
+        /// [CONV-TINT-1b] Single refresh of everything the convinced state changes on
+        /// screen: sprite tint + canvas concealment. Runs from the IsBlocked setter
+        /// because RecalculateAudienceObstructions drives that setter on every member
+        /// after any convince or Dev un-convince; that funnel keeps both in step.
+        /// </summary>
+        private void RefreshStatePresentation()
+        {
+            RefreshSpriteTint();
+
+            if (AudienceCharacterCanvas != null)
+                AudienceCharacterCanvas.SetConvincedHidden(IsConvincedPresented);
+        }
 
         // [R4 / D-R0-1=A] Taste-reveal state. Instance-scoped: a reveal lasts for
         // the rest of the gig (the audience GameObject's lifetime) and is not
@@ -107,6 +150,10 @@ namespace ALWTTT.Characters.Audience
             Debug.Log($"<color=green>{CharacterId} CONVINCED!");
 
             GigManager.RecalculateAudienceObstructions();
+
+            // [CONV-TINT-1] Explicit, so the tint does not depend on the recalculation
+            // happening to touch this member's IsBlocked setter. [CONV-TINT-1b] tint + canvas.
+            RefreshStatePresentation();
 
             // [B2.5 / #3] BPM broadcasts to body + any sub-animators on the audience.
             BroadcastBPM(120);
@@ -714,7 +761,7 @@ namespace ALWTTT.Characters.Audience
             AudienceCharacterCanvas.ShowContextual();
 
             // [S5f / E-lite] Explain the "oscurito" tint on sprite hover.
-            if (IsBlocked && AudienceCharacterCanvas != null)
+            if (IsBlockedPresented && AudienceCharacterCanvas != null)
             {
                 AudienceCharacterCanvas.ShowBlockedTooltip();
                 _blockedTooltipShown = true;

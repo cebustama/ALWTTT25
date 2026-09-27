@@ -160,6 +160,10 @@ entries:
       - Assets/Scripts/Cards/Enums
       - Assets/Scripts/Cards/Extensions
       - Assets/Scripts/Cards/CardActions
+      # CARD-FACE-1/2-DOC (2026-09-21, D-GOV=A): card-face / card-hover presentation
+      # switches (UseSymbols, ShowCardType, HeaderWithGlyph). Lives under UI/Tooltips,
+      # which TIP-1-DOC split by FILE; this file had no governor until now.
+      - Assets/Scripts/UI/Tooltips/CardFacePresentation.cs
     hard_invariants:
       - "A CardDefinition references exactly one payload asset. Domain is derived from payload.Domain. Both Action and Composition cards share the same effect-first base model."
       - "All gameplay mechanics authored on a card live under CardPayload.Effects : IReadOnlyList<CardEffectSpec>. Cards are not defined by per-card procedural scripts. Mechanics are represented as declarative specs."
@@ -223,6 +227,7 @@ entries:
       - "MVP rules: each Audience Member has Vibe + MaxVibe (VibeGoal retired into MaxVibe, S5e); audience persuasion progress persists across songs within a Gig; audience preferences are simple and readable; audience pressure is primarily expressed through Stress-oriented abilities; intention telegraphing is favored over hidden surprise logic; audience-side statuses are part of the MVP baseline (active set: Earworm M4.3, Indifference B3, Captivated R1; extends via StatusEffectCatalogue_Audience)."
       - "Audience single-target hostile targeting resolves through one funnel: AudienceCharacterBase.ResolveTargetsFor. Since R4 (2026-08-10) it carries a prior redirect step on the Musician / RandomMusician branches (active Spotlight holder substitutes the target); AllMusicians does not pass through the hook. Every future audience ability inherits the redirect with no per-ability edit (SSoT_Audience_and_Reactions paragraph 8; status semantics in SSoT_Status_Effects paragraph 5.9)."
       - "Preference reveal (RevealPreferences, R4, 2026-08-10 — SSoT_Audience_and_Reactions paragraph 6.4): per-gig instance state (AudienceCharacterBase.PreferencesRevealed, GameObject lifetime, not persisted across gigs), idempotent (second reveal is a silent no-op). The spec carries NO taste data: AudienceCharacterData owns the data, AudienceCharacterCanvas owns the presentation (ShowTastePanel); unwired prefab degrades to no-op."
+      - "Convinced presentation (CONV-TINT-1 + 1b, 2026-09-27 — SSoT_Audience_and_Reactions paragraph 4.3): AudienceCharacterBase.RefreshStatePresentation is the single writer of the member's SpriteRenderer.color and of the canvas state CanvasGroup (AudienceCharacterCanvas.SetConvincedHidden). Priority convinced > blocked > plain. Presentation only: IsBlocked keeps its gameplay value on a convinced member. Tooltips routed to the global TooltipManager are gated on the canvas' convinced flag, not by the group."
     notes: >
       Audience entities, persuasion, preferences, intentions, reaction
       contracts. Does not own encounter envelope (that is SSoT_Gig_Encounter).
@@ -297,6 +302,13 @@ entries:
       - Assets/Scripts/Editor/Text
       - Assets/Scripts/Characters/Editor
       - Assets/Scripts/Encounters/Editor
+      # CARD-FACE-1/2-DOC (2026-09-21): game-symbol menus, §20.14. Governed by FILE:
+      # Assets/Scripts/Editor/ root holds other tools this SSoT does not document.
+      - Assets/Scripts/Editor/GameSymbolsDumpMenu.cs
+      - Assets/Scripts/Editor/SymbolMetricsTuner.cs
+      - Assets/Scripts/Editor/GameSymbolsCoverageMenu.cs
+      - Assets/Scripts/Editor/GameSymbolsSyncMenu.cs
+      - Assets/Scripts/Editor/GameSymbolsTableMenu.cs
     hard_invariants: []
     notes: >
       Editor tools inventory, capabilities, supporting services, known gaps.
@@ -347,6 +359,12 @@ entries:
       # glossary since this batch, so they come under this document's authority.
       - Assets/Scripts/Music/FloatingTextMidiListener.cs
       - Assets/Scripts/UI/Song Composition/CompositionContextRowUI.cs
+      # CARD-FACE-1/2-DOC (2026-09-21): the symbol vocabulary (§2.1) and the
+      # modifier-line formatter. PartEffectDescriptionBuilder.cs is ALSO governed
+      # by SSoT_Card_System through the Cards/Effects folder — the same dual
+      # governance CardEffectDescriptionBuilder.cs has had since TXT-4.
+      - Assets/Scripts/UI/Tooltips/GameSymbols.cs
+      - Assets/Scripts/Cards/Effects/PartEffectDescriptionBuilder.cs
     hard_invariants:
       - id: GAMETEXT-RESOLUTION-ORDER
         statement: >
@@ -397,8 +415,11 @@ entries:
           names MAY read labels: they are not player surfaces, and
           AudienceCharacterBase.AbilityRoutine reading AbilityName in a log line
           is conformant, not a violation. Enum ToString() on a player surface is
-          OUTSIDE this invariant (F-TXT4-2 -> CARD-FACE-1): an enum name is a
-          missing symbol, not a leaked label. Promoted at TEXT-5-DOC
+          OUTSIDE this invariant: an enum name is a missing symbol, not a leaked
+          label. F-TXT4-2 closed at CARD-FACE-2b (2026-09-21): categorical enums
+          reach the player as glyphs, notation enums as derived template ids
+          (D-CF-10=A, SSoT_Game_Text.md §2.1). Not promoted to an invariant of its
+          own at the doc-pass (candidate, see changelog 2026-09-21). Promoted at TEXT-5-DOC
           (2026-09-14) once the last three readers closed at TEXT-5, which is
           the D-DOC-1=C criterion.
         source: SSoT_Game_Text.md §1, §3.1
@@ -465,6 +486,15 @@ entries:
       STORAGE is governed here while its MEANING stays with
       SSoT_Audience_and_Reactions §7/§8 — the same split this document has held
       since TXT-2.
+      CARD-FACE-1/2 (doc-pass CARD-FACE-1/2-DOC, 2026-09-21): the population map
+      reaches ZERO open rows (row 12 added and closed); the document gains the
+      symbol vocabulary (§2.1): one global TMP atlas whose authority is a source
+      texture at Assets/Resources/Sprites/Game Symbols/game_symbols.png, the
+      atlas asset derived (D-CF-9=A'). `governs:` extended with GameSymbols.cs
+      and PartEffectDescriptionBuilder.cs, verified against the
+      Repo_Tree_Index.md snapshot of 2026-09-21 12:02. CardFacePresentation.cs,
+      in the same folder, is governed by SSoT_Card_System (D-GOV=A): it decides
+      what the card face and card hover SHOW, not where text lives.
 
   # ── subsystem_ssot: runtime/ ───────────────────────────────────────────────
 
@@ -542,6 +572,9 @@ entries:
       - Assets/Scripts/Managers/DeckManager.cs
       - Assets/Scripts/Controllers/HandController.cs
       - Assets/Scripts/Characters/Actions
+      - Assets/Scripts/UI/Pause/PauseMenuController.cs   # PAUSE-1
+      - Assets/Scripts/UI/Pause/PauseGate.cs             # PAUSE-1
+      - Assets/Scripts/UI/Pause/OptionsPanelController.cs   # PAUSE-1 (Esc layer; volumes are SSoT_Audio §4.8)
     hard_invariants:
       - "GigManager owns gig-scene orchestration and phase transitions."
       - "CompositionSession owns active song/session progression and feedback emission."
@@ -554,6 +587,7 @@ entries:
       - "MidiMusicManager is an ALWTTT runtime integration component. It is not the authority for package generation internals. Its job is to host/control the music playback surface used by the gig runtime."
       - "Action window flags (_actionWindowOpen, _isBetweenSongs) are per-PlayerTurn, not per-gig. They are re-asserted to true at the top of ExecuteGigPhase(PlayerTurn) after the completion check."
       - "Hand draw at PlayerTurn entry guarantees >=1 Action and >=1 Composition card in hand when DrawPile + DiscardPile allow, without exceeding DrawCount or MaxCardsOnHand (M4.5). The guarantee is subtractive — it consumes normal draw slots, never extends hand size. Composition wins when budget cannot fit both. Implemented via DeckManager.DrawCardsForPlayerTurn + DrawCardFiltered."
+      - "Pause is not a phase: it never touches CurrentGigPhase, _session or the action-window flags; it freezes time (timeScale 0), input (PauseGate), transport and ambience, and every exit (Continue, Volver al menu, scene load, controller destruction) restores all four in the same frame. (PAUSE-1)"
     notes: >
       Gig runtime orchestration and phase flow. Overlaps GigManager.cs with
       Combat_Core and Scoring_and_Meters — all three legitimately touch
@@ -583,6 +617,7 @@ entries:
       - "Playback-affecting composition cards must trigger the correct ALWTTT rebuild/invalidation path."
       - "MidiMusicManager is documented as a game runtime integration component, not package-owned truth."
       - "Loop/part/song feedback emitted after playback belongs to the ALWTTT runtime contract."
+      - "MidiMusicManager is the single beat-grid and tempo/signature broadcaster (BEAT-1): the grid reads the bytes being played (never cache), advances on the sequencer tick (no timer), announces tempo/TS once per playback plus crossed changes, restarts at bar 0 per playback, and stops PPQ/4 before the last event."
       - "Out of scope: composer-internal precedence chains, package repository loading rules, package authoring/editor internals, package-side TS normalization algorithms (those belong in MidiGenPlay docs)."
       - "Per-loop card draw and per-loop inspiration consumption are host-owned (GigManager.OnCompositionLoopFinished), not inside CompositionSession.HandleLoopFinished. CompositionSession remains the deck-non-mutating invariant holder per the [Obsolete] guards on PrepareDeck and ICompositionContext.Deck."
       - "CompositionSession.AddCurrentInspiration is the canonical session-budget mutator. It clamps to pd.MaxInspiration, mirrors to pd.CurrentInspiration, refreshes the composition UI, and returns the actual delta applied. All production-path inspiration deltas during an active session route through it."
@@ -600,6 +635,9 @@ entries:
       - Assets/Scripts/Data/Audio/AudioMixSettingsSO.cs
       - Assets/Scripts/DevMode/DevAudioMixTab.cs
       - Assets/Scripts/Managers/MusicDirector.cs
+      - Assets/Scripts/Data/Audio/PlayerAudioPrefs.cs          # PAUSE-1
+      - Assets/Scripts/Generation/Music/IMidiTransportSuspend.cs   # PAUSE-1
+      - Assets/Scripts/Generation/Music/MidiToolkitAdapter.cs      # PAUSE-1 — previously ungoverned
       - Assets/Scripts/Data/Audio/OstCatalogSO.cs
       - Assets/Scripts/Enums/OstTrackId.cs
       - Assets/Scripts/Data/Audio/CharacterSfxProfileSO.cs   # M1-note: AUDIO-CHAR-PROFILES phase-1 backfill — verify Assets path
@@ -610,18 +648,19 @@ entries:
       - "ALWTTT owns only the per-musician music axis. MIDIInstrumentSO.volume01 is never wired ALWTTT-side; instrument01 == 1.0 in the effective-volume formula (double-attenuation guard)."
       - "Effective music volume = global * perMusician * 1.0, composed in GigManager.ComputeEffectiveMusicianVolume01, applied via MidiMusicManager.SetMusicianVolume01."
       - "The balance re-applies per song (ReapplyMusicianMix after Play + OnSongStartedInternal channel re-assert). A balance loaded at gig start is staged, not audible, until the first song."
-      - "Persistence is a design-time SO asset baked in-editor (no runtime save); Dev edits persist via SetDirty/SaveAssets under #if UNITY_EDITOR; baked values are the shipped default."
+      - "Persistence has two layers that never write each other: the designed mix is a design-time SO asset baked in-editor (Dev edits persist via SetDirty/SaveAssets under #if UNITY_EDITOR; baked values are the shipped default); the player plane lives in PlayerPrefs (PlayerAudioPrefs). The player path never writes AudioMixSettingsSO. (PAUSE-1, SSoT_Audio §5)"
       - "One home per audio concept: global music, master SFX, per-musician balance live in AudioMixSettingsSO. GameplayData.globalMusicVolume01 removed."
       - "Card SFX is opt-in by type: Button (default/UI) and None play nothing on the card path; cards opt into a sound via a non-default clip-backed AudioActionType."
       - "Jitter is caller-controlled (fan-out only): only SensoryAudioAdapter's reaction handler passes jitter=true; card + single-source SFX are immediate. sfxMaxJitterSeconds on AudioManager."
       - "Master SFX applies app-wide at AudioManager.Awake and governs sfxSource + buttonSource (UI clicks under the SFX level)."
       - "OST plays only through MusicDirector, one track audible at a time (two internal AudioSources overlap only during a crossfade)."
-      - "The Music level (AudioMixSettingsSO.GlobalMusicVolume01) scales gig music AND OST: gig per-channel via GigManager.ComputeEffectiveMusicianVolume01, OST via MusicDirector (AudioSource.volume). One level, two consumers."
+      - "The Music level (AudioMixSettingsSO.GlobalMusicVolume01) scales gig music AND OST: gig per-channel via GigManager.ComputeEffectiveMusicianVolume01, OST via MusicDirector (AudioSource.volume). One level, two consumers. Since PAUSE-1 both also multiply by the player plane (PlayerAudioPrefs.Music01): gig music inside MidiMusicManager.WriteChannelVolume01 (re-sent via ReapplyLiveVolumes, so mutes/highlights survive), OST in MusicDirector.MusicLevel01."
       - "Gig music and OST never play simultaneously: gig scenes are unlisted in the MusicDirector scene-to-track map, so they resolve to OstTrackId.None and stop OST."
       - "Crowd ambience is an SFX-group loop on AudioManager: effective = masterSfx × ambienceLevel × fade; present while the crowd is idle, ducks under a performing song; duck/return are volume-only (no loop restart). Gig-scoped — started at gig open (StartGig), returned at song end (OnCompositionSessionEnded, which nulls _session synchronously so a polled flag would miss the edge), stopped on teardown (OnDestroy)."
       - "Reaction clips resolve per-character first, then bank per polarity: a reacting character's CharacterSfxProfileSO (on AudienceCharacterData.sfxProfile) is consulted before SoundBankSO; an empty polarity falls back to the bank for that polarity, then warn-once/no-op. The per-character SO is a clip source for the existing ReactionPositive/Negative keys — no new SensorySfxType. Neutral stays FT-only; jitter (fan-out only) unchanged on both paths; per-character coverage unaudited. (AUDIO-CHAR-PROFILES phase 1; backfilled into the manifest at phase 2.)"
       - "A card sounds once, on exactly one path. Card audio has two possible producers — the card-direct AudioType at drop (CardBase.Use) and the bus CardVibeImpact sting at impact (AudienceVibeImpactEvent -> SensoryAudioAdapter). A card uses ONE: opting into the impact sting means authoring AudioType = None (D-PW-AUDIO; authoring rule in SSoT_Card_Authoring_Contracts §5.15). The sting is once per card play, not once per AoE target (SensorySfxPresentation.ForCardVibeImpact keys on FanoutIndex == 0), and is immediate, never jittered; the per-member visual fan-out carries the stagger. It fires on a blocked first target too. CardPlayedEvent remains purely semantic and adds no SFX key. (SSoT_Audio §7 inv 18 — OPT-5 fragment, delivered 2026-07-13, applied MANIFEST-1 2026-08-08.)"
       - "Ability SFX fires once at activation, single-source and immediate: an audience ability's inline abilitySfx clip (on AudienceAbilityData, beside its AbilityAnimationData trigger) plays once in AudienceCharacterBase.AbilityRoutine via AudioManager.PlayOneShot(AudioClip, jitter:false) — never jittered (jitter is fan-out only), after the stun/null/empty guards and before PlayAbilityAnimation (independent of the animation guard), no-op on null. Profile/data-sourced — no new SensorySfxType; AudioManager stays the dumb sink; CharacterSfxProfileSO unchanged (reaction-only). Status-apply fire (option B) deferred. (AUDIO-CHAR-PROFILES-2.)"
+      - "A suspended transport is still playing: while IMidiTransportSuspend.IsSuspended, IPlayMidi.IsPlaying is true and no end-of-song event is forwarded; Play/Stop clear the suspension. The seam is ALWTTT-side; the package-declared IPlayMidi is not extended. (PAUSE-1, SSoT_Audio §4.9, inv 22)"
     notes: >
       ALWTTT-side audio home. Consolidates the as-built SFX subsystem (migrated
       from Design_Sensory_Contract_v0_1.md §5A) and the M-AUDIO-MIX music-mix

@@ -58,6 +58,12 @@ namespace ALWTTT.Managers
             "GigSetup scene + Gig scene.")]
         private GigFlowSettingsSO flowSettings;
 
+
+        [Header("Options (PAUSE-1 / D4=B)")]
+        [SerializeField, Tooltip("Instance of the shared OptionsPanel prefab placed in this " +
+            "scene's canvas. Opened by OnOptionsPressed.")]
+        private ALWTTT.UI.OptionsPanelController optionsPanel;
+
         private void Awake()
         {
             if (sceneChanger == null)
@@ -92,6 +98,16 @@ namespace ALWTTT.Managers
                 UIManager.Instance.QuitGame();
             else
                 Application.Quit();
+        }
+
+
+        /// <summary>
+        /// [PAUSE-1 / D4=B] Wire to the Main Menu Options button OnClick.
+        /// </summary>
+        public void OnOptionsPressed()
+        {
+            if (optionsPanel != null) optionsPanel.Open();
+            else Debug.LogWarning($"[{CallerTag}] Options panel not wired on MainMenuController.");
         }
 
         /// <summary>

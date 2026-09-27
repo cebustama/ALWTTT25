@@ -178,6 +178,28 @@ This means the normal phase machine logic does not execute while the composition
 
 This is a deliberate architectural separation, not a bug — it keeps the composition/session lifecycle cleanly decoupled from the phase state machine. Any runtime feature that needs to interact during an active session must hook into the session lifecycle directly, not through the phase machine.
 
+### Pause state (PAUSE-1, 2026-09-25)
+
+A pause can happen **at any moment of a gig**, including mid-song (D2=A), and freezes gameplay **and**
+music, resuming where both were (D1=A). It is orthogonal to the phase machine and to the session: it
+changes neither `CurrentGigPhase` nor `_session`.
+
+- **Owner:** `PauseMenuController` (`Assets/Scripts/UI/Pause/`) on `PauseCanvas`, a child of the
+  `UIManager` prefab (DontDestroyOnLoad, own Canvas, sort order above the card detail modal — D3=B).
+  Reached only through `UIManager.HandleEscapeKey`; it never polls input. Only pausable where
+  `GigManager.Instance != null`.
+- **What it freezes, in one frame:** `Time.timeScale = 0` (scaled coroutines, `Time.time`,
+  `Time.deltaTime`: turn waits, the `CompositionSession` loop clock, animations); `PauseGate.IsPaused`
+  (systems that read input in `Update` — `timeScale = 0` does not stop `Update` or `Input`);
+  `MidiMusicManager.SuspendPlayback` (§4.9 of `SSoT_Audio`); `AudioManager.PauseAmbience`.
+  A card held outside the hand is returned to it first (`HandController.ReleaseHeldCardToHand`).
+- **What it does not freeze, by design:** unscaled fades (OST, ambience), the tutorial overlay's typing,
+  tooltips. **D8 resolved: nothing was migrated to unscaled time** — everything that freezes is gameplay.
+- **Exits that must never leave the game frozen:** Continue; "Volver al menú" (confirmed, D5=B — stops
+  the MIDI **before** restoring time, then `UIManager.ChangeScene`); any non-additive scene load; the
+  controller's destruction.
+- Verified ST-P1-1, 2, 4, 5, 7, 10.
+
 ---
 
 ## 5. Card entry points into runtime
@@ -257,6 +279,9 @@ This is the canonical runtime handoff used to drive:
 7. `ExecuteGigPhase()` is bypassed while a `CompositionSession` is active. Phase machine and session lifecycle are explicitly decoupled.
 8. **Action window flags (`_actionWindowOpen`, `_isBetweenSongs`) are per-PlayerTurn, not per-gig.** They are re-asserted to `true` at the top of `ExecuteGigPhase(PlayerTurn)` after the completion check. Any future gig-flow code that adds new single-use-per-gig flags must document its lifecycle explicitly here (see §4.1).
 9. **Hand draw at PlayerTurn entry guarantees ≥1 Action and ≥1 Composition card in hand when `DrawPile ∪ DiscardPile` allow, without exceeding `DrawCount` or `MaxCardsOnHand` (M4.5, see §4.2).** The guarantee is subtractive — it consumes normal draw slots. Composition wins when budget cannot fit both. Implemented via `DeckManager.DrawCardsForPlayerTurn` + `DrawCardFiltered`.
+10. **Pause is not a phase.** It never touches `CurrentGigPhase`, `_session` or the action-window flags; it
+    freezes time, input (`PauseGate`), transport and ambience, and every exit restores all four in the same
+    frame (see «Pause state»).
 
 ---
 

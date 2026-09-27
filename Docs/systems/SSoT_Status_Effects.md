@@ -111,9 +111,31 @@ The current runtime model (2) is the governed model. All new statuses must go th
 
 **S5f addendum (2026-07-04):** the Blocked tint now carries a textual legend — hovering the tinted sprite shows a "Bloqueado" tooltip (`AudienceCharacterCanvas.ShowBlockedTooltip`/`HideBlockedTooltip`, wired from `AudienceCharacterBase.OnPointerEnter`/`OnPointerExit`). Still no status icon; Decision E3 intact. ESP copy hardcoded per D-S5f-7=A; migrates to the localization structure in S5f-ext. (ST-S5f-R1..R3 PASS.)
 
+**CONV-TINT-1 addendum (2026-09-27):** on a **convinced** audience member neither the Blocked tint nor the
+"Bloqueado" tooltip is shown (presentation predicate `IsBlockedPresented = IsBlocked && !IsConvinced`).
+`IsBlocked` itself is unchanged, so its gameplay effects (AoE exclusion, positional Vibe gate) still apply.
+The setter no longer writes the sprite colour directly; it calls
+`AudienceCharacterBase.RefreshStatePresentation`. Authority: `SSoT_Audience_and_Reactions.md` §4.3.
+
 ### 3.3 Icon presentation authority
 
 Icon sprite authority lives on `StatusEffectSO.IconSprite`. Each StatusEffectSO carries its own icon directly.
+
+**One drawing per status, two hosts (CARD-FACE-2, D-CF-18=C; D-CF-22=A, 2b, 2026-09-21).** A status is
+drawn in two places: the **canvas icon** on a character (`CharacterCanvas` → `IconSprite`) and the
+**inline glyph** `st_<statusKey>` in text (card face, card hover header, modal), which must live in the
+global TMP atlas because TMP only draws inline what the atlas holds (`systems/SSoT_Game_Text.md`
+§2.1). By contract they are **the same drawing**: since 2b the `IconSprite` of each of the 12 current
+statuses **is** the atlas sub-sprite `st_<key>`. The previous state had three violations —
+`composure` and `spotlight` shared one sprite, and `hyped` used the art of the `kw_tall` keyword
+(**F-CF2-1**, closed by the reassignment); ST-CF2b-9 recorded **no exception**.
+
+**The guard stays for future statuses.** `StatusEffectCatalogueSO` warns when an entry has no
+`IconSprite` or when it is not the expected `st_<key>` sub-sprite. The check lives in
+`ValidateCatalogueContents` (called from `OnValidate` through `delayCall`, behind the import-worker
+guard) — **not** directly in `OnValidate`: the first version duplicated `OnValidate` and was moved there
+(F-CF2-3). A new status therefore needs three things to be complete: glossary text, an `st_<key>`
+slice in the source texture, and that sub-sprite assigned as its `IconSprite`.
 
 **Rendering path:**
 1. A status is applied via `CharacterBase.Statuses.Apply(StatusEffectSO, stacks)`.
@@ -175,6 +197,8 @@ What this SSoT still owns is the **icon hosts** and how they get their text:
    references from `CardDefinition.Payload.Effects` filtered to `ApplyStatusEffectSpec.status`
    (dedupe via `HashSet<StatusEffectSO>`) and resolves each through the same entry point. Display
    order: keywords first, statuses second. Tooltip follows the mouse cursor (no static anchor).
+   Since CARD-FACE-2b the header carries the `st_<key>` glyph before the name (D-CF-26=A,
+   `SSoT_Card_System.md` §10.2); the per-icon hover of point 1 does **not**, on purpose.
 
 3. **Status floater (WINK-1, retargeted at TXT-3):** `SensoryFtPresentation.TryBuildStatusAppliedFt`
    draws `+{NAME}` on the receiving character. The name is the glossary name uppercased; the

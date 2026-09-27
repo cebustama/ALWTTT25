@@ -218,16 +218,20 @@ home before this batch — it lived only in a `CURRENT_STATE` batch row and a ch
 The amended rule now lives in `SSoT_Gig_Combat_Core.md` §12.1, beside the `GigPresentationSO`
 switches it depends on. This paragraph is the presentation rationale; §12.1 is the rule.
 
-### 10.5 Declared debt — the beat clock (D-BN-3b=B, D-BN-3c)
+### 10.5 The beat clock — debt CLOSED (BEAT-1, 2026-09-27)
 
-`IBeatGridListener` registers correctly and receives **nothing** in the gig scene; no
-`OnTempoChanged` either (**F-BN-5** → **BEAT-1**). Until that closes:
-- the pulse runs on its own timer, enabled by `selfTimerWhenGridSilent` (D-BN-3b=B). It
-  suppresses itself the moment real beats arrive;
-- its tempo comes from `GigManager.ApplyBpmToStage` → `GigCanvas.SetReadoutTempo`
-  (D-BN-3c). This is a **tempo** push, not a beat source: there is still one clock.
-- **Known gap:** the resolved-BPM path carries no time signature, so a non-4 denominator
-  will pulse wrong until BEAT-1 closes.
+**Status: closed. D-BN-3=A holds in its pure form: one clock, the MIDI beat grid.**
+The debt this section declared (F-BN-5) is gone. Its cause was not the `IsPlaying` guard first suspected:
+the composition path plays under `jam-raw::<guid>` keys that are never cached, and the grid only started
+on cached playbacks (F-P1-8, found in PAUSE-1). BEAT-1 made the grid read the bytes being played and
+advance on the sequencer tick (`SSoT_Runtime_CompositionSession_Integration` §3.4.1). Retired with it:
+- the fallback timer `selfTimerWhenGridSilent` (D-BN-3b=B), deleted from `VibeReadoutBeatPulse`. It was
+  ON in `GigCanvas.prefab`: until BEAT-1 the readout pulsed only because of it;
+- the tempo push `GigManager.ApplyBpmToStage → GigCanvas.SetReadoutTempo → SetFallbackBpm` (D-BN-3c),
+  deleted. Tempo **and** time signature now arrive from the grid, so a non-4 denominator pulses correctly
+  (verified in 3/4, ST-B1-2).
+
+The `[VibePulse]` probe (`logBeats`) stays in code and ships OFF in the prefab.
 
 ### 10.6 Tooltip anchoring (D-BN-18=B″ — RETIRED 2026-09-15 by TIP-1)
 

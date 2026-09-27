@@ -9,7 +9,10 @@ namespace ALWTTT.EditorTools
     {
         [MenuItem("ALWTTT/Game Text/Dump sprite names (GameSymbols)")]
         private static void Dump()
-            => Debug.Log("[GameSymbols] " + ALWTTT.Tooltips.GameSymbols.AllSpriteNames.Length + " names:\n"
-                + string.Join("\n", ALWTTT.Tooltips.GameSymbols.AllSpriteNames));
+        {
+            // [CARD-FACE-2] One list, two readers: the check and the slice names read the same method.
+            var names = GameSymbolsCoverageMenu.ExpectedSpriteNames();
+            Debug.Log("[GameSymbols] " + names.Count + " names (cell order):\n" + string.Join("\n", names));
+        }
     }
 }

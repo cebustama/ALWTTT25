@@ -26,6 +26,9 @@ using static MidiGenPlay.MusicTheory.MusicTheory;
 using NoteName = Melanchall.DryWetMidi.MusicTheory.NoteName;
 using ScaleDegree = MidiGenPlay.MusicTheory.MusicTheory.ScaleDegree;
 
+using ALWTTT.Cards;   // [CARD-FACE-2] PartActionKind
+using ALWTTT.Enums;   // [CARD-FACE-2] CardType
+
 namespace ALWTTT.Tooltips
 {
     public static class GameTextTemplateIds
@@ -117,6 +120,10 @@ namespace ALWTTT.Tooltips
         public const string UiPartIntro = "ui_part_intro";                            // —
         public const string UiPartOutro = "ui_part_outro";                            // —
         public const string UiPartSolo = "ui_part_solo";                              // —
+
+        // [CARD-FACE-2 / D-CF-21] The MarkBridge part label. Was the literal "Bridge" in
+        // SongCompositionUI.ApplyCardToPart (F-SP1-10 shape: a literal hiding behind a deleted field).
+        public const string UiPartBridge = "ui_part_bridge";                          // —
 
         // ── Floating text (FloatingTextMidiListener) ─────────────────────
         // [SONG-PANEL-1 / D-SP1-4=B] Only the label reachable in a player build by default
@@ -210,6 +217,26 @@ namespace ALWTTT.Tooltips
         public static string UiDegree(ScaleDegree degree) => UiDegreePrefix + degree.ToString().ToLowerInvariant();
         public static string UiInstrumentType(InstrumentType type) => UiInstrumentTypePrefix + type.ToString().ToLowerInvariant();
 
+
+        // -- Derived families, CARD-FACE-2 -------------------------------------------------------------
+        // [D-CF-17=D / D-CF-15] Tonality is a NOTATION enum (D-CF-10=A): its player text is a derived id,
+        // exactly like ui_ctx_meter_<value>. What the text SAYS is the emotional colour of the mode
+        // ("Bright", "Alegre"), never the mode's name. MoodTag is NOT printed anywhere any more: it stays
+        // a presentation datum (chip glyph + tint) on CompositionStripThemeSO. Tonality is MidiGenPlay's
+        // (boundary section 8.13: ALWTTT owns only the text per value).
+        public const string UiTonalityPrefix = "ui_tonality_";
+        public static string UiTonality(Tonality t) => UiTonalityPrefix + t.ToString().ToLowerInvariant();
+        // TonalityEffect's three random modes are not values of the enum: three fixed ids.
+        public const string UiTonalityRandomAny = "ui_tonality_random_any";           // —
+        public const string UiTonalityRandomMajorish = "ui_tonality_random_majorish"; // —
+        public const string UiTonalityRandomMinorish = "ui_tonality_random_minorish"; // —
+        // [D-CF-13=C] The WORD beside a categorical glyph where there is no hover (the detail modal),
+        // and the whole label when the Dev toggle shows text instead of symbols (D-CF-19=B).
+        public const string UiCardTypePrefix = "ui_cardtype_";
+        public const string UiPartActionPrefix = "ui_partaction_";
+        public static string UiCardType(CardType c) => UiCardTypePrefix + c.ToString().ToLowerInvariant();
+        public static string UiPartAction(PartActionKind k) => UiPartActionPrefix + k.ToString().ToLowerInvariant();
+
         /// <summary>Coverage set: every id a producer may format. Read by the editor only.</summary>
         // [TEXT-VIBE-1 / D5] Fixed ids first (textual order matters: static initialisers run top-down, and
         // BuildAll reads Fixed). All = Fixed + one id per TimeSignature value + one per TempoRange value.
@@ -238,6 +265,8 @@ namespace ALWTTT.Tooltips
             UiModTempoScale, UiModKey, UiModDegree, UiModRandomKey, UiModRandomInScale,
             UiModInstrument, UiModDrums, UiModInstrumentType, UiModInstrumentRandom,
             UiGigSongsLeft, UiFxVibeBonus,
+            // [CARD-FACE-2]
+            UiPartBridge, UiTonalityRandomAny, UiTonalityRandomMajorish, UiTonalityRandomMinorish,
         };
 
 
@@ -263,6 +292,14 @@ namespace ALWTTT.Tooltips
             { var id = UiDegree(d); if (seen.Add(id)) list.Add(id); }
             foreach (InstrumentType it in System.Enum.GetValues(typeof(InstrumentType)))
             { var id = UiInstrumentType(it); if (seen.Add(id)) list.Add(id); }
+            // [CARD-FACE-2] Three more derived families. Whole enums, None included: a template id is
+            // text and costs nothing inert (section 8.13); only the SPRITE set excludes None (D-CF-20).
+            foreach (Tonality t in System.Enum.GetValues(typeof(Tonality)))
+            { var id = UiTonality(t); if (seen.Add(id)) list.Add(id); }
+            foreach (CardType c in System.Enum.GetValues(typeof(CardType)))
+            { var id = UiCardType(c); if (seen.Add(id)) list.Add(id); }
+            foreach (PartActionKind k in System.Enum.GetValues(typeof(PartActionKind)))
+            { var id = UiPartAction(k); if (seen.Add(id)) list.Add(id); }
             return list.ToArray();
         }
     }

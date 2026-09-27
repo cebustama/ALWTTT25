@@ -151,6 +151,11 @@ Gameplay-facing fields include:
 - `ModifierEffects`
 - `RequiresMusicianTarget` when composition semantics require a musician selection
 
+`PartActionDescriptor` carries `PartActionKind` and an optional musician id. **`customLabel` was
+deleted at CARD-FACE-2 (2026-09-21)**: a part's player label is derived from its `PartActionKind`
+(`ui_partaction_*`, `systems/SSoT_Game_Text.md` §1 row 12). `PartActionKind.Custom` still has **no
+handler** — declared, not a gap discovered later.
+
 Rule:
 - these fields define **ALWTTT gameplay semantics of composition cards**
 - they do **not** make ALWTTT the authority over MidiGenPlay package internals
@@ -359,7 +364,28 @@ Surfaces: card-face text (§10.1), hover tooltips (§10.2), detail modal (§10.3
 
 **Two builder details that are deliberate and must not be "cleaned up".** First, the emptiness test is `HasAnyLine`, not a comparison against an English literal: the previous code asked whether the composed string equalled a hardcoded English phrase, which silently answered "not empty" for every non-English build. Second, the fallback for a spec with no template is still `spec.GetType().Name`. That looks like a bug and is a **diagnostic**: a class name on a card face is unmistakable in a playtest, whereas an empty line reads as an intentionally text-free card and survives for months — which is exactly how `GrantBonusLoopSpec` went unnoticed until TXT-4.
 
-Composition card faces use a separate path: role/part + modifier count badge. `CardPayload.Effects` on composition cards are not surfaced on the card face (intentional density reduction, 2026-04-21). They are discoverable via card-hover tooltips (§10.2).
+Composition card faces use a separate path. `CardPayload.Effects` on composition cards are not surfaced on the card face (intentional density reduction, 2026-04-21); they are discoverable via card-hover tooltips (§10.2).
+
+**Card-face glyphs (CARD-FACE-1, 2026-09-18; CARD-FACE-2, 2026-09-21).** The face speaks in symbols from
+the global atlas (`systems/SSoT_Game_Text.md` §2.1) and the card hover explains them:
+- **Composition card:** the track role is a `tt_*` glyph **with no word** (D-CF-13=C); then one line per
+  modifier, `family glyph + value`, at 60% size in `#B8C4D0` (D-CF-14=B, D-CF-14b). The phrase
+  «N modifiers» is no longer emitted — the count survives as repetition of glyphs, and the type is
+  gained. A Part card shows its `pa_*` glyph.
+- **Action card:** the card type would be a `ct_*` glyph, but **the action card type is not shown to
+  the player** (D-CF-25=B): `CardFacePresentation.ShowCardType = false` empties the face field and
+  switches off the hover panel and the modal line together. Ids, concepts and glyphs stay live and
+  inert; one bool re-enables all three. «Composition» is not a `CardType` and is unaffected.
+- **Status names in effect lines** are `st_*` glyphs inside the buff/debuff colour of the line
+  (`tint=1`).
+- **Any card:** a row of `kw_*` keyword glyphs at the foot of the face (closes F-TXT-3-6).
+- **Symbols or words** is a Dev Mode comparison toggle, `CardFacePresentation.UseSymbols`
+  (D-CF-19=B, `SSoT_Dev_Mode.md` §3), not a player option.
+
+**One formatter, two readers.** The map «`PartEffect` subclass → family» lives once
+(`PartEffectDescriptionBuilder.FamilySpriteName` / `FamilyConceptId`), and so does the value
+(`ValueOnly`), because face and modal read the same formatter. A subclass the builder does not map
+falls to a visible diagnostic, never to silence; since CARD-FACE-2 every shipped subclass is mapped.
 
 **Consecuencia registrada (R6, 2026-09-01): una carta de composición no tiene canal en su
 propia cara para una regla de jugabilidad.** `CardDefinition` no lleva campo de descripción y
@@ -395,6 +421,27 @@ Display order: keywords first, statuses second. Tooltips follow the mouse cursor
 
 **One `ShowTooltip` per entry is deliberate here.** This surface stacks panels on purpose (M1.3c) and is *not* governed by the single-panel hover contract of `SSoT_Game_Text.md` §4, which applies to concept tags in the tutorial overlay. TXT-3 changed the source of the text and nothing about the assembly. **TIP-1 (2026-09-15) made that deliberateness a contract instead of a convention:** `ShowTooltip` is declared a **push** — N calls show N panels — in `systems/SSoT_Tooltip_Pipeline.md` §2 and in the hard invariant `TOOLTIP-SHOW-IS-A-PUSH`. Before TIP-1 the stacking was the *side effect* of not calling `HideTooltip`, and it was on record as a defect (F-BN-7) because a live-updating surface tripped over it; the fix gave that surface its own entry (`UpdateTooltip`) rather than removing the stacking this one depends on. `CardBase` was not edited and its assembly is unchanged: the guarantee is that a future batch cannot "fix" the stacking without breaking a written invariant. The transport — where the column is placed and how a panel is measured — is governed there; what the panels say stays here and in `SSoT_Game_Text.md`.
 
+**Stack after CARD-FACE-1/2 (code order, `CardBase.ShowTooltipInfo`):** track role (Track cards) →
+card type (Action cards, only while `ShowCardType`) → part action (Part cards) → modifier families
+(**deduplicated by family**: on the face repetition is information, in the stack it would be two
+identical panels) → keywords → statuses. Role, card type, part action and families are read from the
+glossary by **derived concept id** through `GameText.ConceptName/ConceptDescription`, not through
+`ConceptTooltipResolver`, which keys by `StatusKey` and keyword name — adding a case there would have
+been a change to the tooltip pipeline, out of scope by D-CF-2. Unmapped `PartEffect` subclasses add no
+panel.
+
+**Header rule (D-CF-26=A, CARD-FACE-2b).** Every card-hover panel that explains a glyph on the face
+**repeats that glyph before its name** (`CardFacePresentation.HeaderWithGlyph`) — role, modifier
+families, part action, keywords, statuses, and card type when switched on. It follows `UseSymbols`.
+It is consumer-side: the tooltip pipeline does not change. **Status-icon tooltips on a character do
+NOT carry the glyph, on purpose**: the reader is already pointing at the icon. Known defect: a long
+name splits glyph and name across lines (**F-CF2b-1**, CLOSED 2026-09-22 by CARD-FACE-3). Two
+changes, both needed: `HeaderWithGlyph` joins glyph and name with **U+00A0** (written as an escape,
+the source stays ASCII), and the panel's `Preferred Width` went 250 → **280** (`SSoT_Tooltip_Pipeline`
+§2). The space alone was not enough and the batch observed why: once glyph, space and word are one
+unbreakable unit, a unit wider than the line has no legal break point, so TMP broke it **by
+character** instead — «Acompañamient / o» (ST-CF3-6 FAIL before the width change, PASS after).
+
 `CardBase` is the assembly point but does not own the data — the glossary does (`systems/SSoT_Game_Text.md` §1). `StatusEffectSO` and the `SpecialKeywords` enum supply **identity** (`StatusKey`, enum name), not strings.
 
 **Card names and descriptions were closed by TXT-4 (2026-09-11) — F-TXT-3-5 CLOSED.** Card names moved into `ConceptGlossarySO.cardNames` (60 ids, one entry per language) and are resolved by `GameText.CardName(definition)`. `CardDefinition.displayName` is now a **developer label** on exactly the same terms as `StatusEffectSO.displayName` since TXT-3: inspector lists, logs, editor tooling, asset identification — **no player surface may read it**. Card descriptions gained per-language storage without gaining stored sentences: the glossary holds 47 fragments and the builder composes (§10.1). **Three surfaces still read the developer label and are open defects, not exceptions** (**F-TXT4-3** → TEXT-5): the played-card floater (`SensoryFtPresentation`), this document's §10.3 modal header, and the song-panel track label (`SongCompositionUI`). Structural home for all of it: `systems/SSoT_Game_Text.md` §1. Card descriptions remain untagged: concept tags inside a composed fragment are possible but out of scope until a later batch.
@@ -406,9 +453,45 @@ Display order: keywords first, statuses second. Tooltips follow the mouse cursor
 `CardDefinitionDescriptionExtensions.GetDetailDescription()` owns the detail text:
 
 - **Action cards:** delegates to `CardEffectDescriptionBuilder.BuildList` — identical content to the card face, rendered at modal scale.
-- **Composition cards:** multi-line block comprising primary kind + role/action label, style-bundle asset name (Track only), part custom label + musician id (Part only), full modifier list (one line per `PartEffect` via `GetLabel()`, with scope and timing tags), and `CardPayload.Effects` via `CardEffectDescriptionBuilder.BuildList`.
+- **Composition cards:** multi-line block comprising primary kind + role/part-action (**glyph + word**, D-CF-13=C), full modifier list (one line per `PartEffect` composed by `PartEffectDescriptionBuilder` — **not** `GetLabel()`, which is a developer label since D-CF-5=B — with scope and timing as glyph + concept `displayName`), and `CardPayload.Effects` via `CardEffectDescriptionBuilder.BuildList`. Style-bundle asset name (Track) and musician id (Part) are formatted **only under `ALWTTT_DEV`** (F-CF-2: one datum, one policy with the track hover). Meter, tempo and BPM use the context row's ids (`ui_ctx_*`), so the modal and the strip cannot disagree.
+- **Action cards, type line:** hidden with the face (D-CF-25=B); with the toggle on, glyph + word.
 
-`CardBase.OnPointerDown` discriminates button: right-click calls `CardDetailViewController.Toggle(CardDefinition)`, left-click retains existing behavior. `HandController.DisableDragging()` while modal is open; `EnableDragging()` on dismiss. Dismiss paths: background click (Button on DimBackground Image), Esc key, or right-click toggle on the same card.
+**Why the modal pairs glyph and word while the face shows the glyph alone.** The face has a hover to
+explain its glyphs; the modal has none, because no card surface reads `<link>` (F-CF-5). A glyph with
+no hover and no word is unreadable.
+
+**O-CF2b-2 — CLOSED 2026-09-22 by CARD-FACE-3, cause confirmed by observation.** Of the two
+candidates recorded at 2b close, the first was right and the second was **refuted**: the canvas order
+is exactly what §4 states (tooltip canvas 10, detail canvas 100, both root Screen Space – Overlay;
+inspector-verified 2026-09-22), and the panel was drawn **below** the dim background, not above it —
+the original wording «above the modal» was imprecise. The real mechanism is uGUI's pointer capture:
+the RELEASE is delivered to the object that took the PRESS, even when the pointer has since left it.
+A right press hid the stack and opened the modal; the pointer then moved onto `DimBackground`, firing
+`OnPointerExit` (a second, correct hide); and the release still reached the card, whose `OnPointerUp`
+called `ShowTooltipInfo()` unconditionally. With the pointer over the modal, nothing would ever hide
+it again. **Rule now in `CardBase.OnPointerUp`:** re-show only on a **left** release and only while
+`CardDetailViewController.Instance.IsVisible` is false. ST-CF3-1..5 PASS, the last two being the
+regressions for the left click and for plain hover.
+
+`CardBase.OnPointerDown` discriminates button: right-click calls `CardDetailViewController.Toggle(CardDefinition)`, left-click retains existing behavior. `HandController.DisableDragging()` while modal is open; `EnableDragging()` on dismiss. Dismiss paths: background click (Button on `DimBackground` Image) and **Esc**. Esc is **not read by
+this class**: since CARD-FACE-3 (D5=B) it has a single runtime listener, `UIManager.HandleEscapeKey`,
+which closes this modal first and only then falls through to its scene rule (return to main menu, or
+quit if already there). Before that, both classes polled Esc in their own `Update`, so one
+press closed the modal AND abandoned the gig, in an order Unity does not define; a guard on either
+side would have been a race that no execution order fixes (**O-CF3-2**, CLOSED 2026-09-22; ST-CF3-13,
+14, 15 PASS). **Since PAUSE-1 (2026-09-25) the chain has four layers**, topmost first: (1) this modal; (2) any open
+Options panel (`OptionsPanelController.TryCloseTopmost`, pause-hosted or Main-Menu-hosted — so Esc on the
+Main Menu with Options open closes Options instead of quitting); (3) the pause menu (cancel its confirm →
+resume → open the pause, in a gig only); (4) the scene rule, which now only runs where no layer consumed
+the key. ST-CF3-13 and ST-CF3-15 re-run as ST-P1-8 / ST-P1-9, PASS. While paused, `HandController.Update`
+also returns early on `PauseGate.IsPaused` — a gate **orthogonal** to `IsDraggingActive`, which already has
+three owners (this modal, the tutorial modal gate, `GigManager.SetHandVisible`) and must not get a fourth.
+
+**O-CF3-3 — two branches of `Toggle` are unreachable, ACCEPTED as-is (D7, 2026-09-22).** While the
+modal is open, `DimBackground` captures every raycast, so no `CardBase` receives a right-click:
+neither «visible + same card → hide» nor «visible + different card → swap» can fire (observed,
+ST-CF3-16). The modal is modal in the strict sense. The code is left in place — it is correct if the
+dim ever stops blocking — but this document no longer claims those gestures work.
 
 **Text sources of the modal (TEXT-5, 2026-09-11 — F-TXT4-3 closed).** Three of its strings resolve through the glossary and none of them through a developer label: the **header** via `GameText.CardName(definition)`; the **type label** of a composition card via the `ui_card_type_composition` template (D-T5-3=A — the same id `CardBase.typeTextField` uses, so face and modal cannot drift); and the **keyword line** via `GameText.ConceptName` per keyword (D-T5-4=A), which replaced `Keywords[i].ToString()` — an enum name on a player surface that already had a mandatory glossary entry, so the modal read «Tall» while the hover read «Alto». The defect this paragraph recorded until TXT-4 (modal header «Double Harmony» over a card face «Doble Armonía», ST-TXT4-12) is gone. **Still an enum name here, by design:** the type label of an *Action* card, which is F-TXT4-2 → CARD-FACE-1 and explicitly outside `GAMETEXT-NO-DEV-LABEL` (`ssot_manifest.yaml`). **Unverified path:** no card in the catalogue carries a keyword, so the keyword line is live and empty — ST-T5-5 is **deferred, not passed** (`SSoT_Game_Text.md` §7, F-TXT-3-6).
 
@@ -424,7 +507,9 @@ classes, a location no text census has visited. It also creates a **second home 
 composition strip's context row prints `5/4` from a glossary template while this modal prints
 `Meter 5/4` from code, which is the divergence `systems/SSoT_Game_Text.md` D-T6-3=B exists to prevent.
 Assigned to **CARD-FACE-1**, which must read the effect classes before counting anything — whether
-these are literals or `ToString()` is **not** established code truth today.
+these are literals or `ToString()` is **not** established code truth today. **CLOSED 2026-09-18 by
+CARD-FACE-1** (census: seven classes; the modal now composes through `PartEffectDescriptionBuilder`;
+see the composition bullet above).
 
 ### 10.4 Card-face visual identity (S5b, 2026-06-20)
 

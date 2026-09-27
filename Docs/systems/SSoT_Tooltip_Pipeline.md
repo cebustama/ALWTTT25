@@ -73,6 +73,17 @@ would touch eight call sites to express a behaviour none of them wanted changed.
 explicitness lives in this table and in the file header of `TooltipManager.cs`; the new
 entry (`UpdateTooltip`) is the only new behaviour.
 
+**Panel width: 280 px (CARD-FACE-3, D3=B, 2026-09-22).** `TooltipText`'s `LayoutElement.preferredWidth`
+went 250 → **280**, the only pipeline asset CARD-FACE-3 touched and an explicit exception to D-CF-2
+(«the tooltip pipeline is not touched without an explicit decision»). Reason, from
+`SSoT_Card_System.md` §10.2: the card-hover header binds glyph and name with U+00A0, and at 250 the
+unit «glyph + Acompañamiento» overflowed by about one character, which made TMP break the word by
+character. 280 was chosen over 300 because no other header in the catalogue came close to the limit
+(ST-CF3-7), and over shrinking the header font because that bought ~20 px and cost the header/body
+hierarchy. Every consumer of §5 is affected: panels are wider and wrap into fewer lines.
+Regression-checked at ST-CF3-12 (audience stack of two panels and the C1 Vibe readout: complete, not
+clipped at the screen edge).
+
 ## 3. Placement (D-TIP-2=B)
 
 Two modes, chosen per `ShowTooltip` call:
@@ -199,3 +210,4 @@ rule; the fade; the governed file list; or when a surface joins or leaves the pi
 | Date | Batch | Change |
 |---|---|---|
 | 2026-09-15 | TIP-1 / TIP-1-DOC | Document created under **D-TIP-1=A**, reversing BIGNUM-1-DOC's decision not to create it — with a new argument, not a new preference: that batch did not touch the contract and this one did, and SONG-PANEL-1 had since added a third tooltip surface that wrote its own placement. Closes **F-BN-7** (`UpdateTooltip`, D-TIP-3=B) and **F-BN-8** (anchor space inferred from the root canvas, D-TIP-2=B); retires the **D-BN-18=B″** runtime anchor; reframes **F-TXT4-11** from defect to declared capability. Records the clamp order rule and the assign → rebuild → measure → place rule. Consumer census (8 in, 2 conformant outside). Findings F-TIP-1..6. Authority taken over eight files previously governed wholesale by `SSoT_Game_Text.md`. ST-TIP-1..10 PASS. |
+| 2026-09-22 (doc 2026-09-25) | CARD-FACE-3 / CARD-FACE-3-DOC | §2 → panel width 250 → **280** (`TooltipText` `LayoutElement.preferredWidth`), D3=B, explicit exception to D-CF-2. No transport contract changed; no invariant touched. |

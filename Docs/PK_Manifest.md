@@ -1,5 +1,189 @@
 # PK_Manifest — ALWTTT Project Knowledge (Capa 2 · índice de contenido del PK)
 
+**Versión 18.6 — 2026-09-27 (SONG-TAIL-1, apertura: tareas 0–1).** **Ninguna alta ni baja todavía.**
+`CONV-TINT-1-DOC_Package.md` consumido (v18.5 recoge su contenido); **sale del PK en el cierre de
+SONG-TAIL-1**. Sustituido además por D-REG: `S5_DemoCutClose_Sub_Roadmap.md`. `CURRENT_STATE.md`,
+`changelog-ssot.md` y este manifiesto vuelven a sustituirse. Las filas de código de SONG-TAIL-1 se añaden
+en su cierre (v18.7).
+
+**Versión 18.5 — 2026-09-27 (CONV-TINT-1 + 1b, cierre).** **Ninguna alta ni baja.** Refrescados
+(copias del repo post-1b): `AudienceCharacterBase.cs` (primera fecha registrada de su fila) y
+`AudienceCharacterCanvas.cs`. `CharacterCanvas.cs` **no** se sustituye: la copia del repo de hoy coincide con
+la del PK, así que su marca RANCIA de BIGNUM-1 era falsa y se retira (F-CT-9; también era falsa la de
+`AudienceCharacterCanvas.cs`). Sustituidos por el paquete `CONV-TINT-1-DOC_Package.md` (retenido en el PK desde
+2026-09-27, **CONSUMIDO en SONG-TAIL-1**): `SSoT_Audience_and_Reactions.md`, `SSoT_Status_Effects.md`,
+`SSoT_Gig_Combat_Core.md`, `SSoT_Card_Authoring_Contracts.md`, `SSoT_Dev_Mode.md`, `ssot_manifest.yaml`,
+`coverage-matrix.md`, `CURRENT_STATE.md`, `changelog-ssot.md` y este manifiesto.
+
+**Versión 18.4 — 2026-09-27 (DOC-POOL-1, cierre).** **Bajas:** `PAUSE-1_DocDiffs_Pending.md` y
+`BEAT-1_Doc_Package.md`, ambos **CONSUMIDOS** (§B.1). **Trece documentos sustituidos por reemplazo completo**
+(D1=C): `SSoT_Audio.md`, `SSoT_Runtime_Flow.md`, `SSoT_Card_System.md`, `SSoT_ALWTTT_MidiGenPlay_Boundary.md`,
+`SSoT_Dev_Mode.md`, `SSoT_Singer_Voice.md`, `SSoT_Runtime_CompositionSession_Integration.md`,
+`Design_Vibe_Telegraph_v0_1.md`, `SSoT_Game_Text.md`, `CURRENT_STATE.md`, `changelog-ssot.md`,
+`coverage-matrix.md`, `ssot_manifest.yaml`, más este manifiesto. **F-B1-15 resuelta:** la copia del PK de este
+fichero era v18.2 y no llevaba las Partes A de PAUSE-1 (pasos 34–35) ni de BEAT-1 (A1–A5), aunque sus acciones
+físicas sí estaban hechas en el PK; se aplicaron aquí, primero, y por eso v18.3 existe sólo como paso intermedio
+de esta sesión. **Puerta de frescura (R4):** ningún documento tocado tenía doc-pass posterior al 2026-09-25 (la
+entrada más reciente del changelog era CARD-FACE-3-DOC-b y ninguna copia contenía texto de PAUSE-1 ni BEAT-1),
+así que las copias del PK **eran** los documentos gobernados. `Repo_Tree_Index.md`: la copia del PK es el
+snapshot **2026-09-25 19:17** (488 ficheros), posterior a PAUSE-1, con las cinco rutas nuevas; la fila de §A.2
+decía 13:04 y se corrige. Ningún `.cs` tocado.
+
+**Versión 18.3 — 2026-09-27 (BEAT-1, cierre de código).** **Baja:** `MidiEventInterfaces.cs` sale del PK
+(F-B1-1: su fila de §A.2 decía POR-LOTE desde RFX-1 y otra fila decía que «no entra al PK»; la copia del
+repo coincide con la del PK salvo un carácter mal codificado en un comentario, así que no se pierde verdad
+de código). **Alta retenida:** `BEAT-1_Doc_Package.md`, consumidor **DOC-POOL-1**, junto a
+`PAUSE-1_DocDiffs_Pending.md`; si DOC-POOL-1 cierra sin consumirlo, se declara perdido en esa clausura
+(D-DOC-5). Ningún `.cs` de núcleo tocado: todos los editados por BEAT-1 son Capa 3.
+
+**Versión 18.2 — 2026-09-25 (CARD-FACE-3-DOC-b, cierre).** **F-CF3DOC-1 cerrada:** `GameSymbolsTableMenu.cs`
+leído en el chat y documentado en `SSoT_Editor_Authoring_Tools` §20.14 (D3=A); es **Capa 3** y no entra
+al PK. Sustituidos por reemplazo completo: `SSoT_Editor_Authoring_Tools.md`, `ssot_manifest.yaml`,
+`coverage-matrix.md`, `CURRENT_STATE.md`, `changelog-ssot.md`, `S5_DemoCutClose_Sub_Roadmap.md` (D1=A) y
+este manifiesto. Puerta de frescura de S5: copia del 2026-09-21 (CARD-FACE-1/2-DOC), ningún doc-pass
+posterior. **Adjunto a descartar:** `GameSymbolsTableMenu.cs`.
+
+**Versión 18.1 — 2026-09-25 (CARD-FACE-3-DOC-b).** Salda las tres deudas diferidas por v18, las tres
+**verificadas por contenido**, no por fecha: `CardBase.cs` y `GameSymbols.cs` refrescadas (su diff
+contra la copia anterior es exactamente lo que CARD-FACE-3 declaró, y nada más) y `Repo_Tree_Index.md`
+regenerado (snapshot 2026-09-25 13:04). **Hallazgo F-CF3DOC-1 — fichero no declarado.** El índice
+regenerado trae **dos** `.cs` nuevos en `Assets/Scripts/Editor/`, no uno: `GameSymbolsSyncMenu.cs`
+(declarado) y **`GameSymbolsTableMenu.cs`**, que no nombra ningún paquete, runbook ni documento del PK.
+Como `ssot_manifest.yaml` gobierna la raíz de `Assets/Scripts/Editor/` **por fichero**, el fichero hoy
+**no tiene autoridad**: el auditor de deriva lo vería como huérfano. Su contenido no se ha leído, así
+que **no se le infiere propósito** por el nombre. Queda abierto hasta leerlo (FRP, sólo chat).
+Nota menor: `Docs/planning/active` crece 1 KB entre snapshots sin que ningún doc-pass lo haya
+declarado; no se investiga aquí.
+
+**Versión 18 — 2026-09-25 (CARD-FACE-3-DOC).** Cambios en v18: **ningún alta y ninguna baja** en el
+PK. **Ocho documentos sustituidos por reemplazo completo** (`SSoT_Card_System.md`, `SSoT_Game_Text.md`,
+`SSoT_Tooltip_Pipeline.md`, `SSoT_Editor_Authoring_Tools.md`, `CURRENT_STATE.md`, `changelog-ssot.md`,
+`coverage-matrix.md`, `ssot_manifest.yaml`) más este manifiesto. **Dos copias de núcleo quedan RANCIAS**
+(`CardBase.cs`, `GameSymbols.cs`): CARD-FACE-3 las editó el 2026-09-22 y el PK conserva las copias del
+2026-09-21 — comprobado por contenido en esta sesión (`OnPointerUp` sin guarda; cabecera «not wired by
+CARD-FACE-1»). **No** se dan por refrescadas: el paquete proponía anotarlas como 2026-09-22 y eso habría
+sido afirmar una copia que el PK no tiene. **`Repo_Tree_Index.md` con regeneración pendiente** (falta
+`GameSymbolsSyncMenu.cs`). Ambas deudas se difieren con dueño: el usuario sube las dos copias del repo y
+el índice regenerado, y la sesión siguiente que los reciba voltea las filas.
+
+**R4 en este lote: sin excepción.** Los documentos se editaron sobre sus copias del PK (2026-09-21,
+CARD-FACE-1/2-DOC), que ningún doc-pass ha tocado desde entonces: CARD-FACE-3 cambió código y escena, no
+documentos. No se reconstruyó ningún `.cs`. El paquete `CARD-FACE-3-DOC_Documentation_Package.md` era
+**adjunto de chat** (nunca estuvo en el PK) y queda **CONSUMIDO**; se descarta con los demás adjuntos.
+
+### Ediciones de CONV-TINT-1 + 1b (2026-09-27)
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `AudienceCharacterBase.cs` | **NÚCLEO, EDITADO** — `RefreshSpriteTint` + `RefreshStatePresentation` (único escritor de color y ocultación), setter de `IsBlocked` y `OnConvinced` delegan, hover «oscurito» por `IsBlockedPresented`. | **refrescada 2026-09-27** (copia del repo post-1b) |
+| `AudienceCharacterCanvas.cs` | **NÚCLEO, EDITADO** — `SetConvincedHidden` (`CanvasGroup` de estado en la raíz) + dos puertas de tooltip. | **refrescada 2026-09-27** (copia del repo post-1b); cierra su marca RANCIA (que además era falsa, F-CT-9) |
+| `CharacterCanvas.cs` | Leído, **no editado**. Copia del repo de hoy idéntica a la del PK. | marca RANCIA retirada (F-CT-9) |
+| `GigPresentationSO.cs` | **Capa 3, EDITADO** — `convincedSpriteTint` + `DefaultConvincedSpriteTint`. Ruta: `Assets/Scripts/Data/Gig/GigPresentationSO.cs` (F-CT-7). No entra al PK; toda copia anterior al 2026-09-27 es rancia. | sin acción de PK |
+| `CONV-TINT-1-DOC_Package.md` | Retenido en el PK desde 2026-09-27 (pendiente retenido, consumidor SONG-TAIL-1); **CONSUMIDO en SONG-TAIL-1**. | **se retira del PK** al cerrar SONG-TAIL-1 |
+| Asset | `GigPresentation` (demo): `convincedSpriteTint` en azul de fondo. Carta `dev_convince` importada. | no son ficheros del PK |
+
+**Adjuntos del chat a descartar:** `GigManager.cs`, `AudienceCharacterStats.cs`, `CharacterBase.cs`,
+`GigPresentationSO.cs`, las copias de `AudienceCharacterBase.cs` / `AudienceCharacterCanvas.cs` /
+`CharacterCanvas.cs` adjuntadas (pre-1b), ambos runbooks, capturas y salidas de grep (el paquete sale del PK en el cierre de SONG-TAIL-1).
+
+### Ediciones de DOC-POOL-1 (2026-09-27)
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| Los trece documentos de v18.4 | **Sustituidos** (reemplazo completo sobre copias del PK frescas). | filas de §A.2 con fecha 2026-09-27 |
+| `PAUSE-1_DocDiffs_Pending.md` · `BEAT-1_Doc_Package.md` | **CONSUMIDOS** y retirados del PK. | §B.1 |
+| `HandController.cs` | Sin edición; fila §A.2 verificada por contenido (paso 35 de PAUSE-1). | sin acción |
+
+**Adjuntos del chat a descartar al cerrar DOC-POOL-1:** ninguno (la sesión trabajó sólo con copias del PK).
+
+### Ediciones de BEAT-1 (2026-09-27)
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `MidiMusicManager.cs` · `GigManager.cs` · `GigCanvas.cs` · `VibeReadoutBeatPulse.cs` · `FloatingTextMidiListener.cs` | **Capa 3, EDITADOS.** No entran al PK. Toda copia anterior al 2026-09-27 es **rancia** (beat grid, respaldo del readout, floaters de tempo). | sin acción de PK |
+| `MidiEventInterfaces.cs` | **BAJA** (F-B1-1). Ver §B.6. | retirado 2026-09-27 |
+| `BEAT-1_Doc_Package.md` | **PENDIENTE RETENIDO** en el PK. Consumidor: **DOC-POOL-1**, después de `PAUSE-1_DocDiffs_Pending.md` (absorbe sus pasos 15 y 24). Si DOC-POOL-1 cierra sin consumirlo, se declara perdido en esa clausura (D-DOC-5). | **CONSUMIDO en DOC-POOL-1 (2026-09-27); retirado del PK** |
+| Prefabs | `GigCanvas.prefab` (`logBeats: 0`; la línea huérfana `selfTimerWhenGridSilent` desaparece al guardar) · `MidiMusicManager.prefab` (`showTempoSignature: 0`). | no son ficheros del PK |
+
+**Adjuntos del chat a descartar al cerrar BEAT-1:** los doce `.cs` subidos (`MidiMusicManager`, `GigManager`,
+`CompositionSession`, `MidiToolkitAdapter`, `GigCanvas`, `VibeReadoutBeatPulse`, `BeatPulseIndicator`,
+`UIPulseAnimator`, `MidiEventInterfaces`, `FloatingTextMidiListener`, `MusicianMidiResponder`,
+`TempoTextIndicator`), `beat1_grep.txt`, `beat1_scene_census.txt`, capturas y logs. Ninguno entra al PK.
+
+### Ediciones de PAUSE-1 (2026-09-25)
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `HandController.cs` | **NÚCLEO, EDITADO 2026-09-25** — puerta `PauseGate` en `Update` y `ReleaseHeldCardToHand`. Cierra también el «a refrescar» de SONG-PANEL-1. | **refrescada 2026-09-25** (copia del repo post-PAUSE-1) |
+| `MidiMusicManager.cs` · `AudioManager.cs` · `MusicDirector.cs` · `UIManager.cs` · `MainMenuController.cs` | **Capa 3, EDITADOS.** No entran al PK; se piden por FRP. | sin acción de PK |
+| `MidiToolkitAdapter.cs` | **Capa 3, REEMPLAZO COMPLETO** (también pasa de cp1252 a ASCII). No entra al PK. | sin acción de PK |
+| `IMidiTransportSuspend.cs` · `PlayerAudioPrefs.cs` · `PauseGate.cs` · `OptionsPanelController.cs` · `PauseMenuController.cs` | **Capa 3, NUEVOS.** No entran al PK. | en `Repo_Tree_Index.md` tras regenerar |
+| `PAUSE-1_DocDiffs_Pending.md` | **PENDIENTE RETENIDO** en el PK. Consumidor: **DOC-POOL-1**; si DOC-POOL-1 cierra sin consumirlo, se declara perdido en esa clausura (D-DOC-5). | **CONSUMIDO en DOC-POOL-1 (2026-09-27); retirado del PK** |
+| Prefabs / escena | `UIManager/PauseCanvas` (sort 110), `OptionsPanel.prefab`, instancia + botón en el menú principal. | no son ficheros del PK |
+
+**Adjuntos del chat a descartar al cerrar PAUSE-1:** los diez `.cs` subidos, `Design_Tutorial_System_v0_3.md`,
+`pause1_grep.txt`, la captura de la jerarquía DDOL y los logs. Ninguno entra al PK.
+
+### Ediciones de CARD-FACE-3 / CARD-FACE-3-DOC (2026-09-22 / 2026-09-25)
+
+| Fichero | Acción | Estado |
+|---|---|---|
+| `CardBase.cs` | **NÚCLEO, EDITADO 2026-09-22** — `OnPointerUp` ya no re-muestra la pila incondicionalmente: sólo con botón izquierdo y con el modal cerrado (O-CF2b-2). | **refrescada 2026-09-25 (CARD-FACE-3-DOC-b)**, verificada por contenido |
+| `GameSymbols.cs` | **NÚCLEO, EDITADO 2026-09-22** — corregida la deriva de comentario que la fila §A.2 anotaba: la cabecera nombra `GameSymbolsCoverageMenu` como pase de cobertura. | **refrescada 2026-09-25 (CARD-FACE-3-DOC-b)**, verificada por contenido |
+| `CardFacePresentation.cs` · `GameSymbolsCoverageMenu.cs` (`Check()` público) · `UIManager.cs` · `CardDetailViewController.cs` | **Capa 3, EDITADOS.** No entran al PK; se piden por FRP. | sin acción de PK |
+| `GameSymbolsTableMenu.cs` | **Capa 3, NO DECLARADO** por el lote ni por ningún otro (F-CF3DOC-1): exportación HTML de solo lectura, autoría `SYM-TABLE-1` sin registro. Leído y documentado en §20.14 el 2026-09-25 (`governs:` +1). No entra al PK. | en `Repo_Tree_Index.md` · adjunto descartado |
+| `GameSymbolsSyncMenu.cs` | **Capa 3, NUEVO** (`Assets/Scripts/Editor/`). Gobernado por `SSoT_Editor_Authoring_Tools.md` §20.14 (`governs:` +1). No entra al PK. | presente en `Repo_Tree_Index.md` (snapshot 2026-09-25 13:04) |
+| Escena / prefab | `UIManager/GigCanvas/SongsLeftText` activado; `TooltipText` `preferredWidth` 280. | no son ficheros del PK |
+
+**Adjuntos del chat a descartar al cerrar CARD-FACE-3:** los siete `.cs` del lote, `TMP_SpriteCharacter.cs`,
+`TMP_SpriteGlyph.cs`, `UIManager.cs`, `manifest.json`, `packages-lock.json`, `ProjectVersion.txt` y las 14
+capturas. **Al cerrar CARD-FACE-3-DOC:** `CARD-FACE-3-DOC_Documentation_Package.md`. Ninguno entra al PK.
+
+**Versión 17 — 2026-09-21 (CARD-FACE-1/2-DOC).** Cambios en v17: **dos altas en §A.2** —
+`GameSymbols.cs` y `PartEffectDescriptionBuilder.cs`, presentes en el PK **sin fila** desde CARD-FACE-1 —,
+**cuatro refrescos confirmados por contenido** (`CardBase.cs`, `StatusEffectCatalogueSO.cs`,
+`SongCompositionUI.cs` —cierra su deuda RANCIA— y `Repo_Tree_Index.md`, snapshot 2026-09-21 12:02),
+**diez documentos sustituidos por reemplazo completo** (`SSoT_Game_Text.md`, `SSoT_Card_System.md`,
+`SSoT_Editor_Authoring_Tools.md`, `SSoT_Status_Effects.md`, `SSoT_Dev_Mode.md`, `SSoT_INDEX.md`,
+`ssot_manifest.yaml`, `CURRENT_STATE.md`, `changelog-ssot.md`, `coverage-matrix.md`) más
+`S5_DemoCutClose_Sub_Roadmap.md` y este manifiesto.
+
+**R4 en este lote: sin excepción.** Los documentos se editaron sobre sus copias del PK tras comprobar la
+puerta de frescura: ningún doc-pass había tocado esos documentos desde TEXT-VIBE-1-DOC (2026-09-16),
+porque CARD-FACE-1 y CARD-FACE-2 **retuvieron** su documentación. No se reconstruyó ningún `.cs`.
+
+**Deriva física del PK saneada (D-PK=A).** El inventario de apertura encontró que el PK real no
+coincidía con este manifiesto:
+- 8 ficheros presentes sin fila.
+- 5 marcados RETIRADA que seguían presentes.
+- 2 filas sin fichero: `GigMessageUI.cs` y `PENDING_DOC_DIFFS_RFX-1.md`, que ya son Capa 3 o están
+  retirados; sólo se anota.
+
+Acciones:
+
+| Fichero | Acción | Motivo |
+|---|---|---|
+| `PENDING_DOC_PACKAGE_CARD-FACE-1.md` | **SALE** → §B.1 | consumido en CARD-FACE-1/2-DOC (corregido con §D3 del paquete 2 antes de aplicarlo) |
+| `PENDING_DOC_PACKAGE_CARD-FACE-2.md` | **SALE** → §B.1 | consumido en CARD-FACE-1/2-DOC (D1..D8) |
+| `Roadmap_Update_CARD-FACE-1_close.md` | **SALE** → §B.1 | nunca aplicado; **sustituido** por la edición consolidada de S5 (D-DOC=A) |
+| `GigManager.cs` (190 KB) | **SALE** | Capa 3 por §B.2; entró como adjunto de CARD-FACE-1 y se quedó. Es el mayor coste de contexto del PK |
+| `AudienceCharacterStats.cs` · `AudienceMoveToFrontAction.cs` | **SALEN** | Capa 3 por §B.2 / BIGNUM-1; presentes sin fila |
+| `TutorialController.cs` · `TutorialGuidedDriver.cs` · `TutorialDialogSO.cs` · `TutorialDialogCatalogSO.cs` · `Design_Tutorial_System_v0_3.md` | **SALEN (retirada física pendiente desde 2026-09-05)** | su fila ya decía RETIRADA; el PK no la siguió |
+| `CharacterCanvas.cs` | queda como estaba (Fase 3-B) | CARD-FACE-2 lo leyó y **no lo editó** |
+
+**Capa 3 de la serie (se descartan del chat, no entran al PK):** `TonalityEffect.cs`, `MoodTag.cs`,
+`CompositionStripThemeSO.cs`, `CompositionContextRowUI.cs`, `PartActionDescriptor.cs`, `PartActionKind.cs`,
+`CardType.cs`, `SongTrackElementUI.cs`, `TrackHoverPanel.cs`, `MeterEffect.cs`, `TempoEffect.cs`,
+`GigCanvas.cs`, `PartEffectEditorWindow.cs`, `StatusEffectWizardWindow.cs`, `GameTextWindow.cs`,
+`GameTextTemplateIds.cs`, `CardDefinitionDescriptionExtensions.cs`, `CardEffectDescriptionBuilder.cs`,
+`SymbolMetricsTuner.cs`, `GameSymbolsDumpMenu.cs`, `GameSymbolsCoverageMenu.cs`,
+`CardFacePresentation.cs`, `DevModeController.cs`, `ConceptGlossaryTextTable.cs`,
+`CardDetailViewController.cs`, `CardData.cs`, `CardInventoryWindow.cs`, `DeckEditorWindow.cs`,
+`MusicTheory.Tonality.cs` (MidiGenPlay: sólo chat, FRP §3), los CSV `StatusCatalogue_*`, `card_face_2.png` y
+los exports intermedios de GameText. `SymbolSheetSlicer.cs`, que el paquete 1 listaba, **no existe**.
+
+**Golden:** `CardText_en_20260921_102034.txt` → versionado como `golden_I.txt` **fuera del PK**.
+
 **Versión 16 — 2026-09-16 (TEXT-VIBE-1 / TEXT-VIBE-1-DOC).** Cambios en v16: **ningún alta y ninguna
 baja** — ni de documento ni de código. **Nueve documentos sustituidos por reemplazo completo**
 (`SSoT_Game_Text.md`, `Design_Vibe_Telegraph_v0_1.md`, `SSoT_Editor_Authoring_Tools.md`,
@@ -415,7 +599,7 @@ y estas son las acciones.
 | `Design_Vibe_Telegraph_v0_1.md` | **ALTA en el PK** (Capa 1). Hogar de presentación de C1/C2/C3, ahora con §10; se consultará en GIG23-A y en TIP-1. Ruta: `Docs/planning/Design_Vibe_Telegraph_v0_1.md`. Reingresa desde §B.5. | **pendiente de adjuntar** (copia posterior a BIGNUM-1-DOC) |
 | `VibeReadoutBeatPulse.cs` · `VibeReadoutTooltipTarget.cs` · `VibeBarTooltipTarget.cs` | **No entran al PK.** Ficheros nuevos, costuras pequeñas; se piden por lote (Capa 3). Rutas: `Assets/Scripts/UI/` y `Assets/Scripts/UI/Tooltips/`. | sin acción |
 | `GigCanvas.cs` · `GigPresentationSO.cs` · `HealthBarController.cs` | **No están en el PK.** Editados por BIGNUM-1; censados en §B.2. | sin acción de PK |
-| `MidiMusicManager.cs` | Editado **sólo si se aplicó la sonda `[BeatProbe]` del rider r3**. La sonda es **temporal** y la retira BEAT-1; no censar como cambio permanente. | condicional |
+| `MidiMusicManager.cs` | ~~Editado sólo si se aplicó la sonda `[BeatProbe]` del rider r3.~~ **CERRADO 2026-09-27 (BEAT-1):** la sonda no existe en el código, estuviera aplicada o no. | cerrado |
 
 **Refrescos ajenos que este lote NO cierra:** `StatusEffectContainer.cs` (WINK-1 — la copia del PK
 publica `StatusAppliedEvent` con 3 argumentos, el código real pasa 4) y la D5 de AMW-1
@@ -653,17 +837,19 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | Fichero | Clase | Estado | Fecha de copia | Ruta en repo | Verificado-contra (lote/fecha) | Notas |
 |---|---|---|---|---|---|---|
 | `ALWTTT_Uses_MidiGenPlay_Quick_Path.md` | POR-LOTE | Fase 3-B — sale al cerrar frontera (3 KB) | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | reference frontera (3 KB) |
-| `SSoT_Tooltip_Pipeline.md` | PERMANENTE | queda | **2026-09-15 (alta, TIP-1-DOC)** | Docs/systems/SSoT_Tooltip_Pipeline.md | **TIP-1-DOC / 2026-09-15** — creado y aplicado en la misma sesión que el código que documenta; ruta verificada contra `Repo_Tree_Index.md` (actualizado en el mismo paso) | autoridad nueva: **transporte** de tooltips (entradas, anclaje, colocación, ciclo de vida del panel). No gobierna texto ni significado. Tres invariantes duras en `ssot_manifest.yaml`: `TOOLTIP-SHOW-IS-A-PUSH`, `TOOLTIP-ANCHOR-SPACE-IS-INFERRED`, `TOOLTIP-REBUILD-BEFORE-MEASURE` |
-| `SSoT_Game_Text.md` | PERMANENTE | queda | **2026-09-15 (sustituida, TIP-1-DOC)** | Docs/systems/SSoT_Game_Text.md | **TIP-1-DOC (2026-09-15)** — §1 gana la población 11 y §4 se reescribe; el documento **pierde `governs:` sobre cinco ficheros** de `Assets/Scripts/UI/Tooltips`, que pasan a `SSoT_Tooltip_Pipeline.md`. Antes: TXT-2 (2026-09-10) — creado y aplicado en la misma sesión | autoridad nueva: fontanería del texto de jugador (poblaciones, tags, orden de resolución, hover, paridad, CSV). NO es autoridad sobre el significado de ningún concepto |
-| `AudienceCharacterBase.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Characters/AudienceCharacterBase.cs | PRES-1 / D-R5-2 (2026-08-11): SelectDefaultMusicianTarget + SpotlightRedirectEvent presentes | ok · sin lote posterior conocido |
+| `SSoT_Tooltip_Pipeline.md` | PERMANENTE | queda | **2026-09-25 (sustituida, CARD-FACE-3-DOC)** | Docs/systems/SSoT_Tooltip_Pipeline.md | **TIP-1-DOC / 2026-09-15** — creado y aplicado en la misma sesión que el código que documenta; ruta verificada contra `Repo_Tree_Index.md` (actualizado en el mismo paso) | autoridad nueva: **transporte** de tooltips (entradas, anclaje, colocación, ciclo de vida del panel). No gobierna texto ni significado. Tres invariantes duras en `ssot_manifest.yaml`: `TOOLTIP-SHOW-IS-A-PUSH`, `TOOLTIP-ANCHOR-SPACE-IS-INFERRED`, `TOOLTIP-REBUILD-BEFORE-MEASURE` |
+| `SSoT_Game_Text.md` | PERMANENTE | queda | **2026-09-27 (sustituida, DOC-POOL-1)** | Docs/systems/SSoT_Game_Text.md | **CARD-FACE-3-DOC (2026-09-25)** — §7 (O-CF2b-2, F-CF2b-1, F-CF-7 cerradas; registro del lote; F-TV-1 observada), §9. Antes: CARD-FACE-1/2-DOC (2026-09-21) — §1 a cero filas abiertas (fila 12 nueva), §2.1 vocabulario simbólico, §5 172/73, §7, §8 checks 7–8, §9 | `governs:` +2 (`GameSymbols.cs`, `PartEffectDescriptionBuilder.cs`) |
+| `AudienceCharacterBase.cs` | PERMANENTE | queda | **2026-09-27 (refrescada, CONV-TINT-1b)** | Assets/Scripts/Characters/AudienceCharacterBase.cs | **CONV-TINT-1b / 2026-09-27** — copia del repo post-1b: `RefreshSpriteTint`, `RefreshStatePresentation`, `IsBlockedPresented`. Antes: PRES-1 / D-R5-2 (2026-08-11) | ok · antes de CONV-TINT-1 la fila no tenía fecha; la copia pre-runbook resultó idéntica al repo (verificado 2026-09-27) |
 | `AudienceCharacterData.cs` | PERMANENTE | queda | **2026-09-11 (refrescada, TEXT-5)** | Assets/Scripts/Data/Characters/Audience/AudienceCharacterData.cs | **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: la clase anidada `AudienceAbilityData` tiene `abilityId` con el tooltip que declara su contrato, y `abilityName` marcado etiqueta de desarrollo. Antes: GEW-1 (2026-09-06) y AMW-1 (2026-09-05), ambos editor-only y sin editar el fichero | ok · **contiene `AudienceAbilityData` como clase anidada**: no existe `AudienceAbilityData.cs` y pedirlo por ese nombre devuelve vacío (verificado TXT-4-DOC) |
 | `CSV-4b_Name_Lookup_Audit.md` | POR-LOTE | Fase 3-B — sale al cerrar CSV-4b | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | insumo de CSV-4b (lote vivo, queued) · **no existe en el repo — solo vive aquí; comprometer antes de retirarla** |
 | `CSV_Composition_Validation_Sub_Roadmap.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | sub-roadmap activo (CSV-4b/5/6) |
-| `CURRENT_STATE.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | baseline operativo |
-| `CardBase.cs` | PERMANENTE | queda | **2026-09-11 (refrescada, TEXT-5)** | Assets/Scripts/Cards/CardBase.cs | **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: L99 `GameText.Format(GameTextTemplateIds.UiCardTypeComposition)`, L100 `GameText.CardName` | ok · el literal `"COMPOSITION"` **ya no está** (D-T5-3=A). Lo que queda en `typeTextField` es la rama de enum de las cartas Action: F-TXT4-2 → CARD-FACE-1, y **fuera** de `GAMETEXT-NO-DEV-LABEL` por definición |
-| `AudienceCharacterCanvas.cs` | PERMANENTE | queda — alta 2026-09-11 (F-DOC4-2) · **RANCIA desde 2026-09-16 (TEXT-VIBE-1 la editó: `VibeOnlyHeader` + supresión de D1 en `BuildVibeText`). Disparador de refresco: el primer lote que vuelva a anclar una edición en este fichero** | **2026-09-11 (refrescada, TEXT-5) — anterior al lote que la editó** | Assets/Scripts/Characters/AudienceCharacterCanvas.cs | **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: L174–181 hover de intención por `GameText.ConceptName`/`ConceptDescription` sobre `AbilityId`; L138–154 números por `GameText.Number` | ok · **contradicción retirado-pero-presente resuelta en TXT-4** (figuraba en §B.2 como Capa 3 estando físicamente en el PK sin fila; la retirada nunca se ejecutó — tercera ocurrencia de la familia tras `CharacterCanvas.cs` y `MusicianBase.cs`). TIP-1 va a necesitar esta costura |
+| `CURRENT_STATE.md` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC + SONG-TAIL-1 D-REG)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | baseline operativo |
+| `CardBase.cs` | PERMANENTE | queda | **2026-09-25 (refrescada, CARD-FACE-3-DOC-b)** | Assets/Scripts/Cards/CardBase.cs | **CARD-FACE-3 / 2026-09-22** — verificada por contenido el 2026-09-25 contra la copia anterior (diff exacto, nada fuera de lo declarado): L807–L813 comentario O-CF2b-2; L816 `OnPointerUp` sale si el botón no es Left; L817–L818 sale si `CardDetailViewController.Instance.IsVisible`. `OnPointerDown` intacto (clic derecho → `HideTooltipInfo` + `Toggle`) | `OnPointerUp` con guarda de botón y de modal (O-CF2b-2 cerrada); `OnPointerDown` sigue ocultando la pila en clic derecho |
+| `GameSymbols.cs` | PERMANENTE | queda — **alta 2026-09-21 (CARD-FACE-1/2-DOC)** | **2026-09-25 (refrescada, CARD-FACE-3-DOC-b)** | Assets/Scripts/UI/Tooltips/GameSymbols.cs | **CARD-FACE-3 / 2026-09-22** — verificada por contenido el 2026-09-25: el diff contra la copia anterior es sólo la cabecera L15–L16 (nombra `GameSymbolsCoverageMenu`); fuente sigue ASCII puro (0 bytes no-ASCII). Contenido de CARD-FACE-2 sin cambios: prefijos `ct_`/`pa_`/`st_`, `AllConceptIds`, `AllSpriteNames` sin `None` (D-CF-20) | seam del vocabulario simbólico. Deriva de comentario **corregida (CARD-FACE-3)**; la copia del PK ya lo refleja |
+| `PartEffectDescriptionBuilder.cs` | PERMANENTE | queda — **alta 2026-09-21 (CARD-FACE-1/2-DOC)**; estaba presente sin fila | **2026-09-21 (alta, fresca, CARD-FACE-1/2-DOC)** | Assets/Scripts/Cards/Effects/PartEffectDescriptionBuilder.cs | **CARD-FACE-2 / 2026-09-21** — `TonalityEffect` mapeado (D-CF-17=D), `FamilySpriteName` / `FamilyConceptId` / `ValueOnly` | formateador único de líneas de modificador (cara + modal) |
+| `AudienceCharacterCanvas.cs` | PERMANENTE | queda — alta 2026-09-11 (F-DOC4-2) | **2026-09-27 (refrescada, CONV-TINT-1b)** | Assets/Scripts/Characters/AudienceCharacterCanvas.cs | **CONV-TINT-1b / 2026-09-27** — copia del repo post-1b: `SetConvincedHidden` + puertas de tooltip. La copia previa (2026-09-11) **ya coincidía** con el repo el 2026-09-27: la marca RANCIA de TEXT-VIBE-1 era falsa (F-CT-9) | ok · contradicción retirado-pero-presente resuelta en TXT-4 (tercera ocurrencia de la familia) |
 | `GameText.cs` | PERMANENTE | queda — **alta 2026-09-14 (TEXT-5)** | **2026-09-11 (fresca, TEXT-5)** | Assets/Scripts/UI/Tooltips/GameText.cs | **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: `CardName`, `ConceptName`, `ConceptDescription`, `StatusName`, `Format`, y **`Number(double, string)`** formateando por `Glossary.NumberFormat` con invariante explícita | **sube de Capa 3 a núcleo.** TXT-4 lo creó y lo censó como Capa 3; TEXT-5 lo promueve porque es la **entrada única** de todo el texto compuesto (la otra, `ConceptTooltipResolver`, solo responde hovers) y ningún lote de texto puede razonar sin él. Gobernado por `SSoT_Game_Text.md` vía `Assets/Scripts/UI/Tooltips` |
-| `SongCompositionUI.cs` | PERMANENTE | queda — **alta 2026-09-14 (contradicción resuelta)** · **RANCIA desde 2026-09-16 (TEXT-VIBE-1 la editó: `SpawnCompositionFx` + alta de `FxTextIdOf`). Disparador de refresco: el primer lote que vuelva a anclar una edición en este fichero** | **2026-09-11 (TEXT-5) — anterior al lote que la editó** | Assets/Scripts/UI/Song Composition/SongCompositionUI.cs | **TEXT-6 / 2026-09-14** — NO editada por TEXT-6; la copia de TEXT-5 sigue fresca y se verificó por contenido dos veces más: L1396 reasigna `track.info` a `"{styleBundle.name} - {instrumentName}"` (**F-T6-8**) y L1516–1521 pasa `CompositionFxConfigSO.FxEntry.label` a `SpawnFloatingText` (**F-T6-9**, población 8). Antes: **TEXT-5 / 2026-09-11** — verificada por contenido en TEXT-5-DOC: L344 `GameText.CardName(data)` como etiqueta de fila. Antes: **RANCIA desde R6 (2026-09-01)**, tres lotes | **cuarta ocurrencia de la familia retirado-pero-presente** tras `CharacterCanvas.cs`, `MusicianBase.cs` y `AudienceCharacterCanvas.cs`: estaba físicamente en el PK, sin fila en §A.2, y §B.2 la listaba como retirada a Capa 3. Resuelta igual — fila creada, **retirada no ejecutada** — porque TEXT-6 la necesita para F-T5-2. **Los literales `Instrument:` / `bundle:` / `Modifiers:` NO están en este fichero** (verificado, cero coincidencias) |
+| `SongCompositionUI.cs` | PERMANENTE | queda — deja de estar RANCIA | **2026-09-21 (refrescada, CARD-FACE-1/2-DOC)** | Assets/Scripts/UI/Song Composition/SongCompositionUI.cs | **CARD-FACE-2 / 2026-09-21** — verificada por contenido: marcas `[CARD-FACE-2]` en L379 (etiqueta de parte por letra, `customLabel` borrado) y L396 (`ui_part_bridge`, D-CF-21) | cierra la deuda RANCIA abierta por TEXT-VIBE-1 |
 | `CardDefinition.cs` | PERMANENTE | queda | **2026-09-11 (procedencia nueva, TXT-4-DOC)** | Assets/Scripts/Cards/CardDefinition.cs | **TXT-4 / 2026-09-11** — copia fresca adjuntada al chat del lote y verificada por contenido; `resourceCostStatusKey`/`Amount` (R5-d) siguen presentes. **El lote NO editó el fichero**, pero cambió lo que significa uno de sus campos | **`displayName` es etiqueta de desarrollo desde TXT-4** (D-TXT4-4), mismo contrato que `StatusEffectSO.displayName` desde TXT-3. Ninguna superficie de jugador debe leerlo; tres lo siguen haciendo (F-TXT4-3 → TEXT-5). La fila gana procedencia precisamente porque **un campo que cambia de contrato sin cambiar de forma es lo que una copia rancia no delata** |
 | `CardEffectSpec.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Cards/Effects/CardEffectSpec.cs | sin marcas (0.4 KB, base abstracta) | sin lote posterior conocido |
 | `CharacterStatusId.cs` | PERMANENTE | queda | 2026-08-26 17:41 (refrescada) | Assets/Scripts/Status/CharacterStatusId.cs | **R4 / R5-a · verificada 2026-08-27** | contiene `NegateIncomingPositive = 404`, `RedirectIncoming = 504` (R4/D-R4-3=A), `ResourceGenerationModifier = 992`, `ResourceCounter = 993` (R5-a/Voltage). F-R5a-1 **cerrada en su faceta de PK**. |
@@ -680,12 +866,12 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | `Design_Track_Card_Levels_v0_1.md` | POR-LOTE | Fase 3-B — sale al cerrar R7 | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | R7 (spec) |
 | `Design_Tutorial_System_v0_3.md` | POR-LOTE | **RETIRADA 2026-09-05 al cerrar TXT-1** (ver §A.1, bloque TXT-1) | 2026-09-04 (renombrada v0_2 → v0_3 en DOC-TUTR-B) | Docs/planning/active/Design_Tutorial_System_v0_3.md | DOC-TUTR-B / 2026-09-04 — §6C arco de la banda de 4 | **sustituye la copia `v0_2`**: no deben coexistir (§C.3) |
 | `Design_Vertical_Slice_v0_1.md` | POR-LOTE | Fase 3-B — sale al cerrar S6–S8 | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | S6–S8 (queued) |
-| `Design_Vibe_Telegraph_v0_1.md` | PERMANENTE | queda (alta BIGNUM-1-DOC 2026-09-09) | 2026-09-09 | Docs/planning/Design_Vibe_Telegraph_v0_1.md | BIGNUM-1-DOC (2026-09-09): contiene §10 (§10.1–§10.7) | hogar de presentación C1/C2/C3; insumo de GIG23-A y TIP-1. Sigue clasificado `planning` en `SSoT_INDEX` — la matemática vive en `SSoT_Scoring_and_Meters` §6. Reingresa desde §B.5 |
+| `Design_Vibe_Telegraph_v0_1.md` | PERMANENTE | queda (alta BIGNUM-1-DOC 2026-09-09) | **2026-09-27 (sustituida, DOC-POOL-1)** | Docs/planning/Design_Vibe_Telegraph_v0_1.md | BIGNUM-1-DOC (2026-09-09): contiene §10 (§10.1–§10.7) | hogar de presentación C1/C2/C3; insumo de GIG23-A y TIP-1. Sigue clasificado `planning` en `SSoT_INDEX` — la matemática vive en `SSoT_Scoring_and_Meters` §6. Reingresa desde §B.5 |
 | `VibeProjection.cs` | PERMANENTE | queda (alta BIGNUM-1-DOC 2026-09-09) | 2026-09-09 | Assets/Scripts/Characters/VibeProjection.cs | BIGNUM-1 (2026-09-09): fichero nuevo del lote | contrato de presentación del Vibe por miembro; seam pequeño y estable para lotes de UI de gig |
 | `Documentation_Update_Loop_Local_Addendum_v0_4.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | gobernanza operativa (addendum local) |
 | `GigFlowSettingsSO.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Data/Gig/GigFlowSettingsSO.cs | R5-d (2026-08-26): MaxBonusLoopsPerPart presente | ok · sin lote posterior conocido |
 | `GigRunContext.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Managers/GigRunContext.cs | sin marcas de lote reconocibles | sin lote posterior conocido |
-| `HandController.cs` | PERMANENTE | queda | **2026-09-03 (refrescada, TUT-REDESIGN-B)** | Assets/Scripts/Controllers/HandController.cs | **TUT-REDESIGN-B / 2026-09-03** — cuatro puertas de acción por `ReportPlayDenied`; `CardPerformedEvent` (WINK-1); puerta 2b.5 (R5-g) | **Doble corrección de fila (R5-g).** La fila anterior decía `CARD-UX-1 (2026-07-13)` mientras la copia del PK ya contenía marcadores **R5-d**: el índice iba dos meses por detrás de su propio fichero, variante benigna del incidente de §A.1 y misma familia de fallo. Verificado además en R5-g que la copia del PK y la del repo eran **byte-idénticas salvo BOM** antes del lote (R5-f no tocó el fichero) |
+| `HandController.cs` | PERMANENTE | queda | **2026-09-25 (refrescada, PAUSE-1)** — antes 2026-09-03 (TUT-REDESIGN-B) | Assets/Scripts/Controllers/HandController.cs | **PAUSE-1 / 2026-09-25** — verificada por contenido en DOC-POOL-1: `PauseGate.IsPaused` en `Update` (L246) y `ReleaseHeldCardToHand` (L271). Antes: TUT-REDESIGN-B / 2026-09-03 — cuatro puertas de acción por `ReportPlayDenied`; `CardPerformedEvent` (WINK-1); puerta 2b.5 (R5-g) | **Doble corrección de fila (R5-g).** La fila anterior decía `CARD-UX-1 (2026-07-13)` mientras la copia del PK ya contenía marcadores **R5-d**: el índice iba dos meses por detrás de su propio fichero, variante benigna del incidente de §A.1 y misma familia de fallo. Verificado además en R5-g que la copia del PK y la del repo eran **byte-idénticas salvo BOM** antes del lote (R5-f no tocó el fichero) |
 | `ICompositionContext.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Music/Interfaces/ICompositionContext.cs | sin marcas (1 KB) | sin lote posterior conocido |
 | `LoopFeedbackContext.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Music/Context Data/LoopFeedbackContext.cs | sin marcas reconocibles | lotes posteriores posibles: R5-c / HUD-COMP-1 posibles |
 | `GigMessageUI.cs` | **NUEVO — Capa 3** | no entra al PK | creado 2026-09-01 (R6) | Assets/Scripts/UI/GigMessageUI.cs | R6 (D-R6-7) — creado en el lote, sin copia previa | stopgap de feedback de denegación; ~110 líneas. Pedir fresco si un lote de HUD lo toca |
@@ -706,45 +892,44 @@ de ese lote · `lote RFX-1 activo` = adjunto por un lote vivo.
 | `TutorialDialogSO.cs` | POR-LOTE | **RETIRADA 2026-09-05 al cerrar TXT-1** (insumo de TXT-1; alta 2026-09-04) | 2026-09-03 (refrescada) | Assets/Scripts/Tutorial/TutorialDialogSO.cs | TUT-REDESIGN-B / 2026-09-03 — 34 constantes, `TracksByMusician`, sin reservados | ídem |
 | `TutorialDialogCatalogSO.cs` | POR-LOTE | **RETIRADA 2026-09-05 al cerrar TXT-1** (insumo de TXT-1; alta 2026-09-04) | 2026-09-03 (refrescada) | Assets/Scripts/Tutorial/TutorialDialogCatalogSO.cs | TUT-REDESIGN-B / 2026-09-03 — seeders `Seed TUT-REDESIGN-B dialogs EN/ES (13, band of 4)` | ídem. **La copia retirada quedó VENCIDA el 2026-09-05: TXT-1 editó el fichero** (`languageCode`, `ComputeParity`). Cualquier reingreso futuro exige copia post-TXT-1 |
 | `MusicianBase.cs` | POR-LOTE | Fase 3-B — sale al cerrar TXT-1 salvo decisión de núcleo (alta 2026-09-04, D1=A) | 2026-09-03 (refrescada) | Assets/Scripts/Characters/Band/MusicianBase.cs | TUT-REDESIGN-B / 2026-09-03 — `LoseGig(GigLossCause.CohesionCollapse)`; `ResolveCardAnimation` (WINK-1) | contradicción retirado-pero-presente **resuelta**: presente y censado |
-| `CharacterCanvas.cs` | POR-LOTE | Fase 3-B — retirar en el próximo corte (alta 2026-09-04, D1=A) | no registrada | Assets/Scripts/Characters/CharacterCanvas.cs | **RANCIA desde BIGNUM-1 (2026-09-09)** — el lote añadió el override de predicción (`SetPredictionVisible`) a la política de visibilidad S5e-ext; la copia del PK es anterior | contradicción retirado-pero-presente resuelta 2026-09-04; **refresco abierto §A.1 (BIGNUM-1)** — no usar como verdad de código sin copia fresca |
+| `CharacterCanvas.cs` | POR-LOTE | Fase 3-B — retirar en el próximo corte (alta 2026-09-04, D1=A) | **verificada 2026-09-27 (CONV-TINT-1b, idéntica al repo)** | Assets/Scripts/Characters/CharacterCanvas.cs | **CONV-TINT-1b / 2026-09-27** — comparada con la copia del repo: idéntica salvo BOM/CRLF; contiene el override de predicción de BIGNUM-1. La marca RANCIA de BIGNUM-1 era falsa (F-CT-9; ya la había cerrado TXT-3 el 2026-09-10 en §A.1 sin voltear esta fila) | contradicción retirado-pero-presente resuelta 2026-09-04 |
 | `PinkTrombone_Voice_Levers.md` | POR-LOTE | Fase 3-B — sale al cerrar R6 | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | schema VoiceProfileSO; R6 (SingerVoiceDirector) |
 | `Rehydration_Prompt_Guide.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | operativa de handoff entre chats |
 | `Roadmap_ALWTTT.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | roadmap activo |
 | `Roadmap_Audio.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | roadmap activo |
 | `RosterExpansion_Sub_Roadmap.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | sub-roadmap activo (R5-d..R8) |
-| `S5_DemoCutClose_Sub_Roadmap.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | sub-roadmap activo (S5i/S5j = frente vivo) |
-| `SSoT_ALWTTT_MidiGenPlay_Boundary.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva (frontera) |
-| `SSoT_Audience_and_Reactions.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_Audio.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `S5_DemoCutClose_Sub_Roadmap.md` | PERMANENTE | queda | **2026-09-27 (sustituida, SONG-TAIL-1 D-REG)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | sub-roadmap activo (S5i/S5j = frente vivo) |
+| `SSoT_ALWTTT_MidiGenPlay_Boundary.md` | PERMANENTE | queda | **2026-09-27 (sustituida, DOC-POOL-1)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva (frontera) |
+| `SSoT_Audience_and_Reactions.md` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Audio.md` | PERMANENTE | queda | **2026-09-27 (sustituida, DOC-POOL-1)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
 | `SSoT_CONTRACTS.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | contracts |
-| `SSoT_Card_Authoring_Contracts.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_Card_System.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_Dev_Mode.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_Editor_Authoring_Tools.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_Gig_Combat_Core.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Card_Authoring_Contracts.md` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Card_System.md` | PERMANENTE | queda | **2026-09-27 (sustituida, DOC-POOL-1)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Dev_Mode.md` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Editor_Authoring_Tools.md` | PERMANENTE | queda | **2026-09-25 (sustituida, CARD-FACE-3-DOC-b)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Gig_Combat_Core.md` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
 | `SSoT_Gig_Encounter.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_INDEX.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | índice de autoridad |
-| `SSoT_Runtime_CompositionSession_Integration.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_Runtime_Flow.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_INDEX.md` | PERMANENTE | queda | **2026-09-21 (sustituida, CARD-FACE-1/2-DOC)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | índice de autoridad |
+| `SSoT_Runtime_CompositionSession_Integration.md` | PERMANENTE | queda | **2026-09-27 (sustituida, DOC-POOL-1)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Runtime_Flow.md` | PERMANENTE | queda | **2026-09-27 (sustituida, DOC-POOL-1)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
 | `SSoT_Scoring_and_Meters.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_Singer_Voice.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
-| `SSoT_Status_Effects.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Singer_Voice.md` | PERMANENTE | queda | **2026-09-27 (sustituida, DOC-POOL-1)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
+| `SSoT_Status_Effects.md` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | SSoT viva |
 | `SongConfigBuilder.cs` | PERMANENTE | queda | no registrada · **verificada byte-idéntica al repo 2026-09-01 (R6, `diff` contra copia fresca; R6 NO la editó)** | Assets/Scripts/Music/SongConfigBuilder.cs | BAL-1 (2026-07-22): mixGains; DBG-C1: MusicianTrackKey; **R6 2026-09-01: sin cambios** | lotes posteriores posibles: R5-d render-scope solo (§8 inv 14) — no verificable en la copia |
-| `StatusEffectCatalogueSO.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Status/StatusEffectCatalogueSO.cs | statusKey presente; sin marca posterior | sin lote posterior conocido |
-| `StatusEffectContainer.cs` | PERMANENTE | queda | no registrada | Assets/Scripts/Status/Runtime/StatusEffectContainer.cs | R5-a (2026-08-21): SpendStacks + MaxStacks presentes | **RANCIA desde WINK-1 (2026-08-31)** — la copia del PK publica `StatusAppliedEvent` con 3 argumentos; el código real pasa 4 (`effect`). Refresco abierto en §A.1 |
+| `StatusEffectCatalogueSO.cs` | PERMANENTE | queda | **2026-09-21 (refrescada, CARD-FACE-1/2-DOC)** | Assets/Scripts/Status/StatusEffectCatalogueSO.cs | **CARD-FACE-2 (A13-FIX) / 2026-09-21** — verificada por contenido: guarda `IconSprite` ↔ `st_<key>` dentro de `ValidateCatalogueContents` (L250 ss.), un solo `OnValidate` | antes «sin marca posterior» |
+| `StatusEffectContainer.cs` | **Refrescar.** El publisher de `StatusAppliedEvent` pasa `effect` como cuarto argumento. | **abierto** |
 | `StatusEffectSO.cs` | PERMANENTE | queda | **2026-09-05 (refrescada, TXT-1)** | Assets/Scripts/Status/StatusEffectSO.cs | **WINK-1 / verificada 2026-09-05** — `applySfx` + `ApplySfx` presentes; también `description` `[TextArea]` y el auto-rename `StatusEffect_{DisplayName}_{EffectId}` de `OnValidate` | refresco de WINK-1 **cerrado**. El auto-rename es la razón de que la pestaña de status de `GameTextWindow` sea de sólo lectura (P-TXT-2, `CURRENT_STATE` §4) |
-| `changelog-ssot.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | historia semántica |
-| `coverage-matrix.md` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | lookup de autoridad |
-| `ssot_manifest.yaml` | PERMANENTE | queda | no registrada | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | manifiesto (governs:) |
-| `PK_Manifest.md` | PERMANENTE (Capa 2) | queda | 2026-08-27 (v2) | `Docs/PK_Manifest.md` | PK-CUT-1 / 2026-08-27 | este fichero; no gobernado — operativa del PK |
+| `changelog-ssot.md` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC + SONG-TAIL-1 D-REG)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | historia semántica |
+| `coverage-matrix.md` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | lookup de autoridad |
+| `ssot_manifest.yaml` | PERMANENTE | queda | **2026-09-27 (sustituida, CONV-TINT-1-DOC)** | (ver SSoT_INDEX / manifiesto; no verificada contra árbol en esta sesión) | contenido fechado por sus propias entradas (último lote citado: DOC-APPLY-3 2026-08-26 en los docs de gobernanza) | manifiesto (governs:) |
+| `PK_Manifest.md` | PERMANENTE (Capa 2) | queda | **2026-09-27 (v18.6, SONG-TAIL-1 apertura)** | `Docs/PK_Manifest.md` | PK-CUT-1 / 2026-08-27 | este fichero; no gobernado — operativa del PK |
 | `MGP_Boundary_Index.md` | PERMANENTE (Capa 2) | queda | 2026-08-26 | `Docs/MGP_Boundary_Index.md` | PK-AUDIT-1 / 2026-08-26 | índice del espejo MGP-20260810; no gobernado |
-| `Repo_Tree_Index.md` | PERMANENTE (Capa 2) | queda | **snapshot 2026-09-14 12:30 (regenerado, TEXT-5)** | `Docs/Repo_Tree_Index.md` | generado por `make-tree-unity.ps1` | **473 rutas** (472 en el snapshot del 2026-09-11 14:47; 445 en el del 2026-08-27) de `Assets/Scripts`, `Assets/Editor`, `Assets/PinkTrombonePOC`, `Docs`, `Packages` + docs de raíz. Excluye código de terceros (`MidiPlayer`, `com.merry-yellow.code-assist`) y assets de Unity (`-IncludeAssets` para incluirlos). Avisa de homónimos. **Deuda de siete lotes saldada 2026-09-11**; regenerado de nuevo en TEXT-5 por el fichero nuevo del lote. Sirvió además para verificar la ruta del `governs:` nuevo y para confirmar que existen `TrackHoverPanel.cs` y `SongTrackElementUI.cs` (candidatos de F-T5-2, **existencia verificada, contenido no leído**). **Caduca** — ver §C.5 |
+| `Repo_Tree_Index.md` | PERMANENTE (Capa 2) | queda | **snapshot 2026-09-25 19:17 (regenerado tras PAUSE-1)** — corregido en DOC-POOL-1; antes decía 13:04 | `Docs/Repo_Tree_Index.md` | generado por `make-tree-unity.ps1` | 480 → **482** rutas; `Assets/Scripts/Editor` 12 → 14. **DOC-POOL-1:** el snapshot 19:17 trae **488** ficheros, con `Assets/Scripts/UI/Pause/` y las cinco rutas de PAUSE-1. Contiene `GameSymbolsSyncMenu.cs` (CARD-FACE-3) y `GameSymbolsTableMenu.cs` (no declarado por ningún lote; F-CF3DOC-1, documentado en §20.14 el 2026-09-25); **no** contiene `SymbolSheetSlicer.cs` (nunca existió) |
 | `RhythmLane.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Enums/RhythmLane.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | enum de carril rítmico; 1 KB |
 | `RhythmFxConfigSO.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Data/RhythmFxConfigSO.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | config SO del FX rítmico; 6 KB |
 | `RhythmParticleEmitter.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Music/RhythmParticleEmitter.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | emisor de partículas; 9 KB |
 | `RhythmParticleMidiListener.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Music/RhythmParticleMidiListener.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | puente evento MIDI → emisor; 12 KB |
 | `RhythmFxTester.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Music/RhythmFxTester.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | banco de pruebas del FX; 10 KB |
-| `MidiEventInterfaces.cs` | POR-LOTE | lote **RFX-1** activo — sale al cerrar RFX-1/RFX-2 | adjuntada por el lote (sin fecha registrada) | Assets/Scripts/Music/MidiEventInterfaces.cs | RFX-1 / 2026-08-26 (marca `RFX-1` en el fichero) | seam de eventos MIDI que RFX-1 consume; **sin marca RFX-1** — preexistente; 3 KB |
 | `PENDING_DOC_DIFFS_RFX-1.md` | POR-LOTE (paquete retenido) | lote **RFX-1** activo | 2026-08-26 | `Docs/pending/PENDING_DOC_DIFFS_RFX-1.md`† | RFX-1 sesión 1/2, cerrada 2026-08-26 | **D-DOC-5 cumplida**: la cabecera nombra consumidor (`RFX-1-DOC` o la fase doc de RFX-2) y declara la pérdida en ese cierre si ninguno abre · **no existe en el repo — solo vive aquí; comprometer a `Docs/pending/` antes de retirarlo (D-DOC-5)** |
 
 ---
@@ -761,6 +946,11 @@ Cómo pedirlos: **no se piden** (paquetes consumidos / duplicados); los históri
 
 | Fichero | KB | Clase | Motivo / dónde vive el contenido ahora |
 |---|---:|---|---|
+| `BEAT-1_Doc_Package.md` | 25 | REDUNDANTE | paquete **consumido en DOC-POOL-1 (2026-09-27)**: Parte A aplicada en la misma sesión (F-B1-15), Parte B B1–B11 completa; contenido en `SSoT_Runtime_CompositionSession_Integration` §3.4.1, `Design_Vibe_Telegraph` §10.5, `SSoT_Dev_Mode` §18/§19.2, `SSoT_Game_Text`, `CURRENT_STATE` §1/§2/§4; ver changelog 2026-09-27 |
+| `PAUSE-1_DocDiffs_Pending.md` | 36 | REDUNDANTE | paquete **consumido en DOC-POOL-1 (2026-09-27)**: Parte A (34–35) y Parte B (1–33) aplicadas; **pasos 15 y 24 descartados**, absorbidos por BEAT-1 B4/B7 (D10=B). Contenido en `SSoT_Audio` §4.8–§4.9, `SSoT_Runtime_Flow` «Pause state», `SSoT_Card_System`, boundary §4.1; ver changelog 2026-09-25 |
+| `PENDING_DOC_PACKAGE_CARD-FACE-1.md` | 12 | REDUNDANTE | paquete **consumido en CARD-FACE-1/2-DOC (2026-09-21)**, corregido antes con §D3 del paquete 2; contenido en `SSoT_Game_Text` §1/§2.1/§5/§7, `SSoT_Card_System` §10, `SSoT_Editor_Authoring_Tools` §20.14 |
+| `PENDING_DOC_PACKAGE_CARD-FACE-2.md` | 12 | REDUNDANTE | paquete **consumido en CARD-FACE-1/2-DOC (2026-09-21)**, D1..D8; ver changelog 2026-09-21 |
+| `Roadmap_Update_CARD-FACE-1_close.md` | 5 | SUPERADO | paso R1 **nunca aplicado**; sustituido por la edición consolidada de `S5_DemoCutClose_Sub_Roadmap.md` (CARD-FACE-1 y 2 cerradas, CARD-FACE-3 propuesta) |
 | `PENDING_DOC_DIFFS_TUT-REDESIGN-B.md` | 20 | REDUNDANTE | paquete **consumido en DOC-TUTR-B (2026-09-04)**; §12 (prompt de TXT-1) emitido como cierre de lote antes de retirarlo. **Retirada física ejecutada en DOC-APPLY-4 (2026-09-05)** tras verificar por muestreo cinco de sus once diffs contra los destinos (§1.1 · §1.2 · §1.4 · §2.1 · §10 · §11.3, todos presentes). Llevaba 24 h compitiendo en retrieval con los documentos que ya lo habían absorbido |
 | `PENDING_DOC_DIFFS_RFX-1.md` | 12 | REDUNDANTE | paquete **consumido**, declarado así en **DOC-APPLY-4 (2026-09-05)**, D-DA4-D2=A. §1/§2/§3/§6 ya estaban aplicados (absorbidos por la pasada doc de RFX-2 el 2026-08-26); §4 tenía veredicto «sin cambio» registrado en la fila del contrato sensorial de `coverage-matrix.md`; **§5 resuelto en DOC-APPLY-4, también sin cambio** — `SSoT_ALWTTT_MidiGenPlay_Boundary.md` no enumera consumidores de `MidiMusicManager`, así que no había fila que añadir. **Cero contenido perdido.** Misma disposición que CSV-4c / R5-d / HUD-COMP-1 (§D.2): la desaparición es correcta, no es pérdida |
 | `DocApply_AMW-1.md` | 18 | REDUNDANTE | paquete **consumido en DOC-APPLY-4 (2026-09-05)**: 7 de sus 8 ediciones aplicadas. La 8ª (banner de supersesión en `Design_AudienceMemberWizard_Requirements_v0_1.md`) **queda pendiente** porque el destino no estaba disponible en sesión — ver §A.1, bloque DOC-APPLY-4. No retirar este paquete hasta aplicar esa edición, o retirarlo declarando la 8ª como deuda con dueño nombrado |
@@ -1043,3 +1233,9 @@ Diseños enviados, ideas registradas sin lote, READMEs de carpeta y shaders. **L
 | `integrations_midigenplay_README.md` | `Docs/integrations/midigenplay/README.md` | **renombrado para el PK** (el repo lo llama `README.md`; 9 homónimos — ver `Repo_Tree_Index.md`). Pedir por ruta, nunca por nombre |
 | `planning_README.md` | `Docs/planning/README.md` | **renombrado para el PK**; pedir por ruta |
 | `planning_active_README.md` | `Docs/planning/active/README.md` | **renombrado para el PK**; pedir por ruta |
+
+### B.6 — BEAT-1, retirado el 2026-09-27
+
+| Fichero | Ruta en repo | Cómo pedirlo |
+|---|---|---|
+| `MidiEventInterfaces.cs` | `Assets/Scripts/Music/MidiEventInterfaces.cs` | por FRP, sólo chat, cuando un lote toque los contratos de oyentes MIDI (`IBeatGridListener`, `ITempoSignatureListener`, …). Copia del repo verificada el 2026-09-25 (BEAT-1): igual a la del PK salvo un carácter mal codificado en un comentario (l. 70) |

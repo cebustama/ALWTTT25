@@ -52,7 +52,8 @@ namespace ALWTTT.Cards
             if (card.Payload is CompositionCardPayload comp)
                 body = BuildCompositionDescription(comp);
             else if (card.Payload is ActionCardPayload action)
-                body = CardEffectDescriptionBuilder.BuildList(action.Effects, stats);
+                body = CardEffectDescriptionBuilder.BuildList(action.Effects, stats,
+                    statusGlyphOnly: CardFacePresentation.UseSymbols);   // [CARD-FACE-2] face: glyph alone
             else
                 return $"Unsupported payload: {card.Payload.GetType().Name}";
 
@@ -81,7 +82,8 @@ namespace ALWTTT.Cards
         #region Shared fragments
 
         /// <summary>[D-CF-13=C] Face: glyph only. The word lives in the card hover panel.</summary>
-        private static string RoleGlyph(TrackRole role) => GameSymbols.Role(role);
+        private static string RoleGlyph(TrackRole role)
+    => CardFacePresentation.UseSymbols ? GameSymbols.Role(role) : GameText.Format(UiRole(role));   // [D-CF-19=B]
 
         /// <summary>Modal: glyph + localized role name. No hover here, so the word is shown.</summary>
         private static string RoleGlyphAndName(TrackRole role)
@@ -98,7 +100,13 @@ namespace ALWTTT.Cards
             for (int i = 0; i < kws.Count; i++)
             {
                 if (i > 0) sb.Append(' ');
-                sb.Append(GameSymbols.Keyword(kws[i]));
+                if (CardFacePresentation.UseSymbols)
+                    sb.Append(GameSymbols.Keyword(kws[i]));
+                else
+                {   // [D-CF-19=B] the keyword's glossary name, through the same read the hover uses
+                    ConceptTooltipResolver.TryGetKeywordText(kws[i], out var kwName, out _);
+                    sb.Append(kwName);
+                }
             }
             return sb.ToString();
         }
@@ -116,7 +124,7 @@ namespace ALWTTT.Cards
                     sb.Append(p.TrackAction != null ? RoleGlyph(p.TrackAction.role) : GameText.Format(UiCardKindTrack));
                     break;
                 case CardPrimaryKind.Part:
-                    sb.Append(p.PartAction != null ? FormatPartAction(p.PartAction) : GameText.Format(UiCardKindPart));
+                    sb.Append(p.PartAction != null ? PartActionFace(p.PartAction.action) : GameText.Format(UiCardKindPart));
                     break;
                 default:
                     sb.Append(GameText.Format(UiCardKindComposition));
@@ -143,8 +151,11 @@ namespace ALWTTT.Cards
                     // One modifier per LINE: a card is taller than it is wide, and "Modulate to
                     // Mediant" on a shared line wraps badly. Swap ModifierRowSep to " " for one line.
                     if (row.Length > 0) row.Append(ModifierRowSep);
-                    row.Append(GameSymbols.Tag(glyph)).Append(' ')
-                       .Append(PartEffectDescriptionBuilder.ValueOnly(fx));
+                    row.Append(CardFacePresentation.UseSymbols
+                       ? GameSymbols.Tag(glyph)
+                       : GameText.ConceptName(PartEffectDescriptionBuilder.FamilyConceptId(fx)))   // [D-CF-19=B]
+                           .Append(' ')
+                           .Append(PartEffectDescriptionBuilder.ValueOnly(fx));
                 }
 
                 if (row.Length > 0)
@@ -189,7 +200,7 @@ namespace ALWTTT.Cards
                     sb.Append("<b>").Append(GameText.Format(UiCardKindPart)).Append("</b>");
                     if (p.PartAction != null)
                     {
-                        sb.Append(Sep).Append(FormatPartAction(p.PartAction));   // Parte B
+                        sb.Append(Sep).Append(PartActionGlyphAndName(p.PartAction.action));   // [CARD-FACE-2] Part B closed
 
 #if ALWTTT_DEV
                         if (!string.IsNullOrEmpty(p.PartAction.musicianId))
@@ -239,10 +250,13 @@ namespace ALWTTT.Cards
 
         #endregion
 
-        // [Parte B] Still an enum name / asset text. PartActionDescriptor.cs not yet in session.
-        private static string FormatPartAction(PartActionDescriptor pa) =>
-            string.IsNullOrWhiteSpace(pa.customLabel)
-                ? pa.action.ToString()
-                : pa.customLabel;
+        // [CARD-FACE-2 / F-TXT4-2 closed, population 12 closed] PartActionKind is a categorical enum: a
+        // glyph on the face (meaning in the hover stack), glyph + word in the modal. customLabel no longer
+        // exists (D-CF-21): the part LABEL is derived from the kind at apply time (SongCompositionUI).
+        private static string PartActionFace(PartActionKind kind)
+            => CardFacePresentation.UseSymbols ? GameSymbols.PartActionGlyph(kind) : GameText.Format(UiPartAction(kind));
+
+        private static string PartActionGlyphAndName(PartActionKind kind)
+            => GameSymbols.PartActionGlyph(kind) + " " + GameText.Format(UiPartAction(kind));
     }
 }

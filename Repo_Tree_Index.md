@@ -1,6 +1,6 @@
 ﻿# Repo_Tree_Index — índice de rutas del repositorio ALWTTT
 
-**Snapshot: 2026-09-16 17:34.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
+**Snapshot: 2026-09-25 19:17.** Generado por `make-tree-unity.ps1`. **No es un documento gobernado** — es operativa del PK (Capa 2), igual que `PK_Manifest.md`.
 
 **Para qué sirve.** El PK es plano: los ficheros adjuntos pierden su carpeta. Este índice devuelve la ruta real de cualquier fichero por su nombre, sin inferirla del `namespace`. Sirve para rellenar la columna *Ruta en repo* de `PK_Manifest.md` y para pedir ficheros por ruta exacta en el File Request Protocol.
 
@@ -12,35 +12,35 @@
 
 Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-IncludeAssets` si un lote de contenido los necesita.
 
-**Total indexado: 474 ficheros.**
+**Total indexado: 488 ficheros.**
 
 | Carpeta | Ficheros | KB |
 |---|---:|---:|
-| `(raiz)` | 5 | 124 |
+| `(raiz)` | 6 | 136 |
 | `Assets/PinkTrombonePOC` | 4 | 71 |
 | `Assets/PinkTrombonePOC/PinkTromboneSrc` | 13 | 54 |
 | `Assets/Scripts` | 1 | 7 |
 | `Assets/Scripts/Backgrounds` | 4 | 11 |
-| `Assets/Scripts/Cards` | 78 | 775 |
+| `Assets/Scripts/Cards` | 79 | 798 |
 | `Assets/Scripts/Characters` | 22 | 224 |
-| `Assets/Scripts/Controllers` | 2 | 57 |
-| `Assets/Scripts/Data` | 50 | 242 |
-| `Assets/Scripts/DevMode` | 8 | 163 |
-| `Assets/Scripts/Editor` | 9 | 154 |
+| `Assets/Scripts/Controllers` | 2 | 58 |
+| `Assets/Scripts/Data` | 51 | 246 |
+| `Assets/Scripts/DevMode` | 8 | 165 |
+| `Assets/Scripts/Editor` | 14 | 184 |
 | `Assets/Scripts/Encounters` | 3 | 55 |
 | `Assets/Scripts/Enums` | 22 | 12 |
 | `Assets/Scripts/Extensions` | 1 | 1 |
-| `Assets/Scripts/Generation` | 13 | 29 |
+| `Assets/Scripts/Generation` | 14 | 33 |
 | `Assets/Scripts/Interfaces` | 7 | 3 |
-| `Assets/Scripts/Managers` | 13 | 457 |
+| `Assets/Scripts/Managers` | 13 | 466 |
 | `Assets/Scripts/Map` | 11 | 25 |
 | `Assets/Scripts/Music` | 16 | 292 |
 | `Assets/Scripts/Sensory` | 26 | 103 |
-| `Assets/Scripts/Status` | 9 | 85 |
+| `Assets/Scripts/Status` | 9 | 91 |
 | `Assets/Scripts/Tutorial` | 14 | 143 |
-| `Assets/Scripts/UI` | 52 | 376 |
+| `Assets/Scripts/UI` | 57 | 413 |
 | `Assets/Scripts/Utils` | 5 | 8 |
-| `Docs` | 9 | 935 |
+| `Docs` | 9 | 967 |
 | `Docs/archive` | 8 | 660 |
 | `Docs/archive/absorbed` | 2 | 5 |
 | `Docs/archive/snapshots` | 1 | 0 |
@@ -48,11 +48,11 @@ Assets de Unity (`.asset` / `.prefab` / `.unity`) **fuera**; regenerar con `-Inc
 | `Docs/integrations` | 1 | 1 |
 | `Docs/integrations/midigenplay` | 5 | 99 |
 | `Docs/planning` | 11 | 153 |
-| `Docs/planning/active` | 16 | 468 |
+| `Docs/planning/active` | 16 | 469 |
 | `Docs/planning/archive` | 7 | 102 |
 | `Docs/reference` | 5 | 31 |
 | `Docs/runtime` | 3 | 68 |
-| `Docs/systems` | 14 | 668 |
+| `Docs/systems` | 14 | 713 |
 | `Packages` | 2 | 19 |
 
 ## Nombres duplicados (atención)
@@ -71,6 +71,7 @@ ALWTTT Claude API.txt
 CONTRIBUTING.md
 files.txt
 F-R5e-3_payment_gate.txt
+pause1_grep.txt
 ```
 
 ### Assets/PinkTrombonePOC
@@ -163,6 +164,7 @@ Assets/Scripts/Cards/Effects/DrawCardsSpec.cs
 Assets/Scripts/Cards/Effects/GrantBonusLoopSpec.cs
 Assets/Scripts/Cards/Effects/ModifyStressSpec.cs
 Assets/Scripts/Cards/Effects/ModifyVibeSpec.cs
+Assets/Scripts/Cards/Effects/PartEffectDescriptionBuilder.cs
 Assets/Scripts/Cards/Effects/RevealPreferencesSpec.cs
 Assets/Scripts/Cards/Enums/CardAcquisitionFlags.cs
 Assets/Scripts/Cards/Enums/CardActionTiming.cs
@@ -241,6 +243,7 @@ Assets/Scripts/Data/Audio/AudioMixSettingsSO.cs
 Assets/Scripts/Data/Audio/CharacterSfxProfileSO.cs
 Assets/Scripts/Data/Audio/MixGainProfileSO.cs
 Assets/Scripts/Data/Audio/OstCatalogSO.cs
+Assets/Scripts/Data/Audio/PlayerAudioPrefs.cs
 Assets/Scripts/Data/Audio/SongData.cs
 Assets/Scripts/Data/Audio/SoundBankSO.cs
 Assets/Scripts/Data/Audio/SoundProfileData.cs
@@ -303,7 +306,12 @@ Assets/Scripts/DevMode/GenerationDebugFormatter.cs
 ### Assets/Scripts/Editor
 
 ```
+Assets/Scripts/Editor/GameSymbolsCoverageMenu.cs
+Assets/Scripts/Editor/GameSymbolsDumpMenu.cs
+Assets/Scripts/Editor/GameSymbolsSyncMenu.cs
+Assets/Scripts/Editor/GameSymbolsTableMenu.cs
 Assets/Scripts/Editor/S5e_InspirationEconomyTool.cs
+Assets/Scripts/Editor/SymbolMetricsTuner.cs
 Assets/Scripts/Editor/Text/AudienceAbilityTextIndex.cs
 Assets/Scripts/Editor/Text/CardTextDumpMenu.cs
 Assets/Scripts/Editor/Text/ConceptGlossaryTextTable.cs
@@ -370,6 +378,7 @@ Assets/Scripts/Generation/Map/Stages/EnforceSemanticsStage.cs
 Assets/Scripts/Generation/Map/Stages/LayoutAndCreateNodesStage.cs
 Assets/Scripts/Generation/Map/Stages/PickStartExitStage.cs
 Assets/Scripts/Generation/Map/Stages/RepairGapsStage.cs
+Assets/Scripts/Generation/Music/IMidiTransportSuspend.cs
 Assets/Scripts/Generation/Music/MidiToolkitAdapter.cs
 ```
 
@@ -534,6 +543,9 @@ Assets/Scripts/UI/MusicianMapStatusUI.cs
 Assets/Scripts/UI/MusicianPickerRow.cs
 Assets/Scripts/UI/MusicianUI.cs
 Assets/Scripts/UI/NewSongPanelUI.cs
+Assets/Scripts/UI/Pause/OptionsPanelController.cs
+Assets/Scripts/UI/Pause/PauseGate.cs
+Assets/Scripts/UI/Pause/PauseMenuController.cs
 Assets/Scripts/UI/RewardContainer.cs
 Assets/Scripts/UI/Song Composition/CompositionContextRowUI.cs
 Assets/Scripts/UI/Song Composition/CompositionStripDriver.cs
@@ -545,9 +557,11 @@ Assets/Scripts/UI/Song Composition/SongTrackElementUI.cs
 Assets/Scripts/UI/Song Composition/TrackHoverPanel.cs
 Assets/Scripts/UI/StatusIconBase.cs
 Assets/Scripts/UI/TempoTextIndicator.cs
+Assets/Scripts/UI/Tooltips/CardFacePresentation.cs
 Assets/Scripts/UI/Tooltips/ConceptTagRenderer.cs
 Assets/Scripts/UI/Tooltips/ConceptTooltipResolver.cs
 Assets/Scripts/UI/Tooltips/EconPipTooltipTarget.cs
+Assets/Scripts/UI/Tooltips/GameSymbols.cs
 Assets/Scripts/UI/Tooltips/GameText.cs
 Assets/Scripts/UI/Tooltips/GameTextTemplateIds.cs
 Assets/Scripts/UI/Tooltips/I2DTooltipTarget.cs

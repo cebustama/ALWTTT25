@@ -81,6 +81,27 @@ Convinced means:
 - it should no longer count as an unresolved persuasion target for encounter completion
 - any residual pressure behavior is encounter-specific and must be stated explicitly by the encounter rules
 
+**Convinced-state presentation (CONV-TINT-1 + 1b, 2026-09-27).** Presentation only; no rule changes.
+- **Tint.** A convinced member's sprite takes `GigPresentationSO.ConvincedSpriteTint` (code default
+  `GigPresentationSO.DefaultConvincedSpriteTint`, gold; the demo asset uses a blue close to the venue
+  background, so the convinced member reads as "joining the crowd"). Priority: convinced > blocked >
+  plain — on a convinced member the Blocked ("oscurito") tint is not shown.
+- **Canvas concealed.** The member's whole canvas (bar and predicted segment, intention, status icons,
+  C2/C3 labels, revealed-taste icon) is concealed by a state `CanvasGroup` on the root of
+  `AudienceCharacterCanvas` (`SetConvincedHidden`). Each surface's own visibility rule keeps running
+  underneath — the S5e-ext / D-BN-17 bar policy included — and shows whatever it decided if the member
+  stops being convinced (Dev Mode only). Tooltips go through the global `TooltipManager`, outside the
+  group, so they carry explicit gates: intention/taste, Vibe breakdown and "oscurito" never open on a
+  convinced member.
+- **Single point.** `AudienceCharacterBase.RefreshStatePresentation()` (tint + canvas) is the only writer
+  of the member's `SpriteRenderer.color` and of the state group. It runs from the `IsBlocked` setter —
+  the funnel that `GigManager.RecalculateAudienceObstructions` drives on every member after any convince
+  or Dev un-convince — and from `OnConvinced`. If a later phase stops recalculating obstructions at those
+  moments, this hook must move with it.
+- **Unchanged.** `IsBlocked` keeps its gameplay value on a convinced member (AoE exclusion,
+  `AudienceBlockedEvent`); per-loop reaction floaters are still emitted (D-H3=A, F-CT-5). A dedicated
+  "convinced" icon is deferred; when it exists it must live outside the concealed group.
+
 ---
 
 ## 5. Reaction timing

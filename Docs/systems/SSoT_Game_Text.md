@@ -1,7 +1,13 @@
 # SSoT_Game_Text — ALWTTT
 
 **Class:** subsystem SSoT · **Created:** 2026-09-10 (TXT-2, D-TAG-9=A) · **Status:** active
-**Last substantive change:** 2026-09-16 (TEXT-VIBE-1) — the authority question the map had been
+**Last substantive change:** 2026-09-21 (CARD-FACE-1 / CARD-FACE-2 / CARD-FACE-2b, doc-pass
+CARD-FACE-1/2-DOC) — **the population map declares zero open rows** for the first time since it was
+created, and the project gains a **symbol vocabulary**: one global TMP atlas of 51 glyphs whose
+authority is a source texture, not the atlas (§2.1). Categorical enums now reach the player as glyphs,
+notation enums as derived template ids (D-CF-10=A), which closes F-TXT4-2. Templates 102 → **172**,
+concepts 43 → **73**, card names **byte-unchanged for the eighth consecutive batch**. Previous
+substantive change: 2026-09-16 (TEXT-VIBE-1) — the authority question the map had been
 carrying since TEXT-6 is **answered**: **D-SP1-6=B — an asset does not hold player text; it holds the
 datum the id is derived from.** Rows 8 and 11 are resolved, row 10 is resolved for meter and tempo,
 and the remaining third of row 10 is the only population still open. Templates 73 → **102**, of which
@@ -27,7 +33,16 @@ duplicated into it.
 
 ## 1. Population map — where player-facing text lives today
 
-**Eleven populations carry player text today; ten and two thirds are per-language.** The census has
+**Twelve populations carry player text today; all twelve are per-language, and none is OPEN
+(CARD-FACE-2, 2026-09-21).** Row 10 closed its last third (`RoleEntry.displayName`, deleted) and row
+12 — player text on effect assets, found at CARD-FACE-1 — closed on both fields. The loose literals
+F-TV-1 and F-TV-4 are migrated (`ui_gig_songs_left`, `ui_fx_vibe_bonus`), the candidate producer
+F-TV-7 was censused (seven classes) and replaced by `PartEffectDescriptionBuilder`, and the enum half
+F-TXT4-2 closed at CARD-FACE-2b. **This is still not a claim that the census is complete.** Zero open
+rows means every population *found* is resolved; the census has been declared complete four times and
+been wrong four times, and the rule in the next sentence stays in force. *(Historical opening, kept
+for its lessons:)* **Eleven populations carried player text at TEXT-VIBE-1; ten and two thirds were
+per-language.** The census has
 grown three times after being declared complete — the sixth was absent from the TXT-1 census, found
 at TXT-4 close and resolved at TEXT-5; the seventh and eighth were found at TEXT-6; the ninth and
 tenth at SONG-PANEL-1b, in a producer no earlier census had opened; the eleventh at TIP-1-DOC, in a
@@ -62,6 +77,11 @@ duplicated the enum name *inside* the authored string, which is precisely what a
 unwritable. **A residual third of row 10 stays open**: `RoleEntry.displayName` is untouched because
 its consumer (`SongTrackElementUI` / `TrackHoverPanel`) was not read in that session — and under the
 producer-census rule (F-SP1-1) an unread consumer is not a migration, it is a guess.
+**Closed at CARD-FACE-2 (2026-09-21).** CARD-FACE-1 read the consumer: `SongTrackElementUI` discarded
+the label (`out _`) and `TrackHoverPanel` never called `TryGetRole`. The field had **no player
+reader at all**, so CARD-FACE-2 deleted it and removed the `out string` from `TryGetRole`; the role
+reaches the player as the `tt_*` glyph and the `role_*` concept (§2.1). The waiting was right: the
+answer turned out to be «delete», which is not what a migration done blind would have produced.
 
 | # | Population | Storage | Language slots | Authoring surface | Authority for meaning |
 |---|---|---|---|---|---|
@@ -74,11 +94,20 @@ producer-census rule (F-SP1-1) an unread consumer is not a migration, it is a gu
 | 7 | **Song-panel track hover literals — RESOLVED (F-T5-2, TEXT-6)** | `ConceptGlossarySO.templates` under the `ui_track_*` ids, plus the reused `ui_card_detail_modifiers` (D-T6-3=B) | **N** | `GameTextWindow ▸ Templates` + CSV | `SSoT_Card_System.md` §10.1 (track rows), this document §5 |
 | 8 | **Composition floater labels — RESOLVED (F-T6-9, TEXT-VIBE-1)** | `ConceptGlossarySO.templates` under ten `ui_fx_*` ids; `FxEntry.label` **deleted** and the id chosen in code by `SongCompositionUI.FxTextIdOf` from the selected entry (D-SP1-6=B) | **N** | `GameTextWindow ▸ Templates` + CSV | this document §5; which category fires is `SongCompositionUI` diff classification (B2/#3) |
 | 9 | **Song-panel context-row hover literals — RESOLVED (F-SP1-8, SONG-PANEL-1b)** | `ConceptGlossarySO.templates` under the `ui_ctx_*` ids | **N** | `GameTextWindow ▸ Templates` + CSV | this document §5; loop/part meaning in `SSoT_Runtime_CompositionSession_Integration.md` |
-| 10 | **Strip chip labels — RESOLVED for meter and tempo, OPEN for role (F-SP1-13, TEXT-VIBE-1)** | meter/tempo: `ConceptGlossarySO.templates` under **derived** ids `ui_ctx_meter_<value>` / `ui_ctx_tempo_<value>`, the two `displayName` fields **deleted** and the lookups stripped of their `out string label`. **Still open:** `CompositionStripThemeSO.RoleEntry.displayName`, monolingual, consumer not yet censused | **N** (meter, tempo) · **1** (role) | `GameTextWindow ▸ Templates` + CSV; role still Inspector-only | this document §5. `MoodTag` and `Tonality` are **enum names, not asset text** — census correction, they belong to F-TXT4-2 → CARD-FACE-1 |
-
+| 10 | **Strip chip labels — RESOLVED (F-SP1-13; meter/tempo TEXT-VIBE-1, role CARD-FACE-2)** | meter/tempo: `ConceptGlossarySO.templates` under **derived** ids `ui_ctx_meter_<value>` / `ui_ctx_tempo_<value>`, the two `displayName` fields **deleted** and the lookups stripped of their `out string label`. Role: `RoleEntry.displayName` **deleted** (its only reader discarded it), `TryGetRole` without `out string` | **N** | `GameTextWindow ▸ Templates` + CSV | this document §5. `MoodTag` and `Tonality` are **enum names, not asset text** — census correction; closed under F-TXT4-2 (`MoodTag` is not printed at all, D-CF-17=D; tonality by `ui_tonality_*`) |
 | 11 | **C1 Vibe readout tooltip — RESOLVED (F-TIP-2, TEXT-VIBE-1)** | `ConceptGlossarySO.templates` under six `ui_readout_*` ids, including the header; `GigCanvas.BuildReadoutTooltip` composes them and keeps only the line break as layout | **N** | `GameTextWindow ▸ Templates` + CSV | `planning/Design_Vibe_Telegraph_v0_1.md` §10.1 (what the readout means); wording lives here |
+| 12 | **Player text on effect assets — RESOLVED (found CARD-FACE-1, closed CARD-FACE-2)** | `MeterEffect.meterLabel` **deleted** at CARD-FACE-1 (the asset keeps `timeSignature`; text is `ui_ctx_meter_<value>`, the context row's id). `PartActionDescriptor.customLabel` **deleted** at CARD-FACE-2 (label derived from `PartActionKind` via `ui_partaction_*`; the `"Bridge"` literal became `ui_part_bridge`). `PartEffect.GetLabel()` survives as a **developer label** (D-CF-5=B): player lines are composed by `PartEffectDescriptionBuilder` | **N** | `GameTextWindow ▸ Templates` + CSV | this document §5; modifier meaning in `SSoT_Card_System.md` §10 |
 
 **Row 11 is a census failure, not a new surface (TIP-1-DOC, 2026-09-15).** The C1 readout hover shipped at BIGNUM-1 (2026-09-09), two batches *before* SONG-PANEL-1 declared the closing criterion «met for code-authored text». It was missed because every census since TXT-1 has walked the text-producing subsystems — glossary consumers, card surfaces, the audience canvas, the song panel — and `GigCanvas` is a **presentation** file whose player text is a by-product of a telemetry feature. So the SONG-PANEL-1 claim is **narrowed here rather than restated**: code-authored text is resolved *in the surfaces then censused*. The method rule this adds to §8: a batch that adds a **hover, floater or readout** adds a population row when it ships, because the census will not find it later by walking text files. Assigned to **VIBE-READ-1**, which rewrites that function anyway for F-TIP-6 — migrating it in a batch that already edits it costs one pass instead of two. **Closed at TEXT-VIBE-1 (2026-09-16)**, and the one-pass argument held: the same edit that suppressed the inert `+ SFX del local → 0` line replaced the five Spanish literals with `ui_readout_*`. The migration did **not** wait on D-SP1-6, and the reason is worth keeping: row 11 is text **in code**, the shape populations 5, 7 and 9 have resolved by template since TXT-4; D-SP1-6 governs **assets**. Scoping a code-authored population to an asset-authority decision would have delayed it for a dependency it does not have.
+
+**Row 12 is D-SP1-6=B applied twice, and its census was wrong in a new way (CARD-FACE-1/2).** Both
+fields are text slots on effect assets, exactly the row-8/row-10 shape, and both were deleted rather
+than migrated — the datum (`timeSignature`, `PartActionKind`) was already on the asset. The lesson is
+in the second deletion: the `customLabel` census was run over the PK plus the chat attachments and
+found **two** consumers; the repo had **five** (`CardData`, `CardInventoryWindow` and
+`DeckEditorWindow` were outside both sets, **F-CF2-4**). Deleting a serialized field is the one edit
+whose consumers are not bounded by the batch's file set, so §8 check 8 now requires a whole-repo grep
+before the step is written.
 
 **Population 2 is the TXT-3 result, and it is a MOVE.** Until 2026-09-10 status text lived on
 `StatusEffectSO` (`DisplayName` / `Description`) and card-keyword text on `SpecialKeywordData`
@@ -244,9 +273,61 @@ for a name absent from the atlas.
 **One Sprite Asset, global, registered in TMP Settings** — not one per text family. The rejected
 alternative was per-family assets assigned as fallbacks on each consuming component, which makes
 every new text surface a wiring step and makes a missing glyph a per-prefab defect. The cost of the
-global asset is a single flat namespace, which is why ids carry prefixes by domain: `tt_` track
-type, `mod_` modifier, `mt_` meter. Sprite ids live in a namespace **separate** from concept ids —
-a `<link=flow>` and a `<sprite name="mt_flow">` are two different things and are checked separately.
+global asset is a single flat namespace, which is why ids carry prefixes by domain. **Prefixes in
+use (CARD-FACE-1/2):** `tt_` track role (`TrackRole`) · `mod_` modifier family (fixed names, one per
+`PartEffect` family, plus `mod_dir_up` / `mod_dir_down`) · `kw_` keyword (`SpecialKeywords`) · `sc_`
+scope (`EffectScope`) · `tm_` timing (`ApplyTiming`) · `ct_` card type (`CardType`) · `pa_` part action
+(`PartActionKind`) · `st_` status (`StatusEffectSO.StatusKey`). **`mt_` is retired, never used:** TXT-4
+declared it for meters, and CARD-FACE-1 decided that a meter is *notation*, which is text (D-CF-10=A,
+below). Sprite ids live in a namespace **separate** from concept ids and from template ids:
+`tt_melody` is a glyph, `role_melody` a concept, `ui_role_melody` a template, and all three are derived
+from the same enum value in code (`GameSymbols`, `GameTextTemplateIds`) — which is what stops them from
+disagreeing about which value they describe. They are checked separately.
+
+**Symbol or text — the rule that decides (D-CF-10=A).** Enums of **notation** — time signature, tempo,
+note, scale degree, instrument type, tonality — reach the player as **text**, through a derived
+template family: «5/4» and «Mediante» are things a player reads, and Spanish may want to read them
+differently. Enums that are **categories** — role, keyword, scope, timing, modifier family, card type,
+part action, status — reach the player as a **symbol**: a scope has no reading of its own. Notes in
+Spanish use **solfège** (`Do`, `Do#`, `Re`…, D-CF-12). **`None` values of categorical enums get no glyph
+(D-CF-20)**; their template id still exists, because text is cheap and art is not. Glyphs are tagged
+with `tint=1` (D-CF-11=B) so they take the colour of the text around them — a status glyph inside a
+buff/debuff-coloured effect line is coloured by that line.
+
+**The source texture is the authority of the art; the TMP Sprite Asset is derived (D-CF-9=A′).**
+- Source: `Assets/Resources/Sprites/Game Symbols/game_symbols.png`. Derived atlas:
+  `Assets/Resources/Sprites/Game Symbols/game_symbols.asset`, registered as the global Sprite Asset
+  in TMP Settings. **(F-CF2-5:** the CARD-FACE-1 records gave `Assets/Art/UI/Symbols/`; that path was
+  never the repo's. Tools locate the atlas **by search** and warn if more than one exists, D-CF-24=C.)
+- The **slice name is the sprite id**. Replacing art means replacing the PNG while keeping slice names.
+  The atlas is regenerated, never hand-edited — with one recorded exception (F-CF2-2 below).
+- Slice names are copied from the tool's dump of `GameSymbols.AllSpriteNames`, never typed (F-TV-5).
+  `AllSpriteNames` is enumerated from the enums at type init; the `st_` family is keyed by an asset
+  string, so it is enumerated **by the editor** from the status catalogues (the Ability precedent,
+  §5).
+- **51 glyphs** at CARD-FACE-2 close (27 at CARD-FACE-1 + 5 `ct_` + 7 `pa_` + 12 `st_`); sheet
+  1024×512 at CARD-FACE-1, grid 128. **Atlas metrics, uniform on every glyph:** `Scale 1.6 ·
+  baselineRatio 0.7 (BY 89.6) · BX 0 · Advance 128`. **Face Info is left at zero on purpose:** with
+  `pointSize == 0` TMP sizes each sprite against the ascender of the **text's** font; filling it
+  switches branch and forces a hand-kept correspondence with every font. It is the auto-fit mode, not
+  an uninitialised asset.
+- **Two regeneration hazards, both with the symptom far from the cause** (full procedure:
+  `SSoT_Editor_Authoring_Tools.md` §20.14). (1) A sheet sliced with pivot `Center` produces glyphs with
+  `BX = −width/2`, drawn half a cell left of the cursor (**F-CF-4**): run «Fix horizontal» after
+  **every** `Update Sprite Asset`, old glyphs included. (2) TMP's character table fixes an entry's
+  **name when the entry is created**, and later Updates do not rewrite it: slices must be named
+  **before** the first Update (**F-CF2-2**, where `game_symbols_50` had to be renamed to
+  `st_spotlight` by hand in the table, which also recomputes the lookup hashcode).
+- **Status glyphs are the same drawing as the status icon (D-CF-18=C, D-CF-22=A):** the
+  `StatusEffectSO.IconSprite` of each of the 12 statuses **is** the atlas sub-sprite `st_<key>`. The
+  contract and its catalogue guard live in `SSoT_Status_Effects.md` §3.3.
+
+**`<link>` on card surfaces is inert, and the tags were withdrawn (F-CF-5).** The only TMP link
+reader in the project is `TutorialOverlayView` (§4), scoped to its own text. Card face, card hover
+and detail modal have none, so `<link>` emitted there does nothing; CARD-FACE-1 withdrew the tags it
+had emitted. `GameSymbols.Link()` is kept with no callers, for the day a card surface gets a reader.
+This is also why the modal pairs each glyph with its word (D-CF-13=C, `SSoT_Card_System.md` §10.3):
+a glyph with no hover and no word is unreadable.
 
 **Target phrases do not start with a definite article** (authoring rule from **F-TXT4-5**). The
 `tgt_*` fragments are inserted into a sentence whose preposition is chosen by the template that
@@ -373,9 +454,38 @@ behind the dialog box and read as "no tooltip".
 
 ## 5. Vocabulary (D-TAG-3=B, extended by TXT-3, TXT-4 and TEXT-5)
 
-**One registry, three lists: 43 concepts + 60 card names + 102 templates.** The three lists are
-separate id spaces inside the same per-language asset, each with its own tab, coverage check and
-fingerprint.
+**One registry, three lists: 73 concepts + 60 card names + 172 templates** (CARD-FACE-2 close,
+2026-09-21). The three lists are separate id spaces inside the same per-language asset, each with its
+own tab, coverage check and fingerprint. **Fingerprints at CARD-FACE-2 close:** Templates
+`de7ce78ca48f8ebaf0d3ee415d204ca541430aa3` (172) · Concepts
+`f4a79e7c64774277424cf63362f061fde250791c` (73) · Cards `7012d4898044ef3e67c5bd2587be50786e31815b`
+(60, byte-unchanged since TXT-4).
+
+**Derived template families after CARD-FACE-1/2 (the D5 contract below, extended).** `All` =
+`Fixed` + one id per value of each enumerated type: `ui_ctx_meter_<TimeSignature>`,
+`ui_ctx_tempo_<TempoRange>` (TEXT-VIBE-1); `ui_role_<TrackRole>`, `ui_note_<NoteName>` (DryWetMidi),
+`ui_degree_<ScaleDegree>`, `ui_instrumenttype_<InstrumentType>` (CARD-FACE-1);
+`ui_tonality_<Tonality>`, `ui_cardtype_<CardType>`, `ui_partaction_<PartActionKind>` (CARD-FACE-2).
+Fixed ids added: CARD-FACE-1 — `ui_mod_tempo_scale`, `ui_mod_key`, `ui_mod_degree`,
+`ui_mod_random_key`, `ui_mod_random_in_scale`, `ui_mod_instrument`, `ui_mod_drums`,
+`ui_mod_instrument_type`, `ui_mod_instrument_random`, `ui_gig_songs_left`, `ui_fx_vibe_bonus` (11);
+CARD-FACE-2 — `ui_tonality_random_any`, `ui_tonality_random_majorish`,
+`ui_tonality_random_minorish`, `ui_part_bridge`. Counts: 102 → **147** (CARD-FACE-1, +45) → **172**
+(CARD-FACE-2, +25). Template families include the `None` value of an enum even where the glyph does
+not (D-CF-20). **Reuse, not a new id:** the detail modal formats meter, tempo and BPM with
+`ui_ctx_meter_*`, `ui_ctx_tempo_*` and `ui_ctx_bpm_absolute`, the context row's ids (D-T6-3=B).
+
+**Tonality is presented by its emotional colour, and `MoodTag` is never printed (D-CF-15, D-CF-17=D).**
+«Alegre», not «Jónico»: the player needs no music theory to read the modifier. The text is the derived
+family `ui_tonality_<Tonality>`; `MoodTag` stays presentation **data** of the context-row chip and
+reaches no text surface — until CARD-FACE-2 it did, by `ToString()`.
+
+**Live-but-inert ids, declared (the `ui_track_level` precedent — not deleted).**
+`ui_card_detail_style` and `ui_card_detail_musician` (formatted only under `ALWTTT_DEV`, F-CF-2);
+`ui_card_modifier_one` / `_many` (no caller since D-CF-14: the count survives as repetition of glyphs);
+`ui_role_lead` and the glyph `tt_lead` (no catalogue card uses `TrackRole.Lead`); most `ui_note_*`; and,
+since CARD-FACE-2b, the whole card-type set — `ui_cardtype_*`, `cardtype_*` concepts and `ct_*` glyphs —
+switched off by `CardFacePresentation.ShowCardType = false` (D-CF-25=B) and re-enabled by one bool.
 
 **Since TEXT-VIBE-1 the template id set is no longer a literal list, and that is a contract, not an
 implementation detail (D5).** `GameTextTemplateIds.All` is built at type initialisation as
@@ -396,6 +506,16 @@ since TXT-3 all of it lives in `ConceptGlossarySO`.
 | Card keyword (7) | `SpecialKeywords` enum name, lowercased | `consume` · `convinced` · `ethereal` · `exhaust` · `stress` · `tall` · `vibe` |
 | Ability (7) | `AudienceAbilityData.abilityId` (TEXT-5, D-T5-1a=A) | **enumerated from content assets, not listed here** — `ab_` prefix by convention; seven at TEXT-5 close, one of them shared by two characters (D-T5-5=A) |
 | Glossary-native (17) | nowhere else — meters and game objects | `hype` · `inspiration` · `cohesion` · `gig` · `song` · `loop` · `period` · `play` · `track` · `song_end` · `stage` · `budget` · `composition_card` · `action_card` · `sound_card` · `breakdown` · `blocked` |
+| Glyph (30) — CARD-FACE-1 (18) + CARD-FACE-2 (12) | derived in `GameSymbols` from an enum value or a family constant; set = `GameSymbols.AllConceptIds` | `role_*` (6) · `scope_*` (4) · `timing_*` (3) · `mod_*` (5) · `cardtype_*` (5, `None` excluded) · `partaction_*` (7, `None` excluded) |
+
+**The glyph group is required too, but watched by a different tool.** Its ids are read by the card
+hover (§3.1 entry point `GameText.ConceptName/ConceptDescription`, not `ConceptTooltipResolver`), and
+`GameTextWindow`'s coverage does not enumerate them: until CARD-FACE-2 a misspelt `role_*` showed the
+raw id on hover while the window stayed green. `ALWTTT ▸ Game Text ▸ Check symbol coverage` checks
+them (§8 check 7). **Declared fallow:** every glyph concept uses its `displayName`; its `description`
+is consumed only for `role_*`, `mod_*`, `partaction_*` (and `cardtype_*` when switched on) by the card
+hover. The `description` of `scope_*` and `timing_*` is written, translated and **has no consumer**
+until a card surface has a `<link>` reader (§2.1).
 
 An id in the first **three** groups is **required** to exist (§3, coverage). An id in the fourth
 exists because someone authored it. Only 24 of the 43 are currently reachable by a `<link=id>` tag;
@@ -493,6 +613,15 @@ unreachable and stays out of the glossary. The same reasoning decided the percus
 two gates ship OFF, so the gate became compile-time and no id was minted. Only `Chord (…)`, reachable
 by default, got one. **Giving an id to developer text would invert `GAMETEXT-NO-DEV-LABEL`**: an id is
 a promise that the string is player text, enters coverage, and must be translated.
+
+**Tempo and time-signature floaters follow the same rule (BEAT-1 D6=C, 2026-09-27).**
+`FloatingTextMidiListener.OnTempoChanged` / `OnTimeSignatureChanged` spawn hand-written `"{bpm} BPM"` and
+`"{n}/{d}"` floaters. They were unreachable in the gig only because the beat grid never delivered there;
+BEAT-1 made it deliver, which would have put one pair on screen per loop in every build. They now sit
+behind the same compile-time `DevFloaters` gate as the percussion floaters, and `showTempoSignature`
+ships OFF in `MidiMusicManager.prefab`. No id minted. **Latent, not a population:**
+`TempoTextIndicator` (`UIManager.prefab`) also prints `"{0:0.#} BPM"` and a mis-encoded `joiner`; it is not
+visible in the gig (ST-B1-12). If it is ever shown, its literals enter the map first (F-B1-11).
 
 **A BOM is not a guarantee; ASCII source is (F-SP1-2).** F-T6-1 was closed at TEXT-6 by transcoding
 `TrackHoverPanel.cs` to UTF-8 with BOM. SONG-PANEL-1 found the file **back in Windows-1252**, and the
@@ -643,7 +772,13 @@ gap and survives for months.
   reclassified (still unclassified, log or screen), and `Happy` / `Sad` turned out **not to be asset
   text at all** — `MoodTag` is an enum printed by `ToString()`, so that third of the evidence belonged
   to F-TXT4-2 the whole time.
-- **F-TXT4-2 — enum names on player surfaces. OPEN → CARD-FACE-1.** `TrackRole`, `PartAction`,
+- **F-TXT4-2 — enum names on player surfaces. CLOSED 2026-09-21 by CARD-FACE-2b step 5** (partial at
+  CARD-FACE-1: `TrackRole`, `EffectScope`, `ApplyTiming`; then `CardType` on `CardBase` L99,
+  `CardDetailViewController.cardTypeText`, `PartAction`, `MoodTag`/`Tonality` and status names). The
+  closing batch is **2b, not CARD-FACE-2**: the repo copy of 2026-09-21 showed that the modal edit (A16)
+  had not been applied when CARD-FACE-2 reported it, and it landed merged into 2b. Categorical values
+  are glyphs, notation values are derived templates (D-CF-10=A, §2.1). *(Original record:)*
+  `TrackRole`, `PartAction`,
   `CardType`, `scope`/`timing`, style-bundle asset names, keys and time signatures reach the player
   as `ToString()` of an enum or of an asset name. **These are not strings**, so no text registry
   reaches them; the fix is symbolic (icons), which is why the finding is filed against CARD-FACE-1
@@ -671,7 +806,9 @@ gap and survives for months.
 - **TXT-3b.** `TutorialOverlayView.SetConceptSources` still calls the `[Obsolete]` two-argument
   constructor, and `TutorialController` still holds `conceptStatusCatalogues`. Compiles with one
   `CS0618` warning by design. Closing it also closes R-1 (§3).
-- **F-TXT-3-6 — card-face information density.** Keywords resolve correctly on hover but do not
+- **F-TXT-3-6 — card-face information density. CLOSED 2026-09-18 by CARD-FACE-1** (a keyword glyph
+  row at the foot of every card face; ST-CF-16 run by hand, adding `Exhaust` to a card). *(Original
+  record:)* Keywords resolve correctly on hover but do not
   appear on the card face; the detail modal now renders them **through the glossary** (D-T5-4=A,
   TEXT-5) but no card in the catalogue carries a keyword, so the line is live and empty — which is
   why **ST-T5-5 is deferred rather than "not applicable"**: the path is unverified, not absent.
@@ -837,7 +974,10 @@ gap and survives for months.
   the asset carries **three** — `RoleEntry.displayName` was never counted. The third stays open on
   purpose: its consumer was not read, and migrating an unread consumer is a guess with a template id
   attached.
-- **F-TV-1 — `"Songs left: {n}"` in `GigCanvas.SetSongsLeft`. OPEN → CARD-FACE-1.** English on a
+- **F-TV-1 — `"Songs left: {n}"` in `GigCanvas.SetSongsLeft`. CLOSED IN CODE 2026-09-18 by CARD-FACE-1;
+  OBSERVED 2026-09-22 (ST-CF3-8, CARD-FACE-3).** `ui_gig_songs_left` is formatted from `OnEnable`: the `Start` detour was unnecessary
+  because `GameText` resolves the glossary per call (D-CF-7). The field did not appear anywhere in the
+  UI → **F-CF-7** (CLOSED 2026-09-22: the GameObject was inactive in the scene). *(Original record:)* English on a
   player surface, in the very file that carried population 11, found by the producer census of that
   file. **Deliberately not migrated (D4=B):** its first call runs from `OnEnable` on a canvas in the
   persistent scene, before `TooltipManager.Instance` is guaranteed — the `Awake`→`Start` lesson of
@@ -857,7 +997,9 @@ gap and survives for months.
   counted body lines. Resolved without a new id by reading the existing `vibe` keyword concept
   (D-T6-3=B). **The lesson is about the word RESOLVED:** a population marked resolved is not
   re-censused, so a literal that survives the migration that closed it may never be looked for again.
-- **F-TV-4 — `$"+{bonusInt} Vibe!"` in `GigManager.ApplySfxBonusVibe`. OPEN → CARD-FACE-1.** A banked
+- **F-TV-4 — `$"+{bonusInt} Vibe!"` in `GigManager.ApplySfxBonusVibe`. CLOSED 2026-09-18 by CARD-FACE-1**
+  with id **`ui_fx_vibe_bonus`** (the planned `ui_fx_sfx_vibe_banked` was not the id shipped).
+  *(Original record:)* A banked
   venue-SFX floater built by string interpolation, in a 4 150-line runtime file. Reachable as soon as
   one SFX stage is unlocked; observed during ST-TV-7. Not migrated here because `GigManager.cs` was
   outside the batch's file set, which is exactly the containment F-T6-9 asked for. Planned id:
@@ -882,7 +1024,11 @@ gap and survives for months.
   ids is consumed by the card builder** — no `fx_*`, no `tgt_*`, no `ui_card_*`. That is an argument,
   not a measurement, and is recorded as such. **The 2026-09-16 dump is promoted to `golden D`** and
   must live under version control, not in a downloads folder.
-- **F-TV-7 — `PartEffect.GetLabel()` is an uncensused producer of player text. OPEN → CARD-FACE-1.**
+- **F-TV-7 — `PartEffect.GetLabel()` is an uncensused producer of player text. CLOSED 2026-09-18 by
+  CARD-FACE-1.** The producer census found **seven classes**, not five files (**F-CF-1**); the modal no
+  longer reads `GetLabel()`, which is degraded to a developer label (D-CF-5=B), and every modifier line
+  is composed by `PartEffectDescriptionBuilder` from glossary ids. The second home of the meter concept
+  is gone: modal and context row both format `ui_ctx_meter_*`. *(Original record:)*
   The detail modal prints one line per modifier from each `PartEffect`'s `GetLabel()`
   (`SSoT_Card_System.md` §10.3). The `golden D` dump shows `Meter 5/4`, `Tempo: Slow` (×7),
   `Tempo ×0.66`, `Mode Ionian`, `Mod → degree Mediant ↑`, `Random Instrument (2)` (×3),
@@ -893,6 +1039,110 @@ gap and survives for months.
   sibling while the modal prints `Meter 5/4` from code — the exact divergence D-T6-3=B exists to
   prevent. Whether these are literals or `ToString()` cannot be stated as code truth: the producer
   file was not attached. **Request it explicitly in CARD-FACE-1 before counting.**
+- **CARD-FACE-1 — CLOSED 2026-09-18 (code, art, data); doc-pass CARD-FACE-1/2-DOC 2026-09-21.** The
+  project's first symbol vocabulary: atlas of 27 glyphs (§2.1). Card face says role and modifiers in
+  glyphs, the card hover explains them, the modal pairs glyph + word. Decisions: **D-CF-1** (symbol, not
+  label) · **D-CF-2** (tooltip pipeline untouched; `CardBase` is a consumer) · **D-CF-5=B** (central
+  formatting of `PartEffect`; `GetLabel()` → developer label) · **D-CF-7** (`GameText` resolves per call)
+  · **D-CF-9=A′** · **D-CF-10=A** · **D-CF-11=B** (`tint=1`) · **D-CF-12** (solfège) · **D-CF-13=C** (face:
+  glyph + card hover; modal: glyph + word) · **D-CF-14=B** (modifier glyphs on the face, one hover
+  panel per family, deduplicated) · **D-CF-14b** (glyph + value on the face). Templates 102 → 147
+  (`e40c445d…`), concepts 43 → 61 (`e28fbc89…`), cards unchanged (`7012d489…`, seventh consecutive
+  batch). **ST-CF-1..32:** 28 PASS, one expected FAIL (`TonalityEffect` unmapped → closed by
+  CARD-FACE-2), one pre-existing (F-CF-7), one not applicable by design, one deferred to Dev Mode.
+  **ST-TXT4-13 CLOSED** (deferred since TXT-4: the first real inline sprite). Golden series
+  **D → E → F → H**; **`golden_G` does not exist** (named in a runbook, skipped when dumping); E, F and
+  H dumped **with `ALWTTT_DEV`**. **Decision ids D-CF-3, D-CF-6 and D-CF-8 appear in no retained
+  package**: if they existed, their content is not recoverable and they are not recorded here (D-DOC-5).
+- **CARD-FACE-2 (+2b) — CLOSED 2026-09-21; doc-pass CARD-FACE-1/2-DOC the same day.** Closes the
+  population map (§1, zero open rows) and makes the status a symbol. Decisions: **D-CF-15** (tonality
+  by emotional colour) · **D-CF-17=D** (`MoodTag` never printed) · **D-CF-18=C** (one drawing per status)
+  · **D-CF-19=B** (Dev Mode symbols/words toggle, not a player option) · **D-CF-20** (`None` has no
+  glyph, keeps its template) · **D-CF-21** (`"Bridge"` → `ui_part_bridge`) · **D-CF-22=A** (the 12 status
+  icons are the `st_*` sub-sprites) · **D-CF-23=A** (the colour strip is merged into the sheet, not a
+  fallback atlas) · **D-CF-24=C** (tools find the atlas by search) · **D-CF-25=B** (action card type hidden
+  from the player) · **D-CF-26=A** (a card-hover panel explaining a face glyph repeats the glyph in its
+  header). **D-CF-16 appears in no retained package** and is not recorded (D-DOC-5). Glyphs 27 → 51;
+  templates 147 → 172 (`de7ce78c…`), concepts 61 → 73 (`f4a79e7c…`), cards unchanged (`7012d489…`,
+  **eighth consecutive batch**). **Golden I** (569 → 571 lines, 40 changed: 34 status lines, 6
+  tonality lines, **zero findings**), dumped with `ALWTTT_DEV` (evidence: `Style:` lines present; neither
+  H nor I carries the define in the file, recorded here). 2b does not move the golden. Smokes:
+  ST-CF2-1..8, 10, 12, R1, R2 PASS; **ST-CF2-9 deferred** (no Part card in content); **ST-CF2-11 NOT
+  VALID** — reported PASS while A16 was not applied; replaced by ST-CF2b-3 (type hidden) and ST-CF2b-8
+  (type visible with the toggle). ST-CF2b-1..10 and R1 PASS; no exception in ST-CF2b-9 (all 12 status
+  icons use `st_*`).
+- **F-CF-1 — the inherited producer census was wrong for the fifth time. Recorded as method.**
+  `DensityEffect` and `FeelEffect` live inside `PartEffect.cs` (invisible by file name) and
+  `TonalityEffect` had not been requested. Reinforces F-SP1-1: **enumerate classes, not files.**
+- **F-CF-2 — the modal published asset names the track hover hid. CLOSED 2026-09-18.** `Style:` and
+  `Musician:` now sit behind `ALWTTT_DEV` on both surfaces: one datum, one policy.
+- **F-CF-3 — U+2014 and U+2022 were missing from the SDF atlas. CLOSED 2026-09-18.** Invisible in a
+  golden because a golden does not render. Replaced by U+00B7 and `-`.
+- **F-CF-4 — a regenerated atlas is born with `BX = −width/2`. OPEN as an operational rule.** Recurs on
+  every regeneration from Center-pivot slices; corrected with «Fix horizontal» (§2.1,
+  `SSoT_Editor_Authoring_Tools.md` §20.14).
+- **F-CF-5 — `<link>` on card surfaces is inert. CLOSED by withdrawal.** Scope corrected at the doc-pass:
+  the CARD-FACE-1 record said *nothing in the project* reads TMP links, which contradicts §4 —
+  `TutorialOverlayView` does, with `FindIntersectingLink`. What is true is that **no card surface** does.
+- **F-CF-6 — the modal's TMP reads smaller than the face's. OPEN, out of scope.** An auto-size
+  difference between fields, not text. UI design pass, own batch.
+- **F-CF-7 — «Songs left» appears nowhere in the UI. CLOSED 2026-09-22 by CARD-FACE-3.** The guess was
+  right and cost one inspector look: `songsLeftTextField` was assigned, the TMP already held
+  «Canciones restantes: 6», and the **GameObject was inactive in the scene**. No code path deactivates
+  it (`GigCanvas.cs`, three references: declaration, null guard, text assignment) and no document
+  recorded it as hidden on purpose, so the origin of the deactivation is **unknown and unrecoverable**.
+  Fix is scene-only: activate `UIManager/GigCanvas/SongsLeftText`. ST-CF3-8 PASS, including the
+  layout risk the batch declared in advance (200 px rect, 36 pt, right-anchored) — it did not clip.
+- **Census correction (CARD-FACE-1):** `TrackRole.Percussion` **does not exist**; the only line naming it
+  is commented out. `TrackRole` has **six** values, `Lead` among them.
+- **F-CF2-1 — two statuses shared one drawing, a third borrowed a keyword's. CLOSED 2026-09-21 (2b).**
+  `composure` and `spotlight` shared an `IconSprite`; `hyped` used the art of `kw_tall`. Closed by
+  D-CF-22=A.
+- **F-CF2-2 — the sprite names lived only in the TMP asset, not in the slices. CLOSED 2026-09-18
+  (rename).** So D-CF-9=A′ was not actually standing through CARD-FACE-1: regenerating would have lost
+  every name. Since the rename, slice names carry the contract and `Update Sprite Asset` keeps them
+  (verified 2026-09-18). It also produced the naming-order rule of §2.1.
+- **F-CF2-3 — an anchor verified against truncated tool output. CLOSED (A13-FIX). Recorded as
+  method.** A13 duplicated `OnValidate` in `StatusEffectCatalogueSO`; fixed by moving the check into
+  `ValidateCatalogueContents`, behind the import guards. An anchor is verified against the **whole**
+  file, never against a view the tool cut.
+- **F-CF2-4 — the `customLabel` census ran over PK + attachments, not the repo. CLOSED. Recorded as
+  method** (§1 row 12, §8 check 8): 2 consumers declared, 5 real.
+- **F-CF2-5 — the atlas path in the CARD-FACE-1 records was never the repo's. CLOSED** (§2.1, D-CF-24=C).
+- **F-CF2b-1 — a long word splits the hover header between glyph and name. CLOSED 2026-09-22 by
+  CARD-FACE-3.** Both halves of the candidate check mattered, and the second one fired. U+00A0 in
+  `CardFacePresentation.HeaderWithGlyph` (escape, source stays ASCII) stops the break between glyph
+  and name; the font was not the problem (`LiberationSans SDF`, static population, renders U+00A0);
+  but the unbreakable unit then exceeded the 240 px of usable width by roughly one character, and TMP
+  fell back to breaking **by character**. Closed by widening the panel to 280 px (D3=B — an explicit,
+  recorded exception to D-CF-2, see `SSoT_Tooltip_Pipeline` §2). Method note: the candidate was right
+  and still insufficient, because it named a mechanism without measuring the space it needed.
+  ST-CF3-6, 7 and 12 PASS after the width change.
+- **O-CF2b-2 — the last card-hover panel stays visible over the detail modal. CLOSED 2026-09-22 by
+  CARD-FACE-3, first candidate confirmed, second refuted.** `OnPointerUp` re-showed the stack on the
+  release of the right click, which uGUI delivers to the pressed object even after the pointer has
+  left it. The canvas order was **never wrong** (10 vs 100, inspector-verified) and the panel was
+  below the dim, not above: the phrase «above the modal» in the 2b record was an imprecise
+  observation that sent the investigation toward the wrong half. Full mechanism in
+  `SSoT_Card_System.md` §10.3. **Method note, second of its kind in this family:** the 2b hypothesis
+  was refuted by code and this one by an inspector screenshot — a symptom described in layer terms
+  («above») should be treated as a symptom, not as a claim about layers.
+- **CARD-FACE-3 — CLOSED 2026-09-22 (code + scene). Doc-pass: CARD-FACE-3-DOC (applied 2026-09-25).** The visible
+  leftovers of the card surface, plus one defect the batch found while testing. Closes **O-CF2b-2**,
+  **F-CF2b-1**, **F-CF-7**, the comment drift in `GameSymbols.cs` and the menu §20.14 had left
+  «proposed». Decisions: **D1=A** (fix in `CardBase` only — the canvas order was not at fault),
+  **D2=B** (F-CF-6 stays out, own UI-design batch), **D3=B** (panel width 250 → 280, recorded
+  exception to D-CF-2), **D5=B** (one Esc listener with an explicit priority chain), **D6=A**
+  (O-CF3-2 taken inside this batch), **D7** (O-CF3-3 accepted as-is). Opens nothing: **O-CF3-1** was
+  specified and **not reproduced** (ST-CF3-11), **O-CF3-2** closed in the same batch, **O-CF3-3**
+  accepted rather than fixed. New menu `Sync sprite names from texture` (§20.14): the inference it
+  rests on — that `Update Sprite Asset` fills `TMP_SpriteGlyph.sprite` — is now **validated by
+  observation**, not inferred (ST-CF3-9: 51 characters, 0 without a sprite reference; ST-CF3-10:
+  a hand-broken name restored and coverage back to OK). Unity 6000.3.10f1, uGUI 2.0.0 (TMP
+  integrated; no separate `com.unity.textmeshpro`). **ST-CF3-1..15 PASS**, **ST-CF3-16 PARTIAL**
+  (O-CF3-3). Fingerprints re-declared **unchanged**: Templates `de7ce78c…` (172) · Concepts
+  `f4a79e7c…` (73) · Cards `7012d489…` (60, ninth consecutive batch) — the batch touched no template,
+  concept or card, so this is a non-regression check, not a result.
 - **F-TXT-2-1 — CLOSED 2026-09-11 by TXT-4.** The 13 `AudienceCharacterCanvas` literals are now
   `ui_aud_*` templates plus the `blocked` concept; §1 population 5.
 - **F-TXT-3-5 — CLOSED 2026-09-11 by TXT-4.** Card names and card descriptions are per-language;
@@ -927,7 +1177,8 @@ producer** (F-SP1-1): populations 7 and 9 are two files rendering two rows of on
 census that read only the first reported the panel done. **And when a template id set stops being a
 literal list** (TEXT-VIBE-1, D5): `GameTextTemplateIds.All` now enumerates two package-owned enums at
 type initialisation, so the id set has a *rule* as well as a membership, and the rule is what this
-document has to carry — §5.
+document has to carry — §5. **And when the symbol vocabulary changes** (CARD-FACE-1/2): a prefix, the
+symbol-or-text rule (D-CF-10=A), the atlas authority or path, or the set of glyph concepts.
 
 **Closing checks this document now requires of a batch that touches player text.**
 
@@ -947,7 +1198,21 @@ document has to carry — §5.
    enumerator. A transcribed id set fails on both sides at once and reports only one.
 6. **A derived id family is imported from the window, not from a document.** When ids come from an
    enumerator, the authoritative list of *values* is the tab's own coverage output. No `.md`, no batch
-   prompt and no chat message is a source for that list.
+   prompt and no chat message is a source for that list. **Precision (CARD-FACE-2): the reconciling
+   tool is the window's `COVERAGE` panel, not the CSV export.** The export writes the rows the asset
+   *has*, not the ids of `All`; a new derived id with no text yet appears only in the panel.
+7. **Symbol coverage (CARD-FACE-2).** `ALWTTT ▸ Game Text ▸ Check symbol coverage` reports OK: every
+   name the producers may emit exists in the atlas's character table, every table entry is expected or
+   declared orphan, and every glyph concept (§5, glyph group) has glossary text. A batch that
+   **regenerated the atlas** also states that it followed `SSoT_Editor_Authoring_Tools.md` §20.14
+   (slices named before the first Update; «Fix horizontal» after every Update).
+8. **Deleting a serialized field requires a whole-repo grep before the step is written (F-CF2-4).** The
+   consumers of a field are not bounded by the batch's attached files or by the PK: `customLabel` had
+   two consumers in that set and five in the repo. The grep result is quoted in the runbook step.
+
+**Current golden baseline: `golden I`** (2026-09-21, 571 lines, dumped with `ALWTTT_DEV`), versioned
+outside the PK. Series since TEXT-VIBE-1: **D → E → F → H → I**; **`golden_G` does not exist**. A dump
+does not record whether the define was on; the batch that makes it says so.
 
 **Regression oracle.** `ALWTTT ▸ Text ▸ Dump Card Text (EN/ES)` writes the full rendered card text
 for every card in both languages. Its value is the **diff**, not the dump: TXT-4's proof that the EN
@@ -965,6 +1230,9 @@ codec. `Design_Tutorial_System_v0_3.md` §5A — tutorial copy voice and `mechan
 
 | Date | Batch | Change |
 |---|---|---|
+| 2026-09-22 (doc 2026-09-25) | CARD-FACE-3, doc-pass CARD-FACE-3-DOC | §7 → **O-CF2b-2**, **F-CF2b-1** and **F-CF-7** CLOSED (mechanisms recorded; O-CF2b-2's second candidate refuted, F-CF2b-1 needed the width change as well as U+00A0); batch record added (D1=A, D2=B, D3=B, D5=B, D6=A, D7). F-TV-1 marked observed (ST-CF3-8). No template, concept or card moved: fingerprints re-declared unchanged. |
+| 2026-09-21 | CARD-FACE-2 (+2b), doc-pass CARD-FACE-1/2-DOC | §1 → **zero open rows**: row 10 closed (`RoleEntry.displayName` deleted — its only reader discarded it), row 12 closed (`customLabel` deleted; `ui_partaction_*`, `ui_part_bridge`); count line rewritten, with the census explicitly **not** declared complete. §2.1 → prefixes `ct_`, `pa_`, `st_`; atlas path corrected (F-CF2-5); naming-before-Update rule (F-CF2-2); status glyph = status icon (D-CF-18=C / D-CF-22=A). §5 → templates 147 → **172** (`ui_tonality_*`, `ui_cardtype_*`, `ui_partaction_*`, three `ui_tonality_random_*`, `ui_part_bridge`), concepts 61 → **73** (`cardtype_*` ×5, `partaction_*` ×7); glyph concept group made explicit; D-CF-15 / D-CF-17=D; card-type set declared live-but-inert (D-CF-25=B). §7 → F-TXT4-2 **CLOSED at 2b step 5**; CARD-FACE-2 recorded with D-CF-15..26 (D-CF-16 unrecorded, absent from every package); F-CF2-1..5, F-CF2b-1 and O-CF2b-2 recorded — the last with its closing hypothesis **refuted by code**. §8 → checks 7 and 8, check 6 made precise (COVERAGE panel, not export), baseline golden I. **Fingerprints:** Templates `de7ce78ca48f8ebaf0d3ee415d204ca541430aa3` (172) · Concepts `f4a79e7c64774277424cf63362f061fde250791c` (73) · Cards `7012d4898044ef3e67c5bd2587be50786e31815b` (60, **eighth consecutive batch unchanged**). Golden H → I: 40 changed lines, zero findings. |
+| 2026-09-18 (doc 2026-09-21) | CARD-FACE-1, doc-pass CARD-FACE-1/2-DOC | §1 → **row 12 added** (player text on effect assets; `MeterEffect.meterLabel` deleted); F-TV-1, F-TV-4, F-TV-7 closed; row 10's consumer read. **§2.1 → the symbol vocabulary**: one global atlas of 27 glyphs, source texture as authority (D-CF-9=A′), symbol-or-text rule (D-CF-10=A), `mt_` retired unused, Face Info at zero as the auto-fit mode, F-CF-4; `<link>` on card surfaces declared inert (F-CF-5, **scope corrected at the doc-pass**: the tutorial overlay does read links). §5 → templates 102 → **147** (four new derived families, 11 fixed ids), concepts 43 → **61**; solfège (D-CF-12); inert ids declared. §7 → F-TXT4-2 partial, F-TXT-3-6 closed, F-CF-1..7 recorded; D-CF-3/6/8 unrecorded (absent from the package). **Fingerprints:** Templates `e40c445da4b752901eec8f9c5455091ef27a0dc5` (147) · Concepts `e28fbc893efe52b4ee082719bd759ac31f881191` (61) · Cards `7012d489…` (seventh batch unchanged). Golden series D → E → F → H, no `golden_G`. ST-TXT4-13 closed. |
 | 2026-09-10 | TXT-2 | Document created (D-TAG-9=A). Tag syntax, three-registry resolution order, hover contract, parity, CSV. |
 | 2026-09-10 | TXT-3 | §1 populations 2 and 3 **moved** into the glossary and the table renumbered; §3 rewritten from a three-registry order to a single registry with a miss policy and a coverage rule; §5 vocabulary 24 → 36 ids in three origin groups; §6 rewritten around coverage and language pairing; §7 D-TAG-10 closed, TXT-4 / TXT-3b / F-TXT-3-6 opened. `StatusEffectSO.description` and `SpecialKeywordData` no longer exist. ST-TXT3-1..12 PASS. |
 | 2026-09-11 | TEXT-5 | §1 **all six populations solved**: row 6 moved into `ConceptGlossarySO.entries` keyed by `AudienceAbilityData.abilityId` (D-T5-1a=A, D-T5-1=A), F-TXT4-3 closed, population-2 consumers 4 → 6. §3.1 → `GameText` gains **numbers** (`GameText.Number`, D-T5-2=B) and the glossary gains `numberCulture`. §5 → a **fourth concept group, Ability (7)**, whose id set is enumerated from content assets by `AudienceAbilityTextIndex` rather than declared in code (with the `EMPTY:` sentinel that follows from that); counts 36 → **43** concepts and 47 → **48** templates (`ui_card_type_composition`, D-T5-3=A, **two** literal homes not one). §6 → two ability coverage rows. §7 → F-TXT4-3, F-TXT4-7 and F-TXT4-10 **closed** (the last with its **title corrected**: `CurrentCulture`, not invariant culture), the migrable half of F-TXT4-2 closed, TEXT-5 recorded with D-T5-1a/1/2/3/4/5/6, **TEXT-6 opened with F-T5-1 and F-T5-2**, ST-T5-5 recorded as deferred. §8 → one new trigger. **Closing criterion NOT met** and recorded as such (F-T5-2). **Fingerprints at close:** Concepts `7e22a03fa95f3c9f7d18ed93b86e1be826551f3f` (43 × 2) · Cards `7012d4898044ef3e67c5bd2587be50786e31815b` (60 × 2, **byte-unchanged since TXT-4** — the proof that the batch moved readers, not the registry) · Templates `feb4add82dfa4d478c7c6a48a744c1c895d43ca5` (48 × 2). **Golden C diff: 0 hunks.** ST-T5-1..12 PASS except ST-T5-5 (deferred, F-TXT-3-6); R1–R3 specified, not run. `GAMETEXT-NO-DEV-LABEL` promoted to a hard invariant in `ssot_manifest.yaml` (D-DOC-1=C criterion met). |

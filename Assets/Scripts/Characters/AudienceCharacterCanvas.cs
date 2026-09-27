@@ -15,6 +15,32 @@ namespace ALWTTT.Characters
         public Image IntentImage => intentImage;
         public TextMeshProUGUI NextActionValueText => nextActionValueText;
 
+
+        // [CONV-TINT-1b / D-H2=A] State-driven concealment of the whole canvas. A
+        // CanvasGroup on the canvas root multiplies with every child group (the bar's
+        // own S5e-ext group included), so child visibility rules keep running and are
+        // simply not seen; lifting the concealment shows whatever they decided meanwhile.
+        // Surfaces routed to the GLOBAL TooltipManager live outside this group, so those
+        // are gated explicitly on _convincedHidden.
+        private CanvasGroup _stateGroup;
+        private bool _convincedHidden;
+
+        public bool IsConvincedHidden => _convincedHidden;
+
+        public void SetConvincedHidden(bool hidden)
+        {
+            _convincedHidden = hidden;
+
+            // TryGetComponent, not "GetComponent() ?? AddComponent()": in the Editor a
+            // missing component can come back as a fake-null object that ?? treats as real.
+            if (_stateGroup == null && !TryGetComponent(out _stateGroup))
+                _stateGroup = gameObject.AddComponent<CanvasGroup>();
+
+            _stateGroup.alpha = hidden ? 0f : 1f;
+            _stateGroup.blocksRaycasts = !hidden;
+            _stateGroup.interactable = !hidden;
+        }
+
         public AudienceAbilityData NextAbility;
         private AudienceIntentionData CurrentIntention => NextAbility.Intention;
 
@@ -102,6 +128,7 @@ namespace ALWTTT.Characters
         public void ShowVibeTooltip()
         {
             if (!_hasProjection) return;
+            if (_convincedHidden) return; // [CONV-TINT-1b] TooltipManager is outside the group
             ShowTooltipInfo(TooltipManager.Instance,
                 BuildVibeText(in _projection), VibeOnlyHeader, descriptionRoot);
         }
@@ -184,6 +211,8 @@ namespace ALWTTT.Characters
             // the child (VibeBarTooltipTarget) before this canvas, so the flag is already
             // set when we get here. Stand down instead of overwriting its tooltip.
             if (_barHovered) return;
+
+            if (_convincedHidden) return; // [CONV-TINT-1b] TooltipManager is outside the group
 
             string header = null;
             string body = null;

@@ -263,9 +263,10 @@ namespace ALWTTT.UI
                 sb.Append(Sep).Append("x").Append(GameText.Number(_data.tempoScale, "0.##"));
             sb.AppendLine();
 
-            // mood (MoodTag) and _data.tonality (Tonality) are ENUM names (F-TXT4-2 -> CARD-FACE-1): not templates.
-            theme.TryGetMood(_data.tonality, out var mood, out _, out _);
-            sb.Append(mood).Append(Sep).Append(_data.tonality);
+            // [CARD-FACE-2 / D-CF-17=D, D-CF-15] The mode's EMOTIONAL colour from the glossary, by Tonality
+            // value (ui_tonality_<value>). Neither MoodTag nor the mode's name is printed any more: the chip
+            // keeps MoodTag for glyph + tint only. A mode the glossary lacks renders its id (miss policy).
+            sb.Append(GameText.Format(UiTonality(_data.tonality)));
             if (!string.IsNullOrEmpty(_data.rootLabel)) sb.Append($" ({_data.rootLabel})");
             if (!_data.hasRenderedTonality) sb.Append(Sep).Append(GameText.Format(UiCtxPendingRender));
 

@@ -51,9 +51,8 @@ namespace ALWTTT.Data
             [Tooltip("Glyph tint ONLY. Never applied to the pill -- pill/border " +
                      "colors are reserved for STATE (pending / level-up / final loop).")]
             public Color tint = Color.white;
-            [Tooltip("Hover label. Defaults to the enum name when empty. " +
-                     "OPEN: player text on an asset (SSoT_Game_Text row 10); consumer not yet censused.")]
-            public string displayName;
+            // [CARD-FACE-2 / D-SP1-6=B] displayName DELETED. Its only call site (SongTrackElementUI)
+            // discarded the label; the role word lives in the glossary (ui_role_<value> / role_<value>).
         }
 
         [System.Serializable]
@@ -168,7 +167,8 @@ namespace ALWTTT.Data
             _roleMap = null; _meterMap = null; _tempoMap = null; _moodMap = null;
         }
 
-        public bool TryGetRole(TrackRole role, out Sprite icon, out Color tint, out string label)
+        /// <summary>Icon + tint for a role. Text is NOT here (population 10 closed, CARD-FACE-2).</summary>
+        public bool TryGetRole(TrackRole role, out Sprite icon, out Color tint)
         {
             if (_roleMap == null)
             {
@@ -179,11 +179,9 @@ namespace ALWTTT.Data
             {
                 icon = entry.icon;
                 tint = entry.tint;
-                label = string.IsNullOrWhiteSpace(entry.displayName)
-                    ? role.ToString() : entry.displayName;
                 return true;
             }
-            icon = unknownGlyph; tint = unknownTint; label = role.ToString();
+            icon = unknownGlyph; tint = unknownTint;
             return false;
         }
 

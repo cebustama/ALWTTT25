@@ -14,6 +14,247 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-09-27 — SONG-TAIL-1 (apertura, tareas 0–1): paquete de CONV-TINT-1 consumido + registro del bloque de pulido
+
+**Clase:** lifecycle · operativo (roadmap). Sin cambio semántico.
+
+- **Tarea 0:** `CONV-TINT-1-DOC_Package.md` aplicado (A1→A8, B1→B6, C1→C15; 29/29 anclas únicas,
+  revalidadas al aplicar). Correcciones de forma al aplicar: C1 y la fila del paquete en C2 decían
+  «adjunto de chat, CONSUMIDO / no entra al PK»; el paquete estuvo **retenido en el PK desde el
+  2026-09-27** y se consume aquí; sale del PK al cerrar SONG-TAIL-1. B5 dejaba el registro del bloque
+  «sin dueño»; su dueño era este lote. B1 (fila de `CURRENT_STATE` §1) y B6 (esta misma entrada de
+  CONV-TINT-1) decían que la doc se aplicó en el cierre de CONV-TINT-1; corregido a «aplicada en SONG-TAIL-1».
+- **Tarea 1 (D-REG):** `S5_DemoCutClose_Sub_Roadmap.md` gana «Inserted demo-cut-close batches — registro
+  2026-09-27»: PAUSE-1 ✅, BEAT-1 ✅, y el bloque CONV-TINT-1 ✅ → SONG-TAIL-1 → CROWD-SFX-1 → SPEED-1 →
+  CAM-1 → GIG23-A → SING-2 → SING-3; Phase C: STAGE-LAYOUT-1 (F-CT-2, F-CT-5) → WAVES-1a/1b → LOOP-ACT-1.
+  `CURRENT_STATE` §3 queda como puntero. **F-POOL-2 cerrado.**
+
+---
+
+## 2026-09-27 — CONV-TINT-1 (+1b): presentación del estado convencido
+
+**Clase:** semántico · operativo · lifecycle. Código y smokes el 2026-09-27; documentación retenida en el PK y aplicada en SONG-TAIL-1 (tarea 0), el mismo día.
+
+- **Semántico:** `SSoT_Audience_and_Reactions` §4.3 gana «Convinced-state presentation»: tinte
+  `ConvincedSpriteTint` que anula el tapado (D-T1, solo presentación) y canvas completo oculto por un
+  `CanvasGroup` de estado, con los tooltips globales cerrados por puerta propia (D-H2=A). Punto único:
+  `AudienceCharacterBase.RefreshStatePresentation`. `SSoT_Status_Effects` §3.2 (addendum de Blocked),
+  `SSoT_Gig_Combat_Core` §12/§12.1 (campo nuevo en `GigPresentationSO`; la política de barra S5e-ext **no**
+  cambia, la ocultación va encima), `ssot_manifest.yaml` +1 invariante.
+- **Decisiones:** D1=A (pulido antes de GIG23-A) · D-T1 (convencido > tapado; `IsBlocked` intacto) ·
+  D-T2=A (color en `GigPresentationSO`) · D-H1=A (sub-lote 1b) · D-H2=A · D-H3=A (floaters sin cambio).
+- **Operativo:** carta de playtest `dev_convince` (`SSoT_Dev_Mode` §11.8); no-conformidad de `ModifyVibeSpec`
+  de objetivo único registrada en `SSoT_Card_Authoring_Contracts` §9 (F-CT-4).
+- **Lifecycle (PK):** `AudienceCharacterBase.cs` y `AudienceCharacterCanvas.cs` refrescados post-1b.
+  **F-CT-9:** las marcas RANCIA de `AudienceCharacterCanvas.cs` (TEXT-VIBE-1) y `CharacterCanvas.cs`
+  (BIGNUM-1) eran falsas — las copias del repo de hoy coinciden byte a byte (salvo BOM/CRLF) con las del PK.
+  Quinta ocurrencia de la familia «la fila no describe la copia».
+- **Hallazgos:** F-CT-1 cerrado (`Gusanito Idle.anim` anima el alfa de un hijo de efectos de Sibi, no audiencia) ·
+  F-CT-2 · F-CT-4 · F-CT-5 · F-CT-6 · **F-CT-7** (el runbook de CONV-TINT-1 nombraba mal la ruta de
+  `GigPresentationSO.cs`; la real es `Assets/Scripts/Data/Gig/GigPresentationSO.cs` — sin efecto, el
+  fichero se encontró) · F-CT-8. Smokes ST-CT-1..8 + ST-CH-1..10 PASS.
+
+---
+
+## 2026-09-27 — DOC-POOL-1: dos paquetes retenidos se aplican en una sesión y salen del PK
+
+**Clase:** lifecycle · operativo. Documentación pura; sin código ni smokes.
+
+- **Consumidos:** `PAUSE-1_DocDiffs_Pending.md` (Parte B sin los pasos 15 y 24) y `BEAT-1_Doc_Package.md`
+  (Parte B), en ese orden (D10=B). Ambos retirados del PK (`PK_Manifest` §B.1). 49/49 anclas únicas al aplicar.
+- **F-B1-15 resuelta:** la copia del PK de `PK_Manifest.md` era v18.2 y no tenía ni la Parte A de PAUSE-1 ni la
+  de BEAT-1, aunque sus **acciones físicas sí** se habían ejecutado en el PK (`HandController.cs`
+  post-PAUSE-1, `MidiEventInterfaces.cs` ausente, ambos paquetes presentes, `Repo_Tree_Index.md`
+  regenerado a las 19:17). El índice no describía su propio PK; las dos Partes A se aplicaron aquí, antes
+  que nada (entrega D1=C).
+- **Correcciones hechas al aplicar (forma, no decisiones):** (1) los textos de PAUSE-1 escritos antes de
+  aplicarse — fila de §1 y ítem de §2 de `CURRENT_STATE` — decían «documentación pendiente»; ahora dicen
+  «aplicada en DOC-POOL-1», simétricos con BEAT-1. (2) La entrada de changelog de PAUSE-1 no traía el
+  separador `---` de la convención; añadido. (3) Filas de tabla (`CURRENT_STATE` §1, `coverage-matrix`,
+  `SSoT_Dev_Mode` §19.2) e ítems YAML se insertaron **sin** la línea en blanco genérica que pedía el paquete:
+  una línea en blanco parte una tabla Markdown. (4) Columna «Verificado-contra» de `HandController.cs` en
+  §A.2 actualizada, como pedía la nota del paso 35, **verificada por contenido**.
+- **Hallazgos, no corregidos (propuestos):** **F-POOL-1** — `SSoT_Audio` inv. 19 y la fórmula de §4.7 siguen
+  diciendo «tres factores»; §4.8 añade el cuarto (plano del jugador) dentro del mismo método, que inv. 19 ya
+  preveía, así que no hay contradicción de regla, sólo un recuento rancio. **F-POOL-2** — ni
+  `S5_DemoCutClose_Sub_Roadmap.md` ni `CURRENT_STATE` §3 registran PAUSE-1 ni BEAT-1 (ninguno de los dos
+  paquetes tocaba roadmaps). Deriva previa sin cambio: el invariante de Dev Mode en `ssot_manifest.yaml`
+  sigue diciendo «SEVEN» (son doce).
+
+---
+
+## 2026-09-27 — BEAT-1: el beat grid arranca en el camino de composición
+
+**Clase:** semántico · operativo · lifecycle. Documentación aplicada en DOC-POOL-1 2026-09-27.
+
+- **Semántico:** `SSoT_Runtime_CompositionSession_Integration` §3.4.1 nueva — contrato del beat grid
+  (bytes reproducidos, tick del secuenciador, un anunciante, reinicio por reproducción, `gridEndTick`);
+  `ssot_manifest.yaml` +1 invariante. `SSoT_Game_Text`: floaters de tempo/compás son diagnóstico DEV (D6=C).
+- **Decisiones:** D1=A · D2=B · D3=B · D4=A · D5=A · D6=C · D7=C (revierte la recomendación A tras el censo:
+  `reactToBeats: 0`) · D8=A (BeatHUD no visible) · D9=A (margen PPQ/4; hallazgo F-B1-14 en ST-B1-3: 25/33
+  en vez de 24/32) · D10=B (esta documentación se aplica en DOC-POOL-1, tras la de PAUSE-1).
+- **Lifecycle:** cierra F-BN-5 y la deuda de `Design_Vibe_Telegraph` §10.5 (D-BN-3b/3c retiradas); absorbe
+  los pasos 15 y 24 de `PAUSE-1_DocDiffs_Pending.md`. PK: baja de `MidiEventInterfaces.cs` (F-B1-1).
+- **Operativo:** `SSoT_Dev_Mode` — «Deuda anotada» cerrada; líneas `[BEAT-1] grid start/end` registradas
+  como verbose no protegidas (ST-B1-3 exige `logVerbose`). Sonda `[BeatProbe]` retirada.
+- **Hallazgos abiertos:** F-B1-3 (`BeatPulseIndicator` lee `dt` una vez), F-B1-11 (BeatHUD latente),
+  F-B1-12 (pestaña Audio Mix cortada), F-B1-13 (`gridSubs` 5→6 tras el primer loop).
+
+---
+
+## 2026-09-25 — PAUSE-1: pausa, plano de volumen del jugador y costura de suspensión
+
+**Clase:** semántico · autoridad (menor) · operativo · lifecycle. Documentación aplicada en DOC-POOL-1
+2026-09-27.
+
+- **D-UX3=A implementado.** D1=A (congelar juego y música) · D2=A (siempre, también en canción) ·
+  D3=B (Canvas propio en DDOL, hijo de `UIManager`) · D4=B (Opciones compartido) · D5=B (confirmación) ·
+  D6′ (Opciones v1 = música + SFX; revisit sigue en el menú principal, D7=A de tutorial) · D7=B (velocidad
+  → SPEED-1) · D8 (nada a tiempo no escalado) · D9 no aplica · D10=B (plano multiplicativo en PlayerPrefs)
+  · D11=C (ambiente pausado en su fuente) · D12=C (`PauseGate`) · D13=A (ST-P1-3 N/A por contenido).
+- **Autoridad:** `IPlayMidi` es del paquete; la suspensión es ALWTTT (`IMidiTransportSuspend`). Boundary §4.1.
+- **Semántico:** `SSoT_Audio` §4.4, §4.8, §4.9, §5, §6, inv. 21–23; `SSoT_Runtime_Flow` «Pause state» +
+  inv. 10; `SSoT_Card_System` cadena de Esc a cuatro capas; `SSoT_Singer_Voice` inv. 3.
+- **Operativo:** `SSoT_Dev_Mode` §19.2 doce líneas protegidas (`[PAUSE-1]`); hallazgo **F-P1-8** (causa de
+  BEAT-1; la «deuda inerte» no lo era).
+- **Lifecycle:** origen de D-UX3 localizado en archive; `governs:` +5 (y `MidiToolkitAdapter.cs`, antes sin
+  gobernar).
+
+---
+
+## 2026-09-25 — CARD-FACE-3-DOC-b: un menú sin autor entra en gobierno
+
+**Clase:** estructural · autoridad (menor) · operativo · lifecycle. Cierra los diferidos de
+CARD-FACE-3-DOC y el hallazgo que destaparon.
+
+**Qué cambió.** El `Repo_Tree_Index.md` regenerado trajo dos `.cs` nuevos en `Assets/Scripts/Editor/`, no
+uno: además de `GameSymbolsSyncMenu.cs`, **`GameSymbolsTableMenu.cs`**, que no nombraba ningún paquete,
+runbook ni documento (**F-CF3DOC-1**). Leído en la sesión y documentado (D3=A) en
+`SSoT_Editor_Authoring_Tools` §20.14 como quinto menú del grupo: una exportación HTML **de solo lectura**
+(icono, familia, nombre en español), **no** un check de cobertura. `ssot_manifest.yaml`: `governs:` +1.
+Quedan registrados, **no corregidos**, tres huecos que son verdad de código: en Play mode `GameText.Glossary`
+antepone el glosario del `TooltipManager` al fallback, así que los nombres salen en el idioma en
+ejecución; el `finally` deja el fallback en `null` en vez de restaurarlo (impacto sobre otras herramientas
+**inferido**, no observado); y la raíz de menú `ALWTTT/Game Text/` difiere de la de `GameTextWindow`. Su
+autoría (`SYM-TABLE-1`, sólo en la cabecera del fichero) no consta en ningún registro y no se inventa
+aquí. Roadmap S5: CARD-FACE-3 pasa a CERRADA y F-CF-6 queda propuesta como lote propio (D1=A).
+
+**PK.** `CardBase.cs` y `GameSymbols.cs` refrescadas y `Repo_Tree_Index.md` regenerado, los tres
+verificados por contenido (`PK_Manifest` v18.1–v18.2).
+
+---
+
+## 2026-09-25 — CARD-FACE-3-DOC: la superficie de carta queda presentable y Esc tiene un solo dueño
+
+**Clase:** semántico · operativo · estructural · autoridad (menor) · lifecycle · referencia. Doc-pass de
+**CARD-FACE-3** (código + escena, cerrado 2026-09-22). Consume `CARD-FACE-3-DOC_Documentation_Package.md`
+(adjunto de chat; nunca entró al PK), que queda **CONSUMIDO** en esta misma sesión.
+
+**Qué cambió de semántica.** Cierran **O-CF2b-2**, **F-CF2b-1**, **F-CF-7** y **O-CF3-2**; **O-CF3-3** se
+acepta tal cual (D7). O-CF2b-2 era captura de puntero de uGUI (el *release* va al objeto que recibió la
+pulsación) y no orden de canvas: `CardBase.OnPointerUp` re-muestra la pila sólo con botón izquierdo y
+modal cerrado (D1=A). F-CF2b-1 necesitó dos cambios: U+00A0 en `HeaderWithGlyph` **y** panel de tooltip
+250 → 280 (D3=B, excepción registrada a D-CF-2), porque la unidad irrompible sola forzaba el corte por
+carácter. F-CF-7 era un GameObject desactivado en escena, origen desconocido. Esc pasa a tener un único
+oyente con cadena de prioridad (`UIManager.HandleEscapeKey`, D5=B, D6=A): antes una pulsación cerraba el
+modal y abandonaba el gig. El modal de detalle ya no afirma que el clic derecho lo cierre o intercambie
+carta: con el velo capturando el raycast esas ramas son inalcanzables. F-CF-6 sigue abierta (D2=B).
+
+**Qué cambió de estructura y autoridad.** `SSoT_Editor_Authoring_Tools` §20.14 gana el cuarto menú del
+grupo, `Sync sprite names from texture`, y el paso 3 del procedimiento lo nombra como vía de
+recuperación; el bloque «Proposed, not implemented» se retira. Su inferencia sobre TMP
+(`Update Sprite Asset` rellena `TMP_SpriteGlyph.sprite`) queda **validada por observación** (ST-CF3-9/10).
+`ssot_manifest.yaml`: `governs:` de Editor_Authoring_Tools gana `GameSymbolsSyncMenu.cs`. Sin cambios de
+precedencia ni de invariantes; `UIManager.cs` y `CardDetailViewController.cs` no cambian de autoridad.
+
+**Ficheros de código del lote:** `CardBase.cs`, `CardFacePresentation.cs`, `GameSymbols.cs`
+(comentario), `GameSymbolsCoverageMenu.cs` (`Check()` público), `UIManager.cs`,
+`CardDetailViewController.cs`; nuevo `GameSymbolsSyncMenu.cs`. Escena: `UIManager/GigCanvas/SongsLeftText`
+activado; prefab `TooltipText` con `preferredWidth` 280.
+
+**Correcciones al paquete hechas al aplicarlo (no se promovió nada nuevo):**
+- `SSoT_Card_System` §10.3: el párrafo de O-CF2b-2 terminaba en «…contradicts the canvas order stated in
+  this section.», no en la frase que citaba el paquete (tomada de `SSoT_Game_Text` §7). Se sustituyó el
+  párrafo entero, cuyos límites no eran ambiguos.
+- Esta entrada: el paquete la daba como viñeta «Propuesto 2026-09-22» al principio de una «sección de
+  aplicaciones» que no existe; se reescribe con la convención `## YYYY-MM-DD — TITLE` del fichero.
+- `coverage-matrix.md`: el texto del paquete traía saltos de línea dentro de una fila de tabla; se
+  aplica en una sola línea para no partir la tabla.
+- Restos que el paquete no cubría y contradecían sus propios cierres: `CURRENT_STATE` §2 (la
+  demo-readiness seguía citando O-CF2b-2 como bloqueo ante publisher, y F-CF2b-1 y F-CF-7 como aristas) y
+  F-TV-1 «NO OBSERVADA» en `CURRENT_STATE` §4 y `SSoT_Game_Text` §7 (ST-CF3-8 lo observa). Añadidas
+  además las filas de §9 en `SSoT_Game_Text` y `SSoT_Tooltip_Pipeline` y la entrada de §5 de
+  `CURRENT_STATE`, por convención de esos documentos.
+- **D-UX3** (=D vigente, =A menú de pausa) lo cita el paquete como decisión existente, pero no consta en
+  ningún documento del PK. Se conserva la cita y se marca en `CURRENT_STATE` §4 como de origen no
+  localizado; no se registra como decisión nueva.
+- `PK_Manifest`: las copias de `CardBase.cs` y `GameSymbols.cs` **no** se dan por refrescadas (el
+  paquete proponía fecha 2026-09-22): las del PK son anteriores al lote. Quedan RANCIAS con refresco
+  diferido; `Repo_Tree_Index.md` queda con regeneración diferida.
+
+**Recuentos.** Fingerprints **re-declarados sin cambio** — comprobación de no-regresión, no resultado:
+Templates `de7ce78c…` (172) · Concepts `f4a79e7c…` (73) · Cards `7012d489…` (60, noveno lote
+consecutivo). ST-CF3-1..15 PASS; ST-CF3-16 parcial (O-CF3-3).
+
+---
+
+## 2026-09-21 — CARD-FACE-1/2-DOC: la cara de carta habla en símbolos y el mapa de texto llega a cero filas abiertas
+
+**Clase:** semántico · autoridad · operativo · lifecycle/migración. Doc-pass conjunto de **CARD-FACE-1**
+(cerrado 2026-09-18) y **CARD-FACE-2 + 2b** (cerrado 2026-09-21). Consume
+`PENDING_DOC_PACKAGE_CARD-FACE-1.md` y `PENDING_DOC_PACKAGE_CARD-FACE-2.md`, ambos marcados APLICADOS.
+
+**Qué cambió de semántica.** El proyecto gana un **vocabulario simbólico**: un único atlas TMP global
+(51 glifos) cuya autoridad es la **textura fuente**; el TMP Sprite Asset es derivado y se regenera
+(D-CF-9=A′). La regla que decide qué es símbolo y qué es texto (D-CF-10=A): los enums de **notación**
+(compás, tempo, nota, grado, tipo de instrumento, tonalidad) son texto por familia derivada, porque el
+jugador los lee y el español puede quererlos distintos; los **categóricos** (rol, keyword, alcance,
+momento, familia de modificador, tipo de carta, acción de parte, estado) son glifo. Con eso se cierra
+**F-TXT4-2** (en 2b paso 5, no en CARD-FACE-2). La cara de carta muestra glifos, la pila de hover los
+explica y repite el glifo en su cabecera (D-CF-26=A); el modal lleva glifo + palabra porque ninguna
+superficie de carta lee `<link>`. El tipo de carta Action no se enseña al jugador (D-CF-25=B). Estado
+= un solo dibujo en el icono del personaje y en el glifo inline (D-CF-18=C / D-CF-22=A).
+
+**Qué cambió de autoridad.** El mapa de poblaciones de `SSoT_Game_Text` §1 declara **cero filas
+abiertas**: la fila 10 cierra su último tercio y aparece la **fila 12** (texto de jugador en assets de
+efecto), encontrada y cerrada en la serie, en ambos casos **borrando el campo** (D-SP1-6=B aplicado dos
+veces más). No se declara completo el censo. `ssot_manifest.yaml`: `governs:` gana `GameSymbols.cs`
+y `PartEffectDescriptionBuilder.cs` (Game_Text; el segundo con gobierno doble, igual que
+`CardEffectDescriptionBuilder.cs`), `CardFacePresentation.cs` (Card_System, **D-GOV=A**) y los tres menús
+de símbolo (Editor_Authoring_Tools, por fichero). GAMETEXT-NO-DEV-LABEL deja de apuntar a
+«F-TXT4-2 → CARD-FACE-1». **Candidato no promovido:** un invariante «ningún `ToString()` de enum en
+superficie de jugador»; queda propuesto, no aplicado.
+
+**Correcciones a los paquetes hechas al aplicarlos (no se promovieron tal cual):**
+- Ruta del atlas: `Assets/Resources/Sprites/Game Symbols/`, no `Assets/Art/UI/Symbols/` (F-CF2-5).
+- Troceado en el Sprite Editor; el menú `Slice symbol sheet` no existe (paquete 2 §D3). `SymbolSheetSlicer.cs`
+  tampoco está en el árbol del repo.
+- F-CF-5 decía que *nada* en el proyecto lee `<link>`; `TutorialOverlayView` sí. Se reacota a
+  superficies de carta.
+- O-CF2b-2: la hipótesis del cierre de 2b es falsa según el código; se registran las dos candidatas.
+- La guarda de iconos de estado vive en `ValidateCatalogueContents`, no directamente en `OnValidate`.
+- Orden de la pila de hover según el código: rol → tipo → acción de parte → familias → keywords → estados.
+- D-CF-3, D-CF-6, D-CF-8 y D-CF-16 se citan en la serie pero no constan en ningún paquete retenido: no se
+  registran (D-DOC-5).
+- Población 12: nunca tuvo fila en §1; se da de alta ya resuelta. También se reparó una línea en blanco
+  que partía la tabla de §1 entre las filas 10 y 11.
+
+**Recuentos.** Plantillas 102 → 147 (`e40c445d…`) → **172** (`de7ce78c…`); conceptos 43 → 61
+(`e28fbc89…`) → **73** (`f4a79e7c…`); cartas **sin mover**, `7012d489…`, octavo lote consecutivo.
+Golden D → E → F → H → **I** (sin `golden_G`), cero hallazgos en H → I.
+
+**Reglas de proceso registradas.** Grep del repo entero antes de borrar un campo serializado (F-CF2-4);
+nombrar todos los recortes antes de `Update Sprite Asset` (F-CF2-2); «Fix horizontal» tras cada Update
+(F-CF-4); el panel COVERAGE —no el export— reconcilia familias derivadas; un ancla se verifica contra el
+fichero completo (F-CF2-3).
+
+**Lifecycle.** `PK_Manifest.md` v17. Salen del PK los dos paquetes y `Roadmap_Update_CARD-FACE-1_close.md`
+(sustituido por la edición consolidada de S5, D-DOC=A). Refresco del PK confirmado para `CardBase.cs`,
+`StatusEffectCatalogueSO.cs`, `SongCompositionUI.cs` y `Repo_Tree_Index.md`; altas de `GameSymbols.cs` y
+`PartEffectDescriptionBuilder.cs`. Deriva física del PK saneada (D-PK=A).
+
+---
+
 ## 2026-09-16 — TEXT-VIBE-1 + TEXT-VIBE-1-DOC: un asset deja de poder guardar texto de jugador, y el desglose del Vibe sólo dice lo que mueve el número
 
 **Clase:** autoridad · semántico · operativo · lifecycle/migración.

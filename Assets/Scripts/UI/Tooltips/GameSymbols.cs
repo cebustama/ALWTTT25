@@ -12,7 +12,8 @@
 //
 // Coverage: `AllSpriteNames` is the set the editor's sprite pass must find in the atlas. It is
 // enumerated at type init from the enums (F-TV-5: a derived family is never a hand-written list).
-// The editor pass itself is not wired by CARD-FACE-1 (proposal against SSoT_Editor_Authoring_Tools).
+// The editor pass is GameSymbolsCoverageMenu (CARD-FACE-2): `Check symbol coverage` reads this set and
+// checks the atlas in BOTH directions (SSoT_Editor_Authoring_Tools section 20.14; Game_Text check 7).
 //
 // SOURCE IS PURE ASCII ON PURPOSE (F-T6-1 / F-SP1-2).
 
@@ -32,6 +33,14 @@ namespace ALWTTT.Tooltips
         public const string TimingPrefix = "tm_";    // ApplyTiming
         public const string ModifierPrefix = "mod_"; // modifier family (fixed names below)
 
+        // [CARD-FACE-2 / D-CF-10=A] Three more CATEGORICAL enums become symbols. ct_ and pa_ are
+        // enumerated from their enums below (None excluded: D-CF-20, a value with no glyph);
+        // st_ is keyed by StatusEffectSO.StatusKey, an ASSET string, so its set is enumerated by the
+        // EDITOR (GameSymbolsCoverageMenu via ConceptRegistryEditorIndex), the Ability precedent (D-T5-1).
+        public const string CardTypePrefix = "ct_";     // ALWTTT.Enums.CardType
+        public const string PartActionPrefix = "pa_";   // PartActionKind
+        public const string StatusPrefix = "st_";       // StatusEffectSO.StatusKey (normalised by the SO)
+
         // -- Modifier-family glyphs (fixed set: one per PartEffect family) --
         public const string ModMeter = "mod_meter";
         public const string ModTempo = "mod_tempo";
@@ -47,6 +56,12 @@ namespace ALWTTT.Tooltips
         public static string ScopeName(EffectScope s) => ScopePrefix + s.ToString().ToLowerInvariant();
         public static string TimingName(ApplyTiming t) => TimingPrefix + t.ToString().ToLowerInvariant();
 
+        public static string CardTypeName(CardType c) => CardTypePrefix + c.ToString().ToLowerInvariant();
+        public static string PartActionName(PartActionKind k) => PartActionPrefix + k.ToString().ToLowerInvariant();
+        /// <summary>[D-CF-18=C] The inline glyph for a status. The key is already lower-case
+        /// (StatusEffectSO.NormalizeKey); ToLowerInvariant is belt-and-braces, not a second rule.</summary>
+        public static string StatusName(string statusKey) => StatusPrefix + (statusKey ?? string.Empty).ToLowerInvariant();
+
         // -- Inline TMP tags --
         // [D-CF-11=B] tint=1 makes the glyph inherit the surrounding text colour, so a monochrome
         // placeholder atlas stays visible on any background and can be coloured with <color=...>.
@@ -55,6 +70,12 @@ namespace ALWTTT.Tooltips
         public static string Keyword(SpecialKeywords k) => Tag(KeywordName(k));
         public static string Scope(EffectScope s) => Tag(ScopeName(s));
         public static string Timing(ApplyTiming t) => Tag(TimingName(t));
+
+        // Named *Glyph, not CardType(CardType): a method whose name is also a type name shadows the
+        // type inside this class, and the parameter would no longer resolve.
+        public static string CardTypeGlyph(CardType c) => Tag(CardTypeName(c));
+        public static string PartActionGlyph(PartActionKind k) => Tag(PartActionName(k));
+        public static string StatusGlyph(string statusKey) => Tag(StatusName(statusKey));
 
         // -- Concept ids for the hover detail (glossary entries, NOT sprite names) --
         // Same derivation, different namespace. A missing entry follows the section 3 miss policy:
@@ -67,6 +88,31 @@ namespace ALWTTT.Tooltips
         public const string ModKeyConcept = "mod_key";
         public const string ModInstrumentConcept = "mod_instrument";
         public const string ModTonalityConcept = "mod_tonality";
+
+        // [CARD-FACE-2] Concept ids for the two new face glyphs (card hover stack, CardBase). A status
+        // glyph's concept is its StatusKey itself, which the hover stack already pushes.
+        public static string CardTypeConcept(CardType c) => "cardtype_" + c.ToString().ToLowerInvariant();
+        public static string PartActionConcept(PartActionKind k) => "partaction_" + k.ToString().ToLowerInvariant();
+
+        /// <summary>[CARD-FACE-2] Every concept id a glyph's hover may read that NO other coverage
+        /// watches (role_/scope_/timing_/mod_ from CARD-FACE-1, cardtype_/partaction_ from this
+        /// batch). Keyword and status concepts are already covered by GameTextWindow. Read by
+        /// GameSymbolsCoverageMenu; until CARD-FACE-2 their only test was the hover on screen.</summary>
+        public static readonly string[] AllConceptIds = BuildAllConcepts();
+
+        private static string[] BuildAllConcepts()
+        {
+            var seen = new HashSet<string>(System.StringComparer.Ordinal);
+            var list = new List<string>(40);
+            void Add(string n) { if (seen.Add(n)) list.Add(n); }
+            Add(ModMeterConcept); Add(ModTempoConcept); Add(ModKeyConcept); Add(ModInstrumentConcept); Add(ModTonalityConcept);
+            foreach (TrackRole r in System.Enum.GetValues(typeof(TrackRole))) Add(RoleConcept(r));
+            foreach (EffectScope s in System.Enum.GetValues(typeof(EffectScope))) Add(ScopeConcept(s));
+            foreach (ApplyTiming t in System.Enum.GetValues(typeof(ApplyTiming))) Add(TimingConcept(t));
+            foreach (CardType c in System.Enum.GetValues(typeof(CardType))) if (c != CardType.None) Add(CardTypeConcept(c));
+            foreach (PartActionKind k in System.Enum.GetValues(typeof(PartActionKind))) if (k != PartActionKind.None) Add(PartActionConcept(k));
+            return list.ToArray();
+        }
 
         /// <summary>Wrap inline content in a hover link to a glossary concept.</summary>
         public static string Link(string conceptId, string inner) => "<link=" + conceptId + ">" + inner + "</link>";
@@ -85,6 +131,10 @@ namespace ALWTTT.Tooltips
             foreach (SpecialKeywords k in System.Enum.GetValues(typeof(SpecialKeywords))) Add(KeywordName(k));
             foreach (EffectScope s in System.Enum.GetValues(typeof(EffectScope))) Add(ScopeName(s));
             foreach (ApplyTiming t in System.Enum.GetValues(typeof(ApplyTiming))) Add(TimingName(t));
+            // [CARD-FACE-2 / D-CF-20] None has no glyph, so it is not in the coverage set. Its TEMPLATE
+            // id still exists (GameTextTemplateIds enumerates the whole enum): text is cheap, art is not.
+            foreach (CardType c in System.Enum.GetValues(typeof(CardType))) if (c != CardType.None) Add(CardTypeName(c));
+            foreach (PartActionKind k in System.Enum.GetValues(typeof(PartActionKind))) if (k != PartActionKind.None) Add(PartActionName(k));
             return list.ToArray();
         }
     }

@@ -95,8 +95,15 @@ namespace ALWTTT
                 GameManager.GameplayData.GetCardTypeColor(CardData.CardType);*/
 
             cardImage.sprite = CardDefinition.CardSprite;
+            // [CARD-FACE-2b / D-CF-25=B] The action card TYPE is hidden from the player for now. One switch
+            // turns off face, hover panel and modal together. The field is emptied, not deactivated: its
+            // GameObject may carry layout, and an empty TMP field costs nothing.
             typeTextField.text = CardDefinition.IsComposition ?
-                GameText.Format(GameTextTemplateIds.UiCardTypeComposition) : CardDefinition.CardType.ToString();   // [TEXT-5 / D-T5-3=A] enum branch is F-TXT4-2 → CARD-FACE-1
+                GameText.Format(GameTextTemplateIds.UiCardTypeComposition)
+                : !CardFacePresentation.ShowCardType ? string.Empty
+                : (CardFacePresentation.UseSymbols
+                    ? GameSymbols.CardTypeGlyph(CardDefinition.CardType)                          // [CARD-FACE-2 / F-TXT4-2] symbol
+                    : GameText.Format(GameTextTemplateIds.UiCardType(CardDefinition.CardType)));   // [D-CF-19=B] word
             nameTextField.text = GameText.CardName(CardDefinition);   // [TXT-4] glossary cardNames by Id; displayName is a developer label
             descTextField.text = CardDefinition.GetDescription();
 
@@ -797,8 +804,18 @@ namespace ALWTTT
             HideTooltipInfo();
         }
 
+        // [CARD-FACE-3 / O-CF2b-2] uGUI delivers the RELEASE to the object that took the PRESS, even
+        // when the pointer has already left it. A right press hid the stack and opened the modal; its
+        // release then re-showed the stack with the pointer over the modal's dim background, so no
+        // OnPointerExit ever hid it again (observed 2026-09-22, R1). Canvas order was NOT the cause
+        // (R2: tooltip canvas 10 below detail canvas 100, both root Overlay canvases).
+        // Only a LEFT release restores the hover (R4 baseline: press hides, release re-shows), and
+        // never while the modal is open.
         public virtual void OnPointerUp(PointerEventData eventData)
         {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            var ctrl = UI.CardDetailViewController.Instance;
+            if (ctrl != null && ctrl.IsVisible) return;
             ShowTooltipInfo();
         }
         #endregion
@@ -825,7 +842,31 @@ namespace ALWTTT
                 string roleConceptId = GameSymbols.RoleConcept(compPayload.TrackAction.role);
                 tooltipManager.ShowTooltip(
                     GameText.ConceptDescription(roleConceptId),
-                    GameText.ConceptName(roleConceptId));
+                    CardFacePresentation.HeaderWithGlyph(                                    // [CARD-FACE-2b / D-CF-26=A]
+                        GameSymbols.Role(compPayload.TrackAction.role), GameText.ConceptName(roleConceptId)));
+            }
+
+            // 0a) [CARD-FACE-2] Card-type glyph (action cards) and part-action glyph (Part cards): the two
+            //     enums CARD-FACE-1 left as words (F-TXT4-2). Same mechanism as the role: glyph on the
+            //     face, meaning here, read by derived concept id, not through ConceptTooltipResolver (D-CF-2).
+            if (!CardDefinition.IsComposition && CardFacePresentation.ShowCardType)   // [CARD-FACE-2b / D-CF-25=B]
+            {
+                string typeConceptId = GameSymbols.CardTypeConcept(CardDefinition.CardType);
+                tooltipManager.ShowTooltip(
+                    GameText.ConceptDescription(typeConceptId),
+                    CardFacePresentation.HeaderWithGlyph(
+                        GameSymbols.CardTypeGlyph(CardDefinition.CardType), GameText.ConceptName(typeConceptId)));
+            }
+            if (CardDefinition.HasPayload
+                && CardDefinition.Payload is CompositionCardPayload partPayload
+                && partPayload.PrimaryKind == CardPrimaryKind.Part
+                && partPayload.PartAction != null)
+            {
+                string paConceptId = GameSymbols.PartActionConcept(partPayload.PartAction.action);
+                tooltipManager.ShowTooltip(
+                    GameText.ConceptDescription(paConceptId),
+                    CardFacePresentation.HeaderWithGlyph(
+                        GameSymbols.PartActionGlyph(partPayload.PartAction.action), GameText.ConceptName(paConceptId)));
             }
 
             // 0b) Modifier-family tooltips [CARD-FACE-1 / D-CF-14=B]. The face now shows a glyph per
@@ -845,7 +886,10 @@ namespace ALWTTT
                     if (conceptId == null || !seenFamilies.Add(conceptId)) continue;
                     tooltipManager.ShowTooltip(
                         GameText.ConceptDescription(conceptId),
-                        GameText.ConceptName(conceptId));
+                        CardFacePresentation.HeaderWithGlyph(                                // [CARD-FACE-2b]
+                            PartEffectDescriptionBuilder.FamilySpriteName(fx) is string famSprite
+                                ? GameSymbols.Tag(famSprite) : null,
+                            GameText.ConceptName(conceptId)));
                 }
             }
 
@@ -857,7 +901,8 @@ namespace ALWTTT
                 foreach (var kw in CardDefinition.Keywords)
                 {
                     ConceptTooltipResolver.TryGetKeywordText(kw, out var kwHeader, out var kwBody);
-                    tooltipManager.ShowTooltip(kwBody, kwHeader);
+                    tooltipManager.ShowTooltip(kwBody,
+                        CardFacePresentation.HeaderWithGlyph(GameSymbols.Keyword(kw), kwHeader));   // [CARD-FACE-2b]
                 }
             }
 
@@ -877,7 +922,9 @@ namespace ALWTTT
                             // [TXT-3] Name + body from the glossary by StatusKey. DisplayName is
                             // a developer label since TXT-3 and never reaches the player here.
                             ConceptTooltipResolver.TryGetStatusText(ase.status, out var header, out var body);
-                            tooltipManager.ShowTooltip(body, header);
+                            tooltipManager.ShowTooltip(body,
+                                CardFacePresentation.HeaderWithGlyph(                        // [CARD-FACE-2b]
+                                    GameSymbols.StatusGlyph(ase.status.StatusKey), header));
                         }
                     }
                 }

@@ -30,10 +30,6 @@ using ALWTTT.Tutorial;
 using MidiGenPlay.Composition;
 using static MidiGenPlay.MusicTheory.MusicTheory;
 
-
-
-
-
 #if ALWTTT_DEV
 using ALWTTT.DevMode;
 #endif
@@ -165,8 +161,9 @@ namespace ALWTTT.Managers
 
 
         /// <summary>[BIGNUM-1r45 / D-BN-3c] Last BPM resolved for the part being played.
-        /// Read-only surface for presentation that needs the tempo but not the beat grid
-        /// (the C1 readout pulse while BEAT-1 is open). 0 until the first part resolves.</summary>
+        /// Read-only surface for presentation that needs the tempo but not the beat grid.
+        /// [BEAT-1] The C1 readout pulse no longer reads it (tempo now comes from the
+        /// grid). 0 until the first part resolves.</summary>
         public int CurrentBpm => _currentBpm;
 
         // PartIndex -> (AudienceIndex -> List of impressions per loop)
@@ -3376,12 +3373,9 @@ namespace ALWTTT.Managers
         {
             _currentBpm = bpm;
 
-            // [BIGNUM-1r45 / D-BN-3c] Feed the C1 readout pulse the real tempo. The beat
-            // grid (IBeatGridListener) is silent in the gig scene — F-BN-5 / BEAT-1 — so
-            // its OnTempoChanged never arrives and the pulse sits at its 120 default.
-            // This is a TEMPO push, not a beat: the pulse keeps its own single clock.
-            if (UIManager != null && UIManager.GigCanvas != null)
-                UIManager.GigCanvas.SetReadoutTempo(bpm);
+            // [BEAT-1 / D4=A] The C1 readout pulse no longer takes its tempo from here:
+            // the beat grid announces tempo AND time signature from the played bytes
+            // (MidiMusicManager.RunBeatGrid). The D-BN-3c push is retired.
 
             if (UseLogs)
                 Debug.Log($"{DebugTag} [Gig] Part {partIndex} BPM resolved → {bpm}");

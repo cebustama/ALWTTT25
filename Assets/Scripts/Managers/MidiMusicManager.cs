@@ -192,6 +192,14 @@ namespace ALWTTT.Managers
         private readonly HashSet<IPartInfoListener> _partListeners = new();
 
         private Coroutine _beatGridCo;
+
+        // [BEAT-1 / D1=A] The exact bytes handed to the player by the last PlayBytes,
+        // and a serial bumped on every PlayBytes. OnSongStartedInternal reads these
+        // instead of `cache`, so PlayRaw (jam-raw::<guid> keys, never cached - F-P1-8)
+        // gets a beat grid too. The serial ends any grid started for an earlier
+        // playback, whatever order the transport events arrive in.
+        private byte[] _currentPlayData;
+        private int _playSerial;
         private readonly List<ITempoSignatureListener> _tempoSigSubs = new();
 
         // Beat detection (very simple: kick = beat)
@@ -309,6 +317,12 @@ namespace ALWTTT.Managers
             }
 
             mix = new PassthroughMixController(player);
+
+            // [PAUSE-1 / D10=B] Player music level: fourth multiplicative plane at the
+            // single write boundary (WriteChannelVolume01). Default 1.0 = identity.
+            _playerMusic01 = PlayerAudioPrefs.Music01;
+            PlayerAudioPrefs.Changed += OnPlayerAudioPrefsChanged;
+
             for (int ch = 0; ch < 16; ch++) _lastKnownVol01[ch] = 1f;
             _lastKnownVol01[MidiGenerator.MetronomeChannel] = 0f; // default: metronome off
 
@@ -340,6 +354,9 @@ namespace ALWTTT.Managers
 
         private void OnDestroy()
         {
+
+            PlayerAudioPrefs.Changed -= OnPlayerAudioPrefsChanged;   // [PAUSE-1]
+
             if (player != null)
             {
                 player.OnMidiEvents -= HandleMidiEvents;
@@ -599,10 +616,96 @@ namespace ALWTTT.Managers
 
         public void Stop()
         {
+            // [PAUSE-1] A stop supersedes a suspension: side sources (singer) get their
+            // own end-of-song path un-paused; the adapter clears its flag inside Stop().
+            ResumeSuspendedSideSources();
+            IsPlaybackSuspended = false;
+
             player?.Stop();
             if (logDebug) Debug.Log($"{DebugTag} Stop");
             ClearMarkers();
         }
+
+        #region [PAUSE-1] Playback suspension + player music plane
+        /// <summary>True between SuspendPlayback and ResumePlayback/Stop.</summary>
+        public bool IsPlaybackSuspended { get; private set; }
+
+        private readonly List<AudioSource> _suspendedSideSources = new();
+        private bool _warnedNoSuspendSeam;
+        private float _playerMusic01 = 1f;
+
+        /// <summary>
+        /// Freeze gig music in place. Transport: IMidiTransportSuspend (ALWTTT seam; the
+        /// package-side IPlayMidi is not extended). Side sources: every playing AudioSource
+        /// under this manager that is NOT inside the transport's own hierarchy (MPTK owns
+        /// its voices) - in practice the dsp-anchored singer, which shares no transport
+        /// with MPTK (SSoT_Singer_Voice invariant 3).
+        /// </summary>
+        public void SuspendPlayback()
+        {
+            if (IsPlaybackSuspended) return;
+            IsPlaybackSuspended = true;
+
+            if (player is IMidiTransportSuspend transport)
+            {
+                transport.Suspend();
+            }
+            else if (!_warnedNoSuspendSeam)
+            {
+                _warnedNoSuspendSeam = true;
+                Debug.LogWarning($"{DebugTag} [PAUSE-1] DEGRADED: the MIDI player does not " +
+                    "implement IMidiTransportSuspend; gig music keeps playing while paused.");
+            }
+
+            _suspendedSideSources.Clear();
+            var transportBehaviour = player as MonoBehaviour;
+            Transform transportRoot = transportBehaviour != null ? transportBehaviour.transform : null;
+            foreach (var src in GetComponentsInChildren<AudioSource>(false))
+            {
+                if (src == null || !src.isPlaying) continue;
+                if (transportRoot != null && src.transform.IsChildOf(transportRoot)) continue;
+                src.Pause();
+                _suspendedSideSources.Add(src);
+            }
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} [PAUSE-1] suspend tick={GetCurrentTick()} " +
+                    $"sideSources={_suspendedSideSources.Count}");
+        }
+
+        /// <summary>Undo SuspendPlayback. Same frame as the timeScale restore.</summary>
+        public void ResumePlayback()
+        {
+            if (!IsPlaybackSuspended) return;
+            IsPlaybackSuspended = false;
+
+            if (player is IMidiTransportSuspend transport)
+                transport.Resume();
+
+            ResumeSuspendedSideSources();
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} [PAUSE-1] resume tick={GetCurrentTick()}");
+        }
+
+        private void ResumeSuspendedSideSources()
+        {
+            for (int i = 0; i < _suspendedSideSources.Count; i++)
+                if (_suspendedSideSources[i] != null) _suspendedSideSources[i].UnPause();
+            _suspendedSideSources.Clear();
+        }
+
+        // Re-send every channel through the write boundary with the new player plane.
+        // Reads _lastKnownVol01, so a singer mute (0) or a Highlight stays as it was: the
+        // player level scales them, it never overwrites them (unlike SetMusicianVolume01).
+        private void OnPlayerAudioPrefsChanged()
+        {
+            float v = Mathf.Clamp01(PlayerAudioPrefs.Music01);
+            if (Mathf.Approximately(v, _playerMusic01)) return;
+            _playerMusic01 = v;
+            ReapplyLiveVolumes();
+        }
+        #endregion
 
         public IReadOnlyList<string> GetChannelOwnerIdsFor(SongData song)
         {
@@ -1369,128 +1472,208 @@ namespace ALWTTT.Managers
 
         #region Private Methods
 
-        private IEnumerator RunBeatGrid(string key, float duration)
+        // [BEAT-1 / D2=B] Everything the tick-driven grid needs, parsed once from the
+        // bytes being played. A beat's length in TICKS depends only on the file's
+        // ticks-per-quarter and the time-signature denominator, never on tempo; tempo
+        // is only needed to announce BPM and to fill BeatGridEvent.time in seconds.
+        private sealed class BeatGridPlan
         {
-            if (!cache.TryGetValue(key, out var entry)) yield break;
+            public TempoMap tempoMap;
+            public long ticksPerQuarter;
+            public long lastTick;
+            // [BEAT-1 / D9=A] Last tick a beat may START at (exclusive). A generated loop's
+            // final event lands a tick past its last barline (observed: lastTick =
+            // bars * barTicks + 1 in 3/4 and 4/4, ST-B1-3), which made the grid emit a
+            // phantom downbeat at the barline right before the next loop's own bar 0.
+            // A beat is emitted only if at least a sixteenth note of music follows it.
+            public long gridEndTick;
+            public double bpmAtZero;
+            public int numAtZero;
+            public int denAtZero;
+            public List<(long tick, int num, int den)> tsChanges;   // tick > 0, ascending
+            public List<(long tick, double bpm)> tempoChanges;      // tick > 0, ascending
+        }
 
-            using var ms = new MemoryStream(entry.data);
-            var midi = MidiFile.Read(ms);
-            var tempoMap = midi.GetTempoMap();
-
-            // Collect change times
-            var tsChanges = tempoMap.GetTimeSignatureChanges().ToList(); // ValueChange<TimeSignature>
-            if (logDebug)
+        private BeatGridPlan BuildBeatGridPlan(byte[] data)
+        {
+            try
             {
-                Debug.Log($"{DebugTag} TS changes: " +
-                          string.Join(", ", tsChanges.Select(c =>
-                            $"{c.Value.Numerator}/{c.Value.Denominator}@{c.Time}")));
+                using var ms = new MemoryStream(data);
+                var midi = MidiFile.Read(ms);
+
+                if (!(midi.TimeDivision is TicksPerQuarterNoteTimeDivision tpq))
+                {
+                    Debug.LogWarning($"{DebugTag} [BEAT-1] beat grid needs a ticks-per-quarter " +
+                                     $"time division; got {midi.TimeDivision}. Grid not started.");
+                    return null;
+                }
+
+                var tempoMap = midi.GetTempoMap();
+                var tempo0 = tempoMap.GetTempoAtTime(new MidiTimeSpan(0));
+                var ts0 = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(0));
+
+                long lastTick = 0;
+                foreach (var chunk in midi.GetTrackChunks())
+                {
+                    var evts = chunk.GetTimedEvents();
+                    if (evts.Count > 0) lastTick = Math.Max(lastTick, evts.Last().Time);
+                }
+
+                return new BeatGridPlan
+                {
+                    tempoMap = tempoMap,
+                    ticksPerQuarter = Math.Max(1, (int)tpq.TicksPerQuarterNote),
+                    lastTick = lastTick,
+                    gridEndTick = lastTick - Math.Max(1L, (long)tpq.TicksPerQuarterNote / 4),
+                    bpmAtZero = 60000000.0 / tempo0.MicrosecondsPerQuarterNote,
+                    numAtZero = ts0.Numerator,
+                    denAtZero = ts0.Denominator,
+                    tsChanges = tempoMap.GetTimeSignatureChanges()
+                        .Where(c => c.Time > 0)
+                        .OrderBy(c => c.Time)
+                        .Select(c => (tick: c.Time, num: c.Value.Numerator, den: c.Value.Denominator))
+                        .ToList(),
+                    tempoChanges = tempoMap.GetTempoChanges()
+                        .Where(c => c.Time > 0)
+                        .OrderBy(c => c.Time)
+                        .Select(c => (tick: c.Time, bpm: 60000000.0 / c.Value.MicrosecondsPerQuarterNote))
+                        .ToList()
+                };
             }
-
-            var tempoChanges = tempoMap.GetTempoChanges().ToList();         // ValueChange<Tempo>
-
-            var boundaries = new SortedSet<long> { 0 };
-            foreach (var c in tsChanges) boundaries.Add(c.Time);
-            foreach (var c in tempoChanges) boundaries.Add(c.Time);
-
-            // last tick in the song
-            long lastTick = 0;
-            foreach (var chunk in midi.GetTrackChunks())
+            catch (Exception ex)
             {
-                var evts = chunk.GetTimedEvents();
-                if (evts.Count > 0) lastTick = Math.Max(lastTick, evts.Last().Time);
+                Debug.LogWarning($"{DebugTag} [BEAT-1] beat grid: could not read the played bytes: {ex.Message}");
+                return null;
             }
-            boundaries.Add(lastTick);
+        }
 
-            var pts = boundaries.ToList();
-            var tsSet = new HashSet<long>(tsChanges.Select(c => c.Time)); // fast "is this a TS change?" check
+        // [BEAT-1 / D2=B, D4=A, D5=A] Tick-driven beat grid for ONE playback.
+        // - One clock: beats fire when the sequencer's CurrentTick crosses them. A
+        //   suspended transport (PAUSE-1) freezes CurrentTick, so the grid freezes with
+        //   it and resumes on the same beat. No scaled WaitForSeconds, no drift.
+        // - Announces the starting tempo/signature itself, synchronously before its
+        //   first yield (D4=A: the single announcer). Later changes are announced only
+        //   when the playhead crosses them, never twice.
+        // - Starts at bar 0 on every playback (D5=A): a composition loop is its own
+        //   playback. Ends when the song stops, when the bytes run out, or when a newer
+        //   PlayBytes bumps _playSerial.
+        // - If one frame crosses several beats (a hitch), only the LATEST is emitted:
+        //   a late burst of pulses reads as noise, not rhythm. Counters stay exact.
+        private IEnumerator RunBeatGrid(byte[] data, int serial)
+        {
+            var plan = BuildBeatGridPlan(data);
+            if (plan == null) yield break;
 
-            // state
+            NotifyTempoSignatureAtStart(plan.bpmAtZero, plan.numAtZero, plan.denAtZero);
+
+            int num = Mathf.Max(1, plan.numAtZero);
+            int den = Mathf.Max(1, plan.denAtZero);
+            long beatTicks = Math.Max(1L, plan.ticksPerQuarter * 4L / den);
+
+            long nextBeatTick = 0;
             int barIndex = 0;
             int beatInBar = 0;
-            double songTimeSec = 0.0;
+            int tsGridIdx = 0;     // time-signature changes already folded into the grid
+            int tsNotifyIdx = 0;   // time-signature changes already announced
+            int tempoIdx = 0;      // tempo changes already announced
+            double lastBpm = plan.bpmAtZero;
+            int emitted = 0, skipped = 0, frames = 0;
 
-            // previous values for change notifications (BPM/TS)
-            double prevBpm = -1;
-            int prevNum = -1, prevDen = -1;
+            if (logDebug && logVerbose)   // [LOG-1] verbose
+                Debug.Log($"{DebugTag} [BEAT-1] grid start serial={serial} ppq={plan.ticksPerQuarter} " +
+                          $"{num}/{den} bpm={plan.bpmAtZero:0.#} lastTick={plan.lastTick} endTick={plan.gridEndTick} " +
+                          $"beatTicks={beatTicks} gridSubs={_gridSubs.Count} tempoSubs={_tempoSigSubs.Count}");
 
-            for (int i = 0; i < pts.Count - 1; i++)
+            // Advance the schedule by one beat; fold in any time-signature change the
+            // new beat reaches (a signature change always starts a new bar).
+            void Advance()
             {
-                long startTick = pts[i];
-                long endTick = pts[i + 1];
+                nextBeatTick += beatTicks;
+                beatInBar++;
+                if (beatInBar >= num) { beatInBar = 0; barIndex++; }
 
-                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(startTick));
-                var ts = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(startTick));
-
-                double bpm = 60000000.0 / tempo.MicrosecondsPerQuarterNote;
-                int numerator = ts.Numerator;
-                int denominator = ts.Denominator;
-
-                // Notify BPM/TS changes
-                if (!Mathf.Approximately((float)bpm, (float)prevBpm))
+                while (tsGridIdx < plan.tsChanges.Count &&
+                       plan.tsChanges[tsGridIdx].tick <= nextBeatTick)
                 {
-                    foreach (var s in _tempoSigSubs) s?.OnTempoChanged(bpm);
-                    prevBpm = bpm;
+                    var tc = plan.tsChanges[tsGridIdx++];
+                    nextBeatTick = tc.tick;
+                    if (beatInBar != 0) { beatInBar = 0; barIndex++; }
+                    num = Mathf.Max(1, tc.num);
+                    den = Mathf.Max(1, tc.den);
+                    beatTicks = Math.Max(1L, plan.ticksPerQuarter * 4L / den);
                 }
-                if (numerator != prevNum || denominator != prevDen)
-                {
-                    foreach (var s in _tempoSigSubs)
-                        s?.OnTimeSignatureChanged(numerator, denominator);
+            }
 
-                    prevNum = numerator; prevDen = denominator;
+            string exit = "end";
+            while (nextBeatTick < plan.gridEndTick)
+            {
+                if (serial != _playSerial) { exit = "superseded"; break; }
+                if (player == null || !player.IsPlaying) { exit = "stopped"; break; }
+
+                long cur = player.CurrentTick;
+
+                // Stale-tick guard: right after a new Play, a reading more than one bar
+                // ahead of the schedule is the previous playback's position, not ours.
+                // Bounded like the BAL-1 preamble wait (30 frames).
+                if (frames < 30 && cur > nextBeatTick + (long)num * beatTicks)
+                {
+                    frames++;
+                    yield return null;
+                    continue;
                 }
 
-                // If this segment starts at a TS change (or song start), align to a new bar
-                bool tsStartsHere = (startTick == 0) || tsSet.Contains(startTick);
-                if (tsStartsHere) beatInBar = 0;
-
-                // segment duration in seconds and seconds-per-beat
-                var segStart = TimeConverter.ConvertTo<MetricTimeSpan>(startTick, tempoMap).TotalSeconds;
-                var segEnd = TimeConverter.ConvertTo<MetricTimeSpan>(endTick, tempoMap).TotalSeconds;
-                double segSeconds = Math.Max(0, segEnd - segStart);
-
-                double spq = 60.0 / bpm;
-                double spb = spq * (4.0 / denominator);
-
-                // Emit beats within this segment
-                double tLocal = 0.0;
-                if (logDebug)
-                    Debug.Log($"{DebugTag} [BeatProbe] segment {i} segSeconds={segSeconds:0.00} " +
-                        $"bpm={bpm:0.#} {numerator}/{denominator} " +
-                        $"IsPlaying={(player != null && player.IsPlaying)} gridSubs={_gridSubs.Count}");
-
-                while (tLocal + 1e-6 < segSeconds && player != null && player.IsPlaying)
+                // Announce changes the playhead has crossed, before the beat they
+                // govern, so a downbeat at a signature change already uses the new one.
+                while (tempoIdx < plan.tempoChanges.Count && cur >= plan.tempoChanges[tempoIdx].tick)
                 {
-                    // Beat event at (songTimeSec + tLocal)
-                    var ev = new BeatGridEvent
+                    double bpm = plan.tempoChanges[tempoIdx++].bpm;
+                    if (!Mathf.Approximately((float)bpm, (float)lastBpm))
                     {
-                        barIndex = barIndex,
-                        beatInBar = beatInBar,
-                        time = (float)(songTimeSec + tLocal)
-                    };
-
-                    if (logDebug && barIndex == 0 && beatInBar < 4)
-                        Debug.Log($"{DebugTag} [BeatProbe] EMIT bar={barIndex} beat={beatInBar} " +
-                            $"→ {_gridSubs.Count} listener(s)");
-
-                    foreach (var g in _gridSubs) g?.OnBeat(ev);
-                    if (beatInBar == 0)
-                        foreach (var g in _gridSubs) g?.OnDownbeat(ev);
-
-                    // wait one beat, then advance counters
-                    yield return new WaitForSeconds((float)spb);
-                    tLocal += spb;
-
-                    beatInBar++;
-                    if (beatInBar >= numerator)
-                    {
-                        beatInBar = 0;
-                        barIndex++;
+                        lastBpm = bpm;
+                        for (int i = 0; i < _tempoSigSubs.Count; i++) _tempoSigSubs[i]?.OnTempoChanged(bpm);
                     }
                 }
+                while (tsNotifyIdx < plan.tsChanges.Count && cur >= plan.tsChanges[tsNotifyIdx].tick)
+                {
+                    var sc = plan.tsChanges[tsNotifyIdx++];
+                    for (int i = 0; i < _tempoSigSubs.Count; i++)
+                        _tempoSigSubs[i]?.OnTimeSignatureChanged(sc.num, sc.den);
+                }
 
-                songTimeSec += segSeconds;
-                if (songTimeSec >= duration) break;
+                if (cur >= nextBeatTick)
+                {
+                    long emitTick = nextBeatTick;
+                    int emitBar = barIndex, emitBeat = beatInBar;
+                    Advance();
+                    while (cur >= nextBeatTick && nextBeatTick < plan.gridEndTick)
+                    {
+                        emitTick = nextBeatTick;
+                        emitBar = barIndex;
+                        emitBeat = beatInBar;
+                        skipped++;
+                        Advance();
+                    }
+
+                    var ev = new BeatGridEvent
+                    {
+                        barIndex = emitBar,
+                        beatInBar = emitBeat,
+                        time = (float)TimeConverter
+                            .ConvertTo<MetricTimeSpan>(emitTick, plan.tempoMap).TotalSeconds
+                    };
+                    for (int i = 0; i < _gridSubs.Count; i++) _gridSubs[i]?.OnBeat(ev);
+                    if (emitBeat == 0)
+                        for (int i = 0; i < _gridSubs.Count; i++) _gridSubs[i]?.OnDownbeat(ev);
+                    emitted++;
+                }
+
+                frames++;
+                yield return null;
             }
+
+            if (logDebug && logVerbose)   // [LOG-1] verbose
+                Debug.Log($"{DebugTag} [BEAT-1] grid end serial={serial} exit={exit} " +
+                          $"emitted={emitted} skipped={skipped} lastBar={barIndex}");
         }
 
         private SongCacheEntry GenerateSongEntry(SongData song)
@@ -1909,6 +2092,8 @@ namespace ALWTTT.Managers
 
             player.Stop();            // will trigger OnSongEnded → ClearMarkers()
             _currentKey = key;
+            _currentPlayData = data;   // [BEAT-1 / D1=A] what the grid will read
+            _playSerial++;             // [BEAT-1] supersedes any running grid
 
             // [BAL-1] Adopt the channel gains of exactly these bytes. Non-gig
             // paths (Play(SongData)/jam — no preceding RenderSinglePart) reset
@@ -1934,26 +2119,15 @@ namespace ALWTTT.Managers
             return seconds;
         }
 
-        private void NotifyTempoSignatureAtStart(string key)
+        // [BEAT-1 / D4=A] Starting tempo/signature of a playback, pushed once by
+        // RunBeatGrid from the played bytes. No longer reads `cache` (F-P1-8).
+        private void NotifyTempoSignatureAtStart(double bpm, int numerator, int denominator)
         {
-            if (!cache.TryGetValue(key, out var entry)) return;
+            for (int i = 0; i < _tempoSigSubs.Count; i++)
+                _tempoSigSubs[i]?.OnTempoChanged(bpm);
 
-            using var ms = new MemoryStream(entry.data);
-            var midi = MidiFile.Read(ms);
-            var tempoMap = midi.GetTempoMap();
-
-            var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(0));
-            var ts = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(0));
-
-            double bpm = 60000000.0 / tempo.MicrosecondsPerQuarterNote;
-            int numerator = ts.Numerator;
-            int denominator = ts.Denominator;
-
-            foreach (var s in _tempoSigSubs)
-                s?.OnTempoChanged(bpm);
-
-            foreach (var s in _tempoSigSubs)
-                s?.OnTimeSignatureChanged(numerator, denominator);
+            for (int i = 0; i < _tempoSigSubs.Count; i++)
+                _tempoSigSubs[i]?.OnTimeSignatureChanged(numerator, denominator);
         }
 
         private static void EnsureTimeSignatureAtZero(MidiFile midi, int numerator, int denominator)
@@ -2381,19 +2555,21 @@ namespace ALWTTT.Managers
             // stop previous grid if any
             if (_beatGridCo != null) { StopCoroutine(_beatGridCo); _beatGridCo = null; }
 
-            if (!string.IsNullOrEmpty(_currentKey) && cache.TryGetValue(_currentKey, out var entry))
-            {
-                NotifyTempoSignatureAtStart(_currentKey); // push BPM/TS immediately
-                _beatGridCo = StartCoroutine(RunBeatGrid(_currentKey, entry.seconds));
-
-                if (logDebug) Debug.Log($"{DebugTag} [BeatProbe] RunBeatGrid STARTED " +
-                    $"key={_currentKey} dur={entry.seconds:0.0}s gridSubs={_gridSubs.Count} " +
-                    $"tempoSubs={_tempoSigSubs.Count} IsPlaying={(player != null && player.IsPlaying)}");
-
-                ApplyDeferredHighlightIfAny(); // apply highlight that was queued before channels were known
-            }
+            // [BEAT-1 / D1=A] Grid + tempo/signature push read the bytes PlayBytes
+            // handed to the player, not `cache`: PlayRaw plays under a jam-raw::<guid>
+            // key that is never cached (F-P1-8), and that is the whole composition
+            // path. RunBeatGrid announces tempo/TS before its first yield (D4=A).
+            if (_currentPlayData != null && _currentPlayData.Length > 0)
+                _beatGridCo = StartCoroutine(RunBeatGrid(_currentPlayData, _playSerial));
             else if (logDebug)
-                Debug.LogWarning($"{DebugTag} OnSongStarted but key/cache missing.");
+                Debug.LogWarning($"{DebugTag} [BEAT-1] OnSongStarted with no play data; " +
+                                 "beat grid not started.");
+
+            // [BEAT-1 / D3=B] The deferred highlight keeps its pre-BEAT-1 reach: only
+            // cached playbacks run it. The PlayRaw path never did (F-P1-8), and BEAT-1
+            // does not change the mix. Reviving it there is its own batch.
+            if (!string.IsNullOrEmpty(_currentKey) && cache.ContainsKey(_currentKey))
+                ApplyDeferredHighlightIfAny(); // apply highlight that was queued before channels were known
         }
 
         // [BAL-1 task 0] Deferred, composed live-mix re-assert. Runs after the
@@ -2655,6 +2831,7 @@ namespace ALWTTT.Managers
             float composed = Mathf.Clamp01(live01)
                 * _bakedGain01ByChannel[ch]
                 * _duck01ByChannel[ch]
+                * Mathf.Clamp01(_playerMusic01)   // [PAUSE-1 / D10=B] player music plane
                 * (100f / 127f);
             mix?.SetChannelVolume01(ch, Mathf.Clamp01(composed));
             // [BAL-1 test 4] Dev readout: the LIVE-COMPOSED CC7 actually sent

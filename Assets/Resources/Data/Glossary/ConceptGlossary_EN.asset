@@ -240,6 +240,45 @@ MonoBehaviour:
     displayName: Mode
     description: The scale colour the song uses. It decides whether a passage reads
       bright or dark.
+  - id: cardtype_chr
+    displayName: Charisma
+    description: Presence and poise. Charisma cards hold the band together and shrug
+      off the crowd's heat.
+  - id: cardtype_tch
+    displayName: Technique
+    description: Skill and precision. Technique cards bend tempo, timing and the
+      shape of the song.
+  - id: cardtype_emt
+    displayName: Emotion
+    description: Feeling and intensity. Emotion cards move the crowd directly.
+  - id: cardtype_sfx
+    displayName: Sound FX
+    description: Pedals, noise and texture. Sound FX cards change how the song hits.
+  - id: cardtype_songmod
+    displayName: Song Mod
+    description: A legacy card type that alters the song itself.
+  - id: partaction_createpart
+    displayName: New part
+    description: Adds a new part at the end of the song. The band keeps what it was
+      playing.
+  - id: partaction_markintro
+    displayName: Intro
+    description: 'Marks this part as the intro: a lead-in before the song proper.'
+  - id: partaction_marksolo
+    displayName: Solo
+    description: Gives one musician the floor for this part.
+  - id: partaction_markoutro
+    displayName: Outro
+    description: 'Marks this part as the outro: the song winds down here.'
+  - id: partaction_markbridge
+    displayName: Bridge
+    description: 'Adds a bridge: a new part that breaks the pattern before returning.'
+  - id: partaction_markfinal
+    displayName: Final part
+    description: Marks this part as the last one. The song ends after it.
+  - id: partaction_custom
+    displayName: Custom part
+    description: A part with its own label.
   cardNames:
   - id: 3_Action_001
     displayName: Count-In
@@ -656,3 +695,53 @@ MonoBehaviour:
     text: Synth
   - id: ui_instrumenttype_vocals
     text: Vocals
+  - id: ui_tonality_ionian
+    text: Bright
+  - id: ui_tonality_dorian
+    text: Groovy
+  - id: ui_tonality_phrygian
+    text: Dark
+  - id: ui_tonality_lydian
+    text: Dreamy
+  - id: ui_tonality_mixolydian
+    text: Funky
+  - id: ui_tonality_aeolian
+    text: Sad
+  - id: ui_tonality_locrian
+    text: Tense
+  - id: ui_tonality_random_any
+    text: Any mood
+  - id: ui_tonality_random_majorish
+    text: A bright mood
+  - id: ui_tonality_random_minorish
+    text: A dark mood
+  - id: ui_cardtype_chr
+    text: Charisma
+  - id: ui_cardtype_tch
+    text: Technique
+  - id: ui_cardtype_emt
+    text: Emotion
+  - id: ui_cardtype_sfx
+    text: Sound FX
+  - id: ui_cardtype_songmod
+    text: Song Mod
+  - id: ui_cardtype_none
+    text: '-'
+  - id: ui_partaction_none
+    text: '-'
+  - id: ui_partaction_createpart
+    text: New part
+  - id: ui_partaction_markintro
+    text: Intro
+  - id: ui_partaction_marksolo
+    text: Solo
+  - id: ui_partaction_markoutro
+    text: Outro
+  - id: ui_partaction_markbridge
+    text: Bridge
+  - id: ui_partaction_markfinal
+    text: Final part
+  - id: ui_partaction_custom
+    text: Custom part
+  - id: ui_part_bridge
+    text: Bridge

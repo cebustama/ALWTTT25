@@ -254,8 +254,6 @@ namespace ALWTTT.Cards
             {
                 string action = partAction != null ? partAction.action.ToString() : "Part";
                 sb.Append($"Part [{action}]");
-                if (partAction != null && !string.IsNullOrWhiteSpace(partAction.customLabel))
-                    sb.Append($" (“{partAction.customLabel}”)");
             }
             else
             {

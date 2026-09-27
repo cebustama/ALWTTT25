@@ -272,14 +272,20 @@ public class FloatingTextMidiListener :
 
     public void OnTempoChanged(double bpm)
     {
-        if (!showTempoSignature) return;
+        // [BEAT-1 / D6=C] Tempo/TS floaters are DEV-only diagnostics, like the
+        // percussion floaters (D-SP1-4=B): their hand-written labels ("120 BPM",
+        // "4/4") must never reach a player surface (D-T6-4=A). BEAT-1 woke this
+        // path in the gig (one floater pair per loop); showTempoSignature also
+        // ships OFF in MidiMusicManager.prefab, so dev builds stay clean too.
+        if (!DevFloaters || !showTempoSignature) return;
         var tr = hudAnchor != null ? hudAnchor : transform;
         FxManager.Instance?.SpawnFloatingText(tr, $"{bpm:0.#} BPM", tempoDir, tempoColor);
     }
 
     public void OnTimeSignatureChanged(int numerator, int denominator)
     {
-        if (!showTempoSignature) return;
+        // [BEAT-1 / D6=C] Same gate as OnTempoChanged.
+        if (!DevFloaters || !showTempoSignature) return;
         var tr = hudAnchor != null ? hudAnchor : transform;
         FxManager.Instance?.SpawnFloatingText(tr, $"{numerator}/{denominator}", tsDir, tsColor);
     }

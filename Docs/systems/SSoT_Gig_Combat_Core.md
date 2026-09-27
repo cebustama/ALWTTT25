@@ -418,7 +418,7 @@ These can exist as planning/reference material without overriding this SSoT.
 |---|---|
 | `GigFlowSettingsSO` | JamRules, Action card gating, Gig End behavior, setup-screen defaults |
 | `MeterTuningSO` | SongHype caps/seed, Vibe/Hype balance, Flow→Vibe (bifurcated MVP), `LoopScoringConfig`, `HypeThresholds`, `breakdownStressResetFraction` |
-| `GigPresentationSO` | Audience beat curve/threshold, idle BPM, sequence pacing values, **four independent Vibe-presentation switches** (`showSongHypeBar`, `showVibeReadout`, `showVibeEffectivenessLabels`, `showVibeProjectedNumbers` — see §12.1, BIGNUM-1 2026-09-09) |
+| `GigPresentationSO` | Audience beat curve/threshold, idle BPM, sequence pacing values, **four independent Vibe-presentation switches** (`showSongHypeBar`, `showVibeReadout`, `showVibeEffectivenessLabels`, `showVibeProjectedNumbers` — see §12.1, BIGNUM-1 2026-09-09), **convinced audience sprite tint** (`convincedSpriteTint`, CONV-TINT-1 2026-09-27 — meaning in `SSoT_Audience_and_Reactions` §4.3) |
 | `GigDevSettingsSO` | Inspector-time toggles only: `useLogs`, `useCompositionLogs`, `debugSongHype`, `debugInstrumentPicker`, `debugMusicianVolume` |
 
 Scene-instance references (cameras, hand, composition UI, position lists, scene changer, MidiGenPlayConfig boundary, songHypeDebugSlider, background container) remain inline-serialized on `GigManager` — they cannot be assets.
@@ -443,6 +443,11 @@ the audience canvas from the live projection; band canvases never raise it. This
 the policy's **first authoritative home**: before BIGNUM-1-DOC the S5e-ext rule existed only
 in a `CURRENT_STATE.md` batch row and a `changelog-ssot.md` entry (2026-07-02). Presentation
 rationale: `planning/Design_Vibe_Telegraph_v0_1.md` §10.4.
+
+**Convinced concealment (CONV-TINT-1b, 2026-09-27).** On a convinced audience member the whole canvas is
+concealed by a state `CanvasGroup` layered **above** this policy; the policy itself is unchanged and keeps
+running underneath. Without it a convinced member's bar (meter at 0 = not full) was always visible.
+Home: `SSoT_Audience_and_Reactions.md` §4.3.
 
 **New presentation accessor:** `GigManager.CurrentBpm` (last BPM resolved for the part being
 played; 0 before the first part). Exists for the readout pulse while BEAT-1 is open.

@@ -139,7 +139,7 @@ MonoBehaviour:
   chordDir: {x: 0, y: 1}
   beatDir: {x: 0, y: 1}
   downbeatDir: {x: 0, y: 1.2}
-  showTempoSignature: 1
+  showTempoSignature: 0
   hudAnchor: {fileID: 0}
   tempoColor: {r: 0.25, g: 0.9, b: 0.95, a: 1}
   tsColor: {r: 0.95, g: 0.95, b: 0.95, a: 1}
@@ -163,6 +163,9 @@ MonoBehaviour:
   performerKickIntensity: 1
   performerBurstParticles: 14
   targetBurstParticles: 6
+  statusApplyKickIntensity: 0.4
+  cardPerformedBurstParticles: 8
+  cardPerformedKickIntensity: 0
 --- !u!114 &2748116195219676997
 MonoBehaviour:
   m_ObjectHideFlags: 0

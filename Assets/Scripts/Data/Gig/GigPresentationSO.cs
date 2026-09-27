@@ -127,6 +127,23 @@ namespace ALWTTT.Data
 
         public bool ShowVibeReadout => showVibeReadout;
 
+
+        // --- Audience sprite tint [CONV-TINT-1] ---
+
+        /// <summary>
+        /// [CONV-TINT-1 / D-T2=A] Single home of the convinced-tint default. Also used
+        /// by AudienceCharacterBase as fallback when no GigPresentationSO is wired.
+        /// </summary>
+        public static readonly Color DefaultConvincedSpriteTint = new Color(1f, 0.85f, 0.35f);
+
+        [Header("Audience Sprite Tint [CONV-TINT-1]")]
+        [SerializeField, Tooltip("[CONV-TINT-1] Tinte del sprite de un miembro del público " +
+            "convencido. Anula el tinte de tapado (\"oscurito\"): una vez convencido, " +
+            "tapado deja de mostrarse. Solo presentación.")]
+        private Color convincedSpriteTint = DefaultConvincedSpriteTint;
+
+        public Color ConvincedSpriteTint => convincedSpriteTint;
+
         // --- SFX → FlatVibe bonus [§5.3.5] ---
 
         [Header("SFX → FlatVibe Bonus [§5.3.5]")]
