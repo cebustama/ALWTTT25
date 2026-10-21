@@ -43,6 +43,19 @@ namespace ALWTTT.Sensory
             return SensorySfxType.CardVibeImpact;
         }
 
+        /// <summary>[CROWD-SFX-1 / D-CS1=B] Song verdict → crowd one-shot. Neutral
+        /// (Polarity 0) returns null: the returning crowd bed carries it.</summary>
+        public static SensorySfxType? ForSongVerdict(in SongVerdictEvent e)
+        {
+            if (e.Polarity > 0) return SensorySfxType.CrowdApplause;
+            if (e.Polarity < 0) return SensorySfxType.CrowdBoo;
+            return null;
+        }
+
+        /// <summary>[CROWD-SFX-1 / D-CS1=B] Gig outcome → crowd one-shot: ovation on a
+        /// win, jeers on a loss. Wired to GigOutcomeEvent by SensoryAudioAdapter.</summary>
+        public static SensorySfxType ForGigOutcome(bool won) =>
+            won ? SensorySfxType.CrowdOvation : SensorySfxType.CrowdJeer;
         /// <summary>Stage-crossing sting by stage (1=lights, 2=smoke, 3=fire).</summary>
         public static SensorySfxType? ForStageCross(int stage)
         {

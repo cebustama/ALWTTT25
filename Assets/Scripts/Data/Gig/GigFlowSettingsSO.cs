@@ -156,6 +156,91 @@ namespace ALWTTT.Data
         public int MaxBonusLoopsPerPart => Mathf.Max(0, maxBonusLoopsPerPart);
         public bool BonusSoloEnabled => bonusSoloEnabled;
         public float BonusSoloDuck01 => Mathf.Clamp01(bonusSoloDuck01);
+        // ─── [SONG-TAIL-1] La banda sigue sonando durante el turno del público ───
+        // D-ST6=A: el conmutador A/B vive aquí (precedente: bonusSoloDuck01). Dev Mode
+        // puede sobrescribirlo por sesión (Audio Mix) sin escribir este asset.
+        [Header("Song Tail (SONG-TAIL-1)")]
+        [SerializeField, Tooltip("ON: al terminar una canción, el último loop sigue sonando " +
+            "(fuera de la CompositionSession: sin LoopScore, hype ni impresiones) hasta el " +
+            "siguiente punto de parada. OFF: comportamiento previo, silencio + crowd bed. " +
+            "Se lee al terminar cada canción.")]
+        private bool songTailEnabled = true;
+
+        [SerializeField, Range(0f, 1f), Tooltip("Plano de atenuación del tail (D-ST3=B), " +
+            "multiplicativo dentro de MidiMusicManager.WriteChannelVolume01. 1 = mismo " +
+            "nivel que la canción. Se mezcla contra el crowd bed y, en CROWD-SFX-1, " +
+            "contra aplausos/abucheos.")]
+        private float songTailLevel01 = 0.7f;
+
+        [SerializeField, Min(0f), Tooltip("Fundido de salida del tail, en segundos de " +
+            "tiempo escalado (una pausa lo congela). Se usa en victoria y derrota " +
+            "(D-ST5=C). 0 = corte seco. La canción siguiente no funde: entra en la barra (D-ST7=C).")]
+        private float songTailFadeSeconds = 0.75f;
+
+        [SerializeField, Range(0f, 120f), Tooltip("D-ST7=C: al pulsar Play con el tail " +
+            "sonando, la parte nueva se retiene hasta la siguiente barra del tail. Este " +
+            "adelanto (ms) dispara el cambio un poco antes de la barra para absorber la " +
+            "latencia de arranque de MPTK. 0 = en la barra exacta (llega tarde un frame + " +
+            "latencia, como una costura de loop normal).")]
+        private float songTailHandoffLeadMs = 30f;
+
+        public bool SongTailEnabled => songTailEnabled;
+        public float SongTailLevel01 => Mathf.Clamp01(songTailLevel01);
+        public float SongTailFadeSeconds => Mathf.Max(0f, songTailFadeSeconds);
+        public float SongTailHandoffLeadMs => Mathf.Clamp(songTailHandoffLeadMs, 0f, 120f);
+        // ─── [PLAY-TIMING-0] Sonda de timing del Play: SOLO LOG, sin efecto de juego ───
+        // Mide cuánto le faltó (o le sobró) al jugador respecto a la barra que cierra el
+        // loop en curso (D-PT1=A), a ambos lados (D-PT2=B), en ms absolutos (D-PT3=A),
+        // desde el pointer-down del botón Play (D-PT4=B).
+        [Header("Play Timing Probe (PLAY-TIMING-0)")]
+        [SerializeField, Tooltip("ON: cada Play escribe una línea [PLAY-TIMING] con la " +
+            "distancia a la barra más cercana del loop que suena y su grado. Sin efecto de juego.")]
+        private bool playTimingProbeEnabled = true;
+
+        [SerializeField, Range(0.02f, 1f), Tooltip("Ventana a cada lado de la barra (s). " +
+            "Es también el límite exterior de GOOD; fuera de ella: FUERA DE VENTANA.")]
+        private float playTimingWindowSeconds = 0.25f;
+
+        [SerializeField, Min(0f), Tooltip("|error| <= esto (ms) → PERFECT. Por debajo de " +
+            "~1 frame (16 ms a 60 fps) el grado es ruido.")]
+        private float playTimingPerfectMs = 30f;
+
+        [SerializeField, Min(0f), Tooltip("|error| <= esto (ms) → EXCELLENT.")]
+        private float playTimingExcellentMs = 60f;
+
+        [SerializeField, Range(-200f, 200f), Tooltip("Calibración (ms). Positivo = el " +
+            "altavoz suena después del tick del secuenciador (latencia de salida); se resta " +
+            "al error medido. Calibrar mirando la media de los errores brutos en el log.")]
+        private float playTimingOffsetMs = 0f;
+
+        public bool PlayTimingProbeEnabled => playTimingProbeEnabled;
+        public float PlayTimingWindowSeconds => Mathf.Clamp(playTimingWindowSeconds, 0.02f, 1f);
+        public float PlayTimingExcellentMs =>
+            Mathf.Clamp(playTimingExcellentMs, 0f, PlayTimingWindowSeconds * 1000f);
+        public float PlayTimingPerfectMs => Mathf.Clamp(playTimingPerfectMs, 0f, PlayTimingExcellentMs);
+        public float PlayTimingOffsetMs => Mathf.Clamp(playTimingOffsetMs, -200f, 200f);
+        // ─── [CROWD-SFX-1] Veredicto del público al final de cada canción ───
+        // D-CS1=B: el público juzga cada canción una vez, por la impresión media de la
+        // canción (media, entre miembros, de la media de loops de cada miembro; [-2, 2]).
+        // Solo presentación: no toca Vibe, hype ni economía.
+        [Header("Crowd Verdict (CROWD-SFX-1)")]
+        [SerializeField, Range(0f, 2f), Tooltip("Media >= esto → aplauso (CrowdApplause). " +
+            "Subirlo a 2 apaga el aplauso salvo canciones perfectas.")]
+        private float crowdApplauseAtMean = 0.5f;
+
+        [SerializeField, Range(-2f, 0f), Tooltip("Media <= esto → abucheo (CrowdBoo). " +
+            "Entre los dos umbrales no suena nada: el crowd bed que vuelve lo cubre.")]
+        private float crowdBooAtMean = -0.5f;
+
+        [SerializeField, Range(0f, 2f), Tooltip("D-CS4=A: espera (s, tiempo ESCALADO: la pausa " +
+            "la congela) entre el fin de la canción y el veredicto. Debe superar el jitter de " +
+            "las reacciones del último loop (AudioManager.sfxMaxJitterSeconds, 0.15) y quedar " +
+            "bien dentro de GigPresentationSO.SongEndPause.")]
+        private float crowdVerdictDelaySeconds = 0.35f;
+
+        public float CrowdApplauseAtMean => Mathf.Clamp(crowdApplauseAtMean, 0f, 2f);
+        public float CrowdBooAtMean => Mathf.Clamp(crowdBooAtMean, -2f, 0f);
+        public float CrowdVerdictDelaySeconds => Mathf.Clamp(crowdVerdictDelaySeconds, 0f, 2f);
 
 
         [Header("Setup Defaults � Hand / Inspiration Policies")]

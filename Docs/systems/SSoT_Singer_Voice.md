@@ -10,6 +10,11 @@
 > rendering POC (`PinkTrombone_Rendering_POC_Verdict.md` — **documento del proyecto MidiGenPlay, no de ALWTTT**; confirmado 2026-08-08, no buscarlo en `Docs/reference/`; clase research
 > class) and its Session-5 lever work.
 >
+> **Updated:** 2026-10-01 (SONG-TAIL-1) — the Director re-arms on every song-tail loop, defers a
+> session arm to the tail handoff and stops the tail voice there (F-ST-1); `SingerVoice` gains an
+> external level plane that follows the tail (R-V). `CompositionSession` is still edited only by
+> `LoopPlaybackStarting`.
+>
 > **Authority order:** `SSoT_CONTRACTS.md` → this SSoT for singer-voice
 > concepts → `CURRENT_STATE.md` for the active slice. Cross-project facts
 > defer to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`.
@@ -95,6 +100,13 @@ pipeline is therefore *by construction*: the stem filter is the only switch.
    boundary, from whatever stem the part cache holds — live regeneration needs no
    special machinery. Verified ST-V4. `loopPlayback` on the voice stays **false**
    in integration; the Director owns looping.
+   **Song tail (SONG-TAIL-1, D-ST2=C):** the Director keeps the last `SingerLoopContext` and re-arms from
+   it on every `MidiMusicManager.SongTailLoopStarting` — still one re-arm per loop, through the same
+   `ArmForLoop` path. A session loop announced while a tail plays is **deferred** to
+   `MidiMusicManager.SongTailHandoff` (arming calls `Stop()` and would silence the voice still singing the
+   tail). At the handoff the tail voice is **stopped unconditionally** before arming: `ArmForLoop` can sit
+   out *before* reaching `ArmFromStemBytes` (no Melody/Lead stem in the new part, budget, no notes), and
+   without the explicit stop the tail voice kept singing over the new song (**F-ST-1**, fixed 2026-10-01).
 
 6. **Fork stays consumer-side.** `Assets/PinkTrombonePOC/PinkTromboneSrc/` (~1000
    lines, MIT, zero external dependencies, edits logged `// POC-FORK(n)` 1–7 in
@@ -126,6 +138,11 @@ Per-loop cycle in the Director:
    armed and silent).
 2. `OnSongStarted` → capture `dspTime`, `StartAtDspTime`, assert the channel mute.
 3. Loop end → next `LoopPlaybackStarting` re-arms from the (possibly new) stem.
+
+Song-tail cycle (SONG-TAIL-1): `SongTailLoopStarting` → re-arm from the last context → `OnSongStarted` →
+anchor + mute, as above. `SongTailHandoff` → stop the tail voice → arm the deferred session context.
+`SongTailStopped` → `Deactivate`. Every frame the Director passes `MidiMusicManager.TailPlane01` to
+`SingerVoice.SetExternalLevel01` (1 when no tail).
 
 ## 5. `VoiceProfileSO` schema
 
@@ -201,7 +218,10 @@ lookup, retiring the serialized string. Follow-up, not required for the demo.
   dos voces (~10.5 % cada una, §3.1) y decidir cómo el director gestiona cap, duck y sincronía con
   **dos** stems del mismo músico. Nótese que hoy el director resuelve por rol `Melody`/`Lead`:
   admitir `Harmony` es un cambio de su regla de selección, no sólo del contador.
-- Mixer-group routing — the singer currently bypasses `AudioMixSettings`;
+- Mixer-group routing — the singer currently bypasses `AudioMixSettings` and the player plane, with one
+  exception since SONG-TAIL-1: `SingerVoice.SetExternalLevel01` (volatile target, per-sample one-pole
+  smoothing ~10 ms on the audio thread; ×1f is exact, so level 1 is bit-identical) follows the song-tail
+  plane (R-V);
   balance is the profile `gain`. A small follow-up.
 - Consonants / nasal branch — vowels only.
 - Phase D4 `IPerformanceMetadataSink` — deferred; re-open only on repeated,

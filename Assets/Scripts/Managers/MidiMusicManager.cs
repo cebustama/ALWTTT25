@@ -126,12 +126,17 @@ namespace ALWTTT.Managers
             // siblings above: replayed bytes == original bytes ⇒ the original
             // progression is still the truth for this entry.
             public MidiGenPlay.ChordProgressionData sharedProgressionData;
+            // [JAM-3 / D3=A] Tonality/root the ORIGINAL render resolved (post compose-time
+            // adoption / step-2b alignment). Release, no longer dev-only: a bundle replay
+            // composes nothing, so it must republish the mode its bytes sound in, or the
+            // host's JAM-2 capture records the MODEL's mode as the sounding one (H2).
+            // Same D-DBG5=A logic as its siblings: replay bytes == original ⇒ same mode.
+            public MidiGenPlay.MusicTheory.MusicTheory.Tonality resolvedTonality;
+            public Melanchall.DryWetMidi.MusicTheory.NoteName resolvedRoot;
 #if ALWTTT_DEV
             // [CSV-3] Resolved musical identity of the ORIGINAL render — D-DBG5=A analogue of
             // appliedCc7ByTrack: replay bytes == original ⇒ resolved identity identical.
             public MidiGenPlay.MusicTheory.MusicTheory.TimeSignature resolvedTs;
-            public MidiGenPlay.MusicTheory.MusicTheory.Tonality resolvedTonality;
-            public Melanchall.DryWetMidi.MusicTheory.NoteName resolvedRoot;
 #endif
         }
 
@@ -200,6 +205,19 @@ namespace ALWTTT.Managers
         // playback, whatever order the transport events arrive in.
         private byte[] _currentPlayData;
         private int _playSerial;
+        // [SONG-TAIL-1 / D-ST7=C] Published by RunBeatGrid for playback `_gridBarSerial`:
+        // the tick of the NEXT bar line (loop end included) and the tempo/PPQ to turn a
+        // lead in ms into ticks. Single bar truth = the grid's own schedule (BEAT-1).
+        private int _gridBarSerial = -1;
+        private long _gridNextBarTick = -1;
+        private long _gridTicksPerQuarter = 96;
+        private double _gridBpm = 120.0;
+        // [PLAY-TIMING-0] Also published by the grid: the loop's closing bar line and the
+        // playback's tempo map (tick → seconds on the grid's own clock), plus the real time
+        // of the last actual Play (covers the frames before a new playback's grid publishes).
+        private long _gridLoopCloseTick = -1;
+        private TempoMap _gridTempoMap;
+        private float _lastPlayRealtime = -1f;
         private readonly List<ITempoSignatureListener> _tempoSigSubs = new();
 
         // Beat detection (very simple: kick = beat)
@@ -412,6 +430,7 @@ namespace ALWTTT.Managers
 
         private void Update()
         {
+            TickSongTail();   // [SONG-TAIL-1] must run even when no part markers exist
             if (player == null || !player.IsPlaying || _partMarkers.Count == 0) return;
 
             long curTick = player.CurrentTick; // via IPlayMidi
@@ -616,6 +635,9 @@ namespace ALWTTT.Managers
 
         public void Stop()
         {
+            // [SONG-TAIL-1] A stop is final for the tail too (pause "Volver al menú"),
+            // held playback included. Cleared FIRST so TickSongTail cannot restart it.
+            EndSongTail(stopTransport: false, notify: true, why: "Stop()");
             // [PAUSE-1] A stop supersedes a suspension: side sources (singer) get their
             // own end-of-song path un-paused; the adapter clears its flag inside Stop().
             ResumeSuspendedSideSources();
@@ -808,7 +830,9 @@ namespace ALWTTT.Managers
         /// </summary>
         public bool IsAnySongPlaying()
         {
-            return player != null && player.IsPlaying;
+            // [SONG-TAIL-1] A held playback counts as playing: the session committed its
+            // loop, and must not read the gap before the bar line as a loop end.
+            return player != null && (player.IsPlaying || _handoff != null);
         }
 
         /// <summary>
@@ -1183,6 +1207,14 @@ namespace ALWTTT.Managers
                 LastSharedProgressionSource = bundleHit.sharedProgressionSource;
                 LastSharedProgressionAssetName = bundleHit.sharedProgressionAssetName;
                 LastSharedProgressionData = bundleHit.sharedProgressionData;  // [JAM-1]
+                // [JAM-3 / D3=A] Republish the MODE as well as the harmony. Adoption runs
+                // at compose time and a replay composes nothing, so without this the
+                // caller's PartConfig still holds the model's tonality and the host's
+                // JAM-2 capture stores it as the sounding mode (H2). Writes only the
+                // per-render cfg the caller handed in; the replayed bytes are untouched,
+                // so audio is byte-identical. No-op whenever nothing adopted.
+                part.Tonality = bundleHit.resolvedTonality;
+                part.RootNote = bundleHit.resolvedRoot;
                 if (logDebug)
                     Debug.Log($"{DebugTag} <color=#88ff88>[ORDER-1]</color> part={partIndex} " +
                         $"harmony source={LastSharedProgressionSource} " +
@@ -1446,10 +1478,10 @@ namespace ALWTTT.Managers
                     sharedProgressionSource = LastSharedProgressionSource,   // [ORDER-1 / R2d]
                     sharedProgressionAssetName = LastSharedProgressionAssetName,
                     sharedProgressionData = LastSharedProgressionData,       // [JAM-1]
+                    resolvedTonality = part.Tonality,   // post step-2b alignment [JAM-3: release]
+                    resolvedRoot = part.RootNote,
 #if ALWTTT_DEV
                     resolvedTs = part.TimeSignature,
-                    resolvedTonality = part.Tonality,   // post step-2b alignment
-                    resolvedRoot = part.RootNote,
 #endif
                 };
             }
@@ -1604,11 +1636,32 @@ namespace ALWTTT.Managers
                 }
             }
 
+            // [SONG-TAIL-1 / D-ST7=C] Publish the next bar line of THIS playback, from the
+            // same schedule that emits the downbeats. Read-only for everyone else. A
+            // signature change always opens a bar, so it caps the estimate.
+            void PublishNextBar()
+            {
+                long next = beatInBar == 0
+                    ? nextBeatTick
+                    : nextBeatTick + (long)(num - beatInBar) * beatTicks;
+                if (tsGridIdx < plan.tsChanges.Count && plan.tsChanges[tsGridIdx].tick < next)
+                    next = plan.tsChanges[tsGridIdx].tick;
+                _gridBarSerial = serial;
+                _gridNextBarTick = Math.Min(next, plan.lastTick);
+                _gridTicksPerQuarter = plan.ticksPerQuarter;
+                _gridBpm = lastBpm;
+                // [PLAY-TIMING-0] Generated loops end one tick past their last bar line
+                // (Integration §3.4.1 item 4), so that bar line is lastTick - 1.
+                _gridLoopCloseTick = Math.Max(0L, plan.lastTick - 1);
+                _gridTempoMap = plan.tempoMap;
+            }
+            PublishNextBar();
             string exit = "end";
             while (nextBeatTick < plan.gridEndTick)
             {
                 if (serial != _playSerial) { exit = "superseded"; break; }
                 if (player == null || !player.IsPlaying) { exit = "stopped"; break; }
+                PublishNextBar();   // [SONG-TAIL-1] state after the previous frame's beats
 
                 long cur = player.CurrentTick;
 
@@ -2089,11 +2142,19 @@ namespace ALWTTT.Managers
         private float PlayBytes(string key, byte[] data, float seconds, string label)
         {
             if (player == null) { Debug.LogError($"{DebugTag} No IPlayMidi."); return 0f; }
+            // [SONG-TAIL-1 / D-ST7=C] While the tail plays, any playback that is not a tail
+            // repeat is HELD (already rendered) and starts on the tail's next bar line.
+            if (_tailActive && !_tailReplaying)
+            {
+                QueueTailHandoff(key, data, seconds, label);
+                return seconds;
+            }
 
             player.Stop();            // will trigger OnSongEnded → ClearMarkers()
             _currentKey = key;
             _currentPlayData = data;   // [BEAT-1 / D1=A] what the grid will read
             _playSerial++;             // [BEAT-1] supersedes any running grid
+            _lastPlayRealtime = Time.realtimeSinceStartup;   // [PLAY-TIMING-0]
 
             // [BAL-1] Adopt the channel gains of exactly these bytes. Non-gig
             // paths (Play(SongData)/jam — no preceding RenderSinglePart) reset
@@ -2719,6 +2780,267 @@ namespace ALWTTT.Managers
             }
         }
 
+        // ── [SONG-TAIL-1] Song tail: the last loop keeps playing outside the session ──
+        // D-ST0: lives here, not in CompositionSession, so a tail loop emits NO loop
+        // feedback (no LoopFinished, LoopScore, hype, impressions). D-ST1=A: replays the
+        // exact bytes of the last PlayBytes (_currentPlayData, BEAT-1) under the same key,
+        // so note routing and the beat grid behave as on the last loop. D-ST3=B: its level
+        // is a FIFTH plane inside WriteChannelVolume01 (_tail01, 1 = off) - never a
+        // save/restore (inv. 19), never written to AudioMixSettingsSO.
+        // D-ST7=C: the tail runs until the next song's first loop, which is HELD (not
+        // dropped) until the tail's next bar line, then starts in its place (handoff).
+        private float _tail01 = 1f;
+        private float _tailLevel01 = 1f;
+        private float _tailHandoffLeadMs;
+        private bool _tailActive;
+        private bool _tailReplaying;             // true only inside ReplayTailOnce
+        private readonly float[] _tailBakedGains = new float[16];
+        private Coroutine _tailFadeCo;
+        private int _tailLoops;
+
+        private sealed class TailHandoff
+        {
+            public string key; public byte[] data; public float seconds; public string label;
+            public float[] gains;      // _pendingChannelGains of the held render (BAL-1)
+            public long queuedTick;    // tail tick when Play arrived; the bar must be later
+        }
+        private TailHandoff _handoff;
+
+        /// <summary>[SONG-TAIL-1] True from StartSongTail until the handoff or any stop path.</summary>
+        public bool IsSongTailActive => _tailActive;
+
+        /// <summary>[SONG-TAIL-1] True while a new playback waits for the tail's bar line.</summary>
+        public bool IsSongTailHandoffPending => _handoff != null;
+
+        /// <summary>[SONG-TAIL-1] Current tail plane (1 when no tail). Read every frame by
+        /// the singer, whose voice does not go through WriteChannelVolume01 (R-V).</summary>
+        public float TailPlane01 => _tail01;
+
+        /// <summary>[SONG-TAIL-1] Raised right BEFORE each tail playback (the first one
+        /// included) - the tail's twin of CompositionSession.LoopPlaybackStarting, so the
+        /// singer re-arms exactly as on a session loop (D-ST2=C).</summary>
+        public event Action SongTailLoopStarting;
+
+        /// <summary>[SONG-TAIL-1] Raised right BEFORE the held playback replaces the tail
+        /// (D-ST7=C). The singer arms the new song's loop here, not earlier: arming stops
+        /// the voice that is still singing the tail.</summary>
+        public event Action SongTailHandoff;
+
+        /// <summary>[SONG-TAIL-1] Raised once when the tail stops by fade, StopSongTail or
+        /// Stop(). NOT raised on the handoff (SongTailHandoff covers it).</summary>
+        public event Action SongTailStopped;
+
+        /// <summary>[SONG-TAIL-1] Start replaying the last loop. Requires an idle transport
+        /// (the song ended naturally) and bytes to replay. Returns false otherwise.</summary>
+        public bool StartSongTail(float level01, float handoffLeadMs)
+        {
+            if (_tailActive) return true;
+            if (player == null || _currentPlayData == null || _currentPlayData.Length == 0)
+            {
+                Debug.LogWarning($"{DebugTag} [SONG-TAIL-1] not started: nothing to replay.");
+                return false;
+            }
+            if (player.IsPlaying)
+            {
+                Debug.LogWarning($"{DebugTag} [SONG-TAIL-1] not started: transport still playing.");
+                return false;
+            }
+
+            // PlayBytes resets the baked bytes-plane gains to identity unless a render
+            // queued them; the replayed bytes still carry their baked CC7, so the live
+            // re-assert would stomp it. Keep the gains of the last loop for every repeat.
+            for (int ch = 0; ch < 16; ch++) _tailBakedGains[ch] = _bakedGain01ByChannel[ch];
+
+            _tailLevel01 = Mathf.Clamp01(level01);
+            _tailHandoffLeadMs = Mathf.Max(0f, handoffLeadMs);
+            _tail01 = _tailLevel01;
+            _tailActive = true;
+            _tailLoops = 0;
+            Debug.Log($"{DebugTag} [SONG-TAIL-1] start level={_tailLevel01:0.##} " +
+                      $"key={_currentKey} bytes={_currentPlayData.Length}");
+            ReplayTailOnce();
+            return true;
+        }
+
+        /// <summary>[SONG-TAIL-1] Stop the tail. fadeSeconds &gt; 0 fades in SCALED time (a
+        /// pause freezes the fade with the transport); 0 cuts. Idempotent. Drops a held
+        /// playback, if any.</summary>
+        public void StopSongTail(float fadeSeconds)
+        {
+            if (!_tailActive) return;
+            if (fadeSeconds > 0f && isActiveAndEnabled)
+            {
+                if (_tailFadeCo == null) _tailFadeCo = StartCoroutine(FadeOutSongTail(fadeSeconds));
+                return;
+            }
+            EndSongTail(stopTransport: true, notify: true, why: "stop");
+        }
+
+        /// <summary>[SONG-TAIL-1] Live level (Dev Mode slider). Ignored while fading.</summary>
+        public void SetSongTailLevel(float level01)
+        {
+            _tailLevel01 = Mathf.Clamp01(level01);
+            if (!_tailActive || _tailFadeCo != null) return;
+            _tail01 = _tailLevel01;
+            ReapplyLiveVolumes();
+        }
+
+        private IEnumerator FadeOutSongTail(float seconds)
+        {
+            float from = _tail01;
+            float t = 0f;
+            while (t < seconds && _tailActive)
+            {
+                t += Time.deltaTime;
+                _tail01 = Mathf.Lerp(from, 0f, Mathf.Clamp01(t / seconds));
+                ReapplyLiveVolumes();
+                yield return null;
+            }
+            _tailFadeCo = null;
+            if (_tailActive) EndSongTail(stopTransport: true, notify: true, why: "fade");
+        }
+
+        private void EndSongTail(bool stopTransport, bool notify, string why)
+        {
+            if (!_tailActive) return;
+            _tailActive = false;
+            if (_handoff != null)
+            {
+                Debug.LogWarning($"{DebugTag} [SONG-TAIL-1] held playback dropped ({why}).");
+                _handoff = null;
+            }
+            if (_tailFadeCo != null) { StopCoroutine(_tailFadeCo); _tailFadeCo = null; }
+            if (stopTransport)
+            {
+                player?.Stop();
+                ClearMarkers();
+            }
+            _tail01 = 1f;   // identity before any next playback's live re-assert
+            Debug.Log($"{DebugTag} [SONG-TAIL-1] stop why={why} loops={_tailLoops}");
+            if (!notify) return;
+            try { SongTailStopped?.Invoke(); }
+            catch (Exception ex) { Debug.LogException(ex); }
+        }
+
+        private void ReplayTailOnce()
+        {
+            try { SongTailLoopStarting?.Invoke(); }
+            catch (Exception ex) { Debug.LogException(ex); }   // a listener never kills the tail
+
+            _pendingChannelGains = (float[])_tailBakedGains.Clone();
+            _tailReplaying = true;
+            try { PlayBytes(_currentKey, _currentPlayData, 0f, $"SongTail #{_tailLoops}"); }
+            finally { _tailReplaying = false; }
+
+            // A tail loop is not a new part: no IPartInfoListener events from its markers.
+            // Chord markers stay (note/chord VFX keep working, D-ST4=A).
+            _partMarkers.Clear();
+            _tailLoops++;
+        }
+
+        // D-ST7=C: a playback requested while the tail plays is held, fully rendered,
+        // until the tail's next bar line. The caller sees it as started (PlayRaw returns
+        // its duration; IsAnySongPlaying stays true), so CompositionSession is untouched.
+        private void QueueTailHandoff(string key, byte[] data, float seconds, string label)
+        {
+            if (_handoff != null)
+                Debug.LogWarning($"{DebugTag} [SONG-TAIL-1] a second held playback replaces the first.");
+            _handoff = new TailHandoff
+            {
+                key = key,
+                data = data,
+                seconds = seconds,
+                label = label,
+                gains = _pendingChannelGains,
+                queuedTick = player.CurrentTick,
+            };
+            _pendingChannelGains = null;   // must not leak into a tail repeat
+            Debug.Log($"{DebugTag} [SONG-TAIL-1] handoff queued '{label}' at tick={_handoff.queuedTick}");
+        }
+
+        private void ExecuteTailHandoff(string why)
+        {
+            var h = _handoff;
+            _handoff = null;
+            try { SongTailHandoff?.Invoke(); }
+            catch (Exception ex) { Debug.LogException(ex); }
+            EndSongTail(stopTransport: false, notify: false, why: $"handoff ({why})");
+            _pendingChannelGains = h.gains;
+            PlayBytes(h.key, h.data, h.seconds, h.label);   // tail inactive: normal path
+        }
+
+        // ── [PLAY-TIMING-0] Read-only loop timing for the Play timing probe ──────────
+        /// <summary>[PLAY-TIMING-0] Timing of the playback in progress, on the grid's own
+        /// clock. secondsToLoopClose: until the bar line that closes this loop.
+        /// secondsSinceLoopStart: since the bar line that opened it (tick 0). False when
+        /// nothing plays. approximate=true in the first frames of a playback, before its
+        /// grid publishes: only the time since Play is known (real time, includes MPTK
+        /// start latency) and secondsToLoopClose is +infinity. Never changes state.</summary>
+        public bool TryGetLoopTiming(out double secondsToLoopClose, out double secondsSinceLoopStart,
+                                     out double loopSeconds, out bool approximate)
+        {
+            secondsToLoopClose = double.PositiveInfinity;
+            secondsSinceLoopStart = double.PositiveInfinity;
+            loopSeconds = 0.0;
+            approximate = false;
+            if (player == null || !player.IsPlaying) return false;
+
+            if (_gridBarSerial != _playSerial || _gridTempoMap == null || _gridLoopCloseTick <= 0)
+            {
+                if (_lastPlayRealtime < 0f) return false;
+                secondsSinceLoopStart = Time.realtimeSinceStartup - _lastPlayRealtime;
+                approximate = true;
+                return true;
+            }
+
+            double now = (double)TimeConverter
+                .ConvertTo<MetricTimeSpan>(player.CurrentTick, _gridTempoMap).TotalSeconds;
+            loopSeconds = (double)TimeConverter
+                .ConvertTo<MetricTimeSpan>(_gridLoopCloseTick, _gridTempoMap).TotalSeconds;
+            secondsToLoopClose = loopSeconds - now;
+            secondsSinceLoopStart = now;
+            return true;
+        }
+        // Lead converted to ticks at the tail's tempo, capped at one quarter note.
+        private long TailHandoffLeadTicks()
+        {
+            double ticks = _tailHandoffLeadMs / 1000.0 * (_gridBpm / 60.0) * _gridTicksPerQuarter;
+            return (long)Math.Max(0.0, Math.Min(ticks, _gridTicksPerQuarter));
+        }
+
+        // Polled from Update, like CompositionSession.Tick polls the session's loops.
+        // Never re-entered from OnSongEnded: PlayBytes' own player.Stop() raises it.
+        private void TickSongTail()
+        {
+            if (!_tailActive) return;
+            if (IsPlaybackSuspended) return;            // pause freezes tick, loop gap and handoff
+            if (player == null) return;
+            if (GigManager.Instance == null)            // MMM is DontDestroyOnLoad
+            {
+                EndSongTail(stopTransport: false, notify: true, why: "no-gig");
+                return;
+            }
+
+            if (_handoff != null)
+            {
+                // The loop's last bar line is the loop end: if the transport got there
+                // first, start now instead of repeating the tail.
+                if (!player.IsPlaying) { ExecuteTailHandoff("loop end"); return; }
+
+                if (_gridBarSerial == _playSerial && _gridNextBarTick >= 0)
+                {
+                    long fireAt = _gridNextBarTick - TailHandoffLeadTicks();
+                    // fireAt must lie AFTER the moment Play arrived: a bar line already
+                    // passed (or too close to catch) moves the handoff to the next one.
+                    if (fireAt > _handoff.queuedTick && player.CurrentTick >= fireAt)
+                        ExecuteTailHandoff($"bar tick={_gridNextBarTick}");
+                }
+                return;
+            }
+
+            if (player.IsPlaying) return;
+            ReplayTailOnce();
+        }
         // [BAL-1 task 4] Package readback: CC7 actually emitted per gained track for
         // the last render (fresh or bundle replay). Null ⇒ ungained render.
         public IReadOnlyDictionary<MusicianTrackKey, int> LastAppliedCc7ByTrack
@@ -2832,6 +3154,7 @@ namespace ALWTTT.Managers
                 * _bakedGain01ByChannel[ch]
                 * _duck01ByChannel[ch]
                 * Mathf.Clamp01(_playerMusic01)   // [PAUSE-1 / D10=B] player music plane
+                * _tail01                         // [SONG-TAIL-1 / D-ST3=B] tail plane (1 = off)
                 * (100f / 127f);
             mix?.SetChannelVolume01(ch, Mathf.Clamp01(composed));
             // [BAL-1 test 4] Dev readout: the LIVE-COMPOSED CC7 actually sent

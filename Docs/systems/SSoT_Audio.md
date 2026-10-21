@@ -1,12 +1,12 @@
 # SSoT_Audio — ALWTTT
 
 **Status:** Active — governed subsystem SSoT.
-**Scope:** ALWTTT-side audio: the SFX subsystem (card-direct + bus-sensory, single `AudioManager` sink), the music-mix model (per-musician music axis, global music level, master SFX level, effective-volume composition, persistence), the OST playback bus (`MusicDirector` + `OstCatalogSO`, authored-clip music scaled by the Music level), and the ALWTTT↔MidiGenPlay audio boundary. A second runtime audio source, the articulatory **singer voice**, is governed separately by `systems/SSoT_Singer_Voice.md`; it currently bypasses this SSoT's mixer routing (balance via the voice profile's `gain`), a follow-up noted there.
+**Scope:** ALWTTT-side audio: the SFX subsystem (card-direct + bus-sensory, single `AudioManager` sink), the music-mix model (per-musician music axis, global music level, master SFX level, effective-volume composition, persistence), the OST playback bus (`MusicDirector` + `OstCatalogSO`, authored-clip music scaled by the Music level), and the ALWTTT↔MidiGenPlay audio boundary. A second runtime audio source, the articulatory **singer voice**, is governed separately by `systems/SSoT_Singer_Voice.md`; it currently bypasses this SSoT's mixer routing (balance via the voice profile's `gain`), a follow-up noted there; the one plane it does follow is the song-tail plane (§4.10, R-V).
 **Owns:** `AudioManager` as the single SFX sink; `SensorySfxType` key authority; the central sound inventory + coverage audit (`SoundBankSO`); the **per-musician music volume axis** and its effective-volume composition; the persisted audio-mix balance (`AudioMixSettingsSO`); the master-SFX level; the looping crowd-ambience bus (SFX-group `ambienceSource` on `AudioManager`); the OST playback singleton (`MusicDirector`) and OST catalogue (`OstCatalogSO` / `OstTrackId`); the audio-side ownership split with MidiGenPlay.
 **Does not own:** the event bus itself (`SensoryEventBus`, `ISensoryEvent`) → `SSoT_Audience_and_Reactions` / Sensory Contract; FT presentation → Sensory Contract; `MidiMusicManager` as the playback host / channel-routing component → `SSoT_Runtime_CompositionSession_Integration` §3.4; any MidiGenPlay package internals (synth, soundfont, per-instrument attenuation) → MidiGenPlay docs.
 **Authority order:** `SSoT_CONTRACTS.md` → this SSoT for audio concepts → `CURRENT_STATE.md` for active slice. Cross-project audio facts defer to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`.
 **Created:** 2026-06-14 (M-AUDIO-MIX). Consolidates the as-built audio subsystem from `Design_Sensory_Contract_v0_1.md §5A` (S3-audio) and adds the music-mix model + audio boundary.
-**Updated:** 2026-09-25 (PAUSE-1) — player volume plane (`PlayerAudioPrefs`, PlayerPrefs; multiplies the designed mix, never writes the SO): new §4.8; transport suspension seam (`IMidiTransportSuspend`, ALWTTT-side, `IPlayMidi` untouched): new §4.9; §4.4 design vs effective SFX; §5 persistence now two layers; §6 boundary bullet; invariants 21–23. Prior: 2026-07-22 (BAL-1) — bytes-plane mix gains adopted (MGP-MIX-1 on MidiGenPlay 1.2.0): new §4.6 (per-`(musicianId, TrackRole)` gain baked as CC7; `MixGainProfileSO`; emission gate; anti-compensation); §4.2 rewritten — the MPTK channel-volume reset is now **verified** (not assumed) and the re-assert is **deferred past tick-0** and **composed** with the baked gain via the single `WriteChannelVolume01` boundary. Contract home stays boundary §8.3. Prior: 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
+**Updated:** 2026-10-01 (SONG-TAIL-1 + PLAY-TIMING-0) — song tail: the last loop keeps playing between songs outside the session and the next song enters on the tail's bar line: new §4.10; invariant 19 recounted to five planes (closes F-POOL-1); invariants 24–27. Prior: 2026-09-25 (PAUSE-1) — player volume plane (`PlayerAudioPrefs`, PlayerPrefs; multiplies the designed mix, never writes the SO): new §4.8; transport suspension seam (`IMidiTransportSuspend`, ALWTTT-side, `IPlayMidi` untouched): new §4.9; §4.4 design vs effective SFX; §5 persistence now two layers; §6 boundary bullet; invariants 21–23. Prior: 2026-07-22 (BAL-1) — bytes-plane mix gains adopted (MGP-MIX-1 on MidiGenPlay 1.2.0): new §4.6 (per-`(musicianId, TrackRole)` gain baked as CC7; `MixGainProfileSO`; emission gate; anti-compensation); §4.2 rewritten — the MPTK channel-volume reset is now **verified** (not assumed) and the re-assert is **deferred past tick-0** and **composed** with the baked gain via the single `WriteChannelVolume01` boundary. Contract home stays boundary §8.3. Prior: 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
 
 ---
 
@@ -468,6 +468,45 @@ finds no declaration) and is **not** extended; `MidiMusicManager` discovers the 
   agnostic to duck/fade state; fades keep running in unscaled time by design.
 - Speed control is **not** part of this seam (SPEED-1, D7=B).
 
+### 4.10 Song tail (SONG-TAIL-1) — the fifth plane and the bar-line handoff
+
+Between songs the band keeps playing: the last loop repeats until the next song takes over (D-ST0..D-ST7,
+2026-09-27; closed 2026-10-01).
+
+- **Lives outside the session (D-ST0).** `MidiMusicManager` replays the bytes of the last `PlayBytes`
+  (`_currentPlayData`, same key — D-ST1=A) with no `CompositionSession`: no `LoopFinished`, LoopScore,
+  hype or impressions. Part markers are cleared on each repeat (no `IPartInfoListener` events); chord
+  markers, note routing and the beat grid behave as on the last loop.
+- **Started** in `GigManager.OnCompositionSessionEnded`, after the crowd bed returns, only if
+  `OnCompositionSongFinished` saw the switch ON and the transport ended naturally. **Repeats** are polled
+  in `MidiMusicManager.Update` (never re-entered from `OnSongEnded`, which `PlayBytes` itself raises).
+- **Baked gains survive the repeat.** `PlayBytes` resets the bytes-plane gains to identity unless a
+  render queued them, while the replayed bytes still carry their baked CC7; the tail captures the last
+  loop's gains and re-queues them on every repeat, or the live re-assert would stomp BAL-1's balance.
+- **Level = fifth plane (D-ST3=B).** `_tail01` multiplies inside `WriteChannelVolume01`
+  (`songTailLevel01`, default 0.7; 1 when no tail). The singer follows it through
+  `SingerVoice.SetExternalLevel01` (R-V, `SSoT_Singer_Voice`). The crowd bed returns as before and plays
+  under/with the tail.
+- **Handoff on the bar line (D-ST7=C).** The tail runs through Phase 4, the audience turn and the next
+  composition phase. On Play, `CompositionSession` renders at once (synchronous) and calls `PlayRaw` as
+  always; while a tail plays, `PlayBytes` **holds** that playback (bytes, label, BAL-1 gains) instead of
+  starting it, returns its duration, and keeps `IsAnySongPlaying()` true. `TickSongTail` starts it on the
+  tail's next bar line, published by the beat grid (Integration §3.4.1 item 7), `songTailHandoffLeadMs`
+  (default 30 ms) early to absorb the MPTK start latency; a bar line already passed when Play arrived moves
+  it to the next one; if the transport reaches the loop end first, it starts there. `CompositionSession`
+  is untouched and unaware.
+- **Stops.** Victory and defeat fade (`songTailFadeSeconds`, scaled time — a pause freezes the fade);
+  `GigManager.OnDestroy` cuts (MMM is DontDestroyOnLoad); `MidiMusicManager.Stop()` (pause → main menu)
+  ends it first so the poll cannot restart it. The band returns to idle when the tail stops (D-ST4=A:
+  `ResetStageToIdle` split into band / audience; only the audience goes idle at song end).
+- **Pause.** Same transport, so it freezes in place; no repeat and no held handoff fires while suspended,
+  including in the gap between loops.
+- **A/B switch (D-ST6=A):** `GigFlowSettingsSO.songTailEnabled` (+ a session-only Dev override, Audio
+  Mix tab). OFF is identical to the pre-tail behaviour (ST-ST-10).
+- **Accepted edges (no economy impact):** the loop progress bar of a song entering by handoff can lead by
+  up to one bar (`_loopStartTime` is set at Play); band BPM/performer set switch at render time, up to a
+  bar before the new part is heard; a bonus-solo last loop repeats without its duck.
+
 ---
 
 ## 5. Persistence
@@ -610,8 +649,10 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
     stagger. It fires on a blocked first target too (the card resolved). `CardPlayedEvent` remains
     a purely semantic event and adds no SFX key.
 
-19. **The live music plane composes three factors, through one boundary** (R5-d).
-    `WriteChannelVolume01` multiplies live intent × baked bytes-plane gain × solo duck. Any
+19. **The live music plane composes five factors, through one boundary** (R5-d; recounted SONG-TAIL-1,
+    closes F-POOL-1).
+    `WriteChannelVolume01` multiplies live intent × baked bytes-plane gain × solo duck × player plane
+    (§4.8) × song-tail plane (§4.10). Any
     future per-channel attenuation is added as a further plane inside that method — never as a
     competing save/restore, which would collide with Highlight's single snapshot slot (§4.7 /
     §4.3).
@@ -642,6 +683,21 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
 23. **Pause-transparent audio is unscaled.** OST crossfades and ambience fades run on
     `Time.unscaledDeltaTime` and complete during a pause (ST-P1-12); the crowd source itself is paused in
     place (D11=C).
+
+24. **The song tail is not a loop** (SONG-TAIL-1, D-ST0). It replays the last loop's bytes outside
+    `CompositionSession` and emits no loop feedback; it never touches the session or the economy.
+
+25. **A tail repeat keeps the last loop's baked gains.** Every repeat re-queues the BAL-1 gains
+    captured at tail start; a repeat at identity gain would let the live re-assert undo the baked CC7.
+
+26. **While a tail plays, every non-tail playback is held to the tail's next bar line** (D-ST7=C), never
+    dropped and never overlapped. The held playback counts as playing (`IsAnySongPlaying`), so the session
+    cannot read the wait as a loop end. Only `Stop()`, the fade, `OnDestroy` and the gig's disappearance
+    end a tail; `Stop()` is final.
+
+27. **The singer follows the tail plane and stops at the handoff** (R-V, F-ST-1). Its external level
+    tracks `TailPlane01`; at the handoff the tail voice is stopped unconditionally before the new loop
+    arms (`SSoT_Singer_Voice` inv. 5).
 
 ---
 
@@ -681,6 +737,13 @@ SO unchanged; unscaled fades; Dev Audio Mix design-level readout — **all PASS*
 content** (D13=A: the composition path renders zero `part:` markers, so there is no marker crossing to
 lose or duplicate). ST-P1-12 also closes AUDIO-OST's deferred **live-Music-slider-on-playing-OST** test
 (the Options panel is menu-accessible).
+
+SONG-TAIL-1 ships ST-ST-1..10 (2026-09-27/10-01): tail audible through the audience turn and composition;
+singer sings the tail; no loop feedback; handoff on the bar line; held playback with a bar line already
+passed; deferred singer arm; pause freezes tail, gap and handoff; tutorial beats unaffected; victory /
+defeat / return-to-menu stops; OFF identical — **all PASS**. Post-close fix **F-ST-1** (tail voice kept
+singing over the new song when the new part had no Melody/Lead stem) verified by T2/T3 with PLAY-TIMING-0
+(T1–T4 PASS, 2026-10-01).
 
 ---
 

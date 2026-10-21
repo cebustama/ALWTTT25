@@ -416,7 +416,7 @@ These can exist as planning/reference material without overriding this SSoT.
 
 | SO | Concerns |
 |---|---|
-| `GigFlowSettingsSO` | JamRules, Action card gating, Gig End behavior, setup-screen defaults |
+| `GigFlowSettingsSO` | JamRules, Action card gating, Gig End behavior, setup-screen defaults, **Song Tail** (SONG-TAIL-1: `songTailEnabled`, `songTailLevel01`, `songTailFadeSeconds`, `songTailHandoffLeadMs` — `SSoT_Audio` §4.10), **Play Timing Probe** (PLAY-TIMING-0, log-only: enable, window, PERFECT/EXCELLENT ms, calibration offset — `SSoT_Runtime_Flow`) |
 | `MeterTuningSO` | SongHype caps/seed, Vibe/Hype balance, Flow→Vibe (bifurcated MVP), `LoopScoringConfig`, `HypeThresholds`, `breakdownStressResetFraction` |
 | `GigPresentationSO` | Audience beat curve/threshold, idle BPM, sequence pacing values, **four independent Vibe-presentation switches** (`showSongHypeBar`, `showVibeReadout`, `showVibeEffectivenessLabels`, `showVibeProjectedNumbers` — see §12.1, BIGNUM-1 2026-09-09), **convinced audience sprite tint** (`convincedSpriteTint`, CONV-TINT-1 2026-09-27 — meaning in `SSoT_Audience_and_Reactions` §4.3) |
 | `GigDevSettingsSO` | Inspector-time toggles only: `useLogs`, `useCompositionLogs`, `debugSongHype`, `debugInstrumentPicker`, `debugMusicianVolume` |

@@ -276,9 +276,14 @@ fija secuencia y alcance.
   GIG23-A; las mecánicas van a Phase C). Secuencia estricta, izquierda a derecha:
   1. **CONV-TINT-1 (+1b) — ✅ CERRADA 2026-09-27** (documentación aplicada en SONG-TAIL-1, tarea 0).
      Tinte de convencido que anula el tapado; canvas oculto por `CanvasGroup` de estado.
-  2. **SONG-TAIL-1** — *abierta 2026-09-27.* La banda sigue sonando durante el turno del público: un
+  2. **SONG-TAIL-1 — ✅ CERRADA 2026-10-01** (abierta 2026-09-27; doc en
+     `SONG-TAIL-1_PLAY-TIMING-0_DocDiffs_Pending.md`, consumidor CROWD-SFX-1). La canción siguiente entra
+     en la barra del tail (D-ST7=C). La banda sigue sonando durante el turno del público: un
      «tail» musical conmutable (A/B) que vive **fuera** de `CompositionSession` (D-ST0) y no emite
      feedback de loop.
+  2b. **PLAY-TIMING-0 — ✅ CERRADA 2026-10-01** (insertada en la sesión de SONG-TAIL-1). Sonda de solo
+      log: distancia del Play a la barra del loop, con grado y calibración. Premiar el timing es mecánica →
+      Phase C. Recalibrar tras SPEED-1.
   3. **CROWD-SFX-1** — aplausos y abucheos; se mezcla **contra el tail**, por eso va después.
   4. **SPEED-1** — velocidad de partida fija: juego y música con el mismo número. Experimento acotado:
      frenar al mirar cartas, sólo en el límite de loop.

@@ -50,6 +50,27 @@ namespace ALWTTT.Managers
         [SerializeField, Range(0f, 5f), Tooltip("Fade-OUT length (s): duck when the band starts a " +
             "song. Quicker so the song reads clearly — default 0.6.")]
         private float ambienceFadeOutSeconds = 0.6f;
+        // ── [CROWD-SFX-1] Crowd one-shots (D-CS5=A) ──────────────────────────────
+        // Applause / boos / ovation / jeers. Own source, NOT sfxSource: an applause
+        // lasts seconds and a one-shot on sfxSource cannot be paused or stopped on its
+        // own. Same SFX group as the bed: effective = masterSfx × crowdLevel01 × fade.
+        [Header("Crowd one-shots (SFX group — CROWD-SFX-1)")]
+        [SerializeField, Range(0f, 1f), Tooltip("Applause/boo trim under the master-SFX level. " +
+            "Read at each crowd play, so a Play-mode tweak applies to the next one. " +
+            "0 = crowd one-shots silent (A/B against the pre-batch mix).")]
+        private float crowdLevel01 = 1f;
+        [SerializeField, Min(0f), Tooltip("CROWD-CAP: duración MÁXIMA (s, fundido incluido) " +
+            "del veredicto de canción (CrowdApplause / CrowdBoo). Por defecto 2.5: debe caber " +
+            "en el hueco de SongEndPause antes del primer +Vibe. 0 = sin tope (el clip entero).")]
+        private float crowdVerdictMaxSeconds = 2.5f;
+
+        [SerializeField, Min(0f), Tooltip("CROWD-CAP: duración MÁXIMA (s, fundido incluido) " +
+            "del sonido de fin de gig (CrowdOvation / CrowdJeer). 0 = sin tope.")]
+        private float crowdOutcomeMaxSeconds = 5f;
+
+        [SerializeField, Min(0.01f), Tooltip("CROWD-CAP: longitud del fundido de salida al " +
+            "llegar al tope. Se recorta al tope si es mayor.")]
+        private float crowdCapFadeSeconds = 0.5f;
 
         private readonly Dictionary<AudioActionType, SoundProfileData> audioDict = new();
         private readonly Dictionary<SensorySfxType, SoundBankSO.SensorySoundEntry> sensoryDict = new();
@@ -77,6 +98,12 @@ namespace ALWTTT.Managers
         // _ambiencePausedByPause marks a crowd loop paused by the pause menu (D11=C).
         private float _designSfx01 = 1f;
         private bool _ambiencePausedByPause;
+        // [CROWD-SFX-1] Crowd one-shot runtime state (self-provisioned in Awake).
+        private AudioSource crowdSource;
+        private float _crowdFade01 = 1f;
+        private Coroutine _crowdStopCo;
+        private bool _crowdPausedByPause;
+        private Coroutine _crowdCapCo;   // CROWD-CAP: playhead-driven cap + fade
 
         #region Setup
         private void Awake()
@@ -98,6 +125,7 @@ namespace ALWTTT.Managers
             // AUDIO-AMBIENCE: provision the ambience source BEFORE the SFX apply below,
             // so the cached master-SFX cap composes onto it from boot.
             ProvisionAmbienceSource();
+            ProvisionCrowdSource();   // [CROWD-SFX-1] before the SFX apply, like the bed
 
             // AUDIO-SFX-FIX (D-SFX-APPLY=A): apply the persisted master SFX level app-wide.
             // AudioManager is DontDestroyOnLoad and lives in every scene, so SFX volume is
@@ -258,6 +286,7 @@ namespace ALWTTT.Managers
         {
             if (ambienceSource == null) return;
             StartAmbienceFade(StopAmbienceRoutine(ambienceFadeOutSeconds));
+            StopCrowd(ambienceFadeOutSeconds);   // [CROWD-SFX-1] no applause bleeds out of the gig
         }
 
         private void ProvisionAmbienceSource()
@@ -362,6 +391,140 @@ namespace ALWTTT.Managers
         }
         #endregion
 
+        #region [CROWD-SFX-1] Crowd one-shots (applause / boos / ovation / jeers)
+        // D-CS5=A: the crowd's sounds get their OWN self-provisioned source, one voice at a time. They
+        // pause, resume and stop with the crowd bed (PauseAmbience / ResumeAmbience /
+        // StopAmbience), so the pause caller learns nothing new. AudioManager stays the
+        // dumb sink: the caller (SensoryAudioAdapter) decides which key plays.
+        public void PlayCrowd(SensorySfxType type)
+        {
+            sensoryDict.TryGetValue(type, out var entry);
+            var clip = entry != null ? entry.GetRandomClip() : null;
+            if (logSfx)
+                Debug.Log($"[AudioManager][SFX] crowd Type={type} → " +
+                          $"clip={(clip ? clip.name : "<none>")}");
+            if (clip == null) { WarnSensoryOnce(type); return; }
+            if (crowdSource == null) return;
+
+            // CROWD-CAP: a new crowd sound REPLACES the previous one. Silence the old
+            // voice BEFORE restoring the level below, so a tail caught mid-cap-fade
+            // never jumps back to full volume for an audio block.
+            if (_crowdCapCo != null) { StopCoroutine(_crowdCapCo); _crowdCapCo = null; }
+            crowdSource.Stop();
+            // A pending stop-fade (gig exit) loses to a new crowd sound.
+            if (_crowdStopCo != null) { StopCoroutine(_crowdStopCo); _crowdStopCo = null; }
+            _crowdFade01 = 1f;
+            ApplyCrowdVolume();   // also picks up a Play-mode crowdLevel01 tweak
+            // CROWD-CAP: ONE voice (clip + Play), not PlayOneShot. The source's
+            // playhead belongs to this clip, which is what the cap reads, and
+            // Pause()/UnPause() act on it directly.
+            crowdSource.clip = clip;
+            crowdSource.Play();
+
+            float max = CrowdMaxSecondsFor(type);
+            if (max > 0f && clip.length > max)
+                _crowdCapCo = StartCoroutine(CrowdCapRoutine(clip, max));
+        }
+
+        // CROWD-CAP: which cap applies is decided by the key group. The sink learns
+        // only that the crowd has two groups; it still learns nothing about gameplay.
+        private float CrowdMaxSecondsFor(SensorySfxType type) =>
+            (type == SensorySfxType.CrowdOvation || type == SensorySfxType.CrowdJeer)
+                ? crowdOutcomeMaxSeconds
+                : crowdVerdictMaxSeconds;
+
+        // CROWD-CAP: the cap is driven by the clip's PLAYHEAD (crowdSource.time), not by
+        // a clock. A paused source does not advance its playhead, so the pause menu
+        // freezes the cap and its fade for free, whatever timeScale is doing.
+        // The sound is gone BY maxSeconds: the fade occupies [max - fade, max].
+        private System.Collections.IEnumerator CrowdCapRoutine(AudioClip clip, float maxSeconds)
+        {
+            float fade = Mathf.Min(Mathf.Max(0.01f, crowdCapFadeSeconds), maxSeconds);
+            float fadeStart = maxSeconds - fade;
+
+            while (crowdSource != null && crowdSource.clip == clip &&
+                   (crowdSource.isPlaying || _crowdPausedByPause))
+            {
+                float into = crowdSource.time - fadeStart;
+                if (into >= 0f)
+                {
+                    _crowdFade01 = Mathf.Clamp01(1f - into / fade);
+                    ApplyCrowdVolume();
+                    if (_crowdFade01 <= 0f) { crowdSource.Stop(); break; }
+                }
+                yield return null;
+            }
+
+            _crowdFade01 = 1f;   // the next crowd sound starts at full level
+            ApplyCrowdVolume();
+            _crowdCapCo = null;
+        }
+
+        private void ProvisionCrowdSource()
+        {
+            crowdSource = gameObject.AddComponent<AudioSource>();
+            crowdSource.playOnAwake = false;
+            crowdSource.loop = false;
+            crowdSource.spatialBlend = 0f;   // 2D, like the bed
+            _crowdFade01 = 1f;
+            ApplyCrowdVolume();
+        }
+
+        private void ApplyCrowdVolume()
+        {
+            if (crowdSource == null) return;
+            crowdSource.volume =
+                Mathf.Clamp01(_masterSfx01) *
+                Mathf.Clamp01(crowdLevel01) *
+                Mathf.Clamp01(_crowdFade01);
+        }
+
+        // Called from PauseAmbience / ResumeAmbience BEFORE their own guards: the bed
+        // may be stopped or already paused while an applause still rings.
+        private void PauseCrowd()
+        {
+            if (crowdSource == null || _crowdPausedByPause) return;
+            crowdSource.Pause();   // one voice (clip + Play): freezes playhead, cap and fade
+            _crowdPausedByPause = true;
+        }
+
+        private void ResumeCrowd()
+        {
+            if (!_crowdPausedByPause) return;
+            _crowdPausedByPause = false;
+            if (crowdSource != null) crowdSource.UnPause();
+        }
+
+        private void StopCrowd(float fadeSeconds)
+        {
+            if (crowdSource == null) return;
+            // CROWD-CAP: the gig-exit stop owns the fade from here on.
+            if (_crowdCapCo != null) { StopCoroutine(_crowdCapCo); _crowdCapCo = null; }
+            if (_crowdStopCo != null) StopCoroutine(_crowdStopCo);
+            _crowdStopCo = StartCoroutine(StopCrowdRoutine(Mathf.Max(0f, fadeSeconds)));
+        }
+
+        // Unscaled, like StopAmbienceRoutine: "Volver al menú" runs at timeScale 0.
+        private System.Collections.IEnumerator StopCrowdRoutine(float dur)
+        {
+            float start = _crowdFade01;
+            float t = 0f;
+            while (t < dur)
+            {
+                t += Time.unscaledDeltaTime;
+                _crowdFade01 = Mathf.Lerp(start, 0f, Mathf.Clamp01(t / dur));
+                ApplyCrowdVolume();
+                yield return null;
+            }
+
+            if (crowdSource != null) crowdSource.Stop();
+            _crowdPausedByPause = false;
+            _crowdFade01 = 1f;   // ready for the next gig; the source is stopped (silent)
+            ApplyCrowdVolume();
+            _crowdStopCo = null;
+        }
+        #endregion
+
         #region [PAUSE-1] Pause + player SFX plane
         /// <summary>
         /// D11=C: pause the crowd loop in place. Source-level Pause keeps volume, fade
@@ -370,6 +533,7 @@ namespace ALWTTT.Managers
         /// </summary>
         public void PauseAmbience()
         {
+            PauseCrowd();   // [CROWD-SFX-1] before the bed's guards (inv. 23)
             if (ambienceSource == null || _ambiencePausedByPause) return;
             if (!ambienceSource.isPlaying) return;
             ambienceSource.Pause();
@@ -379,6 +543,7 @@ namespace ALWTTT.Managers
         /// <summary>Undo PauseAmbience. No-op if the pause menu did not pause it.</summary>
         public void ResumeAmbience()
         {
+            ResumeCrowd();  // [CROWD-SFX-1] before the bed's guard
             if (!_ambiencePausedByPause) return;
             _ambiencePausedByPause = false;
             if (ambienceSource != null) ambienceSource.UnPause();
@@ -394,6 +559,7 @@ namespace ALWTTT.Managers
             if (sfxSource != null) sfxSource.volume = effective;
             if (buttonSource != null) buttonSource.volume = effective;   // AUDIO-SFX-FIX: UI under SFX
             ApplyAmbienceVolume();                                       // AUDIO-AMBIENCE: ambience under SFX
+            ApplyCrowdVolume();                                          // [CROWD-SFX-1] crowd under SFX
         }
 
         private void OnPlayerAudioPrefsChanged() => ApplySfxLevels();

@@ -83,6 +83,14 @@ namespace ALWTTT.Music.Voice
         private int _pendingChannel = -1;
         private int _mutedChannel = -1;
         private bool _adapterBound;
+        // [SONG-TAIL-1 / D-ST2=C] The singer keeps singing the tail: the last loop's
+        // context is kept and re-armed on every MidiMusicManager.SongTailLoopStarting.
+        // D-ST7=C: a session loop announced while the tail plays is armed at the handoff.
+        private SingerLoopContext _lastLoopCtx;
+        private bool _hasLastLoopCtx;
+        private SingerLoopContext _deferredSessionCtx;
+        private bool _hasDeferredSessionCtx;
+        private MidiMusicManager _tailHost;
 
         private double _startAnchor;
         private bool _awaitingFirstEvent;
@@ -102,21 +110,22 @@ namespace ALWTTT.Music.Voice
         {
             if (adapter == null) adapter = FindFirstObjectByType<MidiToolkitAdapter>();
             if (adapter != null && !_adapterBound)
-            { 
+            {
                 adapter.OnSongStarted += HandleSongStarted;
                 adapter.OnMidiEvents += HandleFirstMidiEvents;
-                _adapterBound = true; 
+                _adapterBound = true;
             }
         }
 
         private void OnDisable()
         {
             if (_adapterBound && adapter != null)
-            { 
+            {
                 adapter.OnSongStarted -= HandleSongStarted;
                 adapter.OnMidiEvents -= HandleFirstMidiEvents;
-                _adapterBound = false; 
+                _adapterBound = false;
             }
+            UnbindTailHost();   // [SONG-TAIL-1]
             BindSession(null);
             Deactivate("component disabled");
         }
@@ -133,6 +142,10 @@ namespace ALWTTT.Music.Voice
         private void Update()
         {
             if (adapter == null || !_adapterBound) TryBindAdapter();
+            TryBindTailHost();   // [SONG-TAIL-1] MMM may appear after OnEnable
+            // [SONG-TAIL-1 / R-V] The voice follows the tail plane (level and fades);
+            // 1 whenever no tail plays.
+            if (voice != null) voice.SetExternalLevel01(_tailHost != null ? _tailHost.TailPlane01 : 1f);
 
             // Sessions are created per gig; lazily (re)bind to the live one.
             var gm = GigManager.Instance;
@@ -159,6 +172,26 @@ namespace ALWTTT.Music.Voice
         // ── 1. Loop about to play: arm from the melody stem ────────────────
 
         private void HandleLoopPlaybackStarting(SingerLoopContext ctx)
+        {
+            // [SONG-TAIL-1 / D-ST7=C] While the tail plays, MidiMusicManager holds this
+            // loop until the tail's next bar line. Arming now would Stop() the voice that
+            // is still singing the tail, so the arm waits for SongTailHandoff.
+            if (_tailHost != null && _tailHost.IsSongTailActive)
+            {
+                _deferredSessionCtx = ctx;
+                _hasDeferredSessionCtx = true;
+                if (logDebug) Debug.Log($"{Tag} Arm deferred to the song-tail handoff.");
+                return;
+            }
+
+            _lastLoopCtx = ctx;        // [SONG-TAIL-1] what the tail re-sings
+            _hasLastLoopCtx = true;
+            ArmForLoop(ctx);
+        }
+
+        // [SONG-TAIL-1] Former body of HandleLoopPlaybackStarting, unchanged; shared by the
+        // session loop, the tail loop and the handoff so all arm through the same path.
+        private void ArmForLoop(SingerLoopContext ctx)
         {
             _armedForLoop = false;
             _pendingChannel = -1;
@@ -219,8 +252,8 @@ namespace ALWTTT.Music.Voice
             }
 
             double anchor = AudioSettings.dspTime;
-            _startAnchor = anchor; 
-            _awaitingFirstEvent = true; 
+            _startAnchor = anchor;
+            _awaitingFirstEvent = true;
             _loopCounter++;
             voice.StartAtDspTime(anchor);
 
@@ -236,6 +269,59 @@ namespace ALWTTT.Music.Voice
 
         private void HandleSongFinished(SongFeedbackContext _)
             => Deactivate("song finished");
+        // ── [SONG-TAIL-1] tail hooks ───────────────────────────────────────
+        private void TryBindTailHost()
+        {
+            var mm = MidiMusicManager.Instance;
+            if (ReferenceEquals(mm, _tailHost)) return;
+            UnbindTailHost();
+            _tailHost = mm;
+            if (_tailHost == null) return;
+            _tailHost.SongTailLoopStarting += HandleSongTailLoopStarting;
+            _tailHost.SongTailHandoff += HandleSongTailHandoff;
+            _tailHost.SongTailStopped += HandleSongTailStopped;
+        }
+
+        private void UnbindTailHost()
+        {
+            if (_tailHost == null) return;
+            _tailHost.SongTailLoopStarting -= HandleSongTailLoopStarting;
+            _tailHost.SongTailHandoff -= HandleSongTailHandoff;
+            _tailHost.SongTailStopped -= HandleSongTailStopped;
+            _tailHost = null;
+        }
+
+        // Same order as a session loop: arm here, anchor + mute on OnSongStarted.
+        private void HandleSongTailLoopStarting()
+        {
+            if (!_hasLastLoopCtx) { SitOut("song tail: no loop context captured"); return; }
+            ArmForLoop(_lastLoopCtx);
+        }
+
+        // The held session loop is about to replace the tail: arm it now. Without a
+        // deferred context the tail voice must not keep singing over the new song.
+        private void HandleSongTailHandoff()
+        {
+            // [SONG-TAIL-1 fix F-ST-1] The handoff lands on a bar line, usually MID-schedule
+            // of the tail's voice. ArmFromStemBytes would Stop() it, but ArmForLoop can sit
+            // out BEFORE arming (new part without this musician's Melody/Lead stem, budget,
+            // no notes...), leaving the tail voice singing over the new song. Stop it here,
+            // unconditionally: the new song never inherits the tail's voice.
+            if (voice != null) voice.Stop();
+            if (!_hasDeferredSessionCtx) { Deactivate("song tail handoff (no session context)"); return; }
+            var ctx = _deferredSessionCtx;
+            _hasDeferredSessionCtx = false;
+            _lastLoopCtx = ctx;
+            _hasLastLoopCtx = true;
+            ArmForLoop(ctx);
+        }
+
+        private void HandleSongTailStopped()
+        {
+            _hasLastLoopCtx = false;
+            _hasDeferredSessionCtx = false;
+            Deactivate("song tail stopped");
+        }
 
         // ── helpers ────────────────────────────────────────────────────────
 

@@ -43,3 +43,15 @@ MonoBehaviour:
   - type: 8
     randomClipList:
     - {fileID: 8300000, guid: 841253904dd0bb04eb0e5ea61fd75af7, type: 3}
+  - type: 9
+    randomClipList:
+    - {fileID: 8300000, guid: 38a1ca1cc8a92cd4aa1250333feb4254, type: 3}
+  - type: 10
+    randomClipList:
+    - {fileID: 8300000, guid: 192bddb6ee27907468cdfb92d16a2f75, type: 3}
+  - type: 11
+    randomClipList:
+    - {fileID: 8300000, guid: 6737f916f239a25459241f6264732c3a, type: 3}
+  - type: 12
+    randomClipList:
+    - {fileID: 8300000, guid: f6012cc673d125945b07e1518b803fa5, type: 3}

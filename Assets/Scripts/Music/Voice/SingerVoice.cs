@@ -799,11 +799,19 @@ namespace ALWTTT.Music.Voice
         private volatile bool _armedWaiting;
         public bool IsArmedWaiting => _armedWaiting;
         public bool IsSinging => _playing;
+        // [SONG-TAIL-1 / R-V] External level plane (the tail's _tail01), written from the
+        // main thread and smoothed per sample on the audio thread (~10 ms) so a fade or a
+        // slider never zippers. Independent of the profile gain: ApplyProfile/arming do
+        // not touch it. 1 = identity (x 1f is exact, so the output is unchanged).
+        private volatile float _extLevelTarget = 1f;
+        private float _extLevelSmooth = 1f;
+
+        public void SetExternalLevel01(float level01) => _extLevelTarget = Mathf.Clamp01(level01);
 
         private double _dspStartTime;
         private bool _anchored;
 
-        private void Arm(List<NoteEvt> list, string label, 
+        private void Arm(List<NoteEvt> list, string label,
             ExprContext ctx, bool startImmediately = true)
         {
             // D-S3-F=B: precompute per-note pitch lead from interval size, capped
@@ -1040,6 +1048,8 @@ namespace ALWTTT.Music.Voice
             float k = 1f - Mathf.Exp(-1f / (_sampleRate * ms * 0.001f));
             bool applyExternal = hardGateOutput;
 
+            float kExt = 1f - Mathf.Exp(-1f / (_sampleRate * 0.010f));   // [SONG-TAIL-1 / R-V]
+            float extTarget = _extLevelTarget;
             bool tone = toneEnabled;
             float a = 1f - Mathf.Exp(-2f * Mathf.PI * EffToneCutoffHz / _sampleRate); // v7
 
@@ -1053,7 +1063,8 @@ namespace ALWTTT.Music.Voice
                     _lp2 += a * (_lp1 - _lp2);
                     s = _lp2;
                 }
-                s *= gain * (applyExternal ? _loudSmooth : 1f);
+                _extLevelSmooth += (extTarget - _extLevelSmooth) * kExt;   // [SONG-TAIL-1 / R-V]
+                s *= gain * _extLevelSmooth * (applyExternal ? _loudSmooth : 1f);
                 for (int c = 0; c < channels; c++)
                     data[i * channels + c] = s;
             }

@@ -202,6 +202,10 @@ namespace ALWTTT.UI
         {
             if (!playButton) return;
 
+            // [PLAY-TIMING-0 / D-PT4=B] onClick fires on RELEASE; the probe records the
+            // pointer-DOWN on the same button. Added by code, so no prefab edit is needed.
+            if (playButton.GetComponent<PlayPressTimingProbe>() == null)
+                playButton.gameObject.AddComponent<PlayPressTimingProbe>();
             playButton.onClick.RemoveAllListeners();
             if (onPlay != null)
                 playButton.onClick.AddListener(() => onPlay());

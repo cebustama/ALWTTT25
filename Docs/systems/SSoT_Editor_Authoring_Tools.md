@@ -46,7 +46,7 @@ It does not duplicate the data representation rules in `SSoT_Card_Authoring_Cont
 | Card Inventory | `CardInventoryWindow` | ALWTTT → Cards → Card Inventory | Read-only browser for `CardDefinition`, `MusicianCardCatalogData`, and `GenericCardCatalogSO` assets, with Print to Console + Export JSON per view |
 | Status Effect Wizard | `StatusEffectWizardWindow` | ALWTTT → Status → Status Effect Wizard | Create and edit StatusEffectSO assets backed by the CSO primitive database |
 | Chord Progression Catalogue | `ChordProgressionCatalogueWizard` | MidiGenPlay → Chord Progression Catalogue Wizard... | Read-only browser for ChordProgressionData and ChordProgressionPaletteSO assets |
-| Composition Inventory | `CompositionInventoryWindow` | ALWTTT → Dev → Composition Inventory | Read-only browser over every composition asset family (style bundles, drum/chord/melody patterns, palettes, libraries, phrase archetypes, melodic + percussion instruments) with filters, derived health columns, Print + Export JSON, and a naming report (CSV-1, 2026-07-18; see §17) |
+| Composition Inventory | `CompositionInventoryWindow` | ALWTTT → Dev → Composition Inventory | Read-only browser over every composition asset family (style bundles, drum/chord/melody patterns, palettes, libraries, phrase archetypes, melodic + percussion instruments) with filters, derived health columns, Print + Export JSON, a naming report (CSV-1, 2026-07-18) and, since INV-PROG-1 (2026-09-28), the authored content of every chord progression as a Roman line with its card reach and a Markdown export (see §17) |
 | Game Text | `GameTextWindow` | ALWTTT → Text → Game Text | Player-facing text by category, one column per language: full editing + CSV round-trip for the tutorial catalogs; read-only inventory for cards and status effects (TXT-1, 2026-09-05; see §20) |
 | Effect Editor | `PartEffectEditorWindow` | ALWTTT → Cards → Effect Editor | Authoring surface for the PartEffect asset family: list/filter/search, inline editing, Create (default `_PartEffects/`), Duplicate, Delete with usage scan, Find Usages, Export JSON (AUTH-1, 2026-07-31; see §18) |
 | Audience Member Wizard | `AudienceMemberWizard` | ALWTTT → Characters → Audience Member Wizard | Authoring surface for `AudienceCharacterData`: inventory with derived columns, filters, inline editing via `SerializedObject`, ability-list editor, taste block with prose reading, Create (default `Data/Characters/Audience/`, optional duplicate-as-template), Duplicate/Delete, cached usage column, validation badges, Export JSON (AMW-1, 2026-09-05; see §21) |
@@ -542,9 +542,10 @@ Assets/Scripts/Cards/Editor/
   PartEffectEditorWindow.cs        (AUTH-1, 2026-07-31)
   CardAuthoringNav.cs              (AUTH-1, 2026-07-31)
   InstrumentEffectEditor.cs        (AUTH-1b, 2026-07-31; [CustomEditor] for InstrumentEffect)
-
-Assets/Scripts/DevMode/Editor/
-  CompositionInventoryWindow.cs    (CSV-1, 2026-07-18; #if UNITY_EDITOR && ALWTTT_DEV)
+  CompositionInventoryWindow.cs              (CSV-1, 2026-07-18; #if UNITY_EDITOR && ALWTTT_DEV;
+                                              namespace ALWTTT.DevMode.Editor — see §17)
+  CompositionInventoryWindow.Cards.cs        (partial; CSV-4c)
+  CompositionInventoryWindow.Progressions.cs (partial; INV-PROG-1, 2026-09-28)
 
 Assets/Scripts/Cards/Editor/LLM/
   CardLLMVocabularyBuilder.cs      (Stage 1 — the only game-type toucher; CE-L1)
@@ -707,8 +708,8 @@ The asset wired into `GigSetupController.setupConfig` that drives the Gig Setup 
 
 ## 17. Composition Inventory Window (`CompositionInventoryWindow`) — CSV-1, 2026-07-18
 
-**File:** `Assets/Scripts/DevMode/Editor/CompositionInventoryWindow.cs`
-**Namespace:** `ALWTTT.DevMode.Editor`
+**File:** `Assets/Scripts/Cards/Editor/CompositionInventoryWindow.cs`, plus two partials in the same folder: `CompositionInventoryWindow.Cards.cs` (CSV-4c) and `CompositionInventoryWindow.Progressions.cs` (INV-PROG-1, 2026-09-28)
+**Namespace:** `ALWTTT.DevMode.Editor` — **the namespace does not match the folder.** Until 2026-10-01 this section gave the path as `Assets/Scripts/DevMode/Editor/`; that path never existed. It was most likely inferred from the namespace, the same inference `PK_Manifest.md` §B.2 marks with † for withdrawn files. Corrected in INV-PROG-1-DOC against `Repo_Tree_Index.md` and fresh repo copies of the window and its partials. Request these files by the path above, never by the namespace.
 **Menu:** ALWTTT → Dev → Composition Inventory (priority 30)
 **Gate:** `#if UNITY_EDITOR && ALWTTT_DEV` (D-CSV-10=A — literal compliance with the batch constraint; relaxing to plain `UNITY_EDITOR` is a one-line change and would still ship nothing)
 
@@ -718,22 +719,31 @@ This window browses **package-owned** assets (MidiGenPlay patterns, palettes, in
 
 ### 17.2 What it does
 
-Read-only inventory and **curation worklist** over every composition asset family. It exists because CSV-3..CSV-6 cannot judge musical content that cannot first be listed, and because no naming convention exists yet (CR-9). Each view supports `Print` (multi-line `Debug.Log`) and `Export JSON` (`SaveFilePanel` → `JsonUtility.ToJson(_, prettyPrint: true)` → `Debug.Log` of the path → `RevealInFinder`), following the `CardInventoryWindow` pattern verbatim. **`Export All` (CSV-1c)** takes one `SaveFolderPanel` and writes all eight views in a single pass using the same filenames and schemas; both export paths share `BuildJsonForView(View)`, and a view that throws is recorded and skipped rather than aborting the batch. It exists because a full re-baseline (the CSV-1b/1c workflow) is an eight-dialog operation otherwise (seven before CSV-4c).
+Read-only inventory and **curation worklist** over every composition asset family. It exists because CSV-3..CSV-6 cannot judge musical content that cannot first be listed, and because no naming convention exists yet (CR-9). Each view supports `Print` (multi-line `Debug.Log`) and `Export JSON` (`SaveFilePanel` → `JsonUtility.ToJson(_, prettyPrint: true)` → `Debug.Log` of the path → `RevealInFinder`), following the `CardInventoryWindow` pattern verbatim. **`Export All` (CSV-1c)** takes one `SaveFolderPanel` and writes every view (nine since INV-PROG-1) in a single pass using the same filenames and schemas; both export paths share `BuildJsonForView(View)`, and a view that throws is recorded and skipped rather than aborting the batch. It iterates `Enum.GetValues(typeof(View))`, so a view appended to the enum is exported without a second registration point. It exists because a full re-baseline (the CSV-1b/1c workflow) is otherwise a nine-dialog operation (seven before CSV-4c, eight before INV-PROG-1).
 
 The window mutates nothing: no rename, no move, no `SetDirty`, no save (ST-CSV-7 PASS).
 
 **Eighth view added at CSV-4c (D-CSV-16=A).** `Cards → Bundles` is the only view that
 indexes *upward*. It lives in the partial file
-`Assets/Scripts/DevMode/Editor/CompositionInventoryWindow.Cards.cs`; the split is a
+`Assets/Scripts/Cards/Editor/CompositionInventoryWindow.Cards.cs`; the split is a
 readability decision, not an architectural one — same class, same window, same read-only
 invariant. `View.CardBundles` is appended last in the enum so `Export All`
 (`Enum.GetValues`) picks it up without a second registration point.
+
+**Ninth view added at INV-PROG-1 (2026-09-28).** `Progression Content` is the only view that
+reports what a chord progression *says* — one chord per event, readable as a Roman line —
+rather than its metadata. It lives in the third partial,
+`Assets/Scripts/Cards/Editor/CompositionInventoryWindow.Progressions.cs`, for the same
+readability reason as the second. `View.ProgressionContent` is appended after
+`View.CardBundles`, so `Export All` picks it up and the serialized `_view` index of open
+windows stays valid. It reuses the card → bundle index that the `.Cards` partial builds
+and adds no discovery of its own. Model and rules: §17.14.
 
 **Read-only invariant reaffirmed (D-CSV-19=A, 2026-07-20).** Rename and lifecycle operations belong to a **separate editor window** (batch **CSV-4b**), not to a mode inside this one. The reason is not purity: this window is the independent verification surface used *before and after* a bulk rename run, and a tool that both renames and reports cannot be trusted to report on its own renames. **Do not add mutation here.**
 
 ### 17.3 Views
 
-Eight toolbar views:
+Nine toolbar views:
 
 - **Style Bundles** — every `TrackStyleBundleSO` (all subclasses), with `appliesTo` role, a summary of its direct pattern/palette references and, since CSV-4c, a `cards:` column giving the multiplicity and identity of every card that reaches it, plus the reachability flags of §17.6.
 - **Drum Patterns** — `DrumPatternData` + `DrumPatternPaletteSO`.
@@ -748,6 +758,24 @@ Eight toolbar views:
   `pocketSlapBoost`/`pocketPopBoost`, `pocketCustomLanes`, `velocityJitter`,
   `randomRerollChance`, weight-list size). Sub-filters are local to this view: role,
   flagged-only, payload-columns toggle.
+- **Progression Content** (INV-PROG-1) — one row per `ChordProgressionData`. The row shows
+  the authored chords as a Roman line, the render policy that transforms them, the
+  tonalities and cadence, every card that can reach the progression through
+  card → bundle → palette or override → progression, and a reach **tier**. Four rules
+  define the view, and each is detailed in §17.14:
+  - **Events are the truth.** The Roman line is rebuilt from `events`. `originalInput` is
+    provenance, exported beside the line and never copied into it.
+  - **Authored is not rendered.** Under `DiatonicToPart` / `DiatonicToPartFunctional`, the
+    color table or SECDOM, the chord that sounds depends on the part tonality at render
+    time. The view shows the authored chord plus the policy that transforms it; it never
+    simulates the render.
+  - **Tiers reuse the §17.6 vocabulary one layer down:** `WIRED` > `UNWIRED-SRC` >
+    `UNSOURCED` > `UNREACHABLE`. A progression takes the best tier over all of its card links.
+  - **Usable = `WIRED`** (D2=B, INV-PROG-1): at least one card that reaches the progression
+    sits in a connected catalogue or deck. The same three-hop floor applies as for bundles.
+
+  The view has its own `Only usable (WIRED)` toggle and two Markdown buttons,
+  `Copy Markdown` and `Export Markdown…`.
 
 ### 17.4 Discovery (CSV-1b + CSV-1c)
 
@@ -780,6 +808,17 @@ worklist. The `Cards → Bundles` view carries its own sub-filter row (track rol
 flagged-only, payload columns) and reuses only the shared free-text filter, matching against
 card id, card display name and bundle name.
 
+**INV-PROG-1b — wider text filter, Progression Content only.** In this view the free-text
+filter also matches the Roman line, the flags, the tier label and the ids of the reaching
+cards, in addition to the asset name and display name. So `UNKNOWN`, `V7/`, `ORIG-COUNT` or a
+card id each find rows. The extra text is passed through the `displayName` argument of
+`PassesCommonFilters`, and that shared function is **not** changed, so every other view still
+filters by name only. All other shared filters apply here unchanged (TS, source, orphans,
+dups, bundle-reachable). `Flagged` reads this view's full flag list, so the content flags of
+§17.6 count. `Only usable (WIRED)` is local to this view. **Exports ignore every filter:**
+`Export JSON`, `Export All`, `Copy Markdown` and `Export Markdown…` always contain every
+discovered progression, and the view says so in its own help box.
+
 ### 17.6 Derived health flags
 
 The point of the tool — what turns a listing into a worklist.
@@ -801,6 +840,41 @@ The point of the tool — what turns a listing into a worklist.
 | `OFF-ROOT` | patterns, instruments | exists in the project, but **no runtime repository can resolve it** — outside every configured Resources scan root. It may still play via a direct palette/bundle reference, but it cannot appear in the dev pattern (§18.4) or instrument (§18.9) pickers, which are repository-fed. Measured 2026-07-18 against the (now superseded) 230-asset export: **30/30 live chord progressions are `OFF-ROOT`**, 1/41 drums, 2/14 melody, 0 instruments. Those family counts belong to the pre-cleanup inventory; the current baseline is the 183-asset export of 2026-07-20 (`CSV_Composition_Validation_Sub_Roadmap.md` §4.1.1). |
 | `HARVESTED` | patterns, archetypes | no scan found it at all; listed only because something references it. The strongest possible signal that a scan root is wrong. |
 | `NO-SOUNDFONT` / `OCTAVE-RANGE-INVERTED` / `VOLUME-ZERO` | instruments | authoring defects |
+| `INNER-GAP` | progressions, **Progression Content view only** | an event starts after the end of the previous one, leaving a hole between events. A gap after the last event is `SHORT-TAIL`. A gap before the first event is flagged by nothing. Imported rests (`S (n)` in the editor grammar) produce gaps, not events, so a progression authored with rests carries this flag by design. |
+| `OVERLAP` | progressions, Progression Content only | an event starts before the previous one ends |
+| `UNKNOWN-DEGREE` | progressions, Progression Content only | a `ScaleDegree` name the display spelling does not know and enum order cannot resolve; the token shows `?<name>` |
+| `DEGREE-BY-ORDER` | progressions, Progression Content only | a `ScaleDegree` name not in the spelling table, resolved by the enum's **value order** instead of its name. Said out loud rather than guessed silently. |
+| `UNKNOWN-QUALITY` | progressions, Progression Content only | a `ChordQuality` name outside the suffix table; the token shows `[<name>]` |
+| `ORIG-COUNT orig=n events=m` | progressions, Progression Content only | the chord count of `originalInput` differs from the event count. **Advisory:** see the definition below. When it fires, the view prints the raw `originalInput` under the row, with line breaks shown as `⏎`, so the mismatch can be diagnosed in place. |
+
+**The six content flags (INV-PROG-1) exist only in the Progression Content view.** The
+Chord Progressions view still uses `ProgressionFlags` unchanged. Progression Content shows
+those same flags **plus** the six above, so a `Flagged` filter over the two views can return
+different rows for the same asset.
+
+**`ORIG-COUNT` — definition (INV-PROG-1b, alphabet completed in 1c).** The count is the
+number of **Roman tokens** in `originalInput`. It is not the number of dash-separated pieces.
+A token is:
+
+- an optional accidental (`b`, `#`, `♭`, `♯`);
+- a numeral (`I`…`VII` in either case);
+- an optional suffix from the alphabet `maj9 maj7 maj m7b5 m9 m7 m6 m 7sus4 sus2 sus4 dim7 dim aug ø7 °7 ° + 9 7 6`;
+- no letter or digit on either side.
+
+Order within the alphabet matters: longer suffixes are tried first, so `IVmaj7` is one token,
+not `IVmaj` + `7`. Rests (`S`) are not numerals and never count. Neither do words such as
+`Ionian` or `via`, because a numeral followed by a letter outside the alphabet is rejected.
+`-1` (no `originalInput`) suppresses the flag.
+
+**History, kept because the first explanation was wrong.** The v1 dash split counted rest
+pieces as chords, which produced the `orig=36 events=18` row (`44 Test`: 18 chords
+interleaved with 18 rests). The v2 token count fixed that, but did not know bare `m` / `maj`
+(`IIm`, `vim`, `Imaj`), so five rows remained. The 1c alphabet was checked against all 48
+real `originalInput` values: 0 mismatches.
+
+**Accepted limits, because the flag is advisory:** slash notation (`V7/V`) counts two
+tokens, and a suffix outside the alphabet (`add9`) counts zero. The flag says the chord
+counts differ. It never says which chord differs.
 
 **Reachability is a three-hop walk, and the fourth hop is not checked (CSV-4c).** The chain
 is `bundle ← card ← catalogue/deck ← musician/roster`. Each of the three flags above names a
@@ -890,6 +964,35 @@ remaining mismatch is **exclusively Assets-side**: local chords under
 - Pattern views: `{ "patterns": [{ "assetName", "displayName", "timeSignature", "measures", "subdivisions", "contentCount", "source", "refs", "flags", "assetPath" }], "palettes": [{ "type", "assetName", "displayName", "entryCount", "refs", "orphan", "source", "assetPath" }] }`
 - Instrument views: `{ "instruments": [{ "assetName", "instrumentName", "instrumentType", "soundFont", "bank", "patch", "patchIndex", "octaveMin", "octaveMax", "volume01", "percussionMappings", "flags", "source", "assetPath" }] }`
 - Names Report: `{ "names": [{ "family", "assetName", "displayName", "source", "assetPath" }] }`
+- Progression Content (INV-PROG-1): `{ "sourceNotes": [string], "legend": [string], "progressions": [{ "assetName", "displayName", "source", "assetPath", "timeSignature", "measures", "beatsPerMeasure", "subdivisions", "roman", "originalInput", "songReferences": [string], "qualityRenderPolicy", "useColorTable", "cadence", "tonalities": [string], "events": [{ "index", "startStep", "lengthSteps", "position", "lengthMeasures", "degree", "degreeAccidental", "quality", "isDiatonic", "velocity", "hasAppliedTarget", "appliedTarget", "token" }], "refs", "bundles": [string], "cards": [{ "cardId", "owner", "cardRole", "bundle", "via", "sources", "tier" }], "inConfigLibrary", "tier", "usable", "flags" }] }`. File `CompositionInventory_ProgressionContent.json`.
+
+  **Reading rules.**
+  - `sourceNotes` carries the card-source notes of the Cards → Bundles view plus the
+    reference part measures used for `BASS-GAP`, so a stored export records what its tiers
+    and flags were computed against.
+  - `legend` travels inside the file because `roman` is a display format, not data.
+  - `tonalities` empty means **any** tonality.
+  - `events[].position` is `c<measure>.<beat>`, 1-based.
+  - `lengthMeasures` is a float.
+  - `appliedTarget` is `""` unless `hasAppliedTarget`.
+  - `degree` / `quality` are enum **names**, never ordinals.
+  - `bundles[]` entries read `<bundle> [override]` or `<bundle> [palette:<palette>]`.
+  - `tier` is the best tier over all card links. `usable` is exactly `tier == "WIRED"`.
+  - `flags` is `;`-joined, like the other views.
+
+- Progression Content, **Markdown** (INV-PROG-1, `Copy Markdown` / `Export Markdown…`,
+  default `CompositionInventory_ProgressionContent.md`, UTF-8 without BOM, **written in
+  Spanish**). It is the human-readable list, and it is not JSON with different syntax: it
+  is for reading progressions, not for parsing them. Its parts, in order:
+  - title, generation time and a legend;
+  - a summary table of progressions per tier, with total;
+  - the scanned card sources;
+  - one section per tier, in tier order, each a table with columns progression · Roman ·
+    meter · policy · tonalities · cadence · cards (via);
+  - a per-progression detail block: path, meter, subdivisions, policy, tonalities,
+    cadence, Roman line, `originalInput`, song references, refs (plus whether it is in
+    `MidiGenPlayConfig.progressionLibrary`), flags, and one table row per event (position,
+    duration, degree, accidental, quality, diatonic, SECDOM target, velocity, token).
 
 As with `CardInventoryWindow` (§8.4), these schemas are **informational and human-readable; they are not designed to be re-imported** through any authoring path.
 
@@ -1129,6 +1232,96 @@ Inspector. With a role filter set, the two sections together are the **complete 
 **Read-only, like everything else in §17.** The view loads through `AssetDatabase`, never
 writes, never `SetDirty`s, never saves. Verified by **ST-CSV4c-1**, which is a regression
 re-run of ST-CSV-7 over all eight views.
+
+### 17.14 Progression Content view (INV-PROG-1, 2026-09-28)
+
+**Why it exists.** Every other chord-progression surface in this window reports metadata:
+time signature, measures, event *count*, refs and health flags. None of them could answer
+"what does this progression play, and can a player get it?" Answering that meant opening
+each asset in the editor and walking the card chain by hand.
+
+**Row model.**
+
+- **Line 1:** source tag, asset name, time signature and measures, short policy, tonalities
+  (`Any` when the list is empty), cadence, tier, and `Ping`.
+- **Line 2:** the Roman line, as a selectable text field.
+- **Line 3:** the reaching cards, each written as `id (owner, tier) via bundle [via]`. When
+  no card reaches the progression, the line lists the bundles instead.
+- **Then:** the raw `originalInput`, only when `ORIG-COUNT` fires, followed by the flags.
+
+A header line counts progressions per tier. Rows sort by tier, then by first bundle, then by
+asset name.
+
+**Short policy labels.**
+
+- `AA` = AsAuthored
+- `DTP` = DiatonicToPart
+- `DTPF` = DiatonicToPartFunctional
+
+`+color` means the REQUALITY-2 color table is on. Under `AA` the table has no effect, so the
+label reads `+color(inerte)`.
+
+**Reach.** Only `BackingCardConfigSO` bundles reach progressions, and they do so in two ways:
+
+- through `progressionOverride`, which reads `via = override`;
+- through each entry of `progressionPalette`, which reads `via = palette:<name>`.
+
+Card links come from the `.Cards` partial's index. Each link is classified as follows:
+
+- `WIRED` when any source holding the card is wired;
+- else `UNWIRED-SRC` when the card is in some source;
+- else `UNSOURCED`.
+
+A progression with no card link is `UNREACHABLE`.
+
+`inConfigLibrary` records whether the progression is listed in
+`MidiGenPlayConfig.progressionLibrary`. It is **deliberately not counted as reach**: what
+that library does at runtime as a fallback has not been verified, so counting it would
+assert reachability no tool has measured.
+
+**Roman spelling (display only).**
+
+- **Numeral:** taken from the `ScaleDegree` **name**. `LeadingTone` / `Leading` /
+  `Subtonic` all map to `VII`. An unknown name falls back to enum value order
+  (`DEGREE-BY-ORDER`), and only if that also fails does it show `?<name>`
+  (`UNKNOWN-DEGREE`).
+- **Case and suffix:** taken from the `ChordQuality` name. Minor-family qualities are
+  lowercase. Suffixes are explicit: `im7`, `IV9`, `Imaj7`, `vim9`, `°`, `+`, `ø7`, `°7`.
+  An unknown quality shows `[<name>]` (`UNKNOWN-QUALITY`).
+- **Accidental:** a `b` or `#` per step of `degreeAccidental`.
+- **SECDOM:** an event with an applied target shows `X→V7/Y`. The stored chord X is ignored
+  at render (D-SD-OWN=A), and Y is printed uppercase because its case depends on the part
+  mode.
+- **Duration:** `(n)` gives the duration in measures. Tokens join with ` - `.
+- **Empty progression:** reads `(sin eventos)`.
+
+Both enums are package-owned and append-only, so spelling couples **by name**, never by
+ordinal — the same boundary rule as LOG-1's chord-label repair (D-LOG-1=B, `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.10).
+
+**The Roman line is not the import grammar.** It is a display format with its own legend.
+It is not the `ChordProgressionEditor` Roman grammar and is not designed to be re-imported,
+exactly like the JSON schemas (§17.8).
+
+**Read-only.** Like the rest of §17: no write, no `SetDirty`, no save. The reach index is
+cached against the identity of the discovered progression list, which `RefreshCatalog`
+reassigns, so the cache needs no edit to discovery.
+
+**Known limits.**
+
+- **Suffix table duplicated with LOG-1.** The quality → suffix table here and the chord
+  label suffix table of LOG-1 (`SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.10) are two copies of one convention, and
+  they have not been reconciled.
+- **`progressionLibrary` excluded from reach** (above).
+- **Three-hop floor.** Reward pools, unlock tables and runtime-generated cards are not
+  scanned. A `WIRED` count is a floor, not a census — the same caveat as `UNREACHABLE`
+  (§17.6).
+- **Leading gap.** A gap before the first event is flagged by nothing (§17.6, `INNER-GAP`).
+- **`ORIG-COUNT` limits** are listed in §17.6.
+
+**Content findings are not recorded here.** What the first export revealed about the
+catalogue (the modal palette count, test content reachable in play, the Ragtime SECDOM
+marks) is operational truth and lives in `CURRENT_STATE.md` (INV-PROG-1 row) and
+`changelog-ssot.md`. This section documents the tool only.
 
 ## 18. Part Effect Editor (`PartEffectEditorWindow`) — AUTH-1, 2026-07-31
 

@@ -32,5 +32,13 @@
         // AudioActionType SFX for these cards (asset authored AudioType=None
         // per D-PW-AUDIO — impact-time sting, not cast-time).
         CardVibeImpact,
+        // [CROWD-SFX-1] Crowd one-shots. Played on AudioManager's crowd source (NOT
+        // sfxSource) so the pause menu freezes them with the crowd bed (D-CS5=A).
+        // APPENDED on purpose: SoundBankSO serializes SensorySoundEntry.type as an
+        // int, so inserting a member above would silently re-key every authored entry.
+        CrowdApplause,      // song verdict: mean impression >= applause threshold
+        CrowdBoo,           // song verdict: mean impression <= boo threshold
+        CrowdOvation,       // gig won  (GigOutcomeEvent)
+        CrowdJeer,          // gig lost (GigOutcomeEvent)
     }
 }

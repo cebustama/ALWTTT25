@@ -67,7 +67,9 @@ namespace ALWTTT.DevMode.Editor
             // [CSV-4c] Appended LAST on purpose: Export All iterates
             // Enum.GetValues, so a new member is picked up automatically, and
             // appending keeps the serialized _view index of existing windows valid.
-            CardBundles
+            CardBundles,
+            // [INV-PROG-1] Appended LAST for the same reason as CardBundles.
+            ProgressionContent
         }
 
         [SerializeField] private View _view = View.StyleBundles;
@@ -152,6 +154,7 @@ namespace ALWTTT.DevMode.Editor
                     case View.PercussionInstruments: DrawPercussionInstruments(); break;
                     case View.NamesReport: DrawNamesReport(); break;
                     case View.CardBundles: DrawCardsToBundles(); break;
+                    case View.ProgressionContent: DrawProgressionContent(); break;
                 }
             }
         }
@@ -581,6 +584,7 @@ namespace ALWTTT.DevMode.Editor
                 Tab(View.PercussionInstruments, "Percussion Instr.", 115);
                 Tab(View.NamesReport, "Names Report", 100);
                 Tab(View.CardBundles, "Cards → Bundles", 120);
+                Tab(View.ProgressionContent, "Progression Content", 135);
 
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(60)))
@@ -676,7 +680,11 @@ namespace ALWTTT.DevMode.Editor
                 // [CSV-4c] Bundle rows now carry reachability flags, so the shared
                 // "Flagged" toggle finally means something here (it previously
                 // received null and hid every bundle).
-                if (!PassesCommonFilters(b, b.name, null, BundleCardFlags(b))) continue;
+                // [INV-ARTIC-1] Articulation flags join the DISPLAYED set only;
+                // BundleCardFlags itself stays reachability-only.
+                var bFlags = BundleCardFlags(b);
+                bFlags.AddRange(ArticulationFlags(b));
+                if (!PassesCommonFilters(b, b.name, null, bFlags)) continue;
                 using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
                 {
                     GUILayout.Label($"[{SourceTag(b)}]", GUILayout.Width(40));
@@ -687,7 +695,7 @@ namespace ALWTTT.DevMode.Editor
                     // [CSV-4c] The reverse-index columns: who reaches this bundle,
                     // and whether that reach survives to a wired source.
                     GUILayout.Label($"cards: {BundleCardsLabel(b)}", GUILayout.MinWidth(180));
-                    DrawFlags(BundleCardFlags(b));
+                    DrawFlags(bFlags);
                     GUILayout.FlexibleSpace();
                     if (GUILayout.Button("Ping", GUILayout.Width(44)))
                         EditorGUIUtility.PingObject(b);
@@ -702,7 +710,8 @@ namespace ALWTTT.DevMode.Editor
                 $"palette={(r.patternPalette ? r.patternPalette.name : "—")}",
             BackingCardConfigSO bk =>
                 $"override={(bk.progressionOverride ? bk.progressionOverride.name : "—")} " +
-                $"palette={(bk.progressionPalette ? bk.progressionPalette.name : "—")}",
+                $"palette={(bk.progressionPalette ? bk.progressionPalette.name : "—")} " +
+                $"artic={BackingArticulationShort(bk)}", // [INV-ARTIC-1]
             MelodyCardConfigSO m =>
                 $"pattern={(m.patternOverride ? m.patternOverride.name : "—")} " +
                 $"phrasePal={(m.phrasePaletteOverride ? m.phrasePaletteOverride.name : "—")}",
@@ -944,6 +953,9 @@ namespace ALWTTT.DevMode.Editor
                 case View.CardBundles:
                     AppendCardBundles(sb);
                     break;
+                case View.ProgressionContent:
+                    AppendProgressionContent(sb);
+                    break;
             }
             Debug.Log(sb.ToString());
         }
@@ -985,7 +997,7 @@ namespace ALWTTT.DevMode.Editor
         // [CSV-4c] cardRefs / cardFlags appended to the existing bundle schema.
         // Additive only: older exports remain readable, newer ones carry two
         // extra fields. Schema of record: SSoT_Editor_Authoring_Tools §17.8.
-        [Serializable] private class JsonBundle { public string type; public string assetName; public string appliesTo; public string overrideRef; public string paletteRef; public string source; public string assetPath; public string cardRefs; public string cardFlags; }
+        [Serializable] private class JsonBundle { public string type; public string assetName; public string appliesTo; public string overrideRef; public string paletteRef; public string source; public string assetPath; public string cardRefs; public string cardFlags; public string articulation; public string articulationFlags; } // [INV-ARTIC-1] last two fields
         [Serializable] private class JsonPattern { public string assetName; public string displayName; public string timeSignature; public int measures; public int subdivisions; public int contentCount; public string source; public string refs; public string flags; public string assetPath; }
         [Serializable] private class JsonPalette { public string type; public string assetName; public string displayName; public int entryCount; public string refs; public bool orphan; public string source; public string assetPath; }
         [Serializable] private class JsonInstrument { public string assetName; public string instrumentName; public string instrumentType; public string soundFont; public string bank; public string patch; public int patchIndex; public int octaveMin; public int octaveMax; public float volume01; public int percussionMappings; public string flags; public string source; public string assetPath; }
@@ -1062,7 +1074,9 @@ namespace ALWTTT.DevMode.Editor
                                 source = SourceTag(b),
                                 assetPath = AssetDatabase.GetAssetPath(b),
                                 cardRefs = BundleCardsLabel(b),
-                                cardFlags = string.Join(";", BundleCardFlags(b))
+                                cardFlags = string.Join(";", BundleCardFlags(b)),
+                                articulation = BundleArticulationShort(b),                // [INV-ARTIC-1]
+                                articulationFlags = string.Join(";", ArticulationFlags(b)) // [INV-ARTIC-1]
                             });
                         json = JsonUtility.ToJson(w, true);
                         break;
@@ -1160,6 +1174,9 @@ namespace ALWTTT.DevMode.Editor
                     }
                 case View.CardBundles:
                     json = BuildCardLinksJson();
+                    break;
+                case View.ProgressionContent:
+                    json = BuildProgressionContentJson();
                     break;
                 default: json = "{}"; break;
             }

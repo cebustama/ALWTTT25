@@ -14,6 +14,88 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-10-01 — SONG-TAIL-1 + PLAY-TIMING-0: la banda sigue sonando entre canciones, entra en la barra, y el Play sabe cuánto faltaba
+
+**Clase:** semántico · operativo · lifecycle. Código y smokes en la sesión del 2026-09-27 → 2026-10-01;
+documentación aplicada desde el paquete retenido `SONG-TAIL-1_PLAY-TIMING-0_DocDiffs_Pending.md` (consumidor
+CROWD-SFX-1, D-DOC-5).
+
+- **SONG-TAIL-1** (D-ST0..D-ST7). Tail fuera de sesión; repetición con ganancias horneadas; quinto plano en
+  `WriteChannelVolume01`; traspaso retenido hasta la barra del tail con adelanto de 30 ms; cantante
+  re-armado por loop del tail, armado diferido al traspaso y plano de nivel externo (R-V); banda «tocando»
+  hasta que el tail para; fundido en victoria/derrota, corte en `OnDestroy`, `Stop()` final; conmutador A/B.
+  Hogar: `SSoT_Audio` §4.10 + inv. 24–27; flujo en `SSoT_Runtime_Flow`; grid en Integration §3.4.1 ítems
+  7–8; cantante en `SSoT_Singer_Voice` inv. 5.
+- **F-ST-1** (cerrado): en el traspaso, `ArmForLoop` podía abandonar antes de `ArmFromStemBytes` y la voz
+  del tail seguía cantando sobre la canción nueva; ahora se para siempre.
+- **PLAY-TIMING-0** (D-PT1=A, D-PT2=B, D-PT3=A, D-PT4=B). Sonda de solo log; hogar
+  `SSoT_Runtime_Flow` «Play timing probe». **F-PT-1** (cerrado): fuera de ventana el log daba EARLY/LATE
+  como si fuera un veredicto; ahora da las dos distancias.
+- **F-POOL-1** cerrado: la invariante 19 de `SSoT_Audio` pasa de «tres factores» a cinco.
+- Código: `MidiMusicManager`, `GigManager`, `SingerVoice`, `SingerVoiceDirector`, `DevAudioMixTab`,
+  `GigFlowSettingsSO`, `SongCompositionUI`; nuevo `PlayPressTimingProbe`. `CompositionSession`,
+  `MidiToolkitAdapter` e `IPlayMidi` intactos.
+
+---
+
+## 2026-10-01 — INV-PROG-1-DOC: vista Progression Content documentada, ruta de la ventana corregida y tres divergencias de contenido respecto a CONT-B
+
+**Clase:** semántico · estructural · operativo · lifecycle. Código y smokes de INV-PROG-1 (+1b, +1c) cerrados el
+2026-09-28; documentación diferida por D6 y aplicada aquí. Esta entrada es documentación pura: sin código ni smokes.
+
+- **Semántico — `SSoT_Editor_Authoring_Tools.md`:**
+  - **§17.3** pasa a nueve vistas y define la nueva, `Progression Content`, por cuatro reglas: los
+    eventos son la verdad (`originalInput` es procedencia); lo autorado no es lo renderizado; los niveles
+    `WIRED` > `UNWIRED-SRC` > `UNSOURCED` > `UNREACHABLE` usan el vocabulario de §17.6 una capa más abajo;
+    y **utilizable = `WIRED`** (D2=B).
+  - **§17.14 (nueva)** recoge el modelo de fila, el alcance (solo bundles de Backing, por override o por
+    paleta) y la grafía Roman. Explica que `progressionLibrary` no cuenta como alcance y lista los límites
+    conocidos.
+  - **§17.5:** el filtro ampliado de esta vista (Roman, flags, nivel, cartas) no toca
+    `PassesCommonFilters`, y los exports ignoran todos los filtros.
+  - **§17.6:** seis flags nuevos, solo en esta vista (`INNER-GAP`, `OVERLAP`, `UNKNOWN-DEGREE`,
+    `DEGREE-BY-ORDER`, `UNKNOWN-QUALITY`, `ORIG-COUNT`), y la **definición de `ORIG-COUNT`**: tokens Roman,
+    con un alfabeto que incluye `m`/`maj` a secas; los silencios `S` no cuentan.
+  - **§17.8:** esquema `progressions[]` (aditivo: los demás esquemas no cambian) y formato del Markdown.
+  - **§17.2:** Export All escribe nueve vistas.
+- **Estructural — ruta corregida.** La ventana y sus tres partials viven en `Assets/Scripts/Cards/Editor/`.
+  El SSoT decía `Assets/Scripts/DevMode/Editor/` en la cabecera de §17, en §17.2 y en §13; esa ruta nunca
+  existió. El namespace `ALWTTT.DevMode.Editor` sigue sin coincidir con la carpeta, y lo más probable es que
+  la ruta errónea se dedujera de él. Corregido contra `Repo_Tree_Index.md` y copias frescas del repo. §3
+  menciona la vista nueva.
+- **Operativo — divergencias de contenido respecto a CONT-B** (fila CONT-B de `CURRENT_STATE` §1 anotada):
+  - **(a)** El Ragtime había perdido sus marcas SECDOM; se restauraron a mano (D3=A). La causa no está
+    establecida y queda abierta en §4.
+  - **(b)** La paleta Modal tiene 5 progresiones, no 7. Los esqueletos `Prog_Modal_Skel_TonicaSeptimo` y
+    `Prog_Modal_Skel_TonicaCuartoSegundo` no están en ninguna paleta y se quedan fuera hasta CSV-6 (D4=B).
+  - **(c)** `Test - Lab Progression` era alcanzable en juego por el override de
+    `wormus_test_Payload_Backing_StyleBundle`, vía la carta `wormus_test` en `Sibi_CardCatalogData`. Se
+    retira la carta del catálogo (D5=A).
+  - Desglose `WIRED` antes de D5: 28 = Core Major 13 + Core Minor 9 + Modal 5 + 1 de test. No re-medido
+    después.
+- **Corrección explícita de una hipótesis del propio lote.** La fila `orig=36 events=18` no se debía a la
+  tarjeta de setup, como sostenía el runbook v2. La causa era `44 Test`: 18 acordes intercalados con 18
+  silencios `S`, que el contador v1 contaba como acordes. El v2 los ignoraba, pero no reconocía
+  `IIm`/`vim`/`Imaj`; el 1c cierra ese hueco.
+- **Decisiones:**
+  - D1=B (su contenido no consta en los insumos de esta sesión).
+  - D2=B · D3=A · D4=B · D5=A · D6 (documentación diferida a este pase).
+  - Decisión documental de esta sesión (D1 de INV-PROG-1-DOC = B): el tercer partial se registra en
+    `PK_Manifest.md` §D.4, no en §B.2.
+- **Lifecycle (PK) — F-IPD-1.** Las sustituciones documentales declaradas por `PK_Manifest.md` v18.5 y v18.6
+  **no llegaron al PK**. Las copias del PK de `CURRENT_STATE.md`, `changelog-ssot.md`, `coverage-matrix.md`
+  y `PK_Manifest.md` (v18.4) no contenían texto de CONV-TINT-1-DOC ni de SONG-TAIL-1. Tampoco lo contenían
+  las de `SSoT_Audience_and_Reactions.md`, `SSoT_Status_Effects.md`, `SSoT_Gig_Combat_Core.md`,
+  `SSoT_Card_Authoring_Contracts.md`, `SSoT_Dev_Mode.md`, `ssot_manifest.yaml` y
+  `S5_DemoCutClose_Sub_Roadmap.md`. Los `.cs` de v18.5 sí llegaron. Este pase edita sobre las copias del
+  repo y deja registradas las siete sustituciones pendientes en `PK_Manifest.md` §A.1. Es otra ocurrencia de
+  la familia «la fila no describe la copia», ahora sobre documentos.
+- **Pendientes registrados en `CURRENT_STATE` §4:** causa de la pérdida de SECDOM; esqueletos modales;
+  tabla de sufijos duplicada con LOG-1; `progressionLibrary` no cuenta como alcance; comentarios de código
+  atrasados en `CompositionInventoryWindow.cs` («seven» / «eighth view»).
+
+---
+
 ## 2026-09-27 — SONG-TAIL-1 (apertura, tareas 0–1): paquete de CONV-TINT-1 consumido + registro del bloque de pulido
 
 **Clase:** lifecycle · operativo (roadmap). Sin cambio semántico.

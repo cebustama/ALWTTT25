@@ -178,6 +178,32 @@ This means the normal phase machine logic does not execute while the composition
 
 This is a deliberate architectural separation, not a bug — it keeps the composition/session lifecycle cleanly decoupled from the phase state machine. Any runtime feature that needs to interact during an active session must hook into the session lifecycle directly, not through the phase machine.
 
+### Song tail between songs (SONG-TAIL-1, closed 2026-10-01)
+
+With `GigFlowSettingsSO.songTailEnabled` ON, the music does not stop between songs:
+
+1. **Song end (Phase 4).** `OnCompositionSongFinished` sends only the audience to idle (the band keeps
+   its "playing" state, D-ST4=A); `OnCompositionSessionEnded` nulls `_session`, returns the crowd bed and
+   starts the **tail** — the last loop repeating outside the session (`SSoT_Audio` §4.10). The phase
+   machine runs normally under it: Vibe resolution, audience turn (Phase 5), and the next PlayerTurn with
+   its new session (Phase 6) all happen with the tail sounding.
+2. **Play.** `OnPlayPressed` → the part renders at once; its audio is held and starts on the tail's next
+   bar line (D-ST7=C). Nothing else in the flow waits for it.
+3. **Other ends.** `WinGig` / `LoseGig()` fade it out; scene change cuts it (`GigManager.OnDestroy`).
+4. **OFF** = previous flow: silence + crowd bed between songs, band idle at song end.
+
+### Play timing probe (PLAY-TIMING-0, closed 2026-10-01) — log only
+
+On every accepted Play (after the tutorial input gate, before the synchronous render),
+`PlayPressTimingProbe.LogForPlay` writes one `[PLAY-TIMING]` line: the signed distance from the press to
+the nearest edge of the loop that is playing — the bar line that closes it (EARLY) or the one that opened
+it (LATE) (D-PT1=A, D-PT2=B) — graded in absolute ms (PERFECT / EXCELLENT / GOOD = window, else FUERA DE
+VENTANA with both distances, F-PT-1), after subtracting a calibration offset (D-PT3=A). The measurement is
+taken at **pointer-down** on the Play button (`Button.onClick` fires on release; D-PT4=B); `(click)` marks
+the fallback. `~` marks the first frames of a loop, measured in real time before its grid publishes.
+Settings: `GigFlowSettingsSO` «Play Timing Probe». **No gameplay effect**; a reward for timing is a
+mechanic and belongs to Phase C (D1=A). Not gated by `ALWTTT_DEV`: switch it off in demo builds.
+
 ### Pause state (PAUSE-1, 2026-09-25)
 
 A pause can happen **at any moment of a gig**, including mid-song (D2=A), and freezes gameplay **and**
@@ -198,6 +224,9 @@ changes neither `CurrentGigPhase` nor `_session`.
 - **Exits that must never leave the game frozen:** Continue; "Volver al menú" (confirmed, D5=B — stops
   the MIDI **before** restoring time, then `UIManager.ChangeScene`); any non-additive scene load; the
   controller's destruction.
+- **Song tail (SONG-TAIL-1):** the tail shares the transport, so it freezes in place; while suspended no
+  tail repeat starts and no held handoff fires, including in the gap between two loops; the tail fade runs
+  in scaled time and freezes too (ST-ST-7).
 - Verified ST-P1-1, 2, 4, 5, 7, 10.
 
 ---

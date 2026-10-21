@@ -44,6 +44,10 @@ namespace ALWTTT.Sensory
 
         /// <summary>[WINK-1] Status-applied events handled (ST-W3/W6 parity).</summary>
         public long StatusAppliedEventsHandled { get; private set; }
+        /// <summary>[CROWD-SFX-1] Song-verdict events handled (smoke CS-1..4 parity).</summary>
+        public long SongVerdictsHandled { get; private set; }
+        /// <summary>[CROWD-SFX-1] Gig-outcome events handled (smoke CS-11/12 parity).</summary>
+        public long GigOutcomesHandled { get; private set; }
 
         private SensoryEventBus _bus;
 
@@ -64,6 +68,8 @@ namespace ALWTTT.Sensory
             _bus.Subscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
             _bus.Subscribe<AudienceVibeImpactEvent>(OnVibeImpact);
             _bus.Subscribe<StatusAppliedEvent>(OnStatusApplied);   // [WINK-1]
+            _bus.Subscribe<SongVerdictEvent>(OnSongVerdict);       // [CROWD-SFX-1]
+            _bus.Subscribe<GigOutcomeEvent>(OnGigOutcome);         // [CROWD-SFX-1]
 
             Debug.Log(
                 "[SensoryAudioAdapter] Subscribed to bus " +
@@ -79,6 +85,8 @@ namespace ALWTTT.Sensory
             _bus.Unsubscribe<RewardChoiceOpenedEvent>(OnRewardOpened);
             _bus.Unsubscribe<AudienceVibeImpactEvent>(OnVibeImpact);
             _bus.Unsubscribe<StatusAppliedEvent>(OnStatusApplied);   // [WINK-1]
+            _bus.Unsubscribe<SongVerdictEvent>(OnSongVerdict);       // [CROWD-SFX-1]
+            _bus.Unsubscribe<GigOutcomeEvent>(OnGigOutcome);         // [CROWD-SFX-1]
             _bus = null;
         }
 
@@ -207,6 +215,37 @@ namespace ALWTTT.Sensory
             Play(polarity, $"reaction impression={e.Impression} (bank fallback)", jitter: true);
         }
 
+        /// <summary>
+        /// [CROWD-SFX-1 / D-CS1=B] Song verdict: ONE crowd sound per song, on the crowd
+        /// source (D-CS5=A), never sfxSource. Single source → no jitter. The publisher
+        /// already waited out the last loop's reaction jitter (D-CS4=A).
+        /// </summary>
+        private void OnSongVerdict(SongVerdictEvent e)
+        {
+            SongVerdictsHandled++;
+            var sfx = SensorySfxPresentation.ForSongVerdict(in e);
+            if (logVerification)
+                Debug.Log($"[SensoryAudioAdapter] song-verdict mean={e.MeanImpression:0.00} " +
+                          $"members={e.MemberCount} polarity={e.Polarity} → " +
+                          $"{(sfx.HasValue ? sfx.Value.ToString() : "no sound (neutral)")}.");
+            if (sfx == null) return;
+            AudioManager.Instance?.PlayCrowd(sfx.Value);
+        }
+        /// <summary>
+        /// [CROWD-SFX-1 / D-CS1=B] Gig outcome: ovation on a win, jeers on a loss, on
+        /// the crowd source (D-CS5=A). Bus-only on purpose: the Debug/Dev
+        /// WinGig()/LoseGig() paths do not publish GigOutcomeEvent (D-S4-SRC=A), so
+        /// they stay silent here too. Single source → immediate, no jitter.
+        /// </summary>
+        private void OnGigOutcome(GigOutcomeEvent e)
+        {
+            GigOutcomesHandled++;
+            var sfx = SensorySfxPresentation.ForGigOutcome(e.Won);
+            if (logVerification)
+                Debug.Log($"[SensoryAudioAdapter] gig-outcome won={e.Won} " +
+                          $"cause={e.Cause} → {sfx}.");
+            AudioManager.Instance?.PlayCrowd(sfx);
+        }
         private void OnSongEndVibe(SongEndVibeEvent e)
         {
             VibeEventsHandled++;

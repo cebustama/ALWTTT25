@@ -54,6 +54,7 @@ namespace ALWTTT.DevMode
             DrawMixGains(gm);
             DrawMasterSfx(gm);
             DrawHighlightTrigger(gm);
+            DrawSongTail(gm);   // [SONG-TAIL-1]
 
             GUILayout.EndScrollView();
         }
@@ -186,6 +187,32 @@ namespace ALWTTT.DevMode
             GUILayout.Space(8);
         }
 
+        // [SONG-TAIL-1 / D-ST6=A] A/B switch + level. Session-only override on GigManager;
+        // never writes GigFlowSettingsSO. ON/OFF applies at the next song end; the level
+        // applies at once to a playing tail (band and voice).
+        private static void DrawSongTail(GigManager gm)
+        {
+            GUILayout.Space(8);
+            GUILayout.Label("── Song tail (SONG-TAIL-1) ──", _sectionHeader);
+
+            bool on = gm.DevSongTailEnabled;
+            bool nextOn = GUILayout.Toggle(on, on ? " Tail ON (A)" : " Tail OFF (B: silencio)");
+            if (nextOn != on) gm.DevSongTailEnabled = nextOn;
+
+            float lv = gm.DevSongTailLevel01;
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Tail level:", GUILayout.Width(110));
+            float nextLv = GUILayout.HorizontalSlider(lv, 0f, 1f, GUILayout.ExpandWidth(true));
+            GUILayout.Label($"{lv:0.00}", GUILayout.Width(50));
+            GUILayout.EndHorizontal();
+            if (Mathf.Abs(nextLv - lv) > 0.005f) gm.DevSongTailLevel01 = nextLv;
+
+            var mm = MidiMusicManager.Instance;
+            string state = mm == null || !mm.IsSongTailActive ? "inactivo"
+                : mm.IsSongTailHandoffPending ? "esperando la barra" : "sonando";
+            GUILayout.Label($"Estado: {state} · override de sesión, no se guarda en GigFlowSettings.", _hint);
+            GUILayout.Space(8);
+        }
         private static void DrawHighlightTrigger(GigManager gm)
         {
             GUILayout.Label("── Highlight (dev) ──", _sectionHeader);

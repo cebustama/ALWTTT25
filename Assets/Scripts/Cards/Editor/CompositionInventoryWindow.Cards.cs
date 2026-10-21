@@ -304,6 +304,7 @@ namespace ALWTTT.DevMode.Editor
             {
                 if (roleFilter.HasValue && l.cardRole != roleFilter.Value) continue;
                 var flags = BundleCardFlags(l.bundle);
+                flags.AddRange(ArticulationFlags(l.bundle)); // [INV-ARTIC-1] display set only
                 if (_cardOnlyFlagged && flags.Count == 0) continue;
                 if (!string.IsNullOrEmpty(_textFilter))
                 {
@@ -342,6 +343,8 @@ namespace ALWTTT.DevMode.Editor
                         GUILayout.FlexibleSpace();
                     }
 
+                    if (_cardShowPayload && l.bundle is BackingCardConfigSO bk) // [INV-ARTIC-1]
+                        DrawBackingPayloadLine(bk);
                     if (_cardShowPayload && l.bundle is BasslineCardConfigSO bass)
                         DrawBasslinePayloadLines(bass);
                 }
@@ -393,7 +396,7 @@ namespace ALWTTT.DevMode.Editor
                         GUILayout.Label("→", GUILayout.Width(16));
                         GUILayout.Label(b.name, GUILayout.Width(220));
                         GUILayout.Label(b.GetType().Name, GUILayout.Width(150));
-                        DrawFlags(BundleCardFlags(b));
+                        DrawFlags(BundleCardFlags(b).Concat(ArticulationFlags(b)).ToList()); // [INV-ARTIC-1]
                         GUILayout.FlexibleSpace();
                         if (GUILayout.Button("Bundle", GUILayout.Width(56)))
                             EditorGUIUtility.PingObject(b);
@@ -406,6 +409,8 @@ namespace ALWTTT.DevMode.Editor
                         GUILayout.FlexibleSpace();
                     }
 
+                    if (_cardShowPayload && b is BackingCardConfigSO bk) // [INV-ARTIC-1]
+                        DrawBackingPayloadLine(bk);
                     if (_cardShowPayload && b is BasslineCardConfigSO bass)
                         DrawBasslinePayloadLines(bass);
                 }
@@ -452,6 +457,211 @@ namespace ALWTTT.DevMode.Editor
                $"customLanes={(b.pocketCustomLanes ? "on" : "off")} " +
                $"jitter={b.velocityJitter} reroll={b.randomRerollChance:0.##} " +
                $"weights={b.randomFigureWeights?.Count ?? 0}";
+
+        // ══════════════════════════════════════════════════════════════════
+        // [INV-ARTIC-1] Backing articulation surface + articulation flags
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // Before this batch the window exported the Bassline payload but not the
+        // Backing one, so "which figure plays over which progression" had no
+        // tool answer. Everything below READS bundle fields; nothing is written
+        // (ST-CSV-7 still holds).
+        //
+        // Backing field types verified against the companion's
+        // BackingCardConfigSO.cs / ChordExpressionType.cs (attached 2026-10-02).
+        // BasslineCardConfigSO.cs was NOT attached, so the bass checks couple by
+        // enum NAME (ToString) and never read its pool list (D-LOG-1=B rule).
+
+        /// <summary>
+        /// Mirrors the package's §8.5 pool rule: the roll pool is "exactly the
+        /// concrete members with value &lt; Random" (ChordExpressionType.Random
+        /// doc). The one place this window compares enum VALUES - against the
+        /// package's own symbol, because the package's rule is itself
+        /// value-relative. UPDATE when MGP-ALWTTT-ARTIC-POOL-1 (D3=B) lands:
+        /// Tier-2 figures become admissible when listed, and POOL-TIER2 retires.
+        /// </summary>
+        private static bool IsPoolAdmissible(ChordExpressionType f)
+            => (int)f < (int)ChordExpressionType.Random;
+
+        /// <summary>Figures whose sound depends on arpeggioRate (Chugging reuses
+        /// it as its pulse rate; Random may roll an arpeggio).</summary>
+        private static bool UsesArpeggioRate(ChordExpressionType f)
+            => f == ChordExpressionType.ArpeggioUp
+            || f == ChordExpressionType.ArpeggioDown
+            || f == ChordExpressionType.Chugging
+            || f == ChordExpressionType.Random;
+
+        private static string BackingPoolLabel(BackingCardConfigSO b)
+        {
+            var w = b.randomFigureWeights;
+            if (w == null || w.Count == 0) return "uniform";
+            return string.Join(", ", w.Select(x =>
+            {
+                string s = $"{x.figure} {Num(x.weight)}";
+                if (x.figure == ChordExpressionType.Random) return s + " (ignored)";
+                if (!IsPoolAdmissible(x.figure)) return s + " (not admitted)";
+                if (x.weight <= 0f) return s + " (excluded)";
+                return s;
+            }));
+        }
+
+        /// <summary>
+        /// Compact articulation token, used by Progression Content and the
+        /// Style Bundles summary. Grammar (repeated in the Markdown legend):
+        ///   Figure[{pool} reroll=r][ @Rate][ ±jitter][ +adopt]
+        /// @Rate is shown only when the figure uses it, or when the rate is
+        /// Random (which currently drops articulation, F-ARTIC-RATE-RANDOM-1).
+        /// </summary>
+        private static string BackingArticulationShort(BackingCardConfigSO b)
+        {
+            if (b == null) return "—";
+            var sb = new StringBuilder(b.chordExpression.ToString());
+            if (b.chordExpression == ChordExpressionType.Random)
+                sb.Append('{').Append(BackingPoolLabel(b)).Append('}')
+                  .Append(" reroll=").Append(Num(b.randomRerollChance));
+            if (UsesArpeggioRate(b.chordExpression) || b.arpeggioRate == ArpeggioRate.Random)
+                sb.Append(" @").Append(b.arpeggioRate);
+            if (b.velocityJitter != 0) sb.Append(" ±").Append(b.velocityJitter);
+            if (b.adoptProgressionTonality) sb.Append(" +adopt");
+            return sb.ToString();
+        }
+
+        private static string BundleArticulationShort(TrackStyleBundleSO b) => b switch
+        {
+            BackingCardConfigSO bk => BackingArticulationShort(bk),
+            BasslineCardConfigSO bass => $"{bass.chordExpression} @{bass.arpeggioRate} " +
+                                         $"tone={bass.arpeggioToneMode} pocket={bass.pocketMode}",
+            _ => null
+        };
+
+        /// <summary>Full Backing payload line for the Cards → Bundles view,
+        /// sibling of BasslinePayloadLabel.</summary>
+        private static string BackingPayloadLabel(BackingCardConfigSO b)
+        {
+            bool isRandom = b.chordExpression == ChordExpressionType.Random;
+            bool hasPool = b.randomFigureWeights != null && b.randomFigureWeights.Count > 0;
+            return $"expr={b.chordExpression} rate={b.arpeggioRate}" +
+                   (isRandom ? $" reroll={Num(b.randomRerollChance)} pool=[{BackingPoolLabel(b)}]"
+                    : hasPool ? $" pool=[{BackingPoolLabel(b)}] (inert: expr is not Random)" : "") +
+                   $" jitter={b.velocityJitter} adopt={(b.adoptProgressionTonality ? "on" : "off")}";
+        }
+
+        /// <summary>
+        /// Authoring flags derived from articulation fields. Kept SEPARATE from
+        /// BundleCardFlags (reachability, §17.6) and merged only at display and
+        /// export sites, so every Contains("UNREACHABLE") test keeps its meaning.
+        ///   RATE-RANDOM          arpeggioRate = Random: renders WITHOUT
+        ///                        articulation and without warning today
+        ///                        (F-ARTIC-RATE-RANDOM-1, ask MGP-ARTIC-RATE-1).
+        ///                        Measured on Backing; flagged on Bassline too
+        ///                        because the sentinel is shared.
+        ///   POOL-IGNORED         weights authored but chordExpression != Random.
+        ///   POOL-TIER2           Random pool lists a Tier-2 figure with weight > 0;
+        ///                        ignored by the package today (D-T2-POOL=A′).
+        ///   POOL-DEGENERATE      Random pool non-empty but nothing rollable; the
+        ///                        package falls back to uniform (+ warning).
+        ///                        Advisory: per-entry test, duplicates not summed.
+        ///   OVERRIDE+PALETTE     both set; the palette is dead (override wins).
+        ///   BASS-FIGURE-DEGRADES Bassline figure Bossa / BassUpperSplit: a 1-note
+        ///                        bass voicing degrades it to Block.
+        /// </summary>
+        private static List<string> ArticulationFlags(TrackStyleBundleSO b)
+        {
+            var flags = new List<string>();
+            switch (b)
+            {
+                case BackingCardConfigSO bk:
+                    {
+                        if (bk.arpeggioRate == ArpeggioRate.Random) flags.Add("RATE-RANDOM");
+                        bool isRandom = bk.chordExpression == ChordExpressionType.Random;
+                        var w = bk.randomFigureWeights;
+                        bool hasPool = w != null && w.Count > 0;
+                        if (hasPool && !isRandom) flags.Add("POOL-IGNORED");
+                        if (isRandom && hasPool)
+                        {
+                            if (w.Any(x => x.weight > 0f && x.figure != ChordExpressionType.Random
+                                           && !IsPoolAdmissible(x.figure)))
+                                flags.Add("POOL-TIER2");
+                            if (!w.Any(x => x.weight > 0f && IsPoolAdmissible(x.figure)))
+                                flags.Add("POOL-DEGENERATE");
+                        }
+                        if (bk.progressionOverride != null && bk.progressionPalette != null)
+                            flags.Add("OVERRIDE+PALETTE");
+                        break;
+                    }
+                case BasslineCardConfigSO bass:
+                    {
+                        if (bass.arpeggioRate.ToString() == "Random") flags.Add("RATE-RANDOM");
+                        string figure = bass.chordExpression.ToString();
+                        if (figure == "Bossa" || figure == "BassUpperSplit")
+                            flags.Add("BASS-FIGURE-DEGRADES");
+                        break;
+                    }
+            }
+            return flags;
+        }
+
+        private void DrawBackingPayloadLine(BackingCardConfigSO bk)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(44);
+                GUILayout.Label(BackingPayloadLabel(bk), EditorStyles.miniLabel);
+                GUILayout.FlexibleSpace();
+            }
+        }
+
+        [Serializable]
+        private class JsonFigureWeight
+        {
+            public string figure;
+            public float weight;
+            public bool admitted;     // false = the package ignores it today
+        }
+
+        /// <summary>
+        /// [INV-ARTIC-1] Backing payload in the Cards → Bundles export. Same
+        /// shape rule as JsonBasslinePayload: JsonUtility never omits a field,
+        /// so read `isBacking`, not the emptiness of a string.
+        /// </summary>
+        [Serializable]
+        private class JsonBackingPayload
+        {
+            public bool isBacking;
+            public string chordExpression;
+            public string arpeggioRate;
+            public float randomRerollChance;
+            public List<JsonFigureWeight> randomFigureWeights = new();
+            public int velocityJitter;
+            public bool adoptProgressionTonality;
+            public string progressionOverride;
+            public string progressionPalette;
+            public string articulationShort;
+        }
+
+        private static JsonBackingPayload BuildBackingPayload(TrackStyleBundleSO bundle)
+        {
+            var p = new JsonBackingPayload();
+            if (!(bundle is BackingCardConfigSO b)) return p;
+            p.isBacking = true;
+            p.chordExpression = b.chordExpression.ToString();
+            p.arpeggioRate = b.arpeggioRate.ToString();
+            p.randomRerollChance = b.randomRerollChance;
+            if (b.randomFigureWeights != null)
+                foreach (var x in b.randomFigureWeights)
+                    p.randomFigureWeights.Add(new JsonFigureWeight
+                    {
+                        figure = x.figure.ToString(),
+                        weight = x.weight,
+                        admitted = IsPoolAdmissible(x.figure)
+                    });
+            p.velocityJitter = b.velocityJitter;
+            p.adoptProgressionTonality = b.adoptProgressionTonality;
+            p.progressionOverride = b.progressionOverride ? b.progressionOverride.name : null;
+            p.progressionPalette = b.progressionPalette ? b.progressionPalette.name : null;
+            p.articulationShort = BackingArticulationShort(b);
+            return p;
+        }
 
         /// <summary>
         /// One glyph per SelfPocket step, so a cycled articulation pattern reads
@@ -572,7 +782,11 @@ namespace ALWTTT.DevMode.Editor
                     $"({LinkOwnerLabel(l)}, role={l.cardRole}) -> {l.bundle.name} " +
                     $"[{l.bundle.GetType().Name}] | {BundleChainLabel(l.bundle)} | " +
                     $"src={(l.AnySource ? string.Join(";", l.sources) : "—")}" +
-                    (flags.Count > 0 ? $" | flags={string.Join(";", flags)}" : string.Empty) +
+                    (flags.Count + ArticulationFlags(l.bundle).Count > 0
+                        ? $" | flags={string.Join(";", flags.Concat(ArticulationFlags(l.bundle)))}"
+                        : string.Empty) +
+                    (l.bundle is BackingCardConfigSO printBk // [INV-ARTIC-1]
+                        ? $"\n        {BackingPayloadLabel(printBk)}" : string.Empty) +
                     (l.bundle is BasslineCardConfigSO bass
                         ? $"\n        {BasslinePayloadLabel(bass)}" +
                           (BasslineSelfPocketLabel(bass) is string sp ? $"\n    {sp}" : string.Empty)
@@ -588,6 +802,12 @@ namespace ALWTTT.DevMode.Editor
                 n++;
                 sb.AppendLine($"    [{SourceTag(b)}] {b.GetType().Name} | {b.name} | " +
                               $"{AssetDatabase.GetAssetPath(b)}" +
+                              (b is BackingCardConfigSO deadBk // [INV-ARTIC-1]
+                                  ? $"\n        {BackingPayloadLabel(deadBk)}" +
+                                    (ArticulationFlags(b).Count > 0
+                                        ? $" | flags={string.Join(";", ArticulationFlags(b))}"
+                                        : string.Empty)
+                                  : string.Empty) +
                               (b is BasslineCardConfigSO deadBass
                                   ? $"\n        {BasslinePayloadLabel(deadBass)}" +
                                     (BasslineSelfPocketLabel(deadBass) is string dsp
@@ -619,6 +839,10 @@ namespace ALWTTT.DevMode.Editor
             public string sources;
             public bool sourced;
             public bool wiredSource;
+            // [INV-ARTIC-1] Articulation flags live in their own field so `flags`
+            // stays reachability-only (older consumers keep their meaning).
+            public string articulationFlags;
+            public JsonBackingPayload backing = new JsonBackingPayload();
             public string flags;
             // Bassline payload surface (D-CSV4c-3). `isBassline` is false and
             // every field is at its default for the other three families.
@@ -718,6 +942,8 @@ namespace ALWTTT.DevMode.Editor
             public string assetName;
             public string type;
             public string appliesTo;
+            public string articulationFlags;                              // [INV-ARTIC-1]
+            public JsonBackingPayload backing = new JsonBackingPayload(); // [INV-ARTIC-1]
             public string source;
             public string assetPath;
             public string flags;
@@ -759,7 +985,9 @@ namespace ALWTTT.DevMode.Editor
                     sourced = l.AnySource,
                     wiredSource = l.anyWiredSource,
                     flags = string.Join(";", BundleCardFlags(l.bundle)),
-                    bassline = BuildBasslinePayload(l.bundle)
+                    bassline = BuildBasslinePayload(l.bundle),
+                    articulationFlags = string.Join(";", ArticulationFlags(l.bundle)),
+                    backing = BuildBackingPayload(l.bundle)
                 });
             }
 
@@ -776,7 +1004,9 @@ namespace ALWTTT.DevMode.Editor
                     source = SourceTag(b),
                     assetPath = AssetDatabase.GetAssetPath(b),
                     flags = string.Join(";", flags),
-                    bassline = BuildBasslinePayload(b)
+                    bassline = BuildBasslinePayload(b),
+                    articulationFlags = string.Join(";", ArticulationFlags(b)),
+                    backing = BuildBackingPayload(b)
                 });
             }
 

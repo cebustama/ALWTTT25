@@ -98,6 +98,13 @@ namespace ALWTTT.Music
             public Dictionary<MusicianTrackKey, MIDIInstrumentSO> resolvedMelInstByTrack = new();
             public Dictionary<MusicianTrackKey, MIDIPercussionInstrumentSO>
                 resolvedPercInstByTrack = new();
+            // [JAM-3 / D3] Tonality/root THESE bytes rendered in (post-adoption,
+            // post-JAM-2). A session-cache hit replays them without rendering, and the
+            // per-loop cfg is rebuilt from the model, so only the entry knows the
+            // sounding mode. False on a fresh/invalidated entry ⇒ fall back to cfg.
+            public bool hasRenderedTonality;
+            public Tonality renderedTonality;
+            public NoteName renderedRoot;
 #if ALWTTT_DEV
             // [DBG-C2] DevOverrideStamp captured when this entry was rendered.
             // Compared at loop start; mismatch ⇒ invalidate + re-render.
@@ -129,6 +136,15 @@ namespace ALWTTT.Music
         // chords are Lydian. Collapsing them into one field would break the
         // move-detection guard.
         private readonly Dictionary<int, (Tonality ton, NoteName root)> _jamRenderedTonalityByPart = new();
+        // [JAM-3 / D2] WHERE the jam's harmony came from: the Backing bundle's
+        // progressionOverride, else its progressionPalette, else null (host
+        // default / procedural). Decides WHETHER a new Backing card accompanies
+        // (no source of its own, or the SAME source: "same card, same
+        // progression") or leads (a DIFFERENT source). A third axis, separate
+        // from the two tonality maps on purpose: they answer "did the key move?"
+        // and "what mode did it sound in?"; this answers "is it the same music?".
+        // Carried forward unchanged across imposed (RenderOverride) renders.
+        private readonly Dictionary<int, UnityEngine.Object> _jamHarmonySourceByPart = new();
 
         // [B1 / #7.1 / D-F=γ] Session-level instrument pin maps. Keyed on
         // "musicianId|role". Populated after each successful render with the
@@ -460,6 +476,7 @@ namespace ALWTTT.Music
             _jamProgressionByPart.Clear();      // [JAM-1] runtime clones die with the song
             _jamTonalitySnapByPart.Clear();     // [JAM-1]
             _jamRenderedTonalityByPart.Clear(); // [JAM-2]
+            _jamHarmonySourceByPart.Clear();    // [JAM-3]
             _ctx.Music?.ResetStemCache(); // [B1 / D7=B] Per-song stem cache reset.
             _sessionMelodicPin.Clear();   // [B1 / #7.1 / D-F=γ]
 #if ALWTTT_DEV
@@ -518,6 +535,7 @@ namespace ALWTTT.Music
             _jamProgressionByPart.Clear();      // [JAM-1] runtime clones die with the song
             _jamTonalitySnapByPart.Clear();     // [JAM-1]
             _jamRenderedTonalityByPart.Clear(); // [JAM-2]
+            _jamHarmonySourceByPart.Clear();    // [JAM-3]
             _ctx.Music?.ResetStemCache(); // [B1 / D7=B] Per-song stem cache reset.
 #if ALWTTT_DEV
             DevInfiniteCompositionLoop = false; // [DBG-C1] song-boundary reset
@@ -1190,6 +1208,7 @@ namespace ALWTTT.Music
                 if (_jamProgressionByPart.TryGetValue(partIndex, out var jamProg)
                     && jamProg != null
                     && !JamTonalityMovedSinceCapture(partIndex)
+                    && !JamHarmonySourceChanged(partIndex)          // [JAM-3 / D2]
                     && TryGetBackingJamTarget(partIndex, out var backingKey, out var adopts)
                     && !adopts)
                 {
@@ -1282,6 +1301,14 @@ namespace ALWTTT.Music
                 if (jamCaptureable)
                 {
                     _jamProgressionByPart[partIndex] = mm.LastSharedProgressionData;
+                    // [JAM-3 / D2] Record WHERE this harmony came from. On an imposed
+                    // render the package republishes it as RenderOverride and the Backing
+                    // row may be an articulation-only card with no source of its own —
+                    // so carry the origin forward instead of overwriting it, or one
+                    // articulation card mid-chain would erase it and the next
+                    // same-palette card would wrongly start over.
+                    if (jamSrc != ResolvedSource.RenderOverride)
+                        _jamHarmonySourceByPart[partIndex] = GetBackingDeclaredHarmonySource(partIndex);
                     var jamPart = _ctx?.CompositionUI?.Model?.parts?[partIndex];
                     if (jamPart != null)
                         _jamTonalitySnapByPart[partIndex] = (jamPart.tonality, jamPart.rootNote);
@@ -1305,6 +1332,7 @@ namespace ALWTTT.Music
                     _jamProgressionByPart.Remove(partIndex);
                     _jamTonalitySnapByPart.Remove(partIndex);
                     _jamRenderedTonalityByPart.Remove(partIndex);   // [JAM-2]
+                    _jamHarmonySourceByPart.Remove(partIndex);      // [JAM-3]
                 }
 
                 // [B1 / #1+#2 / D-H4=α] Fresh render succeeded for this part —
@@ -1313,6 +1341,14 @@ namespace ALWTTT.Music
 
                 if (cache == null) cache = new PartCache();
                 cache.mergedBytes = merged;
+                if (cfg?.Parts != null && partIndex >= 0 && partIndex < cfg.Parts.Count
+                    && cfg.Parts[partIndex] != null)
+                {
+                    // [JAM-3 / D3] What these bytes sound in (cfg is post-render here).
+                    cache.hasRenderedTonality = true;
+                    cache.renderedTonality = cfg.Parts[partIndex].Tonality;
+                    cache.renderedRoot = cfg.Parts[partIndex].RootNote;
+                }
                 cache.seconds = seconds;
                 cache.stemsByTrack = stems ?? new Dictionary<MusicianTrackKey, byte[]>();
                 cache.resolvedBpm = bpmChosen;
@@ -1349,8 +1385,10 @@ namespace ALWTTT.Music
                 {
                     partIndex = partIndex,
                     stemsByTrack = cache.stemsByTrack,
-                    tonality = pcfg.Tonality,
-                    rootNote = pcfg.RootNote,
+                    // [JAM-3 / D3] The bytes' own tonality wins over the model-built cfg
+                    // (they differ only on a session-cache hit after adoption).
+                    tonality = cache.hasRenderedTonality ? cache.renderedTonality : pcfg.Tonality,
+                    rootNote = cache.hasRenderedTonality ? cache.renderedRoot : pcfg.RootNote,
                     timeSignature = pcfg.TimeSignature,
                     bpm = cache.resolvedBpm,
                     seconds = cache.seconds
@@ -2057,6 +2095,40 @@ namespace ALWTTT.Music
             if (tr == null || string.IsNullOrEmpty(tr.musicianId)) return false;
             key = new MusicianTrackKey(tr.musicianId, TrackRole.Backing);
             adopts = (tr.styleBundle as BackingCardConfigSO)?.adoptProgressionTonality == true;
+            return true;
+        }
+
+        // [JAM-3 / D2] The harmony source the Backing card on this part DECLARES:
+        // its fixed progressionOverride, else its palette, else null. Same
+        // precedence as the package's PickProgressionOverride. Null = the card
+        // brings no harmony of its own (articulation-only) — exactly the card
+        // JAM-1 exists to let ACCOMPANY.
+        private UnityEngine.Object GetBackingDeclaredHarmonySource(int partIndex)
+        {
+            var p = _ctx?.CompositionUI?.Model?.parts;
+            if (p == null || partIndex < 0 || partIndex >= p.Count) return null;
+            var tr = p[partIndex].tracks?.FirstOrDefault(t => t.role == TrackRole.Backing);
+            if (!(tr?.styleBundle is BackingCardConfigSO bk)) return null;
+            if (bk.progressionOverride != null) return bk.progressionOverride;
+            if (bk.progressionPalette != null) return bk.progressionPalette;
+            return null;
+        }
+
+        // [JAM-3 / D2 / H1] Does the incoming Backing card bring a DIFFERENT harmony
+        // source than the one the jam came from? Same override or same palette ⇒
+        // same music: keep the jam. No source of its own ⇒ accompany. Different
+        // source ⇒ the new card leads, and the post-render capture re-pins the part
+        // to it. Evaluated after the existing guards, so it logs only on renders
+        // that WOULD have imposed.
+        private bool JamHarmonySourceChanged(int partIndex)
+        {
+            var incoming = GetBackingDeclaredHarmonySource(partIndex);
+            if (incoming == null) return false;
+            _jamHarmonySourceByPart.TryGetValue(partIndex, out var origin);
+            if (incoming == origin) return false;
+            _ctx?.Log($"[JAM-3] part={partIndex} new harmony source '{incoming.name}' " +
+                      $"(jam came from '{(origin != null ? origin.name : "_")}') " +
+                      $"-> not imposing; the new card leads", true);
             return true;
         }
 

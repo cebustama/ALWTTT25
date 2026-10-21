@@ -86,9 +86,22 @@ Owns the game-side hosting/control of playback for the current scene/session.
 6. **Explicitly not changed (D3=B):** the deferred highlight (`ApplyDeferredHighlightIfAny`) keeps its
    pre-BEAT-1 reach — cached playbacks only. On the composition path, a highlight queued before the
    channels are known (Dev Mode Audio Mix) is never applied.
+7. **Published bar timing, read-only (SONG-TAIL-1 / PLAY-TIMING-0).** For the current playback serial the
+   grid also publishes the tick of the **next bar line** (from the same schedule that emits the downbeats;
+   a signature change caps it; capped at the last event), the loop's **closing bar line** (`lastTick - 1`,
+   item 4), the tempo map, the PPQ and the current BPM. Consumers: the song-tail handoff (`SSoT_Audio`
+   §4.10) and `MidiMusicManager.TryGetLoopTiming` (PLAY-TIMING-0 probe). Nobody writes them back; there is
+   still one bar truth and one announcer.
+8. **Held playback during a song tail (D-ST7=C).** While a tail plays, `PlayBytes` holds any non-tail
+   playback and `IsAnySongPlaying()` returns true until it starts on the tail's bar line. `PlayRaw` returns
+   the duration as usual, so `CompositionSession` — including `LoopPlaybackStarting` and its loop clock —
+   is **unchanged and unaware**; the first loop's progress bar may lead by up to one bar.
 
 Observables: `[BEAT-1] grid start … endTick=…` and `[BEAT-1] grid end … exit=… emitted=N skipped=M`,
 verbose tier (`SSoT_Dev_Mode` §19.2). Verified by ST-B1-1..12, 2026-09-27 (ST-B1-6 by code truth).
+Items 7–8: verified by ST-ST-1..10 and PLAY-TIMING-0 T1–T4 (2026-10-01). The Play timing probe component
+(`PlayPressTimingProbe`, `Assets/Scripts/UI/Song Composition/`) is attached to the Play button by
+`SongCompositionUI.HookPlayButton`; it reads only (contract in `SSoT_Runtime_Flow`, «Play timing probe»).
 
 ### 3.5 Source-of-truth boundary (must stay explicit)
 There are **two different truths on two different sides of the handoff**.

@@ -224,6 +224,68 @@ namespace ALWTTT.Managers
         private DeckManager DeckManager => DeckManager.Instance;
         private UIManager UIManager => UIManager.Instance;
         private MidiMusicManager MidiMusicManager => MidiMusicManager.Instance;
+        // ── [SONG-TAIL-1] ──────────────────────────────────────────────────────────
+        // Set in OnCompositionSongFinished (which runs inside CompositionSession.End,
+        // BEFORE OnCompositionSessionEnded), consumed in OnCompositionSessionEnded.
+        private bool _songTailPendingFromSongFinish;
+
+#if ALWTTT_DEV
+        // D-ST6=A: session-only overrides from Dev Mode > Audio Mix; never written to
+        // GigFlowSettingsSO. Die with this GigManager.
+        private bool? _devSongTailEnabledOverride;
+        private float? _devSongTailLevel01Override;
+
+        public bool DevSongTailEnabled
+        {
+            get => SongTailEnabledEffective;
+            set => _devSongTailEnabledOverride = value;
+        }
+
+        public float DevSongTailLevel01
+        {
+            get => SongTailLevelEffective;
+            set
+            {
+                _devSongTailLevel01Override = Mathf.Clamp01(value);
+                MidiMusicManager.Instance?.SetSongTailLevel(_devSongTailLevel01Override.Value);
+            }
+        }
+#endif
+
+        private bool SongTailEnabledEffective
+        {
+            get
+            {
+#if ALWTTT_DEV
+                if (_devSongTailEnabledOverride.HasValue) return _devSongTailEnabledOverride.Value;
+#endif
+                return flow != null && flow.SongTailEnabled;
+            }
+        }
+
+        private float SongTailLevelEffective
+        {
+            get
+            {
+#if ALWTTT_DEV
+                if (_devSongTailLevel01Override.HasValue) return _devSongTailLevel01Override.Value;
+#endif
+                return flow != null ? flow.SongTailLevel01 : 1f;
+            }
+        }
+
+        /// <summary>[SONG-TAIL-1] Stop the tail (fade per GigFlowSettingsSO, or cut) and
+        /// return the band to idle - the reset OnCompositionSongFinished skipped (D-ST4=A).
+        /// No-op when no tail is playing, so every stop site can call it blindly. The
+        /// normal end of a tail is the handoff to the next song, which needs no reset.</summary>
+        private void StopSongTail(bool fade, string why)
+        {
+            var mm = MidiMusicManager.Instance;
+            if (mm == null || !mm.IsSongTailActive) return;
+            mm.StopSongTail(fade && flow != null ? flow.SongTailFadeSeconds : 0f);
+            ResetStageToIdle();
+            Debug.Log($"{DebugTag} [SONG-TAIL-1] stop requested: {why} (fade={fade})");
+        }
 
         private bool IsGigComplete
         {
@@ -502,6 +564,9 @@ namespace ALWTTT.Managers
             // the reward/menu scene. The fade runs on the DontDestroyOnLoad AudioManager,
             // so it completes across the scene unload.
             AudioManager.Instance?.StopAmbience();
+            // [SONG-TAIL-1] MidiMusicManager is DontDestroyOnLoad: the tail must never
+            // outlive the gig (scene change, retry, exit). Cut, no fade.
+            MidiMusicManager.Instance?.StopSongTail(0f);
 
 
             // [BIGNUM-1 / D-BN-12=A] Mirror of the lazy subscribe at song start.
@@ -892,6 +957,10 @@ namespace ALWTTT.Managers
             // real presses.
             if (ALWTTT.Tutorial.TutorialInputGate.BlocksPlay) return;
             ALWTTT.Tutorial.TutorialInputGate.NotifyPlayPressed();
+            // [PLAY-TIMING-0] Log-only timing probe. Here: after the tutorial gate (real
+            // presses only) and BEFORE the synchronous render below. The measurement itself
+            // was taken at pointer-down (D-PT4=B); this call only grades and logs it.
+            ALWTTT.UI.PlayPressTimingProbe.LogForPlay(flow);
 
             // MVP: once Play is pressed, action cards are no longer usable.
             _actionWindowOpen = false;
@@ -1540,6 +1609,7 @@ namespace ALWTTT.Managers
 
             var pd = GameManager.PersistentGameplayData;
 
+            StopSongTail(fade: true, why: "lose");  // [SONG-TAIL-1]
             var encounter = pd.CurrentEncounter ?? CurrentGigEncounter; // CurrentGigEncounter = your runtime one
             int penalty = encounter != null ? encounter.CohesionPenaltyOnLoss : 0;
 
@@ -1570,6 +1640,7 @@ namespace ALWTTT.Managers
             }
 #endif
             if (CurrentGigPhase == GigPhase.EndGig) return;
+            StopSongTail(fade: true, why: "win");   // [SONG-TAIL-1] incl. early win (D-TUTB-7)
             CurrentGigPhase = GigPhase.EndGig;
 
             // Keep current stress
@@ -2172,6 +2243,16 @@ namespace ALWTTT.Managers
             // RunSongVibeResolution has consumed the value.
             if (backgroundContainer != null)
                 backgroundContainer.DeactivateAllSFX();
+
+            // [SONG-TAIL-1 / D-ST4=A] If the band keeps playing into the audience turn,
+            // only the audience goes idle now; the band is reset when the tail stops
+            // (StopSongTail) or, if the tail cannot start, in OnCompositionSessionEnded.
+            _songTailPendingFromSongFinish = SongTailEnabledEffective;
+            if (_songTailPendingFromSongFinish)
+            {
+                ResetStageToIdle(includeBand: false);
+                return;
+            }
 
             // Reset BPM/Animation
             ResetStageToIdle();
@@ -2781,6 +2862,28 @@ namespace ALWTTT.Managers
             // `_session == null` early-return and the Update song-edge is bypassed — the
             // return must fire here, the deterministic song-end chokepoint.
             if (wasPlaying) AudioManager.Instance?.FadeInAmbience();
+            // [CROWD-SFX-1 / D-CS1=B] The crowd judges the song that just ended. Read
+            // _lastSongFeedback NOW: OnCompositionSongFinished set it inside
+            // CompositionSession.End, before this callback; the audience turn nulls it
+            // later. An aborted song has no feedback → no verdict.
+            if (wasPlaying && _lastSongFeedback.HasValue && _lastSongFeedback.Value.PartCount > 0)
+                StartCoroutine(PublishSongVerdictDelayed(_lastSongFeedback.Value));
+
+            // [SONG-TAIL-1 / D-ST0] The band keeps playing the last loop, OUTSIDE the
+            // session (already nulled above): no LoopFinished, no hype, no impressions.
+            // D-ST3=B: the crowd bed still returns; the tail sits under it by its plane.
+            // D-ST7=C: it runs through the audience turn AND the next composition phase,
+            // until the next song's first loop takes over on a bar line.
+            bool tailPending = _songTailPendingFromSongFinish;
+            _songTailPendingFromSongFinish = false;
+            if (tailPending)
+            {
+                var mmTail = MidiMusicManager.Instance;
+                bool tailStarted = wasPlaying && mmTail != null
+                    && mmTail.StartSongTail(SongTailLevelEffective,
+                        flow != null ? flow.SongTailHandoffLeadMs : 0f);
+                if (!tailStarted) ResetStageToIdle();   // the band reset skipped at song end
+            }
 
 #if ALWTTT_DEV
             Debug.Log($"{DebugTag} <color=lime>[DevMode] OnCompositionSessionEnded reached. " +
@@ -3445,7 +3548,17 @@ namespace ALWTTT.Managers
             }
         }
 
-        private void ResetStageToIdle()
+        private void ResetStageToIdle() => ResetStageToIdle(includeBand: true);
+
+        // [SONG-TAIL-1] Split so the tail can keep the band "playing" while the audience
+        // goes idle. includeBand:true reproduces the previous body, in the same order.
+        private void ResetStageToIdle(bool includeBand)
+        {
+            if (includeBand) ResetBandToIdle();
+            ResetAudienceToIdle();
+        }
+
+        private void ResetBandToIdle()
         {
             if (backgroundContainer != null)
                 backgroundContainer.SetBPM(0);
@@ -3469,6 +3582,11 @@ namespace ALWTTT.Managers
                 anim.EmitOnBeat = false;
             }
 
+        }
+
+        private void ResetAudienceToIdle()
+        {
+            int idleBpmLocal = presentation != null ? presentation.IdleBpm : 120;
             // Audience back to their "idle" animation
             foreach (var audience in CurrentAudienceCharacterList)
             {
@@ -3791,6 +3909,63 @@ namespace ALWTTT.Managers
             if (UseLogs)
                 Debug.Log($"{DebugTag} [Dev] Volume slider for {musician.CharacterId} " +
                     $"slider={sliderValue:0.00} final={finalVol:0.00}");
+        }
+
+        // ── [CROWD-SFX-1 / D-CS1=B, D-CS4=A] Song verdict ──────────────────────────
+        // The crowd judges the song once, in the SongEndPause gap (before the first
+        // per-member +Vibe sting). It waits a short SCALED delay first: the last
+        // loop's reactions fire in the same frame with up to sfxMaxJitter of stagger,
+        // and a pause must freeze this wait like it freezes those jittered stings.
+        private IEnumerator PublishSongVerdictDelayed(SongFeedbackContext songCtx)
+        {
+            float delay = flow != null ? flow.CrowdVerdictDelaySeconds : 0.35f;
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+
+            float mean = ComputeSongMeanImpression(songCtx, out int members);
+            float applauseAt = flow != null ? flow.CrowdApplauseAtMean : 0.5f;
+            float booAt = flow != null ? flow.CrowdBooAtMean : -0.5f;
+            int polarity = members == 0 ? 0
+                : mean >= applauseAt ? 1
+                : mean <= booAt ? -1
+                : 0;
+
+            Debug.Log($"{DebugTag} [CROWD-SFX-1] song verdict mean={mean:0.00} members={members} " +
+                      $"polarity={polarity} (applause>={applauseAt:0.##}, boo<={booAt:0.##})");
+            SensoryEventBus.Instance?.Publish(new SongVerdictEvent(mean, members, polarity));
+        }
+
+        // Mean, over members, of each member's average loop impression for the song:
+        // the same per-member aggregation as ComputeSongVibeDeltas. Kept separate on
+        // purpose: that function belongs to a closed milestone and drops blocked
+        // members; the crowd reacts as a whole, blocked or convinced alike.
+        private float ComputeSongMeanImpression(SongFeedbackContext songCtx, out int members)
+        {
+            members = 0;
+            if (songCtx.PartCount == 0 || CurrentAudienceCharacterList == null) return 0f;
+            int n = CurrentAudienceCharacterList.Count;
+            if (n == 0) return 0f;
+
+            var total = new float[n];
+            var count = new int[n];
+            foreach (var part in songCtx.Parts)
+            {
+                var perAudience = part.AudienceLoopImpressions;
+                if (perAudience == null) continue;
+                foreach (var kv in perAudience)
+                {
+                    if (kv.Key < 0 || kv.Key >= n || kv.Value == null) continue;
+                    foreach (var v in kv.Value) { total[kv.Key] += v; count[kv.Key]++; }
+                }
+            }
+
+            float sum = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                if (count[i] == 0) continue;
+                sum += total[i] / count[i];
+                members++;
+            }
+            return members > 0 ? sum / members : 0f;
         }
 
         private IEnumerator RunSongVibeResolution(SongFeedbackContext songCtx)
