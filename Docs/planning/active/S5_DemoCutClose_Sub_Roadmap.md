@@ -305,6 +305,9 @@ fija secuencia y alcance.
 ### REPLAN-ART — re-secuencia hacia la demo pública del 2026-12-11 (reunión de arte, 2026-10-23)
 
 Origen: reunión con arte (Matías, Macarena), minuta en `reference/reuniones/2026-10-23_arte.md`.
+Insumos (no autoridad): ideas de Claudio rescatadas de Google Keep en
+`reference/ideas/2026-10-24_keep_ideas.md` §1, ordenadas por la semana que tocan (rangos de ENG, rol de
+Conito, kit de la Reina Gusano, «boooring» entre loops).
 **Prevalece sobre el orden del bloque de pulido de arriba** para todo lo que queda hasta la demo.
 
 **Fecha y objetivo (fijados en la reunión).** Demo pública en Discord el **vie 2026-12-11**. Criterio
@@ -318,6 +321,8 @@ semanales hasta la entrega.
   tienda ni terapia. Adelanta a la demo una porción acotada de S6 (estructura de run) y S8 (jefa) de
   `Design_Vertical_Slice_v0_1.md`; el resto de S6–S8 sigue en Phase C. Existen `1 - Sector Map.unity`
   y `Assets/Scripts/Map/` (estado sin verificar).
+  **Precisión (Claudio, 2026-10-24): la demo empieza en el mapa; el jugador hace clic en el primer
+  nodo** (descarta la nota antigua «Start demo with Gig, not map»).
 - **REPLAN-ART D2 = B — la comprensión manda.** SPEED-1, CAM-1, SING-2 y SING-3 salen de la demo.
 - **REPLAN-ART D3 = B — interacciones musicales después de la demo** (pregunta y respuesta entre
   músicos, *singalong*, convencidos que cantan con sonido propio). Alta prioridad de identidad para
