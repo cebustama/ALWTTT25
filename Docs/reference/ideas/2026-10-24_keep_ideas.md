@@ -63,7 +63,9 @@ choca con el objetivo de comprensión.
   NIN, Muse, Justice, Daft Punk»; guías de armonía clásica y jazz.
 - **Voz** (#132, #133, #130): «Make soundfont with my voice (clara, Hernán)»; «una o dos octavas de voz
   para generador»; vocoder o voz estilo Sims / Banjo-Kazooie. Encaja con los convencidos que cantan
-  (D3 = B).
+  (D3 = B). Y #17 (2022, lote de arte generativo): «Para generar voces en juegos o películas "creíbles",
+  que no importe el sonido, sino el tono y la emoción que se quiere transmitir, que el lenguaje se haga
+  generativo también». Vecino de `reference/PinkTrombone_Voice_Levers.md`.
 - **Acciones de escenario** (#89): agradecer, presentar la banda y a cada músico, historia de la
   canción, «Let the people sing it», «Make em Cry», lanzar púas/baquetas, «Slow down for a second»,
   «Sit down and talk».
