@@ -545,6 +545,17 @@ The live active-work stream is the demo-cut sequence in §3 (strict left-to-righ
 
 ## 3. Next active
 
+> **Siguiente (2026-10-23): REPLAN-ART — demo pública en Discord el 2026-12-11.** Criterio de
+> terminado: se entiende sin explicarla (cómo se juega, se gana, se pierde). Mapa lineal + Reina Gusano
+> entran en la demo (D1=C); SPEED-1, CAM-1, SING-2, SING-3 salen (D2=B); interacciones musicales a
+> Phase C (D3=B). Próximo: **CROWD-JAM-CLOSE** (código en `9924e24`, smokes pendientes) →
+> **TEST-SETUP-1** → banda de 2 + roles → Reina → mapa → congelación 27-nov → S5i → S5j. Secuencia y
+> decisiones: `S5_DemoCutClose_Sub_Roadmap.md` → «REPLAN-ART». **Este bloque reemplaza al de
+> 2026-09-27 de abajo**, que se conserva como historial.
+>
+> **Desfase con Git (2026-10-23):** JAM-3, CROWD-SFX-1 y CROWD-CAP están en código (`9924e24`) pero
+> no figuran en §1 ni en el changelog: se registran al cerrar CROWD-JAM-CLOSE.
+
 > **Siguiente (2026-09-27): bloque de pulido audiovisual previo a GIG23-A (plan del 2026-09-27, D1=A).**
 > CONV-TINT-1 (+1b), **SONG-TAIL-1** y **PLAY-TIMING-0** (insertada) **cerrados** → **CROWD-SFX-1**
 > siguiente → … → **GIG23-A**. La recolocación de

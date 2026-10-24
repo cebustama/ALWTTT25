@@ -14,6 +14,22 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-10-23 — REPLAN-ART: la demo pública tiene fecha (11-dic) y criterio (que se entienda)
+
+**Clase:** operativo · planificación. Sin cambios de código ni de SSoT.
+
+- Reunión con arte (Matías, Macarena); minuta nueva en `reference/reuniones/2026-10-23_arte.md`
+  (registro, no autoridad).
+- `S5_DemoCutClose_Sub_Roadmap.md`: nueva sección «REPLAN-ART» con D1=C (mapa lineal + Reina Gusano en la
+  demo, adelanto acotado de S6/S8), D2=B (SPEED-1, CAM-1, SING-2, SING-3 fuera de la demo), D3=B
+  (interacciones musicales a Phase C) y la secuencia por semanas hasta el 2026-12-11. GIG23-A queda
+  marcado como alcance sin documentar.
+- `CURRENT_STATE.md` §3: nuevo bloque «Siguiente» y nota de desfase con Git (JAM-3 / CROWD-SFX-1 /
+  CROWD-CAP en código `9924e24`, sin registrar aún).
+- Abierto: qué dos músicos abren la demo (prueba de escucha pendiente).
+
+---
+
 ## 2026-10-01 — SONG-TAIL-1 + PLAY-TIMING-0: la banda sigue sonando entre canciones, entra en la barra, y el Play sabe cuánto faltaba
 
 **Clase:** semántico · operativo · lifecycle. Código y smokes en la sesión del 2026-09-27 → 2026-10-01;

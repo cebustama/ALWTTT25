@@ -4,6 +4,10 @@
 **Scope:** Phase C of the ALWTTT roadmap — publisher-showable multi-encounter run.
 **Classification:** `reference (planning)` — **not a SSoT**. Becomes runtime-authoritative when shipped; this doc is then retained as historical rationale.
 **Created:** 2026-05-23
+**REPLAN-ART (2026-10-23):** una porción acotada de S6 y S8 se adelanta a la demo pública del
+2026-12-11 — mapa **lineal** (2–3 gigs fijos, sin ramas, tienda ni terapia) y la jefa **Reina Gusano**
+(arte listo). El resto de S6–S8 sigue en Phase C. Decisión y secuencia:
+`S5_DemoCutClose_Sub_Roadmap.md` → «REPLAN-ART».
 
 ---
 

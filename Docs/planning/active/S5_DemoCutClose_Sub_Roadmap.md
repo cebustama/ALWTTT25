@@ -284,16 +284,66 @@ fija secuencia y alcance.
   2b. **PLAY-TIMING-0 — ✅ CERRADA 2026-10-01** (insertada en la sesión de SONG-TAIL-1). Sonda de solo
       log: distancia del Play a la barra del loop, con grado y calibración. Premiar el timing es mecánica →
       Phase C. Recalibrar tras SPEED-1.
-  3. **CROWD-SFX-1** — aplausos y abucheos; se mezcla **contra el tail**, por eso va después.
-  4. **SPEED-1** — velocidad de partida fija: juego y música con el mismo número. Experimento acotado:
-     frenar al mirar cartas, sólo en el límite de loop.
-  5. **CAM-1** — `ZoomTo` con ida / estancia / vuelta / curva / offset, para el tutorial.
-  6. **GIG23-A**.
-  7. **SING-2** — Double Harmony Tier B; abre **midiendo el coste de DSP de dos voces**.
-  8. **SING-3** — expresividad vocal, lado ALWTTT (no MidiGenPlay).
+  3. **CROWD-SFX-1** (+ **CROWD-CAP**, + **JAM-3**) — aplausos y abucheos; se mezcla **contra el tail**,
+     por eso va después. **Código aplicado en `9924e24` (2026-10-21); smokes pendientes** → los cierra
+     **CROWD-JAM-CLOSE** con `CROWD-JAM-CLOSE_Smokes_Pending.md`.
+  4. ~~**SPEED-1**~~ — **fuera de la demo (REPLAN-ART D2=B, 2026-10-23).** Velocidad de partida fija:
+     juego y música con el mismo número. Experimento acotado: frenar al mirar cartas, sólo en el límite
+     de loop.
+  5. ~~**CAM-1**~~ — **fuera de la demo (D2=B).** `ZoomTo` con ida / estancia / vuelta / curva / offset,
+     para el tutorial.
+  6. **GIG23-A** — **alcance sin documentar** (ningún doc gobernado lo define); se revisa al abrir la
+     semana del 2026-11-02 contra el objetivo de comprensión.
+  7. ~~**SING-2**~~ — **fuera de la demo (D2=B).** Double Harmony Tier B; abre **midiendo el coste de
+     DSP de dos voces**.
+  8. ~~**SING-3**~~ — **fuera de la demo (D2=B).** Expresividad vocal, lado ALWTTT (no MidiGenPlay).
 - **Phase C (fuera del bloque, registrado aquí para no perderlo):** **STAGE-LAYOUT-1** (recolocar a los
   convencidos al fondo; recalcula oclusión; recibe **F-CT-2** y **F-CT-5**) → **WAVES-1a / 1b** →
-  **LOOP-ACT-1**.
+  **LOOP-ACT-1**. Desde REPLAN-ART se suman SPEED-1, CAM-1, SING-2, SING-3 y las interacciones musicales
+  (D3=B).
+
+### REPLAN-ART — re-secuencia hacia la demo pública del 2026-12-11 (reunión de arte, 2026-10-23)
+
+Origen: reunión con arte (Matías, Macarena), minuta en `reference/reuniones/2026-10-23_arte.md`.
+**Prevalece sobre el orden del bloque de pulido de arriba** para todo lo que queda hasta la demo.
+
+**Fecha y objetivo (fijados en la reunión).** Demo pública en Discord el **vie 2026-12-11**. Criterio
+de terminado: **se entiende sin que nadie del equipo la explique — cómo se juega, cómo se gana, cómo se
+pierde.** Referencia de legibilidad: *Slay the Spire* (ATK/DEF de un vistazo). Build y reunión
+semanales hasta la entrega.
+
+**Decisiones (2026-10-23):**
+- **REPLAN-ART D1 = C — mapa lineal.** 2–3 gigs fijos + jefa (Reina Gusano). La pantalla del mapa
+  (arte Asteroide City) marca el avance; al vencer a la Reina se ve el mapa «polinizado». Sin ramas,
+  tienda ni terapia. Adelanta a la demo una porción acotada de S6 (estructura de run) y S8 (jefa) de
+  `Design_Vertical_Slice_v0_1.md`; el resto de S6–S8 sigue en Phase C. Existen `1 - Sector Map.unity`
+  y `Assets/Scripts/Map/` (estado sin verificar).
+- **REPLAN-ART D2 = B — la comprensión manda.** SPEED-1, CAM-1, SING-2 y SING-3 salen de la demo.
+- **REPLAN-ART D3 = B — interacciones musicales después de la demo** (pregunta y respuesta entre
+  músicos, *singalong*, convencidos que cantan con sonido propio). Alta prioridad de identidad para
+  Phase C; solo una prueba barata si sobra tiempo.
+
+**Abierto:**
+- **Qué dos músicos abren la demo** (propuesta de la reunión: banda de 2). Candidatos: Robot C2
+  (batería, DEF) + Zig (voz, ATK). Riesgo: sin Backing la armonía solo está implícita en la melodía
+  (progresión por defecto, Boundary §8.5) y puede sonar desnudo. Se decide con una prueba de escucha en
+  `0.x - GigSetupScene` (C2+Zig, Zig+Sibi, C2+Zig+Sibi). Un «colchón» automático de acordes queda
+  descartado por ahora como feature creep. Pasar a 2 músicos obliga a revisar tutorial ES/EN y mazo
+  inicial.
+- **Roles por músico** (Robot DEF, vocalista ATK, Sibi CONTROL, Conito ¿?): la banda como un solo mazo.
+- Qué entrega arte y cuándo (congelación de arte propuesta: 2026-11-20).
+
+**Secuencia (propuesta, por semanas):**
+
+| Semana | Trabajo |
+| --- | --- |
+| 2026-10-26 | **CROWD-JAM-CLOSE** (smokes CR-\*/J3-\*) · **TEST-SETUP-1**: la escena GigSetup accesible desde el menú del build, público con cantidad por enemigo (tope `MaxAudienceCount`) y concierto aleatorio |
+| 2026-11-02 | **Banda de 2 + roles** (diseño con Matías) · lectura ATK/DEF · revisión de tutorial y mazo inicial |
+| 2026-11-09 / 16 | **Reina Gusano** (jefa) + enemigos básicos nuevos |
+| 2026-11-23 | **Mapa lineal** + polinización · congelación de arte (vie 20-nov) |
+| 2026-11-27 | **Congelación de funcionalidades** → S5i: playtests con gente externa |
+| 2026-12-04 | Build candidata + material de Discord (S5j) |
+| 2026-12-11 | **Publicación** |
 
 
 ## S5h — Reward screen  *(IMPORTANT; pulled-forward presentation half of old S5d, per D-REPLAN-3)*
