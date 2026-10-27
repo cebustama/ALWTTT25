@@ -350,6 +350,77 @@ semanales hasta la entrega.
 | 2026-12-04 | Build candidata + material de Discord (S5j) |
 | 2026-12-11 | **Publicación** |
 
+> **Reordenada el 2026-10-25 (REPLAN-DIAG, abajo):** el mapa lineal pasa a la semana del 2026-10-26;
+> TEST-SETUP-1 baja a la del 2026-11-02. La tabla vigente es la de REPLAN-DIAG.
+
+### REPLAN-DIAG — sesión de diagnóstico de la demo (2026-10-24 / 25)
+
+Origen: sesión de diagnóstico agendada en `foco.md` (bloqueo por fatiga de smokes y falta de criterio
+de «demo terminada»). **Prevalece sobre la tabla de REPLAN-ART** en lo que reordena.
+
+**Lista cerrada de lo que falta para cumplir el criterio** (todo lo demás es deseo, no bloquea):
+
+| # | Falta | Responde a |
+| --- | --- | --- |
+| M1 | **Legibilidad (LEGIB-1):** previsualizar el efecto de una carta antes de jugarla (D-DIAG-2) | cómo se juega |
+| M2 | Banda de 2 con un rol claro cada uno + mazo y tutorial ajustados | cómo se juega |
+| M3 | **Una sola condición de derrota: cohesión 0** (D-DIAG-1), visible | cómo se pierde |
+| M4 | Reina Gusano con 1–2 mecánicas legibles, sin quitar poderes (Keep #113) | cómo se gana |
+| M5 | Mapa lineal: la demo empieza en el mapa (D-MAP-1..3) | cómo se gana |
+| M6 | Prueba de comprensión: ≥3 personas externas sin explicación; terminado cuando cada una sabe decir cómo se gana y cómo se pierde | el criterio |
+| M7 | Build candidata + texto de Discord | — |
+
+Deseos (no bloquean): interacciones musicales, convencidos que cantan, bendición inicial, «boooring»
+entre loops, malas notas, variedad musical, GIG23-A, F-CF-6.
+
+**Decisiones (Claudio, 2026-10-24 / 25):**
+- **D-DIAG-1 = A — la cohesión es la única condición de derrota.** Perder un gig no termina la partida:
+  resta `CohesionPenaltyOnLoss` y se vuelve al mapa. Cohesión 0 en cualquier momento (también por un
+  breakdown a mitad de gig) = **game over**. Hoy el breakdown con cohesión 0 llama a
+  `LoseGig(CohesionCollapse)` (`MusicianBase.OnBreakdown`): hay que cambiarlo. Abiertos para COH-1: el
+  botón Retry del panel de derrota (reintentar borra el castigo; propuesta: quitarlo en la demo) y si
+  perder contra la Reina es game over directo (propuesta: sí). La cohesión debe verse en el HUD del gig.
+- **D-DIAG-2 = A + C — legibilidad, prioridad máxima.** (A) Al pasar el ratón por una carta se ve su
+  efecto en el Big Num («este loop: Hype +X → Big Num Y→Z»), reutilizando `RefreshVibeProjection`.
+  (C) La función escalón `ComputeHypeDelta` se sustituye por una lineal si la previsualización salta.
+  Se rechaza B (Vibe fijo por carta: reabre S5e). Principio: el número que se ve es el que pasa.
+- **D-DIAG-3 = C — tests.** Ahora: tests EditMode en `Assets/Tests/Editor/` sin asmdef
+  (`Assembly-CSharp-Editor`). Partir el juego en asmdefs, **después de la demo**: 35 assets guardan
+  specs `[SerializeReference]` con `asm: Assembly-CSharp`; moverlos de assembly sin `[MovedFrom]`
+  borra en silencio los efectos de las cartas.
+- **D-MAP-1 = A — 3 nodos jugables: 2 gigs + Reina.** Relato: la banda juega **los últimos conciertos
+  antes de la Reina Gusano** (justifica banda y mazo sin más explicación).
+- **D-MAP-2 = A — controlador nuevo y fino** (`LinearMapController`, escena nueva) sobre el PNG
+  `Assets/Art/mapa asterioide 1.0.png`. Reutiliza `SectorNodeVisual`, `ShipController`, `GigLauncher`
+  (`bandRoster` null conserva la banda; `GigReturnDestination.Map`), `SceneChanger` y la escena
+  Game Over. **No** reutiliza `SectorMapManager` (generación procedural, conflictos, tecla R que
+  regenera) ni `GridToWorld`. El procedural queda intacto para Phase C.
+- **D-MAP-3 = A — se ve el mapa entero**, con el recorrido anterior marcado como completado
+  (decorativo) y solo el último tramo activo.
+- **Escenarios:** 3 distintos (uno por nodo). `tocatas A.City.png` es el de la Reina. Existe
+  infraestructura `VenueType` (Venue1..3) → `BackgroundContainer`/`BackgroundRoot`; hoy todos los
+  encuentros usan Venue1.
+
+**Regla de smokes (vigente para todo batch nuevo):** como máximo **3 smokes humanos** (solo escucha o
+juicio); lo mecánico va a un test EditMode o a una «línea de log esperada»; cada batch trae un **guion
+de partida** (jugadas + log esperado) que Claudio juega una vez y el agente compara con el
+`Editor.log`. Lo que no quepa ahí es una tarea, no un smoke.
+
+**Corrección (2026-10-24):** la nota de TLM-1b está desfasada: el colapso de cohesión **sí** publica
+`GigOutcomeEvent` desde TUT-REDESIGN-B (`GigManager.LoseGig(GigLossCause)`). Sigue abierto F-CJ-1.
+
+**Secuencia vigente:**
+
+| Semana | Trabajo |
+| --- | --- |
+| 2026-10-26 | **MAP-DEMO-1** (mapa lineal, 3 nodos, Start → mapa) + guion CROWD-JAM-CLOSE jugado en la misma pasada |
+| 2026-11-02 | **COH-1** (D-DIAG-1) · **LEGIB-1** (D-DIAG-2) · banda de 2 + roles · TEST-SETUP-1 |
+| 2026-11-09 / 16 | Reina Gusano + escenarios por nodo + enemigos básicos |
+| 2026-11-23 | Polinización del mapa · congelación de arte (vie 20-nov) |
+| 2026-11-27 | Congelación de funcionalidades → S5i: prueba de comprensión M6 |
+| 2026-12-04 | Build candidata + material de Discord (S5j) |
+| 2026-12-11 | **Publicación** |
+
 
 ## S5h — Reward screen  *(IMPORTANT; pulled-forward presentation half of old S5d, per D-REPLAN-3)*
 

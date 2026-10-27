@@ -3,6 +3,11 @@
 **Paquete transitorio, no es documento gobernado.** Lo consume el cierre de CROWD-JAM-CLOSE. Si ese lote cierra sin consumirlo, se declara perdido en la misma clausura (D-DOC-5).
 **Generado:** 2026-10-22, contra el commit `9924e24`.
 **Origen (D1=B):** los smokes originales (CS-1..14 y los de JAM-3) no están en el repo. Estos se **reconstruyeron leyendo el código**; su numeración (CR-*, J3-*) es nueva y no equivale a la antigua.
+**Triaje (REPLAN-DIAG, 2026-10-24):** CR-1/2/3 → test EditMode de la regla de polaridad (extraerla a
+función pura); CR-10 → test de asset (grupo SFX) + una escucha; CR-5/6/7/8/9/12 y J3-1..5 → guion de
+partida + lectura del `Editor.log`; escuchas humanas: CR-4, CR-11, J3-6; J3-7 y J3-9 opcionales.
+**J3-8 verificado en estático:** ningún asset referencia `Test - Lab Progression.asset` (huérfano) y
+solo queda una entrada `wormus_test` en `ConceptGlossary_EN/ES.asset` (limpieza, no rotura).
 **Inferido, pendiente de confirmar:** cómo se describen D2=A' (D2a=A) y D3=A más abajo se dedujo de los comentarios del código.
 
 ---

@@ -545,6 +545,15 @@ The live active-work stream is the demo-cut sequence in §3 (strict left-to-righ
 
 ## 3. Next active
 
+> **Siguiente (2026-10-25): REPLAN-DIAG — el mapa lineal pasa a esta semana.** Sesión de diagnóstico:
+> lista cerrada M1–M7, cohesión como única condición de derrota (D-DIAG-1=A), previsualización de
+> cartas como prioridad máxima (D-DIAG-2=A+C), tests EditMode sin asmdef hasta después de la demo
+> (D-DIAG-3=C), mapa de 3 nodos (2 gigs + Reina) con `LinearMapController` nuevo (D-MAP-1..3=A),
+> regla de ≤3 smokes humanos por batch. Próximo: **MAP-DEMO-1** (+ guion CROWD-JAM-CLOSE) → COH-1 +
+> LEGIB-1. Detalle: `S5_DemoCutClose_Sub_Roadmap.md` → «REPLAN-DIAG». **Este bloque reemplaza al de
+> 2026-10-23 de abajo.** Corrección: el colapso de cohesión ya publica `GigOutcomeEvent`
+> (TUT-REDESIGN-B); la nota TLM-1b está desfasada.
+
 > **Siguiente (2026-10-23): REPLAN-ART — demo pública en Discord el 2026-12-11.** Criterio de
 > terminado: se entiende sin explicarla (cómo se juega, se gana, se pierde). Mapa lineal + Reina Gusano
 > entran en la demo (D1=C); SPEED-1, CAM-1, SING-2, SING-3 salen (D2=B); interacciones musicales a

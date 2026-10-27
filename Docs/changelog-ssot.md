@@ -14,6 +14,21 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-10-25 — REPLAN-DIAG: lista cerrada de la demo, cohesión única, legibilidad y mapa esta semana
+
+**Clase:** operativo · planificación. Sin cambios de código ni de SSoT.
+
+- `S5_DemoCutClose_Sub_Roadmap.md`: nueva sección «REPLAN-DIAG» con la lista cerrada M1–M7,
+  D-DIAG-1=A (cohesión 0 = única derrota), D-DIAG-2=A+C (previsualización de carta; escalón lineal si
+  hace falta), D-DIAG-3=C (tests EditMode sin asmdef; asmdefs tras la demo por el riesgo
+  `[SerializeReference]`), D-MAP-1..3=A (2 gigs + Reina, `LinearMapController` nuevo, mapa entero con
+  recorrido previo completado), regla de ≤3 smokes humanos por batch y secuencia reordenada (mapa en
+  la semana del 2026-10-26).
+- Corrección de la nota TLM-1b: el colapso de cohesión ya publica `GigOutcomeEvent` (TUT-REDESIGN-B).
+- `CURRENT_STATE.md` §3: nuevo bloque «Siguiente».
+- Arte nuevo en `Assets/Art/` (sin importar aún): `mapa asterioide 1.0.png` (8532×3058) y
+  `tocatas A.City.png` (12263×7010, escenario de la Reina).
+
 ## 2026-10-23 — REPLAN-ART: la demo pública tiene fecha (11-dic) y criterio (que se entienda)
 
 **Clase:** operativo · planificación. Sin cambios de código ni de SSoT.
