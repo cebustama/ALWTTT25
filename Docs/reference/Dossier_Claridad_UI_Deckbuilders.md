@@ -4,6 +4,8 @@
 su doc gobernado (`S5_DemoCutClose_Sub_Roadmap.md`, `Design_Vibe_Telegraph_v0_1.md`, el SSoT que toque).
 **Creado:** 2026-10-27. **Para qué:** tener en un solo sitio todo lo que el proyecto sabe sobre legibilidad
 antes de abrir **LEGIB-1** (M1) y la prueba de comprensión (M6) de la demo del 11-dic.
+**Versión para el equipo (página privada, compartir desde su menú Share):**
+https://claude.ai/artifact/Swm8dcLjPEJpYEWL2ZpGcw. Si este archivo cambia, actualizar también la página.
 **Criterio de la demo (D-ART-2):** que se entienda sin explicarla: cómo se juega, cómo se gana, cómo se
 pierde. Referencia nombrada en la reunión: *Slay the Spire*, lectura inmediata de ATK/DEF.
 
