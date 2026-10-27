@@ -30,3 +30,20 @@
 
 - *Anvil! The Story of Anvil* (2008, Sacha Gervasi): una banda que lleva décadas intentando convencer a un público. Es la premisa de ALWTTT en documental.
 - *Stop Making Sense* (1984, Jonathan Demme): ya está en la watchlist de Claudio. El concierto como puesta en escena que crece canción a canción.
+
+## 4. Plan de Claudio para el generador de nombres (2026-10-27)
+
+Claudio quiere recuperar el generador de texto de Band Manager, que desarrolló durante años: una gramática generativa con vocabulario etiquetado y patrones. El análisis está en `D:\Projects\Band Manager (SC) - LTS\Docs\analisis-generador-de-nombres.md`.
+
+El plan tiene tres pasos:
+1. demo y perfeccionamiento en la web;
+2. paquete dentro de Islands PCG;
+3. **usarlo en ALWTTT para los nombres de otros artistas y canciones del mundo, con la temática de ciencia ficción y fantasía del juego.**
+
+El plan completo está en `D:\Projects\banco-ideas-juego\proyectos\generador-de-texto.md`.
+
+**Comprobado:** ALWTTT25 no genera hoy nombres de canciones ni de bandas.
+
+**Inferido:** hará falta un vocabulario y patrones propios del mundo del juego. Los del original copian bandas reales. El nombre debería derivarse de la misma semilla que la canción de MidiGenPlay.
+
+Es para después de la demo: no entra en M1–M7.
