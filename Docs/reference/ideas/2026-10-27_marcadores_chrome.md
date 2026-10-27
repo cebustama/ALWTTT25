@@ -71,3 +71,13 @@ Aplicación concreta a decidir en el batch LEGIB-1, no aquí.
    decidir y cómo se dice sin texto?». Apuntar aquí lo que se confirme.
 2. Si Claudio exporta 1114, 951 y 964, añadir un cotejo corto con la REPLAN-DIAG.
 3. Dejar 385/958 y 59 para la planificación posterior al 11-dic.
+
+## Addendum 2026-10-27: transcripciones leídas
+
+Los videos ya se leyeron enteros (fichas en `D:\Projects\marcadores-chrome\profundo\fichas_videos.md`). Lo que antes venía de la descripción queda comprobado o se amplía:
+
+- **895 (comprobado):** la primera versión de Slay the Spire mostraba la siguiente jugada del enemigo como texto, y solo al hacer clic sobre él. No servía para streaming, cargaba demasiado texto y se volvía incómoda con varios enemigos. Lo resolvió el *intent*: un icono sobre cada enemigo, con una escala visual de amenaza (la espada crece con el daño). Para ALWTTT: el intent del público siempre visible y como icono, no como texto.
+- **385:** las pruebas en persona mostraron dónde se atascaba la gente. De ahí salieron los tooltips de palabras clave, el borde azul en las cartas jugables y el texto rojo cuando falta energía: legibilidad sin explicar nada. Ojo: la transcripción se corta en las preguntas del público.
+- **803 (comprobado):** el «diseño lenticular» (Mark Rosewater): cartas simples por fuera, con profundidad oculta por las combinaciones. Pocas cartas que combinan dan muchas estrategias, en línea con la lista cerrada M1–M7.
+- **902:** juegos de ritmo. Una ronda de práctica sin puntuar, fusionada con el tutorial, que calibra el retardo; una barra de timing que se puede apagar; y toda la escena animada al compás.
+- **1230 (Portal):** pedir a quien prueba que cuente la historia de vuelta y recortar lo que no entiende. Es un método directo para la prueba de comprensión antes de la build candidata.
