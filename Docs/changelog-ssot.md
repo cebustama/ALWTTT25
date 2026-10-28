@@ -14,6 +14,23 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-10-28 — MAP-DEMO-1: la demo empieza en un mapa lineal de 3 nodos
+
+**Clase:** semántico · operativo. Cambio de código.
+
+- Código: `LinearMapController` (nuevo), `RunConfig.preserveRunState`, `PersistentGameplayData`
+  (`LinearMapNextNode`, `TutorialOptInAnswered`, rama `preserveRunState` en `ApplyRunConfig`),
+  `GigManager.Start` (pregunta del tutorial una vez por partida), `GigDevSettingsSO.StartOnLinearMap`,
+  `MainMenuController` (Start reinicia la partida y abre el mapa), `SectorNodeVisual.UseBoundTooltipOnly`.
+  Escena `1b - Linear Map` en el índice 1 de la build (sustituye a `1 - Sector Map`).
+- Decisiones: D-MAP-DEMO-1..4 = A (ver `S5_DemoCutClose_Sub_Roadmap.md` → «MAP-DEMO-1»).
+- `SSoT_Gig_Combat_Core.md` §13: el mapa lineal como tercer llamador de `GigLauncher`;
+  `preserveRunState`, progreso del mapa y pregunta del tutorial por partida.
+  `SSoT_Gig_Encounter.md` §7.5: LadderRunner → mapa lineal.
+- `CURRENT_STATE.md`: fila de cierre en §1 y bloque «Siguiente» (COH-1) en §3.
+- Paquete `MAP-DEMO-1_Montaje_y_Guion.md` consumido en este cierre.
+- Arte importado: `mapa asterioide 1.0.png`, `tocatas A.City.png`.
+
 ## 2026-10-25 — REPLAN-DIAG: lista cerrada de la demo, cohesión única, legibilidad y mapa esta semana
 
 **Clase:** operativo · planificación. Sin cambios de código ni de SSoT.

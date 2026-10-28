@@ -110,8 +110,16 @@ namespace ALWTTT.Data
             "and a warning logs. Wire DemoLaunchConfig.asset here.")]
         private DemoLaunchConfigSO demoLaunchConfig;
 
+        // [MAP-DEMO-1] Takes precedence over AutoStartFromDefaults: Start opens
+        // the linear demo map (SceneData.sectorMapSceneIndex, D-MAP-DEMO-3=A).
+        [SerializeField, Tooltip("When true, the Main Menu Start button opens " +
+            "the map scene (the linear demo map) instead of launching a gig " +
+            "directly. Takes precedence over AutoStartFromDefaults.")]
+        private bool startOnLinearMap = false;
+
         public bool AutoStartFromDefaults => autoStartFromDefaults;
         public DemoLaunchConfigSO DemoLaunchConfig => demoLaunchConfig;
+        public bool StartOnLinearMap => startOnLinearMap;
 
         // --- Composition debug [DBG-C1] ---
 

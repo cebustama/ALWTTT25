@@ -476,10 +476,16 @@ exist or are planned:
    `DemoLaunchConfigSO`, converts the SO to a `RunConfig` via
    `DemoLaunchConfigSO.ToRunConfig`, and dispatches. Bypasses GigSetup
    entirely for the demo cut (single fade cycle MainMenu → Gig).
-3. **LadderRunner** (post-§5.3.5) — multi-encounter ladder mode that
-   dequeues per-encounter launch configs and dispatches one at a time,
-   passing `bandRoster: null` so the band carries over between
-   encounters.
+3. **Linear demo map** (MAP-DEMO-1, 2026-10-28) — `LinearMapController`
+   (`Assets/Scripts/Map/`) is the shipped form of the planned
+   LadderRunner: a fixed node sequence, one `DemoLaunchConfigSO` per node,
+   dispatched one at a time. The roster is passed on the first node only
+   (`bandRoster: null` afterwards); later nodes set
+   `RunConfig.preserveRunState = true`; the last node is the boss
+   (`isFinalEncounter = true`). With `GigDevSettingsSO.StartOnLinearMap`
+   on (takes precedence over `AutoStartFromDefaults`), the Main Menu Start
+   button resets the run (`InitGameplayData` + `SetInitialDeck`) and opens
+   the map scene instead of launching a gig.
 
 GigLauncher's responsibilities (atomic):
 - Apply `bandRoster` to `PersistentGameplayData.SetBandRoster` (skipped
@@ -489,6 +495,22 @@ GigLauncher's responsibilities (atomic):
 - Set `PersistentGameplayData.IsFinalEncounter = isFinalEncounter` (B3-
   demo-polish A6 hack carrier; removed when meta-progression sectors land).
 - Navigate via `SceneChanger.OpenGigScene`.
+
+**Run-state carry-over (MAP-DEMO-1 / D-MAP-DEMO-1=A).** `ApplyRunConfig`
+rebuilds the deck (starters or `bandDeck`) and resets SFX unlocks on every
+launch **unless** `RunConfig.preserveRunState` is true, in which case the
+current deck and SFX unlocks are kept (mid-run nodes). The gig reads its deck
+from `PersistentGameplayData`, so rewards earned on one node reach the next.
+
+**Linear-map progress (MAP-DEMO-1).** `PersistentGameplayData.LinearMapNextNode`
+is advanced when a node is launched: a node is consumed win or lose
+(D-MAP-DEMO-2=A). The map returns to Game Over when cohesion ≤ 0 (D-DIAG-1) or
+when every node is consumed (only reachable by losing the boss; provisional
+until COH-1). Both run fields reset with `InitGameplayData`.
+
+**Tutorial opt-in once per run (MAP-DEMO-1).** `GigManager.Start` shows the
+opt-in prompt only while `PersistentGameplayData.TutorialOptInAnswered` is
+false; later gigs and Retry reuse the stored answer.
 
 Failure mode: GigLauncher returns `bool`. Callers treat `false` as
 "launch did not happen" and decide whether to fall through (e.g.

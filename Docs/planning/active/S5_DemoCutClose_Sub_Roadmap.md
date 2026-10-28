@@ -413,7 +413,7 @@ de partida** (jugadas + log esperado) que Claudio juega una vez y el agente comp
 
 | Semana | Trabajo |
 | --- | --- |
-| 2026-10-26 | **MAP-DEMO-1** (mapa lineal, 3 nodos, Start → mapa) + guion CROWD-JAM-CLOSE jugado en la misma pasada |
+| 2026-10-26 | ~~**MAP-DEMO-1**~~ **cerrado el 2026-10-28** (abajo) · guion CROWD-JAM-CLOSE: sin jugar, pasa a la semana siguiente |
 | 2026-11-02 | **COH-1** (D-DIAG-1) · **LEGIB-1** (D-DIAG-2) · banda de 2 + roles · TEST-SETUP-1 |
 | 2026-11-09 / 16 | Reina Gusano + escenarios por nodo + enemigos básicos |
 | 2026-11-23 | Polinización del mapa · congelación de arte (vie 20-nov) |
@@ -421,6 +421,26 @@ de partida** (jugadas + log esperado) que Claudio juega una vez y el agente comp
 | 2026-12-04 | Build candidata + material de Discord (S5j) |
 | 2026-12-11 | **Publicación** |
 
+
+### MAP-DEMO-1 — mapa lineal (cerrado el 2026-10-28)
+
+**Decisiones (Claudio, 2026-10-27):**
+- **D-MAP-DEMO-1 = A** — `RunConfig.preserveRunState`: desde el nodo 2, `ApplyRunConfig` no reconstruye
+  el mazo ni borra los SFX desbloqueados.
+- **D-MAP-DEMO-2 = A** — perder un gig resta cohesión y avanza al nodo siguiente (el nodo se consume al
+  lanzarse).
+- **D-MAP-DEMO-3 = A** — el mapa llega por la ruta de mapa de siempre. En la práctica, la escena
+  `1b - Linear Map` ocupa el índice 1 de la build y `SceneData` no cambió.
+- **D-MAP-DEMO-4 = A** — cada nodo apunta a un `DemoLaunchConfigSO`.
+
+**Resultado del guion (Claudio, 2026-10-28):** mapa desde el menú, carta y SFX conservados en el gig 2:
+PASS. Pasos 9–10 (clic en nodo jugado, Reina) y comparación del `Editor.log`: sin hacer.
+
+**Sale de aquí para COH-1:** en la demo, el panel de derrota no tiene Retry: mensaje + «Continuar» →
+mapa (Claudio, 2026-10-28; resuelve el primer abierto de D-DIAG-1). Hoy «Exit» lleva al menú.
+
+**Pendiente de arte:** icono de nodo (el inicial lleva un círculo verde provisional) y miniatura de la
+nave en lugar del triángulo blanco: se piden a Matías en la reunión del viernes 2026-10-30.
 
 ## S5h — Reward screen  *(IMPORTANT; pulled-forward presentation half of old S5d, per D-REPLAN-3)*
 

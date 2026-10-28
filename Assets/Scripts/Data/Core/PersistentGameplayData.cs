@@ -79,6 +79,13 @@ namespace ALWTTT.Data
         [SerializeField] private bool isFinalEncounter;
         [SerializeField] private int lastMapNodeId;
 
+        // [MAP-DEMO-1] Linear demo map: index of the next playable node.
+        // Advanced at launch (a node is consumed win or lose, D-MAP-DEMO-2=A).
+        [SerializeField] private int linearMapNextNode;
+
+        // [MAP-DEMO-1] The tutorial opt-in is asked once per run, not per gig.
+        [SerializeField] private bool tutorialOptInAnswered;
+
         // Sector Map runtime state
         [SerializeField] private SectorMapState currentSectorMapState;
 
@@ -238,6 +245,18 @@ namespace ALWTTT.Data
             set => lastMapNodeId = value;
         }
 
+        public int LinearMapNextNode
+        {
+            get => linearMapNextNode;
+            set => linearMapNextNode = value;
+        }
+
+        public bool TutorialOptInAnswered
+        {
+            get => tutorialOptInAnswered;
+            set => tutorialOptInAnswered = value;
+        }
+
 
 
         public SongData CurrentSong
@@ -332,6 +351,8 @@ namespace ALWTTT.Data
             CurrentSectorId = 0;
             CurrentEncounterId = 0;
             IsFinalEncounter = false;
+            LinearMapNextNode = 0;          // [MAP-DEMO-1]
+            TutorialOptInAnswered = false;  // [MAP-DEMO-1]
 
             musicianHealthDataList = new List<MusicianHealthData>();
             musicianGameplayDataList = new List<MusicianGameplayData>();
@@ -1160,7 +1181,10 @@ namespace ALWTTT.Data
             // --- Reset gig state ---
             CurrentSongIndex = 0;
 
-            ResetSfxUnlocks(); // [S5h / D7] SFX unlocks are run-scoped, like the deck.
+            // [MAP-DEMO-1 / D-MAP-DEMO-1=A] Mid-run launches (linear map, node > 0)
+            // keep the deck and SFX unlocks earned on earlier nodes.
+            if (!config.preserveRunState)
+                ResetSfxUnlocks(); // [S5h / D7] SFX unlocks are run-scoped, like the deck.
 
             SongModifierCardsList ??= new List<CardDefinition>();
             SongModifierCardsList.Clear();
@@ -1169,7 +1193,12 @@ namespace ALWTTT.Data
             // M4.6-prep batch (2): branch on useMusicianStarters. When ON,
             // assemble from each musician's CardCatalog + optional generic
             // catalogue. When OFF, legacy BandDeckData asset path runs.
-            if (config.useMusicianStarters)
+            if (config.preserveRunState)
+            {
+                Debug.Log("[PersistentGameplayData] ApplyRunConfig: preserveRunState=true → " +
+                          "deck and SFX unlocks carried over.");
+            }
+            else if (config.useMusicianStarters)
             {
                 var rosterList = new List<MusicianCharacterData>(MusicianList?.Count ?? 0);
                 if (MusicianList != null)

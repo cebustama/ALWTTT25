@@ -75,6 +75,24 @@ namespace ALWTTT.Managers
         /// </summary>
         public void OnStartPressed()
         {
+            // [MAP-DEMO-1] The demo starts on the linear map (D-MAP-1..3).
+            if (devSettings != null && devSettings.StartOnLinearMap && sceneChanger != null)
+            {
+                // Fresh run, same as SceneChanger's MainMenu path: Win/Loss
+                // "Exit" (GigManager.HandleExit) loads the menu without it,
+                // so the previous run's map progress would otherwise survive.
+                var gm = GameManager.Instance;
+                if (gm != null)
+                {
+                    gm.InitGameplayData();
+                    gm.SetInitialDeck();
+                }
+
+                Debug.Log($"[{CallerTag}] StartOnLinearMap → fresh run, opening map scene.");
+                sceneChanger.OpenMapScene();
+                return;
+            }
+
             if (TryAutoLaunch()) return;
 
             // Fall through to manual flow.

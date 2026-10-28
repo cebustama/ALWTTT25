@@ -20,6 +20,10 @@ namespace ALWTTT.Map
         private string _tooltipTitle;
         private string _tooltipDesc;
 
+        // [MAP-DEMO-1] Linear map: show only the bound title/description and
+        // skip the sector-index encounter lookup (meaningless off the procedural map).
+        public bool UseBoundTooltipOnly { get; set; }
+
         public event Action<SectorNodeVisual> Clicked;
         public event Action<SectorNodeVisual> HoverEnter;
         public event Action<SectorNodeVisual> HoverExit;
@@ -95,7 +99,11 @@ namespace ALWTTT.Map
                 delayShow: 0.15f
             );
 
-            if (Node.Type == Enums.NodeType.Gig)
+            if (UseBoundTooltipOnly)
+            {
+                // [MAP-DEMO-1] Bound tooltip above is the whole content.
+            }
+            else if (Node.Type == Enums.NodeType.Gig)
             {
                 var encounterId = Node.GigEncounterIndex;
                 var pd = GameManager.PersistentGameplayData;

@@ -64,6 +64,11 @@ namespace ALWTTT.Managers
             // the encounter SO's baked audienceMemberList. When null/empty, the SO's
             // baked list is used (regression-safe).
             public List<AudienceCharacterData> audienceOverride;
+
+            // [MAP-DEMO-1 / D-MAP-DEMO-1=A] When true, ApplyRunConfig keeps the
+            // current deck and SFX unlocks (mid-run node on the linear map)
+            // instead of rebuilding the starter deck.
+            public bool preserveRunState;
         }
 
         public bool HasActiveRun => _hasActiveRun;

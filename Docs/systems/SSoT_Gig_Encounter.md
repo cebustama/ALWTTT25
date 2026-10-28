@@ -196,9 +196,11 @@ A gig is launched through `GigLauncher.Launch` (see
    > `numberOfSongs` is overridden by the launch config (F-GEW-5); whether the
    > picker path reads the encounter value or the flow-settings default is
    > likewise unverified.
-3. **LadderRunner** (post-§5.3.5, not yet authored). Will queue per-
-   encounter launch configs and dispatch through GigLauncher with
-   `bandRoster: null` for band carry-over.
+3. **Linear demo map** (MAP-DEMO-1, 2026-10-28; the shipped form of the
+   planned LadderRunner). `LinearMapController` holds one
+   `DemoLaunchConfigSO` per node and dispatches through GigLauncher with
+   `bandRoster: null` and `preserveRunState = true` after the first node
+   (contract: `SSoT_Gig_Combat_Core.md` §13).
 
 All three converge on the same `RunConfig` shape (`GigRunContext.RunConfig`).
 `DemoLaunchConfigSO.ToRunConfig(returnDestination)` is the centralised

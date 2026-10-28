@@ -520,11 +520,15 @@ namespace ALWTTT.Managers
             // opt-in answer, then the driver is PREPARED (forced-hand fill or
             // stand-down) BEFORE StartGig runs its initial draw in SetupDeck.
             var pd = GameManager.PersistentGameplayData;
-            if (tutorialOptInPrompt != null && tutorialOptInPrompt.IsWired && pd != null)
+            // [MAP-DEMO-1] Asked once per run: later map nodes and Retry reuse
+            // the answer (falls through to the no-popup path below).
+            if (tutorialOptInPrompt != null && tutorialOptInPrompt.IsWired && pd != null
+                && !pd.TutorialOptInAnswered)
             {
                 tutorialOptInPrompt.Show(pd.TutorialEnabled, enabled =>
                 {
                     pd.TutorialEnabled = enabled;
+                    pd.TutorialOptInAnswered = true;
                     ResolveTutorialDriver()?.PrepareForGig(enabled);
                     StartGig();
                     SetupSongHypeDebugUI();
