@@ -55,3 +55,22 @@ observaciones del agente, verificadas contra los docs de MidiGenPlay salvo donde
   mitad del valor sin tocar el motor.
 - **Conexión:** encaja con la web personal (Labs / explainers) como escaparate, y con Music Lab
   (progresiones analizadas).
+
+## 5. Variante de Claudio: escena de ALWTTT en WebGL (2026-10-28)
+
+Idea de Claudio: hacer la tool como escena de ALWTTT y subirla en WebGL. Notas del agente (código leído,
+nada probado en build):
+
+- **A favor:** suena el compositor real de MidiGenPlay, así que desaparece el riesgo de §4 (dos motores).
+- **Audio:** Maestro MPTK soporta WebGL, pero fuerza el modo no-core (`MidiSynth.MPTK_CorePlayer` devuelve
+  `false` con `UNITY_WEBGL`: voces con AudioSource, sin hilo). Su propia demo avisa de peor precisión de
+  timing y calidad. La voz del cantante (`SingerVoice`, PinkTrombone) usa `OnAudioFilterRead`; hay que
+  comprobar si funciona en WebGL. Para esta escena no hace falta.
+- **Parsers:** los de texto de batería y bajo y los tres importadores MIDI viven en `Editor/` de MidiGenPlay
+  y no entran en un build. En runtime solo están `RomanProgressionParser` y
+  `ChordProgressionRuntimeImporter`. Moverlos a `Runtime/` es un cambio del paquete (ask a MidiGenPlay).
+  Los importadores ya son funciones puras (§1 del SSoT de import), así que el cambio debería ser pequeño.
+- **Exportar:** WebGL no escribe archivos; el resultado se descarga desde el navegador o se copia al
+  portapapeles (plugin JS).
+- **Primer paso propuesto:** un build WebGL mínimo que solo reproduzca una canción generada con seed fija,
+  para medir el audio antes de construir nada.
