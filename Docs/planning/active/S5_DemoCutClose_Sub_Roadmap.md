@@ -422,6 +422,19 @@ de partida** (jugadas + log esperado) que Claudio juega una vez y el agente comp
 | 2026-12-11 | **Publicación** |
 
 
+### DEMO-1211 — plan por sesiones (aceptado el 2026-10-30)
+
+**La secuencia vigente hacia la demo vive en `DEMO-1211_Plan_de_Sesiones.md`** (16 sesiones, 3 por
+semana, con criterio de terminado y orden de recorte). La lista M1–M7 de REPLAN-DIAG sigue siendo el
+*qué*; la tabla «Secuencia vigente» de arriba queda como historial.
+
+**Decisiones (Claudio, 2026-10-30):** D-PLAN-0 = A (la demo es el esqueleto del juego: nave con salas,
+las que no funcionan «EN DESARROLLO»; **enmienda REPLAN-ART D1**) · D-PLAN-1 = A (alineación de 2, 3 o 4
+músicos elegida en el dormitorio; **resuelve el abierto «qué dos músicos»**) · D-PLAN-2 = A · D-PLAN-3 =
+B (público con rol con datos + objetivo visible + gritos) · D-PLAN-4 = A (3 sesiones/semana).
+Insumos: `reference/ideas/2026-10-30_publico_con_rol.md` (inventario de enemigos y diagnóstico del
+código) y `reference/referencias-alwttt/` (análisis de la carpeta de referencias).
+
 ### MAP-DEMO-1 — mapa lineal (cerrado el 2026-10-28)
 
 **Decisiones (Claudio, 2026-10-27):**

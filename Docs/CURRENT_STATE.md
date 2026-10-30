@@ -546,6 +546,15 @@ The live active-work stream is the demo-cut sequence in §3 (strict left-to-righ
 
 ## 3. Next active
 
+> **Siguiente (2026-10-30): DEMO-1211 — plan por sesiones aceptado; S1 = cierre de COH-1.** La
+> secuencia hacia la demo vive en `planning/active/DEMO-1211_Plan_de_Sesiones.md` (D-PLAN-0..4). La
+> demo pasa a ser el esqueleto del juego: nave con salas (las que no funcionan, «EN DESARROLLO»),
+> alineación de 2/3/4 músicos en el dormitorio, elenco con los sprites nuevos, gritos del público y la
+> Reina Gusano con su sprite. Orden: S1 COH-1 (guion sin jugar) → S2 GIG-UI-1 → S3 LEGIB-1a → … .
+> **Desfase con Git (2026-10-30):** el código de COH-1 y GIG-UI-1 (`GigLossOutcome.cs`, `GigManager`,
+> `GigCanvas`, tests en `Assets/Tests/`, escenas y prefab) está en el árbol de trabajo **sin commitear**;
+> se commitea al cerrar S1/S2. **Este bloque reemplaza al de 2026-10-28 de abajo.**
+
 > **Siguiente (2026-10-28): COH-1 — la cohesión es la única derrota (D-DIAG-1).** MAP-DEMO-1 cerrado.
 > En la demo el panel de derrota pierde Retry y gana «Continuar» → mapa (decidido por Claudio tras el
 > guion de MAP-DEMO-1). Además: breakdown con cohesión 0 a mitad de gig = game over, perder contra la

@@ -1,8 +1,10 @@
-# Demo del 11-dic — plan por sesiones (PROPUESTA, v2)
+# Demo del 11-dic — plan por sesiones (v2, ACEPTADO)
 
-**Estado:** propuesta del 2026-10-30, sin aceptar. Hasta que Claudio la acepte manda la tabla de
-REPLAN-DIAG en `S5_DemoCutClose_Sub_Roadmap.md`. Si se acepta, REPLAN-DIAG recibe una línea que apunta
-aquí, y D-PLAN-0 enmienda REPLAN-ART D1 («sin ramas, tienda ni terapia»).
+**Estado:** **aceptado por Claudio el 2026-10-30** (D-PLAN-0..4 cerradas, abajo). Es la secuencia
+vigente hacia la demo: sustituye a la tabla «Secuencia vigente» de REPLAN-DIAG en
+`S5_DemoCutClose_Sub_Roadmap.md`, que conserva la lista M1–M7 (el *qué*) y apunta aquí (el *cuándo*).
+D-PLAN-0 enmienda REPLAN-ART D1 («sin ramas, tienda ni terapia»): la nave y sus salas entran, las que no
+funcionan como «EN DESARROLLO».
 **v2 (misma tarde):** nueva filosofía de Claudio: la demo es el **esqueleto del juego real**, montado con
 todo el arte que ya existe, para que se vea el avance y se imagine la experiencia final. Entra la nave
 como centro, el elenco con sprites nuevos, los gritos y la Reina con su sprite.
@@ -73,10 +75,25 @@ Se recorta de arriba abajo; nunca M1, M3, M6:
 - Chatarrero funcional: «abre el show», la mejora inicial de la partida (pantalla del bicho en el foco).
 - Interacciones musicales, convencidos que cantan, «boooring» entre loops (REPLAN-ART D3 = B).
 
-## Decisiones abiertas
+## Decisiones (cerradas por Claudio el 2026-10-30)
 
-- **D-PLAN-0:** la demo como esqueleto del juego (nave + salas en desarrollo) en lugar de solo combate.
-- **D-PLAN-1:** dónde se elige la alineación (A: dormitorio / B: pantalla del bicho en el foco / C: banda fija).
-- **D-PLAN-2:** salas en desarrollo (A: todas las que tienen arte / B: solo chatarrero y sala de ensayo).
-- **D-PLAN-3:** público con rol en la demo (A: nada / B: grupos con datos + objetivo visible + gritos / C: disparadores).
-- **D-PLAN-4:** ritmo de 3 sesiones por semana.
+- **D-PLAN-0 = A:** la demo es el esqueleto del juego: nave como centro y salas «EN DESARROLLO».
+  Enmienda REPLAN-ART D1.
+- **D-PLAN-1 = A:** la alineación (2, 3 o 4 músicos) se elige en el dormitorio, con el arte
+  «Personajes». La pantalla del bicho en el foco queda para el chatarrero (mejora inicial, deseo).
+  Resuelve el abierto «qué dos músicos abren la demo» de REPLAN-ART: lo elige quien juega.
+- **D-PLAN-2 = A:** entran como «EN DESARROLLO» todas las salas que tienen arte.
+- **D-PLAN-3 = B:** público con rol solo con datos + objetivo visible en la intención + gritos; los
+  disparadores, Phase C.
+- **D-PLAN-4 = A:** 3 sesiones por semana; si son menos, se recorta por el orden de arriba.
+
+## Página para el equipo
+
+Wrapped privado del plan (compartir desde su menú Share): https://claude.ai/artifact/GmUTRzr7FeofzvgeRxUsv4.
+Si este archivo cambia, actualizar también la página.
+
+## Pendiente de arte (pedir a Matías)
+
+Archivos sueltos de: pantalla «Personajes» (dormitorio), «Escoge tu carta», pantalla del bicho en el foco
+y, si existen, las salas que faltan (cabina, dormitorio, cocina, jardín, baño). Si la Reina va sola o con
+larvas.

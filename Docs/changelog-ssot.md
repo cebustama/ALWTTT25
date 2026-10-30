@@ -14,6 +14,23 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-10-30 — DEMO-1211: plan por sesiones hacia la demo; la demo como esqueleto del juego
+
+**Clase:** operativo · autoridad (planificación). Sin cambio de código.
+
+- Nuevo `planning/active/DEMO-1211_Plan_de_Sesiones.md`: 16 sesiones con objetivo único y criterio de
+  terminado, orden de recorte, decisiones D-PLAN-0..4 (cerradas por Claudio). Pasa a ser la secuencia
+  vigente; REPLAN-DIAG conserva M1–M7.
+- D-PLAN-0 = A **enmienda REPLAN-ART D1**: la nave y sus salas entran en la demo («EN DESARROLLO» las
+  que no funcionan). D-PLAN-1 = A resuelve el abierto «qué dos músicos»: alineación elegible en el
+  dormitorio.
+- `S5_DemoCutClose_Sub_Roadmap.md`: bloque «DEMO-1211» antes de MAP-DEMO-1. `CURRENT_STATE.md` §3:
+  bloque «Siguiente (2026-10-30)» con el desfase de COH-1/GIG-UI-1 sin commitear. `SSoT_INDEX.md`:
+  fila del plan.
+- Referencia (no autoridad): `reference/ideas/2026-10-30_publico_con_rol.md` (37 diseños de público,
+  fichas de Matías, gritos, Reina, diagnóstico del código) y `reference/referencias-alwttt/` (325
+  referencias de Dropbox analizadas; wrapped privado).
+
 ## 2026-10-28 — MAP-DEMO-1: la demo empieza en un mapa lineal de 3 nodos
 
 **Clase:** semántico · operativo. Cambio de código.
