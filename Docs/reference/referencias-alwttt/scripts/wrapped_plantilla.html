@@ -1,0 +1,374 @@
+<title>ALWTTT Referencias Wrapped</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Figtree:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* Concepto: el wrapped como cartel de gira en un escenario de noche. Un solo tema oscuro, a propósito:
+   focos de colores sobre negro azulado. Cada estado es un foco: cian = ya suena en el juego,
+   ámbar = a medias, magenta = aún no, gris = no es una función. */
+:root{
+  --stage:#110f1a; --stage-2:#1a1727; --stage-3:#24203a; --line:#36304f;
+  --ink:#f2ecdf; --ink-2:#b9b1c9; --ink-3:#857d99;
+  --inc:#4fd6c8; --par:#ffb547; --pen:#ff5ea8; --na:#6e6884;
+  --display:"Bowlby One SC", "Arial Black", Impact, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--stage);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px;display:grid;grid-template-columns:minmax(0,1fr);gap:72px}
+section{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.05;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:clamp(2.4rem,7vw,5rem)}
+h2{font-size:clamp(1.6rem,4vw,2.4rem)}
+h3{font-size:1.15rem}
+p{margin:0;max-width:65ch}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lede{color:var(--ink-2);font-size:1.08rem}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.inc{color:var(--inc)}.par{color:var(--par)}.pen{color:var(--pen)}.na{color:var(--na)}
+
+/* portada */
+.hero{position:relative;padding-top:12px}
+.hero::before{content:"";position:absolute;inset:-40px -20% auto;height:420px;pointer-events:none;
+  background:radial-gradient(closest-side at 22% 30%,color-mix(in srgb,var(--pen) 22%,transparent),transparent),
+             radial-gradient(closest-side at 70% 10%,color-mix(in srgb,var(--inc) 18%,transparent),transparent),
+             radial-gradient(closest-side at 90% 60%,color-mix(in srgb,var(--par) 12%,transparent),transparent);z-index:-1}
+.strip{display:flex;gap:6px;overflow:hidden;height:92px;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.strip img{height:92px;width:auto;border-radius:3px;opacity:.9;flex:none}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.stat{border-top:2px solid var(--line);padding-top:10px;display:grid;gap:2px}
+.stat b{font-family:var(--display);font-weight:400;font-size:2.4rem;line-height:1}
+.stat span{color:var(--ink-2);font-size:.92rem}
+
+/* veredicto */
+.bar{display:flex;height:46px;border-radius:4px;overflow:hidden;background:var(--stage-2)}
+.bar div{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;color:var(--stage);font-size:.9rem;min-width:0;white-space:nowrap;overflow:hidden}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.92rem;color:var(--ink-2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* meses */
+.months{display:grid;grid-template-columns:minmax(0,1fr);overflow-x:auto}
+.months svg{min-width:640px;width:100%;height:auto;display:block}
+.months text{font-family:var(--mono);font-size:11px;fill:var(--ink-3)}
+.months .lbl{fill:var(--ink-2);font-size:12px;font-family:var(--body)}
+
+/* fuentes */
+.rows{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:minmax(120px,210px) minmax(0,1fr) 44px;gap:12px;align-items:center;font-size:.95rem}
+.row .track{height:16px;background:var(--stage-2);border-radius:3px;display:flex;overflow:hidden}
+.row .track div{height:100%}
+.row .n{font-family:var(--mono);text-align:right;color:var(--ink-2)}
+.row .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* tabla categoria × estado */
+.tablebox{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+td.c{text-align:center;font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* hallazgos */
+.finds{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:18px}
+.find{background:var(--stage-2);border-radius:6px;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+.find .ph{aspect-ratio:16/10;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
+.find .ph img{width:100%;height:100%;object-fit:cover}
+.find .tx{padding:14px 16px 16px;display:grid;gap:8px;align-content:start}
+.find .tx p{font-size:.95rem;color:var(--ink-2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--ink-2)}
+.chip.inc{border-color:var(--inc);color:var(--inc)}.chip.par{border-color:var(--par);color:var(--par)}.chip.pen{border-color:var(--pen);color:var(--pen)}.chip.na{border-color:var(--na);color:var(--ink-3)}
+
+/* falta */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+.panel{border:1px solid var(--line);border-radius:6px;padding:18px;display:grid;gap:12px;align-content:start}
+.panel.demo{border-color:var(--pen);background:color-mix(in srgb,var(--pen) 7%,var(--stage))}
+.panel ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--ink-2);font-size:.95rem}
+.panel li b{color:var(--ink)}
+.refs{font-family:var(--mono);font-size:.78rem;color:var(--ink-3)}
+
+/* explorador */
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:10px}
+.filters label{display:grid;gap:4px;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+select,input{font:inherit;font-size:.95rem;background:var(--stage-2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-width:0;width:100%}
+select:focus-visible,input:focus-visible,button:focus-visible,.card:focus-visible{outline:2px solid var(--inc);outline-offset:2px}
+.count{color:var(--ink-2);font-size:.95rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr));gap:12px}
+.card{background:var(--stage-2);border-radius:5px;overflow:hidden;cursor:pointer;display:grid;grid-template-rows:auto 1fr;border:0;padding:0;color:inherit;text-align:left;font:inherit;border-top:3px solid var(--na)}
+.card[data-e="incorporada"]{border-top-color:var(--inc)}.card[data-e="parcial"]{border-top-color:var(--par)}.card[data-e="pendiente"]{border-top-color:var(--pen)}
+.card .ph{aspect-ratio:4/3;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.card img{width:100%;height:100%;object-fit:cover}
+.card .meta{padding:8px 10px 10px;display:grid;gap:3px;font-size:.82rem}
+.card .meta .d{color:var(--ink)}
+.card .meta .s{color:var(--ink-3);font-family:var(--mono);font-size:.7rem}
+.more{justify-self:center;font:inherit;background:var(--stage-3);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:10px 18px;cursor:pointer}
+
+/* vista ampliada */
+.ov{position:fixed;inset:0;background:color-mix(in srgb,#000 78%,transparent);z-index:20;display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.box{background:var(--stage-2);border-radius:8px;max-width:760px;width:100%;max-height:100%;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr)}
+.box img{width:100%;max-height:60vh;object-fit:contain;background:#000;display:block}
+.box .in{padding:16px 18px 18px;display:grid;gap:10px}
+.box dl{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 12px;margin:0;font-size:.92rem}
+.box dt{color:var(--ink-3);font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding-top:3px}
+.box dd{margin:0;overflow-wrap:anywhere}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btns button{font:inherit;font-size:.9rem;background:var(--stage-3);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:8px 14px;cursor:pointer}
+.note{font-size:.85rem;color:var(--ink-3)}
+footer{color:var(--ink-3);font-size:.85rem;display:grid;gap:6px}
+@media (prefers-reduced-motion:no-preference){.find .ph img,.card img{transition:transform .25s}.find:hover .ph img,.card:hover img{transform:scale(1.04)}}
+</style>
+
+<div class="wrap">
+
+<section class="hero">
+  <div class="strip" id="strip"></div>
+  <div class="eyebrow">Carpeta «ALWTTT References» · Dropbox · ago 2024 – ago 2026</div>
+  <h1>Las 325 referencias de ALWTTT</h1>
+  <p class="lede">Todo lo que guardaste para el juego: capturas de otros deckbuilders con tus notas en rojo, tu cuaderno, la nave, el público. Cada referencia lleva su juego de origen, qué idea trae y si esa idea <span class="inc">ya está en el juego</span>, <span class="par">a medias</span> o <span class="pen">todavía no</span>.</p>
+  <div class="stats" id="stats"></div>
+</section>
+
+<section>
+  <div class="eyebrow">El veredicto</div>
+  <h2>¿Cuánto de lo guardado ya suena?</h2>
+  <p class="lede" id="verdictText"></p>
+  <div class="bar" id="verdict" role="img" aria-label="Reparto de las referencias por estado"></div>
+  <div class="legend">
+    <span><i style="background:var(--inc)"></i>Incorporada: la idea está en el repo y funciona</span>
+    <span><i style="background:var(--par)"></i>Parcial: hay una versión, o existe fuera de la demo</span>
+    <span><i style="background:var(--pen)"></i>Pendiente: no está</span>
+    <span><i style="background:var(--na)"></i>No aplica: charla, estética o curiosidad</span>
+  </div>
+  <p class="note">«Incorporada» se comprobó buscando en el código y en los assets de ALWTTT (estados, cartas, escenas), no jugando. Las etiquetas salen de mirar miniaturas: sirven para encontrar, no son verdad.</p>
+</section>
+
+<section>
+  <div class="eyebrow">Por mes · fecha del nombre del archivo (capturas y WhatsApp); si no, la del archivo</div>
+  <h2>Dos rachas: septiembre de 2024 y junio de 2025</h2>
+  <div class="months" id="months"></div>
+  <p class="lede">En septiembre de 2024 se diseña el juego desde cero: Monster Train, RimWorld, Midnight Suns y charlas. En junio de 2025 llegan 93 capturas en un mes, el mismo en que el cuaderno dibuja la «ALWTTT Gamescom Demo» (24-06-25). En agosto de 2025 aparecen las capturas con notas en rojo. Desde 2026 casi no guardas: lo que entra son bocetos y capturas del propio juego.</p>
+</section>
+
+<section>
+  <div class="eyebrow">De dónde mira</div>
+  <h2>Monster Train y Slay the Spire: 4 de cada 10</h2>
+  <div class="rows" id="sources"></div>
+  <p class="note">La barra de cada juego se reparte por estado. Monster Train es el juego del que más ideas tomaste (cartas, estados, público) y también el que más deja pendiente: su capa de partida (tienda, mejoras, pantalla previa al combate).</p>
+</section>
+
+<section>
+  <div class="eyebrow">Qué guardas</div>
+  <h2>Por tema y estado</h2>
+  <div class="tablebox"><table id="cats"></table></div>
+</section>
+
+<section>
+  <div class="eyebrow">Hallazgos</div>
+  <h2>Lo que dice la colección</h2>
+  <div class="finds" id="finds"></div>
+</section>
+
+<section>
+  <div class="eyebrow">Lo que falta</div>
+  <h2>Las ideas guardadas que aún no están</h2>
+  <div class="cols">
+    <div class="panel demo">
+      <h3>Para la demo del 11 de diciembre</h3>
+      <p class="note">Solo lo que toca la meta de la demo: que se entienda sin explicarla. Cruzado con el dossier de claridad (M1, COH-1).</p>
+      <ul>
+        <li><b>Ver el efecto antes de jugar.</b> Porcentajes y daño previsto de Final Fantasy Tactics y XCOM. ALWTTT ya proyecta el Vibe; falta LEGIB-1. <span class="refs">i 64–67</span></li>
+        <li><b>La intención del público como icono.</b> Hoy es texto; Slay the Spire usa icono con número. <span class="refs">i 123, 189, 190, 259</span></li>
+        <li><b>Que se vean los efectos que se disparan solos.</b> Tu nota: «pasa piola». <span class="refs">i 149, 258</span></li>
+        <li><b>Saber a qué gig vas.</b> Pantalla previa con público, gustos y recompensa. <span class="refs">i 151, 152, 158, 246</span></li>
+        <li><b>La derrota.</b> Pantallas de Monster Train y Slay the Spire; COH-1 está en curso. <span class="refs">i 33, 126</span></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Después de la demo (Phase C)</h3>
+      <ul>
+        <li><b>La economía de la partida.</b> Tienda, reliquias, mejoras de carta, consumibles: 13 referencias, ninguna hecha. <span class="refs">i 45, 79, 89, 91, 100, 119</span></li>
+        <li><b>Relaciones entre músicos.</b> RimWorld, Griftlands, Midnight Suns, The Sims. La cohesión es de banda, no entre pares. <span class="refs">i 9, 15, 16, 53, 136, 140</span></li>
+        <li><b>Público con rol.</b> Apoyo, sanadores que «desconvencen», el que se va si no lo convences. <span class="refs">i 273, 275, 278</span></li>
+        <li><b>Deshacer.</b> <span class="refs">i 110, 157</span></li>
+        <li><b>Descanso en el mapa</b> que quite estrés. <span class="refs">i 148</span></li>
+        <li><b>Eventos, nave y mapa de sectores:</b> existen en el repo, fuera de la demo. <span class="refs">i 23–50, 284–304</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Explorador</div>
+  <h2>Las 325, una a una</h2>
+  <div class="filters">
+    <label for="fEstado">Estado<select id="fEstado"></select></label>
+    <label for="fCat">Tema<select id="fCat"></select></label>
+    <label for="fFuente">Juego u origen<select id="fFuente"></select></label>
+    <label for="fCarpeta">Carpeta<select id="fCarpeta"></select></label>
+    <label for="fVer">Mostrar<select id="fVer"><option value="todas">Todas</option><option value="dest">Destacadas</option><option value="demo">Tocan la demo</option></select></label>
+    <label for="fQ">Buscar<input id="fQ" type="search" placeholder="tooltip, Griftlands, 157…"></label>
+  </div>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" type="button" hidden>Mostrar más</button>
+</section>
+
+<footer>
+  <span>Fuente: <span class="mono">C:\Users\cebus\Dropbox\ALWTTT References</span> (sin tocar). Catálogo e informe: <span class="mono">ALWTTT25/Docs/reference/referencias-alwttt/</span>.</span>
+  <span>Generado el 2026-10-30. Duplicados conocidos: i 38, 225–228, 296.</span>
+</footer>
+</div>
+
+<div class="ov" id="ov" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-labelledby="ovT">
+    <img id="ovImg" alt="">
+    <div class="in">
+      <h3 id="ovT"></h3>
+      <dl id="ovDl"></dl>
+      <div class="btns"><button type="button" id="ovCopy">Copiar ruta del original</button><button type="button" id="ovClose">Cerrar</button></div>
+      <span class="note" id="ovMsg"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = /*DATOS*/[];
+const ROOT = "C:\\Users\\cebus\\Dropbox\\ALWTTT References\\";
+const ST = ["incorporada","parcial","pendiente","no-aplica"];
+const STC = {incorporada:"var(--inc)",parcial:"var(--par)",pendiente:"var(--pen)","no-aplica":"var(--na)"};
+const STL = {incorporada:"Incorporada",parcial:"Parcial",pendiente:"Pendiente","no-aplica":"No aplica"};
+const CAT = {"cartas":"Cartas","enemigos-publico":"Público y enemigos","bocetos-propios":"Tu cuaderno","personajes-banda":"Personajes y banda","combate-flujo":"Combate y flujo","eventos":"Eventos","run-y-mapa":"Partida y mapa","ui-claridad":"UI y claridad","nave-y-escenarios":"Nave y escenarios","teoria-diseno":"Charlas de diseño","tienda-y-recompensas":"Tienda y recompensas","otros":"Otros","tutorial-onboarding":"Tutorial","prototipo-propio":"Capturas propias","musica":"Música"};
+const by = id => DATA.find(d => d.i === id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const count = (arr, f) => arr.reduce((m, x) => (m[f(x)] = (m[f(x)] || 0) + 1, m), {});
+
+// portada
+document.getElementById("strip").innerHTML = [27,192,274,222,133,291,157,158,297,243,190,306,112,280,153,202,318]
+  .map(i => `<img src="${by(i).img}" alt="">`).join("");
+const ce = count(DATA, d => d.estado);
+const apl = DATA.length - ce["no-aplica"];
+document.getElementById("stats").innerHTML = [
+  [DATA.length, "referencias: 307 imágenes y 18 vídeos"],
+  [ce.incorporada, "ideas que ya están en el juego"],
+  [ce.pendiente, "ideas que todavía no están"],
+  [DATA.filter(d => d.carpeta === "(raíz)").length, "sueltas en la raíz, sin carpeta"],
+].map(([n, t]) => `<div class="stat"><b class="mono">${n}</b><span>${t}</span></div>`).join("");
+
+// veredicto
+const pct = k => Math.round(100 * ce[k] / DATA.length);
+document.getElementById("verdict").innerHTML = ST.map(k => `<div style="width:${100*ce[k]/DATA.length}%;background:${STC[k]}" title="${STL[k]}: ${ce[k]}">${ce[k]}</div>`).join("");
+document.getElementById("verdictText").innerHTML = `De las ${apl} referencias que traen una idea para el juego, <span class="inc">${ce.incorporada} ya están</span> (${Math.round(100*ce.incorporada/apl)} %), <span class="par">${ce.parcial} están a medias</span> (${Math.round(100*ce.parcial/apl)} %) y <span class="pen">${ce.pendiente} faltan</span> (${Math.round(100*ce.pendiente/apl)} %). «A medias» suele querer decir que la idea existe en el repo pero fuera de la demo: eventos, nave, mapa de sectores.`;
+
+// meses (de 2024-08 a 2026-08; la de 2022 se cuenta aparte)
+(function(){
+  const ms = []; for (let y = 2024, m = 8; y < 2026 || (y === 2026 && m <= 8); m++) { if (m > 12) { m = 1; y++; } ms.push(`${y}-${String(m).padStart(2,"0")}`); }
+  const by = {}; DATA.forEach(d => { const k = d.fecha.slice(0,7); (by[k] = by[k] || {}); by[k][d.estado] = (by[k][d.estado] || 0) + 1; });
+  const W = 860, H = 260, L = 34, B = 40, T = 24, bw = (W - L - 10) / ms.length;
+  const max = 100, y = v => H - B - (H - B - T) * v / max;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Referencias guardadas por mes, apiladas por estado">`;
+  [0,25,50,75,100].forEach(v => s += `<line x1="${L}" x2="${W-10}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`);
+  ms.forEach((k, j) => {
+    let acc = 0; const x = L + j * bw + 2;
+    ST.forEach(e => { const v = (by[k] || {})[e] || 0; if (!v) return; s += `<rect x="${x}" width="${bw-4}" y="${y(acc+v)}" height="${y(acc)-y(acc+v)}" fill="${STC[e]}"><title>${k} · ${STL[e]}: ${v}</title></rect>`; acc += v; });
+    if (acc) s += `<text x="${x+(bw-4)/2}" y="${y(acc)-5}" text-anchor="middle" style="fill:var(--ink-2)">${acc}</text>`;
+    if (k.endsWith("-01") || k === ms[0]) s += `<text x="${x}" y="${H-B+16}">${k.slice(0,4)}</text>`;
+    s += `<text x="${x+(bw-4)/2}" y="${H-B+30}" text-anchor="middle" style="font-size:9px">${"EFMAMJJASOND"[+k.slice(5)-1]}</text>`;
+  });
+  s += `</svg>`;
+  document.getElementById("months").innerHTML = s;
+})();
+
+// fuentes
+(function(){
+  const cf = count(DATA, d => d.fuente);
+  const top = Object.entries(cf).sort((a,b) => b[1]-a[1]).slice(0, 12), max = top[0][1];
+  document.getElementById("sources").innerHTML = top.map(([f, n]) => {
+    const seg = ST.map(e => { const v = DATA.filter(d => d.fuente === f && d.estado === e).length; return v ? `<div style="width:${100*v/max}%;background:${STC[e]}" title="${STL[e]}: ${v}"></div>` : ""; }).join("");
+    return `<div class="row"><span class="name" title="${esc(f)}">${esc(f)}</span><div class="track">${seg}</div><span class="n">${n}</span></div>`;
+  }).join("");
+})();
+
+// tabla
+(function(){
+  const cats = Object.entries(count(DATA, d => d.categoria)).sort((a,b) => b[1]-a[1]);
+  const max = 22;
+  let h = `<thead><tr><th>Tema</th>${ST.map(e => `<th style="text-align:center">${STL[e]}</th>`).join("")}<th style="text-align:center">Total</th></tr></thead><tbody>`;
+  cats.forEach(([c, n]) => {
+    h += `<tr><td>${esc(CAT[c] || c)}</td>` + ST.map(e => { const v = DATA.filter(d => d.categoria === c && d.estado === e).length; const a = Math.round(8 + 70 * v / max);
+      return `<td class="c" style="background:${v ? `color-mix(in srgb, ${STC[e]} ${a}%, transparent)` : "transparent"};color:${v > 9 ? "var(--stage)" : "var(--ink)"}">${v || ""}</td>`; }).join("") + `<td class="c">${n}</td></tr>`;
+  });
+  document.getElementById("cats").innerHTML = h + "</tbody>";
+})();
+
+// hallazgos
+const FINDS = [
+  [274, "Tus notas en rojo se volvieron mecánicas", "En agosto de 2025 anotaste capturas de Monster Train. «Los altos tapan la vista» hoy es Tall y Tapar la Vista; «Melee Weakness = Extra Vibe» es Cautivado; «gear estilo luces, humo» son las cartas de efectos de escenario.", ["274","306","153"], "incorporada"],
+  [222, "Los cuatro músicos salieron del cuaderno", "Robot C2, Conito, Sibi y Ziggy están en el juego tal como los escribiste. A Conito le diste «controla electricidad»: hoy genera Voltaje y tiene Sobrecarga. El «in the spotlight» de su ficha es hoy Spotlight, aunque la carta es de C2. Los «Singing Fields» de Sibi son la carta Campo Cantor.", ["221","222","223","224"], "incorporada"],
+  [202, "Del boceto a la carta: el guiño", "El «Cosmic Wink» del cuaderno es ¡GUIÑO!, la carta que aplica Cautivado; la captura del juego de diciembre de 2025 lo muestra ya con su tooltip. Count-In también existe; Raw Scream, Mic Drop y Catharsis siguen en papel.", ["202","192","205"], "parcial"],
+  [243, "Junio de 2025: 93 capturas en un mes", "El cuaderno fecha la «ALWTTT Gamescom Demo» el 24-06-25: pantalla de inicio, elegir género, alineación, turno del jugador, turno del público. Ese mes miraste Slay the Spire y Griftlands a fondo.", ["243","244","245"], "parcial"],
+  [158, "La pantalla previa al gig: la idea que más vuelve", "Seis referencias, de Monster Train, Griftlands y tu cuaderno: antes de tocar, saber quién es el público, qué le gusta, qué condiciones hay y qué ganas. No está en el juego. Para la demo ayudaría a «cómo se gana».", ["145","151","158","246"], "pendiente"],
+  [157, "«Llevo como 100 horas y recién lo vi»", "Tu nota sobre el botón Deshacer de Monster Train: que sea mucho más evidente. ALWTTT no tiene deshacer. Into the Breach lo pone junto a Terminar turno.", ["157","110"], "pendiente"],
+  [190, "La intención del público está, pero en texto", "Ataques telegrafiados (Into the Breach) y la intención de Slay the Spire, con icono y número. ALWTTT telegrafía lo que hará el público, como texto. Es la mitad «lo que recibes» que el dossier de claridad marcó como hueco.", ["29","189","190","259"], "parcial"],
+  [133, "Griftlands: negociar es convencer", "24 referencias. Argumentos con resolución como objetivos, relaciones que te quieren o te odian, mazo de negociación. Es el juego más parecido a convencer a un público con cartas.", ["132","133","136","140"], "parcial"],
+  [291, "La nave ya existe, fuera de la demo", "Space Dandy, Cowboy Bebop, Star Trek y FTL para el interior de la nave de ensayo. La escena Ship Interior y el mapa de sectores están en el repo; la demo va por el mapa lineal.", ["290","291","294","298"], "parcial"],
+  [275, "Un público con oficios", "Anotaste público de apoyo, sanadores que «desconvencen» a otros y gente que se va si no la convences a tiempo. El público de hoy tiene gustos e intenciones, no roles entre ellos.", ["273","275","278"], "pendiente"],
+  [297, "Tenacious D en la carpeta Specials", "La única referencia de esa carpeta: un acorde que lanza rayos. El movimiento especial de la banda no existe todavía.", ["297"], "pendiente"],
+  [280, "Casi no hay música", "De 325 referencias, cinco son de música (Mozart y leer ritmos) y una de un juego musical (Hi-Fi Rush). Lo musical lo pone MidiGenPlay, con su editor de progresiones; las referencias son de deckbuilders.", ["280","281","4"], "incorporada"],
+];
+document.getElementById("finds").innerHTML = FINDS.map(([i, t, p, refs, e]) => `<article class="find">
+  <div class="ph" data-i="${i}" role="button" tabindex="0" aria-label="Ver referencia ${i}"><img src="${by(i).img}" alt="${esc(by(i).descripcion)}"></div>
+  <div class="tx"><h3>${esc(t)}</h3><p>${esc(p)}</p><div class="chips"><span class="chip ${e === "incorporada" ? "inc" : e === "parcial" ? "par" : "pen"}">${STL[e]}</span>${refs.map(r => `<span class="chip">i ${r}</span>`).join("")}</div></div></article>`).join("");
+
+// explorador
+const sel = (id, label, vals, fmt = v => v) => { document.getElementById(id).innerHTML = `<option value="">${label}</option>` + vals.map(v => `<option value="${esc(v)}">${esc(fmt(v))}</option>`).join(""); };
+sel("fEstado", "Todos", ST, v => STL[v]);
+sel("fCat", "Todos", Object.keys(CAT).filter(c => DATA.some(d => d.categoria === c)), v => CAT[v]);
+sel("fFuente", "Todos", Object.entries(count(DATA, d => d.fuente)).sort((a,b) => b[1]-a[1]).map(x => x[0]));
+sel("fCarpeta", "Todas", Object.entries(count(DATA, d => d.carpeta)).sort((a,b) => b[1]-a[1]).map(x => x[0]));
+let list = [], shown = 0; const PAGE = 60;
+function apply(){
+  const g = id => document.getElementById(id).value, q = g("fQ").trim().toLowerCase();
+  list = DATA.filter(d => (!g("fEstado") || d.estado === g("fEstado")) && (!g("fCat") || d.categoria === g("fCat")) && (!g("fFuente") || d.fuente === g("fFuente")) && (!g("fCarpeta") || d.carpeta === g("fCarpeta"))
+    && (g("fVer") !== "dest" || d.destacada) && (g("fVer") !== "demo" || d.demo)
+    && (!q || String(d.i) === q || [d.descripcion, d.fuente, d.tema, d.nota, d.path, CAT[d.categoria]].join(" ").toLowerCase().includes(q)));
+  list.sort((a,b) => (b.destacada - a.destacada) || (a.i - b.i));
+  shown = 0; document.getElementById("grid").innerHTML = ""; more();
+  document.getElementById("count").textContent = `${list.length} de ${DATA.length} referencias`;
+}
+function more(){
+  document.getElementById("grid").insertAdjacentHTML("beforeend", list.slice(shown, shown + PAGE).map(d => `<button class="card" type="button" data-i="${d.i}" data-e="${d.estado}">
+    <div class="ph"><img src="${d.img}" alt="" loading="lazy"></div>
+    <div class="meta"><span class="d">${esc(d.descripcion)}</span><span class="s">i ${d.i} · ${esc(d.fuente)}${d.tipo_archivo === "video" ? " · vídeo" : ""}${d.destacada ? " · ★" : ""}</span></div></button>`).join(""));
+  shown = Math.min(list.length, shown + PAGE);
+  document.getElementById("more").hidden = shown >= list.length;
+}
+["fEstado","fCat","fFuente","fCarpeta","fVer"].forEach(id => document.getElementById(id).addEventListener("change", apply));
+document.getElementById("fQ").addEventListener("input", apply);
+document.getElementById("more").addEventListener("click", more);
+
+// vista ampliada
+const ov = document.getElementById("ov"); let cur = null, last = null;
+function open(i){
+  const d = by(i); cur = d; last = document.activeElement;
+  document.getElementById("ovImg").src = d.img; document.getElementById("ovImg").alt = d.descripcion;
+  document.getElementById("ovT").textContent = d.descripcion;
+  const rows = [["Estado", `<span class="chip ${d.estado === "incorporada" ? "inc" : d.estado === "parcial" ? "par" : d.estado === "pendiente" ? "pen" : "na"}">${STL[d.estado]}</span>`],
+    ["Nota", esc(d.nota) || "—"], ["Origen", esc(d.fuente)], ["Tema", esc(CAT[d.categoria] || d.categoria) + (d.tema ? ` · ${esc(d.tema)}` : "")],
+    ["Fecha", d.fecha], ["Archivo", `<span class="mono">${esc(d.path)}</span>${d.tipo_archivo === "video" ? " (vídeo; se ve un fotograma)" : ""}`], ["Número", `i ${d.i}${d.destacada ? " · destacada" : ""}${d.demo ? " · toca la demo" : ""}`]];
+  document.getElementById("ovDl").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  document.getElementById("ovMsg").textContent = "";
+  ov.hidden = false; document.getElementById("ovClose").focus();
+}
+function close(){ ov.hidden = true; if (last) last.focus(); }
+document.addEventListener("click", e => { const t = e.target.closest("[data-i]"); if (t && !ov.contains(t)) open(+t.dataset.i); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) close(); if ((e.key === "Enter" || e.key === " ") && e.target.matches(".find .ph")) { e.preventDefault(); open(+e.target.dataset.i); } });
+ov.addEventListener("click", e => { if (e.target === ov) close(); });
+document.getElementById("ovClose").addEventListener("click", close);
+document.getElementById("ovCopy").addEventListener("click", () => {
+  const p = ROOT + cur.path.replace(/\//g, "\\"), msg = document.getElementById("ovMsg");
+  navigator.clipboard.writeText(p).then(() => msg.textContent = "Ruta copiada.", () => msg.textContent = p);
+});
+apply();
+</script>

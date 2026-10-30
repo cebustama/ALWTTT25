@@ -1,0 +1,326 @@
+i;categoria;fuente;descripcion;tema;estado;nota;destacada;demo
+0;cartas;Monster Train;combate con carta y tooltips apilados (Holdover, Stealth);tooltips;incorporada;pila de hover por carta (M1.3c);0;0
+1;cartas;Monster Train;carta Reform con tooltips apilados de palabras clave;tooltips;incorporada;pila de hover (M1.3c);0;0
+2;run-y-mapa;Monster Train;libro de progreso de clanes y colección de cartas;meta-progresion;pendiente;sin meta-progresión entre partidas;0;0
+3;nave-y-escenarios;FTL;planta de la nave con salas y sistemas;nave;parcial;escena Ship Interior en el repo, fuera de la demo;0;0
+4;nave-y-escenarios;Hi-Fi Rush;portada: banda y mundo que se mueven al compás;ritmo;parcial;latido del número grande al compás (BEAT-1); la escena entera no;0;0
+5;personajes-banda;Darkest Dungeon;roster de héroes con nivel de resolución y equipo;roster;pendiente;sin roster ampliable ni niveles de músico;0;0
+6;ui-claridad;Loop Hero;hover que compara el objeto equipado con el nuevo;hover;parcial;hay hovers de carta y estado; sin comparación;0;0
+7;run-y-mapa;Into the Breach;selección de escuadra con escuadras bloqueadas;seleccion-banda;parcial;escena Band Setup en el repo; en la demo, qué 2 músicos sigue abierto;0;1
+8;personajes-banda;RimWorld;ánimo del colono como lista de modificadores con números;animo;parcial;hay Estrés; sin desglose de causas del ánimo;0;0
+9;personajes-banda;RimWorld;relaciones entre colonos y registro de charlas;relaciones;pendiente;la Cohesión es de banda, no entre pares;0;0
+10;combate-flujo;Darkest Dungeon;combate lateral: grupo a la izquierda, enemigos a la derecha;layout;incorporada;banda frente al público;0;0
+11;eventos;RimWorld;registro de combate y estado del personaje muerto;registro;no-aplica;;0;0
+12;otros;RimWorld;mapa de la colonia con muchos animales;;no-aplica;;0;0
+13;personajes-banda;RimWorld;panel de salud por partes del cuerpo;salud;no-aplica;;0;0
+14;otros;RimWorld;colonos durmiendo en el dormitorio;;no-aplica;;0;0
+15;personajes-banda;RimWorld;evento social: propuesta de matrimonio rechazada;relaciones;pendiente;conflictos entre músicos: idea de rehearsal (Phase C);0;0
+16;personajes-banda;RimWorld;pelea social por insultos en el registro;relaciones;pendiente;idem;0;0
+17;teoria-diseno;charla (decisiones);características de las decisiones interesantes;decisiones;no-aplica;;0;0
+18;teoria-diseno;charla (decisiones);tipos de decisión: metas a corto, medio y largo plazo;decisiones;no-aplica;;0;0
+19;teoria-diseno;charla (decisiones);usar convenciones del género y luego ir más allá;decisiones;no-aplica;;0;0
+20;teoria-diseno;charla (decisiones);cómo hacer más interesantes las decisiones;decisiones;no-aplica;;0;0
+21;cartas;Monster Train;vista del mazo con cartas de unidad y hechizo;vista-mazo;incorporada;hay vista de mazo y pilas;0;0
+22;cartas;Monster Train;Hornbreaker Prince con cuatro tooltips de palabras clave;tooltips;incorporada;M1.3c;0;0
+23;eventos;Monster Train;evento de texto con opciones que dicen su resultado;evento;parcial;RandomEventCanvas en el repo, fuera de la demo;0;0
+24;combate-flujo;Monster Train;contador de energía (ember) y vida de la pira;energia;incorporada;Inspiración como energía;0;0
+25;ui-claridad;Monster Train;botón Terminar turno con atajo de teclado y tooltip;fin-turno;parcial;no comprobado el atajo;0;0
+26;combate-flujo;Monster Train;combate por pisos con mano y pira;layout;no-aplica;;0;0
+27;cartas;Monster Train;Railbeater con Armor, Strike y Melee Weakness;tooltips;incorporada;pila de hover;0;0
+28;teoria-diseno;Into the Breach (GDC);postmortem: del prototipo al juego final;proceso;no-aplica;;0;0
+29;teoria-diseno;Into the Breach (GDC);árbol de restricciones: ataques telegrafiados;intencion;incorporada;el público telegrafía su intención;1;0
+30;personajes-banda;Darkest Dungeon;rezar baja estrés y da una rareza (quirk);estres;parcial;hay Estrés; sin rarezas;0;0
+31;cartas;Monster Train;Hornbreaker Prince con Slay, Armor, Revenge, Rage;tooltips;incorporada;M1.3c;0;0
+32;ui-claridad;Monster Train;números y estados flotantes sobre las unidades en combate;feedback;incorporada;texto flotante y WINK-1;0;0
+33;run-y-mapa;Monster Train;pantalla de derrota con puntuación y batallas;derrota;parcial;COH-1 en curso: panel de derrota con «Continuar»;0;1
+34;cartas;Monster Train;vista del mazo en rejilla;vista-mazo;incorporada;;0;0
+35;personajes-banda;RimWorld;prioridades de trabajo por colono;roles;no-aplica;;0;0
+36;eventos;RimWorld;mensaje de facción que pide parlamentar;evento;no-aplica;;0;0
+37;personajes-banda;RimWorld;salud de un lobo herido;salud;no-aplica;;0;0
+38;personajes-banda;RimWorld;salud de un lobo herido (repetida);salud;no-aplica;duplicado de 37;0;0
+39;tutorial-onboarding;Marvel's Midnight Suns;ventana Cómo jugar: tipos de carta y jugadas por turno;tutorial;incorporada;tutorial guiado en español (TUT-REBUILD);0;0
+40;tutorial-onboarding;Marvel's Midnight Suns;ventana: cartas de ataque y heroísmo;tutorial;incorporada;;0;0
+41;tutorial-onboarding;Marvel's Midnight Suns;ventana: cartas heroicas y su coste;tutorial;incorporada;;0;0
+42;tutorial-onboarding;Marvel's Midnight Suns;ventana de tutorial: cartas de habilidad;tutorial;incorporada;;0;0
+43;tienda-y-recompensas;Marvel's Midnight Suns;elegir 1 habilidad entre tres cartas;recompensa;incorporada;elección de recompensa (S5h);0;0
+44;personajes-banda;Marvel's Midnight Suns;diálogo con Blade, notas a mano sobre conversaciones;dialogo;pendiente;conversaciones con músicos (Phase C);1;0
+45;tienda-y-recompensas;Marvel's Midnight Suns;mejorar habilidades con esencias;mejora-carta;pendiente;diseño en Design_Track_Card_Levels;0;0
+46;eventos;Monster Train;evento del forastero misterioso con dos opciones;evento;parcial;sistema de eventos en el repo, fuera de la demo;0;0
+47;eventos;Monster Train;mismo evento, hover sobre la carta que se gana;evento;parcial;;0;0
+48;eventos;Monster Train;evento: Dante se une con su capa;evento;parcial;;0;0
+49;enemigos-publico;Monster Train;hover de Dante the Deceptive con Multistrike;tooltips;incorporada;;0;0
+50;eventos;Monster Train;evento de la destilería con tres opciones;evento;parcial;;0;0
+51;personajes-banda;The Sims;Sim junto al buzón;sim-social;no-aplica;;0;0
+52;personajes-banda;The Sims;menú circular de interacciones sociales;sim-social;pendiente;hablar con músicos en rehearsal (Phase C);0;0
+53;personajes-banda;Marvel's Midnight Suns;quedada terminada con recompensas de amistad;relaciones;pendiente;;0;0
+54;run-y-mapa;Monster Train;desafíos: Hell Rush, diario, comunidad;modos;pendiente;;0;0
+55;combate-flujo;Marvel's Midnight Suns;vídeo de combate con ataque en área;combate;no-aplica;vídeo;0;0
+56;combate-flujo;Marvel's Midnight Suns;objetivo de misión como carta: salvar a Dahlia;objetivo;pendiente;sin objetivos secundarios en el gig;0;0
+57;otros;historia de los JRPG (vídeo);menú de nombres y peinados de un JRPG antiguo;retro;no-aplica;;0;0
+58;otros;historia de los JRPG (vídeo);JRPG en primera persona con mazmorra de líneas;retro;no-aplica;;0;0
+59;otros;historia de los JRPG (vídeo);combate por grupos: héroes contra momias;retro;no-aplica;;0;0
+60;otros;historia de los JRPG (vídeo);combate por grupos: héroes contra ogros;retro;no-aplica;;0;0
+61;otros;historia de los JRPG (vídeo);combate lateral en pixel art;retro;no-aplica;;0;0
+62;run-y-mapa;Balatro;nueva partida: mazo bloqueado, pozo de dificultad, semilla;inicio-run;pendiente;;0;0
+63;otros;RimWorld;jabalí muerto e informe de la sala;;no-aplica;;0;0
+64;ui-claridad;Final Fantasy Tactics;previsualización: % de acierto y vida antes de atacar;prevision;parcial;Vibe proyectado (C3, BIGNUM-1); LEGIB-1 pendiente;1;1
+65;ui-claridad;Final Fantasy Tactics;previsualización de ataque con % y vida de ambos;prevision;parcial;idem;0;1
+66;ui-claridad;Final Fantasy Tactics Advance;texto de área «daña unidades cercanas» y daño previsto;prevision;parcial;idem;0;1
+67;ui-claridad;XCOM;previsualización de disparo: % de acierto, crítico, daño;prevision;parcial;idem;0;1
+68;otros;RimWorld;calidad de una sala;;no-aplica;;0;0
+69;eventos;RimWorld;un colono abandona la colonia por mal ánimo;abandono;pendiente;que un músico se vaya: la cohesión cubre la derrota de banda;0;0
+70;personajes-banda;Katana Zero;diálogo con respuesta interrumpible;dialogo;no-aplica;;0;0
+71;personajes-banda;Katana Zero;elegir entre matar o escuchar sus últimas palabras;dialogo;no-aplica;;0;0
+72;personajes-banda;Katana Zero;diálogo con texto animado y colores;dialogo;parcial;tutorial con texto letra a letra;0;0
+73;personajes-banda;Creatures;kit científico: genética de una criatura;especies;no-aplica;;0;0
+74;eventos;RimWorld;muerte de un colono y su causa;registro;no-aplica;;0;0
+75;combate-flujo;Monster Train 2;vídeo: fase de despliegue con cartas;combate;no-aplica;vídeo;0;0
+76;run-y-mapa;Monster Train;niveles de clan y colección de cartas;meta-progresion;pendiente;;0;0
+77;run-y-mapa;Slay the Spire;vídeo: mapa con leyenda de nodos;mapa;parcial;mapa lineal en la demo; sector map en el repo;0;0
+78;tienda-y-recompensas;Slay the Spire;vídeo: poción en la barra superior;consumible;pendiente;sin consumibles;0;0
+79;tienda-y-recompensas;Slay the Spire;vídeo: tienda de cartas y servicio de borrar carta;tienda;pendiente;sin tienda;0;0
+80;ui-claridad;Fights in Tight Spaces;vídeo: casillas del ataque posible del enemigo;intencion;parcial;intención en texto; sin mostrar el alcance;0;0
+81;eventos;Slay the Spire;Neow: diálogo inicial con cuatro bendiciones;evento;parcial;del diálogo de Neow sale el tutorial; las bendiciones no;0;0
+82;eventos;Slay the Spire;Neow ampliado: bendiciones con coste;evento;parcial;;0;0
+83;ui-claridad;Slay the Spire;tooltip de casilla de orbe;tooltips;no-aplica;mecánica de orbes;0;0
+84;ui-claridad;Slay the Spire;tooltip del orbe Rayo: pasivo y evocado;tooltips;no-aplica;;0;0
+85;cartas;Slay the Spire;Dualcast con palabra clave Evoke explicada;keyword;incorporada;palabras clave con tooltip (TXT-2);0;0
+86;eventos;Slay the Spire;evento del laboratorio con una opción;evento;parcial;;0;0
+87;ui-claridad;Slay the Spire;hover de estados del jugador: Focus y Loop;estado;incorporada;iconos de estado con hover (M1.8);0;0
+88;cartas;Slay the Spire;Force Field con Energy y Block explicados;keyword;incorporada;;0;0
+89;tienda-y-recompensas;Slay the Spire;carta en oferta en la tienda;tienda;pendiente;;0;0
+90;tienda-y-recompensas;Slay the Spire;elegir una carta de tres o saltar;recompensa;incorporada;S5h;0;0
+91;tienda-y-recompensas;Slay the Spire;Double Energy+ con casilla Ver mejora;mejora-carta;pendiente;diseño en Design_Track_Card_Levels;0;0
+92;cartas;Slay the Spire;Reprogram con tres palabras clave explicadas;keyword;incorporada;;0;0
+93;cartas;Slay the Spire;Echo Form y la palabra clave Ethereal;keyword;incorporada;existe Etéreo;0;0
+94;run-y-mapa;Slay the Spire;cartas desbloqueadas para futuras partidas;desbloqueo;pendiente;;0;0
+95;cartas;Monster Train;Morselmaker con unidades invocadas explicadas;tooltips;incorporada;;0;0
+96;cartas;Slay the Spire;vista del mazo de partida;vista-mazo;incorporada;;0;0
+97;cartas;Slay the Spire;maldición Doubt: injugable y da Weak;carta-negativa;pendiente;el público no mete cartas malas en tu mazo;0;0
+98;run-y-mapa;Monster Train;victoria con récords personales;victoria;parcial;hay resultado del gig; sin récords;0;0
+99;cartas;Monster Train;filtros de la colección por clan y tipo;filtros;pendiente;;0;0
+100;tienda-y-recompensas;Slay the Spire;elegir reliquia de jefe;reliquia;pendiente;sin reliquias;0;0
+101;cartas;Slay the Spire;Glass Knife: daño que baja cada uso;carta;no-aplica;;0;0
+102;cartas;Slay the Spire;vista del mazo ordenada por tipo y coste;vista-mazo;parcial;sin ordenar ni filtrar;0;0
+103;cartas;Slay the Spire;Crush Joints con nota a mano: resaltar si se cumple;condicion;pendiente;resaltar la carta cuando su condición se cumple;1;0
+104;cartas;Fights in Tight Spaces;carta con iconos de empuje y daño;iconos;incorporada;glifos en la cara de la carta (CARD-FACE);0;0
+105;tutorial-onboarding;Fights in Tight Spaces;tutorial sobre usar el entorno;tutorial;no-aplica;;0;0
+106;cartas;Slay the Spire;Disarm con Strength y Exhaust;keyword;incorporada;existe Agotar;0;0
+107;cartas;Slay the Spire;Demon Form y Strength;keyword;incorporada;;0;0
+108;combate-flujo;Into the Breach;misión con objetivos extra antes de empezar;objetivo;pendiente;sin objetivos extra en el gig;0;0
+109;run-y-mapa;Into the Breach;selección de escuadra con monedas;seleccion-banda;parcial;Band Setup en el repo;0;0
+110;ui-claridad;Into the Breach;estado de la unidad y botón Deshacer movimiento;deshacer;pendiente;sin deshacer;0;0
+111;tienda-y-recompensas;Slay the Spire;tienda con reliquia Dolly's Mirror;tienda;pendiente;;0;0
+112;prototipo-propio;ALWTTT;prototipo: elegir canción, expectativas, cartas sin Groove;prototipo;incorporada;el bucle base sigue;1;0
+113;prototipo-propio;ALWTTT;prototipo: banda en escenario y público en siluetas;prototipo;incorporada;;0;0
+114;prototipo-propio;ALWTTT;prototipo: escenario con más público;prototipo;incorporada;;0;0
+115;prototipo-propio;ALWTTT;prototipo: NewSong, 20 %, carta Motivational Speech;prototipo;incorporada;;0;0
+116;prototipo-propio;ALWTTT;prototipo: medidor vertical sobre el público;prototipo;incorporada;;0;0
+117;prototipo-propio;ALWTTT;prototipo: cartas con coste y ENG;prototipo;incorporada;;0;0
+118;cartas;Monster Train;Feast y Cannibalize con la palabra Eaten;keyword;incorporada;;0;0
+119;tienda-y-recompensas;Monster Train;mercader de mejoras de hechizo;tienda;pendiente;;0;0
+120;tienda-y-recompensas;roguelike (sin identificar);tienda con artefactos, hechizos y pactos;tienda;pendiente;;0;0
+121;eventos;Slay the Spire;evento Bonfire Spirits;evento;parcial;;0;0
+122;cartas;Slay the Spire;Combust: pierde vida, daña a todos;carta;no-aplica;;0;0
+123;ui-claridad;Slay the Spire;vídeo: hover de intención Strategic sobre el enemigo;intencion;parcial;intención en texto; icono con escala pendiente;0;1
+124;eventos;Slay the Spire;evento Mind Bloom con tres opciones arriesgadas;evento;parcial;;0;0
+125;run-y-mapa;Monster Train;preparar la partida: clanes, pira y rango;inicio-run;pendiente;;0;0
+126;run-y-mapa;Slay the Spire;pantalla de muerte con puntuación desglosada;derrota;parcial;COH-1 en curso;0;1
+127;personajes-banda;Griftlands;vídeo: diálogo con retrato;dialogo;pendiente;;0;0
+128;personajes-banda;Griftlands;vídeo: diálogo de reencuentro;dialogo;pendiente;;0;0
+129;eventos;Slay the Spire;derrota ante el Corazón con texto narrativo;derrota;no-aplica;;0;0
+130;personajes-banda;Griftlands;selección de personaje con otros bloqueados;seleccion-banda;parcial;Band Setup en el repo;0;0
+131;cartas;Griftlands;mazo inicial de Sal junto al personaje;mazo-inicial;incorporada;mazo inicial por músico;0;0
+132;combate-flujo;Griftlands;negociación: argumentos como objetivos, Resolve;negociacion;parcial;convencer al público se parece a negociar;1;0
+133;combate-flujo;Griftlands;argumento Influence con pilas;negociacion;parcial;;0;0
+134;enemigos-publico;Griftlands;argumento rival Suspicion;negociacion;parcial;;0;0
+135;cartas;Griftlands;Gruff: crea un argumento y se expande;carta;no-aplica;;0;0
+136;personajes-banda;Griftlands;Ruck te quiere: beneficio de relación;relaciones;pendiente;;0;0
+137;eventos;Griftlands;comprar una bebida: cartas y relación;evento;pendiente;;0;0
+138;combate-flujo;Griftlands;combate con carta Execute;combate;no-aplica;;0;0
+139;cartas;Griftlands;carta de negociación con progreso de mejora 0/9;mejora-carta;pendiente;mejora por uso;0;0
+140;personajes-banda;Griftlands;visitante Rake te tiene antipatía;relaciones;pendiente;;0;0
+141;enemigos-publico;Griftlands;bestia con estados en iconos y vida;estado;incorporada;;0;0
+142;run-y-mapa;Griftlands;personaje desbloqueado: Rook;desbloqueo;pendiente;;0;0
+143;tutorial-onboarding;Griftlands;tutorial: juega esta carta para continuar;tutorial;incorporada;tutorial guiado;0;0
+144;cartas;Griftlands;Intimidate injugable en mano;carta-negativa;pendiente;;0;0
+145;combate-flujo;Griftlands;pantalla previa al combate: Rook contra Gorgula;pre-gig;pendiente;;0;1
+146;combate-flujo;deckbuilder dibujado (sin identificar);golpe con número grande sobre el enemigo;feedback;incorporada;número grande y JUICE;0;0
+147;tienda-y-recompensas;juego sin identificar;árbol de mejora de una carta;mejora-carta;pendiente;;0;0
+148;run-y-mapa;Monster Train;anotado: nodos de descanso que quitan estrés;descanso;pendiente;el mapa lineal no tiene descanso;1;0
+149;ui-claridad;Monster Train;anotado: hacer más evidentes los efectos que se disparan;trigger;parcial;JUICE-PW muestra el efecto de la carta; disparadores pasivos no;1;1
+150;eventos;Monster Train;anotado: personajes de eventos al azar (Historian);evento;parcial;;0;0
+151;combate-flujo;Monster Train;pantalla previa al gig: jefe y su habilidad;pre-gig;pendiente;;1;1
+152;combate-flujo;Monster Train;pantalla previa al gig (variante);pre-gig;pendiente;;0;1
+153;cartas;Monster Train;anotado: equipo de escenario: luces, humo;sfx;incorporada;cartas de sonido y efectos de escenario (Light Show);1;0
+154;enemigos-publico;Monster Train;anotado: Siphon se dispara con el colapso mental;breakdown;parcial;existe Breakdown; nada se dispara con él;0;0
+155;combate-flujo;Monster Train;anotado: prueba y recompensa antes del gig;pre-gig;pendiente;;0;0
+156;ui-claridad;Monster Train;anotado: disparar antes o después de la canción;timing;incorporada;momentos «al empezar la próxima parte», «final de la canción»;0;0
+157;ui-claridad;Monster Train;anotado: botón Deshacer muy evidente;deshacer;pendiente;sin deshacer;1;0
+158;combate-flujo;Monster Train;anotado: condiciones, info del público, preparar setlist;pre-gig;pendiente;;1;1
+159;enemigos-publico;Monster Train;Spikes y Pyregel en un enemigo;estado;parcial;Expuesto equivale a Pyregel; espinas no;0;0
+160;eventos;Monster Train;evento del Joker de Balatro;evento;parcial;;0;0
+161;combate-flujo;Monster Train;combate con muchos enemigos;combate;no-aplica;;0;0
+162;combate-flujo;Monster Train;combate en el piso Legion;combate;no-aplica;;0;0
+163;combate-flujo;Monster Train;vídeo: textos flotantes de Rage -1;feedback;incorporada;;0;0
+164;combate-flujo;Monster Train;vídeo: Corruption 25 y Extinguish;feedback;incorporada;;0;0
+165;cartas;Monster Train;Dante con cuatro tooltips;tooltips;incorporada;;0;0
+166;run-y-mapa;Monster Train;portal dimensional con mutadores;modos;pendiente;;0;0
+167;otros;juego sin identificar;criatura de piedra y carta del corazón;;no-aplica;;0;0
+168;combate-flujo;Monster Train;combate lleno;combate;no-aplica;;0;0
+169;personajes-banda;FTL;tripulación con botón Personalizar;personalizar;pendiente;;0;0
+170;combate-flujo;Monster Train;combate en la estación;combate;no-aplica;;0;0
+171;cartas;Monster Train;anotado: Reanimate = evitar el próximo Breakdown;breakdown;pendiente;;0;0
+172;nave-y-escenarios;anime (probable Cowboy Bebop);islas flotantes vistas desde arriba;ambientacion;no-aplica;estética;0;0
+173;nave-y-escenarios;anime (probable Cowboy Bebop);isla flotante sobre el desierto;ambientacion;no-aplica;estética;0;0
+174;nave-y-escenarios;anime (probable Cowboy Bebop);nave estrellada cubierta de vegetación;ambientacion;no-aplica;estética;0;0
+175;cartas;anime (probable Cowboy Bebop);láseres rojos desde el espacio: ref. SFX Space Laser Show;sfx;parcial;existe Light Show; el láser como tal no comprobado;1;0
+176;cartas;anime (probable Cowboy Bebop);láseres sobre las nubes: ref. SFX;sfx;parcial;;0;0
+177;cartas;anime (probable Cowboy Bebop);haces rojos entre escombros: ref. SFX;sfx;parcial;;0;0
+178;nave-y-escenarios;Cowboy Bebop;interior de nave con dos personajes;nave;parcial;;0;0
+179;nave-y-escenarios;anime (probable Cowboy Bebop);silueta de mezquitas al atardecer;ambientacion;no-aplica;;0;0
+180;nave-y-escenarios;anime (probable Cowboy Bebop);nave roja con un dragón pintado;nave;no-aplica;estética;0;0
+181;nave-y-escenarios;anime (probable Cowboy Bebop);bar de jazz con letrero de neón;venue;parcial;hay escenario de gig; este estilo no comprobado;0;0
+182;eventos;RimWorld;noticia de un artefacto legendario;evento;no-aplica;;0;0
+183;enemigos-publico;ilustración (sin identificar);cuatro cabezas de alienígenas como iconos;publico;parcial;público alienígena existe; estos diseños no;0;0
+184;combate-flujo;Balatro;comodín Ice Cream: fichas que bajan cada mano;puntuacion;no-aplica;;0;0
+185;combate-flujo;Balatro;comodín Walkie Talkie: fichas y multiplicador;puntuacion;parcial;cadena de puntuación visible (BIGNUM-1);0;0
+186;tienda-y-recompensas;Slay the Spire;tienda con reliquia Bottled Flame;reliquia;pendiente;;0;0
+187;combate-flujo;Balatro;mano con Jugar, Ordenar y Descartar;mano;parcial;no comprobado ordenar la mano;0;0
+188;eventos;Slay the Spire;evento Designer In-Spire;evento;parcial;;0;0
+189;ui-claridad;Slay the Spire;intención Aggressive y estados del enemigo apilados;intencion;parcial;intención en texto;0;1
+190;ui-claridad;Slay the Spire;intención Strategic: ataque y efecto negativo;intencion;parcial;intención en texto; icono con escala pendiente;1;1
+191;ui-claridad;Slay the Spire;flecha de objetivo desde la carta al enemigo;objetivo;incorporada;no comprobado el estilo de flecha;0;0
+192;prototipo-propio;ALWTTT;carta ¡GUIÑO! con tooltip de Cautivado ante el público;prototipo;incorporada;Captivated (R1);1;0
+193;tienda-y-recompensas;Slay the Spire;reliquia Mummified Hand;reliquia;pendiente;;0;0
+194;tienda-y-recompensas;Slay the Spire;reliquia Stone Calendar;reliquia;pendiente;;0;0
+195;cartas;Slay the Spire;biblioteca de cartas con filtros por color;filtros;pendiente;;0;0
+196;combate-flujo;Monster Train;combate con mano completa;combate;no-aplica;;0;0
+197;cartas;Griftlands;mazo de negociación inicial del personaje;mazo-inicial;incorporada;mazo inicial por músico;0;0
+198;cartas;Slay the Spire;Wish: elige una de tres ventajas;carta;pendiente;sin cartas de elegir;0;0
+199;run-y-mapa;Monster Train;jefe final y cartas iniciales al azar;inicio-run;pendiente;;0;0
+200;cartas;Monster Train;carta con texto de historia en el hover;lore;pendiente;;0;0
+201;bocetos-propios;cuaderno de Claudio;bocetos de carta: Vibe a todos, Hooked, robar;carta-propia;incorporada;Vibe a todos, Enganchados (Flow) y Agotar existen;1;0
+202;bocetos-propios;cuaderno de Claudio;Cosmic Wink y Raw Scream con Exposed;carta-propia;parcial;¡GUIÑO! y Expuesto existen; Raw Scream no;1;0
+203;bocetos-propios;cuaderno de Claudio;Ghostly Notes y bassline que da Flow;carta-propia;parcial;el bajo da Flow; Ghostly Notes no;0;0
+204;bocetos-propios;cuaderno de Claudio;Percussive Pulse: 2 Inspiración y 3 Flow;carta-propia;pendiente;;0;0
+205;bocetos-propios;cuaderno de Claudio;Count-In: Flow que arranca la sesión;carta-propia;incorporada;Conteo (Count-In) existe;0;0
+206;bocetos-propios;cuaderno de Claudio;Catharsis, Mic Drop, Dead Mic, Feedback;carta-propia;parcial;Feedback existe como estado;0;0
+207;bocetos-propios;cuaderno de Claudio;tablero de corcho con fichas de cartas;planificacion;no-aplica;;0;0
+208;personajes-banda;Griftlands;vídeo: retrato de Sal;personaje;no-aplica;;0;0
+209;ui-claridad;deckbuilder 3D (sin identificar);estados Wrath y Weakened sobre el personaje;estado;incorporada;;0;0
+210;personajes-banda;Griftlands;cargas de Rook y sobrecarga;recurso;incorporada;Voltaje: contador de recurso (Conito);1;0
+211;cartas;deckbuilder 3D (sin identificar);Signature Move: solo si es el único ataque;carta;pendiente;;0;0
+212;cartas;Marvel's Midnight Suns;mazo propio de Spider-Man;mazo-inicial;incorporada;mazo por músico;0;0
+213;enemigos-publico;Monster Train;Vanguard: bonus si va delante;posicion;pendiente;;0;0
+214;ui-claridad;Monster Train;lista larga de tooltips con «Alt para más»;tooltips;incorporada;M1.3c;0;0
+215;enemigos-publico;Monster Train;Dante con Multistrike 22 y Armor 384;escala;no-aplica;;0;0
+216;personajes-banda;juego sin identificar;campesino con talento sin descubrir;talento;pendiente;;0;0
+217;personajes-banda;pixel art (sin identificar);alienígena tocando un tambor con notas;personaje;parcial;la banda alienígena existe;0;0
+218;personajes-banda;FTL;vídeo: tripulación por especies;especies;pendiente;especies con rasgos de juego;0;0
+219;nave-y-escenarios;FTL;sala de la nave en llamas;nave;no-aplica;;0;0
+220;personajes-banda;FTL;especie humana y habilidades de tripulación;especies;pendiente;;0;0
+221;bocetos-propios;cuaderno de Claudio;ficha de Robot C2, el mago cyborg;personaje-propio;incorporada;Robot C2 existe; su arco no;1;0
+222;bocetos-propios;cuaderno de Claudio;ficha de Conito, Sparks: luces, electricidad, foco;personaje-propio;incorporada;Conito y Voltaje existen; Spotlight es carta de C2;1;0
+223;bocetos-propios;cuaderno de Claudio;ficha de Wormy / Sibi, warlock de la colmena;personaje-propio;incorporada;Sibi, Campo Cantor; Reina Gusano como jefa;1;0
+224;bocetos-propios;cuaderno de Claudio;ficha de Ziggy, el bardo egocéntrico;personaje-propio;parcial;Ziggy existe; la carta Signature no;0;0
+225;bocetos-propios;cuaderno de Claudio;ficha de Conito (copia);personaje-propio;incorporada;duplicado de 222;0;0
+226;bocetos-propios;cuaderno de Claudio;ficha de Ziggy (copia);personaje-propio;parcial;duplicado de 224;0;0
+227;bocetos-propios;cuaderno de Claudio;ficha de Robot C2 (copia);personaje-propio;incorporada;duplicado de 221;0;0
+228;bocetos-propios;cuaderno de Claudio;ficha de Wormy / Sibi (copia);personaje-propio;incorporada;duplicado de 223;0;0
+229;teoria-diseno;charla (azar);decisión estratégica → evento al azar (Hearthstone);azar;no-aplica;;0;0
+230;musica;charla (Mozart);biografía de Mozart: niño prodigio, improvisador;musica;no-aplica;;0;0
+231;musica;charla (Mozart);600 obras en 30 años y el Réquiem;musica;no-aplica;;0;0
+232;musica;charla (Mozart);cita de Amadeus sobre la música de Mozart;musica;no-aplica;;0;0
+233;musica;charla (Mozart);lista de conciertos para piano;musica;no-aplica;;0;0
+234;teoria-diseno;charla (Hearthstone);pequeñas victorias, emoción de ganar, agonía de perder;emocion;no-aplica;;0;0
+235;teoria-diseno;charla (Hearthstone);complejidad frente a profundidad;complejidad;no-aplica;;0;0
+236;teoria-diseno;charla (Hearthstone);gráfico complejidad × profundidad;complejidad;no-aplica;;0;0
+237;teoria-diseno;charla (Hearthstone);«ocho palabras en pantalla»;texto;no-aplica;TXT-2 recortó el texto un 30 %;1;0
+238;teoria-diseno;charla (Hearthstone);de Fire Blast a Holy Smite: simplificar el texto;texto;no-aplica;;0;0
+239;teoria-diseno;charla (Hearthstone);gráfico suerte × habilidad;azar;no-aplica;;0;0
+240;teoria-diseno;charla (Hearthstone);conclusiones: ingredientes, azar, simplificar;proceso;no-aplica;;0;0
+241;teoria-diseno;charla (Hearthstone);evento al azar → decisión estratégica;azar;no-aplica;;0;0
+242;bocetos-propios;cuaderno de Claudio;mapa de planetas, días de ensayo, interior de nave;mapa;parcial;Sector Map, ensayo y nave en el repo, fuera de la demo;1;0
+243;bocetos-propios;cuaderno de Claudio;demo de Gamescom 2025: inicio, género, alineación;inicio-run;parcial;menú y Band Setup; género fijo;1;0
+244;bocetos-propios;cuaderno de Claudio;turno del jugador: canción, cartas, actuación, reacción;turno;incorporada;es el bucle del gig;1;0
+245;bocetos-propios;cuaderno de Claudio;turno del público: acciones, peticiones, misiones;turno-publico;parcial;acciones e intenciones sí; peticiones y misiones no;1;0
+246;bocetos-propios;cuaderno de Claudio;gig disponible: dificultad, gustos, recompensas, reliquias;pre-gig;pendiente;;1;1
+247;bocetos-propios;cuaderno de Claudio;gig con barra de engagement, canciones y acciones;gig;incorporada;;0;0
+248;bocetos-propios;cuaderno de Claudio;crear canción y practicar, con cohesión;composicion;parcial;composición sí; práctica no;0;0
+249;bocetos-propios;cuaderno de Claudio;ensayo: jam, practicar, hablar; cohesión;ensayo;parcial;nodo Rehearsal en el repo; cohesión en la demo;0;0
+250;bocetos-propios;cuaderno de Claudio;inicio: crear personaje, género, compañeros, nombre;inicio-run;parcial;Band Setup en el repo;0;0
+251;bocetos-propios;cuaderno de Claudio;apuntes: cómo mejorar el combate por turnos;teoria;no-aplica;;0;0
+252;bocetos-propios;cuaderno de Claudio;apuntes: buenos sistemas de subir de nivel;progresion;pendiente;;0;0
+253;bocetos-propios;cuaderno de Claudio;apuntes: 10 consejos de Hearthstone (Eric Dodds);teoria;no-aplica;;0;0
+254;bocetos-propios;cuaderno de Claudio;apuntes: qué hace grande un deckbuilder, para ALWTTT;teoria;no-aplica;;1;0
+255;bocetos-propios;cuaderno de Claudio;ánimo del músico en cinco caras, hover de carta;animo;parcial;Estrés sí; caras con ±% no;1;0
+256;bocetos-propios;cuaderno de Claudio;UI de lista de canciones, de amor y de concierto;ui;parcial;;0;0
+257;bocetos-propios;cuaderno de Claudio;UI de canción y medidor de engagement;ui;parcial;;0;0
+258;enemigos-publico;Monster Train;anotado: distinguir enemigos con reacción a hechizos;reaccion;pendiente;;1;1
+259;enemigos-publico;Slay the Spire;intención Strategic y Poison;intencion;parcial;intención en texto;0;1
+260;enemigos-publico;Slay the Spire;Giant Head: Strategic y Slow;intencion;parcial;;0;0
+261;enemigos-publico;Slay the Spire;intención desconocida (The Collector);intencion;pendiente;sin intención oculta;0;0
+262;enemigos-publico;Slay the Spire;Nemesis: Aggressive 45 e Intangible;intencion;parcial;;0;0
+263;enemigos-publico;Slay the Spire;Darklings con Life Link;enlace;pendiente;;0;0
+264;enemigos-publico;Slay the Spire;Awakened One: cinco estados apilados;estado;incorporada;estados con hover;0;0
+265;enemigos-publico;Slay the Spire;Awakened One despierto: Strength;estado;incorporada;;0;0
+266;enemigos-publico;Slay the Spire;Byrd: ataque 1×5 y Flight;intencion;parcial;número de golpes en la intención no;0;0
+267;enemigos-publico;Griftlands;ficha de Wild Erchin: pánico y botín;publico;pendiente;;0;0
+268;enemigos-publico;Slay the Spire;Painful Stabs: mete una herida en tu mazo;carta-negativa;pendiente;;0;0
+269;enemigos-publico;Slay the Spire;Shelled Parasite con Plated Armor;estado;parcial;Compostura es el escudo propio;0;0
+270;enemigos-publico;Slay the Spire;Exploder: explota en 3 turnos;cuenta-atras;pendiente;;0;0
+271;enemigos-publico;Slay the Spire;Reptomancer con intención desconocida;intencion;pendiente;;0;0
+272;enemigos-publico;Monster Train;Vanguard sobre el Sloven Knight;posicion;pendiente;;0;0
+273;enemigos-publico;Monster Train;anotado: convencer al público antes de que se vaya;huida;pendiente;;1;0
+274;enemigos-publico;Monster Train;anotado: los altos tapan la vista a los de atrás;tapar-vista;incorporada;Tall y Tapar la Vista existen;1;0
+275;enemigos-publico;Monster Train;anotado: público que «desconvence» a otros;sanador;pendiente;;1;0
+276;enemigos-publico;Monster Train;jefe Seraph con carta maldita al mazo;jefe;parcial;Reina Gusano en la demo (M4);0;1
+277;run-y-mapa;mazmorra en rejilla (sin identificar);rejilla de casillas con enemigos y cofres;mapa;no-aplica;;0;0
+278;enemigos-publico;Monster Train;anotado: enemigos de apoyo solo para otros;apoyo;pendiente;;0;0
+279;combate-flujo;Slay the Spire 2 (probable);Ringing: solo una carta este turno;estado;pendiente;;0;0
+280;prototipo-propio;MidiGenPlay;editor de progresiones con grados y acordes;midigenplay;incorporada;Chord Progression Editor;0;0
+281;bocetos-propios;cuaderno de Claudio;boceto del editor de ritmos y acordes;midigenplay;incorporada;DrumPatternEditor y editor de progresiones;1;0
+282;prototipo-propio;MidiGenPlay;barra de progresión I-IV-V-iii;midigenplay;incorporada;;0;0
+283;musica;vídeo de redes;cómo leer ritmos con figuras;ritmo;no-aplica;;0;0
+284;eventos;Darkest Dungeon;evento del pueblo al empezar: Hear ye;evento;parcial;eventos en el repo; al inicio del ensayo no;0;0
+285;eventos;Monster Train;evento de la Corona Roja;evento;parcial;;0;0
+286;eventos;Monster Train;evento del Gremlin con tres opciones;evento;parcial;;0;0
+287;eventos;Monster Train;evento: invitar a Dante;evento;parcial;;0;0
+288;eventos;Monster Train;evento de los cristales de entropía;evento;parcial;;0;0
+289;eventos;FTL;evento de texto: planeta errante y monolito;evento;parcial;;0;0
+290;nave-y-escenarios;Star Trek: TNG;puente del Enterprise;nave;parcial;escena Ship Interior en el repo;0;0
+291;nave-y-escenarios;Space Dandy;plano del interior de la nave Aloha;nave;parcial;;1;0
+292;nave-y-escenarios;Cowboy Bebop;sala común de la Bebop;nave;parcial;;0;0
+293;nave-y-escenarios;ciencia ficción (sin identificar);pasillo blanco curvo de nave;nave;parcial;;0;0
+294;nave-y-escenarios;Cowboy Bebop (probable);corte de una nave con sus salas;nave;parcial;;1;0
+295;nave-y-escenarios;Cowboy Bebop;sala de la nave con tres personajes;nave;parcial;;0;0
+296;nave-y-escenarios;Space Dandy;interior de la nave Aloha (copia);nave;parcial;duplicado de 291;0;0
+297;personajes-banda;Tenacious D;Jack Black y Kyle Gass, acorde con rayos;especial;pendiente;movimiento especial de la banda;1;0
+298;run-y-mapa;FTL;mapa de sectores con ramas;mapa;parcial;Sector Map en el repo; la demo usa el mapa lineal;0;0
+299;run-y-mapa;FTL;mapa de sectores (otra ruta);mapa;parcial;;0;0
+300;run-y-mapa;FTL;mapa de balizas en la nebulosa;mapa;parcial;;0;0
+301;run-y-mapa;FTL;hover: destino de misión sin visitar;mapa;parcial;;0;0
+302;run-y-mapa;FTL;hover: la nebulosa frena y ciega;mapa;pendiente;nodos con efectos;0;0
+303;run-y-mapa;FTL;mapa con la flota rebelde que avanza;presion;pendiente;;0;0
+304;run-y-mapa;FTL;mapa: tu ubicación actual;mapa;incorporada;nave en el último nodo jugado (MAP-DEMO-1);0;0
+305;enemigos-publico;Slay the Spire;intención y estado Mark;intencion;parcial;;0;0
+306;enemigos-publico;Monster Train;anotado: Melee Weakness = más Vibe; Dazzled, Mindblown;estado;incorporada;es Cautivado: el Vibe entra +25 % por pila;1;0
+307;enemigos-publico;Monster Train;anotado: anular el próximo daño por tipo de carta;estado;parcial;Indiferencia anula el Vibe; no por tipo;0;0
+308;enemigos-publico;Monster Train;anotado: Mindfulness, después del gig baja el estrés;estado;pendiente;;0;0
+309;enemigos-publico;Monster Train;anotado: Mindsteal, estrés que baja el Vibe;estado;pendiente;;0;0
+310;enemigos-publico;Monster Train;Pyregel 838: daño extra por pila;estado;incorporada;es Expuesto;0;0
+311;enemigos-publico;Monster Train;anotado: ganar Groove cuando el público ataca;estado;pendiente;;0;0
+312;enemigos-publico;Monster Train;anotado: efecto al llegar un músico al colapso;breakdown;pendiente;;0;0
+313;tutorial-onboarding;deckbuilder (sin identificar);páginas de conceptos básicos: cartas, consumibles;tutorial;parcial;tutorial guiado; sin páginas de consulta;0;0
+314;tutorial-onboarding;deckbuilder (sin identificar);básicos: bonus de combo y carga;tutorial;parcial;;0;0
+315;tutorial-onboarding;deckbuilder (sin identificar);básicos: cordura y bloqueo;tutorial;parcial;;0;0
+316;ui-claridad;Griftlands;nombre subrayado en el texto con ficha al pasar;glosario;incorporada;conceptos con tooltip en el texto (TXT-2);0;0
+317;ui-claridad;Griftlands;nombre de personaje con ficha al pasar;glosario;incorporada;;0;0
+318;nave-y-escenarios;El quinto elemento;la Diva canta ante el planeta;venue;no-aplica;estética;1;0
+319;nave-y-escenarios;El quinto elemento;la Diva Plavalaguna en escena;venue;no-aplica;estética;0;0
+320;otros;grabación (sin identificar);vídeo oscuro con partículas y cursor;;no-aplica;5 s; no se ve;0;0
+321;otros;grabación (sin identificar);vídeo oscuro con partículas y cursor;;no-aplica;7 s; no se ve;0;0
+322;tutorial-onboarding;juego sin identificar;vídeo: diálogo de tutorial en español (monedas y estrellas);tutorial;no-aplica;;0;0
+323;nave-y-escenarios;anime (sin identificar);vídeo: actuación en un bar con micrófono;venue;no-aplica;;0;0
+324;enemigos-publico;Monster Train;vídeo: Wickless Baron con Harvest;estado;no-aplica;;0;0

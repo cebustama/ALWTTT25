@@ -1,0 +1,326 @@
+i;path;carpeta;tipo_archivo;fecha;fecha_fuente;categoria;fuente;descripcion;tema;estado;nota;destacada;demo
+0;Monster Train 1.png;(raíz);imagen;2024-08-16;archivo;cartas;Monster Train;combate con carta y tooltips apilados (Holdover, Stealth);tooltips;incorporada;pila de hover por carta (M1.3c);0;0
+1;Monster Train 2.png;(raíz);imagen;2024-08-16;archivo;cartas;Monster Train;carta Reform con tooltips apilados de palabras clave;tooltips;incorporada;pila de hover (M1.3c);0;0
+2;Monster Train 3.png;(raíz);imagen;2024-08-16;archivo;run-y-mapa;Monster Train;libro de progreso de clanes y colección de cartas;meta-progresion;pendiente;sin meta-progresión entre partidas;0;0
+3;ss_708e385bd461625790763fb8ddad537d278ad15c.1920x1080.jpg;(raíz);imagen;2024-08-16;archivo;nave-y-escenarios;FTL;planta de la nave con salas y sistemas;nave;parcial;escena Ship Interior en el repo, fuera de la demo;0;0
+4;Hi-Fi_Rush_cover_art.jpg;(raíz);imagen;2024-08-17;archivo;nave-y-escenarios;Hi-Fi Rush;portada: banda y mundo que se mueven al compás;ritmo;parcial;latido del número grande al compás (BEAT-1) · la escena entera no;0;0
+5;Screenshot 2024-09-01 125508.png;(raíz);imagen;2024-09-01;nombre;personajes-banda;Darkest Dungeon;roster de héroes con nivel de resolución y equipo;roster;pendiente;sin roster ampliable ni niveles de músico;0;0
+6;Hover With Relevant Info.png;(raíz);imagen;2024-09-02;archivo;ui-claridad;Loop Hero;hover que compara el objeto equipado con el nuevo;hover;parcial;hay hovers de carta y estado · sin comparación;0;0
+7;Screenshot 2024-09-02 123410.png;(raíz);imagen;2024-09-02;nombre;run-y-mapa;Into the Breach;selección de escuadra con escuadras bloqueadas;seleccion-banda;parcial;escena Band Setup en el repo · en la demo, qué 2 músicos sigue abierto;0;1
+8;Screenshot 2024-09-02 175128.png;(raíz);imagen;2024-09-02;nombre;personajes-banda;RimWorld;ánimo del colono como lista de modificadores con números;animo;parcial;hay Estrés · sin desglose de causas del ánimo;0;0
+9;Screenshot 2024-09-02 175158.png;(raíz);imagen;2024-09-02;nombre;personajes-banda;RimWorld;relaciones entre colonos y registro de charlas;relaciones;pendiente;la Cohesión es de banda, no entre pares;0;0
+10;Screenshot 2024-09-02 183634.png;(raíz);imagen;2024-09-02;nombre;combate-flujo;Darkest Dungeon;combate lateral: grupo a la izquierda, enemigos a la derecha;layout;incorporada;banda frente al público;0;0
+11;Mamie.png;(raíz);imagen;2024-09-03;archivo;eventos;RimWorld;registro de combate y estado del personaje muerto;registro;no-aplica;;0;0
+12;MuchosPatos.png;(raíz);imagen;2024-09-03;archivo;otros;RimWorld;mapa de la colonia con muchos animales;;no-aplica;;0;0
+13;Screenshot 2024-09-03 002444.png;(raíz);imagen;2024-09-03;nombre;personajes-banda;RimWorld;panel de salud por partes del cuerpo;salud;no-aplica;;0;0
+14;Screenshot 2024-09-03 015457.png;(raíz);imagen;2024-09-03;nombre;otros;RimWorld;colonos durmiendo en el dormitorio;;no-aplica;;0;0
+15;SocialEvents.png;(raíz);imagen;2024-09-03;archivo;personajes-banda;RimWorld;evento social: propuesta de matrimonio rechazada;relaciones;pendiente;conflictos entre músicos: idea de rehearsal (Phase C);0;0
+16;SocialFight.png;(raíz);imagen;2024-09-03;archivo;personajes-banda;RimWorld;pelea social por insultos en el registro;relaciones;pendiente;idem;0;0
+17;Screenshot 2024-09-04 155014.png;(raíz);imagen;2024-09-04;nombre;teoria-diseno;charla (decisiones);características de las decisiones interesantes;decisiones;no-aplica;;0;0
+18;Screenshot 2024-09-04 155532.png;(raíz);imagen;2024-09-04;nombre;teoria-diseno;charla (decisiones);tipos de decisión: metas a corto, medio y largo plazo;decisiones;no-aplica;;0;0
+19;Screenshot 2024-09-04 160244.png;(raíz);imagen;2024-09-04;nombre;teoria-diseno;charla (decisiones);usar convenciones del género y luego ir más allá;decisiones;no-aplica;;0;0
+20;Screenshot 2024-09-04 161550.png;(raíz);imagen;2024-09-04;nombre;teoria-diseno;charla (decisiones);cómo hacer más interesantes las decisiones;decisiones;no-aplica;;0;0
+21;Screenshot 2024-09-05 144423.png;(raíz);imagen;2024-09-05;nombre;cartas;Monster Train;vista del mazo con cartas de unidad y hechizo;vista-mazo;incorporada;hay vista de mazo y pilas;0;0
+22;Screenshot 2024-09-05 144445.png;(raíz);imagen;2024-09-05;nombre;cartas;Monster Train;Hornbreaker Prince con cuatro tooltips de palabras clave;tooltips;incorporada;M1.3c;0;0
+23;Screenshot 2024-09-05 144533.png;(raíz);imagen;2024-09-05;nombre;eventos;Monster Train;evento de texto con opciones que dicen su resultado;evento;parcial;RandomEventCanvas en el repo, fuera de la demo;0;0
+24;Screenshot 2024-09-05 144738.png;(raíz);imagen;2024-09-05;nombre;combate-flujo;Monster Train;contador de energía (ember) y vida de la pira;energia;incorporada;Inspiración como energía;0;0
+25;Screenshot 2024-09-05 144802.png;(raíz);imagen;2024-09-05;nombre;ui-claridad;Monster Train;botón Terminar turno con atajo de teclado y tooltip;fin-turno;parcial;no comprobado el atajo;0;0
+26;Screenshot 2024-09-05 144827.png;(raíz);imagen;2024-09-05;nombre;combate-flujo;Monster Train;combate por pisos con mano y pira;layout;no-aplica;;0;0
+27;Screenshot 2024-09-05 144848.png;(raíz);imagen;2024-09-05;nombre;cartas;Monster Train;Railbeater con Armor, Strike y Melee Weakness;tooltips;incorporada;pila de hover;0;0
+28;Screenshot 2024-09-06 141517.png;(raíz);imagen;2024-09-06;nombre;teoria-diseno;Into the Breach (GDC);postmortem: del prototipo al juego final;proceso;no-aplica;;0;0
+29;Screenshot 2024-09-06 144321.png;(raíz);imagen;2024-09-06;nombre;teoria-diseno;Into the Breach (GDC);árbol de restricciones: ataques telegrafiados;intencion;incorporada;el público telegrafía su intención;1;0
+30;Screenshot 2024-09-06 205536.png;(raíz);imagen;2024-09-06;nombre;personajes-banda;Darkest Dungeon;rezar baja estrés y da una rareza (quirk);estres;parcial;hay Estrés · sin rarezas;0;0
+31;Screenshot 2024-09-06 221847.png;(raíz);imagen;2024-09-06;nombre;cartas;Monster Train;Hornbreaker Prince con Slay, Armor, Revenge, Rage;tooltips;incorporada;M1.3c;0;0
+32;Screenshot 2024-09-06 223123.png;(raíz);imagen;2024-09-06;nombre;ui-claridad;Monster Train;números y estados flotantes sobre las unidades en combate;feedback;incorporada;texto flotante y WINK-1;0;0
+33;Screenshot 2024-09-06 223952.png;(raíz);imagen;2024-09-06;nombre;run-y-mapa;Monster Train;pantalla de derrota con puntuación y batallas;derrota;parcial;COH-1 en curso: panel de derrota con «Continuar»;0;1
+34;Screenshot 2024-09-06 224204.png;(raíz);imagen;2024-09-06;nombre;cartas;Monster Train;vista del mazo en rejilla;vista-mazo;incorporada;;0;0
+35;Screenshot 2024-09-06 224955.png;(raíz);imagen;2024-09-06;nombre;personajes-banda;RimWorld;prioridades de trabajo por colono;roles;no-aplica;;0;0
+36;Screenshot 2024-09-06 234815.png;(raíz);imagen;2024-09-06;nombre;eventos;RimWorld;mensaje de facción que pide parlamentar;evento;no-aplica;;0;0
+37;Screenshot 2024-09-06 235419.png;(raíz);imagen;2024-09-06;nombre;personajes-banda;RimWorld;salud de un lobo herido;salud;no-aplica;;0;0
+38;WhatsApp Image 2024-09-06 at 23.54.35_9f1a7dc9.jpg;(raíz);imagen;2024-09-06;nombre;personajes-banda;RimWorld;salud de un lobo herido (repetida);salud;no-aplica;duplicado de 37;0;0
+39;Screenshot 2024-09-09 103217.png;(raíz);imagen;2024-09-09;nombre;tutorial-onboarding;Marvel's Midnight Suns;ventana Cómo jugar: tipos de carta y jugadas por turno;tutorial;incorporada;tutorial guiado en español (TUT-REBUILD);0;0
+40;Screenshot 2024-09-09 103249.png;(raíz);imagen;2024-09-09;nombre;tutorial-onboarding;Marvel's Midnight Suns;ventana: cartas de ataque y heroísmo;tutorial;incorporada;;0;0
+41;Screenshot 2024-09-09 103422.png;(raíz);imagen;2024-09-09;nombre;tutorial-onboarding;Marvel's Midnight Suns;ventana: cartas heroicas y su coste;tutorial;incorporada;;0;0
+42;Screenshot 2024-09-09 103714.png;(raíz);imagen;2024-09-09;nombre;tutorial-onboarding;Marvel's Midnight Suns;ventana de tutorial: cartas de habilidad;tutorial;incorporada;;0;0
+43;Screenshot 2024-09-11 185022.png;(raíz);imagen;2024-09-11;nombre;tienda-y-recompensas;Marvel's Midnight Suns;elegir 1 habilidad entre tres cartas;recompensa;incorporada;elección de recompensa (S5h);0;0
+44;Screenshot 2024-09-11 185239.png;(raíz);imagen;2024-09-11;nombre;personajes-banda;Marvel's Midnight Suns;diálogo con Blade, notas a mano sobre conversaciones;dialogo;pendiente;conversaciones con músicos (Phase C);1;0
+45;Screenshot 2024-09-14 232117.png;(raíz);imagen;2024-09-14;nombre;tienda-y-recompensas;Marvel's Midnight Suns;mejorar habilidades con esencias;mejora-carta;pendiente;diseño en Design_Track_Card_Levels;0;0
+46;Screenshot 2024-09-15 001057.png;(raíz);imagen;2024-09-15;nombre;eventos;Monster Train;evento del forastero misterioso con dos opciones;evento;parcial;sistema de eventos en el repo, fuera de la demo;0;0
+47;Screenshot 2024-09-15 001121.png;(raíz);imagen;2024-09-15;nombre;eventos;Monster Train;mismo evento, hover sobre la carta que se gana;evento;parcial;;0;0
+48;Screenshot 2024-09-15 002602.png;(raíz);imagen;2024-09-15;nombre;eventos;Monster Train;evento: Dante se une con su capa;evento;parcial;;0;0
+49;Screenshot 2024-09-15 002945.png;(raíz);imagen;2024-09-15;nombre;enemigos-publico;Monster Train;hover de Dante the Deceptive con Multistrike;tooltips;incorporada;;0;0
+50;Screenshot 2024-09-15 003552.png;(raíz);imagen;2024-09-15;nombre;eventos;Monster Train;evento de la destilería con tres opciones;evento;parcial;;0;0
+51;Screenshot 2024-09-16 122927.png;(raíz);imagen;2024-09-16;nombre;personajes-banda;The Sims;Sim junto al buzón;sim-social;no-aplica;;0;0
+52;Screenshot 2024-09-16 123124.png;(raíz);imagen;2024-09-16;nombre;personajes-banda;The Sims;menú circular de interacciones sociales;sim-social;pendiente;hablar con músicos en rehearsal (Phase C);0;0
+53;Screenshot 2024-09-16 195343.png;(raíz);imagen;2024-09-16;nombre;personajes-banda;Marvel's Midnight Suns;quedada terminada con recompensas de amistad;relaciones;pendiente;;0;0
+54;Screenshot 2024-09-23 125455.png;(raíz);imagen;2024-09-23;nombre;run-y-mapa;Monster Train;desafíos: Hell Rush, diario, comunidad;modos;pendiente;;0;0
+55;Marvel's Midnight Suns   2024-10-09 20-26-13.mp4;(raíz);video;2024-10-09;nombre;combate-flujo;Marvel's Midnight Suns;vídeo de combate con ataque en área;combate;no-aplica;vídeo;0;0
+56;Screenshot 2024-10-12 112519.png;(raíz);imagen;2024-10-12;nombre;combate-flujo;Marvel's Midnight Suns;objetivo de misión como carta: salvar a Dahlia;objetivo;pendiente;sin objetivos secundarios en el gig;0;0
+57;Screenshot 2024-11-06 024510.png;(raíz);imagen;2024-11-06;nombre;otros;historia de los JRPG (vídeo);menú de nombres y peinados de un JRPG antiguo;retro;no-aplica;;0;0
+58;Screenshot 2024-11-06 024619.png;(raíz);imagen;2024-11-06;nombre;otros;historia de los JRPG (vídeo);JRPG en primera persona con mazmorra de líneas;retro;no-aplica;;0;0
+59;Screenshot 2024-11-06 024657.png;(raíz);imagen;2024-11-06;nombre;otros;historia de los JRPG (vídeo);combate por grupos: héroes contra momias;retro;no-aplica;;0;0
+60;Screenshot 2024-11-06 024913.png;(raíz);imagen;2024-11-06;nombre;otros;historia de los JRPG (vídeo);combate por grupos: héroes contra ogros;retro;no-aplica;;0;0
+61;Screenshot 2024-11-06 084048.png;(raíz);imagen;2024-11-06;nombre;otros;historia de los JRPG (vídeo);combate lateral en pixel art;retro;no-aplica;;0;0
+62;Screenshot 2024-11-13 175116.png;(raíz);imagen;2024-11-13;nombre;run-y-mapa;Balatro;nueva partida: mazo bloqueado, pozo de dificultad, semilla;inicio-run;pendiente;;0;0
+63;Screenshot 2025-03-19 225309.png;(raíz);imagen;2025-03-19;nombre;otros;RimWorld;jabalí muerto e informe de la sala;;no-aplica;;0;0
+64;WhatsApp Image 2025-03-19 at 14.59.47_827ff041.jpg;(raíz);imagen;2025-03-19;nombre;ui-claridad;Final Fantasy Tactics;previsualización: % de acierto y vida antes de atacar;prevision;parcial;Vibe proyectado (C3, BIGNUM-1) · LEGIB-1 pendiente;1;1
+65;WhatsApp Image 2025-03-19 at 15.00.16_e8cc976b.jpg;(raíz);imagen;2025-03-19;nombre;ui-claridad;Final Fantasy Tactics;previsualización de ataque con % y vida de ambos;prevision;parcial;idem;0;1
+66;WhatsApp Image 2025-03-19 at 15.00.20_780d656c.jpg;(raíz);imagen;2025-03-19;nombre;ui-claridad;Final Fantasy Tactics Advance;texto de área «daña unidades cercanas» y daño previsto;prevision;parcial;idem;0;1
+67;WhatsApp Image 2025-03-19 at 15.01.54_b48a4aee.jpg;(raíz);imagen;2025-03-19;nombre;ui-claridad;XCOM;previsualización de disparo: % de acierto, crítico, daño;prevision;parcial;idem;0;1
+68;Screenshot 2025-03-22 195836.png;(raíz);imagen;2025-03-22;nombre;otros;RimWorld;calidad de una sala;;no-aplica;;0;0
+69;Screenshot 2025-03-24 212054.png;(raíz);imagen;2025-03-24;nombre;eventos;RimWorld;un colono abandona la colonia por mal ánimo;abandono;pendiente;que un músico se vaya: la cohesión cubre la derrota de banda;0;0
+70;Screenshot 2025-03-27 172004.png;(raíz);imagen;2025-03-27;nombre;personajes-banda;Katana Zero;diálogo con respuesta interrumpible;dialogo;no-aplica;;0;0
+71;Screenshot 2025-03-27 172032.png;(raíz);imagen;2025-03-27;nombre;personajes-banda;Katana Zero;elegir entre matar o escuchar sus últimas palabras;dialogo;no-aplica;;0;0
+72;Screenshot 2025-03-27 172432.png;(raíz);imagen;2025-03-27;nombre;personajes-banda;Katana Zero;diálogo con texto animado y colores;dialogo;parcial;tutorial con texto letra a letra;0;0
+73;Screenshot 2025-03-31 195138.png;(raíz);imagen;2025-03-31;nombre;personajes-banda;Creatures;kit científico: genética de una criatura;especies;no-aplica;;0;0
+74;Screenshot 2025-04-02 200628.png;(raíz);imagen;2025-04-02;nombre;eventos;RimWorld;muerte de un colono y su causa;registro;no-aplica;;0;0
+75;Monster Train 2 2025-05-26 20-44-08.mp4;(raíz);video;2025-05-26;nombre;combate-flujo;Monster Train 2;vídeo: fase de despliegue con cartas;combate;no-aplica;vídeo;0;0
+76;Screenshot 2025-06-13 235449.png;(raíz);imagen;2025-06-13;nombre;run-y-mapa;Monster Train;niveles de clan y colección de cartas;meta-progresion;pendiente;;0;0
+77;Recording 2025-06-14 000430.mp4;(raíz);video;2025-06-14;nombre;run-y-mapa;Slay the Spire;vídeo: mapa con leyenda de nodos;mapa;parcial;mapa lineal en la demo · sector map en el repo;0;0
+78;Recording 2025-06-14 001944.mp4;(raíz);video;2025-06-14;nombre;tienda-y-recompensas;Slay the Spire;vídeo: poción en la barra superior;consumible;pendiente;sin consumibles;0;0
+79;Recording 2025-06-14 002308.mp4;(raíz);video;2025-06-14;nombre;tienda-y-recompensas;Slay the Spire;vídeo: tienda de cartas y servicio de borrar carta;tienda;pendiente;sin tienda;0;0
+80;Recording 2025-06-14 145529.mp4;(raíz);video;2025-06-14;nombre;ui-claridad;Fights in Tight Spaces;vídeo: casillas del ataque posible del enemigo;intencion;parcial;intención en texto · sin mostrar el alcance;0;0
+81;Screenshot 2025-06-14 000141.png;(raíz);imagen;2025-06-14;nombre;eventos;Slay the Spire;Neow: diálogo inicial con cuatro bendiciones;evento;parcial;del diálogo de Neow sale el tutorial · las bendiciones no;0;0
+82;Screenshot 2025-06-14 000312.png;(raíz);imagen;2025-06-14;nombre;eventos;Slay the Spire;Neow ampliado: bendiciones con coste;evento;parcial;;0;0
+83;Screenshot 2025-06-14 000517.png;(raíz);imagen;2025-06-14;nombre;ui-claridad;Slay the Spire;tooltip de casilla de orbe;tooltips;no-aplica;mecánica de orbes;0;0
+84;Screenshot 2025-06-14 000539.png;(raíz);imagen;2025-06-14;nombre;ui-claridad;Slay the Spire;tooltip del orbe Rayo: pasivo y evocado;tooltips;no-aplica;;0;0
+85;Screenshot 2025-06-14 000604.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;Dualcast con palabra clave Evoke explicada;keyword;incorporada;palabras clave con tooltip (TXT-2);0;0
+86;Screenshot 2025-06-14 001713.png;(raíz);imagen;2025-06-14;nombre;eventos;Slay the Spire;evento del laboratorio con una opción;evento;parcial;;0;0
+87;Screenshot 2025-06-14 020726.png;(raíz);imagen;2025-06-14;nombre;ui-claridad;Slay the Spire;hover de estados del jugador: Focus y Loop;estado;incorporada;iconos de estado con hover (M1.8);0;0
+88;Screenshot 2025-06-14 020924.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;Force Field con Energy y Block explicados;keyword;incorporada;;0;0
+89;Screenshot 2025-06-14 021058.png;(raíz);imagen;2025-06-14;nombre;tienda-y-recompensas;Slay the Spire;carta en oferta en la tienda;tienda;pendiente;;0;0
+90;Screenshot 2025-06-14 022022.png;(raíz);imagen;2025-06-14;nombre;tienda-y-recompensas;Slay the Spire;elegir una carta de tres o saltar;recompensa;incorporada;S5h;0;0
+91;Screenshot 2025-06-14 022534.png;(raíz);imagen;2025-06-14;nombre;tienda-y-recompensas;Slay the Spire;Double Energy+ con casilla Ver mejora;mejora-carta;pendiente;diseño en Design_Track_Card_Levels;0;0
+92;Screenshot 2025-06-14 025631.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;Reprogram con tres palabras clave explicadas;keyword;incorporada;;0;0
+93;Screenshot 2025-06-14 030141.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;Echo Form y la palabra clave Ethereal;keyword;incorporada;existe Etéreo;0;0
+94;Screenshot 2025-06-14 032611.png;(raíz);imagen;2025-06-14;nombre;run-y-mapa;Slay the Spire;cartas desbloqueadas para futuras partidas;desbloqueo;pendiente;;0;0
+95;Screenshot 2025-06-14 043736.png;(raíz);imagen;2025-06-14;nombre;cartas;Monster Train;Morselmaker con unidades invocadas explicadas;tooltips;incorporada;;0;0
+96;Screenshot 2025-06-14 072206.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;vista del mazo de partida;vista-mazo;incorporada;;0;0
+97;Screenshot 2025-06-14 072834.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;maldición Doubt: injugable y da Weak;carta-negativa;pendiente;el público no mete cartas malas en tu mazo;0;0
+98;Screenshot 2025-06-14 084416.png;(raíz);imagen;2025-06-14;nombre;run-y-mapa;Monster Train;victoria con récords personales;victoria;parcial;hay resultado del gig · sin récords;0;0
+99;Screenshot 2025-06-14 084722.png;(raíz);imagen;2025-06-14;nombre;cartas;Monster Train;filtros de la colección por clan y tipo;filtros;pendiente;;0;0
+100;Screenshot 2025-06-14 113946.png;(raíz);imagen;2025-06-14;nombre;tienda-y-recompensas;Slay the Spire;elegir reliquia de jefe;reliquia;pendiente;sin reliquias;0;0
+101;Screenshot 2025-06-14 140149.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;Glass Knife: daño que baja cada uso;carta;no-aplica;;0;0
+102;Screenshot 2025-06-14 141040.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;vista del mazo ordenada por tipo y coste;vista-mazo;parcial;sin ordenar ni filtrar;0;0
+103;Screenshot 2025-06-14 141952.png;(raíz);imagen;2025-06-14;nombre;cartas;Slay the Spire;Crush Joints con nota a mano: resaltar si se cumple;condicion;pendiente;resaltar la carta cuando su condición se cumple;1;0
+104;Screenshot 2025-06-14 145654.png;(raíz);imagen;2025-06-14;nombre;cartas;Fights in Tight Spaces;carta con iconos de empuje y daño;iconos;incorporada;glifos en la cara de la carta (CARD-FACE);0;0
+105;Screenshot 2025-06-14 150219.png;(raíz);imagen;2025-06-14;nombre;tutorial-onboarding;Fights in Tight Spaces;tutorial sobre usar el entorno;tutorial;no-aplica;;0;0
+106;Screenshot 2025-06-15 010958.png;(raíz);imagen;2025-06-15;nombre;cartas;Slay the Spire;Disarm con Strength y Exhaust;keyword;incorporada;existe Agotar;0;0
+107;Screenshot 2025-06-15 011410.png;(raíz);imagen;2025-06-15;nombre;cartas;Slay the Spire;Demon Form y Strength;keyword;incorporada;;0;0
+108;Screenshot 2025-06-17 151721.png;(raíz);imagen;2025-06-17;nombre;combate-flujo;Into the Breach;misión con objetivos extra antes de empezar;objetivo;pendiente;sin objetivos extra en el gig;0;0
+109;Screenshot 2025-06-17 153445.png;(raíz);imagen;2025-06-17;nombre;run-y-mapa;Into the Breach;selección de escuadra con monedas;seleccion-banda;parcial;Band Setup en el repo;0;0
+110;Screenshot 2025-06-17 154543.png;(raíz);imagen;2025-06-17;nombre;ui-claridad;Into the Breach;estado de la unidad y botón Deshacer movimiento;deshacer;pendiente;sin deshacer;0;0
+111;Screenshot 2025-06-17 235126.png;(raíz);imagen;2025-06-17;nombre;tienda-y-recompensas;Slay the Spire;tienda con reliquia Dolly's Mirror;tienda;pendiente;;0;0
+112;Screenshot 2025-06-18 154255.png;(raíz);imagen;2025-06-18;nombre;prototipo-propio;ALWTTT;prototipo: elegir canción, expectativas, cartas sin Groove;prototipo;incorporada;el bucle base sigue;1;0
+113;Screenshot 2025-06-18 154724.png;(raíz);imagen;2025-06-18;nombre;prototipo-propio;ALWTTT;prototipo: banda en escenario y público en siluetas;prototipo;incorporada;;0;0
+114;Screenshot 2025-06-18 155158.png;(raíz);imagen;2025-06-18;nombre;prototipo-propio;ALWTTT;prototipo: escenario con más público;prototipo;incorporada;;0;0
+115;Screenshot 2025-06-18 155703.png;(raíz);imagen;2025-06-18;nombre;prototipo-propio;ALWTTT;prototipo: NewSong, 20 %, carta Motivational Speech;prototipo;incorporada;;0;0
+116;Screenshot 2025-06-18 160002.png;(raíz);imagen;2025-06-18;nombre;prototipo-propio;ALWTTT;prototipo: medidor vertical sobre el público;prototipo;incorporada;;0;0
+117;Screenshot 2025-06-18 160638.png;(raíz);imagen;2025-06-18;nombre;prototipo-propio;ALWTTT;prototipo: cartas con coste y ENG;prototipo;incorporada;;0;0
+118;Screenshot 2025-06-20 195013.png;(raíz);imagen;2025-06-20;nombre;cartas;Monster Train;Feast y Cannibalize con la palabra Eaten;keyword;incorporada;;0;0
+119;Screenshot 2025-06-20 201031.png;(raíz);imagen;2025-06-20;nombre;tienda-y-recompensas;Monster Train;mercader de mejoras de hechizo;tienda;pendiente;;0;0
+120;Screenshot 2025-06-21 181544.png;(raíz);imagen;2025-06-21;nombre;tienda-y-recompensas;roguelike (sin identificar);tienda con artefactos, hechizos y pactos;tienda;pendiente;;0;0
+121;Screenshot 2025-06-22 172155.png;(raíz);imagen;2025-06-22;nombre;eventos;Slay the Spire;evento Bonfire Spirits;evento;parcial;;0;0
+122;Screenshot 2025-06-22 172320.png;(raíz);imagen;2025-06-22;nombre;cartas;Slay the Spire;Combust: pierde vida, daña a todos;carta;no-aplica;;0;0
+123;Slay the Spire 2025-06-22 17-37-06.mp4;(raíz);video;2025-06-22;nombre;ui-claridad;Slay the Spire;vídeo: hover de intención Strategic sobre el enemigo;intencion;parcial;intención en texto · icono con escala pendiente;0;1
+124;Screenshot 2025-06-23 101510.png;(raíz);imagen;2025-06-23;nombre;eventos;Slay the Spire;evento Mind Bloom con tres opciones arriesgadas;evento;parcial;;0;0
+125;Screenshot 2025-06-24 161933.png;(raíz);imagen;2025-06-24;nombre;run-y-mapa;Monster Train;preparar la partida: clanes, pira y rango;inicio-run;pendiente;;0;0
+126;Screenshot 2025-06-25 181954.png;(raíz);imagen;2025-06-25;nombre;run-y-mapa;Slay the Spire;pantalla de muerte con puntuación desglosada;derrota;parcial;COH-1 en curso;0;1
+127;Recording 2025-06-28 090322.mp4;(raíz);video;2025-06-28;nombre;personajes-banda;Griftlands;vídeo: diálogo con retrato;dialogo;pendiente;;0;0
+128;Recording 2025-06-28 102321.mp4;(raíz);video;2025-06-28;nombre;personajes-banda;Griftlands;vídeo: diálogo de reencuentro;dialogo;pendiente;;0;0
+129;Screenshot 2025-06-28 080732.png;(raíz);imagen;2025-06-28;nombre;eventos;Slay the Spire;derrota ante el Corazón con texto narrativo;derrota;no-aplica;;0;0
+130;Screenshot 2025-06-28 085637.png;(raíz);imagen;2025-06-28;nombre;personajes-banda;Griftlands;selección de personaje con otros bloqueados;seleccion-banda;parcial;Band Setup en el repo;0;0
+131;Screenshot 2025-06-28 085843.png;(raíz);imagen;2025-06-28;nombre;cartas;Griftlands;mazo inicial de Sal junto al personaje;mazo-inicial;incorporada;mazo inicial por músico;0;0
+132;Screenshot 2025-06-28 091420.png;(raíz);imagen;2025-06-28;nombre;combate-flujo;Griftlands;negociación: argumentos como objetivos, Resolve;negociacion;parcial;convencer al público se parece a negociar;1;0
+133;Screenshot 2025-06-28 091705.png;(raíz);imagen;2025-06-28;nombre;combate-flujo;Griftlands;argumento Influence con pilas;negociacion;parcial;;0;0
+134;Screenshot 2025-06-28 091758.png;(raíz);imagen;2025-06-28;nombre;enemigos-publico;Griftlands;argumento rival Suspicion;negociacion;parcial;;0;0
+135;Screenshot 2025-06-28 092045.png;(raíz);imagen;2025-06-28;nombre;cartas;Griftlands;Gruff: crea un argumento y se expande;carta;no-aplica;;0;0
+136;Screenshot 2025-06-28 092726.png;(raíz);imagen;2025-06-28;nombre;personajes-banda;Griftlands;Ruck te quiere: beneficio de relación;relaciones;pendiente;;0;0
+137;Screenshot 2025-06-28 094416.png;(raíz);imagen;2025-06-28;nombre;eventos;Griftlands;comprar una bebida: cartas y relación;evento;pendiente;;0;0
+138;Screenshot 2025-06-28 100355.png;(raíz);imagen;2025-06-28;nombre;combate-flujo;Griftlands;combate con carta Execute;combate;no-aplica;;0;0
+139;Screenshot 2025-06-28 100905.png;(raíz);imagen;2025-06-28;nombre;cartas;Griftlands;carta de negociación con progreso de mejora 0/9;mejora-carta;pendiente;mejora por uso;0;0
+140;Screenshot 2025-06-28 101425.png;(raíz);imagen;2025-06-28;nombre;personajes-banda;Griftlands;visitante Rake te tiene antipatía;relaciones;pendiente;;0;0
+141;Screenshot 2025-06-28 101727.png;(raíz);imagen;2025-06-28;nombre;enemigos-publico;Griftlands;bestia con estados en iconos y vida;estado;incorporada;;0;0
+142;Screenshot 2025-06-28 103815.png;(raíz);imagen;2025-06-28;nombre;run-y-mapa;Griftlands;personaje desbloqueado: Rook;desbloqueo;pendiente;;0;0
+143;Screenshot 2025-06-28 151342.png;(raíz);imagen;2025-06-28;nombre;tutorial-onboarding;Griftlands;tutorial: juega esta carta para continuar;tutorial;incorporada;tutorial guiado;0;0
+144;Screenshot 2025-06-30 203100.png;(raíz);imagen;2025-06-30;nombre;cartas;Griftlands;Intimidate injugable en mano;carta-negativa;pendiente;;0;0
+145;Screenshot 2025-07-08 174947.png;(raíz);imagen;2025-07-08;nombre;combate-flujo;Griftlands;pantalla previa al combate: Rook contra Gorgula;pre-gig;pendiente;;0;1
+146;Screenshot 2025-07-29 182022.png;(raíz);imagen;2025-07-29;nombre;combate-flujo;deckbuilder dibujado (sin identificar);golpe con número grande sobre el enemigo;feedback;incorporada;número grande y JUICE;0;0
+147;Screenshot 2025-07-29 182112.png;(raíz);imagen;2025-07-29;nombre;tienda-y-recompensas;juego sin identificar;árbol de mejora de una carta;mejora-carta;pendiente;;0;0
+148;Chill Nodes.png;(raíz);imagen;2025-08-01;archivo;run-y-mapa;Monster Train;anotado: nodos de descanso que quitan estrés;descanso;pendiente;el mapa lineal no tiene descanso;1;0
+149;Incant Spell Trigger More Evident.png;(raíz);imagen;2025-08-01;archivo;ui-claridad;Monster Train;anotado: hacer más evidentes los efectos que se disparan;trigger;parcial;JUICE-PW muestra el efecto de la carta · disparadores pasivos no;1;1
+150;Personajes Eventos Random.png;(raíz);imagen;2025-08-01;archivo;eventos;Monster Train;anotado: personajes de eventos al azar (Historian);evento;parcial;;0;0
+151;Pre-Gig Screen 1.png;(raíz);imagen;2025-08-01;archivo;combate-flujo;Monster Train;pantalla previa al gig: jefe y su habilidad;pre-gig;pendiente;;1;1
+152;Pre-Gig Screen 2.png;(raíz);imagen;2025-08-01;archivo;combate-flujo;Monster Train;pantalla previa al gig (variante);pre-gig;pendiente;;0;1
+153;SFX Cards.png;(raíz);imagen;2025-08-01;archivo;cartas;Monster Train;anotado: equipo de escenario: luces, humo;sfx;incorporada;cartas de sonido y efectos de escenario (Light Show);1;0
+154;Siphon.png;(raíz);imagen;2025-08-01;archivo;enemigos-publico;Monster Train;anotado: Siphon se dispara con el colapso mental;breakdown;parcial;existe Breakdown · nada se dispara con él;0;0
+155;Trial and Reward System.png;(raíz);imagen;2025-08-01;archivo;combate-flujo;Monster Train;anotado: prueba y recompensa antes del gig;pre-gig;pendiente;;0;0
+156;Trigger Before or After Song Performance.png;(raíz);imagen;2025-08-01;archivo;ui-claridad;Monster Train;anotado: disparar antes o después de la canción;timing;incorporada;momentos «al empezar la próxima parte», «final de la canción»;0;0
+157;Undo Button.png;(raíz);imagen;2025-08-01;archivo;ui-claridad;Monster Train;anotado: botón Deshacer muy evidente;deshacer;pendiente;sin deshacer;1;0
+158;Pre-Gig Screen 3.png;(raíz);imagen;2025-08-02;archivo;combate-flujo;Monster Train;anotado: condiciones, info del público, preparar setlist;pre-gig;pendiente;;1;1
+159;Spikes and Pyregel.png;(raíz);imagen;2025-08-02;archivo;enemigos-publico;Monster Train;Spikes y Pyregel en un enemigo;estado;parcial;Expuesto equivale a Pyregel · espinas no;0;0
+160;Screenshot 2025-08-04 022336.png;(raíz);imagen;2025-08-04;nombre;eventos;Monster Train;evento del Joker de Balatro;evento;parcial;;0;0
+161;Screenshot 2025-08-04 031855.png;(raíz);imagen;2025-08-04;nombre;combate-flujo;Monster Train;combate con muchos enemigos;combate;no-aplica;;0;0
+162;Screenshot 2025-08-04 194409.png;(raíz);imagen;2025-08-04;nombre;combate-flujo;Monster Train;combate en el piso Legion;combate;no-aplica;;0;0
+163;Recording 2025-08-06 225912.mp4;(raíz);video;2025-08-06;nombre;combate-flujo;Monster Train;vídeo: textos flotantes de Rage -1;feedback;incorporada;;0;0
+164;Recording 2025-08-07 115821.mp4;(raíz);video;2025-08-07;nombre;combate-flujo;Monster Train;vídeo: Corruption 25 y Extinguish;feedback;incorporada;;0;0
+165;broken dante x2.png;(raíz);imagen;2025-08-07;archivo;cartas;Monster Train;Dante con cuatro tooltips;tooltips;incorporada;;0;0
+166;Screenshot 2025-08-11 120819.png;(raíz);imagen;2025-08-11;nombre;run-y-mapa;Monster Train;portal dimensional con mutadores;modos;pendiente;;0;0
+167;Screenshot 2025-08-11 213957.png;(raíz);imagen;2025-08-11;nombre;otros;juego sin identificar;criatura de piedra y carta del corazón;;no-aplica;;0;0
+168;Screenshot 2025-08-13 015023.png;(raíz);imagen;2025-08-13;nombre;combate-flujo;Monster Train;combate lleno;combate;no-aplica;;0;0
+169;Screenshot 2025-08-14 074748.png;(raíz);imagen;2025-08-14;nombre;personajes-banda;FTL;tripulación con botón Personalizar;personalizar;pendiente;;0;0
+170;Screenshot 2025-08-15 022226.png;(raíz);imagen;2025-08-15;nombre;combate-flujo;Monster Train;combate en la estación;combate;no-aplica;;0;0
+171;Screenshot 2025-08-15 022417.png;(raíz);imagen;2025-08-15;nombre;cartas;Monster Train;anotado: Reanimate = evitar el próximo Breakdown;breakdown;pendiente;;0;0
+172;Screenshot 2025-09-08 235138.png;(raíz);imagen;2025-09-08;nombre;nave-y-escenarios;anime (probable Cowboy Bebop);islas flotantes vistas desde arriba;ambientacion;no-aplica;estética;0;0
+173;Screenshot 2025-09-08 235453.png;(raíz);imagen;2025-09-08;nombre;nave-y-escenarios;anime (probable Cowboy Bebop);isla flotante sobre el desierto;ambientacion;no-aplica;estética;0;0
+174;Screenshot 2025-09-08 235543.png;(raíz);imagen;2025-09-08;nombre;nave-y-escenarios;anime (probable Cowboy Bebop);nave estrellada cubierta de vegetación;ambientacion;no-aplica;estética;0;0
+175;SPACE LASER SHOW SFX 2.png;(raíz);imagen;2025-09-09;archivo;cartas;anime (probable Cowboy Bebop);láseres rojos desde el espacio: ref. SFX Space Laser Show;sfx;parcial;existe Light Show · el láser como tal no comprobado;1;0
+176;SPACE LASER SHOW SFX 3.png;(raíz);imagen;2025-09-09;archivo;cartas;anime (probable Cowboy Bebop);láseres sobre las nubes: ref. SFX;sfx;parcial;;0;0
+177;SPACE LASER SHOW SFX.png;(raíz);imagen;2025-09-09;archivo;cartas;anime (probable Cowboy Bebop);haces rojos entre escombros: ref. SFX;sfx;parcial;;0;0
+178;Screenshot 2025-09-09 011643.png;(raíz);imagen;2025-09-09;nombre;nave-y-escenarios;Cowboy Bebop;interior de nave con dos personajes;nave;parcial;;0;0
+179;Screenshot 2025-09-09 012423.png;(raíz);imagen;2025-09-09;nombre;nave-y-escenarios;anime (probable Cowboy Bebop);silueta de mezquitas al atardecer;ambientacion;no-aplica;;0;0
+180;Screenshot 2025-09-14 034719.png;(raíz);imagen;2025-09-14;nombre;nave-y-escenarios;anime (probable Cowboy Bebop);nave roja con un dragón pintado;nave;no-aplica;estética;0;0
+181;Screenshot 2025-09-14 035509.png;(raíz);imagen;2025-09-14;nombre;nave-y-escenarios;anime (probable Cowboy Bebop);bar de jazz con letrero de neón;venue;parcial;hay escenario de gig · este estilo no comprobado;0;0
+182;Screenshot 2025-09-24 221914.png;(raíz);imagen;2025-09-24;nombre;eventos;RimWorld;noticia de un artefacto legendario;evento;no-aplica;;0;0
+183;567123774_1321893069106249_4849753418316550311_n.png;(raíz);imagen;2025-10-22;archivo;enemigos-publico;ilustración (sin identificar);cuatro cabezas de alienígenas como iconos;publico;parcial;público alienígena existe · estos diseños no;0;0
+184;Screenshot 2025-12-02 013235.png;(raíz);imagen;2025-12-02;nombre;combate-flujo;Balatro;comodín Ice Cream: fichas que bajan cada mano;puntuacion;no-aplica;;0;0
+185;Screenshot 2025-12-09 131916.png;(raíz);imagen;2025-12-09;nombre;combate-flujo;Balatro;comodín Walkie Talkie: fichas y multiplicador;puntuacion;parcial;cadena de puntuación visible (BIGNUM-1);0;0
+186;Screenshot 2025-12-12 204522.png;(raíz);imagen;2025-12-12;nombre;tienda-y-recompensas;Slay the Spire;tienda con reliquia Bottled Flame;reliquia;pendiente;;0;0
+187;twopaircool.png;(raíz);imagen;2026-01-02;archivo;combate-flujo;Balatro;mano con Jugar, Ordenar y Descartar;mano;parcial;no comprobado ordenar la mano;0;0
+188;Screenshot 2026-01-07 202946.png;(raíz);imagen;2026-01-07;nombre;eventos;Slay the Spire;evento Designer In-Spire;evento;parcial;;0;0
+189;Screenshot 2026-01-08 161042.png;(raíz);imagen;2026-01-08;nombre;ui-claridad;Slay the Spire;intención Aggressive y estados del enemigo apilados;intencion;parcial;intención en texto;0;1
+190;Attack + Negative Effect.png;(raíz);imagen;2026-01-11;archivo;ui-claridad;Slay the Spire;intención Strategic: ataque y efecto negativo;intencion;parcial;intención en texto · icono con escala pendiente;1;1
+191;Screenshot 2026-03-15 141030.png;(raíz);imagen;2026-03-15;nombre;ui-claridad;Slay the Spire;flecha de objetivo desde la carta al enemigo;objetivo;incorporada;no comprobado el estilo de flecha;0;0
+192;Screenshot 2026-08-24 114526.png;(raíz);imagen;2026-08-24;nombre;prototipo-propio;ALWTTT;carta ¡GUIÑO! con tooltip de Cautivado ante el público;prototipo;incorporada;Captivated (R1);1;0
+193;Artifacts/Screenshot 2025-06-28 074652.png;Artifacts;imagen;2025-06-28;nombre;tienda-y-recompensas;Slay the Spire;reliquia Mummified Hand;reliquia;pendiente;;0;0
+194;Artifacts/Screenshot 2025-07-19 125035.png;Artifacts;imagen;2025-07-19;nombre;tienda-y-recompensas;Slay the Spire;reliquia Stone Calendar;reliquia;pendiente;;0;0
+195;Cards/Screenshot 2025-06-24 155738.png;Cards;imagen;2025-06-24;nombre;cartas;Slay the Spire;biblioteca de cartas con filtros por color;filtros;pendiente;;0;0
+196;Cards/Screenshot 2025-06-24 161855.png;Cards;imagen;2025-06-24;nombre;combate-flujo;Monster Train;combate con mano completa;combate;no-aplica;;0;0
+197;Cards/Screenshot 2025-06-28 085818.png;Cards;imagen;2025-06-28;nombre;cartas;Griftlands;mazo de negociación inicial del personaje;mazo-inicial;incorporada;mazo inicial por músico;0;0
+198;Cards/Screenshot 2025-07-04 105007.png;Cards;imagen;2025-07-04;nombre;cartas;Slay the Spire;Wish: elige una de tres ventajas;carta;pendiente;sin cartas de elegir;0;0
+199;Cards/Screenshot 2025-11-15 152019.png;Cards;imagen;2025-11-15;nombre;run-y-mapa;Monster Train;jefe final y cartas iniciales al azar;inicio-run;pendiente;;0;0
+200;Cards/Screenshot 2025-11-15 152053.png;Cards;imagen;2025-11-15;nombre;cartas;Monster Train;carta con texto de historia en el hover;lore;pendiente;;0;0
+201;Cards/2.jpeg;Cards;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;bocetos de carta: Vibe a todos, Hooked, robar;carta-propia;incorporada;Vibe a todos, Enganchados (Flow) y Agotar existen;1;0
+202;Cards/3.jpeg;Cards;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;Cosmic Wink y Raw Scream con Exposed;carta-propia;parcial;¡GUIÑO! y Expuesto existen · Raw Scream no;1;0
+203;Cards/4.jpeg;Cards;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;Ghostly Notes y bassline que da Flow;carta-propia;parcial;el bajo da Flow · Ghostly Notes no;0;0
+204;Cards/5.jpeg;Cards;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;Percussive Pulse: 2 Inspiración y 3 Flow;carta-propia;pendiente;;0;0
+205;Cards/6.jpeg;Cards;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;Count-In: Flow que arranca la sesión;carta-propia;incorporada;Conteo (Count-In) existe;0;0
+206;Cards/WhatsApp Image 2026-01-14 at 14.41.11.jpeg;Cards;imagen;2026-01-14;nombre;bocetos-propios;cuaderno de Claudio;Catharsis, Mic Drop, Dead Mic, Feedback;carta-propia;parcial;Feedback existe como estado;0;0
+207;Cards/WhatsApp Image 2026-01-14 at 22.27.33.jpeg;Cards;imagen;2026-01-14;nombre;bocetos-propios;cuaderno de Claudio;tablero de corcho con fichas de cartas;planificacion;no-aplica;;0;0
+208;Characters/Recording 2025-06-28 085926.mp4;Characters;video;2025-06-28;nombre;personajes-banda;Griftlands;vídeo: retrato de Sal;personaje;no-aplica;;0;0
+209;Characters/Screenshot 2025-06-28 083314.png;Characters;imagen;2025-06-28;nombre;ui-claridad;deckbuilder 3D (sin identificar);estados Wrath y Weakened sobre el personaje;estado;incorporada;;0;0
+210;Characters/Screenshot 2025-07-08 173839.png;Characters;imagen;2025-07-08;nombre;personajes-banda;Griftlands;cargas de Rook y sobrecarga;recurso;incorporada;Voltaje: contador de recurso (Conito);1;0
+211;Characters/Screenshot 2025-07-23 233203.png;Characters;imagen;2025-07-23;nombre;cartas;deckbuilder 3D (sin identificar);Signature Move: solo si es el único ataque;carta;pendiente;;0;0
+212;Characters/spiderman-build-deck-1.jpg;Characters;imagen;2025-07-28;archivo;cartas;Marvel's Midnight Suns;mazo propio de Spider-Man;mazo-inicial;incorporada;mazo por músico;0;0
+213;Characters/Screenshot 2025-08-01 195521.png;Characters;imagen;2025-08-01;nombre;enemigos-publico;Monster Train;Vanguard: bonus si va delante;posicion;pendiente;;0;0
+214;Characters/Screenshot 2025-08-02 164221.png;Characters;imagen;2025-08-02;nombre;ui-claridad;Monster Train;lista larga de tooltips con «Alt para más»;tooltips;incorporada;M1.3c;0;0
+215;Characters/Broken Dante.png;Characters;imagen;2025-08-06;archivo;enemigos-publico;Monster Train;Dante con Multistrike 22 y Armor 384;escala;no-aplica;;0;0
+216;Characters/Screenshot 2025-08-11 213713.png;Characters;imagen;2025-08-11;nombre;personajes-banda;juego sin identificar;campesino con talento sin descubrir;talento;pendiente;;0;0
+217;Characters/Screenshot 2025-08-11 214328.png;Characters;imagen;2025-08-11;nombre;personajes-banda;pixel art (sin identificar);alienígena tocando un tambor con notas;personaje;parcial;la banda alienígena existe;0;0
+218;Characters/Species.mp4;Characters;video;2025-08-14;archivo;personajes-banda;FTL;vídeo: tripulación por especies;especies;pendiente;especies con rasgos de juego;0;0
+219;Characters/Screenshot 2025-09-10 190530.png;Characters;imagen;2025-09-10;nombre;nave-y-escenarios;FTL;sala de la nave en llamas;nave;no-aplica;;0;0
+220;Characters/Screenshot 2025-09-11 194727.png;Characters;imagen;2025-09-11;nombre;personajes-banda;FTL;especie humana y habilidades de tripulación;especies;pendiente;;0;0
+221;Characters/C2.jpeg;Characters;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;ficha de Robot C2, el mago cyborg;personaje-propio;incorporada;Robot C2 existe · su arco no;1;0
+222;Characters/Cony.jpeg;Characters;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;ficha de Conito, Sparks: luces, electricidad, foco;personaje-propio;incorporada;Conito y Voltaje existen · Spotlight es carta de C2;1;0
+223;Characters/Sibi.jpeg;Characters;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;ficha de Wormy / Sibi, warlock de la colmena;personaje-propio;incorporada;Sibi, Campo Cantor · Reina Gusano como jefa;1;0
+224;Characters/Zig.jpeg;Characters;imagen;2026-01-14;archivo;bocetos-propios;cuaderno de Claudio;ficha de Ziggy, el bardo egocéntrico;personaje-propio;parcial;Ziggy existe · la carta Signature no;0;0
+225;Characters/2.jpeg;Characters;imagen;2026-04-26;archivo;bocetos-propios;cuaderno de Claudio;ficha de Conito (copia);personaje-propio;incorporada;duplicado de 222;0;0
+226;Characters/3.jpeg;Characters;imagen;2026-04-26;archivo;bocetos-propios;cuaderno de Claudio;ficha de Ziggy (copia);personaje-propio;parcial;duplicado de 224;0;0
+227;Characters/4.jpeg;Characters;imagen;2026-04-26;archivo;bocetos-propios;cuaderno de Claudio;ficha de Robot C2 (copia);personaje-propio;incorporada;duplicado de 221;0;0
+228;Characters/WhatsApp Image 2026-04-26 at 3.21.41 PM.jpeg;Characters;imagen;2026-04-26;nombre;bocetos-propios;cuaderno de Claudio;ficha de Wormy / Sibi (copia);personaje-propio;incorporada;duplicado de 223;0;0
+229;Design Docs/Captura de pantalla_20221022_115304.png;Design Docs;imagen;2022-10-22;nombre;teoria-diseno;charla (azar);decisión estratégica → evento al azar (Hearthstone);azar;no-aplica;;0;0
+230;Design Docs/Screenshot 2024-08-16 003427.png;Design Docs;imagen;2024-08-16;nombre;musica;charla (Mozart);biografía de Mozart: niño prodigio, improvisador;musica;no-aplica;;0;0
+231;Design Docs/Screenshot 2024-08-16 003500.png;Design Docs;imagen;2024-08-16;nombre;musica;charla (Mozart);600 obras en 30 años y el Réquiem;musica;no-aplica;;0;0
+232;Design Docs/Screenshot 2024-08-16 003911.png;Design Docs;imagen;2024-08-16;nombre;musica;charla (Mozart);cita de Amadeus sobre la música de Mozart;musica;no-aplica;;0;0
+233;Design Docs/Screenshot 2024-08-16 004607.png;Design Docs;imagen;2024-08-16;nombre;musica;charla (Mozart);lista de conciertos para piano;musica;no-aplica;;0;0
+234;Design Docs/Screenshot 2024-09-02 130028.png;Design Docs;imagen;2024-09-02;nombre;teoria-diseno;charla (Hearthstone);pequeñas victorias, emoción de ganar, agonía de perder;emocion;no-aplica;;0;0
+235;Design Docs/Screenshot 2024-09-02 130211.png;Design Docs;imagen;2024-09-02;nombre;teoria-diseno;charla (Hearthstone);complejidad frente a profundidad;complejidad;no-aplica;;0;0
+236;Design Docs/Screenshot 2024-09-02 130314.png;Design Docs;imagen;2024-09-02;nombre;teoria-diseno;charla (Hearthstone);gráfico complejidad × profundidad;complejidad;no-aplica;;0;0
+237;Design Docs/Screenshot 2024-09-02 130513.png;Design Docs;imagen;2024-09-02;nombre;teoria-diseno;charla (Hearthstone);«ocho palabras en pantalla»;texto;no-aplica;TXT-2 recortó el texto un 30 %;1;0
+238;Design Docs/Screenshot 2024-09-02 130614.png;Design Docs;imagen;2024-09-02;nombre;teoria-diseno;charla (Hearthstone);de Fire Blast a Holy Smite: simplificar el texto;texto;no-aplica;;0;0
+239;Design Docs/Screenshot 2024-09-02 145228.png;Design Docs;imagen;2024-09-02;nombre;teoria-diseno;charla (Hearthstone);gráfico suerte × habilidad;azar;no-aplica;;0;0
+240;Design Docs/Screenshot 2024-09-02 164636.png;Design Docs;imagen;2024-09-02;nombre;teoria-diseno;charla (Hearthstone);conclusiones: ingredientes, azar, simplificar;proceso;no-aplica;;0;0
+241;Design Docs/Screenshot 2024-09-02 174125.png;Design Docs;imagen;2024-09-02;nombre;teoria-diseno;charla (Hearthstone);evento al azar → decisión estratégica;azar;no-aplica;;0;0
+242;Design Docs/WhatsApp Image 2025-06-25 at 15.58.40_2e6a1bb2.jpg;Design Docs;imagen;2025-06-25;nombre;bocetos-propios;cuaderno de Claudio;mapa de planetas, días de ensayo, interior de nave;mapa;parcial;Sector Map, ensayo y nave en el repo, fuera de la demo;1;0
+243;Design Docs/WhatsApp Image 2025-06-25 at 15.58.40_9ccc9353.jpg;Design Docs;imagen;2025-06-25;nombre;bocetos-propios;cuaderno de Claudio;demo de Gamescom 2025: inicio, género, alineación;inicio-run;parcial;menú y Band Setup · género fijo;1;0
+244;Design Docs/WhatsApp Image 2025-06-25 at 15.58.40_ccbd4cf4.jpg;Design Docs;imagen;2025-06-25;nombre;bocetos-propios;cuaderno de Claudio;turno del jugador: canción, cartas, actuación, reacción;turno;incorporada;es el bucle del gig;1;0
+245;Design Docs/513006092_1146827237206899_3652627791476730640_n.jpg;Design Docs;imagen;2025-07-03;archivo;bocetos-propios;cuaderno de Claudio;turno del público: acciones, peticiones, misiones;turno-publico;parcial;acciones e intenciones sí · peticiones y misiones no;1;0
+246;Design Docs/513932174_1434809567836600_323804884011335263_n.jpg;Design Docs;imagen;2025-07-03;archivo;bocetos-propios;cuaderno de Claudio;gig disponible: dificultad, gustos, recompensas, reliquias;pre-gig;pendiente;;1;1
+247;Design Docs/Legacy/WhatsApp Image 2025-08-07 at 19.53.57_ccde73cc.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;gig con barra de engagement, canciones y acciones;gig;incorporada;;0;0
+248;Design Docs/Legacy/WhatsApp Image 2025-08-07 at 19.53.57_e0d2797f.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;crear canción y practicar, con cohesión;composicion;parcial;composición sí · práctica no;0;0
+249;Design Docs/Legacy/WhatsApp Image 2025-08-07 at 19.53.57_efb91c98.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;ensayo: jam, practicar, hablar,  cohesión;ensayo;parcial;nodo Rehearsal en el repo · cohesión en la demo;0;0
+250;Design Docs/WhatsApp Image 2025-08-07 at 19.53.57_719de498.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;inicio: crear personaje, género, compañeros, nombre;inicio-run;parcial;Band Setup en el repo;0;0
+251;Design Docs/WhatsApp Image 2025-08-07 at 19.53.58_10a4e2eb.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;apuntes: cómo mejorar el combate por turnos;teoria;no-aplica;;0;0
+252;Design Docs/WhatsApp Image 2025-08-07 at 19.53.58_d6c5ee36.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;apuntes: buenos sistemas de subir de nivel;progresion;pendiente;;0;0
+253;Design Docs/WhatsApp Image 2025-08-07 at 19.54.09_117c3054.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;apuntes: 10 consejos de Hearthstone (Eric Dodds);teoria;no-aplica;;0;0
+254;Design Docs/WhatsApp Image 2025-08-07 at 21.00.25_505c0466.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;apuntes: qué hace grande un deckbuilder, para ALWTTT;teoria;no-aplica;;1;0
+255;Design Docs/WhatsApp Image 2025-08-07 at 21.04.43_77ea5273.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;ánimo del músico en cinco caras, hover de carta;animo;parcial;Estrés sí · caras con ±% no;1;0
+256;Design Docs/WhatsApp Image 2025-08-07 at 21.04.43_96a63704.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;UI de lista de canciones, de amor y de concierto;ui;parcial;;0;0
+257;Design Docs/WhatsApp Image 2025-08-07 at 21.04.51_ca89aaaf.jpg;Design Docs;imagen;2025-08-07;nombre;bocetos-propios;cuaderno de Claudio;UI de canción y medidor de engagement;ui;parcial;;0;0
+258;Enemies/Screenshot 2024-09-06 223522.png;Enemies;imagen;2024-09-06;nombre;enemigos-publico;Monster Train;anotado: distinguir enemigos con reacción a hechizos;reaccion;pendiente;;1;1
+259;Enemies/Screenshot 2025-06-23 095406.png;Enemies;imagen;2025-06-23;nombre;enemigos-publico;Slay the Spire;intención Strategic y Poison;intencion;parcial;intención en texto;0;1
+260;Enemies/Screenshot 2025-06-24 102533.png;Enemies;imagen;2025-06-24;nombre;enemigos-publico;Slay the Spire;Giant Head: Strategic y Slow;intencion;parcial;;0;0
+261;Enemies/Screenshot 2025-06-25 105044.png;Enemies;imagen;2025-06-25;nombre;enemigos-publico;Slay the Spire;intención desconocida (The Collector);intencion;pendiente;sin intención oculta;0;0
+262;Enemies/Screenshot 2025-06-28 074321.png;Enemies;imagen;2025-06-28;nombre;enemigos-publico;Slay the Spire;Nemesis: Aggressive 45 e Intangible;intencion;parcial;;0;0
+263;Enemies/Screenshot 2025-06-28 075341.png;Enemies;imagen;2025-06-28;nombre;enemigos-publico;Slay the Spire;Darklings con Life Link;enlace;pendiente;;0;0
+264;Enemies/Screenshot 2025-06-28 075615.png;Enemies;imagen;2025-06-28;nombre;enemigos-publico;Slay the Spire;Awakened One: cinco estados apilados;estado;incorporada;estados con hover;0;0
+265;Enemies/Screenshot 2025-06-28 080359.png;Enemies;imagen;2025-06-28;nombre;enemigos-publico;Slay the Spire;Awakened One despierto: Strength;estado;incorporada;;0;0
+266;Enemies/Screenshot 2025-06-28 085151.png;Enemies;imagen;2025-06-28;nombre;enemigos-publico;Slay the Spire;Byrd: ataque 1×5 y Flight;intencion;parcial;número de golpes en la intención no;0;0
+267;Enemies/Screenshot 2025-07-08 173726.png;Enemies;imagen;2025-07-08;nombre;enemigos-publico;Griftlands;ficha de Wild Erchin: pánico y botín;publico;pendiente;;0;0
+268;Enemies/wounds to the ego.png;Enemies;imagen;2025-07-20;archivo;enemigos-publico;Slay the Spire;Painful Stabs: mete una herida en tu mazo;carta-negativa;pendiente;;0;0
+269;Enemies/Screenshot 2025-07-21 130701.png;Enemies;imagen;2025-07-21;nombre;enemigos-publico;Slay the Spire;Shelled Parasite con Plated Armor;estado;parcial;Compostura es el escudo propio;0;0
+270;Enemies/Screenshot 2025-07-21 183319.png;Enemies;imagen;2025-07-21;nombre;enemigos-publico;Slay the Spire;Exploder: explota en 3 turnos;cuenta-atras;pendiente;;0;0
+271;Enemies/Screenshot 2025-07-21 185655.png;Enemies;imagen;2025-07-21;nombre;enemigos-publico;Slay the Spire;Reptomancer con intención desconocida;intencion;pendiente;;0;0
+272;Enemies/Screenshot 2025-08-01 195521.png;Enemies;imagen;2025-08-01;nombre;enemigos-publico;Monster Train;Vanguard sobre el Sloven Knight;posicion;pendiente;;0;0
+273;Enemies/Screenshot 2025-08-01 195559.png;Enemies;imagen;2025-08-01;nombre;enemigos-publico;Monster Train;anotado: convencer al público antes de que se vaya;huida;pendiente;;1;0
+274;Enemies/Tall Characters.png;Enemies;imagen;2025-08-01;archivo;enemigos-publico;Monster Train;anotado: los altos tapan la vista a los de atrás;tapar-vista;incorporada;Tall y Tapar la Vista existen;1;0
+275;Enemies/Unconvince Healers.png;Enemies;imagen;2025-08-01;archivo;enemigos-publico;Monster Train;anotado: público que «desconvence» a otros;sanador;pendiente;;1;0
+276;Enemies/Screenshot 2025-08-04 200409.png;Enemies;imagen;2025-08-04;nombre;enemigos-publico;Monster Train;jefe Seraph con carta maldita al mazo;jefe;parcial;Reina Gusano en la demo (M4);0;1
+277;Enemies/Screenshot 2025-08-11 220447.png;Enemies;imagen;2025-08-11;nombre;run-y-mapa;mazmorra en rejilla (sin identificar);rejilla de casillas con enemigos y cofres;mapa;no-aplica;;0;0
+278;Enemies/supports.png;Enemies;imagen;2025-08-15;archivo;enemigos-publico;Monster Train;anotado: enemigos de apoyo solo para otros;apoyo;pendiente;;0;0
+279;Enemies/Screenshot 2026-03-06 201651.png;Enemies;imagen;2026-03-06;nombre;combate-flujo;Slay the Spire 2 (probable);Ringing: solo una carta este turno;estado;pendiente;;0;0
+280;MidiGenPlay/Screenshot 2025-09-01 113209.png;MidiGenPlay;imagen;2025-09-01;nombre;prototipo-propio;MidiGenPlay;editor de progresiones con grados y acordes;midigenplay;incorporada;Chord Progression Editor;0;0
+281;MidiGenPlay/WhatsApp Image 2025-09-03 at 20.37.24_6fb5d941.jpg;MidiGenPlay;imagen;2025-09-03;nombre;bocetos-propios;cuaderno de Claudio;boceto del editor de ritmos y acordes;midigenplay;incorporada;DrumPatternEditor y editor de progresiones;1;0
+282;MidiGenPlay/Screenshot 2025-09-04 181746.png;MidiGenPlay;imagen;2025-09-04;nombre;prototipo-propio;MidiGenPlay;barra de progresión I-IV-V-iii;midigenplay;incorporada;;0;0
+283;MidiGenPlay/Screenshot 2025-09-05 170528.png;MidiGenPlay;imagen;2025-09-05;nombre;musica;vídeo de redes;cómo leer ritmos con figuras;ritmo;no-aplica;;0;0
+284;Random Events/RandomEventsAlinicioDeRehearsal.png;Random Events;imagen;2024-09-01;archivo;eventos;Darkest Dungeon;evento del pueblo al empezar: Hear ye;evento;parcial;eventos en el repo · al inicio del ensayo no;0;0
+285;Random Events/Screenshot 2025-08-02 173821.png;Random Events;imagen;2025-08-02;nombre;eventos;Monster Train;evento de la Corona Roja;evento;parcial;;0;0
+286;Random Events/Screenshot 2025-08-02 182343.png;Random Events;imagen;2025-08-02;nombre;eventos;Monster Train;evento del Gremlin con tres opciones;evento;parcial;;0;0
+287;Random Events/Screenshot 2025-08-06 192141.png;Random Events;imagen;2025-08-06;nombre;eventos;Monster Train;evento: invitar a Dante;evento;parcial;;0;0
+288;Random Events/Screenshot 2025-08-12 204147.png;Random Events;imagen;2025-08-12;nombre;eventos;Monster Train;evento de los cristales de entropía;evento;parcial;;0;0
+289;Random Events/Screenshot 2025-09-10 180817.png;Random Events;imagen;2025-09-10;nombre;eventos;FTL;evento de texto: planeta errante y monolito;evento;parcial;;0;0
+290;Rehearsal Ship/5aaSM.jpg;Rehearsal Ship;imagen;2025-06-23;archivo;nave-y-escenarios;Star Trek: TNG;puente del Enterprise;nave;parcial;escena Ship Interior en el repo;0;0
+291;Rehearsal Ship/C7AjebOU4AA90YQ.jpeg;Rehearsal Ship;imagen;2025-06-23;archivo;nave-y-escenarios;Space Dandy;plano del interior de la nave Aloha;nave;parcial;;1;0
+292;Rehearsal Ship/E7v6q9nXoAMMFJI.jpg;Rehearsal Ship;imagen;2025-06-23;archivo;nave-y-escenarios;Cowboy Bebop;sala común de la Bebop;nave;parcial;;0;0
+293;Rehearsal Ship/carousel.webp;Rehearsal Ship;imagen;2025-06-23;archivo;nave-y-escenarios;ciencia ficción (sin identificar);pasillo blanco curvo de nave;nave;parcial;;0;0
+294;Rehearsal Ship/vmugtsh211q21.jpg;Rehearsal Ship;imagen;2025-06-23;archivo;nave-y-escenarios;Cowboy Bebop (probable);corte de una nave con sus salas;nave;parcial;;1;0
+295;Rehearsal Ship/Screenshot 2025-09-09 014757.png;Rehearsal Ship;imagen;2025-09-09;nombre;nave-y-escenarios;Cowboy Bebop;sala de la nave con tres personajes;nave;parcial;;0;0
+296;Rehearsal Ship/ship_interior_reference.jpeg;Rehearsal Ship;imagen;2025-09-17;archivo;nave-y-escenarios;Space Dandy;interior de la nave Aloha (copia);nave;parcial;duplicado de 291;0;0
+297;Specials/Screenshot 2025-08-14 043335.png;Specials;imagen;2025-08-14;nombre;personajes-banda;Tenacious D;Jack Black y Kyle Gass, acorde con rayos;especial;pendiente;movimiento especial de la banda;1;0
+298;Starmap/Screenshot 2025-08-14 062312.png;Starmap;imagen;2025-08-14;nombre;run-y-mapa;FTL;mapa de sectores con ramas;mapa;parcial;Sector Map en el repo · la demo usa el mapa lineal;0;0
+299;Starmap/Screenshot 2025-09-10 175226.png;Starmap;imagen;2025-09-10;nombre;run-y-mapa;FTL;mapa de sectores (otra ruta);mapa;parcial;;0;0
+300;Starmap/Screenshot 2025-09-10 175317.png;Starmap;imagen;2025-09-10;nombre;run-y-mapa;FTL;mapa de balizas en la nebulosa;mapa;parcial;;0;0
+301;Starmap/Screenshot 2025-09-10 180644.png;Starmap;imagen;2025-09-10;nombre;run-y-mapa;FTL;hover: destino de misión sin visitar;mapa;parcial;;0;0
+302;Starmap/Screenshot 2025-09-10 180730.png;Starmap;imagen;2025-09-10;nombre;run-y-mapa;FTL;hover: la nebulosa frena y ciega;mapa;pendiente;nodos con efectos;0;0
+303;Starmap/Screenshot 2025-09-10 202723.png;Starmap;imagen;2025-09-10;nombre;run-y-mapa;FTL;mapa con la flota rebelde que avanza;presion;pendiente;;0;0
+304;Starmap/Screenshot 2025-09-11 194318.png;Starmap;imagen;2025-09-11;nombre;run-y-mapa;FTL;mapa: tu ubicación actual;mapa;incorporada;nave en el último nodo jugado (MAP-DEMO-1);0;0
+305;Status/Screenshot 2025-07-04 103022.png;Status;imagen;2025-07-04;nombre;enemigos-publico;Slay the Spire;intención y estado Mark;intencion;parcial;;0;0
+306;Status/Dazzled (Pop) and Mindblown (Rock & Jazz).png;Status;imagen;2025-08-01;archivo;enemigos-publico;Monster Train;anotado: Melee Weakness = más Vibe,  Dazzled, Mindblown;estado;incorporada;es Cautivado: el Vibe entra +25 % por pila;1;0
+307;Status/CardTypeShield.png;Status;imagen;2025-08-02;archivo;enemigos-publico;Monster Train;anotado: anular el próximo daño por tipo de carta;estado;parcial;Indiferencia anula el Vibe · no por tipo;0;0
+308;Status/Mindfulness.png;Status;imagen;2025-08-02;archivo;enemigos-publico;Monster Train;anotado: Mindfulness, después del gig baja el estrés;estado;pendiente;;0;0
+309;Status/Mindsteal or Lifesteal.png;Status;imagen;2025-08-02;archivo;enemigos-publico;Monster Train;anotado: Mindsteal, estrés que baja el Vibe;estado;pendiente;;0;0
+310;Status/Screenshot 2025-08-04 192426.png;Status;imagen;2025-08-04;nombre;enemigos-publico;Monster Train;Pyregel 838: daño extra por pila;estado;incorporada;es Expuesto;0;0
+311;Status/Screenshot 2025-08-06 225243.png;Status;imagen;2025-08-06;nombre;enemigos-publico;Monster Train;anotado: ganar Groove cuando el público ataca;estado;pendiente;;0;0
+312;Status/Screenshot 2025-08-11 110034.png;Status;imagen;2025-08-11;nombre;enemigos-publico;Monster Train;anotado: efecto al llegar un músico al colapso;breakdown;pendiente;;0;0
+313;Tutorials/Screenshot 2025-08-11 222143.png;Tutorials;imagen;2025-08-11;nombre;tutorial-onboarding;deckbuilder (sin identificar);páginas de conceptos básicos: cartas, consumibles;tutorial;parcial;tutorial guiado · sin páginas de consulta;0;0
+314;Tutorials/Screenshot 2025-08-11 222231.png;Tutorials;imagen;2025-08-11;nombre;tutorial-onboarding;deckbuilder (sin identificar);básicos: bonus de combo y carga;tutorial;parcial;;0;0
+315;Tutorials/Screenshot 2025-08-11 222353.png;Tutorials;imagen;2025-08-11;nombre;tutorial-onboarding;deckbuilder (sin identificar);básicos: cordura y bloqueo;tutorial;parcial;;0;0
+316;UX/Screenshot 2025-07-08 173602.png;UX;imagen;2025-07-08;nombre;ui-claridad;Griftlands;nombre subrayado en el texto con ficha al pasar;glosario;incorporada;conceptos con tooltip en el texto (TXT-2);0;0
+317;UX/Screenshot 2025-07-08 173628.png;UX;imagen;2025-07-08;nombre;ui-claridad;Griftlands;nombre de personaje con ficha al pasar;glosario;incorporada;;0;0
+318;Venues/Screenshot 2025-06-30 175728.png;Venues;imagen;2025-06-30;nombre;nave-y-escenarios;El quinto elemento;la Diva canta ante el planeta;venue;no-aplica;estética;1;0
+319;Venues/Screenshot 2025-06-30 175820.png;Venues;imagen;2025-06-30;nombre;nave-y-escenarios;El quinto elemento;la Diva Plavalaguna en escena;venue;no-aplica;estética;0;0
+320;Videos/Recording 2025-09-03 232942.mp4;Videos;video;2025-09-03;nombre;otros;grabación (sin identificar);vídeo oscuro con partículas y cursor;;no-aplica;5 s · no se ve;0;0
+321;Videos/Recording 2025-09-03 234148.mp4;Videos;video;2025-09-03;nombre;otros;grabación (sin identificar);vídeo oscuro con partículas y cursor;;no-aplica;7 s · no se ve;0;0
+322;Videos/Recording 2025-09-03 235345.mp4;Videos;video;2025-09-03;nombre;tutorial-onboarding;juego sin identificar;vídeo: diálogo de tutorial en español (monedas y estrellas);tutorial;no-aplica;;0;0
+323;Videos/Recording 2025-09-04 005523.mp4;Videos;video;2025-09-04;nombre;nave-y-escenarios;anime (sin identificar);vídeo: actuación en un bar con micrófono;venue;no-aplica;;0;0
+324;Videos/Recording 2025-11-18 192707.mp4;Videos;video;2025-11-18;nombre;enemigos-publico;Monster Train;vídeo: Wickless Baron con Harvest;estado;no-aplica;;0;0
