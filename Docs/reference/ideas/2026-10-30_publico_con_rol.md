@@ -1,128 +1,163 @@
-# Público con rol — inventario de enemigos, ideas y estado del código (2026-10-30)
+# Público con rol — inventario de enemigos, ideas y estado del código (2026-10-30, v2)
 
-**Tipo:** idea / referencia (no autoridad). Si algo entra en la demo, se diseña en su batch
-(`PUBLICO-ROL-1` en `planning/active/DEMO-1211_Plan_de_Sesiones.md`) y su verdad pasa a
-`SSoT_Audience_and_Reactions.md`. Los nombres son **provisionales**: los pone el equipo.
-Origen: pedido de Claudio («que los grupos estén pensados para funcionar entre ellos») y las referencias
-anotadas de Monster Train (i 273, 274, 275, 278 en `referencias-alwttt/catalogo.csv`).
+**Tipo:** idea / referencia (no autoridad). Lo que entre en la demo se diseña en su batch
+(`planning/active/DEMO-1211_Plan_de_Sesiones.md`) y su verdad pasa a `SSoT_Audience_and_Reactions.md`.
+Los nombres sin ficha son **provisionales**: los pone el equipo.
+**v2 (misma tarde):** fichas de diseño de Matías para 4 enemigos, sprites nuevos (ranas, Reina, ataque del
+jefe punk), gritos al público y plano de la nave. Sustituye a la v1.
 
 ## 1. Lo que hay en el repo (código leído el 2026-10-30)
 
 **Ya se puede, solo con datos** (`AudienceCharacterData` + `AudienceAbilityData`):
-- Cada habilidad es una lista de acciones con tipo, objetivo, valor y estado (`CharacterActionData`).
+- Cada habilidad es una lista de acciones con tipo, objetivo, valor y estado (`CharacterActionData`);
+  pueden ir en patrón fijo (`followAbilityPattern`) o al azar.
 - Acciones con efecto real: `AddVibe`, `RemoveVibe`, `BlockVibe` (sobre público), `AddStress`,
   `BlockStress`, `HealStress` (sobre la banda), `MoveToFront` (N pasos), `ApplyStatusEffect` (cualquier
-  estado del catálogo SO). `AddHooked`, `AddHeckled`, `AddStun` y `AddDazzled` están en el enum pero no
-  tienen procesador.
+  estado del catálogo SO: Shaken, Choke, Exposed…). `AddHooked`, `AddHeckled`, `AddStun` y `AddDazzled`
+  están en el enum sin procesador.
 - Objetivos: `Self`, `AudienceCharacter` (el aliado menos convencido), `RandomAudienceCharacter`,
   `AllAudienceCharacters`, `AudienceTall` (el primer alto que no sea él), `Musician` (respeta Spotlight),
   `RandomMusician`, `AllMusicians`.
-- Posición: el público es una fila ordenada; un alto sin convencer **tapa** a los que no son altos detrás
-  (`RecalculateAudienceObstructions`); los tapados no reciben Vibe. `MoveToFront` reordena la fila.
-- Gustos por miembro (`TastePreferences`): tempo, pistas, compás, tonalidad.
-- **Ya hay una sinergia:** el Kid «Egg Him On» anima al alto (Cool Dude) con `AudienceTall`.
-- Habilidades en patrón fijo o al azar; intención con sprite y «xN» del primer valor.
+- Posición: fila ordenada; un alto sin convencer **tapa** a los que no son altos detrás; los tapados no
+  reciben Vibe. `MoveToFront` reordena la fila.
+- Gustos por miembro (`TastePreferences`): tempo, pistas activas, compás, tonalidad. No hay eje de
+  «género»: el jazz o el funk se aproximan con esos cuatro.
+- **Ya hay una sinergia:** el Kid «Egg Him On» anima al alto (Cool Dude).
+- Hay un `speechBubblePrefab` en `AudienceCharacterBase` (lo usa `AttackRoutine`, un camino antiguo) y
+  `FxManager.SpawnFloatingText`.
 
-**Lo que falta para que las sinergias se *vean*** (lo más importante para la demo):
-1. La intención no dice **a quién** va. Sin una línea o flecha hacia el aliado, «el Kid anima al alto»
-   se lee como «el Kid hace algo». Hay un patrón parecido ya hecho: el texto de Spotlight (PRES-1).
-2. El texto flotante de cada acción es el nombre interno (`AddVibe`, `MoveToFront`). Debe salir del
-   glosario, como las habilidades desde TEXT-5.
+**Para que las sinergias se *vean*** (entra en la legibilidad de la demo):
+1. La intención no dice **a quién** va: falta una línea o flecha hacia el objetivo, como el aviso de
+   Spotlight (PRES-1).
+2. El texto flotante es el nombre interno (`AddVibe`, `MoveToFront`); debe salir del glosario.
 
-**Código pequeño (≤ 1 sesión cada uno):**
-- Objetivos nuevos: «el líder» (generalizar `AudienceTall`), «el de al lado», «el más convencido».
-- Rasgos como lista (Alto, Pequeño, Líder…) en lugar del `bool isTall` (el propio código dice
-  `// TODO Generalize`).
+**Código pequeño (≤ 1 sesión cada uno):** gritos (§5); objetivos «el líder», «el de al lado», «el más
+convencido»; rasgos como lista en lugar del `bool isTall` (`// TODO Generalize`); cambiar de sprite por
+estado (poses).
 
-**Código mediano (Phase C):**
-- **Disparadores**: «cuando convencen a un aliado», «cuando queda solo», «cuando el alto se mueve». Hoy
-  el público solo actúa en su turno. El bus de eventos (S2/S4) ya publica lo necesario
-  (`AudienceReactionEvent`, `LoopResolvedEvent`); falta el lado que escucha.
-- **Irse del gig** (cuenta atrás, salir de la fila, y qué cuenta eso para ganar).
-- **Desconvencer**: `IsConvinced` vuelve a `false` en `AudienceCharacterStats` (línea ~344); sin
-  comprobar si es solo de Dev.
-- **Guardaespaldas**: redirigir las cartas del jugador a otro miembro (el espejo de Spotlight).
+**Código mediano (Phase C):** disparadores (al convencer a un aliado, al quedar solo); irse del gig;
+desconvencer (`IsConvinced` vuelve a `false` en `AudienceCharacterStats` ~l. 344, sin comprobar si es
+solo Dev); guardaespaldas (redirigir cartas del jugador); **dividirse en dos** (aparecer miembros nuevos
+a mitad de gig); estirarse para volverse alto un turno.
 
-**Veredicto:** la base aguanta. Para la demo basta con datos + los dos arreglos de legibilidad
-(objetivo visible y texto del glosario). Los disparadores son lo que hace interesantes a los grupos de
-verdad, y son Phase C.
+**Veredicto:** la base aguanta. Para la demo: datos + objetivo visible + texto del glosario + gritos.
 
 ## 2. Inventario de arte (`Assets/Resources/Sprites/Characters/Audience`)
 
-| Archivo | Qué es |
-| --- | --- |
-| `enemigos.png` | Lámina con **16 enemigos**: arriba en silueta, abajo pintados (11 en color, 5 en gris) |
-| `1.png`–`5.png` | 5 bocetos en línea blanca (no están en la lámina) |
-| `jefe.png`, `secuas 1–3.png` | Un jefe punk morado y 3 secuaces; color casi final |
-| `image.png` | **4 poses del secuaz 1** (el único con poses) |
-| `Circle`, `Square`, `Triangle` | Formas de prueba |
+| Archivo | Qué es | Listo para el juego |
+| --- | --- | --- |
+| `enemigos.png` | Lámina de 16 enemigos (11 en color, 5 en gris) | No: hay que recortarlos |
+| `image (1)–(4).png` | **Fichas de diseño** de 4 de la lámina (ver §3) | Referencia |
+| `234.png` | Rayas, versión final con contorno | **Sí** |
+| `asfasf.png` | Tentáculos (funk), versión pintada con contorno | **Sí** |
+| `rana enemigo.png`, `rana enemigo 2.png` | Dos ranas oscuras, nuevas | **Sí** (esbozo pintado) |
+| `jefe.png`, `secuas 1–3.png` | Jefe punk y 3 secuaces | **Sí** |
+| `image.png` | 4 poses del secuaz 1 | **Sí** |
+| `ataque jefe.png` | El jefe punk señalando con un bocadillo «BBUUU…» | Referencia del grito |
+| `jefe (1).png` | **La Reina Gusano**: cíclope sobre un cuerpo de huevos | **Sí** |
+| `1.png`–`5.png` | 5 bocetos en línea blanca | No |
+| `Screenshot 2026-10-30 220359.png` | Ideas de gritos (§5) | Referencia |
 
-Además, la imagen que mandó Claudio el 2026-10-30 trae **8 bocetos** más (no comprobado si están en la
-carpeta). En total, unos **33 diseños**, más los 4 que ya están en el juego (Cool Dude, Kid, Big Guy,
-Influencer). En `Ship/` están la nave entera, la sala de ensayo, la sala recreativa, el chillout y el
-vendedor (`vendedor.png`, repetido en `Rooms/`).
+Más los 8 bocetos de la imagen del 2026-10-30 (no están en la carpeta) y los 4 que ya juegan (Cool Dude,
+Kid, Big Guy, Influencer). Unos **37 diseños**; **9 con sprite usable ya**: Rayas, Tentáculos, las dos
+ranas, el jefe punk, sus 3 secuaces y la Reina.
 
-## 3. Una idea por enemigo
+## 3. Los cuatro con ficha (lo que dice la ficha → cómo jugarlo)
 
-Rol: **ATK** (estresa a la banda), **DEF** (protege a aliados), **POS** (cambia la fila), **SUP** (ayuda
-a otros), **¿?** (necesita código mediano). «Datos» = se hace solo con datos.
+### Antena (verde, cuello largo, ficha `image (1)`) — le gusta el **jazz / blues**
+Ficha: antena de mucha potencia que puede causar un silencio; puede pararse y dejar sin visión a los demás;
+difícil de complacer, ha vivido muchas vidas; ataque de confusión; adivinar; burbujas de silencio; puede
+estirarse; carácter caótico, medio siniestro.
+- **Burbuja de silencio:** Ahogo (Choke) a un músico: ese músico no actúa un turno. *Datos* (comprobar que
+  el estado del catálogo de músicos se aplica desde el público).
+- **Se para:** alterna sentado / de pie; de pie tapa a los de atrás. *Pequeño* (alto por turno).
+- **Gustos:** tempo lento + tonalidad menor (aproximación al blues). *Datos.*
+- **Adivinar:** acierta qué tipo de carta jugarás y la encarece. *Phase C.*
 
-### La lámina (de izquierda a derecha)
+### Tentáculos (rojo, tres tentáculos, ficha `image (2)`, sprite `asfasf.png`) — le gusta el **funk**
+Ficha: si los 3 tentáculos están activos causa graves problemas; lanza cosas con los tentáculos; criatura
+telequinética de carácter difícil; la música muy fuerte le hace daño; cuando no está a gusto crea confusión.
+- **Tres tentáculos:** patrón fijo *carga · carga · lanzamiento*. La intención muestra 1, 2 y 3 tentáculos;
+  al tercero, mucho estrés a un músico. Es la mecánica más legible de las cuatro. *Datos.*
+- **La música fuerte le duele:** odia muchas pistas activas (eje de pistas). *Datos.*
+- **Confusión:** si no le gusta el loop, Shaken a un músico. *Datos.*
 
-| # | Aspecto | Nombre provisional | Idea | Rol | Coste |
-| --- | --- | --- | --- | --- | --- |
-| L1 | gris, brazos como colas | **Contorsionista** | Se cuela un puesto adelante cada turno y desordena la fila: puede dejar al alto detrás y destapar a los pequeños | POS | Datos |
-| L2 | peludo a rayas, seis ojos | **El que ya lo vio todo** | «Os vi en 2019, sonabais mejor». Blinda a todos con un poco de resistencia | DEF | Datos |
-| L3 | búho turquesa con antena | **Antenita** | Retransmite el concierto: si lo convences, sus seguidores se convencen un poco | SUP | ¿? |
-| L4 | oruga alta con espinas | **Ciempiés Alto** | Alto: tapa a los de atrás | POS | Datos |
-| L5 | calamar con chistera | **Don Chistera, el promotor** | El dueño del local que nunca aplaude. Mientras siga sin convencer, su seguridad le protege | SUP | Pequeño |
-| L6 | gusano gris de cuello largo | **Cuello de Grúa** | Mira por encima: nadie lo tapa. Pariente de la Reina Gusano | POS | Pequeño |
-| L7 | rojo con tres antenas en flor | **Tres Mecheros** | Las antenas son mecheros: cuando lo convences, los enciende y anima a los de al lado | SUP | ¿? |
-| L8 | gris alto, cabeza en punta | **Seguridad** | Alto y se pone delante del promotor; si existiera el guardaespaldas, se comería tus cartas | DEF | Datos / ¿? |
-| L9 | bulto gris con trompa | **El Dormido** | Se durmió en primera fila: no hace nada y aguanta mucho. Despierta si tocas rápido | DEF | Datos + gustos |
-| L10 | escarabajo alto con cuernos | **Escarabajo Metalero** | Alto y hace headbang: estrés a toda la banda | ATK | Datos |
-| L11 | platillo pequeño, cara triste | **Platillo Triste** | Se aburre: si en 2 loops no lo convences, se va | ¿? | Mediano |
-| L12 | gran masa azul con ojos | **La Masa** | Enorme y lenta: mucha resistencia, alta | DEF | Datos |
-| L13 | cubo rojo de un ojo, falda | **Inspector del Imperio Nudo** | «No saben de arte, solo contratar»: pide un compás o un tempo y castiga si no se lo das | ATK | Datos (gustos) |
-| L14 | verde, cuello largo, boca de corazón | **El Enamorado** | Groupie de un músico: le baja el estrés a su favorito y se lo sube a los demás por celos | SUP / ATK | Datos |
-| L15 | manita con ojos en tallos | **Manito** | Pequeño, siempre tapado; aplaude a los de delante (les da resistencia) | SUP | Datos |
-| L16 | cangrejo gris con caparazón | **Caparazón** | Se blinda y avanza para cubrir a otros | DEF / POS | Datos |
+### Cubo (cíclope cuadrado, ficha `image (3)`) — le gusta la **ópera y el metal**
+Ficha: metal industrial; ataque de ópera, grito capaz de romper el vidrio; diamante con energía solar
+**extraído por la raza de los Cono**, que contiene un minisol y le da telequinesis; se quita la cabeza; le
+gusta dar sustos.
+- **Grito de ópera:** estrés a toda la banda. *Datos.*
+- **Susto:** se quita la cabeza: Shaken al músico con menos estrés. *Datos.*
+- **El diamante de los Cono:** tiene algo personal con **Conito**. Sus gritos van a él (§5) y podría
+  ir siempre a por Conito. *Datos* (objetivo fijo a un músico: pequeño).
 
-### Bocetos sueltos
+### Rayas (peludo a rayas, ficha `image (4)`, sprite `234.png`) — le gusta **la música que le hace vibrar**
+Ficha: criatura maleable sin huesos; pasa por agujeros pequeños; puede dividirse en dos; al dividirse,
+cada mitad tiene gustos y temperamento distintos; se le pegan las cosas.
+- **Escurridizo:** se cuela al frente aunque haya un alto (`MoveToFront`). *Datos.*
+- **Le gusta vibrar:** quiere el bajo sonando (eje de pistas). *Datos.*
+- **Se le pegan las cosas:** se queda con los estados que le pones y los devuelve. *Phase C.*
+- **Dividirse:** al bajar de la mitad, se parte en dos (roja y blanca) con gustos opuestos. Es la idea más
+  vistosa y la más cara. *Phase C.*
 
-| # | Aspecto | Nombre provisional | Idea | Rol |
-| --- | --- | --- | --- | --- |
-| B1 | perro con orejas de conejo (`1.png`) | **Perrito de Gira** | Sigue a la banda de concierto en concierto: el más fácil de convencer | — |
-| B2 | cabeza de calamar con patas (`2.png`) | **Patas Largas** | Alto a ratos: se estira y tapa un turno sí y otro no | POS |
-| B3 | perro de tres ojos (`3.png`) | **Olfato** | Huele qué le gusta al resto y revela sus gustos al convencerlo | SUP |
-| B4 | cangrejo sonriente de muchos ojos (`4.png`) | **Sonrisas** | Ríe con los demás: cuando alguien estresa a la banda, él suma | ATK |
-| B5 | sostiene una cabeza pequeña (`5.png`) | **El Ventrílocuo** | Dos opiniones en uno: dos intenciones por turno | ATK |
-| B6 | alto, orejas como alas (imagen) | **Conejo Polilla** | Va hacia la luz: se mueve delante cuando hay efectos de escenario | POS |
-| B7 | tubo con boca vertical (imagen) | **Bocina** | Grita: estrés al músico con más estrés | ATK |
-| B8 | araña de patas largas (imagen) | **Zancudo** | Alto por las patas, pero se agacha si lo convences | POS |
-| B9 | rana de puños grandes (imagen) | **Fan de Puños** | Choca los puños con un aliado: le da ánimo | SUP |
-| B10 | sapo gordo con cuerno (imagen) | **Sapo Cuerno** | Se sienta y ocupa dos puestos | POS |
-| B11 | coral de antenas (imagen) | **Antenas** | Recibe la música: si le gusta, se lo dice a todos | SUP |
-| B12 | astronauta de brazos largos (imagen) | **Turista** | Graba con la mano larga y tapa la vista | POS |
-| B13 | torre de bolas (imagen) | **La Torre** | Tres en uno: al convencerlo, se desarma en tres pequeños | ¿? |
+## 4. Ideas para el resto
 
-### Jefe y secuaces
-
-| Archivo | Idea |
-| --- | --- |
-| `jefe.png` | **El Jefe Punk**: no lo convences mientras sus secuaces lo animen (como el Kid con el alto) |
-| `secuas 1–3` | Animan al jefe y abuchean a la banda; si convences a uno, los otros dos se pican y estresan más (¿?) |
-
-## 4. Grupos
-
-| Grupo | Miembros | Cómo funciona | Coste |
+| Enemigo | Idea | Rol | Coste |
 | --- | --- | --- | --- |
-| **Primera fila** | Escarabajo Metalero (alto) + Contorsionista + Manito | El alto tapa a Manito; el Contorsionista se cuela y lo destapa sin querer. Decides a quién atacar según la fila | Datos |
-| **El promotor y su seguridad** | Don Chistera + 2 Seguridad | La seguridad blinda al promotor; convences antes a la seguridad o aguantas hasta el final | Datos + «el líder» |
-| **Pandilla punk** | Jefe + 3 secuaces | Los secuaces animan al jefe (patrón del Kid); convéncelos primero | Datos + «el líder» |
-| **Imperio Nudo** | 2 Inspectores + Turista | Comparten el mismo gusto: una sola canción buena los convence a todos, una mala los enfada a todos | Datos (gustos) |
-| **Groupies** | El Enamorado + Tres Mecheros | Cada uno tiene un músico favorito; los celos hacen que estresen al resto | Datos |
+| **Ranas** (las dos nuevas) | Cantan a dúo: si las dos siguen sin convencer, el croar estresa el doble. Una rosada y otra azul por el contorno | ATK | Datos |
+| **Jefe punk** + 3 secuaces | Los secuaces lo animan (patrón del Kid) y abuchean a la banda; el jefe grita «BBUUU…» | SUP / ATK | Datos + «el líder» |
+| **Reina Gusano** | Ver §6 | Jefa | Datos + gritos |
+| Contorsionista (gris, brazos-cola) | Se cuela un puesto adelante cada turno y desordena la fila | POS | Datos |
+| Ciempiés Alto (oruga naranja) | Alto: tapa a los de atrás | POS | Datos |
+| Don Chistera (calamar con chistera) | El promotor que nunca aplaude; su seguridad lo protege | SUP | Pequeño |
+| Seguridad (gris alto) | Alto, delante del promotor | DEF | Datos |
+| El Dormido (bulto gris) | No hace nada y aguanta mucho; despierta si tocas rápido | DEF | Datos |
+| Escarabajo Metalero | Alto; headbang: estrés a toda la banda | ATK | Datos |
+| Platillo Triste | Se aburre y se va | — | Phase C |
+| La Masa (azul) | Enorme, mucha resistencia | DEF | Datos |
+| Manito (mano con ojos) | Pequeño, siempre tapado; aplaude a los de delante | SUP | Datos |
+| Caparazón (cangrejo) | Se blinda y avanza para cubrir a otros | DEF | Datos |
+| Antenita (búho turquesa) | Retransmite: si lo convences, sus seguidores se convencen un poco | SUP | Phase C |
 
-**Recomendación para la demo:** «Primera fila» (gig 1: enseña la fila y el alto) y «Pandilla punk» o
-«El promotor» (gig 2: enseña que el público se ayuda). Coste: datos + objetivo visible en la intención
-+ objetivo «el líder».
+## 5. Gritos: personalidad y legibilidad a la vez
+
+Idea de la pizarra (`Screenshot 2026-10-30 220359.png`) y del ataque del jefe (`ataque jefe.png`): el
+público le grita cosas a la banda, a veces a un músico concreto. Ejemplos de la pizarra: «Tu música
+apesta», «Puedo hacer eso en 2 segundos con IA», «Tu mamá es watona», un fan con un cartel «TE AMO».
+
+**Por qué vale la pena:** además de dar risa, el grito **dice qué va a pasar y a quién**. «¡Conito, tu
+raza me robó el diamante!» justo antes de estresar a Conito resuelve parte del problema 1 de §1.
+
+**Cómo:** cada habilidad lleva una lista de frases; al activarse, sale una al azar en un bocadillo sobre
+el miembro del público. `{músico}` se sustituye por el nombre del objetivo ya resuelto. Textos en el
+glosario (ES y EN), como las habilidades desde TEXT-5. Coste: 1 sesión.
+
+Ejemplos (para que el equipo los reescriba):
+- Cubo → Conito: «¡Tu raza me robó el diamante!» · «Cono tenías que ser.»
+- Antena → a cualquiera: «He vivido nueve vidas y ninguna tan aburrida.»
+- Tentáculos: «Uno…» · «Dos…» · «¡TRES!» (sus tres turnos; la cuenta es la intención).
+- Jefe punk: «BBUUU…» · «¡Fuera!» · Secuaces: «¡Eso, jefe!»
+- Rayas: «Más bajo… más… ¡ahí!» (pide el bajo).
+- Reina → Sibi: «Hijo mío, vuelve a la colmena.» (en su ficha, Sibi siempre sigue la voluntad de la colmena).
+- Cualquiera → Robot C2: «¿Te programaron para desafinar?» · «Puedo hacer eso en 2 segundos con IA.»
+- Convencido: un cartel «TE AMO».
+
+Los insultos más fuertes («tu papá es…») quedan a criterio del equipo: la demo es pública.
+
+## 6. La Reina Gusano (sprite `jefe (1).png`)
+
+Restricción de M4: 1–2 mecánicas legibles, sin quitar poderes (Keep #113). Propuesta con datos:
+- **Puesta de huevos:** patrón fijo *huevo · huevo · eclosión*. Cada huevo le da resistencia (`BlockVibe`
+  sobre sí misma); la eclosión estresa a toda la banda. La intención cuenta los huevos. Se lee como los
+  tentáculos y enseña lo mismo: «cuando llega a 3, cuidado».
+- **La colmena llama a Sibi:** sus gritos van a Sibi y, si Sibi está en la banda, le sube el estrés a él.
+  Le da historia al combate sin texto aparte.
+Pendiente de Matías: si la Reina tiene acompañantes (larvas) o va sola.
+
+## 7. Grupos para los tres gigs de la demo (solo con sprites listos)
+
+| Gig | Público | Qué enseña |
+| --- | --- | --- |
+| 1 | **Las dos ranas + Rayas** | Lo básico: intención, gustos (Rayas quiere bajo), y que el dúo pega el doble mientras sigan las dos |
+| 2 | **Jefe punk + 3 secuaces** (o 2 + Tentáculos) | Que el público se ayuda: los secuaces animan al jefe; los gritos dicen a quién |
+| 3 | **Reina Gusano** | Contar hasta 3 y prepararse; la colmena y Sibi |
