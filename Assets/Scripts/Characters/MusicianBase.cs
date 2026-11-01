@@ -142,6 +142,8 @@ namespace ALWTTT.Characters.Band
                 pd.BandCohesion = Mathf.Max(0, pd.BandCohesion - 1);
 
                 // Decision D: gig loss on Cohesion ≤ 0
+                // [COH-1 / D-DIAG-1=A] In a map run this ends the run: LoseGig
+                // sees cohesion 0 and shows "La banda se separa" → Game Over.
                 if (pd.BandCohesion <= 0)
                 {
                     // [TUT-REDESIGN-B / D-TUTB-3=A] Publishes GigOutcomeEvent(lost, CohesionCollapse).

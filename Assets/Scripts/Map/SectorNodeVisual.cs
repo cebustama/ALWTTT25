@@ -24,6 +24,10 @@ namespace ALWTTT.Map
         // skip the sector-index encounter lookup (meaningless off the procedural map).
         public bool UseBoundTooltipOnly { get; set; }
 
+        // [MAP-DEMO-2] The node shows its own preview through HoverEnter/HoverExit
+        // (e.g. the boss card), so the generic tooltip is skipped.
+        public bool SuppressTooltip { get; set; }
+
         public event Action<SectorNodeVisual> Clicked;
         public event Action<SectorNodeVisual> HoverEnter;
         public event Action<SectorNodeVisual> HoverExit;
@@ -90,6 +94,12 @@ namespace ALWTTT.Map
         // Pointer hover (requires EventSystem + Physics2DRaycaster on the Camera)
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if (SuppressTooltip)
+            {
+                HoverEnter?.Invoke(this);
+                return;
+            }
+
             ShowTooltipInfo(
                 TooltipManager.Instance,
                 content: _tooltipDesc,

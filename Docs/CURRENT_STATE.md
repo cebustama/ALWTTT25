@@ -30,6 +30,7 @@ This file tracks the currently validated project baseline, active work, and imme
 
 | Batch | Closed | Outcome |
 | --- | --- | --- |
+| COH-1 (+ MAP-DEMO-2) | 2026-11-01 | **La cohesión es la única derrota (D-DIAG-1).** `GigLossOutcome` (nuevo, 6 tests EditMode en `Assets/Tests/Editor/`, en verde) decide el panel: en la gira del mapa no hay Retry; «Continuar» → mapa con «Cohesión X → Y», o «Fin de la gira» → Game Over si la cohesión llega a 0 o se pierde contra la Reina (sin línea de cohesión). WinPanel tras la Reina: sin Retry, «Volver al menú». Cohesión en el HUD del gig y en el mapa. GigSetup conserva Retry + Exit. **MAP-DEMO-2**, hecho en la misma sesión: paneo de entrada de la cámara, camino punteado, gigs pasados de decoración y tarjeta de la Reina al pasar el ratón. Guion 1–9 y smoke 2 (colapso real con cohesión 1) PASS, jugados por Claudio y verificados con capturas, sin `Editor.log`. Marco de la consola (`Assets/Art/UI/Gig/`) como `Image` dentro de `GigCanvas`: tapa las cartas (se arregla en GIG-UI-1). |
 | MAP-DEMO-1 | 2026-10-28 | **La demo empieza en el mapa.** `LinearMapController` (nuevo) sobre `mapa asterioide 1.0.png`: 3 nodos (2 gigs + Reina), nodo activo que late, completados apagados, nave en el último jugado; cohesión ≤ 0 o Reina perdida → Game Over (D-MAP-DEMO-2=A: el nodo se consume al lanzarse). `RunConfig.preserveRunState` conserva mazo y SFX entre nodos (D-MAP-DEMO-1=A); la pregunta del tutorial sale una vez por partida; `StartOnLinearMap` en `GigDevSettingsSO`. La escena `1b - Linear Map` ocupa el índice 1 de la build en lugar de `1 - Sector Map` (sigue en el repo para Phase C). Guion jugado por Claudio: mapa desde el menú, carta y SFX conservados en el gig 2 (PASS); pasos 9–10 y `Editor.log` sin comparar. Icono del nodo inicial y de la nave: pedidos a Matías (vie 30-oct). |
 | PLAY-TIMING-0 | 2026-10-01 | **El juego sabe cuánto faltó para la barra cuando pulsas Play — y solo lo dice en el log.** Insertado en la sesión de SONG-TAIL-1. `PlayPressTimingProbe` (nuevo) anota el pointer-down del botón Play (D-PT4=B; `onClick` salta al soltar) y `GigManager.OnPlayPressed` escribe una línea `[PLAY-TIMING]` con el error firmado al borde más cercano del loop que suena (D-PT1=A, D-PT2=B), grado en ms absolutos y offset de calibración (D-PT3=A). Fuera de ventana, las dos distancias (F-PT-1). Sin efecto de juego. T1–T4 PASS. Doc retenida en `SONG-TAIL-1_PLAY-TIMING-0_DocDiffs_Pending.md`. |
 | SONG-TAIL-1 | 2026-10-01 | **La banda no se calla entre canciones, y la siguiente entra en la barra.** El último loop se repite fuera de `CompositionSession` (D-ST0: sin feedback de loop) durante la resolución, el turno del público y la composición siguiente; al pulsar Play la parte se renderiza y su audio espera a la siguiente barra del tail (D-ST7=C). Quinto plano de volumen (D-ST3=B), el cantante sigue cantando y se atenúa con el tail (D-ST2=C, R-V), la banda sigue «tocando» (D-ST4=A), fundido en victoria/derrota (D-ST5=C), conmutador A/B en `GigFlowSettingsSO` + Dev Mode (D-ST6=A). Arreglo post-smokes **F-ST-1** (la voz del tail seguía sobre la canción nueva). ST-ST-1..10 + T2/T3 PASS. Doc retenida en `SONG-TAIL-1_PLAY-TIMING-0_DocDiffs_Pending.md`. |
@@ -545,6 +546,14 @@ The live active-work stream is the demo-cut sequence in §3 (strict left-to-righ
 ---
 
 ## 3. Next active
+
+> **Siguiente (2026-11-01): S2 — GIG-UI-1, la consola del manager.** S1 (COH-1) cerrada y commiteada.
+> Antes de montar, adaptar `planning/active/GIG-UI-1_Runbook.md` al montaje real: el marco **no** es un
+> `GigFrameCanvas` sino un `Image` al final de `GigCanvas` (Overlay), por eso tapa las cartas de la mano
+> y bloqueaba clics (Raycast Target ya desactivado). Primer paso: las cartas delante del marco. Abierto:
+> D-UI-1 (nombre de la barra del músico; el código la trata como aguante, S5e, y `SSoT_Gig_Combat_Core`
+> §5.4/§6.3 y el glosario dicen lo contrario). Detalle menor: en GigSetup el cuerpo del panel de derrota
+> queda tapado por Retry. **Este bloque reemplaza al de 2026-10-30 de abajo.**
 
 > **Siguiente (2026-10-30): DEMO-1211 — plan por sesiones aceptado; S1 = cierre de COH-1.** La
 > secuencia hacia la demo vive en `planning/active/DEMO-1211_Plan_de_Sesiones.md` (D-PLAN-0..4). La

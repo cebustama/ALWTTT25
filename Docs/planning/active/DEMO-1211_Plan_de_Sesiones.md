@@ -44,7 +44,7 @@ plano o en capturas.
 
 | Semana | # | Sesión | Objetivo único | Lo has logrado si… | M |
 | --- | --- | --- | --- | --- | --- |
-| 2–6 nov | S1 | **COH-1, cierre** | Jugar el guion de `COH-1_Guion.md` y pegar el `Editor.log` | Pasos 1–9 coinciden con el log; commit | M3 |
+| 2–6 nov | S1 | **COH-1, cierre** ✅ 2026-11-01 | Jugar el guion de `COH-1_Guion.md` (ahora en `planning/archive/`) y pegar el `Editor.log` | Pasos 1–9 coinciden con el log; commit. **Hecho:** pasos 1–9 y smoke 2 PASS jugados por Claudio, verificados con capturas (sin `Editor.log`); de paso, MAP-DEMO-2 (paneo, camino, gigs pasados, tarjeta de la Reina) | M3 |
 | | S2 | **GIG-UI-1** | Montar la consola del manager según su runbook | La cohesión se ve en el HUD y la consola se lee | M3 |
 | | S3 | **LEGIB-1a: ver antes de jugar** | Al pasar el ratón por una carta, el Big Num muestra «Y → Z» | El número previsto es el que pasa (3 cartas distintas) | M1 |
 | 9–13 nov | S4 | **LEGIB-1b: lo que recibes** | La intención del público dice qué hará y a quién (línea al objetivo); sin textos internos («AddVibe») | Una persona ajena dice qué hará cada miembro del público | M1 |

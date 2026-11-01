@@ -156,6 +156,7 @@ namespace ALWTTT.Managers
         private bool _isBetweenSongs;
         private bool _actionWindowOpen = true;
         private bool _returningToMap = false;
+        private bool _lossShown = false; // [COH-1]
 
         private int _currentBpm;
 
@@ -1610,27 +1611,107 @@ namespace ALWTTT.Managers
                 return;
             }
 #endif
+            // [COH-1] A second breakdown after the collapse (or a song ending
+            // behind the open panel) must not reopen or rewire it.
+            if (_lossShown)
+            {
+                Debug.Log($"{DebugTag} [COH-1] LoseGig ignored: loss panel already open.");
+                return;
+            }
+            _lossShown = true;
 
             var pd = GameManager.PersistentGameplayData;
 
             StopSongTail(fade: true, why: "lose");  // [SONG-TAIL-1]
+            if (CurrentGigPhase != GigPhase.EndGig)
+                CurrentGigPhase = GigPhase.EndGig;  // [COH-1] no card plays behind the panel
+
             var encounter = pd.CurrentEncounter ?? CurrentGigEncounter; // CurrentGigEncounter = your runtime one
             int penalty = encounter != null ? encounter.CohesionPenaltyOnLoss : 0;
 
+            // [COH-1 / D-DIAG-1=A, D1, D4] Cohesion 0 is the only defeat. In a
+            // map run (the demo) the panel has one button: "Continuar" → map,
+            // or "Fin de la gira" → Game Over (collapse, Queen lost, penalty
+            // down to 0). Outside a map run (GigSetup) Retry/Exit stay for testing.
+            bool mapRun = IsMapRun;
+            var outcome = GigLossOutcome.Resolve(
+                pd.BandCohesion, penalty, mapRun, pd.IsFinalEncounter);
+
+            Debug.Log($"{DebugTag} [COH-1] LoseGig | MapRun={mapRun} | " +
+                      $"Final={pd.IsFinalEncounter} | Cohesion {outcome.CohesionBefore} → " +
+                      $"{outcome.CohesionAfter} | RunOver={outcome.RunOver}");
+
             UIManager.GigCanvas.OnLossConfirm = () => ReturnToMap(false);
 
-            // [B3-demo-polish / D-UX2] Wire Retry/Exit buttons on loss panel.
-            UIManager.GigCanvas.OnLossRetry = HandleRetry;
-            UIManager.GigCanvas.OnLossExit = HandleExit;
+            if (mapRun)
+            {
+                UIManager.GigCanvas.OnLossRetry = null;
+                if (outcome.RunOver)
+                {
+                    int cohesionAfter = outcome.CohesionAfter;
+                    UIManager.GigCanvas.OnLossExit = () => GoToGameOver(cohesionAfter);
+                }
+                else
+                {
+                    UIManager.GigCanvas.OnLossExit = () => ReturnToMap(false);
+                }
+            }
+            else
+            {
+                // [B3-demo-polish / D-UX2] Wire Retry/Exit buttons on loss panel.
+                UIManager.GigCanvas.OnLossRetry = HandleRetry;
+                UIManager.GigCanvas.OnLossExit = HandleExit;
+            }
 
-            UIManager.GigCanvas.ShowLoss(
-                title: "Gig Lost",
-                body: "You didn’t convince the crowd this time, but the journey continues.\n" +
-                      $"Cohesion decreased by {penalty}."
-            );
+            UIManager.GigCanvas.ConfigureLossButtons(mapRun, outcome.ButtonLabel);
+            UIManager.GigCanvas.ShowLoss(title: outcome.Title, body: outcome.Body);
 
             foreach (var m in _spawned)
                 if (m != null) m.UnbindFromGigContext();
+        }
+
+        /// <summary>
+        /// [COH-1] True when the gig was launched from the demo map: the
+        /// loss/win panels then drop Retry (D-COH-1; D4 = decided by the return
+        /// destination, no extra flag). GigSetup launches return to GigSetup
+        /// and keep Retry.
+        /// </summary>
+        private static bool IsMapRun
+        {
+            get
+            {
+                var ctx = GigRunContext.Instance;
+                return ctx != null && ctx.HasActiveRun && ctx.Current != null
+                    && ctx.Current.returnDestination == GigRunContext.GigReturnDestination.Map;
+            }
+        }
+
+        /// <summary>
+        /// [COH-1 / D-DIAG-1=A] End of the run from inside the gig. Stores the
+        /// final cohesion (the Game Over canvas reads PD) and clears the run
+        /// pointers like ReturnToMap. The Game Over scene goes back to the menu
+        /// through SceneChanger.OpenMainMenuScene, which rebuilds PD.
+        /// </summary>
+        private void GoToGameOver(int cohesionAfter)
+        {
+            if (_returningToMap)
+            {
+                Debug.LogWarning($"{DebugTag} GoToGameOver called after leaving the gig. Ignoring.");
+                return;
+            }
+            _returningToMap = true;
+
+            var pd = GameManager.PersistentGameplayData;
+            pd.BandCohesion = Mathf.Max(0, cohesionAfter);
+            pd.CurrentEncounter = null;
+            var ctx = GigRunContext.Instance;
+            if (ctx != null) ctx.Clear();
+
+            Debug.Log($"{DebugTag} [COH-1] Game Over | Cohesion={pd.BandCohesion} | " +
+                      $"GigsWon={pd.GigsWon} | Fans={pd.Fans}");
+
+            if (sceneChanger != null) sceneChanger.OpenGameOverScene();
+            else SceneManager.LoadScene("Game Over");
         }
 
 
@@ -1673,8 +1754,13 @@ namespace ALWTTT.Managers
                 UIManager.RewardCanvas.OnRewardFinished = () =>
                 {
                     UIManager.GigCanvas.gameObject.SetActive(true);
-                    UIManager.GigCanvas.OnWinRetry = HandleRetry;
+                    // [COH-1 / D2] Map run: no Retry after the Queen; Exit
+                    // reads "Volver al menú" (HandleExit → menu, where Start
+                    // begins a fresh run).
+                    bool mapRun = IsMapRun;
+                    UIManager.GigCanvas.OnWinRetry = mapRun ? null : (System.Action)HandleRetry;
                     UIManager.GigCanvas.OnWinExit = HandleExit;
+                    UIManager.GigCanvas.ConfigureWinButtons(mapRun, "Volver al menú");
                     UIManager.GigCanvas.WinPanel.SetActive(true);
                 };
 

@@ -259,6 +259,21 @@ This is invoked from `MusicianBase.OnBreakdown()` immediately after `PersistentG
 
 **Note:** There is no method named `TriggerGigLoss`. The correct runtime call is `LoseGig()`.
 
+**Run-level outcome (COH-1, 2026-11-01; D-DIAG-1: cohesion is the only defeat).** A lost gig does
+not end the run by itself. `GigLossOutcome.Resolve(cohesionBefore, penalty, mapRun, finalEncounter)`
+(pure, EditMode-tested) decides what the loss panel says and does. In a map run
+(`GigRunContext.Current.returnDestination == Map`, D4) there is no Retry and a single button:
+
+| Case | Title | Button → destination |
+| --- | --- | --- |
+| Cohesion already 0 (breakdown mid-gig) | «La banda se separa» | «Fin de la gira» → Game Over |
+| Boss lost (D1) | «La Reina no se convenció» (no cohesion line) | «Fin de la gira» → Game Over |
+| Penalty takes cohesion to 0 | «Gig perdido» | «Fin de la gira» → Game Over |
+| Otherwise | «Gig perdido» + «Cohesión X → Y» | «Continuar» → map |
+
+A boss win ends on the WinPanel with no Retry and «Volver al menú» (D2). GigSetup runs keep Retry +
+Exit and the prefab labels. Cohesion is shown in the gig HUD and on the linear map (D3).
+
 ---
 
 ## 9. Encounter modifiers and special room rules

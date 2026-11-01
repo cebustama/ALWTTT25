@@ -295,10 +295,20 @@ namespace ALWTTT.Data
             set => fans = value;
         }
 
+        // [COH-1 / D3] Fired on every change so the gig HUD can show cohesion
+        // (breakdowns change it mid-gig). Static: PD is a plain object that is
+        // rebuilt by InitGameplayData, listeners must not hold an instance.
+        public static event Action<int> BandCohesionChanged;
+
         public int BandCohesion
         {
             get => bandCohesion;
-            set => bandCohesion = value;
+            set
+            {
+                if (bandCohesion == value) return;
+                bandCohesion = value;
+                BandCohesionChanged?.Invoke(value);
+            }
         }
 
         public IReadOnlyList<string> StoryTags => storyTags;

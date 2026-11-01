@@ -14,6 +14,22 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-01 — COH-1: la cohesión es la única derrota (+ MAP-DEMO-2)
+
+**Clase:** semántico · operativo. Con cambio de código.
+
+- `SSoT_Gig_Encounter` §8.3: resultado de la derrota a nivel de gira (tabla de `GigLossOutcome`; D1 Reina
+  = Game Over en el gig, D2 WinPanel solo «Volver al menú», D3 cohesión en HUD, D4 modo demo por el
+  destino de vuelta). La Reina perdida no muestra línea de cohesión (cambio de Claudio tras jugarlo).
+- `SSoT_Gig_Combat_Core` §13: la derrota en el mapa la enruta el gig; MAP-DEMO-2 (paneo, camino punteado,
+  gigs pasados, tarjeta de la Reina) descrito como presentación del mapa lineal.
+- Código: `GigLossOutcome.cs` (nuevo) + tests, `GigManager`, `GigCanvas`, `PersistentGameplayData`
+  (`BandCohesionChanged`), `LinearMapController`, `SectorNodeVisual` (`SuppressTooltip`).
+- `CURRENT_STATE.md`: fila COH-1 y bloque «Siguiente (2026-11-01)» (S2 GIG-UI-1). Plan de sesiones: S1 ✅.
+  `COH-1_Guion.md` → `planning/archive/`.
+- Verificación: guion 1–9 + smoke 2 jugados por Claudio con capturas; sin `Editor.log` (desviación del
+  criterio de S1, aceptada).
+
 ## 2026-10-30 — DEMO-1211: plan por sesiones hacia la demo; la demo como esqueleto del juego
 
 **Clase:** operativo · autoridad (planificación). Sin cambio de código.

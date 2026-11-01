@@ -16,6 +16,21 @@ namespace ALWTTT.UI
         [SerializeField] private TextMeshProUGUI discardPileTextField;
         [SerializeField] private TextMeshProUGUI exhaustPileTextField;
         [SerializeField] private TextMeshProUGUI songsLeftTextField;
+        // [COH-1 / D3] "Cohesión: N" in the gig HUD. Optional: null = hidden.
+        [SerializeField] private TextMeshProUGUI cohesionTextField;
+        // [COH-1 / GIG-FRAME] Cohesion as discrete pips (Zelda hearts), one per
+        // point up to MaxCohesion. Optional: no root or prefab = no pips.
+        // cohesionPipRoot carries a Horizontal/Vertical Layout Group; pips are
+        // instantiated from cohesionPipPrefab at runtime. Empty sprite null →
+        // the full sprite tinted with cohesionPipEmptyTint.
+        [Header("Cohesion pips (COH-1)")]
+        [SerializeField] private RectTransform cohesionPipRoot;
+        [SerializeField] private Image cohesionPipPrefab;
+        [SerializeField] private Sprite cohesionPipFull;
+        [SerializeField] private Sprite cohesionPipEmpty;
+        [SerializeField] private Color cohesionPipEmptyTint = new Color(1f, 1f, 1f, 0.25f);
+        private readonly System.Collections.Generic.List<Image> _cohesionPips =
+            new System.Collections.Generic.List<Image>();
 
         [Header("Buttons")]
         // [B3-demo-polish / D-UX2] Win/Loss panels each get Retry + Exit buttons.
@@ -128,6 +143,11 @@ namespace ALWTTT.UI
 
             SetSongsLeft(GigManager.SongsLeft, GigManager.RequiredSongCount);
 
+            // [COH-1 / D3]
+            ALWTTT.Data.PersistentGameplayData.BandCohesionChanged += SetCohesion;
+            var pd = GameManager != null ? GameManager.PersistentGameplayData : null;
+            if (pd != null) SetCohesion(pd.BandCohesion);
+
             if (songHypeRoot != null)
                 songHypeRoot.SetActive(false);
 
@@ -158,6 +178,7 @@ namespace ALWTTT.UI
             GigManager.OnEnemyTurnStarted -= ShowAudienceTurnUI;
             GigManager.OnSongHypeChanged01 -= SetSongHype;
             GigManager.OnSongsLeftChanged -= SetSongsLeft;
+            ALWTTT.Data.PersistentGameplayData.BandCohesionChanged -= SetCohesion; // [COH-1]
         }
 
         private void Update()
@@ -185,6 +206,89 @@ namespace ALWTTT.UI
             drawPileTextField.text = $"{DeckManager.DrawPile.Count.ToString()}";
             discardPileTextField.text = $"{DeckManager.DiscardPile.Count.ToString()}";
             exhaustPileTextField.text = $"{DeckManager.ExhaustPile.Count.ToString()}";
+        }
+
+        public void SetCohesion(int value)
+        {
+            if (cohesionTextField != null)
+                cohesionTextField.text = $"Cohesión: {value}";
+
+            if (cohesionPipRoot == null || cohesionPipPrefab == null) return;
+
+            int max = GameManager != null && GameManager.GameplayData != null
+                ? GameManager.GameplayData.MaxCohesion : 10;
+            // Cohesion can exceed MaxCohesion (Dev stepper has no cap): show them all.
+            int count = Mathf.Max(max, value);
+
+            while (_cohesionPips.Count < count)
+                _cohesionPips.Add(Instantiate(cohesionPipPrefab, cohesionPipRoot));
+            for (int i = 0; i < _cohesionPips.Count; i++)
+            {
+                var pip = _cohesionPips[i];
+                if (pip == null) continue;
+                pip.gameObject.SetActive(i < count);
+                bool full = i < value;
+                pip.raycastTarget = false;
+                if (full)
+                {
+                    if (cohesionPipFull != null) pip.sprite = cohesionPipFull;
+                    pip.color = Color.white;
+                }
+                else if (cohesionPipEmpty != null)
+                {
+                    pip.sprite = cohesionPipEmpty;
+                    pip.color = Color.white;
+                }
+                else
+                {
+                    if (cohesionPipFull != null) pip.sprite = cohesionPipFull;
+                    pip.color = cohesionPipEmptyTint;
+                }
+            }
+        }
+
+        /// <summary>
+        /// [COH-1 / D-COH-1, D4] Map run (the demo): Retry hidden, a single
+        /// button with <paramref name="singleLabel"/> that fires OnLossExit.
+        /// Otherwise (GigSetup) Retry + Exit as before. The single button is
+        /// lossExitButton; lossConfirmButton, when it is a separate button, is
+        /// hidden in the demo so only one way out shows.
+        /// </summary>
+        public void ConfigureLossButtons(bool demo, string singleLabel)
+        {
+            if (lossRetryButton != null) lossRetryButton.gameObject.SetActive(!demo);
+            if (lossConfirmButton != null
+                && lossConfirmButton != lossRetryButton
+                && lossConfirmButton != lossExitButton)
+                lossConfirmButton.gameObject.SetActive(!demo);
+            if (lossExitButton != null)
+            {
+                lossExitButton.gameObject.SetActive(true);
+                SetButtonLabel(lossExitButton, ref _lossExitDefaultLabel, demo ? singleLabel : null);
+            }
+        }
+
+        /// <summary>[COH-1 / D2] Map run: Retry hidden, Exit reads "Volver al menú".</summary>
+        public void ConfigureWinButtons(bool demo, string exitLabel)
+        {
+            if (winRetryButton != null) winRetryButton.gameObject.SetActive(!demo);
+            if (winExitButton != null)
+            {
+                winExitButton.gameObject.SetActive(true);
+                SetButtonLabel(winExitButton, ref _winExitDefaultLabel, demo ? exitLabel : null);
+            }
+        }
+
+        private string _lossExitDefaultLabel;
+        private string _winExitDefaultLabel;
+
+        // label null → restore the prefab's own text.
+        private static void SetButtonLabel(Button button, ref string defaultLabel, string label)
+        {
+            var tmp = button.GetComponentInChildren<TMP_Text>(true);
+            if (tmp == null) return;
+            if (defaultLabel == null) defaultLabel = tmp.text;
+            tmp.text = label ?? defaultLabel;
         }
 
         public void ShowLoss(string title, string body)

@@ -505,8 +505,22 @@ from `PersistentGameplayData`, so rewards earned on one node reach the next.
 **Linear-map progress (MAP-DEMO-1).** `PersistentGameplayData.LinearMapNextNode`
 is advanced when a node is launched: a node is consumed win or lose
 (D-MAP-DEMO-2=A). The map returns to Game Over when cohesion ≤ 0 (D-DIAG-1) or
-when every node is consumed (only reachable by losing the boss; provisional
-until COH-1). Both run fields reset with `InitGameplayData`.
+when every node is consumed. Both run fields reset with `InitGameplayData`.
+
+**Map-run loss (COH-1, 2026-11-01).** In a map run the gig itself routes the
+loss: `GigManager.LoseGig` resolves `GigLossOutcome` and wires the single panel
+button to `ReturnToMap(false)` («Continuar») or to `GoToGameOver` («Fin de la
+gira»: cohesion 0, or the boss lost). The map's own Game Over checks stay as a
+safety net (e.g. Dev «force lose»). Panel table: `SSoT_Gig_Encounter` §8.3.
+
+**Linear-map presentation (MAP-DEMO-2, 2026-11-01).** `LinearMapController`
+also: pans the camera from `introPanStart` to its scene position on the first
+node (`AnimationCurve` easing; any key skips; node clicks ignored meanwhile);
+draws a dotted path of generated dot sprites through past stops → start
+anchor → nodes (traveled segments dimmed; dots use the nodes' material); binds
+decorative `pastStops` (completed, tooltip, not clickable); and shows an
+authored `bossPreview` UI card while hovering the boss node
+(`SectorNodeVisual.SuppressTooltip`, `CanvasGroup.blocksRaycasts = false`).
 
 **Tutorial opt-in once per run (MAP-DEMO-1).** `GigManager.Start` shows the
 opt-in prompt only while `PersistentGameplayData.TutorialOptInAnswered` is
