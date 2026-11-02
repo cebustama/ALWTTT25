@@ -633,6 +633,9 @@ function openEntry(e){
 
 /* ---------- online store ---------- */
 let db = null;
+const MINE_KEY = "alwttt-taller-guardadas";
+function loadMine(){ try{ const a = JSON.parse(localStorage.getItem(MINE_KEY)); return Array.isArray(a) ? a.filter(m => m && m.text && MODES.includes(m.mode)) : []; }catch(e){ return []; } }
+mine = loadMine();
 (async () => {
   try{
     if(!window.claude || !window.claude.use) return;
@@ -648,9 +651,14 @@ let db = null;
 async function saveEntry(){
   const name = $("#sName").value.trim(), msg = $("#saveMsg");
   if(!name){ msg.textContent = "Ponle un nombre."; return; }
-  if(!db){ msg.textContent = "Esta vista no puede guardar en línea. Copia la cadena y mándasela a Claudio."; return; }
   const doc = {name, text: $("#prog").value.trim(), mode, tags: $("#sTags").value.split(",").map(t => t.trim()).filter(Boolean).slice(0,8),
     fuente: $("#sSrc").value.trim(), nota: $("#sNote").value.trim(), at: new Date().toISOString()};
+  if(!db){
+    mine = [doc].concat(mine);
+    try{ localStorage.setItem(MINE_KEY, JSON.stringify(mine)); msg.textContent = "Guardada solo en este navegador (aquí no hay catálogo compartido)."; }
+    catch(e){ msg.textContent = "No se pudo guardar en este navegador. Copia la cadena."; return; }
+    ["#sName","#sTags","#sSrc","#sNote"].forEach(s => $(s).value = ""); filter = "catalogo"; drawFilters(); drawList(); return;
+  }
   msg.textContent = "Guardando…";
   try{ await db.collection("catalogo").add(doc); msg.textContent = "Guardada en el catálogo."; ["#sName","#sTags","#sSrc","#sNote"].forEach(s => $(s).value = ""); filter = "catalogo"; drawFilters(); drawList(); }
   catch(e){ msg.textContent = (e && (e.code === "not_granted" || e.code === "permission_denied")) ? "No tienes permiso para escribir aquí. Copia la cadena y mándasela a Claudio." : "No se pudo guardar. Inténtalo otra vez."; }

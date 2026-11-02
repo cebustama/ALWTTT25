@@ -50,3 +50,20 @@ data = json.dumps(lib, ensure_ascii=False).replace("</", "<\\/")
 html = (d / "template.html").read_text(encoding="utf-8").replace("__LIB__", data)
 (d / "index.html").write_text(html, encoding="utf-8")
 print(len(lib), "entries,", len(html), "bytes")
+
+# Static copy for the private section of the website (behind Cloudflare Access):
+# same page with the artifact skeleton made explicit; no shared db there, saves stay in the browser.
+WEB = Path("D:/Projects/web/claudiobustamante-site/public/privado/taller-armonia")
+if "--web" in __import__("sys").argv:
+    head = chr(10).join([
+        '<!doctype html>', '<html lang="es">', '<meta charset="utf-8">',
+        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
+        '<meta name="robots" content="noindex, nofollow">',
+        '<style>',
+        '/* Copia estática; fuente: ALWTTT25/Docs/reference/taller-armonia/ (build.py --web) */',
+        'body { margin: 0; font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }',
+        '[hidden] { display: none !important; }',
+        '</style>', ''])
+    WEB.mkdir(parents=True, exist_ok=True)
+    (WEB / "index.html").write_text(head + html, encoding="utf-8")
+    print("web copy ->", WEB / "index.html")
