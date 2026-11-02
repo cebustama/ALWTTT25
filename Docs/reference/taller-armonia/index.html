@@ -336,6 +336,7 @@ function arrange(base, level, nV, beats){
         let ap = toTonic ? tonicApproach(level, MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
         if(ap && !toTonic && level === 3) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
         if(ap && ap.length === 2 && !can(li, 2)) ap = [ap[1]];
+        if(ap && mod12(first.pc + ap[0].d) === mod12(seq[li].pc)) ap = null;   // the last chord already is the approach chord
         if(ap && can(li, ap.length)) take({i:li, tail: ap.map((a,k) => ({pc:mod12(first.pc + a.d), q:a.q, dur:h, add:true, why: k ? undefined : "turnaround hacia "+tR+": "+ap.map(x => x.why).join("–")}))});
       }
       // 2) level 2: sus4 on the functional dominant (resolves a fifth down)
