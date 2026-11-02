@@ -1,0 +1,684 @@
+<title>Taller armónico</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a workbench. Left: the string you write, the knobs, the strip of vueltas you hear, the block you copy. Right: the catalogue you pull from. */
+:root{
+  --bg:#e9eef0; --panel:#ffffff; --panel-2:#dde4e7; --ink:#152025; --muted:#56656c; --line:#c3cdd2;
+  --accent:#0d7a80; --accent-ink:#ffffff; --warn:#a35d00; --err:#b0384f;
+  --l1:#6c7a80; --l2:#b37a00; --l3:#c8463a;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a;
+  --accent:#4fcfd6; --accent-ink:#06191b; --warn:#f0a845; --err:#ec7c92;
+  --l1:#9aabb2; --l2:#f0b84a; --l3:#ff7d6e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a;
+  --accent:#4fcfd6; --accent-ink:#06191b; --warn:#f0a845; --err:#ec7c92;
+  --l1:#9aabb2; --l2:#f0b84a; --l3:#ff7d6e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:20px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+@media (max-width:920px){.cols{grid-template-columns:minmax(0,1fr)}}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(28px,5vw,40px);letter-spacing:-.01em}
+h2{font-size:21px}
+h3{font-size:16px}
+p{margin:0}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.stack{display:grid;gap:8px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--panel-2);border-radius:999px;padding:8px 16px;font-weight:700;font-size:15px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+input[type=text],textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-width:0}
+textarea.prog{font:600 17px/1.5 var(--f-mono);resize:vertical}
+label.k{display:grid;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.knobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.bpm{display:flex;gap:8px;align-items:center}
+.bpm input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+.bpm output{font:600 15px var(--f-mono);min-width:3ch;text-align:right;color:var(--ink)}
+.issues{display:grid;gap:4px;font-size:14px}
+.issues .e{color:var(--err)} .issues .w{color:var(--warn)}
+code,.mono{font-family:var(--f-mono)}
+
+/* levels */
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lvl{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;text-align:left;display:grid;gap:2px}
+.lvl b{font:700 16px var(--f-display)}
+.lvl span{font-size:13px;color:var(--muted)}
+.lvl[aria-pressed=true]{border-color:var(--lc);box-shadow:inset 0 0 0 2px var(--lc)}
+.lvl[data-l="1"]{--lc:var(--l1)} .lvl[data-l="2"]{--lc:var(--l2)} .lvl[data-l="3"]{--lc:var(--l3)}
+@media (max-width:520px){.levels{grid-template-columns:1fr}}
+
+/* transport + strip */
+.transport{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.play{width:60px;height:60px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.play svg{width:24px;height:24px}
+.strip{display:grid;gap:8px;overflow-x:auto;padding-bottom:2px}
+.vrow{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;align-items:stretch;min-width:520px}
+.vlab{font:600 12px/1.2 var(--f-mono);color:var(--muted);display:flex;align-items:center}
+.blocks{display:flex;gap:3px;min-width:0}
+.blk{border-radius:7px;background:var(--panel-2);padding:6px 6px 5px;display:grid;gap:1px;min-width:0;overflow:hidden;border:1px solid transparent;position:relative}
+.blk .n{font:700 15px/1.15 var(--f-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk .r{font:12px/1.2 var(--f-mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk.add{border-color:var(--lc,var(--l2));background:color-mix(in srgb,var(--lc,var(--l2)) 16%,var(--panel-2))}
+.blk.col{background:color-mix(in srgb,var(--lc,var(--l2)) 7%,var(--panel-2))}
+.blk.rest{background:repeating-linear-gradient(135deg,var(--panel-2) 0 6px,var(--panel) 6px 12px)}
+.blk.on{outline:2px solid var(--ink);outline-offset:-2px}
+.strip[data-l="2"]{--lc:var(--l2)} .strip[data-l="3"]{--lc:var(--l3)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;background:var(--panel-2);border:1px solid var(--line)}
+.sw.add{border-color:var(--l2);background:color-mix(in srgb,var(--l2) 16%,var(--panel-2))}
+ul.why{margin:0;padding-left:18px;display:grid;gap:3px;font-size:14px}
+pre.out{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:13px/1.5 var(--f-mono);white-space:pre-wrap;word-break:break-word;max-height:260px;overflow:auto}
+
+/* catalogue */
+.cat{position:sticky;top:max(12px,env(safe-area-inset-top,0px))}
+@media (max-width:920px){.cat{position:static}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 11px;font-size:14px}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.list{display:grid;gap:6px;max-height:70vh;overflow:auto;padding-right:2px}
+@media (max-width:920px){.list{max-height:none}}
+.item{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;gap:3px;background:var(--bg);text-align:left;width:100%}
+.item:hover{border-color:var(--accent)}
+.item .t{font-weight:700;font-size:15px}
+.item .p{font:12px/1.35 var(--f-mono);color:var(--muted);overflow-wrap:anywhere}
+.tag{font:600 11px/1 var(--f-mono);letter-spacing:.04em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 7px;display:inline-block}
+.tag.ai{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 50%,var(--line))}
+details summary{cursor:pointer;font-weight:700}
+.hint{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="stack">
+    <span class="eyebrow">ALWTTT · MidiGenPlay · armonía</span>
+    <h1>Taller armónico</h1>
+    <p class="muted">Escribe una progresión con la sintaxis del Import del Chord Progression Editor, elige tono, tempo y nivel, y escúchala. Cuando suene bien, copia el bloque y pégalo en Unity.</p>
+  </header>
+
+  <div class="cols">
+    <main class="stack" style="gap:20px">
+      <section class="panel" aria-labelledby="h-in">
+        <div class="row" style="justify-content:space-between"><h2 id="h-in">Progresión</h2><span class="hint" id="loadedFrom"></span></div>
+        <textarea id="prog" class="prog" rows="2" spellcheck="false" aria-describedby="syntax"></textarea>
+        <p class="hint" id="syntax">Grados separados por « – » (o guion). Sufijos: <code>maj m dim aug maj7 m7 7 ø7 dim7 sus2 sus4 6 m6 7sus4 9 maj9 m9</code>. Duración en compases entre paréntesis: <code>V7 (0.5)</code>. Silencio: <code>S (1)</code>. Sin sufijo, mayúscula es mayor y minúscula es menor.</p>
+        <div class="issues" id="issues"></div>
+        <div class="knobs">
+          <label class="k" for="mode">Modo (Reference tonality)
+            <select id="mode"></select></label>
+          <label class="k" for="root">Tónica (solo para oír)
+            <select id="root"></select></label>
+          <label class="k" for="ts">Compás
+            <select id="ts"><option value="4">4/4</option><option value="3">3/4</option></select></label>
+          <label class="k" for="vueltas">Vueltas
+            <select id="vueltas"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+          <label class="k" for="toque">Toque del teclado
+            <select id="toque">
+              <option value="golpes">Golpes cada 2 tiempos</option>
+              <option value="negras">Negras</option>
+              <option value="bossa">Síncopa (bossa)</option>
+              <option value="arpegio">Arpegio</option>
+              <option value="pad">Acorde tenido</option>
+            </select></label>
+          <label class="k" for="drums">Batería
+            <select id="drums"><option value="1">Suave</option><option value="0">Sin batería</option></select></label>
+        </div>
+        <label class="k" for="bpm">Tempo
+          <span class="bpm"><input id="bpm" type="range" min="50" max="200" step="1" value="100"><output id="bpmOut" for="bpm">100</output><span class="hint">BPM</span></span></label>
+        <p class="hint" id="moodHint"></p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-lvl">
+        <div class="stack">
+          <h2 id="h-lvl">Nivel de la pista</h2>
+          <p class="muted small">Propuesta D6: rejugar la misma carta sube el nivel. Cada nivel aplica reglas fijas a la progresión que escribiste, sin cambiarla por otra. Así suena antes de tocar el juego.</p>
+        </div>
+        <div class="levels" role="group" aria-label="Nivel">
+          <button class="lvl" data-l="1" aria-pressed="true"><b>1 · Simple</b><span>Tal como está escrita.</span></button>
+          <button class="lvl" data-l="2" aria-pressed="false"><b>2 · Adornos</b><span>Séptimas, dominantes secundarias, sus4 y ii–V de vuelta.</span></button>
+          <button class="lvl" data-l="3" aria-pressed="false"><b>3 · Spicy</b><span>Novenas, sustitutos tritonales, préstamos, backdoor y subida de ½ tono.</span></button>
+        </div>
+        <div class="transport">
+          <button id="play" class="play" aria-label="Reproducir"></button>
+          <div class="stack" style="gap:2px">
+            <span class="mono small" id="pos">—</span>
+            <span class="hint" id="len"></span>
+          </div>
+          <label class="row small" style="gap:6px"><input type="checkbox" id="loop" checked> Repetir</label>
+        </div>
+        <div class="strip" id="strip" data-l="1"></div>
+        <div class="legend"><span><i class="sw"></i>Acorde escrito</span><span><i class="sw add"></i>Acorde nuevo o cambiado por el nivel</span></div>
+        <div id="whyBox" class="stack" hidden><h3>Qué cambió</h3><ul class="why" id="why"></ul></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-out">
+        <div class="row" style="justify-content:space-between">
+          <h2 id="h-out">Para el Import de Unity</h2>
+          <div class="row"><button class="btn primary" id="copyAll">Copiar bloque</button><button class="btn" id="copyStr">Copiar solo la cadena</button></div>
+        </div>
+        <p class="hint" id="outNote"></p>
+        <pre class="out" id="out"></pre>
+        <span class="hint" id="copied" aria-live="polite"></span>
+      </section>
+    </main>
+
+    <aside class="panel cat" aria-labelledby="h-cat">
+      <div class="stack">
+        <h2 id="h-cat">Catálogo</h2>
+        <p class="hint">Toca una progresión para abrirla en el taller. <span class="tag ai">✦ agente</span> marca las que propuse yo, con la fuente por comprobar.</p>
+      </div>
+      <input type="text" id="q" placeholder="Buscar: andaluza, bVI, bossa…" aria-label="Buscar en el catálogo">
+      <div class="chips" id="filters"></div>
+      <div class="list" id="list"></div>
+      <details id="saveBox">
+        <summary>Guardar la del taller en el catálogo</summary>
+        <div class="stack" style="margin-top:10px">
+          <input type="text" id="sName" maxlength="60" placeholder="Nombre (obligatorio)" aria-label="Nombre">
+          <input type="text" id="sTags" maxlength="80" placeholder="Etiquetas, separadas por comas: city pop, giro…" aria-label="Etiquetas">
+          <input type="text" id="sSrc" maxlength="120" placeholder="Fuente: canción, artista, libro, enlace" aria-label="Fuente">
+          <textarea id="sNote" rows="2" maxlength="300" placeholder="Nota (opcional)" aria-label="Nota"></textarea>
+          <div class="row"><button class="btn primary" id="save">Guardar</button><span class="hint" id="saveMsg" aria-live="polite"></span></div>
+          <p class="hint">Se guarda la cadena escrita y el modo; el nivel y el tempo no.</p>
+        </div>
+      </details>
+    </aside>
+  </div>
+</div>
+
+<script>
+const LIB = [{"name": "Periodo I–IV–V", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 4.0, 5, "maj"], [12.0, 4.0, 7, "maj"], [16.0, 8.0, 0, "maj"], [24.0, 4.0, 5, "maj"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["casa mayor"], "fuente": "Prog_Maj_Periodo_IVV_8c"}, {"name": "Préstamo ♭III", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 3, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 0, "maj"]], "origin": "biblioteca", "tags": ["casa mayor"], "fuente": "Prog_Maj_Prestamo_bIII"}, {"name": "I–IV–I–V (Billboard nº 1)", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 5, "maj"], [8, 4, 0, "maj"], [12, 4, 7, "maj"]], "origin": "candidata", "tags": ["casa mayor"], "fuente": "Pop_I_IV_I_V"}, {"name": "Mixolidio I–♭VII–IV", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 10, "maj"], [8, 4, 5, "maj"], [12, 4, 0, "maj"]], "origin": "candidata", "tags": ["casa mayor"], "fuente": "Rock_Mixo_I_bVII_IV_I"}, {"name": "Blues soul i7–iv7", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "7"], [16.0, 8.0, 0, "min7"], [24.0, 8.0, 5, "7"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_BluesSoul_i7iv7"}, {"name": "Rotación ♭VII", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 10, "maj"], [16.0, 8.0, 8, "maj"], [24.0, 8.0, 10, "maj"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_RotacionVII_8c"}, {"name": "Menor i–iv–V", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 5, "min"], [16.0, 8.0, 0, "min"], [24.0, 4.0, 5, "min"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_ivV_T2_8c"}, {"name": "Andino i–♭III–iv–V", "mode": "Aeolian", "events": [[0, 4, 0, "min"], [4, 4, 3, "maj"], [8, 4, 5, "min"], [12, 4, 7, "maj"]], "origin": "candidata", "tags": ["casa menor"], "fuente": "Andino_Relativa2_i_bIII_iv_V"}, {"name": "Cincuentas I–vi–IV–V", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 9, "min"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 7, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Prog_Maj_Cincuentas_8c"}, {"name": "Axis I–V–vi–IV", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 7, "maj"], [16.0, 8.0, 9, "min"], [24.0, 8.0, 5, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Prog_Maj_Axis_8c"}, {"name": "Pachelbel", "mode": "Ionian", "events": [[0.0, 4.0, 0, "maj"], [4.0, 4.0, 7, "maj"], [8.0, 4.0, 9, "min"], [12.0, 4.0, 4, "min"], [16.0, 4.0, 5, "maj"], [20.0, 4.0, 0, "maj"], [24.0, 4.0, 5, "maj"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Pachelbel 8c"}, {"name": "ii–V–I de jazz", "mode": "Ionian", "events": [[0, 4, 2, "min7"], [4, 4, 7, "7"], [8, 8, 0, "maj7"]], "origin": "candidata", "tags": ["vuelta"], "fuente": "Jazz_ii_V_I"}, {"name": "Nubarrón ♭VI", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 8, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 0, "maj"]], "origin": "biblioteca", "tags": ["giro"], "fuente": "Prog_Maj_Nubarron_bVI"}, {"name": "Creep I–III–IV–iv", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 4, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 5, "min"]], "origin": "biblioteca", "tags": ["giro"], "fuente": "Prog_Maj_Creep_IVpiv"}, {"name": "Cadencia rota I–IV–V–vi", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 5, "maj"], [8, 4, 7, "maj"], [12, 4, 9, "min"]], "origin": "candidata", "tags": ["giro"], "fuente": "Pop_Deceptive_I_IV_V_vi"}, {"name": "Mario I–♭VI–♭VII", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 8, "maj"], [8, 4, 10, "maj"], [12, 4, 0, "maj"]], "origin": "candidata", "tags": ["giro"], "fuente": "Rock_Mario_I_bVI_bVII_I"}, {"name": "Vamp dórico", "mode": "Dorian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "7"], [16.0, 8.0, 0, "min7"], [24.0, 4.0, 2, "min7"], [28.0, 4.0, 5, "7"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Dorico_Vamp"}, {"name": "Mixolidio Sweet Home", "mode": "Mixolydian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 4.0, 10, "maj"], [12.0, 4.0, 5, "maj"], [16.0, 4.0, 7, "min7"], [20.0, 4.0, 5, "maj"], [24.0, 8.0, 10, "maj"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Mixo_SweetHome"}, {"name": "Esqueleto i–iv–iiø", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "min"], [16.0, 8.0, 0, "min7"], [24.0, 8.0, 2, "hdim7"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Skel_TonicaCuartoSegundo"}, {"name": "Andino i–♭III–♭VII", "mode": "Aeolian", "events": [[0, 4, 0, "min"], [4, 4, 3, "maj"], [8, 4, 10, "maj"], [12, 4, 0, "min"]], "origin": "candidata", "tags": ["hipnosis"], "fuente": "Andino_Relativa_i_bIII"}, {"name": "Lidio flotante", "mode": "Lydian", "events": [[0.0, 8.0, 0, "maj7"], [8.0, 8.0, 2, "maj"], [16.0, 8.0, 11, "min7"], [24.0, 8.0, 2, "maj"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Modal_Lidio_Flotante"}, {"name": "Frigio descenso", "mode": "Phrygian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 1, "maj"], [16.0, 4.0, 5, "min"], [20.0, 4.0, 3, "maj"], [24.0, 8.0, 1, "maj"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Modal_Frigio_Descenso"}, {"name": "Cadencia andaluza", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 10, "maj"], [16.0, 8.0, 8, "maj"], [24.0, 8.0, 7, "7"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Min_Andaluza"}, {"name": "Napolitana ♭II", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 1, "maj"], [16.0, 8.0, 0, "min"], [24.0, 4.0, 1, "maj"], [28.0, 4.0, 7, "7"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Min_Napolitana_bII"}, {"name": "Royal road (王道進行)", "mode": "Ionian", "text": "IVmaj7 – V7 – iiim7 – vim7", "origin": "estilo", "tags": ["J-pop", "city pop"], "fuente": "Progresión típica del J-pop y el city pop · por verificar"}, {"name": "Just the Two of Us", "mode": "Ionian", "text": "IVmaj7 – III7 – vim7 – vm7 (0.5) – I7 (0.5)", "origin": "estilo", "tags": ["soul", "city pop"], "fuente": "Grover Washington Jr. con Bill Withers (1980) · por verificar"}, {"name": "Isn't She Lovely", "mode": "Ionian", "text": "iim7 – V7 – I6 – VI7", "origin": "estilo", "tags": ["soul", "Stevie Wonder"], "fuente": "Stevie Wonder (1976): C♯m7–F♯7–B6–G♯7 · por verificar"}, {"name": "Ipanema, parte A", "mode": "Ionian", "text": "Imaj7 (2) – II7 (2) – iim7 – bII7 – Imaj7 – bII7", "origin": "estilo", "tags": ["bossa nova"], "fuente": "Jobim, «The Girl from Ipanema» (1962) · por verificar"}, {"name": "Rhythm changes, parte A", "mode": "Ionian", "text": "Imaj (0.5) – VI7 (0.5) – iim7 (0.5) – V7 (0.5) – iiim7 (0.5) – VI7 (0.5) – iim7 (0.5) – V7 (0.5)", "origin": "estilo", "tags": ["jazz"], "fuente": "Gershwin, «I Got Rhythm» (1930) · por verificar"}, {"name": "Backdoor ii–V", "mode": "Ionian", "text": "ivm7 – bVII7 – Imaj7 (2)", "origin": "estilo", "tags": ["jazz", "soul"], "fuente": "Recurso de jazz: llegar a I desde ♭VII7 · por verificar"}, {"name": "Teen Spirit", "mode": "Ionian", "text": "Imaj (0.5) – IVmaj (0.5) – bIIImaj (0.5) – bVImaj (0.5)", "origin": "estilo", "tags": ["grunge", "hueco: acordes de quinta"], "fuente": "Nirvana (1991): F–B♭–A♭–D♭, en acordes de quinta en el original · por verificar"}, {"name": "Riff frigio", "mode": "Phrygian", "text": "im (2) – IImaj – im", "origin": "estilo", "tags": ["metal", "hueco: acordes de quinta"], "fuente": "Patrón genérico del metal: i–♭II · por verificar"}, {"name": "Guantanamera", "mode": "Ionian", "text": "Imaj (0.5) – IVmaj (0.5) – V7", "origin": "estilo", "tags": ["son cubano"], "fuente": "Joseíto Fernández: I–IV–V7 · por verificar"}];
+const $ = s => document.querySelector(s);
+
+/* ---------- theory ---------- */
+const MODES = ["Ionian","Dorian","Phrygian","Lydian","Mixolydian","Aeolian","Locrian"];
+const MODE_ES = {Ionian:"Jónico (mayor)",Dorian:"Dórico",Phrygian:"Frigio",Lydian:"Lidio",Mixolydian:"Mixolidio",Aeolian:"Eólico (menor)",Locrian:"Locrio"};
+const MOOD = {Ionian:"Alegre",Dorian:"Con groove",Phrygian:"Oscuro",Lydian:"Soñador",Mixolydian:"Funky",Aeolian:"Triste",Locrian:"Tenso"};
+const IONIAN = [0,2,4,5,7,9,11];
+const STEPS = Object.fromEntries(MODES.map((m,i) => [m, IONIAN.map((_,k) => (IONIAN[(i+k)%7] - IONIAN[i] + 12) % 12)]));
+const NOTE = ["C","D♭","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
+const NUM = ["I","II","III","IV","V","VI","VII"];
+// quality key -> intervals, canonical import suffix, lower-case numeral, chord-symbol suffix
+const Q = {
+  maj:{iv:[0,4,7],suf:"maj",lo:false,sym:""},       min:{iv:[0,3,7],suf:"m",lo:true,sym:"m"},
+  dim:{iv:[0,3,6],suf:"dim",lo:true,sym:"°"},        aug:{iv:[0,4,8],suf:"aug",lo:false,sym:"+"},
+  maj7:{iv:[0,4,7,11],suf:"maj7",lo:false,sym:"maj7"}, m7:{iv:[0,3,7,10],suf:"m7",lo:true,sym:"m7"},
+  "7":{iv:[0,4,7,10],suf:"7",lo:false,sym:"7"},      hdim7:{iv:[0,3,6,10],suf:"ø7",lo:true,sym:"m7♭5"},
+  dim7:{iv:[0,3,6,9],suf:"dim7",lo:true,sym:"°7"},   sus2:{iv:[0,2,7],suf:"sus2",lo:false,sym:"sus2"},
+  sus4:{iv:[0,5,7],suf:"sus4",lo:false,sym:"sus4"},  "6":{iv:[0,4,7,9],suf:"6",lo:false,sym:"6"},
+  m6:{iv:[0,3,7,9],suf:"m6",lo:true,sym:"m6"},       "7sus4":{iv:[0,5,7,10],suf:"7sus4",lo:false,sym:"7sus4"},
+  "9":{iv:[0,4,7,10,14],suf:"9",lo:false,sym:"9"},   maj9:{iv:[0,4,7,11,14],suf:"maj9",lo:false,sym:"maj9"},
+  m9:{iv:[0,3,7,10,14],suf:"m9",lo:true,sym:"m9"},
+};
+const MINORISH = new Set(["min","m7","m6","m9","dim","hdim7","dim7"]);
+// Mirror of RomanProgressionParser.TryParseQualitySuffix (after removing spaces, Δ→maj, lower-casing).
+const ALIAS = {};
+[["maj","maj ma mjr mja"],["min","m min mi mn - min3 mtri mtriad"],["dim","dim o °"],["aug","aug + +5"],
+ ["7","7 dom dom7"],["maj7","maj7 ma7 m7+ mm7 mmaj7"],["m7","m7 -7 min7"],["hdim7","ø ø7 m7b5 min7b5"],
+ ["dim7","dim7 o7 °7"],["sus2","sus2"],["sus4","sus4 sus"],["6","6"],["m6","m6 min6"],["7sus4","7sus4"],
+ ["9","9 dom9"],["maj9","maj9 ma9"],["m9","m9 min9"]].forEach(([k,v]) => v.split(" ").forEach(a => ALIAS[a] = k));
+
+let mode = "Ionian";
+const st = () => STEPS[mode];
+const inScale = pc => st().includes(((pc%12)+12)%12);
+const mod12 = x => ((x%12)+12)%12;
+function diatonicQ(deg){
+  const s = st(), t = mod12(s[(deg+2)%7]-s[deg]), f = mod12(s[(deg+4)%7]-s[deg]);
+  return ({"4,7":"maj","3,7":"min","3,6":"dim","4,8":"aug"})[t+","+f] || "maj";
+}
+function romanOf(pc, q){
+  const s = st(); pc = mod12(pc);
+  let d = s.indexOf(pc), acc = "";
+  if(d < 0 && s.indexOf(mod12(pc+1)) > 0){ d = s.indexOf(mod12(pc+1)); acc = "b"; }
+  if(d < 0){ d = s.indexOf(mod12(pc-1)); acc = "#"; }
+  const n = NUM[d];
+  return acc + (Q[q].lo ? n.toLowerCase() : n) + Q[q].suf;
+}
+const fmtDur = d => String(Number(d.toFixed(3)));
+const chordName = (pc, q, key) => NOTE[mod12(pc+key)] + Q[q].sym;
+
+/* ---------- parser (mirrors MidiGenPlay's Roman import) ---------- */
+function parse(text){
+  const chords = [], issues = [];
+  const toks = text.replace(/\n/g," ").replace(/\|/g,"–").split(/[–—-]/).map(t => t.trim()).filter(Boolean);
+  for(const tok of toks){
+    const m = tok.match(/^(.*?)\s*(\(([^)]*)\))?\s*$/);
+    let core = (m[1]||"").trim(), dur = 1;
+    if(m[2] !== undefined){
+      dur = parseFloat(String(m[3]).trim());
+      if(!(dur > 0) || /,/.test(m[3])){ issues.push({e:1, msg:"«"+tok+"»: duración no válida. Usa un número con punto, como (0.5) o (2)."}); continue; }
+    } else if(/[()]/.test(core)){ issues.push({e:1, msg:"«"+tok+"»: falta un paréntesis."}); continue; }
+    if(core === "" || /^(s|r|rest)$/i.test(core)){ chords.push({rest:true, dur}); continue; }
+    const r = core.match(/^([b♭#♯]?)([IVXivx]+)(.*)$/);
+    if(!r){ issues.push({e:1, msg:"«"+tok+"»: no empieza por un grado romano (I a VII)."}); continue; }
+    const deg = NUM.indexOf(r[2].toUpperCase());
+    if(deg < 0){ issues.push({e:1, msg:"«"+tok+"»: «"+r[2]+"» no es un grado de I a VII."}); continue; }
+    const acc = /[b♭]/.test(r[1]) ? -1 : /[#♯]/.test(r[1]) ? 1 : 0;
+    const rawSuf = r[3].trim();
+    let q;
+    if(rawSuf){
+      const s = rawSuf.replace(/\s/g,"").replace(/[Δ∆]/g,"maj").toLowerCase();
+      q = ALIAS[s];
+      if(/M7|M9/.test(rawSuf) && !/maj|ma/i.test(rawSuf)) issues.push({e:0, msg:"«"+tok+"»: MidiGenPlay pasa el sufijo a minúsculas, así que «M7» se lee como m7 (menor). Para mayor séptima escribe maj7."});
+      if(!q){ q = diatonicQ(deg); issues.push({e:1, msg:"«"+tok+"»: el sufijo «"+rawSuf+"» no existe en MidiGenPlay. El Import lo rechaza; aquí suena como el acorde de la escala ("+Q[q].suf+")."}); }
+    } else {
+      const lo = /^[ivx]+$/.test(r[2]), up = /^[IVX]+$/.test(r[2]);
+      if(lo) q = "min"; else if(up) q = "maj";
+      else { q = diatonicQ(deg); issues.push({e:0, msg:"«"+tok+"»: mezcla mayúsculas y minúsculas; MidiGenPlay lo ignora y usa el acorde de la escala."}); }
+    }
+    const pc = mod12(st()[deg] + acc);
+    if(acc && inScale(pc)) issues.push({e:0, msg:"«"+tok+"»: en "+MODE_ES[mode]+" la alteración se aplica al grado del modo, así que suena como "+romanOf(pc, q)+". Si querías el acorde de la escala mayor, escríbelo sin alteración."});
+    chords.push({pc, q, dur});
+  }
+  if(!chords.some(c => !c.rest)) issues.push({e:1, msg:"No hay ningún acorde que tocar."});
+  return {chords, issues};
+}
+
+/* ---------- levels ---------- */
+const majorish = () => mod12(st()[2]) === 4;
+function color(c, nextPc, rich, off){
+  let q = c.q; const r = c.pc - off;
+  if(q === "maj"){
+    if(mod12(r) !== 0 && mod12(nextPc - c.pc) === 5) q = "7";
+    else if(inScale(r+11)) q = "maj7";
+    else if(inScale(r+10)) q = "7";
+    else q = "maj7";
+  } else if(q === "min") q = "m7";
+  else if(q === "dim") q = inScale(r+10) ? "hdim7" : "dim7";
+  if(rich) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
+  return q;
+}
+const nextNonRest = (seq, i) => { for(let k=1;k<=seq.length;k++){ const c = seq[(i+k)%seq.length]; if(!c.rest) return c; } return seq[i]; };
+function arrange(base, level, nV){
+  const vs = [];
+  for(let v=0; v<nV; v++){
+    const off = (level === 3 && nV >= 2 && v === nV-1) ? 1 : 0;
+    let seq = base.map(c => c.rest ? {...c} : {...c, pc: mod12(c.pc+off), orig:true});
+    if(level >= 2){
+      seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i).pc, level === 3, off); return q === c.q ? c : {...c, q, col:true}; });
+    }
+    if(level >= 2 && v >= 1){
+      const out = [];
+      seq.forEach((c,i) => {
+        if(c.rest){ out.push(c); return; }
+        const last = i === seq.length-1, t = nextNonRest(seq,i);
+        // sus4 before the dominant (level 2)
+        if(level === 2 && c.q === "7" && c.dur >= 1 && c.orig){
+          out.push({...c, q:"7sus4", dur:0.5, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")});
+          out.push({...c, dur:c.dur-0.5}); return;
+        }
+        // borrowed iv / Dorian IV (level 3)
+        if(level === 3 && mod12(c.pc-off) === 5 && c.dur >= 1){
+          if(majorish() && !MINORISH.has(c.q)){ out.push({...c, dur:c.dur-0.5}); out.push({pc:c.pc, q:"m6", dur:0.5, add:true, why:"iv menor prestado (iv6) después del IV"}); return; }
+          if(!majorish() && MINORISH.has(c.q)){ out.push({...c, dur:c.dur-0.5}); out.push({pc:c.pc, q:"7", dur:0.5, add:true, why:"IV7 dórico después del iv"}); return; }
+        }
+        // approach chord into the next chord, on odd positions
+        if(i % 2 === 1 && !last && c.dur >= 1 && mod12(t.pc - c.pc) !== 5 && t.q !== "dim" && t.q !== "hdim7"){
+          const tgt = romanOf(t.pc, t.q);
+          out.push({...c, dur:c.dur-0.5});
+          if(level === 2) out.push({pc:mod12(t.pc+7), q:"7", dur:0.5, add:true, why:"dominante secundaria: V7 de "+tgt});
+          else out.push({pc:mod12(t.pc+1), q:"7", dur:0.5, add:true, why:"sustituto tritonal: dominante medio tono sobre "+tgt});
+          return;
+        }
+        out.push(c);
+      });
+      seq = out;
+      // chromatic mediant (level 3)
+      if(level === 3){
+        const iT = seq.findIndex((c,i) => i > 0 && !c.rest && mod12(c.pc-off) === 0 && !c.add);
+        if(iT >= 0){
+          const c = seq[iT], mj = !MINORISH.has(c.q);
+          seq[iT] = {...c, pc: mod12(c.pc + (mj ? 8 : 1)), q:"maj7", add:true, why: mj ? "la vuelta a I cambia por ♭VImaj7 (mediante cromática)" : "la vuelta a i cambia por ♭IImaj7 (napolitana)"};
+        } else if(seq[2] && !seq[2].rest && !seq[2].add){
+          const c = seq[2];
+          seq[2] = {...c, pc: mod12(c.pc+8), q:"maj7", add:true, why:"el tercer acorde cambia por el que está una tercera mayor abajo (mediante cromática)"};
+        }
+      }
+    }
+    vs.push({seq, off});
+  }
+  // turnarounds
+  if(level >= 2){
+    vs.forEach((V, v) => {
+      const isLast = v === nV-1, nxt = vs[(v+1)%nV];
+      if(!(isLast || (level === 3 && nxt.off !== V.off))) return;
+      const li = V.seq.length - 1, c = V.seq[li];
+      if(!c || c.rest || c.dur < 1) return;
+      const first = nxt.seq.find(x => !x.rest); if(!first) return;
+      const t = first.pc, tMin = MINORISH.has(first.q), tR = romanOf(t, first.q);
+      const mod = nxt.off !== V.off ? " (y sube medio tono)" : "";
+      const rest = c.dur - 1, add = [];
+      if(level === 2){
+        add.push({pc:mod12(t+2), q: tMin ? "hdim7" : "m7", dur:0.5, add:true, why:"turnaround: ii–V hacia "+tR+mod});
+        add.push({pc:mod12(t+7), q:"7", dur:0.5, add:true});
+      } else if(!tMin){
+        add.push({pc:mod12(t+5), q:"m7", dur:0.5, add:true, why:"backdoor: iv7–♭VII9 hacia "+tR+mod});
+        add.push({pc:mod12(t+10), q:"9", dur:0.5, add:true});
+      } else {
+        add.push({pc:mod12(t+2), q:"hdim7", dur:0.5, add:true, why:"iiø7 y sustituto tritonal hacia "+tR+mod});
+        add.push({pc:mod12(t+1), q:"7", dur:0.5, add:true});
+      }
+      V.seq.splice(li, 1, ...(rest > 0 ? [{...c, dur:rest}] : []), ...add);
+    });
+  }
+  return vs;
+}
+
+/* ---------- state ---------- */
+const STORE = "alwttt-taller-v1";
+let level = 1, key = 0, parsed = null, vs = [], flat = [];
+function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({t:$("#prog").value, mode, key, bpm:+$("#bpm").value, ts:$("#ts").value, v:$("#vueltas").value, toque:$("#toque").value, drums:$("#drums").value, level})); }catch(e){} }
+function loadLocal(){ try{ return JSON.parse(localStorage.getItem(STORE)); }catch(e){ return null; } }
+
+function update(restart){
+  mode = $("#mode").value; key = +$("#root").value;
+  parsed = parse($("#prog").value);
+  $("#issues").innerHTML = parsed.issues.map(i => '<div class="'+(i.e?"e":"w")+'">'+(i.e?"✕ ":"⚠ ")+esc(i.msg)+'</div>').join("");
+  const nV = +$("#vueltas").value;
+  vs = parsed.chords.some(c => !c.rest) ? arrange(parsed.chords, level, nV) : [];
+  const B = +$("#ts").value;
+  flat = []; let b = 0;
+  vs.forEach((V, v) => V.seq.forEach(c => { flat.push({...c, v, start:b, len:c.dur*B}); b += c.dur*B; }));
+  $("#moodHint").textContent = "En el juego, la tira de composición mostraría este modo como «" + MOOD[mode] + "».";
+  drawStrip(); drawWhy(); drawOut();
+  const secs = b * 60 / +$("#bpm").value;
+  $("#len").textContent = flat.length ? (vs.length + (vs.length === 1 ? " vuelta" : " vueltas") + " · " + fmtDur(b/B) + " compases · " + Math.round(secs) + " s") : "";
+  saveLocal();
+  if(restart && cur) play();
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function drawStrip(){
+  const s = $("#strip"); s.dataset.l = level;
+  s.innerHTML = vs.map((V, v) => '<div class="vrow"><span class="vlab">vuelta '+(v+1)+(V.off ? '<br>+½ tono' : '')+'</span><div class="blocks"></div></div>').join("");
+  const rows = s.querySelectorAll(".blocks");
+  flat.forEach((c, i) => {
+    const el = document.createElement("div");
+    el.className = "blk" + (c.rest ? " rest" : c.add ? " add" : c.col ? " col" : "");
+    el.style.flex = String(c.dur); el.dataset.i = i;
+    el.title = c.rest ? "Silencio" : (chordName(c.pc, c.q, key) + " · " + romanOf(c.pc, c.q) + (c.why ? " · " + c.why : ""));
+    el.innerHTML = c.rest ? '<span class="n">·</span><span class="r">S</span>' : '<span class="n">'+esc(chordName(c.pc, c.q, key))+'</span><span class="r">'+esc(romanOf(c.pc, c.q))+'</span>';
+    rows[c.v].appendChild(el);
+  });
+}
+function drawWhy(){
+  const items = [];
+  flat.forEach(c => { if(c.why) items.push("Vuelta " + (c.v+1) + ": " + c.why + "."); });
+  if(level >= 2) items.unshift(level === 2 ? "Todas las vueltas: tríadas a cuatriadas según la escala (maj7, m7, ø7); un acorde mayor que cae una quinta pasa a 7." : "Todas las vueltas: cuatriadas de la escala y novenas (maj9, m9, 9).");
+  if(level === 3 && vs.length >= 2) items.push("Última vuelta: todo medio tono más arriba.");
+  $("#whyBox").hidden = !items.length;
+  $("#why").innerHTML = items.map(t => "<li>" + esc(t) + "</li>").join("");
+}
+function tokens(){ return flat.map(c => (c.rest ? "S" : romanOf(c.pc, c.q)) + (c.dur !== 1 || c.rest ? " (" + fmtDur(c.dur) + ")" : "")).join(" – "); }
+function block(){
+  const B = +$("#ts").value, meas = flat.reduce((s,c) => s + c.dur, 0);
+  return "## Chord progression — " + MODE_ES[mode].split(" ")[0] + (level > 1 ? ", nivel " + level : "") + ", " + fmtDur(meas) + " measures\n\n" +
+    "**Setup (Roman mode):**\n\n- Time signature: " + (B === 4 ? "FourFour" : "ThreeFour") + "\n- Measures (total): " + fmtDur(meas) +
+    "\n- Default duration (measures): 1\n- Reference tonality: " + mode + "\n\n**Progression (paste into the Roman string field):**\n\n```\n" + tokens() + "\n```\n";
+}
+function drawOut(){
+  const meas = flat.reduce((s,c) => s + c.dur, 0), errs = parsed.issues.filter(i => i.e).length;
+  $("#out").textContent = flat.length ? block() : "";
+  const notes = [];
+  if(!Number.isInteger(meas)) notes.push("⚠ Los compases suman " + fmtDur(meas) + ": Measures tiene que ser entero. Ajusta alguna duración.");
+  if(errs) notes.push("✕ Hay errores arriba: el Import no aceptaría la cadena tal como la escribiste. El bloque usa lo que el taller pudo leer.");
+  notes.push("Todos los acordes van con sufijo explícito, para que la calidad no dependa del modo diatónico del editor. La tónica no se guarda en el asset.");
+  if(level > 1) notes.push("Es la versión de nivel " + level + " con " + vs.length + " vuelta(s) escrita entera: sirve para probarla en Unity como un asset aparte.");
+  $("#outNote").textContent = notes.join(" ");
+  $("#copyAll").disabled = $("#copyStr").disabled = !flat.length;
+}
+
+/* ---------- audio ---------- */
+let ctx = null, master = null, wet = null, cur = null, noise = null;
+function audio(){
+  if(ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const comp = ctx.createDynamicsCompressor();
+  master = ctx.createGain(); master.gain.value = 0.85; master.connect(comp); comp.connect(ctx.destination);
+  const conv = ctx.createConvolver(), len = Math.floor(ctx.sampleRate*1.6), b = ctx.createBuffer(2, len, ctx.sampleRate);
+  for(let c=0;c<2;c++){ const d=b.getChannelData(c); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3); }
+  conv.buffer = b; wet = ctx.createGain(); wet.gain.value = 0.18; wet.connect(conv); conv.connect(comp);
+  noise = ctx.createBuffer(1, ctx.sampleRate*0.5, ctx.sampleRate);
+  const nd = noise.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i] = Math.random()*2-1;
+}
+const mtof = m => 440*Math.pow(2,(m-69)/12);
+function ep(out, t, m, dur, vel){
+  const f = mtof(m), car = ctx.createOscillator(), md = ctx.createOscillator(), mg = ctx.createGain(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+  car.type = "sine"; car.frequency.value = f; md.frequency.value = f;
+  mg.gain.setValueAtTime(f*1.3*vel, t); mg.gain.setTargetAtTime(f*0.06, t, 0.18);
+  md.connect(mg); mg.connect(car.frequency);
+  lp.type = "lowpass"; lp.frequency.value = 3200;
+  const pk = 0.085*vel;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(pk, t+0.006);
+  g.gain.setTargetAtTime(pk*0.3, t+0.006, 0.45); g.gain.setTargetAtTime(0.0001, t+dur, 0.07);
+  car.connect(lp); lp.connect(g); g.connect(out);
+  car.start(t); md.start(t); car.stop(t+dur+0.6); md.stop(t+dur+0.6);
+}
+function bass(out, t, m, dur, vel){
+  const o = ctx.createOscillator(), s = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+  o.type = "triangle"; o.frequency.value = mtof(m); s.type = "sine"; s.frequency.value = mtof(m);
+  lp.type = "lowpass"; lp.frequency.value = 650;
+  const pk = 0.2*vel;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(pk, t+0.01);
+  g.gain.setTargetAtTime(pk*0.55, t+0.01, 0.35); g.gain.setTargetAtTime(0.0001, t+dur, 0.05);
+  o.connect(lp); s.connect(lp); lp.connect(g); g.connect(out);
+  o.start(t); s.start(t); o.stop(t+dur+0.4); s.stop(t+dur+0.4);
+}
+function kick(out, t){
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(45, t+0.12);
+  g.gain.setValueAtTime(0.32, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.25);
+  o.connect(g); g.connect(out); o.start(t); o.stop(t+0.3);
+}
+function hiss(out, t, dur, freq, type, gain){
+  const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+  s.buffer = noise; f.type = type; f.frequency.value = freq;
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+  s.connect(f); f.connect(g); g.connect(out); s.start(t); s.stop(t+dur+0.02);
+}
+function voicings(pcs){
+  const out = [];
+  for(let inv=0; inv<pcs.length; inv++){
+    const ord = pcs.slice(inv).concat(pcs.slice(0,inv));
+    for(let base=52; base<=67; base++){
+      if(mod12(base) !== ord[0]) continue;
+      const v = [base];
+      for(let j=1;j<ord.length;j++){ let n=v[j-1]+1; while(mod12(n) !== ord[j]) n++; v.push(n); }
+      if(v[v.length-1] <= 81) out.push(v);
+    }
+  }
+  return out;
+}
+const avg = a => a.reduce((x,y)=>x+y,0)/a.length;
+function cost(prev, v){
+  if(!prev) return Math.abs(avg(v)-64);
+  let c = 0;
+  for(const n of v) c += Math.min(...prev.map(p => Math.abs(p-n)));
+  for(const p of prev) c += Math.min(...v.map(n => Math.abs(p-n)));
+  return c + 0.15*Math.abs(avg(v)-64);
+}
+function pattern(toque, B, total){
+  const hits = [];
+  if(toque === "pad") return hits;
+  for(let bar=0; bar*B < total; bar++){
+    const o = bar*B, P = {
+      golpes: B === 4 ? [[0,2,1],[2,2,.65]] : [[0,1,1],[1,1,.55],[2,1,.55]],
+      negras: Array.from({length:B}, (_,i) => [i,1,i ? .55 : .95]),
+      bossa: B === 4 ? (bar % 2 === 0 ? [[0,1.5,.95],[1.5,1.5,.7],[3,1,.75]] : [[0.5,1.5,.75],[2,1.5,.8]]) : [[0,1.5,.9],[1.5,1.5,.7]],
+      arpegio: Array.from({length:B*2}, (_,i) => [i/2,.5,i ? .6 : .9]),
+    }[toque];
+    for(const [t,d,v] of P) if(o+t < total) hits.push({t:o+t, d, v, arp: toque === "arpegio"});
+  }
+  return hits;
+}
+function render(){
+  const B = +$("#ts").value, total = flat.length ? flat[flat.length-1].start + flat[flat.length-1].len : 0;
+  let prev = null;
+  const vo = flat.map(c => { if(c.rest) return null; const pcs = [...new Set(Q[c.q].iv.map(x => mod12(c.pc + key + x)))];
+    let best = null, bc = 1e9; for(const v of voicings(pcs)){ const k = cost(prev, v); if(k < bc){ bc = k; best = v; } } prev = best; return best; });
+  const at = t => { let i = flat.findIndex(c => t >= c.start - 1e-6 && t < c.start + c.len - 1e-6); return i; };
+  const keys = [], toque = $("#toque").value;
+  let hits = pattern(toque, B, total);
+  // a chord that starts between hits gets its own hit
+  const win = toque === "bossa" ? 0.6 : 0.01;
+  for(const c of flat){ if(c.rest) continue; if(!hits.some(h => h.t > c.start - win && h.t <= c.start + 1e-6)) hits.push({t:c.start, d:Math.min(2, c.len), v:.9}); }
+  if(toque === "pad") hits = flat.filter(c => !c.rest).map(c => ({t:c.start, d:c.len, v:.75}));
+  hits.sort((a,b) => a.t - b.t);
+  hits.forEach((h, n) => {
+    let i = at(h.t);
+    const j = flat.findIndex(c => c.start > h.t + 1e-6 && c.start <= h.t + 0.6 && !c.rest); // anticipation
+    if(j >= 0 && toque === "bossa") i = j;
+    if(i < 0 || !vo[i]) return;
+    const nextT = n+1 < hits.length ? hits[n+1].t : total, d = Math.max(0.25, Math.min(h.d, nextT - h.t, total - h.t));
+    if(h.arp){ const v = vo[i], seq = v.concat(v.slice(1,-1).reverse()), k = Math.round((h.t - flat[i].start)*2); keys.push({t:h.t, d:d*1.6, m:[seq[k % seq.length]], v:h.v}); }
+    else keys.push({t:h.t, d:d*0.95, m:vo[i], v:h.v});
+  });
+  const bassN = [];
+  flat.forEach(c => { if(c.rest) return;
+    const r = 40 + mod12(c.pc + key - 4), fifth = r + 7 > 52 ? r - 5 : r + 7, step = B === 4 ? 2 : 3;
+    for(let x=0; x<c.len - 1e-6; x+=step) bassN.push({t:c.start+x, d:Math.min(step, c.len-x)*0.95, m: x === 0 ? r : fifth, v: x === 0 ? .95 : .7});
+  });
+  const drums = [];
+  if($("#drums").value === "1") for(let b=0; b<total; b+=0.5){
+    const inBar = b % B;
+    if(inBar === 0 || (B === 4 && inBar === 2.5 && toque === "bossa") || (B === 4 && inBar === 2 && toque !== "bossa")) drums.push({t:b, k:"kick"});
+    if(B === 4 ? (inBar === 1 || inBar === 3) : inBar === 1 || inBar === 2) drums.push({t:b, k:"snare"});
+    drums.push({t:b, k:"hat", v: Number.isInteger(b) ? 1 : .6});
+  }
+  return {keys, bassN, drums, total};
+}
+function play(){
+  if(!flat.length) return;
+  audio(); if(ctx.state === "suspended") ctx.resume();
+  stop(true);
+  const spb = 60 / +$("#bpm").value, R = render();
+  const out = ctx.createGain(); out.connect(master); out.connect(wet);
+  const dry = ctx.createGain(); dry.gain.value = 0.55; dry.connect(master);
+  const t0 = ctx.currentTime + 0.1;
+  for(const n of R.keys) for(const m of n.m) ep(out, t0 + n.t*spb, m, n.d*spb, n.v);
+  for(const n of R.bassN) bass(out, t0 + n.t*spb, n.m, n.d*spb, n.v);
+  for(const d of R.drums){ const t = t0 + d.t*spb;
+    if(d.k === "kick") kick(dry, t); else if(d.k === "snare") hiss(dry, t, 0.12, 1800, "bandpass", 0.12); else hiss(dry, t, 0.04, 7500, "highpass", 0.035*d.v); }
+  cur = {out, dry, t0, spb, total:R.total};
+  setPlayIcon(true); tick();
+}
+function stop(keepIcon){
+  if(!cur) return;
+  const {out, dry} = cur; out.gain.setTargetAtTime(0, ctx.currentTime, 0.03); dry.gain.setTargetAtTime(0, ctx.currentTime, 0.03);
+  setTimeout(() => { try{ out.disconnect(); dry.disconnect(); }catch(e){} }, 500);
+  cur = null; if(!keepIcon) setPlayIcon(false);
+  document.querySelectorAll(".blk.on").forEach(e => e.classList.remove("on"));
+  if(!keepIcon) $("#pos").textContent = "—";
+}
+let lastOn = -1;
+function tick(){
+  if(!cur) return;
+  const beat = (ctx.currentTime - cur.t0) / cur.spb;
+  if(beat >= cur.total){ if($("#loop").checked){ play(); } else stop(); return; }
+  if(beat >= 0){
+    const i = flat.findIndex(c => beat >= c.start && beat < c.start + c.len);
+    if(i !== lastOn){ document.querySelectorAll(".blk.on").forEach(e => e.classList.remove("on")); const el = document.querySelector('.blk[data-i="'+i+'"]'); if(el) el.classList.add("on"); lastOn = i; }
+    const B = +$("#ts").value, c = flat[i];
+    $("#pos").textContent = "compás " + (Math.floor(beat/B)+1) + (c ? " · vuelta " + (c.v+1) + " · " + (c.rest ? "silencio" : chordName(c.pc, c.q, key)) : "");
+  }
+  requestAnimationFrame(tick);
+}
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
+const ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>';
+function setPlayIcon(on){ const p = $("#play"); p.innerHTML = on ? ICON_STOP : ICON_PLAY; p.setAttribute("aria-label", on ? "Parar" : "Reproducir"); }
+
+/* ---------- catalogue ---------- */
+let mine = [], filter = "todas";
+const FILTERS = [["todas","Todas"],["biblioteca","En la biblioteca"],["candidata","Candidatas de la prueba"],["estilo","Estilos ✦"],["catalogo","Guardadas"]];
+function libText(e){
+  const saveMode = mode; mode = e.mode;
+  const s = e.events.map(([st0, len, pc, fam]) => { const q = ({min:"min",min7:"m7",maj6:"6",min6:"m6"})[fam] || fam; return romanOf(pc, Q[q] ? q : "maj") + (len !== 4 ? " (" + fmtDur(len/4) + ")" : ""); }).join(" – ");
+  mode = saveMode; return s;
+}
+function entries(){
+  return LIB.map(e => ({...e, text: e.text || libText(e)})).concat(mine.map(m => ({...m, origin:"catalogo"})));
+}
+function drawFilters(){
+  $("#filters").innerHTML = FILTERS.map(([k,l]) => '<button class="chip" data-f="'+k+'" aria-pressed="'+(filter === k)+'">'+l+'</button>').join("");
+  $("#filters").querySelectorAll(".chip").forEach(b => b.onclick = () => { filter = b.dataset.f; drawFilters(); drawList(); });
+}
+function drawList(){
+  const q = $("#q").value.trim().toLowerCase();
+  const list = entries().filter(e => (filter === "todas" || e.origin === filter) &&
+    (!q || (e.name + " " + e.text + " " + (e.tags||[]).join(" ") + " " + (e.fuente||"") + " " + e.mode).toLowerCase().includes(q)));
+  $("#list").innerHTML = list.length ? list.map((e, i) => '<button class="item" data-k="'+i+'"><span class="t">'+esc(e.name)+'</span><span class="p">'+esc(e.text)+'</span><span class="row" style="gap:5px"><span class="tag">'+esc(MODE_ES[e.mode]||e.mode)+'</span>' +
+      (e.origin === "estilo" ? '<span class="tag ai">✦ agente</span>' : e.origin === "biblioteca" ? '<span class="tag">biblioteca</span>' : e.origin === "candidata" ? '<span class="tag">candidata</span>' : '<span class="tag">guardada</span>') +
+      (e.tags||[]).map(t => '<span class="tag">'+esc(t)+'</span>').join("") + '</span>' + (e.fuente ? '<span class="hint">'+esc(e.fuente)+'</span>' : '') + '</button>').join("")
+    : '<p class="hint">Nada con ese filtro.' + (filter === "catalogo" ? " Guarda la primera desde el taller, abajo." : "") + '</p>';
+  $("#list").querySelectorAll(".item").forEach(b => b.onclick = () => openEntry(list[+b.dataset.k]));
+}
+function openEntry(e){
+  $("#prog").value = e.text; $("#mode").value = e.mode;
+  $("#loadedFrom").textContent = "Abierta: " + e.name;
+  update(true);
+  if(window.innerWidth <= 920) window.scrollTo({top:0, behavior:"smooth"});
+}
+
+/* ---------- online store ---------- */
+let db = null;
+(async () => {
+  try{
+    if(!window.claude || !window.claude.use) return;
+    db = await window.claude.use("db");
+    if(!db) return;
+    db.collection("catalogo").onSnapshot(snap => {
+      mine = snap.docs.map(d => ({id:d.id, ...d.data()})).filter(m => m && m.text && MODES.includes(m.mode))
+        .sort((a,b) => String(b.at||"").localeCompare(String(a.at||"")));
+      drawList();
+    }, () => {});
+  }catch(e){ db = null; }
+})();
+async function saveEntry(){
+  const name = $("#sName").value.trim(), msg = $("#saveMsg");
+  if(!name){ msg.textContent = "Ponle un nombre."; return; }
+  if(!db){ msg.textContent = "Esta vista no puede guardar en línea. Copia la cadena y mándasela a Claudio."; return; }
+  const doc = {name, text: $("#prog").value.trim(), mode, tags: $("#sTags").value.split(",").map(t => t.trim()).filter(Boolean).slice(0,8),
+    fuente: $("#sSrc").value.trim(), nota: $("#sNote").value.trim(), at: new Date().toISOString()};
+  msg.textContent = "Guardando…";
+  try{ await db.collection("catalogo").add(doc); msg.textContent = "Guardada en el catálogo."; ["#sName","#sTags","#sSrc","#sNote"].forEach(s => $(s).value = ""); filter = "catalogo"; drawFilters(); drawList(); }
+  catch(e){ msg.textContent = (e && (e.code === "not_granted" || e.code === "permission_denied")) ? "No tienes permiso para escribir aquí. Copia la cadena y mándasela a Claudio." : "No se pudo guardar. Inténtalo otra vez."; }
+}
+
+/* ---------- copy ---------- */
+function copy(text){
+  navigator.clipboard.writeText(text).then(() => $("#copied").textContent = "Copiado.")
+    .catch(() => { const r = document.createRange(); r.selectNodeContents($("#out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("#copied").textContent = "Selecciónalo y cópialo a mano."; });
+}
+
+/* ---------- wiring ---------- */
+$("#mode").innerHTML = MODES.map(m => '<option value="'+m+'">'+MODE_ES[m]+'</option>').join("");
+$("#root").innerHTML = NOTE.map((n,i) => '<option value="'+i+'">'+n+'</option>').join("");
+const L = loadLocal();
+if(L && L.t){ $("#prog").value = L.t; $("#mode").value = L.mode; $("#root").value = L.key; $("#bpm").value = L.bpm; $("#ts").value = L.ts; $("#vueltas").value = L.v; $("#toque").value = L.toque; $("#drums").value = L.drums; level = L.level || 1; }
+else { $("#prog").value = "Imaj – Vmaj – vim – IVmaj"; $("#mode").value = "Ionian"; $("#root").value = 2; $("#loadedFrom").textContent = "Ejemplo: Axis I–V–vi–IV"; }
+$("#bpmOut").textContent = $("#bpm").value;
+document.querySelectorAll(".lvl").forEach(b => { b.setAttribute("aria-pressed", String(+b.dataset.l === level));
+  b.onclick = () => { level = +b.dataset.l; document.querySelectorAll(".lvl").forEach(x => x.setAttribute("aria-pressed", String(x === b))); update(true); }; });
+let deb = null;
+$("#prog").addEventListener("input", () => { $("#loadedFrom").textContent = ""; clearTimeout(deb); deb = setTimeout(() => update(true), 450); });
+["#mode","#root","#ts","#vueltas","#toque","#drums"].forEach(s => $(s).addEventListener("change", () => update(true)));
+$("#bpm").addEventListener("input", () => { $("#bpmOut").textContent = $("#bpm").value; clearTimeout(deb); deb = setTimeout(() => update(true), 300); });
+$("#play").onclick = () => cur ? stop() : play();
+$("#copyAll").onclick = () => copy(block());
+$("#copyStr").onclick = () => copy(tokens());
+$("#q").addEventListener("input", drawList);
+$("#save").onclick = saveEntry;
+setPlayIcon(false); drawFilters(); update(false); drawList();
+</script>
