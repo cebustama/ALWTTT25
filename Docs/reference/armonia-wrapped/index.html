@@ -1,0 +1,454 @@
+<title>Wrapped armónico de Sibi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a gig poster scroll — full-width bands, one idea per band, data drawn in SVG under each claim. Dark-first (stage), light mirror. */
+:root {
+  --bg: #11151b; --band: #161c24; --card: #1d2530; --ink: #ede7db; --muted: #9ba3ab; --line: #2c3540;
+  --accent: #f2a93b; --worm: #ff8fb4;
+  --z-familiar: #5fc79e; --z-resolucion: #6ea8ff; --z-remate: #f2a93b; --z-desconcierto: #ff6b6b; --z-hipnosis: #b593ff; --z-mid: #5d6670;
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f4f1ea; --band: #ebe6dc; --card: #fffdf8; --ink: #1b1f26; --muted: #5d6570; --line: #d6cfc2;
+  --accent: #b86e00; --worm: #c2336a;
+  --z-familiar: #1e8f66; --z-resolucion: #2a63c7; --z-remate: #b86e00; --z-desconcierto: #c93636; --z-hipnosis: #7448d1; --z-mid: #9aa1a8;
+  color-scheme: light; } }
+:root[data-theme="light"] {
+  --bg: #f4f1ea; --band: #ebe6dc; --card: #fffdf8; --ink: #1b1f26; --muted: #5d6570; --line: #d6cfc2;
+  --accent: #b86e00; --worm: #c2336a;
+  --z-familiar: #1e8f66; --z-resolucion: #2a63c7; --z-remate: #b86e00; --z-desconcierto: #c93636; --z-hipnosis: #7448d1; --z-mid: #9aa1a8;
+  color-scheme: light; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); }
+.band { padding-block: 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-top: 1px solid var(--line); }
+.band.alt { background: var(--band); }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 24px; }
+.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.02; }
+h1 { font-size: clamp(44px, 9vw, 104px); font-weight: 800; letter-spacing: -.02em; }
+h2 { font-size: clamp(30px, 5vw, 52px); font-weight: 800; letter-spacing: -.01em; }
+h3 { font-size: 21px; font-weight: 800; }
+p { margin: 0; max-width: 68ch; }
+.lead { font-size: 19px; color: var(--ink); }
+.muted { color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.worm { color: var(--worm); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat { border-top: 3px solid var(--accent); padding-top: 10px; display: grid; gap: 4px; }
+.stat b { font: 800 44px/1 var(--display); }
+.stat span { color: var(--muted); font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.palgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.pal { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.pal header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.tag { font: 600 11px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 4px 7px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+.prow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 0; border-top: 1px dashed var(--line); cursor: pointer; }
+.prow:hover .pname, .prow:focus-visible .pname { color: var(--accent); }
+.prow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pname { font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.proman { font: 12px/1.3 var(--mono); color: var(--muted); grid-column: 1; overflow-wrap: anywhere; }
+.pdots { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 3px; align-items: center; }
+.pdots i { width: 9px; height: 18px; border-radius: 2px; display: block; }
+.sval { font: 600 12px var(--mono); color: var(--muted); }
+.figure { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto; }
+svg text { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+svg .ink { fill: var(--ink); }
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 720px) { .flow { grid-template-columns: 1fr; } }
+.col { display: grid; gap: 8px; align-content: start; }
+.node { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.node.warn { border-color: var(--z-desconcierto); }
+.node small { color: var(--muted); }
+.callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.callout { border-left: 3px solid var(--worm); padding: 4px 0 4px 12px; display: grid; gap: 4px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.filters button { font: 600 13px var(--body); background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.filters button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mapgrid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .mapgrid { grid-template-columns: 1fr; } }
+.detail { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.dot { cursor: pointer; }
+.dot:focus { outline: none; }
+.dot:focus-visible circle, .dot:hover circle { stroke: var(--ink); stroke-width: 2; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+.bar { height: 10px; border-radius: 2px; background: var(--accent); display: inline-block; vertical-align: middle; }
+.ok { color: var(--z-familiar); font-weight: 700; } .no { color: var(--z-desconcierto); font-weight: 700; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.two > * { min-width: 0; }
+.tablewrap { overflow-x: auto; }
+.prop { border-top: 4px solid var(--zc); }
+.prop h3 { color: var(--zc); }
+ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 72ch; }
+footer { padding-block: 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: no-preference) { .prow, .dot circle { transition: color .15s, stroke .15s; } }
+</style>
+
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">ALWTTT · armonía · 2 nov 2026</div>
+    <h1>Lo que Sibi<br>le hace sentir<br>al público</h1>
+    <p class="lead">Sibi, la gusana tecladista de los Singing Fields, decide qué acordes suenan en cada gig. Este wrapped mide qué transmite cada progresión de su biblioteca, cómo se reparten entre sus cartas, qué falta y cómo podrían organizarse para que cada carta prometa algo distinto.</p>
+    <div class="stats" id="heroStats"></div>
+    <p class="muted">Medido con <span class="mono">MidiGenPlay/Tools~/surprise</span>: un modelo que aprendió cómo se encadenan los acordes en 739 éxitos del Billboard (1958–1991) y puntúa cada acorde por <b>sorpresa</b> (cuán improbable era) e <b>incertidumbre</b> (cuántas opciones había abiertas antes). Método de Cheung y colegas, <i>Current Biology</i> 2019.</p>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="eyebrow">Las cuatro sensaciones</div>
+    <h2>Un acorde no gusta solo. Gusta según lo que esperabas.</h2>
+    <p>Cheung y colegas encontraron que el placer de un acorde depende del cruce entre la incertidumbre de antes y la sorpresa de después. Esa es la gramática de este wrapped. Cada progresión se pinta como una tira de colores, un bloque por acorde.</p>
+    <div class="callouts" id="zoneCallouts"></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">01 · La biblioteca hoy</div>
+    <h2>27 progresiones en cartas, organizadas por modo</h2>
+    <p>Las paletas de Sibi se agrupan por <b>modo</b> (mayor, menor, modal), no por lo que transmiten. Toca una progresión para verla en el mapa.</p>
+    <div class="legend" id="legend1"></div>
+    <div class="palgrid" id="libGrid"></div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="eyebrow">02 · Cartas → paletas</div>
+    <h2>Cuatro cartas eligen acordes. Dos comparten paleta. Una no tiene.</h2>
+    <div class="flow" id="flow"></div>
+    <div class="callouts" id="flowNotes"></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">03 · ¿Se distinguen las cartas?</div>
+    <h2>Dentro de cada paleta cabe casi todo</h2>
+    <p>Cada punto es una progresión, situada por su sorpresa media. Si las paletas prometieran sensaciones distintas, los grupos no se solaparían. Hoy se separan sobre todo por el modo: lo modal suena raro para el pop, y por eso sale arriba.</p>
+    <div class="figure" id="stripNow"></div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="eyebrow">04 · El mapa</div>
+    <h2>Incertidumbre frente a sorpresa</h2>
+    <p>Cada progresión es un punto, según sus medias en la segunda vuelta del loop. Los círculos rellenos son la biblioteca; los huecos, las candidatas de fuera. Toca un punto para ver acorde por acorde.</p>
+    <div class="filters" id="mapFilters" role="group" aria-label="Filtrar el mapa"></div>
+    <div class="mapgrid">
+      <div class="figure" id="map"></div>
+      <div class="detail" id="detail" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">05 · El desgaste</div>
+    <h2>En cuatro vueltas, la sorpresa de la canción se gasta</h2>
+    <p>Una canción de la demo es una parte con 4 loops, y la armonía se mantiene entre loops (JAM-1). El modelo de la canción aprende el loop: los diatónicos pierden casi toda su sorpresa en la segunda vuelta; los modales y cromáticos aguantan más. Por eso lo que una carta transmite después de la primera vuelta depende de su <b>estilo</b>, no de la novedad.</p>
+    <div class="figure" id="wear"></div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="eyebrow">06 · Huecos</div>
+    <h2>Lo que el pop toca y Sibi no</h2>
+    <div class="two">
+      <div class="figure tablewrap" id="bbTable"></div>
+      <div class="figure tablewrap" id="candTable"></div>
+    </div>
+    <p class="muted">Los bucles del Billboard se cuentan como 4 acordes que se repiten seguidos, simplificados a tríadas; la cifra es el número de canciones. Las candidatas de otras tradiciones se puntúan con el mismo modelo, que conoce el pop de EE. UU.: el jazz, el tango o lo andino le suenan más raros de lo que le sonarían a quien los escucha a diario.</p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">07 · Propuesta</div>
+    <h2>Seis paletas, seis promesas, seis cartas de Sibi</h2>
+    <p>Aterriza el principio ya escrito en <span class="mono">Palette_Card_Identity_Design §8</span> (paletas por función armónica, no por género) con las zonas de Cheung, y respeta «un eje de contraste por carta». El modo sigue siendo el de las cartas del starter, porque el público ya lo puntúa.</p>
+    <div class="palgrid" id="propGrid"></div>
+    <div class="figure" id="stripProp"></div>
+    <div class="figure tablewrap" id="dealTable"></div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="eyebrow">08 · Decisiones y límites</div>
+    <h2>Lo que decides tú, y lo que el modelo no sabe</h2>
+    <div class="two">
+      <div class="detail">
+        <h3>Para decidir</h3>
+        <ol class="steps">
+          <li><b>¿Starter purificado ya, para la demo?</b> Dejar Wormus Major y Minor solo con progresiones «casa» es un cambio de datos (entradas de dos paletas), sin código. Hace las cartas más predecibles y legibles, que es el criterio de la demo.</li>
+          <li><b>Nombres y vocabulario</b> de las promesas: casa, vuelta, giro, hipnosis, abismo. Son de trabajo.</li>
+          <li><b>La carta nueva «Giro»</b>: ¿de Sibi o compartida? ¿Sustituye a Key Lift en el pool?</li>
+          <li><b>Tonalidad adoptada</b> en las paletas que mezclan modos (Vuelta, Giro, Abismo), como ya hace Modal. Regla vigente: no combinarla con un efecto de tonalidad.</li>
+          <li><b>El jazz</b>: ¿una carta de Jazz propia (diseñada en Starter v2 §4) o parte de Vuelta?</li>
+        </ol>
+      </div>
+      <div class="detail">
+        <h3>Límites del análisis</h3>
+        <ol class="steps">
+          <li>Es un modelo del <b>oyente medio del pop de EE. UU.</b> La cadencia andaluza le suena rara; en Sevilla suena a casa.</li>
+          <li>No es IDyOM: PPM simplificado de orden 3. El orden de las progresiones es estable (ρ ≥ 0,95 al cambiar orden o corpus), los bits absolutos no son comparables con los artículos.</li>
+          <li>Ignora el ritmo armónico, la melodía, el timbre y el voicing.</li>
+          <li><b>Falta el oído.</b> Antes de tocar assets, una prueba a ciegas con 8–10 progresiones de los extremos y del medio.</li>
+          <li>El público de ALWTTT juzga hoy la tonalidad autorada, no la que suena (D-R4-1), y ningún eje lee la progresión.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Fuentes: assets de <span class="mono">ALWTTT25/Assets/Resources</span> (paletas, configs y cartas, leídos el 2026-11-02), <span class="mono">Docs/systems/SSoT_Card_System.md</span>, <span class="mono">Design_Starter_Deck_v2_DRAFT.md</span>, McGill Billboard 2.0 (CC0). Cheung, V. K. M. et al. (2019) <i>Current Biology</i> 29(23), 4084–4092. Datos completos en <span class="mono">MidiGenPlay/Documentation~/research/2026-11-02_Chord_Surprise_Measurement.md</span>.</p>
+  </div>
+</footer>
+
+<script>
+const DATA = {"items": [{"id": "Prog_Min_BluesSoul_i7iv7", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i7 IV7 i7 IV7", "S": 0.05, "U": 0.28, "ch": 0.366, "steps": [[0.07, 0.38, "familiar"], [0.03, 0.19, "familiar"], [0.07, 0.38, "familiar"], [0.03, 0.19, "familiar"]], "wear": [2.02, 0.02, 0.0], "palettes": ["Core Minor"]}, {"id": "Blues12_Major", "kind": "cand", "group": "Blues12", "mode": "Ionian", "roman": "I7 IV7 I7 V7 IV7", "S": 0.5, "U": 1.04, "ch": 0.318, "steps": [[0.19, 0.77, "familiar"], [0.47, 1.27, "familiar"], [0.07, 0.39, "familiar"], [1.13, 1.67, "familiar"], [0.62, 1.12, "familiar"]], "wear": [2.3, 0.39, 0.14], "palettes": []}, {"id": "Rock_Mixo_I_bVII_IV_I", "kind": "cand", "group": "Rock", "mode": "Ionian", "roman": "I bVII IV", "S": 0.42, "U": 1.38, "ch": 0.307, "steps": [[0.31, 1.31, "familiar"], [0.64, 1.87, "familiar"], [0.31, 0.96, "familiar"]], "wear": [2.64, 0.33, 0.02], "palettes": []}, {"id": "Prog_Maj_Blues8c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I7 IV7 I7 V7 I7 V7", "S": 0.95, "U": 1.24, "ch": 0.291, "steps": [[0.43, 0.98, "familiar"], [0.86, 1.38, "familiar"], [0.24, 0.94, "familiar"], [1.13, 1.67, "familiar"], [1.66, 1.12, "ULSM"], [1.4, 1.38, "familiar"]], "wear": [2.23, 0.7, 0.38], "palettes": ["Core Major"]}, {"id": "Prog_Maj_Prestamo_bIII", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I bIII IV", "S": 0.59, "U": 1.74, "ch": 0.281, "steps": [[0.76, 2.11, "UMSL"], [0.5, 1.68, "familiar"], [0.51, 1.43, "familiar"]], "wear": [3.11, 0.37, 0.02], "palettes": ["Core Major"]}, {"id": "Prog_Maj_Periodo_IVV_8c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I IV V I IV V", "S": 0.83, "U": 2.01, "ch": 0.247, "steps": [[0.5, 1.48, "familiar"], [1.08, 2.67, "resolución"], [0.9, 1.89, "UMSL"], [0.5, 1.48, "familiar"], [1.08, 2.67, "resolución"], [0.9, 1.89, "UMSL"]], "wear": [1.69, 0.06, 0.0], "palettes": ["Core Major"]}, {"id": "I – IV – V – I", "kind": "other", "group": null, "mode": "Ionian", "roman": "I IV V", "S": 0.83, "U": 2.01, "ch": 0.247, "steps": [[0.5, 1.48, "familiar"], [1.08, 2.67, "resolución"], [0.9, 1.89, "UMSL"]], "wear": [2.89, 0.5, 0.03], "palettes": []}, {"id": "Andino_Relativa2_i_bIII_iv_V", "kind": "cand", "group": "Andino", "mode": "Aeolian", "roman": "i bIII iv V", "S": 1.58, "U": 1.63, "ch": 0.218, "steps": [[0.15, 0.68, "familiar"], [1.98, 2.63, "UHSM"], [1.43, 1.61, "familiar"], [2.77, 1.6, "ULSM"]], "wear": [3.5, 0.35, 0.02], "palettes": []}, {"id": "Prog_Maj_Nubarron_bVI", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I bVI IV", "S": 1.39, "U": 1.85, "ch": 0.216, "steps": [[0.58, 1.09, "familiar"], [2.26, 2.23, "UMSM"], [1.32, 2.23, "UMSL"]], "wear": [3.98, 0.44, 0.02], "palettes": ["Core Major"]}, {"id": "Prog_Maj_Ragtime_SECDOM", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I VI7 II7 V7", "S": 1.04, "U": 1.81, "ch": 0.212, "steps": [[0.1, 0.43, "familiar"], [2.5, 3.65, "UHSM"], [1.19, 2.15, "UMSL"], [0.36, 0.99, "familiar"]], "wear": [2.86, 0.3, 0.02], "palettes": ["Core Major"]}, {"id": "Pop_LaBamba_I_IV_V_IV", "kind": "cand", "group": "Pop", "mode": "Ionian", "roman": "I IV V IV", "S": 2.02, "U": 1.76, "ch": 0.2, "steps": [[1.39, 1.68, "familiar"], [1.4, 2.29, "UMSL"], [3.0, 1.58, "ULSM"], [2.28, 1.48, "ULSM"]], "wear": [2.67, 1.06, 0.09], "palettes": []}, {"id": "Rock_Mario_I_bVI_bVII_I", "kind": "cand", "group": "Rock", "mode": "Ionian", "roman": "I bVI bVII", "S": 1.18, "U": 2.18, "ch": 0.195, "steps": [[0.43, 1.55, "familiar"], [2.2, 3.29, "UHSM"], [0.89, 1.71, "familiar"]], "wear": [3.51, 0.42, 0.03], "palettes": []}, {"id": "Prog_Maj_Cincuentas_8c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I vi IV V", "S": 1.32, "U": 2.14, "ch": 0.194, "steps": [[0.42, 1.34, "familiar"], [3.08, 2.67, "UHSM"], [0.98, 2.48, "resolución"], [0.8, 2.09, "UMSL"]], "wear": [2.4, 0.6, 0.03], "palettes": ["Core Major"]}, {"id": "I – vi – IV – V", "kind": "other", "group": null, "mode": "Ionian", "roman": "I vi IV V", "S": 1.32, "U": 2.14, "ch": 0.194, "steps": [[0.42, 1.34, "familiar"], [3.08, 2.67, "UHSM"], [0.98, 2.48, "resolución"], [0.8, 2.09, "UMSL"]], "wear": [2.4, 0.6, 0.03], "palettes": []}, {"id": "MusicLab_Cincuentas", "kind": "musiclab", "group": null, "mode": "Ionian", "roman": "I vi IV V", "S": 1.32, "U": 2.14, "ch": 0.194, "steps": [[0.42, 1.34, "familiar"], [3.08, 2.67, "UHSM"], [0.98, 2.48, "resolución"], [0.8, 2.09, "UMSL"]], "wear": [2.4, 0.6, 0.03], "palettes": []}, {"id": "Prog_Modal_Eolico_Giro", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i7 bVI bVII i7 bVII", "S": 2.49, "U": 1.78, "ch": 0.191, "steps": [[1.85, 2.16, "UMSM"], [6.72, 0.63, "remate"], [0.18, 0.78, "familiar"], [1.44, 2.56, "resolución"], [2.24, 2.76, "UHSM"]], "wear": [2.61, 1.4, 0.67], "palettes": ["Modal"]}, {"id": "Jazz_RhythmChanges_A", "kind": "cand", "group": "Jazz", "mode": "Ionian", "roman": "Imaj7 vi7 ii7 V7", "S": 1.21, "U": 2.11, "ch": 0.191, "steps": [[1.55, 2.32, "resolución"], [2.37, 3.6, "UHSM"], [0.46, 1.35, "familiar"], [0.47, 1.18, "familiar"]], "wear": [3.27, 0.55, 0.03], "palettes": []}, {"id": "Prog_Min_RotacionVII_8c", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i bVII bVI bVII", "S": 1.77, "U": 2.07, "ch": 0.185, "steps": [[1.09, 2.41, "resolución"], [2.35, 1.87, "ULSM"], [2.07, 1.61, "ULSM"], [1.58, 2.38, "resolución"]], "wear": [2.88, 0.89, 0.07], "palettes": ["Core Minor"]}, {"id": "Rock_Aeolian_i_bVII_bVI_bVII", "kind": "cand", "group": "Rock", "mode": "Aeolian", "roman": "i bVII bVI bVII", "S": 1.77, "U": 2.07, "ch": 0.185, "steps": [[1.09, 2.41, "resolución"], [2.35, 1.87, "ULSM"], [2.07, 1.61, "ULSM"], [1.58, 2.38, "resolución"]], "wear": [2.88, 0.89, 0.07], "palettes": []}, {"id": "Prog_Maj_PuertaTrasera_bVII", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I bVII IV bVII", "S": 2.55, "U": 1.74, "ch": 0.183, "steps": [[1.87, 2.12, "UMSM"], [0.95, 2.23, "UMSL"], [3.27, 1.29, "ULSM"], [4.1, 1.31, "remate"]], "wear": [2.83, 1.21, 0.09], "palettes": ["Core Major"]}, {"id": "Latin_Tango_i_V7_i_iv_V", "kind": "cand", "group": "Latin", "mode": "Aeolian", "roman": "i V7 i iv V7", "S": 2.41, "U": 1.58, "ch": 0.171, "steps": [[0.64, 1.47, "familiar"], [6.36, 1.57, "remate"], [0.06, 0.33, "familiar"], [3.02, 2.19, "UMSM"], [1.96, 2.33, "UHSM"]], "wear": [3.12, 1.11, 0.33], "palettes": []}, {"id": "Pop_I_V_IV_V", "kind": "cand", "group": "Pop", "mode": "Ionian", "roman": "I V IV V", "S": 1.72, "U": 2.21, "ch": 0.167, "steps": [[0.92, 1.85, "familiar"], [2.38, 2.67, "UHSM"], [1.93, 2.32, "UHSM"], [1.64, 1.99, "UMSM"]], "wear": [2.6, 0.84, 0.07], "palettes": []}, {"id": "Prog_Min_iiø7V7_8c", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i7 IV7 i7 iiø7 V7", "S": 6.3, "U": 1.38, "ch": 0.163, "steps": [[1.93, 3.36, "UHSM"], [6.18, 1.28, "remate"], [0.04, 0.29, "familiar"], [20.29, 0.19, "remate"], [3.08, 1.76, "ULSM"]], "wear": [6.1, 4.31, 2.14], "palettes": ["Core Minor"]}, {"id": "Jazz_ii_V_I", "kind": "cand", "group": "Jazz", "mode": "Ionian", "roman": "ii7 V7 Imaj7", "S": 1.29, "U": 2.59, "ch": 0.161, "steps": [[2.04, 3.6, "UHSM"], [0.92, 2.08, "UMSL"], [0.92, 2.1, "UMSL"]], "wear": [4.08, 0.62, 0.03], "palettes": []}, {"id": "Latin_Son_I_IV_V_IV", "kind": "cand", "group": "Latin", "mode": "Ionian", "roman": "I IV V7 IV", "S": 3.0, "U": 1.68, "ch": 0.153, "steps": [[0.43, 1.35, "familiar"], [1.98, 2.94, "UHSM"], [6.51, 1.58, "remate"], [3.08, 0.87, "ULSM"]], "wear": [3.56, 1.23, 0.09], "palettes": []}, {"id": "Pop_I_IV_I_V", "kind": "cand", "group": "Pop", "mode": "Ionian", "roman": "I IV I V", "S": 1.96, "U": 2.26, "ch": 0.148, "steps": [[1.78, 2.52, "UHSM"], [1.78, 2.31, "UHSM"], [1.57, 1.89, "UMSL"], [2.71, 2.31, "UMSM"]], "wear": [2.73, 0.9, 0.07], "palettes": []}, {"id": "Cueca_I_V7_I_IV", "kind": "cand", "group": "Cueca", "mode": "Ionian", "roman": "I V7 I IV V7", "S": 1.69, "U": 2.13, "ch": 0.147, "steps": [[0.25, 0.87, "familiar"], [3.76, 2.81, "desconcierto"], [0.29, 1.19, "familiar"], [1.98, 3.37, "UHSM"], [2.17, 2.42, "UHSM"]], "wear": [2.81, 0.74, 0.18], "palettes": []}, {"id": "Prog_Maj_ViejaEscuela_8c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I vi ii V", "S": 1.7, "U": 2.36, "ch": 0.146, "steps": [[0.55, 1.75, "familiar"], [2.38, 3.13, "UHSM"], [3.05, 2.48, "UHSM"], [0.82, 2.07, "UMSL"]], "wear": [2.88, 0.57, 0.03], "palettes": ["Core Major"]}, {"id": "Pop_IceCream_I_vi_ii_V", "kind": "cand", "group": "Pop", "mode": "Ionian", "roman": "I vi ii V", "S": 1.7, "U": 2.36, "ch": 0.146, "steps": [[0.55, 1.75, "familiar"], [2.38, 3.13, "UHSM"], [3.05, 2.48, "UHSM"], [0.82, 2.07, "UMSL"]], "wear": [2.88, 0.57, 0.03], "palettes": []}, {"id": "Pachelbel 8c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I V vi iii IV I IV V", "S": 1.99, "U": 2.21, "ch": 0.143, "steps": [[0.5, 1.48, "familiar"], [2.38, 2.67, "UHSM"], [3.66, 2.32, "desconcierto"], [2.48, 2.89, "UHSM"], [0.51, 1.52, "familiar"], [1.86, 2.67, "UHSM"], [1.52, 2.54, "resolución"], [3.0, 1.58, "ULSM"]], "wear": [2.64, 0.75, 0.08], "palettes": ["Core Major"]}, {"id": "i(2)–VI(2)–III(2)–VII(2) 8c", "kind": "other", "group": null, "mode": "Aeolian", "roman": "i bVI bIII bVII", "S": 2.93, "U": 1.94, "ch": 0.135, "steps": [[2.53, 2.26, "UMSM"], [2.31, 2.64, "UHSM"], [4.85, 1.0, "remate"], [2.03, 1.87, "ULSM"]], "wear": [3.93, 1.36, 0.04], "palettes": ["Core Minor"]}, {"id": "Rock_Epic_i_bVI_bIII_bVII", "kind": "cand", "group": "Rock", "mode": "Aeolian", "roman": "i bVI bIII bVII", "S": 2.93, "U": 1.94, "ch": 0.135, "steps": [[2.53, 2.26, "UMSM"], [2.31, 2.64, "UHSM"], [4.85, 1.0, "remate"], [2.03, 1.87, "ULSM"]], "wear": [3.93, 1.36, 0.04], "palettes": []}, {"id": "Prog_Modal_Dorico_Vamp", "kind": "lib", "group": null, "mode": "Dorian", "roman": "i7 IV7 i7 ii7 IV7", "S": 4.63, "U": 1.08, "ch": 0.131, "steps": [[3.31, 2.5, "UHSM"], [0.1, 0.59, "familiar"], [0.07, 0.38, "familiar"], [7.87, 0.19, "remate"], [11.8, 1.73, "remate"]], "wear": [4.77, 1.65, 1.1], "palettes": ["Modal"]}, {"id": "Prog_Maj_Axis_8c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I V vi IV", "S": 2.04, "U": 2.35, "ch": 0.128, "steps": [[1.31, 1.61, "familiar"], [1.64, 2.4, "UHSM"], [3.63, 2.52, "desconcierto"], [1.57, 2.89, "resolución"]], "wear": [3.14, 0.79, 0.03], "palettes": ["Core Major"]}, {"id": "Prog_Maj_AxisRot_8c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "IV I V vi", "S": 2.04, "U": 2.35, "ch": 0.128, "steps": [[1.57, 2.89, "resolución"], [1.31, 1.61, "familiar"], [1.64, 2.4, "UHSM"], [3.63, 2.52, "desconcierto"]], "wear": [3.51, 0.75, 0.03], "palettes": ["Core Major"]}, {"id": "MusicLab_Axis", "kind": "musiclab", "group": null, "mode": "Ionian", "roman": "I V vi IV", "S": 2.04, "U": 2.35, "ch": 0.128, "steps": [[1.31, 1.61, "familiar"], [1.64, 2.4, "UHSM"], [3.63, 2.52, "desconcierto"], [1.57, 2.89, "resolución"]], "wear": [3.14, 0.79, 0.03], "palettes": []}, {"id": "I (2) – vi (1) – IV (1)", "kind": "other", "group": null, "mode": "Ionian", "roman": "I vi IV", "S": 2.02, "U": 2.49, "ch": 0.123, "steps": [[2.57, 2.09, "UMSM"], [1.61, 2.4, "resolución"], [1.87, 2.99, "UHSM"]], "wear": [2.61, 0.8, 0.03], "palettes": []}, {"id": "Pop_I_IV_ii_V", "kind": "cand", "group": "Pop", "mode": "Ionian", "roman": "I IV ii V", "S": 2.34, "U": 2.31, "ch": 0.119, "steps": [[0.54, 1.61, "familiar"], [1.97, 3.13, "UHSM"], [5.41, 1.89, "UMSH"], [1.44, 2.61, "resolución"]], "wear": [3.29, 0.82, 0.03], "palettes": []}, {"id": "Pop_I_iii_IV_V", "kind": "cand", "group": "Pop", "mode": "Ionian", "roman": "I iii IV V", "S": 2.15, "U": 2.32, "ch": 0.116, "steps": [[1.12, 2.4, "resolución"], [5.1, 2.67, "desconcierto"], [1.11, 2.01, "UMSL"], [1.26, 2.2, "UMSL"]], "wear": [2.99, 0.91, 0.03], "palettes": []}, {"id": "Andino_Relativa_i_bIII", "kind": "cand", "group": "Andino", "mode": "Aeolian", "roman": "i bIII bVII", "S": 2.17, "U": 2.69, "ch": 0.088, "steps": [[1.85, 2.92, "UHSM"], [1.7, 2.64, "UHSM"], [2.97, 2.51, "UHSM"]], "wear": [4.37, 0.76, 0.03], "palettes": []}, {"id": "Pop_Deceptive_I_IV_V_vi", "kind": "cand", "group": "Pop", "mode": "Ionian", "roman": "I IV V vi", "S": 3.59, "U": 1.97, "ch": 0.084, "steps": [[3.11, 2.45, "UHSM"], [1.73, 2.21, "UMSM"], [3.31, 1.74, "ULSM"], [6.21, 1.48, "remate"]], "wear": [3.75, 1.37, 0.04], "palettes": []}, {"id": "Prog_Maj_Sentence_T2_8c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I IV I IV ii7 V7", "S": 2.89, "U": 2.58, "ch": 0.066, "steps": [[1.74, 2.52, "UHSM"], [2.26, 4.14, "UHSM"], [1.03, 2.42, "resolución"], [0.72, 2.31, "UMSL"], [8.33, 1.58, "remate"], [3.23, 2.53, "UHSM"]], "wear": [3.25, 0.93, 0.25], "palettes": ["Core Major"]}, {"id": "Gospel_I_I7_IV_iv", "kind": "cand", "group": "Gospel", "mode": "Ionian", "roman": "I I7 IV iv", "S": 2.27, "U": 2.39, "ch": 0.055, "steps": [[0.46, 1.4, "familiar"], [4.16, 3.53, "desconcierto"], [0.56, 1.5, "familiar"], [3.88, 3.12, "desconcierto"]], "wear": [3.49, 0.52, 0.03], "palettes": []}, {"id": "Prog_Min_ivV_T2_34_8c", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i iv i iv V", "S": 3.74, "U": 2.02, "ch": 0.054, "steps": [[3.31, 1.58, "ULSM"], [2.29, 2.63, "UHSM"], [2.08, 2.5, "UHSM"], [0.39, 1.51, "familiar"], [10.65, 1.89, "remate"]], "wear": [3.66, 1.28, 0.34], "palettes": ["Core Minor"]}, {"id": "Prog_Min_ivV_T2_8c", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i iv i iv V", "S": 3.74, "U": 2.02, "ch": 0.054, "steps": [[3.31, 1.58, "ULSM"], [2.29, 2.63, "UHSM"], [2.08, 2.5, "UHSM"], [0.39, 1.51, "familiar"], [10.65, 1.89, "remate"]], "wear": [3.66, 1.28, 0.34], "palettes": ["Core Minor"]}, {"id": "Jazz_BlueBossa_minor", "kind": "cand", "group": "Jazz", "mode": "Aeolian", "roman": "i7 iv7 iiø7 V7", "S": 3.62, "U": 1.69, "ch": 0.028, "steps": [[0.88, 2.43, "resolución"], [2.89, 1.28, "ULSM"], [10.65, 2.66, "desconcierto"], [0.06, 0.38, "familiar"]], "wear": [4.34, 1.08, 0.03], "palettes": []}, {"id": "MusicLab_BluesMenor12", "kind": "musiclab", "group": null, "mode": "Aeolian", "roman": "i7 iv7 i7 V7", "S": 6.92, "U": 2.19, "ch": -0.012, "steps": [[6.52, 2.45, "desconcierto"], [2.06, 3.13, "UHSM"], [2.04, 2.66, "UHSM"], [17.07, 0.51, "remate"]], "wear": [6.04, 3.79, 0.84], "palettes": []}, {"id": "Jazz_Backdoor_iv7_bVII7_I", "kind": "cand", "group": "Jazz", "mode": "Ionian", "roman": "Imaj7 iv7 bVII7", "S": 7.28, "U": 1.83, "ch": -0.015, "steps": [[3.54, 3.75, "UHSM"], [8.56, 1.29, "remate"], [9.73, 0.45, "remate"]], "wear": [6.66, 4.03, 0.06], "palettes": []}, {"id": "Jazz_Turnaround_iii_VI_ii_V", "kind": "cand", "group": "Jazz", "mode": "Ionian", "roman": "iii7 VI7 ii7 V7 Imaj7", "S": 3.89, "U": 2.22, "ch": -0.041, "steps": [[8.34, 3.6, "desconcierto"], [4.16, 1.55, "remate"], [1.31, 1.88, "familiar"], [2.69, 2.46, "UHSM"], [2.94, 1.63, "ULSM"]], "wear": [4.02, 1.51, 0.04], "palettes": []}, {"id": "Pop_MinorPlagal_I_IV_iv_I", "kind": "cand", "group": "Pop", "mode": "Ionian", "roman": "I IV iv", "S": 4.88, "U": 2.01, "ch": -0.043, "steps": [[0.21, 0.9, "familiar"], [3.96, 3.53, "desconcierto"], [10.48, 1.6, "remate"]], "wear": [5.04, 1.7, 0.03], "palettes": []}, {"id": "iv (2) – V - I", "kind": "other", "group": null, "mode": "Ionian", "roman": "IVmaj7 V7 Imaj7", "S": 4.92, "U": 2.46, "ch": -0.065, "steps": [[3.57, 3.1, "UHSM"], [9.23, 1.66, "remate"], [1.95, 2.6, "UHSM"]], "wear": [4.69, 2.28, 0.04], "palettes": []}, {"id": "Prog_Modal_Mixo_SweetHome", "kind": "lib", "group": null, "mode": "Mixolydian", "roman": "I bVII IV v7 IV bVII", "S": 6.87, "U": 1.92, "ch": -0.069, "steps": [[2.71, 3.19, "UHSM"], [0.95, 2.23, "UMSL"], [3.27, 1.29, "ULSM"], [19.64, 1.31, "remate"], [7.08, 1.55, "remate"], [7.61, 1.94, "UMSH"]], "wear": [5.81, 2.34, 0.17], "palettes": ["Modal"]}, {"id": "Jazz_AutumnLeaves", "kind": "cand", "group": "Jazz", "mode": "Ionian", "roman": "ii7 V7 Imaj7 IVmaj7 viiø7 III7 vi7", "S": 5.75, "U": 2.27, "ch": -0.073, "steps": [[8.16, 0.88, "remate"], [1.78, 3.06, "UHSM"], [1.55, 2.32, "resolución"], [5.81, 3.6, "desconcierto"], [20.83, 1.66, "remate"], [0.71, 2.4, "resolución"], [1.42, 1.97, "UMSL"]], "wear": [5.54, 2.0, 0.05], "palettes": []}, {"id": "Prog_Min_Andaluza", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i bVII bVI V7", "S": 4.63, "U": 2.24, "ch": -0.076, "steps": [[0.62, 1.56, "familiar"], [3.26, 2.48, "UHSM"], [1.36, 2.54, "resolución"], [13.27, 2.38, "desconcierto"]], "wear": [5.33, 0.92, 0.03], "palettes": ["Core Minor"]}, {"id": "Prog_Maj_Creep_IVpiv", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I III IV iv", "S": 5.08, "U": 2.39, "ch": -0.138, "steps": [[0.7, 2.25, "UMSL"], [5.88, 3.53, "desconcierto"], [2.55, 1.56, "ULSM"], [11.2, 2.2, "UMSH"]], "wear": [4.67, 0.94, 0.03], "palettes": ["Core Major"]}, {"id": "Film_Heroic_I_III_IV_iv", "kind": "cand", "group": "Film", "mode": "Ionian", "roman": "I III IV iv", "S": 5.08, "U": 2.39, "ch": -0.138, "steps": [[0.7, 2.25, "UMSL"], [5.88, 3.53, "desconcierto"], [2.55, 1.56, "ULSM"], [11.2, 2.2, "UMSH"]], "wear": [4.67, 0.94, 0.03], "palettes": []}, {"id": "Georgia_A_16c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I7 III7 vi I7 IVmaj7 #iv°7 I7 VI7 II7 V7 III7 VI7 II7 V7", "S": 7.09, "U": 1.99, "ch": -0.154, "steps": [[4.21, 0.43, "remate"], [15.39, 2.56, "desconcierto"], [2.81, 1.7, "ULSM"], [3.01, 3.9, "UHSM"], [7.18, 1.02, "remate"], [21.0, 2.79, "desconcierto"], [2.94, 2.14, "UMSM"], [11.41, 2.49, "desconcierto"], [0.74, 2.37, "resolución"], [0.31, 1.19, "familiar"], [22.03, 0.43, "remate"], [4.13, 3.01, "desconcierto"], [1.37, 2.15, "UMSL"], [2.7, 1.64, "ULSM"]], "wear": [5.41, 2.44, 1.08], "palettes": []}, {"id": "Chromatic_Lament_i_v_iv_V", "kind": "cand", "group": "Chromatic", "mode": "Aeolian", "roman": "i v iv V", "S": 6.76, "U": 2.29, "ch": -0.166, "steps": [[1.73, 2.34, "UHSM"], [6.21, 2.63, "desconcierto"], [13.42, 1.34, "remate"], [5.68, 2.84, "desconcierto"]], "wear": [5.84, 2.47, 0.04], "palettes": []}, {"id": "Prog_Modal_Skel_TonicaSeptimo", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I vii° I V7 vii°", "S": 8.01, "U": 1.77, "ch": -0.177, "steps": [[0.3, 1.29, "familiar"], [15.14, 1.42, "remate"], [4.06, 1.25, "remate"], [6.05, 3.06, "desconcierto"], [14.48, 1.83, "remate"]], "wear": [5.76, 1.97, 0.45], "palettes": []}, {"id": "Prog_Modal_Frigio_Descenso", "kind": "lib", "group": null, "mode": "Phrygian", "roman": "i7 bII iv bIII bII", "S": 8.16, "U": 2.36, "ch": -0.179, "steps": [[3.19, 1.63, "ULSM"], [19.65, 0.1, "remate"], [8.12, 4.02, "desconcierto"], [5.51, 2.83, "desconcierto"], [4.34, 3.23, "desconcierto"]], "wear": [5.81, 4.55, 1.84], "palettes": ["Modal"]}, {"id": "Prog_Min_Napolitana_bII", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i bII i bII V7", "S": 6.06, "U": 2.56, "ch": -0.222, "steps": [[4.45, 1.94, "UMSH"], [12.12, 3.88, "desconcierto"], [1.11, 2.79, "resolución"], [1.6, 3.17, "resolución"], [10.99, 1.02, "remate"]], "wear": [4.66, 2.06, 0.61], "palettes": ["Core Minor"]}, {"id": "Prog_Min_bVI_iv_V_8c", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i V iv V7", "S": 7.91, "U": 2.25, "ch": -0.252, "steps": [[1.19, 2.44, "resolución"], [11.28, 1.57, "remate"], [13.78, 2.05, "UMSH"], [5.38, 2.95, "desconcierto"]], "wear": [6.67, 3.08, 0.05], "palettes": ["Core Minor"]}, {"id": "I (0.25) – II (0.25) – III (0.25) – IV (0.25) – V (0.25) – VI (0.25) – VII° (0.25) – I (0.25)", "kind": "other", "group": null, "mode": "Ionian", "roman": "I ii iii IV V vi vii°", "S": 6.32, "U": 2.71, "ch": -0.281, "steps": [[2.06, 3.17, "UHSM"], [6.07, 3.06, "desconcierto"], [4.97, 2.93, "desconcierto"], [1.93, 2.87, "UHSM"], [0.99, 2.09, "UMSL"], [2.35, 2.4, "UHSM"], [25.89, 2.45, "desconcierto"]], "wear": [5.69, 1.66, 0.04], "palettes": []}, {"id": "Jazz_ATrain_I_II7_ii_V", "kind": "cand", "group": "Jazz", "mode": "Ionian", "roman": "Imaj7 II7 ii7 V7", "S": 5.28, "U": 2.69, "ch": -0.294, "steps": [[2.91, 1.36, "ULSM"], [11.78, 3.6, "desconcierto"], [5.62, 3.58, "desconcierto"], [0.81, 2.23, "UMSL"]], "wear": [4.59, 1.78, 0.04], "palettes": []}, {"id": "Georgia_A_Final_24c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "I7 III7 vi IVmaj7 #iv°7 I7 VI7 II7 V7 bVII7 VI7 II7 V7 I7 IVmaj7 #iv°7 I7 bII7", "S": 7.75, "U": 2.26, "ch": -0.301, "steps": [[0.91, 2.83, "resolución"], [11.55, 1.51, "remate"], [2.81, 1.7, "ULSM"], [8.35, 3.9, "desconcierto"], [20.27, 3.2, "desconcierto"], [2.94, 2.14, "UMSM"], [11.41, 2.49, "desconcierto"], [0.74, 2.37, "resolución"], [0.31, 1.19, "familiar"], [22.16, 0.43, "remate"], [3.88, 4.47, "desconcierto"], [4.93, 2.15, "UMSH"], [0.7, 1.92, "UMSL"], [4.21, 0.43, "remate"], [8.69, 2.56, "desconcierto"], [21.0, 2.85, "desconcierto"], [2.94, 2.14, "UMSM"], [11.62, 2.49, "desconcierto"]], "wear": [5.74, 2.08, 1.02], "palettes": []}, {"id": "Prog_Modal_Skel_TonicaCuartoSegundo", "kind": "lib", "group": null, "mode": "Aeolian", "roman": "i7 iv i7 iiø7", "S": 7.87, "U": 2.28, "ch": -0.381, "steps": [[10.65, 1.76, "remate"], [7.39, 4.04, "desconcierto"], [0.19, 0.97, "familiar"], [13.26, 2.35, "desconcierto"]], "wear": [5.57, 2.88, 0.09], "palettes": []}, {"id": "Georgia_Bridge_16c", "kind": "lib", "group": null, "mode": "Ionian", "roman": "vi ii7 vi IV7 vi ii7 vi II7 vi ii7 I7 VII7 iii7 bIII7 II7 V7", "S": 8.69, "U": 2.42, "ch": -0.4, "steps": [[9.7, 2.06, "UMSH"], [6.98, 3.22, "desconcierto"], [9.55, 2.52, "desconcierto"], [11.43, 1.94, "UMSH"], [1.41, 2.11, "UMSL"], [8.46, 0.56, "remate"], [9.55, 2.52, "desconcierto"], [8.06, 1.94, "UMSH"], [10.46, 2.74, "desconcierto"], [6.04, 2.09, "UMSH"], [11.68, 2.52, "desconcierto"], [17.53, 2.65, "desconcierto"], [3.35, 4.46, "UHSM"], [16.14, 2.15, "UMSH"], [4.44, 3.93, "desconcierto"], [4.3, 1.27, "remate"]], "wear": [5.94, 1.8, 0.31], "palettes": []}, {"id": "Bossa_Ipanema_A", "kind": "cand", "group": "Bossa", "mode": "Ionian", "roman": "Imaj7 II7 ii7 bII7", "S": 9.96, "U": 3.6, "ch": -0.828, "steps": [[8.39, 4.0, "desconcierto"], [6.87, 4.58, "desconcierto"], [5.62, 3.58, "desconcierto"], [18.96, 2.23, "UMSH"]], "wear": [7.79, 2.53, 0.04], "palettes": []}, {"id": "Jazz_Tritone_ii_bII7_I", "kind": "cand", "group": "Jazz", "mode": "Ionian", "roman": "ii7 bII7 Imaj7", "S": 10.34, "U": 3.84, "ch": -0.936, "steps": [[2.67, 4.58, "UHSM"], [19.96, 2.94, "desconcierto"], [8.39, 4.0, "desconcierto"]], "wear": [8.38, 3.82, 0.05], "palettes": []}, {"id": "Prog_Modal_Lidio_Flotante", "kind": "lib", "group": null, "mode": "Lydian", "roman": "Imaj7 II vii7 II", "S": 11.46, "U": 3.64, "ch": -1.16, "steps": [[11.12, 3.48, "desconcierto"], [10.54, 4.58, "desconcierto"], [14.93, 3.48, "desconcierto"], [9.24, 3.0, "desconcierto"]], "wear": [7.4, 2.66, 0.08], "palettes": ["Modal"]}], "cards": [{"musician": "Cantante", "name": "Nebula Falsetto", "role": "Melody", "palette": null, "bundle": "Melody Singing Field - Hook"}, {"musician": "Cantante", "name": "Nebula Scale", "role": "Melody", "palette": null, "bundle": "DiffNoteAscendOctaves_CardConfig"}, {"musician": "Conito", "name": "Slap Groove", "role": "Bassline", "palette": null, "bundle": "BasslineCardConfig_SlapGroove"}, {"musician": "Conito", "name": "Super Slap", "role": "Bassline", "palette": null, "bundle": "BasslineCardConfig_SuperSlapV1"}, {"musician": "Gusano", "name": "Worm Walk", "role": "Bassline", "palette": null, "bundle": "Gusano_C_Bassline_001_WormWalk_Payload_Bassline_StyleBundle"}, {"musician": "Gusano", "name": "Worm Pulse", "role": "Bassline", "palette": null, "bundle": "Gusano_C_Bassline_002_WormPulse_Payload_Bassline_StyleBundle"}, {"musician": "Gusano", "name": "Modal Drift", "role": "Backing", "palette": "Modal", "bundle": "Backing Card Config - Modal"}, {"musician": "Robot C2", "name": "Compound Cycle", "role": "Rhythm", "palette": null, "bundle": "starter_compound_cycle_Payload_Rhythm_StyleBundle"}, {"musician": "Robot C2", "name": "Default Mode", "role": "Rhythm", "palette": null, "bundle": "starter_default_mode_Payload_Rhythm_StyleBundle"}, {"musician": "Cantante", "name": "Double Harmony", "role": "Harmony", "palette": null, "bundle": "starter_double_harmony_Payload_Harmony_StyleBundle"}, {"musician": "Conito", "name": "Walking Bass", "role": "Bassline", "palette": null, "bundle": "BassCard_W2_Improv"}, {"musician": "Robot C2", "name": "Half Time", "role": "Rhythm", "palette": null, "bundle": null}, {"musician": "Gusano", "name": "Key Lift", "role": "Backing", "palette": null, "bundle": null}, {"musician": "Robot C2", "name": "Pentameter", "role": "Rhythm", "palette": null, "bundle": "starter_pentameter_Payload_Rhythm_StyleBundle"}, {"musician": "Robot C2", "name": "Push It", "role": "Rhythm", "palette": null, "bundle": null}, {"musician": "Cantante", "name": "Rise Up", "role": "Melody", "palette": null, "bundle": "MelodyCardConfig_RiseUp"}, {"musician": "Cantante", "name": "Showtime", "role": "Melody", "palette": null, "bundle": "MelodyCardConfig_Showtime"}, {"musician": "Gusano", "name": "Singing Field", "role": "Melody", "palette": null, "bundle": "Melody Singing Field - Hook"}, {"musician": "Conito", "name": "Slap Bass", "role": "Bassline", "palette": null, "bundle": "BasslineCardConfig_SlapV1"}, {"musician": "Robot C2", "name": "Waltz Protocol", "role": "Rhythm", "palette": null, "bundle": "starter_waltz_protocol_Payload_Rhythm_StyleBundle"}, {"musician": "Gusano", "name": "Wormus Major", "role": "Backing", "palette": "Core Major", "bundle": "Backing Card Config - Core Major"}, {"musician": "Gusano", "name": "Wormus Minor", "role": "Backing", "palette": "Core Minor", "bundle": "Backing Card Config - Core Minor"}, {"musician": "Gusano", "name": "Wormus Bossa", "role": "Backing", "palette": null, "bundle": "wormus_bossa_Payload_Backing_StyleBundle"}, {"musician": "Gusano", "name": "Wormus Modal", "role": "Backing", "palette": "Modal", "bundle": "wormus_modal_Payload_Backing_StyleBundle"}], "starter": {"starter_default_mode": 3, "Starter_keep_cool": 1, "crd_c2_spotlight": 1, "starter_compound_cycle": 1, "starter_waltz_protocol": 1, "Starter_push_it": 1, "Starter_half_time": 1, "starter_pentameter": 1, "wink": 1, "starter_rise_up": 1, "starter_showtime": 2, "starter_double_harmony": 1, "starter_static_rush": 2, "starter_finger_bass": 2, "conito_overload": 1, "conito_slap_groove": 1, "conito_super_slap": 1, "starter_slap_bass": 1, "reward_amp_up": 1, "dev_convince": 1, "starter_wormus_minor": 2, "starter_wormus_major": 2, "Starter_psychic_waves": 1, "crd_sibi_read_the_room": 1, "wormus_modal": 1, "Starter_key_lift": 1, "sibi_backing_modal": 1, "wormus_bossa": 1}, "billboard": [{"loop": "I IV I V", "songs": 38}, {"loop": "I vi IV V", "songs": 26}, {"loop": "I V IV V", "songs": 12}, {"loop": "I IV V IV", "songs": 11}, {"loop": "I vi ii V", "songs": 11}, {"loop": "I I IV V", "songs": 8}, {"loop": "I IV V V", "songs": 6}, {"loop": "I ii I IV", "songs": 6}, {"loop": "I IV ii V", "songs": 6}, {"loop": "I ii IV V", "songs": 4}, {"loop": "i bVII bVI bVII", "songs": 4}, {"loop": "I IV bVII IV", "songs": 3}, {"loop": "I IV bVII V", "songs": 3}, {"loop": "I bVII I IV", "songs": 3}, {"loop": "i bVII bVI V", "songs": 3}, {"loop": "I V vi IV", "songs": 3}, {"loop": "I iii IV V", "songs": 3}, {"loop": "I V bVII IV", "songs": 3}, {"loop": "IV V vi V", "songs": 3}, {"loop": "I V ii IV", "songs": 3}, {"loop": "I IV vi V", "songs": 3}, {"loop": "ii iii IV V", "songs": 2}, {"loop": "i bVI bIII IV", "songs": 2}, {"loop": "I V IV IV", "songs": 2}, {"loop": "I V V IV", "songs": 2}, {"loop": "i v bVI bVII", "songs": 2}, {"loop": "I I ii V", "songs": 2}, {"loop": "I IV bIII bVII", "songs": 2}, {"loop": "I IV bVII v", "songs": 2}, {"loop": "I VI II V", "songs": 2}, {"loop": "I vi V IV", "songs": 2}, {"loop": "I V ii V", "songs": 2}, {"loop": "i IV bIII bVII", "songs": 2}, {"loop": "I VI IV V", "songs": 2}, {"loop": "I V IV vi", "songs": 1}, {"loop": "I vi bVI bVII", "songs": 1}, {"loop": "i bIII iv V", "songs": 1}, {"loop": "ii iii ii V", "songs": 1}, {"loop": "I bII bIII bVII", "songs": 1}, {"loop": "I V II VI", "songs": 1}], "meta": {"corpus_songs": 739, "corpus_chords": 71233, "alphabet": 149, "order": 3, "loops": 4, "layer_weight": 0.0, "folds": 10, "thresholds": {"S": {"p40": 0.106, "p60": 0.549, "mean": 1.7, "sd": 3.141}, "U": {"p40": 0.426, "p60": 1.005, "mean": 1.048, "sd": 1.143}, "Sl": {"p40": 1.633, "p60": 3.609, "mean": 4.237, "sd": 4.548}, "Ul": {"p40": 1.889, "p60": 2.312, "mean": 2.107, "sd": 0.812}}, "own_progressions": 83}};
+const Z = {
+  familiar: {label: "Familiar", css: "var(--z-familiar)", text: "Sabías lo que venía y vino. Calma, belleza, casa."},
+  resolución: {label: "Resolución", css: "var(--z-resolucion)", text: "Estabas perdido y llegó algo que encaja. Alivio."},
+  remate: {label: "Remate", css: "var(--z-remate)", text: "Sabías lo que venía y no vino. El momento que más gusta."},
+  desconcierto: {label: "Desconcierto", css: "var(--z-desconcierto)", text: "Perdido, y encima otra sorpresa. Tensión, inquietud."},
+};
+const zc = z => (Z[z] ? Z[z].css : "var(--z-mid)");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const items = DATA.items.map(it => ({...it, inCards: it.palettes.length > 0}));
+const byId = Object.fromEntries(items.map(i => [i.id, i]));
+const PRETTY = id => id.replace(/^Prog_(Maj|Min|Modal)_/, "").replace(/_8c$/, "").replace(/_/g, " ").replace(/^(Pop|Rock|Jazz|Latin|Andino|Film|Chromatic|Gospel|Bossa) /, "");
+const fmt = (x, d = 1) => x.toFixed(d).replace(".", ",");
+
+// ---------- hero
+const lib = items.filter(i => i.inCards);
+const outside = items.filter(i => (i.kind === "lib" || i.kind === "other") && !i.inCards);
+const backing = DATA.cards.filter(c => c.role === "Backing");
+document.getElementById("heroStats").innerHTML = [
+  [lib.length, "progresiones en paletas de cartas"],
+  [backing.filter(c => c.palette).length, "cartas que eligen acordes (todas de Sibi)"],
+  [outside.length, "progresiones de la biblioteca que ninguna carta toca"],
+  ["4", "loops por canción en la demo: la armonía se repite"],
+].map(([n, t]) => `<div class="stat"><b>${n}</b><span>${t}</span></div>`).join("");
+
+document.getElementById("zoneCallouts").innerHTML = Object.entries(Z).map(([k, z]) =>
+  `<div class="callout" style="border-color:${z.css}"><h3 style="color:${z.css}">${z.label}</h3><p class="muted">${z.text}</p></div>`).join("") +
+  `<div class="callout" style="border-color:var(--z-mid)"><h3 class="muted">Entre medias</h3><p class="muted">Un acorde que no cae en ningún extremo se pinta gris.</p></div>`;
+
+const legendHTML = Object.values(Z).map(z => `<span><i style="background:${z.css}"></i>${z.label}</span>`).join("") + `<span><i style="background:var(--z-mid)"></i>Entre medias</span>`;
+document.getElementById("legend1").innerHTML = legendHTML;
+
+function row(it) {
+  const dots = it.steps.map(s => `<i style="background:${zc(s[2])}" title="${esc(s[2])}"></i>`).join("");
+  return `<div class="prow" tabindex="0" role="button" data-id="${esc(it.id)}" aria-label="Ver ${esc(PRETTY(it.id))} en el mapa">
+    <span class="pname">${esc(PRETTY(it.id))} <span class="sval">${fmt(it.S)} bits</span></span>
+    <span class="pdots">${dots}</span>
+    <span class="proman">${esc(it.roman)} · ${esc(it.mode)}</span></div>`;
+}
+function palCard(title, tag, list, extra = "") {
+  return `<article class="pal"><header><h3>${esc(title)}</h3><span class="tag">${esc(tag)}</span></header>${extra}${list.sort((a, b) => a.S - b.S).map(row).join("")}</article>`;
+}
+const PALS = ["Core Major", "Core Minor", "Modal"];
+const CARDS_OF = p => backing.filter(c => c.palette === p).map(c => c.name).join(" · ");
+document.getElementById("libGrid").innerHTML =
+  PALS.map(p => palCard(p, `${lib.filter(i => i.palettes.includes(p)).length} prog.`, lib.filter(i => i.palettes.includes(p)),
+    `<p class="muted">${esc(CARDS_OF(p))}</p>`)).join("") +
+  palCard("Fuera de cartas", `${outside.length} prog.`, outside, `<p class="muted">Canciones (Georgia), esqueletos modales y muestras: existen como assets, pero ninguna paleta los incluye.</p>`);
+
+// ---------- flow
+const starter = DATA.starter;
+const cardNodes = backing.map(c => {
+  const key = Object.keys(starter).find(k => k.toLowerCase().includes(c.name.toLowerCase().replace(/ /g, "_"))) ||
+              (c.name === "Modal Drift" ? "sibi_backing_modal" : null);
+  const copies = key ? starter[key] : null;
+  const role = c.name.startsWith("Wormus M") && /Major|Minor/.test(c.name) ? `starter ×${copies}` : (c.name === "Key Lift" ? "modulación" : "pool de recompensa");
+  const warn = !c.palette && c.name !== "Key Lift";
+  return `<div class="node${warn ? " warn" : ""}"><b>${esc(c.name)}</b><small>${role} · ${c.palette ? "→ " + esc(c.palette) : (c.name === "Key Lift" ? "sin paleta (cambia la tonalidad)" : "sin paleta: acordes procedurales")}</small></div>`;
+}).join("");
+const palNodes = PALS.map(p => `<div class="node"><b>${esc(p)}</b><small>${lib.filter(i => i.palettes.includes(p)).length} progresiones · media ${fmt(avg(lib.filter(i => i.palettes.includes(p)).map(i => i.S)))} bits</small></div>`).join("") +
+  `<div class="node"><b>Bass Defaults</b><small>copia exacta de Core Major; la usa el MidiMusicManager cuando no hay carta de armonía</small></div>`;
+function avg(a) { return a.reduce((x, y) => x + y, 0) / Math.max(1, a.length); }
+document.getElementById("flow").innerHTML =
+  `<div class="col"><div class="eyebrow">Músico</div><div class="node"><b class="worm">Sibi</b><small>teclados · gusana de los Singing Fields · dueña de paleta, tonalidad y modulación</small></div>
+   <div class="node"><b>Robot C2, Conito, Ziggy</b><small>ritmo, bajo y voz: sus cartas no eligen acordes, los siguen</small></div></div>
+   <div class="col"><div class="eyebrow">Cartas de armonía</div>${cardNodes}</div>
+   <div class="col"><div class="eyebrow">Paletas</div>${palNodes}</div>`;
+document.getElementById("flowNotes").innerHTML = [
+  ["Modal Drift = Wormus Modal", "Las dos cartas apuntan a la misma paleta de 5. Para el oído son la misma armonía."],
+  ["Wormus Bossa no tiene paleta", "Cambia el comping (expresión de acorde 10), pero los acordes los decide el generador procedural."],
+  ["Todas pesan 1", "Ninguna paleta usa pesos: cada progresión sale con la misma probabilidad."],
+  ["Una sola dueña", "Toda la armonía cuelga de Sibi. Si no está en la alineación, suena Bass Defaults."],
+].map(([h, t]) => `<div class="callout"><b>${esc(h)}</b><p class="muted">${esc(t)}</p></div>`).join("");
+
+// ---------- strip plots
+function strip(el, groups, maxS) {
+  const W = 760, rowH = 46, padL = 150, padR = 20, H = groups.length * rowH + 40;
+  const x = s => padL + (W - padL - padR) * s / maxS;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:560px" role="img" aria-label="Sorpresa media por paleta">`;
+  for (let t = 0; t <= maxS; t += 2) svg += `<line x1="${x(t)}" x2="${x(t)}" y1="10" y2="${H - 26}" stroke="var(--line)"/><text x="${x(t)}" y="${H - 10}" text-anchor="middle">${t}</text>`;
+  svg += `<text x="${W - padR}" y="${H - 10}" text-anchor="end">bits de sorpresa (estilo) →</text>`;
+  groups.forEach((g, gi) => {
+    const y = 30 + gi * rowH;
+    svg += `<text x="${padL - 12}" y="${y + 4}" text-anchor="end" class="ink" style="font-family:var(--body);font-size:13px;font-weight:700">${esc(g.name)}</text>`;
+    const s = g.list.map(i => i.S);
+    if (s.length) svg += `<line x1="${x(Math.min(...s))}" x2="${x(Math.max(...s))}" y1="${y}" y2="${y}" stroke="${g.color}" stroke-width="3" opacity=".35"/>`;
+    g.list.forEach((i, k) => svg += `<circle cx="${x(i.S)}" cy="${y + ((k % 3) - 1) * 6}" r="5.5" fill="${g.color}" opacity=".9"><title>${esc(PRETTY(i.id))}: ${fmt(i.S)} bits</title></circle>`);
+  });
+  el.innerHTML = svg + `</svg>`;
+}
+const PCOL = {"Core Major": "var(--z-familiar)", "Core Minor": "var(--z-resolucion)", "Modal": "var(--z-hipnosis)"};
+strip(document.getElementById("stripNow"), PALS.map(p => ({name: p, color: PCOL[p], list: lib.filter(i => i.palettes.includes(p))})), 12);
+
+// ---------- map
+const MAP_FILTERS = [["todo", "Todo"], ["Core Major", "Core Major"], ["Core Minor", "Core Minor"], ["Modal", "Modal"], ["fuera", "Fuera de cartas"], ["cand", "Candidatas"]];
+let mapFilter = "todo", selected = "Prog_Modal_Eolico_Giro";
+const mapItems = items.filter(i => i.kind !== "musiclab");
+function colorOf(i) { return i.inCards ? PCOL[i.palettes[0]] : (i.kind === "cand" ? "var(--accent)" : "var(--muted)"); }
+function visible(i) {
+  if (mapFilter === "todo") return true;
+  if (mapFilter === "cand") return i.kind === "cand";
+  if (mapFilter === "fuera") return !i.inCards && i.kind !== "cand";
+  return i.palettes.includes(mapFilter);
+}
+function drawMap() {
+  const W = 640, H = 440, pl = 48, pr = 16, pt = 16, pb = 44, maxU = 4, maxS = 12;
+  const x = u => pl + (W - pl - pr) * u / maxU, y = s => H - pb - (H - pt - pb) * s / maxS;
+  const mU = DATA.meta.thresholds.Ul.mean, mS = DATA.meta.thresholds.Sl.mean;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:420px" role="img" aria-label="Mapa de incertidumbre y sorpresa">`;
+  for (let u = 0; u <= maxU; u++) svg += `<line x1="${x(u)}" x2="${x(u)}" y1="${pt}" y2="${H - pb}" stroke="var(--line)"/><text x="${x(u)}" y="${H - pb + 16}" text-anchor="middle">${u}</text>`;
+  for (let s = 0; s <= maxS; s += 3) svg += `<line x1="${pl}" x2="${W - pr}" y1="${y(s)}" y2="${y(s)}" stroke="var(--line)"/><text x="${pl - 8}" y="${y(s) + 4}" text-anchor="end">${s}</text>`;
+  svg += `<line x1="${x(mU)}" x2="${x(mU)}" y1="${pt}" y2="${H - pb}" stroke="var(--muted)" stroke-dasharray="4 4"/><line x1="${pl}" x2="${W - pr}" y1="${y(mS)}" y2="${y(mS)}" stroke="var(--muted)" stroke-dasharray="4 4"/>`;
+  svg += `<text x="${x(0.1)}" y="${y(11.3)}" style="fill:var(--z-remate)">↖ remate</text><text x="${x(3.9)}" y="${y(11.3)}" text-anchor="end" style="fill:var(--z-desconcierto)">desconcierto ↗</text>`;
+  svg += `<text x="${x(0.1)}" y="${y(0.4)}" style="fill:var(--z-familiar)">↙ familiar</text><text x="${x(3.9)}" y="${y(0.4)}" text-anchor="end" style="fill:var(--z-resolucion)">resolución ↘</text>`;
+  svg += `<text x="${W - pr}" y="${H - 6}" text-anchor="end">incertidumbre media (bits) →</text><text x="12" y="${pt + 4}" transform="rotate(-90 12 ${pt + 4})" text-anchor="end">sorpresa media (bits) →</text>`;
+  svg += `<text x="${x(mU) + 4}" y="${pt + 10}">media del pop</text>`;
+  mapItems.filter(visible).forEach(i => {
+    const c = colorOf(i), sel = i.id === selected;
+    svg += `<g class="dot" tabindex="0" role="button" data-id="${esc(i.id)}" aria-label="${esc(PRETTY(i.id))}"><circle cx="${x(Math.min(i.U, maxU))}" cy="${y(Math.min(i.S, maxS))}" r="${sel ? 8 : 6}" fill="${i.kind === "cand" ? "var(--card)" : c}" stroke="${c}" stroke-width="${i.kind === "cand" ? 2.5 : 1}"/>${sel ? `<text x="${x(Math.min(i.U, maxU)) + 11}" y="${y(Math.min(i.S, maxS)) + 4}" class="ink" style="font-family:var(--body);font-weight:700;font-size:12px">${esc(PRETTY(i.id))}</text>` : ""}<title>${esc(PRETTY(i.id))}</title></g>`;
+  });
+  document.getElementById("map").innerHTML = svg + "</svg>";
+}
+function drawDetail() {
+  const i = byId[selected]; if (!i) return;
+  const W = 320, H = 150, n = i.steps.length, bw = (W - 20) / n, maxS = Math.max(8, ...i.steps.map(s => s[0]));
+  let bars = `<svg viewBox="0 0 ${W} ${H + 34}" width="100%" role="img" aria-label="Sorpresa acorde por acorde">`;
+  const chords = i.roman.split(" ");
+  i.steps.forEach((s, k) => {
+    const h = (H - 10) * s[0] / maxS;
+    bars += `<rect x="${10 + k * bw + 3}" y="${H - h}" width="${bw - 6}" height="${Math.max(h, 2)}" rx="2" fill="${zc(s[2])}"><title>${esc(chords[k] || "")}: ${fmt(s[0])} bits, ${esc(s[2])}</title></rect>`;
+    bars += `<text x="${10 + k * bw + bw / 2}" y="${H + 16}" text-anchor="middle" class="ink">${esc(chords[k] || "")}</text>`;
+    bars += `<text x="${10 + k * bw + bw / 2}" y="${H - h - 4}" text-anchor="middle">${fmt(s[0])}</text>`;
+  });
+  bars += `<line x1="10" x2="${W - 10}" y1="${H}" y2="${H}" stroke="var(--line)"/></svg>`;
+  const where = i.inCards ? `paleta ${i.palettes.join(", ")}` : (i.kind === "cand" ? "candidata de fuera" : "biblioteca, fuera de cartas");
+  document.getElementById("detail").innerHTML = `<div class="eyebrow">${esc(where)}</div><h3>${esc(PRETTY(i.id))}</h3>
+    <p class="mono muted">${esc(i.roman)} · ${esc(i.mode)}</p>${bars}
+    <p class="muted">Sorpresa de estilo por acorde (segunda vuelta). Media <b class="mono">${fmt(i.S)}</b> bits, incertidumbre <b class="mono">${fmt(i.U)}</b>.</p>
+    <p class="muted">Sorpresa de la canción, vuelta 1 → 2 → 4: <b class="mono">${fmt(i.wear[0])} → ${fmt(i.wear[1])} → ${fmt(i.wear[2])}</b></p>`;
+}
+document.getElementById("mapFilters").innerHTML = MAP_FILTERS.map(([k, l]) => `<button type="button" data-f="${k}" aria-pressed="${k === mapFilter}">${l}</button>`).join("");
+document.getElementById("mapFilters").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  mapFilter = b.dataset.f;
+  document.querySelectorAll("#mapFilters button").forEach(x => x.setAttribute("aria-pressed", x.dataset.f === mapFilter));
+  drawMap();
+});
+function pick(id) { if (!byId[id]) return; selected = id; drawMap(); drawDetail(); }
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-id]"); if (!g) return;
+  pick(g.dataset.id);
+  if (g.classList.contains("prow")) document.getElementById("map").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center"});
+});
+document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.id) { e.preventDefault(); e.target.click(); } });
+drawMap(); drawDetail();
+
+// ---------- wear
+(function () {
+  const groups = [
+    ["Diatónicas (Major/Minor en cartas)", lib.filter(i => i.S < 3), "var(--z-familiar)"],
+    ["Con préstamos o cromatismo", lib.filter(i => i.S >= 3 && i.S < 7), "var(--z-remate)"],
+    ["Modales y muy cromáticas", lib.filter(i => i.S >= 7), "var(--z-desconcierto)"],
+  ];
+  const W = 640, H = 260, pl = 44, pr = 220, pt = 16, pb = 36, maxS = 7;
+  const xs = [1, 2, 4], x = v => pl + (W - pl - pr) * (v - 1) / 3, y = s => H - pb - (H - pt - pb) * s / maxS;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:520px" role="img" aria-label="Desgaste de la sorpresa por vuelta">`;
+  for (let s = 0; s <= maxS; s += 1) svg += `<line x1="${pl}" x2="${W - pr}" y1="${y(s)}" y2="${y(s)}" stroke="var(--line)"/><text x="${pl - 8}" y="${y(s) + 4}" text-anchor="end">${s}</text>`;
+  xs.forEach(v => svg += `<text x="${x(v)}" y="${H - 12}" text-anchor="middle">vuelta ${v}</text>`);
+  groups.forEach(([name, list, c], gi) => {
+    const m = [0, 1, 2].map(k => avg(list.map(i => i.wear[k])));
+    svg += `<polyline fill="none" stroke="${c}" stroke-width="3" points="${m.map((v, k) => `${x(xs[k])},${y(v)}`).join(" ")}"/>`;
+    m.forEach((v, k) => svg += `<circle cx="${x(xs[k])}" cy="${y(v)}" r="4.5" fill="${c}"><title>${fmt(v)} bits</title></circle>`);
+    svg += `<text x="${x(4) + 12}" y="${y(m[2]) + 4 + (gi - 1) * 16}" class="ink" style="font-family:var(--body);font-size:12px">${esc(name)} · ${fmt(m[0])}→${fmt(m[2])}</text>`;
+  });
+  document.getElementById("wear").innerHTML = svg + `<text></text></svg>`;
+})();
+
+// ---------- gaps
+const norm = r => r.replace(/(maj7|m7|7|ø7|°7|6|m6|sus4|sus2)/g, m => m === "m7" || m === "m6" ? "" : "").replace(/°/g, "").trim();
+const rots = arr => arr.map((_, k) => arr.slice(k).concat(arr.slice(0, k)).join(" "));
+const libRot = new Set(items.filter(i => i.kind !== "cand").flatMap(i => rots(norm(i.roman).split(" "))));
+(function () {
+  const bb = DATA.billboard.filter(b => new Set(b.loop.split(" ")).size === b.loop.split(" ").length || b.loop.split(" ").length === 4).filter(b => !/^I I /.test(b.loop)).slice(0, 16);
+  const max = Math.max(...bb.map(b => b.songs));
+  document.getElementById("bbTable").innerHTML = `<table><thead><tr><th>Bucle Billboard</th><th>Canciones</th><th>¿En la biblioteca?</th></tr></thead><tbody>` +
+    bb.map(b => { const has = libRot.has(b.loop); return `<tr><td class="mono">${esc(b.loop)}</td><td class="num"><span class="bar" style="width:${Math.round(60 * b.songs / max)}px"></span> ${b.songs}</td><td>${has ? '<span class="ok">sí</span>' : '<span class="no">no</span>'}</td></tr>`; }).join("") + `</tbody></table>`;
+  const cands = items.filter(i => i.kind === "cand").map(i => ({...i, dup: libRot.has(norm(i.roman))}));
+  const zoneMain = i => { const c = {}; i.steps.forEach(s => c[s[2]] = (c[s[2]] || 0) + 1); return Object.entries(c).filter(([k]) => Z[k]).sort((a, b) => b[1] - a[1])[0]?.[0] || "—"; };
+  document.getElementById("candTable").innerHTML = `<table><thead><tr><th>Candidata</th><th>Tradición</th><th>Sorpresa</th><th>Zona dominante</th></tr></thead><tbody>` +
+    cands.sort((a, b) => a.S - b.S).map(i => `<tr><td><b>${esc(PRETTY(i.id))}</b><br><span class="mono muted">${esc(i.roman)}</span>${i.dup ? '<br><span class="muted">ya está en la biblioteca</span>' : ""}</td><td>${esc(i.group)}</td><td class="num">${fmt(i.S)}</td><td style="color:${zc(zoneMain(i))};font-weight:700">${esc(Z[zoneMain(i)]?.label || "—")}</td></tr>`).join("") + `</tbody></table>`;
+})();
+
+// ---------- proposal
+const PROPOSAL = [
+  {name: "Casa mayor", card: "Wormus Major · starter ×2", z: "var(--z-familiar)", mode: "jónico (efecto de tonalidad, como hoy)",
+   why: "Lo predecible suena bello y agradable. El starter tiene que entenderse sin explicarlo.",
+   ids: ["Prog_Maj_Periodo_IVV_8c", "Prog_Maj_Blues8c", "Prog_Maj_Prestamo_bIII", "Pop_I_IV_I_V", "Pop_I_V_IV_V", "Pop_LaBamba_I_IV_V_IV", "Rock_Mixo_I_bVII_IV_I", "Blues12_Major"]},
+  {name: "Casa menor", card: "Wormus Minor · starter ×2", z: "var(--z-familiar)", mode: "eólico (efecto de tonalidad, como hoy)",
+   why: "El mismo contrato en menor: noche, sin sobresaltos. Conserva la versión en 3/4 para Waltz Protocol.",
+   ids: ["Prog_Min_BluesSoul_i7iv7", "Prog_Min_ivV_T2_8c", "Prog_Min_ivV_T2_34_8c", "Prog_Min_RotacionVII_8c", "Rock_Aeolian_i_bVII_bVI_bVII", "Andino_Relativa2_i_bIII_iv_V"]},
+  {name: "Vuelta", card: "Wormus Bossa · recompensa", z: "var(--z-resolucion)", mode: "adoptada de la progresión",
+   why: "Cadencias que se pierden y vuelven a casa. Da a Bossa la paleta que no tiene, en séptimas para su comping.",
+   ids: ["Prog_Maj_Cincuentas_8c", "Prog_Maj_Axis_8c", "Prog_Maj_AxisRot_8c", "Prog_Maj_ViejaEscuela_8c", "Pachelbel 8c", "Prog_Maj_Sentence_T2_8c", "Prog_Maj_Ragtime_SECDOM", "Jazz_RhythmChanges_A", "Jazz_ii_V_I", "Pop_IceCream_I_vi_ii_V"]},
+  {name: "Giro", card: "carta nueva de Sibi · recompensa", z: "var(--z-remate)", mode: "adoptada de la progresión",
+   why: "Un acorde prestado que rompe una expectativa clara. Es la zona que más gusta y la que menos tiene la biblioteca.",
+   ids: ["Prog_Maj_Nubarron_bVI", "Prog_Maj_PuertaTrasera_bVII", "Prog_Modal_Eolico_Giro", "Prog_Maj_Creep_IVpiv", "i(2)–VI(2)–III(2)–VII(2) 8c", "Pop_Deceptive_I_IV_V_vi", "Rock_Mario_I_bVI_bVII_I", "Pop_MinorPlagal_I_IV_iv_I", "Latin_Tango_i_V7_i_iv_V", "Latin_Son_I_IV_V_IV", "Jazz_Backdoor_iv7_bVII7_I"]},
+  {name: "Hipnosis", card: "Wormus Modal · recompensa", z: "var(--z-hipnosis)", mode: "adoptada de la progresión",
+   why: "Vamps de dos o tres acordes con poca incertidumbre: lento e hipnótico, como el Earworm de Sibi.",
+   ids: ["Prog_Modal_Dorico_Vamp", "Prog_Modal_Mixo_SweetHome", "Prog_Modal_Skel_TonicaCuartoSegundo", "Prog_Modal_Skel_TonicaSeptimo", "Andino_Relativa_i_bIII"]},
+  {name: "Abismo", card: "Modal Drift · recompensa (o la Reina)", z: "var(--z-desconcierto)", mode: "adoptada de la progresión",
+   why: "Tensión que no se resuelve: para el jefe y la Reina Gusano, o para un público al que se quiere inquietar.",
+   ids: ["Prog_Modal_Lidio_Flotante", "Prog_Modal_Frigio_Descenso", "Prog_Min_Andaluza", "Prog_Min_Napolitana_bII", "Prog_Min_bVI_iv_V_8c", "Prog_Min_iiø7V7_8c", "Chromatic_Lament_i_v_iv_V", "Georgia_Bridge_16c"]},
+];
+document.getElementById("propGrid").innerHTML = PROPOSAL.map(p => {
+  const list = p.ids.map(id => byId[id]).filter(Boolean);
+  const nNew = list.filter(i => i.kind === "cand").length;
+  return `<article class="pal prop" style="--zc:${p.z}"><header><h3>${esc(p.name)}</h3><span class="tag">${list.length} prog.${nNew ? ` · ${nNew} nuevas` : ""}</span></header>
+    <p><b>${esc(p.card)}</b></p><p class="muted">${esc(p.why)}</p><p class="muted mono" style="font-size:12px">modo: ${esc(p.mode)}</p>
+    ${list.sort((a, b) => a.S - b.S).map(i => row(i).replace('class="pname">', `class="pname">${i.kind === "cand" ? '<span class="worm">＋</span> ' : ""}`)).join("")}</article>`;
+}).join("");
+strip(document.getElementById("stripProp"), PROPOSAL.map(p => ({name: p.name, color: p.z, list: p.ids.map(id => byId[id]).filter(Boolean)})), 12);
+document.getElementById("dealTable").innerHTML = `<table><thead><tr><th>Carta</th><th>Hoy</th><th>Propuesta</th><th>Qué promete</th></tr></thead><tbody>
+  <tr><td><b>Wormus Major</b> ×2</td><td>Core Major (13, de 0,6 a 5,1 bits)</td><td>Casa mayor</td><td>calma, lo conocido</td></tr>
+  <tr><td><b>Wormus Minor</b> ×2</td><td>Core Minor (9, de 0,1 a 7,9 bits)</td><td>Casa menor</td><td>noche sin sobresaltos</td></tr>
+  <tr><td><b>Wormus Bossa</b></td><td>sin paleta</td><td>Vuelta</td><td>perderse y volver</td></tr>
+  <tr><td><b>Carta nueva</b></td><td>—</td><td>Giro</td><td>el giro que no esperabas</td></tr>
+  <tr><td><b>Wormus Modal</b></td><td>Modal (5)</td><td>Hipnosis</td><td>el trance del vamp</td></tr>
+  <tr><td><b>Modal Drift</b></td><td>Modal (las mismas 5)</td><td>Abismo</td><td>inquietud, el jefe</td></tr>
+  <tr><td><b>Key Lift</b></td><td>modulación</td><td>sin cambios</td><td>subir de tono</td></tr></tbody></table>
+  <p class="muted" style="margin-top:10px">Los puntos de la propuesta se separan por promesa, salvo Hipnosis, que se define por la incertidumbre baja y no por la sorpresa. Las ＋ son progresiones nuevas, que habría que autorar con la skill <span class="mono">chord-progression-importer</span>.</p>`;
+</script>
