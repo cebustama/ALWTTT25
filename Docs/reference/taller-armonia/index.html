@@ -149,8 +149,8 @@ details summary{cursor:pointer;font-weight:700}
         </div>
         <div class="levels" role="group" aria-label="Nivel">
           <button class="lvl" data-l="1" aria-pressed="true"><b>1 · Simple</b><span>Tal como está escrita.</span></button>
-          <button class="lvl" data-l="2" aria-pressed="false"><b>2 · Adornos</b><span>Séptimas, dominantes secundarias, sus4 y ii–V de vuelta.</span></button>
-          <button class="lvl" data-l="3" aria-pressed="false"><b>3 · Spicy</b><span>Novenas, sustitutos tritonales, préstamos, backdoor y subida de ½ tono.</span></button>
+          <button class="lvl" data-l="2" aria-pressed="false"><b>2 · Adornos</b><span>Séptimas y, desde la vuelta 2, un adorno por vuelta (sus4, vuelta al inicio o dominante secundaria).</span></button>
+          <button class="lvl" data-l="3" aria-pressed="false"><b>3 · Spicy</b><span>Novenas de la escala y, desde la vuelta 2, hasta dos cambios por vuelta (préstamos, sustitutos tritonales, backdoor, acorde propio del modo).</span></button>
         </div>
         <div class="transport">
           <button id="play" class="play" aria-label="Reproducir"></button>
@@ -179,7 +179,7 @@ details summary{cursor:pointer;font-weight:700}
     <aside class="panel cat" aria-labelledby="h-cat">
       <div class="stack">
         <h2 id="h-cat">Catálogo</h2>
-        <p class="hint">Toca una progresión para abrirla en el taller. <span class="tag ai">✦ agente</span> marca las que propuse yo, con la fuente por comprobar.</p>
+        <p class="hint">Toca una progresión para abrirla en el taller. <span class="tag ai">✦ agente</span> marca las que propuse yo; Music Lab revisó sus grados y fuentes (2026-11-02).</p>
       </div>
       <input type="text" id="q" placeholder="Buscar: andaluza, bVI, bossa…" aria-label="Buscar en el catálogo">
       <div class="chips" id="filters"></div>
@@ -200,7 +200,7 @@ details summary{cursor:pointer;font-weight:700}
 </div>
 
 <script>
-const LIB = [{"name": "Periodo I–IV–V", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 4.0, 5, "maj"], [12.0, 4.0, 7, "maj"], [16.0, 8.0, 0, "maj"], [24.0, 4.0, 5, "maj"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["casa mayor"], "fuente": "Prog_Maj_Periodo_IVV_8c"}, {"name": "Préstamo ♭III", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 3, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 0, "maj"]], "origin": "biblioteca", "tags": ["casa mayor"], "fuente": "Prog_Maj_Prestamo_bIII"}, {"name": "I–IV–I–V (Billboard nº 1)", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 5, "maj"], [8, 4, 0, "maj"], [12, 4, 7, "maj"]], "origin": "candidata", "tags": ["casa mayor"], "fuente": "Pop_I_IV_I_V"}, {"name": "Mixolidio I–♭VII–IV", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 10, "maj"], [8, 4, 5, "maj"], [12, 4, 0, "maj"]], "origin": "candidata", "tags": ["casa mayor"], "fuente": "Rock_Mixo_I_bVII_IV_I"}, {"name": "Blues soul i7–iv7", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "7"], [16.0, 8.0, 0, "min7"], [24.0, 8.0, 5, "7"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_BluesSoul_i7iv7"}, {"name": "Rotación ♭VII", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 10, "maj"], [16.0, 8.0, 8, "maj"], [24.0, 8.0, 10, "maj"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_RotacionVII_8c"}, {"name": "Menor i–iv–V", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 5, "min"], [16.0, 8.0, 0, "min"], [24.0, 4.0, 5, "min"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_ivV_T2_8c"}, {"name": "Andino i–♭III–iv–V", "mode": "Aeolian", "events": [[0, 4, 0, "min"], [4, 4, 3, "maj"], [8, 4, 5, "min"], [12, 4, 7, "maj"]], "origin": "candidata", "tags": ["casa menor"], "fuente": "Andino_Relativa2_i_bIII_iv_V"}, {"name": "Cincuentas I–vi–IV–V", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 9, "min"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 7, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Prog_Maj_Cincuentas_8c"}, {"name": "Axis I–V–vi–IV", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 7, "maj"], [16.0, 8.0, 9, "min"], [24.0, 8.0, 5, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Prog_Maj_Axis_8c"}, {"name": "Pachelbel", "mode": "Ionian", "events": [[0.0, 4.0, 0, "maj"], [4.0, 4.0, 7, "maj"], [8.0, 4.0, 9, "min"], [12.0, 4.0, 4, "min"], [16.0, 4.0, 5, "maj"], [20.0, 4.0, 0, "maj"], [24.0, 4.0, 5, "maj"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Pachelbel 8c"}, {"name": "ii–V–I de jazz", "mode": "Ionian", "events": [[0, 4, 2, "min7"], [4, 4, 7, "7"], [8, 8, 0, "maj7"]], "origin": "candidata", "tags": ["vuelta"], "fuente": "Jazz_ii_V_I"}, {"name": "Nubarrón ♭VI", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 8, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 0, "maj"]], "origin": "biblioteca", "tags": ["giro"], "fuente": "Prog_Maj_Nubarron_bVI"}, {"name": "Creep I–III–IV–iv", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 4, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 5, "min"]], "origin": "biblioteca", "tags": ["giro"], "fuente": "Prog_Maj_Creep_IVpiv"}, {"name": "Cadencia rota I–IV–V–vi", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 5, "maj"], [8, 4, 7, "maj"], [12, 4, 9, "min"]], "origin": "candidata", "tags": ["giro"], "fuente": "Pop_Deceptive_I_IV_V_vi"}, {"name": "Mario I–♭VI–♭VII", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 8, "maj"], [8, 4, 10, "maj"], [12, 4, 0, "maj"]], "origin": "candidata", "tags": ["giro"], "fuente": "Rock_Mario_I_bVI_bVII_I"}, {"name": "Vamp dórico", "mode": "Dorian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "7"], [16.0, 8.0, 0, "min7"], [24.0, 4.0, 2, "min7"], [28.0, 4.0, 5, "7"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Dorico_Vamp"}, {"name": "Mixolidio Sweet Home", "mode": "Mixolydian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 4.0, 10, "maj"], [12.0, 4.0, 5, "maj"], [16.0, 4.0, 7, "min7"], [20.0, 4.0, 5, "maj"], [24.0, 8.0, 10, "maj"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Mixo_SweetHome"}, {"name": "Esqueleto i–iv–iiø", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "min"], [16.0, 8.0, 0, "min7"], [24.0, 8.0, 2, "hdim7"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Skel_TonicaCuartoSegundo"}, {"name": "Andino i–♭III–♭VII", "mode": "Aeolian", "events": [[0, 4, 0, "min"], [4, 4, 3, "maj"], [8, 4, 10, "maj"], [12, 4, 0, "min"]], "origin": "candidata", "tags": ["hipnosis"], "fuente": "Andino_Relativa_i_bIII"}, {"name": "Lidio flotante", "mode": "Lydian", "events": [[0.0, 8.0, 0, "maj7"], [8.0, 8.0, 2, "maj"], [16.0, 8.0, 11, "min7"], [24.0, 8.0, 2, "maj"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Modal_Lidio_Flotante"}, {"name": "Frigio descenso", "mode": "Phrygian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 1, "maj"], [16.0, 4.0, 5, "min"], [20.0, 4.0, 3, "maj"], [24.0, 8.0, 1, "maj"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Modal_Frigio_Descenso"}, {"name": "Cadencia andaluza", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 10, "maj"], [16.0, 8.0, 8, "maj"], [24.0, 8.0, 7, "7"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Min_Andaluza"}, {"name": "Napolitana ♭II", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 1, "maj"], [16.0, 8.0, 0, "min"], [24.0, 4.0, 1, "maj"], [28.0, 4.0, 7, "7"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Min_Napolitana_bII"}, {"name": "Royal road (王道進行)", "mode": "Ionian", "text": "IVmaj7 – V7 – iiim7 – vim7", "origin": "estilo", "tags": ["J-pop", "city pop"], "fuente": "Progresión típica del J-pop y el city pop · por verificar"}, {"name": "Just the Two of Us", "mode": "Ionian", "text": "IVmaj7 – III7 – vim7 – vm7 (0.5) – I7 (0.5)", "origin": "estilo", "tags": ["soul", "city pop"], "fuente": "Grover Washington Jr. con Bill Withers (1980) · por verificar"}, {"name": "Isn't She Lovely", "mode": "Ionian", "text": "iim7 – V7 – I6 – VI7", "origin": "estilo", "tags": ["soul", "Stevie Wonder"], "fuente": "Stevie Wonder (1976): C♯m7–F♯7–B6–G♯7 · por verificar"}, {"name": "Ipanema, parte A", "mode": "Ionian", "text": "Imaj7 (2) – II7 (2) – iim7 – bII7 – Imaj7 – bII7", "origin": "estilo", "tags": ["bossa nova"], "fuente": "Jobim, «The Girl from Ipanema» (1962) · por verificar"}, {"name": "Rhythm changes, parte A", "mode": "Ionian", "text": "Imaj (0.5) – VI7 (0.5) – iim7 (0.5) – V7 (0.5) – iiim7 (0.5) – VI7 (0.5) – iim7 (0.5) – V7 (0.5)", "origin": "estilo", "tags": ["jazz"], "fuente": "Gershwin, «I Got Rhythm» (1930) · por verificar"}, {"name": "Backdoor ii–V", "mode": "Ionian", "text": "ivm7 – bVII7 – Imaj7 (2)", "origin": "estilo", "tags": ["jazz", "soul"], "fuente": "Recurso de jazz: llegar a I desde ♭VII7 · por verificar"}, {"name": "Teen Spirit", "mode": "Ionian", "text": "Imaj (0.5) – IVmaj (0.5) – bIIImaj (0.5) – bVImaj (0.5)", "origin": "estilo", "tags": ["grunge", "hueco: acordes de quinta"], "fuente": "Nirvana (1991): F–B♭–A♭–D♭, en acordes de quinta en el original · por verificar"}, {"name": "Riff frigio", "mode": "Phrygian", "text": "im (2) – IImaj – im", "origin": "estilo", "tags": ["metal", "hueco: acordes de quinta"], "fuente": "Patrón genérico del metal: i–♭II · por verificar"}, {"name": "Guantanamera", "mode": "Ionian", "text": "Imaj (0.5) – IVmaj (0.5) – V7", "origin": "estilo", "tags": ["son cubano"], "fuente": "Joseíto Fernández: I–IV–V7 · por verificar"}];
+const LIB = [{"name": "Periodo I–IV–V", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 4.0, 5, "maj"], [12.0, 4.0, 7, "maj"], [16.0, 8.0, 0, "maj"], [24.0, 4.0, 5, "maj"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["casa mayor"], "fuente": "Prog_Maj_Periodo_IVV_8c"}, {"name": "Préstamo ♭III", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 3, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 0, "maj"]], "origin": "biblioteca", "tags": ["casa mayor"], "fuente": "Prog_Maj_Prestamo_bIII"}, {"name": "I–IV–I–V (Billboard nº 1)", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 5, "maj"], [8, 4, 0, "maj"], [12, 4, 7, "maj"]], "origin": "candidata", "tags": ["casa mayor"], "fuente": "Pop_I_IV_I_V"}, {"name": "Mixolidio I–♭VII–IV", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 10, "maj"], [8, 4, 5, "maj"], [12, 4, 0, "maj"]], "origin": "candidata", "tags": ["casa mayor"], "fuente": "Rock_Mixo_I_bVII_IV_I"}, {"name": "Blues soul i7–iv7", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "7"], [16.0, 8.0, 0, "min7"], [24.0, 8.0, 5, "7"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_BluesSoul_i7iv7"}, {"name": "Rotación ♭VII", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 10, "maj"], [16.0, 8.0, 8, "maj"], [24.0, 8.0, 10, "maj"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_RotacionVII_8c"}, {"name": "Menor i–iv–V", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 5, "min"], [16.0, 8.0, 0, "min"], [24.0, 4.0, 5, "min"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["casa menor"], "fuente": "Prog_Min_ivV_T2_8c"}, {"name": "Andino i–♭III–iv–V", "mode": "Aeolian", "events": [[0, 4, 0, "min"], [4, 4, 3, "maj"], [8, 4, 5, "min"], [12, 4, 7, "maj"]], "origin": "candidata", "tags": ["casa menor"], "fuente": "Andino_Relativa2_i_bIII_iv_V"}, {"name": "Cincuentas I–vi–IV–V", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 9, "min"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 7, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Prog_Maj_Cincuentas_8c"}, {"name": "Axis I–V–vi–IV", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 7, "maj"], [16.0, 8.0, 9, "min"], [24.0, 8.0, 5, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Prog_Maj_Axis_8c"}, {"name": "Pachelbel", "mode": "Ionian", "events": [[0.0, 4.0, 0, "maj"], [4.0, 4.0, 7, "maj"], [8.0, 4.0, 9, "min"], [12.0, 4.0, 4, "min"], [16.0, 4.0, 5, "maj"], [20.0, 4.0, 0, "maj"], [24.0, 4.0, 5, "maj"], [28.0, 4.0, 7, "maj"]], "origin": "biblioteca", "tags": ["vuelta"], "fuente": "Pachelbel 8c"}, {"name": "ii–V–I de jazz", "mode": "Ionian", "events": [[0, 4, 2, "min7"], [4, 4, 7, "7"], [8, 8, 0, "maj7"]], "origin": "candidata", "tags": ["vuelta"], "fuente": "Jazz_ii_V_I"}, {"name": "Nubarrón ♭VI", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 8, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 0, "maj"]], "origin": "biblioteca", "tags": ["giro"], "fuente": "Prog_Maj_Nubarron_bVI"}, {"name": "Creep I–III–IV–iv", "mode": "Ionian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 8.0, 4, "maj"], [16.0, 8.0, 5, "maj"], [24.0, 8.0, 5, "min"]], "origin": "biblioteca", "tags": ["giro"], "fuente": "Prog_Maj_Creep_IVpiv"}, {"name": "Cadencia rota I–IV–V–vi", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 5, "maj"], [8, 4, 7, "maj"], [12, 4, 9, "min"]], "origin": "candidata", "tags": ["giro"], "fuente": "Pop_Deceptive_I_IV_V_vi"}, {"name": "Mario I–♭VI–♭VII", "mode": "Ionian", "events": [[0, 4, 0, "maj"], [4, 4, 8, "maj"], [8, 4, 10, "maj"], [12, 4, 0, "maj"]], "origin": "candidata", "tags": ["giro"], "fuente": "Rock_Mario_I_bVI_bVII_I"}, {"name": "Vamp dórico", "mode": "Dorian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "7"], [16.0, 8.0, 0, "min7"], [24.0, 4.0, 2, "min7"], [28.0, 4.0, 5, "7"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Dorico_Vamp"}, {"name": "Mixolidio Sweet Home", "mode": "Mixolydian", "events": [[0.0, 8.0, 0, "maj"], [8.0, 4.0, 10, "maj"], [12.0, 4.0, 5, "maj"], [16.0, 4.0, 7, "min7"], [20.0, 4.0, 5, "maj"], [24.0, 8.0, 10, "maj"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Mixo_SweetHome"}, {"name": "Esqueleto i–iv–iiø", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 5, "min"], [16.0, 8.0, 0, "min7"], [24.0, 8.0, 2, "hdim7"]], "origin": "biblioteca", "tags": ["hipnosis"], "fuente": "Prog_Modal_Skel_TonicaCuartoSegundo"}, {"name": "Andino i–♭III–♭VII", "mode": "Aeolian", "events": [[0, 4, 0, "min"], [4, 4, 3, "maj"], [8, 4, 10, "maj"], [12, 4, 0, "min"]], "origin": "candidata", "tags": ["hipnosis"], "fuente": "Andino_Relativa_i_bIII"}, {"name": "Lidio flotante", "mode": "Lydian", "events": [[0.0, 8.0, 0, "maj7"], [8.0, 8.0, 2, "maj"], [16.0, 8.0, 11, "min7"], [24.0, 8.0, 2, "maj"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Modal_Lidio_Flotante"}, {"name": "Frigio descenso", "mode": "Phrygian", "events": [[0.0, 8.0, 0, "min7"], [8.0, 8.0, 1, "maj"], [16.0, 4.0, 5, "min"], [20.0, 4.0, 3, "maj"], [24.0, 8.0, 1, "maj"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Modal_Frigio_Descenso"}, {"name": "Cadencia andaluza", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 10, "maj"], [16.0, 8.0, 8, "maj"], [24.0, 8.0, 7, "7"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Min_Andaluza"}, {"name": "Napolitana ♭II", "mode": "Aeolian", "events": [[0.0, 8.0, 0, "min"], [8.0, 8.0, 1, "maj"], [16.0, 8.0, 0, "min"], [24.0, 4.0, 1, "maj"], [28.0, 4.0, 7, "7"]], "origin": "biblioteca", "tags": ["abismo"], "fuente": "Prog_Min_Napolitana_bII"}, {"name": "Royal road (王道進行)", "mode": "Ionian", "text": "IVmaj7 – V7 – iiim7 – vim7", "origin": "estilo", "tags": ["J-pop", "city pop"], "fuente": "Wikipedia, citando a Ramage 2023 (Music Theory Spectrum); Yumi Arai (1974), city pop, eurobeat"}, {"name": "Just the Two of Us (丸サ進行)", "mode": "Aeolian", "text": "VImaj7 – V7 – im7 – viim7 (0.5) – III7 (0.5)", "origin": "estilo", "tags": ["soul", "city pop"], "fuente": "Withers, MacDonald y Salter (Winelight, 1980), en Fa menor: D♭maj7–C7♭9–Fm7–E♭m7–A♭7 (el ♭9 pasa a 7). Duraciones por verificar"}, {"name": "Isn't She Lovely", "mode": "Ionian", "text": "vim7 – II9 – V7sus4 – I", "origin": "estilo", "tags": ["soul", "Stevie Wonder"], "fuente": "Stevie Wonder (1976), en Mi mayor: C♯m7–F♯9–B7sus4–E (Hooktheory)"}, {"name": "Ipanema, parte A", "mode": "Ionian", "text": "Imaj7 (2) – II7 (2) – iim7 – bII7 – Imaj7 – bII7", "origin": "estilo", "tags": ["bossa nova"], "fuente": "Jobim, «The Girl from Ipanema» (partitura de 1963; Music Lab, analysis-girl-from-ipanema.md)"}, {"name": "Rhythm changes, parte A", "mode": "Ionian", "text": "I6 (0.5) – VI7 (0.5) – iim7 (0.5) – V7 (0.5) – iiim7 (0.5) – VI7 (0.5) – iim7 (0.5) – V7 (0.5) – I (0.5) – I7 (0.5) – IV (0.5) – ivm7 (0.5) – I (0.5) – V7 (0.5) – I", "origin": "estilo", "tags": ["jazz"], "fuente": "Gershwin, «I Got Rhythm» (1930); los 8 compases de la A (Wikipedia, «Rhythm changes»)"}, {"name": "Backdoor ii–V", "mode": "Ionian", "text": "ivm7 – bVII7 – Imaj7 (2)", "origin": "estilo", "tags": ["jazz", "soul"], "fuente": "Recurso estándar de jazz: llegar a I desde ♭VII7 (sin ejemplos verificados)"}, {"name": "Teen Spirit", "mode": "Aeolian", "text": "i (0.5) – iv (0.5) – III (0.5) – VI (0.5)", "origin": "estilo", "tags": ["grunge", "hueco: acordes de quinta"], "fuente": "Nirvana (1991), en Fa menor, i–iv–III–VI en acordes de quinta (Hooktheory)"}, {"name": "Riff frigio", "mode": "Phrygian", "text": "i (2) – II – i", "origin": "estilo", "tags": ["metal", "hueco: acordes de quinta"], "fuente": "Patrón genérico (i–♭II); ejemplo verificado: la salida frigia de «Smells Like Teen Spirit» (Hooktheory)"}, {"name": "Guantanamera", "mode": "Ionian", "text": "I (0.5) – IV (0.5) – V7", "origin": "estilo", "tags": ["son cubano"], "fuente": "Joseíto Fernández (crédito confirmado por el Tribunal Supremo de Cuba, 1993); variante I–IV–V–IV"}];
 const $ = s => document.querySelector(s);
 
 /* ---------- theory ---------- */
@@ -287,10 +287,13 @@ function parse(text){
   return {chords, issues};
 }
 
-/* ---------- levels ---------- */
+/* ---------- levels (v3, after the Music Lab review of 2026-11-02) ----------
+   Rules: original chords are never removed (an addition only takes the second part of a chord);
+   no events in lap 1; budget per lap: level 2 = 1 event, level 3 = 2; ninths only if the 9th is in the scale;
+   modal approach chords instead of V7 outside Ionian/Aeolian; no half-step modulation inside the card. */
 const majorish = () => mod12(st()[2]) === 4;
-function color(c, nextPc, rich, off){
-  let q = c.q; const r = c.pc - off;
+function color(c, nextPc, rich){
+  let q = c.q; const r = c.pc;
   if(q === "maj"){
     if(mod12(r) !== 0 && mod12(nextPc - c.pc) === 5) q = "7";
     else if(inScale(r+11)) q = "maj7";
@@ -298,81 +301,76 @@ function color(c, nextPc, rich, off){
     else q = "maj7";
   } else if(q === "min") q = "m7";
   else if(q === "dim") q = inScale(r+10) ? "hdim7" : "dim7";
-  if(rich) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
+  if(rich && inScale(r+2)) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
   return q;
 }
+// Chord that leads into the tonic in each mode (Music Lab, change 3). null = no approach (Locrian).
+function tonicApproach(level, tMin){
+  switch(mode){
+    case "Ionian":  return level === 2 ? [{d:7, q:"7", why:"V7"}] : [{d:5, q:"m7", why:"backdoor iv7"}, {d:10, q:"9", why:"♭VII9"}];
+    case "Aeolian": return level === 2 ? [{d:7, q:"7", why:"V7"}] : [{d:2, q:"hdim7", why:"iiø7"}, {d:1, q:"7", why:"sustituto tritonal ♭II7"}];
+    case "Phrygian":   return [{d:1, q:"maj7", why:"♭IImaj7, el acorde frigio"}];
+    case "Dorian":     return [{d:5, q:"7", why:"IV7, el acorde dórico"}];
+    case "Lydian":     return [{d:2, q:"7", why:"II7, el acorde lidio"}];
+    case "Mixolydian": return [{d:10, q: level === 3 ? "maj7" : "maj", why:"♭VII, el acorde mixolidio"}];
+    default: return null;
+  }
+}
 const nextNonRest = (seq, i) => { for(let k=1;k<=seq.length;k++){ const c = seq[(i+k)%seq.length]; if(!c.rest) return c; } return seq[i]; };
-function arrange(base, level, nV){
+const CADENCE = new Set([5, 7, 2, 11]); // root motion into the first chord: V→I, IV→I, ♭VII→I, ♭II→i
+function arrange(base, level, nV, beats){
+  const B = beats || 4, h = B === 3 ? 1 : 0.5;          // the split unit: half a bar in 4/4, one whole bar in 3/4
   const vs = [];
+  const distinct = new Set(base.filter(c => !c.rest).map(c => c.pc + c.q)).size;
   for(let v=0; v<nV; v++){
-    const off = (level === 3 && nV >= 2 && v === nV-1) ? 1 : 0;
-    let seq = base.map(c => c.rest ? {...c} : {...c, pc: mod12(c.pc+off), orig:true});
-    if(level >= 2){
-      seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i).pc, level === 3, off); return q === c.q ? c : {...c, q, col:true}; });
-    }
+    let seq = base.map(c => c.rest ? {...c} : {...c, orig:true});
+    if(level >= 2) seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i).pc, level === 3); return q === c.q ? c : {...c, q, col:true}; });
     if(level >= 2 && v >= 1){
+      const budget = (level === 2 || distinct <= 2) ? 1 : 2, used = new Set(), plan = [];   // plan: {i, tail:[chords], head?:chord}
+      const can = (i, n) => { const c = seq[i]; return c && !c.rest && !used.has(i) && c.dur >= h*(n+1) - 1e-9; };
+      const take = p => { if(plan.length < budget && !used.has(p.i)){ used.add(p.i); plan.push(p); return true; } return false; };
+      const li = seq.length - 1, first = seq.find(c => !c.rest);
+      // 1) turnaround on the last lap: second part of the last chord, unless the loop already closes by cadence
+      if(v === nV-1 && !seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
+        const tR = romanOf(first.pc, first.q), toTonic = mod12(first.pc) === 0;
+        let ap = toTonic ? tonicApproach(level, MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
+        if(ap && !toTonic && level === 3) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
+        if(ap && ap.length === 2 && !can(li, 2)) ap = [ap[1]];
+        if(ap && can(li, ap.length)) take({i:li, tail: ap.map((a,k) => ({pc:mod12(first.pc + a.d), q:a.q, dur:h, add:true, why: k ? undefined : "turnaround hacia "+tR+": "+ap.map(x => x.why).join("–")}))});
+      }
+      // 2) level 2: sus4 on the functional dominant (resolves a fifth down)
+      if(level === 2) seq.forEach((c,i) => { if(plan.length >= budget || !c.orig || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(c.q === "7" && mod12(t.pc - c.pc) === 5 && can(i, 1)) take({i, head:{...c, q:"7sus4", dur:h, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")}, rest:"tail"}); });
+      // 3) level 3: one borrowed colour after IV (iv6 in major modes, IV7 in Aeolian)
+      if(level === 3){
+        const bi = seq.findIndex((c,i) => !c.rest && mod12(c.pc) === 5 && can(i,1) && (
+          (["Ionian","Lydian","Mixolydian"].includes(mode) && !MINORISH.has(c.q)) || (mode === "Aeolian" && MINORISH.has(c.q))));
+        if(bi >= 0){ const c = seq[bi], maj = mode !== "Aeolian";
+          take({i:bi, tail:[{pc:c.pc, q: maj ? "m6" : "7", dur:h, add:true, why: maj ? "iv menor prestado (iv6) después del IV" : "IV7 dórico prestado después del iv"}]}); }
+      }
+      // 4) secondary dominant (level 2 fallback) or its tritone substitute (level 3) into a diatonic non-tonic chord
+      seq.forEach((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
+        const t = nextNonRest(seq,i);
+        if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1)) return;
+        const tR = romanOf(t.pc, t.q);
+        take({i, tail:[level === 2 ? {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR}
+                                   : {pc:mod12(t.pc+1), q:"7", dur:h, add:true, why:"sustituto tritonal de la dominante de "+tR}]}); });
+      // 5) level 3: ♭VImaj7 inserted before the return to I (Ionian, Mixolydian)
+      if(level === 3 && (mode === "Ionian" || mode === "Mixolydian")) seq.forEach((c,i) => { if(plan.length >= budget || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(mod12(t.pc) === 0 && mod12(c.pc) !== 0 && mod12(c.pc) !== 8 && !CADENCE.has(mod12(t.pc - c.pc)) && can(i,1)) take({i, tail:[{pc:8, q:"maj7", dur:h, add:true, why:"♭VImaj7 prestado antes de volver a I"}]}); });
+      // apply: the original keeps the first part
       const out = [];
       seq.forEach((c,i) => {
-        if(c.rest){ out.push(c); return; }
-        const last = i === seq.length-1, t = nextNonRest(seq,i);
-        // sus4 before the dominant (level 2)
-        if(level === 2 && c.q === "7" && c.dur >= 1 && c.orig){
-          out.push({...c, q:"7sus4", dur:0.5, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")});
-          out.push({...c, dur:c.dur-0.5}); return;
-        }
-        // borrowed iv / Dorian IV (level 3)
-        if(level === 3 && mod12(c.pc-off) === 5 && c.dur >= 1){
-          if(majorish() && !MINORISH.has(c.q)){ out.push({...c, dur:c.dur-0.5}); out.push({pc:c.pc, q:"m6", dur:0.5, add:true, why:"iv menor prestado (iv6) después del IV"}); return; }
-          if(!majorish() && MINORISH.has(c.q)){ out.push({...c, dur:c.dur-0.5}); out.push({pc:c.pc, q:"7", dur:0.5, add:true, why:"IV7 dórico después del iv"}); return; }
-        }
-        // approach chord into the next chord, on odd positions
-        if(i % 2 === 1 && !last && c.dur >= 1 && mod12(t.pc - c.pc) !== 5 && t.q !== "dim" && t.q !== "hdim7"){
-          const tgt = romanOf(t.pc, t.q);
-          out.push({...c, dur:c.dur-0.5});
-          if(level === 2) out.push({pc:mod12(t.pc+7), q:"7", dur:0.5, add:true, why:"dominante secundaria: V7 de "+tgt});
-          else out.push({pc:mod12(t.pc+1), q:"7", dur:0.5, add:true, why:"sustituto tritonal: dominante medio tono sobre "+tgt});
-          return;
-        }
-        out.push(c);
+        const p = plan.find(x => x.i === i);
+        if(!p){ out.push(c); return; }
+        if(p.head){ out.push(p.head); out.push({...c, dur:c.dur-h}); return; }
+        out.push({...c, dur:c.dur - h*p.tail.length}); p.tail.forEach(a => out.push(a));
       });
       seq = out;
-      // chromatic mediant (level 3)
-      if(level === 3){
-        const iT = seq.findIndex((c,i) => i > 0 && !c.rest && mod12(c.pc-off) === 0 && !c.add);
-        if(iT >= 0){
-          const c = seq[iT], mj = !MINORISH.has(c.q);
-          seq[iT] = {...c, pc: mod12(c.pc + (mj ? 8 : 1)), q:"maj7", add:true, why: mj ? "la vuelta a I cambia por ♭VImaj7 (mediante cromática)" : "la vuelta a i cambia por ♭IImaj7 (napolitana)"};
-        } else if(seq[2] && !seq[2].rest && !seq[2].add){
-          const c = seq[2];
-          seq[2] = {...c, pc: mod12(c.pc+8), q:"maj7", add:true, why:"el tercer acorde cambia por el que está una tercera mayor abajo (mediante cromática)"};
-        }
-      }
     }
-    vs.push({seq, off});
-  }
-  // turnarounds
-  if(level >= 2){
-    vs.forEach((V, v) => {
-      const isLast = v === nV-1, nxt = vs[(v+1)%nV];
-      if(!(isLast || (level === 3 && nxt.off !== V.off))) return;
-      const li = V.seq.length - 1, c = V.seq[li];
-      if(!c || c.rest || c.dur < 1) return;
-      const first = nxt.seq.find(x => !x.rest); if(!first) return;
-      const t = first.pc, tMin = MINORISH.has(first.q), tR = romanOf(t, first.q);
-      const mod = nxt.off !== V.off ? " (y sube medio tono)" : "";
-      const rest = c.dur - 1, add = [];
-      if(level === 2){
-        add.push({pc:mod12(t+2), q: tMin ? "hdim7" : "m7", dur:0.5, add:true, why:"turnaround: ii–V hacia "+tR+mod});
-        add.push({pc:mod12(t+7), q:"7", dur:0.5, add:true});
-      } else if(!tMin){
-        add.push({pc:mod12(t+5), q:"m7", dur:0.5, add:true, why:"backdoor: iv7–♭VII9 hacia "+tR+mod});
-        add.push({pc:mod12(t+10), q:"9", dur:0.5, add:true});
-      } else {
-        add.push({pc:mod12(t+2), q:"hdim7", dur:0.5, add:true, why:"iiø7 y sustituto tritonal hacia "+tR+mod});
-        add.push({pc:mod12(t+1), q:"7", dur:0.5, add:true});
-      }
-      V.seq.splice(li, 1, ...(rest > 0 ? [{...c, dur:rest}] : []), ...add);
-    });
+    vs.push({seq, off:0});
   }
   return vs;
 }
@@ -388,7 +386,7 @@ function update(restart){
   parsed = parse($("#prog").value);
   $("#issues").innerHTML = parsed.issues.map(i => '<div class="'+(i.e?"e":"w")+'">'+(i.e?"✕ ":"⚠ ")+esc(i.msg)+'</div>').join("");
   const nV = +$("#vueltas").value;
-  vs = parsed.chords.some(c => !c.rest) ? arrange(parsed.chords, level, nV) : [];
+  vs = parsed.chords.some(c => !c.rest) ? arrange(parsed.chords, level, nV, +$("#ts").value) : [];
   const B = +$("#ts").value;
   flat = []; let b = 0;
   vs.forEach((V, v) => V.seq.forEach(c => { flat.push({...c, v, start:b, len:c.dur*B}); b += c.dur*B; }));
@@ -416,8 +414,8 @@ function drawStrip(){
 function drawWhy(){
   const items = [];
   flat.forEach(c => { if(c.why) items.push("Vuelta " + (c.v+1) + ": " + c.why + "."); });
-  if(level >= 2) items.unshift(level === 2 ? "Todas las vueltas: tríadas a cuatriadas según la escala (maj7, m7, ø7); un acorde mayor que cae una quinta pasa a 7." : "Todas las vueltas: cuatriadas de la escala y novenas (maj9, m9, 9).");
-  if(level === 3 && vs.length >= 2) items.push("Última vuelta: todo medio tono más arriba.");
+  if(level >= 2) items.unshift(level === 2 ? "Todas las vueltas: tríadas a cuatriadas según la escala (maj7, m7, ø7); un acorde mayor que cae una quinta pasa a 7. Desde la vuelta 2, un solo cambio por vuelta." : "Todas las vueltas: cuatriadas de la escala y novenas solo donde la novena está en la escala. Desde la vuelta 2, hasta dos cambios por vuelta.");
+  if(level >= 2) items.push("Ningún acorde escrito desaparece: lo añadido ocupa solo la segunda parte de un acorde.");
   $("#whyBox").hidden = !items.length;
   $("#why").innerHTML = items.map(t => "<li>" + esc(t) + "</li>").join("");
 }

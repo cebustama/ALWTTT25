@@ -149,8 +149,8 @@ details summary{cursor:pointer;font-weight:700}
         </div>
         <div class="levels" role="group" aria-label="Nivel">
           <button class="lvl" data-l="1" aria-pressed="true"><b>1 · Simple</b><span>Tal como está escrita.</span></button>
-          <button class="lvl" data-l="2" aria-pressed="false"><b>2 · Adornos</b><span>Séptimas, dominantes secundarias, sus4 y ii–V de vuelta.</span></button>
-          <button class="lvl" data-l="3" aria-pressed="false"><b>3 · Spicy</b><span>Novenas, sustitutos tritonales, préstamos, backdoor y subida de ½ tono.</span></button>
+          <button class="lvl" data-l="2" aria-pressed="false"><b>2 · Adornos</b><span>Séptimas y, desde la vuelta 2, un adorno por vuelta (sus4, vuelta al inicio o dominante secundaria).</span></button>
+          <button class="lvl" data-l="3" aria-pressed="false"><b>3 · Spicy</b><span>Novenas de la escala y, desde la vuelta 2, hasta dos cambios por vuelta (préstamos, sustitutos tritonales, backdoor, acorde propio del modo).</span></button>
         </div>
         <div class="transport">
           <button id="play" class="play" aria-label="Reproducir"></button>
@@ -179,7 +179,7 @@ details summary{cursor:pointer;font-weight:700}
     <aside class="panel cat" aria-labelledby="h-cat">
       <div class="stack">
         <h2 id="h-cat">Catálogo</h2>
-        <p class="hint">Toca una progresión para abrirla en el taller. <span class="tag ai">✦ agente</span> marca las que propuse yo, con la fuente por comprobar.</p>
+        <p class="hint">Toca una progresión para abrirla en el taller. <span class="tag ai">✦ agente</span> marca las que propuse yo; Music Lab revisó sus grados y fuentes (2026-11-02).</p>
       </div>
       <input type="text" id="q" placeholder="Buscar: andaluza, bVI, bossa…" aria-label="Buscar en el catálogo">
       <div class="chips" id="filters"></div>
@@ -287,10 +287,13 @@ function parse(text){
   return {chords, issues};
 }
 
-/* ---------- levels ---------- */
+/* ---------- levels (v3, after the Music Lab review of 2026-11-02) ----------
+   Rules: original chords are never removed (an addition only takes the second part of a chord);
+   no events in lap 1; budget per lap: level 2 = 1 event, level 3 = 2; ninths only if the 9th is in the scale;
+   modal approach chords instead of V7 outside Ionian/Aeolian; no half-step modulation inside the card. */
 const majorish = () => mod12(st()[2]) === 4;
-function color(c, nextPc, rich, off){
-  let q = c.q; const r = c.pc - off;
+function color(c, nextPc, rich){
+  let q = c.q; const r = c.pc;
   if(q === "maj"){
     if(mod12(r) !== 0 && mod12(nextPc - c.pc) === 5) q = "7";
     else if(inScale(r+11)) q = "maj7";
@@ -298,81 +301,76 @@ function color(c, nextPc, rich, off){
     else q = "maj7";
   } else if(q === "min") q = "m7";
   else if(q === "dim") q = inScale(r+10) ? "hdim7" : "dim7";
-  if(rich) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
+  if(rich && inScale(r+2)) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
   return q;
 }
+// Chord that leads into the tonic in each mode (Music Lab, change 3). null = no approach (Locrian).
+function tonicApproach(level, tMin){
+  switch(mode){
+    case "Ionian":  return level === 2 ? [{d:7, q:"7", why:"V7"}] : [{d:5, q:"m7", why:"backdoor iv7"}, {d:10, q:"9", why:"♭VII9"}];
+    case "Aeolian": return level === 2 ? [{d:7, q:"7", why:"V7"}] : [{d:2, q:"hdim7", why:"iiø7"}, {d:1, q:"7", why:"sustituto tritonal ♭II7"}];
+    case "Phrygian":   return [{d:1, q:"maj7", why:"♭IImaj7, el acorde frigio"}];
+    case "Dorian":     return [{d:5, q:"7", why:"IV7, el acorde dórico"}];
+    case "Lydian":     return [{d:2, q:"7", why:"II7, el acorde lidio"}];
+    case "Mixolydian": return [{d:10, q: level === 3 ? "maj7" : "maj", why:"♭VII, el acorde mixolidio"}];
+    default: return null;
+  }
+}
 const nextNonRest = (seq, i) => { for(let k=1;k<=seq.length;k++){ const c = seq[(i+k)%seq.length]; if(!c.rest) return c; } return seq[i]; };
-function arrange(base, level, nV){
+const CADENCE = new Set([5, 7, 2, 11]); // root motion into the first chord: V→I, IV→I, ♭VII→I, ♭II→i
+function arrange(base, level, nV, beats){
+  const B = beats || 4, h = B === 3 ? 1 : 0.5;          // the split unit: half a bar in 4/4, one whole bar in 3/4
   const vs = [];
+  const distinct = new Set(base.filter(c => !c.rest).map(c => c.pc + c.q)).size;
   for(let v=0; v<nV; v++){
-    const off = (level === 3 && nV >= 2 && v === nV-1) ? 1 : 0;
-    let seq = base.map(c => c.rest ? {...c} : {...c, pc: mod12(c.pc+off), orig:true});
-    if(level >= 2){
-      seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i).pc, level === 3, off); return q === c.q ? c : {...c, q, col:true}; });
-    }
+    let seq = base.map(c => c.rest ? {...c} : {...c, orig:true});
+    if(level >= 2) seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i).pc, level === 3); return q === c.q ? c : {...c, q, col:true}; });
     if(level >= 2 && v >= 1){
+      const budget = (level === 2 || distinct <= 2) ? 1 : 2, used = new Set(), plan = [];   // plan: {i, tail:[chords], head?:chord}
+      const can = (i, n) => { const c = seq[i]; return c && !c.rest && !used.has(i) && c.dur >= h*(n+1) - 1e-9; };
+      const take = p => { if(plan.length < budget && !used.has(p.i)){ used.add(p.i); plan.push(p); return true; } return false; };
+      const li = seq.length - 1, first = seq.find(c => !c.rest);
+      // 1) turnaround on the last lap: second part of the last chord, unless the loop already closes by cadence
+      if(v === nV-1 && !seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
+        const tR = romanOf(first.pc, first.q), toTonic = mod12(first.pc) === 0;
+        let ap = toTonic ? tonicApproach(level, MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
+        if(ap && !toTonic && level === 3) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
+        if(ap && ap.length === 2 && !can(li, 2)) ap = [ap[1]];
+        if(ap && can(li, ap.length)) take({i:li, tail: ap.map((a,k) => ({pc:mod12(first.pc + a.d), q:a.q, dur:h, add:true, why: k ? undefined : "turnaround hacia "+tR+": "+ap.map(x => x.why).join("–")}))});
+      }
+      // 2) level 2: sus4 on the functional dominant (resolves a fifth down)
+      if(level === 2) seq.forEach((c,i) => { if(plan.length >= budget || !c.orig || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(c.q === "7" && mod12(t.pc - c.pc) === 5 && can(i, 1)) take({i, head:{...c, q:"7sus4", dur:h, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")}, rest:"tail"}); });
+      // 3) level 3: one borrowed colour after IV (iv6 in major modes, IV7 in Aeolian)
+      if(level === 3){
+        const bi = seq.findIndex((c,i) => !c.rest && mod12(c.pc) === 5 && can(i,1) && (
+          (["Ionian","Lydian","Mixolydian"].includes(mode) && !MINORISH.has(c.q)) || (mode === "Aeolian" && MINORISH.has(c.q))));
+        if(bi >= 0){ const c = seq[bi], maj = mode !== "Aeolian";
+          take({i:bi, tail:[{pc:c.pc, q: maj ? "m6" : "7", dur:h, add:true, why: maj ? "iv menor prestado (iv6) después del IV" : "IV7 dórico prestado después del iv"}]}); }
+      }
+      // 4) secondary dominant (level 2 fallback) or its tritone substitute (level 3) into a diatonic non-tonic chord
+      seq.forEach((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
+        const t = nextNonRest(seq,i);
+        if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1)) return;
+        const tR = romanOf(t.pc, t.q);
+        take({i, tail:[level === 2 ? {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR}
+                                   : {pc:mod12(t.pc+1), q:"7", dur:h, add:true, why:"sustituto tritonal de la dominante de "+tR}]}); });
+      // 5) level 3: ♭VImaj7 inserted before the return to I (Ionian, Mixolydian)
+      if(level === 3 && (mode === "Ionian" || mode === "Mixolydian")) seq.forEach((c,i) => { if(plan.length >= budget || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(mod12(t.pc) === 0 && mod12(c.pc) !== 0 && mod12(c.pc) !== 8 && !CADENCE.has(mod12(t.pc - c.pc)) && can(i,1)) take({i, tail:[{pc:8, q:"maj7", dur:h, add:true, why:"♭VImaj7 prestado antes de volver a I"}]}); });
+      // apply: the original keeps the first part
       const out = [];
       seq.forEach((c,i) => {
-        if(c.rest){ out.push(c); return; }
-        const last = i === seq.length-1, t = nextNonRest(seq,i);
-        // sus4 before the dominant (level 2)
-        if(level === 2 && c.q === "7" && c.dur >= 1 && c.orig){
-          out.push({...c, q:"7sus4", dur:0.5, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")});
-          out.push({...c, dur:c.dur-0.5}); return;
-        }
-        // borrowed iv / Dorian IV (level 3)
-        if(level === 3 && mod12(c.pc-off) === 5 && c.dur >= 1){
-          if(majorish() && !MINORISH.has(c.q)){ out.push({...c, dur:c.dur-0.5}); out.push({pc:c.pc, q:"m6", dur:0.5, add:true, why:"iv menor prestado (iv6) después del IV"}); return; }
-          if(!majorish() && MINORISH.has(c.q)){ out.push({...c, dur:c.dur-0.5}); out.push({pc:c.pc, q:"7", dur:0.5, add:true, why:"IV7 dórico después del iv"}); return; }
-        }
-        // approach chord into the next chord, on odd positions
-        if(i % 2 === 1 && !last && c.dur >= 1 && mod12(t.pc - c.pc) !== 5 && t.q !== "dim" && t.q !== "hdim7"){
-          const tgt = romanOf(t.pc, t.q);
-          out.push({...c, dur:c.dur-0.5});
-          if(level === 2) out.push({pc:mod12(t.pc+7), q:"7", dur:0.5, add:true, why:"dominante secundaria: V7 de "+tgt});
-          else out.push({pc:mod12(t.pc+1), q:"7", dur:0.5, add:true, why:"sustituto tritonal: dominante medio tono sobre "+tgt});
-          return;
-        }
-        out.push(c);
+        const p = plan.find(x => x.i === i);
+        if(!p){ out.push(c); return; }
+        if(p.head){ out.push(p.head); out.push({...c, dur:c.dur-h}); return; }
+        out.push({...c, dur:c.dur - h*p.tail.length}); p.tail.forEach(a => out.push(a));
       });
       seq = out;
-      // chromatic mediant (level 3)
-      if(level === 3){
-        const iT = seq.findIndex((c,i) => i > 0 && !c.rest && mod12(c.pc-off) === 0 && !c.add);
-        if(iT >= 0){
-          const c = seq[iT], mj = !MINORISH.has(c.q);
-          seq[iT] = {...c, pc: mod12(c.pc + (mj ? 8 : 1)), q:"maj7", add:true, why: mj ? "la vuelta a I cambia por ♭VImaj7 (mediante cromática)" : "la vuelta a i cambia por ♭IImaj7 (napolitana)"};
-        } else if(seq[2] && !seq[2].rest && !seq[2].add){
-          const c = seq[2];
-          seq[2] = {...c, pc: mod12(c.pc+8), q:"maj7", add:true, why:"el tercer acorde cambia por el que está una tercera mayor abajo (mediante cromática)"};
-        }
-      }
     }
-    vs.push({seq, off});
-  }
-  // turnarounds
-  if(level >= 2){
-    vs.forEach((V, v) => {
-      const isLast = v === nV-1, nxt = vs[(v+1)%nV];
-      if(!(isLast || (level === 3 && nxt.off !== V.off))) return;
-      const li = V.seq.length - 1, c = V.seq[li];
-      if(!c || c.rest || c.dur < 1) return;
-      const first = nxt.seq.find(x => !x.rest); if(!first) return;
-      const t = first.pc, tMin = MINORISH.has(first.q), tR = romanOf(t, first.q);
-      const mod = nxt.off !== V.off ? " (y sube medio tono)" : "";
-      const rest = c.dur - 1, add = [];
-      if(level === 2){
-        add.push({pc:mod12(t+2), q: tMin ? "hdim7" : "m7", dur:0.5, add:true, why:"turnaround: ii–V hacia "+tR+mod});
-        add.push({pc:mod12(t+7), q:"7", dur:0.5, add:true});
-      } else if(!tMin){
-        add.push({pc:mod12(t+5), q:"m7", dur:0.5, add:true, why:"backdoor: iv7–♭VII9 hacia "+tR+mod});
-        add.push({pc:mod12(t+10), q:"9", dur:0.5, add:true});
-      } else {
-        add.push({pc:mod12(t+2), q:"hdim7", dur:0.5, add:true, why:"iiø7 y sustituto tritonal hacia "+tR+mod});
-        add.push({pc:mod12(t+1), q:"7", dur:0.5, add:true});
-      }
-      V.seq.splice(li, 1, ...(rest > 0 ? [{...c, dur:rest}] : []), ...add);
-    });
+    vs.push({seq, off:0});
   }
   return vs;
 }
@@ -388,7 +386,7 @@ function update(restart){
   parsed = parse($("#prog").value);
   $("#issues").innerHTML = parsed.issues.map(i => '<div class="'+(i.e?"e":"w")+'">'+(i.e?"✕ ":"⚠ ")+esc(i.msg)+'</div>').join("");
   const nV = +$("#vueltas").value;
-  vs = parsed.chords.some(c => !c.rest) ? arrange(parsed.chords, level, nV) : [];
+  vs = parsed.chords.some(c => !c.rest) ? arrange(parsed.chords, level, nV, +$("#ts").value) : [];
   const B = +$("#ts").value;
   flat = []; let b = 0;
   vs.forEach((V, v) => V.seq.forEach(c => { flat.push({...c, v, start:b, len:c.dur*B}); b += c.dur*B; }));
@@ -416,8 +414,8 @@ function drawStrip(){
 function drawWhy(){
   const items = [];
   flat.forEach(c => { if(c.why) items.push("Vuelta " + (c.v+1) + ": " + c.why + "."); });
-  if(level >= 2) items.unshift(level === 2 ? "Todas las vueltas: tríadas a cuatriadas según la escala (maj7, m7, ø7); un acorde mayor que cae una quinta pasa a 7." : "Todas las vueltas: cuatriadas de la escala y novenas (maj9, m9, 9).");
-  if(level === 3 && vs.length >= 2) items.push("Última vuelta: todo medio tono más arriba.");
+  if(level >= 2) items.unshift(level === 2 ? "Todas las vueltas: tríadas a cuatriadas según la escala (maj7, m7, ø7); un acorde mayor que cae una quinta pasa a 7. Desde la vuelta 2, un solo cambio por vuelta." : "Todas las vueltas: cuatriadas de la escala y novenas solo donde la novena está en la escala. Desde la vuelta 2, hasta dos cambios por vuelta.");
+  if(level >= 2) items.push("Ningún acorde escrito desaparece: lo añadido ocupa solo la segunda parte de un acorde.");
   $("#whyBox").hidden = !items.length;
   $("#why").innerHTML = items.map(t => "<li>" + esc(t) + "</li>").join("");
 }
