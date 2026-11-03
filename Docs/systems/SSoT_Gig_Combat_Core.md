@@ -669,6 +669,15 @@ The pips remain the budget's **primary** player-facing feedback. The card overla
 payers only, per §14.5 — and is advisory; the pips and the overlay must agree on the
 frame after a play (regression ST-CU-10, CARD-UX-1).
 
+**Pips hidden for the demo (GIG-UI-1, 2026-11-03, D-UI-3=A).** Claudio's call after seeing the
+card's unplayable panel name the spent play («ya usó una carta de acción/composición»): the pips are
+deactivated in `BandCharacterCanvas.prefab` (`PlayBudgetRoot`) to clean the musician UI. The push
+code above still runs and writes alpha to inactive objects. **Consequence for this section:** the
+card overlay + its hover reason become the **only** budget surface, and it is partial (§14.5):
+`AnyMusician` cards and hover-attributed compositions never go red, so for them the player learns
+the budget only from the drop denial message (`ReportPlayDenied`). Accepted for now; re-evaluate in
+DEMO-1211 S4 (LEGIB-1b). The rule itself is unchanged.
+
 ### 14.8 Scope notes
 - Dev Mode card spawner adds cards to hand; plays still route through
   `TryPlayInGig`, so the budget applies to spawned cards (T0b audit,

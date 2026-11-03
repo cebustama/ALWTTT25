@@ -626,6 +626,17 @@ denial shows its reason on screen**: timing (`ActionTiming`), inspiration (via t
 the funnel is a defect, not a style choice — the overlay and the message must agree with the
 enforcement, and the funnel is how they do.
 
+**The reason is shown on hover (GIG-UI-1, 2026-11-03).** Hovering a red card pushes a «No se puede
+jugar» panel (`TooltipKind.Warning`, red header) whose body is `ui_unplayable_<reason>`. `Budget` is
+split by the card's domain into «Este músico ya usó una carta de acción / composición este turno»
+(`ui_unplayable_budget_action` / `_composition`): naming *which* play was spent is what lets the
+player read the ECON-1 rule without any other UI. **D-UI-3=A:** the per-musician play pips
+(`BandCharacterCanvas` `actionPlayPip` / `compositionPlayPip`, under `PlayBudgetRoot`) are
+**deactivated in the prefab**; the code still writes their alpha, harmlessly. Only the visual
+changes — the ECON-1 rule, its enforcement and the overlay are untouched (`SSoT_Gig_Combat_Core.md`
+§14). Re-evaluate in DEMO-1211 S4 (LEGIB-1b) whether the player needs the remaining budget visible
+before trying a card.
+
 **Presentation.** The overlay reuses the existing `passiveImage` / `SetInactiveMaterialState`
 mechanism (red restyle of the asset). **No new serialized field** — deliberate: a new `Image`
 field would have to be wired on both the gameplay card prefab *and* `CardUI.prefab` (the

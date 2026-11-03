@@ -526,9 +526,12 @@ opción **B** de D-UI-1; la variante A va entre corchetes.
 **Lo mecánico, como línea de log o comprobación directa:** el contador de agotadas aparece con la primera
 carta agotada; la Templates tab sin rojo; ninguna `NullReferenceException` en `Editor.log` al entrar al gig.
 
-**Límite conocido:** el tooltip del músico se abre sobre el canvas del músico (su barra y sus iconos); si
-el área del canvas no cubre el cuerpo del sprite, pasar el ratón por el cuerpo no lo abre. Si pasa, se
-amplía el área en el prefab (no es código).
+**Resultado (2026-11-03):**
+- **Smoke 1:** se da por visto con las capturas.
+- **Smoke 2:** PASS.
+- **Smoke 3:** cubierto por lo jugado durante el cierre: carta jugable y no jugable, barra, intención y gustos, estado, músico, Big Num y personajes solapados.
+- No se pegó el `Editor.log`; la verificación es por capturas, igual que en S1.
+- La antigua limitación del hover sobre el cuerpo ya no aplica: el cuerpo del público abre el tooltip por raycast físico (ver «Cierre»).
 
 ---
 
@@ -559,7 +562,50 @@ amplía el área en el prefab (no es código).
 - **Tangente — títulos de las vistas de mazo en inglés:** `InventoryHelper.cs` pasa «Draw Pile» / «Discard Pile» / «Exhaust Pile» como texto fijo; deberían salir del glosario. Fuera de GIG-UI-1.
 - **Botón ▶ con rótulo (2026-11-02):** `SongCompositionUI.playButtonLabel` (opcional) + id `ui_gig_play_button` («Tocar» / «Play») en `GIG-UI-1_textos/plantillas_2.csv`.
 
-## Actualizaciones de documentación propuestas (no aplicadas)
+## Cierre (2026-11-03, commit `94d3e5d`)
+
+Cambios que se hicieron durante los smokes, a petición de Claudio y fuera del texto de las fases:
+
+- **Hover del público unificado.** El icono de intención y el cuerpo muestran **lo mismo**: una columna a la derecha de la caja de colisión que crece hacia abajo, con un recuadro por cosa (bloqueo, habilidad y, si están revelados, gustos).
+  - **Revierte D-PRES1-3=A**, que juntaba habilidad y gustos en un solo recuadro: los recuadros separados y de colores se leen antes.
+  - La barra de Vibe esconde la columna mientras se pasa el ratón por ella.
+- **`TooltipStyleSO`.** Un asset con los colores de cada tipo de recuadro, en `Assets/Settings/TooltipStyle.asset`, asignado al prefab `TooltipManager`.
+  - Público: habilidad dorada, gustos azules, bloqueo rojo.
+  - Resto: músico verde, estado lila, aviso rojo.
+  - El mismo asset guarda el offset de la columna.
+- **D-UI-2 = B:** la fila de cabecera de la tira (la parte que suena) se ve como fila con detalle al pasar el ratón; compás, tempo y mood viven en su tooltip.
+- **D-UI-3 = A, los indicadores de jugadas se quitan «por ahora».** Están ocultos en `BandCharacterCanvas.prefab` (`PlayBudgetRoot`).
+  - El aviso de la carta dice «Ya usó una carta de acción/composición» (`plantillas_3.csv`).
+  - Cambia solo lo visual de ECON-1, no la regla.
+  - Se revisa en S4 (LEGIB-1b): las cartas `AnyMusician` ya no muestran el presupuesto antes de soltarlas (`SSoT_Gig_Combat_Core` §14.7).
+- **`CharacterBase.RaycastTopmost`.** Cuando dos colisionadores se solapan, gana el personaje dibujado encima, tanto en el hover como en el objetivo de cartas. Antes, la caja de C2 le robaba el hover a Conito.
+- **El hover del cuerpo adelanta terreno de LEGIB-1b:** la intención ya se lee pasando el ratón por el cuerpo.
+- **Ajustes de demo:**
+  - 3 canciones por gig (`DemoLaunchConfig`) y 3 loops por parte (`GigFlowSettings`); se pueden alargar con cartas como las de Conito.
+  - El número de canciones dependerá más adelante del gig, el local y el público.
+  - Son valores de prueba: la demo servirá para fijar los finales.
+
+**Tangentes anotadas (fuera de GIG-UI-1):**
+- Los gustos muestran nombres de enum (`ThreeFour`, `Aeolian`…) en lugar de texto del glosario.
+- El tooltip del músico deja ver datos internos.
+- «Agotar» no está implementado (ver «Pendiente»).
+- Los títulos de las vistas de mazo están en inglés.
+- En GigSetup, Retry tapa el panel de derrota.
+- La barra de progreso de canción blanca y negra de arriba: ¿se queda? Pregunta abierta a Claudio.
+- **Sesión de orden de sprites, automatizada si se puede.** Los sprites nuevos de `Resources/Sprites/Characters/Audience/` y `Sprites/Ship/` tienen nombres provisionales y no están commiteados (D2 = A del cierre).
+
+**Documentación aplicada en el cierre:**
+- `SSoT_Tooltip_Pipeline` §2, §2.1, §3 y §5.
+- `SSoT_Game_Text` §1, fila 13.
+- `SSoT_Card_System` §10.5.
+- `SSoT_Gig_Combat_Core` §14.7.
+- `CURRENT_STATE` §1, §3 y §5.
+- `changelog-ssot`.
+- Plan DEMO-1211: S2 ✅.
+
+Las dos filas de abajo que no se aplicaron (la divergencia de §4.3, §5.4 y §6.3, y la capa del marco) pasan a `CURRENT_STATE` §5. Con eso, este paquete queda **consumido**.
+
+## Actualizaciones de documentación propuestas (histórico; ver «Cierre»)
 
 | Doc | Cambio | Tipo |
 | --- | --- | --- |

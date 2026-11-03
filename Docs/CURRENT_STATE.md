@@ -30,6 +30,7 @@ This file tracks the currently validated project baseline, active work, and imme
 
 | Batch | Closed | Outcome |
 | --- | --- | --- |
+| GIG-UI-1 (DEMO-1211 S2) | 2026-11-03 | **La consola del manager se lee.** Cohesión en el HUD con pips y tooltip; las cartas, delante del marco. Público: el hover del icono de intención y el del cuerpo muestran **lo mismo**, una columna de recuadros separados (bloqueo, habilidad, gustos) que cuelga a la derecha de su caja de colisión. Esto revierte D-PRES1-3=A. Colores por tipo de recuadro en un asset (`TooltipStyleSO`, `Assets/Settings/TooltipStyle.asset`). Resumen del músico (verde), estados (lila) y carta no jugable (roja), que ahora dice «Ya usó una carta de acción/composición». **D-UI-3=A**: los indicadores de jugadas del músico, ocultos en el prefab (la regla ECON-1 no cambia; se revisa en S4). `CharacterBase.RaycastTopmost`: con colisionadores solapados gana el personaje dibujado encima, en el hover y en el objetivo de cartas. Demo: 3 canciones por gig y 3 loops por parte. Smokes 1–3 jugados por Claudio y comprobados con capturas. Commit `94d3e5d` (local). |
 | COH-1 (+ MAP-DEMO-2) | 2026-11-01 | **La cohesión es la única derrota (D-DIAG-1).** `GigLossOutcome` (nuevo, 6 tests EditMode en `Assets/Tests/Editor/`, en verde) decide el panel: en la gira del mapa no hay Retry; «Continuar» → mapa con «Cohesión X → Y», o «Fin de la gira» → Game Over si la cohesión llega a 0 o se pierde contra la Reina (sin línea de cohesión). WinPanel tras la Reina: sin Retry, «Volver al menú». Cohesión en el HUD del gig y en el mapa. GigSetup conserva Retry + Exit. **MAP-DEMO-2**, hecho en la misma sesión: paneo de entrada de la cámara, camino punteado, gigs pasados de decoración y tarjeta de la Reina al pasar el ratón. Guion 1–9 y smoke 2 (colapso real con cohesión 1) PASS, jugados por Claudio y verificados con capturas, sin `Editor.log`. Marco de la consola (`Assets/Art/UI/Gig/`) como `Image` dentro de `GigCanvas`: tapa las cartas (se arregla en GIG-UI-1). |
 | MAP-DEMO-1 | 2026-10-28 | **La demo empieza en el mapa.** `LinearMapController` (nuevo) sobre `mapa asterioide 1.0.png`: 3 nodos (2 gigs + Reina), nodo activo que late, completados apagados, nave en el último jugado; cohesión ≤ 0 o Reina perdida → Game Over (D-MAP-DEMO-2=A: el nodo se consume al lanzarse). `RunConfig.preserveRunState` conserva mazo y SFX entre nodos (D-MAP-DEMO-1=A); la pregunta del tutorial sale una vez por partida; `StartOnLinearMap` en `GigDevSettingsSO`. La escena `1b - Linear Map` ocupa el índice 1 de la build en lugar de `1 - Sector Map` (sigue en el repo para Phase C). Guion jugado por Claudio: mapa desde el menú, carta y SFX conservados en el gig 2 (PASS); pasos 9–10 y `Editor.log` sin comparar. Icono del nodo inicial y de la nave: pedidos a Matías (vie 30-oct). |
 | PLAY-TIMING-0 | 2026-10-01 | **El juego sabe cuánto faltó para la barra cuando pulsas Play — y solo lo dice en el log.** Insertado en la sesión de SONG-TAIL-1. `PlayPressTimingProbe` (nuevo) anota el pointer-down del botón Play (D-PT4=B; `onClick` salta al soltar) y `GigManager.OnPlayPressed` escribe una línea `[PLAY-TIMING]` con el error firmado al borde más cercano del loop que suena (D-PT1=A, D-PT2=B), grado en ms absolutos y offset de calibración (D-PT3=A). Fuera de ventana, las dos distancias (F-PT-1). Sin efecto de juego. T1–T4 PASS. Doc retenida en `SONG-TAIL-1_PLAY-TIMING-0_DocDiffs_Pending.md`. |
@@ -546,6 +547,8 @@ The live active-work stream is the demo-cut sequence in §3 (strict left-to-righ
 ---
 
 ## 3. Next active
+
+> **Siguiente (2026-11-03): S3, LEGIB-1a, «ver antes de jugar».** S2 (GIG-UI-1) está cerrada y commiteada (`94d3e5d`). Objetivo: al pasar el ratón por una carta, el Big Num muestra «Y → Z». Se da por logrado si el número previsto es el que pasa en 3 cartas distintas. Base disponible: la previsión de pérdida en la barra del público (BIGNUM-1r3, D-BN-17). **Desfase con Git:** los sprites nuevos sin nombre definitivo (`Resources/Sprites/Characters/Audience/`, `Sprites/Ship/`) siguen sin commitear por decisión de Claudio (D2=A) hasta una sesión de orden de sprites. **Este bloque reemplaza al de 2026-11-01 de abajo.**
 
 > **Siguiente (2026-11-01): S2 — GIG-UI-1, la consola del manager.** S1 (COH-1) cerrada y commiteada.
 > Antes de montar, adaptar `planning/active/GIG-UI-1_Runbook.md` al montaje real: el marco **no** es un
@@ -1380,6 +1383,16 @@ riesgo de runtime.
 ## 5. Docs that must be edited next
 
 The §5 doc-closure *history* (every applied edit since 2026-04-29) was removed in the 2026-06-16 hygiene prune — that record lives in `changelog-ssot.md`. This section is now forward-looking only.
+
+- **Pendiente de GIG-UI-1 (2026-11-03): dos filas de su runbook no se aplicaron en el cierre.** Pasan aquí
+  y se arrastran explícitamente. El runbook en `planning/archive/` queda consumido.
+  1. **`SSoT_Gig_Combat_Core.md` §4.3, §5.4 y §6.3 dicen algo distinto del código.** El documento dice
+     «Breakdown cuando `Stress >= StressMax`». Desde S5e, el código vacía el aguante y colapsa a 0.
+     Hay que corregirlo con el nombre «Aguante» (D-UI-1=B). Es un cambio semántico y requiere leer el
+     código de S5e.
+  2. **La capa del marco, `GigFrameCanvas` (Screen Space – Camera en la escena del gig), y su orden
+     de dibujo no tienen hogar en ninguna SSoT.** Candidatos: `SSoT_Gig_Encounter.md` o una SSoT de
+     presentación. Es un cambio estructural.
 
 - **Aplicado 2026-10-01 (SONG-TAIL-1 + PLAY-TIMING-0, paquete `SONG-TAIL-1_PLAY-TIMING-0_DocDiffs_Pending.md`,
   retenido en el PK desde 2026-10-01, consumido en CROWD-SFX-1).** `SSoT_Audio.md` (cabecera, alcance, §4.10

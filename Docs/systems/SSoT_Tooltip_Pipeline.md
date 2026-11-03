@@ -55,7 +55,7 @@ consume the pipeline. That is the failure mode an unowned pipeline produces.
 
 | Entry | Effect on the column | Fade | Placement |
 |---|---|---|---|
-| `ShowTooltip(body, header, target?, cam?, delay?, screenOffset?)` | **pushes** one more panel (count+1) | restarts | re-evaluated from the arguments |
+| `ShowTooltip(body, header, target?, cam?, delay?, screenOffset?, growDown?, kind?)` | **pushes** one more panel (count+1), coloured by `kind` (§2.1) | restarts | re-evaluated from the arguments |
 | `UpdateTooltip(body, header, panelIndex=0) : bool` | **rewrites** panel `panelIndex` in place; count unchanged; `false` if that panel is not shown | none | unchanged |
 | `HideTooltip()` | clears: count 0, all panels inactive, alpha 0 | stops | — |
 | `ShownTooltipCount` | read-only count | — | — |
@@ -84,6 +84,23 @@ hierarchy. Every consumer of §5 is affected: panels are wider and wrap into few
 Regression-checked at ST-CF3-12 (audience stack of two panels and the C1 Vibe readout: complete, not
 clipped at the screen edge).
 
+### 2.1 Panel colour by kind (GIG-UI-1, 2026-11-03)
+
+Each pushed panel carries a `TooltipKind` (`Default`, `Ability`, `Tastes`, `Blocked`, `Musician`,
+`Status`, `Warning`). Colours (background, header, body) live in **one asset**, `TooltipStyleSO`
+(`Assets/Settings/TooltipStyle.asset`), assigned on the `TooltipManager` prefab: tuning against the
+gig art happens in one Inspector, not across prefabs (Claudio's request, Monster Train-style reading:
+dark fill separates the panel from the art, the header colour says which kind it is).
+
+- `Default`, or no asset → the `TooltipText` prefab look. `TooltipText.ApplyStyle` caches the prefab
+  colours and restores them, so a pooled panel never keeps the previous kind's colour.
+- A kind with no row in the asset → built-in starting colours in `TooltipStyleSO.BuiltIn`
+  (`Musician`, `Status`, `Warning`) until someone adds the row.
+- `ITooltipTargetBase.ShowTooltipInfo` keeps its six-parameter signature; the kind travels through
+  a separate `CharacterCanvas.ShowTooltipInfo(..., TooltipKind)` overload (a seventh parameter on the
+  interface member broke `CharacterCanvas`, CS0535).
+- The asset also holds `audienceColumnOffset` (§3, grow-down anchor of the audience column).
+
 ## 3. Placement (D-TIP-2=B)
 
 Two modes, chosen per `ShowTooltip` call:
@@ -93,6 +110,11 @@ Two modes, chosen per `ShowTooltip` call:
 - **Static target** — the column's bottom-left sits at the target's **screen point** plus
   `screenOffset` (pixels), re-evaluated every frame (a target that moves or rescales is
   followed).
+
+- **Static target, grow-down** (`growDown: true`, GIG-UI-1) — the target's screen point plus
+  offset is the column's **top-left** instead of its bottom-left: the column hangs down from the
+  anchor, so its first panel stays put however many panels follow. Used by the audience column
+  (§5), anchored to the top-right corner of the member's body collider. Clamps are unchanged.
 
 The target's screen point is obtained from its **root canvas**, inferred by the controller — the
 caller never declares a coordinate space, because the space is a property of the transform, not
@@ -141,14 +163,29 @@ Through the pipeline:
 
 | Surface | Calls | Mode | Stacks? |
 |---|---|---|---|
-| `CardBase.ShowTooltipInfo` (card hover) | Show × (keywords + unique statuses) | cursor | yes, by design (§10.2) |
-| `CharacterCanvas` / `AudienceCharacterCanvas` (body hover) | Show × (status, intention, …) on `descriptionRoot` | static, world-space | yes, by design |
-| `AudienceCharacterCanvas.ShowVibeTooltip` via `VibeBarTooltipTarget` | Show on `descriptionRoot` | static, world-space | no (composite stands down, D-BN-15) |
-| `AudienceCharacterCanvas.ShowBlockedTooltip` | Show | static, world-space | no |
-| `StatusIconBase` | Show on `transform` | static, world-space | no |
+| `CardBase.ShowTooltipInfo` (card hover) | Show × (keywords + unique statuses); unplayable panel with `kind: Warning` | cursor | yes, by design (§10.2) |
+| `AudienceCharacterCanvas.RefreshHoverTooltip` (icon **or** body hover, GIG-UI-1) | Hide → Show × (Blocked, Ability, Tastes if revealed), one kind each | static, world-space, **grow-down** from the collider anchor | yes, by design |
+| `BandCharacterCanvas.ShowTooltipInfo` (musician summary) | Show on `descriptionRoot`, `kind: Musician` | static, world-space | yes (status icons stack under it) |
+| `AudienceCharacterCanvas.ShowVibeTooltip` via `VibeBarTooltipTarget` | Hide column → Show (`Default`) | static, world-space | no (composite stands down, D-BN-15) |
+| `StatusIconBase` | Show on `transform`, `kind: Status` | static, world-space | no |
 | `EconPipTooltipTarget` | Show | (as authored) | no |
 | `VibeReadoutTooltipTarget` (C1) | Show on own `transform` + offset; then **Update** per refresh | static, **overlay** | no |
 | `TutorialOverlayView` (concept tags) | Hide → Show, no target | cursor | no, by invariant |
+
+**Audience hover, one content for two triggers (GIG-UI-1, 2026-11-03).** The member can be hovered
+on the intent icon (UI pointer on the world-space canvas) or on the body (physics raycast in
+`CharacterBase.Update`). Both set a flag and call the same `RefreshHoverTooltip`, which hides and
+rebuilds the column, so overlapping icon and body never produce duplicate panels and both show the
+same thing. This **reverses PRES-1 / D-PRES1-3=A** (ability and tastes in one panel): separate,
+coloured panels read faster. `EconPipTooltipTarget` stays in the census but its pips are hidden in
+the prefab (D-UI-3=A, `SSoT_Card_System.md` §10.5).
+
+**Which character the pointer is on (GIG-UI-1).** Body hover and card targeting
+(`HandController`) both go through `CharacterBase.RaycastTopmost`: of all colliders the ray hits,
+the character **drawn on top** (sorting layer, then `sortingOrder`, then distance) wins. Plain
+`Physics.Raycast` returned the collider nearest the camera in 3D, so where a back-stage musician's
+box overlapped a front-stage one, the back one stole hover and targets. Not a pipeline component;
+recorded here because it decides which tooltip opens.
 
 **Outside the pipeline — conformant independent implementations:** `TrackHoverPanel` and
 `CompositionContextRowUI` (song panel). They anchor to a row, not the cursor, and clamp against
@@ -211,3 +248,4 @@ rule; the fade; the governed file list; or when a surface joins or leaves the pi
 |---|---|---|
 | 2026-09-15 | TIP-1 / TIP-1-DOC | Document created under **D-TIP-1=A**, reversing BIGNUM-1-DOC's decision not to create it — with a new argument, not a new preference: that batch did not touch the contract and this one did, and SONG-PANEL-1 had since added a third tooltip surface that wrote its own placement. Closes **F-BN-7** (`UpdateTooltip`, D-TIP-3=B) and **F-BN-8** (anchor space inferred from the root canvas, D-TIP-2=B); retires the **D-BN-18=B″** runtime anchor; reframes **F-TXT4-11** from defect to declared capability. Records the clamp order rule and the assign → rebuild → measure → place rule. Consumer census (8 in, 2 conformant outside). Findings F-TIP-1..6. Authority taken over eight files previously governed wholesale by `SSoT_Game_Text.md`. ST-TIP-1..10 PASS. |
 | 2026-09-22 (doc 2026-09-25) | CARD-FACE-3 / CARD-FACE-3-DOC | §2 → panel width 250 → **280** (`TooltipText` `LayoutElement.preferredWidth`), D3=B, explicit exception to D-CF-2. No transport contract changed; no invariant touched. |
+| 2026-11-03 | GIG-UI-1 (DEMO-1211 S2) | §2 `ShowTooltip` gains `growDown` and `kind`; new §2.1 (`TooltipStyleSO` / `TooltipKind`, one colour asset). §3 grow-down placement. §5 census: audience column (icon and body show the same, reverses D-PRES1-3=A), musician summary, Warning on cards, Status on icons; `CharacterBase.RaycastTopmost` (topmost drawn character wins hover and targeting). Played by Claudio in the editor. |

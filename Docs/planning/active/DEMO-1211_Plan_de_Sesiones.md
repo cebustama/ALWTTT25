@@ -45,7 +45,7 @@ plano o en capturas.
 | Semana | # | Sesión | Objetivo único | Lo has logrado si… | M |
 | --- | --- | --- | --- | --- | --- |
 | 2–6 nov | S1 | **COH-1, cierre** ✅ 2026-11-01 | Jugar el guion de `COH-1_Guion.md` (ahora en `planning/archive/`) y pegar el `Editor.log` | Pasos 1–9 coinciden con el log; commit. **Hecho:** pasos 1–9 y smoke 2 PASS jugados por Claudio, verificados con capturas (sin `Editor.log`); de paso, MAP-DEMO-2 (paneo, camino, gigs pasados, tarjeta de la Reina) | M3 |
-| | S2 | **GIG-UI-1** | Montar la consola del manager según su runbook | La cohesión se ve en el HUD y la consola se lee | M3 |
+| | S2 | **GIG-UI-1** ✅ 2026-11-03 | Montar la consola del manager según su runbook | La cohesión se ve en el HUD y la consola se lee. **Hecho:** consola, cohesión en el HUD, columna de tooltips de colores del público (icono y cuerpo muestran lo mismo), aviso «ya usó una carta de acción/composición», indicadores de jugadas ocultos (D-UI-3=A, revisar en S4), gana el personaje dibujado encima; demo a 3 canciones × 3 loops; commit `94d3e5d`. Runbook en `planning/archive/` | M3 |
 | | S3 | **LEGIB-1a: ver antes de jugar** | Al pasar el ratón por una carta, el Big Num muestra «Y → Z» | El número previsto es el que pasa (3 cartas distintas) | M1 |
 | 9–13 nov | S4 | **LEGIB-1b: lo que recibes** | La intención del público dice qué hará y a quién (línea al objetivo); sin textos internos («AddVibe») | Una persona ajena dice qué hará cada miembro del público | M1 |
 | | S5 | **NAVE-1** | Escena de la nave: plano con salas clicables; cada sala abre su arte con «EN DESARROLLO» y «Volver»; la cabina abre el mapa | Menú → nave → cabina → gig → vuelta a la nave, sin romper la partida | — |
@@ -74,6 +74,11 @@ Se recorta de arriba abajo; nunca M1, M3, M6:
 - Poses por estado del público (solo el secuaz 1 las tiene).
 - Chatarrero funcional: «abre el show», la mejora inicial de la partida (pantalla del bicho en el foco).
 - Interacciones musicales, convencidos que cantan, «boooring» entre loops (REPLAN-ART D3 = B).
+- **Orden de sprites, automatizado si se puede** (Claudio, 2026-11-03): renombrar y ordenar los PNG
+  nuevos de `Resources/Sprites/Characters/Audience/` y `Sprites/Ship/` (nombres provisionales, sin
+  commitear). Encaja antes de ELENCO-1 (S7), que es quien los usa.
+- **Canciones por gig según el gig, el local y el público** (Claudio, 2026-11-03). Hoy la demo usa
+  3 canciones y 3 loops por parte para todos los gigs (`DemoLaunchConfig`); valores de prueba.
 
 ## Decisiones (cerradas por Claudio el 2026-10-30)
 

@@ -14,6 +14,26 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-03 — GIG-UI-1: la consola del manager (DEMO-1211 S2)
+
+**Clase:** semántico · operativo. Con cambio de código.
+
+- `SSoT_Tooltip_Pipeline`:
+  - §2: `ShowTooltip` gana `growDown` y `kind`.
+  - §2.1 nueva: `TooltipStyleSO` / `TooltipKind`, los colores de cada tipo de recuadro en un solo asset.
+  - §3: colocación «hacia abajo».
+  - §5, censo: la columna del público es la misma con el hover del icono y con el del cuerpo. **Revierte D-PRES1-3=A**: recuadros separados y de colores en lugar de uno solo. Además: resumen del músico, Warning en las cartas, Status en los iconos y `CharacterBase.RaycastTopmost` (gana el personaje dibujado encima, en el hover y en el objetivo).
+- `SSoT_Game_Text` §1: fila 13 (los textos nuevos de GIG-UI-1, en plantillas ES + EN desde `GIG-UI-1_textos/*.csv`). `Budget` dividido según la carta sea de acción o de composición.
+- `SSoT_Card_System` §10.5: el motivo de no jugable se muestra al pasar el ratón. **D-UI-3=A**: indicadores de jugadas ocultos.
+- `SSoT_Gig_Combat_Core` §14.7: consecuencia de ocultar los indicadores. El aviso de la carta queda como única superficie del presupuesto, y es parcial: las cartas `AnyMusician` solo lo muestran con el mensaje de denegación. Se revisa en S4.
+- Código:
+  - Nuevos: `TooltipStyleSO.cs` y `CohesionTooltipTarget.cs`.
+  - Modificados: `TooltipManager`, `TooltipController`, `TooltipText`, `CharacterCanvas` (sobrecarga con `TooltipKind`; la interfaz conserva sus 6 parámetros), `AudienceCharacterCanvas`, `AudienceCharacterBase`, `BandCharacterCanvas`, `StatusIconBase`, `CardBase`, `GameTextTemplateIds`, `CharacterBase`, `HandController` y `GigCanvas`.
+  - Prefabs y escena del gig.
+  - Ajustes de demo: 3 canciones por gig y 3 loops por parte.
+- `CURRENT_STATE.md`: fila GIG-UI-1 y bloque «Siguiente (2026-11-03)» (S3, LEGIB-1a). Plan de sesiones: S2 ✅.
+- Verificación: smokes 1–3 jugados por Claudio en el editor y comprobados con capturas. Commit `94d3e5d`.
+
 ## 2026-11-01 — COH-1: la cohesión es la única derrota (+ MAP-DEMO-2)
 
 **Clase:** semántico · operativo. Con cambio de código.
