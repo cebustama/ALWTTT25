@@ -1032,7 +1032,7 @@ namespace ALWTTT
         {
             var mainRay = mainCam.ScreenPointToRay(mousePos);
             RaycastHit hit;
-            if (Physics.Raycast(mainRay, out hit, 1000, targetLayer))
+            if (CharacterBase.RaycastTopmost(mainRay, 1000, targetLayer, out hit))
             {
                 var musician = hit.collider.gameObject.GetComponent<MusicianBase>();
                 return musician;
@@ -1046,7 +1046,7 @@ namespace ALWTTT
         {
             targetCharacter = null;
 
-            if (!Physics.Raycast(ray, out var hit, 1000, targetLayer))
+            if (!CharacterBase.RaycastTopmost(ray, 1000, targetLayer, out var hit))
             {
                 LogV($"{DebugTag} [Gig] No character hit by raycast.");
                 return false;

@@ -1,0 +1,23 @@
+﻿id,field,es,en
+ui_gig_cohesion_header,text,Cohesión {0}/{1},Cohesion {0}/{1}
+ui_gig_cohesion_body,text,"Cada colapso de un músico quita 1, y perder un gig quita más. A 0, la banda se separa y la gira termina.","Each musician breakdown costs 1, and losing a gig costs more. At 0, the band splits up and the tour ends."
+ui_econ_action_header,text,Jugadas de acción,Action plays
+ui_econ_composition_header,text,Jugadas de composición,Composition plays
+ui_econ_action_one,text,Te queda 1 carta de acción este turno.,1 action card left this turn.
+ui_econ_action_many,text,Te quedan {0} cartas de acción este turno.,{0} action cards left this turn.
+ui_econ_action_none,text,Ya usaste la carta de acción de este turno.,Action card already used this turn.
+ui_econ_composition_one,text,Te queda 1 carta de composición este turno.,1 composition card left this turn.
+ui_econ_composition_many,text,Te quedan {0} cartas de composición este turno.,{0} composition cards left this turn.
+ui_econ_composition_none,text,Ya usaste la carta de composición de este turno.,Composition card already used this turn.
+ui_mus_meter,text,Aguante {0}/{1},Grit {0}/{1}
+ui_mus_meter_shield,text,Aguante {0}/{1} · Compostura {2},Grit {0}/{1} · Composure {2}
+ui_mus_breakdown_rule,text,A 0 colapsa: queda Shaken y la banda pierde 1 de cohesión.,"At 0 they break down: Shaken, and the band loses 1 cohesion."
+ui_unplayable_header,text,No se puede jugar,Can't play this
+ui_unplayable_none,text,—,—
+ui_unplayable_tutorialgate,text,Ahora no: sigue la indicación del tutorial.,Not now: follow the tutorial.
+ui_unplayable_actiontiming,text,Ahora no es momento para cartas de acción.,Action cards can't be played right now.
+ui_unplayable_inspiration,text,No tienes Inspiración suficiente.,Not enough Inspiration.
+ui_unplayable_budget,text,Este músico ya usó su jugada de este tipo en este turno.,This musician already used this kind of play this turn.
+ui_unplayable_finallooplock,text,Último loop: la composición está cerrada.,Final loop: the composition is locked.
+ui_unplayable_resource,text,No tienes Voltaje suficiente.,Not enough Voltage.
+ui_unplayable_norunningloop,text,No hay ninguna parte sonando en bucle.,No part is looping right now.

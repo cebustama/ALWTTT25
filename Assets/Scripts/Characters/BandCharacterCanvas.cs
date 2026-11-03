@@ -118,6 +118,33 @@ namespace ALWTTT.Characters.Band
                 statsRoot.SetActive(visible);
         }
 
+        /// <summary>
+        /// [GIG-UI-1] Hover on the musician canvas: a first panel with the meter, Composure and the
+        /// breakdown rule. Values are the last ones pushed through SetCurrentStress, so the panel and
+        /// the bar cannot disagree. S5e: the meter is remaining fortitude; Breakdown fires at 0.
+        /// Status icons keep their own tooltip (StatusIconBase) and stack under this one.
+        /// </summary>
+        protected override void ShowTooltipInfo()
+        {
+            base.ShowTooltipInfo();
+            if (MeterMax <= 0) return;
+
+            int composure = BoundContainer != null
+                ? BoundContainer.GetStacks(ALWTTT.Status.CharacterStatusId.TempShieldTurn)
+                : 0;
+            string header = characterNameText != null ? characterNameText.text : string.Empty;
+            string body = composure > 0
+                ? ALWTTT.Tooltips.GameText.Format(
+                    ALWTTT.Tooltips.GameTextTemplateIds.UiMusMeterShield, MeterCurrent, MeterMax, composure)
+                : ALWTTT.Tooltips.GameText.Format(
+                    ALWTTT.Tooltips.GameTextTemplateIds.UiMusMeter, MeterCurrent, MeterMax);
+            body += "\n" + ALWTTT.Tooltips.GameText.Format(
+                ALWTTT.Tooltips.GameTextTemplateIds.UiMusBreakdownRule);
+
+            ShowTooltipInfo(ALWTTT.Tooltips.TooltipManager.Instance, body, header, descriptionRoot,
+                null, 0f, ALWTTT.Tooltips.TooltipKind.Musician);
+        }
+
         public void SetCurrentStress(int current, int max, float duration)
         {
             CacheMeterValue(current, max); // [S5e-ext]

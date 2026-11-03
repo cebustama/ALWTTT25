@@ -106,7 +106,7 @@ namespace ALWTTT.Characters
         protected virtual void Update()
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out var hit, 100f, characterLayerMask))
+            if (RaycastTopmost(ray, 100f, characterLayerMask, out var hit))
             {
                 var charHit = hit.collider.GetComponent<ICharacter>();
                 if (charHit != null && charHit.GetCharacterBase() == this)
@@ -125,6 +125,41 @@ namespace ALWTTT.Characters
                 isPointerOver = false;
                 OnPointerExit();
             }
+        }
+
+        // [GIG-UI-1] Overlapping colliders: Physics.Raycast returns the hit nearest the
+        // camera in 3D, which is not the character DRAWN on top (that is sortingLayer /
+        // sortingOrder; GigManager puts front-stage musicians at order 10). Pick the hit
+        // whose character renders on top, nearest distance as tie-break. Used by hover
+        // (here) and by card targeting (HandController) so outline and target agree.
+        private static readonly RaycastHit[] _pickBuffer = new RaycastHit[16];
+
+        public static bool RaycastTopmost(Ray ray, float maxDistance, LayerMask mask,
+            out RaycastHit best)
+        {
+            best = default;
+            int n = Physics.RaycastNonAlloc(ray, _pickBuffer, maxDistance, mask);
+            bool found = false;
+            int bestLayer = int.MinValue, bestOrder = int.MinValue;
+            for (int i = 0; i < n; i++)
+            {
+                var h = _pickBuffer[i];
+                var ch = h.collider.GetComponent<ICharacter>();
+                var sr = ch != null && ch.GetCharacterBase() != null
+                    ? ch.GetCharacterBase().SpriteRenderer : null;
+                int layer = sr != null ? SortingLayer.GetLayerValueFromID(sr.sortingLayerID) : int.MinValue;
+                int order = sr != null ? sr.sortingOrder : int.MinValue;
+
+                bool better = !found
+                    || layer > bestLayer
+                    || (layer == bestLayer && order > bestOrder)
+                    || (layer == bestLayer && order == bestOrder && h.distance < best.distance);
+                if (better)
+                {
+                    best = h; bestLayer = layer; bestOrder = order; found = true;
+                }
+            }
+            return found;
         }
 
         public virtual void BuildCharacter() { }

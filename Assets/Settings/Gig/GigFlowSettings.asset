@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GigFlowSettings
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.GigFlowSettingsSO
   jamRules:
-    loopsPerPart: 2
+    loopsPerPart: 3
     drawPerPart: 0
     inspirationPerPart: 0
   drawPerLoop: 2
@@ -42,6 +42,9 @@ MonoBehaviour:
   playTimingPerfectMs: 30
   playTimingExcellentMs: 60
   playTimingOffsetMs: 0
+  crowdApplauseAtMean: 0.5
+  crowdBooAtMean: -0.5
+  crowdVerdictDelaySeconds: 0.35
   defaultDiscardHandBetweenTurns: 0
   defaultKeepInspirationBetweenTurns: 0
   allowOverrideRequiredSongCount: 1

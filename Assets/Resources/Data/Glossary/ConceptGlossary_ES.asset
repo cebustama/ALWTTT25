@@ -78,12 +78,13 @@ MonoBehaviour:
   - id: cohesion
     displayName: "Cohesi\xF3n"
     description: "La resistencia compartida de la banda. Pierde un punto cada vez
-      que un m\xFAsico colapsa. A cero, el concierto se pierde."
+      que un m\xFAsico colapsa, y m\xE1s al perder un gig. A cero, la banda se separa
+      y la gira termina."
   - id: breakdown
     displayName: Colapso
-    description: "Lo que ocurre cuando la barra de Stress de un m\xFAsico llega a
-      cero: la banda pierde una Cohesi\xF3n, la barra se rellena y el m\xFAsico queda
-      Shaken."
+    description: "Lo que ocurre cuando el Aguante de un m\xFAsico llega a cero: la
+      banda pierde una Cohesi\xF3n y el m\xFAsico recupera parte de su Aguante, pero
+      queda Shaken."
   - id: blocked
     displayName: Bloqueado
     description: "Un miembro del p\xFAblico en primera fila est\xE1 Bloqueado: no
@@ -136,7 +137,8 @@ MonoBehaviour:
     description: "Carga acumulada. No hace nada por s\xED sola: se gasta."
   - id: stress
     displayName: Stress
-    description: Cuando se llena, provoca un Colapso.
+    description: "El da\xF1o que recibe un m\xFAsico: baja su Aguante. Cuando el
+      Aguante llega a cero, Colapso."
   - id: vibe
     displayName: Vibe
     description: "Ll\xE9nalo para convencer a los miembros del p\xFAblico."
@@ -759,3 +761,54 @@ MonoBehaviour:
     text: Parte personalizada
   - id: ui_part_bridge
     text: Puente
+  - id: ui_gig_cohesion_header
+    text: "Cohesi\xF3n {0}/{1}"
+  - id: ui_gig_cohesion_body
+    text: "Cada colapso de un m\xFAsico quita 1, y perder un gig quita m\xE1s. A
+      0, la banda se separa y la gira termina."
+  - id: ui_econ_action_header
+    text: "Jugadas de acci\xF3n"
+  - id: ui_econ_composition_header
+    text: "Jugadas de composici\xF3n"
+  - id: ui_econ_action_one
+    text: "Te queda 1 carta de acci\xF3n este turno."
+  - id: ui_econ_action_many
+    text: "Te quedan {0} cartas de acci\xF3n este turno."
+  - id: ui_econ_action_none
+    text: "Ya usaste la carta de acci\xF3n de este turno."
+  - id: ui_econ_composition_one
+    text: "Te queda 1 carta de composici\xF3n este turno."
+  - id: ui_econ_composition_many
+    text: "Te quedan {0} cartas de composici\xF3n este turno."
+  - id: ui_econ_composition_none
+    text: "Ya usaste la carta de composici\xF3n de este turno."
+  - id: ui_mus_meter
+    text: Aguante {0}/{1}
+  - id: ui_mus_meter_shield
+    text: "Aguante {0}/{1} \xB7 Compostura {2}"
+  - id: ui_mus_breakdown_rule
+    text: "A 0 colapsa: queda Shaken y la banda pierde 1 de cohesi\xF3n."
+  - id: ui_unplayable_header
+    text: No se puede jugar
+  - id: ui_unplayable_none
+    text: "\u2014"
+  - id: ui_unplayable_tutorialgate
+    text: "Ahora no: sigue la indicaci\xF3n del tutorial."
+  - id: ui_unplayable_actiontiming
+    text: "Ahora no es momento para cartas de acci\xF3n."
+  - id: ui_unplayable_inspiration
+    text: "No tienes Inspiraci\xF3n suficiente."
+  - id: ui_unplayable_budget
+    text: "Este m\xFAsico ya us\xF3 su jugada de este tipo en este turno."
+  - id: ui_unplayable_finallooplock
+    text: "\xDAltimo loop: la composici\xF3n est\xE1 cerrada."
+  - id: ui_unplayable_resource
+    text: No tienes Voltaje suficiente.
+  - id: ui_unplayable_norunningloop
+    text: No hay ninguna parte sonando en bucle.
+  - id: ui_gig_play_button
+    text: Tocar
+  - id: ui_unplayable_budget_action
+    text: "Este m\xFAsico ya us\xF3 una carta de acci\xF3n este turno."
+  - id: ui_unplayable_budget_composition
+    text: "Este m\xFAsico ya us\xF3 una carta de composici\xF3n este turno."

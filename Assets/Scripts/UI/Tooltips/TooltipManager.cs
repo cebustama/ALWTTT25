@@ -46,6 +46,12 @@ namespace ALWTTT.Tooltips
          "keywords (by enum name) and <link=id> tags resolve here. Assign the same " +
          "language as the tutorial catalog and its glossary.")]
         [SerializeField] private ConceptGlossarySO conceptGlossary;
+        [Tooltip("[GIG-UI-1] Colours per panel kind and the audience column offset. " +
+         "Empty = every panel keeps the TooltipText prefab look.")]
+        [SerializeField] private TooltipStyleSO tooltipStyle;
+
+        /// <summary>[GIG-UI-1] Null when no style asset is assigned.</summary>
+        public TooltipStyleSO Style => tooltipStyle;
 
         [Header("Settings")]
         [SerializeField] private AnimationCurve fadeCurve;
@@ -88,8 +94,13 @@ namespace ALWTTT.Tooltips
             string contentText = "", string headerText = "",
             Transform tooltipTargetTransform = null,
             Camera cam = null, float delayShow = 0,
-            Vector2 screenOffset = default(Vector2))
+            Vector2 screenOffset = default(Vector2),
+            bool growDown = false, TooltipKind kind = TooltipKind.Default)
         {
+            // [GIG-UI-1] growDown: the target point is the column's TOP-left (it grows
+            // downward), not its bottom-left. kind: which TooltipStyleSO entry colours this
+            // panel; Default (or no asset) keeps the prefab look. Panels are pooled, so
+            // every call applies a style or restores the prefab one.
             //Debug.Log($"{DebugTag} Showing tooltip for '{headerText}");
 
             StartCoroutine(ShowRoutine(delayShow));
@@ -104,8 +115,11 @@ namespace ALWTTT.Tooltips
             var panel = tooltipTextList[currentShownTooltipCount - 1];
             panel.gameObject.SetActive(true);
             panel.SetText(contentText, headerText);
+            TooltipStyleSO.PanelStyle style = null;
+            if (tooltipStyle != null) tooltipStyle.TryGet(kind, out style);
+            panel.ApplyStyle(style);
 
-            TooltipController.SetFollowPos(tooltipTargetTransform, cam, screenOffset);
+            TooltipController.SetFollowPos(tooltipTargetTransform, cam, screenOffset, growDown);
             TooltipController.Reposition();
         }
 

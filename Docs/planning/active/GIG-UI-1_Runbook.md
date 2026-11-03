@@ -3,10 +3,20 @@
 > **Paquete transitorio.** Lo consume el cierre de GIG-UI-1. Si GIG-UI-1 cierra sin consumirlo, se
 > declara perdido en ese mismo cierre (D-DOC-5).
 
-> **⚠ Por adaptar (2026-11-01).** La fase 1 supone un `GigFrameCanvas` propio. El montaje real es otro:
-> el marco es un `Image` al final de la jerarquía de `GigCanvas` (Overlay, en ALWTTTCore), con Raycast
-> Target ya desactivado. Por eso tapa las cartas de la mano. Reescribir la fase 1 antes de empezar.
-> COH-1 ya está cerrado: el guion está en `planning/archive/COH-1_Guion.md`.
+> **Adaptado (2026-11-01).** El marco se había probado como `Image` dentro de `GigCanvas` (Overlay) y
+> tapaba las cartas. Ese montaje **no está guardado** en ningún prefab ni escena del disco, así que no hay
+> nada que deshacer en Git. La fase 1 se reescribió: el marco va en un canvas propio de la escena del gig,
+> atado a Main Camera. COH-1 ya está cerrado: el guion está en `planning/archive/COH-1_Guion.md`.
+
+> **Avance.** Fase 1 ✅ (2026-11-02, Claudio): `GigFrameCanvas` en la escena del gig, cartas delante del
+> marco, Main Camera Size = **5.5**, abanico ajustado en la muesca. Fase 2 aplicada por el agente
+> (2026-11-02, pasos 2.1–2.10 sin cambios respecto al texto de abajo); compila sin errores (Claudio).
+> **D-UI-1 = B, «Aguante»** (Claudio, 2026-11-02). Fase 3 en dos CSV importables desde `GameTextWindow`:
+> `GIG-UI-1_textos/plantillas.csv` (22 ids, pestaña Templates) y `conceptos.csv` (3 descripciones,
+> pestaña Concepts). **Corrección a la tabla de conceptos de abajo:** el concepto `stress` **conserva su
+> nombre** «Stress» (es el daño que nombran cartas e intenciones) y solo cambia su descripción; no se
+> renombra a Aguante. El colapso no rellena la barra entera, sino una fracción
+> (`BreakdownStressResetFraction`); el texto de `breakdown` lo dice así.
 
 | Campo | Valor |
 | --- | --- |
@@ -14,7 +24,7 @@
 | Generado | 2026-10-29 |
 | Origen | Propuesta gráfica «La consola en uso» (https://claude.ai/artifact/UkJoU8tMAR4NhZtwrcmhD6) y comparativa «Cuánta información en pantalla» (https://claude.ai/artifact/18SeRUQBsoxAbx2y79QQuy) |
 | Sustituye | El «montaje B» de `COH-1_Guion.md`, que ahora apunta aquí |
-| Anclajes | Verificados contra el árbol de trabajo el 2026-10-29: cada ANCHOR aparece **una sola vez** en su archivo |
+| Anclajes | Verificados contra el árbol de trabajo el 2026-10-29 y de nuevo el 2026-11-01 (tras COH-1, d4fe636): cada ANCHOR de la fase 2 aparece **una sola vez** en su archivo |
 | Precondiciones | COH-1 compila (incluye los pips de cohesión en `GigCanvas`); montaje A de `COH-1_Guion.md` hecho |
 | Orden | Fase 1 (escena) → Fase 2 (código: compila tras cada paso) → Fase 3 (glosario) → Fase 4 (prefabs) → Fase 5 (smokes) |
 
@@ -59,48 +69,63 @@ Compostura como escudo pegado a la barra.
 
 ## Fase 1 — La consola en la escena (editor, sin código)
 
-**Por qué en una capa propia.** El gig se dibuja en tres pasadas: (1) la cámara principal (fondo, banda y
-público), (2) la cámara de la mano (las cartas son canvases World Space, `Card3D` → `HandController.Cam`) y
-(3) `GigCanvas`, Screen Space – Overlay, que vive en la escena persistente **ALWTTTCore** (F-BN-9). Si el
-marco fuera al `GigCanvas`, taparía las cartas. Por eso va en un canvas propio de la escena del gig,
-atado a su cámara principal: queda encima del mundo y debajo de las cartas.
+> Reescrita el 2026-11-01 tras leer cámaras y canvases del disco.
 
-### Paso 1.1 — Importar el marco
-- **Archivo:** `Assets/Art/UI/Gig/GigFrame_placeholder.png`
-- **Acción:** Texture Type = *Sprite (2D and UI)*, Mesh Type = *Full Rect*, Max Size = 2048, Compression =
-  *None* o *High Quality*.
-- **Verificación:** el sprite se ve con el centro transparente en la vista previa.
+**Por qué en una capa propia (verificado en el disco).** El proyecto usa URP con una pila de cámaras:
+`Main Camera` (Base, máscara con Default, UI y Character, ortográfica 4.8) lleva en su pila a `HandCamera`
+(Overlay, solo la capa `Card`, *Clear Depth* activado; vive en `HandController.prefab`, dentro de
+`DeckManager`). En URP, **todo canvas Screen Space – Overlay se dibuja después de la pila entera**: por
+eso el marco dentro de `GigCanvas` (Overlay, ALWTTTCore) tapaba las cartas, y ningún *Sort Order* lo
+arregla. Un canvas **Screen Space – Camera** atado a `Main Camera` se dibuja *dentro* de la pasada de la
+cámara base; luego `HandCamera` pinta las cartas encima, y al final `GigCanvas` pinta el HUD encima de
+todo. Orden resultante: mundo → marco → cartas → HUD. La alternativa (pasar `GigCanvas` a Screen Space –
+Camera) se descarta: está en ALWTTTCore y no puede referenciar una cámara de la escena del gig.
+
+### Paso 1.0 — Quitar el marco de `GigCanvas`
+- **Dónde:** `GigCanvas` (en ALWTTTCore, o el prefab `Assets/Prefabs/UI/Canvases/GigCanvas.prefab`).
+- **Acción:** si el `Image` del marco sigue ahí (en la escena abierta o en el prefab), bórralo. En el disco
+  no está guardado: si Unity pregunta al cerrar la escena, **no guardes** ese cambio de ALWTTTCore.
+- **Lo has logrado si** buscando `GigFrame` en la jerarquía (con ALWTTTCore abierta) no aparece nada.
+
+### Paso 1.1 — El marco ya está importado
+- **Archivo:** `Assets/Art/UI/Gig/GigFrame_placeholder.png` — ya es *Sprite (2D and UI)*, *Multiple*,
+  *Full Rect*, 2048. El sprite se llama **`GigFrame_placeholder_0`**. No hay que tocar nada.
 
 ### Paso 1.2 — Crear `GigFrameCanvas`
-- **Archivo:** `Assets/Scenes/3 - Gig Scene.unity`
-- **Acción:** *GameObject → UI → Canvas*, nombre `GigFrameCanvas`.
-  - Canvas: Render Mode = **Screen Space – Camera**, Render Camera = **Main Camera** (de esta misma escena;
-    por eso el canvas no puede ir en ALWTTTCore), Plane Distance = **1**, Sorting Layer = **Foreground**,
-    Order in Layer = **100**.
-  - Canvas Scaler: *Scale With Screen Size*, 1920×1080, Match = 0.5.
-  - **Borra el Graphic Raycaster**: el marco no recibe clics.
-- **Verificación:** en Play, el canvas aparece en la jerarquía de la escena del gig y no hay errores de
-  referencia cruzada entre escenas.
+- **Escena:** abre `Assets/Scenes/3 - Gig Scene.unity` sola (no en Play).
+- **Acción:** clic derecho en un hueco vacío de la jerarquía → *UI → Canvas*. Renómbralo `GigFrameCanvas`.
+  Si Unity crea un `EventSystem` nuevo, bórralo (el de ALWTTTCore basta).
+  - Canvas: Render Mode = **Screen Space – Camera**; Render Camera = arrastra **Main Camera** de la
+    jerarquía; Plane Distance = **1**; Sorting Layer = **Foreground**; Order in Layer = **100**.
+  - Canvas Scaler: UI Scale Mode = *Scale With Screen Size*, Reference Resolution 1920×1080, Match = 0.5.
+  - Graphic Raycaster: clic en los tres puntos → *Remove Component* (el marco no recibe clics).
+- **Lo has logrado si** el Inspector de `GigFrameCanvas` muestra Main Camera en Render Camera y no tiene
+  Graphic Raycaster.
 
 ### Paso 1.3 — Imagen del marco
-- **Acción:** hijo `Frame` (*UI → Image*), Source Image = `GigFrame_placeholder`, anclas estiradas a los
-  cuatro lados (Alt + clic en *stretch-stretch*), márgenes 0, **Raycast Target desactivado**, Preserve
-  Aspect desactivado.
-- **Verificación:** en la Game view a 1920×1080, el marco ocupa toda la pantalla y se ve el gig por la ventana.
+- **Acción:** clic derecho en `GigFrameCanvas` → *UI → Image*, renómbralo `Frame`. Source Image =
+  `GigFrame_placeholder_0`; en Rect Transform, Alt + clic en el cuadro de anclas *stretch-stretch* (abajo a
+  la derecha); Left/Top/Right/Bottom = 0; **Raycast Target desactivado**; Preserve Aspect desactivado.
+  Guarda la escena (Ctrl+S).
+- **Lo has logrado si,** en Play desde el arranque normal y con la Game view a 1920×1080, entras a un gig
+  y **las cartas de la mano se ven delante del marco** y se pueden arrastrar y jugar, mientras el HUD de
+  `GigCanvas` sigue por encima del marco.
+- **Si las cartas siguen detrás:** comprueba que Render Mode no se quedó en Overlay y que Render Camera no
+  está vacío (si lo está, Unity lo dibuja como Overlay).
 
 ### Paso 1.4 — Encajar el mundo en la ventana
 - **Acción:** con Play a 1920×1080, sube el `orthographic size` de **Main Camera** (hoy 4.8) hasta que la
   banda y el público queden dentro del óvalo, con sus intenciones y barras por encima de la consola.
-  Anota el valor final.
-- **Verificación:** ningún personaje, intención ni barra queda bajo la consola o fuera del óvalo.
-- **Si el marco tapa a un personaje** pese al zoom, sube el Order in Layer de `GigFrameCanvas` o baja su
-  Plane Distance; no muevas personajes uno a uno.
+  Anota el valor y escríbelo en la escena **fuera de Play**.
+- **Lo has logrado si** ningún personaje, intención ni barra queda bajo la consola o fuera del óvalo.
+- **Si el marco tapa a un personaje** pese al zoom, baja el Order in Layer de `GigFrameCanvas` o su
+  Sorting Layer; no muevas personajes uno a uno.
 
 ### Paso 1.5 — Las cartas sobre la consola
-- **Acción:** en el `HandController` (dentro de `DeckManager`), ajusta la posición base de la mano hasta que
-  el abanico se apoye en la muesca central de la consola.
-- **Verificación:** las cartas se ven **delante** del marco y se pueden arrastrar. Si quedan detrás, la
-  cámara de la mano no se está dibujando después de la principal: revisa su *Depth*.
+- **Acción:** en `HandController` (hijo de `DeckManager` en la escena del gig), ajusta la posición base de
+  la mano hasta que el abanico se apoye en la muesca central de la consola. Cambia el override de la
+  escena, no el prefab.
+- **Lo has logrado si** el abanico descansa en la muesca y las cartas se siguen arrastrando.
 
 ---
 
@@ -527,7 +552,12 @@ amplía el área en el prefab (no es código).
 - **COH-1:** el destello del corazón que se pierde (mejora opcional).
 - **Arte (Matías, viernes 30-oct):** marco a 1920×1080 sin margen; corazón lleno y vacío; consola sin las
   luces si los corazones van ahí; mano roja en PNG.
-- **D-UI-1:** abierta hasta que Claudio elija; bloquea solo los textos de la Fase 3.
+- **D-UI-1:** cerrada, B «Aguante» (2026-11-02).
+- **Tangente — «Agotar» no está implementado (2026-11-02):** `CardBase.Exhaust()` es un esqueleto vacío; ninguna carta entra en `ExhaustPile`. El contador queda oculto (Exhaust Pile Root conectado) y aparecerá solo cuando se implemente. Ninguna carta del juego tiene `exhaustAfterPlay` activo. Fuera de GIG-UI-1.
+- **Divergencia con la propuesta (2026-11-02):** los corazones quedaron abajo a la izquierda, junto a la estrella, sobre una franja oscura; la propuesta los pone en la tira de luces (~20 %) con las canciones al lado. Se decide con Matías (pedido 3).
+- **DrawPile y DiscardPile** estaban desactivados en `GigCanvas.prefab`; activados y colocados a la derecha del abanico (Claudio, 2026-11-02); sus vistas de inventario siguen funcionando.
+- **Tangente — títulos de las vistas de mazo en inglés:** `InventoryHelper.cs` pasa «Draw Pile» / «Discard Pile» / «Exhaust Pile» como texto fijo; deberían salir del glosario. Fuera de GIG-UI-1.
+- **Botón ▶ con rótulo (2026-11-02):** `SongCompositionUI.playButtonLabel` (opcional) + id `ui_gig_play_button` («Tocar» / «Play») en `GIG-UI-1_textos/plantillas_2.csv`.
 
 ## Actualizaciones de documentación propuestas (no aplicadas)
 

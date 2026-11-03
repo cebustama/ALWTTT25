@@ -29,6 +29,9 @@ namespace ALWTTT.UI
 
         [Header("Controls")]
         [SerializeField] private Button playButton;
+        // [GIG-UI-1] Optional label on the play button; text from the glossary (ui_gig_play_button),
+        // so the button says what pressing it does. Null = icon only, as before.
+        [SerializeField] private TextMeshProUGUI playButtonLabel;
 
         [Header("Layouts")]
         [SerializeField] private SongPartsLayoutUI partsLayout;
@@ -201,6 +204,9 @@ namespace ALWTTT.UI
         public void HookPlayButton(Action onPlay)
         {
             if (!playButton) return;
+
+            if (playButtonLabel != null)
+                playButtonLabel.text = GameText.Format(UiGigPlayButton);
 
             // [PLAY-TIMING-0 / D-PT4=B] onClick fires on RELEASE; the probe records the
             // pointer-DOWN on the same button. Added by code, so no prefab edit is needed.

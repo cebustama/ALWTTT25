@@ -49,6 +49,7 @@ namespace ALWTTT.Tooltips
         private Camera projectionCamera;
         private Vector2 screenOffset;
         private bool isFollowEnabled = true;
+        private bool anchorTop;
 
         private void Awake()
         {
@@ -61,9 +62,12 @@ namespace ALWTTT.Tooltips
         /// (pixels; negative X = left, negative Y = down), re-evaluated every frame.
         /// </summary>
         public void SetFollowPos(Transform staticTargetTransform = null, Camera cam = null,
-            Vector2 offset = default(Vector2))
+            Vector2 offset = default(Vector2), bool growDown = false)
         {
             screenOffset = offset;
+            // [GIG-UI-1] Static targets only: the point is the panel's TOP-left, so a
+            // column stacked under it grows downward (audience hover column).
+            anchorTop = growDown && staticTargetTransform != null;
 
             if (staticTargetTransform == null)
             {
@@ -154,6 +158,9 @@ namespace ALWTTT.Tooltips
             float h = rectTransform.rect.height;
             float cw = canvasRectTransform.rect.width;
             float ch = canvasRectTransform.rect.height;
+
+            // [GIG-UI-1] Top-anchored: the target point is the top-left corner.
+            if (anchorTop && !isFollowEnabled) anchoredPos.y -= h;
 
             // Clamp order rule: the LAST clamp wins when both cannot hold.
             // Horizontal: right, then left  => LEFT wins.

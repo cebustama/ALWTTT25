@@ -19,6 +19,8 @@ MonoBehaviour:
   cardSprite: {fileID: 21300000, guid: aa43d531ba2af354d8360bbdfa0e3f05, type: 3}
   inspirationCost: 0
   inspirationGenerated: 0
+  resourceCostStatusKey: 
+  resourceCostAmount: 0
   cardType: 1
   rarity: 0
   keywords: 

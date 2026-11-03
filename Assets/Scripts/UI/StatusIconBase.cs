@@ -203,7 +203,7 @@ namespace ALWTTT.UI
             ConceptTooltipResolver.TryGetStatusText(_definition, out var name, out var body);
             var header = stacks > 1 ? $"{name} ×{stacks}" : name;
 
-            tm.ShowTooltip(body, header, transform, cam: null);
+            tm.ShowTooltip(body, header, transform, cam: null, kind: TooltipKind.Status); // [GIG-UI-1]
         }
 
         public void OnPointerExit(PointerEventData eventData)

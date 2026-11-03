@@ -46,6 +46,26 @@ namespace ALWTTT.Tooltips
             PrepareLayout();
         }
 
+        // [GIG-UI-1] Per-panel colours (TooltipStyleSO). The prefab colours are captured
+        // once and restored when no style applies: panels are pooled and reused.
+        private Color _defaultBackground, _defaultHeader, _defaultBody;
+        private bool _defaultCached;
+
+        public void ApplyStyle(TooltipStyleSO.PanelStyle style)
+        {
+            if (!_defaultCached)
+            {
+                if (backgroundImage != null) _defaultBackground = backgroundImage.color;
+                _defaultHeader = headerText.color;
+                _defaultBody = contentText.color;
+                _defaultCached = true;
+            }
+            if (backgroundImage != null)
+                backgroundImage.color = style != null ? style.background : _defaultBackground;
+            headerText.color = style != null ? style.header : _defaultHeader;
+            contentText.color = style != null ? style.body : _defaultBody;
+        }
+
         private void PrepareLayout()
         {
             var longestTextLength = GetLongestTextLength();

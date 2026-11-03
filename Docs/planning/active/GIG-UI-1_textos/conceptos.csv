@@ -1,0 +1,4 @@
+﻿id,field,es,en
+cohesion,description,"La resistencia compartida de la banda. Pierde un punto cada vez que un músico colapsa, y más al perder un gig. A cero, la banda se separa y la gira termina.","The band's shared endurance. Loses one point each time a musician breaks down, and more when a gig is lost. At zero, the band splits up and the tour ends."
+stress,description,"El daño que recibe un músico: baja su Aguante. Cuando el Aguante llega a cero, Colapso.","The damage a musician takes: it lowers their Grit. When Grit reaches zero, Breakdown."
+breakdown,description,"Lo que ocurre cuando el Aguante de un músico llega a cero: la banda pierde una Cohesión y el músico recupera parte de su Aguante, pero queda Shaken.","What happens when a musician's Grit reaches zero: the band loses one Cohesion and the musician recovers part of their Grit, but becomes Shaken."

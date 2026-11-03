@@ -40,6 +40,10 @@ namespace ALWTTT.Characters
 
         /// <summary>[S5e-ext] True once a meter value has been cached and it sits at Max.</summary>
         protected bool IsMeterFull => _meterMax > 0 && _meterCurrent >= _meterMax;
+        // [GIG-UI-1] Read access for the band summary tooltip (BandCharacterCanvas.ShowTooltipInfo).
+        protected int MeterCurrent => _meterCurrent;
+        protected int MeterMax => _meterMax;
+        protected StatusEffectContainer BoundContainer => _boundContainer;
 
 
         // [BIGNUM-1r3 / D-BN-17=A] Prediction override for the S5e-ext bar policy.
@@ -276,6 +280,13 @@ namespace ALWTTT.Characters
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            OnCanvasPointerExit();
+        }
+
+        /// <summary>[GIG-UI-1] Default: hide. AudienceCharacterCanvas overrides it so leaving
+        /// the intent icon does not wipe a tooltip the body hover still owns.</summary>
+        protected virtual void OnCanvasPointerExit()
+        {
             HideTooltipInfo(TooltipManager.Instance);
         }
         #endregion
@@ -296,9 +307,20 @@ namespace ALWTTT.Characters
             string content, string header = "",
             Transform tooltipStaticTransform = null, Camera cam = null, float delayShow = 0)
         {
+            ShowTooltipInfo(tooltipManager, content, header, tooltipStaticTransform, cam,
+                delayShow, TooltipKind.Default);
+        }
+
+        /// <summary>[GIG-UI-1] Same as the interface member, plus the panel colour kind
+        /// (TooltipStyleSO). A separate overload because ITooltipTargetBase fixes the
+        /// six-parameter signature.</summary>
+        public void ShowTooltipInfo(TooltipManager tooltipManager,
+            string content, string header, Transform tooltipStaticTransform,
+            Camera cam, float delayShow, TooltipKind kind)
+        {
             if (tooltipManager == null) return;
             tooltipManager.ShowTooltip(
-                content, header, tooltipStaticTransform, cam, delayShow);
+                content, header, tooltipStaticTransform, cam, delayShow, kind: kind);
         }
 
         public void HideTooltipInfo(TooltipManager tooltipManager)

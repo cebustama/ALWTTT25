@@ -201,6 +201,30 @@ namespace ALWTTT.Tooltips
         // -- Gig HUD (GigCanvas.SetSongsLeft) [F-TV-1 / D-CF-7] --
         public const string UiGigSongsLeft = "ui_gig_songs_left";                    // {0} songs left
 
+        // -- [GIG-UI-1] Consola del manager: cohesión, pips de jugada, resumen del músico, carta no jugable --
+        public const string UiGigCohesionHeader = "ui_gig_cohesion_header";          // {0} current · {1} max
+        public const string UiGigCohesionBody = "ui_gig_cohesion_body";              // --
+        public const string UiEconActionHeader = "ui_econ_action_header";            // --
+        public const string UiEconCompositionHeader = "ui_econ_composition_header";  // --
+        public const string UiEconActionOne = "ui_econ_action_one";                  // --
+        public const string UiEconActionMany = "ui_econ_action_many";                // {0} remaining
+        public const string UiEconActionNone = "ui_econ_action_none";                // --
+        public const string UiEconCompositionOne = "ui_econ_composition_one";        // --
+        public const string UiEconCompositionMany = "ui_econ_composition_many";      // {0} remaining
+        public const string UiEconCompositionNone = "ui_econ_composition_none";      // --
+        public const string UiMusMeter = "ui_mus_meter";                             // {0} current · {1} max
+        public const string UiMusMeterShield = "ui_mus_meter_shield";                // {0} current · {1} max · {2} Composure stacks
+        public const string UiMusBreakdownRule = "ui_mus_breakdown_rule";            // --
+        public const string UiUnplayableHeader = "ui_unplayable_header";             // --
+        public const string UiGigPlayButton = "ui_gig_play_button";                  // -- label of the play/end-turn button
+        public const string UiUnplayableBudgetAction = "ui_unplayable_budget_action";           // -- Budget, action card
+        public const string UiUnplayableBudgetComposition = "ui_unplayable_budget_composition"; // -- Budget, composition card
+        // Keyed by enum VALUE, same contract as ui_ctx_meter_*: All enumerates the enum (BuildAll), so a
+        // new UnplayableReason turns the Templates tab red instead of showing a raw id.
+        public const string UiUnplayablePrefix = "ui_unplayable_";
+        public static string UiUnplayable(ALWTTT.Managers.UnplayableReason r) =>
+            UiUnplayablePrefix + r.ToString().ToLowerInvariant();
+
         // -- Banked SFX Vibe floater (GigManager.ApplySfxBonusVibe) [F-TV-4 / D-CF-8] --
         public const string UiFxVibeBonus = "ui_fx_vibe_bonus";                      // {0} banked Vibe (int)
 
@@ -265,6 +289,13 @@ namespace ALWTTT.Tooltips
             UiModTempoScale, UiModKey, UiModDegree, UiModRandomKey, UiModRandomInScale,
             UiModInstrument, UiModDrums, UiModInstrumentType, UiModInstrumentRandom,
             UiGigSongsLeft, UiFxVibeBonus,
+            // [GIG-UI-1]
+            UiGigCohesionHeader, UiGigCohesionBody,
+            UiEconActionHeader, UiEconCompositionHeader,
+            UiEconActionOne, UiEconActionMany, UiEconActionNone,
+            UiEconCompositionOne, UiEconCompositionMany, UiEconCompositionNone,
+            UiMusMeter, UiMusMeterShield, UiMusBreakdownRule, UiUnplayableHeader,
+            UiGigPlayButton, UiUnplayableBudgetAction, UiUnplayableBudgetComposition,
             // [CARD-FACE-2]
             UiPartBridge, UiTonalityRandomAny, UiTonalityRandomMajorish, UiTonalityRandomMinorish,
         };
@@ -298,6 +329,9 @@ namespace ALWTTT.Tooltips
             { var id = UiTonality(t); if (seen.Add(id)) list.Add(id); }
             foreach (CardType c in System.Enum.GetValues(typeof(CardType)))
             { var id = UiCardType(c); if (seen.Add(id)) list.Add(id); }
+            // [GIG-UI-1] One id per UnplayableReason value, None included (inert, §8.13).
+            foreach (ALWTTT.Managers.UnplayableReason r in System.Enum.GetValues(typeof(ALWTTT.Managers.UnplayableReason)))
+            { var id = UiUnplayable(r); if (seen.Add(id)) list.Add(id); }
             foreach (PartActionKind k in System.Enum.GetValues(typeof(PartActionKind)))
             { var id = UiPartAction(k); if (seen.Add(id)) list.Add(id); }
             return list.ToArray();

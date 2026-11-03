@@ -75,11 +75,12 @@ MonoBehaviour:
   - id: cohesion
     displayName: Cohesion
     description: The band's shared endurance. Loses one point each time a musician
-      breaks down. At zero, the gig is lost.
+      breaks down, and more when a gig is lost. At zero, the band splits up and the
+      tour ends.
   - id: breakdown
     displayName: Breakdown
-    description: 'What happens when a musician''s Stress bar reaches zero: the band
-      loses one Cohesion, the bar refills and the musician becomes Shaken.'
+    description: 'What happens when a musician''s Grit reaches zero: the band loses
+      one Cohesion and the musician recovers part of their Grit, but becomes Shaken.'
   - id: blocked
     displayName: Blocked
     description: 'An audience member standing at the front is Blocked: it receives
@@ -129,7 +130,8 @@ MonoBehaviour:
     description: 'Stored charge. Does nothing on its own: it gets spent.'
   - id: stress
     displayName: Stress
-    description: When full, causes a Breakdown.
+    description: 'The damage a musician takes: it lowers their Grit. When Grit reaches
+      zero, Breakdown.'
   - id: vibe
     displayName: Vibe
     description: Fill to win over Audience Members.
@@ -745,3 +747,54 @@ MonoBehaviour:
     text: Custom part
   - id: ui_part_bridge
     text: Bridge
+  - id: ui_gig_cohesion_header
+    text: Cohesion {0}/{1}
+  - id: ui_gig_cohesion_body
+    text: Each musician breakdown costs 1, and losing a gig costs more. At 0, the
+      band splits up and the tour ends.
+  - id: ui_econ_action_header
+    text: Action plays
+  - id: ui_econ_composition_header
+    text: Composition plays
+  - id: ui_econ_action_one
+    text: 1 action card left this turn.
+  - id: ui_econ_action_many
+    text: '{0} action cards left this turn.'
+  - id: ui_econ_action_none
+    text: Action card already used this turn.
+  - id: ui_econ_composition_one
+    text: 1 composition card left this turn.
+  - id: ui_econ_composition_many
+    text: '{0} composition cards left this turn.'
+  - id: ui_econ_composition_none
+    text: Composition card already used this turn.
+  - id: ui_mus_meter
+    text: Grit {0}/{1}
+  - id: ui_mus_meter_shield
+    text: "Grit {0}/{1} \xB7 Composure {2}"
+  - id: ui_mus_breakdown_rule
+    text: 'At 0 they break down: Shaken, and the band loses 1 cohesion.'
+  - id: ui_unplayable_header
+    text: Can't play this
+  - id: ui_unplayable_none
+    text: "\u2014"
+  - id: ui_unplayable_tutorialgate
+    text: 'Not now: follow the tutorial.'
+  - id: ui_unplayable_actiontiming
+    text: Action cards can't be played right now.
+  - id: ui_unplayable_inspiration
+    text: Not enough Inspiration.
+  - id: ui_unplayable_budget
+    text: This musician already used this kind of play this turn.
+  - id: ui_unplayable_finallooplock
+    text: 'Final loop: the composition is locked.'
+  - id: ui_unplayable_resource
+    text: Not enough Voltage.
+  - id: ui_unplayable_norunningloop
+    text: No part is looping right now.
+  - id: ui_gig_play_button
+    text: Play
+  - id: ui_unplayable_budget_action
+    text: This musician already played an action card this turn.
+  - id: ui_unplayable_budget_composition
+    text: This musician already played a composition card this turn.

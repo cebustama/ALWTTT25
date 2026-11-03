@@ -827,6 +827,29 @@ namespace ALWTTT
             var tooltipManager = TooltipManager.Instance;
             if (tooltipManager == null) return;
 
+            // [GIG-UI-1] Why a card with the red overlay cannot be played, as the FIRST panel of
+            // the stack. Same single source as the overlay (EvaluateCardPlayability, CARD-UX-1):
+            // display only, nothing re-derived here. No GigManager (inventory, ship) => no panel.
+            var gigForReason = GigManager.Instance;
+            if (gigForReason != null && CardDefinition != null)
+            {
+                var reason = gigForReason.EvaluateCardPlayability(CardDefinition);
+                if (reason != UnplayableReason.None)
+                {
+                    // [GIG-UI-1] Budget names WHICH card the musician already used (Claudio,
+                    // 2026-11-02): "this kind of play" did not say action vs composition.
+                    string reasonId = reason == UnplayableReason.Budget
+                        ? (CardDefinition.IsComposition
+                            ? GameTextTemplateIds.UiUnplayableBudgetComposition
+                            : GameTextTemplateIds.UiUnplayableBudgetAction)
+                        : GameTextTemplateIds.UiUnplayable(reason);
+                    tooltipManager.ShowTooltip(
+                        GameText.Format(reasonId),
+                        GameText.Format(GameTextTemplateIds.UiUnplayableHeader),
+                        kind: TooltipKind.Warning);
+                }
+            }
+
 
             // 0) Track-role tooltip [CARD-FACE-1 / D-CF-13=C]. The face shows the role as a GLYPH
             //    with no word (density); its meaning arrives here, exactly as a keyword's does.

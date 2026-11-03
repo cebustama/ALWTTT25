@@ -129,13 +129,14 @@ namespace ALWTTT.Characters
         {
             if (!_hasProjection) return;
             if (_convincedHidden) return; // [CONV-TINT-1b] TooltipManager is outside the group
-            ShowTooltipInfo(TooltipManager.Instance,
-                BuildVibeText(in _projection), VibeOnlyHeader, descriptionRoot);
+            HideTooltipInfo(TooltipManager.Instance); // [GIG-UI-1] replace a body-hover column, don't stack on it
+            ShowPanel(BuildVibeText(in _projection), VibeOnlyHeader, TooltipKind.Default);
         }
 
         public void HideVibeTooltip()
         {
             HideTooltipInfo(TooltipManager.Instance);
+            RefreshHoverTooltip(); // [GIG-UI-1] back to the body/icon column if still hovered
         }
 
         /// <summary>
@@ -202,17 +203,80 @@ namespace ALWTTT.Characters
             return sb.ToString();
         }
 
+        // [GIG-UI-1] Two hover sources feed ONE rebuild (Claudio, 2026-11-02):
+        // the intent icon (UI hover on this canvas) and the body (CharacterBase physics
+        // hover on the collider, the same one that lights the outline and that cards
+        // target). BOTH show the same column -- Blocked (when tinted), ability, revealed
+        // tastes -- because a column that changed with where you pointed read as two
+        // different tooltips. Every change hides the whole column and rebuilds it, so the
+        // two sources can overlap (icon inside the collider) without duplicating panels,
+        // and leaving one does not wipe what the other still owns.
+        private bool _iconHovered;
+        private bool _bodyHovered;
+
+        /// <summary>[GIG-UI-1] Set by AudienceCharacterBase: is the Blocked tint showing now?</summary>
+        public System.Func<bool> BlockedQuery { get; set; }
+
+        // [GIG-UI-1] Column placement: a point at the top-right of the body collider
+        // (AudienceCharacterBase creates it). The column grows DOWN from it, a few pixels
+        // to the right, so every member gets the same placement whatever its canvas
+        // offsets are (the Kid canvas sat lower, so its descriptionRoot did too).
+        private Transform _tooltipAnchor;
+        // Colours and the column offset live in TooltipStyleSO (on the TooltipManager
+        // prefab), so every tooltip kind is tuned in one place.
+        private static readonly Vector2 FallbackColumnOffset = new Vector2(8f, 40f);
+
+        public void SetTooltipAnchor(Transform anchor) { _tooltipAnchor = anchor; }
+
+        private void ShowPanel(string content, string header, TooltipKind kind)
+        {
+            var tm = TooltipManager.Instance;
+            if (tm == null) return;
+            if (_tooltipAnchor != null)
+            {
+                var offset = tm.Style != null ? tm.Style.AudienceColumnOffset : FallbackColumnOffset;
+                tm.ShowTooltip(content, header, _tooltipAnchor, null, 0f,
+                    offset, growDown: true, kind: kind);
+            }
+            else
+                tm.ShowTooltip(content, header, descriptionRoot, null, 0f,
+                    default(Vector2), growDown: false, kind: kind);
+        }
+
+        /// <summary>[GIG-UI-1] Called by AudienceCharacterBase on sprite hover enter/exit.</summary>
+        public void SetBodyHover(bool hovered)
+        {
+            _bodyHovered = hovered;
+            RefreshHoverTooltip();
+        }
+
         protected override void ShowTooltipInfo()
         {
             base.ShowTooltipInfo();
+            _iconHovered = true;
+            RefreshHoverTooltip();
+        }
 
+        protected override void OnCanvasPointerExit()
+        {
+            _iconHovered = false;
+            RefreshHoverTooltip();
+        }
 
+        private void RefreshHoverTooltip()
+        {
             // [BIGNUM-1r / D-BN-15] The bar's own tooltip is showing; PointerEnter reaches
             // the child (VibeBarTooltipTarget) before this canvas, so the flag is already
             // set when we get here. Stand down instead of overwriting its tooltip.
             if (_barHovered) return;
 
+            HideTooltipInfo(TooltipManager.Instance);
             if (_convincedHidden) return; // [CONV-TINT-1b] TooltipManager is outside the group
+            if (!_iconHovered && !_bodyHovered) return;
+
+            // [S5f / E-lite] The Blocked legend explains the tint, so it leads the column.
+            if (BlockedQuery != null && BlockedQuery())
+                ShowPanel(BlockedTooltipBody, BlockedTooltipHeader, TooltipKind.Blocked);
 
             string header = null;
             string body = null;
@@ -227,27 +291,16 @@ namespace ALWTTT.Characters
                 body = GameText.ConceptDescription(NextAbility.AbilityId);
             }
 
-            // [PRES-1 / D-PRES1-3=A] Compose the revealed tastes INTO the one hover
-            // surface instead of opening a second one. This also covers the phases
-            // where there is no intention to show: under the old panel-less path
-            // the tooltip simply did not appear, which would have made revealed
-            // tastes vanish between turns.
-            if (_tasteRevealed)
-            {
-                string tasteBlock = TasteBlockHeader + "\n" + BuildTasteText(_revealedTaste);
-                body = string.IsNullOrEmpty(body)
-                    ? tasteBlock
-                    : body + "\n\n" + tasteBlock;
-
-                if (header == null) header = TasteOnlyHeader;
-            }
-
-            // [BIGNUM-1r] D-BN-9=A was tried and REVERTED by observation (2026-09-09):
-            // status + intention + tastes + Vibe in one column was too much. The Vibe
-            // breakdown now lives on the resistance bar's own hover (ShowVibeTooltip).
-
+            // [GIG-UI-1] REVERSES the single-surface half of PRES-1 / D-PRES1-3=A, at Claudio's
+            // request (2026-11-02, Monster Train reference): the ability and the revealed tastes
+            // are now separate stacked panels, each with its own header and colour, instead of
+            // one box with an inline "-- Gustos --" separator. What D-PRES1-3 protected still
+            // holds: no persistent taste panel, and tastes still show when there is no
+            // intention (the taste panel then stands alone).
             if (body != null)
-                ShowTooltipInfo(TooltipManager.Instance, body, header, descriptionRoot);
+                ShowPanel(body, header, TooltipKind.Ability);
+            if (_tasteRevealed)
+                ShowPanel(BuildTasteText(_revealedTaste), TasteOnlyHeader, TooltipKind.Tastes);
         }
 
         /// <summary>

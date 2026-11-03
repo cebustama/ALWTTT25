@@ -15,6 +15,9 @@ namespace ALWTTT.UI
         [SerializeField] private TextMeshProUGUI drawPileTextField;
         [SerializeField] private TextMeshProUGUI discardPileTextField;
         [SerializeField] private TextMeshProUGUI exhaustPileTextField;
+        // [GIG-UI-1] Optional root of the exhaust counter: hidden while the pile is empty
+        // (Slay the Spire does the same). Null = always visible, as before.
+        [SerializeField] private GameObject exhaustPileRoot;
         [SerializeField] private TextMeshProUGUI songsLeftTextField;
         // [COH-1 / D3] "Cohesión: N" in the gig HUD. Optional: null = hidden.
         [SerializeField] private TextMeshProUGUI cohesionTextField;
@@ -206,6 +209,8 @@ namespace ALWTTT.UI
             drawPileTextField.text = $"{DeckManager.DrawPile.Count.ToString()}";
             discardPileTextField.text = $"{DeckManager.DiscardPile.Count.ToString()}";
             exhaustPileTextField.text = $"{DeckManager.ExhaustPile.Count.ToString()}";
+            if (exhaustPileRoot != null)
+                exhaustPileRoot.SetActive(DeckManager.ExhaustPile.Count > 0);
         }
 
         public void SetCohesion(int value)
@@ -229,20 +234,23 @@ namespace ALWTTT.UI
                 pip.gameObject.SetActive(i < count);
                 bool full = i < value;
                 pip.raycastTarget = false;
+                // [GIG-UI-1] Keep the colour authored on the pip prefab (it was forced to white,
+                // which hid a tinted sprite such as white-heart). Empty = prefab colour x tint.
+                Color baseColor = cohesionPipPrefab.color;
                 if (full)
                 {
                     if (cohesionPipFull != null) pip.sprite = cohesionPipFull;
-                    pip.color = Color.white;
+                    pip.color = baseColor;
                 }
                 else if (cohesionPipEmpty != null)
                 {
                     pip.sprite = cohesionPipEmpty;
-                    pip.color = Color.white;
+                    pip.color = baseColor;
                 }
                 else
                 {
                     if (cohesionPipFull != null) pip.sprite = cohesionPipFull;
-                    pip.color = cohesionPipEmptyTint;
+                    pip.color = baseColor * cohesionPipEmptyTint;
                 }
             }
         }

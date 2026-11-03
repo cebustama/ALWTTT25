@@ -142,6 +142,19 @@ namespace ALWTTT.Characters.Audience
             // M1.2: Wire canvas to SO-based StatusEffectContainer for icon display.
             AudienceCharacterCanvas.BindStatusContainer(Statuses);
 
+            // [GIG-UI-1] Hover column: same content from icon and body, placed at the
+            // top-right corner of the body collider (the box cards target), so every
+            // member's column sits beside its own sprite whatever its canvas offsets.
+            AudienceCharacterCanvas.BlockedQuery = () => IsBlockedPresented;
+            var box = GetComponent<BoxCollider>();
+            if (box != null)
+            {
+                var anchor = new GameObject("TooltipAnchor").transform;
+                anchor.SetParent(transform, false);
+                anchor.localPosition = box.center + new Vector3(box.size.x * 0.5f, box.size.y * 0.5f, 0f);
+                AudienceCharacterCanvas.SetTooltipAnchor(anchor);
+            }
+
             AudienceCharacterCanvas.HideContextual();
         }
 
@@ -760,10 +773,11 @@ namespace ALWTTT.Characters.Audience
             base.OnPointerEnter();
             AudienceCharacterCanvas.ShowContextual();
 
-            // [S5f / E-lite] Explain the "oscurito" tint on sprite hover.
-            if (IsBlockedPresented && AudienceCharacterCanvas != null)
+            // [GIG-UI-1] Body hover = the full column (Blocked legend when tinted, ability,
+            // revealed tastes). The canvas owns the rebuild; see RefreshHoverTooltip.
+            if (AudienceCharacterCanvas != null)
             {
-                AudienceCharacterCanvas.ShowBlockedTooltip();
+                AudienceCharacterCanvas.SetBodyHover(true);
                 _blockedTooltipShown = true;
             }
         }
@@ -776,7 +790,7 @@ namespace ALWTTT.Characters.Audience
             if (_blockedTooltipShown)
             {
                 if (AudienceCharacterCanvas != null)
-                    AudienceCharacterCanvas.HideBlockedTooltip();
+                    AudienceCharacterCanvas.SetBodyHover(false);
                 _blockedTooltipShown = false;
             }
         }
