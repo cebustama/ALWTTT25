@@ -14,6 +14,20 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-06 — LEGIB-1a: ver antes de jugar (DEMO-1211 S3)
+
+**Clase:** semántico · operativo. Con cambio de código.
+
+- `SSoT_Scoring_and_Meters` §3.4 nueva: **suelo de +1 Big Num por pista nueva** (D4=A en unidades de Big Num, D5=A por pista; suelo, no suma; las sustituciones no cuentan) y **bonus de toda la banda** (cualquier tamaño de banda; código 2, asset de la demo 3). Las dos dentro de `ComputeLoopHypeDelta`, la función única del pago y la previsión. La Sobrecarga sigue fuera de la previsión.
+- `Design_Vibe_Telegraph` §10.8 nueva: la previsión «Y → Z» del Big Num. Siempre visible mientras suena un loop (D6=A), sin flecha en reposo si no cambia (enmienda de Claudio), Z dorado y mayor al proyectar una carta, también en el último loop. **Revierte** la primera definición de Y («final del loop sin la carta») por «el número de ahora». D1=A (solo cartas de composición), D2=A (escalones, ahora con suelo).
+- `SSoT_Runtime_CompositionSession_Integration` §14 nueva: evento `LoopStarted`, pistas anotadas al empezar el loop, `CountTracksNewThisLoop`, `FullBandEnteredThisLoop`, `TryBuildCurrentLoopContext`, `TryBuildCardPreviewLoopContexts` y `SnapshotTracks`.
+- Código: `CompositionSession`, `GigManager` (previsión, `ComputeLoopHypeDelta`, logs `[LEGIB-1a] PREVIEW/REPOSO/BONUS/CHECK`), `GigCanvas` (formato «Y → Z» con estilo ajustable), `HandController` (carta bajo el ratón o sostenida y su objetivo), `MeterTuningSO` (sección Loop Bonuses).
+- Smokes (Claudio, 2026-11-05/06): rol nuevo, dos cartas en un loop, sustitución, suelo y toda la banda, flecha fija con último loop. Todos los CHECK OK.
+- Referencia nueva: `reference/ideas/2026-11-05_combos_de_banda.md` (idea, sin decidir) y `reference/artefactos/indice-artefactos.html` (índice de páginas, https://claude.ai/artifact/LqBXmAVoV4Vs3pzPzqy6ZA).
+- Plan: S3 ✅.
+
+---
+
 ## 2026-11-03 — GIG-UI-1: la consola del manager (DEMO-1211 S2)
 
 **Clase:** semántico · operativo. Con cambio de código.

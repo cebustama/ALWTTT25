@@ -1,0 +1,159 @@
+<title>Artefactos de ALWTTT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: un estante de consola. Cabecera corta, filtros, y una lista de filas (nombre, qué es, fecha) agrupadas por hilo.
+   Un solo look oscuro a propósito: el de la serie de páginas de ALWTTT (casco morado, borde turquesa). */
+:root{
+  --hull:#140b22; --panel:#1e1233; --panel-2:#2a1a48; --line:#3d2a62;
+  --ink:#efe8fb; --ink-dim:#b8a9d3; --ink-mute:#8c7fa8; --rim:#63e0c4;
+  --k-plan:#c6e86b; --k-ui:#63e0c4; --k-reglas:#ffd84a; --k-musica:#ff7ab8; --k-ref:#9d8cff; --k-rel:#8c7fa8;
+  --f-display:"Bungee","Impact",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--hull);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;margin:0}
+.wrap{max-width:920px;margin:0 auto;padding-block:36px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+header{display:grid;gap:10px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute)}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,6vw,48px);line-height:1.05;margin:0;text-wrap:balance}
+h1 span{color:var(--rim)}
+h2{font-family:var(--f-display);font-weight:400;font-size:18px;margin:0;color:var(--k);text-wrap:balance}
+p{margin:0;max-width:65ch}
+.lede{color:var(--ink-dim)}
+.controls{display:grid;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-family:var(--f-mono);font-size:12.5px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink-dim);cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--k)}
+.chip[aria-pressed="true"]{background:var(--panel-2);color:var(--ink);border-color:var(--ink-mute)}
+.row2{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+input[type=search]{font:inherit;flex:1 1 220px;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:8px 12px}
+input[type=search]::placeholder{color:var(--ink-mute)}
+.sort{font:inherit;font-family:var(--f-mono);font-size:12.5px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--ink-dim);padding:8px 12px;cursor:pointer}
+:focus-visible{outline:2px solid var(--rim);outline-offset:2px}
+.group{display:grid;gap:8px}
+.group > header{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.group > header small{font-family:var(--f-mono);font-size:12px;color:var(--ink-mute)}
+.list{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.item{display:grid;grid-template-columns:4px minmax(0,1fr) auto;gap:14px;align-items:start;background:var(--panel);border-radius:8px;padding:12px 14px 12px 0;overflow:hidden}
+.item::before{content:"";align-self:stretch;background:var(--k);border-radius:0 2px 2px 0}
+.item .tx{display:grid;gap:3px;min-width:0}
+.item a{color:var(--ink);font-weight:700;text-decoration:none;font-size:16.5px}
+.item a:hover{color:var(--rim);text-decoration:underline}
+.item p{color:var(--ink-dim);font-size:14.5px}
+.item .meta{display:grid;gap:4px;justify-items:end;text-align:right}
+.date{font-family:var(--f-mono);font-size:12.5px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{font-family:var(--f-mono);font-size:10.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--k);color:var(--k);white-space:nowrap}
+.fresh{font-family:var(--f-mono);font-size:10.5px;color:var(--hull);background:var(--rim);border-radius:999px;padding:1px 7px;white-space:nowrap}
+.empty{color:var(--ink-mute);font-size:14.5px}
+footer{color:var(--ink-mute);font-size:13.5px;border-top:1px solid var(--line);padding-top:16px;display:grid;gap:6px}
+footer code{font-family:var(--f-mono);color:var(--ink-dim);font-size:12.5px}
+@media (max-width:560px){.item{grid-template-columns:4px minmax(0,1fr)}.item .meta{grid-column:2;justify-items:start;text-align:left;grid-auto-flow:column;justify-content:start;gap:8px}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ALWTTT · estante de páginas</div>
+    <h1>Artefactos <span>de ALWTTT</span></h1>
+    <p class="lede">Todas las páginas que hemos hecho para el juego: el plan de la demo, la UI del gig, las reglas, la armonía y la investigación. Cada fila lleva qué es y cuándo se tocó por última vez.</p>
+    <p class="eyebrow" id="summary"></p>
+  </header>
+
+  <div class="controls">
+    <div class="chips" id="chips" role="group" aria-label="Filtrar por hilo"></div>
+    <div class="row2">
+      <input type="search" id="q" placeholder="Buscar por nombre o contenido…" aria-label="Buscar">
+      <button class="sort" id="sort" type="button" aria-label="Cambiar orden">Orden: por hilo</button>
+    </div>
+  </div>
+
+  <div id="out" style="display:grid;gap:24px"></div>
+
+  <footer>
+    <p>Fechas al <b id="asof"></b>. Las actualiza el agente al cerrar cada sesión, a partir de la lista de artefactos de claude.ai.</p>
+    <p>Fuente: <code>Docs/reference/artefactos/indice-artefactos.html</code> en el repo de ALWTTT (los datos están en la lista <code>ITEMS</code> del final). Las páginas privadas solo las abre quien tenga acceso.</p>
+  </footer>
+</div>
+
+<script>
+const AS_OF = "2026-11-06";
+const KINDS = {
+  plan:   {n:"Plan y estado",      c:"var(--k-plan)"},
+  ui:     {n:"UI del gig",         c:"var(--k-ui)"},
+  reglas: {n:"Reglas y números",   c:"var(--k-reglas)"},
+  musica: {n:"Armonía y música",   c:"var(--k-musica)"},
+  ref:    {n:"Investigación",      c:"var(--k-ref)"},
+  rel:    {n:"Relacionados",       c:"var(--k-rel)"}
+};
+// [nombre, url, qué es, fecha de última modificación, hilo]
+const ITEMS = [
+  ["Gira al 11 de diciembre","https://claude.ai/artifact/GmUTRzr7FeofzvgeRxUsv4","El plan de la demo: 16 sesiones a 3 por semana, qué está hecho (S1–S3) y qué sigue (S4).","2026-11-06","plan"],
+  ["La consola en uso","https://claude.ai/artifact/UkJoU8tMAR4NhZtwrcmhD6","Propuesta de la UI del gig con la consola del manager, tooltip por tooltip, y qué está hecho y qué falta.","2026-11-06","ui"],
+  ["Escalones o rampa","https://claude.ai/artifact/MfLAThBft9gRubfzpFSi2U","Cómo se calcula el Big Num: escalones, suelo por pista nueva, bonus de toda la banda y la previsión «Y → Z», con simulador.","2026-11-06","reglas"],
+  ["Consola del manager","https://claude.ai/artifact/9C17A16YWQqz2cyBTtyUCC","El diseño de la consola que enmarca el gig, antes de montarla en S2.","2026-10-29","ui"],
+  ["Cuánta información en pantalla","https://claude.ai/artifact/18SeRUQBsoxAbx2y79QQuy","Comparativa de cuánta información muestra el gig en reposo, con los recortes que se aplicaron en S2.","2026-10-29","ui"],
+  ["Claridad en ALWTTT","https://claude.ai/artifact/Swm8dcLjPEJpYEWL2ZpGcw","Dossier de claridad y UI: lecciones de Slay the Spire y similares, lo hecho y lo que falta para que se entienda sin explicarlo.","2026-10-27","ui"],
+  ["Wrapped armónico de Sibi","https://claude.ai/artifact/WxUssCJHjd2LL6aZmXsAUk","La armonía de Sibi: qué cartas eligen acordes, paletas por modo, huecos frente al Billboard y seis paletas propuestas.","2026-11-02","musica"],
+  ["Cabina de escucha","https://claude.ai/artifact/9ZE34uZkFr8m7aS9WncPq6","Prueba de escucha a ciegas: 25 muestras de las paletas propuestas; gusto, sorpresa y tensión de 1 a 5. Guarda las respuestas.","2026-11-02","musica"],
+  ["Taller armónico","https://claude.ai/artifact/6ABsXYisfqmwdof7PhsYik","Taller para escuchar los niveles armónicos v3 con batería, y la lista de la prueba de oído.","2026-11-02","musica"],
+  ["Evaluación de la biblioteca de progresiones","https://claude.ai/artifact/DY9vzk8pxtai8J4jT68jTb","Evaluación de la biblioteca de progresiones de acordes del juego, con propuestas.","2026-10-02","musica"],
+  ["ALWTTT Referencias Wrapped","https://claude.ai/artifact/4cWfxzHDegxTuEJMTHP7YW","Las 325 referencias de la carpeta de Dropbox analizadas: 72 incorporadas, 93 parciales y 82 pendientes.","2026-10-30","ref"],
+  ["ALWTTT game_symbols","https://claude.ai/artifact/BGLcGRGdj1RfWv3GDH2RPq","El atlas de 27 glifos del juego (CARD-FACE-1): el vocabulario de símbolos de las cartas.","2026-09-18","ref"],
+  ["Taller de patrones","https://claude.ai/artifact/UroVgdyuskJUuzLveU3Ztv","El generador de nombres de Band Manager, que algún día dará nombre a bandas y canciones del mundo de ALWTTT.","2026-10-29","rel"],
+  ["Patrones de Band Manager","https://claude.ai/artifact/7BvDjXMTmyG3JbJf5vqQoa","Revisión de los 1.008 patrones del generador de nombres.","2026-10-28","rel"]
+];
+
+const fmtDate = iso => new Date(iso + "T12:00:00").toLocaleDateString("es-ES", {day:"numeric", month:"short", year:"numeric"});
+const daysAgo = iso => Math.round((new Date(AS_OF + "T12:00:00") - new Date(iso + "T12:00:00")) / 864e5);
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let kind = "", byDate = false;
+try { const v = localStorage.getItem("alwttt-idx-sort"); if (v === "date") byDate = true; } catch (e) {}
+
+const chips = document.getElementById("chips");
+chips.innerHTML = `<button class="chip" type="button" data-k="" aria-pressed="true">Todos</button>` +
+  Object.entries(KINDS).map(([k,v]) => `<button class="chip" type="button" data-k="${k}" aria-pressed="false" style="--k:${v.c}"><i></i>${v.n}</button>`).join("");
+document.getElementById("asof").textContent = fmtDate(AS_OF);
+document.getElementById("summary").textContent = `${ITEMS.length} páginas · al día el ${fmtDate(AS_OF)}`;
+
+function row(it){
+  const [n,u,d,date,k] = it;
+  const fresh = daysAgo(date) <= 3 ? `<span class="fresh">reciente</span>` : "";
+  return `<li class="item" style="--k:${KINDS[k].c}">
+    <div class="tx"><a href="${u}" target="_blank" rel="noopener">${esc(n)}</a><p>${esc(d)}</p></div>
+    <div class="meta"><span class="date">${fmtDate(date)}</span>${byDate ? `<span class="tag">${KINDS[k].n}</span>` : ""}${fresh}</div></li>`;
+}
+function render(){
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const items = ITEMS.filter(it => (!kind || it[4] === kind) && (!q || (it[0] + " " + it[2]).toLowerCase().includes(q)));
+  const out = document.getElementById("out");
+  document.getElementById("sort").textContent = byDate ? "Orden: más recientes" : "Orden: por hilo";
+  if (!items.length) { out.innerHTML = `<p class="empty">Ninguna página coincide. Prueba otra palabra o quita el filtro.</p>`; return; }
+  if (byDate) {
+    const sorted = [...items].sort((a,b) => b[3].localeCompare(a[3]));
+    out.innerHTML = `<ul class="list">${sorted.map(row).join("")}</ul>`;
+    return;
+  }
+  out.innerHTML = Object.entries(KINDS).map(([k,v]) => {
+    const g = items.filter(it => it[4] === k).sort((a,b) => b[3].localeCompare(a[3]));
+    if (!g.length) return "";
+    return `<section class="group" style="--k:${v.c}"><header><h2>${v.n}</h2><small>${g.length}</small></header><ul class="list">${g.map(row).join("")}</ul></section>`;
+  }).join("");
+}
+chips.addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  kind = b.dataset.k;
+  chips.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c.dataset.k === kind)));
+  render();
+});
+document.getElementById("q").addEventListener("input", render);
+document.getElementById("sort").addEventListener("click", () => {
+  byDate = !byDate;
+  try { localStorage.setItem("alwttt-idx-sort", byDate ? "date" : "group"); } catch (e) {}
+  render();
+});
+render();
+</script>

@@ -268,3 +268,45 @@ ST-TIP-3 (no `VibeReadoutTooltipAnchor (runtime)` object exists any more) and ST
 hover still shows its own single panel and the composite still stands down — D-BN-15 intact).
 ST-TIP-10 passed **and** produced F-TIP-6 above: a smoke can pass on its stated criterion and still
 report what it saw.
+
+### 10.8 LEGIB-1a — the Big Num forecast «Y → Z» (DEMO-1211 S3, 2026-11-06)
+
+C1 gains a forecast. **While a loop is playing, the readout shows `Y → Z`**:
+
+- **Y = the Big Num now** (same formula as the plain readout).
+- **Z = the Big Num at the end of the loop now playing**: at rest, with what is already played;
+  with a playable composition card hovered or held, as if it were played.
+- **Style** (`GigCanvas`, *LEGIB-1a: Big Num forecast*): `→ Z` is drawn smaller than Y (Y is the
+  fact, Z the forecast). At rest 60 % and subdued white; projecting a card 75 % and gold, so the
+  two states read differently. Rich text on Z only; BIGNUM-1's magnitude scaling still drives Y.
+  Arrow falls back to `>` when the font lacks `→` (the demo font does).
+- **At rest, no change = no arrow** (Claudio's amendment to D6=A): the plain number already says
+  "this loop adds nothing". A projected card keeps `Y → Y`, which answers "what does this card do?".
+- **Also in the final loop**, where composition cards are locked (CARD-UX-1) but the loop still
+  pays — this is what announces the last-loop jump that used to arrive unannounced.
+- Between loops and outside a song: plain number. Refreshed on loop start
+  (`CompositionSession.LoopStarted`), on card play, on hover/target change and on every
+  `RefreshVibeProjection`.
+
+**Decisions.** D1=A (composition cards only; action cards do not forecast the Big Num). D2=A
+(keep the step conversion, then judge) → kept, plus the new-track floor and full-band bonus of
+`SSoT_Scoring §3.4`, which fixed the observed «3 → 3 that still added» case. D6=A (always on),
+amended: hidden at rest when Y = Z. **Reversal recorded:** the first cut defined Y as "loop end
+without the card"; with the arrow always on, Y must be the number on screen.
+
+**Mechanism.** `CompositionSession.TryBuildCurrentLoopContext` (rest) and
+`TryBuildCardPreviewLoopContexts` (card) build the `LoopFeedbackContext` the loop end will build,
+applying the real track rule (same `(musicianId, role)` replaces; new key adds unless the card has
+no style bundle) and the same `CanApplyDefinition` pre-flight as the drop. `GigManager` scores both
+with `ComputeLoopHypeDelta` (shared with the payout), the SongHype clamp and the venue-SFX banking
+mirror. **Declared gap:** Overload is decided at loop end and is not forecast.
+
+**Acceptance.** Every loop logs `[LEGIB-1a] CHECK prometido=Z real=… -> OK/DISTINTO` against the
+resting Z in force. S3 smokes (Claudio, 2026-11-05/06): new role, two cards in one loop (the second
+forecast includes the first), replacement (Y → Y), floor + full band (5 → 9), always-on forecast
+incl. the final loop — **all CHECK OK**. Log also carries `PREVIEW` (with the card's change kind:
+new track / replaces / key / tempo / meter / instrument, by category, not diff) and `REPOSO` lines.
+
+**Not done (rest of LEGIB-1 on the console mock):** per-member −N/effectiveness while holding a
+card, musician highlight, and naming the change on screen (today log only; see
+`reference/ideas/2026-11-05_combos_de_banda.md`).

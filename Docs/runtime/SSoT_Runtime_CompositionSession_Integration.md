@@ -678,3 +678,32 @@ consequence for testing: **any determinism test must start from a fresh song.**
 Ionian. This is a design question — should the crowd judge what is written or what is
 played? — **not a defect**, and out of JAM-2's scope. Registered as **D-R4-1**
 (`CURRENT_STATE.md` §4).
+
+## 14. Loop forecast seams (LEGIB-1a, 2026-11-06)
+
+`CompositionSession` exposes read-only seams so the host can forecast what the loop **now
+playing** will pay, without mutating the model. The payout reads the same inputs, so the
+forecast and the loop end cannot disagree (`SSoT_Scoring_and_Meters §3.4`,
+`Design_Vibe_Telegraph §10.8`).
+
+- **`LoopStarted` (event).** Raised at the end of `PlaySinglePartLoop`, once `_isPlaying` is
+  true and after the loop-start track keys are captured. Subscriber exceptions are logged and
+  never kill the loop. It can fire **before** `ConfirmCurrentPartAndStart` /
+  `AdvanceToNextPart` set the new state, so consumers must not gate on a specific
+  `CompositionState` (only on Idle/Ended).
+- **Loop-start track keys.** `(musicianId, role)` of the part's tracks when the loop started.
+  Captured right after `LoopFinished?.Invoke(ctx)` (subscribers have already scored the finished
+  loop against the old keys), re-captured on `AdvanceToNextPart` (a cloned solo part starts
+  full), cleared on `ConfirmCurrentPartAndStart` (tracks laid before loop 1 count as new in loop
+  1). Not refreshed on a tutorial-hold replay (progression is frozen there by design).
+- **`CountTracksNewThisLoop(tracks)`** / **`FullBandEnteredThisLoop(tracks, out bandSize)`.**
+  Queries against those keys; band = `ICompositionContext.Band`, identity =
+  `MusicianCharacterData.CharacterId`.
+- **`TryBuildCurrentLoopContext(out ctx)`.** The resting forecast context; also valid in the
+  final loop.
+- **`TryBuildCardPreviewLoopContexts(def, target, out without, out with, out changeNote)`.** Applies
+  the card the way the play would (routing to the current part, `CanApplyDefinition` pre-flight,
+  `TryAddOrReplaceTrackOnPart` rule) to a **copy** of the part's track snapshots. Refused when no
+  loop is running or the final-loop lock is on (§5.4). `changeNote` names the change by card
+  category for the log.
+- **`SnapshotTracks`.** One snapshot routine shared by `HandleLoopFinished` and both builders.

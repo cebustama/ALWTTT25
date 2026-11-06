@@ -113,6 +113,39 @@ sometimes nothing, sometimes a whole band. The positive-delta condition is preve
 on threshold crossing regardless. Overload semantics, threshold and cost live in
 `SSoT_Status_Effects.md` §5.10; this document owns only where the factor sits in the chain.
 
+### 3.4 Loop bonuses in Big Num units (LEGIB-1a, 2026-11-06)
+
+Two rules sit between the step conversion and the Overload factor. Both are expressed in **Big
+Num units** (the readout the player sees, `SSoT §5` / Vibe L-part), because a rule expressed in
+Hype is invisible: `MaxSongHype 100` over `MaxVibeFromSongHype 20` makes 1 Big Num point = 5 Hype,
+so a +3 step was +0.6 on the readout and often vanished in the rounding (observed in S3).
+
+```text
+hypeDelta = ComputeHypeDelta(loopScore) × SongHypeDeltaMultiplier
+hypeDelta = max(hypeDelta, floorDelta)                      if newTracks > 0      (1, D4=A / D5=A)
+          where floorDelta = min(MaxVibe, L_now + newTracks × MinBigNumPerNewTrack) × (MaxSongHype / MaxVibe) − SongHype
+hypeDelta += FullBandBonusBigNum × (MaxSongHype / MaxVibe)  if the full band entered this loop   (2)
+          [× OverloadHypeFactor ... as §3.3]
+```
+
+1. **New-track floor.** Each track that **entered during this loop** guarantees
+   `MinBigNumPerNewTrack` Big Num points at loop end (default 1). "Entered" = its key
+   `(musicianId, role)` was not in the part when the loop started (`CompositionSession`
+   captures the keys after each loop is scored, on part advance, and clears them at song start,
+   so tracks laid before loop 1 count as new in loop 1). A **replacement keeps its key and never
+   counts**. It is a **floor, not an add-on**: a loop whose step delta already lands higher is
+   untouched, so tuning of loops that already rose is unchanged. Capped at `MaxVibe` (20).
+2. **Full-band bonus.** `FullBandBonusBigNum` (code default 2; the demo asset is set to **3**)
+   is **added on top** in the loop where every band musician has at least one track in the part
+   for the first time — any band size (2, 3, 4); a band of one never qualifies. Per part: a new
+   empty part can earn it again; a cloned part (bonus solo) starts full and cannot.
+
+Both live in `GigManager.ComputeLoopHypeDelta`, the **single** function shared by the payout
+(`TriggerAudienceMicroReactions`) and the Big Num forecast (`Design_Vibe_Telegraph §10.8`), so the
+forecast cannot drift from the payout ("the number you see is the number that happens",
+D-DIAG-2). Tuning: `MeterTuningSO` → *Loop Bonuses (Big Num units)*; 0 turns either rule off.
+Overload still multiplies the result afterwards and is the one term the forecast does not predict.
+
 ---
 
 ## 4. SongHype
