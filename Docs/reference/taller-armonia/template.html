@@ -99,6 +99,17 @@ pre.out{margin:0;background:var(--bg);border:1px solid var(--line);border-radius
 .tag{font:600 11px/1 var(--f-mono);letter-spacing:.04em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 7px;display:inline-block}
 .tag.ai{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 50%,var(--line))}
 details summary{cursor:pointer;font-weight:700}
+/* knobs of the levels (2026-11-06) and Claude */
+.pertab{width:100%;border-collapse:collapse;font-size:14px}
+.pertab th,.pertab td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.pertab th.c,.pertab td.c{text-align:center;width:72px}
+.pertab td.c select,.pertab td.c input[type=number]{width:66px}
+.pertab td.c.mod{background:color-mix(in srgb,var(--l2) 18%,transparent);border-radius:6px}
+.pertab .lab{font-weight:700}
+.pertab .hlp{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.llm{display:grid;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:12px}
+.llm .row input[type=text]{flex:1 1 220px;min-width:0}
+.llm ul{margin:0;padding-left:18px;font-size:14px}
 .hint{font-size:13px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -114,6 +125,11 @@ details summary{cursor:pointer;font-weight:700}
     <main class="stack" style="gap:20px">
       <section class="panel" aria-labelledby="h-in">
         <div class="row" style="justify-content:space-between"><h2 id="h-in">Progresión</h2><span class="hint" id="loadedFrom"></span></div>
+        <div class="llm" id="genBox" hidden>
+          <label class="k" for="genQ">Crear desde una frase</label>
+          <div class="row"><input type="text" id="genQ" maxlength="200" placeholder="Melancólica pero con esperanza, para el final de una gira"><button class="btn primary" id="genGo">Crear con Claude</button></div>
+          <p class="hint" id="genMsg" aria-live="polite">Claude escribe la progresión, el modo y el compás; el taller la lee y, si no puede, le pide una corrección una vez.</p>
+        </div>
         <textarea id="prog" class="prog" rows="2" spellcheck="false" aria-describedby="syntax"></textarea>
         <p class="hint" id="syntax">Grados separados por « – » (o guion). Sufijos: <code>maj m dim aug maj7 m7 7 ø7 dim7 sus2 sus4 6 m6 7sus4 9 maj9 m9</code>. Duración en compases entre paréntesis: <code>V7 (0.5)</code>. Silencio: <code>S (1)</code>. Sin sufijo, mayúscula es mayor y minúscula es menor.</p>
         <div class="issues" id="issues"></div>
@@ -152,6 +168,20 @@ details summary{cursor:pointer;font-weight:700}
           <button class="lvl" data-l="2" aria-pressed="false"><b>2 · Adornos</b><span>Séptimas y, desde la vuelta 2, un adorno por vuelta (sus4, vuelta al inicio o dominante secundaria).</span></button>
           <button class="lvl" data-l="3" aria-pressed="false"><b>3 · Spicy</b><span>Novenas de la escala y, desde la vuelta 2, hasta dos cambios por vuelta (préstamos, sustitutos tritonales, backdoor, acorde propio del modo).</span></button>
         </div>
+        <details id="perBox">
+          <summary>Perillas de los niveles <span class="hint" id="perState"></span></summary>
+          <div class="stack" style="margin-top:10px">
+            <p class="hint">Cada nivel hace solo lo que sus perillas permiten. Las de fábrica son las reglas v3 (prueba de oído 16/16). Las casillas en color son las que difieren de la v3.</p>
+            <div style="overflow-x:auto"><table class="pertab" id="perTab"></table></div>
+            <div class="row"><button class="btn" id="perUndo">Deshacer</button><button class="btn" id="perReset">Volver a la v3</button><button class="btn" id="perCopy">Copiar perillas</button></div>
+          </div>
+        </details>
+        <div class="llm" id="adjBox" hidden>
+          <label class="k" for="adjQ">Ajustar las perillas con una frase</label>
+          <div class="row"><input type="text" id="adjQ" maxlength="200" placeholder="nivel 3 menos loco · más acordes de paso en el 2"><button class="btn primary" id="adjGo">Ajustar con Claude</button></div>
+          <div class="hint" id="adjMsg" aria-live="polite">Claude no reescribe acordes: solo mueve perillas. El resultado sigue siendo determinista.</div>
+        </div>
+        <label class="row small" id="hiBox" style="gap:6px" hidden><input type="checkbox" id="llmHi"> Calidad alta (Sonnet, más lento)</label>
         <div class="transport">
           <button id="play" class="play" aria-label="Reproducir"></button>
           <div class="stack" style="gap:2px">
@@ -192,7 +222,7 @@ details summary{cursor:pointer;font-weight:700}
           <input type="text" id="sSrc" maxlength="120" placeholder="Fuente: canción, artista, libro, enlace" aria-label="Fuente">
           <textarea id="sNote" rows="2" maxlength="300" placeholder="Nota (opcional)" aria-label="Nota"></textarea>
           <div class="row"><button class="btn primary" id="save">Guardar</button><span class="hint" id="saveMsg" aria-live="polite"></span></div>
-          <p class="hint">Se guarda la cadena escrita y el modo; el nivel y el tempo no.</p>
+          <p class="hint">Se guarda la cadena escrita, el modo y las perillas si no son las de fábrica; el nivel y el tempo no.</p>
         </div>
       </details>
     </aside>
@@ -287,78 +317,112 @@ function parse(text){
   return {chords, issues};
 }
 
-/* ---------- levels (v3, after the Music Lab review of 2026-11-02) ----------
+/* ---------- levels (v3, after the Music Lab review of 2026-11-02; knobs since 2026-11-06) ----------
    Rules: original chords are never removed (an addition only takes the second part of a chord);
-   no events in lap 1; budget per lap: level 2 = 1 event, level 3 = 2; ninths only if the 9th is in the scale;
-   modal approach chords instead of V7 outside Ionian/Aeolian; no half-step modulation inside the card. */
+   no events before the knob desdeVuelta; ninths only if the 9th is in the scale;
+   modal approach chords instead of V7 outside Ionian/Aeolian; no half-step modulation inside the card.
+   Everything a level may do lives in its knobs (PERILLAS); the defaults reproduce v3 exactly
+   (golden test: node scripts/oro.js comparar oro-v3.json). Names, ranges and merges: Music Lab,
+   revision-music-lab-perillas-2026-11-06.md. Fixed order: remate → sus4 → menor prestado → acorde de paso → ♭VI
+   (preferirAcordeNuevo moves sus4 behind the acorde de paso). Fixed guards: lap 1 as written; ≤2 distinct chords → 1 change. */
+const PERILLAS_V3 = {
+  2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false},
+  3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"rico",   sus4:false, paso:"cromatico", ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false},
+};
+const PERILLA_KEYS = Object.keys(PERILLAS_V3[2]);
+const PERILLA_OPC = {color:["triadas","septimas","novenas"], remate:["no","simple","rico"], paso:["no","clasico","cromatico"]};
+const clonePerillas = p => ({2:{...p[2]}, 3:{...p[3]}});
+// Accepts anything (saved data, the model's answer) and returns valid knobs, filling gaps from `base` (v3 by default).
+// Values it cannot use go to `ignored` (never silently: the page reports them).
+function validPerilla(k, v){
+  if(k === "presupuesto") return Number.isInteger(v) && v >= 0 && v <= 3;
+  if(k === "desdeVuelta") return Number.isInteger(v) && v >= 2 && v <= 4;
+  if(PERILLA_OPC[k]) return PERILLA_OPC[k].includes(v);
+  return PERILLA_KEYS.includes(k) && typeof v === "boolean";
+}
+function cleanPerillas(x, base, ignored){
+  const out = clonePerillas(base || PERILLAS_V3);
+  for(const l of [2,3]){ const s = x && (x[l] || x[String(l)]); if(!s || typeof s !== "object") continue;
+    for(const [k, v] of Object.entries(s)){ if(validPerilla(k, v)) out[l][k] = v; else if(ignored) ignored.push("N"+l+" "+k+" = "+JSON.stringify(v)); } }
+  return out;
+}
+const samePerillas = (a, b) => [2,3].every(l => PERILLA_KEYS.every(k => a[l][k] === b[l][k]));
 const majorish = () => mod12(st()[2]) === 4;
-function color(c, nextPc, rich){
+function color(c, nextPc, P){
   let q = c.q; const r = c.pc;
-  if(q === "maj"){
-    if(mod12(r) !== 0 && mod12(nextPc - c.pc) === 5) q = "7";
-    else if(inScale(r+11)) q = "maj7";
-    else if(inScale(r+10)) q = "7";
-    else q = "maj7";
-  } else if(q === "min") q = "m7";
-  else if(q === "dim") q = inScale(r+10) ? "hdim7" : "dim7";
-  if(rich && inScale(r+2)) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
+  if(P.color !== "triadas"){
+    if(q === "maj"){
+      if(mod12(r) !== 0 && mod12(nextPc - c.pc) === 5) q = "7";
+      else if(inScale(r+11)) q = "maj7";
+      else if(inScale(r+10)) q = "7";
+      else q = "maj7";
+    } else if(q === "min") q = "m7";
+    else if(q === "dim") q = inScale(r+10) ? "hdim7" : "dim7";
+  }
+  if(P.color === "novenas" && inScale(r+2)) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
   return q;
 }
 // Chord that leads into the tonic in each mode (Music Lab, change 3). null = no approach (Locrian).
-function tonicApproach(level, tMin){
+// rica = the level-3 version of v3 (backdoor, iiø7–♭II7, ♭VIImaj7); simple = the level-2 one.
+function tonicApproach(rica, tMin){
   switch(mode){
-    case "Ionian":  return level === 2 ? [{d:7, q:"7", why:"V7"}] : [{d:5, q:"m7", why:"backdoor iv7"}, {d:10, q:"9", why:"♭VII9"}];
-    case "Aeolian": return level === 2 ? [{d:7, q:"7", why:"V7"}] : [{d:2, q:"hdim7", why:"iiø7"}, {d:1, q:"7", why:"sustituto tritonal ♭II7"}];
+    case "Ionian":  return !rica ? [{d:7, q:"7", why:"V7"}] : [{d:5, q:"m7", why:"backdoor iv7"}, {d:10, q:"9", why:"♭VII9"}];
+    case "Aeolian": return !rica ? [{d:7, q:"7", why:"V7"}] : [{d:2, q:"hdim7", why:"iiø7"}, {d:1, q:"7", why:"sustituto tritonal ♭II7"}];
     case "Phrygian":   return [{d:1, q:"maj7", why:"♭IImaj7, el acorde frigio"}];
     case "Dorian":     return [{d:5, q:"7", why:"IV7, el acorde dórico"}];
     case "Lydian":     return [{d:2, q:"7", why:"II7, el acorde lidio"}];
-    case "Mixolydian": return [{d:10, q: level === 3 ? "maj7" : "maj", why:"♭VII, el acorde mixolidio"}];
+    case "Mixolydian": return [{d:10, q: rica ? "maj7" : "maj", why:"♭VII, el acorde mixolidio"}];
     default: return null;
   }
 }
 const nextNonRest = (seq, i) => { for(let k=1;k<=seq.length;k++){ const c = seq[(i+k)%seq.length]; if(!c.rest) return c; } return seq[i]; };
 const CADENCE = new Set([5, 7, 2, 11]); // root motion into the first chord: V→I, IV→I, ♭VII→I, ♭II→i
-function arrange(base, level, nV, beats){
+function arrange(base, level, nV, beats, perillas){
   const B = beats || 4, h = B === 3 ? 1 : 0.5;          // the split unit: half a bar in 4/4, one whole bar in 3/4
   const vs = [];
   const distinct = new Set(base.filter(c => !c.rest).map(c => c.pc + c.q)).size;
+  const chromatic = base.some(c => !c.rest && !inScale(c.pc)), n = base.filter(c => !c.rest).length;
+  const P = level >= 2 ? (perillas || PERILLAS_V3)[level] : null;
   for(let v=0; v<nV; v++){
     let seq = base.map(c => c.rest ? {...c} : {...c, orig:true});
-    if(level >= 2) seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i).pc, level === 3); return q === c.q ? c : {...c, q, col:true}; });
-    if(level >= 2 && v >= 1){
-      const budget = (level === 2 || distinct <= 2) ? 1 : 2, used = new Set(), plan = [];   // plan: {i, tail:[chords], head?:chord}
+    if(P) seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i).pc, P); return q === c.q ? c : {...c, q, col:true}; });
+    if(P && v >= P.desdeVuelta - 1){
+      const budget = Math.min(P.presupuesto, distinct <= 2 ? 1 : n - 1), used = new Set(), plan = [];   // plan: {i, tail:[chords], head?:chord}
       const can = (i, n) => { const c = seq[i]; return c && !c.rest && !used.has(i) && c.dur >= h*(n+1) - 1e-9; };
       const take = p => { if(plan.length < budget && !used.has(p.i)){ used.add(p.i); plan.push(p); return true; } return false; };
       const li = seq.length - 1, first = seq.find(c => !c.rest);
       // 1) turnaround on the last lap: second part of the last chord, unless the loop already closes by cadence
-      if(v === nV-1 && !seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
+      if(P.remate !== "no" && v === nV-1 && !seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
         const tR = romanOf(first.pc, first.q), toTonic = mod12(first.pc) === 0;
-        let ap = toTonic ? tonicApproach(level, MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
-        if(ap && !toTonic && level === 3) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
+        let ap = toTonic ? tonicApproach(P.remate === "rico", MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
+        if(ap && !toTonic && P.paso === "cromatico" && (!P.remateFiel || chromatic)) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
         if(ap && ap.length === 2 && !can(li, 2)) ap = [ap[1]];
         if(ap && mod12(first.pc + ap[0].d) === mod12(seq[li].pc)) ap = null;   // the last chord already is the approach chord
         if(ap && can(li, ap.length)) take({i:li, tail: ap.map((a,k) => ({pc:mod12(first.pc + a.d), q:a.q, dur:h, add:true, why: k ? undefined : "turnaround hacia "+tR+": "+ap.map(x => x.why).join("–")}))});
       }
-      // 2) level 2: sus4 on the functional dominant (resolves a fifth down)
-      if(level === 2) seq.forEach((c,i) => { if(plan.length >= budget || !c.orig || c.rest) return;
+      // 2) sus4 on the functional dominant (resolves a fifth down)
+      const sus4 = () => { if(P.sus4) seq.forEach((c,i) => { if(plan.length >= budget || !c.orig || c.rest) return;
         const t = nextNonRest(seq,i);
-        if(c.q === "7" && mod12(t.pc - c.pc) === 5 && can(i, 1)) take({i, head:{...c, q:"7sus4", dur:h, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")}, rest:"tail"}); });
-      // 3) level 3: one borrowed colour after IV (iv6 in major modes, IV7 in Aeolian)
-      if(level === 3){
+        if(c.q === "7" && mod12(t.pc - c.pc) === 5 && can(i, 1)) take({i, head:{...c, q:"7sus4", dur:h, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")}, rest:"tail"}); }); };
+      if(!P.preferirAcordeNuevo) sus4();
+      // 3) one borrowed colour after IV (iv6 in major modes, IV7 in Aeolian)
+      if(P.ivPrestado){
         const bi = seq.findIndex((c,i) => !c.rest && mod12(c.pc) === 5 && can(i,1) && (
           (["Ionian","Lydian","Mixolydian"].includes(mode) && !MINORISH.has(c.q)) || (mode === "Aeolian" && MINORISH.has(c.q))));
         if(bi >= 0){ const c = seq[bi], maj = mode !== "Aeolian";
           take({i:bi, tail:[{pc:c.pc, q: maj ? "m6" : "7", dur:h, add:true, why: maj ? "iv menor prestado (iv6) después del IV" : "IV7 dórico prestado después del iv"}]}); }
       }
-      // 4) secondary dominant (level 2 fallback) or its tritone substitute (level 3) into a diatonic non-tonic chord
-      seq.forEach((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
-        const t = nextNonRest(seq,i);
-        if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1)) return;
-        const tR = romanOf(t.pc, t.q);
-        take({i, tail:[level === 2 ? {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR}
-                                   : {pc:mod12(t.pc+1), q:"7", dur:h, add:true, why:"sustituto tritonal de la dominante de "+tR}]}); });
-      // 5) level 3: ♭VImaj7 inserted before the return to I (Ionian, Mixolydian)
-      if(level === 3 && (mode === "Ionian" || mode === "Mixolydian")) seq.forEach((c,i) => { if(plan.length >= budget || c.rest) return;
+      // 4) acorde de paso into a diatonic non-tonic chord: its V7 (clasico) or the tritone substitute ♭II7 (cromatico)
+      if(P.paso !== "no"){
+        seq.forEach((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
+          const t = nextNonRest(seq,i);
+          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1)) return;
+          const tR = romanOf(t.pc, t.q);
+          take({i, tail:[P.paso === "clasico" ? {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR}
+                                             : {pc:mod12(t.pc+1), q:"7", dur:h, add:true, why:"sustituto tritonal de la dominante de "+tR}]}); }); }
+      if(P.preferirAcordeNuevo) sus4();
+      // 5) ♭VImaj7 inserted before the return to I (Ionian, Mixolydian)
+      if(P.bVI && (mode === "Ionian" || mode === "Mixolydian")) seq.forEach((c,i) => { if(plan.length >= budget || c.rest) return;
         const t = nextNonRest(seq,i);
         if(mod12(t.pc) === 0 && mod12(c.pc) !== 0 && mod12(c.pc) !== 8 && !CADENCE.has(mod12(t.pc - c.pc)) && can(i,1)) take({i, tail:[{pc:8, q:"maj7", dur:h, add:true, why:"♭VImaj7 prestado antes de volver a I"}]}); });
       // apply: the original keeps the first part
@@ -379,7 +443,8 @@ function arrange(base, level, nV, beats){
 /* ---------- state ---------- */
 const STORE = "alwttt-taller-v1";
 let level = 1, key = 0, parsed = null, vs = [], flat = [];
-function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({t:$("#prog").value, mode, key, bpm:+$("#bpm").value, ts:$("#ts").value, v:$("#vueltas").value, toque:$("#toque").value, drums:$("#drums").value, level})); }catch(e){} }
+let perillas = clonePerillas(PERILLAS_V3), perHist = [];
+function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({t:$("#prog").value, mode, key, bpm:+$("#bpm").value, ts:$("#ts").value, v:$("#vueltas").value, toque:$("#toque").value, drums:$("#drums").value, level, perillas})); }catch(e){} }
 function loadLocal(){ try{ return JSON.parse(localStorage.getItem(STORE)); }catch(e){ return null; } }
 
 function update(restart){
@@ -387,12 +452,12 @@ function update(restart){
   parsed = parse($("#prog").value);
   $("#issues").innerHTML = parsed.issues.map(i => '<div class="'+(i.e?"e":"w")+'">'+(i.e?"✕ ":"⚠ ")+esc(i.msg)+'</div>').join("");
   const nV = +$("#vueltas").value;
-  vs = parsed.chords.some(c => !c.rest) ? arrange(parsed.chords, level, nV, +$("#ts").value) : [];
+  vs = parsed.chords.some(c => !c.rest) ? arrange(parsed.chords, level, nV, +$("#ts").value, perillas) : [];
   const B = +$("#ts").value;
   flat = []; let b = 0;
   vs.forEach((V, v) => V.seq.forEach(c => { flat.push({...c, v, start:b, len:c.dur*B}); b += c.dur*B; }));
   $("#moodHint").textContent = "En el juego, la tira de composición mostraría este modo como «" + MOOD[mode] + "».";
-  drawStrip(); drawWhy(); drawOut();
+  drawStrip(); drawWhy(); drawOut(); drawPerillas();
   const secs = b * 60 / +$("#bpm").value;
   $("#len").textContent = flat.length ? (vs.length + (vs.length === 1 ? " vuelta" : " vueltas") + " · " + fmtDur(b/B) + " compases · " + Math.round(secs) + " s") : "";
   saveLocal();
@@ -415,7 +480,10 @@ function drawStrip(){
 function drawWhy(){
   const items = [];
   flat.forEach(c => { if(c.why) items.push("Vuelta " + (c.v+1) + ": " + c.why + "."); });
-  if(level >= 2) items.unshift(level === 2 ? "Todas las vueltas: tríadas a cuatriadas según la escala (maj7, m7, ø7); un acorde mayor que cae una quinta pasa a 7. Desde la vuelta 2, un solo cambio por vuelta." : "Todas las vueltas: cuatriadas de la escala y novenas solo donde la novena está en la escala. Desde la vuelta 2, hasta dos cambios por vuelta.");
+  if(level >= 2){ const P = perillas[level];
+    items.unshift("Todas las vueltas: " + ({triadas:"los acordes como están escritos", septimas:"tríadas a cuatriadas según la escala (maj7, m7, ø7); un acorde mayor que cae una quinta pasa a 7", novenas:"cuatriadas de la escala y novenas solo donde la novena está en la escala"})[P.color] +
+      ". Desde la vuelta " + P.desdeVuelta + ", " + (P.presupuesto === 0 ? "ningún cambio" : P.presupuesto === 1 ? "un cambio por vuelta como máximo" : "hasta " + P.presupuesto + " cambios por vuelta") + "." +
+      (samePerillas(perillas, PERILLAS_V3) ? "" : " Perillas propias (no las de fábrica).")); }
   if(level >= 2) items.push("Ningún acorde escrito desaparece: lo añadido ocupa solo la segunda parte de un acorde.");
   $("#whyBox").hidden = !items.length;
   $("#why").innerHTML = items.map(t => "<li>" + esc(t) + "</li>").join("");
@@ -423,7 +491,7 @@ function drawWhy(){
 function tokens(){ return flat.map(c => (c.rest ? "S" : romanOf(c.pc, c.q)) + (c.dur !== 1 || c.rest ? " (" + fmtDur(c.dur) + ")" : "")).join(" – "); }
 function block(){
   const B = +$("#ts").value, meas = flat.reduce((s,c) => s + c.dur, 0);
-  return "## Chord progression — " + MODE_ES[mode].split(" ")[0] + (level > 1 ? ", nivel " + level : "") + ", " + fmtDur(meas) + " measures\n\n" +
+  return "## Chord progression — " + MODE_ES[mode].split(" ")[0] + (level > 1 ? ", nivel " + level + (samePerillas(perillas, PERILLAS_V3) ? "" : " (perillas propias)") : "") + ", " + fmtDur(meas) + " measures\n\n" +
     "**Setup (Roman mode):**\n\n- Time signature: " + (B === 4 ? "FourFour" : "ThreeFour") + "\n- Measures (total): " + fmtDur(meas) +
     "\n- Default duration (measures): 1\n- Reference tonality: " + mode + "\n\n**Progression (paste into the Roman string field):**\n\n```\n" + tokens() + "\n```\n";
 }
@@ -598,6 +666,131 @@ const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="tru
 const ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>';
 function setPlayIcon(on){ const p = $("#play"); p.innerHTML = on ? ICON_STOP : ICON_PLAY; p.setAttribute("aria-label", on ? "Parar" : "Reproducir"); }
 
+/* ---------- knobs (Music Lab names, 2026-11-06) ---------- */
+const PER_UI = {
+  presupuesto:{lab:"Cambios por vuelta", hlp:"Cuántos adornos entran como máximo en cada vuelta. 0 = solo cambia el color.", opts:[0,1,2,3]},
+  desdeVuelta:{lab:"Empieza en la vuelta", hlp:"La vuelta 1 siempre suena tal cual; desde esta entran los adornos.", opts:[2,3,4]},
+  color:{lab:"Color de los acordes", hlp:"Tríadas, séptimas o séptimas y novenas (las novenas solo si la nota está en la escala).", opts:["triadas","septimas","novenas"], txt:{triadas:"tríadas",septimas:"séptimas",novenas:"novenas"}},
+  remate:{lab:"Remate final", hlp:"En la última vuelta, uno o dos acordes que empujan de vuelta al primero. Rico: dos, más jazz (en Do, Fm7–B♭9 antes de C).", opts:["no","simple","rico"]},
+  sus4:{lab:"Suspensión", hlp:"El acorde de empuje se queda colgado medio compás antes de resolver (G7sus4 → G7)."},
+  paso:{lab:"Acorde de paso", hlp:"Antes de un acorde, otro que lo anuncia. Clásico: su dominante (A7 antes de Dm). Cromático: desde medio tono arriba (E♭7 antes de Dm).", opts:["no","clasico","cromatico"], txt:{no:"no",clasico:"clásico",cromatico:"cromático"}},
+  ivPrestado:{lab:"Menor prestado", hlp:"Después del IV, el mismo acorde en menor: la sombra agridulce de Creep (F → Fm6). En Eólico, IV7 después del iv."},
+  bVI:{lab:"Rodeo antes de volver", hlp:"Antes de volver a I, un acorde mayor de fuera de la escala que suena a película (A♭maj7). Solo en Jónico y Mixolidio."},
+  remateFiel:{lab:"Remate fiel a la escala", hlp:"Si la progresión no usa acordes de fuera de la escala, el remate tampoco (con acorde de paso cromático, usa el V7 del destino)."},
+  preferirAcordeNuevo:{lab:"Que se note el adorno", hlp:"Si se puede, el adorno añade un acorde nuevo antes que una suspensión."},
+};
+const perTxt = (k, v) => typeof v === "boolean" ? (v ? "sí" : "no") : (PER_UI[k].txt && PER_UI[k].txt[v]) || String(v);
+// Knobs that do nothing in the current mode are dimmed (Music Lab §2).
+const perIdle = k => (k === "bVI" && !["Ionian","Mixolydian"].includes(mode)) || (k === "ivPrestado" && !["Ionian","Lydian","Mixolydian","Aeolian"].includes(mode)) || (k === "remate" && mode === "Locrian");
+function setPerillas(next, quiet){
+  if(samePerillas(next, perillas)) return false;
+  perHist.push(clonePerillas(perillas)); if(perHist.length > 30) perHist.shift();
+  perillas = next; if(!quiet) update(true); return true;
+}
+function perWarnings(){
+  const w = [], a = perillas[2], b = perillas[3], rank = {triadas:0,septimas:1,novenas:2};
+  if(a.presupuesto > b.presupuesto || rank[a.color] > rank[b.color]) w.push("El nivel 2 hace más que el 3: la escalera tendría que subir.");
+  for(const l of [2,3]){ const P = perillas[l];
+    const any = P.remate !== "no" || P.sus4 || P.paso !== "no" || P.ivPrestado || P.bVI;
+    if(P.presupuesto > 0 && !any) w.push("Nivel " + l + ": hay cambios por vuelta pero ningún adorno encendido; no va a cambiar nada.");
+    if(P.desdeVuelta > +$("#vueltas").value) w.push("Nivel " + l + ": empieza en la vuelta " + P.desdeVuelta + " y la carta tiene " + $("#vueltas").value + ": no se oirán adornos.");
+    if(P.ivPrestado && P.bVI && P.presupuesto >= 2) w.push("Nivel " + l + ": menor prestado y rodeo a la vez es la combinación más oscura del sistema."); }
+  if(a.color === "novenas") w.push("Novenas en el nivel 2: el 2 y el 3 se parecerán en color.");
+  return w;
+}
+function drawPerillas(){
+  const same = samePerillas(perillas, PERILLAS_V3);
+  $("#perState").textContent = same ? "· de fábrica (v3)" : "· propias";
+  $("#perUndo").disabled = !perHist.length; $("#perReset").disabled = same;
+  const cell = (l, k) => { const v = perillas[l][k], mod = v !== PERILLAS_V3[l][k] ? " mod" : "", id = "p" + l + k, u = PER_UI[k];
+    const ctl = typeof v === "boolean" ? '<input type="checkbox" id="'+id+'"'+(v ? " checked" : "")+' aria-label="'+esc(u.lab)+', nivel '+l+'">'
+      : '<select id="'+id+'" aria-label="'+esc(u.lab)+', nivel '+l+'">' + u.opts.map(o => '<option value="'+o+'"'+(o === v ? " selected" : "")+'>'+esc(perTxt(k, o))+'</option>').join("") + '</select>';
+    return '<td class="c'+mod+'">' + ctl + '</td>'; };
+  $("#perTab").innerHTML = '<tr><th>Perilla</th><th class="c">Nivel 2</th><th class="c">Nivel 3</th></tr>' +
+    PERILLA_KEYS.map(k => '<tr'+(perIdle(k) ? ' style="opacity:.5" title="Sin efecto en este modo"' : '')+'><td><span class="lab">'+esc(PER_UI[k].lab)+'</span><span class="hlp">'+esc(PER_UI[k].hlp)+'</span></td>' + cell(2,k) + cell(3,k) + '</tr>').join("") +
+    perWarnings().map(t => '<tr><td colspan="3" class="hint" style="color:var(--warn)">⚠ '+esc(t)+'</td></tr>').join("");
+  for(const l of [2,3]) for(const k of PERILLA_KEYS){ const el = $("#p" + l + k);
+    el.onchange = () => { const next = clonePerillas(perillas), d = PERILLAS_V3[l][k];
+      next[l][k] = typeof d === "boolean" ? el.checked : typeof d === "number" ? +el.value : el.value; setPerillas(next); }; }
+}
+
+/* ---------- Claude (only on the private website, behind Access; D4: hidden in the artifact) ---------- */
+const LLM_ON = __LLM__;
+async function llmCall(tarea, datos){
+  let res;
+  try{ res = await fetch("/api/llm", {method:"POST", headers:{"content-type":"application/json"}, credentials:"same-origin",
+    body: JSON.stringify({tarea, datos, calidad: $("#llmHi").checked ? "alta" : "normal"})}); }
+  catch(e){ throw new Error("No se pudo conectar con el servidor. Si llevas rato con la página abierta, recárgala (la sesión puede haber caducado)."); }
+  let a = null; try{ a = await res.json(); }catch(e){}
+  if(!a) throw new Error("El servidor respondió algo inesperado (HTTP " + res.status + "). Recarga la página y prueba otra vez.");
+  if(!a.ok) throw new Error(a.mensaje || "No se pudo consultar a Claude.");
+  return a;
+}
+const busy = (btn, on) => { if(!btn.dataset.t) btn.dataset.t = btn.textContent; btn.disabled = on; btn.textContent = on ? "Pensando…" : btn.dataset.t; };
+// The model's progression must pass the page's own reader with no issue at all (a warning counts as failure, as in Unity).
+function checkGen(r){
+  if(!r || typeof r.progresion !== "string" || !r.progresion.trim()) return "Falta el campo progresion.";
+  if(!MODES.includes(r.modo)) return "El modo «" + r.modo + "» no es uno de " + MODES.join(", ") + ".";
+  if(+r.compas !== 3 && +r.compas !== 4) return "El compás tiene que ser 4 o 3.";
+  const save = mode; mode = r.modo; const p = parse(r.progresion); mode = save;
+  if(p.issues.length) return p.issues.map(i => i.msg).join(" ");
+  const meas = p.chords.reduce((s,c) => s + c.dur, 0);
+  if(!Number.isInteger(Math.round(meas*1000)/1000)) return "Las duraciones suman " + fmtDur(meas) + " compases; tienen que sumar un número entero.";
+  return null;
+}
+async function generar(){
+  const q = $("#genQ").value.trim(), msg = $("#genMsg"), btn = $("#genGo");
+  if(!q){ msg.textContent = "Escribe primero qué quieres oír."; return; }
+  busy(btn, true); msg.textContent = "Claude está escribiendo la progresión…";
+  let prev = null, err = null;
+  try{
+    for(let k = 0; k < 2; k++){
+      const a = await llmCall("armonia.generar", prev ? {frase:q, intento_previo:prev, error:err} : {frase:q});
+      const r = a.resultado; err = checkGen(r);
+      if(!err){
+        $("#prog").value = r.progresion.trim(); $("#mode").value = r.modo; $("#ts").value = String(+r.compas);
+        $("#loadedFrom").textContent = "Creada con Claude" + (r.nombre ? ": " + r.nombre : "");
+        $("#sName").value = String(r.nombre || "").slice(0,60); $("#sSrc").value = ("Claude (" + a.modelo + "): «" + q + "»").slice(0,120);
+        setPerillas(clonePerillas(PERILLAS_V3), true); update(true);
+        msg.textContent = (r.por_que || "") + (k ? " (al segundo intento)" : "") + " · " + a.modelo.replace("claude-","");
+        return;
+      }
+      prev = String(r && r.progresion || JSON.stringify(r)).slice(0, 400);
+    }
+    msg.textContent = "✕ Claude no dio una progresión que el taller pueda leer en dos intentos. Último problema: " + err + " Prueba con otra frase.";
+  }catch(e){ msg.textContent = "✕ " + e.message; }
+  finally{ busy(btn, false); }
+}
+// What each level does now with the current knobs, so the model can reason about the effect.
+function levelSummary(l, P){
+  const nV = Math.max(2, +$("#vueltas").value), seen = [];
+  arrange(parsed.chords, l, nV, +$("#ts").value, P).forEach(V => V.seq.forEach(c => { if(c.why && !seen.includes(c.why)) seen.push(c.why); }));
+  return seen;
+}
+async function ajustar(){
+  const q = $("#adjQ").value.trim(), msg = $("#adjMsg"), btn = $("#adjGo");
+  if(!q){ msg.textContent = "Escribe primero qué quieres cambiar."; return; }
+  if(!parsed || !parsed.chords.some(c => !c.rest)){ msg.textContent = "Primero hace falta una progresión que suene."; return; }
+  busy(btn, true); msg.textContent = "Claude está moviendo perillas…";
+  try{
+    const a = await llmCall("armonia.ajustar", {frase:q, progresion:$("#prog").value.trim().slice(0,400), modo:mode, compas:+$("#ts").value, nivel:level, vueltas:+$("#vueltas").value,
+      perillas, efecto:{2:levelSummary(2, perillas), 3:levelSummary(3, perillas)}});
+    const r = a.resultado || {}, ignored = [];
+    const next = cleanPerillas(r.cambios, perillas, ignored);
+    const diff = [];
+    for(const l of [2,3]) for(const k of PERILLA_KEYS) if(next[l][k] !== perillas[l][k]) diff.push("Nivel " + l + " · " + PER_UI[k].lab + ": " + perTxt(k, perillas[l][k]) + " → " + perTxt(k, next[l][k]));
+    const before = {2:levelSummary(2, perillas), 3:levelSummary(3, perillas)}, after = {2:levelSummary(2, next), 3:levelSummary(3, next)};
+    const silent = diff.length && JSON.stringify(before) === JSON.stringify(after);
+    setPerillas(next);
+    msg.innerHTML = '<p style="margin:0">' + esc(r.por_que || "") + ' <span class="hint">· ' + esc(a.modelo.replace("claude-","")) + '</span></p>' +
+      (diff.length ? "<ul>" + diff.map(d => "<li>" + esc(d) + "</li>").join("") + "</ul>" : "<p style=\"margin:0\">No cambió ninguna perilla.</p>") +
+      (silent ? '<p style="margin:0;color:var(--warn)">⚠ Con esta progresión y este modo, el cambio no se oye.</p>' : "") +
+      (ignored.length ? '<p style="margin:0;color:var(--warn)">⚠ Valores que el taller no acepta y no aplicó: ' + esc(ignored.join("; ")) + '</p>' : "") +
+      (diff.length ? '<p class="hint" style="margin:0">«Deshacer», en las perillas, lo devuelve.</p>' : "");
+  }catch(e){ msg.textContent = "✕ " + e.message; }
+  finally{ busy(btn, false); }
+}
+
 /* ---------- catalogue ---------- */
 let mine = [], filter = "todas";
 const FILTERS = [["todas","Todas"],["biblioteca","En la biblioteca"],["candidata","Candidatas de la prueba"],["estilo","Estilos ✦"],["catalogo","Guardadas"]];
@@ -624,6 +817,7 @@ function drawList(){
   $("#list").querySelectorAll(".item").forEach(b => b.onclick = () => openEntry(list[+b.dataset.k]));
 }
 function openEntry(e){
+  setPerillas(cleanPerillas(e.perillas), true);
   $("#prog").value = e.text; $("#mode").value = e.mode;
   $("#loadedFrom").textContent = "Abierta: " + e.name;
   update(true);
@@ -650,7 +844,7 @@ mine = loadMine();
 async function saveEntry(){
   const name = $("#sName").value.trim(), msg = $("#saveMsg");
   if(!name){ msg.textContent = "Ponle un nombre."; return; }
-  const doc = {name, text: $("#prog").value.trim(), mode, tags: $("#sTags").value.split(",").map(t => t.trim()).filter(Boolean).slice(0,8),
+  const doc = {name, text: $("#prog").value.trim(), mode, ...(samePerillas(perillas, PERILLAS_V3) ? {} : {perillas: clonePerillas(perillas)}), tags: $("#sTags").value.split(",").map(t => t.trim()).filter(Boolean).slice(0,8),
     fuente: $("#sSrc").value.trim(), nota: $("#sNote").value.trim(), at: new Date().toISOString()};
   if(!db){
     mine = [doc].concat(mine);
@@ -673,7 +867,7 @@ function copy(text){
 $("#mode").innerHTML = MODES.map(m => '<option value="'+m+'">'+MODE_ES[m]+'</option>').join("");
 $("#root").innerHTML = NOTE.map((n,i) => '<option value="'+i+'">'+n+'</option>').join("");
 const L = loadLocal();
-if(L && L.t){ $("#prog").value = L.t; $("#mode").value = L.mode; $("#root").value = L.key; $("#bpm").value = L.bpm; $("#ts").value = L.ts; $("#vueltas").value = L.v; $("#toque").value = L.toque; $("#drums").value = L.drums; level = L.level || 1; }
+if(L && L.t){ $("#prog").value = L.t; $("#mode").value = L.mode; $("#root").value = L.key; $("#bpm").value = L.bpm; $("#ts").value = L.ts; $("#vueltas").value = L.v; $("#toque").value = L.toque; $("#drums").value = L.drums; level = L.level || 1; perillas = cleanPerillas(L.perillas); }
 else { $("#prog").value = "Imaj – Vmaj – vim – IVmaj"; $("#mode").value = "Ionian"; $("#root").value = 2; $("#loadedFrom").textContent = "Ejemplo: Axis I–V–vi–IV"; }
 $("#bpmOut").textContent = $("#bpm").value;
 document.querySelectorAll(".lvl").forEach(b => { b.setAttribute("aria-pressed", String(+b.dataset.l === level));
@@ -687,5 +881,12 @@ $("#copyAll").onclick = () => copy(block());
 $("#copyStr").onclick = () => copy(tokens());
 $("#q").addEventListener("input", drawList);
 $("#save").onclick = saveEntry;
+$("#perUndo").onclick = () => { if(perHist.length){ perillas = perHist.pop(); update(true); } };
+$("#perReset").onclick = () => setPerillas(clonePerillas(PERILLAS_V3));
+$("#perCopy").onclick = () => copy(JSON.stringify(perillas));
+if(LLM_ON){ ["#genBox","#adjBox","#hiBox"].forEach(s => $(s).hidden = false);
+  $("#genGo").onclick = generar; $("#adjGo").onclick = ajustar;
+  $("#genQ").addEventListener("keydown", e => { if(e.key === "Enter") generar(); });
+  $("#adjQ").addEventListener("keydown", e => { if(e.key === "Enter") ajustar(); }); }
 setPlayIcon(false); drawFilters(); update(false); drawList();
 </script>

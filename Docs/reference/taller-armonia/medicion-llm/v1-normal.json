@@ -1,0 +1,364 @@
+{
+ "etiqueta": "v1",
+ "calidad": "normal",
+ "fecha": "2026-11-06T13:32:20.697Z",
+ "generar": [
+  {
+   "frase": "Algo alegre para empezar un concierto",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Apertura luminosa",
+    "modo": "Ionian",
+    "compas": 4,
+    "progresion": "Imaj7 – V – vi – IV",
+    "por_que": "Es un I mayor con séptima mayor, brillante y abierto, que se resuelve en V y vi. Cada acorde dura un compás, así que el bucle suma 4 compases y se siente como un arranque con energía."
+   },
+   "errores": [],
+   "ms": 19138
+  },
+  {
+   "frase": "Triste pero con esperanza",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Luz tras la lluvia",
+    "modo": "Aeolian",
+    "compas": 4,
+    "progresion": "i – VI – III – VII",
+    "por_que": "Empieza en menor, con el tono melancólico del modo Eólico, y luego sube a acordes mayores (VI, III, VII) que abren el sonido y dan la sensación de esperanza. Como el modo Eólico no tiene alteraciones, los grados se escriben sin bemol."
+   },
+   "errores": [],
+   "ms": 15123
+  },
+  {
+   "frase": "Como Radiohead en Creep",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Luz y sombra",
+    "modo": "Ionian",
+    "compas": 4,
+    "progresion": "I – III – IV – iv",
+    "por_que": "El III mayor y el iv menor prestado tiñen de sombra el I luminoso, y el paso de Do mayor a Do menor da ese giro melancólico que cae sin resolver del todo antes de volver al I."
+   },
+   "errores": [],
+   "ms": 14743
+  },
+  {
+   "frase": "Una cueca",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Cueca alegre en mayor",
+    "modo": "Ionian",
+    "compas": 3,
+    "progresion": "I – IV – V7 – I",
+    "por_que": "Está en mayor, en compás de 3/4, con el movimiento tónica-subdominante-dominante típico de la cueca. El V7 vuelve al I y cierra el bucle con el giro festivo de la danza."
+   },
+   "errores": [],
+   "ms": 15903
+  },
+  {
+   "frase": "Metal oscuro y pesado",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Metal frigio oscuro",
+    "modo": "Phrygian",
+    "compas": 4,
+    "progresion": "i – II – i – VI",
+    "por_que": "El modo frigio da el color oscuro: el II mayor, con su segunda menor, suena tenso y característico del metal. Los acordes sobre la tónica pesan y el VI cierra con un giro sombrío."
+   },
+   "errores": [],
+   "ms": 18784
+  },
+  {
+   "frase": "Jazz de bar a las 3 de la mañana",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Barra de madrugada",
+    "modo": "Dorian",
+    "compas": 4,
+    "progresion": "I m7 (2) – IV 7 (1) – V m7 (0.5) – VII maj7 (0.5)",
+    "por_que": "El IV 7 mayor es el acorde característico del Dorian y da ese color de jazz modal. El I m7 y el VII maj7 mantienen el aire nocturno y algo melancólico, y el final sube hacia el I."
+   },
+   "errores": [],
+   "ms": 22868
+  },
+  {
+   "frase": "Funk que no se acaba nunca",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Vamp funk dórico",
+    "modo": "Dorian",
+    "compas": 4,
+    "progresion": "im7 – IV7 – im7 – VII7",
+    "por_que": "El m7 da el color menor y la IV mayor con séptima (IV7) marca el sabor dórico. Al volver siempre al im7, el bucle queda abierto y sin cadencia que lo cierre."
+   },
+   "errores": [],
+   "ms": 18541
+  },
+  {
+   "frase": "Como un sueño en el que flotas",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Flotar en lidio",
+    "modo": "Lydian",
+    "compas": 4,
+    "progresion": "I (2) – II (1) – iii (0.5) – II (0.5)",
+    "por_que": "El II mayor, que es el acorde característico del lidio, y la cuarta aumentada dan un color luminoso y sin peso. El I largo se mantiene sin tensión de dominante, así que el bucle parece flotar."
+   },
+   "errores": [],
+   "ms": 16921
+  },
+  {
+   "frase": "Música de flamenco",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Cadencia andaluza",
+    "modo": "Phrygian",
+    "compas": 4,
+    "progresion": "i (2) – II (1) – VII (1) – VI (2) – V (2)",
+    "por_que": "El modo frigio da el color flamenco: el II mayor (Bb en La frigio) crea el giro característico, y la caída i–VII–VI–V es la cadencia andaluza. Dura 8 compases y cierra en V mayor para volver al i."
+   },
+   "errores": [],
+   "ms": 24912
+  },
+  {
+   "frase": "Algo que suene a final de videojuego, épico, que no se repita",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Final épico heroico",
+    "modo": "Aeolian",
+    "compas": 4,
+    "progresion": "i (2) – VI (2) – III (2) – VII (2)",
+    "por_que": "Con acordes lentos de dos compases en el modo menor, los grados VI, III y VII, mayores y sin bemol, dan un cierre grandioso y heroico. Como el taller repite en bucle, la progresión no puede dejar de repetirse; la variedad viene de que cada acorde respira."
+   },
+   "errores": [],
+   "ms": 13224
+  }
+ ],
+ "ajustar": [
+  {
+   "frase": "nivel 3 menos loco",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 1,
+     "paso": "clasico",
+     "bVI": false,
+     "remateFiel": true
+    }
+   },
+   "por_que": "Bajo un acorde de cambio por vuelta, cambio el paso cromático por el clásico, quito el ♭VI y activo remateFiel para que el final no se salga de la escala. El nivel 3 sigue con el iv prestado y las novenas, así que sigue sonando más que el 2.",
+   "ms": 12346,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 63297,
+    "salida": 799
+   }
+  },
+  {
+   "frase": "más acordes de paso en el 2",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "presupuesto": 2,
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "Subo el presupuesto del nivel 2 a 2 cambios por vuelta y activo preferirAcordeNuevo, para que el adorno sea un acorde nuevo y se note más. El paso ya es clásico, así que no lo toco. Con presupuesto 2 iguala al nivel 3, pero el 3 sigue haciendo más con cromático, novenas y bVI.",
+   "ms": 15258,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 63298,
+    "salida": 895
+   }
+  },
+  {
+   "frase": "que se note más el adorno",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "Está sonando el nivel 2, así que subo solo su perilla de acorde nuevo: ahora el adorno añade un acorde de paso en vez de una suspensión, y se nota más. No toco el color ni los demás niveles, y el nivel 2 sigue por debajo del 3.",
+   "ms": 10265,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 63309,
+    "salida": 640
+   }
+  },
+  {
+   "frase": "el final se aleja demasiado de la original",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 1,
+     "paso": "clasico",
+     "bVI": false,
+     "remateFiel": true
+    }
+   },
+   "por_que": "Bajo el nivel 3 a un cambio por vuelta, cambio el paso cromático por clásico y quito el ♭VImaj7. Con remateFiel activado, el remate rico del final deja de aplicarse porque la progresión no tiene acordes fuera de la escala, así que el final vuelve a sonar como el original.",
+   "ms": 13566,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52601,
+    "salida": 1371
+   }
+  },
+  {
+   "frase": "más jazz en el 2",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "paso": "cromatico",
+     "remate": "rico"
+    }
+   },
+   "por_que": "El color ya está en séptimas, así que lo dejo. Paso pasa a cromático (sustituto tritonal antes de acordes) y el remate pasa a rico (backdoor iv7–♭VII9). El nivel 3 sigue por encima con novenas, presupuesto 2, iv prestado y ♭VI.",
+   "ms": 12986,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52559,
+    "salida": 776
+   }
+  },
+  {
+   "frase": "más oscuro",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "ivPrestado": true,
+     "bVI": true
+    }
+   },
+   "por_que": "Suena el nivel 2, así que lo muevo: pongo el iv menor prestado y el ♭VI, que son los que oscurecen con perillas. Esto iguala al nivel 3 en esas dos reglas, sin superarlo. Para oscurecer de verdad habría que cambiar el modo, y eso no es una perilla del taller.",
+   "ms": 13334,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52556,
+    "salida": 917
+   }
+  },
+  {
+   "frase": "no me toques el final",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "remate": "no"
+    },
+    "3": {
+     "remate": "no"
+    }
+   },
+   "por_que": "Quito el remate de jazz del final en el nivel 3, que es el que está sonando. También bajo el remate del nivel 2 a «no», para que no toque el final más que el 3 y la escalera siga subiendo.",
+   "ms": 11411,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52557,
+    "salida": 943
+   }
+  },
+  {
+   "frase": "cambia el IV por un ii",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {},
+   "por_que": "Cambiar el IV por un ii es cambiar acordes, y eso no se hace con perillas, así que no toqué nada. Si quieres ese cambio, hay que editar la progresión en el origen; con perillas solo puedo añadir movimiento (por ejemplo, «más acordes de paso») sin sustituir el IV.",
+   "ms": 10884,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52561,
+    "salida": 460
+   }
+  },
+  {
+   "frase": "que cambie desde la primera vuelta",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {},
+   "por_que": "El nivel 3 ya empieza en la vuelta 2, que es el mínimo: la vuelta 1 siempre suena tal cual, así que no puedo adelantar los adornos a la primera vuelta. Si quieres más movimiento desde la vuelta 2, puedo subir el presupuesto o activar paso de acordes.",
+   "ms": 13859,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52564,
+    "salida": 444
+   }
+  },
+  {
+   "frase": "el 2 y el 3 suenan igual",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "El nivel 2 ya es el más suave y tiene una sola diferencia audible (el sus4). Subo el 3 pidiendo que el adorno sea un acorde nuevo y no una suspensión, así se nota más la diferencia.",
+   "ms": 13202,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52579,
+    "salida": 1095
+   }
+  }
+ ],
+ "resumen": {
+  "generar": {
+   "validas": 10,
+   "utiles": 10,
+   "segundo_intento": 0
+  },
+  "ajustar": {
+   "validas": 10,
+   "utiles": 10
+  }
+ }
+}

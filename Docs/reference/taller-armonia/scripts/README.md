@@ -7,3 +7,9 @@ Los escribió el agente que hizo de Music Lab en la crítica `../revision-music-
 - `loops12.py`: piloto sobre McGill Billboard 2.0. Detecta los bucles, los parte en casillas y cuenta los tipos y los destinos por posición, separando los acordes sostenidos de las terceras reales. Uso: `python -I loops12.py <ruta a McGill-Billboard>`. El corpus está en la caché de `MidiGenPlay/Tools~/surprise/.cache/dl/McGill-Billboard`.
 
 Es un piloto y no una herramienta gobernada. Si se adopta, la versión buena va a `MidiGenPlay/Tools~/surprise/loop_shape.py`.
+
+## Prueba de oro de las perillas (2026-11-06)
+
+- `oro.js`: carga la teoría de `../template.html` (sin copiarla) y corre `arrange` sobre el catálogo de `../index.html`. `escribir oro-v3.json` guardó la instantánea de la v3 antes de sacar las perillas; `comparar oro-v3.json` exige salida idéntica con las perillas de fábrica; `perillas` imprime ejemplos de las perillas nuevas. Correr `python -I -X utf8 build.py` antes.
+- `oro-v3.json`: la instantánea (792 casos). No se regenera salvo que cambie la v3 a propósito.
+- Nota: `taller_core.js` es una copia anterior a las perillas.

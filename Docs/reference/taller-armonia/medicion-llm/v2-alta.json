@@ -1,0 +1,352 @@
+{
+ "etiqueta": "v2",
+ "calidad": "alta",
+ "fecha": "2026-11-06T13:51:57.115Z",
+ "generar": [
+  {
+   "frase": "Algo alegre para empezar un concierto",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Apertura de Concierto",
+    "modo": "Ionian",
+    "compas": 4,
+    "progresion": "I – V – vi – IV",
+    "por_que": "Es un bucle mayor y luminoso en Jónico, con ritmo armónico tranquilo (un acorde por compás) y el clásico I – V – vi – IV, que suena a inicio de espectáculo. Al repetirse en bucle, el IV vuelve al I con empuje y mantiene la energía alegre."
+   },
+   "errores": [],
+   "ms": 9276
+  },
+  {
+   "frase": "Triste pero con esperanza",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Alba tras la lluvia",
+    "modo": "Aeolian",
+    "compas": 4,
+    "progresion": "i – VImaj7 – III – VII",
+    "por_que": "El acorde menor de i da la tristeza, y luego la progresión sube hacia acordes mayores (VImaj7, III, VII) que abren luz. Termina en VII, que queda en suspenso y al repetirse vuelve a i como un consuelo que no termina de cerrar."
+   },
+   "errores": [],
+   "ms": 10078
+  },
+  {
+   "frase": "Como Radiohead en Creep",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Melancolía de rock",
+    "modo": "Ionian",
+    "compas": 4,
+    "progresion": "I – III – IV – iv",
+    "por_que": "El III mayor (en vez del iii menor) crea una tensión ascendente. El IV mayor pasa luego a iv menor, un préstamo del modo menor que da ese giro agridulce y de autocompasión típico del rock alternativo de los noventa."
+   },
+   "errores": [],
+   "ms": 22728
+  },
+  {
+   "frase": "Una cueca",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Cueca de pie",
+    "modo": "Ionian",
+    "compas": 3,
+    "progresion": "I – V7 – I – IV (0.5) – V7 (0.5)",
+    "por_que": "La cueca va en compás ternario y se mueve entre tónica y dominante con séptima, que la hace sonar alegre y bailable. El cambio rápido IV–V7 al final prepara la vuelta al I al repetirse el bucle."
+   },
+   "errores": [],
+   "ms": 10575
+  },
+  {
+   "frase": "Metal oscuro y pesado",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Abismo Frigio",
+    "modo": "Phrygian",
+    "compas": 4,
+    "progresion": "i – II – VI – II",
+    "por_que": "El II mayor, a un semitono sobre la tónica menor, es el acorde característico del frigio y da ese tono amenazante y pesado típico del metal oscuro. El VI mayor ensancha el riff y al volver al II el bucle queda sin resolver, con una tensión constante."
+   },
+   "errores": [],
+   "ms": 15945
+  },
+  {
+   "frase": "Jazz de bar a las 3 de la mañana",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Bar a las tres",
+    "modo": "Dorian",
+    "compas": 4,
+    "progresion": "im9 (2) – IV9 (1) – VIImaj7 (0.5) – IIImaj7 (0.5)",
+    "por_que": "El im9 largo respira como un piano de bar casi vacío, y el IV9 mayor es el acorde que delata el modo Dorian y le da ese aire jazzero y algo brumoso. Los dos maj7 rápidos del final caen suaves y devuelven el bucle al inicio sin prisa."
+   },
+   "errores": [],
+   "ms": 20369
+  },
+  {
+   "frase": "Funk que no se acaba nunca",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Vamp Funk Eterno",
+    "modo": "Dorian",
+    "compas": 4,
+    "progresion": "i – IV7 (2) – i – IV7",
+    "por_que": "Dos acordes que se alternan sin resolver (i menor y IV mayor dominante, el color propio del Dorian) crean un vamp funk que parece no acabar nunca. Como el taller repite en bucle, el final vuelve al principio sin cierre."
+   },
+   "errores": [],
+   "ms": 12542
+  },
+  {
+   "frase": "Como un sueño en el que flotas",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Flotando en Lidio",
+    "modo": "Lydian",
+    "compas": 4,
+    "progresion": "Imaj9 (2) – II (1) – iiim7 (0.5) – Vsus2 (0.5)",
+    "por_que": "El II mayor es el acorde característico del Lidio (la cuarta aumentada), y da esa sensación de elevarse. El Imaj9 largo, con dos compases, y el Vsus2 sin tercera dejan el final abierto, así que el bucle da vueltas sin caer, como flotar en un sueño."
+   },
+   "errores": [],
+   "ms": 37456
+  },
+  {
+   "frase": "Música de flamenco",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "respuesta_invalida"
+   ],
+   "ms": 16293
+  },
+  {
+   "frase": "Algo que suene a final de videojuego, épico, que no se repita",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Final sin regreso",
+    "modo": "Aeolian",
+    "compas": 4,
+    "progresion": "i – VI – III – VII – iv – iiø7 – V7 (2)",
+    "por_que": "Está en Aeolian, el modo del tono épico y heroico, con la subida i – VI – III – VII de las escenas finales. Siete acordes distintos en 8 compases dan sensación de viaje, y el V7 largo en tensión empuja de vuelta al i. El taller siempre repite en bucle, así que no puedo hacer que no se repita del todo. Lo más cercano es evitar acordes repetidos dentro de la frase y cerrar con un V7 que pide volver a empezar."
+   },
+   "errores": [],
+   "ms": 20146
+  }
+ ],
+ "ajustar": [
+  {
+   "frase": "nivel 3 menos loco",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 1,
+     "paso": "clasico"
+    }
+   },
+   "por_que": "Bajo el presupuesto del nivel 3 de 2 a 1 para que haga un cambio menos por vuelta, y paso pasa de cromático a clásico, así el sustituto tritonal se convierte en una dominante normal. No toco bVI ni remateFiel porque hoy no se oye ningún adorno que dependa de ellos.",
+   "ms": 16716,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52700,
+    "salida": 678
+   }
+  },
+  {
+   "frase": "más acordes de paso en el 2",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "presupuesto": 2,
+     "paso": "clasico",
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "El nivel 2 ya tiene paso clásico, pero con presupuesto 1 solo hace una dominante secundaria; subo a 2 cambios por vuelta y activo preferirAcordeNuevo (sus4 está en true y paso no es «no») para que el adorno sea un acorde de paso nuevo y no una suspensión. El nivel 3 sigue con presupuesto 2, así que la escalera no se invierte.",
+   "ms": 14656,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52701,
+    "salida": 200
+   }
+  },
+  {
+   "frase": "que se note más el adorno",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "En el nivel 2 solo suena la suspensión sus4, que apenas se oye. Con preferirAcordeNuevo el adorno pasa a ser un acorde nuevo de paso, que se nota más. El nivel 3 ya tiene el iv prestado activo y sus4 apagado, así que esa perilla no cambiaría nada allí.",
+   "ms": 14491,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52712,
+    "salida": 418
+   }
+  },
+  {
+   "frase": "el final se aleja demasiado de la original",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "remate": "simple",
+     "remateFiel": true,
+     "paso": "clasico"
+    }
+   },
+   "por_que": "En el nivel 3, que es el que suena, el final usaba un remate «rico» y un sustituto tritonal. Con «simple», remateFiel y paso clásico, el final vuelve a una dominante normal hacia IVmaj7, más cerca de la progresión original. Como la progresión es toda diatónica, remateFiel evita que el remate meta acordes de fuera de la escala.",
+   "ms": 15969,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52740,
+    "salida": 931
+   }
+  },
+  {
+   "frase": "más jazz en el 2",
+   "fallo": "respuesta_invalida",
+   "detalle": "stop_reason end_turn",
+   "ms": 13438
+  },
+  {
+   "frase": "más oscuro",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "ivPrestado": true
+    }
+   },
+   "por_que": "Activo el iv prestado en el nivel 2 para oscurecer, y así el 3 sigue haciendo más que el 2. El nivel 3 ya tiene ivPrestado y bVI activos. Para oscurecer de verdad hay que cambiar el modo (por ejemplo a Eólico), y eso no es una perilla.",
+   "ms": 10040,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52695,
+    "salida": 144
+   }
+  },
+  {
+   "frase": "no me toques el final",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "remate": "no"
+    },
+    "3": {
+     "remate": "no"
+    }
+   },
+   "por_que": "Pongo el remate en «no» en los niveles 2 y 3 para que la última vuelta no añada acordes que empujen de vuelta al primero. El nivel 3 estaba en «rico» y el 2 en «simple»; sin este cambio, los dos tocarían el final.",
+   "ms": 10612,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52733,
+    "salida": 136
+   }
+  },
+  {
+   "frase": "cambia el IV por un ii",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": false,
+   "util": true,
+   "ignored": [],
+   "cambios": {},
+   "por_que": "Cambiar el IV por un ii es cambiar un acorde de la progresión, y eso no se puede hacer con perillas: el taller nunca reescribe acordes. Si quieres otro sonido, puedes editar la progresión misma (I – V – vi – ii) y volver a tocarla.",
+   "ms": 8952,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52700,
+    "salida": 116
+   }
+  },
+  {
+   "frase": "que cambie desde la primera vuelta",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": false,
+   "util": true,
+   "ignored": [],
+   "cambios": {},
+   "por_que": "Ya hay adornos desde la vuelta 2 en los niveles 2 y 3, que es lo más pronto que permite el taller. La vuelta 1 siempre suena tal cual, así que no hay ninguna perilla que la haga cambiar.",
+   "ms": 9139,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52703,
+    "salida": 168
+   }
+  },
+  {
+   "frase": "el 2 y el 3 suenan igual",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 3,
+     "sus4": true
+    }
+   },
+   "por_que": "Subo el nivel 3 para separarlo del 2: con presupuesto 3 y sus4 activado, además del sustituto tritonal y del iv6 suena la suspensión en el V7. Así el 3 hace todo lo que hace el 2 y algo más.",
+   "ms": 14944,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52718,
+    "salida": 846
+   }
+  }
+ ],
+ "resumen": {
+  "generar": {
+   "validas": 9,
+   "utiles": 9,
+   "segundo_intento": 0
+  },
+  "ajustar": {
+   "validas": 9,
+   "utiles": 9
+  }
+ }
+}

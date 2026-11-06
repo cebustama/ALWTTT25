@@ -1,0 +1,320 @@
+{
+ "etiqueta": "v1",
+ "calidad": "alta",
+ "fecha": "2026-11-06T13:37:46.354Z",
+ "generar": [
+  {
+   "frase": "Algo alegre para empezar un concierto",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Apertura de Concierto",
+    "modo": "Ionian",
+    "compas": 4,
+    "progresion": "I – V – vi – IV",
+    "por_que": "Es un bucle mayor clásico de pop en Jónico: la tónica y la dominante dan energía, y el vi y el IV aportan calidez. Cada acorde dura un compás y se repite sin cansar, ideal para abrir un concierto con ánimo."
+   },
+   "errores": [],
+   "ms": 9762
+  },
+  {
+   "frase": "Triste pero con esperanza",
+   "valida": true,
+   "util": true,
+   "intentos": 1,
+   "r": {
+    "nombre": "Luz entre la lluvia",
+    "modo": "Aeolian",
+    "compas": 4,
+    "progresion": "i – VI – III – VII",
+    "por_que": "Empieza en el menor de i (la tristeza) y sube por VI y III, los acordes mayores del modo, que dan la luz de la esperanza. Cierra en VII mayor, que queda abierto y vuelve a i en el bucle, como quien sigue adelante."
+   },
+   "errores": [],
+   "ms": 18036
+  },
+  {
+   "frase": "Como Radiohead en Creep",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "no_json"
+   ],
+   "ms": 3370
+  },
+  {
+   "frase": "Una cueca",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "no_json"
+   ],
+   "ms": 13361
+  },
+  {
+   "frase": "Metal oscuro y pesado",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "respuesta_invalida"
+   ],
+   "ms": 18024
+  },
+  {
+   "frase": "Jazz de bar a las 3 de la mañana",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "respuesta_invalida"
+   ],
+   "ms": 20829
+  },
+  {
+   "frase": "Funk que no se acaba nunca",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "respuesta_invalida"
+   ],
+   "ms": 17920
+  },
+  {
+   "frase": "Como un sueño en el que flotas",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "respuesta_invalida"
+   ],
+   "ms": 21705
+  },
+  {
+   "frase": "Música de flamenco",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "respuesta_invalida"
+   ],
+   "ms": 18162
+  },
+  {
+   "frase": "Algo que suene a final de videojuego, épico, que no se repita",
+   "valida": false,
+   "util": false,
+   "intentos": 1,
+   "errores": [
+    "respuesta_invalida"
+   ],
+   "ms": 12404
+  }
+ ],
+ "ajustar": [
+  {
+   "frase": "nivel 3 menos loco",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 1,
+     "paso": "clasico",
+     "remateFiel": true
+    }
+   },
+   "por_que": "Bajo el presupuesto del nivel 3 a 1, así que hace un solo adorno por vuelta en lugar de dos. El sustituto tritonal pasa a dominante clásica y el remate se queda dentro de la escala. No toco bVI porque hoy no suena en esta progresión.",
+   "ms": 20248,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52677,
+    "salida": 669
+   }
+  },
+  {
+   "frase": "más acordes de paso en el 2",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "presupuesto": 2,
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "El nivel 2 ya tenía el paso clásico activado, pero con presupuesto 1 solo cabía un adorno. Subo el presupuesto a 2 para que quepa otro acorde de paso, y activo preferirAcordeNuevo para que el adorno sea un acorde nuevo y no una suspensión. El nivel 3 sigue con presupuesto 2 y paso cromático, así que la escalera no se invierte.",
+   "ms": 15610,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52678,
+    "salida": 426
+   }
+  },
+  {
+   "frase": "que se note más el adorno",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "En el nivel 2, que es el que suena, el adorno pasa de ser un sus4 que casi no se oye a un acorde nuevo: E7, la dominante de vi, antes de Am. Es un cambio claro y el nivel 3 sigue haciendo más (sustituto tritonal e iv6).",
+   "ms": 15124,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52689,
+    "salida": 496
+   }
+  },
+  {
+   "frase": "el final se aleja demasiado de la original",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 1,
+     "paso": "clasico",
+     "remateFiel": true
+    }
+   },
+   "por_que": "Para que el final se parezca más a la original, bajo el presupuesto del nivel 3 a 1 y cambio el sustituto tritonal por la dominante clásica. Además, con remateFiel el remate no usa acordes de fuera de la escala. Dejo bVI como está porque hoy no suena en esta progresión.",
+   "ms": 13447,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52717,
+    "salida": 733
+   }
+  },
+  {
+   "frase": "más jazz en el 2",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "paso": "cromatico",
+     "remate": "rico"
+    }
+   },
+   "por_que": "El color del 2 ya está en séptimas, que es lo máximo para ese nivel. Para darle más jazz, el acorde de paso pasa a sustituto tritonal en vez de la dominante clásica, y el remate final pasa a rico (backdoor iv7–♭VII9). El nivel 3 sigue por encima con sus novenas y su iv prestado.",
+   "ms": 22494,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52675,
+    "salida": 440
+   }
+  },
+  {
+   "frase": "más oscuro",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "ivPrestado": true,
+     "presupuesto": 2
+    }
+   },
+   "por_que": "Para oscurecer el nivel 2 activo ivPrestado, que añade el iv6 tras el IV, y subo el presupuesto a 2 para que quepa junto a la dominante secundaria. No activo bVI porque no quedaría sitio y no se oiría. Aviso: para oscurecer de verdad habría que cambiar el modo, y eso no es una perilla.",
+   "ms": 89536,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52672,
+    "salida": 877
+   }
+  },
+  {
+   "frase": "no me toques el final",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "remate": "no"
+    }
+   },
+   "por_que": "El nivel 3 tenía el remate en «rico»; al ponerlo en «no», la última vuelta suena sin acordes extra que empujen de vuelta al primero. El nivel 2 ya lo tenía en «simple»: lo dejo igual para mantener la escalera, porque si también lo apago el 2 y el 3 quedarían iguales en el final.",
+   "ms": 55987,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52673,
+    "salida": 151
+   }
+  },
+  {
+   "frase": "cambia el IV por un ii",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {},
+   "por_que": "Cambiar el IV por un ii es reescribir un acorde de la progresión, y las perillas no hacen eso. Solo puedes cambiar la progresión en sí, o pedirme ajustes de adornos como el paso, el color o el iv prestado, que sí son perillas.",
+   "ms": 52174,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52677,
+    "salida": 172
+   }
+  },
+  {
+   "frase": "que cambie desde la primera vuelta",
+   "nivel": 3,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {},
+   "por_que": "La vuelta 1 siempre suena tal cual, así que desdeVuelta ya está en 2, que es el mínimo, y ninguna perilla puede hacer que los adornos empiecen en la primera vuelta. Si quieres que se note antes, no hay nada que mover: los niveles 2 y 3 ya cambian desde la vuelta 2.",
+   "ms": 11271,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52680,
+    "salida": 137
+   }
+  },
+  {
+   "frase": "el 2 y el 3 suenan igual",
+   "nivel": 2,
+   "valida": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 3,
+     "sus4": true
+    }
+   },
+   "por_que": "Ahora el nivel 3 suma la suspensión sus4 (G7sus4 → G7) al sustituto tritonal y al iv6, y el presupuesto 3 deja sitio para los tres. El nivel 2 se queda solo con el sus4, así que el 3 hace más que el 2 y se distinguen.",
+   "ms": 15867,
+   "modelo": "claude-sonnet-5-5",
+   "uso": {
+    "entrada": 52695,
+    "salida": 758
+   }
+  }
+ ],
+ "resumen": {
+  "generar": {
+   "validas": 2,
+   "utiles": 2,
+   "segundo_intento": 0
+  },
+  "ajustar": {
+   "validas": 10,
+   "utiles": 10
+  }
+ }
+}

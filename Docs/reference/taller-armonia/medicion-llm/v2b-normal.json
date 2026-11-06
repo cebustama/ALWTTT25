@@ -1,0 +1,219 @@
+{
+ "etiqueta": "v2b",
+ "calidad": "normal",
+ "fecha": "2026-11-06T13:52:00.384Z",
+ "generar": [],
+ "ajustar": [
+  {
+   "frase": "nivel 3 menos loco",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 1,
+     "paso": "clasico",
+     "bVI": false,
+     "remateFiel": true
+    }
+   },
+   "por_que": "Bajo el presupuesto del nivel 3 a 1 para que haga un solo cambio por vuelta, cambio el paso cromático por el clásico, quito el ♭VI∧7 antes del I y activo remateFiel para que el remate no salga de la escala. El nivel 3 sigue con el iv prestado tras el IV.",
+   "ms": 14520,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52721,
+    "salida": 1593
+   }
+  },
+  {
+   "frase": "más acordes de paso en el 2",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "presupuesto": 2,
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "Con presupuesto 1, el nivel 2 solo alcanza para la V7 de V7, así que el acorde de paso clásico no llega a sonar. Subo el presupuesto a 2 para que quepa, y activo preferirAcordeNuevo para que el adorno sea un acorde nuevo y no una suspensión. El nivel 3 sigue con más recursos (sustituto tritonal, iv prestado), así que la escalera se mantiene.",
+   "ms": 27547,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52722,
+    "salida": 1541
+   }
+  },
+  {
+   "frase": "que se note más el adorno",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "preferirAcordeNuevo": true
+    }
+   },
+   "por_que": "El nivel 2 pasa a meter un acorde nuevo antes de la dominante (su dominante) en lugar de la suspensión sus4, así que el adorno se oye más. El nivel 3 no cambia, porque ya tiene más presupuesto y no usa sus4.",
+   "ms": 12625,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52733,
+    "salida": 785
+   }
+  },
+  {
+   "frase": "el final se aleja demasiado de la original",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "presupuesto": 1,
+     "paso": "clasico",
+     "bVI": false,
+     "remateFiel": true
+    }
+   },
+   "por_que": "Con remateFiel en true, el remate rico del final (el IVmaj9 con sustituto tritonal) deja de sonar, porque la progresión es toda diatónica. Además se quita el ♭VI antes de volver a I, el paso cromático pasa a clásico y baja el presupuesto de cambios por vuelta.",
+   "ms": 29539,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52761,
+    "salida": 1506
+   }
+  },
+  {
+   "frase": "más jazz en el 2",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": false,
+   "util": false,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "remate": "rico"
+    }
+   },
+   "por_que": "El nivel 2 ya usa séptimas, así que el color no cambia. Pasar el paso a cromático no se notaría, porque el único cambio por vuelta ya lo ocupa la V7 de V7. El remate rico sí se oye al final, con el backdoor iv7–♭VII9 antes de volver a I.",
+   "ms": 18814,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52719,
+    "salida": 2096
+   }
+  },
+  {
+   "frase": "más oscuro",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "ivPrestado": true,
+     "bVI": true
+    }
+   },
+   "por_que": "Activo el iv prestado tras el IV y el ♭VI antes de volver a I en el nivel 2, que es el que suena. Para oscurecer de verdad haría falta cambiar el modo, y eso no es una perilla.",
+   "ms": 34047,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52716,
+    "salida": 1147
+   }
+  },
+  {
+   "frase": "no me toques el final",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "3": {
+     "remate": "no"
+    }
+   },
+   "por_que": "Quito el remate del nivel 3, que era el que tocaba el final de la última vuelta. El nivel 2 ya tiene remate simple, así que lo dejo como está; si quieres que el final quede limpio en los dos niveles, dímelo.",
+   "ms": 15140,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52754,
+    "salida": 889
+   }
+  },
+  {
+   "frase": "cambia el IV por un ii",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": false,
+   "util": true,
+   "ignored": [],
+   "cambios": {},
+   "por_que": "Cambiar el IV por un ii supone cambiar un acorde, y eso no se puede hacer con perillas, así que no he tocado nada. Si quieres más movimiento alrededor del IV, puedes pedir «más acordes de paso» o «que se note más», o bien «menos loco» si prefieres que suene más fiel a la original.",
+   "ms": 14095,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52721,
+    "salida": 548
+   }
+  },
+  {
+   "frase": "que cambie desde la primera vuelta",
+   "nivel": 3,
+   "valida": true,
+   "se_oye": false,
+   "util": true,
+   "ignored": [],
+   "cambios": {},
+   "por_que": "La vuelta 1 siempre suena tal cual, y los niveles 2 y 3 ya empiezan en la vuelta 2, que es la primera posible. No hay perilla que adelante el cambio, así que no toco nada.",
+   "ms": 10236,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52724,
+    "salida": 418
+   }
+  },
+  {
+   "frase": "el 2 y el 3 suenan igual",
+   "nivel": 2,
+   "valida": true,
+   "se_oye": true,
+   "util": true,
+   "ignored": [],
+   "cambios": {
+    "2": {
+     "sus4": false
+    }
+   },
+   "por_que": "El nivel 2 solo hace hoy el sus4 de la dominante, y el 3 ya tiene su propio movimiento (sustituto tritonal e iv6). Quito el sus4 del 2 para que se oiga más sobrio y se distinga del 3. Si quieres que el 2 conserve algún adorno, habría que subir el 3 en vez de bajar el 2.",
+   "ms": 18000,
+   "modelo": "claude-haiku-5-5",
+   "uso": {
+    "entrada": 52739,
+    "salida": 1947
+   }
+  }
+ ],
+ "resumen": {
+  "generar": {
+   "validas": 0,
+   "utiles": 0,
+   "segundo_intento": 0
+  },
+  "ajustar": {
+   "validas": 10,
+   "utiles": 9
+  }
+ }
+}

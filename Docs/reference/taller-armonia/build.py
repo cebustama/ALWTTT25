@@ -49,7 +49,8 @@ for name, mode, text, tags, src in STYLES:
 
 data = json.dumps(lib, ensure_ascii=False).replace("</", "<\\/")
 html = (d / "template.html").read_text(encoding="utf-8").replace("__LIB__", data)
-(d / "index.html").write_text(html, encoding="utf-8")
+# Claude (/api/llm) only exists on the website, behind Access: the artifact gets the page without those buttons (D4, 2026-11-06).
+(d / "index.html").write_text(html.replace("__LLM__", "false"), encoding="utf-8")
 print(len(lib), "entries,", len(html), "bytes")
 
 # Static copy for the private section of the website (behind Cloudflare Access):
@@ -66,5 +67,5 @@ if "--web" in __import__("sys").argv:
         '[hidden] { display: none !important; }',
         '</style>', ''])
     WEB.mkdir(parents=True, exist_ok=True)
-    (WEB / "index.html").write_text(head + html, encoding="utf-8")
+    (WEB / "index.html").write_text(head + html.replace("__LLM__", "true"), encoding="utf-8")
     print("web copy ->", WEB / "index.html")
