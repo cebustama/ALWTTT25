@@ -42,3 +42,29 @@ Una marca y, si quieres, tres palabras:
 - Si casi todo sale ✓, la v3 se queda como está y pasamos a la encuesta corta.
 
 Las respuestas se mandan en el chat, por ejemplo: `1: ✓ ✗ (el ♭VI7 suena raro) · 2: ~ ✓ · …`.
+
+## Resultado (Claudio, 2026-11-06)
+
+Hecha con la hoja https://claude.ai/artifact/9MyQ5S8r3gmvGaaS3aNCDh (fuente `hoja-prueba-oido.html`).
+
+| # | Progresión | N2 | N3 | ¿Momento que la identifica? |
+|---|---|---|---|---|
+| 1 | Axis | ✓ | ✓ | sí |
+| 2 | Cincuentas | ✓ | ✓ | sí |
+| 3 | Creep | ✓ | ✓ | sí |
+| 4 | Nubarrón ♭VI | ✓ | ✓ | no sé |
+| 5 | Frigio descenso | ✓ | ✓ | sí |
+| 6 | Lidio flotante | ✓ | ✓ | no sé |
+| 7 | Cadencia andaluza | ✓ | ✓ | sí |
+| 8 | Royal road | ✓ | ✓ | sí |
+
+- G1: «Sí, funciona, aunque tal vez en algunas no se nota mucho la diferencia al ser solo de quality. Pero en general, sí se nota.»
+- G2: «Ninguna, me parece que tienen que ser notorias. Tal vez en royal road se escapa mucho de la armonía original el último F#7.»
+- G3: «Funcionan bien.»
+
+**Decisión:** D9 = C cerrada. 16/16 ✓: la v3 se queda; la D9-A (guarda de forma) no hace falta. El oído de Claudio contradice la predicción de Music Lab sobre Creep en el nivel 2; según la regla, gana el oído.
+
+**Notas para después (no bloquean):**
+1. Nivel 2 cuando el único cambio es de cualidad (sus4, V→V7): se nota poco. Candidato: que el nivel 2 prefiera un cambio que añada acorde.
+2. Royal road nivel 3: el `♭V7` del final (F#7 en C) se aleja. Candidato: en la vuelta al inicio del nivel 3, sustituto tritonal solo si la progresión ya es cromática.
+3. Límite: un solo oyente, que conoce las reglas y no escuchó a ciegas. La encuesta corta (D7) es la que valida con otros oídos.
