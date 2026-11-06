@@ -1,0 +1,696 @@
+<title>Taller de batería</title>
+<meta charset="utf-8">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Chakra+Petch:wght@500;700&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap">
+<style>
+/* Layout: a bench. Sticky transport on top; the pattern, its grid, the verdict and the export on the left; the catalogue on the right. */
+:root{
+  --bg:#dfe3ea; --panel:#fbfbf7; --panel-2:#e9ebee; --ink:#1b2340; --muted:#566080; --line:#b9c0d0;
+  --accent:#2b3f9e; --accent-ink:#ffffff; --warn:#8f5a00; --ok:#1d6f4a; --mid:#8f5a00; --bad:#a8323f;
+  --cell:transparent; --hit:#1b2340; --hit-acc:#b3261e; --hit-gho:#8b93ab; --beat:#b9c0d0; --now:#ffe08a;
+  --f-display:"Newsreader",ui-serif,Georgia,serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --radius:4px; --cell-r:0;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a2b; --panel:#1c2338; --panel-2:#2a3350; --ink:#e7e9f3; --muted:#a2a9c2; --line:#3a4466;
+  --accent:#9db0ff; --accent-ink:#11162a; --warn:#f0c26a; --ok:#6fd3a5; --mid:#f0c26a; --bad:#ff9aa5;
+  --hit:#e7e9f3; --hit-acc:#ff9a8f; --hit-gho:#6c7596; --beat:#3a4466; --now:#5a4a18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a2b; --panel:#1c2338; --panel-2:#2a3350; --ink:#e7e9f3; --muted:#a2a9c2; --line:#3a4466;
+  --accent:#9db0ff; --accent-ink:#11162a; --warn:#f0c26a; --ok:#6fd3a5; --mid:#f0c26a; --bad:#ff9aa5;
+  --hit:#e7e9f3; --hit-acc:#ff9a8f; --hit-gho:#6c7596; --beat:#3a4466; --now:#5a4a18; color-scheme:dark}
+/* Caja de ritmos: one dark machine, the same in both themes */
+:root[data-look="caja"],:root[data-look="caja"][data-theme="dark"],:root[data-look="caja"][data-theme="light"]{
+  --bg:#2a2d31; --panel:#35393e; --panel-2:#454a50; --ink:#f1ece0; --muted:#b9b4a6; --line:#565b62;
+  --accent:#f08a24; --accent-ink:#201204; --warn:#f2c14e; --ok:#8fd694; --mid:#f2c14e; --bad:#ff8a7a;
+  --cell:#1e2023; --hit:#f08a24; --hit-acc:#fff3d6; --hit-gho:#8a5a2a; --beat:#6b7077; --now:#ffffff;
+  --f-display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif; --radius:6px; --cell-r:2px; color-scheme:dark}
+@media (prefers-color-scheme: dark){:root[data-look="caja"]:not([data-theme="light"]){
+  --bg:#2a2d31; --panel:#35393e; --panel-2:#454a50; --ink:#f1ece0; --muted:#b9b4a6; --line:#565b62;
+  --accent:#f08a24; --accent-ink:#201204; --warn:#f2c14e; --ok:#8fd694; --mid:#f2c14e; --bad:#ff8a7a;
+  --cell:#1e2023; --hit:#f08a24; --hit-acc:#fff3d6; --hit-gho:#8a5a2a; --beat:#6b7077; --now:#ffffff}}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:16px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:920px){.cols{grid-template-columns:minmax(0,1fr)}}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(28px,5vw,40px);letter-spacing:-.01em}
+h2{font-size:21px}
+h3{font-size:13px;font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+p{margin:0}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)} .small{font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:grid;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.between{justify-content:space-between}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--panel-2);border-radius:999px;padding:7px 14px;font-weight:700;font-size:15px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.icon{width:44px;height:44px;padding:0;display:grid;place-items:center;border-radius:50%}
+.icon svg{width:22px;height:22px}
+select,textarea,input[type=text],input[type=number]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 10px;min-width:0;max-width:100%}
+textarea{width:100%;resize:vertical}
+label.k{display:grid;gap:3px;font-size:13px;color:var(--muted);min-width:0}
+.mono{font-family:var(--f-mono)}
+
+.transport{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.bpm{display:flex;gap:8px;align-items:center;flex:1 1 200px;min-width:0}
+.bpm input{flex:1;min-width:0;accent-color:var(--accent)}
+.bpm output{font:700 20px/1 var(--f-mono);min-width:3ch;text-align:right;font-variant-numeric:tabular-nums}
+.pos{font:500 13px/1.2 var(--f-mono);color:var(--muted);min-width:14ch;font-variant-numeric:tabular-nums}
+.check{display:flex;gap:5px;align-items:center;font-size:14px;color:var(--muted)}
+.check input{accent-color:var(--accent)}
+
+.facts{display:flex;flex-wrap:wrap;gap:4px 14px;font:500 13px/1.5 var(--f-mono);color:var(--muted)}
+.facts b{color:var(--ink);font-weight:700}
+.tag{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--muted)}
+.note{border-left:3px solid var(--warn);padding-left:10px;font-size:14px}
+.lanes{display:flex;flex-wrap:wrap;gap:6px}
+.lane{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;font-size:14px}
+.lane button{border:0;background:var(--panel-2);padding:4px 10px}
+.lane .play{border-left:1px solid var(--line);padding:4px 9px;background:transparent}
+.lane.off button:first-child{text-decoration:line-through;color:var(--muted);background:transparent}
+
+.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:12px}
+.bar{min-width:0;display:grid;gap:2px}
+.bar-h{font:500 11px/1.4 var(--f-mono);color:var(--muted);padding-left:66px}
+.gr{display:grid;grid-template-columns:62px minmax(0,1fr);gap:4px;align-items:center}
+.gr>span{font-size:12px;line-height:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cells{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px}
+.c{height:24px;width:100%;padding:0;border:0;border-radius:var(--cell-r);display:flex;align-items:center;justify-content:center;position:relative;background:var(--cell) linear-gradient(var(--line),var(--line)) center/100% 1px no-repeat}
+.c.beat{box-shadow:-1px 0 0 0 var(--beat)}
+.c.felt{box-shadow:-2px 0 0 0 var(--muted)}
+.c.now{background:var(--now)}
+.c i{display:block;flex:none;width:calc(5px + var(--v)*11px);height:calc(5px + var(--v)*11px);border-radius:50%;background:var(--hit)}
+.c.acc i{background:var(--hit-acc)} .c.gho i{background:var(--hit-gho)}
+.gr.cy .c i{background:none;color:var(--hit);display:grid;place-items:center;font:700 calc(10px + var(--v)*8px)/1 var(--f-mono)}
+.gr.cy .c i::before{content:"×"}
+.gr.cy .c.acc i{color:var(--hit-acc)}
+.gr.cy .c.gho i{color:var(--hit-gho)}
+.mine .c{height:32px;cursor:pointer;outline:1px solid var(--panel-2);outline-offset:-1px}
+.mine .c:hover{background-color:var(--panel-2)}
+:root[data-look="caja"] .c{height:26px;align-items:stretch;justify-content:stretch;padding:2px;background:var(--cell)}
+:root[data-look="caja"] .mine .c{height:32px}
+:root[data-look="caja"] .c.now{background:var(--now)}
+:root[data-look="caja"] .c i,:root[data-look="caja"] .gr.cy .c i{display:block;width:100%;height:auto;border-radius:2px;background:var(--hit);opacity:calc(.3 + var(--v)*.7);box-shadow:0 0 6px var(--hit)}
+:root[data-look="caja"] .gr.cy .c i::before{content:none}
+:root[data-look="caja"] .c[data-q="1"] i,:root[data-look="caja"] .gr.cy .c[data-q="1"] i{background:#e0552f}
+:root[data-look="caja"] .c[data-q="2"] i,:root[data-look="caja"] .gr.cy .c[data-q="2"] i{background:#f2c14e}
+:root[data-look="caja"] .c[data-q="3"] i,:root[data-look="caja"] .gr.cy .c[data-q="3"] i{background:#e8e2cf}
+:root[data-look="caja"] .c.acc i,:root[data-look="caja"] .gr.cy .c.acc i{background:#fff3d6}
+
+@media (max-width:520px){
+  .mine .bar{overflow-x:auto;padding-bottom:4px}
+  .mine .gr{width:max-content;grid-template-columns:62px max-content}
+  .mine .gr>span{position:sticky;left:0;z-index:1;background:var(--panel);align-self:stretch;display:flex;align-items:center}
+  .mine .cells{grid-template-columns:repeat(var(--n),26px)}
+}
+.editor{display:grid;gap:10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-block:12px}
+.egrid{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.egrid{grid-template-columns:repeat(3,minmax(0,1fr))}.egrid .wide{grid-column:1/-1}}
+.egrid input,.egrid select{width:100%}
+.elane{display:grid;grid-template-columns:minmax(0,1fr) 76px 40px;gap:6px;align-items:center}
+.elane input{width:100%}
+.elanes{display:grid;gap:6px}
+.btn.sm{padding:4px 12px;font-size:14px}
+.x{height:36px;border:1px solid var(--line);background:transparent;border-radius:8px}
+
+.verdict{display:flex;gap:8px}
+.verdict button{width:52px;height:44px;border:1px solid var(--line);background:var(--panel-2);border-radius:10px;font-size:20px;font-weight:700;line-height:1}
+.verdict button[aria-pressed="true"][data-v="ok"]{background:var(--ok);color:var(--panel);border-color:var(--ok)}
+.verdict button[aria-pressed="true"][data-v="mid"]{background:var(--mid);color:var(--panel);border-color:var(--mid)}
+.verdict button[aria-pressed="true"][data-v="bad"]{background:var(--bad);color:var(--panel);border-color:var(--bad)}
+pre.out{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;font:500 13px/1.45 var(--f-mono);overflow-x:auto;max-height:280px}
+
+.cat{position:sticky;top:calc(env(safe-area-inset-top,0px) + 84px);max-height:calc(100vh - 100px);display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto}
+@media (max-width:920px){.cat{position:static;max-height:none}}
+.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.list{overflow-y:auto;display:grid;gap:12px;align-content:start;min-height:0}
+.group{display:grid;gap:3px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 8px;text-align:left;border:1px solid transparent;background:transparent;border-radius:9px;padding:5px 8px}
+.item:hover{background:var(--panel-2)}
+.item[aria-current="true"]{border-color:var(--accent);background:var(--panel-2)}
+.item .nm{font:700 14px/1.3 var(--f-mono);overflow-wrap:anywhere}
+.item .sub{font-size:12.5px;color:var(--muted);grid-column:1}
+.item .mk{grid-row:1/3;grid-column:2;align-self:center;font-weight:700;min-width:1.2em;text-align:center}
+.mk.ok{color:var(--ok)} .mk.mid{color:var(--mid)} .mk.bad{color:var(--bad)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="row between">
+    <div>
+      <p class="eyebrow">ALWTTT · por tipo de pista</p>
+      <h1>Taller de batería</h1>
+    </div>
+    <label class="k">Aspecto
+      <select id="look"><option value="papel">Partitura</option><option value="caja">Caja de ritmos</option></select>
+    </label>
+  </header>
+
+  <div class="transport" aria-label="Reproducción">
+    <button class="btn icon" id="prev" aria-label="Patrón anterior"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 5v14L6 12z"/></svg></button>
+    <button class="btn primary icon" id="play" aria-label="Reproducir"></button>
+    <button class="btn icon" id="next" aria-label="Patrón siguiente"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.5 5v14L18 12z"/></svg></button>
+    <div class="bpm"><label class="small muted" for="bpm">BPM</label><input type="range" id="bpm" min="40" max="240" step="1" value="100"><output id="bpmv">100</output></div>
+    <label class="check"><input type="checkbox" id="loop" checked>Bucle</label>
+    <label class="check"><input type="checkbox" id="lock">Fijar BPM</label>
+    <span class="pos" id="pos">—</span>
+  </div>
+
+  <div class="cols">
+    <main style="display:grid;gap:16px;min-width:0">
+      <section class="panel" aria-labelledby="pname">
+        <div class="row between"><h2 id="pname" class="mono"></h2><span class="small muted" id="pdisp"></span></div>
+        <div class="facts" id="facts"></div>
+        <div class="row" id="tags"></div>
+        <p class="small" id="pnote"></p>
+        <div id="warns" style="display:grid;gap:6px"></div>
+        <div class="row" id="actions"><button class="btn sm" id="ecopy">Editar una copia</button></div>
+        <div class="editor" id="editor" hidden>
+          <div class="egrid">
+            <label class="k wide">Nombre<input type="text" id="ename" maxlength="60"></label>
+            <label class="k">Compás<select id="ets"></select></label>
+            <label class="k">Compases<input type="number" id="emeas" min="1" max="16"></label>
+            <label class="k">Subdivisión<select id="esub"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+          </div>
+          <div class="elanes" id="elanes"></div>
+          <div class="row between">
+            <button class="btn sm" id="eadd">Añadir carril</button>
+            <button class="btn sm" id="edel">Borrar patrón</button>
+          </div>
+          <p class="small muted">Toca una casilla para pasar por normal, acento, ghost y vacía. Se oye mientras suena: no hace falta parar.</p>
+          <p class="small note" id="enote" hidden></p>
+        </div>
+        <div class="lanes" id="lanes"></div>
+        <div class="bars" id="bars"></div>
+      </section>
+      <section class="panel" aria-labelledby="h-ev">
+        <div class="row between"><h2 id="h-ev">Evaluación</h2><span class="small muted" id="saved"></span></div>
+        <div class="verdict" id="verdict" role="group" aria-label="Veredicto">
+          <button data-v="ok" aria-pressed="false" aria-label="Funciona">✓</button>
+          <button data-v="mid" aria-pressed="false" aria-label="Regular">~</button>
+          <button data-v="bad" aria-pressed="false" aria-label="No funciona">✗</button>
+        </div>
+        <textarea id="evnote" rows="2" placeholder="Qué oyes, qué cambiarías"></textarea>
+      </section>
+      <section class="panel" aria-labelledby="h-out">
+        <div class="row between"><h2 id="h-out">Para el Import de Unity</h2><button class="btn primary" id="copy">Copiar para el editor</button></div>
+        <p class="small muted">En Unity: <span class="mono">MidiGenPlay / Drum Pattern Editor…</span> → <span class="mono">Import from Clipboard</span> → <span class="mono">Save As New Asset</span>. El nombre no viaja: se pone al guardar.</p>
+        <pre class="out" id="out" tabindex="0"></pre>
+      </section>
+    </main>
+    <aside class="panel cat" aria-labelledby="h-cat">
+      <div class="row between"><h2 id="h-cat">Catálogo</h2><button class="btn sm primary" id="enew">Nuevo patrón</button></div>
+      <span class="small muted" id="count"></span>
+      <div class="filters">
+        <label class="k">Paleta<select id="fpal"></select></label>
+        <label class="k">Compás<select id="fts"></select></label>
+        <label class="k">Estado<select id="fev"><option value="">Todos</option><option value="none">Sin evaluar</option><option value="ok">✓</option><option value="mid">~</option><option value="bad">✗</option></select></label>
+      </div>
+      <div class="list" id="list"></div>
+      <button class="btn" id="copyev">Copiar evaluaciones</button>
+    </aside>
+  </div>
+  <p class="small muted">Kit sintetizado para comparar patrones: no es el sonido del juego. Para eso, <span class="mono">MidiGenPlay → Smoke → Composition Smoke</span>.</p>
+</div>
+
+<script>
+const DATA = {"palettes":[{"id":"CompoundSwing","display":"Compound Swing (6/8)"},{"id":"FourOnTheFloor","display":"Four-on-the-Floor (4/4)"},{"id":"OddMeterAngular","display":"Odd-Meter Angular (5/4)"},{"id":"SyncopatedPocket","display":"Syncopated Pocket (4/4)"},{"id":"WaltzLilt","display":"Waltz-Pulse Lilt (3/4)"}],"patterns":[{"id":"Compound Swing","guid":"b423b2171321f8747a489c45fb4a99ac","display":"Compound Swing","folder":"New folder","ts":"SixEight","beats":6,"unit":8,"measures":2,"subdivisions":3,"lanes":[{"gm":36,"name":"BassDrum1","def":95,"steps":[120,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":51,"name":"RideCymbal1","def":90,"steps":[0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1]}],"palettes":[{"id":"CompoundSwing","weight":1.0}],"totalSteps":36,"export":"**Compound Swing**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: SixEight\n- Measures: 2\n- Subdivisions: 3\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 95\n  2. AcousticSnare (GM 38) — default velocity 100\n  3. RideCymbal1 (GM 51) — default velocity 90\n\n```\nX........x........|X........x........\n.........X........|.........X........\nx..x.xx..x..x.xx..|x..x.xx..x..x.xx..\n```\n","snapped":0,"bpm":80,"tags":["jazz lento","vals swing","6/8 anidado"],"nota":"[C] El ride (0,3,5,6) es el de un vals de jazz a escala de corchea: con subdivisions 3 el swing va dentro de cada corchea, no en la negra con puntillo. Suena a dos valses de 3/8 más que a 6/8 compuesto. Bombo y caja coinciden en paso 9."},{"id":"CS_CountryLilt68","guid":"b99fc069269520c4bbc9bc4c09d1610d","display":"CS_CountryLilt68","folder":"6_8","ts":"SixEight","beats":6,"unit":8,"measures":2,"subdivisions":1,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":105,"steps":[-1,-1,50,-1,50,-1,-1,-1,50,-1,50,0]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[{"id":"CompoundSwing","weight":1.0}],"totalSteps":12,"export":"**CS_CountryLilt68**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: SixEight\n- Measures: 2\n- Subdivisions: 1\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 105\n  3. ClosedHiHat (GM 42) — default velocity 80\n  4. OpenHiHat (GM 46) — default velocity 90\n\n```\nx.....|x.....\n..o.o.|..o.ox\nx.x.x.|x.x.x.\n......|......\n```\n","snapped":0,"bpm":120,"tags":["country","vals","6/8 que suena a 3/4"],"nota":"[C] No se siente 6/8: charles en 0,2,4, caja en 2 y 4 y el paso 3 (segundo pulso sentido) vacío en todos los carriles. Son tres negras, un vals de 3/4. Caja en ghost, floja para country. Carril OpenHiHat vacío."},{"id":"CS_FunkShuffle68","guid":"ef9afbba2fc551340a7c4ae9331dede1","display":"CS_FunkShuffle68","folder":"6_8","ts":"SixEight","beats":6,"unit":8,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,0,-1,-1,-1,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,50,-1,50,-1,0,-1,-1,50,-1,50,-1,-1,50,-1,50,-1,0,-1,-1,50,-1,50]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1]}],"palettes":[{"id":"CompoundSwing","weight":1.0}],"totalSteps":24,"export":"**CS_FunkShuffle68**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: SixEight\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 110\n  3. ClosedHiHat (GM 42) — default velocity 80\n  4. OpenHiHat (GM 46) — default velocity 90\n\n```\nx....x......|x....x....x.\n..o.o.x..o.o|..o.o.x..o.o\nxxxxxxxxxxxx|xxxxxxxxxxxx\n............|.........X..\n```\n","snapped":0,"bpm":90,"tags":["funk","6/8 recto","semicorcheas"],"nota":"[C] No hay shuffle: el charles toca las 12 semicorcheas parejas, sin largo-corto. El backbeat del paso 6 está bien; los ghosts 9 y 11 caen fuera de las corcheas y rompen la división ternaria. c2 paso 9: charles cerrado y abierto a la vez."},{"id":"CS_JazzCompound","guid":"1e465aba22941674aaebc0b99c0665ce","display":"CS_JazzCompound","folder":"6_8","ts":"SixEight","beats":6,"unit":8,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":70,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":80,"steps":[-1,-1,-1,-1,50,-1,-1,-1,-1,50,-1,-1,-1,50,-1,-1,50,-1,-1,-1,-1,50,-1,-1]},{"gm":51,"name":"RideCymbal1","def":90,"steps":[0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1,0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]}],"palettes":[{"id":"CompoundSwing","weight":1.0}],"totalSteps":24,"export":"**CS_JazzCompound**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: SixEight\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 70\n  2. AcousticSnare (GM 38) — default velocity 80\n  3. RideCymbal1 (GM 51) — default velocity 90\n  4. ClosedHiHat (GM 42) — default velocity 75\n\n```\nx.....x.....|x.....x.....\n....o....o..|.o..o....o..\nx..x..x.x.x.|x..x..x.x.x.\n......x.....|......x.....\n```\n","snapped":0,"bpm":120,"tags":["jazz","6/8 en dos","ride quebrado"],"nota":"[C] El ride no es spang-a-lang: tiene su esqueleto en 6/8 (0,6,10), pero añade el paso 3 (semicorchea binaria) y el 8, y queda 3+3+2+2+2. Los ghosts en 9 y en c2 paso 1 tampoco caen en corchea. Oye el pulso en dos del bombo (0,6)."},{"id":"CS_MetalDrive68","guid":"a24efc30032c79848b448746c63450d8","display":"CS_MetalDrive68","folder":"6_8","ts":"SixEight","beats":6,"unit":8,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":115,"steps":[0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0]},{"gm":38,"name":"AcousticSnare","def":120,"steps":[-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":90,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":46,"name":"OpenHiHat","def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120]}],"palettes":[{"id":"CompoundSwing","weight":1.0}],"totalSteps":24,"export":"**CS_MetalDrive68**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: SixEight\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 115\n  2. AcousticSnare (GM 38) — default velocity 120\n  3. ClosedHiHat (GM 42) — default velocity 90\n  4. OpenHiHat (GM 46) — default velocity 100\n\n```\nx.xx.xx.xx.x|x.xx.xx.xx.x\n......x.....|......x.....\nx.x.x.x.x.x.|x.x.x.x.x.x.\n............|...........X\n```\n","snapped":0,"bpm":120,"tags":["metal","6/8","bombo cruzado"],"nota":"[C] El bombo va en células 2+1, cuatro por compás, contra seis corcheas de charles: 3 contra 2 dentro del pulso. [I] Se puede oír como shuffle en 4 a medio tiempo, con la caja en el 3 (paso 6); solo el charles dice 6/8. No es galope (2+1+1)."},{"id":"CS_RockBallad68","guid":"d8416c8df5b41f246b2dac34bab387e7","display":"CS_RockBallad68","folder":"6_8","ts":"SixEight","beats":6,"unit":8,"measures":2,"subdivisions":1,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,0]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"palettes":[{"id":"CompoundSwing","weight":1.0}],"totalSteps":12,"export":"**CS_RockBallad68**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: SixEight\n- Measures: 2\n- Subdivisions: 1\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n  4. OpenHiHat (GM 46) — default velocity 95\n\n```\nx.....|x....x\n...x..|...x..\nxxxxxx|xxxxxx\n......|....X.\n```\n","snapped":0,"bpm":69,"tags":["balada rock","6/8","pulso lento"],"nota":"[C] Es lo que dice: bombo en 0 y caja en 3, los dos pulsos sentidos, con corcheas parejas (negra con puntillo a 46). Primo del 12/8 de Since I've Been Loving You. c2 paso 4: charles cerrado y abierto a la vez."},{"id":"DNB 4-4 2m test","guid":"ed0e8265b7434b94a970f95724d3c14c","display":"DNB 4-4 2m test","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":105,"steps":[0,-1,-1,0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,120,-1,-1,50,-1,-1,-1,-1,120,-1,50,-1,-1,-1,-1,-1,120,-1,-1,50,-1,-1,-1,-1,-1,120,50,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[],"totalSteps":32,"export":"**DNB 4-4 2m test**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 105\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n  4. OpenHiHat (GM 46) — default velocity 95\n\n```\nx..x....x.......|x...x...x..x....\n....X..o....X.o.|....X..o.....Xo.\nxxxxxxxxxxxxxxxx|xxxxxxxxxxxxxxxx\n....X.......X...|........X.......\n```\n","snapped":0,"bpm":172,"tags":["drum'n'bass","prueba","semicorcheas densas"],"nota":"[C] Sin paleta. La caja en 4 y 12 se desplaza a 13 en c2: buen gesto. Pero el bombo en paso 8 da más breakbeat recto que two-step (segundo bombo en 10). c1 pasos 4 y 12 y c2 paso 8: charles cerrado y abierto a la vez."},{"id":"Drum_4-2_2m_ACSN","guid":"0dc2b40c977fe8445978d3358abd0787","display":"Drum_4-2_2m_ACSN","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":35,"name":"AcousticBassDrum","def":100,"steps":[0,0,-1,-1,0,0,-1,-1,0,0,-1,-1,0,0,-1,-1]},{"gm":38,"name":"AcousticSnare","def":100,"steps":[-1,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0]}],"palettes":[],"totalSteps":16,"export":"**Drum_4-2_2m_ACSN**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. AcousticBassDrum (GM 35) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 100\n\n```\nxx..xx..|xx..xx..\n...x..x.|.x..x..x\n```\n","snapped":0,"bpm":100,"tags":["boceto","dos voces","cruce rítmico"],"nota":"[C] Solo bombo (35) y caja, sin platos: ejercicio, no groove. La caja va cada 3 corcheas (c1 pasos 3 y 6, c2 pasos 1, 4 y 7), un cruce sin backbeat que en c2 cae con el bombo en 1 y 4. Sin paleta."},{"id":"Drum_4-2_8m_MIDI_Import_Test","guid":"5523d1812c2a8df4088a1d33032e277a","display":"","folder":"4_4","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":2,"lanes":[{"gm":35,"name":"AcousticBassDrum","def":114,"steps":[0,-1,-1,105,-1,-1,-1,115,-1,113,-1,101,-1,85,-1,-1,106,-1,-1,105,-1,-1,-1,123,-1,109,-1,-1,-1,118,-1,-1,127,-1,-1,120,-1,-1,-1,115,-1,118,-1,121,0,-1,-1,-1,127,-1,-1,107,-1,-1,-1,119,-1,0,-1,-1,-1,119,-1,-1]},{"gm":38,"name":"AcousticSnare","def":127,"steps":[-1,-1,-1,-1,124,-1,-1,-1,-1,-1,-1,-1,-1,-1,123,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1]},{"gm":41,"name":"LowFloorTom","def":70,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":127,"steps":[0,-1,125,-1,0,-1,123,-1,115,-1,113,-1,116,-1,0,-1,0,-1,0,-1,0,-1,0,-1,125,-1,0,-1,0,-1,0,-1,126,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,121,-1,123,-1,-1,-1,0,-1,-1,-1]},{"gm":43,"name":"HighFloorTom","def":127,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":44,"name":"PedalHiHat","def":127,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":48,"name":"HiMidTom","def":127,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":64,"export":"**Drum_4-2_8m_MIDI_Import_Test**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 2\n- Lanes (in this order):\n  1. AcousticBassDrum (GM 35) — default velocity 114\n  2. AcousticSnare (GM 38) — default velocity 127\n  3. LowFloorTom (GM 41) — default velocity 70\n  4. ClosedHiHat (GM 42) — default velocity 127\n  5. HighFloorTom (GM 43) — default velocity 127\n  6. PedalHiHat (GM 44) — default velocity 127\n  7. HiMidTom (GM 48) — default velocity 127\n\n```\nx..x...x|.x.x.x..|x..x...X|.x...X..|X..X...x|.X.Xx...|X..x...X|.x...X..\n....x...|......X.|....x...|..x.....|....x...|......x.|....x...|..x...x.\n........|........|........|........|x.......|........|........|........\nx.x.x.X.|X.X.X.x.|x.x.x.x.|x.x.x.x.|x.x.x.x.|x.x.x.x.|x.x.x.X.|X...x...\n........|........|........|........|........|........|........|..x.....\n........|........|........|.......x|........|........|........|........\n........|........|........|........|........|........|........|......x.\n```\n","snapped":29,"bpm":160,"tags":["importado de MIDI","medio tiempo","irregular"],"nota":"[C] Asset de prueba con peso 1.0 en FourOnTheFloor, sin nombre y sin bombo a negras: no pinta ahí. Charles a negras y caja casi siempre en paso 4: a 160 se siente a 80. [I] Parece un groove de semicorcheas escrito a escala doble. 29 velocidades se redondean al exportar."},{"id":"FF_BreakbeatDense","guid":"3f2bfd73e6260b7488f988f83fe0e390","display":"FF_BreakbeatDense","folder":"4_4","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":105,"steps":[0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,-1,-1,50,0]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":32,"export":"**FF_BreakbeatDense**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 105\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n  4. OpenHiHat (GM 46) — default velocity 95\n\n```\nx.......x.......|x.........x.....\n....x.......x.o.|....x.o.......ox\nxxxxxxxxxxxxxxxx|xxxxxxxx.xxxxx.x\n....X.......X...|....X...........\n```\n","snapped":0,"bpm":136,"tags":["breakbeat","semicorcheas","caja desplazada"],"nota":"[C] Buen breakbeat, pero no es four-on-the-floor aunque esté en esa paleta: bombo en 0 y 8, en c2 en 0 y 10. c2 quita el backbeat del paso 12 y lo retrasa a 14-15. c1 pasos 4 y 12 y c2 paso 4: charles cerrado y abierto a la vez."},{"id":"FF_CountryTrain8c","guid":"b200f02095339fd41b639843f7414e52","display":"Country, train beat — subdiv 2","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":2,"lanes":[{"gm":38,"name":"AcousticSnare","def":100,"steps":[0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,120]},{"gm":36,"name":"BassDrum1","def":105,"steps":[0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":64,"export":"**FF_CountryTrain8c**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 2\n- Lanes (in this order):\n  1. AcousticSnare (GM 38) — default velocity 100\n  2. BassDrum1 (GM 36) — default velocity 105\n  3. ClosedHiHat (GM 42) — default velocity 80\n\n```\nxoXoxoXo|xoXoxoXo|xoXoxoXo|xoXoxoXo|xoXoxoXo|xoXoxoXo|xoXoxoXo|xoXoxoXX\nx...x...|x...x...|x...x...|x...x...|x...x...|x...x...|x...x...|x...x...\nx.x.x.x.|x.x.x.x.|x.x.x.x.|x.x.x.x.|x.x.x.x.|x.x.x.x.|x.x.x.x.|x.x.x.x.\n```\n","snapped":0,"bpm":120,"tags":["country","train beat","caja continua"],"nota":"[C] Train beat de verdad: caja en todas las corcheas con acento en 2 y 4 (pasos 2 y 6) y bombo en 1 y 3. Oye si los ghosts mantienen el trote sin tapar el acento. [I] Pensado para escobillas: con un kit sintético suena más seco."},{"id":"FF_DiscoPulse","guid":"9b5cac8c75b7a5143a238b4ed38d6799","display":"FF_DiscoPulse","folder":"4_4","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,-1,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,50,50]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":32,"export":"**FF_DiscoPulse**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 110\n  3. ClosedHiHat (GM 42) — default velocity 80\n  4. OpenHiHat (GM 46) — default velocity 90\n\n```\nx...x...x...x...|x...x...x...x...\n....x..o....x..o|....x..o....x.oo\nxx.xxx.xxx.xxx.x|xx.xxx.xxx.xxx.x\n..X...X...X...X.|..X...X...X...X.\n```\n","snapped":0,"bpm":118,"tags":["disco","four-on-the-floor","charles abierto"],"nota":"[C] Disco correcto: bombo a negras, caja en 2 y 4 y charles abierto en los contratiempos (2,6,10,14) sin chocar con el cerrado. Oye el «tss» del abierto: el cerrado siguiente debe cortarlo, así que el kit necesita grupo de corte."},{"id":"FF_HalfTimeHeavy","guid":"ef289896d767f464f814e49b2ef9e18a","display":"","folder":"4_4","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":16,"export":"**FF_HalfTimeHeavy**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n  4. OpenHiHat (GM 46) — default velocity 95\n\n```\nx.......|x..x....\n....x...|....x...\nx.x.x.x.|x.x.x.x.\n........|......X.\n```\n","snapped":0,"bpm":130,"tags":["rock pesado","medio tiempo"],"nota":"[C] Medio tiempo real: caja solo en el 3 (paso 4), bombo casi solo en el 1 y charles a negras; se siente a 65. Oye el peso del hueco. No es four-on-the-floor aunque esté en esa paleta. c2 paso 6: charles cerrado y abierto a la vez."},{"id":"FF_LatinClaveEngine","guid":"4636686d34bf8824ea79067479b5be42","display":"FF_LatinClaveEngine","folder":"4_4","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":90,"steps":[0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":100,"steps":[-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,50,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[0,-1,0,-1,0,0,-1,0,0,-1,0,-1,0,0,-1,0,0,-1,0,-1,0,0,-1,0,0,-1,0,-1,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":85,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":37,"name":"SideStick","def":95,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":32,"export":"**FF_LatinClaveEngine**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 90\n  2. AcousticSnare (GM 38) — default velocity 100\n  3. ClosedHiHat (GM 42) — default velocity 75\n  4. OpenHiHat (GM 46) — default velocity 85\n  5. SideStick (GM 37) — default velocity 95\n\n```\nx......x......x.|x......x......x.\n..o.......o.o...|..o.......o.o...\nx.x.xx.xx.x.xx.x|x.x.xx.xx.x.xx.x\n................|................\nx.....x.....x...|....x...x.......\n```\n","snapped":0,"bpm":110,"tags":["latino","clave 3-2","fuera de clave"],"nota":"[C] La clave en SideStick sí es 3-2 (0,6,12|4,8), pero el resto no la sigue. Bombo 0,7,14 no es tresillo (0,6,12): el 7 va una semicorchea tras la clave y el 14 una corchea tras ella. El charles repite igual en ambos lados. OpenHiHat vacío."},{"id":"FF_LatinSon32_8c","guid":"d6d884e838ec465439239c46e1bf7c04","display":"Latin, son 3-2 — subdiv 4","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":75,"name":"Claves","def":110,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1]},{"gm":36,"name":"BassDrum1","def":100,"steps":[-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1]},{"gm":63,"name":"OpenHiConga","def":95,"steps":[-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,50,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,0,0,120]},{"gm":56,"name":"Cowbell","def":85,"steps":[0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":128,"export":"**FF_LatinSon32_8c**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 4\n- Lanes (in this order):\n  1. Claves (GM 75) — default velocity 110\n  2. BassDrum1 (GM 36) — default velocity 100\n  3. OpenHiConga (GM 63) — default velocity 95\n  4. Cowbell (GM 56) — default velocity 85\n\n```\nx.....x.....x...|....x...x.......|x.....x.....x...|....x...x.......|x.....x.....x...|....x...x.......|x.....x.....x...|....x...x.......\n......x.....x...|......x.....x...|......x.....x...|......x.....x...|......x.....x...|......x.....x...|......x.....x...|......x.....x...\n..o.o..x..o.o.x.|..o.o..x..o.o.x.|..o.o..x..o.o.x.|..o.o..x..o.oox.|..o.o..x..o.o.x.|..o.o..x..o.o.x.|..o.o..x..o.o.x.|..o.o..x..o.oxxX\nx...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...\n```\n","snapped":0,"bpm":110,"tags":["son","clave 3-2","tumbao","percusión latina"],"nota":"[C] Clave 3-2 bien colocada y bombo con el tumbao de bajo correcto (pasos 6 y 12: el «y» del 2 y el 4). Lo débil es la conga: fuertes en 7 y 14, donde se esperan abiertos en 12 y 14; el slap del paso 4 va en ghost y el 7 sale del pulso de corchea."},{"id":"FF_Metal8c","guid":"9bc62b47bd268d9449927bad8f0f9c5b","display":"Metal — subdiv 4","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":115,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":38,"name":"AcousticSnare","def":120,"steps":[-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":90,"steps":[120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":47,"name":"LowMidTom","def":110,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0]},{"gm":49,"name":"CrashCymbal1","def":110,"steps":[120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":0.0}],"totalSteps":128,"export":"**FF_Metal8c**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 115\n  2. AcousticSnare (GM 38) — default velocity 120\n  3. ClosedHiHat (GM 42) — default velocity 90\n  4. LowMidTom (GM 47) — default velocity 110\n  5. CrashCymbal1 (GM 49) — default velocity 110\n\n```\nx.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|xxxxxxxxxxxxxxxx|xxxxxxxxxxxxxxxx\n....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|................\nX.x.X.x.X.x.X.x.|X.x.X.x.X.x.X.x.|X.x.X.x.X.x.X.x.|X.x.X.x.X.x.X.x.|X.x.X.x.X.x.X.x.|X.x.X.x.X.x.X.x.|................|................\n................|................|................|................|................|................|................|XxxxXxxxXxxxXxxx\nX...............|................|................|................|X...............|................|................|................\n```\n","snapped":0,"bpm":150,"tags":["metal","doble bombo","redoble de tom"],"nota":"[C] Metal directo: bombo a corcheas, caja en 2 y 4; c7 y c8 pasan a semicorcheas (10 golpes por segundo a 150) y c8 deja solo bombo y tom. Oye si el bombo denso se emborrona en el kit. Peso 0 en la paleta: nunca sale."},{"id":"FF_Rock8c","guid":"80bf6d7dc7eee404eba97755f186ac9d","display":"Rock — subdiv 2","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,0,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,0,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,0,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,0,0,120,120]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,0,0,0,0,-1,-1,-1,-1]},{"gm":49,"name":"CrashCymbal1","def":100,"steps":[120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":64,"export":"**FF_Rock8c**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n  4. CrashCymbal1 (GM 49) — default velocity 100\n\n```\nx...x...|x...x...|x...x...|x...x.x.|x...x...|x..xx...|x...x...|x.......\n..x...x.|..x...x.|..x...x.|..x...xx|..x...x.|..x...x.|..x...x.|..x.xxXX\nxxxxxxxx|xxxxxxxx|xxxxxxxx|xxxxxxxx|XxxxXxxx|XxxxXxxx|XxxxXxxx|xxxx....\nX.......|........|........|........|X.......|........|........|........\n```\n","snapped":0,"bpm":120,"tags":["rock","backbeat","8 compases"],"nota":"[C] Rock de libro: bombo en 1 y 3, caja en 2 y 4, corcheas. Oye los cambios: acentos de charles desde c5, remate de caja en c8 y platos en c1 y c5. Buena referencia para calibrar el kit."},{"id":"FF_TrainBeat","guid":"c9bb1fd447bb3004883c6e71b38da5bf","display":"FF_TrainBeat","folder":"4_4","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":105,"steps":[-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,120]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0]}],"palettes":[{"id":"FourOnTheFloor","weight":0.0}],"totalSteps":16,"export":"**FF_TrainBeat**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 105\n  3. ClosedHiHat (GM 42) — default velocity 80\n  4. OpenHiHat (GM 46) — default velocity 90\n\n```\nx.x.x.x.|x.x.x.x.\n.x.x.x.x|.x.x.x.X\nxxxxxxxx|xxxxxxxx\n........|.......x\n```\n","snapped":0,"bpm":120,"tags":["country","two-beat","no es train beat"],"nota":"[C] No es un train beat: la caja solo toca contratiempos (1,3,5,7), sin acento en 2 y 4, y el bombo va a negras. Es un boom-chick, un two-beat a escala de corchea. El error viene de genre_vocabulary.md. Peso 0. c2 paso 7: charles cerrado y abierto a la vez."},{"id":"Four-on-the-Floor Pulse","guid":"907a8043139669b43a968f8c6bb6fafe","display":"","folder":"New folder","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}],"palettes":[{"id":"FourOnTheFloor","weight":1.0}],"totalSteps":16,"export":"**Four-on-the-Floor Pulse**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n\n```\nx.x.x.x.|x.x.x.x.\n..x...x.|..x...x.\nxxxxxxxx|xxxxxxxx\n```\n","snapped":0,"bpm":124,"tags":["four-on-the-floor","pop rock","corcheas"],"nota":"[C] Hace lo que dice: bombo en las cuatro negras, caja en 2 y 4, charles a corcheas. Más plano que FF_DiscoPulse porque no abre el charles. Oye si bombo y caja juntos en 2 y 4 pegan o se comen. Sin nombre visible."},{"id":"Odd-Meter Angular","guid":"ef3470c15d551a34e846c10c6bdbe80a","display":"Odd-Meter Angular","folder":"New folder","ts":"FiveFour","beats":5,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[120,-1,-1,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,-1,-1,120,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}],"palettes":[{"id":"OddMeterAngular","weight":1.0}],"totalSteps":20,"export":"**Odd-Meter Angular**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FiveFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n\n```\nX.....X...|X.....X...\n..x.....x.|..x.....x.\nxxxxxxxxxx|xxxxxxxxxx\n```\n","snapped":0,"bpm":126,"tags":["5/4","3+2","rock"],"nota":"[C] 5/4 agrupado 3+2: bombo en 1 y 4, caja en 2 y 5, y el pulso 3 sin bombo ni caja. Oye ese hueco: ahí está la cojera. Angular solo por el compás: los dos compases son iguales."},{"id":"OM_DjentChug","guid":"655099d9cae3c934f966c48629407476","display":"OM_DjentChug","folder":"5_4","ts":"FiveFour","beats":5,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":115,"steps":[0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1,-1,0,-1,-1,0,0,0,-1]},{"gm":38,"name":"AcousticSnare","def":120,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":90,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"palettes":[{"id":"OddMeterAngular","weight":1.0}],"totalSteps":40,"export":"**OM_DjentChug**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FiveFour\n- Measures: 2\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 115\n  2. AcousticSnare (GM 38) — default velocity 120\n  3. ClosedHiHat (GM 42) — default velocity 90\n  4. OpenHiHat (GM 46) — default velocity 100\n\n```\nx..x..x.x.x..x..x.x.|x..x..x.x.x..x..xxx.\n........x.......x...|........x.......x...\nxxxxxxxxxxxxxxxxxxxx|xxxxxxxxxxxxxxxxxxxx\n....................|..................X.\n```\n","snapped":0,"bpm":110,"tags":["metal progresivo","5/4","bombo 3+3+2+2"],"nota":"[C] Bombo en 3+3+2+2 dos veces por compás y caja en los pulsos 3 y 5 (pasos 8 y 16). Es 5/8+5/8 regular, sin desplazamiento real. [I] El charles a semicorcheas tapa el dibujo del bombo. c2 paso 18: charles cerrado y abierto a la vez."},{"id":"OM_FunkFive","guid":"f6fee88c0b2fbbc42b3abb0c00fb8681","display":"OM_FunkFive","folder":"5_4","ts":"FiveFour","beats":5,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,0,-1,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,50,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,-1,50,-1,-1,50,-1,-1,-1,50,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,-1,50,-1,-1,50,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"palettes":[{"id":"OddMeterAngular","weight":1.0}],"totalSteps":40,"export":"**OM_FunkFive**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FiveFour\n- Measures: 2\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 110\n  3. ClosedHiHat (GM 42) — default velocity 80\n  4. OpenHiHat (GM 46) — default velocity 90\n\n```\nx..x......x...x.....|x..x......x...x..x..\n..o.x..o....x..o..o.|..o.x..o....x..o..o.\nxx.xxx.xxx.xxx.xxx.x|xx.xxx.xxx.xxx.xxx.x\n..................X.|..................X.\n```\n","snapped":0,"bpm":98,"tags":["funk","5/4","4+1"],"nota":"[C] Funk con backbeat en 2 y 4 (pasos 4 y 12) y el pulso 5 como coletilla: se oye 4+1, con el charles abierto del paso 18 cerrando el ciclo. Oye si el quinto pulso respira o si tropieza al volver al 1."},{"id":"OM_HalfFeelSparse","guid":"0542e22ea57ddb346a963cbd9be84992","display":"OM_HalfFeelSparse","folder":"5_4","ts":"FiveFour","beats":5,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0]}],"palettes":[{"id":"OddMeterAngular","weight":1.0}],"totalSteps":20,"export":"**OM_HalfFeelSparse**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FiveFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n  4. OpenHiHat (GM 46) — default velocity 95\n\n```\nx.........|x...x.....\n......x...|......x...\nx.x.x.x.x.|x.x.x.x.x.\n..........|.........x\n```\n","snapped":0,"bpm":110,"tags":["5/4","medio tiempo","sobrio"],"nota":"[C] Una sola caja en el pulso 4 (paso 6) y bombo en el 1: 3+2 a medio tiempo, con charles a negras. Funciona por la espera. El abierto del final de c2 empuja la vuelta."},{"id":"OM_RockDrive54","guid":"a0c4ca653f9cf334bb0bc9c76fc87076","display":"OM_RockDrive54","folder":"5_4","ts":"FiveFour","beats":5,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120]}],"palettes":[{"id":"OddMeterAngular","weight":1.0}],"totalSteps":20,"export":"**OM_RockDrive54**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FiveFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n  4. OpenHiHat (GM 46) — default velocity 95\n\n```\nx.....x...|x.....x...\n....x...x.|....x...x.\nxxxxxxxxxx|xxxxxxxxxx\n..........|.........X\n```\n","snapped":0,"bpm":132,"tags":["rock","5/4","empuje"],"nota":"[C] Bombo en 1 y 4, caja en 3 y 5: frente a Odd-Meter Angular, la caja cierra cada grupo y empuja hacia delante. Corcheas parejas. c2 paso 9: charles cerrado y abierto a la vez."},{"id":"OM_TakeFiveSwing","guid":"1b866c2340cc92d4aa58bdec31a677a3","display":"OM_TakeFiveSwing","folder":"5_4","ts":"FiveFour","beats":5,"unit":4,"measures":2,"subdivisions":3,"lanes":[{"gm":36,"name":"BassDrum1","def":70,"steps":[0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1]},{"gm":38,"name":"AcousticSnare","def":80,"steps":[-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,50,-1,-1,-1,-1,50,-1,-1,-1]},{"gm":51,"name":"RideCymbal1","def":90,"steps":[0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]}],"palettes":[{"id":"OddMeterAngular","weight":1.0}],"totalSteps":30,"export":"**OM_TakeFiveSwing**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FiveFour\n- Measures: 2\n- Subdivisions: 3\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 70\n  2. AcousticSnare (GM 38) — default velocity 80\n  3. RideCymbal1 (GM 51) — default velocity 90\n  4. ClosedHiHat (GM 42) — default velocity 75\n\n```\nx..x..x..x..x..|x..x..x..x..x..\n....o......o...|....o.o....o...\nx..x.xx..x.xx..|x..x.xx..x.xx..\n...x.....x.....|...x.....x.....\n```\n","snapped":0,"bpm":168,"tags":["jazz","5/4","swing","3+2"],"nota":"[C] Ride spang-a-lang bien llevado a 5 (1, 2, 2a, 3, 4, 4a, 5) y charles en 2 y 4. Vale como 5/4 de jazz, no como Take Five: la caja en paso 4 cae en el parcial central y en 11, no en 2& (5) y 4 (9), y faltan los tresillos del final."},{"id":"SP_DnB8c","guid":"e1aff4cc960fb324f89c7e8648900004","display":"Drum'n'bass — subdiv 4","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,0,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,50,0,50,0,50,0,50,0,50,0,50,0,120,120,120]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]}],"palettes":[{"id":"SyncopatedPocket","weight":1.0}],"totalSteps":128,"export":"**SP_DnB8c**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 75\n\n```\nx.........x.....|x.......x.......|x.........x..x..|x.x.....x.......|x........xx.....|x.......x....x..|x.........x.....|x.......x.......\n....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|xoxoxoxoxoxoxXXX\nx.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.\n```\n","snapped":0,"bpm":172,"tags":["drum'n'bass","two-step","redoble"],"nota":"[C] Two-step correcto: caja en 2 y 4 y segundo bombo en paso 10, una corchea antes de la segunda caja (c1, c3, c5, c7). Los compases pares lo adelantan al 8 y quedan más rectos. Oye si el kit aguanta el redoble de caja de c8."},{"id":"SP_Funk8c","guid":"dc2e4b37c247da54695bd4a91c7f604a","display":"Funk — subdiv 4","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":105,"steps":[0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,50,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,-1,120]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,-1]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[{"id":"SyncopatedPocket","weight":1.0}],"totalSteps":128,"export":"**SP_Funk8c**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 105\n  2. AcousticSnare (GM 38) — default velocity 110\n  3. ClosedHiHat (GM 42) — default velocity 80\n  4. OpenHiHat (GM 46) — default velocity 95\n\n```\nx......x..x.....|x......x..x.....|x......x..x.....|x......x..x.....|x......x..x.....|x......x..x.....|x......x..x.....|x......x..x.....\n....x.o.....x.o.|....x.o.....x.o.|....x.o.....x.o.|....x.o..o..x.o.|....x.o.....x.o.|....x.o.....x.o.|....x.o.....x.o.|....x.o.....x..X\nxxxxxxxxxxxxxxxx|xxxxxxxxxxxxxxxx|xxxxxxxxxxxxxxxx|xxxxxxxxxxxxxxxx|XxxxXxxxXxxxXxxx|XxxxXxxxXxxxXxxx|XxxxXxxxXxxxXxxx|XxxxXxxxXxxxXxx.\n................|................|................|..............x.|................|................|................|................\n```\n","snapped":0,"bpm":100,"tags":["funk","semicorcheas","ghosts"],"nota":"[C] Bolsillo funk sólido: bombo 0,7,10, caja en 2 y 4 con ghost después de cada backbeat (6 y 14), charles a semicorcheas con acentos en negras desde c5. c4 paso 14: charles cerrado y abierto a la vez, sobre un ghost."},{"id":"SP_HipHop8c","guid":"0349dbe6e54c2b444a909e352673c38f","display":"Hip-hop — subdiv 4","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[{"id":"SyncopatedPocket","weight":1.0}],"totalSteps":128,"export":"**SP_HipHop8c**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 80\n\n```\nx.....x...x.....|x.....x...x.....|x.....x...x.....|x.x...x...x.....|x.....x...x.....|x.....x...x.....|x.....x...x.....|x.....x.........\n....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x.......x...|....x...........\nx.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.x.x.x.x.|x.x.x.x.........\n```\n","snapped":0,"bpm":90,"tags":["hip-hop","boom bap","recto"],"nota":"[C] Boom bap limpio: bombo 0,6,10, caja en 2 y 4, charles a corcheas; c8 se corta a mitad como remate. [I] Sin swing en el formato queda más rígido que un groove de MPC; júzgalo como rejilla, no por eso."},{"id":"SP_Jazz8c","guid":"1baa94246bd26614e861778741875d05","display":"Jazz — subdiv 3","folder":"Drums","ts":"FourFour","beats":4,"unit":4,"measures":8,"subdivisions":3,"lanes":[{"gm":51,"name":"RideCymbal1","def":95,"steps":[0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0]},{"gm":38,"name":"AcousticSnare","def":100,"steps":[-1,-1,50,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,50,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,-1,50,-1,-1,50,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,120]},{"gm":36,"name":"BassDrum1","def":70,"steps":[50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1]},{"gm":44,"name":"PedalHiHat","def":75,"steps":[-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1]}],"palettes":[{"id":"SyncopatedPocket","weight":1.0}],"totalSteps":96,"export":"**SP_Jazz8c**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 8\n- Subdivisions: 3\n- Lanes (in this order):\n  1. RideCymbal1 (GM 51) — default velocity 95\n  2. AcousticSnare (GM 38) — default velocity 100\n  3. BassDrum1 (GM 36) — default velocity 70\n  4. PedalHiHat (GM 44) — default velocity 75\n\n```\nx..x.xx..x.x|x..x.xx..x.x|x..x.xx..x.x|x..x.xx..x.x|x..x.xx..x.x|x..x.xx..x.x|x..x.xx..x.x|x..x.xx..x.x\n..o......o..|.....o......|..o.....o...|.o....o.....|..o......o..|......o..o..|..o.........|.........xxX\no.....o.....|o.....o.....|o.....o.....|o.....o.....|o.....o.....|o.....o.....|o.....o.....|o.....o.....\n...x.....x..|...x.....x..|...x.....x..|...x.....x..|...x.....x..|...x.....x..|...x.....x..|...x.....x..\n```\n","snapped":0,"bpm":160,"tags":["jazz","swing","spang-a-lang"],"nota":"[C] Swing verdadero: ride 1, 2, 2a, 3, 4, 4a (0,3,5,6,9,11), pedal de charles en 2 y 4 y caja que acompaña. El mejor jazz del catálogo. Detalles: bombo solo en 1 y 3, ghost de c4 paso 1 en parcial central y ride sin dinámica, que suena mecánico en un kit sintético."},{"id":"Syncopated Pocket (Funk)","guid":"12aa11c405902a347878442aab0a7993","display":"Syncopated Pocket (Funk)","folder":"New folder","ts":"FourFour","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,0,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,0]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,50,-1,0,-1,50,-1,-1,-1,50,-1,0,-1,50,-1,-1,-1,50,-1,0,-1,50,-1,-1,-1,50,-1,0,-1,50,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0]}],"palettes":[{"id":"SyncopatedPocket","weight":1.0}],"totalSteps":32,"export":"**Syncopated Pocket (Funk)**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: FourFour\n- Measures: 2\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 110\n  3. ClosedHiHat (GM 42) — default velocity 80\n\n```\nx..x..x...x.....|x..x..x...x....x\n..o.x.o...o.x.o.|..o.x.o...o.x.o.\nxx.xxx.xxx.xxx.x|xx.xxx.xxx.xxx.x\n```\n","snapped":0,"bpm":96,"tags":["funk","ghosts","síncopa"],"nota":"[C] Cada hueco del charles (2,6,10,14) lo llena un ghost de caja: oye esa alternancia, es el corazón del patrón. Backbeat en 2 y 4; el bombo de c2 paso 15 empuja al 1."},{"id":"Waltz-Pulse Lilt","guid":"dd96fc46b42db2b4fb100c1250003a8e","display":"","folder":"New folder","ts":"ThreeFour","beats":3,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":90,"steps":[120,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":95,"steps":[-1,-1,0,-1,0,-1,-1,-1,0,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[0,0,0,0,0,0,0,0,0,0,0,0]}],"palettes":[{"id":"WaltzLilt","weight":1.0}],"totalSteps":12,"export":"**Waltz-Pulse Lilt**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: ThreeFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 90\n  2. AcousticSnare (GM 38) — default velocity 95\n  3. ClosedHiHat (GM 42) — default velocity 75\n\n```\nX.....|X.....\n..x.x.|..x.x.\nxxxxxx|xxxxxx\n```\n","snapped":0,"bpm":120,"tags":["vals","pop","recto"],"nota":"[C] Vals directo: bombo acentuado en 1, caja en 2 y 3, corcheas parejas. No hay lilt real: nada es largo-corto, así que el balanceo tendría que ponerlo otra pista. Los dos compases son iguales."},{"id":"WL_BalladSparse","guid":"a5936aaaa72baa84c916a92aa1318d93","display":"WL_BalladSparse","folder":"3_4","ts":"ThreeFour","beats":3,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":65,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":70,"steps":[-1,-1,-1,-1,50,-1,-1,-1,50,-1,-1,-1]},{"gm":51,"name":"RideCymbal1","def":80,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":70,"steps":[-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1]}],"palettes":[{"id":"WaltzLilt","weight":1.0}],"totalSteps":12,"export":"**WL_BalladSparse**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: ThreeFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 65\n  2. AcousticSnare (GM 38) — default velocity 70\n  3. RideCymbal1 (GM 51) — default velocity 80\n  4. ClosedHiHat (GM 42) — default velocity 70\n\n```\nx.....|x.....\n....o.|..o...\nx.x.x.|x.x.x.\n..x...|..x...\n```\n","snapped":0,"bpm":72,"tags":["balada","vals","sutil"],"nota":"[C] Ride a negras, bombo en 1, un ghost que cambia de sitio (c1 pulso 3, c2 pulso 2) y charles cerrado en el 2. Oye cuánto aire deja. Si el ghost se pierde en el kit, queda casi solo el ride."},{"id":"WL_CountryWaltz","guid":"541bab4469109a94ea4c242e5c9a8e15","display":"","folder":"3_4","ts":"ThreeFour","beats":3,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":105,"steps":[-1,-1,120,-1,120,-1,-1,-1,120,-1,120,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0]}],"palettes":[{"id":"WaltzLilt","weight":1.0}],"totalSteps":12,"export":"**WL_CountryWaltz**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: ThreeFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 105\n  3. ClosedHiHat (GM 42) — default velocity 80\n  4. OpenHiHat (GM 46) — default velocity 90\n\n```\nx.....|x.....\n..X.X.|..X.X.\nxxxxxx|xxxxxx\n......|.....x\n```\n","snapped":0,"bpm":112,"tags":["country","vals","oom-pah-pah"],"nota":"[C] Colocación correcta, pero la caja va en X (120) en 2 y 3, más fuerte que el bombo del 1 (100): el compás pesa al revés. Oye si el 1 sigue mandando. c2 paso 5: charles cerrado y abierto a la vez."},{"id":"WL_FunkWaltz","guid":"985edbc06b0f41242ab2d4c0de49cf21","display":"WL_FunkWaltz","folder":"3_4","ts":"ThreeFour","beats":3,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,50,-1,0,-1,-1,50,-1,-1,50,-1,-1,-1,50,-1,0,-1,-1,50,-1,50,0,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,-1,0,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1]}],"palettes":[{"id":"WaltzLilt","weight":1.0}],"totalSteps":24,"export":"**WL_FunkWaltz**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: ThreeFour\n- Measures: 2\n- Subdivisions: 4\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 100\n  2. AcousticSnare (GM 38) — default velocity 110\n  3. ClosedHiHat (GM 42) — default velocity 80\n  4. OpenHiHat (GM 46) — default velocity 90\n\n```\nx..x..x.....|x..x......x.\n..o.x..o..o.|..o.x..o.ox.\nxxxxxxxxxxxx|xx.xxx.xxx.x\n....X.......|....X.......\n```\n","snapped":0,"bpm":88,"tags":["funk","3/4","semicorcheas"],"nota":"[C] Funk en 3: bombo 0,3,6 en 3+3 y backbeat solo en el 2 (paso 4); c2 rompe el charles y añade caja en 9-10. Oye si se siente en 3 o en 6/8. Paso 4 en ambos compases: charles cerrado y abierto a la vez."},{"id":"WL_JazzWaltz","guid":"15557ff2d9d8fb447b7b15b15d6245e1","display":"WL_JazzWaltz","folder":"3_4","ts":"ThreeFour","beats":3,"unit":4,"measures":2,"subdivisions":3,"lanes":[{"gm":36,"name":"BassDrum1","def":70,"steps":[0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1]},{"gm":38,"name":"AcousticSnare","def":80,"steps":[-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1]},{"gm":51,"name":"RideCymbal1","def":90,"steps":[0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1]},{"gm":46,"name":"OpenHiHat","def":75,"steps":[-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]}],"palettes":[{"id":"WaltzLilt","weight":1.0}],"totalSteps":18,"export":"**WL_JazzWaltz**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: ThreeFour\n- Measures: 2\n- Subdivisions: 3\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 70\n  2. AcousticSnare (GM 38) — default velocity 80\n  3. RideCymbal1 (GM 51) — default velocity 90\n  4. OpenHiHat (GM 46) — default velocity 75\n\n```\nx..x..x..|x..x..x..\n....o....|.o.....o.\nx..x.xx..|x..x.xx..\n...x.....|...x.....\n```\n","snapped":0,"bpm":150,"tags":["jazz","vals","swing"],"nota":"[C] Ride correcto de vals de jazz (1, 2, 2a, 3) y bombo suave a negras. Dos fallos: la pisada de charles del 2 está en OpenHiHat (debería ir en PedalHiHat, 44) y los ghosts de c1 paso 4 y c2 pasos 1 y 7 caen en el parcial central."},{"id":"WL_RockWaltz","guid":"1d657eec9b33861478a20a6a42cdcb65","display":"WL_RockWaltz","folder":"3_4","ts":"ThreeFour","beats":3,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,0,-1,0,-1,-1,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,120,-1,-1,-1,-1,-1,120,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"palettes":[{"id":"WaltzLilt","weight":1.0}],"totalSteps":12,"export":"**WL_RockWaltz**\n\n**Setup (configure in Grid mode):**\n\n- Time signature: ThreeFour\n- Measures: 2\n- Subdivisions: 2\n- Lanes (in this order):\n  1. BassDrum1 (GM 36) — default velocity 110\n  2. AcousticSnare (GM 38) — default velocity 115\n  3. ClosedHiHat (GM 42) — default velocity 85\n  4. OpenHiHat (GM 46) — default velocity 95\n\n```\nx...x.|x...x.\n..X...|..X...\nxxxxxx|xxxxxx\n......|....X.\n```\n","snapped":0,"bpm":126,"tags":["rock","3/4","empuje"],"nota":"[C] Bombo en 1 y 3, caja acentuada en 2: dos bombos seguidos al cambiar de compás (3 y 1) dan el empuje. Rock en 3 sin adornos. c2 paso 4: charles cerrado y abierto a la vez."}]};
+const $ = s => document.querySelector(s);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text !== undefined) e.textContent = text; return e; };
+const TS_LABEL = {FourFour:"4/4", ThreeFour:"3/4", TwoFour:"2/4", SixEight:"6/8", NineEight:"9/8", TwelveEight:"12/8", FiveFour:"5/4", SevenEight:"7/8"};
+const LANE = {35:"Bombo ac.",36:"Bombo",37:"Aro",38:"Caja",41:"Tom base 2",42:"Hat",43:"Tom base 1",44:"Hat pie",46:"Hat abierto",47:"Tom 2",39:"Palmas",40:"Caja eléc.",45:"Tom 3",48:"Tom 1",50:"Tom agudo",53:"Campana",64:"Conga baja",49:"Crash",51:"Ride",56:"Cencerro",63:"Conga",75:"Claves"};
+const CYMBAL = new Set([42,44,46,49,51,53]);
+/*EXPORT*/
+const GM_NAME = {35:"AcousticBassDrum",36:"BassDrum1",37:"SideStick",38:"AcousticSnare",39:"HandClap",40:"ElectricSnare",41:"LowFloorTom",42:"ClosedHiHat",43:"HighFloorTom",44:"PedalHiHat",45:"LowTom",46:"OpenHiHat",47:"LowMidTom",48:"HiMidTom",49:"CrashCymbal1",50:"HighTom",51:"RideCymbal1",53:"RideBell",56:"Cowbell",63:"OpenHiConga",64:"LowConga",75:"Claves"};
+const TS_GRID = {FourFour:[4,4],ThreeFour:[3,4],TwoFour:[2,4],SixEight:[6,8],NineEight:[9,8],TwelveEight:[12,8],FiveFour:[5,4],SevenEight:[7,8]};
+const ACCENT = 120, GHOST = 50;   // DrumPatternTextParser.AccentVelocity / GhostVelocity
+function glyph(raw, def){         // mirrors DrumPatternTextParser.StepToGlyph
+  if(raw < 0) return [".", 0];
+  if(raw === 0 || raw === def) return ["x", 0];
+  if(raw === ACCENT) return ["X", 0];
+  if(raw === GHOST) return ["o", 0];
+  const dd = Math.abs(raw-def), da = Math.abs(raw-ACCENT), dg = Math.abs(raw-GHOST);
+  if(dd <= da && dd <= dg) return ["x", 1];
+  if(dg < dd && dg <= da) return ["o", 1];
+  return ["X", 1];
+}
+function renderLane(steps, def, per){
+  let s = "", snapped = 0;
+  steps.forEach((raw, i) => { if(i && i % per === 0) s += "|"; const [g, n] = glyph(raw, def); s += g; snapped += n; });
+  return [s, snapped];
+}
+// The importer reads "Measures:" and the like anywhere in the card, so a name can never carry a colon.
+const safeName = s => String(s).replace(/[^\p{L}\p{N} _()'.,\-]/gu, "").trim() || "Patrón";
+function exportInfo(p){
+  const per = p.beats*p.subdivisions, rows = p.lanes.map(l => renderLane(l.steps, l.def, per));
+  const card = ["**" + safeName(p.id) + "**", "", "**Setup (configure in Grid mode):**", "",
+    "- Time signature: " + p.ts, "- Measures: " + p.measures, "- Subdivisions: " + p.subdivisions, "- Lanes (in this order):",
+    ...p.lanes.map((l, i) => "  " + (i+1) + ". " + GM_NAME[l.gm] + " (GM " + l.gm + ") — default velocity " + l.def)];
+  return {text: [...card, "", "```", ...rows.map(r => r[0]), "```", ""].join("\n"), snapped: rows.reduce((a, r) => a + r[1], 0)};
+}
+// New grid for a pattern, keeping each hit at its place in time; hits with no place in the new grid are dropped.
+function reshape(p, ts, measures, subs){
+  const [beats, unit] = TS_GRID[ts], oldPer = p.beats*p.subdivisions, per = beats*subs, total = per*measures;
+  let dropped = 0;
+  const lanes = p.lanes.map(l => {
+    const n = new Array(total).fill(-1);
+    l.steps.forEach((raw, i) => {
+      if(raw < 0) return;
+      const m = Math.floor(i/oldPer), r = i % oldPer, b = Math.floor(r/p.subdivisions), x = (r % p.subdivisions)*subs/p.subdivisions;
+      if(m >= measures || b >= beats || !Number.isInteger(x)) dropped++; else n[m*per + b*subs + x] = raw;
+    });
+    return {...l, steps:n};
+  });
+  return {grid:{ts, beats, unit, measures, subdivisions:subs, totalSteps:total, lanes}, dropped};
+}
+/*/EXPORT*/
+const isCompound = p => p.unit === 8 && p.beats % 3 === 0;
+const MARK = {ok:"✓", mid:"~", bad:"✗"};
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+};
+
+/* ---------- kit: each voice is synthesised once into a buffer, in three strengths ---------- */
+let seed = 12345;
+const rnd = () => (seed = (seed*1664525 + 1013904223) >>> 0) / 2147483648 - 1;
+function noiseOf(c, secs){ const b = c.createBuffer(1, Math.ceil(c.sampleRate*secs), c.sampleRate), a = b.getChannelData(0); for(let i=0;i<a.length;i++) a[i] = rnd(); const s = c.createBufferSource(); s.buffer = b; return s; }
+function amp(c, t, attack, decay, peak){ const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t+attack); g.gain.exponentialRampToValueAtTime(0.0001, t+attack+decay); return g; }
+function filt(c, type, f, q){ const n = c.createBiquadFilter(); n.type = type; n.frequency.value = f; if(q) n.Q.value = q; return n; }
+function chain(...n){ for(let i=0;i<n.length-1;i++) n[i].connect(n[i+1]); return n[n.length-1]; }
+function tone(c, out, type, f0, f1, glide, attack, decay, peak){
+  const o = c.createOscillator(), t = 0.001; o.type = type; o.frequency.setValueAtTime(f0, t);
+  if(f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t+glide);
+  chain(o, amp(c, t, attack, decay, peak), out); o.start(t); o.stop(t+attack+decay+0.02);
+}
+function hiss(c, out, filters, attack, decay, peak, at){
+  const s = noiseOf(c, attack+decay+0.05), t = at || 0.001;
+  chain(s, ...filters, amp(c, t, attack, decay, peak), out); s.start(t);
+}
+function metal(c, out, freqs, filters, attack, decay, peak){
+  const sum = c.createGain(), t = 0.001; sum.gain.value = 1/freqs.length;
+  for(const f of freqs){ const o = c.createOscillator(); o.type = "square"; o.frequency.value = f; o.connect(sum); o.start(t); o.stop(t+attack+decay+0.02); }
+  chain(sum, ...filters, amp(c, t, attack, decay, peak), out);
+}
+function shaper(c, drive){ const w = c.createWaveShaper(), n = 1024, k = new Float32Array(n); for(let i=0;i<n;i++){ const x = i/(n/2)-1; k[i] = Math.tanh(x*drive); } w.curve = k; return w; }
+const HAT = [263, 400, 421, 474, 587, 845].map(f => f*1.45);
+const VOICES = {
+  35:{dur:.6, db:-7, make(c,o,h){ const d = shaper(c,1.6); d.connect(o); tone(c,d,"sine",125,46,.08,.002,.46,.95); tone(c,d,"triangle",900,180,.02,.001,.03,.22*h); hiss(c,d,[filt(c,"highpass",2200)],.001,.012,.16*h); }},
+  36:{dur:.45, db:-7, make(c,o,h){ const d = shaper(c,2.1); d.connect(o); tone(c,d,"sine",168,54,.06,.002,.3,.95); tone(c,d,"triangle",1500,240,.018,.001,.025,.3*h); hiss(c,d,[filt(c,"highpass",3000)],.001,.01,.22*h); }},
+  37:{dur:.1, db:-17, make(c,o,h){ tone(c,o,"triangle",1750,1500,.01,.001,.028,.7); tone(c,o,"square",520,520,0,.001,.02,.2); hiss(c,o,[filt(c,"bandpass",3200,2)],.001,.022,.5*h); }},
+  38:{dur:.36, db:-9, make(c,o,h){ tone(c,o,"triangle",215,178,.03,.001,.12,.6); tone(c,o,"sine",335,300,.02,.001,.075,.32); hiss(c,o,[filt(c,"highpass",1100),filt(c,"lowpass",3800+6500*h)],.001,.1+.1*h,.48+.38*h); }},
+  41:{dur:.62, db:-10, make(c,o,h){ tomV(c,o,h,78,.46); }},
+  43:{dur:.56, db:-10, make(c,o,h){ tomV(c,o,h,98,.4); }},
+  47:{dur:.5, db:-11, make(c,o,h){ tomV(c,o,h,132,.34); }},
+  48:{dur:.46, db:-11, make(c,o,h){ tomV(c,o,h,160,.3); }},
+  42:{dur:.12, db:-20, make(c,o,h){ metal(c,o,HAT,[filt(c,"bandpass",9500,.8),filt(c,"highpass",6800)],.001,.04+.03*h,.9); hiss(c,o,[filt(c,"highpass",9000)],.001,.03,.22*h); }},
+  44:{dur:.1, db:-23, make(c,o,h){ metal(c,o,HAT,[filt(c,"bandpass",8000,.8),filt(c,"highpass",5000)],.001,.035,.8); hiss(c,o,[filt(c,"bandpass",1700,1.2)],.001,.02,.3); }},
+  46:{dur:.7, db:-19, make(c,o,h){ metal(c,o,HAT,[filt(c,"bandpass",9000,.7),filt(c,"highpass",6000)],.002,.5+.12*h,.9); hiss(c,o,[filt(c,"highpass",8000)],.002,.32,.16); }},
+  49:{dur:2.1, db:-15, make(c,o,h){ metal(c,o,HAT.map(f=>f*.83),[filt(c,"highpass",3400)],.002,1.7+.3*h,.75); hiss(c,o,[filt(c,"highpass",4500)],.002,1.4+.3*h,.55); hiss(c,o,[filt(c,"bandpass",2400,1)],.001,.09,.5*h); }},
+  51:{dur:1.0, db:-20, make(c,o,h){
+    for(const [f,p] of [[523,.1],[1311,.13],[2467,.2],[3160,.18],[4190,.13],[5510,.09]]) tone(c,o,"sine",f,f,0,.001,.55+.3*h,p);
+    metal(c,o,HAT.map(f=>f*.7),[filt(c,"bandpass",6000,.8)],.001,.5,.16); hiss(c,o,[filt(c,"bandpass",5200,1.5)],.001,.03,.4*h); }},
+  56:{dur:.32, db:-19, make(c,o,h){ const b = filt(c,"bandpass",1150,1.1); b.connect(o); tone(c,b,"square",587,587,0,.001,.24,.8); tone(c,b,"square",845,845,0,.001,.17,.7); }},
+  63:{dur:.28, db:-13, make(c,o,h){ tone(c,o,"sine",365,305,.03,.001,.19,.85); tone(c,o,"triangle",690,640,.02,.001,.05,.22); hiss(c,o,[filt(c,"bandpass",1900,1.3)],.001,.018,.4*h); }},
+  39:{dur:.3, db:-13, make(c,o,h){ for(const at of [.001,.012,.023]) hiss(c,o,[filt(c,"bandpass",1250,1.4)],.001,.009,.8,at); hiss(c,o,[filt(c,"bandpass",1450,1)],.001,.16,.75,.034); }},
+  40:{dur:.3, db:-9, make(c,o,h){ tone(c,o,"triangle",250,190,.02,.001,.09,.6); hiss(c,o,[filt(c,"highpass",1900)],.001,.12+.05*h,.6+.3*h); }},
+  45:{dur:.48, db:-11, make(c,o,h){ tomV(c,o,h,115,.36); }},
+  50:{dur:.42, db:-11, make(c,o,h){ tomV(c,o,h,190,.27); }},
+  53:{dur:.9, db:-18, make(c,o,h){ for(const [f,p] of [[784,.3],[1186,.28],[2350,.22],[3140,.16]]) tone(c,o,"sine",f,f,0,.001,.62+.15*h,p); hiss(c,o,[filt(c,"bandpass",4200,1.5)],.001,.02,.3*h); }},
+  64:{dur:.32, db:-13, make(c,o,h){ tone(c,o,"sine",250,208,.03,.001,.22,.85); tone(c,o,"triangle",480,440,.02,.001,.05,.2); hiss(c,o,[filt(c,"bandpass",1500,1.3)],.001,.018,.4*h); }},
+  75:{dur:.1, db:-17, make(c,o,h){ tone(c,o,"sine",2520,2480,.01,.001,.05,.85); tone(c,o,"sine",1710,1700,.01,.001,.025,.3); }}
+};
+function tomV(c, o, h, f, d){ tone(c,o,"sine",f*1.55,f,.05,.001,d,.92); tone(c,o,"triangle",f*2.02,f*1.8,.04,.001,d*.4,.2); hiss(c,o,[filt(c,"bandpass",f*6,1.2)],.001,.02,.26*h); }
+const HARD = [.3, .65, 1];
+let ctx, master, room, kit = null, kitBuilding = null;
+
+async function renderVoice(gm, h){
+  const v = VOICES[gm], sr = ctx.sampleRate;
+  const off = new OfflineAudioContext(1, Math.ceil(sr*v.dur), sr);
+  v.make(off, off.destination, h);
+  const buf = await off.startRendering(), a = buf.getChannelData(0);
+  // Level by loudness (loudest 50 ms), not by peak: a snare is short and spiky, and peak-matching left it 13 dB under the kick.
+  const w = Math.floor(sr*.05); let best = 0;
+  for(let s=0; s+w<a.length; s+=128){ let e = 0; for(let i=s;i<s+w;i+=3) e += a[i]*a[i]; if(e/(w/3) > best) best = e/(w/3); }
+  const g = Math.pow(10, (v.db - (1-h)*4)/20) / (Math.sqrt(best) || 1);
+  const fade = Math.floor(sr*.008);
+  for(let i=0;i<a.length;i++){ a[i] = Math.tanh(a[i]*g); const r = a.length-i; if(r < fade) a[i] *= r/fade; }
+  return buf;
+}
+function buildKit(){
+  if(kitBuilding) return kitBuilding;
+  const notes = Object.keys(VOICES).map(Number);
+  kitBuilding = Promise.all(notes.map(gm => Promise.all(HARD.map(h => renderVoice(gm, h))).then(b => [gm, b])))
+    .then(r => { kit = Object.fromEntries(r); return kit; });
+  return kitBuilding;
+}
+function setupAudio(){
+  if(ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -12; comp.ratio.value = 3; comp.attack.value = .004; comp.release.value = .14;
+  master = ctx.createGain(); master.gain.value = .85;
+  master.connect(comp); comp.connect(ctx.destination);
+  const conv = ctx.createConvolver(), len = Math.floor(ctx.sampleRate*.45), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+  for(let ch=0; ch<2; ch++){ const a = ir.getChannelData(ch); let lp = 0; for(let i=0;i<len;i++){ lp += (rnd()-lp)*.35; a[i] = lp*Math.pow(1-i/len, 3.2); } }
+  conv.buffer = ir; room = ctx.createGain(); room.gain.value = .16;
+  room.connect(conv); conv.connect(comp);
+}
+const SEND = {39:.8,40:.9,45:.9,50:.9,64:.6,35:.1,36:.1,37:.5,38:.9,41:.9,43:.9,47:.9,48:.9,63:.6,75:.5,56:.4};
+let openHat = null;
+function hit(gm, vel, t, jitter){
+  const layers = kit[gm]; if(!layers) return;
+  const s = ctx.createBufferSource(), g = ctx.createGain();
+  s.buffer = layers[vel < 64 ? 0 : vel < 100 ? 1 : 2];
+  s.playbackRate.value = 1 + (jitter||0)*.005;
+  g.gain.value = Math.pow(vel/127, 1.25);
+  s.connect(g); g.connect(master);
+  if(SEND[gm]){ const r = ctx.createGain(); r.gain.value = SEND[gm]; g.connect(r); r.connect(room); }
+  if(gm === 42 || gm === 44 || gm === 46){ if(openHat){ openHat.gain.setTargetAtTime(0, t, .012); openHat = null; } }
+  if(gm === 46) openHat = g;
+  s.start(t);
+}
+
+/* ---------- transport ---------- */
+const P = {on:false, next:0, step:0, queue:[], timer:null, ending:null};
+let cur = null, cols = [], lit = [], muted = new Set();
+const stepSec = p => 60/(+$("#bpm").value) * (4/p.unit) / p.subdivisions;   // as RhythmTrackComposer.ComposeFromGrid
+const velOf = (raw, def) => raw > 0 ? raw : def;                             // StepState.ResolveVelocity
+function trigger(step, t){
+  cur.lanes.forEach(l => { const raw = l.steps[step]; if(raw >= 0 && !muted.has(l.gm)) hit(l.gm, velOf(raw, l.def), t, ((step*7+l.gm)%5-2)/2); });
+}
+function pump(){
+  if(!P.on) return;
+  while(P.next < ctx.currentTime + .12){
+    if(P.step >= cur.totalSteps){
+      if($("#loop").checked) P.step = 0;
+      else { P.ending = P.next; break; }
+    }
+    trigger(P.step, P.next); P.queue.push({t:P.next, s:P.step}); P.next += stepSec(cur); P.step++;
+  }
+  if(P.ending !== null && ctx.currentTime >= P.ending){ stop(); return; }
+  P.timer = setTimeout(pump, 25);
+}
+function clearLit(){ lit.forEach(c => c.classList.remove("now")); lit = []; }
+function draw(){
+  if(!P.on){ clearLit(); return; }
+  let last = null; while(P.queue.length && P.queue[0].t <= ctx.currentTime) last = P.queue.shift();
+  if(last && cols[last.s]){
+    clearLit(); lit = cols[last.s]; lit.forEach(c => c.classList.add("now"));
+    const per = cur.beats*cur.subdivisions, m = Math.floor(last.s/per), b = Math.floor((last.s%per)/cur.subdivisions);
+    $("#pos").textContent = "compás " + (m+1) + "/" + cur.measures + " · pulso " + (b+1);
+  }
+  requestAnimationFrame(draw);
+}
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
+const ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>';
+function setIcon(on){ const p = $("#play"); p.innerHTML = on ? ICON_STOP : ICON_PLAY; p.setAttribute("aria-label", on ? "Parar" : "Reproducir"); }
+async function start(){
+  setupAudio(); ctx.resume();
+  $("#pos").textContent = "preparando el kit…";
+  await buildKit();
+  P.on = true; P.step = 0; P.queue = []; P.ending = null; P.next = ctx.currentTime + .08;
+  setIcon(true); pump(); requestAnimationFrame(draw);
+}
+function stop(){ P.on = false; clearTimeout(P.timer); clearLit(); setIcon(false); $("#pos").textContent = "—"; }
+async function audition(gm, vel){ setupAudio(); ctx.resume(); await buildKit(); hit(gm, vel || 105, ctx.currentTime + .01, 0); }
+
+/* ---------- pattern view ---------- */
+const palName = id => (DATA.palettes.find(p => p.id === id) || {}).display || id;
+function renderWarns(p){
+  const warns = $("#warns"); warns.replaceChildren();
+  const warn = t => warns.append(el("p", "note", t));
+  const snapped = exportInfo(p).snapped;
+  if(snapped) warn("El texto no puede escribir " + snapped + " velocidades de este patrón: se redondean a normal, acento o ghost. Aquí suena con las velocidades exactas del asset; si lo importas, quedará distinto.");
+  if(isCompound(p)) warn("En " + TS_LABEL[p.ts] + " cada pulso de la rejilla es una corchea y el BPM cuenta negras, como en el juego. A " + $("#bpm").value + " BPM el pulso sentido va a " + Math.round(+$("#bpm").value/1.5) + " por minuto.");
+  if(p.palettes.some(q => q.weight === 0)) warn("Tiene peso 0 en su paleta: hoy nunca saldría elegido.");
+}
+function renderFacts(p){
+  $("#pname").textContent = p.id;
+  $("#pdisp").textContent = p.display && p.display !== p.id ? p.display : "";
+  const facts = $("#facts"); facts.replaceChildren();
+  const fact = (k, v) => { const s = el("span"); s.append(k + " "); s.append(el("b", "", v)); facts.append(s); };
+  fact("compás", TS_LABEL[p.ts]); fact("compases", String(p.measures)); fact("subdivisión", String(p.subdivisions));
+  fact("pasos", String(p.totalSteps)); fact("carriles", String(p.lanes.length));
+  if(p.own) fact("paleta", "mis patrones");
+  else if(p.palettes.length) p.palettes.forEach(q => fact("paleta", palName(q.id) + " · peso " + q.weight)); else fact("paleta", "ninguna");
+}
+function renderLanes(p){
+  const lanes = $("#lanes"); lanes.replaceChildren();
+  p.lanes.forEach(l => {
+    const w = el("span", "lane" + (muted.has(l.gm) ? " off" : "")), m = el("button", "", LANE[l.gm] || l.name), a = el("button", "play", "♪");
+    m.title = GM_NAME[l.gm] + " (GM " + l.gm + "): silenciar o activar"; m.setAttribute("aria-pressed", String(!muted.has(l.gm)));
+    a.setAttribute("aria-label", "Oír " + (LANE[l.gm] || l.name));
+    m.onclick = () => { const off = muted.has(l.gm); off ? muted.delete(l.gm) : muted.add(l.gm); w.classList.toggle("off", !off); m.setAttribute("aria-pressed", String(off)); };
+    a.onclick = () => audition(l.gm);
+    w.append(m, a); lanes.append(w);
+  });
+}
+function paintCell(c, l, s){
+  const raw = l.steps[s]; c.replaceChildren(); c.classList.remove("acc", "gho"); c.removeAttribute("title");
+  c.setAttribute("aria-pressed", String(raw >= 0));
+  if(raw < 0) return;
+  const v = velOf(raw, l.def), i = el("i");
+  i.style.setProperty("--v", (v/127).toFixed(3)); c.title = "velocidad " + v;
+  if(raw === ACCENT && l.def !== ACCENT) c.classList.add("acc"); else if(raw === GHOST && l.def !== GHOST) c.classList.add("gho");
+  c.append(i);
+}
+function renderGrid(p){
+  const bars = $("#bars"); bars.replaceChildren(); bars.classList.toggle("mine", !!p.own); cols = []; lit = [];
+  const per = p.beats*p.subdivisions, felt = isCompound(p) ? 3 : 0;
+  for(let m=0; m<p.measures; m++){
+    const bar = el("div", "bar"); bar.append(el("div", "bar-h", "compás " + (m+1)));
+    p.lanes.forEach((l, li) => {
+      const row = el("div", "gr" + (CYMBAL.has(l.gm) ? " cy" : "")), cells = el("div", "cells");
+      row.append(el("span", "", LANE[l.gm] || l.name)); cells.style.setProperty("--n", per);
+      for(let i=0; i<per; i++){
+        const s = m*per + i, c = el(p.own ? "button" : "div", "c"), beat = Math.floor(i/p.subdivisions);
+        c.dataset.q = beat % 4;
+        if(i % p.subdivisions === 0 && i > 0) c.classList.add(felt && beat % felt === 0 ? "felt" : "beat");
+        if(p.own){ c.dataset.l = li; c.dataset.s = s; c.setAttribute("aria-label", (LANE[l.gm] || "") + ", compás " + (m+1) + ", paso " + (i+1)); }
+        paintCell(c, l, s);
+        (cols[s] = cols[s] || []).push(c); cells.append(c);
+      }
+      row.append(cells); bar.append(row);
+    });
+    bars.append(bar);
+  }
+}
+function renderOut(p){ $("#out").textContent = exportInfo(p).text; }
+function renderPattern(p, keep){
+  cur = p; store.set("tb.sel", p.guid);
+  if(!keep){
+    if(!$("#lock").checked && p.bpm){ $("#bpm").value = p.bpm; $("#bpmv").textContent = p.bpm; }
+    muted = new Set(); $("#enote").hidden = true; undo = null;
+    if(P.on){ P.step = 0; P.queue = []; P.ending = null; clearLit(); }
+  }
+  renderFacts(p);
+  const tags = $("#tags"); tags.replaceChildren(); (p.tags || []).forEach(t => tags.append(el("span", "tag", t)));
+  $("#pnote").textContent = p.nota ? "✦ " + p.nota : ""; $("#pnote").hidden = !p.nota;
+  renderWarns(p); renderLanes(p); renderGrid(p); renderEditor(p); renderOut(p);
+  showEval(); markCurrent();
+}
+
+/* ---------- my patterns ---------- */
+let mine = store.get("tb.mine", {}), pcol = null, undo = null; const mineTimers = {};
+const myPatterns = () => Object.values(mine).filter(p => !p.deleted).sort((a, b) => a.id.localeCompare(b.id));
+const allPatterns = () => [...myPatterns(), ...DATA.patterns];
+const newGuid = () => "mio-" + Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36);
+function mineChanged(p){
+  p.t = new Date().toISOString(); mine[p.guid] = p;
+  const local = store.set("tb.mine", mine);
+  clearTimeout(mineTimers[p.guid]);
+  mineTimers[p.guid] = setTimeout(async () => {
+    if(!pcol){ if(!local) $("#saved").textContent = "No se pudo guardar el patrón"; return; }
+    try{ await pcol.doc(p.guid).set(JSON.parse(JSON.stringify(p))); }
+    catch(e){ $("#saved").textContent = "El patrón no se guardó en el artefacto; queda en este navegador"; }
+  }, 600);
+}
+function addMine(p){ mineChanged(p); $("#fpal").value = ""; $("#fts").value = ""; $("#fev").value = ""; renderList(); renderPattern(p); $("#ename").focus(); }
+function blank(){
+  const bpm = +$("#bpm").value, g = reshape({beats:4, subdivisions:4, lanes:[36,38,42].map((gm, i) => ({gm, def:[100,110,80][i], steps:[]}))}, "FourFour", 2, 4).grid;
+  return {guid:newGuid(), own:true, id:"Patrón nuevo", display:"", folder:"", palettes:[], bpm, ...g};
+}
+function copyOf(p){
+  const n = JSON.parse(JSON.stringify(p));
+  delete n.export; delete n.snapped; delete n.tags; delete n.nota; delete n.t;
+  return {...n, guid:newGuid(), own:true, id:p.id + " (copia)", display:"", folder:"", palettes:[], bpm:+$("#bpm").value};
+}
+function applyGrid(ts, measures, subs){
+  const p = cur, before = {ts:p.ts, beats:p.beats, unit:p.unit, measures:p.measures, subdivisions:p.subdivisions, totalSteps:p.totalSteps, lanes:p.lanes};
+  const {grid, dropped} = reshape(p, ts, measures, subs);
+  Object.assign(p, grid); mineChanged(p);
+  undo = dropped ? before : null;
+  renderPattern(p, true);
+  const note = $("#enote"); note.hidden = !dropped; note.replaceChildren();
+  if(dropped){
+    const b = el("button", "btn sm", "Deshacer");
+    b.onclick = () => { Object.assign(p, undo); undo = null; mineChanged(p); renderPattern(p, true); note.hidden = true; };
+    note.append(dropped + (dropped === 1 ? " golpe no cabe" : " golpes no caben") + " en la rejilla nueva. ", b);
+  }
+}
+function renderEditor(p){
+  $("#editor").hidden = !p.own;
+  $("#ecopy").textContent = p.own ? "Duplicar" : "Editar una copia";
+  $("#edel").textContent = "Borrar patrón"; delete $("#edel").dataset.armed;
+  if(!p.own) return;
+  const name = $("#ename"); if(document.activeElement !== name || name.dataset.g !== p.guid){ name.value = p.id; name.dataset.g = p.guid; }
+  $("#ets").value = p.ts; $("#emeas").value = p.measures; $("#esub").value = p.subdivisions;
+  const box = $("#elanes"); box.replaceChildren();
+  p.lanes.forEach((l, i) => {
+    const r = el("div", "elane"), s = el("select"), v = el("input"), x = el("button", "x", "✕");
+    s.id = "elane-" + i; s.setAttribute("aria-label", "Instrumento del carril " + (i+1));
+    Object.keys(GM_NAME).map(Number).sort((a, b) => a - b).forEach(gm => s.append(new Option(LANE[gm] + " · " + gm, gm)));
+    s.value = l.gm;
+    s.onchange = () => { l.gm = +s.value; l.name = GM_NAME[l.gm]; mineChanged(p); renderPattern(p, true); audition(l.gm); };
+    v.type = "number"; v.min = 1; v.max = 127; v.value = l.def; v.id = "evel-" + i; v.title = "Velocidad normal del carril"; v.setAttribute("aria-label", "Velocidad normal del carril " + (i+1));
+    v.onchange = () => { l.def = Math.min(127, Math.max(1, Math.round(+v.value) || 100)); mineChanged(p); renderPattern(p, true); };
+    x.setAttribute("aria-label", "Quitar carril " + (i+1)); x.disabled = p.lanes.length === 1;
+    x.onclick = () => { p.lanes.splice(i, 1); mineChanged(p); renderPattern(p, true); };
+    r.append(s, v, x); box.append(r);
+  });
+}
+
+
+let ev = store.get("tb.ev", {}), col = null, saveTimer = null;
+function showEval(){
+  const e = ev[cur.guid] || {};
+  document.querySelectorAll("#verdict button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === e.v)));
+  if(document.activeElement !== $("#evnote")) $("#evnote").value = e.n || "";
+}
+function changed(){
+  const g = cur.guid, e = ev[g] = ev[g] || {}; e.id = cur.id; e.t = new Date().toISOString();
+  const local = store.set("tb.ev", ev);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    if(!col){ $("#saved").textContent = local ? "Guardada solo en este navegador" : "No se pudo guardar"; return; }
+    try{ await col.doc(g).set({id:e.id, v:e.v||"", n:e.n||"", t:e.t}); $("#saved").textContent = "Guardada"; }
+    catch(err){ $("#saved").textContent = "No se pudo guardar en el artefacto; queda en este navegador"; }
+  }, 500);
+}
+function mergeRemote(snap){
+  for(const d of snap.docs){
+    const r = d.data(); if(!r) continue;
+    const l = ev[d.id];
+    if(!l || !l.t || r.t > l.t) ev[d.id] = {id:r.id, v:r.v||undefined, n:r.n||"", t:r.t};
+  }
+  store.set("tb.ev", ev); renderList(); if(cur) showEval();
+}
+function mergeMine(snap){
+  let touched = false;
+  for(const d of snap.docs){
+    const r = d.data(); if(!r) continue;
+    const l = mine[d.id];
+    if(!l || !l.t || r.t > l.t){ mine[d.id] = r; touched = true; if(cur && cur.guid === d.id && !r.deleted) renderPattern(r, true); }
+  }
+  if(touched){ store.set("tb.mine", mine); renderList(); if(cur && mine[cur.guid] && mine[cur.guid].deleted) renderPattern(filtered[0] || DATA.patterns[0]); }
+}
+async function connect(){
+  try{
+    if(!window.claude || !window.claude.use) return;
+    const db = await window.claude.use("db"); if(!db) return;
+    col = db.collection("evaluaciones");
+    col.onSnapshot(mergeRemote, () => {});
+    pcol = db.collection("patrones");
+    pcol.onSnapshot(mergeMine, () => {});
+    $("#saved").textContent = "Se guarda en el artefacto";
+  }catch(e){}
+}
+
+/* ---------- catalogue ---------- */
+let filtered = [];
+const group = p => p.own ? "+" : p.palettes.length ? p.palettes[0].id : "";
+function renderList(){
+  const fp = $("#fpal").value, ft = $("#fts").value, fe = $("#fev").value;
+  const pass = p => (!fp || (fp === "-" ? group(p) === "" : group(p) === fp)) && (!ft || p.ts === ft)
+    && (!fe || (fe === "none" ? !(ev[p.guid] && ev[p.guid].v) : ev[p.guid] && ev[p.guid].v === fe));
+  const list = $("#list"); list.replaceChildren(); filtered = [];
+  ["+", ...DATA.palettes.map(q => q.id), ""].forEach(id => {
+    const items = allPatterns().filter(p => group(p) === id && pass(p)); if(!items.length) return;
+    const g = el("div", "group"); g.append(el("h3", "", id === "+" ? "Mis patrones" : id ? palName(id) : "Sin paleta"));
+    items.forEach(p => {
+      filtered.push(p);
+      const b = el("button", "item"), v = ev[p.guid] && ev[p.guid].v;
+      b.dataset.g = p.guid; b.append(el("span", "nm", p.id));
+      const zero = p.palettes.some(q => q.weight === 0);
+      b.append(el("span", "sub", TS_LABEL[p.ts] + " · " + p.measures + " comp. · " + p.lanes.length + " carriles" + (zero ? " · peso 0" : "")));
+      b.append(el("span", "mk " + (v||""), v ? MARK[v] : ""));
+      b.onclick = () => renderPattern(p);
+      g.append(b);
+    });
+    list.append(g);
+  });
+  const all = allPatterns(), done = all.filter(p => ev[p.guid] && ev[p.guid].v).length;
+  $("#count").textContent = filtered.length + " de " + all.length + " · evaluados: " + done;
+  markCurrent();
+}
+function markCurrent(){ document.querySelectorAll(".item").forEach(b => { const on = cur && b.dataset.g === cur.guid; b.setAttribute("aria-current", String(!!on)); }); }
+function step(d){
+  if(!filtered.length) return;
+  const i = filtered.findIndex(p => p === cur);
+  renderPattern(filtered[(i + d + filtered.length) % filtered.length]);
+  const b = document.querySelector('.item[aria-current="true"]'); if(b) b.scrollIntoView({block:"nearest"});
+}
+async function copyText(btn, text, select){
+  const old = btn.textContent;
+  try{ await navigator.clipboard.writeText(text); btn.textContent = "Copiado"; }
+  catch(e){ if(select) select(); btn.textContent = "Selecciónalo y cópialo a mano"; }
+  setTimeout(() => btn.textContent = old, 1800);
+}
+
+/* ---------- wiring ---------- */
+$("#fpal").append(new Option("Todas", ""), new Option("Mis patrones", "+"), ...DATA.palettes.map(q => new Option(q.display, q.id)), new Option("Sin paleta", "-"));
+$("#fts").append(new Option("Todos", ""), ...Object.keys(TS_GRID).map(t => new Option(TS_LABEL[t], t)));
+$("#ets").append(...Object.keys(TS_GRID).map(t => new Option(TS_LABEL[t], t)));
+["#fpal", "#fts", "#fev"].forEach(s => $(s).onchange = renderList);
+$("#bpm").oninput = e => { $("#bpmv").textContent = e.target.value; if(isCompound(cur)) renderWarns(cur); if(cur.own){ cur.bpm = +e.target.value; mineChanged(cur); } };
+$("#play").onclick = () => P.on ? stop() : start();
+$("#enew").onclick = () => addMine(blank());
+$("#ecopy").onclick = () => addMine(copyOf(cur));
+$("#ename").oninput = e => { cur.id = e.target.value.slice(0, 60) || "Sin nombre"; renderFacts(cur); renderOut(cur); mineChanged(cur); };
+$("#ename").onchange = () => renderList();
+$("#ets").onchange = e => applyGrid(e.target.value, cur.measures, cur.subdivisions);
+$("#esub").onchange = e => applyGrid(cur.ts, cur.measures, +e.target.value);
+$("#emeas").onchange = e => { const n = Math.min(16, Math.max(1, Math.round(+e.target.value) || 1)); e.target.value = n; applyGrid(cur.ts, n, cur.subdivisions); };
+$("#eadd").onclick = () => { cur.lanes.push({gm:42, name:GM_NAME[42], def:90, steps:new Array(cur.totalSteps).fill(-1)}); mineChanged(cur); renderPattern(cur, true); };
+$("#edel").onclick = e => {
+  const b = e.currentTarget;
+  if(!b.dataset.armed){ b.dataset.armed = "1"; b.textContent = "Toca otra vez para borrarlo"; setTimeout(() => { if(b.dataset.armed){ delete b.dataset.armed; b.textContent = "Borrar patrón"; } }, 3000); return; }
+  const p = cur; mine[p.guid] = {guid:p.guid, id:p.id, deleted:true}; mineChanged(mine[p.guid]); renderList(); renderPattern(filtered[0] || DATA.patterns[0]);
+};
+$("#bars").onclick = e => {
+  const c = e.target.closest(".c"); if(!c || !cur.own) return;
+  const l = cur.lanes[+c.dataset.l], s = +c.dataset.s, raw = l.steps[s];
+  l.steps[s] = raw < 0 ? 0 : raw === 0 ? ACCENT : raw === ACCENT ? GHOST : -1;
+  paintCell(c, l, s); renderOut(cur); renderWarns(cur); mineChanged(cur);
+  if(!P.on && l.steps[s] >= 0) audition(l.gm, velOf(l.steps[s], l.def));
+};
+$("#prev").onclick = () => step(-1);
+$("#next").onclick = () => step(1);
+$("#verdict").onclick = e => { const b = e.target.closest("button"); if(!b) return; const x = ev[cur.guid] = ev[cur.guid] || {}; x.v = x.v === b.dataset.v ? undefined : b.dataset.v; showEval(); changed(); renderList(); };
+$("#evnote").oninput = e => { (ev[cur.guid] = ev[cur.guid] || {}).n = e.target.value; changed(); };
+$("#copy").onclick = e => copyText(e.currentTarget, exportInfo(cur).text, () => { const r = document.createRange(); r.selectNodeContents($("#out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); });
+$("#copyev").onclick = e => copyText(e.currentTarget, JSON.stringify(Object.values(ev).filter(x => x.v || x.n), null, 1));
+addEventListener("keydown", e => {
+  if(/TEXTAREA|SELECT|INPUT/.test(e.target.tagName)) return;
+  if(e.code === "Space"){ e.preventDefault(); P.on ? stop() : start(); }
+  if(e.code === "ArrowRight") step(1);
+  if(e.code === "ArrowLeft") step(-1);
+});
+const look = $("#look"), setLook = v => { document.documentElement.dataset.look = v; store.set("tb.look", v); };
+look.value = store.get("tb.look", "papel") === "caja" ? "caja" : "papel"; setLook(look.value); look.onchange = () => setLook(look.value);
+setIcon(false);
+renderList();
+const firstSel = allPatterns().find(p => p.guid === store.get("tb.sel")) || filtered[0];
+renderPattern(firstSel);
+connect();
+</script>

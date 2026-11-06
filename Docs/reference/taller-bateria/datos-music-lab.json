@@ -1,0 +1,182 @@
+{
+  "Compound Swing": {
+    "bpm": 80,
+    "tags": ["jazz lento", "vals swing", "6/8 anidado"],
+    "nota": "[C] El ride (0,3,5,6) es el de un vals de jazz a escala de corchea: con subdivisions 3 el swing va dentro de cada corchea, no en la negra con puntillo. Suena a dos valses de 3/8 más que a 6/8 compuesto. Bombo y caja coinciden en paso 9."
+  },
+  "CS_CountryLilt68": {
+    "bpm": 120,
+    "tags": ["country", "vals", "6/8 que suena a 3/4"],
+    "nota": "[C] No se siente 6/8: charles en 0,2,4, caja en 2 y 4 y el paso 3 (segundo pulso sentido) vacío en todos los carriles. Son tres negras, un vals de 3/4. Caja en ghost, floja para country. Carril OpenHiHat vacío."
+  },
+  "CS_FunkShuffle68": {
+    "bpm": 90,
+    "tags": ["funk", "6/8 recto", "semicorcheas"],
+    "nota": "[C] No hay shuffle: el charles toca las 12 semicorcheas parejas, sin largo-corto. El backbeat del paso 6 está bien; los ghosts 9 y 11 caen fuera de las corcheas y rompen la división ternaria. c2 paso 9: charles cerrado y abierto a la vez."
+  },
+  "CS_JazzCompound": {
+    "bpm": 120,
+    "tags": ["jazz", "6/8 en dos", "ride quebrado"],
+    "nota": "[C] El ride no es spang-a-lang: tiene su esqueleto en 6/8 (0,6,10), pero añade el paso 3 (semicorchea binaria) y el 8, y queda 3+3+2+2+2. Los ghosts en 9 y en c2 paso 1 tampoco caen en corchea. Oye el pulso en dos del bombo (0,6)."
+  },
+  "CS_MetalDrive68": {
+    "bpm": 120,
+    "tags": ["metal", "6/8", "bombo cruzado"],
+    "nota": "[C] El bombo va en células 2+1, cuatro por compás, contra seis corcheas de charles: 3 contra 2 dentro del pulso. [I] Se puede oír como shuffle en 4 a medio tiempo, con la caja en el 3 (paso 6); solo el charles dice 6/8. No es galope (2+1+1)."
+  },
+  "CS_RockBallad68": {
+    "bpm": 69,
+    "tags": ["balada rock", "6/8", "pulso lento"],
+    "nota": "[C] Es lo que dice: bombo en 0 y caja en 3, los dos pulsos sentidos, con corcheas parejas (negra con puntillo a 46). Primo del 12/8 de Since I've Been Loving You. c2 paso 4: charles cerrado y abierto a la vez."
+  },
+  "DNB 4-4 2m test": {
+    "bpm": 172,
+    "tags": ["drum'n'bass", "prueba", "semicorcheas densas"],
+    "nota": "[C] Sin paleta. La caja en 4 y 12 se desplaza a 13 en c2: buen gesto. Pero el bombo en paso 8 da más breakbeat recto que two-step (segundo bombo en 10). c1 pasos 4 y 12 y c2 paso 8: charles cerrado y abierto a la vez."
+  },
+  "Drum_4-2_2m_ACSN": {
+    "bpm": 100,
+    "tags": ["boceto", "dos voces", "cruce rítmico"],
+    "nota": "[C] Solo bombo (35) y caja, sin platos: ejercicio, no groove. La caja va cada 3 corcheas (c1 pasos 3 y 6, c2 pasos 1, 4 y 7), un cruce sin backbeat que en c2 cae con el bombo en 1 y 4. Sin paleta."
+  },
+  "Drum_4-2_8m_MIDI_Import_Test": {
+    "bpm": 160,
+    "tags": ["importado de MIDI", "medio tiempo", "irregular"],
+    "nota": "[C] Asset de prueba con peso 1.0 en FourOnTheFloor, sin nombre y sin bombo a negras: no pinta ahí. Charles a negras y caja casi siempre en paso 4: a 160 se siente a 80. [I] Parece un groove de semicorcheas escrito a escala doble. 29 velocidades se redondean al exportar."
+  },
+  "FF_BreakbeatDense": {
+    "bpm": 136,
+    "tags": ["breakbeat", "semicorcheas", "caja desplazada"],
+    "nota": "[C] Buen breakbeat, pero no es four-on-the-floor aunque esté en esa paleta: bombo en 0 y 8, en c2 en 0 y 10. c2 quita el backbeat del paso 12 y lo retrasa a 14-15. c1 pasos 4 y 12 y c2 paso 4: charles cerrado y abierto a la vez."
+  },
+  "FF_CountryTrain8c": {
+    "bpm": 120,
+    "tags": ["country", "train beat", "caja continua"],
+    "nota": "[C] Train beat de verdad: caja en todas las corcheas con acento en 2 y 4 (pasos 2 y 6) y bombo en 1 y 3. Oye si los ghosts mantienen el trote sin tapar el acento. [I] Pensado para escobillas: con un kit sintético suena más seco."
+  },
+  "FF_DiscoPulse": {
+    "bpm": 118,
+    "tags": ["disco", "four-on-the-floor", "charles abierto"],
+    "nota": "[C] Disco correcto: bombo a negras, caja en 2 y 4 y charles abierto en los contratiempos (2,6,10,14) sin chocar con el cerrado. Oye el «tss» del abierto: el cerrado siguiente debe cortarlo, así que el kit necesita grupo de corte."
+  },
+  "FF_HalfTimeHeavy": {
+    "bpm": 130,
+    "tags": ["rock pesado", "medio tiempo"],
+    "nota": "[C] Medio tiempo real: caja solo en el 3 (paso 4), bombo casi solo en el 1 y charles a negras; se siente a 65. Oye el peso del hueco. No es four-on-the-floor aunque esté en esa paleta. c2 paso 6: charles cerrado y abierto a la vez."
+  },
+  "FF_LatinClaveEngine": {
+    "bpm": 110,
+    "tags": ["latino", "clave 3-2", "fuera de clave"],
+    "nota": "[C] La clave en SideStick sí es 3-2 (0,6,12|4,8), pero el resto no la sigue. Bombo 0,7,14 no es tresillo (0,6,12): el 7 va una semicorchea tras la clave y el 14 una corchea tras ella. El charles repite igual en ambos lados. OpenHiHat vacío."
+  },
+  "FF_LatinSon32_8c": {
+    "bpm": 110,
+    "tags": ["son", "clave 3-2", "tumbao", "percusión latina"],
+    "nota": "[C] Clave 3-2 bien colocada y bombo con el tumbao de bajo correcto (pasos 6 y 12: el «y» del 2 y el 4). Lo débil es la conga: fuertes en 7 y 14, donde se esperan abiertos en 12 y 14; el slap del paso 4 va en ghost y el 7 sale del pulso de corchea."
+  },
+  "FF_Metal8c": {
+    "bpm": 150,
+    "tags": ["metal", "doble bombo", "redoble de tom"],
+    "nota": "[C] Metal directo: bombo a corcheas, caja en 2 y 4; c7 y c8 pasan a semicorcheas (10 golpes por segundo a 150) y c8 deja solo bombo y tom. Oye si el bombo denso se emborrona en el kit. Peso 0 en la paleta: nunca sale."
+  },
+  "FF_Rock8c": {
+    "bpm": 120,
+    "tags": ["rock", "backbeat", "8 compases"],
+    "nota": "[C] Rock de libro: bombo en 1 y 3, caja en 2 y 4, corcheas. Oye los cambios: acentos de charles desde c5, remate de caja en c8 y platos en c1 y c5. Buena referencia para calibrar el kit."
+  },
+  "FF_TrainBeat": {
+    "bpm": 120,
+    "tags": ["country", "two-beat", "no es train beat"],
+    "nota": "[C] No es un train beat: la caja solo toca contratiempos (1,3,5,7), sin acento en 2 y 4, y el bombo va a negras. Es un boom-chick, un two-beat a escala de corchea. El error viene de genre_vocabulary.md. Peso 0. c2 paso 7: charles cerrado y abierto a la vez."
+  },
+  "Four-on-the-Floor Pulse": {
+    "bpm": 124,
+    "tags": ["four-on-the-floor", "pop rock", "corcheas"],
+    "nota": "[C] Hace lo que dice: bombo en las cuatro negras, caja en 2 y 4, charles a corcheas. Más plano que FF_DiscoPulse porque no abre el charles. Oye si bombo y caja juntos en 2 y 4 pegan o se comen. Sin nombre visible."
+  },
+  "Odd-Meter Angular": {
+    "bpm": 126,
+    "tags": ["5/4", "3+2", "rock"],
+    "nota": "[C] 5/4 agrupado 3+2: bombo en 1 y 4, caja en 2 y 5, y el pulso 3 sin bombo ni caja. Oye ese hueco: ahí está la cojera. Angular solo por el compás: los dos compases son iguales."
+  },
+  "OM_DjentChug": {
+    "bpm": 110,
+    "tags": ["metal progresivo", "5/4", "bombo 3+3+2+2"],
+    "nota": "[C] Bombo en 3+3+2+2 dos veces por compás y caja en los pulsos 3 y 5 (pasos 8 y 16). Es 5/8+5/8 regular, sin desplazamiento real. [I] El charles a semicorcheas tapa el dibujo del bombo. c2 paso 18: charles cerrado y abierto a la vez."
+  },
+  "OM_FunkFive": {
+    "bpm": 98,
+    "tags": ["funk", "5/4", "4+1"],
+    "nota": "[C] Funk con backbeat en 2 y 4 (pasos 4 y 12) y el pulso 5 como coletilla: se oye 4+1, con el charles abierto del paso 18 cerrando el ciclo. Oye si el quinto pulso respira o si tropieza al volver al 1."
+  },
+  "OM_HalfFeelSparse": {
+    "bpm": 110,
+    "tags": ["5/4", "medio tiempo", "sobrio"],
+    "nota": "[C] Una sola caja en el pulso 4 (paso 6) y bombo en el 1: 3+2 a medio tiempo, con charles a negras. Funciona por la espera. El abierto del final de c2 empuja la vuelta."
+  },
+  "OM_RockDrive54": {
+    "bpm": 132,
+    "tags": ["rock", "5/4", "empuje"],
+    "nota": "[C] Bombo en 1 y 4, caja en 3 y 5: frente a Odd-Meter Angular, la caja cierra cada grupo y empuja hacia delante. Corcheas parejas. c2 paso 9: charles cerrado y abierto a la vez."
+  },
+  "OM_TakeFiveSwing": {
+    "bpm": 168,
+    "tags": ["jazz", "5/4", "swing", "3+2"],
+    "nota": "[C] Ride spang-a-lang bien llevado a 5 (1, 2, 2a, 3, 4, 4a, 5) y charles en 2 y 4. Vale como 5/4 de jazz, no como Take Five: la caja en paso 4 cae en el parcial central y en 11, no en 2& (5) y 4 (9), y faltan los tresillos del final."
+  },
+  "SP_DnB8c": {
+    "bpm": 172,
+    "tags": ["drum'n'bass", "two-step", "redoble"],
+    "nota": "[C] Two-step correcto: caja en 2 y 4 y segundo bombo en paso 10, una corchea antes de la segunda caja (c1, c3, c5, c7). Los compases pares lo adelantan al 8 y quedan más rectos. Oye si el kit aguanta el redoble de caja de c8."
+  },
+  "SP_Funk8c": {
+    "bpm": 100,
+    "tags": ["funk", "semicorcheas", "ghosts"],
+    "nota": "[C] Bolsillo funk sólido: bombo 0,7,10, caja en 2 y 4 con ghost después de cada backbeat (6 y 14), charles a semicorcheas con acentos en negras desde c5. c4 paso 14: charles cerrado y abierto a la vez, sobre un ghost."
+  },
+  "SP_HipHop8c": {
+    "bpm": 90,
+    "tags": ["hip-hop", "boom bap", "recto"],
+    "nota": "[C] Boom bap limpio: bombo 0,6,10, caja en 2 y 4, charles a corcheas; c8 se corta a mitad como remate. [I] Sin swing en el formato queda más rígido que un groove de MPC; júzgalo como rejilla, no por eso."
+  },
+  "SP_Jazz8c": {
+    "bpm": 160,
+    "tags": ["jazz", "swing", "spang-a-lang"],
+    "nota": "[C] Swing verdadero: ride 1, 2, 2a, 3, 4, 4a (0,3,5,6,9,11), pedal de charles en 2 y 4 y caja que acompaña. El mejor jazz del catálogo. Detalles: bombo solo en 1 y 3, ghost de c4 paso 1 en parcial central y ride sin dinámica, que suena mecánico en un kit sintético."
+  },
+  "Syncopated Pocket (Funk)": {
+    "bpm": 96,
+    "tags": ["funk", "ghosts", "síncopa"],
+    "nota": "[C] Cada hueco del charles (2,6,10,14) lo llena un ghost de caja: oye esa alternancia, es el corazón del patrón. Backbeat en 2 y 4; el bombo de c2 paso 15 empuja al 1."
+  },
+  "Waltz-Pulse Lilt": {
+    "bpm": 120,
+    "tags": ["vals", "pop", "recto"],
+    "nota": "[C] Vals directo: bombo acentuado en 1, caja en 2 y 3, corcheas parejas. No hay lilt real: nada es largo-corto, así que el balanceo tendría que ponerlo otra pista. Los dos compases son iguales."
+  },
+  "WL_BalladSparse": {
+    "bpm": 72,
+    "tags": ["balada", "vals", "sutil"],
+    "nota": "[C] Ride a negras, bombo en 1, un ghost que cambia de sitio (c1 pulso 3, c2 pulso 2) y charles cerrado en el 2. Oye cuánto aire deja. Si el ghost se pierde en el kit, queda casi solo el ride."
+  },
+  "WL_CountryWaltz": {
+    "bpm": 112,
+    "tags": ["country", "vals", "oom-pah-pah"],
+    "nota": "[C] Colocación correcta, pero la caja va en X (120) en 2 y 3, más fuerte que el bombo del 1 (100): el compás pesa al revés. Oye si el 1 sigue mandando. c2 paso 5: charles cerrado y abierto a la vez."
+  },
+  "WL_FunkWaltz": {
+    "bpm": 88,
+    "tags": ["funk", "3/4", "semicorcheas"],
+    "nota": "[C] Funk en 3: bombo 0,3,6 en 3+3 y backbeat solo en el 2 (paso 4); c2 rompe el charles y añade caja en 9-10. Oye si se siente en 3 o en 6/8. Paso 4 en ambos compases: charles cerrado y abierto a la vez."
+  },
+  "WL_JazzWaltz": {
+    "bpm": 150,
+    "tags": ["jazz", "vals", "swing"],
+    "nota": "[C] Ride correcto de vals de jazz (1, 2, 2a, 3) y bombo suave a negras. Dos fallos: la pisada de charles del 2 está en OpenHiHat (debería ir en PedalHiHat, 44) y los ghosts de c1 paso 4 y c2 pasos 1 y 7 caen en el parcial central."
+  },
+  "WL_RockWaltz": {
+    "bpm": 126,
+    "tags": ["rock", "3/4", "empuje"],
+    "nota": "[C] Bombo en 1 y 3, caja acentuada en 2: dos bombos seguidos al cambiar de compás (3 y 1) dan el empuje. Rock en 3 sin adornos. c2 paso 4: charles cerrado y abierto a la vez."
+  }
+}
