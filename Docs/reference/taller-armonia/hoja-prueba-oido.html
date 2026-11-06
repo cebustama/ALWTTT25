@@ -1,0 +1,207 @@
+<title>Hoja de escucha v3</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Hoja de pentagrama: una tarjeta por progresión, marcas grandes para el pulgar */
+:root{
+  --bg:#f3f4f7; --paper:#ffffff; --ink:#1b2233; --muted:#5d6579; --line:#d9dce5;
+  --accent:#2f4fbf; --ok:#1f7a4d; --meh:#9a6b00; --bad:#b4322a;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121621; --paper:#1a2030; --ink:#e7eaf2; --muted:#9aa3b8; --line:#2c3447;
+  --accent:#8ea6ff; --ok:#5fcf94; --meh:#e2b44a; --bad:#ff7c72; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121621; --paper:#1a2030; --ink:#e7eaf2; --muted:#9aa3b8; --line:#2c3447;
+  --accent:#8ea6ff; --ok:#5fcf94; --meh:#e2b44a; --bad:#ff7c72; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:720px;margin:0 auto;display:grid;gap:18px}
+h1{font:800 clamp(26px,6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+h2{font:600 20px/1.2 var(--display);margin:0}
+.lead{color:var(--muted);margin:6px 0 0}
+.lead a{color:var(--accent)}
+.settings{font:500 13px/1.6 var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:6px}
+.settings span{border:1px solid var(--line);border-radius:4px;padding:1px 7px;background:var(--paper)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:14px;color:var(--muted)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 14px 12px;display:grid;gap:10px}
+.card.done{border-color:color-mix(in srgb,var(--ok) 55%,var(--line))}
+.head{display:flex;gap:10px;align-items:baseline}
+.num{font:500 13px var(--mono);color:var(--muted);min-width:1.6em}
+.head h2{flex:1;min-width:0}
+.test{font-size:14px;color:var(--muted);margin:0}
+.lvl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+.lvl .lab{font:500 13px var(--mono);color:var(--muted)}
+.lvl .what{font-size:14px;grid-column:2}
+.seg{display:flex;gap:6px;grid-column:2}
+.seg button{flex:1;min-height:44px;font:700 20px var(--body);border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"][data-v="ok"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.seg button[aria-pressed="true"][data-v="meh"]{background:var(--meh);border-color:var(--meh);color:#fff}
+.seg button[aria-pressed="true"][data-v="bad"]{background:var(--bad);border-color:var(--bad);color:#fff}
+.seg button:focus-visible,input:focus-visible,textarea:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.idrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;color:var(--muted)}
+.idrow button{min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink);font:14px var(--body);cursor:pointer}
+.idrow button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+input[type=text],textarea{width:100%;box-sizing:border-box;font:15px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+textarea{min-height:64px;resize:vertical}
+code{font:500 0.9em var(--mono)}
+.q{display:grid;gap:6px}
+.q label{font-weight:700}
+.bar{position:sticky;bottom:0;background:var(--bg);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.prog{flex:1;min-width:140px;font:500 13px var(--mono);color:var(--muted)}
+.btn{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--paper);font:700 15px var(--body);cursor:pointer}
+.status{font-size:13px;color:var(--muted)}
+pre{white-space:pre-wrap;font:13px/1.5 var(--mono);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}
+@media (prefers-reduced-motion:no-preference){.seg button{transition:background .12s,color .12s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Hoja de escucha · niveles v3</h1>
+    <p class="lead">Abre el <a href="https://claudiobustamante.com/privado/taller-armonia/" target="_blank" rel="noopener">taller</a> en otra pestaña. Para cada progresión del catálogo escucha el nivel 1, luego el 2 y el 3, fijándote en la <b>vuelta 2</b>. Todo se guarda solo.</p>
+  </header>
+  <div class="settings"><span>2 vueltas</span><span>100 BPM</span><span>4/4</span><span>batería on</span><span>resto por defecto</span></div>
+  <div class="legend"><span><b style="color:var(--ok)">✓</b> suena bien y es la misma</span><span><b style="color:var(--meh)">~</b> no se nota</span><span><b style="color:var(--bad)">✗</b> suena mal o ya no es la misma</span></div>
+
+  <div id="cards" class="wrap" style="gap:14px"></div>
+
+  <section class="card">
+    <h2>Preguntas generales</h2>
+    <div class="q"><label for="g1">1 · ¿El nivel 2 suena a «más» sin dejar de ser la misma? ¿En cuántas de las 8?</label><textarea id="g1"></textarea></div>
+    <div class="q"><label for="g2">2 · ¿En cuáles se pasa el nivel 3?</label><textarea id="g2"></textarea></div>
+    <div class="q"><label for="g3">3 · ¿Las novenas empastan con este sinte o ensucian?</label><textarea id="g3"></textarea></div>
+  </section>
+
+  <section class="card">
+    <h2>Resumen</h2>
+    <pre id="out"></pre>
+  </section>
+
+  <div class="bar">
+    <span class="prog" id="prog">0 / 16 marcas</span>
+    <span class="status" id="status" role="status"></span>
+    <button class="btn" id="copy" type="button">Copiar respuestas</button>
+  </div>
+</div>
+
+<script>
+const PROGS = [
+  {n:"Axis I–V–vi–IV", t:"Dominante secundaria y el iv prestado", l2:"<code>II7</code> antes del V", l3:"<code>♭VI7</code> antes del V y <code>iv6</code> después del IV"},
+  {n:"Cincuentas I–vi–IV–V", t:"sus4; ¿el vi pasa a sonar a llegada en el 3?", l2:"<code>V7sus4</code> → <code>V7</code>", l3:"<code>♭VII7</code> antes del vi y <code>iv6</code> después del IV"},
+  {n:"Creep I–III–IV–iv", t:"Prueba clave: ¿el nivel 2 le quita la identidad?", l2:"<code>VII7</code> antes del III", l3:"<code>IV7</code> (sustituto tritonal) antes del III y <code>iv6</code>"},
+  {n:"Nubarrón ♭VI", t:"Vuelta a la tónica y backdoor", l2:"<code>V7</code> al final", l3:"<code>iv6</code>, más <code>ivm7–♭VII9</code> al final"},
+  {n:"Frigio descenso", t:"¿Sigue sonando frigio?", l2:"<code>VI7</code> antes del II", l3:"<code>♭III7</code> y <code>♭V7</code> (sustitutos tritonales)"},
+  {n:"Lidio flotante", t:"¿Sigue sonando lidio?", l2:"<code>VI7</code> antes del II", l3:"<code>♭III7</code> antes del II y <code>I7</code> antes del vii"},
+  {n:"Cadencia andaluza", t:"¿Sigue siendo andaluza?", l2:"<code>V7sus4</code> → <code>V7</code>", l3:"<code>♯VII7</code> y <code>♭VII7</code> (sustitutos tritonales)"},
+  {n:"Royal road", t:"Estilo city pop", l2:"<code>I7</code> al final (vuelve al IV)", l3:"<code>iv6</code> después del IV y <code>♭V7</code> al final"},
+];
+const SYM = {ok:"✓", meh:"~", bad:"✗"};
+const LS = "alwttt-prueba-oido-v3";
+let state = {marks:{}, notes:{}, ident:{}, g1:"", g2:"", g3:""};
+let db = null, saveTimer = null;
+
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+function render(){
+  const box = document.getElementById("cards");
+  box.innerHTML = PROGS.map((p,i)=>`
+    <section class="card" id="c${i}">
+      <div class="head"><span class="num">${i+1}</span><h2>${p.n}</h2></div>
+      <p class="test">${p.t}</p>
+      ${[2,3].map(L=>`
+      <div class="lvl">
+        <span class="lab">N${L}</span><span class="what">${L===2?p.l2:p.l3}</span>
+        <div class="seg" role="group" aria-label="Nivel ${L} de ${p.n}">
+          ${["ok","meh","bad"].map(v=>`<button type="button" data-i="${i}" data-l="${L}" data-v="${v}" aria-pressed="false" aria-label="${v}">${SYM[v]}</button>`).join("")}
+        </div>
+      </div>`).join("")}
+      <div class="idrow"><span>¿Tiene un momento que la identifica?</span>
+        ${["sí","no","no sé"].map(v=>`<button type="button" data-id="${i}" data-v="${v}" aria-pressed="false">${v}</button>`).join("")}
+      </div>
+      <input type="text" id="n${i}" data-note="${i}" placeholder="Nota (opcional): qué te sonó raro o bien">
+    </section>`).join("");
+  sync();
+}
+
+function sync(){
+  document.querySelectorAll(".seg button").forEach(b=>{
+    b.setAttribute("aria-pressed", state.marks[b.dataset.i+"-"+b.dataset.l]===b.dataset.v ? "true":"false");
+  });
+  document.querySelectorAll(".idrow button").forEach(b=>{
+    b.setAttribute("aria-pressed", state.ident[b.dataset.id]===b.dataset.v ? "true":"false");
+  });
+  document.querySelectorAll("[data-note]").forEach(el=>{ if(document.activeElement!==el) el.value = state.notes[el.dataset.note]||""; });
+  ["g1","g2","g3"].forEach(k=>{const el=document.getElementById(k); if(document.activeElement!==el) el.value=state[k]||"";});
+  PROGS.forEach((_,i)=>document.getElementById("c"+i).classList.toggle("done", !!(state.marks[i+"-2"]&&state.marks[i+"-3"])));
+  const n = Object.keys(state.marks).length;
+  document.getElementById("prog").textContent = `${n} / 16 marcas`;
+  document.getElementById("out").textContent = summary();
+}
+
+function summary(){
+  const rows = PROGS.map((p,i)=>{
+    const a = SYM[state.marks[i+"-2"]]||"·", b = SYM[state.marks[i+"-3"]]||"·";
+    let s = `${i+1} ${p.n}: N2 ${a} · N3 ${b}`;
+    if(state.ident[i]) s += ` · identidad: ${state.ident[i]}`;
+    if(state.notes[i]) s += ` (${state.notes[i]})`;
+    return s;
+  });
+  rows.push("", `G1: ${state.g1||"—"}`, `G2: ${state.g2||"—"}`, `G3: ${state.g3||"—"}`);
+  return rows.join("\n");
+}
+
+function save(){
+  try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){}
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    const st = document.getElementById("status");
+    if(!db){ st.textContent = "Guardado en este navegador"; return; }
+    try{ await db.doc("pruebas/v3").set({...state, updated: new Date().toISOString()}); st.textContent = "Guardado"; }
+    catch(e){ st.textContent = "Guardado solo en este navegador"; }
+  }, 700);
+}
+
+document.addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.l){
+    const k = b.dataset.i+"-"+b.dataset.l;
+    if(state.marks[k]===b.dataset.v) delete state.marks[k]; else state.marks[k]=b.dataset.v;
+    sync(); save();
+  } else if(b.dataset.id!==undefined){
+    const k = b.dataset.id;
+    state.ident[k] = state.ident[k]===b.dataset.v ? undefined : b.dataset.v;
+    if(!state.ident[k]) delete state.ident[k];
+    sync(); save();
+  } else if(b.id==="copy"){
+    const txt = summary(), st = document.getElementById("status");
+    navigator.clipboard.writeText(txt).then(()=>st.textContent="Copiado; pégalo en el chat")
+      .catch(()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("out"));const s=getSelection();s.removeAllRanges();s.addRange(r);st.textContent="Texto seleccionado: cópialo";});
+  }
+});
+document.addEventListener("input", e=>{
+  const el = e.target;
+  if(el.dataset.note!==undefined){ state.notes[el.dataset.note]=el.value; if(!el.value) delete state.notes[el.dataset.note]; }
+  else if(["g1","g2","g3"].includes(el.id)) state[el.id]=el.value;
+  else return;
+  document.getElementById("out").textContent = summary(); save();
+});
+
+try{ const s = JSON.parse(localStorage.getItem(LS)||"null"); if(s) state = {...state, ...s}; }catch(e){}
+render();
+
+(async ()=>{
+  try{
+    db = window.claude?.use ? await window.claude.use("db") : null;
+    if(!db) return;
+    const snap = await db.doc("pruebas/v3").get();
+    if(snap.exists){
+      const d = snap.data(); delete d.updated;
+      const local = Object.keys(state.marks).length;
+      if(Object.keys(d.marks||{}).length >= local) { state = {...state, ...d}; sync(); }
+    }
+    document.getElementById("status").textContent = "Conectado: se guarda para Claude";
+  }catch(e){ db = null; }
+})();
+</script>
