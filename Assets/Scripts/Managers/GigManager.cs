@@ -2116,6 +2116,18 @@ namespace ALWTTT.Managers
 
             bool played = _session?.TryPlayCompositionCard(card, target, zone) ?? false;
 
+            // [LEGIB-1a] The card is now a track: drop the card preview and
+            // re-forecast at rest. The resting Z (which now includes the card) becomes
+            // the promise the loop-end CHECK compares against. HandController sets the
+            // next hovered card on its next frame.
+            if (played)
+            {
+                _previewDef = null;
+                _previewTarget = null;
+                _previewShownDef = null;
+                ApplyCardPreview();
+            }
+
             // [ECON-1 / T5] Consume ONLY on session-accepted plays — budget
             // must not burn on invalid drops, full parts, or the session's own
             // inspiration denial (batch constraint: burn on success only).
@@ -2137,6 +2149,7 @@ namespace ALWTTT.Managers
             if (_session != null)
             {
                 _session.LoopFinished -= OnCompositionLoopFinished;
+                _session.LoopStarted -= OnCompositionLoopStarted;   // [LEGIB-1a]
                 _session.PartFinished -= OnCompositionPartFinished;
                 _session.SongFinished -= OnCompositionSongFinished;
                 _session.End();
@@ -2148,6 +2161,7 @@ namespace ALWTTT.Managers
 
             _session = new CompositionSession();
             _session.LoopFinished += OnCompositionLoopFinished;
+            _session.LoopStarted += OnCompositionLoopStarted;       // [LEGIB-1a]
             _session.PartFinished += OnCompositionPartFinished;
             _session.SongFinished += OnCompositionSongFinished;
 
@@ -2854,6 +2868,59 @@ namespace ALWTTT.Managers
                 $"totalMusicians={meters.LoopScoringConfig.totalMusicians}");
         }
 
+        // [LEGIB-1a] Loop score → SongHype delta, BEFORE Overload. The single
+        // implementation behind the loop-end payout and the card preview.
+        // [LEGIB-1a / D4=A, D5=A] Score → step delta × multiplier, then two rules
+        // in Big Num units (the only unit the player sees):
+        //  1. Floor: each track that entered this loop guarantees +MinBigNumPerNewTrack
+        //     on the Big Num at loop end. Expressed as the exact Hype that lands the
+        //     readout on L_now + n, applied only when it beats the step delta — so it
+        //     rescues the «3 → 3» cases without inflating loops that already rise.
+        //  2. Full band: +FullBandBonusBigNum, on top, in the loop where every band
+        //     musician has a track for the first time (any band size).
+        // Shared by payout and preview, so «Y → Z» shows both with no extra code.
+        // Overload still multiplies the result afterwards (payout only, declared gap).
+        private float ComputeLoopHypeDelta(
+            in LoopFeedbackContext loopCtx, out float loopScore, out string bonusNote)
+        {
+            loopScore = LoopScoreCalculator.ComputeLoopScore(
+                loopCtx, meters != null ? meters.LoopScoringConfig : LoopScoringConfig.Default);
+            float baseHypeDelta = LoopScoreCalculator.ComputeHypeDelta(
+                loopScore, meters != null ? meters.HypeThresholds : HypeThresholds.Default);
+            float delta = baseHypeDelta * (meters != null ? meters.SongHypeDeltaMultiplier : 1f);
+            bonusNote = null;
+
+            if (meters == null || _session == null) return delta;
+            float max = meters.MaxSongHype;
+            int maxVibe = meters.MaxVibeFromSongHype;
+            if (max <= 0f || maxVibe <= 0) return delta;
+            float hypePerBigNum = max / maxVibe;
+
+            int newTracks = _session.CountTracksNewThisLoop(loopCtx.Tracks);
+            if (newTracks > 0 && meters.MinBigNumPerNewTrack > 0)
+            {
+                int lNow = Mathf.RoundToInt(Mathf.Clamp01(_songHype / max) * maxVibe);
+                int lTarget = Mathf.Min(maxVibe, lNow + newTracks * meters.MinBigNumPerNewTrack);
+                float floorDelta = lTarget * hypePerBigNum - _songHype;
+                if (floorDelta > delta)
+                {
+                    bonusNote = $"suelo: {newTracks} pista(s) nueva(s), Big Num al menos {lTarget} " +
+                                $"(ΔHype {delta:F1} -> {floorDelta:F1})";
+                    delta = floorDelta;
+                }
+            }
+
+            if (meters.FullBandBonusBigNum > 0
+                && _session.FullBandEnteredThisLoop(loopCtx.Tracks, out int bandSize))
+            {
+                delta += meters.FullBandBonusBigNum * hypePerBigNum;
+                bonusNote = (bonusNote != null ? bonusNote + "; " : "") +
+                            $"¡TODA LA BANDA! ({bandSize} músicos) +{meters.FullBandBonusBigNum} Big Num";
+            }
+
+            return delta;
+        }
+
         // Called whenever one full loop finishes (including the last loop of the song)
         private void TriggerAudienceMicroReactions(LoopFeedbackContext loopCtx)
         {
@@ -2861,11 +2928,10 @@ namespace ALWTTT.Managers
                 || CurrentAudienceCharacterList.Count == 0)
                 return;
 
-            float loopScore = LoopScoreCalculator.ComputeLoopScore(
-                loopCtx, meters != null ? meters.LoopScoringConfig : LoopScoringConfig.Default);
-            float baseHypeDelta = LoopScoreCalculator.ComputeHypeDelta(
-                loopScore, meters != null ? meters.HypeThresholds : HypeThresholds.Default);
-            float hypeDelta = baseHypeDelta * (meters != null ? meters.SongHypeDeltaMultiplier : 1f);
+            // [LEGIB-1a] Shared with PreviewBigNumAtLoopEnd: one implementation.
+            float hypeDelta = ComputeLoopHypeDelta(loopCtx, out float loopScore, out string bonusNote);
+            if (bonusNote != null)
+                Debug.Log($"{DebugTag} [LEGIB-1a] BONUS al acabar el loop: {bonusNote}");
 
             // [R5-c / D-R5-17=A] Overload multiplies the DELTA, not the raw
             // loopScore: ComputeHypeDelta is a step function, so scaling its
@@ -2936,6 +3002,7 @@ namespace ALWTTT.Managers
             if (_session != null)
             {
                 _session.LoopFinished -= OnCompositionLoopFinished;
+                _session.LoopStarted -= OnCompositionLoopStarted;   // [LEGIB-1a]
                 _session.PartFinished -= OnCompositionPartFinished;
                 _session.SongFinished -= OnCompositionSongFinished;
             }
@@ -4299,6 +4366,22 @@ namespace ALWTTT.Managers
                 UIManager.GigCanvas.SetVibeReadout(lPart, sfxPart, magnitude01,
                     SongHype01, avgMaxVibe);
 
+            // [LEGIB-1a] Acceptance check: what the preview promised for the last
+            // card played vs what the loop end actually shows.
+            if (reason == "loop" && _previewPromisedBigNum >= 0)
+            {
+                int real = lPart + sfxPart;
+                Debug.Log($"{DebugTag} [LEGIB-1a] CHECK prometido={_previewPromisedBigNum} " +
+                    $"real={real} -> {(real == _previewPromisedBigNum ? "OK" : "DISTINTO")}" +
+                    (_overloadFactorThisLoop > 1f ? " (hubo OVERLOAD: no se previsualiza)" : ""));
+                _previewPromisedBigNum = -1;
+            }
+
+            // [LEGIB-1a] The readout was just rewritten: re-apply the card preview
+            // on top (the card may still be under the pointer as the loop turns).
+            _previewShownDef = null;
+            ApplyCardPreview();
+
             if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
                 Debug.Log($"{DebugTag} [S5a-SMOKE] PROJ ({reason}) readout L={lPart} " +
                     $"SFX={sfxPart} N={lPart + sfxPart} SongHype01={SongHype01:F3}");
@@ -4341,7 +4424,151 @@ namespace ALWTTT.Managers
             // [BIGNUM-1] Readout and status hook go quiet with the telegraph.
             _vibeProjectionActive = false;
             if (UIManager != null && UIManager.GigCanvas != null)
+            {
+                UIManager.GigCanvas.ClearVibeReadoutPreview();   // [LEGIB-1a]
                 UIManager.GigCanvas.SetVibeReadoutVisible(false);
+            }
+            _previewShownDef = null;
+            _previewPromisedBigNum = -1;
+        }
+
+        // ── [LEGIB-1a] Big Num forecast: «Y → Z» ────────────────────────────
+        // [D6=A] Y = the Big Num now; Z = at the end of THIS loop, at rest or with
+        // the hovered/held card (reverses the first cut, where Y was "loop end
+        // without the card": with the arrow always on, Y must be the fact on screen).
+        // Both run the payout's own steps (ComputeLoopHypeDelta, SongHype clamp,
+        // venue-SFX banking). Known gap, declared: Overload is NOT predicted —
+        // it is decided at loop end and the play itself can feed it (Voltage).
+        private CardDefinition _previewDef;          // card under the pointer (input)
+        private MusicianBase _previewTarget;         // who would play it (input)
+        private CardDefinition _previewShownDef;     // card whose «Y → Z» is on screen
+        private int _previewShownY = -1, _previewShownZ = -1;
+        private int _previewPromisedBigNum = -1;     // resting Z in force (loop-end CHECK)
+
+        /// <summary>
+        /// [LEGIB-1a] Called by HandController whenever the hovered/held card or its
+        /// target changes. Null clears. Cheap when nothing changed.
+        /// </summary>
+        public void SetCardPreview(CardDefinition def, MusicianBase target)
+        {
+            if (def == _previewDef && target == _previewTarget) return;
+            _previewDef = def;
+            _previewTarget = target;
+            ApplyCardPreview();
+        }
+
+        // [LEGIB-1a / D6=A] A loop just started: the part's loop-start keys are fresh,
+        // so the resting forecast can be computed for it.
+        private void OnCompositionLoopStarted()
+        {
+            _previewShownDef = null;
+            ApplyCardPreview();
+        }
+
+        // Big Num as the readout shows it now (same formula as RefreshVibeProjection).
+        private int CurrentBigNum()
+        {
+            int maxVibeFromHype = meters != null ? meters.MaxVibeFromSongHype : 0;
+            return Mathf.RoundToInt(SongHype01 * maxVibeFromHype) + _pendingSfxVibe;
+        }
+
+        // [LEGIB-1a / D6=A] «Y → Z» is always on while a loop runs. Y = Big Num now.
+        // Z = at the end of the loop now playing: at rest, with what is already played
+        // (also in the final loop, where no card can be played but the loop still
+        // pays); with a playable composition card hovered/held, as if it were played.
+        // The resting Z is the promise the loop-end CHECK compares against, every loop.
+        private void ApplyCardPreview()
+        {
+            var canvas = UIManager != null ? UIManager.GigCanvas : null;
+            if (canvas == null) return;
+
+            LoopFeedbackContext restCtx = default;
+            bool restOk = _vibeProjectionActive && _session != null
+                && _session.TryBuildCurrentLoopContext(out restCtx);
+            if (!restOk)
+            {
+                // Between loops / no song: plain number. The pending promise is kept
+                // (the loop-end CHECK reads it right after this, on reason "loop").
+                canvas.ClearVibeReadoutPreview();
+                _previewShownDef = null;
+                _previewShownY = _previewShownZ = -1;
+                return;
+            }
+
+            int y = CurrentBigNum();
+            int zRest = PreviewBigNumAtLoopEnd(restCtx, out string restBonus);
+            _previewPromisedBigNum = zRest;
+
+            var def = _previewDef;
+            LoopFeedbackContext withCard = default;
+            string changeNote = null;
+            bool cardOk = def != null && def.IsComposition
+                && EvaluateCardPlayability(def) == UnplayableReason.None
+                && _session.TryBuildCardPreviewLoopContexts(def, _previewTarget,
+                       out _, out withCard, out changeNote);
+
+            int z = zRest;
+            string bonusNote = restBonus;
+            if (cardOk) z = PreviewBigNumAtLoopEnd(withCard, out bonusNote);
+
+            var shownDef = cardOk ? def : null;
+            bool changed = shownDef != _previewShownDef || y != _previewShownY || z != _previewShownZ;
+            _previewShownDef = shownDef;
+            _previewShownY = y;
+            _previewShownZ = z;
+            canvas.SetVibeReadoutPreview(y, z, cardOk);
+
+            if (!changed) return;
+            if (cardOk)
+                Debug.Log($"{DebugTag} [LEGIB-1a] PREVIEW '{def.DisplayName}' " +
+                    $"by '{(_previewTarget != null ? _previewTarget.CharacterName : "-")}': " +
+                    $"ahora {y}, al acabar el loop {zRest} -> {z} con la carta" +
+                    (changeNote != null ? $" | cambio: {changeNote}" : "") +
+                    (bonusNote != null ? $" | bonus: {bonusNote}" : ""));
+            else
+                Debug.Log($"{DebugTag} [LEGIB-1a] REPOSO: ahora {y}, al acabar el loop {z}" +
+                    (bonusNote != null ? $" | bonus: {bonusNote}" : ""));
+        }
+
+        // The Big Num the loop-end refresh will show if this loop is scored with
+        // ctx: same delta, same clamp, same SFX gate as AddSongHypeCore → readout.
+        private int PreviewBigNumAtLoopEnd(in LoopFeedbackContext ctx, out string bonusNote)
+        {
+            bonusNote = null;
+            float delta = (dev != null && dev.DebugSongHype)
+                ? 0f : ComputeLoopHypeDelta(ctx, out _, out bonusNote);   // AddSongHype's guard
+
+            float max = meters != null ? meters.MaxSongHype : 0f;
+            float before = max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);
+            float afterHype = Mathf.Clamp(_songHype + delta, 0f, max);
+            float after = max <= 0f ? 0f : Mathf.Clamp01(afterHype / max);
+
+            int maxVibeFromHype = meters != null ? meters.MaxVibeFromSongHype : 0;
+            int lPart = Mathf.RoundToInt(after * maxVibeFromHype);
+            return lPart + _pendingSfxVibe + PreviewSfxBankedOnRise(before, after);
+        }
+
+        // Mirror of EvaluateSongHypeThresholds + FireSongHypeStage + ApplySfxBonusVibe
+        // without side effects: which stages this rise would cross, and how much
+        // Vibe the unlocked ones would bank.
+        private int PreviewSfxBankedOnRise(float before, float after)
+        {
+            if (presentation == null || after <= before) return 0;
+            var pd = GameManager != null ? GameManager.PersistentGameplayData : null;
+            int stage = _songHypeStage, banked = 0;
+            for (int s = 1; s <= 3; s++)
+            {
+                float t = s == 1 ? presentation.SongHypeStage1Threshold
+                        : s == 2 ? presentation.SongHypeStage2Threshold
+                        : presentation.SongHypeStage3Threshold;
+                if (stage < s && after >= t && before < t)
+                {
+                    stage = s;
+                    if (pd != null && pd.IsSfxStageUnlocked(s))
+                        banked += Mathf.Max(0, Mathf.RoundToInt(presentation.GetSfxBonusVibe(s)));
+                }
+            }
+            return banked;
         }
 
         /// <summary>

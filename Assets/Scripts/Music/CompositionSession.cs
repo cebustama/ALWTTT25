@@ -81,6 +81,9 @@ namespace ALWTTT.Music
         private float _loopDurationSeconds;
 
         public event Action<LoopFeedbackContext> LoopFinished;
+        /// <summary>[LEGIB-1a / D6=A] A loop just started playing (after the loop-start
+        /// track keys were captured). GigManager re-forecasts the Big Num here.</summary>
+        public event Action LoopStarted;
         // [SINGER-1] Raised once per loop, immediately before PlayRaw, carrying the
         // loop's stems + musical context so the singer can arm from the melody stem.
         public event Action<ALWTTT.Music.Voice.SingerLoopContext> LoopPlaybackStarting;
@@ -704,6 +707,7 @@ namespace ALWTTT.Music
             _loopsRemainingForPart = _rules.loopsPerPart;
 
             ResetBonusLoopState();             // [R5-d] first loop of a part is never bonus
+            _loopStartTrackKeys.Clear();       // [LEGIB-1a] tracks laid before loop 1 are new in loop 1
 
             float secs = PlaySinglePartLoop(_currentPartIndex);
             if (secs <= 0f) { _ctx.Log("[Session] Failed to start first loop"); return; }
@@ -755,6 +759,224 @@ namespace ALWTTT.Music
                 _ctx.LoopsTimerUI?.SetProgress(loopIdx0, pct);
             }
         }
+        // [LEGIB-1a / D4=A, D5=A] Track keys (musicianId, role) present when the loop
+        // NOW PLAYING started. A track whose key is not here entered during this loop:
+        // it earns the +1 Big Num floor, and it may complete the full band. Captured
+        // after each loop is scored, on part advance, and cleared at song start (so
+        // tracks laid down before the first loop count as new in that loop).
+        private readonly HashSet<(string, TrackRole)> _loopStartTrackKeys = new();
+
+        private void CaptureLoopStartTracks()
+        {
+            _loopStartTrackKeys.Clear();
+            var model = _ctx?.CompositionUI?.Model;
+            if (model == null || _currentPartIndex < 0 || _currentPartIndex >= model.parts.Count)
+                return;
+            var tracks = model.parts[_currentPartIndex].tracks;
+            if (tracks == null) return;
+            foreach (var t in tracks)
+                if (t != null) _loopStartTrackKeys.Add((t.musicianId ?? string.Empty, t.role));
+        }
+
+        /// <summary>[LEGIB-1a] How many of <paramref name="tracks"/> entered during the loop now playing.
+        /// A replacement keeps its key, so it never counts.</summary>
+        public int CountTracksNewThisLoop(IReadOnlyList<LoopTrackSnapshot> tracks)
+        {
+            if (tracks == null) return 0;
+            int n = 0;
+            foreach (var t in tracks)
+                if (!_loopStartTrackKeys.Contains((t.MusicianId ?? string.Empty, t.Role))) n++;
+            return n;
+        }
+
+        /// <summary>
+        /// [LEGIB-1a] True when every band musician has at least one track in
+        /// <paramref name="tracks"/> and that was NOT already true when the loop started:
+        /// the loop where the whole band comes in together. Any band size (2, 3, 4…);
+        /// a band of one never qualifies.
+        /// </summary>
+        public bool FullBandEnteredThisLoop(IReadOnlyList<LoopTrackSnapshot> tracks, out int bandSize)
+        {
+            bandSize = 0;
+            var band = _ctx?.Band;
+            if (band == null || tracks == null) return false;
+
+            bool allNow = true, allAtStart = true;
+            foreach (var m in band)
+            {
+                string id = m != null && m.MusicianCharacterData != null
+                    ? m.MusicianCharacterData.CharacterId : null;
+                if (string.IsNullOrEmpty(id)) continue;
+                bandSize++;
+
+                bool now = false;
+                foreach (var t in tracks) if (t.MusicianId == id) { now = true; break; }
+                bool atStart = false;
+                foreach (var k in _loopStartTrackKeys) if (k.Item1 == id) { atStart = true; break; }
+
+                allNow &= now;
+                allAtStart &= atStart;
+            }
+            return bandSize >= 2 && allNow && !allAtStart;
+        }
+
+        // [LEGIB-1a] One snapshot routine for the payout (loop end) and the preview.
+        private static List<LoopTrackSnapshot> SnapshotTracks(
+            IEnumerable<SongCompositionUI.TrackEntry> tracks)
+        {
+            var list = new List<LoopTrackSnapshot>();
+            if (tracks == null) return list;
+            foreach (var t in tracks)
+            {
+                list.Add(new LoopTrackSnapshot(
+                    musicianId: t.musicianId,
+                    role: t.role,
+                    synergyType: t.synergyType,
+                    inspirationGenerated: t.inspirationGenerated,
+                    info: t.info
+                ));
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// [LEGIB-1a] Builds the context the loop NOW PLAYING will be scored with
+        /// when it ends, twice: without the card (<paramref name="withoutCard"/>) and
+        /// as if <paramref name="def"/> had been played by <paramref name="target"/>
+        /// (<paramref name="withCard"/>). Pure: mutates nothing.
+        ///
+        /// Mirrors three things from the real paths, and only these, because they
+        /// are the only inputs of LoopScoreCalculator.ComputeLoopScore:
+        ///  - routing: a running loop plays on _currentPartIndex (NextPart is
+        ///    redirected to CurrentPart in TryPlayCompositionCard);
+        ///  - the track rule of SongCompositionUI.TryAddOrReplaceTrackOnPart:
+        ///    same (musicianId, role) replaces with the card's InspirationGenerated;
+        ///    a new key adds a track, unless the card carries no style bundle;
+        ///  - loopIndex0 as the loop-end code will stamp it (after its decrement).
+        /// Part cards and modifier effects do not change tracks, so they score the
+        /// same as "without".
+        ///
+        /// Returns false when there is no preview to show: no loop running, the
+        /// final-loop lock is on (the card cannot be played), or the play would be
+        /// refused by the same CanApplyDefinition pre-flight the drop uses.
+        /// </summary>
+        public bool TryBuildCurrentLoopContext(out LoopFeedbackContext ctx)
+        {
+            // [LEGIB-1a / D6=A] The resting forecast: the loop now playing, scored with
+            // what is already played. Unlike the card preview, it also runs in the
+            // final loop (no card can be played there, but the loop still pays).
+            ctx = default;
+            var ui = _ctx?.CompositionUI;
+            var model = ui?.Model;
+            if (model == null) return false;
+            // Any live state: LoopStarted fires from PlaySinglePartLoop BEFORE
+            // ConfirmCurrentPartAndStart / AdvanceToNextPart set the new state.
+            bool loopIsRunning = _isPlaying &&
+                _state != CompositionState.Idle && _state != CompositionState.Ended;
+            if (!loopIsRunning) return false;
+            if (_currentPartIndex < 0 || _currentPartIndex >= model.parts.Count) return false;
+
+            var part = model.parts[_currentPartIndex];
+            ctx = MakePreviewContext(ui, part, SnapshotTracks(part.tracks));
+            return true;
+        }
+
+        // [LEGIB-1a] The context the loop-end code will build, minus inspiration
+        // (not a ComputeLoopScore input). loopIndex0 as stamped after its decrement.
+        private LoopFeedbackContext MakePreviewContext(
+            SongCompositionUI ui, SongCompositionUI.PartEntry part,
+            IReadOnlyList<LoopTrackSnapshot> tracks)
+        {
+            int loopIndex0 = _loopsTotalForPart - (_loopsRemainingForPart - 1) - 1;
+            string label = ui.GetPartLabel(_currentPartIndex) ?? $"Part {_currentPartIndex}";
+            return new LoopFeedbackContext(
+                partIndex: _currentPartIndex, loopIndexWithinPart: loopIndex0,
+                loopsInPart: _loopsTotalForPart, partLabel: label,
+                inspirationGainedThisLoop: 0, inspirationAfterLoop: _currentInspiration,
+                tracks: tracks, tempoScale: part.tempoScale,
+                timeSignature: part.timeSignature, rootNote: part.rootNote,
+                tonality: part.tonality);
+        }
+
+        public bool TryBuildCardPreviewLoopContexts(
+            CardDefinition def, MusicianBase target,
+            out LoopFeedbackContext withoutCard, out LoopFeedbackContext withCard,
+            out string changeNote)
+        {
+            withoutCard = default;
+            withCard = default;
+            changeNote = null;
+
+            var ui = _ctx?.CompositionUI;
+            var model = ui?.Model;
+            var comp = def != null ? def.CompositionPayload : null;
+            if (model == null || comp == null) return false;
+
+            bool loopIsRunning = _isPlaying &&
+                (_state == CompositionState.BuildingNextPart
+                 || _state == CompositionState.PlayingCurrentPart);
+            if (!loopIsRunning || IsFinalLoopRunning) return false;
+            if (_currentPartIndex < 0 || _currentPartIndex >= model.parts.Count) return false;
+
+            if (comp.RequiresMusicianTarget && target == null && def.RequiresFixedPerformer)
+                target = _ctx.ResolveMusicianByType(def.FixedPerformerType);
+            if (def.RequiresMusicianTarget && target == null) return false;
+            if (!ui.CanApplyDefinition(def, target, out _, _currentPartIndex)) return false;
+
+            var part = model.parts[_currentPartIndex];
+            var baseTracks = SnapshotTracks(part.tracks);
+            var withTracks = new List<LoopTrackSnapshot>(baseTracks);
+
+            if (comp.PrimaryKind == CardPrimaryKind.Track && comp.TrackAction != null)
+            {
+                string musicianId = target != null && target.MusicianCharacterData != null
+                    ? target.MusicianCharacterData.CharacterId : null;
+                if (string.IsNullOrEmpty(musicianId)) return false;
+
+                var role = comp.TrackAction.role;
+                int complexity = Math.Max(0, def.InspirationGenerated);
+                int idx = withTracks.FindIndex(t => t.MusicianId == musicianId && t.Role == role);
+
+                if (idx >= 0)
+                {
+                    var old = withTracks[idx];
+                    withTracks[idx] = new LoopTrackSnapshot(
+                        musicianId: old.MusicianId, role: old.Role,
+                        synergyType: def.CardType, inspirationGenerated: complexity,
+                        info: old.Info);
+                    changeNote = $"sustituye pista {role}";
+                }
+                else if (comp.TrackAction.styleBundle != null)
+                {
+                    withTracks.Add(new LoopTrackSnapshot(
+                        musicianId: musicianId, role: role,
+                        synergyType: def.CardType, inspirationGenerated: complexity,
+                        info: def.DisplayName));
+                    changeNote = $"pista nueva {role}";
+                }
+                else
+                {
+                    changeNote = $"sin pista nueva ({role} sin estilo)";
+                }
+            }
+
+            // [LEGIB-1a] What the card does to the part, by category (the same
+            // categories as the floating text). Category, not diff: a key card that
+            // lands on the key already playing still reads as a key change here.
+            var effects = new List<string>();
+            if (CompositionCardClassifier.IsModulationCard(comp)) effects.Add("cambio de tonalidad");
+            else if (CompositionCardClassifier.IsTonalityCard(comp)) effects.Add("tonalidad");
+            if (CompositionCardClassifier.IsTempoCard(comp)) effects.Add("tempo");
+            if (CompositionCardClassifier.IsTimeSignatureCard(comp)) effects.Add("compás");
+            if (CompositionCardClassifier.IsInstrumentCard(comp)) effects.Add("instrumento");
+            if (effects.Count > 0)
+                changeNote = (changeNote != null ? changeNote + "; " : "") + string.Join(", ", effects);
+
+            withoutCard = MakePreviewContext(ui, part, baseTracks);
+            withCard = MakePreviewContext(ui, part, withTracks);
+            return true;
+        }
+
         public bool TryPlayCompositionCard(
             CardBase card, MusicianBase target, CardDropZone zone)
         {
@@ -1420,6 +1642,10 @@ namespace ALWTTT.Music
             _isPlaying = true;
             _loopStartTime = Time.time;
             _loopDurationSeconds = duration;
+
+            // [LEGIB-1a / D6=A] Subscriber failures must never kill the loop.
+            try { LoopStarted?.Invoke(); }
+            catch (Exception ex) { Debug.LogException(ex); }
             return duration;
         }
 
@@ -1776,21 +2002,9 @@ namespace ALWTTT.Music
                 partEntry = model.parts[_currentPartIndex];
             }
 
-            var trackSnapshots = new List<LoopTrackSnapshot>();
-            if (partEntry?.tracks != null)
-            {
-                foreach (var t in partEntry.tracks)
-                {
-                    var snap = new LoopTrackSnapshot(
-                        musicianId: t.musicianId,
-                        role: t.role,
-                        synergyType: t.synergyType,
-                        inspirationGenerated: t.inspirationGenerated,
-                        info: t.info
-                    );
-                    trackSnapshots.Add(snap);
-                }
-            }
+            // [LEGIB-1a] Shared with TryBuildCardPreviewLoopContexts so the
+            // preview snapshots the part exactly the way the payout does.
+            var trackSnapshots = SnapshotTracks(partEntry?.tracks);
 
             int loopIndex0 = _loopsTotalForPart - _loopsRemainingForPart - 1;
             string partLabel = _ctx.CompositionUI?.GetPartLabel(_currentPartIndex) ??
@@ -1845,6 +2059,11 @@ namespace ALWTTT.Music
             list.Add(ctx);
 
             LoopFinished?.Invoke(ctx);
+
+            // [LEGIB-1a] Subscribers above scored this loop against the old keys;
+            // from here on, the next loop's "start" is what the part holds now.
+            // AdvanceToNextPart (below) re-captures for the new part.
+            CaptureLoopStartTracks();
 
 #if ALWTTT_DEV
             // [DBG-C1 / D2=A] Infinite composition loop: when the countdown
@@ -1962,6 +2181,7 @@ namespace ALWTTT.Music
 
             ResetBonusLoopState();             // [R5-d] the cap is per PART
             _ctx?.Music?.ClearSoloDuck();      // [R5-d] safety: no duck across parts
+            CaptureLoopStartTracks();          // [LEGIB-1a] a cloned part (solo) starts "full"
 
             float secs = PlaySinglePartLoop(_currentPartIndex);
             if (secs <= 0f) { End(); return; }

@@ -38,6 +38,23 @@ namespace ALWTTT.Data
         public int MaxVibeFromSongHype => maxVibeFromSongHype;
         public float SongHypeDeltaMultiplier => songHypeDeltaMultiplier;
 
+        // --- Loop bonuses in Big Num units (LEGIB-1a, D4=A / D5=A) ---
+
+        [Header("Loop Bonuses (Big Num units)")]
+        [SerializeField, Tooltip("Floor: each track that ENTERS during a loop (new " +
+            "musician+role) guarantees at least this many Big Num points at loop end. " +
+            "A floor, not an add-on: a loop that already rises more is untouched. " +
+            "Replacements do not count. 0 = off.")]
+        private int minBigNumPerNewTrack = 1;
+
+        [SerializeField, Tooltip("Bonus added (on top of the floor) in the loop where " +
+            "every band musician has a track for the first time in the part — whatever " +
+            "the band size (2, 3, 4…). 0 = off.")]
+        private int fullBandBonusBigNum = 2;
+
+        public int MinBigNumPerNewTrack => minBigNumPerNewTrack;
+        public int FullBandBonusBigNum => fullBandBonusBigNum;
+
         // --- Flow → Vibe (bifurcated MVP, M4.2) ---
 
         [Header("Flow → Vibe (Bifurcated MVP)")]

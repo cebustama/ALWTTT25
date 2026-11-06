@@ -438,6 +438,8 @@ namespace ALWTTT.UI
             int total = lPart + sfxPart;
             float m = Mathf.Clamp01(magnitude01);
 
+            _readoutTotal = total;   // [LEGIB-1a] restored by ClearVibeReadoutPreview
+            _readoutPreviewOn = false;   // plain text again; GigManager re-applies the forecast
             vibeReadoutLabel.text = total.ToString();
 
             if (vibeReadoutTooltip != null)
@@ -478,6 +480,61 @@ namespace ALWTTT.UI
             if (avgMaxVibe > 0f)
                 sb.Append('\n').Append(GameText.Format(UiReadoutAvgResist, Mathf.RoundToInt(avgMaxVibe)));
             return sb.ToString();
+        }
+
+        // ── [LEGIB-1a / D6=A] «Y → Z» always on while a loop runs ─────────────
+        // Y = Big Num now. Z = Big Num at the end of the loop now playing: at rest,
+        // with what is already played; with a card hovered/held, as if it were
+        // played. Z is drawn smaller than Y (Y is the fact, Z the forecast), and
+        // the card state nudges Z bigger and coloured so "projecting a card" reads
+        // differently from "at rest". Rich-text size/colour on Z only, so the
+        // label's own magnitude scaling/colour (BIGNUM-1) still drives Y.
+        // The arrow is layout (separators rule), not player text. If the font has
+        // no '→' glyph, falls back to '>' instead of showing a missing box.
+        [Header("LEGIB-1a: Big Num forecast (Y → Z)")]
+        [SerializeField, Range(0.3f, 1f), Tooltip("Size of '→ Z' relative to Y at rest.")]
+        private float forecastRestScale = 0.6f;
+        [SerializeField, Tooltip("Colour of '→ Z' at rest (subdued).")]
+        private Color forecastRestColor = new Color(1f, 1f, 1f, 0.6f);
+        [SerializeField, Range(0.3f, 1f), Tooltip("Size of '→ Z' relative to Y while a card is projected.")]
+        private float forecastCardScale = 0.75f;
+        [SerializeField, Tooltip("Colour of '→ Z' while a card is projected.")]
+        private Color forecastCardColor = new Color(1f, 0.84f, 0.29f, 1f);
+
+        private int _readoutTotal = -1;
+        private bool _readoutPreviewOn;
+
+        public void SetVibeReadoutPreview(int y, int z, bool cardProjected)
+        {
+            if (vibeReadoutLabel == null) return;
+
+            // [LEGIB-1a / D6 amended by Claudio] At rest, no change = no arrow: the plain
+            // number already says "this loop adds nothing". A projected card keeps
+            // «Y → Y», which answers the hover question "what does this card do?".
+            if (!cardProjected && y == z)
+            {
+                vibeReadoutLabel.text = y.ToString();
+                _readoutPreviewOn = false;
+                return;
+            }
+
+            bool hasArrow = vibeReadoutLabel.font != null
+                && vibeReadoutLabel.font.HasCharacter('→', true);
+            string arrow = hasArrow ? " → " : " > ";
+            float scale = cardProjected ? forecastCardScale : forecastRestScale;
+            Color color = cardProjected ? forecastCardColor : forecastRestColor;
+            int pct = Mathf.RoundToInt(scale * 100f);
+            vibeReadoutLabel.text =
+                $"{y}<size={pct}%><color=#{ColorUtility.ToHtmlStringRGBA(color)}>{arrow}{z}</color></size>";
+            _readoutPreviewOn = true;
+        }
+
+        public void ClearVibeReadoutPreview()
+        {
+            if (!_readoutPreviewOn) return;
+            _readoutPreviewOn = false;
+            if (vibeReadoutLabel != null && _readoutTotal >= 0)
+                vibeReadoutLabel.text = _readoutTotal.ToString();
         }
 
         // [BIGNUM-1 / D-BN-7=A] Independent of SetSongHypeVisible. Falls back to the

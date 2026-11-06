@@ -237,6 +237,12 @@ namespace ALWTTT
 
         private void Update()
         {
+            // [LEGIB-1a] No input this frame → no card preview on the Big Num.
+            if (!IsDraggingActive || ALWTTT.UI.PauseGate.IsPaused)
+            {
+                if (useGigContext && GigManager != null) GigManager.SetCardPreview(null, null);
+            }
+
             if (!IsDraggingActive) return;
 
 
@@ -256,6 +262,42 @@ namespace ALWTTT
             HandleDraggedCardInsideHand(mouseButton, count);
 
             HandleDraggedCardOutsideHand(mouseButton, mousePos);
+
+            UpdateCardPreview(mousePos);   // [LEGIB-1a]
+        }
+
+        // [LEGIB-1a] Index of the card the pointer is on (hover lift or drag inside
+        // the hand), -1 if none. Written by HandleCardsInHand every frame.
+        private int _previewHandIndex = -1;
+
+        /// <summary>
+        /// [LEGIB-1a] Tells GigManager which card the player is looking at: the held
+        /// card if any, else the hovered one. The target is resolved exactly like
+        /// TryPlayInGig does for a composition drop (fixed performer → musician under
+        /// the pointer while held → selected musician), so the preview scores the
+        /// same track the drop would create.
+        /// </summary>
+        private void UpdateCardPreview(Vector2 mousePos)
+        {
+            if (!useGigContext || GigManager == null) return;
+
+            CardBase card = heldCard != null ? heldCard
+                : (_previewHandIndex >= 0 && _previewHandIndex < hand.Count
+                    ? hand[_previewHandIndex] : null);
+            var def = card != null ? card.CardDefinition : null;
+
+            MusicianBase target = null;
+            if (def != null && def.IsComposition)
+            {
+                if (def.RequiresFixedPerformer && _resolveTargetByType != null)
+                    target = _resolveTargetByType(def.FixedPerformerType);
+                if (target == null && heldCard != null)
+                    target = IsOverMusician(mousePos);
+                if (target == null)
+                    target = GigManager.SelectedMusician as MusicianBase;
+            }
+
+            GigManager.SetCardPreview(def, target);
         }
 
         public void EnableDragging() => IsDraggingActive = true;
@@ -337,6 +379,7 @@ namespace ALWTTT
 
         private void HandleCardsInHand(int count, bool mouseButton, float sqrDistance)
         {
+            _previewHandIndex = -1;   // [LEGIB-1a]
             for (int i = 0; i < count; i++)
             {
                 var card = hand[i];
@@ -382,6 +425,7 @@ namespace ALWTTT
                 var mouseCloseToCard = d < 0.5f * cardBaseScale * cardBaseScale; // M1.9: scaled threshold
                 var mouseHoveringOnSelected =
                     onSelectedCard && mouseCloseToCard && mouseInsideHand;
+                if (mouseHoveringOnSelected || onDraggedCard) _previewHandIndex = i;   // [LEGIB-1a]
 
                 // Card Position & Rotation
                 var cardUp = GetCurveNormal(a, b, c, t);
