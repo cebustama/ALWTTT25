@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compiles the REAL parser and importer of MidiGenPlay (linked, not copied) outside Unity. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);UNITY_EDITOR</DefineConstants>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CS0649;CS0169;CS0414;CS0618;CS8632</NoWarn>
+    <M>D:/Projects/MidiGenPlay/MidiGenPlay</M>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="UnityShim.cs" />
+    <Compile Include="$(M)/Editor/DrumPatternTextParser.cs" Link="real/DrumPatternTextParser.cs" />
+    <Compile Include="$(M)/Editor/DrumPatternTextWarning.cs" Link="real/DrumPatternTextWarning.cs" />
+    <Compile Include="$(M)/Editor/DrumPatternEditorImporter.cs" Link="real/DrumPatternEditorImporter.cs" />
+    <Compile Include="$(M)/Editor/LaneAliasDictionary.cs" Link="real/LaneAliasDictionary.cs" />
+    <Compile Include="$(M)/Editor/LaneShortNames.cs" Link="real/LaneShortNames.cs" />
+    <Compile Include="$(M)/Runtime/CoreScripts/Data/DrumPatternData.cs" Link="real/DrumPatternData.cs" />
+    <Compile Include="$(M)/Runtime/CoreScripts/Data/PatternDataSO.cs" Link="real/PatternDataSO.cs" />
+    <Compile Include="$(M)/Runtime/CoreScripts/MusicTheory/MusicTheory.TimeSignature.cs" Link="real/MusicTheory.TimeSignature.cs" />
+    <Reference Include="Melanchall.DryWetMidi"><HintPath>$(M)/Runtime/Melanchall/DryWetMIDI/Melanchall.DryWetMidi.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>
