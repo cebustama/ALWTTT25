@@ -91,6 +91,8 @@ Se recorta de arriba abajo; nunca M1, M3, M6:
 - **D-PLAN-3 = B:** público con rol solo con datos + objetivo visible en la intención + gritos; los
   disparadores, Phase C.
 - **D-PLAN-4 = A:** 3 sesiones por semana; si son menos, se recorta por el orden de arriba.
+- **D-PLAN-5 (2026-11-06):** el grito «Tu papá es travesti» del Miró queda fuera de GRITOS-1 (S8): es
+  burla a una identidad y la demo es pública.
 
 ## Página para el equipo
 

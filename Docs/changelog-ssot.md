@@ -14,6 +14,16 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-06 — Revisión del Miró del equipo
+
+**Clase:** solo referencia · una decisión de contenido. Sin cambio de código.
+
+- Referencia nueva: `reference/reuniones/2026-09-24_legibilidad_desde_miro.md` (minuta reconstruida, sin confirmar), `reference/ideas/2026-11-06_desde_miro.md` (jefe final, motivo de la Reina, Ciudadela, eventos, mecánicas traducidas) y `reference/miro-wrapped/` (https://claude.ai/artifact/Vw4jH9ck7vL4am6QzGTUMh), añadido al índice de artefactos.
+- `reference/reuniones/Pedidos_Arte_Matias.md`: #2, #4 y #6 al día con lo que hay en el tablero; #9 nuevo (pantalla de resultado).
+- Plan: D-PLAN-5, un grito queda fuera de S8; recogido también en `reference/ideas/2026-10-30_publico_con_rol.md` §5.
+
+---
+
 ## 2026-11-06 — LEGIB-1a: ver antes de jugar (DEMO-1211 S3)
 
 **Clase:** semántico · operativo. Con cambio de código.

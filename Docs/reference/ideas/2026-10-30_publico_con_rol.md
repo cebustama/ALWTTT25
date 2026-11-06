@@ -142,7 +142,7 @@ Ejemplos (para que el equipo los reescriba):
 - Cualquiera → Robot C2: «¿Te programaron para desafinar?» · «Puedo hacer eso en 2 segundos con IA.»
 - Convencido: un cartel «TE AMO».
 
-Los insultos más fuertes («tu papá es…») quedan a criterio del equipo: la demo es pública.
+Los insultos más fuertes quedan a criterio del equipo: la demo es pública. **Decidido (Claudio, 2026-11-06):** «Tu papá es travesti» queda fuera de GRITOS-1, porque funciona como burla a una identidad.
 
 ## 6. La Reina Gusano (sprite `jefe (1).png`)
 
