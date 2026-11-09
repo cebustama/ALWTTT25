@@ -16,17 +16,20 @@ MonoBehaviour:
   startingSongHype: 10
   maxVibeFromSongHype: 20
   songHypeDeltaMultiplier: 1
+  minBigNumPerNewTrack: 1
+  fullBandBonusBigNum: 3
   flowActionVibeBonusPerStack: 1
   flowActionFlatBonus: 1
   flowVibeMultiplier: 0.08
+  captivatedVibeBonusPerStack: 0.25
   loopScoringConfig:
     mode: 0
     roleBudget: 12
     densityBonusPerTrack: 1.5
     lastLoopBonus: 2
     complexityMultiplier: 0.5
-    possibleRoleCount: 4
-    totalMusicians: 2
+    possibleRoleCount: 5
+    totalMusicians: 4
   hypeThresholds:
     amazing: 25
     veryGood: 15
