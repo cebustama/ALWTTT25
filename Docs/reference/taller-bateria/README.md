@@ -29,7 +29,7 @@ Resultado del 2026-11-06: catálogo con 35 idénticos y 1 con pérdida declarada
 
 **Pérdida conocida:** `Drum_4-2_8m_MIDI_Import_Test` tiene 29 golpes con velocidades fuera de los tres niveles del texto. La página suena con las exactas y avisa; el Import no avisa. Al duplicarlo pasa lo mismo.
 
-Falta comprobar el pegado real en el editor de Unity (lo hace Claudio).
+**Pegado real en Unity: validado por Claudio el 2026-11-09** (editó un patrón en la página y lo importó al juego). Siguiente paso del tema, en MidiGenPlay: acentos y fills (`MidiGenPlay/Documentation~/planning/active/ARRANQUE_acentos_y_fills.md`).
 
 ## Revisión musical
 
