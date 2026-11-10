@@ -7,6 +7,7 @@ using ALWTTT.Interfaces;
 using ALWTTT.Managers;
 using ALWTTT.Music;
 using ALWTTT.Status;
+using ALWTTT.Tooltips;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,6 +24,112 @@ namespace ALWTTT.Characters.Audience
         public AudienceCharacterStats Stats => stats;
 
         protected AudienceAbilityData NextAbility;
+
+        // [LEGIB-1b / D5=A] The single musician this ability will hit, fixed when the
+        // intention is SHOWN, not when it fires. Before S4 the target only existed at fire
+        // time (RandomMusician rolled then, Musician read the stress ranking then), so the
+        // screen could not say "a quién". Now: one pick per ability, shared by all its
+        // Musician / RandomMusician actions (Heckle exposes and hits the same musician).
+        // Spotlight still overrides at projection AND fire time (taunt rule, §5.9).
+        // AllMusicians is not locked: it is everyone, at fire time, as before.
+        private MusicianBase _lockedMusician;
+        private readonly List<MusicianBase> _projectedMusicians = new();
+
+        /// <summary>[LEGIB-1b] The ability shown as intention (null when none).</summary>
+        public AudienceAbilityData PendingAbility => NextAbility;
+
+        /// <summary>
+        /// [LEGIB-1b / D5=A] Roll or pick the ability's musician now. Consumes RNG once per
+        /// shown intention instead of once per fired action: same count for today's data,
+        /// moved earlier in the turn.
+        /// </summary>
+        private void LockMusicianTarget(AudienceAbilityData ability)
+        {
+            _lockedMusician = null;
+            if (ability?.ActionList == null || GigManager == null) return;
+
+            var list = GigManager.CurrentMusicianCharacterList;
+            if (list == null || list.Count == 0) return;
+
+            bool anyFixed = false, anyRandom = false;
+            foreach (var a in ability.ActionList)
+            {
+                if (a == null) continue;
+                if (a.ActionTargetType == ActionTargetType.Musician) anyFixed = true;
+                else if (a.ActionTargetType == ActionTargetType.RandomMusician) anyRandom = true;
+            }
+
+            if (anyFixed)
+                _lockedMusician = SelectDefaultMusicianTarget(list);
+            else if (anyRandom)
+                _lockedMusician = list[Random.Range(0, list.Count)];
+        }
+
+        /// <summary>Locked pick if still in the band; otherwise the pure default selector
+        /// (Musician) or null (RandomMusician: unknown until fire, legacy roll there).</summary>
+        private MusicianBase CurrentLockedMusician(ActionTargetType t)
+        {
+            var list = GigManager != null ? GigManager.CurrentMusicianCharacterList : null;
+            if (list == null || list.Count == 0) return null;
+            if (_lockedMusician != null && list.Contains(_lockedMusician)) return _lockedMusician;
+            return t == ActionTargetType.Musician ? SelectDefaultMusicianTarget(list) : null;
+        }
+
+        /// <summary>
+        /// [LEGIB-1b] Musicians this action will reach, WITHOUT side effects (no RNG, no
+        /// bus): the same answer ResolveTargetsFor gives at fire time. Empty for actions
+        /// that do not target musicians. The returned list is reused; copy it to keep it.
+        /// </summary>
+        public List<MusicianBase> GetProjectedMusicianTargets(CharacterActionData action)
+        {
+            _projectedMusicians.Clear();
+            if (action == null || GigManager == null) return _projectedMusicians;
+
+            var list = GigManager.CurrentMusicianCharacterList;
+            if (list == null) return _projectedMusicians;
+
+            switch (action.ActionTargetType)
+            {
+                case ActionTargetType.AllMusicians:
+                    _projectedMusicians.AddRange(list);
+                    break;
+                case ActionTargetType.Musician:
+                case ActionTargetType.RandomMusician:
+                    {
+                        var pick = FindSpotlitMusician() ?? CurrentLockedMusician(action.ActionTargetType);
+                        if (pick != null) _projectedMusicians.Add(pick);
+                        break;
+                    }
+            }
+            return _projectedMusicians;
+        }
+
+        /// <summary>
+        /// [LEGIB-1b] Deterministic audience targets (Self, AudienceTall, AudienceCharacter,
+        /// all) for projecting audience-on-audience statuses (Hyped). Random targets are left
+        /// out: they are unknown until fire time.
+        /// </summary>
+        public void GetProjectedAudienceTargets(CharacterActionData action, List<AudienceCharacterBase> into)
+        {
+            into.Clear();
+            if (action == null || GigManager == null) return;
+
+            switch (action.ActionTargetType)
+            {
+                case ActionTargetType.Self:
+                case ActionTargetType.AllAudienceCharacters:
+                case ActionTargetType.AudienceTall:
+                case ActionTargetType.AudienceCharacter:
+                    {
+                        // These branches of ResolveTargetsFor are pure (no RNG, no bus).
+                        var r = ResolveTargetsFor(action);
+                        if (r != null)
+                            foreach (var c in r)
+                                if (c is AudienceCharacterBase a) into.Add(a);
+                        break;
+                    }
+            }
+        }
 
         public AudienceCharacterData AudienceCharacterData => audienceCharacterData;
         public AudienceCharacterCanvas AudienceCharacterCanvas => characterCanvas;
@@ -309,23 +416,14 @@ namespace ALWTTT.Characters.Audience
 
             AudienceCharacterCanvas.NextAbility = NextAbility;
 
-            var showValue =
-                NextAbility.ActionList != null &&
-                NextAbility.ActionList.Count > 0 &&
-                !NextAbility.HideActionValue &&
-                NextAbility.ActionList[0] != null &&
-                NextAbility.ActionList[0].ActionValue != 0;
+            // [LEGIB-1b / D5=A] Fix the target now, so the screen can name it.
+            LockMusicianTarget(NextAbility);
 
-            if (!showValue)
-            {
-                AudienceCharacterCanvas.NextActionValueText.gameObject.SetActive(false);
-            }
-            else
-            {
-                AudienceCharacterCanvas.NextActionValueText.gameObject.SetActive(true);
-                AudienceCharacterCanvas.NextActionValueText.text =
-                    "x" + NextAbility.ActionList[0].ActionValue.ToString();
-            }
+            // [LEGIB-1b / D7 -> icons] The "xN" of ActionList[0] is gone: it showed the FIRST
+            // action's value (Heckle read "x1", its Exposed stack, not its 2 Stress; F-T6-5).
+            // The number and the target icons now come from the stress projection, which
+            // GigManager refreshes every frame of the player turn (SetIntentSummary).
+            AudienceCharacterCanvas.ClearIntentSummary();
 
             usedAbilityCount++;
         }
@@ -404,6 +502,14 @@ namespace ALWTTT.Characters.Audience
 
             PlayAbilityAnimation(NextAbility);
 
+            // [LEGIB-1b] One floater per ability with its PLAYER name (glossary, by abilityId),
+            // replacing the per-action enum name ("AddStress", "ApplyStatusEffect") that leaked
+            // developer text onto the screen.
+            FxManager.Instance?.SpawnFloatingText(
+                TextSpawnRoot,
+                GameText.ConceptName(NextAbility.AbilityId),
+                new Vector2(0f, 1f), Color.cyan);
+
             var ctx = new AudienceActionContext();
 
             foreach (var action in NextAbility.ActionList)
@@ -439,11 +545,6 @@ namespace ALWTTT.Characters.Audience
             Debug.Log($"<color=red>{CharacterId} " +
                 $"action {action.CardActionType.ToString()} " +
                 $"delay {actionDelay}</color>");
-
-            FxManager.Instance?.SpawnFloatingText(
-                    TextSpawnRoot,
-                    $"{action.CardActionType.ToString()}",
-                    new Vector2(0f, 1f), Color.cyan);
 
             if (actionDelay > 0f)
                 yield return new WaitForSeconds(actionDelay);
@@ -598,6 +699,10 @@ namespace ALWTTT.Characters.Audience
                         // [R4 / Spotlight] Taunt redirect. Placed at the funnel rather
                         // than per-ability so every present and future single-target
                         // musician ability respects the taunt with no per-ability edit.
+                        // [LEGIB-1b / D5=A] The target was fixed when the intention was
+                        // shown (CurrentLockedMusician); only Spotlight changes it now.
+                        var locked = CurrentLockedMusician(ActionTargetType.Musician);
+
                         var spotlitDirected = FindSpotlitMusician();
                         if (spotlitDirected != null)
                         {
@@ -605,21 +710,15 @@ namespace ALWTTT.Characters.Audience
                                 $"[R4][Spotlight] {CharacterId}: Musician target redirected " +
                                 $"-> '{spotlitDirected.name}'.");
 
-                            // [PRES-1 / D-PRES1-2=A] Presentation only. The same pure
-                            // selector the normal path uses names the would-be target,
-                            // so the floater cannot contradict the game's own choice.
-                            PublishSpotlightRedirect(spotlitDirected,
-                                SelectDefaultMusicianTarget(gm.CurrentMusicianCharacterList));
+                            // [PRES-1 / D-PRES1-2=A] Presentation only. The original is
+                            // the locked pick, the same one the screen was showing.
+                            PublishSpotlightRedirect(spotlitDirected, locked);
 
                             return new List<CharacterBase>() { spotlitDirected };
                         }
 
-                        var list = gm.CurrentMusicianCharacterList;
-                        if (list.Count == 0) return null;
-
-                        // [PRES-1] Same selection as before, now single-sourced.
-                        return new List<CharacterBase>()
-                            { SelectDefaultMusicianTarget(list) };
+                        if (locked == null) return null;
+                        return new List<CharacterBase>() { locked };
                     }
 
                 case ActionTargetType.RandomMusician:
@@ -634,16 +733,20 @@ namespace ALWTTT.Characters.Audience
                                 $"[R4][Spotlight] {CharacterId}: RandomMusician target redirected " +
                                 $"-> '{spotlitRandom.name}'.");
 
-                            // [PRES-1 / D-PRES1-2=A] Original target is passed as NULL
-                            // on purpose: it does not exist until Random.Range is
-                            // called, and rolling for presentation would consume global
-                            // RNG state and shift every later roll in the gig. The
-                            // floater anchors on the protected musician instead.
-                            PublishSpotlightRedirect(spotlitRandom, null);
+                            // [LEGIB-1b / D5=A] The roll now happens when the intention is
+                            // shown, so the original target exists and is passed (it was
+                            // NULL before S4 because rolling here would have consumed RNG).
+                            PublishSpotlightRedirect(spotlitRandom,
+                                CurrentLockedMusician(ActionTargetType.RandomMusician));
 
                             return new List<CharacterBase>() { spotlitRandom };
                         }
 
+                        var lockedRandom = CurrentLockedMusician(ActionTargetType.RandomMusician);
+                        if (lockedRandom != null)
+                            return new List<CharacterBase>() { lockedRandom };
+
+                        // Legacy fallback: no lock (the locked musician left the band).
                         var list = gm.CurrentMusicianCharacterList;
                         if (list.Count == 0) return null;
                         var index = Random.Range(0, list.Count);

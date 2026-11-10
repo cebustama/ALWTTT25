@@ -29,6 +29,21 @@ namespace ALWTTT.UI
 
         public CanvasGroup CanvasGroup => canvasGroup;
 
+        /// <summary>[LEGIB-1b] Colour of the real fill (the slider's Fill image).</summary>
+        public void SetFillColor(Color c)
+        {
+            if (slider != null && slider.fillRect != null &&
+                slider.fillRect.TryGetComponent<Image>(out var img))
+                img.color = c;
+        }
+
+        /// <summary>[LEGIB-1b] Colour of the predicted segment (musicians: incoming Stress).</summary>
+        public void SetPredictedColor(Color c)
+        {
+            if (predictedFill != null && predictedFill.TryGetComponent<Image>(out var img))
+                img.color = c;
+        }
+
         private int currentValue = 0;
         public int CurrentValue { get { return currentValue; } }
 

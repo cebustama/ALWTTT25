@@ -169,14 +169,13 @@ MonoBehaviour:
       him while it lasts.'
   - id: ab_scathing_review
     displayName: Scathing Review
-    description: Posts a public takedown of the whole band. Everyone on stage takes
-      Stress.
+    description: Posts a brutal takedown of one bandmate. Piles on the Stress.
   - id: ab_tantrum
     displayName: Tantrum
-    description: Screams the place down. The band takes Stress.
+    description: Screams the place down. Deals Stress to the bandmates it marks.
   - id: ab_total_indifference
     displayName: Total Indifference
-    description: Doesn't even blink. That blank stare deals Stress to the whole band.
+    description: Doesn't even blink. That blank stare deals Stress to one bandmate.
   - id: role_rhythm
     displayName: Rhythm
     description: The percussion track. It sets the pulse everything else plays against.

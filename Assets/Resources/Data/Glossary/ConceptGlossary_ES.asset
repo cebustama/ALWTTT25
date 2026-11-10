@@ -177,14 +177,13 @@ MonoBehaviour:
       nada de Vibe.'
   - id: ab_scathing_review
     displayName: "Cr\xEDtica Mordaz"
-    description: Publica un repaso a la banda entera. Todos en el escenario reciben
-      Stress.
+    description: "Publica una cr\xEDtica demoledora contra un m\xFAsico. Le carga mucho Stress."
   - id: ab_tantrum
     displayName: Rabieta
-    description: Se pone a berrear. La banda recibe Stress.
+    description: "Se pone a berrear. Carga Stress a los m\xFAsicos que marca."
   - id: ab_total_indifference
     displayName: Indiferencia Total
-    description: "Ni pesta\xF1ea. Esa cara de nada inflige Stress a toda la banda."
+    description: "Ni pesta\xF1ea. Esa cara de nada le carga Stress a un m\xFAsico."
   - id: role_rhythm
     displayName: Ritmo
     description: "La pista de percusi\xF3n. Marca el pulso contra el que toca todo

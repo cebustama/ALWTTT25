@@ -76,6 +76,42 @@ namespace ALWTTT.Characters.Band
         private void Awake()
         {
             ApplyStatsVisibility(visible: false);
+
+            // [LEGIB-1b / view 3] Fortitude bar reads as "health": final value green,
+            // projected loss red (Claudio's sketch, 2026-11-09). Set here, not in the
+            // prefab, so the colours live next to the rule; tune them on the prefab.
+            healthBar?.SetFillColor(fortitudeFillColor);
+            healthBar?.SetPredictedColor(incomingStressColor);
+        }
+
+        [Header("Incoming stress (LEGIB-1b)")]
+        [SerializeField] private Color fortitudeFillColor = new Color(0.33f, 0.72f, 0.36f, 1f);
+        [SerializeField] private Color incomingStressColor = new Color(0.90f, 0.16f, 0.16f, 1f);
+
+        private int _incomingStress;
+
+        /// <summary>
+        /// [LEGIB-1b / view 3] Show <paramref name="loss"/> points of fortitude the audience
+        /// turn is projected to take: red segment on the bar, projected value in red in the
+        /// text ("12/20"), and the bar stays visible even when full. 0 clears all three.
+        /// Called every frame by GigManager; returns early when unchanged.
+        /// </summary>
+        public void SetIncomingStress(int loss)
+        {
+            loss = Mathf.Max(0, loss);
+            if (loss == _incomingStress) return;
+            _incomingStress = loss;
+
+            healthBar?.SetPredictedLoss(loss);
+            SetPredictionVisible(loss > 0);
+            RefreshHealthText();
+        }
+
+        protected override string FormatHealthText(int current, int max)
+        {
+            if (_incomingStress <= 0) return base.FormatHealthText(current, max);
+            int projected = Mathf.Max(0, current - _incomingStress);
+            return $"<color=#{ColorUtility.ToHtmlStringRGB(incomingStressColor)}>{projected}</color>/{max}";
         }
 
         public void UpdateStats(int chr, int tch, int emt)

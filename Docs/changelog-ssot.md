@@ -14,6 +14,29 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-10 — LEGIB-1b: lo que recibes (DEMO-1211 S4)
+
+**Clase:** semántico · operativo. Con cambio de código y de datos.
+
+- `SSoT_Audience_and_Reactions`:
+  - §7.1: la regla «sin números» marca F-T6-5 como CERRADA; regla nueva «tampoco el alcance del objetivo» en los cuerpos.
+  - Tabla corregida contra los assets: Kid `RandomMusician` 5, Kid-Test `AllMusicians` 5, Influencer `RandomMusician` 10, Big Guy `RandomMusician` 20 (TEXT-6 había leído «toda la banda» en tres).
+  - §7.2 nueva: lo que muestra la intención en reposo. Objetivo fijado al mostrarla (D5=A, solo Spotlight lo cambia), vista 3, previsto = real por `StressProjector`, la canción no se proyecta, alcance de S4b.
+- Glosarios ES/EN: cuerpos de `ab_scathing_review`, `ab_tantrum` y `ab_total_indifference` reescritos contra los datos (D6=A).
+- Código:
+  - Nuevo: `Characters/StressProjection.cs` (`StressProjector`, `StressProjection`, `AudienceIntentSummary`).
+  - `AudienceCharacterBase`: objetivo fijado (`LockMusicianTarget`), `GetProjectedMusicianTargets` / `GetProjectedAudienceTargets`, floater con el nombre de la habilidad (fuera el de `CardActionType`).
+  - `AudienceCharacterCanvas`: número + iconos de objetivo creados en runtime; gustos con `UiCtxMeter` / `UiTonality` (D3=C).
+  - `BandCharacterCanvas`, `CharacterCanvas`, `HealthBarController`: barra verde, pérdida prevista en rojo, «final/max».
+  - `GigManager`: proyección en `LateUpdate` durante PlayerTurn y SongPerformance.
+  - `MusicianCharacterData`: `identityColor` (D9=A), con valores provisionales en los 4 músicos.
+- Hallazgos: F-T6-5 CERRADA; F-T6-4 CONTENIDA.
+- `CURRENT_STATE.md`: fila LEGIB-1b y bloque «Siguiente (2026-11-10)» (S4b). Plan: S4 ✅ y **S4b insertada**.
+- `reference/reuniones/Pedidos_Arte_Matias.md`: #10, confirmar los colores de identidad.
+- Verificación: compilado con Roslyn fuera de Unity; smokes 1–3 jugados por Claudio en el editor (proyección = golpe real; Composure y Spotlight la mueven en vivo; iconos de objetivo cambian). Commit de `GigMeterTuning.asset` en `f2c12a0` (D4=A).
+
+---
+
 ## 2026-11-06 — Revisión del Miró del equipo
 
 **Clase:** solo referencia · una decisión de contenido. Sin cambio de código.

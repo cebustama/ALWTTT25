@@ -895,6 +895,65 @@ namespace ALWTTT.Managers
         }
         #endregion
 
+        // [LEGIB-1b / D5=A] Stress projection for the coming audience turn. Rebuilt every
+        // frame of the player turn and the song, because anything can move it (a card
+        // granting Composure, Spotlight retargeting, a heal, Exposed) and a dry run over
+        // four musicians and a handful of members costs less than wiring every source.
+        // Canvases return early when their value did not change.
+        private readonly StressProjection _stressProjection = new StressProjection();
+        private bool _stressProjectionShown;
+
+        public StressProjection CurrentStressProjection => _stressProjection;
+
+        private void LateUpdate()
+        {
+            RefreshStressProjection();
+        }
+
+        private void RefreshStressProjection()
+        {
+            bool active = CurrentGigPhase == GigPhase.PlayerTurn ||
+                          CurrentGigPhase == GigPhase.SongPerformance;
+
+            if (!active)
+            {
+                // Audience turn: the hits are landing for real; the red segment would
+                // double-count them. Members that have not acted keep their icons.
+                if (_stressProjectionShown) ClearMusicianStressProjection();
+                return;
+            }
+
+            StressProjector.Build(CurrentMusicianCharacterList, CurrentAudienceCharacterList,
+                _stressProjection);
+
+            if (CurrentMusicianCharacterList != null)
+                foreach (var m in CurrentMusicianCharacterList)
+                {
+                    if (m == null || m.BandCharacterCanvas == null) continue;
+                    _stressProjection.IncomingByMusician.TryGetValue(m, out int loss);
+                    m.BandCharacterCanvas.SetIncomingStress(loss);
+                }
+
+            if (CurrentAudienceCharacterList != null)
+                foreach (var a in CurrentAudienceCharacterList)
+                {
+                    if (a == null || a.AudienceCharacterCanvas == null) continue;
+                    _stressProjection.ByAudience.TryGetValue(a, out var s);
+                    a.AudienceCharacterCanvas.SetIntentSummary(s);
+                }
+
+            _stressProjectionShown = true;
+        }
+
+        private void ClearMusicianStressProjection()
+        {
+            _stressProjectionShown = false;
+            if (CurrentMusicianCharacterList == null) return;
+            foreach (var m in CurrentMusicianCharacterList)
+                if (m != null && m.BandCharacterCanvas != null)
+                    m.BandCharacterCanvas.SetIncomingStress(0);
+        }
+
         private void Update()
         {
             if (_session != null)

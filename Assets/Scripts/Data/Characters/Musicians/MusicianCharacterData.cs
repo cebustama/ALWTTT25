@@ -21,6 +21,12 @@ namespace ALWTTT.Musicians
         [SerializeField] private Sprite characterSprite; // TEMP
         [SerializeField] private Sprite characterIcon;
 
+        // [LEGIB-1b / D9=A] Identity colour: the lines and outlines that say "this member
+        // is after THIS musician" (S4b hover views and Tab). Never red: red means damage.
+        // Provisional values until Matias confirms them.
+        [Tooltip("LEGIB-1b: colour of this musician's targeting lines and outlines. Avoid red (damage).")]
+        [SerializeField] private Color identityColor = Color.white;
+
         [Header("Cards")]
         [SerializeField] private MusicianCardCatalogData cardCatalog;
         [SerializeField] private Sprite defaultCardSprite; // TEMP: later replace with a sprite catalog
@@ -52,6 +58,7 @@ namespace ALWTTT.Musicians
         public MusicianBase CharacterPrefab => characterPrefab;
         public Sprite CharacterSprite => characterSprite;
         public Sprite CharacterIcon => characterIcon;
+        public Color IdentityColor => identityColor;
 
         public MusicianCardCatalogData CardCatalog => cardCatalog;
         public Sprite DefaultCardSprite => defaultCardSprite;

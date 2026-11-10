@@ -19,6 +19,7 @@ Las minutas de cada reunión siguen en `Docs/reference/reuniones/AAAA-MM-DD_<tem
 | 7 | **Salas que faltan**, si existen: cabina, dormitorio, cocina, jardín, baño. | Nave (S5) | 2026-10-30 | Por pedir |
 | 8 | **Diseño de las pantallas de mazo** (robar y descarte: se abren al pulsar los iconos de la consola; hoy fondo rojo plano, cabecera gris y título en inglés). | HUD del gig (S2) / pulido | 2026-11-02 | Por pedir |
 | 9 | **Pantalla de resultado.** En el Miró la nota «pantalla resultado» no tiene arte al lado. | Por decidir si entra en la demo | 2026-11-06 | Por hablar con él |
+| 10 | **Colores de identidad de los músicos.** Provisionales en el juego: Sibi azul, Conito violeta, Ziggy naranja, Robot C2 cian. Se usan para marcar a quién golpea el público (bordes y líneas en S4b) y quizá para el contorno de sus iconos. Que los confirme o los cambie. | Legibilidad (S4, S4b) | 2026-11-10 | Por pedir |
 
 ## Preguntas abiertas
 

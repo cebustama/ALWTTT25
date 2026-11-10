@@ -211,12 +211,28 @@ namespace ALWTTT.Characters
 
         #region Public Methods
 
+        // [LEGIB-1b] Last values, so a projection change can re-render the text alone.
+        private int _textCurrent;
+        private int _textMax = -1;
+
         public void UpdateHealthText(int currentHealth, int maxHealth)
         {
             float fill = (float)currentHealth / maxHealth;
             currentHealthBar.value = fill;
-            currentHealthText.text = $"{currentHealth}/{maxHealth}";
+            _textCurrent = currentHealth;
+            _textMax = maxHealth;
+            RefreshHealthText();
         }
+
+        /// <summary>[LEGIB-1b] Re-render the bar text from the last values.</summary>
+        protected void RefreshHealthText()
+        {
+            if (currentHealthText == null || _textMax < 0) return;
+            currentHealthText.text = FormatHealthText(_textCurrent, _textMax);
+        }
+
+        /// <summary>[LEGIB-1b] "current/max"; BandCharacterCanvas shows the projected value.</summary>
+        protected virtual string FormatHealthText(int current, int max) => $"{current}/{max}";
 
         public void SetCurrentVibe(int current, int max, float duration)
         {

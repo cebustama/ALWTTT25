@@ -15,6 +15,87 @@ namespace ALWTTT.Characters
         public Image IntentImage => intentImage;
         public TextMeshProUGUI NextActionValueText => nextActionValueText;
 
+        // [LEGIB-1b / view 3] Who the intention hits, as the musicians' own icons
+        // (MusicianCharacterData.characterIcon) to the right of the intention icon. Built at
+        // runtime as children of the intention image, so they hide with it (AbilityRoutine,
+        // convinced concealment) and need no prefab change. Units are the intention image's
+        // local space (30 x 30 in the prefab).
+        [Header("Intent targets (LEGIB-1b)")]
+        [SerializeField] private float targetIconSize = 40f;
+        [SerializeField] private float targetIconGap = 4f;
+        [SerializeField] private Vector2 targetIconOffset = new Vector2(14f, 0f);
+
+        private readonly System.Collections.Generic.List<Image> _targetIcons = new();
+        private int _shownAmount = int.MinValue;
+        private readonly System.Collections.Generic.List<Sprite> _shownSprites = new();
+
+        /// <summary>[LEGIB-1b] No number, no target icons (new intention, before projecting).</summary>
+        public void ClearIntentSummary()
+        {
+            _shownAmount = int.MinValue;
+            _shownSprites.Clear();
+            if (nextActionValueText != null) nextActionValueText.gameObject.SetActive(false);
+            foreach (var img in _targetIcons)
+                if (img != null) img.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// [LEGIB-1b / view 3] Number (Stress per target, attacker modifiers included) and the
+        /// icons of the musicians the intention reaches. Called every frame by GigManager;
+        /// returns early when nothing changed.
+        /// </summary>
+        public void SetIntentSummary(AudienceIntentSummary s)
+        {
+            if (s == null) { ClearIntentSummary(); return; }
+
+            int amount = s.ShowAmount ? s.Amount : -1;
+            bool same = amount == _shownAmount && _shownSprites.Count == s.Targets.Count;
+            for (int i = 0; same && i < s.Targets.Count; i++)
+                same = _shownSprites[i] == IconOf(s.Targets[i]);
+            if (same) return;
+
+            _shownAmount = amount;
+            _shownSprites.Clear();
+            foreach (var m in s.Targets) _shownSprites.Add(IconOf(m));
+
+            if (nextActionValueText != null)
+            {
+                nextActionValueText.gameObject.SetActive(s.ShowAmount);
+                if (s.ShowAmount) nextActionValueText.text = s.Amount.ToString();
+            }
+
+            if (intentImage == null) return;
+
+            for (int i = 0; i < _shownSprites.Count; i++)
+            {
+                if (i >= _targetIcons.Count) _targetIcons.Add(CreateTargetIcon(i));
+                var img = _targetIcons[i];
+                img.sprite = _shownSprites[i];
+                img.gameObject.SetActive(_shownSprites[i] != null);
+            }
+            for (int i = _shownSprites.Count; i < _targetIcons.Count; i++)
+                _targetIcons[i].gameObject.SetActive(false);
+        }
+
+        private static Sprite IconOf(Band.MusicianBase m) =>
+            m != null && m.MusicianCharacterData != null ? m.MusicianCharacterData.CharacterIcon : null;
+
+        private Image CreateTargetIcon(int index)
+        {
+            var go = new GameObject($"IntentTarget{index}", typeof(RectTransform), typeof(Image));
+            go.layer = intentImage.gameObject.layer;
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(intentImage.transform, false);
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0.5f);
+            rt.pivot = new Vector2(0f, 0.5f);
+            rt.sizeDelta = new Vector2(targetIconSize, targetIconSize);
+            rt.anchoredPosition = targetIconOffset + new Vector2(index * (targetIconSize + targetIconGap), 0f);
+            var img = go.GetComponent<Image>();
+            img.preserveAspect = true;
+            img.raycastTarget = false; // hover stays on the intention icon and the body
+            return img;
+        }
+
 
         // [CONV-TINT-1b / D-H2=A] State-driven concealment of the whole canvas. A
         // CanvasGroup on the canvas root multiplies with every child group (the bar's
@@ -505,17 +586,26 @@ namespace ALWTTT.Characters
             if (t.roleCountMatchOnRich)
                 AppendTasteLine(sb, GameText.Format(UiAudTasteTracks, t.preferAtLeastRoles));
 
+            // [LEGIB-1b / D3=C] Player text for the enums (the same ids the composition strip
+            // uses: ui_ctx_meter_* -> "4/4", ui_tonality_* -> "Alegre"), not "FourFour"/"Ionian".
             if (t.preferredTimeSignatures != null && t.preferredTimeSignatures.Count > 0)
-                AppendTasteLine(sb, "+ " + string.Join(", ", t.preferredTimeSignatures));
+                AppendTasteLine(sb, "+ " + JoinTexts(t.preferredTimeSignatures, m => GameText.Format(UiCtxMeter(m))));
             if (t.dislikedTimeSignatures != null && t.dislikedTimeSignatures.Count > 0)
-                AppendTasteLine(sb, "- " + string.Join(", ", t.dislikedTimeSignatures));
+                AppendTasteLine(sb, "- " + JoinTexts(t.dislikedTimeSignatures, m => GameText.Format(UiCtxMeter(m))));
 
             if (t.preferredTonalities != null && t.preferredTonalities.Count > 0)
-                AppendTasteLine(sb, "+ " + string.Join(", ", t.preferredTonalities));
+                AppendTasteLine(sb, "+ " + JoinTexts(t.preferredTonalities, x => GameText.Format(UiTonality(x))));
             if (t.dislikedTonalities != null && t.dislikedTonalities.Count > 0)
-                AppendTasteLine(sb, "- " + string.Join(", ", t.dislikedTonalities));
+                AppendTasteLine(sb, "- " + JoinTexts(t.dislikedTonalities, x => GameText.Format(UiTonality(x))));
 
             return sb.Length == 0 ? TasteNeutralText : sb.ToString();
+        }
+
+        private static string JoinTexts<T>(System.Collections.Generic.IEnumerable<T> values, System.Func<T, string> text)
+        {
+            var parts = new System.Collections.Generic.List<string>();
+            foreach (var v in values) parts.Add(text(v));
+            return string.Join(", ", parts);
         }
 
         private static void AppendTasteLine(System.Text.StringBuilder sb, string line)

@@ -327,11 +327,12 @@ exist for mechanical reasons rather than stylistic ones:
 
 - **No numbers.** The telegraphed value is already drawn beside the icon, and a body that repeats it
   would have to be re-authored on every balance change — the same argument that made card
-  descriptions fragments rather than sentences (`SSoT_Game_Text.md` §1, population 4). There is a
-  sharper reason too: the drawn value is `NextAbility.ActionList[0].ActionValue`, the **first**
-  action's value, which is not always the damage. `ab_heckle` telegraphs `x1` — its Exposed stacks —
-  and then deals 2 Stress. A body saying "2 Stress" beside a telegraph saying `x1` would make the
-  panel contradict itself (**F-T6-5**, → AUD/PRES).
+  descriptions fragments rather than sentences (`SSoT_Game_Text.md` §1, population 4).
+  ~~There is a sharper reason too: the drawn value is `ActionList[0].ActionValue` … (**F-T6-5**).~~
+  **F-T6-5 CLOSED 2026-11-09 by LEGIB-1b:** the drawn number is now the projected Stress per target
+  (§7.2), so `ab_heckle` shows `2`, not `x1`.
+- **No target scope either (LEGIB-1b).** Who is hit is drawn beside the icon as musician icons
+  (§7.2); a body that names the scope can contradict them.
 - **No `<link=>` tags.** A concept tag inside the body would stack a second panel on the intention
   panel; panel stacking is TIP-1's, and a text batch must not decide it by accident.
 - **The body may not contradict the intention icon beside it.** Where the mechanic and the icon pull
@@ -348,9 +349,19 @@ an ability name is a developer label and describes nothing reliably.
 | `ab_indifference` | Cool Dude | `ApplyStatusEffect · Self · 2 · Indifference` (value hidden) | self-buff: no Vibe gets through while it lasts |
 | `ab_heckle` | Cool Dude | `ApplyStatusEffect · Musician · 1 · Exposed` **then** `AddStress · Musician · 2` (delay 1) | one bandmate, Exposed **first**, Stress after |
 | `ab_egg_him_on` | Kid | `ApplyStatusEffect · AudienceTall · 1 · Hyped` (value hidden) | buffs the tall one; their Stress hits harder |
-| `ab_tantrum` | Kid **and** Kid-TestTaster | Kid `AddStress · AllMusicians · 5` · Kid-Test `AddStress · AllAudienceCharacters · 5` | Stress, **scope deliberately unstated** — see below |
-| `ab_scathing_review` | Influencer (tall) | `AddStress · AllMusicians · 10` | the whole band takes Stress |
-| `ab_total_indifference` | Big Guy | `AddStress · AllMusicians · 20` | the whole band takes Stress |
+| `ab_tantrum` | Kid **and** Kid-TestTaster | Kid `AddStress · RandomMusician · 5` · Kid-Test `AddStress · AllMusicians · 5` | Stress "to the musicians it marks" (the icons say which) |
+| `ab_scathing_review` | Influencer (tall) | `AddStress · RandomMusician · 10` | one bandmate takes a lot of Stress |
+| `ab_total_indifference` | Big Guy | `AddStress · RandomMusician · 20` | one bandmate takes Stress |
+
+**Correction 2026-11-09 (LEGIB-1b, D6=A): the TEXT-6 table misread three targets.** The serialized
+`actionTargetType` values are enum ordinals (`AudienceCharacter=0, Musician=1, AllAudienceCharacters=2,
+AllMusicians=3, RandomAudienceCharacter=4, RandomMusician=5, Self=6, AudienceTall=100`): Kid's `5` is
+**RandomMusician**, Kid-Test's `3` is **AllMusicians**, and Influencer and Big Guy are `5`, one random
+musician, not the whole band. The data was right and the text wrong, so the text was fixed (ES/EN
+bodies of `ab_tantrum`, `ab_scathing_review`, `ab_total_indifference`); turning them into
+AllMusicians would have multiplied their damage by four. F-T6-4 below still holds with the right
+targets (Kid: one musician; Kid-Test: everyone), and LEGIB-1b removes its visible cost: the icons
+show the scope, the body no longer states it.
 
 **A shared id is correct; two sharers that disagree are not (F-T6-4, D-T6-5=A).** `ab_tantrum` is
 authored by two characters — legitimate under D-T5-5=A — but with **different targets**. One glossary
@@ -359,6 +370,37 @@ effect and not its scope) and did **not** touch the assets, because which of the
 encounter-content decision, not a text one. The rule worth carrying: **a shared id is safe only while
 the sharers agree on what the ability does, and nothing in the pipeline checks that** — the seeding
 tool reports `SHARED` on the id, never on the behaviour behind it.
+
+### 7.2 What the intention shows at rest (LEGIB-1b, D5=A, 2026-11-09)
+
+**The target is fixed when the intention is shown, not when it fires.** Before LEGIB-1b the target
+did not exist until the audience turn (RandomMusician rolled then; Musician read the stress ranking
+then), so the screen could say *what* but never *to whom*. Now `AudienceCharacterBase.ShowNextAbility`
+locks one musician per ability (`LockMusicianTarget`), shared by all its Musician/RandomMusician
+actions. **Only Spotlight changes it afterwards**, at projection and at fire time alike (taunt rule,
+`SSoT_Status_Effects` §5.9). AllMusicians is not locked: it is everyone. Consequence: the random roll
+happens at the start of the player turn instead of mid audience turn.
+
+**At rest (no hover), the screen shows:**
+- on each audience member: the intention icon, the **projected Stress per target** (attacker modifiers
+  included: Hyped) with no `x`, hidden for `hideActionValue` abilities and for abilities that deal no
+  Stress, and **one icon per musician the ability touches** (`MusicianCharacterData.characterIcon`),
+  damage or not (D10=A). Audience-on-audience targets draw nothing;
+- on each musician who will lose fortitude: the bar with a **red segment** for the projected loss and
+  the text `final/max` with `final` in red; the bar stays visible even when full.
+
+**Previsto = real.** `StressProjector` (`Characters/StressProjection.cs`) is a dry run of the real
+audience turn on copied numbers: Feedback DoT first, then each member in turn order (convinced,
+inactive and stunned skipped), `ApplyOutgoingStressWithModifiers` → Composure absorbs → Exposed
+multiplies (rounded up), with Exposed/Composure/Hyped applications updating the copies under the
+container's stacking policy. `GigManager.LateUpdate` rebuilds it every frame of `PlayerTurn` and
+`SongPerformance` and clears the musicians' segment in the audience turn. **Not projected: the song.**
+A member convinced at song end skips its turn, so the bar reads "what happens if you do not convince
+them". Any rule change in `AddStressAction` / `BandCharacterStats` must change the projector too.
+
+**Hover views and Tab are S4b** (decided 2026-11-09, D8=B): lines and identity-colour outlines
+(`MusicianCharacterData.identityColor`, D9=A, never red) on hover over a musician or a member, and a
+held Tab that shows every line (D12=A).
 
 ---
 
