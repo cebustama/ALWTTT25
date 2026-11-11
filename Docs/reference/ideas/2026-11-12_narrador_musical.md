@@ -43,6 +43,13 @@ Tipos de **compás de final**: acorde sostenido («let ring»), golpe seco, rita
 
 **Cómo probarlo barato.** Antes de Unity, en el taller armónico: un selector de forma (INTRO–VERSE–…–OUTRO + final) que aplique esta tabla a la armonía y a la batería del taller y se pueda escuchar. Mismo método que las perillas y las semillas.
 
+## Decisiones de Claudio (2026-11-12)
+
+- **D1 = C, híbrido.** El narrador pone la forma por defecto y las cartas de parte la fuerzan («Solo» → `[SOLO, charId]`, «Final» adelanta el outro). Revive el esqueleto de partes dormido.
+- **D2 = B, la sección cambia también las reglas.** Además de la música, cada sección puede tener efecto de juego (ideas sin decidir: el público premia el puente, el solo da Hype al solista, el final cierra la canción con un bonus). En el prototipo del taller solo se oye; el diseño de las reglas va en ALWTTT, después de la demo.
+- **D3 = A, primero en el taller.** Prototipo de forma en el taller armónico web: `taller-armonia/ARRANQUE_narrador_forma.md`.
+- **Sigue abierto:** si el último loop se conoce siempre (Overload alarga la parte).
+
 ## Dónde entra en la planificación
 
 - **Demo (DEMO-1211):** no entra. Si se quiere un detalle, el único barato sería el acorde «let ring» al ganar el gig en lugar del fundido, y solo si sobra tiempo (decisión de Claudio).
