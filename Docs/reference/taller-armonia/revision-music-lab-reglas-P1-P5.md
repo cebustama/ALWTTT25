@@ -217,3 +217,38 @@ Con `preferirAcordeNuevo` el sus4 sigue yendo detrás del paso, como hoy.
 ## 10. Wrapped
 
 Página privada con los recursos, sus reglas, ejemplos de la Biblioteca que suenan y un laboratorio con todas las perillas: https://claude.ai/artifact/YaM8WSewBob3sxL2nEYCM3. Fuente en `recursos-wrapped/` (`fuente.html` + `build.mjs`, que pega la teoría de `template.html`: lo que suena es exactamente lo que hacen los niveles). Para rehacerlo: `node recursos-wrapped/build.mjs` y volver a publicar `recursos-wrapped.html`. La «Propuesta para el oído» del laboratorio (nivel 2: ii–V y ♭VI7; nivel 3: cadena, disminuido y ♭VI7) es una hipótesis del agente para empezar la prueba de oído, no una decisión.
+
+## 11. Prueba de reducción (2026-11-11)
+
+`node scripts/reduccion.js md` → `reduccion-resultados.md` (tablas completas). Nueve secciones de la Biblioteca (*All of Me* A1, B y C; *Billie's Bounce*; *Misty* A1; *Oleo* A1 y B; *Wave* A1; *Summertime* A1). El agente escribió el esqueleto de cada una a mano con las reglas R1–R5 de la cabecera del script. Después pasó cada esqueleto por los niveles, en 3 vueltas y 4/4, y lo comparó con la canción en medios compases (raíz + familia: mayor, menor, dominante, ø, °). Hay tres medidas:
+- **parecido:** medios compases iguales a la canción;
+- **acierta:** de los medios compases donde la canción se aparta del esqueleto, cuántos reproduce el taller;
+- **inventa:** de los medios compases que cambia el taller, cuántos no están en la canción.
+
+| Configuración | Parecido | Acierta | Inventa |
+|---|---|---|---|
+| Nivel 1 (esqueleto) | 33 % | 0 % | — |
+| N2 v3 / N3 v3 | 43 % / 43 % | 16 % / 17 % | 15 % / 31 % |
+| + P2 cadena (N2 / N3) | **57 % / 56 %** | **44 % / 45 %** | 18 % / 25 % |
+| + P1 ii–V | 44 % / 44 % | 18 % / 20 % | 15 % / 30 % |
+| + P4 ♭VI7 | 44 % / 44 % | 18 % / 19 % | 20 % / 32 % |
+| + P3, + P5, + D9 | ≈ v3 | ≈ v3 | ≈ v3 |
+| N2 P1+P2+P4 (la mejor) | 59 % | 47 % | 20 % |
+| N3 propuesta (P2+P3+P4) | 58 % | 47 % | 25 % |
+
+**Lo que dice:**
+1. **P2 es la que más acerca el taller al jazz:** casi triplica los adornos acertados (16 → 44 %) e inventa poco. *All of Me* A1 pasa de 46 % a 90 % y *Oleo* B, de 23 % a 73 %.
+2. **P1 suma poco (+1–3 puntos).** Muchas veces el ii–V de la canción ya estaba en el esqueleto (R5), y delante de los dominantes de P2 añade ii que *All of Me* y *Oleo* B no tienen. Junto con P2, aún suma 1–2 puntos.
+3. **P4 acierta donde debe:** *Summertime* pasa de 50 % a 63 % en el nivel 2.
+4. **Esta prueba no puede juzgar P3, P5 ni D9, así que los juzgará el oído.** Los remates no se activan porque las secciones de jazz ya cierran por cadencia. En la canción el °7 dura un compás y en el taller medio, así que la medida solo le da media nota. Y en *Wave* la reducción quitó el acorde al que iba el `B♭°7`.
+5. **El presupuesto no es el cuello de botella:** sin tope (3 cambios por vuelta) se ganan 0–2 puntos.
+6. **Ninguna perilla consigue esto (lo que más falla):**
+   - la tónica dominante del blues (`I7`, `IV7`: *Billie's* se queda en 18 %);
+   - el `II7` antes de `iim7–V7` (*All of Me* B, *Oleo* B: D3 A lo deja menor);
+   - el ii semidisminuido de un ii–V **en tonalidad menor** aunque vaya a la V mayor (*Summertime* c. 7, `F♯m7♭5 B7 → E7`): ni la regla A ni «ii según el destino» lo dan;
+   - el ii–V de un compás cada acorde;
+   - el vamp `im6 – iim6`.
+7. **P2 se equivoca en *All of Me* B:** el `vi` que sigue a `III7` se vuelve `VI7`, pero la canción lo deja menor. En la sección A, en cambio, lo dominantiza. No hay una regla que acierte las dos.
+8. Las diferencias de 1–2 puntos son ruido con 9 secciones.
+
+**Límites:** son 9 secciones, todas de jazz. Los esqueletos los escribió el agente, y R3 da el tiempo al acorde anterior, como hace el taller, así que la prueba le es favorable. Además, un adorno desplazado medio compás cuenta como fallo entero.
