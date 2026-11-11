@@ -293,3 +293,19 @@ Claudio: los remates no se pudieron juzgar en la hoja P1–P5 porque sonaban al 
 - **Hoja de remates** (https://claude.ai/artifact/N1cGU1fjPphhfeBZvmAE3k, fuente `prueba-oido-remates/`; base: la v4 de fábrica): 6 pares (deslizado mayor y menor, ii–V mayor y menor, rico frente a simple en el N3, ii–V en el N2) y dos decisiones (remate del N3, con la opción «al azar entre los que me gustan», y remate del N2). Respuestas en el db (`respuestas`, `decisiones`, `generales`).
 
 **Resultados de la hoja de remates (5 de 6 pares respondidos; falta `iiv-mayor`).** Deslizado en mayor ✗ (prefiere la backdoor; nota: «hay un acorde que se me hace demasiado largo»); deslizado en menor ✓; ii–V en menor ~ («las dos me gustan, A es más raro pero igual funciona»); simple frente a rico en el N3 ✓ (prefiere el simple); ii–V en el N2 ~. Decisiones: N2 simple (sin cambio); **N3 «al azar entre los que me gustan»**, que pide una regla nueva (D15, por diseñar): un remate por carta, elegido de forma determinista (hash de la progresión) dentro de un grupo por modo. Grupo provisional: mayor {rico, simple}, menor {rico, deslizado, ii–V}.
+
+Par `iiv-mayor` respondido después: ~ (igual). Grupo de remates del N3, según la hoja: mayor {rico, simple, ii–V}, menor {rico, deslizado, ii–V}.
+
+## 15. Las cartas son paletas, no canciones (Claudio, 2026-11-11)
+
+Claudio corrige la propuesta D15 de §14 («un remate por carta, siempre el mismo»): **una carta representa un patrón o idea, no la canción definitiva**. No quiere que suene siempre igual; quiere variedad en cada jugada dentro de una identidad o paleta. Más adelante quiere poder guardar una canción ya generada.
+
+Propuesta (por decidir al abrir la sesión):
+- **El azar va por jugada, con semilla.** `arrange(base, nivel, nV, beats, perillas, semilla)`: la misma semilla da la misma salida, y cada jugada usa una semilla nueva. Guardar una canción = guardar texto + perillas + semilla. Las pruebas de oro corren con semillas fijas, y la paridad con MidiGenPlay sigue siendo posible.
+- **La carta define la paleta; la semilla elige dentro.** Pasos posibles:
+  - (a) remate al azar dentro del grupo por modo (lo pedido en la hoja);
+  - (b) qué acorde recibe cada adorno y en qué vuelta, en vez del orden fijo de izquierda a derecha;
+  - (c) qué adorno entre los encendidos, con pesos (por ejemplo, ii–V 2, disminuido 1), que sería el «perfil» de P6.
+- **La identidad la cuidan las reglas que ya existen:** ningún acorde escrito desaparece, no se modula, la vuelta 1 tal cual de fábrica, y presupuesto por vuelta.
+- **En el taller:** botón 🎲 «otra versión», la semilla visible y «guardar esta versión».
+- **Riesgo:** los recursos de la v4 se eligieron a ciegas como valores fijos. Con azar, un par puede sonar distinto cada vez, así que las hojas de oído tendrán que fijar la semilla.
