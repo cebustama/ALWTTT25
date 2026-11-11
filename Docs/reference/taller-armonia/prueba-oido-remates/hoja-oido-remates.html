@@ -1,0 +1,573 @@
+<title>Prueba de oído: remates</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column for listening on the phone or the PC. A sticky progress bar, the instructions, 6 blind A/B pairs of remates (with resolution and loop)
+   (play, choose, then the answer is revealed with both versions drawn), the decision per knob with the agent's
+   recommendation, and two open questions. Answers go to the artifact's db so Claude can read them. Same family as the Taller. */
+:root{
+  --bg:#e9eef0; --panel:#ffffff; --panel-2:#dde4e7; --ink:#152025; --muted:#56656c; --line:#c3cdd2; --accent:#0d7a80;
+  --a:#2357b5; --a-bg:#dce6f8; --b:#b5560f; --b-bg:#f8e3d2; --ok:#1f7a4a; --ok-bg:#dcefe3; --warn:#9a6200;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --a:#8db2ff; --a-bg:#1c2a47; --b:#f2a46a; --b-bg:#3d2717; --ok:#6fd39b; --ok-bg:#173326; --warn:#f0b85a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --a:#8db2ff; --a-bg:#1c2a47; --b:#f2a46a; --b-bg:#3d2717; --ok:#6fd39b; --ok-bg:#173326; --warn:#f0b85a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(30px,6vw,46px);font-weight:800}
+h2{font-size:24px}
+h3{font-size:18px}
+p{margin:0;max-width:68ch}
+code{font:13px var(--f-mono);background:var(--panel-2);padding:1px 5px;border-radius:4px}
+.muted{color:var(--muted)} .small{font-size:14px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:15px}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.play::before{content:"▶";font-size:11px}
+.btn.play.playing::before{content:"■"}
+.btn.pa{border-color:var(--a);color:var(--a);background:var(--a-bg)}
+.btn.pb{border-color:var(--b);color:var(--b);background:var(--b-bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.top b{font-family:var(--f-display);font-size:17px}
+.meter{flex:1 1 160px;height:8px;border-radius:99px;background:var(--panel-2);overflow:hidden;min-width:120px}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+#saveState{font:12px var(--f-mono);color:var(--muted)}
+.pair header{display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.num{font:700 13px var(--f-mono);color:var(--muted)}
+.pair.done{border-color:var(--ok)}
+.choice{display:flex;flex-wrap:wrap;gap:6px}
+.choice .btn{border-radius:10px}
+.choice .btn.sel{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=text],textarea,select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.reveal{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.reveal .verdict{font-size:15px;background:var(--ok-bg);color:var(--ok);border-radius:8px;padding:6px 10px}
+.laps{display:flex;flex-direction:column;gap:6px}
+.lapRow{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;align-items:stretch}
+.lapLbl{font:600 12px/1.3 var(--f-mono);color:var(--muted);padding-top:7px}
+.scroll{overflow-x:auto;min-width:0}
+.bar{display:flex;gap:2px;min-width:var(--mw,0px)}
+.ch{flex:var(--d) 0 0;min-width:0;border-radius:6px;padding:5px 6px;background:var(--panel-2);border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;transition:transform .12s,box-shadow .12s}
+.ch .rn{font:600 12px/1.25 var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .nm{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch.diff{background:var(--b-bg);border-color:var(--b)}
+.ch.diff .rn{color:var(--b)}
+.ch[data-id]{cursor:pointer}
+.ch[data-id]:hover{border-color:var(--accent)}
+.ch.now{transform:translateY(-3px);box-shadow:0 0 0 2px var(--accent)}
+@media (prefers-reduced-motion: reduce){.ch,.meter i{transition:none}}
+.dec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:10px 16px;align-items:start;padding-block:12px;border-bottom:1px solid var(--line)}
+.dec:last-child{border-bottom:none}
+@media (max-width:620px){.dec{grid-template-columns:minmax(0,1fr)}}
+.dec b{font-family:var(--f-display);font-size:16px}
+.rec{font-size:13px;color:var(--muted)}
+.rec strong{color:var(--accent)}
+.note{font-size:13px;color:var(--warn)}
+</style>
+
+<div class="wrap">
+  <div class="top" role="status">
+    <b>Prueba de oído: remates</b>
+    <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+    <span class="small" id="count">0 de 6 pares</span>
+    <span id="saveState">conectando…</span>
+  </div>
+
+  <section>
+    <span class="eyebrow">Taller armónico v4 · 11 de noviembre de 2026</span>
+    <h1>¿Cómo cierra la vuelta?</h1>
+    <p>En la hoja anterior, los remates sonaban al final del audio y no se oía a dónde llevaban. Aquí suenan con su resolución. Son 6 pares: en cada uno, la misma progresión dos veces; una es la de fábrica (v4) y la otra cambia solo el remate, la vuelta al principio de la última vuelta. No sabes cuál es cuál.</p>
+    <div class="panel small">
+      <div class="row"><label class="row" style="gap:6px"><input type="checkbox" id="optRes" checked> Resolver al final</label><label class="row" style="gap:6px"><input type="checkbox" id="optLoop"> Repetir en bucle</label></div>
+      <span><b>Resolver al final</b> añade el primer acorde después de la última vuelta. <b>Repetir en bucle</b> vuelve a empezar, como sonaría la pista en el juego si siguiera. <b>Solo el final</b> salta a la última vuelta, para comparar los remates rápido.</span>
+      <span><b>Qué elegir.</b> «A» o «B» si una te gusta más; «igual» si no notas diferencia; «ninguna» si las dos suenan mal. Al responder ves las dos versiones, y puedes pulsar cualquier acorde para que suene desde ahí.</span>
+      <span><b>Se guarda solo.</b> Cada respuesta va al db de la página y yo la leo.</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-pares">
+    <h2 id="h-pares">Los pares</h2>
+    <div id="pairs" style="display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <section aria-labelledby="h-dec">
+    <span class="eyebrow">La decisión</span>
+    <h2 id="h-dec">Qué remate lleva cada nivel</h2>
+    <p class="small muted">Debajo de cada remate está mi recomendación. Tu oído manda: lo que elijas aquí quedará como valor de fábrica (y, si cambia algo, un oro v5).</p>
+    <div class="panel" id="decs"></div>
+  </section>
+
+  <section aria-labelledby="h-gen">
+    <h2 id="h-gen">Dos preguntas abiertas</h2>
+    <div class="panel">
+      <label for="g1" class="small">Con la resolución, ¿se entienden mejor los remates que en la hoja anterior?</label>
+      <textarea id="g1"></textarea>
+      <label for="g2" class="small">Algo más: qué te sorprendió, qué echaste de menos o qué otro recurso querrías oír.</label>
+      <textarea id="g2"></textarea>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+/* ---------- theory ---------- */
+const MODES = ["Ionian","Dorian","Phrygian","Lydian","Mixolydian","Aeolian","Locrian"];
+const MODE_ES = {Ionian:"Jónico (mayor)",Dorian:"Dórico",Phrygian:"Frigio",Lydian:"Lidio",Mixolydian:"Mixolidio",Aeolian:"Eólico (menor)",Locrian:"Locrio"};
+const MOOD = {Ionian:"Alegre",Dorian:"Con groove",Phrygian:"Oscuro",Lydian:"Soñador",Mixolydian:"Funky",Aeolian:"Triste",Locrian:"Tenso"};
+const IONIAN = [0,2,4,5,7,9,11];
+const STEPS = Object.fromEntries(MODES.map((m,i) => [m, IONIAN.map((_,k) => (IONIAN[(i+k)%7] - IONIAN[i] + 12) % 12)]));
+const NOTE = ["C","D♭","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
+const NUM = ["I","II","III","IV","V","VI","VII"];
+// quality key -> intervals, canonical import suffix, lower-case numeral, chord-symbol suffix
+const Q = {
+  maj:{iv:[0,4,7],suf:"maj",lo:false,sym:""},       min:{iv:[0,3,7],suf:"m",lo:true,sym:"m"},
+  dim:{iv:[0,3,6],suf:"dim",lo:true,sym:"°"},        aug:{iv:[0,4,8],suf:"aug",lo:false,sym:"+"},
+  maj7:{iv:[0,4,7,11],suf:"maj7",lo:false,sym:"maj7"}, m7:{iv:[0,3,7,10],suf:"m7",lo:true,sym:"m7"},
+  "7":{iv:[0,4,7,10],suf:"7",lo:false,sym:"7"},      hdim7:{iv:[0,3,6,10],suf:"ø7",lo:true,sym:"m7♭5"},
+  dim7:{iv:[0,3,6,9],suf:"dim7",lo:true,sym:"°7"},   sus2:{iv:[0,2,7],suf:"sus2",lo:false,sym:"sus2"},
+  sus4:{iv:[0,5,7],suf:"sus4",lo:false,sym:"sus4"},  "6":{iv:[0,4,7,9],suf:"6",lo:false,sym:"6"},
+  m6:{iv:[0,3,7,9],suf:"m6",lo:true,sym:"m6"},       "7sus4":{iv:[0,5,7,10],suf:"7sus4",lo:false,sym:"7sus4"},
+  "9":{iv:[0,4,7,10,14],suf:"9",lo:false,sym:"9"},   maj9:{iv:[0,4,7,11,14],suf:"maj9",lo:false,sym:"maj9"},
+  m9:{iv:[0,3,7,10,14],suf:"m9",lo:true,sym:"m9"},
+};
+const MINORISH = new Set(["min","m7","m6","m9","dim","hdim7","dim7"]);
+// Mirror of RomanProgressionParser.TryParseQualitySuffix (after removing spaces, Δ→maj, lower-casing).
+const ALIAS = {};
+[["maj","maj ma mjr mja"],["min","m min mi mn - min3 mtri mtriad"],["dim","dim o °"],["aug","aug + +5"],
+ ["7","7 dom dom7"],["maj7","maj7 ma7 m7+ mm7 mmaj7"],["m7","m7 -7 min7"],["hdim7","ø ø7 m7b5 min7b5"],
+ ["dim7","dim7 o7 °7"],["sus2","sus2"],["sus4","sus4 sus"],["6","6"],["m6","m6 min6"],["7sus4","7sus4"],
+ ["9","9 dom9"],["maj9","maj9 ma9"],["m9","m9 min9"]].forEach(([k,v]) => v.split(" ").forEach(a => ALIAS[a] = k));
+
+let mode = "Ionian";
+const st = () => STEPS[mode];
+const inScale = pc => st().includes(((pc%12)+12)%12);
+const mod12 = x => ((x%12)+12)%12;
+function diatonicQ(deg){
+  const s = st(), t = mod12(s[(deg+2)%7]-s[deg]), f = mod12(s[(deg+4)%7]-s[deg]);
+  return ({"4,7":"maj","3,7":"min","3,6":"dim","4,8":"aug"})[t+","+f] || "maj";
+}
+function romanOf(pc, q){
+  const s = st(); pc = mod12(pc);
+  let d = s.indexOf(pc), acc = "";
+  if(d < 0 && s.indexOf(mod12(pc+1)) > 0){ d = s.indexOf(mod12(pc+1)); acc = "b"; }
+  if(d < 0){ d = s.indexOf(mod12(pc-1)); acc = "#"; }
+  const n = NUM[d];
+  return acc + (Q[q].lo ? n.toLowerCase() : n) + Q[q].suf;
+}
+const fmtDur = d => String(Number(d.toFixed(3)));
+const chordName = (pc, q, key) => NOTE[mod12(pc+key)] + Q[q].sym;
+
+/* ---------- parser (mirrors MidiGenPlay's Roman import) ---------- */
+function parse(text){
+  const chords = [], issues = [];
+  const toks = text.replace(/\n/g," ").replace(/\|/g,"–").split(/[–—-]/).map(t => t.trim()).filter(Boolean);
+  for(const tok of toks){
+    const m = tok.match(/^(.*?)\s*(\(([^)]*)\))?\s*$/);
+    let core = (m[1]||"").trim(), dur = 1;
+    if(m[2] !== undefined){
+      dur = parseFloat(String(m[3]).trim());
+      if(!(dur > 0) || /,/.test(m[3])){ issues.push({e:1, msg:"«"+tok+"»: duración no válida. Usa un número con punto, como (0.5) o (2)."}); continue; }
+    } else if(/[()]/.test(core)){ issues.push({e:1, msg:"«"+tok+"»: falta un paréntesis."}); continue; }
+    if(core === "" || /^(s|r|rest)$/i.test(core)){ chords.push({rest:true, dur}); continue; }
+    const r = core.match(/^([b♭#♯]?)([IVXivx]+)(.*)$/);
+    if(!r){ issues.push({e:1, msg:"«"+tok+"»: no empieza por un grado romano (I a VII)."}); continue; }
+    const deg = NUM.indexOf(r[2].toUpperCase());
+    if(deg < 0){ issues.push({e:1, msg:"«"+tok+"»: «"+r[2]+"» no es un grado de I a VII."}); continue; }
+    const acc = /[b♭]/.test(r[1]) ? -1 : /[#♯]/.test(r[1]) ? 1 : 0;
+    const rawSuf = r[3].trim();
+    let q;
+    if(rawSuf){
+      const s = rawSuf.replace(/\s/g,"").replace(/[Δ∆]/g,"maj").toLowerCase();
+      q = ALIAS[s];
+      if(/M7|M9/.test(rawSuf) && !/maj|ma/i.test(rawSuf)) issues.push({e:0, msg:"«"+tok+"»: MidiGenPlay pasa el sufijo a minúsculas, así que «M7» se lee como m7 (menor). Para mayor séptima escribe maj7."});
+      if(!q){ q = diatonicQ(deg); issues.push({e:1, msg:"«"+tok+"»: el sufijo «"+rawSuf+"» no existe en MidiGenPlay. El Import lo rechaza; aquí suena como el acorde de la escala ("+Q[q].suf+")."}); }
+    } else {
+      const lo = /^[ivx]+$/.test(r[2]), up = /^[IVX]+$/.test(r[2]);
+      if(lo) q = "min"; else if(up) q = "maj";
+      else { q = diatonicQ(deg); issues.push({e:0, msg:"«"+tok+"»: mezcla mayúsculas y minúsculas; MidiGenPlay lo ignora y usa el acorde de la escala."}); }
+    }
+    const pc = mod12(st()[deg] + acc);
+    if(acc && inScale(pc)) issues.push({e:0, msg:"«"+tok+"»: en "+MODE_ES[mode]+" la alteración se aplica al grado del modo, así que suena como "+romanOf(pc, q)+". Si querías el acorde de la escala mayor, escríbelo sin alteración."});
+    chords.push({pc, q, dur});
+  }
+  if(!chords.some(c => !c.rest)) issues.push({e:1, msg:"No hay ningún acorde que tocar."});
+  return {chords, issues};
+}
+
+/* ---------- levels (v3, after the Music Lab review of 2026-11-02; knobs since 2026-11-06) ----------
+   Rules: original chords are never removed (an addition only takes the second part of a chord);
+   no events before the knob desdeVuelta; ninths only if the 9th is in the scale;
+   modal approach chords instead of V7 outside Ionian/Aeolian; no half-step modulation inside the card.
+   Everything a level may do lives in its knobs (PERILLAS); the defaults are v4 (v3 + P1–P4 chosen by ear, 2026-11-11)
+   (golden test: node scripts/oro.js comparar oro-v4.json; v3 = oro-v3.json with P1–P5 off). Names, ranges and merges: Music Lab,
+   revision-music-lab-perillas-2026-11-06.md. Fixed order: remate → sus4 → menor prestado → disminuido (P3) → acorde de paso → ♭VI
+   (preferirAcordeNuevo moves sus4 behind the acorde de paso). Fixed guards: lap 1 as written; ≤2 distinct chords → 1 change. */
+const PERILLAS_V3 = {
+  2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:true,  iiDelDestino:true},
+  3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"rico",   sus4:false, paso:"iiV",       ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:true,  disminuido:true,  bVI7Menor:true,  iiDelDestino:true},
+};
+// Intensity (D14 = A, 2026-11-11): one slider 0–5 that picks a level and a factory profile; the fine knobs stay below.
+// In the game, levelling up a card = one step up this ladder.
+const INTENSIDAD = [
+  {lvl:1, lab:"tal cual"},
+  {lvl:2, over:{presupuesto:0}, lab:"solo color"},
+  {lvl:2, lab:"nivel 2 de fábrica"},
+  {lvl:3, lab:"nivel 3 de fábrica"},
+  {lvl:3, over:{desdeVuelta:1}, lab:"nivel 3 desde la vuelta 1"},
+  {lvl:3, over:{desdeVuelta:1, presupuesto:3, preferirAcordeNuevo:true}, lab:"máximo: desde la vuelta 1 y sin tope"},
+];
+const PERILLA_KEYS = Object.keys(PERILLAS_V3[2]);
+const PERILLA_OPC = {color:["triadas","septimas","novenas"], remate:["no","simple","rico","deslizado","iiV"], paso:["no","clasico","cromatico","iiV"]};
+const clonePerillas = p => ({2:{...p[2]}, 3:{...p[3]}});
+// Accepts anything (saved data, the model's answer) and returns valid knobs, filling gaps from `base` (v3 by default).
+// Values it cannot use go to `ignored` (never silently: the page reports them).
+function validPerilla(k, v){
+  if(k === "presupuesto") return Number.isInteger(v) && v >= 0 && v <= 3;
+  if(k === "desdeVuelta") return Number.isInteger(v) && v >= 1 && v <= 4;   // 1 allowed since 2026-11-11 (D13 = B, also in the game)
+  if(PERILLA_OPC[k]) return PERILLA_OPC[k].includes(v);
+  return PERILLA_KEYS.includes(k) && typeof v === "boolean";
+}
+function cleanPerillas(x, base, ignored){
+  const out = clonePerillas(base || PERILLAS_V3);
+  for(const l of [2,3]){ const s = x && (x[l] || x[String(l)]); if(!s || typeof s !== "object") continue;
+    for(const [k, v] of Object.entries(s)){ if(validPerilla(k, v)) out[l][k] = v; else if(ignored) ignored.push("N"+l+" "+k+" = "+JSON.stringify(v)); } }
+  return out;
+}
+const samePerillas = (a, b) => [2,3].every(l => PERILLA_KEYS.every(k => a[l][k] === b[l][k]));
+const majorish = () => mod12(st()[2]) === 4;
+function color(c, next, P){
+  let q = c.q; const r = c.pc, nextPc = next.pc;
+  if(P.color !== "triadas"){
+    if(q === "maj"){
+      if(mod12(r) !== 0 && mod12(nextPc - c.pc) === 5) q = "7";
+      else if(inScale(r+11)) q = "maj7";
+      else if(inScale(r+10)) q = "7";
+      else q = "maj7";
+    } else if(q === "min") q = "m7";
+    else if(q === "dim") q = inScale(r+10) ? "hdim7" : "dim7";
+  }
+  // P2 (2026-11-11): Ionian, every chord a fifth above the next one becomes a dominant, except the tonic,
+  // diminished chords and the ii that goes to V (D3 = A: the ii–V stays). On every lap, like the colour (D4 = B).
+  const DIMS = ["dim","hdim7","dim7"], nDim = next.rest || DIMS.includes(next.q);
+  if(P.cadenaDominantes && mode === "Ionian" && mod12(r) !== 0 && !DIMS.includes(c.q) && !nDim &&
+     mod12(nextPc - r) === 5 && !(mod12(r) === 2 && mod12(nextPc) === 7)) q = "7";
+  // P4 (2026-11-11): Aeolian, the VI that goes to V/v or to iv becomes VI7 (D7 = B).
+  if(P.bVI7Menor && mode === "Aeolian" && mod12(r) === 8 && !MINORISH.has(c.q) && [7, 5].includes(mod12(nextPc))) q = "7";
+  if(P.color === "novenas" && inScale(r+2)) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
+  return q;
+}
+// Chord that leads into the tonic in each mode (Music Lab, change 3). null = no approach (Locrian).
+// rica = the level-3 version of v3 (backdoor, iiø7–♭II7, ♭VIImaj7); simple = the level-2 one.
+function tonicApproach(rica, tMin){
+  switch(mode){
+    case "Ionian":  return !rica ? [{d:7, q:"7", why:"V7"}] : [{d:5, q:"m7", why:"backdoor iv7"}, {d:10, q:"9", why:"♭VII9"}];
+    case "Aeolian": return !rica ? [{d:7, q:"7", why:"V7"}] : [{d:2, q:"hdim7", why:"iiø7"}, {d:1, q:"7", why:"sustituto tritonal ♭II7"}];
+    case "Phrygian":   return [{d:1, q:"maj7", why:"♭IImaj7, el acorde frigio"}];
+    case "Dorian":     return [{d:5, q:"7", why:"IV7, el acorde dórico"}];
+    case "Lydian":     return [{d:2, q:"7", why:"II7, el acorde lidio"}];
+    case "Mixolydian": return [{d:10, q: rica ? "maj7" : "maj", why:"♭VII, el acorde mixolidio"}];
+    default: return null;
+  }
+}
+// Quality of the ii before a dominant (P1 / remate iiV, 2026-11-11). D2 = A: the scale's own chord when it is
+// minor or diminished there (Am7 before D7 → Gm7 in F); otherwise by the target: m7 towards major, ø7 towards minor.
+// The knob iiDelDestino (Claudio's doubt) always goes by the target, and in a minor key it is always ø7
+// (D10, 2026-11-11: Summertime c. 7, F♯m7♭5 B7 → E7).
+function iiQ(tPc, tQ, P){
+  const pc = mod12(tPc + 2), tMin = MINORISH.has(tQ) || (P.iiDelDestino && !majorish());
+  if(!P.iiDelDestino && inScale(pc)){ const d = diatonicQ(st().indexOf(pc)); if(d === "min") return "m7"; if(d === "dim") return "hdim7"; }
+  return tMin ? "hdim7" : "m7";
+}
+const nextNonRest = (seq, i) => { for(let k=1;k<=seq.length;k++){ const c = seq[(i+k)%seq.length]; if(!c.rest) return c; } return seq[i]; };
+const CADENCE = new Set([5, 7, 2, 11]); // root motion into the first chord: V→I, IV→I, ♭VII→I, ♭II→i
+function arrange(base, level, nV, beats, perillas){
+  const B = beats || 4, h = B === 3 ? 1 : 0.5;          // the split unit: half a bar in 4/4, one whole bar in 3/4
+  const vs = [];
+  const distinct = new Set(base.filter(c => !c.rest).map(c => c.pc + c.q)).size;
+  const chromatic = base.some(c => !c.rest && !inScale(c.pc)), n = base.filter(c => !c.rest).length;
+  const P = level >= 2 ? (perillas || PERILLAS_V3)[level] : null;
+  for(let v=0; v<nV; v++){
+    let seq = base.map(c => c.rest ? {...c} : {...c, orig:true});
+    if(P) seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i), P); return q === c.q ? c : {...c, q, col:true}; });
+    if(P && v >= P.desdeVuelta - 1){
+      const budget = Math.min(P.presupuesto, distinct <= 2 ? 1 : n - 1), used = new Set(), plan = [];   // plan: {i, tail:[chords], head?:chord}
+      const can = (i, n) => { const c = seq[i]; return c && !c.rest && !used.has(i) && c.dur >= h*(n+1) - 1e-9; };
+      const take = p => { if(plan.length < budget && !used.has(p.i)){ used.add(p.i); plan.push(p); return true; } return false; };
+      const li = seq.length - 1, first = seq.find(c => !c.rest);
+      // 1) turnaround on the last lap: second part of the last chord, unless the loop already closes by cadence
+      if(P.remate !== "no" && v === nV-1 && !seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
+        const tR = romanOf(first.pc, first.q), toTonic = mod12(first.pc) === 0;
+        const nuevo = P.remate === "deslizado" || P.remate === "iiV";   // P5 and D9 (2026-11-11)
+        let ap;
+        if(nuevo) ap = toTonic && !["Ionian","Aeolian"].includes(mode) ? tonicApproach(true, false)
+          : P.remate === "deslizado" ? [{d:8, q:"7", why:"♭VI7"}, {d:7, q:"7", why:"V7 (deslizamiento)"}]
+          : [{d:2, q:iiQ(first.pc, first.q, P), why:"ii"}, {d:7, q:"7", why:"V7"}];
+        else {
+          ap = toTonic ? tonicApproach(P.remate === "rico", MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
+          if(ap && !toTonic && P.paso === "cromatico" && (!P.remateFiel || chromatic)) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
+        }
+        if(nuevo && ap && ap.length === 2 && mod12(first.pc + ap[0].d) === mod12(seq[li].pc)) ap = [ap[1]];   // the last chord already is the ♭VI / the ii
+        if(ap && ap.length === 2 && !can(li, 2)) ap = [ap[1]];
+        if(ap && mod12(first.pc + ap[0].d) === mod12(seq[li].pc)) ap = null;   // the last chord already is the approach chord
+        if(ap && can(li, ap.length)) take({i:li, tail: ap.map((a,k) => ({pc:mod12(first.pc + a.d), q:a.q, dur:h, add:true, why: k ? undefined : "turnaround hacia "+tR+": "+ap.map(x => x.why).join("–")}))});
+      }
+      // 2) sus4 on the functional dominant (resolves a fifth down)
+      const sus4 = () => { if(P.sus4) seq.forEach((c,i) => { if(plan.length >= budget || !c.orig || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(c.q === "7" && mod12(t.pc - c.pc) === 5 && can(i, 1)) take({i, head:{...c, q:"7sus4", dur:h, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")}, rest:"tail"}); }); };
+      if(!P.preferirAcordeNuevo) sus4();
+      // 3) one borrowed colour after IV (iv6 in major modes, IV7 in Aeolian)
+      if(P.ivPrestado){
+        const bi = seq.findIndex((c,i) => !c.rest && mod12(c.pc) === 5 && can(i,1) && (
+          (["Ionian","Lydian","Mixolydian"].includes(mode) && !MINORISH.has(c.q)) || (mode === "Aeolian" && MINORISH.has(c.q))));
+        if(bi >= 0){ const c = seq[bi], maj = mode !== "Aeolian";
+          take({i:bi, tail:[{pc:c.pc, q: maj ? "m6" : "7", dur:h, add:true, why: maj ? "iv menor prestado (iv6) después del IV" : "IV7 dórico prestado después del iv"}]}); }
+      }
+      // 3b) P3 (2026-11-11, D6 = C): passing °7 in the second part. Ascending: a whole step up, the °7 a semitone
+      //     below the target (I – ♯I°7 – ii). Neighbour: IV – ♯IV°7 – I. Descending: a fourth down, the °7 a semitone
+      //     above the target (I – ♭VI°7 – V). The last chord may host it (IV → I closes many loops).
+      if(P.disminuido) seq.forEach((c,i) => { if(plan.length >= budget || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(t === c || t.pc === c.pc || !inScale(t.pc) || ["dim","hdim7","dim7"].includes(t.q) || !can(i,1)) return;
+        const m = mod12(t.pc - c.pc), tR = romanOf(t.pc, t.q), toT = mod12(t.pc) === 0;
+        let pc, why;
+        if(m === 2 && !toT){ pc = t.pc - 1; why = "disminuido de paso, sube hacia " + tR; }
+        else if(mod12(c.pc) === 5 && toT){ pc = 6; why = "disminuido de vecino entre el IV y el I"; }
+        else if(m === 7 && !toT){ pc = t.pc + 1; why = "disminuido de paso, baja hacia " + tR; }
+        else return;
+        take({i, tail:[{pc:mod12(pc), q:"dim7", dur:h, add:true, why}]}); });
+      // 4) acorde de paso into a diatonic non-tonic chord: its V7 (clasico), the tritone substitute ♭II7 (cromatico)
+      //    or ii + V7 (iiV, P1 2026-11-11: needs room for two parts; with room for one, only the V7, D1 = A)
+      if(P.paso === "iiV"){
+        seq.forEach((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
+          const t = nextNonRest(seq,i);
+          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || ["dim","hdim7","dim7"].includes(t.q) || !can(i,1)) return;
+          const fifth = mod12(t.pc - c.pc) === 5, tR = romanOf(t.pc, t.q);
+          if(fifth && MINORISH.has(c.q)) return;                          // the host already is the ii of a ii–V
+          const ii = {pc:mod12(t.pc+2), q:iiQ(t.pc, t.q, P), dur:h, add:true, why:"ii–V hacia "+tR};
+          const V = {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR};
+          if(ii.pc === mod12(c.pc)){ if(!fifth) take({i, tail:[{...V, why:"ii–V hacia "+tR+" (el ii es el propio acorde)"}]}); }
+          else if(can(i,2)) take({i, tail:[ii, V]});
+          else if(!fifth) take({i, tail:[V]}); }); }
+      else if(P.paso !== "no"){
+        seq.forEach((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
+          const t = nextNonRest(seq,i);
+          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1)) return;
+          const tR = romanOf(t.pc, t.q);
+          take({i, tail:[P.paso === "clasico" ? {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR}
+                                             : {pc:mod12(t.pc+1), q:"7", dur:h, add:true, why:"sustituto tritonal de la dominante de "+tR}]}); }); }
+      if(P.preferirAcordeNuevo) sus4();
+      // 5) ♭VImaj7 inserted before the return to I (Ionian, Mixolydian)
+      if(P.bVI && (mode === "Ionian" || mode === "Mixolydian")) seq.forEach((c,i) => { if(plan.length >= budget || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(mod12(t.pc) === 0 && mod12(c.pc) !== 0 && mod12(c.pc) !== 8 && !CADENCE.has(mod12(t.pc - c.pc)) && can(i,1)) take({i, tail:[{pc:8, q:"maj7", dur:h, add:true, why:"♭VImaj7 prestado antes de volver a I"}]}); });
+      // apply: the original keeps the first part
+      const out = [];
+      seq.forEach((c,i) => {
+        const p = plan.find(x => x.i === i);
+        if(!p){ out.push(c); return; }
+        if(p.head){ out.push(p.head); out.push({...c, dur:c.dur-h}); return; }
+        out.push({...c, dur:c.dur - h*p.tail.length}); p.tail.forEach(a => out.push(a));
+      });
+      seq = out;
+    }
+    vs.push({seq, off:0});
+  }
+  return vs;
+}
+
+
+
+/* ---------- the pairs: control (A of the design) vs test (the knob) ---------- */
+const PAIRS = [
+ {id:"desl-mayor", t:"Pop que no cierra solo · nivel 3", what:"La backdoor de fábrica (iv7 – ♭VII9) frente al deslizado (♭VI7 – V7). Es el par de la hoja anterior, ahora con resolución.", md:"Ionian", key:2, text:"I – vi – IV – ii (2)", lvl:3, nV:2, ctl:{}, test:{remate:"deslizado"}, knob:"Remate deslizado", dec:"rem3"},
+ {id:"desl-menor", t:"Menor que sube i–iv–VII–III · nivel 3", what:"En menor: iiø7 – ♭II7 de fábrica frente al deslizado (VI7 – V7).", md:"Aeolian", key:4, text:"i – iv – VII – III (2)", lvl:3, nV:2, ctl:{}, test:{remate:"deslizado"}, knob:"Remate deslizado", dec:"rem3"},
+ {id:"iiv-mayor", t:"I – vi – IV – iii · nivel 3", what:"La backdoor de fábrica frente al ii–V (ii7 – V7 → I).", md:"Ionian", key:3, text:"I – vi – IV – iii (2)", lvl:3, nV:2, ctl:{}, test:{remate:"iiV"}, knob:"Remate ii–V", dec:"rem3"},
+ {id:"iiv-menor", t:"Menor i–iv–VI–III · nivel 3", what:"En menor: iiø7 – ♭II7 de fábrica frente al ii–V menor (iiø7 – V7 → i).", md:"Aeolian", key:2, text:"i – iv – VI – III (2)", lvl:3, nV:2, ctl:{}, test:{remate:"iiV"}, knob:"Remate ii–V", dec:"rem3"},
+ {id:"rico-simple", t:"I – IV – vi – iii larga · nivel 3", what:"¿Hace falta el remate rico en el nivel 3, o basta el simple (V7)?", md:"Ionian", key:0, text:"I (2) – IV (2) – vi (2) – iii (2)", lvl:3, nV:2, ctl:{}, test:{remate:"simple"}, knob:"Remate simple", dec:"rem3"},
+ {id:"n2-iiv", t:"I – vi – IV – iii · nivel 2", what:"El nivel 2: el V7 simple de fábrica frente al ii–V.", md:"Ionian", key:9, text:"I – vi – IV – iii (2)", lvl:2, nV:2, ctl:{}, test:{remate:"iiV"}, knob:"Remate ii–V", dec:"rem2"},
+];
+const DECS = [
+ {id:"rem3", t:"Remate del nivel 3", opts:["rico (fábrica)","simple","deslizado","ii–V","al azar entre los que me gustan"], rec:"lo que diga tu oído", why:"La hoja anterior no pudo juzgarlos sin resolución. Si te gustan varios, «al azar» haría que cada carta cierre distinto (necesita una regla nueva)."},
+ {id:"rem2", t:"Remate del nivel 2", opts:["simple (fábrica)","ii–V","deslizado"], rec:"simple (fábrica)", why:"El 2 debe quedarse por debajo del 3, y el remate gasta su único cambio de la vuelta."},
+];
+
+/* ---------- arrange + draw + sound ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const pretty = r => r.replace(/^b/, "♭").replace(/^#/, "♯").replace("dim7", "°7");
+function render(p, over){
+  mode = p.md; const ch = parse(p.text).chords;
+  // Baseline: the v4 factory knobs (this sheet tests remates on top of them).
+  const P = {2:{...PERILLAS_V3[2]}, 3:{...PERILLAS_V3[3]}}; Object.assign(P[p.lvl], over);
+  return arrange(ch, p.lvl, p.nV, 4, P).map(v => v.seq);
+}
+// Stable, per-pair shuffle: which side holds the knob.
+const testIsA = id => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 2 === 1;
+const sig = c => c.rest ? "-" : c.pc + c.q + "@" + c.dur;
+function lapsHTML(rows, key, md, pid, other){
+  const bars = Math.max(...rows.map(r => r.seq.reduce((s, c) => s + c.dur, 0)));
+  mode = md;
+  return rows.map((r, ri) => {
+    const o = other ? other[ri] : null, os = o ? new Set(o.map(sig)) : null;
+    return '<div class="lapRow"><div class="lapLbl">'+esc(r.label)+'</div><div class="scroll"><div class="bar" style="--mw:'+Math.round(bars*84)+'px">' +
+      r.seq.map((c, ci) => '<div class="ch'+(os && !os.has(sig(c)) ? " diff" : "")+'" style="--d:'+c.dur+'" data-id="'+pid+'-'+ri+'-'+ci+'"><span class="rn">'+(c.rest ? "—" : esc(pretty(romanOf(c.pc, c.q))))+'</span><span class="nm">'+(c.rest ? "" : esc(chordName(c.pc, c.q, key)))+'</span></div>').join("") +
+      '</div></div></div>'; }).join("");
+}
+let AC = null, live = [], timers = [], playingBtn = null;
+function stopAll(){ live.forEach(n => { try{ n.stop(); }catch(e){} }); live = []; timers.forEach(clearTimeout); timers = [];
+  document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+  if(playingBtn){ playingBtn.classList.remove("playing"); playingBtn = null; } }
+function tone(f, t, d, type, vol){
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(vol*.45, t + .35);
+  g.gain.setValueAtTime(vol*.45, t + Math.max(.36, d - .08)); g.gain.linearRampToValueAtTime(0, t + d);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + .05); live.push(o); }
+function click(t, vol){ const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 1800;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + .03); o.connect(g).connect(AC.destination); o.start(t); o.stop(t + .04); live.push(o); }
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+function play(laps, key, md, pid, btn, bpm, from){
+  if(!from && playingBtn === btn){ stopAll(); return; } stopAll();
+  try{ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); }catch(e){ return; }
+  playingBtn = btn; btn.classList.add("playing");
+  const beat = 60 / bpm, bar = 4 * beat, t0 = AC.currentTime + .08; let t = 0;
+  laps.forEach((seq, ri) => seq.forEach((c, ci) => {
+    if(from && (ri < from.ri || (ri === from.ri && ci < from.ci))) return;
+    const d = c.dur * bar, at = t0 + t;
+    if(!c.rest){ const root = (c.pc + key) % 12, set = new Set();
+      Q[c.q].iv.forEach(x => set.add(55 + ((root + x - 55) % 12 + 12) % 12));
+      set.forEach(m => tone(hz(m), at, d * .96, "triangle", .07)); tone(hz(36 + root), at, d * .96, "sine", .16); }
+    for(let k = 0; k < c.dur * 4 - 1e-6; k++) click(at + k * beat, k % 4 === 0 ? .025 : .012);
+    const id = pid + "-" + ri + "-" + ci, start = t;
+    timers.push(setTimeout(() => { document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+      const el = document.querySelector('[data-id="'+id+'"]'); if(el) el.classList.add("now"); }, start * 1000 + 80));
+    t += d; }));
+  const f = laps[0].find(c => !c.rest);
+  if($("#optRes").checked && f){ const at = t0 + t, root = (f.pc + key) % 12, set = new Set();
+    Q[f.q].iv.forEach(x => set.add(55 + ((root + x - 55) % 12 + 12) % 12));
+    set.forEach(m => tone(hz(m), at, bar * .96, "triangle", .07)); tone(hz(36 + root), at, bar * .96, "sine", .16); click(at, .025);
+    timers.push(setTimeout(() => document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now")), t * 1000 + 80));
+    t += bar; }
+  timers.push(setTimeout(() => { if($("#optLoop").checked && playingBtn === btn){ playingBtn = null; play(laps, key, md, pid, btn, bpm); } else stopAll(); }, t * 1000 + (($("#optLoop").checked) ? 0 : 250)));
+}
+
+/* ---------- answers: artifact db (Claude reads them), localStorage as a fallback ---------- */
+const ANS = {}, DEC = {}, GEN = {};
+let db = null;
+const LS = "oido-remates";
+function lsSave(){ try{ localStorage.setItem(LS, JSON.stringify({ANS, DEC, GEN})); }catch(e){} }
+function lsLoad(){ try{ const x = JSON.parse(localStorage.getItem(LS) || "null"); if(x){ Object.assign(ANS, x.ANS || {}); Object.assign(DEC, x.DEC || {}); Object.assign(GEN, x.GEN || {}); } }catch(e){} }
+const saving = new Map();
+function store(col, id, data){
+  lsSave();
+  if(!db){ $("#saveState").textContent = "guardado en este navegador"; return; }
+  clearTimeout(saving.get(col + id));
+  saving.set(col + id, setTimeout(async () => {
+    $("#saveState").textContent = "guardando…";
+    try{ await db.collection(col).doc(id).set({...data, ts: new Date().toISOString()}); $("#saveState").textContent = "guardado ✓"; }
+    catch(e){ $("#saveState").textContent = "no se pudo guardar (" + (e && e.code || "error") + "); queda en este navegador"; }
+  }, 500));
+}
+
+/* ---------- pairs UI ---------- */
+function drawPair(p, i){
+  const host = document.getElementById("pair-" + p.id), a = ANS[p.id], tA = testIsA(p.id);
+  const ctl = render(p, p.ctl), tst = render(p, p.test), A = tA ? tst : ctl, B = tA ? ctl : tst;
+  const label = k => "vuelta " + (k + 1) + (k === p.nV - 1 ? " (última)" : "");
+  host.classList.toggle("done", !!(a && a.eleccion));
+  host.innerHTML = '<header><h3>'+esc(p.t)+'</h3><span class="num">'+(i + 1)+' / '+PAIRS.length+'</span></header>' +
+    '<p class="small">'+esc(p.what)+'</p>' +
+    '<div class="row"><button class="btn play pa" type="button" data-v="A">Escuchar A</button><button class="btn play pb" type="button" data-v="B">Escuchar B</button>' +
+    '<button class="btn" type="button" data-fin="A">Solo el final de A</button><button class="btn" type="button" data-fin="B">Solo el final de B</button>' +
+    '<span class="small muted">'+esc(NOTE[p.key])+' '+(p.md === "Aeolian" ? "menor" : "mayor")+' · '+p.nV+' vueltas</span></div>' +
+    '<div class="choice" role="group" aria-label="Elección">' + ["A","B","igual","ninguna"].map(c =>
+      '<button class="btn'+(a && a.eleccion === c ? " sel" : "")+'" type="button" data-c="'+c+'">'+(c === "A" || c === "B" ? "Prefiero " + c : c === "igual" ? "Igual / no noto diferencia" : "Ninguna me gusta")+'</button>').join("") + '</div>' +
+    '<input type="text" id="n-'+p.id+'" placeholder="Nota (opcional)" value="'+esc(a && a.nota || "")+'" aria-label="Nota del par '+(i + 1)+'">' +
+    (a && a.eleccion ? '<div class="reveal"><span class="verdict">'+esc(verdict(a.eleccion, tA, p.knob))+'</span>' +
+      '<div class="small muted">A</div><div class="laps">'+lapsHTML(A.map((s, k) => ({label:label(k), seq:s})), p.key, p.md, "s" + p.id + "A", B)+'</div>' +
+      '<div class="small muted">B</div><div class="laps">'+lapsHTML(B.map((s, k) => ({label:label(k), seq:s})), p.key, p.md, "s" + p.id + "B", A)+'</div>' +
+      '<span class="small muted">En naranja, lo que cambia respecto a la otra versión. Pulsa un acorde para que suene desde ahí.</span></div>' : "");
+  PLAY["s" + p.id + "A"] = {laps: A, p, btn: host.querySelector('[data-v="A"]')};
+  PLAY["s" + p.id + "B"] = {laps: B, p, btn: host.querySelector('[data-v="B"]')};
+  host.querySelector('[data-fin="A"]').onclick = () => play(A, p.key, p.md, "s" + p.id + "A", host.querySelector('[data-v="A"]'), 104, {ri: p.nV - 1, ci: 0});
+  host.querySelector('[data-fin="B"]').onclick = () => play(B, p.key, p.md, "s" + p.id + "B", host.querySelector('[data-v="B"]'), 104, {ri: p.nV - 1, ci: 0});
+  host.querySelector('[data-v="A"]').onclick = ev => play(A, p.key, p.md, "s" + p.id + "A", ev.currentTarget, 104);
+  host.querySelector('[data-v="B"]').onclick = ev => play(B, p.key, p.md, "s" + p.id + "B", ev.currentTarget, 104);
+  host.querySelectorAll("[data-c]").forEach(b => b.onclick = () => {
+    stopAll(); const c = b.dataset.c;
+    ANS[p.id] = {eleccion:c, nota: document.getElementById("n-" + p.id).value, perilla_en: tA ? "A" : "B", prefiere_perilla: c === "igual" || c === "ninguna" ? c : ((c === "A") === tA ? "sí" : "no"), perilla: p.knob};
+    store("respuestas", p.id, ANS[p.id]); drawPair(p, i); progress(); });
+  document.getElementById("n-" + p.id).oninput = e => { const prev = ANS[p.id] || {perilla: p.knob, perilla_en: tA ? "A" : "B"}; ANS[p.id] = {...prev, nota: e.target.value}; store("respuestas", p.id, ANS[p.id]); };
+}
+const PLAY = {};
+document.addEventListener("click", ev => {
+  const el = ev.target.closest(".ch[data-id]"); if(!el) return;
+  const parts = el.dataset.id.split("-"), ci = +parts.pop(), ri = +parts.pop(), pid = parts.join("-"), x = PLAY[pid];
+  if(x) play(x.laps, x.p.key, x.p.md, pid, x.btn, 104, {ri, ci});
+});
+function verdict(c, tA, knob){
+  const side = tA ? "A" : "B";
+  if(c === "igual") return "La perilla («" + knob + "») estaba en " + side + ". Para ti, da igual.";
+  if(c === "ninguna") return "La perilla («" + knob + "») estaba en " + side + ". No te convence ninguna de las dos.";
+  return "La perilla («" + knob + "») estaba en " + side + ". " + (c === side ? "Preferiste la versión con la perilla." : "Preferiste la de fábrica (v4).");
+}
+function progress(){
+  const n = PAIRS.filter(p => ANS[p.id] && ANS[p.id].eleccion).length;
+  $("#count").textContent = n + " de " + PAIRS.length + " pares"; $("#meter").style.width = (100 * n / PAIRS.length) + "%";
+}
+function drawPairs(){
+  $("#pairs").innerHTML = PAIRS.map((p, i) => '<article class="panel pair" id="pair-'+p.id+'" aria-label="Par '+(i + 1)+'"></article>').join("");
+  PAIRS.forEach(drawPair); progress();
+}
+
+/* ---------- decisions ---------- */
+function drawDecs(){
+  $("#decs").innerHTML = DECS.map(d => { const v = DEC[d.id] && DEC[d.id].valor || "";
+    const hear = PAIRS.filter(p => p.dec === d.id);
+    const res = hear.filter(p => ANS[p.id] && ANS[p.id].eleccion).map(p => ANS[p.id].prefiere_perilla === "sí" ? "✓" : ANS[p.id].prefiere_perilla === "no" ? "✗" : "~");
+    return '<div class="dec"><div style="display:flex;flex-direction:column;gap:4px"><b>'+esc(d.t)+'</b>' +
+      '<span class="rec">Recomiendo: <strong>'+esc(d.rec)+'</strong>. '+esc(d.why)+'</span>' +
+      (res.length ? '<span class="small">Tus pares: '+res.join(" ")+' <span class="muted">(✓ preferiste la perilla, ✗ la de fábrica, ~ igual o ninguna)</span></span>' : "") + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px"><select id="d-'+d.id+'" aria-label="'+esc(d.t)+'"><option value="">— elige —</option>' +
+      d.opts.map(o => '<option'+(o === v ? " selected" : "")+'>'+esc(o)+'</option>').join("") + '</select>' +
+      '<input type="text" id="dn-'+d.id+'" placeholder="Por qué (opcional)" value="'+esc(DEC[d.id] && DEC[d.id].nota || "")+'" aria-label="Nota, '+esc(d.t)+'"></div></div>'; }).join("");
+  DECS.forEach(d => { const s = document.getElementById("d-" + d.id), n = document.getElementById("dn-" + d.id);
+    const save = () => { DEC[d.id] = {valor: s.value, nota: n.value, recomendacion: d.rec}; store("decisiones", d.id, DEC[d.id]); };
+    s.onchange = save; n.oninput = save; });
+}
+for(const g of ["g1","g2"]) document.getElementById(g).oninput = e => { GEN[g] = e.target.value; store("generales", g, {texto: e.target.value}); };
+function fillGen(){ for(const g of ["g1","g2"]) document.getElementById(g).value = GEN[g] || ""; }
+
+/* ---------- start: draw from the browser copy, then load the shared answers ---------- */
+lsLoad(); drawPairs(); drawDecs(); fillGen();
+const origProgress = progress;
+progress = () => { origProgress(); drawDecs(); };
+(async () => {
+  try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ db = null; }
+  if(!db){ $("#saveState").textContent = "sin conexión: se guarda en este navegador"; return; }
+  const timer = setTimeout(() => { $("#saveState").textContent = "la base de datos tarda; se guarda igual"; }, 10000);
+  try{
+    const [r, d, g] = await Promise.all(["respuestas","decisiones","generales"].map(c => db.collection(c).get()));
+    clearTimeout(timer);
+    r.docs.forEach(x => { ANS[x.id] = x.data(); }); d.docs.forEach(x => { DEC[x.id] = x.data(); }); g.docs.forEach(x => { GEN[x.id] = (x.data() || {}).texto || ""; });
+    drawPairs(); drawDecs(); fillGen(); lsSave();
+    $("#saveState").textContent = r.size + d.size ? "respuestas cargadas ✓" : "listo; se guarda al responder";
+  }catch(e){ clearTimeout(timer); $("#saveState").textContent = "no se pudieron leer las respuestas guardadas"; }
+})();
+</script>

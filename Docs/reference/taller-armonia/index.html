@@ -168,6 +168,8 @@ details summary{cursor:pointer;font-weight:700}
           <button class="lvl" data-l="2" aria-pressed="false"><b>2 · Adornos</b><span>Séptimas y, desde la vuelta 2, un adorno por vuelta (sus4, vuelta al inicio o dominante secundaria).</span></button>
           <button class="lvl" data-l="3" aria-pressed="false"><b>3 · Spicy</b><span>Novenas de la escala y, desde la vuelta 2, hasta dos cambios por vuelta (préstamos, sustitutos tritonales, backdoor, acorde propio del modo).</span></button>
         </div>
+        <label class="k" for="inten">Intensidad de las variaciones
+          <span class="bpm"><input id="inten" type="range" min="0" max="5" step="1" value="0"><output id="intenOut" for="inten">0</output><span class="hint" id="intenLab"></span></span></label>
         <details id="perBox">
           <summary>Perillas de los niveles <span class="hint" id="perState"></span></summary>
           <div class="stack" style="margin-top:10px">
@@ -189,6 +191,7 @@ details summary{cursor:pointer;font-weight:700}
             <span class="hint" id="len"></span>
           </div>
           <label class="row small" style="gap:6px"><input type="checkbox" id="loop" checked> Repetir</label>
+          <label class="row small" style="gap:6px" title="Sin repetir: al terminar suena el primer acorde, para oír a dónde lleva el remate"><input type="checkbox" id="resolver" checked> Resolver al final</label>
         </div>
         <div class="strip" id="strip" data-l="1"></div>
         <div class="legend"><span><i class="sw"></i>Acorde escrito</span><span><i class="sw add"></i>Acorde nuevo o cambiado por el nivel</span></div>
@@ -329,6 +332,16 @@ const PERILLAS_V3 = {
   2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:true,  iiDelDestino:true},
   3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"rico",   sus4:false, paso:"iiV",       ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:true,  disminuido:true,  bVI7Menor:true,  iiDelDestino:true},
 };
+// Intensity (D14 = A, 2026-11-11): one slider 0–5 that picks a level and a factory profile; the fine knobs stay below.
+// In the game, levelling up a card = one step up this ladder.
+const INTENSIDAD = [
+  {lvl:1, lab:"tal cual"},
+  {lvl:2, over:{presupuesto:0}, lab:"solo color"},
+  {lvl:2, lab:"nivel 2 de fábrica"},
+  {lvl:3, lab:"nivel 3 de fábrica"},
+  {lvl:3, over:{desdeVuelta:1}, lab:"nivel 3 desde la vuelta 1"},
+  {lvl:3, over:{desdeVuelta:1, presupuesto:3, preferirAcordeNuevo:true}, lab:"máximo: desde la vuelta 1 y sin tope"},
+];
 const PERILLA_KEYS = Object.keys(PERILLAS_V3[2]);
 const PERILLA_OPC = {color:["triadas","septimas","novenas"], remate:["no","simple","rico","deslizado","iiV"], paso:["no","clasico","cromatico","iiV"]};
 const clonePerillas = p => ({2:{...p[2]}, 3:{...p[3]}});
@@ -336,7 +349,7 @@ const clonePerillas = p => ({2:{...p[2]}, 3:{...p[3]}});
 // Values it cannot use go to `ignored` (never silently: the page reports them).
 function validPerilla(k, v){
   if(k === "presupuesto") return Number.isInteger(v) && v >= 0 && v <= 3;
-  if(k === "desdeVuelta") return Number.isInteger(v) && v >= 2 && v <= 4;
+  if(k === "desdeVuelta") return Number.isInteger(v) && v >= 1 && v <= 4;   // 1 allowed since 2026-11-11 (D13 = B, also in the game)
   if(PERILLA_OPC[k]) return PERILLA_OPC[k].includes(v);
   return PERILLA_KEYS.includes(k) && typeof v === "boolean";
 }
@@ -496,6 +509,13 @@ let perillas = clonePerillas(PERILLAS_V3), perHist = [];
 function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({t:$("#prog").value, mode, key, bpm:+$("#bpm").value, ts:$("#ts").value, v:$("#vueltas").value, toque:$("#toque").value, drums:$("#drums").value, level, perillas})); }catch(e){} }
 function loadLocal(){ try{ return JSON.parse(localStorage.getItem(STORE)); }catch(e){ return null; } }
 
+// Slider position = the preset that matches level + knobs; otherwise «propia».
+function syncInten(){
+  const k = INTENSIDAD.findIndex(I => { if(I.lvl !== level) return false; if(level === 1) return true;
+    const want = clonePerillas(PERILLAS_V3); Object.assign(want[level], I.over || {}); return PERILLA_KEYS.every(x => want[level][x] === perillas[level][x]); });
+  if(k >= 0) $("#inten").value = k;
+  $("#intenOut").textContent = k >= 0 ? k : "·"; $("#intenLab").textContent = k >= 0 ? INTENSIDAD[k].lab : "propia (perillas cambiadas a mano)";
+}
 function update(restart){
   mode = $("#mode").value; key = +$("#root").value;
   parsed = parse($("#prog").value);
@@ -507,6 +527,7 @@ function update(restart){
   vs.forEach((V, v) => V.seq.forEach(c => { flat.push({...c, v, start:b, len:c.dur*B}); b += c.dur*B; }));
   $("#moodHint").textContent = "En el juego, la tira de composición mostraría este modo como «" + MOOD[mode] + "».";
   drawStrip(); drawWhy(); drawOut(); drawPerillas();
+  syncInten();
   const secs = b * 60 / +$("#bpm").value;
   $("#len").textContent = flat.length ? (vs.length + (vs.length === 1 ? " vuelta" : " vueltas") + " · " + fmtDur(b/B) + " compases · " + Math.round(secs) + " s") : "";
   saveLocal();
@@ -639,30 +660,31 @@ function pattern(toque, B, total){
   }
   return hits;
 }
-function render(){
-  const B = +$("#ts").value, total = flat.length ? flat[flat.length-1].start + flat[flat.length-1].len : 0;
+function render(L){
+  L = L || flat;
+  const B = +$("#ts").value, total = L.length ? L[L.length-1].start + L[L.length-1].len : 0;
   let prev = null;
-  const vo = flat.map(c => { if(c.rest) return null; const pcs = [...new Set(Q[c.q].iv.map(x => mod12(c.pc + key + x)))];
+  const vo = L.map(c => { if(c.rest) return null; const pcs = [...new Set(Q[c.q].iv.map(x => mod12(c.pc + key + x)))];
     let best = null, bc = 1e9; for(const v of voicings(pcs)){ const k = cost(prev, v); if(k < bc){ bc = k; best = v; } } prev = best; return best; });
-  const at = t => { let i = flat.findIndex(c => t >= c.start - 1e-6 && t < c.start + c.len - 1e-6); return i; };
+  const at = t => { let i = L.findIndex(c => t >= c.start - 1e-6 && t < c.start + c.len - 1e-6); return i; };
   const keys = [], toque = $("#toque").value;
   let hits = pattern(toque, B, total);
   // a chord that starts between hits gets its own hit
   const win = toque === "bossa" ? 0.6 : 0.01;
-  for(const c of flat){ if(c.rest) continue; if(!hits.some(h => h.t > c.start - win && h.t <= c.start + 1e-6)) hits.push({t:c.start, d:Math.min(2, c.len), v:.9}); }
-  if(toque === "pad") hits = flat.filter(c => !c.rest).map(c => ({t:c.start, d:c.len, v:.75}));
+  for(const c of L){ if(c.rest) continue; if(!hits.some(h => h.t > c.start - win && h.t <= c.start + 1e-6)) hits.push({t:c.start, d:Math.min(2, c.len), v:.9}); }
+  if(toque === "pad") hits = L.filter(c => !c.rest).map(c => ({t:c.start, d:c.len, v:.75}));
   hits.sort((a,b) => a.t - b.t);
   hits.forEach((h, n) => {
     let i = at(h.t);
-    const j = flat.findIndex(c => c.start > h.t + 1e-6 && c.start <= h.t + 0.6 && !c.rest); // anticipation
+    const j = L.findIndex(c => c.start > h.t + 1e-6 && c.start <= h.t + 0.6 && !c.rest); // anticipation
     if(j >= 0 && toque === "bossa") i = j;
     if(i < 0 || !vo[i]) return;
     const nextT = n+1 < hits.length ? hits[n+1].t : total, d = Math.max(0.25, Math.min(h.d, nextT - h.t, total - h.t));
-    if(h.arp){ const v = vo[i], seq = v.concat(v.slice(1,-1).reverse()), k = Math.round((h.t - flat[i].start)*2); keys.push({t:h.t, d:d*1.6, m:[seq[k % seq.length]], v:h.v}); }
+    if(h.arp){ const v = vo[i], seq = v.concat(v.slice(1,-1).reverse()), k = Math.round((h.t - L[i].start)*2); keys.push({t:h.t, d:d*1.6, m:[seq[k % seq.length]], v:h.v}); }
     else keys.push({t:h.t, d:d*0.95, m:vo[i], v:h.v});
   });
   const bassN = [];
-  flat.forEach(c => { if(c.rest) return;
+  L.forEach(c => { if(c.rest) return;
     const r = 40 + mod12(c.pc + key - 4), fifth = r + 7 > 52 ? r - 5 : r + 7, step = B === 4 ? 2 : 3;
     for(let x=0; x<c.len - 1e-6; x+=step) bassN.push({t:c.start+x, d:Math.min(step, c.len-x)*0.95, m: x === 0 ? r : fifth, v: x === 0 ? .95 : .7});
   });
@@ -679,7 +701,11 @@ function play(){
   if(!flat.length) return;
   audio(); if(ctx.state === "suspended") ctx.resume();
   stop(true);
-  const spb = 60 / +$("#bpm").value, R = render();
+  // D12 = B: without repeat, the first chord sounds once more at the end so the remate resolves.
+  let L = flat;
+  if($("#resolver").checked && !$("#loop").checked){ const f = flat.find(c => !c.rest), e = flat[flat.length-1];
+    if(f) L = flat.concat([{...f, start:e.start + e.len, len:+$("#ts").value, v:-1}]); }
+  const spb = 60 / +$("#bpm").value, R = render(L);
   const out = ctx.createGain(); out.connect(master); out.connect(wet);
   const dry = ctx.createGain(); dry.gain.value = 0.55; dry.connect(master);
   const t0 = ctx.currentTime + 0.1;
@@ -707,7 +733,7 @@ function tick(){
     const i = flat.findIndex(c => beat >= c.start && beat < c.start + c.len);
     if(i !== lastOn){ document.querySelectorAll(".blk.on").forEach(e => e.classList.remove("on")); const el = document.querySelector('.blk[data-i="'+i+'"]'); if(el) el.classList.add("on"); lastOn = i; }
     const B = +$("#ts").value, c = flat[i];
-    $("#pos").textContent = "compás " + (Math.floor(beat/B)+1) + (c ? " · vuelta " + (c.v+1) + " · " + (c.rest ? "silencio" : chordName(c.pc, c.q, key)) : "");
+    $("#pos").textContent = "compás " + (Math.floor(beat/B)+1) + (c ? " · vuelta " + (c.v+1) + " · " + (c.rest ? "silencio" : chordName(c.pc, c.q, key)) : " · resolución");
   }
   requestAnimationFrame(tick);
 }
@@ -718,7 +744,7 @@ function setPlayIcon(on){ const p = $("#play"); p.innerHTML = on ? ICON_STOP : I
 /* ---------- knobs (Music Lab names, 2026-11-06) ---------- */
 const PER_UI = {
   presupuesto:{lab:"Cambios por vuelta", hlp:"Cuántos adornos entran como máximo en cada vuelta. 0 = solo cambia el color.", opts:[0,1,2,3]},
-  desdeVuelta:{lab:"Empieza en la vuelta", hlp:"La vuelta 1 siempre suena tal cual; desde esta entran los adornos.", opts:[2,3,4]},
+  desdeVuelta:{lab:"Empieza en la vuelta", hlp:"Desde esta vuelta entran los adornos. Con 2 (de fábrica), la vuelta 1 suena tal cual y se reconoce la carta; con 1, cambia desde el primer compás.", opts:[1,2,3,4]},
   color:{lab:"Color de los acordes", hlp:"Tríadas, séptimas o séptimas y novenas (las novenas solo si la nota está en la escala).", opts:["triadas","septimas","novenas"], txt:{triadas:"tríadas",septimas:"séptimas",novenas:"novenas"}},
   remate:{lab:"Remate final", hlp:"En la última vuelta, uno o dos acordes que empujan de vuelta al primero. Rico: dos, más jazz (en Do, Fm7–B♭9 antes de C). Deslizado: dos dominantes a medio tono (A♭7–G7 antes de C). ii–V: Dm7–G7 antes de C.", opts:["no","simple","rico","deslizado","iiV"], txt:{no:"no",simple:"simple",rico:"rico",deslizado:"deslizado",iiV:"ii–V"}},
   sus4:{lab:"Suspensión", hlp:"El acorde de empuje se queda colgado medio compás antes de resolver (G7sus4 → G7)."},
@@ -938,6 +964,10 @@ $("#q").addEventListener("input", drawList);
 $("#save").onclick = saveEntry;
 $("#perUndo").onclick = () => { if(perHist.length){ perillas = perHist.pop(); update(true); } };
 $("#perReset").onclick = () => setPerillas(clonePerillas(PERILLAS_V3));
+$("#inten").addEventListener("input", () => { const I = INTENSIDAD[+$("#inten").value], next = clonePerillas(PERILLAS_V3);
+  if(I.lvl > 1) Object.assign(next[I.lvl], I.over || {});
+  level = I.lvl; document.querySelectorAll(".lvl").forEach(x => x.setAttribute("aria-pressed", String(+x.dataset.l === level)));
+  if(!setPerillas(next)) update(true); });
 $("#perCopy").onclick = () => copy(JSON.stringify(perillas));
 if(LLM_ON){ ["#genBox","#adjBox","#hiBox"].forEach(s => $(s).hidden = false);
   $("#genGo").onclick = generar; $("#adjGo").onclick = ajustar;
