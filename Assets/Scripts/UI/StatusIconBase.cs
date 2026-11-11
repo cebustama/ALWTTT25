@@ -191,23 +191,42 @@ namespace ALWTTT.UI
             _boundId = id;
         }
 
-        public void OnPointerEnter(PointerEventData eventData)
+        /// <summary>[S4b] Header + body of this status's tooltip; false when unbound or
+        /// animating out. Shared by the icon's own hover and the musician's column.</summary>
+        public bool TryGetTooltipText(out string header, out string body)
         {
-            if (_definition == null) return;
-            var tm = TooltipManager.Instance;
-            if (tm == null) return;
+            header = body = null;
+            if (_definition == null || IsDisappearing) return false;
 
             int stacks = _container != null ? _container.GetStacks(_boundId) : 0;
             // [TXT-3] Player text comes from the active ConceptGlossarySO by StatusKey.
             // DisplayName is a developer label since TXT-3 and must not reach the player.
-            ConceptTooltipResolver.TryGetStatusText(_definition, out var name, out var body);
-            var header = stacks > 1 ? $"{name} ×{stacks}" : name;
+            ConceptTooltipResolver.TryGetStatusText(_definition, out var name, out body);
+            header = stacks > 1 ? $"{name} ×{stacks}" : name;
+            return true;
+        }
+
+        // [S4b] A canvas that lists its statuses in its own hover column (the musician's)
+        // owns these tooltips: the icon must not push a second copy of its panel.
+        private bool OwnedByColumn()
+        {
+            var canvas = GetComponentInParent<ALWTTT.Characters.CharacterCanvas>();
+            return canvas != null && canvas.ListsStatusesInHoverColumn;
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (OwnedByColumn()) return;
+            var tm = TooltipManager.Instance;
+            if (tm == null) return;
+            if (!TryGetTooltipText(out var header, out var body)) return;
 
             tm.ShowTooltip(body, header, transform, cam: null, kind: TooltipKind.Status); // [GIG-UI-1]
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            if (OwnedByColumn()) return;
             var tm = TooltipManager.Instance;
             if (tm != null) tm.HideTooltip();
         }

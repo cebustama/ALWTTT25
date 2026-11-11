@@ -82,52 +82,42 @@ MonoBehaviour:
       y la gira termina."
   - id: breakdown
     displayName: Colapso
-    description: "Lo que ocurre cuando el Aguante de un m\xFAsico llega a cero: la
-      banda pierde una Cohesi\xF3n y el m\xFAsico recupera parte de su Aguante, pero
-      queda Shaken."
+    description: "Lo que ocurre cuando el Aguante de un m\xFAsico llega a cero: la banda pierde una <link=cohesion>Cohesi\xF3n</link> y el m\xFAsico recupera parte de su Aguante, pero queda <link=exposed>Expuesto</link>."
   - id: blocked
     displayName: Bloqueado
-    description: "Un miembro del p\xFAblico en primera fila est\xE1 Bloqueado: no
-      recibe Vibe de cartas ni del final de la canci\xF3n. Depende de la posici\xF3n;
-      se recalcula al reordenarse el p\xFAblico."
+    description: "Un miembro del p\xFAblico en primera fila est\xE1 Bloqueado: no recibe <link=vibe>Vibe</link> de cartas ni del final de la canci\xF3n. Depende de la posici\xF3n; se recalcula al reordenarse el p\xFAblico."
   - id: captivated
     displayName: Cautivado
-    description: "Totalmente entregado. El Vibe que recibe pega un 25 % m\xE1s fuerte
-      por cada nivel."
+    description: "Totalmente entregado. El <link=vibe>Vibe</link> que recibe pega un 25 % m\xE1s fuerte por cada nivel."
   - id: choke
     displayName: Ahogo
     description: Obliga a descartar cartas adicionales al empezar el turno. Pierde
       1 nivel por turno.
   - id: composure
     displayName: Compostura
-    description: Absorbe el Stress entrante antes de que llegue. Se limpia al empezar
-      cada turno del jugador.
+    description: "Absorbe el <link=stress>Stress</link> entrante antes de que llegue. Se limpia al empezar cada turno del jugador."
   - id: earworm
     displayName: Pegadiza
-    description: "Este miembro del p\xFAblico tiene la canci\xF3n metida en la cabeza
-      (+N Vibe por turno del p\xFAblico; pierde 1 nivel por turno)."
+    description: "Este miembro del p\xFAblico tiene la canci\xF3n metida en la cabeza (+N <link=vibe>Vibe</link> por turno del p\xFAblico; pierde 1 nivel por turno)."
   - id: exposed
     displayName: Expuesto
-    description: "Cada nivel a\xF1ade un +25 % a los multiplicadores de Stress entrante."
+    description: "Cada nivel a\xF1ade un +25 % a los multiplicadores de <link=stress>Stress</link> entrante."
   - id: feedback
     displayName: Feedback
     description: "Da\xF1o continuado al empezar cada turno del jugador. Dura hasta
       que se limpia."
   - id: flow
     displayName: Flow
-    description: "Cada nivel a\xF1ade +1 a cualquier ganancia positiva de Vibe por
-      cartas y por la resoluci\xF3n de la canci\xF3n."
+    description: "Cada nivel a\xF1ade +1 a cualquier ganancia positiva de <link=vibe>Vibe</link> por cartas y por la resoluci\xF3n de la canci\xF3n."
   - id: hyped
     displayName: Exaltado
-    description: "El p\xFAblico se ha venido arriba. Cada nivel a\xF1ade +1 al Stress
-      que inflige este miembro del p\xFAblico; pierde 1 nivel por turno del jugador."
+    description: "El p\xFAblico se ha venido arriba. Cada nivel a\xF1ade +1 al <link=stress>Stress</link> que inflige este miembro del p\xFAblico; pierde 1 nivel por turno del jugador."
   - id: indifference
     displayName: Indiferencia
     description: Inmune al Vibe.
   - id: shaken
     displayName: Shaken
-    description: "Se aplica cuando un m\xFAsico colapsa. Dura un ciclo completo de
-      canci\xF3n."
+    description: "Se aplica cuando un m\xFAsico <link=breakdown>colapsa</link>. Dura un ciclo completo de canci\xF3n."
   - id: spotlight
     displayName: Foco
     description: "El p\xFAblico solo tiene ojos para C2. Durante su pr\xF3ximo turno,
@@ -137,8 +127,7 @@ MonoBehaviour:
     description: "Carga acumulada. No hace nada por s\xED sola: se gasta."
   - id: stress
     displayName: Stress
-    description: "El da\xF1o que recibe un m\xFAsico: baja su Aguante. Cuando el
-      Aguante llega a cero, Colapso."
+    description: "El da\xF1o que recibe un m\xFAsico: baja su Aguante. Cuando el Aguante llega a cero, <link=breakdown>Colapso</link>."
   - id: vibe
     displayName: Vibe
     description: "Ll\xE9nalo para convencer a los miembros del p\xFAblico."
@@ -161,29 +150,25 @@ MonoBehaviour:
       tras usarse.
   - id: ab_block_the_view
     displayName: Tapar la Vista
-    description: "Se abre paso hacia delante. Quien quede detr\xE1s y sea m\xE1s
-      bajo queda Bloqueado y no recibe Vibe."
+    description: "Se abre paso hacia delante. Quien quede detr\xE1s y sea m\xE1s bajo queda <link=blocked>Bloqueado</link> y no recibe <link=vibe>Vibe</link>."
   - id: ab_egg_him_on
     displayName: Darle Cuerda
-    description: "Le da cuerda a un espectador Alto: gana Exaltado y todo el Stress
-      que inflige pega m\xE1s fuerte."
+    description: "Le da cuerda a un espectador <link=tall>Alto</link>: gana <link=hyped>Exaltado</link> y todo el <link=stress>Stress</link> que inflige pega m\xE1s fuerte."
   - id: ab_heckle
     displayName: Abuchear
-    description: "Se ceba con un m\xFAsico: lo deja Expuesto y luego le carga el
-      Stress."
+    description: "Se ceba con un m\xFAsico: lo deja <link=exposed>Expuesto</link> y luego le carga el <link=stress>Stress</link>."
   - id: ab_indifference
     displayName: Indiferencia
-    description: 'Pasa de la banda. Gana Indiferencia: mientras dure, no le llega
-      nada de Vibe.'
+    description: "Pasa de la banda. Gana <link=indifference>Indiferencia</link>: mientras dure, no le llega nada de <link=vibe>Vibe</link>."
   - id: ab_scathing_review
     displayName: "Cr\xEDtica Mordaz"
-    description: "Publica una cr\xEDtica demoledora contra un m\xFAsico. Le carga mucho Stress."
+    description: "Publica una cr\xEDtica demoledora contra un m\xFAsico. Le carga mucho <link=stress>Stress</link>."
   - id: ab_tantrum
     displayName: Rabieta
-    description: "Se pone a berrear. Carga Stress a los m\xFAsicos que marca."
+    description: "Se pone a berrear. Carga <link=stress>Stress</link> a los m\xFAsicos que marca."
   - id: ab_total_indifference
     displayName: Indiferencia Total
-    description: "Ni pesta\xF1ea. Esa cara de nada le carga Stress a un m\xFAsico."
+    description: "Ni pesta\xF1ea. Esa cara de nada le carga <link=stress>Stress</link> a un m\xFAsico."
   - id: role_rhythm
     displayName: Ritmo
     description: "La pista de percusi\xF3n. Marca el pulso contra el que toca todo
@@ -786,7 +771,17 @@ MonoBehaviour:
   - id: ui_mus_meter_shield
     text: "Aguante {0}/{1} \xB7 Compostura {2}"
   - id: ui_mus_breakdown_rule
-    text: "A 0 colapsa: queda Shaken y la banda pierde 1 de cohesi\xF3n."
+    text: "A 0 colapsa: queda <link=exposed>Expuesto</link> y la banda pierde 1 de <link=cohesion>cohesi\xF3n</link>."
+  - id: ui_aud_hit_one
+    text: "A {0}: {1} de <link=stress>Stress</link>"
+  - id: ui_aud_hit_each
+    text: "A {0}: {1} de <link=stress>Stress</link> cada uno"
+  - id: ui_aud_hit_all
+    text: "A toda la banda: {0} de <link=stress>Stress</link> cada uno"
+  - id: ui_aud_hit_hidden
+    text: "A {0}"
+  - id: ui_aud_hit_all_hidden
+    text: "A toda la banda"
   - id: ui_unplayable_header
     text: No se puede jugar
   - id: ui_unplayable_none

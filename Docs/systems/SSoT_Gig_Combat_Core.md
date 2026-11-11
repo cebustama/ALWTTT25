@@ -266,8 +266,15 @@ Breakdown is not just flavor; it is a combat-visible threshold event.
 **Immediate MVP consequences (in order):**
 1. `Cohesion − 1`
 2. If `Cohesion <= 0` after step 1: call `GigManager.LoseGig(GigLossCause.CohesionCollapse)` immediately — **steps 3–4 are skipped**. *(TUT-REDESIGN-B, 2026-09-03: was the parameterless `LoseGig()`, which publishes nothing; see §16.)*
-3. Apply `Shaken` status (1 stack via `StatusEffectCatalogueSO` key `"shaken"`)
+3. Apply the **breakdown status**: key and stacks from `MeterTuningSO.breakdownStatusKey` /
+   `breakdownStatusStacks`, default **`"exposed"` × 1** since S4b (2026-11-11, Claudio). Until S4b
+   it was hardcoded `"shaken"`, which had no runtime effect. Log `[S4b] Colapso de …`.
 4. Reset `Stress = floor(StressMax * breakdownStressResetFraction)` — default fraction is `0.5`, configured on `MeterTuningSO.breakdownStressResetFraction` (M4.6F-2; previously authored on `GigManager` directly).
+
+**Open (D9 of S4b):** in the demo no card heals Stress (`starter_take_five` exists in no deck), so
+Exposed after a breakdown may snowball; decide after playtesting. Long-term idea: «Nervioso»
+(`reference/ideas/2026-11-11_nervioso.md`). The Shaken notes below describe the status, which the
+breakdown no longer applies by default.
 
 **Shaken MVP runtime behavior:**
 - SO config: Replace, MaxStacks=1, LinearStacks, `AudienceTurnStart` tick

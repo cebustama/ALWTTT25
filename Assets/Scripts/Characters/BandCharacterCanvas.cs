@@ -160,9 +160,52 @@ namespace ALWTTT.Characters.Band
         /// the bar cannot disagree. S5e: the meter is remaining fortitude; Breakdown fires at 0.
         /// Status icons keep their own tooltip (StatusIconBase) and stack under this one.
         /// </summary>
+        // [S4b] Same pattern as AudienceCharacterCanvas (GIG-UI-1): two hover sources, the
+        // canvas (icon) and the body (MusicianBase physics hover), feed ONE column, so the
+        // name, the meter and every status read the same whichever the player points at.
+        // The status panels used to come only from hovering each status icon; now the
+        // column lists them and the icons stay quiet (ListsStatusesInHoverColumn).
+        private bool _iconHovered;
+        private bool _bodyHovered;
+
+        public override bool ListsStatusesInHoverColumn => true;
+
+        /// <summary>[S4b] Called by MusicianBase on sprite hover enter/exit.</summary>
+        public void SetBodyHover(bool hovered)
+        {
+            if (_bodyHovered == hovered) return;
+            _bodyHovered = hovered;
+            RefreshHoverTooltip();
+        }
+
         protected override void ShowTooltipInfo()
         {
             base.ShowTooltipInfo();
+            _iconHovered = true;
+            RefreshHoverTooltip();
+        }
+
+        protected override void OnCanvasPointerExit()
+        {
+            _iconHovered = false;
+            RefreshHoverTooltip();
+        }
+
+        private void RefreshHoverTooltip()
+        {
+            var tm = ALWTTT.Tooltips.TooltipManager.Instance;
+            HideTooltipInfo(tm);
+            if (!_iconHovered && !_bodyHovered) return;
+
+            ShowMusicianPanel();
+            foreach (var icon in ActiveStatusIcons)
+                if (icon != null && icon.TryGetTooltipText(out var h, out var b))
+                    ShowTooltipInfo(tm, b, h, descriptionRoot, null, 0f,
+                        ALWTTT.Tooltips.TooltipKind.Status);
+        }
+
+        private void ShowMusicianPanel()
+        {
             if (MeterMax <= 0) return;
 
             int composure = BoundContainer != null

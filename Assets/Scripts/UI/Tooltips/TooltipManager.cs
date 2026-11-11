@@ -17,6 +17,17 @@
 //                 every refresh; before TIP-1 it had to Hide+Show and replay the fade.
 //   HideTooltip   Clears the column: count to zero, every panel inactive, alpha 0.
 //
+// [S4b / D7=A] CONCEPT LINKS. Every body that enters a panel goes through
+// ConceptTagRenderer.Decorate: known <link=id> words get the concept look (colour,
+// bold). The ids linked by the panels a caller pushed are queued, and at LateUpdate
+// (after every caller of the frame has finished building its column) one extra
+// panel per linked concept is appended at the END of the column, unless a panel with
+// that concept's name is already shown (the musician column already lists
+// Compostura, so a link to it adds nothing). Depth 1: the bodies of the appended
+// panels are decorated but their own links are not followed, so a column never
+// cascades. UpdateTooltip decorates but never queues (the live Vibe readout calls it
+// every refresh).
+//
 // Every text assignment ends in TooltipController.Reposition(): the panel is
 // content-sized, so it must be REBUILT before it is MEASURED and PLACED
 // (assign -> rebuild -> measure -> place, the F-SP1-12 rule).
@@ -50,6 +61,16 @@ namespace ALWTTT.Tooltips
          "Empty = every panel keeps the TooltipText prefab look.")]
         [SerializeField] private TooltipStyleSO tooltipStyle;
 
+        [Header("Concept links (S4b / D7=A)")]
+        [Tooltip("Colour of a known <link=id> word inside a tooltip body.")]
+        [SerializeField] private Color conceptColor = new Color(1f, 0.82f, 0.35f, 1f);
+        [SerializeField] private bool conceptBold = true;
+        [SerializeField] private bool conceptUnderline = false;
+        [Tooltip("Append one panel per linked concept below the column (Monster Train).")]
+        [SerializeField] private bool appendLinkedPanels = true;
+        [Tooltip("Most concept panels appended to one column.")]
+        [SerializeField, Min(0)] private int maxLinkedPanels = 3;
+
         /// <summary>[GIG-UI-1] Null when no style asset is assigned.</summary>
         public TooltipStyleSO Style => tooltipStyle;
 
@@ -68,6 +89,17 @@ namespace ALWTTT.Tooltips
         private TooltipController TooltipController => tooltipController;
 
         private int currentShownTooltipCount;
+
+        // [S4b / D7=A] concept-link state for the column being shown.
+        private ConceptTooltipResolver _linkResolver;
+        private readonly List<string> _pendingLinkIds = new List<string>();
+        private readonly List<string> _shownHeaders = new List<string>();
+        private int _linkedPanelsShown;
+        private Transform _lastTarget;
+        private Camera _lastCam;
+        private Vector2 _lastOffset;
+        private bool _lastGrowDown;
+        private string _lastLinkLog;
 
         private void Awake()
         {
@@ -105,6 +137,15 @@ namespace ALWTTT.Tooltips
 
             StartCoroutine(ShowRoutine(delayShow));
 
+            _lastTarget = tooltipTargetTransform; _lastCam = cam;
+            _lastOffset = screenOffset; _lastGrowDown = growDown;
+            contentText = DecorateConcepts(contentText, queueLinks: true);
+            PushPanel(contentText, headerText, kind);
+        }
+
+        // One panel at the end of the column (no fade restart).
+        private void PushPanel(string contentText, string headerText, TooltipKind kind)
+        {
             currentShownTooltipCount++;
             if (tooltipTextList.Count < currentShownTooltipCount)
             {
@@ -116,11 +157,63 @@ namespace ALWTTT.Tooltips
             panel.gameObject.SetActive(true);
             panel.SetText(contentText, headerText);
             TooltipStyleSO.PanelStyle style = null;
-            if (tooltipStyle != null) tooltipStyle.TryGet(kind, out style);
+            if (tooltipStyle != null && !tooltipStyle.TryGet(kind, out style)
+                && kind == TooltipKind.Concept)
+                tooltipStyle.TryGet(TooltipKind.Status, out style); // concept panels look like statuses until styled
             panel.ApplyStyle(style);
+            if (!string.IsNullOrEmpty(headerText)) _shownHeaders.Add(headerText);
 
-            TooltipController.SetFollowPos(tooltipTargetTransform, cam, screenOffset, growDown);
+            TooltipController.SetFollowPos(_lastTarget, _lastCam, _lastOffset, _lastGrowDown);
             TooltipController.Reposition();
+        }
+
+        private ConceptTooltipResolver LinkResolver =>
+            _linkResolver ??= new ConceptTooltipResolver(conceptGlossary);
+
+        private string DecorateConcepts(string text, bool queueLinks)
+        {
+            if (string.IsNullOrEmpty(text) || text.IndexOf("<link=", System.StringComparison.Ordinal) < 0)
+                return text;
+            if (queueLinks && appendLinkedPanels)
+            {
+                foreach (var id in ConceptTagRenderer.ExtractIds(text))
+                    if (!_pendingLinkIds.Contains(id)) _pendingLinkIds.Add(id);
+            }
+            return ConceptTagRenderer.Decorate(text, LinkResolver, conceptColor, conceptUnderline,
+                id => Debug.LogWarning($"{DebugTag} [S4b] Unknown concept link '{id}' in a tooltip."),
+                conceptBold);
+        }
+
+        // Appends the queued concept panels once the callers of this frame are done.
+        private void LateUpdate()
+        {
+            if (_pendingLinkIds.Count == 0) return;
+            if (currentShownTooltipCount == 0) { _pendingLinkIds.Clear(); return; }
+
+            List<string> added = null;
+            foreach (var id in _pendingLinkIds)
+            {
+                if (_linkedPanelsShown >= maxLinkedPanels) break;
+                if (LinkResolver.Resolve(id, out var header, out var body) == ConceptSource.None) continue;
+                if (IsHeaderShown(header)) continue;
+                PushPanel(DecorateConcepts(body, queueLinks: false), header, TooltipKind.Concept);
+                _linkedPanelsShown++;
+                (added ??= new List<string>()).Add(id);
+            }
+            _pendingLinkIds.Clear();
+            string log = added != null ? string.Join(", ", added) : null;
+            if (log != null && log != _lastLinkLog)   // once per event, not once per rebuilt frame
+                Debug.Log($"[S4b] Conceptos enlazados en el tooltip: {log}");
+            _lastLinkLog = log;
+        }
+
+        // "Compostura x3" counts as Compostura already shown.
+        private bool IsHeaderShown(string header)
+        {
+            if (string.IsNullOrEmpty(header)) return false;
+            foreach (var h in _shownHeaders)
+                if (h.StartsWith(header, System.StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
         }
 
         /// <summary>
@@ -133,6 +226,7 @@ namespace ALWTTT.Tooltips
         {
             if (panelIndex < 0 || panelIndex >= currentShownTooltipCount) return false;
 
+            contentText = DecorateConcepts(contentText, queueLinks: false);
             tooltipTextList[panelIndex].SetText(contentText, headerText);
             TooltipController.Reposition();
             return true;
@@ -142,6 +236,9 @@ namespace ALWTTT.Tooltips
         {
             StopAllCoroutines();
             currentShownTooltipCount = 0;
+            _pendingLinkIds.Clear();
+            _shownHeaders.Clear();
+            _linkedPanelsShown = 0;
             canvasGroup.alpha = 0;
             foreach (var tooltipText in tooltipTextList)
                 tooltipText.gameObject.SetActive(false);

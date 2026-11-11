@@ -306,7 +306,7 @@ If future encounter design requires extending stun via additional Choke stacks, 
 **Tick timing:** `AudienceTurnStart` — expires at the start of the Audience Turn of the following song  
 **Duration:** Applied at Audience Turn of Song N → active through Player Turn N+1, Composition N+1, Performance N+1, Song End N+1 → expires at start of Audience Turn N+1. One complete song cycle from application.  
 **Combat meaning:** marks a musician as shaken post-Breakdown  
-**Applied by:** `MusicianBase.OnBreakdown()` via `StatusCatalogue.TryGetByKey("shaken")`  
+**Applied by:** ~~`MusicianBase.OnBreakdown()`~~ nothing by default since S4b (2026-11-11): the breakdown applies `MeterTuningSO.breakdownStatusKey`, default `"exposed"` (`SSoT_Gig_Combat_Core.md` §6.3). Set the key back to `"shaken"` to restore it.  
 **Gameplay restrictions:** open design decision — **not yet enforced in runtime**. Intended restrictions (cannot play Action cards during action window while Shaken; Composure granted is reduced by 50%) are a pending follow-up pass.
 
 ### 5.5 Exposed

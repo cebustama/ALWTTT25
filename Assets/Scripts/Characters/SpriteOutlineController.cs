@@ -38,8 +38,21 @@ namespace ALWTTT.Characters
         private MaterialPropertyBlock _block;
         private bool _active;
 
+        // [S4b] Second channel: the hover views paint related characters in a musician's
+        // identityColor. Hover (the channel above, also the card-target outline) always wins,
+        // so the character under the mouse keeps the colour the player learned for "this one".
+        private bool _viewActive;
+        private Color _viewColor;
+
+        // [S4b / D5=A] Third channel, lowest priority: "this musician will lose fortitude
+        // this audience turn". Always red: identity colours are never red (D9), so red keeps
+        // meaning damage everywhere on screen.
+        [Tooltip("[S4b] Outline colour for a musician who will lose fortitude this audience turn.")]
+        [SerializeField] private Color damageColor = new Color(0.95f, 0.2f, 0.2f, 1f);
+        private bool _damageActive;
+
         /// <summary>
-        /// Whether the outline is currently visible.
+        /// Whether the hover outline is currently on (the view channel does not count).
         /// </summary>
         public bool IsActive => _active;
 
@@ -47,25 +60,48 @@ namespace ALWTTT.Characters
         {
             _renderer = GetComponent<SpriteRenderer>();
             _block = new MaterialPropertyBlock();
-            ApplyBlock(active: false);
+            Apply();
         }
 
         /// <summary>
-        /// Enable or disable the outline. Idempotent.
+        /// Enable or disable the hover outline. Idempotent.
         /// </summary>
         public void SetOutline(bool on)
         {
             if (_active == on) return;
             _active = on;
-            ApplyBlock(on);
+            Apply();
         }
 
-        private void ApplyBlock(bool active)
+        /// <summary>
+        /// [S4b] View-channel outline in <paramref name="color"/>; shown only while the hover
+        /// channel is off. Idempotent.
+        /// </summary>
+        public void SetViewHighlight(bool on, Color color)
+        {
+            if (_viewActive == on && (!on || _viewColor == color)) return;
+            _viewActive = on;
+            _viewColor = color;
+            Apply();
+        }
+
+        /// <summary>[S4b / D5=A] Damage-channel outline (red); shown only when neither hover
+        /// nor a view is on. Idempotent.</summary>
+        public void SetDamageHighlight(bool on)
+        {
+            if (_damageActive == on) return;
+            _damageActive = on;
+            Apply();
+        }
+
+        private void Apply()
         {
             if (_renderer == null) return;
+            bool visible = _active || _viewActive || _damageActive;
+            Color c = _active ? outlineColor : _viewActive ? _viewColor : damageColor;
             _renderer.GetPropertyBlock(_block);
-            _block.SetFloat(OutlineWidthId, active ? outlineWidth : 0f);
-            _block.SetColor(OutlineColorId, outlineColor);
+            _block.SetFloat(OutlineWidthId, visible ? outlineWidth : 0f);
+            _block.SetColor(OutlineColorId, c);
             _renderer.SetPropertyBlock(_block);
         }
 
@@ -79,7 +115,7 @@ namespace ALWTTT.Characters
             if (!Application.isPlaying) return;
             if (_renderer == null) _renderer = GetComponent<SpriteRenderer>();
             if (_block == null) _block = new MaterialPropertyBlock();
-            ApplyBlock(_active);
+            Apply();
         }
 #endif
     }

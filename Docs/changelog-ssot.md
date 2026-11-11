@@ -14,6 +14,29 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-11 — S4b: vistas al pasar el ratón (DEMO-1211, LEGIB-1b)
+
+**Clase:** semántico · operativo. Con cambio de código y de datos.
+
+- `SSoT_Audience_and_Reactions`: §7.1, la regla «sin `<link=>`» queda revertida (D7=A); §7.3 nueva, quién golpea a quién al pasar el ratón (vistas 1 y 2, Tab, sin vistas con carta cogida, aura roja, iconos con disco y aro, «toda la banda» en un icono y caras apiladas, intención sobre la cabeza, frase de golpe).
+- `SSoT_Tooltip_Pipeline`: §2.2 nueva, enlaces de concepto en todo panel y fichas añadidas debajo (`TooltipKind.Concept`); F-TIP-7 abierta (el tutorial puede apilar).
+- `SSoT_Game_Text` §4: D-T6-1 enmendada (enlaces permitidos en habilidades); 5 plantillas `ui_aud_hit_*`.
+- `SSoT_Gig_Combat_Core` §6.3 y `SSoT_Status_Effects` §5.4: el colapso aplica un estado configurable (`MeterTuningSO.breakdownStatusKey`), por defecto Expuesto; D9 abierta (no hay curación de Stress en la demo).
+- `SSoT_Card_System` §10.5: D-UI-3 revisada, los indicadores de jugadas siguen ocultos (D2=A).
+- Glosarios ES/EN: enlaces en 7 habilidades y 10 descripciones; `ui_mus_breakdown_rule` nombra Expuesto; 5 plantillas nuevas.
+- Código:
+  - Nuevo: `Characters/IntentLinesView.cs` (líneas, vistas, Tab, aura).
+  - `SpriteOutlineController` (tres canales), `CharacterBase.Hovered`, `HandController.IsHoldingCard`, `GigManager.RefreshIntentViews` y estado del colapso.
+  - `AudienceCharacterCanvas`: iconos con disco y aro, «toda la banda» y caras apiladas (D10=C), colocación sobre la cabeza, frase de golpe, hover en los iconos de objetivo.
+  - `BandCharacterCanvas`, `CharacterCanvas`, `StatusIconBase`, `MusicianBase`: columna única del músico (cuerpo e icono).
+  - `TooltipManager`, `ConceptTagRenderer`, `TooltipStyleSO`: enlaces de concepto.
+  - `MeterTuningSO`, `MusicianBase`: clave del estado del colapso.
+  - `DevCardCatalogueTab`: nombres de carta del glosario.
+- Ideas: `reference/ideas/2026-11-11_nervioso.md` (y fila en la cola de sesiones de MidiGenPlay).
+- Verificación: compilado con Roslyn fuera de Unity; smokes 4–11 jugados por Claudio en el editor (columna del músico, enlaces, iconos, colapso, intención sobre la cabeza, frase de golpe, «×4», hover en los iconos).
+
+---
+
 ## 2026-11-10 — LEGIB-1b: lo que recibes (DEMO-1211 S4)
 
 **Clase:** semántico · operativo. Con cambio de código y de datos.

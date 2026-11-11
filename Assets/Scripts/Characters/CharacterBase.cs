@@ -80,6 +80,10 @@ namespace ALWTTT.Characters
 
         private bool isPointerOver = false;
 
+        /// <summary>[S4b] The character under the mouse (topmost by sorting), or null.
+        /// Read by the hover views; written only by each character's own enter/exit.</summary>
+        public static CharacterBase Hovered { get; private set; }
+
         protected virtual void Awake()
         {
             if (spriteOutline == null && spriteRenderer != null)
@@ -171,12 +175,20 @@ namespace ALWTTT.Characters
         // subclasses already call base.OnPointerEnter/Exit before their own chrome.
         protected virtual void OnPointerEnter()
         {
+            Hovered = this;
             if (spriteOutline != null) spriteOutline.SetOutline(true);
         }
 
         protected virtual void OnPointerExit()
         {
+            // Enter of the next character may run before this exit in the same frame.
+            if (Hovered == this) Hovered = null;
             if (spriteOutline != null) spriteOutline.SetOutline(false);
+        }
+
+        protected virtual void OnDisable()
+        {
+            if (Hovered == this) Hovered = null;
         }
 
         /// <summary>

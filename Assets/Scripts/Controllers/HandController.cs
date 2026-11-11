@@ -168,6 +168,10 @@ namespace ALWTTT
         public Camera Cam => cam;
         public List<CardBase> Hand => hand;
 
+        /// <summary>[S4b] A card is out of the hand, following the mouse (targeting).
+        /// Hover views stand down so they never fight the card's target outline.</summary>
+        public bool IsHoldingCard => heldCard != null;
+
         #endregion
 
         public bool IsDraggingActive { get; private set; } = true;

@@ -635,7 +635,7 @@ player read the ECON-1 rule without any other UI. **D-UI-3=A:** the per-musician
 **deactivated in the prefab**; the code still writes their alpha, harmlessly. Only the visual
 changes — the ECON-1 rule, its enforcement and the overlay are untouched (`SSoT_Gig_Combat_Core.md`
 §14). Re-evaluate in DEMO-1211 S4 (LEGIB-1b) whether the player needs the remaining budget visible
-before trying a card.
+before trying a card. **Reviewed and closed in S4b (2026-11-11, D2=A): the pips stay hidden.**
 
 **Presentation.** The overlay reuses the existing `passiveImage` / `SetInactiveMaterialState`
 mechanism (red restyle of the asset). **No new serialized field** — deliberate: a new `Image`

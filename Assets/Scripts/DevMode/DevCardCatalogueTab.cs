@@ -188,7 +188,8 @@ namespace ALWTTT.DevMode
                 string badge = def.IsAction ? "[A]" : def.IsComposition ? "[C]" : "[?]";
                 GUILayout.Label(badge, GUILayout.Width(28));
 
-                string name = string.IsNullOrEmpty(def.DisplayName) ? def.name : def.DisplayName;
+                // [S4b] Player name from the active glossary, as on the card face.
+                string name = ShownName(def);
                 GUILayout.Label($"{name}  (cost {def.InspirationCost})", GUILayout.ExpandWidth(true));
 
                 GUI.enabled = canSpawn;
@@ -238,10 +239,13 @@ namespace ALWTTT.DevMode
 
                 if (hasQuery)
                 {
-                    string name = string.IsNullOrEmpty(def.DisplayName) ? def.name : def.DisplayName;
-                    if (name == null ||
-                        name.IndexOf(query, System.StringComparison.OrdinalIgnoreCase) < 0)
-                        continue;
+                    // [S4b] Match the shown (glossary) name or the developer name.
+                    string dev = string.IsNullOrEmpty(def.DisplayName) ? def.name : def.DisplayName;
+                    string shown = ShownName(def);
+                    bool hit =
+                        (shown != null && shown.IndexOf(query, System.StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (dev != null && dev.IndexOf(query, System.StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (!hit) continue;
                 }
 
                 _filtered.Add(def);
@@ -251,6 +255,14 @@ namespace ALWTTT.DevMode
             _lastSearch = _search;
             _lastFilterAction = _filterAction;
             _lastFilterComposition = _filterComposition;
+        }
+
+        // [S4b] Glossary name (Spanish build → Spanish names); developer name if the glossary misses.
+        private static string ShownName(ALWTTT.Cards.CardDefinition def)
+        {
+            string n = ALWTTT.Tooltips.GameText.CardName(def);
+            if (!string.IsNullOrEmpty(n) && n != def.Id) return n;
+            return string.IsNullOrEmpty(def.DisplayName) ? def.name : def.DisplayName;
         }
     }
 }

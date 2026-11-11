@@ -431,6 +431,15 @@ the failure this system is built to avoid.
 
 ## 4. Hover behaviour (D-TAG-5=D)
 
+> **S4b (2026-11-11, D7=A): concept tags now also work in every tooltip.** Any body pushed through
+> `TooltipManager` is decorated (known `<link=id>` words in the concept colour, bold) and its linked
+> concepts are appended as panels below the column (Monster Train style, depth 1, max 3, skipped
+> when a panel with that name is already shown). Contract in `SSoT_Tooltip_Pipeline.md` §2.2.
+> **D-T6-1=C is amended:** ability bodies may carry `<link=>` (the «no numbers» rule stands). Seven
+> ability bodies and ten status/concept descriptions were linked in ES and EN; `ui_mus_breakdown_rule`
+> now names Exposed. Five templates added: `ui_aud_hit_one`, `_each`, `_all`, `_hidden`,
+> `_all_hidden` (in `GameTextTemplateIds.Fixed`). Fingerprints not recomputed in S4b.
+
 `TutorialOverlayView.Update` tests the pointer against link geometry with
 `TMP_TextUtilities.FindIntersectingLink`. No raycast is involved, so the modal's `blocksRaycasts`
 and the tutorial input gates are irrelevant, and characters not yet revealed by the typewriter

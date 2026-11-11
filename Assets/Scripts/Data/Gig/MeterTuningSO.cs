@@ -106,5 +106,12 @@ namespace ALWTTT.Data
         [Header("Breakdown")]
         [SerializeField, Range(0f, 1f)] private float breakdownStressResetFraction = 0.5f;
         public float BreakdownStressResetFraction => breakdownStressResetFraction;
+
+        [Tooltip("[S4b] StatusKey applied to a musician when they break down (catalogue key). " +
+                 "Was hardcoded 'shaken' until S4b; Claudio's call: a breakdown leaves the musician Exposed.")]
+        [SerializeField] private string breakdownStatusKey = "exposed";
+        [SerializeField, Min(1)] private int breakdownStatusStacks = 1;
+        public string BreakdownStatusKey => breakdownStatusKey;
+        public int BreakdownStatusStacks => breakdownStatusStacks;
     }
 }

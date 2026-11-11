@@ -107,6 +107,9 @@ namespace ALWTTT.Managers
             : AudienceCharacterStats.DefaultCaptivatedBonusPerStack;
 
         public float BreakdownStressResetFraction => meters != null ? meters.BreakdownStressResetFraction : 0.5f;
+        // [S4b] Status left by a breakdown (was hardcoded "shaken").
+        public string BreakdownStatusKey => meters != null && !string.IsNullOrEmpty(meters.BreakdownStatusKey) ? meters.BreakdownStatusKey : "exposed";
+        public int BreakdownStatusStacks => meters != null ? meters.BreakdownStatusStacks : 1;
 
         // ─── Scene refs (kept inline) ─────────────────────────────────────
 
@@ -903,6 +906,18 @@ namespace ALWTTT.Managers
         private readonly StressProjection _stressProjection = new StressProjection();
         private bool _stressProjectionShown;
 
+        // [S4b] Hover views (lines, identity outlines, red damage aura) over this projection.
+        // Optional in the scene: created on first use if not wired.
+        [SerializeField] private IntentLinesView intentLinesView;
+
+        private void RefreshIntentViews(bool active)
+        {
+            if (intentLinesView == null)
+                intentLinesView = gameObject.AddComponent<IntentLinesView>();
+            intentLinesView.Refresh(_stressProjection, active, CurrentMusicianCharacterList,
+                CurrentAudienceCharacterList, gigHand != null && gigHand.IsHoldingCard);
+        }
+
         public StressProjection CurrentStressProjection => _stressProjection;
 
         private void LateUpdate()
@@ -920,6 +935,7 @@ namespace ALWTTT.Managers
                 // Audience turn: the hits are landing for real; the red segment would
                 // double-count them. Members that have not acted keep their icons.
                 if (_stressProjectionShown) ClearMusicianStressProjection();
+                RefreshIntentViews(false);
                 return;
             }
 
@@ -943,6 +959,7 @@ namespace ALWTTT.Managers
                 }
 
             _stressProjectionShown = true;
+            RefreshIntentViews(true);
         }
 
         private void ClearMusicianStressProjection()

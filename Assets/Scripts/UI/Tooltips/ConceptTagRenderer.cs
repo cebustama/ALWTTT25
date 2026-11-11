@@ -27,7 +27,7 @@ namespace ALWTTT.Tooltips
 
         public static string Decorate(
             string text, ConceptTooltipResolver resolver, Color color, bool underline,
-            Action<string> onUnknown = null)
+            Action<string> onUnknown = null, bool bold = false)
         {
             if (string.IsNullOrEmpty(text) || resolver == null) return text;
             if (text.IndexOf(OpenLiteral, StringComparison.Ordinal) < 0) return text;
@@ -46,6 +46,7 @@ namespace ALWTTT.Tooltips
                 }
                 string body = m.Groups["body"].Value;
                 if (underline) body = "<u>" + body + "</u>";
+                if (bold) body = "<b>" + body + "</b>";      // [S4b / D7=A] tooltip look
                 return "<link=" + id + "><color=#" + hex + ">" + body + "</color></link>";
             });
         }

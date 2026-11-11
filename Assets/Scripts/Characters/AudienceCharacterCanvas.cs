@@ -25,7 +25,35 @@ namespace ALWTTT.Characters
         [SerializeField] private float targetIconGap = 4f;
         [SerializeField] private Vector2 targetIconOffset = new Vector2(14f, 0f);
 
-        private readonly System.Collections.Generic.List<Image> _targetIcons = new();
+        // [S4b / D1=B] Legibility over the background: each face sits on a dark disc ringed
+        // in the musician's identityColor (the same colour as their lines and outline).
+        [Tooltip("[S4b] Dark disc behind each target face.")]
+        [SerializeField] private Color targetDiscColor = new Color(0.07f, 0.07f, 0.10f, 0.9f);
+        [Tooltip("[S4b] Ring width, in the intention image's local units.")]
+        [SerializeField, Min(0f)] private float targetRingWidth = 3f;
+        [Tooltip("[S4b] Face size as a fraction of the disc.")]
+        [SerializeField, Range(0.3f, 1f)] private float targetFaceScale = 0.8f;
+
+        // [S4b / D10=C] Many targets. The whole band is ONE icon: a ring split in the
+        // identity colours of the musicians hit, with "xN" in the middle (Slay the Spire marks
+        // an attack on everyone with one icon, not a list). Two or more targets that are not
+        // the whole band overlap like an avatar stack, so the group keeps a bounded width.
+        // Who exactly is hit stays readable in the hover lines and the tooltip phrase.
+        [Tooltip("[S4b / D10] Overlap between stacked faces (0 = side by side, 0.6 = mostly hidden).")]
+        [SerializeField, Range(0f, 0.8f)] private float targetStackOverlap = 0.55f;
+        [Tooltip("[S4b / D10] Show one 'whole band' icon when every musician is hit.")]
+        [SerializeField] private bool groupWholeBand = true;
+
+        private sealed class TargetIcon { public GameObject Root; public Image Ring, Disc, Face; }
+        private sealed class AllIcon
+        {
+            public GameObject Root; public Image Disc; public TextMeshProUGUI Label;
+            public readonly System.Collections.Generic.List<Image> Segments = new();
+        }
+        private AllIcon _allIcon;
+        private string _lastLayoutLog;
+        private readonly System.Collections.Generic.List<TargetIcon> _targetIcons = new();
+        private static Sprite s_circle;
         private int _shownAmount = int.MinValue;
         private readonly System.Collections.Generic.List<Sprite> _shownSprites = new();
 
@@ -34,9 +62,11 @@ namespace ALWTTT.Characters
         {
             _shownAmount = int.MinValue;
             _shownSprites.Clear();
+            _hitTargets.Clear();
             if (nextActionValueText != null) nextActionValueText.gameObject.SetActive(false);
-            foreach (var img in _targetIcons)
-                if (img != null) img.gameObject.SetActive(false);
+            foreach (var t in _targetIcons)
+                if (t.Root != null) t.Root.SetActive(false);
+            if (_allIcon != null) _allIcon.Root.SetActive(false);
         }
 
         /// <summary>
@@ -57,6 +87,9 @@ namespace ALWTTT.Characters
             _shownAmount = amount;
             _shownSprites.Clear();
             foreach (var m in s.Targets) _shownSprites.Add(IconOf(m));
+            _hitTargets.Clear();
+            _hitTargets.AddRange(s.Targets);
+            if (_iconHovered || _bodyHovered) RefreshHoverTooltip(); // the phrase follows the projection
 
             if (nextActionValueText != null)
             {
@@ -66,34 +99,293 @@ namespace ALWTTT.Characters
 
             if (intentImage == null) return;
 
-            for (int i = 0; i < _shownSprites.Count; i++)
+            int n = _shownSprites.Count;
+            bool whole = groupWholeBand && IsWholeBand(n);
+            if (whole)
+            {
+                ShowAllIcon(s.Targets);
+                foreach (var t in _targetIcons) t.Root.SetActive(false);
+                LogLayout($"[S4b] Icono de toda la banda (x{n}): {name}");
+                return;
+            }
+            if (_allIcon != null) _allIcon.Root.SetActive(false);
+
+            float step = n > 1 ? targetIconSize * (1f - targetStackOverlap) : targetIconSize + targetIconGap;
+            for (int i = 0; i < n; i++)
             {
                 if (i >= _targetIcons.Count) _targetIcons.Add(CreateTargetIcon(i));
-                var img = _targetIcons[i];
-                img.sprite = _shownSprites[i];
-                img.gameObject.SetActive(_shownSprites[i] != null);
+                var t = _targetIcons[i];
+                t.Face.sprite = _shownSprites[i];
+                var m = s.Targets[i];
+                t.Ring.color = ColorOf(m);
+                ((RectTransform)t.Root.transform).anchoredPosition = targetIconOffset + new Vector2(i * step, 0f);
+                t.Root.transform.SetSiblingIndex(i); // later faces on top
+                t.Root.SetActive(_shownSprites[i] != null);
             }
-            for (int i = _shownSprites.Count; i < _targetIcons.Count; i++)
-                _targetIcons[i].gameObject.SetActive(false);
+            for (int i = n; i < _targetIcons.Count; i++)
+                _targetIcons[i].Root.SetActive(false);
+            if (n > 1) LogLayout($"[S4b] Caras apiladas ({n}): {name}");
+        }
+
+        // "All" = more than one target and at least the band on stage (S6: 2, 3 or 4).
+        private static bool IsWholeBand(int count)
+        {
+            var gm = ALWTTT.Managers.GigManager.Instance;
+            int bandSize = gm != null ? gm.CurrentMusicianCharacterList.Count : 0;
+            return count > 1 && count >= bandSize;
+        }
+
+        private static Color ColorOf(Band.MusicianBase m) =>
+            m != null && m.MusicianCharacterData != null ? m.MusicianCharacterData.IdentityColor : Color.white;
+
+        private void LogLayout(string msg)
+        {
+            if (msg == _lastLayoutLog) return;
+            _lastLayoutLog = msg;
+            Debug.Log(msg);
+        }
+
+        private void ShowAllIcon(System.Collections.Generic.IReadOnlyList<Band.MusicianBase> targets)
+        {
+            if (_allIcon == null) _allIcon = CreateAllIcon();
+            int n = targets.Count;
+            while (_allIcon.Segments.Count < n)
+            {
+                var seg = NewImage($"Segment{_allIcon.Segments.Count}", _allIcon.Root.transform, targetIconSize);
+                seg.sprite = Circle();
+                seg.type = Image.Type.Filled;
+                seg.fillMethod = Image.FillMethod.Radial360;
+                seg.fillOrigin = (int)Image.Origin360.Top;
+                seg.fillClockwise = true;
+                seg.raycastTarget = true; // [S4b] hovering "xN" opens the member's column
+                _allIcon.Segments.Add(seg);
+            }
+            for (int k = 0; k < _allIcon.Segments.Count; k++)
+            {
+                var seg = _allIcon.Segments[k];
+                bool on = k < n;
+                seg.gameObject.SetActive(on);
+                if (!on) continue;
+                seg.fillAmount = 1f / n;
+                seg.color = ColorOf(targets[k]);
+                seg.rectTransform.localEulerAngles = new Vector3(0f, 0f, -360f * k / n);
+                seg.transform.SetSiblingIndex(k); // under the disc and the label
+            }
+            _allIcon.Label.text = "\u00D7" + n;
+            _allIcon.Root.SetActive(true);
+        }
+
+        private AllIcon CreateAllIcon()
+        {
+            var go = new GameObject("IntentTargetAll", typeof(RectTransform));
+            go.layer = intentImage.gameObject.layer;
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(intentImage.transform, false);
+            rt.sizeDelta = new Vector2(targetIconSize, targetIconSize);
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0.5f);
+            rt.pivot = new Vector2(0f, 0.5f);
+            rt.anchoredPosition = targetIconOffset;
+
+            var icon = new AllIcon { Root = go };
+            icon.Disc = NewImage("Disc", rt, Mathf.Max(0f, targetIconSize - 2f * targetRingWidth));
+            icon.Disc.sprite = Circle();
+            icon.Disc.color = targetDiscColor;
+
+            var lgo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            lgo.layer = go.layer;
+            var lrt = (RectTransform)lgo.transform;
+            lrt.SetParent(rt, false);
+            lrt.sizeDelta = new Vector2(targetIconSize, targetIconSize);
+            var label = lgo.GetComponent<TextMeshProUGUI>();
+            if (nextActionValueText != null) label.font = nextActionValueText.font;
+            label.fontSize = targetIconSize * 0.45f;
+            label.fontStyle = FontStyles.Bold;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            icon.Label = label;
+            return icon;
+        }
+
+        // [S4b] Hover views fade the intention of members that have nothing to do with what
+        // the player is looking at (boceto: "[nada]"). CanvasGroups on the icon and the number,
+        // so AbilityRoutine / concealment keep toggling the GameObjects as before.
+        [Tooltip("[S4b] Alpha of the intention (icon, number, targets) on members outside the hover view.")]
+        [SerializeField, Range(0f, 1f)] private float unfocusedIntentAlpha = 0f;
+        private CanvasGroup _intentGroup, _valueGroup;
+        private bool _intentDimmed;
+
+        /// <summary>[S4b] Dim (true) or restore (false) this member's intention. Idempotent.</summary>
+        public void SetIntentDimmed(bool dimmed)
+        {
+            if (_intentDimmed == dimmed) return;
+            _intentDimmed = dimmed;
+            float alpha = dimmed ? unfocusedIntentAlpha : 1f;
+            if (intentImage != null)
+            {
+                if (_intentGroup == null && !intentImage.TryGetComponent(out _intentGroup))
+                    _intentGroup = intentImage.gameObject.AddComponent<CanvasGroup>();
+                _intentGroup.alpha = alpha;
+            }
+            if (nextActionValueText != null)
+            {
+                if (_valueGroup == null && !nextActionValueText.TryGetComponent(out _valueGroup))
+                    _valueGroup = nextActionValueText.gameObject.AddComponent<CanvasGroup>();
+                _valueGroup.alpha = alpha;
+            }
+        }
+
+        // [S4b] Placement. The canvas sits at a fixed height on every member, so on short
+        // sprites the intention floated well above the head, and the target faces grew to the
+        // right only, over the neighbour's UI. While the bar is hidden the whole group
+        // (icon + number + faces) is centred on the sprite and parked just above its head;
+        // while the bar shows, the prefab position (above the bar) is kept.
+        [Header("Intent placement (S4b)")]
+        [SerializeField] private bool placeIntentOverHead = true;
+        [Tooltip("[S4b] Gap between the top of the sprite and the bottom of the intention, in world units.")]
+        [SerializeField] private float headGapWorld = 0.1f;
+
+        private bool _intentHomeCaptured, _wasOverHead;
+        private Vector2 _intentHome;
+        private CharacterBase _owner;
+
+        private void LateUpdate()
+        {
+            if (!placeIntentOverHead || intentImage == null) return;
+            var rt = intentImage.rectTransform;
+            if (!_intentHomeCaptured) { _intentHome = rt.anchoredPosition; _intentHomeCaptured = true; }
+
+            bool barShown = healthBar != null && healthBar.CanvasGroup != null && healthBar.CanvasGroup.alpha > 0.01f;
+            if (_owner == null) _owner = GetComponentInParent<CharacterBase>();
+            var sr = _owner != null ? _owner.SpriteRenderer : null;
+            var parent = rt.parent as RectTransform;
+
+            // Centre of the group, in the intention's local units: icon spans [-w/2, w/2],
+            // faces start at w/2 + offset.x and take size + gap each.
+            // [S4b / D10] faces may overlap, so the right edge is the furthest active icon.
+            float w = rt.rect.width;
+            float right = w * 0.5f;
+            foreach (var t in _targetIcons)
+                if (t.Root != null && t.Root.activeSelf)
+                    right = Mathf.Max(right, w * 0.5f + ((RectTransform)t.Root.transform).anchoredPosition.x + targetIconSize);
+            if (_allIcon != null && _allIcon.Root.activeSelf)
+                right = Mathf.Max(right, w * 0.5f + targetIconOffset.x + targetIconSize);
+            float centreLocal = (-w * 0.5f + right) * 0.5f;
+            float shiftX = -centreLocal * rt.localScale.x;
+
+            if (barShown || sr == null || parent == null)
+            {
+                rt.anchoredPosition = _intentHome + new Vector2(shiftX, 0f);
+                if (_wasOverHead) { _wasOverHead = false; }
+                return;
+            }
+
+            var b = sr.bounds;
+            Vector3 headWorld = new Vector3(b.center.x, b.max.y + headGapWorld, rt.position.z);
+            Vector3 headLocal = parent.InverseTransformPoint(headWorld);
+            float halfH = rt.rect.height * 0.5f * rt.localScale.y;
+            // anchoredPosition is relative to the anchor; the prefab uses centred anchors.
+            Vector2 anchorRef = (rt.anchorMin + rt.anchorMax) * 0.5f;
+            Vector2 anchorPos = new Vector2(
+                (anchorRef.x - parent.pivot.x) * parent.rect.width,
+                (anchorRef.y - parent.pivot.y) * parent.rect.height);
+            rt.anchoredPosition = new Vector2(headLocal.x - anchorPos.x + shiftX, headLocal.y - anchorPos.y + halfH);
+            if (!_wasOverHead)
+            {
+                _wasOverHead = true;
+                Debug.Log($"[S4b] Intencion sobre la cabeza (barra oculta): {name}");
+            }
+        }
+
+        // [S4b / D4=A] "A Conito: 5 de Stress" -- who the ability hits and how much, from the
+        // same projection that draws the number and the faces. Hidden values stay hidden (D2=A).
+        private readonly System.Collections.Generic.List<Band.MusicianBase> _hitTargets = new();
+        private string _lastHitLog;
+
+        private string BuildHitPhrase()
+        {
+            if (_hitTargets.Count == 0) return null;
+            bool show = _shownAmount >= 0;
+            bool all = IsWholeBand(_hitTargets.Count);
+            if (all)
+                return show ? GameText.Format(UiAudHitAll, _shownAmount) : GameText.Format(UiAudHitAllHidden);
+
+            var names = new System.Text.StringBuilder();
+            for (int i = 0; i < _hitTargets.Count; i++)
+            {
+                if (i > 0) names.Append(", ");
+                names.Append(_hitTargets[i] != null ? _hitTargets[i].CharacterName : "?");
+            }
+            if (!show) return GameText.Format(UiAudHitHidden, names.ToString());
+            return GameText.Format(_hitTargets.Count == 1 ? UiAudHitOne : UiAudHitEach, names.ToString(), _shownAmount);
         }
 
         private static Sprite IconOf(Band.MusicianBase m) =>
             m != null && m.MusicianCharacterData != null ? m.MusicianCharacterData.CharacterIcon : null;
 
-        private Image CreateTargetIcon(int index)
+        // Root = ring (identityColor circle), child disc (dark circle, inset by the ring
+        // width), child face (musician icon). Children of the intention image, as before.
+        private TargetIcon CreateTargetIcon(int index)
         {
-            var go = new GameObject($"IntentTarget{index}", typeof(RectTransform), typeof(Image));
-            go.layer = intentImage.gameObject.layer;
-            var rt = (RectTransform)go.transform;
-            rt.SetParent(intentImage.transform, false);
+            var root = NewImage($"IntentTarget{index}", intentImage.transform, targetIconSize);
+            var rt = (RectTransform)root.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(1f, 0.5f);
             rt.pivot = new Vector2(0f, 0.5f);
-            rt.sizeDelta = new Vector2(targetIconSize, targetIconSize);
             rt.anchoredPosition = targetIconOffset + new Vector2(index * (targetIconSize + targetIconGap), 0f);
+            root.sprite = Circle();
+            root.raycastTarget = true; // [S4b] hovering a face opens the same column as the intention icon
+
+            var disc = NewImage("Disc", rt, Mathf.Max(0f, targetIconSize - 2f * targetRingWidth));
+            disc.sprite = Circle();
+            disc.color = targetDiscColor;
+
+            var face = NewImage("Face", rt, targetIconSize * targetFaceScale);
+            face.preserveAspect = true;
+
+            if (index == 0)
+                Debug.Log($"[S4b] Iconos de objetivo con disco y aro: {name}");
+            return new TargetIcon { Root = root.gameObject, Ring = root, Disc = disc, Face = face };
+        }
+
+        private Image NewImage(string goName, Transform parent, float size)
+        {
+            var go = new GameObject(goName, typeof(RectTransform), typeof(Image));
+            go.layer = intentImage.gameObject.layer;
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(parent, false);
+            rt.sizeDelta = new Vector2(size, size);
             var img = go.GetComponent<Image>();
-            img.preserveAspect = true;
-            img.raycastTarget = false; // hover stays on the intention icon and the body
+            // Discs, faces and labels stay non-raycast; the ring / segments catch the pointer
+            // and the event bubbles to this CharacterCanvas (same handler as the intention icon).
+            img.raycastTarget = false;
             return img;
+        }
+
+        // Runtime anti-aliased circle, shared by every canvas. Built-in UI/Skin/Knob is an
+        // editor resource and is not guaranteed in a player build.
+        private static Sprite Circle()
+        {
+            if (s_circle != null) return s_circle;
+            const int n = 64;
+            var tex = new Texture2D(n, n, TextureFormat.RGBA32, false)
+            {
+                name = "S4b_TargetCircle", wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Bilinear, hideFlags = HideFlags.DontSave
+            };
+            var px = new Color32[n * n];
+            float r = n * 0.5f;
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float dx = x + 0.5f - r, dy = y + 0.5f - r;
+                    float a = Mathf.Clamp01(r - Mathf.Sqrt(dx * dx + dy * dy));
+                    px[y * n + x] = new Color32(255, 255, 255, (byte)(a * 255f));
+                }
+            tex.SetPixels32(px);
+            tex.Apply(false, true);
+            s_circle = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f);
+            s_circle.hideFlags = HideFlags.DontSave;
+            return s_circle;
         }
 
 
@@ -370,6 +662,14 @@ namespace ALWTTT.Characters
                 // the intention SO still gates the hover (it also carries the sprite).
                 header = GameText.ConceptName(NextAbility.AbilityId);
                 body = GameText.ConceptDescription(NextAbility.AbilityId);
+                string hit = BuildHitPhrase();
+                if (!string.IsNullOrEmpty(hit))
+                {
+                    body = "<b>" + hit + "</b>\n" + body;
+                    if (hit != _lastHitLog)
+                        Debug.Log($"[S4b] Frase de golpe en el tooltip de {name}: {hit}");
+                }
+                _lastHitLog = hit;
             }
 
             // [GIG-UI-1] REVERSES the single-surface half of PRES-1 / D-PRES1-3=A, at Claudio's

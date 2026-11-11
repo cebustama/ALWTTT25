@@ -23,6 +23,7 @@ namespace ALWTTT.Tooltips
         Musician = 4,   // band member summary (Aguante, Compostura, breakdown rule)
         Status = 5,     // status icon tooltips (band and audience)
         Warning = 6,    // "No se puede jugar" panel on cards
+        Concept = 7,    // [S4b] panel appended for a <link=id> concept (falls back to Status style)
     }
 
     [CreateAssetMenu(fileName = "TooltipStyle", menuName = "ALWTTT/UI/Tooltip Style")]

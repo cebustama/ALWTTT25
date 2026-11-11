@@ -43,6 +43,13 @@ namespace ALWTTT.Characters
         // [GIG-UI-1] Read access for the band summary tooltip (BandCharacterCanvas.ShowTooltipInfo).
         protected int MeterCurrent => _meterCurrent;
         protected int MeterMax => _meterMax;
+
+        /// <summary>[S4b] True when this canvas shows its status tooltips inside its own hover
+        /// column (StatusIconBase then stays quiet). Musicians only, for now.</summary>
+        public virtual bool ListsStatusesInHoverColumn => false;
+
+        /// <summary>[S4b] The status icons currently shown (some may be animating out).</summary>
+        protected IEnumerable<StatusIconBase> ActiveStatusIcons => _activeIcons.Values;
         protected StatusEffectContainer BoundContainer => _boundContainer;
 
 

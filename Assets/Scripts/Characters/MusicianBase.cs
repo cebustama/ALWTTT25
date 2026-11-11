@@ -160,17 +160,23 @@ namespace ALWTTT.Characters.Band
             int resetTarget = Mathf.FloorToInt(stats.MaxStress * resetFraction);
             stats.SetCurrentStress(resetTarget);
 
-            // Decision C: Apply Shaken via catalogue key lookup
+            // Decision C: apply the breakdown status via catalogue key lookup.
+            // [S4b] The key is tuning (MeterTuningSO.breakdownStatusKey, default "exposed");
+            // until S4b it was hardcoded "shaken".
+            var gm = GigManager.Instance;
+            string breakdownKey = gm != null ? gm.BreakdownStatusKey : "exposed";
+            int breakdownStacks = gm != null ? gm.BreakdownStatusStacks : 1;
             if (StatusCatalogue != null &&
-                StatusCatalogue.TryGetByKey("shaken", out var shakenSO))
+                StatusCatalogue.TryGetByKey(breakdownKey, out var breakdownSO))
             {
-                Statuses?.Apply(shakenSO, 1);
+                Statuses?.Apply(breakdownSO, breakdownStacks);
+                Debug.Log($"[S4b] Colapso de {CharacterName}: queda '{breakdownKey}' x{breakdownStacks}.");
             }
             else
             {
                 Debug.LogWarning(
-                    $"[MusicianBase] Shaken SO not found. " +
-                    $"Add 'shaken' to StatusEffectCatalogueSO and assign the catalogue to this musician prefab. " +
+                    $"[MusicianBase] Breakdown status '{breakdownKey}' not found. " +
+                    $"Add it to StatusEffectCatalogueSO and assign the catalogue to this musician prefab. " +
                     $"Musician='{name}'");
             }
         }
@@ -197,6 +203,7 @@ namespace ALWTTT.Characters.Band
             base.OnPointerEnter();
             bandCharacterCanvas.ShowContextual();
             bandCharacterCanvas.SetHighlight(true);   // [PRES-1b T6]
+            bandCharacterCanvas.SetBodyHover(true);   // [S4b] same column as the icon hover
         }
 
         protected override void OnPointerExit()
@@ -204,6 +211,7 @@ namespace ALWTTT.Characters.Band
             base.OnPointerExit();
             bandCharacterCanvas.HideContextual();
             bandCharacterCanvas.SetHighlight(false);  // [PRES-1b T6]
+            bandCharacterCanvas.SetBodyHover(false);  // [S4b]
         }
 
         public void TriggerNoteVFX(int note, int velocity)

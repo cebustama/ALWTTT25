@@ -215,6 +215,12 @@ namespace ALWTTT.Tooltips
         public const string UiMusMeter = "ui_mus_meter";                             // {0} current · {1} max
         public const string UiMusMeterShield = "ui_mus_meter_shield";                // {0} current · {1} max · {2} Composure stacks
         public const string UiMusBreakdownRule = "ui_mus_breakdown_rule";            // --
+        // [S4b / D4=A] Who the audience member's ability hits, first line of its tooltip.
+        public const string UiAudHitOne = "ui_aud_hit_one";                          // {0} musician · {1} Stress
+        public const string UiAudHitEach = "ui_aud_hit_each";                        // {0} musicians · {1} Stress each
+        public const string UiAudHitAll = "ui_aud_hit_all";                          // {0} Stress each, whole band
+        public const string UiAudHitHidden = "ui_aud_hit_hidden";                    // {0} musician(s), value hidden
+        public const string UiAudHitAllHidden = "ui_aud_hit_all_hidden";            // -- whole band, value hidden
         public const string UiUnplayableHeader = "ui_unplayable_header";             // --
         public const string UiGigPlayButton = "ui_gig_play_button";                  // -- label of the play/end-turn button
         public const string UiUnplayableBudgetAction = "ui_unplayable_budget_action";           // -- Budget, action card
@@ -298,6 +304,8 @@ namespace ALWTTT.Tooltips
             UiGigPlayButton, UiUnplayableBudgetAction, UiUnplayableBudgetComposition,
             // [CARD-FACE-2]
             UiPartBridge, UiTonalityRandomAny, UiTonalityRandomMajorish, UiTonalityRandomMinorish,
+            // [S4b]
+            UiAudHitOne, UiAudHitEach, UiAudHitAll, UiAudHitHidden, UiAudHitAllHidden,
         };
 
 

@@ -333,8 +333,10 @@ exist for mechanical reasons rather than stylistic ones:
   (§7.2), so `ab_heckle` shows `2`, not `x1`.
 - **No target scope either (LEGIB-1b).** Who is hit is drawn beside the icon as musician icons
   (§7.2); a body that names the scope can contradict them.
-- **No `<link=>` tags.** A concept tag inside the body would stack a second panel on the intention
-  panel; panel stacking is TIP-1's, and a text batch must not decide it by accident.
+- ~~**No `<link=>` tags.**~~ **Reversed 2026-11-11 (S4b, D7=A, Claudio):** bodies may link
+  concepts (Stress, Vibe, Exposed…). Stacking a concept panel under the column is now a declared
+  pipeline behaviour (`SSoT_Tooltip_Pipeline.md` §2.2), not an accident a text batch could cause.
+  The seven bodies were linked in S4b.
 - **The body may not contradict the intention icon beside it.** Where the mechanic and the icon pull
   apart — a Special-move icon over an ability that mostly repositions — the body is what reconciles
   them, which is the whole reason a generic body was worse than nothing: it restated the icon.
@@ -398,9 +400,40 @@ container's stacking policy. `GigManager.LateUpdate` rebuilds it every frame of 
 A member convinced at song end skips its turn, so the bar reads "what happens if you do not convince
 them". Any rule change in `AddStressAction` / `BandCharacterStats` must change the projector too.
 
-**Hover views and Tab are S4b** (decided 2026-11-09, D8=B): lines and identity-colour outlines
-(`MusicianCharacterData.identityColor`, D9=A, never red) on hover over a musician or a member, and a
-held Tab that shows every line (D12=A).
+**Hover views and Tab are S4b** (decided 2026-11-09, D8=B): see §7.3.
+
+### 7.3 Who hits whom on hover (S4b, 2026-11-11)
+
+The rest view (§7.2) says *how much* and *to whom* with icons; S4b makes the link spatial. All of it
+is presentation over the same `StressProjection` — no rule changes (projection and real hit untouched).
+
+- **View 1 — hover a musician (body or icon):** the members that will hit them get an outline in
+  **that musician's** `identityColor` (D6=A) and a dashed curved line to the musician
+  (`IntentLinesView`, `LineRenderer`, D3=A). Members outside the view fade their intention
+  (`unfocusedIntentAlpha`, default 0).
+- **View 2 — hover a member (body, intention icon or a target icon):** its targets are outlined and
+  linked the same way; the ability panel opens with the **hit phrase** as its first, bold line
+  (D4=A): «A Conito: 5 de Stress», «A toda la banda: 5 de Stress cada uno», and the hidden-value
+  variants without a number (D2=A). Templates `ui_aud_hit_one/_each/_all/_hidden/_all_hidden`.
+- **Tab held:** every line at once (D12=A). **Holding a card switches the hover views off**
+  (`HandController.IsHoldingCard`): targeting owns the outline then.
+- **Red damage aura (D5=A):** musicians the projection says will lose fortitude carry a red outline
+  at rest — the lowest-priority channel of `SpriteOutlineController` (hover > view > damage).
+  Composure that absorbs the hit removes it live.
+- **Target icons (D1=B):** each face sits on a dark disc ringed in the musician's `identityColor`
+  (runtime circle sprite, no asset). **Whole band = one icon (D10=C):** a ring split in the
+  identity colours of the musicians hit with «×N» in the middle; 2–3 targets that are not the whole
+  band overlap as an avatar stack (`targetStackOverlap`). «Whole band» means ≥ the musicians on
+  stage, the same test the hit phrase uses. Hovering a target icon opens the member's column.
+- **Placement:** while the member's bar is hidden, the intention group (icon + number + faces) is
+  centred on the sprite and parked just above its head (`placeIntentOverHead`, `headGapWorld`);
+  with the bar shown it keeps the prefab height, centred.
+- **Musician hover column:** body and icon show the same column (name and details, then statuses),
+  mirroring the audience rule of GIG-UI-1.
+- **D-UI-3 reviewed (D2=A):** the play pips stay hidden; the unplayable panel names the spent play.
+
+Logs: every view change writes one `[S4b]` line (`Vista 1/2`, `Tab`, `Carta cogida`, `Aura roja`,
+`Frase de golpe`, `Icono de toda la banda`, `Intencion sobre la cabeza`).
 
 ---
 

@@ -100,6 +100,23 @@ dark fill separates the panel from the art, the header colour says which kind it
   a separate `CharacterCanvas.ShowTooltipInfo(..., TooltipKind)` overload (a seventh parameter on the
   interface member broke `CharacterCanvas`, CS0535).
 - The asset also holds `audienceColumnOffset` (§3, grow-down anchor of the audience column).
+- `Concept = 7` (S4b): panel appended for a linked concept; until the asset has a row it uses the
+  `Status` style.
+
+### 2.2 Concept links in every panel (S4b, D7=A, 2026-11-11)
+
+- **Decorate on entry.** `ShowTooltip` and `UpdateTooltip` pass the body through
+  `ConceptTagRenderer.Decorate` with the manager's `conceptColor` / `conceptBold` /
+  `conceptUnderline`. Unknown ids warn once (`[S4b] Unknown concept link`). This is the only
+  decoration point; callers send raw `<link=id>` text.
+- **Append in `LateUpdate`.** `ShowTooltip` queues the ids its body links; after every caller of the
+  frame has built its column, one `Concept` panel per id is pushed at the **end** of the column
+  (`appendLinkedPanels`, `maxLinkedPanels` = 3). A concept whose name already heads a shown panel is
+  skipped (prefix match: «Compostura x3» counts as Compostura). **Depth 1:** appended bodies are
+  decorated but their links are not followed. `UpdateTooltip` never queues (the live Vibe readout
+  calls it every refresh). `HideTooltip` clears the queue.
+- **Consequence for surfaces that wanted one panel:** the tutorial concept hover (§5, «no, by
+  invariant») now gets the panels linked by the concept's own body too — see **F-TIP-7**.
 
 ## 3. Placement (D-TIP-2=B)
 
@@ -170,7 +187,7 @@ Through the pipeline:
 | `StatusIconBase` | Show on `transform`, `kind: Status` | static, world-space | no |
 | `EconPipTooltipTarget` | Show | (as authored) | no |
 | `VibeReadoutTooltipTarget` (C1) | Show on own `transform` + offset; then **Update** per refresh | static, **overlay** | no |
-| `TutorialOverlayView` (concept tags) | Hide → Show, no target | cursor | no, by invariant |
+| `TutorialOverlayView` (concept tags) | Hide → Show, no target | cursor | no, by invariant — **broken by §2.2 when the body links (F-TIP-7)** |
 
 **Audience hover, one content for two triggers (GIG-UI-1, 2026-11-03).** The member can be hovered
 on the intent icon (UI pointer on the world-space canvas) or on the body (physics raycast in
@@ -236,6 +253,11 @@ pipeline would require the pipeline to learn game-zone clamps and row anchoring;
 - **F-TXT4-8** — assigned to `SSoT_Audience_and_Reactions.md` §6.4; untouched by TIP-1.
 - **ST-TXT4-13** — inline sprite in a tooltip: still deferred until a sprite atlas exists.
 
+- **F-TIP-7 — the tutorial concept hover can now stack (S4b, OPEN, unverified).** §2.2 appends the
+  concepts linked by any pushed body. A tutorial hover over «Stress» shows its body, which links
+  Colapso, so a second panel is appended. Not seen in a smoke. If it reads wrong, give `ShowTooltip`
+  a `followLinks: false` parameter for that surface.
+
 ## 8. Update rule
 
 Update this document when a change affects: the entries or their stacking semantics; the
@@ -248,4 +270,5 @@ rule; the fade; the governed file list; or when a surface joins or leaves the pi
 |---|---|---|
 | 2026-09-15 | TIP-1 / TIP-1-DOC | Document created under **D-TIP-1=A**, reversing BIGNUM-1-DOC's decision not to create it — with a new argument, not a new preference: that batch did not touch the contract and this one did, and SONG-PANEL-1 had since added a third tooltip surface that wrote its own placement. Closes **F-BN-7** (`UpdateTooltip`, D-TIP-3=B) and **F-BN-8** (anchor space inferred from the root canvas, D-TIP-2=B); retires the **D-BN-18=B″** runtime anchor; reframes **F-TXT4-11** from defect to declared capability. Records the clamp order rule and the assign → rebuild → measure → place rule. Consumer census (8 in, 2 conformant outside). Findings F-TIP-1..6. Authority taken over eight files previously governed wholesale by `SSoT_Game_Text.md`. ST-TIP-1..10 PASS. |
 | 2026-09-22 (doc 2026-09-25) | CARD-FACE-3 / CARD-FACE-3-DOC | §2 → panel width 250 → **280** (`TooltipText` `LayoutElement.preferredWidth`), D3=B, explicit exception to D-CF-2. No transport contract changed; no invariant touched. |
+| 2026-11-11 | S4b (DEMO-1211, LEGIB-1b hover views) | New §2.2: concept links decorated in every panel and linked concepts appended as `TooltipKind.Concept` panels (depth 1, max 3, dedup by header). `Concept = 7` in §2.1. §5 census: tutorial row flagged (F-TIP-7, unverified). Musician hover column: body and icon show the same column. |
 | 2026-11-03 | GIG-UI-1 (DEMO-1211 S2) | §2 `ShowTooltip` gains `growDown` and `kind`; new §2.1 (`TooltipStyleSO` / `TooltipKind`, one colour asset). §3 grow-down placement. §5 census: audience column (icon and body show the same, reverses D-PRES1-3=A), musician summary, Warning on cards, Status on icons; `CharacterBase.RaycastTopmost` (topmost drawn character wins hover and targeting). Played by Claudio in the editor. |
