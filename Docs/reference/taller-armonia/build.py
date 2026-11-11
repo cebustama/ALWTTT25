@@ -47,6 +47,61 @@ STYLES = [  # verified by the Music Lab review (revision-music-lab-2026-11-02.md
 for name, mode, text, tags, src in STYLES:
     lib.append({"name": name, "mode": mode, "text": text, "origin": "estilo", "tags": tags, "fuente": src})
 
+# Music Lab's song library (Biblioteca/, format in Biblioteca/FORMATO.md): one entry per section and one
+# for the whole song (its «vuelta»). Each entry carries a slug so the examinador can open it by hash
+# (#all-of-me-a1, #all-of-me). The root is the tonic of the mode («Dm» in Dorian: D). Added 2026-11-11.
+BIBLIO = Path("D:/Projects/Music Lab/Biblioteca")
+NAT = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
+
+def slugify(s):
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+
+def read_ficha(path):
+    text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
+    strip = lambda v: re.sub(r"\s+#\s.*$", "", v).strip()
+    head = re.match(r"^---\n(.*?)\n---", text, re.S)
+    cab = {k: strip(v) for k, v in re.findall(r"^([a-z_]+):[ \t]*(.*)$", head.group(1), re.M)} if head else {}
+    blocks = lambda kind: [{k: strip(v) for k, v in re.findall(r"^([a-z_]+):[ \t]*(.*)$", b, re.M)}
+                           for b in re.findall(r"```" + kind + r"\s*\n(.*?)```", text, re.S)]
+    return cab, blocks("seccion"), (blocks("forma") or [{}])[0]
+
+n_ml = 0
+if BIBLIO.exists():
+    for path in sorted(p for p in BIBLIO.rglob("*.md") if p.parent != BIBLIO and "examinador" not in p.parts):
+        cab, secs, forma = read_ficha(path)
+        secs = [s for s in secs if s.get("id") and s.get("taller")]
+        if not secs:
+            continue
+        m = re.match(r"([A-G])([b♭#♯]?)", cab.get("tonalidad", "C"))
+        alt = {"b": -1, "♭": -1, "#": 1, "♯": 1}.get(m.group(2), 0) if m else 0
+        key = (NAT[m.group(1)] + alt) % 12 if m else 0
+        ts = {"4/4": 4, "3/4": 3}.get(cab.get("compas", ""))
+        title, mode, base = cab.get("titulo", path.stem), cab.get("modo", "Ionian"), path.stem
+        rel = path.relative_to(BIBLIO).as_posix()
+        genres = [g.strip() for g in cab.get("generos", "").strip("[]").split(",") if g.strip()][:2]
+        by_id = {s["id"]: s for s in secs}
+        vuelta = [re.sub(r"×\d+$", "", x) for x in (forma.get("vuelta") or " ".join(by_id)).split()]
+        start, acc = {}, 0.0
+        for sid in vuelta:
+            if sid in by_id and sid not in start:
+                start[sid] = acc
+            acc += float(by_id.get(sid, {}).get("compases", 0) or 0)
+        meter = "" if ts else f" · compás {cab.get('compas')} (aquí suena en 4/4)"
+        for s in secs:
+            n = float(s.get("compases", 0) or 0)
+            bars = f"cc. {start[s['id']] + 1:g}–{start[s['id']] + n:g}" if s["id"] in start else f"{n:g} compases"
+            lib.append({"name": f"{title} · {s['id']}", "mode": mode, "text": s["taller"], "origin": "musiclab",
+                        "tags": [t for t in [s.get("uso"), s.get("etiqueta")] if t] + genres, "key": key, "ts": ts,
+                        "slug": slugify(f"{base}-{s['id']}"),
+                        "fuente": f"Music Lab · Biblioteca/{rel} · {bars} · {cab.get('tonalidad', '')}{meter}"})
+            n_ml += 1
+        if len(vuelta) > 1 and all(v in by_id for v in vuelta):
+            lib.append({"name": f"{title} · entera", "mode": mode, "text": " – ".join(by_id[v]["taller"] for v in vuelta),
+                        "origin": "musiclab", "tags": ["canción entera"] + genres, "key": key, "ts": ts, "slug": slugify(base),
+                        "fuente": f"Music Lab · Biblioteca/{rel} · {' '.join(vuelta)}, {acc:g} compases · {cab.get('tonalidad', '')}{meter}"})
+            n_ml += 1
+print(n_ml, "entries from Music Lab's Biblioteca")
+
 data = json.dumps(lib, ensure_ascii=False).replace("</", "<\\/")
 html = (d / "template.html").read_text(encoding="utf-8").replace("__LIB__", data)
 # Claude (/api/llm) only exists on the website, behind Access: the artifact gets the page without those buttons (D4, 2026-11-06).

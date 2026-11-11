@@ -793,7 +793,7 @@ async function ajustar(){
 
 /* ---------- catalogue ---------- */
 let mine = [], filter = "todas";
-const FILTERS = [["todas","Todas"],["biblioteca","En la biblioteca"],["candidata","Candidatas de la prueba"],["estilo","Estilos ✦"],["catalogo","Guardadas"]];
+const FILTERS = [["todas","Todas"],["biblioteca","En la biblioteca"],["candidata","Candidatas de la prueba"],["estilo","Estilos ✦"],["musiclab","Canciones de Music Lab"],["catalogo","Guardadas"]];
 function libText(e){
   const saveMode = mode; mode = e.mode;
   const s = e.events.map(([st0, len, pc, fam]) => { const q = ({min:"min",min7:"m7",maj6:"6",min6:"m6"})[fam] || fam; return romanOf(pc, Q[q] ? q : "maj") + (len !== 4 ? " (" + fmtDur(len/4) + ")" : ""); }).join(" – ");
@@ -811,7 +811,7 @@ function drawList(){
   const list = entries().filter(e => (filter === "todas" || e.origin === filter) &&
     (!q || (e.name + " " + e.text + " " + (e.tags||[]).join(" ") + " " + (e.fuente||"") + " " + e.mode).toLowerCase().includes(q)));
   $("#list").innerHTML = list.length ? list.map((e, i) => '<button class="item" data-k="'+i+'"><span class="t">'+esc(e.name)+'</span><span class="p">'+esc(e.text)+'</span><span class="row" style="gap:5px"><span class="tag">'+esc(MODE_ES[e.mode]||e.mode)+'</span>' +
-      (e.origin === "estilo" ? '<span class="tag ai">✦ agente</span>' : e.origin === "biblioteca" ? '<span class="tag">biblioteca</span>' : e.origin === "candidata" ? '<span class="tag">candidata</span>' : '<span class="tag">guardada</span>') +
+      (e.origin === "estilo" ? '<span class="tag ai">✦ agente</span>' : e.origin === "musiclab" ? '<span class="tag">Music Lab</span>' : e.origin === "biblioteca" ? '<span class="tag">biblioteca</span>' : e.origin === "candidata" ? '<span class="tag">candidata</span>' : '<span class="tag">guardada</span>') +
       (e.tags||[]).map(t => '<span class="tag">'+esc(t)+'</span>').join("") + '</span>' + (e.fuente ? '<span class="hint">'+esc(e.fuente)+'</span>' : '') + '</button>').join("")
     : '<p class="hint">Nada con ese filtro.' + (filter === "catalogo" ? " Guarda la primera desde el taller, abajo." : "") + '</p>';
   $("#list").querySelectorAll(".item").forEach(b => b.onclick = () => openEntry(list[+b.dataset.k]));
@@ -819,6 +819,8 @@ function drawList(){
 function openEntry(e){
   setPerillas(cleanPerillas(e.perillas), true);
   $("#prog").value = e.text; $("#mode").value = e.mode;
+  if(e.key != null) $("#root").value = e.key;   // Music Lab songs bring their own tonic and meter
+  if(e.ts) $("#ts").value = e.ts;
   $("#loadedFrom").textContent = "Abierta: " + e.name;
   update(true);
   if(window.innerWidth <= 920) window.scrollTo({top:0, behavior:"smooth"});
@@ -889,4 +891,15 @@ if(LLM_ON){ ["#genBox","#adjBox","#hiBox"].forEach(s => $(s).hidden = false);
   $("#genQ").addEventListener("keydown", e => { if(e.key === "Enter") generar(); });
   $("#adjQ").addEventListener("keydown", e => { if(e.key === "Enter") ajustar(); }); }
 setPlayIcon(false); drawFilters(); update(false); drawList();
+// Open a Music Lab song by hash (the examinador links here as #all-of-me-a1 or #all-of-me).
+// A whole-song slug with no entry of its own (one-section songs) opens its first section.
+function openHash(){
+  const h = decodeURIComponent(location.hash.slice(1)).toLowerCase();
+  if(!h) return;
+  const e = LIB.find(x => x.slug === h) || LIB.find(x => x.slug && x.slug.startsWith(h + "-"));
+  if(!e) return;
+  filter = "musiclab"; $("#q").value = e.name.split(" · ")[0]; drawFilters(); drawList(); openEntry(e);
+}
+openHash();
+window.addEventListener("hashchange", openHash);
 </script>

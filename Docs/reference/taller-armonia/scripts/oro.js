@@ -15,7 +15,7 @@ const { LIB, parse, arrange, romanOf, setMode, fmtDur } = ctx.api;
 // same text as the page's libText()
 const textOf = e => e.text || e.events.map(([s, len, pc, fam]) => { const q = ({min:"min",min7:"m7",maj6:"6",min6:"m6"})[fam] || fam; return romanOf(pc, q) + (len !== 4 ? " (" + fmtDur(len/4) + ")" : ""); }).join(" – ");
 const out = {};
-for (const e of LIB) {
+for (const e of LIB.filter(x => x.origin !== "musiclab")) {   // Music Lab songs (2026-11-11) are not part of the v3 gold set
   setMode(e.mode);
   const t = textOf(e), p = parse(t);
   for (const lvl of [1,2,3]) for (const nV of [1,2,3,4]) for (const B of [3,4]) {

@@ -18,3 +18,5 @@ Página privada para escuchar progresiones antes de crear assets (creada el 2026
 - **Archivos:** `template.html` + `build.py` → `index.html` (artefacto) y, con `--web`, la copia de `/privado/taller-armonia/` con Claude activado. `build.py` lee `../prueba-escucha/listen_clips.json`.
 
 No es el sonido de MidiGenPlay: para fidelidad, *MidiGenPlay → Smoke → Composition Smoke*.
+
+- **Canciones de Music Lab (2026-11-11):** `build.py` lee las fichas de `D:/Projects/Music Lab/Biblioteca/` (formato en su `FORMATO.md`) y añade al catálogo una entrada por sección y otra con la canción entera, con su modo, su tónica y su compás (filtro «Canciones de Music Lab»). Cada entrada tiene un `slug`, y la página la abre por el hash (`#all-of-me-a1`, `#all-of-me`): así enlaza el examinador de fichas de Music Lab (https://claude.ai/artifact/APxVGsNGkkwzkmRsBveN3S). La prueba de oro deja fuera estas entradas (siguen 792 casos). Al añadir fichas: `python -I -X utf8 build.py` y volver a publicar `index.html`.
