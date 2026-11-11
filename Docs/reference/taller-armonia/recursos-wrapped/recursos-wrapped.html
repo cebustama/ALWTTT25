@@ -431,9 +431,10 @@ function tonicApproach(rica, tMin){
 }
 // Quality of the ii before a dominant (P1 / remate iiV, 2026-11-11). D2 = A: the scale's own chord when it is
 // minor or diminished there (Am7 before D7 → Gm7 in F); otherwise by the target: m7 towards major, ø7 towards minor.
-// The knob iiDelDestino (Claudio's doubt) always goes by the target.
+// The knob iiDelDestino (Claudio's doubt) always goes by the target, and in a minor key it is always ø7
+// (D10, 2026-11-11: Summertime c. 7, F♯m7♭5 B7 → E7).
 function iiQ(tPc, tQ, P){
-  const pc = mod12(tPc + 2), tMin = MINORISH.has(tQ);
+  const pc = mod12(tPc + 2), tMin = MINORISH.has(tQ) || (P.iiDelDestino && !majorish());
   if(!P.iiDelDestino && inScale(pc)){ const d = diatonicQ(st().indexOf(pc)); if(d === "min") return "m7"; if(d === "dim") return "hdim7"; }
   return tMin ? "hdim7" : "m7";
 }

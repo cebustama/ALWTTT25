@@ -1,0 +1,298 @@
+<title>Prueba de oído P1–P5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column for listening on the phone or the PC. A sticky progress bar, the instructions, 14 blind A/B pairs
+   (play, choose, then the answer is revealed with both versions drawn), the decision per knob with the agent's
+   recommendation, and two open questions. Answers go to the artifact's db so Claude can read them. Same family as the Taller. */
+:root{
+  --bg:#e9eef0; --panel:#ffffff; --panel-2:#dde4e7; --ink:#152025; --muted:#56656c; --line:#c3cdd2; --accent:#0d7a80;
+  --a:#2357b5; --a-bg:#dce6f8; --b:#b5560f; --b-bg:#f8e3d2; --ok:#1f7a4a; --ok-bg:#dcefe3; --warn:#9a6200;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --a:#8db2ff; --a-bg:#1c2a47; --b:#f2a46a; --b-bg:#3d2717; --ok:#6fd39b; --ok-bg:#173326; --warn:#f0b85a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --a:#8db2ff; --a-bg:#1c2a47; --b:#f2a46a; --b-bg:#3d2717; --ok:#6fd39b; --ok-bg:#173326; --warn:#f0b85a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(30px,6vw,46px);font-weight:800}
+h2{font-size:24px}
+h3{font-size:18px}
+p{margin:0;max-width:68ch}
+code{font:13px var(--f-mono);background:var(--panel-2);padding:1px 5px;border-radius:4px}
+.muted{color:var(--muted)} .small{font-size:14px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:15px}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.play::before{content:"▶";font-size:11px}
+.btn.play.playing::before{content:"■"}
+.btn.pa{border-color:var(--a);color:var(--a);background:var(--a-bg)}
+.btn.pb{border-color:var(--b);color:var(--b);background:var(--b-bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.top b{font-family:var(--f-display);font-size:17px}
+.meter{flex:1 1 160px;height:8px;border-radius:99px;background:var(--panel-2);overflow:hidden;min-width:120px}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+#saveState{font:12px var(--f-mono);color:var(--muted)}
+.pair header{display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.num{font:700 13px var(--f-mono);color:var(--muted)}
+.pair.done{border-color:var(--ok)}
+.choice{display:flex;flex-wrap:wrap;gap:6px}
+.choice .btn{border-radius:10px}
+.choice .btn.sel{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=text],textarea,select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.reveal{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.reveal .verdict{font-size:15px;background:var(--ok-bg);color:var(--ok);border-radius:8px;padding:6px 10px}
+.laps{display:flex;flex-direction:column;gap:6px}
+.lapRow{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;align-items:stretch}
+.lapLbl{font:600 12px/1.3 var(--f-mono);color:var(--muted);padding-top:7px}
+.scroll{overflow-x:auto;min-width:0}
+.bar{display:flex;gap:2px;min-width:var(--mw,0px)}
+.ch{flex:var(--d) 0 0;min-width:0;border-radius:6px;padding:5px 6px;background:var(--panel-2);border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;transition:transform .12s,box-shadow .12s}
+.ch .rn{font:600 12px/1.25 var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .nm{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch.diff{background:var(--b-bg);border-color:var(--b)}
+.ch.diff .rn{color:var(--b)}
+.ch.now{transform:translateY(-3px);box-shadow:0 0 0 2px var(--accent)}
+@media (prefers-reduced-motion: reduce){.ch,.meter i{transition:none}}
+.dec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:10px 16px;align-items:start;padding-block:12px;border-bottom:1px solid var(--line)}
+.dec:last-child{border-bottom:none}
+@media (max-width:620px){.dec{grid-template-columns:minmax(0,1fr)}}
+.dec b{font-family:var(--f-display);font-size:16px}
+.rec{font-size:13px;color:var(--muted)}
+.rec strong{color:var(--accent)}
+.note{font-size:13px;color:var(--warn)}
+</style>
+
+<div class="wrap">
+  <div class="top" role="status">
+    <b>Prueba de oído P1–P5</b>
+    <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+    <span class="small" id="count">0 de 14 pares</span>
+    <span id="saveState">conectando…</span>
+  </div>
+
+  <section>
+    <span class="eyebrow">Taller armónico · 11 de noviembre de 2026</span>
+    <h1>¿Qué perillas encendemos?</h1>
+    <p>Son 14 pares. En cada uno suena la misma progresión dos veces. Una es la de fábrica (v3) y la otra lleva una perilla nueva encendida, pero no sabes cuál es cuál: el orden está barajado. Escucha las dos, elige la que prefieras y la página te dice cuál era. Al final, decides en qué nivel va cada perilla.</p>
+    <div class="panel small">
+      <span><b>Cómo escuchar.</b> Cada versión dura entre 15 y 30 segundos. Los cambios de color se oyen desde la vuelta 1, y los adornos desde la vuelta 2. Con auriculares se nota más. Este sinte no es MidiGenPlay: juzga la armonía, no el sonido.</span>
+      <span><b>Qué elegir.</b> «A» o «B» si una te gusta más; «igual» si no notas diferencia o te dan lo mismo; «ninguna» si las dos suenan mal. La nota es opcional: tres palabras bastan.</span>
+      <span><b>Se guarda solo.</b> Cada respuesta se guarda al tocarla, y yo la leo directamente. Puedes dejarla a medias y volver.</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-pares">
+    <h2 id="h-pares">Los pares</h2>
+    <div id="pairs" style="display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <section aria-labelledby="h-dec">
+    <span class="eyebrow">La decisión</span>
+    <h2 id="h-dec">En qué nivel va cada perilla</h2>
+    <p class="small muted">Debajo de cada perilla está mi recomendación, con su porqué (de la prueba de reducción). Tu oído manda. Lo que elijas aquí es lo que encenderé por defecto para escribir el oro v4.</p>
+    <div class="panel" id="decs"></div>
+  </section>
+
+  <section aria-labelledby="h-gen">
+    <h2 id="h-gen">Dos preguntas abiertas</h2>
+    <div class="panel">
+      <label for="g1" class="small">¿Hay algún par en el que la versión con la perilla deje de sonar a la misma progresión? ¿Cuál?</label>
+      <textarea id="g1"></textarea>
+      <label for="g2" class="small">Algo más: qué te sorprendió, qué echaste de menos o qué otro recurso querrías oír.</label>
+      <textarea id="g2"></textarea>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+/*__THEORY__*/
+
+/* ---------- the pairs: control (A of the design) vs test (the knob) ---------- */
+const PAIRS = [
+ {id:"p2-allofme", t:"All of Me A (esqueleto) · nivel 3", what:"La cadena de dominantes: ¿los acordes menores que se vuelven dominantes suenan a jazz o se pasan?", md:"Ionian", key:0, text:"I (2) – iii (2) – vi (2) – ii (2)", lvl:3, nV:2, ctl:{}, test:{cadenaDominantes:true}, knob:"P2 cadena de dominantes"},
+ {id:"p2-cincuentas", t:"Cincuentas I–vi–ii–V · nivel 3", what:"La cadena en una progresión de pop de toda la vida.", md:"Ionian", key:0, text:"I – vi – ii – V", lvl:3, nV:2, ctl:{}, test:{cadenaDominantes:true}, knob:"P2 cadena de dominantes"},
+ {id:"p2-royal", t:"Royal road IV–V–iii–vi · nivel 3", what:"La cadena en city pop: el iii pasa a dominante antes del vi.", md:"Ionian", key:5, text:"IV – V – iii – vi", lvl:3, nV:2, ctl:{}, test:{cadenaDominantes:true}, knob:"P2 cadena de dominantes"},
+ {id:"p4-blues", t:"Blues menor · nivel 2", what:"El ♭VI7: el sexto grado como dominante antes del V.", md:"Aeolian", key:0, text:"i (2) – iv (2) – i (2) – VI – V – i (2)", lvl:2, nV:2, ctl:{}, test:{bVI7Menor:true}, knob:"P4 ♭VI7 en menor"},
+ {id:"p4-andaluza", t:"Cadencia andaluza · nivel 3", what:"El ♭VI7 en la andaluza: ¿sigue siendo andaluza?", md:"Aeolian", key:9, text:"i – VII – VI – V", lvl:3, nV:2, ctl:{}, test:{bVI7Menor:true}, knob:"P4 ♭VI7 en menor"},
+ {id:"p1-misty", t:"Misty A (esqueleto) · nivel 3", what:"El acorde de paso: el cromático de la v3 frente al ii–V completo.", md:"Ionian", key:3, text:"I (2) – IV (2) – ii – V", lvl:3, nV:2, ctl:{}, test:{paso:"iiV"}, knob:"P1 ii–V"},
+ {id:"p1-cincuentas", t:"Cincuentas larga · nivel 3", what:"Lo mismo, con acordes de dos compases.", md:"Ionian", key:7, text:"I (2) – vi (2) – ii (2) – V (2)", lvl:3, nV:2, ctl:{}, test:{paso:"iiV"}, knob:"P1 ii–V"},
+ {id:"ii-mayor", t:"I – ii – V – I · nivel 3, con ii–V", what:"Tu duda de D2: el ii antes del ii, ¿m7 (de la escala) o m7♭5 (según el destino)?", md:"Ionian", key:5, text:"I (2) – ii (2) – V – I", lvl:3, nV:2, ctl:{paso:"iiV"}, test:{paso:"iiV", iiDelDestino:true}, knob:"ii según el destino"},
+ {id:"ii-menor", t:"Menor i – iv – VI – V · nivel 3, con ii–V", what:"El ii en tonalidad menor (D10): m7 frente a m7♭5, como Summertime.", md:"Aeolian", key:9, text:"i (2) – iv (2) – VI (2) – V (2)", lvl:3, nV:2, ctl:{paso:"iiV"}, test:{paso:"iiV", iiDelDestino:true}, knob:"ii según el destino"},
+ {id:"p3-axis", t:"Axis I–V–vi–IV · nivel 3", what:"El disminuido: baja del I al V y, de vecino, entre el IV y el I.", md:"Ionian", key:7, text:"I – V – vi – IV", lvl:3, nV:2, ctl:{}, test:{disminuido:true}, knob:"P3 disminuido"},
+ {id:"p3-sube", t:"I – ii – V – I larga · nivel 3", what:"El disminuido que sube: I – ♯I°7 – ii.", md:"Ionian", key:0, text:"I (2) – ii (2) – V (2) – I (2)", lvl:3, nV:2, ctl:{}, test:{disminuido:true}, knob:"P3 disminuido"},
+ {id:"p5-mayor", t:"Pop que no cierra solo · nivel 3", what:"El remate: la backdoor de la v3 frente al deslizado (♭VI7 – V7).", md:"Ionian", key:2, text:"I – vi – IV – ii (2)", lvl:3, nV:2, ctl:{}, test:{remate:"deslizado"}, knob:"Remate deslizado"},
+ {id:"p5-menor", t:"Menor que sube i–iv–VII–III · nivel 3", what:"El remate en menor: iiø7 – ♭II7 de la v3 frente al deslizado (VI7 – V7).", md:"Aeolian", key:4, text:"i – iv – VII – III (2)", lvl:3, nV:2, ctl:{}, test:{remate:"deslizado"}, knob:"Remate deslizado"},
+ {id:"d9-mayor", t:"I – vi – IV – iii · nivel 3", what:"El remate: la backdoor de la v3 frente al ii–V.", md:"Ionian", key:3, text:"I – vi – IV – iii (2)", lvl:3, nV:2, ctl:{}, test:{remate:"iiV"}, knob:"Remate ii–V"},
+];
+const DECS = [
+ {id:"P2", t:"P2 · Cadena de dominantes", opts:["apagada","nivel 2","nivel 3","los dos"], rec:"nivel 3", why:"Es la que más acerca el taller al jazz (del 43 % al 57 % de parecido), pero cambia la identidad desde la vuelta 1. En el 3, el nivel 2 sigue siendo «la misma progresión con algo más»."},
+ {id:"P4", t:"P4 · ♭VI7 en menor", opts:["apagada","nivel 2","nivel 3","los dos"], rec:"los dos", why:"Solo actúa en Eólico, inventa poco y acierta en Summertime (del 50 % al 63 %)."},
+ {id:"P1", t:"P1 · ii–V como acorde de paso", opts:["apagada","nivel 3 (en vez del cromático)","nivel 2 (con «que se note el adorno»)","los dos"], rec:"nivel 3 (en vez del cromático)", why:"Suma poco en la reducción (+1 punto). En el nivel 2 casi nunca sonaría: el sus4 va antes y gasta el único cambio de la vuelta. Por eso, para el 2 habría que encender también «que se note el adorno»."},
+ {id:"iiDest", t:"ii según el destino (y m7♭5 en menor)", opts:["no","sí"], rec:"sí", why:"Con D10 da el F♯m7♭5 de Summertime y sube un punto en la reducción. Solo cuenta si P1 o el remate ii–V están encendidos."},
+ {id:"P3", t:"P3 · Disminuido de paso", opts:["apagada","nivel 2","nivel 3","los dos"], rec:"lo que diga tu oído", why:"La reducción no puede juzgarlo: el °7 de las canciones dura un compás, y en el taller, medio."},
+ {id:"rem3", t:"Remate del nivel 3", opts:["rico (v3)","deslizado","ii–V"], rec:"lo que diga tu oído", why:"La reducción no los ve: las secciones de jazz ya cierran por cadencia y el remate no se activa."},
+ {id:"rem2", t:"Remate del nivel 2", opts:["simple (v3)","ii–V"], rec:"simple (v3)", why:"El 2 debe quedarse por debajo del 3. El ii–V gasta el único cambio de la vuelta en el final."},
+];
+
+/* ---------- arrange + draw + sound ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const pretty = r => r.replace(/^b/, "♭").replace(/^#/, "♯").replace("dim7", "°7");
+function render(p, over){
+  mode = p.md; const ch = parse(p.text).chords;
+  const P = {2:{...PERILLAS_V3[2]}, 3:{...PERILLAS_V3[3]}}; Object.assign(P[p.lvl], over);
+  return arrange(ch, p.lvl, p.nV, 4, P).map(v => v.seq);
+}
+// Stable, per-pair shuffle: which side holds the knob.
+const testIsA = id => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 2 === 1;
+const sig = c => c.rest ? "-" : c.pc + c.q + "@" + c.dur;
+function lapsHTML(rows, key, md, pid, other){
+  const bars = Math.max(...rows.map(r => r.seq.reduce((s, c) => s + c.dur, 0)));
+  mode = md;
+  return rows.map((r, ri) => {
+    const o = other ? other[ri] : null, os = o ? new Set(o.map(sig)) : null;
+    return '<div class="lapRow"><div class="lapLbl">'+esc(r.label)+'</div><div class="scroll"><div class="bar" style="--mw:'+Math.round(bars*84)+'px">' +
+      r.seq.map((c, ci) => '<div class="ch'+(os && !os.has(sig(c)) ? " diff" : "")+'" style="--d:'+c.dur+'" data-id="'+pid+'-'+ri+'-'+ci+'"><span class="rn">'+(c.rest ? "—" : esc(pretty(romanOf(c.pc, c.q))))+'</span><span class="nm">'+(c.rest ? "" : esc(chordName(c.pc, c.q, key)))+'</span></div>').join("") +
+      '</div></div></div>'; }).join("");
+}
+let AC = null, live = [], timers = [], playingBtn = null;
+function stopAll(){ live.forEach(n => { try{ n.stop(); }catch(e){} }); live = []; timers.forEach(clearTimeout); timers = [];
+  document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+  if(playingBtn){ playingBtn.classList.remove("playing"); playingBtn = null; } }
+function tone(f, t, d, type, vol){
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(vol*.45, t + .35);
+  g.gain.setValueAtTime(vol*.45, t + Math.max(.36, d - .08)); g.gain.linearRampToValueAtTime(0, t + d);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + .05); live.push(o); }
+function click(t, vol){ const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 1800;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + .03); o.connect(g).connect(AC.destination); o.start(t); o.stop(t + .04); live.push(o); }
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+function play(laps, key, md, pid, btn, bpm){
+  if(playingBtn === btn){ stopAll(); return; } stopAll();
+  try{ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); }catch(e){ return; }
+  playingBtn = btn; btn.classList.add("playing");
+  const beat = 60 / bpm, bar = 4 * beat, t0 = AC.currentTime + .08; let t = 0;
+  laps.forEach((seq, ri) => seq.forEach((c, ci) => {
+    const d = c.dur * bar, at = t0 + t;
+    if(!c.rest){ const root = (c.pc + key) % 12, set = new Set();
+      Q[c.q].iv.forEach(x => set.add(55 + ((root + x - 55) % 12 + 12) % 12));
+      set.forEach(m => tone(hz(m), at, d * .96, "triangle", .07)); tone(hz(36 + root), at, d * .96, "sine", .16); }
+    for(let k = 0; k < c.dur * 4 - 1e-6; k++) click(at + k * beat, k % 4 === 0 ? .025 : .012);
+    const id = pid + "-" + ri + "-" + ci, start = t;
+    timers.push(setTimeout(() => { document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+      const el = document.querySelector('[data-id="'+id+'"]'); if(el) el.classList.add("now"); }, start * 1000 + 80));
+    t += d; }));
+  timers.push(setTimeout(stopAll, t * 1000 + 250));
+}
+
+/* ---------- answers: artifact db (Claude reads them), localStorage as a fallback ---------- */
+const ANS = {}, DEC = {}, GEN = {};
+let db = null;
+const LS = "oido-p1p5";
+function lsSave(){ try{ localStorage.setItem(LS, JSON.stringify({ANS, DEC, GEN})); }catch(e){} }
+function lsLoad(){ try{ const x = JSON.parse(localStorage.getItem(LS) || "null"); if(x){ Object.assign(ANS, x.ANS || {}); Object.assign(DEC, x.DEC || {}); Object.assign(GEN, x.GEN || {}); } }catch(e){} }
+const saving = new Map();
+function store(col, id, data){
+  lsSave();
+  if(!db){ $("#saveState").textContent = "guardado en este navegador"; return; }
+  clearTimeout(saving.get(col + id));
+  saving.set(col + id, setTimeout(async () => {
+    $("#saveState").textContent = "guardando…";
+    try{ await db.collection(col).doc(id).set({...data, ts: new Date().toISOString()}); $("#saveState").textContent = "guardado ✓"; }
+    catch(e){ $("#saveState").textContent = "no se pudo guardar (" + (e && e.code || "error") + "); queda en este navegador"; }
+  }, 500));
+}
+
+/* ---------- pairs UI ---------- */
+function drawPair(p, i){
+  const host = document.getElementById("pair-" + p.id), a = ANS[p.id], tA = testIsA(p.id);
+  const ctl = render(p, p.ctl), tst = render(p, p.test), A = tA ? tst : ctl, B = tA ? ctl : tst;
+  const label = k => "vuelta " + (k + 1) + (k === p.nV - 1 ? " (última)" : "");
+  host.classList.toggle("done", !!(a && a.eleccion));
+  host.innerHTML = '<header><h3>'+esc(p.t)+'</h3><span class="num">'+(i + 1)+' / '+PAIRS.length+'</span></header>' +
+    '<p class="small">'+esc(p.what)+'</p>' +
+    '<div class="row"><button class="btn play pa" type="button" data-v="A">Escuchar A</button><button class="btn play pb" type="button" data-v="B">Escuchar B</button>' +
+    '<span class="small muted">'+esc(NOTE[p.key])+' '+(p.md === "Aeolian" ? "menor" : "mayor")+' · '+p.nV+' vueltas</span></div>' +
+    '<div class="choice" role="group" aria-label="Elección">' + ["A","B","igual","ninguna"].map(c =>
+      '<button class="btn'+(a && a.eleccion === c ? " sel" : "")+'" type="button" data-c="'+c+'">'+(c === "A" || c === "B" ? "Prefiero " + c : c === "igual" ? "Igual / no noto diferencia" : "Ninguna me gusta")+'</button>').join("") + '</div>' +
+    '<input type="text" id="n-'+p.id+'" placeholder="Nota (opcional)" value="'+esc(a && a.nota || "")+'" aria-label="Nota del par '+(i + 1)+'">' +
+    (a && a.eleccion ? '<div class="reveal"><span class="verdict">'+esc(verdict(a.eleccion, tA, p.knob))+'</span>' +
+      '<div class="small muted">A</div><div class="laps">'+lapsHTML(A.map((s, k) => ({label:label(k), seq:s})), p.key, p.md, "s" + p.id + "A", B)+'</div>' +
+      '<div class="small muted">B</div><div class="laps">'+lapsHTML(B.map((s, k) => ({label:label(k), seq:s})), p.key, p.md, "s" + p.id + "B", A)+'</div>' +
+      '<span class="small muted">En naranja, lo que cambia respecto a la otra versión.</span></div>' : "");
+  host.querySelector('[data-v="A"]').onclick = ev => play(A, p.key, p.md, "s" + p.id + "A", ev.currentTarget, 104);
+  host.querySelector('[data-v="B"]').onclick = ev => play(B, p.key, p.md, "s" + p.id + "B", ev.currentTarget, 104);
+  host.querySelectorAll("[data-c]").forEach(b => b.onclick = () => {
+    stopAll(); const c = b.dataset.c;
+    ANS[p.id] = {eleccion:c, nota: document.getElementById("n-" + p.id).value, perilla_en: tA ? "A" : "B", prefiere_perilla: c === "igual" || c === "ninguna" ? c : ((c === "A") === tA ? "sí" : "no"), perilla: p.knob};
+    store("respuestas", p.id, ANS[p.id]); drawPair(p, i); progress(); });
+  document.getElementById("n-" + p.id).oninput = e => { const prev = ANS[p.id] || {perilla: p.knob, perilla_en: tA ? "A" : "B"}; ANS[p.id] = {...prev, nota: e.target.value}; store("respuestas", p.id, ANS[p.id]); };
+}
+function verdict(c, tA, knob){
+  const side = tA ? "A" : "B";
+  if(c === "igual") return "La perilla («" + knob + "») estaba en " + side + ". Para ti, da igual.";
+  if(c === "ninguna") return "La perilla («" + knob + "») estaba en " + side + ". No te convence ninguna de las dos.";
+  return "La perilla («" + knob + "») estaba en " + side + ". " + (c === side ? "Preferiste la versión con la perilla." : "Preferiste la de fábrica (v3).");
+}
+function progress(){
+  const n = PAIRS.filter(p => ANS[p.id] && ANS[p.id].eleccion).length;
+  $("#count").textContent = n + " de " + PAIRS.length + " pares"; $("#meter").style.width = (100 * n / PAIRS.length) + "%";
+}
+function drawPairs(){
+  $("#pairs").innerHTML = PAIRS.map((p, i) => '<article class="panel pair" id="pair-'+p.id+'" aria-label="Par '+(i + 1)+'"></article>').join("");
+  PAIRS.forEach(drawPair); progress();
+}
+
+/* ---------- decisions ---------- */
+function drawDecs(){
+  $("#decs").innerHTML = DECS.map(d => { const v = DEC[d.id] && DEC[d.id].valor || "";
+    const hear = PAIRS.filter(p => p.knob.startsWith(d.t.split(" · ")[0]) || (d.id === "iiDest" && p.knob === "ii según el destino") || (d.id === "rem3" && /Remate/.test(p.knob)));
+    const res = hear.filter(p => ANS[p.id] && ANS[p.id].eleccion).map(p => ANS[p.id].prefiere_perilla === "sí" ? "✓" : ANS[p.id].prefiere_perilla === "no" ? "✗" : "~");
+    return '<div class="dec"><div style="display:flex;flex-direction:column;gap:4px"><b>'+esc(d.t)+'</b>' +
+      '<span class="rec">Recomiendo: <strong>'+esc(d.rec)+'</strong>. '+esc(d.why)+'</span>' +
+      (res.length ? '<span class="small">Tus pares: '+res.join(" ")+' <span class="muted">(✓ preferiste la perilla, ✗ la v3, ~ igual o ninguna)</span></span>' : "") + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px"><select id="d-'+d.id+'" aria-label="'+esc(d.t)+'"><option value="">— elige —</option>' +
+      d.opts.map(o => '<option'+(o === v ? " selected" : "")+'>'+esc(o)+'</option>').join("") + '</select>' +
+      '<input type="text" id="dn-'+d.id+'" placeholder="Por qué (opcional)" value="'+esc(DEC[d.id] && DEC[d.id].nota || "")+'" aria-label="Nota, '+esc(d.t)+'"></div></div>'; }).join("");
+  DECS.forEach(d => { const s = document.getElementById("d-" + d.id), n = document.getElementById("dn-" + d.id);
+    const save = () => { DEC[d.id] = {valor: s.value, nota: n.value, recomendacion: d.rec}; store("decisiones", d.id, DEC[d.id]); };
+    s.onchange = save; n.oninput = save; });
+}
+for(const g of ["g1","g2"]) document.getElementById(g).oninput = e => { GEN[g] = e.target.value; store("generales", g, {texto: e.target.value}); };
+function fillGen(){ for(const g of ["g1","g2"]) document.getElementById(g).value = GEN[g] || ""; }
+
+/* ---------- start: draw from the browser copy, then load the shared answers ---------- */
+lsLoad(); drawPairs(); drawDecs(); fillGen();
+const origProgress = progress;
+progress = () => { origProgress(); drawDecs(); };
+(async () => {
+  try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ db = null; }
+  if(!db){ $("#saveState").textContent = "sin conexión: se guarda en este navegador"; return; }
+  const timer = setTimeout(() => { $("#saveState").textContent = "la base de datos tarda; se guarda igual"; }, 10000);
+  try{
+    const [r, d, g] = await Promise.all(["respuestas","decisiones","generales"].map(c => db.collection(c).get()));
+    clearTimeout(timer);
+    r.docs.forEach(x => { ANS[x.id] = x.data(); }); d.docs.forEach(x => { DEC[x.id] = x.data(); }); g.docs.forEach(x => { GEN[x.id] = (x.data() || {}).texto || ""; });
+    drawPairs(); drawDecs(); fillGen(); lsSave();
+    $("#saveState").textContent = r.size + d.size ? "respuestas cargadas ✓" : "listo; se guarda al responder";
+  }catch(e){ clearTimeout(timer); $("#saveState").textContent = "no se pudieron leer las respuestas guardadas"; }
+})();
+</script>

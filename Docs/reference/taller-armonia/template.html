@@ -384,9 +384,10 @@ function tonicApproach(rica, tMin){
 }
 // Quality of the ii before a dominant (P1 / remate iiV, 2026-11-11). D2 = A: the scale's own chord when it is
 // minor or diminished there (Am7 before D7 → Gm7 in F); otherwise by the target: m7 towards major, ø7 towards minor.
-// The knob iiDelDestino (Claudio's doubt) always goes by the target.
+// The knob iiDelDestino (Claudio's doubt) always goes by the target, and in a minor key it is always ø7
+// (D10, 2026-11-11: Summertime c. 7, F♯m7♭5 B7 → E7).
 function iiQ(tPc, tQ, P){
-  const pc = mod12(tPc + 2), tMin = MINORISH.has(tQ);
+  const pc = mod12(tPc + 2), tMin = MINORISH.has(tQ) || (P.iiDelDestino && !majorish());
   if(!P.iiDelDestino && inScale(pc)){ const d = diatonicQ(st().indexOf(pc)); if(d === "min") return "m7"; if(d === "dim") return "hdim7"; }
   return tMin ? "hdim7" : "m7";
 }
@@ -729,7 +730,7 @@ const PER_UI = {
   cadenaDominantes:{lab:"Cadena de dominantes", hlp:"Todo acorde que baja una quinta hacia el siguiente se vuelve dominante, también los menores (Em → E7 antes de Am), salvo el ii que va al V. Desde la vuelta 1 y sin gastar cambios, como el color. Solo en Jónico (All of Me)."},
   disminuido:{lab:"Disminuido de paso", hlp:"Un °7 en la segunda mitad como peldaño: sube (C – C♯°7 – Dm), de vecino (F – F♯°7 – C) o baja (C – A♭°7 – G)."},
   bVI7Menor:{lab:"♭VI7 en menor", hlp:"En Eólico, el VI que va al V o al iv se vuelve dominante (F7 → E7 en La menor): el giro del blues menor. Desde la vuelta 1 y sin gastar cambios."},
-  iiDelDestino:{lab:"ii según el destino", hlp:"En los ii–V, el ii es m7 hacia un acorde mayor y m7♭5 hacia uno menor, aunque la escala diga otra cosa (Bm7♭5–E7 antes de Am)."},
+  iiDelDestino:{lab:"ii según el destino", hlp:"En los ii–V, el ii es m7 hacia un acorde mayor y m7♭5 hacia uno menor o en tonalidad menor, aunque la escala diga otra cosa (Bm7♭5–E7 antes de Am; F♯m7♭5–B7 antes de E7 en La menor)."},
 };
 const perTxt = (k, v) => typeof v === "boolean" ? (v ? "sí" : "no") : (PER_UI[k].txt && PER_UI[k].txt[v]) || String(v);
 // Knobs that do nothing in the current mode are dimmed (Music Lab §2).

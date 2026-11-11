@@ -252,3 +252,10 @@ Página privada con los recursos, sus reglas, ejemplos de la Biblioteca que suen
 8. Las diferencias de 1–2 puntos son ruido con 9 secciones.
 
 **Límites:** son 9 secciones, todas de jazz. Los esqueletos los escribió el agente, y R3 da el tiempo al acorde anterior, como hace el taller, así que la prueba le es favorable. Además, un adorno desplazado medio compás cuenta como fallo entero.
+
+## 12. D10, D11 y la hoja de oído (2026-11-11)
+
+- **D10 (aceptada):** con `iiDelDestino`, en tonalidad menor el ii de un ii–V es siempre `m7♭5` (*Summertime* c. 7, `F♯m7♭5 B7 → E7`). Programada en `iiQ`; oro-v3 idéntico. En la reducción, N3 + P1 con el ii del destino pasa de 44 % a 45 %.
+- **D11 (aceptada, apuntada para P6):** la tónica dominante del blues (`I7`, `IV7`) será un perfil «blues», no una perilla suelta. Es el fallo más grande de la reducción (*Billie's*, 18 %).
+- **Hoja de oído:** https://claude.ai/artifact/Bug5CcKLJWkKWmpNfqr3Ki (fuente en `prueba-oido-p1p5/`, `node prueba-oido-p1p5/build.mjs`). Son 14 pares a ciegas (v3 frente a la perilla, con el orden barajado de forma fija por par) y la decisión de nivel para cada perilla. Las respuestas se guardan en el db del artefacto, en las colecciones `respuestas`, `decisiones` y `generales`, y el agente las lee con `ArtifactData list`.
+- **Hallazgo de diseño al preparar la hoja:** en el nivel 2, P1 casi nunca sonaría. El sus4 va antes que el acorde de paso y gasta el único cambio de la vuelta, y en la última vuelta lo gasta el remate. Para tener P1 en el 2 habría que encender también `preferirAcordeNuevo`.
