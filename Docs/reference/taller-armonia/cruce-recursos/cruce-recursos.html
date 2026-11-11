@@ -1,0 +1,194 @@
+<title>Niveles y recursos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column. A strip of the 13 validated resources coloured by state (the summary), then the full cross table with filters, then the proposals, then the road to MidiGenPlay. Same family as the Taller armónico. */
+:root{
+  --bg:#e9eef0; --panel:#ffffff; --panel-2:#dde4e7; --ink:#152025; --muted:#56656c; --line:#c3cdd2;
+  --accent:#0d7a80;
+  --s-si:#1f7a4a; --s-si-bg:#dcefe3;
+  --s-medio:#9a6200; --s-medio-bg:#f6ebd2;
+  --s-no:#b0384f; --s-no-bg:#f7dfe4;
+  --s-bloq:#5a5f8a; --s-bloq-bg:#e3e4f1;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --s-si:#6fd39b; --s-si-bg:#173326; --s-medio:#f0b85a; --s-medio-bg:#3a2c12; --s-no:#ef8ba0; --s-no-bg:#3d1c24; --s-bloq:#aeb3ec; --s-bloq-bg:#272a45;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --s-si:#6fd39b; --s-si-bg:#173326; --s-medio:#f0b85a; --s-medio-bg:#3a2c12; --s-no:#ef8ba0; --s-no-bg:#3d1c24; --s-bloq:#aeb3ec; --s-bloq-bg:#272a45;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(28px,5vw,40px)}
+h2{font-size:22px}
+h3{font-size:17px}
+p{margin:0;max-width:72ch}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+code{font:13px var(--f-mono);background:var(--panel-2);padding:1px 5px;border-radius:4px}
+a{color:var(--accent)}
+
+/* summary strip */
+.tira{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:4px}
+@media (max-width:640px){.tira{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.celda{border-radius:8px;padding:8px 6px;min-height:76px;display:flex;flex-direction:column;justify-content:space-between;gap:4px;background:var(--bgc);color:var(--fgc);border:1px solid color-mix(in srgb,var(--fgc) 30%,transparent)}
+.celda b{font:600 11px/1.2 var(--f-body);overflow-wrap:anywhere}
+.celda span{font:600 16px var(--f-mono)}
+.cuenta{display:flex;flex-wrap:wrap;gap:10px 22px}
+.cuenta div{display:flex;align-items:baseline;gap:8px}
+.cuenta strong{font:700 30px var(--f-display);color:var(--fgc);font-variant-numeric:tabular-nums}
+.st-si{--fgc:var(--s-si);--bgc:var(--s-si-bg)} .st-medio{--fgc:var(--s-medio);--bgc:var(--s-medio-bg)}
+.st-no{--fgc:var(--s-no);--bgc:var(--s-no-bg)} .st-bloq{--fgc:var(--s-bloq);--bgc:var(--s-bloq-bg)}
+.pill{display:inline-flex;align-items:center;gap:5px;font:600 12px/1 var(--f-body);padding:5px 9px;border-radius:99px;background:var(--bgc);color:var(--fgc);white-space:nowrap}
+
+/* table */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:5px 12px;font:14px var(--f-body);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabla-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:640px}
+th,td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.rec b{display:block}
+td.rec small{color:var(--muted);font:12px var(--f-mono)}
+td.prop{font:600 13px var(--f-mono);color:var(--accent);white-space:nowrap}
+
+/* proposals */
+.props{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.prop-card{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.prop-card .id{font:700 13px var(--f-mono);color:var(--accent)}
+.prop-card .ej{font-size:13px;color:var(--muted)}
+.prop-card.destacada{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+/* road */
+.camino{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;counter-reset:paso}
+@media (max-width:760px){.camino{grid-template-columns:minmax(0,1fr)}}
+.etapa{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--panel-2);min-width:0}
+.etapa .donde{font:600 12px var(--f-mono);color:var(--muted)}
+.etapa ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.cuando{font:600 12px var(--f-body);padding:4px 8px;border-radius:6px;align-self:flex-start}
+.ahora{background:var(--s-si-bg);color:var(--s-si)} .despues{background:var(--s-bloq-bg);color:var(--s-bloq)}
+footer{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.chip{transition:background .15s}}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <span class="eyebrow">Taller armónico · Music Lab · 2026-11-11</span>
+    <h1>Niveles y recursos</h1>
+    <p class="muted">Qué recursos armónicos de Music Lab usan hoy los niveles 2 y 3 del taller, cuáles faltan, cómo añadirlos y cómo llega todo a MidiGenPlay y a ALWTTT.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-res">
+    <h2 id="h-res">Los 13 recursos armónicos validados (①)</h2>
+    <div class="cuenta" id="cuenta"></div>
+    <div class="tira" id="tira"></div>
+    <p class="muted">Lo que falta no es lo exótico: es lo más frecuente en las 15 canciones de la Biblioteca. El ii–V mayor está en 15 canciones y el taller solo pone su dominante.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-tabla">
+    <h2 id="h-tabla">El cruce, recurso por recurso</h2>
+    <div class="chips" id="filtros" role="group" aria-label="Filtrar por estado"></div>
+    <div class="tabla-wrap"><table>
+      <thead><tr><th>Recurso de Music Lab</th><th>En el taller</th><th>Dónde, o por qué no</th><th>Propuesta</th></tr></thead>
+      <tbody id="filas"></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-props">
+    <h2 id="h-props">Cómo aprovechar lo analizado</h2>
+    <p class="muted">Cada propuesta es una perilla nueva, apagada al principio, para que el taller siga sonando igual hasta que la escuches y decidas encenderla.</p>
+    <div class="props" id="props"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-camino">
+    <h2 id="h-camino">El camino hasta ALWTTT</h2>
+    <p class="muted">Cada vez que Music Lab promueve un recurso, el cambio baja por estas cuatro etapas. La prueba de oro del taller es lo que viaja: MidiGenPlay tiene que dar la misma salida.</p>
+    <div class="camino" id="camino"></div>
+  </section>
+
+  <footer>Fuente: <code>ALWTTT25/Docs/reference/taller-armonia/revision-music-lab-recursos-2026-11-11.md</code> y <code>Music Lab/recursos-armonicos.md</code>. Taller: <a href="https://claude.ai/artifact/6ABsXYisfqmwdof7PhsYik" target="_blank" rel="noopener">abrir</a> · Examinador de fichas: <a href="https://claude.ai/artifact/APxVGsNGkkwzkmRsBveN3S" target="_blank" rel="noopener">abrir</a></footer>
+</div>
+
+<script>
+const ESTADOS = {
+  si:    {t:"Lo usa", c:"st-si", i:"✓"},
+  medio: {t:"A medias", c:"st-medio", i:"◐"},
+  no:    {t:"No lo usa", c:"st-no", i:"✗"},
+  bloq:  {t:"Bloqueado", c:"st-bloq", i:"🔒"},
+};
+const R = [
+  {n:"Dominante secundaria", tier:"①", casos:"muchas", e:"si", d:"Acorde de paso clásico (V7 del acorde siguiente) y el color «mayor que baja una quinta → 7».", p:"—"},
+  {n:"Sustitución de tritono", tier:"①", casos:"5", e:"si", d:"Acorde de paso cromático (♭II7 del siguiente); remate rico en Eólico (♭II7 → i).", p:"—"},
+  {n:"Backdoor ii–V", tier:"①", casos:"2", e:"si", d:"Remate rico en Jónico: iv7 – ♭VII9 → I.", p:"—"},
+  {n:"ii–V menor", tier:"①", casos:"8", e:"si", d:"Remate rico en Eólico: iiø7 (luego va a ♭II7 en vez de V7).", p:"—"},
+  {n:"Intercambio modal IV→iv", tier:"①", casos:"6", e:"si", d:"Menor prestado: iv6 después del IV.", p:"—"},
+  {n:"Dominante mayorizada en menor", tier:"①", casos:"5", e:"si", d:"Remate simple en Eólico: el V7 con la sensible.", p:"—"},
+  {n:"ii–V mayor", tier:"①", casos:"15", e:"medio", d:"Pone la dominante (V7), nunca el ii delante.", p:"P1"},
+  {n:"Deslizamiento cromático paralelo", tier:"①", casos:"5", e:"medio", d:"Aparece de rebote cuando el paso cromático cae sobre otra dominante; no es una regla.", p:"P5"},
+  {n:"♭VI7 de color", tier:"①", casos:"3", e:"no", d:"El taller tiene ♭VImaj7 en mayor, no el ♭VI7 dominante en menor.", p:"P4"},
+  {n:"Disminuido de paso", tier:"①", casos:"3", e:"no", d:"Ninguna regla inserta un °7.", p:"P3"},
+  {n:"Cadena de dominantes por quintas", tier:"①", casos:"4", e:"no", d:"El color solo dominantiza acordes mayores; iii, vi y ii se quedan menores.", p:"P2"},
+  {n:"Pivote I → ii", tier:"①", casos:"3", e:"bloq", d:"Es una modulación, y la regla del taller es no modular dentro de la carta. En MidiGenPlay ya existe un planificador de modulaciones.", p:"MidiGenPlay"},
+  {n:"Línea de bajo cromática descendente", tier:"①", casos:"2", e:"bloq", d:"Necesita inversiones (C7/B♭), que el alfabeto de MidiGenPlay no tiene.", p:"MidiGenPlay"},
+  // ② y ③
+  {n:"♭II napolitana", tier:"②", e:"si", d:"Remate del Frigio: ♭IImaj7.", p:"—"},
+  {n:"i7 / iv7", tier:"②", e:"si", d:"El color en Eólico produce im7 e ivm7.", p:"—"},
+  {n:"Intercambio ♭VI / ♭VII", tier:"③", e:"si", d:"♭VImaj7 (nivel 3), el ♭VII del Mixolidio y el ♭VII9 de la backdoor.", p:"—"},
+  {n:"Cadencia auténtica V→I", tier:"③", e:"si", d:"Remate simple.", p:"—"},
+  {n:"Contraste ♭6 / ♮6", tier:"②", e:"medio", d:"El IV7 dórico prestado en Eólico es justo ese ♮6, pero no se pensó así.", p:"P6"},
+  {n:"Giro ♭VI7–V7–i", tier:"②", e:"no", d:"Sería el remate natural de un blues menor.", p:"P4"},
+  {n:"Cliché de línea menor", tier:"②", e:"bloq", d:"Necesita el acorde menor con séptima mayor.", p:"MidiGenPlay"},
+  {n:"Modulaciones, secuencias, resolución evadida, cierre en el relativo mayor, cadencia rota y plagal", tier:"② ③", e:"no", d:"No son adornos de un acorde: cambian la dirección o la forma. Algunos chocan con «no modular».", p:"más adelante"},
+];
+const P = [
+  {id:"P1", t:"ii–V completo", r:"ii–V mayor ①", h:"Si el acorde dura un compás, su segunda mitad pasa al ii y al V7 del acorde siguiente.", ej:"Billie's Bounce, c. 8: Am7 D7 → Gm7"},
+  {id:"P2", t:"Dominantes en cadena", r:"Cadena de dominantes ①", h:"Todo acorde que baja una quinta pasa a 7, también los menores. No añade acordes: solo cambia su calidad.", ej:"Puente de Oleo: III7 – VI7 – II7 – V7"},
+  {id:"P3", t:"Disminuido de paso", r:"Disminuido de paso ①", h:"Si el acorde siguiente está un tono más arriba, la segunda mitad pasa a °7 medio tono por debajo del destino.", ej:"Georgia: C – C♯°7 – Dm"},
+  {id:"P4", t:"♭VI7 en menor", r:"♭VI7 de color ① · giro ♭VI7–V7–i ②", h:"En Eólico y Dórico, ♭VI7 en la segunda mitad del acorde que va a V o a i.", ej:"Cantaloupe Island (D♭7), Summertime c. 6 (F7)"},
+  {id:"P5", t:"Remate deslizado", r:"Deslizamiento cromático ①", h:"El acorde de llegada, precedido de la misma calidad medio tono más arriba.", ej:"Footprints: F7 → E7; Thrill: G7 → F♯7"},
+  {id:"P6", t:"Perfiles de estilo", r:"todos (decisión D8-B pendiente)", h:"Un juego de perillas por estilo, sacado de la Biblioteca: jazz (P1+P2+P3), bossa (paso cromático, ♭VI, iv prestado), blues menor (P4).", ej:"Las 15 fichas dicen qué recursos usa cada estilo"},
+  {id:"Prueba de reducción", t:"La Biblioteca como prueba", r:"para todas las propuestas", h:"Quitarle los adornos a una sección real, pasarla por los niveles y comparar con la canción de verdad. Mide si los adornos del taller se parecen a los de los músicos.", ej:"Oleo A → I–vi–ii–V → niveles → ¿se parece a Oleo?", destacada:true},
+];
+const C = [
+  {t:"Music Lab", d:"recursos-armonicos.md", cuando:"ahora", items:["Promueve o añade un recurso (nota del lote).", "Escribe la regla: dónde va, en qué modos, ejemplos de la Biblioteca."]},
+  {t:"Taller armónico", d:"ALWTTT25/Docs/reference/taller-armonia", cuando:"ahora", items:["Perilla nueva, apagada: la prueba de oro sigue idéntica.", "Prueba de reducción y prueba de oído.", "Si se enciende: nueva versión de oro (v4)."]},
+  {t:"MidiGenPlay", d:"Runtime/CoreScripts/Composition", cuando:"después de la demo", items:["Port de arrange() a C#: ProgressionLevelArranger.", "Perillas como asset: HarmonicLevelProfileSO.", "Test de paridad con la prueba de oro del taller.", "Alfabeto: m(maj7), inversiones, 6/4."]},
+  {t:"ALWTTT", d:"el juego (y otros clientes)", cuando:"después de la demo", items:["Rejugar la carta sube el nivel (D6).", "Perfil por carta o por público."]},
+];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pill = e => `<span class="pill ${ESTADOS[e].c}">${ESTADOS[e].i} ${ESTADOS[e].t}</span>`;
+const validados = R.filter(r => r.tier === "①");
+
+$("#cuenta").innerHTML = Object.entries(ESTADOS).map(([k, v]) =>
+  `<div class="${v.c}"><strong>${validados.filter(r => r.e === k).length}</strong><span>${v.t.toLowerCase()}</span></div>`).join("");
+$("#tira").innerHTML = validados.map(r =>
+  `<div class="celda ${ESTADOS[r.e].c}" title="${esc(r.n)}: ${esc(ESTADOS[r.e].t)}"><b>${esc(r.n)}</b><span>${ESTADOS[r.e].i}</span></div>`).join("");
+
+let filtro = "todos";
+try { filtro = localStorage.getItem("cruce-filtro") || "todos"; } catch (e) {}
+const FILTROS = [["todos","Todos"],["si","Lo usa"],["medio","A medias"],["no","No lo usa"],["bloq","Bloqueado"],["valid","Solo ①"]];
+function pintar(){
+  $("#filtros").innerHTML = FILTROS.map(([k, t]) => `<button class="chip" data-f="${k}" aria-pressed="${k === filtro}">${t}</button>`).join("");
+  const lista = R.filter(r => filtro === "todos" || (filtro === "valid" ? r.tier === "①" : r.e === filtro));
+  $("#filas").innerHTML = lista.map(r => `<tr><td class="rec"><b>${esc(r.n)}</b><small>${r.tier}${r.casos ? " · " + r.casos + " casos" : ""}</small></td><td>${pill(r.e)}</td><td>${esc(r.d)}</td><td class="prop">${esc(r.p)}</td></tr>`).join("");
+}
+$("#filtros").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (!b) return; filtro = b.dataset.f; try { localStorage.setItem("cruce-filtro", filtro); } catch (er) {} pintar(); });
+pintar();
+
+$("#props").innerHTML = P.map(p => `<article class="prop-card${p.destacada ? " destacada" : ""}"><span class="id">${esc(p.id)}</span><h3>${esc(p.t)}</h3><span class="ej">${esc(p.r)}</span><p>${esc(p.h)}</p><span class="ej">Ejemplo: ${esc(p.ej)}</span></article>`).join("");
+$("#camino").innerHTML = C.map(c => `<div class="etapa"><h3>${esc(c.t)}</h3><span class="donde">${esc(c.d)}</span><span class="cuando ${c.cuando === "ahora" ? "ahora" : "despues"}">${c.cuando === "ahora" ? "Se puede ya" : "Después de la demo"}</span><ul>${c.items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>`).join("");
+</script>
