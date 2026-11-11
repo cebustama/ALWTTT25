@@ -44,6 +44,9 @@ namespace ALWTTT.ShipHub
             [Tooltip("Captain's cabin: opens the linear map instead of a room screen.")]
             public bool opensMap;
 
+            [Tooltip("[S6] Dormitory: opens the band lineup screen.")]
+            public bool opensLineup;
+
             [Tooltip("Full-screen art. More than one: «Siguiente» cycles them. " +
                 "Empty: the screen shows only the label.")]
             public Sprite[] art;
@@ -64,6 +67,11 @@ namespace ALWTTT.ShipHub
 
         [Header("Rooms")]
         [SerializeField] private List<Room> rooms = new List<Room>();
+
+        [Header("Lineup (S6)")]
+        [SerializeField, Tooltip("Screen opened by the room with «opensLineup».")]
+        private BandLineupScreen lineupScreen;
+        [SerializeField] private string lineupSuffix = "Banda";
 
         [Header("Look")]
         [SerializeField] private Color zoneIdle = new Color(1f, 1f, 1f, 0f);
@@ -249,6 +257,7 @@ namespace ALWTTT.ShipHub
             zone.SetHighlighted(true);
             var room = rooms[zone.Index];
             _labelText.text = room.opensMap ? $"{room.name} · {mapSuffix}"
+                : room.opensLineup && lineupScreen != null ? $"{room.name} · {lineupSuffix}"
                 : room.inDevelopment ? $"{room.name} · <size=70%>{inDevelopmentText}</size>"
                 : room.name;
 
@@ -280,8 +289,23 @@ namespace ALWTTT.ShipHub
                 return;
             }
 
+            // [S6 NAVE-2] The dormitory is the lineup screen. Without a screen
+            // wired it falls back to the plain room screen.
+            if (room.opensLineup && lineupScreen != null)
+            {
+                _openRoom = zone.Index; // blocks hover/click on the ship meanwhile
+                zone.SetHighlighted(false);
+                _label.gameObject.SetActive(false);
+                lineupScreen.Closed -= OnLineupClosed;
+                lineupScreen.Closed += OnLineupClosed;
+                lineupScreen.Open(Root);
+                return;
+            }
+
             OpenRoom(zone.Index);
         }
+
+        private void OnLineupClosed() => _openRoom = -1;
 
         private void OpenRoom(int index)
         {
@@ -434,7 +458,7 @@ namespace ALWTTT.ShipHub
             {
                 new Room { name = "Cabina del capitán", area = new Rect(0.355f, 0.17f, 0.09f, 0.15f), opensMap = true, inDevelopment = false },
                 new Room { name = "Sala de recreación", area = new Rect(0.30f, 0.33f, 0.12f, 0.105f) },
-                new Room { name = "Dormitorio", area = new Rect(0.335f, 0.44f, 0.075f, 0.12f) },
+                new Room { name = "Dormitorio", area = new Rect(0.335f, 0.44f, 0.075f, 0.12f), opensLineup = true, inDevelopment = false },
                 new Room { name = "Sala de ensayo", area = new Rect(0.11f, 0.12f, 0.17f, 0.26f) },
                 new Room { name = "Chatarrero", area = new Rect(0.41f, 0.555f, 0.10f, 0.05f) },
             };

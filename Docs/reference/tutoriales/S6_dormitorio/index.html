@@ -1,0 +1,267 @@
+<title>El dormitorio es la banda</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una columna de lectura (~68ch) con índice fijo a la izquierda en escritorio; figuras a ancho de columna; Inspector como tablas oscuras tipo Unity. */
+:root {
+  --bg: #f6f7fb; --paper: #ffffff; --fg: #1b1f2e; --muted: #5b6275; --line: #dde1ec;
+  --accent: #2f45c8; --accent-soft: #e6e9fb; --gold: #b58300; --gold-soft: #fff4d4;
+  --ok: #1e7d4f; --ok-soft: #e3f5ec; --warn: #a2481a; --warn-soft: #fbe9df;
+  --insp-bg: #383838; --insp-row: #3f3f3f; --insp-fg: #e4e4e4; --insp-key: #b9b9b9; --insp-val: #9fd4ff;
+  --code-bg: #eef0f7;
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12141c; --paper: #191c27; --fg: #e3e6f0; --muted: #9aa1b6; --line: #2c3142;
+  --accent: #8fa0ff; --accent-soft: #232a4d; --gold: #f2c14e; --gold-soft: #3a3016;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0a07a; --warn-soft: #3a2218;
+  --insp-bg: #2a2a2a; --insp-row: #323232; --code-bg: #222636; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12141c; --paper: #191c27; --fg: #e3e6f0; --muted: #9aa1b6; --line: #2c3142;
+  --accent: #8fa0ff; --accent-soft: #232a4d; --gold: #f2c14e; --gold-soft: #3a3016;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0a07a; --warn-soft: #3a2218;
+  --insp-bg: #2a2a2a; --insp-row: #323232; --code-bg: #222636; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 16px/1.65 var(--f-body); }
+.wrap { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 48px; max-width: 1120px; margin: 0 auto;
+  padding-block: 40px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 14px; }
+nav.toc b { font-family: var(--f-display); display: block; margin-bottom: 8px; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; color: var(--muted) }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px }
+nav.toc a { color: var(--fg); text-decoration: none; display: block; padding: 3px 8px; border-radius: 4px }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); outline: none }
+nav.toc .n { color: var(--muted); font-family: var(--f-mono); font-size: 12px; margin-right: 6px }
+main { min-width: 0; max-width: 72ch }
+header.hero { margin-bottom: 40px }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent) }
+h1 { font-family: var(--f-display); font-size: clamp(34px, 5vw, 48px); line-height: 1.08; margin: 8px 0 14px; text-wrap: balance }
+h2 { font-family: var(--f-display); font-size: 28px; margin: 64px 0 10px; text-wrap: balance; scroll-margin-top: 20px }
+h2 .n { color: var(--accent); margin-right: 10px }
+h3 { font-family: var(--f-display); font-size: 19px; margin: 32px 0 6px; text-wrap: balance }
+h3 .n { color: var(--muted); font-family: var(--f-mono); font-size: 14px; margin-right: 8px }
+p, li { max-width: 68ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere }
+kbd { font-family: var(--f-mono); font-size: .82em; border: 1px solid var(--line); border-bottom-width: 2px; padding: 0 5px; border-radius: 4px; background: var(--paper) }
+.path { font-family: var(--f-mono); font-size: .86em; color: var(--muted); overflow-wrap: anywhere }
+ol.steps { padding-left: 22px; display: grid; gap: 8px }
+ol.steps > li::marker { font-family: var(--f-mono); color: var(--accent); font-weight: 600 }
+.menu { font-family: var(--f-mono); font-size: .86em; font-weight: 600; white-space: nowrap }
+figure { margin: 24px 0; }
+figure img { display: block; width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--line) }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; font-style: italic }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.pair figure { margin: 0 }
+.box { border-radius: 8px; padding: 14px 18px; margin: 20px 0; border: 1px solid transparent }
+.box > :first-child { margin-top: 0 } .box > :last-child { margin-bottom: 0 }
+.box .tag { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px }
+.ok { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 35%, transparent) } .ok .tag { color: var(--ok) }
+.why { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent) } .why .tag { color: var(--accent) }
+.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent) } .warn .tag { color: var(--warn) }
+.insp { background: var(--insp-bg); color: var(--insp-fg); border-radius: 6px; font: 13px/1.4 var(--f-mono); margin: 16px 0; overflow-x: auto }
+.insp .title { padding: 8px 12px; font-weight: 600; border-bottom: 1px solid #222 }
+.insp table { border-collapse: collapse; width: 100%; min-width: 380px }
+.insp td { padding: 6px 12px; border-top: 1px solid #2c2c2c; vertical-align: top }
+.insp tr:nth-child(even) td { background: var(--insp-row) }
+.insp td:first-child { color: var(--insp-key); width: 42% }
+.insp td:last-child { color: var(--insp-val) }
+.insp .sub td:first-child { padding-left: 28px }
+table.plain { border-collapse: collapse; width: 100%; font-size: 15px; margin: 16px 0 }
+.tbl { overflow-x: auto }
+table.plain th, table.plain td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+table.plain th { font-family: var(--f-display); font-size: 14px; color: var(--muted) }
+table.plain td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+pre.log { background: var(--code-bg); border-radius: 6px; padding: 12px 14px; font: 13px/1.55 var(--f-mono); overflow-x: auto; margin: 10px 0 }
+.smoke { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 16px 18px; margin: 18px 0 }
+.smoke h4 { font-family: var(--f-display); margin: 0 0 8px; font-size: 17px }
+.smoke dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 0 }
+.smoke dt { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 3px }
+.smoke dd { margin: 0; min-width: 0 }
+.refs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px }
+.ref { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column }
+.ref img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; border-bottom: 1px solid var(--line) }
+.ref .body { padding: 12px 14px; font-size: 14px; display: grid; gap: 6px }
+.ref h4 { font-family: var(--f-display); margin: 0; font-size: 16px }
+.ref .take b { color: var(--ok) } .ref .skip b { color: var(--warn) }
+.ref .path { font-size: 11.5px }
+.done { font-family: var(--f-mono); font-size: 13px; color: var(--muted); margin-top: 60px; border-top: 1px solid var(--line); padding-top: 16px }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0,1fr); gap: 24px } nav.toc { position: static } .refs, .pair { grid-template-columns: minmax(0,1fr) } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Índice">
+  <b>Índice</b>
+  <ol>
+    <li><a href="#compila"><span class="n">1</span>Compila</a></li>
+    <li><a href="#arte"><span class="n">2</span>El arte</a></li>
+    <li><a href="#mascara"><span class="n">3</span>El truco de la máscara</a></li>
+    <li><a href="#pantalla"><span class="n">4</span>La pantalla de la banda</a></li>
+    <li><a href="#conectar"><span class="n">5</span>Conectarla al dormitorio</a></li>
+    <li><a href="#codigo"><span class="n">6</span>Qué cambió en el código</a></li>
+    <li><a href="#probar"><span class="n">7</span>Probarlo</a></li>
+    <li><a href="#refs"><span class="n">8</span>Referencias</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">ALWTTT · DEMO-1211 · S6 NAVE-2</div>
+  <h1>El dormitorio es la banda</h1>
+  <p class="lede">Al entrar al dormitorio de la nave aparecen los cuatro músicos en sus tarjetas. Un clic en Dúo, Trío o Cuarteto arma esa banda, y un clic en una tarjeta mete o saca a ese músico. Los que no van se ven en silueta. El primer gig se juega con esa banda y su mazo.</p>
+  <p>Este tutorial cubre:</p>
+  <ul>
+    <li>Importar las dos versiones del arte «Personajes».</li>
+    <li>Apagar a un músico con una máscara, sin recortar el arte.</li>
+    <li>Configurar tarjetas y bandas fijas como datos.</li>
+    <li>Conectar la pantalla a la sala Dormitorio.</li>
+    <li>Probar el dúo, el trío y el cuarteto hasta el primer gig.</li>
+  </ul>
+  <p>El código ya está escrito y compila con Roslyn fuera de Unity, pero <strong>nadie lo ha abierto en Unity ni lo ha jugado</strong>. Cada sección termina con un «lo has logrado si…». Si una falla, para ahí y cuéntamelo.</p>
+</header>
+
+<h2 id="compila"><span class="n">1</span>Comprobar que compila</h2>
+<ol class="steps">
+  <li>Abre el proyecto en Unity y espera a que termine la importación. Hay dos PNG nuevos de 5400 × 3058 y puede tardar un minuto.</li>
+  <li>Abre la <span class="menu">Console</span> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>) y pulsa <span class="menu">Clear</span>.</li>
+</ol>
+<div class="box ok"><span class="tag">Lo has logrado si</span>la Console no muestra errores rojos y en <span class="path">Assets/Scripts/ShipHub/</span> aparece <code>BandLineupScreen</code> junto a <code>ShipHubController</code> y <code>ShipRoomZone</code>.</div>
+
+<h2 id="arte"><span class="n">2</span>El arte</h2>
+<p>Del zip copié dos imágenes a <span class="path">Assets/Art/Ship/</span>, con nombres nuevos. La tercera, «personajes disponibles», no hace falta: la pantalla la compone sola (sección 3).</p>
+<div class="pair">
+  <figure><img src="img/personajes.jpg" alt="Las cuatro tarjetas a color: Zit, Conito, Sivi y A-23" loading="lazy"><figcaption><code>Dormitorio_Personajes.png</code>: todos a color.</figcaption></figure>
+  <figure><img src="img/tapados.jpg" alt="Las mismas cuatro tarjetas con los personajes en silueta negra" loading="lazy"><figcaption><code>Dormitorio_Personajes_Tapados.png</code>: todos en silueta.</figcaption></figure>
+</div>
+<p>Selecciona las <strong>dos</strong> a la vez en el Project y pon en el Inspector:</p>
+<div class="insp"><div class="title">Import Settings · las dos imágenes</div><table>
+  <tr><td>Texture Type</td><td>Sprite (2D and UI)</td></tr>
+  <tr><td>Sprite Mode</td><td>Single</td></tr>
+  <tr><td>Max Size</td><td>2048 (el mismo en las dos)</td></tr>
+  <tr><td>Compression</td><td>Normal Quality (el mismo en las dos)</td></tr>
+</table></div>
+<p>Pulsa <span class="menu">Apply</span>.</p>
+<div class="box why"><span class="tag">Por qué las dos iguales</span>La silueta se dibuja encima del arte a color, píxel sobre píxel. Si una imagen se importa a 2048 y la otra a 4096, o si una se recorta, la silueta queda corrida unos píxeles y asoma el borde del personaje a color. Las dos tienen que tener el mismo tamaño y el mismo encuadre, como el exterior y el corte de la nave en S5.</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>al hacer clic en cada imagen, la vista previa del Inspector muestra un sprite de 2048 × 1160 y las dos tienen los mismos valores.</div>
+
+<h2 id="mascara"><span class="n">3</span>El truco de la máscara</h2>
+<p>La pantalla pone el arte a color de fondo. Sobre cada tarjeta coloca una ventana del tamaño de la tarjeta (<code>RectMask2D</code>). Dentro de cada ventana va la imagen <em>entera</em> de las siluetas, alineada con el fondo; la máscara solo deja ver el trozo de esa tarjeta. Encender o apagar a un músico es activar o desactivar su ventana.</p>
+<figure><img src="img/duo.jpg" alt="Zit y Conito en silueta; Sivi y A-23 a color" loading="lazy"><figcaption>Así se ve el dúo (Sivi y A-23). Es el mismo dibujo que «personajes disponibles» del zip, pero la pantalla lo compone en vivo para cualquier combinación.</figcaption></figure>
+<div class="box why"><span class="tag">Por qué no recortar cuatro sprites</span>Recortar a cada personaje en su propio PNG obliga a rehacer los recortes cada vez que Matías retoca el arte, y a colocarlos a mano. Con la máscara, el arte entra tal cual: si llega una versión nueva con el mismo encuadre, se reemplazan los dos PNG y todo sigue funcionando. Lo único que se mide son los cuatro rectángulos, en proporciones de 0 a 1, así que no dependen de la resolución.</div>
+
+<h2 id="pantalla"><span class="n">4</span>La pantalla de la banda</h2>
+<ol class="steps">
+  <li>Abre la escena <code>1c - Ship Hub</code>.</li>
+  <li>Selecciona el objeto que tiene <code>ShipHubController</code>.</li>
+  <li><span class="menu">Add Component</span> → <code>BandLineupScreen</code>. Al añadirlo, Unity llama a <code>Reset()</code> y rellena las cuatro tarjetas con sus rectángulos y las tres bandas, todavía sin miembros.</li>
+  <li>Rellena el Inspector así. Los prefabs están en <span class="path">Assets/Prefabs/Characters/Musicians/</span>.</li>
+</ol>
+<div class="insp"><div class="title">Band Lineup Screen</div><table>
+  <tr><td>Lit Art</td><td>Dormitorio_Personajes</td></tr>
+  <tr><td>Hidden Art</td><td>Dormitorio_Personajes_Tapados</td></tr>
+  <tr><td>Cards › 0 · Zit › Musician</td><td>BandCharacter - Ziggy</td></tr>
+  <tr><td>Cards › 1 · Conito › Musician</td><td>BandCharacter - Conito</td></tr>
+  <tr><td>Cards › 2 · Sivi › Musician</td><td>BandCharacter - Sibi</td></tr>
+  <tr><td>Cards › 3 · A-23 › Musician</td><td>BandCharacter - Robot C2</td></tr>
+  <tr><td>Presets › 0 · duo › Members</td><td>Robot C2, Sibi</td></tr>
+  <tr><td>Presets › 1 · trio › Members</td><td>Robot C2, Sibi, Conito</td></tr>
+  <tr><td>Presets › 2 · cuarteto › Members</td><td>los cuatro</td></tr>
+  <tr><td>Default Preset</td><td>2 (cuarteto)</td></tr>
+  <tr><td>Min Musicians</td><td>2</td></tr>
+</table></div>
+<figure><img src="img/areas.jpg" alt="El arte a color con cuatro rectángulos amarillos, uno por tarjeta, con el nombre debajo" loading="lazy"><figcaption>Los rectángulos de <code>Reset()</code>, dibujados sobre el arte real. Incluyen el nombre, que es igual en las dos imágenes, para que el clic en el nombre también cuente.</figcaption></figure>
+<div class="box why"><span class="tag">Por qué importa el orden de las tarjetas</span>La banda sale en el orden de las tarjetas, de izquierda a derecha, y en ese orden el gig coloca a los músicos en <code>musicianPosList</code>. El orden de los miembros dentro de un preset no importa: el preset solo dice <em>quién</em> va.</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>las cuatro tarjetas tienen su músico y las tres bandas tienen 2, 3 y 4 miembros.</div>
+
+<h2 id="conectar"><span class="n">5</span>Conectarla al dormitorio</h2>
+<p>En el mismo objeto, en <code>ShipHubController</code>:</p>
+<div class="insp"><div class="title">Ship Hub Controller</div><table>
+  <tr><td>Lineup (S6) › Lineup Screen</td><td>el BandLineupScreen del mismo objeto (arrastra el componente)</td></tr>
+  <tr><td>Lineup (S6) › Lineup Suffix</td><td>Banda</td></tr>
+  <tr><td>Rooms › Dormitorio › Opens Lineup</td><td>✓</td></tr>
+  <tr><td>Rooms › Dormitorio › In Development</td><td>✗</td></tr>
+</table></div>
+<div class="box warn"><span class="tag">Cuidado</span>No uses <span class="menu">Reset</span> en <code>ShipHubController</code>: devolvería las salas a sus valores por defecto y perderías el arte de cada sala. Cambia solo esas dos casillas a mano.</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>en Play, al pasar el ratón por el dormitorio, la etiqueta dice «Dormitorio · Banda» y no «EN DESARROLLO».</div>
+
+<h2 id="codigo"><span class="n">6</span>Qué cambió en el código</h2>
+<div class="tbl"><table class="plain">
+  <tr><th>Archivo</th><th>Cambio</th></tr>
+  <tr><td class="path">ShipHub/BandLineupScreen.cs</td><td>Nuevo. Construye la pantalla en código, guarda cada cambio y bloquea la banda tras el primer gig.</td></tr>
+  <tr><td class="path">ShipHub/ShipHubController.cs</td><td><code>Room.opensLineup</code> y el campo <code>lineupScreen</code>; la sala con esa casilla abre la pantalla.</td></tr>
+  <tr><td class="path">Data/Core/PersistentGameplayData.cs</td><td><code>ChosenBandRoster</code> y <code>ChosenLineupId</code>, que se vacían al empezar partida.</td></tr>
+  <tr><td class="path">Map/LinearMapController.cs</td><td>El nodo 0 usa la banda elegida o, si no hay, la del <code>DemoLaunchConfig</code>. Corrige la etiqueta del mazo.</td></tr>
+  <tr><td class="path">DevMode/DevRunTelemetryLogger.cs</td><td>Campo <code>lineupId</code> en cada registro; versión del esquema 1 → 2.</td></tr>
+</table></div>
+<div class="box why"><span class="tag">Por qué se guarda en cada clic</span>No hay botón «Confirmar». Cada clic escribe la banda en <code>PersistentGameplayData</code>, y la pantalla no deja bajar de dos músicos. Así no existe un estado a medias: al cerrar el dormitorio, la banda guardada es la que ves. Un botón de confirmar abre la pregunta de qué pasa si sales sin confirmar, y en una demo eso es un tropiezo más.</div>
+<div class="box why"><span class="tag">Por qué en PersistentGameplayData y no en el asset</span><code>DemoLaunchConfig</code> es un ScriptableObject: en el editor, lo que se le escribe en Play se queda en el asset al salir. Si la elección viviera ahí, el dúo de una prueba sería la banda por defecto de la siguiente. <code>PersistentGameplayData</code> se rehace en cada partida nueva.</div>
+<div class="box why"><span class="tag">Por qué «libre»</span>Pediste poder probar combinaciones para llegar a las que funcionan. Si la banda coincide con un preset, la telemetría la anota como <code>duo</code>, <code>trio</code> o <code>cuarteto</code>; si no, como <code>libre</code>, con el <code>roster</code> al lado. Sin pasar por el dormitorio se anota <code>config</code>. Con eso, el JSONL ya sirve para comparar combinaciones más adelante.</div>
+
+<h2 id="probar"><span class="n">7</span>Probarlo</h2>
+<p>Tres smokes, cada uno desde el menú en una partida nueva. Filtra la Console por <code>[S6]</code>. Los ids son los de <code>MusicianCharacterData</code>: Conito 1, Sibi 2, Ziggy 3, Robot C2 4.</p>
+
+<div class="smoke"><h4>Smoke 1 · Dúo hasta el primer gig</h4><dl>
+  <dt>Antes</dt><dd>Partida nueva desde el menú.</dd>
+  <dt>Acción</dt><dd>Nave → Dormitorio → <strong>Dúo</strong> → Volver → cabina → primer nodo.</dd>
+  <dt>Esperado</dt><dd>En el dormitorio, Zit y Conito pasan a silueta y el texto dice «Dúo: Sivi, A-23». En el gig hay solo dos músicos y la mano solo trae cartas de ellos (y las genéricas).
+<pre class="log">[S6] Ship → Dormitorio | lineup=cuarteto | band=[Zit, Conito, Sivi, A-23] | locked=False
+[S6] Lineup → duo | band=[Sivi, A-23]
+[S6] Dormitorio → Ship | lineup=duo | band=[Sivi, A-23]
+[S6] Map → Gig 1 | lineup=duo | musicians=2 | deck=&lt;auto:2+4&gt;</pre></dd>
+  <dt>Falla si</dt><dd>salen cuatro músicos o cartas de Zit o Conito, la silueta no coincide con el dibujo, o un log aparece dos veces. Mira también dónde quedan los dos músicos en el escenario: si hay huecos raros, anótalo para S7.</dd>
+</dl></div>
+
+<div class="smoke"><h4>Smoke 2 · Trío, combinación libre y mínimo</h4><dl>
+  <dt>Antes</dt><dd>Partida nueva.</dd>
+  <dt>Acción</dt><dd>Dormitorio → <strong>Trío</strong>. Clic en A-23 (sale). Clic en Conito (intenta salir). Clic en <strong>Trío</strong> otra vez. Volver → cabina → primer nodo.</dd>
+  <dt>Esperado</dt><dd>Tras quitar a A-23 el texto dice «Libre: Conito, Sivi». Al intentar quitar a Conito aparece «Mínimo 2 músicos» y no cambia nada. El gig se juega con Conito, Sivi y A-23.
+<pre class="log">[S6] Lineup → trio | band=[Conito, Sivi, A-23]
+[S6] Lineup → libre | band=[Conito, Sivi]
+[S6] Lineup | 'Conito' stays: minimum 2.
+[S6] Lineup → trio | band=[Conito, Sivi, A-23]
+[S6] Map → Gig 1 | lineup=trio | musicians=3 | deck=&lt;auto:1+2+4&gt;</pre></dd>
+  <dt>Falla si</dt><dd>se puede bajar a un músico, o el gig no tiene a esos tres.</dd>
+</dl></div>
+
+<div class="smoke"><h4>Smoke 3 · Cuarteto y banda bloqueada (regresión)</h4><dl>
+  <dt>Antes</dt><dd>Partida nueva.</dd>
+  <dt>Acción</dt><dd>Dormitorio → Volver sin tocar nada → cabina → primer gig (gana o pierde). De vuelta en la nave, entra otra vez al dormitorio y haz clic en una tarjeta.</dd>
+  <dt>Esperado</dt><dd>El gig tiene a los cuatro, igual que antes de S6. Al volver, el dormitorio muestra la banda sin los botones Dúo/Trío/Cuarteto, y el clic solo muestra «La banda ya está de gira». Al terminar el gig, la línea nueva de <span class="path">DevTelemetry/gig_runs_AAAA-MM-DD.jsonl</span> trae <code>"lineupId":"cuarteto"</code>.
+<pre class="log">[S6] Map → Gig 1 | lineup=cuarteto | musicians=4 | deck=&lt;auto:3+1+2+4&gt;
+[S6] Ship → Dormitorio | lineup=cuarteto | band=[Zit, Conito, Sivi, A-23] | locked=True</pre></dd>
+  <dt>Falla si</dt><dd>la banda se puede cambiar después del gig, o el segundo gig cambia de músicos.</dd>
+</dl></div>
+<p>Si además quieres comprobar el camino de siempre: en una partida nueva ve directo a la cabina sin entrar al dormitorio. Debe salir <code>lineup=config | musicians=4</code>.</p>
+
+<h2 id="refs"><span class="n">8</span>Referencias</h2>
+<p>Las que encontré en tus colecciones (búsqueda con <code>--all</code>), abiertas y revisadas una a una.</p>
+<div class="refs">
+  <article class="ref"><img src="img/ref-itb.jpg" alt="Into the Breach: pantalla Squad Selection con escuadras fijas, Custom Squad y escuadras bloqueadas en silueta" loading="lazy"><div class="body">
+    <h4>Into the Breach: Squad Selection</h4>
+    <div>Escuadras fijas (Rift Walkers) junto a «Custom Squad» y «Random Squad»; las bloqueadas, en silueta. Es tu idea: bandas que sabemos que funcionan y combinaciones libres en la misma pantalla.</div>
+    <div class="take"><b>Tomar:</b> preset y combinación libre al mismo nivel, y la silueta para lo que no va.</div>
+    <div class="skip"><b>No tomar:</b> las monedas para desbloquear; en la demo no hay desbloqueos.</div>
+    <div class="path">Dropbox/ALWTTT References/Screenshot 2024-09-02 123410.png</div></div></article>
+  <article class="ref"><img src="img/ref-grift.jpg" alt="Griftlands: Sal a color y dos personajes bloqueados en silueta" loading="lazy"><div class="body">
+    <h4>Griftlands: selección de personaje</h4>
+    <div>El personaje elegido, a color y a tamaño completo; los otros, silueta del mismo tamaño en el mismo sitio.</div>
+    <div class="take"><b>Tomar:</b> la silueta ocupa el lugar exacto del personaje, como en el arte de Matías.</div>
+    <div class="skip"><b>No tomar:</b> el «LOCKED»; aquí la silueta significa «no viene», no «bloqueado».</div>
+    <div class="path">Dropbox/ALWTTT References/Screenshot 2025-06-28 085637.png</div></div></article>
+  <article class="ref"><img src="img/ref-cuaderno.jpg" alt="Página de cuaderno: demo de Gamescom 2025 con pantalla de inicio, género y elección de alineación" loading="lazy"><div class="body">
+    <h4>Tu cuaderno, junio de 2025</h4>
+    <div>Para la demo de Gamescom ya dibujaste «Choose line up»: número de músicos, tipos de instrumento, cartas iniciales y desbloqueables, con flechas para pasar de una alineación a otra («lineup 1, trío»).</div>
+    <div class="take"><b>Tomar:</b> el número de músicos y las cartas iniciales ya están en S6. Los tipos de instrumento, para cuando haya más de cuatro candidatos.</div>
+    <div class="path">Dropbox/ALWTTT References/Design Docs/WhatsApp Image 2025-06-25 at 15.58.40_9ccc9353.jpg</div></div></article>
+  <article class="ref"><div class="body">
+    <h4>Tu chat de ChatGPT, 20-ago-2025</h4>
+    <div>«Sprite color naming suggestions»: buscabas nombre para el color de un personaje tapado o en sombra (<code>occlusionColor</code>, <code>shadowColor</code>). Es la misma silueta, vista desde el código.</div>
+    <div class="take"><b>Tomar, más adelante:</b> si algún día las siluetas se generan desde el sprite en vez de venir pintadas, ese color es el parámetro.</div>
+    <div class="path">chats-chatgpt/textos/1714.txt</div></div></article>
+</div>
+
+<p class="done">Escrito el 11-nov-2026 para la sesión S6 (NAVE-2). El código no se ha verificado en Unity; este tutorial no sustituye a los smokes.</p>
+</main>
+</div>

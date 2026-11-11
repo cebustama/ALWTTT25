@@ -86,6 +86,13 @@ namespace ALWTTT.Data
         // [MAP-DEMO-1] The tutorial opt-in is asked once per run, not per gig.
         [SerializeField] private bool tutorialOptInAnswered;
 
+        // [S6 NAVE-2] Band chosen in the dormitory (D2=A). Empty = not chosen:
+        // the first map node falls back to the DemoLaunchConfig roster.
+        // Applied once, on the first node; locked after it (D3=A).
+        [SerializeField] private List<MusicianBase> chosenBandRoster = new List<MusicianBase>();
+        // "duo" | "trio" | "cuarteto" | "libre"; empty = not chosen (telemetry: "config").
+        [SerializeField] private string chosenLineupId = string.Empty;
+
         // Sector Map runtime state
         [SerializeField] private SectorMapState currentSectorMapState;
 
@@ -257,6 +264,24 @@ namespace ALWTTT.Data
             set => tutorialOptInAnswered = value;
         }
 
+        /// <summary>[S6 NAVE-2] Band picked in the dormitory; empty if none.</summary>
+        public IReadOnlyList<MusicianBase> ChosenBandRoster => chosenBandRoster;
+
+        /// <summary>[S6 NAVE-2] Lineup id of <see cref="ChosenBandRoster"/>; empty if none.</summary>
+        public string ChosenLineupId => chosenLineupId;
+
+        public bool HasChosenBand => chosenBandRoster != null && chosenBandRoster.Count > 0;
+
+        /// <summary>[S6 NAVE-2] Store the dormitory pick (copy, nulls skipped).</summary>
+        public void SetChosenBand(IEnumerable<MusicianBase> roster, string lineupId)
+        {
+            chosenBandRoster = new List<MusicianBase>();
+            if (roster != null)
+                foreach (var m in roster)
+                    if (m != null && !chosenBandRoster.Contains(m)) chosenBandRoster.Add(m);
+            chosenLineupId = lineupId ?? string.Empty;
+        }
+
 
 
         public SongData CurrentSong
@@ -363,6 +388,7 @@ namespace ALWTTT.Data
             IsFinalEncounter = false;
             LinearMapNextNode = 0;          // [MAP-DEMO-1]
             TutorialOptInAnswered = false;  // [MAP-DEMO-1]
+            SetChosenBand(null, string.Empty); // [S6 NAVE-2]
 
             musicianHealthDataList = new List<MusicianHealthData>();
             musicianGameplayDataList = new List<MusicianGameplayData>();

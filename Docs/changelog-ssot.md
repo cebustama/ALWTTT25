@@ -14,6 +14,18 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-11 — S6: NAVE-2, el dormitorio es la alineación (DEMO-1211)
+
+**Clase:** semántico · operativo. Con cambio de código, escena y datos.
+
+- `SSoT_Gig_Combat_Core` §13: bloque «Band lineup»: `BandLineupScreen`, presets y combinación libre, `PersistentGameplayData.ChosenBandRoster` / `ChosenLineupId`, el primer nodo lanza con la banda elegida (o la del config), banda fija tras el primer gig, `lineupId` en la telemetría; hueco conocido de la colocación en el escenario.
+- Código: `ShipHub/BandLineupScreen.cs` (nuevo), `ShipHubController` (`Room.opensLineup`, `lineupScreen`), `PersistentGameplayData`, `LinearMapController` (roster y `deckLabel` del nodo 0), `DevRunTelemetryLogger` (esquema 1 → 2).
+- Arte: `Assets/Art/Ship/Dormitorio_Personajes.png` y `Dormitorio_Personajes_Tapados.png` (del zip de Matías, renombrados).
+- Decisiones: D1=B (dúo Robot C2 + Sibi, trío + Conito, cuarteto; más combinación libre, pedida por Claudio para encontrar alineaciones que funcionen), D2=A (se guarda en cada clic; sin elección, la banda del config), D3=A (fija tras el primer gig), D4=A (`lineupId`), D5=A (colocación por número de músicos, en S7).
+- Proceso: tutorial-artefacto de S6 (https://claude.ai/artifact/Q1QdFtRifMGMSkuVqoSwXW, fuente en `reference/tutoriales/S6_dormitorio/`); regla nueva en `CLAUDE.md`: `/buscar-referencias --all` al empezar cada sesión de trabajo.
+- Pedido #11 a Matías: assets del panel del dormitorio (boceto «cabina» + «cuarto de los pk»).
+- Smokes 1–3 jugados por Claudio (dúo, trío con libre y mínimo, cuarteto y bloqueo). Observado: con 3 músicos quedan pegados en el escenario.
+
 ## 2026-11-11 — S5: NAVE-1, la nave como hub (DEMO-1211)
 
 **Clase:** semántico · operativo · estructural. Con cambio de código, escena y datos.

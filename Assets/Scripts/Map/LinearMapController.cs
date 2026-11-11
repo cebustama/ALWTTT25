@@ -399,9 +399,22 @@ namespace ALWTTT.Map
             bool first = index == 0;
             bool isBoss = index == nodes.Count - 1;
             runConfig.preserveRunState = !first;
-            List<MusicianBase> roster = first ? config.ResolvedBandRoster : null;
 
             var pd = PD;
+
+            // [S6 NAVE-2] The first node plays the band picked in the dormitory
+            // (D2=A); without a pick it falls back to the config roster.
+            List<MusicianBase> roster = null;
+            if (first)
+            {
+                bool chosen = pd.HasChosenBand;
+                roster = chosen ? new List<MusicianBase>(pd.ChosenBandRoster)
+                                : config.ResolvedBandRoster;
+                runConfig.deckLabel = DeckLabel(roster);
+                Debug.Log($"[S6] Map → Gig 1 | lineup={(chosen ? pd.ChosenLineupId : "config")} | " +
+                          $"musicians={roster.Count} | deck={runConfig.deckLabel}");
+            }
+
             int previous = pd.LinearMapNextNode;
             pd.LinearMapNextNode = index + 1; // consumed at launch (D-MAP-DEMO-2=A)
 
@@ -433,6 +446,17 @@ namespace ALWTTT.Map
             _launching = true; // one transition per click
             Debug.Log($"[S5] Map → Ship | NextNode={_activeIndex}");
             sceneChanger.OpenShipScene();
+        }
+
+        // [S6 NAVE-2] Same format as DemoLaunchConfigSO.ToRunConfig, but from
+        // the roster that actually plays.
+        private static string DeckLabel(List<MusicianBase> roster)
+        {
+            var ids = new List<string>(roster.Count);
+            foreach (var m in roster)
+                if (m != null && m.MusicianCharacterData != null)
+                    ids.Add(m.MusicianCharacterData.CharacterId);
+            return ids.Count > 0 ? "<auto:" + string.Join("+", ids) + ">" : "<auto:<empty>>";
         }
 
         private static void SetAlpha(SectorNodeVisual v, float a)

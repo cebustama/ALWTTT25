@@ -510,6 +510,28 @@ exist or are planned:
    carries it) and needs its own `SceneChanger`; it works only when
    entered from the menu.
 
+**Band lineup (S6 NAVE-2, 2026-11-11; D-PLAN-1=A).** The hub room with
+`Room.opensLineup` (the dormitory) opens `BandLineupScreen`
+(`Assets/Scripts/ShipHub/`), built in code over the «Personajes» art: the lit
+art fills an aspect-fitted frame; each musician card is a `RectMask2D` window
+holding the full silhouette art aligned to the frame, so a musician out of the
+band shows as a silhouette in place (no cut-out art). Cards are data
+(label, `MusicianBase`, rect 0..1 from top-left) in stage order; presets are
+data (`duo`, `trio`, `cuarteto` with members; D1=B). Clicking a card toggles
+that musician freely, never below `minMusicians` (2); a pick matching no preset
+is `libre`. Every change is written at once to
+`PersistentGameplayData.SetChosenBand(roster, lineupId)` (no confirm step);
+the first open of a run with no pick applies the default preset (cuarteto).
+`InitData` clears the pick. The first map node launches with
+`ChosenBandRoster` when set, else with the config roster (D2=A), and rebuilds
+`RunConfig.deckLabel` from the roster that plays. After the first gig
+(`LinearMapNextNode > 0`) the screen is read-only and shows
+`pd.MusicianList` (D3=A). Telemetry: `GigRecord.lineupId`
+(`duo|trio|cuarteto|libre|config`, schema v2; D4=A). Known gap: `GigManager.BuildBand`
+places musician *i* at `musicianPosList[i]`, slots authored for four, so 2–3
+musicians crowd one side (D5=A: per-count layouts in S7); its bound check
+`Count >= i` is off by one.
+
 **Return destination (S5 NAVE-1, D2=A).** `GigRunContext.GigReturnDestination`
 is `Map`, `GigSetup` or `Ship`. `LinearMapController.gigReturnDestination`
 (default `Ship`) is passed to `DemoLaunchConfigSO.ToRunConfig`, so demo gigs

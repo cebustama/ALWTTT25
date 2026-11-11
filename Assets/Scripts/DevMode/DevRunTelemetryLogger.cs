@@ -38,7 +38,7 @@ namespace ALWTTT.DevMode
     public static class DevRunTelemetryLogger
     {
         private const string Tag = "[DevRunTelemetryLogger]";
-        private const int SchemaVersion = 1;
+        private const int SchemaVersion = 2; // [S6] v2: lineupId
 
         // ---------------------------------------------------------------
         // Record DTOs (JsonUtility-serializable)
@@ -56,6 +56,7 @@ namespace ALWTTT.DevMode
             public string lossCause;        // "unconvinced_after_final_song" | "" on win
             public int songsCompleted;      // PD.CurrentSongIndex at outcome
             public int loopsPlayed;         // LoopResolvedEvent count this gig
+            public string lineupId;         // [S6] "duo" | "trio" | "cuarteto" | "libre" | "config"
             public List<string> roster = new List<string>();
             public List<AudienceRecord> audience = new List<AudienceRecord>();
             public List<PlayRecord> plays = new List<PlayRecord>();       // ordered
@@ -209,6 +210,10 @@ namespace ALWTTT.DevMode
                 ? pd.CurrentEncounter
                 : gm != null ? gm.CurrentGigEncounter : null;
             rec.encounterLabel = encounter != null ? encounter.GetLabel() : "(none)";
+
+            // [S6 NAVE-2] Where the band came from: dormitory pick or config.
+            rec.lineupId = pd != null && !string.IsNullOrEmpty(pd.ChosenLineupId)
+                ? pd.ChosenLineupId : "config";
 
             // Roster (stable authored ids).
             if (gm != null && gm.CurrentMusicianCharacterList != null)

@@ -460,6 +460,7 @@ GameObject:
   - component: {fileID: 830456672}
   - component: {fileID: 830456674}
   - component: {fileID: 830456673}
+  - component: {fileID: 830456675}
   m_Layer: 0
   m_Name: ShipHub
   m_TagString: Untagged
@@ -517,6 +518,7 @@ MonoBehaviour:
       width: 0.09
       height: 0.15
     opensMap: 1
+    opensLineup: 0
     art: []
     inDevelopment: 0
   - name: "Sala de recreaci\xF3n"
@@ -527,6 +529,7 @@ MonoBehaviour:
       width: 0.12
       height: 0.105
     opensMap: 0
+    opensLineup: 0
     art:
     - {fileID: -1377742934072830197, guid: b4c87696d9d0070469f9295f6e26aa67, type: 3}
     - {fileID: 8153552337555391915, guid: 72bceaadde6f59d4b8acd1d03070135a, type: 3}
@@ -539,9 +542,10 @@ MonoBehaviour:
       width: 0.075
       height: 0.12
     opensMap: 0
+    opensLineup: 1
     art:
     - {fileID: -9029392499757960848, guid: 0170a6124310cf1469fbe07994d1c8e5, type: 3}
-    inDevelopment: 1
+    inDevelopment: 0
   - name: Sala de ensayo
     area:
       serializedVersion: 2
@@ -550,6 +554,7 @@ MonoBehaviour:
       width: 0.17
       height: 0.26
     opensMap: 0
+    opensLineup: 0
     art:
     - {fileID: 2747149855053578611, guid: 14258f379c62c20498348c9d60c82d4d, type: 3}
     inDevelopment: 1
@@ -561,9 +566,12 @@ MonoBehaviour:
       width: 0.1
       height: 0.05
     opensMap: 0
+    opensLineup: 0
     art:
     - {fileID: -8197995813729694574, guid: 129c6c802b756aa45b84073f04f2e24e, type: 3}
     inDevelopment: 1
+  lineupScreen: {fileID: 830456675}
+  lineupSuffix: Banda
   zoneIdle: {r: 1, g: 1, b: 1, a: 0}
   zoneHover: {r: 1, g: 0.9, b: 0.4, a: 0.22}
   labelFontSize: 34
@@ -574,6 +582,78 @@ MonoBehaviour:
   revealDuration: 1.6
   sceneChanger: {fileID: 830456673}
   cohesionText: {fileID: 0}
+--- !u!114 &830456675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 830456671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb928afd79880c41b888914d45546d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.ShipHub.BandLineupScreen
+  litArt: {fileID: 21300000, guid: 9e453c9d04c69544793576cfcf7d47eb, type: 3}
+  hiddenArt: {fileID: 21300000, guid: 0a62d5fd85611d14fb12a2960e924d63, type: 3}
+  cards:
+  - label: Zit
+    musician: {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
+    area:
+      serializedVersion: 2
+      x: 0.095
+      y: 0.18
+      width: 0.18
+      height: 0.63
+  - label: Conito
+    musician: {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
+    area:
+      serializedVersion: 2
+      x: 0.285
+      y: 0.18
+      width: 0.17
+      height: 0.62
+  - label: Sivi
+    musician: {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
+    area:
+      serializedVersion: 2
+      x: 0.475
+      y: 0.17
+      width: 0.185
+      height: 0.62
+  - label: A-23
+    musician: {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
+    area:
+      serializedVersion: 2
+      x: 0.685
+      y: 0.16
+      width: 0.195
+      height: 0.63
+  presets:
+  - id: duo
+    label: "D\xFAo"
+    members:
+    - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
+    - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
+  - id: trio
+    label: "Tr\xEDo"
+    members:
+    - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
+    - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
+    - {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
+  - id: cuarteto
+    label: Cuarteto
+    members:
+    - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
+    - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
+    - {fileID: 531832505469625713, guid: f84a248b6a1fbc74283b8f46fdaf3624, type: 3}
+    - {fileID: 531832505469625713, guid: bb654f4ebf4bf814482d38559bd402b8, type: 3}
+  defaultPreset: 2
+  minMusicians: 2
+  cardHover: {r: 1, g: 0.9, b: 0.4, a: 0.18}
+  title: "Dormitorio \xB7 Elige la banda"
+  lockedText: "La banda ya est\xE1 de gira"
+  minText: "M\xEDnimo {0} m\xFAsicos"
 --- !u!1 &1746184658
 GameObject:
   m_ObjectHideFlags: 0
