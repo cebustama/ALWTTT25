@@ -323,14 +323,14 @@ function parse(text){
    modal approach chords instead of V7 outside Ionian/Aeolian; no half-step modulation inside the card.
    Everything a level may do lives in its knobs (PERILLAS); the defaults reproduce v3 exactly
    (golden test: node scripts/oro.js comparar oro-v3.json). Names, ranges and merges: Music Lab,
-   revision-music-lab-perillas-2026-11-06.md. Fixed order: remate → sus4 → menor prestado → acorde de paso → ♭VI
+   revision-music-lab-perillas-2026-11-06.md. Fixed order: remate → sus4 → menor prestado → disminuido (P3) → acorde de paso → ♭VI
    (preferirAcordeNuevo moves sus4 behind the acorde de paso). Fixed guards: lap 1 as written; ≤2 distinct chords → 1 change. */
 const PERILLAS_V3 = {
-  2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false},
-  3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"rico",   sus4:false, paso:"cromatico", ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false},
+  2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:false, iiDelDestino:false},
+  3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"rico",   sus4:false, paso:"cromatico", ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:false, iiDelDestino:false},
 };
 const PERILLA_KEYS = Object.keys(PERILLAS_V3[2]);
-const PERILLA_OPC = {color:["triadas","septimas","novenas"], remate:["no","simple","rico"], paso:["no","clasico","cromatico"]};
+const PERILLA_OPC = {color:["triadas","septimas","novenas"], remate:["no","simple","rico","deslizado","iiV"], paso:["no","clasico","cromatico","iiV"]};
 const clonePerillas = p => ({2:{...p[2]}, 3:{...p[3]}});
 // Accepts anything (saved data, the model's answer) and returns valid knobs, filling gaps from `base` (v3 by default).
 // Values it cannot use go to `ignored` (never silently: the page reports them).
@@ -348,8 +348,8 @@ function cleanPerillas(x, base, ignored){
 }
 const samePerillas = (a, b) => [2,3].every(l => PERILLA_KEYS.every(k => a[l][k] === b[l][k]));
 const majorish = () => mod12(st()[2]) === 4;
-function color(c, nextPc, P){
-  let q = c.q; const r = c.pc;
+function color(c, next, P){
+  let q = c.q; const r = c.pc, nextPc = next.pc;
   if(P.color !== "triadas"){
     if(q === "maj"){
       if(mod12(r) !== 0 && mod12(nextPc - c.pc) === 5) q = "7";
@@ -359,6 +359,13 @@ function color(c, nextPc, P){
     } else if(q === "min") q = "m7";
     else if(q === "dim") q = inScale(r+10) ? "hdim7" : "dim7";
   }
+  // P2 (2026-11-11): Ionian, every chord a fifth above the next one becomes a dominant, except the tonic,
+  // diminished chords and the ii that goes to V (D3 = A: the ii–V stays). On every lap, like the colour (D4 = B).
+  const DIMS = ["dim","hdim7","dim7"], nDim = next.rest || DIMS.includes(next.q);
+  if(P.cadenaDominantes && mode === "Ionian" && mod12(r) !== 0 && !DIMS.includes(c.q) && !nDim &&
+     mod12(nextPc - r) === 5 && !(mod12(r) === 2 && mod12(nextPc) === 7)) q = "7";
+  // P4 (2026-11-11): Aeolian, the VI that goes to V/v or to iv becomes VI7 (D7 = B).
+  if(P.bVI7Menor && mode === "Aeolian" && mod12(r) === 8 && !MINORISH.has(c.q) && [7, 5].includes(mod12(nextPc))) q = "7";
   if(P.color === "novenas" && inScale(r+2)) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
   return q;
 }
@@ -375,6 +382,14 @@ function tonicApproach(rica, tMin){
     default: return null;
   }
 }
+// Quality of the ii before a dominant (P1 / remate iiV, 2026-11-11). D2 = A: the scale's own chord when it is
+// minor or diminished there (Am7 before D7 → Gm7 in F); otherwise by the target: m7 towards major, ø7 towards minor.
+// The knob iiDelDestino (Claudio's doubt) always goes by the target.
+function iiQ(tPc, tQ, P){
+  const pc = mod12(tPc + 2), tMin = MINORISH.has(tQ);
+  if(!P.iiDelDestino && inScale(pc)){ const d = diatonicQ(st().indexOf(pc)); if(d === "min") return "m7"; if(d === "dim") return "hdim7"; }
+  return tMin ? "hdim7" : "m7";
+}
 const nextNonRest = (seq, i) => { for(let k=1;k<=seq.length;k++){ const c = seq[(i+k)%seq.length]; if(!c.rest) return c; } return seq[i]; };
 const CADENCE = new Set([5, 7, 2, 11]); // root motion into the first chord: V→I, IV→I, ♭VII→I, ♭II→i
 function arrange(base, level, nV, beats, perillas){
@@ -385,7 +400,7 @@ function arrange(base, level, nV, beats, perillas){
   const P = level >= 2 ? (perillas || PERILLAS_V3)[level] : null;
   for(let v=0; v<nV; v++){
     let seq = base.map(c => c.rest ? {...c} : {...c, orig:true});
-    if(P) seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i).pc, P); return q === c.q ? c : {...c, q, col:true}; });
+    if(P) seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i), P); return q === c.q ? c : {...c, q, col:true}; });
     if(P && v >= P.desdeVuelta - 1){
       const budget = Math.min(P.presupuesto, distinct <= 2 ? 1 : n - 1), used = new Set(), plan = [];   // plan: {i, tail:[chords], head?:chord}
       const can = (i, n) => { const c = seq[i]; return c && !c.rest && !used.has(i) && c.dur >= h*(n+1) - 1e-9; };
@@ -394,8 +409,16 @@ function arrange(base, level, nV, beats, perillas){
       // 1) turnaround on the last lap: second part of the last chord, unless the loop already closes by cadence
       if(P.remate !== "no" && v === nV-1 && !seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
         const tR = romanOf(first.pc, first.q), toTonic = mod12(first.pc) === 0;
-        let ap = toTonic ? tonicApproach(P.remate === "rico", MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
-        if(ap && !toTonic && P.paso === "cromatico" && (!P.remateFiel || chromatic)) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
+        const nuevo = P.remate === "deslizado" || P.remate === "iiV";   // P5 and D9 (2026-11-11)
+        let ap;
+        if(nuevo) ap = toTonic && !["Ionian","Aeolian"].includes(mode) ? tonicApproach(true, false)
+          : P.remate === "deslizado" ? [{d:8, q:"7", why:"♭VI7"}, {d:7, q:"7", why:"V7 (deslizamiento)"}]
+          : [{d:2, q:iiQ(first.pc, first.q, P), why:"ii"}, {d:7, q:"7", why:"V7"}];
+        else {
+          ap = toTonic ? tonicApproach(P.remate === "rico", MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
+          if(ap && !toTonic && P.paso === "cromatico" && (!P.remateFiel || chromatic)) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
+        }
+        if(nuevo && ap && ap.length === 2 && mod12(first.pc + ap[0].d) === mod12(seq[li].pc)) ap = [ap[1]];   // the last chord already is the ♭VI / the ii
         if(ap && ap.length === 2 && !can(li, 2)) ap = [ap[1]];
         if(ap && mod12(first.pc + ap[0].d) === mod12(seq[li].pc)) ap = null;   // the last chord already is the approach chord
         if(ap && can(li, ap.length)) take({i:li, tail: ap.map((a,k) => ({pc:mod12(first.pc + a.d), q:a.q, dur:h, add:true, why: k ? undefined : "turnaround hacia "+tR+": "+ap.map(x => x.why).join("–")}))});
@@ -412,8 +435,33 @@ function arrange(base, level, nV, beats, perillas){
         if(bi >= 0){ const c = seq[bi], maj = mode !== "Aeolian";
           take({i:bi, tail:[{pc:c.pc, q: maj ? "m6" : "7", dur:h, add:true, why: maj ? "iv menor prestado (iv6) después del IV" : "IV7 dórico prestado después del iv"}]}); }
       }
-      // 4) acorde de paso into a diatonic non-tonic chord: its V7 (clasico) or the tritone substitute ♭II7 (cromatico)
-      if(P.paso !== "no"){
+      // 3b) P3 (2026-11-11, D6 = C): passing °7 in the second part. Ascending: a whole step up, the °7 a semitone
+      //     below the target (I – ♯I°7 – ii). Neighbour: IV – ♯IV°7 – I. Descending: a fourth down, the °7 a semitone
+      //     above the target (I – ♭VI°7 – V). The last chord may host it (IV → I closes many loops).
+      if(P.disminuido) seq.forEach((c,i) => { if(plan.length >= budget || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(t === c || t.pc === c.pc || !inScale(t.pc) || ["dim","hdim7","dim7"].includes(t.q) || !can(i,1)) return;
+        const m = mod12(t.pc - c.pc), tR = romanOf(t.pc, t.q), toT = mod12(t.pc) === 0;
+        let pc, why;
+        if(m === 2 && !toT){ pc = t.pc - 1; why = "disminuido de paso, sube hacia " + tR; }
+        else if(mod12(c.pc) === 5 && toT){ pc = 6; why = "disminuido de vecino entre el IV y el I"; }
+        else if(m === 7 && !toT){ pc = t.pc + 1; why = "disminuido de paso, baja hacia " + tR; }
+        else return;
+        take({i, tail:[{pc:mod12(pc), q:"dim7", dur:h, add:true, why}]}); });
+      // 4) acorde de paso into a diatonic non-tonic chord: its V7 (clasico), the tritone substitute ♭II7 (cromatico)
+      //    or ii + V7 (iiV, P1 2026-11-11: needs room for two parts; with room for one, only the V7, D1 = A)
+      if(P.paso === "iiV"){
+        seq.forEach((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
+          const t = nextNonRest(seq,i);
+          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || ["dim","hdim7","dim7"].includes(t.q) || !can(i,1)) return;
+          const fifth = mod12(t.pc - c.pc) === 5, tR = romanOf(t.pc, t.q);
+          if(fifth && MINORISH.has(c.q)) return;                          // the host already is the ii of a ii–V
+          const ii = {pc:mod12(t.pc+2), q:iiQ(t.pc, t.q, P), dur:h, add:true, why:"ii–V hacia "+tR};
+          const V = {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR};
+          if(ii.pc === mod12(c.pc)){ if(!fifth) take({i, tail:[{...V, why:"ii–V hacia "+tR+" (el ii es el propio acorde)"}]}); }
+          else if(can(i,2)) take({i, tail:[ii, V]});
+          else if(!fifth) take({i, tail:[V]}); }); }
+      else if(P.paso !== "no"){
         seq.forEach((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
           const t = nextNonRest(seq,i);
           if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1)) return;
@@ -671,17 +719,21 @@ const PER_UI = {
   presupuesto:{lab:"Cambios por vuelta", hlp:"Cuántos adornos entran como máximo en cada vuelta. 0 = solo cambia el color.", opts:[0,1,2,3]},
   desdeVuelta:{lab:"Empieza en la vuelta", hlp:"La vuelta 1 siempre suena tal cual; desde esta entran los adornos.", opts:[2,3,4]},
   color:{lab:"Color de los acordes", hlp:"Tríadas, séptimas o séptimas y novenas (las novenas solo si la nota está en la escala).", opts:["triadas","septimas","novenas"], txt:{triadas:"tríadas",septimas:"séptimas",novenas:"novenas"}},
-  remate:{lab:"Remate final", hlp:"En la última vuelta, uno o dos acordes que empujan de vuelta al primero. Rico: dos, más jazz (en Do, Fm7–B♭9 antes de C).", opts:["no","simple","rico"]},
+  remate:{lab:"Remate final", hlp:"En la última vuelta, uno o dos acordes que empujan de vuelta al primero. Rico: dos, más jazz (en Do, Fm7–B♭9 antes de C). Deslizado: dos dominantes a medio tono (A♭7–G7 antes de C). ii–V: Dm7–G7 antes de C.", opts:["no","simple","rico","deslizado","iiV"], txt:{no:"no",simple:"simple",rico:"rico",deslizado:"deslizado",iiV:"ii–V"}},
   sus4:{lab:"Suspensión", hlp:"El acorde de empuje se queda colgado medio compás antes de resolver (G7sus4 → G7)."},
-  paso:{lab:"Acorde de paso", hlp:"Antes de un acorde, otro que lo anuncia. Clásico: su dominante (A7 antes de Dm). Cromático: desde medio tono arriba (E♭7 antes de Dm).", opts:["no","clasico","cromatico"], txt:{no:"no",clasico:"clásico",cromatico:"cromático"}},
+  paso:{lab:"Acorde de paso", hlp:"Antes de un acorde, otro que lo anuncia. Clásico: su dominante (A7 antes de Dm). Cromático: desde medio tono arriba (E♭7 antes de Dm). ii–V: el ii y la dominante (Em7–A7 antes de Dm) si el acorde dura un compás y medio; si no, solo A7.", opts:["no","clasico","cromatico","iiV"], txt:{no:"no",clasico:"clásico",cromatico:"cromático",iiV:"ii–V"}},
   ivPrestado:{lab:"Menor prestado", hlp:"Después del IV, el mismo acorde en menor: la sombra agridulce de Creep (F → Fm6). En Eólico, IV7 después del iv."},
   bVI:{lab:"Rodeo antes de volver", hlp:"Antes de volver a I, un acorde mayor de fuera de la escala que suena a película (A♭maj7). Solo en Jónico y Mixolidio."},
   remateFiel:{lab:"Remate fiel a la escala", hlp:"Si la progresión no usa acordes de fuera de la escala, el remate tampoco (con acorde de paso cromático, usa el V7 del destino)."},
   preferirAcordeNuevo:{lab:"Que se note el adorno", hlp:"Si se puede, el adorno añade un acorde nuevo antes que una suspensión."},
+  cadenaDominantes:{lab:"Cadena de dominantes", hlp:"Todo acorde que baja una quinta hacia el siguiente se vuelve dominante, también los menores (Em → E7 antes de Am), salvo el ii que va al V. Desde la vuelta 1 y sin gastar cambios, como el color. Solo en Jónico (All of Me)."},
+  disminuido:{lab:"Disminuido de paso", hlp:"Un °7 en la segunda mitad como peldaño: sube (C – C♯°7 – Dm), de vecino (F – F♯°7 – C) o baja (C – A♭°7 – G)."},
+  bVI7Menor:{lab:"♭VI7 en menor", hlp:"En Eólico, el VI que va al V o al iv se vuelve dominante (F7 → E7 en La menor): el giro del blues menor. Desde la vuelta 1 y sin gastar cambios."},
+  iiDelDestino:{lab:"ii según el destino", hlp:"En los ii–V, el ii es m7 hacia un acorde mayor y m7♭5 hacia uno menor, aunque la escala diga otra cosa (Bm7♭5–E7 antes de Am)."},
 };
 const perTxt = (k, v) => typeof v === "boolean" ? (v ? "sí" : "no") : (PER_UI[k].txt && PER_UI[k].txt[v]) || String(v);
 // Knobs that do nothing in the current mode are dimmed (Music Lab §2).
-const perIdle = k => (k === "bVI" && !["Ionian","Mixolydian"].includes(mode)) || (k === "ivPrestado" && !["Ionian","Lydian","Mixolydian","Aeolian"].includes(mode)) || (k === "remate" && mode === "Locrian");
+const perIdle = k => (k === "bVI" && !["Ionian","Mixolydian"].includes(mode)) || (k === "cadenaDominantes" && mode !== "Ionian") || (k === "bVI7Menor" && mode !== "Aeolian") || (k === "ivPrestado" && !["Ionian","Lydian","Mixolydian","Aeolian"].includes(mode)) || (k === "remate" && mode === "Locrian");
 function setPerillas(next, quiet){
   if(samePerillas(next, perillas)) return false;
   perHist.push(clonePerillas(perillas)); if(perHist.length > 30) perHist.shift();
@@ -691,7 +743,7 @@ function perWarnings(){
   const w = [], a = perillas[2], b = perillas[3], rank = {triadas:0,septimas:1,novenas:2};
   if(a.presupuesto > b.presupuesto || rank[a.color] > rank[b.color]) w.push("El nivel 2 hace más que el 3: la escalera tendría que subir.");
   for(const l of [2,3]){ const P = perillas[l];
-    const any = P.remate !== "no" || P.sus4 || P.paso !== "no" || P.ivPrestado || P.bVI;
+    const any = P.remate !== "no" || P.sus4 || P.paso !== "no" || P.ivPrestado || P.bVI || P.disminuido;
     if(P.presupuesto > 0 && !any) w.push("Nivel " + l + ": hay cambios por vuelta pero ningún adorno encendido; no va a cambiar nada.");
     if(P.desdeVuelta > +$("#vueltas").value) w.push("Nivel " + l + ": empieza en la vuelta " + P.desdeVuelta + " y la carta tiene " + $("#vueltas").value + ": no se oirán adornos.");
     if(P.ivPrestado && P.bVI && P.presupuesto >= 2) w.push("Nivel " + l + ": menor prestado y rodeo a la vez es la combinación más oscura del sistema."); }

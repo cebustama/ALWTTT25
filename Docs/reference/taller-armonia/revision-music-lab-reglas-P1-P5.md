@@ -1,6 +1,6 @@
 # Reglas de P1–P5 · los niveles del taller con los recursos de Music Lab (2026-11-11)
 
-Paso 1 del arranque `ARRANQUE_niveles_recursos.md` (proceso estándar, §4 de `revision-music-lab-recursos-2026-11-11.md`). **Borrador para Claudio: nada está programado todavía.** Las dudas musicales van al final (§8), con opciones y recomendación.
+Paso 1 del arranque `ARRANQUE_niveles_recursos.md` (proceso estándar, §4 de `revision-music-lab-recursos-2026-11-11.md`). **Estado (2026-11-11, tarde):** decisiones de Claudio tomadas (§9) y **perillas programadas en `template.html`, apagadas**; `oro.js comparar oro-v3.json` sigue dando 792 idénticos. Casos de cada perilla: `node scripts/p1p5.js`. Falta la prueba de reducción y la de oído.
 
 Fuentes: `template.html` (`arrange()`, v3 con perillas), `Music Lab/recursos-armonicos.md` (nota del 2026-11-11) y las fichas de `Music Lab/Biblioteca/jazz/`. Los compases (c.) son los de cada ficha; «A1 c. 2» = sección A1, compás 2.
 
@@ -190,3 +190,26 @@ Con `preferirAcordeNuevo` el sus4 sigue yendo detrás del paso, como hoy.
 - A: sí, como quinto valor de `remate` (no / simple / rico / deslizado / iiV) (sale casi gratis con el código de P1).
 - B: no por ahora.
 - *Recomiendo A.*
+
+## 9. Decisiones de Claudio (2026-11-11) y cómo quedaron en el código
+
+| Duda | Decisión | En el código |
+|---|---|---|
+| D1 | A: con sitio para uno solo, la `V7` | `paso: "iiV"` |
+| D2 | A, **con dudas**: «a veces suena mejor el ii del destino, m7♭5 hacia menores» | regla A, más la perilla **`iiDelDestino`** (apagada) para compararlas en la prueba de oído |
+| D3 | A: el ii que va a la V se queda menor | `cadenaDominantes` excluye `ii → V` |
+| D4 | **B: desde la vuelta 1**, «que se note de inmediato que cambió respecto al nivel anterior» | P2 y P4 van dentro de `color()`, que suena en todas las vueltas |
+| D5 | A: solo Jónico | `cadenaDominantes` |
+| D6 | **C: las tres variantes** | `disminuido`: sube (tono arriba), vecino (IV → I) y baja (cuarta abajo, `I – ♭VI°7 – V`). Puede usar el último acorde, porque `IV → I` cierra muchos bucles |
+| D7 | **B**: también `VI → iv` | `bVI7Menor`: el `VI` que va a `V`/`v` o a `iv` |
+| D8 | A: solo como remate | `remate: "deslizado"` |
+| D9 | Sí | `remate: "iiV"` (Jónico `iim7–V7`, Eólico `iiø7–V7`; en los otros modos, su acorde modal) |
+
+**Precisión de D2 (A), que cambia un poco lo escrito en el §8:** «la de la escala» solo cuenta cuando el acorde de la escala sobre esa nota es **menor o disminuido**. Si es mayor, se decide por el destino. Sin esa precisión, el ii del IV (`B♭` en Mi♭) saldría mayor, y en *Misty* A1 c. 2 es `B♭m7`.
+
+**Detalles que salieron al programar:**
+- Al hacerse dominantes más acordes con P2, el sus4 del nivel 2 cae sobre ellos (`III7sus4 – III7` en *All of Me*). Es lo esperado, pero conviene oírlo.
+- El remate, de cualquier clase, no se activa si el bucle ya cierra por cadencia, y `iv → i` cuenta como cadencia plagal (regla de la v3).
+- **Nombres:** el `°7` se escribe por la nota del bemol (`biidim7` en vez de `#idim7`, `bvdim7` en vez de `#ivdim7`). Suena igual y el Import lo acepta, porque es la misma fundamental. Solo cambia cómo se lee.
+- `iiDelDestino` también se aplica al remate `iiV`.
+- La tarea `armonia.ajustar` de la web (el prompt del LLM) todavía no conoce las perillas nuevas. Se pone al día cuando alguna se encienda.
