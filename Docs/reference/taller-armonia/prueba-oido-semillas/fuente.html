@@ -1,0 +1,312 @@
+<title>Prueba de oído: versiones</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column for listening on the phone or the PC. A sticky progress bar, the instructions, 4 cards with 4 blind versions each
+   (the factory one and 3 seeds, shuffled), three questions per card, then the reveal with every version drawn against the factory one,
+   and two decisions with the agent's recommendation. Answers go to the artifact's db so Claude can read them. Same family as the Taller. */
+:root{
+  --bg:#e9eef0; --panel:#ffffff; --panel-2:#dde4e7; --ink:#152025; --muted:#56656c; --line:#c3cdd2; --accent:#0d7a80;
+  --a:#2357b5; --a-bg:#dce6f8; --b:#b5560f; --b-bg:#f8e3d2; --ok:#1f7a4a; --ok-bg:#dcefe3; --warn:#9a6200;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --a:#8db2ff; --a-bg:#1c2a47; --b:#f2a46a; --b-bg:#3d2717; --ok:#6fd39b; --ok-bg:#173326; --warn:#f0b85a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --a:#8db2ff; --a-bg:#1c2a47; --b:#f2a46a; --b-bg:#3d2717; --ok:#6fd39b; --ok-bg:#173326; --warn:#f0b85a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(30px,6vw,46px);font-weight:800}
+h2{font-size:24px}
+h3{font-size:18px}
+p{margin:0;max-width:68ch}
+code{font:13px var(--f-mono);background:var(--panel-2);padding:1px 5px;border-radius:4px}
+.muted{color:var(--muted)} .small{font-size:14px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:15px}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.play::before{content:"▶";font-size:11px}
+.btn.play.playing::before{content:"■"}
+.btn.pa{border-color:var(--a);color:var(--a);background:var(--a-bg)}
+.btn.pb{border-color:var(--b);color:var(--b);background:var(--b-bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.top b{font-family:var(--f-display);font-size:17px}
+.meter{flex:1 1 160px;height:8px;border-radius:99px;background:var(--panel-2);overflow:hidden;min-width:120px}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+#saveState{font:12px var(--f-mono);color:var(--muted)}
+.pair header{display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.num{font:700 13px var(--f-mono);color:var(--muted)}
+.pair.done{border-color:var(--ok)}
+.choice{display:flex;flex-wrap:wrap;gap:6px}
+.choice .btn{border-radius:10px}
+.choice .btn.sel{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=text],textarea,select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.reveal{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.reveal .verdict{font-size:15px;background:var(--ok-bg);color:var(--ok);border-radius:8px;padding:6px 10px}
+.laps{display:flex;flex-direction:column;gap:6px}
+.lapRow{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;align-items:stretch}
+.lapLbl{font:600 12px/1.3 var(--f-mono);color:var(--muted);padding-top:7px}
+.scroll{overflow-x:auto;min-width:0}
+.bar{display:flex;gap:2px;min-width:var(--mw,0px)}
+.ch{flex:var(--d) 0 0;min-width:0;border-radius:6px;padding:5px 6px;background:var(--panel-2);border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;transition:transform .12s,box-shadow .12s}
+.ch .rn{font:600 12px/1.25 var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .nm{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch.diff{background:var(--b-bg);border-color:var(--b)}
+.ch.diff .rn{color:var(--b)}
+.ch[data-id]{cursor:pointer}
+.ch[data-id]:hover{border-color:var(--accent)}
+.ch.now{transform:translateY(-3px);box-shadow:0 0 0 2px var(--accent)}
+@media (prefers-reduced-motion: reduce){.ch,.meter i{transition:none}}
+.dec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:10px 16px;align-items:start;padding-block:12px;border-bottom:1px solid var(--line)}
+.dec:last-child{border-bottom:none}
+@media (max-width:620px){.dec{grid-template-columns:minmax(0,1fr)}}
+.dec b{font-family:var(--f-display);font-size:16px}
+.rec{font-size:13px;color:var(--muted)}
+.rec strong{color:var(--accent)}
+.note{font-size:13px;color:var(--warn)}
+.vers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.vers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.vers .btn{justify-content:center;border-radius:10px;padding:10px 8px}
+.q{display:flex;flex-direction:column;gap:6px}
+.q>span{font-size:14px;font-weight:700}
+.tagv{font:600 12px var(--f-mono);color:var(--accent)}
+</style>
+
+<div class="wrap">
+  <div class="top" role="status">
+    <b>Prueba de oído: versiones</b>
+    <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+    <span class="small" id="count">0 de 4 cartas</span>
+    <span id="saveState">conectando…</span>
+  </div>
+
+  <section>
+    <span class="eyebrow">Taller armónico · semillas (§16) · 11 de noviembre de 2026</span>
+    <h1>¿Sigue siendo la misma carta?</h1>
+    <p>Las cartas ahora son paletas: cada versión (semilla) reparte los adornos de otra forma. Aquí hay 4 cartas en el nivel 3, con 4 versiones cada una: la de fábrica y tres semillas, mezcladas y numeradas del 1 al 4. No sabes cuál es cuál.</p>
+    <div class="panel small">
+      <div class="row">
+        <label class="row" style="gap:6px"><input type="checkbox" id="optSkip" checked> Saltar la vuelta 1</label>
+        <label class="row" style="gap:6px"><input type="checkbox" id="optRes" checked> Resolver al final</label>
+        <label class="row" style="gap:6px"><input type="checkbox" id="optLoop"> Repetir en bucle</label>
+      </div>
+      <span><b>Saltar la vuelta 1.</b> Cada versión tiene 3 vueltas, y la primera es igual en las cuatro: presenta la carta. Lo que cambia está en las vueltas 2 y 3. Quita la marca si quieres oír la carta entera.</span>
+      <span><b>Qué responder.</b> Si las cuatro suenan a la misma carta, cuánto se diferencian, si alguna se sale de la carta y cuál guardarías. Al responder las dos primeras ves cuál es cuál, dibujadas, y puedes pulsar cualquier acorde para que suene desde ahí.</span>
+      <span><b>Se guarda solo.</b> Cada respuesta va al db de la página y yo la leo.</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-cartas">
+    <h2 id="h-cartas">Las cartas</h2>
+    <div id="cards" style="display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <section aria-labelledby="h-dec">
+    <span class="eyebrow">La decisión</span>
+    <h2 id="h-dec">¿Cuánta variedad?</h2>
+    <p class="small muted">Debajo de cada pregunta está mi recomendación. Tu oído manda.</p>
+    <div class="panel" id="decs"></div>
+  </section>
+
+  <section aria-labelledby="h-gen">
+    <h2 id="h-gen">Pregunta abierta</h2>
+    <div class="panel">
+      <label for="g1" class="small">Algo más: qué te sorprendió, qué echaste de menos o qué te gustaría que la semilla también decidiera.</label>
+      <textarea id="g1"></textarea>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+/*__THEORY__*/
+
+/* ---------- the cards: factory (no seed) + 3 seeds, chosen so the four versions differ from each other ---------- */
+// Seeds picked with a search over seeds 1–999 (the 3 versions most distinct from each other and from the factory one).
+// Axis only has 3 versions besides the factory one: it is the "little variety" case on purpose.
+const CARDS = [
+ {id:"pachelbel", t:"Pachelbel", what:"Mayor, 8 acordes por vuelta: la carta con más versiones posibles (63).", md:"Ionian", key:2,
+  text:"Imaj – Vmaj – vim – iiim – IVmaj – Imaj – IVmaj – Vmaj", seeds:[8, 146, 147], ord:[2,0,3,1]},
+ {id:"axis", t:"Axis I–V–vi–IV", what:"La progresión pop. Solo tiene 3 versiones además de la de fábrica: aquí la variedad es mínima.", md:"Ionian", key:7,
+  text:"Imaj (2) – Vmaj (2) – vim (2) – IVmaj (2)", seeds:[1, 6, 15], ord:[3,1,2,0]},
+ {id:"andaluza", t:"Cadencia andaluza", what:"Menor, i – ♭VII – ♭VI – V.", md:"Aeolian", key:9,
+  text:"im (2) – VIImaj (2) – VImaj (2) – V7 (2)", seeds:[1, 2, 6], ord:[0,3,1,2]},
+ {id:"frigio", t:"Frigio descenso", what:"Modo oscuro, con muchos huecos para adornos (35 versiones).", md:"Phrygian", key:4,
+  text:"im7 (2) – IImaj (2) – ivm – IIImaj – IImaj (2)", seeds:[1, 4, 16], ord:[1,2,0,3]},
+];
+const NV = 3, LVL = 3, BPM = 104;
+const DECS = [
+ {id:"variedad", t:"¿La variedad alcanza?", opts:["alcanza","se queda corta: que la semilla elija también qué adorno (P6, con pesos)","se queda corta: más presupuesto de adornos","demasiada: se pierde la carta"],
+  rec:"alcanza para la demo; P6 después", why:"Si las cuatro suenan a la misma carta y notas la diferencia, el diseño cumple. Si casi no la notas, el siguiente paso es P6: que la semilla también elija entre adornos parecidos."},
+ {id:"vuelta1", t:"La vuelta 1, siempre de fábrica", opts:["que siga igual","que también varíe"],
+  rec:"que siga igual", why:"La primera vuelta presenta la carta tal como es; así el jugador la reconoce y los adornos llegan después."},
+];
+
+/* ---------- arrange + draw + sound ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const pretty = r => r.replace(/^b/, "♭").replace(/^#/, "♯").replace("dim7", "°7");
+function render(c, seed){ mode = c.md; return arrange(parse(c.text).chords, LVL, NV, 4, undefined, seed).map(v => v.seq); }
+// The 4 versions of a card: slot 0 = factory, 1–3 = seeds. Each card fixes which slot goes under the numbers 1–4 (ord),
+// chosen by hand so the factory one sits in a different place on every card (2, 4, 1, 3).
+const order = id => CARDS.find(c => c.id === id).ord;
+const sig = c => c.rest ? "-" : c.pc + c.q + "@" + c.dur;
+function lapsHTML(laps, key, md, pid, ref){
+  const bars = Math.max(...laps.map(s => s.reduce((t, c) => t + c.dur, 0))); mode = md;
+  return laps.map((seq, ri) => { const os = ref ? new Set(ref[ri].map(sig)) : null;
+    return '<div class="lapRow"><div class="lapLbl">vuelta '+(ri + 1)+'</div><div class="scroll"><div class="bar" style="--mw:'+Math.round(bars*84)+'px">' +
+      seq.map((c, ci) => '<div class="ch'+(os && !os.has(sig(c)) ? " diff" : "")+'" style="--d:'+c.dur+'" data-id="'+pid+'-'+ri+'-'+ci+'"><span class="rn">'+(c.rest ? "—" : esc(pretty(romanOf(c.pc, c.q))))+'</span><span class="nm">'+(c.rest ? "" : esc(chordName(c.pc, c.q, key)))+'</span></div>').join("") +
+      '</div></div></div>'; }).join("");
+}
+let AC = null, live = [], timers = [], playingBtn = null;
+function stopAll(){ live.forEach(n => { try{ n.stop(); }catch(e){} }); live = []; timers.forEach(clearTimeout); timers = [];
+  document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+  if(playingBtn){ playingBtn.classList.remove("playing"); playingBtn = null; } }
+function tone(f, t, d, type, vol){
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(vol*.45, t + .35);
+  g.gain.setValueAtTime(vol*.45, t + Math.max(.36, d - .08)); g.gain.linearRampToValueAtTime(0, t + d);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + .05); live.push(o); }
+function click(t, vol){ const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 1800;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + .03); o.connect(g).connect(AC.destination); o.start(t); o.stop(t + .04); live.push(o); }
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+function chord(c, key, at, d){ const root = (c.pc + key) % 12, set = new Set();
+  Q[c.q].iv.forEach(x => set.add(55 + ((root + x - 55) % 12 + 12) % 12));
+  set.forEach(m => tone(hz(m), at, d * .96, "triangle", .07)); tone(hz(36 + root), at, d * .96, "sine", .16); }
+function play(laps, key, md, pid, btn, from){
+  if(!from && playingBtn === btn){ stopAll(); return; } stopAll();
+  try{ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); }catch(e){ return; }
+  if(!from && $("#optSkip").checked) from = {ri: 1, ci: 0};
+  playingBtn = btn; if(btn) btn.classList.add("playing");
+  const beat = 60 / BPM, bar = 4 * beat, t0 = AC.currentTime + .08; let t = 0;
+  laps.forEach((seq, ri) => seq.forEach((c, ci) => {
+    if(from && (ri < from.ri || (ri === from.ri && ci < from.ci))) return;
+    const d = c.dur * bar, at = t0 + t;
+    if(!c.rest) chord(c, key, at, d);
+    for(let k = 0; k < c.dur * 4 - 1e-6; k++) click(at + k * beat, k % 4 === 0 ? .025 : .012);
+    const id = pid + "-" + ri + "-" + ci, start = t;
+    timers.push(setTimeout(() => { document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+      const el = document.querySelector('[data-id="'+id+'"]'); if(el) el.classList.add("now"); }, start * 1000 + 80));
+    t += d; }));
+  const f = laps[0].find(c => !c.rest);
+  if($("#optRes").checked && f){ const at = t0 + t; chord(f, key, at, bar); click(at, .025);
+    timers.push(setTimeout(() => document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now")), t * 1000 + 80)); t += bar; }
+  timers.push(setTimeout(() => { if($("#optLoop").checked && playingBtn === btn){ playingBtn = null; play(laps, key, md, pid, btn); } else stopAll(); }, t * 1000 + ($("#optLoop").checked ? 0 : 250)));
+}
+
+/* ---------- answers: artifact db (Claude reads them), localStorage as a fallback ---------- */
+const ANS = {}, DEC = {}, GEN = {};
+let db = null;
+const LS = "oido-semillas";
+function lsSave(){ try{ localStorage.setItem(LS, JSON.stringify({ANS, DEC, GEN})); }catch(e){} }
+function lsLoad(){ try{ const x = JSON.parse(localStorage.getItem(LS) || "null"); if(x){ Object.assign(ANS, x.ANS || {}); Object.assign(DEC, x.DEC || {}); Object.assign(GEN, x.GEN || {}); } }catch(e){} }
+const saving = new Map();
+function store(col, id, data){
+  lsSave();
+  if(!db){ $("#saveState").textContent = "guardado en este navegador"; return; }
+  clearTimeout(saving.get(col + id));
+  saving.set(col + id, setTimeout(async () => {
+    $("#saveState").textContent = "guardando…";
+    try{ await db.collection(col).doc(id).set({...data, ts: new Date().toISOString()}); $("#saveState").textContent = "guardado ✓"; }
+    catch(e){ $("#saveState").textContent = "no se pudo guardar (" + (e && e.code || "error") + "); queda en este navegador"; }
+  }, 500));
+}
+
+/* ---------- cards UI ---------- */
+const QS = [
+ {k:"misma", t:"¿Las cuatro suenan a la misma carta?", o:["sí","casi: alguna se aleja","no"]},
+ {k:"diferencia", t:"¿Cuánto se diferencian entre ellas?", o:["mucho","algo","poco","nada"]},
+ {k:"seSale", t:"¿Alguna se sale de la carta?", o:["1","2","3","4","ninguna"]},
+ {k:"guardaria", t:"¿Cuál guardarías?", o:["1","2","3","4","ninguna","varias"]},
+];
+const PLAY = {};
+function drawCard(c, i){
+  const host = document.getElementById("card-" + c.id), a = ANS[c.id] || {}, ord = order(c.id);
+  const slots = [null, ...c.seeds].map(s => ({seed: s, laps: render(c, s === null ? undefined : s)}));
+  const at = n => slots[ord[n]];                       // version under number n+1
+  const done = !!(a.misma && a.diferencia);
+  host.classList.toggle("done", done);
+  host.innerHTML = '<header><h3>'+esc(c.t)+'</h3><span class="num">'+(i + 1)+' / '+CARDS.length+'</span></header>' +
+    '<p class="small">'+esc(c.what)+' <span class="muted">'+esc(NOTE[c.key])+' '+esc(MODE_ES[c.md] || c.md)+' · nivel 3 · 3 vueltas</span></p>' +
+    '<div class="vers">' + [0,1,2,3].map(n => '<button class="btn play'+(n % 2 ? " pb" : " pa")+'" type="button" data-n="'+n+'">Versión '+(n + 1)+'</button>').join("") + '</div>' +
+    QS.map(q => '<div class="q"><span>'+esc(q.t)+'</span><div class="choice" role="group" aria-label="'+esc(q.t)+'">' +
+      q.o.map(o => '<button class="btn'+(a[q.k] === o ? " sel" : "")+'" type="button" data-q="'+q.k+'" data-o="'+esc(o)+'">'+esc(o)+'</button>').join("") + '</div></div>').join("") +
+    '<input type="text" id="n-'+c.id+'" placeholder="Nota (opcional)" value="'+esc(a.nota || "")+'" aria-label="Nota de la carta '+(i + 1)+'">' +
+    (done ? '<div class="reveal"><span class="verdict">'+esc(verdict(c, ord, a))+'</span>' +
+      [0,1,2,3].map(n => { const v = at(n), pid = "s" + c.id + n;
+        return '<div class="small"><b>Versión '+(n + 1)+'</b> · <span class="tagv">'+(v.seed === null ? "de fábrica (v4)" : "semilla " + v.seed)+'</span></div>' +
+          '<div class="laps">'+lapsHTML(v.laps, c.key, c.md, pid, v.seed === null ? null : slots[0].laps)+'</div>'; }).join("") +
+      '<span class="small muted">En naranja, lo que cambia respecto a la de fábrica. Pulsa un acorde para que suene desde ahí. Para guardar una versión en el taller, escribe su semilla en «Versión» y pulsa «Guardar esta versión».</span></div>' : "");
+  [0,1,2,3].forEach(n => { const v = at(n), pid = "s" + c.id + n, btn = host.querySelector('[data-n="'+n+'"]');
+    PLAY[pid] = {laps: v.laps, c, btn}; btn.onclick = ev => play(v.laps, c.key, c.md, pid, ev.currentTarget); });
+  host.querySelectorAll("[data-q]").forEach(b => b.onclick = () => {
+    const prev = ANS[c.id] || {}; ANS[c.id] = {...prev, [b.dataset.q]: b.dataset.o, nota: document.getElementById("n-" + c.id).value,
+      orden: ord.map(s => s === 0 ? "fabrica" : "s" + c.seeds[s - 1]).join(",")};
+    store("respuestas", c.id, ANS[c.id]); const wasDone = done; drawCard(c, i); progress(); if(!wasDone && ANS[c.id].misma && ANS[c.id].diferencia) stopAll(); });
+  document.getElementById("n-" + c.id).oninput = e => { ANS[c.id] = {...(ANS[c.id] || {}), nota: e.target.value}; store("respuestas", c.id, ANS[c.id]); };
+}
+document.addEventListener("click", ev => {
+  const el = ev.target.closest(".ch[data-id]"); if(!el) return;
+  const parts = el.dataset.id.split("-"), ci = +parts.pop(), ri = +parts.pop(), pid = parts.join("-"), x = PLAY[pid];
+  if(x) play(x.laps, x.c.key, x.c.md, pid, x.btn, {ri, ci});
+});
+function verdict(c, ord, a){
+  const fab = ord.indexOf(0) + 1, name = n => { const s = ord[+n - 1]; return s === 0 ? "la de fábrica" : "la semilla " + c.seeds[s - 1]; };
+  let t = "La de fábrica era la versión " + fab + ".";
+  if(a.seSale && a.seSale !== "ninguna") t += " La que se sale (" + a.seSale + ") es " + name(a.seSale) + ".";
+  if(a.guardaria && /^\d$/.test(a.guardaria)) t += " La que guardarías (" + a.guardaria + ") es " + name(a.guardaria) + ".";
+  return t;
+}
+function progress(){
+  const n = CARDS.filter(c => ANS[c.id] && ANS[c.id].misma && ANS[c.id].diferencia).length;
+  $("#count").textContent = n + " de " + CARDS.length + " cartas"; $("#meter").style.width = (100 * n / CARDS.length) + "%";
+}
+function drawCards(){
+  $("#cards").innerHTML = CARDS.map((c, i) => '<article class="panel pair" id="card-'+c.id+'" aria-label="Carta '+(i + 1)+'"></article>').join("");
+  CARDS.forEach(drawCard); progress();
+}
+
+/* ---------- decisions ---------- */
+function drawDecs(){
+  $("#decs").innerHTML = DECS.map(d => { const v = DEC[d.id] && DEC[d.id].valor || "";
+    return '<div class="dec"><div style="display:flex;flex-direction:column;gap:4px"><b>'+esc(d.t)+'</b>' +
+      '<span class="rec">Recomiendo: <strong>'+esc(d.rec)+'</strong>. '+esc(d.why)+'</span></div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px"><select id="d-'+d.id+'" aria-label="'+esc(d.t)+'"><option value="">— elige —</option>' +
+      d.opts.map(o => '<option'+(o === v ? " selected" : "")+'>'+esc(o)+'</option>').join("") + '</select>' +
+      '<input type="text" id="dn-'+d.id+'" placeholder="Por qué (opcional)" value="'+esc(DEC[d.id] && DEC[d.id].nota || "")+'" aria-label="Nota, '+esc(d.t)+'"></div></div>'; }).join("");
+  DECS.forEach(d => { const s = document.getElementById("d-" + d.id), n = document.getElementById("dn-" + d.id);
+    const save = () => { DEC[d.id] = {valor: s.value, nota: n.value, recomendacion: d.rec}; store("decisiones", d.id, DEC[d.id]); };
+    s.onchange = save; n.oninput = save; });
+}
+$("#g1").oninput = e => { GEN.g1 = e.target.value; store("generales", "g1", {texto: e.target.value}); };
+
+/* ---------- start: draw from the browser copy, then load the shared answers ---------- */
+lsLoad(); drawCards(); drawDecs(); $("#g1").value = GEN.g1 || "";
+(async () => {
+  try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ db = null; }
+  if(!db){ $("#saveState").textContent = "sin conexión: se guarda en este navegador"; return; }
+  const timer = setTimeout(() => { $("#saveState").textContent = "la base de datos tarda; se guarda igual"; }, 10000);
+  try{
+    const [r, d, g] = await Promise.all(["respuestas","decisiones","generales"].map(c => db.collection(c).get()));
+    clearTimeout(timer);
+    r.docs.forEach(x => { ANS[x.id] = x.data(); }); d.docs.forEach(x => { DEC[x.id] = x.data(); }); g.docs.forEach(x => { GEN[x.id] = (x.data() || {}).texto || ""; });
+    drawCards(); drawDecs(); $("#g1").value = GEN.g1 || ""; lsSave();
+    $("#saveState").textContent = r.size + d.size ? "respuestas cargadas ✓" : "listo; se guarda al responder";
+  }catch(e){ clearTimeout(timer); $("#saveState").textContent = "no se pudieron leer las respuestas guardadas"; }
+})();
+</script>
