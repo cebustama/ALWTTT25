@@ -309,3 +309,18 @@ Propuesta (por decidir al abrir la sesión):
 - **La identidad la cuidan las reglas que ya existen:** ningún acorde escrito desaparece, no se modula, la vuelta 1 tal cual de fábrica, y presupuesto por vuelta.
 - **En el taller:** botón 🎲 «otra versión», la semilla visible y «guardar esta versión».
 - **Riesgo:** los recursos de la v4 se eligieron a ciegas como valores fijos. Con azar, un par puede sonar distinto cada vez, así que las hojas de oído tendrán que fijar la semilla.
+
+## 16. Reglas del azar con semilla (sesión del 2026-11-11)
+
+Decisiones de Claudio al abrir: **D1 = A, D2 = B, D3 = B, D4 = C** (las recomendadas).
+
+- **D1 = A, sin semilla = v4.** Si `arrange(base, nivel, nV, beats, perillas, semilla)` no recibe semilla (`undefined`, `null` o vacía), sigue el orden fijo de izquierda a derecha y el remate «azar» vale «rico». `oro-v4.json` sigue con sus 792 casos idénticos.
+- **D2 = B, un hash por decisión.** `hash32(semilla, vuelta, paso, k)` es un mezclador de enteros de 32 bits (el finalizador de splitmix32, `Math.imul` y desplazamientos sin signo; en C# da lo mismo con `uint` y `unchecked`). Cada decisión tiene su número propio y no se tira en cadena. Así, encender una perilla no cambia lo que ya decidían las demás (es la lección de Islands: el orden de las tiradas no debe importar). Nada de `Math.random` en la teoría.
+- **D3 = B, qué decide la semilla:**
+  - **(a) El remate, solo con `remate: "azar"`.** Elige uno de su grupo por modo, con la misma probabilidad para cada uno: si el modo tiene la tercera mayor (Jónico, Lidio, Mixolidio), entre {rico, simple, ii–V}; si la tiene menor (Eólico, Dórico, Frigio), entre {rico, deslizado, ii–V}. El grupo sale de la hoja de remates (§14); el deslizado en mayor se cayó por oído. Número: `hash32(s, 0, 1, 0) % 3`. En Dórico, Frigio y Lidio, con la tónica como destino, el deslizado y el ii–V ya daban el acorde modal (P5), así que ahí el azar casi no se oye. En Locrio no hay remate.
+  - **(b) Dónde caen los adornos.** En cada vuelta, la semilla baraja el orden en que se recorren los acordes (clave `hash32(s, vuelta, 2, i)` por acorde y orden por clave). Cada regla (sus4, menor prestado, disminuido, acorde de paso, ♭VI) se recorre en ese orden en lugar de ir de izquierda a derecha. Como el presupuesto se agota, cambia qué acordes reciben adorno, y como la clave depende de la vuelta, también cambia de una vuelta a otra. Antes, las vueltas 2…n eran idénticas salvo el remate.
+  - **Lo que la semilla no toca:** la prioridad entre reglas (remate → sus4 → menor prestado → disminuido → acorde de paso → ♭VI), el presupuesto, las condiciones de cada regla, el color (séptimas, novenas, cadena de dominantes, ♭VI7 en menor), la vuelta 1 de fábrica (`desdeVuelta`), «≤2 acordes distintos → 1 cambio» y «ningún acorde escrito desaparece». No hay modulaciones. **Todo lo que suena con semilla también lo puede dar el orden fijo de alguna otra progresión: la semilla no inventa recursos.**
+  - (c) Qué adorno se elige, con pesos (P6): fuera de esta sesión.
+- **De fábrica:** el remate del N3 pasa de «rico» a «azar» (decisión de la hoja de remates). Sin semilla da lo mismo que la v4. El N2 se queda en «simple», así que en el N2 la semilla solo mueve los adornos (b).
+- **D4 = C, guardar una versión:** es una entrada del catálogo (el db `catalogo`; sin db, el navegador) con `semilla` y `nivel` además del texto y las perillas. La cadena copiada también lleva la semilla en la cabecera.
+- **Dudas musicales:** ninguna nueva. (a) usa grupos ya decididos por oído y (b) solo reparte recursos ya aprobados, así que no hizo falta consultar a Music Lab. Lo que queda abierto lo resuelve la prueba de oído corta (paso 5): si 3 semillas de la misma carta suenan a la misma carta.
