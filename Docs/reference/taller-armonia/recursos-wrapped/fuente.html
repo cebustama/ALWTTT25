@@ -1,0 +1,516 @@
+<title>Recursos en los niveles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column, wrapped style. Hero with the count, the strip of the 13 resources (before / now),
+   how a level adorns (diagram), one card per new resource with skeleton → taller → the real song (playable),
+   the lab (every knob, three laps, playable), the decisions and what comes next. Same family as the Taller armónico. */
+:root{
+  --bg:#e9eef0; --panel:#ffffff; --panel-2:#dde4e7; --ink:#152025; --muted:#56656c; --line:#c3cdd2; --accent:#0d7a80;
+  --r-v3:#6b7c84;  --r-v3-bg:#e4eaed;
+  --r-p1:#2357b5;  --r-p1-bg:#dce6f8;
+  --r-p2:#b5560f;  --r-p2-bg:#f8e3d2;
+  --r-p3:#7a3fb0;  --r-p3-bg:#ebdff6;
+  --r-p4:#b0304f;  --r-p4-bg:#f7dce3;
+  --r-p5:#1d7a46;  --r-p5-bg:#d9efe2;
+  --r-d9:#8a6a00;  --r-d9-bg:#f3eacb;
+  --ok:#1f7a4a; --half:#9a6200; --no:#b0384f; --lock:#5a5f8a;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --r-v3:#a3b3ba; --r-v3-bg:#26333a; --r-p1:#8db2ff; --r-p1-bg:#1c2a47; --r-p2:#f2a46a; --r-p2-bg:#3d2717;
+  --r-p3:#c79bf2; --r-p3-bg:#2f2142; --r-p4:#f08aa3; --r-p4-bg:#3f1c26; --r-p5:#74d49c; --r-p5-bg:#173326;
+  --r-d9:#e8c55a; --r-d9-bg:#352c10; --ok:#6fd39b; --half:#f0b85a; --no:#ef8ba0; --lock:#aeb3ec;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --r-v3:#a3b3ba; --r-v3-bg:#26333a; --r-p1:#8db2ff; --r-p1-bg:#1c2a47; --r-p2:#f2a46a; --r-p2-bg:#3d2717;
+  --r-p3:#c79bf2; --r-p3-bg:#2f2142; --r-p4:#f08aa3; --r-p4-bg:#3f1c26; --r-p5:#74d49c; --r-p5-bg:#173326;
+  --r-d9:#e8c55a; --r-d9-bg:#352c10; --ok:#6fd39b; --half:#f0b85a; --no:#ef8ba0; --lock:#aeb3ec;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 72px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(34px,7vw,64px);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(24px,4vw,32px);font-weight:700}
+h3{font-size:19px}
+p{margin:0;max-width:70ch}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+code{background:var(--panel-2);padding:1px 5px;border-radius:4px}
+a{color:var(--accent)}
+section{display:flex;flex-direction:column;gap:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+button,select,input,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.play::before{content:"▶";font-size:11px}
+.btn.play.playing::before{content:"■"}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* hero */
+.hero{gap:22px}
+.hero p.lede{font-size:19px;max-width:62ch}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.stat{border-top:3px solid var(--c);padding-top:10px;display:flex;flex-direction:column;gap:2px}
+.stat strong{font:800 44px/1 var(--f-display);color:var(--c);font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--muted)}
+
+/* strip */
+.tira{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.cel{border-radius:10px;padding:10px;border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:6px;min-height:98px}
+.cel b{font-size:14px;line-height:1.25}
+.cel .st{font:600 12px var(--f-mono);display:flex;align-items:center;gap:6px}
+.cel .st i{width:10px;height:10px;border-radius:50%;background:currentColor;display:inline-block}
+.cel .how{font-size:12px;color:var(--muted)}
+.cel.ok .st{color:var(--ok)} .cel.half .st{color:var(--half)} .cel.no .st{color:var(--no)} .cel.lock .st{color:var(--lock)}
+.cel.new{border-color:var(--ok);box-shadow:inset 0 0 0 1px var(--ok)}
+
+/* rule chips */
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font:600 12px var(--f-mono);color:var(--rc);background:var(--rb);border:1px solid color-mix(in srgb,var(--rc) 35%,transparent);white-space:nowrap}
+.r-v3{--rc:var(--r-v3);--rb:var(--r-v3-bg)} .r-p1{--rc:var(--r-p1);--rb:var(--r-p1-bg)} .r-p2{--rc:var(--r-p2);--rb:var(--r-p2-bg)}
+.r-p3{--rc:var(--r-p3);--rb:var(--r-p3-bg)} .r-p4{--rc:var(--r-p4);--rb:var(--r-p4-bg)} .r-p5{--rc:var(--r-p5);--rb:var(--r-p5-bg)} .r-d9{--rc:var(--r-d9);--rb:var(--r-d9-bg)}
+
+/* how a level adorns */
+.pipe{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pipe .arr{color:var(--muted);font-family:var(--f-mono)}
+.split{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;max-width:560px}
+.split div{border-radius:6px;padding:8px 6px;font:600 13px var(--f-mono);text-align:center;background:var(--panel-2);border:1px solid var(--line)}
+.split .orig{grid-column:span 2}
+.split .add{background:var(--r-p1-bg);color:var(--r-p1);border-color:color-mix(in srgb,var(--r-p1) 40%,transparent)}
+.split .lbl{background:none;border:none;font-weight:400;color:var(--muted);font-family:var(--f-body);font-size:12px;padding:2px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.rules div{display:flex;flex-direction:column;gap:4px}
+.rules b{font-family:var(--f-display);font-size:16px}
+
+/* lap timeline */
+.laps{display:flex;flex-direction:column;gap:6px}
+.lapRow{display:grid;grid-template-columns:86px minmax(0,1fr);gap:8px;align-items:stretch}
+.lapLbl{font:600 12px/1.3 var(--f-mono);color:var(--muted);padding-top:8px}
+.scroll{overflow-x:auto;min-width:0}
+.bar{display:flex;gap:2px;min-width:var(--mw,0px)}
+.ch{flex:var(--d) 0 0;min-width:0;border-radius:6px;padding:6px 6px 5px;background:var(--panel-2);border:1px solid var(--line);display:flex;flex-direction:column;gap:1px;transition:transform .12s,box-shadow .12s;overflow:hidden}
+.ch .rn{font:600 13px/1.2 var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .nm{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch.add{background:var(--rb);border-color:var(--rc)}
+.ch.add .rn{color:var(--rc)}
+.ch.recol{box-shadow:inset 0 -4px 0 var(--rc)}
+.ch.recol .rn{color:var(--rc)}
+.ch.real{background:transparent;border-style:dashed}
+.ch.now{transform:translateY(-3px);box-shadow:0 0 0 2px var(--accent)}
+@media (prefers-reduced-motion: reduce){.ch{transition:none}}
+
+/* resource cards */
+.cards{display:flex;flex-direction:column;gap:18px}
+.card{border-left:6px solid var(--rc)}
+.card header{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between}
+.card .fx{font-size:17px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 18px;font-size:14px}
+.facts dt{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.facts dd{margin:2px 0 0}
+.ex{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
+.ex h4{margin:0;font:700 14px var(--f-body)}
+.decision{font-size:14px;background:var(--panel-2);border-radius:8px;padding:8px 12px}
+
+/* lab */
+.lab{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.lab{grid-template-columns:minmax(0,1fr)}}
+.ctl{display:flex;flex-direction:column;gap:10px}
+.ctl label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.ctl select,.ctl textarea{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--ink)}
+.ctl textarea{font:13px var(--f-mono);resize:vertical;min-height:60px}
+.knobs{display:flex;flex-direction:column;gap:6px}
+.knob{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px;padding:4px 0;border-bottom:1px solid var(--line)}
+.knob.nueva span::after{content:" nueva";font:600 10px var(--f-mono);color:var(--accent);vertical-align:2px}
+.knob.idle{opacity:.5}
+.knob select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 4px;color:var(--ink)}
+.issues{color:var(--no);font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px}
+.why{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tbl{overflow-x:auto}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.steps .panel{gap:6px}
+.steps .done{border-color:var(--ok)}
+.steps .eyebrow.ok{color:var(--ok)}
+</style>
+
+<div class="wrap">
+
+<section class="hero">
+  <span class="eyebrow">Taller armónico · línea armónica · 11 de noviembre de 2026</span>
+  <h1>Lo que Music Lab sabe, ahora lo saben los niveles</h1>
+  <p class="lede">Los niveles 2 y 3 de una carta adornan la progresión escrita. Hasta hoy usaban 6 de los 13 recursos armónicos que Music Lab ha validado con canciones reales. Desde hoy hay una perilla para 11. Las cinco nuevas están <b>apagadas</b>: el taller suena igual que ayer hasta que la prueba de oído decida dónde encenderlas.</p>
+  <div class="stats">
+    <div class="stat" style="--c:var(--ok)"><strong>6 → 11</strong><span>recursos validados con una regla en el taller (de 13)</span></div>
+    <div class="stat" style="--c:var(--accent)"><strong>5 + 1</strong><span>perillas nuevas (P1–P5) y una para tu duda del ii</span></div>
+    <div class="stat" style="--c:var(--r-p1)"><strong>792</strong><span>casos de la prueba de oro, idénticos a la v3</span></div>
+    <div class="stat" style="--c:var(--lock)"><strong>2</strong><span>siguen bloqueados: piden inversiones y modular</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-tira">
+  <span class="eyebrow">Los 13 recursos validados</span>
+  <div class="row" style="justify-content:space-between">
+    <h2 id="h-tira">Qué usaba el taller y qué usa ahora</h2>
+    <div class="row" role="group" aria-label="Momento">
+      <button class="btn" id="tAntes" type="button">Antes</button>
+      <button class="btn on" id="tAhora" type="button">Ahora</button>
+    </div>
+  </div>
+  <div class="tira" id="tira"></div>
+  <p class="small muted">Verde: hay regla. Ámbar: la había a medias. Rojo: no la había. Violeta: bloqueado por el alfabeto de MidiGenPlay o por la regla de no modular. El borde marca lo que cambió hoy.</p>
+</section>
+
+<section aria-labelledby="h-como">
+  <span class="eyebrow">El mecanismo</span>
+  <h2 id="h-como">Cómo adorna un nivel</h2>
+  <div class="panel">
+    <p>Un acorde escrito <b>nunca desaparece</b>. Lo que se añade ocupa su segunda parte: medio compás en 4/4. Por eso un ii–V completo necesita un acorde de dos compases. En uno solo no caben tres acordes, y MidiGenPlay no los admite.</p>
+    <div class="split" aria-label="Ejemplo: un I de dos compases con un ii–V al final">
+      <div class="lbl">compás 1</div><div class="lbl"></div><div class="lbl">compás 2</div><div class="lbl"></div>
+      <div class="orig">I (escrito)</div><div class="orig">I (escrito)</div>
+      <div class="orig" style="grid-column:span 2">I, primera parte</div><div class="add">ii</div><div class="add">V7</div>
+    </div>
+    <div class="rules">
+      <div><b>Presupuesto</b><span class="small">Cada adorno gasta un cambio: nivel 2, uno por vuelta; nivel 3, dos. Un ii–V gasta uno aunque añada dos acordes.</span></div>
+      <div><b>El color no gasta</b><span class="small">Las séptimas, las novenas y ahora la cadena de dominantes y el ♭VI7 cambian la calidad, no añaden acordes. Suenan desde la vuelta 1 (tu D4).</span></div>
+      <div><b>Orden fijo</b><span class="small">Cuando dos reglas quieren el mismo acorde, gana la que va antes en la fila de abajo.</span></div>
+    </div>
+    <div class="pipe" aria-label="Orden de las reglas">
+      <span class="chip r-v3">color</span><span class="chip r-p2">+ cadena (P2)</span><span class="chip r-p4">+ ♭VI7 (P4)</span><span class="arr">→</span>
+      <span class="chip r-p5">remate: simple · rico · deslizado (P5) · ii–V (D9)</span><span class="arr">→</span>
+      <span class="chip r-v3">sus4</span><span class="arr">→</span><span class="chip r-v3">menor prestado</span><span class="arr">→</span>
+      <span class="chip r-p3">disminuido (P3)</span><span class="arr">→</span>
+      <span class="chip r-p1">paso: clásico · cromático · ii–V (P1)</span><span class="arr">→</span><span class="chip r-v3">♭VImaj7</span>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-rec">
+  <span class="eyebrow">Recurso por recurso</span>
+  <h2 id="h-rec">Los cinco nuevos (y el remate ii–V)</h2>
+  <p>En cada ejemplo, la primera fila es el <b>esqueleto</b> (lo que escribiría la carta), la segunda es lo que hace el taller con <b>solo esa perilla encendida</b> y la tercera, punteada, es lo que tocan de verdad en la canción. Todo suena. Las fichas son las de <code>Music Lab/Biblioteca/jazz</code>.</p>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section aria-labelledby="h-lab">
+  <span class="eyebrow">Laboratorio</span>
+  <h2 id="h-lab">Enciende perillas y escucha las tres vueltas</h2>
+  <div class="panel">
+    <div class="lab">
+      <div class="ctl">
+        <label for="lPreset">Progresión<select id="lPreset"></select></label>
+        <label for="lText">Cadena (la del Import)<textarea id="lText" rows="3" spellcheck="false"></textarea></label>
+        <div class="row">
+          <label for="lMode" style="flex:1">Modo<select id="lMode"></select></label>
+          <label for="lKey" style="flex:1">Tónica<select id="lKey"></select></label>
+        </div>
+        <div class="row" role="group" aria-label="Nivel">
+          <button class="btn" type="button" data-lvl="2">Nivel 2</button>
+          <button class="btn on" type="button" data-lvl="3">Nivel 3</button>
+        </div>
+        <div class="row" role="group" aria-label="Juego de perillas">
+          <button class="btn on" type="button" data-set="v3">De fábrica (v3)</button>
+          <button class="btn" type="button" data-set="prop">Propuesta para el oído</button>
+        </div>
+        <div class="knobs" id="knobs"></div>
+      </div>
+      <div class="ctl" style="min-width:0">
+        <div class="row" style="justify-content:space-between">
+          <button class="btn play" type="button" id="lPlay">Escuchar las 3 vueltas</button>
+          <span class="small muted mono" id="lInfo"></span>
+        </div>
+        <div class="issues" id="lIssues" role="status"></div>
+        <div class="laps" id="lLaps"></div>
+        <div class="legend" id="legend"></div>
+        <div class="why" id="lWhy"></div>
+        <p class="small muted">La «Propuesta para el oído» es mi hipótesis para empezar la prueba de oído, no una decisión. Nivel 2: ii–V en el acorde de paso y ♭VI7 en menor. Nivel 3: cadena de dominantes, disminuido y ♭VI7 en menor, con el paso cromático y el remate rico de la v3.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-dec">
+  <span class="eyebrow">Tus decisiones</span>
+  <h2 id="h-dec">D1–D9, tal como quedaron en el código</h2>
+  <div class="panel tbl">
+    <table>
+      <thead><tr><th>Duda</th><th>Elegiste</th><th>Qué hace el taller</th></tr></thead>
+      <tbody>
+        <tr><td>D1 · ii–V sin sitio</td><td>A</td><td>Si el acorde dura un compás, solo la V7, como el paso clásico.</td></tr>
+        <tr><td>D2 · calidad del ii</td><td>A, con dudas</td><td>El de la escala cuando ahí es menor o disminuido (<code>Am7</code> en <i>Billie's</i>); si no, según el destino. Tu duda es una perilla: <b>ii según el destino</b> (<code>m7♭5</code> hacia menores), para compararlas en la prueba de oído.</td></tr>
+        <tr><td>D3 · ii que va a la V</td><td>A</td><td>La cadena de dominantes lo deja menor: <code>VI7 – iim7 – V7</code>.</td></tr>
+        <tr><td>D4 · desde qué vuelta</td><td>B</td><td>La cadena y el ♭VI7 suenan desde la vuelta 1: «que se note de inmediato que cambió respecto al nivel anterior».</td></tr>
+        <tr><td>D5 · modos de la cadena</td><td>A</td><td>Solo Jónico.</td></tr>
+        <tr><td>D6 · variantes del disminuido</td><td>C</td><td>Las tres: sube, de vecino y baja.</td></tr>
+        <tr><td>D7 · alcance del ♭VI7</td><td>B</td><td>El VI que va al V o al iv, en Eólico.</td></tr>
+        <tr><td>D8 · deslizamiento como adorno</td><td>A</td><td>Solo como remate.</td></tr>
+        <tr><td>D9 · remate ii–V</td><td>Sí</td><td>Quinto valor del remate.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="h-sig">
+  <span class="eyebrow">Qué sigue</span>
+  <h2 id="h-sig">Del taller a MidiGenPlay</h2>
+  <div class="steps">
+    <div class="panel done"><span class="eyebrow ok">Hecho</span><b>Reglas y perillas</b><span class="small">Hoja de reglas con casos de la Biblioteca y perillas apagadas. Prueba de oro: 792 casos idénticos.</span></div>
+    <div class="panel"><span class="eyebrow">Siguiente</span><b>Prueba de reducción</b><span class="small">Se quitan los adornos a secciones reales para dejar el esqueleto, se le pasan los niveles y se mide cuánto se parece el resultado a la canción.</span></div>
+    <div class="panel"><span class="eyebrow">Después</span><b>Prueba de oído</b><span class="small">Pares A/B como la de la v3. Tú decides qué se enciende y en qué nivel, y de ahí sale el oro v4.</span></div>
+    <div class="panel"><span class="eyebrow">Tras la demo</span><b>MidiGenPlay</b><span class="small">Un port 1:1 de <code>arrange()</code> a C#, las perillas como ScriptableObject y un test de paridad con el oro.</span></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+/*__THEORY__*/
+
+/* ---------- page ---------- */
+const RULE = {v3:"Adorno de la v3", p1:"P1 · ii–V", p2:"P2 · cadena de dominantes", p3:"P3 · disminuido", p4:"P4 · ♭VI7 en menor", p5:"P5 · remate deslizado", d9:"D9 · remate ii–V"};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const pretty = r => r.replace(/^b/, "♭").replace(/^#/, "♯").replace("dim7","°7").replace(/ø7$/, "ø7");
+
+function ruleOf(why, P){
+  if(!why) return null;
+  if(/^turnaround/.test(why)) return P.remate === "deslizado" ? "p5" : P.remate === "iiV" ? "d9" : "v3";
+  if(/disminuido/.test(why)) return "p3";
+  if(/ii–V/.test(why)) return "p1";
+  if(/dominante secundaria/.test(why)) return P.paso === "iiV" ? "p1" : "v3";
+  return "v3";
+}
+// Runs the real arrange() and tags every chord: which rule added it, and which new colour changed it.
+function run(text, md, lvl, P, nV){
+  mode = md;
+  const p = parse(text);
+  const full = {2:{...PERILLAS_V3[2]}, 3:{...PERILLAS_V3[3]}}; Object.assign(full[lvl], P);
+  const plain = {2:{...full[2], cadenaDominantes:false, bVI7Menor:false}, 3:{...full[3], cadenaDominantes:false, bVI7Menor:false}};
+  const vs = arrange(p.chords, lvl, nV, 4, full), ref = arrange(p.chords, lvl, nV, 4, plain);
+  vs.forEach((v, k) => {
+    let last = null; const origs = ref[k].seq.filter(c => !c.add); let oi = 0;
+    v.seq.forEach(c => {
+      if(c.add){ c.rule = ruleOf(c.why, full[lvl]) || last; last = c.rule; c.whyTxt = c.why; return; }
+      last = null; const o = origs[oi++];
+      if(o && !c.rest && o.q !== c.q){ c.recol = mode === "Aeolian" ? "p4" : "p2"; c.whyTxt = (c.recol === "p2" ? "cadena de dominantes: " : "♭VI7 en menor: ") + romanOf(o.pc, o.q) + " → " + romanOf(c.pc, c.q); }
+    });
+  });
+  return {issues: p.issues.filter(i => i.e), vs, P: full[lvl]};
+}
+function realRow(text, md){ mode = md; const p = parse(text); return p.chords.map(c => ({...c, real:true})); }
+
+function chordHTML(c, key, id){
+  if(c.rest) return '<div class="ch" style="--d:'+c.dur+'"><span class="rn">—</span><span class="nm">silencio</span></div>';
+  const cls = ["ch"], r = c.rule || c.recol;
+  if(c.add) cls.push("add"); if(c.recol) cls.push("recol"); if(c.real) cls.push("real"); if(r) cls.push("r-" + r);
+  const t = c.whyTxt ? ' title="'+esc(c.whyTxt)+'"' : "";
+  return '<div class="'+cls.join(" ")+'" style="--d:'+c.dur+'" data-id="'+id+'"'+t+'><span class="rn">'+esc(pretty(romanOf(c.pc, c.q)))+'</span><span class="nm">'+esc(chordName(c.pc, c.q, key))+'</span></div>';
+}
+// rows: [{label, seq, md}] — every row on the same bar scale
+function lapsHTML(rows, key, pid){
+  const bars = Math.max(...rows.map(r => r.seq.reduce((s, c) => s + c.dur, 0)));
+  return rows.map((r, ri) => { mode = r.md;
+    return '<div class="lapRow"><div class="lapLbl">'+esc(r.label)+'</div><div class="scroll"><div class="bar" style="--mw:'+Math.round(bars*96)+'px">' +
+      r.seq.map((c, ci) => chordHTML(c, key, pid + "-" + ri + "-" + ci)).join("") + '</div></div></div>'; }).join("");
+}
+
+/* ---------- sound: a soft electric piano and a bass, nothing more ---------- */
+let AC = null, live = [], timers = [], playingBtn = null;
+function stopAll(){ live.forEach(n => { try{ n.stop(); }catch(e){} }); live = []; timers.forEach(clearTimeout); timers = [];
+  document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+  if(playingBtn){ playingBtn.classList.remove("playing"); playingBtn = null; } }
+function tone(f, t, d, type, vol){
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(vol*.45, t + .35);
+  g.gain.setValueAtTime(vol*.45, t + Math.max(.36, d - .08)); g.gain.linearRampToValueAtTime(0, t + d);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + .05); live.push(o); }
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+// rows: [{seq, md}], items: [id prefixes]; plays the rows one after another
+function playRows(rows, key, pid, btn, bpm){
+  if(playingBtn === btn){ stopAll(); return; } stopAll();
+  try{ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); }catch(e){ return; }
+  playingBtn = btn; btn.classList.add("playing");
+  const bar = 4 * 60 / (bpm || 96), t0 = AC.currentTime + .08; let t = 0;
+  rows.forEach((r, ri) => r.seq.forEach((c, ci) => {
+    const d = c.dur * bar, at = t0 + t;
+    if(!c.rest){
+      const root = (c.pc + key) % 12, iv = Q[c.q].iv, set = new Set();
+      iv.forEach(x => set.add(55 + ((root + x - 55) % 12 + 12) % 12));
+      set.forEach(m => tone(hz(m), at, d * .96, "triangle", .07));
+      tone(hz(36 + root), at, d * .96, "sine", .16);
+    }
+    const id = pid + "-" + ri + "-" + ci, start = t;
+    timers.push(setTimeout(() => { document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+      const el = document.querySelector('[data-id="'+id+'"]'); if(el) el.classList.add("now"); }, start * 1000 + 80));
+    t += d; }));
+  timers.push(setTimeout(stopAll, t * 1000 + 250));
+}
+
+/* ---------- strip of the 13 ---------- */
+const TIRA = [
+  ["Dominante secundaria","ok","ok","paso clásico y color"],
+  ["Sustitución de tritono","ok","ok","paso cromático, remate en Eólico"],
+  ["Backdoor ii–V","ok","ok","remate rico en Jónico"],
+  ["ii–V menor","ok","ok","remate rico en Eólico, remate ii–V"],
+  ["Intercambio IV → iv","ok","ok","menor prestado"],
+  ["Dominante mayorizada en menor","ok","ok","remate simple en Eólico"],
+  ["ii–V mayor","half","ok","P1 y remate ii–V (D9)"],
+  ["Deslizamiento cromático","half","ok","P5, remate deslizado"],
+  ["♭VI7 de color","no","ok","P4, ♭VI7 en menor"],
+  ["Disminuido de paso","no","ok","P3, las tres variantes"],
+  ["Cadena de dominantes","no","ok","P2, en Jónico"],
+  ["Pivote I → ii","lock","lock","es modular: no cabe en una carta"],
+  ["Bajo cromático descendente","lock","lock","pide inversiones a MidiGenPlay"],
+];
+const ST = {ok:"con regla", half:"a medias", no:"no estaba", lock:"bloqueado"};
+function drawTira(now){
+  $("#tAntes").classList.toggle("on", !now); $("#tAhora").classList.toggle("on", now);
+  $("#tira").innerHTML = TIRA.map(([n, a, b, how]) => { const s = now ? b : a, nw = now && a !== b;
+    return '<div class="cel '+s+(nw ? " new" : "")+'"><b>'+esc(n)+'</b><span class="st"><i></i>'+ST[s]+'</span>'+(now ? '<span class="how">'+esc(how)+(nw ? " · perilla apagada" : "")+'</span>' : "")+'</div>'; }).join("");
+}
+$("#tAntes").onclick = () => drawTira(false); $("#tAhora").onclick = () => drawTira(true);
+drawTira(true);
+
+/* ---------- resource cards ---------- */
+const CARDS = [
+ {r:"p1", t:"ii–V completo", knob:'paso: "iiV"', fx:"Anuncia el acorde siguiente con la frase más corta del jazz: su ii y su dominante.",
+  formula:"Antes de un acorde de la escala (que no sea la tónica): su ii y su V7 en la segunda mitad de un acorde de dos compases. Si el anfitrión ya es la V, se parte en su ii y él mismo como 7.",
+  where:"Todos los modos · gasta 1 · en el sitio del acorde de paso", dec:"D1 A: si solo cabe uno, la V7. D2 A, con tu duda convertida en perilla: pruébala abajo.",
+  ex:[{h:"Misty, A1 cc. 1–4 · el ii–V del IV sale del propio I", key:3, md:"Ionian", sk:"I (2) – IV (2)", P:{paso:"iiV", sus4:false, remate:"no"}, lap:1, lvl:2, real:"Imaj7 – vm7 (0.5) – I7 (0.5) – IVmaj7 – ivm7 (0.5) – bVII7 (0.5)", rl:"Misty"},
+      {h:"Billie's Bounce, cc. 7–10 · hacia el ii (prueba la perilla de tu duda)", key:5, md:"Ionian", sk:"I7 (2) – ii – V", P:{paso:"iiV", sus4:false, remate:"no"}, lap:1, lvl:2, real:"I7 – iiim7 (0.5) – VI7 (0.5) – iim7 – V7", rl:"Billie's", toggle:"iiDelDestino"}]},
+ {r:"p2", t:"Cadena de dominantes", knob:"cadenaDominantes", fx:"Cada acorde empuja al siguiente: los que bajan una quinta se vuelven dominantes, también los menores.",
+  formula:"Todo acorde que baja una quinta hacia el siguiente pasa a 7, salvo la tónica, los disminuidos y el ii que va a la V (el ii–V se respeta).",
+  where:"Solo Jónico · no gasta · desde la vuelta 1", dec:"D3 A (el ii se queda), D4 B (desde la vuelta 1), D5 A (solo Jónico).",
+  ex:[{h:"All of Me, A1 · el esqueleto se convierte en la canción", key:0, md:"Ionian", sk:"I (2) – iii (2) – vi (2) – ii (2)", P:{cadenaDominantes:true, sus4:false}, lap:0, lvl:2, real:"Imaj7 (2) – III7 (2) – VI7 (2) – ii (2)", rl:"All of Me"},
+      {h:"Cincuentas · el ii que va a la V se queda menor", key:0, md:"Ionian", sk:"I – vi – ii – V", P:{cadenaDominantes:true, sus4:false}, lap:0, lvl:2, real:"Imaj7 (0.5) – VI7 (0.5) – iim7 (0.5) – V7 (0.5)", rl:"Oleo A cc. 1–2"}]},
+ {r:"p3", t:"Disminuido de paso", knob:"disminuido", fx:"Un peldaño cromático: tensión de un instante, sin el peso de una dominante.",
+  formula:"Un °7 en la segunda mitad. Sube: si el siguiente está un tono arriba, el °7 medio tono bajo él. De vecino: entre el IV y el I, el ♯IV°7. Baja: si el siguiente está una cuarta abajo, el °7 medio tono sobre él.",
+  where:"Todos los modos · gasta 1 · antes del acorde de paso · puede usar el último acorde", dec:"D6 C: las tres variantes. El taller escribe el °7 con bemol (D♭°7 por C♯°7): suena igual.",
+  ex:[{h:"Sube · Georgia (Cmaj7 – C♯°7 – G/D, bajo Do → Do♯ → Re)", key:0, md:"Ionian", sk:"I (2) – ii (2)", P:{disminuido:true, paso:"no", sus4:false, remate:"no"}, lap:1, lvl:2},
+      {h:"De vecino · Billie's Bounce, cc. 5–8", key:5, md:"Ionian", sk:"IV7 (2) – I7 (2)", P:{disminuido:true, paso:"no", sus4:false, remate:"no"}, lap:1, lvl:2, real:"IV7 – #ivdim7 – I7 (2)", rl:"Billie's"},
+      {h:"Baja · Wave, A1 cc. 1–4", key:2, md:"Ionian", sk:"I (2) – v (2)", P:{disminuido:true, paso:"no", sus4:false, remate:"no"}, lap:1, lvl:2, real:"Imaj7 – bvidim7 – vm7 (2)", rl:"Wave"}]},
+ {r:"p4", t:"♭VI7 en menor", knob:"bVI7Menor", fx:"Un tinte cálido y oscuro sobre el sexto grado: el giro del blues menor, ♭VI7 – V7 – i.",
+  formula:"En Eólico, el VI escrito que va al V (o al iv) se vuelve VI7.",
+  where:"Solo Eólico · no gasta · desde la vuelta 1", dec:"D7 B: también hacia el iv, como SIBLY.",
+  ex:[{h:"Summertime, A1 cc. 5–8", key:9, md:"Aeolian", sk:"iv – VI – V (2)", P:{bVI7Menor:true, sus4:false}, lap:0, lvl:2, real:"iv – VI7 – #vim7b5 (0.5) – II7 (0.5) – V7", rl:"Summertime"},
+      {h:"Blues menor (como Thrill: G7 → F♯7 → Bm)", key:11, md:"Aeolian", sk:"i (2) – iv (2) – VI – V – i (2)", P:{bVI7Menor:true, sus4:false}, lap:0, lvl:2}]},
+ {r:"p5", t:"Remate deslizado", knob:'remate: "deslizado"', fx:"Dos dominantes a medio tono: la misma forma resbala un traste y cae en casa.",
+  formula:"En la última vuelta, antes de volver al primer acorde: ♭VI7 – V7. Si solo cabe uno, la V7. En los modos sin V7, su acorde modal.",
+  where:"Jónico y Eólico · gasta 1 · el primero de la fila", dec:"D8 A: solo como remate. No suena si el bucle ya cierra por cadencia (… V → I, iv → i).",
+  ex:[{h:"Un bucle que no cierra solo · última vuelta", key:2, md:"Ionian", sk:"I – vi – IV – ii (2)", P:{remate:"deslizado"}, lap:2, lvl:2, real:"II7 (2) – bVI7 (0.5) – V7 (0.5) – im7", rl:"Wave cc. 9–11"}]},
+ {r:"d9", t:"Remate ii–V", knob:'remate: "iiV"', fx:"El turnaround más común del jazz: el ii y la V antes de volver a la tónica.",
+  formula:"En la última vuelta: iim7 – V7 en Jónico, iiø7 – V7 en Eólico. Si el último acorde ya es el ii, solo la V7.",
+  where:"Jónico y Eólico · gasta 1 · el primero de la fila", dec:"D9: sí, como quinto valor del remate.",
+  ex:[{h:"Misty, A1 cc. 7–8 · última vuelta", key:3, md:"Ionian", sk:"I – vi – IV – iii (2)", P:{remate:"iiV"}, lap:2, lvl:2, real:"Imaj7 – vim7 – iiim7 (0.5) – VI7 (0.5) – iim7 (0.5) – V7 (0.5)", rl:"Misty"}]},
+];
+let exN = 0;
+function drawExample(e, host, flip){
+  const id = "ex" + (e.id ??= exN++), P = {...e.P}; if(e.toggle && flip) P[e.toggle] = true;
+  mode = e.md; const sk = parse(e.sk).chords;
+  const r = run(e.sk, e.md, e.lvl, P, 3), lap = r.vs[e.lap].seq;
+  const rows = [{label:"esqueleto", seq:sk, md:e.md}, {label:"vuelta " + (e.lap + 1), seq:lap, md:e.md}];
+  if(e.real) rows.push({label:e.rl, seq:realRow(e.real, e.md), md:e.md});
+  const whys = lap.filter(c => c.whyTxt && (c.add ? c.why : true)).map(c => "· " + c.whyTxt);
+  host.innerHTML = '<h4>'+esc(e.h)+' <span class="muted small">('+esc(NOTE[e.key])+' '+(e.md === "Aeolian" ? "menor" : "mayor")+')</span></h4>' +
+    '<div class="laps">' + lapsHTML(rows, e.key, id) + '</div>' +
+    '<div class="row"><button class="btn play" type="button">Escuchar</button>' +
+    (e.toggle ? '<label class="small row" style="gap:6px"><input type="checkbox"'+(flip ? " checked" : "")+'> ii según el destino (tu duda de D2)</label>' : "") + '</div>' +
+    (whys.length ? '<div class="why">'+whys.map(esc).join("<br>")+'</div>' : "");
+  host.querySelector(".play").onclick = ev => playRows(rows, e.key, id, ev.currentTarget, 96);
+  const cb = host.querySelector("input[type=checkbox]"); if(cb) cb.onchange = () => { stopAll(); drawExample(e, host, cb.checked); };
+}
+$("#cards").innerHTML = CARDS.map((c, i) => '<article class="panel card r-'+c.r+'" aria-labelledby="c'+i+'"><header><h3 id="c'+i+'">'+esc(c.t)+'</h3><span class="chip r-'+c.r+'">'+esc(RULE[c.r])+'</span></header>' +
+  '<p class="fx">'+esc(c.fx)+'</p><dl class="facts"><div><dt>Regla</dt><dd>'+esc(c.formula)+'</dd></div><div><dt>Dónde y cuánto</dt><dd>'+esc(c.where)+'</dd></div><div><dt>Perilla</dt><dd><code>'+esc(c.knob)+'</code>, apagada en los dos niveles</dd></div></dl>' +
+  '<p class="decision">'+esc(c.dec)+'</p>' + c.ex.map((e, j) => '<div class="ex" id="ex-'+i+'-'+j+'"></div>').join("") + '</article>').join("");
+CARDS.forEach((c, i) => c.ex.forEach((e, j) => drawExample(e, $("#ex-" + i + "-" + j), false)));
+
+/* ---------- lab ---------- */
+const PRESETS = [
+  {n:"Cincuentas larga (I–vi–ii–V)", md:"Ionian", key:0, t:"I (2) – vi (2) – ii (2) – V (2)"},
+  {n:"All of Me A (esqueleto)", md:"Ionian", key:0, t:"I (2) – iii (2) – vi (2) – ii (2)"},
+  {n:"Axis (I–V–vi–IV)", md:"Ionian", key:7, t:"I – V – vi – IV"},
+  {n:"Royal road (IV–V–iii–vi)", md:"Ionian", key:0, t:"IV – V – iii – vi"},
+  {n:"Pop con ii al final", md:"Ionian", key:2, t:"I (2) – vi (2) – IV (2) – ii (2)"},
+  {n:"Blues menor", md:"Aeolian", key:0, t:"i (2) – iv (2) – i (2) – VI – V – i (2)"},
+  {n:"Andaluza", md:"Aeolian", key:9, t:"i – VII – VI – V"},
+  {n:"Menor que sube (i–VII–VI–iv)", md:"Aeolian", key:4, t:"i (2) – VII (2) – VI (2) – iv (2)"},
+  {n:"Dórico (i–IV)", md:"Dorian", key:2, t:"i (2) – IV (2)"},
+];
+const KNOBS = [
+  ["presupuesto","Cambios por vuelta",[0,1,2,3]],
+  ["remate","Remate",["no","simple","rico","deslizado","iiV"]],
+  ["paso","Acorde de paso",["no","clasico","cromatico","iiV"]],
+  ["disminuido","Disminuido de paso",null,1],
+  ["cadenaDominantes","Cadena de dominantes",null,1],
+  ["bVI7Menor","♭VI7 en menor",null,1],
+  ["iiDelDestino","ii según el destino",null,1],
+  ["sus4","Suspensión (sus4)",null],
+  ["ivPrestado","Menor prestado",null],
+  ["bVI","♭VImaj7 antes de volver",null],
+  ["color","Color",["triadas","septimas","novenas"]],
+];
+const TXT = {clasico:"clásico", cromatico:"cromático", iiV:"ii–V", triadas:"tríadas", septimas:"séptimas", deslizado:"deslizado"};
+const PROP = {2:{paso:"iiV", bVI7Menor:true}, 3:{cadenaDominantes:true, disminuido:true, bVI7Menor:true}};
+const L = {lvl:3, P:{2:{...PERILLAS_V3[2]}, 3:{...PERILLAS_V3[3]}}};
+$("#lPreset").innerHTML = PRESETS.map((p, i) => '<option value="'+i+'">'+esc(p.n)+'</option>').join("") + '<option value="x">La mía (edita la cadena)</option>';
+$("#lMode").innerHTML = MODES.map(m => '<option value="'+m+'">'+esc(MODE_ES[m])+'</option>').join("");
+$("#lKey").innerHTML = NOTE.map((n, i) => '<option value="'+i+'">'+n+'</option>').join("");
+function loadPreset(i){ const p = PRESETS[i]; $("#lText").value = p.t; $("#lMode").value = p.md; $("#lKey").value = p.key; }
+const idle = (k, md) => (k === "cadenaDominantes" && md !== "Ionian") || (k === "bVI7Menor" && md !== "Aeolian") || (k === "bVI" && !["Ionian","Mixolydian"].includes(md));
+function drawKnobs(){
+  const P = L.P[L.lvl], md = $("#lMode").value;
+  $("#knobs").innerHTML = KNOBS.map(([k, lab, opts, nueva]) => { const v = P[k], id = "k_" + k;
+    const ctl = opts ? '<select id="'+id+'">' + opts.map(o => '<option value="'+o+'"'+(o === v ? " selected" : "")+'>'+esc(TXT[o] || String(o))+'</option>').join("") + '</select>'
+                     : '<input type="checkbox" id="'+id+'"'+(v ? " checked" : "")+'>';
+    return '<label class="knob'+(nueva ? " nueva" : "")+(idle(k, md) ? " idle" : "")+'" for="'+id+'"><span>'+esc(lab)+'</span>'+ctl+'</label>'; }).join("");
+  KNOBS.forEach(([k, , opts]) => { const el = $("#k_" + k);
+    el.onchange = () => { L.P[L.lvl][k] = opts ? (typeof opts[0] === "number" ? +el.value : el.value) : el.checked; setMarks(); drawLab(); }; });
+}
+function setMarks(){
+  const isV3 = [2,3].every(l => Object.keys(PERILLAS_V3[l]).every(k => L.P[l][k] === PERILLAS_V3[l][k]));
+  const isProp = [2,3].every(l => Object.keys(PERILLAS_V3[l]).every(k => L.P[l][k] === ({...PERILLAS_V3[l], ...PROP[l]})[k]));
+  document.querySelectorAll("[data-set]").forEach(b => b.classList.toggle("on", b.dataset.set === "v3" ? isV3 : isProp));
+  document.querySelectorAll("[data-lvl]").forEach(b => b.classList.toggle("on", +b.dataset.lvl === L.lvl));
+}
+let labRows = [];
+function drawLab(){
+  stopAll();
+  const md = $("#lMode").value, key = +$("#lKey").value, txt = $("#lText").value;
+  const r = run(txt, md, L.lvl, L.P[L.lvl], 3);
+  $("#lIssues").textContent = r.issues.map(i => i.msg).join(" ");
+  if(r.issues.length && !r.vs[0].seq.some(c => !c.rest)){ $("#lLaps").innerHTML = ""; labRows = []; return; }
+  labRows = r.vs.map((v, k) => ({label:"vuelta " + (k + 1) + (k === 2 ? " · última" : ""), seq:v.seq, md}));
+  $("#lLaps").innerHTML = lapsHTML(labRows, key, "lab");
+  const used = new Set(); r.vs.forEach(v => v.seq.forEach(c => { if(c.rule) used.add(c.rule); if(c.recol) used.add(c.recol); }));
+  $("#legend").innerHTML = [...used].map(u => '<span class="chip r-'+u+'">'+esc(RULE[u])+'</span>').join("") || '<span class="small muted">Sin adornos con estas perillas (solo el color).</span>';
+  const whys = []; r.vs.forEach((v, k) => v.seq.forEach(c => { if(c.whyTxt && (!c.add || c.why)) whys.push("Vuelta " + (k + 1) + " · " + c.whyTxt); }));
+  $("#lWhy").innerHTML = whys.map(esc).join("<br>");
+  const bars = r.vs[0].seq.reduce((s, c) => s + c.dur, 0);
+  $("#lInfo").textContent = fmtDur(bars) + " compases por vuelta · nivel " + L.lvl;
+}
+$("#lPreset").onchange = e => { if(e.target.value !== "x"){ loadPreset(+e.target.value); drawKnobs(); } drawLab(); };
+$("#lText").oninput = () => { $("#lPreset").value = "x"; drawLab(); };
+$("#lMode").onchange = () => { drawKnobs(); drawLab(); };
+$("#lKey").onchange = drawLab;
+document.querySelectorAll("[data-lvl]").forEach(b => b.onclick = () => { L.lvl = +b.dataset.lvl; setMarks(); drawKnobs(); drawLab(); });
+document.querySelectorAll("[data-set]").forEach(b => b.onclick = () => {
+  for(const l of [2,3]) L.P[l] = b.dataset.set === "v3" ? {...PERILLAS_V3[l]} : {...PERILLAS_V3[l], ...PROP[l]};
+  setMarks(); drawKnobs(); drawLab(); });
+$("#lPlay").onclick = ev => playRows(labRows, +$("#lKey").value, "lab", ev.currentTarget, 100);
+loadPreset(0); setMarks(); drawKnobs(); drawLab();
+</script>

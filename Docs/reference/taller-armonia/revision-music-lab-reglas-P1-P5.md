@@ -213,3 +213,7 @@ Con `preferirAcordeNuevo` el sus4 sigue yendo detrás del paso, como hoy.
 - **Nombres:** el `°7` se escribe por la nota del bemol (`biidim7` en vez de `#idim7`, `bvdim7` en vez de `#ivdim7`). Suena igual y el Import lo acepta, porque es la misma fundamental. Solo cambia cómo se lee.
 - `iiDelDestino` también se aplica al remate `iiV`.
 - La tarea `armonia.ajustar` de la web (el prompt del LLM) todavía no conoce las perillas nuevas. Se pone al día cuando alguna se encienda.
+
+## 10. Wrapped
+
+Página privada con los recursos, sus reglas, ejemplos de la Biblioteca que suenan y un laboratorio con todas las perillas: https://claude.ai/artifact/YaM8WSewBob3sxL2nEYCM3. Fuente en `recursos-wrapped/` (`fuente.html` + `build.mjs`, que pega la teoría de `template.html`: lo que suena es exactamente lo que hacen los niveles). Para rehacerlo: `node recursos-wrapped/build.mjs` y volver a publicar `recursos-wrapped.html`. La «Propuesta para el oído» del laboratorio (nivel 2: ii–V y ♭VI7; nivel 3: cadena, disminuido y ♭VI7) es una hipótesis del agente para empezar la prueba de oído, no una decisión.
