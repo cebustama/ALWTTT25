@@ -92,6 +92,14 @@ namespace ALWTTT.Map
         [Header("HUD")]
         [SerializeField] private TextMeshProUGUI cohesionText;
 
+        // [S5 NAVE-1] Where a gig launched from this map returns (D2=A: the
+        // ship hub). Map keeps the MAP-DEMO-1 behaviour for test scenes.
+        [Header("Return (S5)")]
+        [SerializeField, Tooltip("Where the gig returns. Ship = ship hub " +
+            "(demo flow, S5); Map = back to this map (MAP-DEMO-1).")]
+        private GigRunContext.GigReturnDestination gigReturnDestination =
+            GigRunContext.GigReturnDestination.Ship;
+
         // [MAP-DEMO-2] On the first node the camera starts over the part of the
         // map the band has already toured and eases to its scene position.
         [Header("Intro pan (first node only)")]
@@ -385,7 +393,7 @@ namespace ALWTTT.Map
                 return;
             }
 
-            var runConfig = config.ToRunConfig(GigRunContext.GigReturnDestination.Map);
+            var runConfig = config.ToRunConfig(gigReturnDestination);
             if (runConfig == null) return; // ToRunConfig already logged.
 
             bool first = index == 0;
@@ -400,6 +408,8 @@ namespace ALWTTT.Map
             Debug.Log($"{DebugTag} Launch node {index} '{node.title}' | " +
                       $"Encounter={config.Encounter.GetLabel()} | Boss={isBoss} | " +
                       $"PreserveRunState={runConfig.preserveRunState}");
+            Debug.Log($"[S5] Map → Gig | node {index} '{node.title}' | " +
+                      $"returns to {gigReturnDestination}");
 
             _launching = GigLauncher.Launch(
                 runConfig: runConfig,
@@ -411,6 +421,18 @@ namespace ALWTTT.Map
                 callerTag: "LinearMap");
 
             if (!_launching) pd.LinearMapNextNode = previous;
+        }
+
+        /// <summary>
+        /// [S5 NAVE-1] Wire to the map's «Volver a la nave» button OnClick.
+        /// Leaves the map without consuming a node.
+        /// </summary>
+        public void OnBackToShipPressed()
+        {
+            if (_launching || sceneChanger == null) return;
+            _launching = true; // one transition per click
+            Debug.Log($"[S5] Map → Ship | NextNode={_activeIndex}");
+            sceneChanger.OpenShipScene();
         }
 
         private static void SetAlpha(SectorNodeVisual v, float a)

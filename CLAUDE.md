@@ -10,3 +10,4 @@
 - When the user asks for edits to be applied directly, apply them instead of writing a runbook. Otherwise keep the runbook format.
 - Unity creates a `.meta` file for every new file under `Assets/`. Never hand-write or delete `.meta` files; if a file is moved or deleted, its `.meta` goes with it.
 - The user writes in Spanish; answer in Spanish unless asked otherwise.
+- When a session needs a lot of editor work (new scene, several objects, Inspector wiring), is complex, or turned up several references, offer a step-by-step tutorial artifact in the Catlike Coding style instead of chat-only steps: numbered sections with a «Lo has logrado si…» checkpoint each, Inspector values as tables, «Por qué…» boxes in GDC register, figures made from the real art, the smokes with their expected `Debug.Log` lines, and the references with thumbnails. First example: S5 NAVE-1 (2026-11-11), «La nave como hub».

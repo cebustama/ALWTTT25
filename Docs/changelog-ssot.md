@@ -14,6 +14,18 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-11 — S5: NAVE-1, la nave como hub (DEMO-1211)
+
+**Clase:** semántico · operativo · estructural. Con cambio de código, escena y datos.
+
+- `SSoT_Gig_Combat_Core` §13: cuarto camino de entrada, la nave (`1c - Ship Hub`, `ShipHubController`, `StartOnShipHub`); destino de vuelta `Ship` (D2=A) y botón «Volver a la nave»; «map run» = destino distinto de `GigSetup`; `CohesionPipsView` y su deuda.
+- `SSoT_Gig_Encounter` §8.3: la condición «sin Retry» pasa de `== Map` a `!= GigSetup`; «Continuar» va al destino de vuelta (la nave en la demo).
+- `SSoT_Runtime_Flow` §2: puntero al flujo entre gigs (Combat_Core §13).
+- Build: `1c - Ship Hub` al final (índice 9); `Scene Data.shipInteriorSceneIndex` 2 → 9. Arte nuevo en `Assets/Art/Ship/` (`Nave_Corte`, `Nave_Exterior`, `Sala_Dormitorio`).
+- Decisiones: D1=A (salas clicables: cabina, recreación, dormitorio, ensayo, chatarrero), D2=A (el gig vuelve a la nave), D3=A (sprites existentes sin renombrar ni commitear), D4=A (Expuesto se queda; contorno de iconos y F-TIP-7, diferidos).
+- Proceso: primer tutorial-artefacto de sesión (estilo Catlike Coding), regla añadida a `CLAUDE.md`.
+- Smokes 1–3 jugados por Claudio (menú → nave → sala; cabina → mapa → gig → nave; gig perdido sin Retry → nave) y corazones en el mapa.
+
 ## 2026-11-11 — S4b: vistas al pasar el ratón (DEMO-1211, LEGIB-1b)
 
 **Clase:** semántico · operativo. Con cambio de código y de datos.

@@ -1757,8 +1757,10 @@ namespace ALWTTT.Managers
             get
             {
                 var ctx = GigRunContext.Instance;
+                // [S5] Ship hub runs are map runs too (launched from the map,
+                // return to the ship): anything but GigSetup drops Retry.
                 return ctx != null && ctx.HasActiveRun && ctx.Current != null
-                    && ctx.Current.returnDestination == GigRunContext.GigReturnDestination.Map;
+                    && ctx.Current.returnDestination != GigRunContext.GigReturnDestination.GigSetup;
             }
         }
 
@@ -2009,11 +2011,15 @@ namespace ALWTTT.Managers
             // Route back
             if (sceneChanger != null)
             {
+                Debug.Log($"[S5] Gig → {returnDest} | won={won} | Cohesion={pd.BandCohesion} | " +
+                          $"Fans={pd.Fans} | NextNode={pd.LinearMapNextNode}");
                 if (returnDest == GigRunContext.GigReturnDestination.GigSetup) sceneChanger.OpenGigSetupScene();
+                else if (returnDest == GigRunContext.GigReturnDestination.Ship) sceneChanger.OpenShipScene();
                 else sceneChanger.OpenMapScene();
             }
             else
             {
+                Debug.LogError($"{DebugTag} ReturnToMap: SceneChanger missing; loading by name.");
                 SceneManager.LoadScene(returnDest == GigRunContext.GigReturnDestination.GigSetup ? "GigSetup" : "Map");
             }
         }

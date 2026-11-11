@@ -49,7 +49,7 @@ plano o en capturas.
 | | S3 | **LEGIB-1a: ver antes de jugar** ✅ 2026-11-06 | Al pasar el ratón por una carta, el Big Num muestra «Y → Z» | El número previsto es el que pasa (3 cartas distintas). **Hecho:** «Y → Z» siempre visible mientras suena un loop (Y = ahora; Z dorado con carta; sin flecha si no cambia); toda pista nueva sube al menos +1 y bonus de toda la banda (+3); CHECK previsto = real en todos los loops, 5 smokes jugados por Claudio | M1 |
 | 9–13 nov | S4 | **LEGIB-1b: lo que recibes** ✅ 2026-11-10 | La intención del público dice qué hará y a quién (línea al objetivo); sin textos internos («AddVibe») | Una persona ajena dice qué hará cada miembro del público. **Hecho (vista 3, D8=B):** objetivo fijado al mostrar la intención (solo Spotlight lo cambia), número sin «x» + iconos de los músicos que golpea, barra del músico verde con lo que perderá en rojo y «final/max», proyección = turno real (`StressProjector`), floater con el nombre de la habilidad, gustos traducidos, textos y SSoT corregidos, colores de identidad provisionales. 3 smokes jugados por Claudio | M1 |
 | | S4b | **LEGIB-1b, vistas al pasar el ratón** ✅ 2026-11-11 | Hover sobre músico (quién le pega y cuánto) y sobre miembro del público (a quién pega), con bordes del color de identidad, líneas al objetivo y Tab mantenido para verlo todo; iconos de objetivo legibles sobre el fondo | Con el ratón encima, se sabe sin leer texto quién golpea a quién. **Hecho:** vistas 1 y 2, Tab, sin vistas con carta cogida, aura roja; iconos con disco y aro, «toda la banda» en un icono «×N»; intención sobre la cabeza; frase «A Conito: 5 de Stress»; enlaces de concepto con su ficha debajo (como Monster Train); colapso → Expuesto (configurable); 8 smokes jugados por Claudio | M1 |
-| | S5 | **NAVE-1** | Escena de la nave: plano con salas clicables; cada sala abre su arte con «EN DESARROLLO» y «Volver»; la cabina abre el mapa | Menú → nave → cabina → gig → vuelta a la nave, sin romper la partida | — |
+| | S5 | **NAVE-1** ✅ 2026-11-11 | Escena de la nave: plano con salas clicables; cada sala abre su arte con «EN DESARROLLO» y «Volver»; la cabina abre el mapa | Menú → nave → cabina → gig → vuelta a la nave, sin romper la partida. **Hecho:** escena `1c - Ship Hub` con 5 salas como datos (hover que tiñe y nombra, «EN DESARROLLO» antes del clic), fundido exterior → corte en la primera visita, el gig vuelve a la nave, «Volver a la nave» en el mapa, corazones de cohesión en el mapa; montada con un tutorial-artefacto (https://claude.ai/artifact/E1CfGu3Y3cGSidN2xHm3Y3); 3 smokes jugados por Claudio | — |
 | | S6 | **NAVE-2: dormitorio = alineación** | En el dormitorio se elige la banda: 2, 3 o 4 músicos | Cada opción arranca con esa banda y su mazo; sale en la telemetría | M2 |
 | 16–20 nov | S7 | **ELENCO-1** | Los 9 sprites listos entran como público; gigs 1 y 2 con sus grupos (`reference/ideas/2026-10-30_publico_con_rol.md` §7) y el objetivo «el líder» | Los dos gigs tienen público propio que se ve distinto y actúa distinto | M4 |
 | | S8 | **GRITOS-1** | Bocadillos con frases por habilidad; `{músico}` se sustituye por el objetivo | Antes de cada golpe se lee quién lo recibe; alguien se ríe | M1 |
@@ -68,6 +68,13 @@ plano o en capturas.
 - ~~D10, el público que golpea a toda la banda~~ → resuelta (C): un icono «×N» con el aro partido en los colores; caras apiladas para 2–3.
 - **F-TIP-7:** el hover de conceptos del tutorial puede apilar fichas (sin comprobar).
 - **Iconos de objetivo con contorno** en lugar del disco: a Claudio «no le convence» el disco; no urgente.
+
+**Abierto tras S5 (2026-11-11):**
+- `vendedor.png` está duplicado (idéntico) en `Sprites/Ship/` y `Sprites/Ship/Rooms/`; `Rooms/` sin commitear (la nave usa `Rooms/chillout`).
+- `nave espacial.png` (31 MB) está en `Resources/` y entra en la build; la nave ya no la usa.
+- ESC en la nave vuelve al menú (UIManager); sin cambio.
+- `CohesionPipsView` duplica `GigCanvas.SetCohesion`; unificar después de la demo.
+- Idea a probar: nombres de las salas siempre visibles, tenues (referencia: corte de casa grecorromana), si alguien no descubre el hover en la prueba M6.
 
 ## Orden de recorte si vamos tarde
 

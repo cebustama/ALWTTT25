@@ -493,6 +493,33 @@ exist or are planned:
    on (takes precedence over `AutoStartFromDefaults`), the Main Menu Start
    button resets the run (`InitGameplayData` + `SetInitialDeck`) and opens
    the map scene instead of launching a gig.
+4. **Ship hub** (S5 NAVE-1, 2026-11-11) — scene `1c - Ship Hub` (build
+   index 9, last; `SceneData.shipInteriorSceneIndex` = 9, so
+   `SceneChanger.OpenShipScene()` opens it; `2 - Ship Interior` stays in
+   the list for Phase C). `ShipHubController` (`Assets/Scripts/ShipHub/`)
+   builds one `ShipRoomZone` per room over the cutaway image: rooms are
+   data (name, rect 0..1 from the image's top-left, `opensMap`, art,
+   `inDevelopment`). Hover tints the room and labels it; the captain's
+   cabin opens the map; every other room opens a full-screen room screen
+   («EN DESARROLLO», «Volver», «Siguiente» with 2+ arts) built in code. On
+   the first visit of a run (`LinearMapNextNode == 0`) the exterior art
+   fades out over the cutaway (any key skips). It does not launch gigs.
+   With `GigDevSettingsSO.StartOnShipHub` on (takes precedence over
+   `StartOnLinearMap`), Start resets the run like (3) and opens the hub.
+   The scene has no EventSystem of its own (the persistent `UIManager`
+   carries it) and needs its own `SceneChanger`; it works only when
+   entered from the menu.
+
+**Return destination (S5 NAVE-1, D2=A).** `GigRunContext.GigReturnDestination`
+is `Map`, `GigSetup` or `Ship`. `LinearMapController.gigReturnDestination`
+(default `Ship`) is passed to `DemoLaunchConfigSO.ToRunConfig`, so demo gigs
+return to the hub (`GigManager.ReturnToMap` → `OpenShipScene`); the map has a
+«Volver a la nave» button (`OnBackToShipPressed`). A run counts as a map run
+(no Retry, COH-1) when its destination is **not** `GigSetup`. The hub repeats
+the cohesion ≤ 0 → Game Over check at `Start`, as a safety net.
+Cohesion outside the gig (map; available for the hub) is drawn as hearts by
+`CohesionPipsView` (`Assets/Scripts/UI/`), a copy of `GigCanvas.SetCohesion`
+(debt: unify after the demo).
 
 GigLauncher's responsibilities (atomic):
 - Apply `bandRoster` to `PersistentGameplayData.SetBandRoster` (skipped

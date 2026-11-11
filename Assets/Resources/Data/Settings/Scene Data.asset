@@ -14,5 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainMenuSceneIndex: 0
   sectorMapSceneIndex: 1
-  shipInteriorSceneIndex: 2
+  shipInteriorSceneIndex: 9
   gigSceneIndex: 3
+  gameOverSceneIndex: 4
+  bandSetupSceneIndex: 5
+  gigSetupSceneIndex: 6

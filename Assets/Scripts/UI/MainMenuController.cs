@@ -75,6 +75,22 @@ namespace ALWTTT.Managers
         /// </summary>
         public void OnStartPressed()
         {
+            // [S5 NAVE-1] The demo starts on the ship hub (D2=A); the captain's
+            // cabin opens the linear map. Same fresh-run reset as below.
+            if (devSettings != null && devSettings.StartOnShipHub && sceneChanger != null)
+            {
+                var gm0 = GameManager.Instance;
+                if (gm0 != null)
+                {
+                    gm0.InitGameplayData();
+                    gm0.SetInitialDeck();
+                }
+
+                Debug.Log($"[S5] Menu → Ship | fresh run");
+                sceneChanger.OpenShipScene();
+                return;
+            }
+
             // [MAP-DEMO-1] The demo starts on the linear map (D-MAP-1..3).
             if (devSettings != null && devSettings.StartOnLinearMap && sceneChanger != null)
             {

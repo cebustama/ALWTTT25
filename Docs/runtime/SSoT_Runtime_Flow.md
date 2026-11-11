@@ -32,6 +32,10 @@ This SSoT answers:
 This SSoT does **not** define the full balance meaning of SongHype, Vibe, Stress, or statuses.
 Those semantics live in system SSoTs.
 
+The flow **between** gigs (menu → ship hub → map → gig → back to the ship hub, the
+`GigReturnDestination`, run-state carry-over) lives in `systems/SSoT_Gig_Combat_Core.md` §13
+(updated S5 NAVE-1, 2026-11-11).
+
 ---
 
 ## 3. Canonical runtime actors

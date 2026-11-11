@@ -1,0 +1,392 @@
+<title>La nave como hub</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una columna de lectura (~68ch) con índice fijo a la izquierda en escritorio; figuras a ancho de columna; Inspector como tablas oscuras tipo Unity. */
+:root {
+  --bg: #f6f7fb; --paper: #ffffff; --fg: #1b1f2e; --muted: #5b6275; --line: #dde1ec;
+  --accent: #2f45c8; --accent-soft: #e6e9fb; --gold: #b58300; --gold-soft: #fff4d4;
+  --ok: #1e7d4f; --ok-soft: #e3f5ec; --warn: #a2481a; --warn-soft: #fbe9df;
+  --insp-bg: #383838; --insp-row: #3f3f3f; --insp-fg: #e4e4e4; --insp-key: #b9b9b9; --insp-val: #9fd4ff;
+  --code-bg: #eef0f7;
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12141c; --paper: #191c27; --fg: #e3e6f0; --muted: #9aa1b6; --line: #2c3142;
+  --accent: #8fa0ff; --accent-soft: #232a4d; --gold: #f2c14e; --gold-soft: #3a3016;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0a07a; --warn-soft: #3a2218;
+  --insp-bg: #2a2a2a; --insp-row: #323232; --code-bg: #222636; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12141c; --paper: #191c27; --fg: #e3e6f0; --muted: #9aa1b6; --line: #2c3142;
+  --accent: #8fa0ff; --accent-soft: #232a4d; --gold: #f2c14e; --gold-soft: #3a3016;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0a07a; --warn-soft: #3a2218;
+  --insp-bg: #2a2a2a; --insp-row: #323232; --code-bg: #222636; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 16px/1.65 var(--f-body); }
+.wrap { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 48px; max-width: 1120px; margin: 0 auto;
+  padding-block: 40px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 14px; }
+nav.toc b { font-family: var(--f-display); display: block; margin-bottom: 8px; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; color: var(--muted) }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px }
+nav.toc a { color: var(--fg); text-decoration: none; display: block; padding: 3px 8px; border-radius: 4px }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); outline: none }
+nav.toc .n { color: var(--muted); font-family: var(--f-mono); font-size: 12px; margin-right: 6px }
+main { min-width: 0; max-width: 72ch }
+header.hero { margin-bottom: 40px }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent) }
+h1 { font-family: var(--f-display); font-size: clamp(34px, 5vw, 48px); line-height: 1.08; margin: 8px 0 14px; text-wrap: balance }
+h2 { font-family: var(--f-display); font-size: 28px; margin: 64px 0 10px; text-wrap: balance; scroll-margin-top: 20px }
+h2 .n { color: var(--accent); margin-right: 10px }
+h3 { font-family: var(--f-display); font-size: 19px; margin: 32px 0 6px; text-wrap: balance }
+h3 .n { color: var(--muted); font-family: var(--f-mono); font-size: 14px; margin-right: 8px }
+p, li { max-width: 68ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere }
+kbd { font-family: var(--f-mono); font-size: .82em; border: 1px solid var(--line); border-bottom-width: 2px; padding: 0 5px; border-radius: 4px; background: var(--paper) }
+.path { font-family: var(--f-mono); font-size: .86em; color: var(--muted); overflow-wrap: anywhere }
+ol.steps { padding-left: 22px; display: grid; gap: 8px }
+ol.steps > li::marker { font-family: var(--f-mono); color: var(--accent); font-weight: 600 }
+.menu { font-family: var(--f-mono); font-size: .86em; font-weight: 600; white-space: nowrap }
+figure { margin: 24px 0; }
+figure img { display: block; width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--line) }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; font-style: italic }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.pair figure { margin: 0 }
+.box { border-radius: 8px; padding: 14px 18px; margin: 20px 0; border: 1px solid transparent }
+.box > :first-child { margin-top: 0 } .box > :last-child { margin-bottom: 0 }
+.box .tag { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px }
+.ok { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 35%, transparent) } .ok .tag { color: var(--ok) }
+.why { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent) } .why .tag { color: var(--accent) }
+.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent) } .warn .tag { color: var(--warn) }
+.insp { background: var(--insp-bg); color: var(--insp-fg); border-radius: 6px; font: 13px/1.4 var(--f-mono); margin: 16px 0; overflow-x: auto }
+.insp .title { padding: 8px 12px; font-weight: 600; border-bottom: 1px solid #222 }
+.insp table { border-collapse: collapse; width: 100%; min-width: 380px }
+.insp td { padding: 6px 12px; border-top: 1px solid #2c2c2c; vertical-align: top }
+.insp tr:nth-child(even) td { background: var(--insp-row) }
+.insp td:first-child { color: var(--insp-key); width: 42% }
+.insp td:last-child { color: var(--insp-val) }
+.insp .sub td:first-child { padding-left: 28px }
+table.plain { border-collapse: collapse; width: 100%; font-size: 15px; margin: 16px 0 }
+.tbl { overflow-x: auto }
+table.plain th, table.plain td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+table.plain th { font-family: var(--f-display); font-size: 14px; color: var(--muted) }
+table.plain td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+pre.log { background: var(--code-bg); border-radius: 6px; padding: 12px 14px; font: 13px/1.55 var(--f-mono); overflow-x: auto; margin: 10px 0 }
+.smoke { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 16px 18px; margin: 18px 0 }
+.smoke h4 { font-family: var(--f-display); margin: 0 0 8px; font-size: 17px }
+.smoke dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 0 }
+.smoke dt { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 3px }
+.smoke dd { margin: 0; min-width: 0 }
+.refs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px }
+.ref { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column }
+.ref img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; border-bottom: 1px solid var(--line) }
+.ref .body { padding: 12px 14px; font-size: 14px; display: grid; gap: 6px }
+.ref h4 { font-family: var(--f-display); margin: 0; font-size: 16px }
+.ref .take b { color: var(--ok) } .ref .skip b { color: var(--warn) }
+.ref .path { font-size: 11.5px }
+.done { font-family: var(--f-mono); font-size: 13px; color: var(--muted); margin-top: 60px; border-top: 1px solid var(--line); padding-top: 16px }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0,1fr); gap: 24px } nav.toc { position: static } .refs, .pair { grid-template-columns: minmax(0,1fr) } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Índice">
+  <b>Índice</b>
+  <ol>
+    <li><a href="#compila"><span class="n">1</span>Compila</a></li>
+    <li><a href="#arte"><span class="n">2</span>El arte</a></li>
+    <li><a href="#escena"><span class="n">3</span>Escena y Canvas</a></li>
+    <li><a href="#nave"><span class="n">4</span>La nave en pantalla</a></li>
+    <li><a href="#controlador"><span class="n">5</span>El controlador</a></li>
+    <li><a href="#salas"><span class="n">6</span>Arte de las salas</a></li>
+    <li><a href="#flujo"><span class="n">7</span>Meterla en el flujo</a></li>
+    <li><a href="#probar"><span class="n">8</span>Probarlo</a></li>
+    <li><a href="#refs"><span class="n">9</span>Referencias</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">ALWTTT · DEMO-1211 · S5 NAVE-1</div>
+  <h1>La nave como hub</h1>
+  <p class="lede">Una escena con el corte de la nave donde cada sala se ilumina al pasar el ratón. La cabina abre el mapa; las demás salas abren su arte con «EN DESARROLLO».</p>
+  <p>Este tutorial cubre:</p>
+  <ul>
+    <li>Importar el arte nuevo de la nave.</li>
+    <li>Montar una escena de UI sin su propio EventSystem.</li>
+    <li>Hacer que la imagen llene cualquier pantalla y que las zonas la sigan.</li>
+    <li>Configurar las salas como datos y ajustarlas con Gizmos.</li>
+    <li>Conectar la escena al menú, al mapa y a la vuelta del gig.</li>
+  </ul>
+  <p>El código ya está escrito, en <span class="path">Assets/Scripts/ShipHub/</span>. Compila con Roslyn fuera de Unity, pero <strong>nadie lo ha abierto en Unity ni lo ha jugado</strong>. Cada sección termina con un «lo has logrado si…». Si una falla, para ahí y cuéntamelo.</p>
+</header>
+
+<!-- 1 -->
+<h2 id="compila"><span class="n">1</span>Comprobar que compila</h2>
+<p>Unity compila sus propios ensamblados y podría ver algo distinto que Roslyn.</p>
+<ol class="steps">
+  <li>Abre el proyecto en Unity y espera a que termine la barra de importación. Va a importar tres PNG grandes y puede tardar un minuto.</li>
+  <li>Abre la <span class="menu">Console</span> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>) y pulsa <span class="menu">Clear</span>.</li>
+</ol>
+<div class="box ok"><span class="tag">Lo has logrado si</span>la Console no tiene errores rojos y en <span class="path">Assets/Scripts/ShipHub/</span> se ven <code>ShipHubController</code> y <code>ShipRoomZone</code> con el icono de script.</div>
+
+<!-- 2 -->
+<h2 id="arte"><span class="n">2</span>El arte</h2>
+<p>Del zip vienen tres imágenes nuevas, copiadas a <span class="path">Assets/Art/Ship/</span>. Están fuera de <code>Resources/</code> a propósito: lo que está en <code>Resources/</code> entra entero en la build aunque nadie lo use. Aquí solo entra si una escena lo referencia.</p>
+<div class="pair">
+  <figure><img src="img/exterior.jpg" alt="La nave por fuera, pintada, sobre un fondo azul" loading="lazy"><figcaption><code>Nave_Exterior.png</code>: el casco por fuera.</figcaption></figure>
+  <figure><img src="img/corte.jpg" alt="La misma nave en corte, con las salas a la vista" loading="lazy"><figcaption><code>Nave_Corte.png</code>: el mismo encuadre, en corte.</figcaption></figure>
+</div>
+<p>Las dos tienen exactamente el mismo tamaño (5820 × 3620). Por eso podemos poner una encima de la otra y fundirla: la nave «se abre» sin moverse un píxel.</p>
+
+<h3><span class="n">2.1</span>Ajustes de importación</h3>
+<ol class="steps">
+  <li>En <span class="menu">Project</span>, selecciona a la vez <code>Nave_Corte</code> y <code>Nave_Exterior</code> (<kbd>Ctrl</kbd>+clic).</li>
+  <li>En el Inspector:
+    <div class="insp"><div class="title">Texture Import Settings (2 texturas)</div><table>
+      <tr><td>Texture Type</td><td>Sprite (2D and UI)</td></tr>
+      <tr><td>Sprite Mode</td><td>Single</td></tr>
+      <tr><td>Max Size</td><td>4096</td></tr>
+      <tr><td>Compression</td><td>Normal Quality</td></tr>
+    </table></div>
+    Pulsa <span class="menu">Apply</span>.</li>
+  <li>Selecciona <code>Sala_Dormitorio</code> y comprueba que <span class="menu">Texture Type</span> sea <em>Sprite (2D and UI)</em>. Si no lo es, cámbialo y pulsa <span class="menu">Apply</span>.</li>
+</ol>
+<div class="box why"><span class="tag">Por qué 4096</span>El PNG mide 5820 de ancho, y el límite por defecto (2048) lo dejaría borroso a 1080p. 4096 lo reduce a un tamaño que cualquier GPU acepta y que en pantalla se ve nítido. Que Unity lo encoja no rompe las zonas: las zonas se miden como fracción de la imagen, no en píxeles.</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>al seleccionar <code>Nave_Corte</code>, la vista previa de abajo del Inspector dice <em>4096x2548</em> (o parecido) y se ve la nave.</div>
+
+<!-- 3 -->
+<h2 id="escena"><span class="n">3</span>La escena y el Canvas</h2>
+
+<h3><span class="n">3.1</span>Crear la escena</h3>
+<ol class="steps">
+  <li>En <span class="path">Assets/Scenes/</span>: clic derecho → <span class="menu">Create → Scene → Scene</span>.</li>
+  <li>Llámala <code>1c - Ship Hub</code> y ábrela con doble clic. Si pregunta si guardas la escena anterior, di que no salvo que hayas cambiado algo.</li>
+  <li>Selecciona <span class="menu">Main Camera</span>. En <span class="menu">Environment</span>, pon <span class="menu">Background Type</span> = <em>Solid Color</em> y <span class="menu">Background</span> = negro.</li>
+</ol>
+
+<h3><span class="n">3.2</span>El Canvas</h3>
+<ol class="steps">
+  <li>En Hierarchy: clic derecho → <span class="menu">UI → Canvas</span>. Renómbralo <code>ShipHubCanvas</code>.</li>
+  <li>Configura su <span class="menu">Canvas Scaler</span>:
+    <div class="insp"><div class="title">Canvas Scaler</div><table>
+      <tr><td>UI Scale Mode</td><td>Scale With Screen Size</td></tr>
+      <tr><td>Reference Resolution</td><td>X 1920 · Y 1080</td></tr>
+      <tr><td>Screen Match Mode</td><td>Match Width Or Height</td></tr>
+      <tr><td>Match</td><td>0.5</td></tr>
+    </table></div></li>
+  <li><strong>Borra el EventSystem</strong> que Unity acaba de crear en la Hierarchy.</li>
+</ol>
+<div class="box why"><span class="tag">Por qué borrar el EventSystem</span>Unity añade un EventSystem a cada Canvas nuevo porque sin él la UI no recibe clics. En este proyecto ya hay uno: viaja dentro del <code>UIManager</code> persistente, que nace en el menú y sobrevive entre escenas. Si dejas otro, habrá dos al entrar en la nave. Unity avisa en la Console y, según cuál se active, los clics pueden perderse.<br><br>La consecuencia: <strong>esta escena solo funciona entrando desde el menú</strong>. Si le das a Play con ella abierta, no hay EventSystem ni datos de partida, y el controlador lo dice en la Console con un error.</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>la Hierarchy tiene solo <code>Main Camera</code> y <code>ShipHubCanvas</code>, sin EventSystem.</div>
+
+<!-- 4 -->
+<h2 id="nave"><span class="n">4</span>La nave en pantalla</h2>
+
+<h3><span class="n">4.1</span>ShipImage</h3>
+<ol class="steps">
+  <li>Clic derecho sobre <code>ShipHubCanvas</code> → <span class="menu">UI → Image</span>. Renómbrala <code>ShipImage</code>.</li>
+  <li><span class="menu">Source Image</span> = <code>Nave_Corte</code>. Deja <span class="menu">Preserve Aspect</span> <strong>desmarcado</strong>.</li>
+  <li><span class="menu">Add Component → Aspect Ratio Fitter</span>:
+    <div class="insp"><div class="title">Aspect Ratio Fitter</div><table>
+      <tr><td>Aspect Mode</td><td>Envelope Parent</td></tr>
+      <tr><td>Aspect Ratio</td><td>1.6077</td></tr>
+    </table></div></li>
+</ol>
+<div class="box warn"><span class="tag">Cambio respecto a lo que te dije antes</span>En el chat te propuse un tamaño fijo de 1920 × 1194. Lo cambio por el <em>Aspect Ratio Fitter</em>. Con tamaño fijo, en una pantalla ultrapanorámica (21:9) quedarían franjas negras a los lados. <em>Envelope Parent</em> hace que la imagen cubra siempre toda la pantalla manteniendo su proporción (5820 / 3620 = 1.6077), y recorta lo que sobra. En 16:9 se pierde un 5 % arriba y abajo, que en este arte es espacio vacío: la sala más alta empieza al 12 % de la altura.</div>
+<div class="box why"><span class="tag">Por qué Preserve Aspect desmarcado</span><em>Preserve Aspect</em> encoge el sprite <em>dentro</em> de su rectángulo y deja márgenes transparentes. Las zonas se anclan al rectángulo, no al dibujo, así que dejarían de coincidir con las salas. Con el <em>Aspect Ratio Fitter</em>, el rectángulo ya tiene la proporción del sprite: dibujo y rectángulo son lo mismo.</div>
+
+<h3><span class="n">4.2</span>Exterior</h3>
+<ol class="steps">
+  <li>Clic derecho sobre <code>ShipImage</code> → <span class="menu">UI → Image</span>. Renómbrala <code>Exterior</code>. Tiene que quedar como <strong>hija</strong> de <code>ShipImage</code>.</li>
+  <li><span class="menu">Source Image</span> = <code>Nave_Exterior</code>.</li>
+  <li>En el cuadro de anclas del Rect Transform, <kbd>Alt</kbd> + clic en la esquina de abajo a la derecha (<em>stretch / stretch</em>). Left, Top, Right y Bottom quedan en 0.</li>
+  <li>Desmarca <span class="menu">Raycast Target</span>.</li>
+</ol>
+<div class="box why"><span class="tag">Qué hace el controlador con esto</span>Al arrancar, el controlador crea las zonas como hijas de <code>ShipImage</code> y luego pone <code>Exterior</code> como último hijo, para que tape las zonas mientras se funde. El fundido solo se reproduce en la primera visita de la partida (<code>LinearMapNextNode == 0</code>), y cualquier tecla o clic lo salta. En las visitas siguientes, <code>Exterior</code> se apaga sin animación.</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>en la Game View (pestaña <span class="menu">Game</span>, 16:9) la nave por fuera llena la pantalla. Al desactivar <code>Exterior</code> con su casilla, se ve el corte en el mismo sitio.</div>
+
+<!-- 5 -->
+<h2 id="controlador"><span class="n">5</span>El controlador</h2>
+
+<h3><span class="n">5.1</span>El objeto ShipHub</h3>
+<ol class="steps">
+  <li>Clic derecho en un hueco vacío de la Hierarchy → <span class="menu">Create Empty</span>. Nómbralo <code>ShipHub</code>. Puede vivir en la raíz de la escena.</li>
+  <li><span class="menu">Add Component → Ship Hub Controller</span>.</li>
+  <li><span class="menu">Add Component → Scene Changer</span>.</li>
+</ol>
+<p>Al añadir el controlador, Unity llama a su <code>Reset()</code>, que rellena <span class="menu">Rooms</span> con las cinco salas medidas sobre <code>Nave_Corte</code>. Si la lista sale vacía, haz clic en los tres puntos del componente → <span class="menu">Reset</span>.</p>
+<div class="box why"><span class="tag">Por qué un SceneChanger aquí</span><code>SceneChanger</code> no es persistente: cada escena tiene el suyo (el menú y el mapa también). El controlador lo busca en <code>Awake</code>. Si la escena no tiene uno, la cabina no puede abrir el mapa y la Console lo dice.</div>
+
+<h3><span class="n">5.2</span>Conectar las referencias</h3>
+<div class="insp"><div class="title">Ship Hub Controller (Script)</div><table>
+  <tr><td>Ship Image</td><td>ShipImage (Rect Transform)</td></tr>
+  <tr><td>Exterior Image</td><td>Exterior (Image)</td></tr>
+  <tr><td>Rooms</td><td>5 elementos (de Reset)</td></tr>
+  <tr><td>Zone Idle</td><td>blanco, alfa 0</td></tr>
+  <tr><td>Zone Hover</td><td>amarillo, alfa 0.22</td></tr>
+  <tr><td>Play Reveal</td><td>✓</td></tr>
+  <tr><td>Scene Changer</td><td>ShipHub (Scene Changer)</td></tr>
+  <tr><td>Cohesion Text</td><td><em>vacío (opcional)</em></td></tr>
+</table></div>
+<p>Arrastra <code>ShipImage</code> y <code>Exterior</code> desde la Hierarchy a sus campos. Para <span class="menu">Scene Changer</span>, arrastra el propio <code>ShipHub</code>.</p>
+
+<h3><span class="n">5.3</span>Ver y ajustar las zonas</h3>
+<p>Con <code>ShipHub</code> seleccionado, el controlador dibuja cada sala en la Scene View: cian la que abre el mapa, amarillo las demás. Desactiva <code>Exterior</code> un momento para ver el corte debajo. Si no ves nada, comprueba que el botón <span class="menu">Gizmos</span> de la Scene View esté encendido y pulsa <kbd>F</kbd> sobre <code>ShipImage</code> para encuadrarla.</p>
+<figure><img src="img/gizmos.jpg" alt="El corte de la nave con cinco rectángulos con nombre: Sala de ensayo arriba a la izquierda, Cabina del capitán en la cúpula, y Sala de recreación, Dormitorio y Chatarrero bajando por el centro" loading="lazy"><figcaption>Lo que deberías ver, calculado desde los mismos números que trae <code>Reset()</code>.</figcaption></figure>
+<p>Si un rectángulo no cae sobre su sala, abre su elemento en <span class="menu">Rooms</span> y cambia <span class="menu">Area</span>. Los cuatro números son x, y, ancho y alto, de 0 a 1, contados <strong>desde arriba a la izquierda</strong>, igual que en Photoshop o Krita. El Gizmo se mueve mientras escribes.</p>
+<div class="insp"><div class="title">Rooms ▸ Element 0</div><table>
+  <tr><td>Name</td><td>Cabina del capitán</td></tr>
+  <tr><td>Area</td><td>X 0.355 · Y 0.17 · W 0.09 · H 0.15</td></tr>
+  <tr><td>Opens Map</td><td>✓</td></tr>
+  <tr><td>Art</td><td>0</td></tr>
+  <tr><td>In Development</td><td>☐</td></tr>
+</table></div>
+<div class="box why"><span class="tag">Por qué fracciones y no píxeles</span>Una sala definida en píxeles solo es correcta a una resolución y con un PNG concreto. Como fracción de la imagen, la misma sala sirve a 1080p, en 4K y aunque Matías entregue el PNG a otro tamaño, siempre que mantenga el encuadre. Unity ancla abajo a la izquierda y los editores de imagen arriba a la izquierda. El controlador convierte una cosa en la otra (<code>SetAnchorsFromArea</code>) para que tú midas como en un editor de imagen.</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>ves cinco rectángulos con nombre, uno cian sobre la cúpula y cuatro amarillos, cada uno encima de su sala. Vuelve a activar <code>Exterior</code> antes de guardar.</div>
+
+<!-- 6 -->
+<h2 id="salas"><span class="n">6</span>Arte de cada sala</h2>
+<p>Abre cada elemento de <span class="menu">Rooms</span> y arrastra los sprites a <span class="menu">Art</span>. Si una sala tiene dos, la pantalla de la sala muestra un botón «Siguiente».</p>
+<div class="tbl"><table class="plain">
+  <tr><th>Sala</th><th>Art (en orden)</th><th>Al hacer clic</th></tr>
+  <tr><td>Cabina del capitán</td><td><em>nada</em></td><td>abre el mapa</td></tr>
+  <tr><td>Sala de recreación</td><td><span class="path">Resources/Sprites/Ship/Rooms/chillout</span><br><span class="path">Resources/Sprites/Ship/sala recreativa</span></td><td>pantalla, con «Siguiente»</td></tr>
+  <tr><td>Dormitorio</td><td><span class="path">Art/Ship/Sala_Dormitorio</span></td><td>pantalla</td></tr>
+  <tr><td>Sala de ensayo</td><td><span class="path">Resources/Sprites/Ship/sala de ensayo</span></td><td>pantalla</td></tr>
+  <tr><td>Chatarrero</td><td><span class="path">Resources/Sprites/Ship/vendedor</span> (el de <code>Ship/</code>, no el de <code>Rooms/</code>; son idénticos)</td><td>pantalla</td></tr>
+</table></div>
+<p>Guarda la escena con <kbd>Ctrl</kbd>+<kbd>S</kbd>.</p>
+<div class="pair">
+  <figure><img src="img/hover.jpg" alt="La sala de ensayo teñida de amarillo y, encima, una etiqueta negra: Sala de ensayo · EN DESARROLLO" loading="lazy"><figcaption>Maqueta del hover: la sala se tiñe y la etiqueta ya avisa de «EN DESARROLLO» antes del clic.</figcaption></figure>
+  <figure><img src="img/sala.jpg" alt="Pantalla negra con el arte de la sala de ensayo, el título arriba, EN DESARROLLO en dorado en el centro y un botón Volver abajo" loading="lazy"><figcaption>Maqueta de la pantalla de sala. La construye el código; no hay paneles que montar.</figcaption></figure>
+</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>las cinco salas tienen el número de sprites de la tabla y la escena está guardada (sin asterisco en la pestaña).</div>
+
+<!-- 7 -->
+<h2 id="flujo"><span class="n">7</span>Meterla en el flujo</h2>
+<p>Ya existe la escena, pero el juego todavía no la usa. Hacen falta cuatro cambios, todos en el editor.</p>
+
+<h3><span class="n">7.1</span>Lista de escenas</h3>
+<ol class="steps">
+  <li><span class="menu">File → Build Profiles</span>. En <span class="menu">Scene List</span>, con <code>1c - Ship Hub</code> abierta, pulsa <span class="menu">Add Open Scenes</span>.</li>
+  <li>Comprueba que quedó <strong>la última</strong>, con el índice <strong>9</strong> a la derecha. No reordenes las demás.</li>
+</ol>
+<div class="box why"><span class="tag">Por qué al final</span>Las escenas se cargan por número. Insertarla en medio correría los índices del gig, el Game Over y el resto, y cualquier código que los usara cargaría la escena equivocada. Al final no se mueve nada. <code>2 - Ship Interior</code> se queda en su sitio para la fase C (ensayo y composición).</div>
+
+<h3><span class="n">7.2</span>Scene Data</h3>
+<p>Selecciona <span class="path">Assets/Resources/Data/Settings/Scene Data</span> y cambia:</p>
+<div class="insp"><div class="title">Scene Data</div><table>
+  <tr><td>Ship Interior Scene Index</td><td>2 → <b>9</b></td></tr>
+</table></div>
+<p>Es lo que abre <code>SceneChanger.OpenShipScene()</code>. Ahora lo llaman tres sitios: el menú, el botón del mapa y el final del gig.</p>
+
+<h3><span class="n">7.3</span>Empezar en la nave</h3>
+<p>Selecciona <span class="path">Assets/Settings/Gig/GigDevSettings</span> y marca <span class="menu">Start On Ship Hub</span>. Tiene prioridad sobre <span class="menu">Start On Linear Map</span>, así que no hace falta desmarcar ese.</p>
+
+<h3><span class="n">7.4</span>El botón «Volver a la nave» en el mapa</h3>
+<ol class="steps">
+  <li>Abre <span class="path">Assets/Scenes/1b - Linear Map</span>.</li>
+  <li>Clic derecho sobre su <code>Canvas</code> → <span class="menu">UI → Button - TextMeshPro</span>. Renómbralo <code>BackToShipButton</code>.</li>
+  <li>Ánclalo arriba a la izquierda (cuadro de anclas: <em>top-left</em>, con <kbd>Alt</kbd>+<kbd>Shift</kbd> para mover también el pivote). Pos X 40, Pos Y −40, Width 320, Height 70.</li>
+  <li>En su hijo <code>Text (TMP)</code>, escribe <code>Volver a la nave</code>.</li>
+  <li>En el <span class="menu">Button</span>, en <span class="menu">On Click ()</span>: pulsa <span class="menu">+</span>, arrastra el objeto <code>LinearMap</code> desde la Hierarchy y elige <span class="menu">LinearMapController → OnBackToShipPressed ()</span>.</li>
+  <li>Selecciona <code>LinearMap</code> y comprueba que en <span class="menu">Return (S5)</span> diga <span class="menu">Gig Return Destination</span> = <em>Ship</em>.</li>
+  <li>Guarda.</li>
+</ol>
+<div class="box why"><span class="tag">Qué cambió en el gig</span>Hasta ahora, «sin Retry» se decidía con «el gig viene del mapa». Con un tercer destino (la nave), esa regla dejaba fuera a los gigs de la demo y Retry habría vuelto a salir. Ahora la regla es «todo menos el GigSetup de pruebas». Si ves Retry en un gig de la demo, algo falla: es la regresión del smoke 3.</div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>la lista de escenas termina en <code>1c - Ship Hub</code> (9), <code>Scene Data</code> dice 9, <code>Start On Ship Hub</code> está marcado y el mapa tiene el botón con su On Click asignado.</div>
+
+<!-- 8 -->
+<h2 id="probar"><span class="n">8</span>Probarlo</h2>
+<p>Tres smokes. Juega siempre desde <code>0 - Main Menu</code> y deja la Console filtrada por <code>[S5]</code> (escríbelo en su buscador). Cada transición escribe una línea, una sola vez.</p>
+
+<div class="smoke"><h4>Smoke 1 · Menú → nave → sala → nave</h4><dl>
+  <dt>Antes</dt><dd>Paso 7 hecho. Play en <code>0 - Main Menu</code>.</dd>
+  <dt>Acción</dt><dd>Empezar partida. Ver el fundido. Pasar el ratón por las cinco salas. Clic en la sala de ensayo, «Volver». Clic en la recreación, «Siguiente», «Volver».</dd>
+  <dt>Esperado</dt><dd>La nave por fuera se funde en el corte. Cada sala se tiñe y muestra su nombre (la cabina dice «· Mapa»). La pantalla de sala tiene arte, «EN DESARROLLO» y «Volver»; la recreación además «Siguiente», que cambia de imagen.
+<pre class="log">[S5] Menu → Ship | fresh run
+[S5] Ship hub | rooms=5 | Cohesion=… | Fans=… | NextNode=0 | firstVisit=True
+[S5] Ship reveal | 1.6s
+[S5] Ship → Room 'Sala de ensayo' | art=1 | inDevelopment=True
+[S5] Room 'Sala de ensayo' → Ship
+[S5] Ship → Room 'Sala de recreación' | art=2 | inDevelopment=True
+[S5] Room 'Sala de recreación' → Ship</pre></dd>
+  <dt>Falla si</dt><dd>Una zona no coincide con su sala, el hover no aparece, hay dos EventSystem en la Console o algún log sale repetido.</dd>
+</dl></div>
+
+<div class="smoke"><h4>Smoke 2 · Cabina → mapa → gig ganado → nave</h4><dl>
+  <dt>Antes</dt><dd>Seguir desde el smoke 1. Apunta el número de cartas del mazo y la cohesión.</dd>
+  <dt>Acción</dt><dd>Clic en la cabina. En el mapa, pulsa «Volver a la nave» y luego otra vez la cabina. Lanza el primer gig y gánalo.</dd>
+  <dt>Esperado</dt><dd>Tras la recompensa vuelves a la <strong>nave</strong>, sin fundido. Mismo mazo (más la carta ganada) y misma cohesión. Desde la cabina, el mapa tiene el segundo nodo activo.
+<pre class="log">[S5] Ship → Map | room='Cabina del capitán'
+[S5] Map → Ship | NextNode=0
+[S5] Ship → Map | room='Cabina del capitán'
+[S5] Map → Gig | node 0 '…' | returns to Ship
+[S5] Gig → Ship | won=True | Cohesion=… | Fans=… | NextNode=1
+[S5] Ship hub | rooms=5 | … | NextNode=1 | firstVisit=False</pre></dd>
+  <dt>Falla si</dt><dd>El gig vuelve al mapa en vez de a la nave, el mazo vuelve al inicial o se repite el fundido.</dd>
+</dl></div>
+
+<div class="smoke"><h4>Smoke 3 · Regresión: gig perdido</h4><dl>
+  <dt>Antes</dt><dd>Un gig lanzado desde el mapa, con la cohesión por encima de 1.</dd>
+  <dt>Acción</dt><dd>Perder el gig (o el atajo de dev de perder). En el panel de derrota, «Continuar».</dd>
+  <dt>Esperado</dt><dd>El panel tiene un solo botón, <strong>sin Retry</strong>. Vuelves a la nave con la cohesión más baja que antes del gig.
+<pre class="log">[S5] Gig → Ship | won=False | Cohesion=… | Fans=… | NextNode=…</pre></dd>
+  <dt>Falla si</dt><dd>Aparece Retry, se vuelve al mapa o la cohesión no baja.</dd>
+</dl></div>
+<p>El Game Over por cohesión 0 lo sigue decidiendo el panel de derrota del gig («Fin de la gira»). La comprobación al entrar en la nave es una red de seguridad y no tiene smoke propio, porque con el flujo normal no se llega a ella.</p>
+
+<!-- 9 -->
+<h2 id="refs"><span class="n">9</span>Referencias</h2>
+<p>Las que encontré en tus colecciones, abiertas y revisadas una a una. Ninguna resuelve la transición entre sala y hub; el fundido exterior → corte es nuestro.</p>
+<div class="refs">
+  <article class="ref"><img src="img/ref-ftl.jpg" alt="Captura de FTL: la nave vista desde arriba con sus salas en rectángulos" loading="lazy"><div class="body">
+    <h4>FTL: Faster Than Light</h4>
+    <div>Cada sala es un rectángulo que se lee de un vistazo, y el estado (fuego, oxígeno) se pinta encima de la sala.</div>
+    <div class="take"><b>Tomar:</b> el tinte como capa sobre la sala. Es <code>zoneHover</code>.</div>
+    <div class="skip"><b>No tomar:</b> la vista cenital con rejilla; tu arte ya es un corte ilustrado.</div>
+    <div class="path">Dropbox/ALWTTT References/ss_708e385bd461625790763fb8ddad537d278ad15c.1920x1080.jpg</div></div></article>
+  <article class="ref"><img src="img/ref-casa.jpg" alt="Corte ilustrado de una casa grecorromana con el nombre de cada habitación escrito dentro" loading="lazy"><div class="body">
+    <h4>Casa grecorromana en corte</h4>
+    <div>Cada habitación lleva su nombre escrito dentro. Destacada en tus referencias visuales.</div>
+    <div class="take"><b>Tomar, para probar:</b> si nadie pasa el ratón en el smoke, mostrar los nombres siempre, tenues.</div>
+    <div class="skip"><b>No tomar:</b> el texto denso; tapa el arte.</div>
+    <div class="path">Dropbox/Drawing/References/Buildings/271488065_1800251083503417_8172864334058081377_n.jpg</div></div></article>
+  <article class="ref"><img src="img/ref-itb.jpg" alt="Into the Breach: escuadrones bloqueados mostrados como siluetas" loading="lazy"><div class="body">
+    <h4>Into the Breach</h4>
+    <div>Lo bloqueado se ve como silueta oscura, y aun así se puede inspeccionar.</div>
+    <div class="take"><b>Tomar:</b> avisar antes del clic. La etiqueta del hover ya dice «EN DESARROLLO», y en <code>nave3</code> las salas sin hacer ya están en negro.</div>
+    <div class="path">Dropbox/ALWTTT References/Screenshot 2024-09-02 123410.png</div></div></article>
+  <article class="ref"><img src="img/ref-grift.jpg" alt="Griftlands: personajes bloqueados con la palabra Locked" loading="lazy"><div class="body">
+    <h4>Griftlands</h4>
+    <div>Personajes bloqueados con «Locked» y silueta, en la misma pantalla que los disponibles.</div>
+    <div class="take"><b>Tomar:</b> para S6 (alineación). Las pantallas <code>personajes tapados</code> del zip van en esta línea.</div>
+    <div class="path">Dropbox/ALWTTT References/Screenshot 2025-06-28 085637.png</div></div></article>
+  <article class="ref"><img src="img/ref-cuaderno.jpg" alt="Página de cuaderno de Claudio con el mapa, los días de ensayo y el interior de la nave conectados" loading="lazy"><div class="body">
+    <h4>Tu cuaderno, junio de 2025</h4>
+    <div>Mapa, día de ensayo e interior de la nave conectados. Es el flujo cabina → mapa, dibujado hace más de un año.</div>
+    <div class="take"><b>Tomar:</b> confirma que la nave es el centro y el mapa sale de ella.</div>
+    <div class="path">Dropbox/ALWTTT References/Design Docs/WhatsApp Image 2025-06-25 at 15.58.40_2e6a1bb2.jpg</div></div></article>
+  <article class="ref"><img src="img/ref-bebop.jpg" alt="Corte de la nave Bebop de Cowboy Bebop" loading="lazy"><div class="body">
+    <h4>Cowboy Bebop: la Bebop en corte</h4>
+    <div>Una tripulación pequeña que vive en una nave vieja, contada por sus salas.</div>
+    <div class="take"><b>Tomar:</b> el tono; cada sala dice algo de quien la usa.</div>
+    <div class="path">Dropbox/ALWTTT References/Rehearsal Ship/vmugtsh211q21.jpg</div></div></article>
+  <article class="ref"><img src="img/ref-dandy.jpg" alt="Interior de la nave Aloha de Space Dandy" loading="lazy"><div class="body">
+    <h4>Space Dandy: el interior de la Aloha</h4>
+    <div>Color saturado y decorado de barra; está en tu carpeta «Rehearsal Ship».</div>
+    <div class="take"><b>Tomar:</b> para la sala de recreación, cuando deje de estar en desarrollo.</div>
+    <div class="path">Dropbox/ALWTTT References/Rehearsal Ship/C7AjebOU4AA90YQ.jpeg</div></div></article>
+  <article class="ref"><div class="body">
+    <h4>The Life Aquatic (Wes Anderson, 2004)</h4>
+    <div>De tu Letterboxd. El decorado del Belafonte, cortado por la mitad, es la referencia clásica de «tripulación que vive en un corte». La cámara recorre las salas de lado a lado.</div>
+    <div class="take"><b>Tomar, más adelante:</b> un paneo de sala en sala como transición.</div>
+    <div><a href="https://boxd.it/2aqw">boxd.it/2aqw</a></div></div></article>
+</div>
+
+<p class="done">Escrito el 11-nov-2026 para la sesión S5 (NAVE-1). El código no se ha verificado en Unity; este tutorial no sustituye a los smokes.</p>
+</main>
+</div>

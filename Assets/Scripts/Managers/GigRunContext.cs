@@ -18,7 +18,10 @@ namespace ALWTTT.Managers
         public enum GigReturnDestination
         {
             Map = 0,
-            GigSetup = 1
+            GigSetup = 1,
+            // [S5 NAVE-1] Demo flow: the gig returns to the ship hub
+            // (SceneData.shipInteriorSceneIndex points to it in the demo).
+            Ship = 2
         }
 
         [System.Serializable]

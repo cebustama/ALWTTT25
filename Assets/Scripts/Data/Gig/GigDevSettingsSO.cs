@@ -117,7 +117,15 @@ namespace ALWTTT.Data
             "directly. Takes precedence over AutoStartFromDefaults.")]
         private bool startOnLinearMap = false;
 
+        // [S5 NAVE-1] Takes precedence over StartOnLinearMap: Start opens the
+        // ship hub (SceneData.shipInteriorSceneIndex, D2=A).
+        [SerializeField, Tooltip("When true, the Main Menu Start button opens " +
+            "the ship hub (fresh run). Takes precedence over StartOnLinearMap " +
+            "and AutoStartFromDefaults.")]
+        private bool startOnShipHub = false;
+
         public bool AutoStartFromDefaults => autoStartFromDefaults;
+        public bool StartOnShipHub => startOnShipHub;
         public DemoLaunchConfigSO DemoLaunchConfig => demoLaunchConfig;
         public bool StartOnLinearMap => startOnLinearMap;
 
