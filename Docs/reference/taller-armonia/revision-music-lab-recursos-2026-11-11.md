@@ -32,11 +32,11 @@ Leyenda: ✅ el taller lo usa · ◐ lo usa a medias · ✗ no lo usa · 🔒 no
 | ii–V menor | ✅ | remate rico en Eólico (`iiø7`, aunque luego va al `♭II7` en vez de al `V7`) |
 | Intercambio modal IV→iv | ✅ | menor prestado (`iv6` tras el IV) |
 | Dominante mayorizada en tonalidad menor | ✅ | remate simple en Eólico: el `V7` mayor (con la sensible) |
-| ii–V mayor | ◐ | solo pone la dominante (`V7`); nunca añade el `ii` delante. Es el recurso con más casos del lab (15) |
-| Deslizamiento cromático paralelo | ◐ | aparece de rebote cuando el paso cromático cae sobre otra dominante (`A♭7 → G7`), pero no es una regla propia |
-| ♭VI7 de color | ✗ | el taller tiene `♭VImaj7` (mayor séptima, en Jónico), no el `♭VI7` dominante en menor de *SIBLY*, *Cantaloupe* y *Summertime* |
-| Disminuido de paso | ✗ | ninguna regla inserta un `°7` |
-| Cadena de dominantes por quintas | ✗ | el color solo dominantiza acordes **mayores** que bajan una quinta; los menores (`iii`, `vi`, `ii`) se quedan menores |
+| ii–V mayor | ✅ (v4) | nivel 3: paso `iiV` (P1) en lugar del cromático, con el ii según el destino (m7 o m7♭5). En el nivel 2 solo la dominante (`V7`). *Antes:* ◐, solo la dominante |
+| Deslizamiento cromático paralelo | ◐ | existe como remate (`remate: "deslizado"`, P5), pero queda apagado: la hoja de oído no lo eligió (0 de 2). Con P1 en el nivel 3 ya no sale de rebote del paso cromático |
+| ♭VI7 de color | ✅ (v4) | niveles 2 y 3 en Eólico (P4, `bVI7Menor`), 2 de 2 en la hoja de oído. *Antes:* ✗ |
+| Disminuido de paso | ✅ (v4) | nivel 3 (P3, `disminuido`); la hoja de oído lo dejó dividido (1 de 2) y Claudio lo encendió en el 3. *Antes:* ✗ |
+| Cadena de dominantes por quintas | ✅ (v4) | nivel 3 (P2, `cadenaDominantes`): también los menores que bajan una quinta pasan a 7. *Antes:* ✗ |
 | Pivote I → ii | 🔒 | es una modulación, y la regla del taller es no modular dentro de la carta |
 | Línea de bajo cromática descendente | 🔒 | necesita inversiones (`C7/B♭`); el alfabeto de MidiGenPlay no las tiene |
 
@@ -48,12 +48,12 @@ Leyenda: ✅ el taller lo usa · ◐ lo usa a medias · ✗ no lo usa · 🔒 no
 | i7 / iv7 (②) | ✅ | el color en Eólico produce `im7` y `ivm7` |
 | Intercambio ♭VI / ♭VII (③) | ✅ | `♭VImaj7` (nivel 3) y el `♭VII` del Mixolidio; el `♭VII9` de la backdoor |
 | Cadencia auténtica V→I (③) | ✅ | remate simple |
-| Giro ♭VI7–V7–i (②) | ✗ | sería el remate natural de un blues menor |
+| Giro ♭VI7–V7–i (②) | ◐ (v4) | P4 da el `♭VI7` cuando va al V o al iv; el remate no lo busca. *Antes:* ✗ |
 | Cliché de línea menor (②) | 🔒 | necesita `m(maj7)` |
 | Contraste ♭6/♮6 (②) | ◐ | el `IV7` dórico prestado en Eólico es justo ese ♮6, pero no se pensó así |
 | Dominante secundaria de resolución evadida (②), mediante cromática (②), secuencias y modulaciones (②), cierre en el relativo mayor (②), cadencia rota y plagal (③) | ✗ | no son adornos de un acorde: cambian la dirección o la forma. Algunos chocan con «no modular» |
 
-**Resumen:** de los 13 recursos armónicos validados, el taller usa 6, usa 2 a medias, no usa 3 y tiene 2 bloqueados. Lo que le falta no es lo exótico: es lo más frecuente en el repertorio que hemos analizado (el ii–V completo, la cadena de dominantes, el disminuido de paso).
+**Resumen (v4, 2026-11-11):** de los 13 recursos armónicos validados, el taller usa 10, usa 1 a medias (el deslizamiento, apagado por oído) y tiene 2 bloqueados. *Antes de la v4:* usaba 6, 2 a medias, no usaba 3 y tenía 2 bloqueados. Lo que le falta no es lo exótico: es lo más frecuente en el repertorio que hemos analizado (el ii–V completo, la cadena de dominantes, el disminuido de paso).
 
 ## 3. Cómo aprovechar mejor lo que ya está analizado
 

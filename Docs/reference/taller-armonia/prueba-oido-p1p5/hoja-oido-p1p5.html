@@ -69,6 +69,8 @@ textarea{min-height:64px;resize:vertical}
 .ch .nm{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ch.diff{background:var(--b-bg);border-color:var(--b)}
 .ch.diff .rn{color:var(--b)}
+.ch[data-id]{cursor:pointer}
+.ch[data-id]:hover{border-color:var(--accent)}
 .ch.now{transform:translateY(-3px);box-shadow:0 0 0 2px var(--accent)}
 @media (prefers-reduced-motion: reduce){.ch,.meter i{transition:none}}
 .dec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:10px 16px;align-items:start;padding-block:12px;border-bottom:1px solid var(--line)}
@@ -414,7 +416,9 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 const pretty = r => r.replace(/^b/, "♭").replace(/^#/, "♯").replace("dim7", "°7");
 function render(p, over){
   mode = p.md; const ch = parse(p.text).chords;
-  const P = {2:{...PERILLAS_V3[2]}, 3:{...PERILLAS_V3[3]}}; Object.assign(P[p.lvl], over);
+  // Frozen v3 baseline: the pairs compare against the levels as they were before P1–P5 (2026-11-11), whatever the defaults are now.
+  const OFF = {cadenaDominantes:false, disminuido:false, bVI7Menor:false, iiDelDestino:false};
+  const P = {2:{...PERILLAS_V3[2], ...OFF, paso:"clasico", remate:"simple"}, 3:{...PERILLAS_V3[3], ...OFF, paso:"cromatico", remate:"rico"}}; Object.assign(P[p.lvl], over);
   return arrange(ch, p.lvl, p.nV, 4, P).map(v => v.seq);
 }
 // Stable, per-pair shuffle: which side holds the knob.
@@ -441,12 +445,13 @@ function tone(f, t, d, type, vol){
 function click(t, vol){ const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 1800;
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + .03); o.connect(g).connect(AC.destination); o.start(t); o.stop(t + .04); live.push(o); }
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
-function play(laps, key, md, pid, btn, bpm){
-  if(playingBtn === btn){ stopAll(); return; } stopAll();
+function play(laps, key, md, pid, btn, bpm, from){
+  if(!from && playingBtn === btn){ stopAll(); return; } stopAll();
   try{ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); }catch(e){ return; }
   playingBtn = btn; btn.classList.add("playing");
   const beat = 60 / bpm, bar = 4 * beat, t0 = AC.currentTime + .08; let t = 0;
   laps.forEach((seq, ri) => seq.forEach((c, ci) => {
+    if(from && (ri < from.ri || (ri === from.ri && ci < from.ci))) return;
     const d = c.dur * bar, at = t0 + t;
     if(!c.rest){ const root = (c.pc + key) % 12, set = new Set();
       Q[c.q].iv.forEach(x => set.add(55 + ((root + x - 55) % 12 + 12) % 12));
@@ -493,7 +498,9 @@ function drawPair(p, i){
     (a && a.eleccion ? '<div class="reveal"><span class="verdict">'+esc(verdict(a.eleccion, tA, p.knob))+'</span>' +
       '<div class="small muted">A</div><div class="laps">'+lapsHTML(A.map((s, k) => ({label:label(k), seq:s})), p.key, p.md, "s" + p.id + "A", B)+'</div>' +
       '<div class="small muted">B</div><div class="laps">'+lapsHTML(B.map((s, k) => ({label:label(k), seq:s})), p.key, p.md, "s" + p.id + "B", A)+'</div>' +
-      '<span class="small muted">En naranja, lo que cambia respecto a la otra versión.</span></div>' : "");
+      '<span class="small muted">En naranja, lo que cambia respecto a la otra versión. Pulsa un acorde para que suene desde ahí.</span></div>' : "");
+  PLAY["s" + p.id + "A"] = {laps: A, p, btn: host.querySelector('[data-v="A"]')};
+  PLAY["s" + p.id + "B"] = {laps: B, p, btn: host.querySelector('[data-v="B"]')};
   host.querySelector('[data-v="A"]').onclick = ev => play(A, p.key, p.md, "s" + p.id + "A", ev.currentTarget, 104);
   host.querySelector('[data-v="B"]').onclick = ev => play(B, p.key, p.md, "s" + p.id + "B", ev.currentTarget, 104);
   host.querySelectorAll("[data-c]").forEach(b => b.onclick = () => {
@@ -502,6 +509,12 @@ function drawPair(p, i){
     store("respuestas", p.id, ANS[p.id]); drawPair(p, i); progress(); });
   document.getElementById("n-" + p.id).oninput = e => { const prev = ANS[p.id] || {perilla: p.knob, perilla_en: tA ? "A" : "B"}; ANS[p.id] = {...prev, nota: e.target.value}; store("respuestas", p.id, ANS[p.id]); };
 }
+const PLAY = {};
+document.addEventListener("click", ev => {
+  const el = ev.target.closest(".ch[data-id]"); if(!el) return;
+  const parts = el.dataset.id.split("-"), ci = +parts.pop(), ri = +parts.pop(), pid = parts.join("-"), x = PLAY[pid];
+  if(x) play(x.laps, x.p.key, x.p.md, pid, x.btn, 104, {ri, ci});
+});
 function verdict(c, tA, knob){
   const side = tA ? "A" : "B";
   if(c === "igual") return "La perilla («" + knob + "») estaba en " + side + ". Para ti, da igual.";

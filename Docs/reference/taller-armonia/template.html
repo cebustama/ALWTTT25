@@ -171,9 +171,9 @@ details summary{cursor:pointer;font-weight:700}
         <details id="perBox">
           <summary>Perillas de los niveles <span class="hint" id="perState"></span></summary>
           <div class="stack" style="margin-top:10px">
-            <p class="hint">Cada nivel hace solo lo que sus perillas permiten. Las de fábrica son las reglas v3 (prueba de oído 16/16). Las casillas en color son las que difieren de la v3.</p>
+            <p class="hint">Cada nivel hace solo lo que sus perillas permiten. Las de fábrica son las reglas v4: la v3 (prueba de oído 16/16) más los recursos de Music Lab que elegiste a ciegas el 11-nov (nivel 2: ♭VI7 en menor; nivel 3: cadena de dominantes, ii–V, disminuido, ♭VI7 en menor, ii según el destino). Las casillas en color son las que difieren de fábrica.</p>
             <div style="overflow-x:auto"><table class="pertab" id="perTab"></table></div>
-            <div class="row"><button class="btn" id="perUndo">Deshacer</button><button class="btn" id="perReset">Volver a la v3</button><button class="btn" id="perCopy">Copiar perillas</button></div>
+            <div class="row"><button class="btn" id="perUndo">Deshacer</button><button class="btn" id="perReset">Volver a fábrica (v4)</button><button class="btn" id="perCopy">Copiar perillas</button></div>
           </div>
         </details>
         <div class="llm" id="adjBox" hidden>
@@ -321,13 +321,13 @@ function parse(text){
    Rules: original chords are never removed (an addition only takes the second part of a chord);
    no events before the knob desdeVuelta; ninths only if the 9th is in the scale;
    modal approach chords instead of V7 outside Ionian/Aeolian; no half-step modulation inside the card.
-   Everything a level may do lives in its knobs (PERILLAS); the defaults reproduce v3 exactly
-   (golden test: node scripts/oro.js comparar oro-v3.json). Names, ranges and merges: Music Lab,
+   Everything a level may do lives in its knobs (PERILLAS); the defaults are v4 (v3 + P1–P4 chosen by ear, 2026-11-11)
+   (golden test: node scripts/oro.js comparar oro-v4.json; v3 = oro-v3.json with P1–P5 off). Names, ranges and merges: Music Lab,
    revision-music-lab-perillas-2026-11-06.md. Fixed order: remate → sus4 → menor prestado → disminuido (P3) → acorde de paso → ♭VI
    (preferirAcordeNuevo moves sus4 behind the acorde de paso). Fixed guards: lap 1 as written; ≤2 distinct chords → 1 change. */
 const PERILLAS_V3 = {
-  2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:false, iiDelDestino:false},
-  3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"rico",   sus4:false, paso:"cromatico", ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:false, iiDelDestino:false},
+  2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:true,  iiDelDestino:true},
+  3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"rico",   sus4:false, paso:"iiV",       ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:true,  disminuido:true,  bVI7Menor:true,  iiDelDestino:true},
 };
 const PERILLA_KEYS = Object.keys(PERILLAS_V3[2]);
 const PERILLA_OPC = {color:["triadas","septimas","novenas"], remate:["no","simple","rico","deslizado","iiV"], paso:["no","clasico","cromatico","iiV"]};
@@ -753,7 +753,7 @@ function perWarnings(){
 }
 function drawPerillas(){
   const same = samePerillas(perillas, PERILLAS_V3);
-  $("#perState").textContent = same ? "· de fábrica (v3)" : "· propias";
+  $("#perState").textContent = same ? "· de fábrica (v4)" : "· propias";
   $("#perUndo").disabled = !perHist.length; $("#perReset").disabled = same;
   const cell = (l, k) => { const v = perillas[l][k], mod = v !== PERILLAS_V3[l][k] ? " mod" : "", id = "p" + l + k, u = PER_UI[k];
     const ctl = typeof v === "boolean" ? '<input type="checkbox" id="'+id+'"'+(v ? " checked" : "")+' aria-label="'+esc(u.lab)+', nivel '+l+'">'

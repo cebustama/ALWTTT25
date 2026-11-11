@@ -259,3 +259,26 @@ Página privada con los recursos, sus reglas, ejemplos de la Biblioteca que suen
 - **D11 (aceptada, apuntada para P6):** la tónica dominante del blues (`I7`, `IV7`) será un perfil «blues», no una perilla suelta. Es el fallo más grande de la reducción (*Billie's*, 18 %).
 - **Hoja de oído:** https://claude.ai/artifact/Bug5CcKLJWkKWmpNfqr3Ki (fuente en `prueba-oido-p1p5/`, `node prueba-oido-p1p5/build.mjs`). Son 14 pares a ciegas (v3 frente a la perilla, con el orden barajado de forma fija por par) y la decisión de nivel para cada perilla. Las respuestas se guardan en el db del artefacto, en las colecciones `respuestas`, `decisiones` y `generales`, y el agente las lee con `ArtifactData list`.
 - **Hallazgo de diseño al preparar la hoja:** en el nivel 2, P1 casi nunca sonaría. El sus4 va antes que el acorde de paso y gasta el único cambio de la vuelta, y en la última vuelta lo gasta el remate. Para tener P1 en el 2 habría que encender también `preferirAcordeNuevo`.
+
+## 13. Resultados de la hoja de oído y v4 (2026-11-11)
+
+Respuestas leídas del db de la hoja (https://claude.ai/artifact/Bug5CcKLJWkKWmpNfqr3Ki). ✓ = prefirió la perilla, ✗ = la v3, ~ = igual o ninguna.
+
+| Perilla | Pares | Decisión de Claudio | Notas suyas |
+|---|---|---|---|
+| P2 cadena de dominantes | ✓ ✓ ~ | nivel 3 | Cincuentas: «ambas funcionan bien, las dejaría random» |
+| P4 ♭VI7 en menor | ✓ ✓ | niveles 2 y 3 | blues: «me encanta este recurso» |
+| P1 ii–V | ✓ ✓ | nivel 3, en vez del cromático | — |
+| ii según el destino | ✓ ✓ | sí | mayor: «suenan raros los dos compases con el mismo acorde» (es el esqueleto de prueba, `I (2) – ii (2)`, no la perilla) |
+| P3 disminuido | ✗ ✓ | nivel 3 | en la axis prefirió la v3; en la subida, el °7 |
+| P5 remate deslizado | ✗ ~ | apagado (remate del 3: rico, v3) | mayor: «no entendí muy bien la progresión»; menor: ninguna |
+| D9 remate ii–V | ✗ | apagado | «me gustó mucho esta progresión» (la de fábrica) |
+| Remate del nivel 2 | — | simple (v3) | — |
+
+Pregunta general 1 («¿algún par deja de sonar a la misma progresión?»): «Creo que no». Pregunta 2: le gustó mucho el ejercicio; quiere más variedad de progresiones, tempos y métricas, cuando se mezcle con el taller de ritmos.
+
+**Lectura.** Los recursos que *añaden* (P2, P4, P1) ganan casi siempre; los que *rematan* (P5, D9) pierden. Los remates de la v3 ya se habían validado (16/16) y el oído no pide cambiarlos. P3 queda en el límite: se enciende en el 3 por decisión de Claudio, y conviene volver a oírlo en más contextos. Tamaño: 14 pares de un solo oyente; vale para elegir valores por defecto, no para afirmar preferencias generales.
+
+**v4 en el código:** `PERILLAS_V3` (nombre que se mantiene) pasa a: N2 `bVI7Menor`, `iiDelDestino`; N3 `cadenaDominantes`, `paso:"iiV"`, `disminuido`, `bVI7Menor`, `iiDelDestino`. Oro `oro-v4.json`: 792 casos, 169 cambian respecto a la v3 (N3 de todos los modos y N2 en Eólico; N1 idéntico). Reducción con la v4: parecido 44 % (N2) y 59 % (N3), frente al 43 % de la v3; acierta 48 % en el N3. La hoja de oído compara siempre contra la v3 congelada (`render` de `prueba-oido-p1p5/fuente.html`), así que no cambia al cambiar los valores por defecto. Desde hoy, en la hoja se puede pulsar un acorde para que suene desde ahí (petición de Claudio).
+
+**Pendiente:** el prompt de `armonia.ajustar` en la web no conoce las perillas nuevas; la copia web del taller (`--web`), si Claudio la quiere; P6, perfiles de estilo (blues con I7/IV7, D11).

@@ -1,5 +1,7 @@
 # Arranque · Los niveles del taller aprovechan los recursos de Music Lab (P1–P5)
 
+> **Hecho el 2026-11-11.** Pasos 1–6 cerrados: v4 con P1–P4 encendidas por la hoja de oído (resultados en `revision-music-lab-reglas-P1-P5.md` §13), `scripts/oro-v4.json`, taller republicado. Lo que queda (prompt de `armonia.ajustar`, copia web, P6) está en ese §13.
+
 Preparado el 2026-11-11. Prioridad 1 de Claudio en la línea armónica (no toma sesiones de la demo). Ábrelo en una sesión desde `D:\Projects\ALWTTT25` (o desde la raíz, siguiendo este archivo).
 
 ## Para qué
