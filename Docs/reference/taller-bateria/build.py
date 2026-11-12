@@ -122,9 +122,43 @@ data = {"palettes": palettes, "patterns": out}
 print(len(out), "patterns,", sum(1 for p in out if not p["palettes"]), "without palette,",
       sum(1 for p in out if p["snapped"]), "with snapped velocities")
 
+# MGP-DRUM-FILL-1: the 13 Music Lab fills, for the "Parte con fills" view (page only; not in patrones.json)
+FILLS_MD = Path("D:/Projects/MidiGenPlay/MidiGenPlay/Documentation~/research/2026-11-12_biblioteca_fills_music_lab.md")
+TSB = {"FourFour": (4, 4), "ThreeFour": (3, 4), "TwoFour": (2, 4), "SixEight": (6, 8), "NineEight": (9, 8),
+       "TwelveEight": (12, 8), "FiveFour": (5, 4), "SevenEight": (7, 8)}
+
+
+def parse_fills(md):
+    fills = []
+    heads = list(re.finditer(r"^###\s+(.+?)\s*$", md, re.M))
+    for i, h in enumerate(heads):
+        body = md[h.end(): heads[i + 1].start() if i + 1 < len(heads) else len(md)]
+        cut = re.search(r"^##\s", body, re.M)
+        if cut: body = body[:cut.start()]
+        fence = re.search(r"```\n(.*?)```", body, re.S)
+        if not fence: continue
+        w = re.search(r"(?:Peso|Weight)\s*:?\s*([0-9]+(?:[.,][0-9]+)?)", body, re.I)
+        ts = re.search(r"Time signature:\s*(\w+)", body).group(1)
+        subs = int(re.search(r"Subdivisions:\s*(\d+)", body).group(1))
+        lanes = [(int(g), int(v)) for g, v in re.findall(r"\(GM (\d+)\)\s*—\s*default velocity (\d+)", body)]
+        rows = [r.strip() for r in fence.group(1).strip().splitlines()]
+        beats = TSB[ts][0]
+        out = []
+        for (gm, dv), row in zip(lanes, rows):
+            cells = row.replace("|", "").replace(" ", "")[:beats * subs]
+            out.append({"gm": gm, "def": dv, "steps": [-1 if c == "." else dv if c == "x" else ACCENT if c == "X" else GHOST for c in cells]})
+        fills.append({"id": h.group(1).replace("`", "").strip(), "beats": beats, "unit": TSB[ts][1], "subdivisions": subs,
+                      "weight": float(w.group(1).replace(",", ".")) if w else 1.0, "lanes": out})
+    return fills
+
+
+page_data = dict(data)
+page_data["fills"] = parse_fills(FILLS_MD.read_text(encoding="utf-8")) if FILLS_MD.exists() else []
+print(len(page_data["fills"]), "fills (Music Lab)")
+
 tpl = d / "template.html"
 if tpl.exists():
-    compact = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    compact = json.dumps(page_data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     html = tpl.read_text(encoding="utf-8").replace("__DATA__", compact)
     (d / "index.html").write_text(html, encoding="utf-8")
     print("index.html", len(html), "bytes")
