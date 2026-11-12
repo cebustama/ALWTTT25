@@ -397,3 +397,22 @@ Sin semilla, todo queda como en la v4: las reglas toman en su orden fijo. Con se
 - La andaluza ya no varía con la semilla: sus únicos adornos posibles son el IV7 y el III7. Es lo que se buscaba, pero conviene oírlo.
 
 **Siguiente:** la hoja de oído de P6 (`prueba-oido-p6/`), con Pachelbel y Axis en N2 y N3 (fábrica y 3 semillas), la andaluza con semilla y JTTOU con y sin el II7.
+
+### Resultados de la hoja de oído de P6 (2026-11-12)
+
+Hoja: `prueba-oido-p6/` (https://claude.ai/artifact/9YUxLx7n25SumsJefQjfUY). Respuestas de Claudio en su db:
+
+| Carta | ¿Misma carta? | Diferencia | Se sale | Guardaría | Nota |
+| --- | --- | --- | --- | --- | --- |
+| Pachelbel N2 | sí | algo | ninguna | varias | «Todas me gustan.» |
+| Pachelbel N3 | casi | poco | la 4 (**la de fábrica**) | varias | «Se nota mayor lejanía con la progresión base, pero al ser nivel 3 eso es bueno… La 4 es la que más se aleja, pero eso también le da una identidad.» |
+| Axis N2 | sí | poco | ninguna | varias | «Todas bien.» |
+| Axis N3 | sí | algo | ninguna | varias | «Mucha más variedad que antes.» |
+
+- **Los pesos funcionan:** las 4 cartas siguen siendo la misma carta y ninguna semilla se sale. Lo que más se aleja en Pachelbel N3 es la versión de fábrica, no una semilla.
+- **Niveles:** «sí: el 2 es más suave y el 3 más jazz». Los pesos de Music Lab quedan como están.
+- **JTTOU:** la versión sin el II7 suena más a la canción, pero «las dos valen». Se queda la de fábrica (con II7) y la regla d no cambia.
+- **Variedad: D3 = B.** «Así como está, está bien, pero quiero poder subirla más.» Hecho: sexto escalón de intensidad, **«exagerado»** (nivel 3, desde la vuelta 1, `presupuesto: 8` = un adorno en cada hueco que quepa); `presupuesto` admite ahora 0–8. No toca la fábrica (`oro-v4` y `oro-v5` idénticos). **Límite medido:** con 4 semillas y 3 vueltas en todo el catálogo, el escalón 5 pone 963 adornos y el 6, 1.074 (+11 %). Los huecos donde cabe un adorno se acaban antes que el presupuesto. Para exagerar más haría falta otra vía: adornos en la primera mitad del acorde, o dos por acorde.
+- **Andaluza:** la hoja no la incluía (Claudio: «ninguna de las pruebas era de la andaluza»). La decisión «bien así» queda abierta, con la recomendación de dejarla así para la demo.
+
+**P6 cerrada.** Siguiente en la línea: `ARRANQUE_narrador_forma.md`; su prueba de oro parte de `oro-v4` sin semilla y de este `oro-v5`.

@@ -169,7 +169,7 @@ details summary{cursor:pointer;font-weight:700}
           <button class="lvl" data-l="3" aria-pressed="false"><b>3 · Spicy</b><span>Novenas de la escala y, desde la vuelta 2, hasta dos cambios por vuelta (préstamos, sustitutos tritonales, backdoor, acorde propio del modo).</span></button>
         </div>
         <label class="k" for="inten">Intensidad de las variaciones
-          <span class="bpm"><input id="inten" type="range" min="0" max="5" step="1" value="0"><output id="intenOut" for="inten">0</output><span class="hint" id="intenLab"></span></span></label>
+          <span class="bpm"><input id="inten" type="range" min="0" max="6" step="1" value="0"><output id="intenOut" for="inten">0</output><span class="hint" id="intenLab"></span></span></label>
         <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center">
           <label class="k" for="semilla" style="margin:0">Versión</label>
           <input id="semilla" type="text" inputmode="numeric" maxlength="9" placeholder="de fábrica" style="width:8.5em" aria-label="Semilla de la versión" title="La semilla: el mismo número da siempre la misma versión. Vacío = de fábrica (v4).">
@@ -340,7 +340,7 @@ const PERILLAS_V3 = {
   2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:true,  iiDelDestino:true},
   3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"azar",   sus4:false, paso:"iiV",       ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:true,  disminuido:true,  bVI7Menor:true,  iiDelDestino:true},
 };
-// Intensity (D14 = A, 2026-11-11): one slider 0–5 that picks a level and a factory profile; the fine knobs stay below.
+// Intensity (D14 = A, 2026-11-11): one slider 0–6 (6 = exagerado since P6) that picks a level and a factory profile; the fine knobs stay below.
 // In the game, levelling up a card = one step up this ladder.
 const INTENSIDAD = [
   {lvl:1, lab:"tal cual"},
@@ -348,7 +348,9 @@ const INTENSIDAD = [
   {lvl:2, lab:"nivel 2 de fábrica"},
   {lvl:3, lab:"nivel 3 de fábrica"},
   {lvl:3, over:{desdeVuelta:1}, lab:"nivel 3 desde la vuelta 1"},
-  {lvl:3, over:{desdeVuelta:1, presupuesto:3, preferirAcordeNuevo:true}, lab:"máximo: desde la vuelta 1 y sin tope"},
+  {lvl:3, over:{desdeVuelta:1, presupuesto:3, preferirAcordeNuevo:true}, lab:"máximo: desde la vuelta 1, 3 cambios por vuelta"},
+  // D3 = B (P6 hearing test, 2026-11-12, Claudio: "quiero poder subirla más"): one step to exaggerate. 8 = every slot that fits.
+  {lvl:3, over:{desdeVuelta:1, presupuesto:8, preferirAcordeNuevo:true}, lab:"exagerado: un adorno en cada hueco que quepa"},
 ];
 const PERILLA_KEYS = Object.keys(PERILLAS_V3[2]);
 const PERILLA_OPC = {color:["triadas","septimas","novenas"], remate:["no","simple","rico","deslizado","iiV","azar"], paso:["no","clasico","cromatico","iiV"]};
@@ -356,7 +358,7 @@ const clonePerillas = p => ({2:{...p[2]}, 3:{...p[3]}});
 // Accepts anything (saved data, the model's answer) and returns valid knobs, filling gaps from `base` (v3 by default).
 // Values it cannot use go to `ignored` (never silently: the page reports them).
 function validPerilla(k, v){
-  if(k === "presupuesto") return Number.isInteger(v) && v >= 0 && v <= 3;
+  if(k === "presupuesto") return Number.isInteger(v) && v >= 0 && v <= 8;   // 8 since P6 (D3 = B)
   if(k === "desdeVuelta") return Number.isInteger(v) && v >= 1 && v <= 4;   // 1 allowed since 2026-11-11 (D13 = B, also in the game)
   if(PERILLA_OPC[k]) return PERILLA_OPC[k].includes(v);
   return PERILLA_KEYS.includes(k) && typeof v === "boolean";
@@ -801,7 +803,7 @@ function setPlayIcon(on){ const p = $("#play"); p.innerHTML = on ? ICON_STOP : I
 
 /* ---------- knobs (Music Lab names, 2026-11-06) ---------- */
 const PER_UI = {
-  presupuesto:{lab:"Cambios por vuelta", hlp:"Cuántos adornos entran como máximo en cada vuelta. 0 = solo cambia el color.", opts:[0,1,2,3]},
+  presupuesto:{lab:"Cambios por vuelta", hlp:"Cuántos adornos entran como máximo en cada vuelta. 0 = solo cambia el color; 8 = en cada hueco que quepa.", opts:[0,1,2,3,4,8]},
   desdeVuelta:{lab:"Empieza en la vuelta", hlp:"Desde esta vuelta entran los adornos. Con 2 (de fábrica), la vuelta 1 suena tal cual y se reconoce la carta; con 1, cambia desde el primer compás.", opts:[1,2,3,4]},
   color:{lab:"Color de los acordes", hlp:"Tríadas, séptimas o séptimas y novenas (las novenas solo si la nota está en la escala).", opts:["triadas","septimas","novenas"], txt:{triadas:"tríadas",septimas:"séptimas",novenas:"novenas"}},
   remate:{lab:"Remate final", hlp:"En la última vuelta, uno o dos acordes que empujan de vuelta al primero. Rico: dos, más jazz (en Do, Fm7–B♭9 antes de C). Deslizado: dos dominantes a medio tono (A♭7–G7 antes de C). ii–V: Dm7–G7 antes de C. Al azar: cada versión (semilla) elige uno; en mayor rico, simple o ii–V, en menor rico, deslizado o ii–V. Sin semilla, rico.", opts:["no","simple","rico","deslizado","iiV","azar"], txt:{no:"no",simple:"simple",rico:"rico",deslizado:"deslizado",iiV:"ii–V",azar:"al azar"}},
