@@ -46,6 +46,8 @@ namespace ALWTTT.Data
 
         #region Encapsulation
         public string CharacterName => characterName;
+        /// <summary>[S8] Stable id (JSON key, shout id 'shout_&lt;characterId&gt;_&lt;abilityId&gt;').</summary>
+        public string CharacterId => characterId;
         public AudienceCharacterBase CharacterPrefab => characterPrefab;
         public int MaxVibe => maxVibe;
         public List<AudienceAbilityData> AbilityList => abilityList;
@@ -108,6 +110,18 @@ namespace ALWTTT.Data
                  "ability may have a sound and no animator trigger. See SSoT_Audio §3 / invariant 17.")]
         [SerializeField] private AudioClip abilitySfx;
 
+        [Header("Poses (S8 / GRITOS-1, D3=A)")]
+        [Tooltip("[S8] Sprite while this ability is the shown intention (player turn). Empty = normal sprite.")]
+        [SerializeField] private Sprite pendingSprite;
+        [Tooltip("[S8] Sprite while this ability acts (shout + hits). Empty = normal sprite. " +
+                 "An animator trigger that animates the sprite overrides it while it plays.")]
+        [SerializeField] private Sprite actingSprite;
+
+        [Tooltip("[S8b] Optional full-screen cut-in shown when this ability fires (the punk boss's " +
+                 "'ataque jefe'). A TEXTURE, not a Sprite: the source art is sliced (Multiple) and a RawImage " +
+                 "shows the whole sheet. Empty = no cut-in. Once per gig unless GigPresentationSO says otherwise.")]
+        [SerializeField] private Texture2D shoutSplash;
+
         #region Encapsulation
         public string AbilityName => abilityName;
         public string AbilityId => abilityId;
@@ -118,6 +132,9 @@ namespace ALWTTT.Data
         public string DuetKey => duetKey;
         public AbilityAnimationData Animation => animation;
         public AudioClip AbilitySfx => abilitySfx;
+        public Sprite PendingSprite => pendingSprite;
+        public Sprite ActingSprite => actingSprite;
+        public Texture2D ShoutSplash => shoutSplash;
         #endregion
     }
 

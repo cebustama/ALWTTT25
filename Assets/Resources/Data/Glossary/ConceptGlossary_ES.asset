@@ -859,3 +859,63 @@ MonoBehaviour:
     text: "Este m\xFAsico ya us\xF3 una carta de acci\xF3n este turno."
   - id: ui_unplayable_budget_composition
     text: "Este m\xFAsico ya us\xF3 una carta de composici\xF3n este turno."
+  shouts:
+  - id: shout_ab_croak
+    lines:
+    - "\xA1Croac, {musico}!"
+    - "\xA1{musico} desafina! \xA1Croac!"
+    - "Croac\u2026 croac\u2026 \xA1{musico}!"
+  - id: shout_rayas_ab_cut_in
+    lines:
+    - "\xA1Permiso, que no veo!"
+    - "M\xE1s bajo\u2026 m\xE1s\u2026 \xA1ah\xED!"
+    - "\xA1Abran paso, que esto es m\xEDo!"
+  - id: shout_rayas_ab_elbow
+    lines:
+    - "\xA1Toma, {musico}!"
+    - "\xBFEso es un bajo, {musico}?"
+    - "\xA1{musico}, m\xE1s bajo!"
+  - id: shout_tentaculos_ab_count_one
+    lines:
+    - "Uno\u2026"
+  - id: shout_tentaculos_ab_count_two
+    lines:
+    - "Dos\u2026"
+  - id: shout_tentaculos_ab_count_three
+    lines:
+    - "\xA1TRES, {musico}!"
+    - "\xA1Y\u2026 TRES! \xA1Para ti, {musico}!"
+  - id: shout_big_guy_ab_boo
+    lines:
+    - "\xA1BBUUU\u2026!"
+    - "\xA1Fuera, {musico}!"
+    - "\xA1BBUUU, {musico}! \xA1Tu m\xFAsica apesta!"
+  - id: shout_kid_ab_egg_him_on
+    lines:
+    - "\xA1Eso, jefe!"
+    - "\xA1Dale, jefe, dale!"
+    - "\xA1M\xE1s fuerte, jefe!"
+  - id: shout_kid_ab_tantrum
+    lines:
+    - "\xA1Aburriiido, {musico}!"
+    - "\xA1Quiero otra canci\xF3n, {musico}!"
+    - "\xA1{musico}, me duelen los o\xEDdos!"
+  - id: shout_influencer_ab_egg_him_on
+    lines:
+    - "\xA1Jefe, sales en mi story!"
+    - "Esto lo subo, jefe. \xA1Dale!"
+    - "\xA1Jefe, que te vean mis seguidores!"
+  - id: shout_influencer_ab_scathing_review
+    lines:
+    - Una estrella, {musico}. Y es mucho.
+    - Puedo hacer eso en 2 segundos con IA, {musico}.
+    - "{musico}, esto va directo a mi rese\xF1a."
+  - id: shout_ab_croak__robot_c2
+    lines:
+    - "\xA1{musico} se pierde en el tiempo! \xA1Croac!"
+    - "Croac\u2026 \xBFa qu\xE9 comp\xE1s vas, {musico}?"
+    - "\xA1Se te fue el tempo, {musico}! \xA1Croac!"
+  - id: shout_big_guy_ab_boo__robot_c2
+    lines:
+    - "\xA1BBUUU! \xA1Vuelve a la f\xE1brica, {musico}!"
+    - "\xA1{musico}, ni el metr\xF3nomo te aguanta!"

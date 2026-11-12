@@ -2302,3 +2302,23 @@ Runtime rules: Audience SSoT §7.2.
 
 Creates «Band Stage Layout» in the open gig scene (Duo / Trio / Cuarteto slots and Auto Left/Right,
 from the legacy slots' bounds), assigns `GigManager.bandStageLayout`, Undo-able. Runtime: Combat Core §13.
+
+### 23.5 Shouts, poses and cut-in in the audience JSON (S8 GRITOS-1, 2026-11-12)
+
+- **Ability fields:** `shouts` {`scope`: `character` (→ `shout_<characterId>_<abilityId>`) or
+  `ability` (→ `shout_<abilityId>`, shared), `es` [], `en` [], `byMusician` [{`musician`, `es`, `en`}]}
+  → `ConceptGlossarySO.shouts` (Game Text row 14); `pendingSprite`, `actingSprite` (Sprite path or
+  name, empty = normal sprite); `shoutSplash` (Texture2D path or name: full-screen cut-in). An empty
+  line list never erases glossary lines; export reads them back, per-musician variants included.
+- **«ALWTTT ▸ S8 ▸ Importar gritos del elenco (GRITOS-1)»** (`ImportShoutsOnly`): writes only the
+  shouts and, on the matching abilities (characterId + abilityId), the two poses and the cut-in —
+  **empty JSON values clear those slots**, so poses for the cast belong in the JSON, not only in the
+  Inspector. Nothing else of the character is touched (safe after hand tuning; the full import
+  rewrites everything, §23.1). Logs `[S8] Shouts | <lang> | <id> | n`, `[S8] Presentación | …`,
+  `[S8] Gritos importados | …`.
+- **Audience Member Wizard:** per ability, `pendingSprite`, `actingSprite`, `shoutSplash` and a
+  read-only line naming the shout entry the ability will use (own, shared, or none). A new list
+  element resets them (and `duetKey`).
+- **`CharacterAnimator.overlayOnAnimator`** (prefab field): for characters whose Animator animates
+  the same transform as `jumpRoot`; see `SSoT_Card_Authoring_Contracts` (beat pose) and the
+  CURRENT_STATE S8 row. Set on `BandCharacter - Conito`.

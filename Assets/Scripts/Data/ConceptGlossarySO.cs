@@ -41,9 +41,17 @@ namespace ALWTTT.Data
         [Tooltip("Composable fragments with {0}-style placeholders. Required ids are declared in GameTextTemplateIds; gaps are reported in GameTextWindow ▸ Templates.")]
         [SerializeField] private List<TextTemplateEntry> templates = new();
 
+        [Header("Audience shouts (S8 / GRITOS-1, D1=C)")]
+        [Tooltip("[S8] Lines an audience member shouts when an ability fires. Id = 'shout_<characterId>_<abilityId>' " +
+                 "(this member only) or 'shout_<abilityId>' (anyone with that ability: the frogs' chorus). One line is " +
+                 "picked at random; '{musico}' / '{músico}' / '{musician}' is replaced by the locked target's name. " +
+                 "Optional text: an ability without lines shows its name floater, as before S8.")]
+        [SerializeField] private List<ShoutEntry> shouts = new();
+
         [NonSerialized] private Dictionary<string, ConceptEntry> _byId;
         [NonSerialized] private Dictionary<string, string> _cardNameById;
         [NonSerialized] private Dictionary<string, string> _templateById;
+        [NonSerialized] private Dictionary<string, ShoutEntry> _shoutById;
 
         public string LanguageCode => languageCode;
 
@@ -72,6 +80,16 @@ namespace ALWTTT.Data
         public IReadOnlyList<ConceptEntry> Entries => entries;
         public IReadOnlyList<CardNameEntry> CardNames => cardNames;
         public IReadOnlyList<TextTemplateEntry> Templates => templates;
+        public IReadOnlyList<ShoutEntry> Shouts => shouts;
+
+        /// <summary>[S8] Case-insensitive lookup of a shout entry with at least one non-empty line.</summary>
+        public bool TryGetShout(string shoutId, out ShoutEntry entry)
+        {
+            entry = null;
+            if (string.IsNullOrEmpty(shoutId)) return false;
+            if (_shoutById == null) BuildIndex();
+            return _shoutById.TryGetValue(shoutId, out entry);
+        }
 
         /// <summary>Case-insensitive lookup by concept id (the id used in &lt;link=id&gt;).</summary>
         public bool TryGet(string id, out ConceptEntry entry)
@@ -120,9 +138,15 @@ namespace ALWTTT.Data
                 if (t == null || string.IsNullOrWhiteSpace(t.Id)) continue;
                 _templateById[t.Id.Trim()] = t.Text ?? "";
             }
+            _shoutById = new Dictionary<string, ShoutEntry>(shouts.Count, StringComparer.OrdinalIgnoreCase);
+            foreach (var sh in shouts)
+            {
+                if (sh == null || string.IsNullOrWhiteSpace(sh.Id) || !sh.HasLines) continue;
+                _shoutById[sh.Id.Trim()] = sh;
+            }
         }
 
-        private void OnEnable() { _byId = null; _cardNameById = null; _templateById = null; _numberFormat = null; }   // rebuilt lazily after domain reload / asset edit
+        private void OnEnable() { _byId = null; _cardNameById = null; _templateById = null; _shoutById = null; _numberFormat = null; }   // rebuilt lazily after domain reload / asset edit
     }
 
     [Serializable]
@@ -166,5 +190,28 @@ namespace ALWTTT.Data
 
         public string Id => id;
         public string Text => text;
+    }
+
+    /// <summary>[S8 / GRITOS-1, D1=C] What an audience member shouts when an ability fires. Several lines,
+    /// one picked at random each time. Voice text, unlike ConceptEntry (plain register).</summary>
+    [Serializable]
+    public sealed class ShoutEntry
+    {
+        [Tooltip("'shout_<characterId>_<abilityId>' or 'shout_<abilityId>'. Lowercase, [a-z0-9_].")]
+        [SerializeField] private string id;
+        [Tooltip("One line per entry. '{musico}' / '{músico}' / '{musician}' = the target musician's name.")]
+        [SerializeField] private List<string> lines = new();
+
+        public string Id => id;
+        public IReadOnlyList<string> Lines => lines;
+        public bool HasLines
+        {
+            get
+            {
+                if (lines == null) return false;
+                foreach (var l in lines) if (!string.IsNullOrWhiteSpace(l)) return true;
+                return false;
+            }
+        }
     }
 }

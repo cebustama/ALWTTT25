@@ -144,6 +144,46 @@ namespace ALWTTT.Data
 
         public Color ConvincedSpriteTint => convincedSpriteTint;
 
+        // --- Audience shouts [S8 / GRITOS-1, D2=B] ---
+        public const float DefaultShoutHoldSeconds = 1.2f;
+        public const float DefaultShoutLifetimeSeconds = 2.2f;
+        // [S8b] Measured from the TOP of the member's sprite (SpriteRenderer.bounds), not from
+        // TextSpawnRoot: that root sits at the feet on the S7 cast, so the bubble covered the body.
+        public static readonly Vector2 DefaultShoutOffset = new Vector2(0f, 1.0f);
+        public const float DefaultShoutPopSeconds = 0.3f;
+        public const float DefaultShoutSplashSeconds = 1.6f;
+
+        [Header("Audience Shouts [S8 / GRITOS-1]")]
+        [SerializeField, Min(0f), Tooltip("[S8 / D2=B] Segundos que el bocadillo se lee ANTES del primer " +
+            "golpe de la habilidad. 0 = el golpe no espera. Solo cuando hay frase.")]
+        private float shoutHoldSeconds = DefaultShoutHoldSeconds;
+        [SerializeField, Min(0.1f), Tooltip("[S8] Vida total del bocadillo (incluye la espera).")]
+        private float shoutLifetimeSeconds = DefaultShoutLifetimeSeconds;
+        [SerializeField, Tooltip("[S8b] Centro del bocadillo respecto al BORDE SUPERIOR del sprite del " +
+            "miembro (x desde su centro), en unidades de mundo. El bocadillo se mantiene dentro de la cámara.")]
+        private Vector2 shoutOffsetAboveSprite = DefaultShoutOffset;
+        [SerializeField, Min(0.05f), Tooltip("[S8b] Duración de la entrada con rebote (ease-out-back) y, " +
+            "a la mitad, de la salida.")]
+        private float shoutPopSeconds = DefaultShoutPopSeconds;
+
+        [Header("Shout splash (viñeta a pantalla) [S8b]")]
+        [SerializeField, Min(0.2f), Tooltip("[S8b] Duración total de la viñeta (entra, se queda, sale). " +
+            "El golpe espera a que termine y luego sale el bocadillo con el nombre del músico.")]
+        private float shoutSplashSeconds = DefaultShoutSplashSeconds;
+        [SerializeField, Tooltip("[S8b] Off = la viñeta sale solo la PRIMERA vez que ese miembro usa la " +
+            "habilidad en el gig (repetida pierde fuerza). On = cada vez.")]
+        private bool shoutSplashEveryTime = false;
+        [SerializeField, Range(0.2f, 1f), Tooltip("[S8b] Ancho de la viñeta como fracción del ancho de pantalla.")]
+        private float shoutSplashWidth = 0.7f;
+
+        public float ShoutHoldSeconds => shoutHoldSeconds;
+        public float ShoutLifetimeSeconds => shoutLifetimeSeconds;
+        public Vector2 ShoutOffset => shoutOffsetAboveSprite;
+        public float ShoutPopSeconds => shoutPopSeconds;
+        public float ShoutSplashSeconds => shoutSplashSeconds;
+        public bool ShoutSplashEveryTime => shoutSplashEveryTime;
+        public float ShoutSplashWidth => shoutSplashWidth;
+
         // --- SFX → FlatVibe bonus [§5.3.5] ---
 
         [Header("SFX → FlatVibe Bonus [§5.3.5]")]

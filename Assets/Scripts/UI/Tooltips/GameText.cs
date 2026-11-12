@@ -80,6 +80,93 @@ namespace ALWTTT.Tooltips
             return string.Empty;
         }
 
+        // ── Audience shouts [S8 / GRITOS-1, D1=C] ────────────────────────────
+        // Own RNG: picking a line must not consume UnityEngine.Random, which rolls RandomMusician
+        // targets (LockMusicianTarget). A cosmetic choice never shifts a gameplay roll.
+        private static readonly System.Random _shoutRng = new System.Random();
+
+        /// <summary>[S8] Shout id for one member's ability (most specific first).</summary>
+        public static string ShoutIdFor(string characterId, string abilityId)
+            => string.IsNullOrEmpty(characterId) || string.IsNullOrEmpty(abilityId)
+                ? null : "shout_" + characterId.Trim().ToLowerInvariant() + "_" + abilityId.Trim().ToLowerInvariant();
+
+        /// <summary>[S8] Shout id shared by everyone with this ability (the frogs' chorus).</summary>
+        public static string ShoutIdForAbility(string abilityId)
+            => string.IsNullOrEmpty(abilityId) ? null : "shout_" + abilityId.Trim().ToLowerInvariant();
+
+        /// <summary>[S8b] Musician key for per-musician variants: the name, lowercased, every run of
+        /// characters outside [a-z0-9] turned into '_' ("Robot C2" → "robot_c2").</summary>
+        public static string MusicianKey(string musicianName)
+        {
+            if (string.IsNullOrWhiteSpace(musicianName)) return null;
+            var sb = new System.Text.StringBuilder();
+            bool sep = false;
+            foreach (var ch in musicianName.Trim().ToLowerInvariant())
+            {
+                if ((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) { if (sep && sb.Length > 0) sb.Append('_'); sb.Append(ch); sep = false; }
+                else sep = true;
+            }
+            return sb.Length > 0 ? sb.ToString() : null;
+        }
+
+        /// <summary>[S8b] Id of the per-musician variant of a shout id: '&lt;shoutId&gt;__&lt;musicianKey&gt;'.</summary>
+        public static string ShoutIdForMusician(string shoutId, string musicianName)
+        {
+            var key = MusicianKey(musicianName);
+            return string.IsNullOrEmpty(shoutId) || key == null ? null : shoutId + "__" + key;
+        }
+
+        /// <summary>
+        /// [S8 / GRITOS-1] A random line for this member's ability, with {musico}/{músico}/{musician}
+        /// replaced by <paramref name="musicianName"/>. Lookup, most specific first:
+        ///   shout_&lt;characterId&gt;_&lt;abilityId&gt;__&lt;musician&gt; · shout_&lt;abilityId&gt;__&lt;musician&gt;  [S8b]
+        ///   shout_&lt;characterId&gt;_&lt;abilityId&gt; · shout_&lt;abilityId&gt;
+        /// A per-musician entry REPLACES the general lines for that musician (Robot C2 does not
+        /// "go off-key", it loses the tempo). Returns null when there is no line (shouts are optional:
+        /// the caller falls back to the ability-name floater; no miss warning). A line that names the
+        /// musician when there is none (empty name) is skipped if another line does not need one.
+        /// </summary>
+        public static string Shout(string characterId, string abilityId, string musicianName, out string usedId)
+        {
+            usedId = null;
+            var g = Glossary;
+            if (g == null) return null;
+
+            ShoutEntry entry = null;
+            var specific = ShoutIdFor(characterId, abilityId);
+            var shared = ShoutIdForAbility(abilityId);
+            foreach (var id in new[] {
+                         ShoutIdForMusician(specific, musicianName), ShoutIdForMusician(shared, musicianName),
+                         specific, shared })
+            {
+                if (id != null && g.TryGetShout(id, out entry)) { usedId = id; break; }
+                entry = null;
+            }
+            if (entry == null) return null;
+
+            bool haveName = !string.IsNullOrEmpty(musicianName);
+            var pool = new List<string>();
+            foreach (var l in entry.Lines)
+            {
+                if (string.IsNullOrWhiteSpace(l)) continue;
+                if (!haveName && NamesMusician(l)) continue;
+                pool.Add(l);
+            }
+            if (pool.Count == 0) return null;
+
+            var line = pool[_shoutRng.Next(pool.Count)];
+            return haveName ? ReplaceMusician(line, musicianName) : line;
+        }
+
+        private static bool NamesMusician(string line)
+            => line.IndexOf("{musico}", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || line.IndexOf("{músico}", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || line.IndexOf("{musician}", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+        private static string ReplaceMusician(string line, string name)
+            => line.Replace("{musico}", name).Replace("{músico}", name).Replace("{musician}", name)
+                   .Replace("{Musico}", name).Replace("{Músico}", name).Replace("{Musician}", name);
+
         /// <summary>Status name by StatusKey — the glossary's, never StatusEffectSO.displayName.</summary>
         public static string StatusName(StatusEffectSO status)
             => status == null ? string.Empty : ConceptName(status.StatusKey);

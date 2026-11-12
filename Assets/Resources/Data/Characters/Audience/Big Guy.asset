@@ -37,6 +37,9 @@ MonoBehaviour:
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 2800000, guid: 8ee91e799a5a50e47b0e1b0ce85fafd8, type: 3}
   followAbilityPattern: 1
   taste:
     tempoMatchOnFast: 1

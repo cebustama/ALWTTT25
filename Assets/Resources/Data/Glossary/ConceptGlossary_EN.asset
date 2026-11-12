@@ -847,3 +847,63 @@ MonoBehaviour:
     text: This musician already played an action card this turn.
   - id: ui_unplayable_budget_composition
     text: This musician already played a composition card this turn.
+  shouts:
+  - id: shout_ab_croak
+    lines:
+    - Croak, {musico}!
+    - '{musico} is off-key! Croak!'
+    - "Croak\u2026 croak\u2026 {musico}!"
+  - id: shout_rayas_ab_cut_in
+    lines:
+    - Excuse me, I can't see!
+    - "Lower\u2026 lower\u2026 there!"
+    - Make way, this spot is mine!
+  - id: shout_rayas_ab_elbow
+    lines:
+    - Take that, {musico}!
+    - Call that a bassline, {musico}?
+    - '{musico}, more bass!'
+  - id: shout_tentaculos_ab_count_one
+    lines:
+    - "One\u2026"
+  - id: shout_tentaculos_ab_count_two
+    lines:
+    - "Two\u2026"
+  - id: shout_tentaculos_ab_count_three
+    lines:
+    - THREE, {musico}!
+    - "And\u2026 THREE! This one's for you, {musico}!"
+  - id: shout_big_guy_ab_boo
+    lines:
+    - "BOOO\u2026!"
+    - Get off the stage, {musico}!
+    - BOOO, {musico}! Your music stinks!
+  - id: shout_kid_ab_egg_him_on
+    lines:
+    - Yeah, boss!
+    - Go on, boss, go on!
+    - Louder, boss!
+  - id: shout_kid_ab_tantrum
+    lines:
+    - Boooring, {musico}!
+    - Play another song, {musico}!
+    - '{musico}, my ears hurt!'
+  - id: shout_influencer_ab_egg_him_on
+    lines:
+    - Boss, you're on my story!
+    - I'm posting this, boss. Go!
+    - Boss, my followers are watching!
+  - id: shout_influencer_ab_scathing_review
+    lines:
+    - One star, {musico}. And that's generous.
+    - I could make that in 2 seconds with AI, {musico}.
+    - '{musico}, this is going straight into my review.'
+  - id: shout_ab_croak__robot_c2
+    lines:
+    - '{musico} can''t keep time! Croak!'
+    - "Croak\u2026 what bar are you on, {musico}?"
+    - You lost the tempo, {musico}! Croak!
+  - id: shout_big_guy_ab_boo__robot_c2
+    lines:
+    - BOOO! Back to the factory, {musico}!
+    - '{musico}, even the metronome gave up on you!'

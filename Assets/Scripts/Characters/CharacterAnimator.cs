@@ -11,6 +11,13 @@ namespace ALWTTT.Characters
         [SerializeField][Range(0f, 1f)] private float beatOffsetBeats = 0f;
         [SerializeField][Min(1)] private int skipEveryNBeats = 1;
 
+        [Header("Animator overlay [S8 / D4=B]")]
+        [Tooltip("[S8] Turn ON when an Animator on this character animates the SAME transform as jumpRoot " +
+            "(Conito: its Idle/Fly clips write SpriteParent's position every frame). Jump, rotation, scale pop " +
+            "and stretch are then computed in Update but applied in LateUpdate ON TOP of the pose the Animator " +
+            "wrote, instead of being overwritten by it. OFF = behaviour before S8 (absolute pose in Update).")]
+        [SerializeField] private bool overlayOnAnimator = false;
+
         [Header("Jump")]
         [SerializeField] private bool jumpOnBeat = true;
         [SerializeField] private Transform jumpRoot;
@@ -91,6 +98,16 @@ namespace ALWTTT.Characters
         private bool _kickOverlayApplied;
         private Vector3 _preKickScale, _postKickScale;
         private Vector3 _preKickPos, _postKickPos;
+
+        // [S8 / D4=B] Overlay state. Offsets are computed by the beat loop; the base is whatever the
+        // Animator left this frame, or - when it did not write (value still equals what we wrote
+        // last frame) - last frame's base, so nothing accumulates (same contract as the kick).
+        private float _ovJump, _ovRotZ;
+        private Vector3 _ovScaleMul = Vector3.one;
+        private bool _ovApplied;
+        private Vector3 _ovBasePos, _ovPostPos, _ovBaseScale, _ovPostScale;
+        private Quaternion _ovBaseRot, _ovPostRot;
+        private int _ovLogBeat = -1;
 
         // Public 
         #region Encapsulation
@@ -202,7 +219,11 @@ namespace ALWTTT.Characters
             if (beatInterval <= 0f) return;
 
             // [S5b / D-S5b-IDLE] When gated off, no beat motion or particles this frame.
-            if (!beatAnimationEnabled) return;
+            if (!beatAnimationEnabled)
+            {
+                ClearOverlayOffsets(); // [S8] gated = the Animator's pose, untouched
+                return;
+            }
 
             while (Time.time >= nextAnimBeatTime)
             {
@@ -219,6 +240,13 @@ namespace ALWTTT.Characters
 
             if (skipEveryNBeats <= 1 || (animBeatCounter % skipEveryNBeats) == 0)
             {
+                if (overlayOnAnimator)
+                {
+                    // [S8 / D4=B] Offsets only; LateUpdate applies them over the Animator's pose.
+                    ComputeOverlayOffsets(pingPong);
+                }
+                else
+                {
                 // Jumping
                 if (jumpOnBeat)
                 {
@@ -262,6 +290,7 @@ namespace ALWTTT.Characters
                     s.y *= sy;
                     jumpRoot.localScale = s;
                 }
+                } // [S8] end of the absolute (non-overlay) path
             }
 
             while (Time.time >= nextParticleTime)
@@ -354,6 +383,10 @@ namespace ALWTTT.Characters
                 _kickOverlayApplied = false;
             }
 
+            // [S8 / D4=B] Beat overlay on top of the Animator, BEFORE the kick snapshots the pose,
+            // so the kick stacks on the beat exactly as it does without an Animator.
+            if (overlayOnAnimator) ApplyAnimatorOverlay();
+
             if (_kickEndTime < 0f) return;
 
             if (Time.time >= _kickEndTime)
@@ -381,6 +414,68 @@ namespace ALWTTT.Characters
         }
 
         #region Private Methods
+
+        // [S8 / D4=B] Same curves and toggles as the absolute path, expressed as offsets.
+        private void ComputeOverlayOffsets(float pingPong)
+        {
+            _ovJump = jumpOnBeat
+                ? jumpCurve.Evaluate(pingPong) * baseJumpHeight * jumpIntensityMultiplier
+                : 0f;
+            _ovRotZ = rotateOnBeat ? rotationCurve.Evaluate(pingPong) * rotationAmplitude : 0f;
+
+            var mul = Vector3.one;
+            if (scaleOnBeat)
+            {
+                float k = scaleCurve != null ? scaleCurve.Evaluate(pingPong) : pingPong;
+                mul *= 1f + (scaleAmplitude * k * jumpIntensityMultiplier);
+            }
+            if (stretchOnBeat) // last write wins, as in the absolute path
+            {
+                float k = stretchCurve != null ? stretchCurve.Evaluate(pingPong) : pingPong;
+                mul = new Vector3(
+                    Mathf.Max(0.01f, 1f - (stretchXAmplitude * k * jumpIntensityMultiplier)),
+                    1f + (stretchYAmplitude * k * jumpIntensityMultiplier),
+                    1f);
+            }
+            _ovScaleMul = mul;
+
+            if (animBeatCounter != _ovLogBeat && animBeatCounter % 8 == 0)
+            {
+                _ovLogBeat = animBeatCounter;
+                Debug.Log($"[S8] Beat overlay | {name} | beat {animBeatCounter} | " +
+                          $"jump={_ovJump:0.###} rotZ={_ovRotZ:0.#} scale={_ovScaleMul.y:0.###}");
+            }
+        }
+
+        private void ClearOverlayOffsets()
+        {
+            _ovJump = 0f;
+            _ovRotZ = 0f;
+            _ovScaleMul = Vector3.one;
+        }
+
+        private void ApplyAnimatorOverlay()
+        {
+            var curPos = jumpRoot.localPosition;
+            var curRot = jumpRoot.localRotation;
+            var curScale = jumpRoot.localScale;
+
+            // Base = what the Animator wrote this frame; if it did not write (value is still ours),
+            // last frame's base. Without this a property no clip animates (scale) would grow forever.
+            var basePos = _ovApplied && curPos == _ovPostPos ? _ovBasePos : curPos;
+            var baseRot = _ovApplied && curRot == _ovPostRot ? _ovBaseRot : curRot;
+            var baseScale = _ovApplied && curScale == _ovPostScale ? _ovBaseScale : curScale;
+
+            jumpRoot.localPosition = basePos + Vector3.up * _ovJump;
+            jumpRoot.localRotation = baseRot * Quaternion.Euler(0f, 0f, _ovRotZ);
+            jumpRoot.localScale = Vector3.Scale(baseScale, _ovScaleMul);
+
+            _ovBasePos = basePos; _ovBaseRot = baseRot; _ovBaseScale = baseScale;
+            _ovPostPos = jumpRoot.localPosition;
+            _ovPostRot = jumpRoot.localRotation;
+            _ovPostScale = jumpRoot.localScale;
+            _ovApplied = true;
+        }
 
         private void RecalcBeatInterval()
         {

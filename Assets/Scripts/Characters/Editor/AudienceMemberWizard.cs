@@ -848,6 +848,12 @@ namespace ALWTTT.Characters.Editor
 
                     Field(el.FindPropertyRelative("animation"));
                     FieldWithPing(el.FindPropertyRelative("abilitySfx"));
+
+                    // [S8 / GRITOS-1] Poses (empty = normal sprite) and where this ability's shout lives.
+                    FieldWithPing(el.FindPropertyRelative("pendingSprite"));
+                    FieldWithPing(el.FindPropertyRelative("actingSprite"));
+                    FieldWithPing(el.FindPropertyRelative("shoutSplash"));   // [S8b] cut-in texture
+                    DrawShoutInfo(el);
                     EditorGUI.indentLevel--;
                 }
             }
@@ -861,6 +867,31 @@ namespace ALWTTT.Characters.Editor
             list.serializedObject.ApplyModifiedProperties();
             RebuildRows();
             GUIUtility.ExitGUI();
+        }
+
+        /// <summary>[S8 / D1=C] Read-only: which glossary shout entry this ability will use (the member's
+        /// own, the shared one, or none = name floater). Lines are written from the audience JSON.</summary>
+        private static void DrawShoutInfo(SerializedProperty el)
+        {
+            var abilityId = el.FindPropertyRelative("abilityId")?.stringValue;
+            var charId = el.serializedObject.FindProperty("characterId")?.stringValue;
+            if (string.IsNullOrEmpty(abilityId)) return;
+            var g = ALWTTT.Tooltips.GameText.Glossary;
+            if (g == null)
+            {
+                foreach (var guid in AssetDatabase.FindAssets("t:ConceptGlossarySO"))
+                {
+                    g = AssetDatabase.LoadAssetAtPath<ConceptGlossarySO>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (g != null && string.Equals(g.LanguageCode, "es", StringComparison.OrdinalIgnoreCase)) break;
+                }
+            }
+            string specific = ALWTTT.Tooltips.GameText.ShoutIdFor(charId, abilityId);
+            string shared = ALWTTT.Tooltips.GameText.ShoutIdForAbility(abilityId);
+            string msg;
+            if (g != null && specific != null && g.TryGetShout(specific, out var e1)) msg = $"Grito: {specific} ({e1.Lines.Count} frases, {g.LanguageCode})";
+            else if (g != null && shared != null && g.TryGetShout(shared, out var e2)) msg = $"Grito compartido: {shared} ({e2.Lines.Count} frases, {g.LanguageCode})";
+            else msg = $"Sin grito: sale el nombre de la habilidad. Escríbelo en el JSON (abilities[].shouts) → {specific}";
+            EditorGUILayout.HelpBox(msg, MessageType.None);
         }
 
         /// <summary>A grown list element copies its predecessor; reset it to the type's defaults.</summary>
@@ -881,6 +912,10 @@ namespace ALWTTT.Characters.Editor
                 SetBool(anim, "disableBeatAnimator", true);
             }
             SetObject(el, "abilitySfx", null);
+            SetObject(el, "pendingSprite", null);   // [S8]
+            SetObject(el, "actingSprite", null);    // [S8]
+            SetObject(el, "shoutSplash", null);     // [S8b]
+            SetString(el, "duetKey", "");           // [S7] was copied from the predecessor
         }
 
         private static void SetString(SerializedProperty parent, string name, string v) { var p = parent.FindPropertyRelative(name); if (p != null) p.stringValue = v; }

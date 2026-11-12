@@ -615,6 +615,14 @@ separate decision, unowned.
 curves** — the Animator writes every property its clips animate, every frame, and would otherwise
 permanently override `CharacterAnimator`'s beat pose.
 
+**Animator overlay (S8, 2026-11-12, D4=B).** A character whose Animator writes the same transform as
+`CharacterAnimator.jumpRoot` every frame (Conito: `Conito - Idle/Fly` animate `SpriteParent`'s
+position and rotation) used to lose its beat jump and sway: the Animator evaluates after `Update`.
+`overlayOnAnimator = true` makes the beat loop compute offsets in `Update` and apply them in
+`LateUpdate` over whatever the Animator wrote, with the impact kick's anti-accumulation rule (if the
+value still equals what we wrote last frame, the old base is reused). Off by default; only Conito
+uses it. Log every 8 beats: `[S8] Beat overlay | <name> | beat N | jump= rotZ= scale=`.
+
 ---
 
 ## 6. Backwards compatibility policy

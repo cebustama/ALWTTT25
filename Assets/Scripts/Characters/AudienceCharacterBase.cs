@@ -10,7 +10,9 @@ using ALWTTT.Status;
 using ALWTTT.Tooltips;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ALWTTT.Characters.Audience
 {
@@ -303,6 +305,27 @@ namespace ALWTTT.Characters.Audience
             }
 
             AudienceCharacterCanvas.HideContextual();
+
+            // [S8 / D3=A] The prefab's sprite is the "normal" pose every empty slot falls back to.
+            _baseSprite = SpriteRenderer != null ? SpriteRenderer.sprite : null;
+        }
+
+        // ── [S8 / GRITOS-1, D3=A] Poses ─────────────────────────────────────
+        // Two slots per ability (pendingSprite while announced, actingSprite while acting); empty =
+        // the prefab's sprite, so a cast with no pose art looks exactly as before S8. Only the
+        // sprite swaps: tint (RefreshSpriteTint) and transform (CharacterAnimator) are other owners.
+        private Sprite _baseSprite;
+
+        private void SetPose(Sprite pose, string label)
+        {
+            if (SpriteRenderer == null) return;
+            if (stats != null && stats.IsConvinced) pose = null; // convinced = normal sprite (+ tint)
+            var target = pose != null ? pose : _baseSprite;
+            if (target == null || SpriteRenderer.sprite == target) return;
+            SpriteRenderer.sprite = target;
+            Debug.Log(pose != null
+                ? $"[S8] Pose | {CharacterId} | {label} → {pose.name}"
+                : $"[S8] Pose | {CharacterId} | {label} → normal");
         }
 
         protected void OnConvinced()
@@ -320,6 +343,8 @@ namespace ALWTTT.Characters.Audience
             characterAnimator.SkipEveryNBeats = 1;
             characterAnimator.JumpOnBeat = true;
             characterAnimator.RotateOnBeat = false;
+
+            SetPose(null, "convinced"); // [S8]
         }
 
         public void Dispose()
@@ -468,6 +493,9 @@ namespace ALWTTT.Characters.Audience
             // [LEGIB-1b / D5=A] Fix the target now, so the screen can name it.
             LockMusicianTarget(NextAbility);
 
+            // [S8 / D3=A] Announcing pose (empty slot = normal sprite).
+            SetPose(NextAbility.PendingSprite, "pending " + NextAbility.AbilityId);
+
             // [LEGIB-1b / D7 -> icons] The "xN" of ActionList[0] is gone: it showed the FIRST
             // action's value (Heckle read "x1", its Exposed stack, not its 2 Stress; F-T6-5).
             // The number and the target icons now come from the stress projection, which
@@ -520,6 +548,7 @@ namespace ALWTTT.Characters.Audience
             if (stats != null && stats.ConsumeStun())
             {
                 Debug.Log($"{CharacterId} is stunned. Skipping Ability.");
+                SetPose(null, "stunned"); // [S8] the announced pose does not outlive the skipped turn
                 yield break;
             }
 
@@ -549,23 +578,77 @@ namespace ALWTTT.Characters.Audience
             // animation guard: an ability with a sound and no animator trigger still plays.
             AudioManager.Instance?.PlayOneShot(NextAbility.AbilitySfx, jitter: false);
 
+            // [S8 / D3=A] Acting pose, set BEFORE the animator trigger so a clip that animates
+            // the sprite (Kid "Tantrum") wins while it plays, as documented on the slot.
+            SetPose(NextAbility.ActingSprite, "acting " + NextAbility.AbilityId);
+
             PlayAbilityAnimation(NextAbility);
 
-            // [LEGIB-1b] One floater per ability with its PLAYER name (glossary, by abilityId),
-            // replacing the per-action enum name ("AddStress", "ApplyStatusEffect") that leaked
-            // developer text onto the screen.
-            FxManager.Instance?.SpawnFloatingText(
-                TextSpawnRoot,
-                GameText.ConceptName(NextAbility.AbilityId),
-                new Vector2(0f, 1f), Color.cyan);
+            // [S8 / GRITOS-1, D2=B] The shout replaces the name floater when this member has a line
+            // for this ability; it names the SAME musician the arrow points at (the pure projection,
+            // Spotlight included) and holds before the first hit so it is read before the blow.
+            // No line -> the LEGIB-1b floater, unchanged.
+            var shoutTarget = FirstProjectedMusician(NextAbility);
+            string shoutId;
+            string line = GameText.Shout(AudienceCharacterData.CharacterId, NextAbility.AbilityId,
+                shoutTarget != null ? shoutTarget.CharacterName : null, out shoutId);
+
+            if (!string.IsNullOrEmpty(line))
+            {
+                var pres = GigManager != null ? GigManager.Presentation : null;
+                float hold = pres != null ? pres.ShoutHoldSeconds : GigPresentationSO.DefaultShoutHoldSeconds;
+                float life = pres != null ? pres.ShoutLifetimeSeconds : GigPresentationSO.DefaultShoutLifetimeSeconds;
+                Vector2 off = pres != null ? pres.ShoutOffset : GigPresentationSO.DefaultShoutOffset;
+                float pop = pres != null ? pres.ShoutPopSeconds : GigPresentationSO.DefaultShoutPopSeconds;
+
+                // [S8b] Cut-in first (the boss's "ataque jefe"), then the bubble that NAMES the
+                // musician: the splash is the drama, the bubble is the information.
+                var splash = NextAbility.ShoutSplash;
+                if (splash != null)
+                {
+                    bool every = pres != null && pres.ShoutSplashEveryTime;
+                    string key = NextAbility.AbilityId ?? "";
+                    if (every || _splashShown.Add(key))
+                    {
+                        float dur = pres != null ? pres.ShoutSplashSeconds : GigPresentationSO.DefaultShoutSplashSeconds;
+                        float width = pres != null ? pres.ShoutSplashWidth : 0.7f;
+                        Debug.Log($"[S8] Viñeta | {CharacterId} | {splash.name} | {dur:0.##}s");
+                        yield return StartCoroutine(ShoutSplashRoutine(splash, dur, width));
+                    }
+                }
+
+                SpawnShoutBubble(line, off, Mathf.Max(life, hold), pop);
+                Debug.Log($"[S8] Grito | {CharacterId} | \"{line}\" | objetivo={(shoutTarget != null ? shoutTarget.name : "-")} | id={shoutId} | espera {hold:0.##}s");
+                if (hold > 0f) yield return new WaitForSeconds(hold);
+            }
+            else
+            {
+                // [LEGIB-1b] One floater per ability with its PLAYER name (glossary, by abilityId),
+                // replacing the per-action enum name ("AddStress", "ApplyStatusEffect") that leaked
+                // developer text onto the screen.
+                FxManager.Instance?.SpawnFloatingText(
+                    TextSpawnRoot,
+                    GameText.ConceptName(NextAbility.AbilityId),
+                    new Vector2(0f, 1f), Color.cyan);
+            }
 
             var ctx = new AudienceActionContext();
+            bool shoutChecked = shoutTarget == null;
 
             foreach (var action in NextAbility.ActionList)
             {
                 if (action == null) continue;
 
                 var targets = ResolveTargetsFor(action);
+
+                // [S8] previsto = real: the musician the shout named is the one this hit reaches.
+                if (!shoutChecked && IsSingleMusicianTarget(action.ActionTargetType)
+                    && targets != null && targets.Count > 0)
+                {
+                    shoutChecked = true;
+                    if (!ReferenceEquals(targets[0], shoutTarget))
+                        Debug.LogWarning($"[S8] Grito != golpe | {CharacterId} | grito a {shoutTarget.name}, golpe a {targets[0].name}");
+                }
 
                 // [S7] Once per fire, never in the per-frame projection.
                 if (action.ActionTargetType == ActionTargetType.AudienceLeader)
@@ -578,7 +661,196 @@ namespace ALWTTT.Characters.Audience
                 yield return StartCoroutine(
                     ExecuteActionWithTiming(action, targets, ctx));
             }
+
+            SetPose(null, "done"); // [S8] back to the normal sprite after acting
         }
+
+        private static bool IsSingleMusicianTarget(ActionTargetType t)
+            => t == ActionTargetType.Musician || t == ActionTargetType.RandomMusician;
+
+        /// <summary>[S8] The musician the ability's first single-musician action will hit, by the
+        /// same pure projection the arrow and the stress bar read. Null for abilities that hit no
+        /// single musician (self buffs, the whole band): their lines must not use {musico}.</summary>
+        private MusicianBase FirstProjectedMusician(AudienceAbilityData ability)
+        {
+            if (ability?.ActionList == null) return null;
+            foreach (var a in ability.ActionList)
+            {
+                if (a == null || !IsSingleMusicianTarget(a.ActionTargetType)) continue;
+                var list = GetProjectedMusicianTargets(a);
+                return list.Count > 0 ? list[0] : null;
+            }
+            return null;
+        }
+
+        // [S8b] Abilities whose cut-in already played this gig (the member lives one gig).
+        private readonly HashSet<string> _splashShown = new();
+
+        /// <summary>
+        /// [S8 / GRITOS-1] World-space bubble from the legacy speechBubblePrefab (CharacterBase field,
+        /// already wired on the audience base prefab). Not parented: the member's scale (variants are
+        /// scaled) and its beat jump must not resize or shake the text. Sorting raised so the next
+        /// member in the row does not cover it. Art swap later = replace the prefab, not this code.
+        /// [S8b] Anchored above the TOP of the member's sprite (TextSpawnRoot sits at the feet on the
+        /// S7 cast), kept inside the camera, and it pops in with an ease-out-back overshoot and
+        /// shrinks out instead of appearing and vanishing in one frame.
+        /// </summary>
+        private void SpawnShoutBubble(string line, Vector2 offset, float lifetime, float pop)
+        {
+            if (speechBubblePrefab == null)
+            {
+                Debug.LogWarning($"[S8] {CharacterId}: no speechBubblePrefab; floater instead.");
+                FxManager.Instance?.SpawnFloatingText(TextSpawnRoot, line, new Vector2(0f, 1f), Color.white);
+                return;
+            }
+
+            Vector3 pos;
+            if (SpriteRenderer != null && SpriteRenderer.sprite != null)
+            {
+                var b = SpriteRenderer.bounds;
+                pos = new Vector3(b.center.x + offset.x, b.max.y + offset.y, transform.position.z);
+            }
+            else
+            {
+                var anchor = TextSpawnRoot != null ? TextSpawnRoot : transform;
+                pos = anchor.position + new Vector3(offset.x, offset.y, 0f);
+            }
+            var bubble = Instantiate(speechBubblePrefab, pos, Quaternion.identity);
+            bubble.name = "ShoutBubble - " + AudienceCharacterData.CharacterName;
+
+            var tmp = bubble.GetComponentInChildren<TMP_Text>(true);
+            if (tmp != null)
+            {
+                tmp.text = line;
+                tmp.enableAutoSizing = true;
+                tmp.fontSizeMin = 18f;
+                tmp.fontSizeMax = 45f;
+                tmp.rectTransform.sizeDelta = new Vector2(260f, 110f);
+            }
+            foreach (var c in bubble.GetComponentsInChildren<Canvas>(true)) c.sortingOrder = ShoutSortingOrder + 1;
+            foreach (var r in bubble.GetComponentsInChildren<SpriteRenderer>(true)) r.sortingOrder = ShoutSortingOrder;
+
+            KeepInsideCamera(bubble);
+
+            // Backup: the bubble dies even if this member is destroyed mid-animation.
+            Destroy(bubble.gameObject, lifetime + 0.1f);
+            StartCoroutine(BubblePopRoutine(bubble, lifetime, pop));
+        }
+
+        /// <summary>[S8b] Clamp the bubble (by its sprite's world bounds) inside an orthographic
+        /// camera's view, so a member at the edge does not push its line off-screen or under the HUD.</summary>
+        private static void KeepInsideCamera(Transform bubble)
+        {
+            var cam = Camera.main;
+            if (cam == null || !cam.orthographic) return;
+            var sr = bubble.GetComponentInChildren<SpriteRenderer>(true);
+            if (sr == null) return;
+
+            const float margin = 0.3f;
+            var b = sr.bounds;
+            float halfH = cam.orthographicSize, halfW = halfH * cam.aspect;
+            var c = cam.transform.position;
+            float minX = c.x - halfW + b.extents.x + margin, maxX = c.x + halfW - b.extents.x - margin;
+            float maxY = c.y + halfH - b.extents.y - margin;
+
+            var p = bubble.position;
+            var d = new Vector3(
+                minX <= maxX ? Mathf.Clamp(b.center.x, minX, maxX) - b.center.x : 0f,
+                b.center.y > maxY ? maxY - b.center.y : 0f,
+                0f);
+            if (d != Vector3.zero) bubble.position = p + d;
+        }
+
+        private static float EaseOutBack(float t)
+        {
+            const float c1 = 1.70158f, c3 = c1 + 1f;
+            t -= 1f;
+            return 1f + c3 * t * t * t + c1 * t * t;
+        }
+
+        /// <summary>[S8b] Pop in (ease-out-back: overshoots ~10% and settles, the "bounce"), hold,
+        /// shrink out in half the time (ease-in) just before the lifetime ends.</summary>
+        private IEnumerator BubblePopRoutine(Transform bubble, float lifetime, float pop)
+        {
+            if (bubble == null) yield break;
+            var full = bubble.localScale;
+            pop = Mathf.Max(0.05f, Mathf.Min(pop, lifetime * 0.4f));
+            float outDur = pop * 0.5f;
+
+            for (float t = 0f; t < pop; t += Time.deltaTime)
+            {
+                if (bubble == null) yield break;
+                bubble.localScale = full * EaseOutBack(t / pop);
+                yield return null;
+            }
+            if (bubble == null) yield break;
+            bubble.localScale = full;
+
+            float wait = lifetime - pop - outDur;
+            if (wait > 0f) yield return new WaitForSeconds(wait);
+
+            for (float t = 0f; t < outDur; t += Time.deltaTime)
+            {
+                if (bubble == null) yield break;
+                float k = t / outDur;
+                bubble.localScale = full * (1f - k * k);
+                yield return null;
+            }
+            if (bubble != null) Destroy(bubble.gameObject);
+        }
+
+        /// <summary>
+        /// [S8b] Full-screen cut-in for one ability (the boss's "ataque jefe"). Built at runtime on its
+        /// own Screen Space - Overlay canvas, so no prefab or scene wiring is needed. RawImage, because
+        /// the source texture is a sliced sheet: a Sprite would show one slice. Slides in from the right
+        /// with an ease-out-back, holds, slides out to the left with an ease-in. The audience turn waits
+        /// for it (the hit must not land behind the picture).
+        /// </summary>
+        private IEnumerator ShoutSplashRoutine(Texture2D tex, float duration, float widthFraction)
+        {
+            var go = new GameObject("ShoutSplash - " + AudienceCharacterData.CharacterName);
+            var canvas = go.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 900;
+            Destroy(go, duration + 0.5f); // backup if this member is destroyed mid-cut-in
+            var scaler = go.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            var imgGo = new GameObject("Image", typeof(RectTransform));
+            imgGo.transform.SetParent(go.transform, false);
+            var img = imgGo.AddComponent<RawImage>();
+            img.texture = tex;
+            img.raycastTarget = false;
+            var rt = img.rectTransform;
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            float w = 1920f * Mathf.Clamp01(widthFraction);
+            float aspect = tex.height > 0 ? (float)tex.width / tex.height : 1.7f;
+            rt.sizeDelta = new Vector2(w, w / aspect);
+
+            float inDur = Mathf.Min(0.35f, duration * 0.3f), outDur = Mathf.Min(0.25f, duration * 0.2f);
+            float hold = Mathf.Max(0f, duration - inDur - outDur);
+            float offX = 1920f * 0.5f + w * 0.5f;
+
+            for (float t = 0f; t < inDur; t += Time.deltaTime)
+            {
+                float k = EaseOutBack(t / inDur);
+                rt.anchoredPosition = new Vector2(Mathf.LerpUnclamped(offX, 0f, k), 0f);
+                yield return null;
+            }
+            rt.anchoredPosition = Vector2.zero;
+            if (hold > 0f) yield return new WaitForSeconds(hold);
+            for (float t = 0f; t < outDur; t += Time.deltaTime)
+            {
+                float k = t / outDur;
+                rt.anchoredPosition = new Vector2(-offX * k * k, 0f);
+                yield return null;
+            }
+            Destroy(go);
+        }
+
+        private const int ShoutSortingOrder = 500;
 
         protected virtual IEnumerator ExecuteActionWithTiming(
             CharacterActionData action,

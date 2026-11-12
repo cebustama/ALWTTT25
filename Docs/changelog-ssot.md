@@ -14,6 +14,16 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-12 — S8: GRITOS-1, el público grita, posa y Conito baila (DEMO-1211)
+
+**Clase:** semántico · autoridad · operativo. Con cambio de código y datos.
+
+- Decisiones: D1=C (frases en una cuarta lista del glosario por idioma), D2=B (bocadillo al actuar, el golpe espera), D3=A (dos huecos de pose), D4=B (Conito: superposición sobre el Animator). Añadidos tras jugar (S8b): ancla en el borde del sprite, entrada con rebote, límite de cámara, viñeta a pantalla, variantes por músico.
+- `SSoT_Audience_and_Reactions` §7.4 nuevo (gritos, viñeta, poses). `SSoT_Game_Text` fila 14 (población «shouts», hueco: sin pestaña en GameTextWindow) y registro de cambios. `SSoT_Editor_Authoring_Tools` §23.5 (JSON, menú S8, Wizard). `SSoT_Card_Authoring_Contracts`: superposición del beat sobre el Animator.
+- Código: `ConceptGlossarySO` (`shouts`, `ShoutEntry`, `TryGetShout`), `GameText` (`Shout` y ids), `GigPresentationSO` (Audience Shouts y viñeta), `AudienceCharacterData` (`CharacterId`, `pendingSprite`, `actingSprite`, `shoutSplash`), `AudienceCharacterBase` (poses, bocadillo, viñeta, comprobación grito = golpe), `CharacterAnimator` (`overlayOnAnimator`), `AudienceJson` (campos y menú S8), `AudienceMemberWizard`.
+- Datos: `Elenco_S7.json` (frases ES/EN de 12 habilidades, variantes de Robot C2, viñeta de `ab_boo`); glosarios ES/EN (22 entradas + 4 variantes); `Big Guy.asset` (viñeta); `BandCharacter - Conito.prefab` (`overlayOnAnimator`).
+- Plan: S8 hecha. Pedidos: nota en #12 (las poses entran por el JSON) y #13 (marco de bocadillo propio).
+
 ## 2026-11-12 — S7: ELENCO-1, el público con elenco propio y la banda colocada (DEMO-1211)
 
 **Clase:** semántico · operativo. Con cambio de código, escena y datos.

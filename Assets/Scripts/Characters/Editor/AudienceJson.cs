@@ -42,6 +42,26 @@ namespace ALWTTT.Characters.Editor
         // ──────────────────────────────────────────────────────────────────
         [Serializable] public class TextJson { public string name = ""; public string description = ""; }
 
+        /// <summary>[S8 / GRITOS-1] Shout lines per language. '{musico}' = the target musician's name.</summary>
+        [Serializable]
+        public class ShoutsJson
+        {
+            public string scope = "character";     // "character" → shout_<characterId>_<abilityId> · "ability" → shout_<abilityId> (shared, e.g. the frogs' chorus)
+            public List<string> es = new();
+            public List<string> en = new();
+            public List<MusicianShoutsJson> byMusician = new();   // [S8b] replace the lines for one musician
+        }
+
+        /// <summary>[S8b] Lines used INSTEAD of the general ones when the target is this musician
+        /// (by name: "Robot C2" → id suffix "__robot_c2").</summary>
+        [Serializable]
+        public class MusicianShoutsJson
+        {
+            public string musician = "";
+            public List<string> es = new();
+            public List<string> en = new();
+        }
+
         [Serializable]
         public class ActionJson
         {
@@ -68,6 +88,10 @@ namespace ALWTTT.Characters.Editor
             public List<ActionJson> actions = new();
             public TextJson es = new();
             public TextJson en = new();
+            public string pendingSprite = "";      // [S8 / D3=A] Sprite path or name; empty = normal sprite
+            public string actingSprite = "";       // [S8 / D3=A] Sprite path or name; empty = normal sprite
+            public ShoutsJson shouts = new();      // [S8 / D1=C] written to ConceptGlossarySO.shouts (ES/EN)
+            public string shoutSplash = "";        // [S8b] Texture2D path or name: full-screen cut-in; empty = none
         }
 
         [Serializable]
@@ -278,6 +302,10 @@ namespace ALWTTT.Characters.Editor
                 }
                 if (gloss.TryGetValue("es", out var es) && es.TryGet(aj.id, out var ee)) aj.es = new TextJson { name = ee.DisplayName, description = ee.Description };
                 if (gloss.TryGetValue("en", out var en) && en.TryGet(aj.id, out var ne)) aj.en = new TextJson { name = ne.DisplayName, description = ne.Description };
+                aj.pendingSprite = PathOf(a.FindPropertyRelative("pendingSprite").objectReferenceValue);
+                aj.actingSprite = PathOf(a.FindPropertyRelative("actingSprite").objectReferenceValue);
+                aj.shoutSplash = PathOf(a.FindPropertyRelative("shoutSplash").objectReferenceValue);
+                ExportShouts(gloss, j.characterId, aj);
                 j.abilities.Add(aj);
             }
 
@@ -295,6 +323,43 @@ namespace ALWTTT.Characters.Editor
             j.taste.preferredRoles = ReadEnumList<MidiGenPlay.TrackRole>(t, "preferredRoles");
             j.taste.dislikedRoles = ReadEnumList<MidiGenPlay.TrackRole>(t, "dislikedRoles");
             return j;
+        }
+
+        // [S8] The member's own lines if any, else the shared ability lines (scope "ability").
+        private static void ExportShouts(Dictionary<string, ConceptGlossarySO> gloss, string characterId, AbilityJson aj)
+        {
+            string specific = Tooltips.GameText.ShoutIdFor(characterId, aj.id);
+            string shared = Tooltips.GameText.ShoutIdForAbility(aj.id);
+            foreach (var (id, scope) in new[] { (specific, "character"), (shared, "ability") })
+            {
+                if (string.IsNullOrEmpty(id)) continue;
+                var es = ReadShout(gloss, "es", id);
+                var en = ReadShout(gloss, "en", id);
+                if (es.Count == 0 && en.Count == 0) continue;
+                aj.shouts = new ShoutsJson { scope = scope, es = es, en = en };
+                // [S8b] Per-musician variants: every entry '<id>__<key>' (key = musician name slug).
+                var keys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var g in gloss.Values)
+                    foreach (var sh in g.Shouts)
+                        if (sh != null && !string.IsNullOrEmpty(sh.Id) && sh.Id.StartsWith(id + "__", StringComparison.OrdinalIgnoreCase))
+                            keys.Add(sh.Id.Substring(id.Length + 2));
+                foreach (var k in keys)
+                    aj.shouts.byMusician.Add(new MusicianShoutsJson
+                    {
+                        musician = k,
+                        es = ReadShout(gloss, "es", id + "__" + k),
+                        en = ReadShout(gloss, "en", id + "__" + k),
+                    });
+                return;
+            }
+        }
+
+        private static List<string> ReadShout(Dictionary<string, ConceptGlossarySO> gloss, string lang, string id)
+        {
+            var r = new List<string>();
+            if (gloss.TryGetValue(lang, out var g) && g.TryGetShout(id, out var e))
+                foreach (var l in e.Lines) if (!string.IsNullOrWhiteSpace(l)) r.Add(l);
+            return r;
         }
 
         private static EncounterJson ExportEncounter(GigEncounterSO e)
@@ -322,6 +387,39 @@ namespace ALWTTT.Characters.Editor
         {
             public int created, updated, prefabsCreated, prefabsUpdated, texts, encounters, launches, roster, warnings;
             public void Warn(string msg) { warnings++; Debug.LogWarning($"{LogTag} {msg}"); }
+        }
+
+        /// <summary>
+        /// [S8 / GRITOS-1] Writes ONLY the shout lines of a cast file into the ES/EN glossaries.
+        /// Characters, prefabs, encounters and tuned numbers are not touched, so the S7 cast can get
+        /// its shouts without re-importing (and overwriting) what was adjusted by hand since S7.
+        /// </summary>
+        [MenuItem("ALWTTT/S8/Importar gritos del elenco (GRITOS-1)", priority = 0)]
+        public static void ImportShoutsS7() => ImportShoutsOnly(CastS7Path);
+
+        public static void ImportShoutsOnly(string filePath)
+        {
+            FileJson file;
+            try { file = JsonUtility.FromJson<FileJson>(File.ReadAllText(filePath)); }
+            catch (Exception ex) { Debug.LogError($"[S8] Invalid JSON in {filePath}: {ex.Message}"); return; }
+            if (file == null) { Debug.LogError($"[S8] Empty JSON: {filePath}"); return; }
+
+            var rep = new Report();
+            var gloss = LoadGlossaries();
+            foreach (var c in file.characters)
+            {
+                foreach (var aj in c.abilities)
+                {
+                    if (string.IsNullOrWhiteSpace(aj.id) || aj.shouts == null) continue;
+                    bool shared = string.Equals(aj.shouts.scope, "ability", StringComparison.OrdinalIgnoreCase);
+                    string sid = shared ? Tooltips.GameText.ShoutIdForAbility(aj.id) : Tooltips.GameText.ShoutIdFor(c.characterId, aj.id);
+                    WriteShouts(gloss, sid, aj.shouts, rep);
+                }
+                ApplyPresentationOnly(c, rep); // [S8b] poses + cut-in, nothing else of the character
+            }
+            foreach (var g in gloss.Values) EditorUtility.SetDirty(g);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[S8] Gritos importados | {rep.texts} entrada(s) ES/EN | avisos={rep.warnings} | {Path.GetFileName(filePath)}");
         }
 
         public static void ImportFile(string filePath)
@@ -403,6 +501,10 @@ namespace ALWTTT.Characters.Editor
                 anim.FindPropertyRelative("animationDuration").floatValue = aj.animationDuration;
                 anim.FindPropertyRelative("disableBeatAnimator").boolValue = aj.disableBeatAnimator;
                 a.FindPropertyRelative("abilitySfx").objectReferenceValue = Resolve<AudioClip>(aj.sfx, rep, aj.id);
+                // [S8 / D3=A] Poses; empty path = null = the prefab's normal sprite.
+                a.FindPropertyRelative("pendingSprite").objectReferenceValue = Resolve<Sprite>(aj.pendingSprite, rep, aj.id);
+                a.FindPropertyRelative("actingSprite").objectReferenceValue = Resolve<Sprite>(aj.actingSprite, rep, aj.id);
+                a.FindPropertyRelative("shoutSplash").objectReferenceValue = Resolve<Texture2D>(aj.shoutSplash, rep, aj.id);
 
                 var acts = a.FindPropertyRelative("actionList");
                 acts.arraySize = aj.actions.Count;
@@ -418,6 +520,12 @@ namespace ALWTTT.Characters.Editor
                 }
 
                 if (!string.IsNullOrWhiteSpace(aj.id)) WriteGlossary(gloss, aj.id, aj.es, aj.en, rep);
+                if (!string.IsNullOrWhiteSpace(aj.id) && aj.shouts != null)
+                {
+                    bool shared = string.Equals(aj.shouts.scope, "ability", StringComparison.OrdinalIgnoreCase);
+                    string sid = shared ? Tooltips.GameText.ShoutIdForAbility(aj.id) : Tooltips.GameText.ShoutIdFor(c.characterId, aj.id);
+                    WriteShouts(gloss, sid, aj.shouts, rep);
+                }
                 else rep.Warn($"{c.characterId}: ability '{aj.devName}' has no id (COVERAGE error in GameTextWindow).");
             }
 
@@ -715,6 +823,80 @@ namespace ALWTTT.Characters.Editor
             so.ApplyModifiedPropertiesWithoutUndo();
             g.BuildIndex();
             rep.texts++;
+        }
+
+        /// <summary>[S8b] General lines plus every per-musician variant of one shout id.</summary>
+        private static void WriteShouts(Dictionary<string, ConceptGlossarySO> gloss, string sid, ShoutsJson sh, Report rep)
+        {
+            WriteShout(gloss, "es", sid, sh.es, rep);
+            WriteShout(gloss, "en", sid, sh.en, rep);
+            if (sh.byMusician == null) return;
+            foreach (var m in sh.byMusician)
+            {
+                if (m == null) continue;
+                string mid = Tooltips.GameText.ShoutIdForMusician(sid, m.musician);
+                if (mid == null) { rep.Warn($"{sid}: byMusician entry without a musician name."); continue; }
+                WriteShout(gloss, "es", mid, m.es, rep);
+                WriteShout(gloss, "en", mid, m.en, rep);
+            }
+        }
+
+        /// <summary>[S8b] For the shouts-only menu: set pendingSprite / actingSprite / shoutSplash on the
+        /// matching abilities (same characterId and abilityId) and touch nothing else. Empty JSON
+        /// values clear the slot, so the JSON stays the source of truth for presentation.</summary>
+        private static void ApplyPresentationOnly(CharacterJson c, Report rep)
+        {
+            var data = FindCharacter(c.characterId);
+            if (data == null) { rep.Warn($"{c.characterId}: no AudienceCharacterData; poses/cut-in skipped."); return; }
+            var so = new SerializedObject(data);
+            var list = so.FindProperty("abilityList");
+            int touched = 0;
+            foreach (var aj in c.abilities)
+            {
+                if (string.IsNullOrWhiteSpace(aj.id)) continue;
+                for (int i = 0; i < list.arraySize; i++)
+                {
+                    var a = list.GetArrayElementAtIndex(i);
+                    if (!string.Equals(a.FindPropertyRelative("abilityId").stringValue, aj.id, StringComparison.OrdinalIgnoreCase)) continue;
+                    a.FindPropertyRelative("pendingSprite").objectReferenceValue = Resolve<Sprite>(aj.pendingSprite, rep, aj.id);
+                    a.FindPropertyRelative("actingSprite").objectReferenceValue = Resolve<Sprite>(aj.actingSprite, rep, aj.id);
+                    a.FindPropertyRelative("shoutSplash").objectReferenceValue = Resolve<Texture2D>(aj.shoutSplash, rep, aj.id);
+                    touched++;
+                }
+            }
+            if (so.ApplyModifiedPropertiesWithoutUndo()) EditorUtility.SetDirty(data);
+            Debug.Log($"[S8] Presentación | {c.characterId} | {touched} habilidad(es) (poses + viñeta)");
+        }
+
+        /// <summary>[S8 / D1=C] Replace the lines of one shout entry (created if missing). An empty list
+        /// leaves the glossary untouched: the JSON never erases lines it does not carry.</summary>
+        private static void WriteShout(Dictionary<string, ConceptGlossarySO> gloss, string lang, string id, List<string> lines, Report rep)
+        {
+            if (string.IsNullOrEmpty(id) || lines == null || lines.Count == 0) return;
+            if (!gloss.TryGetValue(lang, out var g)) { rep.Warn($"No ConceptGlossarySO with languageCode '{lang}'."); return; }
+
+            var so = new SerializedObject(g);
+            var arr = so.FindProperty("shouts");
+            if (arr == null) { rep.Warn($"'{g.name}' has no 'shouts' list — recompile ConceptGlossarySO.cs first."); return; }
+            SerializedProperty el = null;
+            for (int i = 0; i < arr.arraySize; i++)
+            {
+                var e = arr.GetArrayElementAtIndex(i);
+                if (string.Equals(e.FindPropertyRelative("id").stringValue?.Trim(), id, StringComparison.OrdinalIgnoreCase)) { el = e; break; }
+            }
+            if (el == null)
+            {
+                arr.arraySize++;
+                el = arr.GetArrayElementAtIndex(arr.arraySize - 1);
+                el.FindPropertyRelative("id").stringValue = id;
+            }
+            var ls = el.FindPropertyRelative("lines");
+            ls.arraySize = lines.Count;
+            for (int i = 0; i < lines.Count; i++) ls.GetArrayElementAtIndex(i).stringValue = lines[i] ?? "";
+            so.ApplyModifiedPropertiesWithoutUndo();
+            g.BuildIndex();
+            rep.texts++;
+            Debug.Log($"[S8] Shouts | {lang} | {id} | {lines.Count} line(s)");
         }
 
         // ──────────────────────────────────────────────────────────────────

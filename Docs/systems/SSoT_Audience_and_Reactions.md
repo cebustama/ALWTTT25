@@ -451,6 +451,45 @@ is presentation over the same `StressProjection` — no rule changes (projection
 Logs: every view change writes one `[S4b]` line (`Vista 1/2`, `Tab`, `Carta cogida`, `Aura roja`,
 `Frase de golpe`, `Icono de toda la banda`, `Intencion sobre la cabeza`).
 
+### 7.4 Shouts, cut-in and poses (S8 GRITOS-1, 2026-11-12)
+
+The member **says** what it is about to do and to whom, just before the blow. Presentation only: no
+number, target or order changes.
+
+- **When (D2=B):** when the ability fires (`AbilityRoutine`), after the ability SFX and animator
+  trigger. If the member has a line for the ability, a bubble shows it and the first hit **waits**
+  `GigPresentationSO.shoutHoldSeconds` (1.2 s) so it is read before the blow; the LEGIB-1b name
+  floater is not shown. No line → the name floater, as before S8. The rest view (§7.2) already said
+  *to whom* before the turn; the shout confirms it at the moment of the hit.
+- **`{musico}` = the arrow's musician.** The name comes from `GetProjectedMusicianTargets` on the
+  ability's first `Musician` / `RandomMusician` action — the same pure projection as the arrow and
+  the stress bar, Spotlight included. If the real hit lands on someone else the console warns
+  `[S8] Grito != golpe` (previsto = real). Abilities that hit no single musician (self, the leader,
+  the whole band) only use lines without `{musico}`.
+- **Which line:** text lives in the glossary (`SSoT_Game_Text` row 14), most specific first: this
+  member for this musician, the ability for this musician, this member, the ability (shared, e.g. the
+  frogs' chorus). A per-musician entry **replaces** the general lines for that musician (Robot C2
+  «se pierde en el tiempo» instead of «desafina»). The random pick uses its own RNG, never
+  `UnityEngine.Random` (which rolls `RandomMusician`).
+- **Bubble:** the legacy `speechBubblePrefab` (world space, not parented, sorting order 500),
+  centred `shoutOffsetAboveSprite` (0, 1) above the **top of the member's sprite** (not
+  `TextSpawnRoot`, which sits at the feet on the S7 cast) and clamped inside the orthographic camera.
+  It pops in with an ease-out-back (`shoutPopSeconds`, 0.3 s) and shrinks out in half that time;
+  total life `shoutLifetimeSeconds` (2.2 s).
+- **Cut-in (S8b):** `AudienceAbilityData.shoutSplash` (Texture2D, shown in a runtime Screen Space
+  Overlay RawImage, `shoutSplashWidth` 0.7 of the screen) slides in from the right, holds and slides
+  out (`shoutSplashSeconds` 1.6 s); the turn waits for it, then the bubble names the musician.
+  **Once per gig per member and ability** unless `shoutSplashEveryTime`. First use: Big Guy's
+  «¡BBUUU!» with `ataque jefe.png`.
+- **Poses (D3=A):** `pendingSprite` while the ability is the shown intention, `actingSprite` while
+  it acts; empty = the prefab's sprite (captured at build). Back to normal after acting, when
+  stunned, and when convinced (convinced = normal sprite + tint, never a pose). Only
+  `SpriteRenderer.sprite` changes; tint and transform keep their owners. An animator clip that
+  animates the sprite wins while it plays.
+
+Logs: `[S8] Grito | <id> | "<line>" | objetivo=<musician> | id=<shout id> | espera <s>`,
+`[S8] Viñeta | <id> | <texture> | <s>`, `[S8] Pose | <id> | pending/acting/done/stunned/convinced → <sprite|normal>`.
+
 ---
 
 ## 8. Audience abilities

@@ -1,6 +1,6 @@
 {
   "format": "alwttt.audience/1",
-  "note": "S7 / ELENCO-1 (2026-11-11). Primer repertorio: Ranas y Rayas, Tentaculos, El jefe y su banda. D5=A: Big Guy es el jefe; Kid, Cool Dude e Influencer, sus secuaces (Cool Dude no cambia). Numeros por ajustar al jugar. Importar con ALWTTT > S7 > Crear elenco (ELENCO-1).",
+  "note": "S8 / GRITOS-1 (2026-11-12): gritos por habilidad (shouts, {musico} = objetivo fijado; scope ability = compartido) y huecos de pose (pendingSprite/actingSprite, vacio = sprite normal). S7 / ELENCO-1 (2026-11-11). Primer repertorio: Ranas y Rayas, Tentaculos, El jefe y su banda. D5=A: Big Guy es el jefe; Kid, Cool Dude e Influencer, sus secuaces (Cool Dude no cambia). Numeros por ajustar al jugar. Importar con ALWTTT > S7 > Crear elenco (ELENCO-1).",
   "glossaryConcepts": [
     {
       "id": "leader",
@@ -41,7 +41,18 @@
           "sfx": "",
           "actions": [ { "type": "AddStress", "target": "RandomMusician", "value": 3, "delay": 0, "status": "" } ],
           "es": { "name": "Croar", "description": "Croa encima de la canción. Carga <link=stress>Stress</link> a un músico. Si su pareja croa al mismo, pega el doble." },
-          "en": { "name": "Croak", "description": "Croaks over the song. Deals <link=stress>Stress</link> to one bandmate. If its partner croaks at the same one, it hits twice as hard." }
+          "en": { "name": "Croak", "description": "Croaks over the song. Deals <link=stress>Stress</link> to one bandmate. If its partner croaks at the same one, it hits twice as hard." },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "ability",
+            "es": ["¡Croac, {musico}!", "¡{musico} desafina! ¡Croac!", "Croac… croac… ¡{musico}!"],
+            "en": ["Croak, {musico}!", "{musico} is off-key! Croak!", "Croak… croak… {musico}!"],
+            "byMusician": [
+              { "musician": "Robot C2",
+                "es": ["¡{musico} se pierde en el tiempo! ¡Croac!", "Croac… ¿a qué compás vas, {musico}?", "¡Se te fue el tempo, {musico}! ¡Croac!"],
+                "en": ["{musico} can't keep time! Croak!", "Croak… what bar are you on, {musico}?", "You lost the tempo, {musico}! Croak!"] }
+            ]
+          }
         }
       ],
       "taste": {
@@ -85,7 +96,9 @@
           "sfx": "",
           "actions": [ { "type": "AddStress", "target": "RandomMusician", "value": 3, "delay": 0, "status": "" } ],
           "es": { "name": "", "description": "" },
-          "en": { "name": "", "description": "" }
+          "en": { "name": "", "description": "" },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": { "scope": "character", "es": [], "en": [] }
         }
       ],
       "taste": {
@@ -128,7 +141,13 @@
           "sfx": "",
           "actions": [ { "type": "MoveToFront", "target": "Self", "value": 1, "delay": 0, "status": "" } ],
           "es": { "name": "Colarse", "description": "Se cuela hasta delante. Quien quede detrás y sea más bajo queda <link=blocked>Bloqueado</link> y no recibe <link=vibe>Vibe</link>." },
-          "en": { "name": "Cut In", "description": "Pushes to the front. Anyone shorter left behind is <link=blocked>Blocked</link> and gets no <link=vibe>Vibe</link>." }
+          "en": { "name": "Cut In", "description": "Pushes to the front. Anyone shorter left behind is <link=blocked>Blocked</link> and gets no <link=vibe>Vibe</link>." },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["¡Permiso, que no veo!", "Más bajo… más… ¡ahí!", "¡Abran paso, que esto es mío!"],
+            "en": ["Excuse me, I can't see!", "Lower… lower… there!", "Make way, this spot is mine!"]
+          }
         },
         {
           "id": "ab_elbow",
@@ -142,7 +161,13 @@
           "sfx": "",
           "actions": [ { "type": "AddStress", "target": "Musician", "value": 4, "delay": 0, "status": "" } ],
           "es": { "name": "Codazo", "description": "Ya delante, se apoya en el escenario. Carga <link=stress>Stress</link> a un músico." },
-          "en": { "name": "Elbow", "description": "Now at the front, it leans on the stage. Deals <link=stress>Stress</link> to one bandmate." }
+          "en": { "name": "Elbow", "description": "Now at the front, it leans on the stage. Deals <link=stress>Stress</link> to one bandmate." },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["¡Toma, {musico}!", "¿Eso es un bajo, {musico}?", "¡{musico}, más bajo!"],
+            "en": ["Take that, {musico}!", "Call that a bassline, {musico}?", "{musico}, more bass!"]
+          }
         }
       ],
       "taste": {
@@ -185,7 +210,13 @@
           "sfx": "",
           "actions": [ { "type": "ApplyStatusEffect", "target": "Self", "value": 1, "delay": 0, "status": "Assets/Resources/Data/Status Effects/Effects/StatusEffect_Hyped_DamageUpFlat.asset" } ],
           "es": { "name": "Uno…", "description": "Empieza a contar. Se infla: gana <link=hyped>Exaltado</link>. A la de tres, golpea." },
-          "en": { "name": "One…", "description": "Starts counting. It swells up: gains <link=hyped>Hyped</link>. On three, it strikes." }
+          "en": { "name": "One…", "description": "Starts counting. It swells up: gains <link=hyped>Hyped</link>. On three, it strikes." },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["Uno…"],
+            "en": ["One…"]
+          }
         },
         {
           "id": "ab_count_two",
@@ -199,7 +230,13 @@
           "sfx": "",
           "actions": [ { "type": "ApplyStatusEffect", "target": "Self", "value": 1, "delay": 0, "status": "Assets/Resources/Data/Status Effects/Effects/StatusEffect_Hyped_DamageUpFlat.asset" } ],
           "es": { "name": "Dos…", "description": "Sigue contando y se infla más: gana <link=hyped>Exaltado</link>. Lo siguiente es el tres." },
-          "en": { "name": "Two…", "description": "Keeps counting and swells further: gains <link=hyped>Hyped</link>. Three comes next." }
+          "en": { "name": "Two…", "description": "Keeps counting and swells further: gains <link=hyped>Hyped</link>. Three comes next." },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["Dos…"],
+            "en": ["Two…"]
+          }
         },
         {
           "id": "ab_count_three",
@@ -213,7 +250,13 @@
           "sfx": "",
           "actions": [ { "type": "AddStress", "target": "Musician", "value": 10, "delay": 0, "status": "" } ],
           "es": { "name": "¡TRES!", "description": "Suelta todo de golpe sobre un músico: mucho <link=stress>Stress</link>, más el de su <link=hyped>Exaltado</link>." },
-          "en": { "name": "THREE!", "description": "Lets it all out on one bandmate: heavy <link=stress>Stress</link>, plus its <link=hyped>Hyped</link>." }
+          "en": { "name": "THREE!", "description": "Lets it all out on one bandmate: heavy <link=stress>Stress</link>, plus its <link=hyped>Hyped</link>." },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["¡TRES, {musico}!", "¡Y… TRES! ¡Para ti, {musico}!"],
+            "en": ["THREE, {musico}!", "And… THREE! This one's for you, {musico}!"]
+          }
         }
       ],
       "taste": {
@@ -249,7 +292,18 @@
           "sfx": "",
           "actions": [ { "type": "AddStress", "target": "Musician", "value": 5, "delay": 0, "status": "" } ],
           "es": { "name": "¡BBUUU!", "description": "Abuchea a un músico con todo el pecho. Carga <link=stress>Stress</link>; pega más si está <link=hyped>Exaltado</link>." },
-          "en": { "name": "BOOO!", "description": "Boos one bandmate from the gut. Deals <link=stress>Stress</link>; hits harder while <link=hyped>Hyped</link>." }
+          "en": { "name": "BOOO!", "description": "Boos one bandmate from the gut. Deals <link=stress>Stress</link>; hits harder while <link=hyped>Hyped</link>." },
+          "pendingSprite": "", "actingSprite": "", "shoutSplash": "Assets/Resources/Sprites/Characters/Audience/ataque jefe.png",
+          "shouts": {
+            "scope": "character",
+            "es": ["¡BBUUU…!", "¡Fuera, {musico}!", "¡BBUUU, {musico}! ¡Tu música apesta!"],
+            "en": ["BOOO…!", "Get off the stage, {musico}!", "BOOO, {musico}! Your music stinks!"],
+            "byMusician": [
+              { "musician": "Robot C2",
+                "es": ["¡BBUUU! ¡Vuelve a la fábrica, {musico}!", "¡{musico}, ni el metrónomo te aguanta!"],
+                "en": ["BOOO! Back to the factory, {musico}!", "{musico}, even the metronome gave up on you!"] }
+            ]
+          }
         }
       ],
       "taste": {
@@ -285,7 +339,13 @@
           "sfx": "",
           "actions": [ { "type": "ApplyStatusEffect", "target": "AudienceLeader", "value": 1, "delay": 0, "status": "Assets/Resources/Data/Status Effects/Effects/StatusEffect_Hyped_DamageUpFlat.asset" } ],
           "es": { "name": "¡Eso, jefe!", "description": "Le da cuerda a su <link=leader>Jefe</link>: gana <link=hyped>Exaltado</link> y su <link=stress>Stress</link> pega más fuerte. Si el jefe ya está <link=convinced>Convencido</link>, no hace nada." },
-          "en": { "name": "Go On, Boss!", "description": "Winds up their <link=leader>Boss</link>: they gain <link=hyped>Hyped</link> and their <link=stress>Stress</link> hits harder. If the boss is already <link=convinced>Convinced</link>, nothing happens." }
+          "en": { "name": "Go On, Boss!", "description": "Winds up their <link=leader>Boss</link>: they gain <link=hyped>Hyped</link> and their <link=stress>Stress</link> hits harder. If the boss is already <link=convinced>Convinced</link>, nothing happens." },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["¡Eso, jefe!", "¡Dale, jefe, dale!", "¡Más fuerte, jefe!"],
+            "en": ["Yeah, boss!", "Go on, boss, go on!", "Louder, boss!"]
+          }
         },
         {
           "id": "ab_tantrum",
@@ -299,7 +359,13 @@
           "sfx": "Assets/Resources/Audio/Audience/Kid - Negative.wav",
           "actions": [ { "type": "AddStress", "target": "RandomMusician", "value": 3, "delay": 0, "status": "" } ],
           "es": { "name": "", "description": "" },
-          "en": { "name": "", "description": "" }
+          "en": { "name": "", "description": "" },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["¡Aburriiido, {musico}!", "¡Quiero otra canción, {musico}!", "¡{musico}, me duelen los oídos!"],
+            "en": ["Boooring, {musico}!", "Play another song, {musico}!", "{musico}, my ears hurt!"]
+          }
         }
       ],
       "taste": {
@@ -335,7 +401,13 @@
           "sfx": "",
           "actions": [ { "type": "ApplyStatusEffect", "target": "AudienceLeader", "value": 1, "delay": 0, "status": "Assets/Resources/Data/Status Effects/Effects/StatusEffect_Hyped_DamageUpFlat.asset" } ],
           "es": { "name": "", "description": "" },
-          "en": { "name": "", "description": "" }
+          "en": { "name": "", "description": "" },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["¡Jefe, sales en mi story!", "Esto lo subo, jefe. ¡Dale!", "¡Jefe, que te vean mis seguidores!"],
+            "en": ["Boss, you're on my story!", "I'm posting this, boss. Go!", "Boss, my followers are watching!"]
+          }
         },
         {
           "id": "ab_scathing_review",
@@ -349,7 +421,13 @@
           "sfx": "",
           "actions": [ { "type": "AddStress", "target": "Musician", "value": 3, "delay": 0, "status": "" } ],
           "es": { "name": "", "description": "" },
-          "en": { "name": "", "description": "" }
+          "en": { "name": "", "description": "" },
+          "pendingSprite": "", "actingSprite": "",
+          "shouts": {
+            "scope": "character",
+            "es": ["Una estrella, {musico}. Y es mucho.", "Puedo hacer eso en 2 segundos con IA, {musico}.", "{musico}, esto va directo a mi reseña."],
+            "en": ["One star, {musico}. And that's generous.", "I could make that in 2 seconds with AI, {musico}.", "{musico}, this is going straight into my review."]
+          }
         }
       ],
       "taste": {
