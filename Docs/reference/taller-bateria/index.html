@@ -110,6 +110,10 @@ label.k{display:grid;gap:3px;font-size:13px;color:var(--muted);min-width:0}
 :root[data-look="caja"] .c[data-q="2"] i,:root[data-look="caja"] .gr.cy .c[data-q="2"] i{background:#f2c14e}
 :root[data-look="caja"] .c[data-q="3"] i,:root[data-look="caja"] .gr.cy .c[data-q="3"] i{background:#e8e2cf}
 :root[data-look="caja"] .c.acc i,:root[data-look="caja"] .gr.cy .c.acc i{background:#fff3d6}
+/* Accent row in the "caja" look: these rules come after the caja hit rules on purpose (same specificity). */
+:root[data-look="caja"] .gr.ac .c{height:22px;align-items:flex-end;padding:2px}
+:root[data-look="caja"] .gr.ac .c i{align-self:flex-end;width:100%;height:calc(var(--w)*100%);opacity:.55;background:var(--muted);box-shadow:none}
+:root[data-look="caja"] .gr.ac .c.strong i{opacity:1;background:#ff5a3c;box-shadow:0 0 6px #ff5a3c}
 
 @media (max-width:520px){
   .mine .bar{overflow-x:auto;padding-bottom:4px}

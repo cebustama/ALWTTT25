@@ -38,6 +38,7 @@ Resultado del 2026-11-06: catálogo con 35 idénticos y 1 con pérdida declarada
 
 ## Para la v2
 
+- **Parte con fills, como el wrapped de MidiGenPlay** (pedido de Claudio, 2026-11-12: «se distinguen muchísimo mejor los fills y los acentos en esa versión»). Ver cualquier patrón del catálogo como una parte de 8 compases con los fills del motor: fill cada N, fill al cerrar, biblioteca de Music Lab y/o procedural, crash después, contraste, semilla (la `trackSeed` del log `[DrumFill]` del juego). Vista de puntos por tamaño de velocidad, zona del fill sombreada y fila de acentos en barras. El código ya existe y está comprobado contra C#: `MidiGenPlay/Documentation~/research/acentos-fills-wrapped/template.html` (bloque «engine mirror» y la vista); aquí convivirá con el editor de casillas. Arreglado el 2026-11-12: la fila de acentos en el aspecto «Caja de ritmos» se pintaba entera (los estilos de ese aspecto la pisaban).
 - **Modo texto:** escribir y pegar glifos, como el modo Text del editor, y pegar un bloque completo (hace falta portar `DrumPatternEditorImporter` a la página).
 - **Velocidad exacta por casilla** (`[V]` en el editor). Hoy solo hay los tres niveles, y el texto tampoco lleva más.
 - **Crear con LLM:** tarea en `/api/llm` con el contrato de `DrumPatternLLMPromptBuilder`, validada con el mismo importador. Reutilizar lo del taller armónico (`ARRANQUE_LLM_en_el_taller.md`) y corregir antes `genre_vocabulary.md`.
