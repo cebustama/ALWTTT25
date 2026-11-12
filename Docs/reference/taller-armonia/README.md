@@ -24,3 +24,5 @@ Página privada para escuchar progresiones antes de crear assets (creada el 2026
 No es el sonido de MidiGenPlay: para fidelidad, *MidiGenPlay → Smoke → Composition Smoke*.
 
 - **Canciones de Music Lab (2026-11-11):** `build.py` lee las fichas de `D:/Projects/Music Lab/Biblioteca/` (formato en su `FORMATO.md`) y añade al catálogo una entrada por sección y otra con la canción entera, con su modo, su tónica y su compás (filtro «Canciones de Music Lab»). Cada entrada tiene un `slug`, y la página la abre por el hash (`#all-of-me-a1`, `#all-of-me`): así enlaza el examinador de fichas de Music Lab (https://claude.ai/artifact/APxVGsNGkkwzkmRsBveN3S). La prueba de oro deja fuera estas entradas (siguen 792 casos). Al añadir fichas: `python -I -X utf8 build.py` y volver a publicar `index.html`.
+
+- **Enlace con los ajustes (2026-11-13):** «Copiar enlace» da una URL con los ajustes en el hash (`#ta1=` + JSON en base64url) que abre la página igual. En la web apunta a la propia página; desde el artefacto, a la copia de la web (tras Cloudflare Access). Los hashes de canciones (`#all-of-me`) siguen funcionando.

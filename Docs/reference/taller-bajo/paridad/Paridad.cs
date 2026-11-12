@@ -82,7 +82,71 @@ static class Paridad
         }
         Console.WriteLine($"{n} cases, {notes} bass notes ({attacks} new attacks), {flags} fill flags: " +
                           (bad == 0 ? "ALL EQUAL" : $"{bad} DIFFERENT"));
-        return bad == 0 ? 0 : 1;
+        int badPhr = Phrases(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path)), "casos-phr.json"));
+        return bad == 0 && badPhr == 0 ? 0 : 1;
+    }
+
+    // MGP-BASS-PHRASE-1: the page's PHR (C mode) against BassPhrasePlanner.Render.
+    static int Phrases(string path)
+    {
+        if (!File.Exists(path)) { Console.WriteLine("casos-phr.json missing: run node casos.mjs"); return 1; }
+        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        int n = 0, bad = 0, notes = 0, dead = 0, anchors = 0;
+        foreach (var c in doc.RootElement.EnumerateArray())
+        {
+            n++;
+            string id = c.GetProperty("id").GetString();
+            int bpb = c.GetProperty("bpb").GetInt32();
+            double end = c.GetProperty("end").GetDouble();
+            var st = c.GetProperty("settings");
+            var s = new BassPhrasePlanner.Settings
+            {
+                style = st.GetProperty("style").GetString() switch
+                {
+                    "pop" => PhraseStyle.Pop, "funk" => PhraseStyle.Funk, "ballad" => PhraseStyle.Ballad, _ => PhraseStyle.Rock,
+                },
+                seed = st.GetProperty("seed").GetUInt32(),
+                threshold = st.GetProperty("threshold").GetDouble(),
+                fillMode = st.GetProperty("fill").GetString() == "follow" ? AccentFillMode.Follow : AccentFillMode.Gap,
+                followSnare = st.GetProperty("followSnare").GetBoolean(),
+                deadNotes = st.GetProperty("deadNotes").GetBoolean(),
+                anticipation = st.GetProperty("anticipation").GetBoolean(),
+                floorMidi = BassPhrasePlanner.DefaultFloorMidi,
+            };
+            var onsets = c.GetProperty("onsets").EnumerateArray().Select(o => new BassPhrasePlanner.DrumOnset
+            { beat = o.GetProperty("b").GetDouble(), gm = o.GetProperty("gm").GetInt32(), velocity = o.GetProperty("vel").GetInt32() }).ToList();
+            var acc = c.GetProperty("accents").EnumerateArray().Select(a => new MidiGenerator.AccentPoint
+            { beat = a.GetProperty("b").GetDouble(), weight = (float)a.GetProperty("w").GetDouble(), isFill = a.GetProperty("f").GetBoolean() }).ToList();
+            var events = c.GetProperty("events").EnumerateArray().Select(e => new BassPhrasePlanner.ChordEv
+            {
+                start = e.GetProperty("start").GetDouble(), velocity = e.GetProperty("vel").GetInt32(),
+                rootMidi = e.GetProperty("midi").GetInt32(), quality = e.GetProperty("q").GetInt32(),
+                scale = e.GetProperty("scale").EnumerateArray().Select(x => x.GetInt32()).ToArray(),
+            }).ToList();
+
+            var got = BassPhrasePlanner.Render(onsets, acc, events, s, bpb, end, out var anc);
+            var exp = c.GetProperty("expect").EnumerateArray().ToList();
+            notes += got.Count; dead += got.Count(x => x.dead); anchors += anc.Count;
+            if (anc.Count != c.GetProperty("anchors").GetInt32()) { Fail(ref bad, id, $"anchors: C# {anc.Count}, JS {c.GetProperty("anchors")}"); continue; }
+            if (exp.Count != got.Count) { Fail(ref bad, id, $"note count: C# {got.Count}, JS {exp.Count}"); continue; }
+            for (int i = 0; i < got.Count; i++)
+            {
+                var x = exp[i]; var g = got[i];
+                if (Math.Abs(g.start - x.GetProperty("s").GetDouble()) > 1e-9 ||
+                    Math.Abs(g.dur - x.GetProperty("d").GetDouble()) > 1e-9 ||
+                    g.velocity != x.GetProperty("v").GetInt32() ||
+                    g.midi != x.GetProperty("m").GetInt32() ||
+                    g.dead != x.GetProperty("x").GetBoolean())
+                {
+                    Fail(ref bad, id, $"phrase note {i}: C# ({g.start},{g.dur},{g.velocity},{g.midi},{g.dead}) " +
+                                      $"JS ({x.GetProperty("s")},{x.GetProperty("d")},{x.GetProperty("v")},{x.GetProperty("m")},{x.GetProperty("x")})");
+                    break;
+                }
+            }
+        }
+        Console.WriteLine($"PHR: {n} cases, {anchors} anchors, {notes} notes ({dead} dead): " +
+                          (bad == 0 ? "ALL EQUAL" : $"{bad} DIFFERENT"));
+        return bad;
     }
 
     static void Fail(ref int bad, string id, string what)

@@ -43,3 +43,5 @@ Resultado del 2026-11-06: catálogo con 35 idénticos y 1 con pérdida declarada
 - **Velocidad exacta por casilla** (`[V]` en el editor). Hoy solo hay los tres niveles, y el texto tampoco lleva más.
 - **Crear con LLM:** tarea en `/api/llm` con el contrato de `DrumPatternLLMPromptBuilder`, validada con el mismo importador. Reutilizar lo del taller armónico (`ARRANQUE_LLM_en_el_taller.md`) y corregir antes `genre_vocabulary.md`.
 - **Decidir con los ✓ ~ ✗:** qué patrones se arreglan y si los de peso 0 vuelven.
+
+- **Enlace con los ajustes (2026-11-13):** «Copiar enlace» da una URL con los ajustes en el hash (`#tbat1=` + JSON en base64url) que abre la página igual. En la web apunta a la propia página; desde el artefacto, a la copia de la web (tras Cloudflare Access). Si el patrón es tuyo, viaja entero en el enlace y entra como patrón tuyo en el otro navegador.

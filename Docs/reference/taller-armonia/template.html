@@ -176,6 +176,7 @@ details summary{cursor:pointer;font-weight:700}
           <button class="btn" id="dado" title="Una semilla nueva: otra versión de la misma carta">🎲 Otra versión</button>
           <button class="btn" id="fabrica" title="Sin semilla: la versión de fábrica (v4)">De fábrica</button>
           <button class="btn" id="saveVer" title="Guarda texto, nivel, perillas y semilla en el catálogo">Guardar esta versión</button>
+          <button class="btn" id="copyLink" title="Copia un enlace que abre la página con esta progresión, el modo, la tónica, el tempo, el nivel, las perillas y la versión">Copiar enlace</button>
         </div>
         <p class="hint" id="seedHint"></p>
         <details id="perBox">
@@ -567,6 +568,24 @@ function drawSeedHint(){
     : "Versión " + s + ": la semilla decide en qué acordes caen los adornos de cada vuelta" + (level === 3 && perillas[3].remate === "azar" ? " y, si la vuelta no cierra sola, qué remate de su grupo suena al final" : "") + ". El mismo número da siempre lo mismo.";
 }
 function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({t:$("#prog").value, mode, key, bpm:+$("#bpm").value, ts:$("#ts").value, v:$("#vueltas").value, toque:$("#toque").value, drums:$("#drums").value, level, perillas, semilla:$("#semilla").value.trim()})); }catch(e){} }
+/* ---------- links (2026-11-13): the same settings as a URL, #ta1=<base64url JSON>. On the web copy the
+   link points to this page; from the artifact (an iframe on another host) it points to the web copy,
+   which is behind Cloudflare Access. ---------- */
+const SHARE_WEB = "https://claudiobustamante.com/privado/taller-armonia/";
+const shareBase = () => /(^|\.)claudiobustamante\.com$|pages\.dev$|^localhost$|^127\.0\.0\.1$/.test(location.hostname) ? location.origin + location.pathname : SHARE_WEB;
+const b64u = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = s => decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/"))));
+const linkOf = o => shareBase() + "#ta1=" + b64u(JSON.stringify(o));
+function linkPayload(t){ const m = String(t || "").match(/[#&]?ta1=([A-Za-z0-9_-]+)/); return m ? JSON.parse(unb64u(m[1])) : null; }
+const stateOf = () => ({t:$("#prog").value, mode:$("#mode").value, key:$("#root").value, bpm:+$("#bpm").value, ts:$("#ts").value, v:$("#vueltas").value, toque:$("#toque").value, drums:$("#drums").value, level, ...(samePerillas(perillas, PERILLAS_V3) ? {} : {perillas}), semilla:$("#semilla").value.trim()});
+function applyState(L){
+  const setSel = (s, v) => { const e = $(s); if(v != null && [...e.options].some(o => o.value === String(v))) e.value = v; };
+  $("#prog").value = L.t || ""; setSel("#mode", L.mode); setSel("#root", L.key); setSel("#ts", L.ts); setSel("#vueltas", L.v); setSel("#toque", L.toque); setSel("#drums", L.drums);
+  if(L.bpm) $("#bpm").value = L.bpm; $("#bpmOut").textContent = $("#bpm").value;
+  level = [1,2,3].includes(+L.level) ? +L.level : 1; perillas = cleanPerillas(L.perillas);
+  $("#semilla").value = /^\d{1,9}$/.test(L.semilla || "") ? L.semilla : "";
+  document.querySelectorAll(".lvl").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.l === level)));
+}
 function loadLocal(){ try{ return JSON.parse(localStorage.getItem(STORE)); }catch(e){ return null; } }
 
 // Slider position = the preset that matches level + knobs; otherwise «propia».
@@ -1028,6 +1047,9 @@ $("#save").onclick = saveEntry;
 $("#semilla").addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(() => update(true), 350); });
 $("#dado").onclick = () => { $("#semilla").value = String(newSeed()); update(true); };
 $("#fabrica").onclick = () => { $("#semilla").value = ""; update(true); };
+$("#copyLink").onclick = () => { const u = linkOf(stateOf());
+  navigator.clipboard.writeText(u).then(() => $("#seedHint").textContent = "Enlace copiado: abre la página con esta progresión y estos ajustes.")
+    .catch(() => $("#seedHint").textContent = "No pude copiar. El enlace: " + u); };
 $("#saveVer").onclick = () => { const box = $("#saveBox"); box.open = true;
   if(!$("#sName").value.trim()){ const base = ($("#loadedFrom").textContent.replace(/^(Abierta|Ejemplo): /, "") || "Mi carta").slice(0, 40);
     $("#sName").value = (base + (level > 1 ? " · N" + level : "") + (seedVal() !== null ? " · v" + seedVal() : "")).slice(0, 60); }
@@ -1047,6 +1069,8 @@ setPlayIcon(false); drawFilters(); update(false); drawList();
 // Open a Music Lab song by hash (the examinador links here as #all-of-me-a1 or #all-of-me).
 // A whole-song slug with no entry of its own (one-section songs) opens its first section.
 function openHash(){
+  try{ const o = linkPayload(location.hash); if(o){ applyState(o); $("#loadedFrom").textContent = "Abierta desde un enlace"; update(true); return; } }
+  catch(e){ $("#loadedFrom").textContent = "El enlace está roto o incompleto"; return; }
   const h = decodeURIComponent(location.hash.slice(1)).toLowerCase();
   if(!h) return;
   const e = LIB.find(x => x.slug === h) || LIB.find(x => x.slug && x.slug.startsWith(h + "-"));

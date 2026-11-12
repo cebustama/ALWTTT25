@@ -209,7 +209,7 @@ pre.out{margin:0;background:var(--bg);border:1px solid var(--line);border-radius
   <div class="cols">
     <main style="display:grid;gap:16px;min-width:0">
       <section class="panel" aria-labelledby="pname">
-        <div class="row between"><h2 id="pname" class="mono"></h2><span class="small muted" id="pdisp"></span></div>
+        <div class="row between"><h2 id="pname" class="mono"></h2><span class="row" style="gap:8px;align-items:center"><span class="small muted" id="pdisp"></span><button class="btn sm" id="copylink" title="Copia un enlace que abre la página con este patrón (aunque sea tuyo), el tempo, el contraste y la parte con fills">Copiar enlace</button></span></div>
         <div class="facts" id="facts"></div>
         <div class="row" id="tags"></div>
         <p class="small" id="pnote"></p>
@@ -890,6 +890,42 @@ async function copyText(btn, text, select){
   setTimeout(() => btn.textContent = old, 1800);
 }
 
+/* ---------- links (2026-11-13): the same settings as a URL, #tbat1=<base64url JSON>. On the web copy the
+   link points to this page; from the artifact (an iframe on another host) it points to the web copy,
+   which is behind Cloudflare Access. ---------- */
+const SHARE_WEB = "https://claudiobustamante.com/privado/taller-bateria/";
+const shareBase = () => /(^|\.)claudiobustamante\.com$|pages\.dev$|^localhost$|^127\.0\.0\.1$/.test(location.hostname) ? location.origin + location.pathname : SHARE_WEB;
+const b64u = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = s => decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/"))));
+const linkOf = o => shareBase() + "#tbat1=" + b64u(JSON.stringify(o));
+function linkPayload(t){ const m = String(t || "").match(/[#&]?tbat1=([A-Za-z0-9_-]+)/); return m ? JSON.parse(unb64u(m[1])) : null; }
+function stateOf(){
+  const o = {g:cur.guid, bpm:+$("#bpm").value, c:+$("#contrast").value, v:PART.mode ? 1 : 0};
+  ["pmeas","pevery","psrc","pseed"].forEach(id => o[id] = $("#" + id).value); ["plast","pcrash"].forEach(id => o[id] = $("#" + id).checked);
+  if(cur.own){ const n = JSON.parse(JSON.stringify(cur)); delete n.export; delete n.snapped; delete n.t; o.p = n; }
+  return o;
+}
+function applyState(o){
+  let p = null;
+  if(o.p && Array.isArray(o.p.lanes)){
+    const have = mine[o.p.guid];
+    // Someone else's pattern (or a changed copy of mine) comes in as a new pattern of mine; the same one opens as is.
+    if(have && !have.deleted && JSON.stringify(have.lanes) === JSON.stringify(o.p.lanes)) p = have;
+    else { p = {...o.p, own:true, guid: have ? newGuid() : (o.p.guid || newGuid())}; if(have) p.id = (p.id || "Patrón") + " (enlace)"; mineChanged(p); renderList(); }
+  } else p = allPatterns().find(x => x.guid === o.g);
+  if(!p) return false;
+  renderPattern(p);
+  if(o.bpm){ $("#bpm").value = o.bpm; $("#bpmv").textContent = o.bpm; }
+  if(o.c != null){ $("#contrast").value = o.c; $("#contrastv").textContent = (+o.c).toFixed(2).replace(/\.?0+$/, "") || "0"; }
+  ["pmeas","pevery","psrc"].forEach(id => { const e = $("#" + id); if(o[id] != null && [...e.options].some(x => x.value === String(o[id]))) e.value = o[id]; });
+  if(o.pseed != null) $("#pseed").value = o.pseed;
+  ["plast","pcrash"].forEach(id => { if(o[id] != null) $("#" + id).checked = !!o[id]; });
+  renderGrid(p); setView(!!o.v);
+  return true;
+}
+function openLink(){ try{ const o = linkPayload(location.hash); if(o && !applyState(o)) $("#saved").textContent = "El patrón del enlace no está en este catálogo"; }
+  catch(e){ $("#saved").textContent = "El enlace está roto o incompleto"; } }
+
 /* ---------- wiring ---------- */
 $("#fpal").append(new Option("Todas", ""), new Option("Mis patrones", "+"), ...DATA.palettes.map(q => new Option(q.display, q.id)), new Option("Sin paleta", "-"));
 $("#fts").append(new Option("Todos", ""), ...Object.keys(TS_GRID).map(t => new Option(TS_LABEL[t], t)));
@@ -928,6 +964,7 @@ $("#next").onclick = () => step(1);
 $("#verdict").onclick = e => { const b = e.target.closest("button"); if(!b) return; const x = ev[cur.guid] = ev[cur.guid] || {}; x.v = x.v === b.dataset.v ? undefined : b.dataset.v; showEval(); changed(); renderList(); };
 $("#evnote").oninput = e => { (ev[cur.guid] = ev[cur.guid] || {}).n = e.target.value; changed(); };
 $("#copy").onclick = e => copyText(e.currentTarget, exportInfo(cur).text, () => { const r = document.createRange(); r.selectNodeContents($("#out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); });
+$("#copylink").onclick = e => copyText(e.currentTarget, linkOf(stateOf()));
 $("#copyev").onclick = e => copyText(e.currentTarget, JSON.stringify(Object.values(ev).filter(x => x.v || x.n), null, 1));
 addEventListener("keydown", e => {
   if(/TEXTAREA|SELECT|INPUT/.test(e.target.tagName)) return;
@@ -942,4 +979,5 @@ renderList();
 const firstSel = allPatterns().find(p => p.guid === store.get("tb.sel")) || filtered[0];
 renderPattern(firstSel);
 connect();
+openLink(); addEventListener("hashchange", openLink);
 </script>

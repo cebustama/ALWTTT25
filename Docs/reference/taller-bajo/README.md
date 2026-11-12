@@ -29,3 +29,5 @@ dotnet run -c Release -p:MgpDll=<MidiGenPlay.Runtime.dll>   # por defecto, Libra
 ```
 
 Resultado del 2026-11-12: 608 casos, 41.724 notas de bajo (2.492 ataques nuevos) y 55.392 marcas de fill. **Todo igual.** Se usó la DLL compilada fuera de Unity con los csproj de ALWTTT. Si cambia el motor del bajo en C#, cambiar el bloque `BASS` de `template.html` y volver a correr la paridad.
+
+- **Enlace con los ajustes (2026-11-13):** «Copiar enlace» da una URL con los ajustes en el hash (`#tb1=` + JSON en base64url) que abre la página igual. En la web apunta a la propia página; desde el artefacto, a la copia de la web (tras Cloudflare Access). El cuadro de pegar acepta el código TB1 o el enlace.

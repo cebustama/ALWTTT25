@@ -171,10 +171,11 @@ code{font-family:var(--f-mono);font-size:.9em}
       <div class="field"><label for="vname">Nombre</label><input id="vname" type="text" maxlength="80" placeholder="Funk con notas muertas" style="background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:6px 8px"></div>
       <button class="btn" id="vsave" type="button" title="Guarda todos los ajustes de batería, bajo y frases, y la versión que suena (A, B o C)">Guardar esta versión</button>
       <button class="btn" id="vcard" type="button" title="Copia los ajustes como campos de las cartas de ritmo y de bajo">Copiar para la carta</button>
+      <button class="btn" id="vlink" type="button" title="Copia un enlace que abre la página con todos los ajustes">Copiar enlace</button>
       <button class="btn" id="vcode" type="button" title="Copia un código TB1 con todos los ajustes, para pegarlo en la otra página o guardarlo">Copiar código</button>
     </div>
     <div class="vrow">
-      <div class="field"><label for="vtext">Pegar un código TB1</label><textarea id="vtext" rows="1" spellcheck="false" placeholder="TB1:…"></textarea></div>
+      <div class="field"><label for="vtext">Pegar un código TB1 o un enlace</label><textarea id="vtext" rows="1" spellcheck="false" placeholder="TB1:… o https://…#tb1=…"></textarea></div>
       <button class="btn" id="vopen" type="button">Abrir el código</button>
     </div>
     <p class="vmsg" id="vmsg" role="status"></p>
@@ -652,7 +653,16 @@ function applySnap(s){
   if(["A","B","C"].includes(s.M)) M = s.M; pressAB(); outputs(); resync(); save();
 }
 const encCode = o => "TB1:" + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
-function decCode(t){ const m = String(t).trim().match(/^TB1:([\s\S]+)$/); if(!m) throw new Error("no TB1"); return JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/\s+/g, ""))))); }
+/* ---------- links (2026-11-13): the same settings as a URL, #tb1=<base64url JSON>. On the web copy the
+   link points to this page; from the artifact (an iframe on another host) it points to the web copy,
+   which is behind Cloudflare Access. ---------- */
+const SHARE_WEB = "https://claudiobustamante.com/privado/taller-bajo/";
+const shareBase = () => /(^|\.)claudiobustamante\.com$|pages\.dev$|^localhost$|^127\.0\.0\.1$/.test(location.hostname) ? location.origin + location.pathname : SHARE_WEB;
+const b64u = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = s => decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/"))));
+const linkOf = o => shareBase() + "#tb1=" + b64u(JSON.stringify(o));
+function linkPayload(t){ const m = String(t || "").match(/[#&]?tb1=([A-Za-z0-9_-]+)/); return m ? JSON.parse(unb64u(m[1])) : null; }
+function decCode(t){ const l = linkPayload(t); if(l) return l; const m = String(t).trim().match(/^TB1:([\s\S]+)$/); if(!m) throw new Error("no TB1"); return JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/\s+/g, ""))))); }
 function cardOf(s, name){
   const p = DATA.patterns.find(x => x.guid === s.pat), prog = DATA.progressions.find(x => x.id === s.prog), fig = FIG[s.fig] || FIG.block;
   const follow = s.M === "A" ? "Off" : s.M === "C" ? "Phrases" : (s.mode === "reinforce" ? "Reinforce" : "Attacks");
@@ -682,9 +692,10 @@ function drawVers(){
     it.append(el("span", "meta", `${s.M || "?"} · ${PHR.STYLE[s.style]?.label || ""} · ${s.bpm || "?"} bpm · ${fmtDate(v.t)}`));
     const open = el("button", "btn", "Abrir"); open.type = "button"; open.addEventListener("click", () => { applySnap(s); $("#vmsg").textContent = `Abierta: ${v.name || "sin nombre"}.`; });
     const code = el("button", "btn", "Código"); code.type = "button"; code.addEventListener("click", () => copyText(encCode({name:v.name, s}), "Código copiado."));
+    const link = el("button", "btn", "Enlace"); link.type = "button"; link.addEventListener("click", () => copyText(linkOf({name:v.name, s}), "Enlace copiado."));
     const card = el("button", "btn", "Para la carta"); card.type = "button"; card.addEventListener("click", () => copyText(JSON.stringify(cardOf(s, v.name), null, 2), "Campos de la carta copiados (JSON)."));
     const del = el("button", "btn", "Borrar"); del.type = "button"; del.addEventListener("click", () => removeVer(v));
-    it.append(open, code, card, del); box.append(it);
+    it.append(open, link, code, card, del); box.append(it);
   });
 }
 async function addVer(name, s){
@@ -702,9 +713,10 @@ function initVers(){
   VERS = loadLocalVers(); drawVers();
   $("#vsave").addEventListener("click", () => { addVer($("#vname").value, snapshot()); $("#vname").value = ""; });
   $("#vcode").addEventListener("click", () => copyText(encCode({name:$("#vname").value.trim(), s:snapshot()}), "Código de los ajustes actuales copiado."));
+  $("#vlink").addEventListener("click", () => copyText(linkOf({name:$("#vname").value.trim(), s:snapshot()}), "Enlace con los ajustes actuales copiado."));
   $("#vcard").addEventListener("click", () => copyText(JSON.stringify(cardOf(snapshot(), $("#vname").value.trim()), null, 2), "Campos de la carta copiados (JSON)."));
   $("#vopen").addEventListener("click", () => { try{ const o = decCode($("#vtext").value); applySnap(o.s || o); $("#vmsg").textContent = "Código abierto" + (o.name ? `: ${o.name}` : "") + ". Guárdalo si quieres tenerlo en la lista."; if(o.name) $("#vname").value = o.name; }
-    catch{ $("#vmsg").textContent = "Ese texto no es un código TB1 válido."; } });
+    catch{ $("#vmsg").textContent = "Ese texto no es un código TB1 ni un enlace válido."; } });
   (async () => { try{
     if(!window.claude || !window.claude.use) return;
     const db = await window.claude.use("db"); if(!db) return;
@@ -730,6 +742,10 @@ function outputs(){ $("#contrastO").textContent = $("#contrast").value; $("#thrO
   if(s){ IDS.forEach(id => { const e = $("#" + id); if(s[id] == null) return; if(e.type === "checkbox") e.checked = s[id]; else if(e.tagName !== "SELECT" || [...e.options].some(o => o.value === String(s[id]))) e.value = s[id]; }); M = ["A","B","C"].includes(s.M) ? s.M : (s.B ? "B" : "A"); }
   pressAB();
   outputs(); setIcon(false); render(); initVers();
+  const openLink = () => { try{ const o = linkPayload(location.hash); if(!o) return; applySnap(o.s || o); if(o.name) $("#vname").value = o.name;
+      $("#vmsg").textContent = "Abierto desde el enlace" + (o.name ? `: ${o.name}` : "") + ". Guárdalo si quieres tenerlo en la lista."; }
+    catch{ $("#vmsg").textContent = "El enlace está roto o incompleto."; } };
+  openLink(); addEventListener("hashchange", openLink);
   IDS.forEach(id => $("#" + id).addEventListener("input", () => { outputs(); if(id === "pat"){ const p = DATA.patterns.find(x => x.guid === $("#pat").value); if(p?.bpm) $("#bpm").value = p.bpm; } resync(); save(); }));
   $("#play").addEventListener("click", () => T.on ? stop() : start());
   ["A","B","C"].forEach(k => $("#ab" + k).addEventListener("click", () => setAB(k)));
