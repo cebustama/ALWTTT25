@@ -323,8 +323,12 @@ line's rendered bytes depend on the **Rhythm track's resolved pattern**, which t
 bass track's hash must be extended with the resolved Rhythm pattern inputs in the same batch**,
 or the cache can replay a bass stem rendered against a since-replaced drum pattern.
 
-**Status of that duty: DORMANT.** ALWTTT's slap content uses `SelfPocket` (§8.6), which reads no
-other track and therefore does not trigger it. The duty re-arms the moment any bundle selects
+**Status of that duty: IMPLEMENTED (2026-11-12, MGP-BASS-ACCENT-1).** `SongConfigBuilder.ListenSegment`
+appends `|rx:` plus the `trackInputsHash` of every Rhythm track of the part to the hash of a bass
+that listens: `pocketMode = SlapPocket` **or** `accentFollow != Off` (the new accent-follow modes
+read the Rhythm track's published accents, same dependency). A bass that does not listen gets no
+segment, so its hash is unchanged. ALWTTT's slap content still uses `SelfPocket` (§8.6), which
+reads no other track. The duty re-arms the moment any bundle selects
 `SlapPocket` — or a future `Auto` mode that falls back to rhythm coupling when a Rhythm track is
 present (registered as a design idea 2026-07-31; **not requested**, precisely because it would
 re-arm this duty and cost a consumer-side batch, not just a package enum member).

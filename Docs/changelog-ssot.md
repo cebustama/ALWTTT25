@@ -14,6 +14,13 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-12 — MidiGenPlay MGP-BASS-ACCENT-1: hash duty for a listening bass
+
+- `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.4: the pocket cache duty moves from DORMANT to
+  IMPLEMENTED and widens to `accentFollow != Off`. `SongConfigBuilder.ListenSegment` folds the
+  part's Rhythm hashes into the bass hash (`|rx:`). Package side: MidiGenPlay changelog 2026-11-12.
+- New reference page: `Docs/reference/taller-bajo/` (drums + bass with A/B, parity with the C#).
+
 ## 2026-11-12 — S8: GRITOS-1, el público grita, posa y Conito baila (DEMO-1211)
 
 **Clase:** semántico · autoridad · operativo. Con cambio de código y datos.
