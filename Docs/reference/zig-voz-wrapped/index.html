@@ -1,0 +1,264 @@
+<title>La voz de Zig</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a long single column, like a liner note. Numbers that matter as big figures in the hero;
+   every section ends in what it means for the game. The tract diagram and the vowel chart are drawn from measured data. */
+:root{
+  --bg:#f3f0f5; --surface:#ffffff; --sunk:#f8f6fa; --fg:#1d1a26; --muted:#625c70; --line:#ddd8e5;
+  --voice:#b0306a; --voice-soft:#f7dde8; --mel:#3f4fb5; --mel-soft:#dfe3f8; --tract:#d48a1f; --tract-soft:#fbecd3; --ok:#2e7d4f;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141219; --surface:#1d1a24; --sunk:#18161e; --fg:#ece8f3; --muted:#a49db3; --line:#312c3b;
+  --voice:#f07aaa; --voice-soft:#3d1d2c; --mel:#9aa6ff; --mel-soft:#23294b; --tract:#f2b45a; --tract-soft:#3a2b14; --ok:#6fd29a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141219; --surface:#1d1a24; --sunk:#18161e; --fg:#ece8f3; --muted:#a49db3; --line:#312c3b;
+  --voice:#f07aaa; --voice-soft:#3d1d2c; --mel:#9aa6ff; --mel-soft:#23294b; --tract:#f2b45a; --tract-soft:#3a2b14; --ok:#6fd29a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:860px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(34px,7vw,60px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:26px;font-weight:800}
+h3{font-size:17px;font-weight:600}
+p{margin:0;max-width:68ch}
+section{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--voice)}
+.lede{font-size:18px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.stat b{font-family:var(--f-display);font-size:40px;line-height:1;color:var(--voice);font-weight:800}
+.stat span{font-size:13px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.causes{display:grid;gap:12px}
+.cause{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:start}
+.cause .n{font-family:var(--f-mono);font-size:13px;color:var(--surface);background:var(--voice);border-radius:999px;width:26px;height:26px;display:grid;place-items:center;grid-row:span 2}
+.cause p{color:var(--muted);font-size:14px}
+.ev{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.pill.on{background:var(--voice-soft);border-color:var(--voice);color:var(--fg)}
+.pill.off{color:var(--muted)}
+.pill.ok{border-color:var(--ok);color:var(--ok)}
+svg{display:block;width:100%;height:auto;max-width:100%}
+svg text{font-family:var(--f-mono);font-size:12px;fill:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.mode h3{color:var(--voice)}
+.mode p{font-size:14px;color:var(--muted)}
+.mode .src{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.phases{display:flex;flex-direction:column;gap:12px}
+.phase{display:grid;grid-template-columns:72px 1fr;gap:14px}
+.phase .tag{font-family:var(--f-display);font-weight:800;font-size:22px;color:var(--mel)}
+.phase p{font-size:14px;color:var(--muted)}
+.phase .when{font-family:var(--f-mono);font-size:12px;color:var(--fg)}
+ol.dec{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+ol.dec li{max-width:70ch}
+.cta{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.cta a{background:var(--voice);color:var(--surface);text-decoration:none;font-weight:600;padding:10px 16px;border-radius:999px}
+.cta a:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.note{font-size:13px;color:var(--muted)}
+code{font-family:var(--f-mono);font-size:.88em}
+ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:14px}
+a{color:var(--mel)}
+</style>
+
+<main class="wrap">
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <span class="eyebrow">ALWTTT · voz de Zig · 13 de noviembre de 2026</span>
+    <h1>Zig canta siempre la misma «uh»</h1>
+    <p class="lede">Matías lo dijo: «es siempre lo mismo». Medido, tiene razón por cuatro motivos, y ninguno es un límite del modelo. Pink Trombone es una garganta entera; el juego usa solo la glotis y una posición fija de la lengua.</p>
+    <div class="stats">
+      <div class="stat"><b>1</b><span>vocal en toda la canción: la dicción está apagada en el prefab</span></div>
+      <div class="stat"><b>0</b><span>saltos y 0 bajadas en Rise Up: una escalera de 8 compases</span></div>
+      <div class="stat"><b>0</b><span>consonantes: el fork del juego solo mueve la lengua</span></div>
+      <div class="stat"><b>−155 dB</b><span>diferencia entre el port a JavaScript y el C# real</span></div>
+    </div>
+    <div class="cta"><a href="https://claude.ai/artifact/WRdHN5Gf839qotLhrqvyLj">Abrir el Taller de melodías</a><span class="note">Allí se oye todo lo de esta página: Rise Up o melodía nueva, Zig hoy o un modo.</span></div>
+  </header>
+
+  <section>
+    <span class="eyebrow">Diagnóstico</span>
+    <h2>Por qué suena igual</h2>
+    <div class="causes">
+      <div class="card cause"><span class="n">1</span><h3>La vocal no cambia nunca</h3><p>El cantante tiene una capa de dicción (C-lite: abrir la vocal en notas largas y tiempos fuertes, aclararla al subir, tensar las notas inestables), pero el prefab <code>Zig_SingerVoice</code> la deja en <code>expressivityEnabled: 0</code> y el <code>MidiMusicManager</code> no lo cambia. Zig canta toda la canción con la lengua en 12,9 / 2,43: una «uh» que medida da F1 790 y F2 1210 Hz.</p></div>
+      <div class="card cause"><span class="n">2</span><h3>Rise Up es una escalera</h3><p>15 notas: grado 0, 1, 1, 2, 2… hasta 7. Cada compás es la misma figura, blanca con punto y una negra que anticipa el grado siguiente. Nunca baja ni salta, y en cada vuelta se repite igual. Es la carta de melodía del mazo inicial de Zig.</p></div>
+      <div class="card cause"><span class="n">3</span><h3>Solo cambia la velocidad</h3><p>La velocidad de cada nota mueve el volumen y la tensión dentro de una ventana estrecha, de 0,40 a 0,60. El vibrato solo aparece en las notas largas, con ±8 cents. Todo lo demás (registro, tracto, aire) es fijo.</p></div>
+      <div class="card cause"><span class="n">4</span><h3>No hay consonantes</h3><p>El fork en C# heredó del port de lostmsu una lengua y nada más. El original web de Thapen permite cerrar la boca en cualquier punto: así salen la b, la d, la s o la m. Sin eso, toda nota empieza igual.</p></div>
+    </div>
+    <p class="ev">Fuentes: Assets/Prefabs/Core/Zig_SingerVoice.prefab · VoiceProfile_Zig.asset · MelodyPattern_RiseUp_44_8m.asset · SingerVoice.cs v7 · PinkTromboneSrc/TractShaper.cs.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Qué es la voz de Zig</span>
+    <h2>Una garganta de 44 tramos</h2>
+    <p>Pink Trombone (Neil Thapen, 2017, licencia MIT) simula la voz como sonido que viaja por un tubo. La <b>glotis</b> produce pulsos con el modelo LF; su forma depende de la tensión (Rd = 3·(1 − tensión)), que va de soplada a apretada. El <b>tracto</b> son 44 tramos cuyo diámetro marcan la lengua, los labios y el velo, que abre la <b>nariz</b>. La cabecera del código cita a Story (2005), Lu y Smith (2000), Mullen (2006) y el libro de guías de onda de J. O. Smith.</p>
+    <div class="card">
+      <svg viewBox="0 0 760 250" role="img" aria-label="Esquema del tracto vocal: glotis, tubo con la lengua, velo con la nariz y labios">
+        <path d="M60 140 C 120 120, 160 118, 220 128 C 300 140, 330 100, 420 92 C 500 86, 560 120, 620 128 L 690 126 L 690 170 L 620 172 C 560 176, 500 184, 420 186 C 330 186, 300 170, 220 166 C 160 162, 120 166, 60 160 Z" fill="var(--tract-soft)" stroke="var(--tract)" stroke-width="3"/>
+        <path d="M300 130 C 330 60, 450 40, 690 46" fill="none" stroke="var(--line)" stroke-width="10" stroke-linecap="round"/>
+        <rect x="44" y="128" width="10" height="44" rx="3" fill="var(--voice)"/>
+        <circle cx="430" cy="196" r="8" fill="var(--voice)"/>
+        <text x="20" y="200">glotis</text><text x="20" y="216">tono · tensión · aire</text>
+        <text x="270" y="226">velo (abre la nariz)</text>
+        <text x="400" y="226">lengua: índice y diámetro</text>
+        <text x="630" y="200">labios</text>
+        <text x="560" y="36">nariz</text>
+        <text x="150" y="104">longitud del tracto →</text>
+      </svg>
+    </div>
+    <p>Nuestro motor es una cadena de ports: Thapen (web) → chdh/pink-trombone-mod → lostmsu (C#) → el fork del juego, con siete arreglos propios (POC-FORK 1–7: volumen real por velocidad, la lengua que por fin se mueve, el jitter domado). Para el taller lo porté de vuelta a JavaScript. Una prueba con el C# real compilado en dotnet da 481.280 muestras con un error de −155 dB: el 95 % son idénticas bit a bit y el resto difiere en el último bit.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Las palancas</span>
+    <h2>Lo que la garganta puede hacer</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Palanca</th><th>Qué es en el cuerpo</th><th>Juego hoy</th><th>Taller</th></tr></thead>
+      <tbody>
+        <tr><td>Tono y registro</td><td>Frecuencia de la glotis</td><td><span class="pill on">sí</span> −12</td><td><span class="pill on">sí</span></td></tr>
+        <tr><td>Tensión</td><td>Cuánto se aprietan los pliegues: soplada ↔ apretada (Rd)</td><td><span class="pill on">sí</span> 0,40–0,60</td><td><span class="pill on">sí</span> 0–1</td></tr>
+        <tr><td>Vibrato</td><td>Oscilación de la altura, 5–7 Hz</td><td><span class="pill on">sí</span> hasta ±21 cents</td><td><span class="pill on">sí</span> hasta ±60</td></tr>
+        <tr><td>Vocal</td><td>Posición de la lengua y de los labios</td><td><span class="pill off">fija</span></td><td><span class="pill on">a e i o u</span></td></tr>
+        <tr><td>Consonantes</td><td>Cerrar o estrechar el tubo en un punto; ruido de turbulencia</td><td><span class="pill off">no</span></td><td><span class="pill on">17</span></td></tr>
+        <tr><td>Nasales</td><td>Abrir el velo: el sonido sale por la nariz</td><td><span class="pill off">no</span></td><td><span class="pill on">m n · «mm»</span></td></tr>
+        <tr><td>Longitud del tracto</td><td>Laringe alta (voz corta, brillante) o baja (oscura)</td><td><span class="pill off">44 fijo</span></td><td><span class="pill on">36–56</span></td></tr>
+        <tr><td>Aire</td><td>Ruido de aspiración en la glotis</td><td><span class="pill off">fijo</span></td><td><span class="pill on">0–3×</span></td></tr>
+        <tr><td>Growl</td><td>Ciclos alternos distintos: subarmónico a la mitad del tono</td><td><span class="pill off">no</span></td><td><span class="pill on">sí</span></td></tr>
+        <tr><td>Aspereza</td><td>Irregularidad ciclo a ciclo (jitter, shimmer), como el fry</td><td><span class="pill off">no</span></td><td><span class="pill on">sí</span></td></tr>
+        <tr><td>Scoop, caída, glide</td><td>Cómo entra y sale de cada nota</td><td><span class="pill off">no</span></td><td><span class="pill on">sí</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">En el taller, las tres extensiones del motor (constricciones, longitud del tracto y glotis extra) están apagadas por defecto. Con valores neutros, el motor da exactamente las muestras del fork.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Medido</span>
+    <h2>Dónde caen las vocales</h2>
+    <p>Para dar a Zig vocales reales medí F1 y F2 del propio motor con LPC sobre una vocal sostenida. Luego busqué la lengua y los labios que más se acercan a las cinco vocales del español (valores medios de Quilis). Las cinco quedaron a menos de un 5 %. Dos sorpresas: la «u» solo sale con los labios redondeados, y el preset del juego llamado «Back (oh)» suena más a «a» que a «o».</p>
+    <div class="card">
+      <svg viewBox="0 0 640 380" role="img" aria-label="Carta de vocales: F2 en horizontal de 2600 a 600 Hz y F1 en vertical de 200 a 900 Hz">
+        <g stroke="var(--line)" stroke-width="1">
+          <line x1="70" y1="30" x2="70" y2="320"/><line x1="70" y1="320" x2="610" y2="320"/>
+          <line x1="70" y1="113" x2="610" y2="113"/><line x1="70" y1="196" x2="610" y2="196"/><line x1="70" y1="279" x2="610" y2="279"/>
+          <line x1="205" y1="30" x2="205" y2="320"/><line x1="340" y1="30" x2="340" y2="320"/><line x1="475" y1="30" x2="475" y2="320"/>
+        </g>
+        <text x="62" y="34" text-anchor="end">200</text><text x="62" y="117" text-anchor="end">400</text><text x="62" y="200" text-anchor="end">600</text><text x="62" y="283" text-anchor="end">800</text>
+        <text x="70" y="338" text-anchor="middle">2600</text><text x="205" y="338" text-anchor="middle">2100</text><text x="340" y="338" text-anchor="middle">1600</text><text x="475" y="338" text-anchor="middle">1100</text><text x="610" y="338" text-anchor="middle">600</text>
+        <text x="340" y="362" text-anchor="middle">F2 (Hz) · lengua adelante ← → atrás</text>
+        <text x="16" y="180" transform="rotate(-90 16 180)" text-anchor="middle">F1 (Hz) · boca cerrada ↑ abierta ↓</text>
+        <g id="pts"></g>
+      </svg>
+      <div class="cta" style="gap:16px"><span class="note"><svg width="12" height="12" style="display:inline;width:12px;vertical-align:middle"><circle cx="6" cy="6" r="5" fill="none" stroke="var(--muted)" stroke-width="2"/></svg> español (Quilis)</span><span class="note"><svg width="12" height="12" style="display:inline;width:12px;vertical-align:middle"><circle cx="6" cy="6" r="5" fill="var(--mel)"/></svg> taller</span><span class="note"><svg width="12" height="12" style="display:inline;width:12px;vertical-align:middle"><rect x="1" y="1" width="10" height="10" fill="var(--voice)"/></svg> presets del juego</span></div>
+    </div>
+    <p>La longitud del tracto mueve todos los formantes a la vez. La «a» con 36 tramos da F1 980 Hz; con 44, 780; con 52, 640. Eso es la laringe alta del rock frente a la baja de la ópera o el growl, en una sola perilla.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Modos</span>
+    <h2>Diez maneras de cantar lo mismo</h2>
+    <p>Cada modo es una posición de las perillas con su razón física. Donde hay estudio, se cita; donde no lo hay, se dice.</p>
+    <div class="modes">
+      <div class="card mode"><h3>Tierno y calmado</h3><p>Tensión 0,22–0,42 (soplada), aire ×1,8, vibrato lento y tardío, brillo bajo, tracto 46, legato y glide. Canta «lu», «u» y cierra con «mm», boca cerrada.</p><span class="src">Rd alto = voz soplada</span></div>
+      <div class="card mode"><h3>Punk rock</h3><p>Tensión 0,72–0,92 (apretada), sin vibrato, tracto 40 (laringe alta), ataque empujado, scoop desde abajo, caída al final de frase, saturación de micro. «hey», «go», «oi».</p><span class="src">laringe alta y compresión en rock: Guzman et al. 2013 · punk: sin estudio específico</span></div>
+      <div class="card mode"><h3>Death metal</h3><p>Growl 0,85 (subarmónico), aspereza 0,6, aire ×3, tracto 52 (laringe baja), dos octavas abajo, vocal «o». «gro», «uo», «dru».</p><span class="src">vibración supraglótica con subarmónicos: Sakakibara et al. 2004; Aaen, McGlashan y Sadolin 2020 · más flujo: Guzman et al. 2019</span></div>
+      <div class="card mode"><h3>Ópera</h3><p>Tracto 50 (laringe baja), vibrato amplio a 5,6 Hz que entra casi enseguida, vocales abiertas, legato.</p><span class="src">5,5–6,7 Hz y ±60 cents: Prame 1994 · formante del cantante: Sundberg 1974</span></div>
+      <div class="card mode"><h3>Pop · Crooner · Falsete</h3><p>Pop: vibrato corto al final, scoops pequeños, «na la da». Crooner: grave, aire, vibrato hondo y lento, deslices. Falsete: registro alto, soplado, tracto corto.</p><span class="src">por oído, sin estudio propio</span></div>
+      <div class="card mode"><h3>Robot · Borracho</h3><p>Robot: cero jitter, cero vibrato, cero glide, staccato, «bi bo». Borracho: el Pink Trombone original sin domar (looseness 1, unos 35 cents de deriva).</p><span class="src">deriva medida en el POC, sesión 5</span></div>
+    </div>
+    <p class="note">«Zig hoy + dicción» no es una propuesta: es encender el booleano que ya existe. Es la mejora más barata de esta página.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">La melodía</span>
+    <h2>Subir sin escalera</h2>
+    <p>Rise Up sube de un grado en un grado. Un zig-zag con «sube 2, baja 1» llega igual de alto, pero cada paso cambia de dirección (do-mi-re-fa-mi-sol). La misma lógica con otros números da saltos de tercera, olas o una nota pedal.</p>
+    <div class="card">
+      <svg viewBox="0 0 640 230" role="img" aria-label="Grados de Rise Up en escalera frente a un zig-zag que sube 2 y baja 1">
+        <g stroke="var(--line)"><line x1="40" y1="200" x2="620" y2="200"/><line x1="40" y1="20" x2="40" y2="200"/></g>
+        <text x="34" y="204" text-anchor="end">0</text><text x="34" y="124" text-anchor="end">4</text><text x="34" y="44" text-anchor="end">8</text>
+        <polyline id="lRU" fill="none" stroke="var(--muted)" stroke-width="3" stroke-dasharray="6 5"/>
+        <polyline id="lZZ" fill="none" stroke="var(--voice)" stroke-width="3"/>
+        <text x="470" y="196">Rise Up (grados)</text><text x="470" y="40" style="fill:var(--voice)">zig-zag +2 −1</text>
+      </svg>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Herramienta del taller</th><th>Qué hace</th><th>De dónde sale</th></tr></thead>
+      <tbody>
+        <tr><td>Figura</td><td>Escalera, zig-zag, saltos, ola, pedal, secuencia o paseo; sube y baja en grados; dirección, rango y qué hacer en el tope</td><td>Petición de Claudio; secuencia y repetición ya existen en <code>MelodicStyleSO</code> (Showtime)</td></tr>
+        <tr><td>Ritmo por celdas</td><td>13 celdas de compás elegidas por densidad y síncopa, con silencios y swing</td><td>El mismo patrón de perillas que el Taller de bajo</td></tr>
+        <tr><td>Tras un salto, volver</td><td>Un salto de 3 grados o más va seguido de un paso en contra</td><td>von Hippel y Huron, <i>Music Perception</i> 18(1), 2000</td></tr>
+        <tr><td>Cadencia y arco</td><td>Las frases cierran en la quinta o la segunda, y la última en la tónica; dirección «arco»</td><td>Huron, «The melodic arch in Western folksongs», 1996</td></tr>
+        <tr><td>Nota del acorde en 1 y 3</td><td>En los tiempos fuertes, la nota más cercana del acorde</td><td>Práctica común, como <code>NoteSource</code> en MidiGenPlay</td></tr>
+        <tr><td>Firma de Zig</td><td>Una vecina superior rápida antes de cada cierre y una caída: un gesto que se reconoce</td><td>Propuesta de identidad</td></tr>
+        <tr><td>Escalas</td><td>16, de las que 7 (los modos) ya existen en el juego; además, pentatónicas, blues, armónica, frigio dominante, húngara, hirajoshi</td><td>—</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <span class="eyebrow">Propuesta</span>
+    <h2>Por fases, de lo gratis a lo grande</h2>
+    <div class="phases">
+      <div class="card phase"><span class="tag">F0</span><div><h3>Encender la dicción</h3><p><code>expressivityEnabled = true</code> en <code>Zig_SingerVoice</code>. Ya está escrito y probado en el POC (sesión 4). Un smoke de oído. Aprovechar para renombrar «Back (oh)», que no es una «o».</p><span class="when">ALWTTT · minutos · cabe antes de la demo, por ejemplo en S9c (DEMO-FIX-1)</span></div></div>
+      <div class="card phase"><span class="tag">F1</span><div><h3>Melodías por figura</h3><p>Una estrategia de melodía en MidiGenPlay con figura, sube/baja, dirección, rango, ritmo por celdas y las reglas, portada desde el taller con paridad, como el bajo. Rise Up se queda; aparecen hermanas (Zig Zag, Ola, Pedal) y Showtime gana variedad.</p><span class="when">MidiGenPlay · 1–2 sesiones · después de la demo, en la cola</span></div></div>
+      <div class="card phase"><span class="tag">F2</span><div><h3>La garganta entera</h3><p>POC-FORK 8–10 en C#: constricciones (consonantes y nasales), longitud del tracto y glotis extra (growl, aspereza, aire), copiando el JS del taller. Con valores neutros, el fork no cambia ni una muestra. Medir el coste DSP en build: en Node, las extensiones cuestan lo mismo que el fork (~6 % de una voz en tiempo real).</p><span class="when">ALWTTT · 1–2 sesiones · después de la demo</span></div></div>
+      <div class="card phase"><span class="tag">F3</span><div><h3>Sílabas y modos en el juego</h3><p><code>VoiceProfileSO</code> v2 con los campos nuevos, un banco de sílabas por modo y modos como assets. El juego decide cuándo: un modo por canción o por carta, o según el estado (Stress alto → voz rota). Es el «tier 2» que el documento de palancas ya preveía.</p><span class="when">ALWTTT · 1–2 sesiones · después de F2</span></div></div>
+      <div class="card phase"><span class="tag">F4</span><div><h3>Dos voces</h3><p>Doble Armonía cantada (Tier B): dos voces, el doble de CPU. Sigue diferida.</p><span class="when">más adelante</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">Para decidir</span>
+    <h2>Lo que queda en tus manos</h2>
+    <ol class="dec">
+      <li><b>F0 antes de la demo:</b> ¿encendemos la dicción ya? Recomiendo que sí: es un booleano y un smoke, y no abre ningún frente.</li>
+      <li><b>La voz de Zig:</b> ¿qué modo es él? Propongo escuchar los modos con Matías en el taller y elegir uno base. Los demás quedarían como estados o cartas.</li>
+      <li><b>Las sílabas:</b> ¿scat inventado («na», «hey», «gro»), español o un idioma propio de la nave? El motor admite cualquiera de las tres.</li>
+      <li><b>Cuándo F1–F3:</b> mi propuesta es después del 11 de diciembre, por la regla de la cola de MidiGenPlay. Si prefieres adelantar algo, el orden más barato es F1 (melodía) antes que F2 (voz).</li>
+    </ol>
+  </section>
+
+  <section>
+    <span class="eyebrow">Con cuidado</span>
+    <h2>Lo que no está verificado</h2>
+    <ul class="plain">
+      <li>Los modos se calibraron leyendo números, no escuchando: los ajustes finos son tuyos y de Matías.</li>
+      <li>No hay estudio acústico específico del punk; ese modo toma rasgos documentados del rock y del belt.</li>
+      <li>Los rangos de Rd de Fant (1995), Sundberg y Nordström (1976) y el gap-fill de Meyer solo los vi citados.</li>
+      <li>En el taller, Rise Up empieza en la tónica elegida; en el juego sale en la octava media del instrumento.</li>
+      <li>El coste en CPU se midió en Node, no en una build de Unity.</li>
+    </ul>
+    <p class="note">Archivos: <code>ALWTTT25/Docs/reference/taller-melodia/</code> (motores, plantilla, <code>paridad/</code>, <code>investigacion.md</code>) y esta página en <code>Docs/reference/zig-voz-wrapped/</code>.</p>
+  </section>
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const X = (f2) => 70 + (2600 - f2) / 2000 * 540, Y = (f1) => 30 + (f1 - 200) / 700 * 290;
+  const ref = { a: [700, 1300], e: [450, 1900], i: [300, 2300], o: [500, 950], u: [320, 800] };
+  const tal = { a: [710, 1310], e: [450, 1910], i: [310, 2230], o: [510, 930], u: [310, 810] };
+  const juego = [['«uh» hoy', 790, 1210], ['Open', 790, 1490], ['Front', 260, 2490], ['«Back (oh)»', 730, 1650]];
+  const g = document.getElementById('pts');
+  const el = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); g.appendChild(e); return e; };
+  for (const v in ref) {
+    el('circle', { cx: X(ref[v][1]), cy: Y(ref[v][0]), r: 9, fill: 'none', stroke: 'var(--muted)', 'stroke-width': 2 });
+    el('circle', { cx: X(tal[v][1]), cy: Y(tal[v][0]), r: 5, fill: 'var(--mel)' });
+    el('text', { x: X(ref[v][1]) + 12, y: Y(ref[v][0]) - 8, style: 'fill:var(--fg);font-size:15px' }).textContent = v;
+  }
+  for (const [n, f1, f2] of juego) {
+    el('rect', { x: X(f2) - 5, y: Y(f1) - 5, width: 10, height: 10, fill: 'var(--voice)' });
+    el('text', { x: X(f2) + 9, y: Y(f1) + 18, style: 'fill:var(--voice)' }).textContent = n;
+  }
+  const ru = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7], zz = [0, 2, 1, 3, 2, 4, 3, 5, 4, 6, 5, 7, 6, 8, 7];
+  const pts = (a) => a.map((d, i) => `${40 + i * 40},${200 - d * 20}`).join(' ');
+  document.getElementById('lRU').setAttribute('points', pts(ru));
+  document.getElementById('lZZ').setAttribute('points', pts(zz));
+})();
+</script>

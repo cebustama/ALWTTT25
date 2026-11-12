@@ -1,0 +1,38 @@
+# Taller de melodías (voz de Zig)
+
+Página privada para oír a Zig con el mismo Pink Trombone del juego, compararlo con melodías por figura y modos de voz, y mover la garganta en vivo. Creada el 2026-11-13 a partir del comentario de Matías («siempre es lo mismo»).
+
+- **Dónde:** artefacto https://claude.ai/artifact/WRdHN5Gf839qotLhrqvyLj. Wrapped con el diagnóstico y la propuesta: ver `../zig-voz-wrapped/`. Web privada: todavía no (`python -I -X utf8 build.py --web` la copia a `web/.../public/privado/taller-melodia/`, sin subir).
+- **Archivos:** `motor-voz.js` (el fork POC-FORK 1–7 en JS + extensiones X1–X3), `motor-canto.js` (melodías, sílabas, modos, cantante del juego y cantante v2), `template.html` + `build.py` → `index.html`. Los dos motores van dos veces en la página: como scripts (voz en vivo) y como fuente del Web Worker (renders).
+- **Investigación:** `investigacion.md` (Pink Trombone, forks, fisiología de los estilos, contorno melódico; con lo que no se pudo verificar).
+
+## Qué hace
+
+- **Melodía × Voz:** Rise Up exacto (`MelodyPattern_RiseUp_44_8m`) o la melodía nueva; Zig hoy (`VoiceProfile_Zig` + prefab `Zig_SingerVoice`, `expressivityEnabled = 0`) o un modo. Teclas M y V.
+- **Modos:** Zig hoy, Zig hoy + dicción (el C-lite que ya existe en C#), Tierno y calmado, Pop, Punk rock, Death metal, Ópera, Crooner, Falsete, Robot, Borracho.
+- **Perillas:** ★ las que existen en `VoiceProfileSO`; el resto es propuesta (longitud del tracto, aire, growl, aspereza, scoop, caída, glide, ataque, legato, saturación, vocal base, sílabas).
+- **Melodía nueva:** figura (escalera, zig-zag, saltos, ola, pedal, secuencia, paseo), sube/baja en grados, dirección, rango, ritmo por celdas (densidad, síncopa, silencios, swing), reglas (post-salto, acorde en 1 y 3, cadencia, firma de Zig), 16 escalas (7 existen en el juego).
+- **En vivo:** ScriptProcessor con la voz del modo; teclas A–Ñ, arrastrar la lengua sobre el dibujo, botones de consonante y vocal.
+- **Versiones:** en este navegador; código `TM1:`; «Copiar para la carta» da `VoiceProfileSO` + `propuestaVoiceProfileV2` + `melodiaPropuesta`.
+
+## Paridad y medidas (`paridad/`)
+
+```
+cd paridad
+node casos.mjs && dotnet run -c Release && node casos.mjs comparar   # motor JS = fork C#
+node formantes.mjs                                                   # F1/F2 de las vocales
+node vocales.mjs                                                     # búsqueda de lengua y labios para a e i o u
+```
+
+Resultado del 2026-11-13: 3 guiones (por defecto upstream y dos de cantante, 481.280 muestras): **95 % idénticas bit a bit, el resto a un ulp; error −155 dB**. El `.csproj` compila las fuentes reales de `Assets/PinkTrombonePOC/PinkTromboneSrc` (net10). Si cambia el fork, volver a correr.
+
+Vocales calibradas contra Quilis (a 700/1300, e 450/1900, i 300/2300, o 500/950, u 320/800): a 710/1310, e 450/1910, i 310/2230, o 510/930, u 310/810 (lengua índice/diámetro y labios en `motor-canto.js`). Hallazgos: la «uh» de hoy mide F1 790 / F2 1210; el preset del juego «Back (oh)» mide 730/1650, más «a» que «o»; la «u» necesita labios redondeados.
+
+Coste (Node, 48 kHz): ~6 % del tiempo real por voz, igual con y sin extensiones. En Unity el POC midió ~10,5 % por voz en build.
+
+## Igual al juego y distinto
+
+- **Igual, con prueba:** el motor de voz (arriba).
+- **Igual, por lectura:** `cantarJuego` = `SingerVoice.OnAudioFilterRead` v7 con el perfil de Zig (bloques de 1024, lead por intervalo, vibrato con retraso, tone stage); el C-lite M1–M3 con `opts.diccion`.
+- **Distinto:** la octava de Rise Up (en el juego, la media del instrumento); el acompañamiento es sintetizado; el volumen de la voz se iguala entre modos.
+- **Propuesta:** X1 constricciones (algoritmo de `TractUI` del original web), X2 longitud del tracto, X3 growl/aspereza/aire, el cantante v2 y el compositor por figuras. Apagadas por defecto: con valores neutros el motor es el fork.
