@@ -85,6 +85,16 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .n.dead{background:var(--muted);border-color:var(--muted);min-width:4px}
 .n.dead::before{display:none}
 .n.play{outline:2px solid var(--now);outline-offset:1px}
+.btn{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-weight:600;font-size:13px}
+.btn:hover{border-color:var(--bass)}
+.vrow{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.vrow .field{flex:1 1 200px}
+.vrow textarea{width:100%;min-height:38px;background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-family:var(--f-mono);font-size:12px;resize:vertical}
+.vlist{grid-column:1/-1;display:flex;flex-direction:column;gap:6px}
+.vitem{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 10px;background:var(--sunk);border:1px solid var(--line);border-radius:8px}
+.vitem .nm{font-weight:600;margin-right:auto;min-width:0;overflow-wrap:anywhere}
+.vitem .meta{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.vmsg{grid-column:1/-1;font-size:12px;color:var(--muted);min-height:1.2em}
 .chord{font-family:var(--f-mono);font-size:11px;color:var(--bass)}
 details{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 summary{cursor:pointer;font-weight:600}
@@ -145,6 +155,22 @@ code{font-family:var(--f-mono);font-size:.9em}
     <div class="field chk"><input id="dead" type="checkbox"><label for="dead">Notas muertas en la caja</label></div>
     <div class="field chk"><input id="antic" type="checkbox" checked><label for="antic">Anticipación</label></div>
     <p class="lab" style="grid-column:1/-1;color:var(--muted);font-size:12px">Usa también el umbral y «En un fill» de arriba. Las frases empiezan en el bombo y el crash fuertes (y en cada cambio de acorde); la caja solo pone notas muertas, salvo con «Seguir la caja».</p>
+  </section>
+
+  <section class="band" aria-label="Versiones">
+    <h2>Versiones guardadas</h2>
+    <div class="vrow">
+      <div class="field"><label for="vname">Nombre</label><input id="vname" type="text" maxlength="80" placeholder="Funk con notas muertas" style="background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:6px 8px"></div>
+      <button class="btn" id="vsave" type="button" title="Guarda todos los ajustes de batería, bajo y frases, y la versión que suena (A, B o C)">Guardar esta versión</button>
+      <button class="btn" id="vcard" type="button" title="Copia los ajustes como campos de las cartas de ritmo y de bajo">Copiar para la carta</button>
+      <button class="btn" id="vcode" type="button" title="Copia un código TB1 con todos los ajustes, para pegarlo en la otra página o guardarlo">Copiar código</button>
+    </div>
+    <div class="vrow">
+      <div class="field"><label for="vtext">Pegar un código TB1</label><textarea id="vtext" rows="1" spellcheck="false" placeholder="TB1:…"></textarea></div>
+      <button class="btn" id="vopen" type="button">Abrir el código</button>
+    </div>
+    <p class="vmsg" id="vmsg" role="status"></p>
+    <div class="vlist" id="vlist"></div>
   </section>
 
   <p class="sum" id="sum"></p>
@@ -728,6 +754,84 @@ function resync(){ if(!T.on){ render(); return; } const b = beatNow(); render();
 function pressAB(){ ["A","B","C"].forEach(k => $("#ab" + k).setAttribute("aria-pressed", String(M === k))); }
 function setAB(m){ M = m; pressAB(); resync(); save(); }
 
+/* ---------- saved versions ----------
+   Each version = every control value + the mode that sounds. In the artifact they live in the shared
+   db (collection "versiones"); elsewhere (the web copy) in this browser. The TB1 code carries one
+   version between the two. "Copiar para la carta" maps them to RhythmCardConfigSO /
+   BasslineCardConfigSO field names (the phrase fields are the names proposed for the C# port). */
+const VKEY = "tbajo-versiones";
+let VERS = [], VDB = null;
+function snapshot(){ const o = {M}; IDS.forEach(id => { const e = $("#" + id); o[id] = e.type === "checkbox" ? e.checked : e.value; }); return o; }
+function applySnap(s){
+  IDS.forEach(id => { const e = $("#" + id); if(s[id] == null) return; if(e.type === "checkbox") e.checked = !!s[id];
+    else if(e.tagName !== "SELECT" || [...e.options].some(o => o.value === String(s[id]))) e.value = s[id]; });
+  if(["A","B","C"].includes(s.M)) M = s.M; pressAB(); outputs(); resync(); save();
+}
+const encCode = o => "TB1:" + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+function decCode(t){ const m = String(t).trim().match(/^TB1:([\s\S]+)$/); if(!m) throw new Error("no TB1"); return JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/\s+/g, ""))))); }
+function cardOf(s, name){
+  const p = DATA.patterns.find(x => x.guid === s.pat), prog = DATA.progressions.find(x => x.id === s.prog), fig = FIG[s.fig] || FIG.block;
+  const follow = s.M === "A" ? "Off" : s.M === "C" ? "Phrases" : (s.mode === "reinforce" ? "Reinforce" : "Attacks");
+  return {
+    version: name || "", from: "Taller de bajo (TB1)", tempoBpm: +s.bpm, measures: +s.meas,
+    rhythm: { pattern: p ? p.display : s.pat, patternGuid: s.pat, fillEveryNMeasures: +s.every, lastMeasuresAsFill: s.last ? 1 : 0,
+      crashAfterFill: !!s.crash, accentContrast: +s.contrast,
+      proceduralFillWeight: s.src === "lib" ? 0 : 1, fillPalette: s.src === "proc" ? "(ninguna)" : "los 13 fills de Music Lab", trackSeed: +s.seed },
+    bass: { progression: prog ? prog.label : s.prog, chordExpression: fig[0], arpeggioRate: fig[1],
+      accentFollow: follow, accentThreshold: +s.thr, accentMaxAttacksPerBar: +s.cap, accentVelocityBoost: +s.boost,
+      accentOffVelocityCut: +s.cut, accentFillMode: s.fillm === "follow" ? "Follow" : "Gap",
+      phraseStyle: {rock:"Rock", pop:"Pop", funk:"Funk", ballad:"Ballad"}[s.style] || "Rock",
+      phraseFollowSnare: !!s.snare, phraseDeadNotes: s.dead ? "Snare" : "Off", phraseAnticipation: !!s.antic, phraseSeed: +s.bseed },
+    note: follow === "Phrases" ? "Los campos phrase* y accentFollow = Phrases son los nombres propuestos: existirán cuando el modo C se porte a C# (sesión 2a bis)." : undefined };
+}
+async function copyText(t, ok){ const m = $("#vmsg"); try{ await navigator.clipboard.writeText(t); m.textContent = ok; }
+  catch{ $("#vtext").value = t; $("#vtext").select(); m.textContent = "No pude copiar: el texto queda en el cuadro de abajo para copiarlo a mano."; } }
+function loadLocalVers(){ try{ const a = JSON.parse(localStorage.getItem(VKEY)); return Array.isArray(a) ? a : []; }catch{ return []; } }
+function saveLocalVers(){ try{ localStorage.setItem(VKEY, JSON.stringify(VERS)); return true; }catch{ return false; } }
+const fmtDate = t => { try{ return new Date(t).toLocaleString("es-ES", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}); }catch{ return ""; } };
+function drawVers(){
+  const box = $("#vlist"); box.replaceChildren();
+  if(!VERS.length){ box.append(el("p", "vmsg", "Todavía no hay versiones guardadas.")); return; }
+  VERS.slice().sort((a, b) => (b.t || 0) - (a.t || 0)).forEach(v => {
+    const it = el("div", "vitem"), s = v.s || {};
+    it.append(el("span", "nm", v.name || "Sin nombre"));
+    it.append(el("span", "meta", `${s.M || "?"} · ${PHR.STYLE[s.style]?.label || ""} · ${s.bpm || "?"} bpm · ${fmtDate(v.t)}`));
+    const open = el("button", "btn", "Abrir"); open.type = "button"; open.addEventListener("click", () => { applySnap(s); $("#vmsg").textContent = `Abierta: ${v.name || "sin nombre"}.`; });
+    const code = el("button", "btn", "Código"); code.type = "button"; code.addEventListener("click", () => copyText(encCode({name:v.name, s}), "Código copiado."));
+    const card = el("button", "btn", "Para la carta"); card.type = "button"; card.addEventListener("click", () => copyText(JSON.stringify(cardOf(s, v.name), null, 2), "Campos de la carta copiados (JSON)."));
+    const del = el("button", "btn", "Borrar"); del.type = "button"; del.addEventListener("click", () => removeVer(v));
+    it.append(open, code, card, del); box.append(it);
+  });
+}
+async function addVer(name, s){
+  const v = {name: (name || "").trim().slice(0, 80) || "Sin nombre", s, t: Date.now()};
+  if(VDB){ try{ await VDB.collection("versiones").add(v); $("#vmsg").textContent = `Guardada: ${v.name} (en el catálogo compartido del artefacto).`; return; }
+    catch(e){ $("#vmsg").textContent = "No pude guardar en el artefacto (" + (e?.code || "error") + "); la guardo en este navegador."; } }
+  VERS.push({...v, id: "l" + v.t}); const ok = saveLocalVers(); drawVers();
+  if(!VDB) $("#vmsg").textContent = ok ? `Guardada: ${v.name} (en este navegador; usa «Código» para llevarla a otro sitio).` : "Este navegador no deja guardar: copia el código.";
+}
+async function removeVer(v){
+  if(VDB && !String(v.id).startsWith("l")){ try{ await VDB.doc("versiones/" + v.id).delete(); $("#vmsg").textContent = "Borrada."; }catch(e){ $("#vmsg").textContent = "No pude borrarla (" + (e?.code || "error") + ")."; } return; }
+  VERS = VERS.filter(x => x !== v); saveLocalVers(); drawVers(); $("#vmsg").textContent = "Borrada.";
+}
+function initVers(){
+  VERS = loadLocalVers(); drawVers();
+  $("#vsave").addEventListener("click", () => { addVer($("#vname").value, snapshot()); $("#vname").value = ""; });
+  $("#vcode").addEventListener("click", () => copyText(encCode({name:$("#vname").value.trim(), s:snapshot()}), "Código de los ajustes actuales copiado."));
+  $("#vcard").addEventListener("click", () => copyText(JSON.stringify(cardOf(snapshot(), $("#vname").value.trim()), null, 2), "Campos de la carta copiados (JSON)."));
+  $("#vopen").addEventListener("click", () => { try{ const o = decCode($("#vtext").value); applySnap(o.s || o); $("#vmsg").textContent = "Código abierto" + (o.name ? `: ${o.name}` : "") + ". Guárdalo si quieres tenerlo en la lista."; if(o.name) $("#vname").value = o.name; }
+    catch{ $("#vmsg").textContent = "Ese texto no es un código TB1 válido."; } });
+  (async () => { try{
+    if(!window.claude || !window.claude.use) return;
+    const db = await window.claude.use("db"); if(!db) return;
+    let first = true; const timer = setTimeout(() => { if(first) $("#vmsg").textContent = "El catálogo compartido tarda en responder; lo guardado va a este navegador."; }, 10000);
+    db.collection("versiones").onSnapshot(snap => { clearTimeout(timer); first = false; VDB = db;
+      const local = loadLocalVers();
+      VERS = snap.docs.map(d => ({id: d.id, ...d.data()})).concat(local); drawVers(); },
+      () => { clearTimeout(timer); VDB = null; });
+  }catch{} })();
+}
+
 /* ---------- wiring ---------- */
 const IDS = ["pat","bpm","meas","every","src","seed","contrast","last","crash","drumsOn","prog","fig","mode","fillm","thr","cap","boost","cut","bvol","style","bseed","snare","dead","antic"];
 function save(){ const o = {M}; IDS.forEach(id => { const e = $("#" + id); o[id] = e.type === "checkbox" ? e.checked : e.value; }); store.set("tbajo", o); }
@@ -741,7 +845,7 @@ function outputs(){ $("#contrastO").textContent = $("#contrast").value; $("#thrO
   const s = store.get("tbajo", null);
   if(s){ IDS.forEach(id => { const e = $("#" + id); if(s[id] == null) return; if(e.type === "checkbox") e.checked = s[id]; else if(e.tagName !== "SELECT" || [...e.options].some(o => o.value === String(s[id]))) e.value = s[id]; }); M = ["A","B","C"].includes(s.M) ? s.M : (s.B ? "B" : "A"); }
   pressAB();
-  outputs(); setIcon(false); render();
+  outputs(); setIcon(false); render(); initVers();
   IDS.forEach(id => $("#" + id).addEventListener("input", () => { outputs(); if(id === "pat"){ const p = DATA.patterns.find(x => x.guid === $("#pat").value); if(p?.bpm) $("#bpm").value = p.bpm; } resync(); save(); }));
   $("#play").addEventListener("click", () => T.on ? stop() : start());
   ["A","B","C"].forEach(k => $("#ab" + k).addEventListener("click", () => setAB(k)));
