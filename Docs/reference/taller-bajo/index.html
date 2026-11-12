@@ -8,7 +8,7 @@
 :root{
   --bg:#eef0f3; --surface:#ffffff; --sunk:#f6f7f9; --fg:#18202c; --muted:#5b6575; --line:#d6dbe2;
   --drum:#a3305f; --drum-soft:#f3d9e4; --bass:#0f6f69; --bass-soft:#cfece8; --attack:#c26a00; --attack-soft:#fbe6c8;
-  --now:#ffd34d;
+  --now:#ffd34d; --phrase:#4b4fb8;
   --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --f-body:"Inter","Segoe UI",system-ui,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
@@ -16,11 +16,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#11151b; --surface:#191f27; --sunk:#141920; --fg:#e6e9ef; --muted:#97a1b0; --line:#2a323d;
   --drum:#ea72a5; --drum-soft:#3a1e2b; --bass:#4cc8bd; --bass-soft:#163633; --attack:#f2a64a; --attack-soft:#3d2a12;
-  --now:#8a6d10; color-scheme:dark}}
+  --now:#8a6d10; --phrase:#9ea2ff; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#11151b; --surface:#191f27; --sunk:#141920; --fg:#e6e9ef; --muted:#97a1b0; --line:#2a323d;
   --drum:#ea72a5; --drum-soft:#3a1e2b; --bass:#4cc8bd; --bass-soft:#163633; --attack:#f2a64a; --attack-soft:#3d2a12;
-  --now:#8a6d10; color-scheme:dark}
+  --now:#8a6d10; --phrase:#9ea2ff; color-scheme:dark}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 .wrap{max-width:1100px;margin:0 auto;padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
@@ -40,6 +40,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .ab button{border:0;background:var(--sunk);padding:8px 14px;font-weight:600}
 .ab button[aria-pressed="true"]{background:var(--bass);color:var(--surface)}
 .ab button.b[aria-pressed="true"]{background:var(--attack);color:var(--surface)}
+.ab button.cc[aria-pressed="true"]{background:var(--phrase);color:var(--surface)}
 #pos{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:15ch}
 .field{display:flex;flex-direction:column;gap:3px;min-width:0}
 .field label,.field .lab{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-family:var(--f-mono)}
@@ -78,6 +79,11 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .n.on::before{background:var(--surface);opacity:.6}
 .n.atk{background:var(--attack);border-color:var(--attack)}
 .n.atk::before{background:var(--surface);opacity:.7}
+.n.ph{background:var(--phrase);border-color:var(--phrase)}
+.n.ph::before{background:var(--surface);opacity:.6}
+.n.app{background:transparent;border-style:dashed;border-color:var(--phrase)}
+.n.dead{background:var(--muted);border-color:var(--muted);min-width:4px}
+.n.dead::before{display:none}
 .n.play{outline:2px solid var(--now);outline-offset:1px}
 .chord{font-family:var(--f-mono);font-size:11px;color:var(--bass)}
 details{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
@@ -96,12 +102,13 @@ code{font-family:var(--f-mono);font-size:.9em}
     <button id="play" type="button" aria-label="Reproducir"></button>
     <div class="ab" role="group" aria-label="Comparar">
       <button type="button" id="abA" aria-pressed="true" title="El bajo de hoy, sin seguir acentos">A · hoy</button>
-      <button type="button" id="abB" class="b" aria-pressed="false" title="El bajo que sigue los acentos (tecla B alterna)">B · sigue</button>
+      <button type="button" id="abB" class="b" aria-pressed="false" title="El bajo que sigue los acentos (tecla B)">B · sigue</button>
+      <button type="button" id="abC" class="cc" aria-pressed="false" title="Frases que empiezan en el bombo (tecla C)">C · frases</button>
     </div>
     <span id="pos">—</span>
   </header>
 
-  <p class="lead">Batería y bajo juntos, con el motor de MidiGenPlay. La batería es la «Parte con fills» del Taller de batería. El bajo es el de <code>BassTrackComposer</code>: <b>A</b> toca como hoy y <b>B</b> sigue los acentos que publica la batería (<code>accentFollow</code>, MGP-BASS-ACCENT-1). Pulsa la barra espaciadora para tocar o parar, y la tecla <b>B</b> para cambiar de A a B sin cortar.</p>
+  <p class="lead">Batería y bajo juntos, con el motor de MidiGenPlay. La batería es la «Parte con fills» del Taller de batería. El bajo es el de <code>BassTrackComposer</code>: <b>A</b> toca como hoy, <b>B</b> sigue los acentos que publica la batería (<code>accentFollow</code>, MGP-BASS-ACCENT-1) y <b>C</b> es el prototipo de la sesión 2a bis: frases que empiezan en el bombo y el crash, con silencios, notas de paso al acorde siguiente y notas muertas en la caja (propuesta de Music Lab, todavía no está en C#). La barra espaciadora toca o para; las teclas <b>A</b>, <b>B</b> y <b>C</b> cambian sin cortar.</p>
 
   <section class="band" aria-label="Batería">
     <h2>Batería</h2>
@@ -130,6 +137,16 @@ code{font-family:var(--f-mono);font-size:.9em}
     <div class="field"><label for="bvol">Volumen del bajo</label><input id="bvol" type="range" min="0" max="1.6" step="0.05" value="1"><output id="bvolO">1</output></div>
   </section>
 
+  <section class="band" aria-label="Frases (C)">
+    <h2>Frases (C)</h2>
+    <div class="field"><label for="style">Estilo</label><select id="style"><option value="rock" selected>Rock</option><option value="pop">Pop</option><option value="funk">Funk</option><option value="ballad">Balada</option></select></div>
+    <div class="field"><label for="bseed">Semilla del bajo</label><input id="bseed" type="number" value="1"></div>
+    <div class="field chk"><input id="snare" type="checkbox"><label for="snare">Seguir la caja</label></div>
+    <div class="field chk"><input id="dead" type="checkbox"><label for="dead">Notas muertas en la caja</label></div>
+    <div class="field chk"><input id="antic" type="checkbox" checked><label for="antic">Anticipación</label></div>
+    <p class="lab" style="grid-column:1/-1;color:var(--muted);font-size:12px">Usa también el umbral y «En un fill» de arriba. Las frases empiezan en el bombo y el crash fuertes (y en cada cambio de acorde); la caja solo pone notas muertas, salvo con «Seguir la caja».</p>
+  </section>
+
   <p class="sum" id="sum"></p>
   <div class="legend" aria-hidden="true">
     <span><i style="background:var(--drum)"></i>acento fuerte</span>
@@ -137,6 +154,9 @@ code{font-family:var(--f-mono);font-size:.9em}
     <span><i style="background:var(--bass-soft);border:1px solid var(--bass)"></i>nota del bajo</span>
     <span><i style="background:var(--bass)"></i>reforzada (cae en un acento)</span>
     <span><i style="background:var(--attack)"></i>ataque nuevo</span>
+    <span><i style="background:var(--phrase)"></i>C: inicio de frase</span>
+    <span><i style="border:1px dashed var(--phrase)"></i>C: nota de paso</span>
+    <span><i style="background:var(--muted)"></i>C: nota muerta</span>
   </div>
   <div class="part" id="part"></div>
 
@@ -146,6 +166,7 @@ code{font-family:var(--f-mono);font-size:.9em}
       <li><b>Igual al C#, con prueba de paridad:</b> el plan de golpes del bajo (<code>ChordArticulator.PlanHits</code> de Block y del pulso, con su curva de velocidad) y el seguimiento de acentos (<code>BassAccentFollow.PlanEvent</code> y <code>AccentDeriver.MarkFills</code>): inicios, duraciones y velocidades. La prueba está en <code>paridad/</code>.</li>
       <li><b>La batería</b> es el motor del Taller de batería v2 (<code>FX</code>, comprobado contra C# en la sesión 1), inyectado por <code>build.py</code>.</li>
       <li><b>Distinto:</b> la octava. En el juego la elige un sorteo de <code>ctx.rng</code>; aquí la fundamental va siempre entre Mi1 y Re#2. El walk (normal e improvisado) y el slap no están portados: en ellos B solo refuerza, nunca ataca. El sonido es sintetizado, no el SF2 del juego.</li>
+      <li><b>C es un prototipo:</b> todavía no existe en C#. Cuando suene bien, se porta a <code>BassTrackComposer</code> y se añade a la prueba de paridad. Las 12 frases, la ley de velocidad y las notas muertas son las de Music Lab (<code>MidiGenPlay/Documentation~/research/2026-11-12_bajo_frases_music_lab.md</code>).</li>
       <li><b>Progresiones:</b> los <code>ChordProgressionData</code> en 4/4 de <code>Assets/Resources/ScriptableObjects/Patterns/Chords/</code>, en Do, repetidos hasta llenar la parte. Las menores van en eólico.</li>
     </ul>
   </details>
@@ -297,6 +318,155 @@ const BASS = (() => {
   }
   return {planHits, planEvent, markFills, render, cutVel};
 })();
+/* MGP-BASS-PHRASE-1 (queue 2a bis) — PROTOTYPE, not yet in C#. Bass phrases anchored on the
+   kick and the crash, after Music Lab (MidiGenPlay research/2026-11-12_bajo_frases_music_lab.md).
+   Written to be ported 1:1: integer hashes (no Math.random), beats as doubles, no DOM. */
+const PHR = (() => {
+  const EPS = 1e-6, MATCH = 1e-4, FLOOR_MIDI = 28;
+  const KICK = [35, 36], CRASH = [49, 57], SNARE = [38, 40];
+  const MINOR = [1, 5, 7, 8, 12, 16], DOMINANT = [6, 13, 14];
+  // gate: multiplier on the template durations; cap: drum anchors per bar; tail: silence before the next anchor.
+  const STYLE = {
+    rock:   {gate: 1.00, cap: 3, tail: .125, approach: "below", label: "Rock"},
+    pop:    {gate: .90,  cap: 3, tail: .125, approach: "below", label: "Pop"},
+    funk:   {gate: .60,  cap: 4, tail: .25,  approach: "alt",   label: "Funk"},
+    ballad: {gate: 1.08, cap: 2, tail: .125, approach: "below", label: "Balada"}};
+  // Music Lab's 12 phrases: len = the gap it is written for; notes [start, dur, degree].
+  // Degrees: R root, 5, 8 octave, 6, b7, A = approach to the next anchor's root.
+  const LIB = [
+    {id: "F1",  len: .5,  tags: ["rock", "pop", "funk", "ballad"], n: [[0, .4, "R"]]},
+    {id: "F2",  len: 1,   tags: ["rock", "pop", "ballad"],         n: [[0, .9, "R"]]},
+    {id: "F3",  len: 1,   tags: ["rock", "pop", "funk"],           n: [[0, .5, "R"], [.5, .4, "A"]]},
+    {id: "F4",  len: 1.5, tags: ["rock", "pop", "ballad"],         n: [[0, 1, "R"]]},
+    {id: "F5",  len: 2,   tags: ["rock", "pop"],                   n: [[0, .5, "R"], [.5, .5, "R"], [1, .5, "R"], [1.5, .4, "A"]]},
+    {id: "F6",  len: 2,   tags: ["rock", "pop"],                   n: [[0, 1.5, "R"], [1.5, .4, "5"]]},
+    {id: "F7",  len: 2,   tags: ["funk"],                          n: [[0, .25, "R"], [.75, .25, "8"], [1.5, .4, "b7"]]},
+    {id: "F8",  len: 3,   tags: ["pop", "funk"],                   n: [[0, 1, "R"], [1, .5, "5"], [2, .5, "6"], [2.5, .4, "A"]]},
+    {id: "F9",  len: 3,   tags: ["ballad", "pop"],                 n: [[0, 2, "R"]]},
+    {id: "F10", len: 4,   tags: ["rock", "pop"],                   n: [[0, 1, "R"], [1, 1, "5"], [2, 1, "8"], [3, .5, "5"], [3.5, .4, "A"]]},
+    {id: "F11", len: 4,   tags: ["funk"],                          n: [[0, .5, "R"], [.75, .25, "R"], [1.5, .5, "5"], [2.5, .25, "b7"], [3, .5, "8"], [3.5, .4, "A"]]},
+    {id: "F12", len: 4,   tags: ["ballad", "rock"],                n: [[0, 3, "R"], [3, .5, "5"], [3.5, .4, "A"]]}];
+
+  // Integer hash (murmur3 finalizer). In C#: uint, unchecked.
+  function fmix(x){ x >>>= 0; x ^= x >>> 16; x = Math.imul(x, 0x85ebca6b) >>> 0; x ^= x >>> 13; x = Math.imul(x, 0xc2b2ae35) >>> 0; x ^= x >>> 16; return x >>> 0; }
+  const h3 = (seed, a, salt) => fmix((fmix((seed ^ Math.imul(a + 1, 0x9E3779B1)) >>> 0) ^ Math.imul(salt + 1, 0x85EBCA77)) >>> 0);
+  const unit = (seed, a, salt) => h3(seed, a, salt) / 4294967296;
+  const tick = b => Math.round(b*96);                     // stable per-beat key for the hash
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const barOf = (b, bpb) => Math.floor(b/bpb + 1e-9);
+  const onBeat = b => Math.abs(b - Math.round(b)) < MATCH;
+
+  function chordAt(events, b){ let e = null; for(const x of events){ if(x.start <= b + EPS) e = x; else break; } return e || events[0]; }
+
+  // The anchors: chord starts (always) and strong kick / crash (and snare if asked) instants.
+  function anchorsOf(onsets, accents, events, S, bpb, end){
+    const st = STYLE[S.style];
+    // Fill zones (gap mode): from the first fill accent of a bar to the bar's end.
+    const fillZones = [];
+    if(S.fill === "gap") for(const a of accents) if(a.f){ const m = barOf(a.b, bpb);
+      if(!fillZones.some(z => z.m === m)) fillZones.push({m, s: a.b, e: (m + 1)*bpb}); }
+    const inFill = b => fillZones.some(z => b >= z.s - EPS && b < z.e - EPS);
+    // Group the drum onsets per instant and weigh them by class.
+    const inst = new Map();
+    for(const o of onsets){ if(o.b >= end - EPS) continue; const k = tick(o.b);
+      const x = inst.get(k) || {b: o.b, kick: 0, crash: 0, snare: 0}; const p = (o.vel/127)**2;
+      if(KICK.includes(o.gm)) x.kick = Math.max(x.kick, p); else if(CRASH.includes(o.gm)) x.crash = Math.max(x.crash, p);
+      else if(SNARE.includes(o.gm)) x.snare = Math.max(x.snare, p);
+      inst.set(k, x); }
+    const thr = S.threshold - 1e-6, drum = [];
+    for(const x of [...inst.values()].sort((p, q) => p.b - q.b)){
+      let w = 0, cls = "";
+      if(x.kick >= thr){ w = 1; cls = "kick"; } else if(x.crash >= thr){ w = .8; cls = "crash"; }
+      else if(S.followSnare && x.snare >= thr){ w = .3; cls = "snare"; }
+      if(!w || inFill(x.b)) continue;
+      drum.push({b: x.b, w, cls}); }
+    // Syncopation: an off-beat drum anchor survives if it is the first of its bar or anticipates
+    // a chord change within one beat; otherwise it is skipped with p = 0.4.
+    const starts = events.map(e => e.start), anticip = new Map(), drumKept = [];
+    for(const a of drum){
+      if(onBeat(a.b)){ drumKept.push(a); continue; }
+      const first = !drumKept.some(k => barOf(k.b, bpb) === barOf(a.b, bpb));
+      const nextStart = starts.find(c => c > a.b + EPS && c <= a.b + 1 + EPS);
+      const changes = nextStart != null && chordAt(events, nextStart) !== chordAt(events, a.b);
+      if(S.anticipation && changes){ drumKept.push({...a, w: .625, sync: true, ant: chordAt(events, nextStart)}); anticip.set(tick(nextStart), true); continue; }
+      if(first || unit(S.seed, tick(a.b), 2) >= .4) drumKept.push({...a, w: .625, sync: true}); }
+    // Per-bar cap on drum anchors: heaviest first, then earliest.
+    const byBar = new Map(); drumKept.forEach(a => { const m = barOf(a.b, bpb); (byBar.get(m) || byBar.set(m, []).get(m)).push(a); });
+    const capped = [];
+    for(const list of byBar.values()) capped.push(...list.slice().sort((p, q) => (q.w - p.w) || (p.b - q.b)).slice(0, st.cap));
+    // Chord starts are anchors too, unless covered by an anticipation or inside a fill zone.
+    const all = new Map();
+    for(const c of starts){ if(c >= end - EPS || inFill(c) || anticip.has(tick(c))) continue; all.set(tick(c), {b: c, w: 0, cls: "chord"}); }
+    for(const a of capped){ const k = tick(a.b), prev = all.get(k); all.set(k, prev ? {...a, w: Math.max(a.w, prev.w)} : a); }
+    const list = [...all.values()].sort((p, q) => p.b - q.b);
+    // Each anchor ends at the next anchor, at a fill zone or at the part end.
+    list.forEach((a, i) => {
+      let e = i + 1 < list.length ? list[i + 1].b : end;
+      for(const z of fillZones) if(z.s > a.b + EPS && z.s < e) e = z.s;
+      a.end = e; a.next = i + 1 < list.length && Math.abs(list[i + 1].b - e) < EPS ? list[i + 1] : null;
+      a.ev = a.ant || chordAt(events, a.b); });
+    return {list, fillZones};
+  }
+
+  function pitchOf(deg, ev, nextEv, idx, S){
+    const r = ev.midi, minor = MINOR.includes(ev.q), dom = DOMINANT.includes(ev.q);
+    if(deg === "R") return r;
+    if(deg === "5") return r + 7;
+    if(deg === "8") return r + 12;
+    if(deg === "6") return minor ? r + 7 : r + 9;
+    if(deg === "b7") return (minor || dom) ? r + 10 : r + 9;
+    // "A": half step to the next root if the chord changes, scale step if it does not.
+    const t = (nextEv || ev).midi;
+    if(nextEv && nextEv !== ev && (nextEv.pc !== ev.pc || nextEv.q !== ev.q)){
+      const below = STYLE[S.style].approach === "below" || idx % 2 === 0;
+      const p = below ? t - 1 : t + 1; return p < FLOOR_MIDI ? t + 1 : p; }
+    const sc = ev.scale, pc = ((t % 12) + 12) % 12;
+    let down = 1; while(down < 12 && !sc.includes(((pc - down) % 12 + 12) % 12)) down++;
+    let up = 1; while(up < 12 && !sc.includes((pc + up) % 12)) up++;
+    return t - down < FLOOR_MIDI ? t + up : t - down;
+  }
+
+  function render(onsets, accents, events, S, bpb, end){
+    const st = STYLE[S.style], {list, fillZones} = anchorsOf(onsets, accents, events, S, bpb, end), notes = [];
+    list.forEach((a, ai) => {
+      const gap = a.end - a.b; if(gap < .125 - EPS) return;
+      const pool0 = LIB.filter(p => p.tags.includes(S.style) && p.len <= gap + EPS);
+      const lmax = pool0.length ? Math.max(...pool0.map(p => p.len)) : 0;
+      const pool = pool0.filter(p => p.len === lmax);
+      const tpl = pool.length ? pool[Math.floor(unit(S.seed, tick(a.b), 1)*pool.length)] : {id: "F0", len: gap, n: [[0, Math.max(gap*.5, gap - st.tail), "R"]]};
+      const limit = a.end - (a.next ? st.tail : 0);
+      const B = a.ev.vel, phraseEndBar = (barOf(a.b, bpb) + 1) % 4 === 0;
+      const lastInBar = !list.some((x, j) => j > ai && barOf(x.b, bpb) === barOf(a.b, bpb));
+      tpl.n.forEach(([s0, d0, deg], ni) => {
+        const s = a.b + s0; if(s >= limit - EPS) return;
+        const slot = (ni + 1 < tpl.n.length ? tpl.n[ni + 1][0] : tpl.len) - s0;
+        let d = d0*st.gate; if(ni === tpl.n.length - 1) d = Math.min(d, slot*.7);   // last note: at most 70 % of its slot
+        d = Math.min(d, slot, limit - s); if(d < .05) return;
+        let v = ni === 0 ? B + Math.round(16*a.w) + (phraseEndBar && lastInBar ? 6 : 0)
+              : deg === "A" ? B - 12 : (deg === "8" && S.style === "funk") ? B - 4 : B - 6;
+        v = clamp(v + (h3(S.seed, tick(a.b)*16 + ni, 3) % 9) - 4, 40, 120);
+        notes.push({s, d, v, midi: pitchOf(deg, a.ev, a.next ? a.next.ev : null, ai, S), deg, tpl: tpl.id,
+          on: ni === 0, app: deg === "A", atk: false, dead: false, ev: a.ev, anchor: a.cls}); });
+    });
+    // Dead notes on the snare, only in the bass's silences.
+    let dead = 0;
+    if(S.deadNotes){
+      const sn = new Map();
+      for(const o of onsets) if(SNARE.includes(o.gm) && o.vel >= 70 && o.b < end - EPS) sn.set(tick(o.b), o.b);
+      for(const b of [...sn.values()].sort((p, q) => p - q)){
+        if(fillZones.some(z => b >= z.s - EPS && b < z.e - EPS)) continue;
+        if(notes.some(n => !n.dead && b >= n.s - EPS && b < n.s + n.d + EPS)) continue;
+        if(notes.some(n => !n.dead && n.s > b + EPS && n.s < b + .125 - EPS)) continue;
+        if(unit(S.seed, tick(b), 4) >= .7) continue;
+        const prev = notes.filter(n => !n.dead && n.s <= b + EPS).pop(), ev = prev ? prev.ev : chordAt(events, b);
+        notes.push({s: b, d: .0625, v: clamp(32 + (h3(S.seed, tick(b), 5) % 9) - 4, 1, 127), midi: prev ? prev.midi : ev.midi,
+          deg: "x", on: false, app: false, atk: false, dead: true, ev, anchor: "snare"}); dead++; }
+      notes.sort((p, q) => p.s - q.s);
+    }
+    return {notes, anchors: list, dead};
+  }
+  return {render, anchorsOf, LIB, STYLE, h3};
+})();
 /*/ENGINE*/
 
 /* ---------- drums: kit from the Taller de batería ---------- */
@@ -428,7 +598,7 @@ const PT_ORDER = [49,57,52,55,51,59,53,46,42,44,50,48,47,45,43,41,40,38,39,37,63
 const LANE = {35:"Bombo ac.",36:"Bombo",37:"Aro",38:"Caja",41:"Tom base 2",42:"Hat",43:"Tom base 1",44:"Hat pie",46:"Hat abierto",47:"Tom 2",39:"Palmas",40:"Caja eléc.",45:"Tom 3",48:"Tom 1",50:"Tom agudo",53:"Campana",64:"Conga baja",49:"Crash",51:"Ride",56:"Cencerro",63:"Conga",75:"Claves"};
 const gcdN = (a, b) => b ? gcdN(b, a % b) : a, lcmN = (a, b) => a*b/gcdN(a, b);
 const velOf = (raw, def) => raw > 0 ? raw : def;
-let B = false;                       // false = A (today), true = B (follow)
+let M = "A";                         // "A" today, "B" follow accents, "C" phrases (prototype)
 let V = null;                        // current view
 
 function grooveOf(p){
@@ -445,6 +615,10 @@ function bassSettings(follow){
   return {mode: follow ? $("#mode").value : "off", threshold:+$("#thr").value, cap:+$("#cap").value | 0,
     boost:+$("#boost").value, cut:+$("#cut").value, fill:$("#fillm").value};
 }
+function phraseSettings(){
+  return {style:$("#style").value, seed:(+$("#bseed").value | 0) >>> 0, threshold:+$("#thr").value, fill:$("#fillm").value,
+    followSnare:$("#snare").checked, deadNotes:$("#dead").checked, anticipation:$("#antic").checked};
+}
 function partEvents(prog, PM, bpb){
   const [expr, rate] = FIG[$("#fig").value], sub = prog.subdivisions, plen = prog.measures*bpb, end = PM*bpb, out = [];
   const minor = prog.events.length && [1,5,7,8,12,16].includes(prog.events[0].quality);
@@ -454,7 +628,7 @@ function partEvents(prog, PM, bpb){
     const start = off + e.startStep/sub, len = Math.max(1, e.lengthSteps)/sub;
     if(start >= end - 1e-9) return;
     const pc = (((scale[e.degree] + (e.degreeAccidental || 0)) % 12) + 12) % 12;
-    out.push({start, len:Math.min(len, end - start), vel:e.velocity, expr, rate, pc, name:NOTE[pc] + (QUAL[e.quality] ?? ""), midi:28 + ((pc - 4 + 12) % 12), src:out.length});
+    out.push({start, len:Math.min(len, end - start), vel:e.velocity, expr, rate, pc, name:NOTE[pc] + (QUAL[e.quality] ?? ""), midi:28 + ((pc - 4 + 12) % 12), q:e.quality, scale, src:out.length});
   });
   return out;
 }
@@ -468,14 +642,15 @@ function compute(){
   const events = partEvents(prog, PM, bpb);
   const A = BASS.render(events, accents, bassSettings(false), bpb), Bn = BASS.render(events, accents, bassSettings(true), bpb);
   let R = g.subdivisions; hits.forEach(h => { if(FX.beatOf(h) < end) R = lcmN(R, h.spb); });
-  return {p, prog, g, bpb, PM, end, hits, choices, accents, events, A, B:Bn, R,
-    drumEv: hits.filter(h => FX.beatOf(h) < end).map(h => ({b:FX.beatOf(h), gm:h.gm, vel:h.vel})).sort((a, b) => a.b - b.b)};
+  const drumEv = hits.filter(h => FX.beatOf(h) < end).map(h => ({b:FX.beatOf(h), gm:h.gm, vel:h.vel})).sort((a, b) => a.b - b.b);
+  const Cr = PHR.render(drumEv, accents, events, phraseSettings(), bpb, end);
+  return {p, prog, g, bpb, PM, end, hits, choices, accents, events, A, B:Bn, C:Cr.notes, Canchors:Cr.anchors, Cdead:Cr.dead, R, drumEv};
 }
 
 function render(){
   const v = compute(); if(!v) return;
   V = v;
-  const notes = B ? v.B : v.A, {bpb, R, PM} = v, cols = bpb*R;
+  const notes = v[M], {bpb, R, PM} = v, cols = bpb*R;
   const present = [...new Set(v.drumEv.map(e => e.gm))].sort((a, b) => (PT_ORDER.indexOf(a) + 100*(PT_ORDER.indexOf(a) < 0)) - (PT_ORDER.indexOf(b) + 100*(PT_ORDER.indexOf(b) < 0)));
   const grid = {}; v.drumEv.forEach(e => { const c = Math.round(e.b*R); (grid[e.gm] = grid[e.gm] || {})[c] = Math.max(grid[e.gm]?.[c] || 0, e.vel); });
   const accAt = new Map(v.accents.map(a => [Math.round(a.b*R), a]));
@@ -499,19 +674,20 @@ function render(){
     for(let k = 1; k < bpb; k++){ const d = el("div"); d.style.left = (100*k/bpb) + "%"; bt.append(d); }
     lane.append(bt);
     notes.filter(n => n.s >= m*bpb - 1e-9 && n.s < (m+1)*bpb - 1e-9).forEach(n => {
-      const e = el("div", "n" + (n.atk ? " atk" : n.on ? " on" : ""));
+      const e = el("div", "n" + (n.dead ? " dead" : n.app ? " app" : M === "C" && n.on ? " ph" : n.atk ? " atk" : n.on ? " on" : ""));
       e.style.left = (100*(n.s - m*bpb)/bpb) + "%"; e.style.width = `calc(${(100*Math.min(n.d, (m+1)*bpb - n.s)/bpb).toFixed(3)}% - 1px)`;
       e.style.setProperty("--v", (n.v/127).toFixed(3));
-      e.title = `${n.ev.name} · pulso ${(n.s - m*bpb + 1).toFixed(2).replace(".", ",")} · vel ${n.v}` + (n.atk ? " · ataque nuevo" : n.on ? " · reforzada" : "");
+      e.title = `${n.ev.name} · pulso ${(n.s - m*bpb + 1).toFixed(2).replace(".", ",")} · vel ${n.v}` + (M === "C" ? (n.dead ? " · nota muerta" : ` · ${n.tpl} ${n.deg}` + (n.on ? " · inicio (" + n.anchor + ")" : "")) : n.atk ? " · ataque nuevo" : n.on ? " · reforzada" : "");
       lane.append(e); v.noteEls.push([n, e]);
     });
-    br.append(el("span", "", "Bajo " + (B ? "B" : "A")), lane); bar.append(br);
+    br.append(el("span", "", "Bajo " + M), lane); bar.append(br);
     part.append(bar);
   }
   const strong = v.accents.filter(a => a.w >= thr - 1e-6).length;
   const atk = v.B.filter(n => n.atk).length, on = v.B.filter(n => n.on && !n.atk).length;
   $("#sum").innerHTML = `${PM} compases · ${v.choices.length} fill${v.choices.length === 1 ? "" : "s"} · <b>${strong}</b> acentos fuertes. ` +
-    `A: <b>${v.A.length}</b> notas. B (${$("#mode").value === "attacks" ? "ataques" : "refuerzo"}): <b>${v.B.length}</b> notas, ${on} reforzadas y <b>${atk}</b> ataques nuevos.`;
+    `A: <b>${v.A.length}</b> notas. B (${$("#mode").value === "attacks" ? "ataques" : "refuerzo"}): <b>${v.B.length}</b> notas, ${on} reforzadas y <b>${atk}</b> ataques nuevos. ` +
+    `C (${PHR.STYLE[$("#style").value].label}): <b>${v.C.length}</b> notas en <b>${v.Canchors.length}</b> frases` + (v.Cdead ? `, ${v.Cdead} muertas` : "") + ".";
 }
 
 /* ---------- transport ---------- */
@@ -530,10 +706,10 @@ function pump(){
   if(!T.on) return;
   const L = V.end, sp = spb(), target = beatNow() + .15/sp;
   if(target > T.sched){
-    const notes = B ? V.B : V.A, drums = $("#drumsOn").checked;
+    const notes = V[M], drums = $("#drumsOn").checked;
     for(let k = Math.max(0, Math.floor(T.sched/L)); k <= Math.floor(target/L); k++){
       if(drums) for(const e of V.drumEv){ const a = k*L + e.b; if(a > T.sched && a <= target) hit(e.gm, e.vel, T.t0 + a*sp, ((e.gm*7 + Math.round(e.b*4)) % 5 - 2)/2); }
-      for(const n of notes){ const a = k*L + n.s; if(a > T.sched && a <= target) bassNote(n.ev.midi, n.v, T.t0 + a*sp, n.d*sp); }
+      for(const n of notes){ const a = k*L + n.s; if(a > T.sched && a <= target) bassNote(n.midi ?? n.ev.midi, n.v, T.t0 + a*sp, n.d*sp); }
     }
     T.sched = target;
   }
@@ -545,15 +721,16 @@ function draw(){
   const b = ((beatNow() % V.end) + V.end) % V.end, col = Math.floor(b*V.R + 1e-6);
   if(col !== T.col){ T.lit.forEach(c => c.classList.remove("now")); T.lit = V.cells[col] || []; T.col = col; T.lit.forEach(c => c.classList.add("now"));
     V.noteEls.forEach(([n, e]) => e.classList.toggle("play", b >= n.s && b < n.s + n.d));
-    $("#pos").textContent = "compás " + (Math.floor(b/V.bpb) + 1) + "/" + V.PM + " · " + (B ? "B" : "A"); }
+    $("#pos").textContent = "compás " + (Math.floor(b/V.bpb) + 1) + "/" + V.PM + " · " + M; }
   requestAnimationFrame(draw);
 }
 function resync(){ if(!T.on){ render(); return; } const b = beatNow(); render(); T.sched = b; }
-function setAB(b){ B = b; $("#abA").setAttribute("aria-pressed", String(!b)); $("#abB").setAttribute("aria-pressed", String(b)); resync(); save(); }
+function pressAB(){ ["A","B","C"].forEach(k => $("#ab" + k).setAttribute("aria-pressed", String(M === k))); }
+function setAB(m){ M = m; pressAB(); resync(); save(); }
 
 /* ---------- wiring ---------- */
-const IDS = ["pat","bpm","meas","every","src","seed","contrast","last","crash","drumsOn","prog","fig","mode","fillm","thr","cap","boost","cut","bvol"];
-function save(){ const o = {B}; IDS.forEach(id => { const e = $("#" + id); o[id] = e.type === "checkbox" ? e.checked : e.value; }); store.set("tbajo", o); }
+const IDS = ["pat","bpm","meas","every","src","seed","contrast","last","crash","drumsOn","prog","fig","mode","fillm","thr","cap","boost","cut","bvol","style","bseed","snare","dead","antic"];
+function save(){ const o = {M}; IDS.forEach(id => { const e = $("#" + id); o[id] = e.type === "checkbox" ? e.checked : e.value; }); store.set("tbajo", o); }
 function outputs(){ $("#contrastO").textContent = $("#contrast").value; $("#thrO").textContent = (+$("#thr").value).toFixed(2).replace(".", ","); $("#boostO").textContent = $("#boost").value; $("#cutO").textContent = $("#cut").value; $("#bvolO").textContent = $("#bvol").value; }
 (function init(){
   const fits = DATA.patterns.filter(p => p.beats === 4 && p.unit === 4);
@@ -562,14 +739,13 @@ function outputs(){ $("#contrastO").textContent = $("#contrast").value; $("#thrO
   const pref = DATA.patterns.find(p => /rock/i.test(p.display) && p.beats === 4) || fits[0];
   $("#pat").value = pref.guid;
   const s = store.get("tbajo", null);
-  if(s){ IDS.forEach(id => { const e = $("#" + id); if(s[id] == null) return; if(e.type === "checkbox") e.checked = s[id]; else if(e.tagName !== "SELECT" || [...e.options].some(o => o.value === String(s[id]))) e.value = s[id]; }); B = !!s.B; }
-  $("#abA").setAttribute("aria-pressed", String(!B)); $("#abB").setAttribute("aria-pressed", String(B));
+  if(s){ IDS.forEach(id => { const e = $("#" + id); if(s[id] == null) return; if(e.type === "checkbox") e.checked = s[id]; else if(e.tagName !== "SELECT" || [...e.options].some(o => o.value === String(s[id]))) e.value = s[id]; }); M = ["A","B","C"].includes(s.M) ? s.M : (s.B ? "B" : "A"); }
+  pressAB();
   outputs(); setIcon(false); render();
   IDS.forEach(id => $("#" + id).addEventListener("input", () => { outputs(); if(id === "pat"){ const p = DATA.patterns.find(x => x.guid === $("#pat").value); if(p?.bpm) $("#bpm").value = p.bpm; } resync(); save(); }));
   $("#play").addEventListener("click", () => T.on ? stop() : start());
-  $("#abA").addEventListener("click", () => setAB(false));
-  $("#abB").addEventListener("click", () => setAB(true));
+  ["A","B","C"].forEach(k => $("#ab" + k).addEventListener("click", () => setAB(k)));
   document.addEventListener("keydown", e => { if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
-    if(e.code === "Space"){ e.preventDefault(); T.on ? stop() : start(); } else if(e.key === "b" || e.key === "B"){ setAB(!B); } });
+    if(e.code === "Space"){ e.preventDefault(); T.on ? stop() : start(); } else if(/^[abc]$/i.test(e.key)){ setAB(e.key.toUpperCase()); } });
 })();
 </script>
