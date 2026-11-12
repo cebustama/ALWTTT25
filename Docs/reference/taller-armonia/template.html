@@ -428,6 +428,19 @@ function remateDe(P, seed){
   const g = REMATE_AZAR[majorish() ? "mayor" : "menor"];
   return g[hash32(+seed, 0, 1, 0) % g.length];
 }
+// P6 identity rule (§18, Music Lab 2026-11-12, D1 = d extended): no ornament that changes the root in the second part of X
+// (ii–V, secondary dominant, tritone, remate, ♭VImaj7) when X → Y falls a semitone and W → X falls a semitone or a tone.
+// W and Y are searched cyclically through the lap; repeated roots are merged; a rest cuts the chain. It protects the closing
+// half step of a descent (andaluza ♭VI → V, Phrygian ♭II → i). Applies with and without a seed: no change in oro-v4.
+function protegeBajada(seq, i){
+  const n = seq.length, X = seq[i]; if(!X || X.rest) return false;
+  const find = dir => { for(let k=1;k<n;k++){ const c = seq[((i + dir*k) % n + n) % n]; if(c.rest) return null; if(mod12(c.pc) !== mod12(X.pc)) return c; } return null; };
+  const Y = find(1), W = find(-1);
+  return !!(Y && W) && mod12(X.pc - Y.pc) === 1 && [1, 2].includes(mod12(W.pc - X.pc));
+}
+// P6 weights (§18, D2 = B): with a seed, the ornament for each slot is drawn among the candidates that fit, by level.
+// dom = secondary dominant or tritone substitute; iiV = ii + V7; iv = borrowed colour after IV; dim = passing °7.
+const PESOS_P6 = {2:{dom:3, iiV:1, sus4:2, iv:2, dim:1, bVI:1}, 3:{dom:2, iiV:3, sus4:1, iv:1, dim:2, bVI:2}};
 function arrange(base, level, nV, beats, perillas, seed){
   const B = beats || 4, h = B === 3 ? 1 : 0.5;          // the split unit: half a bar in 4/4, one whole bar in 3/4
   const vs = [];
@@ -445,10 +458,14 @@ function arrange(base, level, nV, beats, perillas, seed){
       const budget = Math.min(P.presupuesto, distinct <= 2 ? 1 : n - 1), used = new Set(), plan = [];   // plan: {i, tail:[chords], head?:chord}
       const can = (i, n) => { const c = seq[i]; return c && !c.rest && !used.has(i) && c.dur >= h*(n+1) - 1e-9; };
       const take = p => { if(plan.length < budget && !used.has(p.i)){ used.add(p.i); plan.push(p); return true; } return false; };
+      // P6 (§18, D2 = B): without a seed every rule takes in the fixed v4 order; with a seed the rules only offer
+      // candidates, and the slots are filled below by a weighted draw (PESOS_P6), one hash per draw: h(seed, lap, 3, k).
+      const seeded = hasSeed(seed), cands = [];
+      const offer = (p, kind) => { if(seeded) cands.push({p, kind}); else take(p); };
       const li = seq.length - 1, first = seq.find(c => !c.rest);
       // 1) turnaround on the last lap: second part of the last chord, unless the loop already closes by cadence
       const R = remateDe(P, seed);
-      if(R !== "no" && v === nV-1 && !seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
+      if(R !== "no" && v === nV-1 && !protegeBajada(seq, li) &&!seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
         const tR = romanOf(first.pc, first.q), toTonic = mod12(first.pc) === 0;
         const nuevo = R === "deslizado" || R === "iiV";   // P5 and D9 (2026-11-11)
         let ap;
@@ -467,14 +484,14 @@ function arrange(base, level, nV, beats, perillas, seed){
       // 2) sus4 on the functional dominant (resolves a fifth down)
       const sus4 = () => { if(P.sus4) each((c,i) => { if(plan.length >= budget || !c.orig || c.rest) return;
         const t = nextNonRest(seq,i);
-        if(c.q === "7" && mod12(t.pc - c.pc) === 5 && can(i, 1)) take({i, head:{...c, q:"7sus4", dur:h, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")}, rest:"tail"}); }); };
+        if(c.q === "7" && mod12(t.pc - c.pc) === 5 && can(i, 1)) offer({i, head:{...c, q:"7sus4", dur:h, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")}, rest:"tail"}, "sus4"); }); };
       if(!P.preferirAcordeNuevo) sus4();
       // 3) one borrowed colour after IV (iv6 in major modes, IV7 in Aeolian)
       if(P.ivPrestado){
-        const bi = ord.find(i => { const c = seq[i]; return !c.rest && mod12(c.pc) === 5 && can(i,1) && (
+        const bis = ord.filter(i => { const c = seq[i]; return !c.rest && mod12(c.pc) === 5 && can(i,1) && (
           (["Ionian","Lydian","Mixolydian"].includes(mode) && !MINORISH.has(c.q)) || (mode === "Aeolian" && MINORISH.has(c.q))); });
-        if(bi !== undefined){ const c = seq[bi], maj = mode !== "Aeolian";
-          take({i:bi, tail:[{pc:c.pc, q: maj ? "m6" : "7", dur:h, add:true, why: maj ? "iv menor prestado (iv6) después del IV" : "IV7 dórico prestado después del iv"}]}); }
+        (seeded ? bis : bis.slice(0, 1)).forEach(bi => { const c = seq[bi], maj = mode !== "Aeolian";
+          offer({i:bi, tail:[{pc:c.pc, q: maj ? "m6" : "7", dur:h, add:true, why: maj ? "iv menor prestado (iv6) después del IV" : "IV7 dórico prestado después del iv"}]}, "iv"); });
       }
       // 3b) P3 (2026-11-11, D6 = C): passing °7 in the second part. Ascending: a whole step up, the °7 a semitone
       //     below the target (I – ♯I°7 – ii). Neighbour: IV – ♯IV°7 – I. Descending: a fourth down, the °7 a semitone
@@ -488,32 +505,36 @@ function arrange(base, level, nV, beats, perillas, seed){
         else if(mod12(c.pc) === 5 && toT){ pc = 6; why = "disminuido de vecino entre el IV y el I"; }
         else if(m === 7 && !toT){ pc = t.pc + 1; why = "disminuido de paso, baja hacia " + tR; }
         else return;
-        take({i, tail:[{pc:mod12(pc), q:"dim7", dur:h, add:true, why}]}); });
+        offer({i, tail:[{pc:mod12(pc), q:"dim7", dur:h, add:true, why}]}, "dim"); });
       // 4) acorde de paso into a diatonic non-tonic chord: its V7 (clasico), the tritone substitute ♭II7 (cromatico)
       //    or ii + V7 (iiV, P1 2026-11-11: needs room for two parts; with room for one, only the V7, D1 = A)
       if(P.paso === "iiV"){
         each((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
           const t = nextNonRest(seq,i);
-          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || ["dim","hdim7","dim7"].includes(t.q) || !can(i,1)) return;
+          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || ["dim","hdim7","dim7"].includes(t.q) || !can(i,1) || protegeBajada(seq, i)) return;
           const fifth = mod12(t.pc - c.pc) === 5, tR = romanOf(t.pc, t.q);
           if(fifth && MINORISH.has(c.q)) return;                          // the host already is the ii of a ii–V
           const ii = {pc:mod12(t.pc+2), q:iiQ(t.pc, t.q, P), dur:h, add:true, why:"ii–V hacia "+tR};
           const V = {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR};
-          if(ii.pc === mod12(c.pc)){ if(!fifth) take({i, tail:[{...V, why:"ii–V hacia "+tR+" (el ii es el propio acorde)"}]}); }
-          else if(can(i,2)) take({i, tail:[ii, V]});
-          else if(!fifth) take({i, tail:[V]}); }); }
+          if(ii.pc === mod12(c.pc)){ if(!fifth) offer({i, tail:[{...V, why:"ii–V hacia "+tR+" (el ii es el propio acorde)"}]}, "dom"); }
+          else if(can(i,2)) offer({i, tail:[ii, V]}, "iiV");
+          else if(!fifth) offer({i, tail:[V]}, "dom"); }); }
       else if(P.paso !== "no"){
         each((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
           const t = nextNonRest(seq,i);
-          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1)) return;
+          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1) || protegeBajada(seq, i)) return;
           const tR = romanOf(t.pc, t.q);
-          take({i, tail:[P.paso === "clasico" ? {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR}
-                                             : {pc:mod12(t.pc+1), q:"7", dur:h, add:true, why:"sustituto tritonal de la dominante de "+tR}]}); }); }
+          offer({i, tail:[P.paso === "clasico" ? {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR}
+                                             : {pc:mod12(t.pc+1), q:"7", dur:h, add:true, why:"sustituto tritonal de la dominante de "+tR}]}, "dom"); }); }
       if(P.preferirAcordeNuevo) sus4();
       // 5) ♭VImaj7 inserted before the return to I (Ionian, Mixolydian)
       if(P.bVI && (mode === "Ionian" || mode === "Mixolydian")) each((c,i) => { if(plan.length >= budget || c.rest) return;
         const t = nextNonRest(seq,i);
-        if(mod12(t.pc) === 0 && mod12(c.pc) !== 0 && mod12(c.pc) !== 8 && !CADENCE.has(mod12(t.pc - c.pc)) && can(i,1)) take({i, tail:[{pc:8, q:"maj7", dur:h, add:true, why:"♭VImaj7 prestado antes de volver a I"}]}); });
+        if(mod12(t.pc) === 0 && mod12(c.pc) !== 0 && mod12(c.pc) !== 8 && !CADENCE.has(mod12(t.pc - c.pc)) && can(i,1) && !protegeBajada(seq, i)) offer({i, tail:[{pc:8, q:"maj7", dur:h, add:true, why:"♭VImaj7 prestado antes de volver a I"}]}, "bVI"); });
+      if(seeded){ const Wt = PESOS_P6[level]; let k = 0;
+        for(;;){ const live = cands.filter(c => !used.has(c.p.i)); if(plan.length >= budget || !live.length) break;
+          const tot = live.reduce((s, c) => s + Wt[c.kind], 0); let r = hash32(+seed, v, 3, k++) % tot;
+          take(live.find(c => (r -= Wt[c.kind]) < 0).p); } }
       // apply: the original keeps the first part
       const out = [];
       seq.forEach((c,i) => {

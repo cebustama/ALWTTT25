@@ -347,3 +347,53 @@ Hoja a ciegas en `prueba-oido-semillas/` (https://claude.ai/artifact/WYchcr4kd14
 **Idea de Claudio:** el bajo y el piano se reparten el acorde (Sibi y Conito tocando juntos). En las hojas el bajo solo dobla la fundamental; ver `../ideas/2026-11-12_bajo_y_piano_reparten_el_acorde.md`.
 
 **Aviso al escribir el arranque (2026-11-12):** la regla B, tal como está escrita, es demasiado ancha. La de fábrica de la andaluza, que Claudio eligió, ya mete IV7 antes del ♭VII y III7 antes del ♭VI, y a los dos se llega bajando un tono. Una B literal quitaría también esos adornos y cambiaría `oro-v4`. La regla tiene que ser más estrecha: por ejemplo, proteger solo el medio tono, o el último paso de la bajada hacia el V. Que Music Lab la acote antes de implementarla.
+
+## 18. P6: la regla de identidad y los pesos de los adornos (2026-11-12)
+
+Arranque: `ARRANQUE_P6_pesos.md`. Decisiones de Claudio: **D1 = d ampliada** (abajo), **D2 = B** (pesos por nivel), **D3 = A** (no añadir más variedad hasta escucharla). Music Lab (subagente) acotó la regla y propuso los pesos.
+
+### La regla de identidad (D1)
+
+Se midieron cinco variantes de la regla B de §17 contra el catálogo: 792 casos sin semilla y 2.112 con las semillas 1, 7, 42 y 2026.
+
+| Variante | La fábrica cambia | Con semilla cambian | Andaluza |
+| --- | --- | --- | --- |
+| a. Ningún medio tono que baja | 3 (JTTOU pierde el II7 entre ♭VI y V) | 36 | arreglada |
+| b. Ningún paso que baja hacia V o i | 3 (igual) | 36 | arreglada |
+| c. Ningún paso que baja (½ o 1 tono): la B literal | 27 (andaluza, Rotación ♭VII, Sweet Home, JTTOU) | 125 | arreglada, pero pierde el IV7 y el III7 de fábrica |
+| **d. El medio tono que cierra una bajada** | **0** | **24 (solo la andaluza)** | **arreglada** |
+| e. El último paso de una bajada hacia V o i | 0 | 24 | arreglada |
+
+**Music Lab recomienda la d.** Lo que define la andaluza, el lamento y el descenso frigio es el medio tono final: la cadencia frigia ♭II → I, o ♭VI → V vista desde el V (Confirmado como rasgo de esa familia en Manuel 2002, «From Scarlatti to "Guantanamera": Dual Tonicity…», *JAMS* 55/2). Los pasos de un tono no tienen esa función, y la fábrica los adorna con IV7 y III7, que en §17 sonaron a andaluza. La e protege además vi → V en mayor, donde vi – II7 – V es idiomático, así que quita variedad sin motivo (Inferido).
+
+**La regla implementada (`protegeBajada` en `template.html`):** sean X el acorde que recibe el adorno, Y el siguiente y W el anterior, buscados de forma cíclica a través de la vuelta. No se añade a X ningún adorno que cambie la fundamental en su segunda mitad (ii–V, dominante secundaria, sustituto tritonal, remate o ♭VImaj7) si X → Y baja un semitono y W → X baja un semitono o un tono.
+- **Acordes repetidos:** se funden. W e Y son los primeros con otra fundamental.
+- **Silencio:** corta la cadena; si lo hay entre los tres acordes, no se protege nada (Inferido, conservador).
+- **Remate:** cuenta como cualquier otro paso. Así se protege el ♭II → i del frigio, que solo ocurre al pasar a la vuelta siguiente.
+- **Adornos que no cambian el bajo** (sus4 en la cabeza, iv6 o IV7 después del IV): no se tocan. El disminuido de paso no llega a cumplir la condición, porque solo se usa en pasos que suben un tono o bajan una cuarta.
+- **Medido con la regla ampliada:** 0 cambios en la fábrica (`oro-v4` idéntico) y 24 con semilla, todos de la andaluza. La andaluza con semilla queda así: i – IV7 – ♭VII – III7 – ♭VI – V.
+
+**Lo que la regla no cubre:**
+- **JTTOU:** ♭VI – II7 – V es una predominante legítima, pero corta el deslizamiento ♭VI → V, que es parte del sonido de la canción. Lo decide el oído de Claudio en la hoja de P6.
+- **Bucles de 2 acordes del tipo ♭II – I:** ahí el medio tono es toda la identidad y la d no lo ve. Si el oído lo pide, se puede añadir «o la vuelta tiene ≤2 fundamentales distintas».
+- **El lamento cromático, *Stairway* y el bajo real de Pachelbel:** su línea está en las inversiones, que el taller no tiene. Cuando haya inversiones, medir la nota del bajo y no la fundamental (Sin respaldo hoy).
+
+### Qué adorno elige la semilla (D2 = B)
+
+Sin semilla, todo queda como en la v4: las reglas toman en su orden fijo. Con semilla, las reglas solo **ofrecen candidatos** (`offer`), y los huecos que deja el presupuesto se llenan por sorteo con pesos (`PESOS_P6`). Cada sorteo usa su propio hash, `hash32(semilla, vuelta, 3, k)`. Solo cuentan los candidatos de acordes aún libres. El remate va antes y no entra en el sorteo. `preferirAcordeNuevo` ya no importa con semilla. Pesos de Music Lab (Inferido: ningún corpus los fija; son un punto de partida para la hoja de oído):
+
+| Adorno | N2 | N3 | Por qué |
+| --- | --- | --- | --- |
+| Dominante secundaria (o tritono si `cromatico`) | 3 | 2 | Es la tensión más común en el pop. En N3 cede ante el ii–V |
+| ii–V | 1 | 3 | Es la firma del jazz y el color del N3. En N2 sonaría recargado |
+| sus4 | 2 | 1 | Retrasa la resolución sin cambiar la función |
+| iv menor prestado | 2 | 1 | Color barato y muy reconocible en el pop |
+| Disminuido de paso | 1 | 2 | Cromático, de conducción de voces |
+| ♭VImaj7 | 1 | 2 | Préstamo marcado; en N2, de vez en cuando |
+
+**Medido** (`oro-v5.json` rehecho, 2.112 casos, determinista):
+- Casos que cambian con la semilla: N2 de 37 a 74 de 264; N3 de 85 a 110 de 264.
+- Versiones distintas por caso con 4 semillas, de media: N2 de 1,28 a 1,57; N3 de 1,48 a 2,00.
+- La andaluza ya no varía con la semilla: sus únicos adornos posibles son el IV7 y el III7. Es lo que se buscaba, pero conviene oírlo.
+
+**Siguiente:** la hoja de oído de P6 (`prueba-oido-p6/`), con Pachelbel y Axis en N2 y N3 (fábrica y 3 semillas), la andaluza con semilla y JTTOU con y sin el II7.

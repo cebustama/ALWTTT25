@@ -1,0 +1,632 @@
+<title>Prueba de oído: pesos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column for listening on the phone or the PC. A sticky progress bar, the instructions, 4 cards with 4 blind versions each
+   (the factory one and 3 seeds with the P6 weights, shuffled: Pachelbel and Axis at levels 2 and 3), one A/B card (Just the Two of Us
+   with and without the II7), questions per card, the reveal drawn against the factory one, and three decisions with the agent's
+   recommendation. Answers go to the artifact's db so Claude can read them. Same family as the Taller. */
+:root{
+  --bg:#e9eef0; --panel:#ffffff; --panel-2:#dde4e7; --ink:#152025; --muted:#56656c; --line:#c3cdd2; --accent:#0d7a80;
+  --a:#2357b5; --a-bg:#dce6f8; --b:#b5560f; --b-bg:#f8e3d2; --ok:#1f7a4a; --ok-bg:#dcefe3; --warn:#9a6200;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --a:#8db2ff; --a-bg:#1c2a47; --b:#f2a46a; --b-bg:#3d2717; --ok:#6fd39b; --ok-bg:#173326; --warn:#f0b85a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171a; --panel:#182226; --panel-2:#223035; --ink:#e6eef0; --muted:#93a4ab; --line:#30414a; --accent:#4fcfd6;
+  --a:#8db2ff; --a-bg:#1c2a47; --b:#f2a46a; --b-bg:#3d2717; --ok:#6fd39b; --ok-bg:#173326; --warn:#f0b85a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(30px,6vw,46px);font-weight:800}
+h2{font-size:24px}
+h3{font-size:18px}
+p{margin:0;max-width:68ch}
+code{font:13px var(--f-mono);background:var(--panel-2);padding:1px 5px;border-radius:4px}
+.muted{color:var(--muted)} .small{font-size:14px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:15px}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.play::before{content:"▶";font-size:11px}
+.btn.play.playing::before{content:"■"}
+.btn.pa{border-color:var(--a);color:var(--a);background:var(--a-bg)}
+.btn.pb{border-color:var(--b);color:var(--b);background:var(--b-bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.top b{font-family:var(--f-display);font-size:17px}
+.meter{flex:1 1 160px;height:8px;border-radius:99px;background:var(--panel-2);overflow:hidden;min-width:120px}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+#saveState{font:12px var(--f-mono);color:var(--muted)}
+.pair header{display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.num{font:700 13px var(--f-mono);color:var(--muted)}
+.pair.done{border-color:var(--ok)}
+.choice{display:flex;flex-wrap:wrap;gap:6px}
+.choice .btn{border-radius:10px}
+.choice .btn.sel{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=text],textarea,select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.reveal{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.reveal .verdict{font-size:15px;background:var(--ok-bg);color:var(--ok);border-radius:8px;padding:6px 10px}
+.laps{display:flex;flex-direction:column;gap:6px}
+.lapRow{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;align-items:stretch}
+.lapLbl{font:600 12px/1.3 var(--f-mono);color:var(--muted);padding-top:7px}
+.scroll{overflow-x:auto;min-width:0}
+.bar{display:flex;gap:2px;min-width:var(--mw,0px)}
+.ch{flex:var(--d) 0 0;min-width:0;border-radius:6px;padding:5px 6px;background:var(--panel-2);border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;transition:transform .12s,box-shadow .12s}
+.ch .rn{font:600 12px/1.25 var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .nm{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch.diff{background:var(--b-bg);border-color:var(--b)}
+.ch.diff .rn{color:var(--b)}
+.ch[data-id]{cursor:pointer}
+.ch[data-id]:hover{border-color:var(--accent)}
+.ch.now{transform:translateY(-3px);box-shadow:0 0 0 2px var(--accent)}
+@media (prefers-reduced-motion: reduce){.ch,.meter i{transition:none}}
+.dec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:10px 16px;align-items:start;padding-block:12px;border-bottom:1px solid var(--line)}
+.dec:last-child{border-bottom:none}
+@media (max-width:620px){.dec{grid-template-columns:minmax(0,1fr)}}
+.dec b{font-family:var(--f-display);font-size:16px}
+.rec{font-size:13px;color:var(--muted)}
+.rec strong{color:var(--accent)}
+.note{font-size:13px;color:var(--warn)}
+.vers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.vers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.vers .btn{justify-content:center;border-radius:10px;padding:10px 8px}
+.q{display:flex;flex-direction:column;gap:6px}
+.q>span{font-size:14px;font-weight:700}
+.tagv{font:600 12px var(--f-mono);color:var(--accent)}
+</style>
+
+<div class="wrap">
+  <div class="top" role="status">
+    <b>Prueba de oído: pesos</b>
+    <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+    <span class="small" id="count">0 de 5 cartas</span>
+    <span id="saveState">conectando…</span>
+  </div>
+
+  <section>
+    <span class="eyebrow">Taller armónico · P6, pesos y regla de identidad (§18) · 12 de noviembre de 2026</span>
+    <h1>¿Ahora sí hay variedad?</h1>
+    <p>Desde P6 la semilla elige también <i>qué</i> adorno pone, con pesos por nivel: en el nivel 2 manda la dominante secundaria; en el 3, el ii–V. Y una regla nueva protege el medio tono con que cierra una bajada (el ♭VI → V de la andaluza). Aquí hay Pachelbel y Axis en los niveles 2 y 3, con 4 versiones cada uno (la de fábrica y tres semillas, mezcladas), y <i>Just the Two of Us</i> en dos versiones. No sabes cuál es cuál.</p>
+    <div class="panel small">
+      <div class="row">
+        <label class="row" style="gap:6px"><input type="checkbox" id="optSkip" checked> Saltar la vuelta 1</label>
+        <label class="row" style="gap:6px"><input type="checkbox" id="optRes" checked> Resolver al final</label>
+        <label class="row" style="gap:6px"><input type="checkbox" id="optLoop"> Repetir en bucle</label>
+      </div>
+      <span><b>Saltar la vuelta 1.</b> Cada versión tiene 3 vueltas, y la primera es igual en todas: presenta la carta. Lo que cambia está en las vueltas 2 y 3. Quita la marca si quieres oír la carta entera.</span>
+      <span><b>Qué responder.</b> Si las cuatro suenan a la misma carta, cuánto se diferencian, si alguna se sale y cuál guardarías; en <i>Just the Two of Us</i>, cuál suena más a la canción. Al responder las dos primeras ves cuál es cuál, dibujadas, y puedes pulsar cualquier acorde para que suene desde ahí.</span>
+      <span><b>Se guarda solo.</b> Cada respuesta va al db de la página y yo la leo.</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-cartas">
+    <h2 id="h-cartas">Las cartas</h2>
+    <div id="cards" style="display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <section aria-labelledby="h-dec">
+    <span class="eyebrow">La decisión</span>
+    <h2 id="h-dec">Las decisiones</h2>
+    <p class="small muted">Debajo de cada pregunta está mi recomendación. Tu oído manda.</p>
+    <div class="panel" id="decs"></div>
+  </section>
+
+  <section aria-labelledby="h-gen">
+    <h2 id="h-gen">Pregunta abierta</h2>
+    <div class="panel">
+      <label for="g1" class="small">Algo más: qué te sorprendió, qué echaste de menos, si algún adorno sale demasiado o demasiado poco.</label>
+      <textarea id="g1"></textarea>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+/* ---------- theory ---------- */
+const MODES = ["Ionian","Dorian","Phrygian","Lydian","Mixolydian","Aeolian","Locrian"];
+const MODE_ES = {Ionian:"Jónico (mayor)",Dorian:"Dórico",Phrygian:"Frigio",Lydian:"Lidio",Mixolydian:"Mixolidio",Aeolian:"Eólico (menor)",Locrian:"Locrio"};
+const MOOD = {Ionian:"Alegre",Dorian:"Con groove",Phrygian:"Oscuro",Lydian:"Soñador",Mixolydian:"Funky",Aeolian:"Triste",Locrian:"Tenso"};
+const IONIAN = [0,2,4,5,7,9,11];
+const STEPS = Object.fromEntries(MODES.map((m,i) => [m, IONIAN.map((_,k) => (IONIAN[(i+k)%7] - IONIAN[i] + 12) % 12)]));
+const NOTE = ["C","D♭","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
+const NUM = ["I","II","III","IV","V","VI","VII"];
+// quality key -> intervals, canonical import suffix, lower-case numeral, chord-symbol suffix
+const Q = {
+  maj:{iv:[0,4,7],suf:"maj",lo:false,sym:""},       min:{iv:[0,3,7],suf:"m",lo:true,sym:"m"},
+  dim:{iv:[0,3,6],suf:"dim",lo:true,sym:"°"},        aug:{iv:[0,4,8],suf:"aug",lo:false,sym:"+"},
+  maj7:{iv:[0,4,7,11],suf:"maj7",lo:false,sym:"maj7"}, m7:{iv:[0,3,7,10],suf:"m7",lo:true,sym:"m7"},
+  "7":{iv:[0,4,7,10],suf:"7",lo:false,sym:"7"},      hdim7:{iv:[0,3,6,10],suf:"ø7",lo:true,sym:"m7♭5"},
+  dim7:{iv:[0,3,6,9],suf:"dim7",lo:true,sym:"°7"},   sus2:{iv:[0,2,7],suf:"sus2",lo:false,sym:"sus2"},
+  sus4:{iv:[0,5,7],suf:"sus4",lo:false,sym:"sus4"},  "6":{iv:[0,4,7,9],suf:"6",lo:false,sym:"6"},
+  m6:{iv:[0,3,7,9],suf:"m6",lo:true,sym:"m6"},       "7sus4":{iv:[0,5,7,10],suf:"7sus4",lo:false,sym:"7sus4"},
+  "9":{iv:[0,4,7,10,14],suf:"9",lo:false,sym:"9"},   maj9:{iv:[0,4,7,11,14],suf:"maj9",lo:false,sym:"maj9"},
+  m9:{iv:[0,3,7,10,14],suf:"m9",lo:true,sym:"m9"},
+};
+const MINORISH = new Set(["min","m7","m6","m9","dim","hdim7","dim7"]);
+// Mirror of RomanProgressionParser.TryParseQualitySuffix (after removing spaces, Δ→maj, lower-casing).
+const ALIAS = {};
+[["maj","maj ma mjr mja"],["min","m min mi mn - min3 mtri mtriad"],["dim","dim o °"],["aug","aug + +5"],
+ ["7","7 dom dom7"],["maj7","maj7 ma7 m7+ mm7 mmaj7"],["m7","m7 -7 min7"],["hdim7","ø ø7 m7b5 min7b5"],
+ ["dim7","dim7 o7 °7"],["sus2","sus2"],["sus4","sus4 sus"],["6","6"],["m6","m6 min6"],["7sus4","7sus4"],
+ ["9","9 dom9"],["maj9","maj9 ma9"],["m9","m9 min9"]].forEach(([k,v]) => v.split(" ").forEach(a => ALIAS[a] = k));
+
+let mode = "Ionian";
+const st = () => STEPS[mode];
+const inScale = pc => st().includes(((pc%12)+12)%12);
+const mod12 = x => ((x%12)+12)%12;
+function diatonicQ(deg){
+  const s = st(), t = mod12(s[(deg+2)%7]-s[deg]), f = mod12(s[(deg+4)%7]-s[deg]);
+  return ({"4,7":"maj","3,7":"min","3,6":"dim","4,8":"aug"})[t+","+f] || "maj";
+}
+function romanOf(pc, q){
+  const s = st(); pc = mod12(pc);
+  let d = s.indexOf(pc), acc = "";
+  if(d < 0 && s.indexOf(mod12(pc+1)) > 0){ d = s.indexOf(mod12(pc+1)); acc = "b"; }
+  if(d < 0){ d = s.indexOf(mod12(pc-1)); acc = "#"; }
+  const n = NUM[d];
+  return acc + (Q[q].lo ? n.toLowerCase() : n) + Q[q].suf;
+}
+const fmtDur = d => String(Number(d.toFixed(3)));
+const chordName = (pc, q, key) => NOTE[mod12(pc+key)] + Q[q].sym;
+
+/* ---------- parser (mirrors MidiGenPlay's Roman import) ---------- */
+function parse(text){
+  const chords = [], issues = [];
+  const toks = text.replace(/\n/g," ").replace(/\|/g,"–").split(/[–—-]/).map(t => t.trim()).filter(Boolean);
+  for(const tok of toks){
+    const m = tok.match(/^(.*?)\s*(\(([^)]*)\))?\s*$/);
+    let core = (m[1]||"").trim(), dur = 1;
+    if(m[2] !== undefined){
+      dur = parseFloat(String(m[3]).trim());
+      if(!(dur > 0) || /,/.test(m[3])){ issues.push({e:1, msg:"«"+tok+"»: duración no válida. Usa un número con punto, como (0.5) o (2)."}); continue; }
+    } else if(/[()]/.test(core)){ issues.push({e:1, msg:"«"+tok+"»: falta un paréntesis."}); continue; }
+    if(core === "" || /^(s|r|rest)$/i.test(core)){ chords.push({rest:true, dur}); continue; }
+    const r = core.match(/^([b♭#♯]?)([IVXivx]+)(.*)$/);
+    if(!r){ issues.push({e:1, msg:"«"+tok+"»: no empieza por un grado romano (I a VII)."}); continue; }
+    const deg = NUM.indexOf(r[2].toUpperCase());
+    if(deg < 0){ issues.push({e:1, msg:"«"+tok+"»: «"+r[2]+"» no es un grado de I a VII."}); continue; }
+    const acc = /[b♭]/.test(r[1]) ? -1 : /[#♯]/.test(r[1]) ? 1 : 0;
+    const rawSuf = r[3].trim();
+    let q;
+    if(rawSuf){
+      const s = rawSuf.replace(/\s/g,"").replace(/[Δ∆]/g,"maj").toLowerCase();
+      q = ALIAS[s];
+      if(/M7|M9/.test(rawSuf) && !/maj|ma/i.test(rawSuf)) issues.push({e:0, msg:"«"+tok+"»: MidiGenPlay pasa el sufijo a minúsculas, así que «M7» se lee como m7 (menor). Para mayor séptima escribe maj7."});
+      if(!q){ q = diatonicQ(deg); issues.push({e:1, msg:"«"+tok+"»: el sufijo «"+rawSuf+"» no existe en MidiGenPlay. El Import lo rechaza; aquí suena como el acorde de la escala ("+Q[q].suf+")."}); }
+    } else {
+      const lo = /^[ivx]+$/.test(r[2]), up = /^[IVX]+$/.test(r[2]);
+      if(lo) q = "min"; else if(up) q = "maj";
+      else { q = diatonicQ(deg); issues.push({e:0, msg:"«"+tok+"»: mezcla mayúsculas y minúsculas; MidiGenPlay lo ignora y usa el acorde de la escala."}); }
+    }
+    const pc = mod12(st()[deg] + acc);
+    if(acc && inScale(pc)) issues.push({e:0, msg:"«"+tok+"»: en "+MODE_ES[mode]+" la alteración se aplica al grado del modo, así que suena como "+romanOf(pc, q)+". Si querías el acorde de la escala mayor, escríbelo sin alteración."});
+    chords.push({pc, q, dur});
+  }
+  if(!chords.some(c => !c.rest)) issues.push({e:1, msg:"No hay ningún acorde que tocar."});
+  return {chords, issues};
+}
+
+/* ---------- levels (v3, after the Music Lab review of 2026-11-02; knobs since 2026-11-06) ----------
+   Rules: original chords are never removed (an addition only takes the second part of a chord);
+   no events before the knob desdeVuelta; ninths only if the 9th is in the scale;
+   modal approach chords instead of V7 outside Ionian/Aeolian; no half-step modulation inside the card.
+   Everything a level may do lives in its knobs (PERILLAS); the defaults are v4 (v3 + P1–P4 chosen by ear, 2026-11-11)
+   (golden test: node scripts/oro.js comparar oro-v4.json; v3 = oro-v3.json with P1–P5 off). Names, ranges and merges: Music Lab,
+   revision-music-lab-perillas-2026-11-06.md. Fixed order: remate → sus4 → menor prestado → disminuido (P3) → acorde de paso → ♭VI
+   (preferirAcordeNuevo moves sus4 behind the acorde de paso). Fixed guards: lap 1 as written; ≤2 distinct chords → 1 change. */
+const PERILLAS_V3 = {
+  2: {presupuesto:1, desdeVuelta:2, color:"septimas", remate:"simple", sus4:true,  paso:"clasico",   ivPrestado:false, bVI:false, remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:false, disminuido:false, bVI7Menor:true,  iiDelDestino:true},
+  3: {presupuesto:2, desdeVuelta:2, color:"novenas",  remate:"azar",   sus4:false, paso:"iiV",       ivPrestado:true,  bVI:true,  remateFiel:false, preferirAcordeNuevo:false, cadenaDominantes:true,  disminuido:true,  bVI7Menor:true,  iiDelDestino:true},
+};
+// Intensity (D14 = A, 2026-11-11): one slider 0–5 that picks a level and a factory profile; the fine knobs stay below.
+// In the game, levelling up a card = one step up this ladder.
+const INTENSIDAD = [
+  {lvl:1, lab:"tal cual"},
+  {lvl:2, over:{presupuesto:0}, lab:"solo color"},
+  {lvl:2, lab:"nivel 2 de fábrica"},
+  {lvl:3, lab:"nivel 3 de fábrica"},
+  {lvl:3, over:{desdeVuelta:1}, lab:"nivel 3 desde la vuelta 1"},
+  {lvl:3, over:{desdeVuelta:1, presupuesto:3, preferirAcordeNuevo:true}, lab:"máximo: desde la vuelta 1 y sin tope"},
+];
+const PERILLA_KEYS = Object.keys(PERILLAS_V3[2]);
+const PERILLA_OPC = {color:["triadas","septimas","novenas"], remate:["no","simple","rico","deslizado","iiV","azar"], paso:["no","clasico","cromatico","iiV"]};
+const clonePerillas = p => ({2:{...p[2]}, 3:{...p[3]}});
+// Accepts anything (saved data, the model's answer) and returns valid knobs, filling gaps from `base` (v3 by default).
+// Values it cannot use go to `ignored` (never silently: the page reports them).
+function validPerilla(k, v){
+  if(k === "presupuesto") return Number.isInteger(v) && v >= 0 && v <= 3;
+  if(k === "desdeVuelta") return Number.isInteger(v) && v >= 1 && v <= 4;   // 1 allowed since 2026-11-11 (D13 = B, also in the game)
+  if(PERILLA_OPC[k]) return PERILLA_OPC[k].includes(v);
+  return PERILLA_KEYS.includes(k) && typeof v === "boolean";
+}
+function cleanPerillas(x, base, ignored){
+  const out = clonePerillas(base || PERILLAS_V3);
+  for(const l of [2,3]){ const s = x && (x[l] || x[String(l)]); if(!s || typeof s !== "object") continue;
+    for(const [k, v] of Object.entries(s)){ if(validPerilla(k, v)) out[l][k] = v; else if(ignored) ignored.push("N"+l+" "+k+" = "+JSON.stringify(v)); } }
+  return out;
+}
+const samePerillas = (a, b) => [2,3].every(l => PERILLA_KEYS.every(k => a[l][k] === b[l][k]));
+const majorish = () => mod12(st()[2]) === 4;
+function color(c, next, P){
+  let q = c.q; const r = c.pc, nextPc = next.pc;
+  if(P.color !== "triadas"){
+    if(q === "maj"){
+      if(mod12(r) !== 0 && mod12(nextPc - c.pc) === 5) q = "7";
+      else if(inScale(r+11)) q = "maj7";
+      else if(inScale(r+10)) q = "7";
+      else q = "maj7";
+    } else if(q === "min") q = "m7";
+    else if(q === "dim") q = inScale(r+10) ? "hdim7" : "dim7";
+  }
+  // P2 (2026-11-11): Ionian, every chord a fifth above the next one becomes a dominant, except the tonic,
+  // diminished chords and the ii that goes to V (D3 = A: the ii–V stays). On every lap, like the colour (D4 = B).
+  const DIMS = ["dim","hdim7","dim7"], nDim = next.rest || DIMS.includes(next.q);
+  if(P.cadenaDominantes && mode === "Ionian" && mod12(r) !== 0 && !DIMS.includes(c.q) && !nDim &&
+     mod12(nextPc - r) === 5 && !(mod12(r) === 2 && mod12(nextPc) === 7)) q = "7";
+  // P4 (2026-11-11): Aeolian, the VI that goes to V/v or to iv becomes VI7 (D7 = B).
+  if(P.bVI7Menor && mode === "Aeolian" && mod12(r) === 8 && !MINORISH.has(c.q) && [7, 5].includes(mod12(nextPc))) q = "7";
+  if(P.color === "novenas" && inScale(r+2)) q = ({maj7:"maj9", m7:"m9", "7":"9"})[q] || q;
+  return q;
+}
+// Chord that leads into the tonic in each mode (Music Lab, change 3). null = no approach (Locrian).
+// rica = the level-3 version of v3 (backdoor, iiø7–♭II7, ♭VIImaj7); simple = the level-2 one.
+function tonicApproach(rica, tMin){
+  switch(mode){
+    case "Ionian":  return !rica ? [{d:7, q:"7", why:"V7"}] : [{d:5, q:"m7", why:"backdoor iv7"}, {d:10, q:"9", why:"♭VII9"}];
+    case "Aeolian": return !rica ? [{d:7, q:"7", why:"V7"}] : [{d:2, q:"hdim7", why:"iiø7"}, {d:1, q:"7", why:"sustituto tritonal ♭II7"}];
+    case "Phrygian":   return [{d:1, q:"maj7", why:"♭IImaj7, el acorde frigio"}];
+    case "Dorian":     return [{d:5, q:"7", why:"IV7, el acorde dórico"}];
+    case "Lydian":     return [{d:2, q:"7", why:"II7, el acorde lidio"}];
+    case "Mixolydian": return [{d:10, q: rica ? "maj7" : "maj", why:"♭VII, el acorde mixolidio"}];
+    default: return null;
+  }
+}
+// Quality of the ii before a dominant (P1 / remate iiV, 2026-11-11). D2 = A: the scale's own chord when it is
+// minor or diminished there (Am7 before D7 → Gm7 in F); otherwise by the target: m7 towards major, ø7 towards minor.
+// The knob iiDelDestino (Claudio's doubt) always goes by the target, and in a minor key it is always ø7
+// (D10, 2026-11-11: Summertime c. 7, F♯m7♭5 B7 → E7).
+function iiQ(tPc, tQ, P){
+  const pc = mod12(tPc + 2), tMin = MINORISH.has(tQ) || (P.iiDelDestino && !majorish());
+  if(!P.iiDelDestino && inScale(pc)){ const d = diatonicQ(st().indexOf(pc)); if(d === "min") return "m7"; if(d === "dim") return "hdim7"; }
+  return tMin ? "hdim7" : "m7";
+}
+const nextNonRest = (seq, i) => { for(let k=1;k<=seq.length;k++){ const c = seq[(i+k)%seq.length]; if(!c.rest) return c; } return seq[i]; };
+const CADENCE = new Set([5, 7, 2, 11]); // root motion into the first chord: V→I, IV→I, ♭VII→I, ♭II→i
+// Seed (2026-11-11, §16 of revision-music-lab-reglas-P1-P5.md). D2 = B: one integer hash per decision,
+// h(seed, lap, step, k), never a chained stream, so switching a knob on does not reshuffle the other decisions.
+// splitmix32 finaliser; in C#: uint arithmetic, unchecked. No seed (undefined / null / "") = v4 exactly (D1 = A).
+function mix32(z){ z = (z + 0x9E3779B9) | 0; z = Math.imul(z ^ (z >>> 16), 0x85EBCA6B); z = Math.imul(z ^ (z >>> 13), 0xC2B2AE35); return (z ^ (z >>> 16)) >>> 0; }
+function hash32(seed, ...xs){ let h = mix32(seed >>> 0); for(const x of xs) h = mix32((h ^ (x >>> 0)) >>> 0); return h; }
+const hasSeed = s => s !== undefined && s !== null && s !== "" && Number.isFinite(+s);
+// Remate groups by mode for remate "azar" (hoja de remates, §14): major third / minor third. Without a seed: rico.
+const REMATE_AZAR = {mayor:["rico","simple","iiV"], menor:["rico","deslizado","iiV"]};
+function remateDe(P, seed){
+  if(P.remate !== "azar") return P.remate;
+  if(!hasSeed(seed)) return "rico";
+  const g = REMATE_AZAR[majorish() ? "mayor" : "menor"];
+  return g[hash32(+seed, 0, 1, 0) % g.length];
+}
+// P6 identity rule (§18, Music Lab 2026-11-12, D1 = d extended): no ornament that changes the root in the second part of X
+// (ii–V, secondary dominant, tritone, remate, ♭VImaj7) when X → Y falls a semitone and W → X falls a semitone or a tone.
+// W and Y are searched cyclically through the lap; repeated roots are merged; a rest cuts the chain. It protects the closing
+// half step of a descent (andaluza ♭VI → V, Phrygian ♭II → i). Applies with and without a seed: no change in oro-v4.
+function protegeBajada(seq, i){
+  const n = seq.length, X = seq[i]; if(!X || X.rest) return false;
+  const find = dir => { for(let k=1;k<n;k++){ const c = seq[((i + dir*k) % n + n) % n]; if(c.rest) return null; if(mod12(c.pc) !== mod12(X.pc)) return c; } return null; };
+  const Y = find(1), W = find(-1);
+  return !!(Y && W) && mod12(X.pc - Y.pc) === 1 && [1, 2].includes(mod12(W.pc - X.pc));
+}
+// P6 weights (§18, D2 = B): with a seed, the ornament for each slot is drawn among the candidates that fit, by level.
+// dom = secondary dominant or tritone substitute; iiV = ii + V7; iv = borrowed colour after IV; dim = passing °7.
+const PESOS_P6 = {2:{dom:3, iiV:1, sus4:2, iv:2, dim:1, bVI:1}, 3:{dom:2, iiV:3, sus4:1, iv:1, dim:2, bVI:2}};
+function arrange(base, level, nV, beats, perillas, seed){
+  const B = beats || 4, h = B === 3 ? 1 : 0.5;          // the split unit: half a bar in 4/4, one whole bar in 3/4
+  const vs = [];
+  const distinct = new Set(base.filter(c => !c.rest).map(c => c.pc + c.q)).size;
+  const chromatic = base.some(c => !c.rest && !inScale(c.pc)), n = base.filter(c => !c.rest).length;
+  const P = level >= 2 ? (perillas || PERILLAS_V3)[level] : null;
+  for(let v=0; v<nV; v++){
+    let seq = base.map(c => c.rest ? {...c} : {...c, orig:true});
+    // D3 = B: with a seed, every rule walks the chords in a shuffled order (its own per lap) instead of left to right.
+    const ord = seq.map((_,i) => i);
+    if(hasSeed(seed)){ const kk = ord.map(i => hash32(+seed, v, 2, i)); ord.sort((x,y) => (kk[x] - kk[y]) || (x - y)); }
+    const each = f => ord.forEach(i => f(seq[i], i));
+    if(P) seq = seq.map((c,i) => { if(c.rest) return c; const q = color(c, nextNonRest(seq,i), P); return q === c.q ? c : {...c, q, col:true}; });
+    if(P && v >= P.desdeVuelta - 1){
+      const budget = Math.min(P.presupuesto, distinct <= 2 ? 1 : n - 1), used = new Set(), plan = [];   // plan: {i, tail:[chords], head?:chord}
+      const can = (i, n) => { const c = seq[i]; return c && !c.rest && !used.has(i) && c.dur >= h*(n+1) - 1e-9; };
+      const take = p => { if(plan.length < budget && !used.has(p.i)){ used.add(p.i); plan.push(p); return true; } return false; };
+      // P6 (§18, D2 = B): without a seed every rule takes in the fixed v4 order; with a seed the rules only offer
+      // candidates, and the slots are filled below by a weighted draw (PESOS_P6), one hash per draw: h(seed, lap, 3, k).
+      const seeded = hasSeed(seed), cands = [];
+      const offer = (p, kind) => { if(seeded) cands.push({p, kind}); else take(p); };
+      const li = seq.length - 1, first = seq.find(c => !c.rest);
+      // 1) turnaround on the last lap: second part of the last chord, unless the loop already closes by cadence
+      const R = remateDe(P, seed);
+      if(R !== "no" && v === nV-1 && !protegeBajada(seq, li) &&!seq[li].rest && distinct > 2 && !CADENCE.has(mod12(first.pc - seq[li].pc))){
+        const tR = romanOf(first.pc, first.q), toTonic = mod12(first.pc) === 0;
+        const nuevo = R === "deslizado" || R === "iiV";   // P5 and D9 (2026-11-11)
+        let ap;
+        if(nuevo) ap = toTonic && !["Ionian","Aeolian"].includes(mode) ? tonicApproach(true, false)
+          : R === "deslizado" ? [{d:8, q:"7", why:"♭VI7"}, {d:7, q:"7", why:"V7 (deslizamiento)"}]
+          : [{d:2, q:iiQ(first.pc, first.q, P), why:"ii"}, {d:7, q:"7", why:"V7"}];
+        else {
+          ap = toTonic ? tonicApproach(R === "rico", MINORISH.has(first.q)) : [{d:7, q:"7", why:"V7 de "+tR}];
+          if(ap && !toTonic && P.paso === "cromatico" && (!P.remateFiel || chromatic)) ap = [{d:1, q:"7", why:"sustituto tritonal hacia "+tR}];
+        }
+        if(nuevo && ap && ap.length === 2 && mod12(first.pc + ap[0].d) === mod12(seq[li].pc)) ap = [ap[1]];   // the last chord already is the ♭VI / the ii
+        if(ap && ap.length === 2 && !can(li, 2)) ap = [ap[1]];
+        if(ap && mod12(first.pc + ap[0].d) === mod12(seq[li].pc)) ap = null;   // the last chord already is the approach chord
+        if(ap && can(li, ap.length)) take({i:li, tail: ap.map((a,k) => ({pc:mod12(first.pc + a.d), q:a.q, dur:h, add:true, why: k ? undefined : "turnaround hacia "+tR+": "+ap.map(x => x.why).join("–")}))});
+      }
+      // 2) sus4 on the functional dominant (resolves a fifth down)
+      const sus4 = () => { if(P.sus4) each((c,i) => { if(plan.length >= budget || !c.orig || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(c.q === "7" && mod12(t.pc - c.pc) === 5 && can(i, 1)) offer({i, head:{...c, q:"7sus4", dur:h, add:true, why:"sus4 que se resuelve en "+romanOf(c.pc,"7")}, rest:"tail"}, "sus4"); }); };
+      if(!P.preferirAcordeNuevo) sus4();
+      // 3) one borrowed colour after IV (iv6 in major modes, IV7 in Aeolian)
+      if(P.ivPrestado){
+        const bis = ord.filter(i => { const c = seq[i]; return !c.rest && mod12(c.pc) === 5 && can(i,1) && (
+          (["Ionian","Lydian","Mixolydian"].includes(mode) && !MINORISH.has(c.q)) || (mode === "Aeolian" && MINORISH.has(c.q))); });
+        (seeded ? bis : bis.slice(0, 1)).forEach(bi => { const c = seq[bi], maj = mode !== "Aeolian";
+          offer({i:bi, tail:[{pc:c.pc, q: maj ? "m6" : "7", dur:h, add:true, why: maj ? "iv menor prestado (iv6) después del IV" : "IV7 dórico prestado después del iv"}]}, "iv"); });
+      }
+      // 3b) P3 (2026-11-11, D6 = C): passing °7 in the second part. Ascending: a whole step up, the °7 a semitone
+      //     below the target (I – ♯I°7 – ii). Neighbour: IV – ♯IV°7 – I. Descending: a fourth down, the °7 a semitone
+      //     above the target (I – ♭VI°7 – V). The last chord may host it (IV → I closes many loops).
+      if(P.disminuido) each((c,i) => { if(plan.length >= budget || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(t === c || t.pc === c.pc || !inScale(t.pc) || ["dim","hdim7","dim7"].includes(t.q) || !can(i,1)) return;
+        const m = mod12(t.pc - c.pc), tR = romanOf(t.pc, t.q), toT = mod12(t.pc) === 0;
+        let pc, why;
+        if(m === 2 && !toT){ pc = t.pc - 1; why = "disminuido de paso, sube hacia " + tR; }
+        else if(mod12(c.pc) === 5 && toT){ pc = 6; why = "disminuido de vecino entre el IV y el I"; }
+        else if(m === 7 && !toT){ pc = t.pc + 1; why = "disminuido de paso, baja hacia " + tR; }
+        else return;
+        offer({i, tail:[{pc:mod12(pc), q:"dim7", dur:h, add:true, why}]}, "dim"); });
+      // 4) acorde de paso into a diatonic non-tonic chord: its V7 (clasico), the tritone substitute ♭II7 (cromatico)
+      //    or ii + V7 (iiV, P1 2026-11-11: needs room for two parts; with room for one, only the V7, D1 = A)
+      if(P.paso === "iiV"){
+        each((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
+          const t = nextNonRest(seq,i);
+          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || ["dim","hdim7","dim7"].includes(t.q) || !can(i,1) || protegeBajada(seq, i)) return;
+          const fifth = mod12(t.pc - c.pc) === 5, tR = romanOf(t.pc, t.q);
+          if(fifth && MINORISH.has(c.q)) return;                          // the host already is the ii of a ii–V
+          const ii = {pc:mod12(t.pc+2), q:iiQ(t.pc, t.q, P), dur:h, add:true, why:"ii–V hacia "+tR};
+          const V = {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR};
+          if(ii.pc === mod12(c.pc)){ if(!fifth) offer({i, tail:[{...V, why:"ii–V hacia "+tR+" (el ii es el propio acorde)"}]}, "dom"); }
+          else if(can(i,2)) offer({i, tail:[ii, V]}, "iiV");
+          else if(!fifth) offer({i, tail:[V]}, "dom"); }); }
+      else if(P.paso !== "no"){
+        each((c,i) => { if(plan.length >= budget || c.rest || i === li) return;
+          const t = nextNonRest(seq,i);
+          if(mod12(t.pc) === 0 || t.pc === c.pc || !inScale(t.pc) || t.q === "dim" || t.q === "hdim7" || mod12(t.pc - c.pc) === 5 || !can(i,1) || protegeBajada(seq, i)) return;
+          const tR = romanOf(t.pc, t.q);
+          offer({i, tail:[P.paso === "clasico" ? {pc:mod12(t.pc+7), q:"7", dur:h, add:true, why:"dominante secundaria: V7 de "+tR}
+                                             : {pc:mod12(t.pc+1), q:"7", dur:h, add:true, why:"sustituto tritonal de la dominante de "+tR}]}, "dom"); }); }
+      if(P.preferirAcordeNuevo) sus4();
+      // 5) ♭VImaj7 inserted before the return to I (Ionian, Mixolydian)
+      if(P.bVI && (mode === "Ionian" || mode === "Mixolydian")) each((c,i) => { if(plan.length >= budget || c.rest) return;
+        const t = nextNonRest(seq,i);
+        if(mod12(t.pc) === 0 && mod12(c.pc) !== 0 && mod12(c.pc) !== 8 && !CADENCE.has(mod12(t.pc - c.pc)) && can(i,1) && !protegeBajada(seq, i)) offer({i, tail:[{pc:8, q:"maj7", dur:h, add:true, why:"♭VImaj7 prestado antes de volver a I"}]}, "bVI"); });
+      if(seeded){ const Wt = PESOS_P6[level]; let k = 0;
+        for(;;){ const live = cands.filter(c => !used.has(c.p.i)); if(plan.length >= budget || !live.length) break;
+          const tot = live.reduce((s, c) => s + Wt[c.kind], 0); let r = hash32(+seed, v, 3, k++) % tot;
+          take(live.find(c => (r -= Wt[c.kind]) < 0).p); } }
+      // apply: the original keeps the first part
+      const out = [];
+      seq.forEach((c,i) => {
+        const p = plan.find(x => x.i === i);
+        if(!p){ out.push(c); return; }
+        if(p.head){ out.push(p.head); out.push({...c, dur:c.dur-h}); return; }
+        out.push({...c, dur:c.dur - h*p.tail.length}); p.tail.forEach(a => out.push(a));
+      });
+      seq = out;
+    }
+    vs.push({seq, off:0});
+  }
+  return vs;
+}
+
+
+
+/* ---------- the cards: factory (no seed) + 3 seeds with the P6 weights ---------- */
+// Seeds picked with a search over 1–999: the 3 versions most distinct from each other and from the factory one (§18).
+// Distinct versions in 1–999: Pachelbel N2 36, N3 860; Axis N2 9, N3 280. The andaluza has 1 (the rule leaves it no ornament).
+const PACH = "Imaj – Vmaj – vim – iiim – IVmaj – Imaj – IVmaj – Vmaj", AXIS = "Imaj (2) – Vmaj (2) – vim (2) – IVmaj (2)";
+const JTTOU = "VImaj7 – V7 – im7 – viim7 (0.5) – III7 (0.5)";
+// Just the Two of Us without the II7: the factory version with the added II7 folded back into the ♭VI before it.
+const sinII7 = laps => laps.map(seq => { const out = []; seq.forEach(c => {
+  if(c.add && /V7 de V7/.test(c.why || "")) out[out.length - 1] = {...out[out.length - 1], dur: out[out.length - 1].dur + c.dur}; else out.push(c); }); return out; });
+const CARDS = [
+ {id:"pach2", t:"Pachelbel, nivel 2", what:"Mayor, 8 acordes por vuelta. En el nivel 2 pesan más la dominante secundaria, el sus4 y el iv menor.", md:"Ionian", key:2, lvl:2,
+  text:PACH, seeds:[2, 74, 8], ord:[2,0,3,1]},
+ {id:"pach3", t:"Pachelbel, nivel 3", what:"La misma carta en el nivel 3: pesan más el ii–V, el disminuido y el ♭VI.", md:"Ionian", key:2, lvl:3,
+  text:PACH, seeds:[568, 162, 288], ord:[3,1,2,0]},
+ {id:"axis2", t:"Axis I–V–vi–IV, nivel 2", what:"La progresión pop. Tiene pocos huecos: en el nivel 2 solo hay 9 versiones posibles.", md:"Ionian", key:7, lvl:2,
+  text:AXIS, seeds:[1, 56, 2], ord:[0,3,1,2]},
+ {id:"axis3", t:"Axis I–V–vi–IV, nivel 3", what:"En el nivel 3 hay 280 versiones; antes de P6, aquí la semilla apenas se notaba.", md:"Ionian", key:7, lvl:3,
+  text:AXIS, seeds:[2, 45, 48], ord:[1,2,0,3]},
+ {id:"jttou", t:"Just the Two of Us, nivel 3", what:"♭VI – V – i – ♭vii – ♭III. Una versión pone un II7 entre el ♭VI y el V; la otra deja que el ♭VI baje medio tono al V sin nada en medio.", md:"Aeolian", key:10, lvl:3,
+  text:JTTOU, ord:[1,0],
+  custom:[{tag:"de fábrica (con II7)", laps: c => render(c)}, {tag:"sin el II7 (♭VI → V directo)", laps: c => sinII7(render(c))}],
+  qs:[{k:"cancion", t:"¿Cuál suena más a Just the Two of Us?", o:["1","2","igual"]},
+      {k:"prefiero", t:"¿Cuál prefieres para la carta?", o:["1","2","las dos valen"]}]},
+];
+const NV = 3, BPM = 104;
+const DECS = [
+ {id:"variedad", t:"¿La variedad alcanza ahora?", opts:["alcanza","se queda corta: que el presupuesto suba con la intensidad (D3 = B)","se queda corta: otra cosa (nota)","demasiada: se pierde la carta"],
+  rec:"alcanza", why:"Con los pesos, el nivel 3 pasa de 1,5 a 2 versiones distintas por carta de media (con 4 semillas). Si las versiones se distinguen y siguen siendo la carta, no hace falta subir el presupuesto."},
+ {id:"niveles", t:"¿Se nota la diferencia entre el nivel 2 y el 3?", opts:["sí: el 2 es más suave y el 3 más jazz","poco: los pesos deberían separarlos más","no"],
+  rec:"sí", why:"Los pesos de Music Lab separan los niveles: dominante secundaria en el 2, ii–V en el 3. Si no se nota, se separan más los pesos antes de tocar las reglas."},
+ {id:"andaluza", t:"La andaluza ya no varía con la semilla", opts:["bien así: la carta es la cadencia","que varíe en otra cosa (sus4 en el V, color)","prefiero la variedad de antes aunque se pierda el ♭VI → V"],
+  rec:"bien así", why:"La regla de identidad protege el ♭VI → V. A la andaluza solo le quedan el IV7 y el III7 que ya pone la de fábrica, así que todas las semillas dan lo mismo. Es la carta, y para la demo basta; si quieres variedad, la siguiente vía sería un sus4 en el V."},
+];
+/* ---------- arrange + draw + sound ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const pretty = r => r.replace(/^b/, "♭").replace(/^#/, "♯").replace("dim7", "°7");
+function render(c, seed){ mode = c.md; return arrange(parse(c.text).chords, c.lvl, NV, 4, undefined, seed).map(v => v.seq); }
+// The 4 versions of a card: slot 0 = factory, 1–3 = seeds. Each card fixes which slot goes under the numbers 1–4 (ord),
+// chosen by hand so the factory one sits in a different place on every card (2, 4, 1, 3).
+const order = id => CARDS.find(c => c.id === id).ord;
+const sig = c => c.rest ? "-" : c.pc + c.q + "@" + c.dur;
+function lapsHTML(laps, key, md, pid, ref){
+  const bars = Math.max(...laps.map(s => s.reduce((t, c) => t + c.dur, 0))); mode = md;
+  return laps.map((seq, ri) => { const os = ref ? new Set(ref[ri].map(sig)) : null;
+    return '<div class="lapRow"><div class="lapLbl">vuelta '+(ri + 1)+'</div><div class="scroll"><div class="bar" style="--mw:'+Math.round(bars*84)+'px">' +
+      seq.map((c, ci) => '<div class="ch'+(os && !os.has(sig(c)) ? " diff" : "")+'" style="--d:'+c.dur+'" data-id="'+pid+'-'+ri+'-'+ci+'"><span class="rn">'+(c.rest ? "—" : esc(pretty(romanOf(c.pc, c.q))))+'</span><span class="nm">'+(c.rest ? "" : esc(chordName(c.pc, c.q, key)))+'</span></div>').join("") +
+      '</div></div></div>'; }).join("");
+}
+let AC = null, live = [], timers = [], playingBtn = null;
+function stopAll(){ live.forEach(n => { try{ n.stop(); }catch(e){} }); live = []; timers.forEach(clearTimeout); timers = [];
+  document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+  if(playingBtn){ playingBtn.classList.remove("playing"); playingBtn = null; } }
+function tone(f, t, d, type, vol){
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(vol*.45, t + .35);
+  g.gain.setValueAtTime(vol*.45, t + Math.max(.36, d - .08)); g.gain.linearRampToValueAtTime(0, t + d);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + .05); live.push(o); }
+function click(t, vol){ const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 1800;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + .03); o.connect(g).connect(AC.destination); o.start(t); o.stop(t + .04); live.push(o); }
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+function chord(c, key, at, d){ const root = (c.pc + key) % 12, set = new Set();
+  Q[c.q].iv.forEach(x => set.add(55 + ((root + x - 55) % 12 + 12) % 12));
+  set.forEach(m => tone(hz(m), at, d * .96, "triangle", .07)); tone(hz(36 + root), at, d * .96, "sine", .16); }
+function play(laps, key, md, pid, btn, from){
+  if(!from && playingBtn === btn){ stopAll(); return; } stopAll();
+  try{ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); }catch(e){ return; }
+  if(!from && $("#optSkip").checked) from = {ri: 1, ci: 0};
+  playingBtn = btn; if(btn) btn.classList.add("playing");
+  const beat = 60 / BPM, bar = 4 * beat, t0 = AC.currentTime + .08; let t = 0;
+  laps.forEach((seq, ri) => seq.forEach((c, ci) => {
+    if(from && (ri < from.ri || (ri === from.ri && ci < from.ci))) return;
+    const d = c.dur * bar, at = t0 + t;
+    if(!c.rest) chord(c, key, at, d);
+    for(let k = 0; k < c.dur * 4 - 1e-6; k++) click(at + k * beat, k % 4 === 0 ? .025 : .012);
+    const id = pid + "-" + ri + "-" + ci, start = t;
+    timers.push(setTimeout(() => { document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now"));
+      const el = document.querySelector('[data-id="'+id+'"]'); if(el) el.classList.add("now"); }, start * 1000 + 80));
+    t += d; }));
+  const f = laps[0].find(c => !c.rest);
+  if($("#optRes").checked && f){ const at = t0 + t; chord(f, key, at, bar); click(at, .025);
+    timers.push(setTimeout(() => document.querySelectorAll(".ch.now").forEach(e => e.classList.remove("now")), t * 1000 + 80)); t += bar; }
+  timers.push(setTimeout(() => { if($("#optLoop").checked && playingBtn === btn){ playingBtn = null; play(laps, key, md, pid, btn); } else stopAll(); }, t * 1000 + ($("#optLoop").checked ? 0 : 250)));
+}
+
+/* ---------- answers: artifact db (Claude reads them), localStorage as a fallback ---------- */
+const ANS = {}, DEC = {}, GEN = {};
+let db = null;
+const LS = "oido-p6";
+function lsSave(){ try{ localStorage.setItem(LS, JSON.stringify({ANS, DEC, GEN})); }catch(e){} }
+function lsLoad(){ try{ const x = JSON.parse(localStorage.getItem(LS) || "null"); if(x){ Object.assign(ANS, x.ANS || {}); Object.assign(DEC, x.DEC || {}); Object.assign(GEN, x.GEN || {}); } }catch(e){} }
+const saving = new Map();
+function store(col, id, data){
+  lsSave();
+  if(!db){ $("#saveState").textContent = "guardado en este navegador"; return; }
+  clearTimeout(saving.get(col + id));
+  saving.set(col + id, setTimeout(async () => {
+    $("#saveState").textContent = "guardando…";
+    try{ await db.collection(col).doc(id).set({...data, ts: new Date().toISOString()}); $("#saveState").textContent = "guardado ✓"; }
+    catch(e){ $("#saveState").textContent = "no se pudo guardar (" + (e && e.code || "error") + "); queda en este navegador"; }
+  }, 500));
+}
+
+/* ---------- cards UI ---------- */
+const QS = [
+ {k:"misma", t:"¿Las cuatro suenan a la misma carta?", o:["sí","casi: alguna se aleja","no"]},
+ {k:"diferencia", t:"¿Cuánto se diferencian entre ellas?", o:["mucho","algo","poco","nada"]},
+ {k:"seSale", t:"¿Alguna se sale de la carta?", o:["1","2","3","4","ninguna"]},
+ {k:"guardaria", t:"¿Cuál guardarías?", o:["1","2","3","4","ninguna","varias"]},
+];
+const PLAY = {};
+function drawCard(c, i){
+  const host = document.getElementById("card-" + c.id), a = ANS[c.id] || {}, ord = order(c.id);
+  const slots = c.custom ? c.custom.map(x => ({seed: x.tag, laps: x.laps(c)})) : [null, ...c.seeds].map(s => ({seed: s, laps: render(c, s === null ? undefined : s)}));
+  const N = slots.length, qs = c.qs || QS;
+  const at = n => slots[ord[n]];                       // version under number n+1
+  const done = !!(a[qs[0].k] && a[qs[1].k]);
+  host.classList.toggle("done", done);
+  host.innerHTML = '<header><h3>'+esc(c.t)+'</h3><span class="num">'+(i + 1)+' / '+CARDS.length+'</span></header>' +
+    '<p class="small">'+esc(c.what)+' <span class="muted">'+esc(NOTE[c.key])+' '+esc(MODE_ES[c.md] || c.md)+' · nivel '+c.lvl+' · 3 vueltas</span></p>' +
+    '<div class="vers">' + [...Array(N).keys()].map(n => '<button class="btn play'+(n % 2 ? " pb" : " pa")+'" type="button" data-n="'+n+'">Versión '+(n + 1)+'</button>').join("") + '</div>' +
+    qs.map(q => '<div class="q"><span>'+esc(q.t)+'</span><div class="choice" role="group" aria-label="'+esc(q.t)+'">' +
+      q.o.map(o => '<button class="btn'+(a[q.k] === o ? " sel" : "")+'" type="button" data-q="'+q.k+'" data-o="'+esc(o)+'">'+esc(o)+'</button>').join("") + '</div></div>').join("") +
+    '<input type="text" id="n-'+c.id+'" placeholder="Nota (opcional)" value="'+esc(a.nota || "")+'" aria-label="Nota de la carta '+(i + 1)+'">' +
+    (done ? '<div class="reveal"><span class="verdict">'+esc(verdict(c, ord, a))+'</span>' +
+      [...Array(N).keys()].map(n => { const v = at(n), pid = "s" + c.id + n;
+        return '<div class="small"><b>Versión '+(n + 1)+'</b> · <span class="tagv">'+(v.seed === null ? "de fábrica" : typeof v.seed === "string" ? v.seed : "semilla " + v.seed)+'</span></div>' +
+          '<div class="laps">'+lapsHTML(v.laps, c.key, c.md, pid, v === slots[0] ? null : slots[0].laps)+'</div>'; }).join("") +
+      '<span class="small muted">En naranja, lo que cambia respecto a la de fábrica. Pulsa un acorde para que suene desde ahí. Para guardar una versión en el taller, escribe su semilla en «Versión» y pulsa «Guardar esta versión».</span></div>' : "");
+  [...Array(N).keys()].forEach(n => { const v = at(n), pid = "s" + c.id + n, btn = host.querySelector('[data-n="'+n+'"]');
+    PLAY[pid] = {laps: v.laps, c, btn}; btn.onclick = ev => play(v.laps, c.key, c.md, pid, ev.currentTarget); });
+  host.querySelectorAll("[data-q]").forEach(b => b.onclick = () => {
+    const prev = ANS[c.id] || {}; ANS[c.id] = {...prev, [b.dataset.q]: b.dataset.o, nota: document.getElementById("n-" + c.id).value,
+      orden: ord.map(s => s === 0 ? "fabrica" : c.custom ? c.custom[s].tag : "s" + c.seeds[s - 1]).join(",")};
+    store("respuestas", c.id, ANS[c.id]); const wasDone = done; drawCard(c, i); progress(); if(!wasDone && ANS[c.id][qs[0].k] && ANS[c.id][qs[1].k]) stopAll(); });
+  document.getElementById("n-" + c.id).oninput = e => { ANS[c.id] = {...(ANS[c.id] || {}), nota: e.target.value}; store("respuestas", c.id, ANS[c.id]); };
+}
+document.addEventListener("click", ev => {
+  const el = ev.target.closest(".ch[data-id]"); if(!el) return;
+  const parts = el.dataset.id.split("-"), ci = +parts.pop(), ri = +parts.pop(), pid = parts.join("-"), x = PLAY[pid];
+  if(x) play(x.laps, x.c.key, x.c.md, pid, x.btn, {ri, ci});
+});
+function verdict(c, ord, a){
+  const fab = ord.indexOf(0) + 1, name = n => { const s = ord[+n - 1]; return s === 0 ? "la de fábrica" : c.custom ? "la " + c.custom[s].tag : "la semilla " + c.seeds[s - 1]; };
+  let t = "La de fábrica era la versión " + fab + ".";
+  if(c.custom){ ["cancion", "prefiero"].forEach(k => { if(/^\d$/.test(a[k] || "")) t += (k === "cancion" ? " La que suena más a la canción" : " La que prefieres") + " (" + a[k] + ") es " + name(a[k]) + "."; }); return t; }
+  if(a.seSale && a.seSale !== "ninguna") t += " La que se sale (" + a.seSale + ") es " + name(a.seSale) + ".";
+  if(a.guardaria && /^\d$/.test(a.guardaria)) t += " La que guardarías (" + a.guardaria + ") es " + name(a.guardaria) + ".";
+  return t;
+}
+function progress(){
+  const n = CARDS.filter(c => { const q = c.qs || QS; return ANS[c.id] && ANS[c.id][q[0].k] && ANS[c.id][q[1].k]; }).length;
+  $("#count").textContent = n + " de " + CARDS.length + " cartas"; $("#meter").style.width = (100 * n / CARDS.length) + "%";
+}
+function drawCards(){
+  $("#cards").innerHTML = CARDS.map((c, i) => '<article class="panel pair" id="card-'+c.id+'" aria-label="Carta '+(i + 1)+'"></article>').join("");
+  CARDS.forEach(drawCard); progress();
+}
+
+/* ---------- decisions ---------- */
+function drawDecs(){
+  $("#decs").innerHTML = DECS.map(d => { const v = DEC[d.id] && DEC[d.id].valor || "";
+    return '<div class="dec"><div style="display:flex;flex-direction:column;gap:4px"><b>'+esc(d.t)+'</b>' +
+      '<span class="rec">Recomiendo: <strong>'+esc(d.rec)+'</strong>. '+esc(d.why)+'</span></div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px"><select id="d-'+d.id+'" aria-label="'+esc(d.t)+'"><option value="">— elige —</option>' +
+      d.opts.map(o => '<option'+(o === v ? " selected" : "")+'>'+esc(o)+'</option>').join("") + '</select>' +
+      '<input type="text" id="dn-'+d.id+'" placeholder="Por qué (opcional)" value="'+esc(DEC[d.id] && DEC[d.id].nota || "")+'" aria-label="Nota, '+esc(d.t)+'"></div></div>'; }).join("");
+  DECS.forEach(d => { const s = document.getElementById("d-" + d.id), n = document.getElementById("dn-" + d.id);
+    const save = () => { DEC[d.id] = {valor: s.value, nota: n.value, recomendacion: d.rec}; store("decisiones", d.id, DEC[d.id]); };
+    s.onchange = save; n.oninput = save; });
+}
+$("#g1").oninput = e => { GEN.g1 = e.target.value; store("generales", "g1", {texto: e.target.value}); };
+
+/* ---------- start: draw from the browser copy, then load the shared answers ---------- */
+lsLoad(); drawCards(); drawDecs(); $("#g1").value = GEN.g1 || "";
+(async () => {
+  try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ db = null; }
+  if(!db){ $("#saveState").textContent = "sin conexión: se guarda en este navegador"; return; }
+  const timer = setTimeout(() => { $("#saveState").textContent = "la base de datos tarda; se guarda igual"; }, 10000);
+  try{
+    const [r, d, g] = await Promise.all(["respuestas","decisiones","generales"].map(c => db.collection(c).get()));
+    clearTimeout(timer);
+    r.docs.forEach(x => { ANS[x.id] = x.data(); }); d.docs.forEach(x => { DEC[x.id] = x.data(); }); g.docs.forEach(x => { GEN[x.id] = (x.data() || {}).texto || ""; });
+    drawCards(); drawDecs(); $("#g1").value = GEN.g1 || ""; lsSave();
+    $("#saveState").textContent = r.size + d.size ? "respuestas cargadas ✓" : "listo; se guarda al responder";
+  }catch(e){ clearTimeout(timer); $("#saveState").textContent = "no se pudieron leer las respuestas guardadas"; }
+})();
+</script>
