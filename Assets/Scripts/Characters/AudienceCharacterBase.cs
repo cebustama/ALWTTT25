@@ -60,7 +60,12 @@ namespace ALWTTT.Characters.Audience
             }
 
             if (anyFixed)
+            {
                 _lockedMusician = SelectDefaultMusicianTarget(list);
+                if (_lockedMusician != null)
+                    Debug.Log($"[S7] Weakest | {CharacterId} → {_lockedMusician.name} | " +
+                              string.Join(", ", list.ConvertAll(m => m == null ? "-" : $"{m.name}={BreakdownDistance(m):0.#}")));
+            }
             else if (anyRandom)
                 _lockedMusician = list[Random.Range(0, list.Count)];
         }
@@ -119,6 +124,7 @@ namespace ALWTTT.Characters.Audience
                 case ActionTargetType.Self:
                 case ActionTargetType.AllAudienceCharacters:
                 case ActionTargetType.AudienceTall:
+                case ActionTargetType.AudienceLeader: // [S7]
                 case ActionTargetType.AudienceCharacter:
                     {
                         // These branches of ResolveTargetsFor are pure (no RNG, no bus).
@@ -129,6 +135,40 @@ namespace ALWTTT.Characters.Audience
                         break;
                     }
             }
+        }
+
+        /// <summary>
+        /// [S7 / Croar] 2 when another member sings this ability's duet with us: its pending
+        /// ability has the same DuetKey, it can act (active, unconvinced, not stunned) and one of
+        /// its musician-targeting actions reaches <paramref name="target"/>; otherwise 1.
+        /// Pure (no RNG, no bus): StressProjector and the real hit both call it, so the bar and
+        /// the hit agree. Targets are locked at intention time, so both frogs keep the same
+        /// answer through the audience turn (the first to croak still counts for the second).
+        /// </summary>
+        public int DuetMultiplier(CharacterActionData action, MusicianBase target)
+            => FindDuetPartner(action, target) != null ? 2 : 1;
+
+        public AudienceCharacterBase FindDuetPartner(CharacterActionData action, MusicianBase target)
+        {
+            if (action == null || target == null || action.CardActionType != CharacterActionType.AddStress) return null;
+            var key = NextAbility != null ? NextAbility.DuetKey : null;
+            if (string.IsNullOrEmpty(key) || GigManager == null) return null;
+            var audience = GigManager.CurrentAudienceCharacterList;
+            if (audience == null) return null;
+
+            foreach (var b in audience)
+            {
+                if (b == null || b == this || !b.gameObject.activeInHierarchy) continue;
+                if (b.Stats == null || b.Stats.IsConvinced || b.Stats.IsStunned) continue;
+                var ab = b.PendingAbility;
+                if (ab == null || ab.ActionList == null || ab.DuetKey != key) continue;
+                foreach (var other in ab.ActionList)
+                {
+                    if (other == null || other.CardActionType != CharacterActionType.AddStress) continue;
+                    if (b.GetProjectedMusicianTargets(other).Contains(target)) return b;
+                }
+            }
+            return null;
         }
 
         public AudienceCharacterData AudienceCharacterData => audienceCharacterData;
@@ -355,6 +395,15 @@ namespace ALWTTT.Characters.Audience
                     taste.dislikedTonalities.Count > 0 &&
                     taste.dislikedTonalities.Contains(ctx.Tonality))
                     impression -= 1;
+
+                // Axis 5 [S7 / D4=B]: track roles. One point per side, however many
+                // listed roles are playing, so the axis weighs the same as the others.
+                if (taste.preferredRoles != null && taste.preferredRoles.Count > 0)
+                    foreach (var role in taste.preferredRoles)
+                        if (ctx.HasRole(role)) { impression += 1; break; }
+                if (taste.dislikedRoles != null && taste.dislikedRoles.Count > 0)
+                    foreach (var role in taste.dislikedRoles)
+                        if (ctx.HasRole(role)) { impression -= 1; break; }
             }
 
             int clamped = Mathf.Clamp(impression, -2, 2);
@@ -517,6 +566,13 @@ namespace ALWTTT.Characters.Audience
                 if (action == null) continue;
 
                 var targets = ResolveTargetsFor(action);
+
+                // [S7] Once per fire, never in the per-frame projection.
+                if (action.ActionTargetType == ActionTargetType.AudienceLeader)
+                    Debug.Log(targets == null || targets.Count == 0
+                        ? $"[S7] {CharacterId} → leader: none unconvinced, {action.CardActionType} fizzles"
+                        : $"[S7] {CharacterId} → leader {targets[0].name}: {action.CardActionType}");
+
                 if (targets == null || targets.Count == 0) continue;
 
                 yield return StartCoroutine(
@@ -555,8 +611,18 @@ namespace ALWTTT.Characters.Audience
 
                 float reactionDuration = GetPerTargetReactionDuration(action, target);
 
+                // [S7 / Croar] Duet doubles the base before Hyped (AddStressAction adds Hyped
+                // on top), the same order StressProjector uses.
+                float value = action.ActionValue;
+                var partner = FindDuetPartner(action, target as MusicianBase);
+                if (partner != null)
+                {
+                    value *= 2f;
+                    Debug.Log($"[S7] Croak duet | {CharacterId} + {partner.CharacterId} → {target.name} | {action.ActionValue} ×2 = {value}");
+                }
+
                 var p = new CharacterActionParameters(
-                    action.ActionValue, this, target, ctx,
+                    value, this, target, ctx,
                     duration: reactionDuration,
                     statusEffect: action.StatusEffect);
 
@@ -631,14 +697,21 @@ namespace ALWTTT.Characters.Audience
         {
             if (list == null || list.Count == 0) return null;
 
+            // [S7 / D3=A] "Closest to Breakdown" now counts what the musician is wearing:
+            // hits it can take = (remaining fortitude + Composure) / (1 + Exposed × mult).
+            // Composure absorbs first and Exposed amplifies what is left, the same order as
+            // ApplyIncomingStressWithComposure. Ties keep band order (first wins), as before.
             MusicianBase best = null;
+            float bestScore = float.MaxValue;
             foreach (var m in list)
             {
-                // [R5 / D-R5-2=A] Closest to Breakdown wins: the LOWEST remaining
-                // fortitude under the S5e inverted meter. See F-PRES1b-1.
-                if (best == null ||
-                    m.MusicianStats.CurrentStress < best.MusicianStats.CurrentStress)
+                if (m == null) continue;
+                float score = BreakdownDistance(m);
+                if (best == null || score < bestScore)
+                {
                     best = m;
+                    bestScore = score;
+                }
             }
 
             // [R5-pre, 2026-08-11] The ALWTTT_DEV [PRES-1][Selector] ranking log was
@@ -648,6 +721,21 @@ namespace ALWTTT.Characters.Audience
             // load-bearing evidence for ST-PRES1-6.
 
             return best;
+        }
+
+        /// <summary>[S7 / D3=A] Pure: effective distance to Breakdown (lower = weaker).</summary>
+        public static float BreakdownDistance(MusicianBase m)
+        {
+            if (m == null || m.MusicianStats == null) return float.MaxValue;
+            float remaining = m.MusicianStats.CurrentStress;
+            int composure = 0, exposed = 0;
+            if (m.Statuses != null)
+            {
+                composure = Mathf.Max(0, m.Statuses.GetStacks(CharacterStatusId.TempShieldTurn));
+                exposed = Mathf.Max(0, m.Statuses.GetStacks(CharacterStatusId.DamageTakenUpFlat));
+            }
+            float mult = m.Stats != null ? m.Stats.ExposedStressMultiplierPerStack : 0f;
+            return (remaining + composure) / (1f + exposed * mult);
         }
 
         /// <summary>
@@ -793,6 +881,20 @@ namespace ALWTTT.Characters.Audience
                             if (a == this) continue;
                             if (a.IsTall)
                                 return new List<CharacterBase>() { a };
+                        }
+                        return null;
+                    }
+
+                case ActionTargetType.AudienceLeader:
+                    {
+                        // [S7 / D2=A] The boss, while still unconvinced. A convinced boss
+                        // leaves his minions with no one to cheer: the action fizzles.
+                        foreach (var a in gm.CurrentAudienceCharacterList)
+                        {
+                            if (a == this || a.AudienceCharacterData == null) continue;
+                            if (!a.AudienceCharacterData.IsLeader) continue;
+                            if (a.AudienceStats.IsConvinced) return null;
+                            return new List<CharacterBase>() { a };
                         }
                         return null;
                     }

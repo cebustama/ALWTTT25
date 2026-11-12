@@ -14,6 +14,22 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-12 — S7: ELENCO-1, el público con elenco propio y la banda colocada (DEMO-1211)
+
+**Clase:** semántico · operativo. Con cambio de código, escena y datos.
+
+- `SSoT_Audience_and_Reactions`: §6.1 eje de roles; §7.2 interfaz de cabeza de las variantes (estados sobre la cabeza, intención encima, sin salto al pasar el ratón); §8 el más débil cuenta Calma y Expuesto (D3=A, enmienda D-R5-2), objetivo Jefe (`AudienceLeader`, se apaga si está convencido), coro (`duetKey`); §9 el prefab nombra sus datos.
+- `SSoT_Gig_Combat_Core` §13: colocación de la banda (`BandStageLayout`, formaciones 2/3/4, línea automática, legado), cierra el hueco de S6.
+- `SSoT_Editor_Authoring_Tools`: fila Character Lineup y §23 (JSON de público, Lineup, «Ajustar UI», colocación de la banda).
+- Plan: S7 hecha; S8 suma poses y el beat de Conito; **D-PLAN-6** (bifurcación MAPA-2 en el hueco de S11, sale «escenario por nodo»; enmienda REPLAN-ART D1).
+- Código:
+  - Nuevos: `Characters/BandStageLayout.cs`; `Characters/Editor/AudienceJson.cs`, `CharacterSizing.cs`, `CharacterLineupWindow.cs`, `BandStageLayoutTools.cs`.
+  - `GigManager` (`bandStageLayout`, índice de `BuildBand` y `BuildAudience`), `AudienceCharacterData` (`isLeader`, roles, `duetKey`), `ActionTargetType.AudienceLeader`, `AudienceCharacterBase` (roles, Jefe, coro, `BreakdownDistance`), `StressProjection` (coro por objetivo), `AudienceCharacterCanvas` (roles en el panel, intención sobre los estados), `AudienceMemberWizard` (Export full / Import).
+- Datos: personajes Rana Rosa, Rana Azul, Rayas, Tentáculos (nuevos) y Big Guy, Kid, Influencer (cambiados); 3 encuentros, 3 launch configs, roster, glosarios ES/EN (`leader` y las habilidades); 4 prefabs variantes; sprites del público commiteados (D5=A, revierte D3=A de S5 para estos archivos); escenas `3 - Gig Scene` (Band Stage Layout) y `1b - Linear Map` (nodos 1 y 2); escena `Scenes/Tools/Lineup.unity`.
+- Hallazgos corregidos en la sesión: las variantes jugaban como Kid (enlace prefab → datos); el texto del croar prometía un coro sin código (programado); iconos de estado bajo los pies tapados por la mano (subidos sobre la cabeza).
+- Proceso: tutorial-artefacto (https://claude.ai/artifact/1gCGFncSA8TtK3XG1MxqEo); pedido #12 a Matías (poses de Tentáculos); ideas `reference/ideas/2026-11-12_tooltips_basales.md` y `2026-11-12_bifurcacion_y_editor_de_giras.md`.
+- Smokes jugados por Claudio: banda colocada, jefe animado por sus secuaces, Tentáculos, coro (5), más débil, interfaz de cabeza. Sin captura en consola: la línea `… fizzles` tras convencer al jefe (queda para comprobar en S8).
+
 ## 2026-11-11 — S6: NAVE-2, el dormitorio es la alineación (DEMO-1211)
 
 **Clase:** semántico · operativo. Con cambio de código, escena y datos.

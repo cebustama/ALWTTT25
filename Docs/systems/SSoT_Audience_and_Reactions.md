@@ -189,6 +189,12 @@ as **taste profiles** authored inline on
 | Time signature | `LoopFeedbackContext.TimeSignature` | TS ∈ `preferredTimeSignatures` | TS ∈ `dislikedTimeSignatures` |
 | Tonality | `LoopFeedbackContext.Tonality` | Tonality ∈ `preferredTonalities` | Tonality ∈ `dislikedTonalities` |
 
+**Role axis (S7 ELENCO-1, 2026-11-12).** A fifth axis, `preferredRoles` / `dislikedRoles`
+(`MidiGenPlay.TrackRole` lists on `TastePreferences`): +1 when any active track's role is preferred,
+−1 when any is disliked, 0 when both or neither. Empty lists contribute 0, so pre-S7 assets are
+unchanged. The taste panel prints the roles in Spanish (`+ Con bajo`, `- Ritmo`). Used by Rayas
+(likes Bassline), Tentáculos (dislikes Rhythm), Big Guy (likes Rhythm), Influencer (likes Lead).
+
 `RootNote` is intentionally NOT a taste axis (D-F-1, S1): pitch class without
 modal context carries no archetype meaning; Tonality covers the modal axis.
 
@@ -402,6 +408,16 @@ them". Any rule change in `AddStressAction` / `BandCharacterStats` must change t
 
 **Hover views and Tab are S4b** (decided 2026-11-09, D8=B): see §7.3.
 
+**Head UI on fitted variants (S7, 2026-11-12).** Variants of `AudienceCharacter - Base` inherit a
+canvas laid out for Kid's height. The editor fit («Ajustar UI», `CharacterSizing.FitHeadUI`) moves the
+intention and the Vibe telegraph by the difference between the sprite's top and the Base sprite's top,
+puts the **status-icon row just above the head** (under the feet the card hand covers it — first try
+reverted), and fits the `BoxCollider` to the sprite (cards target it; the hover column hangs from its
+top-right corner). At runtime `AudienceCharacterCanvas.LateUpdate` stacks the intention **above the
+status row** while it shows icons, and keeps the over-head placement while hovering when the health
+bar sits at the feet; the prefab position is used only when the bar is above the head (hand-tuned
+Big Guy, Influencer, Cool Dude, never fitted).
+
 ### 7.3 Who hits whom on hover (S4b, 2026-11-11)
 
 The rest view (§7.2) says *how much* and *to whom* with icons; S4b makes the link spatial. All of it
@@ -455,6 +471,32 @@ Audience members may also carry player-applied statuses that shape their state d
 
 **Default single-target selection (R5, 2026-08-11 — D-R5-2=A).** When an audience action targets one musician and no redirect applies, the target is the musician **closest to Breakdown**: the lowest absolute `CurrentStress` (the S5e-inverted pool, 0 = Breakdown). Absolute, not proportional — Breakdown fires at 0 absolute, so remaining points are the mechanical distance to collapse; a proportional rule would sometimes pass over the musician nearer to dropping. Implemented once in `AudienceCharacterBase.SelectDefaultMusicianTarget`, which both the targeting path and the redirect floater consume, so the two cannot diverge. Between S5e and R5 the comparator was inverted and picked the healthiest musician (F-PRES1b-1); this is the focus-fire behaviour the intention families below assume, and the reason protective tools (Keep Cool retarget, Spotlight) are worth playing.
 
+**Weakest = fewest hits to Breakdown (S7, 2026-11-12 — D3=A, amends D-R5-2).** The default
+single-target rule now counts what the musician wears: score = (remaining `CurrentStress` + Composure
+stacks) ÷ (1 + Exposed stacks × `ExposedStressMultiplierPerStack`); the lowest score wins, ties keep
+band order. Composure absorbs first and Exposed amplifies the rest, the same order as
+`ApplyIncomingStressWithComposure`. Implemented as `AudienceCharacterBase.BreakdownDistance` inside
+`SelectDefaultMusicianTarget`, so every `Musician`-target ability and the redirect floater share it.
+The pick is still locked when the intention is shown (§7.2); Exposed applied later in the turn does
+not retarget. Log: `[S7] Weakest | <id> → <musician> | <name>=<score>, …`.
+
+**Leader target (S7 ELENCO-1, 2026-11-12 — D5=A).** `AudienceCharacterData.isLeader` marks the boss
+of a group (Big Guy in «El jefe y su banda»). `ActionTargetType.AudienceLeader` (= 101) resolves to the
+first leader in the audience other than the performer; if that leader is convinced, or there is none,
+the action **fizzles** (no target, no effect): convincing the boss leaves the minions with no one to cheer. Projection uses the same branch (`GetProjectedAudienceTargets`), so
+Kid's and Influencer's «¡Eso, jefe!» (Hyped +1 on the leader) raise Big Guy's projected «¡BBUUU!».
+Glossary concept `leader` (Jefe / Boss). Log once per fire: `[S7] <id> → leader <name>: …` or
+`… none unconvinced, … fizzles`.
+
+**Duet (S7 «Croar», 2026-11-12).** `AudienceAbilityData.duetKey`: when another member that can act
+(active, unconvinced, not stunned) has a pending ability with the **same key** whose AddStress reaches
+the **same musician**, each one's AddStress **base is doubled** for that musician, before Hyped.
+`AudienceCharacterBase.FindDuetPartner` is pure and is called by both `StressProjector` (per target)
+and the real hit (`ExecuteActionWithTiming`), so the bar shows the doubled number. Because targets are
+locked at intention time, the first singer to fire still counts for the second. The frogs use
+`RandomMusician` + `duet: croak`: they coincide some turns (1/N), and Spotlight pulls both onto its
+holder, which forces the duet. Log: `[S7] Croak duet | <a> + <b> → <musician> | 3 ×2 = 6`.
+
 **Targeting redirect hook (R4, 2026-08-10 — Spotlight).** `AudienceCharacterBase.ResolveTargetsFor` now has a **prior step** on the `Musician` and `RandomMusician` branches: if any musician carries an active Spotlight, the target is substituted by the holder. `AllMusicians` does not pass through the hook. This is the single targeting funnel, so every future audience ability inherits the redirect with no per-ability edit. Status semantics: `systems/SSoT_Status_Effects.md` §5.9.
 
 This SSoT owns the audience-facing gameplay meaning of those categories.
@@ -474,6 +516,12 @@ Split of authority:
   - victory/failure structure,
   - gig-scoped modifiers
 - this doc owns what an Audience Member is and how it reacts/persuades/pressures
+
+**The prefab names its data (S7 fix, 2026-11-12).** `GigManager.BuildAudience` instantiates
+`AudienceCharacterData.CharacterPrefab`, and the clone reads `AudienceCharacterBase.audienceCharacterData`
+**from the prefab**, not the asset that pointed at it. A variant of `AudienceCharacter - Base` inherits
+the Base's reference (Kid): S7's four new members played as Kid until the link was set. The JSON import
+now links every prefab to its own data, and «Reparar enlaces prefab ↔ datos» fixes existing ones.
 
 ---
 

@@ -25,6 +25,9 @@ namespace ALWTTT.Data
 
         [Header("Abilities")]
         [SerializeField] private bool isTall; // TODO Generalize
+        [SerializeField, Tooltip("[S7] The group's boss (punk boss). Target of ActionTargetType.AudienceLeader " +
+            "while not convinced.")]
+        private bool isLeader;
         [SerializeField] private List<AudienceAbilityData> abilityList;
         [SerializeField] private bool followAbilityPattern;
 
@@ -47,6 +50,7 @@ namespace ALWTTT.Data
         public int MaxVibe => maxVibe;
         public List<AudienceAbilityData> AbilityList => abilityList;
         public bool IsTall => isTall;
+        public bool IsLeader => isLeader;
         public TastePreferences Taste => taste;
         public CharacterSfxProfileSO SfxProfile => sfxProfile;
         #endregion
@@ -89,6 +93,11 @@ namespace ALWTTT.Data
         [SerializeField] private float abilityDuration;
         [SerializeField] private List<CharacterActionData> actionList;
 
+        [Tooltip("[S7 / Croar] Duet key. Empty = no duet. When another unconvinced audience member's " +
+                 "pending ability has the SAME key and hits the SAME musician, each one's AddStress base " +
+                 "is doubled (before Hyped). Same rule in StressProjector, so the bar shows it.")]
+        [SerializeField] private string duetKey;
+
         [Header("Presentation")]
         [SerializeField] private AbilityAnimationData animation;
 
@@ -106,6 +115,7 @@ namespace ALWTTT.Data
         public bool HideActionValue => hideActionValue;
         public float AbilityDuration => abilityDuration;
         public List<CharacterActionData> ActionList => actionList;
+        public string DuetKey => duetKey;
         public AbilityAnimationData Animation => animation;
         public AudioClip AbilitySfx => abilitySfx;
         #endregion
@@ -178,5 +188,12 @@ namespace ALWTTT.Data
         public List<Tonality> preferredTonalities = new List<Tonality>();
         [Tooltip("Loop's Tonality appearing in this list counts as -1 on the mode axis. Empty = axis disabled on the mismatch side.")]
         public List<Tonality> dislikedTonalities = new List<Tonality>();
+
+        [Header("Track roles (S7 / D4=B)")]
+        [Tooltip("+1 when ANY of these roles is playing in the loop (e.g. Rayas wants the Bassline). " +
+                 "Empty = axis disabled on the match side.")]
+        public List<TrackRole> preferredRoles = new List<TrackRole>();
+        [Tooltip("-1 when ANY of these roles is playing in the loop. Empty = axis disabled on the mismatch side.")]
+        public List<TrackRole> dislikedRoles = new List<TrackRole>();
     }
 }

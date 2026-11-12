@@ -51,6 +51,7 @@ It does not duplicate the data representation rules in `SSoT_Card_Authoring_Cont
 | Effect Editor | `PartEffectEditorWindow` | ALWTTT → Cards → Effect Editor | Authoring surface for the PartEffect asset family: list/filter/search, inline editing, Create (default `_PartEffects/`), Duplicate, Delete with usage scan, Find Usages, Export JSON (AUTH-1, 2026-07-31; see §18) |
 | Audience Member Wizard | `AudienceMemberWizard` | ALWTTT → Characters → Audience Member Wizard | Authoring surface for `AudienceCharacterData`: inventory with derived columns, filters, inline editing via `SerializedObject`, ability-list editor, taste block with prose reading, Create (default `Data/Characters/Audience/`, optional duplicate-as-template), Duplicate/Delete, cached usage column, validation badges, Export JSON (AMW-1, 2026-09-05; see §21) |
 | Gig Encounter Wizard | `GigEncounterWizard` | ALWTTT → Encounters → Gig Encounter Wizard | Authoring surface for `GigEncounterSO`: inventory with derived columns (venue, songs, audience size, distinct archetypes, Vibe sum, in-roster, is-demo, error count), filters, full editing via `SerializedObject`, audience-list editor with per-row archetype data and cross-link to §21, prose restatement of the composition, Create/Duplicate/Delete, validation badges, Export JSON (GEW-1, 2026-09-06; see §22) |
+| Character Lineup | `CharacterLineupWindow` | ALWTTT → Art → Character Lineup | Musicians and audience side by side («En fila», scene `Scenes/Tools/Lineup.unity`) or on the gig stage («En el escenario», any band size and encounter, sorted by y); one height per character written to the prefab, «Ajustar UI» per audience row (S7, 2026-11-12; see §23) |
 
 **Game-symbol menu items (CARD-FACE-1/2, 2026-09-18/21; see §20.14)** — not windows:
 `ALWTTT ▸ Game Text ▸ Dump sprite names (GameSymbols)`, `ALWTTT ▸ Game Text ▸ Tune symbol metrics`,
@@ -2255,3 +2256,49 @@ ability count, pattern, taste summary and badges.
 - **`AudienceMemberWizard.cs` was not in session** when this window was written: the grid, splitter
   and structural-edit patterns were re-implemented from the rules in §21.2/§21.4 rather than copied.
   Behavioural parity was verified by test, not by diff.
+
+---
+
+## 23. Cast tools (S7 ELENCO-1, 2026-11-12)
+
+Editor-only, in `Assets/Scripts/Characters/Editor/` (namespace `ALWTTT.Characters.Editor`). All edits
+go through `SerializedObject` / `LoadPrefabContents`; logs carry `[S7]`.
+
+### 23.1 Audience JSON (`AudienceJson`)
+
+- **Format `alwttt.audience/1`:** `glossaryConcepts`, `characters` (data, abilities with ES/EN text,
+  `duet`, taste incl. roles, `prefab` {path, basePrefab, sprite, spriteHeight, headHeight,
+  updateExisting}), `encounters` (with `launchConfig` {path, copyFrom} and `addToGigSetupRoster`).
+  Enums as strings. The S7 cast: `Assets/Settings/Audience/Elenco_S7.json`.
+- **Menus:** «ALWTTT ▸ S7 ▸ Crear elenco (ELENCO-1)» (imports the S7 file); «ALWTTT ▸ Characters ▸
+  Audience JSON ▸ Import… / Export selected… / Reparar enlaces prefab ↔ datos»; «Assets ▸ ALWTTT ▸
+  Export audience JSON…». The Audience Member Wizard has «Export full» and «Import…».
+- **Import** matches characters by `characterId` and rewrites their data from the file (Inspector
+  edits to imported members are lost on re-import). New prefabs are variants of the Base built in a
+  preview scene (the open scene is not dirtied), sprite swapped and grounded, head UI fitted (§23.3),
+  and **linked back to their data** (the variant would otherwise inherit Kid's; Audience SSoT §9).
+  Existing prefabs keep their sprite unless `updateExisting`. Ability text goes to the glossaries by
+  ability id (empty text does not overwrite).
+
+### 23.2 Character Lineup (`CharacterLineupWindow`, `CharacterSizing`)
+
+- **Height (D6=A):** one number per character = sprite height in the units of the prefab root's
+  parent, written as the scale of the child `Sprite` (or `CharacterSprite`). Feet stay on the floor
+  and the body on the same x; `HeartEyes` keep their on-screen size, `HeadRoot` its fraction of the
+  body, and the head UI moves with the top. Never the texture's PPU, never the root.
+- **Modes:** «En fila» (every musician and audience prefab on y = 0, ruler and reference line) and
+  «En el escenario» (reads `GigManager`'s `bandStageLayout` and audience slots; band toggles and
+  encounter popup). Preview objects are `DontSave` and cleaned on play and scene close.
+
+### 23.3 Head UI fit («Ajustar UI», `CharacterSizing.FitHeadUI`)
+
+Absolute and repeatable: intention and Vibe telegraph go to their Base position plus the
+difference of sprite tops; status icons just above the head; `BoxCollider` fitted to the sprite.
+Runs on import of new variants and from the Lineup button. **Not for hand-tuned canvases** (Big Guy,
+Influencer, Cool Dude): there the height edit only shifts intention and telegraph by the change.
+Runtime rules: Audience SSoT §7.2.
+
+### 23.4 Band placement («ALWTTT ▸ S7 ▸ Crear colocación de la banda», `BandStageLayoutTools`)
+
+Creates «Band Stage Layout» in the open gig scene (Duo / Trio / Cuarteto slots and Auto Left/Right,
+from the legacy slots' bounds), assigns `GigManager.bandStageLayout`, Undo-able. Runtime: Combat Core §13.

@@ -79,41 +79,51 @@ MonoBehaviour:
       tour ends.
   - id: breakdown
     displayName: Breakdown
-    description: "What happens when a musician's Grit reaches zero: the band loses one <link=cohesion>Cohesion</link> and the musician recovers part of their Grit, but is left <link=exposed>Exposed</link>."
+    description: 'What happens when a musician''s Grit reaches zero: the band loses
+      one <link=cohesion>Cohesion</link> and the musician recovers part of their
+      Grit, but is left <link=exposed>Exposed</link>.'
   - id: blocked
     displayName: Blocked
-    description: "An audience member standing at the front is Blocked: it receives no <link=vibe>Vibe</link> from cards or from song end. Positional, recomputed whenever the audience reorders."
+    description: 'An audience member standing at the front is Blocked: it receives
+      no <link=vibe>Vibe</link> from cards or from song end. Positional, recomputed
+      whenever the audience reorders.'
   - id: captivated
     displayName: Captivated
-    description: "Locked in. Incoming <link=vibe>Vibe</link> hits +25% harder per stack."
+    description: Locked in. Incoming <link=vibe>Vibe</link> hits +25% harder per
+      stack.
   - id: choke
     displayName: Choke
     description: Forces additional card discards at turn start. Loses 1 stack per
       turn.
   - id: composure
     displayName: Composure
-    description: "Absorbs incoming <link=stress>Stress</link> before it lands. Clears at the start of each Player Turn."
+    description: Absorbs incoming <link=stress>Stress</link> before it lands. Clears
+      at the start of each Player Turn.
   - id: earworm
     displayName: Earworm
-    description: "This audience member has the song stuck in their head (+N <link=vibe>Vibe</link> per audience turn, loses 1 stack per turn)."
+    description: This audience member has the song stuck in their head (+N <link=vibe>Vibe</link>
+      per audience turn, loses 1 stack per turn).
   - id: exposed
     displayName: Exposed
-    description: "Each stack adds +25% to incoming <link=stress>Stress</link> multipliers."
+    description: Each stack adds +25% to incoming <link=stress>Stress</link> multipliers.
   - id: feedback
     displayName: Feedback
     description: Damage over time at the start of each Player Turn. Lasts until cleared.
   - id: flow
     displayName: Flow
-    description: "Each stack adds +1 to any positive <link=vibe>Vibe</link> gain from cards and song resolution."
+    description: Each stack adds +1 to any positive <link=vibe>Vibe</link> gain from
+      cards and song resolution.
   - id: hyped
     displayName: Hyped
-    description: "The crowd is riled up. Each stack adds +1 to <link=stress>Stress</link> dealt by this audience member; loses 1 stack per Player Turn."
+    description: The crowd is riled up. Each stack adds +1 to <link=stress>Stress</link>
+      dealt by this audience member; loses 1 stack per Player Turn.
   - id: indifference
     displayName: Indifference
     description: Inmune to vibe.
   - id: shaken
     displayName: Shaken
-    description: "Applied when a musician <link=breakdown>breaks down</link>. Lasts one full song cycle."
+    description: Applied when a musician <link=breakdown>breaks down</link>. Lasts
+      one full song cycle.
   - id: spotlight
     displayName: Spotlight
     description: The audience only has eyes for C2. During their next turn, their
@@ -123,7 +133,8 @@ MonoBehaviour:
     description: 'Stored charge. Does nothing on its own: it gets spent.'
   - id: stress
     displayName: Stress
-    description: "The damage a musician takes: it lowers their Grit. When Grit reaches zero, <link=breakdown>Breakdown</link>."
+    description: 'The damage a musician takes: it lowers their Grit. When Grit reaches
+      zero, <link=breakdown>Breakdown</link>.'
   - id: vibe
     displayName: Vibe
     description: Fill to win over Audience Members.
@@ -146,25 +157,32 @@ MonoBehaviour:
       use.
   - id: ab_block_the_view
     displayName: Block the View
-    description: "Pushes his way toward the front. Anyone shorter left behind him is <link=blocked>Blocked</link> and takes no <link=vibe>Vibe</link>."
+    description: Pushes his way toward the front. Anyone shorter left behind him
+      is <link=blocked>Blocked</link> and takes no <link=vibe>Vibe</link>.
   - id: ab_egg_him_on
-    displayName: Egg Him On
-    description: "Winds up a <link=tall>Tall</link> audience member: they gain <link=hyped>Hyped</link>, and every bit of <link=stress>Stress</link> they deal hits harder."
+    displayName: Go On, Boss!
+    description: 'Winds up their <link=leader>Boss</link>: they gain <link=hyped>Hyped</link>
+      and their <link=stress>Stress</link> hits harder. If the boss is already <link=convinced>Convinced</link>,
+      nothing happens.'
   - id: ab_heckle
     displayName: Heckle
-    description: "Picks on one bandmate: leaves them <link=exposed>Exposed</link>, then piles on the <link=stress>Stress</link>."
+    description: 'Picks on one bandmate: leaves them <link=exposed>Exposed</link>,
+      then piles on the <link=stress>Stress</link>.'
   - id: ab_indifference
     displayName: Indifference
-    description: "Tunes the band out. Gains <link=indifference>Indifference</link>: no <link=vibe>Vibe</link> gets through to him while it lasts."
+    description: 'Tunes the band out. Gains <link=indifference>Indifference</link>:
+      no <link=vibe>Vibe</link> gets through to him while it lasts.'
   - id: ab_scathing_review
     displayName: Scathing Review
-    description: "Posts a brutal takedown of one bandmate. Piles on the <link=stress>Stress</link>."
+    description: Posts a brutal takedown of one bandmate. Piles on the <link=stress>Stress</link>.
   - id: ab_tantrum
     displayName: Tantrum
-    description: "Screams the place down. Deals <link=stress>Stress</link> to the bandmates it marks."
+    description: Screams the place down. Deals <link=stress>Stress</link> to the
+      bandmates it marks.
   - id: ab_total_indifference
     displayName: Total Indifference
-    description: "Doesn't even blink. That blank stare deals <link=stress>Stress</link> to one bandmate."
+    description: Doesn't even blink. That blank stare deals <link=stress>Stress</link>
+      to one bandmate.
   - id: role_rhythm
     displayName: Rhythm
     description: The percussion track. It sets the pulse everything else plays against.
@@ -269,6 +287,38 @@ MonoBehaviour:
   - id: partaction_custom
     displayName: Custom part
     description: A part with its own label.
+  - id: leader
+    displayName: Boss
+    description: Runs their crew. The minions cheer them on; win the boss over and
+      they have no one left to cheer.
+  - id: ab_croak
+    displayName: Croak
+    description: Croaks over the song. Deals <link=stress>Stress</link> to one bandmate.
+      If its partner croaks at the same one, it hits twice as hard.
+  - id: ab_cut_in
+    displayName: Cut In
+    description: Pushes to the front. Anyone shorter left behind is <link=blocked>Blocked</link>
+      and gets no <link=vibe>Vibe</link>.
+  - id: ab_elbow
+    displayName: Elbow
+    description: Now at the front, it leans on the stage. Deals <link=stress>Stress</link>
+      to one bandmate.
+  - id: ab_count_one
+    displayName: "One\u2026"
+    description: 'Starts counting. It swells up: gains <link=hyped>Hyped</link>.
+      On three, it strikes.'
+  - id: ab_count_two
+    displayName: "Two\u2026"
+    description: 'Keeps counting and swells further: gains <link=hyped>Hyped</link>.
+      Three comes next.'
+  - id: ab_count_three
+    displayName: THREE!
+    description: 'Lets it all out on one bandmate: heavy <link=stress>Stress</link>,
+      plus its <link=hyped>Hyped</link>.'
+  - id: ab_boo
+    displayName: BOOO!
+    description: Boos one bandmate from the gut. Deals <link=stress>Stress</link>;
+      hits harder while <link=hyped>Hyped</link>.
   cardNames:
   - id: 3_Action_001
     displayName: Count-In
@@ -761,17 +811,18 @@ MonoBehaviour:
   - id: ui_mus_meter_shield
     text: "Grit {0}/{1} \xB7 Composure {2}"
   - id: ui_mus_breakdown_rule
-    text: "At 0 they break down: <link=exposed>Exposed</link>, and the band loses 1 <link=cohesion>cohesion</link>."
+    text: 'At 0 they break down: <link=exposed>Exposed</link>, and the band loses
+      1 <link=cohesion>cohesion</link>.'
   - id: ui_aud_hit_one
-    text: "To {0}: {1} <link=stress>Stress</link>"
+    text: 'To {0}: {1} <link=stress>Stress</link>'
   - id: ui_aud_hit_each
-    text: "To {0}: {1} <link=stress>Stress</link> each"
+    text: 'To {0}: {1} <link=stress>Stress</link> each'
   - id: ui_aud_hit_all
-    text: "To the whole band: {0} <link=stress>Stress</link> each"
+    text: 'To the whole band: {0} <link=stress>Stress</link> each'
   - id: ui_aud_hit_hidden
-    text: "To {0}"
+    text: To {0}
   - id: ui_aud_hit_all_hidden
-    text: "To the whole band"
+    text: To the whole band
   - id: ui_unplayable_header
     text: Can't play this
   - id: ui_unplayable_none

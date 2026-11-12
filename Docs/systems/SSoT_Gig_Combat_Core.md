@@ -530,7 +530,18 @@ the first open of a run with no pick applies the default preset (cuarteto).
 (`duo|trio|cuarteto|libre|config`, schema v2; D4=A). Known gap: `GigManager.BuildBand`
 places musician *i* at `musicianPosList[i]`, slots authored for four, so 2–3
 musicians crowd one side (D5=A: per-count layouts in S7); its bound check
-`Count >= i` is off by one.
+`Count >= i` is off by one. *(Closed at S7, below.)*
+
+**Band placement on stage (S7 ELENCO-1, 2026-11-12; D5=A).** `GigManager.bandStageLayout` points at a
+`BandStageLayout` (`Assets/Scripts/Characters/`) in `3 - Gig Scene`: hand-placed formations by musician
+count (Dúo 1–2, Trío 1–3, Cuarteto 1–4, each a list of slot `Transform`s), plus `Auto Left` / `Auto
+Right`. `BuildBand` takes the formation whose count matches; otherwise the automatic line lerps
+between the two auto points at `(i + 0.5) / count`; with no layout assigned, the legacy
+`musicianPosList`. Musicians are parented to their slot (they inherit its scale). The off-by-one is
+fixed (`i < Count`), also in `BuildAudience`. Log: `[S7] Band layout | size=N | source=formation|auto|legacy (…)`.
+Editor: «ALWTTT ▸ S7 ▸ Crear colocación de la banda» builds the object from the legacy slots; the
+Character Lineup window previews any band size and encounter on the stage. After the demo: the player
+places the band (D5 C).
 
 **Return destination (S5 NAVE-1, D2=A).** `GigRunContext.GigReturnDestination`
 is `Map`, `GigSetup` or `Ship`. `LinearMapController.gigReturnDestination`

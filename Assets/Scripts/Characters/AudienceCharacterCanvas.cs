@@ -273,6 +273,15 @@ namespace ALWTTT.Characters
             float centreLocal = (-w * 0.5f + right) * 0.5f;
             float shiftX = -centreLocal * rt.localScale.x;
 
+            // [S7] The prefab position only matters when the bar sits ABOVE the head (hand-tuned
+            // canvases: Big Guy, Influencer, Cool Dude). With the bar at the feet (fitted variants)
+            // the head placement holds while hovering too, instead of snapping to the prefab spot.
+            if (barShown && sr != null && healthBar.transform is RectTransform barRt)
+            {
+                float barBottom = barRt.TransformPoint(new Vector3(0f, barRt.rect.yMin, 0f)).y;
+                if (barBottom < sr.bounds.max.y - 0.3f) barShown = false;
+            }
+
             if (barShown || sr == null || parent == null)
             {
                 rt.anchoredPosition = _intentHome + new Vector2(shiftX, 0f);
@@ -281,7 +290,29 @@ namespace ALWTTT.Characters
             }
 
             var b = sr.bounds;
-            Vector3 headWorld = new Vector3(b.center.x, b.max.y + headGapWorld, rt.position.z);
+            // [S7] Status icons sit just above the head on fitted variants: stack the intention
+            // above that row while it shows icons, so the two never overlap.
+            float topY = b.max.y;
+            if (statusIconRoot is RectTransform srt && srt.childCount > 0 && srt.gameObject.activeInHierarchy)
+            {
+                bool any = false;
+                float rowTop = float.MinValue;
+                foreach (Transform c in srt)
+                {
+                    if (!c.gameObject.activeSelf) continue;
+                    any = true;
+                    // The row rect is thin (30×10); the icons overflow it, so use their own tops.
+                    if (c is RectTransform crt)
+                        rowTop = Mathf.Max(rowTop, crt.TransformPoint(new Vector3(0f, crt.rect.yMax, 0f)).y);
+                }
+                if (any)
+                {
+                    float rowBottom = srt.TransformPoint(new Vector3(0f, srt.rect.yMin, 0f)).y;
+                    // Only when the row is around the head (hand-tuned canvases put it elsewhere).
+                    if (rowBottom >= b.max.y - 0.3f && rowTop > topY) topY = rowTop;
+                }
+            }
+            Vector3 headWorld = new Vector3(b.center.x, topY + headGapWorld, rt.position.z);
             Vector3 headLocal = parent.InverseTransformPoint(headWorld);
             float halfH = rt.rect.height * 0.5f * rt.localScale.y;
             // anchoredPosition is relative to the anchor; the prefab uses centred anchors.
@@ -897,6 +928,12 @@ namespace ALWTTT.Characters
                 AppendTasteLine(sb, "+ " + JoinTexts(t.preferredTonalities, x => GameText.Format(UiTonality(x))));
             if (t.dislikedTonalities != null && t.dislikedTonalities.Count > 0)
                 AppendTasteLine(sb, "- " + JoinTexts(t.dislikedTonalities, x => GameText.Format(UiTonality(x))));
+
+            // [S7 / D4=B] Axis 5, roles, with the composition strip's role names (ui_role_*).
+            if (t.preferredRoles != null && t.preferredRoles.Count > 0)
+                AppendTasteLine(sb, "+ " + JoinTexts(t.preferredRoles, r => GameText.Format(UiRole(r))));
+            if (t.dislikedRoles != null && t.dislikedRoles.Count > 0)
+                AppendTasteLine(sb, "- " + JoinTexts(t.dislikedRoles, r => GameText.Format(UiRole(r))));
 
             return sb.Length == 0 ? TasteNeutralText : sb.ToString();
         }

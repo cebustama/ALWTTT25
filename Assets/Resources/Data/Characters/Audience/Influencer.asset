@@ -14,37 +14,58 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterId: influencer
   characterName: Influencer
-  characterDescription: 
-  maxVibe: 25
+  characterDescription: Secuaz del jefe. Lo graba todo.
+  maxVibe: 20
   characterPrefab: {fileID: 8137859568071339047, guid: 35d49b40d76e63b4e9baea14dcdc329c, type: 3}
   isTall: 1
+  isLeader: 0
   abilityList:
-  - abilityName: Scathing Review
-    abilityId: ab_scathing_review
-    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
-    hideActionValue: 0
-    abilityDuration: 0
+  - abilityName: Egg Him On
+    abilityId: ab_egg_him_on
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 1
+    abilityDuration: 2
     actionList:
-    - cardActionType: 3
-      actionTargetType: 5
-      actionValue: 10
+    - cardActionType: 11
+      actionTargetType: 101
+      actionValue: 1
       actionDelay: 0
-      statusEffect: {fileID: 0}
+      statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
+    duetKey: 
     animation:
       animatorTrigger: 
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
-  followAbilityPattern: 0
+  - abilityName: Scathing Review
+    abilityId: ab_scathing_review
+    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
+    hideActionValue: 0
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 3
+      actionTargetType: 1
+      actionValue: 3
+      actionDelay: 0
+      statusEffect: {fileID: 0}
+    duetKey: 
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
+  followAbilityPattern: 1
   taste:
     tempoMatchOnFast: 0
     preferAboveTempoScale: 1
     tempoMismatchOnSlow: 0
     dislikeBelowTempoScale: 1
-    roleCountMatchOnRich: 0
+    roleCountMatchOnRich: 1
     preferAtLeastRoles: 3
     preferredTimeSignatures: 
     dislikedTimeSignatures: 
     preferredTonalities: 
     dislikedTonalities: 
+    preferredRoles: 02000000
+    dislikedRoles: 
   sfxProfile: {fileID: 0}

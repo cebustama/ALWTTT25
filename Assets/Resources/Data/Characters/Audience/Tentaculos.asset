@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb66ef735feb1d245a5494a78feb5fd5, type: 3}
+  m_Name: Tentaculos
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.AudienceCharacterData
+  characterId: tentaculos
+  characterName: "Tent\xE1culos"
+  characterDescription: Cuenta hasta tres. A la de tres, golpea.
+  maxVibe: 40
+  characterPrefab: {fileID: 5022746524764153227, guid: 9f1d1d9ca42c09f4eb85ccca5f23a8b0, type: 3}
+  isTall: 1
+  isLeader: 0
+  abilityList:
+  - abilityName: Count One
+    abilityId: ab_count_one
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 1
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 11
+      actionTargetType: 6
+      actionValue: 1
+      actionDelay: 0
+      statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
+    duetKey: 
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
+  - abilityName: Count Two
+    abilityId: ab_count_two
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 1
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 11
+      actionTargetType: 6
+      actionValue: 1
+      actionDelay: 0
+      statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
+    duetKey: 
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
+  - abilityName: Count Three
+    abilityId: ab_count_three
+    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
+    hideActionValue: 0
+    abilityDuration: 3
+    actionList:
+    - cardActionType: 3
+      actionTargetType: 1
+      actionValue: 10
+      actionDelay: 0
+      statusEffect: {fileID: 0}
+    duetKey: 
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
+  followAbilityPattern: 1
+  taste:
+    tempoMatchOnFast: 0
+    preferAboveTempoScale: 1
+    tempoMismatchOnSlow: 0
+    dislikeBelowTempoScale: 1
+    roleCountMatchOnRich: 0
+    preferAtLeastRoles: 3
+    preferredTimeSignatures: 
+    dislikedTimeSignatures: 
+    preferredTonalities: 01000000
+    dislikedTonalities: 
+    preferredRoles: 
+    dislikedRoles: 00000000
+  sfxProfile: {fileID: 0}

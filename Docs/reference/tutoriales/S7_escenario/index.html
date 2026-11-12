@@ -1,0 +1,296 @@
+<title>Cada banda en su sitio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una columna de lectura (~68ch) con índice fijo a la izquierda en escritorio; figuras a ancho de columna; Inspector como tablas oscuras tipo Unity. */
+:root {
+  --bg: #f6f7fb; --paper: #ffffff; --fg: #1b1f2e; --muted: #5b6275; --line: #dde1ec;
+  --accent: #2f45c8; --accent-soft: #e6e9fb; --gold: #b58300; --gold-soft: #fff4d4;
+  --ok: #1e7d4f; --ok-soft: #e3f5ec; --warn: #a2481a; --warn-soft: #fbe9df;
+  --insp-bg: #383838; --insp-row: #3f3f3f; --insp-fg: #e4e4e4; --insp-key: #b9b9b9; --insp-val: #9fd4ff;
+  --code-bg: #eef0f7;
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12141c; --paper: #191c27; --fg: #e3e6f0; --muted: #9aa1b6; --line: #2c3142;
+  --accent: #8fa0ff; --accent-soft: #232a4d; --gold: #f2c14e; --gold-soft: #3a3016;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0a07a; --warn-soft: #3a2218;
+  --insp-bg: #2a2a2a; --insp-row: #323232; --code-bg: #222636; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12141c; --paper: #191c27; --fg: #e3e6f0; --muted: #9aa1b6; --line: #2c3142;
+  --accent: #8fa0ff; --accent-soft: #232a4d; --gold: #f2c14e; --gold-soft: #3a3016;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0a07a; --warn-soft: #3a2218;
+  --insp-bg: #2a2a2a; --insp-row: #323232; --code-bg: #222636; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 16px/1.65 var(--f-body); }
+.wrap { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 48px; max-width: 1120px; margin: 0 auto;
+  padding-block: 40px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 14px; }
+nav.toc b { font-family: var(--f-display); display: block; margin-bottom: 8px; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; color: var(--muted) }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px }
+nav.toc a { color: var(--fg); text-decoration: none; display: block; padding: 3px 8px; border-radius: 4px }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); outline: none }
+nav.toc .n { color: var(--muted); font-family: var(--f-mono); font-size: 12px; margin-right: 6px }
+main { min-width: 0; max-width: 72ch }
+header.hero { margin-bottom: 40px }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent) }
+h1 { font-family: var(--f-display); font-size: clamp(34px, 5vw, 48px); line-height: 1.08; margin: 8px 0 14px; text-wrap: balance }
+h2 { font-family: var(--f-display); font-size: 28px; margin: 64px 0 10px; text-wrap: balance; scroll-margin-top: 20px }
+h2 .n { color: var(--accent); margin-right: 10px }
+h3 { font-family: var(--f-display); font-size: 19px; margin: 32px 0 6px; text-wrap: balance }
+h3 .n { color: var(--muted); font-family: var(--f-mono); font-size: 14px; margin-right: 8px }
+p, li { max-width: 68ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere }
+kbd { font-family: var(--f-mono); font-size: .82em; border: 1px solid var(--line); border-bottom-width: 2px; padding: 0 5px; border-radius: 4px; background: var(--paper) }
+.path { font-family: var(--f-mono); font-size: .86em; color: var(--muted); overflow-wrap: anywhere }
+ol.steps { padding-left: 22px; display: grid; gap: 8px }
+ol.steps > li::marker { font-family: var(--f-mono); color: var(--accent); font-weight: 600 }
+.menu { font-family: var(--f-mono); font-size: .86em; font-weight: 600; white-space: nowrap }
+figure { margin: 24px 0; }
+figure img { display: block; width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--line) }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; font-style: italic }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.pair figure { margin: 0 }
+.box { border-radius: 8px; padding: 14px 18px; margin: 20px 0; border: 1px solid transparent }
+.box > :first-child { margin-top: 0 } .box > :last-child { margin-bottom: 0 }
+.box .tag { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px }
+.ok { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 35%, transparent) } .ok .tag { color: var(--ok) }
+.why { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent) } .why .tag { color: var(--accent) }
+.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent) } .warn .tag { color: var(--warn) }
+.insp { background: var(--insp-bg); color: var(--insp-fg); border-radius: 6px; font: 13px/1.4 var(--f-mono); margin: 16px 0; overflow-x: auto }
+.insp .title { padding: 8px 12px; font-weight: 600; border-bottom: 1px solid #222 }
+.insp table { border-collapse: collapse; width: 100%; min-width: 380px }
+.insp td { padding: 6px 12px; border-top: 1px solid #2c2c2c; vertical-align: top }
+.insp tr:nth-child(even) td { background: var(--insp-row) }
+.insp td:first-child { color: var(--insp-key); width: 42% }
+.insp td:last-child { color: var(--insp-val) }
+.insp .sub td:first-child { padding-left: 28px }
+table.plain { border-collapse: collapse; width: 100%; font-size: 15px; margin: 16px 0 }
+.tbl { overflow-x: auto }
+table.plain th, table.plain td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+table.plain th { font-family: var(--f-display); font-size: 14px; color: var(--muted) }
+table.plain td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+pre.log { background: var(--code-bg); border-radius: 6px; padding: 12px 14px; font: 13px/1.55 var(--f-mono); overflow-x: auto; margin: 10px 0 }
+.smoke { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 16px 18px; margin: 18px 0 }
+.smoke h4 { font-family: var(--f-display); margin: 0 0 8px; font-size: 17px }
+.smoke dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 0 }
+.smoke dt { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 3px }
+.smoke dd { margin: 0; min-width: 0 }
+.refs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px }
+.ref { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column }
+.ref img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; border-bottom: 1px solid var(--line) }
+.ref .body { padding: 12px 14px; font-size: 14px; display: grid; gap: 6px }
+.ref h4 { font-family: var(--f-display); margin: 0; font-size: 16px }
+.ref .take b { color: var(--ok) } .ref .skip b { color: var(--warn) }
+.ref .path { font-size: 11.5px }
+.done { font-family: var(--f-mono); font-size: 13px; color: var(--muted); margin-top: 60px; border-top: 1px solid var(--line); padding-top: 16px }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0,1fr); gap: 24px } nav.toc { position: static } .refs, .pair { grid-template-columns: minmax(0,1fr) } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+/* S7 extras: escenario esquemático, árbol de Hierarchy */
+.stage-fig { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin: 24px 0 }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px }
+.tabs button { font: 600 14px var(--f-display); padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--paper); border-color: var(--accent) }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.stage-svg { width: 100%; height: auto; display: block }
+.stage-svg .floor { fill: var(--code-bg) } .stage-svg .boards { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5 }
+.stage-svg text { font: 12px var(--f-mono); fill: var(--muted) }
+.stage-svg .lbl { font: 600 12px var(--f-mono); fill: var(--fg) }
+.stage-svg .body { fill: var(--accent); opacity: .85 } .stage-svg .aud { fill: var(--warn); opacity: .8 }
+.stage-svg .dot { fill: var(--gold); stroke: var(--fg); stroke-width: 1.5 }
+.stage-svg .arrow { stroke: var(--muted); stroke-width: 1.2; fill: none; stroke-dasharray: 4 3 }
+.tree { background: var(--insp-bg); color: var(--insp-fg); border-radius: 6px; padding: 10px 14px; font: 13px/1.7 var(--f-mono); overflow-x: auto; margin: 14px 0 }
+.tree .new { color: var(--insp-val) } .tree .dim { color: var(--insp-key) }
+.tree .chip { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0 }
+</style>
+<div class="wrap">
+<nav class="toc" aria-label="Índice">
+  <b>S7 · Escenario</b>
+  <ol>
+    <li><a href="#idea"><span class="n">·</span>La idea</a></li>
+    <li><a href="#crear"><span class="n">1</span>Crear la colocación</a></li>
+    <li><a href="#mirar"><span class="n">2</span>Mirarla en vivo</a></li>
+    <li><a href="#mover"><span class="n">3</span>Mover los puntos</a></li>
+    <li><a href="#publico"><span class="n">4</span>Separar al público</a></li>
+    <li><a href="#guardar"><span class="n">5</span>Guardar</a></li>
+    <li><a href="#jugar"><span class="n">6</span>Comprobar jugando</a></li>
+    <li><a href="#problemas"><span class="n">?</span>Si algo falla</a></li>
+  </ol>
+</nav>
+<main>
+<header class="hero">
+  <div class="eyebrow">ALWTTT · S7 ELENCO-1 · tutorial de editor</div>
+  <h1>Cada banda en su sitio</h1>
+  <p class="lede">Vas a decidir dónde se para la banda cuando son 2, 3 o 4, y a separar al público para que no se tape. No hay que escribir nada: un menú crea los objetos y tú solo arrastras puntos mientras ves a los personajes reales encima.</p>
+</header>
+
+<h2 id="idea"><span class="n">·</span>La idea</h2>
+<p>Ahora mismo la banda usa siempre los mismos cuatro puestos, pensados para el cuarteto. Con 3 músicos se usan los tres primeros, que están juntos en un rincón: por eso se ven pegados. El público tiene el mismo problema con cuatro miembros.</p>
+<figure><img src="img/ahora.jpg" alt="Escena del gig con la vista previa: la banda amontonada a la izquierda y los cuatro miembros del público uno encima de otro; la consola dice source=legacy" loading="lazy">
+<figcaption>Tu captura: «El jefe y su banda» con 3 músicos. La consola dice <code>source=legacy</code> (se usan los puestos viejos) y el público se tapa.</figcaption></figure>
+
+<p>La solución es una lista de <b>huecos</b> por cada tamaño de banda. Un hueco es un objeto vacío: no se ve en el juego, solo marca un punto del escenario. Al empezar el gig, el juego mira cuántos músicos hay y pone a cada uno en un hueco de la lista de ese tamaño, en el orden de las tarjetas del dormitorio.</p>
+
+<div class="stage-fig">
+  <div class="tabs" role="tablist" aria-label="Tamaño de banda">
+    <button role="tab" id="t2" aria-selected="false" data-n="2">Dúo</button>
+    <button role="tab" id="t3" aria-selected="true" data-n="3">Trío</button>
+    <button role="tab" id="t4" aria-selected="false" data-n="4">Cuarteto</button>
+  </div>
+  <svg class="stage-svg" viewBox="0 0 640 260" role="img" aria-label="Esquema del escenario con los huecos de la banda">
+    <rect class="floor" x="0" y="0" width="640" height="260" rx="6"/>
+    <path class="boards" d="M20 210 L330 210 L300 70 L50 70 Z"/>
+    <text x="40" y="236">escenario (banda)</text>
+    <text x="420" y="236">pista (público)</text>
+    <text x="300" y="60" text-anchor="end">fondo · se dibuja detrás</text>
+    <text x="300" y="226" text-anchor="end">delante · se dibuja encima</text>
+    <g id="band"></g>
+    <g id="aud">
+      <rect class="aud" x="400" y="150" width="34" height="56" rx="10"/><rect class="aud" x="455" y="140" width="34" height="66" rx="10"/>
+      <rect class="aud" x="510" y="150" width="34" height="56" rx="10"/><rect class="aud" x="565" y="146" width="34" height="60" rx="10"/>
+    </g>
+  </svg>
+  <figcaption id="cap">Trío: dos delante a los lados y uno detrás en el centro. Así ninguno tapa a otro.</figcaption>
+</div>
+
+<div class="box why"><span class="tag">Por qué una lista por tamaño</span>
+<p>Repartir automáticamente en una línea funciona, pero queda plano: un trío pide un triángulo y un cuarteto, dos filas. Es lo que ya hacía tu prototipo de 2025 (cuatro puestos con focos y la batería detrás). Hechas a mano, cada alineación se compone como una foto. La línea automática se queda como reserva por si algún día hay un tamaño sin lista.</p></div>
+
+<h2 id="crear"><span class="n">1</span>Crear la colocación con un clic</h2>
+<ol class="steps">
+  <li>Deja que Unity compile (hay scripts nuevos). Si aparece algún error rojo en la consola, para y pásamelo.</li>
+  <li>Abre la escena <code>3 - Gig Scene</code>.</li>
+  <li>Menú <span class="menu">ALWTTT ▸ S7 ▸ Crear colocación de la banda</span>.</li>
+</ol>
+<p>El menú crea un objeto nuevo en la raíz de la escena, con un hijo por hueco, y lo conecta al Gig Manager. Los puntos salen ya repartidos sobre el escenario, a partir de los puestos viejos; luego los afinas.</p>
+<div class="tree" aria-label="Hierarchy después del paso 1">
+<span class="dim">3 - Gig Scene</span><br>
+&nbsp;&nbsp;<span class="dim">Gig Manager</span> <span class="dim">— campo Band Stage Layout rellenado</span><br>
+&nbsp;&nbsp;<span class="dim">…</span><br>
+&nbsp;&nbsp;<span class="new">Band Stage Layout</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="chip" style="background:#3d7fe0"></span><span class="new">Duo 1</span>, <span class="new">Duo 2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="chip" style="background:#3fb36b"></span><span class="new">Trio 1</span>, <span class="new">Trio 2</span>, <span class="new">Trio 3</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="chip" style="background:#e3c13b"></span><span class="new">Cuarteto 1</span> … <span class="new">Cuarteto 4</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="chip" style="background:#9a9a9a"></span><span class="new">Auto Left</span>, <span class="new">Auto Right</span> <span class="dim">— reserva, no hace falta tocarlos</span>
+</div>
+<div class="insp"><div class="title">Band Stage Layout (Inspector, ya relleno)</div><table>
+<tr><td>Formations ▸ Element 0</td><td>Musician Count 2 · Slots: Duo 1, Duo 2</td></tr>
+<tr><td>Formations ▸ Element 1</td><td>Musician Count 3 · Slots: Trio 1, Trio 2, Trio 3</td></tr>
+<tr><td>Formations ▸ Element 2</td><td>Musician Count 4 · Slots: Cuarteto 1–4</td></tr>
+<tr><td>Auto Left / Auto Right</td><td>los dos extremos de la línea de reserva</td></tr>
+<tr><td>Front / Back Sorting Order</td><td>10 / 0 (quien está más abajo se dibuja encima)</td></tr>
+</table></div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>
+<p>Ves ese árbol en la Hierarchy, puntos con etiquetas azules, verdes y amarillas en la Scene, y la consola dice:</p>
+<pre class="log">[S7] Band Stage Layout created | formations=2,3,4 | wired to GigManager.bandStageLayout</pre>
+<p>Si algo no te gusta, <kbd>Ctrl</kbd>+<kbd>Z</kbd> lo deshace entero.</p></div>
+
+<h2 id="mirar"><span class="n">2</span>Mirarla en vivo</h2>
+<ol class="steps">
+  <li>Abre <span class="menu">ALWTTT ▸ Art ▸ Character Lineup</span> y elige la pestaña <b>En el escenario</b>.</li>
+  <li>Pon <b>Músicos</b> en 2 y pulsa <b>Previsualizar</b>.</li>
+</ol>
+<p>Ahora la vista previa ya no se queda quieta: si mueves un punto, los personajes le siguen solos. Solo tienes que volver a pulsar Previsualizar al cambiar el número de músicos o el encuentro.</p>
+<div class="box ok"><span class="tag">Lo has logrado si</span>
+<pre class="log">[S7] Lineup stage preview | band=2 source=layout | encounter=…</pre>
+<p>La palabra clave es <code>source=layout</code>: el juego ya usa tus huecos y no los viejos.</p></div>
+
+<h2 id="mover"><span class="n">3</span>Mover los puntos</h2>
+<p>Se hace igual para los tres tamaños. Empieza por el dúo.</p>
+<ol class="steps">
+  <li>En la Hierarchy, abre <code>Band Stage Layout</code> y haz clic en <code>Duo 1</code>.</li>
+  <li>En la Scene, pulsa <kbd>W</kbd> (herramienta Mover) y arrastra el cuadradito del centro del gizmo. Mira al personaje, no al punto: el punto es el origen del prefab y el cuerpo queda un poco desplazado.</li>
+  <li>Repite con <code>Duo 2</code>.</li>
+  <li>Cambia <b>Músicos</b> a 3, pulsa <b>Previsualizar</b> y coloca <code>Trio 1–3</code>.</li>
+  <li>Cambia a 4, pulsa <b>Previsualizar</b> y coloca <code>Cuarteto 1–4</code>.</li>
+</ol>
+<div class="tbl"><table class="plain">
+<tr><th>Regla</th><th>Por qué</th></tr>
+<tr><td>Deja al menos el ancho de un cuerpo entre dos músicos.</td><td>Si se tocan, el jugador no sabe a quién apunta una intención del público.</td></tr>
+<tr><td>Más abajo = más cerca del público = encima.</td><td>El orden de dibujo sale de la altura del punto, no del número del hueco.</td></tr>
+<tr><td>El hueco 1 es la primera tarjeta del dormitorio.</td><td>Así quien elige la banda reconoce el orden en el escenario.</td></tr>
+<tr><td>Deja libres las caras y las barras.</td><td>Las intenciones del público dibujan líneas hacia los músicos; si uno tapa la cara de otro, la línea no se lee.</td></tr>
+</table></div>
+<div class="box why"><span class="tag">Por qué ves a los personajes reales y no cajas</span>
+<p>La vista previa pone los prefabs de verdad en los huecos, con la escala del hueco, igual que hará el Gig Manager. Así lo que apruebas aquí es lo que verás al jugar. Esas figuras nunca se guardan en la escena: desaparecen al dar a Play o al cerrar la escena.</p></div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>
+<p>Con 2, 3 y 4 músicos nadie se toca y los cuatro instrumentos se distinguen de un vistazo.</p></div>
+
+<h2 id="publico"><span class="n">4</span>Separar al público</h2>
+<p>El público no necesita nada nuevo: sus cuatro puestos ya existen dentro del Gig Manager. Solo hay que abrirlos.</p>
+<ol class="steps">
+  <li>En la ventana Lineup, elige el encuentro <b>El jefe y su banda</b> (es el único con cuatro) y pulsa <b>Previsualizar</b>.</li>
+  <li>En la Hierarchy: <code>Gig Manager ▸ AudienceMemberPositions ▸ Audience Position 1</code>. Atajo: escribe <code>Audience Position</code> en el buscador de la Hierarchy.</li>
+  <li>Muévelos con <kbd>W</kbd> igual que los de la banda. El puesto 1 es el primer miembro del encuentro (en este gig, el jefe).</li>
+  <li>Comprueba con <b>Ranas y Rayas</b> (3) y <b>Tentáculos</b> (1) que tampoco quedan raros.</li>
+</ol>
+<div class="box warn"><span class="tag">Cuidado</span>
+<p>Al mover un puesto del Gig Manager, el nombre se pone en negrita con una raya azul a la izquierda: es un cambio de esta escena sobre el prefab, y está bien así (la escena ya tenía cambios en esos puestos). <b>No</b> pulses «Overrides ▸ Apply All» en el Gig Manager: lo copiarías a todas las escenas que lo usan.</p></div>
+<div class="box ok"><span class="tag">Lo has logrado si</span>
+<p>Con «El jefe y su banda» ves a los cuatro enteros, con sus barras y sus intenciones sin pisarse.</p></div>
+
+<h2 id="guardar"><span class="n">5</span>Guardar</h2>
+<p><kbd>Ctrl</kbd>+<kbd>S</kbd>. Se guardan los huecos y los puestos del público. La vista previa no se guarda; si quieres limpiar la Scene, pulsa <b>Limpiar</b> en la ventana.</p>
+
+<h2 id="jugar"><span class="n">6</span>Comprobar jugando</h2>
+<p>Estos tres cierran S7. Copia lo que diga la consola en cada uno y pásamelo.</p>
+<div class="smoke"><h4>Smoke 1 · La banda de 3</h4><dl>
+<dt>Preparar</dt><dd>Dormitorio en Trío; el nodo 1 del mapa lleva <code>LaunchConfig - Ranas y Rayas</code>.</dd>
+<dt>Hacer</dt><dd>Entrar al primer gig.</dd>
+<dt>Esperado</dt><dd><pre class="log">[S7] Band layout | size=3 | source=formation</pre>Los tres donde los dejaste, separados; las ranas pegan 3 cada una y Rayas se cuela delante.</dd>
+<dt>Falla si</dt><dd>Sale <code>legacy</code> o los músicos aparecen pegados.</dd></dl></div>
+<div class="smoke"><h4>Smoke 2 · El jefe</h4><dl>
+<dt>Preparar</dt><dd>GigSetup → «El jefe y su banda».</dd>
+<dt>Hacer</dt><dd>Jugar hasta que un secuaz anime al jefe; luego convencer al jefe.</dd>
+<dt>Esperado</dt><dd><pre class="log">[S7] Kid → leader Big Guy: ApplyStatusEffect
+[S7] Kid → leader: none unconvinced, Egg Him On fizzles</pre>El número de «¡BBUUU!» sube con cada ánimo; tras convencer al jefe, los ánimos no hacen nada.</dd>
+<dt>Falla si</dt><dd>Algún secuaz anima a otro miembro del público.</dd></dl></div>
+<div class="smoke"><h4>Smoke 3 · Tentáculos cuenta hasta tres</h4><dl>
+<dt>Preparar</dt><dd>GigSetup → «Tentáculos».</dd>
+<dt>Hacer</dt><dd>Mirar sus intenciones durante tres turnos.</dd>
+<dt>Esperado</dt><dd>«Uno…», «Dos…», «¡TRES!», y el daño previsto del tres es 10 más su Exaltado.</dd>
+<dt>Falla si</dt><dd>El tres muestra 10 a secas (el Exaltado se gastó antes): lo subimos a 2 por cuenta en el JSON.</dd></dl></div>
+
+<h2 id="problemas"><span class="n">?</span>Si algo falla</h2>
+<div class="tbl"><table class="plain">
+<tr><th>Ves</th><th>Haz</th></tr>
+<tr><td>«Abre primero la escena 3 - Gig Scene»</td><td>El menú necesita el Gig Manager abierto en la escena.</td></tr>
+<tr><td>«Ya hay un Band Stage Layout en la escena»</td><td>Ya lo creaste; te lo selecciona. Muévelo en lugar de crear otro.</td></tr>
+<tr><td>Sigue saliendo <code>source=legacy</code></td><td>Selecciona el Gig Manager y mira que el campo <b>Band Stage Layout</b> no esté vacío.</td></tr>
+<tr><td>La vista previa no sigue al punto</td><td>Pulsa Previsualizar una vez; a partir de ahí sigue sola mientras la pestaña En el escenario esté activa.</td></tr>
+<tr><td>Un personaje se ve enorme o diminuto</td><td>Pestaña En fila → cambia su altura. Se guarda en su prefab.</td></tr>
+</table></div>
+<p class="done">S7 · ELENCO-1 · 2026-11-11 · Herramientas: <code>BandStageLayoutTools.cs</code>, <code>CharacterLineupWindow.cs</code>, <code>CharacterSizing.cs</code>.</p>
+</main>
+</div>
+<script>
+(() => {
+  const L = {
+    2: { pts: [[120,170],[230,170]], cap: "Dúo: los dos delante, separados, con el centro libre." },
+    3: { pts: [[95,185],[175,110],[255,185]], cap: "Trío: dos delante a los lados y uno detrás en el centro. Así ninguno tapa a otro." },
+    4: { pts: [[75,190],[140,115],[215,115],[285,190]], cap: "Cuarteto: dos filas. Los de atrás se dibujan detrás, los de delante encima." }
+  };
+  const g = document.getElementById("band"), cap = document.getElementById("cap");
+  const ns = "http://www.w3.org/2000/svg";
+  function el(t, a) { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); return e; }
+  function draw(n) {
+    g.textContent = "";
+    const pts = L[n].pts.map((p, i) => ({ x: p[0], y: p[1], i })).sort((a, b) => a.y - b.y);
+    for (const p of pts) {
+      const h = 46 + (p.y - 100) * 0.12;
+      g.appendChild(el("rect", { class: "body", x: p.x - 15, y: p.y - h, width: 30, height: h, rx: 9 }));
+      g.appendChild(el("circle", { class: "dot", cx: p.x, cy: p.y, r: 5 }));
+      const t = el("text", { class: "lbl", x: p.x, y: p.y + 18, "text-anchor": "middle" });
+      t.textContent = (n === 2 ? "Duo " : n === 3 ? "Trio " : "Cuarteto ") + (p.i + 1);
+      g.appendChild(t);
+    }
+    cap.textContent = L[n].cap;
+    document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", String(+b.dataset.n === n)));
+  }
+  document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => draw(+b.dataset.n)));
+  draw(3);
+})();
+</script>

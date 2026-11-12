@@ -51,11 +51,11 @@ plano o en capturas.
 | | S4b | **LEGIB-1b, vistas al pasar el ratón** ✅ 2026-11-11 | Hover sobre músico (quién le pega y cuánto) y sobre miembro del público (a quién pega), con bordes del color de identidad, líneas al objetivo y Tab mantenido para verlo todo; iconos de objetivo legibles sobre el fondo | Con el ratón encima, se sabe sin leer texto quién golpea a quién. **Hecho:** vistas 1 y 2, Tab, sin vistas con carta cogida, aura roja; iconos con disco y aro, «toda la banda» en un icono «×N»; intención sobre la cabeza; frase «A Conito: 5 de Stress»; enlaces de concepto con su ficha debajo (como Monster Train); colapso → Expuesto (configurable); 8 smokes jugados por Claudio | M1 |
 | | S5 | **NAVE-1** ✅ 2026-11-11 | Escena de la nave: plano con salas clicables; cada sala abre su arte con «EN DESARROLLO» y «Volver»; la cabina abre el mapa | Menú → nave → cabina → gig → vuelta a la nave, sin romper la partida. **Hecho:** escena `1c - Ship Hub` con 5 salas como datos (hover que tiñe y nombra, «EN DESARROLLO» antes del clic), fundido exterior → corte en la primera visita, el gig vuelve a la nave, «Volver a la nave» en el mapa, corazones de cohesión en el mapa; montada con un tutorial-artefacto (https://claude.ai/artifact/E1CfGu3Y3cGSidN2xHm3Y3); 3 smokes jugados por Claudio | — |
 | | S6 | **NAVE-2: dormitorio = alineación** ✅ 2026-11-11 | En el dormitorio se elige la banda: 2, 3 o 4 músicos | Cada opción arranca con esa banda y su mazo; sale en la telemetría. **Hecho:** `BandLineupScreen` con Dúo / Trío / Cuarteto y combinación libre (mínimo 2), siluetas por máscara sobre el arte «Personajes», banda fija tras el primer gig, `lineupId` en la telemetría; tutorial-artefacto (https://claude.ai/artifact/Q1QdFtRifMGMSkuVqoSwXW); 3 smokes jugados por Claudio | M2 |
-| 16–20 nov | S7 | **ELENCO-1** | Los 9 sprites listos entran como público; gigs 1 y 2 con sus grupos (`reference/ideas/2026-10-30_publico_con_rol.md` §7) y el objetivo «el líder». **Añadido tras S6 (D5=A):** la banda se coloca bien con 2, 3 o 4 músicos (disposición a mano por número, reparto automático de respaldo; arreglar `Count >= i` en `GigManager.BuildBand`) | Los dos gigs tienen público propio que se ve distinto y actúa distinto; las 3 alineaciones se ven bien en el escenario | M4 |
-| | S8 | **GRITOS-1** | Bocadillos con frases por habilidad; `{músico}` se sustituye por el objetivo | Antes de cada golpe se lee quién lo recibe; alguien se ríe | M1 |
+| 16–20 nov | S7 | **ELENCO-1** ✅ 2026-11-12 | Los 9 sprites listos entran como público; gigs 1 y 2 con sus grupos (`reference/ideas/2026-10-30_publico_con_rol.md` §7) y el objetivo «el líder». **Añadido tras S6 (D5=A):** la banda se coloca bien con 2, 3 o 4 músicos (disposición a mano por número, reparto automático de respaldo; arreglar `Count >= i` en `GigManager.BuildBand`) | Los dos gigs tienen público propio que se ve distinto y actúa distinto; las 3 alineaciones se ven bien en el escenario. **Hecho:** tres encuentros («Ranas y Rayas», «Tentáculos», «El jefe y su banda») creados desde un JSON (`Settings/Audience/Elenco_S7.json`); Big Guy es el Jefe y Kid e Influencer lo animan (`AudienceLeader`, se apaga al convencerlo); ranas con coro (×2 si coinciden en el músico); Tentáculos cuenta uno, dos, ¡TRES!; eje de roles en los gustos; el público apunta al que menos golpes aguanta (cuenta Calma y Expuesto); `BandStageLayout` con formaciones de 2, 3 y 4; ventana Character Lineup (alturas, vista en el escenario, «Ajustar UI»); tutorial-artefacto (https://claude.ai/artifact/1gCGFncSA8TtK3XG1MxqEo); todos los smokes jugados por Claudio | M4 |
+| | S8 | **GRITOS-1** | Bocadillos con frases por habilidad; `{músico}` se sustituye por el objetivo. **Añadido en S7:** poses del público por habilidad (sprite mientras la anuncia y al actuar, huecos vacíos = sprite normal; pedido #12 a Matías) y el beat de Conito (flota y no rebota) | Antes de cada golpe se lee quién lo recibe; alguien se ríe | M1 |
 | | S9 | **REINA-1** | Reina Gusano con su sprite y huevo · huevo · eclosión | En la prueba, alguien explica qué hace la Reina sin ayuda | M4 |
 | 23–27 nov | S10 | **ALINEACIÓN-2 + TEST-SETUP-1** | Tutorial y mazo coherentes con cada alineación; GigSetup desde el menú | Las 3 alineaciones juegan el gig 1 sin diálogos de músicos ausentes | M2 |
-| | S11 | **PULIDO-ARTE** | Recompensa con el arte de «Escoge tu carta», escenario por nodo, mapa polinizado al vencer a la Reina | Se ve en una partida completa | M5 |
+| | S11 | **PULIDO-ARTE + MAPA-2** | Recompensa con el arte de «Escoge tu carta», mapa polinizado al vencer a la Reina. **D-PLAN-6:** sale «escenario por nodo» y entra MAPA-2: una bifurcación tras el gig 1 (Tentáculos o El jefe y su banda; el camino no elegido se apaga y no se vuelve) y un editor de giras (`reference/ideas/2026-11-12_bifurcacion_y_editor_de_giras.md`) | Se ve en una partida completa; el jugador elige camino y el otro queda cerrado | M5 |
 | | S12 | **Congelación** (vie 27-nov) | Build interna + guion de la prueba M6 | La build arranca desde un `.exe` limpio | M7 |
 | 30 nov–4 dic | S13–S15 | **Prueba M6** | ≥3 personas externas sin explicar; se mira dónde se atascan y se les pide que cuenten cómo se gana y cómo se pierde | Cada una lo sabe decir; solo se arreglan bloqueantes | M6 |
 | | | Build candidata (vie 4-dic) | | | M7 |
@@ -84,7 +84,7 @@ plano o en capturas.
 
 Se recorta de arriba abajo; nunca M1, M3, M6:
 1. **Poses de enemigos** (fuera del plan; cambiar de sprite por estado, ~1 sesión, si sobra).
-2. **PULIDO-ARTE** (S11): queda la recompensa de siempre y un solo escenario.
+2. **PULIDO-ARTE + MAPA-2** (S11): queda la recompensa de siempre; el mapa sigue en línea recta (tres gigs y la Reina) y el editor de giras se aplaza.
 3. **GRITOS-1** (S8): solo frases genéricas, sin `{músico}`.
 4. **ALINEACIÓN** (S6, S10): banda fija; el dormitorio pasa a «EN DESARROLLO».
 5. **NAVE-1** (S5): la cabina se queda; las demás salas, una sola pantalla con el plano.
@@ -113,6 +113,10 @@ Se recorta de arriba abajo; nunca M1, M3, M6:
 - **D-PLAN-4 = A:** 3 sesiones por semana; si son menos, se recorta por el orden de arriba.
 - **D-PLAN-5 (2026-11-06):** el grito «Tu papá es travesti» del Miró queda fuera de GRITOS-1 (S8): es
   burla a una identidad y la demo es pública.
+- **D-PLAN-6 (2026-11-12, S7):** enmienda REPLAN-ART D1 («sin ramas»): entra **una** bifurcación en el
+  mapa (MAPA-2), porque añade rejugabilidad y es una base reutilizable del diseño (Claudio). Va en el
+  hueco de S11 en lugar de «escenario por nodo» (D4=B), para no mover la congelación del 27-nov. Ver
+  `reference/ideas/2026-11-12_bifurcacion_y_editor_de_giras.md`.
 
 ## Página para el equipo
 

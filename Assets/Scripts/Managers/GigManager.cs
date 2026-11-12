@@ -135,6 +135,9 @@ namespace ALWTTT.Managers
         [Header("References")]
         [SerializeField] private BackgroundContainer backgroundContainer;
         [SerializeField] private List<Transform> musicianPosList;
+        [SerializeField, Tooltip("[S7 / D5=A] Formations by band size (2/3/4) + automatic line. " +
+            "When null, the band uses musicianPosList in roster order.")]
+        private BandStageLayout bandStageLayout;
         [SerializeField] private List<Transform> audienceMemberPosList;
         [SerializeField] private SceneChanger sceneChanger;
 
@@ -825,12 +828,39 @@ namespace ALWTTT.Managers
         {
             if (UseLogs) Debug.Log($"{DebugTag} Building band and musicians...");
 
-            for (var i = 0;
-                i < GameManager.PersistentGameplayData.MusicianList.Count; i++)
+            int bandSize = GameManager.PersistentGameplayData.MusicianList.Count;
+
+            // [S7 / D5=A] Slots by band size. Source: hand-made formation → automatic
+            // line → legacy musicianPosList (index fixed: was `Count >= i`, which let
+            // i == Count through and threw on a 5th musician).
+            List<Transform> slots = null;
+            string slotSource;
+            if (bandStageLayout != null && bandStageLayout.HasFormation(bandSize))
+            {
+                slots = bandStageLayout.GetSlots(bandSize);
+                slotSource = "formation";
+            }
+            else if (bandStageLayout != null && (slots = bandStageLayout.GetSlots(bandSize)).Count >= bandSize)
+            {
+                slotSource = "auto";
+            }
+            else
+            {
+                slots = new List<Transform>(bandSize);
+                for (int i = 0; i < bandSize; i++)
+                    slots.Add(i < MusicianPosList.Count ? MusicianPosList[i] : MusicianPosList[0]);
+                slotSource = bandStageLayout == null ? "legacy (no layout)" : "legacy (layout incomplete)";
+            }
+            int[] sortingOrders = bandStageLayout != null
+                ? bandStageLayout.GetSortingOrders(slots)
+                : null;
+            Debug.Log($"[S7] Band layout | size={bandSize} | source={slotSource}");
+
+            for (var i = 0; i < bandSize; i++)
             {
                 MusicianBase clone = Instantiate(
                     GameManager.PersistentGameplayData.MusicianList[i],
-                    MusicianPosList.Count >= i ? MusicianPosList[i] : MusicianPosList[0]
+                    slots[i]
                 );
 
                 clone.BuildCharacter();
@@ -858,9 +888,10 @@ namespace ALWTTT.Managers
                 MidiMusicManager?.RegisterMusicianAnchor(
                     clone.MusicianCharacterData.CharacterId, clone.transform);
 
-                // Front or Back of the Stage
-                // TODO: Use a single layer per musician
-                if (i < 2) clone.SetSpriteLayerOrder(10);
+                // Front or Back of the Stage. [S7] With a layout, depth follows the
+                // slot's height (closest to the audience on top); legacy keeps i < 2.
+                if (sortingOrders != null) clone.SetSpriteLayerOrder(sortingOrders[i]);
+                else if (i < 2) clone.SetSpriteLayerOrder(10);
                 else clone.SetSpriteLayerOrder(0);
             }
 
@@ -877,7 +908,7 @@ namespace ALWTTT.Managers
             {
                 var clone = Instantiate(
                     audienceMemberList[i].CharacterPrefab,
-                    AudienceMemberPosList.Count >= i ?
+                    i < AudienceMemberPosList.Count ? // [S7] was `Count >= i` (off by one)
                         AudienceMemberPosList[i] :
                         AudienceMemberPosList[0]
                 );

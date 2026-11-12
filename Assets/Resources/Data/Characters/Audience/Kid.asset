@@ -14,11 +14,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterId: kid
   characterName: Kid
-  characterDescription: 
+  characterDescription: Secuaz del jefe.
   maxVibe: 15
   characterPrefab: {fileID: 8137859568071339047, guid: 323a8ebb063c9b94e8a73bc3ac51c634, type: 3}
   isTall: 0
+  isLeader: 0
   abilityList:
+  - abilityName: Egg Him On
+    abilityId: ab_egg_him_on
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 1
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 11
+      actionTargetType: 101
+      actionValue: 1
+      actionDelay: 0
+      statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
+    duetKey: 
+    animation:
+      animatorTrigger: Tantrum
+      animationDuration: 2
+      disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
   - abilityName: Tantrum
     abilityId: ab_tantrum
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
@@ -27,30 +45,15 @@ MonoBehaviour:
     actionList:
     - cardActionType: 3
       actionTargetType: 5
-      actionValue: 5
+      actionValue: 3
       actionDelay: 0
       statusEffect: {fileID: 0}
+    duetKey: 
     animation:
       animatorTrigger: Tantrum
       animationDuration: 2
       disableBeatAnimator: 1
     abilitySfx: {fileID: 8300000, guid: 39ea5e5d160ab424e9bea6a25b1acfaa, type: 3}
-  - abilityName: Egg Him On
-    abilityId: ab_egg_him_on
-    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
-    hideActionValue: 1
-    abilityDuration: 2
-    actionList:
-    - cardActionType: 11
-      actionTargetType: 100
-      actionValue: 1
-      actionDelay: 0
-      statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
-    animation:
-      animatorTrigger: Tantrum
-      animationDuration: 2
-      disableBeatAnimator: 1
-    abilitySfx: {fileID: 0}
   followAbilityPattern: 1
   taste:
     tempoMatchOnFast: 1
@@ -63,4 +66,6 @@ MonoBehaviour:
     dislikedTimeSignatures: 
     preferredTonalities: 
     dislikedTonalities: 
+    preferredRoles: 
+    dislikedRoles: 
   sfxProfile: {fileID: 11400000, guid: 277a1afda3a9a394595d1bc8ad7e2fb7, type: 2}

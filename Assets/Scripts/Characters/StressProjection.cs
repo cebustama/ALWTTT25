@@ -157,21 +157,27 @@ namespace ALWTTT.Characters
                         {
                             case CharacterActionType.AddStress:
                                 {
-                                    int baseStress = Mathf.RoundToInt(action.ActionValue);
-                                    // Mirror of ApplyOutgoingStressWithModifiers: only a positive
-                                    // base is modified, Hyped adds +1 per stack.
-                                    int outgoing = baseStress;
-                                    if (baseStress > 0) outgoing += Mathf.Max(0, _hyped[a]);
+                                    // [S7 / Croar] Per target: a duet doubles the base for the
+                                    // musician both singers hit (AudienceCharacterBase.FindDuetPartner,
+                                    // the same call the real hit makes), then Hyped is added.
+                                    int amountShown = 0;
+                                    foreach (var t in targets)
+                                    {
+                                        if (t == null) continue;
+                                        int baseStress = Mathf.RoundToInt(action.ActionValue * a.DuetMultiplier(action, t));
+                                        // Mirror of ApplyOutgoingStressWithModifiers: only a positive
+                                        // base is modified, Hyped adds +1 per stack.
+                                        int outgoing = baseStress;
+                                        if (baseStress > 0) outgoing += Mathf.Max(0, _hyped[a]);
+                                        amountShown = Mathf.Max(amountShown, outgoing);
+                                        if (_band.TryGetValue(t, out var sim)) Hit(sim, outgoing);
+                                    }
 
                                     if (targets.Count > 0)
                                     {
                                         anyStress = true;
-                                        summary.Amount += Mathf.Max(0, outgoing);
+                                        summary.Amount += Mathf.Max(0, amountShown);
                                     }
-
-                                    foreach (var t in targets)
-                                        if (t != null && _band.TryGetValue(t, out var sim))
-                                            Hit(sim, outgoing);
                                     break;
                                 }
 

@@ -14,32 +14,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterId: big_guy
   characterName: Big Guy
-  characterDescription: 
-  maxVibe: 100
+  characterDescription: El jefe punk. Sus secuaces lo animan.
+  maxVibe: 35
   characterPrefab: {fileID: 8137859568071339047, guid: 730d609a7ff00034f9beb9863123dda4, type: 3}
   isTall: 0
+  isLeader: 1
   abilityList:
-  - abilityName: Total Indifference
-    abilityId: ab_total_indifference
+  - abilityName: Boo
+    abilityId: ab_boo
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
     hideActionValue: 0
-    abilityDuration: 0
+    abilityDuration: 2
     actionList:
     - cardActionType: 3
-      actionTargetType: 5
-      actionValue: 20
+      actionTargetType: 1
+      actionValue: 5
       actionDelay: 0
       statusEffect: {fileID: 0}
+    duetKey: 
     animation:
       animatorTrigger: 
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
-  followAbilityPattern: 0
+  followAbilityPattern: 1
   taste:
-    tempoMatchOnFast: 0
+    tempoMatchOnFast: 1
     preferAboveTempoScale: 1
-    tempoMismatchOnSlow: 0
+    tempoMismatchOnSlow: 1
     dislikeBelowTempoScale: 1
     roleCountMatchOnRich: 0
     preferAtLeastRoles: 3
@@ -47,4 +49,6 @@ MonoBehaviour:
     dislikedTimeSignatures: 
     preferredTonalities: 
     dislikedTonalities: 
+    preferredRoles: 00000000
+    dislikedRoles: 
   sfxProfile: {fileID: 0}

@@ -1,0 +1,400 @@
+{
+  "format": "alwttt.audience/1",
+  "note": "S7 / ELENCO-1 (2026-11-11). Primer repertorio: Ranas y Rayas, Tentaculos, El jefe y su banda. D5=A: Big Guy es el jefe; Kid, Cool Dude e Influencer, sus secuaces (Cool Dude no cambia). Numeros por ajustar al jugar. Importar con ALWTTT > S7 > Crear elenco (ELENCO-1).",
+  "glossaryConcepts": [
+    {
+      "id": "leader",
+      "es": { "name": "Jefe", "description": "Manda en su grupo. Sus secuaces lo animan; si lo convences, se quedan sin a quién animar." },
+      "en": { "name": "Boss", "description": "Runs their crew. The minions cheer them on; win the boss over and they have no one left to cheer." }
+    }
+  ],
+  "characters": [
+    {
+      "characterId": "rana_rosa",
+      "characterName": "Rana Rosa",
+      "characterDescription": "Mitad de un dúo. Sola molesta; con su pareja, el doble.",
+      "assetPath": "Assets/Resources/Data/Characters/Audience/Rana Rosa.asset",
+      "maxVibe": 18,
+      "isTall": false,
+      "isLeader": false,
+      "followAbilityPattern": true,
+      "sfxProfile": "",
+      "prefab": {
+        "path": "Assets/Prefabs/Characters/Audience/AudienceCharacter - Rana Rosa.prefab",
+        "basePrefab": "",
+        "sprite": "Assets/Resources/Sprites/Characters/Audience/rana enemigo.png",
+        "spriteHeight": 1.3,
+        "headHeight": 0.6,
+        "updateExisting": false
+      },
+      "abilities": [
+        {
+          "id": "ab_croak",
+          "devName": "Croak",
+          "duet": "croak",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Deal Stress.asset",
+          "hideActionValue": false,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "AddStress", "target": "RandomMusician", "value": 3, "delay": 0, "status": "" } ],
+          "es": { "name": "Croar", "description": "Croa encima de la canción. Carga <link=stress>Stress</link> a un músico. Si su pareja croa al mismo, pega el doble." },
+          "en": { "name": "Croak", "description": "Croaks over the song. Deals <link=stress>Stress</link> to one bandmate. If its partner croaks at the same one, it hits twice as hard." }
+        }
+      ],
+      "taste": {
+        "tempoMatchOnFast": true, "preferAboveTempoScale": 1,
+        "tempoMismatchOnSlow": true, "dislikeBelowTempoScale": 1,
+        "roleCountMatchOnRich": false, "preferAtLeastRoles": 3,
+        "preferredTimeSignatures": [], "dislikedTimeSignatures": [],
+        "preferredTonalities": [], "dislikedTonalities": [],
+        "preferredRoles": [], "dislikedRoles": []
+      }
+    },
+    {
+      "characterId": "rana_azul",
+      "characterName": "Rana Azul",
+      "characterDescription": "La otra mitad del dúo.",
+      "assetPath": "Assets/Resources/Data/Characters/Audience/Rana Azul.asset",
+      "maxVibe": 18,
+      "isTall": false,
+      "isLeader": false,
+      "followAbilityPattern": true,
+      "sfxProfile": "",
+      "prefab": {
+        "path": "Assets/Prefabs/Characters/Audience/AudienceCharacter - Rana Azul.prefab",
+        "basePrefab": "",
+        "sprite": "Assets/Resources/Sprites/Characters/Audience/rana enemigo 2.png",
+        "spriteHeight": 1.3,
+        "headHeight": 0.6,
+        "updateExisting": false
+      },
+      "abilities": [
+        {
+          "id": "ab_croak",
+          "devName": "Croak",
+          "duet": "croak",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Deal Stress.asset",
+          "hideActionValue": false,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "AddStress", "target": "RandomMusician", "value": 3, "delay": 0, "status": "" } ],
+          "es": { "name": "", "description": "" },
+          "en": { "name": "", "description": "" }
+        }
+      ],
+      "taste": {
+        "tempoMatchOnFast": true, "preferAboveTempoScale": 1,
+        "tempoMismatchOnSlow": true, "dislikeBelowTempoScale": 1,
+        "roleCountMatchOnRich": false, "preferAtLeastRoles": 3,
+        "preferredTimeSignatures": [], "dislikedTimeSignatures": [],
+        "preferredTonalities": [], "dislikedTonalities": [],
+        "preferredRoles": [], "dislikedRoles": []
+      }
+    },
+    {
+      "characterId": "rayas",
+      "characterName": "Rayas",
+      "characterDescription": "Se cuela delante y tapa. Solo baila si suena el bajo.",
+      "assetPath": "Assets/Resources/Data/Characters/Audience/Rayas.asset",
+      "maxVibe": 20,
+      "isTall": true,
+      "isLeader": false,
+      "followAbilityPattern": true,
+      "sfxProfile": "",
+      "prefab": {
+        "path": "Assets/Prefabs/Characters/Audience/AudienceCharacter - Rayas.prefab",
+        "basePrefab": "",
+        "sprite": "Assets/Resources/Sprites/Characters/Audience/234.png",
+        "spriteHeight": 2.2,
+        "headHeight": 0.8,
+        "updateExisting": false
+      },
+      "abilities": [
+        {
+          "id": "ab_cut_in",
+          "devName": "Cut In",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Special Ability.asset",
+          "hideActionValue": false,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "MoveToFront", "target": "Self", "value": 1, "delay": 0, "status": "" } ],
+          "es": { "name": "Colarse", "description": "Se cuela hasta delante. Quien quede detrás y sea más bajo queda <link=blocked>Bloqueado</link> y no recibe <link=vibe>Vibe</link>." },
+          "en": { "name": "Cut In", "description": "Pushes to the front. Anyone shorter left behind is <link=blocked>Blocked</link> and gets no <link=vibe>Vibe</link>." }
+        },
+        {
+          "id": "ab_elbow",
+          "devName": "Elbow",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Deal Stress.asset",
+          "hideActionValue": false,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "AddStress", "target": "Musician", "value": 4, "delay": 0, "status": "" } ],
+          "es": { "name": "Codazo", "description": "Ya delante, se apoya en el escenario. Carga <link=stress>Stress</link> a un músico." },
+          "en": { "name": "Elbow", "description": "Now at the front, it leans on the stage. Deals <link=stress>Stress</link> to one bandmate." }
+        }
+      ],
+      "taste": {
+        "tempoMatchOnFast": false, "preferAboveTempoScale": 1,
+        "tempoMismatchOnSlow": false, "dislikeBelowTempoScale": 1,
+        "roleCountMatchOnRich": false, "preferAtLeastRoles": 3,
+        "preferredTimeSignatures": [], "dislikedTimeSignatures": [],
+        "preferredTonalities": [], "dislikedTonalities": [],
+        "preferredRoles": [ "Bassline" ], "dislikedRoles": []
+      }
+    },
+    {
+      "characterId": "tentaculos",
+      "characterName": "Tentáculos",
+      "characterDescription": "Cuenta hasta tres. A la de tres, golpea.",
+      "assetPath": "Assets/Resources/Data/Characters/Audience/Tentaculos.asset",
+      "maxVibe": 40,
+      "isTall": true,
+      "isLeader": false,
+      "followAbilityPattern": true,
+      "sfxProfile": "",
+      "prefab": {
+        "path": "Assets/Prefabs/Characters/Audience/AudienceCharacter - Tentaculos.prefab",
+        "basePrefab": "",
+        "sprite": "Assets/Resources/Sprites/Characters/Audience/asfasf.png",
+        "spriteHeight": 2.6,
+        "headHeight": 0.8,
+        "updateExisting": false
+      },
+      "abilities": [
+        {
+          "id": "ab_count_one",
+          "devName": "Count One",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Special Ability.asset",
+          "hideActionValue": true,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "ApplyStatusEffect", "target": "Self", "value": 1, "delay": 0, "status": "Assets/Resources/Data/Status Effects/Effects/StatusEffect_Hyped_DamageUpFlat.asset" } ],
+          "es": { "name": "Uno…", "description": "Empieza a contar. Se infla: gana <link=hyped>Exaltado</link>. A la de tres, golpea." },
+          "en": { "name": "One…", "description": "Starts counting. It swells up: gains <link=hyped>Hyped</link>. On three, it strikes." }
+        },
+        {
+          "id": "ab_count_two",
+          "devName": "Count Two",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Special Ability.asset",
+          "hideActionValue": true,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "ApplyStatusEffect", "target": "Self", "value": 1, "delay": 0, "status": "Assets/Resources/Data/Status Effects/Effects/StatusEffect_Hyped_DamageUpFlat.asset" } ],
+          "es": { "name": "Dos…", "description": "Sigue contando y se infla más: gana <link=hyped>Exaltado</link>. Lo siguiente es el tres." },
+          "en": { "name": "Two…", "description": "Keeps counting and swells further: gains <link=hyped>Hyped</link>. Three comes next." }
+        },
+        {
+          "id": "ab_count_three",
+          "devName": "Count Three",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Deal Stress.asset",
+          "hideActionValue": false,
+          "duration": 3,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "AddStress", "target": "Musician", "value": 10, "delay": 0, "status": "" } ],
+          "es": { "name": "¡TRES!", "description": "Suelta todo de golpe sobre un músico: mucho <link=stress>Stress</link>, más el de su <link=hyped>Exaltado</link>." },
+          "en": { "name": "THREE!", "description": "Lets it all out on one bandmate: heavy <link=stress>Stress</link>, plus its <link=hyped>Hyped</link>." }
+        }
+      ],
+      "taste": {
+        "tempoMatchOnFast": false, "preferAboveTempoScale": 1,
+        "tempoMismatchOnSlow": false, "dislikeBelowTempoScale": 1,
+        "roleCountMatchOnRich": false, "preferAtLeastRoles": 3,
+        "preferredTimeSignatures": [], "dislikedTimeSignatures": [],
+        "preferredTonalities": [ "Dorian" ], "dislikedTonalities": [],
+        "preferredRoles": [], "dislikedRoles": [ "Rhythm" ]
+      }
+    },
+    {
+      "characterId": "big_guy",
+      "characterName": "Big Guy",
+      "characterDescription": "El jefe punk. Sus secuaces lo animan.",
+      "assetPath": "",
+      "maxVibe": 35,
+      "isTall": false,
+      "isLeader": true,
+      "followAbilityPattern": true,
+      "sfxProfile": "",
+      "prefab": { "path": "", "basePrefab": "", "sprite": "", "spriteHeight": 0, "headHeight": 0.75, "updateExisting": false },
+      "abilities": [
+        {
+          "id": "ab_boo",
+          "devName": "Boo",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Deal Stress.asset",
+          "hideActionValue": false,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "AddStress", "target": "Musician", "value": 5, "delay": 0, "status": "" } ],
+          "es": { "name": "¡BBUUU!", "description": "Abuchea a un músico con todo el pecho. Carga <link=stress>Stress</link>; pega más si está <link=hyped>Exaltado</link>." },
+          "en": { "name": "BOOO!", "description": "Boos one bandmate from the gut. Deals <link=stress>Stress</link>; hits harder while <link=hyped>Hyped</link>." }
+        }
+      ],
+      "taste": {
+        "tempoMatchOnFast": true, "preferAboveTempoScale": 1,
+        "tempoMismatchOnSlow": true, "dislikeBelowTempoScale": 1,
+        "roleCountMatchOnRich": false, "preferAtLeastRoles": 3,
+        "preferredTimeSignatures": [], "dislikedTimeSignatures": [],
+        "preferredTonalities": [], "dislikedTonalities": [],
+        "preferredRoles": [ "Rhythm" ], "dislikedRoles": []
+      }
+    },
+    {
+      "characterId": "kid",
+      "characterName": "Kid",
+      "characterDescription": "Secuaz del jefe.",
+      "assetPath": "",
+      "maxVibe": 15,
+      "isTall": false,
+      "isLeader": false,
+      "followAbilityPattern": true,
+      "sfxProfile": "Assets/Resources/Data/Characters/Audience/Sxf Profiles/Kid - SfxProfile.asset",
+      "prefab": { "path": "", "basePrefab": "", "sprite": "", "spriteHeight": 0, "headHeight": 0.75, "updateExisting": false },
+      "abilities": [
+        {
+          "id": "ab_egg_him_on",
+          "devName": "Egg Him On",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Special Ability.asset",
+          "hideActionValue": true,
+          "duration": 2,
+          "animatorTrigger": "Tantrum",
+          "animationDuration": 2,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "ApplyStatusEffect", "target": "AudienceLeader", "value": 1, "delay": 0, "status": "Assets/Resources/Data/Status Effects/Effects/StatusEffect_Hyped_DamageUpFlat.asset" } ],
+          "es": { "name": "¡Eso, jefe!", "description": "Le da cuerda a su <link=leader>Jefe</link>: gana <link=hyped>Exaltado</link> y su <link=stress>Stress</link> pega más fuerte. Si el jefe ya está <link=convinced>Convencido</link>, no hace nada." },
+          "en": { "name": "Go On, Boss!", "description": "Winds up their <link=leader>Boss</link>: they gain <link=hyped>Hyped</link> and their <link=stress>Stress</link> hits harder. If the boss is already <link=convinced>Convinced</link>, nothing happens." }
+        },
+        {
+          "id": "ab_tantrum",
+          "devName": "Tantrum",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Deal Stress.asset",
+          "hideActionValue": false,
+          "duration": 3,
+          "animatorTrigger": "Tantrum",
+          "animationDuration": 2,
+          "disableBeatAnimator": true,
+          "sfx": "Assets/Resources/Audio/Audience/Kid - Negative.wav",
+          "actions": [ { "type": "AddStress", "target": "RandomMusician", "value": 3, "delay": 0, "status": "" } ],
+          "es": { "name": "", "description": "" },
+          "en": { "name": "", "description": "" }
+        }
+      ],
+      "taste": {
+        "tempoMatchOnFast": true, "preferAboveTempoScale": 1,
+        "tempoMismatchOnSlow": true, "dislikeBelowTempoScale": 1,
+        "roleCountMatchOnRich": true, "preferAtLeastRoles": 2,
+        "preferredTimeSignatures": [], "dislikedTimeSignatures": [],
+        "preferredTonalities": [], "dislikedTonalities": [],
+        "preferredRoles": [], "dislikedRoles": []
+      }
+    },
+    {
+      "characterId": "influencer",
+      "characterName": "Influencer",
+      "characterDescription": "Secuaz del jefe. Lo graba todo.",
+      "assetPath": "",
+      "maxVibe": 20,
+      "isTall": true,
+      "isLeader": false,
+      "followAbilityPattern": true,
+      "sfxProfile": "",
+      "prefab": { "path": "", "basePrefab": "", "sprite": "", "spriteHeight": 0, "headHeight": 0.75, "updateExisting": false },
+      "abilities": [
+        {
+          "id": "ab_egg_him_on",
+          "devName": "Egg Him On",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Special Ability.asset",
+          "hideActionValue": true,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "ApplyStatusEffect", "target": "AudienceLeader", "value": 1, "delay": 0, "status": "Assets/Resources/Data/Status Effects/Effects/StatusEffect_Hyped_DamageUpFlat.asset" } ],
+          "es": { "name": "", "description": "" },
+          "en": { "name": "", "description": "" }
+        },
+        {
+          "id": "ab_scathing_review",
+          "devName": "Scathing Review",
+          "intention": "Assets/Resources/Data/Characters/Audience/Intentions/Deal Stress.asset",
+          "hideActionValue": false,
+          "duration": 2,
+          "animatorTrigger": "",
+          "animationDuration": -1,
+          "disableBeatAnimator": true,
+          "sfx": "",
+          "actions": [ { "type": "AddStress", "target": "Musician", "value": 3, "delay": 0, "status": "" } ],
+          "es": { "name": "", "description": "" },
+          "en": { "name": "", "description": "" }
+        }
+      ],
+      "taste": {
+        "tempoMatchOnFast": false, "preferAboveTempoScale": 1,
+        "tempoMismatchOnSlow": false, "dislikeBelowTempoScale": 1,
+        "roleCountMatchOnRich": true, "preferAtLeastRoles": 3,
+        "preferredTimeSignatures": [], "dislikedTimeSignatures": [],
+        "preferredTonalities": [], "dislikedTonalities": [],
+        "preferredRoles": [ "Lead" ], "dislikedRoles": []
+      }
+    }
+  ],
+  "encounters": [
+    {
+      "path": "Assets/Resources/Data/Encounters/Gig - Ranas y Rayas.asset",
+      "displayName": "Ranas y Rayas",
+      "venueType": "Venue1",
+      "numberOfSongs": 1,
+      "fansOnWin": 0,
+      "cohesionPenaltyOnLoss": 0,
+      "audience": [ "rana_rosa", "rana_azul", "rayas" ],
+      "addToGigSetupRoster": true,
+      "launchConfig": { "path": "Assets/Settings/Gig/LaunchConfig - Ranas y Rayas.asset", "copyFrom": "" }
+    },
+    {
+      "path": "Assets/Resources/Data/Encounters/Gig - Tentaculos.asset",
+      "displayName": "Tentáculos",
+      "venueType": "Venue1",
+      "numberOfSongs": 1,
+      "fansOnWin": 0,
+      "cohesionPenaltyOnLoss": 0,
+      "audience": [ "tentaculos" ],
+      "addToGigSetupRoster": true,
+      "launchConfig": { "path": "Assets/Settings/Gig/LaunchConfig - Tentaculos.asset", "copyFrom": "" }
+    },
+    {
+      "path": "Assets/Resources/Data/Encounters/Gig - El jefe y su banda.asset",
+      "displayName": "El jefe y su banda",
+      "venueType": "Venue1",
+      "numberOfSongs": 1,
+      "fansOnWin": 0,
+      "cohesionPenaltyOnLoss": 0,
+      "audience": [ "big_guy", "kid", "cooldude", "influencer" ],
+      "addToGigSetupRoster": true,
+      "launchConfig": { "path": "Assets/Settings/Gig/LaunchConfig - El jefe y su banda.asset", "copyFrom": "" }
+    }
+  ]
+}

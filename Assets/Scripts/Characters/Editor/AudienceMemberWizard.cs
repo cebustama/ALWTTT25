@@ -337,6 +337,21 @@ namespace ALWTTT.Characters.Editor
                 if (GUILayout.Button("Export JSON", EditorStyles.toolbarButton, GUILayout.Width(96)))
                     ExportFilteredJson();
 
+                // [S7] Full, re-importable JSON of the selected member (AudienceJson).
+                using (new EditorGUI.DisabledScope(_selected == null))
+                {
+                    if (GUILayout.Button("Export full", EditorStyles.toolbarButton, GUILayout.Width(80)))
+                    {
+                        string p = EditorUtility.SaveFilePanel("Export audience JSON", "", _selected.name + ".json", "json");
+                        if (!string.IsNullOrEmpty(p)) AudienceJson.Export(new List<AudienceCharacterData> { _selected }, null, p);
+                    }
+                }
+                if (GUILayout.Button("Import…", EditorStyles.toolbarButton, GUILayout.Width(64)))
+                {
+                    AudienceJson.ImportWithDialog();
+                    RefreshAssets();
+                }
+
                 if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(64)))
                     RefreshAssets();
             }
@@ -897,6 +912,10 @@ namespace ALWTTT.Characters.Editor
                 GUILayout.Label("Mode axis", EditorStyles.miniBoldLabel);
                 Field(taste.FindPropertyRelative("preferredTonalities"));
                 Field(taste.FindPropertyRelative("dislikedTonalities"));
+
+                GUILayout.Label("Role axis (S7)", EditorStyles.miniBoldLabel);
+                Field(taste.FindPropertyRelative("preferredRoles"));
+                Field(taste.FindPropertyRelative("dislikedRoles"));
             }
 
             EditorGUILayout.HelpBox(BuildTasteProse(taste), MessageType.None);
@@ -927,6 +946,11 @@ namespace ALWTTT.Characters.Editor
             if (prefTon != null && prefTon.arraySize > 0) { sb.Append($"Prefers tonalities: {ListNames(prefTon)}. "); plusSides++; }
             if (disTon != null && disTon.arraySize > 0) { sb.Append($"Dislikes tonalities: {ListNames(disTon)}. "); minusSides++; }
 
+            var prefRole = taste.FindPropertyRelative("preferredRoles");
+            var disRole = taste.FindPropertyRelative("dislikedRoles");
+            if (prefRole != null && prefRole.arraySize > 0) { sb.Append($"Wants any of these roles playing: {ListNames(prefRole)}. "); plusSides++; }
+            if (disRole != null && disRole.arraySize > 0) { sb.Append($"Dislikes any of these roles playing: {ListNames(disRole)}. "); minusSides++; }
+
             if (sb.Length == 0)
                 return "Neutral archetype: every axis is disabled, so every loop impression is 0.";
 
@@ -947,6 +971,9 @@ namespace ALWTTT.Characters.Editor
 
             int pTon = ArraySize(taste, "preferredTonalities"), dTon = ArraySize(taste, "dislikedTonalities");
             if (pTon + dTon > 0) parts.Add($"ton +{pTon}/−{dTon}");
+
+            int pRole = ArraySize(taste, "preferredRoles"), dRole = ArraySize(taste, "dislikedRoles");
+            if (pRole + dRole > 0) parts.Add($"role +{pRole}/−{dRole}");
 
             neutral = parts.Count == 0;
             return neutral ? "neutral" : string.Join(" · ", parts);

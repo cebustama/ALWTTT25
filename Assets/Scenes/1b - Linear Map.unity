@@ -1468,11 +1468,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Map.LinearMapController
   nodes:
   - visual: {fileID: 1314398260}
-    launchConfig: {fileID: 11400000, guid: a33cb1838f0f85146ae11155225b79bb, type: 2}
+    launchConfig: {fileID: 11400000, guid: 722253feefe25e3489739e6d2d4ab5a8, type: 2}
     title: Gig 1
     description: 
   - visual: {fileID: 163151818}
-    launchConfig: {fileID: 11400000, guid: a33cb1838f0f85146ae11155225b79bb, type: 2}
+    launchConfig: {fileID: 11400000, guid: fc063f365891abd47a2d58d90bf2998b, type: 2}
     title: Gig 2
     description: 
   - visual: {fileID: 1915744378}
