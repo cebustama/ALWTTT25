@@ -1,0 +1,575 @@
+<title>Taller de bajo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a practice room. Sticky transport on top; controls in a band; the part below as bars,
+   each bar = drum lanes + accent row + bass row on one shared time axis. */
+:root{
+  --bg:#eef0f3; --surface:#ffffff; --sunk:#f6f7f9; --fg:#18202c; --muted:#5b6575; --line:#d6dbe2;
+  --drum:#a3305f; --drum-soft:#f3d9e4; --bass:#0f6f69; --bass-soft:#cfece8; --attack:#c26a00; --attack-soft:#fbe6c8;
+  --now:#ffd34d;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11151b; --surface:#191f27; --sunk:#141920; --fg:#e6e9ef; --muted:#97a1b0; --line:#2a323d;
+  --drum:#ea72a5; --drum-soft:#3a1e2b; --bass:#4cc8bd; --bass-soft:#163633; --attack:#f2a64a; --attack-soft:#3d2a12;
+  --now:#8a6d10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11151b; --surface:#191f27; --sunk:#141920; --fg:#e6e9ef; --muted:#97a1b0; --line:#2a323d;
+  --drum:#ea72a5; --drum-soft:#3a1e2b; --bass:#4cc8bd; --bass-soft:#163633; --attack:#f2a64a; --attack-soft:#3d2a12;
+  --now:#8a6d10; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1100px;margin:0 auto;padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--f-display);margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:26px} h2{font-size:17px}
+p{margin:0}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);
+  margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));
+  padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.top h1{font-size:20px;margin-right:auto}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--bass);outline-offset:2px}
+#play{width:42px;height:42px;border-radius:50%;border:0;background:var(--bass);color:var(--surface);display:grid;place-items:center}
+#play svg{width:20px;height:20px}
+.ab{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.ab button{border:0;background:var(--sunk);padding:8px 14px;font-weight:600}
+.ab button[aria-pressed="true"]{background:var(--bass);color:var(--surface)}
+.ab button.b[aria-pressed="true"]{background:var(--attack);color:var(--surface)}
+#pos{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:15ch}
+.field{display:flex;flex-direction:column;gap:3px;min-width:0}
+.field label,.field .lab{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-family:var(--f-mono)}
+.field select,.field input[type=number]{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+.field input[type=range]{width:100%}
+.field output{font-family:var(--f-mono);font-size:12px}
+.band{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.band h2{grid-column:1/-1}
+.band .chk{flex-direction:row;align-items:center;gap:8px}
+.lead{color:var(--muted);max-width:75ch}
+.sum{font-size:13px;color:var(--muted)}
+.sum b{color:var(--fg)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.part{display:flex;flex-direction:column;gap:10px}
+.bar{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.bar .h{display:flex;gap:10px;font-size:11px;font-family:var(--f-mono);color:var(--muted)}
+.bar .h .f{color:var(--drum)}
+.row{display:grid;grid-template-columns:76px 1fr;gap:8px;align-items:center;min-width:0}
+.row > span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cells{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:1px;height:14px;position:relative}
+.c{background:var(--sunk);border-radius:2px;position:relative;display:grid;place-items:center}
+.c.b{box-shadow:-2px 0 0 var(--line)}
+.c.z{background:var(--drum-soft)}
+.c.now{background:var(--now)}
+.c i{display:block;width:70%;height:70%;border-radius:2px;background:var(--drum);opacity:calc(.25 + .75*var(--v,1))}
+.ac .c i{width:60%;height:calc(15% + 85%*var(--w));align-self:end;background:var(--muted);opacity:.55;border-radius:1px}
+.ac .c i.s{background:var(--drum);opacity:1}
+.ac .c i.f{background:repeating-linear-gradient(45deg,var(--drum),var(--drum) 2px,transparent 2px,transparent 4px);opacity:1}
+.bass .lane{height:22px;position:relative;background:var(--sunk);border-radius:3px}
+.bass .lane .bt{position:absolute;inset:0;pointer-events:none}
+.bass .lane .bt div{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+.n{position:absolute;top:3px;bottom:3px;border-radius:3px;background:var(--bass-soft);border:1px solid var(--bass);overflow:hidden}
+.n::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bass);opacity:var(--v)}
+.n.on{background:var(--bass);}
+.n.on::before{background:var(--surface);opacity:.6}
+.n.atk{background:var(--attack);border-color:var(--attack)}
+.n.atk::before{background:var(--surface);opacity:.7}
+.n.play{outline:2px solid var(--now);outline-offset:1px}
+.chord{font-family:var(--f-mono);font-size:11px;color:var(--bass)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+summary{cursor:pointer;font-weight:600}
+details p,details li{color:var(--muted);max-width:80ch}
+details ul{padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;gap:4px}
+code{font-family:var(--f-mono);font-size:.9em}
+.warn{color:var(--attack);font-size:13px}
+@media (max-width:560px){ .row{grid-template-columns:52px 1fr} .top h1{font-size:17px;width:100%} }
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<main class="wrap">
+  <header class="top">
+    <h1>Taller de bajo</h1>
+    <button id="play" type="button" aria-label="Reproducir"></button>
+    <div class="ab" role="group" aria-label="Comparar">
+      <button type="button" id="abA" aria-pressed="true" title="El bajo de hoy, sin seguir acentos">A · hoy</button>
+      <button type="button" id="abB" class="b" aria-pressed="false" title="El bajo que sigue los acentos (tecla B alterna)">B · sigue</button>
+    </div>
+    <span id="pos">—</span>
+  </header>
+
+  <p class="lead">Batería y bajo juntos, con el motor de MidiGenPlay. La batería es la «Parte con fills» del Taller de batería. El bajo es el de <code>BassTrackComposer</code>: <b>A</b> toca como hoy y <b>B</b> sigue los acentos que publica la batería (<code>accentFollow</code>, MGP-BASS-ACCENT-1). Pulsa la barra espaciadora para tocar o parar, y la tecla <b>B</b> para cambiar de A a B sin cortar.</p>
+
+  <section class="band" aria-label="Batería">
+    <h2>Batería</h2>
+    <div class="field"><label for="pat">Groove</label><select id="pat"></select></div>
+    <div class="field"><label for="bpm">BPM</label><input id="bpm" type="number" min="50" max="220" value="100"></div>
+    <div class="field"><label for="meas">Compases</label><select id="meas"><option>4</option><option selected>8</option><option>16</option></select></div>
+    <div class="field"><label for="every">Fill cada</label><select id="every"><option value="0">nunca</option><option value="2">2 compases</option><option value="4" selected>4 compases</option><option value="8">8 compases</option></select></div>
+    <div class="field"><label for="src">Fills</label><select id="src"><option value="both" selected>Music Lab y procedurales</option><option value="lib">Solo Music Lab</option><option value="proc">Solo procedurales</option></select></div>
+    <div class="field"><label for="seed">Semilla (trackSeed)</label><input id="seed" type="number" value="7"></div>
+    <div class="field"><label for="contrast">Contraste</label><input id="contrast" type="range" min="0" max="1" step="0.05" value="0"><output id="contrastO">0</output></div>
+    <div class="field chk"><input id="last" type="checkbox" checked><label for="last">Fill al cerrar</label></div>
+    <div class="field chk"><input id="crash" type="checkbox" checked><label for="crash">Crash después</label></div>
+    <div class="field chk"><input id="drumsOn" type="checkbox" checked><label for="drumsOn">Oír la batería</label></div>
+  </section>
+
+  <section class="band" aria-label="Bajo">
+    <h2>Bajo</h2>
+    <div class="field"><label for="prog">Progresión</label><select id="prog"></select></div>
+    <div class="field"><label for="fig">Figura (A y B)</label><select id="fig"><option value="block" selected>Nota larga (Block)</option><option value="p8">Pulso de corcheas</option><option value="p16">Pulso de semicorcheas</option><option value="p4">Pulso de negras</option></select></div>
+    <div class="field"><label for="mode">Modo B</label><select id="mode"><option value="attacks" selected>Ataques</option><option value="reinforce">Refuerzo</option></select></div>
+    <div class="field"><label for="fillm">En un fill</label><select id="fillm"><option value="gap" selected>Hueco (D4)</option><option value="follow">Seguir</option></select></div>
+    <div class="field"><label for="thr">Umbral</label><input id="thr" type="range" min="0.3" max="1" step="0.05" value="0.6"><output id="thrO">0,6</output></div>
+    <div class="field"><label for="cap">Ataques por compás</label><input id="cap" type="number" min="0" max="16" value="4"></div>
+    <div class="field"><label for="boost">Refuerzo (+vel)</label><input id="boost" type="range" min="0" max="40" step="1" value="16"><output id="boostO">16</output></div>
+    <div class="field"><label for="cut">Contraste (−vel)</label><input id="cut" type="range" min="0" max="30" step="1" value="8"><output id="cutO">8</output></div>
+    <div class="field"><label for="bvol">Volumen del bajo</label><input id="bvol" type="range" min="0" max="1.6" step="0.05" value="1"><output id="bvolO">1</output></div>
+  </section>
+
+  <p class="sum" id="sum"></p>
+  <div class="legend" aria-hidden="true">
+    <span><i style="background:var(--drum)"></i>acento fuerte</span>
+    <span><i style="background:repeating-linear-gradient(45deg,var(--drum),var(--drum) 2px,transparent 2px,transparent 4px)"></i>acento de fill</span>
+    <span><i style="background:var(--bass-soft);border:1px solid var(--bass)"></i>nota del bajo</span>
+    <span><i style="background:var(--bass)"></i>reforzada (cae en un acento)</span>
+    <span><i style="background:var(--attack)"></i>ataque nuevo</span>
+  </div>
+  <div class="part" id="part"></div>
+
+  <details>
+    <summary>Qué es igual al juego y qué no</summary>
+    <ul>
+      <li><b>Igual al C#, con prueba de paridad:</b> el plan de golpes del bajo (<code>ChordArticulator.PlanHits</code> de Block y del pulso, con su curva de velocidad) y el seguimiento de acentos (<code>BassAccentFollow.PlanEvent</code> y <code>AccentDeriver.MarkFills</code>): inicios, duraciones y velocidades. La prueba está en <code>paridad/</code>.</li>
+      <li><b>La batería</b> es el motor del Taller de batería v2 (<code>FX</code>, comprobado contra C# en la sesión 1), inyectado por <code>build.py</code>.</li>
+      <li><b>Distinto:</b> la octava. En el juego la elige un sorteo de <code>ctx.rng</code>; aquí la fundamental va siempre entre Mi1 y Re#2. El walk (normal e improvisado) y el slap no están portados: en ellos B solo refuerza, nunca ataca. El sonido es sintetizado, no el SF2 del juego.</li>
+      <li><b>Progresiones:</b> los <code>ChordProgressionData</code> en 4/4 de <code>Assets/Resources/ScriptableObjects/Patterns/Chords/</code>, en Do, repetidos hasta llenar la parte. Las menores van en eólico.</li>
+    </ul>
+  </details>
+</main>
+
+<script>
+const DATA = {"patterns":[{"guid":"b423b2171321f8747a489c45fb4a99ac","display":"Compound Swing","beats":6,"unit":8,"measures":2,"subdivisions":3,"lanes":[{"gm":36,"name":"BassDrum1","def":95,"steps":[120,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":51,"name":"RideCymbal1","def":90,"steps":[0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1]}],"bpm":80},{"guid":"b99fc069269520c4bbc9bc4c09d1610d","display":"CS_CountryLilt68","beats":6,"unit":8,"measures":2,"subdivisions":1,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":105,"steps":[-1,-1,50,-1,50,-1,-1,-1,50,-1,50,0]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"bpm":120},{"guid":"ef9afbba2fc551340a7c4ae9331dede1","display":"CS_FunkShuffle68","beats":6,"unit":8,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,0,-1,-1,-1,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,50,-1,50,-1,0,-1,-1,50,-1,50,-1,-1,50,-1,50,-1,0,-1,-1,50,-1,50]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1]}],"bpm":90},{"guid":"1e465aba22941674aaebc0b99c0665ce","display":"CS_JazzCompound","beats":6,"unit":8,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":70,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":80,"steps":[-1,-1,-1,-1,50,-1,-1,-1,-1,50,-1,-1,-1,50,-1,-1,50,-1,-1,-1,-1,50,-1,-1]},{"gm":51,"name":"RideCymbal1","def":90,"steps":[0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1,0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]}],"bpm":120},{"guid":"a24efc30032c79848b448746c63450d8","display":"CS_MetalDrive68","beats":6,"unit":8,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":115,"steps":[0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0]},{"gm":38,"name":"AcousticSnare","def":120,"steps":[-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":90,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":46,"name":"OpenHiHat","def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120]}],"bpm":120},{"guid":"d8416c8df5b41f246b2dac34bab387e7","display":"CS_RockBallad68","beats":6,"unit":8,"measures":2,"subdivisions":1,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,0]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"bpm":69},{"guid":"ed0e8265b7434b94a970f95724d3c14c","display":"DNB 4-4 2m test","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":105,"steps":[0,-1,-1,0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,120,-1,-1,50,-1,-1,-1,-1,120,-1,50,-1,-1,-1,-1,-1,120,-1,-1,50,-1,-1,-1,-1,-1,120,50,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1]}],"bpm":172},{"guid":"0dc2b40c977fe8445978d3358abd0787","display":"Drum_4-2_2m_ACSN","beats":4,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":35,"name":"AcousticBassDrum","def":100,"steps":[0,0,-1,-1,0,0,-1,-1,0,0,-1,-1,0,0,-1,-1]},{"gm":38,"name":"AcousticSnare","def":100,"steps":[-1,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0]}],"bpm":100},{"guid":"5523d1812c2a8df4088a1d33032e277a","display":"","beats":4,"unit":4,"measures":8,"subdivisions":2,"lanes":[{"gm":35,"name":"AcousticBassDrum","def":114,"steps":[0,-1,-1,105,-1,-1,-1,115,-1,113,-1,101,-1,85,-1,-1,106,-1,-1,105,-1,-1,-1,123,-1,109,-1,-1,-1,118,-1,-1,127,-1,-1,120,-1,-1,-1,115,-1,118,-1,121,0,-1,-1,-1,127,-1,-1,107,-1,-1,-1,119,-1,0,-1,-1,-1,119,-1,-1]},{"gm":38,"name":"AcousticSnare","def":127,"steps":[-1,-1,-1,-1,124,-1,-1,-1,-1,-1,-1,-1,-1,-1,123,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1]},{"gm":41,"name":"LowFloorTom","def":70,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":127,"steps":[0,-1,125,-1,0,-1,123,-1,115,-1,113,-1,116,-1,0,-1,0,-1,0,-1,0,-1,0,-1,125,-1,0,-1,0,-1,0,-1,126,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,121,-1,123,-1,-1,-1,0,-1,-1,-1]},{"gm":43,"name":"HighFloorTom","def":127,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":44,"name":"PedalHiHat","def":127,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":48,"name":"HiMidTom","def":127,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1]}],"bpm":160},{"guid":"7670f438c590971449112ef9f5723909","display":"Drum_4-4_2m_ACSNRI","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":35,"name":"AcousticBassDrum","def":100,"steps":[120,-1,120,-1,120,-1,120,-1,120,-1,120,-1,120,-1,120,50,120,-1,120,-1,120,-1,120,-1,120,-1,120,-1,120,-1,120,-1]},{"gm":40,"name":"ElectricSnare","def":110,"steps":[-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1]},{"gm":51,"name":"RideCymbal1","def":80,"steps":[-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,0,0,-1,0,-1,0,-1,0,-1,0,-1,0]}]},{"guid":"3f2bfd73e6260b7488f988f83fe0e390","display":"FF_BreakbeatDense","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":105,"steps":[0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,-1,-1,50,0]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"bpm":136},{"guid":"b200f02095339fd41b639843f7414e52","display":"Country, train beat — subdiv 2","beats":4,"unit":4,"measures":8,"subdivisions":2,"lanes":[{"gm":38,"name":"AcousticSnare","def":100,"steps":[0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,50,0,50,120,120]},{"gm":36,"name":"BassDrum1","def":105,"steps":[0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]}],"bpm":120},{"guid":"9b5cac8c75b7a5143a238b4ed38d6799","display":"FF_DiscoPulse","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,-1,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,50,50]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,120,-1]}],"bpm":118},{"guid":"ef289896d767f464f814e49b2ef9e18a","display":"","beats":4,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"bpm":130},{"guid":"4636686d34bf8824ea79067479b5be42","display":"FF_LatinClaveEngine","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":90,"steps":[0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":100,"steps":[-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,50,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[0,-1,0,-1,0,0,-1,0,0,-1,0,-1,0,0,-1,0,0,-1,0,-1,0,0,-1,0,0,-1,0,-1,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":85,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":37,"name":"SideStick","def":95,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1]}],"bpm":110},{"guid":"d6d884e838ec465439239c46e1bf7c04","display":"Latin, son 3-2 — subdiv 4","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":75,"name":"Claves","def":110,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1]},{"gm":36,"name":"BassDrum1","def":100,"steps":[-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1]},{"gm":63,"name":"OpenHiConga","def":95,"steps":[-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,50,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,-1,0,-1,-1,-1,50,-1,50,-1,-1,0,-1,-1,50,-1,50,0,0,120]},{"gm":56,"name":"Cowbell","def":85,"steps":[0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1]}],"bpm":110},{"guid":"9bc62b47bd268d9449927bad8f0f9c5b","display":"Metal — subdiv 4","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":115,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":38,"name":"AcousticSnare","def":120,"steps":[-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":90,"steps":[120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,120,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":47,"name":"LowMidTom","def":110,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0]},{"gm":49,"name":"CrashCymbal1","def":110,"steps":[120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"bpm":150},{"guid":"80bf6d7dc7eee404eba97755f186ac9d","display":"Rock — subdiv 2","beats":4,"unit":4,"measures":8,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,0,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,0,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,0,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,0,0,120,120]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,0,0,0,0,-1,-1,-1,-1]},{"gm":49,"name":"CrashCymbal1","def":100,"steps":[120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"bpm":120},{"guid":"c9bb1fd447bb3004883c6e71b38da5bf","display":"FF_TrainBeat","beats":4,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":105,"steps":[-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,120]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0]}],"bpm":120},{"guid":"907a8043139669b43a968f8c6bb6fafe","display":"","beats":4,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}],"bpm":124},{"guid":"ef3470c15d551a34e846c10c6bdbe80a","display":"Odd-Meter Angular","beats":5,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[120,-1,-1,-1,-1,-1,120,-1,-1,-1,120,-1,-1,-1,-1,-1,120,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}],"bpm":126},{"guid":"655099d9cae3c934f966c48629407476","display":"OM_DjentChug","beats":5,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":115,"steps":[0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1,-1,0,-1,-1,0,-1,0,-1,0,-1,-1,0,-1,-1,0,0,0,-1]},{"gm":38,"name":"AcousticSnare","def":120,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":90,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"bpm":110},{"guid":"f6fee88c0b2fbbc42b3abb0c00fb8681","display":"OM_FunkFive","beats":5,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,0,-1,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,50,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,-1,50,-1,-1,50,-1,-1,-1,50,-1,0,-1,-1,50,-1,-1,-1,-1,0,-1,-1,50,-1,-1,50,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"bpm":98},{"guid":"0542e22ea57ddb346a963cbd9be84992","display":"OM_HalfFeelSparse","beats":5,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0]}],"bpm":110},{"guid":"a0c4ca653f9cf334bb0bc9c76fc87076","display":"OM_RockDrive54","beats":5,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120]}],"bpm":132},{"guid":"1b866c2340cc92d4aa58bdec31a677a3","display":"OM_TakeFiveSwing","beats":5,"unit":4,"measures":2,"subdivisions":3,"lanes":[{"gm":36,"name":"BassDrum1","def":70,"steps":[0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1]},{"gm":38,"name":"AcousticSnare","def":80,"steps":[-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,50,-1,-1,-1,-1,50,-1,-1,-1]},{"gm":51,"name":"RideCymbal1","def":90,"steps":[0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]}],"bpm":168},{"guid":"e1aff4cc960fb324f89c7e8648900004","display":"Drum'n'bass — subdiv 4","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,0,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,0,50,0,50,0,50,0,50,0,50,0,50,0,120,120,120]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]}],"bpm":172},{"guid":"dc2e4b37c247da54695bd4a91c7f604a","display":"Funk — subdiv 4","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":105,"steps":[0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,50,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,50,-1,-1,-1,-1,-1,0,-1,-1,120]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,0,120,0,0,-1]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"bpm":100},{"guid":"0349dbe6e54c2b444a909e352673c38f","display":"Hip-hop — subdiv 4","beats":4,"unit":4,"measures":8,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,0,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1]}],"bpm":90},{"guid":"1baa94246bd26614e861778741875d05","display":"Jazz — subdiv 3","beats":4,"unit":4,"measures":8,"subdivisions":3,"lanes":[{"gm":51,"name":"RideCymbal1","def":95,"steps":[0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0,0,-1,-1,0,-1,0]},{"gm":38,"name":"AcousticSnare","def":100,"steps":[-1,-1,50,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,50,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,-1,50,-1,-1,50,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,120]},{"gm":36,"name":"BassDrum1","def":70,"steps":[50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1]},{"gm":44,"name":"PedalHiHat","def":75,"steps":[-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1]}],"bpm":160},{"guid":"12aa11c405902a347878442aab0a7993","display":"Syncopated Pocket (Funk)","beats":4,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,0,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,-1,0,-1,-1,-1,-1,0]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,50,-1,0,-1,50,-1,-1,-1,50,-1,0,-1,50,-1,-1,-1,50,-1,0,-1,50,-1,-1,-1,50,-1,0,-1,50,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,-1,0]}],"bpm":96},{"guid":"dd96fc46b42db2b4fb100c1250003a8e","display":"","beats":3,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":90,"steps":[120,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":95,"steps":[-1,-1,0,-1,0,-1,-1,-1,0,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":75,"steps":[0,0,0,0,0,0,0,0,0,0,0,0]}],"bpm":120},{"guid":"a5936aaaa72baa84c916a92aa1318d93","display":"WL_BalladSparse","beats":3,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":65,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":70,"steps":[-1,-1,-1,-1,50,-1,-1,-1,50,-1,-1,-1]},{"gm":51,"name":"RideCymbal1","def":80,"steps":[0,-1,0,-1,0,-1,0,-1,0,-1,0,-1]},{"gm":42,"name":"ClosedHiHat","def":70,"steps":[-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,-1]}],"bpm":72},{"guid":"541bab4469109a94ea4c242e5c9a8e15","display":"","beats":3,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]},{"gm":38,"name":"AcousticSnare","def":105,"steps":[-1,-1,120,-1,120,-1,-1,-1,120,-1,120,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0]}],"bpm":112},{"guid":"985edbc06b0f41242ab2d4c0de49cf21","display":"WL_FunkWaltz","beats":3,"unit":4,"measures":2,"subdivisions":4,"lanes":[{"gm":36,"name":"BassDrum1","def":100,"steps":[0,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1,-1,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":110,"steps":[-1,-1,50,-1,0,-1,-1,50,-1,-1,50,-1,-1,-1,50,-1,0,-1,-1,50,-1,50,0,-1]},{"gm":42,"name":"ClosedHiHat","def":80,"steps":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,-1,0,0,0,-1,0]},{"gm":46,"name":"OpenHiHat","def":90,"steps":[-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1]}],"bpm":88},{"guid":"15557ff2d9d8fb447b7b15b15d6245e1","display":"WL_JazzWaltz","beats":3,"unit":4,"measures":2,"subdivisions":3,"lanes":[{"gm":36,"name":"BassDrum1","def":70,"steps":[0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1]},{"gm":38,"name":"AcousticSnare","def":80,"steps":[-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1,-1,-1,-1,-1,50,-1]},{"gm":51,"name":"RideCymbal1","def":90,"steps":[0,-1,-1,0,-1,0,0,-1,-1,0,-1,-1,0,-1,0,0,-1,-1]},{"gm":46,"name":"OpenHiHat","def":75,"steps":[-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]}],"bpm":150},{"guid":"1d657eec9b33861478a20a6a42cdcb65","display":"WL_RockWaltz","beats":3,"unit":4,"measures":2,"subdivisions":2,"lanes":[{"gm":36,"name":"BassDrum1","def":110,"steps":[0,-1,-1,-1,0,-1,0,-1,-1,-1,0,-1]},{"gm":38,"name":"AcousticSnare","def":115,"steps":[-1,-1,120,-1,-1,-1,-1,-1,120,-1,-1,-1]},{"gm":42,"name":"ClosedHiHat","def":85,"steps":[0,0,0,0,0,0,0,0,0,0,0,0]},{"gm":46,"name":"OpenHiHat","def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1]}],"bpm":126}],"progressions":[{"id":"\"Prog_Min_ii\\xF87V7_8c\"","label":"\"Prog_Min_ii\\xF87V7_8c\" (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":3,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":1,"quality":7,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"\"i(2)\\u2013VI(2)\\u2013III(2)\\u2013VII(2) 8c\"","label":"\"i(2)\\u2013VI(2)\\u2013III(2)\\u2013VII(2) 8c\" (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":5,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":2,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Pachelbel 8c","label":"Pachelbel 8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":4,"lengthSteps":4,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":4,"degree":5,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":12,"lengthSteps":4,"degree":2,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":20,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_AxisRot_8c","label":"Prog_Maj_AxisRot_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":5,"quality":1,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_Axis_8c","label":"Prog_Maj_Axis_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":5,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_Blues8c","label":"Prog_Maj_Blues8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":3,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":4,"degree":0,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":20,"lengthSteps":4,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":0,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_Cincuentas_8c","label":"Prog_Maj_Cincuentas_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":5,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_Creep_IVpiv","label":"Prog_Maj_Creep_IVpiv (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":2,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":3,"quality":1,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_Nubarron_bVI","label":"Prog_Maj_Nubarron_bVI (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":5,"quality":0,"velocity":96,"degreeAccidental":-1},{"startStep":16,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_Periodo_IVV_8c","label":"Prog_Maj_Periodo_IVV_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":12,"lengthSteps":4,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_Prestamo_bIII","label":"Prog_Maj_Prestamo_bIII (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":2,"quality":0,"velocity":96,"degreeAccidental":-1},{"startStep":16,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_PuertaTrasera_bVII","label":"Prog_Maj_PuertaTrasera_bVII (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":-1},{"startStep":16,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":-1}]},{"id":"Prog_Maj_Ragtime_SECDOM","label":"Prog_Maj_Ragtime_SECDOM (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":5,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":1,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_Sentence_T2_8c","label":"Prog_Maj_Sentence_T2_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":20,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":1,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Maj_ViejaEscuela_8c","label":"Prog_Maj_ViejaEscuela_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":5,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":1,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Min_Andaluza","label":"Prog_Min_Andaluza (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":5,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Min_BluesSoul_i7iv7","label":"Prog_Min_BluesSoul_i7iv7 (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":3,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":3,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Min_Napolitana_bII","label":"Prog_Min_Napolitana_bII (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":1,"quality":0,"velocity":96,"degreeAccidental":-1},{"startStep":16,"lengthSteps":8,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":1,"quality":0,"velocity":96,"degreeAccidental":-1},{"startStep":28,"lengthSteps":4,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Min_RotacionVII_8c","label":"Prog_Min_RotacionVII_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":5,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Min_bVI_iv_V_8c","label":"Prog_Min_bVI_iv_V_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":5,"quality":0,"velocity":96,"degreeAccidental":-1},{"startStep":16,"lengthSteps":8,"degree":3,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Min_ivV_T2_8c","label":"Prog_Min_ivV_T2_8c (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":3,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":3,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Modal_Dorico_Vamp","label":"Prog_Modal_Dorico_Vamp (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":3,"quality":14,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":1,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":3,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Modal_Eolico_Giro","label":"Prog_Modal_Eolico_Giro (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":5,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Modal_Frigio_Descenso","label":"Prog_Modal_Frigio_Descenso (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":1,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":4,"degree":3,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":20,"lengthSteps":4,"degree":2,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":1,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Modal_Lidio_Flotante","label":"Prog_Modal_Lidio_Flotante (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":4,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":1,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":6,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":1,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Modal_Mixo_SweetHome","label":"Prog_Modal_Mixo_SweetHome (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":4,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":12,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":4,"degree":4,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":20,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Modal_Skel_TonicaCuartoSegundo","label":"Prog_Modal_Skel_TonicaCuartoSegundo (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":0,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":8,"degree":1,"quality":5,"velocity":96,"degreeAccidental":0}]},{"id":"Prog_Modal_Skel_TonicaSeptimo","label":"Prog_Modal_Skel_TonicaSeptimo (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":8,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":4,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":4,"degree":6,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"44 Test","label":"44 Test (8 c.)","measures":8,"subdivisions":8,"events":[{"startStep":0,"lengthSteps":25,"degree":0,"quality":0,"velocity":97,"degreeAccidental":0},{"startStep":32,"lengthSteps":24,"degree":1,"quality":1,"velocity":91,"degreeAccidental":0},{"startStep":64,"lengthSteps":12,"degree":2,"quality":1,"velocity":90,"degreeAccidental":0},{"startStep":80,"lengthSteps":11,"degree":3,"quality":0,"velocity":91,"degreeAccidental":0},{"startStep":96,"lengthSteps":2,"degree":4,"quality":0,"velocity":91,"degreeAccidental":0},{"startStep":104,"lengthSteps":2,"degree":5,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":112,"lengthSteps":1,"degree":4,"quality":0,"velocity":97,"degreeAccidental":0},{"startStep":116,"lengthSteps":1,"degree":3,"quality":0,"velocity":107,"degreeAccidental":0},{"startStep":122,"lengthSteps":1,"degree":2,"quality":1,"velocity":87,"degreeAccidental":0},{"startStep":128,"lengthSteps":1,"degree":1,"quality":1,"velocity":98,"degreeAccidental":0},{"startStep":136,"lengthSteps":5,"degree":0,"quality":0,"velocity":99,"degreeAccidental":0},{"startStep":144,"lengthSteps":5,"degree":0,"quality":0,"velocity":80,"degreeAccidental":0},{"startStep":152,"lengthSteps":2,"degree":1,"quality":1,"velocity":79,"degreeAccidental":0},{"startStep":160,"lengthSteps":27,"degree":2,"quality":1,"velocity":72,"degreeAccidental":0},{"startStep":192,"lengthSteps":25,"degree":3,"quality":0,"velocity":74,"degreeAccidental":0},{"startStep":224,"lengthSteps":3,"degree":2,"quality":1,"velocity":83,"degreeAccidental":0},{"startStep":232,"lengthSteps":2,"degree":1,"quality":1,"velocity":68,"degreeAccidental":0},{"startStep":240,"lengthSteps":15,"degree":0,"quality":0,"velocity":80,"degreeAccidental":0}]},{"id":"ProgSmoke_AsAuthored","label":"ProgSmoke_AsAuthored (4 c.)","measures":4,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":4,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":4,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":12,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"ProgSmoke_Color","label":"ProgSmoke_Color (2 c.)","measures":2,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":4,"degree":1,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":4,"lengthSteps":2,"degree":3,"quality":11,"velocity":96,"degreeAccidental":0},{"startStep":6,"lengthSteps":2,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0}]},{"id":"ProgSmoke_Diatonic","label":"ProgSmoke_Diatonic (4 c.)","measures":4,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":4,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":4,"degree":4,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":12,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"ProgSmoke_Dominant7","label":"ProgSmoke_Dominant7 (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":16,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":16,"degree":3,"quality":1,"velocity":96,"degreeAccidental":0}]},{"id":"ProgSmoke_Functional","label":"ProgSmoke_Functional (4 c.)","measures":4,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":4,"degree":0,"quality":4,"velocity":96,"degreeAccidental":0},{"startStep":4,"lengthSteps":4,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":4,"degree":3,"quality":4,"velocity":96,"degreeAccidental":0},{"startStep":12,"lengthSteps":4,"degree":0,"quality":1,"velocity":96,"degreeAccidental":0}]},{"id":"ProgSmoke_TonFilter","label":"ProgSmoke_TonFilter (4 c.)","measures":4,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":4,"lengthSteps":4,"degree":6,"quality":0,"velocity":96,"degreeAccidental":-1},{"startStep":8,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":12,"lengthSteps":4,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0}]},{"id":"Test - Lab Progression","label":"Test - Lab Progression (8 c.)","measures":8,"subdivisions":1,"events":[{"startStep":0,"lengthSteps":8,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":8,"lengthSteps":4,"degree":5,"quality":1,"velocity":96,"degreeAccidental":0},{"startStep":12,"lengthSteps":4,"degree":3,"quality":0,"velocity":96,"degreeAccidental":0},{"startStep":16,"lengthSteps":8,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":24,"lengthSteps":4,"degree":1,"quality":5,"velocity":96,"degreeAccidental":0},{"startStep":28,"lengthSteps":2,"degree":4,"quality":6,"velocity":96,"degreeAccidental":0},{"startStep":30,"lengthSteps":2,"degree":0,"quality":0,"velocity":96,"degreeAccidental":0}]}],"fills":[{"id":"FILL_FourOnTheFloor_SnareRoll2","beats":4,"unit":4,"subdivisions":4,"weight":1.0,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,105,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,50,50,95,95,95,95,120,120]}]},{"id":"FILL_FourOnTheFloor_TomDown2","beats":4,"unit":4,"subdivisions":4,"weight":1.0,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,105,-1,-1,-1,-1,-1,105,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,95,95,-1,-1,-1,-1,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,100,100,-1,-1,-1,-1]},{"gm":47,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,100,100,-1,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,105,120]}]},{"id":"FILL_FourOnTheFloor_Beat4Pickup","beats":4,"unit":4,"subdivisions":4,"weight":1.0,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,105,-1,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,95,95,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,100,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120]}]},{"id":"FILL_FourOnTheFloor_EighthsFullBar","beats":4,"unit":4,"subdivisions":2,"weight":0.4,"lanes":[{"gm":36,"def":105,"steps":[105,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"def":95,"steps":[95,95,95,95,-1,-1,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,100,100,-1,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,-1,105,120]}]},{"id":"FILL_SyncopatedPocket_GhostLinear","beats":4,"unit":4,"subdivisions":4,"weight":1.0,"lanes":[{"gm":36,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,100,-1,-1,100,-1,-1,100,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,50,50,-1,120,50,-1,120]}]},{"id":"FILL_SyncopatedPocket_OpenHatPickup","beats":4,"unit":4,"subdivisions":4,"weight":1.0,"lanes":[{"gm":46,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120,-1,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,95,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,100,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,120]}]},{"id":"FILL_SyncopatedPocket_SwingTriplets","beats":4,"unit":4,"subdivisions":3,"weight":1.0,"lanes":[{"gm":36,"def":80,"steps":[-1,-1,-1,-1,-1,-1,80,-1,-1,-1,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,50,50,95,95,95,120]}]},{"id":"FILL_WaltzLilt_Beat3Roll","beats":3,"unit":4,"subdivisions":4,"weight":1.0,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,105,-1,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,50,95,95,120]}]},{"id":"FILL_WaltzLilt_TomsTwoBeats","beats":3,"unit":4,"subdivisions":2,"weight":0.6,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,105,-1,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,95,95,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,100,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,120]}]},{"id":"FILL_CompoundSwing_SecondHalfDown","beats":6,"unit":8,"subdivisions":2,"weight":1.0,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,-1,-1,-1,-1,105,-1,-1,-1,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,50,95,-1,-1,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,100,100,-1,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,105,120]}]},{"id":"FILL_CompoundSwing_EighthTomTriplet","beats":6,"unit":8,"subdivisions":1,"weight":1.0,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,-1,105,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,95,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,100,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,120]}]},{"id":"FILL_OddMeterAngular_LastTwo","beats":5,"unit":4,"subdivisions":4,"weight":1.0,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,105,-1,-1,-1,-1,-1,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,50,50,95,95,-1,-1,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,100,100,-1,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,105,120]}]},{"id":"FILL_OddMeterAngular_ThreeThreeHemiola","beats":5,"unit":4,"subdivisions":2,"weight":0.5,"lanes":[{"gm":36,"def":105,"steps":[-1,-1,-1,-1,105,-1,-1,105,-1,-1]},{"gm":38,"def":95,"steps":[-1,-1,-1,-1,120,95,95,-1,-1,-1]},{"gm":50,"def":100,"steps":[-1,-1,-1,-1,-1,-1,-1,120,-1,-1]},{"gm":43,"def":105,"steps":[-1,-1,-1,-1,-1,-1,-1,-1,105,120]}]}]};
+const $ = s => document.querySelector(s);
+const el = (t, c, txt) => { const e = document.createElement(t); if(c) e.className = c; if(txt != null) e.textContent = txt; return e; };
+const store = { get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch{ return d; } },
+                set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} } };
+
+/*ENGINE*/
+// MGP-DRUM-ACCENT-1 mirror (AccentDeriver.InstrumentWeight), as in the Taller de batería.
+const ACC_W = {35:1,36:1,38:1,40:1,49:1,57:1,39:1,52:.9,41:.85,43:.85,45:.75,47:.75,48:.75,50:.7,
+  55:.6,37:.6,53:.6,60:.6,61:.6,62:.6,63:.6,64:.6,65:.6,66:.6,56:.6,75:.6,67:.6,68:.6,76:.6,77:.6,
+  51:.5,59:.5,46:.5,42:.3,44:.3,54:.25,69:.25,70:.25};
+const FX = (() => {
+  function hash32(s){ let h = 2166136261 >>> 0; for(let i=0;i<s.length;i++){ h = (h ^ s.charCodeAt(i)) >>> 0; h = Math.imul(h, 16777619) >>> 0; } return h | 0; }
+  function fmix32(h){ h >>>= 0; h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35) >>> 0; h ^= h >>> 16; return h >>> 0; }
+  const unitOf = (seed, key) => fmix32(hash32(seed + "|" + key)) / 4294967296;
+  const fillSeedOf = trackSeed => hash32(trackSeed + "|fill");
+  const roundEven = x => { const f = Math.floor(x), d = x - f; return d > .5 ? f + 1 : d < .5 ? f : (f % 2 === 0 ? f : f + 1); };
+  const roundAway = x => Math.sign(x) * Math.round(Math.abs(x));
+  const triplet = spb => spb > 0 && spb % 3 === 0;
+  const TIMEKEEP = new Set([42,46,51,59,53]), CRASHES = new Set([49,57,52,55]), KICKS = new Set([35,36]), DESCENT = [38,50,47,43];
+  const VARIANT = ["redoble","bajada","unísono","corte"];
+  const beatOf = h => h.abs / h.spb;
+  function fillMeasures(pm, n, last){ const s = new Set(); if(n > 0) for(let m = n-1; m < pm; m += n) s.add(m); if(last > 0) s.add(pm-1); return [...s].sort((a,b) => a-b); }
+  function firstActive(p, bpb){ const lim = bpb*p.subdivisions; let f = -1; p.lanes.forEach(l => { for(let i=0;i<Math.min(lim,l.steps.length);i++) if(l.steps[i] >= 0){ if(f < 0 || i < f) f = i; break; } }); return f; }
+  function libraryFill(p, m, bpb){
+    const spb = p.subdivisions, per = bpb*spb, f = firstActive(p, bpb), hits = [];
+    p.lanes.forEach(l => l.steps.forEach((v, i) => { if(v >= 0 && i < per) hits.push({gm:l.gm, abs:m*per + i, spb, vel:v}); }));
+    return {hits, start: f < 0 ? bpb : Math.floor(f/spb)};
+  }
+  function proceduralFill(m, bpb, unit, gSpb, variant){
+    const L = (unit === 8 && bpb % 3 === 0 && bpb >= 6) ? 3 : Math.max(1, Math.floor(bpb/2));
+    const res = unit === 8 ? 2 : triplet(gSpb) ? 3 : (gSpb >= 4 ? 4 : 2);
+    const start = bpb - L, base = m*bpb*res + start*res, hits = [];
+    if(variant === 3){ hits.push({gm:38, abs:base, spb:res, vel:120}, {gm:35, abs:base, spb:res, vel:120}); return {hits, start}; }
+    const n = L*res;
+    for(let i=0;i<n;i++){
+      const vel = n > 1 ? roundEven(Math.fround(70 + Math.fround(Math.fround(45*i)/(n-1)))) : 115;
+      const k = Math.floor(i/res), voice = variant === 1 ? (L <= 1 ? 38 : DESCENT[Math.min(3, Math.floor(k*3/(L-1)))]) : 38;
+      hits.push({gm:voice, abs:base+i, spb:res, vel});
+      if(i === 0 || (variant === 2 && i % res === 0)) hits.push({gm:35, abs:base+i, spb:res, vel});
+    }
+    return {hits, start};
+  }
+  function planFill(m, bpb, unit, gSpb, S){
+    const elig = S.library.filter(e => e.w > 0 && e.p.beats === bpb && firstActive(e.p, bpb) >= 0 && triplet(e.p.subdivisions) === triplet(gSpb));
+    let total = S.procW; elig.forEach(e => total += e.w);
+    if(total <= 0) return null;
+    let pick = unitOf(S.fillSeed, "m=" + m) * total;
+    for(const e of elig){ if(pick < e.w){ const f = libraryFill(e.p, m, bpb); return {m, start:f.start, hits:f.hits, label:e.p.id, proc:false}; } pick -= e.w; }
+    const v = Math.min(3, Math.floor(unitOf(S.fillSeed, "m=" + m + "|v") * 4));
+    const f = proceduralFill(m, bpb, unit, gSpb, v);
+    return {m, start:f.start, hits:f.hits, label:"procedural · " + VARIANT[v], proc:true};
+  }
+  function median(g){ const v = []; g.lanes.forEach(l => l.steps.forEach(x => { if(x >= 0) v.push(Math.min(127, Math.max(1, x))); })); if(!v.length) return 64; v.sort((a,b) => a-b); const k = v.length >> 1; return v.length % 2 ? v[k] : (v[k-1]+v[k])/2; }
+  function buildSurface(g, pm, S){
+    const bpb = g.beats, spb = g.subdivisions, per = bpb*spb, patTotal = g.measures*per, partTotal = pm*per;
+    const reps = Math.max(1, Math.ceil(partTotal/patTotal)), choices = [], fillHits = [], startOf = {};
+    if(S.every > 0 || S.last > 0) for(const m of fillMeasures(pm, S.every, S.last)){ const c = planFill(m, bpb, g.unit, spb, S); if(!c) continue; choices.push(c); startOf[m] = c.start; fillHits.push(...c.hits); }
+    let hits = [];
+    for(let r=0;r<reps;r++) g.lanes.forEach(l => l.steps.forEach((v, i) => { if(v < 0) return; const a = r*patTotal + i, mm = Math.floor(a/per);
+      if(mm in startOf && a - mm*per >= startOf[mm]*spb) return; hits.push({gm:l.gm, abs:a, spb, vel:v}); }));
+    hits.push(...fillHits);
+    if(S.crash) for(const c of choices){ const next = c.m + 1; if(next >= pm) continue; const db = next*bpb;
+      hits = hits.filter(h => !(TIMEKEEP.has(h.gm) && Math.abs(beatOf(h) - db) < 1e-9));
+      if(!hits.some(h => CRASHES.has(h.gm) && Math.abs(beatOf(h) - db) < 1e-9)) hits.push({gm:49, abs:db, spb:1, vel:110});
+      if(!hits.some(h => KICKS.has(h.gm) && Math.abs(beatOf(h) - db) < 1e-9)) hits.push({gm:35, abs:db, spb:1, vel:110}); }
+    if(S.contrast > 0){ const pv = median(g), c = S.contrast; hits.forEach(h => { h.vel = Math.min(127, Math.max(1, roundAway(pv + (h.vel - pv)*(1 + c)))); }); }
+    return {hits, choices};
+  }
+  function accentsOf(hits, endBeat){
+    const by = new Map();
+    hits.forEach(h => { const b = beatOf(h); if(b >= endBeat - 1e-9) return; const v = h.vel/127, w = Math.min(1, (ACC_W[h.gm] ?? .5)*v*v); const k = b.toFixed(6); by.set(k, Math.max(by.get(k) || 0, w)); });
+    return by;
+  }
+  return {buildSurface, accentsOf, fillSeedOf, beatOf, triplet};
+})();
+/* MGP-BASS-ACCENT-1 mirror: ChordArticulator.PlanHits (Block + the repeated-note pulse) and
+   BassAccentFollow.PlanEvent / AccentDeriver.MarkFills. Checked equal to C# by paridad/. Keep in sync. */
+const BASS = (() => {
+  const EPS = 1e-6, MATCH = 1e-4, GAP = 0.25, REART = 0.9, FLOOR = 50;
+  const RATE = {PerBeat:1, Eighth:.5, Sixteenth:.25};
+  const f32 = Math.fround;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  function curved(pos, bpb, base){                       // ChordArticulator.CurvedVelocity
+    const nearest = Math.round(pos), on = Math.abs(pos - nearest) < EPS;
+    const f = on ? ((bpb > 0 && ((nearest % bpb) + bpb) % bpb === 0) ? 1.00 : 0.85) : 0.80;
+    return clamp(Math.round(base*f), 1, 127);
+  }
+  function planHits(expr, rate, start, dur, bpb, n, base){
+    const end = start + Math.max(0, dur);
+    const block = () => [{s:start, d:dur, v:clamp(base, 0, 127), i:-1}];
+    if(expr !== "ArpeggioUp") return block();
+    const iv = RATE[rate];
+    if(n <= 0 || dur < iv - EPS) return block();
+    const hits = [];
+    for(let k=0; ; k++){ const t = start + k*iv; if(t >= end - EPS) break; hits.push({s:t, d:Math.min(iv, end - t), v:curved(t, bpb, base), i:k % n}); }
+    return hits;
+  }
+  const cutVel = (v, cut) => cut <= 0 ? v : Math.max(v - cut, Math.min(v, FLOOR));
+  const barOf = (b, bpb) => Math.floor(b/Math.max(1, bpb) + 1e-9);
+  function planEvent(atoms, accents, S, bpb, budget){
+    if(S.mode === "off" || !accents || !accents.length) return atoms.map(a => ({...a}));
+    const thr = f32(S.threshold) - f32(1e-6);
+    const strong = accents.filter(a => f32(a.w) >= thr).sort((x, y) => x.b - y.b);
+    const onStrong = b => strong.some(a => Math.abs(a.b - b) <= MATCH);
+    const chosen = [];
+    if(S.mode === "attacks" && S.cap > 0){
+      const cands = [];
+      atoms.forEach((at, i) => { if(!at.canAttack) return; const end = at.s + at.d;
+        for(const a of strong){ if(a.f && S.fill === "gap") continue; if(a.b < at.s + GAP - MATCH) continue; if(a.b > end - GAP + MATCH) continue;
+          cands.push({i, b:a.b, w:f32(a.w), bar:barOf(a.b, bpb)}); } });
+      cands.sort((x, y) => (y.w - x.w) || (x.b - y.b));
+      for(const c of cands){ const used = budget.get(c.bar) || 0; if(used >= S.cap) continue;
+        if(chosen.some(ch => Math.abs(ch.b - c.b) < GAP - MATCH)) continue;
+        chosen.push(c); budget.set(c.bar, used + 1); }
+    }
+    const out = [];
+    atoms.forEach((at, i) => {
+      const on = onStrong(at.s), v0 = on ? Math.min(127, at.v + S.boost) : cutVel(at.v, S.cut);
+      const cuts = chosen.filter(c => c.i === i).map(c => c.b).sort((a, b) => a - b);
+      if(!cuts.length){ out.push({...at, v:v0, on, atk:false}); return; }
+      const end = at.s + at.d, starts = [at.s, ...cuts];
+      starts.forEach((ps, k) => { const pe = k + 1 < starts.length ? starts[k+1] : end;
+        out.push({s:ps, d:k + 1 < starts.length ? (pe - ps)*REART : pe - ps, v:k === 0 ? v0 : Math.min(127, at.v + S.boost),
+                  src:at.src, canAttack:at.canAttack, atk:k > 0, on:k > 0 || on}); });
+    });
+    return out;
+  }
+  function markFills(accents, choices, bpb){              // AccentDeriver.MarkFills
+    return accents.map(a => ({...a, f: choices.some(c => a.b >= c.m*bpb + c.start - EPS && a.b < (c.m+1)*bpb - EPS)}));
+  }
+  // One bass render: events [{start,len,vel,expr,rate}] -> notes, the composer's per-event loop.
+  function render(events, accents, S, bpb){
+    const budget = new Map(), notes = [];
+    for(const ev of events){
+      const hits = planHits(ev.expr, ev.rate, ev.start, ev.len, bpb, 1, ev.vel);
+      const atoms = hits.map((h, k) => ({s:h.s, d:h.d, v:h.v, src:ev.src ?? 0, canAttack:true}));
+      const planned = (S.mode === "off" || !accents.length) ? atoms.map(a => ({...a, on:false, atk:false}))
+        : planEvent(atoms.slice().sort((a, b) => a.s - b.s), accents, S, bpb, budget);
+      planned.forEach(p => notes.push({...p, ev}));
+    }
+    return notes;
+  }
+  return {planHits, planEvent, markFills, render, cutVel};
+})();
+/*/ENGINE*/
+
+/* ---------- drums: kit from the Taller de batería ---------- */
+/* ---------- kit: each voice is synthesised once into a buffer, in three strengths ---------- */
+let seed = 12345;
+const rnd = () => (seed = (seed*1664525 + 1013904223) >>> 0) / 2147483648 - 1;
+function noiseOf(c, secs){ const b = c.createBuffer(1, Math.ceil(c.sampleRate*secs), c.sampleRate), a = b.getChannelData(0); for(let i=0;i<a.length;i++) a[i] = rnd(); const s = c.createBufferSource(); s.buffer = b; return s; }
+function amp(c, t, attack, decay, peak){ const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t+attack); g.gain.exponentialRampToValueAtTime(0.0001, t+attack+decay); return g; }
+function filt(c, type, f, q){ const n = c.createBiquadFilter(); n.type = type; n.frequency.value = f; if(q) n.Q.value = q; return n; }
+function chain(...n){ for(let i=0;i<n.length-1;i++) n[i].connect(n[i+1]); return n[n.length-1]; }
+function tone(c, out, type, f0, f1, glide, attack, decay, peak){
+  const o = c.createOscillator(), t = 0.001; o.type = type; o.frequency.setValueAtTime(f0, t);
+  if(f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t+glide);
+  chain(o, amp(c, t, attack, decay, peak), out); o.start(t); o.stop(t+attack+decay+0.02);
+}
+function hiss(c, out, filters, attack, decay, peak, at){
+  const s = noiseOf(c, attack+decay+0.05), t = at || 0.001;
+  chain(s, ...filters, amp(c, t, attack, decay, peak), out); s.start(t);
+}
+function metal(c, out, freqs, filters, attack, decay, peak){
+  const sum = c.createGain(), t = 0.001; sum.gain.value = 1/freqs.length;
+  for(const f of freqs){ const o = c.createOscillator(); o.type = "square"; o.frequency.value = f; o.connect(sum); o.start(t); o.stop(t+attack+decay+0.02); }
+  chain(sum, ...filters, amp(c, t, attack, decay, peak), out);
+}
+function shaper(c, drive){ const w = c.createWaveShaper(), n = 1024, k = new Float32Array(n); for(let i=0;i<n;i++){ const x = i/(n/2)-1; k[i] = Math.tanh(x*drive); } w.curve = k; return w; }
+const HAT = [263, 400, 421, 474, 587, 845].map(f => f*1.45);
+const VOICES = {
+  35:{dur:.6, db:-7, make(c,o,h){ const d = shaper(c,1.6); d.connect(o); tone(c,d,"sine",125,46,.08,.002,.46,.95); tone(c,d,"triangle",900,180,.02,.001,.03,.22*h); hiss(c,d,[filt(c,"highpass",2200)],.001,.012,.16*h); }},
+  36:{dur:.45, db:-7, make(c,o,h){ const d = shaper(c,2.1); d.connect(o); tone(c,d,"sine",168,54,.06,.002,.3,.95); tone(c,d,"triangle",1500,240,.018,.001,.025,.3*h); hiss(c,d,[filt(c,"highpass",3000)],.001,.01,.22*h); }},
+  37:{dur:.1, db:-17, make(c,o,h){ tone(c,o,"triangle",1750,1500,.01,.001,.028,.7); tone(c,o,"square",520,520,0,.001,.02,.2); hiss(c,o,[filt(c,"bandpass",3200,2)],.001,.022,.5*h); }},
+  38:{dur:.36, db:-9, make(c,o,h){ tone(c,o,"triangle",215,178,.03,.001,.12,.6); tone(c,o,"sine",335,300,.02,.001,.075,.32); hiss(c,o,[filt(c,"highpass",1100),filt(c,"lowpass",3800+6500*h)],.001,.1+.1*h,.48+.38*h); }},
+  41:{dur:.62, db:-10, make(c,o,h){ tomV(c,o,h,78,.46); }},
+  43:{dur:.56, db:-10, make(c,o,h){ tomV(c,o,h,98,.4); }},
+  47:{dur:.5, db:-11, make(c,o,h){ tomV(c,o,h,132,.34); }},
+  48:{dur:.46, db:-11, make(c,o,h){ tomV(c,o,h,160,.3); }},
+  42:{dur:.12, db:-20, make(c,o,h){ metal(c,o,HAT,[filt(c,"bandpass",9500,.8),filt(c,"highpass",6800)],.001,.04+.03*h,.9); hiss(c,o,[filt(c,"highpass",9000)],.001,.03,.22*h); }},
+  44:{dur:.1, db:-23, make(c,o,h){ metal(c,o,HAT,[filt(c,"bandpass",8000,.8),filt(c,"highpass",5000)],.001,.035,.8); hiss(c,o,[filt(c,"bandpass",1700,1.2)],.001,.02,.3); }},
+  46:{dur:.7, db:-19, make(c,o,h){ metal(c,o,HAT,[filt(c,"bandpass",9000,.7),filt(c,"highpass",6000)],.002,.5+.12*h,.9); hiss(c,o,[filt(c,"highpass",8000)],.002,.32,.16); }},
+  49:{dur:2.1, db:-15, make(c,o,h){ metal(c,o,HAT.map(f=>f*.83),[filt(c,"highpass",3400)],.002,1.7+.3*h,.75); hiss(c,o,[filt(c,"highpass",4500)],.002,1.4+.3*h,.55); hiss(c,o,[filt(c,"bandpass",2400,1)],.001,.09,.5*h); }},
+  51:{dur:1.0, db:-20, make(c,o,h){
+    for(const [f,p] of [[523,.1],[1311,.13],[2467,.2],[3160,.18],[4190,.13],[5510,.09]]) tone(c,o,"sine",f,f,0,.001,.55+.3*h,p);
+    metal(c,o,HAT.map(f=>f*.7),[filt(c,"bandpass",6000,.8)],.001,.5,.16); hiss(c,o,[filt(c,"bandpass",5200,1.5)],.001,.03,.4*h); }},
+  56:{dur:.32, db:-19, make(c,o,h){ const b = filt(c,"bandpass",1150,1.1); b.connect(o); tone(c,b,"square",587,587,0,.001,.24,.8); tone(c,b,"square",845,845,0,.001,.17,.7); }},
+  63:{dur:.28, db:-13, make(c,o,h){ tone(c,o,"sine",365,305,.03,.001,.19,.85); tone(c,o,"triangle",690,640,.02,.001,.05,.22); hiss(c,o,[filt(c,"bandpass",1900,1.3)],.001,.018,.4*h); }},
+  39:{dur:.3, db:-13, make(c,o,h){ for(const at of [.001,.012,.023]) hiss(c,o,[filt(c,"bandpass",1250,1.4)],.001,.009,.8,at); hiss(c,o,[filt(c,"bandpass",1450,1)],.001,.16,.75,.034); }},
+  40:{dur:.3, db:-9, make(c,o,h){ tone(c,o,"triangle",250,190,.02,.001,.09,.6); hiss(c,o,[filt(c,"highpass",1900)],.001,.12+.05*h,.6+.3*h); }},
+  45:{dur:.48, db:-11, make(c,o,h){ tomV(c,o,h,115,.36); }},
+  50:{dur:.42, db:-11, make(c,o,h){ tomV(c,o,h,190,.27); }},
+  53:{dur:.9, db:-18, make(c,o,h){ for(const [f,p] of [[784,.3],[1186,.28],[2350,.22],[3140,.16]]) tone(c,o,"sine",f,f,0,.001,.62+.15*h,p); hiss(c,o,[filt(c,"bandpass",4200,1.5)],.001,.02,.3*h); }},
+  64:{dur:.32, db:-13, make(c,o,h){ tone(c,o,"sine",250,208,.03,.001,.22,.85); tone(c,o,"triangle",480,440,.02,.001,.05,.2); hiss(c,o,[filt(c,"bandpass",1500,1.3)],.001,.018,.4*h); }},
+  75:{dur:.1, db:-17, make(c,o,h){ tone(c,o,"sine",2520,2480,.01,.001,.05,.85); tone(c,o,"sine",1710,1700,.01,.001,.025,.3); }}
+};
+function tomV(c, o, h, f, d){ tone(c,o,"sine",f*1.55,f,.05,.001,d,.92); tone(c,o,"triangle",f*2.02,f*1.8,.04,.001,d*.4,.2); hiss(c,o,[filt(c,"bandpass",f*6,1.2)],.001,.02,.26*h); }
+const HARD = [.3, .65, 1];
+let ctx, master, room, kit = null, kitBuilding = null;
+
+async function renderVoice(gm, h){
+  const v = VOICES[gm], sr = ctx.sampleRate;
+  const off = new OfflineAudioContext(1, Math.ceil(sr*v.dur), sr);
+  v.make(off, off.destination, h);
+  const buf = await off.startRendering(), a = buf.getChannelData(0);
+  // Level by loudness (loudest 50 ms), not by peak: a snare is short and spiky, and peak-matching left it 13 dB under the kick.
+  const w = Math.floor(sr*.05); let best = 0;
+  for(let s=0; s+w<a.length; s+=128){ let e = 0; for(let i=s;i<s+w;i+=3) e += a[i]*a[i]; if(e/(w/3) > best) best = e/(w/3); }
+  const g = Math.pow(10, (v.db - (1-h)*4)/20) / (Math.sqrt(best) || 1);
+  const fade = Math.floor(sr*.008);
+  for(let i=0;i<a.length;i++){ a[i] = Math.tanh(a[i]*g); const r = a.length-i; if(r < fade) a[i] *= r/fade; }
+  return buf;
+}
+function buildKit(){
+  if(kitBuilding) return kitBuilding;
+  const notes = Object.keys(VOICES).map(Number);
+  kitBuilding = Promise.all(notes.map(gm => Promise.all(HARD.map(h => renderVoice(gm, h))).then(b => [gm, b])))
+    .then(r => { kit = Object.fromEntries(r); return kit; });
+  return kitBuilding;
+}
+function setupAudio(){
+  if(ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -12; comp.ratio.value = 3; comp.attack.value = .004; comp.release.value = .14;
+  master = ctx.createGain(); master.gain.value = .85;
+  master.connect(comp); comp.connect(ctx.destination);
+  const conv = ctx.createConvolver(), len = Math.floor(ctx.sampleRate*.45), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+  for(let ch=0; ch<2; ch++){ const a = ir.getChannelData(ch); let lp = 0; for(let i=0;i<len;i++){ lp += (rnd()-lp)*.35; a[i] = lp*Math.pow(1-i/len, 3.2); } }
+  conv.buffer = ir; room = ctx.createGain(); room.gain.value = .16;
+  room.connect(conv); conv.connect(comp);
+}
+const SEND = {39:.8,40:.9,45:.9,50:.9,64:.6,35:.1,36:.1,37:.5,38:.9,41:.9,43:.9,47:.9,48:.9,63:.6,75:.5,56:.4};
+let openHat = null;
+function hit(gm, vel, t, jitter){
+  const layers = kit[gm]; if(!layers) return;
+  const s = ctx.createBufferSource(), g = ctx.createGain();
+  s.buffer = layers[vel < 64 ? 0 : vel < 100 ? 1 : 2];
+  s.playbackRate.value = 1 + (jitter||0)*.005;
+  g.gain.value = Math.pow(vel/127, 1.25);
+  s.connect(g); g.connect(master);
+  if(SEND[gm]){ const r = ctx.createGain(); r.gain.value = SEND[gm]; g.connect(r); r.connect(room); }
+  if(gm === 42 || gm === 44 || gm === 46){ if(openHat){ openHat.gain.setTargetAtTime(0, t, .012); openHat = null; } }
+  if(gm === 46) openHat = g;
+  s.start(t);
+}
+
+
+
+/* ---------- bass voice: a saw + sub through a velocity-opened low-pass ---------- */
+function bassNote(midi, vel, t, dur){
+  const f = 440*Math.pow(2, (midi - 69)/12), v = vel/127, g = ctx.createGain(), lp = ctx.createBiquadFilter();
+  const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), mix = ctx.createGain();
+  o1.type = "sawtooth"; o1.frequency.value = f; o2.type = "sine"; o2.frequency.value = f; mix.gain.value = .5;
+  o1.connect(lp); o2.connect(mix); mix.connect(g);
+  lp.type = "lowpass"; lp.Q.value = 3; const top = 260 + 2600*v*v;
+  lp.frequency.setValueAtTime(top, t); lp.frequency.exponentialRampToValueAtTime(Math.max(140, top*.28), t + .25);
+  lp.connect(g);
+  const peak = .55*Math.pow(v, 1.6)*(+$("#bvol").value), rel = .05, endT = t + Math.max(.06, dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak + 1e-4, t + .006);
+  g.gain.exponentialRampToValueAtTime(peak*.55 + 1e-4, t + .18); g.gain.setValueAtTime(peak*.55 + 1e-4, endT);
+  g.gain.exponentialRampToValueAtTime(0.0001, endT + rel);
+  g.connect(master);
+  o1.start(t); o2.start(t); o1.stop(endT + rel + .02); o2.stop(endT + rel + .02);
+}
+
+/* ---------- the part ---------- */
+const NOTE = ["Do","Do#","Re","Re#","Mi","Fa","Fa#","Sol","Sol#","La","La#","Si"];
+const SCALE = {Ionian:[0,2,4,5,7,9,11], Aeolian:[0,2,3,5,7,8,10]};
+const QUAL = {0:"",1:"m",2:"°",3:"+",4:"maj7",5:"m7",6:"7",7:"ø7",8:"°7",9:"sus2",10:"sus4",11:"6",12:"m6",13:"7sus4",14:"9",15:"maj9",16:"m9"};
+const FIG = {block:["Block","Eighth"], p8:["ArpeggioUp","Eighth"], p16:["ArpeggioUp","Sixteenth"], p4:["ArpeggioUp","PerBeat"]};
+const PT_ORDER = [49,57,52,55,51,59,53,46,42,44,50,48,47,45,43,41,40,38,39,37,63,64,56,75,36,35];
+const LANE = {35:"Bombo ac.",36:"Bombo",37:"Aro",38:"Caja",41:"Tom base 2",42:"Hat",43:"Tom base 1",44:"Hat pie",46:"Hat abierto",47:"Tom 2",39:"Palmas",40:"Caja eléc.",45:"Tom 3",48:"Tom 1",50:"Tom agudo",53:"Campana",64:"Conga baja",49:"Crash",51:"Ride",56:"Cencerro",63:"Conga",75:"Claves"};
+const gcdN = (a, b) => b ? gcdN(b, a % b) : a, lcmN = (a, b) => a*b/gcdN(a, b);
+const velOf = (raw, def) => raw > 0 ? raw : def;
+let B = false;                       // false = A (today), true = B (follow)
+let V = null;                        // current view
+
+function grooveOf(p){
+  return {beats:p.beats, unit:p.unit, measures:p.measures, subdivisions:p.subdivisions,
+    lanes:p.lanes.map(l => ({gm:l.gm, def:l.def, steps:l.steps.map(r => r < 0 ? -1 : velOf(r, l.def))}))};
+}
+function drumSettings(){
+  const src = $("#src").value;
+  return {every:+$("#every").value, last:$("#last").checked ? 1 : 0, crash:$("#crash").checked, contrast:+$("#contrast").value,
+    procW: src === "lib" ? 0 : 1, library: src === "proc" ? [] : (DATA.fills || []).map(p => ({p, w:p.weight})),
+    fillSeed: FX.fillSeedOf(+$("#seed").value | 0)};
+}
+function bassSettings(follow){
+  return {mode: follow ? $("#mode").value : "off", threshold:+$("#thr").value, cap:+$("#cap").value | 0,
+    boost:+$("#boost").value, cut:+$("#cut").value, fill:$("#fillm").value};
+}
+function partEvents(prog, PM, bpb){
+  const [expr, rate] = FIG[$("#fig").value], sub = prog.subdivisions, plen = prog.measures*bpb, end = PM*bpb, out = [];
+  const minor = prog.events.length && [1,5,7,8,12,16].includes(prog.events[0].quality);
+  const scale = SCALE[minor ? "Aeolian" : "Ionian"];
+  const evs = prog.events.slice().sort((a, b) => a.startStep - b.startStep);
+  for(let off = 0; off < end - 1e-9; off += plen) evs.forEach((e, k) => {
+    const start = off + e.startStep/sub, len = Math.max(1, e.lengthSteps)/sub;
+    if(start >= end - 1e-9) return;
+    const pc = (((scale[e.degree] + (e.degreeAccidental || 0)) % 12) + 12) % 12;
+    out.push({start, len:Math.min(len, end - start), vel:e.velocity, expr, rate, pc, name:NOTE[pc] + (QUAL[e.quality] ?? ""), midi:28 + ((pc - 4 + 12) % 12), src:out.length});
+  });
+  return out;
+}
+function compute(){
+  const p = DATA.patterns.find(x => x.guid === $("#pat").value), prog = DATA.progressions.find(x => x.id === $("#prog").value);
+  if(!p || !prog) return null;
+  const g = grooveOf(p), bpb = g.beats, PM = +$("#meas").value, end = PM*bpb;
+  const {hits, choices} = FX.buildSurface(g, PM, drumSettings());
+  const accMap = FX.accentsOf(hits, end);
+  const accents = BASS.markFills([...accMap.entries()].map(([k, w]) => ({b:+k, w})).sort((a, b) => a.b - b.b), choices, bpb);
+  const events = partEvents(prog, PM, bpb);
+  const A = BASS.render(events, accents, bassSettings(false), bpb), Bn = BASS.render(events, accents, bassSettings(true), bpb);
+  let R = g.subdivisions; hits.forEach(h => { if(FX.beatOf(h) < end) R = lcmN(R, h.spb); });
+  return {p, prog, g, bpb, PM, end, hits, choices, accents, events, A, B:Bn, R,
+    drumEv: hits.filter(h => FX.beatOf(h) < end).map(h => ({b:FX.beatOf(h), gm:h.gm, vel:h.vel})).sort((a, b) => a.b - b.b)};
+}
+
+function render(){
+  const v = compute(); if(!v) return;
+  V = v;
+  const notes = B ? v.B : v.A, {bpb, R, PM} = v, cols = bpb*R;
+  const present = [...new Set(v.drumEv.map(e => e.gm))].sort((a, b) => (PT_ORDER.indexOf(a) + 100*(PT_ORDER.indexOf(a) < 0)) - (PT_ORDER.indexOf(b) + 100*(PT_ORDER.indexOf(b) < 0)));
+  const grid = {}; v.drumEv.forEach(e => { const c = Math.round(e.b*R); (grid[e.gm] = grid[e.gm] || {})[c] = Math.max(grid[e.gm]?.[c] || 0, e.vel); });
+  const accAt = new Map(v.accents.map(a => [Math.round(a.b*R), a]));
+  const choiceOf = {}; v.choices.forEach(c => choiceOf[c.m] = c);
+  const thr = +$("#thr").value;
+  const part = $("#part"); part.replaceChildren(); v.cells = []; v.noteEls = [];
+  for(let m = 0; m < PM; m++){
+    const bar = el("div", "bar"), h = el("div", "h"), ch = choiceOf[m];
+    h.append(el("span", "", "compás " + (m+1)));
+    const chords = v.events.filter(e => e.start >= m*bpb - 1e-9 && e.start < (m+1)*bpb - 1e-9).map(e => e.name);
+    if(chords.length) h.append(el("span", "chord", chords.join(" · ")));
+    if(ch) h.append(el("span", "f", "fill: " + ch.label.replace(/^FILL_/, "")));
+    bar.append(h);
+    const row = (label, cls, fn) => { const r = el("div", "row" + (cls ? " " + cls : "")), cs = el("div", "cells"); cs.style.setProperty("--n", cols);
+      r.append(el("span", "", label));
+      for(let i = 0; i < cols; i++){ const c = el("div", "c"), abs = m*cols + i; if(i % R === 0 && i) c.classList.add("b"); if(ch && i >= ch.start*R) c.classList.add("z"); fn(c, abs); (v.cells[abs] = v.cells[abs] || []).push(c); cs.append(c); }
+      r.append(cs); bar.append(r); };
+    present.forEach(gm => row(LANE[gm] || ("GM " + gm), "", (c, abs) => { const x = grid[gm]?.[abs]; if(!x) return; const i = el("i"); i.style.setProperty("--v", (x/127).toFixed(3)); c.title = "velocidad " + x; c.append(i); }));
+    row("Acentos", "ac", (c, abs) => { const a = accAt.get(abs); if(!a) return; const strong = a.w >= thr - 1e-6; const i = el("i", strong ? (a.f ? "f" : "s") : ""); i.style.setProperty("--w", a.w.toFixed(3)); c.title = "peso " + a.w.toFixed(2) + (a.f ? " · fill" : ""); c.append(i); });
+    const br = el("div", "row bass"), lane = el("div", "lane"), bt = el("div", "bt");
+    for(let k = 1; k < bpb; k++){ const d = el("div"); d.style.left = (100*k/bpb) + "%"; bt.append(d); }
+    lane.append(bt);
+    notes.filter(n => n.s >= m*bpb - 1e-9 && n.s < (m+1)*bpb - 1e-9).forEach(n => {
+      const e = el("div", "n" + (n.atk ? " atk" : n.on ? " on" : ""));
+      e.style.left = (100*(n.s - m*bpb)/bpb) + "%"; e.style.width = `calc(${(100*Math.min(n.d, (m+1)*bpb - n.s)/bpb).toFixed(3)}% - 1px)`;
+      e.style.setProperty("--v", (n.v/127).toFixed(3));
+      e.title = `${n.ev.name} · pulso ${(n.s - m*bpb + 1).toFixed(2).replace(".", ",")} · vel ${n.v}` + (n.atk ? " · ataque nuevo" : n.on ? " · reforzada" : "");
+      lane.append(e); v.noteEls.push([n, e]);
+    });
+    br.append(el("span", "", "Bajo " + (B ? "B" : "A")), lane); bar.append(br);
+    part.append(bar);
+  }
+  const strong = v.accents.filter(a => a.w >= thr - 1e-6).length;
+  const atk = v.B.filter(n => n.atk).length, on = v.B.filter(n => n.on && !n.atk).length;
+  $("#sum").innerHTML = `${PM} compases · ${v.choices.length} fill${v.choices.length === 1 ? "" : "s"} · <b>${strong}</b> acentos fuertes. ` +
+    `A: <b>${v.A.length}</b> notas. B (${$("#mode").value === "attacks" ? "ataques" : "refuerzo"}): <b>${v.B.length}</b> notas, ${on} reforzadas y <b>${atk}</b> ataques nuevos.`;
+}
+
+/* ---------- transport ---------- */
+const T = {on:false, t0:0, sched:-1e-9, timer:null, lit:[], col:-1};
+const spb = () => 60/(+$("#bpm").value) * (4/V.g.unit);
+const beatNow = () => (ctx.currentTime - T.t0)/spb();
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
+const ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>';
+function setIcon(on){ $("#play").innerHTML = on ? ICON_STOP : ICON_PLAY; $("#play").setAttribute("aria-label", on ? "Parar" : "Reproducir"); }
+async function start(){
+  setupAudio(); if(ctx.state === "suspended") await ctx.resume(); await buildKit();
+  render(); T.on = true; T.t0 = ctx.currentTime + .1; T.sched = -1e-9; setIcon(true); pump(); requestAnimationFrame(draw);
+}
+function stop(){ T.on = false; clearTimeout(T.timer); clearLit(); setIcon(false); $("#pos").textContent = "—"; }
+function pump(){
+  if(!T.on) return;
+  const L = V.end, sp = spb(), target = beatNow() + .15/sp;
+  if(target > T.sched){
+    const notes = B ? V.B : V.A, drums = $("#drumsOn").checked;
+    for(let k = Math.max(0, Math.floor(T.sched/L)); k <= Math.floor(target/L); k++){
+      if(drums) for(const e of V.drumEv){ const a = k*L + e.b; if(a > T.sched && a <= target) hit(e.gm, e.vel, T.t0 + a*sp, ((e.gm*7 + Math.round(e.b*4)) % 5 - 2)/2); }
+      for(const n of notes){ const a = k*L + n.s; if(a > T.sched && a <= target) bassNote(n.ev.midi, n.v, T.t0 + a*sp, n.d*sp); }
+    }
+    T.sched = target;
+  }
+  T.timer = setTimeout(pump, 25);
+}
+function clearLit(){ T.lit.forEach(c => c.classList.remove("now")); T.lit = []; T.col = -1; document.querySelectorAll(".n.play").forEach(e => e.classList.remove("play")); }
+function draw(){
+  if(!T.on){ clearLit(); return; }
+  const b = ((beatNow() % V.end) + V.end) % V.end, col = Math.floor(b*V.R + 1e-6);
+  if(col !== T.col){ T.lit.forEach(c => c.classList.remove("now")); T.lit = V.cells[col] || []; T.col = col; T.lit.forEach(c => c.classList.add("now"));
+    V.noteEls.forEach(([n, e]) => e.classList.toggle("play", b >= n.s && b < n.s + n.d));
+    $("#pos").textContent = "compás " + (Math.floor(b/V.bpb) + 1) + "/" + V.PM + " · " + (B ? "B" : "A"); }
+  requestAnimationFrame(draw);
+}
+function resync(){ if(!T.on){ render(); return; } const b = beatNow(); render(); T.sched = b; }
+function setAB(b){ B = b; $("#abA").setAttribute("aria-pressed", String(!b)); $("#abB").setAttribute("aria-pressed", String(b)); resync(); save(); }
+
+/* ---------- wiring ---------- */
+const IDS = ["pat","bpm","meas","every","src","seed","contrast","last","crash","drumsOn","prog","fig","mode","fillm","thr","cap","boost","cut","bvol"];
+function save(){ const o = {B}; IDS.forEach(id => { const e = $("#" + id); o[id] = e.type === "checkbox" ? e.checked : e.value; }); store.set("tbajo", o); }
+function outputs(){ $("#contrastO").textContent = $("#contrast").value; $("#thrO").textContent = (+$("#thr").value).toFixed(2).replace(".", ","); $("#boostO").textContent = $("#boost").value; $("#cutO").textContent = $("#cut").value; $("#bvolO").textContent = $("#bvol").value; }
+(function init(){
+  const fits = DATA.patterns.filter(p => p.beats === 4 && p.unit === 4);
+  fits.forEach(p => { const o = el("option", "", p.display + (p.bpm ? ` · ${p.bpm} bpm` : "")); o.value = p.guid; $("#pat").append(o); });
+  DATA.progressions.forEach(p => { const o = el("option", "", p.label); o.value = p.id; $("#prog").append(o); });
+  const pref = DATA.patterns.find(p => /rock/i.test(p.display) && p.beats === 4) || fits[0];
+  $("#pat").value = pref.guid;
+  const s = store.get("tbajo", null);
+  if(s){ IDS.forEach(id => { const e = $("#" + id); if(s[id] == null) return; if(e.type === "checkbox") e.checked = s[id]; else if(e.tagName !== "SELECT" || [...e.options].some(o => o.value === String(s[id]))) e.value = s[id]; }); B = !!s.B; }
+  $("#abA").setAttribute("aria-pressed", String(!B)); $("#abB").setAttribute("aria-pressed", String(B));
+  outputs(); setIcon(false); render();
+  IDS.forEach(id => $("#" + id).addEventListener("input", () => { outputs(); if(id === "pat"){ const p = DATA.patterns.find(x => x.guid === $("#pat").value); if(p?.bpm) $("#bpm").value = p.bpm; } resync(); save(); }));
+  $("#play").addEventListener("click", () => T.on ? stop() : start());
+  $("#abA").addEventListener("click", () => setAB(false));
+  $("#abB").addEventListener("click", () => setAB(true));
+  document.addEventListener("keydown", e => { if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+    if(e.code === "Space"){ e.preventDefault(); T.on ? stop() : start(); } else if(e.key === "b" || e.key === "B"){ setAB(!B); } });
+})();
+</script>

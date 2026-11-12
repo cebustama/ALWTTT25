@@ -152,11 +152,11 @@ y también al revés (la batería que llega tarde dispara re-render con el mismo
    identidad del patrón de batería consumido entre en el hash del track de bajo.
    `SongConfigBuilder.ComputeHashFromTrackEntry` hoy hashea `role|styleBundle|overrides|type|gain`
    — nada del ritmo. Sin esto, cambiar la batería **replaya el stem de bajo obsoleto** desde la
-   caché. [C-ALWTTT: pendiente]
+   caché. [C-ALWTTT: **resuelto 2026-11-12**, MGP-BASS-ACCENT-1 D8: `SongConfigBuilder.ListenSegment` mete el hash de las pistas Rhythm de la parte en el del bajo cuando este escucha (`SlapPocket` o `accentFollow`)]
 2. **Orden Rhythm→Bassline no garantizado.** El handoff exige (§2.2) Rhythm antes de Bassline en
    `Part.Tracks`; `SongConfigBuilder.FromUI` itera `p.tracks` en orden de modelo (= orden de
    jugada). Bajo antes que batería ⇒ render desacoplado con warning. Falta un sort estable por
-   rol (o regla equivalente) en el builder. [C-ALWTTT: pendiente]
+   rol (o regla equivalente) en el builder. [**Resuelto 2026-11-12 del lado del paquete**, MGP-BASS-ACCENT-1 D0: el orquestador compone Rhythm en una pasada propia antes que el resto, así que el builder no necesita ordenar]
 
 Extensión futura ([P], diseño): cadenas de especiales (especial de A habilita/potencia especial
 de B), sinergia declarada en carta vs emergente por sistema. Pregunta abierta: ¿se telegrafiía

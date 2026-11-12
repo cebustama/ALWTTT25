@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Links the REAL MidiGenPlay runtime DLL (Unity's compile, or a dotnet build of the csproj).
+       Override: dotnet run -c Release -p:MgpDll=...\MidiGenPlay.Runtime.dll -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <NoWarn>MSB3277;CS8632</NoWarn>
+    <MgpDll Condition="'$(MgpDll)' == ''">D:\Projects\ALWTTT25\Library\ScriptAssemblies\MidiGenPlay.Runtime.dll</MgpDll>
+    <UnityManaged>D:\Unity\Editor\6000.3.10f1\Editor\Data\Managed\UnityEngine</UnityManaged>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MidiGenPlay.Runtime"><HintPath>$(MgpDll)</HintPath></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(UnityManaged)\UnityEngine.CoreModule.dll</HintPath></Reference>
+    <Reference Include="DryWetMidi"><HintPath>$([System.IO.Path]::GetDirectoryName($(MgpDll)))\DryWetMidi.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

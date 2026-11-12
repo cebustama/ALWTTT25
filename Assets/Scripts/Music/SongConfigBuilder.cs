@@ -385,9 +385,34 @@ namespace ALWTTT.Music
             {
                 if (tr == null || string.IsNullOrEmpty(tr.musicianId)) continue;
                 var key = new MusicianTrackKey(tr.musicianId, tr.role);
-                result[key] = ComputeHashFromTrackEntry(tr, GainSegment(mixGains, key));
+                result[key] = ComputeHashFromTrackEntry(tr, GainSegment(mixGains, key))
+                            + ListenSegment(tr, p.tracks);
             }
             return result;
+        }
+
+        // MGP-BASS-ACCENT-1 (D8=B), closes the "hash duty" debt of
+        // Design_Composition_Variations_v0_1 §6.1: a bass card that LISTENS to
+        // the drums (SlapPocket onsets, or accentFollow) renders differently
+        // when the drums change, so the identity of the part's Rhythm tracks
+        // enters its hash. Otherwise the stem cache would replay a bass
+        // composed against the old drums. Non-listening tracks get "" — hash
+        // VALUES unchanged for every existing card.
+        private static string ListenSegment(
+            SongCompositionUI.TrackEntry tr,
+            IReadOnlyList<SongCompositionUI.TrackEntry> partTracks)
+        {
+            if (tr.role != TrackRole.Bassline) return "";
+            if (!(tr.styleBundle is BasslineCardConfigSO bass)) return "";
+            bool listens =
+                bass.pocketMode == BasslineCardConfigSO.PocketCouplingMode.SlapPocket ||
+                bass.accentFollow != BasslineCardConfigSO.AccentFollowMode.Off;
+            if (!listens) return "";
+
+            var rhythm = partTracks
+                .Where(t => t != null && t.role == TrackRole.Rhythm)
+                .Select(t => (t.musicianId ?? "_") + "~" + ComputeHashFromTrackEntry(t));
+            return "|rx:" + string.Join(";", rhythm);
         }
 
         // [BAL-1] gainSegment folds the bytes-plane mix gain into the hash so
