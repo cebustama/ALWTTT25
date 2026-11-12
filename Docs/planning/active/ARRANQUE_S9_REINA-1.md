@@ -81,8 +81,8 @@ frentes al día; arranque de la siguiente (S9b AUDIO-LOOP-1 si no se hizo antes,
   o «llamarlo a la colmena»), mecánica por diseñar.
 - D4: con larvas si hay arte; sin arte en el repo todavía. **Diseño de Matías (reunión del 12-nov):** las larvas
   lloran muy fuerte (mucho Stress), tienen poca Vibe y gustos distintos a los de la Reina, así que el jugador
-  tiene que convencerlas primero aunque tarde más con la Reina. Entran si el arte llega antes del 20-nov
-  (D-PLAN-10, por decidir); si no, la Reina va sola.
+  tiene que convencerlas primero aunque tarde más con la Reina. **D-PLAN-10 = A y el arte ya está** (Claudio,
+  12-nov): las larvas entran en S9. Traer su arte al repo al abrir la sesión.
 - D5: Vibe 50, gustos tempo rápido y al menos 2 roles (por ajustar).
 - D6: viñeta provisional `jefe (1).png`; pedido #14 a Matías.
 - D7=A: Tentáculos se arregla igual (Exaltado +2, «¡TRES!» de 8 → 10 con Exaltado, gig de 4 canciones).

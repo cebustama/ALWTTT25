@@ -83,10 +83,23 @@ plano o en capturas.
 - `CohesionPipsView` duplica `GigCanvas.SetCohesion`; unificar después de la demo.
 - Idea a probar: nombres de las salas siempre visibles, tenues (referencia: corte de casa grecorromana), si alguien no descubre el hover en la prueba M6.
 
-## Reunión con Matías del 12-nov (propuestas, por decidir)
+## Reunión con Matías del 12-nov (decidido)
 
-Minuta: `reference/reuniones/2026-11-12_matias.md` (con los puntos añadidos después). Nada de esta sección está
-aceptado hasta que Claudio cierre D-PLAN-7..19; mientras, la tabla de sesiones de arriba sigue mandando.
+Minuta: `reference/reuniones/2026-11-12_matias.md`. **Decisiones cerradas por Claudio el 12-nov** en el wrapped
+de la reunión (https://claude.ai/artifact/1hfdEcKpfhHoqkdUAyF4QQ, db `decisiones`): D-PLAN-7 = A, 8 = A,
+**9 = B** (en S10, leer gigs y enemigos desde JSON), 10 = A (el arte de las larvas ya está), **11 = B** (público
+con escudo antes de la demo), 12 = A, 13 = A, 14 = A, 15 = A, 16 = A (los números ya están), 17 = A, 18 = A,
+19 = A. Y dos más al final del día:
+- **D-PLAN-20 (Inspiración como el Heroísmo de Midnight Suns, prioritaria):** toda carta de composición genera
+  Inspiración y todo Finisher la consume; convención y valor por defecto al crear cartas. Por defecto, **una vez al
+  jugarla** (`inspirationGenerated`, con `complexityMultiplier` a 0 para no tocar el LoopScore); algunas cartas
+  dan **por loop** (`AddInspirationPerLoopSpec`), y esa carta queda fuera de la demo o es la recompensa del gig 2.
+  Diseño: `reference/ideas/2026-11-12_inspiracion_heroismo.md`.
+- **D-PLAN-21:** el arte nuevo de las cartas (marcos, estrella ★N, ilustraciones por instrumento) va en una
+  **sesión propia, CARTAS-ARTE-1**, justo después de ECON-2.
+- Correo para el botón de feedback (S9c): **allwtttcmm@gmail.com**.
+
+La tabla de abajo conserva las propuestas tal como se presentaron.
 
 **Cuánto hueco hay (✦ IA, 12-nov).** Hechas S1–S8 y S4b, dos semanas antes de lo previsto; S9 está en curso.
 Hasta la congelación del 27-nov quedan unas 6 sesiones (a 3 por semana: 16–20 y 23–27, más lo que quede de
@@ -110,27 +123,30 @@ sesiones nuevas y el resto se manda a después de la demo. Si se quiere más alc
 | D-PLAN-18 | **Motor reutilizable** sacado de ALWTTT | Después de la demo, y solo cuando arranque un segundo juego que lo use (mundo-islas es el candidato). `ideas/2026-11-12_motor_reutilizable.md` | **A: después, guiado por el segundo juego.** Extraer sin un segundo consumidor suele dar abstracciones equivocadas |
 | D-PLAN-19 | **Cómo se estructura el plan**: no todo cabe en la demo, pero todo queda registrado | Hasta el 27-nov, las sesiones en el orden de abajo; lo que no llegue pasa sin perderse a `POST-DEMO_Plan_de_Sesiones.md` (borrador por bloques: herramientas, música, combate, mundo, motor, deuda) | **A.** Ver «Orden de entrada» abajo |
 
-### Orden de entrada hasta la congelación (propuesta, D-PLAN-19)
+### Orden de entrada hasta la congelación (D-PLAN-19, definitivo el 12-nov)
 
-No hace falta que quepa todo. Se trabaja en este orden y, el 27-nov, lo que no haya entrado pasa al plan de
-después de la demo. El orden junta las sesiones por zona de código y pone primero lo que abarata lo siguiente.
+Desde el 12-nov, **este orden manda sobre la tabla «Sesiones»** para lo que queda hasta el 27-nov. No hace falta
+que quepa todo: se trabaja en orden y, el 27-nov, lo que no haya entrado pasa a `POST-DEMO_Plan_de_Sesiones.md`.
 
-| Orden | Sesión | Por qué en este lugar | Si no llega |
+| Orden | Sesión | Qué | Si no llega |
 | --- | --- | --- | --- |
-| 1 | **S9 REINA-1** (en curso) | Cierra el contenido de la demo; larvas si llega el arte | — imprescindible |
-| 2 | **S9b AUDIO-LOOP-1** | Que nada se corte; es la base de MUSICA-1 | — imprescindible |
-| 3 | **S9c DEMO-FIX-1** | Datos y UI pequeña: Doble Armonía fuera, carta de curar, posiciones de la banda, botón de feedback, *Company Name* | — imprescindible |
-| 4 | **DEV-TUNING-1** | El menú F5 y el «8/8» de la mano; desde aquí, el balance se prueba sin código | pasa a A1 |
-| 5 | **COMBOS-1** | Combos con nombre y finishers en el último loop, ajustados con el menú F5 | pasa a C (después) |
-| 6 | **MUSICA-1** | Encender y oír lo que ya está hecho en el motor | pasa a B |
-| 7 | **S10 ALINEACIÓN-2 + TEST-SETUP-1** | Que las 3 alineaciones jueguen sin diálogos de ausentes | — imprescindible |
-| 8 | **S11 PULIDO** | Recompensa con arte, tooltips basales, números dibujados; MAPA-2 solo si sobra | MAPA-2 pasa a D1 |
-| 9 | **S12 Congelación** (vie 27-nov) | Build de testers y build pública | — imprescindible |
+| 1 | **S9 REINA-1** (en curso) | La Reina con huevo · huevo · eclosión, **y las larvas** (arte listo, D-PLAN-10) | — imprescindible |
+| 2 | **S9b AUDIO-LOOP-1** | Que nada se corte entre loops | — imprescindible |
+| 3 | **S9c DEMO-FIX-1** | Doble Armonía fuera; carta de Sibi que cura Stress en lugar de Read the Room (cierra D9); posiciones de la banda; botón de feedback a allwtttcmm@gmail.com y «abrir carpeta de telemetría»; *Company Name* | — imprescindible |
+| 4 | **ECON-2: la Inspiración** (prioritaria) | Composición genera ★N al jugarla; Finisher la consume y solo se juega en el último loop (marca Finisher, inversión de `FinalLoopLock`); `complexityMultiplier` a 0; valores por defecto en el editor y el JSON de cartas; la carta por loop como recompensa del gig 2 o fuera | — imprescindible |
+| 5 | **CARTAS-ARTE-1** | Cara nueva de Matías: marcos Composición / Habilidad / Finisher, la estrella ★N, ilustraciones por instrumento | pasa a D |
+| 6 | **DEV-TUNING-1** | Menú F5 y el «8/8» de la mano; ajustar la economía nueva sin código | pasa a A1 |
+| 7 | **COMBOS-1** | Combos con nombre en la previsión (los Finisher ya llegan con ECON-2) | pasa a C |
+| 8 | **MUSICA-1** | Encender y oír fills, acentos y el bajo que escucha | pasa a B |
+| 9 | **PUB-SHIELD-1** | Público con escudo: el escudo temporal pasa al público y absorbe Vibe (D-PLAN-11 = B) | pasa a C1 |
+| 10 | **S10 ALINEACIÓN-2 + TEST-SETUP-1** | Las 3 alineaciones sin diálogos de ausentes; GigSetup desde el menú; **gigs y enemigos desde JSON** (D-PLAN-9 = B) | — imprescindible |
+| 11 | **S11 PULIDO** | Recompensa con arte, tooltips basales, números dibujados (listos); MAPA-2 solo si sobra | MAPA-2 a D1 |
+| 12 | **S12 Congelación** (vie 27-nov) | Build de testers (con F5/F12) y build pública | — imprescindible |
 
-Con unas 7 sesiones hasta el 27-nov, lo previsible es que entren 1–3, 7 y 9 y dos de 4–6. **Si hay que elegir,
-recomiendo DEV-TUNING-1 y MUSICA-1**: el menú abarata todo lo demás y la variedad musical se oye en cada
-partida. COMBOS-1 se puede ensayar en parte con el propio menú (cartas por turno, costes) antes de programar
-los combos con nombre.
+**Cuenta honesta (✦ IA).** Hasta el 27-nov caben unas 7 sesiones a 3 por semana, y los imprescindibles son 6
+(1, 2, 3, 4, 10 y 12): lo previsible es que entre uno más, probablemente CARTAS-ARTE-1, que hace legible la
+economía nueva. Lo demás pasa a después de la demo, en su bloque. Si se quiere más, se recorta alcance dentro de
+las sesiones (por ejemplo, S10 sin el JSON), no se añaden horas.
 
 **Cartas nuevas de Matías:** pedirle la lista (pedido #15). Las que se puedan hacer con primitivas que ya
 existen entran como datos antes del 27-nov (en COMBOS-1 o DEMO-FIX-1); las que pidan mecánica nueva, después.

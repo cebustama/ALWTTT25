@@ -1,6 +1,6 @@
 # Después de la demo: plan por sesiones (BORRADOR)
 
-**Estado:** borrador del 2026-11-12, propuesto por el agente a pedido de Claudio («después de la demo, seguir
+**Estado:** borrador del 2026-11-12 (al día con D-PLAN-7..21), propuesto por el agente a pedido de Claudio («después de la demo, seguir
 con un plan bien definido en sesiones, incluyendo las ideas y tareas pendientes»). **No está aceptado**:
 lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-1211_Plan_de_Sesiones.md`.
 
@@ -27,7 +27,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | # | Sesión | Objetivo | Origen |
 | --- | --- | --- | --- |
 | A1 | **DEV-TUNING-2** | Si el menú F5 no entró antes de la demo, hacerlo (registro de ajustes, guardar, valores por defecto); si entró, ampliar sus campos | `ideas/2026-11-12_menu_de_ajustes_dev.md` |
-| A2 | **TOOLS-1: gigs y enemigos desde JSON en la build** | El juego lee `.json` de una carpeta (formato del elenco) y los ofrece en el GigSetup; botón de exportar | `ideas/2026-11-12_herramientas_de_testeo_en_build.md` pasos 1–2 |
+| A2 | **TOOLS-1: exportar y ampliar el JSON** | La lectura de gigs y enemigos desde JSON entra en S10 antes de la demo (D-PLAN-9 = B); aquí, el botón de exportar y lo que no haya llegado | `ideas/2026-11-12_herramientas_de_testeo_en_build.md` pasos 1–2 |
 | A3 | **TOOLS-2: editor de enemigos y gigs en el juego** | Formularios en el panel de testeo | ídem, paso 3 |
 | A4 | **ENSAYO-1: la sala de ensayo como taller** | Jugar cartas libremente, sin público, y oír las combinaciones; parte de `2 - Ship Interior` | minuta 12-nov, punto 13; D-PLAN-13 |
 | A5 | **TOOLS-3: cartas en JSON y su editor** | Formato JSON de cartas, importación y editor en el juego | ídem, paso 4 |
@@ -41,6 +41,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | B2 | **LASTLOOP-B** | Investigar si una carta jugada en el último loop puede entrar en la siguiente barra (segundo reproductor, como SONG-TAIL-1) | D-PLAN-14 B |
 | B3 | **DUET-1: Doble Armonía Tier B** | El canto a dos voces con Pink Trombone, y que la carta vuelva al mazo | minuta 12-nov, punto 6 |
 | B4 | **CANCIONES-POR-GIG** | Canciones y loops por gig según el local y el público (hoy 3 × 3 para todos) | plan de la demo, «Deseos» |
+| B6 | **INSP-LOOP: la carta que da Inspiración por loop** | Si no entró como recompensa del gig 2: llevarla al pool de recompensas y ajustar | D-PLAN-20 |
 | B5 | **INTERACCIONES-1** | Convencidos que cantan, «boooring» entre loops | plan de la demo, «Deseos» (REPLAN-ART D3) |
 | — | Cola de MidiGenPlay | Comping y melodía siguen los acentos, orden de entrada, transiciones, «Nervioso», galope, narrador musical | `Sesiones_MidiGenPlay.md` |
 
@@ -48,7 +49,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 
 | # | Sesión | Objetivo | Origen |
 | --- | --- | --- | --- |
-| C1 | **PUB-SHIELD-1** | Público con escudo: el escudo temporal pasa al público y absorbe Vibe | D-PLAN-11 |
+| C1 | **PUB-SHIELD-1** | Si no llegó antes de la demo (D-PLAN-11 = B, orden 9): público con escudo | D-PLAN-11 |
 | C2 | **COMBOS-2** | Combos que se desbloquean con la relación entre músicos (sala chill) | `ideas/2026-11-05_combos_de_banda.md` |
 | C3 | **CARTAS-MATIAS** | Las cartas nuevas de Matías que piden mecánica nueva | pedido #15 |
 | C4 | **READ-ROOM-2** | Rediseñar Read the Room (o retirarla): que no quede obsoleta al conocer los gustos | minuta 12-nov, punto 4 |
@@ -65,6 +66,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | D3 | **CHATARRERO-1** | La tienda que «abre el show» y la mejora inicial (pantalla del bicho en el foco) | plan de la demo, «Deseos» |
 | D4 | **POSES-1** | Poses por estado y por habilidad para todo el público | pedido #12 |
 | D5 | **SALAS-1** | Las salas que falten (cocina, jardín, baño) cuando llegue el arte | pedido #7 |
+| D7 | **CARTAS-ARTE-2** | Si CARTAS-ARTE-1 no entró o quedó a medias: marcos, estrella e ilustraciones de todas las cartas | D-PLAN-21 |
 | D6 | **FUENTE-1** | La fuente completa dibujada de Matías | pedido #17 |
 
 ## Bloque E · Motor reutilizable
