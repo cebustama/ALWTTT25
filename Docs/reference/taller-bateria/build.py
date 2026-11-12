@@ -21,7 +21,9 @@ TS = [("FourFour", 4, 4), ("ThreeFour", 3, 4), ("TwoFour", 2, 4), ("SixEight", 6
 # GeneralMidiPercussion names for the notes in use; the verifier checks them against the DLL.
 GM = {35: "AcousticBassDrum", 36: "BassDrum1", 37: "SideStick", 38: "AcousticSnare", 41: "LowFloorTom",
       42: "ClosedHiHat", 43: "HighFloorTom", 44: "PedalHiHat", 46: "OpenHiHat", 47: "LowMidTom",
-      48: "HiMidTom", 49: "CrashCymbal1", 51: "RideCymbal1", 56: "Cowbell", 63: "OpenHiConga", 75: "Claves"}
+      48: "HiMidTom", 49: "CrashCymbal1", 51: "RideCymbal1", 56: "Cowbell", 63: "OpenHiConga", 75: "Claves",
+      # the rest of the page kit (template GM_NAME), so new assets do not break the build
+      39: "HandClap", 40: "ElectricSnare", 45: "LowTom", 50: "HighTom", 53: "RideBell", 64: "LowConga"}
 ACCENT, GHOST = 120, 50  # DrumPatternTextParser.AccentVelocity / GhostVelocity
 
 

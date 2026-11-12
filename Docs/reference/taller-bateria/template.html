@@ -94,6 +94,11 @@ label.k{display:grid;gap:3px;font-size:13px;color:var(--muted);min-width:0}
 .gr.cy .c i::before{content:"×"}
 .gr.cy .c.acc i{color:var(--hit-acc)}
 .gr.cy .c.gho i{color:var(--hit-gho)}
+.gr.ac>span{color:var(--accent);font-weight:600}
+.gr.ac .c{height:18px;align-items:flex-end;background:var(--cell)}
+.gr.ac .c i{width:100%;height:calc(var(--w)*16px);border-radius:2px;background:var(--hit-gho);opacity:.75}
+.gr.ac .c.strong i{background:var(--accent);opacity:1}
+.mine .gr.ac .c{height:18px;cursor:default;outline:0}
 .mine .c{height:32px;cursor:pointer;outline:1px solid var(--panel-2);outline-offset:-1px}
 .mine .c:hover{background-color:var(--panel-2)}
 :root[data-look="caja"] .c{height:26px;align-items:stretch;justify-content:stretch;padding:2px;background:var(--cell)}
@@ -162,6 +167,8 @@ pre.out{margin:0;background:var(--bg);border:1px solid var(--line);border-radius
     <div class="bpm"><label class="small muted" for="bpm">BPM</label><input type="range" id="bpm" min="40" max="240" step="1" value="100"><output id="bpmv">100</output></div>
     <label class="check"><input type="checkbox" id="loop" checked>Bucle</label>
     <label class="check"><input type="checkbox" id="lock">Fijar BPM</label>
+    <label class="check" title="Fila con el peso de acento de cada paso, con la regla de MidiGenPlay (AccentDeriver): peso del instrumento × (velocidad/127)², el mayor del instante. En color, los de peso ≥ 0,6."><input type="checkbox" id="showacc" checked>Acentos</label>
+    <div class="bpm" title="accentContrast de RhythmCardConfigSO: aleja cada velocidad de la mediana del patrón, hasta el doble. Se oye al reproducir."><label class="small muted" for="contrast">Contraste</label><input type="range" id="contrast" min="0" max="1" step="0.05" value="0"><output id="contrastv">0</output></div>
     <span class="pos" id="pos">—</span>
   </div>
 
@@ -385,8 +392,30 @@ const P = {on:false, next:0, step:0, queue:[], timer:null, ending:null};
 let cur = null, cols = [], lit = [], muted = new Set();
 const stepSec = p => 60/(+$("#bpm").value) * (4/p.unit) / p.subdivisions;   // as RhythmTrackComposer.ComposeFromGrid
 const velOf = (raw, def) => raw > 0 ? raw : def;                             // StepState.ResolveVelocity
+// MGP-DRUM-ACCENT-1 mirror (MidiGenPlay AccentDeriver.InstrumentWeight; keep in sync).
+const ACC_W = {35:1,36:1,38:1,40:1,49:1,57:1,39:1,52:.9,41:.85,43:.85,45:.75,47:.75,48:.75,50:.7,
+  55:.6,37:.6,53:.6,60:.6,61:.6,62:.6,63:.6,64:.6,65:.6,66:.6,56:.6,75:.6,67:.6,68:.6,76:.6,77:.6,
+  51:.5,59:.5,46:.5,42:.3,44:.3,54:.25,69:.25,70:.25};
+const STRONG = 0.6;
+const contrastC = () => +$("#contrast").value;
+function pivotOf(p){                                   // DrumFillPlanner.MedianVelocity
+  const v = []; p.lanes.forEach(l => l.steps.forEach(r => { if(r >= 0) v.push(Math.min(127, Math.max(1, velOf(r, l.def)))); }));
+  if(!v.length) return 64; v.sort((a, b) => a - b); const m = v.length >> 1;
+  return v.length % 2 ? v[m] : (v[m-1] + v[m]) / 2;
+}
+function contrasted(v, pivot, c){                      // DrumFillPlanner.ApplyContrast
+  if(!c) return v; const x = pivot + (v - pivot) * (1 + c);
+  return Math.min(127, Math.max(1, Math.sign(x) * Math.round(Math.abs(x))));
+}
+function accentAt(p, s, pivot, c){                     // AccentDeriver.FromOnsets, one instant
+  let w = 0;
+  p.lanes.forEach(l => { const r = l.steps[s]; if(r < 0) return;
+    const v = contrasted(velOf(r, l.def), pivot, c) / 127, x = (ACC_W[l.gm] ?? .5) * v * v; if(x > w) w = x; });
+  return Math.min(1, w);
+}
 function trigger(step, t){
-  cur.lanes.forEach(l => { const raw = l.steps[step]; if(raw >= 0 && !muted.has(l.gm)) hit(l.gm, velOf(raw, l.def), t, ((step*7+l.gm)%5-2)/2); });
+  const c = contrastC(), pv = c ? pivotOf(cur) : 0;
+  cur.lanes.forEach(l => { const raw = l.steps[step]; if(raw >= 0 && !muted.has(l.gm)) hit(l.gm, contrasted(velOf(raw, l.def), pv, c), t, ((step*7+l.gm)%5-2)/2); });
 }
 function pump(){
   if(!P.on) return;
@@ -482,6 +511,18 @@ function renderGrid(p){
       }
       row.append(cells); bar.append(row);
     });
+    if($("#showacc").checked){
+      const c = contrastC(), pv = pivotOf(p), row = el("div", "gr ac"), cells = el("div", "cells");
+      row.append(el("span", "", "Acentos")); cells.style.setProperty("--n", per);
+      for(let i=0; i<per; i++){
+        const s = m*per + i, w = accentAt(p, s, pv, c), cell = el("div", "c"), beat = Math.floor(i/p.subdivisions);
+        if(i % p.subdivisions === 0 && i > 0) cell.classList.add(felt && beat % felt === 0 ? "felt" : "beat");
+        if(w > 0){ const bar_ = el("i"); bar_.style.setProperty("--w", w.toFixed(3)); cell.append(bar_);
+          cell.title = "peso de acento " + w.toFixed(2) + (w >= STRONG ? " · acento" : ""); if(w >= STRONG) cell.classList.add("strong"); }
+        (cols[s] = cols[s] || []).push(cell); cells.append(cell);
+      }
+      row.append(cells); bar.append(row);
+    }
     bars.append(bar);
   }
 }
@@ -652,6 +693,8 @@ $("#fpal").append(new Option("Todas", ""), new Option("Mis patrones", "+"), ...D
 $("#fts").append(new Option("Todos", ""), ...Object.keys(TS_GRID).map(t => new Option(TS_LABEL[t], t)));
 $("#ets").append(...Object.keys(TS_GRID).map(t => new Option(TS_LABEL[t], t)));
 ["#fpal", "#fts", "#fev"].forEach(s => $(s).onchange = renderList);
+$("#showacc").onchange = () => { if(cur) renderGrid(cur); };
+$("#contrast").oninput = e => { $("#contrastv").textContent = (+e.target.value).toFixed(2).replace(/\.?0+$/, "") || "0"; if(cur) renderGrid(cur); };
 $("#bpm").oninput = e => { $("#bpmv").textContent = e.target.value; if(isCompound(cur)) renderWarns(cur); if(cur.own){ cur.bpm = +e.target.value; mineChanged(cur); } };
 $("#play").onclick = () => P.on ? stop() : start();
 $("#enew").onclick = () => addMine(blank());
