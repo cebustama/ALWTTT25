@@ -41,6 +41,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .ab button[aria-pressed="true"]{background:var(--bass);color:var(--surface)}
 .ab button.b[aria-pressed="true"]{background:var(--attack);color:var(--surface)}
 .ab button.cc[aria-pressed="true"]{background:var(--phrase);color:var(--surface)}
+.rnd{display:flex;align-items:center;gap:6px}
+.rnd button{border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:7px 12px;font-weight:600}
+.rnd button[aria-pressed="true"]{background:var(--phrase);border-color:var(--phrase);color:var(--surface)}
+.rnd select{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
 #pos{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:15ch}
 .field{display:flex;flex-direction:column;gap:3px;min-width:0}
 .field label,.field .lab{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-family:var(--f-mono)}
@@ -115,10 +119,14 @@ code{font-family:var(--f-mono);font-size:.9em}
       <button type="button" id="abB" class="b" aria-pressed="false" title="El bajo que sigue los acentos (tecla B)">B · sigue</button>
       <button type="button" id="abC" class="cc" aria-pressed="false" title="Frases que empiezan en el bombo (tecla C)">C · frases</button>
     </div>
+    <div class="rnd">
+      <button type="button" id="rnd" aria-pressed="false" title="Al terminar cada vuelta, ajustes nuevos al azar, sin parar (tecla R)">🎲 Aleatorio</button>
+      <select id="rndScope" aria-label="Qué cambia en el aleatorio"><option value="bass" selected>Solo el bajo</option><option value="both">Bajo y batería</option></select>
+    </div>
     <span id="pos">—</span>
   </header>
 
-  <p class="lead">Batería y bajo juntos, con el motor de MidiGenPlay. La batería es la «Parte con fills» del Taller de batería. El bajo es el de <code>BassTrackComposer</code>: <b>A</b> toca como hoy, <b>B</b> sigue los acentos que publica la batería (<code>accentFollow</code>, MGP-BASS-ACCENT-1) y <b>C</b> es el prototipo de la sesión 2a bis: frases que empiezan en el bombo y el crash, con silencios, notas de paso al acorde siguiente y notas muertas en la caja (propuesta de Music Lab, todavía no está en C#). La barra espaciadora toca o para; las teclas <b>A</b>, <b>B</b> y <b>C</b> cambian sin cortar.</p>
+  <p class="lead">Batería y bajo juntos, con el motor de MidiGenPlay. La batería es la «Parte con fills» del Taller de batería. El bajo es el de <code>BassTrackComposer</code>: <b>A</b> toca como hoy, <b>B</b> sigue los acentos que publica la batería (<code>accentFollow</code>, MGP-BASS-ACCENT-1) y <b>C</b> es el prototipo de la sesión 2a bis: frases que empiezan en el bombo y el crash, con silencios, notas de paso al acorde siguiente y notas muertas en la caja (propuesta de Music Lab, todavía no está en C#). La barra espaciadora toca o para; las teclas <b>A</b>, <b>B</b> y <b>C</b> cambian sin cortar. Con <b>🎲 Aleatorio</b> (tecla <b>R</b>), cada vuelta trae ajustes nuevos sin parar: solo del bajo, o del bajo y la batería. Si algo te gusta mientras suena, «Guardar esta versión» guarda lo que estás oyendo.</p>
 
   <section class="band" aria-label="Batería">
     <h2>Batería</h2>
@@ -716,8 +724,39 @@ function render(){
     `C (${PHR.STYLE[$("#style").value].label}): <b>${v.C.length}</b> notas en <b>${v.Canchors.length}</b> frases` + (v.Cdead ? `, ${v.Cdead} muertas` : "") + ".";
 }
 
+/* ---------- random playback ----------
+   At each loop end, new settings at random (Math.random: this is the page, not the engine) and the
+   music keeps going. "Solo el bajo" changes the bass and phrase controls; "Bajo y batería" also the
+   groove, tempo and fills. The version that sounds (A, B, C) stays the one you chose. Saving a
+   version while it plays keeps what you are hearing. */
+let RND = false, RNDN = 0;
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const chance = p => Math.random() < p;
+const stepIn = (lo, hi, st) => +(lo + st*Math.floor(Math.random()*(Math.round((hi - lo)/st) + 1))).toFixed(3);
+function randomize(scope){
+  const set = (id, v) => { const e = $("#" + id); if(e.type === "checkbox") e.checked = !!v; else e.value = String(v); };
+  set("prog", pick(DATA.progressions).id);
+  set("fig", pick(["block","block","p8","p8","p16","p4"]));
+  set("mode", pick(["attacks","attacks","reinforce"]));
+  set("fillm", pick(["gap","gap","follow"]));
+  set("thr", stepIn(.45, .8, .05)); set("cap", 2 + Math.floor(Math.random()*3));
+  set("boost", stepIn(10, 24, 1)); set("cut", stepIn(4, 12, 1));
+  const style = pick(["rock","rock","pop","pop","funk","funk","ballad"]);
+  set("style", style); set("bseed", 1 + Math.floor(Math.random()*9999));
+  set("snare", chance(.2)); set("antic", chance(.8)); set("dead", chance(style === "funk" ? .75 : style === "ballad" ? .1 : .35));
+  if(scope === "both"){
+    const pats = DATA.patterns.filter(p => p.beats === 4 && p.unit === 4), p = pick(pats);
+    set("pat", p.guid); set("bpm", Math.max(60, Math.min(180, (p.bpm || 100) + Math.round((Math.random()*2 - 1)*10))));
+    set("every", pick([0, 2, 4, 4, 8])); set("src", pick(["both","both","lib","proc"]));
+    set("seed", 1 + Math.floor(Math.random()*9999)); set("contrast", stepIn(0, .5, .05));
+    set("last", chance(.7)); set("crash", chance(.8));
+  }
+  outputs(); RNDN++;
+}
+function setRnd(on){ RND = on; $("#rnd").setAttribute("aria-pressed", String(on)); if(!on) RNDN = 0; }
+
 /* ---------- transport ---------- */
-const T = {on:false, t0:0, sched:-1e-9, timer:null, lit:[], col:-1};
+const T = {on:false, t0:0, sched:-1e-9, timer:null, lit:[], col:-1, loopK:0};
 const spb = () => 60/(+$("#bpm").value) * (4/V.g.unit);
 const beatNow = () => (ctx.currentTime - T.t0)/spb();
 const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
@@ -725,12 +764,16 @@ const ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="tru
 function setIcon(on){ $("#play").innerHTML = on ? ICON_STOP : ICON_PLAY; $("#play").setAttribute("aria-label", on ? "Parar" : "Reproducir"); }
 async function start(){
   setupAudio(); if(ctx.state === "suspended") await ctx.resume(); await buildKit();
-  render(); T.on = true; T.t0 = ctx.currentTime + .1; T.sched = -1e-9; setIcon(true); pump(); requestAnimationFrame(draw);
+  render(); T.on = true; T.t0 = ctx.currentTime + .1; T.sched = -1e-9; T.loopK = 0; setIcon(true); pump(); requestAnimationFrame(draw);
 }
 function stop(){ T.on = false; clearTimeout(T.timer); clearLit(); setIcon(false); $("#pos").textContent = "—"; }
 function pump(){
   if(!T.on) return;
-  const L = V.end, sp = spb(), target = beatNow() + .15/sp;
+  const L = V.end, sp = spb();
+  let target = beatNow() + .15/sp;
+  // Random playback: play the old loop up to its end, then roll new settings for the next one.
+  const boundary = (T.loopK + 1)*L, roll = RND && target >= boundary - 1e-9;
+  if(roll) target = boundary - 1e-6;
   if(target > T.sched){
     const notes = V[M], drums = $("#drumsOn").checked;
     for(let k = Math.max(0, Math.floor(T.sched/L)); k <= Math.floor(target/L); k++){
@@ -739,6 +782,11 @@ function pump(){
     }
     T.sched = target;
   }
+  if(roll){
+    const tb = T.t0 + boundary*sp;                       // the boundary's clock time, kept when the tempo changes
+    randomize($("#rndScope").value); render();
+    T.t0 = tb - boundary*spb(); T.loopK++;
+  } else if(!RND) T.loopK = Math.max(T.loopK, Math.floor(target/L));
   T.timer = setTimeout(pump, 25);
 }
 function clearLit(){ T.lit.forEach(c => c.classList.remove("now")); T.lit = []; T.col = -1; document.querySelectorAll(".n.play").forEach(e => e.classList.remove("play")); }
@@ -747,7 +795,7 @@ function draw(){
   const b = ((beatNow() % V.end) + V.end) % V.end, col = Math.floor(b*V.R + 1e-6);
   if(col !== T.col){ T.lit.forEach(c => c.classList.remove("now")); T.lit = V.cells[col] || []; T.col = col; T.lit.forEach(c => c.classList.add("now"));
     V.noteEls.forEach(([n, e]) => e.classList.toggle("play", b >= n.s && b < n.s + n.d));
-    $("#pos").textContent = "compás " + (Math.floor(b/V.bpb) + 1) + "/" + V.PM + " · " + M; }
+    $("#pos").textContent = "compás " + (Math.floor(b/V.bpb) + 1) + "/" + V.PM + " · " + M + (RND ? " · 🎲 " + (RNDN + 1) : ""); }
   requestAnimationFrame(draw);
 }
 function resync(){ if(!T.on){ render(); return; } const b = beatNow(); render(); T.sched = b; }
@@ -849,7 +897,8 @@ function outputs(){ $("#contrastO").textContent = $("#contrast").value; $("#thrO
   IDS.forEach(id => $("#" + id).addEventListener("input", () => { outputs(); if(id === "pat"){ const p = DATA.patterns.find(x => x.guid === $("#pat").value); if(p?.bpm) $("#bpm").value = p.bpm; } resync(); save(); }));
   $("#play").addEventListener("click", () => T.on ? stop() : start());
   ["A","B","C"].forEach(k => $("#ab" + k).addEventListener("click", () => setAB(k)));
+  $("#rnd").addEventListener("click", () => setRnd(!RND));
   document.addEventListener("keydown", e => { if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
-    if(e.code === "Space"){ e.preventDefault(); T.on ? stop() : start(); } else if(/^[abc]$/i.test(e.key)){ setAB(e.key.toUpperCase()); } });
+    if(e.code === "Space"){ e.preventDefault(); T.on ? stop() : start(); } else if(/^[abc]$/i.test(e.key)){ setAB(e.key.toUpperCase()); } else if(e.key === "r" || e.key === "R"){ setRnd(!RND); } });
 })();
 </script>
