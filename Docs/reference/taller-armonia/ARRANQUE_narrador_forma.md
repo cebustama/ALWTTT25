@@ -21,7 +21,7 @@ Esta sesión es **D3 = A**: probarlo de oído en el taller, sin Unity.
 - **D1 = C:** el narrador pone la forma por defecto; las cartas de parte la fuerzan. En el taller: forma automática y un modo «a mano».
 - **D2 = B:** la sección también cambiará reglas de juego, pero eso se diseña en ALWTTT después de la demo. **Aquí solo se oye.**
 - **D3 = A:** prototipo en el taller.
-- Sin forma elegida, el taller suena exactamente como hoy (`oro-v5` idéntico).
+- Sin forma elegida, el taller suena exactamente como hoy (el oro vigente idéntico; ver abajo).
 - Reglas deterministas con semilla; nada de LLM en la generación.
 
 ## Cambios tras la prueba de oído de las semillas (2026-11-12)
