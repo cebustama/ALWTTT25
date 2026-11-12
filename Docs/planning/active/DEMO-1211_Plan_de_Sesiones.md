@@ -83,6 +83,60 @@ plano o en capturas.
 - `CohesionPipsView` duplica `GigCanvas.SetCohesion`; unificar después de la demo.
 - Idea a probar: nombres de las salas siempre visibles, tenues (referencia: corte de casa grecorromana), si alguien no descubre el hover en la prueba M6.
 
+## Reunión con Matías del 12-nov (propuestas, por decidir)
+
+Minuta: `reference/reuniones/2026-11-12_matias.md` (con los puntos añadidos después). Nada de esta sección está
+aceptado hasta que Claudio cierre D-PLAN-7..19; mientras, la tabla de sesiones de arriba sigue mandando.
+
+**Cuánto hueco hay (✦ IA, 12-nov).** Hechas S1–S8 y S4b, dos semanas antes de lo previsto; S9 está en curso.
+Hasta la congelación del 27-nov quedan unas 6 sesiones (a 3 por semana: 16–20 y 23–27, más lo que quede de
+esta semana) para S9, S9b, S10, S11 y S12. **Sobran 1 o 2 sesiones**, no más. Por eso abajo se proponen dos
+sesiones nuevas y el resto se manda a después de la demo. Si se quiere más alcance, se recorta, no se añaden horas.
+
+| # | Qué | Propuesta | Recomendación |
+| --- | --- | --- | --- |
+| D-PLAN-7 | **Arreglos rápidos de la reunión** | Sesión nueva **S9c, DEMO-FIX-1** (semana 16–20, tras S9b): (a) Doble Armonía fuera del mazo inicial de Zig (está rota y su canto a dos voces es de después); (b) carta de Sibi que cura Stress a un músico, en lugar de Read the Room en su mazo inicial (Read the Room pasa al RewardPool o se aparca; cierra D9); (c) botón de feedback (correo de ALWTTT + enlace al canal de Discord + «abrir carpeta de telemetría»); (d) build: *Company Name* propio y Dev Mode (F12) oculto en la build pública, con la telemetría encendida | **A: entra.** Todo es datos o UI pequeña y cada punto quita una confusión de la prueba M6. Falta el correo de ALWTTT. `mailto:` no abre nada si el jugador no tiene cliente de correo: por eso el correo se muestra y se copia, además de abrirse |
+| D-PLAN-8 | **Combos y jugar pensando** | Sesión nueva **COMBOS-1** (semana 23–27, antes de S12): catálogo corto de combos con nombre (5–8) que salen en la previsión del Big Num (`reference/ideas/2026-11-05_combos_de_banda.md`) y una prueba de coste o tope en las cartas de composición (solo datos) | **A: entra**, y en el orden de recorte justo después de las poses. Es lo que Matías más destacó, y el «se juegan todas» se nota en la prueba M6. Alternativa B: solo la prueba de coste (media sesión); C: después de la demo |
+| D-PLAN-9 | **Herramientas de testeo en la build** (cartas, enemigos, gigs; guardar y exportar JSON) | Sub-roadmap propio **después de la demo**; antes, como mucho, que TEST-SETUP-1 (S10) lea gigs y enemigos de JSON de una carpeta (`reference/ideas/2026-11-12_herramientas_de_testeo_en_build.md`) | **A: después de la demo**, con el diseño escrito ahora. Son tres editores en runtime (los ScriptableObjects no se crean en la build) y el criterio de la demo no los necesita. B (solo lectura de JSON en S10) solo si S10 va holgada |
+| D-PLAN-10 | **Larvas de la Reina** (Matías: lloran fuerte, mucho Stress, poca Vibe, gustos distintos a la Reina → priorizarlas) | Entran en S9 (o en una sesión corta antes del 27-nov) **si el arte llega antes de la congelación de arte (20-nov)**; si no, la Reina va sola | **A.** El diseño es bueno y encaja con lo que hay (Vibe, gustos por miembro, objetivo al más débil); sin arte se vería a medias. Pedido #14 |
+| D-PLAN-11 | **Público con escudo** (defensa que no sea bloqueo ni inmunidad) | Después de la demo: pasar el escudo temporal (`Composure_TempShieldTurn`, hoy solo de músicos) al público, comprobando que absorbe Vibe | **A: después de la demo.** Pide código y balance nuevos; la demo ya tiene tres encuentros distintos |
+| D-PLAN-12 | **Variedad musical** (Matías ya oyó casi todas las combinaciones) | Sesión nueva **MUSICA-1** antes del 27-nov: integrar y validar en el juego lo que ya está hecho (fills y acentos de batería, bajo que sigue los acentos, más variedad por jugada si cabe el paso de los niveles con semilla a C#), con una prueba de oído en el juego. Alcance exacto en su arranque | **A: entra.** Claudio la llama vital y casi todo ya existe; falta encenderlo y oírlo. Ver la cuenta de sesiones abajo |
+| D-PLAN-13 | **Sala de ensayo como taller en el juego** (jugar cartas libremente y oír combinaciones) | Después de la demo, partiendo de `2 - Ship Interior` (ya es un ensayo con composición). Primera pieza de las herramientas de testeo (D-PLAN-9) | **A: después de la demo.** Es una escena entera; en la demo, la sala de ensayo sigue «EN DESARROLLO» |
+| D-PLAN-14 | **Cartas en el último loop** | A: cartas **Finisher**, solo jugables en el último loop (las de más Inspiración; el roster ya tiene el concepto, D-R0-12). B: cualquier carta en el último loop, con la pista entrando en la siguiente barra (segundo reproductor, como SONG-TAIL-1) | **A en COMBOS-1** (el finisher cierra el combo), **B a investigar después de la demo**: toca la misma frontera de audio que S9b |
+| D-PLAN-15 | **Tooltips más cortos** | Por defecto, solo lo esencial; las fichas de conceptos (Stress, Vibe, Cohesión…) al mantener una tecla. Entra en S11 (pulido). Ya había diseño: `ideas/2026-11-12_tooltips_basales.md` (marca `isBasic` en el glosario, Alt para verlas) | **A.** Es texto y un interruptor; ayuda a la prueba M6 |
+| D-PLAN-16 | **Números de Matías y posiciones de la banda** | Números: *Sprite Asset* de TMP en S11 si los archivos llegan antes del 20-nov (pedido #17). Posiciones: ajustar las formaciones en S9c | **A.** Las dos cosas son de datos |
+
+| D-PLAN-17 | **Menú de ajustes en el juego (F5)**: cartas por turno (una / una de cada tipo / sin límite), robo al empezar y entre loops, máximo de la mano (y mostrarlo, «8/8» como Balatro), inspiración, sin límite de canciones, vida tras el colapso; guardar y valores por defecto; extensible con una línea por ajuste | Sesión nueva **DEV-TUNING-1**, **antes de COMBOS-1**: con el menú se prueban las variantes de economía (el «se juegan todas») sin tocar código, y Matías puede probar en su build. Diseño: `ideas/2026-11-12_menu_de_ajustes_dev.md` | **A: entra, y pronto.** Abarata COMBOS-1 y todo el balance. Pide separar build de testers (con F5/F12) y build pública |
+| D-PLAN-18 | **Motor reutilizable** sacado de ALWTTT | Después de la demo, y solo cuando arranque un segundo juego que lo use (mundo-islas es el candidato). `ideas/2026-11-12_motor_reutilizable.md` | **A: después, guiado por el segundo juego.** Extraer sin un segundo consumidor suele dar abstracciones equivocadas |
+| D-PLAN-19 | **Cómo se estructura el plan**: no todo cabe en la demo, pero todo queda registrado | Hasta el 27-nov, las sesiones en el orden de abajo; lo que no llegue pasa sin perderse a `POST-DEMO_Plan_de_Sesiones.md` (borrador por bloques: herramientas, música, combate, mundo, motor, deuda) | **A.** Ver «Orden de entrada» abajo |
+
+### Orden de entrada hasta la congelación (propuesta, D-PLAN-19)
+
+No hace falta que quepa todo. Se trabaja en este orden y, el 27-nov, lo que no haya entrado pasa al plan de
+después de la demo. El orden junta las sesiones por zona de código y pone primero lo que abarata lo siguiente.
+
+| Orden | Sesión | Por qué en este lugar | Si no llega |
+| --- | --- | --- | --- |
+| 1 | **S9 REINA-1** (en curso) | Cierra el contenido de la demo; larvas si llega el arte | — imprescindible |
+| 2 | **S9b AUDIO-LOOP-1** | Que nada se corte; es la base de MUSICA-1 | — imprescindible |
+| 3 | **S9c DEMO-FIX-1** | Datos y UI pequeña: Doble Armonía fuera, carta de curar, posiciones de la banda, botón de feedback, *Company Name* | — imprescindible |
+| 4 | **DEV-TUNING-1** | El menú F5 y el «8/8» de la mano; desde aquí, el balance se prueba sin código | pasa a A1 |
+| 5 | **COMBOS-1** | Combos con nombre y finishers en el último loop, ajustados con el menú F5 | pasa a C (después) |
+| 6 | **MUSICA-1** | Encender y oír lo que ya está hecho en el motor | pasa a B |
+| 7 | **S10 ALINEACIÓN-2 + TEST-SETUP-1** | Que las 3 alineaciones jueguen sin diálogos de ausentes | — imprescindible |
+| 8 | **S11 PULIDO** | Recompensa con arte, tooltips basales, números dibujados; MAPA-2 solo si sobra | MAPA-2 pasa a D1 |
+| 9 | **S12 Congelación** (vie 27-nov) | Build de testers y build pública | — imprescindible |
+
+Con unas 7 sesiones hasta el 27-nov, lo previsible es que entren 1–3, 7 y 9 y dos de 4–6. **Si hay que elegir,
+recomiendo DEV-TUNING-1 y MUSICA-1**: el menú abarata todo lo demás y la variedad musical se oye en cada
+partida. COMBOS-1 se puede ensayar en parte con el propio menú (cartas por turno, costes) antes de programar
+los combos con nombre.
+
+**Cartas nuevas de Matías:** pedirle la lista (pedido #15). Las que se puedan hacer con primitivas que ya
+existen entran como datos antes del 27-nov (en COMBOS-1 o DEMO-FIX-1); las que pidan mecánica nueva, después.
+
+**Telemetría:** funciona, solo en local (un JSONL por día, una línea por gig). Detalle y rutas en la minuta.
+
 ## Orden de recorte si vamos tarde
 
 Se recorta de arriba abajo; nunca M1, M3, M6:
@@ -124,10 +178,11 @@ Se recorta de arriba abajo; nunca M1, M3, M6:
 ## Página para el equipo
 
 Wrapped privado del plan (compartir desde su menú Share): https://claude.ai/artifact/GmUTRzr7FeofzvgeRxUsv4.
-Si este archivo cambia, actualizar también la página.
+Si este archivo cambia, actualizar también la página. Fuente: `reference/plan-wrapped/index.html` (desde el 12-nov).
 
 ## Pendiente de arte (pedir a Matías)
 
 Archivos sueltos de: pantalla «Personajes» (dormitorio), «Escoge tu carta», pantalla del bicho en el foco
-y, si existen, las salas que faltan (cabina, dormitorio, cocina, jardín, baño). Si la Reina va sola o con
-larvas.
+y, si existen, las salas que faltan (cabina, dormitorio, cocina, jardín, baño). La Reina va **con larvas**
+(reunión del 12-nov): arte de la eclosión y de las larvas (pedido #14), y la lista de cartas nuevas de Matías
+(#15). Lista viva: `reference/reuniones/Pedidos_Arte_Matias.md`.

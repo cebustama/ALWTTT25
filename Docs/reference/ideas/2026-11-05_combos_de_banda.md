@@ -19,3 +19,13 @@ Idea de Claudio, 2026-11-05, durante S3 (LEGIB-1a). Estado: **idea, sin decidir*
 - **Ya existe la base de los nombres**: los textos flotantes salen de `CompositionCardClassifier` + `ui_fx_*` (tempo, compás, tonalidad, instrumento, pista por rol, cambio mayor). Llevarlos a la previsión es barato.
 - **«Toda la banda» depende de la alineación** (S6: 2, 3 o 4 músicos): «todos» = todos los de la alineación elegida.
 - **Desbloqueo por relación** conecta con NAVE-1/NAVE-2 (salas «EN DESARROLLO»): la sala chill podría ser su casa futura. Después de la demo.
+
+## Reunión con Matías, 2026-11-12
+
+- Matías: **el sistema de combos se siente MUY bien**; potenciarlo y potenciar las jugadas estratégicas.
+- Problema que vio a la vez: **las cartas se juegan sin pensar**. Hay poco tiempo entre loops y las cartas de
+  composición cuestan 0 de inspiración, así que se juegan todas las que se puede.
+- ✦ IA: las dos cosas se resuelven juntas. Si un combo pide un orden o una combinación concreta (y se ve en la
+  previsión con su nombre), jugar todas deja de ser lo mejor. Un coste o un tope a la composición es la otra
+  palanca, y más barata de probar (solo datos). Cuándo: D-PLAN-8 del plan de la demo. Minuta:
+  `reference/reuniones/2026-11-12_matias.md`.

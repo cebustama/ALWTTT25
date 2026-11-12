@@ -58,3 +58,31 @@ Editor Tools §23, plan) sin aplicar.
 plan); la Reina es el último nodo del mapa y ganarle lleva al WinPanel; smokes jugados por Claudio;
 docs aprobados y aplicados; commit cuando Claudio lo pida; `proyectos.md`, `foco.md` y la página de
 frentes al día; arranque de la siguiente (S9b AUDIO-LOOP-1 si no se hizo antes, o S10).
+
+## Referencias de la sesión (`/buscar-referencias --all`, 2026-11-12)
+
+- **Monster Train, Arkion** (`C:\Users\cebus\Dropbox\ALWTTT References\Pre-Gig Screen 1.png`): el jefe se
+  presenta en una frase y su ficha dice «Rage +2 por stack, baja cada turno». Por eso gana de 2 en 2: con 1
+  el contador nunca sube. Base de D1 (Exaltado +2 por huevo).
+- **Monster Train, Seraph el Entrópico** (`…\Enemies\Screenshot 2025-08-04 200409.png`): cada habilidad del
+  jefe en su propia ficha, con nombre y una línea. No se toma la carta maldita al mazo (quita poderes, Keep #113).
+- **Ficha de Sibi** (`…\Characters\Sibi.jpeg`): especie con estructura de colmena y reina; «sigue siempre la
+  voluntad de la colmena, para bien y para mal». Respalda los gritos a Sibi (D3) y desaconseja castigar a
+  Sibi con más Stress: es el apoyo y la calma de la banda.
+
+## Decisiones cerradas al abrir (Claudio, 2026-11-12)
+
+- D0=A: el gig de la Reina dura 4 canciones (el público no actúa tras la última; con 3, la eclosión nunca llegaba).
+- D1=C: cada huevo da Exaltado +2 (baja 1 por turno) y recupera 4 de Vibe. `BlockVibe` no sirve: pone el
+  `Skeptical` antiguo, que nadie lee.
+- D2: eclosión de 5 a toda la banda (7 con los dos Exaltado).
+- D3=A: gritos a Sibi con un chequeo (si una habilidad sin objetivo único tiene frases para un músico que
+  está en el escenario, lo llama por su nombre). **Después:** interacción única con Sibi («anularlo» un turno
+  o «llamarlo a la colmena»), mecánica por diseñar.
+- D4: con larvas si hay arte; sin arte en el repo todavía. **Diseño de Matías (reunión del 12-nov):** las larvas
+  lloran muy fuerte (mucho Stress), tienen poca Vibe y gustos distintos a los de la Reina, así que el jugador
+  tiene que convencerlas primero aunque tarde más con la Reina. Entran si el arte llega antes del 20-nov
+  (D-PLAN-10, por decidir); si no, la Reina va sola.
+- D5: Vibe 50, gustos tempo rápido y al menos 2 roles (por ajustar).
+- D6: viñeta provisional `jefe (1).png`; pedido #14 a Matías.
+- D7=A: Tentáculos se arregla igual (Exaltado +2, «¡TRES!» de 8 → 10 con Exaltado, gig de 4 canciones).

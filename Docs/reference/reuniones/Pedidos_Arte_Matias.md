@@ -4,7 +4,7 @@
 al terminarla: lo entregado pasa a «Recibido» con su fecha y ruta en `Assets/`, lo nuevo entra arriba.
 Las minutas de cada reunión siguen en `Docs/reference/reuniones/AAAA-MM-DD_<tema>.md`.
 
-**Próxima reunión:** martes 3-nov-2026, 18:30.
+**Última reunión:** 12-nov-2026 (`2026-11-12_matias.md`). **Próxima:** por fijar.
 
 ## Abiertos
 
@@ -23,10 +23,15 @@ Las minutas de cada reunión siguen en `Docs/reference/reuniones/AAAA-MM-DD_<tem
 | 11 | **Panel del dormitorio** (boceto «Bosquejo cabina» + «cuarto de los pk»): al marcar un músico en el panel aparece o desaparece en la habitación. Entregar: (1) el dormitorio **sin personajes**; (2) **cada personaje de la habitación en su propio PNG, del mismo tamaño que el fondo y transparente alrededor** (`Dormitorio_Fondo.png`, `Dormitorio_Zit.png`, …), para que caigan en su sitio sin medir; (3) los **retratos de las casillas solo a color** con fondo transparente (la silueta se genera tiñendo; si las quiere pintadas, mismo tamaño y encuadre); (4) el **marco de una casilla** suelto, no pintado en el fondo; (5) **placas y botones sin texto**, con borde uniforme para estirarlos, y botones en normal / encima / pulsado; (6) todo a escala de una pantalla de 1920 × 1080 (o 3840 × 2160 si quiere detalle, pero todas las piezas a la misma escala); (7) el **retrato grande** del panel izquierdo, uno por personaje con el mismo encuadre. Alternativa a (2): un PSD con una capa por personaje, pero exige instalar 2D PSD Importer. | Alineación (S6 hecha con el arte «Personajes»; el panel, cuando esté el arte) | 2026-11-11 | Por enviar |
 | 12 | **Poses de Tentáculos** (`asfasf.png`): el mismo personaje con **0, 1 y 2 tentáculos arriba** (cuenta «uno… dos…») y **con la boca abierta** (el golpe «¡TRES!»). Mismo tamaño de lienzo y mismo encuadre que el sprite actual, para que los pies caigan en el mismo sitio. En general, para cada personaje del público: una pose por habilidad (mientras la anuncia) y una al actuar; el juego tendrá los huecos y basta con asignarlas. | Poses del público (S8, con GRITOS-1) | 2026-11-12 | Por pedir |
 | 13 | **Marco de bocadillo para los gritos del público** (S8): un bocadillo propio del juego en lugar del clipart de cómic, como el del boceto `ataque jefe.png` (marco morado y cian, sin colita o con colita hacia abajo). Una imagen sin texto, que admita 1 a 3 líneas; el texto lo pone el juego. Opcional para la demo. (Nota para #12: los huecos de pose ya existen; las poses se escriben en `Elenco_S7.json` y entran con «ALWTTT ▸ S8 ▸ Importar gritos».) | S8 GRITOS-1 (el bocadillo ya funciona con el arte antiguo) | 2026-11-12 | Pendiente |
+| 14 | **Viñeta de la eclosión de la Reina Gusano** (S9): la Reina en el momento en que revientan los huevos, como `ataque jefe.png` lo es para el jefe punk. Sale a pantalla una vez por gig, deslizándose desde la derecha, ocupando unos 0,7 del ancho; mejor con fondo transparente o con forma propia. Hoy se usa el sprite `jefe (1).png` como provisional. Y **las larvas** (sprite de cuerpo entero, mismo estilo que la Reina) y sus poses: la Reina va con larvas (reunión del 12-nov). Las larvas lloran muy fuerte: una pose de llanto sirve de pose al actuar. | S9 REINA-1 (provisional con `jefe (1).png`); larvas si llegan antes del 20-nov (D-PLAN-10) | 2026-11-12 | Por pedir |
+| 15 | **Lista de sus cartas nuevas**, con nombre, qué hacen, a qué músico pertenecen, coste y arte si lo hay. Las que usen efectos que ya existen entran como datos antes del 27-nov. | Contenido (D-PLAN-7/8) | 2026-11-12 | Por pedir |
+| 16 | **Arte de la carta de Sibi que cura Stress** (el gusano calma a un músico), si se decide que reemplaza a Read the Room. | DEMO-FIX-1 (D-PLAN-7) | 2026-11-12 | Si se acepta D-PLAN-7 |
+| 17 | **Sus números dibujados**, para usarlos en lugar de la fuente: 0–9 y los signos que usa el juego (+, −, ×, →, /). Un PNG por signo con fondo transparente, **todos a la misma altura** y con el mismo margen abajo, o una hoja en rejilla de celdas iguales. Con contorno, para que se lean sobre la consola. Más adelante, la fuente completa dibujada. | Big Num, Stress, Vibe, costes (S11, D-PLAN-16) | 2026-11-12 | Por pedir; antes del 20-nov para que entre en la demo |
 
 ## Preguntas abiertas
 
-- ¿La Reina Gusano va sola o con larvas? (`reference/ideas/2026-10-30_publico_con_rol.md`)
+- ~~¿La Reina Gusano va sola o con larvas?~~ → **Con larvas** (12-nov): lloran fuerte y meten mucho Stress, tienen
+  poca Vibe y gustos distintos a los de la Reina, así que conviene convencerlas primero. Falta el arte (#14).
 
 ## Recibido
 

@@ -1,0 +1,282 @@
+<title>Reunión con Matías del 12-nov</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una sola columna de lectura; arriba el contexto, en medio lo tratado, abajo las decisiones como fichas para elegir (se guardan en el db). */
+:root{
+  --bg:#f6f4ef; --panel:#ffffff; --ink:#1c1a24; --muted:#5f5b6e; --line:#e2ded5;
+  --violet:#5a3fc8; --violet-soft:#ece7fb; --teal:#0d7f86; --teal-soft:#dff3f2;
+  --amber:#9a6200; --amber-soft:#fbefd6; --ok:#25804f; --ok-soft:#e1f2e8;
+  --display:"Familjen Grotesk","Segoe UI",system-ui,sans-serif;
+  --body:"Inter","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#13121a; --panel:#1c1a26; --ink:#eeebf6; --muted:#a6a1b8; --line:#2f2c3d;
+  --violet:#a792ff; --violet-soft:#29224a; --teal:#5fd3d8; --teal-soft:#123234;
+  --amber:#f0b54c; --amber-soft:#33280f; --ok:#6fd49c; --ok-soft:#14301f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13121a; --panel:#1c1a26; --ink:#eeebf6; --muted:#a6a1b8; --line:#2f2c3d;
+  --violet:#a792ff; --violet-soft:#29224a; --teal:#5fd3d8; --teal-soft:#123234;
+  --amber:#f0b54c; --amber-soft:#33280f; --ok:#6fd49c; --ok-soft:#14301f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body)}
+.wrap{max-width:900px;margin:0 auto;padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:56px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.1}
+h1{font-size:clamp(2.2rem,6vw,3.4rem);font-weight:700;letter-spacing:-.015em}
+h2{font-size:1.6rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0;max-width:66ch}
+section{display:grid;gap:16px}
+.eyebrow{font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+.lede{color:var(--muted);font-size:1.05rem}
+code{font:.84em var(--mono);background:var(--violet-soft);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{border-top:3px solid var(--violet);padding-top:10px;display:grid;gap:2px}
+.stat b{font:700 2rem/1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:8px;align-content:start;min-width:0}
+.box ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:.93rem}
+.box li span{color:var(--muted)}
+.tag{font:600 .68rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:99px;white-space:nowrap}
+.t-ok{background:var(--ok-soft);color:var(--ok)}
+.t-dec{background:var(--violet-soft);color:var(--violet)}
+.t-wait{background:var(--amber-soft);color:var(--amber)}
+.answer{background:var(--teal-soft);border-radius:10px;padding:16px 18px;display:grid;gap:8px}
+.answer h3{color:var(--teal)}
+.tbl{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+th{font:600 .72rem/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-top:0}
+td.n{font:600 .9rem var(--mono);color:var(--violet);font-variant-numeric:tabular-nums}
+tr.must td:first-child{box-shadow:inset 3px 0 var(--ok)}
+.decs{display:grid;gap:14px}
+.dec{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:grid;gap:10px}
+.dec.chosen{border-color:var(--ok)}
+.dec .head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline}
+.dec .id{font:600 .8rem var(--mono);color:var(--violet)}
+.opts{display:grid;gap:6px}
+.opt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:8px 10px;border-radius:8px;border:1px solid var(--line);cursor:pointer;font-size:.93rem}
+.opt:hover{border-color:var(--violet)}
+.opt input{margin-top:5px;accent-color:var(--violet)}
+.opt.rec{background:var(--violet-soft);border-color:transparent}
+.opt.rec b::after{content:" · recomendada";font:600 .7rem var(--mono);color:var(--violet)}
+.why{font-size:.92rem;color:var(--muted);border-left:3px solid var(--violet);padding-left:12px}
+.why b{color:var(--ink)}
+.note{display:grid;gap:4px;font-size:.85rem;color:var(--muted)}
+.note textarea{font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;resize:vertical}
+.saved{font:500 .78rem var(--mono);color:var(--ok)}
+.status{font:500 .85rem var(--mono);color:var(--muted)}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.links a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--ink);text-decoration:none;font-size:.92rem}
+.links a span{display:block;color:var(--muted);font:400 .74rem/1.4 var(--mono)}
+.links a:hover,.links a:focus-visible{border-color:var(--violet);outline:none}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+footer{color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:16px}
+</style>
+
+<div class="wrap">
+
+<header style="display:grid;gap:18px">
+  <span class="eyebrow">ALWTTT · cierre de la sesión del jueves 12 de noviembre de 2026</span>
+  <h1>Reunión con Matías del 12-nov</h1>
+  <p class="lede">Matías jugó la demo: los combos «se sienten muy bien», pero las cartas se juegan sin pensar y la música ya se repite. De la reunión y de tus ideas al cerrar el día salen 19 puntos. Todos quedan registrados, ordenados por prioridad hasta la congelación del 27-nov y, lo que no entre, en un plan por bloques para después de la demo.</p>
+  <div class="stats">
+    <div class="stat"><b>19</b><span>puntos registrados en la minuta</span></div>
+    <div class="stat"><b>13</b><span>decisiones tuyas, con recomendación</span></div>
+    <div class="stat"><b>~7</b><span>sesiones hasta la congelación (vie 27-nov)</span></div>
+    <div class="stat"><b>29</b><span>días hasta Discord (vie 11-dic)</span></div>
+  </div>
+</header>
+
+<section>
+  <span class="eyebrow">Dónde estamos</span>
+  <h2>Una semana por delante</h2>
+  <p>De la demo están hechas <b>S1–S8</b> y S4b: la cohesión como única derrota, la consola, el Big Num «Y → Z», quién golpea a quién, la nave, el dormitorio, el elenco y los gritos. <b>S9, la Reina</b>, está en curso. Le siguen S9b (que nada se corte entre loops), S10 (alineaciones), S11 (pulido) y S12 (congelación).</p>
+</section>
+
+<section>
+  <span class="eyebrow">En esta sesión</span>
+  <h2>Lo que quedó hecho</h2>
+  <div class="grid">
+    <div class="box"><h3>Antes de la reunión</h3><ul>
+      <li>Página de <b>pedidos a Matías</b>, con el arte provisional y casillas.</li>
+      <li><b>Taller armónico al día en la web</b> (v4, semillas, P6). Arreglé el proxy: «Ajustar con Claude» habría fallado con las perillas nuevas. Web <code>527cc0f</code>, subida.</li>
+    </ul></div>
+    <div class="box"><h3>Después de la reunión</h3><ul>
+      <li><b>Minuta</b> con tus notas, las comprobaciones y tus ideas del cierre.</li>
+      <li><b>Plan de la demo</b>: D-PLAN-7..19 y el orden de entrada.</li>
+      <li><b>Plan de después de la demo</b> (borrador por bloques).</li>
+      <li>Pedidos #15–#17, arranque de S9 con las larvas, notas nuevas (testeo en la build, menú F5, motor) y páginas del plan, pedidos e índice republicadas.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Lo tratado</span>
+  <h2>Los 19 puntos, por tema</h2>
+  <div class="grid">
+    <div class="box"><h3>Jugar</h3><ul>
+      <li>Los combos se sienten <b>muy bien</b>: potenciarlos. <span>D-PLAN-8</span></li>
+      <li>Las cartas se juegan sin pensar: composición a coste 0 y poco tiempo entre loops. <span>D-PLAN-8, D-PLAN-17</span></li>
+      <li>En el último loop no se puede jugar composición. <span>D-PLAN-14</span></li>
+    </ul></div>
+    <div class="box"><h3>Cartas</h3><ul>
+      <li>Read the Room queda obsoleta. <span>D-PLAN-7</span></li>
+      <li>Falta una carta del gusano que cure Stress. <span>D-PLAN-7</span></li>
+      <li>Doble Armonía está rota. <span>D-PLAN-7</span></li>
+      <li>Matías tiene cartas nuevas. <span>pedido #15</span></li>
+    </ul></div>
+    <div class="box"><h3>Público</h3><ul>
+      <li>Enemigos con escudo. <span>D-PLAN-11</span></li>
+      <li>Larvas: lloran fuerte, poca vida, otros gustos. <span>D-PLAN-10, pedido #14</span></li>
+    </ul></div>
+    <div class="box"><h3>Música</h3><ul>
+      <li><b>La variedad es vital</b>: Matías ya oyó casi todo. <span>D-PLAN-12</span></li>
+      <li>Un taller en la sala de ensayo. <span>D-PLAN-13</span></li>
+    </ul></div>
+    <div class="box"><h3>Aspecto y UI</h3><ul>
+      <li>Números dibujados por Matías; luego, la fuente entera. <span>D-PLAN-16, pedido #17</span></li>
+      <li>La banda está muy pegada. <span>D-PLAN-16</span></li>
+      <li>Tooltips más cortos. <span>D-PLAN-15</span></li>
+      <li>Mostrar el máximo de la mano. <span>D-PLAN-17</span></li>
+    </ul></div>
+    <div class="box"><h3>Herramientas y plan</h3><ul>
+      <li>Editar cartas, enemigos y gigs en la build. <span>D-PLAN-9</span></li>
+      <li>Menú de ajustes con F5. <span>D-PLAN-17</span></li>
+      <li>¿Funciona la telemetría? <span>respondido abajo</span></li>
+      <li>Botón de feedback. <span>D-PLAN-7</span></li>
+      <li>Motor reutilizable. <span>D-PLAN-18</span></li>
+      <li>No todo cabe, todo se registra. <span>D-PLAN-19</span></li>
+    </ul></div>
+  </div>
+  <div class="answer">
+    <h3>La telemetría funciona, pero solo en local</h3>
+    <p>Escribe una línea JSON por concierto terminado (resultado, canciones, loops, alineación, público y cada carta jugada). En el editor va a <code>ALWTTT25/DevTelemetry/</code> (30 conciertos desde el 16-jul). En la build va a <code>%USERPROFILE%\AppData\LocalLow\DefaultCompany\ALWTTT25\DevTelemetry\</code>. No se manda a ningún sitio: para tenerla, el tester la adjunta. Depende del símbolo <code>ALWTTT_DEV</code>, que también deja abierto el Dev Mode (F12) en la build.</p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Hasta la congelación</span>
+  <h2>El orden de entrada</h2>
+  <p>No hace falta que quepa todo. Se trabaja en este orden y, el 27-nov, lo que no haya entrado pasa al plan de después sin perderse. El orden junta las sesiones por zona de código y pone primero lo que abarata lo siguiente. En verde, lo imprescindible.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Sesión</th><th>Por qué aquí</th><th>Si no llega</th></tr></thead>
+    <tbody>
+      <tr class="must"><td class="n">1</td><td><b>S9 REINA-1</b> (en curso)</td><td>Cierra el contenido; larvas si llega su arte</td><td>imprescindible</td></tr>
+      <tr class="must"><td class="n">2</td><td><b>S9b AUDIO-LOOP-1</b></td><td>Que nada se corte; es la base de MUSICA-1</td><td>imprescindible</td></tr>
+      <tr class="must"><td class="n">3</td><td><b>S9c DEMO-FIX-1</b></td><td>Fuera Doble Armonía, carta de curar, banda colocada, botón de feedback</td><td>imprescindible</td></tr>
+      <tr><td class="n">4</td><td><b>DEV-TUNING-1</b></td><td>El menú F5 y el «8/8» de la mano: desde aquí, el balance se prueba sin código</td><td>bloque A</td></tr>
+      <tr><td class="n">5</td><td><b>COMBOS-1</b></td><td>Combos con nombre y finishers, ajustados con el menú</td><td>bloque C</td></tr>
+      <tr><td class="n">6</td><td><b>MUSICA-1</b></td><td>Encender y oír lo que ya está hecho en el motor</td><td>bloque B</td></tr>
+      <tr class="must"><td class="n">7</td><td><b>S10 ALINEACIÓN-2</b></td><td>Las 3 alineaciones juegan sin diálogos de ausentes</td><td>imprescindible</td></tr>
+      <tr><td class="n">8</td><td><b>S11 PULIDO</b></td><td>Recompensa con arte, tooltips, números; MAPA-2 solo si sobra</td><td>MAPA-2 al bloque D</td></tr>
+      <tr class="must"><td class="n">9</td><td><b>S12 Congelación</b></td><td>Build de testers y build pública</td><td>imprescindible</td></tr>
+    </tbody>
+  </table></div>
+  <p class="status">Con ~7 sesiones, lo previsible es que entren 1–3, 7 y 9 y dos de 4–6. Si hay que elegir, recomiendo el menú F5 y la variedad musical.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Después del 11-dic</span>
+  <h2>El plan por bloques (borrador)</h2>
+  <div class="grid">
+    <div class="box"><span class="tag t-wait">Bloque 0</span><h3>Escuchar la demo</h3><ul><li>Triage del feedback y la telemetría</li><li>Replanificar con lo aprendido</li></ul></div>
+    <div class="box"><span class="tag t-dec">Bloque A</span><h3>Herramientas</h3><ul><li>Menú F5 (si no entró)</li><li>Gigs y enemigos en JSON en la build; editores</li><li>Sala de ensayo como taller</li><li>Cartas en JSON; telemetría remota</li></ul></div>
+    <div class="box"><span class="tag t-dec">Bloque B</span><h3>Música</h3><ul><li>Niveles armónicos con semilla en C#</li><li>Último loop con la pista en la barra siguiente</li><li>Doble Armonía con Pink Trombone</li><li>Canciones por gig; la cola de MidiGenPlay</li></ul></div>
+    <div class="box"><span class="tag t-dec">Bloque C</span><h3>Combate</h3><ul><li>Público con escudo; cartas nuevas de Matías</li><li>Read the Room rediseñada; «Nervioso»</li><li>Oleadas; la Reina y Sibi</li></ul></div>
+    <div class="box"><span class="tag t-dec">Bloque D</span><h3>Mundo</h3><ul><li>MAPA-2 y editor de giras</li><li>Panel del dormitorio, chatarrero, poses, salas</li><li>La fuente dibujada</li></ul></div>
+    <div class="box"><span class="tag t-dec">Bloques E y F</span><h3>Motor y deuda</h3><ul><li>Motor reutilizable, cuando haya un segundo juego</li><li>Assets duplicados, build pública frente a testers</li></ul></div>
+  </div>
+  <p class="status">Orden recomendado: 0 → A → B1 → C → D. Primero las herramientas, porque abaratan todo lo demás: con F5 y los gigs en JSON, Matías prueba sin esperar una sesión de código.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Tus decisiones</span>
+  <h2>Trece decisiones, con recomendación</h2>
+  <p>Elige una opción en cada una; se guarda sola y la próxima sesión la lee. La nota es opcional. <span class="status" id="dbStatus">Conectando…</span></p>
+  <div class="decs" id="decs"></div>
+</section>
+
+<section>
+  <span class="eyebrow">También te necesito para</span>
+  <h2>Dos cosas más</h2>
+  <div class="grid">
+    <div class="box"><h3>El correo de ALWTTT</h3><p>Para el botón de feedback de S9c. Escríbelo en la nota de D-PLAN-7.</p></div>
+    <div class="box"><h3>Pedidos a Matías</h3><p>#14 (Reina y larvas) y #17 (números) tienen fecha útil: antes del 20-nov, la congelación de arte.</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Páginas</span>
+  <h2>Enlaces</h2>
+  <div class="links">
+    <a href="https://claude.ai/artifact/GmUTRzr7FeofzvgeRxUsv4" target="_blank" rel="noopener">Plan de la demo<span>con la reunión y las propuestas</span></a>
+    <a href="https://claude.ai/artifact/2ACLQic69QzB3pSh9ne1WG" target="_blank" rel="noopener">Pedidos a Matías<span>17 abiertos</span></a>
+    <a href="https://claude.ai/artifact/LqBXmAVoV4Vs3pzPzqy6ZA" target="_blank" rel="noopener">Índice de ALWTTT<span>todas las páginas del juego</span></a>
+    <a href="https://claude.ai/artifact/6cLUY1qgw9hXRmkPQ7saff" target="_blank" rel="noopener">Frentes de Claudio<span>la página de estado</span></a>
+  </div>
+</section>
+
+<footer>Fuentes en el repo de ALWTTT: <code>Docs/reference/reuniones/2026-11-12_matias.md</code>, <code>Docs/planning/active/DEMO-1211_Plan_de_Sesiones.md</code> y <code>POST-DEMO_Plan_de_Sesiones.md</code>, y las notas de <code>Docs/reference/ideas/</code> del 12-nov. Las decisiones elegidas aquí se guardan en la base de datos de esta página.</footer>
+</div>
+
+<script>
+const DECS = [
+  {id:"D-PLAN-7", t:"¿Arreglos rápidos antes de la demo (S9c)?", o:[["A","Sesión S9c: Doble Armonía fuera, carta de Sibi que cura Stress en lugar de Read the Room, posiciones de la banda, botón de feedback, Company Name"],["B","Dejarlos para después de la demo"]], r:"A", w:"Son datos y UI pequeña, y cada punto quita una confusión de la prueba M6. Una carta que nunca funciona enseña a desconfiar de todas. La de curar cierra además D9 (en la demo no hay cómo curar Stress)."},
+  {id:"D-PLAN-8", t:"¿Combos antes de la demo?", o:[["A","COMBOS-1: combos con nombre en la previsión y prueba de coste o tope en composición"],["B","Solo probar un coste o tope en composición (media sesión)"],["C","Después de la demo"]], r:"A", w:"Es lo que más le gustó a Matías y ataca el «se juegan todas»: si un combo pide un orden y se ve en la previsión, jugar todo deja de ser lo mejor. Con el menú F5 antes, parte del ajuste se hace sin código."},
+  {id:"D-PLAN-9", t:"¿Editores de testeo en la build?", o:[["A","Después de la demo, con el diseño ya escrito"],["B","En S10, solo leer gigs y enemigos desde JSON"]], r:"A", w:"Son tres editores que funcionan en la build, y los ScriptableObjects no se pueden crear allí: hay que pasar por JSON. El criterio de la demo no los necesita, y el menú F5 cubre lo más urgente del testeo."},
+  {id:"D-PLAN-10", t:"¿Larvas de la Reina en la demo?", o:[["A","Sí, si su arte llega antes del 20-nov"],["B","La Reina va sola"]], r:"A", w:"El diseño de Matías encaja con lo que ya hay (Vibe baja, gustos propios, el público apunta al más débil) y obliga a priorizar. Sin arte se verían a medias."},
+  {id:"D-PLAN-11", t:"¿Público con escudo?", o:[["A","Después de la demo"],["B","Ahora, pasando el escudo de los músicos al público"]], r:"A", w:"El escudo hoy solo existe del lado de los músicos y absorbe Stress, no Vibe. Pide código y balance nuevos, y la demo ya tiene tres conciertos distintos."},
+  {id:"D-PLAN-12", t:"¿Variedad musical antes de la demo (MUSICA-1)?", o:[["A","Sí: encender y oír lo que ya está hecho (fills, acentos, bajo que escucha y, si cabe, semillas)"],["B","Después de la demo"]], r:"A", w:"Dijiste que es vital, y casi todo ya existe y está probado fuera del juego: falta encenderlo en las cartas de la demo y oírlo. Se nota en cada partida."},
+  {id:"D-PLAN-13", t:"¿Taller en la sala de ensayo?", o:[["A","Después de la demo, partiendo de la escena de ensayo que ya existe"],["B","Antes de la demo"]], r:"A", w:"Es una escena entera (jugar cartas sin público). Es la mejor herramienta para validar la variedad, pero en la demo la sala puede seguir «EN DESARROLLO»."},
+  {id:"D-PLAN-14", t:"¿Qué se juega en el último loop?", o:[["A","Cartas Finisher, solo para ese loop (las de más Inspiración)"],["B","Cualquier carta, y su pista entra en la siguiente barra"]], r:"A", w:"A es diseño y datos: el roster ya tiene finishers y el bloqueo actual se invierte para ellos. B toca el audio (un segundo reproductor), la misma zona que S9b: mejor investigarla después, con S9b hecha."},
+  {id:"D-PLAN-15", t:"¿Tooltips más cortos?", o:[["A","Lo esencial por defecto; Stress, Vibe y Cohesión al mantener Alt (nota de los tooltips basales)"],["B","Como están"]], r:"A", w:"Ya estaba diseñado en S7: una marca por concepto en el glosario y una tecla. Es barato y ayuda a quien juega por primera vez en M6."},
+  {id:"D-PLAN-16", t:"¿Números dibujados y banda bien colocada?", o:[["A","Números en S11 si llegan antes del 20-nov; posiciones en S9c"],["B","Después"]], r:"A", w:"Las dos cosas son de datos: los números como sprites de TextMesh Pro y las posiciones en las formaciones de S7."},
+  {id:"D-PLAN-17", t:"¿Menú de ajustes F5 antes de la demo?", o:[["A","Sí, antes de COMBOS-1"],["B","Después de la demo"]], r:"A", w:"Con el menú se prueban cartas por turno, robo, mano, inspiración y vida tras el colapso sin tocar Unity, y Matías puede hacerlo en su build. Es extensible con una línea por ajuste. Obliga a separar la build de testers (con F5/F12) de la pública."},
+  {id:"D-PLAN-18", t:"¿Sacar un motor reutilizable?", o:[["A","Después, cuando arranque un segundo juego (mundo-islas)"],["B","Ahora, por adelantado"]], r:"A", w:"Extraer sin un segundo juego que lo use suele dar abstracciones equivocadas. LLM Interaction Core ya muestra el camino: un paquete propio que consumen varios proyectos."},
+  {id:"D-PLAN-19", t:"¿Cómo se ordena el plan?", o:[["A","Por prioridad hasta el 27-nov; lo que no entre, al plan de después"],["B","Forzar que quepa todo"]], r:"A", w:"Nada se pierde, no se alargan las sesiones y la congelación no se mueve. Lo imprescindible está marcado; lo demás entra según se pueda."}
+];
+const box = document.getElementById("decs");
+const status = document.getElementById("dbStatus");
+const state = {};
+function render(){
+  box.innerHTML = DECS.map(d => {
+    const s = state[d.id] || {};
+    return `<article class="dec${s.opcion ? " chosen" : ""}" data-id="${d.id}">
+      <div class="head"><span class="id">${d.id}</span><h3>${d.t}</h3>${s.opcion ? `<span class="tag t-ok">Elegida: ${s.opcion}</span>` : `<span class="tag t-dec">Por decidir</span>`}</div>
+      <div class="opts">${d.o.map(([k,txt]) => `<label class="opt${k === d.r ? " rec" : ""}"><input type="radio" name="${d.id}" id="${d.id}-${k}" value="${k}"${s.opcion === k ? " checked" : ""}><span><b>${k}</b> · ${txt}</span></label>`).join("")}</div>
+      <p class="why"><b>Por qué ${d.r}:</b> ${d.w}</p>
+      <label class="note">Nota (opcional)<textarea id="${d.id}-nota" rows="2">${(s.nota || "").replace(/</g,"&lt;")}</textarea></label>
+      <span class="saved" id="${d.id}-saved"></span>
+    </article>`;
+  }).join("");
+}
+render();
+let db = null;
+const col = () => db.collection("decisiones");
+async function save(id){
+  if(!db){ status.textContent = "Aquí no se guarda: abre la página en claude.ai con tu cuenta."; return; }
+  const opcion = (document.querySelector(`input[name="${id}"]:checked`) || {}).value || null;
+  const nota = document.getElementById(id + "-nota").value.trim();
+  const el = document.getElementById(id + "-saved");
+  try { await col().doc(id).set({opcion, nota, ts:new Date().toISOString()}); el.textContent = "Guardado"; }
+  catch(e){ el.textContent = "No se pudo guardar (" + (e && e.code || "error") + ")."; }
+}
+box.addEventListener("change", e => { const a = e.target.closest(".dec"); if (a && e.target.type === "radio") save(a.dataset.id); });
+box.addEventListener("focusout", e => { const a = e.target.closest(".dec"); if (a && e.target.tagName === "TEXTAREA") save(a.dataset.id); });
+(async () => {
+  const timer = setTimeout(() => { if(!db) status.textContent = "Sin conexión con la base de datos: puedes leer, pero no se guardará."; }, 10000);
+  try { db = await window.claude?.use?.("db"); } catch(e) { db = null; }
+  clearTimeout(timer);
+  if(!db){ status.textContent = "Aquí no se guarda: abre la página en claude.ai con tu cuenta."; return; }
+  status.textContent = "Conectado: tus elecciones se guardan.";
+  col().onSnapshot(snap => {
+    snap.docs.forEach(d => { if (d.exists) state[d.id] = d.data(); });
+    const focused = document.activeElement && document.activeElement.tagName === "TEXTAREA";
+    if(!focused) render();
+  }, () => { status.textContent = "No se pudieron leer las elecciones guardadas."; });
+})();
+</script>
