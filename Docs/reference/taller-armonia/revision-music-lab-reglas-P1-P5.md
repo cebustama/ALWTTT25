@@ -324,3 +324,26 @@ Decisiones de Claudio al abrir: **D1 = A, D2 = B, D3 = B, D4 = C** (las recomend
 - **De fábrica:** el remate del N3 pasa de «rico» a «azar» (decisión de la hoja de remates). Sin semilla da lo mismo que la v4. El N2 se queda en «simple», así que en el N2 la semilla solo mueve los adornos (b).
 - **D4 = C, guardar una versión:** es una entrada del catálogo (el db `catalogo`; sin db, el navegador) con `semilla` y `nivel` además del texto y las perillas. La cadena copiada también lleva la semilla en la cabecera.
 - **Dudas musicales:** ninguna nueva. (a) usa grupos ya decididos por oído y (b) solo reparte recursos ya aprobados, así que no hizo falta consultar a Music Lab. Lo que queda abierto lo resuelve la prueba de oído corta (paso 5): si 3 semillas de la misma carta suenan a la misma carta.
+
+## 17. Prueba de oído de las semillas (2026-11-12) y D1 de la identidad
+
+Hoja a ciegas en `prueba-oido-semillas/` (https://claude.ai/artifact/WYchcr4kd14YsNuxyv23HJ): 4 cartas en el nivel 3, 3 vueltas, cada una en 4 versiones (la de fábrica y 3 semillas elegidas entre la 1 y la 999 por ser las más distintas entre sí). Respuestas de Claudio, en el db de la hoja:
+
+| Carta | ¿Misma carta? | Diferencia | Se sale | Guardaría |
+| --- | --- | --- | --- | --- |
+| Pachelbel (s8, s146, s147) | sí | algo | ninguna | **s147** |
+| Axis I–V–vi–IV (s1, s6, s15) | sí | poco | ninguna | fábrica |
+| Cadencia andaluza (s1, s2, s6) | casi | algo | **s6** | fábrica («la única que suena a cadencia andaluza») |
+| Frigio descenso (s1, s4, s16) | sí | poco | ninguna | fábrica |
+
+- **La identidad aguanta en 3 de 4.** Pachelbel es el ejemplo de lo buscado: Claudio, «me encantan todas las variaciones»; la base reconocible se mantiene y la variedad se oye.
+- **La andaluza se rompe.** Lo que la define es el bajo que baja i – ♭VII – ♭VI – V, sobre todo el medio tono ♭VI → V. Las tres semillas acortan el ♭VI y meten ♭viiø7 – II7 (un ii–V del V) justo antes del V; la de fábrica, por recorrer de izquierda a derecha, gasta el presupuesto antes en el i y el ♭VII. El orden de la v4 protegía la carta por casualidad. Claudio señaló s6, pero s1 y s2 también lo tienen (en otra vuelta).
+- **Variedad: «se queda corta», pasar a P6** (que la semilla elija también qué adorno, con pesos). Hoy la semilla solo decide dónde caen los adornos; en Axis y Frigio se nota «poco».
+- **Vuelta 1: sigue de fábrica.** Matiz de Claudio para el juego: si la carta se vuelve a tocar, la vuelta 1 ya no abre la canción (la precede el loop anterior), así que ahí puede variar. «De fábrica» significa la primera vez que suena la carta, no cada vuelta 1. Va al port a C# (fila «Niveles armónicos» de MidiGenPlay).
+- **En estas 4 cartas el remate no cambia:** todas cierran solas por cadencia. El remate al azar queda sin oír a ciegas.
+
+**D1 (identidad) = B, aceptada por Claudio:** una regla general en lugar de anclas por carta: *no meter un acercamiento (ii–V, dominante secundaria, disminuido de paso) antes de un acorde al que ya se llega por paso de bajo descendente (medio tono o tono)*. Protege la andaluza, el lamento y los descensos sin marcar cartas a mano. Antes de aplicarla, que Music Lab la confirme (es duda musical). Si falla en algún caso, A (anclas por carta) como respaldo. Es el primer punto de `ARRANQUE_P6_pesos.md`.
+
+**Idea de Claudio:** el bajo y el piano se reparten el acorde (Sibi y Conito tocando juntos). En las hojas el bajo solo dobla la fundamental; ver `../ideas/2026-11-12_bajo_y_piano_reparten_el_acorde.md`.
+
+**Aviso al escribir el arranque (2026-11-12):** la regla B, tal como está escrita, es demasiado ancha. La de fábrica de la andaluza, que Claudio eligió, ya mete IV7 antes del ♭VII y III7 antes del ♭VI, y a los dos se llega bajando un tono. Una B literal quitaría también esos adornos y cambiaría `oro-v4`. La regla tiene que ser más estrecha: por ejemplo, proteger solo el medio tono, o el último paso de la bajada hacia el V. Que Music Lab la acote antes de implementarla.
