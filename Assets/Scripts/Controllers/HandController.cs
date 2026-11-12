@@ -99,6 +99,17 @@ namespace ALWTTT
         [SerializeField] private Vector2 handOffset = new Vector2(0, -0.3f);
         [SerializeField] private Vector2 handSize = new Vector2(9, 1.7f);
 
+        [Header("Tuck (S9): the hand drops when the pointer leaves the bottom band")]
+        [Tooltip("Lower the hand while the pointer is away from it, so it does not hide the stage.")]
+        [SerializeField] private bool tuckWhenAway = true;
+        [Tooltip("How far the hand drops (world units along the hand's up).")]
+        [SerializeField, Min(0f)] private float tuckDrop = 0.9f;
+        [Tooltip("Height of the band above the hand bounds that still counts as 'near the hand'.")]
+        [SerializeField, Min(0f)] private float tuckZoneExtraTop = 0.4f;
+        [Tooltip("Extra width at each side of the hand bounds that counts as 'near the hand'.")]
+        [SerializeField, Min(0f)] private float tuckZoneExtraSide = 0.5f;
+        [SerializeField, Min(0.1f)] private float tuckSpeed = 10f;
+
         [Header("Context")]
         [SerializeField] private bool useGigContext = true;
         [SerializeField] private ShipInteriorManager shipInteriorManager;
@@ -126,6 +137,8 @@ namespace ALWTTT
         private Plane plane; // world XY plane, used for mouse position raycasts
         private Vector3 a, b, c; // Used for shaping hand into curve
         private Vector3 _handBasePos; // World-space hand origin (transform + handPosition)
+        private float _tuck;          // [S9] 0 = up, 1 = fully dropped
+        private bool _tuckAway;       // [S9] last state, for the log
         private int selected = -1; // Card index that is nearest to mouse
         private int dragged = -1; // Card index that is held by mouse (inside of hand)
         // Card that is held by mouse (when outside of hand), ready to be used.
@@ -229,7 +242,8 @@ namespace ALWTTT
             var scaledEnd = new Vector3(curveEnd.x * sf, curveEnd.y, curveEnd.z);
 
             // Base position = transform origin + local handPosition offset
-            _handBasePos = transform.TransformPoint(handPosition);
+            _handBasePos = transform.TransformPoint(handPosition)
+                           - transform.up * (tuckDrop * _tuck);   // [S9] tuck
 
             a = _handBasePos + transform.TransformDirection(scaledStart);
             b = _handBasePos + transform.up * curveHeight;
@@ -254,6 +268,8 @@ namespace ALWTTT
             // tutorial modal and SetHandVisible already share). timeScale = 0 does not stop
             // Update or Input, so without this line cards stay playable behind the menu.
             if (ALWTTT.UI.PauseGate.IsPaused) return;
+
+            UpdateTuck();   // [S9] before the curve, so this frame's cards use it
 
             // Recompute curve every frame so it follows the GameObject if moved (M1.9)
             UpdateCurvePoints();
@@ -1206,6 +1222,32 @@ namespace ALWTTT
                 var p = GetCurvePoint(a, b, c, t);
                 // Calculate squared distance from mouse to card
                 sqrDistance = (p - mouseWorldPos).sqrMagnitude;
+            }
+        }
+
+        /// <summary>
+        /// [S9] Tuck: while the pointer is away from the bottom band (the hand bounds, a bit taller
+        /// and wider) and no card is held or dragged, the whole curve slides down by tuckDrop, so
+        /// the stage above it (the Reina's brood, low audience) stays visible. The band is fixed in
+        /// the hand's local space (it does not drop with the cards), so reaching for the visible
+        /// card tops always brings the hand back up. Uses last frame's pointer position.
+        /// </summary>
+        private void UpdateTuck()
+        {
+            bool away = false;
+            if (tuckWhenAway && heldCard == null && dragged < 0)
+            {
+                var pt = (Vector2)transform.InverseTransformPoint(mouseWorldPos);
+                bool near = pt.y <= handBounds.yMax + tuckZoneExtraTop
+                            && pt.x >= handBounds.xMin - tuckZoneExtraSide
+                            && pt.x <= handBounds.xMax + tuckZoneExtraSide;
+                away = !near;
+            }
+            _tuck = Mathf.MoveTowards(_tuck, away ? 1f : 0f, tuckSpeed * Time.unscaledDeltaTime);
+            if (away != _tuckAway)
+            {
+                _tuckAway = away;
+                Debug.Log($"[S9] Mano | {(away ? "baja (ratón fuera)" : "sube (ratón cerca)")}");
             }
         }
 

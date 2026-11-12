@@ -331,6 +331,18 @@ MonoBehaviour:
     displayName: "\xA1BBUUU!"
     description: "Abuchea a un m\xFAsico con todo el pecho. Carga <link=stress>Stress</link>;
       pega m\xE1s si est\xE1 <link=hyped>Exaltado</link>."
+  - id: ab_egg_one
+    displayName: Primer huevo
+    description: Pone un huevo. Recupera <link=vibe>Vibe</link> y gana <link=hyped>Exaltado</link>.
+      Al tercer turno, los huevos eclosionan contra toda la banda.
+  - id: ab_egg_two
+    displayName: Segundo huevo
+    description: Pone un huevo. Recupera <link=vibe>Vibe</link> y gana <link=hyped>Exaltado</link>.
+      Al tercer turno, los huevos eclosionan contra toda la banda.
+  - id: ab_hatch
+    displayName: "\xA1Eclosi\xF3n!"
+    description: "Los huevos revientan: carga <link=stress>Stress</link> a toda la
+      banda, m\xE1s el de su <link=hyped>Exaltado</link>."
   cardNames:
   - id: 3_Action_001
     displayName: Conteo
@@ -919,3 +931,31 @@ MonoBehaviour:
     lines:
     - "\xA1BBUUU! \xA1Vuelve a la f\xE1brica, {musico}!"
     - "\xA1{musico}, ni el metr\xF3nomo te aguanta!"
+  - id: shout_reina_gusano_ab_egg_one
+    lines:
+    - "Uno\u2026 para la colmena."
+    - "Tocad, tocad. Las cr\xEDas escuchan."
+    - "Mis peque\xF1os tienen hambre de m\xFAsica."
+  - id: shout_reina_gusano_ab_egg_one__sibi
+    lines:
+    - "{musico}, hijo m\xEDo\u2026 vuelve a la colmena."
+    - '{musico}, la colmena te llama.'
+    - "\xBFTocas para ellos, {musico}? T\xFA eres de la colmena."
+  - id: shout_reina_gusano_ab_egg_two
+    lines:
+    - "Dos\u2026 ya se mueven."
+    - "M\xE1s fuerte. Que lo oigan dentro del huevo."
+    - "Casi listos, mis peque\xF1os."
+  - id: shout_reina_gusano_ab_egg_two__sibi
+    lines:
+    - '{musico}, siente la colmena. Siempre la sentiste.'
+    - "Vuelve, {musico}. Tus hermanos est\xE1n por nacer."
+  - id: shout_reina_gusano_ab_hatch
+    lines:
+    - "\xA1Naced, hijos m\xEDos!"
+    - "\xA1A comer, mis peque\xF1os!"
+    - "\xA1La colmena despierta!"
+  - id: shout_reina_gusano_ab_hatch__sibi
+    lines:
+    - "\xA1Mira, {musico}: tus hermanos!"
+    - "\xA1{musico}, saluda a la familia!"

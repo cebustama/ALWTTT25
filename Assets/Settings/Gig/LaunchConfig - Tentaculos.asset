@@ -18,6 +18,6 @@ MonoBehaviour:
   - {fileID: 531832505469625713, guid: 38aa213c872dbb14381125effb788c3f, type: 3}
   - {fileID: 531832505469625713, guid: 06d8487adccfc31498c988c20abe21b1, type: 3}
   encounter: {fileID: 11400000, guid: 1f6a27194b39f8940a29930af7e20218, type: 2}
-  requiredSongCount: 3
+  requiredSongCount: 4
   initialGigInspiration: 0
   inspirationPerLoop: 1

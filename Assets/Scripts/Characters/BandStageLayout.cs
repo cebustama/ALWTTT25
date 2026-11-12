@@ -64,6 +64,20 @@ namespace ALWTTT.Characters.Band
         /// which must not add children to the scene. Same order and spacing as GetSlots.
         /// Empty when neither a formation nor both anchors exist.
         /// </summary>
+        /// <summary>[S9 / Lineup] Uniform scale of each slot (lossy y), same order as
+        /// GetSlotPositions. Musicians are parented to their slot, so this is their scale.</summary>
+        public List<float> GetSlotScales(int count)
+        {
+            var res = new List<float>(Mathf.Max(0, count));
+            var f = FindFormation(count);
+            for (int i = 0; i < count; i++)
+            {
+                Transform t = f != null ? f.slots[i] : autoLeft;
+                res.Add(t != null ? t.lossyScale.y : 1f);
+            }
+            return res;
+        }
+
         public List<Vector3> GetSlotPositions(int count)
         {
             var res = new List<Vector3>(Mathf.Max(0, count));

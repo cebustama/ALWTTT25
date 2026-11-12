@@ -1,3 +1,4 @@
+using ALWTTT.Characters.Band;
 using ALWTTT.Enums;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,19 +16,41 @@ namespace ALWTTT.Backgrounds
         [SerializeField] private Transform smokeRoot;
         [SerializeField] private Transform fireRoot;
 
-        public VenueType VenueType => venueType;
+        [Header("Placement for this venue (S9) - empty = the gig scene's")]
+        [SerializeField, Tooltip("Band slots for this venue (a BandStageLayout inside this prefab). " +
+            "Empty = GigManager's Band Stage Layout. Slot scale = musician scale.")]
+        private BandStageLayout bandStageLayout;
 
+        [SerializeField, Tooltip("Audience slots for this venue, in encounter order. " +
+            "Empty = GigManager's Audience Member Positions. Slot scale = member scale.")]
+        private List<Transform> audiencePositions = new List<Transform>();
+
+        public VenueType VenueType => venueType;
+        public BandStageLayout BandStageLayout => bandStageLayout;
+        public List<Transform> AudiencePositions => audiencePositions;
+        public bool HasAudiencePositions
+        {
+            get
+            {
+                if (audiencePositions == null) return false;
+                foreach (var t in audiencePositions) if (t != null) return true;
+                return false;
+            }
+        }
+
+        // [S9] Null-guarded: the Colmena (Venue2) has no lights or foreground animator.
         public void SetBPM(int bpm)
         {
-            foregrounAnimation.SetBPM(bpm);
+            if (foregrounAnimation != null) foregrounAnimation.SetBPM(bpm);
 
-            foreach (var light in stageLights)
-                if (light != null) light.SetBPM(bpm / 2);
+            if (stageLights != null)
+                foreach (var light in stageLights)
+                    if (light != null) light.SetBPM(bpm / 2);
         }
 
         public void SetLights(bool state)
         {
-            stageLightsRoot.gameObject.SetActive(state);
+            if (stageLightsRoot != null) stageLightsRoot.gameObject.SetActive(state);
         }
 
         // [S3 D-S3-6=A] Per-venue SongHype stage VFX. Null-guarded so venues

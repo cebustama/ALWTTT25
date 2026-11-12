@@ -28,7 +28,7 @@ MonoBehaviour:
     actionList:
     - cardActionType: 11
       actionTargetType: 6
-      actionValue: 1
+      actionValue: 2
       actionDelay: 0
       statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
     duetKey: 
@@ -37,6 +37,9 @@ MonoBehaviour:
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   - abilityName: Count Two
     abilityId: ab_count_two
     intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
@@ -45,7 +48,7 @@ MonoBehaviour:
     actionList:
     - cardActionType: 11
       actionTargetType: 6
-      actionValue: 1
+      actionValue: 2
       actionDelay: 0
       statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
     duetKey: 
@@ -54,6 +57,9 @@ MonoBehaviour:
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   - abilityName: Count Three
     abilityId: ab_count_three
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
@@ -62,7 +68,7 @@ MonoBehaviour:
     actionList:
     - cardActionType: 3
       actionTargetType: 1
-      actionValue: 10
+      actionValue: 8
       actionDelay: 0
       statusEffect: {fileID: 0}
     duetKey: 
@@ -71,6 +77,9 @@ MonoBehaviour:
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   followAbilityPattern: 1
   taste:
     tempoMatchOnFast: 0

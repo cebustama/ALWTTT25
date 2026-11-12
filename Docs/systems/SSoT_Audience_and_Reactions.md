@@ -490,6 +490,19 @@ number, target or order changes.
 Logs: `[S8] Grito | <id> | "<line>" | objetivo=<musician> | id=<shout id> | espera <s>`,
 `[S8] Viñeta | <id> | <texture> | <s>`, `[S8] Pose | <id> | pending/acting/done/stunned/convinced → <sprite|normal>`.
 
+**Calling a musician without a single target (S9 REINA-1, 2026-11-12 — D3=A).** An ability that hits
+no single musician (self, the whole band) has no arrow, so no `{musico}`. If the glossary has a
+per-musician line for this member and ability and that musician is on stage, the member **calls
+them** anyway: `FindCalledMusician` takes the first such musician in band order and their line is used
+(«Sibi, la colmena te llama.»). No such musician on stage → the general lines, as before. Lookup is
+`GameText.HasMusicianShout(characterId, abilityId, musicianName)`. Text only: nothing targets Sibi
+mechanically (a Sibi-specific mechanic, «anularlo un turno» / «llamarlo a la colmena», is post-S9).
+Log: `[S9] Grito a <musician> | <id> | <ability> | "<line>"`.
+
+**Beat animator is restored, not forced on (S9).** While acting, a member turns its
+`CharacterAnimator` off and, when done, restores the state it had before. A prefab that ships with
+the animator disabled (the Reina) stays still.
+
 ---
 
 ## 8. Audience abilities
@@ -535,6 +548,31 @@ and the real hit (`ExecuteActionWithTiming`), so the bar shows the doubled numbe
 locked at intention time, the first singer to fire still counts for the second. The frogs use
 `RandomMusician` + `duet: croak`: they coincide some turns (1/N), and Spotlight pulls both onto its
 holder, which forces the duet. Log: `[S7] Croak duet | <a> + <b> → <musician> | 3 ×2 = 6`.
+
+**The Reina Gusano: a readable pattern (S9 REINA-1, 2026-11-12).** Last node of the demo map
+(«La Reina Gusano», `Venue2` = the Colmena, **4 songs**, D0=A, so the 3-step pattern lands before the
+end). `followAbilityPattern` with three abilities, looped by `usedAbilityCount % count`:
+1. `ab_egg_one` and 2. `ab_egg_two` — Self: **Hyped +2** and **recover 4 Vibe** (D1=C). The intention
+   hides the number (`hideActionValue`): it is a setup, not a hit.
+3. `ab_hatch` — **AllMusicians: AddStress 5**, plus her Hyped (`DamageUpFlat`, max 3 stacks), so the
+   intention reads **7** after two eggs (D2). Projection = real, checked per musician
+   (`[S9] Eclosión | … | <musician> a→b (−d)`). Cut-in = the Reina's sprite until Matías's panel
+   (pedido #14).
+`maxVibe` 50, tastes fast tempo and ≥2 roles (D5). Convincing her early ends the gig and the tour (WinPanel).
+Hyped on audience members gains **+2** per stacking ability (Tentáculos' count fixed the same way, D7=A:
+«Uno…» / «Dos…» +2, «¡TRES!» base 8 → 10, 4 songs).
+
+**Brood clock (S9, D8=A).** `BroodClock` (on a `Cria` child under the Reina's `Sprite`) turns the
+pattern into a picture with the four larva drawings: egg 1 fired → stage 1, egg 2 → stage 2, hatch
+**shown** as intention → stage 3, hatch fired → stage 4 for 1.5 s, then hidden; hidden when she is
+convinced. Presentation only, keyed on the ability-id prefixes `ab_egg` / `ab_hatch` through
+`AudienceCharacterBase.OnAbilityShown` / `OnAbilityFired`. Size is the authored local scale (stage 4)
+with the other stages in pixel proportion, so it follows the Reina's height and venue slot. Larvae as
+**audience members** (D-PLAN-10, Matías's design) are not implemented. Log: `[S9] Cría | <name> | etapa n | <why>`.
+
+**Known dead action: `BlockVibe`.** `BlockVibeAction` applies the legacy `StatusType.Skeptical`,
+which nothing reads: an ability using it does nothing. Do not author audience abilities with it;
+use the SO catalogue (Indifference) instead.
 
 **Targeting redirect hook (R4, 2026-08-10 — Spotlight).** `AudienceCharacterBase.ResolveTargetsFor` now has a **prior step** on the `Musician` and `RandomMusician` branches: if any musician carries an active Spotlight, the target is substituted by the holder. `AllMusicians` does not pass through the hook. This is the single targeting funnel, so every future audience ability inherits the redirect with no per-ability edit. Status semantics: `systems/SSoT_Status_Effects.md` §5.9.
 

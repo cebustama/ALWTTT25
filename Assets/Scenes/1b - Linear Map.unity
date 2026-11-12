@@ -1468,7 +1468,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Map.LinearMapController
   nodes:
   - visual: {fileID: 1314398260}
-    launchConfig: {fileID: 11400000, guid: 722253feefe25e3489739e6d2d4ab5a8, type: 2}
+    launchConfig: {fileID: 11400000, guid: 1da3e04ac041c8d4fbc47ccf13627cb7, type: 2}
     title: Gig 1
     description: 
   - visual: {fileID: 163151818}
@@ -1476,7 +1476,7 @@ MonoBehaviour:
     title: Gig 2
     description: 
   - visual: {fileID: 1915744378}
-    launchConfig: {fileID: 11400000, guid: a33cb1838f0f85146ae11155225b79bb, type: 2}
+    launchConfig: {fileID: 11400000, guid: 179c0edbfb9f6f44fa552ca9614ca4f0, type: 2}
     title: La Reina Gusano
     description: 
   pastStops:

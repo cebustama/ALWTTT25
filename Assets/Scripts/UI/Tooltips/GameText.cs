@@ -158,6 +158,21 @@ namespace ALWTTT.Tooltips
             return haveName ? ReplaceMusician(line, musicianName) : line;
         }
 
+        /// <summary>
+        /// [S9 / REINA-1, D3=A] True when this member's ability has lines written for this musician
+        /// (specific or shared per-musician entry). Used by abilities that hit no single musician (the
+        /// Reina's eggs and hatch): if a musician with own lines is on stage, the shout calls them by
+        /// name («la colmena llama a Sibi»). Presentation only; no target or number changes.
+        /// </summary>
+        public static bool HasMusicianShout(string characterId, string abilityId, string musicianName)
+        {
+            var g = Glossary;
+            if (g == null) return false;
+            var a = ShoutIdForMusician(ShoutIdFor(characterId, abilityId), musicianName);
+            var b = ShoutIdForMusician(ShoutIdForAbility(abilityId), musicianName);
+            return (a != null && g.TryGetShout(a, out _)) || (b != null && g.TryGetShout(b, out _));
+        }
+
         private static bool NamesMusician(string line)
             => line.IndexOf("{musico}", System.StringComparison.OrdinalIgnoreCase) >= 0
             || line.IndexOf("{músico}", System.StringComparison.OrdinalIgnoreCase) >= 0

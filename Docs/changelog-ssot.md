@@ -14,6 +14,16 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-12 — S9: REINA-1, la Reina Gusano (DEMO-1211)
+
+**Clase:** semántico · autoridad · operativo. Con cambio de código, datos, escena y arte.
+
+- Decisiones: D0=A (4 canciones), D1=C (huevo: Exaltado +2 y 4 de Vibe), D2 (eclosión: 5 a toda la banda, 7 con Exaltado), D3=A (grito a Sibi, solo texto), D4 (con larvas: como reloj), D5 (Vibe 50, rápido y ≥2 roles), D6 (viñeta provisional, pedido #14), D7=A (Tentáculos igual), D8=A (cría junto a la Reina), D9=B (cartas negativas en sesión propia). Tras jugar: sin pregunta del tutorial, local abierto antes, colocación por local, Reina sin animador, salto de nodos, ancla de las larvas abajo, la mano que baja.
+- `SSoT_Audience_and_Reactions` §7.4 (grito a un músico sin objetivo único; el animador se restaura, no se fuerza) y §8 (la Reina, Exaltado +2, la cría, `BlockVibe` muerto). `SSoT_Editor_Authoring_Tools` §23.6 (`requiredSongCount`, colocación por local en Character Lineup, vista previa de la cría). `SSoT_Runtime_Flow` §3.2 (la mano baja) y Phase 0 (local, colocación, pregunta del tutorial, salto de nodos). `CURRENT_STATE` fila y «Siguiente».
+- Código: `BroodClock` (nuevo), `AudienceCharacterBase` (`OnAbilityShown`/`OnAbilityFired`, `FindCalledMusician`, logs S9, animador restaurado), `GameText.HasMusicianShout`, `BackgroundContainer` (`AllRoots`, un solo local, `Current`, por encuentro), `BackgroundRoot` (colocación), `GigManager` (`PreOpenBackground`, colocación, pregunta), `GigDevSettingsSO.askTutorialOptIn`, `BandStageLayout.GetSlotScales`, `CharacterLineupWindow` (local del encuentro, escala), `AudienceJson` (`requiredSongCount`), `LinearMapController` (Shift+clic), `HandController` (tuck).
+- Datos y arte: `Elenco_S7.json` (Reina, Tentáculos), Reina Gusano (datos, prefab, encuentro, launch config), Colmena en 5 capas, larvas y cartas de Matías. Tutorial-artefacto `reference/tutoriales/S9_reina/`; índice colapsable en los tutoriales S5–S7.
+- Smokes 1–4 jugados por Claudio (huevo, huevo; eclosión 7 = real; convencerla antes → WinPanel; sin Sibi y Tentáculos).
+
 ## 2026-11-12 — MidiGenPlay MGP-BASS-ACCENT-1: hash duty for a listening bass
 
 - `SSoT_ALWTTT_MidiGenPlay_Boundary.md` §8.4: the pocket cache duty moves from DORMANT to

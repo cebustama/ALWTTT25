@@ -1,0 +1,108 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb66ef735feb1d245a5494a78feb5fd5, type: 3}
+  m_Name: Reina Gusano
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Data.AudienceCharacterData
+  characterId: reina_gusano
+  characterName: Reina Gusano
+  characterDescription: "Pone dos huevos; al tercer turno eclosionan contra toda
+    la banda. Conv\xE9ncela antes."
+  maxVibe: 50
+  characterPrefab: {fileID: 5870733674267346511, guid: b781c462c5ba15f4c8ab70354dfebd2a, type: 3}
+  isTall: 1
+  isLeader: 0
+  abilityList:
+  - abilityName: Egg One
+    abilityId: ab_egg_one
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 1
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 11
+      actionTargetType: 6
+      actionValue: 2
+      actionDelay: 0
+      statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
+    - cardActionType: 2
+      actionTargetType: 6
+      actionValue: 4
+      actionDelay: 0
+      statusEffect: {fileID: 0}
+    duetKey: 
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
+  - abilityName: Egg Two
+    abilityId: ab_egg_two
+    intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
+    hideActionValue: 1
+    abilityDuration: 2
+    actionList:
+    - cardActionType: 11
+      actionTargetType: 6
+      actionValue: 2
+      actionDelay: 0
+      statusEffect: {fileID: 11400000, guid: 04af06526ddf32547b7d8ea753f9f8dd, type: 2}
+    - cardActionType: 2
+      actionTargetType: 6
+      actionValue: 4
+      actionDelay: 0
+      statusEffect: {fileID: 0}
+    duetKey: 
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
+  - abilityName: Hatch
+    abilityId: ab_hatch
+    intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
+    hideActionValue: 0
+    abilityDuration: 3
+    actionList:
+    - cardActionType: 3
+      actionTargetType: 3
+      actionValue: 5
+      actionDelay: 0
+      statusEffect: {fileID: 0}
+    duetKey: 
+    animation:
+      animatorTrigger: 
+      animationDuration: -1
+      disableBeatAnimator: 1
+    abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 2800000, guid: 92b0583e0d2074848b1ae6b87f35d57c, type: 3}
+  followAbilityPattern: 1
+  taste:
+    tempoMatchOnFast: 1
+    preferAboveTempoScale: 1
+    tempoMismatchOnSlow: 0
+    dislikeBelowTempoScale: 1
+    roleCountMatchOnRich: 1
+    preferAtLeastRoles: 2
+    preferredTimeSignatures: 
+    dislikedTimeSignatures: 
+    preferredTonalities: 
+    dislikedTonalities: 
+    preferredRoles: 
+    dislikedRoles: 
+  sfxProfile: {fileID: 0}

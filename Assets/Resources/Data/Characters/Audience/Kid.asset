@@ -37,6 +37,9 @@ MonoBehaviour:
       animationDuration: 2
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   - abilityName: Tantrum
     abilityId: ab_tantrum
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
@@ -54,6 +57,9 @@ MonoBehaviour:
       animationDuration: 2
       disableBeatAnimator: 1
     abilitySfx: {fileID: 8300000, guid: 39ea5e5d160ab424e9bea6a25b1acfaa, type: 3}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   followAbilityPattern: 1
   taste:
     tempoMatchOnFast: 1

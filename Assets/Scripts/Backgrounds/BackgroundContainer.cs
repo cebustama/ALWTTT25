@@ -14,19 +14,40 @@ namespace ALWTTT.Backgrounds
 
         private BackgroundRoot CurrentBackground { get; set; }
 
-        public void OpenSelectedBackground()
+        /// <summary>[S9] The serialized list plus every BackgroundRoot under this container
+        /// (inactive included). The prefab list only held Venue 1, so a venue added as a child
+        /// (Venue_BG_2, the Colmena) was never a candidate.</summary>
+        private List<BackgroundRoot> AllRoots()
         {
-            var encounter = GigManager.CurrentGigEncounter;
+            var all = new List<BackgroundRoot>();
+            if (backgroundRootList != null)
+                foreach (var r in backgroundRootList) if (r != null && !all.Contains(r)) all.Add(r);
+            foreach (var r in GetComponentsInChildren<BackgroundRoot>(true))
+                if (r != null && !all.Contains(r)) all.Add(r);
+            return all;
+        }
+
+        public BackgroundRoot Current => CurrentBackground;
+
+        public void OpenSelectedBackground() => OpenSelectedBackground(GigManager.CurrentGigEncounter);
+
+        /// <summary>[S9] Same, for an encounter resolved before StartGig (the tutorial prompt
+        /// used to sit over the previous venue until it was answered).</summary>
+        public void OpenSelectedBackground(ALWTTT.Encounters.GigEncounter encounter)
+        {
             if (encounter != null)
             {
-                foreach (var backgroundRoot in BackgroundRootList)
+                // [S9] Exactly one venue on: the prefab leaves Venue_BG_1 active by default, and
+                // turning only the match ON kept Venue 1 drawn over (and in front of) any other venue.
+                foreach (var backgroundRoot in AllRoots())
                 {
-                    if (encounter.TargetVenueType == backgroundRoot.VenueType)
-                    {
-                        backgroundRoot.gameObject.SetActive(true);
-                        CurrentBackground = backgroundRoot;
-                    }
+                    if (backgroundRoot == null) continue;
+                    bool match = encounter.TargetVenueType == backgroundRoot.VenueType;
+                    backgroundRoot.gameObject.SetActive(match);
+                    if (match) CurrentBackground = backgroundRoot;
                 }
+                Debug.Log($"[S9] Local | {encounter.TargetVenueType} → " +
+                          $"{(CurrentBackground != null ? CurrentBackground.name : "ninguno")}");
             }
             else
             {

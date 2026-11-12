@@ -58,6 +58,12 @@ They are responsible for:
 - initiating card play from the UI
 - forwarding play attempts to the relevant game runtime host
 
+**Hand tuck (S9, 2026-11-12).** While the pointer is outside a bottom band (the hand bounds plus
+`tuckZoneExtraTop` / `tuckZoneExtraSide`) and no card is held or dragged, `HandController` slides the
+whole curve down by `tuckDrop` (0.9), so the stage above it stays visible; back in the band, it rises.
+The band is fixed in the hand's local space, so reaching for the visible card tops always raises the
+hand. Switch: `tuckWhenAway`. Log: `[S9] Mano | baja (ratón fuera)` / `sube (ratón cerca)`.
+
 ### 3.3 SongCompositionUI
 `SongCompositionUI` is the authoritative editable song/part/track model surface inside ALWTTT runtime.
 
@@ -95,6 +101,20 @@ Runtime responsibilities:
 - prepare band and audience runtime objects
 - wire deck/hand/runtime UI references
 - prepare the runtime services needed for composition and playback
+
+Venue and placement (S9 REINA-1, 2026-11-12):
+- **The venue opens before anything is shown.** `GigManager.Start` calls `PreOpenBackground` with the
+  encounter (`GigRunContext` or `PersistentGameplayData.CurrentEncounter`) before the tutorial
+  question, so nothing of the previous venue flashes. `BackgroundContainer` gathers every
+  `BackgroundRoot` under it (`AllRoots`, inactive included) and turns on **only** the one whose
+  `VenueType` matches (`SetActive(match)`); `Current` is the open one. Log `[S9] Local | VenueX → <name>`.
+- **Placement per venue.** When the open `BackgroundRoot` has a `bandStageLayout`, `BuildBand` uses it
+  instead of the scene's; when it has `audiencePositions`, `AudienceMemberPosList` returns them. Slot
+  scale = character scale in that venue. Log `[S9] Colocación | banda=<local X|escena> | público=…`.
+- **Tutorial question off.** `GigDevSettingsSO.askTutorialOptIn` (default false): when false the
+  opt-in is answered «no» without asking (`[S9] Tutorial | sin pregunta…`), until the tutorial is rebuilt.
+- **Dev node jump (editor / `ALWTTT_DEV` only).** On the linear map, Shift+click on a later node
+  launches it (`[S9] Salto de nodo (dev) | a → b '<title>'`).
 
 Flag initialization:
 - `_actionWindowOpen = true`, `_isSongPlaying = false`, `_isBetweenSongs = true` are all set once in `SetupGig()`. Their per-turn lifecycle is governed by §4 Phase 1 below.

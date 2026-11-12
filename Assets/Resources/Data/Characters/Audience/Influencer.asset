@@ -37,6 +37,9 @@ MonoBehaviour:
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   - abilityName: Scathing Review
     abilityId: ab_scathing_review
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
@@ -54,6 +57,9 @@ MonoBehaviour:
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   followAbilityPattern: 1
   taste:
     tempoMatchOnFast: 0

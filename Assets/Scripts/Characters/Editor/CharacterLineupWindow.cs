@@ -288,11 +288,27 @@ namespace ALWTTT.Characters.Editor
             var legacy = ReadTransforms(so.FindProperty("musicianPosList"));
             var audiencePos = ReadTransforms(so.FindProperty("audienceMemberPosList"));
 
+            // [S9] Same rule as the game: the chosen encounter's venue may bring its own band
+            // layout and audience slots (the Colmena). Venues are found even when inactive.
+            string venueNote = "escena";
+            if (_encounters.Count > 0)
+            {
+                var encV = _encounters[Mathf.Clamp(_encounterIndex, 0, _encounters.Count - 1)];
+                var venue = Object.FindObjectsByType<ALWTTT.Backgrounds.BackgroundRoot>(
+                        FindObjectsInactive.Include, FindObjectsSortMode.None)
+                    .FirstOrDefault(r => r != null && r.VenueType == encV.TargetVenueType);
+                if (venue != null)
+                {
+                    if (venue.BandStageLayout != null) { layout = venue.BandStageLayout; venueNote = "local " + venue.name; }
+                    if (venue.HasAudiencePositions) { audiencePos = venue.AudiencePositions.Where(t => t != null).ToList(); venueNote = "local " + venue.name; }
+                }
+            }
+
             // Band — same priority as GigManager.BuildBand: formation/auto line → legacy list.
             var band = _entries.Where(e => e.Group == "Banda").Where((e, i) => i < _bandPick.Count && _bandPick[i]).Take(_bandSize).ToList();
             var positions = layout != null ? layout.GetSlotPositions(band.Count) : new List<Vector3>();
             string source = positions.Count >= band.Count && layout != null ? "layout" : "legacy";
-            var scales = new List<float>();
+            var scales = layout != null && source == "layout" ? layout.GetSlotScales(band.Count) : new List<float>();
             if (source == "legacy")
             {
                 positions.Clear();
@@ -322,7 +338,7 @@ namespace ALWTTT.Characters.Editor
                     Spawn(members[i].CharacterPrefab.gameObject, root, t.position, t.lossyScale.y);
                 }
             }
-            if (!_quiet) Debug.Log($"[S7] Lineup stage preview | band={band.Count} source={source} | encounter={(_encounters.Count > 0 ? _encounters[_encounterIndex].name : "none")}");
+            if (!_quiet) Debug.Log($"[S7] Lineup stage preview | band={band.Count} source={source} | encounter={(_encounters.Count > 0 ? _encounters[_encounterIndex].name : "none")} | colocación={venueNote}");
         }
 
         private static List<Transform> ReadTransforms(SerializedProperty list)

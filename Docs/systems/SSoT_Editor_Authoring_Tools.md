@@ -2322,3 +2322,21 @@ from the legacy slots' bounds), assigns `GigManager.bandStageLayout`, Undo-able.
 - **`CharacterAnimator.overlayOnAnimator`** (prefab field): for characters whose Animator animates
   the same transform as `jumpRoot`; see `SSoT_Card_Authoring_Contracts` (beat pose) and the
   CURRENT_STATE S8 row. Set on `BandCharacter - Conito`.
+
+### 23.6 Song count, venue placement and the brood clock (S9 REINA-1, 2026-11-12)
+
+- **`launchConfig.requiredSongCount`** in the audience JSON: when > 0 the import writes it on the
+  launch config asset (the Reina's and Tentáculos' gigs: 4). Absent or 0 = untouched.
+- **Placement per venue.** `BackgroundRoot` (on each `Venue_BG_*`) has an optional `bandStageLayout`
+  and `audiencePositions`. Character Lineup «En el escenario» finds the `BackgroundRoot` of the
+  encounter's venue (inactive ones included) and uses its placement when present, else the scene's;
+  the log adds `colocación=local <venue>` or `escena`. The preview applies each **slot's scale**
+  (`BandStageLayout.GetSlotScales`): musicians are parented to their slot, so the slot scale is
+  their size in that venue only. To set up a venue: copy the scene's «Band Stage Layout» under the
+  venue, assign it, move or scale the **parent** to move every slot at once, then fine-tune slots
+  per band size (2/3/4) with the matching «Músicos» value; add one empty per audience member to
+  `audiencePositions`. First use: `Venue_BG_2` (Colmena, band slots at 0.55).
+- **`BroodClock` preview:** right-click the component ▸ «Vista previa ▸ etapa 1–4». Size it with
+  the Scale tool on any stage: the scale saved is read back as that stage's, and the other stages
+  follow in pixel proportion. The larva sprites are imported `Single` with pivot `Bottom`, so every
+  stage grows up from the same floor point.

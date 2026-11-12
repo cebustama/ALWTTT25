@@ -124,6 +124,13 @@ namespace ALWTTT.Data
             "and AutoStartFromDefaults.")]
         private bool startOnShipHub = false;
 
+        // [S9] The tutorial is not ready for the demo: no "Tutorial?" prompt, tutorial off.
+        [Header("Tutorial [S9]")]
+        [SerializeField, Tooltip("When false, the gig skips the 'Tutorial?' prompt and plays " +
+            "with the tutorial OFF. Turn on again when the tutorial is enabled.")]
+        private bool askTutorialOptIn = false;
+        public bool AskTutorialOptIn => askTutorialOptIn;
+
         public bool AutoStartFromDefaults => autoStartFromDefaults;
         public bool StartOnShipHub => startOnShipHub;
         public DemoLaunchConfigSO DemoLaunchConfig => demoLaunchConfig;

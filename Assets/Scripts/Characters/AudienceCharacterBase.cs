@@ -40,6 +40,11 @@ namespace ALWTTT.Characters.Audience
         /// <summary>[LEGIB-1b] The ability shown as intention (null when none).</summary>
         public AudienceAbilityData PendingAbility => NextAbility;
 
+        // [S9 / REINA-1, D8=A] Presentation hooks: the ability just announced (player turn start)
+        // and the ability that just finished acting. First listener: BroodClock (the Reina's larva).
+        public event System.Action<AudienceAbilityData> OnAbilityShown;
+        public event System.Action<AudienceAbilityData> OnAbilityFired;
+
         /// <summary>
         /// [LEGIB-1b / D5=A] Roll or pick the ability's musician now. Consumes RNG once per
         /// shown intention instead of once per fired action: same count for today's data,
@@ -495,6 +500,7 @@ namespace ALWTTT.Characters.Audience
 
             // [S8 / D3=A] Announcing pose (empty slot = normal sprite).
             SetPose(NextAbility.PendingSprite, "pending " + NextAbility.AbilityId);
+            OnAbilityShown?.Invoke(NextAbility); // [S9]
 
             // [LEGIB-1b / D7 -> icons] The "xN" of ActionList[0] is gone: it showed the FIRST
             // action's value (Heckle read "x1", its Exposed stack, not its 2 Stress; F-T6-5).
@@ -526,6 +532,9 @@ namespace ALWTTT.Characters.Audience
                 : ability.AbilityDuration;
             if (delay <= 0f) delay = 2f;
 
+            // [S9] Restore what it was: a member whose prefab switches the beat bob off
+            // (the Reina) must not get it back after its first ability.
+            bool beatWasOn = CharacterAnimator != null && CharacterAnimator.enabled;
             if (anim.DisableBeatAnimator && CharacterAnimator != null)
                 CharacterAnimator.enabled = false;
 
@@ -538,7 +547,7 @@ namespace ALWTTT.Characters.Audience
             yield return new WaitForSeconds(delay);
 
             if (anim.DisableBeatAnimator && CharacterAnimator != null)
-                CharacterAnimator.enabled = true;
+                CharacterAnimator.enabled = beatWasOn;
         }
 
         public virtual IEnumerator AbilityRoutine()
@@ -589,9 +598,22 @@ namespace ALWTTT.Characters.Audience
             // Spotlight included) and holds before the first hit so it is read before the blow.
             // No line -> the LEGIB-1b floater, unchanged.
             var shoutTarget = FirstProjectedMusician(NextAbility);
+
+            // [S9 / REINA-1, D3=A] Abilities with no single musician target (self buffs, the whole
+            // band) can still CALL a musician by name when lines exist for them and they are on
+            // stage (the Reina calls Sibi to the hive). Kept apart from shoutTarget so the S8
+            // "grito != golpe" check never compares it with a hit.
+            var called = shoutTarget == null ? FindCalledMusician(NextAbility) : null;
+            var namedInShout = shoutTarget != null ? shoutTarget : called;
+
             string shoutId;
             string line = GameText.Shout(AudienceCharacterData.CharacterId, NextAbility.AbilityId,
-                shoutTarget != null ? shoutTarget.CharacterName : null, out shoutId);
+                namedInShout != null ? namedInShout.CharacterName : null, out shoutId);
+            if (called != null && !string.IsNullOrEmpty(line))
+                Debug.Log($"[S9] Grito a {called.CharacterName} | {CharacterId} | {NextAbility.AbilityId} | \"{line}\"");
+
+            // [S9] Snapshot for the egg / hatch session logs (stress before the blow).
+            var s9Before = S9SnapshotStress();
 
             if (!string.IsNullOrEmpty(line))
             {
@@ -662,7 +684,65 @@ namespace ALWTTT.Characters.Audience
                     ExecuteActionWithTiming(action, targets, ctx));
             }
 
+            S9LogAbility(NextAbility, s9Before);
+            OnAbilityFired?.Invoke(NextAbility); // [S9]
+
             SetPose(null, "done"); // [S8] back to the normal sprite after acting
+        }
+
+        /// <summary>[S9 / D3=A] First musician on stage (band order) with own lines for this
+        /// member's ability. Null when none: the general lines are used.</summary>
+        private MusicianBase FindCalledMusician(AudienceAbilityData ability)
+        {
+            var band = GigManager != null ? GigManager.CurrentMusicianCharacterList : null;
+            if (band == null || ability == null) return null;
+            foreach (var m in band)
+            {
+                if (m == null) continue;
+                if (GameText.HasMusicianShout(AudienceCharacterData.CharacterId, ability.AbilityId, m.CharacterName))
+                    return m;
+            }
+            return null;
+        }
+
+        // [S9 / REINA-1] Session logs for the egg · egg · hatch pattern. Keyed on the ability ids
+        // of the JSON (ab_egg_*, ab_hatch); any member using those ids logs the same way.
+        private int _s9Eggs;
+
+        private Dictionary<MusicianBase, int> S9SnapshotStress()
+        {
+            var d = new Dictionary<MusicianBase, int>();
+            var band = GigManager != null ? GigManager.CurrentMusicianCharacterList : null;
+            if (band == null) return d;
+            foreach (var m in band)
+                if (m != null && m.Stats != null) d[m] = m.Stats.CurrentStress;
+            return d;
+        }
+
+        private void S9LogAbility(AudienceAbilityData ability, Dictionary<MusicianBase, int> before)
+        {
+            string id = ability?.AbilityId;
+            if (string.IsNullOrEmpty(id)) return;
+
+            if (id.StartsWith("ab_egg"))
+            {
+                _s9Eggs++;
+                int hyped = Statuses != null ? Statuses.GetStacks(CharacterStatusId.DamageUpFlat) : 0;
+                Debug.Log($"[S9] Huevo {_s9Eggs} | {CharacterId} | Exaltado={hyped} | " +
+                          $"Vibe={(stats != null ? stats.CurrentVibe : -1)}/{(stats != null ? stats.MaxVibe : -1)}");
+            }
+            else if (id.StartsWith("ab_hatch"))
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (var kv in before)
+                {
+                    if (kv.Key == null || kv.Key.Stats == null) continue;
+                    int now = kv.Key.Stats.CurrentStress;
+                    if (sb.Length > 0) sb.Append(", ");
+                    sb.Append($"{kv.Key.CharacterName} {kv.Value}→{now} (−{kv.Value - now})");
+                }
+                Debug.Log($"[S9] Eclosión | {CharacterId} | huevos={_s9Eggs} | {sb}");
+            }
         }
 
         private static bool IsSingleMusicianTarget(ActionTargetType t)

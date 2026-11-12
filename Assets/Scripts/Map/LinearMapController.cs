@@ -373,12 +373,29 @@ namespace ALWTTT.Map
             _ship.AttachTo(target);
         }
 
+        private static bool DevJumpHeld()
+        {
+#if UNITY_EDITOR || ALWTTT_DEV
+            return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+#else
+            return false;
+#endif
+        }
+
         private void HandleNodeClicked(SectorNodeVisual visual)
         {
             if (_launching || _introPlaying || visual == null || visual.Node == null) return;
 
             int index = visual.Node.Id;
-            if (index != _activeIndex)
+
+            // [S9] Dev jump (editor / ALWTTT_DEV only): Shift + click on a LATER node launches it
+            // directly, as if the nodes before it had been played. The band still comes from the
+            // dormitory when no gig has been played yet (see `first` below).
+            bool devJump = index > _activeIndex && index < nodes.Count && DevJumpHeld();
+            if (devJump)
+                Debug.Log($"[S9] Salto de nodo (dev) | {_activeIndex} → {index} '{nodes[index].title}'");
+
+            if (index != _activeIndex && !devJump)
             {
                 Debug.Log($"{DebugTag} Click on node {index} ignored (active={_activeIndex}).");
                 return;
@@ -396,7 +413,9 @@ namespace ALWTTT.Map
             var runConfig = config.ToRunConfig(gigReturnDestination);
             if (runConfig == null) return; // ToRunConfig already logged.
 
-            bool first = index == 0;
+            // [S9] "First" = no gig played yet in this run (equals index == 0 in the normal flow;
+            // differs only after a dev jump, which must still apply the dormitory band).
+            bool first = PD.LinearMapNextNode == 0;
             bool isBoss = index == nodes.Count - 1;
             runConfig.preserveRunState = !first;
 

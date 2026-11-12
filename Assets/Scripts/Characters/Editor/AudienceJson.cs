@@ -144,6 +144,7 @@ namespace ALWTTT.Characters.Editor
         {
             public string path = "";               // empty = no launch config
             public string copyFrom = "";           // template when creating; empty = DemoLaunchConfig
+            public int requiredSongCount;          // [S9] >0 = songs of this gig; 0 = keep the asset's
         }
 
         [Serializable]
@@ -751,6 +752,10 @@ namespace ALWTTT.Characters.Editor
                 }
                 var cso = new SerializedObject(cfg);
                 cso.FindProperty("encounter").objectReferenceValue = enc;
+                // [S9 / D0=A] The boss (and Tentaculos, D7=A) needs a 4th song so the third
+                // ability of its pattern actually fires (the audience skips its turn after the last song).
+                if (e.launchConfig.requiredSongCount > 0)
+                    cso.FindProperty("requiredSongCount").intValue = e.launchConfig.requiredSongCount;
                 cso.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(cfg);
                 rep.launches++;

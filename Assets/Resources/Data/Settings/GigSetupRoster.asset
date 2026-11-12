@@ -22,6 +22,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 377edab8100b452428da92d57ef1ec19, type: 2}
   - {fileID: 11400000, guid: 1f6a27194b39f8940a29930af7e20218, type: 2}
   - {fileID: 11400000, guid: 3ede06ed2415cac449b517b9ec878a01, type: 2}
+  - {fileID: 11400000, guid: 874e083317fa66d4589744f32a6d6174, type: 2}
   genericStarterCatalog: {fileID: 11400000, guid: e07d090ba6b92294b81eee3aef6dfd71, type: 2}
   availableAudienceCharacters:
   - {fileID: 11400000, guid: 085e95c05f8793249aa6399eaccb2d6d, type: 2}

@@ -306,7 +306,15 @@ namespace ALWTTT.Managers
         }
 
         public List<Transform> MusicianPosList => musicianPosList;
-        public List<Transform> AudienceMemberPosList => audienceMemberPosList;
+        // [S9] A venue with its own audience slots (the Colmena: the Reina on the right) wins.
+        public List<Transform> AudienceMemberPosList
+        {
+            get
+            {
+                var venue = backgroundContainer != null ? backgroundContainer.Current : null;
+                return venue != null && venue.HasAudiencePositions ? venue.AudiencePositions : audienceMemberPosList;
+            }
+        }
 
         // TODO: Implement dual target cards Musician -> Audience Character
         public MusicianBase SelectedMusician =>
@@ -527,9 +535,24 @@ namespace ALWTTT.Managers
             // opt-in answer, then the driver is PREPARED (forced-hand fill or
             // stand-down) BEFORE StartGig runs its initial draw in SetupDeck.
             var pd = GameManager.PersistentGameplayData;
+
+            // [S9] Show this gig's venue now, not after the prompt (it used to sit over
+            // the previous venue until answered). StartGig opens it again; idempotent.
+            PreOpenBackground(pd);
+
+            // [S9] The tutorial is off for now: GigDevSettings.askTutorialOptIn = false skips the
+            // prompt and plays without it. Turn it back on when the tutorial is ready.
+            bool ask = dev == null || dev.AskTutorialOptIn;
+            if (!ask && pd != null && !pd.TutorialOptInAnswered)
+            {
+                pd.TutorialEnabled = false;
+                pd.TutorialOptInAnswered = true;
+                Debug.Log("[S9] Tutorial | sin pregunta (askTutorialOptIn=false) → apagado");
+            }
+
             // [MAP-DEMO-1] Asked once per run: later map nodes and Retry reuse
             // the answer (falls through to the no-popup path below).
-            if (tutorialOptInPrompt != null && tutorialOptInPrompt.IsWired && pd != null
+            if (ask && tutorialOptInPrompt != null && tutorialOptInPrompt.IsWired && pd != null
                 && !pd.TutorialOptInAnswered)
             {
                 tutorialOptInPrompt.Show(pd.TutorialEnabled, enabled =>
@@ -817,6 +840,18 @@ namespace ALWTTT.Managers
             UIManager.SetupEncounterUI(CurrentGigEncounter);
         }
 
+        /// <summary>[S9] Same lookup as SetupEncounter, without its side effects.</summary>
+        private void PreOpenBackground(PersistentGameplayData pd)
+        {
+            if (backgroundContainer == null) return;
+            ALWTTT.Encounters.GigEncounter enc = null;
+            if (GigRunContext.Instance != null && GigRunContext.Instance.TryGetEncounter(out var ctxEncounter))
+                enc = ctxEncounter;
+            else if (pd != null && pd.CurrentEncounter != null)
+                enc = pd.CurrentEncounter;
+            if (enc != null) backgroundContainer.OpenSelectedBackground(enc);
+        }
+
         private void BuildBackground()
         {
             if (UseLogs) Debug.Log($"{DebugTag} Building background...");
@@ -833,6 +868,13 @@ namespace ALWTTT.Managers
             // [S7 / D5=A] Slots by band size. Source: hand-made formation → automatic
             // line → legacy musicianPosList (index fixed: was `Count >= i`, which let
             // i == Count through and threw on a 5th musician).
+            // [S9] The venue may bring its own slots (smaller band in the Colmena).
+            var venue = backgroundContainer != null ? backgroundContainer.Current : null;
+            var bandStageLayout = venue != null && venue.BandStageLayout != null
+                ? venue.BandStageLayout : this.bandStageLayout;
+            Debug.Log($"[S9] Colocación | banda={(bandStageLayout != this.bandStageLayout ? "local " + venue.name : "escena")} | " +
+                      $"público={(venue != null && venue.HasAudiencePositions ? "local " + venue.name : "escena")}");
+
             List<Transform> slots = null;
             string slotSource;
             if (bandStageLayout != null && bandStageLayout.HasFormation(bandSize))

@@ -319,6 +319,18 @@ MonoBehaviour:
     displayName: BOOO!
     description: Boos one bandmate from the gut. Deals <link=stress>Stress</link>;
       hits harder while <link=hyped>Hyped</link>.
+  - id: ab_egg_one
+    displayName: First Egg
+    description: Lays an egg. Regains <link=vibe>Vibe</link> and gains <link=hyped>Hyped</link>.
+      On the third turn, the eggs hatch on the whole band.
+  - id: ab_egg_two
+    displayName: Second Egg
+    description: Lays an egg. Regains <link=vibe>Vibe</link> and gains <link=hyped>Hyped</link>.
+      On the third turn, the eggs hatch on the whole band.
+  - id: ab_hatch
+    displayName: Hatch!
+    description: 'The eggs burst: deals <link=stress>Stress</link> to the whole band,
+      plus its <link=hyped>Hyped</link>.'
   cardNames:
   - id: 3_Action_001
     displayName: Count-In
@@ -907,3 +919,31 @@ MonoBehaviour:
     lines:
     - BOOO! Back to the factory, {musico}!
     - '{musico}, even the metronome gave up on you!'
+  - id: shout_reina_gusano_ab_egg_one
+    lines:
+    - "One\u2026 for the hive."
+    - Play, play. The brood is listening.
+    - My little ones are hungry for music.
+  - id: shout_reina_gusano_ab_egg_one__sibi
+    lines:
+    - "{musico}, my child\u2026 come back to the hive."
+    - '{musico}, the hive is calling you.'
+    - Playing for them, {musico}? You belong to the hive.
+  - id: shout_reina_gusano_ab_egg_two
+    lines:
+    - "Two\u2026 they're stirring."
+    - Louder. Let them hear it inside the egg.
+    - Almost ready, my little ones.
+  - id: shout_reina_gusano_ab_egg_two__sibi
+    lines:
+    - '{musico}, feel the hive. You always have.'
+    - Come back, {musico}. Your siblings are about to hatch.
+  - id: shout_reina_gusano_ab_hatch
+    lines:
+    - Hatch, my children!
+    - Feast, my little ones!
+    - The hive awakens!
+  - id: shout_reina_gusano_ab_hatch__sibi
+    lines:
+    - 'Look, {musico}: your siblings!'
+    - '{musico}, say hello to the family!'

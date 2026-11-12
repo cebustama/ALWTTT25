@@ -89,12 +89,24 @@ pre.log { background: var(--code-bg); border-radius: 6px; padding: 12px 14px; fo
 .done { font-family: var(--f-mono); font-size: 13px; color: var(--muted); margin-top: 60px; border-top: 1px solid var(--line); padding-top: 16px }
 @media (max-width: 860px) { .wrap { grid-template-columns: minmax(0,1fr); gap: 24px } nav.toc { position: static } .refs, .pair { grid-template-columns: minmax(0,1fr) } }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+/* Índice colapsable */
+.wrap { transition: grid-template-columns .2s ease }
+@media (prefers-reduced-motion: reduce) { .wrap { transition: none } }
+.toc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px }
+.toc-head b { margin-bottom: 0 !important }
+.toc-toggle { font: 600 14px var(--f-mono); width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); color: var(--muted); cursor: pointer; flex: none }
+.toc-toggle:hover { color: var(--fg); background: var(--accent-soft) }
+.toc-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.wrap.toc-closed { grid-template-columns: 30px minmax(0, 1fr) }
+.wrap.toc-closed nav.toc ol, .wrap.toc-closed nav.toc .toc-head b { display: none }
+.wrap.toc-closed main { max-width: 80ch }
+@media (max-width: 860px) { .wrap.toc-closed { grid-template-columns: minmax(0,1fr) } }
 </style>
 
 <div class="wrap">
 <nav class="toc" aria-label="Índice">
-  <b>Índice</b>
-  <ol>
+  <div class="toc-head"><b>Índice</b><button type="button" class="toc-toggle" id="toc-toggle" aria-expanded="true" aria-controls="toc-list" title="Ocultar el índice">‹</button></div>
+  <ol id="toc-list">
     <li><a href="#compila"><span class="n">1</span>Compila</a></li>
     <li><a href="#arte"><span class="n">2</span>El arte</a></li>
     <li><a href="#mascara"><span class="n">3</span>El truco de la máscara</a></li>
@@ -265,3 +277,23 @@ pre.log { background: var(--code-bg); border-radius: 6px; padding: 12px 14px; fo
 <p class="done">Escrito el 11-nov-2026 para la sesión S6 (NAVE-2). El código no se ha verificado en Unity; este tutorial no sustituye a los smokes.</p>
 </main>
 </div>
+<script>
+(function () {
+  var wrap = document.querySelector('.wrap'), btn = document.getElementById('toc-toggle'), KEY = 's6-toc-closed';
+  if (!wrap || !btn) return;
+  function set(closed) {
+    wrap.classList.toggle('toc-closed', closed);
+    btn.textContent = closed ? '›' : '‹';
+    btn.setAttribute('aria-expanded', String(!closed));
+    btn.title = closed ? 'Mostrar el índice' : 'Ocultar el índice';
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  set(saved === '1');
+  btn.addEventListener('click', function () {
+    var closed = !wrap.classList.contains('toc-closed');
+    set(closed);
+    try { localStorage.setItem(KEY, closed ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>

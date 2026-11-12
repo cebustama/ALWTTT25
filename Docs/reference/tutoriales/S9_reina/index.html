@@ -1,0 +1,376 @@
+<title>La Reina Gusano</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una columna de lectura (~68ch) con índice fijo; figuras con el arte real; Inspector como tablas oscuras tipo Unity. */
+:root {
+  --bg: #f6f7fb; --paper: #ffffff; --fg: #1b1f2e; --muted: #5b6275; --line: #dde1ec;
+  --accent: #2f45c8; --accent-soft: #e6e9fb; --gold: #b58300; --gold-soft: #fff4d4;
+  --ok: #1e7d4f; --ok-soft: #e3f5ec; --warn: #a2481a; --warn-soft: #fbe9df;
+  --insp-bg: #383838; --insp-row: #3f3f3f; --insp-fg: #e4e4e4; --insp-key: #b9b9b9; --insp-val: #9fd4ff;
+  --code-bg: #eef0f7;
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12141c; --paper: #191c27; --fg: #e3e6f0; --muted: #9aa1b6; --line: #2c3142;
+  --accent: #8fa0ff; --accent-soft: #232a4d; --gold: #f2c14e; --gold-soft: #3a3016;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0a07a; --warn-soft: #3a2218;
+  --insp-bg: #2a2a2a; --insp-row: #323232; --code-bg: #222636; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12141c; --paper: #191c27; --fg: #e3e6f0; --muted: #9aa1b6; --line: #2c3142;
+  --accent: #8fa0ff; --accent-soft: #232a4d; --gold: #f2c14e; --gold-soft: #3a3016;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0a07a; --warn-soft: #3a2218;
+  --insp-bg: #2a2a2a; --insp-row: #323232; --code-bg: #222636; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 16px/1.65 var(--f-body); }
+.wrap { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 48px; max-width: 1120px; margin: 0 auto;
+  padding-block: 40px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 14px; }
+nav.toc b { font-family: var(--f-display); display: block; margin-bottom: 8px; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; color: var(--muted) }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px }
+nav.toc a { color: var(--fg); text-decoration: none; display: block; padding: 3px 8px; border-radius: 4px }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); outline: none }
+nav.toc .n { color: var(--muted); font-family: var(--f-mono); font-size: 12px; margin-right: 6px }
+main { min-width: 0; max-width: 72ch }
+header.hero { margin-bottom: 40px }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent) }
+h1 { font-family: var(--f-display); font-size: clamp(34px, 5vw, 48px); line-height: 1.08; margin: 8px 0 14px; text-wrap: balance }
+h2 { font-family: var(--f-display); font-size: 28px; margin: 64px 0 10px; text-wrap: balance; scroll-margin-top: 20px }
+h2 .n { color: var(--accent); margin-right: 10px }
+h3 { font-family: var(--f-display); font-size: 19px; margin: 32px 0 6px; text-wrap: balance }
+h3 .n { color: var(--muted); font-family: var(--f-mono); font-size: 14px; margin-right: 8px }
+p, li { max-width: 68ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere }
+kbd { font-family: var(--f-mono); font-size: .82em; border: 1px solid var(--line); border-bottom-width: 2px; padding: 0 5px; border-radius: 4px; background: var(--paper) }
+.path { font-family: var(--f-mono); font-size: .86em; color: var(--muted); overflow-wrap: anywhere }
+ol.steps { padding-left: 22px; display: grid; gap: 8px }
+ol.steps > li::marker { font-family: var(--f-mono); color: var(--accent); font-weight: 600 }
+.menu { font-family: var(--f-mono); font-size: .86em; font-weight: 600; white-space: nowrap }
+figure { margin: 24px 0; }
+figure img { display: block; width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--line) }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; font-style: italic }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.pair figure { margin: 0 }
+.box { border-radius: 8px; padding: 14px 18px; margin: 20px 0; border: 1px solid transparent }
+.box > :first-child { margin-top: 0 } .box > :last-child { margin-bottom: 0 }
+.box .tag { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px }
+.ok { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 35%, transparent) } .ok .tag { color: var(--ok) }
+.why { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent) } .why .tag { color: var(--accent) }
+.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent) } .warn .tag { color: var(--warn) }
+.insp { background: var(--insp-bg); color: var(--insp-fg); border-radius: 6px; font: 13px/1.4 var(--f-mono); margin: 16px 0; overflow-x: auto }
+.insp .title { padding: 8px 12px; font-weight: 600; border-bottom: 1px solid #222 }
+.insp table { border-collapse: collapse; width: 100%; min-width: 380px }
+.insp td { padding: 6px 12px; border-top: 1px solid #2c2c2c; vertical-align: top }
+.insp tr:nth-child(even) td { background: var(--insp-row) }
+.insp td:first-child { color: var(--insp-key); width: 42% }
+.insp td:last-child { color: var(--insp-val) }
+.insp .sub td:first-child { padding-left: 28px }
+table.plain { border-collapse: collapse; width: 100%; font-size: 15px; margin: 16px 0 }
+.tbl { overflow-x: auto }
+table.plain th, table.plain td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+table.plain th { font-family: var(--f-display); font-size: 14px; color: var(--muted) }
+table.plain td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+pre.log { background: var(--code-bg); border-radius: 6px; padding: 12px 14px; font: 13px/1.55 var(--f-mono); overflow-x: auto; margin: 10px 0 }
+.smoke { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 16px 18px; margin: 18px 0 }
+.smoke h4 { font-family: var(--f-display); margin: 0 0 8px; font-size: 17px }
+.smoke dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 0 }
+.smoke dt { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 3px }
+.smoke dd { margin: 0; min-width: 0 }
+.refs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px }
+.ref { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column }
+.ref img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; border-bottom: 1px solid var(--line) }
+.ref .body { padding: 12px 14px; font-size: 14px; display: grid; gap: 6px }
+.ref h4 { font-family: var(--f-display); margin: 0; font-size: 16px }
+.ref .take b { color: var(--ok) } .ref .skip b { color: var(--warn) }
+.ref .path { font-size: 11.5px }
+.done { font-family: var(--f-mono); font-size: 13px; color: var(--muted); margin-top: 60px; border-top: 1px solid var(--line); padding-top: 16px }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0,1fr); gap: 24px } nav.toc { position: static } .refs, .pair { grid-template-columns: minmax(0,1fr) } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } .wrap { transition: grid-template-columns .2s ease } }
+/* Índice colapsable */
+.toc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px }
+.toc-head b { margin-bottom: 0 !important }
+.toc-toggle { font: 600 14px var(--f-mono); width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); color: var(--muted); cursor: pointer; flex: none }
+.toc-toggle:hover { color: var(--fg); background: var(--accent-soft) }
+.toc-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.wrap.toc-closed { grid-template-columns: 30px minmax(0, 1fr) }
+.wrap.toc-closed nav.toc ol, .wrap.toc-closed nav.toc .toc-head b { display: none }
+.wrap.toc-closed main { max-width: 80ch }
+@media (max-width: 860px) { .wrap.toc-closed { grid-template-columns: minmax(0,1fr) } }
+</style>
+<div class="wrap">
+<nav class="toc" aria-label="Índice"><div class="toc-head"><b>S9 · REINA-1</b><button type="button" class="toc-toggle" id="toc-toggle" aria-expanded="true" aria-controls="toc-list" title="Ocultar el índice">‹</button></div><ol id="toc-list">
+<li><a href="#importar"><span class="n">1</span>Importar a la Reina</a></li>
+<li><a href="#colmena"><span class="n">2</span>La Colmena en capas</a></li>
+<li><a href="#colocar"><span class="n">2b</span>Banda y Reina en la Colmena</a></li>
+<li><a href="#cria"><span class="n">3</span>La cría como reloj</a></li>
+<li><a href="#mapa"><span class="n">4</span>El último nodo</a></li>
+<li><a href="#smokes"><span class="n">5</span>Smokes</a></li>
+<li><a href="#refs"><span class="n">6</span>Referencias</a></li>
+<li><a href="#luego"><span class="n">7</span>Lo que viene</a></li>
+</ol></nav>
+<main>
+<header class="hero">
+<div class="eyebrow">ALWTTT · DEMO-1211 · S9 REINA-1 · 2026-11-12</div>
+<h1>La Reina Gusano</h1>
+<p class="lede">El jefe final de la demo pone un huevo, luego otro, y al tercer turno revientan contra toda la banda. Este tutorial monta su gig de punta a punta: el personaje, la cueva de la Colmena en cinco capas, una cría que hace de reloj y el último nodo del mapa.</p>
+<p>Este tutorial cubre:</p>
+<ul>
+<li>importar la Reina con el arte final y su gig de 4 canciones;</li>
+<li>armar el local <b>Venue2 · Colmena</b> con las capas de Matías;</li>
+<li>poner la cría junto a la Reina, de modo que crezca con cada huevo;</li>
+<li>enlazar el nodo 3 del mapa y jugar 4 smokes con sus líneas <code>[S9]</code>.</li>
+</ul>
+<div class="box warn"><span class="tag">Sin verificar en Unity</span>
+<p>El código y el JSON están escritos, pero nada se ha compilado ni jugado. Si algo no compila, para en la sección 1 y pásame el error de la consola.</p></div>
+</header>
+
+<h2 id="importar"><span class="n">1</span>Importar a la Reina</h2>
+<p>La Reina vive en <code>Assets/Settings/Audience/Elenco_S7.json</code>, igual que el resto del público. Ya la habías importado una vez con el sprite viejo. El JSON trae ahora el arte final, el local 2 y las 4 canciones, así que basta con volver a pasar los dos menús.</p>
+<ol class="steps">
+<li>Espera a que Unity compile (scripts nuevos: <code>BroodClock.cs</code>, y cambios en <code>AudienceCharacterBase</code>, <code>GameText</code> y <code>AudienceJson</code>).</li>
+<li>Menú <span class="menu">ALWTTT ▸ S7 ▸ Crear elenco (ELENCO-1)</span>.</li>
+<li>Menú <span class="menu">ALWTTT ▸ S8 ▸ Importar gritos del elenco (GRITOS-1)</span>.</li>
+<li>Ya no sale «¿Tutorial?» al entrar a un gig: el tutorial queda apagado (<span class="path">GigDevSettings ▸ Ask Tutorial Opt In</span>, desmarcado). Cuando el tutorial esté listo, márcalo y vuelve a preguntar.</li>
+<li>Abre <span class="menu">ALWTTT ▸ Art ▸ Character Lineup</span>, elige a la Reina y pulsa <b>Ajustar UI</b>.</li>
+</ol>
+<pre class="log">[S7] Audience JSON import | characters created=0 updated=8 | prefabs created=0 updated=1 | … | encounters=4 launchConfigs=4 …
+[S8] Gritos importados | … entrada(s) ES/EN | avisos=0 | Elenco_S7.json</pre>
+<div class="insp"><div class="title">LaunchConfig - La Reina Gusano (Inspector, tras importar)</div><table>
+<tr><td>Encounter</td><td>Gig - La Reina Gusano</td></tr>
+<tr><td>Required Song Count</td><td>4</td></tr>
+<tr><td>Band Roster</td><td>(el de DemoLaunchConfig; el mapa usa la banda del dormitorio)</td></tr>
+</table></div>
+<div class="insp"><div class="title">Gig - La Reina Gusano</div><table>
+<tr><td>Target Venue Type</td><td>Venue2</td></tr>
+<tr><td>Number Of Songs</td><td>4</td></tr>
+<tr><td>Audience Member List</td><td>Reina Gusano</td></tr>
+</table></div>
+<div class="box why"><span class="tag">Por qué 4 canciones</span>
+<p>El público no actúa después de la última canción: <code>skipAudienceActionsAfterFinalSong</code> está activado, para que el gig termine sin un golpe que ya no importa. Con 3 canciones, el público actúa solo dos veces, así que el tercer paso del patrón se anunciaba y nunca llegaba. Le pasaba al «¡TRES!» de Tentáculos desde S7. Con 4, la eclosión llega tras la canción 3 y queda una canción para rematar. Y si la convences antes, no eclosiona: es una carrera contra la cuenta.</p></div>
+<div class="box why"><span class="tag">Por qué Exaltado +2 y no +1</span>
+<p>Exaltado baja 1 al empezar cada turno tuyo. Con +1 por huevo, el contador volvía a cero antes del siguiente huevo y la eclosión no sumaba nada. Con +2 el icono de estado marca 1 en el turno 2 y 2 en el turno 3, y la intención de la eclosión ya muestra 5 + 2 = <b>7</b>. Monster Train resuelve el mismo problema dando Rage de 2 en 2.</p></div>
+<div class="box ok"><span class="tag">Lo has logrado si…</span>
+<p>la Reina aparece con el arte final en Character Lineup (sin las manchas sueltas de la esquina) y el log de importación dice <code>prefabs … updated=1</code> y <code>avisos=0</code>.</p></div>
+
+<h2 id="colmena"><span class="n">2</span>La Colmena en capas</h2>
+<p>Cada gig enciende el fondo cuyo <code>VenueType</code> coincide con el de su encuentro (<code>BackgroundContainer.OpenSelectedBackground</code>). Ningún otro encuentro usa Venue2, y su prefab <code>Venue_BG_2</code> solo tiene un fondo viejo de una capa. Ahí van las cinco capas de Matías. El prefab ya está dentro de <code>VenueBackgroundContainer</code>, así que no hay que cablear nada más.</p>
+<figure><img src="img/capas.jpg" alt="Las cinco capas del escenario sobre un damero: la nebulosa, la cueva con el agujero, la franja media, el cuenco de huevos y el marco delantero" loading="lazy">
+<figcaption>Las cinco capas, de atrás hacia delante. El damero es la transparencia: la cueva tiene un agujero por el que se ve la nebulosa, y el marco deja libre el centro.</figcaption></figure>
+
+<h3><span class="n">2.1</span>Importar las texturas</h3>
+<p>Las capas están en <span class="path">Assets/Resources/Sprites/Backgrounds/Venue 2 - Colmena/</span>. Son enormes (BG y FG miden 11.286 × 6.485), así que hay que bajarlas al importar. Selecciona las cinco a la vez y en el Inspector:</p>
+<div class="insp"><div class="title">Texture Import Settings (las 5 juntas)</div><table>
+<tr><td>Texture Type</td><td>Sprite (2D and UI)</td></tr>
+<tr><td>Sprite Mode</td><td>Single</td></tr>
+<tr><td>Max Size</td><td>4096</td></tr>
+<tr><td>Compression</td><td>Normal Quality</td></tr>
+<tr><td>Generate Mip Maps</td><td>off</td></tr>
+</table></div>
+<p>Después, una por una, el <b>Pixels Per Unit</b>. La regla: que el ancho del original ocupe 19,2 unidades, como los fondos de 1.920 px a 100 PPU que ya usa el juego. La cámara tiene tamaño ortográfico 5,5, o sea 11 unidades de alto.</p>
+<div class="tbl"><table class="plain">
+<tr><th>Archivo</th><th>Tamaño original</th><th>Pixels Per Unit</th><th>Mide en el mundo</th></tr>
+<tr><td>BG2.png (nebulosa)</td><td class="num">9639 × 5550</td><td class="num">502</td><td class="num">19,2 × 11,1</td></tr>
+<tr><td>BG.png (cueva)</td><td class="num">11286 × 6485</td><td class="num">588</td><td class="num">19,2 × 11,0</td></tr>
+<tr><td>FG.png (marco)</td><td class="num">11286 × 6485</td><td class="num">588</td><td class="num">19,2 × 11,0</td></tr>
+<tr><td>MG.png (franja)</td><td class="num">5427 × 1929</td><td class="num">588</td><td class="num">9,2 × 3,3</td></tr>
+<tr><td>HUEVOS.png (cuenco)</td><td class="num">2265 × 1367</td><td class="num">588</td><td class="num">3,9 × 2,3</td></tr>
+</table></div>
+<div class="box why"><span class="tag">Por qué un mismo PPU para BG, FG, MG y HUEVOS</span>
+<p>Si salen del mismo lienzo de Matías, compartir los píxeles por unidad conserva su escala relativa: el cuenco mide en el juego lo mismo que en el dibujo. Max Size baja la resolución de la textura, pero Unity mantiene el tamaño del sprite en el mundo, así que la tabla vale igual con 4096.</p></div>
+
+<h3><span class="n">2.2</span>Montar el prefab</h3>
+<ol class="steps">
+<li>Abre <span class="path">Assets/Prefabs/Backgrounds/Venue_BG_2.prefab</span> con doble clic.</li>
+<li>Desactiva el hijo <code>BackgroundSprite</code> (el fondo viejo). No lo borres hasta ver la Colmena funcionando.</li>
+<li>Crea cinco hijos con <span class="menu">clic derecho ▸ 2D Object ▸ Sprites ▸ Square</span>, cambia el sprite de cada uno y rellénalos así:</li>
+</ol>
+<div class="insp"><div class="title">Hijos de Venue_BG_2 (Sprite Renderer)</div><table>
+<tr><td>Colmena_BG2 · Sprite</td><td>BG2</td></tr>
+<tr class="sub"><td>Sorting Layer / Order · Position</td><td>Background / 0 · (0, 0, 10)</td></tr>
+<tr><td>Colmena_BG · Sprite</td><td>BG</td></tr>
+<tr class="sub"><td>Sorting Layer / Order · Position</td><td>Background / 1 · (0, 0, 10)</td></tr>
+<tr><td>Colmena_MG · Sprite</td><td>MG</td></tr>
+<tr class="sub"><td>Sorting Layer / Order · Position</td><td>Background / 2 · a ojo (abajo)</td></tr>
+<tr><td>Colmena_FG · Sprite</td><td>FG</td></tr>
+<tr class="sub"><td>Sorting Layer / Order · Position</td><td>Foreground / 0 · (0, 0, 0)</td></tr>
+<tr><td>Colmena_Huevos · Sprite</td><td>HUEVOS</td></tr>
+<tr class="sub"><td>Sorting Layer / Order · Position</td><td>Foreground / 1 · a ojo (esquina)</td></tr>
+</table></div>
+<figure><img src="img/maqueta.jpg" alt="Maqueta: la nebulosa con la silueta de la Reina en el agujero de la cueva, la Reina Gusano a la derecha con una cría a su lado, el cuenco de huevos abajo a la izquierda y el marco delantero" loading="lazy">
+<figcaption>Maqueta con el arte real, no una captura del juego. La franja MG y el cuenco van a ojo: no sabemos dónde los puso Matías en su lienzo.</figcaption></figure>
+<div class="box warn"><span class="tag">Dos cosas que mirar</span>
+<p><b>El marco tapa.</b> FG va en la capa Foreground, delante del público y de la banda. Si tapa a la Reina o a un músico, bájalo a Background / 3 o pídele a Matías el marco sin las columnas laterales.</p>
+<p><b>MG y HUEVOS.</b> Si no encuentras su sitio en dos minutos, pide a Matías una captura del lienzo con todo junto (o las coordenadas). Mientras tanto, déjalos desactivados: la Colmena se lee igual con la nebulosa, la cueva y el marco.</p></div>
+<div class="box ok"><span class="tag">Lo has logrado si…</span>
+<p>en el prefab ves la nebulosa por el agujero de la cueva, el marco por delante, y la cueva llena el rectángulo de la cámara (19,2 × 11) sin bordes negros.</p></div>
+
+<h3><span class="n">2.3</span>Lo que hará un local con pulso</h3>
+<p><code>BackgroundRoot</code> también sabe encender humo y fuego (<code>smokeRoot</code>, <code>fireRoot</code>). La Colmena no los tiene: si el log dice <code>[BackgroundRoot] Venue2 SetSmoke: no smokeRoot assigned.</code>, es normal y no rompe nada.</p>
+
+<h2 id="colocar"><span class="n">2b</span>Banda y Reina en la Colmena</h2>
+<p>Desde esta versión, cada local puede traer su propia colocación: unos huecos para la banda (un <code>BandStageLayout</code>, igual que el de S7) y otros para el público. La escala de cada hueco es la escala del personaje que se pone en él. Si el local no trae nada, se usa la colocación de la escena, como hasta ahora. Así la Colmena tiene una banda pequeña a la izquierda y la Reina grande a la derecha, y los demás gigs no cambian.</p>
+<div class="pair">
+<figure><img src="img/boceto-banda.jpg" alt="Boceto de Matías: la banda muy pequeña sobre un plato a la izquierda de la cueva y la Reina enorme a la derecha, con el cuenco de huevos en el centro" loading="lazy"><figcaption>Boceto de Matías. Tú quieres la banda algo más grande que aquí.</figcaption></figure>
+<figure><img src="img/boceto-reina.jpg" alt="Boceto de Matías: la Reina a la derecha, apoyada en el suelo de la cueva, con la nebulosa detrás" loading="lazy"><figcaption>La Reina sola: a la derecha, apoyada en el suelo, sin tapar el agujero.</figcaption></figure>
+</div>
+
+<h3><span class="n">2b.1</span>Ver la Colmena en el editor</h3>
+<ol class="steps">
+<li>Abre <span class="path">3 - Gig Scene</span>. En la Hierarchy, busca <code>Venue_BG_2</code> (dentro del Gig Manager) y actívalo; desactiva <code>Venue_BG_1</code>. <b>Es solo para mirar</b>: antes de guardar los devuelves como estaban (en el juego, el código enciende el que toca).</li>
+</ol>
+
+<h3><span class="n">2b.2</span>Los huecos de la banda</h3>
+<ol class="steps">
+<li>Selecciona el objeto <code>Band Stage Layout</code> de la escena (el de S7), <kbd>Ctrl</kbd>+<kbd>C</kbd>, selecciona <code>Venue_BG_2</code> y <kbd>Ctrl</kbd>+<kbd>V</kbd>. Renombra la copia <code>Band Stage Layout - Colmena</code>. Tiene que quedar <b>dentro</b> de <code>Venue_BG_2</code>.</li>
+<li>Selecciona <code>Venue_BG_2</code> y en su <b>Background Root</b> arrastra la copia al campo nuevo <b>Band Stage Layout</b>.</li>
+<li>Abre <span class="menu">ALWTTT ▸ Art ▸ Character Lineup</span> ▸ pestaña <b>En el escenario</b>, elige el encuentro <b>La Reina Gusano</b> y pulsa <b>Previsualizar</b>. El log dice <code>colocación=local Venue_BG_2</code>.</li>
+<li>Mueve los huecos de la copia (<code>Duo 1</code>, <code>Trio 1</code>…) al plato de la izquierda y bájales la escala: selecciónalos todos y pon <b>Scale</b> igual en X e Y. Prueba con 2, 3 y 4 músicos.</li>
+</ol>
+<div class="insp"><div class="title">Punto de partida (ajústalo a ojo)</div><table>
+<tr><td>Huecos de la banda · Scale</td><td>0.55 (el boceto sería ~0.35; tú lo quieres algo mayor)</td></tr>
+<tr><td>Huecos de la banda · zona</td><td>el plato de la cueva, a la izquierda, a media altura</td></tr>
+</table></div>
+<div class="box why"><span class="tag">Por qué la escala va en el hueco y no en el músico</span><p>El músico se crea como hijo de su hueco, así que hereda su escala. Si la escala fuera del prefab, encogerías a Conito en todos los gigs. Con el hueco, Conito mide lo de siempre en el bar y es pequeño solo en la Colmena. La vista previa ahora también lee esa escala, así que lo que ves es lo que sale.</p></div>
+
+<h3><span class="n">2b.3</span>El hueco de la Reina</h3>
+<ol class="steps">
+<li>Clic derecho sobre <code>Venue_BG_2</code> ▸ <span class="menu">Create Empty</span>, y llámalo <code>Publico 1 - Reina</code>.</li>
+<li>En el <b>Background Root</b> de <code>Venue_BG_2</code>, en <b>Audience Positions</b>, pon 1 elemento y arrastra ahí <code>Publico 1 - Reina</code>.</li>
+<li>Con la vista previa abierta, muévelo a la derecha (los pies sobre el suelo de la cueva) y ajusta su Scale si la quieres más grande o más pequeña.</li>
+</ol>
+<div class="box warn"><span class="tag">Guardar en el prefab</span><p>Lo que hiciste está como cambios de la escena sobre el prefab. Para que viva en <code>Venue_BG_2</code>: selecciona <code>Venue_BG_2</code> en la Hierarchy ▸ en el Inspector, <span class="menu">Overrides ▸ Apply to Prefab 'Venue_BG_2'</span>. <b>No</b> uses «Apply All» sobre el Gig Manager. Vuelve a dejar activo <code>Venue_BG_1</code> y apagado <code>Venue_BG_2</code>, y guarda la escena.</p></div>
+
+<h3><span class="n">2b.4</span>La Reina sin animación de compás</h3>
+<ol class="steps">
+<li>Abre <span class="path">AudienceCharacter - Reina Gusano.prefab</span>.</li>
+<li>Busca el componente <b>Character Animator</b> (el que la hace saltar y girar con el ritmo) y <b>desactívalo</b> con su casilla. Si también tiene un <b>Animator</b>, desactívalo igual.</li>
+</ol>
+<div class="box why"><span class="tag">Por qué ahora se queda apagado</span><p>Al actuar, cada miembro del público apaga su animación de compás y la vuelve a encender al terminar. Antes la encendía siempre, así que la Reina habría vuelto a bailar tras su primer huevo. Ahora deja el estado que tenía: si el prefab la trae apagada, sigue apagada.</p></div>
+<div class="box ok"><span class="tag">Lo has logrado si…</span><p>en el gig de la Reina la banda sale pequeña sobre el plato, la Reina grande a la derecha y quieta, y la consola dice:</p><pre class="log">[S9] Local | Venue2 → Venue_BG_2
+[S9] Colocación | banda=local Venue_BG_2 | público=local Venue_BG_2</pre><p>En los otros gigs: <code>banda=escena | público=escena</code>, sin cambios.</p></div>
+
+<h2 id="cria"><span class="n">3</span>La cría como reloj</h2>
+<p>Las cuatro etapas del arte (huevo, huevo con ojo, larva que abre la boca, larva que grita) son exactamente el patrón de la Reina. La cría va junto a ella y cambia de etapa con cada habilidad. Es la cuenta de Tentáculos dibujada en grande.</p>
+<figure><img src="img/cria.jpg" alt="Las cuatro etapas de la cría: un huevo cerrado, un huevo que abre un ojo, una larva con la boca abierta y una larva gritando entre trozos de cáscara" loading="lazy">
+<figcaption>Etapa 1 tras el primer huevo, 2 tras el segundo, 3 cuando se anuncia la eclosión y 4 al reventar (1,5 s; luego la nidada queda vacía).</figcaption></figure>
+<ol class="steps">
+<li>Abre <span class="path">Assets/Prefabs/Characters/Audience/AudienceCharacter - Reina Gusano.prefab</span>.</li>
+<li>Clic derecho sobre la raíz ▸ <span class="menu">Create Empty</span>, y llámalo <code>Cria</code>. Arrástralo dentro del hijo <code>Sprite</code> (el que tiene el dibujo de la Reina): así, cuando cambies su altura en Character Lineup o la escales en un local, la cría crece, encoge y se mueve con ella.</li>
+<li>Añade un <b>Sprite Renderer</b> y un <b>Brood Clock</b>, y rellénalos:</li>
+</ol>
+<div class="insp"><div class="title">Cria</div><table>
+<tr><td>Transform · Position</td><td>(-1.6, 0.2, 0) · a ojo, a los pies y a la izquierda</td></tr>
+<tr><td>Sprite Renderer · Sorting Layer / Order</td><td>Audience / 1</td></tr>
+<tr><td>Brood Clock · Stages (4)</td><td>larva_1, larva_2, larva_3, larva_4</td></tr>
+<tr class="sub"><td>Sprite Renderer</td><td>(vacío = el de este objeto)</td></tr>
+<tr class="sub"><td>Tamaño</td><td>con la herramienta Scale sobre <code>Cria</code> (la etapa que se vea; las demás siguen en proporción)</td></tr>
+<tr class="sub"><td>Egg Prefix / Hatch Prefix</td><td>ab_egg / ab_hatch</td></tr>
+<tr class="sub"><td>Burst Hold Seconds</td><td>1.5</td></tr>
+<tr class="sub"><td>Pop Amount / Pop Seconds</td><td>0.25 / 0.25</td></tr>
+</table></div>
+<p>Los sprites están en <span class="path">Assets/Resources/Sprites/Characters/Audience/Reina/</span>. Para ver dónde queda, usa el menú contextual del componente (los tres puntos ⋮) ▸ <b>Vista previa ▸ etapa 4</b>, la más grande, y mueve el <code>Cria</code> hasta que se vea bien. En el juego empieza oculta.</p>
+<div class="box why"><span class="tag">Por qué un componente y no poses de la Reina</span>
+<p>Las poses de S8 cambian el sprite de la propia Reina. Si la cuenta fuera una pose, perderíamos la cara de la Reina cada vez que pone un huevo. La cría es otro dibujo que escucha dos avisos nuevos de <code>AudienceCharacterBase</code>: <code>OnAbilityShown</code> (al empezar tu turno) y <code>OnAbilityFired</code> (después de actuar). Solo cambia lo que se ve: el número, el objetivo y el orden siguen como estaban. Si un día otro personaje usa habilidades <code>ab_egg_*</code>, el mismo componente le sirve.</p></div>
+<div class="box why"><span class="tag">Por qué las etapas no se igualan de tamaño</span>
+<p>En el dibujo el huevo es pequeño y la larva grande: ese crecimiento <i>es</i> la cuenta. <code>BroodClock</code> guarda el tamaño que le diste en el prefab y pone las demás etapas en proporción a sus píxeles. Es relativo a la Reina: si ella encoge, la cría encoge. (La primera versión fijaba un tamaño en el mundo e ignoraba la escala de la Reina; por eso quedaba grande y lejos.)</p></div>
+<div class="box ok"><span class="tag">Lo has logrado si…</span>
+<p>con la vista previa de la etapa 4, la larva grita junto a la Reina, a su altura de pies, sin taparle la cara ni la barra de Vibe.</p></div>
+
+<h2 id="mapa"><span class="n">4</span>El último nodo</h2>
+<ol class="steps">
+<li>Abre la escena <span class="path">1b - Linear Map</span>.</li>
+<li>Selecciona el objeto con <code>LinearMapController</code> ▸ <b>Nodes</b> ▸ elemento 2 («La Reina Gusano»).</li>
+<li>En <b>Launch Config</b>, arrastra <code>LaunchConfig - La Reina Gusano</code> en lugar de <code>DemoLaunchConfig</code>.</li>
+</ol>
+<div class="box warn"><span class="tag">Aviso</span>
+<p>En esta escena hay un cambio tuyo sin commit: el nodo 1 apunta a Tentáculos (antes, Ranas y Rayas). No lo he tocado. Decide cuál quieres al guardar.</p></div>
+<pre class="log">[LinearMap] Launch node 2 'La Reina Gusano' | Encounter=Venue2 | … | Boss=True | PreserveRunState=True</pre>
+<div class="box ok"><span class="tag">Lo has logrado si…</span>
+<p>el log del lanzamiento dice <code>Venue2</code> y <code>Boss=True</code>, y el gig se abre en la cueva.</p></div>
+
+<h2 id="smokes"><span class="n">5</span>Smokes</h2>
+<p>Juega desde el mapa: la Reina es el tercer nodo. Para llegar rápido, usa el modo Dev o pierde los dos primeros a propósito (el mapa avanza igual).</p>
+<div class="smoke"><h4>Smoke 1 · Huevo, huevo</h4><dl>
+<dt>Preparación</dt><dd>Gig de la Reina, banda con Sibi.</dd>
+<dt>Acción</dt><dd>Toca las canciones 1 y 2 sin convencerla.</dd>
+<dt>Esperado</dt><dd>Al empezar, una intención «Primer huevo» sin número y sin cría visible. Al terminar cada canción: grito a Sibi, la cría aparece (etapa 1) y luego crece (etapa 2), y su barra de Vibe se rellena.<pre class="log">[S9] Grito a Sibi | reina_gusano | ab_egg_one | "Sibi, la colmena te llama."
+[S9] Huevo 1 | reina_gusano | Exaltado=2 | Vibe=…/50
+[S9] Cría | AudienceCharacter - Reina Gusano(Clone) | etapa 1 | huevo 1
+[S9] Huevo 2 | reina_gusano | Exaltado=3 | Vibe=…/50
+[S9] Cría | … | etapa 2 | huevo 2</pre></dd>
+<dt>Falla si</dt><dd>Exaltado no sube, la Vibe no se recupera o la cría no cambia.</dd></dl></div>
+<div class="smoke"><h4>Smoke 2 · La eclosión acierta</h4><dl>
+<dt>Preparación</dt><dd>Seguir el gig del smoke 1.</dd>
+<dt>Acción</dt><dd>En el turno 3, sin pasar el ratón, apunta los segmentos rojos de cada músico; luego termina la canción 3.</dd>
+<dt>Esperado</dt><dd>Al empezar el turno, la intención «¡Eclosión!» marca <b>7</b> con el icono «×N» y la cría pasa a la etapa 3. Al terminar la canción: la viñeta, el bocadillo, el golpe a todos y la cría gritando (etapa 4), que desaparece al rato.<pre class="log">[S9] Cría | … | etapa 3 | eclosión anunciada
+[S8] Viñeta | reina_gusano | reina | 1.6s
+[S9] Eclosión | reina_gusano | huevos=2 | Sibi 20→13 (−7), Conito 15→8 (−7), …
+[S9] Cría | … | etapa 4 | eclosión
+[S9] Cría | … | etapa 0 | nidada vacía</pre>Lo que bajó cada uno coincide con el rojo que apuntaste (Calma incluida).</dd>
+<dt>Falla si</dt><dd>La intención marca 5, o lo real no coincide con lo previsto.</dd></dl></div>
+<div class="smoke"><h4>Smoke 3 · Convencerla antes</h4><dl>
+<dt>Preparación</dt><dd>Gig nuevo de la Reina (si hace falta, Dev Mode para bajarle la Vibe).</dd>
+<dt>Acción</dt><dd>Convéncela antes de que termine la canción 3.</dd>
+<dt>Esperado</dt><dd>Victoria anticipada, sin eclosión; la cría desaparece al convencerla; WinPanel con «Volver al menú».<pre class="log">[S9] Cría | … | etapa 0 | convencida</pre></dd>
+<dt>Falla si</dt><dd>Sigue el gig, eclosiona igual o no sale el WinPanel.</dd></dl></div>
+<div class="smoke"><h4>Smoke 4 · Regresiones: sin Sibi y Tentáculos</h4><dl>
+<dt>Preparación</dt><dd>A: Reina con una banda sin Sibi. B: gig de Tentáculos.</dd>
+<dt>Acción</dt><dd>Juega hasta la canción 3 en cada uno.</dd>
+<dt>Esperado</dt><dd>A: gritos generales («¡Naced, hijos míos!») y ninguna línea <code>[S9] Grito a</code>. B: 4 canciones; «Uno…» y «Dos…» suben su Exaltado; el «¡TRES!» marca 10 y golpea de verdad tras la canción 3.</dd>
+<dt>Falla si</dt><dd>A: nombra a Sibi o sale <code>{musico}</code> sin sustituir. B: el TRES sigue sin llegar.</dd></dl></div>
+
+<h2 id="refs"><span class="n">6</span>Referencias</h2>
+<div class="refs">
+<div class="ref"><img src="img/ref-arkion.jpg" alt="Monster Train, pantalla previa al combate de Arkion con su habilidad Furious Frenzy y la ficha de Rage" loading="lazy"><div class="body">
+<h4>Monster Train · Arkion</h4>
+<p>El jefe se presenta en una frase y su ficha dice «Rage +2 por stack; baja cada turno».</p>
+<p class="take"><b>Tomar:</b> el +2 que sobrevive a la bajada (D1).</p>
+<p class="skip"><b>No tomar:</b> la pantalla previa, por ahora; el mapa ya presenta a la Reina en su tarjeta.</p>
+<p class="path">Dropbox\ALWTTT References\Pre-Gig Screen 1.png</p></div></div>
+<div class="ref"><img src="img/ref-seraph.jpg" alt="Monster Train, Seraph el Entrópico con fichas de Resolve, Enchant y la carta Curse of Entropy" loading="lazy"><div class="body">
+<h4>Monster Train · Seraph</h4>
+<p>Cada habilidad del jefe en su propia ficha, con nombre y una línea, y una carta maldita que entra en tu mazo.</p>
+<p class="take"><b>Tomar:</b> fichas cortas; y la carta, en la próxima sesión (D9=B).</p>
+<p class="skip"><b>No tomar:</b> una carta que solo estorbe; la nuestra deja decidir.</p>
+<p class="path">Dropbox\ALWTTT References\Enemies\Screenshot 2025-08-04 200409.png</p></div></div>
+<div class="ref"><img src="img/ref-sibi.jpg" alt="Página del cuaderno de Claudio: ficha de Wormy / Sibi, especie con estructura de colmena que sigue la voluntad de la colmena" loading="lazy"><div class="body">
+<h4>Ficha de Sibi (tu cuaderno)</h4>
+<p>«Estructura tipo colmena, todos tienen reina»; «sigue siempre la voluntad de la colmena, para bien y para mal».</p>
+<p class="take"><b>Tomar:</b> la Reina llama a Sibi por su nombre (D3=A).</p>
+<p class="skip"><b>No tomar todavía:</b> castigar a Sibi con más Stress; su mecánica propia, después.</p>
+<p class="path">Dropbox\ALWTTT References\Characters\Sibi.jpeg</p></div></div>
+</div>
+
+<h2 id="luego"><span class="n">7</span>Lo que viene</h2>
+<figure><img src="img/cartas.jpg" alt="Las dos cartas de la Reina: un ojo con el recuadro de texto vacío y un ojo con dientes" loading="lazy">
+<figcaption>Las cartas de la colmena, para la sesión propia (D9=B).</figcaption></figure>
+<ul>
+<li><b>CARTAS-COLMENA-1</b> (después de jugar S9): cada huevo cae en tu mano. Si lo juegas, lo aplastas y la eclosión pega menos; si no, eclosiona. Hace falta una acción del público que añada cartas a la mano (hoy solo existe <code>AddToDrawPile</code>) y su proyección.</li>
+<li><b>Sibi y la colmena</b>: «anularlo» un turno o «llamarlo a la colmena». Por diseñar.</li>
+<li><b>Pedido #14 a Matías</b>: viñeta de la eclosión (hoy sale la Reina entera) y la composición de MG y HUEVOS.</li>
+</ul>
+<p class="done">S9 · REINA-1 · fuente en Docs/reference/tutoriales/S9_reina/ · generado el 2026-11-12</p>
+</main></div>
+<script>
+(function () {
+  var wrap = document.querySelector('.wrap'), btn = document.getElementById('toc-toggle');
+  if (!wrap || !btn) return;
+  function set(closed) {
+    wrap.classList.toggle('toc-closed', closed);
+    btn.textContent = closed ? '›' : '‹';
+    btn.setAttribute('aria-expanded', String(!closed));
+    btn.title = closed ? 'Mostrar el índice' : 'Ocultar el índice';
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('s9-toc-closed'); } catch (e) {}
+  set(saved === '1');
+  btn.addEventListener('click', function () {
+    var closed = !wrap.classList.contains('toc-closed');
+    set(closed);
+    try { localStorage.setItem('s9-toc-closed', closed ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
