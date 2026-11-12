@@ -6,6 +6,12 @@ Escrito el 2026-11-12 desde la sesión 1 de MidiGenPlay (acentos y fills). Plann
 
 > Lee `Docs/planning/active/ARRANQUE_S9b_audio_loop.md` y haz S9b (AUDIO-LOOP-1). Objetivo: que el crash del cierre de un loop, y cualquier nota que siga sonando, cruce la frontera del loop sin cortarse. Empieza con `/buscar-referencias --all` y preséntame las decisiones en formato D antes de construir.
 
+## Estado al empezar (2026-11-13)
+
+- S9 (REINA-1) cerrada, commit `426bfbe`. S9b es la siguiente del orden de entrada; luego S9c y ECON-2.
+- El bundle de ritmo de prueba con fills (`starter_default_mode_Payload_Rhythm_StyleBundle.asset`: `fillEveryNMeasures` 4, `lastMeasuresAsFill`, `crashAfterFill`) está modificado **sin commitear** en el árbol: sirve para reproducir el corte. Decidir en la sesión si se queda o se revierte.
+- Idea relacionada, no para esta sesión: el eco musical de las cartas de acción (`reference/ideas/2026-11-12_accion_con_eco_musical.md`) también toca qué suena en la frontera del loop. Que el diseño de S9b no le cierre la puerta.
+
 ## Qué pasa (comprobado en el código el 2026-11-12; releer antes de afirmar)
 
 Claudio lo oyó al probar los fills de MidiGenPlay: el crash que suena al cerrar un loop se corta de golpe al empezar el siguiente. No es del generador: es de la reproducción, y afecta a **cualquier** voz que siga sonando (colas de platos, notas largas de acordes o bajo).
