@@ -2,7 +2,7 @@
 
 Página privada para oír a Zig con el mismo Pink Trombone del juego, compararlo con melodías por figura y modos de voz, y mover la garganta en vivo. Creada el 2026-11-13 a partir del comentario de Matías («siempre es lo mismo»).
 
-- **Dónde:** artefacto https://claude.ai/artifact/WRdHN5Gf839qotLhrqvyLj. Wrapped con el diagnóstico y la propuesta: ver `../zig-voz-wrapped/`. Web privada: todavía no (`python -I -X utf8 build.py --web` la copia a `web/.../public/privado/taller-melodia/`, sin subir).
+- **Dónde:** artefacto https://claude.ai/artifact/WRdHN5Gf839qotLhrqvyLj y web privada `/privado/taller-melodia/` (`python -I -X utf8 build.py --web`; enlazada desde `/privado/` y `/privado/talleres-musicales/`; web `58b05c6`, subido el 2026-11-13). Wrapped con el diagnóstico y la propuesta: https://claude.ai/artifact/GGpSCDLpNzdx7hbDfqiUf5 (`../zig-voz-wrapped/`).
 - **Archivos:** `motor-voz.js` (el fork POC-FORK 1–7 en JS + extensiones X1–X3), `motor-canto.js` (melodías, sílabas, modos, cantante del juego y cantante v2), `template.html` + `build.py` → `index.html`. Los dos motores van dos veces en la página: como scripts (voz en vivo) y como fuente del Web Worker (renders).
 - **Investigación:** `investigacion.md` (Pink Trombone, forks, fisiología de los estilos, contorno melódico; con lo que no se pudo verificar).
 
@@ -12,6 +12,8 @@ Página privada para oír a Zig con el mismo Pink Trombone del juego, compararlo
 - **Modos:** Zig hoy, Zig hoy + dicción (el C-lite que ya existe en C#), Tierno y calmado, Pop, Punk rock, Death metal, Ópera, Crooner, Falsete, Robot, Borracho.
 - **Perillas:** ★ las que existen en `VoiceProfileSO`; el resto es propuesta (longitud del tracto, aire, growl, aspereza, scoop, caída, glide, ataque, legato, saturación, vocal base, sílabas).
 - **Melodía nueva:** figura (escalera, zig-zag, saltos, ola, pedal, secuencia, paseo), sube/baja en grados, dirección, rango, ritmo por celdas (densidad, síncopa, silencios, swing), reglas (post-salto, acorde en 1 y 3, cadencia, firma de Zig), 16 escalas (7 existen en el juego).
+- **Zigués (2026-11-13, pedido de Claudio: «inspiradas en español, pero que suene extraterrestre»):** léxico de 9 palabras por semilla con la fonotaxis del español (CV, grupos tr/kl/gr, codas), sesgado a u, i, z, sh y k; un verso de cuatro palabras que vuelve. La `dureza` de cada modo elige consonantes suaves (tierno) o duras (punk, death metal). Selector «Sílabas»: zigués (por defecto), las del modo o texto propio.
+- **Segunda voz (Doble Armonía, 2026-11-13):** relación «como el juego» (`NearestChordToneHarmonyStrategy`: nota del acorde más cercana, 3–14 semitonos, desempate por la anterior) o intervalo diatónico (3.ª arriba/abajo, 6.ª, 5.ª, octava, unísono); a la par, en eco o en coro («u» largas); perfil propio o el de la voz 1; volumen y apertura estéreo; la garganta muestra la voz 1 o la 2. Dos Web Workers, uno por voz.
 - **En vivo:** ScriptProcessor con la voz del modo; teclas A–Ñ, arrastrar la lengua sobre el dibujo, botones de consonante y vocal.
 - **Versiones:** en este navegador; código `TM1:`; «Copiar para la carta» da `VoiceProfileSO` + `propuestaVoiceProfileV2` + `melodiaPropuesta`.
 

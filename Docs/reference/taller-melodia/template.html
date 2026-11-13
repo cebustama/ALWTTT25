@@ -148,7 +148,8 @@ code{font-family:var(--f-mono);font-size:.9em}
     <h3>Boca</h3>
     <div class="field vk"><label for="k_vocalBase">Vocal sin sílaba</label><select id="k_vocalBase"><option value="ə">ə (la «uh» de hoy)</option><option>a</option><option>e</option><option>i</option><option>o</option><option>u</option></select></div>
     <div class="field vk"><label for="k_brightness">★ Brillo</label><input id="k_brightness" type="range" min="0" max="1" step="0.01"><output></output><small>Filtro de salida, 1,2 a 10 kHz.</small></div>
-    <div class="field vk" style="grid-column:span 2"><label for="k_texto">Sílabas</label><input id="k_texto" type="text" placeholder="vacío = las del modo · p. ej. na na hey · mm · sha la la"><small>Una por nota, en ciclo. Consonantes: b p d t g k m n s z sh f v l w y r h. «mm» = boca cerrada.</small></div>
+    <div class="field vk"><label for="k_silMode">Sílabas</label><select id="k_silMode"><option value="zigues">Zigués (español extraterrestre)</option><option value="modo">Las del modo</option><option value="texto">Texto propio</option></select><small id="lexico"></small></div>
+    <div class="field vk" style="grid-column:span 2"><label for="k_texto">Texto propio</label><input id="k_texto" type="text" placeholder="p. ej. na na hey · mm · sha la la · kru zi lo"><small>Una sílaba por nota, en ciclo. Consonantes: b p d t g k m n s z sh f v l w y r h; grupos como tr, kl, gr. «mm» = boca cerrada.</small></div>
     <h3>Ataque y altura</h3>
     <div class="field vk"><label for="k_scoop">Scoop (semitonos)</label><input id="k_scoop" type="range" min="0" max="3" step="0.1"><output></output><small>Entrar desde abajo.</small></div>
     <div class="field vk"><label for="k_caida">Caída final</label><input id="k_caida" type="range" min="0" max="4" step="0.1"><output></output><small>Dejar caer el final de frase.</small></div>
@@ -156,6 +157,18 @@ code{font-family:var(--f-mono);font-size:.9em}
     <div class="field vk"><label for="k_ataque">Ataque empujado</label><input id="k_ataque" type="range" min="0" max="0.3" step="0.01"><output></output><small>Más tensión en los primeros 80 ms.</small></div>
     <div class="field vk"><label for="k_legato">Legato</label><input id="k_legato" type="range" min="0" max="1" step="0.01"><output></output><small>Ligar notas cercanas sin soltar la voz.</small></div>
     <div class="field vk"><label for="k_saturacion">Saturación</label><input id="k_saturacion" type="range" min="0" max="1" step="0.01"><output></output><small>Efecto de micro, no físico.</small></div>
+  </section>
+
+  <section class="band" id="v2Band" aria-label="Segunda voz">
+    <h2>Segunda voz · Doble Armonía</h2>
+    <p class="full note">Zig cantando a dos voces consigo mismo, cada una con su perfil. «Como el juego» usa la regla de MidiGenPlay para la pista Harmony: la nota del acorde más cercana a la melodía, entre 3 y 14 semitonos. Ojo: por eso cruza la melodía, a veces por encima y a veces por debajo. Los intervalos fijos siguen la escala.</p>
+    <div class="field chk"><input id="v2_on" type="checkbox"><label for="v2_on">Cantar a dos voces</label></div>
+    <div class="field"><label for="v2_rel">Relación</label><select id="v2_rel"></select></div>
+    <div class="field"><label for="v2_ritmo">Cómo canta</label><select id="v2_ritmo"><option value="par">A la par (mismas sílabas)</option><option value="eco">En eco (un tiempo después)</option><option value="coro">Coro (notas largas, «u»)</option></select></div>
+    <div class="field"><label for="v2_modo">Perfil de la voz 2</label><select id="v2_modo"></select></div>
+    <div class="field"><label for="v2_vol">Volumen voz 2</label><input id="v2_vol" type="range" min="0" max="1.5" step="0.05"><output></output></div>
+    <div class="field"><label for="v2_pan">Abrir en estéreo</label><input id="v2_pan" type="range" min="0" max="1" step="0.05"><output></output><small>0 = las dos al centro; 1 = una por oído.</small></div>
+    <div class="field"><label for="v2_ver">La garganta muestra</label><select id="v2_ver"><option value="1">Voz 1</option><option value="2">Voz 2</option></select></div>
   </section>
 
   <section class="band mel" aria-label="Melodía nueva">
@@ -214,7 +227,8 @@ code{font-family:var(--f-mono);font-size:.9em}
       <li><b>Igual, con prueba:</b> el motor de voz. <code>motor-voz.js</code> es el fork de <code>Assets/PinkTrombonePOC/PinkTromboneSrc</code> (POC-FORK 1–7) línea a línea; la carpeta <code>paridad/</code> compila el C# real con dotnet y compara: el 95 % de las muestras son idénticas bit a bit y el resto difiere en el último bit del float (error −155 dB).</li>
       <li><b>Igual, por lectura del código:</b> «Zig hoy» es <code>SingerVoice.OnAudioFilterRead</code> v7 con <code>VoiceProfile_Zig</code> y el prefab <code>Zig_SingerVoice</code>: bloques de 1024, lead por intervalo, velocidad → volumen y tensión, vibrato con retraso, tone stage, <code>expressivityEnabled = false</code>. «Zig hoy + dicción» enciende el C-lite M1–M3.</li>
       <li><b>Distinto:</b> en el juego Rise Up sale en la octava media del instrumento; aquí empieza en la tónica elegida. Los acordes y la batería son un acompañamiento sintetizado para oír la voz en contexto, no los del gig. El volumen de la voz se iguala entre modos.</li>
-      <li><b>Propuesta, no existe en C#:</b> todo lo marcado sin ★, las sílabas y la melodía nueva. Las extensiones del motor están apagadas por defecto, así que no tocan la paridad.</li>
+      <li><b>Segunda voz:</b> «Como el juego» copia la regla de <code>NearestChordToneHarmonyStrategy</code> con sus distancias por defecto (3–14 semitonos), sobre la tríada del compás. En el juego hoy suena como instrumento GM (Tier A); cantada (Tier B) son dos voces, el doble de CPU.</li>
+      <li><b>Propuesta, no existe en C#:</b> todo lo marcado sin ★, las sílabas (zigués incluido) y la melodía nueva. Las extensiones del motor están apagadas por defecto, así que no tocan la paridad.</li>
     </ul>
   </details>
   <details>
@@ -253,7 +267,8 @@ const nombreNota = (m) => NOMBRES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 
 // ------------------------------------------------------------------ estado
 const MEL_DEF = { tonica: 60, escala: 'Mayor (jónico)', progresion: 'I–V–vi–IV', bpm: 100, compases: 8, frase: 4, figura: 'Zig-zag', sube: 2, baja: 1, rango: 1.5, direccion: 'sube', alTope: 'rebota', ritmo: 'celdas', densidad: 0.45, sincopa: 0.3, silencios: 0.1, swing: 0, variacion: 0.1, postSalto: true, acordeFuerte: true, cadencia: true, repetir: 0.05, crescendo: 0.5, firma: true, semilla: 7, periodo: 8, pedal: 'tonica' };
 const VOZ_KEYS = ['transpose', 'tracto', 'tensLo', 'tensHi', 'aire', 'growl', 'aspereza', 'looseness', 'vibratoDepth', 'vibratoSpeedHz', 'vibratoDelay', 'vocalBase', 'brightness', 'scoop', 'caida', 'glideMs', 'ataque', 'legato', 'saturacion'];
-const S = { mel: Object.assign({}, MEL_DEF), modo: 'Punk rock', voz: MC.vozDeModo('Punk rock'), texto: '', melHoy: true, vozHoy: true, acomp: 'acordes' };
+const S = { mel: Object.assign({}, MEL_DEF), modo: 'Punk rock', voz: MC.vozDeModo('Punk rock'), texto: '', silMode: 'zigues', melHoy: true, vozHoy: true, acomp: 'acordes',
+  v2: { on: false, rel: 'Tercera arriba', ritmo: 'par', modo: 'Igual que la voz 1', vol: 0.8, pan: 0.4, ver: '1' } };
 
 // ------------------------------------------------------------------ controles
 function fillSelect(sel, items, val) { sel.innerHTML = ''; for (const [v, t] of items) { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); } sel.value = val; }
@@ -276,7 +291,15 @@ for (const k of VOZ_KEYS) {
   if (el.tagName === 'SELECT') { el.value = S.voz[k]; el.addEventListener('change', () => { S.voz[k] = el.value; cambio(); }); refresh.push(() => { el.value = S.voz[k]; }); }
   else refresh.push(bindRange(el, () => S.voz[k], (v) => { S.voz[k] = v; }));
 }
-$('k_texto').addEventListener('input', () => { S.texto = $('k_texto').value; cambio(); });
+$('k_texto').addEventListener('input', () => { S.texto = $('k_texto').value; if (S.texto.trim()) { S.silMode = 'texto'; $('k_silMode').value = 'texto'; } cambio(); });
+$('k_silMode').value = S.silMode;
+$('k_silMode').addEventListener('change', () => { S.silMode = $('k_silMode').value; cambio(); });
+refresh.push(() => { $('k_silMode').value = S.silMode; });
+fillSelect($('v2_rel'), Object.keys(MC.RELACIONES).map((k) => [k, k]), S.v2.rel);
+fillSelect($('v2_modo'), [['Igual que la voz 1', 'Igual que la voz 1']].concat(Object.keys(MC.MODOS).map((k) => [k, k])), S.v2.modo);
+for (const k of ['rel', 'ritmo', 'modo', 'ver']) { const el = $('v2_' + k); el.value = S.v2[k]; el.addEventListener('change', () => { S.v2[k] = el.value; if (k !== 'ver') cambio(true); }); refresh.push(() => { el.value = S.v2[k]; }); }
+$('v2_on').checked = S.v2.on; $('v2_on').addEventListener('change', () => { S.v2.on = $('v2_on').checked; cambio(true); }); refresh.push(() => { $('v2_on').checked = S.v2.on; });
+for (const k of ['vol', 'pan']) refresh.push(bindRange($('v2_' + k), () => S.v2[k], (v) => { S.v2[k] = v; }));
 const melKeys = ['tonica', 'escala', 'progresion', 'bpm', 'figura', 'sube', 'baja', 'direccion', 'rango', 'alTope', 'ritmo', 'densidad', 'sincopa', 'silencios', 'swing', 'variacion', 'crescendo', 'frase', 'semilla', 'postSalto', 'acordeFuerte', 'cadencia', 'firma'];
 for (const k of melKeys) {
   const el = $('m_' + k);
@@ -322,8 +345,17 @@ function melodiaActual() {
   const p = Object.assign({}, S.mel, S.melHoy ? { figura: 'Rise Up (exacto)', escala: S.mel.escala } : {});
   const m = MC.componer(p);
   const modoJuego = S.vozHoy || MC.MODOS[S.modo].juego;
-  const banco = modoJuego ? [] : S.voz.silabas;
-  MC.asignarSilabas(m.notas, banco, S.mel.semilla, modoJuego ? '' : S.texto);
+  m.lexico = null;
+  if (modoJuego) MC.asignarSilabas(m.notas, [], S.mel.semilla, '');
+  else if (S.silMode === 'zigues') m.lexico = MC.asignarZigues(m.notas, S.mel.semilla, S.voz.dureza);
+  else if (S.silMode === 'texto' && S.texto.trim()) MC.asignarSilabas(m.notas, [], S.mel.semilla, S.texto);
+  else MC.asignarSilabas(m.notas, S.voz.silabas, S.mel.semilla, '');
+  $('lexico').textContent = m.lexico ? 'Palabras de hoy: ' + m.lexico.lexico.join(' · ') : '';
+  if (S.v2.on) {
+    const h = MC.armonizar(m, S.mel.tonica, MC.RELACIONES[S.v2.rel], S.v2.ritmo);
+    if (S.v2.ritmo === 'coro') h.forEach((n) => { n.sil = 'u'; });
+    m.notas2 = h;
+  }
   return m;
 }
 function ctxJuego() {
@@ -332,15 +364,14 @@ function ctxJuego() {
 }
 
 // ------------------------------------------------------------------ worker
-let worker = null, reqId = 0; const pend = new Map();
+const workers = []; let reqId = 0; const pend = new Map();
 try {
   const url = URL.createObjectURL(new Blob([$('srcMotor').textContent], { type: 'text/javascript' }));
-  worker = new Worker(url);
-  worker.onmessage = (e) => { const p = pend.get(e.data.id); if (p) { pend.delete(e.data.id); p(e.data); } };
-} catch (e) { worker = null; }
+  for (let i = 0; i < 2; i++) { const w = new Worker(url); w.onmessage = (e) => { const p = pend.get(e.data.id); if (p) { pend.delete(e.data.id); p(e.data); } }; workers.push(w); }
+} catch (e) { workers.length = 0; }
 function renderVoz(msg) {
   return new Promise((res) => {
-    if (worker) { const id = ++reqId; msg.id = id; pend.set(id, res); worker.postMessage(msg); return; }
+    if (workers.length) { const id = ++reqId; msg.id = id; pend.set(id, res); workers[id % workers.length].postMessage(msg); return; }
     setTimeout(() => {
       const r = msg.tipo === 'juego' ? MC.cantarJuego(msg.notas, msg.perfil, msg.opts) : MC.cantarV2(msg.notas, msg.voz, msg.opts);
       MC.normalizar(r.audio, 0.11); res({ audio: r.audio, snaps: r.snaps });
@@ -386,17 +417,29 @@ async function preparar() {
   $('pos').textContent = 'renderizando…';
   const juego = S.vozHoy || MC.MODOS[S.modo].juego;
   const diccion = !S.vozHoy && !!MC.MODOS[S.modo].diccion;
-  const msg = juego ? { tipo: 'juego', notas, perfil: null, opts: { duracion: dur + 0.6, diccion, ctx: ctxJuego() } } : { tipo: 'v2', notas, voz: S.voz, opts: { duracion: dur + 0.6 } };
-  const [voz, acomp] = await Promise.all([renderVoz(msg), renderAcomp(mel, dur)]);
+  const msgDe = (ns, esJuego, dic, voz, seed) => esJuego ? { tipo: 'juego', notas: ns, perfil: null, opts: { duracion: dur + 0.6, diccion: dic, ctx: ctxJuego(), seed } } : { tipo: 'v2', notas: ns, voz, opts: { duracion: dur + 0.6, seed } };
+  const tareas = [renderVoz(msgDe(notas, juego, diccion, S.voz, 1)), renderAcomp(mel, dur)];
+  if (S.v2.on && mel.notas2) {
+    const n2 = MC.aSegundos({ notas: mel.notas2 }, S.mel.bpm);
+    let j2 = juego, d2 = diccion, voz2 = S.voz;
+    if (S.v2.modo !== 'Igual que la voz 1') { const M = MC.MODOS[S.v2.modo]; j2 = !!M.juego; d2 = !!M.diccion; voz2 = MC.vozDeModo(S.v2.modo); }
+    tareas.push(renderVoz(msgDe(n2, j2, d2, voz2, 2)));
+  }
+  const [voz, acomp, voz2r] = await Promise.all(tareas);
   if (v !== version) return null;
   const frames = Math.round(dur * SR);
   const ctx = ensureCtx();
-  const buf = ctx.createBuffer(1, frames, SR); const d = buf.getChannelData(0);
-  const va = voz.audio;
-  for (let i = 0; i < frames; i++) d[i] = (i < va.length ? va[i] : 0) + (acomp ? acomp[i] * 0.55 : 0);
-  // la cola de la última nota suena sobre el principio de la vuelta siguiente
-  for (let i = frames; i < va.length && i - frames < frames; i++) d[i - frames] += va[i];
-  actual = { buf, mel, notas, snaps: voz.snaps, dur };
+  const buf = ctx.createBuffer(2, frames, SR); const L = buf.getChannelData(0), R = buf.getChannelData(1);
+  const pan = S.v2.on ? S.v2.pan : 0, g2 = S.v2.vol;
+  const sumar = (va, gl, gr) => {
+    for (let i = 0; i < frames; i++) { const x = i < va.length ? va[i] : 0; L[i] += x * gl; R[i] += x * gr; }
+    // la cola de la última nota suena sobre el principio de la vuelta siguiente
+    for (let i = frames; i < va.length && i - frames < frames; i++) { L[i - frames] += va[i] * gl; R[i - frames] += va[i] * gr; }
+  };
+  sumar(voz.audio, 1, 1 - 0.8 * pan);
+  if (voz2r) sumar(voz2r.audio, g2 * (1 - 0.8 * pan), g2);
+  if (acomp) for (let i = 0; i < frames; i++) { L[i] += acomp[i] * 0.55; R[i] += acomp[i] * 0.55; }
+  actual = { buf, mel, notas, snaps: voz.snaps, snaps2: voz2r ? voz2r.snaps : null, dur };
   if (!playing) $('pos').textContent = '—';
   pintarRoll(); resumenMel();
   return actual;
@@ -466,13 +509,20 @@ function pintarRoll(t) {
   g.clearRect(0, 0, W, H);
   if (!actual) return;
   const { mel } = actual, ns = mel.notas, beats = mel.compases * 4;
-  let lo = Math.min(...ns.map((n) => n.midi)) - 2, hi = Math.max(...ns.map((n) => n.midi)) + 2;
+  const ns2 = (S.v2.on && mel.notas2) ? mel.notas2 : [];
+  const todas = ns.concat(ns2);
+  let lo = Math.min(...todas.map((n) => n.midi)) - 2, hi = Math.max(...todas.map((n) => n.midi)) + 2;
   const X = (b) => 10 + (W - 20) * b / beats, Y = (m) => H - 30 - (H - 60) * (m - lo) / (hi - lo);
   const mu = css('--muted'), li = css('--line'), me = css('--mel'), ms = css('--mel-soft'), vo = css('--voice'), now = css('--now');
   g.font = '18px ' + css('--f-mono').split(',')[0];
   for (let b = 0; b <= mel.compases; b++) { g.strokeStyle = li; g.lineWidth = b % 4 === 0 ? 2 : 1; g.beginPath(); g.moveTo(X(b * 4), 20); g.lineTo(X(b * 4), H - 24); g.stroke(); }
   for (let b = 0; b < mel.compases; b++) { g.fillStyle = mu; const deg = mel.prog[b % mel.prog.length]; g.fillText(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][deg] || '', X(b * 4) + 6, H - 6); }
   const playB = t != null ? t / (60 / S.mel.bpm) : -1;
+  const tr = css('--tract');
+  for (const n of ns2) {
+    const x = X(n.beat), w = Math.max(6, X(n.beat + n.dur) - x - 2), y = Y(n.midi);
+    g.strokeStyle = tr; g.lineWidth = 2; g.setLineDash([5, 3]); g.strokeRect(x, y - 7, w, 14); g.setLineDash([]);
+  }
   for (const n of ns) {
     const x = X(n.beat), w = Math.max(6, X(n.beat + n.dur) - x - 2), y = Y(n.midi);
     const on = playB >= n.beat && playB < n.beat + n.dur;
@@ -493,8 +543,9 @@ function frame() {
   if (playing && actual) {
     const t = posActual();
     $('pos').textContent = `compás ${Math.floor(t / (240 / S.mel.bpm)) + 1} / ${actual.mel.compases}`;
-    let lo = 0, hi = actual.snaps.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (actual.snaps[m].t <= t) lo = m; else hi = m - 1; }
-    dibujarTracto(actual.snaps[lo]); pintarRoll(t);
+    const sn = (S.v2.ver === '2' && actual.snaps2) ? actual.snaps2 : actual.snaps;
+    let lo = 0, hi = sn.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (sn[m].t <= t) lo = m; else hi = m - 1; }
+    dibujarTracto(sn[lo]); pintarRoll(t);
   } else if (vivoOn && vivoVoz) {
     const v = vivoVoz; dibujarTracto({ t: 0, d: v.tract.diameter, velo: v.tract.noseDiameter[0], f0: v.glottis.smoothFrequency, tens: v.glottis.targetTenseness, int: v.glottis.intensity, n: v.tract.n, ti: v.shaper.tongueIndex, td: v.shaper.tongueDiameter, sil: vivoSil });
   }
@@ -591,11 +642,12 @@ document.addEventListener('keyup', (e) => { if (!vivoOn) return; const i = tecla
 
 // ------------------------------------------------------------------ versiones y exportación
 const msg = (t) => { $('msg').textContent = t; };
-function estado() { return { v: 1, mel: S.mel, modo: S.modo, voz: Object.fromEntries(VOZ_KEYS.map((k) => [k, S.voz[k]]).concat([['silabas', S.voz.silabas]])), texto: S.texto, melHoy: S.melHoy, vozHoy: S.vozHoy }; }
+function estado() { return { v: 1, mel: S.mel, modo: S.modo, voz: Object.fromEntries(VOZ_KEYS.map((k) => [k, S.voz[k]]).concat([['silabas', S.voz.silabas]])), texto: S.texto, silMode: S.silMode, v2: S.v2, melHoy: S.melHoy, vozHoy: S.vozHoy }; }
 function aplicar(e) {
   if (!e || !e.mel) throw new Error('Código sin melodía');
   S.mel = Object.assign({}, MEL_DEF, e.mel); S.modo = MC.MODOS[e.modo] ? e.modo : 'Pop';
   S.voz = Object.assign(MC.vozDeModo(MC.MODOS[S.modo].juego ? 'Pop' : S.modo), e.voz || {}); S.texto = e.texto || ''; S.melHoy = !!e.melHoy; S.vozHoy = !!e.vozHoy;
+  S.silMode = e.silMode || (S.texto ? 'texto' : 'modo'); S.v2 = Object.assign({ on: false, rel: 'Tercera arriba', ritmo: 'par', modo: 'Igual que la voz 1', vol: 0.8, pan: 0.4, ver: '1' }, e.v2 || {});
   $('k_texto').value = S.texto; refresh.forEach((f) => f()); escNota(); pintarModo(); seg(); cambio(true);
 }
 const b64e = (s) => btoa(unescape(encodeURIComponent(s))), b64d = (s) => decodeURIComponent(escape(atob(s)));
@@ -609,6 +661,8 @@ $('copiarCarta').onclick = () => {
     VoiceProfileSO: { looseness: V.looseness, vibratoDepth: Math.min(1, V.vibratoDepth), vibratoSpeedHz: V.vibratoSpeedHz, diction: 1, mouth: 0, brightness: V.brightness, transposeSemitones: V.transpose, tensenessAtVel0: V.tensLo, tensenessAtVel127: V.tensHi, vibratoDelaySeconds: V.vibratoDelay, vibratoRampSeconds: V.vibratoRamp, pitchLeadSeconds: V.pitchLead, leadFullInterval: 7, minLoudness: V.minLoudness, startTrimMs: 20, gain: 1 },
     propuestaVoiceProfileV2: { modo: S.modo, tractLength: V.tracto, breath: V.aire, growl: V.growl, roughness: V.aspereza, drive: V.saturacion, scoopSemitones: V.scoop, scoopMs: V.scoopMs, fallSemitones: V.caida, glideMs: V.glideMs, attackPress: V.ataque, legato: V.legato, baseVowel: V.vocalBase, vibratoDepthUnclamped: V.vibratoDepth, syllables: S.texto ? S.texto.split(/\s+/) : V.silabas },
     melodiaPropuesta: Object.assign({}, S.mel),
+    silabas: { modo: S.silMode, dureza: V.dureza, texto: S.texto },
+    segundaVoz: S.v2.on ? { relacion: S.v2.rel, relacionId: MC.RELACIONES[S.v2.rel], ritmo: S.v2.ritmo, perfil: S.v2.modo, volumen: S.v2.vol, estereo: S.v2.pan } : null,
   };
   copiar(JSON.stringify(carta, null, 2), 'JSON para la carta copiado.');
 };

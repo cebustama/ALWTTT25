@@ -39,7 +39,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | --- | --- | --- | --- |
 | B1 | **MUSICA-2: niveles armónicos en el juego** | `arrange()` del taller en C#, con semilla por jugada; subir de nivel una carta = un escalón | cola de MidiGenPlay, «Niveles armónicos en el motor»; memoria «las cartas son paletas» |
 | B2 | **LASTLOOP-B** | Investigar si una carta jugada en el último loop puede entrar en la siguiente barra (segundo reproductor, como SONG-TAIL-1) | D-PLAN-14 B |
-| B3 | **DUET-1: Doble Armonía Tier B** | El canto a dos voces con Pink Trombone, y que la carta vuelva al mazo | minuta 12-nov, punto 6 |
+| B3 | **DUET-1: Doble Armonía Tier B** | El canto a dos voces con Pink Trombone, cada voz con su perfil (Claudio, 2026-11-13), y que la carta vuelva al mazo. Prototipo de oído en el Taller de melodías («Segunda voz»: relación como el juego o intervalo fijo, a la par / eco / coro, perfil propio). Hallazgo: la regla del juego (`NearestChordToneHarmonyStrategy`, 3–14 semitonos) cruza la melodía, unas veces por encima y otras por debajo; revisar junto con la condición de juego (hipótesis de la minuta). Va con F2–F3 de la voz de Zig (`reference/zig-voz-wrapped/`) | minuta 12-nov, punto 6 · taller-melodia |
 | B4 | **CANCIONES-POR-GIG** | Canciones y loops por gig según el local y el público (hoy 3 × 3 para todos) | plan de la demo, «Deseos» |
 | B6 | **INSP-LOOP: la carta que da Inspiración por loop** | Si no entró como recompensa del gig 2: llevarla al pool de recompensas y ajustar | D-PLAN-20 |
 | B5 | **INTERACCIONES-1** | Convencidos que cantan, «boooring» entre loops | plan de la demo, «Deseos» (REPLAN-ART D3) |

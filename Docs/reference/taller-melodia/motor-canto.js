@@ -210,26 +210,114 @@
     });
   }
 
+  // ======================================================================= zigués
+  // Sílabas con la fonotaxis del español (CV, CCV con r/l, codas n s l r) y un sesgo extraterrestre:
+  // más u, i, z, x (sh) y k, diptongos, codas raras (x, k) y palabras que se repiten como un idioma.
+  // dureza 0 = l m n y w (tierno); 1 = k t x z g d r y codas duras (punk, death metal).
+  function zigues(seed, dureza) {
+    const r = rngDe(seed, 'zig'), d = clamp01(dureza == null ? 0.5 : dureza);
+    const suaves = ['l', 'm', 'n', 'y', 'w', 's', ''], duras = ['k', 't', 'x', 'z', 'g', 'd', 'r', 'b'];
+    const grupos = ['kr', 'tr', 'gl', 'bl', 'kl', 'gr', 'zr'];
+    const vocales = ['a', 'e', 'i', 'o', 'u', 'u', 'i', 'o'];
+    const dipt = ['ue', 'ia', 'io', 'ai', 'oi', 'au', 'ui'];
+    const silaba = () => {
+      let on;
+      const x = r();
+      if (x < 0.12 * d) on = grupos[Math.floor(r() * grupos.length)];
+      else if (x < 0.12 * d + 0.55 * d) on = duras[Math.floor(r() * duras.length)];
+      else on = suaves[Math.floor(r() * suaves.length)];
+      const v = r() < 0.15 ? dipt[Math.floor(r() * dipt.length)] : vocales[Math.floor(r() * vocales.length)];
+      let coda = '';
+      if (r() < 0.06 + 0.12 * d) coda = d > 0.5 ? ['x', 'k', 's'][Math.floor(r() * 3)] : ['n', 's', 'l'][Math.floor(r() * 3)];
+      return on + v + coda;
+    };
+    const lex = [];
+    for (let i = 0; i < 9; i++) {
+      const n = 1 + Math.floor(r() * 3), w = [];
+      for (let k = 0; k < n; k++) w.push(silaba());
+      if (n >= 2 && r() < 0.3) w[1] = w[0];          // reduplicación: «zuzu», «kalka»
+      lex.push(w);
+    }
+    return lex;
+  }
+  function asignarZigues(notas, seed, dureza) {
+    const lex = zigues(seed, dureza), r = rngDe(seed, 'zigfrase');
+    // un «verso» de 4 palabras que vuelve, con variaciones: suena a idioma, no a ruido
+    const verso = [0, 1, 2, 3].map(() => Math.floor(r() * lex.length));
+    let cola = [], vi = 0;
+    const usadas = [];
+    for (const n of notas) {
+      if (!cola.length) { let w = verso[vi % verso.length]; if (r() < 0.25) w = Math.floor(r() * lex.length); vi++; cola = lex[w].slice(); usadas.push(lex[w].join('')); }
+      n.sil = cola.shift();
+      if (n.finFrase && cola.length) cola = [];
+    }
+    return { lexico: lex.map((w) => w.join('')), usadas };
+  }
+
+  // ======================================================================= segunda voz (Doble Armonía)
+  // 'juego' = NearestChordToneHarmonyStrategy de MidiGenPlay: la nota del acorde más cercana a la
+  // melodía entre 3 y 14 semitonos (min/maxDistanceFromMelody por defecto), desempate por cercanía a
+  // la nota anterior. Si no, un intervalo diatónico fijo en grados.
+  const RELACIONES = { 'Como el juego (nota del acorde)': 'juego', 'Tercera arriba': 2, 'Tercera abajo': -2, 'Sexta abajo': -5, 'Quinta abajo': -4, 'Octava abajo': 'oct', 'Unísono (doblar)': 0 };
+  function armonizar(mel, tonica, rel, ritmo) {
+    const esc = mel.esc, L = esc.length;
+    const acordePcs = (bar) => acordeEnGrados(esc, mel.prog[bar % mel.prog.length]).map((g) => (((tonica + esc[((g % L) + L) % L]) % 12) + 12) % 12);
+    const out = [];
+    let last = null;
+    const voz = (n) => {
+      if (rel === 'oct') return n.midi - 12;
+      if (typeof rel === 'number') return gradoAMidi(esc, tonica, n.grado + rel);
+      const pcs = acordePcs(n.bar);
+      let best = null, bm = 999, bl = 999;
+      for (let m = n.midi - 14; m <= n.midi + 14; m++) {
+        if (!pcs.includes(((m % 12) + 12) % 12)) continue;
+        const dm = Math.abs(m - n.midi); if (dm < 3) continue;
+        const dl = last == null ? 0 : Math.abs(m - last);
+        if (dm < bm || (dm === bm && dl < bl)) { best = m; bm = dm; bl = dl; }
+      }
+      return best;
+    };
+    if (ritmo === 'coro') {
+      for (let h = 0; h < mel.compases * 2; h++) {
+        const t0 = h * 2, ns = mel.notas.filter((n) => n.beat >= t0 && n.beat < t0 + 2);
+        if (!ns.length) continue;
+        const m = voz(ns[0]); if (m == null) continue;
+        out.push({ beat: t0, dur: 2, midi: m, grado: ns[0].grado, vel: Math.max(40, ns[0].vel - 18), bar: ns[0].bar, sil: null, finFrase: ns[ns.length - 1].finFrase });
+        last = m;
+      }
+      return out;
+    }
+    const shift = ritmo === 'eco' ? 1 : 0, total = mel.compases * 4;
+    for (const n of mel.notas) {
+      const m = voz(n); if (m == null) continue;
+      const beat = n.beat + shift;
+      if (beat >= total) continue;
+      out.push({ beat, dur: Math.min(n.dur, total - beat), midi: m, grado: n.grado, vel: Math.max(40, n.vel - 8), bar: Math.floor(beat / 4), sil: n.sil, finFrase: n.finFrase, caida: n.caida });
+      last = m;
+    }
+    return out;
+  }
+
   // ======================================================================= modos de voz
   // Cada modo es una posición de las perillas. Los cinco primeros campos existen hoy en VoiceProfileSO.
   const BASE = {
     looseness: 0.15, vibratoDepth: 0.4, vibratoSpeedHz: 6, vibratoDelay: 0.35, vibratoRamp: 0.4, brightness: 0.5,
     transpose: -12, tensLo: 0.4, tensHi: 0.6, minLoudness: 0.15, pitchLead: 0.06,
     tracto: 44, aire: 1, growl: 0, aspereza: 0, saturacion: 0, scoop: 0, scoopMs: 90, caida: 0, glideMs: 0,
-    ataque: 0, legato: 0.3, vocalBase: 'ə', silabas: [], nivel: 0.12,
+    ataque: 0, legato: 0.3, vocalBase: 'ə', silabas: [], nivel: 0.12, dureza: 0.5,
   };
   const MODOS = {
     'Zig hoy': { nota: 'El perfil VoiceProfile_Zig y el prefab, tal cual: vocal fija «uh» (expressivity apagada).', juego: true },
     'Zig hoy + dicción': { nota: 'Lo mismo, con expressivityEnabled encendido: un booleano en el prefab.', juego: true, diccion: true },
-    'Tierno y calmado': { nota: 'Voz soplada (tensión baja = Rd alto), mucho aire, vibrato lento y tardío, brillo bajo, vocales redondas y legato. Bocca chiusa en las notas largas.', v: { looseness: 0.08, vibratoDepth: 0.35, vibratoSpeedHz: 5, vibratoDelay: 0.5, vibratoRamp: 0.6, brightness: 0.28, tensLo: 0.22, tensHi: 0.42, minLoudness: 0.1, tracto: 46, aire: 1.8, glideMs: 110, scoop: 0.4, scoopMs: 140, legato: 0.9, vocalBase: 'u', silabas: [['mm', 2, 'fin'], ['lu', 2], ['u', 2], ['no', 1], ['la', 1]] } },
-    'Pop': { nota: 'Modal, vibrato corto al final de las notas largas, pequeños scoops, sílabas de coro.', v: { looseness: 0.12, vibratoDepth: 0.5, vibratoSpeedHz: 5.8, vibratoDelay: 0.25, brightness: 0.55, tensLo: 0.45, tensHi: 0.66, scoop: 0.6, scoopMs: 70, caida: 0.5, legato: 0.6, silabas: [['na', 3], ['la', 2], ['da', 1], ['ye', 1], ['oh', 1, 'fin']] } },
-    'Punk rock': { nota: 'Voz apretada (tensión alta = Rd bajo), sin vibrato, laringe alta (tracto corto, más brillo), ataques empujados, caídas al final y saturación de micro. Sin fuente específica de punk: rasgos de rock y belt (Guzman 2013).', v: { looseness: 0.3, vibratoDepth: 0, brightness: 0.82, tensLo: 0.72, tensHi: 0.92, minLoudness: 0.5, tracto: 40, transpose: -7, aspereza: 0.25, saturacion: 0.45, scoop: 1.5, scoopMs: 60, caida: 2.5, ataque: 0.25, legato: 0.05, pitchLead: 0.02, silabas: [['hey', 3], ['go', 2], ['oi', 2], ['ya', 2], ['no', 1], ['hey', 2, 'fin']] } },
-    'Death metal': { nota: 'Growl: vibración supraglótica con subarmónicos (Sakakibara et al. 2004; Aaen et al. 2020), más flujo de aire (Guzman et al. 2019), laringe baja y oscura, registro grave.', v: { looseness: 0.35, vibratoDepth: 0, brightness: 0.32, tensLo: 0.78, tensHi: 0.95, minLoudness: 0.55, tracto: 52, transpose: -24, aire: 3, growl: 0.85, aspereza: 0.6, saturacion: 0.55, scoop: 0, caida: 1.5, ataque: 0.15, legato: 0.4, vocalBase: 'o', silabas: [['gro', 2], ['uo', 2], ['bro', 1], ['ro', 1], ['dru', 1], ['o', 2, 'fin']] } },
-    'Ópera': { nota: 'Laringe baja (tracto largo), vibrato amplio y regular a 5,6 Hz desde casi el inicio (Prame 1994: 5,5–6,7 Hz, ±60 cents), legato, vocales abiertas.', v: { looseness: 0.04, vibratoDepth: 2.6, vibratoSpeedHz: 5.6, vibratoDelay: 0.12, vibratoRamp: 0.25, brightness: 0.62, tensLo: 0.52, tensHi: 0.72, tracto: 50, glideMs: 60, legato: 0.85, vocalBase: 'a', silabas: [['a', 3], ['o', 2], ['la', 1], ['ah', 1, 'fin']] } },
-    'Crooner': { nota: 'Grave, cerca del micro: aire, brillo bajo, vibrato lento y profundo, deslices (glide) entre notas.', v: { looseness: 0.18, vibratoDepth: 1.4, vibratoSpeedHz: 4.8, vibratoDelay: 0.4, brightness: 0.35, tensLo: 0.35, tensHi: 0.55, tracto: 48, transpose: -14, aire: 1.4, glideMs: 140, scoop: 1, scoopMs: 120, legato: 0.8, silabas: [['bu', 2], ['du', 2], ['ba', 1], ['oh', 1, 'fin']] } },
-    'Falsete': { nota: 'Registro alto y soplado, tracto corto: voz de pájaro o de fantasma.', v: { looseness: 0.1, vibratoDepth: 0.8, vibratoSpeedHz: 6.2, brightness: 0.45, tensLo: 0.18, tensHi: 0.32, transpose: 0, tracto: 38, aire: 2.2, glideMs: 60, legato: 0.7, vocalBase: 'u', silabas: [['u', 3], ['i', 1], ['hu', 1]] } },
-    'Robot': { nota: 'Cero vida: sin jitter, sin vibrato, sin glide, staccato y sílabas de máquina.', v: { looseness: 0, vibratoDepth: 0, brightness: 0.7, tensLo: 0.6, tensHi: 0.6, glideMs: 0, pitchLead: 0, legato: 0, silabas: [['bi', 2], ['bo', 2], ['di', 1], ['du', 1], ['ti', 1]] } },
-    'Borracho': { nota: 'El Pink Trombone original sin domar: looseness 1 (35 cents de desviación) y vibrato lento y hondo.', v: { looseness: 1, vibratoDepth: 1.2, vibratoSpeedHz: 4.5, brightness: 0.35, tensLo: 0.4, tensHi: 0.55, glideMs: 160, legato: 0.9, aspereza: 0.2, silabas: [['la', 2], ['lo', 2], ['ay', 1], ['hic', 1]] } },
+    'Tierno y calmado': { nota: 'Voz soplada (tensión baja = Rd alto), mucho aire, vibrato lento y tardío, brillo bajo, vocales redondas y legato. Bocca chiusa en las notas largas.', v: { dureza: 0.1, looseness: 0.08, vibratoDepth: 0.35, vibratoSpeedHz: 5, vibratoDelay: 0.5, vibratoRamp: 0.6, brightness: 0.28, tensLo: 0.22, tensHi: 0.42, minLoudness: 0.1, tracto: 46, aire: 1.8, glideMs: 110, scoop: 0.4, scoopMs: 140, legato: 0.9, vocalBase: 'u', silabas: [['mm', 2, 'fin'], ['lu', 2], ['u', 2], ['no', 1], ['la', 1]] } },
+    'Pop': { nota: 'Modal, vibrato corto al final de las notas largas, pequeños scoops, sílabas de coro.', v: { dureza: 0.4, looseness: 0.12, vibratoDepth: 0.5, vibratoSpeedHz: 5.8, vibratoDelay: 0.25, brightness: 0.55, tensLo: 0.45, tensHi: 0.66, scoop: 0.6, scoopMs: 70, caida: 0.5, legato: 0.6, silabas: [['na', 3], ['la', 2], ['da', 1], ['ye', 1], ['oh', 1, 'fin']] } },
+    'Punk rock': { nota: 'Voz apretada (tensión alta = Rd bajo), sin vibrato, laringe alta (tracto corto, más brillo), ataques empujados, caídas al final y saturación de micro. Sin fuente específica de punk: rasgos de rock y belt (Guzman 2013).', v: { dureza: 0.85, looseness: 0.3, vibratoDepth: 0, brightness: 0.82, tensLo: 0.72, tensHi: 0.92, minLoudness: 0.5, tracto: 40, transpose: -7, aspereza: 0.25, saturacion: 0.45, scoop: 1.5, scoopMs: 60, caida: 2.5, ataque: 0.25, legato: 0.05, pitchLead: 0.02, silabas: [['hey', 3], ['go', 2], ['oi', 2], ['ya', 2], ['no', 1], ['hey', 2, 'fin']] } },
+    'Death metal': { nota: 'Growl: vibración supraglótica con subarmónicos (Sakakibara et al. 2004; Aaen et al. 2020), más flujo de aire (Guzman et al. 2019), laringe baja y oscura, registro grave.', v: { dureza: 0.95, looseness: 0.35, vibratoDepth: 0, brightness: 0.32, tensLo: 0.78, tensHi: 0.95, minLoudness: 0.55, tracto: 52, transpose: -24, aire: 3, growl: 0.85, aspereza: 0.6, saturacion: 0.55, scoop: 0, caida: 1.5, ataque: 0.15, legato: 0.4, vocalBase: 'o', silabas: [['gro', 2], ['uo', 2], ['bro', 1], ['ro', 1], ['dru', 1], ['o', 2, 'fin']] } },
+    'Ópera': { nota: 'Laringe baja (tracto largo), vibrato amplio y regular a 5,6 Hz desde casi el inicio (Prame 1994: 5,5–6,7 Hz, ±60 cents), legato, vocales abiertas.', v: { dureza: 0.3, looseness: 0.04, vibratoDepth: 2.6, vibratoSpeedHz: 5.6, vibratoDelay: 0.12, vibratoRamp: 0.25, brightness: 0.62, tensLo: 0.52, tensHi: 0.72, tracto: 50, glideMs: 60, legato: 0.85, vocalBase: 'a', silabas: [['a', 3], ['o', 2], ['la', 1], ['ah', 1, 'fin']] } },
+    'Crooner': { nota: 'Grave, cerca del micro: aire, brillo bajo, vibrato lento y profundo, deslices (glide) entre notas.', v: { dureza: 0.3, looseness: 0.18, vibratoDepth: 1.4, vibratoSpeedHz: 4.8, vibratoDelay: 0.4, brightness: 0.35, tensLo: 0.35, tensHi: 0.55, tracto: 48, transpose: -14, aire: 1.4, glideMs: 140, scoop: 1, scoopMs: 120, legato: 0.8, silabas: [['bu', 2], ['du', 2], ['ba', 1], ['oh', 1, 'fin']] } },
+    'Falsete': { nota: 'Registro alto y soplado, tracto corto: voz de pájaro o de fantasma.', v: { dureza: 0.15, looseness: 0.1, vibratoDepth: 0.8, vibratoSpeedHz: 6.2, brightness: 0.45, tensLo: 0.18, tensHi: 0.32, transpose: 0, tracto: 38, aire: 2.2, glideMs: 60, legato: 0.7, vocalBase: 'u', silabas: [['u', 3], ['i', 1], ['hu', 1]] } },
+    'Robot': { nota: 'Cero vida: sin jitter, sin vibrato, sin glide, staccato y sílabas de máquina.', v: { dureza: 0.75, looseness: 0, vibratoDepth: 0, brightness: 0.7, tensLo: 0.6, tensHi: 0.6, glideMs: 0, pitchLead: 0, legato: 0, silabas: [['bi', 2], ['bo', 2], ['di', 1], ['du', 1], ['ti', 1]] } },
+    'Borracho': { nota: 'El Pink Trombone original sin domar: looseness 1 (35 cents de desviación) y vibrato lento y hondo.', v: { dureza: 0.45, looseness: 1, vibratoDepth: 1.2, vibratoSpeedHz: 4.5, brightness: 0.35, tensLo: 0.4, tensHi: 0.55, glideMs: 160, legato: 0.9, aspereza: 0.2, silabas: [['la', 2], ['lo', 2], ['ay', 1], ['hic', 1]] } },
   };
   function vozDeModo(nombre) { return Object.assign({}, BASE, (MODOS[nombre] && MODOS[nombre].v) || {}); }
   const PERFIL_ZIG = { looseness: 0.15, vibratoDepth: 0.4, vibratoSpeedHz: 6, diction: 1, mouth: 0, brightness: 0.5, transposeSemitones: -12, tensenessAtVel0: 0.4, tensenessAtVel127: 0.6, vibratoDelaySeconds: 0.35, vibratoRampSeconds: 0.4, pitchLeadSeconds: 0.06, leadFullInterval: 7, minLoudness: 0.15, startTrimMs: 20, gain: 1 };
@@ -332,6 +420,7 @@
     ev.forEach((e, i) => {
       const prevEnd = i > 0 ? ev[i - 1].end : -1;
       e.c = e.s.onset.length ? CONS[e.s.onset[0]] : null;
+      e.c2 = e.s.onset.length > 1 ? CONS[e.s.onset[1]] : null;
       const pre = e.c ? preDe(e.c) : 0;
       e.cStart = e.start - Math.min(pre, Math.max(0.02, (e.start - prevEnd) + 0.06));
       e.legatoNext = i < ev.length - 1 && ev[i + 1].start - e.end < 0.03 + 0.15 * V.legato;
@@ -364,7 +453,7 @@
         if (e.s.vocal === 'mm') { constr.push({ index: 41, diameter: 0 }); velo = 0.4; }
         // consonante de ataque
         if (e.c && enCons) {
-          const c = e.c;
+          const c = (e.c2 && e.start - t < 0.035) ? e.c2 : e.c;
           if (c.tipo === 'asp') { tens = 0.08; wantTouch = true; }
           else {
             constr.push({ index: c.i, diameter: c.d });
@@ -420,7 +509,7 @@
     return k;
   }
 
-  const api = { SR, ESCALAS, EN_EL_JUEGO, PROGRESIONES, FIGURAS, CONS, VOCALES, MODOS, BASE, PERFIL_ZIG, PRESETS_JUEGO, componer, asignarSilabas, parseSilaba, aSegundos, cantarJuego, cantarV2, vozDeModo, normalizar, gradoAMidi, acordeEnGrados };
+  const api = { zigues, asignarZigues, armonizar, RELACIONES, SR, ESCALAS, EN_EL_JUEGO, PROGRESIONES, FIGURAS, CONS, VOCALES, MODOS, BASE, PERFIL_ZIG, PRESETS_JUEGO, componer, asignarSilabas, parseSilaba, aSegundos, cantarJuego, cantarV2, vozDeModo, normalizar, gradoAMidi, acordeEnGrados };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MC = api;
 })(typeof window !== 'undefined' ? window : globalThis);
