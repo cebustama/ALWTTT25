@@ -143,6 +143,15 @@ que quepa todo: se trabaja en orden y, el 27-nov, lo que no haya entrado pasa a 
 | 11 | **S11 PULIDO** | Recompensa con arte, tooltips basales, números dibujados (listos); MAPA-2 solo si sobra | MAPA-2 a D1 |
 | 12 | **S12 Congelación** (vie 27-nov) | Build de testers (con F5/F12) y build pública | — imprescindible |
 
+**Hecho fuera de orden (2026-11-13, desde la sesión 2a bis de MidiGenPlay).**
+
+- **DEV-TEST-1:** cartas TEST con su propio bundle, que entran en la mano al empezar el gig o en cada turno.
+- **DEV-HAND-1:** mazo fijo desde un JSON en `GigDevSettings`, para pruebas controladas.
+
+Las dos son herramientas de F12 (`SSoT_Dev_Mode.md` §20). Adelantan una parte de DEV-TUNING-1 y la «prueba controlada» de TEST-SETUP-1, pero el menú F5 sigue pendiente.
+
+También avanzó MUSICA-1: Claudio oyó en el juego, con las cartas TEST, **el bajo que toca frases sobre la batería** (MGP-BASS-PHRASE-1).
+
 **Cuenta honesta (✦ IA).** Hasta el 27-nov caben unas 7 sesiones a 3 por semana, y los imprescindibles son 6
 (1, 2, 3, 4, 10 y 12): lo previsible es que entre uno más, probablemente CARTAS-ARTE-1, que hace legible la
 economía nueva. Lo demás pasa a después de la demo, en su bloque. Si se quiere más, se recorta alcance dentro de

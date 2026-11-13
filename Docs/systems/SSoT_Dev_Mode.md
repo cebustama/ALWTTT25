@@ -1297,3 +1297,57 @@ prefijo** — misma familia de error que §19.3, en otro sitio y con otra forma 
 dos `Debug.Log` distintos con prefijos anidados, aquí es **un solo** `Debug.Log` cuyo tier depende
 de una variable en tiempo de ejecución. La segunda forma es peor: no hay dos líneas que separar,
 hay una condición que leer.
+
+## 20. Cartas TEST y mazo fijo (DEV-TEST-1 y DEV-HAND-1, 2026-11-13)
+
+Sirven para hacer pruebas controladas sin tocar cartas reales. Todo el comportamiento va bajo `ALWTTT_DEV`; solo los campos del SO existen en todas las builds.
+
+### 20.1 Cartas TEST (DEV-TEST-1)
+
+- **Crearlas.** *ALWTTT ▸ Dev ▸ Create Test Cards* (`Assets/Scripts/DevMode/Editor/DevTestCardsCreator.cs`) crea en `Assets/Dev/TestCards/` cuatro cartas: TEST Bass (Conito), TEST Rhythm (Robot), TEST Chords (Gusano) y TEST Melody (Cantante).
+  - Cada una es una copia de una starter del mismo rol (Walking Bass, Default Mode, Wormus Major y Rise Up) y tiene **su propio style bundle**.
+  - Coste 0. Sin `modifierEffects`: no cambian tempo ni tonalidad, solo ponen su pista.
+  - Antes de escribir enseña el plan y pide confirmación. Reutiliza lo que ya existe y nunca sobrescribe.
+  - Ids: `test_bass`, `test_rhythm`, `test_chords` y `test_melody`.
+- **Configuración** en `GigDevSettingsSO`:
+  - `testCards`: la lista de cartas.
+  - `testCardsMode`, con tres valores:
+    - `Off`: no se reparten.
+    - `GigStart`: una vez, en el primer turno de cada gig.
+    - `EveryTurn`: en cada turno, las que falten en la mano.
+- **Reparto.** `GigManager.GiveDevTestCardsIfConfigured` llama a `DeckManager.DevGiveTestCards` al abrir el turno del jugador, **antes del robo**, así que siempre caben.
+  - No usa el filtro de fase de `DevSpawnCardToHand`: cuando corre, la fase todavía está cambiando.
+  - Quita las copias que haya en el mazo y el descarte, salvo si hay mazo fijo (§20.2).
+  - No duplica las que ya están en la mano.
+  - Salta la carta si su músico no está en la banda.
+  - Log: `[DEV-TEST-1] given= purgedFromPiles= hand= skipped=[…]`.
+- **Catálogo F12.** Las cartas TEST salen siempre las primeras (`DevCardCatalogueTab.RefreshBandUnionIfDirty`).
+- **Uso típico.** Llevar al bundle de una carta TEST una versión del Taller de bajo con el importador de MidiGenPlay (*MidiGenPlay ▸ Bass ▸ Import Bass Workshop Version…*). El importador lista qué cartas usan cada bundle y avisa si no lo usa ninguna.
+
+### 20.2 Mazo fijo desde un JSON (DEV-HAND-1)
+
+- **Configuración** en `GigDevSettingsSO`:
+  - `useFixedDeck`: activa el mazo fijo.
+  - `fixedDeckJson`: `{ "name": "…", "cards": ["id o nombre visible", …] }`. Las cartas pueden repetirse.
+- **Al empezar el gig** (después de `SetupDeck`), `GigManager.ApplyDevFixedDeckIfConfigured` busca cada entrada:
+  - primero por `id` y después por nombre visible;
+  - en las cartas TEST, en `GameplayData.AllCardsList` y en el catálogo de la banda.
+  - Salta las entradas desconocidas y las de un músico que no está en la banda.
+  - Después llama a `DeckManager.DevSetFixedDeck`.
+- **Comportamiento:**
+  - El mazo es exactamente la lista.
+  - Cada robo saca la carta de arriba, sin azar y **sin las garantías M4.5**.
+  - Cuando el mazo se acaba, el descarte vuelve en el orden de la lista.
+  - `SetGameDeck` lo desactiva, así que cada gig empieza normal y se vuelve a aplicar si está configurado.
+  - Las cartas TEST se reparten aparte y antes.
+- **Log:** `[DEV-HAND-1] Fixed deck 'nombre' (N): A → B → … | skipped=[…]`.
+
+### 20.3 Límite conocido (2026-11-13)
+
+Ni con la semilla fijada en F12 se repite una prueba entera, por dos sorteos sin semilla:
+
+- **El BPM:** `MusicTheory.GetBPMFromRange` usa `new System.Random()`.
+- **Los instrumentos y el kit:** se eligen con el `_rng` de la sesión en `SongConfigBuilder.FromUI`.
+
+Planificado en MidiGenPlay: sesión 4, «Pruebas repetibles» (`MidiGenPlay/Documentation~/planning/active/ARRANQUE_pruebas_repetibles.md`).
+
