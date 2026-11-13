@@ -45,6 +45,9 @@ namespace ALWTTT.Music
         // Dev pin for reproducible songs / ST-S5gb-1 fixed-seed runs. Set before
         // Begin(); null = normal run entropy. Dev-tab wiring deferred (SSoT_Dev_Mode).
         public static int? DevPinnedSongSeed = null;
+        // [MGP-REPRO-1] Pin from GigDevSettings (set by GigManager before Begin).
+        // Lower precedence than the F12 field.
+        public static int? DevAssetPinnedSongSeed = null;
 #endif
 
         private bool _isPlaying;
@@ -497,11 +500,16 @@ namespace ALWTTT.Music
             // [S5g / D-S5gb-2=B] One seed per song, stable until End().
 #if ALWTTT_DEV
             _songSeed = DevPinnedSongSeed
+                        ?? DevAssetPinnedSongSeed              // [MGP-REPRO-1]
                         ?? unchecked((int)System.DateTime.UtcNow.Ticks);
+            string seedSource = DevPinnedSongSeed.HasValue ? "F12 pin"
+                              : DevAssetPinnedSongSeed.HasValue ? "GigDevSettings pin"
+                              : "clock";
 #else
             _songSeed = unchecked((int)System.DateTime.UtcNow.Ticks);
+            string seedSource = "clock";
 #endif
-            _ctx.Log($"[Session] SongSeed={_songSeed}", true); // quote-able for repro
+            _ctx.Log($"[Session] SongSeed={_songSeed} ({seedSource})", true); // quote-able for repro
 
             _keepInstrumentByPart.Clear();
 
@@ -1779,7 +1787,8 @@ namespace ALWTTT.Music
                 patterns: patterns,
                 getPermittedMelodic: (mus, role) =>
                     InstrumentRules.GetPermittedMelodic(mus, role, instruments),
-                _rng
+                _rng,
+                songSeed: _songSeed // [MGP-REPRO-1 / D2=A] root, kit, instruments from the song seed
             );
         }
 

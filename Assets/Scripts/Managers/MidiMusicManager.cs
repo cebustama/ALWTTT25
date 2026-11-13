@@ -907,8 +907,21 @@ namespace ALWTTT.Managers
                 else
                 {
                     // Caso 2: rango
-                    baseBpm = MusicTheory.GetBPMFromRange(part.TempoRange, TempoRule.MultiplesOfTen);
-                    mode = $"range({part.TempoRange})";
+                    // [MGP-REPRO-1 / D1=A] With a song seed, the tempo comes from the
+                    // package's seeded roll (BPM-DET-1 helpers): same seed + part →
+                    // same BPM. No seed → legacy unseeded pick (unchanged).
+                    if (seedOverride.HasValue)
+                    {
+                        baseBpm = SongOrchestrator.RollTempoBpm(
+                            SongOrchestrator.ResolveTempoSeed(seedOverride.Value, partIndex),
+                            part.TempoRange, TempoRule.MultiplesOfTen);
+                        mode = $"range({part.TempoRange}) seeded";
+                    }
+                    else
+                    {
+                        baseBpm = MusicTheory.GetBPMFromRange(part.TempoRange, TempoRule.MultiplesOfTen);
+                        mode = $"range({part.TempoRange})";
+                    }
                 }
 
                 // Aplicar escala si procede

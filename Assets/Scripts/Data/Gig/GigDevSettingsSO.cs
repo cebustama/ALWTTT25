@@ -201,5 +201,19 @@ namespace ALWTTT.Data
 
         public bool UseFixedDeck => useFixedDeck;
         public string FixedDeckJson => fixedDeckJson;
+
+        // --- Pinned song seed [MGP-REPRO-1] ---
+
+        [Header("Pinned song seed [MGP-REPRO-1]")]
+        [SerializeField, Tooltip("When on, EVERY song of every gig uses the seed below " +
+            "(BPM, key, instruments, kit and notes repeat). Survives Play mode, unlike " +
+            "the F12 field, which is lost when Play stops and only applies from the " +
+            "next song. The F12 field, if filled, wins. Only used in ALWTTT_DEV builds.")]
+        private bool usePinnedSongSeed = false;
+
+        [SerializeField] private int pinnedSongSeed = 0;
+
+        public bool UsePinnedSongSeed => usePinnedSongSeed;
+        public int PinnedSongSeed => pinnedSongSeed;
     }
 }

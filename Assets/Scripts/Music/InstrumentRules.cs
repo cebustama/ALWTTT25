@@ -144,4 +144,27 @@ public static class InstrumentRules
 
         return result.ToList();
     }
+
+    /// <summary>
+    /// [MGP-REPRO-1 / D3=A] Drum kits this musician may use: the profile's
+    /// <c>percussionInstruments</c> whitelist intersected with the catalog.
+    /// Empty whitelist (or no overlap) = "no opinion" → every kit, same as
+    /// the melodic whitelist rule.
+    /// </summary>
+    public static IReadOnlyList<MIDIPercussionInstrumentSO> GetPermittedPercussion(
+        MusicianBase musician,
+        IInstrumentRepository instrumentRepo)
+    {
+        var all = instrumentRepo?.GetPercussionInstruments()
+                  ?? (IReadOnlyList<MIDIPercussionInstrumentSO>)Array.Empty<MIDIPercussionInstrumentSO>();
+
+        var wl = musician?.MusicianCharacterData?.Profile?.percussionInstruments;
+        if (wl != null && wl.Count > 0)
+        {
+            var filtered = all.Where(k => k != null && wl.Contains(k)).ToList();
+            if (filtered.Count > 0)
+                return filtered;
+        }
+        return all;
+    }
 }

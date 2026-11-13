@@ -54,8 +54,28 @@ namespace ALWTTT.Music
             IInstrumentRepository instruments,
             IPatternRepository patterns,
             Func<MusicianBase, TrackRole, IEnumerable<MIDIInstrumentSO>> getPermittedMelodic,
-            System.Random rng)
+            System.Random rng,
+            int? songSeed = null) // [MGP-REPRO-1 / D2=A]
         {
+            // [MGP-REPRO-1 / D2=A] With a song seed every choice (root, kit,
+            // instrument) is a pure hash of (seed | part | musician | role | what)
+            // over a name-sorted pool: independent of draw order, of gameplay
+            // draws on the shared rng, and of Resources load order. Without a
+            // seed, the legacy rng shuffle (unchanged).
+            T Pick<T>(IEnumerable<T> pool, string key) where T : MIDIInstrumentSO
+            {
+                if (pool == null) return null;
+                if (!songSeed.HasValue)
+                    return pool.OrderBy(_ => rng.Next()).FirstOrDefault();
+                var list = pool.Where(i => i != null)
+                    .OrderBy(i => i.InstrumentName, StringComparer.Ordinal)
+                    .ThenBy(i => i.name, StringComparer.Ordinal)
+                    .ToList();
+                if (list.Count == 0) return null;
+                uint h = unchecked((uint)SongOrchestrator.StableHash32($"{songSeed.Value}|{key}"));
+                return list[(int)(h % (uint)list.Count)];
+            }
+
             var ui = ctx.CompositionUI;
             if (ui == null)
             {
@@ -94,8 +114,11 @@ namespace ALWTTT.Music
                 // ensure we have a stable root for this part
                 if (!p.hasExplicitRootNote)
                 {
-                    var randomRoot = (Melanchall.DryWetMidi.MusicTheory.NoteName)
-                        rng.Next(0, 12);
+                    int rootIdx = songSeed.HasValue
+                        ? (int)(unchecked((uint)SongOrchestrator.StableHash32(
+                              $"{songSeed.Value}|p={partIndex}|root")) % 12u)
+                        : rng.Next(0, 12);
+                    var randomRoot = (Melanchall.DryWetMidi.MusicTheory.NoteName)rootIdx;
 
                     p.rootNote = randomRoot;
                     p.hasExplicitRootNote = true;
@@ -197,6 +220,7 @@ namespace ALWTTT.Music
                     }
 
                     var musician = ctx.ResolveMusicianById(musicianId);
+                    var trackKey = $"p={partIndex}|mus={musicianId}|role={role}"; // [MGP-REPRO-1]
 
                     MIDIInstrumentSO melInst = null;
                     MIDIPercussionInstrumentSO percInst = null;
@@ -208,9 +232,10 @@ namespace ALWTTT.Music
                     switch (role)
                     {
                         case TrackRole.Rhythm:
-                            // TODO: Get instrument some other way?
-                            percInst = instruments.GetPercussionInstruments()
-                                .OrderBy(_ => rng.Next()).FirstOrDefault();
+                            // [MGP-REPRO-1 / D3=A] Musician's kit whitelist (empty = all).
+                            percInst = Pick(
+                                InstrumentRules.GetPermittedPercussion(musician, instruments),
+                                $"{trackKey}|kit");
 
                             recipe = new RhythmRecipe
                             {
@@ -226,7 +251,7 @@ namespace ALWTTT.Music
                                 ? getPermittedMelodic(musician, role)
                                 : instruments.GetMelodicInstruments();
 
-                            melInst = candidates.OrderBy(_ => rng.Next()).FirstOrDefault();
+                            melInst = Pick(candidates, $"{trackKey}|inst");
 
                             backingRecipe = new BackingRecipe
                             {
@@ -241,7 +266,7 @@ namespace ALWTTT.Music
                                 ? getPermittedMelodic(musician, role)
                                 : instruments.GetMelodicInstruments();
 
-                            melInst = candidates.OrderBy(_ => rng.Next()).FirstOrDefault();
+                            melInst = Pick(candidates, $"{trackKey}|inst");
                             break;
 
                         case TrackRole.Melody:
@@ -251,7 +276,7 @@ namespace ALWTTT.Music
                                 ? getPermittedMelodic(musician, role)
                                 : instruments.GetMelodicInstruments();
 
-                            melInst = candidates.OrderBy(_ => rng.Next()).FirstOrDefault();
+                            melInst = Pick(candidates, $"{trackKey}|inst");
                             break;
                     }
 
@@ -275,7 +300,7 @@ namespace ALWTTT.Music
                         var candidatesByType = allMelodic
                             .Where(i => i.InstrumentType == trModel.overrideInstrumentType);
 
-                        melInst = candidatesByType.OrderBy(_ => rng.Next()).FirstOrDefault();
+                        melInst = Pick(candidatesByType, $"{trackKey}|insttype");
 
                         ctx.Log($"[InstrumentEffect] Choosing random instrument of type " +
                                 $"{trModel.overrideInstrumentType} for mus='{musicianId}' " +

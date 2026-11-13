@@ -2419,6 +2419,11 @@ namespace ALWTTT.Managers
             _session.SongFinished += OnCompositionSongFinished;
 
             var ctx = new GigContext(this);
+#if ALWTTT_DEV
+            // [MGP-REPRO-1] Asset-level seed pin (survives Play mode); the F12 field wins.
+            CompositionSession.DevAssetPinnedSongSeed =
+                (dev != null && dev.UsePinnedSongSeed) ? dev.PinnedSongSeed : (int?)null;
+#endif
             _session.Begin(ctx, flow != null ? flow.JamRules : new JamRules(),
                 midiGenPlayConfig, _rng);
 

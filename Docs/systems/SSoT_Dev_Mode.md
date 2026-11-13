@@ -1342,12 +1342,18 @@ Sirven para hacer pruebas controladas sin tocar cartas reales. Todo el comportam
   - Las cartas TEST se reparten aparte y antes.
 - **Log:** `[DEV-HAND-1] Fixed deck 'nombre' (N): A → B → … | skipped=[…]`.
 
-### 20.3 Límite conocido (2026-11-13)
+### 20.3 Pruebas repetibles (MGP-REPRO-1, 2026-11-13)
 
-Ni con la semilla fijada en F12 se repite una prueba entera, por dos sorteos sin semilla:
+Con la semilla de canción fijada, la misma prueba suena igual. Lo comprobó Claudio dos veces con la semilla 655931081 y el mazo fijo: BPM, tonalidad, instrumentos, kit y notas iguales.
 
-- **El BPM:** `MusicTheory.GetBPMFromRange` usa `new System.Random()`.
-- **Los instrumentos y el kit:** se eligen con el `_rng` de la sesión en `SongConfigBuilder.FromUI`.
-
-Planificado en MidiGenPlay: sesión 4, «Pruebas repetibles» (`MidiGenPlay/Documentation~/planning/active/ARRANQUE_pruebas_repetibles.md`).
+- **Dónde se fija la semilla:**
+  - `GigDevSettingsSO` → **Pinned song seed** (`usePinnedSongSeed`, `pinnedSongSeed`). Sobrevive a cada Play y vale desde la primera canción. Es la forma recomendada.
+  - El campo **Pinned seed** de F12 (`CompositionSession.DevPinnedSongSeed`) gana si está relleno. Pero se pierde al parar Play y solo vale desde la canción **siguiente**, porque la sesión lee la semilla en `Begin`.
+  - El log dice el origen: `[Session] SongSeed=N (F12 pin | GigDevSettings pin | clock)`.
+- **Qué sale de la semilla:**
+  - **El BPM:** `MidiMusicManager.RenderSinglePart` usa `SongOrchestrator.RollTempoBpm(ResolveTempoSeed(semilla, parte), rango, MultiplesOfTen)` del paquete. Sin semilla, el sorteo de antes.
+  - **La raíz, los instrumentos melódicos y el kit:** `SongConfigBuilder.FromUI(…, songSeed)` usa un hash de `semilla|p=parte|mus=músico|role=rol|qué` sobre la lista ordenada por nombre. No depende del orden de los sorteos ni de otros sorteos del gig (el `_rng` de `GigManager` no tiene semilla).
+  - **El kit** respeta la lista blanca `percussionInstruments` del perfil del músico (`InstrumentRules.GetPermittedPercussion`). Vacía = todos los kits.
+- **Para que se repita:** la misma semilla, el mismo mazo fijo, la misma banda y las mismas cartas en el mismo orden y en el mismo loop. El orden cuenta a propósito: la primera carta de acompañamiento fija la armonía del jam (JAM-1 y JAM-3).
+- **Sin semilla** (en producción, del reloj), la variedad entre canciones es la misma de antes.
 
