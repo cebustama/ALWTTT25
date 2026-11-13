@@ -17,10 +17,25 @@ namespace ALWTTT.Music
     /// MidiMusicManager's beat-grid loop, WaitForEnd and tick-crossing guard keep waiting
     /// instead of treating the pause as a song end.
     /// </summary>
-    public class MidiToolkitAdapter : MonoBehaviour, IPlayMidi, IMidiTransportSuspend
+    public class MidiToolkitAdapter : MonoBehaviour, IPlayMidi, IMidiTransportSuspend,
+        IMidiTransportChain
     {
         MidiFilePlayer _player;
         bool _suspended;
+
+        [Header("AUDIO-LOOP-1 · Loop chaining")]
+        [Tooltip("When on, a loop that follows a loop which ended on its own does not cut " +
+                 "what is still ringing (crash tails, chord releases). Off = old hard cut.")]
+        [SerializeField] bool chainWithoutCut = true;
+
+        [Tooltip("Seconds after a chained start before the previous loop's voices are sent " +
+                 "to release (envelope, not a cut). Safety net against a voice that never ends.")]
+        [SerializeField, Min(0.1f)] float chainTailReleaseSeconds = 3f;
+
+        [SerializeField] bool logChaining = true;
+
+        float _lastEndRealtime = -1f;   // [AUDIO-LOOP-1] for the gap measure in the log
+
 
         public event Action<List<MPTKEvent>> OnMidiEvents;
         public event Action OnSongStarted;
@@ -82,6 +97,7 @@ namespace ALWTTT.Music
                     this);
                 return;
             }
+            _lastEndRealtime = Time.realtimeSinceStartup;
             OnSongEnded?.Invoke();
         }
 
@@ -96,8 +112,59 @@ namespace ALWTTT.Music
         {
             if (_player == null) return;
             ClearSuspension();
+            _player.MPTK_ClearSoundOnStart = true;   // [AUDIO-LOOP-1] Maestro default
             _player.MPTK_Play(data);
         }
+
+        #region [AUDIO-LOOP-1] IMidiTransportChain
+        public bool ChainingEnabled => chainWithoutCut;
+
+        public void PlayChained(byte[] data)
+        {
+            if (_player == null) return;
+            if (!chainWithoutCut || _player.MPTK_IsPlaying || _suspended)
+            {
+                // Contract breach or switched off: keep the old, safe behaviour.
+                Stop();
+                Play(data);
+                return;
+            }
+
+            // Voices of the loop that just ended carry this session id (Maestro bumps
+            // IdSession when the next MIDI starts).
+            int previousSession = _player.IdSession;
+            // Active = includes voices in release (tails); MPTK_StatVoiceCountPlaying does not.
+            int voicesRinging = _player.MPTK_StatVoiceCountActive;
+
+            // Soft stop: resets the sequencer flags without ClearAllVoices.
+            _player.MPTK_Stop(stopAllSound: false);
+            _player.MPTK_ClearSoundOnStart = false;   // Maestro patch: skip the start clear
+            _player.MPTK_Play(data);
+
+            if (logChaining)
+                Debug.Log($"[AUDIO-LOOP-1] Chained play: no cut. previousSession={previousSession} " +
+                          $"gapMs={(_lastEndRealtime < 0f ? -1f : (Time.realtimeSinceStartup - _lastEndRealtime) * 1000f):0} " +
+                          $"voicesRinging={voicesRinging} releaseIn={chainTailReleaseSeconds:0.0}s", this);
+
+            // Not cancelled by later plays or stops: releasing a session that has no voice
+            // left is a no-op, and each chained loop keeps its own safety net.
+            StartCoroutine(ReleasePreviousSessionAfter(previousSession, voicesRinging));
+        }
+
+        IEnumerator ReleasePreviousSessionAfter(int session, int voicesAtChain)
+        {
+            yield return new WaitForSecondsRealtime(chainTailReleaseSeconds);
+            if (_player == null) yield break;
+
+            // Envelope release of that session only (NoteOffAll filtered by session id);
+            // destroyAudioSource=false ⇒ no ClearAllVoices ⇒ no hard cut.
+            Routine.RunCoroutine(_player.ThreadClearAllSound(false, session),
+                Segment.RealtimeUpdate);
+            if (logChaining)
+                Debug.Log($"[AUDIO-LOOP-1] Safety release of previous loop voices " +
+                          $"(session={session}, ringing at chain={voicesAtChain}).", this);
+        }
+        #endregion
 
         public bool IsPlaying => _player != null && (_player.MPTK_IsPlaying || _suspended);
         public long CurrentTick => _player != null ? _player.MPTK_TickCurrent : 0L;

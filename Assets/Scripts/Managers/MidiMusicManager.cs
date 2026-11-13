@@ -2150,7 +2150,14 @@ namespace ALWTTT.Managers
                 return seconds;
             }
 
-            player.Stop();            // will trigger OnSongEnded → ClearMarkers()
+            // [AUDIO-LOOP-1 / D2=A] Chain without cutting only when the previous playback
+            // ended on its own (loop boundary, song-tail repeat): every note-off has been
+            // processed, so only tails remain. Interrupting a playing MIDI keeps the hard
+            // stop (a soft one would leave notes hanging without their note-off).
+            bool chained = !player.IsPlaying
+                           && player is IMidiTransportChain chain && chain.ChainingEnabled;
+            if (!chained)
+                player.Stop();        // will trigger OnSongEnded → ClearMarkers()
             _currentKey = key;
             _currentPlayData = data;   // [BEAT-1 / D1=A] what the grid will read
             _playSerial++;             // [BEAT-1] supersedes any running grid
@@ -2170,10 +2177,13 @@ namespace ALWTTT.Managers
             // dump the exact payload we’ll play (if enabled)
             DevDumpMidi(key, data, label);
 
-            player.Play(data);
+            if (chained)
+                ((IMidiTransportChain)player).PlayChained(data);
+            else
+                player.Play(data);
 
             if (logDebug)
-                Debug.Log($"{DebugTag} Play {label} key:{key} " +
+                Debug.Log($"{DebugTag} Play {label} key:{key} chained:{chained} " +
                           $"bytes:{data?.Length} dur:{seconds:0.00}s " +
                           $"IsPlaying:{player.IsPlaying}");
 

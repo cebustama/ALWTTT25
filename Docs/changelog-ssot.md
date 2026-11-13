@@ -14,6 +14,16 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-13 — S9b: AUDIO-LOOP-1, nada se corta entre loops (DEMO-1211)
+
+**Clase:** semántico · operativo. Con cambio de código (ALWTTT y un parche local a Maestro).
+
+- Causa comprobada: `PlayBytes` hacía `player.Stop()` (`MPTK_Stop(true)`) y Maestro limpiaba al arrancar cada MIDI (`ThreadClearAllSound(true)` → `ClearAllVoices`), cortando colas de platos y releases.
+- Decisiones: D1=A (B1: no apagar al encadenar, con parche mínimo a Maestro), D2=A (solo si el loop anterior terminó solo), D3=A (release de seguridad a los 3 s, por sesión de Maestro), D4=B (crash de entrada a la cola de MidiGenPlay, fila 1b), D5 (bundle de prueba: ya revertido).
+- Código: `IMidiTransportChain` (nuevo), `MidiToolkitAdapter` (`PlayChained`, `chainWithoutCut`, `chainTailReleaseSeconds`, `logChaining`, `gapMs`), `MidiMusicManager.PlayBytes`. Maestro: `MidiFilePlayer.MPTK_ClearSoundOnStart` y dos guardas (`[ALWTTT PATCH AUDIO-LOOP-1]`).
+- Docs: `SSoT_Audio` §4.11, §6, inv. 28, §8, §9 (AUDIO-LOOP-2); `ssot_manifest.yaml` (governs); `reference/maestro-parches.md` (nuevo); `CURRENT_STATE`; plan DEMO-1211 (S9b ✅) y POST-DEMO (B7 AUDIO-LOOP-2).
+- Smokes 1–3 jugados por Claudio (crash sobre el 1 siguiente; acordes largos con previsto = real; pausa y reanudar).
+
 ## 2026-11-12 — S9: REINA-1, la Reina Gusano (DEMO-1211)
 
 **Clase:** semántico · autoridad · operativo. Con cambio de código, datos, escena y arte.

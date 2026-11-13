@@ -228,6 +228,15 @@ namespace MidiPlayerTK
         //[HideInInspector]
         public ModeStopPlay MPTK_ModeStopVoice;
 
+        /// <summary>@brief
+        /// [ALWTTT PATCH AUDIO-LOOP-1] When true (Maestro default), every MIDI start clears all
+        /// sound still playing (ThreadClearAllSound with ClearAllVoices: a hard cut). When false,
+        /// voices from the previous MIDI keep ringing into the new one. Set per play by
+        /// ALWTTT's MidiToolkitAdapter. Patch registry: ALWTTT25/Docs/reference/maestro-parches.md.
+        /// </summary>
+        [HideInInspector]
+        public bool MPTK_ClearSoundOnStart = true;
+
 
         [SerializeField]
         [HideInInspector]
@@ -1520,10 +1529,15 @@ namespace MidiPlayerTK
                 // V2.84 yield return Timing.WaitUntilDone(Timing.RunCoroutine(ThreadClearAllSound(true)), false);
                 //Timing.RunCoroutine(ThreadClearAllSound(true));
                 // V2.84
-                if (Application.isPlaying)
-                    Routine.RunCoroutine(ThreadClearAllSound(true, IdSession), Segment.RealtimeUpdate);
-                else
-                    Routine.RunCoroutine(ThreadClearAllSound(true, IdSession), Segment.EditorUpdate);
+                // [ALWTTT PATCH AUDIO-LOOP-1] Guarded: when false, voices still ringing from the
+                // previous MIDI (cymbal tails, chord releases) are NOT cleared at start.
+                if (MPTK_ClearSoundOnStart)
+                {
+                    if (Application.isPlaying)
+                        Routine.RunCoroutine(ThreadClearAllSound(true, IdSession), Segment.RealtimeUpdate);
+                    else
+                        Routine.RunCoroutine(ThreadClearAllSound(true, IdSession), Segment.EditorUpdate);
+                }
 
                 try
                 {
@@ -1816,10 +1830,15 @@ namespace MidiPlayerTK
                 // V2.84 yield return Timing.WaitUntilDone(Timing.RunCoroutine(ThreadClearAllSound(true)), false);
                 //Timing.RunCoroutine(ThreadClearAllSound(true));
                 // V2.84
-                if (Application.isPlaying)
-                    Routine.RunCoroutine(ThreadClearAllSound(true, IdSession), Segment.RealtimeUpdate);
-                else
-                    Routine.RunCoroutine(ThreadClearAllSound(true, IdSession), Segment.EditorUpdate);
+                // [ALWTTT PATCH AUDIO-LOOP-1] Guarded: when false, voices still ringing from the
+                // previous MIDI (cymbal tails, chord releases) are NOT cleared at start.
+                if (MPTK_ClearSoundOnStart)
+                {
+                    if (Application.isPlaying)
+                        Routine.RunCoroutine(ThreadClearAllSound(true, IdSession), Segment.RealtimeUpdate);
+                    else
+                        Routine.RunCoroutine(ThreadClearAllSound(true, IdSession), Segment.EditorUpdate);
+                }
 
 #if DEBUG_START_MIDI
                 Debug.Log("After clear sound " +(double)watchStartMidi.ElapsedTicks / ((double)System.Diagnostics.Stopwatch.Frequency / 1000d));

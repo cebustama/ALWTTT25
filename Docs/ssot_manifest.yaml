@@ -638,6 +638,7 @@ entries:
       - Assets/Scripts/Managers/MusicDirector.cs
       - Assets/Scripts/Data/Audio/PlayerAudioPrefs.cs          # PAUSE-1
       - Assets/Scripts/Generation/Music/IMidiTransportSuspend.cs   # PAUSE-1
+      - Assets/Scripts/Generation/Music/IMidiTransportChain.cs     # AUDIO-LOOP-1
       - Assets/Scripts/Generation/Music/MidiToolkitAdapter.cs      # PAUSE-1 — previously ungoverned
       - Assets/Scripts/Data/Audio/OstCatalogSO.cs
       - Assets/Scripts/Enums/OstTrackId.cs

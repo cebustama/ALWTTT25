@@ -6,7 +6,7 @@
 **Does not own:** the event bus itself (`SensoryEventBus`, `ISensoryEvent`) → `SSoT_Audience_and_Reactions` / Sensory Contract; FT presentation → Sensory Contract; `MidiMusicManager` as the playback host / channel-routing component → `SSoT_Runtime_CompositionSession_Integration` §3.4; any MidiGenPlay package internals (synth, soundfont, per-instrument attenuation) → MidiGenPlay docs.
 **Authority order:** `SSoT_CONTRACTS.md` → this SSoT for audio concepts → `CURRENT_STATE.md` for active slice. Cross-project audio facts defer to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`.
 **Created:** 2026-06-14 (M-AUDIO-MIX). Consolidates the as-built audio subsystem from `Design_Sensory_Contract_v0_1.md §5A` (S3-audio) and adds the music-mix model + audio boundary.
-**Updated:** 2026-10-01 (SONG-TAIL-1 + PLAY-TIMING-0) — song tail: the last loop keeps playing between songs outside the session and the next song enters on the tail's bar line: new §4.10; invariant 19 recounted to five planes (closes F-POOL-1); invariants 24–27. Prior: 2026-09-25 (PAUSE-1) — player volume plane (`PlayerAudioPrefs`, PlayerPrefs; multiplies the designed mix, never writes the SO): new §4.8; transport suspension seam (`IMidiTransportSuspend`, ALWTTT-side, `IPlayMidi` untouched): new §4.9; §4.4 design vs effective SFX; §5 persistence now two layers; §6 boundary bullet; invariants 21–23. Prior: 2026-07-22 (BAL-1) — bytes-plane mix gains adopted (MGP-MIX-1 on MidiGenPlay 1.2.0): new §4.6 (per-`(musicianId, TrackRole)` gain baked as CC7; `MixGainProfileSO`; emission gate; anti-compensation); §4.2 rewritten — the MPTK channel-volume reset is now **verified** (not assumed) and the re-assert is **deferred past tick-0** and **composed** with the baked gain via the single `WriteChannelVolume01` boundary. Contract home stays boundary §8.3. Prior: 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
+**Updated:** 2026-11-13 (AUDIO-LOOP-1, DEMO-1211 S9b) — loop chaining without cut: a loop that follows a loop which ended on its own no longer cuts what is still ringing (crash tails, chord releases): new §4.11, seam `IMidiTransportChain` (ALWTTT-side), one local patch to Maestro (`MPTK_ClearSoundOnStart`, registry `reference/maestro-parches.md`); §6 bullet; invariant 28; §9 AUDIO-LOOP-2. Prior: 2026-10-01 (SONG-TAIL-1 + PLAY-TIMING-0) — song tail: the last loop keeps playing between songs outside the session and the next song enters on the tail's bar line: new §4.10; invariant 19 recounted to five planes (closes F-POOL-1); invariants 24–27. Prior: 2026-09-25 (PAUSE-1) — player volume plane (`PlayerAudioPrefs`, PlayerPrefs; multiplies the designed mix, never writes the SO): new §4.8; transport suspension seam (`IMidiTransportSuspend`, ALWTTT-side, `IPlayMidi` untouched): new §4.9; §4.4 design vs effective SFX; §5 persistence now two layers; §6 boundary bullet; invariants 21–23. Prior: 2026-07-22 (BAL-1) — bytes-plane mix gains adopted (MGP-MIX-1 on MidiGenPlay 1.2.0): new §4.6 (per-`(musicianId, TrackRole)` gain baked as CC7; `MixGainProfileSO`; emission gate; anti-compensation); §4.2 rewritten — the MPTK channel-volume reset is now **verified** (not assumed) and the re-assert is **deferred past tick-0** and **composed** with the baked gain via the single `WriteChannelVolume01` boundary. Contract home stays boundary §8.3. Prior: 2026-07-13 (JUICE-PW) — card Vibe-impact sensory surface: new bus event `AudienceVibeImpactEvent` + new key `CardVibeImpact` (one sting per card play, at impact not at drop; `AudioType = None` on such cards — D-PW-AUDIO), §3 + invariant 18; backfills `RewardOpened` (S5h) into the §3 key list and `RewardChoiceOpenedEvent` into the adapter's subscription list. Prior: 2026-06-16 (AUDIO-CHAR-PROFILES-2) — per-ability SFX: an inline `abilitySfx` clip on `AudienceAbilityData`, fired once at ability activation in `AudienceCharacterBase.AbilityRoutine` beside the animator trigger (single-source → immediate; no new key) (§3, invariant 17). Also backfills the phase-1 gaps in `ssot_manifest.yaml` (invariant 16 + `CharacterSfxProfileSO` governs) and `CURRENT_STATE.md`. Prior: AUDIO-CHAR-PROFILES phase 1 — per-character reaction SFX: `CharacterSfxProfileSO` as a clip source for the two reaction keys, per-polarity bank fallback (§2 row, §3, invariant 16). Prior: AUDIO-AMBIENCE — adds the SFX-group crowd-ambience bus (§3, invariant 15). Earlier: AUDIO-OST — OST playback bus (§4.5), invariants 12–14.
 
 ---
 
@@ -507,6 +507,42 @@ Between songs the band keeps playing: the last loop repeats until the next song 
   up to one bar (`_loopStartTime` is set at Play); band BPM/performer set switch at render time, up to a
   bar before the new part is heard; a bonus-solo last loop repeats without its duck.
 
+### 4.11 Loop chaining without cut (AUDIO-LOOP-1)
+
+Each loop is a separate MIDI played from tick 0; the next one starts when `CompositionSession.Tick` sees
+the transport stopped (2026-11-13; D1..D5 locked at batch open).
+
+- **Cause (verified in code).** Two hard cuts sat on every loop boundary: `PlayBytes` called
+  `player.Stop()` → `MPTK_Stop(stopAllSound: true)`, and Maestro's start of every MIDI
+  (`ThreadInternalMidiPlaying`, also `ThreadLegacyPlay`) ran `ThreadClearAllSound(true, …)`. Both end in
+  `ClearAllVoices`, which drops the active voice list at once: a crash tail or a chord release stopped dead.
+  Not the generator (its end-of-part `AllSoundOff` is on the metronome channel only).
+- **Seam.** `ALWTTT.Music.IMidiTransportChain` (`ChainingEnabled`, `PlayChained(bytes)`), implemented by
+  `MidiToolkitAdapter`, discovered by type test like §4.9. `IPlayMidi` untouched.
+- **When it chains (D2=A).** `PlayBytes` chains only when `!player.IsPlaying` — the previous MIDI ended on
+  its own (loop boundary, song-tail repeat), so every note-off has been processed and only releases remain.
+  Interrupting a playing MIDI (or a suspended one) keeps `Stop()` + `Play()`: a soft stop there would leave
+  notes without their note-off.
+- **How.** `PlayChained`: `MPTK_Stop(stopAllSound: false)`, `MPTK_ClearSoundOnStart = false` (Maestro
+  patch 1), `MPTK_Play(bytes)`. Plain `Play()` sets the flag back to `true` (Maestro default). Sequencer,
+  events, beat grid, markers and timing are unchanged.
+- **Safety release (D3=A).** `chainTailReleaseSeconds` (default 3 s, realtime) after a chained start, the
+  previous session's voices get `ThreadClearAllSound(false, previousSession)`: a forced note-off with its
+  release envelope, filtered by Maestro's `IdSession`, never `ClearAllVoices`. Not cancelled by later plays
+  (releasing a session with no voice left is a no-op).
+- **Adapter fields.** `chainWithoutCut` (A/B: off = the old hard cut), `chainTailReleaseSeconds`,
+  `logChaining` (`[AUDIO-LOOP-1] Chained play … gapMs=… voicesRinging=…` and `Safety release …`).
+  `gapMs` = time from the end event to the next `PlayChained` (detection + scoring + render if any);
+  `voicesRinging` reads `MPTK_StatVoiceCountActive` (`…Playing` excludes voices in release).
+- **Accepted edges.** A tail keeps the channel object it started on, so live-mix writes (highlight, duck,
+  balance) made after the boundary do not reach it for its last seconds. Pause still releases everything
+  (`MPTK_Pause` → `ThreadClearAllSound()`), as before. The small, occasional gap between loops is NOT
+  addressed: chaining is still polled per frame and a card played in the loop re-renders at the boundary
+  (→ AUDIO-LOOP-2, §9).
+- **Maestro patch.** `MidiFilePlayer.MPTK_ClearSoundOnStart` (default `true`, `[HideInInspector]`) guards
+  the two start-of-MIDI clears; marked `[ALWTTT PATCH AUDIO-LOOP-1]`. Lost on a Maestro update: reapply from
+  `Docs/reference/maestro-parches.md`.
+
 ---
 
 ## 5. Persistence
@@ -562,6 +598,10 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
 - **`IPlayMidi` is package-declared; the pause seam is ALWTTT-side** (PAUSE-1). ALWTTT adds
   `IMidiTransportSuspend` on its own adapter rather than extending the package interface (§4.9). No ask
   was raised; the MPTK pause API is third-party (MPTK), not MidiGenPlay.
+- **The chaining seam is ALWTTT-side too** (AUDIO-LOOP-1, §4.11): `IMidiTransportChain` on the same adapter.
+  The one change below the adapter is a local patch to Maestro (third-party, not MidiGenPlay); no ask to
+  MidiGenPlay. The crash-on-the-downbeat idea stays a musical option in the MidiGenPlay queue (row 1b), not
+  a fix.
 
 ---
 
@@ -699,6 +739,11 @@ Defers to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`; the audio-specific facts:
     tracks `TailPlane01`; at the handoff the tail voice is stopped unconditionally before the new loop
     arms (`SSoT_Singer_Voice` inv. 5).
 
+28. **A loop boundary never cuts what rings** (AUDIO-LOOP-1). When the previous MIDI ended on its own,
+    the next one starts without clearing voices; tails end by themselves or by the envelope release of
+    the safety net, never by `ClearAllVoices`. Interrupting a playing MIDI keeps the hard stop. Scoring,
+    telemetry and «previsto = real» are untouched (transport only).
+
 ---
 
 ## 8. Validation / smoke references
@@ -745,9 +790,17 @@ defeat / return-to-menu stops; OFF identical — **all PASS**. Post-close fix **
 singing over the new song when the new part had no Melody/Lead stem) verified by T2/T3 with PLAY-TIMING-0
 (T1–T4 PASS, 2026-10-01).
 
+AUDIO-LOOP-1 (2026-11-13), played by Claudio: (1) 3-loop gig with fills, crash rings over the next
+downbeat, `Chained play` log per boundary; (2) long-chord card, release without click, Big Num previsto =
+real; (3) pause/resume mid-loop, resumes in place and the next loop chains — **all PASS**.
+
 ---
 
 ## 9. Forward refs / open items
+
+- **AUDIO-LOOP-2 (registered, after the demo unless `gapMs` says otherwise):** a small, occasional gap
+  between loops remains (§4.11). Render the next loop ahead and start it on a scheduled time instead of
+  polling the end; shares the boundary with LASTLOOP-B (D-PLAN-14 B).
 
 - **D1 (tracked, separate):** final intentional, non-generic SFX clips replace the S3
   placeholders. The `SoundBankSO` "Audit SFX Coverage" menu is the to-do surface.
