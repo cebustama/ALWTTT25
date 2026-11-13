@@ -89,7 +89,7 @@ En Eólico, `VI` y `III` se escriben **sin** bemol.
 - **Jazz.** ✔ ii–V–I, sustituto tritonal, backdoor, °7 de paso y rhythm changes. ✘ 13, 7♭9, 7alt y bajo caminante.
 - **Soul (Stevie Wonder).** ✔ 7sus4, 9 y m9. ✘ 13 y 7♯9. El IV/V se aproxima con `V7sus4`.
 - **City pop y anime.** ✔ Royal road y 丸サ. ≈ IV/V. ✘ add9, 11 y 13.
-- **Bill Wurtz.** [A] No hay ningún análisis verificable; con maj9, m9 y mediantes se aproxima. ✘ Bajo en otra nota.
+- **Bill Wurtz.** [A] No hay ningún análisis verificable (2026-11-13: ya hay **una fuente secundaria por verificar**, el análisis de Pusher del coro de «La De Da…», en `../ideas/2026-11-13_bill_wurtz_forma_y_armonia.md`); con maj9, m9 y mediantes se aproxima. ✘ Bajo en otra nota.
 - **Grunge.** ✘ Acordes de quinta. ♭III, ♭VI y ♭VII sobre menor; salidas frigias (Hooktheory).
 - **Metal.** ✘ Acordes de quinta y pedal. i–♭II frigio y tritono i–♭V [I]; Walser (1993) sin verificar [A].
 - **Bossa.** ✔ La armonía de la A. ✘ 6/9, 13 y bajo alternado.

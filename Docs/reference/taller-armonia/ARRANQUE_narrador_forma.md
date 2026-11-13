@@ -15,6 +15,7 @@ Esta sesión es **D3 = A**: probarlo de oído en el taller, sin Unity.
 - `scripts/oro.js` (prueba de oro; hoy `oro-v5.json`, 2.112 casos).
 - `revision-music-lab-reglas-P1-P5.md` §14–§16 (remates, semillas).
 - Captura de origen: `Music Lab/Composición/2026-11-capturas.md` (sextas de los Beatles: final en `I6`, color `ivm6`).
+- Captura del 2026-11-13: el **downbeat sintético** de Bill Wurtz (secciones de 4, 6, 7 o 9 compases que no se notan; instrumentación + frase que vuelve a empezar + caer en el IV), en `../ideas/2026-11-13_bill_wurtz_forma_y_armonia.md`.
 
 ## Lo ya decidido
 

@@ -137,7 +137,7 @@ que quepa todo: se trabaja en orden y, el 27-nov, lo que no haya entrado pasa a 
 | 5 | **CARTAS-ARTE-1** | Cara nueva de Matías: marcos Composición / Habilidad / Finisher, la estrella ★N, ilustraciones por instrumento | pasa a D |
 | 6 | **DEV-TUNING-1** | Menú F5 y el «8/8» de la mano; ajustar la economía nueva sin código | pasa a A1 |
 | 7 | **COMBOS-1** | Combos con nombre en la previsión (los Finisher ya llegan con ECON-2) | pasa a C |
-| 8 | **MUSICA-1** | Encender y oír fills, acentos y el bajo que escucha | pasa a B |
+| 8 | **MUSICA-1** | Encender y oír fills, acentos y el bajo que escucha. **Desde el 2026-11-13 es la puerta de la tanda extra de MidiGenPlay** (ALWTTT va adelantado): lo que esté listo antes del 27-nov (pruebas repetibles, melodías por figura si llegan) se enciende carta a carta con prueba de oído; lo que no suene bien se queda apagado. Opciones en `MidiGenPlay/.../Sesiones_MidiGenPlay.md` («Tanda extra») | pasa a B |
 | 9 | **PUB-SHIELD-1** | Público con escudo: el escudo temporal pasa al público y absorbe Vibe (D-PLAN-11 = B) | pasa a C1 |
 | 10 | **S10 ALINEACIÓN-2 + TEST-SETUP-1** | Las 3 alineaciones sin diálogos de ausentes; GigSetup desde el menú; **gigs y enemigos desde JSON** (D-PLAN-9 = B) | — imprescindible |
 | 11 | **S11 PULIDO** | Recompensa con arte, tooltips basales, números dibujados (listos); MAPA-2 solo si sobra | MAPA-2 a D1 |
