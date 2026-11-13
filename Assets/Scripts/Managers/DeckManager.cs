@@ -529,7 +529,9 @@ namespace ALWTTT.Managers
 
             var set = new List<CardDefinition>();
             foreach (var c in cards) if (c != null && !set.Contains(c)) set.Add(c);
-            int purged = DrawPile.RemoveAll(set.Contains) + DiscardPile.RemoveAll(set.Contains);
+            // [DEV-HAND-1] A fixed deck is never edited: TEST cards listed in it stay.
+            int purged = _devFixedDeck != null ? 0
+                : DrawPile.RemoveAll(set.Contains) + DiscardPile.RemoveAll(set.Contains);
 
             if (HandController == null || HandController.DrawTransform == null ||
                 GameManager == null || GameManager.GameplayData == null)
