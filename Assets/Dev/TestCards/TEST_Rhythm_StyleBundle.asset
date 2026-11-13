@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8831ba32adf7a2c4db4083d5aedf3478, type: 3}
+  m_Name: TEST_Rhythm_StyleBundle
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.RhythmCardConfigSO
+  appliesTo: 0
+  patternOverride: {fileID: 11400000, guid: 9b5cac8c75b7a5143a238b4ed38d6799, type: 2}
+  patternPalette: {fileID: 11400000, guid: d4ddf8c4a48920d45ac07318a7de6550, type: 2}
+  recipeOverride:
+    RhythmStyleId: 
+    HatDensity: 0
+    HatMode: 0
+  styleIdOverride: 
+  fillEveryNMeasures: 4
+  lastMeasuresAsFill: 1
+  fillPalette: {fileID: 11400000, guid: ed765b12bfcbdb841b017be479fee715, type: 2}
+  proceduralFillWeight: 1
+  crashAfterFill: 1
+  accentContrast: 0
+  kickDensity: 0.5
+  snareGhostNoteChance: 0
+  hatSubdivisionBias: 0.513

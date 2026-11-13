@@ -22,4 +22,11 @@ MonoBehaviour:
   demoLaunchConfig: {fileID: 11400000, guid: a33cb1838f0f85146ae11155225b79bb, type: 2}
   startOnLinearMap: 1
   startOnShipHub: 1
+  askTutorialOptIn: 0
   compositionDebugFull: 1
+  testCards:
+  - {fileID: 11400000, guid: 33aa069d3a7cd764da5762374427d69e, type: 2}
+  - {fileID: 11400000, guid: 54937dea4ccab99449f1184a9286cd48, type: 2}
+  - {fileID: 11400000, guid: e41586d035d26c74d9b5820b17378e29, type: 2}
+  - {fileID: 11400000, guid: f0c03e5c84dd11a4898efbe7192c71e8, type: 2}
+  testCardsMode: 2
