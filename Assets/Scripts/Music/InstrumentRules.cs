@@ -33,13 +33,21 @@ public static class InstrumentRules
         MusicianBase musician,
         TrackRole role,
         IInstrumentRepository instrumentRepo)
+        => GetPermittedMelodic(musician?.MusicianCharacterData, role, instrumentRepo);
+
+    /// <summary>[MGP-BENCH-1] Same rule from the data asset alone, so editor
+    /// tooling (the card bench, no scene) resolves exactly what the gig does.</summary>
+    public static IEnumerable<MIDIInstrumentSO> GetPermittedMelodic(
+        ALWTTT.Musicians.MusicianCharacterData data,
+        TrackRole role,
+        IInstrumentRepository instrumentRepo)
     {
         var allMelodic = instrumentRepo.GetMelodicInstruments();
 
-        if (musician?.MusicianCharacterData?.Profile == null)
+        if (data?.Profile == null)
             return allMelodic;
 
-        var prof = musician.MusicianCharacterData.Profile;
+        var prof = data.Profile;
 
         // ── [D-Sibi-Pool=A] SO whitelist (per role, opt-in) ──
         // If the role's SO whitelist is populated, restrict to its
@@ -154,11 +162,17 @@ public static class InstrumentRules
     public static IReadOnlyList<MIDIPercussionInstrumentSO> GetPermittedPercussion(
         MusicianBase musician,
         IInstrumentRepository instrumentRepo)
+        => GetPermittedPercussion(musician?.MusicianCharacterData, instrumentRepo);
+
+    /// <summary>[MGP-BENCH-1] Data-asset overload (see GetPermittedMelodic).</summary>
+    public static IReadOnlyList<MIDIPercussionInstrumentSO> GetPermittedPercussion(
+        ALWTTT.Musicians.MusicianCharacterData data,
+        IInstrumentRepository instrumentRepo)
     {
         var all = instrumentRepo?.GetPercussionInstruments()
                   ?? (IReadOnlyList<MIDIPercussionInstrumentSO>)Array.Empty<MIDIPercussionInstrumentSO>();
 
-        var wl = musician?.MusicianCharacterData?.Profile?.percussionInstruments;
+        var wl = data?.Profile?.percussionInstruments;
         if (wl != null && wl.Count > 0)
         {
             var filtered = all.Where(k => k != null && wl.Contains(k)).ToList();

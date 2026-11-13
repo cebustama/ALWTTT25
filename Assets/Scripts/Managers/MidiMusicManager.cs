@@ -370,6 +370,51 @@ namespace ALWTTT.Managers
             EnsureRegistriesLoaded();
         }
 
+#if UNITY_EDITOR
+        /// <summary>
+        /// [MGP-BENCH-1] Render-only setup for an instance created by editor
+        /// tooling outside Play (Awake does not run there). Wires exactly the
+        /// state RenderSinglePart reads — settings, repositories, generator,
+        /// default-progression palette, bytes-plane mix gains — and nothing of
+        /// the transport (no player, no Instance, no DontDestroyOnLoad). The
+        /// card bench calls it with the values of the Core prefabs so its
+        /// render is the gig's render.
+        /// </summary>
+        public void InitForOfflineRender(
+            MidiGenPlayConfig cfg,
+            ChordProgressionPaletteSO palette,
+            IReadOnlyDictionary<MusicianTrackKey, float> mixGains,
+            bool logs = false)
+        {
+            settings = cfg != null ? cfg : MidiGenPlayConfig.FindInResources();
+            if (settings == null)
+                settings = ScriptableObject.CreateInstance<MidiGenPlayConfig>();
+            logDebug = logs;
+            defaultProgressionPalette = palette;
+            instrumentRepo = new InstrumentRepositoryResources(settings);
+            patternRepo = new PatternRepositoryResources(settings);
+            generator = new MidiGenerator(settings,
+                new MidiGenPlay.Composition.BasicVoiceLeadingVoicer());
+            registriesLoaded = false;
+            EnsureRegistriesLoaded();
+            SetGigMixGains(mixGains);
+        }
+
+        /// <summary>[MGP-BENCH-1] The transform PlayRaw applies before playing
+        /// (and before DevDumpMidi), exposed so the bench hears and exports the
+        /// same bytes the gig plays.</summary>
+        public static byte[] ApplyMetronomeVolumeForPlayback(byte[] data, bool metronomeOn)
+        {
+            using var ms = new MemoryStream(data);
+            var midi = MidiFile.Read(ms);
+            MidiGenerator.ApplyChannelVolume(midi, MidiGenerator.MetronomeChannel,
+                metronomeOn ? 110 : 0);
+            using var ms2 = new MemoryStream();
+            midi.Write(ms2);
+            return ms2.ToArray();
+        }
+#endif
+
         private void OnDestroy()
         {
 

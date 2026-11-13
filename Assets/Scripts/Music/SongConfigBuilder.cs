@@ -57,6 +57,76 @@ namespace ALWTTT.Music
             System.Random rng,
             int? songSeed = null) // [MGP-REPRO-1 / D2=A]
         {
+            var ui = ctx.CompositionUI;
+            if (ui == null)
+            {
+                Log("CompositionUI is null.");
+                return null;
+            }
+
+            var model = ui.Model;
+            if (model == null || model.parts.Count == 0)
+            {
+                Log("No parts in composition model.");
+                return null;
+            }
+
+            // Defensive refresh
+            instruments?.Refresh();
+            patterns?.Refresh();
+
+            // [MGP-BENCH-1] The gig binds the pure core to the live context.
+            // Same lookups, same order, same NRE when a musician has no
+            // gameplay data — behavior unchanged by the extraction.
+            return FromModel(
+                model,
+                instruments,
+                resolvePermittedMelodic: (musicianId, role) =>
+                {
+                    var musician = ctx.ResolveMusicianById(musicianId);
+                    return (getPermittedMelodic != null)
+                        ? getPermittedMelodic(musician, role)
+                        : instruments.GetMelodicInstruments();
+                },
+                resolvePermittedPercussion: musicianId =>
+                    InstrumentRules.GetPermittedPercussion(
+                        ctx.ResolveMusicianById(musicianId), instruments),
+                resolveLeading: musicianId =>
+                {
+                    var pd = GameManager.Instance.PersistentGameplayData;
+                    var mgd = pd != null
+                        ? pd.GetMusicianGameplayData(musicianId)
+                        : null;
+                    return (mgd.CurrentMelodicLeading, mgd.CurrentHarmonicLeading);
+                },
+                resolvePinned: (partIndex, key) =>
+                    ctx.TryGetPartCache(partIndex, out var partCache)
+                    && partCache.resolvedMelInstByTrack.TryGetValue(key, out var pinned)
+                        ? (true, pinned) : (false, (MIDIInstrumentSO)null),
+                log: (msg, highlight) => ctx.Log(msg, highlight),
+                rng: rng,
+                songSeed: songSeed);
+        }
+
+        /// <summary>
+        /// [MGP-BENCH-1] Pure core of <see cref="FromUI"/>: SongModel → SongConfig
+        /// with every live-context lookup injected. The gig reaches it through
+        /// FromUI; the card bench (editor, no Play) calls it with asset-backed
+        /// lookups, so both share one translation. Mutates the model exactly as
+        /// FromUI always did: stamps the seeded root on parts without an explicit
+        /// one and consumes the one-shot modulation staging.
+        /// </summary>
+        public static SongConfig FromModel(
+            SongCompositionUI.SongModel model,
+            IInstrumentRepository instruments,
+            Func<string, TrackRole, IEnumerable<MIDIInstrumentSO>> resolvePermittedMelodic,
+            Func<string, IEnumerable<MIDIPercussionInstrumentSO>> resolvePermittedPercussion,
+            Func<string, (MelodicLeadingConfig melodic, HarmonicLeadingConfig harmonic)> resolveLeading,
+            Func<int, MusicianTrackKey, (bool found, MIDIInstrumentSO inst)> resolvePinned,
+            Action<string, bool> log,
+            System.Random rng,
+            int? songSeed = null)
+        {
             // [MGP-REPRO-1 / D2=A] With a song seed every choice (root, kit,
             // instrument) is a pure hash of (seed | part | musician | role | what)
             // over a name-sorted pool: independent of draw order, of gameplay
@@ -76,23 +146,11 @@ namespace ALWTTT.Music
                 return list[(int)(h % (uint)list.Count)];
             }
 
-            var ui = ctx.CompositionUI;
-            if (ui == null)
-            {
-                Log("CompositionUI is null.");
-                return null;
-            }
-
-            var model = ui.Model;
             if (model == null || model.parts.Count == 0)
             {
                 Log("No parts in composition model.");
                 return null;
             }
-
-            // Defensive refresh
-            instruments?.Refresh();
-            patterns?.Refresh();
 
             var cfg = new SongConfig
             {
@@ -219,7 +277,6 @@ namespace ALWTTT.Music
                         continue;
                     }
 
-                    var musician = ctx.ResolveMusicianById(musicianId);
                     var trackKey = $"p={partIndex}|mus={musicianId}|role={role}"; // [MGP-REPRO-1]
 
                     MIDIInstrumentSO melInst = null;
@@ -234,7 +291,7 @@ namespace ALWTTT.Music
                         case TrackRole.Rhythm:
                             // [MGP-REPRO-1 / D3=A] Musician's kit whitelist (empty = all).
                             percInst = Pick(
-                                InstrumentRules.GetPermittedPercussion(musician, instruments),
+                                resolvePermittedPercussion(musicianId),
                                 $"{trackKey}|kit");
 
                             recipe = new RhythmRecipe
@@ -247,9 +304,7 @@ namespace ALWTTT.Music
 
                         case TrackRole.Backing:
 
-                            candidates = (getPermittedMelodic != null)
-                                ? getPermittedMelodic(musician, role)
-                                : instruments.GetMelodicInstruments();
+                            candidates = resolvePermittedMelodic(musicianId, role);
 
                             melInst = Pick(candidates, $"{trackKey}|inst");
 
@@ -262,9 +317,7 @@ namespace ALWTTT.Music
 
                         case TrackRole.Bassline:
 
-                            candidates = (getPermittedMelodic != null)
-                                ? getPermittedMelodic(musician, role)
-                                : instruments.GetMelodicInstruments();
+                            candidates = resolvePermittedMelodic(musicianId, role);
 
                             melInst = Pick(candidates, $"{trackKey}|inst");
                             break;
@@ -272,9 +325,7 @@ namespace ALWTTT.Music
                         case TrackRole.Melody:
                         case TrackRole.Harmony:
 
-                            candidates = (getPermittedMelodic != null)
-                                ? getPermittedMelodic(musician, role)
-                                : instruments.GetMelodicInstruments();
+                            candidates = resolvePermittedMelodic(musicianId, role);
 
                             melInst = Pick(candidates, $"{trackKey}|inst");
                             break;
@@ -284,14 +335,14 @@ namespace ALWTTT.Music
                     if (trModel.overrideMelodicInstrument != null)
                     {
                         melInst = trModel.overrideMelodicInstrument;
-                        ctx.Log($"<color=blue>[Override] Using override melodic instrument " +
-                                $"for mus='{musicianId}': '{melInst.InstrumentName}'</color>");
+                        log?.Invoke($"<color=blue>[Override] Using override melodic instrument " +
+                                $"for mus='{musicianId}': '{melInst.InstrumentName}'</color>", false);
                     }
                     else if (trModel.overridePercussionInstrument != null)
                     {
                         percInst = trModel.overridePercussionInstrument;
-                        ctx.Log($"<color=blue>[Override] Using override percussion instrument " +
-                                $"for mus='{musicianId}': '{percInst.InstrumentName}'</color>");
+                        log?.Invoke($"<color=blue>[Override] Using override percussion instrument " +
+                                $"for mus='{musicianId}': '{percInst.InstrumentName}'</color>", false);
                     }
                     else if (trModel.hasOverrideInstrumentType)
                     {
@@ -302,7 +353,7 @@ namespace ALWTTT.Music
 
                         melInst = Pick(candidatesByType, $"{trackKey}|insttype");
 
-                        ctx.Log($"[InstrumentEffect] Choosing random instrument of type " +
+                        log?.Invoke($"[InstrumentEffect] Choosing random instrument of type " +
                                 $"{trModel.overrideInstrumentType} for mus='{musicianId}' " +
                                 $"-> '{melInst?.InstrumentName ?? "-"}'", true);
                     }
@@ -311,14 +362,14 @@ namespace ALWTTT.Music
                     // [DBG-C1] The part-cache pin map is keyed (musicianId,
                     // role) — unambiguous for multi-track musicians; the
                     // BASS-1 skip is retired.
-                    if (ctx.TryGetPartCache(partIndex, out var partCache))
+                    if (resolvePinned != null && !string.IsNullOrEmpty(musicianId))
                     {
-                        if (!string.IsNullOrEmpty(musicianId) &&
-                            partCache.resolvedMelInstByTrack.TryGetValue(
-                                new MusicianTrackKey(musicianId, role), out var pinned))
+                        var (pinFound, pinned) = resolvePinned(
+                            partIndex, new MusicianTrackKey(musicianId, role));
+                        if (pinFound)
                         {
                             melInst = pinned;
-                            ctx.Log($"[Pin] Using cached instrument for mus='{musicianId}' " +
+                            log?.Invoke($"[Pin] Using cached instrument for mus='{musicianId}' " +
                                 $"role={role} -> '{pinned?.InstrumentName ?? "-"}'", true);
                         }
                     }
@@ -332,10 +383,7 @@ namespace ALWTTT.Music
                         $"inst='{instName}'", true);
 
                     // Look up persistent per-musician gameplay state
-                    var pd = GameManager.Instance.PersistentGameplayData;
-                    var mgd = pd != null
-                        ? pd.GetMusicianGameplayData(musicianId)
-                        : null;
+                    var leading = resolveLeading(musicianId);
 
                     // Build track config
                     var tcfg = new SongConfig.PartConfig.TrackConfig
@@ -351,9 +399,9 @@ namespace ALWTTT.Music
 
                             // Legacy fallbacks TODO: REMOVE
                             melodyStrategyId = MelodyStrategyId.ScaleFlow,
-                            melodicLeadingOverride = mgd.CurrentMelodicLeading,
+                            melodicLeadingOverride = leading.melodic,
                             harmonyStrategyId = HarmonyStrategyId.NearestChordTone,
-                            harmonicLeadingOverride = mgd.CurrentHarmonicLeading,
+                            harmonicLeadingOverride = leading.harmonic,
                         }
                     };
 
