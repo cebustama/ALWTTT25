@@ -180,5 +180,26 @@ namespace ALWTTT.Data
 
         public System.Collections.Generic.IReadOnlyList<ALWTTT.Cards.CardDefinition> TestCards => testCards;
         public TestCardsMode TestCardsGiveMode => testCardsMode;
+
+        // --- Fixed deck [DEV-HAND-1] ---
+
+        [Header("Fixed deck [DEV-HAND-1]")]
+        [SerializeField, Tooltip("When on, every gig's deck is EXACTLY the list below, " +
+            "in that order, without shuffling: the first hand is its first cards, each " +
+            "draw takes the next one, and when it runs out the discard comes back in the " +
+            "list's order. Controlled, repeatable tests. Test cards (above) still go in " +
+            "first. Only used in ALWTTT_DEV builds.")]
+        private bool useFixedDeck = false;
+
+        [SerializeField, TextArea(4, 14), Tooltip("JSON: { \"name\": \"…\", \"cards\": " +
+            "[\"starter_default_mode\", \"starter_finger_bass\", \"test_bass\", …] }. " +
+            "Each entry is a card id (or its display name). Repeats are allowed. " +
+            "Unknown cards, or cards whose musician is not in the band, are skipped " +
+            "and logged under [DEV-HAND-1].")]
+        private string fixedDeckJson =
+            "{ \"name\": \"\", \"cards\": [] }";
+
+        public bool UseFixedDeck => useFixedDeck;
+        public string FixedDeckJson => fixedDeckJson;
     }
 }

@@ -658,6 +658,7 @@ namespace ALWTTT.Managers
             InitLoopScoringConfig();
 #if ALWTTT_DEV
             _devTestCardsGivenThisGig = false; // [DEV-TEST-1]
+            ApplyDevFixedDeckIfConfigured();    // [DEV-HAND-1]
 #endif
 
             // MVP: initial planning window is open.
@@ -2218,6 +2219,69 @@ namespace ALWTTT.Managers
             DeckManager.DevGiveTestCards(dev.TestCards, def =>
                 def != null && (!def.RequiresFixedPerformer ||
                                 ResolveMusicianByType(def.FixedPerformerType) != null));
+        }
+
+        // [DEV-HAND-1] Fixed deck from GigDevSettings' JSON (D21=B, D22=A).
+        [System.Serializable]
+        private class DevFixedDeckJson
+        {
+            public string name;
+            public string[] cards;
+        }
+
+        private void ApplyDevFixedDeckIfConfigured()
+        {
+            const string Tag = "<color=lime>[DEV-HAND-1]</color>";
+            if (dev == null || !dev.UseFixedDeck || DeckManager == null) return;
+
+            DevFixedDeckJson parsed = null;
+            try { parsed = JsonUtility.FromJson<DevFixedDeckJson>(dev.FixedDeckJson ?? ""); }
+            catch (System.Exception e) { Debug.LogWarning($"{Tag} Fixed deck JSON does not parse: {e.Message}. Normal deck."); return; }
+            if (parsed?.cards == null || parsed.cards.Length == 0)
+            {
+                Debug.LogWarning($"{Tag} Fixed deck is on but the JSON has no cards. Normal deck.");
+                return;
+            }
+
+            // Source: every card of the game + the band's catalogs + the test cards.
+            var pool = new List<CardDefinition>();
+            void AddAll(IEnumerable<CardDefinition> src)
+            {
+                if (src == null) return;
+                foreach (var c in src) if (c != null && !pool.Contains(c)) pool.Add(c);
+            }
+            AddAll(dev.TestCards);
+            AddAll(GameManager?.GameplayData?.AllCardsList);
+            var band = new List<CardDefinition>();
+            GameManager?.PersistentGameplayData?.BuildBandCardCatalog(band);
+            AddAll(band);
+
+            var deck = new List<CardDefinition>();
+            var skipped = new List<string>();
+            foreach (var raw in parsed.cards)
+            {
+                var key = (raw ?? "").Trim();
+                if (key.Length == 0) continue;
+                var def = pool.FirstOrDefault(c => c.Id == key)
+                       ?? pool.FirstOrDefault(c => string.Equals(c.DisplayName, key,
+                              System.StringComparison.OrdinalIgnoreCase));
+                if (def == null) { skipped.Add($"{key} (no such card)"); continue; }
+                if (def.RequiresFixedPerformer && ResolveMusicianByType(def.FixedPerformerType) == null)
+                { skipped.Add($"{key} ({def.FixedPerformerType} not in band)"); continue; }
+                deck.Add(def);
+            }
+
+            if (deck.Count == 0)
+            {
+                Debug.LogWarning($"{Tag} Fixed deck '{parsed.name}': no usable card. Normal deck." +
+                    (skipped.Count > 0 ? $" skipped=[{string.Join("; ", skipped)}]" : ""));
+                return;
+            }
+
+            DeckManager.DevSetFixedDeck(deck);
+            Debug.Log($"{Tag} Fixed deck '{parsed.name}' ({deck.Count}): " +
+                      string.Join(" → ", deck.Select(c => c.DisplayName)) +
+                      (skipped.Count > 0 ? $" | skipped=[{string.Join("; ", skipped)}]" : ""));
         }
 #endif
 

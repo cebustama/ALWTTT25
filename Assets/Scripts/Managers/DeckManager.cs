@@ -52,6 +52,25 @@ namespace ALWTTT.Managers
         public List<CardDefinition> ExhaustPile { get; private set; } =
             new List<CardDefinition>();
 
+#if ALWTTT_DEV
+        // [DEV-HAND-1] Fixed deck for controlled tests (D21=B): when set, the
+        // draw pile IS this list, draws take the top card, and an empty draw
+        // pile refills from the discard in THIS order (no shuffle, no M4.5
+        // guarantees). Reset by SetGameDeck, i.e. every gig starts normal.
+        private List<CardDefinition> _devFixedDeck;
+        public bool DevFixedDeckActive => _devFixedDeck != null;
+
+        public void DevSetFixedDeck(List<CardDefinition> cards)
+        {
+            _devFixedDeck = new List<CardDefinition>(cards);
+            DrawPile.Clear();
+            DiscardPile.Clear();
+            DrawPile.AddRange(cards);
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
+        }
+#endif
+
         #region Cache
         public HandController HandController => handController;
         private GameManager GameManager => GameManager.Instance;
@@ -78,6 +97,9 @@ namespace ALWTTT.Managers
         public void SetGameDeck()
         {
             LogV($"{DebugTag} Setting game deck...");
+#if ALWTTT_DEV
+            _devFixedDeck = null; // [DEV-HAND-1] GigManager re-applies it after this, if configured
+#endif
 
             var gm = GameManager;
             var pd = gm != null ? gm.PersistentGameplayData : null;
@@ -170,7 +192,11 @@ namespace ALWTTT.Managers
                     }
                 }
 
-                var randomCard = DrawPile[UnityEngine.Random.Range(0, DrawPile.Count)];
+                int pick = UnityEngine.Random.Range(0, DrawPile.Count);
+#if ALWTTT_DEV
+                if (_devFixedDeck != null) pick = 0; // [DEV-HAND-1] top of the fixed deck
+#endif
+                var randomCard = DrawPile[pick];
 
                 if (randomCard == null)
                 {
@@ -677,6 +703,18 @@ namespace ALWTTT.Managers
         private void ReshuffleDiscardPile()
         {
             LogV($"{DebugTag} Reshuffling discard pile...");
+#if ALWTTT_DEV
+            if (_devFixedDeck != null)
+            {
+                // [DEV-HAND-1] Back in the list's order, not the play order.
+                var left = new List<CardDefinition>(DiscardPile);
+                foreach (var c in _devFixedDeck)
+                    if (left.Remove(c)) DrawPile.Add(c);
+                DrawPile.AddRange(left);
+                DiscardPile.Clear();
+                return;
+            }
+#endif
             foreach (var i in DiscardPile)
             {
                 DrawPile.Add(i);
@@ -736,6 +774,18 @@ namespace ALWTTT.Managers
                 else LogV($"{DebugTag} [TUT-R2] Scripted entry '{scripted.Label}' " +
                                "missed both stages — slot falls through to normal draw (D1).");
             }
+
+#if ALWTTT_DEV
+            if (_devFixedDeck != null)
+            {
+                // [DEV-HAND-1] Fixed deck: plain top-of-deck draws, no guarantees.
+                int n = effectiveBudget - scriptedDrawn;
+                if (n > 0) DrawCards(n);
+                _lastTurnGuaranteeSummary = $"fixed-deck drawn={HandPile.Count - handPileBefore}/{effectiveBudget}";
+                LogV($"{DebugTag} [DEV-HAND-1] {_lastTurnGuaranteeSummary}");
+                return;
+            }
+#endif
 
             bool needComp = !HandHas(c => c.IsComposition) && PilesHave(c => c.IsComposition);
             bool needAction = !HandHas(c => c.IsAction) && PilesHave(c => c.IsAction);
