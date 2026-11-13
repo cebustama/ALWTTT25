@@ -152,5 +152,33 @@ namespace ALWTTT.Data
             get => compositionDebugFull;
             set => compositionDebugFull = value;
         }
+
+        // --- Test cards [DEV-TEST-1] ---
+
+        /// <summary>[DEV-TEST-1] When the test cards reach the hand.</summary>
+        public enum TestCardsMode
+        {
+            Off = 0,
+            /// <summary>Once, at the first player turn of every gig.</summary>
+            GigStart = 1,
+            /// <summary>At every player turn, the ones not already in the hand.</summary>
+            EveryTurn = 2,
+        }
+
+        [Header("Test cards [DEV-TEST-1]")]
+        [SerializeField, Tooltip("Cards for testing (TEST Bass, TEST Rhythm, TEST Melody, " +
+            "TEST Chords…). Created with ALWTTT ▸ Dev ▸ Create Test Cards. They are given " +
+            "to the hand according to the mode below and always show in the F12 catalogue. " +
+            "They never enter the band's persistent deck. Only used in ALWTTT_DEV builds.")]
+        private System.Collections.Generic.List<ALWTTT.Cards.CardDefinition> testCards =
+            new System.Collections.Generic.List<ALWTTT.Cards.CardDefinition>();
+
+        [SerializeField, Tooltip("Off: never. GigStart: once, at the first player turn " +
+            "of each gig. EveryTurn: at every player turn, the ones missing from the hand. " +
+            "A card whose musician is not in the band is skipped (logged).")]
+        private TestCardsMode testCardsMode = TestCardsMode.Off;
+
+        public System.Collections.Generic.IReadOnlyList<ALWTTT.Cards.CardDefinition> TestCards => testCards;
+        public TestCardsMode TestCardsGiveMode => testCardsMode;
     }
 }

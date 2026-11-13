@@ -107,6 +107,16 @@ namespace ALWTTT.DevMode
             _lastBandCount = bandCount;
             _bandUnion.Clear();
             pd?.BuildBandCardCatalog(_bandUnion);
+
+            // [DEV-TEST-1] The test cards always show, first, whatever the band.
+            var tests = GigManager.Instance != null && GigManager.Instance.DevSettings != null
+                ? GigManager.Instance.DevSettings.TestCards : null;
+            if (tests != null && _bandUnion.Count > 0)
+            {
+                int at = 0;
+                foreach (var t in tests)
+                    if (t != null && !_bandUnion.Contains(t)) _bandUnion.Insert(at++, t);
+            }
         }
 
         // ---------------------------------------------------------------

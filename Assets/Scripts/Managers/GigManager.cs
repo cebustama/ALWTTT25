@@ -656,6 +656,9 @@ namespace ALWTTT.Managers
             // Deck + hand binding
             SetupDeck();
             InitLoopScoringConfig();
+#if ALWTTT_DEV
+            _devTestCardsGivenThisGig = false; // [DEV-TEST-1]
+#endif
 
             // MVP: initial planning window is open.
             _actionWindowOpen = true;
@@ -1359,6 +1362,12 @@ namespace ALWTTT.Managers
 
                     if (!pd.KeepInspirationBetweenTurns)
                         pd.CurrentInspiration = pd.TurnStartingInspiration;
+
+#if ALWTTT_DEV
+                    // [DEV-TEST-1] Test cards go in BEFORE the turn draw, so
+                    // they always fit under the hand cap.
+                    GiveDevTestCardsIfConfigured();
+#endif
 
                     // M4.5: bidirectional guaranteed draws (subtractive). Total drawn ≤ DrawCount.
                     // Guarantees ≥1 Composition and ≥1 Action in hand when piles allow.
@@ -2186,6 +2195,31 @@ namespace ALWTTT.Managers
         }
 
         #endregion
+
+#if ALWTTT_DEV
+        // [DEV-TEST-1] Test cards (GigDevSettingsSO.TestCards) to the hand at a
+        // player-turn open: once per gig (GigStart) or every turn (EveryTurn).
+        private bool _devTestCardsGivenThisGig;
+
+        private void GiveDevTestCardsIfConfigured()
+        {
+            if (dev == null || DeckManager == null) return;
+            var mode = dev.TestCardsGiveMode;
+            if (mode == GigDevSettingsSO.TestCardsMode.Off) return;
+            if (dev.TestCards == null || dev.TestCards.Count == 0)
+            {
+                Debug.LogWarning("<color=lime>[DEV-TEST-1]</color> Test cards mode is " +
+                    $"{mode} but the list is empty (ALWTTT ▸ Dev ▸ Create Test Cards).");
+                return;
+            }
+            if (mode == GigDevSettingsSO.TestCardsMode.GigStart && _devTestCardsGivenThisGig) return;
+            _devTestCardsGivenThisGig = true;
+
+            DeckManager.DevGiveTestCards(dev.TestCards, def =>
+                def != null && (!def.RequiresFixedPerformer ||
+                                ResolveMusicianByType(def.FixedPerformerType) != null));
+        }
+#endif
 
         private MusicianBase ResolveMusicianByType(MusicianCharacterType t)
         {

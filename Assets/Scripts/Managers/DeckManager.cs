@@ -484,6 +484,60 @@ namespace ALWTTT.Managers
         }
 
         /// <summary>
+        /// [DEV-TEST-1] Gives the test cards to the hand. Called by GigManager
+        /// at a player-turn open, BEFORE the turn draw (so they fit under the
+        /// hand cap) and while the phase is still switching — so it does not
+        /// use the PlayerTurn gate of <see cref="DevSpawnCardToHand"/>.
+        /// Test cards never live in the deck: copies in the draw or discard
+        /// pile are removed first, so a played test card comes back only
+        /// through this path. Cards already in the hand are not duplicated.
+        /// <paramref name="canPlay"/> skips cards whose musician is not in the
+        /// band. Returns the number given.
+        /// </summary>
+        public int DevGiveTestCards(
+            IReadOnlyList<CardDefinition> cards,
+            Func<CardDefinition, bool> canPlay)
+        {
+            const string Tag = "<color=lime>[DEV-TEST-1]</color>";
+            if (cards == null || cards.Count == 0) return 0;
+
+            var set = new List<CardDefinition>();
+            foreach (var c in cards) if (c != null && !set.Contains(c)) set.Add(c);
+            int purged = DrawPile.RemoveAll(set.Contains) + DiscardPile.RemoveAll(set.Contains);
+
+            if (HandController == null || HandController.DrawTransform == null ||
+                GameManager == null || GameManager.GameplayData == null)
+            {
+                Debug.LogWarning($"{Tag} No hand to give the test cards to.");
+                return 0;
+            }
+
+            int max = GameManager.GameplayData.MaxCardsOnHand;
+            int given = 0;
+            var skipped = new List<string>();
+            foreach (var def in set)
+            {
+                if (HandPile.Contains(def)) continue;
+                if (canPlay != null && !canPlay(def)) { skipped.Add($"{def.DisplayName} (musician not in band)"); continue; }
+                if (HandPile.Count >= max) { skipped.Add($"{def.DisplayName} (hand full {HandPile.Count}/{max})"); continue; }
+
+                var built = GameManager.BuildAndGetCard(def, HandController.DrawTransform);
+                if (built == null) { skipped.Add($"{def.DisplayName} (build failed)"); continue; }
+                HandController.AddCardToHand(built);
+                HandPile.Add(def);
+                given++;
+            }
+
+            if (UIManager != null && UIManager.GigCanvas != null)
+                UIManager.GigCanvas.SetPileTexts();
+
+            Debug.Log($"{Tag} Test cards: given={given} purgedFromPiles={purged} " +
+                      $"hand={HandPile.Count}/{max}" +
+                      (skipped.Count > 0 ? $" skipped=[{string.Join("; ", skipped)}]" : ""));
+            return given;
+        }
+
+        /// <summary>
         /// Dev Mode only. Returns true iff DevSpawnCardToHand would succeed right now.
         /// Overload without the out parameter for callers that only need the bool.
         /// </summary>
