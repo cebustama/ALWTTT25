@@ -1092,7 +1092,7 @@ namespace ALWTTT.Managers
             }
 
             // toggle instrument picker + volume debug with D
-            if (Input.GetKeyDown(KeyCode.D) && dev != null)
+            if (Input.GetKeyDown(KeyCode.D) && dev != null && !ALWTTT.UI.TextEntryGate.IsTyping) // [FEEDBACK-2]
             {
                 dev.DebugInstrumentPicker = !dev.DebugInstrumentPicker;
                 dev.DebugMusicianVolume = !dev.DebugMusicianVolume;

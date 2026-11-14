@@ -14,6 +14,16 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-14 — FEEDBACK-2: el feedback desde la pausa, por formulario de Google (DEMO-1211)
+
+**Clase:** semántico · operativo · ciclo de vida. Con cambio de código y prefab.
+
+- Decisiones: D1=B (con el texto viajan versión, sistema, escena, banda y gig; nada más), D2=A (solo desde la pausa), D3=B (si falla: error, el texto se queda y «Copiar» con el respaldo de S9c), D4=B (el panel lo construye un menú de editor), D5=A (textos ES/EN).
+- Código: `FeedbackForm` (enlace prellenado → `/formResponse` + `entry.N` por letra), `FeedbackPanelController`, `TextEntryGate`; `PauseMenuController` (abre el panel, `BuildMailFallback`), `UIManager.HandleEscapeKey` (capa del panel), guardas de escritura en `MidiGenPlayPanelController` (M) y `GigManager` (D). Editor: `FeedbackPanelBuilder` (crear panel, comprobar formulario). Prefab: `FeedbackPanel` en `UIManager.prefab`, `FeedbackButton` encendido.
+- Sin secretos en la build: el id del formulario y los `entry.N` son públicos. Se evitó el SMTP con contraseña de Bird Boxing.
+- Docs: `SSoT_Runtime_Flow` «Pause state», `SSoT_Editor_Authoring_Tools` §23.8, `CURRENT_STATE`, plan DEMO-1211 (3b ✅); `ARRANQUE_FEEDBACK-2.md` archivado.
+- Smokes 1–3 jugados por Claudio (enviar, respuesta en la hoja; fallo con el texto conservado; Esc y teclas al escribir). Segunda pasada visual del panel aprobada.
+
 ## 2026-11-14 — S9c: DEMO-FIX-1, arreglos de la demo (DEMO-1211)
 
 **Clase:** semántico · operativo · ciclo de vida. Con cambio de código y datos.

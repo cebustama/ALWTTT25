@@ -252,6 +252,22 @@ changes neither `CurrentGigPhase` nor `_session`.
   tail repeat starts and no held handoff fires, including in the gap between two loops; the tail fade runs
   in scaled time and freezes too (ST-ST-7).
 - Verified ST-P1-1, 2, 4, 5, 7, 10.
+- **Feedback panel (FEEDBACK-2, 2026-11-14):** «Enviar feedback» in the pause opens
+  `FeedbackPanelController` (`PauseCanvas/Root/FeedbackPanel`): text box, Send, Cancel, one privacy line,
+  a status line and, only after a failure, «Copiar» with the S9c mail fallback
+  (`PauseMenuController.BuildMailFallback`, D3=B). Only reachable from the pause (D2=A).
+  - **Destination:** `FeedbackForm` posts to the Google Form's public `/formResponse` (`UnityWebRequest`,
+    15 s timeout). Configuration is one constant, the pre-filled link with placeholder letters
+    M/V/S/E/B/G; no secret in the build. Sent with the text (D1=B): version, OS, scene, band
+    (`lineupId (CharacterIds)`) and gig (`encounter label · songIndex`). The log never prints the text.
+  - **Survives the pause:** the coroutine yields on the request (real time, unaffected by
+    `timeScale = 0`) and runs on `PauseMenuController`, so closing the panel or resuming mid-send does
+    not kill it. The text is kept on Cancel, Esc and failure; it is cleared only on HTTP 200.
+  - **Esc chain** (`UIManager.HandleEscapeKey`): card detail → Options → **Feedback panel** → pause.
+    `restoreOriginalTextOnEscape = false` so Esc does not wipe the text.
+  - **Typing guard:** `TextEntryGate.IsTyping` (a focused `TMP_InputField`) blocks the letter hotkeys
+    read in `Update` (M = MidiGenPlay panel, D = instrument picker).
+  - Logs `[FEEDBACK-2]`. Smokes 1–3 played by Claudio (response arrived in the sheet).
 
 ---
 

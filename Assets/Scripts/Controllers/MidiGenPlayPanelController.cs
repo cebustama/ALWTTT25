@@ -9,7 +9,8 @@ namespace ALWTTT
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.M))
+            // [FEEDBACK-2] Typing "m" in a text field must not toggle the panel.
+            if (Input.GetKeyDown(KeyCode.M) && !ALWTTT.UI.TextEntryGate.IsTyping)
             {
                 panel.gameObject.SetActive(!panel.gameObject.activeSelf);
             }

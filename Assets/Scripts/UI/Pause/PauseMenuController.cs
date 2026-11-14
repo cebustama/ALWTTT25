@@ -1,8 +1,6 @@
 using ALWTTT.Managers;
 using System;
 using System.IO;
-using TMPro;
-using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -42,6 +40,8 @@ namespace ALWTTT.UI
         private GameObject confirmPanel;
         [SerializeField, Tooltip("Instance of the shared OptionsPanel prefab (D4=B).")]
         private OptionsPanelController options;
+        [SerializeField, Tooltip("[FEEDBACK-2] Feedback panel (built by ALWTTT ▸ FEEDBACK-2 ▸ Crear panel).")]
+        private FeedbackPanelController feedbackPanel;
 
         [Header("Debug")]
         [SerializeField, Tooltip("One [PAUSE-1] line per pause/resume (smoke-test evidence).")]
@@ -173,44 +173,35 @@ namespace ALWTTT.UI
 
         public void OnConfirmNoPressed() => ShowMain();
 
-        // [S9c / D2=B] Feedback by e-mail (mailto:, no server) and the telemetry folder.
+        // [FEEDBACK-2] The button opens the in-game panel (posts to a Google Form). The S9c
+        // mailto: is gone: on machines without a mail client it only opened the browser.
         public void OnFeedbackPressed()
         {
-            string folder = TelemetryFolder();
+            if (feedbackPanel == null)
+            {
+                Debug.LogWarning($"{FeedbackForm.Tag} Feedback panel not wired on PauseMenuController.");
+                return;
+            }
+            if (mainPanel != null) mainPanel.SetActive(false);
+            feedbackPanel.Open(onClosed: ShowMain);
+        }
+
+        /// <summary>
+        /// [S9c / D6=C, kept by FEEDBACK-2 D3=B] Fallback when the form cannot be reached:
+        /// address, subject and body (message + context + telemetry folder) for the clipboard.
+        /// </summary>
+        public static string BuildMailFallback(string message)
+        {
             string subject = $"[ALWTTT demo {Application.version}] Feedback";
             string body =
-                "Cuéntanos qué pasó / Tell us what happened:\n\n\n" +
-                "---\n" +
+                (string.IsNullOrWhiteSpace(message) ? "Cuéntanos qué pasó / Tell us what happened:\n\n" : message.Trim()) +
+                "\n\n---\n" +
                 $"Versión / Version: {Application.version}\n" +
                 $"Fecha / Date: {DateTime.Now:yyyy-MM-dd HH:mm}\n" +
                 $"Sistema / OS: {SystemInfo.operatingSystem}\n" +
                 "Si puedes, adjunta el último gig_runs_*.jsonl de / If you can, attach the latest gig_runs_*.jsonl from:\n" +
-                folder + "\n";
-            string url = $"mailto:{FeedbackAddress}?subject={Uri.EscapeDataString(subject)}" +
-                         $"&body={Uri.EscapeDataString(body)}";
-            // [S9c / D6=C] Fallback for players with no mail client: the address and the
-            // message go to the clipboard too, and the button says so.
-            GUIUtility.systemCopyBuffer = $"{FeedbackAddress}\n{subject}\n\n{body}";
-            MarkFeedbackButtonCopied();
-            Debug.Log($"[S9c] Feedback: abriendo el correo a {FeedbackAddress} y copiado al portapapeles (carpeta: {folder}).");
-            Application.OpenURL(url);
-        }
-
-        private TMP_Text _feedbackLabel;
-        private string _feedbackLabelText;
-
-        private void MarkFeedbackButtonCopied()
-        {
-            var go = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
-            var label = go != null ? go.GetComponentInChildren<TMP_Text>(true) : null;
-            if (label == null) return;
-            if (_feedbackLabel != label) { _feedbackLabel = label; _feedbackLabelText = label.text; }
-            label.text = $"Copiado. Pégalo en un correo a {FeedbackAddress}";
-        }
-
-        private void RestoreFeedbackLabel()
-        {
-            if (_feedbackLabel != null) _feedbackLabel.text = _feedbackLabelText;
+                TelemetryFolder() + "\n";
+            return $"{FeedbackAddress}\n{subject}\n\n{body}";
         }
 
         public void OnOpenTelemetryFolderPressed()
@@ -222,7 +213,7 @@ namespace ALWTTT.UI
             Application.OpenURL(new Uri(folder).AbsoluteUri);
         }
 
-        private const string FeedbackAddress = "allwtttcmm@gmail.com";
+        public const string FeedbackAddress = "allwtttcmm@gmail.com";
 
         private static string TelemetryFolder()
         {
@@ -253,7 +244,6 @@ namespace ALWTTT.UI
         #region Panels
         private void ShowMain()
         {
-            RestoreFeedbackLabel();
             if (root != null) root.SetActive(true);
             if (confirmPanel != null) confirmPanel.SetActive(false);
             if (mainPanel != null) mainPanel.SetActive(true);
@@ -261,6 +251,7 @@ namespace ALWTTT.UI
 
         private void HideAll()
         {
+            if (feedbackPanel != null) feedbackPanel.Close(invokeCallback: false);
             if (confirmPanel != null) confirmPanel.SetActive(false);
             if (mainPanel != null) mainPanel.SetActive(false);
             if (root != null) root.SetActive(false);

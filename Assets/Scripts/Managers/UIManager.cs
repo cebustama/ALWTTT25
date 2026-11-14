@@ -101,6 +101,9 @@ namespace ALWTTT.Managers
             // 3) the pause menu: cancels its confirm, resumes, or opens the pause in a gig.
             //    Outside a gig it declines and the scene rule below runs unchanged.
             if (OptionsPanelController.TryCloseTopmost()) return;
+            // [FEEDBACK-2] The feedback panel sits on the pause like Options: Esc closes it
+            // (text kept) and goes back to the pause menu, never resumes the gig directly.
+            if (FeedbackPanelController.TryCloseOpen()) return;
 
             var pause = PauseMenuController.Instance;
             if (pause != null && pause.HandleEscape()) return;

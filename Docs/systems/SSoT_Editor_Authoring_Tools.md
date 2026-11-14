@@ -2354,3 +2354,17 @@ from the legacy slots' bounds), assigns `GigManager.bandStageLayout`, Undo-able.
 - **Several `BroodClock`s on one Reina** work together: `Cría 1–4` under her `Sprite`, each reading
   the same abilities, so the four change stage at once (egg · egg · hatch · burst). Decoration only:
   no per-larva health (larvae with their own design stay post-demo).
+
+### 23.8 Feedback panel builder and form check (FEEDBACK-2, 2026-11-14)
+
+- **«ALWTTT ▸ FEEDBACK-2 ▸ Crear panel de feedback en la pausa»** (`FeedbackPanelBuilder`, D4=B):
+  opens `UIManager.prefab` and builds `PauseCanvas/Root/FeedbackPanel` as a copy of `ConfirmPanel`
+  (same frame, font and buttons), opaque night-purple, with a vertical layout: title, multi-line
+  `MessageInput` (2,000 characters), privacy line, status line, Send / Copy (hidden) / Cancel. Wires
+  `FeedbackPanelController` and `PauseMenuController.feedbackPanel`, and turns `FeedbackButton` back on.
+  Re-running asks before replacing the panel.
+- **Every copied button loses its old OnClick** before being rewired: the copied Confirm pointed at
+  `OnConfirmYesPressed`, so an unwired Send would have quit the gig.
+- **«ALWTTT ▸ FEEDBACK-2 ▸ Comprobar formulario»** prints the parsed `/formResponse` URL and the
+  `entry.N` of each placeholder (M/V/S/E/B/G), with `FALTA` for a missing one. Changing the form =
+  pasting a new pre-filled link into `FeedbackForm.PrefilledLink` and running the check.
