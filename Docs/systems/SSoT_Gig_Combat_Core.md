@@ -156,6 +156,11 @@ Design role:
 - governs tempo and budget of composition decisions
 - lets musical structure feed back into tactical capacity
 
+**[ECON-2, 2026-11-14]** La Inspiración es el Heroísmo de Midnight Suns: las composiciones la cargan (★ al
+jugarlas) y los **Finisher** la gastan en el último loop, que pasa de turno muerto a clímax (loop extra con los
+solos de todos los Finisher jugados). Se guarda entre canciones del gig (como antes), máximo 10, sin ★ básica por
+loop en esta versión. Todo ajustable en vivo (Dev Mode ▸ Inspiración). Reglas: `SSoT_Card_System.md` §2.3.
+
 Per-loop inspiration gain is wired post-M4.6F-3 via `pd.InspirationPerLoop` (default-sourced from `GigFlowSettingsSO.DefaultInspirationPerLoop` at `ApplyRunConfig`). Consumed by the `LoopFinished` subscriber in `GigManager.OnCompositionLoopFinished`, which calls `_session.AddCurrentInspiration(inspN)`. The canonical mutator clamps to `pd.MaxInspiration` and mirrors to `pd.CurrentInspiration`, so PD and `CompositionSession._currentInspiration` stay in sync after every gain. Per-loop card draw is wired in the same hook via `flow.DrawPerLoop` (new field on `GigFlowSettingsSO`); `DeckManager.DrawCards` clamps to `MaxCardsOnHand` internally.
 
 ### 5.2 SongHype

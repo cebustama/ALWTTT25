@@ -14,6 +14,16 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-14 — ECON-2: la Inspiración como el Heroísmo de Midnight Suns (DEMO-1211)
+
+**Clase:** semántico · operativo · ciclo de vida. Con cambio de código y de datos.
+
+- Decisiones: D1 = ★ según la carta (1 en este primer mazo), D2 = el Finisher es de **composición** y añade un loop final con solo, D3 = uno por músico, D4 = la ★ se guarda entre canciones, D5 = la ★ se da **una vez al jugar** + pop de color en el contador, D6 = sin robo garantizado, D7 = solista = el músico de la carta, D8 = un loop extra por canción en el que tocan **todos** los Finisher. Ajustes tras los smokes: sin ★ por loop, Voltaje sin cobrar hasta la cara nueva, «break» de batería para C2, «Mantén la Calma» → **«Te Cubro»**.
+- Código: `InspirationRules` (asset + PlayerPrefs) y su bloque en `GigFlowSettingsSO`; `CardDefinition.isFinisher` + solo (`finisherSoloStrategy`, `finisherSoloLeading`); `CompositionSession` (★ una vez, `CanAcceptFinisher`, cola de Finisher, varios solistas, foco de las pistas sin solo); `GigManager` (`UnplayableReason.FinisherTiming`, efectos al empezar el loop final, `ApplyInspirationRulesToRun`, regla de Voltaje); `CardBase.RunEffects` estático; `MidiMusicManager.SetSoloDuck` con varios canales; `SongCompositionUI.PopInspirationGain`; pestaña `DevInspirationRulesTab`; descripción y textos ES/EN; valores por defecto en el asistente, el JSON de cartas y el de mazos.
+- Datos: `complexityMultiplier = 0` (`GigMeterTuning`); reglas en `GigFlowSettings` (máximo 10, ★ por loop 0); ★1 en 19 composiciones; Overload y Psychic Waves → Finisher de composición (★3, Overload sin Voltaje); Gran Final (Zig) y Redoble Final (C2) nuevas; `MelodicLeading-Hipnosis`. Herramienta: ALWTTT ▸ ECON-2 ▸ Preparar datos.
+- Docs: `SSoT_Card_System` §2.3 y §9.2, `SSoT_Scoring_and_Meters` §3.2, `SSoT_Gig_Combat_Core` §5.1, `SSoT_Dev_Mode` §21, `CURRENT_STATE`, plan DEMO-1211 (4 ✅, 5b nueva); `ARRANQUE_ECON-2.md` archivado; `ARRANQUE_CARTAS-ARTE-1.md` nuevo.
+- Smokes 1–3 jugados por Claudio y comprobación de los ajustes (5/5): ★ al jugar con previsto = real, tres Finisher a la vez con solos y onda, regresión y reglas desde F12.
+
 ## 2026-11-14 — VOZ-1: el fork de Pink Trombone aprende X1–X3 (estilos de voz)
 
 **Clase:** semántico · operativo. Con cambio de código; sin cambio audible.

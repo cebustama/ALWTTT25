@@ -76,8 +76,10 @@ namespace ALWTTT.Cards.Editor
                 if (sprite != null) SetObject(cardSO, "cardSprite", sprite);
             }
 
-            SetInt(cardSO, "inspirationCost", Mathf.Max(0, dto.inspirationCost));
-            SetInt(cardSO, "inspirationGenerated", Mathf.Max(0, dto.inspirationGenerated));
+            var (insCost, insGen) = dto.ResolveInspirationDefaults();   // [ECON-2]
+            SetInt(cardSO, "inspirationCost", insCost);
+            SetInt(cardSO, "inspirationGenerated", insGen);
+            SetBool(cardSO, "isFinisher", dto.isFinisher);
 
             if (TryParseEnum(dto.cardType, out CardType ctype)) SetEnumDirect(cardSO, "cardType", (int)ctype);
             if (TryParseEnum(dto.rarity, out RarityType rarity)) SetEnumDirect(cardSO, "rarity", (int)rarity);

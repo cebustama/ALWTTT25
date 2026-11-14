@@ -46,6 +46,43 @@ They represent:
 
 Composition cards may also include normal card effects when the game needs composition choices to apply immediate gameplay consequences.
 
+### 2.3 Finisher cards and the Inspiration convention (ECON-2, 2026-11-14)
+
+La Inspiración funciona como el Heroísmo de *Marvel Midnight Suns*: las composiciones la **cargan** y los
+Finisher la **gastan** en el clímax de la canción.
+
+**Convención** (valores por defecto en el asistente de cartas, el JSON de cartas y el JSON de mazos;
+cada carta puede cambiarlos):
+
+| Tipo | Coste (`inspirationCost`) | Genera (`inspirationGenerated`) | Cuándo se juega |
+| --- | --- | --- | --- |
+| Composición | 0 | ★1, **una vez al jugarla** | cualquier loop menos el último |
+| Acción | como hoy (0 por defecto) | — | su ventana de siempre |
+| Finisher | ★3 | — | **solo en el último loop** |
+
+- **La ★ de una composición se da una vez, al jugarla** (`CompositionSession`, paso 8). La pista guarda 0:
+  no hay ★ por loop ni término de complejidad en el LoopScore. La ★ por loop solo la da
+  `AddInspirationPerLoopSpec` (DF-INSPLOOP). Antes de ECON-2, `inspirationGenerated` de una composición iba a
+  la pista y se cobraba en cada loop.
+- **Finisher** = carta de **composición** con `isFinisher` en `CardDefinition` (`IsFinisher` exige que el
+  payload sea de composición). No toca pistas. Invierte `FinalLoopLock`: fuera del último loop sale en rojo
+  (`UnplayableReason.FinisherTiming`, motivo `PlayDenyReason.FinisherTiming` / `FinisherLimit`); en el último
+  loop las demás composiciones siguen bloqueadas. Una sola fuente: `CompositionSession.CanAcceptFinisher`.
+- **Al jugarlo:** paga su ★ y concede **un** loop extra (el primero) o se suma a él (los siguientes). Todos los
+  Finisher de una canción suenan en ese mismo loop final.
+- **Al empezar el loop final:** cada Finisher pone a su músico a tocar un solo (`finisherSoloStrategy`,
+  `finisherSoloLeading` opcional); el primero a volumen 1, los demás a `extraSoloistVolume01`, y el resto de la
+  banda agachada. Si el músico no puede solear (C2, batería, sin instrumento melódico), **sus pistas toman el
+  foco** y la banda baja a `breakDuck01` (un *break*). Después estallan sus efectos (`CardBase.RunEffects`,
+  el mismo pipeline que las acciones, con `skipBonusLoop`), así que la onda psíquica de Sibi sale con el solo.
+- **Finisher de la demo:** Overload (Conito), Psychic Waves (Sibi, solo con `MelodicLeading-Hipnosis`),
+  Gran Final (Zig, Vibe 4 a todo el público) y Redoble Final (C2), todos ★3 y en los mazos iniciales.
+  Overload y Psychic Waves eran de acción: conservan su asset y su id; el payload pasó a composición.
+- **Todas las reglas son ajustables** (`InspirationRules`): asset en `GigFlowSettings ▸ ECON-2` y, por
+  máquina, Dev Mode ▸ Inspiración (`SSoT_Dev_Mode.md` §21).
+- Cara de la carta: tipo «FINISHER» y la línea de regla `ui_card_finisher_rule` encima de sus efectos. El
+  marco nuevo (cian) es de CARTAS-ARTE-1.
+
 ---
 
 ## 3. CardDefinition vs CardPayload
@@ -56,7 +93,7 @@ Composition cards may also include normal card effects when the game needs compo
 It is responsible for:
 - stable identity (`Id`, display naming)
 - presentation metadata
-- economy metadata such as cost / generation fields
+- economy metadata such as cost / generation fields (convención y Finisher: §2.3)
 - synergies (type / keywords / rarity)
 - performer rule (`FixedPerformerType`)
 - play rules such as exhaust and targeting overrides
@@ -332,6 +369,9 @@ Canonical MVP sequence:
 1. player plays a composition card
 2. composition/session systems validate and apply composition data to the song model
 3. authored `Effects`, if any, may apply immediately as systemic gameplay consequences
+4. **[ECON-2]** its `inspirationGenerated` is granted **once**, here (not per loop). A **Finisher** skips
+   steps 2–3: it pays, grants or joins the final bonus loop and queues; its solo and its effects arrive when
+   that loop starts (§2.3)
 
 Important boundary rule:
 - ALWTTT owns the gameplay/runtime meaning of playing the composition card

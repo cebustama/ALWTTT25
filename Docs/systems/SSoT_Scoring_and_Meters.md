@@ -91,6 +91,14 @@ removal when the inspiration economy is re-tuned.
 
 **[DF-INSPLOOP note, 2026-07-16]** DF-INSPLOOP reintroduces per-loop Inspiration generation as a **card-gated, track-scoped** bonus (`AddInspirationPerLoopSpec`, derived via `EvalPerLoopInsp`), NOT by re-activating `inspirationGenerated`. The bonus never enters `LoopTrackSnapshot`, so `TotalComplexity` remains 0 and this complexity term remains inert. The two are orthogonal: DF-INSPLOOP feeds the Inspiration economy (per-loop grant), the complexity term feeds LoopScore. A dead-state field, `CompositionSession._buildingPartInspirationPerLoop` (write-only since S5e), is left in place; its cleanup belongs to S5i.
 
+**[ECON-2 note, 2026-11-14]** El término de complejidad queda **apagado por datos**: `complexityMultiplier = 0`
+en `GigMeterTuning.asset`. Además, ECON-2 vuelve a dar ★ con `inspirationGenerated`, pero **una vez al jugar la
+carta** (`CompositionSession`, paso 8): la pista (`TrackEntry`) y la previsión del Big Num guardan 0, así que
+`TotalComplexity` sigue en 0 y **previsto = real** (validado en el smoke 1 de ECON-2). La ★ básica por loop
+queda en **0** en esta versión (regla `inspirationPerLoopOverride = 0` en `GigFlowSettings ▸ ECON-2`); el
+máximo de ★ es **10** (`maxInspirationOverride`), que pisa el 5 de Gameplay Settings. Cualquier ganancia por
+loop que quede encendida muestra el mismo pop «+N★» que una jugada. Reglas: `SSoT_Card_System.md` §2.3.
+
 **Per-loop Inspiration sources (current runtime).** (1) Basal flat grant = **1/loop** (`GigFlowSettings.asset` `defaultInspirationPerLoop`; applied by `GigManager.OnCompositionLoopFinished`). (2) Card-gated track-scoped bonus (DF-INSPLOOP, +N per active carrying track, applied via `CompositionSession` on the same per-loop path the S5e basal generation used before it was zeroed). The composition UI's global `+INS` badge shows the **total** (basal + derived), un-clamped/nominal per S5e; the per-track badge shows that track's derived contribution.
 
 ### 3.3 HypeDelta conversion

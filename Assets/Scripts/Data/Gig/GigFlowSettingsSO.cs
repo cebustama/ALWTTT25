@@ -65,6 +65,12 @@ namespace ALWTTT.Data
         public int DefaultInitialGigInspiration => defaultInitialGigInspiration;
         public int DefaultInspirationPerLoop => defaultInspirationPerLoop;
 
+        // [ECON-2] Reglas de la Inspiración y los Finisher. Lo que va aquí es lo que se
+        // commitea; Dev Mode (F12 ▸ Inspiración) puede pisarlo por máquina.
+        [Header("ECON-2 · Inspiración y Finisher")]
+        [SerializeField] private InspirationRules inspirationRules = new InspirationRules();
+        public InspirationRules InspirationRulesDefaults => inspirationRules;
+
         /// <summary>
         /// Legacy alias preserved for callers written before F-2: matches
         /// GigSetupConfigData.DefaultStartingInspiration (which itself

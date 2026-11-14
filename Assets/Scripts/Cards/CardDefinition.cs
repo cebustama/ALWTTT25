@@ -38,6 +38,26 @@ namespace ALWTTT.Cards
         // so a string key + an int cover Voltage today and any future
         // character resource without migrating this asset again.
         // Empty key or amount 0 ⇒ no resource cost (the default).
+        // ─── [ECON-2] Finisher ───────────────────────────────────────────
+        // Una carta de COMPOSICIÓN marcada como Finisher invierte el bloqueo del
+        // último loop: solo se juega mientras suena (regla ajustable), gasta su ★
+        // y concede UN loop final con solo de su músico. Si se juegan varios, todos
+        // tocan juntos en ese mismo loop y sus efectos estallan al empezarlo.
+        // No toca pistas: su música es el solo, no un cambio de la parte.
+        [Header("Finisher (ECON-2)")]
+        [SerializeField, Tooltip("Carta Finisher: solo en el último loop, gasta ★ y " +
+            "añade un loop final con solo de su músico. Debe ser de composición.")]
+        private bool isFinisher;
+
+        [SerializeField, Tooltip("Estrategia de melodía del solo del Finisher.")]
+        private MidiGenPlay.Composition.MelodyStrategyId finisherSoloStrategy =
+            MidiGenPlay.Composition.MelodyStrategyId.ScaleFlow;
+
+        [SerializeField, Tooltip("Opcional: cómo se mueve la melodía del solo " +
+            "(MelodicLeadingConfig). Vacío = la del músico. Sirve para el solo " +
+            "«hipnótico» de Sibi: ScaleOnly, pasos cortos, muchas notas repetidas.")]
+        private MidiGenPlay.Composition.MelodicLeadingConfig finisherSoloLeading;
+
         [Header("Resource Cost (R5-d)")]
         [SerializeField, Tooltip("StatusKey of the resource this card spends " +
             "(e.g. \"voltage\"). Empty = no resource cost. Resolved from the " +
@@ -162,6 +182,11 @@ namespace ALWTTT.Cards
             !string.IsNullOrWhiteSpace(resourceCostStatusKey) && resourceCostAmount > 0;
 
         public int InspirationGenerated => inspirationGenerated;
+
+        /// <summary>[ECON-2] Finisher: solo de composición, ver el bloque de campos.</summary>
+        public bool IsFinisher => isFinisher && IsComposition;
+        public MidiGenPlay.Composition.MelodyStrategyId FinisherSoloStrategy => finisherSoloStrategy;
+        public MidiGenPlay.Composition.MelodicLeadingConfig FinisherSoloLeading => finisherSoloLeading;
 
         public RarityType Rarity => rarity;
         public IReadOnlyList<SpecialKeywords> Keywords => keywords;

@@ -32,8 +32,9 @@ namespace ALWTTT.Cards.Editor
             public string id;
             public string displayName;
 
-            public int inspirationCost = 1;
+            public int inspirationCost = 0;
             public int inspirationGenerated = 0;
+            public bool isFinisher;              // [ECON-2]
 
             /// <summary>Folder where assets should be created. 
             /// If null/empty, derived from catalog location.</summary>
@@ -107,6 +108,9 @@ namespace ALWTTT.Cards.Editor
 
                 SetInt(defSO, "inspirationCost", req.inspirationCost);
                 SetInt(defSO, "inspirationGenerated", req.inspirationGenerated);
+                var finProp = defSO.FindProperty("isFinisher");                  // [ECON-2]
+                if (finProp != null) finProp.boolValue = req.isFinisher
+                    && req.kind == CreateCardKind.Composition;
 
                 SetObject(defSO, "payload", payload);
 

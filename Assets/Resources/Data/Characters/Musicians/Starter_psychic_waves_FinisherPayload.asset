@@ -9,23 +9,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0bfb378d84595bd47b8057a55797bc41, type: 3}
-  m_Name: Starter_psychic_waves_Payload
-  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.ActionCardPayload
+  m_Script: {fileID: 11500000, guid: 6b987196233c610489faff2eb050697c, type: 3}
+  m_Name: Starter_psychic_waves_FinisherPayload
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CompositionCardPayload
   effects:
-  - rid: 6360921230241955925
-  - rid: 8163568405127626827
-  actionTiming: 0
-  conditions: []
+  - rid: 1770617554409619532
+  - rid: 1770617554409619533
+  primaryKind: 0
+  trackAction:
+    role: 0
+    styleBundle: {fileID: 0}
+  partAction:
+    action: 0
+    musicianId: 
+  modifierEffects: []
   references:
     version: 2
     RefIds:
-    - rid: 6360921230241955925
+    - rid: 1770617554409619532
       type: {class: ModifyVibeSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
       data:
         targetType: 2
         amount: 5
-    - rid: 8163568405127626827
+    - rid: 1770617554409619533
       type: {class: ApplyStatusEffectSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
       data:
         status: {fileID: 11400000, guid: 309e959f0b2e1ee4dba82e4756cbd5b2, type: 2}

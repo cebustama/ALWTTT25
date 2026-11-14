@@ -361,7 +361,7 @@ MonoBehaviour:
   - id: Starter_half_time
     displayName: Half Time
   - id: Starter_keep_cool
-    displayName: Keep Cool
+    displayName: Got Your Back
   - id: Starter_key_lift
     displayName: Key Lift
   - id: Starter_psychic_waves
@@ -370,6 +370,10 @@ MonoBehaviour:
     displayName: Push It
   - id: conito_overload
     displayName: Overload
+  - id: zig_gran_final
+    displayName: Grand Finale
+  - id: c2_redoble_final
+    displayName: Final Drumroll
   - id: conito_slap_groove
     displayName: Slap Groove
   - id: conito_super_slap
@@ -551,6 +555,10 @@ MonoBehaviour:
     text: Play one extra loop of this part, with a solo over it
   - id: ui_card_type_composition
     text: COMPOSITION
+  - id: ui_card_type_finisher
+    text: FINISHER
+  - id: ui_card_finisher_rule
+    text: 'Last loop only. Adds a final loop with this musician''s solo.'
   - id: ui_track_inspiration_per_loop
     text: +{0} Inspiration / loop
   - id: ui_track_instrument
@@ -857,6 +865,8 @@ MonoBehaviour:
     text: Not enough Voltage.
   - id: ui_unplayable_norunningloop
     text: No part is looping right now.
+  - id: ui_unplayable_finishertiming
+    text: 'Not now: the Finisher is played in the song''s last loop.'
   - id: ui_gig_play_button
     text: Play
   - id: ui_unplayable_budget_action

@@ -17,10 +17,13 @@ MonoBehaviour:
   performerRule: 1
   musicianCharacterType: 1
   cardSprite: {fileID: -1422183276695009102, guid: c9796ed1cbabc334d9d557b77df45f56, type: 3}
-  inspirationCost: 0
+  inspirationCost: 3
   inspirationGenerated: 0
-  resourceCostStatusKey: voltage
-  resourceCostAmount: 5
+  isFinisher: 1
+  finisherSoloStrategy: 1
+  finisherSoloLeading: {fileID: 0}
+  resourceCostStatusKey: 
+  resourceCostAmount: 0
   cardType: 0
   rarity: 1
   keywords: 
@@ -34,4 +37,4 @@ MonoBehaviour:
   exhaustAfterPlay: 0
   overrideRequiresTargetSelection: 1
   requiresTargetSelectionOverrideValue: 0
-  payload: {fileID: 11400000, guid: a242ac54c63791d40b501dff3b4c3d4a, type: 2}
+  payload: {fileID: 11400000, guid: 9c45a6fcb63ed3a44a6d1df362d3cbf1, type: 2}

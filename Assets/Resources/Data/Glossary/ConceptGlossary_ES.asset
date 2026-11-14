@@ -373,7 +373,7 @@ MonoBehaviour:
   - id: Starter_half_time
     displayName: Medio Tiempo
   - id: Starter_keep_cool
-    displayName: "Mant\xE9n la Calma"
+    displayName: Te Cubro
   - id: Starter_key_lift
     displayName: Subida de Tono
   - id: Starter_psychic_waves
@@ -382,6 +382,10 @@ MonoBehaviour:
     displayName: "Dale Ca\xF1a"
   - id: conito_overload
     displayName: Sobrecarga
+  - id: zig_gran_final
+    displayName: Gran Final
+  - id: c2_redoble_final
+    displayName: Redoble Final
   - id: conito_slap_groove
     displayName: Slap Groove
   - id: conito_super_slap
@@ -563,6 +567,10 @@ MonoBehaviour:
     text: Toca un loop extra de esta parte, con un solo por encima
   - id: ui_card_type_composition
     text: "COMPOSICI\xD3N"
+  - id: ui_card_type_finisher
+    text: FINISHER
+  - id: ui_card_finisher_rule
+    text: "Solo en el \xFAltimo loop. A\xF1ade un loop final con el solo de este m\xFAsico."
   - id: ui_track_inspiration_per_loop
     text: "+{0} de Inspiraci\xF3n / loop"
   - id: ui_track_instrument
@@ -869,6 +877,8 @@ MonoBehaviour:
     text: No tienes Voltaje suficiente.
   - id: ui_unplayable_norunningloop
     text: No hay ninguna parte sonando en bucle.
+  - id: ui_unplayable_finishertiming
+    text: "Ahora no: el Finisher se juega en el \xFAltimo loop de la canci\xF3n."
   - id: ui_gig_play_button
     text: Tocar
   - id: ui_unplayable_budget_action

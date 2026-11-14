@@ -363,8 +363,10 @@ namespace ALWTTT.Cards.Editor
                     SetObject(cardSO, "cardSprite", fallback);
             }
 
-            SetInt(cardSO, "inspirationCost", Mathf.Max(0, dto.inspirationCost));
-            SetInt(cardSO, "inspirationGenerated", Mathf.Max(0, dto.inspirationGenerated));
+            var (insCost, insGen) = dto.ResolveInspirationDefaults();   // [ECON-2]
+            SetInt(cardSO, "inspirationCost", insCost);
+            SetInt(cardSO, "inspirationGenerated", insGen);
+            SetBool(cardSO, "isFinisher", dto.isFinisher);
 
             // [R5-d / D-R5-26=A] Resource cost pair. Written unconditionally —
             // CardDefinition.HasResourceCost is what decides whether a cost

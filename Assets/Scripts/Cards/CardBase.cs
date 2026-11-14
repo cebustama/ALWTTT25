@@ -98,7 +98,9 @@ namespace ALWTTT
             // [CARD-FACE-2b / D-CF-25=B] The action card TYPE is hidden from the player for now. One switch
             // turns off face, hover panel and modal together. The field is emptied, not deactivated: its
             // GameObject may carry layout, and an empty TMP field costs nothing.
-            typeTextField.text = CardDefinition.IsComposition ?
+            typeTextField.text = CardDefinition.IsFinisher ?
+                GameText.Format(GameTextTemplateIds.UiCardTypeFinisher)          // [ECON-2]
+                : CardDefinition.IsComposition ?
                 GameText.Format(GameTextTemplateIds.UiCardTypeComposition)
                 : !CardFacePresentation.ShowCardType ? string.Empty
                 : (CardFacePresentation.UseSymbols
@@ -109,23 +111,28 @@ namespace ALWTTT
 
             // [DEMO-FIXES-A / DF-COST0 / D-DF-5=A] Mirror of the S5e-ext
             // gen-badge hide. Symmetric toggle so pooled/reused cards recover.
-            bool showCost = CardDefinition.InspirationCost > 0;
+            // [ECON-2] Coste y ★ efectivos: las reglas (F12 ▸ Inspiración) pueden pisarlos.
+            int effCost = ALWTTT.Data.InspirationRules.EffectiveCost(CardDefinition);
+            int effGen = CardDefinition.IsComposition
+                ? ALWTTT.Data.InspirationRules.EffectiveGenerated(CardDefinition)
+                : CardDefinition.InspirationGenerated;
+            bool showCost = effCost > 0;
             if (inspirationCostBadgeRoot != null)
                 inspirationCostBadgeRoot.SetActive(showCost);
             else if (inspirationCostTextField != null)
                 inspirationCostTextField.gameObject.SetActive(showCost);
             if (inspirationCostTextField != null && showCost)
-                inspirationCostTextField.text = CardDefinition.InspirationCost.ToString();
+                inspirationCostTextField.text = effCost.ToString();
 
             // [S5e-ext] Post-D3 all content authors gen=0; hide the dead badge.
             // Symmetric toggle so pooled/reused hand cards recover if gen>0 returns.
-            bool showGen = CardDefinition.InspirationGenerated > 0;
+            bool showGen = effGen > 0;
             if (inspirationGenBadgeRoot != null)
                 inspirationGenBadgeRoot.SetActive(showGen);
             else if (inspirationGenTextField != null)
                 inspirationGenTextField.gameObject.SetActive(showGen);
             if (inspirationGenTextField != null && showGen)
-                inspirationGenTextField.text = CardDefinition.InspirationGenerated.ToString();
+                inspirationGenTextField.text = effGen.ToString();
 
             ApplyTypeBackground(CardDefinition);   // [S5b / Item 1]
             ApplyOwnerIcon(CardDefinition);        // [S5b / Item 4]
@@ -228,6 +235,23 @@ namespace ALWTTT
     CharacterBase primaryTarget,
     List<AudienceCharacterBase> allAudienceCharacters,
     List<MusicianBase> allBandCharacters)
+            => RunEffects(CardDefinition, performer, primaryTarget,
+                allAudienceCharacters, allBandCharacters, skipBonusLoop: false);
+
+        /// <summary>
+        /// [ECON-2] El pipeline de efectos de siempre, sin necesitar la carta en la
+        /// mano: los Finisher lo disparan al empezar el loop final, cuando su
+        /// CardBase ya se descartó. El parámetro se llama CardDefinition a
+        /// propósito: el cuerpo es el de ExecuteEffects, sin tocar.
+        /// skipBonusLoop: el loop final del Finisher ya se concedió al jugarlo.
+        /// </summary>
+        public static IEnumerator RunEffects(
+            CardDefinition CardDefinition,
+            CharacterBase performer,
+            CharacterBase primaryTarget,
+            List<AudienceCharacterBase> allAudienceCharacters,
+            List<MusicianBase> allBandCharacters,
+            bool skipBonusLoop)
         {
             var payload = CardDefinition != null ? CardDefinition.Payload : null;
             var effects = payload != null ? payload.Effects : null;
@@ -549,7 +573,7 @@ namespace ALWTTT
                 {
                     if (draw.count > 0)
                     {
-                        DeckManager.DrawCards(draw.count);
+                        ALWTTT.Managers.DeckManager.Instance?.DrawCards(draw.count);
 
 #if UNITY_EDITOR
                         Debug.Log(
@@ -569,6 +593,7 @@ namespace ALWTTT
                 // is logged as one rather than swallowed.
                 if (effect is GrantBonusLoopSpec bonusLoop)
                 {
+                    if (skipBonusLoop) continue;   // [ECON-2]
                     var gm = ALWTTT.Managers.GigManager.Instance;
                     if (gm == null || !gm.TryGrantBonusLoop(bonusLoop.soloOverBonusLoop))
                     {
@@ -593,7 +618,7 @@ namespace ALWTTT
             }
         }
 
-        private int GetPerformerFlowStacks(CharacterBase performer)
+        private static int GetPerformerFlowStacks(CharacterBase performer)
         {
             if (performer == null) return 0;
             var musician = performer as MusicianBase;
@@ -618,7 +643,7 @@ namespace ALWTTT
             return total;
         }
 
-        private List<CharacterBase> DetermineTargets(
+        private static List<CharacterBase> DetermineTargets(
             CharacterBase performer,
             CharacterBase targetCharacter,
             List<AudienceCharacterBase> allAudienceCharacters,

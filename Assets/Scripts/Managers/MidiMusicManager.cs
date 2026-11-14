@@ -2814,6 +2814,29 @@ namespace ALWTTT.Managers
                     + $"x{duck01:0.##} on every channel except ch{soloChannel}.");
         }
 
+        /// <summary>
+        /// [ECON-2] Varios solistas a la vez (un Finisher por músico). Cada canal
+        /// solista va a su nivel (el primero a 1, los demás algo más bajos, regla
+        /// extraSoloistVolume01); el resto de la banda, agachado a duck01. Mismo
+        /// plano de volumen que el SetSoloDuck de un solista.
+        /// </summary>
+        public void SetSoloDuck(IReadOnlyDictionary<int, float> soloLevelByChannel, float duck01)
+        {
+            duck01 = Mathf.Clamp01(duck01);
+            for (int ch = 0; ch < 16; ch++)
+            {
+                if (ch == MidiGenerator.MetronomeChannel) { _duck01ByChannel[ch] = 1f; continue; }
+                _duck01ByChannel[ch] =
+                    soloLevelByChannel != null && soloLevelByChannel.TryGetValue(ch, out var lvl)
+                        ? Mathf.Clamp01(lvl) : duck01;
+            }
+            ReapplyLiveVolumes();
+
+            if (logDebug)
+                Debug.Log($"{DebugTag} <color=#ffd084>[ECON-2]</color> Solo duck x{duck01:0.##}; "
+                    + $"solistas: {string.Join(", ", System.Linq.Enumerable.Select(soloLevelByChannel, kv => $"ch{kv.Key}@{kv.Value:0.##}"))}.");
+        }
+
         /// <summary>[R5-d] Remove the duck. No-op when nothing is ducked, so it is
         /// safe to call at every loop boundary, part change and session end.</summary>
         public void ClearSoloDuck()

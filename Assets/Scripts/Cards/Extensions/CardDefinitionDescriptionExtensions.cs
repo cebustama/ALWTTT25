@@ -49,7 +49,9 @@ namespace ALWTTT.Cards
             if (!card.HasPayload) return "Missing payload.";   // authoring-error diagnostic
 
             string body;
-            if (card.Payload is CompositionCardPayload comp)
+            if (card.IsFinisher)                                   // [ECON-2]
+                body = BuildFinisherDescription(card, stats, statusGlyphOnly: CardFacePresentation.UseSymbols);
+            else if (card.Payload is CompositionCardPayload comp)
                 body = BuildCompositionDescription(comp);
             else if (card.Payload is ActionCardPayload action)
                 body = CardEffectDescriptionBuilder.BuildList(action.Effects, stats,
@@ -69,6 +71,9 @@ namespace ALWTTT.Cards
         {
             if (card == null) return string.Empty;
             if (!card.HasPayload) return "Missing payload.";
+
+            if (card.IsFinisher)                                   // [ECON-2]
+                return BuildFinisherDescription(card, stats, statusGlyphOnly: false);
 
             if (card.Payload is CompositionCardPayload comp)
                 return BuildCompositionDetailDescription(comp, stats);
@@ -114,6 +119,22 @@ namespace ALWTTT.Cards
         #endregion
 
         #region Card-face description
+
+        /// <summary>[ECON-2] Finisher: la regla (último loop, loop final con solo) y,
+        /// debajo, sus efectos con el mismo constructor que las cartas de acción.</summary>
+        private static string BuildFinisherDescription(
+            CardDefinition card, BandCharacterStats stats, bool statusGlyphOnly)
+        {
+            var sb = new StringBuilder(GameText.Format(UiCardFinisherRule));
+            var effects = card.Payload != null ? card.Payload.Effects : null;
+            if (effects != null && effects.Count > 0)
+            {
+                string fx = CardEffectDescriptionBuilder.BuildList(effects, stats,
+                    statusGlyphOnly: statusGlyphOnly);
+                if (!string.IsNullOrEmpty(fx)) sb.Append('\n').Append(fx);
+            }
+            return sb.ToString();
+        }
 
         private static string BuildCompositionDescription(CompositionCardPayload p)
         {

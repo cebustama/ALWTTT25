@@ -19,6 +19,9 @@ MonoBehaviour:
   cardSprite: {fileID: -7516595770810293389, guid: b742ee9aa2522054798f139f8153260c, type: 3}
   inspirationCost: 3
   inspirationGenerated: 0
+  isFinisher: 1
+  finisherSoloStrategy: 1
+  finisherSoloLeading: {fileID: 11400000, guid: 91a231e1aaff66c438e304ab403978c7, type: 2}
   resourceCostStatusKey: 
   resourceCostAmount: 0
   cardType: 2
@@ -34,4 +37,4 @@ MonoBehaviour:
   exhaustAfterPlay: 0
   overrideRequiresTargetSelection: 0
   requiresTargetSelectionOverrideValue: 0
-  payload: {fileID: 11400000, guid: c1035da7883375a498de08523d938933, type: 2}
+  payload: {fileID: 11400000, guid: 6ee67035f917f874cacf23531b033e5e, type: 2}

@@ -20,6 +20,8 @@ namespace ALWTTT.Sensory
         NoTarget,               // card requires a musician target and none resolved
         Timing,                 // action card outside its timing window
         BonusLoopPrecondition,  // R5-d: nothing running to extend
+        FinisherTiming,         // ECON-2: Finisher outside the final loop (or final loop already started)
+        FinisherLimit,          // ECON-2: per-song Finisher cap (rule)
     }
 
     /// <summary>

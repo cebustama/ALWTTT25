@@ -43,7 +43,7 @@ namespace ALWTTT.DevMode
         // Phase 2: tab selection. 0 = Infinite, 1 = Catalogue.
         private int _activeTab;
         private static readonly string[] TabNames =
-            { "Infinite", "Catalogue", "Stats", "Audio Mix", "Composition" };
+            { "Infinite", "Catalogue", "Stats", "Audio Mix", "Composition", "Inspiración" };
 
         // [CSV-3] Outer scroll for tab content. GUILayout.Window auto-grows to
         // fit content, so a tall tab (Composition, after the R2a section) pushed
@@ -163,6 +163,9 @@ namespace ALWTTT.DevMode
                     break;
                 case 4:
                     DevCompositionDebugTab.Draw();   // [DBG-C1]
+                    break;
+                case 5:
+                    DevInspirationRulesTab.Draw();   // [ECON-2]
                     break;
             }
 

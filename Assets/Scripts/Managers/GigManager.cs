@@ -51,7 +51,11 @@ namespace ALWTTT.Managers
         Resource = 6,
 
         // [R5-d] Bonus-loop card played with no part looping.
-        NoRunningLoop = 7
+        NoRunningLoop = 7,
+
+        // [ECON-2] Finisher fuera de su momento (último loop), tope por canción
+        // o la canción ya tiene su loop extra.
+        FinisherTiming = 8
     }
 
     public class GigManager : MonoBehaviour
@@ -627,6 +631,10 @@ namespace ALWTTT.Managers
 
             var pd = GameManager.PersistentGameplayData;
             pd.CurrentInspiration = pd.InitialGigInspiration;
+
+            // [ECON-2] Reglas de la Inspiración: asset (GigFlowSettings) + ajustes de F12.
+            InspirationRules.Reload(flow != null ? flow.InspirationRulesDefaults : null);
+            ApplyInspirationRulesToRun();
 
             Debug.Log($"{DebugTag} StartGig Inspiration init → " +
                 $"TurnStartingInspiration={pd.TurnStartingInspiration}, " +
@@ -2327,7 +2335,9 @@ namespace ALWTTT.Managers
             // Single authority is CompositionSession.IsFinalLoopRunning (the session
             // gate below also denies); this early-out only prevents the one-shot
             // animation from playing on a denied play (same pattern as ECON-1 T5).
-            if (_session != null && _session.IsFinalLoopRunning)
+            bool isFinisherPlay = card != null && card.CardDefinition != null
+                && card.CardDefinition.IsFinisher;                       // [ECON-2]
+            if (_session != null && _session.IsFinalLoopRunning && !isFinisherPlay)
             {
                 ReportPlayDenied(PlayDenyReason.FinalLoopLock,
                     "Final loop — this change wouldn't be heard.",
@@ -2387,6 +2397,12 @@ namespace ALWTTT.Managers
             if (played)
             {
                 TryConsumePlay(payer, isComposition: true);
+
+                // [ECON-2] Regla «efectos al jugar»: el Finisher dispara sus efectos ya.
+                // Con la regla por defecto esperan al loop final (OnCompositionLoopStarted).
+                if (isFinisherPlay &&
+                    !InspirationRules.Active.finisherEffectsAtFinalLoopStart)
+                    RunFinisherEffects(cardDef, payer, "al jugar");
 
                 // [R5-d] Success-only, exactly like the budget above. Order vs
                 // the Voltage generation inside TryConsumePlay is NET-NEUTRAL:
@@ -2518,6 +2534,8 @@ namespace ALWTTT.Managers
                 // Canonical path: AddCurrentInspiration clamps to MaxInspiration,
                 // mirrors to pd.CurrentInspiration, returns the actual delta.
                 inspirationDelta = _session.AddCurrentInspiration(inspN);
+                // [ECON-2] Mismo pop que al jugar una composición.
+                compositionUI?.PopInspirationGain(inspN, inspirationDelta);
             }
 
             if (dev != null && dev.UseLogs && dev.UseCompositionLogs)
@@ -2798,6 +2816,7 @@ namespace ALWTTT.Managers
         public bool CanPayResourceCost(CardDefinition def, MusicianBase payer)
         {
             if (def == null || !def.HasResourceCost) return true;
+            if (InspirationRules.Active.ignoreResourceCosts) return true;   // [ECON-2]
             return TryResolveResourceHolding(def, payer, out _, out int held)
                    && held >= def.ResourceCostAmount;
         }
@@ -2811,6 +2830,7 @@ namespace ALWTTT.Managers
         public bool TryPayResourceCost(CardDefinition def, MusicianBase payer)
         {
             if (def == null || !def.HasResourceCost) return true;
+            if (InspirationRules.Active.ignoreResourceCosts) return true;   // [ECON-2] gratis hasta la cara nueva
 
             if (!TryResolveResourceHolding(def, payer, out var primitive, out int held)
                 || held < def.ResourceCostAmount)
@@ -2980,7 +3000,13 @@ namespace ALWTTT.Managers
             if (def.IsAction && !CanPlayActionCard(def))
                 return UnplayableReason.ActionTiming;
 
-            if (def.IsComposition && _session != null && _session.IsFinalLoopRunning)
+            // [ECON-2] El Finisher invierte el bloqueo: rojo FUERA de su momento.
+            if (def.IsFinisher)
+            {
+                if (_session == null || !_session.CanAcceptFinisher(def, out _, out _))
+                    return UnplayableReason.FinisherTiming;
+            }
+            else if (def.IsComposition && _session != null && _session.IsFinalLoopRunning)
                 return UnplayableReason.FinalLoopLock; // [D2=A]
 
             // 2b) [R5-d] A bonus-loop card needs a part actually looping. This is
@@ -3004,7 +3030,7 @@ namespace ALWTTT.Managers
 
             // 3) Inspiration — orthogonal gate, mirrors HandController 2a.5 /
             //    session step 1 (both read CanAffordInspiration).
-            int cost = Mathf.Max(0, def.InspirationCost);
+            int cost = InspirationRules.EffectiveCost(def);               // [ECON-2]
             if (cost > 0 && (_session == null || !_session.CanAffordInspiration(cost)))
                 return UnplayableReason.Inspiration;
 
@@ -4721,7 +4747,127 @@ namespace ALWTTT.Managers
         {
             _previewShownDef = null;
             ApplyCardPreview();
+
+            // [ECON-2] Empieza el loop final: todos los Finisher en cola estallan a la vez
+            // (sus solos ya se renderizaron; aquí van sus efectos y su cartel).
+            if (_session != null && _session.CurrentLoopIsBonus)
+            {
+                var finishers = _session.TakeFinishersForFinalLoop();
+                if (finishers.Count > 0)
+                {
+                    bool atStart = InspirationRules.Active.finisherEffectsAtFinalLoopStart;
+                    Debug.Log($"{InspirationRules.Tag} Loop final: estallan {finishers.Count} Finisher " +
+                        $"[{string.Join(", ", finishers.Select(f => f.Def != null ? f.Def.DisplayName : "?"))}]" +
+                        (atStart ? "" : " (sus efectos ya se aplicaron al jugarlos)"));
+                    foreach (var f in finishers)
+                    {
+                        SpawnFinisherBanner(f.Musician, f.Def);
+                        if (atStart) RunFinisherEffects(f.Def, f.Musician, "loop final");
+                    }
+                }
+            }
         }
+
+        // ─── [ECON-2] Finisher ───────────────────────────────────────────
+
+        /// <summary>
+        /// [ECON-2] Los efectos del Finisher (Vibe, estados, robar...) por el mismo
+        /// pipeline que las cartas de acción (CardBase.RunEffects), así publican los
+        /// mismos eventos (la onda psíquica de Sibi incluida). El loop extra no: ya
+        /// se concedió al jugar la carta.
+        /// </summary>
+        private void RunFinisherEffects(CardDefinition def, MusicianBase performer, string when)
+        {
+            if (def == null || def.Payload == null || def.Payload.Effects == null
+                || def.Payload.Effects.Count == 0) return;
+            Debug.Log($"{InspirationRules.Tag} Efectos de '{def.DisplayName}' ({when}), " +
+                $"{def.Payload.Effects.Count} efecto(s).");
+            StartCoroutine(CardBase.RunEffects(def, performer, null,
+                CurrentAudienceCharacterList, CurrentMusicianCharacterList,
+                skipBonusLoop: true));
+        }
+
+        private void SpawnFinisherBanner(MusicianBase musician, CardDefinition def)
+        {
+            if (FxManager.Instance == null || musician == null
+                || musician.TextSpawnRoot == null) return;
+            FxManager.Instance.SpawnFloatingText(
+                musician.TextSpawnRoot,
+                $"{GameText.CardName(def)}!",
+                new Vector2(0f, 1.3f),
+                new Color(0.35f, 0.95f, 1f));     // cian: el marco Finisher de Matías
+        }
+
+        /// <summary>[ECON-2 / D5] «+N★» de color sobre el músico que jugó la composición.</summary>
+        public void ShowInspirationGainFloater(MusicianBase musician, int amount)
+        {
+            if (amount <= 0 || FxManager.Instance == null || musician == null
+                || musician.TextSpawnRoot == null) return;
+            FxManager.Instance.SpawnFloatingText(
+                musician.TextSpawnRoot,
+                $"+{amount}{ALWTTT.UI.SongCompositionUI.StarGlyph(null)}",
+                new Vector2(0.5f, 1.0f),
+                new Color(1f, 0.82f, 0.2f));      // dorado: la ★
+        }
+
+        /// <summary>
+        /// [ECON-2] Aplica a la partida las reglas de Inspiración (máximo, ★ por loop,
+        /// guardar entre canciones). Los valores originales del asset se recuerdan la
+        /// primera vez, para que «-1 = asset» funcione aunque se cambie en vivo.
+        /// </summary>
+        public void ApplyInspirationRulesToRun()
+        {
+            var pd = GameManager != null ? GameManager.PersistentGameplayData : null;
+            if (pd == null) return;
+            var r = InspirationRules.Active;
+
+            // Foto de los valores del asset, una vez por partida (pd nuevo = run nuevo).
+            if (!ReferenceEquals(_rulesSnapshotPd, pd))
+            {
+                _rulesSnapshotPd = pd;
+                _assetMaxInspiration = pd.MaxInspiration;
+                _assetInspirationPerLoop = pd.InspirationPerLoop;
+                _assetKeepBetween = pd.KeepInspirationBetweenTurns ? 1 : 0;
+            }
+
+            pd.MaxInspiration = r.maxInspirationOverride >= 0 ? r.maxInspirationOverride : _assetMaxInspiration;
+            pd.InspirationPerLoop = r.inspirationPerLoopOverride >= 0 ? r.inspirationPerLoopOverride : _assetInspirationPerLoop;
+            pd.KeepInspirationBetweenTurns =
+                (r.keepBetweenSongsOverride >= 0 ? r.keepBetweenSongsOverride : _assetKeepBetween) > 0;
+
+            if (pd.CurrentInspiration > pd.MaxInspiration)
+                AdjustInspiration(pd.MaxInspiration - pd.CurrentInspiration);
+
+            Debug.Log($"{InspirationRules.Tag} Reglas aplicadas a la partida: máx={pd.MaxInspiration} " +
+                $"porLoop={pd.InspirationPerLoop} guardarEntreCanciones={pd.KeepInspirationBetweenTurns} " +
+                $"(asset: {_assetMaxInspiration}/{_assetInspirationPerLoop}/{_assetKeepBetween}).");
+        }
+
+        /// <summary>[ECON-2] Línea de estado para F12 ▸ Inspiración.</summary>
+        public string FinisherStatusForDev()
+        {
+            if (_session == null || !_session.IsActive) return "sin canción sonando";
+            return $"Finisher esta canción: {_session.FinishersPlayedThisSong} · en cola: " +
+                   $"{_session.PendingFinishers.Count} · último loop: {(_session.IsFinalLoopRunning ? "sí" : "no")}" +
+                   $"{(_session.CurrentLoopIsBonus ? " · LOOP FINAL" : "")}";
+        }
+
+        /// <summary>[ECON-2] Repinta las cartas de la mano (coste y ★ efectivos) tras
+        /// cambiar las reglas en F12.</summary>
+        public void DevRefreshHandCardFaces()
+        {
+            var hand = DeckManager != null && DeckManager.HandController != null
+                ? DeckManager.HandController.Hand : null;
+            if (hand == null) return;
+            foreach (var c in hand)
+                if (c != null && c.CardDefinition != null) c.SetCard(c.CardDefinition, c.IsPlayable);
+        }
+
+        private static object _rulesSnapshotPd;
+        private static int _assetMaxInspiration = -1;
+        private static int _assetInspirationPerLoop = -1;
+        private static int _assetKeepBetween = -1;
+
 
         // Big Num as the readout shows it now (same formula as RefreshVibeProjection).
         private int CurrentBigNum()

@@ -67,6 +67,27 @@ namespace ALWTTT.Music
         private bool _bonusSoloRequested;        // solo asked for on the pending loop(s)
         private float _bonusSoloDuck01 = 1f;     // duck level carried from the grant
 
+        // ─── [ECON-2] Finisher ───────────────────────────────────────────
+        // Los Finisher jugados en el último loop esperan aquí. Todos suenan en el
+        // MISMO loop final: el primero lo concede, los demás se suman como solistas.
+        // El render del loop final los lee (solos); GigManager los recoge en
+        // LoopStarted para disparar sus efectos (TakeFinishersForFinalLoop).
+        public readonly struct PendingFinisher
+        {
+            public readonly ALWTTT.Cards.CardDefinition Def;
+            public readonly MusicianBase Musician;
+            public PendingFinisher(ALWTTT.Cards.CardDefinition def, MusicianBase musician)
+            { Def = def; Musician = musician; }
+        }
+        private readonly List<PendingFinisher> _pendingFinishers = new();
+        private readonly Dictionary<MusicianTrackKey, string> _soloStyleByKey = new();
+        private int _finishersPlayedThisSong;
+        private bool _finisherGrantedBonusThisPart;
+
+        /// <summary>[ECON-2] Finisher en cola para el loop final (solo lectura).</summary>
+        public IReadOnlyList<PendingFinisher> PendingFinishers => _pendingFinishers;
+        public int FinishersPlayedThisSong => _finishersPlayedThisSong;
+
         /// <summary>[R5-d] True while the loop currently playing is a bonus loop.</summary>
         public bool CurrentLoopIsBonus => _currentLoopIsBonus;
 
@@ -429,6 +450,8 @@ namespace ALWTTT.Music
             _lastFinishedLoopWasBonus = false;
             _bonusSoloRequested = false;
             _bonusSoloDuck01 = 1f;
+            _pendingFinishers.Clear();          // [ECON-2]
+            _finisherGrantedBonusThisPart = false;
         }
 
         /// <summary>
@@ -496,6 +519,7 @@ namespace ALWTTT.Music
             _buildingPartInspirationPerLoop = 0;
             _perLoopInspirationCurrentPart = 0; // [DF-INSPLOOP-badge/ST-2] limpia valor stale entre canciones
             ResetBonusLoopState();              // [R5-d] never leaks across songs
+            _finishersPlayedThisSong = 0;       // [ECON-2]
 
             // [S5g / D-S5gb-2=B] One seed per song, stable until End().
 #if ALWTTT_DEV
@@ -942,7 +966,7 @@ namespace ALWTTT.Music
                 if (string.IsNullOrEmpty(musicianId)) return false;
 
                 var role = comp.TrackAction.role;
-                int complexity = Math.Max(0, def.InspirationGenerated);
+                int complexity = 0; // [ECON-2] la ★ ya no vive en la pista
                 int idx = withTracks.FindIndex(t => t.MusicianId == musicianId && t.Role == role);
 
                 if (idx >= 0)
@@ -1072,13 +1096,56 @@ namespace ALWTTT.Music
             // 0b) [CARD-UX-1 / D2=A] Final-loop lock. Deny BEFORE any spend so
             // neither inspiration (step 1/8) nor the ECON budget burns (budget
             // burns only on played==true, upstream in GigManager).
-            if (def.IsComposition && IsFinalLoopRunning)
+            // [ECON-2] El Finisher invierte este bloqueo: se juega justo aquí.
+            if (def.IsComposition && !def.IsFinisher && IsFinalLoopRunning)
                 return Fail("Final-loop lock: no next loop would render this change", ALWTTT.Sensory.PlayDenyReason.FinalLoopLock);
+
+            // [ECON-2] Finisher: no toca pistas. Comprueba, paga su ★, concede (o
+            // se suma a) el loop final y queda en cola. Sus efectos y su solo
+            // llegan al empezar ese loop (GigManager.OnCompositionLoopStarted).
+            if (def.IsFinisher)
+            {
+                if (!CanAcceptFinisher(def, out var finWhy, out var finText))
+                    return Fail($"{ALWTTT.Data.InspirationRules.Tag} {finText}", finWhy);
+
+                int finCost = ALWTTT.Data.InspirationRules.EffectiveCost(def);
+                if (finCost > _currentInspiration)
+                {
+                    _ctx?.CompositionUI?.FlashInspirationDenied();
+                    return Fail("Not enough inspiration", ALWTTT.Sensory.PlayDenyReason.InspirationCost);
+                }
+
+                var performer = target;
+                if (performer == null && def.RequiresFixedPerformer)
+                    performer = _ctx.ResolveMusicianByType(def.FixedPerformerType);
+                if (performer == null)
+                    return Fail("Finisher sin músico en la banda", ALWTTT.Sensory.PlayDenyReason.NoTarget);
+
+                bool first = !_finisherGrantedBonusThisPart;
+                if (first)
+                {
+                    var gmF = ALWTTT.Managers.GigManager.Instance;
+                    if (gmF == null || !gmF.TryGrantBonusLoop(withSolo: true))
+                        return Fail("No se pudo añadir el loop final", ALWTTT.Sensory.PlayDenyReason.BonusLoopPrecondition);
+                    _finisherGrantedBonusThisPart = true;
+                }
+
+                if (finCost > 0) AddCurrentInspiration(-finCost);
+                _pendingFinishers.Add(new PendingFinisher(def, performer));
+                _finishersPlayedThisSong++;
+
+                Debug.Log($"{ALWTTT.Data.InspirationRules.Tag} Finisher '{def.DisplayName}' de " +
+                    $"{performer.MusicianCharacterData?.CharacterName} jugado: −{finCost}★ " +
+                    $"(quedan {_currentInspiration}) · {(first ? "concede el loop final" : "se suma al loop final")} · " +
+                    $"en cola {_pendingFinishers.Count} · esta canción {_finishersPlayedThisSong}.");
+                Info("SUCCESS (finisher)");
+                return true;
+            }
 
             // 1) Inspiration cost (only for composition cards)
             if (def.IsComposition)
             {
-                int cost = Math.Max(0, def.InspirationCost);
+                int cost = ALWTTT.Data.InspirationRules.EffectiveCost(def);
                 InfoV($"inspiration: have={_currentInspiration} " +
                     $"cost={cost} gen={def.InspirationGenerated}");
                 if (cost > _currentInspiration)
@@ -1212,16 +1279,22 @@ namespace ALWTTT.Music
             // 8) Spend / preview inspiration
             if (def.IsComposition)
             {
-                int cost = Math.Max(0, def.InspirationCost);
-                _currentInspiration = Math.Max(0, _currentInspiration - cost);
-                ui.SetInspiration(_currentInspiration);
+                int cost = ALWTTT.Data.InspirationRules.EffectiveCost(def);
+                if (cost > 0) AddCurrentInspiration(-cost);
 
-                int gen = Math.Max(0, def.InspirationGenerated);
+                // [ECON-2 / D5=A] La ★ de una composición se da UNA vez, al jugarla.
+                // Antes iba a la pista y se cobraba cada loop (y alimentaba la
+                // complejidad del LoopScore); ahora la pista guarda 0 y la ★ por
+                // loop solo la da AddInspirationPerLoopSpec.
+                int gen = ALWTTT.Data.InspirationRules.EffectiveGenerated(def);
                 if (gen > 0)
                 {
-                    _buildingPartInspirationPerLoop += gen;
-                    Info($"per-loop inspiration bonus updated: +={gen} " +
-                        $"(now {_buildingPartInspirationPerLoop})");
+                    int applied = AddCurrentInspiration(gen);
+                    ui.PopInspirationGain(gen, applied);
+                    ALWTTT.Managers.GigManager.Instance?.ShowInspirationGainFloater(target, gen);
+                    Debug.Log($"{ALWTTT.Data.InspirationRules.Tag} '{def.DisplayName}' da +{gen}★ " +
+                        $"(aplicado +{applied}, ahora {_currentInspiration}" +
+                        $"{(applied < gen ? ", tope alcanzado" : "")}).");
                 }
             }
 
@@ -1243,6 +1316,63 @@ namespace ALWTTT.Music
             return true;
         }
 
+
+        /// <summary>
+        /// [ECON-2] ¿Se puede jugar este Finisher ahora? Una sola fuente para la
+        /// jugada (TryPlayCompositionCard) y para el rojo de la mano
+        /// (GigManager.EvaluateCardPlayability). No mira el coste: ese es el gate
+        /// de Inspiración de siempre.
+        /// </summary>
+        public bool CanAcceptFinisher(ALWTTT.Cards.CardDefinition def,
+            out ALWTTT.Sensory.PlayDenyReason why, out string text)
+        {
+            var rules = ALWTTT.Data.InspirationRules.Active;
+            why = ALWTTT.Sensory.PlayDenyReason.FinisherTiming;
+            text = null;
+
+            bool loopRunning = _isPlaying &&
+                (_state == CompositionState.BuildingNextPart ||
+                 _state == CompositionState.PlayingCurrentPart);
+            if (!loopRunning)
+            { text = "El Finisher se juega mientras suena la canción."; return false; }
+
+            if (_currentLoopIsBonus)
+            { text = "El loop final ya empezó."; return false; }
+
+            if (rules.finisherOnlyFinalLoop && !IsFinalLoopRunning)
+            { text = "El Finisher solo se juega en el último loop."; return false; }
+
+            if (rules.maxFinishersPerSong > 0 && _finishersPlayedThisSong >= rules.maxFinishersPerSong)
+            {
+                why = ALWTTT.Sensory.PlayDenyReason.FinisherLimit;
+                text = $"Ya se jugaron {_finishersPlayedThisSong} Finisher en esta canción.";
+                return false;
+            }
+
+            if (!_finisherGrantedBonusThisPart)
+            {
+                var gm = ALWTTT.Managers.GigManager.Instance;
+                if (gm == null || !gm.CanGrantBonusLoop())
+                {
+                    why = ALWTTT.Sensory.PlayDenyReason.BonusLoopPrecondition;
+                    text = "Esta canción ya tiene un loop extra.";
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// [ECON-2] GigManager recoge los Finisher al empezar el loop final para
+        /// disparar sus efectos. Devuelve la cola y la vacía (los solos ya se
+        /// renderizaron antes de LoopStarted).
+        /// </summary>
+        public List<PendingFinisher> TakeFinishersForFinalLoop()
+        {
+            var list = new List<PendingFinisher>(_pendingFinishers);
+            _pendingFinishers.Clear();
+            return list;
+        }
 
         // ----- Private methods -----
 
@@ -1340,10 +1470,57 @@ namespace ALWTTT.Music
             // The composition model is never touched. BuildSongConfigFromUI
             // rebuilds `cfg` every loop, so an injection here lives exactly one
             // render: there is no revert API and nothing to unwind.
-            bool soloThisLoop = false;
-            MusicianTrackKey soloKey = default;
-            if (_currentLoopIsBonus && _bonusSoloRequested)
-                soloThisLoop = TryInjectBonusSoloTrack(cfg, partIndex, out soloKey);
+            // [ECON-2] Varios solistas: uno por Finisher en cola (cada uno con su
+            // estrategia y su leading). Sin Finisher, el solo de siempre (R5-d).
+            var soloKeys = new List<MusicianTrackKey>();
+            var soloLevels = new List<float>();
+            // [ECON-2] Músicos sin instrumento melódico (C2, batería): no hay solo que
+            // inyectar, así que SUS pistas de siempre toman el foco (un «break»).
+            var spotlightKeys = new List<MusicianTrackKey>();
+            if (_currentLoopIsBonus)
+            {
+                if (_pendingFinishers.Count > 0)
+                {
+                    var rules = ALWTTT.Data.InspirationRules.Active;
+                    if (rules.finisherSolo)
+                    {
+                        var seen = new HashSet<MusicianBase>();
+                        foreach (var f in _pendingFinishers)
+                        {
+                            if (f.Musician == null || !seen.Add(f.Musician)) continue;
+                            if (TryInjectBonusSoloTrack(cfg, partIndex, f.Musician,
+                                    f.Def.FinisherSoloStrategy, f.Def.FinisherSoloLeading,
+                                    out var k))
+                            {
+                                soloKeys.Add(k);
+                                soloLevels.Add(soloKeys.Count == 1 ? 1f : rules.extraSoloistVolume01);
+                            }
+                            else
+                            {
+                                string mid = f.Musician.MusicianCharacterData?.CharacterId;
+                                var own = cfg.Parts[partIndex].Tracks
+                                    .Where(t => t != null && string.Equals(t.MusicianId, mid, StringComparison.Ordinal))
+                                    .Select(t => new MusicianTrackKey(t.MusicianId, t.Role)).ToList();
+                                spotlightKeys.AddRange(own);
+                                Debug.Log($"{ALWTTT.Data.InspirationRules.Tag} {mid} no puede solear: " +
+                                    $"{(own.Count > 0 ? $"sus pistas toman el foco ({string.Join(", ", own.Select(o => o.Role))})" : "no tiene pistas en esta parte, no suena nada distinto")}.");
+                            }
+                        }
+                    }
+                    Debug.Log($"{ALWTTT.Data.InspirationRules.Tag} Loop final: " +
+                        $"{_pendingFinishers.Count} Finisher, {soloKeys.Count} solista(s) " +
+                        $"[{string.Join(", ", soloKeys.Select(sk => sk.MusicianId + "/" + sk.Role))}]" +
+                        (rules.finisherSolo ? "" : " (solos apagados en las reglas)"));
+                }
+                else if (_bonusSoloRequested)
+                {
+                    var conito = _ctx?.ResolveMusicianByType(MusicianCharacterType.Conito);
+                    if (TryInjectBonusSoloTrack(cfg, partIndex, conito,
+                            MelodyStrategyId.ScaleFlow, null, out var k))
+                    { soloKeys.Add(k); soloLevels.Add(1f); }
+                }
+            }
+            bool soloThisLoop = soloKeys.Count > 0;
 
             // Owners must be published AFTER the injection, or the solo's
             // channel has no owner and the mix / floaters / beat animation
@@ -1413,7 +1590,8 @@ namespace ALWTTT.Music
                 // entry keeps the stem cache serving the base verbatim; only
                 // the bundle key changes, so only the new stem is generated.
                 if (soloThisLoop && trackInputsHashes != null)
-                    trackInputsHashes[soloKey] = BuildBonusSoloHash(cfg, partIndex, soloKey);
+                    foreach (var sk in soloKeys)
+                        trackInputsHashes[sk] = BuildBonusSoloHash(cfg, partIndex, sk);
 
                 // [B1 / #7.1 / D-F=γ] Apply session-level instrument pins to
                 // cfg before the render. Keeps the same musician's voice
@@ -1640,10 +1818,30 @@ namespace ALWTTT.Music
             // AFTER PlayRaw so the playback preamble's own volume writes cannot
             // undo it. Cleared at the loop boundary (HandleLoopFinished),
             // AdvanceToNextPart and End().
-            if (soloThisLoop)
+            if (soloThisLoop || spotlightKeys.Count > 0)
             {
-                int soloCh = mm.GetChannelForTrack(cfg, soloKey.MusicianId, soloKey.Role);
-                if (soloCh >= 0) mm.SetSoloDuck(soloCh, _bonusSoloDuck01);
+                // [ECON-2] Varios solistas: cada canal solista a su nivel, el
+                // resto de la banda agachado. Un solista = el SetSoloDuck de R5-d.
+                // Las pistas en foco (músicos sin solo) van a 1 y, si las hay, el
+                // resto baja más (regla breakDuck01): suena a «break».
+                var soloLevelByCh = new Dictionary<int, float>();
+                for (int i = 0; i < soloKeys.Count; i++)
+                {
+                    int ch = mm.GetChannelForTrack(cfg, soloKeys[i].MusicianId, soloKeys[i].Role);
+                    if (ch >= 0) soloLevelByCh[ch] = soloLevels[i];
+                }
+                foreach (var sk in spotlightKeys)
+                {
+                    int ch = mm.GetChannelForTrack(cfg, sk.MusicianId, sk.Role);
+                    if (ch >= 0) soloLevelByCh[ch] = 1f;
+                }
+                if (soloLevelByCh.Count > 0)
+                {
+                    float duck = spotlightKeys.Count > 0
+                        ? Mathf.Min(_bonusSoloDuck01, ALWTTT.Data.InspirationRules.Active.breakDuck01)
+                        : _bonusSoloDuck01;
+                    mm.SetSoloDuck(soloLevelByCh, duck);
+                }
                 else _ctx?.Log("[R5-d] Solo channel unresolved — playing unducked.", true);
             }
 
@@ -1668,11 +1866,14 @@ namespace ALWTTT.Music
             { TrackRole.Melody, TrackRole.Harmony };
 
         private bool TryInjectBonusSoloTrack(
-            SongConfig cfg, int partIndex, out MusicianTrackKey soloKey)
+            SongConfig cfg, int partIndex, MusicianBase soloist,
+            MelodyStrategyId soloStrategy, MelodicLeadingConfig soloLeading,
+            out MusicianTrackKey soloKey)
         {
             soloKey = default;
 
-            var soloist = _ctx?.ResolveMusicianByType(MusicianCharacterType.Conito);
+            // [ECON-2] El solista llega de fuera: el músico del Finisher (antes,
+            // siempre Conito). El camino sin Finisher sigue pasando a Conito.
             var mcd = soloist != null ? soloist.MusicianCharacterData : null;
             if (mcd == null || string.IsNullOrEmpty(mcd.CharacterId))
             {
@@ -1728,8 +1929,9 @@ namespace ALWTTT.Music
                 Instrument = instrument,
                 Parameters = new TrackParameters
                 {
-                    melodyStrategyId = MelodyStrategyId.ScaleFlow,
-                    melodicLeadingOverride = mgd?.CurrentMelodicLeading,
+                    melodyStrategyId = soloStrategy,
+                    melodicLeadingOverride = soloLeading != null
+                        ? soloLeading : mgd?.CurrentMelodicLeading,
                     harmonyStrategyId = HarmonyStrategyId.NearestChordTone,
                     harmonicLeadingOverride = mgd?.CurrentHarmonicLeading,
                 }
@@ -1745,6 +1947,7 @@ namespace ALWTTT.Music
             cfg.ChannelMusicianOrder.Add(musicianId);
 
             soloKey = new MusicianTrackKey(musicianId, role);
+            _soloStyleByKey[soloKey] = $"{soloStrategy}|{(soloLeading != null ? soloLeading.name : "_")}";
 
             _ctx?.Log($"[R5-d] Bonus solo injected — {musicianId} / {role} / " +
                       $"'{instrument.InstrumentName}' (render scope, part {partIndex}).", true);
@@ -1769,7 +1972,10 @@ namespace ALWTTT.Music
                     System.Globalization.CultureInfo.InvariantCulture)
                 : "_";
 
-            return $"r5dsolo|{key.Role}|{instId}";
+            // [ECON-2] La estrategia y el leading del solo entran en la identidad:
+            // dos Finisher con solos distintos no comparten stem.
+            _soloStyleByKey.TryGetValue(key, out var style);
+            return $"r5dsolo|{key.Role}|{instId}|{style ?? "_"}";
         }
 
         private SongConfig BuildSongConfigFromUI()
@@ -1995,7 +2201,9 @@ namespace ALWTTT.Music
             int inspirationGainedThisLoop = _perLoopInspirationCurrentPart;
             if (inspirationGainedThisLoop > 0)
             {
-                AddCurrentInspiration(inspirationGainedThisLoop);
+                int appliedLoopInsp = AddCurrentInspiration(inspirationGainedThisLoop);
+                // [ECON-2] La ★ por loop de las pistas (AddInspirationPerLoopSpec) también avisa.
+                _ctx.CompositionUI?.PopInspirationGain(inspirationGainedThisLoop, appliedLoopInsp);
                 // Badge shows un-clamped per-loop track contribution: the
                 // player's signal of next-loop potential, independent of cap.
                 _ctx.CompositionUI?.SetPlusInspiration(GlobalPerLoopBadgeValue);

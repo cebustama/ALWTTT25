@@ -23,6 +23,18 @@ MonoBehaviour:
   skipAudienceActionsAfterFinalSong: 1
   defaultInitialGigInspiration: 0
   defaultInspirationPerLoop: 1
+  inspirationRules:
+    compositionGrantsInspiration: 1
+    compositionInspirationOverride: -1
+    maxInspirationOverride: 10
+    inspirationPerLoopOverride: 0
+    keepBetweenSongsOverride: -1
+    finisherOnlyFinalLoop: 1
+    finisherCostOverride: -1
+    maxFinishersPerSong: 0
+    finisherSolo: 1
+    extraSoloistVolume01: 0.8
+    finisherEffectsAtFinalLoopStart: 1
   defaultActionPlaysPerTurn: 1
   defaultCompositionPlaysPerTurn: 1
   generateVoltageOnConsumedPlay: 1

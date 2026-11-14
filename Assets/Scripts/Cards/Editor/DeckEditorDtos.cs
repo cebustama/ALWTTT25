@@ -63,8 +63,18 @@ namespace ALWTTT.Cards.Editor
         public string cardType;
         public string rarity;
         public string audioType;
-        public int inspirationCost = 1;
-        public int inspirationGenerated = 0;
+        // [ECON-2] -1 = no lo dice el JSON: misma convención que CardJsonImport.
+        public int inspirationCost = -1;
+        public int inspirationGenerated = -1;
+        public bool isFinisher;
+        public (int cost, int gen) ResolveInspirationDefaults()
+        {
+            bool comp = string.Equals(kind, "Composition", StringComparison.OrdinalIgnoreCase);
+            bool fin = comp && isFinisher;
+            int cost = inspirationCost >= 0 ? inspirationCost : (fin ? 3 : 0);
+            int gen = inspirationGenerated >= 0 ? inspirationGenerated : (comp && !fin ? 1 : 0);
+            return (cost, gen);
+        }
         public bool exhaustAfterPlay;
         public bool overrideRequiresTargetSelection;
         public bool requiresTargetSelectionOverrideValue;

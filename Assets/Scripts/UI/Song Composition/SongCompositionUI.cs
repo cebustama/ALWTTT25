@@ -563,6 +563,86 @@ namespace ALWTTT.UI
                 inspirationValuePulse.Pulse(inspirationLossColor);
         }
 
+        // ─── [ECON-2 / D5] Pop-up de ganancia ───────────────────────────
+        [Header("ECON-2 · Pop-up de Inspiración")]
+        [SerializeField, Tooltip("Color del «+N★» que sale del contador al jugar una composición.")]
+        private Color inspirationPopColor = new Color(1f, 0.82f, 0.2f);
+        [SerializeField, Tooltip("Color del pop-up cuando el contador ya está al máximo.")]
+        private Color inspirationPopCappedColor = new Color(0.75f, 0.75f, 0.75f);
+        [SerializeField] private float inspirationPopSeconds = 1.1f;
+        [SerializeField] private float inspirationPopRise = 70f;
+        [SerializeField] private float inspirationPopScale = 1.6f;
+
+        /// <summary>
+        /// [ECON-2] Un «+N★» de color que nace en el contador, crece y sube
+        /// desvaneciéndose, más el pulso del valor. Se construye en código a partir
+        /// del texto del contador: no hace falta cablear nada en el prefab.
+        /// </summary>
+        public void PopInspirationGain(int amount, int applied)
+        {
+            if (amount <= 0 || inspirationText == null) return;
+            bool capped = applied <= 0;
+            var color = capped ? inspirationPopCappedColor : inspirationPopColor;
+
+            if (inspirationValuePulse != null) inspirationValuePulse.Pulse(color);
+
+            var go = new GameObject("ECON2_InspirationPop", typeof(RectTransform));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(inspirationText.transform.parent, false);
+            var src = inspirationText.rectTransform;
+            rt.anchorMin = src.anchorMin; rt.anchorMax = src.anchorMax; rt.pivot = src.pivot;
+            rt.anchoredPosition = src.anchoredPosition;
+            rt.sizeDelta = new Vector2(Mathf.Max(src.sizeDelta.x, 160f), Mathf.Max(src.sizeDelta.y, 60f));
+
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.font = inspirationText.font;
+            tmp.fontSize = inspirationText.fontSize;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
+            tmp.raycastTarget = false;
+            string star = StarGlyph(tmp.font);
+            tmp.text = capped ? $"+{amount}{star} (máx.)" : $"+{amount}{star}";
+            tmp.color = color;
+            tmp.outlineWidth = 0.25f;
+            tmp.outlineColor = new Color32(20, 30, 70, 255);
+
+            StartCoroutine(InspirationPopRoutine(rt, tmp));
+        }
+
+        /// <summary>[ECON-2] «★» si la fuente lo tiene; si no, « Insp.» (nunca un cuadrado).</summary>
+        public static string StarGlyph(TMP_FontAsset font)
+        {
+            if (font == null) font = TMP_Settings.defaultFontAsset;
+            try
+            {
+                if (font != null && font.HasCharacter('★', true, true)) return "★";
+            }
+            catch (Exception) { }
+            return " Insp.";
+        }
+
+        private System.Collections.IEnumerator InspirationPopRoutine(RectTransform rt, TextMeshProUGUI tmp)
+        {
+            var start = rt.anchoredPosition;
+            var baseColor = tmp.color;
+            float t = 0f;
+            float dur = Mathf.Max(0.1f, inspirationPopSeconds);
+            while (t < dur && rt != null)
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(t / dur);
+                // crece rápido al principio y vuelve a su tamaño mientras sube
+                float pop = k < 0.2f ? Mathf.Lerp(0.6f, inspirationPopScale, k / 0.2f)
+                                     : Mathf.Lerp(inspirationPopScale, 1f, (k - 0.2f) / 0.8f);
+                rt.localScale = Vector3.one * pop;
+                rt.anchoredPosition = start + new Vector2(0f, inspirationPopRise * k);
+                var c = baseColor; c.a = k < 0.6f ? 1f : Mathf.Lerp(1f, 0f, (k - 0.6f) / 0.4f);
+                tmp.color = c;
+                yield return null;
+            }
+            if (rt != null) Destroy(rt.gameObject);
+        }
+
         public int BeginDraftNextPart(string customLabel = null)
         {
             // The new part index is the current count (append to the end)
@@ -897,7 +977,9 @@ namespace ALWTTT.UI
 
             int beforeCount = part.tracks != null ? part.tracks.Count : 0;
 
-            int complexity = Mathf.Max(0, sourceCard != null ? sourceCard.InspirationGenerated : 0);
+            // [ECON-2 / D5=A] La ★ se paga una vez al jugar la carta: la pista guarda 0
+            // (sin ★ por loop, sin complejidad en el LoopScore, previsto = real).
+            int complexity = 0;
             var synergy = sourceCard != null ? sourceCard.CardType : CardType.None;
 
             // [BASS-1 / D-ALWTTT-FIX=A'] Tracks are keyed by (musicianId, role).

@@ -27,7 +27,7 @@ MonoBehaviour:
     roleBudget: 12
     densityBonusPerTrack: 1.5
     lastLoopBonus: 2
-    complexityMultiplier: 0.5
+    complexityMultiplier: 0
     possibleRoleCount: 5
     totalMusicians: 4
   hypeThresholds:

@@ -1365,3 +1365,22 @@ Con la semilla de canción fijada, la misma prueba suena igual. Lo comprobó Cla
 **Apagar y seguir** (los apaga en el asset y construye), **Cancelar build** o **Seguir así** (build
 de prueba a propósito, p. ej. para Matías). En modo batch solo avisa. Logs `[S9c] Build: …`.
 Motivo: una build pública con cualquiera de los tres sale amañada.
+
+## 21. Pestaña «Inspiración»: las reglas de ECON-2 (2026-11-14)
+
+F12 ▸ **Inspiración** (`DevInspirationRulesTab`, solo con `ALWTTT_DEV`, que está encendido en las builds de
+Standalone). Sirve para que Claudio y Matías prueben la economía A/B **en la build**, sin tocar assets.
+
+- **Tres capas:** valores del código → bloque `inspirationRules` de `GigFlowSettings` (lo que se commitea) →
+  ajustes locales guardados en **PlayerPrefs** de la máquina (`ALWTTT.ECON2.InspirationRules`). Cada cambio se
+  aplica al momento y se guarda solo; **«Restablecer»** borra los ajustes locales y vuelve al asset.
+- **Qué se ajusta:** composiciones dan ★ (sí/no) y cuántas (la de la carta o un valor fijo); máximo de ★; ★
+  básica por loop; guardar ★ entre canciones (asset/no/sí); ignorar el coste de Voltaje; Finisher solo en el
+  último loop; coste de los Finisher; Finisher por canción (0 = sin límite); solos sí/no; volumen del 2.º solista
+  en adelante; volumen de la banda en el «break» (Finisher sin solo); efectos al empezar el loop final o al jugar.
+- `-1` en un campo = «lo que diga el asset de siempre» (la carta, Gameplay Settings). Los valores originales se
+  fotografían una vez por partida (`GigManager.ApplyInspirationRulesToRun`).
+- Las caras de las cartas de la mano se repintan al cambiar una regla (coste y ★ efectivos).
+- Logs `[ECON-2] Reglas cargadas …`, `Ajustes locales guardados …`, `Reglas aplicadas a la partida …`.
+- Datos de partida: menú de editor **ALWTTT ▸ ECON-2 ▸ Preparar datos de la Inspiración y los Finisher**
+  (idempotente: ★1 en las composiciones de los catálogos, los 4 Finisher, el leading hipnótico, máximo 10).

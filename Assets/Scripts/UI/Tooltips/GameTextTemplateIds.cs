@@ -66,6 +66,9 @@ namespace ALWTTT.Tooltips
         // PrimaryKind (Track/Part/Composition); "type" is the domain, shown on EVERY composition card.
         // The other branch of both sites is CardType.ToString() — an enum, F-TXT4-2 → CARD-FACE-1.
         public const string UiCardTypeComposition = "ui_card_type_composition";  // —
+        // [ECON-2] Finisher: etiqueta de tipo en la cara y la línea de regla de su descripción.
+        public const string UiCardTypeFinisher = "ui_card_type_finisher";        // —
+        public const string UiCardFinisherRule = "ui_card_finisher_rule";        // —
         public const string UiCardModifierOne = "ui_card_modifier_one";          // {0} count (always 1)
         public const string UiCardModifierMany = "ui_card_modifier_many";        // {0} count
         public const string UiCardDetailStyle = "ui_card_detail_style";          // {0} style bundle asset name
@@ -278,7 +281,7 @@ namespace ALWTTT.Tooltips
             FxDrawOne, FxDrawMany, FxInspirationPerLoop, FxRevealTastes,
             FxGrantBonusLoop, FxGrantBonusLoopSolo,
             TgtSelf, TgtMusician, TgtAllMusicians, TgtRandomMusician, TgtAudience, TgtAllAudience, TgtRandomAudience,
-            UiCardKindTrack, UiCardKindPart, UiCardKindComposition, UiCardTypeComposition, UiCardModifierOne, UiCardModifierMany,
+            UiCardKindTrack, UiCardKindPart, UiCardKindComposition, UiCardTypeComposition, UiCardTypeFinisher, UiCardFinisherRule, UiCardModifierOne, UiCardModifierMany,
             UiCardDetailStyle, UiCardDetailMusician, UiCardDetailModifiers, UiCardDetailEffects,
             UiAudTasteBlockHeader, UiAudTasteHeader, UiAudTasteNeutral, UiAudTasteFast, UiAudTasteSlow, UiAudTasteTracks,
             UiAudVibeHype, UiAudVibeBlocked, UiAudVibeSongEnd, UiAudVibeTastes, UiAudVibeStatusMult, UiAudVibeSfx,

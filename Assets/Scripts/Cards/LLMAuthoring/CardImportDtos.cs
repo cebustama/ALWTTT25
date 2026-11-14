@@ -32,8 +32,23 @@ namespace ALWTTT.Cards.LLMAuthoring
         public string rarity;            // e.g. "Common"
         public string audioType;         // e.g. "Button"
 
-        public int inspirationCost = 1;
-        public int inspirationGenerated = 0;
+        // [ECON-2] -1 = «no lo dice el JSON»: ResolveInspirationDefaults pone la
+        // convención (Composición ★1 al jugarla, coste 0; Finisher coste ★3; Acción 0/0).
+        public int inspirationCost = -1;
+        public int inspirationGenerated = -1;
+        public bool isFinisher;
+
+        /// <summary>[ECON-2] Coste y ★ con la convención de la Inspiración cuando el
+        /// JSON no los da. Composición: coste 0, genera 1. Finisher: coste 3, genera 0.
+        /// Acción: 0 y 0.</summary>
+        public (int cost, int gen) ResolveInspirationDefaults()
+        {
+            bool comp = string.Equals(kind, "Composition", StringComparison.OrdinalIgnoreCase);
+            bool fin = comp && isFinisher;
+            int cost = inspirationCost >= 0 ? inspirationCost : (fin ? 3 : 0);
+            int gen = inspirationGenerated >= 0 ? inspirationGenerated : (comp && !fin ? 1 : 0);
+            return (cost, gen);
+        }
 
         // [R5-d / D-R5-26=A] Resource cost. Generic (statusKey, amount) pair —
         // NOT a voltage-specific field. Empty key or amount 0 = no cost, which

@@ -56,8 +56,11 @@ namespace ALWTTT.Cards.Editor
         [SerializeField] private bool _useCompactKindTokens = true;
         [SerializeField] private bool _newIdEditedByUser;
         [SerializeField] private string _lastAutoId;
-        [SerializeField] private int _newInspirationCost = 1;
+        [SerializeField] private int _newInspirationCost = 0;
         [SerializeField] private int _newInspirationGenerated = 0;
+        [SerializeField] private bool _newIsFinisher;                  // [ECON-2]
+        [SerializeField] private CardAssetFactory.CreateCardKind _lastDefaultsKind = (CardAssetFactory.CreateCardKind)(-1);
+        [SerializeField] private bool _lastDefaultsFinisher;
 
         [SerializeField] private CardAcquisitionFlags _newEntryFlags = CardAcquisitionFlags.UnlockedByDefault;
         [SerializeField] private int _newStarterCopies = 1;
@@ -869,6 +872,22 @@ namespace ALWTTT.Cards.Editor
                         }
                     }
 
+                    // [ECON-2] Convención: Composición ★1 al jugarla (coste 0); Finisher
+                    // coste ★3; Acción 0/0. Se reaplica al cambiar el tipo o la marca.
+                    if (_newKind == CardAssetFactory.CreateCardKind.Composition)
+                        _newIsFinisher = EditorGUILayout.Toggle(
+                            new GUIContent("Finisher", "Solo en el último loop; gasta ★ y añade un loop final con solo."),
+                            _newIsFinisher);
+                    else _newIsFinisher = false;
+                    if (_newKind != _lastDefaultsKind || _newIsFinisher != _lastDefaultsFinisher)
+                    {
+                        bool comp = _newKind == CardAssetFactory.CreateCardKind.Composition;
+                        _newInspirationCost = comp && _newIsFinisher ? 3 : 0;
+                        _newInspirationGenerated = comp && !_newIsFinisher ? 1 : 0;
+                        _lastDefaultsKind = _newKind;
+                        _lastDefaultsFinisher = _newIsFinisher;
+                    }
+
                     _newInspirationCost = EditorGUILayout.IntField("Inspiration Cost", _newInspirationCost);
                     _newInspirationGenerated = EditorGUILayout.IntField("Inspiration Generated", _newInspirationGenerated);
 
@@ -941,6 +960,7 @@ namespace ALWTTT.Cards.Editor
 
                 inspirationCost = inspirationCost,
                 inspirationGenerated = inspirationGenerated,
+                isFinisher = _newIsFinisher,                       // [ECON-2]
 
                 // Let factory derive folder from catalog/musician
                 targetFolder = null
@@ -1353,6 +1373,20 @@ namespace ALWTTT.Cards.Editor
             EditorGUILayout.PropertyField(spriteProp);
             EditorGUILayout.PropertyField(inspirationCostProp);
             EditorGUILayout.PropertyField(inspirationGeneratedProp);
+
+            // [ECON-2] Finisher y su solo.
+            var isFinisherProp = so.FindProperty("isFinisher");
+            if (isFinisherProp != null)
+            {
+                EditorGUILayout.PropertyField(isFinisherProp, new GUIContent("Finisher"));
+                if (isFinisherProp.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(so.FindProperty("finisherSoloStrategy"), new GUIContent("Solo: estrategia"));
+                    EditorGUILayout.PropertyField(so.FindProperty("finisherSoloLeading"), new GUIContent("Solo: leading"));
+                    EditorGUI.indentLevel--;
+                }
+            }
 
             // clamps
             if (inspirationCostProp != null && inspirationCostProp.intValue < 0) inspirationCostProp.intValue = 0;

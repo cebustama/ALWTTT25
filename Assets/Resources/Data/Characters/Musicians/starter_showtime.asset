@@ -18,7 +18,12 @@ MonoBehaviour:
   musicianCharacterType: 4
   cardSprite: {fileID: 7392437585040540878, guid: 5aa243d2ac18123408574c621c59efac, type: 3}
   inspirationCost: 0
-  inspirationGenerated: 0
+  inspirationGenerated: 1
+  isFinisher: 0
+  finisherSoloStrategy: 1
+  finisherSoloLeading: {fileID: 0}
+  resourceCostStatusKey: 
+  resourceCostAmount: 0
   cardType: 0
   rarity: 0
   keywords: 

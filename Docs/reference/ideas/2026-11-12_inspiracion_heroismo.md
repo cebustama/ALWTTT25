@@ -3,6 +3,11 @@
 Idea de Claudio y Matías, 2026-11-12, al cerrar la reunión. **Prioritaria** (Claudio). Estado: **decidida**
 (D-PLAN-20 y D-PLAN-21 del plan de la demo); se implementa en ECON-2 y CARTAS-ARTE-1.
 
+> **Implementada en ECON-2 (2026-11-14).** Lo vigente está en `SSoT_Card_System.md` §2.3. Dos correcciones a
+> este documento: (1) en las composiciones, `inspirationGenerated` **no** se daba una vez (iba a la pista y se cobraba
+> cada loop); ECON-2 lo cambió para que se dé al jugar; (2) el Finisher **no** es de acción: es de composición y añade
+> un loop final con el solo de su músico (D2 de ECON-2).
+
 ## La idea
 
 - **Toda carta de composición genera Inspiración.**

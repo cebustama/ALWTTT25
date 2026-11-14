@@ -130,8 +130,9 @@ namespace ALWTTT.Cards.LLMAuthoring
             sb.AppendLine("  \"cardType\": <" + Join(v.CardTypes) + ">");
             sb.AppendLine("  \"rarity\": <" + Join(v.Rarities) + ">");
             sb.AppendLine("  \"audioType\": <" + Join(v.AudioTypes) + ">");
-            sb.AppendLine("  \"inspirationCost\": int >= 0");
-            sb.AppendLine("  \"inspirationGenerated\": int >= 0");
+            sb.AppendLine("  \"inspirationCost\": int >= 0                         (optional; default: Composition 0, Finisher 3, Action 0)");
+            sb.AppendLine("  \"inspirationGenerated\": int >= 0                    (optional; granted ONCE when played; default: Composition 1, else 0)");
+            sb.AppendLine("  \"isFinisher\": bool                                (Composition only: playable only in the last loop, spends inspiration, adds a final loop with this musician's solo)");
             sb.AppendLine("  \"resourceCostStatusKey\": <see STATUS KEYS>          (optional; status the PLAYER of this card spends)");
             sb.AppendLine("  \"resourceCostAmount\": int >= 0                      (a cost exists only when the key is set AND amount > 0)");
             sb.AppendLine("  \"exhaustAfterPlay\": bool   (if true, also add the \"Exhaust\" keyword)");
