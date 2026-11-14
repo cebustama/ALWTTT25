@@ -2340,3 +2340,17 @@ from the legacy slots' bounds), assigns `GigManager.bandStageLayout`, Undo-able.
   the Scale tool on any stage: the scale saved is read back as that stage's, and the other stages
   follow in pixel proportion. The larva sprites are imported `Single` with pivot `Bottom`, so every
   stage grows up from the same floor point.
+
+### 23.7 Formations by venue and several brood clocks (S9c DEMO-FIX-1, 2026-11-14)
+
+- **Formations adjusted** for 2, 3 and 4 in the scene's `Band Stage Layout` and in
+  `Band Stage Layout - Colmena` with Character Lineup («En el escenario»). Rule taken from the
+  June-2025 stage prototype: one light gap per musician, nobody covers anybody, wider rather than
+  tighter with more musicians.
+- **Slot *i* = musician *i* of the band** (dormitory card order: Conito, Robot C2, Sibi, Ziggy). In
+  the quartet Ziggy (slot 4) now stands in front with Conito and C2 (slot 2) at the back with Sibi.
+  In trios and duos the slot depends on who is in the band, so «Ziggy always in front» only holds
+  for the quartet. Per-musician placement chosen by the player: POST-DEMO A4 (ENSAYO-1).
+- **Several `BroodClock`s on one Reina** work together: `Cría 1–4` under her `Sprite`, each reading
+  the same abilities, so the four change stage at once (egg · egg · hatch · burst). Decoration only:
+  no per-larva health (larvae with their own design stay post-demo).

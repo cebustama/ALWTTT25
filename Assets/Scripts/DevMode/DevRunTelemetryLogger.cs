@@ -262,6 +262,9 @@ namespace ALWTTT.DevMode
                       $"{_plays.Count} plays, {_loopsThisGig} loops) → {path}");
         }
 
+        /// <summary>[S9c] Folder the JSONL files go to (editor: project root; player: persistentDataPath).</summary>
+        public static string OutputFolder => OutputDirectory();
+
         private static string OutputDirectory()
         {
 #if UNITY_EDITOR

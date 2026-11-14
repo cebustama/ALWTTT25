@@ -178,6 +178,13 @@ calling the live levers, not by data here.
 a `VoiceProfileSO`. Non-empty id + non-null profile + a matching melody stem =
 the musician is sung. Current singer: **Zig** (`musicianId = "3"`).
 
+**Diction on (S9c, D-ZIG-1 F0, 2026-11-14).** `Zig_SingerVoice.prefab` ships with
+`expressivityEnabled = 1`: the vowel opens and moves on long notes and strong beats instead of one
+flat vowel. Heard by Claudio (smoke 1). In `SingerVoice.VowelPresets` the preset formerly named
+«Back (oh)» is renamed **«Back~a»**: it measures F1 730 / F2 1650, an «a», not an «oh». Same
+values, honest name. The POC copy in `Assets/PinkTrombonePOC` is untouched. Phases F1–F3
+(melodies by figure, consonants, zigués syllables) stay post-demo.
+
 **Owed (D4=A).** A `VoiceProfileSO` field on `MusicianCharacterData` (its existing
 `[Header("Audio")]` section, beside `MusicianProfileData profile`) + a Director
 lookup, retiring the serialized string. Follow-up, not required for the demo.

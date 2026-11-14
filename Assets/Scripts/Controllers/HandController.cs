@@ -1169,6 +1169,14 @@ namespace ALWTTT
                         continue;
                     }
 
+                    // [S9c / D1=B] Single-target Stress change: musician only.
+                    if (effects[i] is ModifyStressSpec mss)
+                    {
+                        if (mss.targetType == ActionTargetType.Musician)
+                            expectsMusicianSingle = true;
+                        continue;
+                    }
+
                     if (effects[i] is not ApplyStatusEffectSpec ase)
                         continue;
 

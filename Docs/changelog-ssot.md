@@ -14,6 +14,20 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-14 — S9c: DEMO-FIX-1, arreglos de la demo (DEMO-1211)
+
+**Clase:** semántico · operativo · ciclo de vida. Con cambio de código y datos.
+
+- Decisiones: D1=B (Calm Down, carta nueva de Sibi), D2=B (`mailto:` + carpeta de telemetría), D3=C (conceptos solos 2 veces, luego Shift), D4=A (Company Name «ALWTTT Team», sin migrar datos), D5=B (nodo aleatorio a S10), D6=A+C (feedback desde el juego por formulario de Google en FEEDBACK-2; copiar al portapapeles como respaldo).
+- Zig con dicción (`expressivityEnabled = 1`); preset «Back (oh)» → «Back~a».
+- Calm Down (`crd_sibi_calm_down`, ModifyStress −4 a un músico) sustituye a Read the Room en el mazo de Sibi; Doble Armonía fuera del mazo de Zig. `ModifyStressSpec` a un músico o al público pide objetivo (`CardDefinition`, `HandController`). Datos con `S9c_DemoFixDataTool`.
+- Fichas de conceptos bajo demanda en `TooltipManager` (+ plantilla `ui_tip_concepts_hint` ES/EN).
+- Pausa: «Abrir carpeta de telemetría» (funciona). «Enviar feedback» por `mailto:` + portapapeles **no funciona** en el PC de Claudio (abre el navegador en su inicio): botón **desactivado** en `UIManager.prefab`; lo sustituye FEEDBACK-2.
+- Formaciones de 2/3/4 ajustadas en los dos `Band Stage Layout`; cuatro `BroodClock` en la Reina. Company Name «ALWTTT Team».
+- Aviso al hacer build con ajustes de prueba encendidos (`DevSettingsBuildGuard`).
+- Docs: `SSoT_Card_System` §8.2, `SSoT_Tooltip_Pipeline` §2.3 y §9, `SSoT_Singer_Voice` §6, `SSoT_Dev_Mode` §20.4, `SSoT_Editor_Authoring_Tools` §23.7, `CURRENT_STATE`, plan DEMO-1211 (S9c ✅, fila 3b FEEDBACK-2, nodo aleatorio en S10), POST-DEMO A4 (posiciones de la banda), minuta del 12-nov (D9 cerrada), nota de DEV-TUNING-1 (saltar la canción).
+- Smokes 1–3 jugados por Claudio (feedback por correo: falla, apagado).
+
 ## 2026-11-13 — S9b: AUDIO-LOOP-1, nada se corta entre loops (DEMO-1211)
 
 **Clase:** semántico · operativo. Con cambio de código (ALWTTT y un parche local a Maestro).

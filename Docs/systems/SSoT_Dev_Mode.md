@@ -1357,3 +1357,11 @@ Con la semilla de canción fijada, la misma prueba suena igual. Lo comprobó Cla
 - **Para que se repita:** la misma semilla, el mismo mazo fijo, la misma banda y las mismas cartas en el mismo orden y en el mismo loop. El orden cuenta a propósito: la primera carta de acompañamiento fija la armonía del jam (JAM-1 y JAM-3).
 - **Sin semilla** (en producción, del reloj), la variedad entre canciones es la misma de antes.
 
+### 20.4 Aviso al hacer build (S9c, 2026-11-14)
+
+`Assets/Scripts/Editor/DevSettingsBuildGuard.cs` (`IPreprocessBuildWithReport`) revisa todos los
+`GigDevSettingsSO` antes de cada build. Si siguen encendidos las **cartas TEST**
+(`testCardsMode` ≠ Off), el **mazo fijo** o la **semilla fijada**, muestra un diálogo que los lista:
+**Apagar y seguir** (los apaga en el asset y construye), **Cancelar build** o **Seguir así** (build
+de prueba a propósito, p. ej. para Matías). En modo batch solo avisa. Logs `[S9c] Build: …`.
+Motivo: una build pública con cualquiera de los tres sale amañada.

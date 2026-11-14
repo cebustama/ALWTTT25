@@ -27,7 +27,7 @@ MonoBehaviour:
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: 87198ba5f99fd8b4e85a5dfa52534f25, type: 2}
-    flags: 5
+    flags: 4
     unlockId: 
     starterCopies: 1
   - card: {fileID: 11400000, guid: 6c6c3c941846d1a449ea0b567494d086, type: 2}
@@ -44,5 +44,9 @@ MonoBehaviour:
     starterCopies: 1
   - card: {fileID: 11400000, guid: bbe2e85968b91774f9dcb363b0b85256, type: 2}
     flags: 0
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: b8ce5ece5bdb8eb41a87c85b58be0baf, type: 2}
+    flags: 5
     unlockId: 
     starterCopies: 1

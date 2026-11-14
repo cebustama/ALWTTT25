@@ -29,7 +29,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | A1 | **DEV-TUNING-2** | Si el menú F5 no entró antes de la demo, hacerlo (registro de ajustes, guardar, valores por defecto); si entró, ampliar sus campos | `ideas/2026-11-12_menu_de_ajustes_dev.md` |
 | A2 | **TOOLS-1: exportar y ampliar el JSON** | La lectura de gigs y enemigos desde JSON entra en S10 antes de la demo (D-PLAN-9 = B); aquí, el botón de exportar y lo que no haya llegado | `ideas/2026-11-12_herramientas_de_testeo_en_build.md` pasos 1–2 |
 | A3 | **TOOLS-2: editor de enemigos y gigs en el juego** | Formularios en el panel de testeo | ídem, paso 3 |
-| A4 | **ENSAYO-1: la sala de ensayo como taller** | Jugar cartas libremente, sin público, y oír las combinaciones; parte de `2 - Ship Interior` | minuta 12-nov, punto 13; D-PLAN-13 |
+| A4 | **ENSAYO-1: la sala de ensayo como taller** | Jugar cartas libremente, sin público, y oír las combinaciones; parte de `2 - Ship Interior`. Además (Claudio, 2026-11-14): **intercambiar las posiciones de la banda en el escenario** (quién va delante y quién atrás), guardado con la banda; es la D5 C de S7 | minuta 12-nov, punto 13; D-PLAN-13 |
 | A5 | **TOOLS-3: cartas en JSON y su editor** | Formato JSON de cartas, importación y editor en el juego | ídem, paso 4 |
 | A6 | **TLM-2: telemetría y feedback remotos** | Que la build mande la telemetría y el feedback a un servidor (función de la web), con aviso de privacidad | minuta 12-nov, puntos 10–11 |
 

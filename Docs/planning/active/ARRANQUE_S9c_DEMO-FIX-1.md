@@ -56,3 +56,18 @@ de frentes y el arranque de ECON-2.
 1. Gig con Zig: la dicción se oye en las notas largas, y en su mano no hay Doble Armonía.
 2. Gig con Sibi: la carta nueva cura Stress y la banda queda bien colocada con 2, 3 y 4 músicos.
 3. Menú o pausa: el botón de feedback abre el correo y la carpeta de telemetría; el tooltip de Conito es corto.
+
+## Referencias de la sesión (`/buscar-referencias --all`, 2026-11-13)
+
+- **Prototipo de escenario propio (jun-2025)**: `C:\Users\cebus\Dropbox\ALWTTT References\Screenshot 2025-06-18 154724.png`. Un haz de luz por músico, aire entre ellos, la batería al centro y atrás, nadie tapa a nadie. Regla para las formaciones de 2, 3 y 4 (punto 4).
+- **ChatGPT, 2025-04-10, «ALWTTT Demo Launch Prep»** (`chats-chatgpt`, chat 1194): ya en abril de 2025 se planeó «a hotkey in-game to send feedback directly to a game-specific email». El botón de feedback (punto 5) es esa idea.
+- Monster Train, fichas apiladas (`Screenshot 2024-09-05 144445.png`) y lecciones 2 y 3 del `Dossier_Claridad_UI_Deckbuilders.md`: base de D3 = C (conceptos solos las primeras veces, luego con Shift).
+- Google Drive, «Bird Boxing – Demo #1» (formulario de feedback, 2020): la alternativa para después de la demo si el correo se queda corto.
+
+## Decisiones (2026-11-13, todas las recomendaciones)
+
+- **D1 = B.** Carta nueva de Sibi, **Calm Down** (ES «Cálmate», nombre provisional): −4 de Stress al músico sobre el que se suelta; sustituye a Read the Room en el mazo inicial. Ojo: `starter_take_five` era −10 a sí mismo, no −3.
+- **D2 = B.** En la pausa: correo `mailto:` a allwtttcmm@gmail.com con versión, fecha, sistema y la ruta de la telemetría, y «Abrir carpeta de telemetría».
+- **D3 = C.** Las fichas de conceptos enlazados salen solas las 2 primeras veces por concepto (contador en PlayerPrefs); después, solo con Shift, y la columna termina con la pista «Mantén Shift para ver los conceptos». Las fichas propias de la carta (palabras clave y estados) no cambian.
+- **D4 = A.** Company Name «ALWTTT Team», sin migrar los datos de `DefaultCompany`.
+- **D5 = B.** El nodo aleatorio del mapa pasa a S10 (gigs desde JSON).

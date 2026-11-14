@@ -100,6 +100,18 @@ namespace ALWTTT.Cards
                             }
                         }
 
+                        // [S9c / D1=B] A single-target Stress change (Calm Down heals the
+                        // musician the card is dropped on) also needs a hovered target.
+                        if (e is ModifyStressSpec mss)
+                        {
+                            switch (mss.targetType)
+                            {
+                                case ActionTargetType.Musician:
+                                case ActionTargetType.AudienceCharacter:
+                                    return true;
+                            }
+                        }
+
                         // [R4] RevealPreferencesSpec is the second spec kind that can
                         // demand a hovered target. Without this branch a reveal-only
                         // card would be playable with no hover, resolve an empty target

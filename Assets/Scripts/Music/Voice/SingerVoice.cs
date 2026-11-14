@@ -318,7 +318,7 @@ namespace ALWTTT.Music.Voice
         ("Neutral", 12.9f, 2.43f),
         ("Open",    14.0f, 2.90f),
         ("Front",   27.0f, 2.10f),
-        ("Back",    18.0f, 3.20f),
+        ("Back~a",  18.0f, 3.20f), // [S9c] measures F1 730 / F2 1650: an "a", not an "oh"
     };
 
         private static readonly float[] TensenessPresets = { 0.40f, 0.60f, 0.80f, 0.95f };

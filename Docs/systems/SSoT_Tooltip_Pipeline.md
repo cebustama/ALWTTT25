@@ -118,6 +118,21 @@ dark fill separates the panel from the art, the header colour says which kind it
 - **Consequence for surfaces that wanted one panel:** the tutorial concept hover (§5, «no, by
   invariant») now gets the panels linked by the concept's own body too — see **F-TIP-7**.
 
+### 2.3 Concept panels on demand (S9c, D3=C, 2026-11-14)
+
+- **Rule.** A linked concept panel (§2.2) shows by itself only in the first `autoShowFirstTimes`
+  (= 2) hovers that bring it up, counted **per concept id, once per hover**, in PlayerPrefs
+  (`alwttt.concept_seen.<id>`). After that it is **held back**: the column ends in a one-line hint
+  (`ui_tip_concepts_hint`, «Mantén Shift para ver los conceptos») and the held-back panels appear
+  while Shift (left or right) is held, and leave when it is released.
+- **Order invariant.** Hint and on-demand panels are always the **last** panels of the column.
+  `ShowTooltip` removes them before pushing; the next `LateUpdate` puts them back.
+- **Scope.** Only linked concept panels. A card's own keyword and status panels are unchanged.
+- **Switch.** `conceptPanelsOnDemand` (on), `conceptKey`/`conceptKeyAlt`, `showConceptHint` on
+  `TooltipManager`. Logs: `[S9c] Concepto '…' visto n/2 veces sin Shift`, `[S9c] Shift: …`.
+- **Reset.** Clearing PlayerPrefs (or changing the Company Name, which moves them) restarts the
+  count — a new player sees the concepts again.
+
 ## 3. Placement (D-TIP-2=B)
 
 Two modes, chosen per `ShowTooltip` call:
@@ -272,3 +287,4 @@ rule; the fade; the governed file list; or when a surface joins or leaves the pi
 | 2026-09-22 (doc 2026-09-25) | CARD-FACE-3 / CARD-FACE-3-DOC | §2 → panel width 250 → **280** (`TooltipText` `LayoutElement.preferredWidth`), D3=B, explicit exception to D-CF-2. No transport contract changed; no invariant touched. |
 | 2026-11-11 | S4b (DEMO-1211, LEGIB-1b hover views) | New §2.2: concept links decorated in every panel and linked concepts appended as `TooltipKind.Concept` panels (depth 1, max 3, dedup by header). `Concept = 7` in §2.1. §5 census: tutorial row flagged (F-TIP-7, unverified). Musician hover column: body and icon show the same column. |
 | 2026-11-03 | GIG-UI-1 (DEMO-1211 S2) | §2 `ShowTooltip` gains `growDown` and `kind`; new §2.1 (`TooltipStyleSO` / `TooltipKind`, one colour asset). §3 grow-down placement. §5 census: audience column (icon and body show the same, reverses D-PRES1-3=A), musician summary, Warning on cards, Status on icons; `CharacterBase.RaycastTopmost` (topmost drawn character wins hover and targeting). Played by Claudio in the editor. |
+| 2026-11-14 | S9c DEMO-FIX-1 | New §2.3: linked concept panels on demand (first 2 hovers per concept by themselves, then Shift; hint line last). Smoke 3 played by Claudio. |

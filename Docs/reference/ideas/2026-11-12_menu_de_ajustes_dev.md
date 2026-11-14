@@ -47,3 +47,8 @@ Puede ser una pestaña del Dev Mode, pero con **tecla directa (F5)**.
   contador junto al abanico, que cambie de color al llenarse. No tomar el ordenar mano.
 - Slay the Spire (de memoria, no está en las colecciones): cuando la mano está llena, el personaje lo dice en
   un bocadillo y la carta robada va al descarte. Encaja con los bocadillos de S8.
+
+## Añadido el 2026-11-14 (S9c, Claudio, probando a la Reina)
+
+- **Saltar la canción hasta el turno del público**: botón en pantalla o hotkey de dev que termina la canción en curso (con su puntuación) y pasa directo al turno del público. Para probar lo que dura varios turnos (huevo · huevo · eclosión de la Reina, estados que caducan) sin escuchar cada canción entera. Entra en DEV-TUNING-1 junto al menú F5.
+- Ya resuelto en S9c: al hacer un build salta un aviso si siguen encendidos las cartas TEST, el mazo fijo o la semilla fijada (`Assets/Scripts/Editor/DevSettingsBuildGuard.cs`).

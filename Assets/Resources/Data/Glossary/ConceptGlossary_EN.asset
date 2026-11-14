@@ -378,6 +378,8 @@ MonoBehaviour:
     displayName: Spotlight
   - id: crd_sibi_read_the_room
     displayName: Read the Room
+  - id: crd_sibi_calm_down
+    displayName: Calm Down
   - id: debug_apply_shaken_to_musician
     displayName: 'Debug: Apply Shaken (Musician)'
   - id: new_any_group_heal
@@ -825,6 +827,8 @@ MonoBehaviour:
   - id: ui_mus_breakdown_rule
     text: 'At 0 they break down: <link=exposed>Exposed</link>, and the band loses
       1 <link=cohesion>cohesion</link>.'
+  - id: ui_tip_concepts_hint
+    text: <i>Hold Shift to see the concepts</i>
   - id: ui_aud_hit_one
     text: 'To {0}: {1} <link=stress>Stress</link>'
   - id: ui_aud_hit_each

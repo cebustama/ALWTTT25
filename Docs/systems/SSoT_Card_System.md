@@ -294,6 +294,7 @@ MVP-facing rule set:
 - single-target effect types require explicit target selection (`Musician`, `AudienceCharacter`)
 - self / all / random group target types do not require player selection
 - card-level overrides may exist when the card definition explicitly forces targeting behavior
+- **`ModifyStressSpec` counts too (S9c, 2026-11-14).** A `ModifyStress` with `targetType` `Musician` or `AudienceCharacter` makes `CardDefinition.RequiresTargetSelection` true, and `HandController.TryResolveCardTarget` resolves `Musician` as a single musician under the cursor (before S9c only `ApplyStatusEffectSpec` was looked at, so a heal-one-musician card had no target). First consumer: **Calm Down** (`crd_sibi_calm_down`, ES «Cálmate», provisional name): Sibi's action card, `ModifyStress −4` to the musician it is dropped on. It replaces Read the Room in Sibi's starter deck (closes D9 of the 12-nov meeting); Read the Room and Zig's *Double Harmony* leave their starter decks but stay unlocked (catalog flags 5 → 4). Data applied by «ALWTTT ▸ S9c ▸ Aplicar datos de la demo» (`S9c_DemoFixDataTool`, idempotent).
 
 **Valid `targetType` values:** `Self`, `Musician`, `AudienceCharacter`, `AllAudienceCharacters`, `AllMusicians`, `RandomAudienceCharacter`, `RandomMusician`
 

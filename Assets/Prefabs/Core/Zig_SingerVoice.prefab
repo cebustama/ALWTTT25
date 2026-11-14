@@ -166,7 +166,7 @@ MonoBehaviour:
   diction: 1
   mouth: 0
   brightness: 0.5
-  expressivityEnabled: 0
+  expressivityEnabled: 1
   vowelOpennessEnabled: 1
   vowelOpenAmount: 0.7
   longNoteSeconds: 0.8

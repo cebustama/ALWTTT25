@@ -28,6 +28,14 @@
 // cascades. UpdateTooltip decorates but never queues (the live Vibe readout calls it
 // every refresh).
 //
+// [S9c / D3=C] CONCEPT PANELS ON DEMAND. A linked concept panel shows by itself
+// only the first autoShowFirstTimes hovers that bring it up (counted per concept id
+// in PlayerPrefs, once per hover). After that it is HELD BACK: the column ends in a
+// one-line hint ("Hold Shift: concepts") and the held-back panels appear while
+// Shift is held, and go away when it is released. Held-back and hint panels are
+// always the LAST panels of the column; a new push removes them first and the next
+// LateUpdate puts them back, so the order never breaks.
+//
 // Every text assignment ends in TooltipController.Reposition(): the panel is
 // content-sized, so it must be REBUILT before it is MEASURED and PLACED
 // (assign -> rebuild -> measure -> place, the F-SP1-12 rule).
@@ -71,6 +79,16 @@ namespace ALWTTT.Tooltips
         [Tooltip("Most concept panels appended to one column.")]
         [SerializeField, Min(0)] private int maxLinkedPanels = 3;
 
+        [Header("Concept panels on demand (S9c / D3=C)")]
+        [Tooltip("Linked concept panels show by themselves only the first times; then only while the key is held.")]
+        [SerializeField] private bool conceptPanelsOnDemand = true;
+        [SerializeField] private KeyCode conceptKey = KeyCode.LeftShift;
+        [SerializeField] private KeyCode conceptKeyAlt = KeyCode.RightShift;
+        [Tooltip("Hovers in which each concept panel still shows by itself (per concept, saved).")]
+        [SerializeField, Min(0)] private int autoShowFirstTimes = 2;
+        [Tooltip("End the column with a one-line hint when panels are held back.")]
+        [SerializeField] private bool showConceptHint = true;
+
         /// <summary>[GIG-UI-1] Null when no style asset is assigned.</summary>
         public TooltipStyleSO Style => tooltipStyle;
 
@@ -100,6 +118,14 @@ namespace ALWTTT.Tooltips
         private Vector2 _lastOffset;
         private bool _lastGrowDown;
         private string _lastLinkLog;
+
+        // [S9c / D3=C] on-demand state for the column being shown.
+        private const string SeenPrefPrefix = "alwttt.concept_seen.";
+        private readonly List<string> _heldBackIds = new List<string>();
+        private readonly HashSet<string> _countedThisHover = new HashSet<string>();
+        private readonly List<string> _onDemandHeaders = new List<string>();
+        private int _onDemandPanels;
+        private bool _hintShown;
 
         private void Awake()
         {
@@ -136,6 +162,7 @@ namespace ALWTTT.Tooltips
             //Debug.Log($"{DebugTag} Showing tooltip for '{headerText}");
 
             StartCoroutine(ShowRoutine(delayShow));
+            RemoveTrailingPanels(); // [S9c] hint / on-demand panels stay last
 
             _lastTarget = tooltipTargetTransform; _lastCam = cam;
             _lastOffset = screenOffset; _lastGrowDown = growDown;
@@ -187,24 +214,121 @@ namespace ALWTTT.Tooltips
         // Appends the queued concept panels once the callers of this frame are done.
         private void LateUpdate()
         {
-            if (_pendingLinkIds.Count == 0) return;
-            if (currentShownTooltipCount == 0) { _pendingLinkIds.Clear(); return; }
+            if (currentShownTooltipCount == 0)
+            {
+                _pendingLinkIds.Clear();
+                _heldBackIds.Clear();
+                _countedThisHover.Clear(); // the hover is over: the next one counts again
+                _onDemandHeaders.Clear();
+                _onDemandPanels = 0;
+                _hintShown = false;
+                return;
+            }
 
+            if (_pendingLinkIds.Count > 0) AppendPendingLinks();
+            if (conceptPanelsOnDemand) UpdateOnDemandPanels();
+        }
+
+        private void AppendPendingLinks()
+        {
+            RemoveTrailingPanels();
             List<string> added = null;
             foreach (var id in _pendingLinkIds)
             {
                 if (_linkedPanelsShown >= maxLinkedPanels) break;
                 if (LinkResolver.Resolve(id, out var header, out var body) == ConceptSource.None) continue;
                 if (IsHeaderShown(header)) continue;
+                if (!AutoShowConcept(id))
+                {
+                    if (!_heldBackIds.Contains(id)) _heldBackIds.Add(id); // [S9c] waits for Shift
+                    continue;
+                }
                 PushPanel(DecorateConcepts(body, queueLinks: false), header, TooltipKind.Concept);
                 _linkedPanelsShown++;
                 (added ??= new List<string>()).Add(id);
             }
             _pendingLinkIds.Clear();
             string log = added != null ? string.Join(", ", added) : null;
+            if (_heldBackIds.Count > 0)
+                log = (log ?? "-") + " | [S9c] con Shift: " + string.Join(", ", _heldBackIds);
             if (log != null && log != _lastLinkLog)   // once per event, not once per rebuilt frame
                 Debug.Log($"[S4b] Conceptos enlazados en el tooltip: {log}");
             _lastLinkLog = log;
+        }
+
+        // [S9c] True while the concept still shows by itself; counts the hover once.
+        private bool AutoShowConcept(string id)
+        {
+            if (!conceptPanelsOnDemand) return true;
+            if (_countedThisHover.Contains(id)) return true;
+            string key = SeenPrefPrefix + id;
+            int seen = PlayerPrefs.GetInt(key, 0);
+            if (seen >= autoShowFirstTimes) return false;
+            PlayerPrefs.SetInt(key, seen + 1);
+            _countedThisHover.Add(id);
+            Debug.Log($"[S9c] Concepto '{id}' visto {seen + 1}/{autoShowFirstTimes} veces sin Shift.");
+            return true;
+        }
+
+        private bool ConceptKeyHeld() => Input.GetKey(conceptKey) || Input.GetKey(conceptKeyAlt);
+
+        // [S9c] Held: held-back panels shown, no hint. Released: panels gone, hint shown.
+        private void UpdateOnDemandPanels()
+        {
+            if (_heldBackIds.Count == 0) return;
+            if (ConceptKeyHeld())
+            {
+                if (_hintShown) { PopPanels(1); _hintShown = false; }
+                if (_onDemandPanels > 0) return;
+                foreach (var id in _heldBackIds)
+                {
+                    if (_linkedPanelsShown >= maxLinkedPanels) break;
+                    if (LinkResolver.Resolve(id, out var header, out var body) == ConceptSource.None) continue;
+                    if (IsHeaderShown(header)) continue;
+                    PushPanel(DecorateConcepts(body, queueLinks: false), header, TooltipKind.Concept);
+                    _onDemandHeaders.Add(header);
+                    _onDemandPanels++;
+                    _linkedPanelsShown++;
+                }
+                if (_onDemandPanels > 0)
+                    Debug.Log($"[S9c] Shift: {_onDemandPanels} conceptos a la vista ({string.Join(", ", _heldBackIds)}).");
+            }
+            else
+            {
+                if (_onDemandPanels > 0) RemoveOnDemandPanels();
+                if (showConceptHint && !_hintShown)
+                {
+                    PushPanel(GameText.Format(GameTextTemplateIds.UiTipConceptsHint), string.Empty,
+                        TooltipKind.Concept);
+                    _hintShown = true;
+                }
+            }
+        }
+
+        // [S9c] Take the hint and the on-demand panels off the end of the column.
+        private void RemoveTrailingPanels()
+        {
+            if (_hintShown) { PopPanels(1); _hintShown = false; }
+            if (_onDemandPanels > 0) RemoveOnDemandPanels();
+        }
+
+        private void RemoveOnDemandPanels()
+        {
+            PopPanels(_onDemandPanels);
+            _linkedPanelsShown = Mathf.Max(0, _linkedPanelsShown - _onDemandPanels);
+            foreach (var h in _onDemandHeaders) _shownHeaders.Remove(h);
+            _onDemandHeaders.Clear();
+            _onDemandPanels = 0;
+        }
+
+        private void PopPanels(int n)
+        {
+            for (int k = 0; k < n && currentShownTooltipCount > 0; k++)
+            {
+                currentShownTooltipCount--;
+                tooltipTextList[currentShownTooltipCount].gameObject.SetActive(false);
+            }
+            TooltipController.Reposition();
         }
 
         // "Compostura x3" counts as Compostura already shown.
@@ -239,6 +363,10 @@ namespace ALWTTT.Tooltips
             _pendingLinkIds.Clear();
             _shownHeaders.Clear();
             _linkedPanelsShown = 0;
+            _heldBackIds.Clear();          // [S9c] the panels are gone; _countedThisHover stays
+            _onDemandHeaders.Clear();      // until LateUpdate sees an empty column
+            _onDemandPanels = 0;
+            _hintShown = false;
             canvasGroup.alpha = 0;
             foreach (var tooltipText in tooltipTextList)
                 tooltipText.gameObject.SetActive(false);

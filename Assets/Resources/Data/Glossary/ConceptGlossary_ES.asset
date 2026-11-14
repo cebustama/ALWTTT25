@@ -390,6 +390,8 @@ MonoBehaviour:
     displayName: Foco
   - id: crd_sibi_read_the_room
     displayName: Leer el Ambiente
+  - id: crd_sibi_calm_down
+    displayName: "Cálmate"
   - id: debug_apply_shaken_to_musician
     displayName: 'Debug: Apply Shaken (Musician)'
   - id: new_any_group_heal
@@ -837,6 +839,8 @@ MonoBehaviour:
   - id: ui_mus_breakdown_rule
     text: "A 0 colapsa: queda <link=exposed>Expuesto</link> y la banda pierde 1 de
       <link=cohesion>cohesi\xF3n</link>."
+  - id: ui_tip_concepts_hint
+    text: '<i>Mantén Shift para ver los conceptos</i>'
   - id: ui_aud_hit_one
     text: 'A {0}: {1} de <link=stress>Stress</link>'
   - id: ui_aud_hit_each
