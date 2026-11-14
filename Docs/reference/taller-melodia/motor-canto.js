@@ -161,8 +161,9 @@
         n.caida = true;
       }
       for (const e of extra) {
-        const prev = notas.filter((n) => n.beat < e.beat).pop();
-        if (prev && prev.beat + prev.dur > e.beat) prev.dur = Math.max(0.25, e.beat - prev.beat);
+        // D-MELFIG-12 (2026-11-14): la nota previa real (no otra firma), recortada justo hasta la firma.
+        const prev = notas.filter((n) => !n.firma && n.beat < e.beat).pop();
+        if (prev && prev.beat + prev.dur > e.beat) prev.dur = e.beat - prev.beat;
         notas.push(e);
       }
       notas.sort((a, b) => a.beat - b.beat);

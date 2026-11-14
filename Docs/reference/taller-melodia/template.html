@@ -39,6 +39,8 @@ button{cursor:pointer}
 .seg button{border:0;background:var(--sunk);padding:7px 12px;font-weight:600;font-size:13px}
 .seg button[aria-pressed="true"]{background:var(--voice);color:var(--surface)}
 .seg.m button[aria-pressed="true"]{background:var(--mel);color:var(--surface)}
+.seg select{border:0;background:var(--mel);color:var(--surface);padding:7px 10px;font-weight:600;font-size:13px;max-width:62vw}
+.seg select option{background:var(--surface);color:var(--fg)}
 .seg .lab{padding:7px 10px;font-family:var(--f-mono);font-size:11px;color:var(--muted);align-self:center;background:var(--surface)}
 #pos{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:16ch}
 .lead{color:var(--muted);max-width:80ch}
@@ -62,6 +64,12 @@ canvas{display:block;width:100%;max-width:100%;border-radius:6px;background:var(
 .field select,.field input[type=number],.field input[type=text]{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
 .field input[type=range]{width:100%;accent-color:var(--voice)}
 .mel .field input[type=range]{accent-color:var(--mel)}
+/* lo que más cambia el sonido: la figura destacada; sube/baja, dirección, ritmo y densidad, un poco */
+.mel .field.key{background:var(--mel-soft);border:2px solid var(--mel);border-radius:8px;padding:8px 10px}
+.mel .field.key label{color:var(--mel);font-weight:700;font-size:12px}
+.mel .field.key select{font-size:16px;font-weight:700;border-color:var(--mel)}
+.mel .field.imp{border-left:3px solid var(--mel);padding-left:8px}
+.mel .field.imp label{color:var(--fg)}
 .field output{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
 .field small{font-size:11px;color:var(--muted);line-height:1.35}
 .chk{flex-direction:row!important;align-items:center;gap:8px}
@@ -96,8 +104,7 @@ code{font-family:var(--f-mono);font-size:.9em}
     <h1>Taller de melodías · Zig</h1>
     <button id="play" type="button" aria-label="Reproducir"></button>
     <div class="seg m" role="group" aria-label="Melodía"><span class="lab">Melodía</span>
-      <button type="button" id="mHoy" aria-pressed="true" title="Rise Up, el patrón del juego (tecla M alterna)">Rise Up</button>
-      <button type="button" id="mNueva" aria-pressed="false" title="La melodía de los controles de abajo">Nueva</button>
+      <select id="mSel" title="Rise Up (la carta del juego), una receta o tus controles de abajo (tecla M alterna con Rise Up)"></select>
     </div>
     <div class="seg" role="group" aria-label="Voz"><span class="lab">Voz</span>
       <button type="button" id="vHoy" aria-pressed="true" title="Zig como canta hoy en el gig (tecla V alterna)">Zig hoy</button>
@@ -107,7 +114,7 @@ code{font-family:var(--f-mono);font-size:.9em}
     <span id="pos">—</span>
   </header>
 
-  <p class="lead">Zig canta con <b>Pink Trombone</b>, un modelo físico de la garganta: una glotis que vibra y un tubo de 44 secciones que la lengua, el velo y los labios estrechan. Esta página porta a JavaScript el fork del juego (las mismas muestras que C#, comprobado) y le añade lo que el original web ya sabía hacer y el juego no usa: consonantes, longitud del tracto, growl y aire. Arriba se compara por partes: <b>Melodía</b> (Rise Up o la nueva) × <b>Voz</b> (Zig hoy o un modo). La barra espaciadora toca o para; <b>M</b> y <b>V</b> cambian sin cortar. El volumen de la voz está igualado entre modos.</p>
+  <p class="lead">Zig canta con <b>Pink Trombone</b>, un modelo físico de la garganta: una glotis que vibra y un tubo de 44 secciones que la lengua, el velo y los labios estrechan. Esta página porta a JavaScript el fork del juego (las mismas muestras que C#, comprobado) y le añade lo que el original web ya sabía hacer y el juego no usa: consonantes, longitud del tracto, growl y aire. Arriba se compara por partes: <b>Melodía</b> (Rise Up, una receta o la tuya) × <b>Voz</b> (Zig hoy o un modo). La barra espaciadora toca o para; <b>M</b> alterna con Rise Up y <b>V</b> con Zig hoy, sin cortar. Lo que más cambia la melodía está marcado: la <b>figura</b> y, un poco menos, sube/baja, dirección, ritmo y densidad. El volumen de la voz está igualado entre modos.</p>
 
   <section class="stage" aria-label="Escenario">
     <div class="panel">
@@ -178,14 +185,14 @@ code{font-family:var(--f-mono);font-size:.9em}
     <div class="field"><label for="m_escala">Escala</label><select id="m_escala"></select><small id="m_escalaNota"></small></div>
     <div class="field"><label for="m_progresion">Acordes</label><select id="m_progresion"></select></div>
     <div class="field"><label for="m_bpm">BPM</label><input id="m_bpm" type="number" min="50" max="220"></div>
-    <div class="field"><label for="m_figura">Figura</label><select id="m_figura"></select></div>
-    <div class="field"><label for="m_sube">Sube (grados)</label><input id="m_sube" type="range" min="1" max="5" step="1"><output></output></div>
-    <div class="field"><label for="m_baja">Baja (grados)</label><input id="m_baja" type="range" min="0" max="4" step="1"><output></output></div>
-    <div class="field"><label for="m_direccion">Dirección</label><select id="m_direccion"><option value="sube">Sube</option><option value="baja">Baja</option><option value="arco">Arco (sube y baja)</option><option value="valle">Valle (baja y sube)</option></select></div>
+    <div class="field key"><label for="m_figura">Figura</label><select id="m_figura"></select></div>
+    <div class="field imp"><label for="m_sube">Sube (grados)</label><input id="m_sube" type="range" min="1" max="5" step="1"><output></output></div>
+    <div class="field imp"><label for="m_baja">Baja (grados)</label><input id="m_baja" type="range" min="0" max="4" step="1"><output></output></div>
+    <div class="field imp"><label for="m_direccion">Dirección</label><select id="m_direccion"><option value="sube">Sube</option><option value="baja">Baja</option><option value="arco">Arco (sube y baja)</option><option value="valle">Valle (baja y sube)</option></select></div>
     <div class="field"><label for="m_rango">Rango (octavas)</label><input id="m_rango" type="range" min="0.5" max="2" step="0.25"><output></output></div>
     <div class="field"><label for="m_alTope">Al llegar al tope</label><select id="m_alTope"><option value="rebota">Rebota</option><option value="octava">Baja una octava</option></select></div>
-    <div class="field"><label for="m_ritmo">Ritmo</label><select id="m_ritmo"><option value="celdas">Celdas variadas</option><option value="riseup">El de Rise Up (3 + 1)</option></select></div>
-    <div class="field"><label for="m_densidad">Densidad</label><input id="m_densidad" type="range" min="0" max="1" step="0.05"><output></output></div>
+    <div class="field imp"><label for="m_ritmo">Ritmo</label><select id="m_ritmo"><option value="celdas">Celdas variadas</option><option value="riseup">El de Rise Up (3 + 1)</option></select></div>
+    <div class="field imp"><label for="m_densidad">Densidad</label><input id="m_densidad" type="range" min="0" max="1" step="0.05"><output></output></div>
     <div class="field"><label for="m_sincopa">Síncopa</label><input id="m_sincopa" type="range" min="0" max="1" step="0.05"><output></output></div>
     <div class="field"><label for="m_silencios">Silencios</label><input id="m_silencios" type="range" min="0" max="0.5" step="0.05"><output></output></div>
     <div class="field"><label for="m_swing">Swing</label><input id="m_swing" type="range" min="0" max="1" step="0.05"><output></output></div>
@@ -329,13 +336,40 @@ function pintarModo() {
   $('modoNota').textContent = m.nota;
   $('vozBand').classList.toggle('off', !!m.juego);
 }
+// Recetas: formas con nombre sobre los controles de abajo (no tocan tónica, escala, acordes, BPM ni semilla).
+const FORMA = ['figura', 'sube', 'baja', 'direccion', 'rango', 'alTope', 'ritmo', 'densidad', 'sincopa', 'silencios', 'swing', 'variacion', 'postSalto', 'acordeFuerte', 'cadencia', 'repetir', 'crescendo', 'firma', 'periodo', 'pedal', 'frase'];
+const RECETAS = [
+  { n: 'Zig-zag que sube', p: {} },
+  { n: 'Escalera con el ritmo de Rise Up', p: { figura: 'Escalera', sube: 1, baja: 0, ritmo: 'riseup' } },
+  { n: 'Ola cantable', p: { figura: 'Ola', densidad: 0.35, rango: 1.5, variacion: 0.05 } },
+  { n: 'Saltos en arco', p: { figura: 'Saltos', direccion: 'arco', densidad: 0.4 } },
+  { n: 'Pedal con síncopa', p: { figura: 'Pedal', densidad: 0.6, sincopa: 0.55 } },
+  { n: 'Secuencia que baja', p: { figura: 'Secuencia', direccion: 'baja' } },
+  { n: 'Paseo con swing', p: { figura: 'Paseo', direccion: 'arco', swing: 0.4, densidad: 0.55 } },
+].map((r) => ({ n: r.n, p: Object.assign(Object.fromEntries(FORMA.map((k) => [k, MEL_DEF[k]])), r.p) }));
+(() => {
+  const sel = $('mSel'); const add = (v, t, g) => { const o = document.createElement('option'); o.value = v; o.textContent = t; (g || sel).appendChild(o); };
+  add('hoy', 'Rise Up · la carta del juego');
+  const g = document.createElement('optgroup'); g.label = 'Recetas'; sel.appendChild(g);
+  RECETAS.forEach((r, i) => add('r' + i, r.n, g));
+  add('nueva', 'Nueva · tus controles');
+  sel.addEventListener('change', () => {
+    const v = sel.value;
+    if (v === 'hoy') S.melHoy = true;
+    else { S.melHoy = false; if (v[0] === 'r') Object.assign(S.mel, RECETAS[+v.slice(1)].p); }
+    refresh.forEach((f) => f()); seg(); cambio(true);
+  });
+})();
+function valorMel() {
+  if (S.melHoy) return 'hoy';
+  const i = RECETAS.findIndex((r) => FORMA.every((k) => r.p[k] === S.mel[k]));
+  return i >= 0 ? 'r' + i : 'nueva';
+}
 function seg() {
-  $('mHoy').setAttribute('aria-pressed', String(S.melHoy)); $('mNueva').setAttribute('aria-pressed', String(!S.melHoy));
+  $('mSel').value = valorMel();
   $('vHoy').setAttribute('aria-pressed', String(S.vozHoy)); $('vModo').setAttribute('aria-pressed', String(!S.vozHoy));
   $('vModo').textContent = S.modo.startsWith('Zig') ? 'Modo' : S.modo;
 }
-$('mHoy').onclick = () => { S.melHoy = true; seg(); cambio(true); };
-$('mNueva').onclick = () => { S.melHoy = false; seg(); cambio(true); };
 $('vHoy').onclick = () => { S.vozHoy = true; seg(); cambio(true); };
 $('vModo').onclick = () => { S.vozHoy = false; seg(); cambio(true); };
 $('dado').onclick = () => { S.mel.semilla = (Math.random() * 100000) | 0; S.melHoy = false; refresh.forEach((f) => f()); seg(); cambio(true); };

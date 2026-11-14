@@ -28,6 +28,15 @@ node vocales.mjs                                                     # búsqueda
 
 Resultado del 2026-11-13: 3 guiones (por defecto upstream y dos de cantante, 481.280 muestras): **95 % idénticas bit a bit, el resto a un ulp; error −155 dB**. El `.csproj` compila las fuentes reales de `Assets/PinkTrombonePOC/PinkTromboneSrc` (net10). Si cambia el fork, volver a correr.
 
+**Compositor por figuras (MGP-MEL-FIGURE-1, 2026-11-14):** `paridad/figuras/` compara `componer(p)` con `MelodyFigurePlanner.cs` del paquete MidiGenPlay (el archivo real, compilado fuera de Unity):
+
+```
+cd paridad/figuras
+node casos.mjs && dotnet run -c Release
+```
+
+Resultado: **5.088 casos, 129.564 notas, todos idénticos** (tiempo, duración, grado, MIDI, velocidad, compás, fin de frase y firma). Catálogo: 7 figuras × 4 direcciones × 16 escalas × 6 semillas, más 2.400 barridos con todos los controles al azar. Si cambia `componer` o el planificador, volver a correr.
+
 Vocales calibradas contra Quilis (a 700/1300, e 450/1900, i 300/2300, o 500/950, u 320/800): a 710/1310, e 450/1910, i 310/2230, o 510/930, u 310/810 (lengua índice/diámetro y labios en `motor-canto.js`). Hallazgos: la «uh» de hoy mide F1 790 / F2 1210; el preset del juego «Back (oh)» mide 730/1650, más «a» que «o»; la «u» necesita labios redondeados.
 
 Coste (Node, 48 kHz): ~6 % del tiempo real por voz, igual con y sin extensiones. En Unity el POC midió ~10,5 % por voz en build.

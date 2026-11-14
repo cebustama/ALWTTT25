@@ -29,7 +29,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 54937dea4ccab99449f1184a9286cd48, type: 2}
   - {fileID: 11400000, guid: e41586d035d26c74d9b5820b17378e29, type: 2}
   - {fileID: 11400000, guid: f0c03e5c84dd11a4898efbe7192c71e8, type: 2}
-  testCardsMode: 0
+  - {fileID: 11400000, guid: 5b74aaab3570cc643a1c9f539a16e3c9, type: 2}
+  testCardsMode: 1
   useFixedDeck: 0
   fixedDeckJson: "{ \"name\": \"repro-1\", \"cards\": [\"starter_default_mode\",
     \"starter_finger_bass\",\n  \"starter_rise_up\", \"starter_take_five\", \"starter_default_mode\",\n 

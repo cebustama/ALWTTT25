@@ -10,8 +10,10 @@ using UnityEngine;
 namespace ALWTTT.DevMode.EditorTools
 {
     /// <summary>
-    /// [DEV-TEST-1] "ALWTTT ▸ Dev ▸ Create Test Cards". Creates four cards for
-    /// testing — TEST Bass, TEST Rhythm, TEST Chords, TEST Melody — each with
+    /// [DEV-TEST-1] "ALWTTT ▸ Dev ▸ Create Test Cards". Creates five cards for
+    /// testing — TEST Bass, TEST Rhythm, TEST Chords, TEST Melody and TEST Melody
+    /// Figure (MGP-MEL-FIGURE-1: Rise Up's bundle without its pattern, in figure
+    /// mode, for the Banco de cartas A/B and the Melody Workshop importer) — each with
     /// its OWN style bundle, so experiments (the Bass Workshop importer, the
     /// Inspector) never touch a real card. Each one is a copy of a starter
     /// card of the same role and musician, with cost 0 and no modifier
@@ -31,8 +33,9 @@ namespace ALWTTT.DevMode.EditorTools
         {
             public string key, display, baseCard;
             public MusicianCharacterType performer;
-            public Spec(string key, string display, string baseCard, MusicianCharacterType performer)
-            { this.key = key; this.display = display; this.baseCard = baseCard; this.performer = performer; }
+            public bool figureMode;
+            public Spec(string key, string display, string baseCard, MusicianCharacterType performer, bool figureMode = false)
+            { this.key = key; this.display = display; this.baseCard = baseCard; this.performer = performer; this.figureMode = figureMode; }
         }
 
         static readonly Spec[] Specs =
@@ -41,6 +44,7 @@ namespace ALWTTT.DevMode.EditorTools
             new Spec("Rhythm", "TEST Rhythm", "starter_default_mode", MusicianCharacterType.Robot),
             new Spec("Chords", "TEST Chords", "starter_wormus_major", MusicianCharacterType.Gusano),
             new Spec("Melody", "TEST Melody", "starter_rise_up",      MusicianCharacterType.Cantante),
+            new Spec("MelodyFigure", "TEST Melody Figure", "starter_rise_up", MusicianCharacterType.Cantante, figureMode: true),
         };
 
         static string CardPath(Spec s) => $"{Folder}/TEST_{s.key}.asset";
@@ -77,7 +81,8 @@ namespace ALWTTT.DevMode.EditorTools
                     continue;
                 }
                 plan.Add($"• {s.display}: new card + payload + style bundle, copied from " +
-                         $"'{baseCard.DisplayName}' ({baseBundle.name}); played by {s.performer}.");
+                         $"'{baseCard.DisplayName}' ({baseBundle.name}); played by {s.performer}" +
+                         (s.figureMode ? "; no pattern, melodyMode = Figure (Zig-zag, seed 7)." : "."));
             }
             if (problems.Count > 0)
             {
@@ -90,7 +95,7 @@ namespace ALWTTT.DevMode.EditorTools
             bool setMode = mode != null && mode.enumValueIndex == (int)GigDevSettingsSO.TestCardsMode.Off;
 
             string msg = $"Folder: {Folder}\n\n" + string.Join("\n", plan) +
-                         $"\n\nGigDevSettings ('{settings.name}'): add the four to testCards" +
+                         $"\n\nGigDevSettings ('{settings.name}'): add the {Specs.Length} to testCards" +
                          (setMode ? " and set the mode to GigStart." : " (mode stays as it is).") +
                          "\n\nNothing is written to the real cards.";
             if (!EditorUtility.DisplayDialog("Create Test Cards", msg, "Create", "Cancel")) return;
@@ -136,6 +141,14 @@ namespace ALWTTT.DevMode.EditorTools
             var baseBundle = basePayload.TrackAction.styleBundle;
 
             var bundle = Object.Instantiate(baseBundle);
+            if (s.figureMode && bundle is MidiGenPlay.Composition.MelodyCardConfigSO mel)
+            {
+                // MGP-MEL-FIGURE-1: the pattern would win over the figure (D-MELFIG-2).
+                mel.patternOverride = null;
+                mel.melodyMode = MidiGenPlay.Composition.MelodyCardConfigSO.MelodyMode.Figure;
+                mel.figureSettings = new MidiGenPlay.Composition.MelodyFigurePlanner.Settings();
+                mel.figureSeed = 7;
+            }
             AssetDatabase.CreateAsset(bundle, BundlePath(s));
 
             var payload = Object.Instantiate(basePayload);
