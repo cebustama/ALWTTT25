@@ -26,6 +26,8 @@ node formantes.mjs                                                   # F1/F2 de 
 node vocales.mjs                                                     # búsqueda de lengua y labios para a e i o u
 ```
 
+**VOZ-1 (2026-11-14):** X1–X3 ya están en el fork C# (POC-FORK 8–11, ver `FORK_NOTES.md`). `casos.mjs` suma seis casos que las encienden (consonantes con constricciones, velo y turbulencia; tracto 38 y 52; death; aspereza con rampa de growl; punk con todo): **9 casos, −154,8 a −158,6 dB**. Con todo neutro, los tres casos originales son **idénticos byte a byte** a los de antes de VOZ-1 (`base/`, comparado con `cmp`; la carpeta se ignora en Git).
+
 Resultado del 2026-11-13: 3 guiones (por defecto upstream y dos de cantante, 481.280 muestras): **95 % idénticas bit a bit, el resto a un ulp; error −155 dB**. El `.csproj` compila las fuentes reales de `Assets/PinkTrombonePOC/PinkTromboneSrc` (net10). Si cambia el fork, volver a correr.
 
 **Compositor por figuras (MGP-MEL-FIGURE-1, 2026-11-14):** `paridad/figuras/` compara `componer(p)` con `MelodyFigurePlanner.cs` del paquete MidiGenPlay (el archivo real, compilado fuera de Unity):

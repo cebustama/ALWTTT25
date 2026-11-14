@@ -1,0 +1,355 @@
+<title>La garganta de Zig</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una columna larga, como notas de un disco; misma identidad que «La voz de Zig» (wrapped del 13-nov).
+   El tracto se dibuja con los índices reales del motor (0 glotis … 44 labios). */
+:root{
+  --bg:#f3f0f5; --surface:#ffffff; --sunk:#f8f6fa; --fg:#1d1a26; --muted:#625c70; --line:#ddd8e5;
+  --voice:#b0306a; --voice-soft:#f7dde8; --mel:#3f4fb5; --mel-soft:#dfe3f8; --tract:#b8740f; --tract-soft:#fbecd3; --ok:#2e7d4f; --ok-soft:#dcefe3;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141219; --surface:#1d1a24; --sunk:#18161e; --fg:#ece8f3; --muted:#a49db3; --line:#312c3b;
+  --voice:#f07aaa; --voice-soft:#3d1d2c; --mel:#9aa6ff; --mel-soft:#23294b; --tract:#f2b45a; --tract-soft:#3a2b14; --ok:#6fd29a; --ok-soft:#173326; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141219; --surface:#1d1a24; --sunk:#18161e; --fg:#ece8f3; --muted:#a49db3; --line:#312c3b;
+  --voice:#f07aaa; --voice-soft:#3d1d2c; --mel:#9aa6ff; --mel-soft:#23294b; --tract:#f2b45a; --tract-soft:#3a2b14; --ok:#6fd29a; --ok-soft:#173326; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--f-body);margin:0}
+.wrap{max-width:860px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:56px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.2rem,6vw,3.6rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.5rem,3.5vw,2rem);font-weight:800}
+h3{font-size:1.1rem;font-weight:600}
+p{margin:0;max-width:68ch}
+section{display:grid;gap:16px}
+.eyebrow{font:600 .75rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--voice)}
+.lede{font-size:1.15rem;color:var(--muted)}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+code{background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:4px}
+.fig b{font:800 1.8rem/1 var(--f-display);color:var(--voice);font-variant-numeric:tabular-nums}
+.fig span{font-size:.85rem;color:var(--muted)}
+.chain{display:grid;gap:0;border-left:3px solid var(--line);margin-left:6px}
+.chain div{padding:6px 0 14px 18px;position:relative;min-width:0}
+.chain div::before{content:"";position:absolute;left:-8px;top:12px;width:13px;height:13px;border-radius:50%;background:var(--surface);border:3px solid var(--tract)}
+.chain div:last-child::before{background:var(--voice);border-color:var(--voice)}
+.chain small{display:block;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .72rem/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+.y{color:var(--ok);font-weight:600}.n{color:var(--voice);font-weight:600}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;display:grid;gap:10px}
+.box.why{border-left:4px solid var(--mel)}
+.box.key{border-left:4px solid var(--voice)}
+.box h3{color:var(--fg)}
+.svgwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+svg text{font-family:var(--f-mono)}
+.steps{display:grid;gap:12px}
+.step{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.step .k{font:800 1rem/1.4 var(--f-display);color:var(--tract);grid-row:span 2}
+.step p{color:var(--muted);font-size:.95rem}
+.lab{display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.ctrls{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
+.ctrls label{display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--muted)}
+input[type=range]{accent-color:var(--voice);width:160px}
+input[type=number]{width:90px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--sunk);color:var(--fg)}
+button{font:600 .9rem var(--f-body);padding:6px 12px;border-radius:6px;border:1px solid var(--voice);background:var(--voice-soft);color:var(--fg);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--mel);outline-offset:2px}
+.lex{display:flex;flex-wrap:wrap;gap:6px}
+.lex span{font:600 .95rem var(--f-mono);background:var(--tract-soft);border-radius:999px;padding:3px 10px}
+.notes{display:flex;flex-wrap:wrap;gap:4px}
+.notes span{font:500 .85rem var(--f-mono);padding:2px 6px;border:1px solid var(--line);border-radius:4px;background:var(--sunk)}
+.notes span.fin{border-color:var(--voice);color:var(--voice)}
+.notes span.w{margin-left:8px}
+ul{margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:68ch}
+.pill{display:inline-block;font:600 .72rem/1 var(--f-mono);padding:4px 8px;border-radius:999px;background:var(--ok-soft);color:var(--ok);letter-spacing:.04em}
+.pill.warn{background:var(--voice-soft);color:var(--voice)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+a{color:var(--mel)}
+.foot{color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+
+<header style="display:grid;gap:16px">
+  <span class="eyebrow">ALWTTT · estilos de voz · 14 nov 2026</span>
+  <h1>La garganta de Zig</h1>
+  <p class="lede">Zig no canta con muestras grabadas. Canta con un modelo físico de garganta: una glotis que vibra y un tubo de 44 secciones que la lengua y los labios deforman. Aquí está de dónde viene ese modelo, qué sabe hacer ya, qué le falta al juego para cantar como el Taller de melodías y el plan para que un estilo de voz nuevo sea un asset que se prueba en el taller y llega al juego con un código.</p>
+  <div class="figs">
+    <div class="fig"><b>44</b><span>secciones del tracto, de la glotis a los labios</span></div>
+    <div class="fig"><b>−155 dB</b><span>diferencia entre el motor del taller (JS) y el del juego (C#)</span></div>
+    <div class="fig"><b>10</b><span>modos de voz en el taller; con el juego de hoy, solo 1 se acerca</span></div>
+    <div class="fig"><b>3</b><span>tandas para cerrarlo: VOZ-1, VOZ-2, VOZ-3</span></div>
+  </div>
+</header>
+
+<section>
+  <span class="eyebrow">1 · Qué es</span>
+  <h2>Un tubo que canta</h2>
+  <p><strong>Pink Trombone</strong> lo publicó Neil Thapen en marzo de 2017 como «bare-handed procedural speech synthesis», con licencia MIT. Sigue la idea clásica de fuente y filtro, igual que la voz humana:</p>
+  <div class="grid2">
+    <div class="box"><h3>La fuente: la glotis</h3><p>Genera los pulsos de aire con un modelo de onda glótica (el código usa las fórmulas de Liljencrants-Fant). La <strong>tensión</strong> (tenseness) decide la forma del pulso: baja es soplada; alta es apretada. La altura de la nota es la frecuencia de esos pulsos.</p></div>
+    <div class="box"><h3>El filtro: el tracto</h3><p>Un tubo de 44 secciones (más una nariz de 28) por el que viajan ondas que rebotan en cada cambio de diámetro (una guía de ondas tipo Kelly-Lochbaum). La forma del tubo, es decir dónde está la lengua y cuánto se abren los labios, decide la vocal.</p></div>
+  </div>
+  <p>Las consonantes salen de cerrar o estrechar el tubo en un punto. Cerrado del todo y soltado da una oclusiva (p, t, k), con un golpe de ruido al abrir. Casi cerrado da una fricativa (s, f, sh), con ruido de turbulencia en ese punto. Abriendo el velo, el aire pasa por la nariz (m, n).</p>
+  <div class="svgwrap" role="img" aria-label="Tracto vocal de 44 secciones con la posición de cada vocal y consonante">
+    <svg viewBox="0 0 820 190" width="820" height="190">
+      <rect x="40" y="70" width="740" height="44" rx="22" fill="var(--tract-soft)" stroke="var(--tract)" stroke-width="2"/>
+      <text x="40" y="140" fill="var(--muted)" font-size="12">0 · glotis</text>
+      <text x="780" y="140" fill="var(--muted)" font-size="12" text-anchor="end">44 · labios</text>
+      <g id="marks"></g>
+      <text x="40" y="180" fill="var(--muted)" font-size="11">arriba: vocales (lengua) · abajo: consonantes (constricción) · índices de motor-canto.js</text>
+    </svg>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">2 · De dónde viene nuestro motor</span>
+  <h2>Cuatro manos hasta la de Zig</h2>
+  <div class="chain">
+    <div><strong>Neil Thapen · 2017</strong><small>Pink Trombone en la web, con la garganta que se toca con el ratón.</small></div>
+    <div><strong>chdh/pink-trombone-mod</strong><small>Lo parte en módulos (MIT).</small></div>
+    <div><strong>lostmsu/pink-trombone-mod · C#</strong><small>El port a C#, que vino como paquete NuGet.</small></div>
+    <div><strong>ALWTTT · POC-FORK 1–7 · julio–septiembre de 2026</strong><small>El fork propio en <code>Assets/PinkTrombonePOC/PinkTromboneSrc</code>, sin dependencias.</small></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Arreglo</th><th>Qué estaba mal</th><th>Qué ganó Zig</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1</td><td>El volumen público se pisaba en cada ciclo glótico.</td><td>La velocidad MIDI cambia el volumen sin cambiar el timbre.</td></tr>
+      <tr><td class="mono">2</td><td>La vocal se congelaba en la del constructor.</td><td>La lengua se mueve y la vocal se desliza.</td></tr>
+      <tr><td class="mono">3</td><td>La articulación interna no estaba expuesta.</td><td>Ataque y suelta de nota dentro del modelo.</td></tr>
+      <tr><td class="mono">4–5</td><td>Un log por bloque y una dependencia de NuGet.</td><td>Código limpio y autónomo.</td></tr>
+      <tr><td class="mono">6</td><td>Un temblor de altura siempre encendido: <strong>34,7 cents</strong> de desviación, 150 de pico a pico.</td><td>Afinación: con la perilla a 0, 0,01 cents.</td></tr>
+      <tr><td class="mono">7</td><td>Una deriva de tensión de ±0,11 que nadie podía parar.</td><td>Timbre estable.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Cada arreglo deja intacto el sonido de origen cuando su perilla está en el valor por defecto: comparado bit a bit, sin una sola muestra distinta. Esa misma regla vale para todo lo nuevo.</p>
+</section>
+
+<section>
+  <span class="eyebrow">3 · Cómo canta hoy</span>
+  <h2>Zig en el juego</h2>
+  <ul>
+    <li><code>SingerVoice</code> v7 recibe la pista de melodía del loop (un MIDI), la arma por notas y canta en <code>OnAudioFilterRead</code>, en bloques de 1024 muestras.</li>
+    <li><code>SingerVoiceDirector</code> decide quién canta (Zig) y con qué perfil (<code>VoiceProfile_Zig</code>), y silencia el canal MIDI de esa melodía. Tope: una voz en la demo y dos como máximo.</li>
+    <li><code>VoiceProfileSO</code> ya es un asset, con 15 perillas: soltura, vibrato (profundidad, velocidad, retraso, rampa), dicción, boca, brillo, transposición, tensión según la velocidad, pitch lead, volumen mínimo y ganancia.</li>
+    <li><strong>Dicción encendida desde S9c</strong> (14-nov): la vocal se abre en los tiempos fuertes y en las notas largas, va hacia delante o hacia atrás según suba o baje la melodía, y la tensión depende del grado. Es la «C-lite»: mueve vocales, sin consonantes.</li>
+    <li>Coste medido en el POC: <strong>~10,5 % de CPU por voz</strong> en build.</li>
+  </ul>
+</section>
+
+<section>
+  <span class="eyebrow">4 · El taller</span>
+  <h2>Lo que el taller ya sabe hacer</h2>
+  <p>El Taller de melodías lleva el mismo motor portado a JavaScript, comprobado contra el C# real: el 95 % de las muestras son idénticas bit a bit y el resto difiere en el último decimal. Encima del motor añade tres extensiones, apagadas por defecto:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Extensión</th><th>Qué hace</th><th>Para qué estilo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>X1</strong> constricciones</td><td>Cierra o estrecha el tubo en un punto (el algoritmo de la interfaz original, con ventana coseno). Abre el velo para m y n.</td><td>Consonantes, es decir sílabas: todos los modos.</td></tr>
+      <tr><td><strong>X2</strong> longitud del tracto</td><td>Cambia las 44 secciones (38–52). Tubo largo es laringe baja y voz oscura; corto, laringe alta y brillo.</td><td>Ópera, Death metal, Punk, Falsete, Crooner.</td></tr>
+      <tr><td><strong>X3</strong> glotis extra</td><td>Subarmónico (growl), aspereza por ciclo (jitter y shimmer) y más aire.</td><td>Death metal, Punk, Tierno, Borracho.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Y un segundo cantante, <code>cantarV2</code>, que usa todo eso por nota: sílabas, <em>scoop</em> (entra desde abajo), caída al final de frase, <em>glide</em> entre notas, ataque empujado, legato y saturación. Los diez modos están hechos con él.</p>
+</section>
+
+<section>
+  <span class="eyebrow">5 · El hallazgo</span>
+  <h2>Los modos del taller no los canta el juego</h2>
+  <div class="box key"><p>El taller tiene <strong>dos cantantes</strong>. <code>cantarJuego</code> es una copia leída de <code>SingerVoice</code> v7. Los modos suenan con <code>cantarV2</code>, que en C# no existe. Copiar las perillas ★ de un modo a un <code>VoiceProfileSO</code> dejaría fuera casi todo lo que hace que suene a ese modo.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Modo</th><th>Lo que lo define</th><th>¿Cabe en el juego de hoy?</th></tr></thead>
+    <tbody>
+      <tr><td>Tierno y calmado</td><td>aire 1,8 · glide 110 ms · legato · «mm» al final</td><td class="n">no</td></tr>
+      <tr><td>Pop</td><td>scoop · caída · sílabas de coro</td><td class="n">no</td></tr>
+      <tr><td>Punk rock</td><td>tracto 40 · saturación · caída 2,5 · ataque empujado</td><td class="n">no</td></tr>
+      <tr><td>Death metal</td><td>growl 0,85 · tracto 52 · −24 semitonos · aire 3</td><td class="n">no</td></tr>
+      <tr><td>Ópera</td><td>vibrato 2,6 · tracto 50 · «a»</td><td class="n">no (el vibrato llega a 1)</td></tr>
+      <tr><td>Crooner</td><td>glide 140 ms · scoop · vibrato 1,4</td><td class="n">no</td></tr>
+      <tr><td>Falsete</td><td>tracto 38 · aire 2,2 · «u»</td><td class="n">no</td></tr>
+      <tr><td>Robot</td><td>sin soltura ni vibrato ni glide, staccato</td><td class="y">casi (le faltan las sílabas)</td></tr>
+      <tr><td>Borracho</td><td>soltura 1 · glide 160 ms · aspereza</td><td class="n">a medias</td></tr>
+    </tbody>
+  </table></div>
+  <p>Por eso el plan es portar <code>cantarV2</code> entero a C# y no solo las perillas.</p>
+</section>
+
+<section>
+  <span class="eyebrow">6 · Las sílabas (D-VOZ-4)</span>
+  <h2>Cómo funciona el zigués</h2>
+  <p>Una sílaba es un ataque de consonantes, una vocal (o dos, si es diptongo) y quizá una coda. El cantante la convierte en movimientos del tubo:</p>
+  <div class="steps">
+    <div class="step"><span class="k">Leer</span><h3>«kru» = ataque k + r, vocal u</h3><p>«sh» y «ch» se leen como x; «mm» es boca cerrada (bocca chiusa). Lo que no es consonante conocida va a la vocal; si no hay vocal, se canta la neutra «ə».</p></div>
+    <div class="step"><span class="k">Consonante</span><h3>Cada letra es un punto del tubo</h3><p>k y g cierran en el índice 21; t, d y n en el 36; p, b y m en los labios (41). s y z estrechan sin cerrar (0,55). Si la consonante es sonora, la glotis sigue vibrando; si es sorda, calla. Las consonantes empiezan un poco antes del tiempo de la nota, para que la vocal caiga en el pulso.</p></div>
+    <div class="step"><span class="k">Vocal</span><h3>Calibradas contra el español</h3><p>Posición de lengua y labios medida con los formantes del propio motor frente a Quilis: la «a» da 710/1310 Hz, frente a 700/1300 de referencia. En un diptongo («oi», «ue»), la segunda vocal entra a mitad de la nota.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="box"><h3>El léxico: el idioma de Zig</h3><p>Con una semilla salen <strong>nueve palabras</strong> de una a tres sílabas, con la fonotaxis del español (grupos como tr, kl o gr, codas n, s, l) y un sesgo extraterrestre: más u, i, z, sh y k, diptongos y palabras repetidas («zuzu»). La <strong>dureza</strong> elige las consonantes: 0 da l, m, n, y, w (tierno); 1 da k, t, sh, z, g, d, r y codas duras (punk, death).</p></div>
+    <div class="box"><h3>El verso: lo que suena a idioma</h3><p>Se eligen cuatro palabras que forman un verso, y el verso vuelve; una de cada cuatro veces cambia una palabra por otra del léxico. Cada palabra se reparte nota a nota y se corta al terminar la frase. La repetición con variación hace que suene a idioma y no a ruido.</p></div>
+  </div>
+  <div class="lab" aria-live="polite">
+    <h3>Pruébalo: el mismo generador del taller</h3>
+    <div class="ctrls">
+      <label for="seed">Semilla <input type="number" id="seed" value="7"></label>
+      <label for="dur">Dureza <input type="range" id="dur" min="0" max="1" step="0.05" value="0.5"> <span id="durv" class="mono">0,50</span></label>
+      <button type="button" id="otra">Otra semilla</button>
+    </div>
+    <div><span class="eyebrow" style="color:var(--tract)">Léxico</span><div class="lex" id="lex"></div></div>
+    <div><span class="eyebrow" style="color:var(--tract)">16 notas, dos frases (rojo = fin de frase)</span><div class="notes" id="notes"></div></div>
+  </div>
+  <div class="box why">
+    <h3>Por qué un asset aparte: <code>SyllableBankSO</code></h3>
+    <p>El zigués es el idioma de Zig, no de un estilo. Si el banco vive dentro del perfil, cada estilo nuevo copia el léxico y cambiarlo obliga a tocarlos todos. Con el banco aparte, varios perfiles apuntan al mismo idioma, y probar otro léxico con la misma garganta es cambiar una referencia.</p>
+    <p>Campos propuestos: <code>modo</code> (Zigués · Lista ponderada · Texto), <code>semilla</code> y <code>dureza</code> para el zigués, la lista de sílabas con peso y «solo al final» (la de los modos), el texto, y la vocal de reserva. Cada <code>VoiceProfileSO</code> apunta a un banco; sin banco, canta como hoy, con vocales sin consonantes.</p>
+  </div>
+  <div class="box why">
+    <h3>Lo que cambia en el juego: el fin de frase</h3>
+    <p>En el taller, la melodía sabe dónde termina cada frase. En el juego, la voz recibe un MIDI que no lo dice. VOZ-2 lo deduce de la pista: una nota es final si después hay silencio o si es la última del loop (regla exacta por fijar en VOZ-2, con paridad sobre las mismas entradas). Propuesta para la semilla: <strong>el léxico sale de la semilla del banco</strong>, así Zig usa sus mismas palabras en todas las canciones como en un idioma real, y <strong>el verso sale de la semilla de la canción</strong>, así cada canción tiene su estribillo y lo repite en cada loop.</p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">7 · Lo que podría hacer además</span>
+  <h2>El potencial de la garganta</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Efecto</th><th>Cómo se hace en el modelo</th><th>Para qué</th></tr></thead>
+    <tbody>
+      <tr><td>Susurro</td><td>tensión 0: solo ruido de aspiración</td><td>secretos, intro, Zig agotado</td></tr>
+      <tr><td>Voz nasal</td><td>velo abierto en las vocales</td><td>un personaje, una burla</td></tr>
+      <tr><td>Niño o gigante</td><td>X2 en los extremos (15–88 en el fork de zakaton)</td><td>público, la Reina, sus larvas</td></tr>
+      <tr><td>Canto difónico</td><td>constricción fija que afila un formante sobre un bordón</td><td>un estilo ritual, alien</td></tr>
+      <tr><td>Beatbox</td><td>oclusivas y fricativas sordas, sin glotis</td><td>Zig haciendo percusión</td></tr>
+      <tr><td>«Wah»</td><td>barrido de la lengua con el pulso</td><td>efecto de carta</td></tr>
+      <tr><td>Coro</td><td>varias gargantas desafinadas (cada una cuesta su CPU)</td><td>DUET-1 y más</td></tr>
+      <tr><td>Gritos, risas, abucheos</td><td>la misma garganta con perfiles propios</td><td>el público de GRITOS-1 con voz</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">Ideas apuntadas, no planificadas. La última conecta con los bocadillos del público (S8): hoy son solo texto.</p>
+</section>
+
+<section>
+  <span class="eyebrow">8 · Decisiones de Claudio · 14 nov</span>
+  <h2>Lo decidido</h2>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Decisión</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">D-VOZ-1</td><td>El juego cubre lo que ya hace <code>cantarV2</code>: se porta a C# como <strong>cantante v8</strong>, con paridad JS = C#.</td></tr>
+      <tr><td class="mono">D-VOZ-2</td><td><code>VoiceProfileSO</code> v2: el mismo asset con campos nuevos; con valores neutros suena igual que hoy. <code>vibratoDepth</code> pasa a 0–3.</td></tr>
+      <tr><td class="mono">D-VOZ-3</td><td>Orden: X1 → X2 → X3 en el fork; el fraseo en el cantante v8.</td></tr>
+      <tr><td class="mono">D-VOZ-4</td><td><code>SyllableBankSO</code> aparte; cada perfil apunta a un banco.</td></tr>
+      <tr><td class="mono">D-VOZ-5</td><td>Importador en ALWTTT: <code>TV1:</code> (solo voz y sílabas), <code>TM1:</code> o el JSON de «Copiar para la carta». Normalizar → vista previa → aplicar, con Undo y «usado por».</td></tr>
+      <tr><td class="mono">D-VOZ-6</td><td><code>VoiceRenderer</code> en C# puro, el mismo para el gig y el editor: «▶ con voz» y <code>.wav</code> en el Banco de cartas.</td></tr>
+      <tr><td class="mono">D-VOZ-7</td><td><strong>El v8 entra en la demo</strong> (Matías ya aprobó la voz nueva), con un interruptor para volver al v7 con dicción.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <span class="eyebrow">9 · Plan</span>
+  <h2>Tres tandas</h2>
+  <div class="steps">
+    <div class="step"><span class="k">VOZ-1</span><h3>El fork aprende X1, X2 y X3</h3><p>Constricciones, velo, longitud del tracto, growl, aspereza y aire en el C# del fork, cada uno con su perilla neutra (bit-idéntico apagado). Paridad con el JS del taller usando la batería de <code>paridad/</code>. <code>vibratoDepth</code> 0–3 y <code>VoiceProfileSO</code> v2 con los campos nuevos en neutro. Sin cambio audible en el juego.</p></div>
+    <div class="step"><span class="k">VOZ-2</span><h3>El cantante v8 y las sílabas</h3><p><code>VoiceRenderer</code> puro con <code>cantarV2</code> portado: scoop, caída, glide, ataque, legato, saturación y sílabas. <code>SyllableBankSO</code> con el zigués (misma semilla, mismas palabras que el taller). Fin de frase deducido del MIDI. Paridad del render completo, nota a nota y muestra a muestra. <code>SingerVoice</code> pasa a usar el renderer.</p></div>
+    <div class="step"><span class="k">VOZ-3</span><h3>El flujo: del taller al juego en un minuto</h3><p>Botón «Copiar código de voz» (TV1) en el taller; ventana <em>Importar estilo de voz</em> en ALWTTT; «▶ con voz» y <code>.wav</code> en el Banco de cartas; interruptor v7/v8; Zig con el estilo elegido; medición de CPU en build y smokes en el gig.</p></div>
+  </div>
+  <div class="box">
+    <h3>Cuando termine, añadir un estilo será esto</h3>
+    <ul>
+      <li>En el taller: elegir un modo, mover perillas y escucharlo sobre la melodía.</li>
+      <li>«Copiar código de voz» → <code>TV1:…</code></li>
+      <li>En Unity: <em>Importar estilo de voz</em>, pegar, ver qué cambia, aplicar (crea el perfil y, si hace falta, su banco de sílabas).</li>
+      <li>En el Banco de cartas: «▶ con voz» con ese perfil. Sin entrar en Play.</li>
+    </ul>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Coste por voz</th><th>Estimación</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Hoy (v7)</td><td>~10,5 % en build</td><td><span class="pill">medido (POC)</span></td></tr>
+      <tr><td>X1 y X3</td><td>casi nada: se calcula por bloque o por ciclo glótico</td><td><span class="pill warn">estimado</span></td></tr>
+      <tr><td>X2</td><td>proporcional al tubo: tracto 52, +18 %; 38, −14 %</td><td><span class="pill warn">estimado</span></td></tr>
+      <tr><td>En el taller (Node)</td><td>~6 % del tiempo real, igual con y sin extensiones</td><td><span class="pill">medido</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">La medición en build va en VOZ-3. Si el v8 no aguanta, el interruptor vuelve al v7 sin tocar nada más.</p>
+</section>
+
+<section>
+  <span class="eyebrow">10 · Referencias</span>
+  <h2>De tus colecciones</h2>
+  <ul>
+    <li><strong>Tu chat «Juegos con voces sintetizadas»</strong> (ChatGPT, 12-dic-2025): «no quiero que suene tan ridículo, pero lo más importante es que suene bien». Descartaba el Animalese y Banjo-Kazooie. Es la regla para aprobar un estilo.</li>
+    <li><strong>La Diva de <em>El quinto elemento</em></strong> (referencias de ALWTTT, n.º 318): una ópera extraterrestre ante un planeta. Es la referencia del modo Ópera y del zigués: un idioma inventado que sigue sonando a canto.</li>
+    <li><strong>Marcador «Mejorar expresividad vocal en Pink Trombone»</strong> (5-sep-2026): el origen de la C-lite.</li>
+  </ul>
+  <h3>Fuentes del modelo</h3>
+  <ul class="foot">
+    <li>N. Thapen, Pink Trombone v1.1 (2017), MIT. Cita a J. O. Smith III (<em>Physical Audio Signal Processing</em>), B. H. Story (JASA 117(5), 2005), Lu y Smith (ICMC 2000) y Mullen (tesis, York, 2006).</li>
+    <li>Kelly-Lochbaum y Liljencrants-Fant no se nombran en el original: lo deducimos del código.</li>
+    <li>Fisiología de los modos: <code>Docs/reference/taller-melodia/investigacion.md</code>. Los modos se calibraron leyendo números, no escuchando: el ajuste fino es de Claudio y Matías.</li>
+  </ul>
+</section>
+
+<p class="foot">Fuentes en el repo: <code>Docs/reference/pink-trombone-wrapped/</code>, <code>Docs/planning/active/ARRANQUE_estilos_de_voz.md</code>. Wrapped anterior: <a href="https://claude.ai/artifact/GGpSCDLpNzdx7hbDfqiUf5">La voz de Zig</a> · Taller: <a href="https://claude.ai/artifact/WRdHN5Gf839qotLhrqvyLj">Taller de melodías</a>.</p>
+</div>
+
+<script>
+(function(){
+  // Tracto: índices reales de motor-canto.js
+  var X=function(i){return 40+i/44*740;};
+  var V=[['u',13],['o',11],['a',18],['e·i',29]];
+  var C=[['g k',21],['sh',31],['t d n s z',36],['l',38],['p b m f v w',41]];
+  var g=document.getElementById('marks'),ns='http://www.w3.org/2000/svg',h='';
+  V.forEach(function(v,k){var x=X(v[1]);h+='<line x1="'+x+'" y1="'+(30+k%2*14)+'" x2="'+x+'" y2="70" stroke="var(--mel)" stroke-width="1.5"/><text x="'+x+'" y="'+(24+k%2*14)+'" fill="var(--mel)" font-size="13" text-anchor="middle">'+v[0]+'</text>';});
+  C.forEach(function(c,k){var x=X(c[1]);h+='<line x1="'+x+'" y1="114" x2="'+x+'" y2="'+(150+k%2*14)+'" stroke="var(--voice)" stroke-width="1.5"/><circle cx="'+x+'" cy="92" r="5" fill="var(--voice)"/><text x="'+x+'" y="'+(162+k%2*14)+'" fill="var(--voice)" font-size="12" text-anchor="middle">'+c[0]+'</text>';});
+  g.innerHTML=h;
+
+  // zigués: copia literal de motor-canto.js (hash FNV, mulberry32)
+  function hash(s){var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h|0;}
+  function mulberry32(a){return function(){a|=0;a=(a+0x6D2B79F5)|0;var t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+  function rngDe(seed,sal){return mulberry32((seed|0)^hash(sal));}
+  function zigues(seed,d){
+    var r=rngDe(seed,'zig');
+    var suaves=['l','m','n','y','w','s',''],duras=['k','t','x','z','g','d','r','b'],grupos=['kr','tr','gl','bl','kl','gr','zr'];
+    var vocales=['a','e','i','o','u','u','i','o'],dipt=['ue','ia','io','ai','oi','au','ui'];
+    function silaba(){var on,x=r();
+      if(x<0.12*d)on=grupos[Math.floor(r()*grupos.length)];
+      else if(x<0.12*d+0.55*d)on=duras[Math.floor(r()*duras.length)];
+      else on=suaves[Math.floor(r()*suaves.length)];
+      var v=r()<0.15?dipt[Math.floor(r()*dipt.length)]:vocales[Math.floor(r()*vocales.length)];
+      var coda='';if(r()<0.06+0.12*d)coda=d>0.5?['x','k','s'][Math.floor(r()*3)]:['n','s','l'][Math.floor(r()*3)];
+      return on+v+coda;}
+    var lex=[];for(var i=0;i<9;i++){var n=1+Math.floor(r()*3),w=[];for(var k=0;k<n;k++)w.push(silaba());if(n>=2&&r()<0.3)w[1]=w[0];lex.push(w);}
+    return lex;}
+  function asignar(notas,seed,d){
+    var lex=zigues(seed,d),r=rngDe(seed,'zigfrase');
+    var verso=[0,1,2,3].map(function(){return Math.floor(r()*lex.length);});
+    var cola=[],vi=0;
+    notas.forEach(function(n){
+      if(!cola.length){var w=verso[vi%verso.length];if(r()<0.25)w=Math.floor(r()*lex.length);vi++;cola=lex[w].slice();n.nueva=true;}
+      n.sil=cola.shift();
+      if(n.finFrase&&cola.length)cola=[];});
+    return lex;}
+  var show=function(s){return s.replace(/x/g,'sh');};
+  function pintar(){
+    var seed=parseInt(document.getElementById('seed').value,10)||0,d=parseFloat(document.getElementById('dur').value);
+    document.getElementById('durv').textContent=d.toFixed(2).replace('.',',');
+    var notas=[];for(var i=0;i<16;i++)notas.push({finFrase:i===7||i===15});
+    var lex=asignar(notas,seed,d);
+    document.getElementById('lex').innerHTML=lex.map(function(w){return '<span>'+show(w.join(''))+'</span>';}).join('');
+    document.getElementById('notes').innerHTML=notas.map(function(n){return '<span class="'+(n.finFrase?'fin ':'')+(n.nueva?'w':'')+'">'+show(n.sil)+'</span>';}).join('');
+  }
+  document.getElementById('seed').addEventListener('input',pintar);
+  document.getElementById('dur').addEventListener('input',pintar);
+  document.getElementById('otra').addEventListener('click',function(){document.getElementById('seed').value=Math.floor(Math.random()*9999);pintar();});
+  pintar();
+})();
+</script>

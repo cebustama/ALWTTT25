@@ -33,10 +33,28 @@ namespace Vocal {
 
         int lastObstruction = -1;
 
+        // POC-FORK(11) X1: free constrictions (consonants), the touch algorithm of the
+        // original web Pink Trombone (TractUI), ported from motor-voz.js. Index is in the
+        // 44-space (scaled to the tract length); diameter 0 = closed. An empty set leaves
+        // the upstream path untouched. Fixed capacity: no allocation on the audio thread.
+        public const int MaxConstrictions = 8;
+        readonly Constriction[] constrictions = new Constriction[MaxConstrictions];
+        int constrictionCount;
+        bool constrDirty;
+        /// <summary>POC-FORK(11): null = upstream velum; a value overrides the velum target (0.4 = open, nasals).</summary>
+        public double? VelumOverride { get; set; }
+
+        public void SetConstrictions(ReadOnlySpan<Constriction> list) {
+            int c = Math.Min(list.Length, MaxConstrictions);
+            for (int i = 0; i < c; i++) this.constrictions[i] = list[i];
+            this.constrictionCount = c;
+            this.constrDirty = true;
+        }
+
         public TractShaper(Tract tract) {
             this.tract = tract ?? throw new ArgumentNullException(nameof(tract));
 
-            this.targetDiameter = new double[Tract.n];
+            this.targetDiameter = new double[tract.n];
             this.ShapeNoise(true);
             tract.CalculateNoseReflections(); // (nose reflections are calculated only once, but with open velum)
             this.ShapeNoise(false);
@@ -44,7 +62,7 @@ namespace Vocal {
         }
 
         void ShapeMainTract() {
-            for (int i = 0; i < Tract.n; i++) {
+            for (int i = 0; i < this.tract.n; i++) {
                 double d = this.GetRestDiameter(i);
                 this.tract.diameter[i] = d;
                 this.targetDiameter[i] = d;
@@ -52,17 +70,19 @@ namespace Vocal {
         }
 
         public double GetRestDiameter(int i) {
-            if (i < 7) return 0.6;
-            if (i < Tract.BladeStart) return 1.1;
-            if (i >= Tract.LipStart) return 1.5;
+            var T = this.tract;
+            if (i < T.GlottalEnd) return 0.6;
+            if (i < T.BladeStart) return 1.1;
+            if (i >= T.LipStart) return 1.5;
 
-            double t = 1.1 * Math.PI * (this.TongueIndex - i) / (Tract.TipStart - Tract.BladeStart);
+            double ti = T.n == Tract.DefaultLength ? this.TongueIndex : this.TongueIndex * T.n / 44; // POC-FORK(10)
+            double t = 1.1 * Math.PI * (ti - i) / (T.TipStart - T.BladeStart);
             double fixedTongueDiameter = 2 + (this.TongueDiameter - 2) / 1.5;
             double curve = (1.5 - fixedTongueDiameter + gridOffset) * Math.Cos(t);
-            if (i == Tract.BladeStart - 2 || i == Tract.LipStart - 1) {
+            if (i == T.BladeStart - 2 || i == T.LipStart - 1) {
                 curve *= 0.8;
             }
-            if (i == Tract.BladeStart || i == Tract.LipStart - 2) {
+            if (i == T.BladeStart || i == T.LipStart - 2) {
                 curve *= 0.94;
             }
             return 1.5 - curve;
@@ -70,27 +90,31 @@ namespace Vocal {
 
         // Adjusts the shape of the tract towards the target values.
         public void AdjustTractShape(double deltaTime) {
+            var T = this.tract;
             // POC-FORK(2): recompute targets when the tongue moved.
-            if (this.tongueDirty) {
+            // POC-FORK(11): also every block while constrictions are set.
+            if (this.tongueDirty || this.constrDirty) {
                 this.tongueDirty = false;
-                for (int i = 0; i < Tract.n; i++)
+                for (int i = 0; i < T.n; i++)
                     this.targetDiameter[i] = this.GetRestDiameter(i);
+                if (this.constrictionCount > 0) this.ApplyConstrictions();
+                this.constrDirty = this.constrictionCount > 0;
             }
             double amount = deltaTime * movementSpeed;
             int newLastObstruction = -1;
-            for (int i = 0; i < Tract.n; i++) {
+            for (int i = 0; i < T.n; i++) {
                 double diameter = this.tract.diameter[i];
                 double targetDiameter = this.targetDiameter[i];
                 if (diameter <= 0) {
                     newLastObstruction = i;
                 }
                 double slowReturn;
-                if (i < Tract.NoseStart)
+                if (i < T.NoseStart)
                     slowReturn = 0.6;
-                else if (i >= Tract.TipStart)
+                else if (i >= T.TipStart)
                     slowReturn = 1;
                 else
-                    slowReturn = 0.6 + 0.4 * (i - Tract.NoseStart) / (Tract.TipStart - Tract.NoseStart);
+                    slowReturn = 0.6 + 0.4 * (i - T.NoseStart) / (T.TipStart - T.NoseStart);
 
                 this.tract.diameter[i] = MathX.MoveTowards(diameter, targetDiameter, slowReturn * amount, 2 * amount);
             }
@@ -98,7 +122,36 @@ namespace Vocal {
                 this.AddTransient(this.lastObstruction);
             }
             this.lastObstruction = newLastObstruction;
-            this.tract.noseDiameter[0] = MathX.MoveTowards(this.tract.noseDiameter[0], this.VelumTarget, amount * 0.25, amount * 0.1);
+            double velum = this.VelumOverride ?? this.VelumTarget; // POC-FORK(11)
+            this.tract.noseDiameter[0] = MathX.MoveTowards(this.tract.noseDiameter[0], velum, amount * 0.25, amount * 0.1);
+        }
+
+        // POC-FORK(11): TractUI.setRestDiameter's touch loop (the UI's "diameter -= 0.3"
+        // is already applied by the caller: 0 = closed). Only narrows, never widens.
+        void ApplyConstrictions() {
+            var T = this.tract;
+            int n = T.n;
+            double sc = n / 44.0;
+            for (int c = 0; c < this.constrictionCount; c++) {
+                double index = this.constrictions[c].Index * sc;
+                double diameter = Math.Max(0, this.constrictions[c].Diameter);
+                double width;
+                if (index < 25 * sc) width = 10 * sc;
+                else if (index >= T.TipStart) width = 5 * sc;
+                else width = (10 - 5 * (index - 25 * sc) / (T.TipStart - 25 * sc)) * sc;
+                if (!(index >= 2 && index < n && diameter < 3)) continue;
+                int ii = (int)Math.Floor(index + 0.5); // JS Math.round
+                for (int i = -(int)Math.Ceiling(width) - 1; i < width + 1; i++) {
+                    int k = ii + i;
+                    if (k < 0 || k >= n) continue;
+                    double rel = Math.Abs(k - index) - 0.5, shrink;
+                    if (rel <= 0) shrink = 0;
+                    else if (rel > width) shrink = 1;
+                    else shrink = 0.5 * (1 - Math.Cos(Math.PI * rel / width));
+                    if (diameter < this.targetDiameter[k])
+                        this.targetDiameter[k] = diameter + (this.targetDiameter[k] - diameter) * shrink;
+                }
+            }
         }
 
         void AddTransient(int position) {
@@ -113,8 +166,8 @@ namespace Vocal {
 
         void ShapeNoise(bool velumOpen) {
             this.VelumTarget = velumOpen ? this.VelumOpenTarget : this.VelumClosedTarget;
-            for (int i = 0; i < Tract.NoseLength; i++) {
-                double d = i * 2.0 / Tract.NoseLength;
+            for (int i = 0; i < this.tract.NoseLength; i++) {
+                double d = i * 2.0 / this.tract.NoseLength;
                 double diameter;
                 if (i == 0)
                     diameter = this.VelumTarget;
@@ -127,5 +180,11 @@ namespace Vocal {
                 this.tract.noseDiameter[i] = diameter;
             }
         }
+    }
+
+    /// <summary>POC-FORK(11): a constriction in the 44-space. Diameter 0 = closed, 0.55 = fricative.</summary>
+    public readonly struct Constriction {
+        public readonly double Index, Diameter;
+        public Constriction(double index, double diameter) { this.Index = index; this.Diameter = diameter; }
     }
 }

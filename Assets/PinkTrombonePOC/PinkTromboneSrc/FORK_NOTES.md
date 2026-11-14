@@ -25,6 +25,19 @@ Not copied: `InternalsVisibleTo.cs` (test-assembly plumbing), `PinkTrombone.cspr
 All other files (`Tract.cs`, `Noise.cs`, `NoiseGenerator.cs`, `MathX.cs`, `Arg.cs`,
 `Transient.cs`, `TurbulencePoint.cs`) are verbatim upstream.
 
+### VOZ-1 (2026-11-14): Taller de melodías extensions X1–X3
+
+Ported from `Docs/reference/taller-melodia/motor-voz.js` so the game can sing what the workshop's singer v2 sings (D-VOZ-1). All neutral by default.
+
+| # | File | Change | Why |
+|---|------|--------|-----|
+| 8 | `TurbulencePoint.cs`, `Tract.cs` | `Position`'s setter validated the **old** value (initially 0), so it threw on every assignment and no fricative could ever be added. `Position`/`Diameter` are now `double` (the JS reference keeps them in double) and the range check lives in `Tract.AddTurbulenceNoise`, which already skipped points outside 2..n. Turbulence intensity subtracts times in double, as JS does. | Fricatives (s, z, f, sh) are turbulence points. Upstream's path was unreachable, so nothing that worked changes. |
+| 9 | `Glottis.cs`, `PinkTrombone.cs`, `RandomSource.cs` | X3: `Growl` (period doubling), `PitchRoughness` (per-cycle jitter), `AmpRoughness` (shimmer), `Breath` (aspiration gain). Per-cycle randomness comes from a vendored `Mulberry32`, the same generator as the JS, seeded `seed ^ 0x5bd1e995`. | Death metal, punk, breathy voices. Inactive values skip the code entirely. |
+| 10 | `Tract.cs`, `TractShaper.cs`, `PinkTrombone.cs` | X2: the tract length is per instance (`new PinkThrombone(rate, random, tractLength)`, 20..88). Landmarks (blade, tip, lips, nose, glottal end) scale with JS `Math.round`; at 44 they keep their upstream constants. Tongue index stays in the 44-space. | Low larynx (opera, death) or high larynx (punk, falsetto), a child or a giant. |
+| 11 | `TractShaper.cs`, `PinkTrombone.cs` | X1: `SetConstrictions(ReadOnlySpan<Constriction>)` (44-space; diameter 0 = closed), the touch loop of the web original's `TractUI` (cosine window, only narrows), recomputed every block while set; fixed capacity 8, no allocation. `VelumOverride` (null = upstream; 0.4 = nasal). `TractTime` to stamp turbulence points. | Consonants: plosives (closure + upstream transient on release), nasals, fricatives, approximants. |
+
+**Verification (`Docs/reference/taller-melodia/paridad/`, dotnet net10, 48 kHz):** with everything neutral, the three original cases are **byte-identical** to the pre-VOZ-1 build (`cmp` against a saved baseline). Against the JS reference, nine cases (the original three + consonants, tract 38 and 52, death, roughness with a growl ramp, punk with everything on) give **−154.8 to −158.6 dB**, 95–97 % of samples bit-identical. Each extension is audible: removing the constrictions changes the consonant case by −9.7 dB, the turbulence by −28.8 dB, and the X3 set changes the death case by +4.7 dB.
+
 ## Verification performed at fork time (console harness, mono, 48 kHz)
 
 - Compiles standalone with **no external references at all**; all four repairs re-verified

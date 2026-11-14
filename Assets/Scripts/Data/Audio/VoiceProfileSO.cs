@@ -17,7 +17,9 @@ namespace ALWTTT.Music.Voice
 
         [Header("Macro levers (the designed surface)")]
         [Range(0f, 1f)] public float looseness = 0.15f;
-        [Range(0f, 1f)] public float vibratoDepth = 0.4f;
+        [Tooltip("VOZ-1 (D-VOZ-2): range widened 0-1 -> 0-3 so the workshop modes fit " +
+                 "(Opera 2.6, Crooner 1.4, Borracho 1.2). Values up to 1 sound as before.")]
+        [Range(0f, 3f)] public float vibratoDepth = 0.4f;
         [Range(3f, 9f)] public float vibratoSpeedHz = 6f;
         [Range(0f, 2f)] public float diction = 1f;
         public MouthPreset mouth = MouthPreset.Neutral;
@@ -41,6 +43,52 @@ namespace ALWTTT.Music.Voice
 
         [Header("Output")]
         [Range(0f, 2f)] public float gain = 1f;
+
+        // ------------------------------------------------------------------
+        // VOZ-1 (D-VOZ-2 = A, 2026-11-14): VoiceProfile v2. The singer v8 is the
+        // C# port of the Taller de melodias' cantarV2 (VOZ-2). These fields are
+        // read ONLY when engine = V8; with V7 the profile sounds exactly as before.
+        // Names and defaults follow the workshop ("Copiar para la carta" ->
+        // propuestaVoiceProfileV2; motor-canto.js BASE), so an imported mode maps 1:1.
+        // ------------------------------------------------------------------
+        public enum SingerEngine { V7_CLite = 0, V8_Workshop = 1 }
+        public enum BaseVowel { Neutral = 0, A = 1, E = 2, I = 3, O = 4, U = 5 }
+
+        [Header("v2 - engine (D-VOZ-7: V8 for the demo, V7 is the opt-out)")]
+        [Tooltip("V7_CLite = today's singer (vowels only). V8_Workshop = the workshop's " +
+                 "singer: syllables, scoop, fall, glide, X1-X3. V8 arrives in VOZ-2; until " +
+                 "then V8 falls back to V7.")]
+        public SingerEngine engine = SingerEngine.V7_CLite;
+
+        [Header("v2 - throat (Pink Trombone X2/X3, POC-FORK 9-10)")]
+        [Tooltip("X2 tract sections. 44 = adult; longer = low larynx, dark (Opera 50, Death 52); " +
+                 "shorter = high larynx, bright (Punk 40, Falsete 38).")]
+        [Range(36, 56)] public int tractLength = 44;
+        [Tooltip("X3 aspiration gain. 1 = upstream; Tierno 1.8, Death 3.")]
+        [Range(0f, 3f)] public float breath = 1f;
+        [Tooltip("X3 period doubling (subharmonic growl). Death metal 0.85.")]
+        [Range(0f, 1f)] public float growl = 0f;
+        [Tooltip("X3 per-cycle roughness: jitter = roughness, shimmer = 0.8 x roughness.")]
+        [Range(0f, 1f)] public float roughness = 0f;
+        [Tooltip("Mic saturation (tanh drive) after the voice. Punk 0.45.")]
+        [Range(0f, 1f)] public float drive = 0f;
+
+        [Header("v2 - phrasing (singer v8)")]
+        [Tooltip("Note entry from below, in semitones.")]
+        [Range(0f, 3f)] public float scoopSemitones = 0f;
+        [Range(10f, 250f)] public float scoopMs = 90f;
+        [Tooltip("Fall at the end of a phrase, in semitones.")]
+        [Range(0f, 4f)] public float fallSemitones = 0f;
+        [Tooltip("Portamento between notes. 0 = jumps (uses pitch lead instead).")]
+        [Range(0f, 250f)] public float glideMs = 0f;
+        [Tooltip("Extra tenseness on the first 80 ms of a note (pushed attack).")]
+        [Range(0f, 0.3f)] public float attackPress = 0f;
+        [Tooltip("How close notes must be to tie without re-articulating.")]
+        [Range(0f, 1f)] public float legato = 0.3f;
+        [Tooltip("Vowel used when a note has no syllable.")]
+        public BaseVowel baseVowel = BaseVowel.Neutral;
+
+        // Syllables (D-VOZ-4): a reference to a SyllableBankSO arrives in VOZ-2.
 
         // Gameplay-modulation hooks (lever doc §5 note): deliberately absent
         // in SINGER-1. Section-level "when" is driven by gameplay code calling

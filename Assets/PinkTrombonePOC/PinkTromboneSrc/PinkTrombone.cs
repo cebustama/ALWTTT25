@@ -16,6 +16,14 @@ namespace Vocal
         readonly int sampleRate;
 
         public PinkThrombone(int sampleRate, IRandomSource random)
+            : this(sampleRate, random, Tract.DefaultLength) { }
+
+        /// <summary>
+        /// POC-FORK(10) X2: <paramref name="tractLength"/> sections (20..88; 44 = adult,
+        /// upstream). Longer = lower larynx, darker; shorter = higher larynx, brighter.
+        /// Fixed for the life of the voice (the waveguide arrays are sized by it).
+        /// </summary>
+        public PinkThrombone(int sampleRate, IRandomSource random, int tractLength)
         {
             if (sampleRate <= 0 || sampleRate >= int.MaxValue / 2)
                 throw new ArgumentOutOfRangeException(nameof(sampleRate));
@@ -24,7 +32,7 @@ namespace Vocal
             this.sampleRate = sampleRate;
             this.glottis = new Glottis(sampleRate, random);
             // tract runs at twice the sample rate
-            this.tract = new Tract(this.glottis, sampleRate: 2 * sampleRate, random);
+            this.tract = new Tract(this.glottis, sampleRate: 2 * sampleRate, random, tractLength);
             this.shaper = new TractShaper(this.tract);
         }
 
@@ -96,14 +104,14 @@ namespace Vocal
             set => this.glottis.TargetTenseness = Check01(value);
         }
         /// <summary>
-        /// 0..44 <see cref="Tract.n"/>
+        /// 0..44 (44-space, scaled to <see cref="TractLength"/> internally)
         /// </summary>
         public double TongueIndex
         {
             get => this.shaper.TongueIndex;
             set
             {
-                if (value < -1 || value > Tract.n + 1)
+                if (value < -1 || value > Tract.DefaultLength + 1)
                     throw new ArgumentOutOfRangeException(nameof(this.TongueIndex));
                 this.shaper.TongueIndex = value;
             }
@@ -167,6 +175,29 @@ namespace Vocal
             set => this.glottis.TensenessJitterGain = Check01(value);
         }
         public IList<TurbulencePoint> TurbulencePoints => this.tract.turbulencePoints;
+
+        // ---------------- POC-FORK(8-11): Taller de melodías extensions X1-X3 ----------------
+        // All neutral by default: with Growl/Roughness/Shimmer 0, Breath 1, no constrictions,
+        // no velum override and tract length 44 the output is bit-identical to POC-FORK 1-7.
+
+        /// <summary>X2: number of tract sections (fixed at construction).</summary>
+        public int TractLength => this.tract.n;
+        /// <summary>Tract clock in seconds (float, the model's own); stamp turbulence points with it.</summary>
+        public float TractTime => this.tract.time;
+
+        /// <summary>X3 0..1: period doubling (growl, subharmonic).</summary>
+        public double Growl { get => this.glottis.XSub; set => this.glottis.XSub = value; }
+        /// <summary>X3 0..1: per-cycle period randomness (jitter).</summary>
+        public double PitchRoughness { get => this.glottis.XJitter; set => this.glottis.XJitter = value; }
+        /// <summary>X3 0..1: per-cycle amplitude randomness (shimmer).</summary>
+        public double AmpRoughness { get => this.glottis.XShimmer; set => this.glottis.XShimmer = value; }
+        /// <summary>X3 0..: aspiration noise gain (1 = upstream; breathy &gt; 1).</summary>
+        public double Breath { get => this.glottis.XAir; set => this.glottis.XAir = value; }
+
+        /// <summary>X1: replace the constriction set (44-space). Empty = none. Max <see cref="TractShaper.MaxConstrictions"/>.</summary>
+        public void SetConstrictions(ReadOnlySpan<Constriction> list) => this.shaper.SetConstrictions(list);
+        /// <summary>X1: null = upstream velum; 0.4 opens the nose (m, n).</summary>
+        public double? VelumOverride { get => this.shaper.VelumOverride; set => this.shaper.VelumOverride = value; }
 
         /// <summary>
         /// Set <see cref="TargetFrequency"/> to the specified musical note.

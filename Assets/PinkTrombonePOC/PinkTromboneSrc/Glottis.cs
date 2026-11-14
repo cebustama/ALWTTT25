@@ -47,6 +47,23 @@ namespace Vocal
 
         public NoiseGenerator NoiseGenerator { get; } = new NoiseGenerator();
 
+        // POC-FORK(9) X3 — extra glottal behaviour, ported from the Taller de melodías
+        // (motor-voz.js). Neutral values (0, 0, 0, 1) leave every code path untouched:
+        // bit-identical to POC-FORK 1–8. Values are double on purpose (the JS reference
+        // multiplies them in double precision before rounding to float).
+        //   Sub      0..1  period doubling: alternate long/strong and short/weak cycles (growl)
+        //   Jitter   0..1  per-cycle period randomness (roughness)
+        //   Shimmer  0..1  per-cycle amplitude randomness (roughness)
+        //   Air      0..   aspiration-noise gain (1 = upstream)
+        double xSub, xJitter, xShimmer, xAir = 1;
+        public double XSub { get => this.xSub; set => this.xSub = MathX.Clamp(value, 0, 1); }
+        public double XJitter { get => this.xJitter; set => this.xJitter = MathX.Clamp(value, 0, 1); }
+        public double XShimmer { get => this.xShimmer; set => this.xShimmer = MathX.Clamp(value, 0, 1); }
+        public double XAir { get => this.xAir; set => this.xAir = Math.Max(0, value); }
+        int xCycle;
+        double cycAmp = 1;
+        readonly Mulberry32 xRand;
+
         readonly int sampleRate;
         long sampleCount;
         float intensity = 0;
@@ -84,6 +101,7 @@ namespace Vocal
             this.sampleRate = sampleRate;
             this.NoiseGenerator = new NoiseGenerator((ushort)random.Seed);
             this.aspirationNoiseSource = Noise.CreateFilteredNoiseSource(500, 0.5f, sampleRate, 0x8000, random);
+            this.xRand = new Mulberry32(unchecked((int)random.Seed) ^ 0x5bd1e995); // POC-FORK(9)
             this.SetupWaveform(0);
         }
 
@@ -113,6 +131,7 @@ namespace Vocal
             float aspiration1 = this.intensity * (1 - MathF.Sqrt(this.TargetTenseness))
                 * this.GetNoiseModulator() * aspirationNoise;
             float aspiration2 = aspiration1 * (0.2f + 0.02f * this.NoiseGenerator.Simplex(time * 1.99f));
+            if (this.xAir != 1) aspiration2 = (float)(aspiration2 * this.xAir); // POC-FORK(9) X3 air
             float result = out1 + aspiration2;
             this.sampleCount++;
             this.timeInWaveform += 1f / this.sampleRate;
@@ -247,6 +266,24 @@ namespace Vocal
             this.delta = delta;
             this.te = te;
             this.omega = omega;
+
+            // POC-FORK(9) X3: per-cycle extras, only when active (default path untouched).
+            if (this.xSub > 0 || this.xJitter > 0 || this.xShimmer > 0)
+            {
+                this.xCycle++;
+                double per = 1, amp = 1;
+                if (this.xSub > 0)
+                {
+                    bool odd = (this.xCycle & 1) == 1;
+                    per *= odd ? 1 + 0.22 * this.xSub : 1 - 0.22 * this.xSub;
+                    amp *= odd ? 1 : 1 - 0.75 * this.xSub;
+                }
+                if (this.xJitter > 0) per *= 1 + this.xJitter * 0.25 * (this.xRand.Next() * 2 - 1);
+                if (this.xShimmer > 0) amp *= 1 - this.xShimmer * 0.6 * this.xRand.Next();
+                this.waveformLength = (float)(this.waveformLength * per);
+                this.cycAmp = amp;
+            }
+            else this.cycAmp = 1;
         }
 
         float alpha, e0, epsilon, shift, delta, te, omega;
@@ -256,7 +293,9 @@ namespace Vocal
             float output = t > this.te
                 ? (-MathF.Exp(-this.epsilon * (t - this.te)) + this.shift) / this.delta
                 : this.e0 * MathF.Exp(this.alpha * t) * MathF.Sin(this.omega * t);
-            return output * this.intensity * this.waveformLoudness * this.userLoudness; // POC-FORK(1)
+            float r = output * this.intensity * this.waveformLoudness * this.userLoudness; // POC-FORK(1)
+            if (this.cycAmp != 1) r = (float)(r * this.cycAmp);                         // POC-FORK(9) X3
+            return r;
         }
     }
 }

@@ -109,8 +109,15 @@ pipeline is therefore *by construction*: the stem filter is the only switch.
    without the explicit stop the tail voice kept singing over the new song (**F-ST-1**, fixed 2026-10-01).
 
 6. **Fork stays consumer-side.** `Assets/PinkTrombonePOC/PinkTromboneSrc/` (~1000
-   lines, MIT, zero external dependencies, edits logged `// POC-FORK(n)` 1–7 in
+   lines, MIT, zero external dependencies, edits logged `// POC-FORK(n)` 1–11 in
    `FORK_NOTES.md`). It must never enter `MidiGenPlay.Runtime`.
+   **VOZ-1 (2026-11-14): POC-FORK 8–11** add the Taller de melodías extensions to the
+   model: X1 constrictions + velum override (consonants), X2 per-voice tract length
+   (20..88, 44 = upstream), X3 growl / roughness / breath, and fix the turbulence-point
+   setter (fricatives were unreachable). **Invariant: every extension is neutral by
+   default and skips its code when off** — verified byte-identical against a pre-VOZ-1
+   baseline; JS = C# parity −154.8 to −158.6 dB on 9 cases
+   (`reference/taller-melodia/paridad/`). Re-run the parity whenever the fork changes.
    **Ruta corregida 2026-08-08 (MANIFEST-1) contra un export del árbol del repo:
    `Assets/ThirdParty/` no existe. La sustancia del invariante —el fork es
    consumer-side, nunca dentro del paquete— se sostiene; lo que era falso era la
@@ -165,6 +172,15 @@ sigue siendo del proyecto MidiGenPlay (clase research)
   `minLoudness`.
 - **Transport:** `startTrimMs` (the D1=A per-profile constant).
 - **Output:** `gain`.
+- **v2 (VOZ-1, D-VOZ-2 = A, 2026-11-14):** `engine` (`V7_CLite` | `V8_Workshop`),
+  `tractLength`, `breath`, `growl`, `roughness`, `drive`, `scoopSemitones`, `scoopMs`,
+  `fallSemitones`, `glideMs`, `attackPress`, `legato`, `baseVowel`. Names and defaults
+  follow the Taller de melodías («Copiar para la carta» → `propuestaVoiceProfileV2`), so an
+  imported mode maps 1:1. **Read only by the singer v8 (VOZ-2); with `engine = V7_CLite`
+  the profile sounds exactly as before.** `vibratoDepth` widened 0–1 → 0–3 (opera 2.6);
+  values ≤ 1 are unchanged. Syllables will live in a separate `SyllableBankSO` referenced
+  by the profile (D-VOZ-4 = A, VOZ-2). Plan and decisions D-VOZ-1..7:
+  `planning/active/ARRANQUE_estilos_de_voz.md`.
 
 Defaults equal the lever doc's "Settled singer" recipe (the only listen-verified
 voice). Gameplay-modulation hooks (per-state overrides) are deliberately absent
@@ -230,6 +246,8 @@ lookup, retiring the serialized string. Follow-up, not required for the demo.
   smoothing ~10 ms on the audio thread; ×1f is exact, so level 1 is bit-identical) follows the song-tail
   plane (R-V);
   balance is the profile `gain`. A small follow-up.
-- Consonants / nasal branch — vowels only.
+- Consonants / nasal branch — **the model can do them since VOZ-1** (POC-FORK 8 and 11);
+  the singer still sings vowels only until the v8 lands (VOZ-2: syllables via
+  `SyllableBankSO`, zigués).
 - Phase D4 `IPerformanceMetadataSink` — deferred; re-open only on repeated,
   concrete demand for phrase-level metadata from this integration.

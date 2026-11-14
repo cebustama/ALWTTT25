@@ -8,12 +8,17 @@ namespace Vocal {
         readonly int sampleRate;
         readonly Func<float> fricationNoiseSource;
 
-        public const int n = 44;
-        public const int BladeStart = 10;
-        public const int TipStart = 32;
-        public const int LipStart = 39;
-        public const int NoseLength = 28;
-        public const int NoseStart = n - NoseLength + 1;
+        // POC-FORK(10) X2: the tract length is per instance (was const 44). At 44 every
+        // landmark keeps its upstream value exactly; other lengths scale them with
+        // JS Math.round, as the Taller de melodías does (motor-voz.js).
+        public const int DefaultLength = 44;
+        public readonly int n;
+        public readonly int BladeStart;
+        public readonly int TipStart;
+        public readonly int LipStart;
+        public readonly int NoseLength;
+        public readonly int NoseStart;
+        public readonly int GlottalEnd;
 
         const double GlottalReflection = 0.75;
         const double LipReflection = -0.85;
@@ -44,7 +49,9 @@ namespace Vocal {
         double newReflectionLeft, newReflectionRight;
         double reflectionNose, newReflectionNose;
 
-        public Tract(Glottis glottis, int sampleRate, IRandomSource random) {
+        static int JsRound(double x) => (int)Math.Floor(x + 0.5);
+
+        public Tract(Glottis glottis, int sampleRate, IRandomSource random, int length = DefaultLength) {
             if (glottis is null) throw new ArgumentNullException(nameof(glottis));
             if (sampleRate <= 0) throw new ArgumentOutOfRangeException(nameof(sampleRate));
             if (random is null) throw new ArgumentNullException(nameof(random));
@@ -52,6 +59,16 @@ namespace Vocal {
             this.glottis = glottis;
             this.sampleRate = sampleRate;
             this.fricationNoiseSource = Noise.CreateFilteredNoiseSource(1000, 0.5, sampleRate, 0x8000, random);
+            if (length < 20 || length > 88) throw new ArgumentOutOfRangeException(nameof(length));
+            double sc = length / 44.0;
+            bool std = length == DefaultLength;
+            this.n = length;
+            this.BladeStart = std ? 10 : JsRound(10 * sc);
+            this.TipStart = std ? 32 : JsRound(32 * sc);
+            this.LipStart = std ? 39 : JsRound(39 * sc);
+            this.NoseLength = std ? 28 : JsRound(28 * sc);
+            this.NoseStart = this.n - this.NoseLength + 1;
+            this.GlottalEnd = std ? 7 : JsRound(7 * sc);
             this.diameter = new double[n];
             this.right = new double[n];
             this.left = new double[n];
@@ -132,7 +149,7 @@ namespace Vocal {
 
             // now at junction with nose
             {
-                const int i = NoseStart;
+                int i = this.NoseStart;
                 double r = MathX.Interpolate(this.reflectionLeft, this.newReflectionLeft, lambda);
                 this.junctionOutputLeft[i] = r * this.right[i - 1] + (1 + r) * (this.noseLeft[0] + this.left[i]);
                 r = MathX.Interpolate(this.reflectionRight, this.newReflectionRight, lambda);
@@ -203,9 +220,9 @@ namespace Vocal {
                 }
                 double intensity;
                 if (double.IsNaN(p.EndTime)) {
-                    intensity = MathX.Clamp((this.time - p.StartTime) / fricativeAttackTime, 0, 1);
+                    intensity = MathX.Clamp(((double)this.time - p.StartTime) / fricativeAttackTime, 0, 1); // POC-FORK(8): double, as JS
                 } else {                                          // point has been released
-                    intensity = MathX.Clamp(1 - (this.time - p.EndTime) / fricativeAttackTime, 0, 1);
+                    intensity = MathX.Clamp(1 - ((double)this.time - p.EndTime) / fricativeAttackTime, 0, 1);
                 }
                 if (intensity <= 0) {
                     continue;

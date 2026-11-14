@@ -19,14 +19,40 @@ function guion(seed, blocks, singer) {
   }
   return steps;
 }
+// VOZ-1 (2026-11-14): X1 consonantes (constricciones, velo, turbulencia), X2 tracto, X3 glotis extra.
+// Consonantes con la tabla de motor-canto.js: [índice 44, diámetro, tipo].
+const CONS = [[21, 0, 'ocl'], [36, 0.55, 'fri'], [41, 0, 'nas'], [31, 0.55, 'fri'], [38, 0.9, 'apr'], [41, 0.5, 'fri'], [36, 0, 'ocl']];
+function guionX(seed, blocks, x) {
+  const steps = guion(seed, blocks, true), r = MV.mulberry32(seed + 100);
+  steps.forEach((s, b) => {
+    if (b === 0 && x) Object.assign(s, x);
+    if (b % 12 === 0) {
+      const c = CONS[Math.floor(r() * CONS.length)];
+      s.constr = [[c[0], c[1]]];
+      if (c[2] === 'nas') s.velum = 0.4;
+      if (c[2] === 'fri') s.turbOn = [c[0], c[1]];
+    }
+    if (b % 12 === 2) { s.constr = []; s.velum = null; s.turbOff = true; }
+    if (b % 12 === 8) s.turbClear = true;
+    if (x && x.growlRamp && b % 24 === 12) s.growl = r() * 0.9;
+  });
+  return steps;
+}
 const casos = [
   { name: 'upstream-defaults', seed: 12345, steps: guion(1, 94, false) },
   { name: 'cantante-a', seed: 777, steps: guion(2, 188, true) },
   { name: 'cantante-b', seed: -42, steps: guion(3, 188, true) },
+  { name: 'x1-consonantes', seed: 501, steps: guionX(4, 188, null) },
+  { name: 'x2-tracto-38', seed: 502, tract: 38, steps: guionX(5, 188, null) },
+  { name: 'x2-tracto-52', seed: 503, tract: 52, steps: guionX(6, 188, null) },
+  { name: 'x3-death', seed: 504, tract: 52, steps: guionX(7, 188, { growl: 0.85, jit: 0.6, shim: 0.48, air: 3 }) },
+  { name: 'x3-aspereza', seed: -505, steps: guionX(8, 188, { jit: 0.25, shim: 0.2, air: 1.4, growlRamp: true }) },
+  { name: 'todo-punk', seed: 506, tract: 40, steps: guionX(9, 188, { jit: 0.25, shim: 0.2, growl: 0.1, air: 0.8 }) },
 ];
 fs.writeFileSync('casos.json', JSON.stringify(casos));
 function render(c) {
-  const pt = new MV.PinkTrombone(SR, c.seed); const out = new Float32Array(c.steps.length * BLOCK);
+  const pt = new MV.PinkTrombone(SR, c.seed, { tractLength: c.tract || 44 }); const out = new Float32Array(c.steps.length * BLOCK);
+  const T = pt.tract, g = pt.glottis, sc = T.n / 44;
   pt.reset();
   c.steps.forEach((s, b) => {
     if ('alwaysVoice' in s) pt.alwaysVoice = s.alwaysVoice;
@@ -36,6 +62,12 @@ function render(c) {
     if ('note' in s) pt.setMusicalNote(s.note); if ('touched' in s) pt.isTouched = s.touched;
     if ('loud' in s) pt.loudness = s.loud; if ('tens' in s) pt.targetTenseness = s.tens;
     if ('idx' in s) pt.setTongue(s.idx, s.dia);
+    if ('growl' in s) g.x.sub = s.growl; if ('jit' in s) g.x.jitter = s.jit; if ('shim' in s) g.x.shimmer = s.shim; if ('air' in s) g.x.air = s.air;
+    if ('constr' in s) pt.shaper.setConstrictions(s.constr.map(([index, diameter]) => ({ index, diameter })));
+    if ('velum' in s) pt.shaper.velumOverride = s.velum;
+    if (s.turbOn) T.turbulencePoints.push({ position: s.turbOn[0] * sc, diameter: s.turbOn[1], startTime: T.time, endTime: NaN });
+    if (s.turbOff) for (const p of T.turbulencePoints) if (Number.isNaN(p.endTime)) p.endTime = T.time;
+    if (s.turbClear) T.turbulencePoints = T.turbulencePoints.filter((p) => Number.isNaN(p.endTime));
     pt.synthesize(out, b * BLOCK, BLOCK);
   });
   return out;

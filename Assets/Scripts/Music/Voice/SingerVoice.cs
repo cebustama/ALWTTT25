@@ -196,7 +196,7 @@ namespace ALWTTT.Music.Voice
         [Tooltip("Vibrato depth on held notes. 0 = none, 0.4 = settled subtle " +
                  "(+/-~8 cents), 1 = pronounced/operatic (+/-~21 cents). The " +
                  "delay/ramp fields below still gate it to LONG notes only.")]
-        [SerializeField, Range(0f, 1f)] private float vibratoDepth = 0.4f;
+        [SerializeField, Range(0f, 3f)] private float vibratoDepth = 0.4f; // VOZ-1: 0-3 (D-VOZ-2)
 
         [Tooltip("Vibrato rate. 5-6.5 Hz reads as singing; below ~4.5 croons " +
                  "(seasick at depth); above ~7 nervous bleat.")]

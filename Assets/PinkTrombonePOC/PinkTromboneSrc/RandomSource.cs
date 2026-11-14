@@ -38,3 +38,22 @@ namespace Vocal {
         public double NextDouble() => this.random.NextDouble();
     }
 }
+
+namespace Vocal {
+    /// <summary>
+    /// POC-FORK(9): mulberry32, bit-for-bit the same generator as the Taller de melodías
+    /// (motor-voz.js), so X3 roughness draws the same numbers in JS and C#.
+    /// </summary>
+    internal sealed class Mulberry32 {
+        uint a;
+        public Mulberry32(int seed) { this.a = unchecked((uint)seed); }
+        public double Next() {
+            unchecked {
+                this.a += 0x6D2B79F5;
+                uint t = (this.a ^ (this.a >> 15)) * (1u | this.a);
+                t = (t + (t ^ (t >> 7)) * (61u | t)) ^ t;
+                return (t ^ (t >> 14)) / 4294967296.0;
+            }
+        }
+    }
+}

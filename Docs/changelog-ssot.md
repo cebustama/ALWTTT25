@@ -14,6 +14,15 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-14 — VOZ-1: el fork de Pink Trombone aprende X1–X3 (estilos de voz)
+
+**Clase:** semántico · operativo. Con cambio de código; sin cambio audible.
+
+- Decisiones D-VOZ-1..7 (Claudio): el juego cubre lo que hace el cantante v2 del Taller de melodías (port a C# como cantante v8, con paridad); `VoiceProfileSO` v2 en el mismo asset; orden X1 → X2 → X3; `SyllableBankSO` aparte; importador TV1/TM1 en ALWTTT; `VoiceRenderer` puro para el gig y el editor; el v8 entra en la demo con opt-out a v7 (Matías ya aprobó la voz nueva). Detalle en `planning/active/ARRANQUE_estilos_de_voz.md`.
+- Código: POC-FORK 8 (`TurbulencePoint`: el setter de `Position` lanzaba siempre; `double` como en JS), 9 (X3 en `Glottis`, `Mulberry32` vendorizado), 10 (X2: longitud del tracto por instancia en `Tract`/`TractShaper`), 11 (X1: `SetConstrictions`, `VelumOverride`, `TractTime`). `VoiceProfileSO`: `vibratoDepth` 0–3 y campos v2 con `engine = V7_CLite`. `SingerVoice`: rango del vibrato.
+- Verificación: con todo neutro, idéntico byte a byte a la build anterior; paridad JS = C# en 9 casos, −154,8 a −158,6 dB (`reference/taller-melodia/paridad/`). Compila en Unity y Zig suena igual (Claudio).
+- Docs: `SSoT_Singer_Voice` §3.6, §5 y §8; `CURRENT_STATE`; `FORK_NOTES.md`; README del taller; arranque con hallazgos, decisiones y referencias; wrapped «La garganta de Zig» (`reference/pink-trombone-wrapped/`, https://claude.ai/artifact/2531U873oDKsJNZ2fTyep7).
+
 ## 2026-11-14 — FEEDBACK-2: el feedback desde la pausa, por formulario de Google (DEMO-1211)
 
 **Clase:** semántico · operativo · ciclo de vida. Con cambio de código y prefab.
