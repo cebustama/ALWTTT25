@@ -43,6 +43,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | B4 | **CANCIONES-POR-GIG** | Canciones y loops por gig según el local y el público (hoy 3 × 3 para todos) | plan de la demo, «Deseos» |
 | B6 | **INSP-LOOP: la carta que da Inspiración por loop** | Si no entró como recompensa del gig 2: llevarla al pool de recompensas y ajustar | D-PLAN-20 |
 | B7 | **AUDIO-LOOP-2: loops a la hora exacta** | Tras S9b queda un hueco pequeño y ocasional entre loops: el siguiente arranca cuando se nota el final (sondeo por fotograma) y, si se jugó una carta, tras renderizar. Preparar el loop siguiente antes y lanzarlo a una hora fija. Medir antes con `gapMs` del log `[AUDIO-LOOP-1]`; si molesta en la demo, adelantar | `SSoT_Audio` §4.11 y §9; misma frontera que B2 |
+| B8 | **METRICA-1: compases irregulares con sus grupos** | Canciones en 7/8, 10/8 (3+3+2+2) o 5/8 y 6/8 alternados, con acentos al inicio de cada grupo; paletas por local o carta que cambia la agrupación | `reference/ideas/2026-11-15_agrupacion_metrica.md`; motor en la cola de MidiGenPlay (`IDEA_agrupacion_metrica.md`, con MGP-METER-1) |
 | B5 | **INTERACCIONES-1** | Convencidos que cantan, «boooring» entre loops | plan de la demo, «Deseos» (REPLAN-ART D3) |
 | — | Cola de MidiGenPlay | Comping y melodía siguen los acentos, orden de entrada, transiciones, «Nervioso», galope, narrador musical | `Sesiones_MidiGenPlay.md` |
 
