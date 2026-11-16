@@ -9,6 +9,11 @@ Página privada para oír a Zig con el mismo Pink Trombone del juego, compararlo
 ## Qué hace
 
 - **Melodía × Voz:** Rise Up exacto (`MelodyPattern_RiseUp_44_8m`) o la melodía nueva; Zig hoy (`VoiceProfile_Zig` + prefab `Zig_SingerVoice`, `expressivityEnabled = 0`) o un modo. Teclas M y V.
+- **Melodías antiguas (2026-11-16, pedido de Claudio):** grupo propio en el selector de melodía. Son el **epitafio de Seikilos** (6/8, con la letra griega cantada), el **himno hurrita h.6** en la lectura de Vitale (compás mixto 2/4–3/4, sin letra) y **la canción del trasero del Bosco** en la versión de Hamrick (4/4). Están en `MELODIAS_FIJAS` de `motor-canto.js` (`melodiaFija(id, transponer)`), con notas `[midi, inicio, duración, sílaba]` y una ficha que dice qué es seguro, qué es interpretación y de qué fuente sale cada cosa; la ficha se ve debajo del escenario.
+  - Las sílabas vacías en una melodía con letra son melismas. La voz canta sin tildes («zêis» → «zeis»).
+  - Sílabas «La letra original». La tónica transporta (Do = altura escrita). El acompañamiento es un bordón de tónica y quinta. Si la voz estaba en «Zig hoy», pasa al modo sugerido por la ficha.
+  - «Copiar para la carta» da las notas como un `MelodyPattern` (grado, inicio, duración, velocidad) más el MIDI y las sílabas.
+  - Transcripciones: Seikilos, de la partitura LilyPond de la Wikipedia inglesa (sigue a Pöhlmann y West 2001); Vitale, leída de la imagen de Commons; Hamrick, medida por análisis espectral de su grabación de 2014, porque su MIDI y su PDF ya no están en línea. Idea y plan: `../ideas/2026-11-16_melodias_antiguas.md`.
 - **Modos:** Zig hoy, Zig hoy + dicción (el C-lite que ya existe en C#), Tierno y calmado, Pop, Punk rock, Death metal, Ópera, Crooner, Falsete, Robot, Borracho.
 - **Perillas:** ★ las que existen en `VoiceProfileSO`; el resto es propuesta (longitud del tracto, aire, growl, aspereza, scoop, caída, glide, ataque, legato, saturación, vocal base, sílabas).
 - **Melodía nueva:** figura (escalera, zig-zag, saltos, ola, pedal, secuencia, paseo), sube/baja en grados, dirección, rango, ritmo por celdas (densidad, síncopa, silencios, swing), reglas (post-salto, acorde en 1 y 3, cadencia, firma de Zig), 16 escalas (7 existen en el juego).

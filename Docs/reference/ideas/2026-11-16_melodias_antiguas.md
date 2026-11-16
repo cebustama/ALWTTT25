@@ -34,4 +34,4 @@ Tamaño: el paso 1 es una sesión corta del taller. Según la regla de la cola d
 
 **Conecta con:** Music Lab (árbol evolutivo, raíces antiguas), cola de MidiGenPlay (`Sesiones_MidiGenPlay.md`), cuaderno-civilizaciones (la música de América que el video no trae), `_comun/conexiones.md` (2026-11-16).
 
-**Estado:** semilla
+**Estado:** paso 1 hecho el 2026-11-16, a pedido de Claudio («dale con lo del taller»). Las tres melodías ya están en el Taller de melodías: selector «Melodías antiguas», ficha, letra y bordón (ver `../taller-melodia/README.md`). Seikilos, de la partitura de Wikipedia (Pöhlmann y West); el himno hurrita, en la lectura de **Vitale** (no hay copia legible de la de West); el Bosco, medido de la grabación de Hamrick (su MIDI y su PDF ya no están en línea). Pasos 2 y 3, después de la demo.
