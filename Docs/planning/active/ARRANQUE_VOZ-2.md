@@ -2,6 +2,8 @@
 
 Segunda de tres tandas del plan de estilos de voz (`ARRANQUE_estilos_de_voz.md`, D-VOZ-1..7). VOZ-1 cerró el 2026-11-14: el fork de Pink Trombone ya sabe X1–X3 (POC-FORK 8–11) con paridad JS = C#, y `VoiceProfileSO` v2 tiene los campos del taller con `engine = V7_CLite`. Compila y Zig suena igual (Claudio). Planificación, no autoridad.
 
+> **2026-11-16:** cinco estilos nuevos (susurro, canto de garganta, nasal, canto llano, yodel) entran primero en el taller (`ARRANQUE_TALLER-MEL-A.md`); su port a C# es **VOZ-2b**, después de VOZ-2 y de la demo. Nasal usa el `velumOverride` de X1; susurro, la aspiración de `Glottis`.
+
 ## Pegar en la sesión nueva
 
 ```
@@ -92,3 +94,19 @@ build va en VOZ-3); docs aplicados; commit; arranque de VOZ-3 (importador TV1/TM
 - El JS de cantarV2 trabaja con notas en segundos (`aSegundos`) y bloques de 256; el juego tiene el MIDI del loop y el BPM. La paridad tiene que alimentar a los dos lados con la misma lista de notas (start, end, note, vel, sil, caida).
 - `cantarV2` mezcla volumen con `normalizar` solo en la página; no es parte del motor.
 - `TurbulencePoint.Position` ya es `double` y está en el espacio del tracto (`índice × n/44`), como en el JS.
+
+## Estado al 2026-11-14 (sesión VOZ-2, sin cerrar: faltan los smokes de Claudio)
+
+Decisiones de la sesión: D1 = B (fin de frase: silencio ≥ 1 tiempo, nota ≥ 2 tiempos o última; rejilla opcional `phraseGridBars`), D2 = A (léxico del banco, verso de `hash(songSeed|part)`, ruido de `songSeed`), D3 = A (bloques de 256 internos), D4 = A (sin C-lite en v8), D5 = A (gain por perfil igualando el RMS de la Zig de hoy), D6 = B (paleta `VoiceStylePaletteSO` en la carta de melodía), D7 = A (la paleta entra en VOZ-2). Además: perillas en vivo (el renderer lee el perfil en cada bloque).
+
+Hecho:
+- `Assets/Scripts/Music/Voice/V8/`: `VoiceRenderer` (cantarV2 portado, C# puro, sin asignaciones en el hilo de audio, `StartAt` para el ancla), `VoiceV8Params` (perillas + `Live*`), `VoiceV8Syllables` (fonética, zigués, lista, texto, fin de frase).
+- `SyllableBankSO`, `VoiceStylePaletteSO`; `VoiceProfileSO.syllableBank` y `ToV8Params`; `TrackActionDescriptor.voicePalette`; `SingerLoopContext.songSeed` y `voicePaletteByMusician` (los rellena `CompositionSession`); el Director elige el estilo de la paleta; `SingerVoice` arma V8 o V7 según `engine`, perillas en vivo (`Update`, menú contextual «VOZ-2/…», `SetLive*`), log `[VOZ-2]`.
+- Menú `ALWTTT ▸ Voz ▸ Crear estilos del taller (VOZ-2)` (`Assets/Scripts/Music/Voice/Editor/VoiceStylesMenu.cs`): 10 perfiles V8, bancos zigués y de lista, dos paletas, en `Voice Profiles/Estilos|Bancos|Paletas`.
+- Paridad `Docs/reference/taller-melodia/paridad/cantante/` (`node casos.mjs && dotnet run -c Release && node casos.mjs comparar`): 13 casos, sílabas, léxico y fin de frase idénticos, audio de −114 a −163 dB; búfer de 256/441/1024 idéntico; perillas en vivo audibles al bloque siguiente; CPU en dotnet 4–7 % de tiempo real por voz.
+- Regla de fin de frase medida (`medir-regla.mjs`): B 30 % de precisión / 100 % de exhaustividad; F (B + compás par) 68 % / 100 %; G (B + cada 4 compases) 100 % / 100 % pero atada a la frase de 4 compases del taller.
+- Compilación comprobada fuera de Unity con una copia temporal de `Assembly-CSharp.csproj` y `Assembly-CSharp-Editor.csproj` (Build succeeded).
+
+D8 = B (Claudio, 2026-11-14): regla F por defecto (`SyllableBankSO.phraseGridBars = 2`).
+
+Pendiente: smokes de Claudio, CPU en el editor, docs (SSoT_Singer_Voice §5 §8, CURRENT_STATE, changelog), commit solo de los archivos de esta tanda, arranque de VOZ-3.
