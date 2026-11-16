@@ -409,7 +409,7 @@
   const NUEVAS = { sonoridad: 1, nasalidad: 0, quiebre: 0, garganta: 0, bordon: -12, realce: 0 };
   Object.assign(MODOS, {
     'Susurro': { soloTaller: true, nota: 'Sin voz: las cuerdas no vibran y solo suena el ruido del aire al pasar por la glotis entreabierta, filtrado por la boca (sonoridad 0). Las consonantes pesan más. En el susurro los formantes suben y se ensanchan. Fuente: J. Wolfe, «Glottal signal, vocal tract resonances and output sound» (UNSW Voice Acoustics).', v: { dureza: 0.6, sonoridad: 0, aire: 3, tensLo: 0.05, tensHi: 0.15, minLoudness: 0.45, looseness: 0.05, vibratoDepth: 0, brightness: 0.78, legato: 0.4, scoop: 0, glideMs: 0, vocalBase: 'a', silabas: [['shi', 2], ['su', 2], ['si', 1], ['fa', 1], ['ta', 1], ['ki', 1]] } },
-    'Canto de garganta': { soloTaller: true, nota: 'Khöömei (sygyt): un bordón grave fijo y la melodía en sus armónicos 6–12, que la lengua elige moviendo una resonancia estrecha. Cada nota se proyecta al armónico más cercano (el roll marca cuánto se movió). Bloothooft et al. (JASA 1992) lo explican por F2 y F3 juntos en una banda estrecha; Adachi y Yamada (JASA 1999, con resonancia magnética), por la cavidad de atrás. Aquí se imita el resultado, no la anatomía: en Pink Trombone lo que destaca el armónico es estrechar la punta de la lengua y los labios (medido: +7 a +18 dB sobre sus vecinos). Eso no basta para oírlo: el bordón sigue 16 dB por encima. El «realce» (no físico) lo pone delante: +3 dB sobre todo lo demás de media.', v: { garganta: 1, bordon: -12, realce: 0.8, dureza: 0.1, tensLo: 0.75, tensHi: 0.85, minLoudness: 0.6, aire: 0.4, looseness: 0.02, vibratoDepth: 0, brightness: 0.85, legato: 1, glideMs: 0, scoop: 0, caida: 0, vocalBase: 'u', silabas: [['u', 3], ['o', 1]] } },
+    'Canto de garganta': { soloTaller: true, nota: 'Khöömei (sygyt): un bordón grave fijo y la melodía en sus armónicos 6–12, que la lengua elige moviendo una resonancia estrecha. Cada nota se proyecta al armónico más cercano (el roll marca cuánto se movió). Bloothooft et al. (JASA 1992) lo explican por F2 y F3 juntos en una banda estrecha; Adachi y Yamada (JASA 1999, con resonancia magnética), por la cavidad de atrás. Aquí se imita el resultado, no la anatomía: en Pink Trombone lo que destaca el armónico es estrechar la punta de la lengua y los labios (medido: +7 a +18 dB sobre sus vecinos). Eso no basta para oírlo: el bordón sigue 16 dB por encima. El «realce» (no físico) lo pone delante. Bordón una octava abajo (−24, ~65 Hz con Do, como lo pidió el oído de Claudio) y la melodía en los armónicos 8–16: el silbido queda ~6 dB bajo el bordón, claro pero sin taparlo.', v: { garganta: 1, bordon: -24, realce: 0.8, dureza: 0.1, tensLo: 0.75, tensHi: 0.85, minLoudness: 0.6, aire: 0.4, looseness: 0.02, vibratoDepth: 0, brightness: 0.85, legato: 1, glideMs: 0, scoop: 0, caida: 0, vocalBase: 'u', silabas: [['u', 3], ['o', 1]] } },
     'Nasal (twang)': { soloTaller: true, nota: 'El velo abierto todo el tiempo (nasalidad), laringe alta, tensión y brillo: la voz «de nariz» del country y del pato. Ojo: Sundberg y Thalén («What is twang?», J. Voice 2010) muestran que el twang se oye sobre todo por los formantes, no necesariamente por la nariz; este modo es el twang nasal.', v: { nasalidad: 0.6, tracto: 40, tensLo: 0.6, tensHi: 0.85, brightness: 0.85, aire: 0.6, vibratoDepth: 0.3, vibratoDelay: 0.3, scoop: 0.4, legato: 0.5, dureza: 0.5, vocalBase: 'e', silabas: [['ne', 2], ['nya', 2], ['ye', 1], ['hey', 1], ['ni', 1]] } },
     'Canto llano': { nota: 'Gregoriano tal como se canta hoy (Solesmes): sin vibrato ni scoop, todo ligado, laringe baja, emisión suave y vocales latinas. Es práctica moderna: cómo sonaba en la Edad Media no se sabe. Solo usa perillas que ya existen, así que su TV1 entra en el juego.', v: { dureza: 0.2, looseness: 0.03, vibratoDepth: 0, scoop: 0, caida: 0, glideMs: 40, legato: 1, tracto: 48, tensLo: 0.38, tensHi: 0.52, brightness: 0.38, aire: 1.2, ataque: 0, minLoudness: 0.3, vocalBase: 'a', silabas: [['a', 2], ['ve', 1], ['ma', 1], ['ri', 1], ['glo', 1], ['al', 1], ['le', 1], ['lu', 1], ['ia', 1], ['do', 1], ['mi', 1], ['ne', 1], ['ut', 1], ['re', 1], ['a', 2, 'fin']] } },
     'Yodel': { soloTaller: true, nota: 'En los saltos de 5 semitonos o más, la voz cambia de registro: de pecho abajo a cabeza (más ligera y soplada) arriba, con un quiebre audible en el cambio y la vocal que sigue al registro (o abajo, i arriba: «yo-de-lei-i»). El registro se decide por la altura de la nota (con margen) o por un salto de 5+ semitonos. Los yodlers hacen ese cambio más rápido y estable que voces sin entrenar («Vocal perfection in yodelling: pitch stabilities and transition times», Logopedics Phoniatrics Vocology, 2010).', v: { quiebre: 0.8, tensLo: 0.5, tensHi: 0.75, vibratoDepth: 0.6, vibratoDelay: 0.25, glideMs: 0, legato: 0.8, brightness: 0.6, dureza: 0.3, silabas: [['yo', 2], ['de', 1], ['lei', 2], ['i', 1], ['du', 1], ['hu', 1, 'fin']] } },
@@ -426,7 +426,10 @@
    *  octava de la nota. Devuelve n, la altura real (midi) y cuántos cents se movió. */
   function proyectarGarganta(midi, bordonMidi) {
     let best = null;
-    for (let n = 6; n <= 12; n++) {
+    // armónicos 6–12; con un bordón grave (< 100 Hz, una octava por debajo), 8–16, para que el silbido
+    // siga en la zona de las posturas medidas
+    const grave = hz(bordonMidi) < 100, nMin = grave ? 8 : 6, nMax = grave ? 16 : 12;
+    for (let n = nMin; n <= nMax; n++) {
       const real = bordonMidi + 12 * Math.log2(n);
       const dif = ((midi - real) % 12 + 18) % 12 - 6;               // distancia por clase de altura, −6..6
       const lejos = Math.abs(midi - real);                            // desempate de octava: el más cercano a la nota escrita
@@ -532,7 +535,7 @@
     // realce (no físico, como la saturación): un filtro estrecho sobre el armónico elegido y menos graves
     // en la señal seca, para que el silbido se oiga delante del bordón. Solo con garganta.
     const R = GG && V.realce > 0 ? clamp01(V.realce) : 0;
-    let rf = 0, rx1 = 0, rx2 = 0, ry1 = 0, ry2 = 0, rlo = 0;
+    let rf = 0, rq = 18, rx1 = 0, rx2 = 0, ry1 = 0, ry2 = 0, rlo = 0;
     const aLo = 1 - Math.exp(-2 * Math.PI * 450 / SR);
     v.vibratoWobble = false; v.pitchJitterGain = clamp01(V.looseness); v.tensenessJitterGain = clamp01(V.looseness);
     v.alwaysVoice = false; v.isTouched = false; v.vibratoFrequency = V.vibratoSpeedHz;
@@ -550,7 +553,7 @@
       e.cStart = e.start - Math.min(pre, Math.max(0.02, (e.start - prevEnd) + 0.06));
       e.legatoNext = i < ev.length - 1 && ev[i + 1].start - e.end < 0.03 + 0.15 * V.legato;
       e.vowel = e.s.vocal === 'mm' ? 'u' : e.s.vocal;
-      if (GG) { const pj = proyectarGarganta(e.note, bordonMidi); e.gg = posturaGarganta(hz(pj.midi)); e.ggHz = hz(pj.midi); }
+      if (GG) { const pj = proyectarGarganta(e.note, bordonMidi); e.gg = posturaGarganta(hz(pj.midi)); e.ggHz = hz(pj.midi); e.ggN = pj.n; }
       if (Q) {   // registro: por altura (con histéresis) o por salto de 5+ semitonos; el cambio es el quiebre
         const prev = i > 0 ? ev[i - 1] : null, d = prev ? e.note - prev.note : 0, ant = prev ? prev.reg : 'pecho';
         e.reg = d >= 5 ? 'cabeza' : d <= -5 ? 'pecho' : e.note >= yMid + 2 ? 'cabeza' : e.note <= yMid - 1 ? 'pecho' : ant;
@@ -641,8 +644,9 @@
       let b0 = 0, a1 = 0, a2 = 0, a0 = 1;
       if (R) {   // centro del filtro: el armónico de la nota, con un deslizamiento corto entre notas
         const want = e && e.ggHz ? e.ggHz : rf;
+        if (e && e.ggN) rq = Math.max(18, 1.5 * e.ggN);   // banda más estrecha que la distancia entre armónicos
         if (want) rf = rf ? rf * Math.pow(want / rf, 1 - Math.exp(-(B / SR) / 0.025)) : want;
-        const w0 = 2 * Math.PI * (rf || 1000) / SR, al = Math.sin(w0) / (2 * 18);
+        const w0 = 2 * Math.PI * (rf || 1000) / SR, al = Math.sin(w0) / (2 * rq);
         a0 = 1 + al; b0 = al / a0; a1 = -2 * Math.cos(w0) / a0; a2 = (1 - al) / a0;
       }
       for (let i = off; i < off + B; i++) {
