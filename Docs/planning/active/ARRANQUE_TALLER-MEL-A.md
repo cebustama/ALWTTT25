@@ -47,6 +47,9 @@ Construir:
    Neutro en las perillas nuevas = el motor de hoy, byte a byte (comprobar con
    paridad/casos.mjs y un render de cada modo viejo antes/después).
 
+Al empezar: /buscar-referencias --all (biblioteca con categorías, estilos de canto,
+canto de garganta, yodel, susurro, konnakol).
+
 Abiertas (formato D antes de construir):
 - ¿La biblioteca sustituye también a las recetas de figura o solo agrupa?
 - Konnakol: ¿por pulsos de la melodía o por la agrupación métrica (METRICA-1)?
