@@ -4,6 +4,16 @@ Sesión del Taller de melodías (solo JS, `Docs/reference/taller-melodia/`), pri
 
 **Estado (2026-11-16, noche): construida, falta la prueba de oído de Claudio.** Decisiones: D1 = A (la biblioteca sustituye al desplegable), D2 = A (konnakol por pulsos), D3 = A (proyección a los armónicos), D4 = C (bloque `soloTaller` solo si hace falta). Comprobado: neutro byte a byte, paridad del motor 9/9 y del TV1 13/13, canto de garganta +8 a +14 dB en 8 de 8, sin NaN y sin errores en la página. Detalle en `../../reference/taller-melodia/README.md`.
 
+**CERRADA el 2026-11-16, noche.** Commits:
+- ALWTTT: `270da40`, `471d40c` y `e70709a`.
+- Web: `6df76ea`, `16b25fd` y `1a1e3bf`.
+
+Todo subido. Tras la segunda escucha, el canto de garganta va con el bordón una octava abajo (−24, armónicos 8–16) y el silbido unos 6 dB bajo el bordón. El yodel, «bien así por ahora». Falta un ajuste fino que queda en manos de Claudio: el valor de «Realce» que le guste.
+
+Siguiente de la línea: `ARRANQUE_TALLER-MEL-B.md`. Después vienen:
+- C: melodías v2; aquí puede entrar kargyraa como modo.
+- D: TALLER-MEL-D, progresiones del taller armónico. El arranque está por escribir; va coordinada con V3 de MidiGenPlay.
+
 **Prueba de oído de Claudio (2026-11-16, noche):**
 - Del 1 al 13 bien; también susurro, nasal, canto llano, los modos viejos, el aviso del TV1, la importación en Unity, las versiones y el móvil.
 - Fallaron el 14 (garganta: el silbido «por detrás») y el 17 (yodel: no se notaba). Se arreglaron (D5 = A) con la perilla `realce` y el yodel por registro con vocal; falta volver a oírlos.
