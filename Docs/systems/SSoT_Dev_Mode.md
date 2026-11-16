@@ -1395,10 +1395,14 @@ llamado desde `CompositionSession` (inicio de canción, inicio y fin de cada loo
 
 - **▶ LOOP START:** parte, loop n/N, bonus, BPM, compás, tonalidad, fuente de la armonía; las cartas de la parte
   (músico, rol, carta, bundle); cada pista renderizada con instrumento, estilo, canal, CC7 en vivo y lo que tiene su stem
-  (notas, registro, tiempos, hueco más largo; **⚠ HUECO > 1 compás**, **⚠ VACÍO**); ★ SOLO en los solos.
+  (notas, registro, velocity mínima–máxima y media, tiempos, hueco más largo; **⚠ HUECO > 1 compás**, **⚠ VACÍO**,
+  **⚠ n notas bajo Mi1 (28)** fuera de la batería, añadido en WALKBASS); ★ SOLO en los solos.
 - **■ LOOP END:** por canal, las notas que llegaron al reproductor frente a las del stem (**⚠ SONÓ MENOS DE LA MITAD**,
   **⚠ CANAL MUDO** si el CC7 es 0) y un `Debug.LogWarning [COMP-LOG-1]` en el log general si algún canal sonó de menos.
 - Copia, sin colores ni pilas, las líneas de composición que ya escriben el juego y MidiGenPlay (`[SongOrchestrator]`,
   `[BassTrackComposer]`, `[TonalityAudit]`…). MidiGenPlay no se toca.
 - Límite: cuenta los note-on que lee el secuenciador (`MidiToolkitAdapter.OnMidiEvents`); una nota perdida dentro del
-  sintetizador (polifonía) no se ve aquí. Primer uso previsto: el silencio del Walking Bass (16-nov, sin diagnosticar).
+  sintetizador (polifonía) no se ve aquí. Los canales sin pista en la parte (ch15 del metrónomo, restos de la cola en
+  ch9) salen como «?» con stem 0: es ruido conocido.
+- **Smoke (2026-11-16, Claudio, build IL2CPP):** archivo creado, ▶ y ■ en cada loop, sin colores. Primer uso: el
+  silencio del Walking Bass (ch1 con CC7 0 → canal que el cantante dejó silenciado; arreglado en `SingerVoiceDirector`).

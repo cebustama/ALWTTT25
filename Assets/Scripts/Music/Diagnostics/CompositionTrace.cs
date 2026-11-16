@@ -255,12 +255,16 @@ namespace ALWTTT.Music.Diagnostics
         struct StemStats
         {
             public int Notes, MinPitch, MaxPitch, Channel;
+            // [WALKBASS] Dynamics and sub-bass: a stem can play every note and still sound faint.
+            public int MinVel, MaxVel, BelowE1;
+            public double AvgVel;
             public double FirstBeat, LastBeat, LongestGapBeats, LoopBeats;
             public int BeatsPerBar;
+            const int LowestBassE1 = 28; // lowest string of a 4-string bass
 
             public static StemStats Read(byte[] bytes, MidiGenPlay.MusicTheory.MusicTheory.TimeSignature ts, float seconds, int bpm)
             {
-                var s = new StemStats { MinPitch = 127, MaxPitch = 0, Channel = -1 };
+                var s = new StemStats { MinPitch = 127, MaxPitch = 0, Channel = -1, MinVel = 127, MaxVel = 0 };
                 var (bpb, unit) = MidiGenPlay.MusicTheory.MusicTheory.TimeSignatureProperties[ts];
                 s.BeatsPerBar = bpb;
                 using var ms = new MemoryStream(bytes);
@@ -279,7 +283,10 @@ namespace ALWTTT.Music.Diagnostics
                     gap = Math.Max(gap, st - cursor);
                     cursor = Math.Max(cursor, en);
                     int p = (int)n.NoteNumber; s.MinPitch = Math.Min(s.MinPitch, p); s.MaxPitch = Math.Max(s.MaxPitch, p);
+                    int v = (int)n.Velocity; s.MinVel = Math.Min(s.MinVel, v); s.MaxVel = Math.Max(s.MaxVel, v); s.AvgVel += v;
+                    if (p < LowestBassE1) s.BelowE1++;
                 }
+                s.AvgVel /= notes.Count;
                 s.FirstBeat = notes[0].Time * beatsPerTick;
                 s.LastBeat = cursor;
                 if (s.LoopBeats > 0) gap = Math.Max(gap, s.LoopBeats - cursor);
@@ -292,8 +299,9 @@ namespace ALWTTT.Music.Diagnostics
                 if (Notes == 0) return "0 notas  ⚠ VACÍO";
                 string gapTxt = $"hueco máx {LongestGapBeats:0.#} tiempos";
                 bool hole = BeatsPerBar > 0 && LongestGapBeats > BeatsPerBar + 0.01;
-                return $"{Notes} notas · ch{Channel} · {MinPitch}–{MaxPitch} · tiempos {FirstBeat:0.#}–{LastBeat:0.#} de {LoopBeats:0.#} · {gapTxt}" +
-                       (hole ? $"  ⚠ HUECO > 1 compás" : "");
+                return $"{Notes} notas · ch{Channel} · {MinPitch}–{MaxPitch} · vel {MinVel}–{MaxVel} (media {AvgVel:0}) · tiempos {FirstBeat:0.#}–{LastBeat:0.#} de {LoopBeats:0.#} · {gapTxt}" +
+                       (hole ? $"  ⚠ HUECO > 1 compás" : "") +
+                       (Channel != 9 && BelowE1 > 0 ? $"  ⚠ {BelowE1} notas bajo Mi1 (28)" : "");
             }
         }
 #endif

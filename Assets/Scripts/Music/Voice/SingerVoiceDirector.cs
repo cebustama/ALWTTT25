@@ -291,6 +291,16 @@ namespace ALWTTT.Music.Voice
             voice.StartAtDspTime(anchor);
 
             var mm = MidiMusicManager.Instance;
+            // [WALKBASS] The melody can change channel between songs (the song tail keeps the
+            // old mute alive through the handoff). Give the old channel its volume back before
+            // muting the new one, or whatever plays there next (the Walking Bass on ch1) stays
+            // silent: MidiMusicManager re-applies _lastKnownVol01 = 0 on every loop start.
+            if (_mutedChannel >= 0 && _mutedChannel != _pendingChannel)
+            {
+                Debug.Log($"[WALKBASS] Singer moved ch{_mutedChannel} → ch{_pendingChannel}: " +
+                          $"ch{_mutedChannel} vuelve a volumen 1.");
+                RestoreMute();
+            }
             if (mm != null && _pendingChannel >= 0)
             {
                 mm.SetChannelVolume(_pendingChannel, 0f);

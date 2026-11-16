@@ -14,6 +14,17 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-16 — WALKBASS: el Walking Bass que se calla; registro de los bajos
+
+**Clase:** semántico · operativo. Con cambio de código (ALWTTT) y de datos (MidiGenPlay).
+
+- Causa (Player.log de la build IL2CPP): la melodía de Zig pasó de ch1 a ch0 al cambiar de canción (con cola de canción) y el Walking Bass cayó en ch1. `SingerVoiceDirector` silenciaba el canal nuevo sin devolver el viejo; `_lastKnownVol01[1] = 0` se reaplicaba en cada loop. Las primeras notas sonaban entre el reset del canal y la reaplicación.
+- Arreglo: `HandleSongStarted` restaura el canal silenciado antes, si cambia (`[WALKBASS] Singer moved …`). `SSoT_Singer_Voice` §3 inv. 4.
+- Registro: el walking bajaba hasta MIDI 22. `lowestNote = 28` en Acoustic, Fingered, Fretless, Picked y Slap Bass 1/2 de MidiGenPlay (perilla existente, `LiftToPlayable`; sintes a 0). Cambia el resultado de las semillas fijadas con esos bajos.
+- COMP-LOG-1: velocity (mín–máx, media) y «⚠ n notas bajo Mi1 (28)» en la línea del stem. `SSoT_Dev_Mode` §22, con el smoke.
+- Verificación: compila fuera de Unity; smokes 0–3 jugados por Claudio en build IL2CPP (bajo entero, CC7 100, melodía de Zig sigue silenciada); registro arreglado y oído por Claudio.
+- Pendiente: el solo de Sibi (Psychic Waves) con `bonusSoloDuck01` 0,55 en vez de 0,75, de oído.
+
 ## 2026-11-16 — VOZ-3: los estilos de voz del taller al juego; IL2CPP; COMP-LOG-1
 
 **Clase:** semántico · operativo · ciclo de vida. Con cambio de código, datos, ajustes del proyecto y herramienta web.

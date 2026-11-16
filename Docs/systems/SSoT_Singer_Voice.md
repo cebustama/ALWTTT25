@@ -108,6 +108,11 @@ pipeline is therefore *by construction*: the stem filter is the only switch.
    Verified ST-V5. **Known limitation:** the sit-out restore returns the channel
    to full volume and can stomp a gameplay duck / `MidiMusicManager.Highlight`
    on that channel; Highlight×mute interaction is **deferred to Dev Mode**.
+   **Channel change (WALKBASS, 2026-11-16).** The melody can change channel between songs, and the song
+   tail keeps the old mute alive through the handoff. `HandleSongStarted` therefore restores the previously
+   muted channel (volume 1) before muting the new one (`[WALKBASS] Singer moved chA → chB`). Before the fix
+   the old channel stayed at `_lastKnownVol01 = 0`, which MMM re-applies on every loop, and whatever played
+   there next was silent (the Walking Bass on ch1).
 
 5. **One re-arm per loop (D1/D2 consequence).** Card mutations never touch the
    currently playing loop; they land in the part cache and are heard on the next
