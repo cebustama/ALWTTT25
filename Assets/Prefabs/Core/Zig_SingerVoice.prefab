@@ -143,6 +143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfa5b36b8a16f7a41a7567e467e59505, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Music.Voice.SingerVoice
+  showTuningPanel: 0
   setup: {fileID: 0}
   measureCallbackLoad: 0
   halfRateSynthesis: 0
@@ -195,6 +196,9 @@ MonoBehaviour:
   loopPlayback: 0
   syncTrimMs: 0
   uiScale: 2
+  liveTensenessOffset: 0
+  liveVibratoScale: 1
+  liveGrowlOffset: 0
 --- !u!114 &5458941219725825606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -210,5 +214,5 @@ MonoBehaviour:
   adapter: {fileID: 0}
   voice: {fileID: 5099053088749827844}
   musicianId: 3
-  profile: {fileID: 11400000, guid: 39cf5a34f7407764faea21de5f2a9514, type: 2}
+  profile: {fileID: 11400000, guid: d1e8ab596fa26e9438fa468b88a88c80, type: 2}
   logDebug: 1

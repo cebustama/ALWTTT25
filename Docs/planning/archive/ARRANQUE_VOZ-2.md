@@ -109,4 +109,6 @@ Hecho:
 
 D8 = B (Claudio, 2026-11-14): regla F por defecto (`SyllableBankSO.phraseGridBars = 2`).
 
-Pendiente: smokes de Claudio, CPU en el editor, docs (SSoT_Singer_Voice §5 §8, CURRENT_STATE, changelog), commit solo de los archivos de esta tanda, arranque de VOZ-3.
+## Cerrada el 2026-11-16
+
+Smokes 0–8 jugados por Claudio: V7 igual que antes, V8 con sílabas y consonantes, perillas en vivo, paleta en la carta (`[palette …]` frente a `[musician]`), la misma semilla da la misma voz (líneas `[VOZ-2] Armed V8` idénticas), CPU en el editor 12,7 % / pico 20,1 % (Crooner) y 13,2 % / 22,5 % (Death metal). Hallazgo de los smokes: la paleta de la carta manda sobre el perfil del Director (es lo diseñado, pero confunde al probar un perfil). D9 = A: Zig_V8 por defecto en el prefab y ninguna carta con paleta. Docs: `SSoT_Singer_Voice` §5.1 nueva, `CURRENT_STATE`, `changelog-ssot`. Siguiente: `ARRANQUE_VOZ-3.md`.

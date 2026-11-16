@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Vocal;
+using ALWTTT.Music.Voice.V8;
 using static MidiGenPlay.MusicTheory.MusicTheory;
 using TimeSignature = MidiGenPlay.MusicTheory.MusicTheory.TimeSignature;
 
@@ -411,13 +412,27 @@ namespace ALWTTT.Music.Voice
             loopPlayback = false;            // integration invariant: the Director re-arms per loop
         }
 
-        public bool ArmFromStemBytes(byte[] stemBytes, ExprContextInputs inputs, VoiceProfileSO profile)
+        /// <summary>[VOZ-2] What the v8 singer needs besides the stem: seeds (D2 = A) and where the profile came from.</summary>
+        public struct V8ArmInputs
+        {
+            public int songSeed;
+            public int partIndex;
+            public string profileSource;   // "musician" or "palette <name>" (logs)
+        }
+
+        public bool ArmFromStemBytes(byte[] stemBytes, ExprContextInputs inputs, VoiceProfileSO profile,
+            V8ArmInputs v8 = default)
         {
             Stop(); EnsureVoiceMatchesRateMode(); ApplyProfile(profile);
             MidiFile file;
             try { using var ms = new System.IO.MemoryStream(stemBytes); file = MidiFile.Read(ms); }
             catch (Exception ex) { Fail("Stem parse failed: " + ex.Message); return false; }
             var tempoMap = file.GetTempoMap();
+            // [VOZ-2 / D-VOZ-7] engine switch: V8 = the workshop's singer; V7 = today's, untouched.
+            if (profile != null && profile.engine == VoiceProfileSO.SingerEngine.V8_Workshop)
+                return ArmV8(file, tempoMap, inputs, profile, v8);
+            _v8 = null; _v8Profile = null;
+            Debug.Log($"[VOZ-2] Armed V7_CLite: profile={(profile ? profile.name : "NULL")} [{v8.profileSource ?? "-"}], expressivity={expressivityEnabled}.");
             var list = new List<NoteEvt>();
             foreach (var n in file.GetNotes())
                 list.Add(new NoteEvt
@@ -673,6 +688,7 @@ namespace ALWTTT.Music.Voice
 
             float hz = 440f * Mathf.Pow(2f, (n - 69) / 12f);
             _status = $"SUSTAIN TEST: MIDI {n} = {hz:F1} Hz.";
+            _v8 = null; _v8Profile = null;   // [VOZ-2] the sustain test is a v7 fixture
             _sustainTest = true; _playing = true;
         }
 
@@ -817,6 +833,7 @@ namespace ALWTTT.Music.Voice
             // D-S3-F=B: precompute per-note pitch lead from interval size, capped
             // by the previous note's duration so we never slide out of a short
             // note. Main thread only � the audio callback stays arithmetic-free.
+            _v8 = null; _v8Profile = null;   // [VOZ-2] the v7 path never runs the v8 renderer
             var arr = list.ToArray();
             for (int i = 0; i < arr.Length; i++)
             {
@@ -902,8 +919,13 @@ namespace ALWTTT.Music.Voice
                 {
                     _clock = (now - _dspStartTime) - syncTrimMs / 1000.0;
                     _noteOnClock = _clock; _anchored = true; _armedWaiting = false;
+                    _v8?.StartAt(_clock);   // [VOZ-2] same anchor + trim as v7
                 }
             }
+
+            // [VOZ-2] Singer v8: its own renderer (cantarV2 port), 256-sample control blocks.
+            var r8 = _v8;
+            if (r8 != null) { RenderV8(r8, data, channels); return; }
 
             // Rebuilds happen only while stopped (arm entry points), so capturing
             // locals after the _playing check yields a consistent pair.
@@ -1085,6 +1107,158 @@ namespace ALWTTT.Music.Voice
             }
 
             _clock = blockEnd;
+        }
+
+        // ================= VOZ-2: singer v8 =================
+
+        [Header("VOZ-2 live levers (v8 only; 0 / 1 = the profile as is)")]
+        [Tooltip("Added to the tenseness. + = pressed, closed throat; - = breathy, open. Live.")]
+        [SerializeField, Range(-0.5f, 0.5f)] private float liveTensenessOffset = 0f;
+        [Tooltip("Multiplies the vibrato depth. Live.")]
+        [SerializeField, Range(0f, 3f)] private float liveVibratoScale = 1f;
+        [Tooltip("Added to the growl (period doubling). Live.")]
+        [SerializeField, Range(-1f, 1f)] private float liveGrowlOffset = 0f;
+
+        private volatile VoiceRenderer _v8;
+        private VoiceProfileSO _v8Profile;
+
+        /// <summary>[VOZ-2] Gameplay hook: close (+) or open (-) the throat while singing.</summary>
+        public void SetLiveTenseness(float offset) => liveTensenessOffset = Mathf.Clamp(offset, -0.5f, 0.5f);
+        /// <summary>[VOZ-2] Gameplay hook: scale the vibrato (1 = profile).</summary>
+        public void SetLiveVibratoScale(float scale) => liveVibratoScale = Mathf.Clamp(scale, 0f, 3f);
+        /// <summary>[VOZ-2] Gameplay hook: add growl.</summary>
+        public void SetLiveGrowl(float offset) => liveGrowlOffset = Mathf.Clamp(offset, -1f, 1f);
+
+        [ContextMenu("VOZ-2/Cerrar garganta (+0.25)")] private void LiveClose() { SetLiveTenseness(0.25f); LogLive(); }
+        [ContextMenu("VOZ-2/Abrir garganta (-0.2)")] private void LiveOpen() { SetLiveTenseness(-0.2f); LogLive(); }
+        [ContextMenu("VOZ-2/Vibrato x2.5")] private void LiveVibrato() { SetLiveVibratoScale(2.5f); LogLive(); }
+        [ContextMenu("VOZ-2/Growl +0.6")] private void LiveGrowl() { SetLiveGrowl(0.6f); LogLive(); }
+        [ContextMenu("VOZ-2/Perillas en vivo a cero")] private void LiveReset() { SetLiveTenseness(0f); SetLiveVibratoScale(1f); SetLiveGrowl(0f); LogLive(); }
+        private void LogLive() => Debug.Log($"[VOZ-2] Live levers: tenseness {liveTensenessOffset:+0.00;-0.00;0}, vibrato x{liveVibratoScale:0.##}, growl {liveGrowlOffset:+0.00;-0.00;0} (engine={(_v8 != null ? "V8" : "V7, ignored")}).");
+
+        // Main thread, every frame: the profile and the live levers flow into the renderer's
+        // parameters, so Inspector edits in Play mode are heard at once (D7 = A).
+        private void Update()
+        {
+            var r8 = _v8;
+            if (r8 == null || _v8Profile == null) return;
+            _v8Profile.ToV8Params(r8.P);
+            r8.P.LiveTensenessOffset = liveTensenessOffset;
+            r8.P.LiveVibratoScale = liveVibratoScale;
+            r8.P.LiveGrowlOffset = liveGrowlOffset;
+            gain = _v8Profile.gain;
+        }
+
+        private bool ArmV8(MidiFile file, TempoMap tempoMap, ExprContextInputs inputs, VoiceProfileSO profile, V8ArmInputs a)
+        {
+            if (inputs.bpm <= 0) { Fail("V8 needs the loop bpm."); return false; }
+            var (beatsPerBar, beatUnit) = TimeSignatureProperties[inputs.timeSignature];
+            double beatSec = (60.0 / inputs.bpm) * (4.0 / beatUnit);
+            int tpqn = file.TimeDivision is TicksPerQuarterNoteTimeDivision tq ? tq.TicksPerQuarterNote : 0;
+            double beatsPerTick = tpqn > 0 ? (beatUnit / 4.0) / tpqn : 0;
+
+            var list = new List<SungNote>();
+            foreach (var n in file.GetNotes())
+            {
+                double st = n.TimeAs<MetricTimeSpan>(tempoMap).TotalMicroseconds / 1_000_000.0;
+                double en = n.EndTimeAs<MetricTimeSpan>(tempoMap).TotalMicroseconds / 1_000_000.0;
+                list.Add(new SungNote
+                {
+                    Start = st, End = en, Note = n.NoteNumber, Vel = n.Velocity,
+                    // beats from ticks (exact), so the «1 beat» rules never miss by a microsecond
+                    StartBeats = tpqn > 0 ? n.Time * beatsPerTick : st / beatSec,
+                    DurBeats = tpqn > 0 ? n.Length * beatsPerTick : (en - st) / beatSec,
+                });
+            }
+            list.Sort((x, y) => x.Start.CompareTo(y.Start));
+            if (list.Count == 0) { Fail("Stem has zero notes."); return false; }
+            var notes = list.ToArray();
+
+            var bank = profile.syllableBank;
+            int grid = bank != null ? bank.phraseGridBars : 0;
+            int ends = SyllablePlanner.MarkPhraseEnds(notes, beatSec, profile.fallSemitones > 0f, beatsPerBar, grid);
+            int verseSeed = SyllablePlanner.Hash($"{a.songSeed}|{a.partIndex}|verso");
+            string[] lexicon = null;
+            string bankInfo = "none (base vowel)";
+            if (bank != null)
+            {
+                switch (bank.mode)
+                {
+                    case SyllableBankSO.Mode.Zigues:
+                        lexicon = SyllablePlanner.AssignZigues(notes, bank.lexiconSeed, bank.hardness, verseSeed);
+                        bankInfo = $"{bank.name} (zigues, lexiconSeed={bank.lexiconSeed}, hardness={bank.hardness:0.##})";
+                        break;
+                    case SyllableBankSO.Mode.WeightedList:
+                        SyllablePlanner.AssignWeighted(notes, bank.ToWeighted(), verseSeed, "");
+                        bankInfo = $"{bank.name} (list, {bank.entries.Count} syllables)";
+                        break;
+                    default:
+                        SyllablePlanner.AssignWeighted(notes, new List<WeightedSyllable>(), verseSeed, bank.text);
+                        bankInfo = $"{bank.name} (text)";
+                        break;
+                }
+            }
+
+            var p = new VoiceV8Params();
+            profile.ToV8Params(p);
+            p.LiveTensenessOffset = liveTensenessOffset; p.LiveVibratoScale = liveVibratoScale; p.LiveGrowlOffset = liveGrowlOffset;
+            int noiseSeed = a.songSeed ^ SyllablePlanner.Hash("voz-ruido");
+            var r = new VoiceRenderer(notes, p, _sampleRate, noiseSeed);
+
+            _v8Profile = profile;
+            gain = profile.gain;
+            _songEnd = r.EndTime;
+            ResetPlaybackState();
+            _sustainTest = false;
+            _v8 = r;
+            _armedWaiting = true; _dspStartTime = double.MaxValue;
+
+            var sung = new System.Text.StringBuilder();
+            for (int i = 0; i < notes.Length && i < 16; i++)
+                sung.Append(string.IsNullOrEmpty(notes[i].Syllable) ? "_" : notes[i].Syllable).Append(notes[i].PhraseEnd ? " | " : " ");
+            Debug.Log($"[VOZ-2] Armed V8: profile={profile.name} [{a.profileSource ?? "-"}], bank={bankInfo}, " +
+                      $"songSeed={a.songSeed}, part={a.partIndex}, verseSeed={verseSeed}, noiseSeed={noiseSeed}, " +
+                      $"notes={notes.Length}, phraseEnds={ends} (grid={grid}), tract={r.TractLength}, sr={_sampleRate}" +
+                      (lexicon != null ? $", lexicon=[{string.Join(" ", lexicon)}]" : "") +
+                      $"\n  sings: {sung}");
+            _status = $"Armed V8 {profile.name}: {notes.Length} notes, {_songEnd:F1}s";
+            return true;
+        }
+
+        // Audio thread. No allocation: the renderer and the mono buffer exist already.
+        private void RenderV8(VoiceRenderer r8, float[] data, int channels)
+        {
+            var mono = _mono;
+            int frames = data.Length / channels;
+            if (mono == null || mono.Length < frames) return;
+            long t0 = measureCallbackLoad ? System.Diagnostics.Stopwatch.GetTimestamp() : 0L;
+
+            r8.Render(new Span<float>(mono, 0, frames));
+
+            float kExt = 1f - Mathf.Exp(-1f / (_sampleRate * 0.010f));   // [SONG-TAIL-1 / R-V]
+            float extTarget = _extLevelTarget;
+            float g = gain;
+            for (int i = 0; i < frames; i++)
+            {
+                _extLevelSmooth += (extTarget - _extLevelSmooth) * kExt;
+                float s = mono[i] * g * _extLevelSmooth;
+                for (int c = 0; c < channels; c++) data[i * channels + c] = s;
+            }
+            if (r8.Time >= r8.EndTime + 2.0) _playing = false;
+
+            if (measureCallbackLoad)
+            {
+                _measTicks += System.Diagnostics.Stopwatch.GetTimestamp() - t0;
+                _measFrames += frames; _measBlocks++;
+                if (_measBlocks >= 200)
+                {
+                    double cpuSec = (double)_measTicks / System.Diagnostics.Stopwatch.Frequency;
+                    float pct = (float)(100.0 * cpuSec / (_measFrames / _sampleRate));
+                    _measLoadPct = pct;
+                    if (pct > _measPeakPct) _measPeakPct = pct;
+                    _measTicks = 0; _measFrames = 0; _measBlocks = 0;
+                }
+            }
         }
 
         // ================= minimal IMGUI =================

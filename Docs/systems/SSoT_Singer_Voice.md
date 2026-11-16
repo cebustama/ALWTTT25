@@ -15,6 +15,11 @@
 > external level plane that follows the tail (R-V). `CompositionSession` is still edited only by
 > `LoopPlaybackStarting`.
 >
+> **Updated:** 2026-11-16 (VOZ-2) — the **singer v8**: `VoiceRenderer` (C# port of the Taller de
+> melodías' `cantarV2`) sings zigués syllables with consonants, scoop, fall, glide and growl when
+> the profile says `engine = V8_Workshop`; `SyllableBankSO` (what it says), `VoiceStylePaletteSO`
+> (a melody card picks the style), live levers. `V7_CLite` stays as the opt-out. §3.1, §4, §5, §6, §8.
+>
 > **Authority order:** `SSoT_CONTRACTS.md` → this SSoT for singer-voice
 > concepts → `CURRENT_STATE.md` for the active slice. Cross-project facts
 > defer to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`.
@@ -57,6 +62,11 @@ pipeline is therefore *by construction*: the stem filter is the only switch.
    with a logged reason — never queued, never instantiated. The counter is a
    static reset on subsystem registration so play-mode-without-domain-reload
    cannot leak it. Verified ST-V7.
+   **Singer v8 (VOZ-2, 2026-11-16):** measured in the editor with *Measure callback load*:
+   Crooner load 12.7 % / peak 20.1 %, Death metal (tract 52 + growl, the heaviest style)
+   13.2 % / 22.5 %; 4–7 % of real time in dotnet. **Not yet measured in a build** (VOZ-3).
+   The audio thread allocates nothing: the renderer, its `Constriction[8]` buffer and the mono
+   buffer exist from arm time.
 
 2. **Monophonic.** One note at a time, last-note priority, `Melody`/`Lead` roles
    only. Inherited from the model; not an integration choice.
@@ -138,6 +148,10 @@ tutorial hold). The payload carries `partIndex`, the loop's `stemsByTrack`
 `ExprContext`. Subscriber exceptions are caught and logged so a singer fault can
 never kill the loop. This is the **only** edit to `CompositionSession`; it is
 tagged `[SINGER-1]`.
+**VOZ-2 (2026-11-16)** widens the payload, not the seam: `songSeed` (the song's seed, stable for
+the whole song; 0 when none) and `voicePaletteByMusician` (the `voicePalette` of each Melody/Lead
+track's source card in this part, by `musicianId`; null when none), filled by
+`CompositionSession.CollectVoicePalettes`, tagged `[VOZ-2 / D6 = B]`.
 
 Per-loop cycle in the Director:
 1. `LoopPlaybackStarting` → find the opted-in musician's `Melody`/`Lead` stem;
@@ -178,9 +192,59 @@ sigue siendo del proyecto MidiGenPlay (clase research)
   follow the Taller de melodías («Copiar para la carta» → `propuestaVoiceProfileV2`), so an
   imported mode maps 1:1. **Read only by the singer v8 (VOZ-2); with `engine = V7_CLite`
   the profile sounds exactly as before.** `vibratoDepth` widened 0–1 → 0–3 (opera 2.6);
-  values ≤ 1 are unchanged. Syllables will live in a separate `SyllableBankSO` referenced
-  by the profile (D-VOZ-4 = A, VOZ-2). Plan and decisions D-VOZ-1..7:
+  values ≤ 1 are unchanged. Plan and decisions D-VOZ-1..7:
   `planning/active/ARRANQUE_estilos_de_voz.md`.
+- **`syllableBank` (VOZ-2):** the `SyllableBankSO` the v8 sings (below). `ToV8Params` copies
+  the profile into the renderer's `VoiceV8Params`.
+
+### 5.1 Singer v8 (VOZ-2, 2026-11-16)
+
+With `engine = V8_Workshop` the Director's arm goes to `VoiceRenderer`
+(`Assets/Scripts/Music/Voice/V8/`, pure C#, no UnityEngine), a port of `cantarV2`
+(`reference/taller-melodia/motor-canto.js`): syllables with consonants (X1), diphthongs, «mm»,
+coda, scoop, fall, glide, pitch lead, attack, legato, vibrato with delay and ramp, two-pole tone
+stage, tanh drive. **No C-lite in v8** (D4 = A). Decisions in `planning/archive/ARRANQUE_VOZ-2.md`.
+
+- **Parity is the contract.** JS = C# on 13 full-render cases (−114 to −163 dB; criterion
+  < −60 dB), identical syllables, lexicon and phrase ends; harness in
+  `reference/taller-melodia/paridad/cantante/` (`node casos.mjs && dotnet run -c Release && node
+  casos.mjs comparar`). C# does its arithmetic in double where JS does. Re-run it whenever the
+  renderer, the syllables or `motor-canto.js` change.
+- **Control blocks of 256 samples inside the renderer** (D3 = A), independent of the DSP buffer:
+  256 / 441 / 1024 buffers give identical output, so real time = offline (VOZ-3's editor render).
+- **Phrase ends from the stem** (D1 = B + D8 = B, rule F): a note ends a phrase if it is the last,
+  is followed by a rest of ≥ 1 beat or lasts ≥ 2 beats, **and** ends within a beat of an even bar
+  line (`SyllableBankSO.phraseGridBars = 2`; 0 = without the grid). A phrase end of ≥ 1 beat
+  gets the forced fall when the profile's `fallSemitones > 0`. Measured against the workshop's
+  composer: 68 % precision / 100 % recall (30 % without the grid).
+- **Seeds (D2 = A):** lexicon from the bank's `lexiconSeed` (Zig's language, the same in every
+  song); verse from `hash(songSeed|part|verso)`; noise from `songSeed ^ hash("voz-ruido")`. With
+  the pinned song seed the same song sings the same verse (smoke 7). A bank's hardness changes
+  consonants, not the words: `nase` (Crooner) → `xase` (Death metal).
+- **Volume (D5 = A):** `gain` per profile, calibrated so each style's RMS equals the v7 Zig with
+  diction (`paridad/cantante/gen-estilos.mjs`). The renderer does not normalize.
+- **Live levers:** the renderer reads `VoiceV8Params` every block; `SingerVoice.Update` copies the
+  profile plus `liveTensenessOffset`, `liveVibratoScale`, `liveGrowlOffset` (public
+  `SetLiveTenseness/VibratoScale/Growl`; context menu «VOZ-2/…»). Heard on the next block. No
+  gameplay consumer yet.
+- **Log:** `[VOZ-2] Armed V8: profile=… [source], bank=…, songSeed, part, verseSeed, noiseSeed,
+  notes, phraseEnds (grid), tract, sr, lexicon=[…]` plus the first 16 sung syllables; with
+  `V7_CLite`, `[VOZ-2] Armed V7_CLite: profile=… [source]`.
+
+**`SyllableBankSO`** (`Assets/Scripts/Data/Audio/`, D-VOZ-4 = A): `mode` = `Zigues` (from
+`lexiconSeed` = 4242 and `hardness` 0–1, same draws as the workshop), `WeightedList` (syllable,
+weight, `isEnd`) or `Text`; `phraseGridBars`.
+
+**`VoiceStylePaletteSO`** (D6 = B): weighted list of profiles. A melody card's
+`TrackActionDescriptor.voicePalette` makes the singer pick one with
+`Rng(songSeed ^ partIndex·7919, "voz-paleta")`: one style per song and part, reproducible.
+**The card's palette wins over the Director's profile** (log source `[palette …]` vs
+`[musician]`).
+
+**Assets** (menu *ALWTTT ▸ Voz ▸ Crear estilos del taller (VOZ-2)*, never overwrites):
+`Voice Profiles/Estilos/` 10 V8 profiles (Zig V8, Tierno y calmado, Pop, Punk rock, Death metal,
+Ópera, Crooner, Falsete, Robot, Borracho); `Bancos/` `Zigues_*` and `Silabas_*`; `Paletas/`
+`Paleta_Todos_Los_Estilos`, `Paleta_Zig_Se_Emborracha`.
 
 Defaults equal the lever doc's "Settled singer" recipe (the only listen-verified
 voice). Gameplay-modulation hooks (per-state overrides) are deliberately absent
@@ -200,6 +264,12 @@ flat vowel. Heard by Claudio (smoke 1). In `SingerVoice.VowelPresets` the preset
 «Back (oh)» is renamed **«Back~a»**: it measures F1 730 / F2 1650, an «a», not an «oh». Same
 values, honest name. The POC copy in `Assets/PinkTrombonePOC` is untouched. Phases F1–F3
 (melodies by figure, consonants, zigués syllables) stay post-demo.
+
+**Zig sings v8 (VOZ-2, D9 = A, 2026-11-16).** `Zig_SingerVoice.prefab` ships with
+`VoiceProfile_Zig_V8` (zigués, hardness 0.5). **The switch back** (D-VOZ-7) is the Director's
+`profile` field: put `VoiceProfile_Zig` back (v7 + diction). No demo card has a voice palette
+yet (Rise Up and Showtime were emptied after the smokes); which card gets which palette is a
+design decision for VOZ-3.
 
 **Owed (D4=A).** A `VoiceProfileSO` field on `MusicianCharacterData` (its existing
 `[Header("Audio")]` section, beside `MusicianProfileData profile`) + a Director
@@ -246,8 +316,10 @@ lookup, retiring the serialized string. Follow-up, not required for the demo.
   smoothing ~10 ms on the audio thread; ×1f is exact, so level 1 is bit-identical) follows the song-tail
   plane (R-V);
   balance is the profile `gain`. A small follow-up.
-- Consonants / nasal branch — **the model can do them since VOZ-1** (POC-FORK 8 and 11);
-  the singer still sings vowels only until the v8 lands (VOZ-2: syllables via
-  `SyllableBankSO`, zigués).
+- ~~Consonants / nasal branch~~ — **done in VOZ-2** (singer v8, §5.1). The v7 path still sings
+  vowels only.
+- VOZ-3: TV1/TM1 importer for styles from the workshop, «▶ con voz» and `.wav` in the Banco de
+  cartas (offline `VoiceRenderer`), TV1 button in the workshop, CPU of the v8 in a build.
+- Gameplay consumers of the live levers (e.g. Stress closes the throat) — none yet.
 - Phase D4 `IPerformanceMetadataSink` — deferred; re-open only on repeated,
   concrete demand for phrase-level metadata from this integration.

@@ -1,0 +1,538 @@
+{
+ "rmsZig": 0.0792340595239839,
+ "salida": [
+  {
+   "nombre": "Zig V8",
+   "modo": null,
+   "V": {
+    "looseness": 0.15,
+    "vibratoDepth": 0.4,
+    "vibratoSpeedHz": 6,
+    "vibratoDelay": 0.35,
+    "vibratoRamp": 0.4,
+    "brightness": 0.5,
+    "transpose": -12,
+    "tensLo": 0.4,
+    "tensHi": 0.6,
+    "minLoudness": 0.15,
+    "pitchLead": 0.06,
+    "tracto": 44,
+    "aire": 1,
+    "growl": 0,
+    "aspereza": 0,
+    "saturacion": 0,
+    "scoop": 0,
+    "scoopMs": 90,
+    "caida": 0,
+    "glideMs": 0,
+    "ataque": 0,
+    "legato": 0.3,
+    "vocalBase": "ə",
+    "silabas": [],
+    "nivel": 0.12,
+    "dureza": 0.5
+   },
+   "rms": 0.08539370758616144,
+   "gain": 0.9278676586800905,
+   "picoConGain": 0.2580681313267421
+  },
+  {
+   "nombre": "Tierno y calmado",
+   "modo": "Tierno y calmado",
+   "V": {
+    "looseness": 0.08,
+    "vibratoDepth": 0.35,
+    "vibratoSpeedHz": 5,
+    "vibratoDelay": 0.5,
+    "vibratoRamp": 0.6,
+    "brightness": 0.28,
+    "transpose": -12,
+    "tensLo": 0.22,
+    "tensHi": 0.42,
+    "minLoudness": 0.1,
+    "pitchLead": 0.06,
+    "tracto": 46,
+    "aire": 1.8,
+    "growl": 0,
+    "aspereza": 0,
+    "saturacion": 0,
+    "scoop": 0.4,
+    "scoopMs": 140,
+    "caida": 0,
+    "glideMs": 110,
+    "ataque": 0,
+    "legato": 0.9,
+    "vocalBase": "u",
+    "silabas": [
+     [
+      "mm",
+      2,
+      "fin"
+     ],
+     [
+      "lu",
+      2
+     ],
+     [
+      "u",
+      2
+     ],
+     [
+      "no",
+      1
+     ],
+     [
+      "la",
+      1
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.1
+   },
+   "rms": 0.08108956353412508,
+   "gain": 0.9771178444022537,
+   "picoConGain": 0.29113750298889973
+  },
+  {
+   "nombre": "Pop",
+   "modo": "Pop",
+   "V": {
+    "looseness": 0.12,
+    "vibratoDepth": 0.5,
+    "vibratoSpeedHz": 5.8,
+    "vibratoDelay": 0.25,
+    "vibratoRamp": 0.4,
+    "brightness": 0.55,
+    "transpose": -12,
+    "tensLo": 0.45,
+    "tensHi": 0.66,
+    "minLoudness": 0.15,
+    "pitchLead": 0.06,
+    "tracto": 44,
+    "aire": 1,
+    "growl": 0,
+    "aspereza": 0,
+    "saturacion": 0,
+    "scoop": 0.6,
+    "scoopMs": 70,
+    "caida": 0.5,
+    "glideMs": 0,
+    "ataque": 0,
+    "legato": 0.6,
+    "vocalBase": "ə",
+    "silabas": [
+     [
+      "na",
+      3
+     ],
+     [
+      "la",
+      2
+     ],
+     [
+      "da",
+      1
+     ],
+     [
+      "ye",
+      1
+     ],
+     [
+      "oh",
+      1,
+      "fin"
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.4
+   },
+   "rms": 0.08612649051302632,
+   "gain": 0.919973158688035,
+   "picoConGain": 0.27538578867705743
+  },
+  {
+   "nombre": "Punk rock",
+   "modo": "Punk rock",
+   "V": {
+    "looseness": 0.3,
+    "vibratoDepth": 0,
+    "vibratoSpeedHz": 6,
+    "vibratoDelay": 0.35,
+    "vibratoRamp": 0.4,
+    "brightness": 0.82,
+    "transpose": -7,
+    "tensLo": 0.72,
+    "tensHi": 0.92,
+    "minLoudness": 0.5,
+    "pitchLead": 0.02,
+    "tracto": 40,
+    "aire": 1,
+    "growl": 0,
+    "aspereza": 0.25,
+    "saturacion": 0.45,
+    "scoop": 1.5,
+    "scoopMs": 60,
+    "caida": 2.5,
+    "glideMs": 0,
+    "ataque": 0.25,
+    "legato": 0.05,
+    "vocalBase": "ə",
+    "silabas": [
+     [
+      "hey",
+      3
+     ],
+     [
+      "go",
+      2
+     ],
+     [
+      "oi",
+      2
+     ],
+     [
+      "ya",
+      2
+     ],
+     [
+      "no",
+      1
+     ],
+     [
+      "hey",
+      2,
+      "fin"
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.85
+   },
+   "rms": 0.10488783872332658,
+   "gain": 0.7554170291656758,
+   "picoConGain": 0.20292740485209493
+  },
+  {
+   "nombre": "Death metal",
+   "modo": "Death metal",
+   "V": {
+    "looseness": 0.35,
+    "vibratoDepth": 0,
+    "vibratoSpeedHz": 6,
+    "vibratoDelay": 0.35,
+    "vibratoRamp": 0.4,
+    "brightness": 0.32,
+    "transpose": -24,
+    "tensLo": 0.78,
+    "tensHi": 0.95,
+    "minLoudness": 0.55,
+    "pitchLead": 0.06,
+    "tracto": 52,
+    "aire": 3,
+    "growl": 0.85,
+    "aspereza": 0.6,
+    "saturacion": 0.55,
+    "scoop": 0,
+    "scoopMs": 90,
+    "caida": 1.5,
+    "glideMs": 0,
+    "ataque": 0.15,
+    "legato": 0.4,
+    "vocalBase": "o",
+    "silabas": [
+     [
+      "gro",
+      2
+     ],
+     [
+      "uo",
+      2
+     ],
+     [
+      "bro",
+      1
+     ],
+     [
+      "ro",
+      1
+     ],
+     [
+      "dru",
+      1
+     ],
+     [
+      "o",
+      2,
+      "fin"
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.95
+   },
+   "rms": 0.07377199893905674,
+   "gain": 1.0740397530699877,
+   "picoConGain": 0.2661895186037308
+  },
+  {
+   "nombre": "Ópera",
+   "modo": "Ópera",
+   "V": {
+    "looseness": 0.04,
+    "vibratoDepth": 2.6,
+    "vibratoSpeedHz": 5.6,
+    "vibratoDelay": 0.12,
+    "vibratoRamp": 0.25,
+    "brightness": 0.62,
+    "transpose": -12,
+    "tensLo": 0.52,
+    "tensHi": 0.72,
+    "minLoudness": 0.15,
+    "pitchLead": 0.06,
+    "tracto": 50,
+    "aire": 1,
+    "growl": 0,
+    "aspereza": 0,
+    "saturacion": 0,
+    "scoop": 0,
+    "scoopMs": 90,
+    "caida": 0,
+    "glideMs": 60,
+    "ataque": 0,
+    "legato": 0.85,
+    "vocalBase": "a",
+    "silabas": [
+     [
+      "a",
+      3
+     ],
+     [
+      "o",
+      2
+     ],
+     [
+      "la",
+      1
+     ],
+     [
+      "ah",
+      1,
+      "fin"
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.3
+   },
+   "rms": 0.08799191463322266,
+   "gain": 0.9004697744588898,
+   "picoConGain": 0.2989150555398984
+  },
+  {
+   "nombre": "Crooner",
+   "modo": "Crooner",
+   "V": {
+    "looseness": 0.18,
+    "vibratoDepth": 1.4,
+    "vibratoSpeedHz": 4.8,
+    "vibratoDelay": 0.4,
+    "vibratoRamp": 0.4,
+    "brightness": 0.35,
+    "transpose": -14,
+    "tensLo": 0.35,
+    "tensHi": 0.55,
+    "minLoudness": 0.15,
+    "pitchLead": 0.06,
+    "tracto": 48,
+    "aire": 1.4,
+    "growl": 0,
+    "aspereza": 0,
+    "saturacion": 0,
+    "scoop": 1,
+    "scoopMs": 120,
+    "caida": 0,
+    "glideMs": 140,
+    "ataque": 0,
+    "legato": 0.8,
+    "vocalBase": "ə",
+    "silabas": [
+     [
+      "bu",
+      2
+     ],
+     [
+      "du",
+      2
+     ],
+     [
+      "ba",
+      1
+     ],
+     [
+      "oh",
+      1,
+      "fin"
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.3
+   },
+   "rms": 0.08125785997380766,
+   "gain": 0.9750940961221953,
+   "picoConGain": 0.2709613396011218
+  },
+  {
+   "nombre": "Falsete",
+   "modo": "Falsete",
+   "V": {
+    "looseness": 0.1,
+    "vibratoDepth": 0.8,
+    "vibratoSpeedHz": 6.2,
+    "vibratoDelay": 0.35,
+    "vibratoRamp": 0.4,
+    "brightness": 0.45,
+    "transpose": 0,
+    "tensLo": 0.18,
+    "tensHi": 0.32,
+    "minLoudness": 0.15,
+    "pitchLead": 0.06,
+    "tracto": 38,
+    "aire": 2.2,
+    "growl": 0,
+    "aspereza": 0,
+    "saturacion": 0,
+    "scoop": 0,
+    "scoopMs": 90,
+    "caida": 0,
+    "glideMs": 60,
+    "ataque": 0,
+    "legato": 0.7,
+    "vocalBase": "u",
+    "silabas": [
+     [
+      "u",
+      3
+     ],
+     [
+      "i",
+      1
+     ],
+     [
+      "hu",
+      1
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.15
+   },
+   "rms": 0.12113857607535747,
+   "gain": 0.6540778510942232,
+   "picoConGain": 0.29695434382967206
+  },
+  {
+   "nombre": "Robot",
+   "modo": "Robot",
+   "V": {
+    "looseness": 0,
+    "vibratoDepth": 0,
+    "vibratoSpeedHz": 6,
+    "vibratoDelay": 0.35,
+    "vibratoRamp": 0.4,
+    "brightness": 0.7,
+    "transpose": -12,
+    "tensLo": 0.6,
+    "tensHi": 0.6,
+    "minLoudness": 0.15,
+    "pitchLead": 0,
+    "tracto": 44,
+    "aire": 1,
+    "growl": 0,
+    "aspereza": 0,
+    "saturacion": 0,
+    "scoop": 0,
+    "scoopMs": 90,
+    "caida": 0,
+    "glideMs": 0,
+    "ataque": 0,
+    "legato": 0,
+    "vocalBase": "ə",
+    "silabas": [
+     [
+      "bi",
+      2
+     ],
+     [
+      "bo",
+      2
+     ],
+     [
+      "di",
+      1
+     ],
+     [
+      "du",
+      1
+     ],
+     [
+      "ti",
+      1
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.75
+   },
+   "rms": 0.08654413951593873,
+   "gain": 0.9155335065685349,
+   "picoConGain": 0.2743573628203323
+  },
+  {
+   "nombre": "Borracho",
+   "modo": "Borracho",
+   "V": {
+    "looseness": 1,
+    "vibratoDepth": 1.2,
+    "vibratoSpeedHz": 4.5,
+    "vibratoDelay": 0.35,
+    "vibratoRamp": 0.4,
+    "brightness": 0.35,
+    "transpose": -12,
+    "tensLo": 0.4,
+    "tensHi": 0.55,
+    "minLoudness": 0.15,
+    "pitchLead": 0.06,
+    "tracto": 44,
+    "aire": 1,
+    "growl": 0,
+    "aspereza": 0.2,
+    "saturacion": 0,
+    "scoop": 0,
+    "scoopMs": 90,
+    "caida": 0,
+    "glideMs": 160,
+    "ataque": 0,
+    "legato": 0.9,
+    "vocalBase": "ə",
+    "silabas": [
+     [
+      "la",
+      2
+     ],
+     [
+      "lo",
+      2
+     ],
+     [
+      "ay",
+      1
+     ],
+     [
+      "hic",
+      1
+     ]
+    ],
+    "nivel": 0.12,
+    "dureza": 0.45
+   },
+   "rms": 0.08000831600614836,
+   "gain": 0.9903227999186364,
+   "picoConGain": 0.2797449102606059
+  }
+ ]
+}

@@ -25,6 +25,11 @@ namespace ALWTTT.Music.Voice
         public TimeSignature timeSignature;
         public int bpm;
         public float seconds;
+        // [VOZ-2] Song seed (CompositionSession, stable for the whole song): the zigués verse,
+        // the voice noise and the palette pick derive from it (D2 = A).
+        public int songSeed;
+        // [VOZ-2 / D6 = B] Voice palettes of this part's melody cards, by musicianId. Null = none.
+        public IReadOnlyDictionary<string, VoiceStylePaletteSO> voicePaletteByMusician;
     }
 
     /// <summary>
@@ -196,10 +201,13 @@ namespace ALWTTT.Music.Voice
             _armedForLoop = false;
             _pendingChannel = -1;
 
-            if (voice == null || profile == null || string.IsNullOrEmpty(musicianId))
+            // [VOZ-2 / D6 = B] A melody card with a voice palette picks the style for this
+            // song and part; otherwise the musician's own profile sings.
+            var effProfile = PickProfile(ctx, out string profileSource);
+            if (voice == null || effProfile == null || string.IsNullOrEmpty(musicianId))
             {
                 SitOut($"not configured (voice={(voice ? "ok" : "NULL")}, " +
-                       $"profile={(profile ? "ok" : "NULL")}, " +
+                       $"profile={(effProfile ? "ok" : "NULL")}, " +
                        $"musicianId='{musicianId}')");
                 return;
             }
@@ -230,14 +238,34 @@ namespace ALWTTT.Music.Voice
                     timeSignature = ctx.timeSignature,
                     bpm = ctx.bpm,
                 },
-                profile);
+                effProfile,
+                new SingerVoice.V8ArmInputs
+                {
+                    songSeed = ctx.songSeed,
+                    partIndex = ctx.partIndex,
+                    profileSource = profileSource,
+                });
             if (!armed) { SitOut("SingerVoice refused to arm"); return; }
 
             _pendingChannel = channel;
             _armedForLoop = true;
             if (logDebug)
                 Debug.Log($"{Tag} Armed for part {ctx.partIndex} " +
-                          $"(musician={musicianId}, ch={channel}, bpm={ctx.bpm}).");
+                          $"(musician={musicianId}, ch={channel}, bpm={ctx.bpm}, " +
+                          $"voice={effProfile.name} [{profileSource}]).");
+        }
+
+        // [VOZ-2 / D6 = B] Palette of the musician's melody card for this part, else the default.
+        private VoiceProfileSO PickProfile(SingerLoopContext ctx, out string source)
+        {
+            source = "musician";
+            if (ctx.voicePaletteByMusician != null && !string.IsNullOrEmpty(musicianId)
+                && ctx.voicePaletteByMusician.TryGetValue(musicianId, out var pal) && pal != null)
+            {
+                var picked = pal.Pick(ctx.songSeed, ctx.partIndex);
+                if (picked != null) { source = "palette " + pal.name; return picked; }
+            }
+            return profile;
         }
 
         // ── 2. Backing actually started: anchor + mute ─────────────────────

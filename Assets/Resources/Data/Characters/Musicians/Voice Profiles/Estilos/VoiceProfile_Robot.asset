@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5e27a885753584abaf43e9621788d8, type: 3}
+  m_Name: VoiceProfile_Robot
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Music.Voice.VoiceProfileSO
+  looseness: 0
+  vibratoDepth: 0
+  vibratoSpeedHz: 6
+  diction: 1
+  mouth: 0
+  brightness: 0.7
+  transposeSemitones: -12
+  tensenessAtVel0: 0.6
+  tensenessAtVel127: 0.6
+  vibratoDelaySeconds: 0.35
+  vibratoRampSeconds: 0.4
+  pitchLeadSeconds: 0
+  leadFullInterval: 7
+  minLoudness: 0.15
+  startTrimMs: 0
+  gain: 0.9155
+  engine: 1
+  tractLength: 44
+  breath: 1
+  growl: 0
+  roughness: 0
+  drive: 0
+  scoopSemitones: 0
+  scoopMs: 90
+  fallSemitones: 0
+  glideMs: 0
+  attackPress: 0
+  legato: 0
+  baseVowel: 0
+  syllableBank: {fileID: 11400000, guid: 89aea967f58244c4b8d8bdf67b33922a, type: 2}

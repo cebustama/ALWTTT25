@@ -43,7 +43,7 @@ Nace de la nota de Claudio a D-MELFIG-8 (2026-11-14, sesión de melodías por fi
 ## Tandas
 
 1. **VOZ-1, el fork:** X1–X3 en C# con paridad; `vibratoDepth` 0–3; `VoiceProfileSO` v2 con campos neutros. **Hecho en código el 2026-11-14** (POC-FORK 8–11; paridad de 9 casos entre −154,8 y −158,6 dB; con todo neutro, idéntico byte a byte a antes). Falta que compile en Unity (Claudio). Hallazgo: el setter de `TurbulencePoint.Position` lanzaba siempre, así que las fricativas nunca habían funcionado en C# (POC-FORK 8).
-2. **VOZ-2, cantante y sílabas:** `VoiceRenderer` con `cantarV2` portado; `SyllableBankSO` con el zigués; fin de frase deducido del stem; paridad del render completo.
+2. **VOZ-2, cantante y sílabas:** `VoiceRenderer` con `cantarV2` portado; `SyllableBankSO` con el zigués; fin de frase deducido del stem; paridad del render completo. **Cerrada el 2026-11-16**: además, paletas de estilos en la carta (D6 = B) y perillas en vivo; Zig canta V8 por defecto; smokes 0–8 jugados por Claudio (`archive/ARRANQUE_VOZ-2.md`).
 3. **VOZ-3, el flujo:** importador TV1/TM1, «▶ con voz» en el Banco, botón TV1 en el taller, interruptor v7/v8, medición de CPU en build.
 
 Wrapped con el contexto y el plan: https://claude.ai/artifact/2531U873oDKsJNZ2fTyep7 (fuente `Docs/reference/pink-trombone-wrapped/`; incluye un generador de zigués en vivo, copia literal de `motor-canto.js`).

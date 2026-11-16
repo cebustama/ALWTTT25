@@ -56,8 +56,8 @@ namespace ALWTTT.Music.Voice
 
         [Header("v2 - engine (D-VOZ-7: V8 for the demo, V7 is the opt-out)")]
         [Tooltip("V7_CLite = today's singer (vowels only). V8_Workshop = the workshop's " +
-                 "singer: syllables, scoop, fall, glide, X1-X3. V8 arrives in VOZ-2; until " +
-                 "then V8 falls back to V7.")]
+                 "singer: syllables, scoop, fall, glide, X1-X3 (VoiceRenderer, VOZ-2). Live: " +
+                 "Inspector edits are heard while it sings.")]
         public SingerEngine engine = SingerEngine.V7_CLite;
 
         [Header("v2 - throat (Pink Trombone X2/X3, POC-FORK 9-10)")]
@@ -88,7 +88,39 @@ namespace ALWTTT.Music.Voice
         [Tooltip("Vowel used when a note has no syllable.")]
         public BaseVowel baseVowel = BaseVowel.Neutral;
 
-        // Syllables (D-VOZ-4): a reference to a SyllableBankSO arrives in VOZ-2.
+        [Header("v2 - syllables (D-VOZ-4, VOZ-2)")]
+        [Tooltip("What the v8 singer says: zigues, a weighted list or a text. " +
+                 "Empty = every note on the base vowel.")]
+        public SyllableBankSO syllableBank;
+
+        /// <summary>
+        /// [VOZ-2] Copies the levers into the v8 renderer's live parameters (no allocation).
+        /// Called at arm time and every frame while the voice sings, so an Inspector edit in
+        /// Play mode is heard at once (tract length and legato wait for the next loop).
+        /// </summary>
+        public void ToV8Params(V8.VoiceV8Params p)
+        {
+            p.Looseness = looseness; p.VibratoDepth = vibratoDepth; p.VibratoSpeedHz = vibratoSpeedHz;
+            p.VibratoDelay = vibratoDelaySeconds; p.VibratoRamp = vibratoRampSeconds; p.Brightness = brightness;
+            p.Transpose = transposeSemitones; p.TensLo = tensenessAtVel0; p.TensHi = tensenessAtVel127;
+            p.MinLoudness = minLoudness; p.PitchLead = pitchLeadSeconds; p.TractLength = tractLength;
+            p.Breath = breath; p.Growl = growl; p.Roughness = roughness; p.Drive = drive;
+            p.Scoop = scoopSemitones; p.ScoopMs = scoopMs; p.Fall = fallSemitones; p.GlideMs = glideMs;
+            p.Attack = attackPress; p.Legato = legato; p.BaseVowel = VowelChar(baseVowel);
+        }
+
+        public static char VowelChar(BaseVowel v)
+        {
+            switch (v)
+            {
+                case BaseVowel.A: return 'a';
+                case BaseVowel.E: return 'e';
+                case BaseVowel.I: return 'i';
+                case BaseVowel.O: return 'o';
+                case BaseVowel.U: return 'u';
+                default: return (char)0x0259;   // schwa, the workshop's neutral vowel
+            }
+        }
 
         // Gameplay-modulation hooks (lever doc §5 note): deliberately absent
         // in SINGER-1. Section-level "when" is driven by gameplay code calling

@@ -17,9 +17,9 @@ MonoBehaviour:
   trackAction:
     role: 4
     styleBundle: {fileID: 11400000, guid: 82758328a97b2ef4d9326b21d66fb84b, type: 2}
+    voicePalette: {fileID: 0}
   partAction:
     action: 0
-    customLabel: 
     musicianId: 
   modifierEffects: []
   references:

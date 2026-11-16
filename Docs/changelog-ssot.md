@@ -14,6 +14,16 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-16 — VOZ-2: el cantante v8 y las sílabas (estilos de voz)
+
+**Clase:** semántico · operativo · ciclo de vida. Con cambio de código, datos y prefab.
+
+- Decisiones: D1 = B y D8 = B (fin de frase del stem, regla F con `phraseGridBars = 2`), D2 = A (léxico del banco, verso de la canción y la parte, ruido de la canción), D3 = A (bloques de 256 dentro del renderer), D4 = A (sin C-lite en v8), D5 = A (gain por perfil igualando el RMS de la Zig v7), D6 = B (paleta `VoiceStylePaletteSO` en la carta de melodía), D7 = A (la paleta entra en VOZ-2), D9 = A (Zig_V8 por defecto en el prefab; ninguna carta con paleta).
+- Código: `Assets/Scripts/Music/Voice/V8/` (`VoiceRenderer`, `VoiceV8Params`, `VoiceV8Syllables`); `SyllableBankSO`, `VoiceStylePaletteSO`; `VoiceProfileSO.syllableBank` y `ToV8Params`; `TrackActionDescriptor.voicePalette`; `SingerLoopContext.songSeed` y `voicePaletteByMusician` (`CompositionSession.CollectVoicePalettes`); el Director elige el perfil de la paleta; `SingerVoice` arma V8 o V7 según `engine`, perillas en vivo; menú *ALWTTT ▸ Voz ▸ Crear estilos del taller (VOZ-2)*. `motor-canto.js`: `asignarZigues` con semilla de verso opcional (el taller suena igual).
+- Datos: 10 perfiles V8, bancos `Zigues_*` y `Silabas_*`, dos paletas; `Zig_SingerVoice.prefab` con `VoiceProfile_Zig_V8`.
+- Verificación: paridad de 13 casos (`reference/taller-melodia/paridad/cantante/`); compilación comprobada fuera de Unity y en Unity (Claudio); smokes 0–8 jugados por Claudio (V7 igual que antes, V8 con sílabas, perillas en vivo, paleta, misma semilla = misma voz, CPU en el editor 13,2 % / pico 22,5 % con Death metal).
+- Docs: `SSoT_Singer_Voice` (cabecera, §3.1, §4, §5, §5.1 nueva, §6, §8); `CURRENT_STATE`; `ARRANQUE_VOZ-2.md` archivado en `planning/archive/`; `ARRANQUE_VOZ-3.md` nuevo; tandas de `ARRANQUE_estilos_de_voz.md`.
+
 ## 2026-11-14 — ECON-2: la Inspiración como el Heroísmo de Midnight Suns (DEMO-1211)
 
 **Clase:** semántico · operativo · ciclo de vida. Con cambio de código y de datos.

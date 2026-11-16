@@ -15,6 +15,11 @@ namespace ALWTTT.Cards
 
         [Tooltip("Optional style bundle for this track (recipe/strategy/archetypes).")]
         public TrackStyleBundleSO styleBundle;
+
+        // [VOZ-2 / D6 = B] Melody cards only: the voice styles the singer may use while this
+        // card's melody plays (one picked per song and part). Empty = the musician's own voice.
+        [Tooltip("Melody only. Voice styles for the singer (weighted; one per song and part). Empty = the musician's voice.")]
+        public ALWTTT.Music.Voice.VoiceStylePaletteSO voicePalette;
     }
 }
 

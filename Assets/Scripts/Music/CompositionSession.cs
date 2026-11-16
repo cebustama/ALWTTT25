@@ -111,6 +111,26 @@ namespace ALWTTT.Music
         // [SINGER-1] Raised once per loop, immediately before PlayRaw, carrying the
         // loop's stems + musical context so the singer can arm from the melody stem.
         public event Action<ALWTTT.Music.Voice.SingerLoopContext> LoopPlaybackStarting;
+
+        // [VOZ-2 / D6 = B] Voice palettes of the part's melody cards, by musician (the card
+        // that produced each Melody/Lead track). Null when no melody card carries one.
+        private Dictionary<string, ALWTTT.Music.Voice.VoiceStylePaletteSO> CollectVoicePalettes(int partIndex)
+        {
+            var parts = _ctx?.CompositionUI?.Model?.parts;
+            if (parts == null || partIndex < 0 || partIndex >= parts.Count || parts[partIndex] == null) return null;
+            Dictionary<string, ALWTTT.Music.Voice.VoiceStylePaletteSO> map = null;
+            foreach (var tr in parts[partIndex].tracks)
+            {
+                if (tr == null || string.IsNullOrEmpty(tr.musicianId)) continue;
+                if (tr.role != TrackRole.Melody && tr.role != TrackRole.Lead) continue;
+                var card = tr.sourceCardDefinition;
+                var pal = card != null ? card.CompositionPayload?.TrackAction?.voicePalette : null;
+                if (pal == null) continue;
+                map ??= new Dictionary<string, ALWTTT.Music.Voice.VoiceStylePaletteSO>();
+                map[tr.musicianId] = pal;
+            }
+            return map;
+        }
         public event Action<PartFeedbackContext> PartFinished;
         public event Action<SongFeedbackContext> SongFinished;
 
@@ -1799,7 +1819,9 @@ namespace ALWTTT.Music
                     rootNote = cache.hasRenderedTonality ? cache.renderedRoot : pcfg.RootNote,
                     timeSignature = pcfg.TimeSignature,
                     bpm = cache.resolvedBpm,
-                    seconds = cache.seconds
+                    seconds = cache.seconds,
+                    songSeed = _songSeed ?? 0,                               // [VOZ-2]
+                    voicePaletteByMusician = CollectVoicePalettes(partIndex)  // [VOZ-2 / D6 = B]
                 });
             }
             catch (Exception ex)
