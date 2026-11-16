@@ -2368,3 +2368,17 @@ from the legacy slots' bounds), assigns `GigManager.bandStageLayout`, Undo-able.
 - **«ALWTTT ▸ FEEDBACK-2 ▸ Comprobar formulario»** prints the parsed `/formResponse` URL and the
   `entry.N` of each placeholder (M/V/S/E/B/G), with `FALTA` for a missing one. Changing the form =
   pasting a new pre-filled link into `FeedbackForm.PrefilledLink` and running the check.
+
+## 24. Voice styles: importer and voice in the Card Bench (VOZ-3, 2026-11-16)
+
+- **ALWTTT ▸ Voz ▸ Importar estilo (TV1, TM1, JSON)** (`Assets/Scripts/Music/Voice/Editor/VoiceStyleImporterWindow.cs`):
+  paste the code from the Taller de melodías → «Leer» (or «Pegar del portapapeles y leer») → preview → «Aplicar».
+  Creates `VoiceProfile_<slug>` (engine V8, gain from TV1) and `Banco_<slug>` (zigués / list / text), or overwrites a
+  chosen profile with «usado por» and Undo. «Oír en el Banco de cartas» opens the bench with that voice. Format,
+  parity and rules: `SSoT_Singer_Voice.md` §5.2. The window wraps the long code and never exceeds its width.
+- **Card Bench (ALWTTT ▸ Banco de cartas, MGP-BENCH-1)** gains the voice: field «Voz (▶ con voz)» (empty = the gig's
+  choice: the melody card's palette, else the profile on `Zig_SingerVoice.prefab`), **«▶ con voz»** (the MIDI without the
+  singer's channel + the v8 voice rendered offline with `SingerVoice.RenderV8Offline`, started where Maestro is; sync
+  within an editor frame) and **«.wav»** (the voice alone, 32-bit float). Log `[VOZ-3] Banco ▶ con voz: …`.
+  The bench itself (render of part A with the gig's chain, A/B columns, byte parity with a gig dump) is documented on the
+  MidiGenPlay side (MGP-BENCH-1); this SSoT only records the ALWTTT voice layer.

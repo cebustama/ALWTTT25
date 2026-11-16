@@ -17,7 +17,7 @@ MonoBehaviour:
   maxStepSemitones: 2
   chanceRepeatNote: 0.45
   chancePassingNote: 0
-  phrasePalette: {fileID: 0}
+  phrasePalette: {fileID: 11400000, guid: 9acecc8d6e8b1b0478f6db67b122e47c, type: 2}
   normalVelMin: 70
   normalVelMax: 88
   accentVelMin: 92

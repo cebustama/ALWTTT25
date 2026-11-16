@@ -1384,3 +1384,21 @@ Standalone). Sirve para que Claudio y Matías prueben la economía A/B **en la b
 - Logs `[ECON-2] Reglas cargadas …`, `Ajustes locales guardados …`, `Reglas aplicadas a la partida …`.
 - Datos de partida: menú de editor **ALWTTT ▸ ECON-2 ▸ Preparar datos de la Inspiración y los Finisher**
   (idempotente: ★1 en las composiciones de los catálogos, los 4 Finisher, el leading hipnótico, máximo 10).
+- **Leading hipnótico con paleta (2026-11-16).** El menú le pone `PhrasePalette_SingingField` (la del leading por
+  defecto). Sin paleta, el solo de Psychic Waves salía vacío («No phrase palette … emitting an EMPTY melody track»).
+
+## 22. Log de composición (COMP-LOG-1, 2026-11-16)
+
+Un archivo por ejecución, aparte del log general: `DevTelemetry/composicion_<fecha>_<hora>.log` (editor: raíz del
+proyecto; build: `persistentDataPath`). Solo con `ALWTTT_DEV`. Código: `Assets/Scripts/Music/Diagnostics/CompositionTrace.cs`,
+llamado desde `CompositionSession` (inicio de canción, inicio y fin de cada loop, fin de canción).
+
+- **▶ LOOP START:** parte, loop n/N, bonus, BPM, compás, tonalidad, fuente de la armonía; las cartas de la parte
+  (músico, rol, carta, bundle); cada pista renderizada con instrumento, estilo, canal, CC7 en vivo y lo que tiene su stem
+  (notas, registro, tiempos, hueco más largo; **⚠ HUECO > 1 compás**, **⚠ VACÍO**); ★ SOLO en los solos.
+- **■ LOOP END:** por canal, las notas que llegaron al reproductor frente a las del stem (**⚠ SONÓ MENOS DE LA MITAD**,
+  **⚠ CANAL MUDO** si el CC7 es 0) y un `Debug.LogWarning [COMP-LOG-1]` en el log general si algún canal sonó de menos.
+- Copia, sin colores ni pilas, las líneas de composición que ya escriben el juego y MidiGenPlay (`[SongOrchestrator]`,
+  `[BassTrackComposer]`, `[TonalityAudit]`…). MidiGenPlay no se toca.
+- Límite: cuenta los note-on que lee el secuenciador (`MidiToolkitAdapter.OnMidiEvents`); una nota perdida dentro del
+  sintetizador (polifonía) no se ve aquí. Primer uso previsto: el silencio del Walking Bass (16-nov, sin diagnosticar).

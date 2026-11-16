@@ -47,6 +47,8 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | B5 | **INTERACCIONES-1** | Convencidos que cantan, «boooring» entre loops | plan de la demo, «Deseos» (REPLAN-ART D3) |
 | — | Cola de MidiGenPlay | Comping y melodía siguen los acentos, orden de entrada, transiciones, «Nervioso», galope, narrador musical | `Sesiones_MidiGenPlay.md` |
 
+**Voz (VOZ-3, 2026-11-16):** abaratar el motor del cantante (síntesis a 24 kHz, `float` + Burst en el tracto, no calcular en silencio; hoy 8–9 % con IL2CPP); catálogo de modos de voz con buscador en el taller (`reference/ideas/2026-11-16_catalogo_modos_de_voz.md`); consumidores de las perillas en vivo (el Stress cierra la garganta); qué carta lleva qué paleta de voz, con Matías (D5).
+
 ## Bloque C · Diseño del combate
 
 | # | Sesión | Objetivo | Origen |

@@ -242,7 +242,13 @@ namespace ALWTTT.EditorTools
             lead.chanceRepeatNote = 0.45f;
             lead.normalVelMin = 70; lead.normalVelMax = 88;
             lead.accentVelMin = 92; lead.accentVelMax = 105;
+            // [VOZ-3 fix] Without a phrase palette the procedural melody cannot run and the
+            // solo comes out EMPTY (MelodyTrackComposer: «No phrase palette… emitting an EMPTY
+            // melody track»). Same palette as the default leading (MGP_MelodicLeadingConfig).
+            lead.phrasePalette = AssetDatabase.LoadAssetAtPath<MidiGenPlay.Composition.Phrases.PhrasePaletteSO>(
+                "Assets/Resources/Data/Cards/Composition/Melody Tracks/MelodyCardConfigs/SingingField/PhrasePalette_SingingField.asset");
             AssetDatabase.CreateAsset(lead, LeadingPath);
+
             sb.AppendLine($"Leading hipnótico creado: {LeadingPath} (ScaleOnly, pasos ≤2 st, repetir 45 %).");
             return lead;
         }

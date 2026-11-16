@@ -66,12 +66,26 @@ const CASOS = [
   ['death-lista-rejilla4', 'Death metal', 'Saltos', 15, 'lista', 23, 4],
 ];
 
+// [VOZ-3] Con «tv1», cada caso lleva además el código TV1 que daría el taller (MC.estiloTV1, la
+// misma función que el botón «Copiar TV1»): Cantante.cs lo lee con VoiceStyleCode.Parse y canta
+// con lo leído, no con «p». Si el importador traduce mal un campo, el audio se separa del JS.
+const CON_TV1 = process.argv[2] === 'tv1';
+const SIL_TALLER = { zigues: 'zigues', lista: 'modo', texto: 'texto' };
+function codigoTV1(name, modo, V, silMode, texto) {
+  const g = MC.gainDeVoz(V);
+  const tv = MC.estiloTV1({ nombre: name, modo: modo || 'Zig V8', voz: V, silMode: SIL_TALLER[silMode], lexiconSeed: 4242, texto, gain: g.gain, rms: g.rms });
+  return { code: 'TV1:' + Buffer.from(JSON.stringify(tv), 'utf8').toString('base64'), gain: tv.gain };
+}
+
 function construir() {
   return CASOS.map(([name, modo, figura, semilla, silMode, seed, rejilla = 0]) => {
     const V = MC.vozDeModo(modo);
     const mel = MC.componer(Object.assign({}, MEL, { figura, semilla }));
     const { notas } = notasDe(mel, MEL.bpm);
+    const texto = silMode === 'texto' ? 'zi ga, bu-ra kosh mm' : '';
+    const tv1 = CON_TV1 ? codigoTV1(name, modo, V, silMode, texto) : null;
     return {
+      ...(tv1 ? { tv1: tv1.code, gainEsperado: tv1.gain } : {}),
       name, seed, bpm: MEL.bpm, rejilla, p: aParams(V), notes: notas,
       sil: { mode: silMode, lexSeed: 4242, verseSeed: semilla * 31 + 5, hardness: f(V.dureza), text: silMode === 'texto' ? 'zi ga, bu-ra kosh mm' : '',
         bank: (V.silabas || []).map((b) => [b[0], b[1], b[2] === 'fin']) },
@@ -144,20 +158,23 @@ if (process.argv[2] === 'comparar') {
     for (let i = 0; i < n; i++) { const d = Math.abs(js.audio[i] - a[i]); maxd = Math.max(maxd, d); pk = Math.max(pk, Math.abs(a[i])); se += a[i] * a[i]; sd += d * d; if (js.audio[i] === a[i]) same++; }
     const db = sd === 0 ? -Infinity : 10 * Math.log10(sd / se);
     const lenOk = js.audio.length === a.length;
-    const caseOk = silOk && finOk && lexOk && lenOk && db < -60;
+    const gainOk = c.tv1 == null || Math.abs(cs.gain - c.gainEsperado) < 1e-6;
+    const caseOk = silOk && finOk && lexOk && lenOk && gainOk && db < -60;
     if (!caseOk) ok = false;
     let rms = 0, cnt = 0; for (let i = 0; i < a.length; i++) if (Math.abs(a[i]) > 1e-4) { rms += a[i] * a[i]; cnt++; }
     rms = Math.sqrt(rms / Math.max(1, cnt));
-    filas.push({ caso: c.name, muestras: n, idénticas: `${(100 * same / n).toFixed(1)} %`, errorDb: db.toFixed(1), difMax: maxd.toExponential(2), pico: pk.toFixed(3), rms: rms.toFixed(4), silabas: silOk ? 'ok' : 'DIF', finFrase: finOk ? 'ok' : 'DIF', lexico: lexOk ? 'ok' : 'DIF', largo: lenOk ? 'ok' : `${js.audio.length}≠${a.length}` });
+    filas.push({ caso: c.name, muestras: n, idénticas: `${(100 * same / n).toFixed(1)} %`, errorDb: db.toFixed(1), difMax: maxd.toExponential(2), pico: pk.toFixed(3), rms: rms.toFixed(4), silabas: silOk ? 'ok' : 'DIF', finFrase: finOk ? 'ok' : 'DIF', lexico: lexOk ? 'ok' : 'DIF', largo: lenOk ? 'ok' : `${js.audio.length}≠${a.length}`, ...(c.tv1 ? { tv1: cs.fuente, gain: gainOk ? cs.gain : `DIF ${cs.gain}≠${c.gainEsperado}` } : {}) });
     if (!silOk) { console.log(`  ${c.name} JS: ${js.sil.slice(0, 12).join(' ')}\n  ${c.name} C#: ${cs.sil.slice(0, 12).join(' ')}`); }
   }
   console.table(filas);
   const regla = medirRegla();
   console.log(`Regla de fin de frase (D1 = B) contra el compositor del taller: ${regla.total} notas, precisión ${(100 * regla.precision).toFixed(1)} %, exhaustividad ${(100 * regla.recall).toFixed(1)} % (VP ${regla.vp}, FP ${regla.fp}, FN ${regla.fn})`);
-  fs.writeFileSync('resultados.json', JSON.stringify({ fecha: new Date().toISOString().slice(0, 10), filas, regla }, null, 1));
+  const conTV1 = casos.some((c) => c.tv1);
+  fs.writeFileSync(conTV1 ? 'resultados-tv1.json' : 'resultados.json', JSON.stringify({ fecha: new Date().toISOString().slice(0, 10), filas, regla }, null, 1));
   console.log(ok ? 'PARIDAD OK (fin de frase y sílabas idénticos, audio < −60 dB)' : 'PARIDAD FALLA');
   process.exit(ok ? 0 : 1);
 } else {
   fs.writeFileSync('casos.json', JSON.stringify(construir()));
-  console.log('casos.json escrito; ahora: dotnet run -c Release && node casos.mjs comparar');
+  console.log(`casos.json escrito${CON_TV1 ? ' (con TV1)' : ''}; ahora: dotnet run -c Release && node casos.mjs comparar`);
 }
+

@@ -140,8 +140,13 @@ namespace ALWTTT.Music.Voice
             if (!_awaitingFirstEvent) return;
             _awaitingFirstEvent = false;
             double delta = (AudioSettings.dspTime - _startAnchor) * 1000.0;
+            // [VOZ-3] The MIDI-event callback arrives on the main thread: a long frame (a hitch)
+            // inflates this number without the audio being out of sync. Frame time tells them apart.
+            float frameMs = Time.unscaledDeltaTime * 1000f;
             Debug.Log($"{Tag} [SYNC] loop={_loopCounter} " +
-                      $"anchor→firstMidiEvent = {delta:F1} ms");
+                      $"anchor→firstMidiEvent = {delta:F1} ms (frame {frameMs:F0} ms" +
+                      $"{(frameMs > 100f ? ", TIRÓN del hilo principal: la cifra no es desfase de audio" : "")})");
+
         }
 
         private void Update()

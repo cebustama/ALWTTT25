@@ -1147,7 +1147,46 @@ namespace ALWTTT.UI
             if (partIndex >= model.parts.Count) return;
             _pendingByPart.TryGetValue(partIndex, out var pendingSet);
             partUIs[partIndex].Bind(model.parts[partIndex], pendingSet);
+            ApplyRenderOnlyTracks(partIndex);
         }
+
+        // [ECON-2 fix, 2026-11-16] Render-scope solos (a Finisher's solo, the R5-d bonus
+        // solo) never enter the model: CompositionSession injects them into one render of
+        // the bonus loop. The strip still has to say who is playing, or a musician with no
+        // track shows an empty row while his solo sounds. Overlay rows, re-applied after
+        // every Bind and cleared when the bonus loop ends.
+        public readonly struct RenderOnlyTrack
+        {
+            public readonly string musicianId; public readonly TrackRole role;
+            public readonly string info; public readonly ALWTTT.Cards.CardDefinition card;
+            public RenderOnlyTrack(string musicianId, TrackRole role, string info, ALWTTT.Cards.CardDefinition card)
+            { this.musicianId = musicianId; this.role = role; this.info = info; this.card = card; }
+        }
+        private readonly Dictionary<int, List<RenderOnlyTrack>> _renderOnlyByPart = new();
+
+        public void ShowRenderOnlyTracks(int partIndex, List<RenderOnlyTrack> tracks)
+        {
+            if (tracks == null || tracks.Count == 0) { ClearRenderOnlyTracks(); return; }
+            _renderOnlyByPart[partIndex] = tracks;
+            RefreshPartUI(partIndex);
+            Debug.Log($"[ECON-2] Tira: solo en la fila de {string.Join(", ", tracks.Select(t => $"{t.musicianId}/{t.role} «{t.info}»"))} (parte {partIndex}).");
+        }
+
+        public void ClearRenderOnlyTracks()
+        {
+            if (_renderOnlyByPart.Count == 0) return;
+            var parts = _renderOnlyByPart.Keys.ToList();
+            _renderOnlyByPart.Clear();
+            foreach (var p in parts) RefreshPartUI(p);
+        }
+
+        private void ApplyRenderOnlyTracks(int partIndex)
+        {
+            if (!_renderOnlyByPart.TryGetValue(partIndex, out var list)) return;
+            foreach (var t in list)
+                partUIs[partIndex].AddOrUpdateTrack(t.musicianId, t.role, t.info, sourceCard: t.card);
+        }
+
 
         private void AddPartUI(PartEntry p)
         {

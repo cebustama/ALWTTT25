@@ -231,6 +231,7 @@ code{font-family:var(--f-mono);font-size:.9em}
       <button type="button" class="btn" id="guardar">Guardar esta versión</button>
       <button type="button" class="btn" id="copiarCodigo">Copiar código TM1</button>
       <button type="button" class="btn" id="copiarCarta">Copiar para la carta</button>
+      <button type="button" class="btn" id="copiarTV1" title="El estilo de voz (voz, sílabas y gain) para ALWTTT ▸ Voz ▸ Importar estilo">Copiar TV1 (estilo de voz)</button>
     </div>
     <div class="full field"><label for="pegar">Pegar un código TM1</label><textarea id="pegar" placeholder="TM1:…"></textarea></div>
     <div class="full" id="msg" role="status"></div>
@@ -266,6 +267,7 @@ code{font-family:var(--f-mono);font-size:.9em}
 self.onmessage = (ev) => {
   const m = ev.data;
   let r;
+  if (m.tipo === 'gain') { self.postMessage({ id: m.id, gain: MC.gainDeVoz(m.voz) }); return; }
   if (m.tipo === 'juego') r = MC.cantarJuego(m.notas, m.perfil, m.opts);
   else r = MC.cantarV2(m.notas, m.voz, m.opts);
   MC.normalizar(r.audio, 0.11);
@@ -454,6 +456,7 @@ function renderVoz(msg) {
   return new Promise((res) => {
     if (workers.length) { const id = ++reqId; msg.id = id; pend.set(id, res); workers[id % workers.length].postMessage(msg); return; }
     setTimeout(() => {
+      if (msg.tipo === 'gain') { res({ gain: MC.gainDeVoz(msg.voz) }); return; }
       const r = msg.tipo === 'juego' ? MC.cantarJuego(msg.notas, msg.perfil, msg.opts) : MC.cantarV2(msg.notas, msg.voz, msg.opts);
       MC.normalizar(r.audio, 0.11); res({ audio: r.audio, snaps: r.snaps });
     }, 20);
@@ -759,6 +762,22 @@ $('copiarCarta').onclick = () => {
     segundaVoz: S.v2.on ? { relacion: S.v2.rel, relacionId: MC.RELACIONES[S.v2.rel], ritmo: S.v2.ritmo, perfil: S.v2.modo, volumen: S.v2.vol, estereo: S.v2.pan } : null,
   };
   copiar(JSON.stringify(carta, null, 2), 'JSON para la carta copiado.');
+};
+// [VOZ-3] TV1: el estilo de voz para el juego (D1 = A: los nombres del taller; el importador de
+// ALWTTT los traduce a VoiceProfileSO + SyllableBankSO). Lleva la voz entera sin recortar y el gain
+// calibrado aquí (D3 = B, MC.gainDeVoz: mismo RMS que la Zig de hoy en el juego).
+$('copiarTV1').onclick = async () => {
+  const V = S.voz;
+  let texto = S.texto || '';
+  if (S.silMode === 'letra') texto = actual && actual.mel ? actual.mel.notas.map((n) => n.silFija || '').filter(Boolean).join(' ') : '';
+  msg('Calculando el gain del estilo (canta la melodía de referencia)…');
+  const r = await renderVoz({ tipo: 'gain', voz: Object.assign({}, V) });
+  const g = r.gain;
+  const tv = MC.estiloTV1({ nombre: ($('vNombre').value || '').trim() || S.modo, modo: S.modo, voz: V, silMode: S.silMode,
+    lexiconSeed: S.mel.semilla, texto, gain: g.gain, rms: g.rms });
+
+  const aviso = S.vozHoy || MC.MODOS[S.modo].juego ? ' Ojo: estás oyendo la voz de hoy (v7); el TV1 lleva la voz v8 del modo.' : '';
+  copiar('TV1:' + b64e(JSON.stringify(tv)), `Código TV1 copiado (gain ${tv.gain}). Pégalo en Unity: ALWTTT ▸ Voz ▸ Importar estilo.` + aviso);
 };
 $('pegar').addEventListener('paste', (e) => {
   const t = (e.clipboardData || window.clipboardData).getData('text').trim();

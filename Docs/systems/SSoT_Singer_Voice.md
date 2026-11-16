@@ -20,6 +20,11 @@
 > the profile says `engine = V8_Workshop`; `SyllableBankSO` (what it says), `VoiceStylePaletteSO`
 > (a melody card picks the style), live levers. `V7_CLite` stays as the opt-out. §3.1, §4, §5, §6, §8.
 >
+> **Updated:** 2026-11-16 (VOZ-3) — the workshop ↔ game loop: «Copiar TV1» in the Taller de
+> melodías, the importer (*ALWTTT ▸ Voz ▸ Importar estilo*), `SingerVoice.PrepareV8` shared by
+> the gig and the Card Bench's offline render («▶ con voz», `.wav`), import parity, CPU measured
+> in a build (`-vozcpu`) and **the demo ships IL2CPP** (D9 = A). §5.2, §6, §8.
+>
 > **Authority order:** `SSoT_CONTRACTS.md` → this SSoT for singer-voice
 > concepts → `CURRENT_STATE.md` for the active slice. Cross-project facts
 > defer to `SSoT_ALWTTT_MidiGenPlay_Boundary.md`.
@@ -246,6 +251,42 @@ weight, `isEnd`) or `Text`; `phraseGridBars`.
 Ópera, Crooner, Falsete, Robot, Borracho); `Bancos/` `Zigues_*` and `Silabas_*`; `Paletas/`
 `Paleta_Todos_Los_Estilos`, `Paleta_Zig_Se_Emborracha`.
 
+### 5.2 Styles from the workshop to the game (VOZ-3, 2026-11-16)
+
+Decisions in `planning/archive/ARRANQUE_VOZ-3.md` (D1–D9; D-VOZ-5 = A, D-VOZ-6 = A).
+
+- **TV1** (D1 = A): `TV1:` + base64(UTF-8 JSON) `{v:1, nombre, modo, voz:{…every motor-canto.js
+  BASE key except silabas/nivel, workshop names, unclamped…}, silabas:{modo zigues|lista|texto,
+  lexiconSeed, dureza, lista, texto}, gain, rms}`. Built by `MC.estiloTV1` in `motor-canto.js`
+  (the button and the parity harness use the same function).
+- **Gain** (D3 = B): computed in the workshop by `MC.gainDeVoz` — the style sings the reference
+  melody (Zig's zigués, lexicon 4242) and its RMS is matched to today's v7 Zig, exactly as
+  `gen-estilos.mjs` (identical values). TM1 and the legacy JSON bring no gain → 1 with a warning.
+- **Reader:** `Assets/Scripts/Music/Voice/V8/VoiceStyleCode.cs` (pure C#, its own small JSON
+  reader). One table translates the workshop names to `VoiceV8Params` for TV1 and TM1; TM1 takes
+  its base from the mode table of `VoiceStylesMenu` (`TryModeBase`, game modes → Pop as the
+  workshop does); the «Copiar para la carta» JSON is read as legacy (its vibrato was clamped to 1).
+- **Importer** (`VoiceStyleImporterWindow`): paste → read → preview (fields, bank, sample zigués
+  words, warnings; option «hablar el idioma de Zig (4242)» instead of the workshop's melody seed)
+  → apply. Destination D2 = C: new style by default (`Voice Profiles/Estilos/VoiceProfile_<slug>`
+  + `Bancos/Banco_<slug>`), or overwrite an existing profile (same GUID, «usado por» lists prefabs,
+  palettes and the cards of those palettes; Ctrl+Z). A new import has «Deshacer la importación».
+- **Shared preparation:** `SingerVoice.PrepareV8(file, bpm, ts, profile, songSeed, part)` is the
+  former body of `ArmV8` (timing, phrase ends, syllables, seeds); `RenderV8Offline` renders it with
+  the profile's gain. Same notes and seeds in the gig and in the bench.
+- **Parity of an import:** `node casos.mjs tv1 && dotnet run -c Release && node casos.mjs comparar`
+  — each case carries the TV1 the workshop would copy; C# reads it with `VoiceStyleCode` and sings
+  with what it read: 13/13, ≤ −114 dB, identical syllables, phrase ends and gain
+  (`paridad/cantante/resultados-tv1.json`).
+- **CPU** (one v8 voice, 1024-sample buffers at 48 kHz, launch with `-vozcpu` → `[VOZ-3] CPU voz …`
+  every ~2 s in Player.log): Mono build 14.4–15.5 % (peak 20.3 %, Gruñido 24.1 %); **IL2CPP build
+  7.6–9.2 % (peaks 13.9–15.4 % at loop starts, when the main thread renders the next part)**. The
+  cost is the engine (tract stepped twice per sample, 72 sections), not the style. Criterion
+  (D9 = A): mean < 10 %, peaks < 20 %.
+- **Logs:** `[VOZ-3] Importador: leído …`, `[VOZ-3] Importado …`, `[VOZ-3] Banco ▶ con voz: …`,
+  `[VOZ-3] CPU voz …`. The Director's `[SYNC]` line now carries the frame time and flags a
+  main-thread hitch («TIRÓN del hilo principal: la cifra no es desfase de audio»).
+
 Defaults equal the lever doc's "Settled singer" recipe (the only listen-verified
 voice). Gameplay-modulation hooks (per-state overrides) are deliberately absent
 until a concrete consumer exists; section-level "when" is driven by gameplay code
@@ -268,8 +309,14 @@ values, honest name. The POC copy in `Assets/PinkTrombonePOC` is untouched. Phas
 **Zig sings v8 (VOZ-2, D9 = A, 2026-11-16).** `Zig_SingerVoice.prefab` ships with
 `VoiceProfile_Zig_V8` (zigués, hardness 0.5). **The switch back** (D-VOZ-7) is the Director's
 `profile` field: put `VoiceProfile_Zig` back (v7 + diction). No demo card has a voice palette
-yet (Rise Up and Showtime were emptied after the smokes); which card gets which palette is a
-design decision for VOZ-3.
+yet (Rise Up and Showtime were emptied after the smokes); which card gets which palette is
+decided with Matías after hearing the styles in the Card Bench (VOZ-3 D5 = C; none until then).
+
+**The v8 stays in the demo with IL2CPP (VOZ-3, D7 = B, D9 = A, 2026-11-16).** Measured in builds:
+Zig V8 costs 14–15 % of the audio budget with Mono and 8–9 % with IL2CPP, so demo builds use the
+IL2CPP backend (`ProjectSettings`: Standalone scripting backend = IL2CPP; needs the «Windows Build
+Support (IL2CPP)» module and the C++ tools of Visual Studio). Fallback if a player hears dropouts:
+`VoiceProfile_Zig` on the prefab.
 
 **Owed (D4=A).** A `VoiceProfileSO` field on `MusicianCharacterData` (its existing
 `[Header("Audio")]` section, beside `MusicianProfileData profile`) + a Director
@@ -318,8 +365,10 @@ lookup, retiring the serialized string. Follow-up, not required for the demo.
   balance is the profile `gain`. A small follow-up.
 - ~~Consonants / nasal branch~~ — **done in VOZ-2** (singer v8, §5.1). The v7 path still sings
   vowels only.
-- VOZ-3: TV1/TM1 importer for styles from the workshop, «▶ con voz» and `.wav` in the Banco de
-  cartas (offline `VoiceRenderer`), TV1 button in the workshop, CPU of the v8 in a build.
+- ~~VOZ-3: importer, «▶ con voz», TV1 button, CPU in a build~~ — **done** (§5.2).
+- Engine cost (post-demo): synthesize the v8 at 24 kHz (~2×, loses the top of «s»/«sh»), float +
+  Burst in the tract (1.3–2×, breaks bit parity), skip the work while silent.
+- Catalogue of voice modes with search in the workshop (idea, `reference/ideas/2026-11-16_catalogo_modos_de_voz.md`).
 - Gameplay consumers of the live levers (e.g. Stress closes the throat) — none yet.
 - Phase D4 `IPerformanceMetadataSink` — deferred; re-open only on repeated,
   concrete demand for phrase-level metadata from this integration.

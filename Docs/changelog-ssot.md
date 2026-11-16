@@ -14,6 +14,17 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-16 — VOZ-3: los estilos de voz del taller al juego; IL2CPP; COMP-LOG-1
+
+**Clase:** semántico · operativo · ciclo de vida. Con cambio de código, datos, ajustes del proyecto y herramienta web.
+
+- Decisiones: D1 = A (TV1 con los nombres del taller), D2 = C (estilo nuevo por defecto, sobrescribir con «usado por»), D3 = B (gain calculado en el taller), D4 = B (voz offline + MIDI de Maestro), D5 = C (paletas con Matías después de oír), D6 = A (umbral de CPU), D7 = B (medir Zig V8), D8 = A (probar IL2CPP), D9 = A (v8 en la demo con IL2CPP; media < 10 %, picos < 20 %), D10 = A (COMP-LOG-1 en esta sesión).
+- Taller de melodías: `MC.gainDeVoz`, `MC.estiloTV1`, botón «Copiar TV1»; copia de la web subida (web `412f576`). El artefacto sigue con la versión anterior.
+- Código: `VoiceStyleCode.cs` (V8, puro), `VoiceStyleImporterWindow.cs`, `VoiceStylesMenu.TryModeBase`; `SingerVoice.PrepareV8` / `RenderV8Offline` (refactor de `ArmV8`, sin cambio de comportamiento) y medición `-vozcpu`; `CardBenchWindow` con «Voz», «▶ con voz» y «.wav»; `SingerVoiceDirector` `[SYNC]` con el tiempo de fotograma; `SongCompositionUI.ShowRenderOnlyTracks` + `CompositionSession` (fila «Solo · <Finisher>»); `ECON2_InspirationSetupTool` (paleta del leading hipnótico); `Diagnostics/CompositionTrace.cs` (COMP-LOG-1).
+- Datos y ajustes: `MelodicLeading-Hipnosis` con `PhrasePalette_SingingField`; `ProjectSettings` con IL2CPP para Standalone; `VoiceProfile_Grunido` + `Banco_Grunido` (estilo de prueba importado).
+- Verificación: paridad del importado 13/13 (≤ −114 dB, `resultados-tv1.json`); compilación fuera de Unity y en Unity; smokes 1–7 de VOZ-3, solo de Sibi y fila de Overload jugados por Claudio; CPU en build Mono e IL2CPP. COMP-LOG-1: compila, sin smoke.
+- Docs: `SSoT_Singer_Voice` (cabecera, §5.2 nueva, §6, §8); `SSoT_Editor_Authoring_Tools` §24; `SSoT_Dev_Mode` §21 y §22; `SSoT_Gig_Combat_Core` (ECON-2); `CURRENT_STATE`; plan DEMO-1211 y POST-DEMO; `ARRANQUE_VOZ-3.md` archivado; idea `reference/ideas/2026-11-16_catalogo_modos_de_voz.md`.
+
 ## 2026-11-16 — VOZ-2: el cantante v8 y las sílabas (estilos de voz)
 
 **Clase:** semántico · operativo · ciclo de vida. Con cambio de código, datos y prefab.

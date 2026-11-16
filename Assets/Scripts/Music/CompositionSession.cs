@@ -554,6 +554,7 @@ namespace ALWTTT.Music
             string seedSource = "clock";
 #endif
             _ctx.Log($"[Session] SongSeed={_songSeed} ({seedSource})", true); // quote-able for repro
+            ALWTTT.Music.Diagnostics.CompositionTrace.BeginSong(_songSeed ?? 0, seedSource);   // [COMP-LOG-1]
 
             _keepInstrumentByPart.Clear();
 
@@ -583,6 +584,10 @@ namespace ALWTTT.Music
 
             var songCtx = new SongFeedbackContext(_finishedParts);
             SongFinished?.Invoke(songCtx);
+            ALWTTT.Music.Diagnostics.CompositionTrace.EndSong($"{_finishedParts?.Count ?? 0} parte(s)");   // [COMP-LOG-1]
+
+            _ctx?.CompositionUI?.ClearRenderOnlyTracks();   // [ECON-2 fix] solo rows die with the song
+
 
             _state = CompositionState.Ended;
             _isPlaying = false;
@@ -1494,6 +1499,7 @@ namespace ALWTTT.Music
             // estrategia y su leading). Sin Finisher, el solo de siempre (R5-d).
             var soloKeys = new List<MusicianTrackKey>();
             var soloLevels = new List<float>();
+            var soloCards = new List<CardDefinition>();   // [ECON-2 fix] for the strip label
             // [ECON-2] Músicos sin instrumento melódico (C2, batería): no hay solo que
             // inyectar, así que SUS pistas de siempre toman el foco (un «break»).
             var spotlightKeys = new List<MusicianTrackKey>();
@@ -1513,6 +1519,7 @@ namespace ALWTTT.Music
                                     out var k))
                             {
                                 soloKeys.Add(k);
+                                soloCards.Add(f.Def);
                                 soloLevels.Add(soloKeys.Count == 1 ? 1f : rules.extraSoloistVolume01);
                             }
                             else
@@ -1537,10 +1544,29 @@ namespace ALWTTT.Music
                     var conito = _ctx?.ResolveMusicianByType(MusicianCharacterType.Conito);
                     if (TryInjectBonusSoloTrack(cfg, partIndex, conito,
                             MelodyStrategyId.ScaleFlow, null, out var k))
-                    { soloKeys.Add(k); soloLevels.Add(1f); }
+                    { soloKeys.Add(k); soloLevels.Add(1f); soloCards.Add(null); }
                 }
             }
             bool soloThisLoop = soloKeys.Count > 0;
+
+            // [ECON-2 fix, 2026-11-16] The solo is render-only: tell the strip, or the
+            // soloist's row stays empty while his solo sounds (Overload with no Conito track).
+            var stripUi = _ctx?.CompositionUI;
+            if (stripUi != null)
+            {
+                if (soloThisLoop)
+                {
+                    var rows = new List<ALWTTT.UI.SongCompositionUI.RenderOnlyTrack>();
+                    for (int i = 0; i < soloKeys.Count; i++)
+                    {
+                        var card = i < soloCards.Count ? soloCards[i] : null;
+                        rows.Add(new ALWTTT.UI.SongCompositionUI.RenderOnlyTrack(soloKeys[i].MusicianId, soloKeys[i].Role,
+                            card != null ? $"Solo · {card.DisplayName}" : "Solo", card));
+                    }
+                    stripUi.ShowRenderOnlyTracks(partIndex, rows);
+                }
+                else stripUi.ClearRenderOnlyTracks();
+            }
 
             // Owners must be published AFTER the injection, or the solo's
             // channel has no owner and the mix / floaters / beat animation
@@ -1871,6 +1897,15 @@ namespace ALWTTT.Music
             _loopStartTime = Time.time;
             _loopDurationSeconds = duration;
 
+            // [COMP-LOG-1] What this loop asks for (cards, tracks, stems, channels); the
+            // matching «what sounded» block is written at the loop boundary.
+            ALWTTT.Music.Diagnostics.CompositionTrace.LoopStart(cfg, partIndex, partName,
+                _loopsTotalForPart - _loopsRemainingForPart + 1, _loopsTotalForPart, _currentLoopIsBonus,
+                cache.resolvedBpm, cache.seconds, cache.stemsByTrack,
+                _ctx?.CompositionUI?.Model?.parts != null && partIndex < _ctx.CompositionUI.Model.parts.Count
+                    ? _ctx.CompositionUI.Model.parts[partIndex].tracks : null,
+                soloKeys);
+
             // [LEGIB-1a / D6=A] Subscriber failures must never kill the loop.
             try { LoopStarted?.Invoke(); }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -2191,6 +2226,7 @@ namespace ALWTTT.Music
         private void HandleLoopFinished()
         {
             _isPlaying = false;
+            ALWTTT.Music.Diagnostics.CompositionTrace.LoopEnd();   // [COMP-LOG-1]
 
             // [TUT-R2b / D-TUT-R2b-1=B] El loop repite en CUALQUIER frontera
             // mientras haya un diálogo en pantalla (TutorialModalGate), no solo

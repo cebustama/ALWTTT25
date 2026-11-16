@@ -82,3 +82,7 @@ demo); docs aplicados; commit; cierre del plan de estilos de voz.
 - La paridad de VOZ-2 (`paridad/cantante/`) ya compila el renderer en dotnet: sirve de base para la paridad de lo importado.
 - Smokes de VOZ-2: una carta con paleta manda sobre el perfil del Director. Para oír un perfil concreto, la carta no debe tener paleta.
 - Ideas que no son de esta tanda (apuntadas): consumidores de las perillas en vivo (Stress cierra la garganta, el vibrato sube con la Inspiración), Zig a dos voces (DUET-1, POST-DEMO), gritos del público con la misma garganta.
+
+## Cierre (2026-11-16)
+
+Cerrada. Decisiones D1 = A, D2 = C, D3 = B, D4 = B, D5 = C, D6 = A, D7 = B, D8 = A, D9 = A (v8 en la demo con IL2CPP), D10 = A (COMP-LOG-1 en la misma sesión). Detalle en `changelog-ssot.md` (2026-11-16, VOZ-3) y `SSoT_Singer_Voice.md` §5.2.

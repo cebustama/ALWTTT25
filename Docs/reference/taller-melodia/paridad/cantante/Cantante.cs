@@ -23,6 +23,9 @@ foreach (var c in casos.EnumerateArray())
         ScoopMs = F("ScoopMs"), Fall = F("Fall"), GlideMs = F("GlideMs"), Attack = F("Attack"), Legato = F("Legato"),
         BaseVowel = pj.GetProperty("BaseVowel").GetString()![0],
     };
+    // [VOZ-3] Con TV1: los parámetros, la dureza y las sílabas salen del código leído por el importador.
+    VoiceStyleSpec? spec = null;
+    if (c.TryGetProperty("tv1", out var tv1)) { spec = VoiceStyleCode.Parse(tv1.GetString()!); p = spec.P; }
     var notes = c.GetProperty("notes").EnumerateArray().Select(n => new SungNote
     {
         Start = n.GetProperty("start").GetDouble(), End = n.GetProperty("end").GetDouble(),
@@ -36,7 +39,13 @@ foreach (var c in casos.EnumerateArray())
     string mode = sil.GetProperty("mode").GetString()!;
     int verseSeed = sil.GetProperty("verseSeed").GetInt32();
     string[]? lexico = null;
-    if (mode == "zigues")
+    if (spec != null)
+    {
+        if (spec.SyllableMode == "zigues") lexico = SyllablePlanner.AssignZigues(notes, spec.LexiconSeed, spec.Hardness, verseSeed);
+        else if (spec.SyllableMode == "lista") SyllablePlanner.AssignWeighted(notes, spec.List, verseSeed, "");
+        else SyllablePlanner.AssignWeighted(notes, new List<WeightedSyllable>(), verseSeed, spec.Text);
+    }
+    else if (mode == "zigues")
         lexico = SyllablePlanner.AssignZigues(notes, sil.GetProperty("lexSeed").GetInt32(), sil.GetProperty("hardness").GetDouble(), verseSeed);
     else
     {
@@ -62,6 +71,9 @@ foreach (var c in casos.EnumerateArray())
         fin = notes.Select(n => n.PhraseEnd).ToArray(),
         caida = notes.Select(n => n.Fall).ToArray(),
         lexico,
+        gain = spec?.Gain,
+        fuente = spec != null ? $"{spec.Source} {spec.SyllableMode}{(spec.Warnings.Count > 0 ? " avisos: " + string.Join(" | ", spec.Warnings) : "")}" : null,
+
     }));
     Console.WriteLine($"{name}: {frames} muestras, {notes.Length} notas, CPU {100.0 * sw.Elapsed.TotalSeconds / (frames / (double)SR):F1} % de tiempo real");
 }

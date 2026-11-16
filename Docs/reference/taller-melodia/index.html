@@ -231,6 +231,7 @@ code{font-family:var(--f-mono);font-size:.9em}
       <button type="button" class="btn" id="guardar">Guardar esta versión</button>
       <button type="button" class="btn" id="copiarCodigo">Copiar código TM1</button>
       <button type="button" class="btn" id="copiarCarta">Copiar para la carta</button>
+      <button type="button" class="btn" id="copiarTV1" title="El estilo de voz (voz, sílabas y gain) para ALWTTT ▸ Voz ▸ Importar estilo">Copiar TV1 (estilo de voz)</button>
     </div>
     <div class="full field"><label for="pegar">Pegar un código TM1</label><textarea id="pegar" placeholder="TM1:…"></textarea></div>
     <div class="full" id="msg" role="status"></div>
@@ -1352,7 +1353,43 @@ code{font-family:var(--f-mono);font-size:.9em}
     return k;
   }
 
-  const api = { MELODIAS_FIJAS, melodiaFija, zigues, asignarZigues, armonizar, RELACIONES, SR, ESCALAS, EN_EL_JUEGO, PROGRESIONES, FIGURAS, CONS, VOCALES, MODOS, BASE, PERFIL_ZIG, PRESETS_JUEGO, componer, asignarSilabas, parseSilaba, aSegundos, cantarJuego, cantarV2, vozDeModo, normalizar, gradoAMidi, acordeEnGrados };
+  // [VOZ-3 / D3 = B] El gain de un estilo, calculado aquí y llevado al juego dentro del TV1: la voz
+  // canta la melodía de referencia (zigués de Zig, lexiconSeed 4242, con la dureza del estilo) y su
+  // RMS se iguala al de la Zig de hoy en el juego (v7 + dicción). Lo mismo que gen-estilos.mjs.
+  const RMS_ZIG = 0.0792340595239839;
+  const MEL_REF = { tonica: 60, escala: 'Mayor (jónico)', progresion: 'I–V–vi–IV', bpm: 100, compases: 8, frase: 4, figura: 'Zig-zag', sube: 2, baja: 1, rango: 1.5, direccion: 'sube', alTope: 'rebota', ritmo: 'celdas', densidad: 0.45, sincopa: 0.3, silencios: 0.1, swing: 0, variacion: 0.1, postSalto: true, acordeFuerte: true, cadencia: true, repetir: 0.05, crescendo: 0.5, firma: false, semilla: 7, periodo: 8, pedal: 'tonica' };
+  function gainDeVoz(voz) {
+    const V = Object.assign({}, BASE, voz || {});
+    const mel = componer(MEL_REF), sb = 60 / MEL_REF.bpm;
+    const notas = aSegundos(mel, MEL_REF.bpm).map((n, i) => Object.assign(n, { dur: mel.notas[i].dur }));
+    notas.forEach((n, i) => {
+      const last = i === notas.length - 1, gap = last ? Infinity : (notas[i + 1].start - n.end) / sb;
+      n.finFrase = last || gap >= 0.95 || n.dur >= 1.95;
+    });
+    for (const n of notas) n.caida = n.finFrase && V.caida > 0 && n.dur >= 0.95;
+    asignarZigues(notas, 4242, V.dureza, 12345);
+    const r = cantarV2(notas, V, { seed: 1 });
+    let s = 0, c = 0, pk = 0;
+    for (const x of r.audio) { if (Math.abs(x) > 1e-4) { s += x * x; c++; } pk = Math.max(pk, Math.abs(x)); }
+    const rms = Math.sqrt(s / Math.max(1, c)), gain = Math.min(2, RMS_ZIG / rms);
+    return { rms, gain, picoConGain: pk * gain };
+  }
+
+  /** [VOZ-3] El TV1 (sin el prefijo ni el base64): la voz entera con los nombres del taller, las
+   *  sílabas y el gain. Lo usan el botón «Copiar TV1» y la paridad del importador. */
+  const SIL_TV1 = { zigues: 'zigues', modo: 'lista', texto: 'texto', letra: 'texto' };
+  function estiloTV1({ nombre, modo, voz, silMode, lexiconSeed, texto, gain, rms }) {
+    const V = Object.assign({}, BASE, voz || {});
+    return {
+      v: 1, nombre, modo,
+      voz: Object.fromEntries(Object.keys(BASE).filter((k) => k !== 'silabas' && k !== 'nivel').map((k) => [k, V[k]])),
+      silabas: { modo: SIL_TV1[silMode] || 'zigues', lexiconSeed, dureza: V.dureza, lista: V.silabas || [], texto: texto || '' },
+      gain: +gain.toFixed(4), rms: rms == null ? undefined : +rms.toFixed(5),
+    };
+  }
+
+  const api = { MELODIAS_FIJAS, melodiaFija, zigues, asignarZigues, armonizar, RELACIONES, SR, ESCALAS, EN_EL_JUEGO, PROGRESIONES, FIGURAS, CONS, VOCALES, MODOS, BASE, PERFIL_ZIG, PRESETS_JUEGO, componer, asignarSilabas, parseSilaba, aSegundos, cantarJuego, cantarV2, vozDeModo, normalizar, gainDeVoz, estiloTV1,
+ gradoAMidi, acordeEnGrados };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MC = api;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2454,7 +2491,43 @@ code{font-family:var(--f-mono);font-size:.9em}
     return k;
   }
 
-  const api = { MELODIAS_FIJAS, melodiaFija, zigues, asignarZigues, armonizar, RELACIONES, SR, ESCALAS, EN_EL_JUEGO, PROGRESIONES, FIGURAS, CONS, VOCALES, MODOS, BASE, PERFIL_ZIG, PRESETS_JUEGO, componer, asignarSilabas, parseSilaba, aSegundos, cantarJuego, cantarV2, vozDeModo, normalizar, gradoAMidi, acordeEnGrados };
+  // [VOZ-3 / D3 = B] El gain de un estilo, calculado aquí y llevado al juego dentro del TV1: la voz
+  // canta la melodía de referencia (zigués de Zig, lexiconSeed 4242, con la dureza del estilo) y su
+  // RMS se iguala al de la Zig de hoy en el juego (v7 + dicción). Lo mismo que gen-estilos.mjs.
+  const RMS_ZIG = 0.0792340595239839;
+  const MEL_REF = { tonica: 60, escala: 'Mayor (jónico)', progresion: 'I–V–vi–IV', bpm: 100, compases: 8, frase: 4, figura: 'Zig-zag', sube: 2, baja: 1, rango: 1.5, direccion: 'sube', alTope: 'rebota', ritmo: 'celdas', densidad: 0.45, sincopa: 0.3, silencios: 0.1, swing: 0, variacion: 0.1, postSalto: true, acordeFuerte: true, cadencia: true, repetir: 0.05, crescendo: 0.5, firma: false, semilla: 7, periodo: 8, pedal: 'tonica' };
+  function gainDeVoz(voz) {
+    const V = Object.assign({}, BASE, voz || {});
+    const mel = componer(MEL_REF), sb = 60 / MEL_REF.bpm;
+    const notas = aSegundos(mel, MEL_REF.bpm).map((n, i) => Object.assign(n, { dur: mel.notas[i].dur }));
+    notas.forEach((n, i) => {
+      const last = i === notas.length - 1, gap = last ? Infinity : (notas[i + 1].start - n.end) / sb;
+      n.finFrase = last || gap >= 0.95 || n.dur >= 1.95;
+    });
+    for (const n of notas) n.caida = n.finFrase && V.caida > 0 && n.dur >= 0.95;
+    asignarZigues(notas, 4242, V.dureza, 12345);
+    const r = cantarV2(notas, V, { seed: 1 });
+    let s = 0, c = 0, pk = 0;
+    for (const x of r.audio) { if (Math.abs(x) > 1e-4) { s += x * x; c++; } pk = Math.max(pk, Math.abs(x)); }
+    const rms = Math.sqrt(s / Math.max(1, c)), gain = Math.min(2, RMS_ZIG / rms);
+    return { rms, gain, picoConGain: pk * gain };
+  }
+
+  /** [VOZ-3] El TV1 (sin el prefijo ni el base64): la voz entera con los nombres del taller, las
+   *  sílabas y el gain. Lo usan el botón «Copiar TV1» y la paridad del importador. */
+  const SIL_TV1 = { zigues: 'zigues', modo: 'lista', texto: 'texto', letra: 'texto' };
+  function estiloTV1({ nombre, modo, voz, silMode, lexiconSeed, texto, gain, rms }) {
+    const V = Object.assign({}, BASE, voz || {});
+    return {
+      v: 1, nombre, modo,
+      voz: Object.fromEntries(Object.keys(BASE).filter((k) => k !== 'silabas' && k !== 'nivel').map((k) => [k, V[k]])),
+      silabas: { modo: SIL_TV1[silMode] || 'zigues', lexiconSeed, dureza: V.dureza, lista: V.silabas || [], texto: texto || '' },
+      gain: +gain.toFixed(4), rms: rms == null ? undefined : +rms.toFixed(5),
+    };
+  }
+
+  const api = { MELODIAS_FIJAS, melodiaFija, zigues, asignarZigues, armonizar, RELACIONES, SR, ESCALAS, EN_EL_JUEGO, PROGRESIONES, FIGURAS, CONS, VOCALES, MODOS, BASE, PERFIL_ZIG, PRESETS_JUEGO, componer, asignarSilabas, parseSilaba, aSegundos, cantarJuego, cantarV2, vozDeModo, normalizar, gainDeVoz, estiloTV1,
+ gradoAMidi, acordeEnGrados };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MC = api;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2462,6 +2535,7 @@ code{font-family:var(--f-mono);font-size:.9em}
 self.onmessage = (ev) => {
   const m = ev.data;
   let r;
+  if (m.tipo === 'gain') { self.postMessage({ id: m.id, gain: MC.gainDeVoz(m.voz) }); return; }
   if (m.tipo === 'juego') r = MC.cantarJuego(m.notas, m.perfil, m.opts);
   else r = MC.cantarV2(m.notas, m.voz, m.opts);
   MC.normalizar(r.audio, 0.11);
@@ -2650,6 +2724,7 @@ function renderVoz(msg) {
   return new Promise((res) => {
     if (workers.length) { const id = ++reqId; msg.id = id; pend.set(id, res); workers[id % workers.length].postMessage(msg); return; }
     setTimeout(() => {
+      if (msg.tipo === 'gain') { res({ gain: MC.gainDeVoz(msg.voz) }); return; }
       const r = msg.tipo === 'juego' ? MC.cantarJuego(msg.notas, msg.perfil, msg.opts) : MC.cantarV2(msg.notas, msg.voz, msg.opts);
       MC.normalizar(r.audio, 0.11); res({ audio: r.audio, snaps: r.snaps });
     }, 20);
@@ -2955,6 +3030,22 @@ $('copiarCarta').onclick = () => {
     segundaVoz: S.v2.on ? { relacion: S.v2.rel, relacionId: MC.RELACIONES[S.v2.rel], ritmo: S.v2.ritmo, perfil: S.v2.modo, volumen: S.v2.vol, estereo: S.v2.pan } : null,
   };
   copiar(JSON.stringify(carta, null, 2), 'JSON para la carta copiado.');
+};
+// [VOZ-3] TV1: el estilo de voz para el juego (D1 = A: los nombres del taller; el importador de
+// ALWTTT los traduce a VoiceProfileSO + SyllableBankSO). Lleva la voz entera sin recortar y el gain
+// calibrado aquí (D3 = B, MC.gainDeVoz: mismo RMS que la Zig de hoy en el juego).
+$('copiarTV1').onclick = async () => {
+  const V = S.voz;
+  let texto = S.texto || '';
+  if (S.silMode === 'letra') texto = actual && actual.mel ? actual.mel.notas.map((n) => n.silFija || '').filter(Boolean).join(' ') : '';
+  msg('Calculando el gain del estilo (canta la melodía de referencia)…');
+  const r = await renderVoz({ tipo: 'gain', voz: Object.assign({}, V) });
+  const g = r.gain;
+  const tv = MC.estiloTV1({ nombre: ($('vNombre').value || '').trim() || S.modo, modo: S.modo, voz: V, silMode: S.silMode,
+    lexiconSeed: S.mel.semilla, texto, gain: g.gain, rms: g.rms });
+
+  const aviso = S.vozHoy || MC.MODOS[S.modo].juego ? ' Ojo: estás oyendo la voz de hoy (v7); el TV1 lleva la voz v8 del modo.' : '';
+  copiar('TV1:' + b64e(JSON.stringify(tv)), `Código TV1 copiado (gain ${tv.gain}). Pégalo en Unity: ALWTTT ▸ Voz ▸ Importar estilo.` + aviso);
 };
 $('pegar').addEventListener('paste', (e) => {
   const t = (e.clipboardData || window.clipboardData).getData('text').trim();

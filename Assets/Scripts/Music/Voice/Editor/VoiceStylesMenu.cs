@@ -87,6 +87,25 @@ namespace ALWTTT.Music.Voice.EditorTools
             return a;
         }
 
+        /// <summary>
+        /// [VOZ-3] A workshop mode's full voice (TM1 import: the code only carries part of it).
+        /// The same table as the menu, so a TM1 and the created style start from the same values.
+        /// </summary>
+        internal static bool TryModeBase(string mode, ALWTTT.Music.Voice.V8.VoiceV8Params into, out float hardness)
+        {
+            hardness = 0.5f;
+            foreach (var st in Styles)
+            {
+                if (st.Name != mode) continue;
+                var tmp = ScriptableObject.CreateInstance<VoiceProfileSO>();
+                try { st.Apply(tmp); tmp.ToV8Params(into); }
+                finally { UnityEngine.Object.DestroyImmediate(tmp); }
+                hardness = st.Hardness;
+                return true;
+            }
+            return false;
+        }
+
         [MenuItem("ALWTTT/Voz/Crear estilos del taller (VOZ-2)")]
         public static void CreateStyles()
         {

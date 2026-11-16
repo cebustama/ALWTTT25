@@ -54,3 +54,7 @@ Coste (Node, 48 kHz): ~6 % del tiempo real por voz, igual con y sin extensiones.
 - **Igual, por lectura:** `cantarJuego` = `SingerVoice.OnAudioFilterRead` v7 con el perfil de Zig (bloques de 1024, lead por intervalo, vibrato con retraso, tone stage); el C-lite M1–M3 con `opts.diccion`.
 - **Distinto:** la octava de Rise Up (en el juego, la media del instrumento); el acompañamiento es sintetizado; el volumen de la voz se iguala entre modos.
 - **Propuesta:** X1 constricciones (algoritmo de `TractUI` del original web), X2 longitud del tracto, X3 growl/aspereza/aire, el cantante v2 y el compositor por figuras. Apagadas por defecto: con valores neutros el motor es el fork.
+
+## Copiar TV1: el estilo de voz para el juego (VOZ-3, 2026-11-16)
+
+«Copiar TV1 (estilo de voz)», en Versiones, copia `TV1:` + base64 con la voz entera (nombres del taller, sin recortar), las sílabas (zigués, lista o texto; con la letra original, su texto) y el **gain** calibrado aquí con `MC.gainDeVoz` (mismo RMS que la Zig de hoy en el juego). En Unity: *ALWTTT ▸ Voz ▸ Importar estilo*. Paridad del importado: `paridad/cantante` con `node casos.mjs tv1` (13/13). Copia de la web al día (web `412f576`); el artefacto no.

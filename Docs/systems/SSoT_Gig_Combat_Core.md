@@ -161,6 +161,11 @@ jugarlas) y los **Finisher** la gastan en el último loop, que pasa de turno mue
 solos de todos los Finisher jugados). Se guarda entre canciones del gig (como antes), máximo 10, sin ★ básica por
 loop en esta versión. Todo ajustable en vivo (Dev Mode ▸ Inspiración). Reglas: `SSoT_Card_System.md` §2.3.
 
+**[2026-11-16]** El solo de un Finisher solo existe en el render del loop extra (nunca entra en el modelo). Para que la
+tira de la parte diga quién toca, `CompositionSession` llama a `SongCompositionUI.ShowRenderOnlyTracks` y la fila del
+solista muestra **«Solo · <Finisher>»** durante ese loop (también el solo de bonus de R5-d, «Solo»); se borra al
+acabar la canción o en un loop sin solo. Log `[ECON-2] Tira: solo en la fila de …`.
+
 Per-loop inspiration gain is wired post-M4.6F-3 via `pd.InspirationPerLoop` (default-sourced from `GigFlowSettingsSO.DefaultInspirationPerLoop` at `ApplyRunConfig`). Consumed by the `LoopFinished` subscriber in `GigManager.OnCompositionLoopFinished`, which calls `_session.AddCurrentInspiration(inspN)`. The canonical mutator clamps to `pd.MaxInspiration` and mirrors to `pd.CurrentInspiration`, so PD and `CompositionSession._currentInspiration` stay in sync after every gain. Per-loop card draw is wired in the same hook via `flow.DrawPerLoop` (new field on `GigFlowSettingsSO`); `DeckManager.DrawCards` clamps to `MaxCardsOnHand` internally.
 
 ### 5.2 SongHype

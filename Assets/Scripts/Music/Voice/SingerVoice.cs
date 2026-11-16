@@ -472,9 +472,18 @@ namespace ALWTTT.Music.Voice
         private float _curVowelIdx, _curVowelDia; // C-lite per-note targets
         private long _measTicks; private double _measFrames; private int _measBlocks;
         private volatile float _measLoadPct = -1f, _measPeakPct = -1f;
+        // [VOZ-3] CPU in a build: launch with -vozcpu; every measurement window (~2 s) is logged
+        // from Update as "[VOZ-3] CPU voz ..." (Player.log). The audio thread only bumps a counter.
+        private volatile int _measSeq, _measLastFrames;
+        private int _measSeqLogged;
 
         private void Awake()
         {
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-vozcpu") >= 0)
+            {
+                measureCallbackLoad = true;
+                Debug.Log($"[VOZ-3] CPU voz: medición encendida por -vozcpu en {name} (dsp {AudioSettings.outputSampleRate} Hz).");
+            }
             BuildVoice();
         }
 
@@ -1103,6 +1112,7 @@ namespace ALWTTT.Music.Voice
                     _measLoadPct = pct;
                     if (pct > _measPeakPct) _measPeakPct = pct;
                     _measTicks = 0; _measFrames = 0; _measBlocks = 0;
+                    _measLastFrames = frames; _measSeq++;
                 }
             }
 
@@ -1140,6 +1150,15 @@ namespace ALWTTT.Music.Voice
         // parameters, so Inspector edits in Play mode are heard at once (D7 = A).
         private void Update()
         {
+            if (measureCallbackLoad && _measSeq != _measSeqLogged)
+            {
+                _measSeqLogged = _measSeq;
+                float pct = _measLoadPct; int fr = _measLastFrames;
+                double bufMs = 1000.0 * fr / Mathf.Max(1, _sampleRate);
+                Debug.Log($"[VOZ-3] CPU voz {(_v8 != null ? "V8 " + (_v8Profile ? _v8Profile.name : "?") : "V7")}: " +
+                          $"{pct:0.0} % (pico {_measPeakPct:0.0} %), {pct / 100.0 * bufMs:0.00} ms de {bufMs:0.0} ms por búfer " +
+                          $"({fr} muestras @ {_sampleRate} Hz){(Application.isEditor ? ", EDITOR" : ", build")}.");
+            }
             var r8 = _v8;
             if (r8 == null || _v8Profile == null) return;
             _v8Profile.ToV8Params(r8.P);
@@ -1149,11 +1168,35 @@ namespace ALWTTT.Music.Voice
             gain = _v8Profile.gain;
         }
 
-        private bool ArmV8(MidiFile file, TempoMap tempoMap, ExprContextInputs inputs, VoiceProfileSO profile, V8ArmInputs a)
+        /// <summary>[VOZ-3] What PrepareV8 decided, for the logs (game and Card Bench).</summary>
+        public sealed class V8Prep
         {
-            if (inputs.bpm <= 0) { Fail("V8 needs the loop bpm."); return false; }
-            var (beatsPerBar, beatUnit) = TimeSignatureProperties[inputs.timeSignature];
-            double beatSec = (60.0 / inputs.bpm) * (4.0 / beatUnit);
+            public SungNote[] Notes;
+            public int PhraseEnds, Grid, VerseSeed, NoiseSeed;
+            public string BankInfo = "none (base vowel)";
+            public string[] Lexicon;
+            public string Sung(int max = 16)
+            {
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < Notes.Length && i < max; i++)
+                    sb.Append(string.IsNullOrEmpty(Notes[i].Syllable) ? "_" : Notes[i].Syllable).Append(Notes[i].PhraseEnd ? " | " : " ");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>
+        /// [VOZ-3] The v8 singer's notes from a melody stem: timing, phrase ends and syllables,
+        /// exactly as the gig arms them (ArmV8 calls this). Main thread only. The Card Bench
+        /// renders the same notes offline (D-VOZ-6 = A).
+        /// </summary>
+        public static V8Prep PrepareV8(MidiFile file, int bpm, TimeSignature timeSignature, VoiceProfileSO profile,
+            int songSeed, int partIndex, out string error)
+        {
+            error = null;
+            if (bpm <= 0) { error = "V8 needs the loop bpm."; return null; }
+            var tempoMap = file.GetTempoMap();
+            var (beatsPerBar, beatUnit) = TimeSignatureProperties[timeSignature];
+            double beatSec = (60.0 / bpm) * (4.0 / beatUnit);
             int tpqn = file.TimeDivision is TicksPerQuarterNoteTimeDivision tq ? tq.TicksPerQuarterNote : 0;
             double beatsPerTick = tpqn > 0 ? (beatUnit / 4.0) / tpqn : 0;
 
@@ -1171,38 +1214,75 @@ namespace ALWTTT.Music.Voice
                 });
             }
             list.Sort((x, y) => x.Start.CompareTo(y.Start));
-            if (list.Count == 0) { Fail("Stem has zero notes."); return false; }
-            var notes = list.ToArray();
+            if (list.Count == 0) { error = "Stem has zero notes."; return null; }
+            var prep = new V8Prep { Notes = list.ToArray() };
+            var notes = prep.Notes;
 
             var bank = profile.syllableBank;
-            int grid = bank != null ? bank.phraseGridBars : 0;
-            int ends = SyllablePlanner.MarkPhraseEnds(notes, beatSec, profile.fallSemitones > 0f, beatsPerBar, grid);
-            int verseSeed = SyllablePlanner.Hash($"{a.songSeed}|{a.partIndex}|verso");
-            string[] lexicon = null;
-            string bankInfo = "none (base vowel)";
+            prep.Grid = bank != null ? bank.phraseGridBars : 0;
+            prep.PhraseEnds = SyllablePlanner.MarkPhraseEnds(notes, beatSec, profile.fallSemitones > 0f, beatsPerBar, prep.Grid);
+            prep.VerseSeed = SyllablePlanner.Hash($"{songSeed}|{partIndex}|verso");
             if (bank != null)
             {
                 switch (bank.mode)
                 {
                     case SyllableBankSO.Mode.Zigues:
-                        lexicon = SyllablePlanner.AssignZigues(notes, bank.lexiconSeed, bank.hardness, verseSeed);
-                        bankInfo = $"{bank.name} (zigues, lexiconSeed={bank.lexiconSeed}, hardness={bank.hardness:0.##})";
+                        prep.Lexicon = SyllablePlanner.AssignZigues(notes, bank.lexiconSeed, bank.hardness, prep.VerseSeed);
+                        prep.BankInfo = $"{bank.name} (zigues, lexiconSeed={bank.lexiconSeed}, hardness={bank.hardness:0.##})";
                         break;
                     case SyllableBankSO.Mode.WeightedList:
-                        SyllablePlanner.AssignWeighted(notes, bank.ToWeighted(), verseSeed, "");
-                        bankInfo = $"{bank.name} (list, {bank.entries.Count} syllables)";
+                        SyllablePlanner.AssignWeighted(notes, bank.ToWeighted(), prep.VerseSeed, "");
+                        prep.BankInfo = $"{bank.name} (list, {bank.entries.Count} syllables)";
                         break;
                     default:
-                        SyllablePlanner.AssignWeighted(notes, new List<WeightedSyllable>(), verseSeed, bank.text);
-                        bankInfo = $"{bank.name} (text)";
+                        SyllablePlanner.AssignWeighted(notes, new List<WeightedSyllable>(), prep.VerseSeed, bank.text);
+                        prep.BankInfo = $"{bank.name} (text)";
                         break;
                 }
             }
+            prep.NoiseSeed = songSeed ^ SyllablePlanner.Hash("voz-ruido");
+            return prep;
+        }
+
+        /// <summary>
+        /// [VOZ-3] Offline render of the v8 singer (Card Bench «▶ con voz», .wav): the same
+        /// PrepareV8 + VoiceRenderer as the gig, without live levers, times the profile's gain.
+        /// Mono samples from the loop start; null + error on failure. Main thread (editor).
+        /// </summary>
+        public static float[] RenderV8Offline(byte[] stemBytes, int bpm, TimeSignature timeSignature, VoiceProfileSO profile,
+            int songSeed, int partIndex, int sampleRate, out V8Prep prep, out string error, double tailSeconds = 1.0)
+        {
+            prep = null;
+            if (profile == null) { error = "Sin perfil de voz."; return null; }
+            MidiFile file;
+            try { using var ms = new System.IO.MemoryStream(stemBytes); file = MidiFile.Read(ms); }
+            catch (Exception ex) { error = "Stem parse failed: " + ex.Message; return null; }
+            prep = PrepareV8(file, bpm, timeSignature, profile, songSeed, partIndex, out error);
+            if (prep == null) return null;
+            var p = new VoiceV8Params();
+            profile.ToV8Params(p);
+            var r = new VoiceRenderer(prep.Notes, p, sampleRate, prep.NoiseSeed);
+            int frames = (int)Math.Ceiling((r.EndTime + tailSeconds) * sampleRate / VoiceRenderer.ControlBlock) * VoiceRenderer.ControlBlock;
+            var outBuf = new float[frames];
+            for (int off = 0; off < frames; off += 1024) r.Render(new Span<float>(outBuf, off, Math.Min(1024, frames - off)));
+            float g = profile.gain;
+            for (int i = 0; i < frames; i++) outBuf[i] *= g;
+            return outBuf;
+        }
+
+        private bool ArmV8(MidiFile file, TempoMap tempoMap, ExprContextInputs inputs, VoiceProfileSO profile, V8ArmInputs a)
+        {
+            var prep = PrepareV8(file, inputs.bpm, inputs.timeSignature, profile, a.songSeed, a.partIndex, out string err);
+            if (prep == null) { Fail(err); return false; }
+            var notes = prep.Notes;
+            int ends = prep.PhraseEnds, grid = prep.Grid, verseSeed = prep.VerseSeed;
+            string[] lexicon = prep.Lexicon;
+            string bankInfo = prep.BankInfo;
 
             var p = new VoiceV8Params();
             profile.ToV8Params(p);
             p.LiveTensenessOffset = liveTensenessOffset; p.LiveVibratoScale = liveVibratoScale; p.LiveGrowlOffset = liveGrowlOffset;
-            int noiseSeed = a.songSeed ^ SyllablePlanner.Hash("voz-ruido");
+            int noiseSeed = prep.NoiseSeed;
             var r = new VoiceRenderer(notes, p, _sampleRate, noiseSeed);
 
             _v8Profile = profile;
@@ -1213,9 +1293,7 @@ namespace ALWTTT.Music.Voice
             _v8 = r;
             _armedWaiting = true; _dspStartTime = double.MaxValue;
 
-            var sung = new System.Text.StringBuilder();
-            for (int i = 0; i < notes.Length && i < 16; i++)
-                sung.Append(string.IsNullOrEmpty(notes[i].Syllable) ? "_" : notes[i].Syllable).Append(notes[i].PhraseEnd ? " | " : " ");
+            string sung = prep.Sung();
             Debug.Log($"[VOZ-2] Armed V8: profile={profile.name} [{a.profileSource ?? "-"}], bank={bankInfo}, " +
                       $"songSeed={a.songSeed}, part={a.partIndex}, verseSeed={verseSeed}, noiseSeed={noiseSeed}, " +
                       $"notes={notes.Length}, phraseEnds={ends} (grid={grid}), tract={r.TractLength}, sr={_sampleRate}" +
@@ -1257,6 +1335,7 @@ namespace ALWTTT.Music.Voice
                     _measLoadPct = pct;
                     if (pct > _measPeakPct) _measPeakPct = pct;
                     _measTicks = 0; _measFrames = 0; _measBlocks = 0;
+                    _measLastFrames = frames; _measSeq++;
                 }
             }
         }

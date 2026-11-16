@@ -11,6 +11,12 @@
 // DevDumpMidi file.
 //
 // Plays MIDI in the editor with Maestro's MidiEditorLib (MidiFileEditorPlayer).
+//
+// [VOZ-3 / D4 = B] «▶ con voz»: Zig's melody stem is sung offline by the gig's own path
+// (SingerVoice.PrepareV8 + VoiceRenderer, D-VOZ-6 = A) and played as an AudioClip that starts
+// with Maestro (its melody channel removed, as the Director mutes it in the gig). Approximate
+// sync (one editor frame). «.wav» saves the voice alone. The voice is the gig's choice (the
+// melody card's palette, else Zig's profile on the prefab) unless «Voz» picks a profile.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,6 +79,16 @@ namespace ALWTTT.Music.EditorTools
             public List<(string mus, string role, string card, string bundle, string inst)> tracks = new();
             public List<string> notes = new();
             public string error;
+            // [VOZ-3] what «▶ con voz» needs
+            public Dictionary<MusicianTrackKey, byte[]> stems;
+            public MidiGenPlay.MusicTheory.MusicTheory.TimeSignature timeSig;
+            public int seed;
+            public ALWTTT.Music.Voice.VoiceStylePaletteSO singerPalette;
+            public AudioClip voiceClip;
+            public float[] voiceSamples;
+            public ALWTTT.Music.Voice.VoiceProfileSO voiceProfile;
+            public string voiceInfo;
+            public int melodyChannel = -1;
         }
         private Result _ra, _rb;
 
@@ -90,6 +106,26 @@ namespace ALWTTT.Music.EditorTools
         private double _playStartedAt;
         private Vector2 _scroll;
 
+        // ── [VOZ-3] Voice ───────────────────────────────────────────────────
+        private const string SingerPrefab = "Assets/Prefabs/Core/Zig_SingerVoice.prefab";
+        private static ALWTTT.Music.Voice.VoiceProfileSO _voiceOverride;   // null = the gig's choice
+        private bool _withVoice;
+        private bool _voicePending;
+        private GameObject _voiceGo;
+        private AudioSource _voiceSrc;
+        private string _singerId;
+        private ALWTTT.Music.Voice.VoiceProfileSO _singerProfile;
+
+        /// <summary>[VOZ-3] Opens the bench with this profile as the voice of «▶ con voz» (importer).</summary>
+        public static void OpenWithVoice(ALWTTT.Music.Voice.VoiceProfileSO profile)
+        {
+            _voiceOverride = profile;
+            var w = GetWindow<CardBenchWindow>("Banco de cartas");
+            if (w._ra != null) { w._ra.voiceClip = null; w._ra.voiceSamples = null; }
+            if (w._rb != null) { w._rb.voiceClip = null; w._rb.voiceSamples = null; }
+            w.Repaint();
+        }
+
         [MenuItem("ALWTTT/Banco de cartas")]
         public static void Open() => GetWindow<CardBenchWindow>("Banco de cartas");
 
@@ -104,6 +140,7 @@ namespace ALWTTT.Music.EditorTools
             SaveState();
             StopPlayback();
             if (_lib != null) { _lib.DestroyMidiObject(); _lib = null; }
+            if (_voiceGo != null) { DestroyImmediate(_voiceGo); _voiceGo = null; _voiceSrc = null; }
         }
 
         private void Update()
@@ -116,6 +153,18 @@ namespace ALWTTT.Music.EditorTools
                 {
                     _lib.MidiPlayer.MPTK_Position = _pendingSeekMs;
                     _pendingSeekMs = 0;
+                }
+                else if (_voicePending && _lib.MidiPlayer.MPTK_IsPlaying)
+                {
+                    // [VOZ-3] start the voice where Maestro is now (approximate sync)
+                    _voicePending = false;
+                    var vr = _playing == 'A' ? _ra : _rb;
+                    if (vr?.voiceClip != null && _voiceSrc != null)
+                    {
+                        _voiceSrc.clip = vr.voiceClip;
+                        _voiceSrc.time = Mathf.Clamp((float)(_lib.MidiPlayer.MPTK_Position / 1000.0), 0f, vr.voiceClip.length - 0.01f);
+                        _voiceSrc.Play();
+                    }
                 }
                 else if (_pendingSeekMs <= 0 && !_lib.MidiPlayer.MPTK_IsPlaying
                          && EditorApplication.timeSinceStartup - _playStartedAt > 1.0)
@@ -195,6 +244,17 @@ namespace ALWTTT.Music.EditorTools
                     Toggle();
                 GUI.enabled = true;
                 if (GUILayout.Button("■ Parar")) StopPlayback();
+            }
+
+            // [VOZ-3] Voice for «▶ con voz»
+            var prevVoice = _voiceOverride;
+            _voiceOverride = (ALWTTT.Music.Voice.VoiceProfileSO)EditorGUILayout.ObjectField(
+                new GUIContent("Voz (▶ con voz)", "Vacío = la del gig: la paleta de la carta de melodía, si tiene; si no, el perfil de Zig en el prefab."),
+                _voiceOverride, typeof(ALWTTT.Music.Voice.VoiceProfileSO), false);
+            if (_voiceOverride != prevVoice)
+            {
+                if (_ra != null) { _ra.voiceClip = null; _ra.voiceSamples = null; }
+                if (_rb != null) { _rb.voiceClip = null; _rb.voiceSamples = null; }
             }
 
             if (_ra?.hash != null && _rb?.hash != null)
@@ -302,7 +362,11 @@ namespace ALWTTT.Music.EditorTools
                     r = Render(c, SeedOf(c));
                 GUI.enabled = r?.bytes != null;
                 if (GUILayout.Button("▶", GUILayout.Width(36), GUILayout.Height(24)))
-                    Play(id, 0);
+                { _withVoice = false; Play(id, 0); }
+                if (GUILayout.Button(new GUIContent("▶ con voz", "Zig canta la melodía con el cantante v8 (render offline)."), GUILayout.Width(80), GUILayout.Height(24)))
+                { _withVoice = true; Play(id, 0); }
+                if (GUILayout.Button(new GUIContent(".wav", "Solo la voz, renderizada offline."), GUILayout.Width(44), GUILayout.Height(24)))
+                    ExportVoiceWav(r, id);
                 if (GUILayout.Button("Exportar .mid", GUILayout.Height(24)))
                     Export(r, id, SeedOf(c));
                 GUI.enabled = true;
@@ -328,6 +392,7 @@ namespace ALWTTT.Music.EditorTools
             EditorGUILayout.LabelField($"Tonalidad: {r.key}", St(cmp && other.key != r.key));
             EditorGUILayout.LabelField($"Armonía: {r.harmony}", St(cmp && other.harmony != r.harmony));
             EditorGUILayout.LabelField($"Huella: {r.hash}", EditorStyles.miniLabel);
+            if (r.voiceInfo != null) EditorGUILayout.LabelField($"Voz: {r.voiceInfo}", EditorStyles.wordWrappedMiniLabel);
 
             foreach (var t in r.tracks)
             {
@@ -388,7 +453,7 @@ namespace ALWTTT.Music.EditorTools
                 var mm = go.AddComponent<MidiMusicManager>();
                 mm.InitForOfflineRender(_config, _palette, _mix != null ? _mix.BuildGainMap() : null);
 
-                var (merged, _, seconds, bpm, _) = mm.RenderSinglePart(cfg, 0, seedOverride: seed);
+                var (merged, stems, seconds, bpm, _) = mm.RenderSinglePart(cfg, 0, seedOverride: seed);
                 if (merged == null || merged.Length == 0)
                 { res.error = "El render falló: mira la consola."; return res; }
 
@@ -400,6 +465,10 @@ namespace ALWTTT.Music.EditorTools
                 res.key = $"{p.RootNote} {p.Tonality}";
                 res.harmony = $"{mm.LastSharedProgressionSource} {mm.LastSharedProgressionAssetName ?? ""}".Trim();
                 res.hash = Fnv(res.bytes);
+                res.stems = stems;                       // [VOZ-3]
+                res.timeSig = cfg.Parts[0].TimeSignature;
+                res.seed = seed;
+                res.singerPalette = SingerPalette(part0);
 
                 foreach (var t in p.Tracks)
                 {
@@ -476,6 +545,23 @@ namespace ALWTTT.Music.EditorTools
         {
             var r = id == 'A' ? _ra : _rb;
             if (r?.bytes == null) return;
+            StopVoice();
+            byte[] bytes = r.bytes;
+            if (_withVoice)
+            {
+                if (r.voiceClip == null) RenderVoice(r);
+                if (r.voiceClip == null)
+                {
+                    ShowNotification(new GUIContent("Sin voz: " + (r.voiceInfo ?? "mira la consola")));
+                    _withVoice = false;
+                }
+                else
+                {
+                    bytes = WithoutChannel(r.bytes, r.melodyChannel);
+                    EnsureVoiceSource();
+                    _voicePending = true;
+                }
+            }
             try
             {
                 _lib ??= new MidiEditorLib("CardBench_MidiPlayer");
@@ -493,7 +579,7 @@ namespace ALWTTT.Music.EditorTools
                 // segment Maestro's own MPTK_Play() uses when !isPlaying.
                 mp.MPTK_InitSynth();
                 mp.MPTK_StartSequencerMidi();
-                Routine.RunCoroutine(mp.ThreadCorePlay(r.bytes), Segment.EditorUpdate);
+                Routine.RunCoroutine(mp.ThreadCorePlay(bytes), Segment.EditorUpdate);
                 _pendingSeekMs = positionMs;
                 _playStartedAt = EditorApplication.timeSinceStartup;
                 _playing = id;
@@ -517,6 +603,154 @@ namespace ALWTTT.Music.EditorTools
         {
             if (_lib?.MidiPlayer != null) _lib.MidiPlayer.MPTK_Stop();
             _playing = '\0';
+            StopVoice();
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // [VOZ-3] Voice: offline render of the singer v8, played next to Maestro
+        // ════════════════════════════════════════════════════════════════════
+        private void StopVoice()
+        {
+            _voicePending = false;
+            if (_voiceSrc != null) _voiceSrc.Stop();
+        }
+
+        private void EnsureVoiceSource()
+        {
+            if (_voiceSrc != null) return;
+            _voiceGo = new GameObject("CardBench_Voice") { hideFlags = HideFlags.HideAndDontSave };
+            _voiceSrc = _voiceGo.AddComponent<AudioSource>();
+            _voiceSrc.playOnAwake = false; _voiceSrc.spatialBlend = 0f;
+        }
+
+        private void LoadSinger()
+        {
+            if (_singerProfile != null && !string.IsNullOrEmpty(_singerId)) return;
+            var go = AssetDatabase.LoadAssetAtPath<GameObject>(SingerPrefab);
+            var dir = go != null ? go.GetComponentInChildren<ALWTTT.Music.Voice.SingerVoiceDirector>(true) : null;
+            if (dir == null) return;
+            var so = new SerializedObject(dir);
+            _singerId = so.FindProperty("musicianId")?.stringValue;
+            _singerProfile = so.FindProperty("profile")?.objectReferenceValue as ALWTTT.Music.Voice.VoiceProfileSO;
+        }
+
+        /// <summary>The voice palette of the singer's melody card in part A (CompositionSession.CollectVoicePalettes).</summary>
+        private ALWTTT.Music.Voice.VoiceStylePaletteSO SingerPalette(ALWTTT.UI.SongCompositionUI.PartEntry part0)
+        {
+            LoadSinger();
+            if (part0 == null || string.IsNullOrEmpty(_singerId)) return null;
+            foreach (var tr in part0.tracks)
+            {
+                if (tr == null || tr.musicianId != _singerId) continue;
+                if (tr.role != TrackRole.Melody && tr.role != TrackRole.Lead) continue;
+                var pal = tr.sourceCardDefinition != null ? tr.sourceCardDefinition.CompositionPayload?.TrackAction?.voicePalette : null;
+                if (pal != null) return pal;
+            }
+            return null;
+        }
+
+        private void RenderVoice(Result r)
+        {
+            LoadSinger();
+            r.voiceClip = null; r.voiceSamples = null;
+            if (string.IsNullOrEmpty(_singerId)) { r.voiceInfo = $"no encuentro el SingerVoiceDirector en {SingerPrefab}."; return; }
+            byte[] stem = null;
+            if (r.stems != null)
+                foreach (var wanted in new[] { TrackRole.Melody, TrackRole.Lead })
+                {
+                    foreach (var kv in r.stems)
+                        if (kv.Key.MusicianId == _singerId && kv.Key.Role == wanted && kv.Value != null && kv.Value.Length > 0)
+                        { stem = kv.Value; break; }
+                    if (stem != null) break;
+                }
+            if (stem == null) { r.voiceInfo = $"la parte A no tiene melodía del cantante (musicianId {_singerId})."; return; }
+
+            string source;
+            ALWTTT.Music.Voice.VoiceProfileSO profile;
+            var picked = r.singerPalette != null ? r.singerPalette.Pick(r.seed, 0) : null;
+            if (_voiceOverride != null) { profile = _voiceOverride; source = "elegida en el banco"; }
+            else if (picked != null) { profile = picked; source = "paleta " + r.singerPalette.name; }
+            else { profile = _singerProfile; source = "perfil del prefab"; }
+            if (profile == null) { r.voiceInfo = "sin perfil de voz."; return; }
+            if (profile.engine != ALWTTT.Music.Voice.VoiceProfileSO.SingerEngine.V8_Workshop)
+            { r.voiceInfo = $"{profile.name} usa el motor V7: el banco solo canta V8."; return; }
+
+            int sr = AudioSettings.outputSampleRate > 0 ? AudioSettings.outputSampleRate : 48000;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var samples = ALWTTT.Music.Voice.SingerVoice.RenderV8Offline(stem, r.bpm, r.timeSig, profile, r.seed, 0, sr,
+                out var prep, out string err);
+            sw.Stop();
+            if (samples == null) { r.voiceInfo = "el render falló: " + err; Debug.LogWarning($"[VOZ-3] Banco: {err}"); return; }
+            float peak = 0f; foreach (var x in samples) peak = Mathf.Max(peak, Mathf.Abs(x));
+            var clip = AudioClip.Create($"voz_{profile.name}", samples.Length, 1, sr, false);
+            clip.SetData(samples, 0);
+            r.voiceClip = clip; r.voiceSamples = samples; r.voiceProfile = profile;
+            r.melodyChannel = FirstNoteChannel(stem);
+            double audioSec = (double)samples.Length / sr;
+            r.voiceInfo = $"{profile.name} [{source}] · {prep.Notes.Length} notas · {audioSec:0.0} s en {sw.ElapsedMilliseconds} ms";
+            Debug.Log($"[VOZ-3] Banco ▶ con voz: profile={profile.name} [{source}], bank={prep.BankInfo}, seed={r.seed}, " +
+                      $"bpm={r.bpm}, notes={prep.Notes.Length}, phraseEnds={prep.PhraseEnds}, sr={sr}, " +
+                      $"render {sw.ElapsedMilliseconds} ms para {audioSec:0.0} s ({100.0 * sw.Elapsed.TotalSeconds / audioSec:0.0} % de tiempo real), " +
+                      $"pico {peak:0.000}, canal mudo {r.melodyChannel}" +
+                      (prep.Lexicon != null ? $", lexicon=[{string.Join(" ", prep.Lexicon)}]" : "") + $"\n  sings: {prep.Sung()}");
+        }
+
+        private static int FirstNoteChannel(byte[] stem)
+        {
+            try
+            {
+                using var ms = new MemoryStream(stem);
+                foreach (var tc in MidiFile.Read(ms).GetTrackChunks())
+                    foreach (var e in tc.Events)
+                        if (e is NoteOnEvent on && on.Velocity > 0) return on.Channel;
+            }
+            catch (Exception ex) { Debug.LogWarning("[VOZ-3] Banco: no pude leer el canal de la melodía: " + ex.Message); }
+            return -1;
+        }
+
+        /// <summary>The merged bytes without the singer's channel notes (the gig mutes that channel).</summary>
+        private static byte[] WithoutChannel(byte[] bytes, int channel)
+        {
+            if (channel < 0) return bytes;
+            try
+            {
+                using var ms = new MemoryStream(bytes);
+                var f = MidiFile.Read(ms);
+                foreach (var tc in f.GetTrackChunks())
+                    tc.Events.RemoveAll(e => (e is NoteOnEvent on && on.Channel == channel) || (e is NoteOffEvent off && off.Channel == channel));
+                using var o = new MemoryStream();
+                f.Write(o);
+                return o.ToArray();
+            }
+            catch (Exception ex) { Debug.LogWarning("[VOZ-3] Banco: no pude quitar el canal de la melodía: " + ex.Message); return bytes; }
+        }
+
+        private void ExportVoiceWav(Result r, char id)
+        {
+            if (r?.bytes == null) return;
+            if (r.voiceSamples == null) RenderVoice(r);
+            if (r.voiceSamples == null) { ShowNotification(new GUIContent("Sin voz: " + (r.voiceInfo ?? "mira la consola"))); return; }
+            var dir = Path.Combine(Application.persistentDataPath, "CardBench");
+            Directory.CreateDirectory(dir);
+            var path = EditorUtility.SaveFilePanel("Exportar la voz (.wav)", dir,
+                $"voz_{id}_{r.voiceProfile.name}_s{r.seed}.wav", "wav");
+            if (string.IsNullOrEmpty(path)) return;
+            WriteWav(path, r.voiceSamples, r.voiceClip.frequency);
+            Debug.Log($"[VOZ-3] Banco: voz exportada {path} ({r.voiceSamples.Length} muestras @ {r.voiceClip.frequency} Hz, {r.voiceProfile.name}).");
+            EditorUtility.RevealInFinder(path);
+        }
+
+        /// <summary>32-bit float mono WAV (format 3): the samples exactly, for parity checks.</summary>
+        private static void WriteWav(string path, float[] samples, int sr)
+        {
+            using var fs = new FileStream(path, FileMode.Create);
+            using var w = new BinaryWriter(fs);
+            int dataBytes = samples.Length * 4;
+            w.Write(Encoding.ASCII.GetBytes("RIFF")); w.Write(36 + dataBytes); w.Write(Encoding.ASCII.GetBytes("WAVE"));
+            w.Write(Encoding.ASCII.GetBytes("fmt ")); w.Write(16); w.Write((short)3); w.Write((short)1);
+            w.Write(sr); w.Write(sr * 4); w.Write((short)4); w.Write((short)32);
+            w.Write(Encoding.ASCII.GetBytes("data")); w.Write(dataBytes);
+            foreach (var x in samples) w.Write(x);
         }
 
         // ════════════════════════════════════════════════════════════════════
