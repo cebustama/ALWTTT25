@@ -4,6 +4,12 @@ Sesión del Taller de melodías (solo JS, `Docs/reference/taller-melodia/`), pri
 
 **Estado (2026-11-16, noche): construida, falta la prueba de oído de Claudio.** Decisiones: D1 = A (la biblioteca sustituye al desplegable), D2 = A (konnakol por pulsos), D3 = A (proyección a los armónicos), D4 = C (bloque `soloTaller` solo si hace falta). Comprobado: neutro byte a byte, paridad del motor 9/9 y del TV1 13/13, canto de garganta +8 a +14 dB en 8 de 8, sin NaN y sin errores en la página. Detalle en `../../reference/taller-melodia/README.md`.
 
+**Prueba de oído de Claudio (2026-11-16, noche):**
+- Del 1 al 13 bien; también susurro, nasal, canto llano, los modos viejos, el aviso del TV1, la importación en Unity, las versiones y el móvil.
+- Fallaron el 14 (garganta: el silbido «por detrás») y el 17 (yodel: no se notaba). Se arreglaron (D5 = A) con la perilla `realce` y el yodel por registro con vocal; falta volver a oírlos.
+- D6 = A: la articulación de las consonantes (s, k, t) va a la sesión B.
+- D7 = A: progresiones del taller armónico en una sesión nueva, TALLER-MEL-D, después de B y coordinada con V3 de MidiGenPlay.
+
 **Revisado el 2026-11-16 tras VOZ-3 y WALKBASS.** VOZ-3 conectó el taller con el juego por el código TV1 («Copiar TV1» → *ALWTTT ▸ Voz ▸ Importar estilo*). Esta sesión no toca C#, así que todo lo nuevo es **solo del taller** hasta VOZ-2b, y no puede romper ese puente. Riesgos concretos:
 - `estiloTV1` exporta **todas** las claves de `BASE`. Si las perillas nuevas entran en `BASE`, el TV1 de **todos** los modos (también los viejos) las llevará, y el importador del juego (`VoiceStyleCode.ApplyVoice`) avisará de «Campo desconocido» en cada importación.
 - `SIL_TV1` convierte cualquier modo de sílabas que no conoce en `zigues` **sin avisar**: un estilo con solfeo, scat o konnakol se importaría cantando zigués.

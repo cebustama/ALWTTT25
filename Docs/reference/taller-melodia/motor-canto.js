@@ -406,13 +406,13 @@
   // TALLER-MEL-A: cinco modos nuevos. Cuatro estrenan perillas que el juego aún no tiene (soloTaller);
   // el canto llano usa solo las de hoy. Las perillas nuevas viven fuera de BASE (NUEVAS) para que el
   // TV1 de los modos viejos salga igual que antes; en neutro, el motor es el de hoy byte a byte.
-  const NUEVAS = { sonoridad: 1, nasalidad: 0, quiebre: 0, garganta: 0, bordon: -12 };
+  const NUEVAS = { sonoridad: 1, nasalidad: 0, quiebre: 0, garganta: 0, bordon: -12, realce: 0 };
   Object.assign(MODOS, {
     'Susurro': { soloTaller: true, nota: 'Sin voz: las cuerdas no vibran y solo suena el ruido del aire al pasar por la glotis entreabierta, filtrado por la boca (sonoridad 0). Las consonantes pesan más. En el susurro los formantes suben y se ensanchan. Fuente: J. Wolfe, «Glottal signal, vocal tract resonances and output sound» (UNSW Voice Acoustics).', v: { dureza: 0.6, sonoridad: 0, aire: 3, tensLo: 0.05, tensHi: 0.15, minLoudness: 0.45, looseness: 0.05, vibratoDepth: 0, brightness: 0.78, legato: 0.4, scoop: 0, glideMs: 0, vocalBase: 'a', silabas: [['shi', 2], ['su', 2], ['si', 1], ['fa', 1], ['ta', 1], ['ki', 1]] } },
-    'Canto de garganta': { soloTaller: true, nota: 'Khöömei (sygyt): un bordón grave fijo y la melodía en sus armónicos 6–12, que la lengua elige moviendo una resonancia estrecha. Cada nota se proyecta al armónico más cercano (el roll marca cuánto se movió). Bloothooft et al. (JASA 1992) lo explican por F2 y F3 juntos en una banda estrecha; Adachi y Yamada (JASA 1999, con resonancia magnética), por la cavidad de atrás. Aquí se imita el resultado, no la anatomía: en Pink Trombone lo que destaca el armónico es estrechar la punta de la lengua y los labios (medido: +7 a +18 dB sobre sus vecinos).', v: { garganta: 1, bordon: -12, dureza: 0.1, tensLo: 0.75, tensHi: 0.85, minLoudness: 0.6, aire: 0.4, looseness: 0.02, vibratoDepth: 0, brightness: 0.85, legato: 1, glideMs: 0, scoop: 0, caida: 0, vocalBase: 'u', silabas: [['u', 3], ['o', 1]] } },
+    'Canto de garganta': { soloTaller: true, nota: 'Khöömei (sygyt): un bordón grave fijo y la melodía en sus armónicos 6–12, que la lengua elige moviendo una resonancia estrecha. Cada nota se proyecta al armónico más cercano (el roll marca cuánto se movió). Bloothooft et al. (JASA 1992) lo explican por F2 y F3 juntos en una banda estrecha; Adachi y Yamada (JASA 1999, con resonancia magnética), por la cavidad de atrás. Aquí se imita el resultado, no la anatomía: en Pink Trombone lo que destaca el armónico es estrechar la punta de la lengua y los labios (medido: +7 a +18 dB sobre sus vecinos). Eso no basta para oírlo: el bordón sigue 16 dB por encima. El «realce» (no físico) lo pone delante: +3 dB sobre todo lo demás de media.', v: { garganta: 1, bordon: -12, realce: 0.8, dureza: 0.1, tensLo: 0.75, tensHi: 0.85, minLoudness: 0.6, aire: 0.4, looseness: 0.02, vibratoDepth: 0, brightness: 0.85, legato: 1, glideMs: 0, scoop: 0, caida: 0, vocalBase: 'u', silabas: [['u', 3], ['o', 1]] } },
     'Nasal (twang)': { soloTaller: true, nota: 'El velo abierto todo el tiempo (nasalidad), laringe alta, tensión y brillo: la voz «de nariz» del country y del pato. Ojo: Sundberg y Thalén («What is twang?», J. Voice 2010) muestran que el twang se oye sobre todo por los formantes, no necesariamente por la nariz; este modo es el twang nasal.', v: { nasalidad: 0.6, tracto: 40, tensLo: 0.6, tensHi: 0.85, brightness: 0.85, aire: 0.6, vibratoDepth: 0.3, vibratoDelay: 0.3, scoop: 0.4, legato: 0.5, dureza: 0.5, vocalBase: 'e', silabas: [['ne', 2], ['nya', 2], ['ye', 1], ['hey', 1], ['ni', 1]] } },
     'Canto llano': { nota: 'Gregoriano tal como se canta hoy (Solesmes): sin vibrato ni scoop, todo ligado, laringe baja, emisión suave y vocales latinas. Es práctica moderna: cómo sonaba en la Edad Media no se sabe. Solo usa perillas que ya existen, así que su TV1 entra en el juego.', v: { dureza: 0.2, looseness: 0.03, vibratoDepth: 0, scoop: 0, caida: 0, glideMs: 40, legato: 1, tracto: 48, tensLo: 0.38, tensHi: 0.52, brightness: 0.38, aire: 1.2, ataque: 0, minLoudness: 0.3, vocalBase: 'a', silabas: [['a', 2], ['ve', 1], ['ma', 1], ['ri', 1], ['glo', 1], ['al', 1], ['le', 1], ['lu', 1], ['ia', 1], ['do', 1], ['mi', 1], ['ne', 1], ['ut', 1], ['re', 1], ['a', 2, 'fin']] } },
-    'Yodel': { soloTaller: true, nota: 'En los saltos de 5 semitonos o más, la voz cambia de registro: de pecho abajo a cabeza (más ligera y soplada) arriba, con un quiebre audible en el cambio. Los yodlers hacen ese cambio más rápido y estable que voces sin entrenar («Vocal perfection in yodelling: pitch stabilities and transition times», Logopedics Phoniatrics Vocology, 2010). Se oye mejor con la figura «Saltos».', v: { quiebre: 0.8, tensLo: 0.5, tensHi: 0.75, vibratoDepth: 0.6, vibratoDelay: 0.25, glideMs: 0, legato: 0.8, brightness: 0.6, dureza: 0.3, silabas: [['yo', 2], ['de', 1], ['lei', 2], ['i', 1], ['du', 1], ['hu', 1, 'fin']] } },
+    'Yodel': { soloTaller: true, nota: 'En los saltos de 5 semitonos o más, la voz cambia de registro: de pecho abajo a cabeza (más ligera y soplada) arriba, con un quiebre audible en el cambio y la vocal que sigue al registro (o abajo, i arriba: «yo-de-lei-i»). El registro se decide por la altura de la nota (con margen) o por un salto de 5+ semitonos. Los yodlers hacen ese cambio más rápido y estable que voces sin entrenar («Vocal perfection in yodelling: pitch stabilities and transition times», Logopedics Phoniatrics Vocology, 2010).', v: { quiebre: 0.8, tensLo: 0.5, tensHi: 0.75, vibratoDepth: 0.6, vibratoDelay: 0.25, glideMs: 0, legato: 0.8, brightness: 0.6, dureza: 0.3, silabas: [['yo', 2], ['de', 1], ['lei', 2], ['i', 1], ['du', 1], ['hu', 1, 'fin']] } },
   });
   function vozDeModo(nombre) { return Object.assign({}, BASE, NUEVAS, (MODOS[nombre] && MODOS[nombre].v) || {}); }
 
@@ -528,6 +528,12 @@
     const GG = V.garganta > 0, Gk = clamp01(V.garganta);
     const bordonMidi = GG ? (opts.tonica != null ? opts.tonica : Math.min(...notas.map((n) => n.note))) + V.bordon : 0;
     const Q = V.quiebre > 0 ? clamp01(V.quiebre) : 0;                          // yodel
+    const yMid = Q && notas.length ? (Math.min(...notas.map((n) => n.note)) + Math.max(...notas.map((n) => n.note))) / 2 : 0;
+    // realce (no físico, como la saturación): un filtro estrecho sobre el armónico elegido y menos graves
+    // en la señal seca, para que el silbido se oiga delante del bordón. Solo con garganta.
+    const R = GG && V.realce > 0 ? clamp01(V.realce) : 0;
+    let rf = 0, rx1 = 0, rx2 = 0, ry1 = 0, ry2 = 0, rlo = 0;
+    const aLo = 1 - Math.exp(-2 * Math.PI * 450 / SR);
     v.vibratoWobble = false; v.pitchJitterGain = clamp01(V.looseness); v.tensenessJitterGain = clamp01(V.looseness);
     v.alwaysVoice = false; v.isTouched = false; v.vibratoFrequency = V.vibratoSpeedHz;
     const ev = notas.map((n, i) => {
@@ -544,11 +550,11 @@
       e.cStart = e.start - Math.min(pre, Math.max(0.02, (e.start - prevEnd) + 0.06));
       e.legatoNext = i < ev.length - 1 && ev[i + 1].start - e.end < 0.03 + 0.15 * V.legato;
       e.vowel = e.s.vocal === 'mm' ? 'u' : e.s.vocal;
-      if (GG) { const pj = proyectarGarganta(e.note, bordonMidi); e.gg = posturaGarganta(hz(pj.midi)); }
-      if (Q) {   // registro: un salto de 5+ semitonos hacia arriba pasa a cabeza; hacia abajo, a pecho
-        const prev = i > 0 ? ev[i - 1] : null, d = prev ? e.note - prev.note : 0;
-        e.salto = Math.abs(d) >= 5 ? Math.sign(d) : 0;
-        e.reg = e.salto > 0 ? 'cabeza' : e.salto < 0 ? 'pecho' : (prev ? prev.reg : 'pecho');
+      if (GG) { const pj = proyectarGarganta(e.note, bordonMidi); e.gg = posturaGarganta(hz(pj.midi)); e.ggHz = hz(pj.midi); }
+      if (Q) {   // registro: por altura (con histéresis) o por salto de 5+ semitonos; el cambio es el quiebre
+        const prev = i > 0 ? ev[i - 1] : null, d = prev ? e.note - prev.note : 0, ant = prev ? prev.reg : 'pecho';
+        e.reg = d >= 5 ? 'cabeza' : d <= -5 ? 'pecho' : e.note >= yMid + 2 ? 'cabeza' : e.note <= yMid - 1 ? 'pecho' : ant;
+        e.salto = prev && e.reg !== ant ? (e.reg === 'cabeza' ? 1 : -1) : 0;
       }
     });
     let cur = -1, semis = null, lp1 = 0, lp2 = 0, touched = false, noteOnT = 0;
@@ -569,10 +575,11 @@
         loud = clamp01(V.minLoudness + (1 - V.minLoudness) * vel01);
         tens = lerp(V.tensLo, V.tensHi, vel01);
         if (t - e.start < 0.08 && t >= e.start) tens += V.ataque;          // ataque empujado
-        if (Q) {
-          tens = e.reg === 'cabeza' ? Math.max(0.1, tens - 0.35 * Q) : tens + 0.1 * Q;
-          g.x.air = e.reg === 'cabeza' ? V.aire * (1 + 0.8 * Q) : V.aire;
-          if (e.salto && t >= e.start && t - e.start < 0.03) loud *= 1 - 0.7 * Q;   // el quiebre: la voz se cae un instante
+        if (Q) {   // cabeza: ligera y soplada; pecho: apretada y llena
+          tens = e.reg === 'cabeza' ? Math.max(0.08, tens - 0.45 * Q) : tens + 0.18 * Q;
+          g.x.air = e.reg === 'cabeza' ? V.aire * (1 + 1.5 * Q) : V.aire;
+          if (e.reg === 'pecho') loud = clamp01(loud + 0.12 * Q);
+          if (e.salto && t >= e.start && t - e.start < 0.045) loud *= 1 - 0.85 * Q;  // el quiebre: la voz se cae un instante
         }
         // vocal
         const vo = VOCALES[e.vowel] || VOCALES['ə'];
@@ -581,6 +588,10 @@
         // segunda vocal (diptongo: «oi», «ay», «ye»): pasa a la mitad de la nota
         if (e.s.vocal2 && t > (e.start + e.end) / 2) { const v2 = VOCALES[e.s.vocal2]; v.setTongue(v2.i, v2.d); constr = v2.lab != null ? [{ index: 41, diameter: v2.lab }] : []; }
         if (e.s.vocal === 'mm') { constr.push({ index: 41, diameter: 0 }); velo = 0.4; }
+        if (Q && e.s.vocal !== 'mm') {   // yodel: la vocal sigue al registro («yo-de-lei-i»): i arriba, o abajo
+          const R2 = VOCALES[e.reg === 'cabeza' ? 'i' : 'o'];
+          v.setTongue(lerp(S.tongueIndex, R2.i, Q), lerp(S.tongueDiameter, R2.d, Q));
+        }
         if (GG) {   // la lengua va de la vocal a la postura del armónico, según la perilla
           const P = e.gg, ti = S.tongueIndex, td = S.tongueDiameter;
           v.setTongue(lerp(ti, P.i, Gk), lerp(td, P.d, Gk));
@@ -603,7 +614,7 @@
         // altura: scoop, caída, glide
         let target = GG ? bordonMidi : e.note + V.transpose;
         const sinceOn = t - e.start;
-        if (Q && e.salto && sinceOn >= 0 && sinceOn < 0.05) target += e.salto * 1.5 * Q * (1 - sinceOn / 0.05);   // se pasa y vuelve
+        if (Q && e.salto && sinceOn >= 0 && sinceOn < 0.075) target += e.salto * 2 * Q * (1 - sinceOn / 0.075);   // se pasa y vuelve
         if (GG) { /* el bordón no se mueve: ni scoop ni caída */ } else if (V.scoop > 0 && sinceOn >= 0 && sinceOn < V.scoopMs / 1000) target -= V.scoop * (1 - sinceOn / (V.scoopMs / 1000));
         const finalDeFrase = !e.legatoNext;
         if (!GG && ((V.caida > 0 && finalDeFrase) || e.caida)) { const fall = e.caida ? Math.max(V.caida, 2) : V.caida, fw = 0.18; const left = hasta - t; if (left < fw && left >= 0) target -= fall * (1 - left / fw) ** 2; }
@@ -627,9 +638,21 @@
       v.vibratoGain = clamp(V.vibratoDepth * 0.012 * vr, 0, 0.1);
       v.synthesize(out, off, B);
       const drive = V.saturacion, k = 1 + 12 * drive, norm = Math.tanh(k * 0.25);
+      let b0 = 0, a1 = 0, a2 = 0, a0 = 1;
+      if (R) {   // centro del filtro: el armónico de la nota, con un deslizamiento corto entre notas
+        const want = e && e.ggHz ? e.ggHz : rf;
+        if (want) rf = rf ? rf * Math.pow(want / rf, 1 - Math.exp(-(B / SR) / 0.025)) : want;
+        const w0 = 2 * Math.PI * (rf || 1000) / SR, al = Math.sin(w0) / (2 * 18);
+        a0 = 1 + al; b0 = al / a0; a1 = -2 * Math.cos(w0) / a0; a2 = (1 - al) / a0;
+      }
       for (let i = off; i < off + B; i++) {
         lp1 += a * (out[i] - lp1); lp2 += a * (lp1 - lp2);
         let s = lp2;
+        if (R) {
+          const y = b0 * s - b0 * rx2 - a1 * ry1 - a2 * ry2; rx2 = rx1; rx1 = s; ry2 = ry1; ry1 = y;
+          rlo += aLo * (s - rlo);
+          s = (s - 0.8 * R * rlo + 6 * R * y) * (1 + 0.8 * R);   // con ganancia de compensación
+        }
         if (drive > 0) s = Math.tanh(k * s) / norm * 0.25;
         out[i] = s;
       }
@@ -679,7 +702,7 @@
   function estiloTV1({ nombre, modo, voz, silMode, lexiconSeed, texto, gain, rms, silabasCantadas }) {
     const V = Object.assign({}, BASE, voz || {});
     const conocido = !!SIL_TV1[silMode] || silMode == null;
-    const perillas = Object.fromEntries(Object.keys(NUEVAS).filter((k) => V[k] != null && (k === 'bordon' ? V.garganta > 0 : V[k] !== NUEVAS[k])).map((k) => [k, V[k]]));
+    const perillas = Object.fromEntries(Object.keys(NUEVAS).filter((k) => V[k] != null && (k === 'bordon' || k === 'realce' ? V.garganta > 0 && (k === 'bordon' || V[k] !== NUEVAS[k]) : V[k] !== NUEVAS[k])).map((k) => [k, V[k]]));
     const tv = {
       v: 1, nombre, modo,
       voz: Object.fromEntries(Object.keys(BASE).filter((k) => k !== 'silabas' && k !== 'nivel').map((k) => [k, V[k]])),

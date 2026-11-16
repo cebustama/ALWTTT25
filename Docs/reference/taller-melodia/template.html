@@ -208,9 +208,10 @@ code{font-family:var(--f-mono);font-size:.9em}
     <h3>Estilos nuevos · solo taller hasta VOZ-2b</h3>
     <div class="field vk"><label for="k_sonoridad">Sonoridad</label><input id="k_sonoridad" type="range" min="0" max="1" step="0.01"><output></output><small>1 = voz normal; 0 = solo aire (susurro).</small></div>
     <div class="field vk"><label for="k_nasalidad">Nasalidad</label><input id="k_nasalidad" type="range" min="0" max="1" step="0.01"><output></output><small>Velo abierto todo el tiempo (twang nasal).</small></div>
-    <div class="field vk"><label for="k_quiebre">Quiebre (yodel)</label><input id="k_quiebre" type="range" min="0" max="1" step="0.01"><output></output><small>En saltos de 5+ semitonos: pecho ↔ cabeza con un crack.</small></div>
+    <div class="field vk"><label for="k_quiebre">Quiebre (yodel)</label><input id="k_quiebre" type="range" min="0" max="1" step="0.01"><output></output><small>Notas altas en cabeza (ligera, soplada, vocal i) y bajas en pecho (llena, vocal o); el cambio, con un crack.</small></div>
     <div class="field vk"><label for="k_garganta">Lengua → armónico</label><input id="k_garganta" type="range" min="0" max="1" step="0.01"><output></output><small>Canto de garganta: la lengua busca el armónico de cada nota sobre un bordón fijo.</small></div>
     <div class="field vk"><label for="k_bordon">Bordón (semitonos)</label><input id="k_bordon" type="range" min="-24" max="-5" step="1"><output></output><small>Desde la tónica. −12 ≈ 131 Hz con Do; funciona de ~98 a 165 Hz.</small></div>
+    <div class="field vk"><label for="k_realce">Realce del armónico</label><input id="k_realce" type="range" min="0" max="1" step="0.01"><output></output><small>No físico (como la saturación): filtro estrecho sobre el armónico y menos graves, para que el silbido salga delante.</small></div>
   </section>
 
   <section class="band" id="v2Band" aria-label="Segunda voz">
@@ -323,7 +324,7 @@ const nombreNota = (m) => NOMBRES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 
 
 // ------------------------------------------------------------------ estado
 const MEL_DEF = { tonica: 60, escala: 'Mayor (jónico)', progresion: 'I–V–vi–IV', bpm: 100, compases: 8, frase: 4, figura: 'Zig-zag', sube: 2, baja: 1, rango: 1.5, direccion: 'sube', alTope: 'rebota', ritmo: 'celdas', densidad: 0.45, sincopa: 0.3, silencios: 0.1, swing: 0, variacion: 0.1, postSalto: true, acordeFuerte: true, cadencia: true, repetir: 0.05, crescendo: 0.5, firma: true, semilla: 7, periodo: 8, pedal: 'tonica' };
-const VOZ_KEYS = ['transpose', 'tracto', 'tensLo', 'tensHi', 'aire', 'growl', 'aspereza', 'looseness', 'vibratoDepth', 'vibratoSpeedHz', 'vibratoDelay', 'vocalBase', 'brightness', 'scoop', 'caida', 'glideMs', 'ataque', 'legato', 'saturacion', 'sonoridad', 'nasalidad', 'quiebre', 'garganta', 'bordon'];
+const VOZ_KEYS = ['transpose', 'tracto', 'tensLo', 'tensHi', 'aire', 'growl', 'aspereza', 'looseness', 'vibratoDepth', 'vibratoSpeedHz', 'vibratoDelay', 'vocalBase', 'brightness', 'scoop', 'caida', 'glideMs', 'ataque', 'legato', 'saturacion', 'sonoridad', 'nasalidad', 'quiebre', 'garganta', 'bordon', 'realce'];
 const S = { fija: null, mel: Object.assign({}, MEL_DEF), modo: 'Punk rock', voz: MC.vozDeModo('Punk rock'), texto: '', silMode: 'zigues', melHoy: true, vozHoy: true, acomp: 'acordes',
   v2: { on: false, rel: 'Tercera arriba', ritmo: 'par', modo: 'Igual que la voz 1', vol: 0.8, pan: 0.4, ver: '1' } };
 
