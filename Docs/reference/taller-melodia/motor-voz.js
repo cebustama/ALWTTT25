@@ -154,7 +154,7 @@
       this.aspirationNoiseSource = createFilteredNoiseSource(500, 0.5, sampleRate, 0x8000, random);
       this.invRate = f(1 / sampleRate);
       // X3 extensions (neutral values = exact fork behavior)
-      this.x = { sub: 0, jitter: 0, shimmer: 0, air: 1 };
+      this.x = { sub: 0, jitter: 0, shimmer: 0, air: 1, voz: 1 };   // voz: TALLER-MEL-A, sonoridad (0 = solo aire, susurro)
       this.cycle = 0; this.cycAmp = 1; this.xrand = mulberry32(((random.seed | 0) ^ 0x5bd1e995) | 0);
       this.setupWaveform(0);
     }
@@ -167,7 +167,8 @@
         this.timeInWaveform = f(this.timeInWaveform - this.waveformLength);
         this.setupWaveform(lambda);
       }
-      const out1 = this.normalizedLF(f(this.timeInWaveform / this.waveformLength));
+      let out1 = this.normalizedLF(f(this.timeInWaveform / this.waveformLength));
+      if (this.x.voz !== 1) out1 = f(out1 * this.x.voz);
       const asp = this.aspirationNoiseSource();
       const tt = this.targetTenseness;
       const aspiration1 = f(f(f(this.intensity * f(1 - f(Math.sqrt(tt)))) * this.getNoiseModulator()) * asp);

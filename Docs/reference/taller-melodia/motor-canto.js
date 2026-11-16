@@ -176,7 +176,7 @@
   // notas: [midi, inicio, duración, sílaba] en negras; sílaba '-' = melisma (sigue la vocal anterior).
   // Las alturas están escritas con «Do = 60»: la tónica del taller transporta (tónica − 60).
   // ficha: de dónde sale cada dato, qué es seguro y qué es interpretación. Ver ../ideas/2026-11-16_melodias_antiguas.md.
-  const MELODIAS_FIJAS = [{"id": "seikilos", "nombre": "Epitafio de Seikilos (s. I d.C.)", "compas": "6/8", "beatsPorCompas": 3, "bpm": 75, "tonica": 64, "escala": "Dórico", "conLetra": true, "modo": "Tierno y calmado", "notaTonica": "Aquí la tónica es Mi (el final de la melodía); con «Do» en el selector suena a la altura de la partitura de Wikipedia, una cuarta más alta que el original.", "notas": [[69, 0, 0.5, "Hó"], [76, 0.5, 1.0, "son"], [76, 1.5, 1.5, "zêis,"], [73, 3.0, 0.5, "phaí"], [74, 3.5, 0.5, ""], [76, 4.0, 0.5, ""], [74, 4.5, 1.5, "nou"], [73, 6.0, 1.0, "mē"], [74, 7.0, 0.5, "dèn"], [76, 7.5, 0.5, "hó"], [74, 8.0, 0.5, "lōs"], [73, 8.5, 0.5, ""], [71, 9.0, 0.5, "sù"], [69, 9.5, 1.0, "lu"], [71, 10.5, 0.5, "poû"], [67, 11.0, 1.0, ""], [69, 12.0, 0.5, "pròs"], [73, 12.5, 0.5, "o"], [76, 13.0, 0.5, "lí"], [74, 13.5, 0.5, "gon"], [73, 14.0, 0.5, "és"], [74, 14.5, 0.5, ""], [73, 15.0, 0.5, "ti"], [69, 15.5, 1.0, "tò"], [71, 16.5, 0.5, "zên"], [67, 17.0, 1.0, ""], [69, 18.0, 0.5, "tò"], [73, 18.5, 0.5, "té"], [71, 19.0, 0.5, "los"], [74, 19.5, 0.5, "ho"], [76, 20.0, 0.5, "khró"], [73, 20.5, 0.5, "nos"], [69, 21.0, 0.5, "ap"], [69, 21.5, 1.0, "ai"], [69, 22.5, 0.5, "teî."], [66, 23.0, 0.5, ""], [64, 23.5, 0.5, ""]], "ficha": {"que": "Una canción grabada con su notación en una estela funeraria de mármol, cerca de Aydın (Turquía); la mandó tallar un tal Seikilos. Es la composición completa más antigua que se puede tocar con alturas y ritmo. Hallada en 1883; hoy en el Museo Nacional de Dinamarca.", "seguro": ["Las alturas: notación griega de letras, bien entendida.", "Las duraciones largas: signos de dos y tres tiempos (diseme y triseme) sobre la letra.", "La letra: «Mientras vivas, brilla; no te aflijas por nada. La vida dura poco y el tiempo exige su tributo»."], "interpretacion": ["El compás de 6/8 y dónde caen las barras son editoriales; Armand D'Angour propone moverlas.", "La altura: está escrita una cuarta por encima del original (tono jastio).", "La pronunciación del griego, en transliteración simple; la voz canta sin acentos ni tonos."], "fuentes": ["Partitura de la Wikipedia inglesa «Seikilos epitaph» (fuente LilyPond), que sigue a Pöhlmann y West, Documents of Ancient Greek Music (2001).", "Video: The Archaeologist's Notebook, «What Ancient Music Actually Sounded Like», 18:43–20:30."]}}, {"id": "hurrita", "nombre": "Himno hurrita a Nikal (h.6, ~1400 a.C.) · lectura de Vitale", "compas": "2/4 y 3/4 (mixto)", "beatsPorCompas": 2, "barras": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80, 83, 86, 89, 92, 95, 98, 101, 104, 107, 110, 113, 116, 119, 122, 125, 128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 161, 164, 166, 168, 170, 172, 174, 176, 178, 180, 182, 184, 186, 188], "bpm": 90, "tonica": 62, "escala": "Dórico", "conLetra": false, "modo": "Tierno y calmado", "notaTonica": "La tónica Re es una elección del taller (la nota final de esta lectura); la tablilla no dice cuál es.", "notas": [[69, 0, 2.0, ""], [71, 2.0, 1.0, ""], [72, 3.0, 1.0, ""], [74, 4.0, 2.0, ""], [74, 6.0, 0.3333, ""], [72, 6.3333, 0.3333, ""], [71, 6.6667, 0.3333, ""], [69, 7.0, 0.3333, ""], [67, 7.3333, 0.3333, ""], [65, 7.6667, 0.3333, ""], [69, 8.0, 2.0, ""], [71, 10.0, 1.0, ""], [72, 11.0, 1.0, ""], [74, 12.0, 2.0, ""], [65, 14.0, 1.0, ""], [67, 15.0, 0.5, ""], [69, 15.5, 0.5, ""], [74, 16.0, 2.0, ""], [74, 18.0, 2.0, ""], [72, 20.0, 2.0, ""], [72, 22.0, 2.0, ""], [71, 24.0, 2.0, ""], [71, 26.0, 3.0, ""], [69, 29.0, 3.0, ""], [69, 32.0, 3.0, ""], [67, 35.0, 3.0, ""], [67, 38.0, 3.0, ""], [72, 41.0, 2.0, ""], [71, 43.0, 1.0, ""], [69, 44.0, 3.0, ""], [71, 47.0, 1.0, ""], [69, 48.0, 1.0, ""], [67, 49.0, 1.0, ""], [65, 50.0, 2.0, ""], [67, 52.0, 1.0, ""], [69, 53.0, 3.0, ""], [76, 56.0, 1.0, ""], [74, 57.0, 1.0, ""], [72, 58.0, 1.0, ""], [71, 59.0, 1.0, ""], [69, 60.0, 1.0, ""], [67, 61.0, 1.0, ""], [74, 62.0, 1.0, ""], [72, 63.0, 1.0, ""], [71, 64.0, 1.0, ""], [69, 65.0, 1.0, ""], [67, 66.0, 1.0, ""], [65, 67.0, 1.0, ""], [72, 68.0, 1.0, ""], [71, 69.0, 0.5, ""], [69, 69.5, 0.5, ""], [67, 70.0, 0.5, ""], [65, 70.5, 0.5, ""], [76, 71.0, 1.0, ""], [74, 72.0, 1.0, ""], [72, 73.0, 1.0, ""], [71, 74.0, 1.0, ""], [69, 75.0, 1.0, ""], [67, 76.0, 1.0, ""], [74, 77.0, 0.5, ""], [72, 77.5, 0.5, ""], [71, 78.0, 0.5, ""], [69, 78.5, 0.5, ""], [67, 79.0, 0.5, ""], [65, 79.5, 0.5, ""], [71, 80.0, 1.0, ""], [72, 81.0, 0.5, ""], [74, 81.5, 0.5, ""], [76, 82.0, 1.0, ""], [74, 83.0, 1.0, ""], [72, 84.0, 1.0, ""], [71, 85.0, 1.0, ""], [72, 86.0, 3.0, ""], [72, 89.0, 3.0, ""], [71, 92.0, 3.0, ""], [69, 95.0, 3.0, ""], [71, 98.0, 1.0, ""], [69, 99.0, 1.0, ""], [67, 100.0, 1.0, ""], [65, 101.0, 2.0, ""], [67, 103.0, 1.0, ""], [69, 104.0, 3.0, ""], [76, 107.0, 2.0, ""], [74, 109.0, 1.0, ""], [72, 110.0, 3.0, ""], [71, 113.0, 2.0, ""], [69, 115.0, 1.0, ""], [67, 116.0, 3.0, ""], [74, 119.0, 0.5, ""], [72, 119.5, 0.5, ""], [71, 120.0, 0.5, ""], [69, 120.5, 0.5, ""], [67, 121.0, 0.5, ""], [65, 121.5, 0.5, ""], [71, 122.0, 1.0, ""], [72, 123.0, 0.5, ""], [74, 123.5, 0.5, ""], [76, 124.0, 1.0, ""], [65, 125.0, 1.0, ""], [67, 126.0, 1.0, ""], [69, 127.0, 1.0, ""], [76, 128.0, 2.0, ""], [74, 130.0, 1.0, ""], [72, 131.0, 3.0, ""], [71, 134.0, 2.0, ""], [69, 136.0, 1.0, ""], [67, 137.0, 3.0, ""], [65, 140.0, 1.0, ""], [67, 141.0, 1.0, ""], [69, 142.0, 1.0, ""], [76, 143.0, 1.0, ""], [74, 144.0, 1.0, ""], [72, 145.0, 1.0, ""], [71, 146.0, 1.0, ""], [69, 147.0, 1.0, ""], [67, 148.0, 1.0, ""], [65, 149.0, 1.0, ""], [67, 150.0, 1.0, ""], [69, 151.0, 1.0, ""], [76, 152.0, 1.0, ""], [74, 153.0, 1.0, ""], [72, 154.0, 1.0, ""], [71, 155.0, 1.0, ""], [69, 156.0, 1.0, ""], [67, 157.0, 1.0, ""], [74, 158.0, 1.0, ""], [72, 159.0, 1.0, ""], [71, 160.0, 1.0, ""], [69, 161.0, 1.0, ""], [67, 162.0, 1.0, ""], [65, 163.0, 1.0, ""], [67, 164.0, 1.0, ""], [69, 165.0, 1.0, ""], [71, 166.0, 1.0, ""], [72, 167.0, 1.0, ""], [69, 168.0, 2.0, ""], [71, 170.0, 1.0, ""], [72, 171.0, 1.0, ""], [74, 172.0, 2.0, ""], [67, 174.0, 0.5, ""], [69, 174.5, 0.5, ""], [71, 175.0, 0.5, ""], [72, 175.5, 0.5, ""], [69, 176.0, 2.0, ""], [71, 178.0, 2.0, ""], [72, 180.0, 2.0, ""], [74, 182.0, 2.0, ""], [67, 184.0, 0.5, ""], [69, 184.5, 0.5, ""], [71, 185.0, 0.5, ""], [72, 185.5, 0.5, ""], [69, 186.0, 1.0, ""], [71, 187.0, 1.0, ""], [72, 188.0, 1.0, ""], [74, 189.0, 1.0, ""]], "ficha": {"que": "La notación musical completa más antigua que se conoce: una tablilla de arcilla en cuneiforme hallada en el palacio de Ugarit (Siria), con un himno en lengua hurrita a Nikal, diosa de los huertos, e instrucciones para una lira de nueve cuerdas.", "seguro": ["Que existe y qué es: letra arriba, instrucciones musicales abajo (nombres de intervalos y números).", "La afinación descrita (nīd qablim) y que es para lira."], "interpretacion": ["Todo lo demás. No hay ritmo en la tablilla, y las lecturas (Kilmer, Wulstan, Vitale, West, Dumbrill…) no coinciden ni en si son notas sueltas o acordes de dos notas.", "Esta es la de Raoul Vitale (1979–82): introducción y cierre instrumentales en 2/4 y la parte cantada en 3/4; el ritmo es suyo.", "No se canta la letra: esta lectura no la pone bajo las notas. Zig canta con la vocal o las sílabas del modo."], "fuentes": ["Wikimedia Commons, «Hurrian Hymn 6 interpreted by Raoul Vitale.png» (Vitale en Ugarit-Forschungen 14, 1982, y AAAS 29–30).", "Para otras lecturas: M. L. West, «The Babylonian Musical Notation and the Hurrian Melodic Texts», Music & Letters 75:2 (1994).", "Video: The Archaeologist's Notebook, 16:29–18:40."]}}, {"id": "bosco", "nombre": "La canción del trasero (El Bosco, h. 1500) · lectura de Hamrick", "compas": "4/4", "beatsPorCompas": 4, "bpm": 120, "tonica": 65, "escala": "Lidio", "conLetra": false, "modo": "Ópera", "notaTonica": "La tónica Fa es una elección del taller (la nota final de su versión).", "notas": [[69, 0, 1.0, ""], [76, 1.0, 1.0, ""], [72, 2.0, 1.0, ""], [74, 3.0, 1.0, ""], [72, 4.0, 1.0, ""], [69, 5.0, 1.0, ""], [69, 6.0, 1.0, ""], [65, 7.0, 1.0, ""], [65, 8.0, 1.0, ""], [71, 9.0, 1.0, ""], [65, 10.0, 1.0, ""], [74, 11.0, 1.0, ""], [72, 12.0, 1.0, ""], [69, 13.0, 1.0, ""], [76, 14.0, 1.0, ""], [67, 15.0, 1.0, ""], [65, 16.0, 1.0, ""], [72, 17.0, 1.0, ""], [65, 18.0, 1.0, ""], [72, 19.0, 1.0, ""], [74, 20.0, 1.0, ""], [76, 21.0, 1.0, ""], [72, 22.0, 1.0, ""], [69, 23.0, 1.0, ""], [72, 24.0, 1.0, ""], [65, 25.0, 1.0, ""], [74, 26.0, 1.0, ""], [76, 27.0, 1.0, ""], [77, 28.0, 1.0, ""], [76, 29.0, 1.0, ""], [72, 30.0, 1.0, ""], [76, 31.0, 1.0, ""], [69, 32.0, 1.0, ""], [72, 33.0, 1.0, ""], [74, 34.0, 1.0, ""], [72, 35.0, 1.0, ""], [72, 36.0, 1.0, ""], [76, 37.0, 1.0, ""], [76, 38.0, 1.0, ""], [76, 39.0, 1.0, ""], [74, 40.0, 1.0, ""], [72, 41.0, 1.0, ""], [72, 42.0, 1.0, ""], [72, 43.0, 1.0, ""], [76, 44.0, 1.0, ""], [72, 45.0, 1.0, ""], [76, 46.0, 1.0, ""], [76, 47.0, 1.0, ""], [77, 48.0, 2.0, ""]], "ficha": {"que": "Una línea de música pintada en las nalgas de un condenado, en el panel del Infierno de «El jardín de las delicias» del Bosco (Museo del Prado). La transcribió Amelia Hamrick, estudiante, en febrero de 2014, y se hizo viral.", "seguro": ["Que la partitura está en el cuadro y es una melodía de una sola línea en notación cuadrada.", "Las notas de esta versión: las de la grabación de Hamrick (las de su archivo MIDI y su PDF ya no están en línea)."], "interpretacion": ["La clave: Hamrick supuso Do en la segunda línea, «como es común en los cantos de la época», y luego dijo que la hizo en media hora y con errores.", "El ritmo: todas negras a 120, como en su grabación; el cuadro no lo dice.", "earlymusicmuse.com sostiene que sus supuestos de clave y notación no son los de la época."], "fuentes": ["Publicación de Hamrick en Tumblr (feb. 2014, archivada en la Wayback Machine) y su grabación; notas medidas por análisis espectral.", "earlymusicmuse.com/bosch1 (crítica de la transcripción)."]}}];
+  const MELODIAS_FIJAS = [{"id": "seikilos", "categoria": "antiguas", "epoca": "s. I d.C.", "region": "Asia Menor (Aydın, Turquía)", "licencia": "libre", "licenciaMotivo": "Todo está en la piedra: alturas, duraciones y letra. Las barras de compás son editoriales, pero no hay decisión creativa que proteger.", "nombre": "Epitafio de Seikilos (s. I d.C.)", "compas": "6/8", "beatsPorCompas": 3, "bpm": 75, "tonica": 64, "escala": "Dórico", "conLetra": true, "modo": "Tierno y calmado", "notaTonica": "Aquí la tónica es Mi (el final de la melodía); con «Do» en el selector suena a la altura de la partitura de Wikipedia, una cuarta más alta que el original.", "notas": [[69, 0, 0.5, "Hó"], [76, 0.5, 1.0, "son"], [76, 1.5, 1.5, "zêis,"], [73, 3.0, 0.5, "phaí"], [74, 3.5, 0.5, ""], [76, 4.0, 0.5, ""], [74, 4.5, 1.5, "nou"], [73, 6.0, 1.0, "mē"], [74, 7.0, 0.5, "dèn"], [76, 7.5, 0.5, "hó"], [74, 8.0, 0.5, "lōs"], [73, 8.5, 0.5, ""], [71, 9.0, 0.5, "sù"], [69, 9.5, 1.0, "lu"], [71, 10.5, 0.5, "poû"], [67, 11.0, 1.0, ""], [69, 12.0, 0.5, "pròs"], [73, 12.5, 0.5, "o"], [76, 13.0, 0.5, "lí"], [74, 13.5, 0.5, "gon"], [73, 14.0, 0.5, "és"], [74, 14.5, 0.5, ""], [73, 15.0, 0.5, "ti"], [69, 15.5, 1.0, "tò"], [71, 16.5, 0.5, "zên"], [67, 17.0, 1.0, ""], [69, 18.0, 0.5, "tò"], [73, 18.5, 0.5, "té"], [71, 19.0, 0.5, "los"], [74, 19.5, 0.5, "ho"], [76, 20.0, 0.5, "khró"], [73, 20.5, 0.5, "nos"], [69, 21.0, 0.5, "ap"], [69, 21.5, 1.0, "ai"], [69, 22.5, 0.5, "teî."], [66, 23.0, 0.5, ""], [64, 23.5, 0.5, ""]], "ficha": {"que": "Una canción grabada con su notación en una estela funeraria de mármol, cerca de Aydın (Turquía); la mandó tallar un tal Seikilos. Es la composición completa más antigua que se puede tocar con alturas y ritmo. Hallada en 1883; hoy en el Museo Nacional de Dinamarca.", "seguro": ["Las alturas: notación griega de letras, bien entendida.", "Las duraciones largas: signos de dos y tres tiempos (diseme y triseme) sobre la letra.", "La letra: «Mientras vivas, brilla; no te aflijas por nada. La vida dura poco y el tiempo exige su tributo»."], "interpretacion": ["El compás de 6/8 y dónde caen las barras son editoriales; Armand D'Angour propone moverlas.", "La altura: está escrita una cuarta por encima del original (tono jastio).", "La pronunciación del griego, en transliteración simple; la voz canta sin acentos ni tonos."], "fuentes": ["Partitura de la Wikipedia inglesa «Seikilos epitaph» (fuente LilyPond), que sigue a Pöhlmann y West, Documents of Ancient Greek Music (2001).", "Video: The Archaeologist's Notebook, «What Ancient Music Actually Sounded Like», 18:43–20:30."]}}, {"id": "hurrita", "categoria": "antiguas", "epoca": "~1400 a.C.", "region": "Ugarit (Siria)", "licencia": "moderna", "licenciaMotivo": "La tablilla es libre; el ritmo y la lectura son de Vitale (1982). Para el juego, una lectura propia.", "nombre": "Himno hurrita a Nikal (h.6, ~1400 a.C.) · lectura de Vitale", "compas": "2/4 y 3/4 (mixto)", "beatsPorCompas": 2, "barras": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80, 83, 86, 89, 92, 95, 98, 101, 104, 107, 110, 113, 116, 119, 122, 125, 128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 161, 164, 166, 168, 170, 172, 174, 176, 178, 180, 182, 184, 186, 188], "bpm": 90, "tonica": 62, "escala": "Dórico", "conLetra": false, "modo": "Tierno y calmado", "notaTonica": "La tónica Re es una elección del taller (la nota final de esta lectura); la tablilla no dice cuál es.", "notas": [[69, 0, 2.0, ""], [71, 2.0, 1.0, ""], [72, 3.0, 1.0, ""], [74, 4.0, 2.0, ""], [74, 6.0, 0.3333, ""], [72, 6.3333, 0.3333, ""], [71, 6.6667, 0.3333, ""], [69, 7.0, 0.3333, ""], [67, 7.3333, 0.3333, ""], [65, 7.6667, 0.3333, ""], [69, 8.0, 2.0, ""], [71, 10.0, 1.0, ""], [72, 11.0, 1.0, ""], [74, 12.0, 2.0, ""], [65, 14.0, 1.0, ""], [67, 15.0, 0.5, ""], [69, 15.5, 0.5, ""], [74, 16.0, 2.0, ""], [74, 18.0, 2.0, ""], [72, 20.0, 2.0, ""], [72, 22.0, 2.0, ""], [71, 24.0, 2.0, ""], [71, 26.0, 3.0, ""], [69, 29.0, 3.0, ""], [69, 32.0, 3.0, ""], [67, 35.0, 3.0, ""], [67, 38.0, 3.0, ""], [72, 41.0, 2.0, ""], [71, 43.0, 1.0, ""], [69, 44.0, 3.0, ""], [71, 47.0, 1.0, ""], [69, 48.0, 1.0, ""], [67, 49.0, 1.0, ""], [65, 50.0, 2.0, ""], [67, 52.0, 1.0, ""], [69, 53.0, 3.0, ""], [76, 56.0, 1.0, ""], [74, 57.0, 1.0, ""], [72, 58.0, 1.0, ""], [71, 59.0, 1.0, ""], [69, 60.0, 1.0, ""], [67, 61.0, 1.0, ""], [74, 62.0, 1.0, ""], [72, 63.0, 1.0, ""], [71, 64.0, 1.0, ""], [69, 65.0, 1.0, ""], [67, 66.0, 1.0, ""], [65, 67.0, 1.0, ""], [72, 68.0, 1.0, ""], [71, 69.0, 0.5, ""], [69, 69.5, 0.5, ""], [67, 70.0, 0.5, ""], [65, 70.5, 0.5, ""], [76, 71.0, 1.0, ""], [74, 72.0, 1.0, ""], [72, 73.0, 1.0, ""], [71, 74.0, 1.0, ""], [69, 75.0, 1.0, ""], [67, 76.0, 1.0, ""], [74, 77.0, 0.5, ""], [72, 77.5, 0.5, ""], [71, 78.0, 0.5, ""], [69, 78.5, 0.5, ""], [67, 79.0, 0.5, ""], [65, 79.5, 0.5, ""], [71, 80.0, 1.0, ""], [72, 81.0, 0.5, ""], [74, 81.5, 0.5, ""], [76, 82.0, 1.0, ""], [74, 83.0, 1.0, ""], [72, 84.0, 1.0, ""], [71, 85.0, 1.0, ""], [72, 86.0, 3.0, ""], [72, 89.0, 3.0, ""], [71, 92.0, 3.0, ""], [69, 95.0, 3.0, ""], [71, 98.0, 1.0, ""], [69, 99.0, 1.0, ""], [67, 100.0, 1.0, ""], [65, 101.0, 2.0, ""], [67, 103.0, 1.0, ""], [69, 104.0, 3.0, ""], [76, 107.0, 2.0, ""], [74, 109.0, 1.0, ""], [72, 110.0, 3.0, ""], [71, 113.0, 2.0, ""], [69, 115.0, 1.0, ""], [67, 116.0, 3.0, ""], [74, 119.0, 0.5, ""], [72, 119.5, 0.5, ""], [71, 120.0, 0.5, ""], [69, 120.5, 0.5, ""], [67, 121.0, 0.5, ""], [65, 121.5, 0.5, ""], [71, 122.0, 1.0, ""], [72, 123.0, 0.5, ""], [74, 123.5, 0.5, ""], [76, 124.0, 1.0, ""], [65, 125.0, 1.0, ""], [67, 126.0, 1.0, ""], [69, 127.0, 1.0, ""], [76, 128.0, 2.0, ""], [74, 130.0, 1.0, ""], [72, 131.0, 3.0, ""], [71, 134.0, 2.0, ""], [69, 136.0, 1.0, ""], [67, 137.0, 3.0, ""], [65, 140.0, 1.0, ""], [67, 141.0, 1.0, ""], [69, 142.0, 1.0, ""], [76, 143.0, 1.0, ""], [74, 144.0, 1.0, ""], [72, 145.0, 1.0, ""], [71, 146.0, 1.0, ""], [69, 147.0, 1.0, ""], [67, 148.0, 1.0, ""], [65, 149.0, 1.0, ""], [67, 150.0, 1.0, ""], [69, 151.0, 1.0, ""], [76, 152.0, 1.0, ""], [74, 153.0, 1.0, ""], [72, 154.0, 1.0, ""], [71, 155.0, 1.0, ""], [69, 156.0, 1.0, ""], [67, 157.0, 1.0, ""], [74, 158.0, 1.0, ""], [72, 159.0, 1.0, ""], [71, 160.0, 1.0, ""], [69, 161.0, 1.0, ""], [67, 162.0, 1.0, ""], [65, 163.0, 1.0, ""], [67, 164.0, 1.0, ""], [69, 165.0, 1.0, ""], [71, 166.0, 1.0, ""], [72, 167.0, 1.0, ""], [69, 168.0, 2.0, ""], [71, 170.0, 1.0, ""], [72, 171.0, 1.0, ""], [74, 172.0, 2.0, ""], [67, 174.0, 0.5, ""], [69, 174.5, 0.5, ""], [71, 175.0, 0.5, ""], [72, 175.5, 0.5, ""], [69, 176.0, 2.0, ""], [71, 178.0, 2.0, ""], [72, 180.0, 2.0, ""], [74, 182.0, 2.0, ""], [67, 184.0, 0.5, ""], [69, 184.5, 0.5, ""], [71, 185.0, 0.5, ""], [72, 185.5, 0.5, ""], [69, 186.0, 1.0, ""], [71, 187.0, 1.0, ""], [72, 188.0, 1.0, ""], [74, 189.0, 1.0, ""]], "ficha": {"que": "La notación musical completa más antigua que se conoce: una tablilla de arcilla en cuneiforme hallada en el palacio de Ugarit (Siria), con un himno en lengua hurrita a Nikal, diosa de los huertos, e instrucciones para una lira de nueve cuerdas.", "seguro": ["Que existe y qué es: letra arriba, instrucciones musicales abajo (nombres de intervalos y números).", "La afinación descrita (nīd qablim) y que es para lira."], "interpretacion": ["Todo lo demás. No hay ritmo en la tablilla, y las lecturas (Kilmer, Wulstan, Vitale, West, Dumbrill…) no coinciden ni en si son notas sueltas o acordes de dos notas.", "Esta es la de Raoul Vitale (1979–82): introducción y cierre instrumentales en 2/4 y la parte cantada en 3/4; el ritmo es suyo.", "No se canta la letra: esta lectura no la pone bajo las notas. Zig canta con la vocal o las sílabas del modo."], "fuentes": ["Wikimedia Commons, «Hurrian Hymn 6 interpreted by Raoul Vitale.png» (Vitale en Ugarit-Forschungen 14, 1982, y AAAS 29–30).", "Para otras lecturas: M. L. West, «The Babylonian Musical Notation and the Hurrian Melodic Texts», Music & Letters 75:2 (1994).", "Video: The Archaeologist's Notebook, 16:29–18:40."]}}, {"id": "bosco", "categoria": "antiguas", "epoca": "h. 1500 (cuadro) · 2014 (lectura)", "region": "Países Bajos · Museo del Prado", "licencia": "moderna", "licenciaMotivo": "El cuadro es libre; la transcripción de Hamrick (2014) no tiene licencia conocida. Para el juego, leer el cuadro nosotros.", "nombre": "La canción del trasero (El Bosco, h. 1500) · lectura de Hamrick", "compas": "4/4", "beatsPorCompas": 4, "bpm": 120, "tonica": 65, "escala": "Lidio", "conLetra": false, "modo": "Ópera", "notaTonica": "La tónica Fa es una elección del taller (la nota final de su versión).", "notas": [[69, 0, 1.0, ""], [76, 1.0, 1.0, ""], [72, 2.0, 1.0, ""], [74, 3.0, 1.0, ""], [72, 4.0, 1.0, ""], [69, 5.0, 1.0, ""], [69, 6.0, 1.0, ""], [65, 7.0, 1.0, ""], [65, 8.0, 1.0, ""], [71, 9.0, 1.0, ""], [65, 10.0, 1.0, ""], [74, 11.0, 1.0, ""], [72, 12.0, 1.0, ""], [69, 13.0, 1.0, ""], [76, 14.0, 1.0, ""], [67, 15.0, 1.0, ""], [65, 16.0, 1.0, ""], [72, 17.0, 1.0, ""], [65, 18.0, 1.0, ""], [72, 19.0, 1.0, ""], [74, 20.0, 1.0, ""], [76, 21.0, 1.0, ""], [72, 22.0, 1.0, ""], [69, 23.0, 1.0, ""], [72, 24.0, 1.0, ""], [65, 25.0, 1.0, ""], [74, 26.0, 1.0, ""], [76, 27.0, 1.0, ""], [77, 28.0, 1.0, ""], [76, 29.0, 1.0, ""], [72, 30.0, 1.0, ""], [76, 31.0, 1.0, ""], [69, 32.0, 1.0, ""], [72, 33.0, 1.0, ""], [74, 34.0, 1.0, ""], [72, 35.0, 1.0, ""], [72, 36.0, 1.0, ""], [76, 37.0, 1.0, ""], [76, 38.0, 1.0, ""], [76, 39.0, 1.0, ""], [74, 40.0, 1.0, ""], [72, 41.0, 1.0, ""], [72, 42.0, 1.0, ""], [72, 43.0, 1.0, ""], [76, 44.0, 1.0, ""], [72, 45.0, 1.0, ""], [76, 46.0, 1.0, ""], [76, 47.0, 1.0, ""], [77, 48.0, 2.0, ""]], "ficha": {"que": "Una línea de música pintada en las nalgas de un condenado, en el panel del Infierno de «El jardín de las delicias» del Bosco (Museo del Prado). La transcribió Amelia Hamrick, estudiante, en febrero de 2014, y se hizo viral.", "seguro": ["Que la partitura está en el cuadro y es una melodía de una sola línea en notación cuadrada.", "Las notas de esta versión: las de la grabación de Hamrick (las de su archivo MIDI y su PDF ya no están en línea)."], "interpretacion": ["La clave: Hamrick supuso Do en la segunda línea, «como es común en los cantos de la época», y luego dijo que la hizo en media hora y con errores.", "El ritmo: todas negras a 120, como en su grabación; el cuadro no lo dice.", "earlymusicmuse.com sostiene que sus supuestos de clave y notación no son los de la época."], "fuentes": ["Publicación de Hamrick en Tumblr (feb. 2014, archivada en la Wayback Machine) y su grabación; notas medidas por análisis espectral.", "earlymusicmuse.com/bosch1 (crítica de la transcripción)."]}}];
 
   function melodiaFija(id, transponer) {
     const f = MELODIAS_FIJAS.find((x) => x.id === id);
@@ -290,6 +290,54 @@
     return { lexico: lex.map((w) => w.join('')), usadas };
   }
 
+  // ======================================================================= estilos de sílabas (TALLER-MEL-A)
+  // Los que el juego conoce: zigues, modo (lista), texto, letra. Los demás son solo del taller hasta
+  // VOZ-2b; su TV1 los lleva como «texto» con las sílabas que suenan y lo avisa (estiloTV1).
+  const SILABAS_ESTILOS = {
+    zigues: { nombre: 'Zigués', ej: 'kru zi lo', juego: true },
+    modo: { nombre: 'Las del modo', ej: 'na la hey', juego: true },
+    letra: { nombre: 'Letra original', ej: 'hó son zeis', juego: true, soloConLetra: true },
+    texto: { nombre: 'Texto propio', ej: 'lo que escribas', juego: true },
+    solfeo: { nombre: 'Solfeo', ej: 'do re mi', nota: 'El nombre de cada nota según su grado (do móvil: do = tónica). Los nombres vienen del himno Ut queant laxis, donde Guido d\'Arezzo (s. XI) tomó la primera sílaba de cada verso.' },
+    scat: { nombre: 'Scat', ej: 'du bi du bap', nota: 'Sílabas sin significado del jazz, como un instrumento: abiertas en los tiempos, cerradas y cortas a contratiempo, un remate con consonante al cerrar la frase. La grabación que suele citarse como origen es Heebie Jeebies de Louis Armstrong (1926).' },
+    konnakol: { nombre: 'Konnakol', ej: 'ta ka di mi', nota: 'La percusión hablada del sur de la India (solkattu): las notas de un mismo pulso se dicen con el grupo de su tamaño, ta (1), ta ka (2), ta ki ta (3), ta ka di mi (4), ta di gi na tom (5). Nelson, Solkattu Manual (Wesleyan, 2008). Por pulsos de la melodía; la agrupación métrica (METRICA-1) entrará después.' },
+    mm: { nombre: 'Boca cerrada', ej: 'mm', nota: 'Bocca chiusa: labios cerrados y velo abierto, todo sale por la nariz.' },
+    vocal: { nombre: 'Vocal sola', ej: 'a a a', nota: 'Sin consonantes: la vocal base de la voz en todas las notas.' },
+  };
+  const SOLFEO = ['do', 're', 'mi', 'fa', 'sol', 'la', 'si'];
+  const SOLFEO_PC = ['do', 'do', 're', 're', 'mi', 'fa', 'fa', 'sol', 'sol', 'la', 'la', 'si'];
+  const KONNAKOL = { 1: ['ta'], 2: ['ta', 'ka'], 3: ['ta', 'ki', 'ta'], 4: ['ta', 'ka', 'di', 'mi'], 5: ['ta', 'di', 'gi', 'na', 'tom'], 6: ['ta', 'ka', 'di', 'mi', 'ta', 'ka'], 7: ['ta', 'ka', 'di', 'mi', 'ta', 'ki', 'ta'], 8: ['ta', 'ka', 'di', 'mi', 'ta', 'ka', 'di', 'mi'] };
+  function konnakolGrupo(k) { if (KONNAKOL[k]) return KONNAKOL[k]; const out = []; while (out.length < k) out.push(...KONNAKOL[Math.min(4, k - out.length)] || KONNAKOL[1]); return out.slice(0, k); }
+  /** Pone las sílabas de un estilo del taller. opts: { esc, seed, vocal }. Devuelve true si lo conoce. */
+  function asignarEstiloSilabas(estilo, notas, opts) {
+    opts = opts || {};
+    if (estilo === 'solfeo') {
+      const esc = opts.esc || ESCALAS['Mayor (jónico)'], L = esc.length;
+      for (const n of notas) { const k = (((n.grado | 0) % L) + L) % L; n.sil = L === 7 ? SOLFEO[k] : SOLFEO_PC[esc[k]]; }
+      return true;
+    }
+    if (estilo === 'konnakol') {
+      // por pulsos (D2 = A): las notas que empiezan en el mismo pulso forman un grupo
+      const grupos = new Map();
+      for (const n of notas) { const p = Math.floor(n.beat + 1e-6); if (!grupos.has(p)) grupos.set(p, []); grupos.get(p).push(n); }
+      for (const g of grupos.values()) { const sil = konnakolGrupo(g.length); g.forEach((n, i) => { n.sil = sil[i]; }); }
+      return true;
+    }
+    if (estilo === 'scat') {
+      const r = rngDe(opts.seed | 0, 'scat');
+      const enTiempo = ['du', 'ba', 'da', 'du'], contra = ['bi', 'di', 'li', 'bi'], remate = ['bap', 'dat', 'ya', 'dop'];
+      notas.forEach((n, i) => {
+        const fuerte = Math.abs((n.beat % 1)) < 1e-6;
+        n.sil = n.finFrase && n.dur >= 0.5 ? remate[Math.floor(r() * remate.length)] : (fuerte ? enTiempo : contra)[Math.floor(r() * 4)];
+        if (i > 0 && notas[i - 1].midi === n.midi && !n.finFrase) n.sil = 'n' + n.sil.slice(1);   // nota repetida: «du-n-du»
+      });
+      return true;
+    }
+    if (estilo === 'mm') { for (const n of notas) n.sil = 'mm'; return true; }
+    if (estilo === 'vocal') { for (const n of notas) n.sil = opts.vocal && opts.vocal !== 'ə' ? opts.vocal : ''; return true; }
+    return false;
+  }
+
   // ======================================================================= segunda voz (Doble Armonía)
   // 'juego' = NearestChordToneHarmonyStrategy de MidiGenPlay: la nota del acorde más cercana a la
   // melodía entre 3 y 14 semitonos (min/maxDistanceFromMelody por defecto), desempate por cercanía a
@@ -355,7 +403,37 @@
     'Robot': { nota: 'Cero vida: sin jitter, sin vibrato, sin glide, staccato y sílabas de máquina.', v: { dureza: 0.75, looseness: 0, vibratoDepth: 0, brightness: 0.7, tensLo: 0.6, tensHi: 0.6, glideMs: 0, pitchLead: 0, legato: 0, silabas: [['bi', 2], ['bo', 2], ['di', 1], ['du', 1], ['ti', 1]] } },
     'Borracho': { nota: 'El Pink Trombone original sin domar: looseness 1 (35 cents de desviación) y vibrato lento y hondo.', v: { dureza: 0.45, looseness: 1, vibratoDepth: 1.2, vibratoSpeedHz: 4.5, brightness: 0.35, tensLo: 0.4, tensHi: 0.55, glideMs: 160, legato: 0.9, aspereza: 0.2, silabas: [['la', 2], ['lo', 2], ['ay', 1], ['hic', 1]] } },
   };
-  function vozDeModo(nombre) { return Object.assign({}, BASE, (MODOS[nombre] && MODOS[nombre].v) || {}); }
+  // TALLER-MEL-A: cinco modos nuevos. Cuatro estrenan perillas que el juego aún no tiene (soloTaller);
+  // el canto llano usa solo las de hoy. Las perillas nuevas viven fuera de BASE (NUEVAS) para que el
+  // TV1 de los modos viejos salga igual que antes; en neutro, el motor es el de hoy byte a byte.
+  const NUEVAS = { sonoridad: 1, nasalidad: 0, quiebre: 0, garganta: 0, bordon: -12 };
+  Object.assign(MODOS, {
+    'Susurro': { soloTaller: true, nota: 'Sin voz: las cuerdas no vibran y solo suena el ruido del aire al pasar por la glotis entreabierta, filtrado por la boca (sonoridad 0). Las consonantes pesan más. En el susurro los formantes suben y se ensanchan. Fuente: J. Wolfe, «Glottal signal, vocal tract resonances and output sound» (UNSW Voice Acoustics).', v: { dureza: 0.6, sonoridad: 0, aire: 3, tensLo: 0.05, tensHi: 0.15, minLoudness: 0.45, looseness: 0.05, vibratoDepth: 0, brightness: 0.78, legato: 0.4, scoop: 0, glideMs: 0, vocalBase: 'a', silabas: [['shi', 2], ['su', 2], ['si', 1], ['fa', 1], ['ta', 1], ['ki', 1]] } },
+    'Canto de garganta': { soloTaller: true, nota: 'Khöömei (sygyt): un bordón grave fijo y la melodía en sus armónicos 6–12, que la lengua elige moviendo una resonancia estrecha. Cada nota se proyecta al armónico más cercano (el roll marca cuánto se movió). Bloothooft et al. (JASA 1992) lo explican por F2 y F3 juntos en una banda estrecha; Adachi y Yamada (JASA 1999, con resonancia magnética), por la cavidad de atrás. Aquí se imita el resultado, no la anatomía: en Pink Trombone lo que destaca el armónico es estrechar la punta de la lengua y los labios (medido: +7 a +18 dB sobre sus vecinos).', v: { garganta: 1, bordon: -12, dureza: 0.1, tensLo: 0.75, tensHi: 0.85, minLoudness: 0.6, aire: 0.4, looseness: 0.02, vibratoDepth: 0, brightness: 0.85, legato: 1, glideMs: 0, scoop: 0, caida: 0, vocalBase: 'u', silabas: [['u', 3], ['o', 1]] } },
+    'Nasal (twang)': { soloTaller: true, nota: 'El velo abierto todo el tiempo (nasalidad), laringe alta, tensión y brillo: la voz «de nariz» del country y del pato. Ojo: Sundberg y Thalén («What is twang?», J. Voice 2010) muestran que el twang se oye sobre todo por los formantes, no necesariamente por la nariz; este modo es el twang nasal.', v: { nasalidad: 0.6, tracto: 40, tensLo: 0.6, tensHi: 0.85, brightness: 0.85, aire: 0.6, vibratoDepth: 0.3, vibratoDelay: 0.3, scoop: 0.4, legato: 0.5, dureza: 0.5, vocalBase: 'e', silabas: [['ne', 2], ['nya', 2], ['ye', 1], ['hey', 1], ['ni', 1]] } },
+    'Canto llano': { nota: 'Gregoriano tal como se canta hoy (Solesmes): sin vibrato ni scoop, todo ligado, laringe baja, emisión suave y vocales latinas. Es práctica moderna: cómo sonaba en la Edad Media no se sabe. Solo usa perillas que ya existen, así que su TV1 entra en el juego.', v: { dureza: 0.2, looseness: 0.03, vibratoDepth: 0, scoop: 0, caida: 0, glideMs: 40, legato: 1, tracto: 48, tensLo: 0.38, tensHi: 0.52, brightness: 0.38, aire: 1.2, ataque: 0, minLoudness: 0.3, vocalBase: 'a', silabas: [['a', 2], ['ve', 1], ['ma', 1], ['ri', 1], ['glo', 1], ['al', 1], ['le', 1], ['lu', 1], ['ia', 1], ['do', 1], ['mi', 1], ['ne', 1], ['ut', 1], ['re', 1], ['a', 2, 'fin']] } },
+    'Yodel': { soloTaller: true, nota: 'En los saltos de 5 semitonos o más, la voz cambia de registro: de pecho abajo a cabeza (más ligera y soplada) arriba, con un quiebre audible en el cambio. Los yodlers hacen ese cambio más rápido y estable que voces sin entrenar («Vocal perfection in yodelling: pitch stabilities and transition times», Logopedics Phoniatrics Vocology, 2010). Se oye mejor con la figura «Saltos».', v: { quiebre: 0.8, tensLo: 0.5, tensHi: 0.75, vibratoDepth: 0.6, vibratoDelay: 0.25, glideMs: 0, legato: 0.8, brightness: 0.6, dureza: 0.3, silabas: [['yo', 2], ['de', 1], ['lei', 2], ['i', 1], ['du', 1], ['hu', 1, 'fin']] } },
+  });
+  function vozDeModo(nombre) { return Object.assign({}, BASE, NUEVAS, (MODOS[nombre] && MODOS[nombre].v) || {}); }
+
+  // ---- canto de garganta: posturas medidas (TALLER-MEL-A). F = frecuencia del armónico que destaca;
+  // lengua (i, d), punta de la lengua (ci, cd) y labios (lab). Barrido en scratch con bordones de 98, 131 y
+  // 165 Hz, Goertzel en los armónicos 1–16: prominencia +7 a +18 dB sobre los vecinos ±2.
+  const GARGANTA = [[588, 23, 1.8, 38, 0.15, 1.1], [686, 23, 1.8, 37, 0.15, 0.7], [785, 23, 2.1, 38.5, 0.15, 1.1], [882, 26, 1.8, 38.5, 0.15, 1.1], [916, 20, 1.8, 32.5, 0.15, 1.1], [980, 26, 1.8, 38, 0.15, 1.1], [1047, 23, 2.1, 36, 0.15, 0.4], [1078, 26, 1.8, 37.5, 0.15, 1.1], [1154, 23, 2.1, 35.5, 0.15, 1.1], [1176, 26, 2.1, 39, 0.25, 1.1], [1308, 26, 2.1, 37.5, 0.15, 1.1], [1319, 23, 2.1, 34.5, 0.15, 0.7], [1439, 23, 2.1, 34, 0.15, 1.1], [1483, 26, 2.1, 37.5, 0.25, 1.1], [1570, 23, 2.1, 33.5, 0.15, 1.1], [1648, 26, 2.1, 36, 0.15, 0.4], [1813, 26, 2.1, 35.5, 0.15, 0.7], [1978, 26, 2.1, 35, 0.15, 0.7]];
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  function posturaGarganta(F) { let best = GARGANTA[0], bd = Infinity; for (const r of GARGANTA) { const d = Math.abs(Math.log(r[0] / F)); if (d < bd) { bd = d; best = r; } } return { i: best[1], d: best[2], ci: best[3], cd: best[4], lab: best[5] }; }
+  /** Proyecta una nota a los armónicos 6–12 del bordón (D3 = A): el armónico n más cercano en cualquier
+   *  octava de la nota. Devuelve n, la altura real (midi) y cuántos cents se movió. */
+  function proyectarGarganta(midi, bordonMidi) {
+    let best = null;
+    for (let n = 6; n <= 12; n++) {
+      const real = bordonMidi + 12 * Math.log2(n);
+      const dif = ((midi - real) % 12 + 18) % 12 - 6;               // distancia por clase de altura, −6..6
+      const lejos = Math.abs(midi - real);                            // desempate de octava: el más cercano a la nota escrita
+      if (!best || Math.abs(dif) < Math.abs(best.dif) - 1e-9 || (Math.abs(Math.abs(dif) - Math.abs(best.dif)) < 1e-9 && lejos < best.lejos)) best = { n, real, dif, lejos };
+    }
+    return { n: best.n, midi: best.real, cents: Math.round(best.dif * 100) };
+  }
   const PERFIL_ZIG = { looseness: 0.15, vibratoDepth: 0.4, vibratoSpeedHz: 6, diction: 1, mouth: 0, brightness: 0.5, transposeSemitones: -12, tensenessAtVel0: 0.4, tensenessAtVel127: 0.6, vibratoDelaySeconds: 0.35, vibratoRampSeconds: 0.4, pitchLeadSeconds: 0.06, leadFullInterval: 7, minLoudness: 0.15, startTrimMs: 20, gain: 1 };
 
   // ======================================================================= notas a segundos
@@ -439,12 +517,17 @@
   // ======================================================================= cantante propuesto (v2)
   function cantarV2(notas, voz, opts) {
     opts = opts || {};
-    const V = Object.assign({}, BASE, voz || {});
+    const V = Object.assign({}, BASE, NUEVAS, voz || {});
     const dur = opts.duracion || (notas.length ? notas[notas.length - 1].end + 1 : 1);
     const B = 256, frames = Math.ceil(dur * SR / B) * B, out = new Float32Array(frames);
     const v = new MV.PinkTrombone(SR, opts.seed == null ? 1 : opts.seed, { tractLength: Math.round(V.tracto) });
     const g = v.glottis, T = v.tract, S = v.shaper, sc = T.n / 44;
     g.x.sub = V.growl; g.x.jitter = V.aspereza; g.x.shimmer = V.aspereza * 0.8; g.x.air = V.aire;
+    if (V.sonoridad !== 1) g.x.voz = clamp01(V.sonoridad);                      // susurro
+    // canto de garganta: bordón fijo (tónica + bordon) y la lengua sobre el armónico de cada nota
+    const GG = V.garganta > 0, Gk = clamp01(V.garganta);
+    const bordonMidi = GG ? (opts.tonica != null ? opts.tonica : Math.min(...notas.map((n) => n.note))) + V.bordon : 0;
+    const Q = V.quiebre > 0 ? clamp01(V.quiebre) : 0;                          // yodel
     v.vibratoWobble = false; v.pitchJitterGain = clamp01(V.looseness); v.tensenessJitterGain = clamp01(V.looseness);
     v.alwaysVoice = false; v.isTouched = false; v.vibratoFrequency = V.vibratoSpeedHz;
     const ev = notas.map((n, i) => {
@@ -461,6 +544,12 @@
       e.cStart = e.start - Math.min(pre, Math.max(0.02, (e.start - prevEnd) + 0.06));
       e.legatoNext = i < ev.length - 1 && ev[i + 1].start - e.end < 0.03 + 0.15 * V.legato;
       e.vowel = e.s.vocal === 'mm' ? 'u' : e.s.vocal;
+      if (GG) { const pj = proyectarGarganta(e.note, bordonMidi); e.gg = posturaGarganta(hz(pj.midi)); }
+      if (Q) {   // registro: un salto de 5+ semitonos hacia arriba pasa a cabeza; hacia abajo, a pecho
+        const prev = i > 0 ? ev[i - 1] : null, d = prev ? e.note - prev.note : 0;
+        e.salto = Math.abs(d) >= 5 ? Math.sign(d) : 0;
+        e.reg = e.salto > 0 ? 'cabeza' : e.salto < 0 ? 'pecho' : (prev ? prev.reg : 'pecho');
+      }
     });
     let cur = -1, semis = null, lp1 = 0, lp2 = 0, touched = false, noteOnT = 0;
     const a = 1 - Math.exp(-2 * Math.PI * (1200 * Math.pow(2, 3.1 * V.brightness)) / SR);
@@ -480,6 +569,11 @@
         loud = clamp01(V.minLoudness + (1 - V.minLoudness) * vel01);
         tens = lerp(V.tensLo, V.tensHi, vel01);
         if (t - e.start < 0.08 && t >= e.start) tens += V.ataque;          // ataque empujado
+        if (Q) {
+          tens = e.reg === 'cabeza' ? Math.max(0.1, tens - 0.35 * Q) : tens + 0.1 * Q;
+          g.x.air = e.reg === 'cabeza' ? V.aire * (1 + 0.8 * Q) : V.aire;
+          if (e.salto && t >= e.start && t - e.start < 0.03) loud *= 1 - 0.7 * Q;   // el quiebre: la voz se cae un instante
+        }
         // vocal
         const vo = VOCALES[e.vowel] || VOCALES['ə'];
         v.setTongue(vo.i, vo.d);
@@ -487,6 +581,12 @@
         // segunda vocal (diptongo: «oi», «ay», «ye»): pasa a la mitad de la nota
         if (e.s.vocal2 && t > (e.start + e.end) / 2) { const v2 = VOCALES[e.s.vocal2]; v.setTongue(v2.i, v2.d); constr = v2.lab != null ? [{ index: 41, diameter: v2.lab }] : []; }
         if (e.s.vocal === 'mm') { constr.push({ index: 41, diameter: 0 }); velo = 0.4; }
+        if (GG) {   // la lengua va de la vocal a la postura del armónico, según la perilla
+          const P = e.gg, ti = S.tongueIndex, td = S.tongueDiameter;
+          v.setTongue(lerp(ti, P.i, Gk), lerp(td, P.d, Gk));
+          const lab0 = constr.length && constr[constr.length - 1].index === 41 ? constr.pop().diameter : 1.5;
+          constr.push({ index: P.ci, diameter: lerp(3, P.cd, Gk) }, { index: 41, diameter: lerp(lab0, P.lab, Gk) });
+        }
         // consonante de ataque
         if (e.c && enCons) {
           const c = (e.c2 && e.start - t < 0.035) ? e.c2 : e.c;
@@ -501,15 +601,16 @@
         if (e.s.coda && vivo && hasta - t < 0.08) { const c = CONS[e.s.coda]; if (c && c.i) constr.push({ index: c.i, diameter: c.d }); }
         if (!vivo) wantTouch = false;
         // altura: scoop, caída, glide
-        let target = e.note + V.transpose;
+        let target = GG ? bordonMidi : e.note + V.transpose;
         const sinceOn = t - e.start;
-        if (V.scoop > 0 && sinceOn >= 0 && sinceOn < V.scoopMs / 1000) target -= V.scoop * (1 - sinceOn / (V.scoopMs / 1000));
+        if (Q && e.salto && sinceOn >= 0 && sinceOn < 0.05) target += e.salto * 1.5 * Q * (1 - sinceOn / 0.05);   // se pasa y vuelve
+        if (GG) { /* el bordón no se mueve: ni scoop ni caída */ } else if (V.scoop > 0 && sinceOn >= 0 && sinceOn < V.scoopMs / 1000) target -= V.scoop * (1 - sinceOn / (V.scoopMs / 1000));
         const finalDeFrase = !e.legatoNext;
-        if ((V.caida > 0 && finalDeFrase) || e.caida) { const fall = e.caida ? Math.max(V.caida, 2) : V.caida, fw = 0.18; const left = hasta - t; if (left < fw && left >= 0) target -= fall * (1 - left / fw) ** 2; }
+        if (!GG && ((V.caida > 0 && finalDeFrase) || e.caida)) { const fall = e.caida ? Math.max(V.caida, 2) : V.caida, fw = 0.18; const left = hasta - t; if (left < fw && left >= 0) target -= fall * (1 - left / fw) ** 2; }
         if (e !== lastNote) { noteOnT = e.start; lastNote = e; if (semis == null) semis = target; }
         if (semis == null || V.glideMs <= 0) semis = target;
         else semis += (target - semis) * (1 - Math.exp(-(B / SR) / (V.glideMs / 1000)));
-        if (V.pitchLead > 0 && cur + 1 < ev.length && ev[cur + 1].start - t < V.pitchLead && V.glideMs <= 0) semis = ev[cur + 1].note + V.transpose - (V.scoop > 0 ? V.scoop : 0);
+        if (V.pitchLead > 0 && cur + 1 < ev.length && ev[cur + 1].start - t < V.pitchLead && V.glideMs <= 0 && !GG) semis = ev[cur + 1].note + V.transpose - (V.scoop > 0 ? V.scoop : 0);
         v.setMusicalNote(semis - 69);
       }
       const fric = e && e.c && e.c.tipo === 'fri' && t < e.start;
@@ -518,6 +619,7 @@
       if (turb && !Number.isNaN(turb.endTime) && T.time - turb.endTime > 0.15) { T.turbulencePoints.splice(T.turbulencePoints.indexOf(turb), 1); turb = null; }
       S.setConstrictions(constr);
       S.velumOverride = velo;
+      if (V.nasalidad > 0) S.velumOverride = Math.max(velo == null ? 0.01 : velo, 0.01 + 0.39 * clamp01(V.nasalidad));
       if (wantTouch !== touched) { v.isTouched = wantTouch; touched = wantTouch; }
       v.loudness = loud;
       v.targetTenseness = clamp01(tens);
@@ -551,7 +653,7 @@
   const RMS_ZIG = 0.0792340595239839;
   const MEL_REF = { tonica: 60, escala: 'Mayor (jónico)', progresion: 'I–V–vi–IV', bpm: 100, compases: 8, frase: 4, figura: 'Zig-zag', sube: 2, baja: 1, rango: 1.5, direccion: 'sube', alTope: 'rebota', ritmo: 'celdas', densidad: 0.45, sincopa: 0.3, silencios: 0.1, swing: 0, variacion: 0.1, postSalto: true, acordeFuerte: true, cadencia: true, repetir: 0.05, crescendo: 0.5, firma: false, semilla: 7, periodo: 8, pedal: 'tonica' };
   function gainDeVoz(voz) {
-    const V = Object.assign({}, BASE, voz || {});
+    const V = Object.assign({}, BASE, NUEVAS, voz || {});
     const mel = componer(MEL_REF), sb = 60 / MEL_REF.bpm;
     const notas = aSegundos(mel, MEL_REF.bpm).map((n, i) => Object.assign(n, { dur: mel.notas[i].dur }));
     notas.forEach((n, i) => {
@@ -560,7 +662,7 @@
     });
     for (const n of notas) n.caida = n.finFrase && V.caida > 0 && n.dur >= 0.95;
     asignarZigues(notas, 4242, V.dureza, 12345);
-    const r = cantarV2(notas, V, { seed: 1 });
+    const r = cantarV2(notas, V, { seed: 1, tonica: MEL_REF.tonica });
     let s = 0, c = 0, pk = 0;
     for (const x of r.audio) { if (Math.abs(x) > 1e-4) { s += x * x; c++; } pk = Math.max(pk, Math.abs(x)); }
     const rms = Math.sqrt(s / Math.max(1, c)), gain = Math.min(2, RMS_ZIG / rms);
@@ -570,17 +672,29 @@
   /** [VOZ-3] El TV1 (sin el prefijo ni el base64): la voz entera con los nombres del taller, las
    *  sílabas y el gain. Lo usan el botón «Copiar TV1» y la paridad del importador. */
   const SIL_TV1 = { zigues: 'zigues', modo: 'lista', texto: 'texto', letra: 'texto' };
-  function estiloTV1({ nombre, modo, voz, silMode, lexiconSeed, texto, gain, rms }) {
+  // [TALLER-MEL-A, D4 = C] Lo que el juego aún no sabe hacer va en un bloque «soloTaller», que solo se
+  // escribe si hace falta: el TV1 de los modos viejos sale igual que antes y el importador no avisa.
+  // Un estilo de sílabas que el juego no conoce (solfeo, scat, konnakol, mm, vocal) viaja como «texto»
+  // con las sílabas que suenan aquí (silabasCantadas), nunca convertido en zigués en silencio.
+  function estiloTV1({ nombre, modo, voz, silMode, lexiconSeed, texto, gain, rms, silabasCantadas }) {
     const V = Object.assign({}, BASE, voz || {});
-    return {
+    const conocido = !!SIL_TV1[silMode] || silMode == null;
+    const perillas = Object.fromEntries(Object.keys(NUEVAS).filter((k) => V[k] != null && (k === 'bordon' ? V.garganta > 0 : V[k] !== NUEVAS[k])).map((k) => [k, V[k]]));
+    const tv = {
       v: 1, nombre, modo,
       voz: Object.fromEntries(Object.keys(BASE).filter((k) => k !== 'silabas' && k !== 'nivel').map((k) => [k, V[k]])),
-      silabas: { modo: SIL_TV1[silMode] || 'zigues', lexiconSeed, dureza: V.dureza, lista: V.silabas || [], texto: texto || '' },
+      silabas: { modo: conocido ? (SIL_TV1[silMode] || 'zigues') : 'texto', lexiconSeed, dureza: V.dureza, lista: V.silabas || [], texto: conocido ? (texto || '') : (silabasCantadas || texto || '') },
       gain: +gain.toFixed(4), rms: rms == null ? undefined : +rms.toFixed(5),
     };
+    if (Object.keys(perillas).length || !conocido) {
+      tv.soloTaller = { nota: 'El juego todavía no lee este bloque (VOZ-2b).' };
+      if (Object.keys(perillas).length) tv.soloTaller.perillas = perillas;
+      if (!conocido) tv.soloTaller.silabas = silMode;
+    }
+    return tv;
   }
 
-  const api = { MELODIAS_FIJAS, melodiaFija, zigues, asignarZigues, armonizar, RELACIONES, SR, ESCALAS, EN_EL_JUEGO, PROGRESIONES, FIGURAS, CONS, VOCALES, MODOS, BASE, PERFIL_ZIG, PRESETS_JUEGO, componer, asignarSilabas, parseSilaba, aSegundos, cantarJuego, cantarV2, vozDeModo, normalizar, gainDeVoz, estiloTV1,
+  const api = { SILABAS_ESTILOS, asignarEstiloSilabas, NUEVAS, GARGANTA, posturaGarganta, proyectarGarganta, MELODIAS_FIJAS, melodiaFija, zigues, asignarZigues, armonizar, RELACIONES, SR, ESCALAS, EN_EL_JUEGO, PROGRESIONES, FIGURAS, CONS, VOCALES, MODOS, BASE, PERFIL_ZIG, PRESETS_JUEGO, componer, asignarSilabas, parseSilaba, aSegundos, cantarJuego, cantarV2, vozDeModo, normalizar, gainDeVoz, estiloTV1,
  gradoAMidi, acordeEnGrados };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MC = api;

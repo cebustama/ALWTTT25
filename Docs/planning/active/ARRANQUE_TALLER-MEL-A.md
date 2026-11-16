@@ -2,6 +2,8 @@
 
 Sesión del Taller de melodías (solo JS, `Docs/reference/taller-melodia/`), primera de tres (A → B silabeador español → C melodías v2). Propuesta y decisiones del 2026-11-16 en `Docs/reference/ideas/2026-11-16_melodias_antiguas.md`, sección «v2». Línea de la voz, paralela a la demo: no pasa por delante de CARTAS-ARTE-1. Planificación, no autoridad.
 
+**Estado (2026-11-16, noche): construida, falta la prueba de oído de Claudio.** Decisiones: D1 = A (la biblioteca sustituye al desplegable), D2 = A (konnakol por pulsos), D3 = A (proyección a los armónicos), D4 = C (bloque `soloTaller` solo si hace falta). Comprobado: neutro byte a byte, paridad del motor 9/9 y del TV1 13/13, canto de garganta +8 a +14 dB en 8 de 8, sin NaN y sin errores en la página. Detalle en `../../reference/taller-melodia/README.md`.
+
 **Revisado el 2026-11-16 tras VOZ-3 y WALKBASS.** VOZ-3 conectó el taller con el juego por el código TV1 («Copiar TV1» → *ALWTTT ▸ Voz ▸ Importar estilo*). Esta sesión no toca C#, así que todo lo nuevo es **solo del taller** hasta VOZ-2b, y no puede romper ese puente. Riesgos concretos:
 - `estiloTV1` exporta **todas** las claves de `BASE`. Si las perillas nuevas entran en `BASE`, el TV1 de **todos** los modos (también los viejos) las llevará, y el importador del juego (`VoiceStyleCode.ApplyVoice`) avisará de «Campo desconocido» en cada importación.
 - `SIL_TV1` convierte cualquier modo de sílabas que no conoce en `zigues` **sin avisar**: un estilo con solfeo, scat o konnakol se importaría cantando zigués.

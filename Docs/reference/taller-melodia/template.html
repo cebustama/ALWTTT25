@@ -21,6 +21,7 @@
   --bg:#141219; --surface:#1d1a24; --sunk:#17151d; --fg:#ebe7f2; --muted:#a39cb2; --line:#302b3a;
   --voice:#f07aaa; --voice-soft:#3d1d2c; --mel:#9aa6ff; --mel-soft:#22284a; --tract:#f2b45a; --tract-soft:#3a2b14;
   --now:#8a6d10; --ok:#6fd29a; color-scheme:dark}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 .wrap{max-width:1180px;margin:0 auto;padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
@@ -98,6 +99,24 @@ details p,details li{color:var(--muted);max-width:85ch}
 details ul{padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;gap:4px}
 code{font-family:var(--f-mono);font-size:.9em}
 .busy{color:var(--voice);font-family:var(--f-mono);font-size:12px}
+/* biblioteca de melodías: chips de categoría, buscador y tarjetas */
+.libtools{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.libtools input{flex:1 1 220px;background:var(--sunk);border:1px solid var(--line);border-radius:999px;padding:7px 14px}
+.chip.m[aria-pressed="true"]{background:var(--mel);border-color:var(--mel)}
+.chip:disabled{opacity:.45;cursor:default}
+.chip small{font-weight:500;opacity:.8}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.card{text-align:left;display:flex;flex-direction:column;gap:4px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.card:hover{border-color:var(--mel)}
+.card[aria-pressed="true"]{background:var(--mel-soft);border:2px solid var(--mel);padding:9px 11px}
+.card .t{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.card .meta{font-family:var(--f-mono);font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 10px}
+.badge{font-family:var(--f-mono);font-size:11px;border-radius:999px;padding:1px 8px;align-self:flex-start;border:1px solid var(--line);background:var(--surface)}
+.badge.libre{color:var(--ok)} .badge.moderna{color:var(--tract)} .badge.taller{color:var(--voice)}
+.chip.taller{border-style:dotted;border-width:2px}
+.sil-linea{font-family:var(--f-mono);font-size:12px;color:var(--fg);background:var(--sunk);border-radius:6px;padding:6px 8px;overflow-wrap:anywhere;max-height:5.2em;overflow:auto}
+.sil-linea .k{color:var(--muted)}
+#mBtn{border:0;background:var(--mel);color:var(--surface);padding:7px 12px;font-weight:600;font-size:13px;max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:820px){.stage{grid-template-columns:1fr}}
 @media (max-width:560px){.top h1{width:100%}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
@@ -108,7 +127,7 @@ code{font-family:var(--f-mono);font-size:.9em}
     <h1>Taller de melodías · Zig</h1>
     <button id="play" type="button" aria-label="Reproducir"></button>
     <div class="seg m" role="group" aria-label="Melodía"><span class="lab">Melodía</span>
-      <select id="mSel" title="Rise Up (la carta del juego), una receta o tus controles de abajo (tecla M alterna con Rise Up)"></select>
+      <button type="button" id="mBtn" title="Abre la biblioteca de melodías (tecla M alterna con Rise Up)">Rise Up</button>
     </div>
     <div class="seg" role="group" aria-label="Voz"><span class="lab">Voz</span>
       <button type="button" id="vHoy" aria-pressed="true" title="Zig como canta hoy en el gig (tecla V alterna)">Zig hoy</button>
@@ -130,6 +149,7 @@ code{font-family:var(--f-mono);font-size:.9em}
       <h2>La melodía</h2>
       <canvas id="roll" width="1050" height="450" aria-label="Notas de la melodía con sus sílabas"></canvas>
       <div class="read"><span id="rMel">—</span></div>
+      <p class="sil-linea" id="silLinea" aria-label="Sílabas que van a sonar"></p>
     </div>
   </section>
 
@@ -138,10 +158,24 @@ code{font-family:var(--f-mono);font-size:.9em}
     <div class="full" id="fichaCuerpo"></div>
   </section>
 
+  <section class="band mel" id="biblioteca" aria-label="Biblioteca de melodías">
+    <h2>Biblioteca de melodías</h2>
+    <p class="full note">Cada tarjeta dice de dónde viene la melodía y si se puede usar en el juego: <span class="badge libre">🟢 libre</span> <span class="badge moderna">🟡 lectura moderna</span> (la melodía es libre, la lectura no: solo taller hasta tener una propia) <span class="badge taller">🔴 solo taller</span>. Las categorías vacías se llenan en la sesión C.</p>
+    <div class="full libtools"><div class="chips" id="libCats"></div><input id="libBuscar" type="search" placeholder="Buscar: nombre, época, región…" aria-label="Buscar melodía"></div>
+    <div class="full libgrid" id="libGrid"></div>
+  </section>
+
   <section class="band" aria-label="Modo de voz">
     <h2>Modo de voz</h2>
     <div class="full chips" id="modos"></div>
     <p class="full note" id="modoNota"></p>
+  </section>
+
+  <section class="band" id="silBand" aria-label="Sílabas">
+    <h2>Sílabas</h2>
+    <div class="full chips" id="silBtns"></div>
+    <p class="full note" id="silNota"></p>
+    <div class="field" style="grid-column:1/-1"><label for="k_texto">Texto propio</label><input id="k_texto" type="text" placeholder="p. ej. na na hey · mm · sha la la · kru zi lo"><small>Una sílaba por nota, en ciclo. Consonantes: b p d t g k m n s z sh f v l w y r h; grupos como tr, kl, gr. «mm» = boca cerrada.</small><small id="lexico"></small></div>
   </section>
 
   <section class="band" id="vozBand" aria-label="Perillas de voz">
@@ -164,8 +198,6 @@ code{font-family:var(--f-mono);font-size:.9em}
     <h3>Boca</h3>
     <div class="field vk"><label for="k_vocalBase">Vocal sin sílaba</label><select id="k_vocalBase"><option value="ə">ə (la «uh» de hoy)</option><option>a</option><option>e</option><option>i</option><option>o</option><option>u</option></select></div>
     <div class="field vk"><label for="k_brightness">★ Brillo</label><input id="k_brightness" type="range" min="0" max="1" step="0.01"><output></output><small>Filtro de salida, 1,2 a 10 kHz.</small></div>
-    <div class="field vk"><label for="k_silMode">Sílabas</label><select id="k_silMode"><option value="zigues">Zigués (español extraterrestre)</option><option value="modo">Las del modo</option><option value="texto">Texto propio</option><option value="letra">La letra original (melodías antiguas)</option></select><small id="lexico"></small></div>
-    <div class="field vk" style="grid-column:span 2"><label for="k_texto">Texto propio</label><input id="k_texto" type="text" placeholder="p. ej. na na hey · mm · sha la la · kru zi lo"><small>Una sílaba por nota, en ciclo. Consonantes: b p d t g k m n s z sh f v l w y r h; grupos como tr, kl, gr. «mm» = boca cerrada.</small></div>
     <h3>Ataque y altura</h3>
     <div class="field vk"><label for="k_scoop">Scoop (semitonos)</label><input id="k_scoop" type="range" min="0" max="3" step="0.1"><output></output><small>Entrar desde abajo.</small></div>
     <div class="field vk"><label for="k_caida">Caída final</label><input id="k_caida" type="range" min="0" max="4" step="0.1"><output></output><small>Dejar caer el final de frase.</small></div>
@@ -173,6 +205,12 @@ code{font-family:var(--f-mono);font-size:.9em}
     <div class="field vk"><label for="k_ataque">Ataque empujado</label><input id="k_ataque" type="range" min="0" max="0.3" step="0.01"><output></output><small>Más tensión en los primeros 80 ms.</small></div>
     <div class="field vk"><label for="k_legato">Legato</label><input id="k_legato" type="range" min="0" max="1" step="0.01"><output></output><small>Ligar notas cercanas sin soltar la voz.</small></div>
     <div class="field vk"><label for="k_saturacion">Saturación</label><input id="k_saturacion" type="range" min="0" max="1" step="0.01"><output></output><small>Efecto de micro, no físico.</small></div>
+    <h3>Estilos nuevos · solo taller hasta VOZ-2b</h3>
+    <div class="field vk"><label for="k_sonoridad">Sonoridad</label><input id="k_sonoridad" type="range" min="0" max="1" step="0.01"><output></output><small>1 = voz normal; 0 = solo aire (susurro).</small></div>
+    <div class="field vk"><label for="k_nasalidad">Nasalidad</label><input id="k_nasalidad" type="range" min="0" max="1" step="0.01"><output></output><small>Velo abierto todo el tiempo (twang nasal).</small></div>
+    <div class="field vk"><label for="k_quiebre">Quiebre (yodel)</label><input id="k_quiebre" type="range" min="0" max="1" step="0.01"><output></output><small>En saltos de 5+ semitonos: pecho ↔ cabeza con un crack.</small></div>
+    <div class="field vk"><label for="k_garganta">Lengua → armónico</label><input id="k_garganta" type="range" min="0" max="1" step="0.01"><output></output><small>Canto de garganta: la lengua busca el armónico de cada nota sobre un bordón fijo.</small></div>
+    <div class="field vk"><label for="k_bordon">Bordón (semitonos)</label><input id="k_bordon" type="range" min="-24" max="-5" step="1"><output></output><small>Desde la tónica. −12 ≈ 131 Hz con Do; funciona de ~98 a 165 Hz.</small></div>
   </section>
 
   <section class="band" id="v2Band" aria-label="Segunda voz">
@@ -285,7 +323,7 @@ const nombreNota = (m) => NOMBRES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 
 
 // ------------------------------------------------------------------ estado
 const MEL_DEF = { tonica: 60, escala: 'Mayor (jónico)', progresion: 'I–V–vi–IV', bpm: 100, compases: 8, frase: 4, figura: 'Zig-zag', sube: 2, baja: 1, rango: 1.5, direccion: 'sube', alTope: 'rebota', ritmo: 'celdas', densidad: 0.45, sincopa: 0.3, silencios: 0.1, swing: 0, variacion: 0.1, postSalto: true, acordeFuerte: true, cadencia: true, repetir: 0.05, crescendo: 0.5, firma: true, semilla: 7, periodo: 8, pedal: 'tonica' };
-const VOZ_KEYS = ['transpose', 'tracto', 'tensLo', 'tensHi', 'aire', 'growl', 'aspereza', 'looseness', 'vibratoDepth', 'vibratoSpeedHz', 'vibratoDelay', 'vocalBase', 'brightness', 'scoop', 'caida', 'glideMs', 'ataque', 'legato', 'saturacion'];
+const VOZ_KEYS = ['transpose', 'tracto', 'tensLo', 'tensHi', 'aire', 'growl', 'aspereza', 'looseness', 'vibratoDepth', 'vibratoSpeedHz', 'vibratoDelay', 'vocalBase', 'brightness', 'scoop', 'caida', 'glideMs', 'ataque', 'legato', 'saturacion', 'sonoridad', 'nasalidad', 'quiebre', 'garganta', 'bordon'];
 const S = { fija: null, mel: Object.assign({}, MEL_DEF), modo: 'Punk rock', voz: MC.vozDeModo('Punk rock'), texto: '', silMode: 'zigues', melHoy: true, vozHoy: true, acomp: 'acordes',
   v2: { on: false, rel: 'Tercera arriba', ritmo: 'par', modo: 'Igual que la voz 1', vol: 0.8, pan: 0.4, ver: '1' } };
 
@@ -310,10 +348,23 @@ for (const k of VOZ_KEYS) {
   if (el.tagName === 'SELECT') { el.value = S.voz[k]; el.addEventListener('change', () => { S.voz[k] = el.value; cambio(); }); refresh.push(() => { el.value = S.voz[k]; }); }
   else refresh.push(bindRange(el, () => S.voz[k], (v) => { S.voz[k] = v; }));
 }
-$('k_texto').addEventListener('input', () => { S.texto = $('k_texto').value; if (S.texto.trim()) { S.silMode = 'texto'; $('k_silMode').value = 'texto'; } cambio(); });
-$('k_silMode').value = S.silMode;
-$('k_silMode').addEventListener('change', () => { S.silMode = $('k_silMode').value; cambio(); });
-refresh.push(() => { $('k_silMode').value = S.silMode; });
+$('k_texto').addEventListener('input', () => { S.texto = $('k_texto').value; if (S.texto.trim()) S.silMode = 'texto'; pintarSil(); cambio(); });
+// ---- sílabas en botones (TALLER-MEL-A). S.silMode guarda el estilo; «letra» solo con melodías con letra.
+const conLetra = () => { const f = S.fija && MC.MELODIAS_FIJAS.find((x) => x.id === S.fija); return !!(f && f.conLetra); };
+for (const [k, e] of Object.entries(MC.SILABAS_ESTILOS)) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (e.juego ? '' : ' taller'); b.dataset.s = k;
+  b.innerHTML = `${e.nombre} <small>· ${e.ej}</small>`; b.title = e.juego ? 'El juego lo conoce (TV1)' : 'Solo taller hasta VOZ-2b';
+  b.addEventListener('click', () => { S.silMode = k; pintarSil(); cambio(true); });
+  $('silBtns').appendChild(b);
+}
+function pintarSil() {
+  if (S.silMode === 'letra' && !conLetra()) S.silMode = 'zigues';
+  for (const b of $('silBtns').children) { b.setAttribute('aria-pressed', String(b.dataset.s === S.silMode)); if (b.dataset.s === 'letra') b.disabled = !conLetra(); }
+  const e = MC.SILABAS_ESTILOS[S.silMode] || {};
+  const juego = S.vozHoy || MC.MODOS[S.modo].juego;
+  $('silNota').textContent = (juego ? 'Ojo: «Zig hoy» canta una vocal fija; las sílabas suenan en los modos. ' : '') + (e.nota || (e.juego ? 'El juego también lo conoce: viaja en el TV1.' : '')) + (e.juego ? '' : ' Solo taller hasta VOZ-2b: el TV1 lo lleva como texto.');
+}
+refresh.push(pintarSil);
 fillSelect($('v2_rel'), Object.keys(MC.RELACIONES).map((k) => [k, k]), S.v2.rel);
 fillSelect($('v2_modo'), [['Igual que la voz 1', 'Igual que la voz 1']].concat(Object.keys(MC.MODOS).map((k) => [k, k])), S.v2.modo);
 for (const k of ['rel', 'ritmo', 'modo', 'ver']) { const el = $('v2_' + k); el.value = S.v2[k]; el.addEventListener('change', () => { S.v2[k] = el.value; if (k !== 'ver') cambio(true); }); refresh.push(() => { el.value = S.v2[k]; }); }
@@ -333,7 +384,8 @@ $('acomp').addEventListener('change', () => { S.acomp = $('acomp').value; cambio
 // modos
 const modosEl = $('modos');
 for (const nombre of Object.keys(MC.MODOS)) {
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (MC.MODOS[nombre].juego ? ' game' : ''); b.textContent = nombre; b.dataset.m = nombre;
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (MC.MODOS[nombre].juego ? ' game' : '') + (MC.MODOS[nombre].soloTaller ? ' taller' : ''); b.textContent = nombre; b.dataset.m = nombre;
+  if (MC.MODOS[nombre].soloTaller) b.title = 'Solo taller hasta VOZ-2b (perilla nueva)';
   b.addEventListener('click', () => elegirModo(nombre)); modosEl.appendChild(b);
 }
 function elegirModo(nombre) {
@@ -345,7 +397,7 @@ function elegirModo(nombre) {
 function pintarModo() {
   for (const b of modosEl.children) b.setAttribute('aria-pressed', String(b.dataset.m === S.modo));
   const m = MC.MODOS[S.modo];
-  $('modoNota').textContent = m.nota;
+  $('modoNota').textContent = m.nota + (m.soloTaller ? ' · Solo taller hasta VOZ-2b.' : '');
   $('vozBand').classList.toggle('off', !!m.juego);
 }
 // Recetas: formas con nombre sobre los controles de abajo (no tocan tónica, escala, acordes, BPM ni semilla).
@@ -359,27 +411,45 @@ const RECETAS = [
   { n: 'Secuencia que baja', p: { figura: 'Secuencia', direccion: 'baja' } },
   { n: 'Paseo con swing', p: { figura: 'Paseo', direccion: 'arco', swing: 0.4, densidad: 0.55 } },
 ].map((r) => ({ n: r.n, p: Object.assign(Object.fromEntries(FORMA.map((k) => [k, MEL_DEF[k]])), r.p) }));
-(() => {
-  const sel = $('mSel'); const add = (v, t, g) => { const o = document.createElement('option'); o.value = v; o.textContent = t; (g || sel).appendChild(o); };
-  add('hoy', 'Rise Up · la carta del juego');
-  const g = document.createElement('optgroup'); g.label = 'Recetas'; sel.appendChild(g);
-  RECETAS.forEach((r, i) => add('r' + i, r.n, g));
-  add('nueva', 'Nueva · tus controles');
-  if (MC.MELODIAS_FIJAS.length) {
-    const ga = document.createElement('optgroup'); ga.label = 'Melodías antiguas'; sel.appendChild(ga);
-    MC.MELODIAS_FIJAS.forEach((f) => add('f:' + f.id, f.nombre, ga));
+// ---- biblioteca de melodías (TALLER-MEL-A, D1 = A): sustituye al desplegable; Rise Up, recetas, la tuya y las fijas
+const CATS = [['todas', 'Todas'], ['juego', 'Del juego'], ['creadas', 'Creadas'], ['antiguas', 'Antiguas'], ['medievales', 'Medievales'], ['america', 'América'], ['asia', 'Asia'], ['clasicas', 'Clásicas'], ['cuadros', 'En cuadros']];
+const LIC = { libre: ['libre', '🟢 libre'], moderna: ['moderna', '🟡 lectura moderna'], taller: ['taller', '🔴 solo taller'] };
+const LIB = [{ v: 'hoy', nombre: 'Rise Up · la carta del juego', cat: 'juego', epoca: 'ALWTTT', region: 'MelodyPattern_RiseUp_44_8m', compas: '4/4', letra: false, licencia: 'libre', motivo: 'Del juego: es nuestra.' }]
+  .concat(RECETAS.map((r, i) => ({ v: 'r' + i, nombre: r.n, cat: 'creadas', epoca: 'receta', region: 'figura ' + r.p.figura, compas: '4/4', letra: false, licencia: 'libre', motivo: 'Generada aquí por el compositor por figuras.' })))
+  .concat([{ v: 'nueva', nombre: 'Nueva · tus controles', cat: 'creadas', epoca: 'a mano', region: 'los controles de «Melodía nueva»', compas: '4/4', letra: false, licencia: 'libre', motivo: 'Generada aquí con tus controles.' }])
+  .concat(MC.MELODIAS_FIJAS.map((f) => ({ v: 'f:' + f.id, nombre: f.nombre, cat: f.categoria || 'antiguas', epoca: f.epoca || '', region: f.region || '', compas: f.compas, letra: !!f.conLetra, licencia: f.licencia || 'taller', motivo: f.licenciaMotivo || '' })));
+let libCat = 'todas';
+const sinTildes = (t) => t.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+function pintarLib() {
+  const q = sinTildes($('libBuscar').value.trim());
+  const cats = $('libCats'); cats.innerHTML = '';
+  for (const [k, t] of CATS) {
+    const n = k === 'todas' ? LIB.length : LIB.filter((x) => x.cat === k).length;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip m'; b.setAttribute('aria-pressed', String(k === libCat)); b.disabled = !n;
+    b.innerHTML = `${t} <small>${n || 'pronto'}</small>`; b.onclick = () => { libCat = k; pintarLib(); }; cats.appendChild(b);
   }
-  sel.addEventListener('change', () => {
-    const v = sel.value;
-    if (v.startsWith('f:')) elegirFija(v.slice(2));
-    else {
-      S.fija = null;
-      if (v === 'hoy') S.melHoy = true;
-      else { S.melHoy = false; if (v[0] === 'r') Object.assign(S.mel, RECETAS[+v.slice(1)].p); }
-    }
-    refresh.forEach((f) => f()); seg(); pintarFicha(); cambio(true);
-  });
-})();
+  const sel = valorMel(), g = $('libGrid'); g.innerHTML = '';
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const lista = LIB.filter((x) => (libCat === 'todas' || x.cat === libCat) && (!q || sinTildes([x.nombre, x.epoca, x.region, x.compas].join(' ')).includes(q)));
+  if (!lista.length) { g.innerHTML = '<p class="note">Nada con esa búsqueda.</p>'; return; }
+  for (const x of lista) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'card'; b.setAttribute('aria-pressed', String(x.v === sel));
+    const [cl, tx] = LIC[x.licencia] || LIC.taller;
+    b.innerHTML = `<span class="t">${esc(x.nombre)}</span><span class="meta"><span>${esc(x.epoca)}</span><span>${esc(x.region)}</span><span>${esc(x.compas)}</span>${x.letra ? '<span>✓ letra</span>' : ''}</span><span class="badge ${cl}">${tx}</span>`;
+    b.title = x.motivo; b.onclick = () => elegirMel(x.v); g.appendChild(b);
+  }
+}
+$('libBuscar').addEventListener('input', pintarLib);
+$('mBtn').onclick = () => $('biblioteca').scrollIntoView({ behavior: 'smooth', block: 'start' });
+function elegirMel(v) {
+  if (v.startsWith('f:')) elegirFija(v.slice(2));
+  else {
+    S.fija = null;
+    if (v === 'hoy') S.melHoy = true;
+    else { S.melHoy = false; if (v[0] === 'r') Object.assign(S.mel, RECETAS[+v.slice(1)].p); }
+  }
+  refresh.forEach((f) => f()); seg(); pintarFicha(); cambio(true);
+}
 // Melodía antigua: su tempo; la tónica vuelve a Do (= la altura escrita); la letra original si la tiene y la voz está en un modo.
 function elegirFija(id) {
   const f = MC.MELODIAS_FIJAS.find((x) => x.id === id); if (!f) return;
@@ -413,7 +483,8 @@ function valorMel() {
   return i >= 0 ? 'r' + i : 'nueva';
 }
 function seg() {
-  $('mSel').value = valorMel();
+  const v = valorMel(), it = LIB.find((x) => x.v === v);
+  $('mBtn').textContent = it ? it.nombre : 'Melodía'; pintarLib(); pintarSil();
   $('vHoy').setAttribute('aria-pressed', String(S.vozHoy)); $('vModo').setAttribute('aria-pressed', String(!S.vozHoy));
   $('vModo').textContent = S.modo.startsWith('Zig') ? 'Modo' : S.modo;
 }
@@ -429,8 +500,9 @@ function melodiaActual() {
   const modoJuego = S.vozHoy || MC.MODOS[S.modo].juego;
   m.lexico = null;
   if (modoJuego) MC.asignarSilabas(m.notas, [], S.mel.semilla, '');
-  else if (S.silMode === 'letra' && m.fija) { /* la letra original, ya puesta por melodiaFija */ }
-  else if (S.silMode === 'zigues') m.lexico = MC.asignarZigues(m.notas, S.mel.semilla, S.voz.dureza);
+  else if (S.silMode === 'letra' && m.fija && m.fija.conLetra) { /* la letra original, ya puesta por melodiaFija */ }
+  else if (MC.asignarEstiloSilabas(S.silMode, m.notas, { esc: m.esc, seed: S.mel.semilla, vocal: S.voz.vocalBase })) { /* solfeo, scat, konnakol, mm, vocal */ }
+  else if (S.silMode === 'zigues' || S.silMode === 'letra') m.lexico = MC.asignarZigues(m.notas, S.mel.semilla, S.voz.dureza);
   else if (S.silMode === 'texto' && S.texto.trim()) MC.asignarSilabas(m.notas, [], S.mel.semilla, S.texto);
   else MC.asignarSilabas(m.notas, S.voz.silabas, S.mel.semilla, '');
   $('lexico').textContent = m.lexico ? 'Palabras de hoy: ' + m.lexico.lexico.join(' · ') : '';
@@ -508,7 +580,7 @@ async function preparar() {
   $('pos').textContent = 'renderizando…';
   const juego = S.vozHoy || MC.MODOS[S.modo].juego;
   const diccion = !S.vozHoy && !!MC.MODOS[S.modo].diccion;
-  const msgDe = (ns, esJuego, dic, voz, seed) => esJuego ? { tipo: 'juego', notas: ns, perfil: null, opts: { duracion: dur + 0.6, diccion: dic, ctx: ctxJuego(), seed } } : { tipo: 'v2', notas: ns, voz, opts: { duracion: dur + 0.6, seed } };
+  const msgDe = (ns, esJuego, dic, voz, seed) => esJuego ? { tipo: 'juego', notas: ns, perfil: null, opts: { duracion: dur + 0.6, diccion: dic, ctx: ctxJuego(), seed } } : { tipo: 'v2', notas: ns, voz, opts: { duracion: dur + 0.6, seed, tonica: mel.fija ? mel.tonica : S.mel.tonica } };
   const tareas = [renderVoz(msgDe(notas, juego, diccion, S.voz, 1)), renderAcomp(mel, dur)];
   if (S.v2.on && mel.notas2) {
     const n2 = MC.aSegundos({ notas: mel.notas2 }, S.mel.bpm);
@@ -532,7 +604,7 @@ async function preparar() {
   if (acomp) for (let i = 0; i < frames; i++) { L[i] += acomp[i] * 0.55; R[i] += acomp[i] * 0.55; }
   actual = { buf, mel, notas, snaps: voz.snaps, snaps2: voz2r ? voz2r.snaps : null, dur };
   if (!playing) $('pos').textContent = '—';
-  pintarRoll(); resumenMel();
+  pintarRoll(); resumenMel(); pintarLineaSil();
   return actual;
 }
 function arrancar(offset) {
@@ -601,7 +673,8 @@ function pintarRoll(t) {
   if (!actual) return;
   const { mel } = actual, ns = mel.notas, beats = mel.beats || mel.compases * 4, bpc = mel.beatsPorCompas || 4;
   const ns2 = (S.v2.on && mel.notas2) ? mel.notas2 : [];
-  const todas = ns.concat(ns2);
+  const gg = !S.vozHoy && !MC.MODOS[S.modo].juego && S.voz.garganta > 0 ? (mel.fija ? mel.tonica : S.mel.tonica) + S.voz.bordon : 0;
+  const todas = ns.concat(ns2).concat(gg ? ns.map((n) => ({ midi: MC.proyectarGarganta(n.midi, gg).midi })) : []);
   let lo = Math.min(...todas.map((n) => n.midi)) - 2, hi = Math.max(...todas.map((n) => n.midi)) + 2;
   const X = (b) => 10 + (W - 20) * b / beats, Y = (m) => H - 30 - (H - 60) * (m - lo) / (hi - lo);
   const mu = css('--muted'), li = css('--line'), me = css('--mel'), ms = css('--mel-soft'), vo = css('--voice'), now = css('--now');
@@ -620,8 +693,19 @@ function pintarRoll(t) {
     g.fillStyle = on ? now : (n.firma ? vo : ms); g.strokeStyle = n.firma ? vo : me; g.lineWidth = 2;
     g.fillRect(x, y - 9, w, 18); g.strokeRect(x, y - 9, w, 18);
     if (n.sil) { g.fillStyle = css('--fg'); g.fillText(n.sil, x + 3, y - 14); }
+    if (gg) {   // canto de garganta: el armónico que suena de verdad
+      const pj = MC.proyectarGarganta(n.midi, gg), yp = Y(pj.midi);
+      g.strokeStyle = tr; g.fillStyle = tr; g.lineWidth = 3; g.beginPath(); g.moveTo(x, yp); g.lineTo(x + w, yp); g.stroke();
+      g.fillText('h' + pj.n + (Math.abs(pj.cents) >= 25 ? ' ' + (pj.cents > 0 ? '−' : '+') + Math.abs(pj.cents) + '¢' : ''), x + 3, yp + 22);
+    }
   }
   if (playB >= 0) { g.strokeStyle = vo; g.lineWidth = 2; g.beginPath(); g.moveTo(X(playB), 16); g.lineTo(X(playB), H - 24); g.stroke(); }
+}
+function pintarLineaSil() {
+  const ns = actual.mel.notas, juego = S.vozHoy || MC.MODOS[S.modo].juego;
+  const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  $('silLinea').innerHTML = '<span class="k">Sílabas · ' + esc((MC.SILABAS_ESTILOS[S.silMode] || {}).nombre || S.silMode) + ':</span> '
+    + (juego ? esc('«uh» fija (Zig hoy)') : ns.map((n) => esc(n.sil || '(' + S.voz.vocalBase + ')')).join(' '));
 }
 function resumenMel() {
   const ns = actual.mel.notas, g = ns.map((n) => n.grado);
@@ -677,6 +761,7 @@ function aplicarVivo() {
   if (vivoCons && vivoCons.i) c.push({ index: vivoCons.i, diameter: vivoCons.d });
   vivoVoz.shaper.setConstrictions(c);
   vivoVoz.shaper.velumOverride = vivoCons && vivoCons.tipo === 'nas' ? 0.4 : null;
+  if (S.voz.nasalidad > 0) vivoVoz.shaper.velumOverride = Math.max(vivoVoz.shaper.velumOverride == null ? 0.01 : vivoVoz.shaper.velumOverride, 0.01 + 0.39 * S.voz.nasalidad);
   const T = vivoVoz.tract;
   if (vivoCons && vivoCons.tipo === 'fri' && !vivoTurb) { vivoTurb = { position: vivoCons.i * T.n / 44, diameter: vivoCons.d, startTime: T.time, endTime: NaN }; T.turbulencePoints.push(vivoTurb); }
   if ((!vivoCons || vivoCons.tipo !== 'fri') && vivoTurb) { vivoTurb.endTime = T.time; const tb = vivoTurb; setTimeout(() => { const i = T.turbulencePoints.indexOf(tb); if (i >= 0) T.turbulencePoints.splice(i, 1); }, 300); vivoTurb = null; }
@@ -699,6 +784,7 @@ $('vivo').onclick = () => {
   const V = S.voz;
   vivoVoz = new MV.PinkTrombone(ctx.sampleRate, 5, { tractLength: Math.round(V.tracto) });
   const g = vivoVoz.glottis; g.x.sub = V.growl; g.x.jitter = V.aspereza; g.x.shimmer = V.aspereza * 0.8; g.x.air = V.aire;
+  if (V.sonoridad != null && V.sonoridad !== 1) g.x.voz = V.sonoridad;
   vivoVoz.alwaysVoice = false; vivoVoz.vibratoWobble = false; vivoVoz.pitchJitterGain = Math.min(1, V.looseness); vivoVoz.tensenessJitterGain = Math.min(1, V.looseness);
   vivoVoz.vibratoGain = Math.min(0.1, V.vibratoDepth * 0.012); vivoVoz.vibratoFrequency = V.vibratoSpeedHz;
   const vb = MC.VOCALES[V.vocalBase] || MC.VOCALES['ə']; vivoVoz.setTongue(vb.i, vb.d); vivoLab = vb.lab; vivoVoz.reset(); aplicarVivo();
@@ -738,7 +824,7 @@ function aplicar(e) {
   if (!e || !e.mel) throw new Error('Código sin melodía');
   S.mel = Object.assign({}, MEL_DEF, e.mel); S.modo = MC.MODOS[e.modo] ? e.modo : 'Pop';
   S.voz = Object.assign(MC.vozDeModo(MC.MODOS[S.modo].juego ? 'Pop' : S.modo), e.voz || {}); S.texto = e.texto || ''; S.melHoy = !!e.melHoy; S.vozHoy = !!e.vozHoy;
-  S.silMode = e.silMode || (S.texto ? 'texto' : 'modo'); S.v2 = Object.assign({ on: false, rel: 'Tercera arriba', ritmo: 'par', modo: 'Igual que la voz 1', vol: 0.8, pan: 0.4, ver: '1' }, e.v2 || {});
+  S.silMode = MC.SILABAS_ESTILOS[e.silMode] ? e.silMode : (S.texto ? 'texto' : 'modo'); S.v2 = Object.assign({ on: false, rel: 'Tercera arriba', ritmo: 'par', modo: 'Igual que la voz 1', vol: 0.8, pan: 0.4, ver: '1' }, e.v2 || {});
   S.fija = e.fija && MC.MELODIAS_FIJAS.some((x) => x.id === e.fija) ? e.fija : null;
   $('k_texto').value = S.texto; refresh.forEach((f) => f()); escNota(); pintarModo(); seg(); pintarFicha(); cambio(true);
 }
@@ -751,7 +837,7 @@ $('copiarCarta').onclick = () => {
   const carta = {
     _nota: 'VoiceProfileSO usa los nombres de C#. propuestaVoiceProfileV2 y melodiaPropuesta no existen todavía en C#.',
     VoiceProfileSO: { looseness: V.looseness, vibratoDepth: Math.min(1, V.vibratoDepth), vibratoSpeedHz: V.vibratoSpeedHz, diction: 1, mouth: 0, brightness: V.brightness, transposeSemitones: V.transpose, tensenessAtVel0: V.tensLo, tensenessAtVel127: V.tensHi, vibratoDelaySeconds: V.vibratoDelay, vibratoRampSeconds: V.vibratoRamp, pitchLeadSeconds: V.pitchLead, leadFullInterval: 7, minLoudness: V.minLoudness, startTrimMs: 20, gain: 1 },
-    propuestaVoiceProfileV2: { modo: S.modo, tractLength: V.tracto, breath: V.aire, growl: V.growl, roughness: V.aspereza, drive: V.saturacion, scoopSemitones: V.scoop, scoopMs: V.scoopMs, fallSemitones: V.caida, glideMs: V.glideMs, attackPress: V.ataque, legato: V.legato, baseVowel: V.vocalBase, vibratoDepthUnclamped: V.vibratoDepth, syllables: S.texto ? S.texto.split(/\s+/) : V.silabas },
+    propuestaVoiceProfileV2: { modo: S.modo, tractLength: V.tracto, breath: V.aire, growl: V.growl, roughness: V.aspereza, drive: V.saturacion, scoopSemitones: V.scoop, scoopMs: V.scoopMs, fallSemitones: V.caida, glideMs: V.glideMs, attackPress: V.ataque, legato: V.legato, baseVowel: V.vocalBase, vibratoDepthUnclamped: V.vibratoDepth, soloTaller: { sonoridad: V.sonoridad, nasalidad: V.nasalidad, quiebre: V.quiebre, garganta: V.garganta, bordon: V.bordon }, syllables: S.texto ? S.texto.split(/\s+/) : V.silabas },
     melodiaPropuesta: S.fija && actual && actual.mel.fija ? {
       fija: S.fija, nombre: actual.mel.fija.nombre, compas: actual.mel.fija.compas, beatsPorCompas: actual.mel.beatsPorCompas, bpm: S.mel.bpm,
       _nota: 'Como MelodyPattern_RiseUp_44_8m: grado, inicio, duración y velocidad; midi y sílaba aparte. Grados sobre la escala de la ficha.',
@@ -774,9 +860,15 @@ $('copiarTV1').onclick = async () => {
   const r = await renderVoz({ tipo: 'gain', voz: Object.assign({}, V) });
   const g = r.gain;
   const tv = MC.estiloTV1({ nombre: ($('vNombre').value || '').trim() || S.modo, modo: S.modo, voz: V, silMode: S.silMode,
-    lexiconSeed: S.mel.semilla, texto, gain: g.gain, rms: g.rms });
-
-  const aviso = S.vozHoy || MC.MODOS[S.modo].juego ? ' Ojo: estás oyendo la voz de hoy (v7); el TV1 lleva la voz v8 del modo.' : '';
+    lexiconSeed: S.mel.semilla, texto, gain: g.gain, rms: g.rms,
+    silabasCantadas: actual ? actual.mel.notas.map((n) => n.sil || V.vocalBase).join(' ') : '' });
+  let aviso = S.vozHoy || MC.MODOS[S.modo].juego ? ' Ojo: estás oyendo la voz de hoy (v7); el TV1 lleva la voz v8 del modo.' : '';
+  if (tv.soloTaller) {
+    const que = [];
+    if (tv.soloTaller.perillas) { const ks = Object.keys(tv.soloTaller.perillas); que.push((ks.length > 1 ? 'las perillas ' : 'la perilla ') + ks.join(', ')); }
+    if (tv.soloTaller.silabas) que.push(`el estilo de sílabas «${MC.SILABAS_ESTILOS[tv.soloTaller.silabas].nombre}» (van como texto fijo con las de esta melodía)`);
+    aviso += ` ⚠ Solo taller hasta VOZ-2b: el juego ignora ${que.join(' y ')}.`;
+  }
   copiar('TV1:' + b64e(JSON.stringify(tv)), `Código TV1 copiado (gain ${tv.gain}). Pégalo en Unity: ALWTTT ▸ Voz ▸ Importar estilo.` + aviso);
 };
 $('pegar').addEventListener('paste', (e) => {

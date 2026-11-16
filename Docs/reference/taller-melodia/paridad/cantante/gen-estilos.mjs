@@ -28,7 +28,7 @@ const rmsZig = rmsActivo(ref.audio);
 console.log(`RMS de Zig hoy (v7 + dicción): ${rmsZig.toFixed(4)}`);
 
 const salida = [];
-const modos = [['Zig V8', null], ...Object.keys(MC.MODOS).filter((k) => MC.MODOS[k].v).map((k) => [k, k])];
+const modos = [['Zig V8', null], ...Object.keys(MC.MODOS).filter((k) => MC.MODOS[k].v && !MC.MODOS[k].soloTaller)   // TALLER-MEL-A: los modos «solo taller» no van al juego hasta VOZ-2b.map((k) => [k, k])];
 for (const [nombre, modo] of modos) {
   const V = MC.vozDeModo(modo);
   const { notas } = notasRef();
