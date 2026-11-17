@@ -14,6 +14,17 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-17 — CARTAS-ARTE-1: la cara nueva de las cartas (DEMO-1211, orden 5)
+
+**Clase:** semántico (presentación) · operativo. Con cambio de código, prefabs, datos de cartas y arte.
+
+- Decisiones: D1 = propuesta de Matías (coste ✦ arriba a la izquierda, lo que da como «+N» grande); D2 = B (Voltaje sin cobrar ni marcador hasta después de la demo); D3 = B (marcos y ✦; ilustraciones donde existan); D4 = B (números dibujados en S11); D5 = A + C (capas a Matías; provisional mientras tanto, resuelto con los marcos del Miro); D6 bis = A (rótulo de pista arriba); D7 = A (nombre de Habilidad y Finisher en su caja); D8 = A + pedido C (arte libre: nombre abajo sobre la caja «COMPOSICIÓN», franja con los modificadores que leen los gustos; efectos a las fichas); D9 = A (degradado y candado de Matías, enderezados).
+- Código: `CardBase` (`ApplyFaceLayout`, tres caras, rótulo por rol, `TasteModifierRow`, ancla de fichas con la cámara del lienzo, hover en toda la carta, ficha de modificador con el valor de la carta, sin ficha de Instrumento, icono del músico apagado, Finisher con marco propio en `ApplyTypeBackground`); `CartasArte1FaceBuilder` (menús *ALWTTT ▸ CARTAS-ARTE-1 ▸ 1/2*: monta `CardCanvas`, cablea `Card3D` y `CardUI` —arregla los textos de coste y ★ cruzados en `CardUI`—, devuelve overrides, pasa el arte a sprite único, pone las 19 ilustraciones).
+- Arte: `Assets/Art/Cards/` (marcos, rótulos, símbolos, ilustraciones por instrumento, composiciones de batería con fondo, bloqueo y candado). Hallazgo: el proyecto importa PNG como *Multiple* recortado por islas de alfa (un rótulo quedaba en su primera letra).
+- Verificación: compila fuera de Unity y en Unity; smokes 1 (la mano con las tres caras), 2 (F12 ▸ Inspiración cambia «+N» y ✦ en la mano) y 3 (rojo de bloqueo, fichas; el detalle de clic derecho abre, con diseño viejo) jugados por Claudio.
+- Docs: `SSoT_Card_System` §2.3 y §10.4.1; `CURRENT_STATE`; plan DEMO-1211; `Pedidos_Arte_Matias.md` (#18–#21).
+- Pendiente: marco cian del Finisher, marco de composición sin la palabra (pedido C), ilustraciones de Habilidad y Finisher; coste de dos cifras roza la placa del nombre del Finisher; vista de clic derecho y Voltaje → CARTAS-ARTE-2 (POST-DEMO).
+
 ## 2026-11-16 — WALKBASS: el Walking Bass que se calla; registro de los bajos
 
 **Clase:** semántico · operativo. Con cambio de código (ALWTTT) y de datos (MidiGenPlay).

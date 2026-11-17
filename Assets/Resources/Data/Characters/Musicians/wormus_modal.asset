@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Wormus Modal
   performerRule: 1
   musicianCharacterType: 3
-  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
+  cardSprite: {fileID: 21300000, guid: aa888a69c1937a643a7b8427e5e2ac16, type: 3}
   inspirationCost: 1
   inspirationGenerated: 1
   isFinisher: 0

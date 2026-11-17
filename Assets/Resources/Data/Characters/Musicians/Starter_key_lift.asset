@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Key Lift
   performerRule: 1
   musicianCharacterType: 3
-  cardSprite: {fileID: -6140435556337702473, guid: ee6a512cb32af584b85b7dc8d6dc6ea4, type: 3}
+  cardSprite: {fileID: 21300000, guid: 66e09b941cda7ae4dbd10138664ffad4, type: 3}
   inspirationCost: 0
   inspirationGenerated: 1
   isFinisher: 0

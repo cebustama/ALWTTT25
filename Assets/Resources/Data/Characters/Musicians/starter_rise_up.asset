@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Rise Up
   performerRule: 1
   musicianCharacterType: 4
-  cardSprite: {fileID: 9719901983184694, guid: b6e979e5056cd1e479d00af86fbe60c4, type: 3}
+  cardSprite: {fileID: 21300000, guid: 30e65aebdbfddfc44a8c32d00b455b3b, type: 3}
   inspirationCost: 0
   inspirationGenerated: 1
   isFinisher: 0

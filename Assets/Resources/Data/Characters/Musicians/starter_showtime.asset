@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Showtime
   performerRule: 1
   musicianCharacterType: 4
-  cardSprite: {fileID: 7392437585040540878, guid: 5aa243d2ac18123408574c621c59efac, type: 3}
+  cardSprite: {fileID: 21300000, guid: df86ab131e2d4d24e91f96ec6ecd3b29, type: 3}
   inspirationCost: 0
   inspirationGenerated: 1
   isFinisher: 0

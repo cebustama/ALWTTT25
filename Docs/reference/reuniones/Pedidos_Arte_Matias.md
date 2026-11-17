@@ -29,6 +29,10 @@ Las minutas de cada reunión siguen en `Docs/reference/reuniones/AAAA-MM-DD_<tem
 | 15 | **Lista de sus cartas nuevas**, con nombre, qué hacen, a qué músico pertenecen, coste y arte si lo hay. Las que usen efectos que ya existen entran como datos antes del 27-nov. | Contenido (D-PLAN-7/8) | 2026-11-12 | Por pedir |
 | 16 | **Arte de la carta de Sibi que cura Stress** (el gusano calma a un músico), si se decide que reemplaza a Read the Room. | DEMO-FIX-1 (D-PLAN-7) | 2026-11-12 | Si se acepta D-PLAN-7 |
 | 17 | **Sus números dibujados**, para usarlos en lugar de la fuente: 0–9 y los signos que usa el juego (+, −, ×, →, /). Un PNG por signo con fondo transparente, **todos a la misma altura** y con el mismo margen abajo, o una hoja en rejilla de celdas iguales. Con contorno, para que se lean sobre la consola. Más adelante, la fuente completa dibujada. | Big Num, Stress, Vibe, costes (S11, D-PLAN-16) | 2026-11-12 | **Recibido** (0–9, sin signos; ver «Recibido») |
+| 18 | **Marco del Finisher, cian**, con el emblema de estrella de la maqueta, en el mismo lienzo de 612×948 que los otros marcos (ventana y caja de texto en el mismo sitio que el de Habilidad o el neutro). Hoy: el neutro teñido de cian. | Cara de las cartas (CARTAS-ARTE-1) | 2026-11-17 | Por pedir |
+| 19 | **Marco de composición sin la palabra «COMPOSICIÓN»**: la caja de abajo vacía, porque el juego pone ahí el nombre de la carta (D8, pedido C). Hoy una placa azul tapa la palabra. | Cara de las cartas (CARTAS-ARTE-1) | 2026-11-17 | Por pedir |
+| 20 | **Ilustraciones de las cartas de Habilidad (6) y de los Finisher (4)**, como las de composición: sobre el lienzo del marco, para que el dibujo caiga en la ventana. Hoy llevan el arte viejo en la ventana. | Cara de las cartas (CARTAS-ARTE-1) | 2026-11-17 | Por pedir |
+| 21 | **Visto bueno del bloqueo**: su degradado y su candado ya están en el juego; el degradado estaba girado y se enderezó al lienzo de la carta y se recortó a la silueta del marco. Que lo mire y, si quiere, lo mande recto. | Cara de las cartas (CARTAS-ARTE-1) | 2026-11-17 | Mostrarle |
 
 ## Preguntas abiertas
 
@@ -39,5 +43,6 @@ Las minutas de cada reunión siguen en `Docs/reference/reuniones/AAAA-MM-DD_<tem
 
 | Pedido | Llegó | Dónde quedó |
 | --- | --- | --- |
+| Marcos de Composición, Habilidad y neutro; rótulos de pista; brillo y «+»; ilustraciones de voz, guitarra-bajo, órgano y batería con fondos; degradado de bloqueo y candado | 2026-11-13 (Drive y Miro) | `Assets/Art/Cards/` (CARTAS-ARTE-1, 2026-11-17): marcos, rótulos y símbolos tal cual; ilustraciones re-exportadas sobre el lienzo del marco; batería compuesta pose + fondo; bloqueo enderezado |
 | #17 Números dibujados 0–9 (amarillo, contorno azul) | 2026-11-04 (avisado el 12-nov) | Google Drive: https://drive.google.com/drive/folders/1UtUJcoa28Jf-Mki1CwouKkPT-SEea8Oy · sin traer a `Assets/` (S11). Sin signos (+, −, ×, →, /): ver si hacen falta |
 | Ilustraciones de cartas de composición por instrumento (vocalista, guitarra-bajo, batería con fondos, órgano) y maquetas de marcos | 2026-11-04 (avisado el 12-nov) | Google Drive: https://drive.google.com/drive/folders/1L_VZ0T_rK6-8Znpewoaglolzuo5YtWx3 · maquetas en `reference/ideas/img/2026-11-12_cartas_maqueta_*.png` · entra en CARTAS-ARTE-1 (D-PLAN-21) |

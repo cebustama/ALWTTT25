@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Push It
   performerRule: 1
   musicianCharacterType: 2
-  cardSprite: {fileID: -2185472608353246101, guid: 11dc9dc4c2a4d2a42aa49b850b64e061, type: 3}
+  cardSprite: {fileID: 21300000, guid: faafff2e256c954438e7a01644c56375, type: 3}
   inspirationCost: 0
   inspirationGenerated: 1
   isFinisher: 0

@@ -70,7 +70,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | D3 | **CHATARRERO-1** | La tienda que «abre el show» y la mejora inicial (pantalla del bicho en el foco) | plan de la demo, «Deseos» |
 | D4 | **POSES-1** | Poses por estado y por habilidad para todo el público | pedido #12 |
 | D5 | **SALAS-1** | Las salas que falten (cocina, jardín, baño) cuando llegue el arte | pedido #7 |
-| D7 | **CARTAS-ARTE-2** | Si CARTAS-ARTE-1 no entró o quedó a medias: marcos, estrella e ilustraciones de todas las cartas | D-PLAN-21 |
+| D7 | **CARTAS-ARTE-2** | CARTAS-ARTE-1 entró (2026-11-17). Queda: la vista de clic derecho con la cara nueva; el Voltaje en la cara y cobrado (D2 = B); los marcos y las ilustraciones que lleguen de Matías (pedidos #18–#20); el coste de dos cifras que roza la placa del Finisher | D-PLAN-21 |
 | D6 | **FUENTE-1** | La fuente completa dibujada de Matías | pedido #17 |
 
 ## Bloque E · Motor reutilizable

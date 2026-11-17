@@ -58,6 +58,25 @@ namespace ALWTTT
         [Tooltip("Shown when CardDefinition.IsComposition. Toggled in SetCard.")]
         [SerializeField] private GameObject compositionBackground;
 
+        [Header("Card face [CARTAS-ARTE-1]")]
+        [Tooltip("Shown when CardDefinition.IsFinisher (instead of the composition/action frame). " +
+                 "Built by ALWTTT ▸ CARTAS-ARTE-1 ▸ Montar la cara nueva.")]
+        [SerializeField] private GameObject finisherBackground;
+        [Tooltip("The windowed art (BackImage + Mask) used by actions and Finishers. Hidden on full-art compositions.")]
+        [SerializeField] private GameObject windowArtRoot;
+        [Tooltip("Full-card illustration for compositions (Matías's 611×974 template: the sprite carries its own window margin).")]
+        [SerializeField] private Image fullArtImage;
+        [Tooltip("Dark band behind name + description, only on full-art compositions (D6 bis = A).")]
+        [SerializeField] private GameObject fullArtDescBand;
+        [Tooltip("Matías's instrument word in the composition frame's top border. It names the TRACK the " +
+                 "card plays, not the musician: Conito's instrument sounds as bass or guitar.")]
+        [SerializeField] private Image trackLabelImage;
+        [SerializeField] private Sprite labelVoz;
+        [SerializeField] private Sprite labelBajo;
+        [SerializeField] private Sprite labelGuitarra;
+        [SerializeField] private Sprite labelOrgano;
+        [SerializeField] private Sprite labelBateria;
+
         [Header("Owner icon [S5b / Item 4]")]
         [Tooltip("Performer/owner icon (MusicianCharacterData.CharacterIcon). " +
                  "Hidden when the card has no fixed performer or its musician isn't in the band.")]
@@ -135,7 +154,161 @@ namespace ALWTTT
                 inspirationGenTextField.text = effGen.ToString();
 
             ApplyTypeBackground(CardDefinition);   // [S5b / Item 1]
+            ApplyFaceLayout(CardDefinition);       // [CARTAS-ARTE-1]
             ApplyOwnerIcon(CardDefinition);        // [S5b / Item 4]
+        }
+
+        // [CARTAS-ARTE-1] Matías's composition illustrations are re-exported on the frame's own
+        // 612×948 canvas (Assets/Art/Cards/Marcos), with the drawing already under the frame's
+        // window, so art and frame both stretch over the whole card and line up. Only sprites with
+        // that shape go full-card; old window art (900×1334 or square) keeps the windowed layout,
+        // so a card without new art never shows a tiny drawing floating in the middle.
+        private const float FullArtAspect = 612f / 948f;
+        private const float FullArtAspectTolerance = 0.02f;
+        private static readonly HashSet<string> s_loggedFaces = new HashSet<string>();
+
+        public static bool IsFullArtSprite(Sprite s)
+        {
+            if (s == null) return false;
+            var r = s.rect;
+            return r.height > 0f && Mathf.Abs(r.width / r.height - FullArtAspect) <= FullArtAspectTolerance;
+        }
+
+        // Face geometry, as fractions of the card (x, then y from the bottom). Measured on Matías's
+        // three frames, which share one 612×948 canvas (Assets/Art/Cards/Marcos). If a frame is
+        // redrawn with a different layout, these are the numbers to re-measure.
+        private enum Face { Composition, Ability, Finisher }
+        private static readonly Rect WindowArt = R(0.170f, 0.825f, 0.411f, 0.791f);  // Habilidad / neutral window
+        private static readonly Rect CompWindow = R(0.150f, 0.819f, 0.186f, 0.892f); // composition window
+        // [CARTAS-ARTE-1 / D8 = A] A thin strip right under the track word: the name, then one row
+        // with only the modifiers the audience's tastes read (tempo, meter, tonality = mood). The
+        // rest of the art stays free; the full effect text moves to the first hover panel.
+        // Revised the same day (Claudio): the name goes DOWN, over the frame's redundant
+        // «COMPOSICIÓN» box, on a plate of that box's own blue; the taste row sits in a thin strip
+        // right above it, at the bottom edge of the art.
+        private static readonly Rect CompName = R(0.142f, 0.822f, 0.112f, 0.181f);   // the word's box
+        private static readonly Rect CompBand = R(0.150f, 0.819f, 0.181f, 0.226f);
+        private static readonly Rect CompDesc = R(0.16f, 0.81f, 0.183f, 0.224f);
+        private const float GenNumberY = 0.31f;   // "+N" centre: above the strip (0.226), low on the art
+        private static readonly Color CompNamePlate = new Color(0.243f, 0.220f, 0.780f, 1f); // sampled from the box
+        private static readonly Rect BoxName = R(0.15f, 0.85f, 0.285f, 0.355f);    // Habilidad text box, 1st line
+        private static readonly Rect BoxDesc = R(0.15f, 0.85f, 0.110f, 0.285f);
+        private static readonly Rect FinName = R(0.19f, 0.81f, 0.832f, 0.902f);    // neutral frame's title box
+        private static readonly Rect FinDesc = R(0.15f, 0.85f, 0.110f, 0.355f);
+        private static readonly Color FinNamePlate = new Color(0.93f, 0.96f, 1f, 1f);
+        private static readonly Color FinNameText = new Color(0.08f, 0.06f, 0.20f, 1f);
+        private static Rect R(float x0, float x1, float y0, float y1) => Rect.MinMaxRect(x0, y0, x1, y1);
+
+        private static void Place(Transform t, Rect r)
+        {
+            if (!(t is RectTransform rt)) return;
+            rt.anchorMin = r.min; rt.anchorMax = r.max;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+        }
+
+        private void ApplyFaceLayout(CardDefinition def)
+        {
+            // Old prefab (builder not run): leave the face exactly as it was.
+            if (fullArtImage == null || def == null) return;
+
+            var face = def.IsFinisher ? Face.Finisher : def.IsComposition ? Face.Composition : Face.Ability;
+            bool fullArt = face == Face.Composition && IsFullArtSprite(def.CardSprite);
+
+            fullArtImage.gameObject.SetActive(fullArt);
+            if (fullArt) fullArtImage.sprite = def.CardSprite;
+            // The full art is the card's hover surface: without it only the name plate received
+            // the pointer, so the tooltips opened only over the name (Claudio, 2026-11-17).
+            fullArtImage.raycastTarget = true;
+
+            // The big "+N" sits low on the art, just above the taste strip, not in the middle
+            // (Claudio, 2026-11-17). Anchored at bottom-centre as a fraction of the card height.
+            if (inspirationGenBadgeRoot != null && inspirationGenBadgeRoot.transform is RectTransform genRt)
+            {
+                float y = face == Face.Composition ? GenNumberY : 0.5f;
+                genRt.anchorMin = genRt.anchorMax = new Vector2(0.5f, y);
+            }
+            if (windowArtRoot != null)
+            {
+                windowArtRoot.SetActive(!fullArt);
+                Place(windowArtRoot.transform, face == Face.Composition ? CompWindow : WindowArt);
+            }
+            string tasteRow = face == Face.Composition ? TasteModifierRow(def) : string.Empty;
+            if (face == Face.Composition && descTextField != null) descTextField.text = tasteRow;
+            if (fullArtDescBand != null)
+            {
+                // The strip only exists when there is something the audience reads.
+                fullArtDescBand.SetActive(face == Face.Composition && tasteRow.Length > 0);
+                Place(fullArtDescBand.transform, CompBand);
+            }
+
+            var namePlate = nameTextField != null ? nameTextField.transform.parent : null;
+            var descBox = descTextField != null ? descTextField.transform.parent : null;
+            Place(namePlate, face == Face.Composition ? CompName : face == Face.Finisher ? FinName : BoxName);
+            Place(descBox, face == Face.Composition ? CompDesc : face == Face.Finisher ? FinDesc : BoxDesc);
+            var plateImg = namePlate != null ? namePlate.GetComponent<Image>() : null;
+            if (plateImg != null)
+            {
+                // Finisher: the neutral frame's empty title box. Composition: covers the word.
+                plateImg.enabled = face == Face.Finisher || face == Face.Composition;
+                plateImg.sprite = null;
+                plateImg.color = face == Face.Composition ? CompNamePlate : FinNamePlate;
+            }
+            if (nameTextField != null) nameTextField.color = face == Face.Finisher ? FinNameText : Color.white;
+
+            Sprite label = face == Face.Composition ? TrackLabelFor(def) : null;
+            if (trackLabelImage != null)
+            {
+                trackLabelImage.sprite = label;
+                trackLabelImage.gameObject.SetActive(label != null);
+            }
+
+            if (s_loggedFaces.Add(def.Id ?? def.name))
+            {
+                string kind = face == Face.Finisher ? "Finisher" : face == Face.Composition ? "Composición" : "Habilidad";
+                Debug.Log($"[CARTAS-ARTE-1] cara {def.Id}: {kind}, " +
+                          $"{(fullArt ? "arte a toda la carta" : "arte en ventana")}, " +
+                          $"rótulo {(label != null ? label.name : "-")}, " +
+                          $"coste ✦{ALWTTT.Data.InspirationRules.EffectiveCost(def)}, " +
+                          $"da +{(def.IsComposition ? ALWTTT.Data.InspirationRules.EffectiveGenerated(def) : def.InspirationGenerated)}");
+            }
+        }
+
+        // True when the face shows the strip (name + taste row) instead of the effect text.
+        private bool ShowsTasteRow => fullArtImage != null && CardDefinition != null
+                                      && CardDefinition.IsComposition && !CardDefinition.IsFinisher;
+
+        // Only the families an audience taste reads: tempo (fast/slow), meter, tonality (mood).
+        // Instrument and key change do not touch any taste, so they live in the hover panels.
+        // Same formatter as the modal (PartEffectDescriptionBuilder.Build), so hand and modal agree.
+        private static string TasteModifierRow(CardDefinition def)
+        {
+            var cp = def?.CompositionPayload;
+            if (cp?.ModifierEffects == null) return string.Empty;
+            var parts = new List<string>();
+            foreach (var fx in cp.ModifierEffects)
+                if (fx is TempoEffect || fx is MeterEffect || fx is TonalityEffect)
+                    parts.Add(PartEffectDescriptionBuilder.Build(fx));
+            return string.Join("   ", parts);
+        }
+
+        // The word says which TRACK the card plays (Claudio, D6 bis): drums for rhythm, bass for the
+        // bassline, voice for melody and vocal harmony, organ for chords — guitar when the chords or
+        // the lead come from Conito, whose instrument sounds as either. Part cards get no word.
+        private Sprite TrackLabelFor(CardDefinition def)
+        {
+            var cp = def.CompositionPayload;
+            if (cp == null || cp.PrimaryKind != CardPrimaryKind.Track || cp.TrackAction == null) return null;
+            bool conito = def.FixedPerformerType == MusicianCharacterType.Conito;
+            switch (cp.TrackAction.role)
+            {
+                case MidiGenPlay.TrackRole.Rhythm: return labelBateria;
+                case MidiGenPlay.TrackRole.Bassline: return labelBajo;
+                case MidiGenPlay.TrackRole.Melody:
+                case MidiGenPlay.TrackRole.Harmony: return labelVoz;
+                case MidiGenPlay.TrackRole.Backing: return conito ? labelGuitarra : labelOrgano;
+                case MidiGenPlay.TrackRole.Lead: return labelGuitarra;
+                default: return null;
+            }
         }
 
         // [S5b / Item 1] Unmistakable Action vs Composition frame. The text type label
@@ -147,16 +320,29 @@ namespace ALWTTT
         {
             bool isAction = def != null && def.IsAction;
             bool isComposition = def != null && def.IsComposition;
+            // [CARTAS-ARTE-1] The Finisher gets its own frame. Without it wired, it keeps the
+            // composition frame (previous behaviour).
+            bool isFinisher = def != null && def.IsFinisher && finisherBackground != null;
             if (actionBackground != null) actionBackground.SetActive(isAction);
-            if (compositionBackground != null) compositionBackground.SetActive(isComposition);
+            if (compositionBackground != null) compositionBackground.SetActive(isComposition && !isFinisher);
+            if (finisherBackground != null) finisherBackground.SetActive(isFinisher);
+            // [CARTAS-ARTE-1] The frame covers the whole card: make it the hover surface too, so a
+            // windowed card (Habilidad, Finisher) opens its tooltips anywhere, not only on the name.
+            foreach (var bg in new[] { actionBackground, compositionBackground, finisherBackground })
+                if (bg != null && bg.TryGetComponent<Image>(out var bgImg)) bgImg.raycastTarget = true;
         }
 
         // [S5b / Item 4 / D-S5b-ICON-RESOLVER=A] Resolve the owner icon from the current
         // band via GigManager. None / AnyMusician / generic / out-of-gig -> no icon (Image
         // hidden). Null-guarded for the prefab rollout.
+        private static readonly bool s_showOwnerIcon = false;
         private void ApplyOwnerIcon(CardDefinition def)
         {
             if (ownerIconImage == null) return;
+
+            // [CARTAS-ARTE-1] The track word on top now says whose card it is; the musician's
+            // face on the card is off (Claudio, 2026-11-17). Flip to true to bring it back.
+            if (!s_showOwnerIcon) { ownerIconImage.gameObject.SetActive(false); return; }
 
             Sprite icon = null;
             if (def != null && def.FixedPerformerType != MusicianCharacterType.None)
@@ -200,6 +386,7 @@ namespace ALWTTT
 
         public virtual void UpdateDescription(MusicianBase musician)
         {
+            if (ShowsTasteRow) { descTextField.text = TasteModifierRow(CardDefinition); return; } // [CARTAS-ARTE-1]
             if (musician != null)
             {
                 descTextField.text = CardDefinition.GetDescription(musician.Stats);
@@ -852,6 +1039,19 @@ namespace ALWTTT
             var tooltipManager = TooltipManager.Instance;
             if (tooltipManager == null) return;
 
+            // [CARTAS-ARTE-1] The stack sits on the card's right edge and grows down, instead of
+            // following the cursor over the art and the text (Claudio, 2026-11-17). No anchor
+            // (old prefab without the new face) => cursor-follow, as before.
+            // The hand canvas is World Space and Card3D gives it the HAND camera; TooltipController
+            // only reads canvas.worldCamera for Screen Space - Camera and otherwise projects with
+            // Camera.main, which put the panel far away or off screen. Pass the canvas's camera.
+            var anchor = GetTooltipAnchor();
+            var tipCanvas = anchor != null ? anchor.GetComponentInParent<Canvas>() : null;
+            var tipCam = tipCanvas != null ? tipCanvas.rootCanvas.worldCamera : null;
+            void Tip(string body, string header, TooltipKind kind = TooltipKind.Default) =>
+                tooltipManager.ShowTooltip(body, header, anchor, tipCam, 0f,
+                    TooltipAnchorOffset, growDown: anchor != null, kind: kind);
+
             // [GIG-UI-1] Why a card with the red overlay cannot be played, as the FIRST panel of
             // the stack. Same single source as the overlay (EvaluateCardPlayability, CARD-UX-1):
             // display only, nothing re-derived here. No GigManager (inventory, ship) => no panel.
@@ -868,7 +1068,7 @@ namespace ALWTTT
                             ? GameTextTemplateIds.UiUnplayableBudgetComposition
                             : GameTextTemplateIds.UiUnplayableBudgetAction)
                         : GameTextTemplateIds.UiUnplayable(reason);
-                    tooltipManager.ShowTooltip(
+                    Tip(
                         GameText.Format(reasonId),
                         GameText.Format(GameTextTemplateIds.UiUnplayableHeader),
                         kind: TooltipKind.Warning);
@@ -888,7 +1088,7 @@ namespace ALWTTT
                 && compPayload.TrackAction != null)
             {
                 string roleConceptId = GameSymbols.RoleConcept(compPayload.TrackAction.role);
-                tooltipManager.ShowTooltip(
+                Tip(
                     GameText.ConceptDescription(roleConceptId),
                     CardFacePresentation.HeaderWithGlyph(                                    // [CARD-FACE-2b / D-CF-26=A]
                         GameSymbols.Role(compPayload.TrackAction.role), GameText.ConceptName(roleConceptId)));
@@ -900,7 +1100,7 @@ namespace ALWTTT
             if (!CardDefinition.IsComposition && CardFacePresentation.ShowCardType)   // [CARD-FACE-2b / D-CF-25=B]
             {
                 string typeConceptId = GameSymbols.CardTypeConcept(CardDefinition.CardType);
-                tooltipManager.ShowTooltip(
+                Tip(
                     GameText.ConceptDescription(typeConceptId),
                     CardFacePresentation.HeaderWithGlyph(
                         GameSymbols.CardTypeGlyph(CardDefinition.CardType), GameText.ConceptName(typeConceptId)));
@@ -911,7 +1111,7 @@ namespace ALWTTT
                 && partPayload.PartAction != null)
             {
                 string paConceptId = GameSymbols.PartActionConcept(partPayload.PartAction.action);
-                tooltipManager.ShowTooltip(
+                Tip(
                     GameText.ConceptDescription(paConceptId),
                     CardFacePresentation.HeaderWithGlyph(
                         GameSymbols.PartActionGlyph(partPayload.PartAction.action), GameText.ConceptName(paConceptId)));
@@ -930,10 +1130,21 @@ namespace ALWTTT
                 foreach (var fx in modPayload.ModifierEffects)
                 {
                     if (fx == null) continue;
+                    // [CARTAS-ARTE-1] The track word on top already says the instrument family;
+                    // the "Instrument" panel only repeated it (Claudio, 2026-11-17).
+                    if (fx is InstrumentEffect) continue;
                     string conceptId = PartEffectDescriptionBuilder.FamilyConceptId(fx);
                     if (conceptId == null || !seenFamilies.Add(conceptId)) continue;
-                    tooltipManager.ShowTooltip(
-                        GameText.ConceptDescription(conceptId),
+                    // [CARTAS-ARTE-1] First line = what THIS card does on that axis ("Rápido",
+                    // "Triste"), so the player matches it to the audience's tastes; then the
+                    // family's general meaning. Same value formatter as the face and the modal.
+                    var values = new List<string>();
+                    foreach (var other in modPayload.ModifierEffects)
+                        if (other != null && PartEffectDescriptionBuilder.FamilyConceptId(other) == conceptId)
+                            values.Add(PartEffectDescriptionBuilder.ValueOnly(other));
+                    string thisCard = values.Count > 0 ? $"<b>{string.Join(" · ", values)}</b>\n" : string.Empty;
+                    Tip(
+                        thisCard + GameText.ConceptDescription(conceptId),
                         CardFacePresentation.HeaderWithGlyph(                                // [CARD-FACE-2b]
                             PartEffectDescriptionBuilder.FamilySpriteName(fx) is string famSprite
                                 ? GameSymbols.Tag(famSprite) : null,
@@ -949,7 +1160,7 @@ namespace ALWTTT
                 foreach (var kw in CardDefinition.Keywords)
                 {
                     ConceptTooltipResolver.TryGetKeywordText(kw, out var kwHeader, out var kwBody);
-                    tooltipManager.ShowTooltip(kwBody,
+                    Tip(kwBody,
                         CardFacePresentation.HeaderWithGlyph(GameSymbols.Keyword(kw), kwHeader));   // [CARD-FACE-2b]
                 }
             }
@@ -970,13 +1181,32 @@ namespace ALWTTT
                             // [TXT-3] Name + body from the glossary by StatusKey. DisplayName is
                             // a developer label since TXT-3 and never reaches the player here.
                             ConceptTooltipResolver.TryGetStatusText(ase.status, out var header, out var body);
-                            tooltipManager.ShowTooltip(body,
+                            Tip(body,
                                 CardFacePresentation.HeaderWithGlyph(                        // [CARD-FACE-2b]
                                     GameSymbols.StatusGlyph(ase.status.StatusKey), header));
                         }
                     }
                 }
             }
+        }
+
+        private static readonly Vector2 TooltipAnchorOffset = new Vector2(8f, 0f);
+        private RectTransform _tooltipAnchor;
+
+        // A zero-size child at the card's top-right corner, under the same root the frames fill
+        // (FullArt's parent). It moves and scales with the card, so the hover zoom is followed.
+        private Transform GetTooltipAnchor()
+        {
+            if (_tooltipAnchor != null) return _tooltipAnchor;
+            if (fullArtImage == null || fullArtImage.transform.parent == null) return null;
+            var go = new GameObject("TooltipAnchor", typeof(RectTransform));
+            _tooltipAnchor = (RectTransform)go.transform;
+            _tooltipAnchor.SetParent(fullArtImage.transform.parent, false);
+            _tooltipAnchor.anchorMin = _tooltipAnchor.anchorMax = new Vector2(1f, 1f);
+            _tooltipAnchor.pivot = new Vector2(0.5f, 0.5f);
+            _tooltipAnchor.sizeDelta = Vector2.zero;
+            _tooltipAnchor.anchoredPosition = Vector2.zero;
+            return _tooltipAnchor;
         }
 
         protected virtual void HideTooltipInfo()

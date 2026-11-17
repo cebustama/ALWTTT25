@@ -80,8 +80,9 @@ cada carta puede cambiarlos):
   Overload y Psychic Waves eran de acción: conservan su asset y su id; el payload pasó a composición.
 - **Todas las reglas son ajustables** (`InspirationRules`): asset en `GigFlowSettings ▸ ECON-2` y, por
   máquina, Dev Mode ▸ Inspiración (`SSoT_Dev_Mode.md` §21).
-- Cara de la carta: tipo «FINISHER» y la línea de regla `ui_card_finisher_rule` encima de sus efectos. El
-  marco nuevo (cian) es de CARTAS-ARTE-1.
+- Cara de la carta: tipo «FINISHER» y la línea de regla `ui_card_finisher_rule` encima de sus efectos. Desde
+  CARTAS-ARTE-1 (2026-11-17) lleva marco propio: el neutro de Matías teñido de cian, provisional hasta su
+  marco cian (§10.4.1). El coste ✦ va arriba a la izquierda; lo que da una composición, como «+N» grande.
 
 ---
 
@@ -598,6 +599,41 @@ The domain authority remains `payload.Domain` (§3.2); §10.4 is presentation on
 play-animation gating that shipped with S5b (only musicians with a track in the played
 part animate) is runtime/presentation behavior with **no SSoT home yet** — tracked
 operationally in `CURRENT_STATE.md` §4 until a presentation/animation SSoT exists.
+
+#### 10.4.1 La cara de Matías (CARTAS-ARTE-1, 2026-11-17)
+
+Presentación solamente: la verdad de dominio sigue en el payload (§3.2), el coste y la ★ en `InspirationRules`
+(§2.3) y la jugabilidad en `EvaluateCardPlayability` (§10.5).
+
+- **Tres caras** según la carta (`CardBase.ApplyFaceLayout`): **Composición**, **Habilidad** (acción) y
+  **Finisher**. Los marcos son de Matías (`Assets/Art/Cards/Marcos/`, lienzo común de 612×948): composición y
+  habilidad definitivos; el Finisher usa el neutro teñido de cian hasta que llegue el suyo. Las ilustraciones
+  de composición vienen exportadas sobre ese mismo lienzo y se estiran a toda la carta; un sprite con otra
+  proporción (el arte viejo) sale en la ventana del marco (`IsFullArtSprite`, 612/948 ± 0,02).
+- **Coste y ★:** el coste efectivo, con el brillo ✦, arriba a la izquierda (oculto con 0); lo que genera una
+  composición, como «+N» grande, abajo al centro del arte (`GenNumberY` = 0,31 de la altura). Valores efectivos:
+  F12 ▸ Inspiración los cambia en la mano.
+- **Rótulo de pista** (palabra de Matías en el borde superior) según el rol de la pista que pone la carta:
+  BATERÍA (ritmo), BAJO (línea de bajo), VOZ (melodía y armonía), ÓRGANO (acordes; GUITARRA si la carta es de
+  Conito) y GUITARRA (solista). Las cartas de parte y las de acción no llevan rótulo.
+- **Composición:** el arte queda libre. El nombre va abajo, sobre la caja «COMPOSICIÓN» del marco, en una placa
+  de su mismo azul; encima, una franja fina con **solo los modificadores que lee el gusto del público**
+  (tempo, compás y tonalidad). Si no hay ninguno, no hay franja. El texto de efectos no se imprime en la cara.
+- **Habilidad y Finisher:** el nombre y el efecto en la caja de texto del marco; el Finisher, con el nombre en
+  la placa clara superior.
+- **Sin icono del músico** en la carta (`s_showOwnerIcon = false`): el rótulo dice la pista.
+- **Hover:** la columna de fichas se ancla al borde derecho de la carta (`TooltipAnchor`, con la cámara del
+  lienzo de la mano) y crece hacia abajo; toda la carta es superficie de hover (arte y marco). Fichas: el
+  motivo de no jugable, el rol de la pista, cada familia de modificador con **el valor de esta carta en
+  negrita** («Rápido») sobre su explicación, palabras clave y estados. Sin ficha de «Instrumento».
+- **No jugable:** el degradado de bloqueo y el candado de Matías (`Simbolos/bloqueo.png`, enderezado al lienzo
+  y recortado a la silueta; `candado.png`, hijo del overlay) en `PassiveImage`.
+- **Montaje:** menús de editor *ALWTTT ▸ CARTAS-ARTE-1 ▸ 1* (cara, cableado de `Card3D` y `CardUI`, arte como
+  sprite único) y *▸ 2* (ilustraciones de las 19 composiciones). El proyecto importa los PNG nuevos como
+  *Multiple* recortado por islas: el menú los pasa a *Single*.
+- **Voltaje** (D2 = B): sigue sin cobrarse (`ignoreResourceCosts`) y sin marcador en la cara, hasta después de
+  la demo.
+- **Fuera:** la vista de clic derecho (§10.3) sigue con su diseño viejo (CARTAS-ARTE-2).
 
 ### 10.5 Playability display — single source of truth (CARD-UX-1, 2026-07-13)
 

@@ -139,13 +139,23 @@ MonoBehaviour:
   passiveImage: {fileID: 5297134282105682746}
   nameTextField: {fileID: 8103016476528782798}
   descTextField: {fileID: 1941344470251713790}
-  inspirationCostTextField: {fileID: 7292270004405966764}
-  inspirationGenTextField: {fileID: 7028356461410207724}
+  inspirationCostTextField: {fileID: 7028356461410207724}
+  inspirationGenTextField: {fileID: 7292270004405966764}
   inspirationGenBadgeRoot: {fileID: 1389313792209333967}
   inspirationCostBadgeRoot: {fileID: 8387183093294489949}
   typeTextField: {fileID: 3011037641633498653}
   actionBackground: {fileID: 6358231833499588198}
   compositionBackground: {fileID: 1422413742901503822}
+  finisherBackground: {fileID: 7950400436081394917}
+  windowArtRoot: {fileID: 1748536205736826036}
+  fullArtImage: {fileID: 1460823036870436832}
+  fullArtDescBand: {fileID: 1221544299027912224}
+  trackLabelImage: {fileID: 194229318290954006}
+  labelVoz: {fileID: 21300000, guid: 63150e090290e404098ff560fa5c766d, type: 3}
+  labelBajo: {fileID: 21300000, guid: 27ddff4142dac4c4a917473fd17b89af, type: 3}
+  labelGuitarra: {fileID: 21300000, guid: 2da1d18ad903b5641b81ecb52e81f51d, type: 3}
+  labelOrgano: {fileID: 21300000, guid: 799cdc7ca23950c408d41bba2039706a, type: 3}
+  labelBateria: {fileID: 21300000, guid: aa57073ad856e1d4b8569bd623fc906c, type: 3}
   ownerIconImage: {fileID: 4773126098611872617}
 --- !u!223 &4606184839413974192
 Canvas:
@@ -219,10 +229,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
-    - target: {fileID: 2725634283359784976, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
-      propertyPath: m_fontSize
-      value: 8.2
-      objectReference: {fileID: 0}
     - target: {fileID: 2839065570447896666, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
       value: 8
@@ -238,10 +244,6 @@ PrefabInstance:
     - target: {fileID: 3199168694923872801, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
       value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 3211857600033479564, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 2.1438599
       objectReference: {fileID: 0}
     - target: {fileID: 3632182856015839221, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
@@ -355,10 +357,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
-    - target: {fileID: 5715593493086095648, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
-      propertyPath: m_fontSize
-      value: 10.05
-      objectReference: {fileID: 0}
     - target: {fileID: 5716483695520293257, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Name
       value: CardCanvas
@@ -366,14 +364,6 @@ PrefabInstance:
     - target: {fileID: 5716483695520293257, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
       value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 6490029684621210434, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
-      propertyPath: m_fontSize
-      value: 10.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6821778627196199682, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
-      propertyPath: m_fontSize
-      value: 9.3
       objectReference: {fileID: 0}
     - target: {fileID: 7430540641808822920, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
       propertyPath: m_Layer
@@ -399,6 +389,22 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+--- !u!114 &194229318290954006 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4436157762459546616, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 4549321109539710190}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!1 &1221544299027912224 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3445714837588062926, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 4549321109539710190}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1389313792209333967 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3199168694923872801, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
@@ -407,6 +413,22 @@ GameObject:
 --- !u!1 &1422413742901503822 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3215291619574793120, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 4549321109539710190}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1460823036870436832 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3127624313131385614, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 4549321109539710190}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!1 &1748536205736826036 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2839065570447896666, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
   m_PrefabInstance: {fileID: 4549321109539710190}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &1941344470251713790 stripped
@@ -502,6 +524,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &7950400436081394917 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5870178647191773195, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
+  m_PrefabInstance: {fileID: 4549321109539710190}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &8103016476528782798 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5715593493086095648, guid: 835842a369c1b2b4fb8540df1ad87e49, type: 3}
