@@ -60,6 +60,7 @@ namespace ALWTTT.Music.EditorTools
             public bool drumSolo;
             public int drumSoloShape = 1;     // 0 groove+fills, 1 chained, 2 trading
             public int drumSoloVariant = -1;  // -1 = by seed
+            public int bpm;                   // 0 = el que da la semilla (como el gig)
         }
         [Serializable]
         private class State
@@ -300,6 +301,10 @@ namespace ALWTTT.Music.EditorTools
 
             using (new EditorGUI.DisabledScope(c == _s.b && _s.followSeed))
                 c.seed = EditorGUILayout.IntField("Semilla", SeedOf(c));
+            // [Claudio, 2026-11-17] BPM forzado (RenderSinglePart bpmOverride). 0 = el del gig.
+            c.bpm = Mathf.Clamp(EditorGUILayout.IntField(new GUIContent("BPM (0 = semilla)",
+                "0: el tempo que sortea la semilla, como en el gig. Otro valor lo fuerza " +
+                "(entonces los bytes ya no coinciden con el volcado del gig)."), c.bpm), 0, 300);
 
             // [BATERIA-SOLO-1] ▶ Solo: the rhythm tracks play as a drum solo.
             c.drumSolo = EditorGUILayout.ToggleLeft(
@@ -509,7 +514,8 @@ namespace ALWTTT.Music.EditorTools
                             res.info.Add($"Solo de batería (pista de ritmo): {t.Parameters.DrumSolo}");
                         }
 
-                var (merged, stems, seconds, bpm, _) = mm.RenderSinglePart(cfg, 0, seedOverride: seed);
+                var (merged, stems, seconds, bpm, _) = mm.RenderSinglePart(cfg, 0,
+                    bpmOverride: c.bpm > 0 ? c.bpm : (int?)null, seedOverride: seed);
                 if (merged == null || merged.Length == 0)
                 { res.error = "El render falló: mira la consola."; return res; }
 
