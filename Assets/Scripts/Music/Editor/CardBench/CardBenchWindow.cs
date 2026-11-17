@@ -82,6 +82,7 @@ namespace ALWTTT.Music.EditorTools
             public int bpm;
             public string ts, key, harmony, hash;
             public List<(string mus, string role, string card, string bundle, string inst, string why)> tracks = new();
+            public Dictionary<string, List<string>> drumLanes = new();   // [Claudio] mus → one line per drum
             public List<string> notes = new();
             public List<string> info = new();   // [BATERIA-SOLO-1] notes that are not warnings
             public string error;
@@ -445,6 +446,10 @@ namespace ALWTTT.Music.EditorTools
                 if (!string.IsNullOrEmpty(t.why))
                     EditorGUILayout.LabelField($"    ↳ {t.why}",
                         differs ? warn : EditorStyles.wordWrappedMiniLabel);
+                // [Claudio, 2026-11-17] Each drum of the rhythm stem: hits and velocity.
+                if (t.role == nameof(TrackRole.Rhythm) && r.drumLanes.TryGetValue(t.mus, out var lanes))
+                    foreach (var l in lanes)
+                        EditorGUILayout.LabelField("        " + l, _mono ??= new GUIStyle(EditorStyles.miniLabel) { font = Font.CreateDynamicFontFromOSFont("Consolas", 10) });
             }
             foreach (var n in r.info)
                 EditorGUILayout.HelpBox(n, MessageType.Info);
@@ -537,6 +542,10 @@ namespace ALWTTT.Music.EditorTools
                     var entry = part0.tracks.FirstOrDefault(e => e.musicianId == t.MusicianId && e.role == t.Role);
                     var inst = t.PercussionInstrument != null ? t.PercussionInstrument.InstrumentName
                              : t.Instrument != null ? t.Instrument.InstrumentName : "—";
+                    if (t.Role == TrackRole.Rhythm && stems != null &&
+                        stems.TryGetValue(new MusicianTrackKey(t.MusicianId, t.Role), out var stem))
+                        res.drumLanes[Mus(t.MusicianId)?.CharacterName ?? t.MusicianId] =
+                            DrumLanes(stem, t.PercussionInstrument);
                     ResolvedTrackChoice choice = null;
                     mm.LastResolvedByTrack?.TryGetValue(new MusicianTrackKey(t.MusicianId, t.Role), out choice);
                     res.tracks.Add((Mus(t.MusicianId)?.CharacterName ?? t.MusicianId, t.Role.ToString(),
@@ -1113,6 +1122,56 @@ namespace ALWTTT.Music.EditorTools
             if (c.melodyArchetypesBySpan != null && c.melodyArchetypesBySpan.Count > 0)
                 s += $" · arquetipos: {string.Join(", ", c.melodyArchetypesBySpan.Select(x => x ?? "—").Distinct())}";
             return s;
+        }
+
+        private static GUIStyle _mono;
+
+        private static readonly Dictionary<Melanchall.DryWetMidi.Standards.GeneralMidiPercussion, string> DrumNames = new()
+        {
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.AcousticBassDrum, "bombo" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.BassDrum1, "bombo 2" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.AcousticSnare, "caja" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.ElectricSnare, "caja 2" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.SideStick, "aro" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.HandClap, "palmas" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.ClosedHiHat, "hi-hat cerrado" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.PedalHiHat, "hi-hat de pie" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.OpenHiHat, "hi-hat abierto" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.CrashCymbal1, "crash" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.RideCymbal1, "ride" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.RideBell, "campana del ride" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.LowFloorTom, "floor tom grave" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.HighFloorTom, "floor tom" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.LowTom, "tom bajo" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.LowMidTom, "tom medio grave" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.HiMidTom, "tom medio" },
+            { Melanchall.DryWetMidi.Standards.GeneralMidiPercussion.HighTom, "tom alto" },
+        };
+
+        // [Claudio, 2026-11-17] One line per drum of a rhythm stem: hits, velocity min / mean / max.
+        // The key is named through the kit's own mapping (what the composer asked for).
+        private static List<string> DrumLanes(byte[] stem, MIDIPercussionInstrumentSO kit)
+        {
+            var lines = new List<string>();
+            try
+            {
+                using var ms = new MemoryStream(stem);
+                var notes = MidiFile.Read(ms).GetNotes();
+                var byKey = notes.GroupBy(n => (int)n.NoteNumber).OrderBy(g => g.Key);
+                lines.Add($"{"instrumento",-18} {"tecla",5} {"golpes",6}  {"vel mín",7} {"media",5} {"máx",4}");
+                foreach (var g in byKey)
+                {
+                    string name = $"tecla {g.Key}";
+                    if (kit != null)
+                        foreach (var m in kit.percussionMappings)
+                            if (m.ToNote().NoteNumber == g.Key)
+                            { name = DrumNames.TryGetValue(m.percussionType, out var es) ? es : m.percussionType.ToString(); break; }
+                    var v = g.Select(n => (int)n.Velocity).ToList();
+                    lines.Add($"{name,-18} {g.Key,5} {v.Count,6}  {v.Min(),7} {v.Average(),5:0} {v.Max(),4}");
+                }
+            }
+            catch (Exception ex) { lines.Add("no pude leer el stem: " + ex.Message); }
+            return lines;
         }
 
         private static void ClearColumn(Column c)
