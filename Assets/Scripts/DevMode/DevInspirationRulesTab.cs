@@ -87,6 +87,14 @@ namespace ALWTTT.DevMode
                     new[] { "Semilla", "Toms 3", "Cascada", "Rudim.", "Rituales", "Máquina" });
                 GUILayout.EndHorizontal();
                 if (sel - 1 != r.drumSoloVariant) { r.drumSoloVariant = sel - 1; changed = true; }
+
+                // [D-SOLO-BPM] tempo above which the solo plays at half resolution
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(r.drumSoloHalfTimeAboveBpm > 0
+                    ? $"Medio tiempo sobre {r.drumSoloHalfTimeAboveBpm} BPM" : "Medio tiempo: nunca", GUILayout.Width(220));
+                int ht = Mathf.RoundToInt(GUILayout.HorizontalSlider(r.drumSoloHalfTimeAboveBpm, 0, 240, GUILayout.Width(160)) / 10f) * 10;
+                GUILayout.EndHorizontal();
+                if (ht != r.drumSoloHalfTimeAboveBpm) { r.drumSoloHalfTimeAboveBpm = ht; changed = true; }
             }
 
             if (changed)

@@ -1659,7 +1659,7 @@ namespace ALWTTT.Music
                     foreach (var dk in drumSoloKeys)
                     {
                         trackInputsHashes.TryGetValue(dk, out var baseHash);
-                        trackInputsHashes[dk] = $"{baseHash ?? "_"}|drumsolo|{dr.drumSoloShape}|{dr.drumSoloVariant}";
+                        trackInputsHashes[dk] = $"{baseHash ?? "_"}|drumsolo|{dr.drumSoloShape}|{dr.drumSoloVariant}|{dr.drumSoloHalfTimeAboveBpm}";
                     }
                 }
 
@@ -2068,6 +2068,7 @@ namespace ALWTTT.Music
                 {
                     shape = (DrumSoloShape)Mathf.Clamp(rules.drumSoloShape, 0, 2),
                     variant = rules.drumSoloVariant,
+                    halfTimeAboveBpm = Mathf.Max(0, rules.drumSoloHalfTimeAboveBpm),
                 };
                 drumSoloKeys.Add(new MusicianTrackKey(t.MusicianId, t.Role));
                 Debug.Log($"[BATERIA-SOLO] Pedido: part={partIndex} mus={musicianId} " +

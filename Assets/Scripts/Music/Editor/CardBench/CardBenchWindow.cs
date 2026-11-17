@@ -60,6 +60,7 @@ namespace ALWTTT.Music.EditorTools
             public bool drumSolo;
             public int drumSoloShape = 1;     // 0 groove+fills, 1 chained, 2 trading
             public int drumSoloVariant = -1;  // -1 = by seed
+            public int drumSoloHalfTimeAboveBpm = 150; // [D-SOLO-BPM] 0 = never
             public int bpm;                   // 0 = el que da la semilla (como el gig)
         }
         [Serializable]
@@ -316,6 +317,9 @@ namespace ALWTTT.Music.EditorTools
                 c.drumSoloShape = GUILayout.Toolbar(c.drumSoloShape, new[] { "Groove + fills", "Encadenados", "Trading" });
                 c.drumSoloVariant = GUILayout.Toolbar(c.drumSoloVariant + 1,
                     new[] { "Semilla", "Toms 3", "Cascada", "Rudim.", "Rituales", "Máquina" }) - 1;
+                c.drumSoloHalfTimeAboveBpm = Mathf.Clamp(EditorGUILayout.IntField(new GUIContent(
+                    "Medio tiempo sobre (BPM)", "Por encima de este tempo el solo toca a media resolución " +
+                    "(semicorcheas → corcheas, seisillos → tresillos). 0 = nunca."), c.drumSoloHalfTimeAboveBpm), 0, 300);
             }
 
             // Lineup
@@ -515,6 +519,7 @@ namespace ALWTTT.Music.EditorTools
                             {
                                 shape = (DrumSoloShape)Mathf.Clamp(c.drumSoloShape, 0, 2),
                                 variant = c.drumSoloVariant,
+                                halfTimeAboveBpm = c.drumSoloHalfTimeAboveBpm,
                             };
                             res.info.Add($"Solo de batería (pista de ritmo): {t.Parameters.DrumSolo}");
                         }
@@ -1181,6 +1186,7 @@ namespace ALWTTT.Music.EditorTools
             c.drumSolo = false;
             c.drumSoloShape = 1;
             c.drumSoloVariant = -1;
+            c.drumSoloHalfTimeAboveBpm = 150;
         }
 
         private static Column Clone(Column c, string label)

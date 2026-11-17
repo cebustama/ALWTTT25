@@ -78,6 +78,10 @@ namespace ALWTTT.Data
                  "2 rudimentos, 3 toms rituales, 4 máquina.")]
         [Range(-1, 4)] public int drumSoloVariant = -1;
 
+        [Tooltip("[D-SOLO-BPM] Por encima de este tempo el solo toca a media resolución " +
+                 "(semicorcheas → corcheas, seisillos → tresillos). 0 = nunca.")]
+        [Range(0, 240)] public int drumSoloHalfTimeAboveBpm = 150;
+
         [Tooltip("Encendido = los efectos del Finisher (Vibe, estados, onda) estallan al " +
                  "empezar el loop final. Apagado = al jugar la carta.")]
         public bool finisherEffectsAtFinalLoopStart = true;
@@ -177,7 +181,7 @@ namespace ALWTTT.Data
             $"máxFinisher={(maxFinishersPerSong > 0 ? maxFinishersPerSong.ToString() : "∞")} solo={finisherSolo} " +
             $"volExtra={extraSoloistVolume01:0.##} efectosAlLoopFinal={finisherEffectsAtFinalLoopStart} " +
             $"ignorarVoltaje={ignoreResourceCosts} " +
-            $"soloBatería={(drumSolo ? $"forma{drumSoloShape}/var{(drumSoloVariant < 0 ? "semilla" : drumSoloVariant.ToString())}" : "off")}";
+            $"soloBatería={(drumSolo ? $"forma{drumSoloShape}/var{(drumSoloVariant < 0 ? "semilla" : drumSoloVariant.ToString())}/medio>{drumSoloHalfTimeAboveBpm}" : "off")}";
 
         private static InspirationRules Clone(InspirationRules src) =>
             JsonUtility.FromJson<InspirationRules>(JsonUtility.ToJson(src));
