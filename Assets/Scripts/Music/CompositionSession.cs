@@ -1516,7 +1516,12 @@ namespace ALWTTT.Music
                         foreach (var f in _pendingFinishers)
                         {
                             if (f.Musician == null || !seen.Add(f.Musician)) continue;
-                            if (TryInjectBonusSoloTrack(cfg, partIndex, f.Musician,
+                            // [BATERIA-SOLO-1] A drummer never gets a melodic solo. C2's profile
+                            // only allows «Drums» for lead roles; no melodic instrument has that
+                            // type, so InstrumentRules fell back to «any» and C2 soloed on an
+                            // Acoustic Bass, which skipped the drum solo (and the break).
+                            bool drummer = f.Musician.MusicianCharacterData?.Profile?.IsPercussionist() == true;
+                            if (!drummer && TryInjectBonusSoloTrack(cfg, partIndex, f.Musician,
                                     f.Def.FinisherSoloStrategy, f.Def.FinisherSoloLeading,
                                     out var k))
                             {
