@@ -47,7 +47,14 @@ namespace ALWTTT.Music.EditorTools
         private const string TooltipManagerPrefab = "Assets/Prefabs/UI/TooltipManager.prefab";
 
         // ── Persisted state (JSON in EditorPrefs; asset refs by GUID) ─────────
-        [Serializable] private class Slot { public string cardGuid; public string musicianId = ""; }
+        [Serializable]
+        private class Slot
+        {
+            public string cardGuid; public string musicianId = "";
+            // [PATRON-BPM-1, Claudio 2026-11-17] Drum pattern forced for this card's
+            // rhythm track (RenderSinglePart patternOverrides). "" = the palette draws.
+            public string forcedPatternGuid = "";
+        }
         [Serializable]
         private class Column
         {
@@ -380,6 +387,7 @@ namespace ALWTTT.Music.EditorTools
                     if (GUILayout.Button("✕", GUILayout.Width(22)))
                     { c.slots.RemoveAt(i); GUIUtility.ExitGUI(); }
                 }
+                DrawPatternRow(c, slot);
             }
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -525,8 +533,10 @@ namespace ALWTTT.Music.EditorTools
                             res.info.Add($"Solo de batería (pista de ritmo): {t.Parameters.DrumSolo}");
                         }
 
+                var forcedPatterns = ForcedPatterns(c, plays, res.info); // [PATRON-BPM-1]
                 var (merged, stems, seconds, bpm, _) = mm.RenderSinglePart(cfg, 0,
-                    bpmOverride: c.bpm > 0 ? c.bpm : (int?)null, seedOverride: seed);
+                    bpmOverride: c.bpm > 0 ? c.bpm : (int?)null, seedOverride: seed,
+                    patternOverrides: forcedPatterns.Count > 0 ? forcedPatterns : null);
                 if (merged == null || merged.Length == 0)
                 { res.error = "El render falló: mira la consola."; return res; }
 
@@ -593,6 +603,98 @@ namespace ALWTTT.Music.EditorTools
         /// <summary>Card + target, with the gig's target rules: a fixed-performer
         /// card goes to that musician (must be in the lineup); a card that needs
         /// a target and has none chosen goes to the first musician of the lineup.</summary>
+        // ── [PATRON-BPM-1, Claudio 2026-11-17] Second row under a rhythm card ──
+        // Shows the card's palette (or fixed pattern) and lets one pattern be
+        // forced for this render. Each option shows its comfortable tempo and
+        // whether it fits the column's forced BPM.
+        private static RhythmCardConfigSO RhythmBundleOf(CardDefinition card)
+        {
+            var comp = card != null ? card.CompositionPayload : null;
+            if (comp == null || comp.PrimaryKind != CardPrimaryKind.Track) return null;
+            var desc = comp.TrackAction;
+            return desc != null && desc.role == TrackRole.Rhythm
+                ? desc.styleBundle as RhythmCardConfigSO : null;
+        }
+
+        private static List<(DrumPatternData p, float w)> PatternsOf(RhythmCardConfigSO r)
+        {
+            var list = new List<(DrumPatternData, float)>();
+            if (r.patternOverride != null) list.Add((r.patternOverride, -1f)); // -1 = fixed on the card
+            if (r.patternPalette?.entries != null)
+                foreach (var e in r.patternPalette.entries)
+                    if (e?.pattern != null && !list.Any(x => x.Item1 == e.pattern)) list.Add((e.pattern, e.weight));
+            return list;
+        }
+
+        private void DrawPatternRow(Column c, Slot slot)
+        {
+            var r = RhythmBundleOf(LoadCard(slot.cardGuid));
+            if (r == null) { slot.forcedPatternGuid = ""; return; }
+            var pats = PatternsOf(r);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(94);
+                string src = r.patternOverride != null ? "patrón fijo de la carta"
+                           : r.patternPalette != null ? $"paleta «{r.patternPalette.GetDisplayName()}»"
+                           : "sin paleta (procedural)";
+                if (r.patternPalette != null)
+                {
+                    if (GUILayout.Button(new GUIContent(src, "Selecciona la paleta en el Project."),
+                            EditorStyles.linkLabel, GUILayout.ExpandWidth(false)))
+                        EditorGUIUtility.PingObject(r.patternPalette);
+                }
+                else EditorGUILayout.LabelField(src, EditorStyles.miniLabel, GUILayout.ExpandWidth(false));
+
+                if (pats.Count == 0) return;
+                var labels = new List<string> { c.bpm > 0 ? $"(sorteo a {c.bpm} BPM)" : "(sorteo)" };
+                foreach (var (p, w) in pats)
+                {
+                    string range = p.HasBpmRange ? $" · {BpmRange(p.bpmMin, p.bpmMax)}" : "";
+                    string fit = c.bpm > 0 && p.HasBpmRange ? (p.FitsBpm(c.bpm) ? " ✓" : " ✗") : "";
+                    string weight = w < 0 ? " · fijo" : w <= 0f ? " · peso 0" : "";
+                    labels.Add($"{p.name}{range}{fit}{weight}");
+                }
+                var forced = Load<DrumPatternData>(slot.forcedPatternGuid);
+                int sel = forced == null ? 0 : pats.FindIndex(x => x.p == forced) + 1;
+                if (forced != null && sel == 0) { slot.forcedPatternGuid = ""; }
+                int nsel = EditorGUILayout.Popup(new GUIContent("", "Fuerza un patrón para este render " +
+                    "(✓/✗ = encaja o no en el BPM de la columna)."), sel, labels.ToArray());
+                if (nsel != sel) slot.forcedPatternGuid = nsel == 0 ? "" : GuidOf(pats[nsel - 1].p);
+                using (new EditorGUI.DisabledScope(nsel == 0))
+                    if (GUILayout.Button(new GUIContent("◎", "Selecciona el patrón en el Project."), GUILayout.Width(24)))
+                        EditorGUIUtility.PingObject(pats[nsel - 1].p);
+            }
+        }
+
+        // Forced patterns keyed like the gig's tracks. A later card that replaces
+        // the same musician's rhythm track replaces (or clears) its override.
+        private Dictionary<MusicianTrackKey, PatternDataSO> ForcedPatterns(
+            Column c, List<CardBenchModel.Play> plays, List<string> info)
+        {
+            var dict = new Dictionary<MusicianTrackKey, PatternDataSO>();
+            int pi = 0;
+            foreach (var slot in c.slots)
+            {
+                var card = LoadCard(slot.cardGuid);
+                if (card == null) continue;
+                // ResolvePlays keeps slot order and skips only cards it rejects.
+                while (pi < plays.Count && plays[pi].card != card) pi++;
+                if (pi >= plays.Count) break;
+                var target = plays[pi].target;
+                pi++;
+                if (RhythmBundleOf(card) == null || target == null) continue;
+                var key = new MusicianTrackKey(target.CharacterId, TrackRole.Rhythm);
+                var forced = Load<DrumPatternData>(slot.forcedPatternGuid);
+                if (forced != null)
+                {
+                    dict[key] = forced;
+                    info.Add($"{target.CharacterName}: patrón forzado {forced.name} (sin sorteo).");
+                }
+                else dict.Remove(key);
+            }
+            return dict;
+        }
+
         private List<CardBenchModel.Play> ResolvePlays(Column c, List<string> notes)
         {
             var lineup = _musicians.Where(m => c.lineup.Contains(m.CharacterId)).ToList();
