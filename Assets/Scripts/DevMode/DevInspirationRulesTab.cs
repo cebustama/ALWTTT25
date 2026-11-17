@@ -77,7 +77,7 @@ namespace ALWTTT.DevMode
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Forma del solo", GUILayout.Width(120));
-                int shape = GUILayout.Toolbar(r.drumSoloShape, new[] { "Groove + fills", "Encadenados", "Trading" });
+                int shape = GUILayout.Toolbar(r.drumSoloShape + 1, new[] { "Semilla", "Groove + fills", "Encadenados", "Trading" }) - 1;
                 GUILayout.EndHorizontal();
                 if (shape != r.drumSoloShape) { r.drumSoloShape = shape; changed = true; }
 

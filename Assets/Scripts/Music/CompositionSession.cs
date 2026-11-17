@@ -2072,6 +2072,7 @@ namespace ALWTTT.Music
                 t.Parameters.DrumSolo = new DrumSoloRequest
                 {
                     shape = (DrumSoloShape)Mathf.Clamp(rules.drumSoloShape, 0, 2),
+                    shapeFromSeed = rules.drumSoloShape < 0,
                     variant = rules.drumSoloVariant,
                     halfTimeAboveBpm = Mathf.Max(0, rules.drumSoloHalfTimeAboveBpm),
                 };

@@ -71,8 +71,8 @@ namespace ALWTTT.Data
                  "su pista de batería como un solo para ese loop. Apagado = solo sube el volumen.")]
         public bool drumSolo = true;
 
-        [Tooltip("[BATERIA-SOLO-1] Forma del solo: 0 groove + fills, 1 fills encadenados, 2 trading.")]
-        [Range(0, 2)] public int drumSoloShape = 1;
+        [Tooltip("[BATERIA-SOLO-1] Forma del solo: -1 = por semilla; 0 groove + fills, 1 fills encadenados, 2 trading.")]
+        [Range(-1, 2)] public int drumSoloShape = -1;
 
         [Tooltip("[BATERIA-SOLO-1] Carácter: -1 = por semilla; 0 tresillos de toms, 1 cascada, " +
                  "2 rudimentos, 3 toms rituales, 4 máquina.")]

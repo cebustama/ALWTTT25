@@ -58,7 +58,7 @@ namespace ALWTTT.Music.EditorTools
             public string deckJson = "";
             // [BATERIA-SOLO-1] Render the rhythm tracks as a drum solo (A/B sheet).
             public bool drumSolo;
-            public int drumSoloShape = 1;     // 0 groove+fills, 1 chained, 2 trading
+            public int drumSoloShape = -1;    // -1 by seed, 0 groove+fills, 1 chained, 2 trading
             public int drumSoloVariant = -1;  // -1 = by seed
             public int drumSoloHalfTimeAboveBpm = 150; // [D-SOLO-BPM] 0 = never
             public int bpm;                   // 0 = el que da la semilla (como el gig)
@@ -314,7 +314,7 @@ namespace ALWTTT.Music.EditorTools
                     "(fills encadenados y cadencia). La banda no se agacha aquí: eso lo hace el gig."), c.drumSolo);
             if (c.drumSolo)
             {
-                c.drumSoloShape = GUILayout.Toolbar(c.drumSoloShape, new[] { "Groove + fills", "Encadenados", "Trading" });
+                c.drumSoloShape = GUILayout.Toolbar(c.drumSoloShape + 1, new[] { "Semilla", "Groove + fills", "Encadenados", "Trading" }) - 1;
                 c.drumSoloVariant = GUILayout.Toolbar(c.drumSoloVariant + 1,
                     new[] { "Semilla", "Toms 3", "Cascada", "Rudim.", "Rituales", "Máquina" }) - 1;
                 c.drumSoloHalfTimeAboveBpm = Mathf.Clamp(EditorGUILayout.IntField(new GUIContent(
@@ -518,6 +518,7 @@ namespace ALWTTT.Music.EditorTools
                             t.Parameters.DrumSolo = new DrumSoloRequest
                             {
                                 shape = (DrumSoloShape)Mathf.Clamp(c.drumSoloShape, 0, 2),
+                                shapeFromSeed = c.drumSoloShape < 0,
                                 variant = c.drumSoloVariant,
                                 halfTimeAboveBpm = c.drumSoloHalfTimeAboveBpm,
                             };
@@ -1184,7 +1185,7 @@ namespace ALWTTT.Music.EditorTools
             c.slots.Clear();
             c.deckJson = "";
             c.drumSolo = false;
-            c.drumSoloShape = 1;
+            c.drumSoloShape = -1;
             c.drumSoloVariant = -1;
             c.drumSoloHalfTimeAboveBpm = 150;
         }
