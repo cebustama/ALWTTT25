@@ -558,6 +558,19 @@ namespace ALWTTT.Music.EditorTools
                         entry?.sourceCardDefinition != null ? entry.sourceCardDefinition.DisplayName : "—",
                         t.Parameters?.Style != null ? t.Parameters.Style.name : "sin bundle", inst,
                         Why(t.Role, choice)));
+                    // [PATRON-BPM-1] Avisa si el patrón de batería quedó fuera de su tempo cómodo.
+                    if (t.Role == TrackRole.Rhythm && choice != null)
+                    {
+                        var who = Mus(t.MusicianId)?.CharacterName ?? t.MusicianId;
+                        if (choice.tempoFilter.status == TempoFilterStatus.FellBack)
+                            res.notes.Add($"{who}: ningún patrón de la paleta «{choice.paletteName}» " +
+                                          $"encaja a {choice.tempoFilter.partBpm} BPM; se sorteó entre todos " +
+                                          $"({choice.sourceAssetName}, {BpmRange(choice.patternBpmMin, choice.patternBpmMax)}).");
+                        else if (choice.patternOutOfRange)
+                            res.notes.Add($"{who}: {choice.sourceAssetName} está fuera de su tempo cómodo " +
+                                          $"({BpmRange(choice.patternBpmMin, choice.patternBpmMax)}) a {res.bpm} BPM; " +
+                                          "es un patrón fijo, no se filtra.");
+                    }
                 }
 
                 Debug.Log($"{Tag} {c.label}: seed={seed} {res.bpm} BPM {res.key} {res.ts} " +
@@ -1121,6 +1134,19 @@ namespace ALWTTT.Music.EditorTools
                     : "procedural",
                 _ => "nada resuelto",
             };
+            // [PATRON-BPM-1] Rango cómodo del patrón y qué hizo el filtro de tempo.
+            if (role == TrackRole.Rhythm)
+            {
+                if (c.patternBpmMin > 0 || c.patternBpmMax > 0)
+                    s += $" · {BpmRange(c.patternBpmMin, c.patternBpmMax)} BPM";
+                var tf = c.tempoFilter;
+                if (tf.status == TempoFilterStatus.Filtered)
+                    s += $" · encajan {tf.fitCount} de {tf.totalCount} a {tf.partBpm} BPM";
+                else if (tf.status == TempoFilterStatus.FellBack)
+                    s += $" · ⚠ nada encaja a {tf.partBpm} BPM: sorteo entre todos";
+                else if (c.patternOutOfRange)
+                    s += " · ⚠ fuera de su tempo";
+            }
             if (!string.IsNullOrEmpty(c.progressionRoman)) s += $" · {c.progressionRoman}";
             if (role == TrackRole.Bassline) s += c.usesSharedProgression ? " · sobre la progresión compartida" : "";
             if (c.resolvedFigures != null && c.resolvedFigures.Count > 0)
@@ -1129,6 +1155,9 @@ namespace ALWTTT.Music.EditorTools
                 s += $" · arquetipos: {string.Join(", ", c.melodyArchetypesBySpan.Select(x => x ?? "—").Distinct())}";
             return s;
         }
+
+        private static string BpmRange(int min, int max) =>
+            min > 0 && max > 0 ? $"{min}–{max}" : min > 0 ? $"≥ {min}" : max > 0 ? $"≤ {max}" : "sin rango";
 
         private static GUIStyle _mono;
 
