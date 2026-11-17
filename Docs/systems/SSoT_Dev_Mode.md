@@ -1406,3 +1406,49 @@ llamado desde `CompositionSession` (inicio de canción, inicio y fin de cada loo
   ch9) salen como «?» con stem 0: es ruido conocido.
 - **Smoke (2026-11-16, Claudio, build IL2CPP):** archivo creado, ▶ y ■ en cada loop, sin colores. Primer uso: el
   silencio del Walking Bass (ch1 con CC7 0 → canal que el cantante dejó silenciado; arreglado en `SingerVoiceDirector`).
+
+## 23. Pestaña «Ajustes» (F5) y saltar canción (F6) — DEV-TUNING-1, 2026-11-17
+
+Variables de gameplay que se cambian en la build sin tocar Unity. Solo con `ALWTTT_DEV`. Página para testers:
+https://claude.ai/artifact/VCSqZeSsWnZvCFUHgUoxgv (fuente `reference/tester-wrapped/index.html`).
+
+- **Capa de ajustes, no escritura de assets.** `DevTuning` (`Assets/Scripts/Data/Gig/DevTuning.cs`, siempre compilado):
+  el consumidor pregunta `DevTuning.Int/Float/Bool(clave, valorDelAsset)`. Sin cambio, vuelve el valor del asset. Sin
+  `ALWTTT_DEV` la función devuelve siempre el del asset, así que la build pública se comporta igual. **Por qué:** en el
+  editor, escribir un ScriptableObject en Play lo guarda en disco y la prueba acabaría en un commit.
+- **Guardado.** Los cambios valen al momento en memoria. «Guardar» escribe solo lo distinto del asset en
+  `persistentDataPath/DevTuning.json`; «Valores por defecto» borra el archivo. Se carga al arrancar
+  (`DevModeController.Awake`). Volver un valor al del asset lo quita del archivo.
+- **Registro de una línea.** `DevTuningTab.Registry`: nombre, grupo, tipo (entero, decimal u opción), rango, de dónde
+  sale el valor del asset y cuándo se aplica. La pestaña se dibuja sola, con ● y ↺ por fila. **Añadir un ajuste:** una
+  clave en `DevTuning.Keys`, una línea en el registro y una lectura en el consumidor.
+- **Ajustes (D2 = A):**
+
+  | Clave | Ajuste | Asset | Consumidor |
+  | --- | --- | --- | --- |
+  | `jugadas.modo` | Cartas por turno y músico: una de cada tipo / una en total / sin límite | `GigFlowSettingsSO` (1 + 1) | `GigManager.GetEffectivePlayMaxima` (al crear la banda y en cada reset de periodo); «una en total» agota las dos en `TryConsumePlay` (`BandCharacterStats.ExhaustTurnPlayBudget`); sin límite = 99 |
+  | `robo.turno` | Robo al empezar el turno | `PersistentGameplayData.DrawCount` (2) | `DrawCardsForPlayerTurn` |
+  | `robo.play` | Robo al pulsar Play | `GigFlowSettingsSO.DrawCardsOnPlay` (1) | `OnPlayPressed` |
+  | `robo.loop` | Robo entre loops | `GigFlowSettingsSO.DrawPerLoop` (2) | `OnCompositionLoopFinished` |
+  | `mano.max` | Máximo de la mano | `GameplayData.MaxCardsOnHand` (8) | `DeckManager.MaxHandSize`, único punto de lectura del tope |
+  | `insp.inicio` | ★ al empezar el gig | `PersistentGameplayData.InitialGigInspiration` (0) | `GigManager.StartGig` |
+  | `colapso.stress` | Vida tras el colapso (fracción de la barra) | `MeterTuningSO.BreakdownStressResetFraction` (0,5) | `GigManager.BreakdownStressResetFraction` |
+
+  En «Sesión (no se guarda)»: **Sin límite de canciones** (el mismo `InfiniteTurnsEnabled` de la pestaña Infinite) y
+  el botón de saltar canción. La ★ por loop y los Finisher siguen en la pestaña Inspiración (§21), enlazada con «Ir».
+- **F5** abre el overlay directamente en «Ajustes» (si ya está ahí, lo cierra). `DevModeController.ShowTab`.
+- **Saltar canción (F6 o botón, D4 = C).** `GigManager.DevToggleFastForwardSong` arma un avance rápido: mientras
+  `CompositionSession.IsLoopPlaying`, `MidiMusicManager.Stop()` corta el loop y la sesión lo cierra por su camino
+  normal (`HandleLoopFinished`: Big Num, ★, robo, Finisher, parte siguiente). La canción llega al turno del público
+  con su puntuación real; no hay segunda ruta de puntuación. Armado antes de Play, salta al pulsarlo. Se desarma en
+  `OnCompositionSongFinished`. Cada loop se renderiza aunque se corte: tarda unos instantes, no cero.
+- **Telemetría v3.** `DevRunTelemetryLogger` añade `factory` (sin ajustes encima de los assets) y `tuning`
+  (`clave=valor;…`, más `econ2=local` si hay ajustes de §21 e `infiniteTurns=true`).
+- **Contador de la mano (D3 = A).** `GigCanvas.handCountTextField` (opcional): «N/M» siempre visible, naranja con la
+  mano llena, con borde puesto por código (`handCountOutline` 0,3). Se reescribe solo cuando cambia, también si el
+  tope cambia en F5. Va en `GigCanvas.prefab` como hijo directo (fuera de `BandTurnUI`, para verse durante la canción).
+- **Logs** `[DEV-TUNING-1] clave (nombre): antes → después`, `Guardado en …`, `Ajustes cargados de …`,
+  `Valores por defecto (assets)…`, `Saltar canción → ARMADO…`, `Canción saltada: N loops cortados → turno del público`.
+- **Pendiente (D5 = B):** separar la build de testers (F5/F12) de la pública, en S12.
+- **Smokes (2026-11-17, Claudio):** 1 jugadas sin límite y vuelta a fábrica, 2 mano y robo guardados tras reiniciar,
+  3 saltar canción con la Reina (huevo → huevo → eclosión). Los tres PASS.

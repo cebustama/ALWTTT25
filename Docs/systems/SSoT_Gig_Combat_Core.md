@@ -663,6 +663,12 @@ Resets are idempotent refills; overlapping seams are harmless.
 - Maxima seeded at gig setup from `GigFlowSettingsSO`
   (`DefaultActionPlaysPerTurn` / `DefaultCompositionPlaysPerTurn`, both 1);
   no per-musician authoring field yet (D-ECON-5=A).
+- **[DEV-TUNING-1] Dev override.** Maxima pass through `GigManager.GetEffectivePlayMaxima`
+  and are re-seeded on every period reset (`InitTurnPlayBudget` instead of
+  `ResetTurnPlayBudget`), so the F5 «Cartas por turno y músico» mode applies from the next
+  period. «Sin límite» = 99 + 99; «Una en total» keeps the asset maxima and, on a consumed
+  play, calls `BandCharacterStats.ExhaustTurnPlayBudget` (both pools to 0). Without
+  `ALWTTT_DEV` the asset maxima are used unchanged. See `SSoT_Dev_Mode.md` §23.
 - **Side effect (R5-b):** the consumed branch of `GigManager.TryConsumePlay` carries the
   Voltage generation hook (see `SSoT_Status_Effects.md` §5.10). The hook **reads** the result
   of the consumption; it does not write budget. Covering regression: ST-R5b-6. Anyone reading

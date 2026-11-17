@@ -1,0 +1,386 @@
+<title>Banco de pruebas de ALWTTT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: un escenario oscuro; cada ajuste es una «carta» con su tecla, su valor de fábrica y qué probar. Una sola columna de lectura, rejillas que se apilan en el móvil. */
+:root {
+  --bg: #120b24;          /* el fondo de la nave */
+  --panel: #1d1338;
+  --panel-2: #271a4a;
+  --line: #3b2a6b;
+  --fg: #efe9ff;
+  --muted: #b3a6d9;
+  --accent: #ff4fb8;      /* magenta de las cartas */
+  --cyan: #4fe3ff;        /* marco neutro */
+  --gold: #ffc53d;        /* ★ Inspiración */
+  --ok: #6be38a;
+  --warn: #ff9a4f;
+  --display: "Bungee", "Impact", system-ui, sans-serif;
+  --body: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 32px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 48px; }
+h1, h2 { font-family: var(--display); font-weight: 400; line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2rem, 6vw, 3.4rem); letter-spacing: .01em; }
+h1 .pink { color: var(--accent); }
+h2 { font-size: clamp(1.4rem, 3.6vw, 2rem); }
+h3 { font-size: 1.1rem; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); font-weight: 700; }
+.lede { color: var(--muted); font-size: 1.08rem; }
+section { display: grid; gap: 18px; }
+.sec-head { display: grid; gap: 8px; }
+kbd { font-family: var(--mono); font-size: .85em; background: var(--panel-2); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 6px; padding: 1px 7px; white-space: nowrap; color: var(--fg); }
+code { font-family: var(--mono); font-size: .86em; color: var(--cyan); overflow-wrap: anywhere; }
+.star { color: var(--gold); }
+
+/* Teclado */
+.keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.key { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 6px; align-content: start; }
+.key .cap { font-family: var(--display); font-size: 1.35rem; color: var(--accent); }
+.key.hot { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.key p { font-size: .92rem; color: var(--muted); }
+
+/* Reglas de oro */
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.rule { border-left: 3px solid var(--cyan); padding: 4px 0 4px 14px; display: grid; gap: 4px; }
+.rule p { font-size: .95rem; color: var(--muted); }
+
+/* Ajustes como cartas */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card .tag { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.card p { font-size: .93rem; }
+.meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: .86rem; margin: 0; }
+.meta dt { color: var(--muted); }
+.meta dd { margin: 0; font-variant-numeric: tabular-nums; }
+.opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: .8rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; color: var(--muted); }
+.chip.def { border-color: var(--ok); color: var(--ok); }
+.try { font-size: .88rem; color: var(--fg); background: var(--panel-2); border-radius: 8px; padding: 8px 10px; }
+.try b { color: var(--gold); }
+
+/* Tablas */
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--panel); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Recetas */
+.recipes { display: grid; gap: 14px; }
+.recipe { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; }
+.recipe-top { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.recipe h3 { font-size: 1.15rem; }
+.recipe .q { color: var(--gold); font-weight: 500; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.step { background: var(--panel-2); border-radius: 10px; padding: 10px 12px; font-size: .9rem; display: grid; gap: 4px; align-content: start; }
+.step .lbl { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); font-weight: 700; }
+.done { display: inline-flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--muted); cursor: pointer; }
+.done input { width: 18px; height: 18px; accent-color: var(--ok); }
+.recipe.is-done { border-color: var(--ok); }
+.recipe.is-done h3::after { content: " ✓"; color: var(--ok); }
+
+.callout { border: 1px solid var(--warn); border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; background: color-mix(in srgb, var(--warn) 8%, var(--panel)); }
+.callout b { color: var(--warn); }
+.path { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.path code { flex: 1 1 260px; min-width: 0; }
+button { font: inherit; font-size: .85rem; background: var(--panel-2); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px; cursor: pointer; }
+button:hover { border-color: var(--cyan); }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+footer { color: var(--muted); font-size: .85rem; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+<header style="display:grid; gap:14px">
+  <span class="eyebrow">ALWTTT · build de pruebas · noviembre 2026</span>
+  <h1>Banco de pruebas <span class="pink">de la banda</span></h1>
+  <p class="lede">Qué puedes cambiar del juego sin abrir Unity, cómo se cambia, qué hace cada opción y qué pruebas valen la pena. Para Matías y para quien juegue la build de pruebas.</p>
+</header>
+
+<section aria-labelledby="teclas">
+  <div class="sec-head">
+    <span class="eyebrow">Las teclas</span>
+    <h2 id="teclas">Seis teclas y un clic</h2>
+  </div>
+  <div class="keys">
+    <div class="key hot"><span class="cap">F5</span><strong>Ajustes</strong><p>El menú nuevo: jugadas por turno, robo, mano, ★ inicial y colapso. Vuelve a pulsar para cerrarlo.</p></div>
+    <div class="key hot"><span class="cap">F6</span><strong>Saltar canción</strong><p>Corta los loops que quedan y te lleva al turno del público. F6 otra vez lo cancela.</p></div>
+    <div class="key"><span class="cap">F12</span><strong>Dev Mode</strong><p>La ventana entera con pestañas: Infinite, Catalogue, Stats, Audio Mix, Composition, Inspiración y Ajustes.</p></div>
+    <div class="key"><span class="cap">Esc</span><strong>Pausa</strong><p>«Enviar feedback» y «Abrir carpeta de telemetría».</p></div>
+    <div class="key"><span class="cap">Tab</span><strong>Ver intenciones</strong><p>Muestra a la vez a quién apunta todo el público.</p></div>
+    <div class="key"><span class="cap">Shift</span><strong>Conceptos</strong><p>Con el ratón sobre una carta, abre las fichas de sus palabras clave.</p></div>
+    <div class="key"><span class="cap">Shift + clic</span><strong>Saltar en el mapa</strong><p>Sobre un nodo posterior del mapa, lo lanza directamente. Sirve para ir a la Reina sin jugar los gigs anteriores.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="reglas">
+  <div class="sec-head">
+    <span class="eyebrow">Antes de tocar nada</span>
+    <h2 id="reglas">Cuatro cosas que conviene saber</h2>
+  </div>
+  <div class="rules">
+    <div class="rule"><h3>Nada se rompe</h3><p>Los ajustes viven en tu máquina. El juego que se entrega no cambia, y «Valores por defecto» deja todo como venía.</p></div>
+    <div class="rule"><h3>Vale al momento</h3><p>Un cambio funciona ya en la partida. Si no pulsas «Guardar», se pierde al cerrar el juego.</p></div>
+    <div class="rule"><h3>La ● avisa</h3><p>Las filas cambiadas llevan un punto. Arriba del menú se ve la lista de lo que está distinto de fábrica, y cada fila tiene su ↺.</p></div>
+    <div class="rule"><h3>La telemetría lo apunta</h3><p>Cada gig guarda si se jugó «de fábrica» o con ajustes, y cuáles. Así los datos de balance no se mezclan.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="f5">
+  <div class="sec-head">
+    <span class="eyebrow">F5 · pestaña «Ajustes»</span>
+    <h2 id="f5">Lo que cambia la economía de un turno</h2>
+    <p class="lede">En verde, el valor de fábrica. «Se aplica» dice desde cuándo notas el cambio.</p>
+  </div>
+  <div class="cards">
+    <article class="card">
+      <span class="tag">Jugadas</span>
+      <h3>Cartas por turno y músico</h3>
+      <p>Cuántas cartas puede jugar cada músico en cada periodo. Un periodo es el turno antes de la canción, o cada loop mientras suena.</p>
+      <div class="opts"><span class="chip def">Una de cada tipo</span><span class="chip">Una en total</span><span class="chip">Sin límite</span></div>
+      <dl class="meta"><dt>Fábrica</dt><dd>1 acción + 1 composición</dd><dt>Se aplica</dt><dd>desde el siguiente periodo</dd></dl>
+      <p class="try"><b>Prueba:</b> con «Una en total» cada músico elige entre actuar o componer. ¿Las decisiones pesan más o se vuelve lento?</p>
+    </article>
+    <article class="card">
+      <span class="tag">Robo</span>
+      <h3>Robo al empezar el turno</h3>
+      <p>Cartas que entran en la mano al abrir tu turno. El juego intenta que haya al menos una composición y una acción.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>2</dd><dt>Rango</dt><dd>0–10</dd><dt>Se aplica</dt><dd>en el siguiente turno</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Robo</span>
+      <h3>Robo al pulsar Play</h3>
+      <p>Cartas que se roban justo cuando la banda empieza a tocar.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>1</dd><dt>Rango</dt><dd>0–5</dd><dt>Se aplica</dt><dd>en el siguiente Play</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Robo</span>
+      <h3>Robo entre loops</h3>
+      <p>Cartas que llegan cada vez que termina un loop. Es lo que alimenta jugar durante la canción.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>2</dd><dt>Rango</dt><dd>0–5</dd><dt>Se aplica</dt><dd>en el siguiente loop</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Mano</span>
+      <h3>Máximo de la mano</h3>
+      <p>Con la mano llena ya no se roba más. El contador bajo el abanico, por ejemplo <code>5/8</code>, se pone naranja cuando se llena.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>8</dd><dt>Rango</dt><dd>1–15</dd><dt>Se aplica</dt><dd>al momento</dd></dl>
+      <p class="try"><b>Prueba:</b> con 5, ¿hace falta jugar más rápido para no desperdiciar robo?</p>
+    </article>
+    <article class="card">
+      <span class="tag">Inspiración</span>
+      <h3><span class="star">★</span> al empezar el gig</h3>
+      <p>Inspiración con la que arranca cada gig. Hoy la <span class="star">★</span> se gana jugando composiciones y se gasta en los Finisher.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>0</dd><dt>Rango</dt><dd>0–10</dd><dt>Se aplica</dt><dd>en el siguiente gig</dd></dl>
+      <p class="try"><b>Prueba:</b> con 3, se puede abrir con un Finisher en la primera canción. ¿Rompe la curva?</p>
+    </article>
+    <article class="card">
+      <span class="tag">Colapso</span>
+      <h3>Vida tras el colapso</h3>
+      <p>Cuando la barra de un músico llega al fondo, colapsa: la banda pierde un corazón de cohesión, el músico queda Expuesto y su barra vuelve a esta fracción.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>0,50 (media barra)</dd><dt>Rango</dt><dd>0–1, de 0,05 en 0,05</dd><dt>Se aplica</dt><dd>en el siguiente colapso</dd></dl>
+      <p class="try"><b>Prueba:</b> con 0,25, un músico colapsado vuelve a caer pronto. ¿Da tensión o castiga de más?</p>
+    </article>
+    <article class="card">
+      <span class="tag">Sesión · no se guarda</span>
+      <h3>Sin límite de canciones</h3>
+      <p>El gig no termina: cada ciclo empieza una canción nueva y el público convencido vuelve a escuchar. Es el mismo interruptor que «Infinite Turns» de F12.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>apagado</dd><dt>Para</dt><dd>probar cartas sin perder el gig</dd></dl>
+    </article>
+  </div>
+  <div class="callout">
+    <p><b>Guardar o volver.</b> «Guardar» deja en un archivo solo lo que cambiaste. «Valores por defecto» borra ese archivo y todo vuelve a fábrica. La <span class="star">★</span> entre loops, el máximo de <span class="star">★</span> y los Finisher están en la pestaña Inspiración: el botón «Ir» lleva a ella.</p>
+  </div>
+</section>
+
+<section aria-labelledby="f6">
+  <div class="sec-head">
+    <span class="eyebrow">F6 · saltar canción</span>
+    <h2 id="f6">Llegar al turno del público sin oír la canción entera</h2>
+  </div>
+  <div class="steps">
+    <div class="step"><span class="lbl">Cuándo</span>Durante la canción, o antes de pulsar Play: en ese caso salta en cuanto lo pulses.</div>
+    <div class="step"><span class="lbl">Qué hace</span>Corta cada loop en cuanto empieza a sonar. Cada loop puntúa como siempre: Big Num, <span class="star">★</span> y robo.</div>
+    <div class="step"><span class="lbl">Qué ves</span>Unos instantes de loops que entran y salen, y luego el turno del público con la puntuación de esa canción.</div>
+    <div class="step"><span class="lbl">Para qué</span>Lo que dura varios turnos: los huevos de la Reina, estados que caducan, cartas que se acumulan.</div>
+  </div>
+  <p>Las cartas que juegues mientras salta cuentan, pero no da tiempo a mucho. Si quieres jugar algo en un loop concreto, salta después.</p>
+</section>
+
+<section aria-labelledby="insp">
+  <div class="sec-head">
+    <span class="eyebrow">F12 · pestaña «Inspiración»</span>
+    <h2 id="insp">La <span class="star">★</span> y los Finisher</h2>
+    <p class="lede">Se guarda sola en tu máquina con cada cambio. «Restablecer» vuelve a fábrica.</p>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Ajuste</th><th>Qué hace</th><th>Fábrica</th></tr></thead>
+      <tbody>
+        <tr><td>Las composiciones dan <span class="star">★</span> al jugarlas</td><td>Cada composición da su <span class="star">★</span> una vez, al jugarla. Apagado: no dan nada.</td><td class="num">sí</td></tr>
+        <tr><td><span class="star">★</span> por composición</td><td>Fija la misma <span class="star">★</span> para todas, en lugar de la de cada carta.</td><td class="num">la de la carta (1)</td></tr>
+        <tr><td>Máximo de <span class="star">★</span></td><td>Tope del contador.</td><td class="num">10</td></tr>
+        <tr><td><span class="star">★</span> básica por loop</td><td>Inspiración que llega sola en cada loop.</td><td class="num">0</td></tr>
+        <tr><td>Guardar <span class="star">★</span> entre canciones</td><td>Si la Inspiración sobrevive de una canción a la siguiente.</td><td class="num">la del asset</td></tr>
+        <tr><td>Ignorar el coste de Voltaje</td><td>Las cartas con coste de Voltaje no lo cobran mientras la cara no lo muestre.</td><td class="num">sí</td></tr>
+        <tr><td>Finisher solo en el último loop</td><td>Apagado: se pueden jugar en cualquier loop.</td><td class="num">sí</td></tr>
+        <tr><td>Coste del Finisher</td><td>Fija el coste de todos los Finisher.</td><td class="num">el de la carta (3)</td></tr>
+        <tr><td>Finisher por canción</td><td>Cuántos se pueden jugar en una canción.</td><td class="num">sin límite</td></tr>
+        <tr><td>Cada Finisher toca su solo</td><td>Su músico hace un solo en el loop final.</td><td class="num">sí</td></tr>
+        <tr><td>Volumen del 2.º solista</td><td>Si hay varios solos a la vez, el resto suena a este volumen.</td><td class="num">0,80</td></tr>
+        <tr><td>Banda en el «break»</td><td>Volumen del resto de la banda cuando el Finisher es de C2 (batería).</td><td class="num">0,35</td></tr>
+        <tr><td>Efectos al empezar el loop final</td><td>Apagado: los efectos del Finisher estallan al jugarlo.</td><td class="num">sí</td></tr>
+        <tr><td>Solo de batería en el «break»</td><td>C2 toca un solo de verdad. Elige forma (groove + fills, encadenados, trading) y carácter.</td><td class="num">sí · encadenados</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="otras">
+  <div class="sec-head">
+    <span class="eyebrow">F12 · el resto de pestañas</span>
+    <h2 id="otras">Herramientas para forzar situaciones</h2>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Pestaña</th><th>Lo útil para probar</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Infinite</strong></td><td>Sin límite de canciones; SongHype ±10 % y reiniciar; ganar o perder el gig ya; cara de las cartas con símbolos o con palabras.</td></tr>
+        <tr><td><strong>Catalogue</strong></td><td>Busca cualquier carta de la banda y métela en la mano («Spawn»). La forma más rápida de probar una carta concreta.</td></tr>
+        <tr><td><strong>Stats</strong></td><td>Forzar el colapso de un músico; cohesión y Flow ±; resultados de los gigs de esta sesión y dónde se escribió la telemetría.</td></tr>
+        <tr><td><strong>Audio Mix</strong></td><td>Volumen de la música, de cada músico y de los efectos; la cola de la canción encendida o apagada.</td></tr>
+        <tr><td><strong>Composition</strong></td><td>Avanzado: tempo de la parte, acordes y relanzar la parte. Para cuando algo suena raro y quieres aislarlo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="recetas">
+  <div class="sec-head">
+    <span class="eyebrow">Recetas</span>
+    <h2 id="recetas">Seis pruebas que dicen algo</h2>
+    <p class="lede">Una pregunta, un cambio, qué mirar. Empieza cada una con «Valores por defecto» para comparar contra fábrica. Las marcas se guardan solo en tu navegador.</p>
+  </div>
+  <div class="recipes" id="recipes">
+
+    <article class="recipe" data-id="r1">
+      <div class="recipe-top"><h3>Una carta en total</h3><label class="done"><input type="checkbox" id="r1"> hecha</label></div>
+      <p class="q">¿Elegir entre actuar o componer hace más interesante cada turno?</p>
+      <div class="steps">
+        <div class="step"><span class="lbl">Cambia</span>F5 ▸ Cartas por turno y músico ▸ <strong>Una en total</strong>.</div>
+        <div class="step"><span class="lbl">Juega</span>Un gig entero con la banda de siempre.</div>
+        <div class="step"><span class="lbl">Mira</span>¿Te quedas con cartas que no puedes usar? ¿Ganas o pierdes más?</div>
+      </div>
+    </article>
+
+    <article class="recipe" data-id="r2">
+      <div class="recipe-top"><h3>Mano corta</h3><label class="done"><input type="checkbox" id="r2"> hecha</label></div>
+      <p class="q">¿Una mano pequeña obliga a jugar durante la canción?</p>
+      <div class="steps">
+        <div class="step"><span class="lbl">Cambia</span>Máximo de la mano <strong>5</strong>; robo entre loops <strong>2</strong>.</div>
+        <div class="step"><span class="lbl">Juega</span>Dos canciones.</div>
+        <div class="step"><span class="lbl">Mira</span>¿Cuántas veces ves el contador en naranja? ¿Se pierde robo?</div>
+      </div>
+    </article>
+
+    <article class="recipe" data-id="r3">
+      <div class="recipe-top"><h3>La Reina en dos minutos</h3><label class="done"><input type="checkbox" id="r3"> hecha</label></div>
+      <p class="q">¿El reloj de huevos se entiende y da miedo?</p>
+      <div class="steps">
+        <div class="step"><span class="lbl">Cambia</span>Nada. En el mapa, <kbd>Shift</kbd> + clic en la Reina.</div>
+        <div class="step"><span class="lbl">Juega</span>Pon cartas, Play y <kbd>F6</kbd> en cada canción.</div>
+        <div class="step"><span class="lbl">Mira</span>Huevo → huevo → eclosión. ¿Se ve venir la eclosión antes de que llegue?</div>
+      </div>
+    </article>
+
+    <article class="recipe" data-id="r4">
+      <div class="recipe-top"><h3>Finisher en la primera canción</h3><label class="done"><input type="checkbox" id="r4"> hecha</label></div>
+      <p class="q">¿Los Finisher son más divertidos si se pueden lanzar pronto?</p>
+      <div class="steps">
+        <div class="step"><span class="lbl">Cambia</span>F5 ▸ <span class="star">★</span> al empezar el gig <strong>3</strong>. Opcional: F12 ▸ Inspiración ▸ Finisher en cualquier loop.</div>
+        <div class="step"><span class="lbl">Juega</span>Un gig; usa un Finisher en la canción 1.</div>
+        <div class="step"><span class="lbl">Mira</span>¿El solo se oye bien en la mezcla? ¿Queda algo para la última canción?</div>
+      </div>
+    </article>
+
+    <article class="recipe" data-id="r5">
+      <div class="recipe-top"><h3>Colapso duro</h3><label class="done"><input type="checkbox" id="r5"> hecha</label></div>
+      <p class="q">¿Cuánto castigo aguanta la demo antes de frustrar?</p>
+      <div class="steps">
+        <div class="step"><span class="lbl">Cambia</span>Vida tras el colapso <strong>0,25</strong>. Para probarlo rápido: F12 ▸ Stats ▸ Force Breakdown.</div>
+        <div class="step"><span class="lbl">Juega</span>Un gig difícil (Tentáculos o «El jefe y su banda»).</div>
+        <div class="step"><span class="lbl">Mira</span>¿Cuántos corazones de cohesión pierdes? ¿Hay salida con Calm Down o Te Cubro?</div>
+      </div>
+    </article>
+
+    <article class="recipe" data-id="r6">
+      <div class="recipe-top"><h3>Todo sin límite</h3><label class="done"><input type="checkbox" id="r6"> hecha</label></div>
+      <p class="q">¿Qué carta o combo se vuelve absurdo cuando no hay freno?</p>
+      <div class="steps">
+        <div class="step"><span class="lbl">Cambia</span>Cartas por turno <strong>Sin límite</strong>; sin límite de canciones.</div>
+        <div class="step"><span class="lbl">Juega</span>Varias canciones, buscando la mayor puntuación.</div>
+        <div class="step"><span class="lbl">Mira</span>Qué combinación dispara el Big Num. Si una carta sola rompe el juego, apúntala.</div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section aria-labelledby="reportar">
+  <div class="sec-head">
+    <span class="eyebrow">Después de jugar</span>
+    <h2 id="reportar">Cómo contar lo que pasó</h2>
+  </div>
+  <div class="steps">
+    <div class="step"><span class="lbl">1 · Feedback</span><kbd>Esc</kbd> ▸ «Enviar feedback». El texto va al formulario del equipo con la versión, el local, la banda y el gig. Si falla, el texto no se borra y «Copiar» da el correo de respaldo.</div>
+    <div class="step"><span class="lbl">2 · Di la receta</span>Empieza por la receta y lo que cambiaste: «Mano corta, 5/2». La telemetría ya lo apunta, pero así se lee en un segundo.</div>
+    <div class="step"><span class="lbl">3 · Telemetría</span><kbd>Esc</kbd> ▸ «Abrir carpeta de telemetría». Hay un archivo por día (<code>gig_runs_AAAA-MM-DD.jsonl</code>) con una línea por gig; mándalo si algo raro pasó.</div>
+  </div>
+  <div class="path"><span>Ajustes guardados (Windows):</span><code id="p1">%USERPROFILE%\AppData\LocalLow\ALWTTT Team\ALWTTT25\DevTuning.json</code><button type="button" data-copy="p1">Copiar</button></div>
+  <p style="color:var(--muted); font-size:.9rem">Borrar ese archivo es lo mismo que pulsar «Valores por defecto». Los ajustes de la pestaña Inspiración se guardan aparte, en el registro de Windows, y se borran con «Restablecer».</p>
+</section>
+
+<footer>
+  <span>✦ IA · Escrito a partir del código de DEV-TUNING-1 y ECON-2 (2026-11-17). Los valores de fábrica son los de los assets de ese día.</span>
+  <span>Si algo de aquí no coincide con el juego, manda feedback: la página se corrige.</span>
+</footer>
+</div>
+
+<script>
+(function () {
+  var KEY = "alwttt-tester-recipes";
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+  document.querySelectorAll(".recipe").forEach(function (card) {
+    var id = card.getAttribute("data-id");
+    var box = card.querySelector("input[type=checkbox]");
+    if (!box) return;
+    box.checked = !!state[id];
+    card.classList.toggle("is-done", box.checked);
+    box.addEventListener("change", function () {
+      state[id] = box.checked;
+      card.classList.toggle("is-done", box.checked);
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    });
+  });
+  document.querySelectorAll("button[data-copy]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var el = document.getElementById(btn.getAttribute("data-copy"));
+      var text = el ? el.textContent : "";
+      var done = function () { btn.textContent = "Copiado"; setTimeout(function () { btn.textContent = "Copiar"; }, 1500); };
+      var fallback = function () {
+        var r = document.createRange(); r.selectNodeContents(el);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        btn.textContent = "Seleccionado";
+      };
+      try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+    });
+  });
+})();
+</script>

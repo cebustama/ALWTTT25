@@ -1,7 +1,8 @@
 # Menú de ajustes de gameplay en el juego (F5)
 
-Pedido de Claudio, 2026-11-12, tras la reunión con Matías. Estado: **idea con diseño propuesto, sin
-decidir**; el cuándo es D-PLAN-17 del plan de la demo. No es autoridad.
+Pedido de Claudio, 2026-11-12, tras la reunión con Matías. Estado: **hecha en DEV-TUNING-1 (2026-11-17)**.
+Autoridad: `systems/SSoT_Dev_Mode.md` §23. Página para testers: https://claude.ai/artifact/VCSqZeSsWnZvCFUHgUoxgv.
+Fuera de DEV-TUNING-1: el bocadillo de «mano llena» de Slay the Spire (POST-DEMO) y separar las builds (S12).
 
 ## Lo que se pide
 

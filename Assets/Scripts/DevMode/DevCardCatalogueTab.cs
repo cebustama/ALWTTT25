@@ -160,7 +160,7 @@ namespace ALWTTT.DevMode
 
             int handCount = DeckManager.Instance?.HandPile?.Count ?? -1;
             int maxHand = GameManager.Instance?.GameplayData != null
-                ? GameManager.Instance.GameplayData.MaxCardsOnHand
+                ? ALWTTT.Data.DevTuning.HandMax(GameManager.Instance.GameplayData.MaxCardsOnHand)
                 : -1;
 
             string status = canSpawn

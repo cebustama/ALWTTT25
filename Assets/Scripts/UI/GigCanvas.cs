@@ -19,6 +19,17 @@ namespace ALWTTT.UI
         // (Slay the Spire does the same). Null = always visible, as before.
         [SerializeField] private GameObject exhaustPileRoot;
         [SerializeField] private TextMeshProUGUI songsLeftTextField;
+        // [DEV-TUNING-1 / D3=A] «N/M» de la mano junto al abanico, como el «8/8» de Balatro.
+        // Siempre visible; cambia de color cuando la mano está llena. Optional: null = hidden.
+        [SerializeField] private TextMeshProUGUI handCountTextField;
+        [SerializeField] private Color handCountColor = new Color(1f, 1f, 1f, 0.85f);
+        [SerializeField] private Color handCountFullColor = new Color(1f, 0.55f, 0.35f, 1f);
+        // Borde de la letra, puesto por código (el material del TMP se instancia: el asset
+        // de la fuente no cambia). 0 = sin borde.
+        [SerializeField, Range(0f, 0.5f)] private float handCountOutline = 0.3f;
+        [SerializeField] private Color handCountOutlineColor = Color.black;
+        private int _handCountShown = -1, _handMaxShown = -1;
+        private bool _handCountStyled;
         // [COH-1 / D3] "Cohesión: N" in the gig HUD. Optional: null = hidden.
         [SerializeField] private TextMeshProUGUI cohesionTextField;
         // [COH-1 / GIG-FRAME] Cohesion as discrete pips (Zelda hearts), one per
@@ -202,6 +213,26 @@ namespace ALWTTT.UI
             }
 
             songHypeImage.fillAmount = t;
+        }
+
+        // [DEV-TUNING-1] El tope puede cambiar en vivo (F5), así que se mira cada frame
+        // y solo se reescribe el texto cuando cambia.
+        private void LateUpdate()
+        {
+            if (handCountTextField == null) return;
+            if (!_handCountStyled)
+            {
+                _handCountStyled = true;
+                handCountTextField.outlineWidth = handCountOutline;
+                handCountTextField.outlineColor = handCountOutlineColor;
+            }
+            var dm = DeckManager.Instance;
+            if (dm == null || dm.HandPile == null || GameManager.Instance == null) return;
+            int n = dm.HandPile.Count, max = dm.MaxHandSize;
+            if (n == _handCountShown && max == _handMaxShown) return;
+            _handCountShown = n; _handMaxShown = max;
+            handCountTextField.text = $"{n}/{max}";
+            handCountTextField.color = n >= max ? handCountFullColor : handCountColor;
         }
 
         public void SetPileTexts()

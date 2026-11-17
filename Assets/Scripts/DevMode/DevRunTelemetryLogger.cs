@@ -38,7 +38,7 @@ namespace ALWTTT.DevMode
     public static class DevRunTelemetryLogger
     {
         private const string Tag = "[DevRunTelemetryLogger]";
-        private const int SchemaVersion = 2; // [S6] v2: lineupId
+        private const int SchemaVersion = 3; // [S6] v2: lineupId · [DEV-TUNING-1] v3: factory, tuning
 
         // ---------------------------------------------------------------
         // Record DTOs (JsonUtility-serializable)
@@ -57,6 +57,8 @@ namespace ALWTTT.DevMode
             public int songsCompleted;      // PD.CurrentSongIndex at outcome
             public int loopsPlayed;         // LoopResolvedEvent count this gig
             public string lineupId;         // [S6] "duo" | "trio" | "cuarteto" | "libre" | "config"
+            public bool factory;            // [DEV-TUNING-1] true = sin ajustes de F5/F12 encima de los assets
+            public string tuning;           // [DEV-TUNING-1] "clave=valor;…" ("" = de fábrica)
             public List<string> roster = new List<string>();
             public List<AudienceRecord> audience = new List<AudienceRecord>();
             public List<PlayRecord> plays = new List<PlayRecord>();       // ordered
@@ -214,6 +216,16 @@ namespace ALWTTT.DevMode
             // [S6 NAVE-2] Where the band came from: dormitory pick or config.
             rec.lineupId = pd != null && !string.IsNullOrEmpty(pd.ChosenLineupId)
                 ? pd.ChosenLineupId : "config";
+
+            // [DEV-TUNING-1] Si la partida no se jugó con los valores de fábrica, que se sepa:
+            // si no, los datos de balance de builds con ajustes distintos se mezclan.
+            var tuning = new List<string>();
+            string devTuning = ALWTTT.Data.DevTuning.Describe();
+            if (!string.IsNullOrEmpty(devTuning)) tuning.Add(devTuning);
+            if (ALWTTT.Data.InspirationRules.HasLocalOverrides) tuning.Add("econ2=local");
+            if (DevModeController.InfiniteTurnsEnabled) tuning.Add("infiniteTurns=true");
+            rec.tuning = string.Join(";", tuning);
+            rec.factory = tuning.Count == 0;
 
             // Roster (stable authored ids).
             if (gm != null && gm.CurrentMusicianCharacterList != null)

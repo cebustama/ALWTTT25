@@ -14,6 +14,18 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-17 — DEV-TUNING-1: el menú de ajustes en el juego (F5) y saltar canción (DEMO-1211, orden 6)
+
+**Clase:** semántico (dev) · operativo. Con cambio de código; sin cambio de datos.
+
+- Decisiones: D1 = A (pestaña «Ajustes» del Dev Mode con F5), D2 = A (toda la lista; el bocadillo de «mano llena» de StS a POST-DEMO), D3 = A (contador «N/M» siempre visible, naranja con la mano llena), D4 = C (saltar canción con botón y F6), D5 = B (separar la build de testers en S12), D6 = A (JSON en `persistentDataPath` con solo lo cambiado).
+- Código: `DevTuning` (nuevo, siempre compilado: capa de valores sobre los assets, carga/guardado/borrado del JSON); `DevTuningTab` (nuevo: registro de una línea por ajuste); `DevModeController` (pestaña 6, F5, `ShowTab`, `SetInfiniteTurns`, carga al arrancar); `DeckManager.MaxHandSize` (las 6 lecturas del tope pasan por ahí); `GigManager` (`GetEffectivePlayMaxima`, re-siembra de máximos en cada reset, «una en total» en `TryConsumePlay`, ★ inicial, robo al turno/Play/loop, fracción del colapso, avance rápido F6, `Meters`); `BandCharacterStats.ExhaustTurnPlayBudget`; `DevRunTelemetryLogger` v3 (`factory`, `tuning`); `GigCanvas` (contador de la mano con borde); `DevCardCatalogueTab` (tope efectivo).
+- Prefab: `GigCanvas.prefab` con `HandCountText` (Claudio).
+- Verificación: compila fuera de Unity con y sin `ALWTTT_DEV`, y en Unity; smokes 1–3 PASS (Claudio).
+- Referencias: Balatro «8/8», Monster Train «End Turn (F)», «Ringing» de Slay the Spire 2 (una carta este turno).
+- Docs: `SSoT_Dev_Mode` §23 (nuevo); `SSoT_Gig_Combat_Core` §14.4; `SSoT_Runtime_Flow` §4.2; `CURRENT_STATE`; plan DEMO-1211 (6 ✅, D-GF); idea `2026-11-12_menu_de_ajustes_dev.md` hecha; `ARRANQUE_DEV-TUNING-1.md` archivado; `ARRANQUE_COMBOS-1.md` nuevo. Página para testers en `reference/tester-wrapped/` (https://claude.ai/artifact/VCSqZeSsWnZvCFUHgUoxgv).
+- Abierto: **D-GF**: Gran Final (Zig) toca su solo con soundfont sobre la voz (`finisherSoloStrategy = 1`, sin instrumento propio); recomendación A (la voz canta el solo) dentro de MUSICA-1. El contador queda bajo el abanico: moverlo junto al mazo.
+
 ## 2026-11-17 — CARTAS-ARTE-1: la cara nueva de las cartas (DEMO-1211, orden 5)
 
 **Clase:** semántico (presentación) · operativo. Con cambio de código, prefabs, datos de cartas y arte.

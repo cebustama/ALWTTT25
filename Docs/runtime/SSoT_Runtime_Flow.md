@@ -147,6 +147,8 @@ Contract:
 
 **Subtractive rule.** Total cards drawn at PlayerTurn entry never exceeds `min(DrawCount, MaxCardsOnHand - HandPile.Count, DrawPile.Count + DiscardPile.Count)`. Guarantees consume normal slots; they do not extend the hand size.
 
+**Hand cap, single read point (DEV-TUNING-1, 2026-11-17).** Every hand-cap check in `DeckManager` reads `DeckManager.MaxHandSize` = `DevTuning.HandMax(GameplayData.MaxCardsOnHand)`; `DrawCount` at PlayerTurn entry reads `DevTuning.Int("robo.turno", DrawCount)`. Without a dev override (or without `ALWTTT_DEV`) both are the asset values. See `SSoT_Dev_Mode.md` §23.
+
 **Three-phase algorithm.**
 1. Compute `needComp = !HandHas(IsComposition) && PilesHave(IsComposition)`. Symmetric for `needAction`. Reserve one slot per need.
 2. Phase 1: draw `effectiveBudget - reserved` cards through the normal random path.

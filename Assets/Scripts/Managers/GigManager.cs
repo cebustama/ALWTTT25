@@ -66,6 +66,8 @@ namespace ALWTTT.Managers
 
         /// <summary>[TUT-R2] Read-only flow settings (token resolver, driver checks).</summary>
         public GigFlowSettingsSO Flow => flow;
+        /// <summary>[DEV-TUNING-1] Read-only meter tuning (asset values for F5 ▸ Ajustes).</summary>
+        public MeterTuningSO Meters => meters;
         /// <summary>[TUT-R2 / D9] Read-only presentation (tutorial auto-gates).</summary>
         public GigPresentationSO Presentation => presentation;
         /// <summary>[TUT-R2] Beat-5 degrade check (Play availability proxy).</summary>
@@ -110,7 +112,8 @@ namespace ALWTTT.Managers
             ? meters.CaptivatedVibeBonusPerStack
             : AudienceCharacterStats.DefaultCaptivatedBonusPerStack;
 
-        public float BreakdownStressResetFraction => meters != null ? meters.BreakdownStressResetFraction : 0.5f;
+        public float BreakdownStressResetFraction => Mathf.Clamp01(DevTuning.Float(DevTuning.Keys.CollapseStress,
+            meters != null ? meters.BreakdownStressResetFraction : 0.5f));   // [DEV-TUNING-1]
         // [S4b] Status left by a breakdown (was hardcoded "shaken").
         public string BreakdownStatusKey => meters != null && !string.IsNullOrEmpty(meters.BreakdownStatusKey) ? meters.BreakdownStatusKey : "exposed";
         public int BreakdownStatusStacks => meters != null ? meters.BreakdownStatusStacks : 1;
@@ -630,7 +633,8 @@ namespace ALWTTT.Managers
             StartCoroutine(PublishGigStartedDeferred());
 
             var pd = GameManager.PersistentGameplayData;
-            pd.CurrentInspiration = pd.InitialGigInspiration;
+            // [DEV-TUNING-1] ★ al empezar el gig: el asset o el ajuste F5.
+            pd.CurrentInspiration = DevTuning.Int(DevTuning.Keys.InspStart, pd.InitialGigInspiration);
 
             // [ECON-2] Reglas de la Inspiración: asset (GigFlowSettings) + ajustes de F12.
             InspirationRules.Reload(flow != null ? flow.InspirationRulesDefaults : null);
@@ -930,9 +934,9 @@ namespace ALWTTT.Managers
                 // GigFlowSettingsSO defaults. Runs before the first PlayerTurn
                 // (StartGig: BuildBand @380 precedes phase set @399), so
                 // Seam A's first reset finds initialized pools.
-                clone.Stats.InitTurnPlayBudget(
-                    flow != null ? flow.DefaultActionPlaysPerTurn : 1,
-                    flow != null ? flow.DefaultCompositionPlaysPerTurn : 1);
+                // [DEV-TUNING-1] Maxima pass through the F5 plays mode.
+                GetEffectivePlayMaxima(out int maxA, out int maxC);
+                clone.Stats.InitTurnPlayBudget(maxA, maxC);
 
                 _spawned.Add(clone);
 
@@ -1056,8 +1060,38 @@ namespace ALWTTT.Managers
                     m.BandCharacterCanvas.SetIncomingStress(0);
         }
 
+#if ALWTTT_DEV
+        // [DEV-TUNING-1 / D4=C] Avance rápido: corta cada loop en cuanto suena, así la
+        // sesión lo cierra por su camino normal (HandleLoopFinished: Big Num, ★, robo,
+        // Finisher) y la canción llega al turno del público con su puntuación real.
+        // Se arma con F6 o con el botón de F5 ▸ Ajustes; se desarma al terminar la canción.
+        public bool DevFastForwardSong { get; private set; }
+        private int _devFastForwardLoopsCut;
+
+        public void DevToggleFastForwardSong()
+        {
+            DevFastForwardSong = !DevFastForwardSong;
+            _devFastForwardLoopsCut = 0;
+            Debug.Log($"{DevTuning.Tag} Saltar canción → {(DevFastForwardSong ? "ARMADO (cada loop se corta al sonar)" : "desarmado")} " +
+                      $"· sonando={_isSongPlaying} · canción {GameManager.PersistentGameplayData.CurrentSongIndex + 1}/{_requiredSongCount}");
+        }
+
+        private void DevTickFastForward()
+        {
+            if (Input.GetKeyDown(KeyCode.F6)) DevToggleFastForwardSong();
+            if (!DevFastForwardSong || _session == null || !_session.IsLoopPlaying) return;
+            var mm = MidiMusicManager;
+            if (mm == null || !mm.IsAnySongPlaying()) return;
+            mm.Stop();
+            _devFastForwardLoopsCut++;
+        }
+#endif
+
         private void Update()
         {
+#if ALWTTT_DEV
+            DevTickFastForward();
+#endif
             if (_session != null)
             {
                 _session.Tick(Time.deltaTime);
@@ -1158,7 +1192,7 @@ namespace ALWTTT.Managers
             // [B1 / D-J] Draw N cards when Play is pressed. Mirrors the
             // DrawPerLoop pattern. Configurable via GigFlowSettings SO
             // ("Composition" header → "Draw Cards On Play").
-            int drawOnPlay = flow != null ? flow.DrawCardsOnPlay : 0;
+            int drawOnPlay = DevTuning.Int(DevTuning.Keys.DrawOnPlay, flow != null ? flow.DrawCardsOnPlay : 0);   // [DEV-TUNING-1]
             if (drawOnPlay > 0 && DeckManager.Instance != null)
             {
                 DeckManager.Instance.DrawCards(drawOnPlay);
@@ -1381,7 +1415,8 @@ namespace ALWTTT.Managers
                     // M4.5: bidirectional guaranteed draws (subtractive). Total drawn ≤ DrawCount.
                     // Guarantees ≥1 Composition and ≥1 Action in hand when piles allow.
                     // See SSoT_Runtime_Flow §4.2 and DeckManager.DrawCardsForPlayerTurn.
-                    DeckManager.DrawCardsForPlayerTurn(GameManager.PersistentGameplayData.DrawCount);
+                    DeckManager.DrawCardsForPlayerTurn(   // [DEV-TUNING-1] robo al empezar el turno
+                        DevTuning.Int(DevTuning.Keys.DrawTurn, GameManager.PersistentGameplayData.DrawCount));
                     GameManager.PersistentGameplayData.CanSelectCards = true;
                     // ---
 
@@ -2515,7 +2550,7 @@ namespace ALWTTT.Managers
             // Hook lives here (host-owned subscriber) to respect the
             // CompositionSession deck-mutation invariant ([Obsolete] guards
             // on CompositionSession.PrepareDeck and ICompositionContext.Deck).
-            int drawN = flow != null ? flow.DrawPerLoop : 0;
+            int drawN = DevTuning.Int(DevTuning.Keys.DrawLoop, flow != null ? flow.DrawPerLoop : 0);   // [DEV-TUNING-1]
             var pd = GameManager != null ? GameManager.PersistentGameplayData : null;
             int inspN = pd != null ? pd.InspirationPerLoop : 0;
 
@@ -2584,6 +2619,13 @@ namespace ALWTTT.Managers
         /// <param name="songCtx"></param>
         private void OnCompositionSongFinished(SongFeedbackContext songCtx)
         {
+#if ALWTTT_DEV
+            if (DevFastForwardSong)
+            {
+                DevFastForwardSong = false;
+                Debug.Log($"{DevTuning.Tag} Canción saltada: {_devFastForwardLoopsCut} loops cortados → turno del público.");
+            }
+#endif
             Log($"{DebugTag} [Gig] Song finished → {songCtx}", customColor: "yellow");
 
             // Build an enriched SongFeedbackContext using the gig's part list
@@ -2714,7 +2756,25 @@ namespace ALWTTT.Managers
             if (ok)
                 GrantVoltageOnConsumedPlay(musician);
 
+            // [DEV-TUNING-1] «Una carta en total»: cualquier jugada agota las dos.
+            if (ok && DevTuning.Int(DevTuning.Keys.PlaysMode, DevTuning.PlaysModeAsset) == DevTuning.PlaysModeOneTotal)
+                musician.Stats.ExhaustTurnPlayBudget();
+
             return ok;
+        }
+
+        /// <summary>[DEV-TUNING-1] Jugadas por músico y periodo: las del asset (ECON-1),
+        /// o sin límite si el ajuste F5 lo pide. «Una en total» usa las del asset y
+        /// agota las dos al consumir (TryConsumePlay).</summary>
+        private void GetEffectivePlayMaxima(out int maxAction, out int maxComposition)
+        {
+            maxAction = flow != null ? flow.DefaultActionPlaysPerTurn : 1;
+            maxComposition = flow != null ? flow.DefaultCompositionPlaysPerTurn : 1;
+            if (DevTuning.Int(DevTuning.Keys.PlaysMode, DevTuning.PlaysModeAsset) == DevTuning.PlaysModeUnlimited)
+            {
+                maxAction = DevTuning.UnlimitedPlays;
+                maxComposition = DevTuning.UnlimitedPlays;
+            }
         }
 
         // ─── [R5-b] Voltage generation ───────────────────────────────────
@@ -3074,8 +3134,11 @@ namespace ALWTTT.Managers
         {
             if (CurrentMusicianCharacterList == null) return;
 
+            // [DEV-TUNING-1] Re-seed the maxima on every reset, so a change in F5
+            // applies from the next period without restarting the gig.
+            GetEffectivePlayMaxima(out int maxA, out int maxC);
             for (int i = 0; i < CurrentMusicianCharacterList.Count; i++)
-                CurrentMusicianCharacterList[i]?.Stats?.ResetTurnPlayBudget();
+                CurrentMusicianCharacterList[i]?.Stats?.InitTurnPlayBudget(maxA, maxC);
 
             if (UseVerboseLogs)   // [LOG-1] verbose: derivable from the next play
                 Debug.Log($"{DebugTag} [ECON-1] Play budgets reset ({reason}).");

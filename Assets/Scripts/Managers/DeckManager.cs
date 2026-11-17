@@ -134,6 +134,10 @@ namespace ALWTTT.Managers
                       $"(Action={pd.CurrentActionCards?.Count ?? 0}, Composition={pd.CurrentCompositionCards?.Count ?? 0})");
         }
 
+        /// <summary>[DEV-TUNING-1] Máximo de la mano: GameplayData.MaxCardsOnHand o el ajuste F5.
+        /// Único punto de lectura del tope (antes, seis lecturas directas del asset).</summary>
+        public int MaxHandSize => ALWTTT.Data.DevTuning.HandMax(GameManager.GameplayData.MaxCardsOnHand);
+
         public void DrawCards(int targetDrawCount)
         {
             if (targetDrawCount <= 0)
@@ -166,7 +170,7 @@ namespace ALWTTT.Managers
             for (int i = 0; i < drawCount; i++)
             {
                 // Cards on hand limit
-                if (GameManager.GameplayData.MaxCardsOnHand <= HandPile.Count)
+                if (MaxHandSize <= HandPile.Count)
                 {
                     LogV($"{DebugTag} Max number of cards on hand reached.");
                     break;
@@ -498,7 +502,7 @@ namespace ALWTTT.Managers
                 UIManager.GigCanvas.SetPileTexts();
 
             int max = GameManager != null && GameManager.GameplayData != null
-                ? GameManager.GameplayData.MaxCardsOnHand
+                ? MaxHandSize
                 : -1;
 
             LogV(
@@ -540,7 +544,7 @@ namespace ALWTTT.Managers
                 return 0;
             }
 
-            int max = GameManager.GameplayData.MaxCardsOnHand;
+            int max = MaxHandSize;
             int given = 0;
             var skipped = new List<string>();
             foreach (var def in set)
@@ -608,9 +612,9 @@ namespace ALWTTT.Managers
                 reason = $"Not PlayerTurn (current: {GigManager.Instance.CurrentGigPhase})";
                 return false;
             }
-            if (HandPile.Count >= GameManager.GameplayData.MaxCardsOnHand)
+            if (HandPile.Count >= MaxHandSize)
             {
-                reason = $"Hand full ({HandPile.Count}/{GameManager.GameplayData.MaxCardsOnHand})";
+                reason = $"Hand full ({HandPile.Count}/{MaxHandSize})";
                 return false;
             }
 
@@ -747,7 +751,7 @@ namespace ALWTTT.Managers
             }
 
             int handPileBefore = HandPile.Count;
-            int maxHand = GameManager.GameplayData.MaxCardsOnHand;
+            int maxHand = MaxHandSize;
             int available = DrawPile.Count + DiscardPile.Count;
             int effectiveBudget = Mathf.Min(budget, maxHand - HandPile.Count, available);
 
@@ -859,7 +863,7 @@ namespace ALWTTT.Managers
                 return false;
             }
 
-            if (GameManager.GameplayData.MaxCardsOnHand <= HandPile.Count)
+            if (MaxHandSize <= HandPile.Count)
             {
                 LogV($"{DebugTag} {tag} Hand at MaxCardsOnHand. Skipping filtered draw.");
                 return false;

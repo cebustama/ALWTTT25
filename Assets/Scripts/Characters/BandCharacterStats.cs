@@ -98,6 +98,15 @@ namespace ALWTTT.Characters.Band
             return true;
         }
 
+        /// <summary>[DEV-TUNING-1] Modo «una carta en total»: tras una jugada de cualquier
+        /// tipo, el músico se queda sin las dos. Se rellena en el siguiente reset.</summary>
+        public void ExhaustTurnPlayBudget()
+        {
+            ActionPlaysRemaining = 0;
+            CompositionPlaysRemaining = 0;
+            NotifyTurnPlayBudgetChanged();
+        }
+
         private void NotifyTurnPlayBudgetChanged()
         {
             OnTurnPlayBudgetChanged?.Invoke(

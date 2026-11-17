@@ -25,6 +25,14 @@ namespace ALWTTT.DevMode
         // ---------------------------------------------------------------
         public static bool InfiniteTurnsEnabled { get; private set; }
 
+        /// <summary>[DEV-TUNING-1] Para la pestaña Ajustes (F5): mismo interruptor que Infinite.</summary>
+        public static void SetInfiniteTurns(bool on)
+        {
+            if (InfiniteTurnsEnabled == on) return;
+            InfiniteTurnsEnabled = on;
+            Debug.Log($"{Tag} Infinite turns → {on}");
+        }
+
         // ---------------------------------------------------------------
         // Overlay state
         // ---------------------------------------------------------------
@@ -43,7 +51,18 @@ namespace ALWTTT.DevMode
         // Phase 2: tab selection. 0 = Infinite, 1 = Catalogue.
         private int _activeTab;
         private static readonly string[] TabNames =
-            { "Infinite", "Catalogue", "Stats", "Audio Mix", "Composition", "Inspiración" };
+            { "Infinite", "Catalogue", "Stats", "Audio Mix", "Composition", "Inspiración", "Ajustes" };
+
+        public const int TabInspiration = 5;
+        public const int TabTuning = 6;   // [DEV-TUNING-1] F5
+
+        /// <summary>[DEV-TUNING-1] Abre el overlay en una pestaña.</summary>
+        public void ShowTab(int tab)
+        {
+            _activeTab = Mathf.Clamp(tab, 0, TabNames.Length - 1);
+            _tabScroll = Vector2.zero;
+            _overlayVisible = true;
+        }
 
         // [CSV-3] Outer scroll for tab content. GUILayout.Window auto-grows to
         // fit content, so a tall tab (Composition, after the R2a section) pushed
@@ -73,6 +92,9 @@ namespace ALWTTT.DevMode
 
             // [TLM-1] Run telemetry logger (per-gig JSONL record; reads bus only).
             DevRunTelemetryLogger.Initialize();
+
+            // [DEV-TUNING-1] Carga DevTuning.json al arrancar (deja el log de qué hay).
+            ALWTTT.Data.DevTuning.Load();
         }
 
         private void OnDestroy()
@@ -101,6 +123,14 @@ namespace ALWTTT.DevMode
                 _overlayVisible = !_overlayVisible;
                 Debug.Log($"{Tag} Overlay {(_overlayVisible ? "ON" : "OFF")}");
             }
+
+            // [DEV-TUNING-1 / D1=A] F5 abre directamente «Ajustes»; si ya está ahí, cierra.
+            if (Input.GetKeyDown(KeyCode.F5))
+            {
+                if (_overlayVisible && _activeTab == TabTuning) _overlayVisible = false;
+                else ShowTab(TabTuning);
+                Debug.Log($"{ALWTTT.Data.DevTuning.Tag} F5 → Ajustes {(_overlayVisible ? "abiertos" : "cerrados")}");
+            }
         }
 
         // ---------------------------------------------------------------
@@ -124,7 +154,7 @@ namespace ALWTTT.DevMode
             GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(scale, scale, 1f));
 
             _windowRect = GUILayout.Window(
-                99990, _windowRect, DrawWindow, "DEV MODE  (F12 to hide)");
+                99990, _windowRect, DrawWindow, "DEV MODE  (F12 to hide · F5 Ajustes)");
 
             GUI.matrix = prev;
         }
@@ -166,6 +196,9 @@ namespace ALWTTT.DevMode
                     break;
                 case 5:
                     DevInspirationRulesTab.Draw();   // [ECON-2]
+                    break;
+                case TabTuning:
+                    DevTuningTab.Draw(this);         // [DEV-TUNING-1]
                     break;
             }
 
