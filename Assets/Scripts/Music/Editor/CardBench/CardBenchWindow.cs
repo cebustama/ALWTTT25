@@ -599,6 +599,10 @@ namespace ALWTTT.Music.EditorTools
             if (r?.bytes == null) return;
             StopVoice();
             byte[] bytes = r.bytes;
+            // [BATERIA-SOLO-1] Maestro in edit mode ignores the CC7 = 0 that silences the
+            // metronome (the gig mutes it through MPTK_Channels instead), so the bench played
+            // its D5/D#5 clicks. Playback only: r.bytes (hash, .mid, gig comparison) keep it.
+            if (!_s.metronome) bytes = WithoutChannel(bytes, MidiGenerator.MetronomeChannel);
             if (_withVoice)
             {
                 if (r.voiceClip == null) RenderVoice(r);
@@ -769,12 +773,12 @@ namespace ALWTTT.Music.EditorTools
                 using var ms = new MemoryStream(bytes);
                 var f = MidiFile.Read(ms);
                 foreach (var tc in f.GetTrackChunks())
-                    tc.Events.RemoveAll(e => (e is NoteOnEvent on && on.Channel == channel) || (e is NoteOffEvent off && off.Channel == channel));
+                    tc.Events.RemoveNotes(n => n.Channel == channel);   // keeps the other events' timing
                 using var o = new MemoryStream();
                 f.Write(o);
                 return o.ToArray();
             }
-            catch (Exception ex) { Debug.LogWarning("[VOZ-3] Banco: no pude quitar el canal de la melodía: " + ex.Message); return bytes; }
+            catch (Exception ex) { Debug.LogWarning($"[VOZ-3] Banco: no pude quitar el canal {channel}: " + ex.Message); return bytes; }
         }
 
         private void ExportVoiceWav(Result r, char id)
