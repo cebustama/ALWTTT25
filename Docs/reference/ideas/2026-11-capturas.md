@@ -19,3 +19,9 @@
 - **Qué es:** en *Telepathic Improvisation* (meditación III), el público intenta influir en los músicos deseando una altura, cuándo empezar o parar, el volumen, la calidad del sonido o un carácter emocional; los músicos tocan notas largas solo cuando «oyen» algo.
 - 💡 **Uso posible aquí (después de la demo):** es casi literal el público con gustos que empuja a la banda ([público con rol](2026-10-30_publico_con_rol.md)). Para la nave ([música de ambiente](2026-11-17_musica_ambiente_nave.md)): *The Greeting* (IX), un tono por miembro de la banda que entra, y *Energy Changes* (XIII), sonidos que solo aparecen cuando algo los dispara.
 - **Estado:** semilla.
+
+## 2026-11-17 · Sonar hasta que sea palabra: Oliveros, *Deep Listening* (2005), para Zig
+- **Tipo y origen:** archivo PDF de Claudio, leído entero. Nota principal: [MidiGenPlay](../../../../MidiGenPlay/MidiGenPlay/Documentation~/research/2026-11-17-oliveros-deep-listening.md)
+- **Qué es:** *Cross Overs* (1996) pide sonar un sonido hasta que sea palabra y una palabra hasta que sea sonido; el *toning* sostiene una vocal todo un aliento.
+- 💡 **Uso posible aquí (después de la demo):** un modo de Zig que pase del zigués sin sentido a sílabas que casi son palabras y vuelta, en el Taller de melodías; el *toning* como modo de voz. Y *Sound Cycles* (sola, en diálogo, juntos) como tres maneras de que la banda se escuche, ya en la cola de MidiGenPlay.
+- **Estado:** semilla.
