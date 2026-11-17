@@ -80,7 +80,7 @@ namespace ALWTTT.Music.EditorTools
             public float seconds;
             public int bpm;
             public string ts, key, harmony, hash;
-            public List<(string mus, string role, string card, string bundle, string inst)> tracks = new();
+            public List<(string mus, string role, string card, string bundle, string inst, string why)> tracks = new();
             public List<string> notes = new();
             public List<string> info = new();   // [BATERIA-SOLO-1] notes that are not warnings
             public string error;
@@ -426,7 +426,7 @@ namespace ALWTTT.Music.EditorTools
             EditorGUILayout.LabelField($"{r.bpm} BPM · {r.ts} · {r.seconds:0.0} s",
                 St(cmp && (other.bpm != r.bpm || other.ts != r.ts)));
             EditorGUILayout.LabelField($"Tonalidad: {r.key}", St(cmp && other.key != r.key));
-            EditorGUILayout.LabelField($"Armonía: {r.harmony}", St(cmp && other.harmony != r.harmony));
+            EditorGUILayout.LabelField($"Armonía: {(r.harmony == "None" ? "ninguna (nadie toca acordes ni bajo)" : r.harmony)}", St(cmp && other.harmony != r.harmony));
             EditorGUILayout.LabelField($"Huella: {r.hash}", EditorStyles.miniLabel);
             if (r.voiceInfo != null) EditorGUILayout.LabelField($"Voz: {r.voiceInfo}", EditorStyles.wordWrappedMiniLabel);
 
@@ -436,6 +436,10 @@ namespace ALWTTT.Music.EditorTools
                 EditorGUILayout.LabelField($"{t.role} · {t.mus}", St(differs), GUILayout.Height(16));
                 EditorGUILayout.LabelField($"    {t.card}  [{t.bundle}]  → {t.inst}",
                     differs ? warn : EditorStyles.miniLabel);
+                // [Claudio, 2026-11-17] Por qué suena así: lo que el compositor eligió.
+                if (!string.IsNullOrEmpty(t.why))
+                    EditorGUILayout.LabelField($"    ↳ {t.why}",
+                        differs ? warn : EditorStyles.wordWrappedMiniLabel);
             }
             foreach (var n in r.info)
                 EditorGUILayout.HelpBox(n, MessageType.Info);
@@ -527,9 +531,12 @@ namespace ALWTTT.Music.EditorTools
                     var entry = part0.tracks.FirstOrDefault(e => e.musicianId == t.MusicianId && e.role == t.Role);
                     var inst = t.PercussionInstrument != null ? t.PercussionInstrument.InstrumentName
                              : t.Instrument != null ? t.Instrument.InstrumentName : "—";
+                    ResolvedTrackChoice choice = null;
+                    mm.LastResolvedByTrack?.TryGetValue(new MusicianTrackKey(t.MusicianId, t.Role), out choice);
                     res.tracks.Add((Mus(t.MusicianId)?.CharacterName ?? t.MusicianId, t.Role.ToString(),
                         entry?.sourceCardDefinition != null ? entry.sourceCardDefinition.DisplayName : "—",
-                        t.Parameters?.Style != null ? t.Parameters.Style.name : "sin bundle", inst));
+                        t.Parameters?.Style != null ? t.Parameters.Style.name : "sin bundle", inst,
+                        Why(t.Role, choice)));
                 }
 
                 Debug.Log($"{Tag} {c.label}: seed={seed} {res.bpm} BPM {res.key} {res.ts} " +
@@ -1071,6 +1078,35 @@ namespace ALWTTT.Music.EditorTools
             _s.mixGuid = GuidOf(_mix);
             _s.glossaryGuid = GuidOf(_glossary);
             EditorPrefs.SetString(PrefsKey, JsonUtility.ToJson(_s));
+        }
+
+        // [Claudio, 2026-11-17] The composer's own readback (MGP-ALWTTT-DBG-1), in words:
+        // where the pattern / progression / melody of each track came from.
+        private static string Why(TrackRole role, ResolvedTrackChoice c)
+        {
+            if (c == null) return "el motor no informó qué eligió";
+            string a = c.sourceAssetName;
+            string s = c.source switch
+            {
+                ResolvedSource.CardPalette => $"de la paleta «{c.paletteName}»: {a}",
+                ResolvedSource.CardOverride => $"patrón fijo de la carta: {a}",
+                ResolvedSource.TrackParameters => $"patrón de la pista (sin paleta en la carta): {a}",
+                ResolvedSource.RenderOverride => $"patrón forzado para este render: {a}",
+                ResolvedSource.SharedProgression => "progresión compartida de la parte",
+                ResolvedSource.HostDefault => "progresión por defecto del juego",
+                ResolvedSource.CardFigure => $"modo figura de la carta {a}",
+                ResolvedSource.Procedural => role == TrackRole.Rhythm && !string.IsNullOrEmpty(c.proceduralStyleId)
+                    ? $"procedural, estilo «{c.proceduralStyleId}» (la carta no tiene patrón ni paleta)"
+                    : "procedural",
+                _ => "nada resuelto",
+            };
+            if (!string.IsNullOrEmpty(c.progressionRoman)) s += $" · {c.progressionRoman}";
+            if (role == TrackRole.Bassline) s += c.usesSharedProgression ? " · sobre la progresión compartida" : "";
+            if (c.resolvedFigures != null && c.resolvedFigures.Count > 0)
+                s += $" · figuras: {string.Join(", ", c.resolvedFigures.Distinct())}";
+            if (c.melodyArchetypesBySpan != null && c.melodyArchetypesBySpan.Count > 0)
+                s += $" · arquetipos: {string.Join(", ", c.melodyArchetypesBySpan.Select(x => x ?? "—").Distinct())}";
+            return s;
         }
 
         private static void ClearColumn(Column c)
