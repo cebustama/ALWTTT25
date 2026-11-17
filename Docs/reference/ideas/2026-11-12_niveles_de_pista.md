@@ -11,4 +11,5 @@ Idea de Claudio del 2026-11-12, tras oír el A/B del Taller de bajo (MidiGenPlay
 
 - Ya existe la regla «rejugar la carta sube el nivel» para la armonía (niveles armónicos, D6, fila en `MidiGenPlay/Documentation~/planning/active/Sesiones_MidiGenPlay.md`). Esta idea la extiende a todas las pistas: el bajo (A → B → frases), la batería (fills, contraste) y los acordes.
 - Encaja con el bajo en frases ancladas en los acentos: `MidiGenPlay/Documentation~/planning/active/IDEA_bajo_frases_en_acentos.md`.
+- Precedente: *Scape* (Eno y Chilvers, 2012) desbloquea paletas con el uso, durante hasta un mes, y a los usuarios les gustó. Ficha: `MidiGenPlay/Documentation~/research/2026-11-17-eno-chilvers-scape.md` (min. 23:07).
 - Después de la demo.
