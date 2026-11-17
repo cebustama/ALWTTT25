@@ -38,7 +38,6 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 4d3c154b2c506094abf982c3efed6a8e, type: 2}
     - {fileID: 11400000, guid: 8989df41ef0dc8544b23f003a6aeaf6b, type: 2}
     - {fileID: 11400000, guid: 5650a528e907a3b4e8ff90c69f2bddd7, type: 2}
-    - {fileID: 11400000, guid: cb6eea6d346a6954385562d22c831717, type: 2}
     - {fileID: 11400000, guid: 31173689665d34943b0ddafc5f935470, type: 2}
     - {fileID: 11400000, guid: 847bd6523c5cdb2489f2fb8fd2ecf73f, type: 2}
     defaultMelodicLeading: {fileID: 0}
