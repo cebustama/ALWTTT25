@@ -56,6 +56,10 @@ namespace ALWTTT.Music.EditorTools
             public List<string> lineup = new();      // musician CharacterIds
             public List<Slot> slots = new();
             public string deckJson = "";
+            // [BATERIA-SOLO-1] Render the rhythm tracks as a drum solo (A/B sheet).
+            public bool drumSolo;
+            public int drumSoloShape = 1;     // 0 groove+fills, 1 chained, 2 trading
+            public int drumSoloVariant = -1;  // -1 = by seed
         }
         [Serializable]
         private class State
@@ -276,6 +280,17 @@ namespace ALWTTT.Music.EditorTools
             using (new EditorGUI.DisabledScope(c == _s.b && _s.followSeed))
                 c.seed = EditorGUILayout.IntField("Semilla", SeedOf(c));
 
+            // [BATERIA-SOLO-1] ▶ Solo: the rhythm tracks play as a drum solo.
+            c.drumSolo = EditorGUILayout.ToggleLeft(
+                new GUIContent("Solo de batería", "Las pistas de ritmo suenan como el solo del Finisher de C2 " +
+                    "(fills encadenados y cadencia). La banda no se agacha aquí: eso lo hace el gig."), c.drumSolo);
+            if (c.drumSolo)
+            {
+                c.drumSoloShape = GUILayout.Toolbar(c.drumSoloShape, new[] { "Groove + fills", "Encadenados", "Trading" });
+                c.drumSoloVariant = GUILayout.Toolbar(c.drumSoloVariant + 1,
+                    new[] { "Semilla", "Toms 3", "Cascada", "Rudim.", "Rituales", "Máquina" }) - 1;
+            }
+
             // Lineup
             EditorGUILayout.LabelField("Formación", EditorStyles.miniBoldLabel);
             using (new EditorGUILayout.HorizontalScope())
@@ -452,6 +467,20 @@ namespace ALWTTT.Music.EditorTools
                 go = new GameObject("CardBench_OfflineRender") { hideFlags = HideFlags.HideAndDontSave };
                 var mm = go.AddComponent<MidiMusicManager>();
                 mm.InitForOfflineRender(_config, _palette, _mix != null ? _mix.BuildGainMap() : null);
+
+                // [BATERIA-SOLO-1] Same request the gig makes, on every rhythm track.
+                if (c.drumSolo)
+                    foreach (var t in cfg.Parts[0].Tracks)
+                        if (t != null && t.Role == TrackRole.Rhythm)
+                        {
+                            t.Parameters ??= new TrackParameters();
+                            t.Parameters.DrumSolo = new DrumSoloRequest
+                            {
+                                shape = (DrumSoloShape)Mathf.Clamp(c.drumSoloShape, 0, 2),
+                                variant = c.drumSoloVariant,
+                            };
+                            res.notes.Add($"Solo de batería en {t.MusicianId}: {t.Parameters.DrumSolo}");
+                        }
 
                 var (merged, stems, seconds, bpm, _) = mm.RenderSinglePart(cfg, 0, seedOverride: seed);
                 if (merged == null || merged.Length == 0)

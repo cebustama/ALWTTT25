@@ -1503,6 +1503,8 @@ namespace ALWTTT.Music
             // [ECON-2] Músicos sin instrumento melódico (C2, batería): no hay solo que
             // inyectar, así que SUS pistas de siempre toman el foco (un «break»).
             var spotlightKeys = new List<MusicianTrackKey>();
+            // [BATERIA-SOLO-1] Pistas de ritmo que este render toca en modo solo.
+            var drumSoloKeys = new List<MusicianTrackKey>();
             if (_currentLoopIsBonus)
             {
                 if (_pendingFinishers.Count > 0)
@@ -1529,6 +1531,12 @@ namespace ALWTTT.Music
                                     .Where(t => t != null && string.Equals(t.MusicianId, mid, StringComparison.Ordinal))
                                     .Select(t => new MusicianTrackKey(t.MusicianId, t.Role)).ToList();
                                 spotlightKeys.AddRange(own);
+
+                                // [BATERIA-SOLO-1] Si es batería, su pista de ritmo se
+                                // re-renderiza como solo en ESTE render (cfg se reconstruye
+                                // cada loop: no toca el modelo). El duck del break se queda.
+                                if (rules.drumSolo)
+                                    TryRequestDrumSolo(cfg, partIndex, mid, rules, drumSoloKeys);
                                 Debug.Log($"{ALWTTT.Data.InspirationRules.Tag} {mid} no puede solear: " +
                                     $"{(own.Count > 0 ? $"sus pistas toman el foco ({string.Join(", ", own.Select(o => o.Role))})" : "no tiene pistas en esta parte, no suena nada distinto")}.");
                             }
@@ -1548,6 +1556,9 @@ namespace ALWTTT.Music
                 }
             }
             bool soloThisLoop = soloKeys.Count > 0;
+            // [BATERIA-SOLO-1] Un solo de batería también es un render transitorio:
+            // no sale de la caché de partes ni se guarda en ella, ni fija instrumentos.
+            bool transientRender = soloThisLoop || drumSoloKeys.Count > 0;
 
             // [ECON-2 fix, 2026-11-16] The solo is render-only: tell the strip, or the
             // soloist's row stays empty while his solo sounds (Overload with no Conito track).
@@ -1599,11 +1610,11 @@ namespace ALWTTT.Music
             // replay on every later loop of the part.
             _partCache.TryGetValue(partIndex, out var stored);
 
-            bool cacheHit = !soloThisLoop
+            bool cacheHit = !transientRender
                 && stored?.mergedBytes != null
                 && stored.mergedBytes.Length > 0;
 
-            var cache = soloThisLoop ? null : stored;
+            var cache = transientRender ? null : stored;
 
             if (!cacheHit)
             {
@@ -1638,6 +1649,19 @@ namespace ALWTTT.Music
                 if (soloThisLoop && trackInputsHashes != null)
                     foreach (var sk in soloKeys)
                         trackInputsHashes[sk] = BuildBonusSoloHash(cfg, partIndex, sk);
+
+                // [BATERIA-SOLO-1] Same idea for the drum solo: salt ONLY that
+                // track's hash so its stem is regenerated with the solo while the
+                // rest of the band is served verbatim from the stem cache.
+                if (drumSoloKeys.Count > 0 && trackInputsHashes != null)
+                {
+                    var dr = ALWTTT.Data.InspirationRules.Active;
+                    foreach (var dk in drumSoloKeys)
+                    {
+                        trackInputsHashes.TryGetValue(dk, out var baseHash);
+                        trackInputsHashes[dk] = $"{baseHash ?? "_"}|drumsolo|{dr.drumSoloShape}|{dr.drumSoloVariant}";
+                    }
+                }
 
                 // [B1 / #7.1 / D-F=γ] Apply session-level instrument pins to
                 // cfg before the render. Keeps the same musician's voice
@@ -1724,7 +1748,7 @@ namespace ALWTTT.Music
                 // solo's guitar to (soloist, Melody) for the rest of the
                 // session, and a later genuine Melody card on that musician
                 // would silently inherit it.
-                if (!soloThisLoop)
+                if (!transientRender)
                     UpdateInstrumentPins(cfg, partIndex);
 
                 // [JAM-1 / D-R3C-4=B′] Capture AFTER the render — adoption mutates
@@ -1814,7 +1838,7 @@ namespace ALWTTT.Music
 
                 // [R5-d] The solo render is TRANSIENT: never persisted, so the
                 // next loop finds the base-only entry untouched and replays it.
-                if (!soloThisLoop)
+                if (!transientRender)
                 {
                     _partCache[partIndex] = cache;
 #if ALWTTT_DEV
@@ -1859,7 +1883,7 @@ namespace ALWTTT.Music
 
             var duration =
                 mm.PlayRaw(cache.mergedBytes, cache.seconds,
-                $"Part {partIndex} ({(soloThisLoop ? "BONUS+solo" : "cached")}:{partName})");
+                $"Part {partIndex} ({(soloThisLoop ? "BONUS+solo" : drumSoloKeys.Count > 0 ? "BONUS+drumsolo" : "cached")}:{partName})");
             if (duration <= 0f) return 0f;
 
             // [R5-d] Duck the rest of the band for this loop only. Applied
@@ -2017,6 +2041,42 @@ namespace ALWTTT.Music
         /// and distinct from any authored track hash — the "r5dsolo|" prefix
         /// cannot be produced by ComputeTrackInputsHashesForPart.
         /// </summary>
+        // ─── [BATERIA-SOLO-1] Drum solo request, RENDER SCOPE ────────────
+        // Marks the musician's Rhythm track(s) in THIS cfg as a drum solo. The
+        // package (DrumFillPlanner) plays it as fills + a closing cadence,
+        // deterministic by the track seed. Grid patterns only: a procedural
+        // rhythm logs a [BATERIA-SOLO] warning in the package and sounds as before.
+        private void TryRequestDrumSolo(
+            SongConfig cfg, int partIndex, string musicianId,
+            ALWTTT.Data.InspirationRules rules, List<MusicianTrackKey> drumSoloKeys)
+        {
+            var tracks = cfg.Parts[partIndex].Tracks
+                .Where(t => t != null && t.Role == TrackRole.Rhythm
+                    && string.Equals(t.MusicianId, musicianId, StringComparison.Ordinal))
+                .ToList();
+            if (tracks.Count == 0)
+            {
+                Debug.Log($"[BATERIA-SOLO] {musicianId}: sin pista de ritmo en la parte {partIndex}, " +
+                          "queda el break de volumen.");
+                return;
+            }
+
+            foreach (var t in tracks)
+            {
+                t.Parameters ??= new TrackParameters();
+                t.Parameters.DrumSolo = new DrumSoloRequest
+                {
+                    shape = (DrumSoloShape)Mathf.Clamp(rules.drumSoloShape, 0, 2),
+                    variant = rules.drumSoloVariant,
+                };
+                drumSoloKeys.Add(new MusicianTrackKey(t.MusicianId, t.Role));
+                Debug.Log($"[BATERIA-SOLO] Pedido: part={partIndex} mus={musicianId} " +
+                          $"songSeed={(_songSeed.HasValue ? _songSeed.Value.ToString() : "-")} {t.Parameters.DrumSolo} " +
+                          $"bundle='{(t.Parameters.Style != null ? t.Parameters.Style.name : "sin bundle")}' " +
+                          $"duck={rules.breakDuck01:0.##}");
+            }
+        }
+
         private string BuildBonusSoloHash(
             SongConfig cfg, int partIndex, MusicianTrackKey key)
         {

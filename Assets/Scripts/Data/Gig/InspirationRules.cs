@@ -67,6 +67,17 @@ namespace ALWTTT.Data
                  "pistas toman el foco y el resto de la banda baja a este volumen: un «break».")]
         [Range(0f, 1f)] public float breakDuck01 = 0.35f;
 
+        [Tooltip("[BATERIA-SOLO-1] El Finisher de un músico sin solo melódico (C2) re-renderiza " +
+                 "su pista de batería como un solo para ese loop. Apagado = solo sube el volumen.")]
+        public bool drumSolo = true;
+
+        [Tooltip("[BATERIA-SOLO-1] Forma del solo: 0 groove + fills, 1 fills encadenados, 2 trading.")]
+        [Range(0, 2)] public int drumSoloShape = 1;
+
+        [Tooltip("[BATERIA-SOLO-1] Carácter: -1 = por semilla; 0 tresillos de toms, 1 cascada, " +
+                 "2 rudimentos, 3 toms rituales, 4 máquina.")]
+        [Range(-1, 4)] public int drumSoloVariant = -1;
+
         [Tooltip("Encendido = los efectos del Finisher (Vibe, estados, onda) estallan al " +
                  "empezar el loop final. Apagado = al jugar la carta.")]
         public bool finisherEffectsAtFinalLoopStart = true;
@@ -165,7 +176,8 @@ namespace ALWTTT.Data
             $"finisherSoloÚltimo={finisherOnlyFinalLoop} coste={(finisherCostOverride >= 0 ? finisherCostOverride.ToString() : "carta")} " +
             $"máxFinisher={(maxFinishersPerSong > 0 ? maxFinishersPerSong.ToString() : "∞")} solo={finisherSolo} " +
             $"volExtra={extraSoloistVolume01:0.##} efectosAlLoopFinal={finisherEffectsAtFinalLoopStart} " +
-            $"ignorarVoltaje={ignoreResourceCosts}";
+            $"ignorarVoltaje={ignoreResourceCosts} " +
+            $"soloBatería={(drumSolo ? $"forma{drumSoloShape}/var{(drumSoloVariant < 0 ? "semilla" : drumSoloVariant.ToString())}" : "off")}";
 
         private static InspirationRules Clone(InspirationRules src) =>
             JsonUtility.FromJson<InspirationRules>(JsonUtility.ToJson(src));

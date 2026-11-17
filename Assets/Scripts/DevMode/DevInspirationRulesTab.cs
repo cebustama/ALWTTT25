@@ -71,6 +71,24 @@ namespace ALWTTT.DevMode
             if (Mathf.Abs(bd - r.breakDuck01) > 0.005f) { r.breakDuck01 = Mathf.Round(bd * 20f) / 20f; changed = true; }
             changed |= Toggle(ref r.finisherEffectsAtFinalLoopStart, "Efectos al empezar el loop final (apagado: al jugar)");
 
+            // [BATERIA-SOLO-1] El solo de batería del Finisher de C2.
+            changed |= Toggle(ref r.drumSolo, "Solo de batería en el «break» (apagado: solo volumen)");
+            if (r.drumSolo)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Forma del solo", GUILayout.Width(120));
+                int shape = GUILayout.Toolbar(r.drumSoloShape, new[] { "Groove + fills", "Encadenados", "Trading" });
+                GUILayout.EndHorizontal();
+                if (shape != r.drumSoloShape) { r.drumSoloShape = shape; changed = true; }
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Carácter", GUILayout.Width(120));
+                int sel = GUILayout.Toolbar(r.drumSoloVariant + 1,
+                    new[] { "Semilla", "Toms 3", "Cascada", "Rudim.", "Rituales", "Máquina" });
+                GUILayout.EndHorizontal();
+                if (sel - 1 != r.drumSoloVariant) { r.drumSoloVariant = sel - 1; changed = true; }
+            }
+
             if (changed)
             {
                 InspirationRules.SaveLocal();
