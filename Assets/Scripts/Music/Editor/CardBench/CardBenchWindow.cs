@@ -82,6 +82,7 @@ namespace ALWTTT.Music.EditorTools
             public string ts, key, harmony, hash;
             public List<(string mus, string role, string card, string bundle, string inst)> tracks = new();
             public List<string> notes = new();
+            public List<string> info = new();   // [BATERIA-SOLO-1] notes that are not warnings
             public string error;
             // [VOZ-3] what «▶ con voz» needs
             public Dictionary<MusicianTrackKey, byte[]> stems;
@@ -248,6 +249,14 @@ namespace ALWTTT.Music.EditorTools
                     Toggle();
                 GUI.enabled = true;
                 if (GUILayout.Button("■ Parar")) StopPlayback();
+                if (GUILayout.Button(new GUIContent("Limpiar las dos", "Cartas, mazo, solo y resultado de A y B; " +
+                        "semillas y formaciones se quedan.")))
+                {
+                    StopPlayback();
+                    ClearColumn(_s.a); ClearColumn(_s.b);
+                    _ra = null; _rb = null;
+                    GUI.changed = true;
+                }
             }
 
             // [VOZ-3] Voice for «▶ con voz»
@@ -275,7 +284,19 @@ namespace ALWTTT.Music.EditorTools
 
         private void DrawColumn(Column c, ref Result r, Result other, char id)
         {
-            EditorGUILayout.LabelField($"Columna {id}", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField($"Columna {id}", EditorStyles.boldLabel);
+                // [BATERIA-SOLO-1, pedido de Claudio] Limpiar: cartas, mazo, solo y resultado.
+                if (GUILayout.Button(new GUIContent("Limpiar", "Quita las cartas, el mazo JSON, el solo de batería " +
+                        "y el resultado. La semilla y la formación se quedan."), GUILayout.Width(70)))
+                {
+                    if (_playing == id) StopPlayback();
+                    ClearColumn(c);
+                    r = null;
+                    GUI.changed = true;
+                }
+            }
 
             using (new EditorGUI.DisabledScope(c == _s.b && _s.followSeed))
                 c.seed = EditorGUILayout.IntField("Semilla", SeedOf(c));
@@ -416,6 +437,8 @@ namespace ALWTTT.Music.EditorTools
                 EditorGUILayout.LabelField($"    {t.card}  [{t.bundle}]  → {t.inst}",
                     differs ? warn : EditorStyles.miniLabel);
             }
+            foreach (var n in r.info)
+                EditorGUILayout.HelpBox(n, MessageType.Info);
             foreach (var n in r.notes)
                 EditorGUILayout.HelpBox(n, MessageType.Warning);
         }
@@ -479,7 +502,7 @@ namespace ALWTTT.Music.EditorTools
                                 shape = (DrumSoloShape)Mathf.Clamp(c.drumSoloShape, 0, 2),
                                 variant = c.drumSoloVariant,
                             };
-                            res.notes.Add($"Solo de batería en {t.MusicianId}: {t.Parameters.DrumSolo}");
+                            res.info.Add($"Solo de batería (pista de ritmo): {t.Parameters.DrumSolo}");
                         }
 
                 var (merged, stems, seconds, bpm, _) = mm.RenderSinglePart(cfg, 0, seedOverride: seed);
@@ -1044,6 +1067,15 @@ namespace ALWTTT.Music.EditorTools
             _s.mixGuid = GuidOf(_mix);
             _s.glossaryGuid = GuidOf(_glossary);
             EditorPrefs.SetString(PrefsKey, JsonUtility.ToJson(_s));
+        }
+
+        private static void ClearColumn(Column c)
+        {
+            c.slots.Clear();
+            c.deckJson = "";
+            c.drumSolo = false;
+            c.drumSoloShape = 1;
+            c.drumSoloVariant = -1;
         }
 
         private static Column Clone(Column c, string label)
