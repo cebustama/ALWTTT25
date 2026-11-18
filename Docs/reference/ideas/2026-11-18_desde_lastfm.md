@@ -1,0 +1,13 @@
+# Idea: lo que escucha Claudio, como datos para ALWTTT (2026-11-18)
+
+Sale del análisis de las 138.731 escuchas de Claudio en Last.fm (sep 2010 – feb 2026) en `D:\Projects\lastfm` (informe `informe.md`, wrapped privado https://claude.ai/artifact/GshrxG27CcJu5BhvuGtJjd). Claudio pidió aprovecharlo sobre todo para Music Lab, MidiGenPlay y ALWTTT. Es una idea, no un plan: nada cambia el orden de entrada de la demo.
+
+## 💡 Notas del agente
+
+- **El juego suena más rápido que lo que escucha quien lo diseña.** La mediana de sus escuchas es 119 BPM (cuartiles 100–139; AcousticBrainz, 20 % de las escuchas). El Moderate de MidiGenPlay, el rango por defecto de una parte en ALWTTT (`SongCompositionUI.cs:137`), va de 121 a 170. Dato para la prueba de oído de los rangos de tempo (MidiGenPlay `research/2026-11-18_desde_lastfm.md` §3.1), en MUSICA-1 o después de la demo.
+- **Bandas sonoras de juegos que lo marcaron** (del 1 % al 5–8 % de sus escuchas en 2019–2022): Darren Korb (*Hades*, *Bastion*), Disasterpeace (*Fez*), Lena Raine (*Celeste*), Andrew Prahlow (*Outer Wilds*), Yasunori Mitsuda, Yoko Kanno (*Cowboy Bebop*: una banda de jazz en una nave). Son las referencias de oído más cercanas a lo que es ALWTTT. Para la música de la nave (`2026-11-17_musica_ambiente_nave.md`): *Outer Wilds* (el banjo de cada viajero que se suma al tema común cuando te acercas) es el mismo gesto que «la nave suena por capas».
+- ***Ghosts I–IV* de Nine Inch Nails**, lo último que scrobbleó, es casi ambient instrumental y es su artista n.º 1 de 2025 y 2026: otra referencia para la capa de la nave, más oscura que *Scape*.
+- **El funk es su columna** (Chancho en Piedra es el n.º 1 en 16 de 17 años; Los Tetas, Jamiroquai, RHCP). Los cifrados de sus artistas (Chordonomicon) dan para el funk un 9 % de séptimas de dominante y un 7 % de m7, y una mediana de 112 BPM. Si una banda del juego tiene un estilo «funk espacial», esta es su receta medida.
+- **El giro latino en menor** (`Am – A7 – Dm – E7`, i – I7 – iv – V7) es la progresión más «suya» frente al promedio (Violeta Parra, Macha, Chico Trujillo, Lafourcade, Drexler). Candidato a carta de acordes con identidad latinoamericana, si el mundo del juego tiene un local o un público que la pida.
+- **Público con gustos reales:** los diez estilos de su escucha, con tempo, modo y vocabulario medidos (MidiGenPlay `research/2026-11-18_desde_lastfm.md` §3–4), sirven de punto de partida para los gustos de cada tipo de público (D-PLAN-9: gigs y enemigos desde JSON).
+- **Cuándo:** después de la demo, salvo el dato de tempo, que puede entrar en MUSICA-1 si hay prueba de oído.
