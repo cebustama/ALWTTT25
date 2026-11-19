@@ -38,3 +38,7 @@ Tras leer lo de Skruv (Schafer, p. 99: los zumbidos eléctricos de un pueblo for
 - **Primero en la web:** un experimento en una sola página, extendiendo el instrumento 8 de «Semillas de Eno», con botones para «desbloquear» salas. Luego, si funciona, MidiGenPlay (acordes) + ALWTTT (capas por sala).
 - **Fuentes:** Schafer (`MidiGenPlay/Documentation~/research/2026-11-17-schafer-soundscape.md`), Oliveros (`2026-11-17-oliveros-*.md`), Eno y Chilvers (`2026-11-17-eno-chilvers-scape.md`).
 - **Cuándo:** después de la demo, como experimento.
+
+## Enlace (2026-11-19)
+
+- **Secuenciador por grafo:** 60 osciladores de sierra que se disparan en cadena, con brazos a tempos distintos (patch de Max/MSP de iftah.is.my.name). Cada sala de la nave podría ser un brazo. Nota en `MidiGenPlay/Documentation~/research/2026-11-capturas.md` (2026-11-19).
