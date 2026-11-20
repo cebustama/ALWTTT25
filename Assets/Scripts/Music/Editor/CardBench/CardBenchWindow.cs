@@ -59,6 +59,12 @@ namespace ALWTTT.Music.EditorTools
             public int accentMode = -1;          // BasslineCardConfigSO.AccentFollowMode
             public int chordExpression = -1;     // ChordExpressionType (chord cards)
             public string forcedProgressionGuid = "";   // chord cards: progression forced
+            // [Claudio 2026-11-20] Arpeggio Rate (only with an arpeggio figure) and
+            // the rest of the accent block, folded; accentCustom = use accentBlock.
+            public int arpeggioRate = -1;        // ArpeggioRate
+            public bool showAccentBlock;
+            public bool accentCustom;
+            public AccentFollowSettings accentBlock;
         }
         [Serializable]
         private class Column
@@ -768,7 +774,9 @@ namespace ALWTTT.Music.EditorTools
                     "solo para este render; el resto del bloque sale de la carta."), Mathf.Max(0, sel), labels.ToArray());
                 slot.accentMode = nsel == 0 ? -1 : (int)modes[nsel - 1].m;
             }
-            if (backing == null) { slot.chordExpression = -1; slot.forcedProgressionGuid = ""; return; }
+            DrawAccentBlock(slot, backing != null ? backing.accentFollowSettings : bass.accentFollowSettings);
+            if (backing == null)
+            { slot.chordExpression = -1; slot.arpeggioRate = -1; slot.forcedProgressionGuid = ""; return; }
 
             // Chord Expression
             using (new EditorGUILayout.HorizontalScope())
@@ -784,6 +792,22 @@ namespace ALWTTT.Music.EditorTools
                     Mathf.Max(0, sel), labels.ToArray());
                 slot.chordExpression = nsel == 0 ? -1 : values[nsel - 1];
             }
+            var figure = slot.chordExpression >= 0 ? (ChordExpressionType)slot.chordExpression : backing.chordExpression;
+            if (figure.ToString().StartsWith("Arpeggio"))
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUILayout.Space(94);
+                    EditorGUILayout.LabelField("arpegio", EditorStyles.miniLabel, GUILayout.Width(62));
+                    var names = Enum.GetNames(typeof(ArpeggioRate));
+                    var values = (int[])Enum.GetValues(typeof(ArpeggioRate));
+                    var labels = new List<string> { $"(la carta: {backing.arpeggioRate})" };
+                    labels.AddRange(names);
+                    int sel = slot.arpeggioRate < 0 ? 0 : Array.IndexOf(values, slot.arpeggioRate) + 1;
+                    int nsel = EditorGUILayout.Popup(new GUIContent("", "Arpeggio Rate solo para este render."),
+                        Mathf.Max(0, sel), labels.ToArray());
+                    slot.arpeggioRate = nsel == 0 ? -1 : values[nsel - 1];
+                }
+            else slot.arpeggioRate = -1;
 
             // Progresión fija (D13): la de la carta y las de su paleta.
             var progs = new List<(ChordProgressionData p, float w)>();
@@ -822,6 +846,57 @@ namespace ALWTTT.Music.EditorTools
             }
         }
 
+        private static readonly float[] StabValues = { 0f, .25f, .5f, 1f };
+        private static readonly string[] StabLabels = { "0 (hasta el siguiente golpe)", "¼ tiempo", "½ tiempo", "1 tiempo" };
+
+        // [Claudio 2026-11-20] The rest of the accent block, folded. «Cambiar para
+        // este render» copies the card's block into the slot; the mode stays on
+        // the «escucha» row.
+        private static void DrawAccentBlock(Slot slot, AccentFollowSettings card)
+        {
+            card ??= new AccentFollowSettings();
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(94);
+                slot.showAccentBlock = EditorGUILayout.Foldout(slot.showAccentBlock,
+                    slot.accentCustom ? "ajustes de escucha (cambiados)" : "ajustes de escucha (de la carta)", true);
+            }
+            if (!slot.showAccentBlock) return;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(108);
+                bool custom = EditorGUILayout.ToggleLeft("cambiar para este render", slot.accentCustom);
+                if (custom && (!slot.accentCustom || slot.accentBlock == null)) slot.accentBlock = card.Clone();
+                slot.accentCustom = custom;
+                using (new EditorGUI.DisabledScope(!custom))
+                    if (GUILayout.Button("volver a la carta", GUILayout.Width(110))) slot.accentBlock = card.Clone();
+            }
+            var b = slot.accentCustom && slot.accentBlock != null ? slot.accentBlock : card;
+            using (new EditorGUI.DisabledScope(!slot.accentCustom))
+            using (new EditorGUI.IndentLevelScope(7))
+            {
+                float lw = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 230;
+                b.threshold = EditorGUILayout.Slider(new GUIContent("Threshold",
+                    "Peso desde el que un acento cuenta como fuerte. Bossa suave ≈ 0,35."), b.threshold, .05f, 1f);
+                b.maxAttacksPerBar = EditorGUILayout.IntSlider(new GUIContent("Golpes nuevos por compás"), b.maxAttacksPerBar, 0, 16);
+                int si = Array.FindIndex(StabValues, v => Mathf.Approximately(v, b.stabBeats));
+                var stabLabels = si >= 0 ? StabLabels : StabLabels.Append($"{b.stabBeats:0.##} (de la carta)").ToArray();
+                int ns = EditorGUILayout.Popup("Stab", si >= 0 ? si : StabLabels.Length, stabLabels);
+                if (ns < StabValues.Length) b.stabBeats = StabValues[ns];
+                b.lanes = (AccentLanes)EditorGUILayout.EnumFlagsField(new GUIContent("Carriles"), b.lanes);
+                b.velocityBoost = EditorGUILayout.IntSlider("Refuerzo (+vel)", b.velocityBoost, 0, 64);
+                b.offVelocityCut = EditorGUILayout.IntSlider("Fuera del acento (−vel)", b.offVelocityCut, 0, 64);
+                b.fillMode = (BasslineCardConfigSO.AccentFillMode)EditorGUILayout.EnumPopup("En el fill", b.fillMode);
+                b.fillEntryHit = EditorGUILayout.Toggle("Golpe al entrar el fill", b.fillEntryHit);
+                b.fillCloseHit = EditorGUILayout.Toggle("Golpe al cerrar el fill", b.fillCloseHit);
+                b.fullChordOnAccent = EditorGUILayout.Toggle("Acorde entero en el acento", b.fullChordOnAccent);
+                b.fullChordBoost = EditorGUILayout.IntSlider("  refuerzo del acorde entero", b.fullChordBoost, 0, 64);
+                b.avoidClaimedAccents = EditorGUILayout.Toggle("No pisar a otro que ya escucha", b.avoidClaimedAccents);
+                EditorGUIUtility.labelWidth = lw;
+            }
+        }
+
         // Swaps the bundle of the slot's track for a copy with the overrides.
         // The copy keeps the asset's name; it is destroyed after the render.
         private void ApplyBundleOverrides(Column c, List<CardBenchModel.Play> plays,
@@ -836,7 +911,8 @@ namespace ALWTTT.Music.EditorTools
                 if (pi >= plays.Count) break;
                 var target = plays[pi].target;
                 pi++;
-                if (target == null || (slot.accentMode < 0 && slot.chordExpression < 0)) continue;
+                if (target == null || (slot.accentMode < 0 && slot.chordExpression < 0 &&
+                                       slot.arpeggioRate < 0 && !slot.accentCustom)) continue;
 
                 TrackRole role;
                 if (BundleOf<BackingCardConfigSO>(card, TrackRole.Backing) != null) role = TrackRole.Backing;
@@ -852,8 +928,23 @@ namespace ALWTTT.Music.EditorTools
                 copy.hideFlags = HideFlags.HideAndDontSave;
                 clones.Add(copy);
                 var parts = new List<string>();
+                // [Claudio 2026-11-20] the folded block first; the «escucha» mode on top.
+                if (slot.accentCustom && slot.accentBlock != null)
+                {
+                    var blk = slot.accentBlock.Clone();
+                    if (copy is BackingCardConfigSO b1)
+                    { blk.mode = b1.accentFollowSettings?.mode ?? blk.mode; b1.accentFollowSettings = blk; }
+                    else if (copy is BasslineCardConfigSO b2)
+                    { blk.mode = b2.accentFollowSettings?.mode ?? blk.mode; b2.accentFollowSettings = blk; }
+                    parts.Add("ajustes de escucha cambiados");
+                }
                 if (copy is BackingCardConfigSO bc)
                 {
+                    if (slot.arpeggioRate >= 0)
+                    {
+                        bc.arpeggioRate = (ArpeggioRate)slot.arpeggioRate;
+                        parts.Add($"arpegio {bc.arpeggioRate}");
+                    }
                     if (slot.accentMode >= 0)
                     {
                         bc.accentFollowSettings ??= new AccentFollowSettings();
