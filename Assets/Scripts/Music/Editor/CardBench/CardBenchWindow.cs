@@ -83,6 +83,7 @@ namespace ALWTTT.Music.EditorTools
             public bool metronome;
             public string configGuid, paletteGuid, mixGuid, glossaryGuid;
             public bool followSeed = true;            // B uses A's seed
+            public bool showDrumLanes = true;         // [Claudio 2026-11-20] tabla de batería plegable
         }
 
         private State _s;
@@ -479,7 +480,9 @@ namespace ALWTTT.Music.EditorTools
                         }
                     }
                 // [Claudio, 2026-11-17] Each drum of the rhythm stem: hits and velocity.
-                if (t.role == nameof(TrackRole.Rhythm) && r.drumLanes.TryGetValue(t.mus, out var lanes))
+                if (t.role == nameof(TrackRole.Rhythm) && r.drumLanes.TryGetValue(t.mus, out var lanes) &&
+                    (_s.showDrumLanes = EditorGUILayout.Foldout(_s.showDrumLanes,
+                        $"tabla de batería ({lanes.Count} líneas)", true)))
                     foreach (var l in lanes)
                         EditorGUILayout.LabelField("        " + l, _mono ??= new GUIStyle(EditorStyles.miniLabel) { font = Font.CreateDynamicFontFromOSFont("Consolas", 10) });
             }
@@ -649,8 +652,28 @@ namespace ALWTTT.Music.EditorTools
             if (r.patternPalette?.entries != null)
                 foreach (var e in r.patternPalette.entries)
                     if (e?.pattern != null && !list.Any(x => x.Item1 == e.pattern)) list.Add((e.pattern, e.weight));
+            // [Claudio 2026-11-20] Any other pattern of the project, under «otros/» (-2).
+            foreach (var p in AllAssets<DrumPatternData>())
+                if (!list.Any(x => x.Item1 == p)) list.Add((p, -2f));
             return list;
         }
+
+        // Every asset of a type, by path; cached until the project changes.
+        private static readonly Dictionary<Type, List<UnityEngine.Object>> _allAssets = new();
+        private static List<T> AllAssets<T>() where T : UnityEngine.Object
+        {
+            if (!_allAssets.TryGetValue(typeof(T), out var list))
+            {
+                list = AssetDatabase.FindAssets("t:" + typeof(T).Name)
+                    .Select(AssetDatabase.GUIDToAssetPath).OrderBy(x => x)
+                    .Select(AssetDatabase.LoadAssetAtPath<T>).Where(x => x != null)
+                    .Cast<UnityEngine.Object>().ToList();
+                _allAssets[typeof(T)] = list;
+            }
+            return list.Cast<T>().ToList();
+        }
+
+        private void OnProjectChange() => _allAssets.Clear();
 
         private void DrawPatternRow(Column c, Slot slot)
         {
@@ -677,8 +700,8 @@ namespace ALWTTT.Music.EditorTools
                 {
                     string range = p.HasBpmRange ? $" · {BpmRange(p.bpmMin, p.bpmMax)}" : "";
                     string fit = c.bpm > 0 && p.HasBpmRange ? (p.FitsBpm(c.bpm) ? " ✓" : " ✗") : "";
-                    string weight = w < 0 ? " · fijo" : w <= 0f ? " · peso 0" : "";
-                    labels.Add($"{p.name}{range}{fit}{weight}");
+                    string weight = w == -1f ? " · fijo" : w < 0 ? "" : w <= 0f ? " · peso 0" : "";
+                    labels.Add($"{(w == -2f ? "otros/" : "")}{p.name}{range}{fit}{weight}");
                 }
                 var forced = Load<DrumPatternData>(slot.forcedPatternGuid);
                 int sel = forced == null ? 0 : pats.FindIndex(x => x.p == forced) + 1;
@@ -768,6 +791,8 @@ namespace ALWTTT.Music.EditorTools
             if (backing.progressionPalette?.entries != null)
                 foreach (var e in backing.progressionPalette.entries)
                     if (e?.progression != null && !progs.Any(x => x.p == e.progression)) progs.Add((e.progression, e.weight));
+            foreach (var p in AllAssets<ChordProgressionData>())
+                if (!progs.Any(x => x.p == p)) progs.Add((p, -2f));   // [Claudio 2026-11-20] «otras/»
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Space(94);
@@ -779,10 +804,12 @@ namespace ALWTTT.Music.EditorTools
                     return;
                 }
                 string src = backing.progressionOverride != null ? "fija de la carta"
-                           : $"sorteo en «{backing.progressionPalette.GetDisplayName()}»";
+                           : backing.progressionPalette != null
+                               ? $"sorteo en «{backing.progressionPalette.GetDisplayName()}»"
+                               : "procedural o compartida";
                 var labels = new List<string> { $"({src})" };
                 foreach (var (p, w) in progs)
-                    labels.Add($"{p.name}{(w < 0 ? " · fija" : w <= 0f ? " · peso 0" : "")}");
+                    labels.Add($"{(w == -2f ? "otras/" : "")}{p.name}{(w == -1f ? " · fija" : w < 0 ? "" : w <= 0f ? " · peso 0" : "")}");
                 var forced = Load<ChordProgressionData>(slot.forcedProgressionGuid);
                 int sel = forced == null ? 0 : progs.FindIndex(x => x.p == forced) + 1;
                 if (forced != null && sel == 0) slot.forcedProgressionGuid = "";
