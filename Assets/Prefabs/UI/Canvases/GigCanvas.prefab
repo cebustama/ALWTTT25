@@ -686,7 +686,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 10.88}
+  m_AnchoredPosition: {x: 457, y: 68}
   m_SizeDelta: {x: 30, y: 30}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &5540646257023177373
@@ -2907,6 +2907,8 @@ MonoBehaviour:
   handCountTextField: {fileID: 5377444745342318982}
   handCountColor: {r: 1, g: 1, b: 1, a: 0.85}
   handCountFullColor: {r: 1, g: 0.55, b: 0.35, a: 1}
+  handCountOutline: 0.3
+  handCountOutlineColor: {r: 0, g: 0, b: 0, a: 1}
   cohesionTextField: {fileID: 0}
   cohesionPipRoot: {fileID: 3607559074109857425}
   cohesionPipPrefab: {fileID: 2467494648175699981, guid: cc847ad53cfbef04f89044787ff24f23, type: 3}

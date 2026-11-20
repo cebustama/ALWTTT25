@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: tentaculos
   characterName: "Tent\xE1culos"
   characterDescription: Cuenta hasta tres. A la de tres, golpea.
-  maxVibe: 40
+  maxVibe: 90
   characterPrefab: {fileID: 5022746524764153227, guid: 9f1d1d9ca42c09f4eb85ccca5f23a8b0, type: 3}
   isTall: 1
   isLeader: 0

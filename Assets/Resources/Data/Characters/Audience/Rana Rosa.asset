@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: rana_rosa
   characterName: Rana Rosa
   characterDescription: "Mitad de un d\xFAo. Sola molesta; con su pareja, el doble."
-  maxVibe: 18
+  maxVibe: 40
   characterPrefab: {fileID: 7264258224696706559, guid: 3ac5b28ec49597e45bd673c61b090cb6, type: 3}
   isTall: 0
   isLeader: 0

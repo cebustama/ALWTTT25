@@ -48,6 +48,7 @@ namespace ALWTTT.DevMode
                 () => Gm?.Meters != null ? Gm.Meters.ComboPairBonusBigNum : 2, "siguiente previsión"),
             Flt(K.ComboLayers,   "Combos",  "Capas: multiplicador por loop con entrada", 1f, 3f, 0.25f,
                 () => Gm?.Meters != null ? Gm.Meters.LayersMultiplierStep : 1.5f, "siguiente previsión"),
+            Int(K.LoopMeasures,  "Música",  "Compases por loop",        2, 16, () => 8, "siguiente canción"),
         };
 
         private static Setting Int(string key, string group, string label, int min, int max, Func<float> asset, string when) =>

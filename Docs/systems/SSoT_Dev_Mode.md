@@ -1455,3 +1455,16 @@ https://claude.ai/artifact/VCSqZeSsWnZvCFUHgUoxgv (fuente `reference/tester-wrap
 - **Pendiente (D5 = B):** separar la build de testers (F5/F12) de la pública, en S12.
 - **Smokes (2026-11-17, Claudio):** 1 jugadas sin límite y vuelta a fábrica, 2 mano y robo guardados tras reiniciar,
   3 saltar canción con la Reina (huevo → huevo → eclosión). Los tres PASS.
+
+## 24. Compases por loop (F5) y vida del público por menú — MUSICA-1, 2026-11-20
+
+- **F5 ▸ Música ▸ «Compases por loop»** (`DevTuning.Keys.LoopMeasures`, 2–16; sin ajuste = el del modelo, 8).
+  Lo lee `SongConfigBuilder` al construir cada parte, así que vale **desde la siguiente canción**; la huella de la
+  parte incluye `Measures`, por lo que no se reutiliza un render con otros compases. Fuera de Play (Banco de
+  cartas) no hay ajustes cargados: el Banco sigue en 8 y conserva la paridad con el gig de fábrica.
+- **ALWTTT ▸ Balance ▸ «Multiplicar vida del público (MaxVibe)»** (`Assets/Scripts/Editor/AudienceVibeScaler.cs`,
+  solo editor): factor (0,25–4), múltiplo de redondeo (5), mínimo, casilla por miembro y vista previa
+  «Ahora → Nuevo»; redondea al múltiplo más cercano con los empates hacia arriba. **Escribe los assets**
+  (`AudienceCharacterData.maxVibe`) con Undo; log `[MUSICA-1] MaxVibe ×F (múltiplos de S): A n→m, …`.
+  Aplicado el 2026-11-20 con ×1,5: Reina 75, Tentáculos 60, Big Guy 55, Cool Dude 40, Influencer y Rayas 30,
+  Ranas 25, Kid 25, Kid-TestTaster 15 (con los combos se ganaba casi siempre en el primer turno).

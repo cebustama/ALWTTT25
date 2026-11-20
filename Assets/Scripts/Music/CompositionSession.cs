@@ -1619,13 +1619,17 @@ namespace ALWTTT.Music
                             // type, so InstrumentRules fell back to «any» and C2 soloed on an
                             // Acoustic Bass, which skipped the drum solo (and the break).
                             bool drummer = f.Musician.MusicianCharacterData?.Profile?.IsPercussionist() == true;
+                            // [MUSICA-1 / D-GF = A] Opt-in por carta: el solo ocupa la Melody
+                            // del solista en ESTE render. La voz canta la Melody del cantante,
+                            // así que con Zig canta el solo en vez de sonar bajo un soundfont.
+                            if (!drummer && f.Def.FinisherSoloReplacesMelody)
+                                DropOwnMelodyForSolo(cfg, partIndex, f.Musician, f.Def);
                             if (!drummer && TryInjectBonusSoloTrack(cfg, partIndex, f.Musician,
                                     f.Def.FinisherSoloStrategy, f.Def.FinisherSoloLeading,
-                                    out var k))
+                                    out var k, f.Def.FinisherSoloInstrument))
                             {
                                 soloKeys.Add(k);
-                                soloCards.Add(f.Def);
-                                soloLevels.Add(soloKeys.Count == 1 ? 1f : rules.extraSoloistVolume01);
+                                soloCards.Add(f.Def);                                soloLevels.Add(soloKeys.Count == 1 ? 1f : rules.extraSoloistVolume01);
                             }
                             else
                             {
@@ -2046,13 +2050,32 @@ namespace ALWTTT.Music
         // holds makes both tracks stamp the SAME midi channel: one program
         // change wins and the duck silences the base track too. Hence the
         // preference chain, and the honest give-up when both roles are taken.
+        // [MUSICA-1 / D-GF = A] Render-only: cfg is rebuilt every loop, so removing the
+        // soloist's Melody here lives exactly one render. TryInjectBonusSoloTrack then finds
+        // Melody free and the solo takes it (its instrument channel is what the voice mutes).
+        private const string MusicaTag = "[MUSICA-1]";
+
+        private static void DropOwnMelodyForSolo(SongConfig cfg, int partIndex,
+            MusicianBase soloist, CardDefinition card)
+        {
+            string mid = soloist?.MusicianCharacterData?.CharacterId;
+            var tracks = cfg?.Parts?[partIndex]?.Tracks;
+            if (string.IsNullOrEmpty(mid) || tracks == null) return;
+            int removed = tracks.RemoveAll(t => t != null && t.Role == TrackRole.Melody
+                && string.Equals(t.MusicianId, mid, StringComparison.Ordinal));
+            Debug.Log(removed > 0
+                ? $"{MusicaTag} {card?.DisplayName}: el solo sustituye la Melody de {mid} en el loop final (voz canta el solo)."
+                : $"{MusicaTag} {card?.DisplayName}: {mid} no tenía Melody en esta parte; el solo entra como Melody igual.");
+        }
+
         private static readonly TrackRole[] BonusSoloRolePreference =
             { TrackRole.Melody, TrackRole.Harmony };
 
         private bool TryInjectBonusSoloTrack(
             SongConfig cfg, int partIndex, MusicianBase soloist,
             MelodyStrategyId soloStrategy, MelodicLeadingConfig soloLeading,
-            out MusicianTrackKey soloKey)
+            out MusicianTrackKey soloKey,
+            MIDIInstrumentSO instrumentOverride = null)
         {
             soloKey = default;
 
@@ -2090,9 +2113,13 @@ namespace ALWTTT.Music
 
             var instruments = new InstrumentRepositoryResources(_settings);
             instruments.Refresh();
-            var instrument = InstrumentRules
-                .GetPermittedMelodic(soloist, role, instruments)
-                .FirstOrDefault(i => i != null);
+            var instrument = instrumentOverride != null
+                ? instrumentOverride
+                : InstrumentRules
+                    .GetPermittedMelodic(soloist, role, instruments)
+                    .FirstOrDefault(i => i != null);
+            Debug.Log($"{MusicaTag} Solo de {musicianId} ({role}) con {(instrument != null ? instrument.name : "ninguno")}" +
+                $" [{(instrumentOverride != null ? "carta" : "perfil")}].");
 
             if (instrument == null)
             {

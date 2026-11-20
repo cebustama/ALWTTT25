@@ -35,6 +35,7 @@ namespace ALWTTT.Data
             public const string CollapseStress = "colapso.stress";
             public const string ComboPair = "combo.pareja";      // [COMBOS-1]
             public const string ComboLayers = "combo.capas";     // [COMBOS-1]
+            public const string LoopMeasures = "musica.compases"; // [MUSICA-1] compases por loop
         }
 
         public const int PlaysModeAsset = 0;

@@ -1384,7 +1384,10 @@ namespace ALWTTT.Cards.Editor
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(so.FindProperty("finisherSoloStrategy"), new GUIContent("Solo: estrategia"));
                     EditorGUILayout.PropertyField(so.FindProperty("finisherSoloLeading"), new GUIContent("Solo: leading"));
-                    EditorGUI.indentLevel--;
+                    EditorGUILayout.PropertyField(so.FindProperty("finisherSoloReplacesMelody"),
+                        new GUIContent("Solo: sustituye la melodía", "[MUSICA-1] En el loop final el solo ocupa la Melody del solista; con Zig, la voz lo canta."));
+                    EditorGUILayout.PropertyField(so.FindProperty("finisherSoloInstrument"),
+                        new GUIContent("Solo: instrumento", "[MUSICA-1] Vacío = el primero permitido del perfil del músico."));                    EditorGUI.indentLevel--;
                 }
             }
 

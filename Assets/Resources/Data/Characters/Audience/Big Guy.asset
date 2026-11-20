@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: big_guy
   characterName: Big Guy
   characterDescription: El jefe punk. Sus secuaces lo animan.
-  maxVibe: 35
+  maxVibe: 85
   characterPrefab: {fileID: 8137859568071339047, guid: 730d609a7ff00034f9beb9863123dda4, type: 3}
   isTall: 0
   isLeader: 1

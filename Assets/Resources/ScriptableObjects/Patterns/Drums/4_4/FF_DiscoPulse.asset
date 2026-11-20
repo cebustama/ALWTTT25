@@ -286,6 +286,8 @@ MonoBehaviour:
       velocity: 120
     - active: 0
       velocity: 0
+  bpmMin: 0
+  bpmMax: 0
   velocity: 80
   drumMappings: []
   pianoRollPattern: 

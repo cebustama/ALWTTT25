@@ -33,7 +33,7 @@ MonoBehaviour:
     finisherCostOverride: -1
     maxFinishersPerSong: 0
     finisherSolo: 1
-    extraSoloistVolume01: 0.8
+    extraSoloistVolume01: 1
     finisherEffectsAtFinalLoopStart: 1
   defaultActionPlaysPerTurn: 1
   defaultCompositionPlaysPerTurn: 1
@@ -44,7 +44,7 @@ MonoBehaviour:
   overloadHypeFactor: 1.5
   maxBonusLoopsPerPart: 1
   bonusSoloEnabled: 1
-  bonusSoloDuck01: 0.75
+  bonusSoloDuck01: 0.55
   songTailEnabled: 1
   songTailLevel01: 0.7
   songTailFadeSeconds: 0.75

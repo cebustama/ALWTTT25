@@ -1468,7 +1468,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Map.LinearMapController
   nodes:
   - visual: {fileID: 1314398260}
-    launchConfig: {fileID: 11400000, guid: 1da3e04ac041c8d4fbc47ccf13627cb7, type: 2}
+    launchConfig: {fileID: 11400000, guid: 722253feefe25e3489739e6d2d4ab5a8, type: 2}
     title: Gig 1
     description: 
   - visual: {fileID: 163151818}
@@ -1502,7 +1502,7 @@ MonoBehaviour:
   activePulseAmount: 0.12
   activePulseSpeed: 3
   cohesionText: {fileID: 0}
-  gigReturnDestination: 2
+  gigReturnDestination: 0
   playIntroPan: 1
   mapCamera: {fileID: 519420031}
   introPanStart: {fileID: 1604801547}

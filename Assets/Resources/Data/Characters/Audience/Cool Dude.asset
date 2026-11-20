@@ -15,9 +15,10 @@ MonoBehaviour:
   characterId: cooldude
   characterName: Cool Dude
   characterDescription: 
-  maxVibe: 25
+  maxVibe: 60
   characterPrefab: {fileID: 997261290205271328, guid: c8efa2c5aa6223e49b98b39362316d37, type: 3}
   isTall: 1
+  isLeader: 0
   abilityList:
   - abilityName: Block the View
     abilityId: ab_block_the_view
@@ -30,11 +31,15 @@ MonoBehaviour:
       actionValue: 1
       actionDelay: 0
       statusEffect: {fileID: 0}
+    duetKey: 
     animation:
       animatorTrigger: 
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   - abilityName: Indifference
     abilityId: ab_indifference
     intention: {fileID: 11400000, guid: 755930e942953af429e795d48296f15b, type: 2}
@@ -46,11 +51,15 @@ MonoBehaviour:
       actionValue: 2
       actionDelay: 0
       statusEffect: {fileID: 11400000, guid: 5121e76141ccc3a44825214498e5846d, type: 2}
+    duetKey: 
     animation:
       animatorTrigger: 
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   - abilityName: Heckle
     abilityId: ab_heckle
     intention: {fileID: 11400000, guid: 1fafd8fb028cde049a67a80ef28f2640, type: 2}
@@ -67,11 +76,15 @@ MonoBehaviour:
       actionValue: 2
       actionDelay: 1
       statusEffect: {fileID: 0}
+    duetKey: 
     animation:
       animatorTrigger: 
       animationDuration: -1
       disableBeatAnimator: 1
     abilitySfx: {fileID: 0}
+    pendingSprite: {fileID: 0}
+    actingSprite: {fileID: 0}
+    shoutSplash: {fileID: 0}
   followAbilityPattern: 1
   taste:
     tempoMatchOnFast: 0
@@ -84,4 +97,6 @@ MonoBehaviour:
     dislikedTimeSignatures: 00000000
     preferredTonalities: 05000000
     dislikedTonalities: 00000000
+    preferredRoles: 
+    dislikedRoles: 
   sfxProfile: {fileID: 11400000, guid: 7e43b6a8a89b04e4dbb2c3bccccb6c8a, type: 2}

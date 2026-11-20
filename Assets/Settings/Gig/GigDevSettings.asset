@@ -30,10 +30,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e41586d035d26c74d9b5820b17378e29, type: 2}
   - {fileID: 11400000, guid: f0c03e5c84dd11a4898efbe7192c71e8, type: 2}
   - {fileID: 11400000, guid: 5b74aaab3570cc643a1c9f539a16e3c9, type: 2}
-  testCardsMode: 1
+  testCardsMode: 0
   useFixedDeck: 0
-  fixedDeckJson: "{ \"name\": \"repro-1\", \"cards\": [\"starter_default_mode\",
-    \"starter_finger_bass\",\n  \"starter_rise_up\", \"starter_take_five\", \"starter_default_mode\",\n 
-    \"starter_finger_bass\"] }"
-  usePinnedSongSeed: 1
-  pinnedSongSeed: 12345
+  fixedDeckJson: "{ \"name\": \"combos-1\", \"cards\": [\n    \"starter_default_mode\",
+    \"Starter_half_time\",\n    \"starter_finger_bass\", \"starter_slap_bass\",\n   
+    \"starter_wormus_minor\", \"starter_wormus_major\",\n    \"starter_rise_up\",
+    \"starter_showtime\",\n    \"zig_gran_final\", \"c2_redoble_final\",\n    \"crd_sibi_calm_down\"
+    ] }"
+  usePinnedSongSeed: 0
+  pinnedSongSeed: 655931081

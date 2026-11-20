@@ -188,7 +188,9 @@ namespace ALWTTT.Music
                 {
                     Name = string.IsNullOrWhiteSpace(p.label)
                             ? $"Part {partIndex + 1}" : p.label,
-                    Measures = p.measures <= 0 ? 8 : p.measures,
+                    // [MUSICA-1] F5 ▸ Música ▸ Compases por loop (sin ajuste = el del modelo, 8).
+                    Measures = ALWTTT.Data.DevTuning.Int(ALWTTT.Data.DevTuning.Keys.LoopMeasures,
+                        p.measures <= 0 ? 8 : p.measures),
                     TimeSignature = p.timeSignature,
                     Tracks = new List<SongConfig.PartConfig.TrackConfig>(),
                     Tonality = tonality,

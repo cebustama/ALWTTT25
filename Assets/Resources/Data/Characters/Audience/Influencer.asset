@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: influencer
   characterName: Influencer
   characterDescription: Secuaz del jefe. Lo graba todo.
-  maxVibe: 20
+  maxVibe: 45
   characterPrefab: {fileID: 8137859568071339047, guid: 35d49b40d76e63b4e9baea14dcdc329c, type: 3}
   isTall: 1
   isLeader: 0

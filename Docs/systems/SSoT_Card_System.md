@@ -75,6 +75,17 @@ cada carta puede cambiarlos):
   banda agachada. Si el músico no puede solear (C2, batería, sin instrumento melódico), **sus pistas toman el
   foco** y la banda baja a `breakDuck01` (un *break*). Después estallan sus efectos (`CardBase.RunEffects`,
   el mismo pipeline que las acciones, con `skipBonusLoop`), así que la onda psíquica de Sibi sale con el solo.
+- **[MUSICA-1, 2026-11-20] Dos campos opt-in del solo**, solo en el render del loop final (la config se
+  reconstruye cada loop; el modelo no se toca):
+  - `finisherSoloReplacesMelody` («Solo: sustituye la melodía», D-GF = A): si el solista ya tiene Melody en la
+    parte, se quita de ese render y el solo ocupa la Melody. Como la voz (`SingerVoiceDirector`) canta la Melody
+    del cantante, **Zig canta su solo** en vez de sonar con soundfont encima de la voz. Encendido en Gran Final.
+  - `finisherSoloInstrument` («Solo: instrumento», D-INST): instrumento del solo; vacío = el primero permitido del
+    perfil (para Sibi era Fantasia, un pad suave). Psychic Waves usa **Saw Wave** (lead tipo Minimoog).
+  - Volúmenes del loop final (asset `GigFlowSettings`): todos los solistas a 1 (`extraSoloistVolume01` = 1) y la
+    banda a `bonusSoloDuck01` = 0,55. Las otras pistas del solista **siguen sonando**: quitar los acordes de Sibi
+    cambiaba la progresión de toda la canción (la carta de acordes elige la paleta), D-SOLO probada y revertida.
+  - Logs `[MUSICA-1] … el solo sustituye la Melody de <id>…` y `[MUSICA-1] Solo de <id> (<rol>) con <instrumento> [carta|perfil]`.
 - **Finisher de la demo:** Overload (Conito), Psychic Waves (Sibi, solo con `MelodicLeading-Hipnosis`),
   Gran Final (Zig, Vibe 4 a todo el público) y Redoble Final (C2), todos ★3 y en los mazos iniciales.
   Overload y Psychic Waves eran de acción: conservan su asset y su id; el payload pasó a composición.

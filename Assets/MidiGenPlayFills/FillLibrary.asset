@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68ce338ec50780f45835b16cda4b83d9, type: 3}
+  m_Name: FillLibrary
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.DrumPatternPaletteSO
+  paletteDisplayName: FillLibrary
+  paletteNotes: Imported from 2026-11-12_biblioteca_fills_music_lab.md
+  preferExactTimeSignatureMatches: 1
+  entries:
+  - pattern: {fileID: 11400000, guid: f5f38916d33e3a34198d424a3fbc1094, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: cb7ad1db83bf6644da37a8f13f0a7541, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 29df8a3f6088e6749a85a216aca36291, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: e04a40e317d64354bbde09d5426a64d9, type: 2}
+    weight: 0.4
+  - pattern: {fileID: 11400000, guid: 7488b73da77146c4ca2cdf1c65fdf506, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: b1741c7711f9095438ca6d840a26ffb4, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 3d1560d314c4d594da57a93b2fc05eb2, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 97952fb7487244c498640b50b11c0258, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: d845fa1849501c349bab8217d74110db, type: 2}
+    weight: 0.6
+  - pattern: {fileID: 11400000, guid: 182d760af1085844da4bdaabf0d0e650, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 9fc4ecd3f45437a4c8cc33b222776189, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: 69935a7ec955e9040b66cdfec62ac88f, type: 2}
+    weight: 1
+  - pattern: {fileID: 11400000, guid: da2047374ed1a5d4286163793595a1a6, type: 2}
+    weight: 0.5

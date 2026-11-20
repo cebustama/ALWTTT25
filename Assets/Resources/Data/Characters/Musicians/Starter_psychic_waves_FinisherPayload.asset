@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CompositionCardPayload
   effects:
   - rid: 1770617554409619532
-  - rid: 1770617554409619533
   primaryKind: 0
   trackAction:
     role: 0
     styleBundle: {fileID: 0}
+    voicePalette: {fileID: 0}
   partAction:
     action: 0
     musicianId: 
@@ -31,10 +31,3 @@ MonoBehaviour:
       data:
         targetType: 2
         amount: 5
-    - rid: 1770617554409619533
-      type: {class: ApplyStatusEffectSpec, ns: ALWTTT.Cards.Effects, asm: Assembly-CSharp}
-      data:
-        status: {fileID: 11400000, guid: 309e959f0b2e1ee4dba82e4756cbd5b2, type: 2}
-        targetType: 2
-        stacksDelta: 2
-        delay: 0

@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: rayas
   characterName: Rayas
   characterDescription: Se cuela delante y tapa. Solo baila si suena el bajo.
-  maxVibe: 20
+  maxVibe: 45
   characterPrefab: {fileID: 1079210700396006923, guid: ae260cbd33a57a84bb1b92aa40acd3be, type: 3}
   isTall: 1
   isLeader: 0

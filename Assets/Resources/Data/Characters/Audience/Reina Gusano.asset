@@ -16,7 +16,7 @@ MonoBehaviour:
   characterName: Reina Gusano
   characterDescription: "Pone dos huevos; al tercer turno eclosionan contra toda
     la banda. Conv\xE9ncela antes."
-  maxVibe: 50
+  maxVibe: 115
   characterPrefab: {fileID: 5870733674267346511, guid: b781c462c5ba15f4c8ab70354dfebd2a, type: 3}
   isTall: 1
   isLeader: 0

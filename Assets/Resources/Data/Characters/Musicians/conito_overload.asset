@@ -22,6 +22,8 @@ MonoBehaviour:
   isFinisher: 1
   finisherSoloStrategy: 1
   finisherSoloLeading: {fileID: 0}
+  finisherSoloReplacesMelody: 0
+  finisherSoloDropsOwnTracks: 1
   resourceCostStatusKey: 
   resourceCostAmount: 0
   cardType: 0

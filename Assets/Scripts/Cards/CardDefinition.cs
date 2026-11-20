@@ -58,6 +58,21 @@ namespace ALWTTT.Cards
             "«hipnótico» de Sibi: ScaleOnly, pasos cortos, muchas notas repetidas.")]
         private MidiGenPlay.Composition.MelodicLeadingConfig finisherSoloLeading;
 
+        // [MUSICA-1 / D-GF = A] Opt-in por carta. Si el solista ya tiene su propia
+        // Melody en la parte, el solo la sustituye SOLO en el render del loop final
+        // (cfg se reconstruye cada loop). Así la voz (SingerVoiceDirector), que canta
+        // la Melody del cantante, canta el solo en lugar de sonar debajo de un soundfont.
+        [SerializeField, Tooltip("El solo sustituye la melodía del solista en el loop final. " +
+            "Con el cantante (Zig), la voz canta el solo. Apagado = el solo va como Harmony " +
+            "con su instrumento, encima de la melodía.")]
+        private bool finisherSoloReplacesMelody;
+
+        // [MUSICA-1 / D-INST] Opt-in por carta: instrumento del solo. Vacío = el primero
+        // permitido del perfil del músico (Sibi: Fantasia, un pad). Gana sobre la lista
+        // blanca del perfil, solo en el render del loop final.
+        [SerializeField, Tooltip("Instrumento del solo. Vacío = el del perfil del músico.")]
+        private MidiGenPlay.MIDIInstrumentSO finisherSoloInstrument;
+
         [Header("Resource Cost (R5-d)")]
         [SerializeField, Tooltip("StatusKey of the resource this card spends " +
             "(e.g. \"voltage\"). Empty = no resource cost. Resolved from the " +
@@ -187,7 +202,8 @@ namespace ALWTTT.Cards
         public bool IsFinisher => isFinisher && IsComposition;
         public MidiGenPlay.Composition.MelodyStrategyId FinisherSoloStrategy => finisherSoloStrategy;
         public MidiGenPlay.Composition.MelodicLeadingConfig FinisherSoloLeading => finisherSoloLeading;
-
+        public bool FinisherSoloReplacesMelody => finisherSoloReplacesMelody;
+        public MidiGenPlay.MIDIInstrumentSO FinisherSoloInstrument => finisherSoloInstrument;
         public RarityType Rarity => rarity;
         public IReadOnlyList<SpecialKeywords> Keywords => keywords;
 

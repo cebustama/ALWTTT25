@@ -14,6 +14,24 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-20 — MUSICA-1 (parcial): el gran final lo canta la voz; solo con instrumento por carta; F5 compases; vida del público ×1,5
+
+**Clase:** semántico · operativo. Código, assets de cartas, de público y de flujo.
+
+- **D-GF = A.** `CardDefinition.finisherSoloReplacesMelody` (opt-in): en el render del loop final se quita la Melody
+  del solista y el solo la ocupa; la voz canta la Melody del cantante, así que Zig canta su solo. Gran Final encendido.
+  Smoke 1 PASS (Claudio, de oído).
+- **D-INST.** `CardDefinition.finisherSoloInstrument` (opt-in; vacío = perfil). Psychic Waves → Saw Wave.
+- **Volúmenes del loop final** (`GigFlowSettings`): `extraSoloistVolume01` 0,8 → 1; `bonusSoloDuck01` 0,75 → 0,55.
+- **D-SOLO = A, revertida el mismo día:** que el solista dejara sus otras pistas quitaba la carta de acordes de Sibi, que
+  elige la progresión de la canción. Claudio quiere los acordes. Sin código residual.
+- **F5 ▸ Compases por loop** (`DevTuning.Keys.LoopMeasures`, `SongConfigBuilder`). `SSoT_Dev_Mode` §24.
+- **Menú de balance** `AudienceVibeScaler`, aplicado ×1,5 a los 10 miembros del público.
+- **Datos:** `1b - Linear Map` vuelve al mapa tras el gig; reroll 0,25 en Core Major/Minor.
+- **Pasa a MUSICA-1b:** D2 (encender carta a carta), fila del Banco y A/B de `articulationSchedule` (MidiGenPlay
+  `654fcf4`), D4 (pasada por el mazo de la demo), smokes 2–3. Idea apuntada: el 2.º solista armoniza al primero (rol
+  Harmony), POST-DEMO B con DUET-1.
+
 ## 2026-11-19 — COMBOS-1: combos de banda con nombre en la previsión del Big Num (DEMO-1211, orden 7)
 
 **Clase:** semántico · operativo. Con cambio de código y de tuning (asset de meters); sin cambio de cartas.
