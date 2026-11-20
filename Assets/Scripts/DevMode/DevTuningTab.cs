@@ -36,6 +36,7 @@ namespace ALWTTT.DevMode
         {
             Opt(K.PlaysMode,     "Jugadas", "Cartas por turno y músico", new[] { "Una de cada tipo", "Una en total", "Sin límite" },
                 () => DevTuning.PlaysModeAsset, "desde el siguiente periodo"),
+            Int(K.DrawOpening,   "Robo",    "Mano inicial (primer turno del gig)", 0, 10, () => Gd?.InitialHandCount ?? 4, "siguiente gig"),
             Int(K.DrawTurn,      "Robo",    "Robo al empezar el turno", 0, 10, () => Pd?.DrawCount ?? Gd?.DrawCount ?? 0, "siguiente turno"),
             Int(K.DrawOnPlay,    "Robo",    "Robo al pulsar Play",      0, 5,  () => Gm?.Flow?.DrawCardsOnPlay ?? 0, "siguiente Play"),
             Int(K.DrawLoop,      "Robo",    "Robo entre loops",         0, 5,  () => Gm?.Flow?.DrawPerLoop ?? 0, "siguiente loop"),
@@ -43,6 +44,10 @@ namespace ALWTTT.DevMode
             Int(K.InspStart,     "Inspiración", "★ al empezar el gig",  0, 10, () => Pd?.InitialGigInspiration ?? 0, "siguiente gig"),
             Flt(K.CollapseStress, "Colapso", "Vida tras el colapso (fracción de la barra)", 0f, 1f, 0.05f,
                 () => Gm?.Meters != null ? Gm.Meters.BreakdownStressResetFraction : 0.5f, "siguiente colapso"),
+            Int(K.ComboPair,     "Combos",  "Pareja que entra a la vez (+Big Num)", 0, 6,
+                () => Gm?.Meters != null ? Gm.Meters.ComboPairBonusBigNum : 2, "siguiente previsión"),
+            Flt(K.ComboLayers,   "Combos",  "Capas: multiplicador por loop con entrada", 1f, 3f, 0.25f,
+                () => Gm?.Meters != null ? Gm.Meters.LayersMultiplierStep : 1.5f, "siguiente previsión"),
         };
 
         private static Setting Int(string key, string group, string label, int min, int max, Func<float> asset, string when) =>

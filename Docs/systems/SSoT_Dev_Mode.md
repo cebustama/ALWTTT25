@@ -1427,12 +1427,15 @@ https://claude.ai/artifact/VCSqZeSsWnZvCFUHgUoxgv (fuente `reference/tester-wrap
   | Clave | Ajuste | Asset | Consumidor |
   | --- | --- | --- | --- |
   | `jugadas.modo` | Cartas por turno y músico: una de cada tipo / una en total / sin límite | `GigFlowSettingsSO` (1 + 1) | `GigManager.GetEffectivePlayMaxima` (al crear la banda y en cada reset de periodo); «una en total» agota las dos en `TryConsumePlay` (`BandCharacterStats.ExhaustTurnPlayBudget`); sin límite = 99 |
+  | `robo.inicial` | Mano inicial (primer turno del gig) — COMBOS-1 | `GameplayData.InitialHandCount` (4) | `GigManager` PlayerTurn: el primer turno del gig roba esto; los demás, `robo.turno` (`_openingHandDealt`) |
   | `robo.turno` | Robo al empezar el turno | `PersistentGameplayData.DrawCount` (2) | `DrawCardsForPlayerTurn` |
   | `robo.play` | Robo al pulsar Play | `GigFlowSettingsSO.DrawCardsOnPlay` (1) | `OnPlayPressed` |
   | `robo.loop` | Robo entre loops | `GigFlowSettingsSO.DrawPerLoop` (2) | `OnCompositionLoopFinished` |
   | `mano.max` | Máximo de la mano | `GameplayData.MaxCardsOnHand` (8) | `DeckManager.MaxHandSize`, único punto de lectura del tope |
   | `insp.inicio` | ★ al empezar el gig | `PersistentGameplayData.InitialGigInspiration` (0) | `GigManager.StartGig` |
   | `colapso.stress` | Vida tras el colapso (fracción de la barra) | `MeterTuningSO.BreakdownStressResetFraction` (0,5) | `GigManager.BreakdownStressResetFraction` |
+  | `combo.pareja` | Pareja que entra a la vez (+Big Num) — COMBOS-1 | `MeterTuningSO.ComboPairBonusBigNum` (2) | `GigManager.ComputeLoopHypeDelta` (`SSoT_Scoring_and_Meters §3.5`) |
+  | `combo.capas` | Capas: multiplicador por loop con entrada — COMBOS-1 | `MeterTuningSO.LayersMultiplierStep` (1,5) | ídem |
 
   En «Sesión (no se guarda)»: **Sin límite de canciones** (el mismo `InfiniteTurnsEnabled` de la pestaña Infinite) y
   el botón de saltar canción. La ★ por loop y los Finisher siguen en la pestaña Inspiración (§21), enlazada con «Ir».

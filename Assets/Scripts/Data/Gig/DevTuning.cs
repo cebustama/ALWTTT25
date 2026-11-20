@@ -27,11 +27,14 @@ namespace ALWTTT.Data
         {
             public const string PlaysMode = "jugadas.modo";       // 0 asset · 1 una en total · 2 sin límite
             public const string DrawTurn = "robo.turno";
+            public const string DrawOpening = "robo.inicial";   // mano inicial (primer turno del gig)
             public const string DrawLoop = "robo.loop";
             public const string DrawOnPlay = "robo.play";
             public const string HandMax = "mano.max";
             public const string InspStart = "insp.inicio";
             public const string CollapseStress = "colapso.stress";
+            public const string ComboPair = "combo.pareja";      // [COMBOS-1]
+            public const string ComboLayers = "combo.capas";     // [COMBOS-1]
         }
 
         public const int PlaysModeAsset = 0;

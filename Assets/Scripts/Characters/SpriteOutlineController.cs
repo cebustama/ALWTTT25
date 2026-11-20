@@ -51,6 +51,13 @@ namespace ALWTTT.Characters
         [SerializeField] private Color damageColor = new Color(0.95f, 0.2f, 0.2f, 1f);
         private bool _damageActive;
 
+        // [COMBOS-1 / D3] Canal de combo: al pasar una carta que completaría un combo, los
+        // músicos que lo forman se encienden. Por debajo del hover (el objetivo de la carta
+        // conserva su color) y por encima de las vistas de Tab y del daño, que vuelven solas
+        // al soltar la carta.
+        private bool _comboActive;
+        private Color _comboColor;
+
         /// <summary>
         /// Whether the hover outline is currently on (the view channel does not count).
         /// </summary>
@@ -85,6 +92,15 @@ namespace ALWTTT.Characters
             Apply();
         }
 
+        /// <summary>[COMBOS-1] Contorno de combo en <paramref name="color"/>. Idempotente.</summary>
+        public void SetComboHighlight(bool on, Color color)
+        {
+            if (_comboActive == on && (!on || _comboColor == color)) return;
+            _comboActive = on;
+            _comboColor = color;
+            Apply();
+        }
+
         /// <summary>[S4b / D5=A] Damage-channel outline (red); shown only when neither hover
         /// nor a view is on. Idempotent.</summary>
         public void SetDamageHighlight(bool on)
@@ -97,8 +113,9 @@ namespace ALWTTT.Characters
         private void Apply()
         {
             if (_renderer == null) return;
-            bool visible = _active || _viewActive || _damageActive;
-            Color c = _active ? outlineColor : _viewActive ? _viewColor : damageColor;
+            bool visible = _active || _comboActive || _viewActive || _damageActive;
+            Color c = _active ? outlineColor : _comboActive ? _comboColor
+                    : _viewActive ? _viewColor : damageColor;
             _renderer.GetPropertyBlock(_block);
             _block.SetFloat(OutlineWidthId, visible ? outlineWidth : 0f);
             _block.SetColor(OutlineColorId, c);

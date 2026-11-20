@@ -55,6 +55,22 @@ namespace ALWTTT.Data
         public int MinBigNumPerNewTrack => minBigNumPerNewTrack;
         public int FullBandBonusBigNum => fullBandBonusBigNum;
 
+        // --- [COMBOS-1] Combos de banda ---
+
+        [Header("COMBOS-1: combos de banda (Big Num)")]
+        [SerializeField, Tooltip("[COMBOS-1] Bonus de una pareja con nombre que ENTRA a la vez " +
+            "(Sección rítmica: ritmo + bajo; A media luz: acordes + melodía). Si entra la banda " +
+            "entera de golpe, la mano es «Toda la banda» y las parejas no cuentan. 0 = apagado.")]
+        private int comboPairBonusBigNum = 2;
+
+        [SerializeField, Tooltip("[COMBOS-1] Capas: cada loop de la canción en el que entra al " +
+            "menos un músico nuevo multiplica lo que suma el loop por este factor (acumulado: " +
+            "1.º ×1, 2.º ×f, 3.º ×f²…). Solo en loops que suben. 1 = apagado.")]
+        private float layersMultiplierStep = 1.5f;
+
+        public int ComboPairBonusBigNum => comboPairBonusBigNum;
+        public float LayersMultiplierStep => layersMultiplierStep;
+
         // --- Flow → Vibe (bifurcated MVP, M4.2) ---
 
         [Header("Flow → Vibe (Bifurcated MVP)")]

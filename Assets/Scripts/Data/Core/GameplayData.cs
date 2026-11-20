@@ -39,6 +39,8 @@ namespace ALWTTT
 
         [Header("Gig Gameplay Settings")]
         [SerializeField] private int drawCount = 3;
+        [SerializeField, Tooltip("Cards drawn on the FIRST turn of the gig (opening hand). Later turns draw Draw Count.")]
+        private int initialHandCount = 4;
         [SerializeField] private int maxCardsOnHand = 8;
         [SerializeField] private int maxInspiration = 5;
         [SerializeField] private bool discardHandBetweenTurns = true;
@@ -84,6 +86,7 @@ namespace ALWTTT
         public int CohesionRestoredByBandTalk => cohesionRestoredByBandTalk;
 
         public int DrawCount => drawCount;
+        public int InitialHandCount => initialHandCount;
         public int MaxCardsOnHand => maxCardsOnHand;
         public int MaxInspiration => maxInspiration;
         public bool DiscardHandBetweenTurns => discardHandBetweenTurns;

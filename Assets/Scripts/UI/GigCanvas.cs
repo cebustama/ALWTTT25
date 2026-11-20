@@ -173,6 +173,10 @@ namespace ALWTTT.UI
 
         private void OnDisable()
         {
+            // [COMBOS-1] Un vuelo cortado no deja el Big Num congelado.
+            if (_absorbRoutine != null) { StopCoroutine(_absorbRoutine); _absorbRoutine = null; }
+            ReleaseAbsorbHold();
+
             // [B3-demo-polish / F6] Mirror the conditional subscription.
             if (lossConfirmButton != null
                 && lossConfirmButton != lossRetryButton
@@ -471,7 +475,7 @@ namespace ALWTTT.UI
 
             _readoutTotal = total;   // [LEGIB-1a] restored by ClearVibeReadoutPreview
             _readoutPreviewOn = false;   // plain text again; GigManager re-applies the forecast
-            vibeReadoutLabel.text = total.ToString();
+            WriteReadout(total.ToString());
 
             if (vibeReadoutTooltip != null)
                 vibeReadoutTooltip.SetContent(GameText.Format(UiReadoutHeader),
@@ -535,16 +539,192 @@ namespace ALWTTT.UI
         private int _readoutTotal = -1;
         private bool _readoutPreviewOn;
 
-        public void SetVibeReadoutPreview(int y, int z, bool cardProjected)
+        // ── [COMBOS-1 / D3] Línea de combo y multiplicador que el Big Num «absorbe» ──
+        [Header("COMBOS-1: combos")]
+        [SerializeField, Range(0.3f, 1f), Tooltip("[COMBOS-1] Tamaño de la línea de combo bajo «Y → Z».")]
+        private float comboLineScale = 0.45f;
+        [SerializeField, Tooltip("[COMBOS-1] Color de la línea de combo.")]
+        private Color comboLineColor = new Color(1f, 0.62f, 0.15f, 1f);
+        [SerializeField, Tooltip("[COMBOS-1] Color del multiplicador que vuela al Big Num.")]
+        private Color comboAbsorbColor = new Color(1f, 0.62f, 0.15f, 1f);
+        [SerializeField, Tooltip("[COMBOS-1] Tamaño de letra del multiplicador que vuela.")]
+        private float comboAbsorbFontSize = 64f;
+
+        // Mientras el multiplicador vuela, el Big Num no cambia: el texto nuevo espera y se
+        // escribe al llegar («absorbido»). Lo que se escribe es lo mismo que sin vuelo.
+        private bool _absorbHold;
+        private string _absorbPendingText;
+        private Coroutine _absorbRoutine;
+
+        private void WriteReadout(string text)
         {
             if (vibeReadoutLabel == null) return;
+            if (_absorbHold) { _absorbPendingText = text; return; }
+            vibeReadoutLabel.text = text;
+        }
+
+        private void ReleaseAbsorbHold()
+        {
+            if (!_absorbHold) return;
+            _absorbHold = false;
+            if (_absorbPendingText != null && vibeReadoutLabel != null)
+                vibeReadoutLabel.text = _absorbPendingText;
+            _absorbPendingText = null;
+        }
+
+        // [COMBOS-1 / D3] Tabla de combos (C). Se crea por código la primera vez: un
+        // panel oscuro con un texto, arriba al centro, encima de todo y sin capturar clics.
+        private GameObject _comboTableGo;
+        private TextMeshProUGUI _comboTableText;
+
+        public void SetComboTable(bool visible, string richText)
+        {
+            if (!visible)
+            {
+                if (_comboTableGo != null) _comboTableGo.SetActive(false);
+                return;
+            }
+            if (_comboTableGo == null)
+            {
+                Canvas root = vibeReadoutLabel != null && vibeReadoutLabel.canvas != null
+                    ? vibeReadoutLabel.canvas.rootCanvas : GetComponentInParent<Canvas>();
+                if (root == null) return;
+                _comboTableGo = new GameObject("COMBOS-1 Tabla", typeof(RectTransform));
+                var rt = (RectTransform)_comboTableGo.transform;
+                rt.SetParent(root.transform, false);
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.62f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(1080f, 420f);
+                // Encima de todo: la barra de la canción vive en otro canvas y se pintaba
+                // sobre la tabla (smoke 3). Un Canvas propio con orden alto la tapa.
+                var tableCanvas = _comboTableGo.AddComponent<Canvas>();
+                tableCanvas.overrideSorting = true;
+                tableCanvas.sortingOrder = 500;
+                var bg = _comboTableGo.AddComponent<Image>();
+                bg.color = new Color(0.05f, 0.04f, 0.09f, 0.92f);
+                bg.raycastTarget = false;
+
+                var textGo = new GameObject("Texto", typeof(RectTransform));
+                var trt = (RectTransform)textGo.transform;
+                trt.SetParent(rt, false);
+                trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
+                trt.offsetMin = new Vector2(36f, 24f); trt.offsetMax = new Vector2(-36f, -24f);
+                _comboTableText = textGo.AddComponent<TextMeshProUGUI>();
+                if (vibeReadoutLabel != null) _comboTableText.font = vibeReadoutLabel.font;
+                _comboTableText.fontSize = 26f;
+                _comboTableText.color = Color.white;
+                _comboTableText.alignment = TextAlignmentOptions.TopLeft;
+                _comboTableText.richText = true;
+                _comboTableText.enableWordWrapping = false;
+                _comboTableText.raycastTarget = false;
+            }
+            _comboTableGo.transform.SetAsLastSibling();
+            _comboTableGo.SetActive(true);
+            _comboTableText.text = richText;
+        }
+
+        /// <summary>
+        /// [COMBOS-1 / D3] «×1,5» salta con un rebote en <paramref name="worldFrom"/> (sobre
+        /// la banda), vuela al Big Num y el Big Num lo absorbe: el número nuevo aparece al
+        /// llegar, con un pulso. Llamar ANTES de sumar el Hype del loop.
+        /// </summary>
+        public void PlayComboAbsorb(string text, Vector3 worldFrom)
+        {
+            if (vibeReadoutLabel == null || !isActiveAndEnabled) return;
+            if (_absorbRoutine != null) { StopCoroutine(_absorbRoutine); ReleaseAbsorbHold(); }
+            _absorbHold = true;
+            _absorbPendingText = null;
+            _absorbRoutine = StartCoroutine(ComboAbsorbRoutine(text, worldFrom));
+        }
+
+        private IEnumerator ComboAbsorbRoutine(string text, Vector3 worldFrom)
+        {
+            var canvas = vibeReadoutLabel.canvas != null ? vibeReadoutLabel.canvas.rootCanvas : null;
+            if (canvas == null) { ReleaseAbsorbHold(); _absorbRoutine = null; yield break; }
+            var canvasRt = (RectTransform)canvas.transform;
+            Camera uiCam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+            Camera worldCam = Camera.main;
+
+            Vector2 from = Vector2.zero, to = Vector2.zero;
+            if (worldCam != null)
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRt,
+                    worldCam.WorldToScreenPoint(worldFrom), uiCam, out from);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRt,
+                RectTransformUtility.WorldToScreenPoint(uiCam, vibeReadoutLabel.rectTransform.position),
+                uiCam, out to);
+
+            var go = new GameObject("COMBOS-1 Absorb", typeof(RectTransform));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(canvasRt, false);
+            rt.SetAsLastSibling();
+            rt.sizeDelta = new Vector2(400f, 120f);
+            rt.localPosition = from;
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.font = vibeReadoutLabel.font;
+            tmp.fontSize = comboAbsorbFontSize;
+            tmp.fontStyle = FontStyles.Bold;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = comboAbsorbColor;
+            tmp.outlineWidth = 0.25f;
+            tmp.outlineColor = Color.black;
+            tmp.raycastTarget = false;
+            tmp.text = text;
+
+            Debug.Log($"[COMBOS-1] Absorción: «{text}» vuela al Big Num");
+
+            // 1. Rebote: 0 → 1,3 → 1.
+            for (float t = 0f; t < 0.3f; t += Time.unscaledDeltaTime)
+            {
+                float u = t / 0.3f;
+                float sc = u < 0.6f ? Mathf.Lerp(0f, 1.3f, u / 0.6f) : Mathf.Lerp(1.3f, 1f, (u - 0.6f) / 0.4f);
+                rt.localScale = Vector3.one * sc;
+                yield return null;
+            }
+            rt.localScale = Vector3.one;
+            // 2. Se queda a la vista un momento.
+            for (float t = 0f; t < 0.45f; t += Time.unscaledDeltaTime) yield return null;
+            // 3. Vuela al Big Num, acelerando y encogiendo.
+            for (float t = 0f; t < 0.4f; t += Time.unscaledDeltaTime)
+            {
+                float u = t / 0.4f;
+                float e = u * u;
+                rt.localPosition = Vector2.LerpUnclamped(from, to, e);
+                rt.localScale = Vector3.one * Mathf.Lerp(1f, 0.4f, e);
+                yield return null;
+            }
+            Destroy(go);
+
+            // 4. Absorbido: el número nuevo aparece con un pulso.
+            ReleaseAbsorbHold();
+            Transform pulseT = vibeReadoutRoot != null ? vibeReadoutRoot.transform : null;
+            if (pulseT != null)
+            {
+                Vector3 baseScale = pulseT.localScale;
+                for (float t = 0f; t < 0.3f; t += Time.unscaledDeltaTime)
+                {
+                    pulseT.localScale = baseScale * Mathf.Lerp(1.35f, 1f, t / 0.3f);
+                    yield return null;
+                }
+                pulseT.localScale = baseScale;
+            }
+            _absorbRoutine = null;
+        }
+
+        public void SetVibeReadoutPreview(int y, int z, bool cardProjected, string comboLine = null)
+        {
+            if (vibeReadoutLabel == null) return;
+
+            // [COMBOS-1 / D3] Segunda línea: el combo que el loop (o la carta) completa,
+            // con su valor. Va en la misma etiqueta: nada que montar en el editor.
+            string combo = string.IsNullOrEmpty(comboLine) ? string.Empty
+                : $"\n<size={Mathf.RoundToInt(comboLineScale * 100f)}%><color=#{ColorUtility.ToHtmlStringRGBA(comboLineColor)}>{comboLine}</color></size>";
 
             // [LEGIB-1a / D6 amended by Claudio] At rest, no change = no arrow: the plain
             // number already says "this loop adds nothing". A projected card keeps
             // «Y → Y», which answers the hover question "what does this card do?".
-            if (!cardProjected && y == z)
+            if (!cardProjected && y == z && combo.Length == 0)
             {
-                vibeReadoutLabel.text = y.ToString();
+                WriteReadout(y.ToString());
                 _readoutPreviewOn = false;
                 return;
             }
@@ -555,8 +735,9 @@ namespace ALWTTT.UI
             float scale = cardProjected ? forecastCardScale : forecastRestScale;
             Color color = cardProjected ? forecastCardColor : forecastRestColor;
             int pct = Mathf.RoundToInt(scale * 100f);
-            vibeReadoutLabel.text =
-                $"{y}<size={pct}%><color=#{ColorUtility.ToHtmlStringRGBA(color)}>{arrow}{z}</color></size>";
+            string forecast = (!cardProjected && y == z) ? $"{y}"
+                : $"{y}<size={pct}%><color=#{ColorUtility.ToHtmlStringRGBA(color)}>{arrow}{z}</color></size>";
+            WriteReadout(forecast + combo);
             _readoutPreviewOn = true;
         }
 
@@ -565,7 +746,7 @@ namespace ALWTTT.UI
             if (!_readoutPreviewOn) return;
             _readoutPreviewOn = false;
             if (vibeReadoutLabel != null && _readoutTotal >= 0)
-                vibeReadoutLabel.text = _readoutTotal.ToString();
+                WriteReadout(_readoutTotal.ToString());
         }
 
         // [BIGNUM-1 / D-BN-7=A] Independent of SetSongHypeVisible. Falls back to the

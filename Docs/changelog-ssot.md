@@ -14,6 +14,31 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-19 — COMBOS-1: combos de banda con nombre en la previsión del Big Num (DEMO-1211, orden 7)
+
+**Clase:** semántico · operativo. Con cambio de código y de tuning (asset de meters); sin cambio de cartas.
+
+- Decisiones: D1 = una mano por loop según quién **entra** (toda la banda a la vez = solo «¡TODA LA BANDA!» +3; si
+  no, parejas SECCIÓN RÍTMICA y A MEDIA LUZ, +2 cada una); D2 = Capas ×1,5^(cadena−1) por loops con entrada nueva,
+  toda la canción, solo con delta > 0, «GRAN CIERRE» en el loop final; D3 = línea del combo bajo el Big Num, contornos
+  naranja, absorción del «+N ×M» y tabla con la C; D4 = valor fijo en Big Num; **D5 = sin coste ★1** (se prueba con F5;
+  fuera por ahora, Claudio 2026-11-19); D6 = combos por relación después de la demo; D7 = sesión completa; D9 = A
+  (canción hasta el Finisher) y B (F5 sin límite de loops), los dos en POST-DEMO.
+- Pedidos de Claudio durante la sesión: **la previsión y los combos valen antes de Play** (el turno antes de Tocar es
+  el loop 1) y **mano inicial separada del robo por turno** (`robo.inicial`, 4; `robo.turno` sigue en 2).
+- Código: `GigManager` (`ComputeLoopHypeDelta` con manos y Capas, `ApplyCardPreview` antes de Play, contornos,
+  `AnnounceCombosAtPayout` con absorción, `RefreshComboTable`, tecla C, `_openingHandDealt`); `CompositionSession`
+  (`IsBuildingBeforePlay`, `PreviewPartIndex`, contextos del loop 1); `GigCanvas` (línea del combo, absorción, tabla
+  con Canvas propio por encima de la barra de la canción); `SpriteOutlineController` (canal de combo);
+  `MeterTuningSO` (*Combos de banda*); `GameplayData.initialHandCount`; `DevTuning`/`DevTuningTab` (3 claves).
+- Verificación: compila fuera de Unity y en Unity; smokes A (mano inicial y combo antes de Play), B (Capas y Gran
+  cierre) y C (toda la banda sin parejas, tabla) PASS (Claudio); `[LEGIB-1a] CHECK` en OK en todos los loops.
+- Docs: `SSoT_Scoring_and_Meters` §3.5 (nuevo); `SSoT_Runtime_CompositionSession_Integration` §14.1 (nuevo);
+  `SSoT_Dev_Mode` §23 (tres filas); `CURRENT_STATE`; plan DEMO-1211 (7 ✅); `ARRANQUE_COMBOS-1.md` archivado;
+  `ARRANQUE_MUSICA-1.md` nuevo; idea `2026-11-19_cancion_hasta_el_finisher.md`; wrapped de combos en
+  `reference/combos-wrapped/`.
+- Abierto: el log `PREVIEW combo` se repite en cada hover (ruido, no error); la idea de la canción hasta el Finisher.
+
 ## 2026-11-17 — DEV-TUNING-1: el menú de ajustes en el juego (F5) y saltar canción (DEMO-1211, orden 6)
 
 **Clase:** semántico (dev) · operativo. Con cambio de código; sin cambio de datos.

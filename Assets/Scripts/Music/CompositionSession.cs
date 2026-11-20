@@ -765,6 +765,8 @@ namespace ALWTTT.Music
 
             ResetBonusLoopState();             // [R5-d] first loop of a part is never bonus
             _loopStartTrackKeys.Clear();       // [LEGIB-1a] tracks laid before loop 1 are new in loop 1
+            _entryLoopsThisSong = 0;           // [COMBOS-1] la cadena de Capas es por canción
+            _comboHandCounts.Clear();          // [COMBOS-1] y la tabla cuenta por canción
 
             float secs = PlaySinglePartLoop(_currentPartIndex);
             if (secs <= 0f) { _ctx.Log("[Session] Failed to start first loop"); return; }
@@ -877,6 +879,84 @@ namespace ALWTTT.Music
             return bandSize >= 2 && allNow && !allAtStart;
         }
 
+        // ── [COMBOS-1] Quién ENTRA en el loop (no quién termina tocando) ─────────
+        // Un músico entra en este loop si tiene pista en <tracks> y ninguna al empezar
+        // el loop. Los combos de mano y la cadena de Capas se leen de aquí, en el pago
+        // y en la previsión, con las mismas claves de inicio de loop (previsto = real).
+        private int _entryLoopsThisSong;
+
+        private readonly Dictionary<string, int> _comboHandCounts = new Dictionary<string, int>();
+
+        /// <summary>[COMBOS-1] Anota una mano cobrada en esta canción (para la tabla de combos).</summary>
+        public void RecordComboHand(string hand)
+        {
+            if (string.IsNullOrEmpty(hand)) return;
+            _comboHandCounts.TryGetValue(hand, out int c);
+            _comboHandCounts[hand] = c + 1;
+        }
+
+        /// <summary>[COMBOS-1] Veces que se cobró la mano en esta canción.</summary>
+        public int ComboHandCount(string hand) =>
+            hand != null && _comboHandCounts.TryGetValue(hand, out int c) ? c : 0;
+
+        /// <summary>[COMBOS-1] Loops de esta canción (ya cobrados) en los que entró al menos un músico.</summary>
+        public int EntryLoopsThisSong => _entryLoopsThisSong;
+
+        private bool MusicianWasPlayingAtLoopStart(string id)
+        {
+            foreach (var k in _loopStartTrackKeys) if (k.Item1 == id) return true;
+            return false;
+        }
+
+        /// <summary>[COMBOS-1] Cuántos músicos entran en este loop (los que no tenían pista al empezarlo).</summary>
+        public int CountMusiciansEnteringThisLoop(IReadOnlyList<LoopTrackSnapshot> tracks)
+        {
+            if (tracks == null) return 0;
+            var seen = new HashSet<string>();
+            foreach (var t in tracks)
+            {
+                string id = t.MusicianId ?? string.Empty;
+                if (id.Length > 0 && !MusicianWasPlayingAtLoopStart(id)) seen.Add(id);
+            }
+            return seen.Count;
+        }
+
+        /// <summary>
+        /// [COMBOS-1] Los músicos que entran en este loop y los roles de sus pistas.
+        /// <paramref name="wholeBandTogether"/>: la banda entera (2 o más) entra a la vez en este loop.
+        /// </summary>
+        public void GetLoopEntries(IReadOnlyList<LoopTrackSnapshot> tracks,
+            List<string> enteringIds, List<TrackRole> enteringRoles,
+            out bool wholeBandTogether, out int bandSize)
+        {
+            enteringIds.Clear();
+            enteringRoles.Clear();
+            wholeBandTogether = false;
+            bandSize = 0;
+            if (tracks == null) return;
+
+            foreach (var t in tracks)
+            {
+                string id = t.MusicianId ?? string.Empty;
+                if (id.Length == 0 || MusicianWasPlayingAtLoopStart(id)) continue;
+                if (!enteringIds.Contains(id)) enteringIds.Add(id);
+                if (!enteringRoles.Contains(t.Role)) enteringRoles.Add(t.Role);
+            }
+
+            var band = _ctx?.Band;
+            if (band == null) return;
+            bool all = true;
+            foreach (var m in band)
+            {
+                string id = m != null && m.MusicianCharacterData != null
+                    ? m.MusicianCharacterData.CharacterId : null;
+                if (string.IsNullOrEmpty(id)) continue;
+                bandSize++;
+                if (!enteringIds.Contains(id)) all = false;
+            }
+            wholeBandTogether = bandSize >= 2 && all;
+        }
+
         // [LEGIB-1a] One snapshot routine for the payout (loop end) and the preview.
         private static List<LoopTrackSnapshot> SnapshotTracks(
             IEnumerable<SongCompositionUI.TrackEntry> tracks)
@@ -930,13 +1010,25 @@ namespace ALWTTT.Music
             // ConfirmCurrentPartAndStart / AdvanceToNextPart set the new state.
             bool loopIsRunning = _isPlaying &&
                 _state != CompositionState.Idle && _state != CompositionState.Ended;
-            if (!loopIsRunning) return false;
-            if (_currentPartIndex < 0 || _currentPartIndex >= model.parts.Count) return false;
+            if (!loopIsRunning && !IsBuildingBeforePlay) return false;   // [COMBOS-1] también antes de Play
+            int pIdx = PreviewPartIndex;
+            if (pIdx < 0 || pIdx >= model.parts.Count) return false;
 
-            var part = model.parts[_currentPartIndex];
+            var part = model.parts[pIdx];
             ctx = MakePreviewContext(ui, part, SnapshotTracks(part.tracks));
             return true;
         }
+
+        /// <summary>
+        /// [COMBOS-1] Antes de pulsar Play: la mesa se está montando y lo que se juega
+        /// sonará en el loop 1. La previsión puntúa ese loop 1 tal como lo pagará el
+        /// final del loop (nadie suena todavía, así que todos «entran»; cadena 1).
+        /// </summary>
+        public bool IsBuildingBeforePlay => !_isPlaying && _state == CompositionState.BuildingCurrentPart;
+
+        // La parte que mira la previsión: la que suena o, antes de Play, la que se monta.
+        private int PreviewPartIndex => IsBuildingBeforePlay
+            ? (_ctx?.CompositionUI?.Model?.CurrentPartIndex ?? 0) : _currentPartIndex;
 
         // [LEGIB-1a] The context the loop-end code will build, minus inspiration
         // (not a ComputeLoopScore input). loopIndex0 as stamped after its decrement.
@@ -944,11 +1036,16 @@ namespace ALWTTT.Music
             SongCompositionUI ui, SongCompositionUI.PartEntry part,
             IReadOnlyList<LoopTrackSnapshot> tracks)
         {
-            int loopIndex0 = _loopsTotalForPart - (_loopsRemainingForPart - 1) - 1;
-            string label = ui.GetPartLabel(_currentPartIndex) ?? $"Part {_currentPartIndex}";
+            // [COMBOS-1] Antes de Play: el loop 1 de la parte que se monta, con los
+            // valores que ConfirmCurrentPartAndStart pondrá al pulsar Play.
+            bool prePlay = IsBuildingBeforePlay;
+            int pIdx = PreviewPartIndex;
+            int loopsTotal = prePlay ? _rules.loopsPerPart : _loopsTotalForPart;
+            int loopIndex0 = prePlay ? 0 : _loopsTotalForPart - (_loopsRemainingForPart - 1) - 1;
+            string label = ui.GetPartLabel(pIdx) ?? $"Part {pIdx}";
             return new LoopFeedbackContext(
-                partIndex: _currentPartIndex, loopIndexWithinPart: loopIndex0,
-                loopsInPart: _loopsTotalForPart, partLabel: label,
+                partIndex: pIdx, loopIndexWithinPart: loopIndex0,
+                loopsInPart: loopsTotal, partLabel: label,
                 inspirationGainedThisLoop: 0, inspirationAfterLoop: _currentInspiration,
                 tracks: tracks, tempoScale: part.tempoScale,
                 timeSignature: part.timeSignature, rootNote: part.rootNote,
@@ -972,15 +1069,16 @@ namespace ALWTTT.Music
             bool loopIsRunning = _isPlaying &&
                 (_state == CompositionState.BuildingNextPart
                  || _state == CompositionState.PlayingCurrentPart);
-            if (!loopIsRunning || IsFinalLoopRunning) return false;
-            if (_currentPartIndex < 0 || _currentPartIndex >= model.parts.Count) return false;
+            if (!(loopIsRunning || IsBuildingBeforePlay) || IsFinalLoopRunning) return false;   // [COMBOS-1]
+            int pIdx = PreviewPartIndex;
+            if (pIdx < 0 || pIdx >= model.parts.Count) return false;
 
             if (comp.RequiresMusicianTarget && target == null && def.RequiresFixedPerformer)
                 target = _ctx.ResolveMusicianByType(def.FixedPerformerType);
             if (def.RequiresMusicianTarget && target == null) return false;
-            if (!ui.CanApplyDefinition(def, target, out _, _currentPartIndex)) return false;
+            if (!ui.CanApplyDefinition(def, target, out _, pIdx)) return false;
 
-            var part = model.parts[_currentPartIndex];
+            var part = model.parts[pIdx];
             var baseTracks = SnapshotTracks(part.tracks);
             var withTracks = new List<LoopTrackSnapshot>(baseTracks);
 
@@ -2401,6 +2499,14 @@ namespace ALWTTT.Music
             list.Add(ctx);
 
             LoopFinished?.Invoke(ctx);
+
+            // [COMBOS-1] Los suscriptores de arriba cobraron este loop con la cadena de
+            // antes (y + 1 si en él entró alguien, igual que la previsión). Ahora cuenta.
+            if (CountMusiciansEnteringThisLoop(ctx.Tracks) > 0)
+            {
+                _entryLoopsThisSong++;
+                Debug.Log($"[COMBOS-1] Capas: loop con entrada nueva, cadena = {_entryLoopsThisSong}");
+            }
 
             // [LEGIB-1a] Subscribers above scored this loop against the old keys;
             // from here on, the next loop's "start" is what the part holds now.

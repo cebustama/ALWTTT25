@@ -704,6 +704,18 @@ forecast and the loop end cannot disagree (`SSoT_Scoring_and_Meters §3.4`,
 - **`TryBuildCardPreviewLoopContexts(def, target, out without, out with, out changeNote)`.** Applies
   the card the way the play would (routing to the current part, `CanApplyDefinition` pre-flight,
   `TryAddOrReplaceTrackOnPart` rule) to a **copy** of the part's track snapshots. Refused when no
-  loop is running or the final-loop lock is on (§5.4). `changeNote` names the change by card
+  loop is running (except before Play, §14.1) or the final-loop lock is on (§5.4). `changeNote` names the change by card
   category for the log.
 - **`SnapshotTracks`.** One snapshot routine shared by `HandleLoopFinished` and both builders.
+
+### 14.1 Previsión antes de Play (COMBOS-1, 2026-11-19)
+
+- **`IsBuildingBeforePlay`** = `!_isPlaying && _state == BuildingCurrentPart`: el turno de composición de una canción
+  nueva, antes de pulsar Tocar.
+- **`PreviewPartIndex`**: antes de Play, la parte que se está construyendo (`CompositionUI.Model.CurrentPartIndex`);
+  después, `_currentPartIndex`.
+- **`TryBuildCurrentLoopContext`** y **`TryBuildCardPreviewLoopContexts`** aceptan también ese estado y construyen el
+  contexto del loop 1 (`loopIndex0 = 0`, `loopsTotal = loopsPerPart`). Con la sesión nueva de cada canción, las
+  claves de inicio están vacías y la cadena de Capas en 0: la previsión es la del pago del loop 1.
+- El host (`GigManager.ApplyCardPreview`) muestra el Big Num antes de Play (Y = 0) y vuelve a calcular la promesa al
+  empezar la canción.

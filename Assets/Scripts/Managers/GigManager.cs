@@ -167,6 +167,7 @@ namespace ALWTTT.Managers
 
         private bool _isSongPlaying;
         private bool _isBetweenSongs;
+        private bool _openingHandDealt;   // [DEV-TUNING-1] el primer turno del gig roba la mano inicial
         private bool _actionWindowOpen = true;
         private bool _returningToMap = false;
         private bool _lossShown = false; // [COH-1]
@@ -1133,6 +1134,8 @@ namespace ALWTTT.Managers
                     songHypeDebugSlider.SetValueWithoutNotify(_songHype);
             }
 
+            TickComboTable();   // [COMBOS-1] C abre la tabla de combos
+
             // toggle instrument picker + volume debug with D
             if (Input.GetKeyDown(KeyCode.D) && dev != null && !ALWTTT.UI.TextEntryGate.IsTyping) // [FEEDBACK-2]
             {
@@ -1415,8 +1418,15 @@ namespace ALWTTT.Managers
                     // M4.5: bidirectional guaranteed draws (subtractive). Total drawn ≤ DrawCount.
                     // Guarantees ≥1 Composition and ≥1 Action in hand when piles allow.
                     // See SSoT_Runtime_Flow §4.2 and DeckManager.DrawCardsForPlayerTurn.
-                    DeckManager.DrawCardsForPlayerTurn(   // [DEV-TUNING-1] robo al empezar el turno
-                        DevTuning.Int(DevTuning.Keys.DrawTurn, GameManager.PersistentGameplayData.DrawCount));
+                    // [DEV-TUNING-1] Mano inicial en el primer turno del gig; después, el robo
+                    // de cada turno. Los dos se ajustan por separado en F5 ▸ Robo.
+                    int turnDraw = _openingHandDealt
+                        ? DevTuning.Int(DevTuning.Keys.DrawTurn, GameManager.PersistentGameplayData.DrawCount)
+                        : DevTuning.Int(DevTuning.Keys.DrawOpening, GameManager.GameplayData.InitialHandCount);
+                    Debug.Log($"{DebugTag} [DEV-TUNING-1] Robo al empezar el turno: {turnDraw} " +
+                              $"({(_openingHandDealt ? "robo del turno" : "mano inicial")})");
+                    _openingHandDealt = true;
+                    DeckManager.DrawCardsForPlayerTurn(turnDraw);
                     GameManager.PersistentGameplayData.CanSelectCards = true;
                     // ---
 
@@ -3228,8 +3238,11 @@ namespace ALWTTT.Managers
         // Shared by payout and preview, so «Y → Z» shows both with no extra code.
         // Overload still multiplies the result afterwards (payout only, declared gap).
         private float ComputeLoopHypeDelta(
-            in LoopFeedbackContext loopCtx, out float loopScore, out string bonusNote)
+            in LoopFeedbackContext loopCtx, out float loopScore, out string bonusNote,
+            ComboEval combos = null)
         {
+            var ev = combos ?? _comboScratch;   // [COMBOS-1]
+            ev.Clear();
             loopScore = LoopScoreCalculator.ComputeLoopScore(
                 loopCtx, meters != null ? meters.LoopScoringConfig : LoopScoringConfig.Default);
             float baseHypeDelta = LoopScoreCalculator.ComputeHypeDelta(
@@ -3257,12 +3270,21 @@ namespace ALWTTT.Managers
                 }
             }
 
-            if (meters.FullBandBonusBigNum > 0
-                && _session.FullBandEnteredThisLoop(loopCtx.Tracks, out int bandSize))
+            // [COMBOS-1] Manos (¡Toda la banda! de LEGIB-1a, con el mismo valor, y las
+            // parejas que entran a la vez) y después Capas, que multiplica el total del loop.
+            EvaluateCombos(loopCtx, ev);
+            for (int i = 0; i < ev.HandNames.Count; i++)
             {
-                delta += meters.FullBandBonusBigNum * hypePerBigNum;
+                delta += ev.HandBonus[i] * hypePerBigNum;
                 bonusNote = (bonusNote != null ? bonusNote + "; " : "") +
-                            $"¡TODA LA BANDA! ({bandSize} músicos) +{meters.FullBandBonusBigNum} Big Num";
+                            $"{ev.HandNames[i]} +{ev.HandBonus[i]} Big Num";
+            }
+            if (ev.Multiplier > 1f && delta > 0f)   // solo loops que suben, como Overload
+            {
+                bonusNote = (bonusNote != null ? bonusNote + "; " : "") +
+                            $"{(ev.FinalLoop ? "GRAN CIERRE" : "CAPAS")} {FormatMult(ev.Multiplier)} " +
+                            $"(cadena {ev.ChainLoops}, ΔHype {delta:F1} -> {delta * ev.Multiplier:F1})";
+                delta *= ev.Multiplier;
             }
 
             return delta;
@@ -3276,7 +3298,7 @@ namespace ALWTTT.Managers
                 return;
 
             // [LEGIB-1a] Shared with PreviewBigNumAtLoopEnd: one implementation.
-            float hypeDelta = ComputeLoopHypeDelta(loopCtx, out float loopScore, out string bonusNote);
+            float hypeDelta = ComputeLoopHypeDelta(loopCtx, out float loopScore, out string bonusNote, _comboPaid);
             if (bonusNote != null)
                 Debug.Log($"{DebugTag} [LEGIB-1a] BONUS al acabar el loop: {bonusNote}");
 
@@ -3292,7 +3314,9 @@ namespace ALWTTT.Managers
 
             // Flow → SongHype path RETIRED (M4.2). Removed entirely.
 
+            AnnounceCombosAtPayout(_comboPaid, hypeDelta);   // [COMBOS-1] antes de sumar: el Big Num lo absorbe
             AddSongHype(hypeDelta);
+            RefreshComboTable();
 
             Log($"{DebugTag} [Gig] Loop finished. " +
                 $"Score={loopScore:F1}, ΔHype={hypeDelta:F1}" +
@@ -4777,6 +4801,300 @@ namespace ALWTTT.Managers
             }
             _previewShownDef = null;
             _previewPromisedBigNum = -1;
+            _previewShownCombo = null;
+            SetComboOutlines(null, null);   // [COMBOS-1]
+        }
+
+        // ── [COMBOS-1] Combos de banda ───────────────────────────────────────
+        // D1: cuenta quién ENTRA a la vez en el loop, no quién termina tocando. Cada
+        //     entrada vale su mejor «mano»: si entra la banda entera de golpe, solo
+        //     «¡Toda la banda!» (el bonus de LEGIB-1a, mismo valor); si no, las parejas
+        //     con nombre que entran juntas.
+        // D2: Capas. Cada loop de la canción con al menos una entrada multiplica lo que
+        //     suma el loop por f (1.º ×1, 2.º ×f, 3.º ×f²…), acumulado toda la canción;
+        //     el loop final del Finisher lo cobra («GRAN CIERRE»).
+        // Todo se calcula dentro de ComputeLoopHypeDelta: la previsión y el pago son la
+        // misma función (LEGIB-1a, previsto = real).
+        public const string ComboTag = "[COMBOS-1]";
+        private const string ComboFullBand = "¡TODA LA BANDA!";
+        private const string ComboRhythmSection = "SECCIÓN RÍTMICA";
+        private const string ComboIntimate = "A MEDIA LUZ";
+        private static readonly Color ComboOutlineColor = new Color(1f, 0.62f, 0.15f, 1f);
+
+        private sealed class ComboEval
+        {
+            public readonly List<string> HandNames = new List<string>();
+            public readonly List<int> HandBonus = new List<int>();
+            public readonly List<List<string>> HandMusicians = new List<List<string>>();
+            public bool ExtendsChain;     // en este loop entra al menos un músico
+            public int ChainLoops;        // loops con entrada en la canción, este incluido
+            public float Multiplier = 1f; // Capas
+            public bool FinalLoop;        // loop final (Finisher)
+
+            public int HandBonusBigNum { get { int s = 0; foreach (var b in HandBonus) s += b; return s; } }
+
+            public void Clear()
+            {
+                HandNames.Clear(); HandBonus.Clear(); HandMusicians.Clear();
+                ExtendsChain = false; ChainLoops = 0; Multiplier = 1f; FinalLoop = false;
+            }
+
+            public bool HasHand(string name) => HandNames.Contains(name);
+        }
+
+        private readonly ComboEval _comboRest = new ComboEval();
+        private readonly ComboEval _comboCard = new ComboEval();
+        private readonly ComboEval _comboPaid = new ComboEval();
+        private readonly ComboEval _comboScratch = new ComboEval();
+        private readonly List<string> _comboIds = new List<string>();
+        private readonly List<TrackRole> _comboRoles = new List<TrackRole>();
+        private readonly HashSet<string> _comboOutlined = new HashSet<string>();
+        private readonly HashSet<string> _comboOutlineWanted = new HashSet<string>();
+        private bool _comboTableOpen;
+
+        private int ComboPairBonus =>
+            meters == null ? 0 : DevTuning.Int(DevTuning.Keys.ComboPair, meters.ComboPairBonusBigNum);
+        private float ComboLayersStep =>
+            meters == null ? 1f : Mathf.Max(1f, DevTuning.Float(DevTuning.Keys.ComboLayers, meters.LayersMultiplierStep));
+
+        private static string FormatMult(float m) =>
+            "×" + m.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
+
+        private void EvaluateCombos(in LoopFeedbackContext ctx, ComboEval ev)
+        {
+            ev.Clear();
+            if (_session == null || meters == null) return;
+
+            _session.GetLoopEntries(ctx.Tracks, _comboIds, _comboRoles, out bool wholeBandTogether, out _);
+
+            // La banda completa por primera vez (el bonus de LEGIB-1a, sin cambios).
+            if (meters.FullBandBonusBigNum > 0 && _session.FullBandEnteredThisLoop(ctx.Tracks, out _))
+            {
+                var ids = new List<string>();
+                if (ctx.Tracks != null)
+                    foreach (var t in ctx.Tracks)
+                        if (!string.IsNullOrEmpty(t.MusicianId) && !ids.Contains(t.MusicianId)) ids.Add(t.MusicianId);
+                AddHand(ev, ComboFullBand, meters.FullBandBonusBigNum, ids);
+            }
+
+            // Parejas que entran a la vez. Si entra la banda entera de golpe, la mano es
+            // «Toda la banda» y las parejas no cuentan (D1: la mejor mano).
+            int pair = ComboPairBonus;
+            if (!wholeBandTogether && pair > 0)
+            {
+                TryPair(ctx, ev, TrackRole.Rhythm, TrackRole.Bassline, ComboRhythmSection, pair);
+                TryPair(ctx, ev, TrackRole.Backing, TrackRole.Melody, ComboIntimate, pair);
+            }
+
+            // Capas.
+            ev.ExtendsChain = _comboIds.Count > 0;
+            ev.ChainLoops = _session.EntryLoopsThisSong + (ev.ExtendsChain ? 1 : 0);
+            ev.Multiplier = ev.ChainLoops <= 1 ? 1f : Mathf.Pow(ComboLayersStep, ev.ChainLoops - 1);
+            ev.FinalLoop = _session.CurrentLoopIsBonus;
+        }
+
+        private void TryPair(in LoopFeedbackContext ctx, ComboEval ev, TrackRole a, TrackRole b, string name, int bonus)
+        {
+            if (ctx.Tracks == null) return;
+            string ida = null, idb = null;
+            foreach (var t in ctx.Tracks)
+            {
+                if (string.IsNullOrEmpty(t.MusicianId) || !_comboIds.Contains(t.MusicianId)) continue;
+                if (t.Role == a && ida == null) ida = t.MusicianId;
+                if (t.Role == b && idb == null) idb = t.MusicianId;
+            }
+            if (ida == null || idb == null) return;
+            var ids = new List<string> { ida };
+            if (idb != ida) ids.Add(idb);
+            AddHand(ev, name, bonus, ids);
+        }
+
+        private static void AddHand(ComboEval ev, string name, int bonus, List<string> ids)
+        {
+            ev.HandNames.Add(name);
+            ev.HandBonus.Add(bonus);
+            ev.HandMusicians.Add(ids);
+        }
+
+        // Una línea para la etiqueta del Big Num: las manos y el multiplicador.
+        private string ComboLine(ComboEval ev, ComboEval exceptHandsOf)
+        {
+            var parts = new List<string>();
+            for (int i = 0; i < ev.HandNames.Count; i++)
+                if (exceptHandsOf == null || !exceptHandsOf.HasHand(ev.HandNames[i]))
+                    parts.Add($"{ev.HandNames[i]} +{ev.HandBonus[i]}");
+            bool showMult = ev.Multiplier > 1f
+                && (exceptHandsOf == null || ev.Multiplier > exceptHandsOf.Multiplier + 1e-4f);
+            if (showMult)
+                parts.Add(ev.FinalLoop ? $"GRAN CIERRE {FormatMult(ev.Multiplier)}" : $"CAPAS {FormatMult(ev.Multiplier)}");
+            return parts.Count == 0 ? null : string.Join(" · ", parts);
+        }
+
+        private string DescribeCombos(ComboEval ev)
+        {
+            var hands = new List<string>();
+            for (int i = 0; i < ev.HandNames.Count; i++)
+                hands.Add($"{ev.HandNames[i]} +{ev.HandBonus[i]} ({string.Join("+", ev.HandMusicians[i])})");
+            return $"manos=[{string.Join(", ", hands)}] entra={(ev.ExtendsChain ? "sí" : "no")} " +
+                   $"cadena={ev.ChainLoops} mult={FormatMult(ev.Multiplier)}{(ev.FinalLoop ? " LOOP FINAL" : "")}";
+        }
+
+        // [COMBOS-1 / D3] Contornos: los músicos de las manos que la carta completaría.
+        private void SetComboOutlines(ComboEval cardEv, ComboEval restEv)
+        {
+            _comboOutlineWanted.Clear();
+            if (cardEv != null)
+                for (int i = 0; i < cardEv.HandNames.Count; i++)
+                    if (restEv == null || !restEv.HasHand(cardEv.HandNames[i]))
+                        foreach (var id in cardEv.HandMusicians[i]) _comboOutlineWanted.Add(id);
+
+            if (_comboOutlineWanted.SetEquals(_comboOutlined)) return;
+            var band = CurrentMusicianCharacterList;
+            if (band != null)
+                foreach (var m in band)
+                {
+                    if (m == null || m.SpriteOutline == null || m.MusicianCharacterData == null) continue;
+                    bool on = _comboOutlineWanted.Contains(m.MusicianCharacterData.CharacterId);
+                    m.SpriteOutline.SetComboHighlight(on, ComboOutlineColor);
+                }
+            _comboOutlined.Clear();
+            _comboOutlined.UnionWith(_comboOutlineWanted);
+            if (_comboOutlined.Count > 0)
+                Debug.Log($"{DebugTag} {ComboTag} CONTORNO: {string.Join(", ", _comboOutlined)}");
+        }
+
+        private MusicianBase FindMusician(string id)
+        {
+            var band = CurrentMusicianCharacterList;
+            if (band == null || string.IsNullOrEmpty(id)) return null;
+            foreach (var m in band)
+                if (m != null && m.MusicianCharacterData != null && m.MusicianCharacterData.CharacterId == id) return m;
+            return null;
+        }
+
+        // [COMBOS-1 / D3] Al cobrar: nombre de cada mano sobre sus músicos y el
+        // multiplicador que vuela al Big Num. Llamar ANTES de AddSongHype.
+        private void AnnounceCombosAtPayout(ComboEval ev, float hypeDelta)
+        {
+            Debug.Log($"{DebugTag} {ComboTag} PAGO: {DescribeCombos(ev)} ΔHype={hypeDelta:F1}");
+
+            for (int i = 0; i < ev.HandNames.Count; i++)
+            {
+                _session?.RecordComboHand(ev.HandNames[i]);
+                var m = ev.HandMusicians[i].Count > 0 ? FindMusician(ev.HandMusicians[i][0]) : null;
+                if (m != null && m.TextSpawnRoot != null && FxManager.Instance != null)
+                    FxManager.Instance.SpawnFloatingText(m.TextSpawnRoot,
+                        $"{ev.HandNames[i]} +{ev.HandBonus[i]}", new Vector2(0.4f, 1.4f), ComboOutlineColor);
+            }
+
+            // [COMBOS-1] Lo que suma el combo (el «+2» de las manos y el ×N de Capas) vuela
+            // al Big Num al cobrarse: así se ve que se suma AL ACABAR EL LOOP, no al jugar.
+            int handTotal = 0;
+            for (int i = 0; i < ev.HandBonus.Count; i++) handTotal += ev.HandBonus[i];
+            bool mult = ev.Multiplier > 1f && hypeDelta > 0f;
+            if ((handTotal > 0 || mult) && UIManager != null && UIManager.GigCanvas != null)
+            {
+                Vector3 from = Vector3.zero;
+                int n = 0;
+                var band = CurrentMusicianCharacterList;
+                if (band != null)
+                    foreach (var m in band)
+                        if (m != null && m.TextSpawnRoot != null) { from += m.TextSpawnRoot.position; n++; }
+                if (n > 0) from /= n;
+                string label = handTotal > 0 ? $"+{handTotal}" : "";
+                if (mult)
+                    label += (label.Length > 0 ? " " : "") +
+                             (ev.FinalLoop ? $"GRAN CIERRE {FormatMult(ev.Multiplier)}" : FormatMult(ev.Multiplier));
+                UIManager.GigCanvas.PlayComboAbsorb(label, from);
+            }
+        }
+
+        // ── [COMBOS-1 / D3] Tabla de combos (C), como la de manos de Balatro ──
+        private void TickComboTable()
+        {
+            if (Input.GetKeyDown(KeyCode.C) && !ALWTTT.UI.TextEntryGate.IsTyping)
+            {
+                _comboTableOpen = !_comboTableOpen;
+                Debug.Log($"{DebugTag} {ComboTag} Tabla de combos {(_comboTableOpen ? "abierta" : "cerrada")}");
+                RefreshComboTable();
+            }
+        }
+
+        private void RefreshComboTable()
+        {
+            var canvas = UIManager != null ? UIManager.GigCanvas : null;
+            if (canvas == null) return;
+            if (!_comboTableOpen) { canvas.SetComboTable(false, null); return; }
+
+            // Quién toca cada rol en esta banda (por las cartas de composición del mazo).
+            // Los Finisher no cuentan: no abren pista y su rol de payload es el de por
+            // defecto (Overload de Conito salía como «ritmo»). Si dos músicos tienen
+            // cartas del mismo rol (bajo de Conito y de Sibi), salen los dos con «/».
+            var whoByRoleList = new Dictionary<TrackRole, List<string>>();
+            var deck = GameManager.PersistentGameplayData?.CurrentCompositionCards;
+            var band = CurrentMusicianCharacterList;
+            if (deck != null && band != null)
+                foreach (var card in deck)
+                {
+                    if (card == null || card.IsFinisher || !card.RequiresFixedPerformer) continue;
+                    var role = card.CompositionPayload?.TrackAction?.role;
+                    if (role == null) continue;
+                    foreach (var m in band)
+                        if (m != null && m.MusicianCharacterData != null
+                            && m.MusicianCharacterData.CharacterType == card.FixedPerformerType)
+                        {
+                            if (!whoByRoleList.TryGetValue(role.Value, out var names))
+                                whoByRoleList[role.Value] = names = new List<string>();
+                            string nm = m.MusicianCharacterData.CharacterName;
+                            if (!names.Contains(nm)) names.Add(nm);
+                            break;
+                        }
+                }
+            var whoByRole = new Dictionary<TrackRole, string>();
+            foreach (var kv in whoByRoleList) whoByRole[kv.Key] = string.Join("/", kv.Value);
+
+            int pair = ComboPairBonus;
+            int full = meters != null ? meters.FullBandBonusBigNum : 0;
+            float step = ComboLayersStep;
+            int chain = _session != null && _session.IsActive ? _session.EntryLoopsThisSong : 0;
+            float multNow = chain <= 1 ? 1f : Mathf.Pow(step, chain - 1);
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("<size=120%><b>COMBOS</b></size>   <size=80%><alpha=#99>(C para cerrar)</size><alpha=#FF>\n");
+            sb.Append("<alpha=#99><size=80%>Cuenta quién ENTRA a tocar en el mismo loop.</size><alpha=#FF>\n\n");
+            sb.Append("<b>Combo<pos=26%>Quién<pos=62%>Vale<pos=74%>Esta canción</b>\n");
+
+            void Row(string name, string who, string value, string song, bool possible)
+            {
+                if (!possible) sb.Append("<alpha=#55>");
+                sb.Append(name).Append("<pos=26%>").Append(who).Append("<pos=62%>").Append(value)
+                  .Append("<pos=74%>").Append(song).Append('\n');
+                if (!possible) sb.Append("<alpha=#FF>");
+            }
+            string Count(string hand)
+            {
+                int c = _session != null ? _session.ComboHandCount(hand) : 0;
+                return c == 0 ? "—" : (c == 1 ? "1 vez" : $"{c} veces");
+            }
+            string Pair(TrackRole a, TrackRole b, out bool ok)
+            {
+                ok = whoByRole.TryGetValue(a, out var wa) & whoByRole.TryGetValue(b, out var wb);
+                return ok ? $"{wa} + {wb}" : "(no en esta banda)";
+            }
+
+            string w1 = Pair(TrackRole.Rhythm, TrackRole.Bassline, out bool ok1);
+            Row("Sección rítmica", w1, $"+{pair}", Count(ComboRhythmSection), ok1 && pair > 0);
+            string w2 = Pair(TrackRole.Backing, TrackRole.Melody, out bool ok2);
+            Row("A media luz", w2, $"+{pair}", Count(ComboIntimate), ok2 && pair > 0);
+            Row("¡Toda la banda!", "la banda completa", $"+{full}", Count(ComboFullBand), full > 0);
+            Row("Capas", "cada loop con alguien nuevo", FormatMult(step),
+                chain == 0 ? "—" : $"cadena {chain} · {FormatMult(multNow)}", step > 1f);
+            Row("Gran cierre", "el Finisher", "Capas",
+                _session != null && _session.CurrentLoopIsBonus ? FormatMult(multNow) : "—", step > 1f);
+            sb.Append("\n<alpha=#99><size=80%>Si la banda entera entra de golpe, solo cuenta ¡Toda la banda!.\n" +
+                      $"Capas se acumula: {FormatMult(step)} en el 2.º loop con entrada nueva, {FormatMult(step * step)} en el 3.º… y dura toda la canción.</size>");
+
+            canvas.SetComboTable(true, sb.ToString());
         }
 
         // ── [LEGIB-1a] Big Num forecast: «Y → Z» ────────────────────────────
@@ -4791,6 +5109,7 @@ namespace ALWTTT.Managers
         private CardDefinition _previewShownDef;     // card whose «Y → Z» is on screen
         private int _previewShownY = -1, _previewShownZ = -1;
         private int _previewPromisedBigNum = -1;     // resting Z in force (loop-end CHECK)
+        private string _previewShownCombo;           // [COMBOS-1] combo line on screen
 
         /// <summary>
         /// [LEGIB-1a] Called by HandController whenever the hovered/held card or its
@@ -4810,6 +5129,7 @@ namespace ALWTTT.Managers
         {
             _previewShownDef = null;
             ApplyCardPreview();
+            RefreshComboTable();   // [COMBOS-1]
 
             // [ECON-2] Empieza el loop final: todos los Finisher en cola estallan a la vez
             // (sus solos ya se renderizaron; aquí van sus efectos y su cartel).
@@ -4949,8 +5269,13 @@ namespace ALWTTT.Managers
             var canvas = UIManager != null ? UIManager.GigCanvas : null;
             if (canvas == null) return;
 
+            // [COMBOS-1] Antes de Play también: lo que se monta suena en el loop 1 y
+            // allí se cobra. Se enseña el Big Num para que la previsión se vea.
+            bool prePlay = _session != null && _session.IsBuildingBeforePlay;
+            if (prePlay && !_vibeProjectionActive)
+                canvas.SetVibeReadoutVisible(presentation == null || presentation.ShowVibeReadout);
             LoopFeedbackContext restCtx = default;
-            bool restOk = _vibeProjectionActive && _session != null
+            bool restOk = (_vibeProjectionActive || prePlay) && _session != null
                 && _session.TryBuildCurrentLoopContext(out restCtx);
             if (!restOk)
             {
@@ -4959,11 +5284,12 @@ namespace ALWTTT.Managers
                 canvas.ClearVibeReadoutPreview();
                 _previewShownDef = null;
                 _previewShownY = _previewShownZ = -1;
+                SetComboOutlines(null, null);   // [COMBOS-1]
                 return;
             }
 
             int y = CurrentBigNum();
-            int zRest = PreviewBigNumAtLoopEnd(restCtx, out string restBonus);
+            int zRest = PreviewBigNumAtLoopEnd(restCtx, out string restBonus, _comboRest);
             _previewPromisedBigNum = zRest;
 
             var def = _previewDef;
@@ -4976,14 +5302,25 @@ namespace ALWTTT.Managers
 
             int z = zRest;
             string bonusNote = restBonus;
-            if (cardOk) z = PreviewBigNumAtLoopEnd(withCard, out bonusNote);
+            if (cardOk) z = PreviewBigNumAtLoopEnd(withCard, out bonusNote, _comboCard);
+
+            // [COMBOS-1 / D3] Lo que la carta añade (manos nuevas, más Capas) y, en reposo,
+            // lo que el loop ya tiene. Los músicos de las manos nuevas se encienden.
+            string comboLine = cardOk ? ComboLine(_comboCard, _comboRest) : null;
+            if (comboLine == null) comboLine = ComboLine(_comboRest, null);
+            SetComboOutlines(cardOk ? _comboCard : null, _comboRest);
 
             var shownDef = cardOk ? def : null;
-            bool changed = shownDef != _previewShownDef || y != _previewShownY || z != _previewShownZ;
+            bool changed = shownDef != _previewShownDef || y != _previewShownY || z != _previewShownZ
+                || comboLine != _previewShownCombo;
             _previewShownDef = shownDef;
             _previewShownY = y;
             _previewShownZ = z;
-            canvas.SetVibeReadoutPreview(y, z, cardOk);
+            _previewShownCombo = comboLine;
+            canvas.SetVibeReadoutPreview(y, z, cardOk, comboLine);
+            if (changed && comboLine != null)
+                Debug.Log($"{DebugTag} {ComboTag} PREVIEW combo: «{comboLine}» | " +
+                    $"{(cardOk ? "carta " + DescribeCombos(_comboCard) + " | " : "")}reposo {DescribeCombos(_comboRest)}");
 
             if (!changed) return;
             if (cardOk)
@@ -4999,11 +5336,13 @@ namespace ALWTTT.Managers
 
         // The Big Num the loop-end refresh will show if this loop is scored with
         // ctx: same delta, same clamp, same SFX gate as AddSongHypeCore → readout.
-        private int PreviewBigNumAtLoopEnd(in LoopFeedbackContext ctx, out string bonusNote)
+        private int PreviewBigNumAtLoopEnd(in LoopFeedbackContext ctx, out string bonusNote,
+            ComboEval combos = null)
         {
             bonusNote = null;
+            combos?.Clear();
             float delta = (dev != null && dev.DebugSongHype)
-                ? 0f : ComputeLoopHypeDelta(ctx, out _, out bonusNote);   // AddSongHype's guard
+                ? 0f : ComputeLoopHypeDelta(ctx, out _, out bonusNote, combos);   // AddSongHype's guard
 
             float max = meters != null ? meters.MaxSongHype : 0f;
             float before = max <= 0f ? 0f : Mathf.Clamp01(_songHype / max);

@@ -154,6 +154,39 @@ forecast cannot drift from the payout ("the number you see is the number that ha
 D-DIAG-2). Tuning: `MeterTuningSO` → *Loop Bonuses (Big Num units)*; 0 turns either rule off.
 Overload still multiplies the result afterwards and is the one term the forecast does not predict.
 
+### 3.5 Combos de banda (COMBOS-1, 2026-11-19)
+
+Encima de §3.4, en la misma `GigManager.ComputeLoopHypeDelta` (previsto = real), con el nombre del combo en la
+previsión del Big Num. Decisiones de Claudio: D1–D3 y D9 de la sesión COMBOS-1.
+
+```text
+mano (una sola por loop, D1):
+  si entra toda la banda a la vez            → «¡TODA LA BANDA!» = FullBandBonusBigNum (§3.4, sin parejas)
+  si no, por cada pareja que entra completa:
+    Rhythm + Bassline                        → «SECCIÓN RÍTMICA»  +ComboPairBonusBigNum (2)
+    Backing + Melody                         → «A MEDIA LUZ»      +ComboPairBonusBigNum (2)
+Capas (D2):  hypeDelta × LayersMultiplierStep^(cadena − 1)    solo si hypeDelta > 0
+  cadena = loops de la canción con al menos una entrada nueva, contando el actual
+```
+
+- **«Entra»** = la clave `(músico, rol)` no estaba al empezar el loop (las mismas claves de §3.4).
+- **Capas dura toda la canción.** Un loop sin entradas no suma eslabón, pero sigue multiplicando con la cadena que
+  hay. En el loop final del Finisher se muestra como **«GRAN CIERRE ×N»**. Una canción nueva empieza en cadena 0.
+- **Antes de Play cuenta como loop 1.** La previsión funciona en el turno de composición antes de pulsar Tocar
+  (`SSoT_Runtime_CompositionSession_Integration §14.1`), así que lo jugado antes de Play ya enseña su combo.
+- **Cómo se ve (D3).** La línea del combo bajo el Big Num («SECCIÓN RÍTMICA +2 · CAPAS ×1,5»); al pasar la carta,
+  contorno naranja en los músicos del combo (`SpriteOutlineController.SetComboHighlight`, canal por debajo del hover);
+  al cobrar, el flotante sobre la banda y la absorción: «+N ×M» vuela al Big Num y el número cambia cuando llega.
+  **Tabla de combos con la tecla C** (`GigCanvas.SetComboTable`): combo, quién (por las cartas del mazo), valor y lo
+  conseguido en esta canción.
+- **Ajuste.** `MeterTuningSO` → *Combos de banda* (`comboPairBonusBigNum` 2, `layersMultiplierStep` 1,5); en la build,
+  F5 ▸ Combos (`combo.pareja`, `combo.capas`, `SSoT_Dev_Mode §23`). 0 y 1 apagan cada regla.
+- **Fuera de la demo:** coste ★1 de las composiciones (D5, «jugar pensando»: se prueba con F5 «una en total»);
+  combos por relación (D6); que la canción dure hasta el Finisher (D9 = A) y el ajuste F5 de canciones sin límite de
+  loops (D9 = B), en POST-DEMO.
+- **Logs** `[COMBOS-1] PREVIEW combo: «…» | carta manos=[…] entra=… cadena=… mult=…`, `PAGO: … ΔHype=…`,
+  `Absorción: «…» vuela al Big Num`, `Capas: loop con entrada nueva, cadena = N`, `CONTORNO: …`.
+
 ---
 
 ## 4. SongHype

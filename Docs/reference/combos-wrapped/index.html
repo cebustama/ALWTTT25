@@ -1,0 +1,608 @@
+<title>Combos de banda</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Figtree:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* Concepto: hoja de ruta de la sesión COMBOS-1 como el cartel de la gira (mismo escenario de noche que el plan).
+   Tres familias de combo = tres focos: juntos (cian), orden (naranja), relación (violeta). Un solo tema oscuro, a propósito. */
+:root{
+  --stage:#120f1b; --stage-2:#1b1729; --stage-3:#262038; --line:#3a3354;
+  --ink:#f3ede0; --ink-2:#bdb4cc; --ink-3:#8a819e;
+  --juntos:#4fd6c8; --orden:#ff9a4a; --relacion:#a995ff; --gold:#ffcf4a; --bad:#ff6b7a; --ok:#9be36b;
+  --display:"Bowlby One SC","Arial Black",Impact,sans-serif;
+  --body:"Figtree","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--stage);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 72px;display:grid;grid-template-columns:minmax(0,1fr);gap:72px}
+section{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.05;text-wrap:balance}
+h1{font-size:clamp(2.6rem,8vw,5.2rem)}
+h2{font-size:clamp(1.6rem,4vw,2.4rem)}
+h3{font-size:1.05rem;letter-spacing:.01em}
+p{margin:0;max-width:68ch}
+a{color:var(--juntos)}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lede{color:var(--ink-2);font-size:1.08rem}
+.note{color:var(--ink-3);font-size:.88rem}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+b{color:var(--ink)}
+.ia{font-family:var(--mono);font-size:.72rem;color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:4px;padding:0 5px;margin-left:4px;white-space:nowrap}
+
+/* portada */
+.hero{position:relative;display:grid;gap:20px}
+.hero::before{content:"";position:absolute;inset:-60px -20% auto;height:480px;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side at 78% 30%,color-mix(in srgb,var(--orden) 20%,transparent),transparent),
+             radial-gradient(closest-side at 18% 20%,color-mix(in srgb,var(--juntos) 16%,transparent),transparent),
+             radial-gradient(closest-side at 55% 70%,color-mix(in srgb,var(--relacion) 12%,transparent),transparent)}
+.bignum{font-family:var(--display);font-size:clamp(3rem,10vw,6rem);line-height:1;display:flex;align-items:baseline;gap:.25em;flex-wrap:wrap}
+.bignum .z{color:var(--gold);font-size:.6em}
+.bignum .tag{font-family:var(--mono);font-size:.9rem;color:var(--juntos);letter-spacing:.08em;align-self:center;border:1px solid var(--juntos);padding:3px 8px;border-radius:4px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{border-top:2px solid var(--line);padding-top:10px;display:grid;gap:2px}
+.stat b{font-family:var(--display);font-weight:400;font-size:2.1rem;line-height:1}
+.stat span{color:var(--ink-2);font-size:.9rem}
+
+/* calendario */
+.cal{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;overflow-x:auto}
+.day{background:var(--stage-2);border:1px solid var(--line);border-radius:6px;padding:8px 6px;display:grid;gap:4px;min-height:84px;font-size:.78rem}
+.day .d{font-family:var(--mono);color:var(--ink-3);font-size:.72rem}
+.day .s{font-weight:800;font-size:.8rem}
+.day.now{border-color:var(--orden)}
+.day.freeze{border-color:var(--bad)}
+.order{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{font-family:var(--mono);font-size:.78rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--stage-2)}
+.pill.must{border-color:var(--bad);color:var(--ink)}
+.pill.here{border-color:var(--orden);background:color-mix(in srgb,var(--orden) 18%,var(--stage-2))}
+.arrow{color:var(--ink-3)}
+
+/* problema */
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}.cal{grid-template-columns:repeat(9,92px)}}
+.quote{border-left:3px solid var(--relacion);padding:4px 0 4px 14px;color:var(--ink-2);font-size:1.02rem}
+.quote cite{display:block;font-style:normal;font-family:var(--mono);font-size:.74rem;color:var(--ink-3);margin-top:4px}
+.panel{background:var(--stage-2);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px;min-width:0}
+.diag{width:100%;height:auto;display:block}
+
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;align-items:stretch}
+.pipe .n{background:var(--stage-2);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:4px;font-size:.86rem;min-width:0}
+.pipe .n code{font-family:var(--mono);font-size:.72rem;color:var(--juntos);word-break:break-word}
+.pipe .n.hl{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--stage-2))}
+@media (max-width:760px){.pipe{grid-template-columns:minmax(0,1fr)}}
+
+/* referencias */
+.fams{display:grid;gap:28px}
+.fam{display:grid;gap:12px}
+.famhead{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.famhead h3{font-size:1.35rem}
+.fam.juntos h3{color:var(--juntos)} .fam.orden h3{color:var(--orden)} .fam.relacion h3{color:var(--relacion)}
+.refs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ref{background:var(--stage-2);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:8px;align-content:start;min-width:0}
+.fam.juntos .ref{border-top:3px solid var(--juntos)} .fam.orden .ref{border-top:3px solid var(--orden)} .fam.relacion .ref{border-top:3px solid var(--relacion)}
+.ref .game{font-weight:800}
+.ref .what{color:var(--ink-2);font-size:.9rem}
+.ref .take{font-size:.86rem}
+.ref .take b{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ok);margin-right:4px}
+.ref .take.no b{color:var(--bad)}
+.ref img{border-radius:6px;border:1px solid var(--line);width:100%;height:auto}
+.ref .src{font-family:var(--mono);font-size:.7rem;color:var(--ink-3);word-break:break-all}
+
+/* tabla familias */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.9rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+td.y{color:var(--ok)} td.n{color:var(--bad)} td.m{color:var(--gold)}
+
+/* simulador */
+.sim{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px}
+@media (max-width:860px){.sim{grid-template-columns:minmax(0,1fr)}}
+.grid{display:grid;grid-template-columns:minmax(96px,1.2fr) repeat(3,minmax(0,1fr));gap:6px;align-items:stretch}
+.grid .h{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);text-align:center;align-self:end}
+.grid .who{display:grid;font-size:.86rem;line-height:1.2;align-content:center}
+.grid .who small{color:var(--ink-3);font-size:.74rem}
+.cell{appearance:none;border:1px dashed var(--line);background:transparent;border-radius:6px;min-height:46px;color:var(--ink-3);font:inherit;font-size:.78rem;cursor:pointer}
+.cell:hover{border-color:var(--ink-3)}
+.cell:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.cell.on{border-style:solid;color:var(--stage);font-weight:800}
+.cell.on.c2{background:#ff8f6b;border-color:#ff8f6b} .cell.on.co{background:#ffcf4a;border-color:#ffcf4a}
+.cell.on.si{background:#a995ff;border-color:#a995ff} .cell.on.zi{background:#4fd6c8;border-color:#4fd6c8}
+.cell.after{border-style:solid;border-color:var(--stage-3);background:var(--stage-3)}
+.controls{display:flex;flex-wrap:wrap;gap:8px}
+button.btn{appearance:none;border:1px solid var(--line);background:var(--stage-3);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:.82rem;cursor:pointer}
+button.btn:hover{border-color:var(--ink-3)}
+button.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);padding:6px 12px;font:inherit;font-size:.8rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--stage-3);color:var(--ink);font-weight:700}
+.toggle{display:flex;gap:8px;align-items:center;font-size:.88rem;color:var(--ink-2)}
+.models{display:grid;gap:10px}
+.model{background:var(--stage-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
+.model.rec{border-color:var(--gold)}
+.model .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.model .name{font-weight:800}
+.model .tot{font-family:var(--display);font-size:1.8rem;line-height:1;color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:.72rem;padding:3px 8px;border-radius:4px;background:var(--stage-3);color:var(--ink)}
+.chip.j{box-shadow:inset 3px 0 0 var(--juntos)} .chip.o{box-shadow:inset 3px 0 0 var(--orden)} .chip.f{box-shadow:inset 3px 0 0 var(--gold)}
+.chip.none{color:var(--ink-3);background:transparent;border:1px dashed var(--line)}
+.verdict{font-size:.9rem;color:var(--ink-2)}
+
+/* decisiones */
+.dec{display:grid;gap:12px;border-top:1px solid var(--line);padding-top:18px}
+.dec .q{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.dec .id{font-family:var(--display);font-size:1.5rem;color:var(--gold)}
+.dec .qt{font-weight:800;font-size:1.06rem}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.opt{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:4px;align-content:start;background:var(--stage-2)}
+.opt .l{font-family:var(--mono);font-size:.74rem;color:var(--ink-3)}
+.opt.rec{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--stage-2))}
+.opt.rec .l{color:var(--gold)}
+.why{font-size:.92rem;color:var(--ink-2)}
+.why b{color:var(--gold)}
+ul.clean{margin:0;padding-left:1.1em;display:grid;gap:6px;max-width:72ch}
+.sources{columns:2 320px;gap:24px;font-size:.84rem}
+.sources li{break-inside:avoid;margin-bottom:6px}
+@media (prefers-reduced-motion:no-preference){.model .tot{transition:color .2s}}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">ALWTTT · DEMO-1211 · Sesión COMBOS-1 · 2026-11-17</div>
+  <h1>Combos de banda</h1>
+  <div class="bignum" aria-label="Ejemplo de previsión del Big Num con combo">12<span class="z">→ 15</span><span class="tag">SECCIÓN RÍTMICA +1</span></div>
+  <p class="lede">Matías dijo dos cosas en la reunión del 12-nov: los combos «se sienten MUY bien» y las cartas «se juegan sin pensar». Esta página reúne lo que hay, lo que hacen otros juegos y lo que toca decidir, para que los combos arreglen también lo segundo.</p>
+  <div class="stats">
+    <div class="stat"><b class="mono">5</b><span>sesiones hasta la congelación (vie 27-nov)</span></div>
+    <div class="stat"><b class="mono">1</b><span>función que paga y prevé: <span class="mono">ComputeLoopHypeDelta</span></span></div>
+    <div class="stat"><b class="mono">3 + 1</b><span>loops por canción, más el loop final del Finisher</span></div>
+    <div class="stat"><b class="mono">14</b><span>referencias, 3 de ellas tuyas</span></div>
+  </div>
+</header>
+
+<section>
+  <div class="eyebrow">Calendario</div>
+  <h2>Cabe la sesión completa</h2>
+  <p>El arranque pedía comprobarlo: S10 (imprescindible) tiene que caber antes del 27. Con 3 sesiones por semana quedan unas 5, para un orden de 6 con 2 imprescindibles. <b>COMBOS-1 va completa</b>; si algo se cae, son PUB-SHIELD-1 o S11, que ya tienen su plan B.</p>
+  <div class="cal" aria-label="Días hasta la congelación">
+    <div class="day now"><span class="d">mar 17</span><span class="s">COMBOS-1</span><span class="note">hoy</span></div>
+    <div class="day"><span class="d">mié 18</span></div>
+    <div class="day"><span class="d">jue 19</span><span class="s">sesión</span></div>
+    <div class="day"><span class="d">vie 20</span><span class="note">congela arte</span></div>
+    <div class="day"><span class="d">lun 23</span><span class="s">sesión</span></div>
+    <div class="day"><span class="d">mar 24</span></div>
+    <div class="day"><span class="d">mié 25</span><span class="s">sesión</span></div>
+    <div class="day"><span class="d">jue 26</span><span class="s">sesión</span></div>
+    <div class="day freeze"><span class="d">vie 27</span><span class="s">S12</span><span class="note">congela</span></div>
+  </div>
+  <div class="order" aria-label="Orden de entrada">
+    <span class="pill here">7 · COMBOS-1</span><span class="arrow">→</span>
+    <span class="pill">8 · MUSICA-1 (D-GF)</span><span class="arrow">→</span>
+    <span class="pill">9 · PUB-SHIELD-1</span><span class="arrow">→</span>
+    <span class="pill must">10 · S10</span><span class="arrow">→</span>
+    <span class="pill">11 · S11</span><span class="arrow">→</span>
+    <span class="pill must">12 · S12</span>
+  </div>
+  <p class="note">Los días con «sesión» son orientativos (3 por semana). En rojo, los imprescindibles.</p>
+</section>
+
+<section>
+  <div class="eyebrow">El problema</div>
+  <h2>Por qué se juegan todas</h2>
+  <div class="two">
+    <div style="display:grid;gap:14px;align-content:start">
+      <p class="quote">«El sistema de combos se siente MUY bien; potenciarlo y potenciar las jugadas estratégicas.»<cite>Matías, reunión 2026-11-12</cite></p>
+      <p class="quote">«Las cartas se juegan sin pensar: hay poco tiempo entre loops y las composiciones cuestan 0.»<cite>Matías, misma reunión (resumen de la minuta)</cite></p>
+      <p>La regla de jugadas (ECON-1) da a <b>cada músico una composición por loop</b>, y el contador se rellena en cada frontera de loop. Con cuatro músicos y coste ★0, el loop 1 admite cuatro pistas nuevas y nada cuesta nada. Además, cada pista nueva tiene un suelo de +1 en el Big Num y «¡Toda la banda!» paga +2 cuando entran todos. <b>Hoy la mejor jugada es soltarlo todo cuanto antes</b>, y por eso no hay nada que pensar.</p>
+      <p class="why"><b>Regla de diseño que sale de aquí:</b> un combo solo crea una decisión si jugarlo todo de golpe <i>no</i> lo consigue solo.<span class="ia">✦ IA</span></p>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Hoy, con el mazo de Matías</div>
+      <svg class="diag" viewBox="0 0 420 250" role="img" aria-label="Cuatro músicos entran todos en el loop 1">
+        <g font-family="JetBrains Mono, monospace" font-size="11" fill="#8a819e">
+          <text x="110" y="18">loop 1</text><text x="210" y="18">loop 2</text><text x="310" y="18">loop 3</text>
+        </g>
+        <g font-family="Figtree, sans-serif" font-size="12" fill="#f3ede0">
+          <text x="4" y="52">C2 · batería</text><text x="4" y="102">Conito · bajo</text><text x="4" y="152">Sibi · acordes</text><text x="4" y="202">Zig · melodía</text>
+        </g>
+        <g>
+          <rect x="100" y="36" width="300" height="24" rx="5" fill="#2a2140"/><rect x="100" y="36" width="96" height="24" rx="5" fill="#ff8f6b"/>
+          <rect x="100" y="86" width="300" height="24" rx="5" fill="#2a2140"/><rect x="100" y="86" width="96" height="24" rx="5" fill="#ffcf4a"/>
+          <rect x="100" y="136" width="300" height="24" rx="5" fill="#2a2140"/><rect x="100" y="136" width="96" height="24" rx="5" fill="#a995ff"/>
+          <rect x="100" y="186" width="300" height="24" rx="5" fill="#2a2140"/><rect x="100" y="186" width="96" height="24" rx="5" fill="#4fd6c8"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="10" fill="#120f1b" font-weight="700">
+          <text x="108" y="52">entra</text><text x="108" y="102">entra</text><text x="108" y="152">entra</text><text x="108" y="202">entra</text>
+        </g>
+        <text x="100" y="240" font-family="JetBrains Mono, monospace" font-size="11" fill="#ffcf4a">loop 1: +4 de suelo +2 toda la banda</text>
+        <text x="210" y="78" font-family="JetBrains Mono, monospace" font-size="11" fill="#8a819e">loops 2–3: nada nuevo que decidir</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Lo que ya existe</div>
+  <h2>Una sola función decide el número</h2>
+  <p>LEGIB-1a dejó una regla dura: <b>previsto = real</b>. La previsión al pasar una carta y el pago al acabar el loop llaman a la misma función, así que un combo que entre ahí sale en «Y → Z» sin código aparte. Solo falta el <b>nombre</b>.</p>
+  <div class="pipe" aria-label="Del hover al pago">
+    <div class="n"><b>Pasas una carta</b><code>HandController → SetCardPreview</code></div>
+    <div class="n"><b>Contexto «con la carta»</b><code>TryBuildCardPreviewLoopContexts</code></div>
+    <div class="n hl"><b>Suelo + toda la banda + combos</b><code>ComputeLoopHypeDelta</code></div>
+    <div class="n"><b>«Y → Z»</b><code>GigCanvas.SetVibeReadoutPreview</code></div>
+    <div class="n"><b>Al acabar el loop, lo mismo paga</b><code>TriggerAudienceMicroReactions</code></div>
+  </div>
+  <p class="note">También están el clasificador de cambios (<span class="mono">CompositionCardClassifier</span>: tonalidad, tempo, compás, instrumento), la cola de Finisher de ECON-2 y el menú F5 de DEV-TUNING-1 (jugadas «una en total», mano corta). El coste ★ de cada carta ya es un campo (<span class="mono">inspirationCost</span>, hoy 0 en todas las composiciones).</p>
+</section>
+
+<section>
+  <div class="eyebrow">Referencias</div>
+  <h2>Tres familias de combo</h2>
+  <p>Lo que encontré en tus colecciones y en la web se ordena en tres familias según <b>qué premian</b>. La diferencia importa porque cada familia crea un tipo distinto de decisión.</p>
+
+  <div class="fams">
+    <div class="fam juntos">
+      <div class="famhead"><h3>Juntos</h3><span class="note">premia qué suena a la vez</span></div>
+      <div class="refs">
+        <article class="ref">
+          <img data-img="walkie" alt="Balatro: comodín Walkie Talkie con su texto de efecto" width="720" height="660">
+          <div class="game">Balatro · Walkie Talkie</div>
+          <div class="what">Sinergia con nombre y condición de una línea: «cada 10 o 4 jugado da +10 fichas y +4 de multiplicador». El jugador lee la regla y busca las cartas.</div>
+          <div class="take"><b>Tomar</b>nombre + condición legible + valor fijo.</div>
+          <div class="take no"><b>No</b>el multiplicador: aquí ya existe Overload.</div>
+          <div class="src">Tu captura: ALWTTT References\Screenshot 2025-12-09 131916.png</div>
+        </article>
+        <article class="ref">
+          <img data-img="twopair" alt="Balatro: mano de 8 cartas con contador 8/8" width="720" height="351">
+          <div class="game">Balatro · la mano nombrada</div>
+          <div class="what">Al seleccionar cartas, el juego dice qué mano es (Pareja, Full…) y su base de fichas × multiplicador. <b>Pero no muestra el resultado final, a propósito</b>: su autor cree que una previsión haría que se pulse sin parar y quitaría el suspense (GMTK).</div>
+          <div class="take"><b>Tomar</b>el nombre antes de jugar.</div>
+          <div class="take no"><b>No</b>esconder el total: LEGIB-1a ya decidió lo contrario y funciona.</div>
+          <div class="src">Tu captura: ALWTTT References\twopaircool.png (sin mano marcada: se ve el 8/8, ya hecho)</div>
+        </article>
+        <article class="ref">
+          <div class="game">Rock Band · Unison Bonus</div>
+          <div class="what">Hay frases marcadas en las que todos los instrumentos tocan lo mismo. Si <b>todos</b> las aciertan, todos ganan Overdrive extra; si falla uno, nadie lo gana. Basta con dos de guitarra, bajo y batería.</div>
+          <div class="take"><b>Tomar</b>el premio de entrar <i>a la vez</i>: es literalmente lo que hace una banda.</div>
+          <div class="take no"><b>No</b>el castigo colectivo por el fallo de uno.</div>
+        </article>
+        <article class="ref">
+          <div class="game">Hades · Duo Boons</div>
+          <div class="what">Cada par de dioses tiene <b>un</b> dúo propio, que solo aparece si ya llevas una bendición de cada uno. La matriz es pequeña y se aprende sola.</div>
+          <div class="take"><b>Tomar</b>«un combo por pareja» como forma de catálogo: 4 músicos = 6 parejas.</div>
+          <div class="take no"><b>No</b>el azar del 12 %: aquí el combo se ve venir.</div>
+        </article>
+      </div>
+    </div>
+
+    <div class="fam orden">
+      <div class="famhead"><h3>Orden</h3><span class="note">premia en qué orden y cuándo</span></div>
+      <div class="refs">
+        <article class="ref">
+          <div class="game">Tony Hawk's Pro Skater · el combo</div>
+          <div class="what">Encadenas trucos sin tocar suelo (el manual de THPS2 los une). El combo crece mientras dura y solo se cobra al aterrizar; si te caes, lo pierdes.</div>
+          <div class="take"><b>Tomar</b>una cadena que crece loop a loop y la cobra el <b>Finisher</b> (D-PLAN-14: «el Finisher cierra el combo»).</div>
+          <div class="take no"><b>No</b>perder todo de golpe: es la demo y hay poco tiempo entre loops.</div>
+        </article>
+        <article class="ref">
+          <div class="game">Hearthstone · Combo</div>
+          <div class="what">Palabra clave del pícaro: el efecto mejora si <b>no es la primera carta</b> del turno (Eviscerar hace 2, o 4 con Combo). Convierte el orden en una decisión.</div>
+          <div class="take"><b>Tomar</b>que una carta valga más según lo que ya sonó.</div>
+          <div class="take no"><b>No</b>como palabra clave en cada carta: son 19 composiciones para re-escribir.</div>
+        </article>
+        <article class="ref">
+          <div class="game">Killer Instinct · «ULTRA COMBO»</div>
+          <div class="what">El contador de golpes sube en pantalla y el locutor grita el combo al cerrarlo. Es la idea original de Claudio: el Big Num como contador de juego de pelea.</div>
+          <div class="take"><b>Tomar</b>«×N» visible mientras la cadena vive.</div>
+          <div class="take no"><b>No</b>un objeto animado nuevo antes de la demo.</div>
+        </article>
+        <article class="ref">
+          <div class="game">Hi-Fi Rush · Beat Hit</div>
+          <div class="what">Todo cae a tempo; el <b>Beat Hit</b> cierra la cadena con un golpe en el pulso exacto y suma daño. Las críticas apuntan a los compañeros: lentos y obligatorios contra escudos.</div>
+          <div class="take"><b>Tomar</b>el cierre a tempo como remate (el loop final del Finisher).</div>
+          <div class="take no"><b>No</b>combos obligatorios para superar un obstáculo.</div>
+        </article>
+        <article class="ref">
+          <img data-img="combobonus" alt="Deckbuilder sin identificar: tutorial de Combo Bonus x3" width="720" height="453">
+          <div class="game">Deckbuilder sin identificar · Combo Bonus</div>
+          <div class="what">Cuantas más cartas de ataque juegas en el turno, mayor el bonus de la siguiente (×3). <b>Es el contraejemplo:</b> premia jugar más, justo lo que Matías no quiere.</div>
+          <div class="take no"><b>Aviso</b>contar <i>cuántas</i> refuerza «se juegan todas».</div>
+          <div class="src">Tu captura: ALWTTT References\Tutorials\Screenshot 2025-08-11 222231.png</div>
+        </article>
+      </div>
+    </div>
+
+    <div class="fam relacion">
+      <div class="famhead"><h3>Relación</h3><span class="note">premia quiénes son y su historia juntos</span></div>
+      <div class="refs">
+        <article class="ref">
+          <div class="game">Chrono Trigger · Dual y Triple Techs</div>
+          <div class="what">Dos personajes combinan técnicas ya aprendidas si han <b>combatido juntos</b> al menos una vez. Cada uno paga su parte y los dos necesitan la barra llena. Las triples son pocas y especiales.</div>
+          <div class="take"><b>Tomar</b>«tocar juntos X veces desbloquea el dúo» (la idea de skills de banda).</div>
+          <div class="take no"><b>No</b>antes de la demo: necesita progresión entre gigs.</div>
+        </article>
+        <article class="ref">
+          <div class="game">Naruto Ultimate Ninja Storm · técnicas en equipo</div>
+          <div class="what">Solo ciertas parejas tienen secreta conjunta (31 en Storm 4). Al elegir un ayudante válido aparece un <b>pergamino dorado</b> junto a tu técnica: lo sabes antes del combate. En Connections, si rematas con ella, ves una escena de la pareja.</div>
+          <div class="take"><b>Tomar</b>avisar de la pareja al formar la banda (el dormitorio de S6).</div>
+          <div class="take no"><b>No</b>contenido exclusivo por pareja: arte que no hay.</div>
+        </article>
+        <article class="ref">
+          <div class="game">Marvel's Midnight Suns · Hero Combo</div>
+          <div class="what">Subir la amistad con un héroe da una carta de combo de los dos, que cuesta <b>Heroísmo</b> (unos 4) y mejora con el vínculo. ECON-2 ya copió su Heroísmo como la ★ de la Inspiración.</div>
+          <div class="take"><b>Tomar</b>el combo de relación como carta que se paga con ★ (otra palanca contra «se juegan todas»).</div>
+          <div class="take no"><b>No</b>el sistema de amistad: es la sala chill, después.</div>
+        </article>
+        <article class="ref">
+          <div class="game">Suikoden · Unite Attacks · Persona 5 · Showtime</div>
+          <div class="what">Suikoden: ataques de 2 a 5 personajes concretos, a menudo con un precio (quedan desequilibrados). Persona 5 Royal: parejas que se desbloquean con la historia y los Confidentes, y saltan en momentos de crisis.</div>
+          <div class="take"><b>Tomar</b>el combo con coste o riesgo, que no sea gratis.</div>
+          <div class="take no"><b>No</b>disparadores al azar: rompen previsto = real.</div>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Familia</th><th>Qué premia</th><th>¿Arregla «se juegan todas»?</th><th>Coste antes del 27-nov</th></tr></thead>
+      <tbody>
+        <tr><td><b style="color:var(--juntos)">Juntos</b></td><td>que ciertas pistas suenen a la vez</td><td class="n">No: soltarlo todo los consigue todos</td><td class="y">Bajo: lee las pistas del loop</td></tr>
+        <tr><td><b style="color:var(--orden)">Orden</b></td><td>repartir las entradas y cerrar con el Finisher</td><td class="y">Sí: jugarlo todo en el loop 1 deja la cadena en 1</td><td class="m">Medio: un contador por canción</td></tr>
+        <tr><td><b style="color:var(--relacion)">Relación</b></td><td>historia entre músicos</td><td class="m">Solo si el combo cuesta ★</td><td class="n">Alto: progresión entre gigs</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Pruébalo</div>
+  <h2>Mesa de combos</h2>
+  <p>Toca una casilla para decidir en qué loop entra cada músico (el loop 1 incluye lo jugado antes del Play). A la derecha, cuánto suma cada catálogo en Big Num además del suelo de +1 por pista. Empieza con lo que hizo Matías.</p>
+  <div class="controls" role="group" aria-label="Repartos de ejemplo">
+    <button class="btn" type="button" data-preset="matias">Todo al loop 1 (Matías)</button>
+    <button class="btn" type="button" data-preset="capas">Ritmo → acordes → voz</button>
+    <button class="btn" type="button" data-preset="unison">Parejas a la vez</button>
+    <button class="btn" type="button" data-preset="tarde">Todo al final</button>
+  </div>
+  <div class="sim">
+    <div class="panel">
+      <div class="grid" id="grid" aria-label="Loop de entrada de cada músico"></div>
+      <div class="toggle"><input type="checkbox" id="finisher" checked><label for="finisher">Se juega un Finisher en el loop 3 (hay loop final)</label></div>
+      <div class="toggle" style="flex-wrap:wrap">La cadena sigue si en el loop entra
+        <span class="seg" role="group" aria-label="Regla de la cadena">
+          <button type="button" data-rule="1" aria-pressed="true">al menos una</button>
+          <button type="button" data-rule="exact" aria-pressed="false">exactamente una</button>
+        </span>
+      </div>
+      <p class="note">Valores de prueba: pareja +1, toda la banda +2 (el de hoy), cada eslabón de la cadena desde el segundo +1, Gran cierre = largo de la cadena. Banda de 4. Todo en Big Num, el número que se ve.</p>
+    </div>
+    <div class="models" id="models" aria-live="polite"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Decisiones</div>
+  <h2>Lo que toca decidir antes de construir</h2>
+  <p>Formato D. La recomendación va en dorado. Ya decidido y no se toca: <b>previsto = real</b> (LEGIB-1a), los Finisher de ECON-2 y la regla de jugadas ECON-1.</p>
+
+  <div class="dec">
+    <div class="q"><span class="id">D1</span><span class="qt">Qué familia de combos entra en la demo</span></div>
+    <div class="opts">
+      <div class="opt"><span class="l">A · Juntos</span>Toda la banda, Sección rítmica, Voz y acordes, Giro, Entrada doble. Barato y claro, pero no arregla nada: soltarlo todo los da todos.</div>
+      <div class="opt"><span class="l">B · Orden</span>Solo la cadena de capas y el Gran cierre del Finisher. Arregla el problema, pero pierde las parejas con nombre, que es lo que gustó.</div>
+      <div class="opt rec"><span class="l">C · Mezcla (5 combos)</span>Toda la banda (+2), Sección rítmica (+1), Voz y acordes (+1), <b>Capas ×N</b> (+1 por eslabón) y <b>Gran cierre</b> (el Finisher cobra la cadena).</div>
+    </div>
+    <p class="why"><b>Recomiendo C.</b> Crea dos estrategias que compiten: todo de golpe da las parejas y la banda enseguida; repartir da la cadena y un cierre más grande. Elegir entre las dos es «jugar pensando». Giro y Entrada doble se quedan fuera: la segunda premia jugar más, como el contraejemplo.</p>
+  </div>
+
+  <div class="dec">
+    <div class="q"><span class="id">D2</span><span class="qt">Qué hace seguir la cadena de capas</span></div>
+    <div class="opts">
+      <div class="opt rec"><span class="l">A · Al menos una pista nueva por loop</span>Se corta en el primer loop sin pista nueva. Cabe con 4 pistas en 3 loops.</div>
+      <div class="opt"><span class="l">B · Exactamente una</span>Más exigente: dos en el mismo loop también la cortan. Con 4 pistas y 3 loops, un músico se queda fuera o se rompe.</div>
+    </div>
+    <p class="why"><b>Recomiendo A.</b> Premia repartir sin castigar a la banda de 4. Pruébalo en la mesa con «exactamente una» y verás que el reparto ideal deja a alguien sin tocar. Una sustitución (misma pista, otra carta) cuenta como pista nueva solo si decides que sí: por defecto <b>no</b>, porque el suelo de LEGIB-1a tampoco la cuenta.</p>
+  </div>
+
+  <div class="dec">
+    <div class="q"><span class="id">D3</span><span class="qt">Cómo se ven</span></div>
+    <div class="opts">
+      <div class="opt"><span class="l">A · Nombre en la previsión + flotante</span>Una segunda línea en la etiqueta del Big Num («SECCIÓN RÍTMICA +1») y un texto dorado al cobrarse.</div>
+      <div class="opt rec"><span class="l">B · A + «CAPAS ×N» mientras vive</span>La cadena se ve todo el rato en la misma etiqueta, como el contador de golpes. Sin objetos nuevos en el editor.</div>
+      <div class="opt"><span class="l">C · Contador animado de juego de pelea</span>Un objeto propio con animación y sonido. Después de la demo.</div>
+    </div>
+    <p class="why"><b>Recomiendo B.</b> Una cadena que no se ve no se busca; meterla en la misma etiqueta cuesta un par de líneas de texto enriquecido y ningún paso de editor.</p>
+  </div>
+
+  <div class="dec">
+    <div class="q"><span class="id">D4</span><span class="qt">Valor</span></div>
+    <div class="opts">
+      <div class="opt rec"><span class="l">A · Fijo, en Big Num</span>Como el +2 de toda la banda. Ajustable con una línea por combo en F5.</div>
+      <div class="opt"><span class="l">B · Multiplicador</span>Choca con el suelo de +1 y con el tope del Big Num, y Overload ya multiplica.</div>
+    </div>
+    <p class="why"><b>Recomiendo A.</b> El número que se promete es el que se cobra, y se puede leer de un vistazo.</p>
+  </div>
+
+  <div class="dec">
+    <div class="q"><span class="id">D5</span><span class="qt">Jugar pensando más allá de los combos</span></div>
+    <div class="opts">
+      <div class="opt rec"><span class="l">A · Probar primero con F5</span>Smoke 3 con los combos encendidos y la regla de siempre; si hace falta, «una en total» y mano corta, sin código.</div>
+      <div class="opt"><span class="l">B · Coste ★1 en las composiciones</span>Solo datos (<span class="mono">inspirationCost</span>). Cada una devuelve ★1, así que solo se juega si tienes ★ y compite con los Finisher (★3).</div>
+      <div class="opt"><span class="l">C · Tope por loop para la banda</span>Código nuevo en ECON-1. Después.</div>
+    </div>
+    <p class="why"><b>Recomiendo A, y B solo si el smoke 3 sigue dando «se juegan todas».</b> Primero se mide lo que hacen los combos solos.</p>
+  </div>
+
+  <div class="dec">
+    <div class="q"><span class="id">D6</span><span class="qt">Combos por relación (Chrono Trigger, Naruto, Midnight Suns)</span></div>
+    <div class="opts">
+      <div class="opt rec"><span class="l">A · Después de la demo, con el diseño escrito ahora</span>Tocar juntos desbloquea un dúo con nombre que cuesta ★; su casa es la sala chill de la nave. El pergamino dorado de Naruto, en el dormitorio.</div>
+      <div class="opt"><span class="l">B · Ya en la demo, un dúo por pareja (Hades)</span>Seis dúos con nombre propio sin progresión. Duplica Sección rítmica y Voz y acordes, y pide textos y pruebas.</div>
+    </div>
+    <p class="why"><b>Recomiendo A.</b> La relación necesita historia entre gigs y la demo dura tres gigs y la Reina. La anoto en POST-DEMO con estas referencias.</p>
+  </div>
+
+  <div class="dec">
+    <div class="q"><span class="id">D7</span><span class="qt">Alcance</span></div>
+    <div class="opts">
+      <div class="opt rec"><span class="l">A · Completa</span>D1–D5 en esta sesión, ≤3 smokes jugados.</div>
+      <div class="opt"><span class="l">B · Solo la prueba de coste</span>La alternativa del arranque si no cabía S10. No hace falta.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Riesgos</div>
+  <h2>Lo que puede salir mal</h2>
+  <ul class="clean">
+    <li><b>La cadena necesita memoria por canción.</b> Hoy la sesión solo recuerda las pistas al empezar el loop. Hay que guardar el largo de la cadena y reiniciarlo al empezar canción, en el mismo sitio que <span class="mono">CaptureLoopStartTracks</span>, o la previsión y el pago se separan.</li>
+    <li><b>El Gran cierre se cobra en el loop final.</b> La previsión en reposo de ese loop ya existe (D6 de LEGIB-1a), así que se verá. Al pasar el Finisher en el loop 3 conviene añadir «cierra CAPAS ×N» en su línea, para no prometer en silencio.</li>
+    <li><b>Formaciones de 2 y 3.</b> Sección rítmica y Voz y acordes no existen si falta un músico de la pareja. Es correcto, pero el dúo Conito + Zig no tendría ningún combo de pareja.</li>
+    <li><b>Tutorial del gig 1.</b> La mano forzada juega las 4 pistas en orden: verá combos que no se le explican. Basta con que el nombre se lea solo.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="eyebrow">Fuentes</div>
+  <h2>De dónde sale cada dato</h2>
+  <p class="note">Casi todas son guías y wikis de aficionados. Sirven para la forma de cada mecánica; los números exactos (por ejemplo, el coste de Heroísmo) pueden variar entre versiones.</p>
+  <ul class="sources">
+    <li>Chrono Trigger: <a href="https://strategywiki.org/wiki/Chrono_Trigger/Gameplay">StrategyWiki</a>, <a href="https://thonky.com/chrono-trigger/techs">thonky.com</a></li>
+    <li>Naruto Storm 4: <a href="https://www.powerpyx.com/guide/naruto-shippuden-ultimate-ninja-storm-4-all-team-ultimate-jutsus-video.html">PowerPyx</a>, <a href="https://www.giga.de/spiele/naruto-shippuden-ultimate-ninja-storm-4/tipps/naruto-shippuden-ultimate-ninja-storm-4-verbundene-geheimtechnik-nutzen/">GIGA</a>; Connections: <a href="https://primagames.com/?p=323898">Prima</a></li>
+    <li>Midnight Suns: <a href="https://primagames.com/gaming/marvels-midnight-suns-hero-combo-cards-guide">Prima, Hero Combo Cards</a>, <a href="https://midnightsuns.2k.com/game-guide/gameplay/relationships/">guía oficial de 2K</a></li>
+    <li>Rock Band: <a href="https://wiki.scorehero.com/Overdrive">ScoreHero, Overdrive</a></li>
+    <li>Hades: <a href="https://primagames.com/tips/hades-what-are-duo-boons-how-get-duo-boons">Prima, Duo Boons</a>, <a href="https://rogueranker.com/hades-2-duo-boons/">RogueRanker</a></li>
+    <li>Balatro: <a href="https://gmtk.substack.com/p/balatros-cursed-design-problem">GMTK, «Balatro's Cursed Design Problem»</a> (la cita del autor es de segunda mano)</li>
+    <li>Hearthstone: <a href="https://hearthstone.wiki.gg/wiki/Keywords">Hearthstone Wiki, Keywords</a></li>
+    <li>Killer Instinct: <a href="https://www.siliconera.com/killer-instinct-like-playing-darkstalkers-heavy-metal-concert/">Siliconera</a></li>
+    <li>Tony Hawk's Pro Skater: <a href="https://strategywiki.org/wiki/Tony_Hawk%27s_Pro_Skater_2/Gameplay">StrategyWiki</a>, <a href="https://www.osftw.com/features/1547/how-the-manual-ruined-tony-hawks-pro-skater">OSFTW, el manual</a></li>
+    <li>Suikoden: <a href="https://gensopedia.org/w/Unite_Attacks_(Suikoden)">Gensopedia</a>; Persona 5 Royal: <a href="https://samurai-gamers.com/persona-5/how-to-unlock-all-showtime-attacks/">Samurai Gamers</a></li>
+    <li>Hi-Fi Rush: <a href="https://www.theloadout.com/hi-fi-rush/combos">The Loadout</a>, <a href="https://wccftech.com/review/hi-fi-rush-stealing-the-show-with-style-sss/amp/">Wccftech</a></li>
+    <li>Del proyecto: <span class="mono">Docs/reference/ideas/2026-11-05_combos_de_banda.md</span>, minuta <span class="mono">reuniones/2026-11-12_matias.md</span>, <span class="mono">DEMO-1211_Plan_de_Sesiones.md</span> (D-PLAN-8, D-PLAN-14)</li>
+  </ul>
+</section>
+
+</div>
+
+<script src="imgs.js"></script>
+<script>
+(function(){
+  try{ document.querySelectorAll('img[data-img]').forEach(function(im){ var k=im.getAttribute('data-img'); if(typeof IMGS!=='undefined'&&IMGS[k]) im.src=IMGS[k]; }); }catch(e){}
+
+  var M=[
+    {id:'c2',cls:'c2',name:'C2',role:'batería'},
+    {id:'co',cls:'co',name:'Conito',role:'bajo'},
+    {id:'si',cls:'si',name:'Sibi',role:'acordes'},
+    {id:'zi',cls:'zi',name:'Zig',role:'melodía'}
+  ];
+  var LOOPS=3;
+  var entry={c2:1,co:1,si:1,zi:1};
+  var rule='1';
+  var grid=document.getElementById('grid');
+  var models=document.getElementById('models');
+  var fin=document.getElementById('finisher');
+
+  function build(){
+    grid.innerHTML='';
+    grid.appendChild(el('div','h',''));
+    for(var l=1;l<=LOOPS;l++) grid.appendChild(el('div','h','loop '+l));
+    M.forEach(function(m){
+      var w=el('div','who',''); w.innerHTML='<b>'+m.name+'</b><small>'+m.role+'</small>'; grid.appendChild(w);
+      for(var l=1;l<=LOOPS;l++){
+        var b=document.createElement('button'); b.type='button'; b.id='cell-'+m.id+'-'+l;
+        var e=entry[m.id];
+        b.className='cell '+m.cls+(e===l?' on':(e&&e<l?' after':''));
+        b.textContent=e===l?'entra':(e&&e<l?'':'—');
+        b.setAttribute('aria-label',m.name+', loop '+l+(e===l?': entra aquí':''));
+        b.setAttribute('aria-pressed',e===l?'true':'false');
+        (function(id,l){ b.addEventListener('click',function(){ entry[id]=(entry[id]===l?0:l); render(); }); })(m.id,l);
+        grid.appendChild(b);
+      }
+    });
+  }
+  function el(t,c,x){var d=document.createElement(t); d.className=c; d.textContent=x; return d;}
+
+  function entriesAt(l){ return M.filter(function(m){return entry[m.id]===l;}).length; }
+  function pairLoop(a,b){ return (entry[a]&&entry[b])?Math.max(entry[a],entry[b]):0; }
+  function fullBandLoop(){ var mx=0; for(var i=0;i<M.length;i++){ if(!entry[M[i].id]) return 0; mx=Math.max(mx,entry[M[i].id]); } return mx; }
+
+  function chain(){
+    var c=0, links=[], best=0;
+    for(var l=1;l<=LOOPS;l++){
+      var n=entriesAt(l);
+      var ok = rule==='1' ? n>=1 : n===1;
+      if(ok){ c++; if(c>=2) links.push({l:l,c:c}); }
+      else c = 0;
+      best=c;
+    }
+    return {links:links, end:best};
+  }
+
+  function render(){
+    build();
+    var fb=fullBandLoop(), rt=pairLoop('c2','co'), va=pairLoop('zi','si');
+    var ch=chain();
+    var out=[];
+
+    // A · Juntos
+    var a=[], ta=0;
+    if(fb){a.push(['j','L'+fb+' ¡TODA LA BANDA! +2']);ta+=2;}
+    if(rt){a.push(['j','L'+rt+' SECCIÓN RÍTMICA +1']);ta+=1;}
+    if(va){a.push(['j','L'+va+' VOZ Y ACORDES +1']);ta+=1;}
+    for(var l=1;l<=LOOPS;l++){ if(entriesAt(l)>=2){a.push(['j','L'+l+' ENTRADA DOBLE +1']);ta+=1;} }
+    out.push({name:'A · Juntos',tot:ta,chips:a});
+
+    // B · Orden
+    var b=[], tb=0;
+    if(fb){b.push(['j','L'+fb+' ¡TODA LA BANDA! +2']);tb+=2;}
+    ch.links.forEach(function(k){b.push(['o','L'+k.l+' CAPAS ×'+k.c+' +1']);tb+=1;});
+    if(fin.checked && ch.end>=2){b.push(['f','final GRAN CIERRE +'+ch.end]);tb+=ch.end;}
+    out.push({name:'B · Orden',tot:tb,chips:b});
+
+    // C · Mezcla (recomendada)
+    var c=[], tc=0;
+    if(fb){c.push(['j','L'+fb+' ¡TODA LA BANDA! +2']);tc+=2;}
+    if(rt){c.push(['j','L'+rt+' SECCIÓN RÍTMICA +1']);tc+=1;}
+    if(va){c.push(['j','L'+va+' VOZ Y ACORDES +1']);tc+=1;}
+    ch.links.forEach(function(k){c.push(['o','L'+k.l+' CAPAS ×'+k.c+' +1']);tc+=1;});
+    if(fin.checked && ch.end>=2){c.push(['f','final GRAN CIERRE +'+ch.end]);tc+=ch.end;}
+    out.push({name:'C · Mezcla (recomendada)',tot:tc,chips:c,rec:true});
+
+    var played=M.filter(function(m){return entry[m.id];}).length;
+    models.innerHTML='';
+    out.forEach(function(o){
+      var d=document.createElement('div'); d.className='model'+(o.rec?' rec':'');
+      var top=document.createElement('div'); top.className='top';
+      top.innerHTML='<span class="name"></span><span class="tot mono"></span>';
+      top.querySelector('.name').textContent=o.name;
+      top.querySelector('.tot').textContent='+'+o.tot;
+      d.appendChild(top);
+      var cw=document.createElement('div'); cw.className='chips';
+      if(!o.chips.length){ var z=el('span','chip none','sin combos'); cw.appendChild(z); }
+      o.chips.forEach(function(k){ cw.appendChild(el('span','chip '+k[0],k[1])); });
+      d.appendChild(cw);
+      models.appendChild(d);
+    });
+    var v=document.createElement('p'); v.className='verdict';
+    v.textContent='Suelo aparte: +'+played+' (una por pista nueva). '+verdict(out[0].tot,out[2].tot,ch.end);
+    models.appendChild(v);
+  }
+
+  function verdict(ta,tc,len){
+    if(len<=1) return 'Con este reparto la cadena no pasa de 1: en C solo cuentan las parejas y la banda.';
+    if(len>=3) return 'Cadena de '+len+': en C, repartir supera a soltarlo todo. Esa diferencia es la decisión.';
+    return 'Cadena de '+len+': repartir empieza a compensar, pero las parejas siguen pesando.';
+  }
+
+  var P={matias:{c2:1,co:1,si:1,zi:1},capas:{c2:1,co:1,si:2,zi:3},unison:{c2:1,co:1,si:2,zi:2},tarde:{c2:3,co:3,si:3,zi:3}};
+  document.querySelectorAll('[data-preset]').forEach(function(b){ b.addEventListener('click',function(){ var p=P[b.getAttribute('data-preset')]; entry={c2:p.c2,co:p.co,si:p.si,zi:p.zi}; render(); }); });
+  document.querySelectorAll('[data-rule]').forEach(function(b){ b.addEventListener('click',function(){ rule=b.getAttribute('data-rule'); document.querySelectorAll('[data-rule]').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');}); render(); }); });
+  fin.addEventListener('change',render);
+  render();
+})();
+</script>
