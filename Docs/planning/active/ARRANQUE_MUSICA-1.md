@@ -53,6 +53,14 @@ calendario).
 3. **Pasada por todas las cartas** (pedido de Claudio, 2026-11-17) con el Banco de cartas: escucha, BPM de cada carta y
    rangos de tempo de sus patrones (PATRON-BPM-1 ya está).
 4. **Pendientes de oído:** el solo de Sibi con la banda al 55 %.
+5. **MGP-ARTIC-SCHED-1 (añadido el 2026-11-20, noche; hecho en MidiGenPlay `654fcf4`, suite en verde).** La
+   articulación Random de los acordes sonaba «muy random» incluso a reroll 0,25. La carta de acordes tiene ahora
+   `articulationSchedule` (PerEvent por defecto = igual que antes; HoldThenTurn; AlternateBars),
+   `articulationPhraseBars` (4) y `articulationAlternateEvery` (1). Falta aquí: (a) fila en el Banco de cartas para
+   esos tres campos, junto a Chord Expression; (b) A/B de oído con Wormus Major (y Core Major / Minor): PerEvent a
+   0,25 frente a HoldThenTurn N = 4, con la carta de ritmo en `fillEveryNMeasures = 4` para que el giro caiga en el
+   fill; (c) de ese A/B salen la confirmación de las D-SCHED-* y si el bajo entra (D-SCHED-BASS, hoy no). Contrato:
+   `MidiGenPlay/Documentation~/runtime/SSoT_Composer_Backing_Track.md` §8.5 «Bar-plan schedules».
 
 ## Lo que ya existe y hay que reutilizar
 
