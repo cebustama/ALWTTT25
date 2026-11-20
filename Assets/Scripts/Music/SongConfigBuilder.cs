@@ -471,21 +471,55 @@ namespace ALWTTT.Music
         // enters its hash. Otherwise the stem cache would replay a bass
         // composed against the old drums. Non-listening tracks get "" — hash
         // VALUES unchanged for every existing card.
+        //
+        // MGP-COMP-ACCENT-1 (V4): the Backing listens too (accentFollowSettings
+        // on its card), and a listening bass also reads the beats a listening
+        // Backing already struck (avoidClaimedAccents, D10), so those Backing
+        // tracks enter the bass's hash as "|bx:". Both segments stay "" for
+        // every card that doesn't listen — hash VALUES unchanged.
         private static string ListenSegment(
             SongCompositionUI.TrackEntry tr,
             IReadOnlyList<SongCompositionUI.TrackEntry> partTracks)
         {
-            if (tr.role != TrackRole.Bassline) return "";
-            if (!(tr.styleBundle is BasslineCardConfigSO bass)) return "";
-            bool listens =
-                bass.pocketMode == BasslineCardConfigSO.PocketCouplingMode.SlapPocket ||
-                bass.accentFollow != BasslineCardConfigSO.AccentFollowMode.Off;
+            bool listens;
+            string claims = "";
+            if (tr.role == TrackRole.Bassline && tr.styleBundle is BasslineCardConfigSO bass)
+            {
+                listens =
+                    bass.pocketMode == BasslineCardConfigSO.PocketCouplingMode.SlapPocket ||
+                    bass.accentFollow != BasslineCardConfigSO.AccentFollowMode.Off;
+                var b = bass.accentFollowSettings;
+                if (listens && b != null && b.avoidClaimedAccents && Strikes(b.mode))
+                {
+                    var backing = partTracks
+                        .Where(t => t != null && t.role == TrackRole.Backing &&
+                                    t.styleBundle is BackingCardConfigSO bc && Follows(bc))
+                        .Select(t => (t.musicianId ?? "_") + "~" + ComputeHashFromTrackEntry(t))
+                        .ToList();
+                    if (backing.Count > 0) claims = "|bx:" + string.Join(";", backing);
+                }
+            }
+            else if (tr.role == TrackRole.Backing && tr.styleBundle is BackingCardConfigSO backingCard)
+            {
+                listens = Follows(backingCard);
+            }
+            else return "";
             if (!listens) return "";
 
             var rhythm = partTracks
                 .Where(t => t != null && t.role == TrackRole.Rhythm)
                 .Select(t => (t.musicianId ?? "_") + "~" + ComputeHashFromTrackEntry(t));
-            return "|rx:" + string.Join(";", rhythm);
+            return "|rx:" + string.Join(";", rhythm) + claims;
+        }
+
+        private static bool Strikes(BasslineCardConfigSO.AccentFollowMode m) =>
+            m == BasslineCardConfigSO.AccentFollowMode.Attacks ||
+            m == BasslineCardConfigSO.AccentFollowMode.AttacksAndGaps;
+
+        private static bool Follows(BackingCardConfigSO card)
+        {
+            var m = card.accentFollowSettings?.mode ?? BasslineCardConfigSO.AccentFollowMode.Off;
+            return m == BasslineCardConfigSO.AccentFollowMode.Reinforce || Strikes(m);
         }
 
         // [BAL-1] gainSegment folds the bytes-plane mix gain into the hash so
