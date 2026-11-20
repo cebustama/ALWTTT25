@@ -1,0 +1,226 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbe172d1a7f543146b0be301460cb6c2, type: 3}
+  m_Name: V4_Funk
+  m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.DrumPatternData
+  DisplayName: V4_Funk
+  TimeSignature: 0
+  Measures: 2
+  beatsPerMeasure: 4
+  subdivisions: 4
+  lanes:
+  - instrument: 36
+    defaultVelocity: 116
+    steps:
+    - active: 1
+      velocity: 116
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 100
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 106
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 88
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 116
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 100
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 106
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 88
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+  - instrument: 38
+    defaultVelocity: 110
+    steps:
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 110
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 42
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 40
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 110
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 46
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 110
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 42
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 40
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 110
+    - active: 0
+      velocity: 0
+    - active: 0
+      velocity: 0
+    - active: 1
+      velocity: 46
+  - instrument: 42
+    defaultVelocity: 84
+    steps:
+    - active: 1
+      velocity: 84
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 84
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 84
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 84
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 84
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 84
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 84
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 84
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+    - active: 1
+      velocity: 62
+  bpmMin: 0
+  bpmMax: 0
+  velocity: 80
+  drumMappings: []
+  pianoRollPattern: 
