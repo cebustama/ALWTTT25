@@ -100,10 +100,24 @@ footer { color: var(--muted); font-size: .85rem; display: grid; gap: 4px; }
 <div class="wrap">
 
 <header style="display:grid; gap:14px">
-  <span class="eyebrow">ALWTTT · build de pruebas · noviembre 2026</span>
+  <span class="eyebrow">ALWTTT · build de pruebas · 20 de noviembre de 2026</span>
   <h1>Banco de pruebas <span class="pink">de la banda</span></h1>
   <p class="lede">Qué puedes cambiar del juego sin abrir Unity, cómo se cambia, qué hace cada opción y qué pruebas valen la pena. Para Matías y para quien juegue la build de pruebas.</p>
 </header>
+
+<section aria-labelledby="nuevo">
+  <div class="sec-head">
+    <span class="eyebrow">Lo nuevo en esta build · 20-nov</span>
+    <h2 id="nuevo">Qué cambió desde la anterior</h2>
+  </div>
+  <div class="cards">
+    <article class="card"><span class="tag">Combos</span><h3>Los combos tienen nombre</h3><p>Si entran músicos juntos, el número grande lo anuncia antes de tocar: <b>¡TODA LA BANDA!</b> (+3), <b>SECCIÓN RÍTMICA</b> (batería + bajo) y <b>A MEDIA LUZ</b> (acordes + melodía), +2 cada una. <b>Capas ×1,5</b> por cada loop en que entra alguien nuevo, y <b>GRAN CIERRE</b> en el loop del Finisher. Lo previsto es lo que se cobra. <kbd>C</kbd> abre la tabla de combos.</p></article>
+    <article class="card"><span class="tag">Finisher</span><h3>El gran final suena a banda</h3><p><b>Gran Final</b> (Zig) ahora lo canta la voz, sin un instrumento encima. Si juegas también <b>Psychic Waves</b>, Sibi sola a la vez con un sinte tipo Minimoog (Saw Wave). Durante los solos, la banda baja (0,55) y los solistas van a 1; los acordes de Sibi siguen sonando.</p></article>
+    <article class="card"><span class="tag">Balance</span><h3>El público aguanta ×1,5</h3><p>Con los combos se ganaba casi siempre en el primer turno. La Reina 75, Tentáculos 60, Big Guy 55, Cool Dude 40, Influencer y Rayas 30, las ranas y Kid 25.</p><p class="try"><b>Prueba:</b> ¿ahora el gig dura lo justo, se queda corto o se alarga?</p></article>
+    <article class="card"><span class="tag">Mapa</span><h3>Del gig, de vuelta al mapa</h3><p>Al terminar un gig vuelves al mapa, no a la nave. La nave sigue en el botón «Volver a la nave».</p></article>
+    <article class="card"><span class="tag">Música</span><h3>Acordes con menos cambios</h3><p>La forma de tocar los acordes cambia de vez en cuando, ya no en cada compás.</p></article>
+  </div>
+</section>
 
 <section aria-labelledby="teclas">
   <div class="sec-head">
@@ -111,7 +125,7 @@ footer { color: var(--muted); font-size: .85rem; display: grid; gap: 4px; }
     <h2 id="teclas">Seis teclas y un clic</h2>
   </div>
   <div class="keys">
-    <div class="key hot"><span class="cap">F5</span><strong>Ajustes</strong><p>El menú nuevo: jugadas por turno, robo, mano, ★ inicial y colapso. Vuelve a pulsar para cerrarlo.</p></div>
+    <div class="key hot"><span class="cap">F5</span><strong>Ajustes</strong><p>Jugadas por turno, robo, mano, ★ inicial, colapso, combos y compases por loop. Vuelve a pulsar para cerrarlo.</p></div>
     <div class="key hot"><span class="cap">F6</span><strong>Saltar canción</strong><p>Corta los loops que quedan y te lleva al turno del público. F6 otra vez lo cancela.</p></div>
     <div class="key"><span class="cap">F12</span><strong>Dev Mode</strong><p>La ventana entera con pestañas: Infinite, Catalogue, Stats, Audio Mix, Composition, Inspiración y Ajustes.</p></div>
     <div class="key"><span class="cap">Esc</span><strong>Pausa</strong><p>«Enviar feedback» y «Abrir carpeta de telemetría».</p></div>
@@ -151,6 +165,12 @@ footer { color: var(--muted); font-size: .85rem; display: grid; gap: 4px; }
     </article>
     <article class="card">
       <span class="tag">Robo</span>
+      <h3>Mano inicial</h3>
+      <p>Cartas de la primera mano del gig, aparte del robo de cada turno.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>4</dd><dt>Rango</dt><dd>0–10</dd><dt>Se aplica</dt><dd>en el siguiente gig</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Robo</span>
       <h3>Robo al empezar el turno</h3>
       <p>Cartas que entran en la mano al abrir tu turno. El juego intenta que haya al menos una composición y una acción.</p>
       <dl class="meta"><dt>Fábrica</dt><dd>2</dd><dt>Rango</dt><dd>0–10</dd><dt>Se aplica</dt><dd>en el siguiente turno</dd></dl>
@@ -187,6 +207,26 @@ footer { color: var(--muted); font-size: .85rem; display: grid; gap: 4px; }
       <p>Cuando la barra de un músico llega al fondo, colapsa: la banda pierde un corazón de cohesión, el músico queda Expuesto y su barra vuelve a esta fracción.</p>
       <dl class="meta"><dt>Fábrica</dt><dd>0,50 (media barra)</dd><dt>Rango</dt><dd>0–1, de 0,05 en 0,05</dd><dt>Se aplica</dt><dd>en el siguiente colapso</dd></dl>
       <p class="try"><b>Prueba:</b> con 0,25, un músico colapsado vuelve a caer pronto. ¿Da tensión o castiga de más?</p>
+    </article>
+    <article class="card">
+      <span class="tag">Combos</span>
+      <h3>Pareja que entra a la vez</h3>
+      <p>Lo que suma al Big Num SECCIÓN RÍTMICA o A MEDIA LUZ.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>+2</dd><dt>Rango</dt><dd>0–6</dd><dt>Se aplica</dt><dd>en la siguiente previsión</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Combos</span>
+      <h3>Capas: multiplicador por loop</h3>
+      <p>Cuánto multiplica cada loop en que entra alguien nuevo. Se encadena toda la canción.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>×1,5</dd><dt>Rango</dt><dd>1–3, de 0,25 en 0,25</dd><dt>Se aplica</dt><dd>en la siguiente previsión</dd></dl>
+      <p class="try"><b>Prueba:</b> con ×1,25, ¿sigue valiendo la pena entrar de a uno?</p>
+    </article>
+    <article class="card">
+      <span class="tag">Música · nuevo</span>
+      <h3>Compases por loop</h3>
+      <p>Cuánto dura cada loop. Con menos, las canciones van más rápido y los fills caen más a menudo.</p>
+      <dl class="meta"><dt>Fábrica</dt><dd>8</dd><dt>Rango</dt><dd>2–16</dd><dt>Se aplica</dt><dd>desde la siguiente canción</dd></dl>
+      <p class="try"><b>Prueba:</b> con 4, ¿el gig se siente más ágil o la música no llega a desarrollarse?</p>
     </article>
     <article class="card">
       <span class="tag">Sesión · no se guarda</span>
@@ -234,7 +274,7 @@ footer { color: var(--muted); font-size: .85rem; display: grid; gap: 4px; }
         <tr><td>Coste del Finisher</td><td>Fija el coste de todos los Finisher.</td><td class="num">el de la carta (3)</td></tr>
         <tr><td>Finisher por canción</td><td>Cuántos se pueden jugar en una canción.</td><td class="num">sin límite</td></tr>
         <tr><td>Cada Finisher toca su solo</td><td>Su músico hace un solo en el loop final.</td><td class="num">sí</td></tr>
-        <tr><td>Volumen del 2.º solista</td><td>Si hay varios solos a la vez, el resto suena a este volumen.</td><td class="num">0,80</td></tr>
+        <tr><td>Volumen del 2.º solista</td><td>Si hay varios solos a la vez, los demás solistas suenan a este volumen.</td><td class="num">1</td></tr>
         <tr><td>Banda en el «break»</td><td>Volumen del resto de la banda cuando el Finisher es de C2 (batería).</td><td class="num">0,35</td></tr>
         <tr><td>Efectos al empezar el loop final</td><td>Apagado: los efectos del Finisher estallan al jugarlo.</td><td class="num">sí</td></tr>
         <tr><td>Solo de batería en el «break»</td><td>C2 toca un solo de verdad. Elige forma (groove + fills, encadenados, trading) y carácter.</td><td class="num">sí · encadenados</td></tr>
@@ -347,7 +387,7 @@ footer { color: var(--muted); font-size: .85rem; display: grid; gap: 4px; }
 </section>
 
 <footer>
-  <span>✦ IA · Escrito a partir del código de DEV-TUNING-1 y ECON-2 (2026-11-17). Los valores de fábrica son los de los assets de ese día.</span>
+  <span>✦ IA · Escrito a partir del código de DEV-TUNING-1 y ECON-2 (2026-11-17), actualizado con COMBOS-1 y MUSICA-1 (2026-11-20). Los valores de fábrica son los de los assets del 20-nov.</span>
   <span>Si algo de aquí no coincide con el juego, manda feedback: la página se corrige.</span>
 </footer>
 </div>
