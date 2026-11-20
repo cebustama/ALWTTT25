@@ -62,6 +62,7 @@ namespace ALWTTT.Music.EditorTools
             // [Claudio 2026-11-20] Arpeggio Rate (only with an arpeggio figure) and
             // the rest of the accent block, folded; accentCustom = use accentBlock.
             public int arpeggioRate = -1;        // ArpeggioRate
+            public int bassTone = -1;            // BassArpeggioToneMode (bass cards)
             public bool showAccentBlock;
             public bool accentCustom;
             public AccentFollowSettings accentBlock;
@@ -421,6 +422,14 @@ namespace ALWTTT.Music.EditorTools
                 if (GUILayout.Button("Cargar mazo")) LoadDeck(c);
                 if (GUILayout.Button("Mazo de GigDevSettings")) LoadDeckFromDevSettings(c);
             }
+            // [Claudio 2026-11-20] Receta de prueba desde el portapapeles (líneas bench / chords / bass).
+            if (GUILayout.Button(new GUIContent("📥 Pegar receta",
+                    "Aplica a esta columna la receta del portapapeles: BPM, patrón y progresión forzados, " +
+                    "y Accent Follow / Chord Expression / Arpeggio Rate de las cartas de acordes y bajo " +
+                    "(solo para el render; las cartas no se tocan).")))
+                PasteRecipe(c, GUIUtility.systemCopyBuffer);
+            if (_pasteMsgs.TryGetValue(c.label, out var pm))
+                EditorGUILayout.HelpBox(pm, pm.Contains("⚠") ? MessageType.Warning : MessageType.Info);
 
             EditorGUILayout.Space(4);
             using (new EditorGUILayout.HorizontalScope())
@@ -601,7 +610,7 @@ namespace ALWTTT.Music.EditorTools
                         t.Parameters?.Style != null ? t.Parameters.Style.name : "sin bundle", inst,
                         Why(t.Role, choice),
                         ListenLine(choice?.accentFollow),
-                        Recipe(choice?.accentFollow, cardName, seed, c.bpm)));
+                        Recipe(choice?.accentFollow, t.Role, t.Parameters?.Style, cardName, seed, c.bpm)));
                     // [PATRON-BPM-1] Avisa si el patrón de batería quedó fuera de su tempo cómodo.
                     if (t.Role == TrackRole.Rhythm && choice != null)
                     {
@@ -735,12 +744,12 @@ namespace ALWTTT.Music.EditorTools
 
         private static readonly (BasslineCardConfigSO.AccentFollowMode m, string name)[] FollowModes =
         {
-            (BasslineCardConfigSO.AccentFollowMode.Off, "Apagado"),
-            (BasslineCardConfigSO.AccentFollowMode.Reinforce, "Refuerzo"),
-            (BasslineCardConfigSO.AccentFollowMode.Attacks, "Ataques"),
-            (BasslineCardConfigSO.AccentFollowMode.AttacksAndGaps, "Ataques + silencios"),
+            (BasslineCardConfigSO.AccentFollowMode.Off, "Off"),
+            (BasslineCardConfigSO.AccentFollowMode.Reinforce, "Reinforce"),
+            (BasslineCardConfigSO.AccentFollowMode.Attacks, "Attacks"),
+            (BasslineCardConfigSO.AccentFollowMode.AttacksAndGaps, "Attacks And Gaps"),
             (BasslineCardConfigSO.AccentFollowMode.Random, "🎲 Random"),
-            (BasslineCardConfigSO.AccentFollowMode.Phrases, "Frases (solo bajo)"),
+            (BasslineCardConfigSO.AccentFollowMode.Phrases, "Phrases (solo bajo)"),
         };
 
         private static string ModeName(BasslineCardConfigSO.AccentFollowMode m)
@@ -765,7 +774,7 @@ namespace ALWTTT.Music.EditorTools
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Space(94);
-                EditorGUILayout.LabelField("escucha", EditorStyles.miniLabel, GUILayout.Width(62));
+                EditorGUILayout.LabelField("Accent Follow", EditorStyles.miniLabel, GUILayout.Width(100));
                 var labels = new List<string> { $"(la carta: {ModeName(cardMode)})" };
                 labels.AddRange(modes.Select(f => f.name));
                 int sel = slot.accentMode < 0 ? 0
@@ -776,13 +785,20 @@ namespace ALWTTT.Music.EditorTools
             }
             DrawAccentBlock(slot, backing != null ? backing.accentFollowSettings : bass.accentFollowSettings);
             if (backing == null)
-            { slot.chordExpression = -1; slot.arpeggioRate = -1; slot.forcedProgressionGuid = ""; return; }
+            {
+                // [Claudio 2026-11-20] bass: Chord Expression and Arpeggio Tone Mode too.
+                slot.arpeggioRate = -1; slot.forcedProgressionGuid = "";
+                slot.chordExpression = EnumRow("Chord Expression", slot.chordExpression, bass.chordExpression);
+                slot.bassTone = EnumRow("Arpeggio Tone Mode", slot.bassTone, bass.arpeggioToneMode);
+                return;
+            }
+            slot.bassTone = -1;
 
             // Chord Expression
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Space(94);
-                EditorGUILayout.LabelField("figura", EditorStyles.miniLabel, GUILayout.Width(62));
+                EditorGUILayout.LabelField("Chord Expression", EditorStyles.miniLabel, GUILayout.Width(100));
                 var names = Enum.GetNames(typeof(ChordExpressionType));
                 var values = (int[])Enum.GetValues(typeof(ChordExpressionType));
                 var labels = new List<string> { $"(la carta: {backing.chordExpression})" };
@@ -797,7 +813,7 @@ namespace ALWTTT.Music.EditorTools
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     GUILayout.Space(94);
-                    EditorGUILayout.LabelField("arpegio", EditorStyles.miniLabel, GUILayout.Width(62));
+                    EditorGUILayout.LabelField("Arpeggio Rate", EditorStyles.miniLabel, GUILayout.Width(100));
                     var names = Enum.GetNames(typeof(ArpeggioRate));
                     var values = (int[])Enum.GetValues(typeof(ArpeggioRate));
                     var labels = new List<string> { $"(la carta: {backing.arpeggioRate})" };
@@ -820,7 +836,7 @@ namespace ALWTTT.Music.EditorTools
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Space(94);
-                EditorGUILayout.LabelField("progresión", EditorStyles.miniLabel, GUILayout.Width(62));
+                EditorGUILayout.LabelField("Progression", EditorStyles.miniLabel, GUILayout.Width(100));
                 if (progs.Count == 0)
                 {
                     slot.forcedProgressionGuid = "";
@@ -846,8 +862,26 @@ namespace ALWTTT.Music.EditorTools
             }
         }
 
+        // One "(la carta: X)" + enum popup row; returns -1 for the card's value.
+        private static int EnumRow<TEnum>(string label, int current, TEnum cardValue) where TEnum : struct, Enum
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(94);
+                EditorGUILayout.LabelField(label, EditorStyles.miniLabel, GUILayout.Width(100));
+                var names = Enum.GetNames(typeof(TEnum));
+                var values = (int[])Enum.GetValues(typeof(TEnum));
+                var labels = new List<string> { $"(la carta: {cardValue})" };
+                labels.AddRange(names);
+                int sel = current < 0 ? 0 : Array.IndexOf(values, current) + 1;
+                int nsel = EditorGUILayout.Popup(new GUIContent("", label + " solo para este render."),
+                    Mathf.Max(0, sel), labels.ToArray());
+                return nsel == 0 ? -1 : values[nsel - 1];
+            }
+        }
+
         private static readonly float[] StabValues = { 0f, .25f, .5f, 1f };
-        private static readonly string[] StabLabels = { "0 (hasta el siguiente golpe)", "¼ tiempo", "½ tiempo", "1 tiempo" };
+        private static readonly string[] StabLabels = { "0 (hasta el siguiente golpe)", "0.25", "0.5", "1" };
 
         // [Claudio 2026-11-20] The rest of the accent block, folded. «Cambiar para
         // este render» copies the card's block into the slot; the mode stays on
@@ -859,7 +893,8 @@ namespace ALWTTT.Music.EditorTools
             {
                 GUILayout.Space(94);
                 slot.showAccentBlock = EditorGUILayout.Foldout(slot.showAccentBlock,
-                    slot.accentCustom ? "ajustes de escucha (cambiados)" : "ajustes de escucha (de la carta)", true);
+                    slot.accentCustom ? "Accent Follow Settings (cambiados para este render)"
+                                      : "Accent Follow Settings (los de la carta)", true);
             }
             if (!slot.showAccentBlock) return;
             using (new EditorGUILayout.HorizontalScope())
@@ -876,23 +911,23 @@ namespace ALWTTT.Music.EditorTools
             using (new EditorGUI.IndentLevelScope(7))
             {
                 float lw = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = 230;
+                EditorGUIUtility.labelWidth = 250;
                 b.threshold = EditorGUILayout.Slider(new GUIContent("Threshold",
                     "Peso desde el que un acento cuenta como fuerte. Bossa suave ≈ 0,35."), b.threshold, .05f, 1f);
-                b.maxAttacksPerBar = EditorGUILayout.IntSlider(new GUIContent("Golpes nuevos por compás"), b.maxAttacksPerBar, 0, 16);
+                b.maxAttacksPerBar = EditorGUILayout.IntSlider(new GUIContent("Max Attacks Per Bar", "Golpes nuevos por compás."), b.maxAttacksPerBar, 0, 16);
                 int si = Array.FindIndex(StabValues, v => Mathf.Approximately(v, b.stabBeats));
                 var stabLabels = si >= 0 ? StabLabels : StabLabels.Append($"{b.stabBeats:0.##} (de la carta)").ToArray();
-                int ns = EditorGUILayout.Popup("Stab", si >= 0 ? si : StabLabels.Length, stabLabels);
+                int ns = EditorGUILayout.Popup(new GUIContent("Stab Beats", "Largo de cada golpe nuevo."), si >= 0 ? si : StabLabels.Length, stabLabels);
                 if (ns < StabValues.Length) b.stabBeats = StabValues[ns];
-                b.lanes = (AccentLanes)EditorGUILayout.EnumFlagsField(new GUIContent("Carriles"), b.lanes);
-                b.velocityBoost = EditorGUILayout.IntSlider("Refuerzo (+vel)", b.velocityBoost, 0, 64);
-                b.offVelocityCut = EditorGUILayout.IntSlider("Fuera del acento (−vel)", b.offVelocityCut, 0, 64);
-                b.fillMode = (BasslineCardConfigSO.AccentFillMode)EditorGUILayout.EnumPopup("En el fill", b.fillMode);
-                b.fillEntryHit = EditorGUILayout.Toggle("Golpe al entrar el fill", b.fillEntryHit);
-                b.fillCloseHit = EditorGUILayout.Toggle("Golpe al cerrar el fill", b.fillCloseHit);
-                b.fullChordOnAccent = EditorGUILayout.Toggle("Acorde entero en el acento", b.fullChordOnAccent);
-                b.fullChordBoost = EditorGUILayout.IntSlider("  refuerzo del acorde entero", b.fullChordBoost, 0, 64);
-                b.avoidClaimedAccents = EditorGUILayout.Toggle("No pisar a otro que ya escucha", b.avoidClaimedAccents);
+                b.lanes = (AccentLanes)EditorGUILayout.EnumFlagsField(new GUIContent("Lanes", "Qué partes de la batería escucha."), b.lanes);
+                b.velocityBoost = EditorGUILayout.IntSlider(new GUIContent("Velocity Boost", "+velocidad en el acento."), b.velocityBoost, 0, 64);
+                b.offVelocityCut = EditorGUILayout.IntSlider(new GUIContent("Off Velocity Cut", "−velocidad fuera del acento."), b.offVelocityCut, 0, 64);
+                b.fillMode = (BasslineCardConfigSO.AccentFillMode)EditorGUILayout.EnumPopup(new GUIContent("Fill Mode", "Qué hace dentro de un fill."), b.fillMode);
+                b.fillEntryHit = EditorGUILayout.Toggle(new GUIContent("Fill Entry Hit", "Golpe donde empieza el fill."), b.fillEntryHit);
+                b.fillCloseHit = EditorGUILayout.Toggle(new GUIContent("Fill Close Hit", "Golpe con el último golpe del fill."), b.fillCloseHit);
+                b.fullChordOnAccent = EditorGUILayout.Toggle(new GUIContent("Full Chord On Accent", "Arpegios: acorde entero en el acento."), b.fullChordOnAccent);
+                b.fullChordBoost = EditorGUILayout.IntSlider(new GUIContent("Full Chord Boost", "Refuerzo de esos acordes enteros."), b.fullChordBoost, 0, 64);
+                b.avoidClaimedAccents = EditorGUILayout.Toggle(new GUIContent("Avoid Claimed Accents", "No pisar a otro que ya escucha."), b.avoidClaimedAccents);
                 EditorGUIUtility.labelWidth = lw;
             }
         }
@@ -912,7 +947,7 @@ namespace ALWTTT.Music.EditorTools
                 var target = plays[pi].target;
                 pi++;
                 if (target == null || (slot.accentMode < 0 && slot.chordExpression < 0 &&
-                                       slot.arpeggioRate < 0 && !slot.accentCustom)) continue;
+                                       slot.arpeggioRate < 0 && slot.bassTone < 0 && !slot.accentCustom)) continue;
 
                 TrackRole role;
                 if (BundleOf<BackingCardConfigSO>(card, TrackRole.Backing) != null) role = TrackRole.Backing;
@@ -957,7 +992,20 @@ namespace ALWTTT.Music.EditorTools
                         parts.Add($"figura {bc.chordExpression}");
                     }
                 }
-                else if (copy is BasslineCardConfigSO bs && slot.accentMode >= 0)
+                if (copy is BasslineCardConfigSO bt)
+                {
+                    if (slot.chordExpression >= 0)
+                    {
+                        bt.chordExpression = (ChordExpressionType)slot.chordExpression;
+                        parts.Add($"Chord Expression {bt.chordExpression}");
+                    }
+                    if (slot.bassTone >= 0)
+                    {
+                        bt.arpeggioToneMode = (BasslineCardConfigSO.BassArpeggioToneMode)slot.bassTone;
+                        parts.Add($"Arpeggio Tone Mode {bt.arpeggioToneMode}");
+                    }
+                }
+                if (copy is BasslineCardConfigSO bs && slot.accentMode >= 0)
                 {
                     bs.accentFollowSettings ??= new AccentFollowSettings();
                     bs.accentFollowSettings.mode = (BasslineCardConfigSO.AccentFollowMode)slot.accentMode;
@@ -1006,17 +1054,137 @@ namespace ALWTTT.Music.EditorTools
             return n.Count == 0 ? "ningún carril" : string.Join(" + ", n);
         }
 
-        // [D12] Receta para apuntar: todo lo que hace falta para volver a ponerla en una carta.
-        private static string Recipe(AccentFollowReadback r, string card, int seed, int bpm)
+        // [D12] Receta para apuntar, en el mismo formato que «📥 Pegar receta» lee:
+        //   chords expr=Bossa mode=Attacks thr=0.35 ...   # TEST Chords · semilla 885861 · 126 BPM
+        private static string Recipe(AccentFollowReadback r, TrackRole role, TrackStyleBundleSO style,
+            string card, int seed, int bpm)
         {
             if (r == null || r.settings == null || !r.heard) return null;
-            var s = r.settings;
-            return $"AF1 {card} · semilla {seed}{(bpm > 0 ? $" · {bpm} BPM" : "")} · " +
-                   $"mode={s.mode}{(r.fromRandom ? " (Random)" : "")} stab={s.stabBeats:0.##} lanes={s.lanes} " +
-                   $"fullChord={(s.fullChordOnAccent ? 1 : 0)} entry={(s.fillEntryHit ? 1 : 0)} " +
-                   $"close={(s.fillCloseHit ? 1 : 0)} thr={s.threshold:0.##} max={s.maxAttacksPerBar} " +
-                   $"boost={s.velocityBoost} cut={s.offVelocityCut} fill={s.fillMode} " +
-                   $"avoid={(s.avoidClaimedAccents ? 1 : 0)}";
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            var sb = new StringBuilder(role == TrackRole.Bassline ? "bass" : "chords");
+            if (style is BackingCardConfigSO bc)
+            {
+                sb.Append($" expr={bc.chordExpression}");
+                if (bc.chordExpression.ToString().StartsWith("Arpeggio")) sb.Append($" rate={bc.arpeggioRate}");
+            }
+            else if (style is BasslineCardConfigSO bb)
+                sb.Append($" expr={bb.chordExpression} tone={bb.arpeggioToneMode}");
+            sb.Append(" ").Append(BlockTokens(r.settings, inv));
+            sb.Append($"   # {card} · semilla {seed}{(bpm > 0 ? $" · {bpm} BPM" : "")}{(r.fromRandom ? " · salió de Random" : "")}");
+            return sb.ToString();
+        }
+
+        private static string BlockTokens(AccentFollowSettings s, IFormatProvider inv) =>
+            string.Format(inv, "mode={0} thr={1:0.##} max={2} stab={3:0.##} lanes={4} boost={5} cut={6} " +
+                "fill={7} entry={8} close={9} fullChord={10} fullBoost={11} avoid={12}",
+                s.mode, s.threshold, s.maxAttacksPerBar, s.stabBeats,
+                (s.lanes & AccentLanes.All) == AccentLanes.All ? "Everything" : s.lanes.ToString().Replace(", ", "+"),
+                s.velocityBoost, s.offVelocityCut, s.fillMode,
+                s.fillEntryHit ? 1 : 0, s.fillCloseHit ? 1 : 0, s.fullChordOnAccent ? 1 : 0,
+                s.fullChordBoost, s.avoidClaimedAccents ? 1 : 0);
+
+        // ── [Claudio 2026-11-20] «📥 Pegar receta»: applies a recipe to the column.
+        // Lines (any order, # = comment):
+        //   bench  bpm=126 pattern=V4_Bossa progression=V4_Imaj7_vim7
+        //   chords expr=Bossa rate=Eighth mode=Attacks thr=0.35 max=2 stab=0 lanes=All ...
+        //   bass   mode=Attacks lanes=Kick avoid=1 ...
+        // The cards must already be in the column; the recipe only sets the
+        // per-render overrides (nothing is written to the cards).
+        private readonly Dictionary<string, string> _pasteMsgs = new();
+
+        private void PasteRecipe(Column c, string text)
+        {
+            var log = new List<string>();
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            foreach (var raw in (text ?? "").Split('\n'))
+            {
+                var line = raw.Split('#')[0].Trim();
+                if (line.Length == 0) continue;
+                var parts = line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+                var kind = parts[0].ToLowerInvariant();
+                var kv = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var t in parts.Skip(1))
+                {
+                    int i = t.IndexOf('=');
+                    if (i > 0) kv[t.Substring(0, i)] = t.Substring(i + 1);
+                }
+                string Get(string k) => kv.TryGetValue(k, out var v) ? v : null;
+
+                if (kind == "bench")
+                {
+                    if (Get("bpm") is string bpm && int.TryParse(bpm, out var b)) { c.bpm = b; log.Add($"BPM {b}"); }
+                    if (Get("pattern") is string pn)
+                    {
+                        var slot = c.slots.FirstOrDefault(sl => RhythmBundleOf(LoadCard(sl.cardGuid)) != null);
+                        var pat = pn == "-" ? null : AllAssets<DrumPatternData>().FirstOrDefault(x => x.name == pn);
+                        if (slot == null) log.Add("⚠ no hay carta de ritmo en la columna");
+                        else if (pn != "-" && pat == null) log.Add($"⚠ no encuentro el patrón «{pn}»");
+                        else { slot.forcedPatternGuid = pat == null ? "" : GuidOf(pat); log.Add($"patrón {pn}"); }
+                    }
+                    if (Get("progression") is string gn)
+                    {
+                        var slot = c.slots.FirstOrDefault(sl => BundleOf<BackingCardConfigSO>(LoadCard(sl.cardGuid), TrackRole.Backing) != null);
+                        var prog = gn == "-" ? null : AllAssets<ChordProgressionData>().FirstOrDefault(x => x.name == gn);
+                        if (slot == null) log.Add("⚠ no hay carta de acordes en la columna");
+                        else if (gn != "-" && prog == null) log.Add($"⚠ no encuentro la progresión «{gn}»");
+                        else { slot.forcedProgressionGuid = prog == null ? "" : GuidOf(prog); log.Add($"progresión {gn}"); }
+                    }
+                    continue;
+                }
+                if (kind != "chords" && kind != "bass") { log.Add($"⚠ línea desconocida: «{parts[0]}»"); continue; }
+
+                bool chords = kind == "chords";
+                var target = c.slots.FirstOrDefault(sl => chords
+                    ? BundleOf<BackingCardConfigSO>(LoadCard(sl.cardGuid), TrackRole.Backing) != null
+                    : BundleOf<BasslineCardConfigSO>(LoadCard(sl.cardGuid), TrackRole.Bassline) != null);
+                if (target == null) { log.Add($"⚠ no hay carta de {(chords ? "acordes" : "bajo")} en la columna"); continue; }
+                var card = LoadCard(target.cardGuid);
+                var cardBlock = chords
+                    ? BundleOf<BackingCardConfigSO>(card, TrackRole.Backing).accentFollowSettings
+                    : BundleOf<BasslineCardConfigSO>(card, TrackRole.Bassline).accentFollowSettings;
+                var blk = (cardBlock ?? new AccentFollowSettings()).Clone();
+                var bad = new List<string>();
+
+                if (!chords && Get("tone") is string to)
+                { if (Enum.TryParse<BasslineCardConfigSO.BassArpeggioToneMode>(to, true, out var tm)) target.bassTone = (int)tm; else bad.Add("tone"); }
+                if (Get("expr") is string ex)
+                { if (Enum.TryParse<ChordExpressionType>(ex, true, out var e)) target.chordExpression = (int)e; else bad.Add("expr"); }
+                if (chords && Get("rate") is string ra)
+                { if (Enum.TryParse<ArpeggioRate>(ra, true, out var r)) target.arpeggioRate = (int)r; else bad.Add("rate"); }
+                if (Get("mode") is string mo)
+                {
+                    if (Enum.TryParse<BasslineCardConfigSO.AccentFollowMode>(mo, true, out var m)) { target.accentMode = (int)m; blk.mode = m; }
+                    else bad.Add("mode");
+                }
+                float F(string k, float d) => Get(k) is string v && float.TryParse(v, System.Globalization.NumberStyles.Float, inv, out var f) ? f : d;
+                int I(string k, int d) => Get(k) is string v && int.TryParse(v, out var n) ? n : d;
+                bool B(string k, bool d) => Get(k) is string v ? v == "1" || v.Equals("true", StringComparison.OrdinalIgnoreCase) : d;
+                blk.threshold = Mathf.Clamp(F("thr", blk.threshold), .05f, 1f);
+                blk.maxAttacksPerBar = I("max", blk.maxAttacksPerBar);
+                blk.stabBeats = F("stab", blk.stabBeats);
+                blk.velocityBoost = I("boost", blk.velocityBoost);
+                blk.offVelocityCut = I("cut", blk.offVelocityCut);
+                blk.fillEntryHit = B("entry", blk.fillEntryHit);
+                blk.fillCloseHit = B("close", blk.fillCloseHit);
+                blk.fullChordOnAccent = B("fullChord", blk.fullChordOnAccent);
+                blk.fullChordBoost = I("fullBoost", blk.fullChordBoost);
+                blk.avoidClaimedAccents = B("avoid", blk.avoidClaimedAccents);
+                if (Get("fill") is string fi)
+                { if (Enum.TryParse<BasslineCardConfigSO.AccentFillMode>(fi, true, out var f)) blk.fillMode = f; else bad.Add("fill"); }
+                if (Get("lanes") is string la)
+                {
+                    var name = la.Equals("Everything", StringComparison.OrdinalIgnoreCase) ? "All" : la.Replace("+", ",");
+                    if (Enum.TryParse<AccentLanes>(name, true, out var l)) blk.lanes = l; else bad.Add("lanes");
+                }
+                target.accentBlock = blk;
+                target.accentCustom = true;
+                log.Add($"{(chords ? "acordes" : "bajo")} «{card.DisplayName}»" +
+                        (bad.Count > 0 ? $" (⚠ no entendí: {string.Join(", ", bad)})" : ""));
+            }
+            var msg = log.Count == 0 ? "El portapapeles no tiene una receta (líneas bench / chords / bass)."
+                                       : "Receta aplicada: " + string.Join(" · ", log);
+            _pasteMsgs[c.label] = msg;
+            Debug.Log($"{Tag} {c.label}: {msg}");
         }
 
         // Forced patterns keyed like the gig's tracks. A later card that replaces
