@@ -1092,6 +1092,30 @@ namespace ALWTTT.Music.EditorTools
         // per-render overrides (nothing is written to the cards).
         private readonly Dictionary<string, string> _pasteMsgs = new();
 
+        // [Claudio 2026-11-20] The column's card of that role, or — when there is
+        // none — the named card (asset name, default the TEST card) added at the
+        // end for the named musician (added to the formation if missing).
+        private Slot EnsureSlot(Column c, Func<CardDefinition, bool> isRole, string cardAsset,
+            string musicianName, List<string> log)
+        {
+            var found = c.slots.FirstOrDefault(sl => { var cd = LoadCard(sl.cardGuid); return cd != null && isRole(cd); });
+            if (found != null) return found;
+            var card = AssetDatabase.FindAssets(cardAsset + " t:CardDefinition")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Select(AssetDatabase.LoadAssetAtPath<CardDefinition>)
+                .FirstOrDefault(cd => cd != null && cd.name == cardAsset && isRole(cd));
+            if (card == null) { log.Add($"⚠ no encuentro la carta «{cardAsset}»"); return null; }
+            var who = _musicians.FirstOrDefault(m => m.CharacterName == musicianName)
+                   ?? _musicians.FirstOrDefault(m => c.lineup.Contains(m.CharacterId) &&
+                          c.slots.All(sl => sl.musicianId != m.CharacterId));
+            if (who != null && !c.lineup.Contains(who.CharacterId))
+            { c.lineup.Add(who.CharacterId); log.Add($"{who.CharacterName} entra en la formación"); }
+            var slot = new Slot { cardGuid = GuidOf(card), musicianId = who != null ? who.CharacterId : "" };
+            c.slots.Add(slot);
+            log.Add($"carta «{card.DisplayName}» agregada{(who != null ? $" a {who.CharacterName}" : "")}");
+            return slot;
+        }
+
         private void PasteRecipe(Column c, string text)
         {
             var log = new List<string>();
@@ -1115,7 +1139,7 @@ namespace ALWTTT.Music.EditorTools
                     if (Get("bpm") is string bpm && int.TryParse(bpm, out var b)) { c.bpm = b; log.Add($"BPM {b}"); }
                     if (Get("pattern") is string pn)
                     {
-                        var slot = c.slots.FirstOrDefault(sl => RhythmBundleOf(LoadCard(sl.cardGuid)) != null);
+                        var slot = EnsureSlot(c, cd => RhythmBundleOf(cd) != null, Get("card") ?? "TEST_Rhythm", "Robot C2", log);
                         var pat = pn == "-" ? null : AllAssets<DrumPatternData>().FirstOrDefault(x => x.name == pn);
                         if (slot == null) log.Add("⚠ no hay carta de ritmo en la columna");
                         else if (pn != "-" && pat == null) log.Add($"⚠ no encuentro el patrón «{pn}»");
@@ -1123,7 +1147,7 @@ namespace ALWTTT.Music.EditorTools
                     }
                     if (Get("progression") is string gn)
                     {
-                        var slot = c.slots.FirstOrDefault(sl => BundleOf<BackingCardConfigSO>(LoadCard(sl.cardGuid), TrackRole.Backing) != null);
+                        var slot = EnsureSlot(c, cd => BundleOf<BackingCardConfigSO>(cd, TrackRole.Backing) != null, "TEST_Chords", "Sibi", log);
                         var prog = gn == "-" ? null : AllAssets<ChordProgressionData>().FirstOrDefault(x => x.name == gn);
                         if (slot == null) log.Add("⚠ no hay carta de acordes en la columna");
                         else if (gn != "-" && prog == null) log.Add($"⚠ no encuentro la progresión «{gn}»");
@@ -1134,9 +1158,11 @@ namespace ALWTTT.Music.EditorTools
                 if (kind != "chords" && kind != "bass") { log.Add($"⚠ línea desconocida: «{parts[0]}»"); continue; }
 
                 bool chords = kind == "chords";
-                var target = c.slots.FirstOrDefault(sl => chords
-                    ? BundleOf<BackingCardConfigSO>(LoadCard(sl.cardGuid), TrackRole.Backing) != null
-                    : BundleOf<BasslineCardConfigSO>(LoadCard(sl.cardGuid), TrackRole.Bassline) != null);
+                var target = chords
+                    ? EnsureSlot(c, cd => BundleOf<BackingCardConfigSO>(cd, TrackRole.Backing) != null,
+                        Get("card") ?? "TEST_Chords", Get("who") ?? "Sibi", log)
+                    : EnsureSlot(c, cd => BundleOf<BasslineCardConfigSO>(cd, TrackRole.Bassline) != null,
+                        Get("card") ?? "TEST_Bass", Get("who") ?? "Conito", log);
                 if (target == null) { log.Add($"⚠ no hay carta de {(chords ? "acordes" : "bajo")} en la columna"); continue; }
                 var card = LoadCard(target.cardGuid);
                 var cardBlock = chords
