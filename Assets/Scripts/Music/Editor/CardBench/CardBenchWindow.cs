@@ -54,6 +54,11 @@ namespace ALWTTT.Music.EditorTools
             // [PATRON-BPM-1, Claudio 2026-11-17] Drum pattern forced for this card's
             // rhythm track (RenderSinglePart patternOverrides). "" = the palette draws.
             public string forcedPatternGuid = "";
+            // [MGP-COMP-ACCENT-2, Claudio 2026-11-20] Per-slot overrides of the
+            // card's bundle for this render (A on, B off, compare). -1 = the card.
+            public int accentMode = -1;          // BasslineCardConfigSO.AccentFollowMode
+            public int chordExpression = -1;     // ChordExpressionType (chord cards)
+            public string forcedProgressionGuid = "";   // chord cards: progression forced
         }
         [Serializable]
         private class Column
@@ -89,7 +94,7 @@ namespace ALWTTT.Music.EditorTools
             public float seconds;
             public int bpm;
             public string ts, key, harmony, hash;
-            public List<(string mus, string role, string card, string bundle, string inst, string why)> tracks = new();
+            public List<(string mus, string role, string card, string bundle, string inst, string why, string listen, string recipe)> tracks = new();
             public Dictionary<string, List<string>> drumLanes = new();   // [Claudio] mus → one line per drum
             public List<string> notes = new();
             public List<string> info = new();   // [BATERIA-SOLO-1] notes that are not warnings
@@ -388,6 +393,7 @@ namespace ALWTTT.Music.EditorTools
                     { c.slots.RemoveAt(i); GUIUtility.ExitGUI(); }
                 }
                 DrawPatternRow(c, slot);
+                DrawFollowerRows(slot);   // [MGP-COMP-ACCENT-2]
             }
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -458,6 +464,20 @@ namespace ALWTTT.Music.EditorTools
                 if (!string.IsNullOrEmpty(t.why))
                     EditorGUILayout.LabelField($"    ↳ {t.why}",
                         differs ? warn : EditorStyles.wordWrappedMiniLabel);
+                // [MGP-COMP-ACCENT-2 / D12] Lo que la escucha de acentos hizo, con 📋 para apuntarlo.
+                if (!string.IsNullOrEmpty(t.listen))
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        EditorGUILayout.LabelField($"    ↳ {t.listen}",
+                            differs ? warn : EditorStyles.wordWrappedMiniLabel);
+                        if (!string.IsNullOrEmpty(t.recipe) &&
+                            GUILayout.Button(new GUIContent("📋", "Copia la receta de escucha:\n" + t.recipe),
+                                GUILayout.Width(26)))
+                        {
+                            GUIUtility.systemCopyBuffer = t.recipe;
+                            Debug.Log($"{Tag} receta copiada: {t.recipe}");
+                        }
+                    }
                 // [Claudio, 2026-11-17] Each drum of the rhythm stem: hits and velocity.
                 if (t.role == nameof(TrackRole.Rhythm) && r.drumLanes.TryGetValue(t.mus, out var lanes))
                     foreach (var l in lanes)
@@ -482,6 +502,7 @@ namespace ALWTTT.Music.EditorTools
             var prevGlossary = GameText.Glossary;
             bool prevLog = SongConfigBuilder.LogEnabled;
             GameObject go = null;
+            var clones = new List<UnityEngine.Object>();   // [MGP-COMP-ACCENT-2] bundle copies
             try
             {
                 if (_glossary != null) GameText.SetEditorFallback(_glossary);
@@ -491,6 +512,7 @@ namespace ALWTTT.Music.EditorTools
                 var part0 = model.parts[0];
                 if (part0.tracks.Count == 0)
                 { res.error = "La parte A queda sin pistas: nada que sonar."; return res; }
+                ApplyBundleOverrides(c, plays, part0, clones, res.info);   // [MGP-COMP-ACCENT-2]
 
                 var instruments = new InstrumentRepositoryResources(_config);
                 instruments.Refresh();
@@ -564,10 +586,13 @@ namespace ALWTTT.Music.EditorTools
                             DrumLanes(stem, t.PercussionInstrument);
                     ResolvedTrackChoice choice = null;
                     mm.LastResolvedByTrack?.TryGetValue(new MusicianTrackKey(t.MusicianId, t.Role), out choice);
+                    string cardName = entry?.sourceCardDefinition != null ? entry.sourceCardDefinition.DisplayName : "—";
                     res.tracks.Add((Mus(t.MusicianId)?.CharacterName ?? t.MusicianId, t.Role.ToString(),
-                        entry?.sourceCardDefinition != null ? entry.sourceCardDefinition.DisplayName : "—",
+                        cardName,
                         t.Parameters?.Style != null ? t.Parameters.Style.name : "sin bundle", inst,
-                        Why(t.Role, choice)));
+                        Why(t.Role, choice),
+                        ListenLine(choice?.accentFollow),
+                        Recipe(choice?.accentFollow, cardName, seed, c.bpm)));
                     // [PATRON-BPM-1] Avisa si el patrón de batería quedó fuera de su tempo cómodo.
                     if (t.Role == TrackRole.Rhythm && choice != null)
                     {
@@ -596,6 +621,7 @@ namespace ALWTTT.Music.EditorTools
                 GameText.SetEditorFallback(prevGlossary);
                 SongConfigBuilder.LogEnabled = prevLog;
                 if (go != null) DestroyImmediate(go);
+                foreach (var o in clones) if (o != null) DestroyImmediate(o);
             }
             return res;
         }
@@ -666,6 +692,215 @@ namespace ALWTTT.Music.EditorTools
             }
         }
 
+        // ── [MGP-COMP-ACCENT-2, Claudio 2026-11-20] Rows under a chord / bass card ──
+        // Accent-follow mode, chord expression and a forced progression, per
+        // slot, so column A and B can differ only in that. The bundle is
+        // copied for the render (never written); "(la carta)" = untouched.
+        private static T BundleOf<T>(CardDefinition card, TrackRole role) where T : UnityEngine.Object
+        {
+            var comp = card != null ? card.CompositionPayload : null;
+            if (comp == null || comp.PrimaryKind != CardPrimaryKind.Track) return null;
+            var desc = comp.TrackAction;
+            return desc != null && desc.role == role ? desc.styleBundle as T : null;
+        }
+
+        private static readonly (BasslineCardConfigSO.AccentFollowMode m, string name)[] FollowModes =
+        {
+            (BasslineCardConfigSO.AccentFollowMode.Off, "Apagado"),
+            (BasslineCardConfigSO.AccentFollowMode.Reinforce, "Refuerzo"),
+            (BasslineCardConfigSO.AccentFollowMode.Attacks, "Ataques"),
+            (BasslineCardConfigSO.AccentFollowMode.AttacksAndGaps, "Ataques + silencios"),
+            (BasslineCardConfigSO.AccentFollowMode.Random, "🎲 Random"),
+            (BasslineCardConfigSO.AccentFollowMode.Phrases, "Frases (solo bajo)"),
+        };
+
+        private static string ModeName(BasslineCardConfigSO.AccentFollowMode m)
+        {
+            foreach (var f in FollowModes) if (f.m == m) return f.name;
+            return m.ToString();
+        }
+
+        private void DrawFollowerRows(Slot slot)
+        {
+            var card = LoadCard(slot.cardGuid);
+            var backing = BundleOf<BackingCardConfigSO>(card, TrackRole.Backing);
+            var bass = backing == null ? BundleOf<BasslineCardConfigSO>(card, TrackRole.Bassline) : null;
+            if (backing == null && bass == null)
+            { slot.accentMode = -1; slot.chordExpression = -1; slot.forcedProgressionGuid = ""; return; }
+
+            // Escucha de acentos
+            var cardMode = backing != null
+                ? backing.accentFollowSettings?.mode ?? BasslineCardConfigSO.AccentFollowMode.Off
+                : bass.accentFollowSettings?.mode ?? BasslineCardConfigSO.AccentFollowMode.Off;
+            var modes = FollowModes.Where(f => bass != null || f.m != BasslineCardConfigSO.AccentFollowMode.Phrases).ToList();
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(94);
+                EditorGUILayout.LabelField("escucha", EditorStyles.miniLabel, GUILayout.Width(62));
+                var labels = new List<string> { $"(la carta: {ModeName(cardMode)})" };
+                labels.AddRange(modes.Select(f => f.name));
+                int sel = slot.accentMode < 0 ? 0
+                    : modes.FindIndex(f => (int)f.m == slot.accentMode) + 1;
+                int nsel = EditorGUILayout.Popup(new GUIContent("", "Modo de escucha de acentos " +
+                    "solo para este render; el resto del bloque sale de la carta."), Mathf.Max(0, sel), labels.ToArray());
+                slot.accentMode = nsel == 0 ? -1 : (int)modes[nsel - 1].m;
+            }
+            if (backing == null) { slot.chordExpression = -1; slot.forcedProgressionGuid = ""; return; }
+
+            // Chord Expression
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(94);
+                EditorGUILayout.LabelField("figura", EditorStyles.miniLabel, GUILayout.Width(62));
+                var names = Enum.GetNames(typeof(ChordExpressionType));
+                var values = (int[])Enum.GetValues(typeof(ChordExpressionType));
+                var labels = new List<string> { $"(la carta: {backing.chordExpression})" };
+                labels.AddRange(names);
+                int sel = slot.chordExpression < 0 ? 0 : Array.IndexOf(values, slot.chordExpression) + 1;
+                int nsel = EditorGUILayout.Popup(new GUIContent("", "Chord Expression solo para este render."),
+                    Mathf.Max(0, sel), labels.ToArray());
+                slot.chordExpression = nsel == 0 ? -1 : values[nsel - 1];
+            }
+
+            // Progresión fija (D13): la de la carta y las de su paleta.
+            var progs = new List<(ChordProgressionData p, float w)>();
+            if (backing.progressionOverride != null) progs.Add((backing.progressionOverride, -1f));
+            if (backing.progressionPalette?.entries != null)
+                foreach (var e in backing.progressionPalette.entries)
+                    if (e?.progression != null && !progs.Any(x => x.p == e.progression)) progs.Add((e.progression, e.weight));
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(94);
+                EditorGUILayout.LabelField("progresión", EditorStyles.miniLabel, GUILayout.Width(62));
+                if (progs.Count == 0)
+                {
+                    slot.forcedProgressionGuid = "";
+                    EditorGUILayout.LabelField("sin progresión ni paleta (procedural)", EditorStyles.miniLabel);
+                    return;
+                }
+                string src = backing.progressionOverride != null ? "fija de la carta"
+                           : $"sorteo en «{backing.progressionPalette.GetDisplayName()}»";
+                var labels = new List<string> { $"({src})" };
+                foreach (var (p, w) in progs)
+                    labels.Add($"{p.name}{(w < 0 ? " · fija" : w <= 0f ? " · peso 0" : "")}");
+                var forced = Load<ChordProgressionData>(slot.forcedProgressionGuid);
+                int sel = forced == null ? 0 : progs.FindIndex(x => x.p == forced) + 1;
+                if (forced != null && sel == 0) slot.forcedProgressionGuid = "";
+                int nsel = EditorGUILayout.Popup(new GUIContent("", "Fuerza una progresión para este render."),
+                    Mathf.Max(0, sel), labels.ToArray());
+                if (nsel != sel) slot.forcedProgressionGuid = nsel == 0 ? "" : GuidOf(progs[nsel - 1].p);
+                using (new EditorGUI.DisabledScope(nsel == 0))
+                    if (GUILayout.Button(new GUIContent("◎", "Selecciona la progresión en el Project."), GUILayout.Width(24)))
+                        EditorGUIUtility.PingObject(progs[nsel - 1].p);
+            }
+        }
+
+        // Swaps the bundle of the slot's track for a copy with the overrides.
+        // The copy keeps the asset's name; it is destroyed after the render.
+        private void ApplyBundleOverrides(Column c, List<CardBenchModel.Play> plays,
+            ALWTTT.UI.SongCompositionUI.PartEntry part0, List<UnityEngine.Object> clones, List<string> info)
+        {
+            int pi = 0;
+            foreach (var slot in c.slots)
+            {
+                var card = LoadCard(slot.cardGuid);
+                if (card == null) continue;
+                while (pi < plays.Count && plays[pi].card != card) pi++;
+                if (pi >= plays.Count) break;
+                var target = plays[pi].target;
+                pi++;
+                if (target == null || (slot.accentMode < 0 && slot.chordExpression < 0)) continue;
+
+                TrackRole role;
+                if (BundleOf<BackingCardConfigSO>(card, TrackRole.Backing) != null) role = TrackRole.Backing;
+                else if (BundleOf<BasslineCardConfigSO>(card, TrackRole.Bassline) != null) role = TrackRole.Bassline;
+                else continue;
+                var bundle = card.CompositionPayload.TrackAction.styleBundle;
+                var entry = part0.tracks.FirstOrDefault(e => e != null && e.musicianId == target.CharacterId &&
+                                                             e.role == role && e.styleBundle == bundle);
+                if (entry == null) continue;   // a later card replaced this track
+
+                var copy = UnityEngine.Object.Instantiate(bundle);
+                copy.name = bundle.name;
+                copy.hideFlags = HideFlags.HideAndDontSave;
+                clones.Add(copy);
+                var parts = new List<string>();
+                if (copy is BackingCardConfigSO bc)
+                {
+                    if (slot.accentMode >= 0)
+                    {
+                        bc.accentFollowSettings ??= new AccentFollowSettings();
+                        bc.accentFollowSettings.mode = (BasslineCardConfigSO.AccentFollowMode)slot.accentMode;
+                        parts.Add($"escucha {ModeName(bc.accentFollowSettings.mode)}");
+                    }
+                    if (slot.chordExpression >= 0)
+                    {
+                        bc.chordExpression = (ChordExpressionType)slot.chordExpression;
+                        parts.Add($"figura {bc.chordExpression}");
+                    }
+                }
+                else if (copy is BasslineCardConfigSO bs && slot.accentMode >= 0)
+                {
+                    bs.accentFollowSettings ??= new AccentFollowSettings();
+                    bs.accentFollowSettings.mode = (BasslineCardConfigSO.AccentFollowMode)slot.accentMode;
+                    parts.Add($"escucha {ModeName(bs.accentFollowSettings.mode)}");
+                }
+                entry.styleBundle = copy;
+                if (parts.Count > 0)
+                    info.Add($"{target.CharacterName}: «{card.DisplayName}» con {string.Join(" y ", parts)} (solo este render).");
+            }
+        }
+
+        // [D12] La escucha en palabras.
+        private static string ListenLine(AccentFollowReadback r)
+        {
+            if (r == null || r.settings == null) return null;
+            var s = r.settings;
+            var sb = new StringBuilder("escucha: ");
+            if (r.fromRandom) sb.Append("🎲 ");
+            sb.Append(ModeName(s.mode));
+            if (!r.heard) return sb.Append(", pero la batería no publica acentos (suena como Apagado)").ToString();
+            if (s.stabBeats > 0f) sb.Append($" · stab {Beats(s.stabBeats)}");
+            if ((s.lanes & AccentLanes.All) != AccentLanes.All) sb.Append($" · {LanesName(s.lanes)}");
+            if (s.fullChordOnAccent) sb.Append(" · acorde entero");
+            if (s.fillEntryHit || s.fillCloseHit)
+                sb.Append(" · fill: ").Append(s.fillEntryHit && s.fillCloseHit ? "entrada + cierre"
+                                               : s.fillEntryHit ? "entrada" : "cierre");
+            sb.Append($" · {r.accents} acentos → {r.attacks} golpes nuevos");
+            if (r.gapHits > 0) sb.Append($" ({r.gapHits} en silencio)");
+            sb.Append($", {r.reinforced} reforzados");
+            if (r.claimed > 0) sb.Append($" · {r.claimed} ya tomados por otro");
+            return sb.ToString();
+        }
+
+        private static string Beats(float b) =>
+            Mathf.Approximately(b, .5f) ? "½" : Mathf.Approximately(b, .25f) ? "¼" : b.ToString("0.##");
+
+        private static string LanesName(AccentLanes l)
+        {
+            var n = new List<string>();
+            if ((l & AccentLanes.Kick) != 0) n.Add("bombo");
+            if ((l & AccentLanes.Snare) != 0) n.Add("caja");
+            if ((l & AccentLanes.Toms) != 0) n.Add("toms");
+            if ((l & AccentLanes.Cymbals) != 0) n.Add("platos");
+            if ((l & AccentLanes.HiHat) != 0) n.Add("hi-hat");
+            if ((l & AccentLanes.Percussion) != 0) n.Add("percusión");
+            return n.Count == 0 ? "ningún carril" : string.Join(" + ", n);
+        }
+
+        // [D12] Receta para apuntar: todo lo que hace falta para volver a ponerla en una carta.
+        private static string Recipe(AccentFollowReadback r, string card, int seed, int bpm)
+        {
+            if (r == null || r.settings == null || !r.heard) return null;
+            var s = r.settings;
+            return $"AF1 {card} · semilla {seed}{(bpm > 0 ? $" · {bpm} BPM" : "")} · " +
+                   $"mode={s.mode}{(r.fromRandom ? " (Random)" : "")} stab={s.stabBeats:0.##} lanes={s.lanes} " +
+                   $"fullChord={(s.fullChordOnAccent ? 1 : 0)} entry={(s.fillEntryHit ? 1 : 0)} " +
+                   $"close={(s.fillCloseHit ? 1 : 0)} thr={s.threshold:0.##} max={s.maxAttacksPerBar} " +
+                   $"boost={s.velocityBoost} cut={s.offVelocityCut} fill={s.fillMode} " +
+                   $"avoid={(s.avoidClaimedAccents ? 1 : 0)}";
+        }
+
         // Forced patterns keyed like the gig's tracks. A later card that replaces
         // the same musician's rhythm track replaces (or clears) its override.
         private Dictionary<MusicianTrackKey, PatternDataSO> ForcedPatterns(
@@ -682,7 +917,21 @@ namespace ALWTTT.Music.EditorTools
                 if (pi >= plays.Count) break;
                 var target = plays[pi].target;
                 pi++;
-                if (RhythmBundleOf(card) == null || target == null) continue;
+                if (target == null) continue;
+                if (BundleOf<BackingCardConfigSO>(card, TrackRole.Backing) != null)
+                {
+                    // [MGP-COMP-ACCENT-2 / D13] progresión forzada para una carta de acordes.
+                    var bkey = new MusicianTrackKey(target.CharacterId, TrackRole.Backing);
+                    var prog = Load<ChordProgressionData>(slot.forcedProgressionGuid);
+                    if (prog != null)
+                    {
+                        dict[bkey] = prog;
+                        info.Add($"{target.CharacterName}: progresión forzada {prog.name} (sin sorteo).");
+                    }
+                    else dict.Remove(bkey);
+                    continue;
+                }
+                if (RhythmBundleOf(card) == null) continue;
                 var key = new MusicianTrackKey(target.CharacterId, TrackRole.Rhythm);
                 var forced = Load<DrumPatternData>(slot.forcedPatternGuid);
                 if (forced != null)

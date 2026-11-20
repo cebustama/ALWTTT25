@@ -514,7 +514,8 @@ namespace ALWTTT.Music
 
         private static bool Strikes(BasslineCardConfigSO.AccentFollowMode m) =>
             m == BasslineCardConfigSO.AccentFollowMode.Attacks ||
-            m == BasslineCardConfigSO.AccentFollowMode.AttacksAndGaps;
+            m == BasslineCardConfigSO.AccentFollowMode.AttacksAndGaps ||
+            m == BasslineCardConfigSO.AccentFollowMode.Random;   // MGP-COMP-ACCENT-2: may strike
 
         private static bool Follows(BackingCardConfigSO card)
         {
