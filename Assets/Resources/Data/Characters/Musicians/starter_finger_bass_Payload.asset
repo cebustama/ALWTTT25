@@ -16,10 +16,10 @@ MonoBehaviour:
   primaryKind: 1
   trackAction:
     role: 3
-    styleBundle: {fileID: 11400000, guid: 73cb08ec33072124998ecb25c2ab9e93, type: 2}
+    styleBundle: {fileID: 11400000, guid: e571339ee0ff2d842be0595b26c9e8a5, type: 2}
+    voicePalette: {fileID: 0}
   partAction:
     action: 0
-    customLabel: 
     musicianId: 
   modifierEffects:
   - {fileID: 11400000, guid: 36930987b63e84747b9d81e9ae89a38d, type: 2}

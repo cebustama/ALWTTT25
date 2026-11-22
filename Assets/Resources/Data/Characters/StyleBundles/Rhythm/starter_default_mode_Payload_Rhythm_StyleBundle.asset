@@ -20,8 +20,12 @@ MonoBehaviour:
     HatDensity: 0
     HatMode: 0
   styleIdOverride: 
-  fillEveryNMeasures: 0
+  fillEveryNMeasures: 4
   lastMeasuresAsFill: 0
+  fillPalette: {fileID: 11400000, guid: ed765b12bfcbdb841b017be479fee715, type: 2}
+  proceduralFillWeight: 1
+  crashAfterFill: 1
+  accentContrast: 0
   kickDensity: 0.5
   snareGhostNoteChance: 0
   hatSubdivisionBias: 0.513

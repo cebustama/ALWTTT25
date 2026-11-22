@@ -14,6 +14,16 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-22 — MUSICA-1b: acordes que giran en el fill, bajo que gira y cuatro cartas de bajo con paleta
+
+**Clase:** semántico · operativo. Código de editor y de juego, assets de cartas; cambios de MidiGenPlay pedidos por Claudio en la misma sesión (su changelog: ARTIC-SCHED-2/3/4, BASS-PHRASE-SLAP-1, BASS-DEGREES-1/2, BASS-PALETTE-1).
+
+- **Wormus Major** (`Backing Card Config - Core Major`): Random con HoldThenTurn N = 4; Default Mode con fill cada 4 compases. D-SCHED-1 = B (Random alcanzable), D-SCHED-BASS = B, D-SCHED-WALK = B.
+- **Bajo de Conito, D-BASS-FAMILIES:** Root Line (nueva, `conito_root_line`, inicial ×2), Slap Groove (inicial ×1), Walking Bass y Ballad Hold (recompensa). Cada carta apunta a una paleta (`BassPalette_Root/Slap/Walking/Ballad`) con variantes por nivel; D-BASS-PALETTE = A (en el paquete), D-BASS-DRAW: todos los niveles = una por canción. Slap Bass y Super Slap salen de las recompensas (viven en la paleta Slap); Root Pump, Root Five y Root & Fills salen del catálogo (viven en la paleta Root). Menús `DemoBassCardsCreator` (idempotentes).
+- **`SongConfigBuilder.ListenSegment`:** una carta con paleta escucha a la batería si alguna variante lo hace (`ListensToDrums()`); sin paleta, la regla de antes, mismos hashes.
+- **Banco de cartas:** fila de horario (acordes y bajo), claves `sched` `phrase` `every` `pstyle` `ptech` `psnare` `pdead` `pseed` `variant`; lectura «horario» y «variante»; una línea que empieza con `clave=valor` continúa la anterior.
+- A/B de oído PASS (Claudio). Pendiente en `ARRANQUE_MUSICA-1c.md`.
+
 ## 2026-11-20 — MUSICA-1 (parcial): el gran final lo canta la voz; solo con instrumento por carta; F5 compases; vida del público ×1,5
 
 **Clase:** semántico · operativo. Código, assets de cartas, de público y de flujo.

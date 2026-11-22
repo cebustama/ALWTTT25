@@ -63,6 +63,21 @@ namespace ALWTTT.Music.EditorTools
             // the rest of the accent block, folded; accentCustom = use accentBlock.
             public int arpeggioRate = -1;        // ArpeggioRate
             public int bassTone = -1;            // BassArpeggioToneMode (bass cards)
+            // [MUSICA-1b, MGP-ARTIC-SCHED-1] Bar-plan schedule of the Random figure
+            // (chord cards). -1 / 0 = the card's value.
+            public int articSchedule = -1;       // ArticulationSchedule
+            public int articPhraseBars;          // HoldThenTurn N (≥ 2)
+            public int articAlternateEvery;      // AlternateBars block (≥ 1)
+            // [MUSICA-1b, MGP-BASS-PHRASE-SLAP-1] Phrases fields (bass cards,
+            // recipe only: pstyle / ptech / psnare / pdead / pseed). -1 = the card.
+            public int phraseStyle = -1;         // PhraseStyle
+            public int phraseTechnique = -1;     // PhraseTechnique
+            public int phraseSnare = -1;         // 0 / 1
+            public int phraseDead = -1;          // PhraseDeadNotes
+            public int phraseSeed = -1;          // ≥ 0
+            // [MUSICA-1b, MGP-BASS-PALETTE-1] force one palette variant (recipe
+            // «variant=RootFive»: label or config name, spaces ignored). "" = the draw.
+            public string paletteVariant = "";
             public bool showAccentBlock;
             public bool accentCustom;
             public AccentFollowSettings accentBlock;
@@ -425,7 +440,7 @@ namespace ALWTTT.Music.EditorTools
             // [Claudio 2026-11-20] Receta de prueba desde el portapapeles (líneas bench / chords / bass).
             if (GUILayout.Button(new GUIContent("📥 Pegar receta",
                     "Aplica a esta columna la receta del portapapeles: BPM, patrón y progresión forzados, " +
-                    "y Accent Follow / Chord Expression / Arpeggio Rate de las cartas de acordes y bajo " +
+                    "y Accent Follow / Chord Expression / Arpeggio Rate / horario (sched, phrase, every) de las cartas de acordes y bajo " +
                     "(solo para el render; las cartas no se tocan).")))
                 PasteRecipe(c, GUIUtility.systemCopyBuffer);
             if (_pasteMsgs.TryGetValue(c.label, out var pm))
@@ -790,6 +805,12 @@ namespace ALWTTT.Music.EditorTools
                 slot.arpeggioRate = -1; slot.forcedProgressionGuid = "";
                 slot.chordExpression = EnumRow("Chord Expression", slot.chordExpression, bass.chordExpression);
                 slot.bassTone = EnumRow("Arpeggio Tone Mode", slot.bassTone, bass.arpeggioToneMode);
+                // [MUSICA-1b, MGP-ARTIC-SCHED-3] the bass reads the same schedule.
+                var bassFigure = slot.chordExpression >= 0 ? (ChordExpressionType)slot.chordExpression : bass.chordExpression;
+                if (bassFigure == ChordExpressionType.Random)
+                    DrawScheduleRows(slot, bass.articulationSchedule, bass.articulationPhraseBars,
+                                     bass.articulationAlternateEvery, bass.randomRerollChance);
+                else { slot.articSchedule = -1; slot.articPhraseBars = 0; slot.articAlternateEvery = 0; }
                 return;
             }
             slot.bassTone = -1;
@@ -824,6 +845,12 @@ namespace ALWTTT.Music.EditorTools
                     slot.arpeggioRate = nsel == 0 ? -1 : values[nsel - 1];
                 }
             else slot.arpeggioRate = -1;
+
+            // [MUSICA-1b] Articulation Schedule: only the Random figure reads it.
+            if (figure == ChordExpressionType.Random)
+                DrawScheduleRows(slot, backing.articulationSchedule, backing.articulationPhraseBars,
+                                 backing.articulationAlternateEvery, backing.randomRerollChance);
+            else { slot.articSchedule = -1; slot.articPhraseBars = 0; slot.articAlternateEvery = 0; }
 
             // Progresión fija (D13): la de la carta y las de su paleta.
             var progs = new List<(ChordProgressionData p, float w)>();
@@ -860,6 +887,55 @@ namespace ALWTTT.Music.EditorTools
                     if (GUILayout.Button(new GUIContent("◎", "Selecciona la progresión en el Project."), GUILayout.Width(24)))
                         EditorGUIUtility.PingObject(progs[nsel - 1].p);
             }
+        }
+
+        // [MUSICA-1b, MGP-ARTIC-SCHED-1] Schedule + its bar count, per render.
+        // MidiGenPlay SSoT_Composer_Backing_Track.md §8.5 «Bar-plan schedules».
+        private static void DrawScheduleRows(Slot slot, ArticulationSchedule cardSched, int cardPhrase,
+            int cardAlternate, float cardReroll)
+        {
+            slot.articSchedule = EnumRow("Artic. Schedule", slot.articSchedule, cardSched);
+            var sched = slot.articSchedule >= 0 ? (ArticulationSchedule)slot.articSchedule : cardSched;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(94);
+                switch (sched)
+                {
+                    case ArticulationSchedule.Random:
+                        slot.articAlternateEvery = 0;
+                        slot.articPhraseBars = IntRow("Phrase Bars", slot.articPhraseBars, cardPhrase, 2,
+                            "🎲 Cada render sortea PerEvent o HoldThenTurn (50/50). Este N es el de HoldThenTurn.");
+                        break;
+                    case ArticulationSchedule.HoldThenTurn:
+                        slot.articAlternateEvery = 0;
+                        slot.articPhraseBars = IntRow("Phrase Bars", slot.articPhraseBars, cardPhrase, 2,
+                            "Figura A los N−1 primeros compases de cada frase y B en el último. " +
+                            "Igual a Fill Every N Measures del ritmo = el giro cae en el fill.");
+                        break;
+                    case ArticulationSchedule.AlternateBars:
+                        slot.articPhraseBars = 0;
+                        slot.articAlternateEvery = IntRow("Alternate Every", slot.articAlternateEvery, cardAlternate, 1,
+                            "1 = ABAB, 2 = AABB.");
+                        break;
+                    default:
+                        slot.articPhraseBars = 0; slot.articAlternateEvery = 0;
+                        EditorGUILayout.LabelField("", $"por acorde, con Reroll Chance {cardReroll:0.##} (la carta)",
+                            EditorStyles.miniLabel);
+                        break;
+                }
+            }
+        }
+
+        // «0 = la carta» int field; returns 0 for the card's value.
+        private static int IntRow(string label, int current, int cardValue, int min, string tip)
+        {
+            EditorGUILayout.LabelField(label, EditorStyles.miniLabel, GUILayout.Width(100));
+            bool custom = current > 0;
+            bool nc = EditorGUILayout.ToggleLeft(new GUIContent(custom ? "cambiar:" : $"(la carta: {cardValue})", tip),
+                custom, GUILayout.Width(custom ? 70 : 140));
+            if (!nc) return 0;
+            int v = custom ? current : Mathf.Max(min, cardValue);
+            return Mathf.Max(min, EditorGUILayout.IntField(v, GUILayout.Width(50)));
         }
 
         // One "(la carta: X)" + enum popup row; returns -1 for the card's value.
@@ -947,7 +1023,12 @@ namespace ALWTTT.Music.EditorTools
                 var target = plays[pi].target;
                 pi++;
                 if (target == null || (slot.accentMode < 0 && slot.chordExpression < 0 &&
-                                       slot.arpeggioRate < 0 && slot.bassTone < 0 && !slot.accentCustom)) continue;
+                                       slot.arpeggioRate < 0 && slot.bassTone < 0 && !slot.accentCustom &&
+                                       slot.articSchedule < 0 && slot.articPhraseBars <= 0 &&
+                                       slot.articAlternateEvery <= 0 && slot.phraseStyle < 0 &&
+                                       slot.phraseTechnique < 0 && slot.phraseSnare < 0 &&
+                                       slot.phraseDead < 0 && slot.phraseSeed < 0 &&
+                                       string.IsNullOrEmpty(slot.paletteVariant))) continue;
 
                 TrackRole role;
                 if (BundleOf<BackingCardConfigSO>(card, TrackRole.Backing) != null) role = TrackRole.Backing;
@@ -991,6 +1072,28 @@ namespace ALWTTT.Music.EditorTools
                         bc.chordExpression = (ChordExpressionType)slot.chordExpression;
                         parts.Add($"figura {bc.chordExpression}");
                     }
+                    // [MUSICA-1b] bar-plan schedule (the package only reads it under Random)
+                    if (slot.articSchedule >= 0)
+                    {
+                        bc.articulationSchedule = (ArticulationSchedule)slot.articSchedule;
+                        parts.Add($"horario {bc.articulationSchedule}");
+                    }
+                    if (slot.articPhraseBars > 0)
+                    {
+                        bc.articulationPhraseBars = slot.articPhraseBars;
+                        parts.Add($"frase de {bc.articulationPhraseBars} compases");
+                    }
+                    if (slot.articAlternateEvery > 0)
+                    {
+                        bc.articulationAlternateEvery = slot.articAlternateEvery;
+                        parts.Add($"alterna cada {bc.articulationAlternateEvery}");
+                    }
+                    if (bc.articulationSchedule != ArticulationSchedule.PerEvent)
+                        Debug.Log($"[MUSICA-1] Banco: «{card.DisplayName}» {bc.articulationSchedule} " +
+                                  (bc.articulationSchedule == ArticulationSchedule.HoldThenTurn
+                                      ? $"N={bc.articulationPhraseBars}" : $"cada {bc.articulationAlternateEvery}") +
+                                  $", figura {bc.chordExpression}" +
+                                  (bc.chordExpression != ChordExpressionType.Random ? " (fija: el horario no actúa)" : ""));
                 }
                 if (copy is BasslineCardConfigSO bt)
                 {
@@ -1004,6 +1107,57 @@ namespace ALWTTT.Music.EditorTools
                         bt.arpeggioToneMode = (BasslineCardConfigSO.BassArpeggioToneMode)slot.bassTone;
                         parts.Add($"Arpeggio Tone Mode {bt.arpeggioToneMode}");
                     }
+                    // [MUSICA-1b, MGP-ARTIC-SCHED-3] the bass's bar-plan schedule
+                    if (slot.articSchedule >= 0)
+                    {
+                        bt.articulationSchedule = (ArticulationSchedule)slot.articSchedule;
+                        parts.Add($"horario {bt.articulationSchedule}");
+                    }
+                    if (slot.articPhraseBars > 0)
+                    {
+                        bt.articulationPhraseBars = slot.articPhraseBars;
+                        parts.Add($"frase de {bt.articulationPhraseBars} compases");
+                    }
+                    if (slot.articAlternateEvery > 0)
+                    {
+                        bt.articulationAlternateEvery = slot.articAlternateEvery;
+                        parts.Add($"alterna cada {bt.articulationAlternateEvery}");
+                    }
+                    // [MUSICA-1b, MGP-BASS-PALETTE-1] keep only the forced variant
+                    if (!string.IsNullOrEmpty(slot.paletteVariant) && bt.variants != null && bt.variants.Count > 0)
+                    {
+                        static string Key(string x) => (x ?? "").Replace(" ", "").ToLowerInvariant();
+                        string want = Key(slot.paletteVariant);
+                        var keep = bt.variants.Where(v => v?.config != null &&
+                            (Key(v.label) == want || Key(v.config.name) == want)).ToList();
+                        if (keep.Count > 0)
+                        {
+                            bt.variants = keep;
+                            parts.Add($"variante forzada {keep[0].label}");
+                        }
+                        else info.Add($"⚠ «{card.DisplayName}» no tiene la variante «{slot.paletteVariant}». " +
+                                      $"Hay: {string.Join(", ", bt.variants.Where(v => v != null).Select(v => Key(v.label)))}.");
+                    }
+                    // [MUSICA-1b, PHRASE-SLAP-1] Phrases fields
+                    if (slot.phraseStyle >= 0)
+                    { bt.phraseStyle = (BasslineCardConfigSO.PhraseStyle)slot.phraseStyle; parts.Add($"frases {bt.phraseStyle}"); }
+                    if (slot.phraseTechnique >= 0)
+                    { bt.phraseTechnique = (BasslineCardConfigSO.PhraseTechnique)slot.phraseTechnique; parts.Add($"técnica {bt.phraseTechnique}"); }
+                    if (slot.phraseSnare >= 0)
+                    { bt.phraseFollowSnare = slot.phraseSnare == 1; parts.Add(bt.phraseFollowSnare ? "sigue la caja" : "no sigue la caja"); }
+                    if (slot.phraseDead >= 0)
+                    { bt.phraseDeadNotes = (BasslineCardConfigSO.PhraseDeadNotes)slot.phraseDead; parts.Add($"notas muertas {bt.phraseDeadNotes}"); }
+                    if (slot.phraseSeed >= 0)
+                    { bt.phraseSeed = slot.phraseSeed; parts.Add($"semilla de frase {bt.phraseSeed}"); }
+                    if (bt.accentFollowSettings?.mode == BasslineCardConfigSO.AccentFollowMode.Phrases ||
+                        slot.accentMode == (int)BasslineCardConfigSO.AccentFollowMode.Phrases)
+                        Debug.Log($"[MUSICA-1] Banco: «{card.DisplayName}» (bajo) frases {bt.phraseStyle}, " +
+                                  $"técnica {bt.phraseTechnique}, caja {(bt.phraseFollowSnare ? "sí" : "no")}, " +
+                                  $"muertas {bt.phraseDeadNotes}, semilla {bt.phraseSeed}");
+                    if (bt.articulationSchedule != ArticulationSchedule.PerEvent)
+                        Debug.Log($"[MUSICA-1] Banco: «{card.DisplayName}» (bajo) {bt.articulationSchedule} " +
+                                  $"N={bt.articulationPhraseBars}, figura {bt.chordExpression}" +
+                                  (bt.chordExpression != ChordExpressionType.Random ? " (fija: el horario no actúa)" : ""));
                 }
                 if (copy is BasslineCardConfigSO bs && slot.accentMode >= 0)
                 {
@@ -1066,9 +1220,25 @@ namespace ALWTTT.Music.EditorTools
             {
                 sb.Append($" expr={bc.chordExpression}");
                 if (bc.chordExpression.ToString().StartsWith("Arpeggio")) sb.Append($" rate={bc.arpeggioRate}");
+                if (bc.chordExpression == ChordExpressionType.Random)
+                {
+                    sb.Append($" sched={bc.articulationSchedule}");
+                    if (bc.articulationSchedule == ArticulationSchedule.HoldThenTurn ||
+                        bc.articulationSchedule == ArticulationSchedule.Random) sb.Append($" phrase={bc.articulationPhraseBars}");
+                    else if (bc.articulationSchedule == ArticulationSchedule.AlternateBars) sb.Append($" every={bc.articulationAlternateEvery}");
+                }
             }
             else if (style is BasslineCardConfigSO bb)
+            {
                 sb.Append($" expr={bb.chordExpression} tone={bb.arpeggioToneMode}");
+                if (bb.chordExpression == ChordExpressionType.Random)
+                {
+                    sb.Append($" sched={bb.articulationSchedule}");
+                    if (bb.articulationSchedule == ArticulationSchedule.HoldThenTurn ||
+                        bb.articulationSchedule == ArticulationSchedule.Random) sb.Append($" phrase={bb.articulationPhraseBars}");
+                    else if (bb.articulationSchedule == ArticulationSchedule.AlternateBars) sb.Append($" every={bb.articulationAlternateEvery}");
+                }
+            }
             sb.Append(" ").Append(BlockTokens(r.settings, inv));
             sb.Append($"   # {card} · semilla {seed}{(bpm > 0 ? $" · {bpm} BPM" : "")}{(r.fromRandom ? " · salió de Random" : "")}");
             return sb.ToString();
@@ -1120,7 +1290,18 @@ namespace ALWTTT.Music.EditorTools
         {
             var log = new List<string>();
             var inv = System.Globalization.CultureInfo.InvariantCulture;
-            foreach (var raw in (text ?? "").Split('\n'))
+            // [MUSICA-1b] a terminal copy may wrap a long line: a line that starts
+            // with key=value continues the previous one.
+            var joined = new List<string>();
+            foreach (var raw0 in (text ?? "").Split('\n'))
+            {
+                var l0 = raw0.Split('#')[0].Trim();
+                if (l0.Length == 0) continue;
+                var first = l0.Split((char[])null, StringSplitOptions.RemoveEmptyEntries)[0];
+                if (first.IndexOf('=') > 0 && joined.Count > 0) joined[joined.Count - 1] += " " + l0;
+                else joined.Add(l0);
+            }
+            foreach (var raw in joined)
             {
                 var line = raw.Split('#')[0].Trim();
                 if (line.Length == 0) continue;
@@ -1171,12 +1352,33 @@ namespace ALWTTT.Music.EditorTools
                 var blk = (cardBlock ?? new AccentFollowSettings()).Clone();
                 var bad = new List<string>();
 
+                // [MUSICA-1b, PHRASE-SLAP-1] bass Phrases fields
+                if (!chords)
+                {
+                    if (Get("pstyle") is string pst)
+                    { if (Enum.TryParse<BasslineCardConfigSO.PhraseStyle>(pst, true, out var v)) target.phraseStyle = (int)v; else bad.Add("pstyle"); }
+                    if (Get("ptech") is string pte)
+                    { if (Enum.TryParse<BasslineCardConfigSO.PhraseTechnique>(pte, true, out var v)) target.phraseTechnique = (int)v; else bad.Add("ptech"); }
+                    if (Get("psnare") is string psn) target.phraseSnare = psn == "1" || psn.Equals("true", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+                    if (Get("pdead") is string pde)
+                    { if (Enum.TryParse<BasslineCardConfigSO.PhraseDeadNotes>(pde, true, out var v)) target.phraseDead = (int)v; else bad.Add("pdead"); }
+                    if (Get("variant") is string pva) target.paletteVariant = pva;
+                    if (Get("pseed") is string pse)
+                    { if (int.TryParse(pse, out var v) && v >= 0) target.phraseSeed = v; else bad.Add("pseed"); }
+                }
                 if (!chords && Get("tone") is string to)
                 { if (Enum.TryParse<BasslineCardConfigSO.BassArpeggioToneMode>(to, true, out var tm)) target.bassTone = (int)tm; else bad.Add("tone"); }
                 if (Get("expr") is string ex)
                 { if (Enum.TryParse<ChordExpressionType>(ex, true, out var e)) target.chordExpression = (int)e; else bad.Add("expr"); }
                 if (chords && Get("rate") is string ra)
                 { if (Enum.TryParse<ArpeggioRate>(ra, true, out var r)) target.arpeggioRate = (int)r; else bad.Add("rate"); }
+                // [MUSICA-1b] sched=HoldThenTurn phrase=4 | sched=AlternateBars every=2
+                if (Get("sched") is string sc)
+                { if (Enum.TryParse<ArticulationSchedule>(sc, true, out var s)) target.articSchedule = (int)s; else bad.Add("sched"); }
+                if (Get("phrase") is string ph)
+                { if (int.TryParse(ph, out var n) && n >= 2) target.articPhraseBars = n; else bad.Add("phrase"); }
+                if (Get("every") is string ev)
+                { if (int.TryParse(ev, out var n) && n >= 1) target.articAlternateEvery = n; else bad.Add("every"); }
                 if (Get("mode") is string mo)
                 {
                     if (Enum.TryParse<BasslineCardConfigSO.AccentFollowMode>(mo, true, out var m)) { target.accentMode = (int)m; blk.mode = m; }
@@ -1202,8 +1404,14 @@ namespace ALWTTT.Music.EditorTools
                     var name = la.Equals("Everything", StringComparison.OrdinalIgnoreCase) ? "All" : la.Replace("+", ",");
                     if (Enum.TryParse<AccentLanes>(name, true, out var l)) blk.lanes = l; else bad.Add("lanes");
                 }
-                target.accentBlock = blk;
-                target.accentCustom = true;
+                // [MUSICA-1b] only «cambiados» when the recipe carries block tokens.
+                string[] blockKeys = { "thr", "max", "stab", "boost", "cut", "entry", "close",
+                                       "fullChord", "fullBoost", "avoid", "fill", "lanes" };
+                if (blockKeys.Any(k => kv.ContainsKey(k)))
+                {
+                    target.accentBlock = blk;
+                    target.accentCustom = true;
+                }
                 log.Add($"{(chords ? "acordes" : "bajo")} «{card.DisplayName}»" +
                         (bad.Count > 0 ? $" (⚠ no entendí: {string.Join(", ", bad)})" : ""));
             }
@@ -1814,6 +2022,15 @@ namespace ALWTTT.Music.EditorTools
             if (role == TrackRole.Bassline) s += c.usesSharedProgression ? " · sobre la progresión compartida" : "";
             if (c.resolvedFigures != null && c.resolvedFigures.Count > 0)
                 s += $" · figuras: {string.Join(", ", c.resolvedFigures.Distinct())}";
+            // [MUSICA-1b, MGP-ARTIC-SCHED-3] which bar plan this render used.
+            if (c.articulationSchedule.HasValue && c.articulationSchedule.Value != ArticulationSchedule.PerEvent ||
+                c.articulationScheduleFromRandom)
+                s += $" · horario: {(c.articulationScheduleFromRandom ? "🎲 " : "")}{c.articulationSchedule}";
+            // [MUSICA-1b, MGP-BASS-PALETTE-1] the palette variant this bass played
+            if (!string.IsNullOrEmpty(c.paletteVariant))
+                s += $" · variante: {c.paletteVariant} (" +
+                     (c.paletteLevel == 0 ? "básico" : c.paletteLevel == 1 ? "medio" : c.paletteLevel == 2 ? "avanzado" : "?") +
+                     $", {(c.palettePerSong ? "una por canción" : "una por loop")})";
             if (c.melodyArchetypesBySpan != null && c.melodyArchetypesBySpan.Count > 0)
                 s += $" · arquetipos: {string.Join(", ", c.melodyArchetypesBySpan.Select(x => x ?? "—").Distinct())}";
             return s;

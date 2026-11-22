@@ -487,11 +487,13 @@ namespace ALWTTT.Music
             string claims = "";
             if (tr.role == TrackRole.Bassline && tr.styleBundle is BasslineCardConfigSO bass)
             {
-                listens =
-                    bass.pocketMode == BasslineCardConfigSO.PocketCouplingMode.SlapPocket ||
-                    bass.accentFollow != BasslineCardConfigSO.AccentFollowMode.Off;
-                var b = bass.accentFollowSettings;
-                if (listens && b != null && b.avoidClaimedAccents && Strikes(b.mode))
+                // [MUSICA-1b, MGP-BASS-PALETTE-1] a palette card listens if any
+                // of its variants does (the card alone: the pre-palette rule).
+                listens = bass.ListensToDrums();
+                bool readsClaims = BassConfigs(bass).Any(x =>
+                    x.accentFollowSettings != null && x.accentFollowSettings.avoidClaimedAccents &&
+                    Strikes(x.accentFollowSettings.mode));
+                if (listens && readsClaims)
                 {
                     var backing = partTracks
                         .Where(t => t != null && t.role == TrackRole.Backing &&
@@ -512,6 +514,15 @@ namespace ALWTTT.Music
                 .Where(t => t != null && t.role == TrackRole.Rhythm)
                 .Select(t => (t.musicianId ?? "_") + "~" + ComputeHashFromTrackEntry(t));
             return "|rx:" + string.Join(";", rhythm) + claims;
+        }
+
+        // [MUSICA-1b] the card and the configs of its palette variants.
+        private static IEnumerable<BasslineCardConfigSO> BassConfigs(BasslineCardConfigSO bass)
+        {
+            yield return bass;
+            if (bass.variants == null) yield break;
+            foreach (var v in bass.variants)
+                if (v?.config != null && v.config != bass) yield return v.config;
         }
 
         private static bool Strikes(BasslineCardConfigSO.AccentFollowMode m) =>

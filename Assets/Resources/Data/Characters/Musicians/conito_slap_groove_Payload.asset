@@ -16,7 +16,8 @@ MonoBehaviour:
   primaryKind: 1
   trackAction:
     role: 3
-    styleBundle: {fileID: 11400000, guid: dd3bddf1ac1503e4884579d2f04dff16, type: 2}
+    styleBundle: {fileID: 11400000, guid: 45d042674c2c4a740a34b357d3496c67, type: 2}
+    voicePalette: {fileID: 0}
   partAction:
     action: 0
     musicianId: 

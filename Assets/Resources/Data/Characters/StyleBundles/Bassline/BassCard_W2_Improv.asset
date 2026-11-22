@@ -13,10 +13,19 @@ MonoBehaviour:
   m_Name: BassCard_W2_Improv
   m_EditorClassIdentifier: MidiGenPlay.Runtime::MidiGenPlay.Composition.BasslineCardConfigSO
   appliesTo: 3
-  chordExpression: 4
+  chordExpression: 6
   arpeggioRate: 0
   randomRerollChance: 1
-  randomFigureWeights: []
+  randomFigureWeights:
+  - figure: 4
+    weight: 6
+  - figure: 2
+    weight: 1
+  - figure: 3
+    weight: 1
+  articulationSchedule: 1
+  articulationPhraseBars: 4
+  articulationAlternateEvery: 1
   velocityJitter: 6
   arpeggioToneMode: 2
   pocketMode: 0
