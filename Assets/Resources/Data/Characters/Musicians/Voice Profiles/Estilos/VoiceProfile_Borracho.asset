@@ -42,3 +42,5 @@ MonoBehaviour:
   legato: 0.9
   baseVowel: 0
   syllableBank: {fileID: 11400000, guid: 862521c59edf63843aa34db91c6da070, type: 2}
+  tessituraMin: 55
+  tessituraMax: 70

@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09c7763474057584b96a4d0a44be87e3, type: 3}
+  m_Name: zig_grito
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.CardDefinition
+  id: zig_grito
+  displayName: Grito
+  performerRule: 1
+  musicianCharacterType: 4
+  cardSprite: {fileID: 21300000, guid: df86ab131e2d4d24e91f96ec6ecd3b29, type: 3}
+  inspirationCost: 0
+  inspirationGenerated: 1
+  isFinisher: 0
+  finisherSoloStrategy: 1
+  finisherSoloLeading: {fileID: 0}
+  finisherSoloReplacesMelody: 0
+  finisherSoloInstrument: {fileID: 0}
+  resourceCostStatusKey: 
+  resourceCostAmount: 0
+  cardType: 0
+  rarity: 0
+  keywords: 
+  audioType: 0
+  musicianAnimation:
+    kind: 0
+    animatorTrigger: 
+    animationDuration: -1
+    disableBeatAnimator: 1
+    loopBoolParameter: 
+  exhaustAfterPlay: 0
+  overrideRequiresTargetSelection: 0
+  requiresTargetSelectionOverrideValue: 0
+  payload: {fileID: 11400000, guid: 53cc89af8485a5a478049543c7795650, type: 2}

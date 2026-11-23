@@ -18,4 +18,4 @@ MonoBehaviour:
   tempoRange: 0
   tempoRule: 0
   absoluteBpm: 120
-  tempoScale: 1.5
+  tempoScale: 1.25

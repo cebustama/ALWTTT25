@@ -292,6 +292,27 @@ Decisions in `planning/archive/ARRANQUE_VOZ-3.md` (D1–D9; D-VOZ-5 = A, D-VOZ-6
   `[VOZ-3] CPU voz …`. The Director's `[SYNC]` line now carries the frame time and flags a
   main-thread hitch («TIRÓN del hilo principal: la cifra no es desfase de audio»).
 
+### 5.3 Register, octave weights and slurs (MUSICA-1c, 2026-11-23)
+
+- **Tessitura** (`VoiceProfileSO.tessituraMin/Max`, MIDI after transpose; 0 = off). `PrepareV8` moves
+  every note by whole octaves (|k| ≤ 3) until the **median** sung note lies in [min, max];
+  `V8Prep.OctaveShift` → Bench log «tesitura ±12». Values set by the menu *MUSICA-1c ▸ Ziggy: registro…*:
+  most styles 57–72; Crooner, Canto llano, Borracho 55–70; Ópera 57–74; Falsete 64–79; Death metal and
+  Gruñido 43–57. Why the median and not the range: a figure melody can span more than an octave; the
+  median keeps where the voice *lives* without clamping the climb (Rise Up).
+- **Octave weights per palette** (`VoiceStylePaletteSO.octaveWeights`, Vector3 down / as-is / up,
+  default (0,1,0)). Drawn per song/part with salt "voz-octava"; `Pick` returns a hidden, cached
+  `HideAndDontSave` clone named «<style> +12» with the transpose shifted (`Shift`); `PickStyle` returns
+  the style alone. The tessitura then re-centres, so the weights decide only inside the range.
+- **Slurs** (`SungNote.Slur`). `PrepareV8` reads CC68 (legato footswitch, written by MidiGenPlay
+  `MelodyTrackComposer.MarkSlurs` for MGP-MEL-HOLD-1/BLUES-1): a note that starts while it is on gets no
+  syllable of its own, takes the previous one's vowel (`SyllablePlanner.Nucleus`), glides into its
+  pitch (≥ 70 ms) and pitchLead does not jump into it (`VoiceRenderer`).
+- **Palettes of Ziggy's cards** (D10 = A): Showtime = Pop · Crooner · Ópera; Rise Up = Falsete ·
+  Zig V8; Blues = Gruñido · Crooner; Balada = Tierno y calmado · Canto llano; Grito = Punk rock ·
+  Death metal. Robot is out of the cards (it does not fit Zig); Borracho is kept for a future status
+  effect that overrides the singer's palette (POST-DEMO).
+
 Defaults equal the lever doc's "Settled singer" recipe (the only listen-verified
 voice). Gameplay-modulation hooks (per-state overrides) are deliberately absent
 until a concrete consumer exists; section-level "when" is driven by gameplay code

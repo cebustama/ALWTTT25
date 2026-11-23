@@ -1173,6 +1173,7 @@ namespace ALWTTT.Music.Voice
         {
             public SungNote[] Notes;
             public int PhraseEnds, Grid, VerseSeed, NoiseSeed;
+            public int OctaveShift;   // [MUSICA-1c] octaves the tessitura moved the notes
             public string BankInfo = "none (base vowel)";
             public string[] Lexicon;
             public string Sung(int max = 16)
@@ -1200,6 +1201,20 @@ namespace ALWTTT.Music.Voice
             int tpqn = file.TimeDivision is TicksPerQuarterNoteTimeDivision tq ? tq.TicksPerQuarterNote : 0;
             double beatsPerTick = tpqn > 0 ? (beatUnit / 4.0) / tpqn : 0;
 
+            // [MUSICA-1c, MGP-MEL-HOLD-1] CC68 (legato footswitch) from the composer: a note that
+            // starts while it is on continues the previous syllable (a melisma), gliding.
+            var slurCc = new List<(long tick, bool on)>();
+            foreach (var te in file.GetTimedEvents())
+                if (te.Event is Melanchall.DryWetMidi.Core.ControlChangeEvent cc && cc.ControlNumber == 68)
+                    slurCc.Add((te.Time, cc.ControlValue >= 64));
+            slurCc.Sort((x, y) => x.tick.CompareTo(y.tick));
+            bool SlurAt(long tick)
+            {
+                bool on = false;
+                foreach (var c in slurCc) { if (c.tick <= tick) on = c.on; else break; }
+                return on;
+            }
+
             var list = new List<SungNote>();
             foreach (var n in file.GetNotes())
             {
@@ -1211,17 +1226,31 @@ namespace ALWTTT.Music.Voice
                     // beats from ticks (exact), so the «1 beat» rules never miss by a microsecond
                     StartBeats = tpqn > 0 ? n.Time * beatsPerTick : st / beatSec,
                     DurBeats = tpqn > 0 ? n.Length * beatsPerTick : (en - st) / beatSec,
+                    Slur = slurCc.Count > 0 && SlurAt(n.Time),
                 });
             }
             list.Sort((x, y) => x.Start.CompareTo(y.Start));
             if (list.Count == 0) { error = "Stem has zero notes."; return null; }
             var prep = new V8Prep { Notes = list.ToArray() };
             var notes = prep.Notes;
+            // [MUSICA-1c] keep the median sung note inside the profile's tessitura
+            if (profile.tessituraMin > 0 || profile.tessituraMax > 0)
+            {
+                var sorted = notes.Select(x => x.Note).OrderBy(x => x).ToArray();
+                int median = sorted[sorted.Length / 2] + profile.transposeSemitones, k = 0;
+                while (profile.tessituraMin > 0 && median + 12 * k < profile.tessituraMin && k < 3) k++;
+                while (profile.tessituraMax > 0 && median + 12 * k > profile.tessituraMax && k > -3) k--;
+                if (k != 0) for (int i = 0; i < notes.Length; i++) notes[i].Note += 12 * k;
+                prep.OctaveShift = k;
+            }
 
             var bank = profile.syllableBank;
             prep.Grid = bank != null ? bank.phraseGridBars : 0;
             prep.PhraseEnds = SyllablePlanner.MarkPhraseEnds(notes, beatSec, profile.fallSemitones > 0f, beatsPerBar, prep.Grid);
             prep.VerseSeed = SyllablePlanner.Hash($"{songSeed}|{partIndex}|verso");
+            // slurred notes take no syllable of their own: the banks fill the others, in order
+            var all = notes;
+            if (slurCc.Count > 0 && notes.Any(x => x.Slur)) notes = notes.Where(x => !x.Slur).ToArray();
             if (bank != null)
             {
                 switch (bank.mode)
@@ -1239,6 +1268,13 @@ namespace ALWTTT.Music.Voice
                         prep.BankInfo = $"{bank.name} (text)";
                         break;
                 }
+            }
+            if (!ReferenceEquals(notes, all))
+            {
+                int k = 0;
+                for (int i = 0; i < all.Length; i++)
+                    if (!all[i].Slur) all[i].Syllable = notes[k++].Syllable;
+                    else all[i].Syllable = i > 0 ? SyllablePlanner.Nucleus(all[i - 1].Syllable) : "";
             }
             prep.NoiseSeed = songSeed ^ SyllablePlanner.Hash("voz-ruido");
             return prep;

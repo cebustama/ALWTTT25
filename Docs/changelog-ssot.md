@@ -14,6 +14,17 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-23 — MUSICA-1c: bajos afinados de oído, Jazz Funk y Ziggy con voces y melodías que se recuerdan
+
+**Clase:** semántico · operativo. Código de juego y de editor, assets de cartas y voces; cambios de MidiGenPlay pedidos por Claudio en la misma sesión (su changelog: MGP-BASS-JAZZ-1, J10, MGP-MEL-FORM-1, CHORDFIT-1, HOLD-1, BLUES-1, RISE-1, RESOLVE-1, RIFF-1). Suite de MidiGenPlay en verde.
+
+- **Bajo (D1–D7, menús *MUSICA-1c ▸ …* de `DemoBassTweaks1c.cs`):** bajos ×1,2 y slap más fuerte (`MixGainProfile`); Slap Bass 2; Ballad Root 1c (raíz un compás, raíz–quinta en blancas el siguiente) y Ballad Hold con adornos; Walking que gira 1c, Jazz Walk y Jazz Walk doble en la paleta Walking; Jazz Funk Slap en Slap Groove (avanzado); Walking Bass con contrabajo (Acoustic Bass). **D7 = C:** carta nueva **Jazz Funk** (`conito_jazz_funk`, recompensa, Fingered Bass, `BassPalette_JazzFunk`). Tempo (D4 = A): Root Line sin tempo, Ballad Hold Very Slow, Push It ×1,25.
+- **Ziggy (D9–D16, `DemoShowtimeMotif1c.cs`, `DemoZiggy1c.cs`):** Showtime en AA′ con figura al azar y final culminante (D9); paleta de voz en cada carta y todos los estilos cubiertos (D10); cartas nuevas de recompensa **Blues** (AAB, swing, notas blue), **Balada** (AA′, lenta, sostenidos) y **Grito** (AA′, figura Riff «chug») (D12, D13, D16); la melodía lee el acorde real y destaca la nota del préstamo (D14); sostenidos y subidas ligadas que la voz canta en una sílaba (D15); tesitura por estilo, finales de frase en nota del acorde, el último en la tónica, Rise Up sube una octava y acaba en su nota más alta. Robot fuera de las cartas; Borracho reservado para un estado.
+- **Voz:** `SSoT_Singer_Voice` §5.3 (tesitura, pesos de octava, ligaduras CC68).
+- **Banco de cartas:** clave `seed=` en las recetas; «▶ con voz» ya no reintroduce el canal del metrónomo (la voz cantaba un Re/Re♯ que era el metrónomo).
+- **D11 = B:** sin paleta de melodía antes de la demo; prioritaria después (POST-DEMO B11).
+- Escuchas 1–4 y smoke 5 en el juego (Default Mode, Wormus Major, Root Line, Rise Up) PASS (Claudio). Ideas: `reference/ideas/2026-11-22_musica-1c_ideas_de_claudio.md`, `2026-11-23_ziggy_cartas_vs_motor.md`.
+
 ## 2026-11-22 — MUSICA-1b: acordes que giran en el fill, bajo que gira y cuatro cartas de bajo con paleta
 
 **Clase:** semántico · operativo. Código de editor y de juego, assets de cartas; cambios de MidiGenPlay pedidos por Claudio en la misma sesión (su changelog: ARTIC-SCHED-2/3/4, BASS-PHRASE-SLAP-1, BASS-DEGREES-1/2, BASS-PALETTE-1).

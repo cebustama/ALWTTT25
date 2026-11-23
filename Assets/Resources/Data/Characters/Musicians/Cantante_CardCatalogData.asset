@@ -34,3 +34,15 @@ MonoBehaviour:
     flags: 5
     unlockId: 
     starterCopies: 1
+  - card: {fileID: 11400000, guid: 9c6418d37d9cb9f40951e07f8e2ef76e, type: 2}
+    flags: 6
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: eda3c8d2617522942a23cd31287c3a74, type: 2}
+    flags: 6
+    unlockId: 
+    starterCopies: 1
+  - card: {fileID: 11400000, guid: 58b5ff8beef265543a348719feec729b, type: 2}
+    flags: 6
+    unlockId: 
+    starterCopies: 1

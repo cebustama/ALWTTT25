@@ -25,8 +25,8 @@ MonoBehaviour:
   degreeCycle: 00000000020000000300000002000000
   degreeCycleApproach: 0
   pocketMode: 0
-  pocketSlapBoost: 0
-  pocketPopBoost: 0
+  pocketSlapBoost: 10
+  pocketPopBoost: 14
   pocketCustomLanes: 0
   pocketSlapLanes: 
   pocketPopLanes: 

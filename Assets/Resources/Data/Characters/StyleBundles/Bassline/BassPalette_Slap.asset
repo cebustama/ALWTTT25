@@ -68,6 +68,17 @@ MonoBehaviour:
   phraseAnticipation: 1
   phraseSeed: 0
   phraseTechnique: 0
+  jazzWalk:
+    enabled: 0
+    passingTones: 0.5
+    enclosures: 0.25
+    fifthApproach: 0.2
+    skips: 0.15
+    jazzDynamics: 1
+    contour: 0.6
+    turnFill: 2
+    twoFeelBars: 0
+    rhythmSource: 0
   variants:
   - label: Disco Octaves
     config: {fileID: 11400000, guid: 9662aed883256b747bb66e3885e0fc5a, type: 2}
@@ -83,5 +94,9 @@ MonoBehaviour:
     level: 2
   - label: Funk Slap Phrases
     config: {fileID: 11400000, guid: 8afd8f3ecaadd0f47b131f9b647904c9, type: 2}
+    weight: 1
+    level: 2
+  - label: Jazz Funk Slap
+    config: {fileID: 11400000, guid: a5f9392b7a0969145bfeea5638bdea72, type: 2}
     weight: 1
     level: 2

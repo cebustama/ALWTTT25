@@ -24,8 +24,47 @@ namespace ALWTTT.Music.Voice
 
         public List<Entry> styles = new List<Entry>();
 
+        /// <summary>[MUSICA-1c, Claudio 2026-11-23] Weights of the octave the style sings in,
+        /// drawn per song and part next to the style: [one down, as is, one up]. (0, 1, 0) =
+        /// the profile's own register. «Que sea menos común cantar tan grave.»</summary>
+        public Vector3 octaveWeights = new Vector3(0f, 1f, 0f);
+
+        static readonly Dictionary<(int, int), VoiceProfileSO> Shifted = new Dictionary<(int, int), VoiceProfileSO>();
+
+        /// <summary>The profile sung <paramref name="octaves"/> octaves away: a hidden runtime
+        /// copy with the transpose moved (cached; the asset is never touched).</summary>
+        public static VoiceProfileSO Shift(VoiceProfileSO p, int octaves)
+        {
+            if (p == null || octaves == 0) return p;
+            var key = (p.GetInstanceID(), octaves);
+            if (Shifted.TryGetValue(key, out var c) && c != null) return c;
+            c = Instantiate(p);
+            c.hideFlags = HideFlags.HideAndDontSave;
+            c.name = p.name + (octaves > 0 ? " +" : " ") + (12 * octaves);
+            c.transposeSemitones = p.transposeSemitones + 12 * octaves;
+            Shifted[key] = c;
+            return c;
+        }
+
+        /// <summary>The octave for (song seed, part), from <see cref="octaveWeights"/>: −1, 0 or +1.
+        /// Its own salt, so the style pick is unchanged.</summary>
+        public int PickOctave(int songSeed, int partIndex)
+        {
+            float a = Mathf.Max(0f, octaveWeights.x), b = Mathf.Max(0f, octaveWeights.y), u = Mathf.Max(0f, octaveWeights.z);
+            double total = a + b + u;
+            if (total <= 0 || (a == 0 && u == 0)) return 0;
+            var r = SyllablePlanner.Rng(songSeed ^ (partIndex * 7919), "voz-octava");
+            double x = r.Next() * total;
+            if (x < a) return -1;
+            return x < a + b ? 0 : 1;
+        }
+
         /// <summary>Weighted pick by a stable hash of (song seed, part). Null when empty.</summary>
-        public VoiceProfileSO Pick(int songSeed, int partIndex)
+        public VoiceProfileSO Pick(int songSeed, int partIndex) =>
+            Shift(PickStyle(songSeed, partIndex), PickOctave(songSeed, partIndex));
+
+        /// <summary>The style alone, without the octave.</summary>
+        public VoiceProfileSO PickStyle(int songSeed, int partIndex)
         {
             double total = 0;
             foreach (var e in styles) if (e.profile != null && e.weight > 0f) total += e.weight;

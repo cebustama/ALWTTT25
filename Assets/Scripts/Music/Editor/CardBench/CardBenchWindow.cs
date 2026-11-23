@@ -78,6 +78,9 @@ namespace ALWTTT.Music.EditorTools
             // [MUSICA-1b, MGP-BASS-PALETTE-1] force one palette variant (recipe
             // «variant=RootFive»: label or config name, spaces ignored). "" = the draw.
             public string paletteVariant = "";
+            // [MUSICA-1c] recipe «inst=Acoustic Bass»: the track's instrument for this
+            // render (MIDIInstrumentSO asset name, spaces ignored). "" = the card's.
+            public string forcedInstrument = "";
             public bool showAccentBlock;
             public bool accentCustom;
             public AccentFollowSettings accentBlock;
@@ -1028,7 +1031,8 @@ namespace ALWTTT.Music.EditorTools
                                        slot.articAlternateEvery <= 0 && slot.phraseStyle < 0 &&
                                        slot.phraseTechnique < 0 && slot.phraseSnare < 0 &&
                                        slot.phraseDead < 0 && slot.phraseSeed < 0 &&
-                                       string.IsNullOrEmpty(slot.paletteVariant))) continue;
+                                       string.IsNullOrEmpty(slot.paletteVariant) &&
+                                       string.IsNullOrEmpty(slot.forcedInstrument))) continue;
 
                 TrackRole role;
                 if (BundleOf<BackingCardConfigSO>(card, TrackRole.Backing) != null) role = TrackRole.Backing;
@@ -1038,6 +1042,21 @@ namespace ALWTTT.Music.EditorTools
                 var entry = part0.tracks.FirstOrDefault(e => e != null && e.musicianId == target.CharacterId &&
                                                              e.role == role && e.styleBundle == bundle);
                 if (entry == null) continue;   // a later card replaced this track
+
+                // [MUSICA-1c] forced instrument (recipe inst=)
+                if (!string.IsNullOrEmpty(slot.forcedInstrument))
+                {
+                    string want = slot.forcedInstrument.Replace(" ", "").ToLowerInvariant();
+                    var fi = AllAssets<MIDIInstrumentSO>().FirstOrDefault(x =>
+                        x.name.Replace(" ", "").ToLowerInvariant() == want);
+                    if (fi != null)
+                    {
+                        entry.overrideMelodicInstrument = fi;
+                        info.Add($"{target.CharacterName}: «{card.DisplayName}» con {fi.name} (solo este render).");
+                        Debug.Log($"[MUSICA-1] Banco: «{card.DisplayName}» con el instrumento {fi.name}.");
+                    }
+                    else info.Add($"⚠ no encuentro el instrumento «{slot.forcedInstrument}».");
+                }
 
                 var copy = UnityEngine.Object.Instantiate(bundle);
                 copy.name = bundle.name;
@@ -1132,6 +1151,9 @@ namespace ALWTTT.Music.EditorTools
                             (Key(v.label) == want || Key(v.config.name) == want)).ToList();
                         if (keep.Count > 0)
                         {
+                            // [MUSICA-1c] a test variant sits in the palette at weight 0
+                            // (out of the game's draw); forced here it must play.
+                            foreach (var v in keep) if (v.weight <= 0f) v.weight = 1f;
                             bt.variants = keep;
                             parts.Add($"variante forzada {keep[0].label}");
                         }
@@ -1315,9 +1337,19 @@ namespace ALWTTT.Music.EditorTools
                 }
                 string Get(string k) => kv.TryGetValue(k, out var v) ? v : null;
 
+                // [MUSICA-1c] «clear»: the column starts empty (a pasted card= is
+                // otherwise ignored when a card of the same role is already there).
+                if (kind == "clear")
+                {
+                    c.slots.Clear(); c.lineup.Clear(); c.bpm = 0;
+                    log.Add("columna vaciada");
+                    continue;
+                }
                 if (kind == "bench")
                 {
                     if (Get("bpm") is string bpm && int.TryParse(bpm, out var b)) { c.bpm = b; log.Add($"BPM {b}"); }
+                    // [MUSICA-1c] «seed=N»: the column's seed (with «B usa la semilla de A», B follows A).
+                    if (Get("seed") is string sd && int.TryParse(sd, out var sv)) { c.seed = sv; log.Add($"semilla {sv}"); }
                     if (Get("pattern") is string pn)
                     {
                         var slot = EnsureSlot(c, cd => RhythmBundleOf(cd) != null, Get("card") ?? "TEST_Rhythm", "Robot C2", log);
@@ -1334,6 +1366,15 @@ namespace ALWTTT.Music.EditorTools
                         else if (gn != "-" && prog == null) log.Add($"⚠ no encuentro la progresión «{gn}»");
                         else { slot.forcedProgressionGuid = prog == null ? "" : GuidOf(prog); log.Add($"progresión {gn}"); }
                     }
+                    continue;
+                }
+                // [MUSICA-1c, Claudio 2026-11-22] «melody card=starter_rise_up who=Ziggy»:
+                // the melody card enters the column (no per-render overrides yet).
+                if (kind == "melody")
+                {
+                    var ms = EnsureSlot(c, cd => BundleOf<MelodyCardConfigSO>(cd, TrackRole.Melody) != null,
+                        Get("card") ?? "starter_rise_up", Get("who") ?? "Ziggy", log);
+                    if (ms == null) log.Add("⚠ no hay carta de melodía en la columna");
                     continue;
                 }
                 if (kind != "chords" && kind != "bass") { log.Add($"⚠ línea desconocida: «{parts[0]}»"); continue; }
@@ -1366,6 +1407,7 @@ namespace ALWTTT.Music.EditorTools
                     if (Get("pseed") is string pse)
                     { if (int.TryParse(pse, out var v) && v >= 0) target.phraseSeed = v; else bad.Add("pseed"); }
                 }
+                if (Get("inst") is string ins) target.forcedInstrument = ins.Replace("_", " ");
                 if (!chords && Get("tone") is string to)
                 { if (Enum.TryParse<BasslineCardConfigSO.BassArpeggioToneMode>(to, true, out var tm)) target.bassTone = (int)tm; else bad.Add("tone"); }
                 if (Get("expr") is string ex)
@@ -1525,7 +1567,9 @@ namespace ALWTTT.Music.EditorTools
                 }
                 else
                 {
-                    bytes = WithoutChannel(r.bytes, r.melodyChannel);
+                    // [MUSICA-1c] From `bytes`, not r.bytes: starting again from r.bytes put the
+                    // metronome back, and its D5/D#5 clicks sounded only with the voice.
+                    bytes = WithoutChannel(bytes, r.melodyChannel);
                     EnsureVoiceSource();
                     _voicePending = true;
                 }
@@ -1660,6 +1704,7 @@ namespace ALWTTT.Music.EditorTools
                       $"bpm={r.bpm}, notes={prep.Notes.Length}, phraseEnds={prep.PhraseEnds}, sr={sr}, " +
                       $"render {sw.ElapsedMilliseconds} ms para {audioSec:0.0} s ({100.0 * sw.Elapsed.TotalSeconds / audioSec:0.0} % de tiempo real), " +
                       $"pico {peak:0.000}, canal mudo {r.melodyChannel}" +
+                      (prep.OctaveShift != 0 ? $", tesitura {(prep.OctaveShift > 0 ? "+" : "")}{12 * prep.OctaveShift}" : "") +
                       (prep.Lexicon != null ? $", lexicon=[{string.Join(" ", prep.Lexicon)}]" : "") + $"\n  sings: {prep.Sung()}");
         }
 

@@ -68,6 +68,17 @@ MonoBehaviour:
   phraseAnticipation: 1
   phraseSeed: 0
   phraseTechnique: 0
+  jazzWalk:
+    enabled: 0
+    passingTones: 0.5
+    enclosures: 0.25
+    fifthApproach: 0.2
+    skips: 0.15
+    jazzDynamics: 1
+    contour: 0.6
+    turnFill: 2
+    twoFeelBars: 0
+    rhythmSource: 0
   variants:
   - label: Walk Triad
     config: {fileID: 11400000, guid: 8c45de6ab03a41a40ab01b5722be037e, type: 2}
@@ -78,6 +89,22 @@ MonoBehaviour:
     weight: 1
     level: 1
   - label: Walking que gira
-    config: {fileID: 11400000, guid: 73cb08ec33072124998ecb25c2ab9e93, type: 2}
+    config: {fileID: 11400000, guid: a384116956460604a8b1d55743d54e24, type: 2}
+    weight: 1
+    level: 2
+  - label: Walking doble 1c
+    config: {fileID: 11400000, guid: caab2c38ecc1ebb4fbfe98a77d1c1856, type: 2}
+    weight: 0
+    level: 2
+  - label: Jazz Walk
+    config: {fileID: 11400000, guid: da153d251b199af4c8952e5bd6130579, type: 2}
+    weight: 1
+    level: 2
+  - label: Jazz Walk Two-Feel 1c
+    config: {fileID: 11400000, guid: ad83364a5956a124a84a78d907adf587, type: 2}
+    weight: 0
+    level: 2
+  - label: Jazz Walk doble
+    config: {fileID: 11400000, guid: 7a4af33f80d7b0f4f9a05c960c0ee959, type: 2}
     weight: 1
     level: 2

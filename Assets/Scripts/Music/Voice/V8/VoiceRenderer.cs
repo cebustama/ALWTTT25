@@ -24,7 +24,7 @@ namespace ALWTTT.Music.Voice.V8
         {
             public double Start, End, CStart;
             public int Note, Vel;
-            public bool LegatoNext, Fall;
+            public bool LegatoNext, Fall, Slur;
             public int C, C2;            // onset consonant indices (Phonetics.Cons), -1 none
             public int Vowel, Vowel2, Coda;
             public bool Hum;
@@ -78,7 +78,7 @@ namespace ALWTTT.Music.Voice.V8
                 var s = Phonetics.Parse(string.IsNullOrEmpty(n.Syllable) ? baseVowel : n.Syllable);
                 ev[i] = new PlanNote
                 {
-                    Start = n.Start, End = n.End, Note = n.Note, Vel = n.Vel, Fall = n.Fall,
+                    Start = n.Start, End = n.End, Note = n.Note, Vel = n.Vel, Fall = n.Fall, Slur = n.Slur,
                     C = s.Onset0, C2 = s.Onset1, Vowel = s.Vowel, Vowel2 = s.Vowel2, Coda = s.Coda, Hum = s.IsHum,
                 };
             }
@@ -210,9 +210,10 @@ namespace ALWTTT.Music.Voice.V8
                     if (left < fw && left >= 0) { double q = 1 - left / fw; target -= fall * (q * q); }
                 }
                 if (cur != lastNote) { noteOnT = e.Start; lastNote = cur; if (!hasSemis) { semis = target; hasSemis = true; } }
+                if (e.Slur) glideMs = Math.Max(glideMs, 70);   // [MUSICA-1c] a melisma slides into its note
                 if (!hasSemis || glideMs <= 0) { semis = target; hasSemis = true; }
                 else semis += (target - semis) * (1 - Math.Exp(-((double)B / SR) / (glideMs / 1000.0)));
-                if (pitchLead > 0 && cur + 1 < ev.Length && ev[cur + 1].Start - t < pitchLead && glideMs <= 0)
+                if (pitchLead > 0 && cur + 1 < ev.Length && !ev[cur + 1].Slur && ev[cur + 1].Start - t < pitchLead && glideMs <= 0)
                     semis = ev[cur + 1].Note + transpose - (scoop > 0 ? scoop : 0);
                 v.SetMusicalNote((float)(semis - 69));
             }

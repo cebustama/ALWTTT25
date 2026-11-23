@@ -69,5 +69,6 @@ namespace ALWTTT.Music.Voice.V8
         public bool PhraseEnd;      // JS finFrase (deduced from the stem in the game: D1 = B)
         public bool Fall;           // JS caida (forced fall >= 2 st at the end of the note)
         public string Syllable;     // null/"" = base vowel
+        public bool Slur;           // [MUSICA-1c, MGP-MEL-HOLD-1] starts under CC68: the previous syllable's vowel, gliding
     }
 }

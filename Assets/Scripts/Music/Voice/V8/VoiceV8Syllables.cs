@@ -181,6 +181,16 @@ namespace ALWTTT.Music.Voice.V8
         /// from <paramref name="verseSeed"/> (the song and part). The workshop passes one seed
         /// for both. Returns the lexicon words (for logs).
         /// </summary>
+        /// <summary>[MUSICA-1c] The vowel a melisma keeps singing: the last vowel of the syllable
+        /// (a hum or a vowel-less syllable is kept whole).</summary>
+        public static string Nucleus(string syllable)
+        {
+            if (string.IsNullOrEmpty(syllable)) return "";
+            for (int i = syllable.Length - 1; i >= 0; i--)
+                if ("aeiouáéíóú".IndexOf(char.ToLowerInvariant(syllable[i])) >= 0) return syllable[i].ToString();
+            return syllable;
+        }
+
         public static string[] AssignZigues(SungNote[] notes, int lexiconSeed, double hardness, int verseSeed)
         {
             var lex = Zigues(lexiconSeed, hardness);

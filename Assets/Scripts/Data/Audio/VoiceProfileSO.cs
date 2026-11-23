@@ -93,6 +93,12 @@ namespace ALWTTT.Music.Voice
                  "Empty = every note on the base vowel.")]
         public SyllableBankSO syllableBank;
 
+        // [MUSICA-1c, Claudio 2026-11-23] The sung register: the median sung note (MIDI, after
+        // transpose) is moved by octaves into [min, max]. 0 = off. SingerVoice.PrepareV8.
+        [Header("Register (MUSICA-1c)")]
+        [Range(0, 96)] public int tessituraMin = 0;
+        [Range(0, 96)] public int tessituraMax = 0;
+
         /// <summary>
         /// [VOZ-2] Copies the levers into the v8 renderer's live parameters (no allocation).
         /// Called at arm time and every frame while the voice sings, so an Inspector edit in

@@ -54,3 +54,7 @@ MonoBehaviour:
     flags: 5
     unlockId: 
     starterCopies: 2
+  - card: {fileID: 11400000, guid: cdb21955898e22049b4ca82f22f8b4c1, type: 2}
+    flags: 6
+    unlockId: 
+    starterCopies: 1

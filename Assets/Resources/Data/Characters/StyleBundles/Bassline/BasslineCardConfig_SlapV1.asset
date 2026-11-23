@@ -20,8 +20,8 @@ MonoBehaviour:
   velocityJitter: 0
   arpeggioToneMode: 0
   pocketMode: 2
-  pocketSlapBoost: 0
-  pocketPopBoost: 0
+  pocketSlapBoost: 10
+  pocketPopBoost: 14
   pocketCustomLanes: 0
   pocketSlapLanes: 
   pocketPopLanes: 

@@ -1,8 +1,8 @@
 # Arranque S10 · ALINEACIÓN-2 + TEST-SETUP-1
 
-Escrito el 2026-11-20 al cerrar MUSICA-1 (parcial). Planning, no autoridad. Fila 10 del «Orden de entrada» de
-`DEMO-1211_Plan_de_Sesiones.md`, **imprescindible**. Calendario: hasta la congelación (S12, vie 27-nov) quedan S10 y
-S11; PUB-SHIELD-1 pasa a C1 de POST-DEMO y MUSICA-1b solo entra si S10 cierra pronto.
+Escrito el 2026-11-20 al cerrar MUSICA-1 (parcial); actualizado el 2026-11-23 al cerrar MUSICA-1c. Planning, no
+autoridad. Fila 10 del «Orden de entrada» de `DEMO-1211_Plan_de_Sesiones.md`, **imprescindible**. Calendario: hasta la
+congelación (S12, vie 27-nov) quedan S10 y S11; PUB-SHIELD-1 pasa a C1 de POST-DEMO. MUSICA-1b y MUSICA-1c ya entraron.
 
 ## Pegar en la sesión nueva
 
@@ -14,9 +14,10 @@ DEMO-1211_Plan_de_Sesiones.md. Empieza con /buscar-referencias --all (selección
 coherente por formación; setup de partida desde el menú; nodos aleatorios en mapas de roguelike)
 y preséntame las decisiones en formato D antes de construir.
 
-Contexto: MUSICA-1 cerró parcial el 2026-11-20 (Zig canta el Gran Final, solo de Sibi con Saw
-Wave, F5 compases por loop, vida del público ×1,5, el gig vuelve al mapa). Build para Matías
-hecha ese día. Lo que quedó de MUSICA-1 está en ARRANQUE_MUSICA-1b.md y va después.
+Contexto: la música de la demo está cerrada (MUSICA-1, -1b y -1c, 20–23 nov): Zig canta el
+Gran Final; Wormus gira en el fill; Conito con 5 cartas de bajo por paleta (Jazz Funk nueva);
+Ziggy con paleta de voz por carta y 3 cartas nuevas de recompensa (Blues, Balada, Grito).
+Todo commiteado y subido el 23-nov.
 
 Restricciones: logs con la etiqueta [S10]; no escribir .meta; no editar MidiGenPlay; sin commit
 ni push sin pedirlo; ≤3 smokes jugados por Claudio; pasos de editor uno a uno.
@@ -38,7 +39,10 @@ frentes y el arranque de S11 (o MUSICA-1b si sobra tiempo).
 - `1b - Linear Map` ya devuelve el gig al mapa (`gigReturnDestination = Map`); la nave queda en «Volver a la nave».
 - La vida del público subió ×1,5 (menú *ALWTTT ▸ Balance*). Si los JSON de gigs traen `maxVibe`, que respeten los
   valores nuevos o se escalen con el mismo criterio.
-- `GigDevSettings`: mazo fijo apagado para la build de Matías; vuelve a encenderlo solo para pruebas.
+- `GigDevSettings`: quedó encendido el mazo fijo `smoke-5` y la semilla fijada 655931081 (smoke 5 de MUSICA-1c).
+  Apágalos para jugar las alineaciones con su mazo real; el aviso de build los apaga antes de S12.
+- **Mazo coherente por formación:** Ziggy tiene ahora más cartas en su catálogo (Blues, Balada, Grito, de
+  recompensa) y Conito una más (Jazz Funk, de recompensa). El mazo inicial no cambió.
 
 ## Criterio de cierre
 

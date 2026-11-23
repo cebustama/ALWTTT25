@@ -409,6 +409,19 @@ namespace ALWTTT.Music
 
                     part.Tracks.Add(tcfg);
 
+                    // [MUSICA-1c] what the smoke listens for: figure melodies and bass palettes.
+                    if (trModel.styleBundle is MelodyCardConfigSO mel &&
+                        mel.melodyMode == MelodyCardConfigSO.MelodyMode.Figure)
+                        Debug.Log($"[MUSICA-1] Parte {partIndex + 1}: melodía de {musicianId} en modo figura " +
+                                  $"({mel.name}, semilla {mel.figureSeed}, varía por canción: " +
+                                  $"{(mel.figureVaryPerSong ? "sí" : "no")}, patrón fijo: " +
+                                  $"{(mel.patternOverride != null ? mel.patternOverride.name : "ninguno")}).");
+                    else if (trModel.styleBundle is BasslineCardConfigSO bassPal &&
+                             bassPal.variants != null && bassPal.variants.Count > 0)
+                        Debug.Log($"[MUSICA-1] Parte {partIndex + 1}: bajo de {musicianId} con la paleta " +
+                                  $"{bassPal.name} ({string.Join(" · ", bassPal.variants.Where(v => v != null && v.weight > 0f).Select(v => v.label))}), " +
+                                  $"instrumento {instName}.");
+
                     // Remember roles present in Part 0 to seed ChannelRoles (layout)
                     if (cfg.Parts.Count == 0)
                     {

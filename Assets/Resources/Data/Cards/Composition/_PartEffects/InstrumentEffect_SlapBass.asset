@@ -14,10 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Cards.InstrumentEffect
   scope: 0
   timing: 1
-  mode: 3
-  melodicInstrument: {fileID: 0}
+  mode: 0
+  melodicInstrument: {fileID: 11400000, guid: 4c04ad83fa6dfc24999fbc43d20be6b8, type: 2}
   percussionInstrument: {fileID: 0}
   instrumentType: 0
   melodicInstrumentPool:
-  - {fileID: 11400000, guid: 19889ea7d34284844a6cf964d9282dce, type: 2}
   - {fileID: 11400000, guid: 4c04ad83fa6dfc24999fbc43d20be6b8, type: 2}
