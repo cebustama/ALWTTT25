@@ -23,7 +23,7 @@ Restricciones: logs con la etiqueta [S10]; no escribir .meta; no editar MidiGenP
 ni push sin pedirlo; ≤3 smokes jugados por Claudio; pasos de editor uno a uno.
 
 Cierre: smokes jugados, docs propuestos y aplicados con OK, proyectos.md, foco.md, página de
-frentes y el arranque de S11 (o MUSICA-1b si sobra tiempo).
+frentes y el arranque de S11.
 ```
 
 ## Qué se pide
