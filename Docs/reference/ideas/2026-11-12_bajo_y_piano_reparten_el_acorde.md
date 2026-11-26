@@ -25,3 +25,7 @@ Que Conito (bajo) y Sibi (acordes) se repartan las notas del acorde en lugar de 
 - Taller armónico: una hoja de oído con voicings repartidos sería la forma barata de probarlo antes del motor.
 
 Después de la demo.
+
+## Enlaces posteriores
+
+- **2026-11-26 · Qué hacer con el hueco del piano:** Jaron Lopez («6 Places a Chord Can Go») da las fundamentales al bajo y llena el grave del piano con una contramelodía de notas del acorde por pasos. Nota: `MidiGenPlay/MidiGenPlay/Documentation~/research/2026-11-26-wormhole-y-neorriemanniana.md` §11.
