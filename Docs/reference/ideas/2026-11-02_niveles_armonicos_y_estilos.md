@@ -38,3 +38,7 @@ Ventajas:
 5. Lo que el alfabeto de MidiGenPlay no puede expresar todavía (acordes de quinta para grunge y metal, acordes con bajo distinto para city pop y Stevie Wonder, 11.ª y 13.ª y alterados para jazz).
 
 **Herramientas:** un taller web donde se escribe una progresión y se oye al momento (con tono, BPM y nivel 1/2/3), que copia el bloque de Import de MidiGenPlay, y un catálogo online etiquetado.
+
+## Enlaces posteriores
+
+- **2026-11-26 · Mediantes cromáticas, «wormhole» y P/L/R:** dos videos de Jaron Lopez y la teoría neorriemanniana dan una definición precisa del nivel 3 («dos pasos en la red de Riemann») y reglas de voicing para que el salto suene a banda y no a robot. Nota en MidiGenPlay: `MidiGenPlay/MidiGenPlay/Documentation~/research/2026-11-26-wormhole-y-neorriemanniana.md` (§5, §6 y §9). Incluye la sincronización C2 ↔ Sibi.
